@@ -63,20 +63,20 @@ ringside-booker/
 
 ## Stack
 
-| Area | Choice | Why |
-|---|---|---|
-| Language | TypeScript 5, `strict`, no `any` | One language end to end; the engine is the riskiest code and needs types most |
-| Engine tests | Vitest | Fast, same config style as the web app |
-| Validation | zod | One schema gives types plus runtime checks for saves, data packs and tunables |
-| UI | React 18 + React Router 6 | What I already use everywhere |
-| Build | Vite | Fast dev server, Web Worker support out of the box |
-| UI state | Zustand for UI-only state; game data is read from the engine | Keeps the engine the single source of truth |
-| Engine ↔ UI | Web Worker + Comlink | Multi-day skips and AI turns run off the main thread so the UI never freezes |
-| Styling | CSS Modules + CSS custom properties (design tokens) | No inline styles; tokens make themes and the mobile layout manageable |
-| Saves | IndexedDB (via `idb`), gzip-compressed JSON via `CompressionStream` | Big saves, no quota issues with localStorage, export to a file |
-| Lint/format | ESLint flat config + typescript-eslint, Prettier | `@typescript-eslint/no-explicit-any` is an error |
-| E2E | Playwright with a desktop and a phone viewport project | The phone layout is tested, not assumed |
-| CI | GitHub Actions: lint, typecheck, test, build | Every PR |
+| Area         | Choice                                                              | Why                                                                           |
+| ------------ | ------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Language     | TypeScript 5, `strict`, no `any`                                    | One language end to end; the engine is the riskiest code and needs types most |
+| Engine tests | Vitest                                                              | Fast, same config style as the web app                                        |
+| Validation   | zod                                                                 | One schema gives types plus runtime checks for saves, data packs and tunables |
+| UI           | React 18 + React Router 6                                           | What I already use everywhere                                                 |
+| Build        | Vite                                                                | Fast dev server, Web Worker support out of the box                            |
+| UI state     | Zustand for UI-only state; game data is read from the engine        | Keeps the engine the single source of truth                                   |
+| Engine ↔ UI  | Web Worker + Comlink                                                | Multi-day skips and AI turns run off the main thread so the UI never freezes  |
+| Styling      | CSS Modules + CSS custom properties (design tokens)                 | No inline styles; tokens make themes and the mobile layout manageable         |
+| Saves        | IndexedDB (via `idb`), gzip-compressed JSON via `CompressionStream` | Big saves, no quota issues with localStorage, export to a file                |
+| Lint/format  | ESLint flat config + typescript-eslint, Prettier                    | `@typescript-eslint/no-explicit-any` is an error                              |
+| E2E          | Playwright with a desktop and a phone viewport project              | The phone layout is tested, not assumed                                       |
+| CI           | GitHub Actions: lint, typecheck, test, build                        | Every PR                                                                      |
 
 ## Engine rules
 

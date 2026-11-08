@@ -1,0 +1,14 @@
+{
+  "name": "@ringside/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The Ringside Booker game UI.",
+  "scripts": {
+    "test": "vitest run --config ../../vitest.config.ts --project web",
+    "typecheck": "tsc -b"
+  },
+  "dependencies": {
+    "@ringside/engine": "0.1.0"
+  }
+}
