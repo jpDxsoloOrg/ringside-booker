@@ -114,6 +114,29 @@ const ENGINE_TESTING_RESTRICTION = {
   message: 'Test fixtures are for tests only and never ship in app or engine code.',
 };
 
+// Icons are drawn only through the Icon component, so the icon set can be swapped in one place.
+// Inside it, Lucide glyphs are named imports so the bundle carries only the icons we map.
+const ICON_FILES = ['apps/web/src/components/Icon/**'];
+const LUCIDE_SOURCE = '[source.value=/^lucide-react(\\u002F|$)/]';
+const LUCIDE_OUTSIDE_ICON_MESSAGE =
+  'Draw icons with the Icon component from @/components/Icon; only it imports lucide-react.';
+const LUCIDE_NAMESPACE_MESSAGE =
+  'Import each Lucide glyph by name so unused icons stay out of the bundle.';
+const LUCIDE_NAMESPACE_SELECTORS = [
+  {
+    selector: `ImportDeclaration${LUCIDE_SOURCE} > ImportNamespaceSpecifier`,
+    message: LUCIDE_NAMESPACE_MESSAGE,
+  },
+  {
+    selector: `ImportExpression${LUCIDE_SOURCE}`,
+    message: LUCIDE_NAMESPACE_MESSAGE,
+  },
+  {
+    selector: `ExportAllDeclaration${LUCIDE_SOURCE}`,
+    message: LUCIDE_NAMESPACE_MESSAGE,
+  },
+];
+
 const ENGINE_RESTRICTED_GLOBALS = [
   'window',
   'document',
@@ -238,6 +261,30 @@ export default defineConfig(
         { forbid: [{ propName: 'style', message: STYLE_PROP_MESSAGE }] },
       ],
       'no-restricted-imports': ['error', { patterns: [ENGINE_INTERNALS_RESTRICTION] }],
+    },
+  },
+
+  // Lucide stays behind the Icon component, imported glyph by glyph. The Icon block comes second
+  // so its options replace the outside-Icon ban for those files.
+  {
+    files: WEB_FILES,
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        { selector: `ImportDeclaration${LUCIDE_SOURCE}`, message: LUCIDE_OUTSIDE_ICON_MESSAGE },
+        { selector: `ImportExpression${LUCIDE_SOURCE}`, message: LUCIDE_OUTSIDE_ICON_MESSAGE },
+        {
+          selector: `ExportNamedDeclaration${LUCIDE_SOURCE}`,
+          message: LUCIDE_OUTSIDE_ICON_MESSAGE,
+        },
+        { selector: `ExportAllDeclaration${LUCIDE_SOURCE}`, message: LUCIDE_OUTSIDE_ICON_MESSAGE },
+      ],
+    },
+  },
+  {
+    files: ICON_FILES,
+    rules: {
+      'no-restricted-syntax': ['error', ...LUCIDE_NAMESPACE_SELECTORS],
     },
   },
 

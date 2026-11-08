@@ -1,12 +1,8 @@
+/* Lucide draws 2px rounded strokes in currentColor; these rules only size and place the icon. */
 .icon {
   flex: none;
   display: inline-block;
   vertical-align: middle;
-  fill: none;
-  stroke: currentcolor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
 }
 
 /* Follows the font size of the text around it. */

@@ -60,13 +60,13 @@ export function MoreSheet({ open, onClose, sections, badges }: MoreSheetProps) {
         <ul className={styles['moreFooter']}>
           <li>
             <Link to={routes.settings()} className={styles['navLink']} onClick={onClose}>
-              <Icon name="settings" size="md" className={styles['navIcon']} />
+              <Icon name="settings" size="md" className={styles['navIcon']} decorative />
               <span className={styles['navLabel']}>Settings</span>
             </Link>
           </li>
           <li>
             <Link to={routes.title()} className={styles['navLink']} onClick={onClose}>
-              <Icon name="log-out" size="md" className={styles['navIcon']} />
+              <Icon name="log-out" size="md" className={styles['navIcon']} decorative />
               <span className={styles['navLabel']}>Main menu</span>
             </Link>
           </li>

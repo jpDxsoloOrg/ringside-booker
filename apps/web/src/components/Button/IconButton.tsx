@@ -48,7 +48,7 @@ export function IconButton({
         className,
       )}
     >
-      <Icon name={icon} size={size === 'sm' ? 'sm' : 'md'} />
+      <Icon name={icon} size={size === 'sm' ? 'sm' : 'md'} decorative />
     </button>
   );
 }

@@ -55,6 +55,7 @@ function HeaderCell<Row>({ column, sort, onSortChange }: HeaderCellProps<Row>) {
           name={isActive && sort.direction === 'asc' ? 'sort-asc' : 'sort-desc'}
           size="sm"
           className={styles['sortIcon']}
+          decorative
         />
       </button>
     </th>

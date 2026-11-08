@@ -242,10 +242,10 @@
   font-weight: var(--font-weight-semibold);
 }
 
-/* Icons: a grid of named tiles. */
+/* Icons: a grid of named tiles per group. Two columns or more, down to a 390px phone. */
 .iconGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 8rem), 1fr));
   gap: var(--space-2);
   padding: 0;
   list-style: none;
@@ -261,6 +261,10 @@
   font-family: var(--font-family-mono);
   font-size: var(--font-size-xs);
   overflow-wrap: anywhere;
+}
+
+.iconName {
+  min-inline-size: 0;
 }
 
 .statGrid {

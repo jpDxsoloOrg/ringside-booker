@@ -40,6 +40,11 @@ components/
   `Stack` gap) map to classes.
 - **Accessible by default.** Real buttons and headings, an accessible name on every control,
   decorative icons hidden from screen readers, and focus styles from `global.css`.
+- **Icons through `Icon` only.** `<Icon name="..." />` draws a Lucide glyph from the name map in
+  `Icon/icons.ts`. Pass `decorative` when text beside it already says the same thing, otherwise a
+  `label`; the props type rejects an icon with neither. Only `components/Icon` may import
+  `lucide-react`, and only glyph by glyph (lint enforced), so unused icons stay out of the bundle
+  and the set can be swapped in one file.
 - **Phone-ready.** Below `--bp-mobile` the component still fits a 390px screen, and on touch
   screens (`@media (pointer: coarse)`) every control is at least `--tap-target-min` tall.
 - **Tested.** Unit tests sit next to the component; the gallery e2e spec
