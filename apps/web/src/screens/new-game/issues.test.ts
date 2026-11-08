@@ -6,6 +6,7 @@ import {
   firstStepWithIssue,
   issueFromPackIssue,
   issueFromReason,
+  stepLevelIssues,
 } from './issues';
 
 describe('issueFromReason', () => {
@@ -74,5 +75,28 @@ describe('issue helpers', () => {
     expect(announcementFor(issues)).toBe(
       '2 problems to fix on the Promotion step. Short name taken.',
     );
+  });
+});
+
+describe('stepLevelIssues', () => {
+  it('lists the problems no field of the step shows, and leaves out the ones a field shows', () => {
+    const issues = [
+      issueFromReason({ code: 'packIssue', message: 'The people file is broken.' }),
+      issueFromReason({ code: 'x', message: 'No world.', field: 'rootPackId' }),
+      issueFromReason({ code: 'x', message: 'Bad override.', field: 'tunableOverrides.cash' }),
+      issueFromReason({ code: 'x', message: 'Bad setting.', field: 'settings.equalStart' }),
+      issueFromReason({ code: 'x', message: 'Bad size.', field: 'player.size' }),
+      issueFromReason({ code: 'x', message: 'Short name taken.', field: 'player.shortName' }),
+    ];
+    expect(stepLevelIssues(issues, 'world').map((issue) => issue.message)).toEqual([
+      'The people file is broken.',
+    ]);
+    expect(stepLevelIssues(issues, 'options').map((issue) => issue.message)).toEqual([
+      'Bad override.',
+    ]);
+    expect(stepLevelIssues(issues, 'promotion').map((issue) => issue.message)).toEqual([
+      'Bad size.',
+    ]);
+    expect(stepLevelIssues(issues, 'review')).toEqual([]);
   });
 });

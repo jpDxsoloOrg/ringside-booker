@@ -403,6 +403,25 @@ describe('NewGameScreen', () => {
     });
   });
 
+  it('shows a refusal no field owns at the top of its step', async () => {
+    const user = userEvent.setup();
+    chooseExistingPromotion();
+    engineMock.start.mockResolvedValue({
+      kind: 'refused',
+      reasons: [{ code: 'packIssue', message: 'people.json in test-world is not valid.' }],
+    });
+    const router = renderWizard('/new?step=4');
+    await expectStepHeading('Review and start');
+
+    await user.click(screen.getByRole('button', { name: 'Start game' }));
+
+    await expectStepHeading('Choose a world');
+    expect(router.state.location.search).toBe('?step=1');
+    expect(screen.getByTestId('step-issues')).toHaveTextContent(
+      'people.json in test-world is not valid.',
+    );
+  });
+
   it('shows the busy state while the game is built, then opens the office', async () => {
     const user = userEvent.setup();
     chooseExistingPromotion();

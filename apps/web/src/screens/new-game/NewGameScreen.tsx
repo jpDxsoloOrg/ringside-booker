@@ -19,6 +19,7 @@ import {
   issueFromPackIssue,
   issueFromReason,
   issuesOnStep,
+  stepLevelIssues,
 } from './issues';
 import type { WizardIssue } from './issues';
 import styles from './NewGameScreen.module.css';
@@ -102,6 +103,20 @@ function FailurePanel({ failure, busy, onRetrySave, onDismiss }: FailurePanelPro
         </Button>
       </div>
     </div>
+  );
+}
+
+/** Problems on the step that no field shows, such as a pack the engine could not read. */
+function StepIssueList({ issues }: { readonly issues: readonly WizardIssue[] }) {
+  if (issues.length === 0) return null;
+  return (
+    <ul className={styles['stepIssues']} data-testid="step-issues">
+      {issues.map((issue, index) => (
+        <li key={`${issue.message}-${String(index)}`}>
+          <Icon name="warning" size="sm" decorative /> {issue.message}
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -460,6 +475,7 @@ export function NewGameScreen() {
               }}
             />
           )}
+          <StepIssueList issues={stepLevelIssues(draft.issues, step.id)} />
           {stepContent}
           <div className={styles['actionBar']} data-testid="wizard-actions">
             <Button

@@ -37,7 +37,6 @@ export function ReviewStep({
   onPlayerNameChange,
   onSaveNameChange,
 }: ReviewStepProps) {
-  const generalIssues = issues.filter((issue) => issue.step === 'review' && issue.field === null);
   return (
     <div className={styles['step']}>
       <Panel title="Your new game" headingLevel={3}>
@@ -63,13 +62,6 @@ export function ReviewStep({
           error={fieldMessage(issues, 'saveName')}
         />
       </div>
-      {generalIssues.length > 0 && (
-        <ul className={styles['issueList']}>
-          {generalIssues.map((issue, index) => (
-            <li key={`${issue.message}-${String(index)}`}>{issue.message}</li>
-          ))}
-        </ul>
-      )}
       <p className={styles['progress']} role="status" data-testid="start-progress">
         {phase === null ? '' : START_PHASE_TEXT[phase]}
       </p>

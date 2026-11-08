@@ -5,7 +5,7 @@
  * message next to its field.
  */
 
-import { formatPackIssue } from '@ringside/engine';
+import { formatPackIssue, NEW_GAME_REASON_CODES } from '@ringside/engine';
 import type { PackIssue, Reason } from '@ringside/engine';
 import { WIZARD_STEPS } from './wizardSteps';
 import type { WizardStepId } from './wizardSteps';
@@ -59,7 +59,7 @@ const TOP_LEVEL_FIELDS: Readonly<Record<string, { step: WizardStepId; field: Wiz
 };
 
 /** Reason codes that are about the packs, which the World step owns. */
-const WORLD_CODES: ReadonlySet<string> = new Set(['packIssue']);
+const WORLD_CODES: ReadonlySet<string> = new Set([NEW_GAME_REASON_CODES.packIssue]);
 
 /** Where an engine input path (`player.shortName`, `settings.sandbox`, …) belongs. */
 function placeField(field: string): Pick<WizardIssue, 'step' | 'field'> {
@@ -122,6 +122,32 @@ export function issuesOnStep(
   stepId: WizardStepId,
 ): readonly WizardIssue[] {
   return issues.filter((issue) => issue.step === stepId);
+}
+
+/**
+ * The fields each step draws next to its own control. A problem on any other field (or on none)
+ * is listed at the top of its step instead, so a refusal never sends the player to a step that
+ * does not say what is wrong.
+ */
+const FIELDS_SHOWN_ON_STEP: Readonly<Record<WizardStepId, readonly WizardField[]>> = {
+  world: ['rootPackId'],
+  promotion: ['promotionKey', 'name', 'shortName', 'homeRegionKey', 'style', 'color'],
+  options: ['customWeeks', 'seed', 'startDate'],
+  review: ['playerName', 'saveName'],
+};
+
+function isShownAtField(issue: WizardIssue): boolean {
+  if (issue.field === null) return false;
+  if (issue.step === 'options' && issue.field.startsWith('setting.')) return true;
+  return FIELDS_SHOWN_ON_STEP[issue.step].includes(issue.field);
+}
+
+/** The problems on one step that no field of it shows: the step lists these itself. */
+export function stepLevelIssues(
+  issues: readonly WizardIssue[],
+  stepId: WizardStepId,
+): readonly WizardIssue[] {
+  return issuesOnStep(issues, stepId).filter((issue) => !isShownAtField(issue));
 }
 
 /** What the live region says when the wizard sends the player back to fix something. */

@@ -5,16 +5,22 @@
  *
  * Every option and limit comes from the preview (season presets and custom range, settings,
  * founding numbers, taken names), so a new tunable or setting never needs a change here. The
- * length limits on typed names are the engine's input rules repeated so the player hears about them
- * before submitting; the engine checks everything again.
+ * length limits on typed names are the engine's own exported input rules, checked here so the
+ * player hears about them before submitting; the engine checks everything again.
  */
 
 import {
   addDays,
   compareDates,
+  FOUNDED_NAME_MAX_LENGTH,
+  FOUNDED_NAME_MIN_LENGTH,
   HEX_COLOR_PATTERN,
   isGameDate,
+  PLAYER_NAME_MAX_LENGTH,
   PROMOTION_STYLES,
+  SAVE_NAME_MAX_LENGTH,
+  SEED_MAX_LENGTH,
+  SHORT_NAME_PATTERN,
   year,
 } from '@ringside/engine';
 import type {
@@ -37,12 +43,12 @@ export type DraftSnapshot = Pick<
   'rootPackId' | 'player' | 'seasonLength' | 'settings' | 'seed' | 'startDate' | 'playerName'
 > & { readonly saveName: string | null };
 
-export const FOUNDED_NAME_MIN = 3;
-export const FOUNDED_NAME_MAX = 48;
-export const SHORT_NAME_PATTERN = /^[A-Z0-9]{2,8}$/;
-export const SEED_MAX = 64;
-export const PLAYER_NAME_MAX = 40;
-export const SAVE_NAME_MAX = 60;
+/** The engine's own input limits, so the wizard's early checks can never drift from them. */
+export const FOUNDED_NAME_MIN = FOUNDED_NAME_MIN_LENGTH;
+export const FOUNDED_NAME_MAX = FOUNDED_NAME_MAX_LENGTH;
+export const SEED_MAX = SEED_MAX_LENGTH;
+export const PLAYER_NAME_MAX = PLAYER_NAME_MAX_LENGTH;
+export const SAVE_NAME_MAX = SAVE_NAME_MAX_LENGTH;
 
 const DAYS_PER_WEEK = 7;
 

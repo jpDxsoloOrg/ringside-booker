@@ -213,6 +213,19 @@ button.railButton:disabled {
   outline-offset: 2px;
 }
 
+/* Problems no field of the step shows, listed above the step. */
+.stepIssues {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-negative);
+  border-radius: var(--radius-card);
+  color: var(--color-negative);
+  font-size: var(--font-size-sm);
+  list-style: none;
+}
+
 .waiting {
   display: grid;
   justify-items: start;
