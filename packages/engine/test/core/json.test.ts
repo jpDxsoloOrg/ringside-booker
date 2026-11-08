@@ -3,9 +3,13 @@ import {
   EngineError,
   NotSerialisableError,
   assertJsonValue,
+  cloneJson,
   findJsonProblem,
+  isJsonArray,
+  isJsonObject,
   isJsonValue,
   zJsonValue,
+  type JsonValue,
 } from '@ringside/engine';
 
 class Wrestler {
@@ -145,5 +149,48 @@ describe('zJsonValue', () => {
     const result = zJsonValue.safeParse({ a: [1, new Set()] });
     expect(result.success).toBe(false);
     expect(result.error?.issues[0]?.message).toContain('$.a[1] is a Set');
+  });
+});
+
+describe('isJsonObject and isJsonArray', () => {
+  it('tell objects, arrays and leaves apart', () => {
+    const values: JsonValue[] = [{ a: 1 }, [1], 'text', 3, true, null];
+    expect(values.map((value) => isJsonObject(value))).toEqual([
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+    ]);
+    expect(values.map((value) => isJsonArray(value))).toEqual([
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+    ]);
+    expect(isJsonObject(undefined)).toBe(false);
+  });
+});
+
+describe('cloneJson', () => {
+  it('returns an equal value that shares no objects with the original', () => {
+    const original: JsonValue = { list: [1, { deep: 'x' }], nested: { flag: true, empty: null } };
+    const copy = cloneJson(original);
+    expect(copy).toEqual(original);
+    expect(copy).not.toBe(original);
+    if (!isJsonObject(copy) || !isJsonObject(original)) {
+      throw new Error('expected objects');
+    }
+    expect(copy['list']).not.toBe(original['list']);
+    expect(copy['nested']).not.toBe(original['nested']);
+  });
+
+  it('returns leaves as they are', () => {
+    expect(cloneJson('text')).toBe('text');
+    expect(cloneJson(null)).toBeNull();
+    expect(cloneJson(-0)).toBe(-0);
   });
 });

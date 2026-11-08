@@ -84,6 +84,38 @@ export function assertJsonValue(value: unknown, path = '$'): asserts value is Js
   }
 }
 
+/** True when `value` is a plain JSON object: not null and not an array. Checks one level only. */
+export function isJsonObject(value: JsonValue | undefined): value is JsonObject {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/**
+ * A deep copy of a JSON value. Save migrations get a copy of the document through this, so a
+ * migration can never change the document it was handed.
+ */
+export function cloneJson<T extends JsonValue>(value: T): T;
+export function cloneJson(value: JsonValue): JsonValue {
+  if (typeof value !== 'object' || value === null) {
+    return value;
+  }
+  if (isJsonArray(value)) {
+    return value.map((entry) => cloneJson(entry));
+  }
+  const copy: Record<string, JsonValue> = {};
+  for (const key of Object.keys(value)) {
+    const entry = value[key];
+    if (entry !== undefined) {
+      copy[key] = cloneJson(entry);
+    }
+  }
+  return copy;
+}
+
+/** `Array.isArray` narrowed to JSON arrays (the built-in guard loses readonly array types). */
+export function isJsonArray(value: JsonValue): value is JsonArray {
+  return Array.isArray(value);
+}
+
 /** Zod schema for a {@link JsonValue}; the issue message names the first bad path. */
 export const zJsonValue: z.ZodType<JsonValue> = z.custom<JsonValue>().superRefine((value, ctx) => {
   const problem = findJsonProblem(value);
