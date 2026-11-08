@@ -66,9 +66,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       )}
     >
       <span className={styles['content']}>
-        {iconStart !== undefined && <Icon name={iconStart} />}
+        {iconStart !== undefined && <Icon name={iconStart} decorative />}
         {children}
-        {iconEnd !== undefined && <Icon name={iconEnd} />}
+        {iconEnd !== undefined && <Icon name={iconEnd} decorative />}
       </span>
       {loading && <span className={styles['spinner']} aria-hidden="true" />}
     </button>

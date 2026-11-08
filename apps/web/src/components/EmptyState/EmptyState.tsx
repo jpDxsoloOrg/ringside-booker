@@ -43,7 +43,12 @@ export function EmptyState({
   return (
     <div className={classNames(styles['emptyState'], styles[`size-${size}`], className)}>
       {icon !== undefined && (
-        <Icon name={icon} size={size === 'page' ? 'lg' : 'md'} className={styles['icon']} />
+        <Icon
+          name={icon}
+          size={size === 'page' ? 'lg' : 'md'}
+          className={styles['icon']}
+          decorative
+        />
       )}
       <Title className={styles['title']}>{title}</Title>
       {body !== undefined && <p className={styles['body']}>{body}</p>}

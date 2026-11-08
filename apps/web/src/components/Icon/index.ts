@@ -1,4 +1,4 @@
 export { Icon } from './Icon';
-export type { IconProps, IconSize } from './Icon';
-export { ICON_NAMES, isIconName } from './icons';
-export type { IconName } from './icons';
+export type { DecorativeIconProps, IconProps, IconSize, LabelledIconProps } from './Icon';
+export { ICON_GROUPS, ICON_NAMES, isIconName } from './icons';
+export type { IconGroup, IconName } from './icons';

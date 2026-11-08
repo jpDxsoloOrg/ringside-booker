@@ -64,7 +64,7 @@ export function Panel({
           setCollapsed((wasCollapsed) => !wasCollapsed);
         }}
       >
-        <Icon name="chevron-down" className={styles['chevron']} />
+        <Icon name="chevron-down" className={styles['chevron']} decorative />
         {title}
       </button>
     </Heading>

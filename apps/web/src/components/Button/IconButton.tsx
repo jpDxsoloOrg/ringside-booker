@@ -45,7 +45,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
         className,
       )}
     >
-      <Icon name={icon} size={size === 'sm' ? 'sm' : 'md'} />
+      <Icon name={icon} size={size === 'sm' ? 'sm' : 'md'} decorative />
     </button>
   );
 });
