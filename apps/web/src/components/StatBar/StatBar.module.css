@@ -74,9 +74,14 @@
   fill: var(--color-accent);
 }
 
-/* A recent gain: the newest part of the bar in the positive colour. */
+/*
+ * A recent gain: the newest part of the bar as a lighter positive tint. It has to be lighter, not
+ * just green: a high value already has a positive (green) fill, and a solid green gain would
+ * vanish into it.
+ */
 .gain {
   fill: var(--color-positive);
+  fill-opacity: 0.5;
 }
 
 /* A recent loss: the ground just given up, shown faintly past the end of the bar. */

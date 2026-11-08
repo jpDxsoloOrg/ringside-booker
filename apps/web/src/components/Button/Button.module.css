@@ -46,19 +46,10 @@
   color: var(--color-accent-contrast);
 }
 
-.variant-primary:hover:not(:disabled) {
-  background: var(--color-text);
-  color: var(--color-text-inverse);
-}
-
 .variant-secondary {
   background: var(--color-surface);
   border-color: var(--color-border-strong);
   color: var(--color-text);
-}
-
-.variant-secondary:hover:not(:disabled) {
-  background: var(--color-surface-sunken);
 }
 
 .variant-ghost {
@@ -66,18 +57,33 @@
   color: var(--color-text);
 }
 
-.variant-ghost:hover:not(:disabled) {
-  background: var(--color-surface-sunken);
-}
-
 .variant-danger {
   background: var(--color-negative);
   color: var(--color-text-inverse);
 }
 
-.variant-danger:hover:not(:disabled) {
-  background: var(--color-text);
-  color: var(--color-text-inverse);
+/*
+ * Hover only where a pointer can hover. On touch screens a tapped button would otherwise keep
+ * its hover colour until the next tap somewhere else.
+ */
+@media (hover: hover) {
+  .variant-primary:hover:not(:disabled) {
+    background: var(--color-text);
+    color: var(--color-text-inverse);
+  }
+
+  .variant-secondary:hover:not(:disabled) {
+    background: var(--color-surface-sunken);
+  }
+
+  .variant-ghost:hover:not(:disabled) {
+    background: var(--color-surface-sunken);
+  }
+
+  .variant-danger:hover:not(:disabled) {
+    background: var(--color-text);
+    color: var(--color-text-inverse);
+  }
 }
 
 /* Icon-only buttons are square. */
