@@ -1,0 +1,19 @@
+{
+  "name": "@ringside/sim-runner",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Runs the simulation headless for N days and prints a summary with a world hash.",
+  "scripts": {
+    "sim": "tsx src/cli.ts",
+    "test": "vitest run",
+    "typecheck": "tsc -b"
+  },
+  "dependencies": {
+    "@ringside/engine": "0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "20.19.43",
+    "tsx": "4.23.15"
+  }
+}

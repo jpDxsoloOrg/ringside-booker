@@ -27,8 +27,9 @@ the engine tools never should.
 
 The root `workspaces` list already includes `tools/*`, so `npm install` picks the new package up.
 
-Tools may import `@ringside/engine/testing`. The lint ban on that entry point only covers
-`apps/**` and `packages/*/src/**`.
+Tools may import `@ringside/engine/testing` (or `@ringside/engine/testing/fixtures`, which leaves
+out the Vitest assertion helpers so it also loads outside a test run). The lint ban on those entry
+points only covers `apps/**` and `packages/*/src/**`.
 
 ## Planned tools
 

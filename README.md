@@ -37,18 +37,19 @@ workspace, and `npm run typecheck` builds the TypeScript project references.
 
 Run these from the repository root.
 
-| Script                 | What it does                                                     |
-| ---------------------- | ---------------------------------------------------------------- |
-| `npm run dev`          | Starts the web app's Vite dev server at http://localhost:5173/   |
-| `npm test`             | Runs every Vitest project once (engine, web, tools)              |
-| `npm run test:watch`   | Runs Vitest in watch mode                                        |
-| `npm run typecheck`    | `tsc -b` over all project references; declarations go to `dist/` |
-| `npm run format`       | Formats the repository with Prettier                             |
-| `npm run format:check` | Checks formatting without writing anything                       |
-| `npm run build`        | Runs the `build` script of every workspace that has one          |
-| `npm run lint`         | Runs ESLint over the repository and fails on any warning         |
-| `npm run lint:fix`     | Runs ESLint and applies the fixes it can make                    |
-| `npm run verify`       | Format check, lint, typecheck and tests, stopping at a failure   |
+| Script                 | What it does                                                           |
+| ---------------------- | ---------------------------------------------------------------------- |
+| `npm run dev`          | Starts the web app's Vite dev server at http://localhost:5173/         |
+| `npm test`             | Runs every Vitest project once (engine, web, tools)                    |
+| `npm run test:watch`   | Runs Vitest in watch mode                                              |
+| `npm run typecheck`    | `tsc -b` over all project references; declarations go to `dist/`       |
+| `npm run format`       | Formats the repository with Prettier                                   |
+| `npm run format:check` | Checks formatting without writing anything                             |
+| `npm run build`        | Runs the `build` script of every workspace that has one                |
+| `npm run lint`         | Runs ESLint over the repository and fails on any warning               |
+| `npm run lint:fix`     | Runs ESLint and applies the fixes it can make                          |
+| `npm run verify`       | Format check, lint, typecheck and tests, stopping at a failure         |
+| `npm run sim -- ...`   | Runs the simulation headless (see [Headless runner](#headless-runner)) |
 
 Each workspace also has its own `test` and `typecheck` scripts, for example
 `npm test -w @ringside/engine`.
@@ -83,6 +84,74 @@ violations. Any console error or uncaught exception fails the test that caused i
 leave an HTML report in `apps/web/playwright-report/` (`npx playwright show-report` from
 `apps/web` opens it).
 
+## Headless runner
+
+[`tools/sim-runner`](tools/sim-runner/) runs the simulation without any UI. It builds a world (or
+reads one), advances it through the public engine API and prints a summary: start and end dates,
+days per second, step failures by step, events by type and a world hash. The hash is a 64-bit
+fingerprint of the whole engine state apart from wall-clock timings and error stacks, so two runs
+from the same start with the same arguments must print the same hash.
+
+```sh
+# A year on the 300-person roster fixture
+npm run sim -- --days 365
+
+# The same summary as JSON
+npm run sim -- --days 365 --json
+
+# Run twice from the same start; exit 1 if the two runs end in different worlds
+npm run sim -- --days 60 --check-determinism
+
+# Change a tunable for this run only
+npm run sim -- --days 365 --tunable condition.fatigueRecoveryPerDay=0
+
+# Print one stored calculation trace as a tree once the run ends
+npm run sim -- --days 30 --people 20 --trace condition.fatigueRecovery:per_0000000002
+
+# Start from a saved engine state (the JSON engine.exportState() returns)
+npm run sim -- --days 90 --world path/to/state.json
+```
+
+| Option                  | Meaning                                                                         |
+| ----------------------- | ------------------------------------------------------------------------------- |
+| `--days <n>`            | Days to simulate, 1 to 36500 (required). Runs over ten years make several calls |
+| `--world <source>`      | `fixture:roster` (default) or a path to an `EngineState` JSON file              |
+| `--seed <text>`         | Seed of the fixture world (default `1`); a state file keeps its own seed        |
+| `--people <n>`          | Roster size of the fixture world, 1 to 5000 (default 300)                       |
+| `--tunable <key=value>` | Overrides a tunable through the `tunables.setOverride` command (repeatable)     |
+| `--json`                | Prints the summary as JSON                                                      |
+| `--check-determinism`   | Runs twice from the same start and compares the hash, event counts and failures |
+| `--strict`              | Exits 1 when any step fails                                                     |
+| `--trace <kind:id>`     | Prints one stored trace at the end                                              |
+
+Exit codes:
+
+| Code | Meaning                                                                         |
+| ---- | ------------------------------------------------------------------------------- |
+| 0    | The run finished                                                                |
+| 1    | The two runs of `--check-determinism` differ, or a step failed with `--strict`  |
+| 2    | Bad arguments, a tunable the engine refused, or a world file that can't be read |
+| 3    | A gate stopped the run; the gate's reason is printed                            |
+
+There is no option to skip a gate. The fixture world has no player promotion, so a gate that
+fires in a headless run means something is wrong with the world.
+
+When two hashes differ, rerun both sides with `--json` and compare the event counts and failures
+to narrow it down. A bug report can quote the seed, the day count and the hash.
+
+### Speed baseline
+
+365 days on the 300-person `fixture:roster`, with only the engine's own system and the condition
+system registered (`npm run sim -- --days 365`):
+
+| Where                                   | Advance time        | Days per second     | Whole command |
+| --------------------------------------- | ------------------- | ------------------- | ------------- |
+| Local (Intel i5-13600KF, Node 20, WSL2) | 85–100 ms           | 3,600–4,300         | 0.8 s         |
+| CI (`ubuntu-latest`, "one-year timing") | see the CI step log | see the CI step log | —             |
+
+The budget is 10 seconds for that run on CI hardware. Later systems will slow it down a lot; this
+table is the starting point for the performance work.
+
 ## CI
 
 Every pull request and every push to `main` runs the `check` job in
@@ -94,7 +163,9 @@ Every pull request and every push to `main` runs the `check` job in
 4. `npm run lint`
 5. `npm run typecheck`
 6. `npm test -- --coverage` (the coverage report is kept as a build artifact for 7 days)
-7. `npm run build`
+7. `npm run sim -- --days 60 --check-determinism --strict` and a timed one-year run (see
+   [Headless runner](#headless-runner))
+8. `npm run build`
 
 A PR merges only when `check` is green.
 
