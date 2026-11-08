@@ -5,7 +5,9 @@
  * - query `counter.get` and command `counter.increment` (refused for a negative amount);
  * - query `fakeEngine.viewer`, which hands back the viewer it ran for;
  * - query `fakeEngine.rows`, which smuggles a `Map` into row 3 to trip the plain-JSON check;
- * - a gate that stops a multi-day advance at the start of a chosen date.
+ * - a gate that stops a multi-day advance at the start of a chosen date, with an optional
+ *   player-facing reason, subject and route hint;
+ * - a phase that throws on a chosen date, so a step failure shows up in the advance result.
  */
 
 import { z } from 'zod';
@@ -14,6 +16,7 @@ import {
   createEngine,
   defineCommand,
   defineGate,
+  definePhase,
   defineQuery,
   defineSystem,
   initialEngineState,
@@ -23,6 +26,7 @@ import type {
   Engine,
   EngineState,
   GameDate,
+  GateHit,
   SystemBundle,
   Viewer,
 } from '@ringside/engine';
@@ -43,6 +47,15 @@ declare module '@ringside/engine' {
 /** The gate's id, as it appears in `stoppedBy.hits`. */
 export const FAKE_GATE_ID = 'fakeEngine.stopDay';
 
+/** The reason the gate gives when no other is asked for. */
+export const FAKE_GATE_REASON = 'Test stop day';
+
+/** The id of the phase that throws on `failDate`, as it appears in an advance's failures. */
+export const FAKE_FAILING_STEP_ID = 'fakeEngine.explode';
+
+/** The message of the error the failing phase throws. */
+export const FAKE_FAILURE_MESSAGE = 'The test phase broke on purpose';
+
 /** The date the fake world starts on. */
 export const FAKE_START_DATE: GameDate = TINY_WORLD_TODAY;
 
@@ -59,6 +72,10 @@ export function fakeAdvanceDay(dayNumber: number): GameDate {
 export interface FakeEngineOptions {
   /** A multi-day advance stops at the start of this date. Never, when left out. */
   readonly gateDate?: GameDate;
+  /** What the gate's hit says and links to. The reason is {@link FAKE_GATE_REASON} by default. */
+  readonly gateHit?: Partial<Pick<GateHit, 'reason' | 'subject' | 'actionHint'>>;
+  /** The test phase throws while simulating this date. Never, when left out. */
+  readonly failDate?: GameDate;
 }
 
 const noArgs = z.strictObject({});
@@ -108,12 +125,25 @@ function fakeSystem(options: FakeEngineOptions): SystemBundle {
         },
       }),
     ],
+    phases: [
+      definePhase({
+        id: FAKE_FAILING_STEP_ID,
+        group: 'housekeeping',
+        order: 90,
+        cadence: { kind: 'daily' },
+        run: (ctx) => {
+          if (ctx.date === options.failDate) throw new Error(FAKE_FAILURE_MESSAGE);
+        },
+      }),
+    ],
     gates: [
       defineGate({
         id: FAKE_GATE_ID,
         label: 'Test stop day',
         check: (_view, date) =>
-          date === options.gateDate ? { gateId: FAKE_GATE_ID, reason: 'Test stop day' } : null,
+          date === options.gateDate
+            ? { reason: FAKE_GATE_REASON, ...options.gateHit, gateId: FAKE_GATE_ID }
+            : null,
       }),
     ],
   });
