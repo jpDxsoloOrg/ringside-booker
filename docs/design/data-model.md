@@ -142,7 +142,165 @@ Reports are capped at 200 issues, with a count of how many more were found.
 
 ## People
 
-_The person entity and its parts arrive with FND-06._
+Code: `packages/engine/src/model/entities/person.ts`. Table: `people` (kind `person`).
+
+A person is everyone in the world: wrestlers, managers, announcers, referees,
+producers and presenters. The row holds what is true of someone wherever they
+work. Anything that exists only because they are employed (ring name per
+promotion, push, alignment, morale, momentum) is on the employment instead (see
+the reference rule above).
+
+This section fixes the shape and the ranges. What the numbers do over time
+(growth, aging, injuries, popularity drift) belongs to the Workers (WRK) epic,
+and each field below names the epic that owns its meaning.
+
+### Fields
+
+| Field             | Type                           | Range / rule                                                                                                                  | Meaning owned by |
+| ----------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| `id`              | `PersonId`                     | `per_` ID                                                                                                                     | FND              |
+| `givenName`       | string                         | 1–40 characters                                                                                                               | FND              |
+| `familyName`      | string                         | 0–40 characters (empty for people known by one name)                                                                          | FND              |
+| `defaultRingName` | string                         | 1–60 characters; used when no employment sets another ring name                                                               | FND              |
+| `gender`          | `Gender`                       | `male`, `female`, `nonBinary`                                                                                                 | FND              |
+| `birthDate`       | `GameDate`                     |                                                                                                                               | WRK (aging)      |
+| `debutDate`       | `GameDate \| null`             | null = not yet debuted; otherwise at least 14 years after `birthDate`                                                         | WRK (experience) |
+| `birthRegionId`   | `RegionId`                     | must exist in `regions`                                                                                                       | WLD              |
+| `basedInRegionId` | `RegionId`                     | must exist in `regions`; where they live now                                                                                  | WLD, ECO         |
+| `imageRef`        | `ImageRef`                     | relative asset path, `placeholder:<kind>` or null                                                                             | UI               |
+| `masked`          | boolean                        |                                                                                                                               | CRTV             |
+| `tags`            | string[]                       | at most 10, each 1–24 characters; free labels such as `generated`                                                             | tools            |
+| `roles`           | `PersonRole[]`                 | non-empty, unique; see roles below                                                                                            | FND              |
+| `status`          | `PersonStatus`                 | `active`, `semiRetired`, `hiatus`, `retired`, `deceased`, `outOfBusiness`                                                     | WRK, DAY         |
+| `career`          | `{ canOwn, canBook }`          | booleans: can own a promotion, can be a promotion's booker                                                                    | AIP, ECO         |
+| `motivation`      | `Motivation`                   | `money`, `legacy`, `power`, `enjoyment`, `thrill`                                                                             | ECO, SOC         |
+| `heightCm`        | integer                        | 140–230                                                                                                                       | WRK              |
+| `weightKg`        | integer                        | 40–250                                                                                                                        | WRK              |
+| `build`           | `Build`                        | `slim`, `lean`, `average`, `athletic`, `muscular`, `stocky`, `heavy`, `superHeavy`                                            | MTCH             |
+| `style`           | `RingStyle`                    | `allRounder`, `technician`, `brawler`, `highFlyer`, `powerhouse`, `hardcore`, `striker`, `grappler`, `showman`, `nonWrestler` | MTCH             |
+| `attributes`      | `Record<AttributeKey, number>` | every key required, each 0–100                                                                                                | WRK, MTCH        |
+| `condition`       | `Record<BodyPart, number>`     | `head`, `neck`, `back`, `arms`, `torso`, `legs`; each 0–100, 100 = perfect health                                             | WRK              |
+| `fatigue`         | number                         | 0–100                                                                                                                         | WRK              |
+| `injury`          | `Injury \| null`               | `{ kindKey, bodyPart, since, expectedReturn, canWorkAngles }`; `expectedReturn >= since`                                      | WRK              |
+| `restrictions`    | `Restriction[]`                | at most 4; `{ kind: 'rehab' \| 'personalLeave', until }`                                                                      | WRK              |
+| `development`     | `{ potential, ceilings }`      | `potential` integer −1000..1000; `ceilings` per attribute, optional, each 0–100                                               | WRK              |
+| `regionalPop`     | `Record<RegionId, number>`     | sparse; each 0–100; an explicit 0 is refused; keys must exist in `regions`                                                    | WRK              |
+| `traits`          | `TraitKey[]`                   | unique, at most 8, from the closed list; no exclusive pair together                                                           | see traits       |
+| `vices`           | `{ alcohol, substances }`      | each `none`, `hidden`, `known`, `recovering`                                                                                  | WRK, SOC         |
+
+Rules across fields:
+
+- **Debut age.** `debutDate` is null or on or after the 14th birthday.
+- **Ring style and roles go together.** Anyone whose `style` is not
+  `nonWrestler` holds `wrestler` or `occasionalWrestler`, and a `nonWrestler`
+  holds neither.
+- **The dead are not injured.** `status: 'deceased'` means `injury` is null and
+  `restrictions` is empty.
+
+Roles: `wrestler`, `occasionalWrestler` (wrestles now and then, usually as well
+as another role), `manager`, `presenter`, `announcer`, `referee`, `producer`. A
+person can hold several roles.
+
+Transient state: `fatigue`, `injury` and `restrictions` change from day to day.
+A restriction is a spell when the person cannot work for a reason of their own
+(rehab or personal leave). Suspensions and paid time off are given by an
+employer, so they live on the employment (FND-07).
+
+Development is hidden from the player by default. FND only fixes the ranges:
+WRK decides how potential drains with age and gates growth and decline, and how
+a ceiling caps an attribute. The −1000..1000 scale is a placeholder that WRK can
+change with a migration.
+
+Vices: `hidden` means the player's promotion has not discovered the vice;
+`known` means it has. Discovery is per world for now; if multiplayer needs it
+per promotion, it moves to a per-promotion record.
+
+Indexes: `byStatus` (status), `byRole` (filed under each role the person holds)
+and `byBasedInRegion` (`basedInRegionId`). There are no cross-table invariants
+yet.
+
+### Attributes
+
+Twelve attributes, all 0–100 floats (the UI rounds them for display). Every
+attribute has a clear consumer, and a non-wrestler simply has low in-ring
+values. The ordered list is `ATTRIBUTE_KEYS`; `ATTRIBUTE_GROUPS` splits it into
+the three groups below.
+
+| Group     | Attribute      | Definition                                                                   | Main consumer |
+| --------- | -------------- | ---------------------------------------------------------------------------- | ------------- |
+| In-ring   | `ringwork`     | Move execution and match craft                                               | MTCH          |
+| In-ring   | `psychology`   | Pacing, timing, telling a story, reading a crowd                             | MTCH          |
+| In-ring   | `stamina`      | How long they can work at full pace                                          | MTCH, WRK     |
+| In-ring   | `safety`       | How well they protect opponents                                              | MTCH (injury) |
+| In-ring   | `athleticism`  | Speed, agility and power                                                     | MTCH          |
+| Character | `mic`          | Promos and talking segments                                                  | MTCH          |
+| Character | `charisma`     | Star quality and natural pull; the level popularity settles toward over time | MTCH, WRK     |
+| Character | `presence`     | Visual impact: look, size or menace                                          | MTCH          |
+| Crew      | `officiating`  | Referee work                                                                 | MTCH          |
+| Crew      | `broadcasting` | Commentary and presenting                                                    | MTCH, EVT     |
+| Crew      | `producing`    | Laying out and guiding other people's segments                               | MTCH          |
+| Crew      | `booking`      | Creative judgement                                                           | AIP           |
+
+Why twelve and not dozens: each one has a system that reads it. A long list of
+attributes that nothing reads is noise for the player and for the generators.
+Adding an attribute later is a schema change and a migration, which is cheap;
+taking away one that saves and packs already use is not. `presence` is one
+attribute rather than separate "looks" and "menace" because in practice they
+answer the same question: does this person look like they matter?
+
+### Traits
+
+Traits are a closed list. The keys are a zod enum, so a typo cannot slip into a
+save or a data pack, and a person holds at most 8. `TRAIT_GROUPS` lists the
+keys by group and `EXCLUSIVE_TRAIT_PAIRS` lists the pairs nobody may hold
+together; the schema rejects a person holding both sides of a pair and names
+both traits in the error.
+
+| Group       | Traits                                                                                               | Exclusive pairs                                                      | Intended consumer    |
+| ----------- | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | -------------------- |
+| Learning    | `fastLearner`, `slowLearner`                                                                         | `fastLearner` ⟂ `slowLearner`                                        | WRK (growth)         |
+| Aging       | `agesWell`, `agesBadly`                                                                              | `agesWell` ⟂ `agesBadly`                                             | WRK (decline)        |
+| Body        | `durable`, `injuryProne`                                                                             | `durable` ⟂ `injuryProne`                                            | WRK, MTCH (injuries) |
+| Effort      | `workhorse`, `coaster`                                                                               | `workhorse` ⟂ `coaster`                                              | MTCH, WRK (fatigue)  |
+| Big stage   | `bigMatchPerformer`, `shrinksOnBigStage`                                                             | `bigMatchPerformer` ⟂ `shrinksOnBigStage`                            | MTCH                 |
+| Selling     | `generousSeller`, `poorSeller`                                                                       | `generousSeller` ⟂ `poorSeller`                                      | MTCH                 |
+| Ring craft  | `tagSpecialist`, `teacher`, `improviser`                                                             | none                                                                 | MTCH, CRTV, WRK      |
+| Locker room | `leader`, `professional`, `troublemaker`, `partier`, `prankster`, `sensitive`, `egotist`, `selfless` | `professional` ⟂ `troublemaker`, `egotist` ⟂ `selfless`              | SOC                  |
+| Career      | `loyal`, `journeyman`                                                                                | `loyal` ⟂ `journeyman`                                               | ECO (contracts)      |
+| Content     | `lovesHardcore`, `refusesHardcore`, `lovesComedy`, `refusesComedy`                                   | `lovesHardcore` ⟂ `refusesHardcore`, `lovesComedy` ⟂ `refusesComedy` | SOC (morale), MTCH   |
+| Character   | `naturalHeel`, `naturalFace`                                                                         | `naturalHeel` ⟂ `naturalFace`                                        | CRTV, MTCH           |
+
+Every trait needs at least one system that reads it once those epics land. The
+consumer column makes a trait that nothing reads easy to spot; one that is
+still unread when its epic ships gets wired or removed.
+
+### Stored and derived
+
+Stored: everything in the field table. Derived by WRK queries and never
+stored:
+
+- **Age** from `birthDate` and the current date.
+- **Experience** from `debutDate` (and later, match history).
+- **Weight class** from `weightKg`, using bands that are tunables. Changing the
+  bands never needs a data migration, which is why the row stores a number and
+  not a class.
+- **Overall value and grades** (how good someone is at a role, what they are
+  worth) from the attributes, popularity and traits.
+- **Country and continent popularity** as population-weighted roll-ups of
+  `regionalPop` (D-03).
+
+### Why popularity is sparse and regional
+
+Popularity is per region because touring, local heroes and TV reach only mean
+something if place matters (D-03). Country and continent figures are always
+computed from the regions, so there is one model to keep correct instead of
+several to keep in sync.
+
+It is sparse because most people are unknown in most regions. A world with 300
+people and dozens of regions would otherwise store thousands of zeros. A
+missing region reads as 0, and the schema refuses an explicit 0 so there is
+exactly one way to write "unknown here". If a world ships with many regions,
+WRK can add a minimum below which small values are dropped.
 
 ## Promotions and employment
 
