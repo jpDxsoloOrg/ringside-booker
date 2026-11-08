@@ -32,6 +32,13 @@ describe('gallery registry', () => {
     expect(galleryEntries).toHaveLength(filesOnDisk.length);
   });
 
+  it('names each entry file after its id, so the focus-ring e2e can list them from disk', () => {
+    const stems = galleryEntryFiles
+      .map((filePath) => filePath.replace(/^\.\//, '').replace(ENTRY_FILE_SUFFIX, ''))
+      .sort();
+    expect(galleryEntries.map((entry) => entry.id).sort()).toEqual(stems);
+  });
+
   it('gives every entry a unique id', () => {
     const ids = galleryEntries.map((entry) => entry.id);
     expect(new Set(ids).size).toBe(ids.length);
