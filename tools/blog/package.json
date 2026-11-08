@@ -9,18 +9,22 @@
   },
   "scripts": {
     "check": "tsx src/cli/check.ts",
+    "publish": "tsx src/cli/publish.ts",
     "test": "vitest run",
     "typecheck": "tsc -b"
   },
   "dependencies": {
     "@mdx-js/mdx": "3.1.1",
     "github-slugger": "2.0.0",
+    "pg": "8.23.1",
+    "prettier": "3.9.10",
     "remark-gfm": "4.0.1",
     "yaml": "2.9.1",
     "zod": "4.6.7"
   },
   "devDependencies": {
     "@types/node": "20.19.43",
+    "@types/pg": "8.23.1",
     "tsx": "4.23.15"
   }
 }
