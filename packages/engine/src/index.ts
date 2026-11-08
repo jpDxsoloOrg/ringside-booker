@@ -198,7 +198,7 @@ export {
   type SystemPhaseGroup,
 } from './core/pipeline';
 
-export { hashString128, hashString32, type HashWords } from './core/hash';
+export { hashString128, hashString32, stableStringify, type HashWords } from './core/hash';
 export * from './core/rng';
 
 export * from './core/tunables/index';

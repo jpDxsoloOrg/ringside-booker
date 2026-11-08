@@ -6,7 +6,8 @@
   "description": "The Ringside Booker simulation. Pure TypeScript, no DOM, no React.",
   "exports": {
     ".": "./src/index.ts",
-    "./testing": "./test/support/index.ts"
+    "./testing": "./test/support/index.ts",
+    "./testing/fixtures": "./test/support/fixtures.ts"
   },
   "scripts": {
     "test": "vitest run --root ../.. --project engine",

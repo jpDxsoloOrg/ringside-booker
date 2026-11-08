@@ -4,6 +4,11 @@ Shared fixtures for building valid worlds in tests. The engine's tests import th
 path; tests in `tools/*` and `apps/web` import them from `@ringside/engine/testing`. Lint keeps
 that entry out of app and engine source, so none of this ever ships.
 
+`@ringside/engine/testing` also exports the assertion helpers, which import `expect` from Vitest
+and so only load inside a Vitest run. A tool that builds fixture worlds from a plain Node process,
+such as the headless runner, imports `@ringside/engine/testing/fixtures` instead: the same
+fixtures without the assertions (`fixtures.ts`). The lint ban covers both entries.
+
 ## Entity builders
 
 One builder per entity, in `builders/` (one file per area):
