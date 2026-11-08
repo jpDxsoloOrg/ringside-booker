@@ -55,7 +55,7 @@ describe('app router', () => {
   });
 
   it('registers the bare page the phone frame loads', async () => {
-    renderAt('/dev/gallery/frame?theme=light#badge');
+    renderAt('/dev/gallery/frame?theme=dark#badge');
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Badge' })).toBeInTheDocument();
   });

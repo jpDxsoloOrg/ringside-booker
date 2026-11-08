@@ -1,10 +1,19 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { setMatchMedia } from '@/test/matchMedia';
-import { applyTheme, applyUiScale, clampUiScale } from './theme';
+import {
+  applyTheme,
+  applyUiScale,
+  clampUiScale,
+  DEFAULT_THEME,
+  resolveTheme,
+  SELECTABLE_THEME_PREFERENCES,
+  SHIPPED_THEMES,
+} from './theme';
 
 const DARK_QUERY = '(prefers-color-scheme: dark)';
+// Stand-ins for two different resolved backgrounds; only dark ships today (D-11).
 const LIGHT_BG = '#f6f5f3';
-const DARK_BG = '#131312';
+const DARK_BG = '#090d16';
 
 /**
  * jsdom loads no stylesheets, so each test stands in for tokens.css by setting --color-bg on the
@@ -77,6 +86,21 @@ describe('applyTheme', () => {
     setResolvedBackground(DARK_BG);
     setMatchMedia((query) => query === DARK_QUERY);
     expect(themeColorMeta.content).toBe(LIGHT_BG);
+  });
+});
+
+describe('resolveTheme', () => {
+  it('ships dark only, as the default, with no theme choice to offer', () => {
+    expect(SHIPPED_THEMES).toEqual(['dark']);
+    expect(DEFAULT_THEME).toBe('dark');
+    expect(SELECTABLE_THEME_PREFERENCES).toEqual(['dark']);
+  });
+
+  it('resolves every preference to dark while dark is the only shipped theme', () => {
+    expect(resolveTheme('dark', false)).toBe('dark');
+    expect(resolveTheme('light', false)).toBe('dark');
+    expect(resolveTheme('system', false)).toBe('dark');
+    expect(resolveTheme('system', true)).toBe('dark');
   });
 });
 

@@ -1,5 +1,7 @@
 /*
- * Design tokens: the visual language every screen builds on.
+ * Design tokens: the visual language every screen builds on. The source of truth for colour, type
+ * and shape is docs/design/visual-identity.md; docs/design/ui-tokens.md explains how the tokens
+ * are organised and used.
  *
  * Two layers:
  *   1. Primitive palette (--palette-*): raw hex values. Only this file reads them.
@@ -7,81 +9,57 @@
  *
  * Components use semantic tokens only, never palette tokens, so a theme is a remap of the semantic
  * layer and nothing else. Semantic colours resolve to plain hex (no color-mix, no HSL maths) so
- * tokens.test.ts can check contrast with a small parser. See docs/design/ui-tokens.md.
+ * tokens.test.ts can check contrast with a small parser.
  *
  * Sizes are in rem so the UI scale setting (--ui-scale on <html>, see global.css) grows text and
- * spacing together.
+ * spacing together. Corner shapes are in px: a radius or a chamfer reads the same at any scale.
  */
 
 :root {
-  /* Neutrals: a slightly warm grey, light to dark. */
-  --palette-neutral-0: #ffffff;
-  --palette-neutral-50: #f6f5f3;
-  --palette-neutral-100: #ecebe7;
-  --palette-neutral-200: #dcdad5;
-  --palette-neutral-300: #c4c1ba;
-  --palette-neutral-400: #a19d95;
-  --palette-neutral-500: #7d7970;
-  --palette-neutral-600: #5f5b54;
-  --palette-neutral-700: #46433e;
-  --palette-neutral-800: #302e2b;
-  --palette-neutral-850: #262523;
-  --palette-neutral-900: #1d1c1a;
-  --palette-neutral-950: #131312;
+  /* Navy neutrals: a cool blue-grey that sits near the data cyan's hue. Dark to light. */
+  --palette-navy-950: #090d16;
+  --palette-navy-900: #0f172a;
+  --palette-navy-850: #131d31;
+  --palette-navy-800: #1a2740;
+  --palette-navy-700: #24334d;
+  --palette-navy-600: #3b4d6b;
+  --palette-navy-500: #64748b;
+  --palette-navy-400: #94a3b8;
+  --palette-navy-300: #cbd5e1;
+  --palette-navy-100: #f1f5f9;
+  --palette-white: #ffffff;
 
-  /* The one warm accent: a burnt orange. */
-  --palette-accent-300: #f8b682;
-  --palette-accent-400: #f29652;
-  --palette-accent-500: #e27a2c;
-  --palette-accent-600: #b95a17;
-  --palette-accent-700: #964512;
+  /* Red-orange: the one warm accent, saved for "act now / this is live". */
+  --palette-flame-600: #d7301a;
+  --palette-flame-500: #ff3b1d;
 
-  /* Status hues. */
-  --palette-green-300: #8fd6a5;
-  --palette-green-400: #5fbf7f;
-  --palette-green-500: #3a9f5e;
-  --palette-green-600: #2a7f49;
-  --palette-green-700: #1f6639;
+  /* Cyan: numbers, meters, charts, links and the face side of alignment. */
+  --palette-cyan-400: #00e5ff;
 
-  --palette-red-300: #f4a3a0;
-  --palette-red-400: #eb7772;
-  --palette-red-500: #d64f4a;
-  --palette-red-600: #b83a35;
-  --palette-red-700: #962d29;
+  /* Gold: prestige. Titles, champions, awards. */
+  --palette-gold-400: #facc15;
 
-  --palette-amber-300: #f2d27a;
-  --palette-amber-400: #e8bb45;
-  --palette-amber-500: #c99a1f;
-  --palette-amber-600: #9a7413;
-  --palette-amber-650: #876610;
-  --palette-amber-700: #7a5b0e;
+  /* Deltas: emerald up, rose down. Rose, not the red-orange, so a drop never reads as "press". */
+  --palette-emerald-400: #34d399;
+  --palette-rose-400: #fb7185;
 
-  --palette-blue-300: #9cc3f2;
-  --palette-blue-400: #6ea6ea;
-  --palette-blue-500: #4787d6;
-  --palette-blue-600: #2f6bb8;
-  --palette-blue-700: #245594;
+  /* Violet: the tweener alignment chip. */
+  --palette-violet-400: #a78bfa;
 
-  /* Extra hues for categorical colours (charts, tags). */
-  --palette-teal-400: #4fbdb3;
-  --palette-teal-600: #217d75;
-  --palette-violet-400: #a68ce8;
-  --palette-violet-600: #6b4fbf;
-  --palette-pink-400: #e584b6;
-  --palette-pink-600: #b04683;
-  --palette-olive-400: #a9b85a;
-  --palette-olive-600: #6a7526;
+  /* Extra hues for categorical colours (placeholder avatars, chart series, tags). */
+  --palette-sky-400: #38bdf8;
+  --palette-orange-400: #fb923c;
+  --palette-teal-400: #2dd4bf;
+  --palette-pink-400: #f472b6;
+  --palette-lime-400: #a3e635;
 
   /*
    * Metals for championship belt placeholders. Belt tier is information, not decoration, so these
    * sit outside the categorical palette on purpose.
    */
-  --palette-gold-400: #d9b54a;
-  --palette-gold-500: #c9a227;
-  --palette-silver-300: #c4c8cd;
-  --palette-silver-400: #a9adb3;
-  --palette-bronze-400: #c99062;
-  --palette-bronze-500: #b27a46;
+  --palette-metal-gold: #d9b54a;
+  --palette-metal-silver: #c4c8cd;
+  --palette-metal-bronze: #c99062;
 
   /* Spacing: a 0.25rem step. */
   --space-0: 0;
@@ -96,15 +74,30 @@
   --space-9: 2.25rem;
   --space-10: 2.5rem;
 
-  /* Corner radius. */
-  --radius-sm: 0.25rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-pill: 999rem;
+  /*
+   * Shape. The office register uses rounded cards and controls and pill chips; the broadcast
+   * register uses square corners with chamfers and a skew on bugs, tabs and show actions.
+   * --radius-sm, --radius-md and --radius-lg are the older names; md and lg follow the new roles.
+   */
+  --radius-card: 10px;
+  --radius-control: 8px;
+  --radius-pill: 999px;
+  --radius-sm: 4px;
+  --radius-md: var(--radius-control);
+  --radius-lg: var(--radius-card);
+  --chamfer: 8px;
+  --skew-broadcast: -12deg;
 
-  /* Type. System fonts only: the game works offline and never downloads a web font. */
+  /*
+   * Type. Barlow Condensed for display (headings, labels, chips, stat numbers) and Inter for body,
+   * tables and forms. Both are self-hosted from @fontsource packages imported in main.tsx, so the
+   * game makes no request to a font CDN; the system stacks behind them cover the moment before
+   * the files load.
+   */
+  --font-family-display:
+    'Barlow Condensed', 'Arial Narrow', 'Roboto Condensed', system-ui, -apple-system, sans-serif;
   --font-family-ui:
-    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+    'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-family-mono:
     ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
   --font-size-xs: 0.75rem;
@@ -121,6 +114,9 @@
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  /* Numbers in tables and stats line up: the .tabular class and td/[data-numeric] use this. */
+  --font-feature-tabular: tabular-nums;
 
   /* Elevation. */
   --shadow-1: 0 1px 2px rgb(0 0 0 / 12%);
@@ -136,6 +132,8 @@
   /* Motion. global.css sets the durations to 0ms when reduced motion is on. */
   --motion-fast: 120ms;
   --motion-base: 200ms;
+  /* One cycle of a live pulse (the live bug's dot, a glow). Also 0ms under reduced motion. */
+  --motion-pulse: 1600ms;
   --easing-standard: cubic-bezier(0.2, 0, 0, 1);
 
   /* Layout sizes. */
@@ -153,116 +151,76 @@
   --image-size-xl: 8rem;
 }
 
-/* Light theme: the default, and what an explicit data-theme='light' picks. */
-:root,
-[data-theme='light'] {
-  color-scheme: light;
-  --color-bg: var(--palette-neutral-50);
-  --color-surface: var(--palette-neutral-0);
-  --color-surface-raised: var(--palette-neutral-0);
-  --color-surface-sunken: var(--palette-neutral-100);
-  --color-border: var(--palette-neutral-200);
-  --color-border-strong: var(--palette-neutral-500);
-  --color-text: var(--palette-neutral-900);
-  --color-text-muted: var(--palette-neutral-600);
-  --color-text-inverse: var(--palette-neutral-0);
-  --color-accent: var(--palette-accent-700);
-  --color-accent-contrast: var(--palette-neutral-0);
-  --color-positive: var(--palette-green-700);
-  --color-negative: var(--palette-red-700);
-  --color-warning: var(--palette-amber-700);
-  --color-info: var(--palette-blue-700);
-  --color-focus: var(--palette-blue-600);
-  --color-overlay: #1d1c1a99;
-  --color-cat-1: var(--palette-blue-600);
-  --color-cat-2: var(--palette-accent-600);
-  --color-cat-3: var(--palette-teal-600);
-  --color-cat-4: var(--palette-violet-600);
-  --color-cat-5: var(--palette-pink-600);
-  --color-cat-6: var(--palette-olive-600);
-  --color-cat-7: var(--palette-amber-650);
-  --color-cat-8: var(--palette-neutral-600);
-  --color-metal-gold: var(--palette-gold-500);
-  --color-metal-silver: var(--palette-silver-400);
-  --color-metal-bronze: var(--palette-bronze-500);
-  --color-metal-plain: var(--palette-neutral-400);
-  --color-metal-ink: var(--palette-neutral-900);
-  --color-belt-strap: var(--palette-neutral-800);
-}
-
 /*
- * Dark theme. The same declarations appear twice: once for an explicit data-theme='dark', and once
- * for "system" (no attribute) when the OS prefers dark, so following the OS needs no script.
- * tokens.test.ts fails if the two copies drift apart.
+ * Dark theme: the default on :root and what an explicit data-theme='dark' picks. The game ships
+ * dark only for now (design decision D-11). The [data-theme] layer stays so a light theme can be
+ * added later as its own [data-theme='light'] block without touching any component.
  */
+:root,
 [data-theme='dark'] {
   color-scheme: dark;
-  --color-bg: var(--palette-neutral-950);
-  --color-surface: var(--palette-neutral-900);
-  --color-surface-raised: var(--palette-neutral-850);
-  --color-surface-sunken: var(--palette-neutral-950);
-  --color-border: var(--palette-neutral-800);
-  --color-border-strong: var(--palette-neutral-500);
-  --color-text: var(--palette-neutral-100);
-  --color-text-muted: var(--palette-neutral-400);
-  --color-text-inverse: var(--palette-neutral-950);
-  --color-accent: var(--palette-accent-400);
-  --color-accent-contrast: var(--palette-neutral-950);
-  --color-positive: var(--palette-green-400);
-  --color-negative: var(--palette-red-400);
-  --color-warning: var(--palette-amber-400);
-  --color-info: var(--palette-blue-400);
-  --color-focus: var(--palette-accent-300);
-  --color-overlay: #000000a6;
-  --color-cat-1: var(--palette-blue-400);
-  --color-cat-2: var(--palette-accent-400);
+
+  /* Canvas, surfaces and lines. */
+  --color-bg: var(--palette-navy-950);
+  --color-surface: var(--palette-navy-900);
+  --color-surface-raised: var(--palette-navy-850);
+  --color-surface-hover: var(--palette-navy-800);
+  --color-border: var(--palette-navy-700);
+  --color-border-strong: var(--palette-navy-600);
+
+  /* Text. --color-text-subtle is for large or decorative text only. */
+  --color-text: var(--palette-navy-100);
+  --color-text-muted: var(--palette-navy-400);
+  --color-text-subtle: var(--palette-navy-500);
+
+  /* Accents: each hue has one job (see visual-identity.md). */
+  --color-action: var(--palette-flame-600);
+  --color-action-contrast: var(--palette-white);
+  --color-action-bright: var(--palette-flame-500);
+  --color-data: var(--palette-cyan-400);
+  --color-prestige: var(--palette-gold-400);
+  --color-positive: var(--palette-emerald-400);
+  --color-negative: var(--palette-rose-400);
+  --color-face: var(--palette-cyan-400);
+  --color-heel: var(--palette-flame-500);
+  --color-tweener: var(--palette-violet-400);
+
+  /*
+   * Older semantic names, mapped onto the roles above so existing components keep working until
+   * they are restyled. New code uses the roles above.
+   */
+  --color-surface-sunken: var(--palette-navy-950);
+  --color-text-inverse: var(--palette-navy-950);
+  --color-accent: var(--palette-flame-500);
+  --color-accent-contrast: var(--palette-navy-950);
+  --color-warning: var(--palette-gold-400);
+  --color-info: var(--palette-cyan-400);
+  --color-focus: var(--palette-cyan-400);
+  --color-overlay: #05080fb3;
+
+  /* Categorical colours: placeholder avatars, chart series, tags. */
+  --color-cat-1: var(--palette-sky-400);
+  --color-cat-2: var(--palette-orange-400);
   --color-cat-3: var(--palette-teal-400);
   --color-cat-4: var(--palette-violet-400);
   --color-cat-5: var(--palette-pink-400);
-  --color-cat-6: var(--palette-olive-400);
-  --color-cat-7: var(--palette-amber-400);
-  --color-cat-8: var(--palette-neutral-400);
-  --color-metal-gold: var(--palette-gold-400);
-  --color-metal-silver: var(--palette-silver-300);
-  --color-metal-bronze: var(--palette-bronze-400);
-  --color-metal-plain: var(--palette-neutral-300);
-  --color-metal-ink: var(--palette-neutral-950);
-  --color-belt-strap: var(--palette-neutral-700);
-}
+  --color-cat-6: var(--palette-lime-400);
+  --color-cat-7: var(--palette-gold-400);
+  --color-cat-8: var(--palette-navy-400);
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    color-scheme: dark;
-    --color-bg: var(--palette-neutral-950);
-    --color-surface: var(--palette-neutral-900);
-    --color-surface-raised: var(--palette-neutral-850);
-    --color-surface-sunken: var(--palette-neutral-950);
-    --color-border: var(--palette-neutral-800);
-    --color-border-strong: var(--palette-neutral-500);
-    --color-text: var(--palette-neutral-100);
-    --color-text-muted: var(--palette-neutral-400);
-    --color-text-inverse: var(--palette-neutral-950);
-    --color-accent: var(--palette-accent-400);
-    --color-accent-contrast: var(--palette-neutral-950);
-    --color-positive: var(--palette-green-400);
-    --color-negative: var(--palette-red-400);
-    --color-warning: var(--palette-amber-400);
-    --color-info: var(--palette-blue-400);
-    --color-focus: var(--palette-accent-300);
-    --color-overlay: #000000a6;
-    --color-cat-1: var(--palette-blue-400);
-    --color-cat-2: var(--palette-accent-400);
-    --color-cat-3: var(--palette-teal-400);
-    --color-cat-4: var(--palette-violet-400);
-    --color-cat-5: var(--palette-pink-400);
-    --color-cat-6: var(--palette-olive-400);
-    --color-cat-7: var(--palette-amber-400);
-    --color-cat-8: var(--palette-neutral-400);
-    --color-metal-gold: var(--palette-gold-400);
-    --color-metal-silver: var(--palette-silver-300);
-    --color-metal-bronze: var(--palette-bronze-400);
-    --color-metal-plain: var(--palette-neutral-300);
-    --color-metal-ink: var(--palette-neutral-950);
-    --color-belt-strap: var(--palette-neutral-700);
-  }
+  /* Belt placeholders. */
+  --color-metal-gold: var(--palette-metal-gold);
+  --color-metal-silver: var(--palette-metal-silver);
+  --color-metal-bronze: var(--palette-metal-bronze);
+  --color-metal-plain: var(--palette-navy-300);
+  --color-metal-ink: var(--palette-navy-950);
+  --color-belt-strap: var(--palette-navy-600);
+
+  /*
+   * Glows: a hairline ring plus a soft halo, for live states (action) and highlighted data. They
+   * are still box-shadows; anything that pulses one animates over --motion-pulse, which reduced
+   * motion sets to 0ms.
+   */
+  --glow-action: 0 0 0 1px #ff3b1d, 0 0 1rem #ff3b1d66;
+  --glow-data: 0 0 0 1px #00e5ff, 0 0 1rem #00e5ff4d;
 }
