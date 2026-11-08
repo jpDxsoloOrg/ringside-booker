@@ -9,6 +9,7 @@ excerpt:
   where every number explains itself."
 tags: [gamedev, typescript, react, simulation]
 journal: [docs/dev-journal/2026-11-project-kickoff.md]
+publishedAt: 2026-11-08
 ---
 
 I booked a fantasy wrestling show in a management game, ran it, and watched a mid-card match come
