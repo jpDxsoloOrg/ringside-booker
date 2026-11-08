@@ -58,3 +58,57 @@ jobs:
           path: coverage/
           retention-days: 7
           if-no-files-found: ignore
+
+  e2e:
+    name: e2e
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # Pushes to main add the WebKit phone project; pull requests run Chromium only.
+      E2E_WEBKIT: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && '1' || '' }}
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js from .nvmrc
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Read the Playwright version
+        id: playwright
+        run: echo "version=$(node -p "require('./node_modules/@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
+      # Runs on a cache hit too: the browsers are skipped, but the system libraries still install.
+      - name: Install Playwright browsers and system dependencies
+        run: npm run e2e:install -w @ringside/web
+
+      - name: Run end-to-end tests (desktop and phone)
+        if: ${{ env.E2E_WEBKIT != '1' }}
+        run: npm run e2e -w @ringside/web -- --project=desktop --project=phone
+
+      - name: Run end-to-end tests (desktop, phone and WebKit phone)
+        if: ${{ env.E2E_WEBKIT == '1' }}
+        run: npm run e2e -w @ringside/web -- --project=desktop --project=phone --project=phone-webkit
+
+      - name: Upload Playwright report
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: |
+            apps/web/playwright-report/
+            apps/web/test-results/
+          retention-days: 7
+          if-no-files-found: ignore
