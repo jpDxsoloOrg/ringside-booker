@@ -35,6 +35,7 @@ describe('StatusChips', () => {
     expect(screen.getByTestId('date-chip')).toHaveTextContent('Season 3');
     expect(screen.getByTestId('popularity-chip')).toHaveTextContent('64');
     expect(screen.getByTestId('popularity-chip')).toHaveTextContent('Prestige 58');
+    expect(screen.getByTestId('promotion-chip')).toHaveTextContent('Harbor City Wrestling');
   });
 
   it('draws negative cash in the negative colour with a minus sign', () => {
@@ -48,11 +49,12 @@ describe('StatusChips', () => {
     expect(screen.getByTestId('date-chip')).not.toHaveTextContent('Season');
     expect(screen.queryByTestId('cash-chip')).toBeNull();
     expect(screen.queryByTestId('popularity-chip')).toBeNull();
+    expect(screen.queryByTestId('promotion-chip')).toBeNull();
   });
 
   it('adds a registered chip in its order, and removes it again', () => {
     render(<StatusChips status={STATUS} placement="bar" />);
-    expect(chipIds()).toEqual(['shell.cash', 'shell.popularity']);
+    expect(chipIds()).toEqual(['shell.promotion', 'shell.cash', 'shell.popularity']);
 
     let unregister = (): void => undefined;
     act(() => {
@@ -66,13 +68,18 @@ describe('StatusChips', () => {
         ),
       });
     });
-    expect(chipIds()).toEqual(['shell.cash', 'social.morale', 'shell.popularity']);
+    expect(chipIds()).toEqual([
+      'shell.promotion',
+      'shell.cash',
+      'social.morale',
+      'shell.popularity',
+    ]);
     expect(screen.getByText('Morale')).toBeInTheDocument();
 
     act(() => {
       unregister();
     });
-    expect(chipIds()).toEqual(['shell.cash', 'shell.popularity']);
+    expect(chipIds()).toEqual(['shell.promotion', 'shell.cash', 'shell.popularity']);
   });
 
   it('refuses two chips with the same id', () => {

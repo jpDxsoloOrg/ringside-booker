@@ -86,6 +86,22 @@ interface PromotionChipProps {
   readonly placement: StatusChipPlacement;
 }
 
+/** Whose figures these are: the promotion the local seat runs. Long names end in an ellipsis. */
+function PromotionChip({ promotion, placement }: PromotionChipProps) {
+  return (
+    <StatusChip
+      label="Promotion"
+      placement={placement}
+      testId="promotion-chip"
+      {...(placement === 'bar' ? { className: styles['promotionChipBar'] ?? '' } : {})}
+    >
+      <span className={styles['promotionName']} title={promotion.name}>
+        {promotion.name}
+      </span>
+    </StatusChip>
+  );
+}
+
 function CashChip({ promotion, placement }: PromotionChipProps) {
   const formatMoney = useMoneyFormatter();
   const negative = promotion.cash < 0;
@@ -119,6 +135,14 @@ function PopularityChip({ promotion, placement }: PromotionChipProps) {
 /** The built-in chips after the date. Each hides itself for a seat with no promotion. */
 export const BUILT_IN_STATUS_CHIPS: readonly StatusChipDefinition[] = [
   {
+    id: 'shell.promotion',
+    order: 5,
+    render: ({ status, placement }: StatusChipContext) =>
+      status.promotion === null ? null : (
+        <PromotionChip promotion={status.promotion} placement={placement} />
+      ),
+  },
+  {
     id: 'shell.cash',
     order: 10,
     render: ({ status, placement }: StatusChipContext) =>
@@ -145,7 +169,7 @@ export interface StatusChipsProps {
 }
 
 /**
- * The status at the end of the top bar: the date and season, the promotion's cash and popularity
+ * The status at the end of the top bar: the date and season, the promotion's name, cash and popularity
  * (each with its Why? when the engine has a breakdown), then any chips other systems registered
  * through `registerStatusChip`. Chips with nothing to show (no promotion) are left out.
  */
