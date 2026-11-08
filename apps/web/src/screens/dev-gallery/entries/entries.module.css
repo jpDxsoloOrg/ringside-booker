@@ -34,6 +34,12 @@
   font-size: var(--font-size-sm);
 }
 
+.groupLabel {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
 .toggle {
   display: inline-flex;
   align-items: center;
