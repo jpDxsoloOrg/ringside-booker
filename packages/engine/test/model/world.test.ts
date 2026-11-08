@@ -32,9 +32,12 @@ describe('createWorld', () => {
     expect(world.meta.worldName).toBe('Toy World');
   });
 
-  it('builds a world with one table per entry of the production registry', () => {
+  it('builds an empty world from the production registry', () => {
     const world = createWorld(TABLES, toyMeta());
     expect(Object.keys(world.tables)).toEqual(Object.keys(TABLES));
+    for (const table of Object.values(world.tables)) {
+      expect(table.size).toBe(0);
+    }
   });
 
   it('throws RegistryError when two entries share a table name', () => {

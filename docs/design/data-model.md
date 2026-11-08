@@ -377,7 +377,246 @@ WRK can add a minimum below which small values are dropped.
 
 ## Promotions and employment
 
-_Promotions, brands, employments and contracts arrive with FND-07._
+The company side of the world and how people attach to it. Code:
+`packages/engine/src/model/controller.ts` and
+`packages/engine/src/model/entities/` (`promotion.ts`, `promotion-style.ts`,
+`brand.ts`, `employment.ts`, `team.ts`, `stable.ts`, `relationship.ts`).
+
+The key call: a contract is its own entity with a lifecycle. Everything that
+only exists because someone works for a promotion (ring name, gimmick, push,
+alignment, morale, momentum, brand, manager) lives on the `Employment` row.
+Groupings that outlive a contract (teams, stables, relationships) point at
+people, following the reference rule above.
+
+### Controllers
+
+Every promotion and every brand names who runs it (D-07):
+
+| Shape                                 | Meaning                                                      |
+| ------------------------------------- | ------------------------------------------------------------ |
+| `{ kind: 'human', playerId: string }` | A human player; `playerId` (1–64 chars) is in `meta.players` |
+| `{ kind: 'computer' }`                | The computer                                                 |
+
+`playerId` is an opaque player identifier, not an entity ID. A reference spec
+on `controller.playerId` (target `player`) checks it against `meta.players`.
+Single-player is one human controller. There is no "player promotion" field
+anywhere: a query that needs it looks for the rows whose controller names that
+player. The command and query API re-exports this type instead of declaring
+its own.
+
+### Promotion (`promotions`, `pro_`)
+
+| Field               | Type                                | Range / rule                                  | Semantics owned by |
+| ------------------- | ----------------------------------- | --------------------------------------------- | ------------------ |
+| `id`                | `PromotionId`                       |                                               |                    |
+| `name`              | string                              | 1–60 chars                                    |                    |
+| `shortName`         | string                              | 2–8 uppercase letters or digits               |                    |
+| `logoRef`           | `ImageRef`                          | asset path, placeholder or null               | UI                 |
+| `foundedOn`         | `GameDate`                          |                                               |                    |
+| `status`            | `'active' \| 'dormant' \| 'closed'` |                                               | WLD                |
+| `homeRegionId`      | `RegionId`                          | ref → region                                  |                    |
+| `regionalPop`       | `Record<RegionId, number>`          | sparse, each > 0 and ≤ 100; keys ref → region | WRK                |
+| `prestige`          | number                              | 0–100                                         | WLD                |
+| `cash`              | `Cents`                             | may be negative (debt)                        | ECO                |
+| `style`             | `PromotionStyle`                    | see below                                     | WLD                |
+| `ownerPersonId`     | `PersonId \| null`                  | ref → person                                  | AIP                |
+| `bookerPersonId`    | `PersonId \| null`                  | ref → person                                  | AIP                |
+| `parentPromotionId` | `PromotionId \| null`               | developmental parent; never itself; no cycles | WLD                |
+| `production`        | record of 8 areas                   | each a whole number 0–10                      | ECO                |
+| `policies`          | `{ catering, travel, medical }`     | each 0, 1, 2 or 3                             | ECO / SOC          |
+| `color`             | string                              | `#rrggbb`, used by placeholder logos          | UI                 |
+| `controller`        | `Controller`                        | who runs it                                   | WLD-10             |
+
+Production areas: `stage`, `camera`, `editing`, `pyro`, `music`, `writing`,
+`marketing`, `backOffice`. The 0–10 range is deliberately wide so the economy
+design can use fewer tiers without a migration.
+
+Styles (`promotion-style.ts`, importable on its own): `mainstream`,
+`traditional`, `technical`, `hardHitting`, `hardcore`, `highFlying`,
+`entertainment`.
+
+Owner and booker are `PersonId`, not `EmploymentId`: an owner need not be on
+the payroll. If a booker must also be employed, that is a query for the
+systems that care.
+
+Index: `byStatus`.
+
+### Brand (`brands`, `brd_`)
+
+| Field         | Type                 | Range / rule                                            |
+| ------------- | -------------------- | ------------------------------------------------------- |
+| `id`          | `BrandId`            |                                                         |
+| `promotionId` | `PromotionId`        | ref → promotion                                         |
+| `name`        | string               | 1–40 chars                                              |
+| `logoRef`     | `ImageRef`           |                                                         |
+| `priority`    | number               | whole number ≥ 0; lower = more important (0 = flagship) |
+| `active`      | boolean              |                                                         |
+| `controller`  | `Controller \| null` | null = run by the promotion's controller (D-06)         |
+
+Index: `byPromotion`. A brand with its own controller is all brand wars need
+from the data model for now; drafts and brand-war seasons bring their own
+tables later.
+
+### Employment (`employments`, `emp_`)
+
+| Group     | Field                    | Type                                                                             | Range / rule                                     |
+| --------- | ------------------------ | -------------------------------------------------------------------------------- | ------------------------------------------------ |
+| Links     | `personId`               | `PersonId`                                                                       | ref → person                                     |
+|           | `promotionId`            | `PromotionId`                                                                    | ref → promotion                                  |
+|           | `brandId`                | `BrandId \| null`                                                                | ref → brand of the same promotion                |
+|           | `managerPersonId`        | `PersonId \| null`                                                               | ref → person; never the employee                 |
+| Lifecycle | `status`                 | `EmploymentStatus`                                                               | see the lifecycle below                          |
+|           | `offeredOn`              | `GameDate`                                                                       |                                                  |
+|           | `startsOn`               | `GameDate`                                                                       | ≥ `offeredOn`                                    |
+|           | `endsOn`                 | `GameDate \| null`                                                               | > `startsOn`; null = open-ended                  |
+|           | `endedOn`                | `GameDate \| null`                                                               | set exactly when the status is an ended one      |
+| Role      | `role`                   | `wrestler \| manager \| presenter \| announcer \| referee \| producer \| booker` |                                                  |
+| Character | `ringName`               | string                                                                           | 1–60 chars                                       |
+|           | `gimmickKey`             | `ContentKey \| null`                                                             |                                                  |
+|           | `alignment`              | `face \| heel \| tweener`                                                        |                                                  |
+|           | `push`                   | `mainEvent \| upperCard \| midCard \| lowerCard \| enhancement \| none`          |                                                  |
+| Terms     | `terms.kind`             | `written \| perAppearance \| development \| tour`                                |                                                  |
+|           | `terms.exclusive`        | boolean                                                                          |                                                  |
+|           | `terms.monthlyWage`      | `Cents`                                                                          | ≥ 0; must be 0 for `perAppearance`               |
+|           | `terms.perAppearanceFee` | `Cents`                                                                          | ≥ 0                                              |
+|           | `terms.signingBonus`     | `Cents`                                                                          | ≥ 0                                              |
+|           | `terms.shares`           | `{ gateBp, merchBp, broadcastBp }`                                               | basis points, 0–10000 each                       |
+|           | `terms.appearanceCap`    | number \| null                                                                   | whole number ≥ 1 per game year; null = no cap    |
+|           | `terms.perks`            | `{ creativeControl, noHouseShows, ironClad, travelCovered }`                     | booleans                                         |
+| State     | `morale`                 | number                                                                           | −100..100 (WRK/SOC)                              |
+|           | `momentum`               | number \| null                                                                   | −100..100; null until the first appearance (WRK) |
+|           | `appearancesThisYear`    | number                                                                           | whole number ≥ 0                                 |
+|           | `lastAppearanceOn`       | `GameDate \| null`                                                               |                                                  |
+|           | `leave`                  | `null \| { kind: suspension \| timeOff; until; paid }`                           | suspensions and time off belong to the contract  |
+
+Indexes: `byPerson`, `byPromotion`, `byStatus`, and `byPromotionStatus` with
+the key `` `${promotionId}|${status}` `` (`promotionStatusKey`), which serves
+"the active roster of promotion X" without a scan.
+
+Money shares are basis points: whole numbers, exact, and the same unit
+everywhere money is split.
+
+#### Lifecycle
+
+An offer is not a contract. An employment is created as `offered` and only
+pays a wage or appears on a card once it has moved to `active` on purpose.
+
+```
+                 +----------> declined
+                 |
+  offered -------+----------> withdrawn <----+
+                 |                           |
+                 +---------> signed ---------+
+                                |
+                                v
+                             active ---------+----------> expired
+                                             |
+                                             +----------> released
+                                             |
+                                             +----------> quit
+```
+
+| From        | Allowed next statuses             |
+| ----------- | --------------------------------- |
+| `offered`   | `signed`, `declined`, `withdrawn` |
+| `signed`    | `active`, `withdrawn`             |
+| `active`    | `expired`, `released`, `quit`     |
+| `declined`  | none (terminal)                   |
+| `withdrawn` | none (terminal)                   |
+| `expired`   | none (terminal)                   |
+| `released`  | none (terminal)                   |
+| `quit`      | none (terminal)                   |
+
+`EMPLOYMENT_TRANSITIONS` holds this table and `canTransition(from, to)` reads
+it. Commands that change an employment check it; the transaction layer does
+not, so migrations and sandbox edits can still write any status. What the
+world does check is that the stored state is one the lifecycle could have
+reached:
+
+- **In the row (schema):** `endedOn` is set exactly for `declined`,
+  `withdrawn`, `expired`, `released` and `quit`, and never before `offeredOn`;
+  an employment that was active (`expired`, `released`, `quit`) cannot end
+  before `startsOn`; an `expired` employment has an `endsOn` and did not end
+  before it.
+- **Against the calendar (invariant `employments.unreachableState`):** no
+  `offeredOn` is in the future; an `active`, `expired`, `released` or `quit`
+  employment has `startsOn` on or before the current date; and no `endedOn` is
+  in the future.
+
+#### Invariants
+
+| Code                              | Rule                                                                                                    |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `employments.exclusiveConflict`   | A person with an active exclusive contract has no other active contract (so at most one exclusive one). |
+| `employments.duplicateContract`   | At most one `signed` or `active` employment per person and promotion.                                   |
+| `employments.brandOtherPromotion` | An employment's brand belongs to the employment's promotion.                                            |
+| `employments.unreachableState`    | The stored status could have been reached by today (see above).                                         |
+| `promotions.parentCycle`          | The developmental parent chain has no cycles. Each cycle is reported once, from its smallest ID.        |
+| `teams.deceasedMember`            | An active team has no deceased member.                                                                  |
+| `stables.deceasedMember`          | An active stable has no deceased member.                                                                |
+
+Offers are free: a person can hold any number of `offered` rows, exclusive or
+not, because nothing has been agreed yet.
+
+### Team (`teams`, `tem_`)
+
+| Field        | Type                                | Range / rule                                    |
+| ------------ | ----------------------------------- | ----------------------------------------------- |
+| `id`         | `TeamId`                            |                                                 |
+| `kind`       | `'tag' \| 'trio'`                   |                                                 |
+| `name`       | string                              | 1–60 chars                                      |
+| `memberIds`  | `PersonId[]`                        | unique; exactly 2 for a tag team, 3 for a trio  |
+| `experience` | number                              | 0–100; feeds the teamwork bonus                 |
+| `status`     | `'active' \| 'inactive' \| 'split'` |                                                 |
+| `formedOn`   | `GameDate`                          |                                                 |
+| `splitOn`    | `GameDate \| null`                  | set exactly when `split`; not before `formedOn` |
+
+Index: `byMember` (one entry per member).
+
+### Stable (`stables`, `stb_`)
+
+| Field         | Type                      | Range / rule                                        |
+| ------------- | ------------------------- | --------------------------------------------------- |
+| `id`          | `StableId`                |                                                     |
+| `promotionId` | `PromotionId`             | ref → promotion                                     |
+| `name`        | string                    | 1–60 chars                                          |
+| `memberIds`   | `PersonId[]`              | unique, 2–12                                        |
+| `leaderId`    | `PersonId \| null`        | must be a member                                    |
+| `status`      | `'active' \| 'disbanded'` |                                                     |
+| `formedOn`    | `GameDate`                |                                                     |
+| `disbandedOn` | `GameDate \| null`        | set exactly when `disbanded`; not before `formedOn` |
+| `imageRef`    | `ImageRef`                |                                                     |
+
+Indexes: `byPromotion`, `byMember`.
+
+**Teams are global, stables belong to a promotion.** A tag team is a unit of
+people that can move between companies (or work for several) together, so it
+has no promotion. A stable is a creative device of one company, so it does.
+Stable members are not required to hold a contract with the stable's
+promotion: someone can be between deals, and what happens to the stable then
+is a creative decision, not a data rule.
+
+### Relationship (`relationships`, `rel_`)
+
+| Field           | Type                 | Range / rule                                                    |
+| --------------- | -------------------- | --------------------------------------------------------------- |
+| `id`            | `RelationshipId`     |                                                                 |
+| `personAId`     | `PersonId`           | the smaller ID of the pair                                      |
+| `personBId`     | `PersonId`           | the larger ID; `personAId < personBId`, so no self-relationship |
+| `affinity`      | number               | −100..100 (SOC owns how it changes and decays)                  |
+| `bonds`         | `RelationshipBond[]` | unique; at most one of `dating`, `engaged`, `married`           |
+| `mentorId`      | `PersonId \| null`   | required exactly when `bonds` has `mentorship`; must be A or B  |
+| `since`         | `GameDate`           |                                                                 |
+| `lastChangedOn` | `GameDate`           | not before `since`                                              |
+
+Bonds: `friends`, `rivals`, `dating`, `engaged`, `married`, `relatives`,
+`mentorship`.
+
+Pairs are stored in canonical order, so there is exactly one row per pair.
+`relationshipKey(a, b)` returns `"smaller|larger"` whichever order it is
+given, and the unique `byPair` index on that key refuses a second row for the
+same pair at write time. The `byPerson` index files each row under both
+people, so "everyone X has a relationship with" is one lookup.
 
 ## Titles, events, storylines and seasons
 
