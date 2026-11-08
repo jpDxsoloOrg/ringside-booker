@@ -1,0 +1,23 @@
+{
+  "formatVersion": 1,
+  "id": "check-world",
+  "name": "Check World",
+  "version": "1.0.0",
+  "kind": "world",
+  "description": "Test fixture for validate-world: a world that passes every content rule.",
+  "author": "Ringside Booker tests",
+  "dependsOn": [
+    {
+      "id": "check-base",
+      "version": "^1.0.0"
+    }
+  ],
+  "startDate": "2026-01-05",
+  "files": {
+    "promotion": "promotions.json",
+    "title": "titles.json",
+    "person": "people.json",
+    "employment": "employments.json",
+    "titleReign": "title-reigns.json"
+  }
+}

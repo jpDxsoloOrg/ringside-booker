@@ -1,0 +1,16 @@
+[
+  {
+    "key": "east-fen",
+    "name": "East Fen",
+    "countryKey": "lowmarch",
+    "population": 2500000,
+    "neighbourKeys": ["west-moor"]
+  },
+  {
+    "key": "west-moor",
+    "name": "West Moor",
+    "countryKey": "lowmarch",
+    "population": 1550000,
+    "neighbourKeys": ["east-fen"]
+  }
+]

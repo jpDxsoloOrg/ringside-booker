@@ -1,0 +1,12 @@
+[
+  {
+    "key": "lowmarch",
+    "name": "Lowmarch",
+    "code": "LWM",
+    "continentKey": "osterra",
+    "population": 4000000,
+    "wrestlingInterest": 55,
+    "economy": 50,
+    "preferredStyle": null
+  }
+]

@@ -1,0 +1,22 @@
+[
+  {
+    "key": "lowmarchian",
+    "label": "Lowmarchian",
+    "given": {
+      "male": [
+        ["Aldo", 3],
+        ["Bram", 2]
+      ],
+      "female": [
+        ["Celia", 3],
+        ["Dara", 2]
+      ],
+      "neutral": []
+    },
+    "surnames": [
+      ["Fenwick", 2],
+      ["Moorley", 1]
+    ],
+    "surnameStyle": "single"
+  }
+]

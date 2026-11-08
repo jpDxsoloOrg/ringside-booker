@@ -1,0 +1,12 @@
+[
+  {
+    "key": "lowmarch",
+    "countryKey": "lowmarch",
+    "cultures": [
+      {
+        "cultureKey": "lowmarchian",
+        "weight": 1
+      }
+    ]
+  }
+]

@@ -4,6 +4,7 @@
     { "path": "./packages/engine" },
     { "path": "./packages/engine/test" },
     { "path": "./apps/web" },
-    { "path": "./tools/blog" }
+    { "path": "./tools/blog" },
+    { "path": "./tools/validate-world" }
   ]
 }

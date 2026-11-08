@@ -1,0 +1,5 @@
+# Blocklist for the validate-world tests: invented names standing in for real ones.
+
+Gravel Pit Grapplers
+Velvet Hammerlock
+Duskmoor
