@@ -84,7 +84,7 @@ export type PersonSeedHook = (input: PersonSeedInput) => Traced<Person>;
 /**
  * The seeds the generator runs after the core person is built, in this order. Each one is
  * optional; a missing seed leaves its fields at the neutral defaults (potential 0, no ceilings, no
- * traits, no vices, no popularity).
+ * traits, no vices, no popularity). The defaults are `DEFAULT_SEED_HOOKS` in `seeds.ts`.
  */
 export interface PersonSeedHooks {
   readonly seedPotential?: PersonSeedHook;
@@ -106,6 +106,10 @@ export interface GenerateContext {
   readonly rng: StreamSource;
   /** Defaults to every engine tunable at its default value. */
   readonly tunables?: EngineTunables;
+  /**
+   * The seeds to run after the core person is built. Defaults to the WLD-07 seeds (potential,
+   * traits, vices, popularity); pass `{}` to run none.
+   */
   readonly hooks?: PersonSeedHooks;
   /**
    * Parse the result with `PersonSchema` before returning it (default true). Turn it off only in

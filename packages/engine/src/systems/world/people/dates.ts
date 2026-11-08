@@ -8,7 +8,14 @@
  * Design: docs/design/world-generation.md#age-and-dates.
  */
 
-import { addDays, addYears, ageInYears, isAfter, type GameDate } from '../../../core/date';
+import {
+  addDays,
+  addYears,
+  ageInYears,
+  diffDays,
+  isAfter,
+  type GameDate,
+} from '../../../core/date';
 import { InvalidArgumentError } from '../../../core/errors';
 import { rollInt, rollNormal, type RngStream } from '../../../core/rng';
 import { inputOf, startCalc, type Traced } from '../../../core/trace';
@@ -95,6 +102,31 @@ export function rollBirthDate(
 export function birthdayAt(birthDate: GameDate, years: number): GameDate {
   const anniversary = addYears(birthDate, years);
   return ageInYears(birthDate, anniversary) < years ? addDays(anniversary, 1) : anniversary;
+}
+
+/**
+ * Age in years with the fraction of the year since the last birthday: whole years by
+ * `ageInYears`, plus the days since the last birthday over the days between that birthday and the
+ * next. It rises smoothly through the year and is exactly the whole age on the birthday, so a
+ * person born on 2000-06-01 is 30 on 2030-06-01 and 29.997 the day before. It differs from
+ * `diffDays / 365.25` by at most a day's worth.
+ */
+export function exactAge(birthDate: GameDate, date: GameDate): number {
+  const wholeYears = ageInYears(birthDate, date);
+  const lastBirthday = birthdayAt(birthDate, wholeYears);
+  const nextBirthday = birthdayAt(birthDate, wholeYears + 1);
+  return wholeYears + diffDays(lastBirthday, date) / diffDays(lastBirthday, nextBirthday);
+}
+
+/**
+ * Years since `debutDate` on `date`, as a fraction; 0 for someone who has not debuted (or whose
+ * debut is still ahead).
+ */
+export function experienceYearsAt(debutDate: GameDate | null, date: GameDate): number {
+  if (debutDate === null || isAfter(debutDate, date)) {
+    return 0;
+  }
+  return exactAge(debutDate, date);
 }
 
 /** A person's debut: the date, the age they debuted at, and the years since. */

@@ -4,7 +4,7 @@
   "name": "Ringside Booker Base",
   "version": "0.1.0",
   "kind": "base",
-  "description": "Shared data every world builds on: the map of continents, countries and regions, the name lists people and ring names are generated from, and the roles, styles, bodies and attribute profiles new people are rolled from.",
+  "description": "Shared data every world builds on: the map of continents, countries and regions, the name lists people and ring names are generated from, and the roles, styles, bodies, attribute profiles and trait chances new people are rolled from.",
   "author": "Ringside Booker",
   "dependsOn": [],
   "files": {
@@ -18,6 +18,7 @@
     "generationStyle": "generation/styles.json",
     "bodyArchetype": "generation/archetypes.json",
     "bodyModifier": "generation/body-modifiers.json",
-    "generationProfile": "generation/profiles.json"
+    "generationProfile": "generation/profiles.json",
+    "traitIncidence": "generation/traits.json"
   }
 }
