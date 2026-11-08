@@ -50,7 +50,7 @@ export const gameRoutes: readonly RouteUnderTest[] = [
  */
 export const routesUnderTest: readonly RouteUnderTest[] = [
   { path: '/', name: 'title', heading: 'Ringside Booker', needsWorld: false },
-  { path: '/load', name: 'load game', heading: 'Load game', needsWorld: false },
+  { path: '/load', name: 'saved games', heading: 'Saved games', needsWorld: false },
   { path: '/new', name: 'new game', heading: 'New game', needsWorld: false },
   { path: '/settings', name: 'settings', heading: 'Settings', needsWorld: false },
   { path: '/no-such-page', name: 'not found', heading: 'Page not found', needsWorld: false },

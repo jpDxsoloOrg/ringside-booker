@@ -6,6 +6,7 @@ import type { NavSection } from '../navigation';
 import { routes } from '../routes';
 import { classNames } from '@/components/classNames';
 import styles from './AppShell.module.css';
+import { MainMenuButton } from './MainMenuButton';
 import { NavItemContent } from './NavItemContent';
 import type { NavBadgeCounts } from './useNavBadges';
 
@@ -21,7 +22,7 @@ export interface MoreSheetProps {
 
 /**
  * The phone's full navigation, in a bottom sheet behind "More": every visible section and item,
- * then settings and the way back to the main menu. Following a link closes it.
+ * then settings and "Main menu", which saves and leaves the game. Following a link closes it.
  */
 export function MoreSheet({ open, onClose, sections, badges }: MoreSheetProps) {
   const headingIdPrefix = useId();
@@ -65,10 +66,7 @@ export function MoreSheet({ open, onClose, sections, badges }: MoreSheetProps) {
             </Link>
           </li>
           <li>
-            <Link to={routes.title()} className={styles['navLink']} onClick={onClose}>
-              <Icon name="log-out" size="md" className={styles['navIcon']} decorative />
-              <span className={styles['navLabel']}>Main menu</span>
-            </Link>
+            <MainMenuButton onLeave={onClose} />
           </li>
         </ul>
       </div>

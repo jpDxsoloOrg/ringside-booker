@@ -13,6 +13,7 @@ import type { NavSection } from '../navigation';
 import { useHasPromotion } from '../session/sessionStore';
 import styles from './AppShell.module.css';
 import { BottomNav } from './BottomNav';
+import { LoadNoticeBanner } from './LoadNoticeBanner';
 import { MoreSheet } from './MoreSheet';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
@@ -75,7 +76,10 @@ export function AppShell({
         {...(topBarEnd === undefined ? {} : { end: topBarEnd })}
       />
       <main id={MAIN_CONTENT_ID} tabIndex={-1} className={styles['main']}>
-        <div className={styles['content']}>{children ?? <Outlet />}</div>
+        <div className={styles['content']}>
+          <LoadNoticeBanner />
+          {children ?? <Outlet />}
+        </div>
       </main>
       {isMobile && (
         <>

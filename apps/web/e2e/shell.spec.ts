@@ -122,7 +122,7 @@ test.describe('shell on a phone', () => {
       await expect(sheet.getByRole('heading', { name: section, exact: true })).toBeVisible();
     }
     await expect(sheet.getByRole('link', { name: 'Settings' })).toBeVisible();
-    await expect(sheet.getByRole('link', { name: 'Main menu' })).toBeVisible();
+    await expect(sheet.getByRole('button', { name: 'Main menu' })).toBeVisible();
     await expectNoSeriousA11yViolations(page, { include: ['[role="dialog"]'] });
 
     await sheet.getByRole('link', { name: 'Titles', exact: true }).click();
