@@ -104,7 +104,7 @@ table component behind it is built, and automated tests check it at 390 pixels w
 
 **5. Data, not code, for content.** Wrestlers, promotions, titles, events and balance numbers are
 data files that can be edited and shared as packs. The world the game ships with will just be the
-first pack. Want a loss to sting less, or a fictional champion with a new name? Edit a file. No
+first pack. Want a loss to hurt less, or a fictional champion with a new name? Edit a file. No
 rebuild, and you can send a whole world to a friend.
 
 Writing these down surprised me. Once every number had to explain itself, a lot of the design
