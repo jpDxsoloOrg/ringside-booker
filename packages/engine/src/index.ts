@@ -6,3 +6,12 @@
 
 /** Engine version, recorded in every save. Kept equal to `version` in this package's package.json. */
 export const ENGINE_VERSION: string = '0.1.0';
+
+export * from './core/tunables/index';
+export {
+  ALL_TUNABLES,
+  createEngineTunables,
+  loadEngineTunables,
+  type EngineTunables,
+  type TunableKey,
+} from './systems/tunables';
