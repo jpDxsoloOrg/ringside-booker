@@ -58,15 +58,15 @@ jobs:
 
       # Checks the shipped world against the content rules and the committed real-name blocklist
       # (content/blocklist/real-names.txt). It needs no secrets, so it runs the same on pull
-      # requests from forks. Until the default world pack lands (WLD-08/WLD-09) there is nothing
-      # to check; once content/worlds/default exists the check always runs.
+      # requests from forks. The default world is still being built: its organisations are in
+      # (WLD-08), but its people (WLD-09) and the base pack's name mixes (WLD-05) are not, so the
+      # rules that need them are skipped until they land. The blocklist rule can never be skipped.
       - name: Validate world content
-        run: |
-          if [ -d content/worlds/default ]; then
-            npm run validate:world -- --strict
-          else
-            echo "::notice::content/worlds/default does not exist yet; world validation skipped"
-          fi
+        run: >-
+          npm run validate:world -- --strict
+          --skip-rule promotion-staffing
+          --skip-rule free-agents
+          --skip-rule geography
 
       - name: Build
         run: npm run build

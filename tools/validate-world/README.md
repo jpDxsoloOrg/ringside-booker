@@ -20,7 +20,7 @@ npm run validate -w @ringside/validate-world -- content/my-world --root my-world
 
 ```
 validate-world <packDir...> [--root <packId>] [--seed <s>] [--report <file.md>]
-               [--blocklist <file>] [--strict] [--smoke-days <n>]
+               [--blocklist <file>] [--strict] [--smoke-days <n>] [--skip-rule <id>]
 ```
 
 | Option               | What it does                                                                                                                  |
@@ -32,6 +32,7 @@ validate-world <packDir...> [--root <packId>] [--seed <s>] [--report <file.md>]
 | `--blocklist <file>` | An extra real-name list, repeatable. It is checked on top of the committed list and never replaces it.                        |
 | `--strict`           | Warnings fail the run too.                                                                                                    |
 | `--smoke-days <n>`   | Advances the loaded world `n` days through the engine API (`createEngine` with `defaultSystems`) and fails on any step error. |
+| `--skip-rule <id>`   | Leaves out one content rule by its ID (repeatable), for a world that is still being built. `blocklist` cannot be skipped.     |
 
 Packs named in `dependsOn` that were not passed in are found by pack ID anywhere under `content/`,
 so pointing the tool at a world pack is enough.
@@ -152,8 +153,10 @@ It covers:
 
 `.github/workflows/ci.yml` runs `npm run validate:world -- --strict` after the tests on every pull
 request, including pull requests from forks. The step needs no secrets, so the blocklist check
-always runs once the default world exists. Until `content/worlds/default` lands (WLD-08/WLD-09)
-the step prints a notice and skips; that guard goes when the pack arrives.
+always runs. The default world's organisations landed first (WLD-08), so until its people
+(WLD-09) and the base pack's name mixes (WLD-05) arrive, CI passes
+`--skip-rule promotion-staffing --skip-rule free-agents --skip-rule geography`. Each skip goes in
+the change that makes its rule pass.
 
 ## Tests
 

@@ -26,7 +26,7 @@ import {
 } from './issues';
 import { displayPath, PackDirectoryError, readPacks } from './readPacks';
 import { buildReport, renderReportMarkdown, renderReportText } from './report';
-import { contentRules, runRules } from './rules/index';
+import { contentRules, runRules, type ContentRule } from './rules/index';
 import { runSmokeDays } from './smoke';
 
 export const EXIT_OK = 0;
@@ -34,6 +34,12 @@ export const EXIT_INVALID = 1;
 export const EXIT_USAGE = 2;
 
 export const DEFAULT_SEED = 'validate';
+
+/**
+ * Rules `--skip-rule` refuses to skip. The real-name blocklist always runs, so no run can publish
+ * content without that check.
+ */
+export const UNSKIPPABLE_RULES: readonly string[] = ['blocklist'];
 
 /** Most days `--smoke-days` accepts. */
 export const MAX_SMOKE_DAYS = 36500;
@@ -50,6 +56,8 @@ repository root. Dependency packs not passed in are looked up by pack ID under c
   --blocklist <file>    an extra real-name list, checked on top of ${COMMITTED_BLOCKLIST_PATH}
                         (repeatable; it never replaces the committed list)
   --strict              treat warnings as failures
+  --skip-rule <id>      leave out one content rule (repeatable), for a world that is still
+                        being built; the blocklist rule cannot be skipped
   --smoke-days <n>      advance the loaded world n days and fail on any step error
   -h, --help            show this help
 
@@ -71,6 +79,7 @@ interface CliOptions {
   readonly blocklists: readonly string[];
   readonly strict: boolean;
   readonly smokeDays: number | null;
+  readonly skippedRules: readonly string[];
 }
 
 type ParseOutcome =
@@ -96,6 +105,7 @@ export function parseCliArgs(argv: readonly string[]): ParseOutcome {
         blocklist: { type: 'string', multiple: true },
         strict: { type: 'boolean', default: false },
         'smoke-days': { type: 'string' },
+        'skip-rule': { type: 'string', multiple: true },
         help: { type: 'boolean', short: 'h', default: false },
       },
     });
@@ -123,6 +133,11 @@ export function parseCliArgs(argv: readonly string[]): ParseOutcome {
       };
     }
   }
+  const skippedRules = values['skip-rule'] ?? [];
+  const unskippable = skippedRules.find((ruleId) => UNSKIPPABLE_RULES.includes(ruleId));
+  if (unskippable !== undefined) {
+    return { kind: 'error', message: `--skip-rule cannot skip the ${unskippable} rule` };
+  }
   return {
     kind: 'options',
     options: {
@@ -133,6 +148,7 @@ export function parseCliArgs(argv: readonly string[]): ParseOutcome {
       blocklists: values.blocklist ?? [],
       strict: values.strict,
       smokeDays,
+      skippedRules,
     },
   };
 }
@@ -152,6 +168,25 @@ function summaryLine(issues: readonly ValidationIssue[], strict: boolean): strin
 function exitCodeFor(issues: readonly ValidationIssue[], strict: boolean): number {
   const { errors, warnings } = countBySeverity(issues);
   return errors > 0 || (strict && warnings > 0) ? EXIT_INVALID : EXIT_OK;
+}
+
+/**
+ * The content rules minus the ones `--skip-rule` names, or an error message naming a rule ID that
+ * does not exist (a typo must not silently skip nothing).
+ */
+function selectRules(
+  rules: readonly ContentRule[],
+  skippedRules: readonly string[],
+): { readonly rules: readonly ContentRule[] } | { readonly error: string } {
+  const known = new Set<string>(rules.map((rule) => rule.id));
+  const unknown = skippedRules.find((ruleId) => !known.has(ruleId));
+  if (unknown !== undefined) {
+    return {
+      error: `--skip-rule names an unknown rule: ${unknown} (rules: ${[...known].sort().join(', ')})`,
+    };
+  }
+  const skipped = new Set(skippedRules);
+  return { rules: rules.filter((rule) => !skipped.has(rule.id)) };
 }
 
 /** Resolves and merges the packs again to hand the rules the merged records the loader used. */
@@ -201,6 +236,12 @@ export async function runValidateWorld(argv: readonly string[], io: CliIo): Prom
     throw error;
   }
 
+  const selected = selectRules(contentRules({ blocklist }), options.skippedRules);
+  if ('error' in selected) {
+    io.stderr(`${selected.error}\n\n${USAGE}`);
+    return EXIT_USAGE;
+  }
+
   let read;
   try {
     read = await readPacks(options.packDirs.map(fromRoot), {
@@ -238,7 +279,7 @@ export async function runValidateWorld(argv: readonly string[], io: CliIo): Prom
   const issues: ValidationIssue[] = [
     ...read.issues,
     ...loaded.issues,
-    ...runRules(contentRules({ blocklist }), world, content),
+    ...runRules(selected.rules, world, content),
   ];
 
   const report = buildReport(world, content);
@@ -271,6 +312,9 @@ export async function runValidateWorld(argv: readonly string[], io: CliIo): Prom
   }
 
   io.stdout('\n');
+  if (options.skippedRules.length > 0) {
+    io.stdout(`Skipped rules: ${[...options.skippedRules].sort().join(', ')}\n`);
+  }
   printIssues(io, issues);
   io.stdout(summaryLine(issues, options.strict));
   return smokeFailed ? EXIT_INVALID : exitCodeFor(issues, options.strict);
