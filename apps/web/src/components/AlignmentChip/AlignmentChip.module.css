@@ -1,0 +1,64 @@
+/*
+ * Alignment chip: a condensed uppercase pill in the face, heel or tweener colour. The word is
+ * always on it (docs/design/visual-identity.md), and each colour is checked as text on the canvas
+ * and both surfaces in tokens.test.ts.
+ */
+.alignmentChip {
+  display: inline-flex;
+  align-items: center;
+  max-inline-size: 100%;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-family-display);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-snug);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.size-md {
+  padding: 0.0625rem var(--space-2);
+  font-size: var(--font-size-sm);
+}
+
+.size-sm {
+  padding: 0 var(--space-1);
+  font-size: var(--font-size-xs);
+}
+
+.soft {
+  background: transparent;
+}
+
+.soft.alignment-face {
+  color: var(--color-face);
+}
+
+.soft.alignment-heel {
+  color: var(--color-heel);
+}
+
+.soft.alignment-tweener {
+  color: var(--color-tweener);
+}
+
+/* Solid: the alignment colour as the fill with dark ink, checked in tokens.test.ts. */
+.solid {
+  color: var(--color-text-inverse);
+}
+
+.solid.alignment-face {
+  border-color: var(--color-face);
+  background: var(--color-face);
+}
+
+.solid.alignment-heel {
+  border-color: var(--color-heel);
+  background: var(--color-heel);
+}
+
+.solid.alignment-tweener {
+  border-color: var(--color-tweener);
+  background: var(--color-tweener);
+}

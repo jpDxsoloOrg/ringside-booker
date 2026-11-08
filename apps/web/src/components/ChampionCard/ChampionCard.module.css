@@ -1,0 +1,206 @@
+/*
+ * Champion card: office register (docs/design/visual-identity.md). A rounded card on the surface
+ * step with a hairline. Gold (prestige) marks the title side: the belt, the stars and the champion's
+ * name. Reign and defences sit under a hairline in Barlow Condensed with tabular figures.
+ */
+.championCard {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* The belt sits on a raised tile with a gold hairline, like the title badges in the mockups. */
+.belt {
+  display: inline-grid;
+  place-items: center;
+  padding: var(--space-1);
+  border: 1px solid var(--color-prestige);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-raised);
+  line-height: 0;
+}
+
+.titleBlock {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.titleName {
+  margin: 0;
+  color: var(--color-text);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  overflow-wrap: anywhere;
+}
+
+.prestige {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--space-2);
+  color: var(--color-prestige);
+  font-size: var(--font-size-xs);
+}
+
+.stars {
+  display: inline-flex;
+  gap: 0.0625rem;
+  font-size: var(--font-size-sm);
+}
+
+.starFilled {
+  fill: currentColor;
+}
+
+.starEmpty {
+  opacity: 0.45;
+}
+
+.prestigeText {
+  font-family: var(--font-family-display);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-variant-numeric: var(--font-feature-tabular);
+}
+
+.why {
+  align-self: start;
+}
+
+/* The champion: picture, a small caps label and the name in gold. */
+.holder {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  min-block-size: var(--image-size-sm);
+}
+
+.holderText {
+  display: grid;
+  min-inline-size: 0;
+}
+
+.holderLabel,
+.statLabel {
+  color: var(--color-text-muted);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.holderName {
+  color: var(--color-prestige);
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.vacantText {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-4);
+  margin: 0;
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--color-border);
+}
+
+.stat {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.statValue {
+  margin: 0;
+  color: var(--color-text);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: var(--font-feature-tabular);
+}
+
+.footer {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  overflow-wrap: anywhere;
+}
+
+/* A vacant title has no champion to celebrate, so the card drops back to plain hairlines. */
+.vacant .belt {
+  border-color: var(--color-border-strong);
+}
+
+/* ---------------------------------------------------------------- list */
+
+.list {
+  min-inline-size: 0;
+}
+
+.listItems {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.listItem {
+  display: grid;
+  min-inline-size: 0;
+}
+
+/*
+ * Phones: one horizontal swipe row. Each card is 85% of the row's width (a container query unit,
+ * so it follows the row rather than the window) and the next one peeks in; cards snap to the start. The row scrolls inside itself, so the page never scrolls sideways.
+ */
+@media (--bp-mobile) {
+  .list {
+    container-type: inline-size;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--space-1);
+  }
+
+  .listItems {
+    display: flex;
+    gap: var(--space-3);
+    inline-size: max-content;
+    padding-block-end: var(--space-2);
+  }
+
+  .listItem {
+    flex: none;
+    inline-size: min(85cqi, 20rem);
+    scroll-snap-align: start;
+  }
+}
