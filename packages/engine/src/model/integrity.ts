@@ -186,7 +186,7 @@ function checkRefSpec(
         }
         continue;
       }
-      if (typeof value !== 'string') {
+      if (found.wrongShape === true || typeof value !== 'string') {
         context.collector.add({
           code: 'ref.invalidValue',
           table: def.name,

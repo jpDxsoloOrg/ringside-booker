@@ -11,7 +11,9 @@
  * Resolving a path against a row yields one `ResolvedRef` per reference found, each with the
  * concrete path of the value (`tagIds[1]`, `members[0].personId`, `regionalPop{reg_0000000001}`).
  * Missing optional fields and null containers yield nothing. A null at the end of the path is
- * yielded, so the caller can decide whether the reference is nullable.
+ * yielded, so the caller can decide whether the reference is nullable. A value of the wrong shape
+ * (a string where `[]` expects an array, a number where the path walks into an object) is yielded
+ * with `wrongShape: true`, so the caller reports it instead of checking it as an ID.
  */
 
 import { InvalidArgumentError } from '../core/errors';
@@ -32,6 +34,8 @@ export interface ResolvedRef {
    * report it instead of the reference silently disappearing.
    */
   readonly value: unknown;
+  /** Set when `value` is not where the path expects a reference (see `value`). */
+  readonly wrongShape?: true;
 }
 
 const SEGMENT_PATTERN = /^([A-Za-z_$][A-Za-z0-9_$]*)(\[\]|\{\})?$/;
@@ -97,7 +101,14 @@ function walk(
     found.push({ path: prefix, value: container });
     return;
   }
-  if (!isRecord(container) || !Object.hasOwn(container, segment.field)) {
+  if (!isRecord(container)) {
+    // Inside the row, a container that is neither missing nor an object breaks the path's shape.
+    if (prefix !== '' && container !== null && container !== undefined) {
+      found.push({ path: prefix, value: container, wrongShape: true });
+    }
+    return;
+  }
+  if (!Object.hasOwn(container, segment.field)) {
     return;
   }
   const fieldValue = container[segment.field];
@@ -114,7 +125,7 @@ function walk(
         return;
       }
       if (!Array.isArray(fieldValue)) {
-        found.push({ path: fieldPath, value: fieldValue });
+        found.push({ path: fieldPath, value: fieldValue, wrongShape: true });
         return;
       }
       fieldValue.forEach((element: unknown, elementIndex) => {
@@ -126,7 +137,7 @@ function walk(
         return;
       }
       if (!isRecord(fieldValue)) {
-        found.push({ path: fieldPath, value: fieldValue });
+        found.push({ path: fieldPath, value: fieldValue, wrongShape: true });
         return;
       }
       for (const key of Object.keys(fieldValue).sort(compareKeys)) {

@@ -89,12 +89,18 @@ describe('resolveRefPath', () => {
     expect(resolveRefPath({ regionalPop: {} }, 'regionalPop{}')).toEqual([]);
   });
 
-  it('yields the out-of-place value when the row has the wrong shape', () => {
+  it('yields the out-of-place value, flagged, when the row has the wrong shape', () => {
     expect(resolveRefPath({ tagIds: 'tit_a' }, 'tagIds[]')).toEqual([
-      { path: 'tagIds', value: 'tit_a' },
+      { path: 'tagIds', value: 'tit_a', wrongShape: true },
     ]);
     expect(resolveRefPath({ regionalPop: ['reg_a'] }, 'regionalPop{}')).toEqual([
-      { path: 'regionalPop', value: ['reg_a'] },
+      { path: 'regionalPop', value: ['reg_a'], wrongShape: true },
+    ]);
+    expect(resolveRefPath({ crew: 'per_a' }, 'crew.announcerIds[]')).toEqual([
+      { path: 'crew', value: 'per_a', wrongShape: true },
+    ]);
+    expect(resolveRefPath({ members: ['per_a'] }, 'members[].personId')).toEqual([
+      { path: 'members[0]', value: 'per_a', wrongShape: true },
     ]);
   });
 

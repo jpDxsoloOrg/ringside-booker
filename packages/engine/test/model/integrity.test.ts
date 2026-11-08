@@ -95,6 +95,16 @@ describe('references', () => {
     ]);
   });
 
+  it('reports a value of the wrong shape even when it names an existing row', () => {
+    const world = validToyWorld();
+    const scalarTags: unknown = { ...makeWidget(4, ownerId(1)), tagIds: ownerId(2) };
+    world.tables.widgets._put(corruptWidget(scalarTags));
+    const report = checkWorld(world, TOY_REGISTRY);
+    expect(report.issues).toEqual([
+      expect.objectContaining({ code: 'ref.invalidValue', id: widgetId(4), path: 'tagIds' }),
+    ]);
+  });
+
   it('allows null in a nullable reference and reports it in a non-nullable one', () => {
     const world = validToyWorld();
     world.tables.owners._put(makeOwner(3, { homeRegionId: null }));
