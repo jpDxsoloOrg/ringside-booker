@@ -368,6 +368,13 @@ describe('references', () => {
     );
   });
 
+  it('treat a bare key and the same key qualified with a pack as a repeat', () => {
+    const team = record('team', { memberKeys: ['jack-marlow', 'example-world:jack-marlow'] });
+    expect(parseIssues(recordSchemas.team, team)).toContain(
+      'memberKeys.1: Duplicate reference example-world:jack-marlow',
+    );
+  });
+
   it('reject a key with capitals or spaces', () => {
     expect(recordSchemas.continent.safeParse(record('continent', { key: 'Arden' })).success).toBe(
       false,
@@ -429,6 +436,17 @@ describe('people', () => {
     expect(
       parseIssues(recordSchemas.employment, record('employment', { endsOn: '2025-03-01' })),
     ).toEqual(['endsOn: endsOn must be after startsOn (or null for open-ended)']);
+  });
+
+  it('rejects an employment managed by its own person, qualified or not', () => {
+    for (const managerPersonKey of ['jack-marlow', 'example-world:jack-marlow']) {
+      expect(
+        parseIssues(recordSchemas.employment, record('employment', { managerPersonKey })),
+      ).toEqual(['managerPersonKey: A person cannot be their own manager']);
+    }
+    expect(
+      parseIssues(recordSchemas.employment, record('employment', { managerPersonKey: null })),
+    ).toEqual([]);
   });
 
   it('rejects fractional and negative money', () => {

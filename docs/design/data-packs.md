@@ -89,7 +89,8 @@ Pack kinds:
   list, and holds a reference: a bare key (`harbour-coast`) or a key qualified
   with the pack that defines it (`example-world:harbour-coast`). Qualify a
   reference when the pack it comes from matters, for example in an add-on that
-  depends on two packs. Lists of references never repeat an entry.
+  depends on two packs. Lists of references never repeat an entry; a bare
+  key and the same key qualified with a pack count as a repeat.
 - **Names are never references.** A reference is always a key, never a display
   name. Mixing names and IDs as links is how a renamed promotion ends up with
   orphaned titles or a wrestler's history points at the wrong person. A value

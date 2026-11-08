@@ -60,14 +60,19 @@ export const refSchema = z.custom<PackRef>(isPackRef, {
     'Expected a reference to a record key ("pro-coastal") or "packId:key"; references never use display names',
 });
 
-/** A list of references with no repeats, such as a region's `neighbourKeys`. */
+/**
+ * A list of references with no repeats, such as a region's `neighbourKeys`. A key is unique within
+ * its kind across every loaded pack, so `jack-marlow` and `example-world:jack-marlow` name the same
+ * record and count as a repeat.
+ */
 export const refListSchema = z.array(refSchema).superRefine((refs, context) => {
   const seen = new Set<string>();
   refs.forEach((ref, index) => {
-    if (seen.has(ref)) {
+    const { key } = parseRef(ref);
+    if (seen.has(key)) {
       context.addIssue({ code: 'custom', message: `Duplicate reference ${ref}`, path: [index] });
     }
-    seen.add(ref);
+    seen.add(key);
   });
 });
 

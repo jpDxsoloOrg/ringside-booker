@@ -63,7 +63,7 @@ import {
   percentSchema,
   regionalPopSchema,
 } from '../fields';
-import { keySchema, refListSchema, refSchema } from '../keys';
+import { keySchema, parseRef, refListSchema, refSchema } from '../keys';
 
 // ---------------------------------------------------------------------------------------------
 // People
@@ -206,9 +206,11 @@ export const employmentRecord = defineRecordKind(
         path: ['endsOn'],
       });
     }
+    const managerKey = employment.managerPersonKey;
     if (
-      employment.managerPersonKey !== undefined &&
-      employment.managerPersonKey === employment.personKey
+      managerKey !== undefined &&
+      managerKey !== null &&
+      parseRef(managerKey).key === parseRef(employment.personKey).key
     ) {
       context.addIssue({
         code: 'custom',
