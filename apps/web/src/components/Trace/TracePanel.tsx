@@ -40,10 +40,12 @@ type CopyState = 'idle' | 'copied' | 'manual';
 
 /**
  * Copies the breakdown as text. Uses the Clipboard API; where that is missing or refused, it
- * shows the text in a selected box so the player can copy it by hand.
+ * shows the text in a selected box so the player can copy it by hand. The text is only built when
+ * the player asks for it, so a screen full of closed panels never writes out its traces.
  */
-function CopyTextButton({ text }: { readonly text: string }) {
+function CopyTextButton({ getText }: { readonly getText: () => string }) {
   const [copyState, setCopyState] = useState<CopyState>('idle');
+  const [text, setText] = useState('');
   const fallbackRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -53,8 +55,10 @@ function CopyTextButton({ text }: { readonly text: string }) {
   }, [copyState]);
 
   const copy = async (): Promise<void> => {
+    const breakdownText = getText();
+    setText(breakdownText);
     try {
-      await navigator.clipboard.writeText(text);
+      await navigator.clipboard.writeText(breakdownText);
       setCopyState('copied');
     } catch {
       setCopyState('manual');
@@ -157,7 +161,7 @@ function TraceRefPanel({ title, traceRef, open, onClose, renderEntityLink }: Tra
   const query = useEngineQuery('trace.get', { ref: traceRef }, { enabled: open });
 
   let body: ReactNode;
-  let copyText: string | null = null;
+  let getCopyText: (() => string) | null = null;
   if (query.status === 'loading') {
     body = <TraceLoading />;
   } else if (query.status === 'error') {
@@ -169,7 +173,8 @@ function TraceRefPanel({ title, traceRef, open, onClose, renderEntityLink }: Tra
   } else if (query.data === null || query.data === undefined) {
     body = <p className={styles['notice']}>No breakdown is kept for this result.</p>;
   } else if (isFullTrace(query.data)) {
-    copyText = traceToText(query.data.trace);
+    const { trace } = query.data;
+    getCopyText = () => traceToText(trace);
     body = (
       <TraceTree
         key={`${traceRef.kind}:${traceRef.id}`}
@@ -178,7 +183,8 @@ function TraceRefPanel({ title, traceRef, open, onClose, renderEntityLink }: Tra
       />
     );
   } else {
-    copyText = summaryToText(query.data);
+    const summary = query.data;
+    getCopyText = () => summaryToText(summary);
     body = <TraceSummaryView summary={query.data} />;
   }
 
@@ -190,7 +196,7 @@ function TraceRefPanel({ title, traceRef, open, onClose, renderEntityLink }: Tra
       side="right"
       size="md"
       className={PANEL_CLASS}
-      footer={copyText === null ? undefined : <CopyTextButton text={copyText} />}
+      footer={getCopyText === null ? undefined : <CopyTextButton getText={getCopyText} />}
     >
       {body}
     </Sheet>
@@ -223,7 +229,7 @@ export function TracePanel({ title, source, open, onClose, renderEntityLink }: T
       side="right"
       size="md"
       className={PANEL_CLASS}
-      footer={<CopyTextButton text={traceToText(source.trace)} />}
+      footer={<CopyTextButton getText={() => traceToText(source.trace)} />}
     >
       <TraceTree
         root={source.trace}
