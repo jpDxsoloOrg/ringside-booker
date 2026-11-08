@@ -56,6 +56,15 @@ jobs:
       - name: Test with coverage
         run: npm test -- --coverage
 
+      # Runs the roster fixture 60 days twice from the same start and fails if the two runs end in
+      # different worlds (exit 1) or any step fails (--strict). Then times a year on the 300-person
+      # roster, the baseline the README records.
+      - name: Headless runner determinism check
+        run: npm run sim -- --days 60 --check-determinism --strict
+
+      - name: Headless runner one-year timing
+        run: npm run sim -- --days 365 --strict
+
       # Checks the shipped world against the content rules and the committed real-name blocklist
       # (content/blocklist/real-names.txt). It needs no secrets, so it runs the same on pull
       # requests from forks. The default world is still being built: its organisations (WLD-08)

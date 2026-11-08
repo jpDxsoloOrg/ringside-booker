@@ -30,6 +30,7 @@
     "blog:publish": "npm run -w @ringside/blog-tools publish --",
     "journal:new": "npm run -w @ringside/blog-tools journal:new --",
     "journal:due": "npm run -w @ringside/blog-tools journal:due --",
+    "sim": "npm run sim -w @ringside/sim-runner --",
     "validate:world": "npm run -w @ringside/validate-world validate -- content/worlds/default",
     "verify": "npm run format:check && npm run lint && npm run typecheck && npm test"
   },

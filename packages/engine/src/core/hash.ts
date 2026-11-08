@@ -11,6 +11,8 @@
  * so the result is identical in every JavaScript engine. It is not a cryptographic hash.
  */
 
+import { assertJsonValue, isJsonArray, type JsonValue } from './json';
+
 /** Four unsigned 32-bit words. */
 export type HashWords = [number, number, number, number];
 
@@ -64,4 +66,42 @@ export function hashString128(input: string): HashWords {
  */
 export function hashString32(input: string): number {
   return hashString128(input)[0];
+}
+
+/**
+ * Serialises a JSON value with every object's keys in sorted order (by UTF-16 code unit, the
+ * default `Array.prototype.sort` order) and array entries in their own order, so two values that
+ * hold the same data always give the same text, however their keys were inserted.
+ *
+ * Throws `NotSerialisableError` naming the first bad path for anything that is not plain JSON (a
+ * `Map`, `undefined`, `NaN`, a class instance, a cycle, ...), using the engine's one check,
+ * {@link assertJsonValue}. `-0` is written as `0`, as `JSON.stringify` does.
+ *
+ * Not frozen like the hashes above: nothing stored in a save depends on this text. The world hash
+ * (`worldHash`) is built on it, so a change here only changes hashes printed by the tools.
+ */
+export function stableStringify(value: unknown): string {
+  assertJsonValue(value);
+  return stringifySorted(value);
+}
+
+function stringifySorted(value: JsonValue): string {
+  if (typeof value !== 'object' || value === null) {
+    return JSON.stringify(value);
+  }
+  if (isJsonArray(value)) {
+    return `[${value.map((entry) => stringifySorted(entry)).join(',')}]`;
+  }
+  const members = Object.entries(value)
+    .sort(([leftKey], [rightKey]) => compareCodeUnits(leftKey, rightKey))
+    .map(([key, entry]) => `${JSON.stringify(key)}:${stringifySorted(entry)}`);
+  return `{${members.join(',')}}`;
+}
+
+/** Orders two strings by UTF-16 code unit, independent of locale. */
+function compareCodeUnits(left: string, right: string): number {
+  if (left === right) {
+    return 0;
+  }
+  return left < right ? -1 : 1;
 }
