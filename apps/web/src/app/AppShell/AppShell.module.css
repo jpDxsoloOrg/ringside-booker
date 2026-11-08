@@ -146,6 +146,12 @@
   gap: var(--space-2);
 }
 
+/* Phone: the date and the day button share the bar with the page title, which yields first. */
+.topBarEnd[data-compact='true'] {
+  flex: 0 1 auto;
+  min-inline-size: 0;
+}
+
 .pageTitle {
   display: flex;
   align-items: baseline;
