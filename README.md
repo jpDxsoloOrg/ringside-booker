@@ -144,10 +144,10 @@ to narrow it down. A bug report can quote the seed, the day count and the hash.
 365 days on the 300-person `fixture:roster`, with only the engine's own system and the condition
 system registered (`npm run sim -- --days 365`):
 
-| Where                                   | Advance time        | Days per second     | Whole command |
-| --------------------------------------- | ------------------- | ------------------- | ------------- |
-| Local (Intel i5-13600KF, Node 20, WSL2) | 85–100 ms           | 3,600–4,300         | 0.8 s         |
-| CI (`ubuntu-latest`, "one-year timing") | see the CI step log | see the CI step log | —             |
+| Where                                   | Advance time | Days per second | Whole command |
+| --------------------------------------- | ------------ | --------------- | ------------- |
+| Local (Intel i5-13600KF, Node 20, WSL2) | 85–100 ms    | 3,600–4,300     | 0.8 s         |
+| CI (`ubuntu-latest`, "one-year timing") | 166 ms       | 2,199           | —             |
 
 The budget is 10 seconds for that run on CI hardware. Later systems will slow it down a lot; this
 table is the starting point for the performance work.
