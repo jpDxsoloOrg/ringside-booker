@@ -1,0 +1,258 @@
+[
+  {
+    "key": "gb-streaming",
+    "name": "Larkspur Stream",
+    "kind": "streaming",
+    "reachTier": 1,
+    "coverage": {
+      "continentKeys": [],
+      "countryKeys": ["gb", "ie"],
+      "regionKeys": []
+    },
+    "ownerPromotionKey": null,
+    "status": "active",
+    "launchedOn": "2020-02-03",
+    "closedOn": null,
+    "logoRef": null
+  },
+  {
+    "key": "gb-tv-national",
+    "name": "Heathland Television",
+    "kind": "tv",
+    "reachTier": 3,
+    "coverage": {
+      "continentKeys": [],
+      "countryKeys": ["gb"],
+      "regionKeys": []
+    },
+    "ownerPromotionKey": null,
+    "status": "active",
+    "launchedOn": "1968-07-29",
+    "closedOn": null,
+    "logoRef": null
+  },
+  {
+    "key": "gb-tv-sports",
+    "name": "Wicketgate Sport",
+    "kind": "tv",
+    "reachTier": 2,
+    "coverage": {
+      "continentKeys": [],
+      "countryKeys": ["gb", "ie"],
+      "regionKeys": []
+    },
+    "ownerPromotionKey": null,
+    "status": "active",
+    "launchedOn": "1997-01-13",
+    "closedOn": null,
+    "logoRef": null
+  },
+  {
+    "key": "jp-streaming",
+    "name": "Hoshinami Stream",
+    "kind": "streaming",
+    "reachTier": 2,
+    "coverage": {
+      "continentKeys": [],
+      "countryKeys": ["jp"],
+      "regionKeys": []
+    },
+    "ownerPromotionKey": null,
+    "status": "active",
+    "launchedOn": "2018-07-02",
+    "closedOn": null,
+    "logoRef": null
+  },
+  {
+    "key": "jp-tv-national",
+    "name": "Kazamidori Television",
+    "kind": "tv",
+    "reachTier": 3,
+    "coverage": {
+      "continentKeys": [],
+      "countryKeys": ["jp"],
+      "regionKeys": []
+    },
+    "ownerPromotionKey": null,
+    "status": "active",
+    "launchedOn": "1959-02-01",
+    "closedOn": null,
+    "logoRef": null
+  },
+  {
+    "key": "jp-tv-sports",
+    "name": "Kogarashi Sports",
+    "kind": "tv",
+    "reachTier": 1,
+    "coverage": {
+      "continentKeys": [],
+      "countryKeys": ["jp"],
+      "regionKeys": []
+    },
+    "ownerPromotionKey": null,
+    "status": "active",
+    "launchedOn": "1998-10-01",
+    "closedOn": null,
+    "logoRef": null
+  },
+  {
+    "key": "mx-streaming",
+    "name": "Brisa Play",
+    "kind": "streaming",
+    "reachTier": 2,
+    "coverage": {
+      "continentKeys": [],
+      "countryKeys": ["mx"],
+      "regionKeys": []
+    },
+    "ownerPromotionKey": null,
+    "status": "active",
+    "launchedOn": "2019-11-04",
+    "closedOn": null,
+    "logoRef": null
+  },
+  {
+    "key": "mx-tv-national",
+    "name": "Televisora Altiplano",
+    "kind": "tv",
+    "reachTier": 4,
+    "coverage": {
+      "continentKeys": [],
+      "countryKeys": ["mx"],
+      "regionKeys": []
+    },
+    "ownerPromotionKey": null,
+    "status": "active",
+    "launchedOn": "1961-05-15",
+    "closedOn": null,
+    "logoRef": null
+  },
+  {
+    "key": "mx-tv-sports",
+    "name": "Cenzontle Deportes",
+    "kind": "tv",
+    "reachTier": 1,
+    "coverage": {
+      "continentKeys": [],
+      "countryKeys": ["mx"],
+      "regionKeys": []
+    },
+    "ownerPromotionKey": null,
+    "status": "active",
+    "launchedOn": "2001-08-20",
+    "closedOn": null,
+    "logoRef": null
+  },
+  {
+    "key": "na-ppv",
+    "name": "Turnstile Pay-Per-View",
+    "kind": "ppv",
+    "reachTier": 3,
+    "coverage": {
+      "continentKeys": [],
+      "countryKeys": ["us", "ca"],
+      "regionKeys": []
+    },
+    "ownerPromotionKey": null,
+    "status": "active",
+    "launchedOn": "1986-11-03",
+    "closedOn": null,
+    "logoRef": null
+  },
+  {
+    "key": "us-streaming",
+    "name": "Tallgrass Stream",
+    "kind": "streaming",
+    "reachTier": 2,
+    "coverage": {
+      "continentKeys": [],
+      "countryKeys": ["us"],
+      "regionKeys": []
+    },
+    "ownerPromotionKey": null,
+    "status": "active",
+    "launchedOn": "2017-03-06",
+    "closedOn": null,
+    "logoRef": null
+  },
+  {
+    "key": "us-tv-national",
+    "name": "National Signal Network",
+    "kind": "tv",
+    "reachTier": 4,
+    "coverage": {
+      "continentKeys": [],
+      "countryKeys": ["us"],
+      "regionKeys": []
+    },
+    "ownerPromotionKey": null,
+    "status": "active",
+    "launchedOn": "1952-09-01",
+    "closedOn": null,
+    "logoRef": null
+  },
+  {
+    "key": "us-tv-sports",
+    "name": "Kestrel Sports",
+    "kind": "tv",
+    "reachTier": 2,
+    "coverage": {
+      "continentKeys": [],
+      "countryKeys": ["us"],
+      "regionKeys": []
+    },
+    "ownerPromotionKey": null,
+    "status": "active",
+    "launchedOn": "1994-04-04",
+    "closedOn": null,
+    "logoRef": null
+  },
+  {
+    "key": "world-ppv",
+    "name": "Gatehouse Global PPV",
+    "kind": "ppv",
+    "reachTier": 3,
+    "coverage": {
+      "continentKeys": ["na", "sa", "eu", "as", "oc"],
+      "countryKeys": [],
+      "regionKeys": []
+    },
+    "ownerPromotionKey": null,
+    "status": "active",
+    "launchedOn": "2008-03-10",
+    "closedOn": null,
+    "logoRef": null
+  },
+  {
+    "key": "world-streaming-fight",
+    "name": "Ampersand Plus",
+    "kind": "streaming",
+    "reachTier": 3,
+    "coverage": {
+      "continentKeys": ["na", "eu", "oc"],
+      "countryKeys": [],
+      "regionKeys": []
+    },
+    "ownerPromotionKey": null,
+    "status": "active",
+    "launchedOn": "2015-10-12",
+    "closedOn": null,
+    "logoRef": null
+  },
+  {
+    "key": "world-streaming-major",
+    "name": "Worldreel",
+    "kind": "streaming",
+    "reachTier": 4,
+    "coverage": {
+      "continentKeys": ["na", "sa", "eu", "as", "af", "oc"],
+      "countryKeys": [],
+      "regionKeys": []
+    },
+    "ownerPromotionKey": null,
+    "status": "active",
+    "launchedOn": "2012-05-07",
+    "closedOn": null,
+    "logoRef": null
+  }
+]

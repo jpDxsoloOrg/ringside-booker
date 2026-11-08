@@ -1,0 +1,506 @@
+[
+  {
+    "key": "au-indie-championship",
+    "promotionKey": "pro-au-indie",
+    "brandKey": null,
+    "name": "Wattle Championship",
+    "holderCount": 1,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 28,
+    "status": "active",
+    "introducedOn": "2023-06-24",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#eab308"
+  },
+  {
+    "key": "ca-heavyweight",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "name": "Boreal Heavyweight Championship",
+    "holderCount": 1,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 68,
+    "status": "active",
+    "introducedOn": "2003-06-14",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#1d4ed8"
+  },
+  {
+    "key": "ca-tag",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "name": "Boreal Tag Team Championship",
+    "holderCount": 2,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 50,
+    "status": "active",
+    "introducedOn": "2005-02-19",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#0f766e"
+  },
+  {
+    "key": "de-championship",
+    "promotionKey": "pro-de",
+    "brandKey": null,
+    "name": "Eisenwerk Championship",
+    "holderCount": 1,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 56,
+    "status": "active",
+    "introducedOn": "2010-03-27",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#334155"
+  },
+  {
+    "key": "de-tag",
+    "promotionKey": "pro-de",
+    "brandKey": null,
+    "name": "Eisenwerk Tag Team Championship",
+    "holderCount": 2,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 38,
+    "status": "active",
+    "introducedOn": "2012-10-13",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#94a3b8"
+  },
+  {
+    "key": "flagship-secondary-main",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-main-brand",
+    "name": "Altura Keystone Championship",
+    "holderCount": 1,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 74,
+    "status": "active",
+    "introducedOn": "1993-03-21",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#1e40af"
+  },
+  {
+    "key": "flagship-secondary-young",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-young-brand",
+    "name": "Altura Breakout Championship",
+    "holderCount": 1,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 68,
+    "status": "active",
+    "introducedOn": "2009-05-17",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#0891b2"
+  },
+  {
+    "key": "flagship-tag",
+    "promotionKey": "pro-flagship",
+    "brandKey": null,
+    "name": "Altura Tag Team Championship",
+    "holderCount": 2,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 72,
+    "status": "active",
+    "introducedOn": "1990-08-04",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#475569"
+  },
+  {
+    "key": "flagship-women",
+    "promotionKey": "pro-flagship",
+    "brandKey": null,
+    "name": "Altura Women's Championship",
+    "holderCount": 1,
+    "division": {
+      "gender": "female",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 82,
+    "status": "active",
+    "introducedOn": "1998-11-15",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#be185d"
+  },
+  {
+    "key": "flagship-world-main",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-main-brand",
+    "name": "Altura World Championship",
+    "holderCount": 1,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 92,
+    "status": "active",
+    "introducedOn": "1989-06-10",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#d4af37"
+  },
+  {
+    "key": "flagship-world-young",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-young-brand",
+    "name": "Altura Grand Championship",
+    "holderCount": 1,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 86,
+    "status": "active",
+    "introducedOn": "2002-09-02",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#c0c7d1"
+  },
+  {
+    "key": "jp-kansai-indie-championship",
+    "promotionKey": "pro-jp-kansai-indie",
+    "brandKey": null,
+    "name": "Hibari Openweight Championship",
+    "holderCount": 1,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 38,
+    "status": "active",
+    "introducedOn": "2019-08-11",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#f472b6"
+  },
+  {
+    "key": "jp-major-heavyweight",
+    "promotionKey": "pro-jp-major",
+    "brandKey": null,
+    "name": "Tessen Heavyweight Championship",
+    "holderCount": 1,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 88,
+    "status": "active",
+    "introducedOn": "1995-01-04",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#991b1b"
+  },
+  {
+    "key": "jp-major-junior",
+    "promotionKey": "pro-jp-major",
+    "brandKey": null,
+    "name": "Tessen Junior Heavyweight Championship",
+    "holderCount": 1,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": 100
+    },
+    "prestige": 70,
+    "status": "active",
+    "introducedOn": "1996-06-09",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#f59e0b"
+  },
+  {
+    "key": "jp-major-tag",
+    "promotionKey": "pro-jp-major",
+    "brandKey": null,
+    "name": "Tessen Tag Team Championship",
+    "holderCount": 2,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 68,
+    "status": "active",
+    "introducedOn": "1995-11-23",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#1f2937"
+  },
+  {
+    "key": "mx-major-heavyweight",
+    "promotionKey": "pro-mx-major",
+    "brandKey": null,
+    "name": "Cielo Alto Heavyweight Championship",
+    "holderCount": 1,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 82,
+    "status": "active",
+    "introducedOn": "1991-09-20",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#047857"
+  },
+  {
+    "key": "mx-major-light-heavyweight",
+    "promotionKey": "pro-mx-major",
+    "brandKey": null,
+    "name": "Cielo Alto Light Heavyweight Championship",
+    "holderCount": 1,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": 97
+    },
+    "prestige": 70,
+    "status": "active",
+    "introducedOn": "1993-04-16",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#0284c7"
+  },
+  {
+    "key": "mx-major-trios",
+    "promotionKey": "pro-mx-major",
+    "brandKey": null,
+    "name": "Cielo Alto Trios Championship",
+    "holderCount": 3,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 64,
+    "status": "active",
+    "introducedOn": "1994-12-02",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#b45309"
+  },
+  {
+    "key": "uk-championship",
+    "promotionKey": "pro-uk",
+    "brandKey": null,
+    "name": "Ashlar Championship",
+    "holderCount": 1,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 64,
+    "status": "active",
+    "introducedOn": "2013-02-09",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#6d28d9"
+  },
+  {
+    "key": "uk-tag",
+    "promotionKey": "pro-uk",
+    "brandKey": null,
+    "name": "Ashlar Tag Team Championship",
+    "holderCount": 2,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 44,
+    "status": "active",
+    "introducedOn": "2015-04-25",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#a78bfa"
+  },
+  {
+    "key": "uk-women",
+    "promotionKey": "pro-uk",
+    "brandKey": null,
+    "name": "Ashlar Women's Championship",
+    "holderCount": 1,
+    "division": {
+      "gender": "female",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 48,
+    "status": "active",
+    "introducedOn": "2017-09-30",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#c026d3"
+  },
+  {
+    "key": "us-greatlakes-heavyweight",
+    "promotionKey": "pro-us-greatlakes",
+    "brandKey": null,
+    "name": "Blast Furnace Championship",
+    "holderCount": 1,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 58,
+    "status": "active",
+    "introducedOn": "2012-01-21",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#9a3412"
+  },
+  {
+    "key": "us-greatlakes-tag",
+    "promotionKey": "pro-us-greatlakes",
+    "brandKey": null,
+    "name": "Blast Furnace Tag Team Championship",
+    "holderCount": 2,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 40,
+    "status": "active",
+    "introducedOn": "2013-07-06",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#57534e"
+  },
+  {
+    "key": "us-southeast-heavyweight",
+    "promotionKey": "pro-us-southeast",
+    "brandKey": null,
+    "name": "Longleaf Heavyweight Championship",
+    "holderCount": 1,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 66,
+    "status": "active",
+    "introducedOn": "2008-08-23",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#166534"
+  },
+  {
+    "key": "us-southeast-tag",
+    "promotionKey": "pro-us-southeast",
+    "brandKey": null,
+    "name": "Longleaf Tag Team Championship",
+    "holderCount": 2,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 50,
+    "status": "active",
+    "introducedOn": "2010-03-13",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#854d0e"
+  },
+  {
+    "key": "us-texas-indie-championship",
+    "promotionKey": "pro-us-texas-indie",
+    "brandKey": null,
+    "name": "Hardpan Championship",
+    "holderCount": 1,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 34,
+    "status": "active",
+    "introducedOn": "2021-11-20",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#92400e"
+  },
+  {
+    "key": "us-west-women-championship",
+    "promotionKey": "pro-us-west-women",
+    "brandKey": null,
+    "name": "Golden Poppy Championship",
+    "holderCount": 1,
+    "division": {
+      "gender": "female",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 60,
+    "status": "active",
+    "introducedOn": "2016-10-15",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#ea580c"
+  },
+  {
+    "key": "us-west-women-tag",
+    "promotionKey": "pro-us-west-women",
+    "brandKey": null,
+    "name": "Golden Poppy Tag Team Championship",
+    "holderCount": 2,
+    "division": {
+      "gender": "female",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 44,
+    "status": "active",
+    "introducedOn": "2018-05-19",
+    "retiredOn": null,
+    "imageRef": null,
+    "color": "#fb7185"
+  }
+]
