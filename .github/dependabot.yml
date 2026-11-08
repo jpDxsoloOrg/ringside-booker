@@ -13,42 +13,10 @@ updates:
       runtime:
         dependency-type: production
         update-types: [minor, patch]
-    # Major versions of the dev toolchain (TypeScript, ESLint, Vitest, Vite, ...) are upgraded on
-    # purpose in their own ticket, never by a bot PR. Ignore rules can't be scoped by dependency
-    # type, so this lists the dev dependencies of every workspace by name; none of these patterns
-    # matches a runtime dependency. Add new dev dependencies here.
+    # Major versions (toolchain and runtime alike: TypeScript, ESLint, Vitest, Vite, React,
+    # React Router, Zustand, ...) are upgraded on purpose in their own ticket, never by a bot PR.
     ignore:
-      - dependency-name: '@eslint/*'
-        update-types: [version-update:semver-major]
-      - dependency-name: 'eslint'
-        update-types: [version-update:semver-major]
-      - dependency-name: 'eslint-*'
-        update-types: [version-update:semver-major]
-      - dependency-name: 'typescript'
-        update-types: [version-update:semver-major]
-      - dependency-name: 'typescript-eslint'
-        update-types: [version-update:semver-major]
-      - dependency-name: '@types/*'
-        update-types: [version-update:semver-major]
-      - dependency-name: 'vitest'
-        update-types: [version-update:semver-major]
-      - dependency-name: '@vitest/*'
-        update-types: [version-update:semver-major]
-      - dependency-name: 'vite'
-        update-types: [version-update:semver-major]
-      - dependency-name: '@vitejs/*'
-        update-types: [version-update:semver-major]
-      - dependency-name: '@testing-library/*'
-        update-types: [version-update:semver-major]
-      - dependency-name: 'jsdom'
-        update-types: [version-update:semver-major]
-      - dependency-name: 'postcss-*'
-        update-types: [version-update:semver-major]
-      - dependency-name: 'prettier'
-        update-types: [version-update:semver-major]
-      - dependency-name: 'globals'
-        update-types: [version-update:semver-major]
-      - dependency-name: 'tsx'
+      - dependency-name: '*'
         update-types: [version-update:semver-major]
 
   - package-ecosystem: github-actions
