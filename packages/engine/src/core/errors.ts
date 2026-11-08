@@ -276,3 +276,41 @@ export class TraceReplayError extends EngineError {
     this.problems = problems;
   }
 }
+
+/**
+ * A save migration step failed. `title` names the step; the message carries the step's own error,
+ * so a load report can say exactly which upgrade broke and why.
+ */
+export class MigrationError extends EngineError {
+  readonly from: number;
+  readonly to: number;
+  readonly title: string;
+
+  constructor(from: number, to: number, title: string, reason: string) {
+    super(
+      'MIGRATION',
+      `Save migration v${String(from)} → v${String(to)} "${title}" failed: ${reason}`,
+      { from, to, title, reason },
+    );
+    this.from = from;
+    this.to = to;
+    this.title = title;
+  }
+}
+
+/**
+ * A save document cannot be turned into a world: a row with the wrong kind of ID, two rows with
+ * the same ID, a unique index clash or a table the game does not know. `path` points at the bad
+ * row, for example `state.world.tables.people[3]`.
+ */
+export class SaveDocumentError extends EngineError {
+  readonly path: string;
+  /** What is wrong at `path`, without the path. */
+  readonly problem: string;
+
+  constructor(path: string, problem: string) {
+    super('SAVE_DOCUMENT', `${path}: ${problem}`, { path, problem });
+    this.path = path;
+    this.problem = problem;
+  }
+}

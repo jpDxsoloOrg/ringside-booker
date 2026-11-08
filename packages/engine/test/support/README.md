@@ -80,6 +80,16 @@ ids.people[0]; // per_0000000001, the first wrestler on A's roster
   in every table; see its doc comment in `worlds.ts` for the exact contents.
 - `rosterWorld(n)`: one promotion with `n` wrestlers, for performance and save-size tests.
 
+## Saves
+
+- `tinySaveDocument()`: a v1 save of `tinyWorld()`, saved by promotion A's controller at
+  `TEST_SAVED_AT`, with `PLACEHOLDER_SIM_STATE` for the simulation parts.
+- `testSaveDocument(world, overrides)`: the same for any world, with no header promotion unless
+  given one.
+- `gzipJson(value)` (in `gzip-json.ts`, Node only and not exported from the testing entry): packs
+  any value the way an `.rbsave` is packed, without the encoder's checks, so a test can hand the
+  loader a document the encoder would refuse.
+
 ## Assertions
 
 - `expectValidWorld(world)` parses every row with its schema and runs `checkWorld`; on failure it
@@ -97,8 +107,9 @@ ids.people[0]; // per_0000000001, the first wrestler on A's roster
 
 ## Golden files
 
-`test/fixtures/golden.test.ts` compares `tinyWorld()` with `test/fixtures/worlds/tiny-world.json`.
-When a schema or builder change alters it on purpose, regenerate the file and review the diff:
+`test/fixtures/golden.test.ts` compares `tinyWorld()` with `test/fixtures/worlds/tiny-world.json`,
+and `tinySaveDocument()` with `test/fixtures/saves/v1-tiny.json`. When a schema or builder change
+alters them on purpose, regenerate the files and review the diff:
 
 ```sh
 npm run fixtures:write -w @ringside/engine

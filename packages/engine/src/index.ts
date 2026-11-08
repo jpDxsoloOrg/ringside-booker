@@ -105,9 +105,11 @@ export {
   InvalidIdError,
   InvalidOddsError,
   InvalidStatePartError,
+  MigrationError,
   MoneyOverflowError,
   NotSerialisableError,
   RegistryError,
+  SaveDocumentError,
   SchemaViolationError,
   TraceReplayError,
   TraceStoreMisuseError,
@@ -120,8 +122,11 @@ export type { JsonArray, JsonObject, JsonPrimitive, JsonProblem, JsonValue } fro
 export {
   appendPathSegment,
   assertJsonValue,
+  cloneJson,
   findJsonProblem,
   formatPath,
+  isJsonArray,
+  isJsonObject,
   isJsonValue,
   zJsonValue,
 } from './core/json';
@@ -502,3 +507,59 @@ export {
   recordFileSchema,
   recordSchemas,
 } from './persistence/packs';
+
+// Saves (FND-11): the save document, the codec, migrations and the load pipeline. See
+// docs/design/save-format.md.
+export type {
+  SaveDocument,
+  SaveHeader,
+  SaveState,
+  SerializedTables,
+  SerializedWorld,
+  SimStatePart,
+  StatePartSchemas,
+} from './persistence/save-document';
+export {
+  createSaveDocumentSchema,
+  SAVE_FORMAT,
+  SAVE_LABEL_MAX_LENGTH,
+  SaveHeaderSchema,
+  SerializedWorldSchema,
+  SIM_STATE_PARTS,
+} from './persistence/save-document';
+export type {
+  SaveableState,
+  SaveExtras,
+  SerialisableWorld,
+  WorldDocument,
+  WorldToDocumentExtras,
+} from './persistence/world-document';
+export {
+  createSaveDocument,
+  documentToWorld,
+  serialiseWorld,
+  worldToDocument,
+} from './persistence/world-document';
+export type { DecodeOptions } from './persistence/codec';
+export { decodeSave, encodeSave, MAX_SAVE_BYTES, serialiseSaveDocument } from './persistence/codec';
+export type { LoadFailure, LoadIssue, LoadResult, LoadStage } from './persistence/report';
+export { LOAD_STAGES, MAX_LOAD_ISSUES } from './persistence/report';
+export type {
+  LoadOptions,
+  LoadReport,
+  LoadSuccess,
+  ReadOptions,
+  TraceCheck,
+  TunableOverrideCheck,
+} from './persistence/load';
+export { loadSave } from './persistence/load';
+export type { InspectReport, InspectSuccess } from './persistence/inspect';
+export { inspectSave } from './persistence/inspect';
+export type { Migration } from './persistence/migrations/registry';
+export {
+  assertMigrationChain,
+  CURRENT_FORMAT_VERSION,
+  MIGRATIONS,
+} from './persistence/migrations/registry';
+export type { AppliedMigration, MigrationRun } from './persistence/migrations/run';
+export { runMigrations } from './persistence/migrations/run';

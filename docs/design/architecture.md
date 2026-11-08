@@ -176,8 +176,10 @@ clients never need to match each other bit for bit.
 
 ## Persistence
 
-- A save is one document: format version, engine version, seed, the World
-  tables, and recent traces.
+- A save is one document: format version, engine version, a header for slot
+  lists, the World (metadata, which holds the seed, and tables) and the
+  simulation's state parts, including recent traces. See
+  [save-format.md](save-format.md).
 - Saves are gzip-compressed JSON stored in IndexedDB save slots, with autosave
   and a few rotating backups.
 - Export/import a save as an `.rbsave` file so you can move a game between
