@@ -77,7 +77,7 @@ describe('validate-world exit codes', () => {
     }
   });
 
-  it('writes the markdown report with --report and notes a skipped smoke run', async () => {
+  it('writes the markdown report with --report and runs the smoke days', async () => {
     const { root, cleanUp } = await copyFixtureRepo();
     try {
       const io = captureIo(root);
@@ -87,7 +87,7 @@ describe('validate-world exit codes', () => {
       const markdown = await readFile(join(root, 'out/report.md'), 'utf8');
       expect(markdown.startsWith('# World report: Check World\n')).toBe(true);
       expect(io.out()).toContain('Report written to out/report.md');
-      expect(io.out()).toContain('Smoke run skipped:');
+      expect(io.out()).toContain('Smoke run: 5 days advanced with no step errors.');
     } finally {
       await cleanUp();
     }
