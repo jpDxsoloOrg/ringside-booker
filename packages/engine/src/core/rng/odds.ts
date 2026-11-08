@@ -2,8 +2,9 @@
  * Odds and sampling helpers on top of an {@link RngStream}.
  *
  * Every helper states its odds exactly and checks its arguments: reversed bounds, non-integer
- * integer bounds, probabilities outside [0, 1], empty lists and bad weights all throw a
- * `RangeError` naming the bad value. Nothing is silently clamped or swapped.
+ * integer bounds, probabilities outside [0, 1], empty lists and bad weights all throw an
+ * {@link InvalidOddsError} (an `EngineError`) naming the bad value. Nothing is silently clamped or
+ * swapped.
  *
  * Draw counts are part of the contract. Each helper consumes the same number of draws whatever
  * its arguments (the only exceptions are the rejection loop in {@link intBetween} and the
@@ -13,6 +14,7 @@
  * See the "Odds helpers" section of `docs/design/determinism.md` for the full table.
  */
 
+import { InvalidOddsError } from '../errors';
 import type { RngStream } from './registry';
 
 /** 2^32: the number of distinct values `nextUint32()` can return. */
@@ -25,16 +27,20 @@ function formatNumber(value: number): string {
 
 function assertFiniteNumber(functionName: string, argumentName: string, value: number): void {
   if (!Number.isFinite(value)) {
-    throw new RangeError(
-      `${functionName}: ${argumentName} must be a finite number, got ${formatNumber(value)}`,
+    throw new InvalidOddsError(
+      functionName,
+      `${argumentName} must be a finite number, got ${formatNumber(value)}`,
+      { argumentName, value: formatNumber(value) },
     );
   }
 }
 
 function assertSafeInteger(functionName: string, argumentName: string, value: number): void {
   if (!Number.isSafeInteger(value)) {
-    throw new RangeError(
-      `${functionName}: ${argumentName} must be a whole number, got ${formatNumber(value)}`,
+    throw new InvalidOddsError(
+      functionName,
+      `${argumentName} must be a whole number, got ${formatNumber(value)}`,
+      { argumentName, value: formatNumber(value) },
     );
   }
 }
@@ -42,17 +48,20 @@ function assertSafeInteger(functionName: string, argumentName: string, value: nu
 function assertProbability(functionName: string, argumentName: string, value: number): void {
   assertFiniteNumber(functionName, argumentName, value);
   if (value < 0 || value > 1) {
-    throw new RangeError(
-      `${functionName}: ${argumentName} must be between 0 and 1, got ${formatNumber(value)}`,
+    throw new InvalidOddsError(
+      functionName,
+      `${argumentName} must be between 0 and 1, got ${formatNumber(value)}`,
+      { argumentName, value: formatNumber(value) },
     );
   }
 }
 
 function assertOrderedBounds(functionName: string, min: number, max: number): void {
   if (min > max) {
-    throw new RangeError(
-      `${functionName}: min (${formatNumber(min)}) must not be greater than max ` +
-        `(${formatNumber(max)})`,
+    throw new InvalidOddsError(
+      functionName,
+      `min (${formatNumber(min)}) must not be greater than max (${formatNumber(max)})`,
+      { min: formatNumber(min), max: formatNumber(max) },
     );
   }
 }
@@ -68,8 +77,10 @@ function isElement<T>(items: readonly T[], index: number, element: T | undefined
 function elementAt<T>(items: readonly T[], index: number): T {
   const element = items[index];
   if (!isElement(items, index, element)) {
-    throw new RangeError(
-      `elementAt: index ${String(index)} is outside a list of ${String(items.length)}`,
+    throw new InvalidOddsError(
+      'elementAt',
+      `index ${String(index)} is outside a list of ${String(items.length)}`,
+      { index, length: items.length },
     );
   }
   return element;
@@ -81,7 +92,7 @@ function elementAt<T>(items: readonly T[], index: number): T {
  * Always consumes exactly one draw, including for a probability of 0 (always false) and 1 (always
  * true), so changing a probability never changes how far the stream moves.
  *
- * @throws RangeError when `probability` is not a finite number in [0, 1].
+ * @throws InvalidOddsError when `probability` is not a finite number in [0, 1].
  */
 export function chance(stream: RngStream, probability: number): boolean {
   assertProbability('chance', 'probability', probability);
@@ -95,12 +106,15 @@ export function chance(stream: RngStream, probability: number): boolean {
 /**
  * True with probability `k` percent: exactly `chance(stream, k / 100)`, draw for draw.
  *
- * @throws RangeError when `k` is not a finite number in [0, 100].
+ * @throws InvalidOddsError when `k` is not a finite number in [0, 100].
  */
 export function percent(stream: RngStream, k: number): boolean {
   assertFiniteNumber('percent', 'k', k);
   if (k < 0 || k > 100) {
-    throw new RangeError(`percent: k must be between 0 and 100, got ${formatNumber(k)}`);
+    throw new InvalidOddsError('percent', `k must be between 0 and 100, got ${formatNumber(k)}`, {
+      argumentName: 'k',
+      value: formatNumber(k),
+    });
   }
   return chance(stream, k / 100);
 }
@@ -112,8 +126,8 @@ export function percent(stream: RngStream, k: number): boolean {
  * has exactly the same odds (`1 / span`). The redraw loop runs with probability below
  * `span / 2^32` per call. `min === max` still consumes one draw.
  *
- * @throws RangeError when either bound is not a whole number, when `min > max`, or when the range
- *   holds more than 2^32 values.
+ * @throws InvalidOddsError when either bound is not a whole number, when `min > max`, or when the
+ *   range holds more than 2^32 values.
  */
 export function intBetween(stream: RngStream, min: number, max: number): number {
   assertSafeInteger('intBetween', 'min', min);
@@ -121,9 +135,11 @@ export function intBetween(stream: RngStream, min: number, max: number): number 
   assertOrderedBounds('intBetween', min, max);
   const span = max - min + 1;
   if (span > UINT32_RANGE) {
-    throw new RangeError(
-      `intBetween: the range ${formatNumber(min)}..${formatNumber(max)} holds ${String(span)} ` +
-        `values; at most 2^32 are supported`,
+    throw new InvalidOddsError(
+      'intBetween',
+      `the range ${formatNumber(min)}..${formatNumber(max)} holds ${String(span)} values; ` +
+        `at most 2^32 are supported`,
+      { min: formatNumber(min), max: formatNumber(max) },
     );
   }
   const acceptLimit = UINT32_RANGE - (UINT32_RANGE % span);
@@ -141,12 +157,15 @@ export function intBetween(stream: RngStream, min: number, max: number): number 
  * This is the one way to write a "1 in N" check. Rolling 0..N and comparing with 1 looks the same
  * but fires 1 time in N + 1.
  *
- * @throws RangeError when `count` is not a whole number of at least 1 (or more than 2^32).
+ * @throws InvalidOddsError when `count` is not a whole number of at least 1 (or more than 2^32).
  */
 export function oneIn(stream: RngStream, count: number): boolean {
   assertSafeInteger('oneIn', 'count', count);
   if (count < 1) {
-    throw new RangeError(`oneIn: count must be at least 1, got ${formatNumber(count)}`);
+    throw new InvalidOddsError('oneIn', `count must be at least 1, got ${formatNumber(count)}`, {
+      argumentName: 'count',
+      value: formatNumber(count),
+    });
   }
   return intBetween(stream, 1, count) === 1;
 }
@@ -171,7 +190,7 @@ function largestDoubleBelow(value: number): number {
  * When `min` is so large that `min + fraction * (max - min)` rounds up to `max`, the result is the
  * largest double below `max`, so the upper end stays excluded.
  *
- * @throws RangeError when either bound is not finite or `min > max`.
+ * @throws InvalidOddsError when either bound is not finite or `min > max`.
  */
 export function floatBetween(stream: RngStream, min: number, max: number): number {
   assertFiniteNumber('floatBetween', 'min', min);
@@ -179,8 +198,10 @@ export function floatBetween(stream: RngStream, min: number, max: number): numbe
   assertOrderedBounds('floatBetween', min, max);
   const width = max - min;
   if (!Number.isFinite(width)) {
-    throw new RangeError(
-      `floatBetween: the range ${formatNumber(min)}..${formatNumber(max)} is too wide`,
+    throw new InvalidOddsError(
+      'floatBetween',
+      `the range ${formatNumber(min)}..${formatNumber(max)} is too wide`,
+      { min: formatNumber(min), max: formatNumber(max) },
     );
   }
   const value = min + stream.nextFloat() * width;
@@ -194,11 +215,11 @@ export function floatBetween(stream: RngStream, min: number, max: number): numbe
  * One item from a non-empty list, each with odds `1 / items.length`. Consumes the draws of one
  * `intBetween(stream, 0, items.length - 1)` call.
  *
- * @throws RangeError when the list is empty.
+ * @throws InvalidOddsError when the list is empty.
  */
 export function pick<T>(stream: RngStream, items: readonly T[]): T {
   if (items.length === 0) {
-    throw new RangeError('pick: items must not be empty, got an empty list');
+    throw new InvalidOddsError('pick', 'items must not be empty, got an empty list');
   }
   return elementAt(items, intBetween(stream, 0, items.length - 1));
 }
@@ -219,24 +240,26 @@ export interface WeightedPickResult<T> {
 
 function assertWeights<T>(functionName: string, entries: readonly WeightedEntry<T>[]): number {
   if (entries.length === 0) {
-    throw new RangeError(`${functionName}: entries must not be empty, got an empty list`);
+    throw new InvalidOddsError(functionName, 'entries must not be empty, got an empty list');
   }
   let totalWeight = 0;
   entries.forEach((entry, entryIndex) => {
     const weight = entry.weight;
     if (!Number.isFinite(weight) || weight < 0) {
-      throw new RangeError(
-        `${functionName}: entries[${String(entryIndex)}].weight must be a finite number of 0 ` +
-          `or more, got ${formatNumber(weight)}`,
+      throw new InvalidOddsError(
+        functionName,
+        `entries[${String(entryIndex)}].weight must be a finite number of 0 or more, ` +
+          `got ${formatNumber(weight)}`,
+        { entryIndex, weight: formatNumber(weight) },
       );
     }
     totalWeight += weight;
   });
   if (!Number.isFinite(totalWeight)) {
-    throw new RangeError(`${functionName}: the total weight overflows (${String(totalWeight)})`);
+    throw new InvalidOddsError(functionName, `the total weight overflows (${String(totalWeight)})`);
   }
   if (totalWeight === 0) {
-    throw new RangeError(`${functionName}: the weights must not all be 0`);
+    throw new InvalidOddsError(functionName, 'the weights must not all be 0');
   }
   return totalWeight;
 }
@@ -275,7 +298,8 @@ export function weightedPickEntry<T>(
  * cumulative weights in the given order with a single `nextFloat()` draw. Zero-weight entries are
  * allowed and never chosen.
  *
- * @throws RangeError on an empty list, a negative or non-finite weight, or weights that are all 0.
+ * @throws InvalidOddsError on an empty list, a negative or non-finite weight, or weights that are
+ *   all 0.
  */
 export function weightedPick<T>(stream: RngStream, entries: readonly WeightedEntry<T>[]): T {
   return weightedPickEntry(stream, entries).item;
@@ -302,13 +326,16 @@ export function shuffle<T>(stream: RngStream, items: readonly T[]): T[] {
  * is redrawn while it is 0 (odds 2^-32 per draw), and the spare value Box–Muller produces is
  * thrown away rather than cached, so a call never depends on the one before it.
  *
- * @throws RangeError when `mean` is not finite or `sd` is not a finite number of 0 or more.
+ * @throws InvalidOddsError when `mean` is not finite or `sd` is not a finite number of 0 or more.
  */
 export function normal(stream: RngStream, mean: number, sd: number): number {
   assertFiniteNumber('normal', 'mean', mean);
   assertFiniteNumber('normal', 'sd', sd);
   if (sd < 0) {
-    throw new RangeError(`normal: sd must be 0 or more, got ${formatNumber(sd)}`);
+    throw new InvalidOddsError('normal', `sd must be 0 or more, got ${formatNumber(sd)}`, {
+      argumentName: 'sd',
+      value: formatNumber(sd),
+    });
   }
   let radiusDraw = stream.nextFloat();
   while (radiusDraw === 0) {
@@ -323,7 +350,7 @@ export function normal(stream: RngStream, mean: number, sd: number): number {
  * {@link normal}, then clamped into `[min, max]` (both ends included). Clamping instead of
  * redrawing keeps the draw count at two; the ends collect the clipped tails.
  *
- * @throws RangeError for a bad `mean` or `sd` (as {@link normal}), non-finite bounds or
+ * @throws InvalidOddsError for a bad `mean` or `sd` (as {@link normal}), non-finite bounds or
  *   `min > max`.
  */
 export function clampedNormal(

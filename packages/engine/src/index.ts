@@ -100,6 +100,7 @@ export {
   InvalidContentKeyError,
   InvalidDateError,
   InvalidIdError,
+  InvalidOddsError,
   InvalidStatePartError,
   MoneyOverflowError,
   NotSerialisableError,

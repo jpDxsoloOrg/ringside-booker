@@ -1,6 +1,7 @@
 import './testStreams';
 import { describe, expect, it } from 'vitest';
 import {
+  InvalidOddsError,
   RngRegistry,
   chance,
   floatBetween,
@@ -191,12 +192,12 @@ describe('roll records', () => {
 
   it('recorded helpers validate exactly like the plain helpers', () => {
     const [stream] = twinStreams();
-    expect(() => rollChance(stream, 1.2, 'bad')).toThrow(RangeError);
-    expect(() => rollInt(stream, 6, 1, 'bad')).toThrow(RangeError);
-    expect(() => rollOneIn(stream, 0, 'bad')).toThrow(RangeError);
-    expect(() => rollPick(stream, [], 'bad', String)).toThrow(RangeError);
+    expect(() => rollChance(stream, 1.2, 'bad')).toThrow(InvalidOddsError);
+    expect(() => rollInt(stream, 6, 1, 'bad')).toThrow(InvalidOddsError);
+    expect(() => rollOneIn(stream, 0, 'bad')).toThrow(InvalidOddsError);
+    expect(() => rollPick(stream, [], 'bad', String)).toThrow(InvalidOddsError);
     expect(() => rollWeighted(stream, [{ item: 'a', weight: 0 }], 'bad', String)).toThrow(
-      RangeError,
+      InvalidOddsError,
     );
   });
 });
