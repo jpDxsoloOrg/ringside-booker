@@ -11,11 +11,12 @@ the engine tools never should.
 
 1. Create `tools/<name>/package.json`:
    - `"private": true` and `"type": "module"`
-   - a dependency on `@ringside/engine` (exact version, like every other dependency)
+   - a dependency on `@ringside/engine` if the tool runs the engine (exact version, like every
+     other dependency). `tools/blog` only reads Markdown, so it has none.
    - `test` and `typecheck` scripts
 2. Create `tools/<name>/tsconfig.json` that extends `../../tsconfig.base.json` with
-   `"lib": ["ES2022"]`, `"types": ["node"]`, `"rootDir"`, `"outDir": "dist/types"` and a
-   reference to `../../packages/engine`.
+   `"lib": ["ES2022"]`, `"types": ["node"]`, `"rootDir"`, `"outDir": "dist/types"` and, for a
+   tool that runs the engine, a reference to `../../packages/engine`.
 3. Add `{ "path": "./tools/<name>" }` to the `references` in the root `tsconfig.json` so
    `npm run typecheck` covers it.
 4. Create `tools/<name>/vitest.config.ts`. The root `vitest.config.ts` lists
