@@ -10,5 +10,10 @@ coverage
 packages/engine/test/fixtures/worlds
 packages/engine/test/fixtures/saves
 
-# content/**/*.json is formatted like everything else for now. If shipped data packs turn into
-# large generated files, add the generated paths here instead of reformatting them on every run.
+# content/**/*.json is formatted like everything else, except the default world's generated files:
+# `npm run worldgen:default` writes them byte for byte (sorted, two-space JSON), and the build test
+# checks that a rebuild gives the same bytes.
+content/worlds/default/people.json
+content/worlds/default/employments.json
+content/worlds/default/teams.json
+content/worlds/default/reigns.json

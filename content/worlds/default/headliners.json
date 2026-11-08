@@ -1,0 +1,453 @@
+[
+  {
+    "key": "hl-alfie-brannock",
+    "givenName": "Alfie",
+    "familyName": "Brannock",
+    "ringName": "Alfie Brannock",
+    "gender": "male",
+    "age": 28,
+    "careerStage": "established",
+    "homeRegionKey": "gb-north",
+    "style": "technician",
+    "talent": 1.6,
+    "employment": {
+      "promotionKey": "pro-uk",
+      "push": "mainEvent",
+      "alignment": "face"
+    },
+    "holdsTitleKey": "uk-championship"
+  },
+  {
+    "key": "hl-boone-callaway",
+    "givenName": "Boone",
+    "familyName": "Callaway",
+    "ringName": "Boone Callaway",
+    "gender": "male",
+    "age": 37,
+    "careerStage": "veteran",
+    "homeRegionKey": "us-southeast",
+    "style": "brawler",
+    "talent": 1.6,
+    "attributeOverrides": {
+      "mic": 80
+    },
+    "employment": {
+      "promotionKey": "pro-us-southeast",
+      "push": "mainEvent",
+      "alignment": "face"
+    },
+    "holdsTitleKey": "us-southeast-heavyweight"
+  },
+  {
+    "key": "hl-bramido-rojo",
+    "givenName": "Rogelio",
+    "familyName": "Cantú Arreola",
+    "ringName": "Bramido Rojo",
+    "gender": "male",
+    "age": 41,
+    "careerStage": "veteran",
+    "homeRegionKey": "mx-northeast",
+    "style": "brawler",
+    "masked": false,
+    "talent": 1.7,
+    "employment": {
+      "promotionKey": "pro-mx-major",
+      "push": "mainEvent",
+      "alignment": "heel"
+    }
+  },
+  {
+    "key": "hl-calder-voss",
+    "givenName": "Calder",
+    "familyName": "Vossberg",
+    "ringName": "Calder Voss",
+    "gender": "male",
+    "age": 34,
+    "careerStage": "established",
+    "homeRegionKey": "us-northeast",
+    "style": "showman",
+    "talent": 2.3,
+    "attributeOverrides": {
+      "mic": 86,
+      "charisma": 88,
+      "presence": 84
+    },
+    "employment": {
+      "promotionKey": "pro-flagship",
+      "brandKey": "flagship-main-brand",
+      "push": "mainEvent",
+      "alignment": "face"
+    },
+    "holdsTitleKey": "flagship-world-main"
+  },
+  {
+    "key": "hl-callum-brindabella",
+    "givenName": "Callum",
+    "familyName": "Brindabella",
+    "ringName": "Callum Brindabella",
+    "gender": "male",
+    "age": 31,
+    "careerStage": "established",
+    "homeRegionKey": "au-victoria-tasmania",
+    "style": "allRounder",
+    "talent": 1.2,
+    "employment": {
+      "promotionKey": "pro-au-indie",
+      "push": "mainEvent",
+      "alignment": "face"
+    },
+    "holdsTitleKey": "au-indie-championship"
+  },
+  {
+    "key": "hl-cinder-brandt",
+    "givenName": "Stanislaw",
+    "familyName": "Brandt",
+    "ringName": "Cinder Brandt",
+    "gender": "male",
+    "age": 35,
+    "careerStage": "veteran",
+    "homeRegionKey": "us-great-lakes",
+    "style": "hardcore",
+    "talent": 1.5,
+    "employment": {
+      "promotionKey": "pro-us-greatlakes",
+      "push": "mainEvent",
+      "alignment": "heel"
+    },
+    "holdsTitleKey": "us-greatlakes-heavyweight"
+  },
+  {
+    "key": "hl-ewan-thackeray",
+    "givenName": "Ewan",
+    "familyName": "Thackeray",
+    "ringName": "Ewan Thackeray",
+    "gender": "male",
+    "age": 37,
+    "careerStage": "veteran",
+    "homeRegionKey": "gb-north",
+    "style": "grappler",
+    "talent": 2.0,
+    "attributeOverrides": {
+      "psychology": 88
+    },
+    "employment": {
+      "promotionKey": "pro-flagship",
+      "brandKey": "flagship-main-brand",
+      "push": "mainEvent",
+      "alignment": "heel"
+    }
+  },
+  {
+    "key": "hl-gaetan-lacasse",
+    "givenName": "Gaëtan",
+    "familyName": "Lacasse",
+    "ringName": "Gaëtan Lacasse",
+    "gender": "male",
+    "age": 33,
+    "careerStage": "established",
+    "homeRegionKey": "ca-quebec",
+    "style": "grappler",
+    "talent": 1.6,
+    "employment": {
+      "promotionKey": "pro-ca",
+      "push": "mainEvent",
+      "alignment": "face"
+    },
+    "holdsTitleKey": "ca-heavyweight"
+  },
+  {
+    "key": "hl-gendo-arakawa",
+    "givenName": "Gendo",
+    "familyName": "Arakawa",
+    "ringName": "Gendo Arakawa",
+    "gender": "male",
+    "age": 38,
+    "careerStage": "veteran",
+    "homeRegionKey": "jp-kanto",
+    "style": "striker",
+    "talent": 2.2,
+    "attributeOverrides": {
+      "presence": 86
+    },
+    "employment": {
+      "promotionKey": "pro-jp-major",
+      "push": "mainEvent",
+      "alignment": "face"
+    },
+    "holdsTitleKey": "jp-major-heavyweight"
+  },
+  {
+    "key": "hl-hayato-minase",
+    "givenName": "Hayato",
+    "familyName": "Minase",
+    "ringName": "Hayato Minase",
+    "gender": "male",
+    "age": 25,
+    "careerStage": "prospect",
+    "homeRegionKey": "jp-kansai",
+    "style": "highFlyer",
+    "heightCm": 174,
+    "weightKg": 84,
+    "talent": 1.9,
+    "employment": {
+      "promotionKey": "pro-jp-major",
+      "push": "upperCard",
+      "alignment": "heel"
+    },
+    "holdsTitleKey": "jp-major-junior"
+  },
+  {
+    "key": "hl-imogen-saltash",
+    "givenName": "Imogen",
+    "familyName": "Saltash",
+    "ringName": "Imogen Saltash",
+    "gender": "female",
+    "age": 26,
+    "careerStage": "established",
+    "homeRegionKey": "gb-midlands-wales",
+    "style": "allRounder",
+    "talent": 1.4,
+    "employment": {
+      "promotionKey": "pro-uk",
+      "push": "upperCard",
+      "alignment": "heel"
+    },
+    "holdsTitleKey": "uk-women"
+  },
+  {
+    "key": "hl-jett-amberley",
+    "givenName": "Jett",
+    "familyName": "Amberley",
+    "ringName": "Jett Amberley",
+    "gender": "male",
+    "age": 27,
+    "careerStage": "established",
+    "homeRegionKey": "us-california",
+    "style": "highFlyer",
+    "talent": 2.0,
+    "attributeOverrides": {
+      "athleticism": 90
+    },
+    "employment": {
+      "promotionKey": "pro-flagship",
+      "brandKey": "flagship-young-brand",
+      "push": "mainEvent",
+      "alignment": "face"
+    },
+    "holdsTitleKey": "flagship-world-young"
+  },
+  {
+    "key": "hl-kip-santangelo",
+    "givenName": "Kip",
+    "familyName": "Santangelo",
+    "ringName": "Kip Santangelo",
+    "gender": "male",
+    "age": 24,
+    "careerStage": "prospect",
+    "homeRegionKey": "us-florida",
+    "style": "allRounder",
+    "talent": 1.7,
+    "employment": {
+      "promotionKey": "pro-flagship",
+      "brandKey": "flagship-young-brand",
+      "push": "upperCard",
+      "alignment": "face"
+    },
+    "holdsTitleKey": "flagship-secondary-young"
+  },
+  {
+    "key": "hl-lukas-hartrampf",
+    "givenName": "Lukas",
+    "familyName": "Hartrampf",
+    "ringName": "Lukas Hartrampf",
+    "gender": "male",
+    "age": 32,
+    "careerStage": "established",
+    "homeRegionKey": "de-west",
+    "style": "powerhouse",
+    "talent": 1.5,
+    "employment": {
+      "promotionKey": "pro-de",
+      "push": "mainEvent",
+      "alignment": "heel"
+    },
+    "holdsTitleKey": "de-championship"
+  },
+  {
+    "key": "hl-mio-kazahaya",
+    "givenName": "Mio",
+    "familyName": "Kazahaya",
+    "ringName": "Mio Kazahaya",
+    "gender": "female",
+    "age": 24,
+    "careerStage": "prospect",
+    "homeRegionKey": "jp-kansai",
+    "style": "highFlyer",
+    "talent": 1.4,
+    "employment": {
+      "promotionKey": "pro-jp-kansai-indie",
+      "push": "mainEvent",
+      "alignment": "face"
+    },
+    "holdsTitleKey": "jp-kansai-indie-championship"
+  },
+  {
+    "key": "hl-odessa-quill",
+    "givenName": "Odessa",
+    "familyName": "Quillan",
+    "ringName": "Odessa Quill",
+    "gender": "female",
+    "age": 30,
+    "careerStage": "established",
+    "homeRegionKey": "us-california",
+    "style": "technician",
+    "talent": 1.7,
+    "attributeOverrides": {
+      "ringwork": 80
+    },
+    "employment": {
+      "promotionKey": "pro-us-west-women",
+      "push": "mainEvent",
+      "alignment": "face"
+    },
+    "holdsTitleKey": "us-west-women-championship"
+  },
+  {
+    "key": "hl-piedra-lunar",
+    "givenName": "Emiliano",
+    "familyName": "Sotelo Varga",
+    "ringName": "Piedra Lunar",
+    "gender": "male",
+    "age": 26,
+    "careerStage": "prospect",
+    "homeRegionKey": "mx-west",
+    "style": "highFlyer",
+    "heightCm": 172,
+    "weightKg": 80,
+    "masked": true,
+    "talent": 1.8,
+    "employment": {
+      "promotionKey": "pro-mx-major",
+      "push": "upperCard",
+      "alignment": "heel"
+    },
+    "holdsTitleKey": "mx-major-light-heavyweight"
+  },
+  {
+    "key": "hl-ren-takamori",
+    "givenName": "Ren",
+    "familyName": "Takamori",
+    "ringName": "Ren Takamori",
+    "gender": "male",
+    "age": 30,
+    "careerStage": "established",
+    "homeRegionKey": "jp-kanto",
+    "style": "striker",
+    "talent": 1.9,
+    "employment": {
+      "promotionKey": "pro-flagship",
+      "brandKey": "flagship-young-brand",
+      "push": "mainEvent",
+      "alignment": "face"
+    }
+  },
+  {
+    "key": "hl-rook-halvorsen",
+    "givenName": "Rune",
+    "familyName": "Halvorsen",
+    "ringName": "Rook Halvorsen",
+    "gender": "male",
+    "age": 31,
+    "careerStage": "established",
+    "homeRegionKey": "us-midwest",
+    "style": "technician",
+    "talent": 1.8,
+    "attributeOverrides": {
+      "ringwork": 84,
+      "psychology": 80
+    },
+    "employment": {
+      "promotionKey": "pro-flagship",
+      "brandKey": "flagship-main-brand",
+      "push": "upperCard",
+      "alignment": "heel"
+    },
+    "holdsTitleKey": "flagship-secondary-main"
+  },
+  {
+    "key": "hl-sable-whitcombe",
+    "givenName": "Sabine",
+    "familyName": "Whitcombe",
+    "ringName": "Sable Whitcombe",
+    "gender": "female",
+    "age": 29,
+    "careerStage": "established",
+    "homeRegionKey": "us-texas",
+    "style": "technician",
+    "talent": 2.2,
+    "attributeOverrides": {
+      "ringwork": 85
+    },
+    "employment": {
+      "promotionKey": "pro-flagship",
+      "brandKey": "flagship-main-brand",
+      "push": "mainEvent",
+      "alignment": "heel"
+    },
+    "holdsTitleKey": "flagship-women"
+  },
+  {
+    "key": "hl-shuhei-kurobane",
+    "givenName": "Shuhei",
+    "familyName": "Kurobane",
+    "ringName": "Shuhei Kurobane",
+    "gender": "male",
+    "age": 33,
+    "careerStage": "established",
+    "homeRegionKey": "jp-chubu",
+    "style": "powerhouse",
+    "talent": 1.8,
+    "employment": {
+      "promotionKey": "pro-jp-major",
+      "push": "mainEvent",
+      "alignment": "heel"
+    }
+  },
+  {
+    "key": "hl-vendaval-azul",
+    "givenName": "Mateo",
+    "familyName": "Ibarrola Quiñones",
+    "ringName": "Vendaval Azul",
+    "gender": "male",
+    "age": 31,
+    "careerStage": "established",
+    "homeRegionKey": "mx-mexico-city",
+    "style": "highFlyer",
+    "masked": true,
+    "talent": 2.1,
+    "employment": {
+      "promotionKey": "pro-mx-major",
+      "push": "mainEvent",
+      "alignment": "face"
+    },
+    "holdsTitleKey": "mx-major-heavyweight"
+  },
+  {
+    "key": "hl-wade-pruneda",
+    "givenName": "Wade",
+    "familyName": "Pruneda",
+    "ringName": "Wade Pruneda",
+    "gender": "male",
+    "age": 29,
+    "careerStage": "established",
+    "homeRegionKey": "us-texas",
+    "style": "striker",
+    "talent": 1.3,
+    "employment": {
+      "promotionKey": "pro-us-texas-indie",
+      "push": "mainEvent",
+      "alignment": "face"
+    },
+    "holdsTitleKey": "us-texas-indie-championship"
+  }
+]

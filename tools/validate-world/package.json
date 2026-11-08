@@ -5,7 +5,8 @@
   "type": "module",
   "description": "Checks a set of world data packs against the content rules and prints a distribution report.",
   "exports": {
-    "./real-name-matcher": "./src/realNameMatcher.ts"
+    "./real-name-matcher": "./src/realNameMatcher.ts",
+    "./run": "./src/run.ts"
   },
   "scripts": {
     "validate": "tsx src/cli.ts",

@@ -2,9 +2,9 @@
 
 The world the game ships with: twelve fictional promotions in seven countries,
 their brands, titles, home venues, the networks that carry them, the TV deals
-running on day one and their recurring shows. This doc covers the
-organisational half. People, contracts, teams and title reigns come next
-(WLD-09).
+running on day one and their recurring shows, and the people who work for them:
+rosters, staff, a free-agent pool, contracts, tag teams and title histories
+([The roster](#the-roster)).
 
 Data: `content/worlds/default/` (pack `default-world`, which depends on `base`
 for the map). Record format: [data-packs.md](data-packs.md). Map:
@@ -64,8 +64,7 @@ Europe, Asia and Oceania).
 | Local    | 40k-120k  | 22-32    | 18-20 in the home region only                                                      | 0-2        | 0 / 0-1 / 1                            | 2019-2023 |
 
 Every promotion has a distinct `color`, a null `logoRef` (UI-06 draws the
-placeholder mark from the ID and short name) and no owner or booker yet;
-WLD-09 may fill those from its headliners.
+placeholder mark from the ID and short name) and no owner or booker yet.
 
 The tiers are clearly apart when popularity is rolled up to the home country
 (population-weighted, as in [geography.md](geography.md#aggregation)):
@@ -99,7 +98,8 @@ case for drafts and brand-war seasons later
 
 ## Titles
 
-28 titles, all active, none with a champion yet (WLD-09 adds reigns). Each
+28 titles, all active, each with a champion and a short history (see
+[Title histories](#title-histories)). Each
 title's prestige is set from its promotion's by rank, always within 15: the
 top title sits 6-13 above the promotion, the lowest rung 5-12 below it. Weight limits appear only on the
 junior and light heavyweight titles. Every title has a `color` and a null
@@ -214,6 +214,203 @@ No length or minutes appear anywhere. Which slot is the opener or the main
 event, and how long a segment runs, is derived from slot position and match
 type by MTCH.
 
+## The roster
+
+About 290 people: every promotion's wrestlers, referees, announcers, producers
+and managers, plus a pool of free agents for a promotion founded at new game.
+A handful of hand-written headliners give each promotion a recognisable top of
+the card and hold its singles titles; everyone else comes out of the people
+generator ([world-generation.md](world-generation.md)).
+
+The people are generated once, by a build script with a fixed seed, and the
+output is committed as plain pack JSON. Generating the world at new-game time
+would let every generator tweak silently change the shipped world and break
+balance comparisons; committed files are reviewable, can be polished by hand,
+and change only when someone rebuilds them on purpose.
+
+| File               | What it is                                                               | Written by         |
+| ------------------ | ------------------------------------------------------------------------ | ------------------ |
+| `roster.spec.json` | Counts, mixes, the contract table and every build knob (not a pack file) | Hand               |
+| `headliners.json`  | The hand-written stars and their contract stubs (not a pack file)        | Hand               |
+| `people.json`      | Every person (`person` records)                                          | `worldgen:default` |
+| `employments.json` | One running contract per employed person                                 | `worldgen:default` |
+| `teams.json`       | Tag teams and trios                                                      | `worldgen:default` |
+| `reigns.json`      | Current and past title reigns                                            | `worldgen:default` |
+
+```sh
+npm run worldgen:default            # rebuild, validate, refresh the report
+npm run worldgen:default -- --force # also overwrite hand edits to the generated files
+```
+
+The command refuses to overwrite a generated file that has uncommitted changes
+(`git diff --quiet`) unless `--force` is passed. Generated people have keys
+`gen-<promotionKey>-<nn>` (or `gen-fa-<nn>` for free agents) and headliners keep
+their own keys, so a hand edit to a generated person shows up plainly in a diff
+and survives until the next deliberate rebuild. After writing, the command runs
+`validate:world --strict` and rewrites
+[`default-world-report.md`](default-world-report.md), the age, gender, style,
+attribute, roster and popularity distributions reviewers sign off on.
+
+Code: `tools/worldgen/`. The build reads the `base` and `default-world` packs
+without the four generated files, so a rebuild never depends on the previous
+build: the same spec and seed always give the same bytes.
+
+### Headcount
+
+| Who                  | Count                                                                                                  |
+| -------------------- | ------------------------------------------------------------------------------------------------------ |
+| Flagship wrestlers   | 44, split evenly between the two brands down the card                                                  |
+| National wrestlers   | 26 each                                                                                                |
+| Regional wrestlers   | 12-16 (Boreal 13, the rest 12)                                                                         |
+| Local wrestlers      | 8 each                                                                                                 |
+| Free-agent wrestlers | 35-45 (35), from every continent, weighted toward North America                                        |
+| Non-wrestlers        | 55-70 (58): 1-4 referees, 1-3 announcers, 0-3 producers, 0-3 managers per promotion, and 9 free agents |
+| Everyone             | 240-290 (286)                                                                                          |
+
+The build checks these ranges and fails if it misses one. Every promotion has
+at least one referee and one announcer. Golden Poppy's spec is 100% women; the
+others are about 70/28/2 men/women/non-binary (Tessen 82/16/2, Cielo Alto
+74/24/2), which makes about 30% of all wrestlers women.
+
+### Headliners
+
+23 hand-written stars in `headliners.json`, each with an original legal name,
+ring name, home region, age, career stage, style and talent, a few attribute
+overrides and a contract stub (promotion, brand, push, alignment). Every
+promotion has at least one main-event headliner, and every singles champion is
+a headliner. Each one still goes through the people generator, with the
+authored fields pinned, so headliners have bodies, conditions, traits and
+popularity built the same way as everyone else; the authored age, name and,
+for the two weight-limited champions, height and weight then replace what was
+rolled. Two of Altura's headliners come from the UK and Japan, so the flagship
+roster spans at least four countries.
+
+Tag and trios champions are not headliners: 9 team titles would need 19 more
+authored people, far past the 20-30 the file is meant to hold. Each team title
+goes to the best team the build forms in that promotion instead.
+
+### Where generated people come from
+
+People are generated per promotion in promotion-key order, after the
+headliners. A promotion's people are born in its home country 80% of the time
+and in a neighbouring country (one with a bordering region, or the rest of the
+continent for an island) 20% of the time; anyone born abroad is based in the
+promotion's home region. Gender and career stage come from exact counts of the
+promotion's shares, shuffled. Tessen, Cielo Alto, Blast Furnace and Hibari have
+their own ring style weights in the spec (Cielo Alto favours high flyers,
+Tessen strikers, Blast Furnace hardcore and brawling); everyone else's style
+follows their home region's taste through the generator. Wrestlers and managers
+get a ring name from the name generator, which also becomes their default ring
+name; staff work under their legal name.
+
+### Card position
+
+Each generated wrestler gets a **card value**: the mean of the wrestler
+profile's performer attributes plus 0.5 × their home popularity as generated.
+Pushes are handed out in descending card value from the promotion's push mix,
+after the slots the headliners fill. The push order correlates with card value
+at a Spearman coefficient of 0.6 or more in every promotion (a build test pins
+it).
+
+| Tier     | Main event | Upper card | Midcard | Lower card | Enhancement |
+| -------- | ---------: | ---------: | ------: | ---------: | ----------: |
+| Flagship |        11% |        18% |     32% |        23% |         16% |
+| National |        12% |        19% |     35% |        19% |         15% |
+| Regional |         9% |        22% |     40% |        17% |         12% |
+| Local    |        12% |        20% |     30% |        23% |         15% |
+
+**Alignment** alternates face and heel down the push order, and each face/heel
+pair is swapped with a 30% chance, so every tier comes out roughly balanced
+without a fixed pattern. Headliners keep their authored push and alignment.
+Managers alternate heel and face; other staff are listed as faces.
+
+### Popularity fitting
+
+The generator seeds popularity around where someone grew up. A promotion's
+workers should also be known where the promotion is, so for every employed
+wrestler, in every region where the promotion's popularity is at least 10:
+
+```
+regionalPop = max(regionalPop, promotionPop × pushFactor × (1 ± 10%))
+```
+
+| Push        | `pushFactor` |
+| ----------- | -----------: |
+| Main event  |          0.9 |
+| Upper card  |          0.7 |
+| Midcard     |          0.5 |
+| Lower card  |         0.35 |
+| Enhancement |          0.2 |
+
+A value is never lowered. This is what makes the market leader's stars known
+across its whole footprint: Altura's main eventers end up around 60-68 across
+the US, in the 30s in Canada and Britain and around 20 in Australia, while a
+local indie's champion only gets the boost in its home region.
+
+### Contracts
+
+One `active` contract per employed person, for the role they were generated
+for. It started 0-4 years before the world start (never before the person's
+debut, never before anyone turned 18, and never after a current champion won
+their title). It runs out on a day picked uniformly from the promotion's range
+in the spec, all inside 2-30 months after the start (2-30 at Altura, 3-24 to
+3-30 at the others, 2-14 at the locals), so expiries are spread over the first
+two and a half years instead of flooding the market on day one. Someone who
+held a title at another promotion in the history below started their current
+contract after that reign ended.
+
+**The terms are placeholders.** ECO owns wages, asking prices and contract
+value, and its "auto-set contract pricing" new-game step may overwrite these.
+They only need the right order of magnitude:
+
+| Tier     | Kind            | Exclusive | Main event |  Upper |    Mid | Lower | Enhancement | Staff |
+| -------- | --------------- | --------- | ---------: | -----: | -----: | ----: | ----------: | ----: |
+| Flagship | `written`       | yes       |     60,000 | 30,000 | 15,000 | 8,000 |       4,000 | 6,000 |
+| National | `written`       | yes       |     20,000 | 10,000 |  5,000 | 2,500 |       1,200 | 2,500 |
+| Regional | `written`       | yes       |      4,000 |  2,500 |  1,500 |   900 |         500 |   800 |
+| Local    | `perAppearance` | no        |      1,500 |  1,000 |    700 |   450 |         300 |   250 |
+
+Written deals pay that much a month and cover travel; local deals pay that much
+per appearance, with no monthly wage. No revenue shares, bonuses, caps or other
+perks yet.
+
+### Teams
+
+Every promotion with a tag or trios title gets 3-6 teams of that size, formed
+from its upper- and midcard wrestlers (the lower card fills in when there
+aren't enough). The best free wrestler anchors a team and takes the best
+partners of the same gender whose styles share a group (`aerial`: all-rounder,
+high flyer, showman, technician; `ground`: all-rounder, grappler, striker,
+technician; `power`: brawler, hardcore, powerhouse, showman, striker), or any
+style when none does. Headliners and singles champions are left out. Team names
+pair a ring name adjective and noun ("The Copper Titan", "Swift Prowler") and
+never repeat a team or a ring name. Teams formed 4-72 months before the start
+(earlier when the title history needs it), never before every member had
+debuted. Four more teams are made from free
+agents, since teams belong to no promotion.
+
+### Title histories
+
+Every title has one open reign and 1-4 past reigns.
+
+- **Current champion.** A singles title goes to the headliner who holds it in
+  `headliners.json`; a tag or trios title goes to the promotion's best team
+  (by combined card value) that fits the division. The reign began 20-300 days
+  before the start, never before the champion debuted, with 0-12 defences.
+- **Past reigns** run back from the current one, each ending on the day the
+  next began, 45-420 days long, no further back than five years and never
+  before the title was introduced. A past singles champion is usually one of
+  the promotion's ten best eligible wrestlers (tag team members are left for
+  the team titles while anyone else is free); with a 12% chance it is a
+  headliner of a promotion the same size or one tier bigger, a star who passed
+  through before moving on. An open title's history stays with the current
+  champion's gender where it can. Past team champions are the promotion's other
+  teams.
+- **Nobody holds two titles at once**, current reigns included, and the same
+  holder never wins a title straight back from themselves.
+
+All current reigns are settled first so that no past reign can overlap one.
+
 ## Naming rules
 
 Every name in the pack is original. Before a name goes in:
@@ -244,10 +441,15 @@ indie (its first name was close to a real tag team).
 ## Validation
 
 ```sh
-npm run validate:world -- --strict --skip-rule promotion-staffing --skip-rule free-agents
+npm run validate:world -- --strict
 ```
 
-The world is built in steps, so CI skips the rules that need content not yet
-in the pack: `promotion-staffing` and `free-agents` need people (WLD-09). The
-`geography` rule runs now that the base pack's name mixes (WLD-05) are in. The
-blocklist rule can never be skipped. Each skip comes out in the change that makes its rule pass.
+CI runs every content rule with no skips: staffing, champion eligibility,
+reign chronology, contract dates and expiry spread, unique names, geography,
+the free-agent pool, age sanity and the real-name blocklist, which can never
+be skipped. Every person's legal name, ring names and team names go through
+the blocklist like the organisation names do.
+`packages/engine/test/content/default-world.test.ts` runs the same check and
+pins the shape of the roster: wrestlers in every five-year age bucket from
+18-22 to 43-47, at least a quarter of them women, and a flagship roster from at
+least four countries.

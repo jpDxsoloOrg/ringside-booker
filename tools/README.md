@@ -31,7 +31,7 @@ Tools may import `@ringside/engine/testing` (or `@ringside/engine/testing/fixtur
 out the Vitest assertion helpers so it also loads outside a test run). The lint ban on those entry
 points only covers `apps/**` and `packages/*/src/**`.
 
-## Planned tools
+## Tools
 
 | Folder                 | Ticket  | Purpose                                                   |
 | ---------------------- | ------- | --------------------------------------------------------- |
