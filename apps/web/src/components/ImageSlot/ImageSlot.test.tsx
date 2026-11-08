@@ -101,6 +101,60 @@ describe('ImageSlot placeholders', () => {
     ]);
   });
 
+  it.each([
+    ['gold', 'metalGold'],
+    ['silver', 'metalSilver'],
+    ['bronze', 'metalBronze'],
+    ['plain', 'metalPlain'],
+    [undefined, 'metalPlain'],
+  ] as const)('paints a %s belt in the %s metal', (tier, metalClass) => {
+    const title: ImageSubject = {
+      kind: 'title',
+      id: 'tit_000009',
+      name: 'Coastal Crown',
+      ...(tier === undefined ? {} : { tier }),
+    };
+    const { container } = render(<ImageSlot subject={title} size="md" />);
+    const metalClasses = new Set(
+      Array.from(container.querySelectorAll('svg [class^="metal"]'), (node) =>
+        node.getAttribute('class'),
+      ),
+    );
+    expect([...metalClasses]).toEqual([metalClass]);
+  });
+
+  it('never gives a logo mark the same outer and inner colour', () => {
+    for (let index = 0; index < 200; index += 1) {
+      const { container, unmount } = render(
+        <ImageSlot
+          subject={{ kind: 'promotion', id: `pro_${String(index)}`, name: 'X' }}
+          size="sm"
+        />,
+      );
+      const outer = container.querySelector('svg > [class^="cat"]')?.getAttribute('class');
+      const inner = container.querySelector('svg > g > [class^="cat"]')?.getAttribute('class');
+      expect(outer).toMatch(/^cat[1-8]$/);
+      expect(inner).toMatch(/^cat[1-8]$/);
+      expect(inner).not.toBe(outer);
+      unmount();
+    }
+  });
+
+  it('separates the face from the hair in every silhouette variant', () => {
+    const variants = new Set<string>();
+    for (let index = 0; index < 60; index += 1) {
+      const markup = renderMarkup({ ...worker, id: `per_${String(index)}` }, 'silhouette');
+      const variant = /data-placeholder="person-silhouette-([a-z-]+)"/.exec(markup)?.[1];
+      if (variant === undefined) throw new Error('No silhouette drawn.');
+      variants.add(variant);
+      if (variant !== 'short-hair') {
+        // Long hair and hoods draw the face over a ring in the background colour.
+        expect(markup).toMatch(/<ellipse[^>]*class="cat[1-8]"/);
+      }
+    }
+    expect([...variants].sort()).toEqual(['hooded', 'long-hair', 'short-hair']);
+  });
+
   it('never makes a network request for a placeholder', () => {
     const { container } = render(<ImageSlot subject={worker} size="lg" />);
     expect(container.querySelector('img')).toBeNull();

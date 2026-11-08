@@ -17,14 +17,26 @@ function ShortHair({ figure }: { readonly figure: string | undefined }) {
   );
 }
 
-function LongHair({ figure }: { readonly figure: string | undefined }) {
+function LongHair({
+  figure,
+  background,
+}: {
+  readonly figure: string | undefined;
+  readonly background: string | undefined;
+}) {
   return (
-    <g className={figure}>
-      {/* Hair falls behind the head down to the shoulders. */}
-      <path d="M19 26 C19 14 25 10 32 10 C39 10 45 14 45 26 L47 45 L17 45 Z" />
-      <path d={SHOULDERS} />
-      <circle cx="32" cy="25" r="10.5" />
-    </g>
+    <>
+      <g className={figure}>
+        {/* Hair falls behind the head down to the shoulders. */}
+        <path d="M19 26 C19 14 25 10 32 10 C39 10 45 14 45 26 L47 45 L17 45 Z" />
+        <path d={SHOULDERS} />
+      </g>
+      {/* A thin gap in the background colour so the face reads apart from the hair. */}
+      <ellipse cx="32" cy="27" rx="9.5" ry="11" className={background} />
+      <g className={figure}>
+        <ellipse cx="32" cy="27" rx="8" ry="9.5" />
+      </g>
+    </>
   );
 }
 
@@ -73,7 +85,7 @@ export function PersonSilhouette({ subject, decorative }: PlaceholderProps) {
     >
       <rect x="0" y="0" width="64" height="64" rx="12" className={background} />
       {variant === 'short-hair' && <ShortHair figure={figure} />}
-      {variant === 'long-hair' && <LongHair figure={figure} />}
+      {variant === 'long-hair' && <LongHair figure={figure} background={background} />}
       {variant === 'hooded' && <Hooded figure={figure} background={background} />}
     </PlaceholderSvg>
   );
