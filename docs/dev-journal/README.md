@@ -149,6 +149,7 @@ Newest entry at the top. Each new entry adds one row.
 
 | Date       | Entry                                                                                          | Epics          | Blog post                          |
 | ---------- | ---------------------------------------------------------------------------------------------- | -------------- | ---------------------------------- |
+| 2026-11-08 | [Visual identity: office by day, broadcast by night](2026-11-visual-identity.md)               | VIS            | Part 09 (planned)                  |
 | 2026-11-08 | [App shell: a game UI that keeps the engine at arm's length](2026-11-app-shell.md)             | UI             | Parts 04, 06 and 08 (planned)      |
 | 2026-11-08 | [World generation: a fictional world built from data packs](2026-11-world-generation.md)       | WLD            | Part 05 (planned)                  |
 | 2026-11-08 | [Milestone 1: foundation and engine core](2026-11-foundation-and-engine-core.md)               | FND, SIM, BLOG | Part 02                            |
