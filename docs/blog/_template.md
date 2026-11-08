@@ -1,5 +1,5 @@
 ---
-title: "Post title, 90 characters or fewer"
+title: Post title, 90 characters or fewer
 slug: ringside-booker-99-post-title
 series: ringside-booker
 part: 99

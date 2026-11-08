@@ -73,8 +73,9 @@ Rules for the fields:
 
 ## Status lifecycle
 
-A post moves through these states in order. `status` is the only thing that
-decides what the publish script does with it.
+A post normally moves through these states in order. `status` is the only thing
+that decides what the publish script does with it. To take a live post down,
+set it back to `draft` and publish it again. Its `publishedAt` stays as it was.
 
 | Status    | What the file holds                                              | What the publish script does                                                                |
 | --------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
