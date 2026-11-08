@@ -52,7 +52,7 @@ const OBJECT_URL_REVOKE_DELAY_MS = 10_000;
 export function slugifyLabel(label: string): string {
   const slug = label
     .normalize('NFKD')
-    .replace(/[̀-ͯ]/g, '')
+    .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+/, '')

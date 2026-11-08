@@ -51,7 +51,7 @@ describe('exportSlot', () => {
 });
 
 describe('importSaveFile', () => {
-  it('imports an exported file as a new slot that loads to the same document', async () => {
+  it('imports an exported file as a new slot next to the existing ones', async () => {
     const save = await makeTestSave({ label: 'Before the big show' });
     const source = expectOk(await createSlot('Source', save.bytes, save.header, save.meta));
     const exported = expectOk(await exportSlot(source.slotId));
@@ -66,6 +66,26 @@ describe('importSaveFile', () => {
     expect(imported.slot.label).toBe('Before the big show (imported)');
     expect(imported.slot.header).toEqual(save.header);
     expect(expectOk(await listSlots())).toHaveLength(2);
+    // The source slot is untouched.
+    expect(expectOk(await loadFromSlot(source.slotId)).bytes).toEqual(save.bytes);
+  });
+
+  it('imports an exported file on another profile and loads the same document', async () => {
+    const save = await makeTestSave({ label: 'Before the big show' });
+    const source = expectOk(await createSlot('Source', save.bytes, save.header, save.meta));
+    const exported = expectOk(await exportSlot(source.slotId));
+    const fileBytes = await exported.blob.arrayBuffer();
+
+    // Another browser profile: an empty save database that only ever sees the file.
+    await resetSaveDb();
+    expect(expectOk(await listSlots())).toEqual([]);
+    const file = new File([fileBytes], exported.fileName, { type: SAVE_FILE_MIME_TYPE });
+
+    const imported = await importSaveFile(file, inspectSave);
+    if (!imported.ok) {
+      throw new Error(`Import failed: ${JSON.stringify(imported.error)}`);
+    }
+    expect(expectOk(await listSlots()).map((slot) => slot.slotId)).toEqual([imported.slot.slotId]);
 
     const loadedBytes = expectOk(await loadFromSlot(imported.slot.slotId)).bytes;
     expect(loadedBytes).toEqual(save.bytes);
