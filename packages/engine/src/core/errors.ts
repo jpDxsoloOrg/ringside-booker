@@ -101,3 +101,35 @@ export class MoneyOverflowError extends EngineError {
     );
   }
 }
+
+/** A row was asked for by ID but its table has no row with that ID. */
+export class EntityNotFoundError extends EngineError {
+  constructor(kind: string, id: string) {
+    super('ENTITY_NOT_FOUND', `No ${kind} with ID ${JSON.stringify(id)}`, { kind, id });
+  }
+}
+
+/** A second row tried to take a key that a unique index already holds for another row. */
+export class UniqueIndexError extends EngineError {
+  constructor(table: string, index: string, key: string) {
+    super(
+      'UNIQUE_INDEX',
+      `Table ${table}: unique index ${index} already holds key ${JSON.stringify(key)}`,
+      { table, index, key },
+    );
+  }
+}
+
+/** A lookup named an index the table does not declare, or used it the wrong way. */
+export class UnknownIndexError extends EngineError {
+  constructor(table: string, index: string, reason = 'is not declared') {
+    super('UNKNOWN_INDEX', `Table ${table}: index ${index} ${reason}`, { table, index, reason });
+  }
+}
+
+/** A table registry is malformed: duplicate names or kinds, or a key that differs from its table. */
+export class RegistryError extends EngineError {
+  constructor(message: string, details?: ErrorDetails) {
+    super('REGISTRY', message, details);
+  }
+}

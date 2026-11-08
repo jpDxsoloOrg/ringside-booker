@@ -89,12 +89,16 @@ export { CONTENT_KEY_PATTERN, isContentKey, parseContentKey } from './core/conte
 export type { ErrorDetails } from './core/errors';
 export {
   EngineError,
+  EntityNotFoundError,
   IdCollisionError,
   InvalidArgumentError,
   InvalidContentKeyError,
   InvalidDateError,
   InvalidIdError,
   MoneyOverflowError,
+  RegistryError,
+  UniqueIndexError,
+  UnknownIndexError,
 } from './core/errors';
 
 export { hashString128, hashString32, type HashWords } from './core/hash';
@@ -108,3 +112,41 @@ export {
   type EngineTunables,
   type TunableKey,
 } from './systems/tunables';
+
+// The World store. MutableTable and createWorld are deliberately not exported: only transactions
+// write to the world.
+export type {
+  EntityRow,
+  IndexSpec,
+  Invariant,
+  RefSpec,
+  RefTarget,
+  RowOf,
+  TableDef,
+  TableName,
+  TableRegistry,
+} from './model/table-def';
+export type { ReadonlyTable } from './model/table';
+export type { DeepReadonly, WorldView } from './model/world';
+export { tableOf } from './model/world';
+export type { GameTables, GameWorldView } from './model/tables';
+export type {
+  ContentPackRef,
+  GenerationLevel,
+  Player,
+  WorldMeta,
+  WorldSettings,
+} from './model/world-meta';
+export {
+  GENERATION_LEVELS,
+  SEASON_LENGTH_DAYS_MAX,
+  SEASON_LENGTH_DAYS_MIN,
+  WorldMetaSchema,
+} from './model/world-meta';
+export type {
+  CheckWorldOptions,
+  IntegrityCheck,
+  IntegrityIssue,
+  IntegrityReport,
+} from './model/integrity';
+export { checkWorld, MAX_INTEGRITY_ISSUES } from './model/integrity';
