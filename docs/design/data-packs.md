@@ -9,10 +9,10 @@ the key and reference rules, overrides, and versioning.
 Code: `packages/engine/src/persistence/packs/`. The schemas there are the
 source of truth; the tables below describe them.
 
-This format covers authoring only. Turning packs into a `World` (resolving keys
-to IDs, merging packs, applying overrides, filling defaults) is the loader's
-job (WLD-02). The pack checker CLI (WLD-03) runs the same schemas over whole
-packs.
+Most of this doc is the authoring format. Turning packs into a `World`
+(resolving keys to IDs, merging packs, applying overrides, filling defaults) is
+the loader's job; the [Loading](#loading) section at the end describes it. The
+pack checker CLI (WLD-03) runs the same schemas over whole packs.
 
 ## Why packs have their own format
 
@@ -197,15 +197,15 @@ promotion's parent).
 
 **`region`**
 
-| Field                | Type                    | Rules                                                                  |
-| -------------------- | ----------------------- | ---------------------------------------------------------------------- |
-| `key`                | key                     |                                                                        |
-| `name`               | string                  | 1-60 characters                                                        |
-| `countryKey`         | ref → country           |                                                                        |
-| `population`         | integer                 | 0 or more                                                              |
-| `wrestlingInterest?` | number                  | 0-100. Default: the country's value                                    |
-| `preferredStyle?`    | promotion style \| null | Default: the country's preferred style                                 |
-| `neighbourKeys`      | refs → region           | Bordering regions. Not itself; adjacency must be mutual (loader check) |
+| Field                | Type                    | Rules                                                                                                               |
+| -------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `key`                | key                     |                                                                                                                     |
+| `name`               | string                  | 1-60 characters                                                                                                     |
+| `countryKey`         | ref → country           |                                                                                                                     |
+| `population`         | integer                 | 0 or more                                                                                                           |
+| `wrestlingInterest?` | number                  | 0-100. Default: the country's value                                                                                 |
+| `preferredStyle?`    | promotion style \| null | Default: the country's preferred style                                                                              |
+| `neighbourKeys`      | refs → region           | Bordering regions. Not itself. If a neighbour doesn't list this region back, the loader warns and stores both sides |
 
 ### Names
 
@@ -657,3 +657,117 @@ blocks straight out of this doc and parses them, so the example can't go stale.
 The region leaves out `wrestlingInterest` and `preferredStyle`, so it takes 62
 and `traditional` from Cormere. The promotion has no owner, booker or logo, so
 the loader fills in nulls and the UI draws a placeholder logo.
+
+## Loading
+
+Code: `packages/engine/src/persistence/packs/` (`resolve.ts`, `merge.ts`,
+`references.ts`, `materialise.ts`, `load.ts`).
+
+The loader turns a set of packs into a validated `World`. It never touches the
+file system or the DOM: the caller (the web worker, the tools) reads the JSON
+and hands it over as `RawPack`s, each a manifest plus one parsed value per
+record kind. `loadWorldFromPacks(packs, rootIds, { seed, startDate?, settings?,
+worldName? })` runs every step below and returns either the world or a list of
+issues. Bad content never throws; only a bad option from the caller (an
+unusable seed, a 3-day season) does.
+
+### Order of operations
+
+1. **Resolve** (`resolvePacks`). Starting from the root packs (the world and
+   any add-ons picked), follow every `dependsOn`, check each dependency was
+   passed in and that its version is in the range asked for, and sort the packs
+   so each comes after its dependencies. When two packs could go next, the
+   lower pack ID goes first, so the order never depends on the order the packs
+   were passed in. Packs no root reaches are left out. A cycle is reported as
+   `a → b → a`.
+2. **Merge** (`mergeRecords`). Check that the manifest's `files` and the data
+   agree, parse every entry with its kind's schema, then fold the packs in load
+   order: plain records add keys, `replace` swaps a record, `patch`
+   shallow-merges it, `$remove` deletes it. Only `world` and `addon` packs may
+   override or remove, and only records that come from one of their own
+   dependencies (direct or indirect). Every surviving record is then parsed
+   again with the full schema, so a patch can't leave a record invalid.
+3. **Check references** (`checkReferences`). Every reference field, listed per
+   kind next to its schema (`regionReferences`, `employmentReferences`, ...),
+   must name a record of the right kind. A qualified reference
+   (`mini-base:north-ridge`) must name a pack that defined or overrode the
+   record. A region whose neighbour doesn't list it back gets a warning, and
+   the loader stores the adjacency both ways.
+4. **Materialise** (`materialiseWorld`). Create an empty World with the seeded
+   ID minter installed, then inside one transaction:
+   - mint an ID for every record in the canonical order below;
+   - turn each record into its entity: keys to IDs, whole money units to
+     cents, defaults filled in (the "Default" notes in the tables above), a
+     region's missing `wrestlingInterest` and `preferredStyle` taken from its
+     country, every person rested and uninjured, every employment and deal
+     `active` and offered on its start date, a reign's `holderNamesAtTime`
+     from each holder's ring name with the title's promotion, a computer
+     controller on every promotion and a null controller on every brand;
+   - parse each entity with its engine schema and insert it;
+   - create season 1, active, from the start date, `settings.season.lengthDays`
+     long (the last day is `startDate + lengthDays - 1`);
+   - store `contentKeys` on the metadata and run `checkWorld`.
+
+   Any error rolls the whole transaction back, so a bad pack never produces a
+   half-built world.
+
+Settings the caller leaves out take these defaults: aging on, sandbox off,
+generation level `low`, level playing field off, 364-day seasons, no extra
+settings. The start date defaults to the last world pack's `startDate`, and
+the world's name to that pack's name. New-game setup (WLD-10) passes the
+player's own choices.
+
+### What ends up where
+
+- **World metadata.** `contentPacks` lists the loaded packs and versions in
+  load order. `contentKeys` maps record kind → key → minted ID for every record
+  that became an entity, so later systems, saves and mods can find a pack
+  record's entity by key.
+- **Content library.** Name cultures, name mixes, ring name words, generation
+  profiles and trait incidence never become entities. The loader returns them
+  as a frozen `ContentLibrary` for the generators, with references reduced to
+  bare keys. A save stores only `contentPacks`; the library is rebuilt from
+  the packs when the save is loaded, which keeps name lists out of every save.
+- **RNG registry.** The loader returns the `RngRegistry` its IDs were minted
+  from, so the game carries on drawing from the same streams and saves their
+  state.
+
+### Canonical ID order
+
+IDs are minted kind by kind in this order, and by key (ascending) within a
+kind: continent, country, region, promotion, brand, venue, network, title,
+person, employment, team, eventDefinition, deal, titleReign, then season 1.
+Each kind draws from its own `ids.<prefix>` stream, so the IDs are a pure
+function of the seed and the merged content: the same packs and seed always
+give the same world, and a different seed gives different IDs for the same
+entities.
+
+All IDs are minted before the first row is written, because some records point
+forward in that order (a promotion's owner is a person; regions list each
+other). Minting first draws exactly the IDs `tx.create` would have drawn row by
+row.
+
+### Issue codes
+
+Every issue names its severity, code, pack, file, record kind, record key and
+a path such as `['employment', 'emp-x', 'personKey']` (kind, key, then the
+field path inside the record).
+
+| Code                      | Severity | Step        | Meaning                                                                                         |
+| ------------------------- | -------- | ----------- | ----------------------------------------------------------------------------------------------- |
+| `manifest`                | error    | resolve     | A manifest doesn't match the manifest schema.                                                   |
+| `duplicate-pack`          | error    | resolve     | Two packs passed in share an ID.                                                                |
+| `missing-dependency`      | error    | resolve     | A root or a `dependsOn` entry names a pack that wasn't passed in.                               |
+| `version-mismatch`        | error    | resolve     | A dependency's version is outside the range asked for.                                          |
+| `dependency-cycle`        | error    | resolve     | Packs depend on each other in a loop.                                                           |
+| `missing-file`            | error    | merge       | The manifest lists a file for a kind but no data came with it.                                  |
+| `unlisted-file`           | error    | merge       | Data came for a kind the manifest doesn't list.                                                 |
+| `schema`                  | error    | merge       | An entry, or a record after merging, doesn't match its kind's schema.                           |
+| `duplicate-key`           | error    | merge       | A key appears twice in one file, or two packs add it without `$override`.                       |
+| `override-not-allowed`    | error    | merge       | A `base` pack uses `$override` or `$remove`.                                                    |
+| `override-target-missing` | error    | merge       | `$override` or `$remove` names a key none of the pack's dependencies defines.                   |
+| `unknown-reference`       | error    | references  | A reference names a key no loaded record of that kind has (or a pack that didn't define it).    |
+| `wrong-kind-reference`    | error    | references  | A reference names a key that exists only as another kind, such as a country in `homeRegionKey`. |
+| `one-sided-neighbour`     | warning  | references  | A region's neighbour doesn't list it back. Both sides are stored.                               |
+| `missing-start-date`      | error    | load        | No start date was given and no world pack was loaded.                                           |
+| `entity-schema`           | error    | materialise | A record doesn't make a valid entity, or the finished world fails `checkWorld`.                 |
