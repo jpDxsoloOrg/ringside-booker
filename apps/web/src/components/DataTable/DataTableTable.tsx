@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo, useRef } from 'react';
+import { memo, useMemo, useRef } from 'react';
 import type { AriaAttributes, KeyboardEvent, MouseEvent } from 'react';
 import { classNames } from '../classNames';
 import { Icon } from '../Icon';
@@ -130,8 +130,8 @@ function TableRowView<Row>({
 const TableRow = memo(TableRowView) as typeof TableRowView;
 
 /**
- * Stands in for rows outside the render window (see rowWindow.ts). Its height comes from a CSS
- * custom property set on the element, so no inline style attribute is written.
+ * Stands in for rows outside the render window (see rowWindow.ts). A one-pixel-wide SVG gives the
+ * row its height through plain attributes, so no style is written from script.
  */
 interface WindowSpacerProps {
   readonly heightPx: number;
@@ -139,15 +139,11 @@ interface WindowSpacerProps {
 }
 
 function WindowSpacer({ heightPx, columnCount }: WindowSpacerProps) {
-  const setHeight = useCallback(
-    (element: HTMLTableRowElement | null) => {
-      element?.style.setProperty('--window-spacer-size', `${String(heightPx)}px`);
-    },
-    [heightPx],
-  );
   return (
-    <tr ref={setHeight} aria-hidden="true" className={styles['windowSpacer']}>
-      <td colSpan={columnCount} />
+    <tr aria-hidden="true" className={styles['windowSpacer']}>
+      <td colSpan={columnCount}>
+        <svg className={styles['windowSpacerSize']} width={1} height={heightPx} focusable="false" />
+      </td>
     </tr>
   );
 }

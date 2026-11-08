@@ -34,8 +34,8 @@ export interface RowWindow<Item> {
  * 3. Only switch on at or above the threshold, so short tables keep plain markup.
  *
  * DataTableTable renders a spacer row above and below the window whenever the spacing is above
- * zero. The spacer heights are set through a CSS custom property on the spacer element (never an
- * inline style attribute). Keyboard navigation already works on row ids across the full list, so
+ * zero. Each spacer gets its height from an SVG's `height` attribute, so no style is written from
+ * script. Keyboard navigation already works on row ids across the full list, so
  * arrow keys reach rows outside the window and `scrollIntoView` brings them in.
  */
 export function useRowWindow<Item>(

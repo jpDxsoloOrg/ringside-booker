@@ -318,6 +318,23 @@ describe('DataTable checkbox selection', () => {
     expect(screen.getByRole('checkbox', { name: 'Select Ana Ríos' })).not.toBeChecked();
   });
 
+  it('counts only checked rows that are still in the list', () => {
+    const { rerender } = renderTable({ selectable: true, defaultCheckedRowIds: ['w1', 'w4'] });
+    expect(screen.getByText('2 selected')).toBeInTheDocument();
+
+    rerender(
+      <DataTable
+        rows={workers.filter((worker) => getRowId(worker) !== 'w4')}
+        columns={columns}
+        getRowId={getRowId}
+        caption="Roster"
+        selectable
+        defaultCheckedRowIds={['w1', 'w4']}
+      />,
+    );
+    expect(screen.getByText('1 selected')).toBeInTheDocument();
+  });
+
   it('puts a checkbox on each card that does not open the card', async () => {
     useMobileLayout();
     const user = userEvent.setup();

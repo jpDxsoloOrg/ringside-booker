@@ -287,6 +287,10 @@ export function DataTable<Row extends DataTableRowData>({
   }
 
   const showToolbar = filterable || columnPicker || selectable;
+  // Checked ids can outlive their rows (a worker leaves while ticked); only count rows still here.
+  const checkedCount = selectable
+    ? activeCheckedIds.filter((rowId) => rowsById.has(rowId)).length
+    : null;
 
   const viewProps = {
     rows: displayRows,
@@ -319,7 +323,7 @@ export function DataTable<Row extends DataTableRowData>({
           onFilterChange={changeFilterText}
           columnPicker={columnPicker ? { columns, hiddenColumnIds: activeHiddenIds } : null}
           onColumnHiddenChange={model.setColumnHidden}
-          checkedCount={selectable ? activeCheckedIds.length : null}
+          checkedCount={checkedCount}
           onClearChecked={() => {
             changeCheckedIds(NO_IDS);
           }}

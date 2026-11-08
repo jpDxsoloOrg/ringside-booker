@@ -241,11 +241,15 @@
   background: var(--color-surface-sunken);
 }
 
-/* Stands in for rows outside the render window; rowWindow.ts sets the height. */
+/* Stands in for rows outside the render window; the SVG inside carries the height. */
 .windowSpacer td {
-  block-size: var(--window-spacer-size, 0);
   padding: 0;
   border: 0;
+  line-height: 0;
+}
+
+.windowSpacerSize {
+  display: block;
 }
 
 .rowSelected td:first-child {
