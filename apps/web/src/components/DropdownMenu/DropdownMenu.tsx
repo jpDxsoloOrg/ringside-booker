@@ -98,7 +98,7 @@ export function DropdownMenu({
                 data-tone={entry.tone ?? 'default'}
               >
                 {entry.icon !== undefined && (
-                  <Icon name={entry.icon} className={styles['itemIcon']} />
+                  <Icon name={entry.icon} className={styles['itemIcon']} decorative />
                 )}
                 <span className={styles['itemLabel']}>{entry.label}</span>
               </RadixMenu.Item>

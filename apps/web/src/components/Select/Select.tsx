@@ -91,7 +91,7 @@ export function Select({
             <RadixSelect.Value {...placeholderText} />
           </span>
           <RadixSelect.Icon className={styles['chevron']}>
-            <Icon name="chevron-down" />
+            <Icon name="chevron-down" decorative />
           </RadixSelect.Icon>
         </RadixSelect.Trigger>
         <RadixSelect.Portal>
@@ -111,7 +111,7 @@ export function Select({
                 >
                   <RadixSelect.ItemText>{option.label}</RadixSelect.ItemText>
                   <RadixSelect.ItemIndicator className={styles['indicator']}>
-                    <Icon name="check" />
+                    <Icon name="check" decorative />
                   </RadixSelect.ItemIndicator>
                 </RadixSelect.Item>
               ))}
