@@ -13,6 +13,8 @@ accessibility plumbing that every page shares.
 | `settings/`               | Viewer settings: schema, store (localStorage), effects on `<html>`         |
 | `layouts/OutOfGameLayout` | Title, load, new game and settings: centred, no navigation                 |
 | `AppShell/`               | Desktop sidebar and top bar; phone top bar, bottom tab bar and More sheet  |
+| `AppShell/day/`           | The day button, Skip days, the progress overlay and the advance summary    |
+| `AppShell/status/`        | The status chips (date, cash, popularity) and the chip registry            |
 | `a11y/`                   | Skip link, focus on navigation, page titles and the live announcer         |
 | `dev/EnterShellRoute.tsx` | Dev and e2e builds only: fake a loaded world and open the shell            |
 | `engine/`                 | Engine provider, query cache, status store and the engine hooks            |
@@ -70,6 +72,27 @@ the screens show the first 20 in `LoadErrorSheet`. Listing, deleting, exporting 
 on the main thread through `screens/saves/saveStorage.tsx`, which tests replace with
 `src/test/fakeStorage.ts`. "Main menu" in the sidebar and the More sheet saves into the session's
 slot, unloads the world and returns to the title screen; a failed save keeps the player in the game.
+
+## Moving time
+
+The end of the top bar (`AppShell/TopBarStatus.tsx`) shows the game's status and the control that
+moves time. Status comes from two engine built-ins, `sim.status` (date, season, the seat's cash and
+popularity) and `sim.pendingGates` (why Next Day would stop today), read by
+`status/useShellStatus.ts`; the web app adds no engine queries of its own.
+
+- **The day button** (`day/DayControl.tsx`) reads "Next day" until a gate waits. Then
+  `day/dayControlState.ts` turns the gates into a button by their route hint: `inbox` ("2 decisions
+  waiting", which outranks everything), `booking` ("Go to show"), and anything else "Needs
+  attention" with the gate's reason. Shift+N presses it outside text fields and dialogs.
+- **Skip days** (`day/SkipDaysSheet.tsx`) takes a length (1 to 3,650 days) and an optional stop
+  date, both checked against the engine's rules, with the calendar maths from `@ringside/engine`.
+- **One controller** (`day/DayAdvanceProvider.tsx`) runs every advance: the overlay reads its
+  progress, `AdvanceSummary` shows the result under the top bar and the live region announces it.
+  After each advance that moved a day it asks `shouldAutosave` and, when told to, calls the host's
+  `autosave`.
+- **Status chips** come from `status/StatusChips.tsx`. Another system adds one with
+  `registerStatusChip({ id, order, render })` (`status/statusChipRegistry.ts`) instead of editing
+  the shell.
 
 ## Rules
 
