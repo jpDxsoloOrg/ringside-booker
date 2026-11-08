@@ -244,10 +244,10 @@ indie (its first name was close to a real tag team).
 ## Validation
 
 ```sh
-npm run validate:world -- --strict --skip-rule promotion-staffing --skip-rule free-agents --skip-rule geography
+npm run validate:world -- --strict --skip-rule promotion-staffing --skip-rule free-agents
 ```
 
 The world is built in steps, so CI skips the rules that need content not yet
-in the pack: `promotion-staffing` and `free-agents` need people (WLD-09), and
-`geography` needs the base pack's name mixes (WLD-05). The blocklist rule can
-never be skipped. Each skip comes out in the change that makes its rule pass.
+in the pack: `promotion-staffing` and `free-agents` need people (WLD-09). The
+`geography` rule runs now that the base pack's name mixes (WLD-05) are in. The
+blocklist rule can never be skipped. Each skip comes out in the change that makes its rule pass.

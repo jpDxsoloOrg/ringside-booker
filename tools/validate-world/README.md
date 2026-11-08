@@ -153,10 +153,10 @@ It covers:
 
 `.github/workflows/ci.yml` runs `npm run validate:world -- --strict` after the tests on every pull
 request, including pull requests from forks. The step needs no secrets, so the blocklist check
-always runs. The default world's organisations landed first (WLD-08), so until its people
-(WLD-09) and the base pack's name mixes (WLD-05) arrive, CI passes
-`--skip-rule promotion-staffing --skip-rule free-agents --skip-rule geography`. Each skip goes in
-the change that makes its rule pass.
+always runs. The default world's organisations (WLD-08) and the base pack's name mixes (WLD-05)
+are in, so until its people (WLD-09) arrive, CI passes
+`--skip-rule promotion-staffing --skip-rule free-agents`. Each skip goes in the change that makes
+its rule pass.
 
 ## Tests
 
