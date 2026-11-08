@@ -386,6 +386,57 @@ describe('trace size limits', () => {
     expectSerialisable(nested);
   });
 
+  it('never goes past the node cap when a nested step lands on the last free slot', () => {
+    const nestedSizes = [1, 2, 5];
+    for (let stepsBefore = TRACE_MAX_NODES - 12; stepsBefore < TRACE_MAX_NODES; stepsBefore++) {
+      for (const nestedSize of nestedSizes) {
+        let inner = startCalc('Inner', 0);
+        for (let i = 0; i < nestedSize; i++) {
+          inner = inner.add('Step', 1);
+        }
+        let calc = startCalc('Outer', 0);
+        for (let i = 0; i < stepsBefore; i++) {
+          calc = calc.add('Step', 1);
+        }
+        const result = calc.add('Nested', inner.done()).add('Last', 1).done();
+
+        expect(result.value).toBe(stepsBefore + nestedSize + 1);
+        expect(countTraceNodes(result.trace)).toBeLessThanOrEqual(TRACE_MAX_NODES);
+        expectTraceReplays(result);
+      }
+    }
+  });
+
+  it('keeps a hand-built trace with nested steps within the node cap', () => {
+    for (let stepCount = TRACE_MAX_NODES - 6; stepCount <= TRACE_MAX_NODES + 2; stepCount++) {
+      const steps: TraceNode[] = [{ kind: 'input', label: 'Start', value: 0 }];
+      for (let i = 0; i < stepCount; i++) {
+        steps.push({
+          kind: 'add',
+          label: 'Step',
+          value: i + 1,
+          operand: 1,
+          before: i,
+          after: i + 1,
+          children: [
+            { kind: 'input', label: 'One', value: 1 },
+            { kind: 'input', label: 'Also one', value: 1 },
+          ],
+        });
+      }
+      const root: FormulaNode = {
+        kind: 'formula',
+        label: 'Big',
+        value: stepCount,
+        children: steps,
+      };
+      const result = traced(stepCount, root);
+      expect(countTraceNodes(result.trace)).toBeLessThanOrEqual(TRACE_MAX_NODES);
+      expect(findTraceNodes(result.trace, 'note').some(isTruncationNote)).toBe(true);
+      expectTraceReplays(result);
+    }
+  });
+
   it('keeps the counts on each builder, so builders do not share a budget', () => {
     const first = startCalc('First', 0);
     const second = startCalc('Second', 0);

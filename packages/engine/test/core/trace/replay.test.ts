@@ -58,6 +58,20 @@ describe('replayTrace', () => {
     }).toThrow(TraceReplayError);
   });
 
+  it('fails when a nested sub-formula does not replay to the value it records', () => {
+    const bonus = startCalc('Crowd bonus', 3).multiply('Hype', 2).done();
+    const bonusTrace = bonus.trace;
+    if (bonusTrace.kind !== 'formula') {
+      throw new Error('Expected a formula root');
+    }
+    const tamperedBonus: Traced<number> = { ...bonus, trace: { ...bonusTrace, value: 7 } };
+    const result = startCalc('Rating', 50).add('Crowd bonus', tamperedBonus).done();
+    expect(() => {
+      assertTraceReplays(result);
+    }).toThrow(/in "Crowd bonus": replays to 6 but records 7/);
+    expectTraceReplays(startCalc('Rating', 50).add('Crowd bonus', bonus).done());
+  });
+
   it('fails when a step records a before or after the replay does not reach', () => {
     const steps = handBuiltSteps();
     steps[2] = { kind: 'multiply', label: 'Double', value: 30, operand: 2, before: 14, after: 30 };

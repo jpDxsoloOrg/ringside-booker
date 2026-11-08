@@ -16,10 +16,15 @@ import {
   type TraceNodeOfKind,
 } from '@ringside/engine';
 
-/** Fails unless the trace replays to its value and every recorded step matches the replay. */
+/**
+ * Fails unless the trace replays to its value, every recorded step matches the replay, and the
+ * result is plain JSON ({@link expectSerialisable}), so every numeric trace a test replays is also
+ * checked for serialisability.
+ */
 export function expectTraceReplays(result: Traced<number>, epsilon?: number): void {
   // Throws a TraceReplayError that lists every mismatching step, so a failure names the step.
   assertTraceReplays(result, epsilon);
+  expectSerialisable(result);
 }
 
 /** What a node must look like to match: its kind, and its label when given. */

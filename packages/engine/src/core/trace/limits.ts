@@ -57,10 +57,14 @@ export function isTruncationNote(node: TraceNode): node is NoteNode & { hiddenSt
   return node.kind === 'note' && node.hiddenSteps !== undefined;
 }
 
-/** A node rebuilt to fit the limits, and how many nodes it now holds. */
+/**
+ * A node rebuilt to fit the limits: the node, how many nodes it now holds, and how many nodes of
+ * its subtree were dropped without a note inside it to say so (the caller's note counts them).
+ */
 export interface FittedTrace {
   node: TraceNode;
   size: number;
+  hidden: number;
 }
 
 /**
@@ -77,6 +81,11 @@ function withChildren(node: TraceNode, children: readonly TraceNode[]): TraceNod
   return withoutChildren;
 }
 
+/** `node` on its own: its fields are kept, its children are dropped and counted as hidden. */
+function withoutSubtree(node: TraceNode): FittedTrace {
+  return { node: withChildren(node, []), size: 1, hidden: countTraceNodes(node) - 1 };
+}
+
 /** Inside a numeric formula a truncation note carries the formula's result; elsewhere null. */
 function noteValueFor(parent: TraceNode): number | null {
   return parent.kind === 'formula' && typeof parent.value === 'number' ? parent.value : null;
@@ -84,7 +93,8 @@ function noteValueFor(parent: TraceNode): number | null {
 
 /**
  * Fits the children of a node into `maxNodes`. One slot is always kept free for the truncation
- * note. Children at the last allowed level keep their own fields but lose their children.
+ * note, so the result never holds more than `maxNodes` nodes. Children that only have room for
+ * themselves, or that sit at the last allowed level, keep their own fields but lose their children.
  */
 function fitChildren(
   parent: TraceNode,
@@ -101,18 +111,13 @@ function fitChildren(
       hidden += children.slice(index).reduce((total, rest) => total + countTraceNodes(rest), 0);
       break;
     }
-    if (childDepth >= TRACE_MAX_DEPTH) {
-      hidden += countTraceNodes(child) - 1;
-      kept.push({ node: withChildren(child, []), size: 1 });
-      used += 1;
-    } else {
-      const fitted = fitTraceNode(child, childDepth, room);
-      kept.push(fitted);
-      used += fitted.size;
-    }
+    const fitted = fitTraceNode(child, childDepth, room);
+    kept.push(fitted);
+    used += fitted.size;
+    hidden += fitted.hidden;
   }
   if (hidden > 0) {
-    kept.push({ node: truncationNote(hidden, noteValueFor(parent)), size: 1 });
+    kept.push({ node: truncationNote(hidden, noteValueFor(parent)), size: 1, hidden: 0 });
   }
   return kept;
 }
@@ -120,15 +125,16 @@ function fitChildren(
 /**
  * Rebuilds `node`, sitting at level `depth` of a trace, so that it holds at most `maxNodes` nodes
  * and nothing below it goes deeper than {@link TRACE_MAX_DEPTH}. Nodes that already fit are
- * returned unchanged. `maxNodes` must be at least 1.
+ * returned unchanged. `maxNodes` must be at least 1; with exactly 1 the node keeps its own fields
+ * and its children are reported as `hidden`, for the caller's note.
  */
 export function fitTraceNode(node: TraceNode, depth: number, maxNodes: number): FittedTrace {
   const children = node.children;
   if (children === undefined || children.length === 0) {
-    return { node, size: 1 };
+    return { node, size: 1, hidden: 0 };
   }
-  if (depth >= TRACE_MAX_DEPTH) {
-    return { node: withChildren(node, []), size: 1 };
+  if (depth >= TRACE_MAX_DEPTH || maxNodes < 2) {
+    return withoutSubtree(node);
   }
   const fitted = fitChildren(node, children, depth + 1, maxNodes - 1);
   const unchanged =
@@ -143,6 +149,7 @@ export function fitTraceNode(node: TraceNode, depth: number, maxNodes: number): 
           fitted.map((entry) => entry.node),
         ),
     size,
+    hidden: 0,
   };
 }
 
@@ -186,6 +193,9 @@ export function createTraceBudget(): TraceBudget {
       }
       const fitted = fitTraceNode(node, STEP_DEPTH, room);
       usedNodes += fitted.size;
+      // A step squeezed into the last slot keeps its own fields but loses its children; they are
+      // counted in the root's note, and the steps after it are cut so the note stays last.
+      hiddenNodes += fitted.hidden;
       return fitted.node;
     },
     finish(steps: readonly TraceNode[], noteValue: number | null): TraceNode[] {

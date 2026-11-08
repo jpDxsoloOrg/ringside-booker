@@ -9,6 +9,7 @@
  */
 
 import { TraceReplayError } from '../errors';
+import { walkTrace } from './helpers';
 import { isTruncationNote } from './limits';
 import type { FormulaNode, TraceNode, Traced } from './types';
 
@@ -162,10 +163,36 @@ export function replayTrace(node: TraceNode): number {
 }
 
 /**
+ * Replays every numeric formula nested inside `root` (sub-formulas embedded as a step's children,
+ * traced scores and so on) against the value it records. A nested formula cut down to no children
+ * by the size limits has nothing left to replay and is skipped.
+ */
+function checkNestedFormulas(root: TraceNode, check: ReplayCheck): void {
+  walkTrace(root, (node) => {
+    if (
+      node === root ||
+      node.kind !== 'formula' ||
+      node.children.length === 0 ||
+      typeof node.value !== 'number'
+    ) {
+      return;
+    }
+    const nested: ReplayCheck = { epsilon: check.epsilon, problems: [] };
+    const replayed = replayFormula(node, nested);
+    if (!isClose(replayed, node.value, check.epsilon)) {
+      nested.problems.push(`replays to ${String(replayed)} but records ${String(node.value)}`);
+    }
+    for (const problem of nested.problems) {
+      check.problems.push(`in "${node.label}": ${problem}`);
+    }
+  });
+}
+
+/**
  * Throws {@link TraceReplayError} unless the trace reproduces the traced value: the replay must be
  * within `epsilon` of `traced.value` (relative once the values are above 1), the root node must
- * record the same value, and every replayed step must record the `before`, `after` and `applied`
- * the replay computes.
+ * record the same value, every replayed step must record the `before`, `after` and `applied` the
+ * replay computes, and every formula nested inside the trace must replay to its own value too.
  */
 export function assertTraceReplays(traced: Traced<number>, epsilon = 1e-9): void {
   const root = traced.trace;
@@ -181,6 +208,7 @@ export function assertTraceReplays(traced: Traced<number>, epsilon = 1e-9): void
       `root node records ${String(root.value)} but the traced value is ${String(traced.value)}`,
     );
   }
+  checkNestedFormulas(root, check);
   if (check.problems.length > 0) {
     throw new TraceReplayError(root.label, check.problems);
   }

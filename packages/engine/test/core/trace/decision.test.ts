@@ -49,6 +49,7 @@ describe('startDecision', () => {
       reason: 'Only option left',
       docRef: 'titles.md#ai',
     });
+    expectSerialisable(result);
   });
 
   it('embeds traced scores as children, and they replay', () => {
@@ -122,6 +123,7 @@ describe('startDecision', () => {
   it('leaves out children when nothing but options was recorded', () => {
     const result = startDecision<'a' | 'b'>('Pick').consider('a', 1).choose('a', 'Only one');
     expect('children' in result.trace).toBe(false);
+    expectSerialisable(result);
   });
 
   it('rejects a duplicate option, an unconsidered choice and a non-finite score', () => {

@@ -215,7 +215,9 @@ Going over a limit never throws, and the value is never cut short:
 - **Too many nodes.** Once a builder runs out of room, every later step is
   replaced by one `note`, "N more steps not shown", at the end of the root's
   children. The note records `hiddenSteps` (how many nodes are not shown) and,
-  in a numeric formula, the running value after them.
+  in a numeric formula, the running value after them. A step that only has
+  room for itself keeps its own fields (so it still replays) but loses its
+  children, which the note counts. The 400 includes the note.
 - **Too deep.** Nodes at the last allowed level keep their own fields but lose
   their children, and their parent gets one note saying how many were cut.
 - **Embedded traces** are trimmed to the room that is left when they are added.
@@ -236,8 +238,11 @@ number value is a recorded fact and replays to itself.
 `assertTraceReplays(traced, epsilon = 1e-9)` throws a `TraceReplayError` unless:
 
 - the replay matches `traced.value`,
-- the root node records the same value, and
-- every step records the `before`, `after` and `applied` the replay computes.
+- the root node records the same value,
+- every step records the `before`, `after` and `applied` the replay computes,
+  and
+- every formula nested inside the trace (a sub-formula embedded in a step, a
+  traced score) replays to the value it records.
 
 Numbers are compared within `epsilon`, relative to their size once they are
 above 1. Each problem in the error names the step it was found at.
@@ -299,7 +304,7 @@ The helpers in `packages/engine/test/support/trace.ts`:
 
 | Helper                                          | Checks                                                                        |
 | ----------------------------------------------- | ----------------------------------------------------------------------------- |
-| `expectTraceReplays(result)`                    | The trace replays to the value and every step matches the replay              |
+| `expectTraceReplays(result)`                    | The trace replays to the value, every step matches, and it is plain JSON      |
 | `expectTraceContains(result, { kind, label? })` | A node of that kind (and label) exists; returns it, narrowed, for more checks |
 | `expectRollRecorded(result, stream)`            | A roll from that stream is in the trace; returns its record                   |
 | `expectSerialisable(value)`                     | The value is plain JSON and survives a JSON round trip unchanged              |
