@@ -24,6 +24,7 @@ script.
 | 05   | Building a fictional wrestling world from scratch                           | planned | World (WLD) entry                                                                                                                                                                                | -          |
 | 06   | A desktop game that fits on a phone                                         | planned | UI entry                                                                                                                                                                                         | -          |
 | 07   | How a match gets its rating                                                 | planned | Match rating epic entry (later)                                                                                                                                                                  | -          |
+| 08   | Office by day, broadcast by night: giving a booking sim its look            | planned | [Visual identity](../dev-journal/2026-11-visual-identity.md) (VIS) entry                                                                                                                         | -          |
 
 When a post's status changes, its row changes in the same commit. The title and
 status in the row must match the file.
