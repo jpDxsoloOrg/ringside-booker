@@ -25,7 +25,9 @@ components/
   and `CountBadge` in `Badge/`.
 - Small helpers that are not components live in lower-case folders: `layout/` (`Stack`,
   `Cluster`, `VisuallyHidden`) and `format/` (number, money and date formatters).
-- Shared types sit at the top level: `tone.ts` (the colour tones) and `classNames.ts`.
+- Shared types sit at the top level: `tone.ts` (the colour roles: `neutral`, `data`, `action`,
+  `prestige`, `positive`, `negative`; the older names `info`, `warning` and `accent` still work and
+  draw as `data`, `prestige` and `action`) and `classNames.ts`.
 
 ## Rules
 
@@ -46,7 +48,8 @@ components/
   `lucide-react`, and only glyph by glyph (lint enforced), so unused icons stay out of the bundle
   and the set can be swapped in one file.
 - **Phone-ready.** Below `--bp-mobile` the component still fits a 390px screen, and on touch
-  screens (`@media (pointer: coarse)`) every control is at least `--tap-target-min` tall.
+  screens (`@media (pointer: coarse)`) every control is at least `--tap-target-min` tall. Buttons
+  also keep that height below `--bp-mobile`, so a phone-width window meets the 44px target too.
 - **Tested.** Unit tests sit next to the component; the gallery e2e spec
   (`apps/web/e2e/gallery.spec.ts`) opens every gallery entry and checks layout, console errors,
   keyboard reach and accessibility at desktop and phone sizes.
@@ -71,7 +74,7 @@ function MyWidgetDemo() {
 export const galleryEntry: GalleryEntry = {
   id: 'my-widget', // unique kebab-case; also the #hash that deep links to it
   title: 'MyWidget',
-  group: 'Primitives', // 'Tokens' | 'Primitives' | 'Art' | 'Data' | 'Overlays' | 'Engine'
+  group: 'Primitives', // 'Tokens' | 'Primitives' | 'Broadcast' | 'Art' | 'Data' | 'Overlays' | 'Engine'
   notes: 'Optional: what to look for.',
   render: () => <MyWidgetDemo />,
 };
@@ -87,29 +90,37 @@ export const galleryEntry: GalleryEntry = {
 
 ## What is here
 
-| Component        | Use it for                                                                 |
-| ---------------- | -------------------------------------------------------------------------- |
-| `Button`         | Every clickable action. Variants `primary`, `secondary`, `ghost`, `danger` |
-| `IconButton`     | An action shown as an icon only. Its `label` is required                   |
-| `Icon`           | One of the inline SVG icons in `Icon/icons.ts`                             |
-| `Panel`          | A titled surface grouping related content, optionally collapsible          |
-| `Badge`          | A short status label in one of the tones                                   |
-| `CountBadge`     | A small count such as unread mail, capped at `99+`                         |
-| `StatBar`        | A 0–100 value such as an attribute, popularity or condition                |
-| `EmptyState`     | What to show when a list, table or screen has nothing in it                |
-| `DataTable`      | Any dense list: a sortable table on desktop, stacked cards on phones       |
-| `Tabs`           | `Tabs`, `TabList`, `Tab`, `TabPanel`: switch between views in one area     |
-| `Sheet`          | A side panel over the page; a bottom sheet on phones                       |
-| `ConfirmDialog`  | Ask before a destructive or irreversible action, with async `onConfirm`    |
-| `Tooltip`        | A short hint on hover or focus. Never the only copy of anything            |
-| `Popover`        | A small panel anchored to a button: detail, a filter, quick controls       |
-| `DropdownMenu`   | A menu of actions behind a button, such as a row's "more" menu             |
-| `Select`         | Pick one option from a short list                                          |
-| `Switch`         | An on/off setting that applies straight away                               |
-| `Stack`          | Children in a column (or row) with a token gap                             |
-| `Cluster`        | A wrapping row with a token gap                                            |
-| `VisuallyHidden` | Text for screen readers only                                               |
-| `format/`        | `formatMoney`, `formatNumber`, `formatPercent`, `formatSigned`, dates      |
+| Component        | Use it for                                                                                                     |
+| ---------------- | -------------------------------------------------------------------------------------------------------------- |
+| `Button`         | Every clickable action. Variants `primary`, `secondary`, `prestige`, `ghost`, `danger`; sizes `sm`, `md`, `lg` |
+| `IconButton`     | An action shown as an icon only. Its `label` is required                                                       |
+| `Icon`           | One of the inline SVG icons in `Icon/icons.ts`                                                                 |
+| `Panel`          | A titled surface grouping related content, optionally collapsible. `office` card or `broadcast` (chamfered)    |
+| `Badge`          | A short status chip in one of the colour roles (see `tone.ts`)                                                 |
+| `CountBadge`     | A small count such as unread mail, capped at `99+`                                                             |
+| `StatBar`        | A 0–100 value such as an attribute, popularity or condition. Cyan, red-orange when weak, gold when elite       |
+| `EmptyState`     | What to show when a list, table or screen has nothing in it                                                    |
+| `DataTable`      | Any dense list: sort, filter, checkboxes; a table on desktop, cards on phones                                  |
+| `Tabs`           | `Tabs`, `TabList`, `Tab`, `TabPanel`: switch between views in one area                                         |
+| `Sheet`          | A side panel over the page; a bottom sheet on phones                                                           |
+| `ConfirmDialog`  | Ask before a destructive or irreversible action, with async `onConfirm`                                        |
+| `Tooltip`        | A short hint on hover or focus. Never the only copy of anything                                                |
+| `Popover`        | A small panel anchored to a button: detail, a filter, quick controls                                           |
+| `DropdownMenu`   | A menu of actions behind a button, such as a row's "more" menu                                                 |
+| `Select`         | Pick one option from a short list                                                                              |
+| `Switch`         | An on/off setting that applies straight away                                                                   |
+| `LiveBugButton`  | The skewed show action with a live dot: Next Day, Go Live                                                      |
+| `LowerThird`     | Broadcast header block: kicker, big title, meta row, optional wedge                                            |
+| `ScoreBug`       | A strip of 2–4 key numbers, each with an optional Why? chip                                                    |
+| `Ticker`         | The news crawl; pauses on hover or focus, static with reduced motion                                           |
+| `SegmentedMeter` | Hype, heat or fatigue as ticks that turn red-orange past a threshold                                           |
+| `CardSlot`       | A booking slot: role, matchup, chips, winner, or the empty add actions                                         |
+| `ChamferPanel`   | The broadcast container with chamfered corners (`Panel` is the office one)                                     |
+| `SlashDivider`   | A band of 45° slashes, or the inline `//` between items                                                        |
+| `Stack`          | Children in a column (or row) with a token gap                                                                 |
+| `Cluster`        | A wrapping row with a token gap                                                                                |
+| `VisuallyHidden` | Text for screen readers only                                                                                   |
+| `format/`        | `formatMoney`, `formatNumber`, `formatPercent`, `formatSigned`, dates                                          |
 
 Money is integer `Cents` and dates are `GameDate` strings from `@ringside/engine`; the formatters
 turn them into text at the edge and nowhere else.
@@ -121,21 +132,45 @@ layouts: a captioned, sortable table with sticky headers on desktop, and a label
 stacked cards with a "Sort by" select below `--bp-mobile`. The cards are their own DOM, not
 restyled table cells, so each layout keeps its screen reader semantics.
 
+[TanStack Table](https://tanstack.com/table) (see `docs/design/visual-identity.md`) does the row
+work: sorting, the filter, checked rows and hidden columns. It is headless, so the markup and the
+look stay ours. Screens never import `@tanstack/*`; they pass our `ColumnDef` and props, and
+`tableModel.ts` / `useDataTableModel.ts` translate them. Every piece of state can be left to the
+table or controlled by the screen (`sort` / `filter` / `checkedRowIds` / `hiddenColumnIds`, each
+with its `on…Change`).
+
 - **Card roles are chosen by the screen.** Each column says where it goes on a phone card:
   `media`, `title`, `subtitle`, `stat` (the first six are shown, labelled with `cardLabel` or the
   header), `meta` or `hidden`. Only the screen knows which few numbers matter most on a phone.
-- **Sorting** happens on the rows the screen passes in: numbers numerically, text naturally
-  ("Worker 2" before "Worker 10"), empty values last in both directions, ties by row id. A header
-  click cycles through the column's first direction (high to low for `numeric` columns, A to Z
-  otherwise), the other direction, then no sort. For big engine-side lists, control `sort` and
-  pass it to the query through `onSortChange` instead.
+- **Stat-table look.** Headers are Barlow Condensed capitals with a little tracking, as are the
+  card stat labels. `numeric` columns sit on the right with the global `.tabular` class.
+- **Sorting** (`sortable`, on by default; start with `initialSort`): numbers numerically, text
+  naturally ("Worker 2" before "Worker 10"), empty values last in both directions, ties by row id.
+  A header click cycles through the column's first direction (high to low for `numeric` columns,
+  A to Z otherwise), the other direction, then no sort. On phones the "Sort by" select and a
+  direction toggle do the same. For big engine-side lists, control `sort` and pass it to the query
+  through `onSortChange` instead.
+- **Filter** (`filterable`): a search box above the rows that matches any searched column,
+  ignoring case and accents. Columns are searched by their `filterValue`, or by their text
+  `sortValue` when they have no `filterValue`; numbers are only searched when a column asks for it
+  through `filterValue`. Escape clears the box, and "No matches" offers "Clear filter".
+- **Checked rows** (`selectable`): a checkbox per row and "select all" in the header, for bulk
+  actions. Shift-click checks a range, Space checks the current row from the keyboard, and the
+  toolbar shows the count with "Clear selection". This is separate from the current row
+  (`selectedRowId` / `onSelect`), which the arrow keys move and Enter opens. On a card the
+  checkbox sits in the corner as the card's sibling, so the card stays one clean button.
+- **Hidden columns** (`columnPicker`, `defaultHiddenColumnIds`): a "Columns" popover lists every
+  column whose `hideable` is not false. The `title` column cannot be hidden. Hidden columns leave
+  the cards too.
 - **Keyboard:** the table is one Tab stop. Up and Down move the selection, Home and End jump,
-  Enter opens the selected row. A click on a link or button inside a cell does not open the row.
+  Enter opens the selected row, Space checks it when `selectable`. A click on a link, button or
+  checkbox inside a cell does not open the row.
 - **Keep `columns` and `getRowId` stable** (module level or `useMemo`) so rows only re-render
-  when their own data or selection changes.
+  when their own data, selection or checkbox changes.
 - **Size:** built and benchmarked for 500 rows by 10 columns (`DataTable.bench.ts`). There is no
-  windowing yet; a screen that needs thousands of rows should page them, or windowing should be
-  added behind the same props.
+  windowing yet. `rowWindow.ts` is the hook point: from `WINDOWING_ROW_THRESHOLD` (300) rows a
+  roster should switch on `@tanstack/react-virtual` there, and the comment in that file lists the
+  steps. Nothing outside that file has to change.
 
 ## Overlays and Radix
 
@@ -170,3 +205,23 @@ tokens. Screens import our wrappers, never `@radix-ui/*` directly, so the props 
 - jsdom lacks pointer capture, `scrollIntoView` and `ResizeObserver`; `src/test/domStubs.ts` stubs
   them for unit tests. Layout, positioning and pointer behaviour are checked by the e2e specs
   (`gallery.spec.ts` and `overlays.spec.ts`) in a real browser.
+
+## Broadcast kit
+
+The components for show moments (see the broadcast register in
+`docs/design/visual-identity.md`): `LiveBugButton`, `LowerThird`, `ScoreBug`, `Ticker`,
+`SegmentedMeter`, `CardSlot`, `ChamferPanel` and `SlashDivider`. They sit in the gallery's
+**Broadcast** group.
+
+- **Generic on purpose.** None of them knows a game type. A screen passes text, numbers, image
+  subjects and slots (`children`, `footer`, `why`, `dragHandle`, `actions`), so booking and results
+  screens compose them from whatever their queries return.
+- **Motion.** Transitions use the `--motion-*` tokens, which reduced motion sets to 0ms. Looping
+  animations (the live dot, the ticker crawl) also have their own reduced-motion rules for the OS
+  setting and for `data-reduced-motion="on"`. Where the DOM itself changes, `useReducedMotion()`
+  from `styles/useReducedMotion.ts` decides: the ticker drops its loop copy and pause button and
+  becomes a wrapping static list. `broadcastKit.test.ts` checks these rules for every stylesheet.
+- **Never colour alone.** The meter adds a warning icon and a word in the danger zone, and the
+  card slot's winner marker says "Winner" (or the label you pass).
+- **Phones.** `CardSlot` stacks its sides, a four-stat `ScoreBug` wraps to 2×2, and a `docked`
+  `Ticker` sticks above the bottom tab bar.

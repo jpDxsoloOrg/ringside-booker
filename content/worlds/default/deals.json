@@ -1,0 +1,114 @@
+[
+  {
+    "key": "flagship-mainstage-tv",
+    "promotionKey": "pro-flagship",
+    "networkKey": "us-tv-national",
+    "eventDefinitionKey": "flagship-mainstage-weekly",
+    "startsOn": "2024-10-07",
+    "endsOn": "2029-07-02",
+    "timeslot": "primeTime",
+    "weekday": 0,
+    "live": true,
+    "terms": {
+      "feePerShow": 1200000,
+      "perThousandViewers": 150,
+      "costPerShow": 0
+    }
+  },
+  {
+    "key": "flagship-overclock-tv",
+    "promotionKey": "pro-flagship",
+    "networkKey": "us-tv-sports",
+    "eventDefinitionKey": "flagship-overclock-weekly",
+    "startsOn": "2025-04-02",
+    "endsOn": "2028-04-05",
+    "timeslot": "primeTime",
+    "weekday": 2,
+    "live": true,
+    "terms": {
+      "feePerShow": 450000,
+      "perThousandViewers": 90,
+      "costPerShow": 0
+    }
+  },
+  {
+    "key": "flagship-ppv",
+    "promotionKey": "pro-flagship",
+    "networkKey": "na-ppv",
+    "eventDefinitionKey": null,
+    "startsOn": "2023-01-02",
+    "endsOn": "2027-10-04",
+    "timeslot": "primeTime",
+    "weekday": null,
+    "live": true,
+    "terms": {
+      "feePerShow": 0,
+      "perThousandViewers": 1800,
+      "costPerShow": 25000
+    }
+  },
+  {
+    "key": "jp-major-tv",
+    "promotionKey": "pro-jp-major",
+    "networkKey": "jp-tv-national",
+    "eventDefinitionKey": "jp-major-weekly",
+    "startsOn": "2025-04-05",
+    "endsOn": "2028-10-02",
+    "timeslot": "lateNight",
+    "weekday": 5,
+    "live": false,
+    "terms": {
+      "feePerShow": 90000,
+      "perThousandViewers": 30,
+      "costPerShow": 5000
+    }
+  },
+  {
+    "key": "mx-major-tv",
+    "promotionKey": "pro-mx-major",
+    "networkKey": "mx-tv-national",
+    "eventDefinitionKey": "mx-major-weekly",
+    "startsOn": "2024-07-05",
+    "endsOn": "2027-07-05",
+    "timeslot": "evening",
+    "weekday": 4,
+    "live": false,
+    "terms": {
+      "feePerShow": 60000,
+      "perThousandViewers": 25,
+      "costPerShow": 4000
+    }
+  },
+  {
+    "key": "uk-streaming",
+    "promotionKey": "pro-uk",
+    "networkKey": "gb-streaming",
+    "eventDefinitionKey": "uk-weekly",
+    "startsOn": "2026-03-05",
+    "endsOn": "2028-01-03",
+    "timeslot": "evening",
+    "weekday": 3,
+    "live": false,
+    "terms": {
+      "feePerShow": 3000,
+      "perThousandViewers": 15,
+      "costPerShow": 400
+    }
+  },
+  {
+    "key": "us-southeast-streaming",
+    "promotionKey": "pro-us-southeast",
+    "networkKey": "us-streaming",
+    "eventDefinitionKey": "us-southeast-weekly",
+    "startsOn": "2026-06-06",
+    "endsOn": "2027-12-06",
+    "timeslot": "evening",
+    "weekday": 5,
+    "live": false,
+    "terms": {
+      "feePerShow": 4000,
+      "perThousandViewers": 20,
+      "costPerShow": 500
+    }
+  }
+]

@@ -19,18 +19,40 @@
   padding: var(--space-10) var(--space-4);
 }
 
-.icon {
-  color: var(--color-text-muted);
+/* The Lucide icon sits in a raised tile with a hairline, in the data cyan. */
+.iconTile {
+  display: grid;
+  place-items: center;
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  margin-block-end: var(--space-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-raised);
+  color: var(--color-data);
 }
 
+.size-page .iconTile {
+  inline-size: 4rem;
+  block-size: 4rem;
+  border-radius: var(--radius-card);
+}
+
+/* The heading is condensed and uppercase, the display face's job in the office register. */
 .title {
   color: var(--color-text);
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-wrap: balance;
 }
 
 .size-page .title {
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-extrabold);
 }
 
 .body {

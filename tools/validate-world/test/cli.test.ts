@@ -63,6 +63,36 @@ describe('validate-world exit codes', () => {
     }
   });
 
+  it('leaves out the rules --skip-rule names and says so', async () => {
+    const io = captureIo(FIXTURE_REPO);
+    const code = await runValidateWorld(
+      [
+        join(ENGINE_FIXTURE_PACKS, 'mini-world'),
+        join(ENGINE_FIXTURE_PACKS, 'mini-base'),
+        '--skip-rule',
+        'promotion-staffing',
+      ],
+      io,
+    );
+    expect(io.out()).toContain('Skipped rules: promotion-staffing\n');
+    expect(io.out()).not.toContain('error promotion-staffing');
+    expect(io.out()).not.toContain('warning promotion-staffing');
+    expect(code).toBe(EXIT_INVALID);
+  });
+
+  it('refuses to skip the blocklist or a rule that does not exist', async () => {
+    const blocklist = captureIo(FIXTURE_REPO);
+    expect(await runValidateWorld([CHECK_WORLD, '--skip-rule', 'blocklist'], blocklist)).toBe(
+      EXIT_USAGE,
+    );
+    expect(blocklist.err()).toContain('--skip-rule cannot skip the blocklist rule');
+    const unknown = captureIo(FIXTURE_REPO);
+    expect(await runValidateWorld([CHECK_WORLD, '--skip-rule', 'no-such-rule'], unknown)).toBe(
+      EXIT_USAGE,
+    );
+    expect(unknown.err()).toContain('--skip-rule names an unknown rule: no-such-rule');
+  });
+
   it('reports broken JSON with the file, line and column', async () => {
     const { root, cleanUp } = await copyFixtureRepo();
     try {

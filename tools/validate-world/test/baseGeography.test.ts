@@ -1,6 +1,7 @@
 /**
- * The shipped `base` pack's geography (WLD-04) passes the checker: no loader warnings (one-sided
- * neighbours) and no `geography` rule problems with region populations or missing regions.
+ * The shipped `base` pack's geography (WLD-04) and name mixes (WLD-05) pass the checker: no loader
+ * warnings (one-sided neighbours) and no `geography` rule problems with region populations,
+ * missing regions or missing name mixes.
  *
  * The CLI loads worlds, so the run goes through a throwaway world pack with no records of its own
  * that depends on `base`, in a temporary copy of the repository's `content/base` and blocklist.
@@ -17,14 +18,6 @@ import { runValidateWorld } from '../src/run';
 import { captureIo, loadForRules, REPO_ROOT } from './helpers';
 
 const BASE_PACK = join(REPO_ROOT, 'content/base');
-
-/**
- * Name mixes per country come with the name lists (WLD-05). Until they land, every country is
- * expected to be reported for lacking one; nothing else from the geography rule is.
- */
-function isMissingNameMix(message: string): boolean {
-  return message.includes('has no countryNameMix record');
-}
 
 const GEO_CHECK_WORLD = {
   formatVersion: 1,
@@ -57,17 +50,17 @@ describe('the shipped base geography', () => {
     await rm(repoRoot, { recursive: true, force: true });
   });
 
-  it('reports no geography problems besides the name mixes still to come', async () => {
+  it('reports no geography problems', async () => {
     const read = await readPacks([join(repoRoot, 'content/worlds/geo-check')], {
       contentRoot: join(repoRoot, 'content'),
     });
     expect(read.issues).toEqual([]);
     const { world, content } = loadForRules(read.packs, ['geo-check']);
     const issues = geography.check(world, content);
-    expect(issues.filter((issue) => !isMissingNameMix(issue.message)).map(formatIssue)).toEqual([]);
+    expect(issues.map(formatIssue)).toEqual([]);
   });
 
-  it('prints no loader warnings and no geography issues except name mixes in validate-world', async () => {
+  it('prints no loader warnings and no geography issues in validate-world', async () => {
     const io = captureIo(repoRoot);
     await runValidateWorld(['content/worlds/geo-check'], io);
     const issueLines = io
@@ -75,9 +68,7 @@ describe('the shipped base geography', () => {
       .split('\n')
       .filter((line) => /^(error|warning) /.test(line));
     expect(issueLines.filter((line) => line.includes('one-sided-neighbour'))).toEqual([]);
-    expect(
-      issueLines.filter((line) => line.includes(' geography ') && !isMissingNameMix(line)),
-    ).toEqual([]);
+    expect(issueLines.filter((line) => line.includes(' geography '))).toEqual([]);
     expect(io.err()).toBe('');
   });
 });

@@ -212,16 +212,18 @@ promotion's parent).
 
 **`nameCulture`**: a pool of names to generate people from.
 
-| Field          | Type                                      | Rules                                                      |
-| -------------- | ----------------------------------------- | ---------------------------------------------------------- |
-| `key`          | key                                       |                                                            |
-| `label`        | string                                    | 1-60 characters, for tools                                 |
-| `given`        | `{ male, female, neutral }`               | Weighted name lists; `male` and `female` need at least one |
-| `surnames`     | weighted name list                        | At least one                                               |
-| `surnameStyle` | `single` \| `double` \| `patronymic-free` |                                                            |
+| Field                  | Type                                      | Rules                                                                                         |
+| ---------------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `key`                  | key                                       |                                                                                               |
+| `label`                | string                                    | 1-60 characters, for tools                                                                    |
+| `given`                | `{ male, female, neutral }`               | Weighted name lists; `male` and `female` need at least one                                    |
+| `surnames`             | weighted name list                        | At least one                                                                                  |
+| `surnameStyle`         | `single` \| `double` \| `patronymic-free` |                                                                                               |
+| `doubleSurnameChance?` | number                                    | 0-1. Required for `double` cultures and not allowed on the others: the chance of two surnames |
 
 A weighted name is `["Name", weight]` with a whole-number weight of 1 or more.
-A name appears once per list.
+A name appears once per list. How the generator uses cultures, mixes and ring
+name words is in [names.md](names.md).
 
 **`countryNameMix`**: which cultures a country's people are named from.
 
@@ -233,13 +235,13 @@ A name appears once per list.
 
 **`ringNameWords`**: words for generated ring names.
 
-| Field        | Type    | Rules                                                                                                                           |
-| ------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `key`        | key     |                                                                                                                                 |
-| `adjectives` | strings | 1-30 characters each, no repeats                                                                                                |
-| `nouns`      | strings | As above                                                                                                                        |
-| `nicknames`  | strings | As above                                                                                                                        |
-| `patterns`   | strings | At least one. Templates using `{given}`, `{family}`, `{adjective}`, `{noun}`, `{nickname}`; each needs at least one placeholder |
+| Field        | Type                      | Rules                                                                                                                                                            |
+| ------------ | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `key`        | key                       |                                                                                                                                                                  |
+| `adjectives` | strings                   | 1-30 characters each, no repeats                                                                                                                                 |
+| `nouns`      | strings                   | As above                                                                                                                                                         |
+| `nicknames`  | strings                   | As above                                                                                                                                                         |
+| `patterns`   | `[pattern, weight]` pairs | At least one; no pattern twice; weight 1-1000. Templates using `{given}`, `{family}`, `{adjective}`, `{noun}`, `{nickname}`; each needs at least one placeholder |
 
 ### Generation
 

@@ -195,4 +195,17 @@ The simulation core's own tunables, in `core/tunables/simTunables.ts`:
 | `sim.stopSkipAfterConsecutiveFailures` | integer | 3       | 1–365    | days  | A multi-day skip stops after the same phase fails this many days in a row |
 | `sim.commandLogSize`                   | integer | 1000    | 0–100000 | count | Recent commands kept in the command log                                   |
 
-Game systems add their own balance numbers as they are built.
+Game systems add their own balance numbers as they are built, each in its own
+`systems/<name>/tunables.ts`. World generation's are in
+`systems/world/tunables.ts`; the name generator's `worldgen.names.*` tunables
+are listed in [names.md](names.md#tunables).
+
+## Condition tunables
+
+The reference system's placeholders, in `systems/condition/tunables.ts`. See
+[the worked example](calculation-traces.md#worked-example).
+
+| Key                                 | Kind    | Default | Range | Unit       | What it does                                                         |
+| ----------------------------------- | ------- | ------- | ----- | ---------- | -------------------------------------------------------------------- |
+| `condition.fatigueRecoveryPerDay`   | number  | 4       | 0–100 | points/day | Fatigue every person sheds each day before any bonus                 |
+| `condition.fatigueRecoveryBonusMax` | integer | 1       | 0–10  | points/day | Largest random extra recovery per day; 0 turns the roll's effect off |

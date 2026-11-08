@@ -1,0 +1,46 @@
+/* The slash colour comes from the tone class through --slash-colour. */
+.tone-neutral {
+  --slash-colour: var(--color-border-strong);
+}
+
+.tone-inherit {
+  --slash-colour: currentcolor;
+}
+
+.tone-action {
+  --slash-colour: var(--color-action-bright);
+}
+
+.tone-data {
+  --slash-colour: var(--color-data);
+}
+
+.tone-prestige {
+  --slash-colour: var(--color-prestige);
+}
+
+/* A strip of 45° slashes: 2px strokes every 8px, drawn with a gradient so it fits any width. */
+.band {
+  flex: none;
+  inline-size: 100%;
+  block-size: var(--space-2);
+  border: 0;
+  background: repeating-linear-gradient(
+    135deg,
+    var(--slash-colour) 0 2px,
+    transparent 2px var(--space-2)
+  );
+}
+
+/* The `//` between items on one line, in the display face. */
+.inline {
+  flex: none;
+  color: var(--slash-colour);
+  font-family: var(--font-family-display);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.08em;
+}
+
+.inline.tone-neutral {
+  color: var(--color-text-muted);
+}

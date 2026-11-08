@@ -1,18 +1,21 @@
-import { memo, useCallback, useId, useMemo } from 'react';
+import { memo, useCallback, useMemo } from 'react';
 import type { KeyboardEvent, MouseEvent, ReactNode } from 'react';
 import { IconButton } from '../Button';
 import { classNames } from '../classNames';
+import { Select } from '../Select';
+import type { SelectOption } from '../Select';
 import { cardLabelFor, groupCardColumns, MANY_CARD_STATS } from './cardColumns';
 import type { CardColumns } from './cardColumns';
 import styles from './DataTable.module.css';
 import { SKELETON_KEYS } from './skeleton';
 import { findSortableColumn, firstSortDirection } from './sortRows';
 import type { ColumnDef, SortState } from './types';
+import { RowCheckbox } from './RowCheckbox';
 import { startedOnInnerControl } from './viewProps';
-import type { DataTableViewProps } from './viewProps';
+import type { DataTableViewProps, RowChecking } from './viewProps';
 
-/** `<select>` value for "no sort": the rows in the order they were given. */
-const NO_SORT_VALUE = '';
+/** "Sort by" value for no sort: the rows in the order they were given. */
+const NO_SORT_VALUE = '__default-order';
 
 interface CardSortControlProps<Row> {
   readonly columns: readonly ColumnDef<Row>[];
@@ -22,43 +25,42 @@ interface CardSortControlProps<Row> {
 
 /** Replaces the table header on phones: a "Sort by" select and a direction toggle. */
 function CardSortControl<Row>({ columns, sort, onSortChange }: CardSortControlProps<Row>) {
-  const selectId = useId();
-  const sortableColumns = columns.filter((column) => column.sortValue !== undefined);
-  if (sortableColumns.length === 0) return null;
+  const sortOptions = useMemo<readonly SelectOption[]>(
+    () => [
+      { value: NO_SORT_VALUE, label: 'Default order' },
+      ...columns
+        .filter((column) => column.sortValue !== undefined)
+        .map((column) => ({ value: column.id, label: column.header })),
+    ],
+    [columns],
+  );
+  if (sortOptions.length === 1) return null;
 
   const isDescending = sort?.direction === 'desc';
 
   return (
     <div className={styles['cardSortBar']}>
-      <label htmlFor={selectId} className={styles['cardSortLabel']}>
-        Sort by
-      </label>
-      <select
-        id={selectId}
-        className={styles['cardSortSelect']}
+      <Select
+        label="Sort by"
+        className={styles['cardSortSelect'] ?? ''}
+        options={sortOptions}
         value={sort?.columnId ?? NO_SORT_VALUE}
-        onChange={(event) => {
-          const column = findSortableColumn(columns, event.target.value);
+        onValueChange={(value) => {
+          const column = findSortableColumn(columns, value);
           onSortChange(
             column === undefined
               ? null
               : { columnId: column.id, direction: firstSortDirection(column) },
           );
         }}
-      >
-        <option value={NO_SORT_VALUE}>Default order</option>
-        {sortableColumns.map((column) => (
-          <option key={column.id} value={column.id}>
-            {column.header}
-          </option>
-        ))}
-      </select>
+      />
       <IconButton
         icon={isDescending ? 'sort-desc' : 'sort-asc'}
         label="Sort descending"
         variant="secondary"
         aria-pressed={isDescending}
         disabled={sort === null}
+        className={styles['cardSortDirection']}
         onClick={() => {
           if (sort !== null) {
             onSortChange({ columnId: sort.columnId, direction: isDescending ? 'asc' : 'desc' });
@@ -77,6 +79,9 @@ interface CardProps<Row> {
   readonly isSelected: boolean;
   readonly isInteractive: boolean;
   readonly onPress: (rowId: string) => void;
+  /** `undefined` when the list has no checkboxes. */
+  readonly isChecked: boolean | undefined;
+  readonly checking: RowChecking<Row> | null;
 }
 
 function CardView<Row>({
@@ -87,6 +92,8 @@ function CardView<Row>({
   isSelected,
   isInteractive,
   onPress,
+  isChecked,
+  checking,
 }: CardProps<Row>) {
   const { media, title, subtitles, stats, meta } = cardColumns;
   const titleId = `${domId}-title`;
@@ -121,7 +128,12 @@ function CardView<Row>({
               {stats.map((column) => (
                 <div key={column.id} className={styles['cardStat']}>
                   <dt>{cardLabelFor(column)}</dt>
-                  <dd data-column-id={column.id}>{column.cell(row)}</dd>
+                  <dd
+                    data-column-id={column.id}
+                    className={column.numeric === true ? 'tabular' : undefined}
+                  >
+                    {column.cell(row)}
+                  </dd>
                 </div>
               ))}
             </dl>
@@ -141,10 +153,31 @@ function CardView<Row>({
     </>
   );
 
+  // The checkbox is the card's sibling, not its child: a control inside a card that is itself a
+  // button would be a nested interactive element. CSS places it in the card's corner.
+  const checkbox =
+    checking === null ? null : (
+      <div className={styles['cardCheck']}>
+        <RowCheckbox
+          label={`Select ${checking.getRowLabel(row)}`}
+          checked={isChecked === true}
+          onChange={(event) => {
+            checking.toggleRowChecked(rowId, event);
+          }}
+        />
+      </div>
+    );
+  const itemClassName = classNames(
+    styles['cardItem'],
+    checking !== null && styles['cardItemCheckable'],
+    isChecked === true && styles['cardItemChecked'],
+  );
+
   if (!isInteractive) {
     return (
-      <li id={domId} data-row-id={rowId} className={styles['cardItem']}>
+      <li id={domId} data-row-id={rowId} className={itemClassName}>
         <div className={styles['card']}>{content}</div>
+        {checkbox}
       </li>
     );
   }
@@ -163,7 +196,7 @@ function CardView<Row>({
   };
 
   return (
-    <li data-row-id={rowId} className={styles['cardItem']}>
+    <li data-row-id={rowId} className={itemClassName}>
       <div
         id={domId}
         role="button"
@@ -181,11 +214,12 @@ function CardView<Row>({
       >
         {content}
       </div>
+      {checkbox}
     </li>
   );
 }
 
-/** One card, re-rendered only when its row, the columns or its selection change. */
+/** One card, re-rendered only when its row, the columns, its selection or its checkbox change. */
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- memo() keeps the props, only the generic is lost
 const Card = memo(CardView) as typeof CardView;
 
@@ -198,10 +232,13 @@ interface DataTableCardsProps<Row> extends DataTableViewProps<Row> {
 export function DataTableCards<Row>({
   rows,
   columns,
+  allColumns,
   getRowId,
   caption,
+  sortable,
   sort,
   onSortChange,
+  checking,
   selectedRowId,
   onSelectRow,
   onActivateRow,
@@ -226,7 +263,9 @@ export function DataTableCards<Row>({
 
   return (
     <div className={styles['cards']}>
-      {!loading && <CardSortControl columns={columns} sort={sort} onSortChange={onSortChange} />}
+      {!loading && sortable && (
+        <CardSortControl columns={allColumns} sort={sort} onSortChange={onSortChange} />
+      )}
       {/* eslint-disable-next-line jsx-a11y/no-redundant-roles -- Safari drops list semantics when list-style is none */}
       <ul
         role="list"
@@ -258,6 +297,8 @@ export function DataTableCards<Row>({
                   isSelected={rowId === selectedRowId}
                   isInteractive={isInteractive}
                   onPress={pressCard}
+                  isChecked={checking === null ? undefined : checking.checkedRowIds.has(rowId)}
+                  checking={checking}
                 />
               );
             })}

@@ -43,6 +43,16 @@ export interface ColumnDef<Row> {
   readonly card: CardRole;
   /** Shorter label for the card stat grid, when the header is too long for a phone. */
   readonly cardLabel?: string;
+  /**
+   * The text the filter box searches for this column. Left out, a column whose `sortValue` gives
+   * text is searched by that text; numbers are only searched when a column asks for it here.
+   */
+  readonly filterValue?: (row: Row) => string | number | null;
+  /**
+   * Whether the column picker can hide the column. `true` by default, except for the `title`
+   * column: the row's name always stays.
+   */
+  readonly hideable?: boolean;
 }
 
 /** The active sort, or `null` for the rows in the order they were given. */

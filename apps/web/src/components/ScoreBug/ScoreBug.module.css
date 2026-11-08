@@ -1,0 +1,107 @@
+.scoreBug {
+  min-inline-size: 0;
+}
+
+/* One column per stat on desktop; two columns on phones, so four stats make a 2×2 block. */
+.stats {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.count-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.count-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.count-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+/*
+ * A stat: label (and the Why? chip) on top, the big value, then the sub-value. Grid areas keep
+ * the chip beside the label while the DOM keeps it after the value for screen readers.
+ */
+.stat {
+  display: grid;
+  grid-template-areas:
+    'label why'
+    'value value'
+    'sub sub';
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-content: start;
+  gap: var(--space-1) var(--space-2);
+  min-inline-size: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+}
+
+.highlight {
+  border-color: var(--color-prestige);
+}
+
+.label {
+  grid-area: label;
+  align-self: center;
+  min-inline-size: 0;
+  color: var(--color-text-muted);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.why {
+  grid-area: why;
+  align-self: center;
+}
+
+.value {
+  grid-area: value;
+  min-inline-size: 0;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.subValue {
+  grid-area: sub;
+  min-inline-size: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.tone-neutral {
+  color: var(--color-text);
+}
+
+.tone-data {
+  color: var(--color-data);
+}
+
+.tone-prestige {
+  color: var(--color-prestige);
+}
+
+.tone-action {
+  color: var(--color-action-bright);
+}
+
+@media (--bp-mobile) {
+  .count-3,
+  .count-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .value {
+    font-size: var(--font-size-2xl);
+  }
+}

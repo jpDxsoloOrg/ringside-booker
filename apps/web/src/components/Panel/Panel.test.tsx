@@ -100,6 +100,32 @@ describe('Panel', () => {
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
   });
 
+  it('is an office card by default', () => {
+    render(
+      <Panel title="Office">
+        <p>Body</p>
+      </Panel>,
+    );
+
+    expect(screen.getByRole('region', { name: 'Office' })).toHaveClass('panel', 'variant-office');
+  });
+
+  it('takes the broadcast variant and keeps its heading and region', () => {
+    render(
+      <Panel title="Show night" variant="broadcast" collapsible>
+        <p>Results</p>
+      </Panel>,
+    );
+
+    const region = screen.getByRole('region', { name: 'Show night' });
+    expect(region).toHaveClass('panel', 'variant-broadcast');
+    expect(region).not.toHaveClass('variant-office');
+    expect(screen.getByRole('button', { name: 'Show night' })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    );
+  });
+
   it('applies the padding class to the body', () => {
     render(
       <Panel title="Table" padding="none">

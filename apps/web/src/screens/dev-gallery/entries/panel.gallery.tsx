@@ -28,6 +28,28 @@ function PanelDemo() {
       <Panel title="No padding" as="div" headingLevel={3} padding="none">
         <div className={styles['demoBox']}>Content runs to the panel edge.</div>
       </Panel>
+      <Panel
+        variant="broadcast"
+        title="Broadcast panel"
+        subtitle="Square, chamfered corners for show moments"
+        headingLevel={3}
+        actions={
+          <Button size="sm" variant="primary" iconStart="play">
+            Go live
+          </Button>
+        }
+      >
+        <p>The header sits behind a skewed red-orange slash, like a sports graphic.</p>
+      </Panel>
+      <Panel
+        variant="broadcast"
+        title="Collapsible broadcast"
+        headingLevel={3}
+        collapsible
+        defaultCollapsed
+      >
+        <p>Results headers can fold away too.</p>
+      </Panel>
     </Stack>
   );
 }
@@ -36,6 +58,7 @@ export const galleryEntry: GalleryEntry = {
   id: 'panel',
   title: 'Panel',
   group: 'Primitives',
-  notes: 'On phones panels run edge to edge; nested here they keep the gallery panel around them.',
+  notes:
+    'Office cards (rounded, hairline) for management screens and broadcast panels (square, chamfered) for show moments. On phones panels run edge to edge.',
   render: () => <PanelDemo />,
 };

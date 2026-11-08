@@ -97,14 +97,20 @@ describe('StatBar', () => {
     expect(meter).toHaveTextContent('');
   });
 
+  it('shows the value as a tabular number', () => {
+    const { meter } = renderBar({ value: 64, label: 'Charisma' });
+
+    expect(meter.querySelector('.value')).toHaveTextContent('64');
+  });
+
   it.each([
-    [0, 'negative'],
-    [39, 'negative'],
-    [40, 'warning'],
-    [69, 'warning'],
-    [70, 'positive'],
-    [100, 'positive'],
-    [120, 'positive'],
+    [0, 'action'],
+    [39, 'action'],
+    [40, 'data'],
+    [79, 'data'],
+    [80, 'prestige'],
+    [100, 'prestige'],
+    [120, 'prestige'],
   ])('auto tone for %i is %s', (value, expectedTone) => {
     const { meter, part } = renderBar({ value, label: 'Skill' });
 
@@ -113,17 +119,29 @@ describe('StatBar', () => {
   });
 
   it('moves the tone bands when the thresholds change', () => {
-    expect(autoStatTone(55, { negativeBelow: 60, warningBelow: 80 })).toBe('negative');
-    expect(autoStatTone(75, { negativeBelow: 60, warningBelow: 80 })).toBe('warning');
-    const { meter } = renderBar({ value: 55, label: 'Skill', negativeBelow: 20, warningBelow: 50 });
-    expect(meter).toHaveAttribute('data-tone', 'positive');
+    expect(autoStatTone(55, { lowBelow: 60, eliteFrom: 90 })).toBe('action');
+    expect(autoStatTone(75, { lowBelow: 60, eliteFrom: 90 })).toBe('data');
+    expect(autoStatTone(90, { lowBelow: 60, eliteFrom: 90 })).toBe('prestige');
+    const { meter } = renderBar({ value: 55, label: 'Skill', lowBelow: 20, eliteFrom: 50 });
+    expect(meter).toHaveAttribute('data-tone', 'prestige');
   });
 
   it('uses a fixed tone when given one', () => {
-    const { meter, part } = renderBar({ value: 10, label: 'Hype', tone: 'accent' });
+    const { meter, part } = renderBar({ value: 10, label: 'Hype', tone: 'data' });
 
-    expect(meter).toHaveAttribute('data-tone', 'accent');
-    expect(part('fill')).toHaveClass('tone-accent');
+    expect(meter).toHaveAttribute('data-tone', 'data');
+    expect(part('fill')).toHaveClass('tone-data');
+  });
+
+  it.each([
+    ['info', 'data'],
+    ['warning', 'prestige'],
+    ['accent', 'action'],
+  ] as const)('draws the older %s tone as %s', (tone, role) => {
+    const { meter, part } = renderBar({ value: 50, label: 'Older tone', tone });
+
+    expect(meter).toHaveAttribute('data-tone', role);
+    expect(part('fill')).toHaveClass(`tone-${role}`);
   });
 });
 

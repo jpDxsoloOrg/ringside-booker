@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { Button } from './Button';
+import { Button, BUTTON_SIZES, BUTTON_VARIANTS } from './Button';
 import { IconButton } from './IconButton';
 
 describe('Button', () => {
@@ -63,6 +63,32 @@ describe('Button', () => {
     expect(button).toHaveClass('variant-danger', 'size-sm');
   });
 
+  it.each(BUTTON_VARIANTS)('takes the %s variant', (variant) => {
+    render(<Button variant={variant}>{variant}</Button>);
+
+    expect(screen.getByRole('button', { name: variant })).toHaveClass(`variant-${variant}`);
+  });
+
+  it.each(BUTTON_SIZES)('takes the %s size', (size) => {
+    render(<Button size={size}>Size {size}</Button>);
+
+    expect(screen.getByRole('button', { name: `Size ${size}` })).toHaveClass(`size-${size}`);
+  });
+
+  it('is a cyan-outline secondary button at medium size by default', () => {
+    render(<Button>Default</Button>);
+
+    expect(screen.getByRole('button', { name: 'Default' })).toHaveClass(
+      'variant-secondary',
+      'size-md',
+    );
+  });
+
+  it('offers the five identity variants and three sizes', () => {
+    expect(BUTTON_VARIANTS).toEqual(['primary', 'secondary', 'prestige', 'ghost', 'danger']);
+    expect(BUTTON_SIZES).toEqual(['sm', 'md', 'lg']);
+  });
+
   it('draws decorative start and end icons', () => {
     const { container } = render(
       <Button iconStart="play" iconEnd="chevron-right">
@@ -87,6 +113,19 @@ describe('IconButton', () => {
     expect(button).toHaveAttribute('type', 'button');
     await user.click(button);
     expect(handleClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('sizes its icon with the button', () => {
+    const { container } = render(
+      <IconButton icon="trophy" label="Award" variant="prestige" size="lg" />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Award' })).toHaveClass(
+      'iconOnly',
+      'variant-prestige',
+      'size-lg',
+    );
+    expect(container.querySelector('[data-icon="trophy"]')).toHaveClass('size-lg');
   });
 
   it('refuses to compile without a label', () => {

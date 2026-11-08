@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 export const GALLERY_GROUPS = [
   'Tokens',
   'Primitives',
+  'Broadcast',
   'Art',
   'Data',
   'Overlays',

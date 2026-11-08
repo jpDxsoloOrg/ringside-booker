@@ -36,5 +36,6 @@ export const galleryEntry: GalleryEntry = {
   id: 'empty-state',
   title: 'EmptyState',
   group: 'Primitives',
+  notes: 'A Lucide icon in a raised tile and a condensed uppercase heading, inline and full page.',
   render: () => <EmptyStateDemo />,
 };

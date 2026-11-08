@@ -1,0 +1,103 @@
+/*
+ * The chamfer: top-left and bottom-right corners cut at --chamfer. A clip-path would cut a CSS
+ * border off at the corners, so the frame is the border colour, 1px bigger all round, and the
+ * panel inside is clipped to the same shape. The 1px gap shows as a hairline, diagonals included.
+ */
+.frame {
+  --chamfer-shape: polygon(
+    var(--chamfer) 0,
+    100% 0,
+    100% calc(100% - var(--chamfer)),
+    calc(100% - var(--chamfer)) 100%,
+    0 100%,
+    0 var(--chamfer)
+  );
+
+  min-inline-size: 0;
+  padding: 1px;
+  background: var(--color-border);
+  clip-path: var(--chamfer-shape);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  block-size: 100%;
+  min-inline-size: 0;
+  clip-path: var(--chamfer-shape);
+}
+
+.surface-default {
+  background: var(--color-surface);
+}
+
+.surface-raised {
+  background: var(--color-surface-raised);
+}
+
+/* The accent stripe along the top edge. */
+.accent-action {
+  border-block-start: 3px solid var(--color-action-bright);
+}
+
+.accent-data {
+  border-block-start: 3px solid var(--color-data);
+}
+
+.accent-prestige {
+  border-block-start: 3px solid var(--color-prestige);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.titles {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.kicker {
+  color: var(--color-text-muted);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.padding-none {
+  min-inline-size: 0;
+}
+
+.padding-md {
+  min-inline-size: 0;
+  padding: var(--space-4);
+}
+
+@media (--bp-mobile) {
+  .padding-md {
+    padding: var(--space-3);
+  }
+}

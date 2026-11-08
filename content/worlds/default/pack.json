@@ -1,0 +1,25 @@
+{
+  "formatVersion": 1,
+  "id": "default-world",
+  "name": "Ringside Booker World",
+  "version": "0.1.0",
+  "kind": "world",
+  "description": "The shipped fictional world: twelve promotions across seven countries, from a market leader to scrappy local indies, with their brands, titles, home venues, broadcasters, TV deals and recurring shows.",
+  "author": "Ringside Booker",
+  "dependsOn": [
+    {
+      "id": "base",
+      "version": "^0.1.0"
+    }
+  ],
+  "startDate": "2027-01-04",
+  "files": {
+    "promotion": "promotions.json",
+    "brand": "brands.json",
+    "venue": "venues.json",
+    "network": "networks.json",
+    "title": "titles.json",
+    "eventDefinition": "events.json",
+    "deal": "deals.json"
+  }
+}

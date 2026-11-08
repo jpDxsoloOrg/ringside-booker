@@ -1,0 +1,181 @@
+/* The accent colour comes from the accent class through --lower-third-accent. */
+.accent-action {
+  --lower-third-accent: var(--color-action-bright);
+}
+
+.accent-data {
+  --lower-third-accent: var(--color-data);
+}
+
+.accent-prestige {
+  --lower-third-accent: var(--color-prestige);
+}
+
+/* A raised block with a top stripe in the accent, chamfered at the bottom-right corner. */
+.lowerThird {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+  overflow: hidden;
+  background: var(--color-surface-raised);
+  border-block-start: 3px solid var(--lower-third-accent);
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% calc(100% - var(--chamfer)),
+    calc(100% - var(--chamfer)) 100%,
+    0 100%
+  );
+}
+
+/* The wedge: a slanted strip of the accent down the right edge, behind the content. */
+.wedge {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  inline-size: var(--space-10);
+  background: var(--lower-third-accent);
+  opacity: 0.3;
+  clip-path: polygon(60% 0, 100% 0, 100% 100%, 0 100%);
+}
+
+.header {
+  position: relative;
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+}
+
+/* Keep text clear of the wedge. */
+.withWedge .header,
+.withWedge .body,
+.withWedge .footer {
+  padding-inline-end: calc(var(--space-10) + var(--space-2));
+}
+
+.topRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+}
+
+/* The kicker: a short slanted bar in the accent, then the line in uppercase display type. */
+.kicker {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  min-inline-size: 0;
+  color: var(--lower-third-accent);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.kicker::before {
+  content: '';
+  flex: none;
+  inline-size: 0.25rem;
+  block-size: 1.1em;
+  background: var(--lower-third-accent);
+  transform: skewX(var(--skew-broadcast));
+}
+
+.badge {
+  flex: none;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text-muted);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
+.title {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  padding: 0;
+  list-style: none;
+  color: var(--color-text);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.metaIcon {
+  color: var(--color-data);
+}
+
+.body {
+  position: relative;
+  display: grid;
+  gap: var(--space-3);
+  padding: 0 var(--space-5) var(--space-4);
+}
+
+.footer {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  border-block-start: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+@media (--bp-mobile) {
+  .header {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .body {
+    padding: 0 var(--space-4) var(--space-3);
+  }
+
+  .footer {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .title {
+    font-size: var(--font-size-2xl);
+  }
+
+  .withWedge .header,
+  .withWedge .body,
+  .withWedge .footer {
+    padding-inline-end: var(--space-8);
+  }
+
+  .wedge {
+    inline-size: var(--space-6);
+  }
+}

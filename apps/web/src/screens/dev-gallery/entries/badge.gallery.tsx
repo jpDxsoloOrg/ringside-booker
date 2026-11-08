@@ -1,6 +1,6 @@
 import { Badge, CountBadge } from '@/components/Badge';
 import { Cluster, Stack } from '@/components/layout';
-import { TONES } from '@/components/tone';
+import { LEGACY_TONE_ROLES, LEGACY_TONES, ROLE_TONES } from '@/components/tone';
 import type { GalleryEntry } from '../galleryEntry';
 import styles from './entries.module.css';
 
@@ -10,7 +10,7 @@ function BadgeDemo() {
       <section className={styles['example']}>
         <h3 className={styles['subheading']}>Soft</h3>
         <Cluster gap={2}>
-          {TONES.map((tone) => (
+          {ROLE_TONES.map((tone) => (
             <Badge key={tone} tone={tone}>
               {tone}
             </Badge>
@@ -20,9 +20,22 @@ function BadgeDemo() {
       <section className={styles['example']}>
         <h3 className={styles['subheading']}>Solid</h3>
         <Cluster gap={2}>
-          {TONES.map((tone) => (
+          {ROLE_TONES.map((tone) => (
             <Badge key={tone} tone={tone} variant="solid">
               {tone}
+            </Badge>
+          ))}
+        </Cluster>
+      </section>
+      <section className={styles['example']}>
+        <h3 className={styles['subheading']}>Older tone names</h3>
+        <p className={styles['caption']}>
+          Kept so existing screens still work; each draws as its role.
+        </p>
+        <Cluster gap={2}>
+          {LEGACY_TONES.map((tone) => (
+            <Badge key={tone} tone={tone}>
+              {tone} = {LEGACY_TONE_ROLES[tone]}
             </Badge>
           ))}
         </Cluster>
@@ -57,6 +70,7 @@ export const galleryEntry: GalleryEntry = {
   id: 'badge',
   title: 'Badge',
   group: 'Primitives',
-  notes: 'Every tone, soft and solid, plus CountBadge.',
+  notes:
+    'Every colour role, soft and solid: data cyan, action red-orange, prestige gold, positive and negative deltas. Plus CountBadge.',
   render: () => <BadgeDemo />,
 };

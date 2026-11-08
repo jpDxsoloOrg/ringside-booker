@@ -1,6 +1,7 @@
 import { classNames } from '../classNames';
 import { formatNumber, formatSigned } from '../format';
-import type { Tone } from '../tone';
+import { toneRole } from '../tone';
+import type { RoleTone, Tone } from '../tone';
 import styles from './StatBar.module.css';
 
 /** Width of the SVG coordinate space. Bar geometry is a percentage of the scale. */
@@ -32,34 +33,38 @@ export interface StatBarProps {
    * as a faint segment past the end of the bar.
    */
   readonly delta?: number;
-  /** `auto` (the default) picks a tone from the value and the two thresholds below. */
+  /**
+   * `auto` (the default) picks a role from the value and the two thresholds below: red-orange
+   * (`action`) for a weak spot, cyan (`data`) for the normal range and gold (`prestige`) for an
+   * elite value. Any fixed tone draws in that tone's role.
+   */
   readonly tone?: 'auto' | Tone;
-  /** With `tone="auto"`, values below this are negative. 40 by default. */
-  readonly negativeBelow?: number;
-  /** With `tone="auto"`, values below this (and not negative) are a warning. 70 by default. */
-  readonly warningBelow?: number;
+  /** With `tone="auto"`, values below this draw as a weak spot (`action`). 40 by default. */
+  readonly lowBelow?: number;
+  /** With `tone="auto"`, values at or above this draw as elite (`prestige`). 80 by default. */
+  readonly eliteFrom?: number;
   readonly className?: string | undefined;
 }
 
 export interface StatBarToneThresholds {
-  readonly negativeBelow: number;
-  readonly warningBelow: number;
+  readonly lowBelow: number;
+  readonly eliteFrom: number;
 }
 
 export const DEFAULT_STAT_BAR_THRESHOLDS: StatBarToneThresholds = {
-  negativeBelow: 40,
-  warningBelow: 70,
+  lowBelow: 40,
+  eliteFrom: 80,
 };
 
-/** The tone `auto` resolves to: negative below the low band, warning below the middle one. */
+/** The role `auto` resolves to: action below the low band, prestige from the elite band, else data. */
 export function autoStatTone(
   value: number,
   thresholds: StatBarToneThresholds = DEFAULT_STAT_BAR_THRESHOLDS,
-): Tone {
-  if (value < thresholds.negativeBelow) {
-    return 'negative';
+): RoleTone {
+  if (value < thresholds.lowBelow) {
+    return 'action';
   }
-  return value < thresholds.warningBelow ? 'warning' : 'positive';
+  return value >= thresholds.eliteFrom ? 'prestige' : 'data';
 }
 
 /** `value` as a position on the 0..100 SVG scale, clamped to the bar. */
@@ -81,12 +86,12 @@ export function StatBar({
   ceiling,
   delta,
   tone = 'auto',
-  negativeBelow = DEFAULT_STAT_BAR_THRESHOLDS.negativeBelow,
-  warningBelow = DEFAULT_STAT_BAR_THRESHOLDS.warningBelow,
+  lowBelow = DEFAULT_STAT_BAR_THRESHOLDS.lowBelow,
+  eliteFrom = DEFAULT_STAT_BAR_THRESHOLDS.eliteFrom,
   className,
 }: StatBarProps) {
   const resolvedTone =
-    tone === 'auto' ? autoStatTone(value, { negativeBelow, warningBelow }) : tone;
+    tone === 'auto' ? autoStatTone(value, { lowBelow, eliteFrom }) : toneRole(tone);
   const fillEnd = statBarPosition(value, max);
   const hasDelta = delta !== undefined && delta !== 0;
 

@@ -10,9 +10,9 @@ export type EmptyStateSize = 'inline' | 'page';
 const HEADING_TAGS = { 2: 'h2', 3: 'h3', 4: 'h4' } as const;
 
 export interface EmptyStateProps {
-  /** A decorative icon above the title. */
+  /** A decorative Lucide icon, drawn in a tile above the title. */
   readonly icon?: IconName;
-  /** What is empty, in a few words: "No matches booked yet". */
+  /** What is empty, in a few words: "No matches booked yet". Shown condensed and uppercase. */
   readonly title: string;
   /** One or two sentences on why, or what to do next. */
   readonly body?: ReactNode;
@@ -43,12 +43,9 @@ export function EmptyState({
   return (
     <div className={classNames(styles['emptyState'], styles[`size-${size}`], className)}>
       {icon !== undefined && (
-        <Icon
-          name={icon}
-          size={size === 'page' ? 'lg' : 'md'}
-          className={styles['icon']}
-          decorative
-        />
+        <span className={styles['iconTile']} aria-hidden="true">
+          <Icon name={icon} size={size === 'page' ? 'lg' : 'md'} decorative />
+        </span>
       )}
       <Title className={styles['title']}>{title}</Title>
       {body !== undefined && <p className={styles['body']}>{body}</p>}

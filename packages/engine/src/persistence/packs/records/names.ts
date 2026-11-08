@@ -8,7 +8,7 @@
 
 import { z } from 'zod';
 import { hasDuplicates } from '../../../model/entities/unique';
-import { defineRecordKind } from '../fields';
+import { chanceSchema, defineRecordKind } from '../fields';
 import { keySchema, parseRef, refSchema, type RecordReference } from '../keys';
 
 /** A name and how often it is picked relative to the others in its list (a whole number ≥ 1). */
@@ -50,7 +50,28 @@ export const nameCultureRecord = defineRecordKind(
     }),
     surnames: weightedNameList(1),
     surnameStyle: z.enum(SURNAME_STYLES),
+    /**
+     * For `double` cultures only, and required there: the chance (0-1) that a person gets two
+     * surnames instead of one.
+     */
+    doubleSurnameChance: chanceSchema.optional(),
   }),
+  (culture, context) => {
+    if (culture.surnameStyle === 'double' && culture.doubleSurnameChance === undefined) {
+      context.addIssue({
+        code: 'custom',
+        message: 'A culture with surnameStyle "double" must set doubleSurnameChance',
+        path: ['doubleSurnameChance'],
+      });
+    }
+    if (culture.surnameStyle !== 'double' && culture.doubleSurnameChance !== undefined) {
+      context.addIssue({
+        code: 'custom',
+        message: `doubleSurnameChance only applies to surnameStyle "double", not "${culture.surnameStyle}"`,
+        path: ['doubleSurnameChance'],
+      });
+    }
+  },
 );
 
 export const countryNameMixRecord = defineRecordKind(
@@ -86,13 +107,39 @@ export const RING_NAME_PLACEHOLDERS = ['given', 'family', 'adjective', 'noun', '
 
 const PLACEHOLDER_PATTERN = /\{([^{}]*)\}/g;
 
-function placeholdersIn(pattern: string): string[] {
+/** The placeholder names in a ring name pattern, in order: `{adjective} {noun}` → adjective, noun. */
+export function placeholdersIn(pattern: string): string[] {
   return [...pattern.matchAll(PLACEHOLDER_PATTERN)].map((match) => match[1] ?? '');
 }
 
-function isRingNamePlaceholder(name: string): boolean {
+export type RingNamePlaceholder = (typeof RING_NAME_PLACEHOLDERS)[number];
+
+export function isRingNamePlaceholder(name: string): name is RingNamePlaceholder {
   return RING_NAME_PLACEHOLDERS.some((placeholder) => placeholder === name);
 }
+
+/** One ring name template: at least one placeholder, and only known ones. */
+const ringNamePatternSchema = z
+  .string()
+  .min(1)
+  .max(60)
+  .superRefine((pattern, context) => {
+    const placeholders = placeholdersIn(pattern);
+    if (placeholders.length === 0) {
+      context.addIssue({
+        code: 'custom',
+        message: 'A pattern needs at least one placeholder, such as {noun}',
+      });
+    }
+    for (const placeholder of placeholders) {
+      if (!isRingNamePlaceholder(placeholder)) {
+        context.addIssue({
+          code: 'custom',
+          message: `Unknown placeholder {${placeholder}}; use ${RING_NAME_PLACEHOLDERS.map((name) => `{${name}}`).join(', ')}`,
+        });
+      }
+    }
+  });
 
 const wordListSchema = z
   .array(z.string().min(1).max(30))
@@ -104,32 +151,16 @@ export const ringNameWordsRecord = defineRecordKind(
     adjectives: wordListSchema,
     nouns: wordListSchema,
     nicknames: wordListSchema,
-    /** Templates such as `{adjective} {noun}` or `"{nickname}" {family}`. */
+    /**
+     * Weighted templates such as `["{adjective} {noun}", 30]` or `["\"{nickname}\" {family}", 5]`:
+     * a pattern is picked with odds `weight / total`.
+     */
     patterns: z
-      .array(
-        z
-          .string()
-          .min(1)
-          .max(60)
-          .superRefine((pattern, context) => {
-            const placeholders = placeholdersIn(pattern);
-            if (placeholders.length === 0) {
-              context.addIssue({
-                code: 'custom',
-                message: 'A pattern needs at least one placeholder, such as {noun}',
-              });
-            }
-            for (const placeholder of placeholders) {
-              if (!isRingNamePlaceholder(placeholder)) {
-                context.addIssue({
-                  code: 'custom',
-                  message: `Unknown placeholder {${placeholder}}; use ${RING_NAME_PLACEHOLDERS.map((name) => `{${name}}`).join(', ')}`,
-                });
-              }
-            }
-          }),
-      )
-      .min(1),
+      .array(z.tuple([ringNamePatternSchema, z.number().int().min(1).max(1000)]))
+      .min(1)
+      .refine((patterns) => !hasDuplicates(patterns.map(([pattern]) => pattern)), {
+        message: 'Each pattern may appear only once',
+      }),
   }),
 );
 

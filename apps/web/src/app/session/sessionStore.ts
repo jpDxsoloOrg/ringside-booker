@@ -1,27 +1,13 @@
 import { create } from 'zustand';
-import type { Controller, PromotionId } from '@ringside/engine';
-
-/**
- * Who is looking at the world. Mirrors the engine's `Viewer` (a controller, or the all-seeing view
- * tools and tests use), which the engine API ticket adds to `@ringside/engine`.
- *
- * TODO(UI-08): import `Viewer` from `@ringside/engine` and `LocalSeat` from
- * `@/worker/localViewer` once the engine host lands, and delete these local copies.
- */
-export type Viewer =
-  | { readonly kind: 'controller'; readonly controller: Controller }
-  | { readonly kind: 'omniscient' };
+import type { LocalSeat } from '@/worker/localViewer';
 
 /**
  * The seat this device plays: the viewer and controller the engine host injects into every call,
  * and the promotion that controller runs (null while unemployed). The engine host works it out
- * when a world loads; nothing in the UI names "the player's promotion" on its own.
+ * when a world loads (`resolveLocalViewer`); nothing in the UI names "the player's promotion" on
+ * its own.
  */
-export interface LocalSeat {
-  readonly viewer: Viewer;
-  readonly controller: Controller;
-  readonly promotionId: PromotionId | null;
-}
+export type { LocalSeat };
 
 export interface LoadedSession {
   readonly saveSlotId: string | null;

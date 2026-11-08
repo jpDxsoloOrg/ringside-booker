@@ -1,2 +1,2 @@
-export { Panel } from './Panel';
-export type { PanelHeadingLevel, PanelPadding, PanelProps } from './Panel';
+export { Panel, PANEL_VARIANTS } from './Panel';
+export type { PanelHeadingLevel, PanelPadding, PanelProps, PanelVariant } from './Panel';

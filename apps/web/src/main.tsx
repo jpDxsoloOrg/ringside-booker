@@ -14,6 +14,7 @@ import '@/styles/global.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { RouterProvider } from 'react-router-dom';
+import { EngineProvider } from '@/app/engine/EngineProvider';
 import { createAppRouter, routerProviderFutureFlags } from '@/app/router';
 import { applyTheme, DEFAULT_THEME } from '@/styles/theme';
 
@@ -31,6 +32,10 @@ const router = createAppRouter();
 
 createRoot(rootElement).render(
   <StrictMode>
-    <RouterProvider router={router} future={routerProviderFutureFlags} />
+    {/* The engine runs in a Web Worker, started on first use. If it dies, the provider shows the
+        "simulation stopped" screen in place of the routes. */}
+    <EngineProvider>
+      <RouterProvider router={router} future={routerProviderFutureFlags} />
+    </EngineProvider>
   </StrictMode>,
 );

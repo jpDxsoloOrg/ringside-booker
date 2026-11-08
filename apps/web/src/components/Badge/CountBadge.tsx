@@ -1,5 +1,6 @@
 import { classNames } from '../classNames';
 import { VisuallyHidden } from '../layout';
+import { toneRole } from '../tone';
 import type { Tone } from '../tone';
 import styles from './Badge.module.css';
 import type { BadgeVariant } from './Badge';
@@ -16,7 +17,7 @@ export interface CountBadgeProps {
    * number is hidden from them, so "99+" is never announced on its own.
    */
   readonly label?: string;
-  /** `accent` by default. */
+  /** `action` by default: the red-orange fill with white text. */
   readonly tone?: Tone;
   /** `solid` by default. */
   readonly variant?: BadgeVariant;
@@ -34,7 +35,7 @@ export function CountBadge({
   max = 99,
   showZero = false,
   label,
-  tone = 'accent',
+  tone = 'action',
   variant = 'solid',
   className,
 }: CountBadgeProps) {
@@ -49,7 +50,7 @@ export function CountBadge({
         styles['badge'],
         styles['count'],
         styles[variant],
-        styles[`tone-${tone}`],
+        styles[`tone-${toneRole(tone)}`],
         className,
       )}
     >
