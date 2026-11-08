@@ -101,3 +101,18 @@ export class MoneyOverflowError extends EngineError {
     );
   }
 }
+
+/**
+ * A phase cadence is ambiguous or out of range, such as a monthly job on the 31st (which would
+ * silently skip every shorter month) or a yearly job on 29 February. `field` names the bad part,
+ * for example `monthly.day`.
+ */
+export class InvalidCadenceError extends EngineError {
+  constructor(field: string, value: unknown, reason: string) {
+    super('INVALID_CADENCE', `Invalid cadence: ${field} ${reason}, got ${describeValue(value)}`, {
+      field,
+      value: describeValue(value),
+      reason,
+    });
+  }
+}
