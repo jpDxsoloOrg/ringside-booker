@@ -1,0 +1,21 @@
+{
+  "name": "@ringside/tool-worldgen",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Builds the default world's roster, contracts, teams and title history from a spec file and a fixed seed.",
+  "scripts": {
+    "build-default": "tsx src/build-default-roster.ts",
+    "test": "vitest run",
+    "typecheck": "tsc -b"
+  },
+  "dependencies": {
+    "@ringside/engine": "0.1.0",
+    "@ringside/validate-world": "0.1.0",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "20.19.43",
+    "tsx": "4.23.15"
+  }
+}

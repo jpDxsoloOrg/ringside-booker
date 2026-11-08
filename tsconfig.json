@@ -6,6 +6,7 @@
     { "path": "./apps/web" },
     { "path": "./tools/blog" },
     { "path": "./tools/sim-runner" },
-    { "path": "./tools/validate-world" }
+    { "path": "./tools/validate-world" },
+    { "path": "./tools/worldgen" }
   ]
 }

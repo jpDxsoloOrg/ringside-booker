@@ -32,6 +32,7 @@
     "journal:due": "npm run -w @ringside/blog-tools journal:due --",
     "sim": "npm run sim -w @ringside/sim-runner --",
     "validate:world": "npm run -w @ringside/validate-world validate -- content/worlds/default",
+    "worldgen:default": "npm run -w @ringside/tool-worldgen build-default --",
     "verify": "npm run format:check && npm run lint && npm run typecheck && npm test"
   },
   "devDependencies": {
