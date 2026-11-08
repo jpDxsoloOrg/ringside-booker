@@ -1,0 +1,449 @@
+[
+  {
+    "key": "team-fa-01",
+    "kind": "tag",
+    "name": "Wise Pirate",
+    "memberKeys": [
+      "gen-fa-22",
+      "gen-fa-33"
+    ],
+    "formedOn": "2024-10-04",
+    "experience": 41,
+    "status": "active"
+  },
+  {
+    "key": "team-fa-02",
+    "kind": "tag",
+    "name": "Smiling Blade",
+    "memberKeys": [
+      "gen-fa-07",
+      "gen-fa-17"
+    ],
+    "formedOn": "2021-11-11",
+    "experience": 61,
+    "status": "active"
+  },
+  {
+    "key": "team-fa-03",
+    "kind": "tag",
+    "name": "The Copper Titan",
+    "memberKeys": [
+      "gen-fa-05",
+      "gen-fa-15"
+    ],
+    "formedOn": "2021-06-22",
+    "experience": 50,
+    "status": "active"
+  },
+  {
+    "key": "team-fa-04",
+    "kind": "tag",
+    "name": "Raging Mayhem",
+    "memberKeys": [
+      "gen-fa-02",
+      "gen-fa-35"
+    ],
+    "formedOn": "2024-07-31",
+    "experience": 68,
+    "status": "active"
+  },
+  {
+    "key": "team-pro-ca-01",
+    "kind": "tag",
+    "name": "Seismic Knight",
+    "memberKeys": [
+      "gen-pro-ca-01",
+      "gen-pro-ca-03"
+    ],
+    "formedOn": "2021-11-09",
+    "experience": 17,
+    "status": "active"
+  },
+  {
+    "key": "team-pro-ca-02",
+    "kind": "tag",
+    "name": "The Hard Storm",
+    "memberKeys": [
+      "gen-pro-ca-08",
+      "gen-pro-ca-12"
+    ],
+    "formedOn": "2024-03-16",
+    "experience": 31,
+    "status": "active"
+  },
+  {
+    "key": "team-pro-ca-03",
+    "kind": "tag",
+    "name": "Dashing Alchemist",
+    "memberKeys": [
+      "gen-pro-ca-05",
+      "gen-pro-ca-11"
+    ],
+    "formedOn": "2021-12-04",
+    "experience": 31,
+    "status": "active"
+  },
+  {
+    "key": "team-pro-de-01",
+    "kind": "tag",
+    "name": "Golden Legionnaire",
+    "memberKeys": [
+      "gen-pro-de-04",
+      "gen-pro-de-11"
+    ],
+    "formedOn": "2025-04-19",
+    "experience": 25,
+    "status": "active"
+  },
+  {
+    "key": "team-pro-de-02",
+    "kind": "tag",
+    "name": "The Howling Turbine",
+    "memberKeys": [
+      "gen-pro-de-01",
+      "gen-pro-de-09"
+    ],
+    "formedOn": "2024-09-20",
+    "experience": 52,
+    "status": "active"
+  },
+  {
+    "key": "team-pro-de-03",
+    "kind": "tag",
+    "name": "Cosmic Legend",
+    "memberKeys": [
+      "gen-pro-de-05",
+      "gen-pro-de-07"
+    ],
+    "formedOn": "2022-11-01",
+    "experience": 51,
+    "status": "active"
+  },
+  {
+    "key": "team-pro-de-04",
+    "kind": "tag",
+    "name": "The Crashing Stingray",
+    "memberKeys": [
+      "gen-pro-de-02",
+      "gen-pro-de-10"
+    ],
+    "formedOn": "2026-08-30",
+    "experience": 21,
+    "status": "active"
+  },
+  {
+    "key": "team-pro-flagship-01",
+    "kind": "tag",
+    "name": "Desert Ghost",
+    "memberKeys": [
+      "gen-pro-flagship-06",
+      "gen-pro-flagship-11"
+    ],
+    "formedOn": "2023-10-23",
+    "experience": 69,
+    "status": "active"
+  },
+  {
+    "key": "team-pro-flagship-02",
+    "kind": "tag",
+    "name": "Granite Centurion",
+    "memberKeys": [
+      "gen-pro-flagship-20",
+      "gen-pro-flagship-28"
+    ],
+    "formedOn": "2022-08-07",
+    "experience": 20,
+    "status": "active"
+  },
+  {
+    "key": "team-pro-flagship-03",
+    "kind": "tag",
+    "name": "Windy Blade",
+    "memberKeys": [
+      "gen-pro-flagship-03",
+      "gen-pro-flagship-22"
+    ],
+    "formedOn": "2022-11-06",
+    "experience": 35,
+    "status": "active"
+  },
+  {
+    "key": "team-pro-flagship-04",
+    "kind": "tag",
+    "name": "The Savage Falcon",
+    "memberKeys": [
+      "gen-pro-flagship-05",
+      "gen-pro-flagship-23"
+    ],
+    "formedOn": "2022-11-16",
+    "experience": 23,
+    "status": "active"
+  },
+  {
+    "key": "team-pro-flagship-05",
+    "kind": "tag",
+    "name": "Golden Riot",
+    "memberKeys": [
+      "gen-pro-flagship-25",
+      "gen-pro-flagship-37"
+    ],
+    "formedOn": "2024-03-19",
+    "experience": 25,
+    "status": "active"
+  },
+  {
+    "key": "team-pro-flagship-06",
+    "kind": "tag",
+    "name": "Dusty Oracle",
+    "memberKeys": [
+      "gen-pro-flagship-30",
+      "gen-pro-flagship-36"
+    ],
+    "formedOn": "2021-03-27",
+    "experience": 51,
+    "status": "active"
+  },
+  {
+    "key": "team-pro-jp-major-01",
+    "kind": "tag",
+    "name": "Windy Ninja",
+    "memberKeys": [
+      "gen-pro-jp-major-08",
+      "gen-pro-jp-major-23"
+    ],
+    "formedOn": "2026-05-24",
+    "experience": 65,
+    "status": "active"
+  },
+  {
+    "key": "team-pro-jp-major-02",
+    "kind": "tag",
+    "name": "Royal Raider",
+    "memberKeys": [
+      "gen-pro-jp-major-14",
+      "gen-pro-jp-major-17"
+    ],
+    "formedOn": "2024-09-18",
+    "experience": 46,
+    "status": "active"
+  },
+  {
+    "key": "team-pro-jp-major-03",
+    "kind": "tag",
+    "name": "Lowland Machine",
+    "memberKeys": [
+      "gen-pro-jp-major-04",
+      "gen-pro-jp-major-21"
+    ],
+    "formedOn": "2022-07-19",
+    "experience": 36,
+    "status": "active"
+  },
+  {
+    "key": "team-pro-jp-major-04",
+    "kind": "tag",
+    "name": "Tropical Slugger",
+    "memberKeys": [
+      "gen-pro-jp-major-09",
+      "gen-pro-jp-major-12"
+    ],
+    "formedOn": "2021-08-25",
+    "experience": 62,
+    "status": "active"
+  },
+  {
+    "key": "team-pro-mx-major-01",
+    "kind": "trio",
+    "name": "The Roaring Anvil",
+    "memberKeys": [
+      "gen-pro-mx-major-13",
+      "gen-pro-mx-major-14",
+      "gen-pro-mx-major-23"
+    ],
+    "formedOn": "2024-07-14",
+    "experience": 54,
+    "status": "active"
+  },
+  {
+    "key": "team-pro-mx-major-02",
+    "kind": "trio",
+    "name": "Toxic Locomotive",
+    "memberKeys": [
+      "gen-pro-mx-major-08",
+      "gen-pro-mx-major-09",
+      "gen-pro-mx-major-10"
+    ],
+    "formedOn": "2021-08-03",
+    "experience": 52,
+    "status": "active"
+  },
+  {
+    "key": "team-pro-mx-major-03",
+    "kind": "trio",
+    "name": "Swift Titan",
+    "memberKeys": [
+      "gen-pro-mx-major-03",
+      "gen-pro-mx-major-16",
+      "gen-pro-mx-major-18"
+    ],
+    "formedOn": "2022-06-19",
+    "experience": 18,
+    "status": "active"
+  },
+  {
+    "key": "team-pro-uk-01",
+    "kind": "tag",
+    "name": "The Infamous Lynx",
+    "memberKeys": [
+      "gen-pro-uk-02",
+      "gen-pro-uk-05"
+    ],
+    "formedOn": "2025-05-12",
+    "experience": 22,
+    "status": "active"
+  },
+  {
+    "key": "team-pro-uk-02",
+    "kind": "tag",
+    "name": "Running Axe",
+    "memberKeys": [
+      "gen-pro-uk-06",
+      "gen-pro-uk-08"
+    ],
+    "formedOn": "2025-12-28",
+    "experience": 22,
+    "status": "active"
+  },
+  {
+    "key": "team-pro-uk-03",
+    "kind": "tag",
+    "name": "The Mountain Riddle",
+    "memberKeys": [
+      "gen-pro-uk-07",
+      "gen-pro-uk-09"
+    ],
+    "formedOn": "2025-12-30",
+    "experience": 24,
+    "status": "active"
+  },
+  {
+    "key": "team-pro-us-greatlakes-01",
+    "kind": "tag",
+    "name": "Daring Colossus",
+    "memberKeys": [
+      "gen-pro-us-greatlakes-10",
+      "gen-pro-us-greatlakes-11"
+    ],
+    "formedOn": "2021-09-15",
+    "experience": 42,
+    "status": "active"
+  },
+  {
+    "key": "team-pro-us-greatlakes-02",
+    "kind": "tag",
+    "name": "The Sandy Jaguar",
+    "memberKeys": [
+      "gen-pro-us-greatlakes-03",
+      "gen-pro-us-greatlakes-05"
+    ],
+    "formedOn": "2023-01-13",
+    "experience": 42,
+    "status": "active"
+  },
+  {
+    "key": "team-pro-us-greatlakes-03",
+    "kind": "tag",
+    "name": "The Icy Omen",
+    "memberKeys": [
+      "gen-pro-us-greatlakes-07",
+      "gen-pro-us-greatlakes-09"
+    ],
+    "formedOn": "2025-09-07",
+    "experience": 22,
+    "status": "active"
+  },
+  {
+    "key": "team-pro-us-southeast-01",
+    "kind": "tag",
+    "name": "The Black Avalanche",
+    "memberKeys": [
+      "gen-pro-us-southeast-06",
+      "gen-pro-us-southeast-09"
+    ],
+    "formedOn": "2023-07-15",
+    "experience": 36,
+    "status": "active"
+  },
+  {
+    "key": "team-pro-us-southeast-02",
+    "kind": "tag",
+    "name": "Marvelous Bulldozer",
+    "memberKeys": [
+      "gen-pro-us-southeast-07",
+      "gen-pro-us-southeast-11"
+    ],
+    "formedOn": "2025-06-11",
+    "experience": 27,
+    "status": "active"
+  },
+  {
+    "key": "team-pro-us-southeast-03",
+    "kind": "tag",
+    "name": "Rugged Havoc",
+    "memberKeys": [
+      "gen-pro-us-southeast-01",
+      "gen-pro-us-southeast-04"
+    ],
+    "formedOn": "2025-01-29",
+    "experience": 45,
+    "status": "active"
+  },
+  {
+    "key": "team-pro-us-southeast-04",
+    "kind": "tag",
+    "name": "Silk Eclipse",
+    "memberKeys": [
+      "gen-pro-us-southeast-02",
+      "gen-pro-us-southeast-10"
+    ],
+    "formedOn": "2026-11-09",
+    "experience": 26,
+    "status": "active"
+  },
+  {
+    "key": "team-pro-us-west-women-01",
+    "kind": "tag",
+    "name": "Daring Nightmare",
+    "memberKeys": [
+      "gen-pro-us-west-women-05",
+      "gen-pro-us-west-women-10"
+    ],
+    "formedOn": "2025-06-06",
+    "experience": 34,
+    "status": "active"
+  },
+  {
+    "key": "team-pro-us-west-women-02",
+    "kind": "tag",
+    "name": "Frozen Marauder",
+    "memberKeys": [
+      "gen-pro-us-west-women-04",
+      "gen-pro-us-west-women-08"
+    ],
+    "formedOn": "2024-11-24",
+    "experience": 40,
+    "status": "active"
+  },
+  {
+    "key": "team-pro-us-west-women-03",
+    "kind": "tag",
+    "name": "Swift Prowler",
+    "memberKeys": [
+      "gen-pro-us-west-women-02",
+      "gen-pro-us-west-women-06"
+    ],
+    "formedOn": "2025-02-02",
+    "experience": 61,
+    "status": "active"
+  }
+]

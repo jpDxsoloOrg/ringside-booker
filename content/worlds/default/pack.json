@@ -4,7 +4,7 @@
   "name": "Ringside Booker World",
   "version": "0.1.0",
   "kind": "world",
-  "description": "The shipped fictional world: twelve promotions across seven countries, from a market leader to scrappy local indies, with their brands, titles, home venues, broadcasters, TV deals and recurring shows.",
+  "description": "The shipped fictional world: twelve promotions across seven countries, from a market leader to scrappy local indies, with their brands, titles, home venues, broadcasters, TV deals and recurring shows, their rosters and staff, a free-agent pool, tag teams and title histories.",
   "author": "Ringside Booker",
   "dependsOn": [
     {
@@ -20,6 +20,10 @@
     "network": "networks.json",
     "title": "titles.json",
     "eventDefinition": "events.json",
-    "deal": "deals.json"
+    "deal": "deals.json",
+    "person": "people.json",
+    "employment": "employments.json",
+    "team": "teams.json",
+    "titleReign": "reigns.json"
   }
 }
