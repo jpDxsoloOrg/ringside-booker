@@ -1,0 +1,92 @@
+/*
+ * Label, bar and value on one row. When the row runs out of width the bar drops under the label
+ * instead of squeezing, so a phone never scrolls sideways.
+ */
+.statBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  min-inline-size: 0;
+  font-size: var(--font-size-sm);
+}
+
+.label {
+  flex: 0 1 8rem;
+  min-inline-size: 0;
+  color: var(--color-text-muted);
+}
+
+.bar {
+  flex: 1 1 8rem;
+  min-inline-size: 6rem;
+  block-size: 0.5rem;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+
+.value {
+  flex: none;
+  min-inline-size: 2.5rem;
+  font-weight: var(--font-weight-semibold);
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.delta {
+  margin-inline-start: var(--space-1);
+  font-weight: var(--font-weight-regular);
+}
+
+.delta-up {
+  color: var(--color-positive);
+}
+
+.delta-down {
+  color: var(--color-negative);
+}
+
+.track {
+  fill: var(--color-surface-sunken);
+}
+
+.tone-neutral {
+  fill: var(--color-text-muted);
+}
+
+.tone-info {
+  fill: var(--color-info);
+}
+
+.tone-positive {
+  fill: var(--color-positive);
+}
+
+.tone-negative {
+  fill: var(--color-negative);
+}
+
+.tone-warning {
+  fill: var(--color-warning);
+}
+
+.tone-accent {
+  fill: var(--color-accent);
+}
+
+/* A recent gain: the newest part of the bar in the positive colour. */
+.gain {
+  fill: var(--color-positive);
+}
+
+/* A recent loss: the ground just given up, shown faintly past the end of the bar. */
+.loss {
+  fill: var(--color-negative);
+  fill-opacity: 0.4;
+}
+
+/* The ceiling (potential) marker: a crisp 2px line whatever the bar's width. */
+.ceiling {
+  stroke: var(--color-text);
+  stroke-width: 2px;
+}
