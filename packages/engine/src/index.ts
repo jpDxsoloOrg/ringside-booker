@@ -186,6 +186,7 @@ export type {
   IntegrityCheck,
   IntegrityIssue,
   IntegrityReport,
+  IntegritySeverity,
 } from './model/integrity';
 export { checkWorld, MAX_INTEGRITY_ISSUES } from './model/integrity';
 
@@ -400,3 +401,77 @@ export {
   SeasonSchema,
   seasonsTable,
 } from './model/entities/season';
+// Entity schemas: geography, venues, media, mail, news and the ledger.
+export type { Continent, Country, Region } from './model/entities/geography';
+export {
+  ContinentSchema,
+  CountrySchema,
+  LOCATION_CODE_PATTERN,
+  RegionSchema,
+} from './model/entities/geography';
+export type { Venue, VenueKind } from './model/entities/venue';
+export {
+  isVenueOpenOn,
+  VENUE_CAPACITY_MAX,
+  VENUE_KINDS,
+  VenueKindSchema,
+  VenueSchema,
+} from './model/entities/venue';
+export type {
+  CoverageHolder,
+  Network,
+  NetworkCoverage,
+  NetworkKind,
+  NetworkStatus,
+} from './model/entities/network';
+export {
+  coveredRegionIds,
+  NETWORK_KINDS,
+  NETWORK_REACH_TIER_MAX,
+  NETWORK_STATUSES,
+  NetworkCoverageSchema,
+  NetworkKindSchema,
+  NetworkSchema,
+  NetworkStatusSchema,
+} from './model/entities/network';
+export type { Deal, DealStatus, DealTerms, DealTimeslot } from './model/entities/deal';
+export {
+  DEAL_STATUSES,
+  DEAL_TIMESLOTS,
+  DealSchema,
+  DealStatusSchema,
+  DealTermsSchema,
+  DealTimeslotSchema,
+} from './model/entities/deal';
+export type {
+  Mail,
+  MailCategory,
+  MailDecision,
+  MailDecisionOption,
+  MailSender,
+  MessageRefs,
+} from './model/entities/mail';
+export {
+  DECISION_KEY_PATTERN,
+  MAIL_CATEGORIES,
+  MAIL_DECISION_OPTIONS_MAX,
+  MAIL_DECISION_OPTIONS_MIN,
+  MailCategorySchema,
+  MailDecisionSchema,
+  MailSchema,
+  MailSenderSchema,
+  MessageRefsSchema,
+} from './model/entities/mail';
+export type { News, NewsImportance, NewsKind } from './model/entities/news';
+export { NEWS_KINDS, NewsKindSchema, NewsSchema } from './model/entities/news';
+export type { LedgerCategory, LedgerEntry, LedgerRefs } from './model/entities/ledger-entry';
+export {
+  hasLedgerSign,
+  LEDGER_CATEGORIES,
+  LEDGER_CATEGORY_SIGN,
+  LEDGER_COST_CATEGORIES,
+  LEDGER_INCOME_CATEGORIES,
+  LedgerCategorySchema,
+  LedgerEntrySchema,
+  ledgerMonthKey,
+} from './model/entities/ledger-entry';

@@ -7,9 +7,15 @@
  */
 
 import { brandsTable } from './entities/brand';
+import { dealsTable } from './entities/deal';
 import { employmentsTable } from './entities/employment';
 import { eventDefinitionsTable } from './entities/event-definition';
 import { eventInstancesTable } from './entities/event-instance';
+import { continentsTable, countriesTable, regionsTable } from './entities/geography';
+import { ledgerEntriesTable } from './entities/ledger-entry';
+import { mailTable } from './entities/mail';
+import { networksTable } from './entities/network';
+import { newsTable } from './entities/news';
 import { participantsTable } from './entities/participant';
 import { peopleTable } from './entities/person';
 import { promotionsTable } from './entities/promotion';
@@ -21,11 +27,11 @@ import { storylinesTable } from './entities/storyline';
 import { teamsTable } from './entities/team';
 import { titlesTable } from './entities/title';
 import { titleReignsTable } from './entities/title-reign';
+import { venuesTable } from './entities/venue';
 import type { TableRegistry } from './table-def';
 import type { World, WorldView } from './world';
 
 export const TABLES = {
-  // FND-09 adds the remaining entries.
   // FND-06: people.
   people: peopleTable,
   // FND-07: promotions, brands, employment and groups.
@@ -44,6 +50,16 @@ export const TABLES = {
   participants: participantsTable,
   storylines: storylinesTable,
   seasons: seasonsTable,
+  // FND-09: geography, venues, media, mail, news and the ledger.
+  continents: continentsTable,
+  countries: countriesTable,
+  regions: regionsTable,
+  venues: venuesTable,
+  networks: networksTable,
+  deals: dealsTable,
+  mail: mailTable,
+  news: newsTable,
+  ledgerEntries: ledgerEntriesTable,
 } as const satisfies TableRegistry;
 
 export type GameTables = typeof TABLES;
