@@ -184,7 +184,10 @@ export class EventBus<ReactionContext> {
     this.debugChecks = debugChecks;
     const validState = state === undefined ? undefined : parseEventBusState(state);
     this.#seq = validState?.seq ?? 0;
-    this.#log = new EventLog(logSize, (validState?.recent ?? []).map(deepFreeze));
+    this.#log = new EventLog(
+      logSize,
+      (validState?.recent ?? []).map((event) => deepFreeze(event)),
+    );
   }
 
   /** The last sequence number handed out (0 before the first commit). */
@@ -499,12 +502,19 @@ function describeError(error: unknown): string {
   return typeof error === 'string' ? error : 'a non-error value was thrown';
 }
 
-/** Freezes a JSON-like value and everything inside it. Returns the same value. */
-function deepFreeze<T>(value: T): T {
-  if (typeof value === 'object' && value !== null && !Object.isFrozen(value)) {
+/**
+ * Freezes a JSON-like value and everything inside it. Returns the same value.
+ *
+ * It walks into objects that are already frozen too: a publisher may pass a payload frozen only
+ * at the top, and its nested objects must not stay writable. `visited` stops the walk on shared
+ * or circular references (possible when debug checks are off).
+ */
+function deepFreeze<T>(value: T, visited = new WeakSet()): T {
+  if (typeof value === 'object' && value !== null && !visited.has(value)) {
+    visited.add(value);
     Object.freeze(value);
     for (const key of Object.keys(value)) {
-      deepFreeze(readProperty(value, key));
+      deepFreeze(readProperty(value, key), visited);
     }
   }
   return value;

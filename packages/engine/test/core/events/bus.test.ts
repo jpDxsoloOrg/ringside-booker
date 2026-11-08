@@ -116,6 +116,16 @@ describe('staging', () => {
       expect(Object.isFrozen(event.payload.value)).toBe(true);
     }
   });
+
+  it('freezes nested objects of a payload that was only frozen at the top', () => {
+    const bus = createBus();
+    const staging = bus.stage(PHASE, TEST_DATE);
+    const nested = { holders: ['per_0000000001'] };
+    staging.publish('test.loose', Object.freeze({ value: nested }));
+    staging.commit();
+    expect(Object.isFrozen(nested)).toBe(true);
+    expect(Object.isFrozen(nested.holders)).toBe(true);
+  });
 });
 
 describe('payload checks', () => {
