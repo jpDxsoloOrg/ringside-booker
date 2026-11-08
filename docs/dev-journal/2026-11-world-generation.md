@@ -238,10 +238,13 @@ sit in a bar at the bottom of the screen:
 - **Alternatives:** A full options screen up front, with options greyed out or doing nothing until
   their systems arrive.
 - **Why:** A checkbox that does nothing is a lie the player can't detect. With a registry, random
-  winners and owner goals turn up in the wizard in the same change that makes them work. The one
-  exception I allowed is the level playing field, because D-01 makes it a new-game choice and the
-  rule it switches is easy to state; until the computer-promotion shortcuts exist, on and off
-  play the same, and the design doc says so.
+  winners and owner goals turn up in the wizard in the same change that makes them work. I didn't
+  hold that line everywhere yet. The four settings the world metadata already had fields for
+  (aging, sandbox, new talent and companies, and the level playing field) are registered now, so
+  the wizard shows and stores them, but no system reads any of them yet. The level playing field
+  was a deliberate exception, because D-01 makes it a new-game choice and the design doc says on
+  and off play the same for now. The other three I only caught while checking this entry. Equal
+  start and shuffled contract lengths are the options that act today.
 - **Revisit if:** Players ask for a roadmap of options. That belongs on a page, not in the wizard.
 
 ## How this differs from other games in the genre
@@ -344,9 +347,11 @@ sit in a bar at the bottom of the screen:
 - **The promotion table on a desktop.** At 1,440 pixels wide the promotion and home columns wrap to
   three lines (visible in the first screenshot), and the table gets long. I'd like a denser layout
   before there are more worlds to choose from.
-- **The level playing field option.** It is stored and shown, but does nothing until the
-  computer-promotion shortcuts exist. I'm comfortable with that because its description is
-  accurate, but it is the one option that breaks the "no dead checkboxes" rule.
+- **Options that don't do anything yet.** Aging, sandbox, new talent and companies, and the level
+  playing field are stored and shown, but nothing reads them until the systems behind them land.
+  Their descriptions say what they will do, not that they don't do it yet. I need to decide
+  whether to hide them until then or mark them as coming later in the wizard, because right now
+  they break the "no dead checkboxes" rule.
 
 ## Blog angle
 
