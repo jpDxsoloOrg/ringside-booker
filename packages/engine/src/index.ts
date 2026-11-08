@@ -108,6 +108,7 @@ export {
   InvariantError,
   MigrationError,
   MoneyOverflowError,
+  NameSpaceExhaustedError,
   NotSerialisableError,
   PipelineError,
   RegistryError,
@@ -485,6 +486,20 @@ export {
 // Geography queries (WLD-04): hierarchy lookups, population-weighted roll-ups and weighted picks.
 export type { AggregateOptions, Geography, GeographySource } from './systems/world/geography';
 export { createGeography, geographyOf, pickRegion, regionWeight } from './systems/world/geography';
+// Name generation (WLD-05): weighted name tables, the name registry and the name generator.
+export type {
+  NameGeneratorOptions,
+  PersonName,
+  PersonNameRequest,
+  RingNamePerson,
+  RingNameRequest,
+} from './systems/world/names/generator';
+export { NameGenerator } from './systems/world/names/generator';
+export type { NameKind } from './systems/world/names/registry';
+export { legalDisplayName, NameRegistry, normaliseName } from './systems/world/names/registry';
+export type { TablePick, WeightedTable } from './systems/world/names/weighted';
+export { buildWeightedTable, pickFromTable, pickTableEntry } from './systems/world/names/weighted';
+export { worldTunables } from './systems/world/tunables';
 export type { Venue, VenueKind } from './model/entities/venue';
 export {
   isVenueOpenOn,
