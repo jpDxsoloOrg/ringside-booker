@@ -17,7 +17,7 @@ script.
 
 | Part | Title                                                                       | Status  | Draws from                                                                 | Published |
 | ---- | --------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------- | --------- |
-| 01   | Why I'm building a wrestling booking sim                                    | outline | [Project kickoff](../dev-journal/2026-11-project-kickoff.md) journal entry | -         |
+| 01   | Why I'm building a wrestling booking sim                                    | draft   | [Project kickoff](../dev-journal/2026-11-project-kickoff.md) journal entry | -         |
 | 02   | Foundations: one World, deterministic days, numbers that explain themselves | planned | Foundation (FND) and simulation (SIM) entries                              | -         |
 | 03   | Same seed, same show: randomness with named streams                         | planned | Simulation (SIM) entry                                                     | -         |
 | 04   | Every number explains itself: the Why? panel                                | planned | Simulation (SIM) and UI entries                                            | -         |
