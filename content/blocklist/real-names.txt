@@ -1,0 +1,339 @@
+# Real-name blocklist for tools/validate-world.
+#
+# Names of real performers, promotions, shows, events, titles and networks that must never appear
+# in Ringside Booker content. `npm run validate:world` checks every person, ring, promotion, brand,
+# title, venue, network, event and team name against this list and fails on any match.
+#
+# Format: one name per line. Blank lines and lines starting with # are ignored. Matching ignores
+# case, accents and punctuation. A one-word entry only matches a name that is exactly that word; a
+# longer entry also matches inside a longer name. See tools/validate-world/README.md.
+#
+# This file is data for the checker only. It lives outside every pack and is never loaded by the
+# game. When you spot a near miss in content, add the real name here.
+
+# Promotions (full names)
+World Wrestling Entertainment
+World Wrestling Federation
+World Championship Wrestling
+Extreme Championship Wrestling
+Eastern Championship Wrestling
+All Elite Wrestling
+Total Nonstop Action Wrestling
+Impact Wrestling
+Ring of Honor
+National Wrestling Alliance
+American Wrestling Association
+Major League Wrestling
+New Japan Pro-Wrestling
+All Japan Pro Wrestling
+Pro Wrestling NOAH
+DDT Pro-Wrestling
+Dragon Gate
+World Wonder Ring Stardom
+Stardom
+Consejo Mundial de Lucha Libre
+Lucha Libre AAA Worldwide
+Asistencia Asesoría y Administración
+Lucha Underground
+Pro Wrestling Guerrilla
+Game Changer Wrestling
+Combat Zone Wrestling
+Westside Xtreme Wrestling
+Progress Wrestling
+Revolution Pro Wrestling
+Insane Championship Wrestling
+Ohio Valley Wrestling
+Frontier Martial-Arts Wrestling
+Universal Wrestling Federation
+Jim Crockett Promotions
+Mid-South Wrestling
+Stampede Wrestling
+Smoky Mountain Wrestling
+United States Wrestling Association
+World Class Championship Wrestling
+World Wrestling Council
+Gorgeous Ladies of Wrestling
+Women of Wrestling
+Shimmer Women Athletes
+Chikara
+Beyond Wrestling
+
+# Promotions (short names)
+WWE
+WWF
+WCW
+ECW
+AEW
+TNA
+ROH
+NWA
+AWA
+MLW
+NJPW
+AJPW
+CMLL
+AAA
+PWG
+GCW
+CZW
+wXw
+ICW
+OVW
+FMW
+USWA
+WCCW
+WWC
+GLOW
+DDT
+
+# Shows and events
+Monday Night Raw
+SmackDown
+Friday Night SmackDown
+NXT
+Monday Nitro
+Nitro
+WCW Thunder
+AEW Dynamite
+Dynamite
+WrestleMania
+SummerSlam
+Royal Rumble
+Survivor Series
+Money in the Bank
+Hell in a Cell
+Elimination Chamber
+King of the Ring
+Saturday Night's Main Event
+Starrcade
+Halloween Havoc
+Great American Bash
+Clash of the Champions
+Bash at the Beach
+Bound for Glory
+Slammiversary
+Wrestle Kingdom
+G1 Climax
+Forbidden Door
+Best of the Super Juniors
+Triplemania
+Battle of Los Angeles
+
+# Titles
+WWE Championship
+WWF Championship
+Universal Championship
+Intercontinental Championship
+Million Dollar Championship
+IWGP Heavyweight Championship
+IWGP
+Triple Crown Heavyweight Championship
+GHC Heavyweight Championship
+ROH World Championship
+NWA Worlds Heavyweight Championship
+NWA World Heavyweight Championship
+AEW World Championship
+TNT Championship
+United States Championship
+
+# Networks and services
+WWE Network
+USA Network
+Turner Network Television
+TNT
+TBS
+Spike TV
+AXS TV
+FITE
+TV Asahi
+Samurai TV
+Peacock
+Netflix
+ESPN
+Sky Sports
+Fox Sports
+Prime Video
+
+# Groups and teams
+nWo
+New World Order
+D-Generation X
+The Four Horsemen
+Legion of Doom
+The Road Warriors
+Bullet Club
+The Young Bucks
+The Hardy Boyz
+The Dudley Boyz
+The Hart Foundation
+The Midnight Express
+The Rock 'n' Roll Express
+
+# Performers
+Hulk Hogan
+Terry Bollea
+Stone Cold Steve Austin
+Steve Austin
+The Rock
+Dwayne Johnson
+The Undertaker
+Undertaker
+Mark Calaway
+John Cena
+Ric Flair
+Charlotte Flair
+Randy Savage
+Macho Man Randy Savage
+Andre the Giant
+Bret Hart
+Owen Hart
+Shawn Michaels
+Triple H
+Hunter Hearst Helmsley
+Paul Levesque
+Kevin Nash
+Scott Hall
+Razor Ramon
+Sting
+Goldberg
+Bill Goldberg
+Mick Foley
+Cactus Jack
+Mankind
+Kurt Angle
+Chris Jericho
+Edge
+Christian Cage
+Rey Mysterio
+Eddie Guerrero
+Chavo Guerrero
+Dean Malenko
+Brock Lesnar
+Batista
+Dave Bautista
+Randy Orton
+Roman Reigns
+Seth Rollins
+Dean Ambrose
+Jon Moxley
+CM Punk
+Daniel Bryan
+Bryan Danielson
+AJ Styles
+Kenny Omega
+Kazuchika Okada
+Hiroshi Tanahashi
+Tetsuya Naito
+Shinsuke Nakamura
+Mitsuharu Misawa
+Kenta Kobashi
+Toshiaki Kawada
+Jushin Thunder Liger
+Antonio Inoki
+Giant Baba
+Tiger Mask
+Keiji Muto
+The Great Muta
+Riki Choshu
+El Santo
+Blue Demon
+Mil Máscaras
+Místico
+Último Dragón
+Becky Lynch
+Sasha Banks
+Mercedes Moné
+Bayley
+Bianca Belair
+Rhea Ripley
+Asuka
+Trish Stratus
+Lita
+Chyna
+Mae Young
+The Fabulous Moolah
+Wendi Richter
+Alundra Blayze
+Madusa
+Mickie James
+Gail Kim
+Awesome Kong
+Io Shirai
+Iyo Sky
+Kairi Sane
+Mayu Iwatani
+Toni Storm
+Jade Cargill
+Britt Baker
+Hikaru Shida
+Thunder Rosa
+Cody Rhodes
+Dusty Rhodes
+Harley Race
+Lou Thesz
+Gorgeous George
+Bruno Sammartino
+Bob Backlund
+Jimmy Snuka
+Roddy Piper
+Ultimate Warrior
+Jake Roberts
+Ted DiBiase
+Big Show
+Paul Wight
+Kane
+Mark Henry
+Booker T
+Big Van Vader
+Vader
+Terry Funk
+Dory Funk Jr.
+Sabu
+Rob Van Dam
+Tommy Dreamer
+The Sandman
+Taz
+Jeff Hardy
+Matt Hardy
+Bubba Ray Dudley
+D-Von Dudley
+Matt Jackson
+Nick Jackson
+Kevin Owens
+Sami Zayn
+Finn Balor
+Drew McIntyre
+Gunther
+Will Ospreay
+Zack Sabre Jr.
+Minoru Suzuki
+Jun Akiyama
+Samoa Joe
+Bobby Lashley
+MJF
+Maxwell Jacob Friedman
+Adam Cole
+Orange Cassidy
+
+# Owners, announcers and officials
+Vince McMahon
+Shane McMahon
+Stephanie McMahon
+Linda McMahon
+Paul Heyman
+Eric Bischoff
+Tony Khan
+Dixie Carter
+Jim Ross
+Jerry Lawler
+Gorilla Monsoon
+Bobby Heenan
+Gene Okerlund
+Mean Gene Okerlund
+Howard Finkel
+Michael Cole
+Tony Schiavone
+Jim Cornette
+Earl Hebner
+Dave Hebner
+Charles Robinson

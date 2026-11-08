@@ -1,0 +1,19 @@
+{
+  "name": "@ringside/validate-world",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Checks a set of world data packs against the content rules and prints a distribution report.",
+  "scripts": {
+    "validate": "tsx src/cli.ts",
+    "test": "vitest run",
+    "typecheck": "tsc -b"
+  },
+  "dependencies": {
+    "@ringside/engine": "0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "20.19.43",
+    "tsx": "4.23.15"
+  }
+}
