@@ -1,5 +1,15 @@
-import { createContext, useCallback, useContext, useEffect, useId, useMemo, useState } from 'react';
-import type { KeyboardEvent, ReactNode } from 'react';
+import * as RadixTabs from '@radix-ui/react-tabs';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import type { ReactNode } from 'react';
 import { classNames } from '../classNames';
 import styles from './Tabs.module.css';
 
@@ -12,8 +22,6 @@ export type TabsActivation = 'auto' | 'manual';
 interface TabsContextValue {
   readonly baseId: string;
   readonly selectedValue: string;
-  readonly activation: TabsActivation;
-  readonly select: (value: string) => void;
 }
 
 const TabsContext = createContext<TabsContextValue | null>(null);
@@ -70,8 +78,9 @@ export interface UncontrolledTabsProps extends TabsSharedProps {
 export type TabsProps = ControlledTabsProps | UncontrolledTabsProps;
 
 /**
- * A set of tabs following the WAI-ARIA tabs pattern: one tab stop for the whole strip (roving
- * tabindex), Left/Right/Home/End to move between tabs, and panels linked to their tabs.
+ * A set of tabs following the WAI-ARIA tabs pattern, built on Radix Tabs: one tab stop for the
+ * whole strip (roving tabindex), Left/Right/Home/End to move between tabs (wrapping at the ends),
+ * and panels linked to their tabs.
  *
  * ```tsx
  * <Tabs defaultValue="roster">
@@ -97,22 +106,35 @@ export function Tabs({
   const isControlled = value !== undefined;
   const selectedValue = isControlled ? value : uncontrolledValue;
 
+  // Radix reports one click twice (the press selects, then the focus it moves selects again),
+  // before React re-renders. Remember the request until the current task ends so onChange fires once.
+  const pendingValueRef = useRef<string | null>(null);
+
   const select = useCallback(
     (nextValue: string) => {
+      if (nextValue === selectedValue || nextValue === pendingValueRef.current) return;
+      pendingValueRef.current = nextValue;
+      queueMicrotask(() => {
+        pendingValueRef.current = null;
+      });
       if (!isControlled) setUncontrolledValue(nextValue);
-      if (nextValue !== selectedValue) onChange?.(nextValue);
+      onChange?.(nextValue);
     },
     [isControlled, onChange, selectedValue],
   );
 
-  const contextValue = useMemo(
-    () => ({ baseId, selectedValue, activation, select }),
-    [baseId, selectedValue, activation, select],
-  );
+  const contextValue = useMemo(() => ({ baseId, selectedValue }), [baseId, selectedValue]);
 
   return (
     <TabsContext.Provider value={contextValue}>
-      <div className={classNames(styles['tabs'], className)}>{children}</div>
+      <RadixTabs.Root
+        value={selectedValue}
+        onValueChange={select}
+        activationMode={activation === 'auto' ? 'automatic' : 'manual'}
+        className={classNames(styles['tabs'], className)}
+      >
+        {children}
+      </RadixTabs.Root>
     </TabsContext.Provider>
   );
 }
@@ -179,10 +201,9 @@ export function TabList({ label, labelledBy, className, children }: TabListProps
   const edges = useOverflowEdges(listElement);
 
   return (
-    <div
+    <RadixTabs.List
       ref={setListElement}
-      role="tablist"
-      aria-orientation="horizontal"
+      loop
       aria-label={labelledBy === undefined ? label : undefined}
       aria-labelledby={labelledBy}
       className={classNames(styles['list'], className)}
@@ -190,7 +211,7 @@ export function TabList({ label, labelledBy, className, children }: TabListProps
       data-fade-end={edges.end ? '' : undefined}
     >
       {children}
-    </div>
+    </RadixTabs.List>
   );
 }
 
@@ -202,81 +223,21 @@ export interface TabProps {
   readonly children: ReactNode;
 }
 
-/** The enabled tabs of the strip that holds `tab`, in order. */
-function siblingTabs(tab: HTMLElement): HTMLElement[] {
-  const list = tab.closest('[role="tablist"]');
-  if (list === null) return [tab];
-  return Array.from(list.querySelectorAll<HTMLElement>('[role="tab"]:not(:disabled)')).filter(
-    (candidate) => candidate.closest('[role="tablist"]') === list,
-  );
-}
-
-function isRightToLeft(element: HTMLElement): boolean {
-  return window.getComputedStyle(element).direction === 'rtl';
-}
-
-/** Index of the tab a navigation key moves to, or null for keys the tab strip does not use. */
-function targetIndex(
-  key: string,
-  currentIndex: number,
-  count: number,
-  rtl: boolean,
-): number | null {
-  const forward = (currentIndex + 1) % count;
-  const backward = (currentIndex - 1 + count) % count;
-  switch (key) {
-    case 'ArrowRight':
-      return rtl ? backward : forward;
-    case 'ArrowLeft':
-      return rtl ? forward : backward;
-    case 'Home':
-      return 0;
-    case 'End':
-      return count - 1;
-    default:
-      return null;
-  }
-}
-
 /** One tab. Only the selected tab is in the Tab order; the arrow keys reach the others. */
 export function Tab({ value, disabled = false, className, children }: TabProps) {
-  const { baseId, selectedValue, activation, select } = useTabsContext('Tab');
-  const isSelected = value === selectedValue;
-
-  const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
-    const tab = event.currentTarget;
-    const tabs = siblingTabs(tab);
-    const currentIndex = tabs.indexOf(tab);
-    if (currentIndex === -1) return;
-
-    const nextIndex = targetIndex(event.key, currentIndex, tabs.length, isRightToLeft(tab));
-    const nextTab = nextIndex === null ? undefined : tabs[nextIndex];
-    if (nextTab === undefined) return;
-
-    event.preventDefault();
-    nextTab.focus();
-    const nextValue = nextTab.dataset['tabValue'];
-    if (activation === 'auto' && nextValue !== undefined) select(nextValue);
-  };
+  const { baseId } = useTabsContext('Tab');
 
   return (
-    <button
-      type="button"
-      role="tab"
-      id={tabId(baseId, value)}
-      aria-selected={isSelected}
-      aria-controls={panelId(baseId, value)}
-      tabIndex={isSelected ? 0 : -1}
+    <RadixTabs.Trigger
+      value={value}
       disabled={disabled}
-      data-tab-value={value}
+      // Our own ids, so values with spaces or symbols still make valid, distinct ids.
+      id={tabId(baseId, value)}
+      aria-controls={panelId(baseId, value)}
       className={classNames(styles['tab'], className)}
-      onClick={() => {
-        select(value);
-      }}
-      onKeyDown={handleKeyDown}
     >
       {children}
-    </button>
+    </RadixTabs.Trigger>
   );
 }
 
@@ -292,21 +253,24 @@ export interface TabPanelProps {
   readonly children: ReactNode;
 }
 
-/** The content for one tab. Hidden unless its tab is selected. */
+/**
+ * The content for one tab. Hidden unless its tab is selected. The panel element itself is always
+ * there, so every tab's `aria-controls` points at something real.
+ */
 export function TabPanel({ value, keepMounted = false, className, children }: TabPanelProps) {
   const { baseId, selectedValue } = useTabsContext('TabPanel');
   const isSelected = value === selectedValue;
 
   return (
-    <div
-      role="tabpanel"
+    <RadixTabs.Content
+      value={value}
+      forceMount
+      hidden={!isSelected}
       id={panelId(baseId, value)}
       aria-labelledby={tabId(baseId, value)}
-      hidden={!isSelected}
-      tabIndex={0}
       className={classNames(styles['panel'], className)}
     >
       {(isSelected || keepMounted) && children}
-    </div>
+    </RadixTabs.Content>
   );
 }

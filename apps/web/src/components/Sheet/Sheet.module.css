@@ -1,15 +1,23 @@
 /*
- * A modal <dialog> pinned to one edge of the viewport. The browser's dialog box styles (margin,
- * padding, border, the max sizes) are reset so the side classes decide where it sits.
+ * A Radix dialog pinned to one edge of the viewport, over a dimmed backdrop. Both are portalled to
+ * the end of <body> and stack on --z-sheet, so a ConfirmDialog (on --z-overlay) and any popover
+ * opened from inside the sheet sit above it.
  */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-sheet);
+  background: var(--color-overlay);
+}
+
 .sheet {
   --sheet-inline-size: 30rem;
   --sheet-block-size: 60dvh;
 
   position: fixed;
-  margin: 0;
-  padding: 0;
-  border: 0;
+  z-index: var(--z-sheet);
+  display: flex;
+  flex-direction: column;
   max-inline-size: 100vw;
   max-block-size: 100dvh;
   overflow: hidden;
@@ -18,15 +26,9 @@
   box-shadow: var(--shadow-3);
 }
 
-/* `display: flex` only while open, so the browser's `dialog:not([open])` hiding still applies. */
-.sheet[open] {
-  display: flex;
-  flex-direction: column;
-}
-
-.sheet::backdrop {
-  background: var(--color-overlay);
-  animation: fade-in var(--motion-base) var(--easing-standard);
+/* Content gets focus when nothing inside can take it; the sheet itself shows no ring. */
+.sheet:focus {
+  outline: none;
 }
 
 .size-sm {
@@ -54,13 +56,11 @@
 .side-right {
   inset-inline: auto 0;
   border-inline-start: 1px solid var(--color-border);
-  animation: slide-from-right var(--motion-base) var(--easing-standard);
 }
 
 .side-left {
   inset-inline: 0 auto;
   border-inline-end: 1px solid var(--color-border);
-  animation: slide-from-left var(--motion-base) var(--easing-standard);
 }
 
 .side-bottom {
@@ -71,7 +71,6 @@
   border-block-start: 1px solid var(--color-border);
   border-start-start-radius: var(--radius-lg);
   border-start-end-radius: var(--radius-lg);
-  animation: slide-from-bottom var(--motion-base) var(--easing-standard);
 }
 
 /*
@@ -150,6 +149,26 @@
   .footer {
     padding-inline: var(--space-4);
   }
+}
+
+/*
+ * Entry animations only match the open state. Radix keeps a closing part mounted until an
+ * animation running on it ends, so one that also matched the closed state would never let go.
+ */
+.overlay[data-state='open'] {
+  animation: fade-in var(--motion-base) var(--easing-standard);
+}
+
+.side-right[data-state='open'] {
+  animation: slide-from-right var(--motion-base) var(--easing-standard);
+}
+
+.side-left[data-state='open'] {
+  animation: slide-from-left var(--motion-base) var(--easing-standard);
+}
+
+.side-bottom[data-state='open'] {
+  animation: slide-from-bottom var(--motion-base) var(--easing-standard);
 }
 
 @keyframes fade-in {

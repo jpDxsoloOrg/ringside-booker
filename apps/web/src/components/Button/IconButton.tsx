@@ -1,3 +1,4 @@
+import { forwardRef } from 'react';
 import type { ButtonHTMLAttributes } from 'react';
 import { classNames } from '../classNames';
 import { Icon } from '../Icon';
@@ -24,19 +25,15 @@ export interface IconButtonProps extends Omit<
   readonly size?: ButtonSize;
 }
 
-/** A square button that shows only an icon. The required `label` names it. */
-export function IconButton({
-  icon,
-  label,
-  variant = 'ghost',
-  size = 'md',
-  type = 'button',
-  className,
-  ...buttonAttributes
-}: IconButtonProps) {
+/** A square button that shows only an icon. The required `label` names it. It forwards its ref. */
+export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton(
+  { icon, label, variant = 'ghost', size = 'md', type = 'button', className, ...buttonAttributes },
+  ref,
+) {
   return (
     <button
       {...buttonAttributes}
+      ref={ref}
       type={type}
       aria-label={label}
       title={label}
@@ -51,4 +48,4 @@ export function IconButton({
       <Icon name={icon} size={size === 'sm' ? 'sm' : 'md'} />
     </button>
   );
-}
+});

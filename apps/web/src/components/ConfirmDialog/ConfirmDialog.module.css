@@ -1,9 +1,22 @@
 /*
- * A small modal <dialog>, centred in the viewport. The global reset zeroes every margin, so the
- * browser's own `margin: auto` for dialogs is put back here.
+ * A small modal Radix dialog, centred in the viewport over a dimmed backdrop. It stacks on
+ * --z-overlay, above any Sheet it was opened from.
  */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  background: var(--color-overlay);
+}
+
 .dialog {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
   margin: auto;
+  block-size: fit-content;
   inline-size: min(28rem, calc(100vw - 2 * var(--space-4)));
   max-inline-size: none;
   max-block-size: calc(100dvh - 2 * var(--space-4));
@@ -14,18 +27,10 @@
   background: var(--color-surface-raised);
   color: var(--color-text);
   box-shadow: var(--shadow-3);
-  animation: pop-in var(--motion-base) var(--easing-standard);
 }
 
-/* `display: grid` only while open, so the browser's `dialog:not([open])` hiding still applies. */
-.dialog[open] {
-  display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
-}
-
-.dialog::backdrop {
-  background: var(--color-overlay);
-  animation: fade-in var(--motion-base) var(--easing-standard);
+.dialog:focus {
+  outline: none;
 }
 
 .content {
@@ -77,6 +82,18 @@
     inline-size: 100%;
     min-block-size: var(--tap-target-min);
   }
+}
+
+/*
+ * Entry animations only match the open state. Radix keeps a closing part mounted until an
+ * animation running on it ends, so one that also matched the closed state would never let go.
+ */
+.overlay[data-state='open'] {
+  animation: fade-in var(--motion-base) var(--easing-standard);
+}
+
+.dialog[data-state='open'] {
+  animation: pop-in var(--motion-base) var(--easing-standard);
 }
 
 @keyframes fade-in {

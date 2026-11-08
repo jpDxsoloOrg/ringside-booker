@@ -63,12 +63,20 @@ describe('Tabs', () => {
     expect(screen.queryByText('Titles content')).toBeNull();
   });
 
-  it('keeps only the selected tab in the Tab order', () => {
+  it('keeps only the selected tab in the Tab order', async () => {
+    const user = userEvent.setup();
     render(<SampleTabs />);
+    await user.click(tab('Finances'));
 
-    expect(tab('Roster')).toHaveAttribute('tabindex', '0');
+    expect(tab('Finances')).toHaveAttribute('tabindex', '0');
+    expect(tab('Roster')).toHaveAttribute('tabindex', '-1');
     expect(tab('Titles')).toHaveAttribute('tabindex', '-1');
-    expect(tab('Finances')).toHaveAttribute('tabindex', '-1');
+
+    // One stop for the strip: Shift+Tab out of the panel lands on the selected tab only.
+    await user.tab();
+    expect(screen.getByRole('tabpanel', { name: 'Finances' })).toHaveFocus();
+    await user.tab({ shift: true });
+    expect(tab('Finances')).toHaveFocus();
   });
 
   it('selects a tab on click', async () => {
@@ -81,6 +89,7 @@ describe('Tabs', () => {
     expect(tab('Finances')).toHaveAttribute('aria-selected', 'true');
     expect(tab('Finances')).toHaveAttribute('tabindex', '0');
     expect(screen.getByText('Finances content')).toBeVisible();
+    expect(handleChange).toHaveBeenCalledTimes(1);
     expect(handleChange).toHaveBeenCalledWith('finances');
   });
 

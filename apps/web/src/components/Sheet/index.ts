@@ -6,5 +6,5 @@ export {
   SCROLL_LOCK_CLASS,
   useBodyScrollLock,
 } from './useBodyScrollLock';
-export { firstFocusableIn, useModalDialog } from './useModalDialog';
-export type { ModalDialogOptions } from './useModalDialog';
+export { firstFocusableIn, useOverlayFocus } from './useOverlayFocus';
+export type { OverlayFocusHandlers } from './useOverlayFocus';

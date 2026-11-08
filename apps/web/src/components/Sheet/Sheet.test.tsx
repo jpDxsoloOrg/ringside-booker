@@ -51,6 +51,13 @@ function getDialog(): HTMLElement {
   return screen.getByRole('dialog', { name: 'Worker details' });
 }
 
+/** The dimmed backdrop behind the sheet. Radix portals it, with the sheet, to the end of <body>. */
+function getBackdrop(): HTMLElement {
+  const backdrop = document.querySelector('[data-sheet-overlay]');
+  if (!(backdrop instanceof HTMLElement)) throw new Error('The sheet backdrop is not rendered.');
+  return backdrop;
+}
+
 function isScrollLocked(): boolean {
   return document.documentElement.classList.contains(SCROLL_LOCK_CLASS);
 }
@@ -61,15 +68,15 @@ describe('Sheet', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
-  it('opens as a modal dialog named by its title', async () => {
+  it('opens as a modal dialog named by its title, portalled out of the page', async () => {
     const user = userEvent.setup();
-    render(<SheetHarness />);
+    const { container } = render(<SheetHarness />);
 
     await user.click(screen.getByRole('button', { name: 'Open sheet' }));
 
     const dialog = getDialog();
-    expect(dialog.tagName).toBe('DIALOG');
-    expect(dialog).toHaveAttribute('open');
+    expect(dialog).toHaveAttribute('data-state', 'open');
+    expect(container.contains(dialog)).toBe(false);
     expect(screen.getByRole('heading', { level: 2, name: 'Worker details' })).toBeInTheDocument();
   });
 
@@ -122,9 +129,43 @@ describe('Sheet', () => {
     expect(trigger).toHaveFocus();
   });
 
+  it('traps focus: Tab and Shift+Tab cycle inside the sheet', async () => {
+    const user = userEvent.setup();
+    render(<SheetHarness footer={<button type="button">Save</button>} />);
+
+    await user.click(screen.getByRole('button', { name: 'Open sheet' }));
+    const closeButton = screen.getByRole('button', { name: 'Close' });
+    const firstAction = screen.getByRole('button', { name: 'First action' });
+    const saveButton = screen.getByRole('button', { name: 'Save' });
+    expect(firstAction).toHaveFocus();
+
+    await user.tab();
+    expect(saveButton).toHaveFocus();
+    await user.tab();
+    expect(closeButton).toHaveFocus();
+    await user.tab({ shift: true });
+    expect(saveButton).toHaveFocus();
+  });
+
+  it('opens from the keyboard and closes on Escape with focus back on the trigger', async () => {
+    const user = userEvent.setup();
+    render(<SheetHarness />);
+    const trigger = screen.getByRole('button', { name: 'Open sheet' });
+
+    await user.tab();
+    expect(trigger).toHaveFocus();
+    await user.keyboard('{Enter}');
+    expect(getDialog()).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'First action' })).toHaveFocus();
+
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(trigger).toHaveFocus();
+  });
+
   it('opens and returns focus the same way under StrictMode', async () => {
-    // StrictMode mounts, unmounts and remounts effects in development, which closes and reopens
-    // the dialog once; the opener must still be the trigger, not the sheet's own content.
+    // StrictMode mounts, unmounts and remounts effects in development, which moves focus into the
+    // sheet before the second run; the opener must still be the trigger, not the sheet's content.
     const user = userEvent.setup();
     render(
       <StrictMode>
@@ -134,7 +175,7 @@ describe('Sheet', () => {
     const trigger = screen.getByRole('button', { name: 'Open sheet' });
 
     await user.click(trigger);
-    expect(getDialog()).toHaveAttribute('open');
+    expect(getDialog()).toHaveAttribute('data-state', 'open');
     expect(screen.getByRole('button', { name: 'First action' })).toHaveFocus();
     expect(isScrollLocked()).toBe(true);
 
@@ -169,8 +210,7 @@ describe('Sheet', () => {
     await user.click(screen.getByText('Body text'));
     expect(handleClose).not.toHaveBeenCalled();
 
-    // A backdrop click reaches the <dialog> element itself.
-    await user.click(getDialog());
+    await user.click(getBackdrop());
     expect(handleClose).toHaveBeenCalledTimes(1);
   });
 
@@ -185,7 +225,7 @@ describe('Sheet', () => {
     await user.click(screen.getByRole('button', { name: 'Open sheet' }));
 
     fireEvent.pointerDown(screen.getByText('Body text'));
-    fireEvent.click(getDialog());
+    fireEvent.click(getBackdrop());
 
     expect(handleClose).not.toHaveBeenCalled();
   });
@@ -214,24 +254,24 @@ describe('Sheet', () => {
 
   it('sits on the requested side on desktop, with no drag handle', async () => {
     const user = userEvent.setup();
-    const { container } = render(<SheetHarness side="left" size="lg" />);
+    render(<SheetHarness side="left" size="lg" />);
 
     await user.click(screen.getByRole('button', { name: 'Open sheet' }));
 
     expect(getDialog()).toHaveAttribute('data-side', 'left');
     expect(getDialog()).toHaveAttribute('data-size', 'lg');
-    expect(container.querySelector('.handle')).toBeNull();
+    expect(getDialog().querySelector('.handle')).toBeNull();
   });
 
   it('opens from the bottom with a drag handle on a phone', async () => {
     setMatchMedia((query) => query === BP_MOBILE_QUERY);
     const user = userEvent.setup();
-    const { container } = render(<SheetHarness side="right" />);
+    render(<SheetHarness side="right" />);
 
     await user.click(screen.getByRole('button', { name: 'Open sheet' }));
 
     expect(getDialog()).toHaveAttribute('data-side', 'bottom');
-    const handleBar = container.querySelector('.handleBar');
+    const handleBar = getDialog().querySelector('.handleBar');
     expect(handleBar).toHaveAttribute('aria-hidden', 'true');
     expect(handleBar?.querySelector('.handle')).toBeInstanceOf(HTMLElement);
   });
@@ -240,16 +280,16 @@ describe('Sheet', () => {
     setMatchMedia((query) => query === BP_MOBILE_QUERY);
     const handleClose = vi.fn();
     const user = userEvent.setup();
-    const { container } = render(<SheetHarness onClose={handleClose} />);
+    render(<SheetHarness onClose={handleClose} />);
     await user.click(screen.getByRole('button', { name: 'Open sheet' }));
 
-    const handleBar = container.querySelector('.handleBar');
+    const handleBar = getDialog().querySelector('.handleBar');
     expect(handleBar).toBeInstanceOf(HTMLElement);
     if (!(handleBar instanceof HTMLElement)) return;
     await user.click(handleBar);
 
     expect(handleClose).not.toHaveBeenCalled();
-    expect(getDialog()).toHaveAttribute('open');
+    expect(getDialog()).toHaveAttribute('data-state', 'open');
   });
 
   it('switches to a bottom sheet when the window narrows while open', async () => {
@@ -275,12 +315,20 @@ describe('Sheet', () => {
     expect(getDialog()).toHaveAttribute('data-side', 'left');
   });
 
-  it('sets no inline styles', async () => {
+  it('sets no inline styles beyond the pointer-events Radix uses to make it modal', async () => {
     const user = userEvent.setup();
     render(<SheetHarness footer={<button type="button">Save</button>} />);
 
     await user.click(screen.getByRole('button', { name: 'Open sheet' }));
 
-    expect(document.querySelectorAll('[style]')).toHaveLength(0);
+    const sheetElements = [getBackdrop(), getDialog(), ...getDialog().querySelectorAll('*')];
+    const styledElements = sheetElements.filter(
+      (element): element is HTMLElement =>
+        element instanceof HTMLElement && element.hasAttribute('style'),
+    );
+    const otherDeclarations = styledElements.flatMap((element) =>
+      Array.from(element.style).filter((property) => property !== 'pointer-events'),
+    );
+    expect(otherDeclarations).toEqual([]);
   });
 });
