@@ -1,0 +1,16 @@
+{
+  "formatVersion": 1,
+  "id": "mini-base",
+  "name": "Mini Base",
+  "version": "1.2.0",
+  "kind": "base",
+  "description": "Test fixture: one continent, two countries, three regions and one name culture.",
+  "author": "Ringside Booker tests",
+  "dependsOn": [],
+  "files": {
+    "continent": "geography/continents.json",
+    "country": "geography/countries.json",
+    "region": "geography/regions.json",
+    "nameCulture": "names/cultures.json"
+  }
+}
