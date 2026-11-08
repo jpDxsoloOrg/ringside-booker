@@ -89,8 +89,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      # Pushes to main add the WebKit phone project; pull requests run Chromium only.
-      E2E_WEBKIT: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && '1' || '' }}
+      # Pull requests and pushes to main run the same three projects, WebKit phone included, so a
+      # pull request cannot pass on Chromium alone and leave main failing on WebKit.
+      E2E_WEBKIT: '1'
     steps:
       - name: Check out the repository
         uses: actions/checkout@v7
@@ -118,12 +119,7 @@ jobs:
       - name: Install Playwright browsers and system dependencies
         run: npm run e2e:install -w @ringside/web
 
-      - name: Run end-to-end tests (desktop and phone)
-        if: ${{ env.E2E_WEBKIT != '1' }}
-        run: npm run e2e -w @ringside/web -- --project=desktop --project=phone
-
       - name: Run end-to-end tests (desktop, phone and WebKit phone)
-        if: ${{ env.E2E_WEBKIT == '1' }}
         run: npm run e2e -w @ringside/web -- --project=desktop --project=phone --project=phone-webkit
 
       - name: Upload Playwright report
