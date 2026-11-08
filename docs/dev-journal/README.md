@@ -149,6 +149,7 @@ Newest entry at the top. Each new entry adds one row.
 
 | Date       | Entry                                                                                          | Epics          | Blog post                          |
 | ---------- | ---------------------------------------------------------------------------------------------- | -------------- | ---------------------------------- |
+| 2026-11-08 | [World generation: a fictional world built from data packs](2026-11-world-generation.md)       | WLD            | Part 05 (planned)                  |
 | 2026-11-08 | [Milestone 1: foundation and engine core](2026-11-foundation-and-engine-core.md)               | FND, SIM, BLOG | Part 02                            |
 | 2026-11-08 | [Simulation core: deterministic days and numbers that explain themselves](2026-11-sim-core.md) | SIM            | Part 02; parts 03 and 04 (planned) |
 | 2026-11-08 | [Foundation: repo, data model and persistence](2026-11-foundation.md)                          | FND            | Part 02                            |
