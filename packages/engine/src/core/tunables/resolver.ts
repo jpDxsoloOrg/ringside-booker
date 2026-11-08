@@ -143,10 +143,14 @@ export function withOverride<Defs extends TunableDefinitions>(
   };
 }
 
-/** Live policy: returns a new reader with one override removed, so the default applies again. */
+/**
+ * Live policy: returns a new reader with one override removed, so the default applies again. Takes
+ * any key, like {@link withOverride}, because both are called with keys that arrive at run time (a
+ * command's arguments); removing a key that is not overridden returns an equal reader.
+ */
 export function withoutOverride<Defs extends TunableDefinitions>(
   reader: TunableReader<Defs>,
-  key: keyof Defs & string,
+  key: string,
 ): TunableReader<Defs> {
   const remaining: Record<string, TunableRawValue> = {};
   for (const [overriddenKey, value] of Object.entries(reader.overrides)) {
