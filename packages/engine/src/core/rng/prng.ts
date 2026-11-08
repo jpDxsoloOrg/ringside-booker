@@ -44,13 +44,14 @@ export class Sfc32 {
     const wordA = state[0] ?? 0;
     const wordB = state[1] ?? 0;
     const wordC = state[2] ?? 0;
-    const counter = ((state[3] ?? 0) + 1) >>> 0;
+    const counter = state[3] ?? 0;
+    // Standard sfc32 order: the output adds the counter's current value, then the counter steps.
     const output = (((wordA + wordB) >>> 0) + counter) >>> 0;
 
     state[0] = wordB ^ (wordB >>> 9);
     state[1] = wordC + (wordC << 3);
     state[2] = ((wordC << 21) | (wordC >>> 11)) + output;
-    state[3] = counter;
+    state[3] = counter + 1;
     return output;
   }
 

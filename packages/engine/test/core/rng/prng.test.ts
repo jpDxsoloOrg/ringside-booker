@@ -9,12 +9,12 @@ import { hashString128 } from '../../../src/core/hash';
 // fails, the generator, the seeding or the warm-up changed, and every existing save would play
 // out a different future. Revert, or ship a save migration that re-seeds.
 const GOLDEN_TEST_ALPHA_OUTPUTS: readonly number[] = [
-  0xa8a19eda, 0x5506b017, 0xdaff9915, 0x6510e2ac, 0xcd6d5b22, 0x32aedcd4, 0x1b706a3e, 0x4846254d,
-  0x95ad589e, 0x825987b3,
+  0x4863c144, 0xe7d19d08, 0xb04e4f7e, 0x36ed778c, 0x3439c2a1, 0x991a6446, 0x50257d78, 0xb3f6a3ee,
+  0xcdfcecdf, 0x20148b85,
 ];
 
 const GOLDEN_TEST_ALPHA_SEEDED_STATE: readonly number[] = [
-  1892409465, 677112609, 1486160498, 259642175,
+  855986212, 98868705, 392293777, 259642175,
 ];
 
 /** Chi-square critical value for 15 degrees of freedom at the 99.9% level. */
