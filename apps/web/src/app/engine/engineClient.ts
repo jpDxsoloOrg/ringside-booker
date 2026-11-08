@@ -26,7 +26,12 @@ import type {
   LoadSlotWhich,
   PingResult,
   SaveSlotResult,
+  StartNewGameInput,
+  StartNewGameResult,
+  WorldPackList,
+  WorldPreviewResult,
 } from '@/worker/engineHost';
+import type { LocalSeat } from '@/worker/localViewer';
 import { createEngineStatusStore } from './engineStatusStore';
 import type { EngineStatusState } from './engineStatusStore';
 import { QueryCache, queryKey } from './queryCache';
@@ -213,6 +218,32 @@ export class EngineClient {
   /** Reads a save's header in the engine without loading it, for importing a file. */
   inspectSave(bytes: Uint8Array): Promise<InspectReport> {
     return this.#call((host) => host.inspectSave(bytes));
+  }
+
+  /** The bundled world packs a new game can start from. */
+  listWorldPacks(): Promise<WorldPackList> {
+    return this.#call((host) => host.listWorldPacks());
+  }
+
+  /** What a world pack holds, for the new-game wizard. */
+  previewWorld(rootPackId: string): Promise<WorldPreviewResult> {
+    return this.#call((host) => host.previewWorld(rootPackId));
+  }
+
+  /**
+   * Builds a new world in the engine and makes it the running game. On success the revision moves
+   * on and every cached query from a previous game refetches; refusals resolve with the reasons.
+   */
+  async startNewGame(input: StartNewGameInput): Promise<StartNewGameResult> {
+    const result = await this.#busyCall((host) => host.startNewGame(input));
+    this.status.getState().setRevision(result.revision);
+    if (result.ok) this.cache.invalidateAll();
+    return result;
+  }
+
+  /** The local seat of the running game, or null when none is loaded. */
+  async getSeat(): Promise<LocalSeat | null> {
+    return this.#call(async (host) => host.getSeat());
   }
 
   /** Stops the running game and forgets every cached query. */

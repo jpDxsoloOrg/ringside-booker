@@ -5,6 +5,7 @@ import {
   GalleryFrameScreen,
   GalleryScreen,
 } from '@/screens/dev-gallery/GalleryScreen';
+import { NewGameScreen } from '@/screens/new-game/NewGameScreen';
 import { NotFoundScreen } from '@/screens/not-found/NotFoundScreen';
 import { PlaceholderScreen } from '@/screens/placeholder/PlaceholderScreen';
 import { SaveSlotsScreen } from '@/screens/saves/SaveSlotsScreen';
@@ -64,8 +65,6 @@ const galleryRoutes: RouteObject[] = [
 const outOfGameRoutes: RouteObject[] = [
   { path: routes.title(), element: <TitleScreen /> },
   { path: routes.load(), element: <SaveSlotsScreen /> },
-  // The new-game wizard replaces this placeholder when it lands.
-  { path: routes.newGame(), element: <PlaceholderScreen title="New game" /> },
   // Opened from the title screen and from the in-game sidebar and More sheet; its back link
   // returns to wherever the player came from.
   { path: routes.settings(), element: <SettingsScreen /> },
@@ -113,6 +112,12 @@ export function buildAppRoutes({ includeDevRoutes }: AppRouteOptions): RouteObje
       element: <RootLayout />,
       children: [
         { element: <OutOfGameLayout />, children: outOfGameRoutes },
+        // The new-game wizard has a step rail and a summary beside its steps, so it gets the wide
+        // column.
+        {
+          element: <OutOfGameLayout width="wide" />,
+          children: [{ path: routes.newGame(), element: <NewGameScreen /> }],
+        },
         gameRoute,
         ...galleryRoutes,
         ...(includeDevRoutes ? devOnlyRoutes : []),

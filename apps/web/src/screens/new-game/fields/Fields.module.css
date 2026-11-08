@@ -1,0 +1,183 @@
+/*
+ * The wizard's form fields: a labelled text input with a hint and an inline error, and a
+ * segmented choice built on native radios. Office register: 8px controls, muted labels, rose
+ * errors with an icon so the problem never rests on colour alone. Fields fill their column, so on
+ * a phone every field is full width.
+ */
+
+.field {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.label {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.input {
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 2.5rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+}
+
+.input::placeholder {
+  color: var(--color-text-subtle);
+}
+
+.input[aria-invalid='true'] {
+  border-color: var(--color-negative);
+}
+
+.uppercase {
+  text-transform: uppercase;
+}
+
+.inputRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.inputRow > .input {
+  flex: 1 1 10rem;
+  inline-size: auto;
+}
+
+.hint {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-1);
+  color: var(--color-negative);
+  font-size: var(--font-size-sm);
+}
+
+.errorIcon {
+  flex: none;
+  margin-block-start: 0.15em;
+}
+
+/* ---- Segmented choice ------------------------------------------------------------------------ */
+
+.segmented {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.legend {
+  margin-block-end: var(--space-2);
+  padding: 0;
+  color: var(--color-text);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* A choice among other settings: worded like a switch's label, not a section heading. */
+.fieldLegend {
+  margin-block-end: var(--space-1);
+  padding: 0;
+  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
+}
+
+.segmentedDescription {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* The segments wrap onto a second line rather than widening the page on a phone. */
+.segments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.segment {
+  position: relative;
+  display: inline-flex;
+}
+
+.segmentInput {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: 0;
+  opacity: 0;
+}
+
+.segmentLabel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 2.5rem;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition:
+    background-color var(--motion-fast) var(--easing-standard),
+    border-color var(--motion-fast) var(--easing-standard);
+}
+
+.segmentLabel:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.segmentInput:checked + .segmentLabel {
+  border-color: var(--color-data);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  box-shadow: inset 0 -2px 0 var(--color-data);
+}
+
+.segmentInput:focus-visible + .segmentLabel {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.segmentInput:disabled + .segmentLabel {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+@media (pointer: coarse) {
+  .input,
+  .segmentLabel {
+    min-block-size: var(--tap-target-min);
+  }
+}
+
+@media (--bp-mobile) {
+  .input,
+  .segmentLabel {
+    min-block-size: var(--tap-target-min);
+  }
+}

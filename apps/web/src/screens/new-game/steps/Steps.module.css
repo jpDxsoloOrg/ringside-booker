@@ -1,0 +1,422 @@
+/*
+ * The wizard's step bodies. Office register: rounded cards on the surface step, condensed caps for
+ * labels and headings, sentence case and tabular numbers elsewhere. Every grid collapses to one
+ * column below --bp-mobile, so each step is a single column of full-width fields on a phone.
+ */
+
+.step {
+  display: grid;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+
+.lead {
+  color: var(--color-text-muted);
+}
+
+.status {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.sectionTitle {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.issueList {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding-inline-start: var(--space-5);
+  color: var(--color-negative);
+  font-size: var(--font-size-sm);
+}
+
+/* ---- Choice cards (worlds, "found your own") ------------------------------------------------ */
+
+.choiceGroup {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.choiceList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.choiceCard {
+  position: relative;
+  display: grid;
+  gap: var(--space-2);
+  block-size: 100%;
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  cursor: pointer;
+  transition:
+    background-color var(--motion-fast) var(--easing-standard),
+    border-color var(--motion-fast) var(--easing-standard);
+}
+
+.choiceCard:hover {
+  background: var(--color-surface-hover);
+}
+
+.choiceCard:has(input:checked) {
+  border-color: var(--color-data);
+  background: var(--color-surface-raised);
+  box-shadow: inset 3px 0 0 var(--color-data);
+}
+
+.choiceCard:has(input:focus-visible) {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.choiceInput {
+  position: absolute;
+  inset-block-start: var(--space-4);
+  inset-inline-end: var(--space-4);
+  inline-size: 1.1rem;
+  block-size: 1.1rem;
+  margin: 0;
+  accent-color: var(--color-data);
+}
+
+.choiceTitle {
+  padding-inline-end: var(--space-6);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.choiceBody {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  margin: 0;
+}
+
+.fact {
+  display: grid;
+  gap: 0;
+}
+
+.factLabel {
+  color: var(--color-text-muted);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.factValue {
+  margin: 0;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Promotion step -------------------------------------------------------------------------- */
+
+.foundCallout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--color-border-strong);
+  border-inline-start: 3px solid var(--color-action-bright);
+  border-radius: var(--radius-card);
+  background: var(--color-surface-raised);
+}
+
+.foundCalloutText {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  flex: 1 1 16rem;
+}
+
+.foundCalloutTitle {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.promotionLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.nameCell {
+  display: grid;
+  gap: 0;
+  min-inline-size: 0;
+}
+
+.nameMain {
+  font-weight: var(--font-weight-semibold);
+}
+
+.nameSub {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.detail {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.detailHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.detailName {
+  display: grid;
+  gap: 0;
+  min-inline-size: 0;
+}
+
+.detailTitle {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.chipList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.workerList {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.workerRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.workerText {
+  display: grid;
+  min-inline-size: 0;
+}
+
+.workerName {
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.workerMeta {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.subheading {
+  margin-block-end: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ---- Forms ----------------------------------------------------------------------------------- */
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4) var(--space-5);
+  min-inline-size: 0;
+}
+
+.fullRow {
+  grid-column: 1 / -1;
+}
+
+.regionPicker {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.regionPicker > legend {
+  margin-block-end: var(--space-2);
+  padding: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.regionError {
+  grid-column: 1 / -1;
+}
+
+.colourRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3) var(--space-4);
+  min-inline-size: 0;
+}
+
+.colourPickerField {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.colourPicker {
+  inline-size: 3.5rem;
+  block-size: 2.5rem;
+  padding: var(--space-1);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  cursor: pointer;
+}
+
+.colourHex {
+  flex: 1 1 9rem;
+  max-inline-size: 14rem;
+}
+
+.logoPreview {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.swatch {
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.label {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* ---- Options step ---------------------------------------------------------------------------- */
+
+.seasonLine {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  border-inline-start: 3px solid var(--color-data);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-sunken);
+}
+
+.seasonDates {
+  font-weight: var(--font-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.note {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.customWeeks {
+  max-inline-size: 16rem;
+  margin-block-start: var(--space-3);
+}
+
+.settingGroups {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.settingGroup {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.advancedFields {
+  display: grid;
+  gap: var(--space-4);
+  max-inline-size: 32rem;
+}
+
+/* ---- Review step ----------------------------------------------------------------------------- */
+
+.progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-data);
+  font-weight: var(--font-weight-semibold);
+}
+
+@media (--bp-mobile) {
+  .formGrid,
+  .regionPicker {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .colourHex {
+    max-inline-size: none;
+  }
+
+  .customWeeks {
+    max-inline-size: none;
+  }
+
+  .foundCallout {
+    padding: var(--space-4);
+  }
+
+  .foundCallout > button {
+    inline-size: 100%;
+  }
+}

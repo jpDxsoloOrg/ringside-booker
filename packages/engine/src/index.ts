@@ -299,6 +299,7 @@ export {
   PRODUCTION_LEVEL_MIN,
   PROMOTION_STATUSES,
   PromotionSchema,
+  SHORT_NAME_PATTERN,
 } from './model/entities/promotion';
 export type { Brand } from './model/entities/brand';
 export { BrandSchema } from './model/entities/brand';

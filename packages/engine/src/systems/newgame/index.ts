@@ -22,8 +22,13 @@ export {
   type FoundPromotionSpec,
 } from './foundPromotion';
 export {
+  FOUNDED_NAME_MAX_LENGTH,
+  FOUNDED_NAME_MIN_LENGTH,
   FOUNDING_SIZES,
   newGameInputSchema,
+  PLAYER_NAME_MAX_LENGTH,
+  SAVE_NAME_MAX_LENGTH,
+  SEED_MAX_LENGTH,
   type ExistingPromotionChoice,
   type FoundingSize,
   type FoundPromotionChoice,

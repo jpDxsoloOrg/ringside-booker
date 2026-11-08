@@ -28,8 +28,12 @@ import type {
   LoadSlotWhich,
   PingResult,
   SaveSlotResult,
+  StartNewGameInput,
+  StartNewGameResult,
   UnloadResult,
   WorkerEngineHost,
+  WorldPackList,
+  WorldPreviewResult,
 } from '@/worker/engineHost';
 import type { AutosaveOptions } from '@/storage';
 import type { LocalSeat } from '@/worker/localViewer';
@@ -61,6 +65,9 @@ export interface EngineHostClient {
   createSlot(label: string): Promise<SaveSlotResult>;
   autosave(slotId: string, options: AutosaveOptions): Promise<SaveSlotResult>;
   inspectSave(bytes: Uint8Array): Promise<InspectReport>;
+  listWorldPacks(): Promise<WorldPackList>;
+  previewWorld(rootPackId: string): Promise<WorldPreviewResult>;
+  startNewGame(input: StartNewGameInput): Promise<StartNewGameResult>;
   unloadWorld(): UnloadResult | Promise<UnloadResult>;
 }
 
@@ -100,6 +107,9 @@ interface WireEngineHost {
   createSlot(label: string): Promise<SaveSlotResult>;
   autosave(slotId: string, options: AutosaveOptions): Promise<SaveSlotResult>;
   inspectSave(bytes: Uint8Array): Promise<InspectReport>;
+  listWorldPacks(): Promise<WorldPackList>;
+  previewWorld(rootPackId: string): Promise<WorldPreviewResult>;
+  startNewGame(input: StartNewGameInput): Promise<StartNewGameResult>;
   unloadWorld(): UnloadResult;
 }
 
@@ -183,6 +193,9 @@ export function createWorkerTransport(): EngineTransport {
     autosave: (slotId, options) => remote.autosave(slotId, options),
     // Copied, not transferred: the import keeps the bytes to store them once they pass.
     inspectSave: (bytes) => remote.inspectSave(bytes),
+    listWorldPacks: () => remote.listWorldPacks(),
+    previewWorld: (rootPackId) => remote.previewWorld(rootPackId),
+    startNewGame: (input) => remote.startNewGame(input),
     unloadWorld: () => remote.unloadWorld(),
   };
 

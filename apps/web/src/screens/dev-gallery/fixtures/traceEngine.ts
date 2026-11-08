@@ -95,6 +95,10 @@ export function createTraceFixtureTransport(
       createSlot: () => Promise.resolve(SAVE_REFUSED),
       autosave: () => Promise.resolve(SAVE_REFUSED),
       inspectSave: () => Promise.resolve(INSPECT_REFUSED),
+      listWorldPacks: () => Promise.resolve({ packs: [], issues: [] }),
+      previewWorld: () => Promise.resolve({ ok: false, issues: [] }),
+      startNewGame: () =>
+        Promise.resolve({ ok: false, reasons: [NOT_IN_GALLERY], revision: FIXTURE_REVISION }),
       unloadWorld: () => ({ revision: FIXTURE_REVISION }),
     },
     onFatal: () => () => undefined,

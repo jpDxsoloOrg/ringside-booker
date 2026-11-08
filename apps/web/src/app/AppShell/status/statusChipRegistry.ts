@@ -17,8 +17,8 @@ export interface StatusChipDefinition {
   /** Unique, such as `social.morale`. */
   readonly id: string;
   /**
-   * Its place among the chips, lowest first. The built-in chips use 10 (cash) and 20 (popularity),
-   * so a chip at 30 sits after them and one at 15 between them.
+   * Its place among the chips, lowest first. The built-in chips use 5 (promotion name), 10 (cash)
+   * and 20 (popularity), so a chip at 30 sits after them and one at 15 between cash and popularity.
    */
   readonly order: number;
   /** Draws the chip, or returns null to hide it (for example a seat with no promotion). */

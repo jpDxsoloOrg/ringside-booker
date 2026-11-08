@@ -10,6 +10,11 @@
   border: 1px solid var(--color-border);
 }
 
+/* The desktop top bar's status, shown at its real width: it scrolls inside the stage on a phone. */
+.barDemo {
+  overflow-x: auto;
+}
+
 .row {
   display: flex;
   flex-wrap: wrap;
