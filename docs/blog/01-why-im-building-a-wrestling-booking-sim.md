@@ -98,9 +98,9 @@ yours, with a line saying which shortcut applied, such as "rival shortcut: no in
 (on)".
 
 **4. Desktop first, but playable on a phone.** Booking is dense, so screens are designed for a
-desktop window first, but every screen also gets a phone layout. The roster is a wide sortable table
-on a desktop and a stack of cards on a phone, so I can check last night's show on the bus. That
-table is built, and automated tests check it at 390 pixels wide.
+desktop window first, but every screen also gets a phone layout. The roster will be a wide sortable
+table on a desktop and a stack of cards on a phone, so I can check last night's show on the bus. The
+table component behind it is built, and automated tests check it at 390 pixels wide.
 
 **5. Data, not code, for content.** Wrestlers, promotions, titles, events and balance numbers are
 data files that can be edited and shared as packs. The world the game ships with will just be the
