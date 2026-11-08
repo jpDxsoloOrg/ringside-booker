@@ -172,8 +172,17 @@
   font-size: var(--font-size-sm);
 }
 
+/*
+ * The table scrolls inside .scroller, so a ring on the table itself would scroll out of sight
+ * along with its far edges. The scroller draws the ring instead, always in full view.
+ */
 .table:focus-visible {
-  outline-offset: -2px;
+  outline: none;
+}
+
+.scroller:has(.table:focus-visible) {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }
 
 /* Present for screen readers; the panel around the table carries the visible title. */
@@ -581,8 +590,13 @@
   }
 }
 
+/* Reduced motion, from the OS unless the player turned motion back on, or from the setting. */
 @media (prefers-reduced-motion: reduce) {
-  .skeleton {
+  :global(:root:not([data-reduced-motion='off'])) .skeleton {
     animation: none;
   }
+}
+
+:global([data-reduced-motion='on']) .skeleton {
+  animation: none;
 }

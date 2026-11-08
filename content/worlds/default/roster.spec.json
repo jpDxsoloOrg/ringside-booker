@@ -1,0 +1,586 @@
+{
+  "seed": "default-world-v1",
+  "neighbourCountryShare": 0.2,
+  "promotions": {
+    "pro-au-indie": {
+      "tier": "local",
+      "wrestlers": 8,
+      "genderShares": {
+        "male": 0.7,
+        "female": 0.28,
+        "nonBinary": 0.02
+      },
+      "pushShares": {
+        "mainEvent": 0.12,
+        "upperCard": 0.2,
+        "midCard": 0.3,
+        "lowerCard": 0.23,
+        "enhancement": 0.15
+      },
+      "stageShares": {
+        "rookie": 0.25,
+        "prospect": 0.3,
+        "established": 0.25,
+        "veteran": 0.12,
+        "legend": 0.08
+      },
+      "staff": {
+        "referee": 1,
+        "announcer": 1,
+        "producer": 0,
+        "manager": 0
+      },
+      "contractMonths": {
+        "min": 2,
+        "max": 14
+      }
+    },
+    "pro-ca": {
+      "tier": "regional",
+      "wrestlers": 13,
+      "genderShares": {
+        "male": 0.7,
+        "female": 0.28,
+        "nonBinary": 0.02
+      },
+      "pushShares": {
+        "mainEvent": 0.09,
+        "upperCard": 0.22,
+        "midCard": 0.4,
+        "lowerCard": 0.17,
+        "enhancement": 0.12
+      },
+      "stageShares": {
+        "rookie": 0.14,
+        "prospect": 0.22,
+        "established": 0.34,
+        "veteran": 0.2,
+        "legend": 0.1
+      },
+      "staff": {
+        "referee": 1,
+        "announcer": 1,
+        "producer": 1,
+        "manager": 0
+      },
+      "contractMonths": {
+        "min": 3,
+        "max": 26
+      }
+    },
+    "pro-de": {
+      "tier": "regional",
+      "wrestlers": 12,
+      "genderShares": {
+        "male": 0.7,
+        "female": 0.28,
+        "nonBinary": 0.02
+      },
+      "pushShares": {
+        "mainEvent": 0.09,
+        "upperCard": 0.22,
+        "midCard": 0.4,
+        "lowerCard": 0.17,
+        "enhancement": 0.12
+      },
+      "stageShares": {
+        "rookie": 0.14,
+        "prospect": 0.22,
+        "established": 0.34,
+        "veteran": 0.2,
+        "legend": 0.1
+      },
+      "staff": {
+        "referee": 1,
+        "announcer": 1,
+        "producer": 0,
+        "manager": 1
+      },
+      "contractMonths": {
+        "min": 3,
+        "max": 24
+      }
+    },
+    "pro-flagship": {
+      "tier": "flagship",
+      "wrestlers": 44,
+      "genderShares": {
+        "male": 0.68,
+        "female": 0.3,
+        "nonBinary": 0.02
+      },
+      "pushShares": {
+        "mainEvent": 0.11,
+        "upperCard": 0.18,
+        "midCard": 0.32,
+        "lowerCard": 0.23,
+        "enhancement": 0.16
+      },
+      "stageShares": {
+        "rookie": 0.1,
+        "prospect": 0.2,
+        "established": 0.38,
+        "veteran": 0.22,
+        "legend": 0.1
+      },
+      "staff": {
+        "referee": 4,
+        "announcer": 3,
+        "producer": 2,
+        "manager": 2
+      },
+      "contractMonths": {
+        "min": 2,
+        "max": 30
+      },
+      "brandShares": {
+        "flagship-main-brand": 0.5,
+        "flagship-young-brand": 0.5
+      }
+    },
+    "pro-jp-kansai-indie": {
+      "tier": "local",
+      "wrestlers": 8,
+      "genderShares": {
+        "male": 0.7,
+        "female": 0.28,
+        "nonBinary": 0.02
+      },
+      "pushShares": {
+        "mainEvent": 0.12,
+        "upperCard": 0.2,
+        "midCard": 0.3,
+        "lowerCard": 0.23,
+        "enhancement": 0.15
+      },
+      "stageShares": {
+        "rookie": 0.25,
+        "prospect": 0.3,
+        "established": 0.25,
+        "veteran": 0.12,
+        "legend": 0.08
+      },
+      "styleWeights": {
+        "allRounder": 8,
+        "technician": 6,
+        "highFlyer": 14,
+        "striker": 6,
+        "showman": 4,
+        "grappler": 2,
+        "brawler": 2
+      },
+      "staff": {
+        "referee": 1,
+        "announcer": 1,
+        "producer": 0,
+        "manager": 0
+      },
+      "contractMonths": {
+        "min": 2,
+        "max": 14
+      }
+    },
+    "pro-jp-major": {
+      "tier": "national",
+      "wrestlers": 26,
+      "genderShares": {
+        "male": 0.82,
+        "female": 0.16,
+        "nonBinary": 0.02
+      },
+      "pushShares": {
+        "mainEvent": 0.12,
+        "upperCard": 0.19,
+        "midCard": 0.35,
+        "lowerCard": 0.19,
+        "enhancement": 0.15
+      },
+      "stageShares": {
+        "rookie": 0.14,
+        "prospect": 0.22,
+        "established": 0.34,
+        "veteran": 0.2,
+        "legend": 0.1
+      },
+      "styleWeights": {
+        "allRounder": 12,
+        "technician": 12,
+        "brawler": 8,
+        "highFlyer": 8,
+        "powerhouse": 8,
+        "hardcore": 2,
+        "striker": 16,
+        "grappler": 8,
+        "showman": 3
+      },
+      "staff": {
+        "referee": 2,
+        "announcer": 2,
+        "producer": 1,
+        "manager": 2
+      },
+      "contractMonths": {
+        "min": 3,
+        "max": 30
+      }
+    },
+    "pro-mx-major": {
+      "tier": "national",
+      "wrestlers": 26,
+      "genderShares": {
+        "male": 0.74,
+        "female": 0.24,
+        "nonBinary": 0.02
+      },
+      "pushShares": {
+        "mainEvent": 0.12,
+        "upperCard": 0.19,
+        "midCard": 0.35,
+        "lowerCard": 0.19,
+        "enhancement": 0.15
+      },
+      "stageShares": {
+        "rookie": 0.14,
+        "prospect": 0.22,
+        "established": 0.34,
+        "veteran": 0.2,
+        "legend": 0.1
+      },
+      "styleWeights": {
+        "allRounder": 10,
+        "technician": 8,
+        "brawler": 8,
+        "highFlyer": 28,
+        "powerhouse": 5,
+        "hardcore": 3,
+        "striker": 3,
+        "grappler": 4,
+        "showman": 10
+      },
+      "staff": {
+        "referee": 2,
+        "announcer": 2,
+        "producer": 1,
+        "manager": 2
+      },
+      "contractMonths": {
+        "min": 3,
+        "max": 30
+      }
+    },
+    "pro-uk": {
+      "tier": "regional",
+      "wrestlers": 12,
+      "genderShares": {
+        "male": 0.7,
+        "female": 0.28,
+        "nonBinary": 0.02
+      },
+      "pushShares": {
+        "mainEvent": 0.09,
+        "upperCard": 0.22,
+        "midCard": 0.4,
+        "lowerCard": 0.17,
+        "enhancement": 0.12
+      },
+      "stageShares": {
+        "rookie": 0.14,
+        "prospect": 0.22,
+        "established": 0.34,
+        "veteran": 0.2,
+        "legend": 0.1
+      },
+      "staff": {
+        "referee": 1,
+        "announcer": 1,
+        "producer": 1,
+        "manager": 0
+      },
+      "contractMonths": {
+        "min": 3,
+        "max": 24
+      }
+    },
+    "pro-us-greatlakes": {
+      "tier": "regional",
+      "wrestlers": 12,
+      "genderShares": {
+        "male": 0.7,
+        "female": 0.28,
+        "nonBinary": 0.02
+      },
+      "pushShares": {
+        "mainEvent": 0.09,
+        "upperCard": 0.22,
+        "midCard": 0.4,
+        "lowerCard": 0.17,
+        "enhancement": 0.12
+      },
+      "stageShares": {
+        "rookie": 0.14,
+        "prospect": 0.22,
+        "established": 0.34,
+        "veteran": 0.2,
+        "legend": 0.1
+      },
+      "styleWeights": {
+        "allRounder": 10,
+        "technician": 6,
+        "brawler": 14,
+        "highFlyer": 6,
+        "powerhouse": 8,
+        "hardcore": 16,
+        "striker": 8,
+        "grappler": 4,
+        "showman": 6
+      },
+      "staff": {
+        "referee": 1,
+        "announcer": 1,
+        "producer": 0,
+        "manager": 1
+      },
+      "contractMonths": {
+        "min": 3,
+        "max": 24
+      }
+    },
+    "pro-us-southeast": {
+      "tier": "regional",
+      "wrestlers": 12,
+      "genderShares": {
+        "male": 0.7,
+        "female": 0.28,
+        "nonBinary": 0.02
+      },
+      "pushShares": {
+        "mainEvent": 0.09,
+        "upperCard": 0.22,
+        "midCard": 0.4,
+        "lowerCard": 0.17,
+        "enhancement": 0.12
+      },
+      "stageShares": {
+        "rookie": 0.14,
+        "prospect": 0.22,
+        "established": 0.34,
+        "veteran": 0.2,
+        "legend": 0.1
+      },
+      "staff": {
+        "referee": 1,
+        "announcer": 1,
+        "producer": 1,
+        "manager": 0
+      },
+      "contractMonths": {
+        "min": 3,
+        "max": 26
+      }
+    },
+    "pro-us-texas-indie": {
+      "tier": "local",
+      "wrestlers": 8,
+      "genderShares": {
+        "male": 0.7,
+        "female": 0.28,
+        "nonBinary": 0.02
+      },
+      "pushShares": {
+        "mainEvent": 0.12,
+        "upperCard": 0.2,
+        "midCard": 0.3,
+        "lowerCard": 0.23,
+        "enhancement": 0.15
+      },
+      "stageShares": {
+        "rookie": 0.25,
+        "prospect": 0.3,
+        "established": 0.25,
+        "veteran": 0.12,
+        "legend": 0.08
+      },
+      "staff": {
+        "referee": 1,
+        "announcer": 1,
+        "producer": 0,
+        "manager": 0
+      },
+      "contractMonths": {
+        "min": 2,
+        "max": 14
+      }
+    },
+    "pro-us-west-women": {
+      "tier": "regional",
+      "wrestlers": 12,
+      "genderShares": {
+        "male": 0,
+        "female": 1,
+        "nonBinary": 0
+      },
+      "pushShares": {
+        "mainEvent": 0.09,
+        "upperCard": 0.22,
+        "midCard": 0.4,
+        "lowerCard": 0.17,
+        "enhancement": 0.12
+      },
+      "stageShares": {
+        "rookie": 0.14,
+        "prospect": 0.22,
+        "established": 0.34,
+        "veteran": 0.2,
+        "legend": 0.1
+      },
+      "staff": {
+        "referee": 1,
+        "announcer": 1,
+        "producer": 0,
+        "manager": 1
+      },
+      "contractMonths": {
+        "min": 3,
+        "max": 24
+      }
+    }
+  },
+  "freeAgents": {
+    "wrestlers": 35,
+    "genderShares": {
+      "male": 0.66,
+      "female": 0.32,
+      "nonBinary": 0.02
+    },
+    "stageShares": {
+      "rookie": 0.26,
+      "prospect": 0.26,
+      "established": 0.2,
+      "veteran": 0.18,
+      "legend": 0.1
+    },
+    "staff": {
+      "referee": 3,
+      "announcer": 2,
+      "producer": 2,
+      "manager": 2
+    },
+    "continentWeights": {
+      "af": 1,
+      "as": 3,
+      "eu": 4,
+      "na": 6,
+      "oc": 1,
+      "sa": 3
+    },
+    "teams": 4
+  },
+  "cardValue": {
+    "homePopularityWeight": 0.5
+  },
+  "alignment": {
+    "swapChance": 0.3
+  },
+  "popularity": {
+    "minPromotionPopularity": 10,
+    "pushFactors": {
+      "mainEvent": 0.9,
+      "upperCard": 0.7,
+      "midCard": 0.5,
+      "lowerCard": 0.35,
+      "enhancement": 0.2
+    },
+    "noise": 0.1
+  },
+  "contracts": {
+    "startedYearsAgo": {
+      "min": 0,
+      "max": 4
+    },
+    "terms": {
+      "flagship": {
+        "kind": "written",
+        "pay": {
+          "mainEvent": 60000,
+          "upperCard": 30000,
+          "midCard": 15000,
+          "lowerCard": 8000,
+          "enhancement": 4000,
+          "none": 6000
+        }
+      },
+      "national": {
+        "kind": "written",
+        "pay": {
+          "mainEvent": 20000,
+          "upperCard": 10000,
+          "midCard": 5000,
+          "lowerCard": 2500,
+          "enhancement": 1200,
+          "none": 2500
+        }
+      },
+      "regional": {
+        "kind": "written",
+        "pay": {
+          "mainEvent": 4000,
+          "upperCard": 2500,
+          "midCard": 1500,
+          "lowerCard": 900,
+          "enhancement": 500,
+          "none": 800
+        }
+      },
+      "local": {
+        "kind": "perAppearance",
+        "pay": {
+          "mainEvent": 1500,
+          "upperCard": 1000,
+          "midCard": 700,
+          "lowerCard": 450,
+          "enhancement": 300,
+          "none": 250
+        }
+      }
+    }
+  },
+  "teams": {
+    "perPromotion": {
+      "min": 3,
+      "max": 6
+    },
+    "formedMonthsAgo": {
+      "min": 4,
+      "max": 72
+    },
+    "styleGroups": {
+      "aerial": ["allRounder", "highFlyer", "showman", "technician"],
+      "ground": ["allRounder", "grappler", "striker", "technician"],
+      "power": ["brawler", "hardcore", "powerhouse", "showman", "striker"]
+    },
+    "experience": {
+      "min": 15,
+      "max": 70
+    }
+  },
+  "reigns": {
+    "currentWonDaysAgo": {
+      "min": 20,
+      "max": 300
+    },
+    "defences": {
+      "min": 0,
+      "max": 12
+    },
+    "pastReigns": {
+      "min": 1,
+      "max": 4
+    },
+    "historyYears": 5,
+    "pastReignDays": {
+      "min": 45,
+      "max": 420
+    },
+    "otherPromotionHolderChance": 0.12
+  }
+}

@@ -31,13 +31,22 @@ export function AdvanceSummary() {
 export interface AdvanceSummaryBannerProps {
   readonly report: AdvanceReport;
   readonly onDismiss: () => void;
+  /**
+   * The region's name. The shell shows one banner, so the default is enough there; a page that
+   * shows several at once (the gallery) gives each its own, so every region is told apart.
+   */
+  readonly label?: string;
 }
 
 /**
  * "Advanced 30 days to Friday, March 14, 2031", why it stopped, and a link to any background
  * steps that failed. It stays until dismissed or until the next advance replaces it.
  */
-export function AdvanceSummaryBanner({ report, onDismiss }: AdvanceSummaryBannerProps) {
+export function AdvanceSummaryBanner({
+  report,
+  onDismiss,
+  label = 'Last advance',
+}: AdvanceSummaryBannerProps) {
   const [failuresOpen, setFailuresOpen] = useState(false);
   const text =
     report.kind === 'advanced' ? describeAdvance(report.result) : describeRefusal(report.reasons);
@@ -47,7 +56,7 @@ export function AdvanceSummaryBanner({ report, onDismiss }: AdvanceSummaryBanner
     <section
       className={styles['summary']}
       data-tone={tone}
-      aria-label="Last advance"
+      aria-label={label}
       data-testid="advance-summary"
     >
       <div className={styles['summaryBody']}>

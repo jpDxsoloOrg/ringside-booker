@@ -3,8 +3,8 @@
 How the engine builds the people, places and organisations of a world. The map
 is in [geography.md](geography.md) and names are in [names.md](names.md); this
 doc covers generating people and seeding their potential, traits, vices and
-regional popularity. The default roster (WLD-09) gets its own section when it
-lands.
+regional popularity. How the shipped world's roster is built from these
+generators is in [default-world.md](default-world.md#the-roster).
 
 ## Generating people
 

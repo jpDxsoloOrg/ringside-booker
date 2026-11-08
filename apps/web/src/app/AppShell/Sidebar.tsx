@@ -35,7 +35,9 @@ export function Sidebar({ sections, badges, promotion = null, sample = false }: 
   const location = useLocation();
 
   return (
-    <div className={styles['sidebar']} data-testid="sidebar">
+    // A labelled landmark, so the wordmark, the crest and the footer links are not stray content
+    // outside every region for a screen reader moving by landmarks.
+    <aside aria-label="Sidebar" className={styles['sidebar']} data-testid="sidebar">
       <Link to={routes.game.office()} className={styles['brand']}>
         <span>Ringside</span> <span className={styles['brandAccent']}>Booker</span>
       </Link>
@@ -80,7 +82,7 @@ export function Sidebar({ sections, badges, promotion = null, sample = false }: 
           <MainMenuButton />
         </li>
       </ul>
-    </div>
+    </aside>
   );
 }
 

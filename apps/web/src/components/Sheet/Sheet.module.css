@@ -114,6 +114,8 @@
   padding: var(--space-5);
   overflow-y: auto;
   overscroll-behavior: contain;
+  /* Tabbing scrolls a control into view with room for its focus ring, not flush with the edge. */
+  scroll-padding-block: var(--space-2);
 }
 
 .footer {
