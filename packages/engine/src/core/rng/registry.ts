@@ -50,7 +50,7 @@ const stateWordSchema = z
   .number({ error: 'must be a number' })
   .int({ error: 'must be a whole number' })
   .min(0, { error: 'must be an unsigned 32-bit word (0 or more)' })
-  .max(MAX_UINT32, { error: `must be an unsigned 32-bit word (at most ${MAX_UINT32})` });
+  .max(MAX_UINT32, { error: `must be an unsigned 32-bit word (at most ${String(MAX_UINT32)})` });
 
 /** Zod schema for {@link RngState}. Rejects unknown versions, bad stream names and non-uint32 words. */
 export const rngStateSchema: z.ZodType<RngState> = z.strictObject({
@@ -67,10 +67,8 @@ export const rngStateSchema: z.ZodType<RngState> = z.strictObject({
         if (issue.code === 'invalid_type') {
           return 'must be an object of stream states';
         }
-        if (issue.code === 'invalid_key') {
-          return 'is not a valid stream name';
-        }
-        return undefined;
+        // The only other issue a record raises on its own is a bad key.
+        return 'is not a valid stream name';
       },
     },
   ),
@@ -98,7 +96,7 @@ function formatIssuePath(path: readonly PropertyKey[]): string {
   return path
     .map((segment, index) => {
       if (typeof segment === 'number') {
-        return `[${segment}]`;
+        return `[${String(segment)}]`;
       }
       const key = String(segment);
       if (/^[A-Za-z_$][\w$]*$/.test(key)) {

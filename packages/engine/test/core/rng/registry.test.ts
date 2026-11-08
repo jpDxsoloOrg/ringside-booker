@@ -65,8 +65,8 @@ describe('RngRegistry determinism', () => {
   it('gives different first draws for 1,000 random seed pairs', () => {
     const seedSource = new RngRegistry('seed-pairs').stream('test.seeds');
     for (let pair = 0; pair < 1000; pair++) {
-      const firstSeed = `seed-${seedSource.nextUint32()}-${pair}`;
-      const secondSeed = `seed-${seedSource.nextUint32()}-${pair}-b`;
+      const firstSeed = `seed-${String(seedSource.nextUint32())}-${String(pair)}`;
+      const secondSeed = `seed-${String(seedSource.nextUint32())}-${String(pair)}-b`;
       const firstDraw = new RngRegistry(firstSeed).stream('test.alpha').nextUint32();
       const secondDraw = new RngRegistry(secondSeed).stream('test.alpha').nextUint32();
       expect(firstDraw, `seeds ${firstSeed} and ${secondSeed}`).not.toBe(secondDraw);
@@ -181,20 +181,26 @@ describe('RngRegistry snapshot and restore', () => {
 
   it('refuses a snapshot from a registry with another seed', () => {
     const snapshot = new RngRegistry('other-seed').snapshot();
-    expect(() => new RngRegistry('rb-test').restore(snapshot)).toThrow(/Cannot restore/);
+    expect(() => {
+      new RngRegistry('rb-test').restore(snapshot);
+    }).toThrow(/Cannot restore/);
   });
 });
 
 describe('stream names', () => {
   it('accepts well-formed names', () => {
     for (const name of ['test.alpha', 'ids.per', 'condition.recovery', 'match.finish-roll']) {
-      expect(() => assertStreamName(name)).not.toThrow();
+      expect(() => {
+        assertStreamName(name);
+      }).not.toThrow();
     }
   });
 
   it('rejects malformed names loudly', () => {
     for (const name of ['', 'injuries', 'Test.alpha', 'test.', 'ids.', '.alpha', 'test alpha']) {
-      expect(() => assertStreamName(name)).toThrow(/Invalid RNG stream name/);
+      expect(() => {
+        assertStreamName(name);
+      }).toThrow(/Invalid RNG stream name/);
     }
   });
 

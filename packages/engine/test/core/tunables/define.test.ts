@@ -278,6 +278,10 @@ describe('value types', () => {
     },
   });
 
+  it('keeps every definition it was given', () => {
+    expect(Object.keys(defs)).toEqual(['test.factor', 'test.enabled', 'test.mode']);
+  });
+
   it('maps each kind to its value type', () => {
     expectTypeOf<TunableValue<(typeof defs)['test.factor']>>().toEqualTypeOf<number>();
     expectTypeOf<TunableValue<(typeof defs)['test.enabled']>>().toEqualTypeOf<boolean>();

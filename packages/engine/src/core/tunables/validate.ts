@@ -68,10 +68,10 @@ function checkAgainstDefinition(key: string, def: TunableDef, value: unknown): T
         return issue(key, value, 'notInteger', 'must be a whole number');
       }
       if (value < def.min) {
-        return issue(key, value, 'belowMin', `must be at least ${def.min}`);
+        return issue(key, value, 'belowMin', `must be at least ${String(def.min)}`);
       }
       if (value > def.max) {
-        return issue(key, value, 'aboveMax', `must be at most ${def.max}`);
+        return issue(key, value, 'aboveMax', `must be at most ${String(def.max)}`);
       }
       return null;
     }

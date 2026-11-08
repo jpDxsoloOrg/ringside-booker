@@ -3,7 +3,7 @@ import { hashString128, hashString32 } from '@ringside/engine';
 
 // Regression lock. Saves re-derive RNG streams from these hashes, so these values must never
 // change. If this test fails, the hash changed: revert it, or ship a save migration that re-seeds.
-const GOLDEN_HASHES: ReadonlyArray<readonly [string, readonly [number, number, number, number]]> = [
+const GOLDEN_HASHES: readonly (readonly [string, readonly [number, number, number, number]])[] = [
   ['', [0x027ae52e, 0xcfc79621, 0x5593990d, 0x4b41437c]],
   ['a', [0x5eb8e4e4, 0x08dee167, 0x8f5f05b9, 0x58089485]],
   ['ringside', [0x86d5c611, 0x33c42178, 0x4d30b065, 0xcfd38eee]],

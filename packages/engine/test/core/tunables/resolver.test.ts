@@ -1,6 +1,5 @@
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import {
-  ALL_TUNABLES,
   createEngineTunables,
   createTunables,
   defineTunables,
@@ -8,6 +7,7 @@ import {
   loadTunables,
   withOverride,
   withoutOverride,
+  type ALL_TUNABLES,
   type TunableKey,
 } from '@ringside/engine';
 
@@ -105,8 +105,8 @@ describe('createTunables', () => {
 
   it('throws on an unknown key reached at runtime', () => {
     const reader = createTunables(testTunables, {});
-    const untypedKey: string = 'test.missing';
-    expect(() => reader.get(untypedKey as 'test.retries')).toThrow(/Unknown tunable/);
+    // @ts-expect-error -- an unknown key only reaches get() from untyped input at runtime
+    expect(() => reader.get('test.missing')).toThrow(/Unknown tunable/);
   });
 });
 

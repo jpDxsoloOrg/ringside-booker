@@ -110,6 +110,25 @@ export type TunableValue<Def extends TunableDef> = Def extends { kind: 'boolean'
     ? Option
     : number;
 
+/**
+ * Narrows a value to one definition's value type by kind (and, for an enum, by option). Range
+ * checks are not repeated here: overrides are range-checked once, when they are accepted.
+ */
+export function isValueOfDefinition<Def extends TunableDef>(
+  def: Def,
+  value: unknown,
+): value is TunableValue<Def> {
+  switch (def.kind) {
+    case 'boolean':
+      return typeof value === 'boolean';
+    case 'enum':
+      return typeof value === 'string' && def.options.includes(value);
+    case 'number':
+    case 'integer':
+      return typeof value === 'number';
+  }
+}
+
 /** Maps every key of a definition set to its value type. */
 export type TunableValues<Defs extends TunableDefinitions> = {
   [Key in keyof Defs]: TunableValue<Defs[Key]>;
@@ -143,17 +162,21 @@ function rangeProblems(key: string, def: NumberTunableDef | IntegerTunableDef): 
     if (!Number.isFinite(value)) {
       problems.push(`${key}: ${field} must be a finite number, got ${String(value)}`);
     } else if (def.kind === 'integer' && !Number.isInteger(value)) {
-      problems.push(`${key}: ${field} of an integer tunable must be a whole number, got ${value}`);
+      problems.push(
+        `${key}: ${field} of an integer tunable must be a whole number, got ${String(value)}`,
+      );
     }
   }
   if (problems.length > 0) {
     return problems;
   }
   if (def.min > def.max) {
-    problems.push(`${key}: min ${def.min} is greater than max ${def.max}`);
+    problems.push(`${key}: min ${String(def.min)} is greater than max ${String(def.max)}`);
   }
   if (def.default < def.min || def.default > def.max) {
-    problems.push(`${key}: default ${def.default} is outside the range ${def.min} to ${def.max}`);
+    problems.push(
+      `${key}: default ${String(def.default)} is outside the range ${String(def.min)} to ${String(def.max)}`,
+    );
   }
   if (def.kind === 'number' && def.step !== undefined) {
     if (!Number.isFinite(def.step) || def.step <= 0) {
@@ -171,7 +194,7 @@ function rangeProblems(key: string, def: NumberTunableDef | IntegerTunableDef): 
 function unitProblems(key: string, def: TunableDef): string[] {
   const problems: string[] = [];
   if (!TUNABLE_UNITS.includes(def.unit)) {
-    problems.push(`${key}: unknown unit "${String(def.unit)}"`);
+    problems.push(`${key}: unknown unit "${def.unit}"`);
   }
   if ((def.unit === 'money' || def.unit === 'money/month') && def.kind !== 'integer') {
     problems.push(
@@ -294,6 +317,24 @@ export function mergeTunables<const Sets extends readonly TunableDefinitions[]>(
   if (duplicates.length > 0) {
     throw new TunableDefinitionError(duplicates);
   }
-  // The runtime object holds exactly the union of the input sets' keys and definitions.
-  return Object.freeze(merged) as MergedTunables<Sets>;
+  const frozen = Object.freeze(merged);
+  if (!holdsEverySet(frozen, sets)) {
+    throw new TunableDefinitionError(['merged tunables lost a definition']);
+  }
+  return frozen;
+}
+
+/** True when the merged set holds every input set's definitions under the same keys. */
+function holdsEverySet<Sets extends readonly TunableDefinitions[]>(
+  merged: unknown,
+  sets: Sets,
+): merged is MergedTunables<Sets> {
+  if (typeof merged !== 'object' || merged === null) {
+    return false;
+  }
+  return sets.every((set) =>
+    Object.entries(set).every(
+      ([key, def]) => Object.hasOwn(merged, key) && Reflect.get(merged, key) === def,
+    ),
+  );
 }

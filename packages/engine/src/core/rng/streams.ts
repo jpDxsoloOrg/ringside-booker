@@ -31,6 +31,9 @@ export interface StreamNames {}
  * A stream name the registry accepts: any declared name, or `ids.<prefix>` for ID minting
  * (one stream per entity ID prefix, such as `ids.per` or `ids.pro`).
  */
+// While no system has declared a name yet, `keyof StreamNames` is `never`; it stays in the union
+// so that declarations merged into StreamNames widen this type.
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 export type StreamName = keyof StreamNames | `ids.${string}`;
 
 /**

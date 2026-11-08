@@ -4,6 +4,7 @@
  * a step that is already running keeps the values it started with.
  */
 
+import { isValueOfDefinition } from './define';
 import type { TunableDefinitions, TunableRawValue, TunableValue } from './define';
 import { sortOverrides, type TunableOverrides } from './overrides';
 import { validateOverride, validateOverrides, type TunableIssue } from './validate';
@@ -60,17 +61,26 @@ function buildReader<Defs extends TunableDefinitions>(
     definitions: defs,
     overrides,
     get<Key extends keyof Defs & string>(key: Key): TunableValue<Defs[Key]> {
-      requireDefinition(defs, key);
-      // Every resolved value was checked against this key's definition, so it has the definition's
-      // value type.
-      return resolved.get(key) as TunableValue<Defs[Key]>;
+      const def = requireDefinition(defs, key);
+      // Every resolved value was checked against this key's definition when it was accepted, so
+      // this guard only fails if that invariant is broken.
+      const value = resolved.get(key);
+      if (!isValueOfDefinition(def, value)) {
+        throw new Error(`Tunable "${key}" holds a value that does not match its definition.`);
+      }
+      return value;
     },
     isOverridden(key: keyof Defs & string): boolean {
       return Object.hasOwn(overrides, key);
     },
     defaultOf<Key extends keyof Defs & string>(key: Key): TunableValue<Defs[Key]> {
       // A definition's default always has its own value type; defineTunables checks it.
-      return requireDefinition(defs, key).default as TunableValue<Defs[Key]>;
+      const def = requireDefinition(defs, key);
+      const fallback: unknown = def.default;
+      if (!isValueOfDefinition(def, fallback)) {
+        throw new Error(`Tunable "${key}" has a default that does not match its definition.`);
+      }
+      return fallback;
     },
     def<Key extends keyof Defs & string>(key: Key): Defs[Key] {
       return requireDefinition(defs, key);
