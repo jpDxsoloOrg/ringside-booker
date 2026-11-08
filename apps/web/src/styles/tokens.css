@@ -53,6 +53,7 @@
   --palette-amber-400: #e8bb45;
   --palette-amber-500: #c99a1f;
   --palette-amber-600: #9a7413;
+  --palette-amber-650: #876610;
   --palette-amber-700: #7a5b0e;
 
   --palette-blue-300: #9cc3f2;
@@ -70,6 +71,17 @@
   --palette-pink-600: #b04683;
   --palette-olive-400: #a9b85a;
   --palette-olive-600: #6a7526;
+
+  /*
+   * Metals for championship belt placeholders. Belt tier is information, not decoration, so these
+   * sit outside the categorical palette on purpose.
+   */
+  --palette-gold-400: #d9b54a;
+  --palette-gold-500: #c9a227;
+  --palette-silver-300: #c4c8cd;
+  --palette-silver-400: #a9adb3;
+  --palette-bronze-400: #c99062;
+  --palette-bronze-500: #b27a46;
 
   /* Spacing: a 0.25rem step. */
   --space-0: 0;
@@ -132,6 +144,13 @@
   --bottom-nav-height: 3.75rem;
   --content-max-width: 90rem;
   --tap-target-min: 2.75rem;
+
+  /* ImageSlot sizes (avatars, belts, logo marks). In rem so they grow with the UI scale. */
+  --image-size-xs: 1.5rem;
+  --image-size-sm: 2rem;
+  --image-size-md: 3rem;
+  --image-size-lg: 5rem;
+  --image-size-xl: 8rem;
 }
 
 /* Light theme: the default, and what an explicit data-theme='light' picks. */
@@ -161,8 +180,14 @@
   --color-cat-4: var(--palette-violet-600);
   --color-cat-5: var(--palette-pink-600);
   --color-cat-6: var(--palette-olive-600);
-  --color-cat-7: var(--palette-amber-600);
+  --color-cat-7: var(--palette-amber-650);
   --color-cat-8: var(--palette-neutral-600);
+  --color-metal-gold: var(--palette-gold-500);
+  --color-metal-silver: var(--palette-silver-400);
+  --color-metal-bronze: var(--palette-bronze-500);
+  --color-metal-plain: var(--palette-neutral-400);
+  --color-metal-ink: var(--palette-neutral-900);
+  --color-belt-strap: var(--palette-neutral-800);
 }
 
 /*
@@ -197,6 +222,12 @@
   --color-cat-6: var(--palette-olive-400);
   --color-cat-7: var(--palette-amber-400);
   --color-cat-8: var(--palette-neutral-400);
+  --color-metal-gold: var(--palette-gold-400);
+  --color-metal-silver: var(--palette-silver-300);
+  --color-metal-bronze: var(--palette-bronze-400);
+  --color-metal-plain: var(--palette-neutral-300);
+  --color-metal-ink: var(--palette-neutral-950);
+  --color-belt-strap: var(--palette-neutral-700);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -227,5 +258,11 @@
     --color-cat-6: var(--palette-olive-400);
     --color-cat-7: var(--palette-amber-400);
     --color-cat-8: var(--palette-neutral-400);
+    --color-metal-gold: var(--palette-gold-400);
+    --color-metal-silver: var(--palette-silver-300);
+    --color-metal-bronze: var(--palette-bronze-400);
+    --color-metal-plain: var(--palette-neutral-300);
+    --color-metal-ink: var(--palette-neutral-950);
+    --color-belt-strap: var(--palette-neutral-700);
   }
 }

@@ -69,10 +69,22 @@ settings screen restores a saved choice.
 | `--color-cat-4`           | Categorical series 4                           | `#6b4fbf`   | `#a68ce8`   |
 | `--color-cat-5`           | Categorical series 5                           | `#b04683`   | `#e584b6`   |
 | `--color-cat-6`           | Categorical series 6                           | `#6a7526`   | `#a9b85a`   |
-| `--color-cat-7`           | Categorical series 7                           | `#9a7413`   | `#e8bb45`   |
+| `--color-cat-7`           | Categorical series 7                           | `#876610`   | `#e8bb45`   |
 | `--color-cat-8`           | Categorical series 8                           | `#5f5b54`   | `#a19d95`   |
+| `--color-metal-gold`      | Gold belt plates                               | `#c9a227`   | `#d9b54a`   |
+| `--color-metal-silver`    | Silver belt plates                             | `#a9adb3`   | `#c4c8cd`   |
+| `--color-metal-bronze`    | Bronze belt plates                             | `#b27a46`   | `#c99062`   |
+| `--color-metal-plain`     | Plain (untiered) belt plates                   | `#a19d95`   | `#c4c1ba`   |
+| `--color-metal-ink`       | Engraving and outlines on metal                | `#1d1c1a`   | `#131312`   |
+| `--color-belt-strap`      | Belt strap                                     | `#302e2b`   | `#46433e`   |
 
-The categorical hues are placeholders until the chart components settle on a final set.
+The categorical hues are placeholders until the chart components settle on a final set. Light
+`--color-cat-7` uses `--palette-amber-650` rather than the 600 step, because placeholder initials
+sit on every category colour in `--color-text-inverse` and the 600 step fell just short of 4.5:1
+against white.
+
+The metal colours are a deliberate exception to "category palette only": a belt's tier is
+information, not decoration, so gold, silver and bronze have their own tokens.
 
 ### Contrast
 
@@ -87,6 +99,8 @@ contrast ratios:
 | `text-muted` on `surface`                              | 3.0     |
 | `focus` on `bg`                                        | 3.0     |
 | `border-strong` on `surface`                           | 3.0     |
+| `text-inverse` on each of `cat-1` … `cat-8`            | 4.5     |
+| `metal-ink` on each `metal-*` tier                     | 4.5     |
 
 ## Other tokens
 
@@ -113,6 +127,7 @@ These are the same in both themes.
 | `--bottom-nav-height`                      | Phone bottom navigation            | `3.75rem`                               |
 | `--content-max-width`                      | Cap on content width               | `90rem`                                 |
 | `--tap-target-min`                         | Smallest touch target              | `2.75rem`                               |
+| `--image-size-xs` … `--image-size-xl`      | ImageSlot sizes                    | `1.5` / `2` / `3` / `5` / `8rem`        |
 | `--safe-top` / `right` / `bottom` / `left` | Notch and home-indicator insets    | `env(safe-area-inset-*, 0px)`           |
 | `--ui-scale`                               | UI scale, set by `applyUiScale`    | `0.8` to `1.5`, default `1`             |
 
@@ -145,3 +160,60 @@ desktop player at 150% UI scale keeps the desktop layout. That is on purpose.
 root font size to `calc(var(--ui-scale, 1) * 100%)`, so at 1.25 every rem-based size (text,
 spacing, layout sizes) is 25% larger. It also respects the browser's own font size setting,
 because the base is `100%` rather than a fixed pixel size.
+
+## Placeholder art
+
+Until real images exist, every entity picture is drawn by `ImageSlot`
+(`apps/web/src/components/ImageSlot`). Screens always render `<ImageSlot subject={...} size="sm" />`
+and never draw entity art themselves, so swapping in real images later changes no screen.
+
+| Kind                                         | Generator          | What it draws                                                                                                                                        |
+| -------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `person`                                     | `PersonInitials`   | Initials on a category colour (the default)                                                                                                          |
+| `person` with `personStyle="silhouette"`     | `PersonSilhouette` | One of three head-and-shoulders outlines: short hair, long hair, hooded and masked                                                                   |
+| `title`                                      | `Belt`             | Strap, two side plates, a centre plate (oval, shield, hexagon or circle) engraved with initials, in the `tier` metal                                 |
+| `promotion`, `brand`, `event`, `network`     | `LogoMark`         | An outer shape (circle, shield, star-burst, diamond or hexagon) with a smaller copy inside in a second colour, and a monogram of up to three letters |
+| `venue`, and any kind the build doesn't know | `GenericPlace`     | A simple arena outline                                                                                                                               |
+
+**Seeded by id, not name.** Every choice (background colour, silhouette variant, plate shape, logo
+shape, inner colour) comes from a 32-bit FNV-1a hash of the entity id, re-hashed with a different
+salt per choice so they vary independently. Renaming a worker or a promotion keeps its colour and
+shape, which players use as a visual anchor; only the initials follow the new name. The hash lives
+in the UI and never touches the engine's random streams, so changing the art can't change game
+results.
+
+**Theme-aware.** The art is inline SVG, not image files or data URLs, and every fill is a CSS
+Module class that reads a semantic token (`--color-cat-*`, `--color-text-inverse`, the metal and
+strap tokens). Shapes stay the same across themes; colours follow the theme. SVG stays sharp at
+any size and on high-density screens, and slot sizes are in rem, so they grow with the UI scale.
+
+**Accessibility.** The SVG or `<img>` is named after the entity (`role="img"` and `aria-label`, or
+`alt`). Pass `decorative` when the name is already printed next to the slot; the art is then
+hidden from assistive tech.
+
+### Real images: registering a resolver
+
+`resolver.ts` holds a small registry of resolvers. A resolver is a synchronous function from the
+subject to a URL, or `null` to pass:
+
+```ts
+import { registerImageResolver } from '@/components/ImageSlot';
+
+const unregister = registerImageResolver((subject) => {
+  const path = packManifest.get(`${subject.kind}:${subject.id}`); // indexed when the pack loads
+  return path === undefined ? null : `/packs/my-pack/${path}`;
+});
+```
+
+- Resolvers are asked in registration order and the first URL wins. With none registered (the
+  default) every slot draws its placeholder.
+- The engine's `imageRef` is passed through as an opaque string; `placeholder:<kind>` references
+  reach resolvers as no reference at all.
+- Registering or removing a resolver re-renders every mounted slot, so a pack loaded mid-game
+  swaps images in place.
+- A resolver that throws is skipped and logged once.
+- An image that fails to load falls back to the placeholder, and the URL is remembered for the
+  session so long lists don't flicker between the two.
+
+Packs keep the resolver cheap: index the manifest once when the pack loads, then look up by kind
+and id.

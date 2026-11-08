@@ -20,6 +20,7 @@ import { TONES } from '@/components/tone';
 import { applyTheme } from '@/styles/theme';
 import type { ThemePreference } from '@/styles/theme';
 import styles from './DevGalleryScreen.module.css';
+import { ImageSlotDemo } from './ImageSlotDemo';
 
 interface GalleryEntry {
   /** Stable key and the section's anchor id, used by the e2e spec. */
@@ -38,6 +39,7 @@ export const galleryEntries: readonly GalleryEntry[] = [
   { id: 'gallery-empty-state', title: 'EmptyState' },
   { id: 'gallery-layout', title: 'Layout' },
   { id: 'gallery-format', title: 'Formatters' },
+  { id: 'gallery-image-slot', title: 'ImageSlot' },
 ];
 
 function sectionTitle(id: string): string {
@@ -409,6 +411,9 @@ export function DevGalleryScreen() {
       </Panel>
       <Panel id="gallery-format" title={sectionTitle('gallery-format')}>
         <FormatSection />
+      </Panel>
+      <Panel id="gallery-image-slot" title={sectionTitle('gallery-image-slot')}>
+        <ImageSlotDemo />
       </Panel>
     </main>
   );

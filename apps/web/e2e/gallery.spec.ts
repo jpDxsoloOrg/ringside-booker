@@ -20,6 +20,7 @@ const SECTION_IDS = [
   'gallery-empty-state',
   'gallery-layout',
   'gallery-format',
+  'gallery-image-slot',
 ] as const;
 
 /** The smallest touch target, 2.75rem at the default 16px root size. */
