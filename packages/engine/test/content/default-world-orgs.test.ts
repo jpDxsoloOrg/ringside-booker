@@ -192,6 +192,26 @@ describe('the default world organisations', () => {
     }
   });
 
+  it('keeps regionals to their home and neighbouring regions and locals to their home region', () => {
+    const { world } = loadedWorld();
+    for (const key of REGIONAL_SLOTS) {
+      const promotion = promotionOf(key);
+      const home = world.tables.regions.get(promotion.homeRegionId);
+      const footprint = new Set<string>([
+        promotion.homeRegionId,
+        ...(home?.neighbourRegionIds ?? []),
+      ]);
+      const outside = Object.keys(promotion.regionalPop).filter(
+        (regionId) => !footprint.has(regionId),
+      );
+      expect(outside, key).toEqual([]);
+    }
+    for (const key of TIERS[3] ?? []) {
+      const promotion = promotionOf(key);
+      expect(Object.keys(promotion.regionalPop), key).toEqual([promotion.homeRegionId]);
+    }
+  });
+
   it('keeps the size tiers apart by popularity across the home country', () => {
     const { world } = loadedWorld();
     const geography = geographyOf(world);

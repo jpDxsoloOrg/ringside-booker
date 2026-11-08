@@ -24,7 +24,7 @@ One company runs the business, and everybody else is chasing it.
   and two in Europe, each strong in one region and known in the ones around it.
   None of them can run nationally yet.
 - **Scrappy indies.** Three local promotions with one title, a small room and
-  a few thousand in the bank. Every show matters.
+  no more than 120k in the bank. Every show matters.
 
 The new game screen should offer a real choice: each tier is a different game,
 from defending the crown to building something out of nothing.
@@ -74,7 +74,7 @@ The tiers are clearly apart when popularity is rolled up to the home country
 | -------- | --------------------------------------------------- |
 | Flagship | 70.3 (US)                                           |
 | National | 60.1 to 61.2                                        |
-| Regional | 7.0 (Golden Poppy, US) to 28.4 (Eisenwerk, Germany) |
+| Regional | 6.5 (Golden Poppy, US) to 28.4 (Eisenwerk, Germany) |
 | Local    | 1.8 (Hardpan, US) to 5.0 (Wattle, Australia)        |
 
 The test `default-world-orgs.test.ts` checks that every tier's lowest value is

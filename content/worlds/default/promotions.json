@@ -308,8 +308,7 @@
     "regionalPop": {
       "gb-north": 42,
       "gb-midlands-wales": 28,
-      "gb-scotland-ni": 25,
-      "gb-london": 17
+      "gb-scotland-ni": 25
     },
     "prestige": 52,
     "cash": 900000,
@@ -454,8 +453,7 @@
     "regionalPop": {
       "us-california": 40,
       "us-pacific-northwest": 22,
-      "us-southwest": 20,
-      "us-mountain": 15
+      "us-southwest": 20
     },
     "prestige": 50,
     "cash": 750000,
