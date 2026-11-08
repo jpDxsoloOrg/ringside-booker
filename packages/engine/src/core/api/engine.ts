@@ -476,10 +476,15 @@ export function createEngine(options: CreateEngineOptions): Engine {
       advancing = true;
       try {
         const yieldToHost = advanceOptions.yieldToHost ?? host.yieldToHost;
-        return await advanceDays(
+        const result = await advanceDays(
           runtime,
           yieldToHost === undefined ? advanceOptions : { ...advanceOptions, yieldToHost },
         );
+        if (debugChecks) {
+          // The advance result crosses the worker boundary like any query or command result.
+          assertSerialisable(result, 'advanceDays');
+        }
+        return result;
       } finally {
         advancing = false;
       }

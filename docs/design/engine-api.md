@@ -315,7 +315,8 @@ those. No `Map`, `Set`, `Date`, class instance, function, `undefined` value or
 `assertJsonValue` in `core/json.ts`, so there's one definition of "plain JSON"
 in the engine. With `debugChecks` on, the engine runs it on every query
 result, every command result (inside the command's transaction, so a bad
-result rolls the command back) and every reason list, and the event bus runs
+result rolls the command back), every reason list and every `advanceDays`
+result (a bad one makes `advanceDays` reject), and the event bus runs
 the same check on every event payload. A failure comes back as an `internal`
 reason naming the bad path, such as `queries["roster.rows"][3].signedOn`.
 

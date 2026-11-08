@@ -58,6 +58,9 @@ describe('createEngine and the clock', () => {
       failures: [],
     });
     expect(clockDate(engine)).toBe(addDays(TINY_WORLD_TODAY, 3));
+    expect(() => {
+      assertSerialisable(result, 'advanceDays');
+    }).not.toThrow();
   });
 
   it('runs with the default systems alone', async () => {
