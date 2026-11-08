@@ -148,9 +148,10 @@ runs on any of this yet; that starts with SIM and WLD.
 
 ### Contracts have an explicit lifecycle
 
-- **Decision:** An `Employment` is created as `offered` and moves through `signed` and `active` to
-  one of five end states. A transitions table says which moves are legal, and a world invariant
-  checks that the stored state is one the calendar could have reached.
+- **Decision:** An `Employment` is created as `offered` and moves through `signed` and `active`.
+  It ends in one of five states: an offer can be declined or withdrawn, and an active contract
+  expires, is released or quits. A transitions table says which moves are legal, and a world
+  invariant checks that the stored state is one the calendar could have reached.
 - **Alternatives:** A contract row that exists only while it is active; a couple of booleans.
 - **Why:** An offer is not a contract. If the two look the same, a wrestler with a pending offer
   can end up paid by two companies. Separate states mean systems have to move between them on
@@ -265,15 +266,17 @@ runs on any of this yet; that starts with SIM and WLD.
   98.6% of lines and 95.0% of branches, `persistence/` without the data-pack loader at 93.9% and
   88.2%.
 - **Save size:** `tinyWorld()` encodes to 4,080 bytes gzipped (38,609 bytes of JSON before gzip),
-  measured with a throwaway test that called `encodeSave` on its test save document.
+  measured with a throwaway test that called `encodeSave` on `testSaveDocument(tinyWorld().world)`.
+  With promotion A set in the save header it is 4,074 bytes.
   `rosterWorld(300)` with 5,000 ledger entries encodes to 100,768 bytes, about 98 KB, from the log
   line of the FND-11 size test (`packages/engine/test/persistence/size.test.ts`). The test's limit
   is 2 MB.
 - **Encode and load time:** 39 to 51 ms to encode and 57 to 79 ms to load the 300-wrestler save,
-  over four runs of the same size test on my dev machine (Node 20.20.1 under WSL2). The test's
-  limit is 1.5 s for both together.
+  over four runs of the same size test on my dev machine (Node 20.20.1 under WSL2). Runs straight
+  after the full test suite, with the machine still busy, came out slower: up to 70 ms to encode
+  and 175 ms to load. The test's limit is 1.5 s for both together.
 - **CI `check` job:** 49 s on the wave 1 pull request, 2 min 14 s at wave 5, 2 min 30 s at wave 6,
-  and between 2 min 26 s and 3 min 5 s on the latest runs, from the job start and end times
+  and between 1 min 42 s and 3 min 5 s on the latest three runs, from the job start and end times
   GitHub Actions reports (`gh run view`). The growth isn't all Foundation: the job now also runs
   coverage, the blog and journal check and world validation.
 
@@ -305,8 +308,8 @@ runs on any of this yet; that starts with SIM and WLD.
   a fake IndexedDB. `navigator.storage.persist()` doesn't exist in workers, so the persistence
   request has to come from the main thread.
 - **Better than expected:** saves are tiny. A 300-wrestler world with 5,000 ledger entries is
-  about 98 KB, a twentieth of the budget, and the whole round trip is well under a fifth of a
-  second.
+  about 98 KB, a twentieth of the budget, and the whole round trip uses a small fraction of its
+  1.5 s budget.
 
 ## Open questions
 
