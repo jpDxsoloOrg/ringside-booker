@@ -4,6 +4,7 @@ import { RouteHeading } from '@/app/a11y/RouteHeading';
 import { useDocumentTitle } from '@/app/a11y/useDocumentTitle';
 import { isNoWorldRedirect } from '@/app/RequireWorld';
 import { routes } from '@/app/routes';
+import { settingsLinkState } from '@/app/settings/settingsNavigation';
 import { Button } from '@/components/Button';
 import { Icon } from '@/components/Icon';
 import { BUNDLED_ENGINE_VERSION } from '@/engineVersion';
@@ -118,7 +119,11 @@ export function TitleScreen() {
           {importSave.importing ? 'Importing…' : 'Import save'}
         </button>
         {importSave.fileInput}
-        <Link to={routes.settings()} className={styles['menuLink']}>
+        <Link
+          to={routes.settings()}
+          state={settingsLinkState(routes.title())}
+          className={styles['menuLink']}
+        >
           <Icon name="settings" decorative />
           Settings
         </Link>

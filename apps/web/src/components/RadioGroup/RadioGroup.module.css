@@ -1,0 +1,101 @@
+/* The group: a borderless fieldset with its legend styled as a field label. */
+.group {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.legend {
+  padding: 0;
+  margin-block-end: var(--space-1);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.description {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.options {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+/* Side by side while each option gets a sensible width; they stack again when it runs out. */
+.layout-row {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+}
+
+/* Each option is a card the whole of which picks it. */
+.option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-inline-size: 0;
+  min-block-size: var(--tap-target-min);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-sunken);
+  cursor: pointer;
+  transition:
+    background-color var(--motion-fast) var(--easing-standard),
+    border-color var(--motion-fast) var(--easing-standard);
+}
+
+.option:hover {
+  background: var(--color-surface-hover);
+}
+
+.option:has(.input:checked) {
+  border-color: var(--color-accent);
+  background: var(--color-surface-raised);
+}
+
+/* The input keeps its own focus ring; the card shows it too so the focus is easy to find. */
+.option:has(.input:focus-visible) {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.group:disabled .option {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.input {
+  flex: none;
+  inline-size: 1.125rem;
+  block-size: 1.125rem;
+  margin: 0;
+  accent-color: var(--color-accent);
+  cursor: inherit;
+}
+
+.text {
+  display: grid;
+  flex: 1;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.optionDescription {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.preview {
+  display: flex;
+  flex: none;
+  align-items: center;
+}

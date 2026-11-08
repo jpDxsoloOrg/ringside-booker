@@ -82,7 +82,8 @@ describe('GalleryScreen', () => {
 
     const frame = screen.getByTitle('Badge at phone width');
     expect(frame.tagName).toBe('IFRAME');
-    expect(frame).toHaveAttribute('src', '/dev/gallery/frame?theme=system#badge');
+    // The frame gets the theme on <html>: the viewer's setting, dark by default (D-11).
+    expect(frame).toHaveAttribute('src', '/dev/gallery/frame?theme=dark#badge');
   });
 
   it('never shows the phone frame at phone width', async () => {

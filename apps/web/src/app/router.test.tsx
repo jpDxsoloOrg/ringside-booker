@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import type { RouteObject } from 'react-router-dom';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -63,13 +64,34 @@ describe('app router', () => {
 
   it.each([
     [routes.newGame(), 'New game'],
-    [routes.settings(), 'Settings'],
   ])('renders a placeholder at %s until the screen is built', async (path, title) => {
     renderAt(path);
 
     expect(await screen.findByRole('heading', { level: 1, name: title })).toBeInTheDocument();
     expect(screen.getByRole('main')).toHaveAttribute('id', 'main');
     expect(screen.queryByRole('navigation')).toBeNull();
+  });
+});
+
+describe('settings route', () => {
+  it('renders the settings screen in the out-of-game layout', async () => {
+    renderAt(routes.settings());
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Settings' })).toBeInTheDocument();
+    expect(screen.getByRole('main')).toHaveAttribute('id', 'main');
+    expect(screen.queryByRole('navigation')).toBeNull();
+    expect(screen.getByRole('slider', { name: 'UI scale' })).toBeInTheDocument();
+  });
+
+  it('is linked from the title screen, and its back link returns there', async () => {
+    const user = userEvent.setup();
+    const router = renderAt(routes.title());
+
+    await user.click(await screen.findByRole('link', { name: 'Settings' }));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Settings' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('link', { name: 'Back' }));
+    expect(router.state.location.pathname).toBe(routes.title());
   });
 });
 

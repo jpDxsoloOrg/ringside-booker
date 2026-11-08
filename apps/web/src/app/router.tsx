@@ -8,6 +8,7 @@ import {
 import { NotFoundScreen } from '@/screens/not-found/NotFoundScreen';
 import { PlaceholderScreen } from '@/screens/placeholder/PlaceholderScreen';
 import { SaveSlotsScreen } from '@/screens/saves/SaveSlotsScreen';
+import { SettingsScreen } from '@/screens/settings/SettingsScreen';
 import { TitleScreen } from '@/screens/title/TitleScreen';
 import { LiveAnnouncer } from './a11y/LiveAnnouncer';
 import { RouteFocus } from './a11y/RouteFocus';
@@ -19,6 +20,7 @@ import { allNavItems, navigationSections } from './navigation';
 import type { NavItem } from './navigation';
 import { RequireWorld } from './RequireWorld';
 import { routePatterns, routes } from './routes';
+import { SettingsEffects } from './settings/SettingsEffects';
 
 /**
  * Opt in to the React Router 7 behaviours now, so the upgrade later changes nothing and the
@@ -35,10 +37,14 @@ export const routerFutureFlags = {
 /** The matching flag for `<RouterProvider future={...}>`. */
 export const routerProviderFutureFlags = { v7_startTransition: true } as const;
 
-/** Everything every route shares: the live announcer and focus handling on navigation. */
+/**
+ * Everything every route shares: the live announcer, focus handling on navigation, and the viewer
+ * settings kept applied to the document.
+ */
 function RootLayout() {
   return (
     <LiveAnnouncer>
+      <SettingsEffects />
       <RouteFocus />
       <Outlet />
     </LiveAnnouncer>
@@ -60,7 +66,9 @@ const outOfGameRoutes: RouteObject[] = [
   { path: routes.load(), element: <SaveSlotsScreen /> },
   // The new-game wizard replaces this placeholder when it lands.
   { path: routes.newGame(), element: <PlaceholderScreen title="New game" /> },
-  { path: routes.settings(), element: <PlaceholderScreen title="Settings" /> },
+  // Opened from the title screen and from the in-game sidebar and More sheet; its back link
+  // returns to wherever the player came from.
+  { path: routes.settings(), element: <SettingsScreen /> },
 ];
 
 /** The route for one nav item: its screen once built, or a placeholder named after it. */
