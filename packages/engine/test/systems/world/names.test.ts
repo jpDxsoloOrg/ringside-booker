@@ -511,8 +511,29 @@ describe('cultures and surnames', () => {
 
   it('gives the shipped hispanic culture two surnames about 35% of the time', () => {
     const { library } = loadBase();
-    expect(library.nameCultures['hispanic']?.doubleSurnameChance).toBe(0.35);
+    const hispanic = library.nameCultures['hispanic'];
+    if (hispanic === undefined) {
+      throw new Error('no hispanic culture');
+    }
+    expect(hispanic.doubleSurnameChance).toBe(0.35);
     expect(library.nameCultures['lusophone']?.doubleSurnameChance).toBe(0.35);
+    // A fresh registry per name, so retries on taken names cannot favour the longer names.
+    const hispanicOnly = aLibrary([hispanic], { land: [{ cultureKey: 'hispanic', weight: 1 }] });
+    const surnames = new Set(hispanic.surnames.map(([surname]) => surname));
+    const stream = personStream('hispanic-double');
+    const total = 10_000;
+    let doubled = 0;
+    for (let index = 0; index < total; index++) {
+      const { familyName } = generatorFor(hispanicOnly).personName(stream, {
+        countryId: TEST_COUNTRY,
+        gender: index % 2 === 0 ? 'male' : 'female',
+      }).value;
+      if (!surnames.has(familyName)) {
+        doubled += 1;
+      }
+    }
+    // A second surname equal to the first is dropped, so the rate sits just under 0.35.
+    expect(Math.abs(doubled / total - 0.35)).toBeLessThanOrEqual(0.02);
   });
 });
 
