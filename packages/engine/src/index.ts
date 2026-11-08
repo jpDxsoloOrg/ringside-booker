@@ -221,6 +221,8 @@ export type {
 } from './model/tx';
 export { tableOf } from './model/world';
 export type { GameTables, GameWorldView } from './model/tables';
+// The game's table registry, which `loadSave` takes to rebuild a World from a save.
+export { TABLES } from './model/tables';
 export type {
   ContentPackRef,
   GenerationLevel,
