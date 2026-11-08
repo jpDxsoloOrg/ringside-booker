@@ -138,7 +138,19 @@ export const appRoutes: RouteObject[] = buildAppRoutes({
   includeDevRoutes: devRoutesEnabled(buildFlags),
 });
 
+/**
+ * The router's basename: Vite's base URL without its trailing slash, so a build served under
+ * `/ringside-booker/` (GitHub Pages) matches the same routes as one served at `/`.
+ */
+export function routerBasename(baseUrl: string): string {
+  const trimmed = baseUrl.replace(/\/+$/, '');
+  return trimmed === '' ? '/' : trimmed;
+}
+
 /** The app's router. Browser history gives clean URLs such as /game/office, with no `#`. */
 export function createAppRouter(): ReturnType<typeof createBrowserRouter> {
-  return createBrowserRouter(appRoutes, { future: routerFutureFlags });
+  return createBrowserRouter(appRoutes, {
+    basename: routerBasename(import.meta.env.BASE_URL),
+    future: routerFutureFlags,
+  });
 }

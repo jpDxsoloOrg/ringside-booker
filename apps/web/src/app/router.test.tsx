@@ -5,7 +5,13 @@ import type { RouteObject } from 'react-router-dom';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { findRouteByPath } from '@/test/routeTree';
 import { DEV_PROMOTION_ID, devRoutesEnabled } from './dev/EnterShellRoute';
-import { appRoutes, buildAppRoutes, routerFutureFlags, routerProviderFutureFlags } from './router';
+import {
+  appRoutes,
+  buildAppRoutes,
+  routerBasename,
+  routerFutureFlags,
+  routerProviderFutureFlags,
+} from './router';
 import { routePatterns, routes } from './routes';
 import { useSessionStore } from './session/sessionStore';
 
@@ -144,5 +150,15 @@ describe('dev-only routes', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Dashboard' })).toBeInTheDocument();
     expect(useSessionStore.getState().seat?.promotionId).toBeNull();
     expect(screen.queryByRole('heading', { name: 'Creative' })).toBeNull();
+  });
+});
+
+describe('routerBasename', () => {
+  it('is / for a build served at the site root', () => {
+    expect(routerBasename('/')).toBe('/');
+  });
+
+  it('drops the trailing slash from a sub-path base such as GitHub Pages', () => {
+    expect(routerBasename('/ringside-booker/')).toBe('/ringside-booker');
   });
 });

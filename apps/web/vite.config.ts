@@ -14,7 +14,14 @@ const engineSourceEntry = fileURLToPath(
   new URL('../../packages/engine/src/index.ts', import.meta.url),
 );
 
+/**
+ * Where the app is served from. `/` locally; the GitHub Pages deploy sets `RB_BASE_PATH` to
+ * `/ringside-booker/` because a project site lives under the repository name.
+ */
+const basePath = process.env['RB_BASE_PATH'] ?? '/';
+
 export default defineConfig(({ command }) => ({
+  base: basePath,
   plugins: [react()],
   resolve: {
     alias: [
