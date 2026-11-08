@@ -91,6 +91,11 @@ export interface DataTableProps<Row extends DataTableRowData> {
   readonly loading?: boolean;
   /** `comfortable` by default. */
   readonly density?: DataTableDensity;
+  /**
+   * Zebra rows on the desktop table: every other row one surface step up, for wide stat tables
+   * that are read across. Off by default; phone cards are separate already.
+   */
+  readonly striped?: boolean;
   /** `auto` (the default) shows cards below `--bp-mobile` and the table above it. */
   readonly layout?: DataTableLayout;
   readonly className?: string | undefined;
@@ -145,6 +150,7 @@ export function DataTable<Row extends DataTableRowData>({
   emptyState,
   loading = false,
   density = 'comfortable',
+  striped = false,
   layout = 'auto',
   className,
 }: DataTableProps<Row>) {
@@ -309,6 +315,7 @@ export function DataTable<Row extends DataTableRowData>({
     rowDomId,
     emptyContent,
     loading,
+    striped,
     idPrefix,
   };
 

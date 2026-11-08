@@ -202,14 +202,16 @@
 }
 
 /*
- * Office stat-table header: Barlow Condensed caps with a little tracking, muted, over a hairline.
- * The header's own sort buttons inherit the face and the case.
+ * Office stat-table header: Barlow Condensed caps with a little tracking, muted, on the table's own
+ * surface over a stronger hairline (docs/design/visual-identity.md). The header's own sort buttons
+ * inherit the face and the case. The surface is opaque, so rows scroll under the sticky header.
  */
 .table th {
   position: sticky;
   inset-block-start: 0;
   z-index: 1;
-  background: var(--color-surface-sunken);
+  border-block-end-color: var(--color-border-strong);
+  background: var(--color-surface);
   color: var(--color-text-muted);
   font-family: var(--font-family-display);
   font-size: var(--font-size-sm);
@@ -230,15 +232,21 @@
   cursor: default;
 }
 
+/* Zebra rows (`striped`): every other row one surface step up. Parity comes from the row's place. */
+.rowStriped td {
+  background: var(--color-surface-raised);
+}
+
+/* Row hover, the current row and checked rows all take the hover step, above the zebra stripe. */
 @media (hover: hover) {
   .row:hover td {
-    background: var(--color-surface-sunken);
+    background: var(--color-surface-hover);
   }
 }
 
 .rowSelected td,
 .rowChecked td {
-  background: var(--color-surface-sunken);
+  background: var(--color-surface-hover);
 }
 
 /* Stands in for rows outside the render window; the SVG inside carries the height. */

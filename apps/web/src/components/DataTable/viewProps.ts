@@ -41,6 +41,8 @@ export interface DataTableViewProps<Row> {
   /** What to show instead of rows, or `null` when there are rows (or they are loading). */
   readonly emptyContent: ReactNode;
   readonly loading: boolean;
+  /** Zebra rows on the table view. The cards ignore it. */
+  readonly striped: boolean;
   /** Unique per table, for element ids. */
   readonly idPrefix: string;
 }
