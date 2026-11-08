@@ -1,0 +1,101 @@
+.screen {
+  display: grid;
+  place-items: start center;
+  min-block-size: 100dvh;
+  padding: calc(var(--safe-top) + var(--space-10)) calc(var(--safe-right) + var(--space-8))
+    calc(var(--safe-bottom) + var(--space-10)) calc(var(--safe-left) + var(--space-8));
+  background: var(--color-bg);
+}
+
+.card {
+  display: grid;
+  gap: var(--space-4);
+  inline-size: 100%;
+  max-inline-size: 40rem;
+  min-inline-size: 0;
+  padding: var(--space-6);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+}
+
+.icon {
+  color: var(--color-negative);
+}
+
+.heading {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* Focus lands here when the screen appears; it is not a control, so it needs no ring. */
+.heading:focus {
+  outline: none;
+}
+
+.body {
+  color: var(--color-text-muted);
+}
+
+.details {
+  min-inline-size: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-bg);
+}
+
+.summary {
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+  font-weight: var(--font-weight-semibold);
+}
+
+.errorText {
+  margin: 0;
+  padding: var(--space-3);
+  border-block-start: 1px solid var(--color-border);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  /* Long messages and stack lines wrap instead of scrolling sideways on a phone. */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.copyStatus {
+  min-block-size: 1lh;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+@media (--bp-mobile) {
+  .screen {
+    padding: calc(var(--safe-top) + var(--space-6)) calc(var(--safe-right) + var(--space-4))
+      calc(var(--safe-bottom) + var(--space-6)) calc(var(--safe-left) + var(--space-4));
+  }
+
+  .card {
+    padding: var(--space-4);
+  }
+
+  .heading {
+    font-size: var(--font-size-xl);
+  }
+
+  /* One column with full-width buttons. */
+  .actions {
+    flex-direction: column;
+  }
+
+  .action {
+    inline-size: 100%;
+  }
+}

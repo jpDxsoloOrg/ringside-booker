@@ -14,6 +14,7 @@ accessibility plumbing that every page shares.
 | `AppShell/`               | Desktop sidebar and top bar; phone top bar, bottom tab bar and More sheet  |
 | `a11y/`                   | Skip link, focus on navigation, page titles and the live announcer         |
 | `dev/EnterShellRoute.tsx` | Dev and e2e builds only: fake a loaded world and open the shell            |
+| `engine/`                 | Engine provider, query cache, status store and the engine hooks            |
 
 ## Adding a screen
 
@@ -27,6 +28,26 @@ accessibility plumbing that every page shares.
 Nothing in `AppShell/` changes. Detail pages that are not nav items (a worker's profile at
 `routes.game.worker(id)`) get a route next to the screen routes in `router.tsx`; the top bar and
 sidebar treat them as part of the item they sit under.
+
+## Talking to the engine
+
+The engine runs in a Web Worker (`src/worker/engine.worker.ts`). The worker's host owns the world,
+works out the local seat when a world is installed (`resolveLocalViewer`) and passes its viewer
+and controller into every call, so screens never handle either. React code reaches it only
+through the hooks in `engine/`:
+
+| Hook                                | What it gives                                                         |
+| ----------------------------------- | --------------------------------------------------------------------- |
+| `useEngineQuery(name, args, opts?)` | `{ status, data, error, revision, isStale }`, cached and kept current |
+| `useEngineCommand(name)`            | `{ run, pending, lastResult }`; refusals resolve, never throw         |
+| `useAdvanceDays()`                  | `{ start, cancel, progress, running }` for multi-day skips            |
+| `useEngineStatus(selector)`         | Revision, busy (`idle`, `query`, `command`, `advancing`), last error  |
+
+Every applied command and every simulated day raises the world revision; a mounted query whose
+result is older refetches and keeps showing the old data (`isStale`) meanwhile. If the worker
+dies, `EngineProvider` shows the "simulation stopped" screen in place of the routes. Only
+`src/worker` may import `createEngine` (a lint rule checks it). Tests use
+`createInProcessTransport` with `src/test/fakeEngine.ts` instead of a worker.
 
 ## Rules
 
