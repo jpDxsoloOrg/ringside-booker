@@ -88,14 +88,30 @@ export { CONTENT_KEY_PATTERN, isContentKey, parseContentKey } from './core/conte
 
 export type { ErrorDetails } from './core/errors';
 export {
+  DuplicateSubscriberError,
   EngineError,
+  EventBusMisuseError,
   IdCollisionError,
   InvalidArgumentError,
   InvalidContentKeyError,
   InvalidDateError,
   InvalidIdError,
+  InvalidStatePartError,
   MoneyOverflowError,
+  NotSerialisableError,
 } from './core/errors';
+
+export type { JsonArray, JsonObject, JsonPrimitive, JsonProblem, JsonValue } from './core/json';
+export {
+  appendPathSegment,
+  assertJsonValue,
+  findJsonProblem,
+  formatPath,
+  isJsonValue,
+  zJsonValue,
+} from './core/json';
+
+export * from './core/events';
 
 export { hashString128, hashString32, type HashWords } from './core/hash';
 export * from './core/rng';
