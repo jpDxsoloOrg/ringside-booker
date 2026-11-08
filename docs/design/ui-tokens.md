@@ -124,7 +124,8 @@ shadows; anything that pulses one animates over `--motion-pulse`, which reduced 
 | `action-contrast` (white) on `action`                                                                                                                                                            | 4.5     |
 | `accent-contrast` on `accent`                                                                                                                                                                    | 4.5     |
 | `text-inverse` on `text`                                                                                                                                                                         | 4.5     |
-| `focus` on `bg` and `surface-raised`                                                                                                                                                             | 3.0     |
+| `text-inverse` on `data`, `prestige`, `positive`, `negative` (prestige and danger buttons, solid badges)                                                                                         | 4.5     |
+| `focus` on `bg`, `surface` and `surface-raised`                                                                                                                                                  | 3.0     |
 | `text-inverse` on each of `cat-1` … `cat-8`                                                                                                                                                      | 4.5     |
 | `metal-ink` on each `metal-*` tier                                                                                                                                                               | 4.5     |
 

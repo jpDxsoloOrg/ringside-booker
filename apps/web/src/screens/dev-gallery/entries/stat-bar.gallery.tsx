@@ -3,7 +3,7 @@ import { StatBar } from '@/components/StatBar';
 import type { GalleryEntry } from '../galleryEntry';
 import styles from './entries.module.css';
 
-const SAMPLE_VALUES = [0, 37, 100] as const;
+const SAMPLE_VALUES = [0, 37, 64, 100] as const;
 
 function StatBarDemo() {
   return (
@@ -31,8 +31,10 @@ function StatBarDemo() {
           <StatBar label="With potential" value={55} ceiling={82} />
           <StatBar label="Recent gain" value={72} delta={6} ceiling={90} />
           <StatBar label="Recent loss" value={48} delta={-8} />
-          <StatBar label="Out of 20" value={14} max={20} tone="info" />
-          <StatBar label="Hidden value" value={64} showValue={false} tone="accent" />
+          <StatBar label="Out of 20" value={14} max={20} tone="data" />
+          <StatBar label="Hidden value" value={64} showValue={false} tone="action" />
+          <StatBar label="Fixed prestige" value={58} tone="prestige" />
+          <StatBar label="Fixed neutral" value={45} tone="neutral" />
         </div>
       </section>
     </Stack>
@@ -43,6 +45,7 @@ export const galleryEntry: GalleryEntry = {
   id: 'stat-bar',
   title: 'StatBar',
   group: 'Primitives',
-  notes: 'Auto tone: below 40 negative, below 70 warning, otherwise positive.',
+  notes:
+    'Auto tone: below 40 red-orange (a weak spot), from 80 gold (elite), otherwise cyan. Numbers are tabular.',
   render: () => <StatBarDemo />,
 };

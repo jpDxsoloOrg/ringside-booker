@@ -5,8 +5,25 @@ import { Icon } from '../Icon';
 import type { IconName } from '../Icon';
 import styles from './Button.module.css';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
-export type ButtonSize = 'sm' | 'md';
+/**
+ * - `primary`: the action fill with white text. One per area, for the main action.
+ * - `secondary`: a cyan outline. The default, for everything else.
+ * - `prestige`: a gold fill with dark text, for title and award moments.
+ * - `ghost`: no fill or outline, for toolbars and row actions.
+ * - `danger`: a rose fill, for actions that destroy or release something.
+ */
+export type ButtonVariant = 'primary' | 'secondary' | 'prestige' | 'ghost' | 'danger';
+export type ButtonSize = 'sm' | 'md' | 'lg';
+
+/** Every variant and size, in the order the gallery shows them. */
+export const BUTTON_VARIANTS: readonly ButtonVariant[] = [
+  'primary',
+  'secondary',
+  'prestige',
+  'ghost',
+  'danger',
+];
+export const BUTTON_SIZES: readonly ButtonSize[] = ['sm', 'md', 'lg'];
 
 /** Native button attributes the component manages itself, or that styling rules forbid. */
 type ManagedButtonAttribute = 'style' | 'aria-busy';
@@ -17,7 +34,7 @@ export interface ButtonProps extends Omit<
 > {
   /** `secondary` by default. Use one `primary` per area for the main action. */
   readonly variant?: ButtonVariant;
-  /** `md` by default. */
+  /** `md` by default. On touch screens and at phone width every size is at least 44px tall. */
   readonly size?: ButtonSize;
   /**
    * Shows a spinner in place of the label, keeps the button's width, disables it and sets

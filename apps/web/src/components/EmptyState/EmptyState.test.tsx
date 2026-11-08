@@ -14,6 +14,12 @@ describe('EmptyState', () => {
     expect(container.querySelector('svg')).toBeNull();
   });
 
+  it('draws a smaller icon inline than on a page', () => {
+    const { container } = render(<EmptyState icon="search" title="No results" />);
+
+    expect(container.querySelector('[data-icon="search"]')).toHaveClass('size-md');
+  });
+
   it('can make the title a heading', () => {
     render(<EmptyState title="Inbox empty" headingLevel={2} size="page" />);
 
@@ -38,10 +44,12 @@ describe('EmptyState', () => {
     );
 
     expect(container.firstElementChild).toHaveClass('size-page');
-    expect(container.querySelector('[data-icon="calendar"]')).toHaveAttribute(
-      'aria-hidden',
-      'true',
-    );
+    const icon = container.querySelector('[data-icon="calendar"]');
+    expect(icon).toHaveAttribute('aria-hidden', 'true');
+    // The Lucide glyph sits in its tile, which is hidden from screen readers as a whole.
+    expect(icon?.parentElement).toHaveClass('iconTile');
+    expect(icon?.parentElement).toHaveAttribute('aria-hidden', 'true');
+    expect(icon).toHaveClass('lucide');
     expect(screen.getByText('Book a show to fill the calendar.')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Book a show' }));
     expect(handleBook).toHaveBeenCalledTimes(1);

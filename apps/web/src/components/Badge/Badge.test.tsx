@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { TONES } from '../tone';
+import { LEGACY_TONE_ROLES, LEGACY_TONES, ROLE_TONES, toneRole } from '../tone';
 import { Badge } from './Badge';
 import { CountBadge, countBadgeText } from './CountBadge';
 
@@ -11,7 +11,7 @@ describe('Badge', () => {
     expect(screen.getByText('Heel')).toHaveClass('badge', 'soft', 'tone-neutral');
   });
 
-  it.each(TONES)('takes the %s tone in both variants', (tone) => {
+  it.each(ROLE_TONES)('takes the %s role in both variants', (tone) => {
     render(
       <>
         <Badge tone={tone}>Soft {tone}</Badge>
@@ -23,6 +23,26 @@ describe('Badge', () => {
 
     expect(screen.getByText(`Soft ${tone}`)).toHaveClass('soft', `tone-${tone}`);
     expect(screen.getByText(`Solid ${tone}`)).toHaveClass('solid', `tone-${tone}`);
+  });
+
+  it.each(LEGACY_TONES)('draws the older %s tone as its role', (tone) => {
+    render(<Badge tone={tone}>Older {tone}</Badge>);
+
+    const role = LEGACY_TONE_ROLES[tone];
+    expect(screen.getByText(`Older ${tone}`)).toHaveClass(`tone-${role}`);
+    expect(screen.getByText(`Older ${tone}`)).not.toHaveClass(`tone-${tone}`);
+  });
+});
+
+describe('toneRole', () => {
+  it('maps info to data, warning to prestige and accent to action', () => {
+    expect(toneRole('info')).toBe('data');
+    expect(toneRole('warning')).toBe('prestige');
+    expect(toneRole('accent')).toBe('action');
+  });
+
+  it.each(ROLE_TONES)('leaves the %s role as it is', (tone) => {
+    expect(toneRole(tone)).toBe(tone);
   });
 });
 
@@ -55,6 +75,12 @@ describe('CountBadge', () => {
     render(<CountBadge count={0} showZero label="No unread mail" />);
 
     expect(screen.getByText('No unread mail')).toBeInTheDocument();
+  });
+
+  it('is a solid action chip by default', () => {
+    render(<CountBadge count={3} label="3 unread" />);
+
+    expect(screen.getByText('3 unread').parentElement).toHaveClass('solid', 'tone-action');
   });
 
   it('gives screen readers the label, not the bare number', () => {

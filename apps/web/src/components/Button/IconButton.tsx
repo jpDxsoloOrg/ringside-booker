@@ -2,9 +2,11 @@ import { forwardRef } from 'react';
 import type { ButtonHTMLAttributes } from 'react';
 import { classNames } from '../classNames';
 import { Icon } from '../Icon';
-import type { IconName } from '../Icon';
+import type { IconName, IconSize } from '../Icon';
 import styles from './Button.module.css';
 import type { ButtonSize, ButtonVariant } from './Button';
+
+const ICON_SIZES: Readonly<Record<ButtonSize, IconSize>> = { sm: 'sm', md: 'md', lg: 'lg' };
 
 type ManagedIconButtonAttribute = 'style' | 'aria-label' | 'title' | 'children';
 
@@ -45,7 +47,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
         className,
       )}
     >
-      <Icon name={icon} size={size === 'sm' ? 'sm' : 'md'} decorative />
+      <Icon name={icon} size={ICON_SIZES[size]} decorative />
     </button>
   );
 });

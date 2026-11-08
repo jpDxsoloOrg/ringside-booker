@@ -6,6 +6,15 @@ import styles from './Panel.module.css';
 
 export type PanelHeadingLevel = 2 | 3 | 4;
 export type PanelPadding = 'none' | 'md';
+/**
+ * The two visual registers (docs/design/visual-identity.md):
+ * - `office`: a rounded card with a hairline border, for the management screens.
+ * - `broadcast`: square corners with chamfered cuts and an uppercase header behind a red-orange
+ *   slash, for show moments.
+ */
+export type PanelVariant = 'office' | 'broadcast';
+
+export const PANEL_VARIANTS: readonly PanelVariant[] = ['office', 'broadcast'];
 
 const HEADING_TAGS = { 2: 'h2', 3: 'h3', 4: 'h4' } as const;
 
@@ -24,6 +33,8 @@ export interface PanelProps {
   readonly collapsible?: boolean;
   /** Start collapsed. Only used when `collapsible`. */
   readonly defaultCollapsed?: boolean;
+  /** `office` (the default) or `broadcast`. */
+  readonly variant?: PanelVariant;
   /** Body padding: `md` (the default) or `none` for edge-to-edge content such as a table. */
   readonly padding?: PanelPadding;
   /** Anchor id for the panel element. */
@@ -42,6 +53,7 @@ export function Panel({
   collapsible = false,
   defaultCollapsed = false,
   padding = 'md',
+  variant = 'office',
   id,
   className,
   children,
@@ -78,7 +90,12 @@ export function Panel({
     <Element
       id={id}
       aria-labelledby={Element === 'section' ? headingId : undefined}
-      className={classNames(styles['panel'], isExpanded && styles['expanded'], className)}
+      className={classNames(
+        styles['panel'],
+        styles[`variant-${variant}`],
+        isExpanded && styles['expanded'],
+        className,
+      )}
     >
       <div className={styles['header']}>
         <div className={styles['titles']}>
