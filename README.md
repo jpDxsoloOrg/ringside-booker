@@ -79,9 +79,9 @@ the first step that fails.
 
 The lint config ([`eslint.config.js`](eslint.config.js)) is where the engine rules below are
 enforced: no `any` anywhere, and inside `packages/engine` no `Math.random` (including through
-`globalThis`, `window` or an alias of `Math`), no wall-clock reads (`Date.now`, `new Date()`,
-`performance.now`), no DOM or browser globals, no timers and no imports from `apps/` or UI
-libraries. [`packages/engine/test/lint-guards.test.ts`](packages/engine/test/lint-guards.test.ts)
+`globalThis`, `window`, an alias of `Math` or a computed key), no wall-clock reads (`Date.now`,
+`new Date()`, `performance.now`), no DOM or browser globals, no timers and no imports from `apps/`
+or UI libraries. [`packages/engine/test/lint-guards.test.ts`](packages/engine/test/lint-guards.test.ts)
 checks that each of those rules still fires, so a dependency update can't switch one off quietly.
 
 ## Contributing

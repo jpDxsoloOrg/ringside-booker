@@ -120,6 +120,16 @@ describe('lint guards: no way around the Math.random ban in the engine', () => {
     ],
     ['random destructured from Math', 'const { random } = Math;\nexport const roll = random();', 2],
     ['Math passed as a value', "export const roll = Reflect.get(Math, 'random');", 1],
+    ['optional chaining', 'export const roll = globalThis?.Math?.random();', 1],
+    ['template keys', 'export const roll = globalThis[`Math`][`random`]();', 1],
+    ['a template key for Math', 'export const roll = globalThis[`Math`].random();', 1],
+    ['a computed key', "const key = 'random';\nexport const roll = Math[key]();", 1],
+    ['a built-up key', "export const roll = Math['ran' + 'dom']();", 1],
+    [
+      'a computed key through globalThis',
+      "const key = 'random';\nexport const roll = globalThis.Math[key]();",
+      1,
+    ],
   ];
 
   it.each(bypasses)('bans %s in engine source', async (_description, snippet, expectedErrors) => {
@@ -136,6 +146,7 @@ describe('lint guards: no way around the Math.random ban in the engine', () => {
     const code = [
       'export const rounded = Math.floor(2.5) + Math.max(1, 2) + Math.PI;',
       'export const viaGlobal = globalThis.Math.floor(2.5);',
+      "export const bracketed = Math['floor'](2.5) + globalThis[`Math`].max(1, 2);",
       'export type MathLike = typeof Math;',
       'export const settings = { Math: 1 };',
       '',

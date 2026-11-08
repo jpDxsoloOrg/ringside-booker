@@ -37,18 +37,33 @@ const MATH_RANDOM_MESSAGE = MATH_RANDOM_RESTRICTION.message;
 // - through an alias: `const M = Math`, `const { Math: M } = globalThis`, `pass(Math)`,
 //   `const M = globalThis.Math`. `Math` may only appear as the object of a member access
 //   (`Math.floor`), so it can never be held in a variable where the property check can't see it.
-const NAMED_MATH = ":matches([computed=false][property.name='Math'], [property.value='Math'])";
-const NAMED_RANDOM =
-  ":matches([computed=false][property.name='random'], [property.value='random'])";
+// - through a computed key: `Math[key]`, `Math['ran' + 'dom']`. Only fixed keys can be checked, so
+//   the engine never reads a property of `Math` by a key worked out at run time.
+// A fixed key is a plain name (`.Math`), a string (`['Math']`) or a template with no `${}` parts.
+// `owner` is the path from the matched node to the member or property that holds the key.
+function fixedKey(name, { owner = '', keyField = 'property' } = {}) {
+  const key = `${owner}${keyField}`;
+  return (
+    `:matches([${owner}computed=false][${key}.name='${name}'], [${key}.value='${name}'], ` +
+    `[${key}.type='TemplateLiteral'][${key}.expressions.length=0][${key}.quasis.0.value.cooked='${name}'])`
+  );
+}
+const NAMED_MATH = fixedKey('Math');
+const NAMED_RANDOM = fixedKey('random');
+const NOT_FIXED_KEY =
+  ":not([property.type='Literal']):not([property.type='TemplateLiteral'][property.expressions.length=0])";
 const ENGINE_MATH_RANDOM_SELECTORS = [
-  // <anything>.Math.random, in dotted or bracket form.
+  // <anything>.Math.random, in dotted, bracket or template form.
   `MemberExpression${NAMED_RANDOM} > MemberExpression.object${NAMED_MATH}`,
   // <anything>.Math used as a value rather than reached through.
   `MemberExpression${NAMED_MATH}:not(MemberExpression > MemberExpression.object)`,
   // The bare Math global used as a value: assigned, passed, returned or destructured.
   "Identifier[name='Math']:not(MemberExpression > Identifier.object, MemberExpression > Identifier.property, Property > Identifier.key, TSTypeQuery > Identifier.exprName)",
   // Math destructured out of the global object: `const { Math: M } = globalThis`.
-  "ObjectPattern > Property:matches([key.name='Math'], [key.value='Math'])",
+  `ObjectPattern > Property${fixedKey('Math', { keyField: 'key' })}`,
+  // A property of Math (bare or through the global object) read by a key that isn't fixed.
+  `MemberExpression[computed=true]${NOT_FIXED_KEY}[object.type='Identifier'][object.name='Math']`,
+  `MemberExpression[computed=true]${NOT_FIXED_KEY}[object.type='MemberExpression']${fixedKey('Math', { owner: 'object.' })}`,
 ].map((selector) => ({ selector, message: MATH_RANDOM_MESSAGE }));
 
 const WALL_CLOCK_MESSAGE =
