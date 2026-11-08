@@ -303,14 +303,14 @@ type LinkKind = 'link' | 'image';
  * nested brackets, which covers an image inside a link. Groups: 1 `!` or empty, 2 text,
  * 3 space before the destination, 4 destination, 5 optional title and trailing space.
  */
-const INLINE_LINK_PATTERN =
+export const INLINE_LINK_PATTERN =
   /(!?)\[((?:[^[\]\\]|\\.|\[(?:[^[\]\\]|\\.)*\])*)\]\(([ \t]*)(<[^<>\n]*>|[^\s()<>]*(?:\([^\s()]*\)[^\s()<>]*)*)((?:[ \t\n]+(?:"[^"\n]*"|'[^'\n]*'|\([^()\n]*\)))?[ \t]*)\)/g;
 
 /**
  * `[label]: destination` reference definitions. Groups: 1 everything before the destination,
  * 2 destination. A label starting with `^` is a GFM footnote, whose text is prose, not a URL.
  */
-const REFERENCE_DEFINITION_PATTERN =
+export const REFERENCE_DEFINITION_PATTERN =
   /^([ \t]{0,3}\[(?!\^)(?:[^[\]\\]|\\.)+\]:[ \t]*)(<[^<>\n]*>|\S+)/gm;
 
 function rewriteInlineLinks(text: string, linkContext: LinkContext): string {

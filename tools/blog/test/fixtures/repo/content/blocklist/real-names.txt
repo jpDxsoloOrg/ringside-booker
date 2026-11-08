@@ -1,0 +1,4 @@
+# Fixture blocklist for the checker tests. These names are made up; they stand in for the real
+# names the committed list guards against.
+
+Blocklisted Person

@@ -26,6 +26,7 @@
     "build": "npm run build --workspaces --if-present",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix",
+    "blog:check": "npm run -w @ringside/blog-tools check --",
     "verify": "npm run format:check && npm run lint && npm run typecheck && npm test"
   },
   "devDependencies": {
