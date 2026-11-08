@@ -304,7 +304,8 @@ describe('generatePerson', () => {
 
   it('builds people of every role that parse, with the role rules applied', () => {
     for (const role of PERSON_ROLES) {
-      for (const result of generateMany(60, { role }, { seed: `roles-${role}` })) {
+      // No seeds, so the seeded fields keep their neutral values.
+      for (const result of generateMany(60, { role }, { seed: `roles-${role}`, hooks: {} })) {
         const { person } = result.value;
         expect(PersonSchema.safeParse(person).success).toBe(true);
         expect(person.roles).toEqual([role]);

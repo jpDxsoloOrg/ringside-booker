@@ -44,6 +44,9 @@ export const ATTRIBUTE_SD_MAX = 50;
 /** Range of a role multiplier on a trait's base chance. */
 export const ROLE_MULTIPLIER_MAX = 10;
 
+/** Longest description a trait incidence record may carry. */
+export const TRAIT_DESCRIPTION_MAX_LENGTH = 300;
+
 /** Youngest and oldest age a career stage may cover. */
 export const STAGE_AGE_MIN = 16;
 export const STAGE_AGE_MAX = 80;
@@ -284,6 +287,8 @@ export const traitIncidenceRecord = defineRecordKind(
     roleMultipliers: z.partialRecord(PersonRoleSchema, z.number().min(0).max(ROLE_MULTIPLIER_MAX)),
     /** Youngest age at which the trait can be rolled. Left out = any age. */
     minAge: z.number().int().min(0).max(100).optional(),
+    /** For pack authors: what the trait means and how common it is meant to be. Not read by code. */
+    description: z.string().min(1).max(TRAIT_DESCRIPTION_MAX_LENGTH).optional(),
   }),
 );
 

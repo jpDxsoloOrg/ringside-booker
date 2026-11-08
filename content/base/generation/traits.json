@@ -1,0 +1,306 @@
+[
+  {
+    "key": "fast-learner",
+    "traitKey": "fastLearner",
+    "baseChance": 0.12,
+    "roleMultipliers": {},
+    "description": "Picks things up quickly. About one person in eight."
+  },
+  {
+    "key": "slow-learner",
+    "traitKey": "slowLearner",
+    "baseChance": 0.1,
+    "roleMultipliers": {},
+    "description": "Needs more reps than most to improve. About one person in ten."
+  },
+  {
+    "key": "ages-well",
+    "traitKey": "agesWell",
+    "baseChance": 0.1,
+    "roleMultipliers": {},
+    "description": "Keeps their abilities longer than most. About one in ten."
+  },
+  {
+    "key": "ages-badly",
+    "traitKey": "agesBadly",
+    "baseChance": 0.1,
+    "roleMultipliers": {},
+    "description": "Loses a step earlier than most. About one in ten."
+  },
+  {
+    "key": "durable",
+    "traitKey": "durable",
+    "baseChance": 0.12,
+    "roleMultipliers": {
+      "referee": 0.6,
+      "announcer": 0.3,
+      "presenter": 0.3,
+      "producer": 0.3
+    },
+    "description": "Shakes off knocks that would sideline others. About one wrestler in eight; rarer for crew, whose bodies matter less."
+  },
+  {
+    "key": "injury-prone",
+    "traitKey": "injuryProne",
+    "baseChance": 0.08,
+    "roleMultipliers": {
+      "referee": 0.6,
+      "announcer": 0.3,
+      "presenter": 0.3,
+      "producer": 0.3
+    },
+    "description": "Gets hurt more often. About one wrestler in twelve."
+  },
+  {
+    "key": "workhorse",
+    "traitKey": "workhorse",
+    "baseChance": 0.15,
+    "roleMultipliers": {
+      "producer": 1.3,
+      "referee": 1.2
+    },
+    "description": "Works hard every night and recovers well from a heavy schedule. A common professional strength, about one in seven."
+  },
+  {
+    "key": "coaster",
+    "traitKey": "coaster",
+    "baseChance": 0.08,
+    "roleMultipliers": {},
+    "description": "Does the minimum unless something big is at stake. About one in twelve."
+  },
+  {
+    "key": "big-match-performer",
+    "traitKey": "bigMatchPerformer",
+    "baseChance": 0.08,
+    "roleMultipliers": {
+      "manager": 0.6,
+      "referee": 0.4,
+      "producer": 0.2
+    },
+    "description": "Rises to the occasion on big shows. About one wrestler in twelve."
+  },
+  {
+    "key": "shrinks-on-big-stage",
+    "traitKey": "shrinksOnBigStage",
+    "baseChance": 0.06,
+    "roleMultipliers": {
+      "manager": 0.6,
+      "referee": 0.4,
+      "producer": 0.2
+    },
+    "description": "Gets nervous on the biggest shows. About one wrestler in seventeen."
+  },
+  {
+    "key": "generous-seller",
+    "traitKey": "generousSeller",
+    "baseChance": 0.12,
+    "roleMultipliers": {
+      "manager": 0,
+      "presenter": 0,
+      "announcer": 0,
+      "referee": 0,
+      "producer": 0
+    },
+    "description": "Makes opponents look good. Wrestlers only, about one in eight."
+  },
+  {
+    "key": "poor-seller",
+    "traitKey": "poorSeller",
+    "baseChance": 0.08,
+    "roleMultipliers": {
+      "manager": 0,
+      "presenter": 0,
+      "announcer": 0,
+      "referee": 0,
+      "producer": 0
+    },
+    "description": "Shrugs off offence and makes opponents look weak. Wrestlers only, about one in twelve."
+  },
+  {
+    "key": "tag-specialist",
+    "traitKey": "tagSpecialist",
+    "baseChance": 0.06,
+    "roleMultipliers": {
+      "manager": 0,
+      "presenter": 0,
+      "announcer": 0,
+      "referee": 0,
+      "producer": 0,
+      "occasionalWrestler": 0.5
+    },
+    "description": "At their best in a tag team. Wrestlers only, about one in seventeen."
+  },
+  {
+    "key": "teacher",
+    "traitKey": "teacher",
+    "baseChance": 0.05,
+    "roleMultipliers": {
+      "producer": 3,
+      "referee": 1.5,
+      "occasionalWrestler": 1.5,
+      "manager": 0.5,
+      "announcer": 0.5,
+      "presenter": 0.5
+    },
+    "minAge": 30,
+    "description": "Good at passing on what they know. Needs some years behind them (30 or older); one in twenty, much more common among producers."
+  },
+  {
+    "key": "improviser",
+    "traitKey": "improviser",
+    "baseChance": 0.08,
+    "roleMultipliers": {
+      "referee": 0.5,
+      "producer": 1.5
+    },
+    "description": "Thinks on their feet when a match or segment goes off plan. About one in twelve."
+  },
+  {
+    "key": "leader",
+    "traitKey": "leader",
+    "baseChance": 0.06,
+    "roleMultipliers": {
+      "producer": 2,
+      "referee": 1.5
+    },
+    "minAge": 28,
+    "description": "The locker room listens to them. 28 or older; about one in seventeen, more among producers."
+  },
+  {
+    "key": "professional",
+    "traitKey": "professional",
+    "baseChance": 0.2,
+    "roleMultipliers": {
+      "producer": 1.25,
+      "referee": 1.25,
+      "announcer": 1.2,
+      "presenter": 1.2
+    },
+    "description": "Reliable, on time, easy to work with. The most common positive locker-room trait, one in five."
+  },
+  {
+    "key": "troublemaker",
+    "traitKey": "troublemaker",
+    "baseChance": 0.04,
+    "roleMultipliers": {},
+    "description": "Causes friction backstage. Disruptive, so rare: about one in twenty-five."
+  },
+  {
+    "key": "partier",
+    "traitKey": "partier",
+    "baseChance": 0.06,
+    "roleMultipliers": {},
+    "description": "Lives hard on the road. Disruptive, so uncommon: about one in seventeen."
+  },
+  {
+    "key": "prankster",
+    "traitKey": "prankster",
+    "baseChance": 0.05,
+    "roleMultipliers": {},
+    "description": "Keeps the locker room loose, sometimes too loose. About one in twenty."
+  },
+  {
+    "key": "sensitive",
+    "traitKey": "sensitive",
+    "baseChance": 0.08,
+    "roleMultipliers": {},
+    "description": "Takes criticism and setbacks to heart. About one in twelve."
+  },
+  {
+    "key": "egotist",
+    "traitKey": "egotist",
+    "baseChance": 0.07,
+    "roleMultipliers": {
+      "referee": 0.3,
+      "producer": 0.5
+    },
+    "description": "Thinks they deserve more than they get. Disruptive, so uncommon: about one in fourteen, rarer among referees and producers."
+  },
+  {
+    "key": "selfless",
+    "traitKey": "selfless",
+    "baseChance": 0.08,
+    "roleMultipliers": {},
+    "description": "Happy to put others first. About one in twelve."
+  },
+  {
+    "key": "loyal",
+    "traitKey": "loyal",
+    "baseChance": 0.1,
+    "roleMultipliers": {},
+    "description": "Prefers to stay where they are. About one in ten."
+  },
+  {
+    "key": "journeyman",
+    "traitKey": "journeyman",
+    "baseChance": 0.1,
+    "roleMultipliers": {},
+    "description": "Moves from company to company. About one in ten."
+  },
+  {
+    "key": "loves-hardcore",
+    "traitKey": "lovesHardcore",
+    "baseChance": 0.06,
+    "roleMultipliers": {
+      "presenter": 0,
+      "announcer": 0,
+      "referee": 0,
+      "producer": 0
+    },
+    "description": "Wants weapons and blood. Wrestlers and managers only, about one in seventeen."
+  },
+  {
+    "key": "refuses-hardcore",
+    "traitKey": "refusesHardcore",
+    "baseChance": 0.06,
+    "roleMultipliers": {
+      "presenter": 0,
+      "announcer": 0,
+      "referee": 0,
+      "producer": 0
+    },
+    "description": "Will not do hardcore matches. Wrestlers and managers only, about one in seventeen."
+  },
+  {
+    "key": "loves-comedy",
+    "traitKey": "lovesComedy",
+    "baseChance": 0.07,
+    "roleMultipliers": {
+      "referee": 0.5,
+      "producer": 0.5
+    },
+    "description": "Enjoys comedy segments. About one in fourteen."
+  },
+  {
+    "key": "refuses-comedy",
+    "traitKey": "refusesComedy",
+    "baseChance": 0.05,
+    "roleMultipliers": {
+      "referee": 0.5,
+      "producer": 0.5
+    },
+    "description": "Hates being made to look silly. About one in twenty."
+  },
+  {
+    "key": "natural-heel",
+    "traitKey": "naturalHeel",
+    "baseChance": 0.07,
+    "roleMultipliers": {
+      "referee": 0,
+      "producer": 0,
+      "presenter": 0.5
+    },
+    "description": "Crowds love to boo them. About one in fourteen; never for referees or producers."
+  },
+  {
+    "key": "natural-face",
+    "traitKey": "naturalFace",
+    "baseChance": 0.07,
+    "roleMultipliers": {
+      "referee": 0,
+      "producer": 0,
+      "presenter": 0.5
+    },
+    "description": "Crowds want to cheer them. About one in fourteen; never for referees or producers."
+  }
+]
