@@ -574,7 +574,9 @@ attributes, which also makes the option work for hand-made pack people:
 Ring style and body modifiers are not taken back out, so it is an estimate
 (off by about half a standard deviation on average), which is all a re-roll
 needs. Someone with no generation profile counts as average talent. The caller
-passes the stream; `worldgen.people.reseed` is declared for it.
+passes the stream; `worldgen.people.reseed` is declared for it. The new-game
+option passes its own `newgame.potential` stream
+([new-game.md](new-game.md#setup-steps)).
 
 ## Tunables
 
