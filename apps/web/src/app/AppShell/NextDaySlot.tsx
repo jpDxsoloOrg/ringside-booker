@@ -16,6 +16,7 @@ export function NextDaySlot({ compact }: TopBarLayout) {
       <LiveBugButton
         iconEnd="next-day"
         aria-disabled="true"
+        shrinkable={compact}
         aria-describedby={hintId}
         className={classNames(styles['nextDay'], compact && styles['nextDayCompact'])}
         data-testid="next-day"

@@ -26,6 +26,12 @@ export interface LiveBugButtonProps extends Omit<
   readonly busy?: boolean;
   /** Icon after the label, such as `next-day`. */
   readonly iconEnd?: IconName;
+  /**
+   * For a crowded bar (the phone top bar). The bug may shrink below its label: the label ends in
+   * an ellipsis, and in a narrow container (a phone at a large UI scale) only the dot and the icon
+   * show. The label stays the button's accessible name either way.
+   */
+  readonly shrinkable?: boolean;
   readonly children: ReactNode;
 }
 
@@ -42,6 +48,7 @@ export const LiveBugButton = forwardRef<HTMLButtonElement, LiveBugButtonProps>(
       live = true,
       busy = false,
       iconEnd,
+      shrinkable = false,
       type = 'button',
       disabled = false,
       className,
@@ -60,7 +67,12 @@ export const LiveBugButton = forwardRef<HTMLButtonElement, LiveBugButtonProps>(
         type={type}
         disabled={disabled || busy}
         aria-busy={busy ? true : undefined}
-        className={classNames(styles['bug'], styles[`size-${size}`], className)}
+        className={classNames(
+          styles['bug'],
+          styles[`size-${size}`],
+          shrinkable && styles['shrinkable'],
+          className,
+        )}
       >
         <span className={styles['content']}>
           {live && (
