@@ -10,6 +10,11 @@
     calc(var(--safe-bottom) + var(--space-10)) calc(var(--safe-left) + var(--space-8));
 }
 
+/* A screen with side panels, such as the new-game wizard's step rail and summary. */
+.wide {
+  max-inline-size: var(--content-max-width);
+}
+
 /* The main area takes focus from the skip link and RouteFocus; it needs no ring of its own. */
 .main:focus {
   outline: none;

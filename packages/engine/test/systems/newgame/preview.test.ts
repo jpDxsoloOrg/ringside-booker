@@ -51,6 +51,15 @@ describe('previewWorld', () => {
     expect(promotions[1]).toMatchObject({ shortName: 'RCW', rosterSize: 2, titleCount: 0 });
   });
 
+  it('counts the people the world starts with', () => {
+    const [, world] = miniWorldPacks();
+    if (world === undefined) {
+      throw new Error('fixture packs missing');
+    }
+    // Every fixture person starts active.
+    expect(preview().peopleCount).toBe(recordsOf(world, 'person').length);
+  });
+
   it('leaves out promotions that are not active', () => {
     const [base, world] = miniWorldPacks();
     if (base === undefined || world === undefined) {

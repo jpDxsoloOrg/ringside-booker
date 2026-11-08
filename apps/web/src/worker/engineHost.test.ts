@@ -12,7 +12,8 @@ import {
 } from '@/test/fakeEngine';
 import type { FakeEngineOptions } from '@/test/fakeEngine';
 import { ADVANCE_BUSY_REASON, createEngineHost, NO_WORLD_REASON } from './engineHost';
-import type { AdvanceProgress, EngineHostOptions } from './engineHost';
+import type { AdvanceProgress, EngineHostOptions, StartNewGameInput } from './engineHost';
+import { LOCAL_OBSERVER_PLAYER_ID } from './localViewer';
 import { yieldToEventLoop } from './yieldToEventLoop';
 import * as storage from '@/storage';
 import {
@@ -486,5 +487,117 @@ describe('engine host saving', () => {
     if (!report.ok) throw new Error(`inspect failed at ${report.stage}`);
     expect(report.header.label).toBe('Test save');
     expect(report.formatVersion).toBe(CURRENT_FORMAT_VERSION);
+  });
+});
+
+describe('engine host new game', () => {
+  beforeEach(async () => {
+    await resetSaveDb();
+  });
+
+  /** A new game's choices, as the wizard sends them: run Ashlar Pro Wrestling for 3 months. */
+  function existingPromotionInput(): StartNewGameInput {
+    return {
+      rootPackId: 'default-world',
+      seed: 'host-new-game',
+      playerName: 'Alex Booker',
+      saveName: 'ASHLAR 2027',
+      seasonLength: { preset: '3m' },
+      player: { mode: 'existing', promotionKey: 'pro-uk' },
+      settings: {},
+    };
+  }
+
+  it('lists the bundled world packs by manifest', async () => {
+    const host = emptyHost();
+
+    const { packs, issues } = await host.listWorldPacks();
+
+    expect(issues).toEqual([]);
+    expect(packs.map((manifest) => [manifest.id, manifest.kind])).toEqual([
+      ['default-world', 'world'],
+    ]);
+  });
+
+  it('previews a world pack, and returns pack issues for one that is not bundled', async () => {
+    const host = emptyHost();
+
+    const preview = await host.previewWorld('default-world');
+    const missing = await host.previewWorld('no-such-world');
+
+    if (!preview.ok) throw new Error('preview failed');
+    expect(preview.value.manifest.id).toBe('default-world');
+    expect(preview.value.promotions.length).toBeGreaterThan(0);
+    expect(preview.value.peopleCount).toBeGreaterThan(0);
+    expect(missing.ok).toBe(false);
+    expect(missing.issues.length).toBeGreaterThan(0);
+  });
+
+  it('starts a new game played by the local observer seat when no world is loaded', async () => {
+    const host = emptyHost();
+
+    const started = await host.startNewGame(existingPromotionInput());
+
+    if (!started.ok) throw new Error(JSON.stringify(started.reasons));
+    expect(started.summary.promotion.shortName).toBe('ASHLAR');
+    expect(started.summary.season.lengthDays).toBe(91);
+    expect(started.seat.controller).toEqual({ kind: 'human', playerId: LOCAL_OBSERVER_PLAYER_ID });
+    expect(started.seat.promotionId).toBe(started.summary.promotion.id);
+    expect(started.revision).toBe(1);
+    expect(host.isWorldLoaded()).toBe(true);
+    expect(host.getSeat()).toEqual(started.seat);
+  });
+
+  it('keeps the human player of a running game as the new game’s player', async () => {
+    const { host } = loadedHost();
+
+    const started = await host.startNewGame(existingPromotionInput());
+
+    if (!started.ok) throw new Error(JSON.stringify(started.reasons));
+    expect(started.seat.controller).toEqual(LOCAL_CONTROLLER);
+    expect(started.summary.playerId).toBe(TEST_PLAYER_ID);
+  });
+
+  it('saves the new game into a slot headed by its promotion', async () => {
+    const host = emptyHost();
+    const started = await host.startNewGame(existingPromotionInput());
+    if (!started.ok) throw new Error(JSON.stringify(started.reasons));
+
+    const created = await host.createSlot(started.summary.saveName);
+
+    if (!created.ok) throw new Error(created.message);
+    expect(created.slot.label).toBe('ASHLAR 2027');
+    expect(created.slot.header.promotionShortName).toBe(started.summary.promotion.shortName);
+    expect(created.slot.header.promotionName).toBe('Ashlar Pro Wrestling');
+  });
+
+  it('returns the engine’s reasons and leaves the running game alone when refused', async () => {
+    const { host, install } = loadedHost();
+
+    const refused = await host.startNewGame({
+      ...existingPromotionInput(),
+      seasonLength: { customWeeks: 3 },
+      player: {
+        mode: 'found',
+        name: 'Harbour Lights Wrestling',
+        shortName: 'ASHLAR',
+        homeRegionKey: 'gb-north',
+        style: 'traditional',
+        size: 'medium',
+        color: '#1f6f8b',
+        starterKit: true,
+        weeklyShowDay: 4,
+      },
+    });
+
+    if (refused.ok) throw new Error('expected a refusal');
+    expect(refused.reasons.map((reason) => [reason.code, reason.field])).toEqual(
+      expect.arrayContaining([
+        ['seasonLengthOutOfRange', 'seasonLength.customWeeks'],
+        ['shortNameTaken', 'player.shortName'],
+      ]),
+    );
+    expect(refused.revision).toBe(install.revision);
+    expect(host.getSeat()).toEqual(install.seat);
   });
 });

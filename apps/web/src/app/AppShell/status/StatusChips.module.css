@@ -81,6 +81,29 @@
   gap: var(--space-2);
 }
 
+.promotionName {
+  display: block;
+  max-inline-size: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+ * A narrow desktop window: the bar is the container (AppShell's .topBar). The promotion's name goes
+ * first, so the date, the figures and Next Day keep their room; the sidebar still names it.
+ */
+@container (width < 64rem) {
+  .promotionChipBar {
+    display: none;
+  }
+}
+
+.placement-sheet .promotionName {
+  max-inline-size: none;
+  white-space: normal;
+}
+
 .money {
   color: var(--color-data);
 }
