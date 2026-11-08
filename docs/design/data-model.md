@@ -150,8 +150,319 @@ _Promotions, brands, employments and contracts arrive with FND-07._
 
 ## Titles, events, storylines and seasons
 
-_Titles and reigns, event definitions and instances, segments and
-participants, storylines and seasons arrive with FND-08._
+The creative and show-day tables: championships and their lineage, the shows
+a promotion runs, what goes on each card, the stories that tie cards
+together, and the seasons the whole world shares. Code:
+`packages/engine/src/model/entities/` (`title.ts`, `title-reign.ts`,
+`event-definition.ts`, `event-instance.ts`, `segment.ts`, `participant.ts`,
+`storyline.ts`, `season.ts`) and `packages/engine/src/model/recurrence.ts`.
+
+Every schema is a strict object: a field that is not listed is an error, not
+something to carry along silently.
+
+### Derived, never stored: slot role and duration class
+
+Cards are built from segment slots, never from minutes (D-10). The World
+stores where a segment sits (`slot` and `preShow`) and nothing else about its
+place on the card:
+
+- **Slot role** (opener, midcard, semi-main, main event, pre-show) is
+  computed by MTCH from the slot position and the section.
+- **Duration class** (short, standard, long) is computed by MTCH from the
+  slot position, the section and the match type (a battle royal or an
+  iron-man style stipulation can push it up or down).
+
+Nothing in the World stores minutes, a running time, a length or a slot role.
+A stored role would disagree with the card order the moment a segment moved;
+deriving it keeps the order the single source of truth, and lets MTCH and EVT
+retune what each position means without a data migration. A test walks the
+zod shapes of `EventDefinition`, `EventInstance` and `Segment` and fails on
+any key matching `/minute|length|duration|role/i`.
+
+### Titles (`titles`, `tit_`)
+
+| Field          | Type                                                                 | Notes                                             |
+| -------------- | -------------------------------------------------------------------- | ------------------------------------------------- |
+| `id`           | `TitleId`                                                            |                                                   |
+| `promotionId`  | `PromotionId`                                                        |                                                   |
+| `brandId`      | `BrandId \| null`                                                    | null for a promotion-wide title                   |
+| `name`         | string, 1–60                                                         |                                                   |
+| `holderCount`  | `1 \| 2 \| 3`                                                        | singles, tag, trios                               |
+| `division`     | `{ gender: 'open' \| 'male' \| 'female'; minWeightKg; maxWeightKg }` | weights are kg or null for no limit; min ≤ max    |
+| `prestige`     | 0–100                                                                |                                                   |
+| `status`       | `'active' \| 'retired'`                                              |                                                   |
+| `introducedOn` | `GameDate`                                                           |                                                   |
+| `retiredOn`    | `GameDate \| null`                                                   | set exactly when retired; not before introduction |
+| `imageRef`     | image ref or null                                                    |                                                   |
+| `color`        | `#rrggbb`                                                            | for the placeholder belt art                      |
+
+Refs: `promotionId`, `brandId`. Index: `byPromotion`.
+
+There is **no current-champion field**. The champion is the open reign:
+`titleReigns.lookupOne('openByTitle', titleId)`. Storing it on the title as
+well would give two answers that can disagree.
+
+### Title reigns (`titleReigns`, `trn_`)
+
+| Field               | Type                                                                  | Notes                                          |
+| ------------------- | --------------------------------------------------------------------- | ---------------------------------------------- |
+| `id`                | `TitleReignId`                                                        |                                                |
+| `titleId`           | `TitleId`                                                             |                                                |
+| `holderIds`         | `PersonId[]`                                                          | 1–3, unique; people, not employments           |
+| `teamId`            | `TeamId \| null`                                                      | when a team won it as a team                   |
+| `wonOn`             | `GameDate`                                                            |                                                |
+| `lostOn`            | `GameDate \| null`                                                    | null = the current reign; not before `wonOn`   |
+| `wonInSegmentId`    | `SegmentId \| null`                                                   | null for an inaugural or awarded reign         |
+| `endedInSegmentId`  | `SegmentId \| null`                                                   | null while current or when it ended off-screen |
+| `endReason`         | `null \| 'lost' \| 'vacated' \| 'stripped' \| 'retired' \| 'unified'` | set exactly when `lostOn` is set               |
+| `defences`          | int ≥ 0                                                               |                                                |
+| `holderNamesAtTime` | `string[]`                                                            | one ring name per holder, same order           |
+
+Refs: `titleId`, `holderIds[]`, `teamId`, `wonInSegmentId`,
+`endedInSegmentId`. Indexes: `byTitle`, `byHolder` (multi-key, one entry per
+holder), unique `openByTitle` (keyed by `titleId` while `lostOn` is null, left
+out otherwise), so a second open reign for a title is refused at write time.
+
+A reign covers `wonOn` up to, but not including, `lostOn`. A title can change
+hands twice on one show: the old reign ends on the day the new one starts, and
+a reign won and lost on the same day covers no time.
+
+### Event definitions (`eventDefinitions`, `evd_`)
+
+A recurring or one-off show before any date is booked.
+
+| Field               | Type                                                       | Notes                                       |
+| ------------------- | ---------------------------------------------------------- | ------------------------------------------- |
+| `id`                | `EventDefinitionId`                                        |                                             |
+| `promotionId`       | `PromotionId`                                              |                                             |
+| `brandId`           | `BrandId \| null`                                          | null for a promotion-wide (supershow) event |
+| `name`              | string, 1–60                                               |                                             |
+| `importance`        | `'house' \| 'minor' \| 'regular' \| 'major' \| 'flagship'` |                                             |
+| `recurrence`        | `Recurrence`                                               | see below                                   |
+| `format`            | `ShowFormat`                                               | see below                                   |
+| `televised`         | boolean                                                    |                                             |
+| `preferredRegionId` | `RegionId \| null`                                         |                                             |
+| `preferredVenueId`  | `VenueId \| null`                                          |                                             |
+| `activeFrom`        | `GameDate`                                                 |                                             |
+| `activeUntil`       | `GameDate \| null`                                         | null while it keeps running                 |
+| `logoRef`           | image ref or null                                          |                                             |
+
+Refs: `promotionId`, `brandId`, `preferredRegionId`, `preferredVenueId`.
+Index: `byPromotion`.
+
+#### Recurrence
+
+A union on `kind`. Weekdays are numbered 0 = Monday to 6 = Sunday, the same as
+`weekday()` in `core/date.ts`.
+
+| Kind          | Fields                                                       | Example                                                                                                              |
+| ------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| `weekly`      | `weekdays` (1–7, unique)                                     | Monday and Thursday TV: `{ kind: 'weekly', weekdays: [0, 3] }`                                                       |
+| `everyNWeeks` | `intervalWeeks` (2–8), `weekday`, `anchor` (on that weekday) | every other Wednesday from 7 Jan 2026: `{ kind: 'everyNWeeks', intervalWeeks: 2, weekday: 2, anchor: '2026-01-07' }` |
+| `monthly`     | `week` (1–4 or `'last'`), `weekday`                          | last Sunday of each month: `{ kind: 'monthly', week: 'last', weekday: 6 }`                                           |
+| `annual`      | `month` (1–12), `week` (1–4 or `'last'`), `weekday`          | 2nd Saturday of June: `{ kind: 'annual', month: 6, week: 2, weekday: 5 }`                                            |
+| `dates`       | `dates` (1–366, sorted, unique)                              | a short tour: `{ kind: 'dates', dates: ['2026-03-01', '2026-03-04'] }`                                               |
+
+`everyNWeeks` occurs on its `anchor` and every `7 × intervalWeeks` days
+after it, never before the anchor. The every-other-Wednesday example runs on
+7 Jan, 21 Jan and 4 Feb 2026, but not on 14 Jan, and not on 24 Dec 2025.
+Monthly and annual rules stop at week 4 or `'last'` because a 5th weekday
+does not exist in every month.
+
+`recurrence.occursOn(recurrence, date)` says whether a show falls on a date,
+and `recurrence.nextOccurrence(recurrence, after)` returns the first show date
+strictly after `after`, or null when there is none (a `dates` list with no
+later date, or a date past the end of the supported calendar). Both are pure
+and read dates only through `core/date.ts`. They are exported under the
+`recurrence` namespace because the day-pipeline calendar already has a
+`nextOccurrence` for phase cadences. Turning definitions into dated instances
+is the EVT and DAY epics' job.
+
+#### Show format and the slot model
+
+`ShowFormat` is `{ slots, preShowSlots }`: the number of main-card segment
+slots (3–12) and pre-show slots (0–3). A card has two sections, the main card
+and the pre-show, and each numbers its slots from 0. Slot 0 of the main card
+is always the opener, whatever the pre-show holds, because a pre-show segment
+never becomes the opener or main event of the main card.
+
+The ranges are wider than the defaults on purpose, so EVT can add a
+production-budget bonus slot without a migration. The default slot count per
+importance is content and tunables, not schema; WLD-08 suggests house 5,
+minor 5, regular 6, major 8 and flagship 10 main-card slots, with 0–2 pre-show
+slots on major and flagship shows.
+
+### Event instances (`eventInstances`, `evi_`)
+
+One dated show.
+
+| Field               | Type                                                          | Notes                                         |
+| ------------------- | ------------------------------------------------------------- | --------------------------------------------- |
+| `id`                | `EventInstanceId`                                             |                                               |
+| `promotionId`       | `PromotionId`                                                 |                                               |
+| `eventDefinitionId` | `EventDefinitionId \| null`                                   | null for a one-off                            |
+| `brandId`           | `BrandId \| null`                                             |                                               |
+| `name`              | string, 1–60                                                  |                                               |
+| `importance`        | as on the definition                                          | copied at scheduling                          |
+| `format`            | `ShowFormat`                                                  | copied at scheduling                          |
+| `date`              | `GameDate`                                                    | the live or taping date                       |
+| `airDate`           | `GameDate`                                                    | not before `date`; equal unless taped         |
+| `status`            | `'scheduled' \| 'booked' \| 'completed' \| 'cancelled'`       |                                               |
+| `venueId`           | `VenueId \| null`                                             |                                               |
+| `regionId`          | `RegionId`                                                    |                                               |
+| `result`            | `null \| { score; attendance; gate: Cents; viewers \| null }` | set exactly when completed; EVT/ECO extend it |
+
+Refs: `promotionId`, `eventDefinitionId`, `brandId`, `venueId`, `regionId`.
+Indexes: `byPromotion`, `byDate`, `byDefinition`.
+
+### Segments (`segments`, `seg_`)
+
+A segment is a match or an angle, as a union on `kind`, so nothing can build a
+segment without saying which it is, and every reader has to handle both. Use
+`isMatch(segment)` / `isAngle(segment)` to narrow.
+
+Shared fields:
+
+| Field             | Type                                                                          | Notes                                        |
+| ----------------- | ----------------------------------------------------------------------------- | -------------------------------------------- |
+| `id`              | `SegmentId`                                                                   |                                              |
+| `eventInstanceId` | `EventInstanceId`                                                             |                                              |
+| `slot`            | int ≥ 0                                                                       | position within its card section, from 0     |
+| `preShow`         | boolean                                                                       | true = pre-show section, false = main card   |
+| `label`           | string or null                                                                | a billing line such as a contender's match   |
+| `storylineIds`    | `StorylineId[]`                                                               | unique                                       |
+| `crew`            | `{ refereeId: PersonId \| null; producerId: PersonId \| null; announcerIds }` | at most 4 announcers                         |
+| `rating`          | `null \| { score: 0–100; stars: 0–5 in quarter stars; traceId \| null }`      | set once the show is completed; MTCH extends |
+
+`kind: 'match'` adds:
+
+- `match`: `{ matchTypeKey; stipulationKeys[]; titleIds: TitleId[]; finishKey | null }`.
+- `outcome`, the outcome union:
+  - `null` until the show is completed;
+  - `{ kind: 'win'; winningSide; methodKey }`, where `winningSide` is a
+    participant `side`;
+  - `{ kind: 'draw' }`;
+  - `{ kind: 'noContest' }`.
+
+`kind: 'angle'` adds `angle`: `{ angleTypeKey; beats }`, an ordered list of 1–8
+beats, each `{ beatKey; personIds }` and nothing else. Angles have no minutes
+either.
+
+The content keys (`matchTypeKey`, `stipulationKeys`, `finishKey`,
+`methodKey`, `angleTypeKey`, `beatKey`) point at data-pack catalogs owned by
+MTCH and WLD. The World does not check they resolve; the content loader does.
+`traceId` links to the recent-traces store kept in the save, so the Why? panel
+can find a segment's trace.
+
+Refs: `eventInstanceId`, `storylineIds[]`, `crew.refereeId`,
+`crew.producerId`, `crew.announcerIds[]`, `match.titleIds[]`,
+`angle.beats[].personIds[]`. Indexes: `byEventInstance`, `byStoryline`
+(multi-key), `byTitle` (multi-key, title matches only), and unique `bySlot`
+keyed `` `${eventInstanceId}|${preShow ? 'pre' : 'main'}|${slot}` ``, so a
+second segment in the same slot is refused at write time.
+
+### Participants (`participants`, `ptc_`)
+
+Who is in a segment. A table of its own because "every segment this person
+was in" is a hot query (history, morale, momentum, AI booking).
+
+| Field              | Type                                                                   | Notes                           |
+| ------------------ | ---------------------------------------------------------------------- | ------------------------------- |
+| `id`               | `ParticipantId`                                                        |                                 |
+| `segmentId`        | `SegmentId`                                                            |                                 |
+| `personId`         | `PersonId`                                                             |                                 |
+| `side`             | int 0–7                                                                | a singles match uses 0 and 1    |
+| `role`             | `'competitor' \| 'ringside' \| 'interferer' \| 'speaker' \| 'subject'` |                                 |
+| `teamId`           | `TeamId \| null`                                                       | the team they represent, if any |
+| `entranceOrder`    | int ≥ 1 or null                                                        | battle royals and similar       |
+| `eliminationOrder` | int ≥ 1 or null                                                        | null when not eliminated        |
+
+Refs: `segmentId`, `personId`, `teamId`. Indexes: `bySegment`, `byPerson`,
+unique `bySegmentPerson` (a person appears once per segment).
+
+### Storylines (`storylines`, `sty_`)
+
+| Field         | Type                                                  | Notes                                    |
+| ------------- | ----------------------------------------------------- | ---------------------------------------- |
+| `id`          | `StorylineId`                                         |                                          |
+| `promotionId` | `PromotionId`                                         |                                          |
+| `brandId`     | `BrandId \| null`                                     |                                          |
+| `name`        | string, 1–80                                          |                                          |
+| `status`      | `'active' \| 'ended'`                                 |                                          |
+| `startedOn`   | `GameDate`                                            |                                          |
+| `endedOn`     | `GameDate \| null`                                    | set exactly when ended; not before start |
+| `heat`        | 0–100                                                 | feeds the crowd and the D-09 shield      |
+| `members`     | `{ personId; side: 'face' \| 'heel' \| 'neutral' }[]` | 1–12, one entry per person               |
+| `summary`     | string, ≤ 500                                         |                                          |
+
+Refs: `promotionId`, `brandId`, `members[].personId`. Indexes: `byPromotion`,
+`byMember` (multi-key).
+
+### Seasons (`seasons`, `sea_`)
+
+Seasons (D-08) are world-wide: every promotion and brand shares them, so a
+season has no promotion.
+
+| Field       | Type                      | Notes                                          |
+| ----------- | ------------------------- | ---------------------------------------------- |
+| `id`        | `SeasonId`                |                                                |
+| `number`    | int ≥ 1                   |                                                |
+| `startDate` | `GameDate`                |                                                |
+| `endDate`   | `GameDate`                | not before `startDate`; planned for the active |
+| `status`    | `'active' \| 'completed'` |                                                |
+
+No refs. Indexes: unique `byNumber`, unique `activeSeason` (key `'active'`
+for the active season, left out otherwise). The current season is
+`seasons.lookupOne('activeSeason', 'active')`; there is no "current season"
+field on the world to drift out of sync.
+
+Season rules:
+
+- Exactly one season is active whenever the table has rows, and it is the
+  one with the highest number. An empty table is allowed only while a world is
+  being built: the new-game flow creates season 1.
+- Numbers run 1, 2, 3, ... with no gaps.
+- Seasons are contiguous: each starts the day after the previous one's
+  `endDate`, with no gap and no overlap.
+- A season's length comes from `WorldMeta.settings.season.lengthDays`. The
+  active season's `endDate` is computed from it when the season is created; a
+  changed length applies from the next season.
+- Season end (rollover, awards, recaps) runs in the DAY epic. Results, awards
+  and brand-war standings are added to the season by the DAY and BRW epics with
+  a migration once the save format is frozen.
+
+### Why some values are copied
+
+Most fields are references, but three are deliberate copies, because history
+must not change when a template or a name changes later:
+
+- An instance's `importance` and `format` are copied from its definition when
+  it is scheduled. Editing a weekly show's format next year must not rewrite
+  the cards of last year's shows.
+- A reign's `holderNamesAtTime` keeps the ring names the champions used when
+  they won, so the title history still reads correctly after a rename.
+
+### Invariants
+
+`checkWorld` reports these cross-row rules (the unique indexes above refuse
+the rest at write time):
+
+| Code                                                   | Rule                                                                                      |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| `titleReigns.holderCountMismatch`                      | a reign has exactly `title.holderCount` holders                                           |
+| `titleReigns.overlap`                                  | reigns of one title do not overlap in time                                                |
+| `segments.slotsNotContiguous`                          | within an instance, main-card slots run 0..n-1, and pre-show slots run 0..m-1, separately |
+| `segments.tooManyMainCard` / `segments.tooManyPreShow` | a section holds no more segments than `format.slots` / `format.preShowSlots`              |
+| `segments.winningSideWithoutCompetitor`                | a match's `outcome.winningSide` has a `competitor` participant                            |
+| `segments.titleFromOtherPromotion`                     | a match's `titleIds` belong to the instance's promotion                                   |
+| `segments.resultBeforeCompletion`                      | `rating` and `outcome` are set only once the instance is `completed`                      |
+| `segments.tooFewSides`                                 | a match has competitors on at least two distinct sides                                    |
+| `seasons.activeCount` / `seasons.activeNotLatest`      | a non-empty table has exactly one active season, and it has the highest number            |
+| `seasons.numberGap`                                    | season numbers run 1..n                                                                   |
+| `seasons.notContiguous` / `seasons.overlap`            | each season starts the day after the previous one ends                                    |
+
+Slot and format issues are reported against the `eventInstances` row, since
+they are about the card as a whole.
 
 ## Geography, media, mail, news and ledger
 
