@@ -6,6 +6,7 @@ import {
   formatMoney,
   formatNumber,
   formatPercent,
+  formatShortGameDateParts,
   formatSigned,
   MINUS_SIGN,
 } from './format';
@@ -141,6 +142,24 @@ describe('formatGameDate', () => {
     process.env['TZ'] = 'America/Los_Angeles';
     expect(new Date(Date.UTC(2031, 0, 1)).getDate()).toBe(31);
   });
+});
+
+describe('formatShortGameDateParts', () => {
+  it('splits the short date before its year', () => {
+    expect(formatShortGameDateParts(parseGameDate('2031-01-01'))).toEqual({
+      monthDay: 'Jan 1',
+      year: ', 2031',
+    });
+  });
+
+  it.each(['2026-04-10', '2030-12-31', '2031-01-01'])(
+    'joins back into the short date %s',
+    (iso) => {
+      const date = parseGameDate(iso);
+      const { monthDay, year } = formatShortGameDateParts(date);
+      expect(`${monthDay}${year}`).toBe(formatGameDate(date));
+    },
+  );
 });
 
 describe('formatDaysBetween', () => {

@@ -47,7 +47,8 @@
 /*
  * A shrinkable bug gives way in a crowded bar instead of pushing past it, whatever font is
  * showing: every box down to the label may shrink, and the label ends in an ellipsis. The dot
- * and the icon keep their size, and the padding keeps a finger's width.
+ * and the icon keep their size (the global `svg { max-width: 100% }` would squash the icon to the
+ * width left over), and the padding keeps a finger's width.
  */
 .shrinkable {
   min-inline-size: 0;
@@ -63,6 +64,10 @@
   flex: none;
 }
 
+.shrinkable .content > svg {
+  max-inline-size: none;
+}
+
 .shrinkable .label {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -70,9 +75,16 @@
 
 /*
  * A narrow container (the top bar on a phone at a large UI scale; rem grows with the scale): the
- * label is hidden from sight but stays the accessible name, so only the dot and the icon show.
+ * label is hidden from sight but stays the accessible name, so only the dot and the icon show,
+ * and the bug never shrinks below them. Above this width the bar has room for them and some of
+ * the label at any scale, since everything in it is sized in rem.
  */
 @container (width < 21rem) {
+  .shrinkable,
+  .shrinkable .content {
+    min-inline-size: auto;
+  }
+
   .shrinkable .label {
     position: absolute;
     inline-size: 1px;
