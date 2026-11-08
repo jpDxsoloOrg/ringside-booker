@@ -1,0 +1,107 @@
+.tabs {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+/*
+ * The strip never wraps. When the tabs do not fit, it scrolls sideways inside itself so the page
+ * never gets wider. TabList sets data-fade-start / data-fade-end while tabs are clipped at that
+ * end, and the mask fades the clipped edge as a hint that there is more to scroll to.
+ */
+.list {
+  --tabs-fade-size: 2rem;
+
+  display: flex;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  border-block-end: 1px solid var(--color-border);
+}
+
+.list[data-fade-end] {
+  mask-image: linear-gradient(to right, black calc(100% - var(--tabs-fade-size)), transparent);
+}
+
+.list[data-fade-start] {
+  mask-image: linear-gradient(to left, black calc(100% - var(--tabs-fade-size)), transparent);
+}
+
+.list[data-fade-start][data-fade-end] {
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black var(--tabs-fade-size),
+    black calc(100% - var(--tabs-fade-size)),
+    transparent
+  );
+}
+
+.tab {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 2.5rem;
+  padding: var(--space-2) var(--space-4);
+  border: 0;
+  /* The selected tab's underline sits on the strip's own bottom border. */
+  border-block-end: 2px solid transparent;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color var(--motion-fast) var(--easing-standard),
+    border-color var(--motion-fast) var(--easing-standard);
+}
+
+/* The strip clips its overflow, so the focus ring is drawn inside the tab instead of around it. */
+.tab:focus-visible {
+  outline-offset: -2px;
+}
+
+.tab[aria-selected='true'] {
+  border-block-end-color: var(--color-accent);
+  color: var(--color-text);
+}
+
+.tab:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+@media (hover: hover) {
+  .tab:hover:not(:disabled, [aria-selected='true']) {
+    color: var(--color-text);
+  }
+}
+
+@media (pointer: coarse) {
+  .tab {
+    min-block-size: var(--tap-target-min);
+  }
+}
+
+.panel {
+  min-inline-size: 0;
+}
+
+/* Phones: no scrollbar (the fade shows there is more) and the strip snaps to whole tabs. */
+@media (--bp-mobile) {
+  .list {
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tab {
+    scroll-snap-align: start;
+  }
+}
