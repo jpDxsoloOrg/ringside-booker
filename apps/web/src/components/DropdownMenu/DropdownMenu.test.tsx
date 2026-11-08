@@ -1,7 +1,10 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { Button } from '../Button';
+import { ConfirmDialog } from '../ConfirmDialog';
+import { Sheet } from '../Sheet';
 import { DropdownMenu } from './DropdownMenu';
 import type { DropdownMenuEntry } from './DropdownMenu';
 
@@ -70,6 +73,52 @@ async function openWithKeyboard(user: ReturnType<typeof userEvent.setup>): Promi
   await user.tab();
   expect(getTrigger()).toHaveFocus();
   await user.keyboard('{Enter}');
+}
+
+/** A row menu whose items open a Sheet and a ConfirmDialog, as roster rows will. */
+function MenuWithOverlays() {
+  const [openOverlay, setOpenOverlay] = useState<'sheet' | 'confirm' | null>(null);
+  const closeOverlay = () => {
+    setOpenOverlay(null);
+  };
+  return (
+    <>
+      <DropdownMenu
+        trigger={<Button>Actions</Button>}
+        items={[
+          {
+            kind: 'item',
+            id: 'details',
+            label: 'Details',
+            onSelect: () => {
+              setOpenOverlay('sheet');
+            },
+          },
+          {
+            kind: 'item',
+            id: 'release',
+            label: 'Release',
+            tone: 'danger',
+            onSelect: () => {
+              setOpenOverlay('confirm');
+            },
+          },
+        ]}
+      />
+      <Sheet open={openOverlay === 'sheet'} onClose={closeOverlay} title="Worker details">
+        <button type="button">Inner action</button>
+      </Sheet>
+      <ConfirmDialog
+        open={openOverlay === 'confirm'}
+        onClose={closeOverlay}
+        onConfirm={() => undefined}
+        title="Release this worker?"
+        body="Their contract ends today."
+        confirmLabel="Release"
+        tone="danger"
+      />
+    </>
+  );
 }
 
 describe('DropdownMenu', () => {
@@ -183,5 +232,49 @@ describe('DropdownMenu', () => {
     await user.click(disabledItem);
 
     expect(handlers.titleShot).not.toHaveBeenCalled();
+  });
+
+  it('names the menu after its trigger when no label is given', async () => {
+    const user = userEvent.setup();
+    render(<MenuWithOverlays />);
+
+    await user.click(getTrigger());
+
+    expect(screen.getByRole('menu', { name: 'Actions' })).toBeInTheDocument();
+  });
+
+  it('returns focus to the trigger after a Sheet opened from an item closes', async () => {
+    const user = userEvent.setup();
+    render(<MenuWithOverlays />);
+
+    await openWithKeyboard(user);
+    await waitFor(() => {
+      expect(item('Details')).toHaveFocus();
+    });
+    await user.keyboard('{Enter}');
+    expect(screen.getByRole('dialog', { name: 'Worker details' })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Inner action' })).toHaveFocus();
+    });
+
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(getTrigger()).toHaveFocus();
+  });
+
+  it('returns focus to the trigger after a ConfirmDialog opened from an item closes', async () => {
+    const user = userEvent.setup();
+    render(<MenuWithOverlays />);
+
+    await user.click(getTrigger());
+    await user.click(item('Release'));
+    expect(screen.getByRole('alertdialog', { name: 'Release this worker?' })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus();
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    expect(getTrigger()).toHaveFocus();
   });
 });

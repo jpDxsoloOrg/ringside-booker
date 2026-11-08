@@ -6,5 +6,5 @@ export {
   SCROLL_LOCK_CLASS,
   useBodyScrollLock,
 } from './useBodyScrollLock';
-export { firstFocusableIn, useOverlayFocus } from './useOverlayFocus';
+export { firstFocusableIn, RETURN_FOCUS_ATTRIBUTE, useOverlayFocus } from './useOverlayFocus';
 export type { OverlayFocusHandlers } from './useOverlayFocus';

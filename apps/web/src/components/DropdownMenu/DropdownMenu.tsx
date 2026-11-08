@@ -1,8 +1,10 @@
 import * as RadixMenu from '@radix-ui/react-dropdown-menu';
+import { useId } from 'react';
 import type { ReactElement } from 'react';
 import { classNames } from '../classNames';
 import { Icon } from '../Icon';
 import type { IconName } from '../Icon';
+import { RETURN_FOCUS_ATTRIBUTE } from '../Sheet';
 import styles from './DropdownMenu.module.css';
 
 /** `danger` for destructive actions such as Release or Delete. */
@@ -60,12 +62,20 @@ export function DropdownMenu({
   align = 'end',
   className,
 }: DropdownMenuProps) {
-  // Radix names the menu after its trigger; an explicit label takes that name's place.
-  const menuName = label === undefined ? {} : { 'aria-label': label, 'aria-labelledby': undefined };
+  // Our own trigger id, so the menu can name itself after the trigger and so a Sheet or
+  // ConfirmDialog opened from an item hands focus back to the trigger once the item is gone.
+  const triggerId = useId();
+  // The menu is named after its trigger; an explicit label takes that name's place.
+  const menuName =
+    label === undefined
+      ? { 'aria-labelledby': triggerId }
+      : { 'aria-label': label, 'aria-labelledby': undefined };
 
   return (
     <RadixMenu.Root>
-      <RadixMenu.Trigger asChild>{trigger}</RadixMenu.Trigger>
+      <RadixMenu.Trigger asChild id={triggerId}>
+        {trigger}
+      </RadixMenu.Trigger>
       <RadixMenu.Portal>
         <RadixMenu.Content
           align={align}
@@ -73,6 +83,7 @@ export function DropdownMenu({
           collisionPadding={8}
           loop
           {...menuName}
+          {...{ [RETURN_FOCUS_ATTRIBUTE]: triggerId }}
           className={classNames(styles['menu'], className)}
         >
           {items.map((entry) =>

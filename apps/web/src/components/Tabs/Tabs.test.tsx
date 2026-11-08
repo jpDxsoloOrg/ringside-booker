@@ -79,6 +79,40 @@ describe('Tabs', () => {
     expect(tab('Finances')).toHaveFocus();
   });
 
+  it('is one Tab stop from the first render, landing on the selected tab', async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <button type="button">Before</button>
+        <Tabs defaultValue="titles">
+          <TabList label="Promotion">
+            {TAB_VALUES.map((value) => (
+              <Tab key={value} value={value}>
+                {tabLabel(value)}
+              </Tab>
+            ))}
+          </TabList>
+          {TAB_VALUES.map((value) => (
+            <TabPanel key={value} value={value}>
+              <p>{tabLabel(value)} content</p>
+            </TabPanel>
+          ))}
+        </Tabs>
+      </>,
+    );
+
+    await user.tab();
+    expect(screen.getByRole('button', { name: 'Before' })).toHaveFocus();
+    await user.tab();
+    expect(tab('Titles')).toHaveFocus();
+    await user.tab();
+    expect(screen.getByRole('tabpanel', { name: 'Titles' })).toHaveFocus();
+    await user.tab({ shift: true });
+    expect(tab('Titles')).toHaveFocus();
+    await user.tab({ shift: true });
+    expect(screen.getByRole('button', { name: 'Before' })).toHaveFocus();
+  });
+
   it('selects a tab on click', async () => {
     const user = userEvent.setup();
     const handleChange = vi.fn();

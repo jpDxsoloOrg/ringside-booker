@@ -19,6 +19,26 @@ export function firstFocusableIn(container: Element | null): HTMLElement | null 
   return null;
 }
 
+/**
+ * Marks a short-lived container (a menu, say) whose controls can open an overlay but which closes
+ * as the overlay opens. Its value is the id of the element that should get focus back instead of
+ * the control inside it, which will be gone by the time the overlay closes.
+ */
+export const RETURN_FOCUS_ATTRIBUTE = 'data-return-focus-to';
+
+/**
+ * The element an overlay opened now should hand focus back to: the focused element, or, when that
+ * sits inside a container marked with `RETURN_FOCUS_ATTRIBUTE`, the element the marker names.
+ */
+function focusReturnTarget(): HTMLElement | null {
+  const active = document.activeElement;
+  if (!(active instanceof HTMLElement)) return null;
+  const marker = active.closest(`[${RETURN_FOCUS_ATTRIBUTE}]`);
+  const returnId = marker?.getAttribute(RETURN_FOCUS_ATTRIBUTE) ?? '';
+  if (returnId === '') return active;
+  return document.getElementById(returnId) ?? active;
+}
+
 /** The handlers a Radix overlay content element takes for its open and close focus moves. */
 export interface OverlayFocusHandlers {
   readonly onOpenAutoFocus: (event: Event) => void;
@@ -31,7 +51,9 @@ export interface OverlayFocusHandlers {
  * Radix traps focus while the overlay is open, but it only hands focus back to its own `Trigger`
  * part. Our overlays are opened by whatever control the screen likes, so this hook remembers the
  * element that had focus when `open` turned true and focuses it again once the overlay has
- * closed, unless something else (a route change, say) has taken focus in the meantime.
+ * closed, unless something else (a route change, say) has taken focus in the meantime. When the
+ * overlay was opened from a menu item, focus goes back to the menu's trigger instead, since the
+ * item is gone by then (see `RETURN_FOCUS_ATTRIBUTE`).
  *
  * `getInitialFocus` picks the element to focus on open, given the overlay's content element; null
  * leaves the content itself focused.
@@ -54,8 +76,7 @@ export function useOverlayFocus(
   // re-runs effects after focus has already moved inside.
   useLayoutEffect(() => {
     if (!open || openerRef.current !== null) return;
-    const active = document.activeElement;
-    openerRef.current = active instanceof HTMLElement ? active : null;
+    openerRef.current = focusReturnTarget();
   }, [open]);
 
   const onOpenAutoFocus = useCallback((event: Event) => {

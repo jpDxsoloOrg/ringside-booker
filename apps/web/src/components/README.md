@@ -145,7 +145,9 @@ tokens. Screens import our wrappers, never `@radix-ui/*` directly, so the props 
   Escape (the topmost one only), and hide the rest of the page from screen readers.
 - Radix only returns focus to its own `Trigger` part. Our overlays are opened by any control, so
   `useOverlayFocus` (in `Sheet/`) remembers what had focus on open and focuses it again on close,
-  and picks the first element to focus. A new modal overlay reuses it.
+  and picks the first element to focus. A new modal overlay reuses it. When a `DropdownMenu` item
+  opens a `Sheet` or `ConfirmDialog`, focus goes back to the menu's trigger, because the item has
+  gone by then (the menu marks itself with `RETURN_FOCUS_ATTRIBUTE`).
 - A screen that wants "a side panel" uses `Sheet` with a `side`. On phones the sheet decides to
   open from the bottom instead (turn that off with `responsiveSide={false}`).
 - While any overlay is open, `useBodyScrollLock` puts the `scroll-locked` class on `<html>`. Holds
