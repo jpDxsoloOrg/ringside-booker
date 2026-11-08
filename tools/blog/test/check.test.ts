@@ -235,7 +235,10 @@ describe('banned-terms with [case] names', () => {
 
   it('passes the everyday word in lower case', async () => {
     await useCommittedList();
-    await replaceHook(FINAL_POST, 'It was a loss to sting less, and the edge of the glow.');
+    await replaceHook(
+      FINAL_POST,
+      'It was a loss to sting less, the edge of the glow, a rise to stardom.',
+    );
     expect(withRule(await check(), 'banned-terms')).toEqual([]);
   });
 

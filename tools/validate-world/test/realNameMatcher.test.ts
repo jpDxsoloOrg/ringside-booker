@@ -123,6 +123,8 @@ describe('the committed list', () => {
     expect(findBlockedName('sting', blocklist)).toBeNull();
     expect(findBlockedName('Edge', blocklist)?.name).toBe('Edge');
     expect(findBlockedName('edge', blocklist)).toBeNull();
+    expect(findBlockedName('Stardom', blocklist)?.name).toBe('Stardom');
+    expect(findBlockedName('stardom', blocklist)).toBeNull();
   });
 
   it('still blocks every entry written the way the list writes it, in a field and in text', async () => {
