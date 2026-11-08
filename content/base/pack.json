@@ -4,12 +4,15 @@
   "name": "Ringside Booker Base",
   "version": "0.1.0",
   "kind": "base",
-  "description": "Shared data every world builds on: the map of continents, countries and regions.",
+  "description": "Shared data every world builds on: the map of continents, countries and regions, and the name lists people and ring names are generated from.",
   "author": "Ringside Booker",
   "dependsOn": [],
   "files": {
     "continent": "geography/continents.json",
     "country": "geography/countries.json",
-    "region": "geography/regions.json"
+    "region": "geography/regions.json",
+    "nameCulture": "names/cultures.json",
+    "countryNameMix": "names/country-mix.json",
+    "ringNameWords": "names/ring-words.json"
   }
 }
