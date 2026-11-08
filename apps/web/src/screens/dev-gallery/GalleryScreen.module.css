@@ -127,6 +127,9 @@
  */
 .phoneFrame {
   justify-self: start;
+  /* On a narrow desktop window the frame scrolls inside the entry rather than widening the page. */
+  max-inline-size: 100%;
+  overflow-x: auto;
   padding: var(--space-3);
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-lg);

@@ -38,7 +38,7 @@ describe('GalleryScreen', () => {
     expect(entryHeading(firstEntry?.title ?? '')).toBeInTheDocument();
   });
 
-  it('opens the entry a #hash names, and falls back to the first for an unknown one', async () => {
+  it('opens the entry a #hash names', async () => {
     renderGallery('/dev/gallery#stat-bar');
     expect(await screen.findByRole('heading', { level: 2, name: 'StatBar' })).toBeInTheDocument();
   });
