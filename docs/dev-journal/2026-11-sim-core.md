@@ -72,9 +72,9 @@ start end with the same world hash.
   `core/pipeline/runtime.ts`, `docs/design/day-pipeline.md#running-a-day`
 - **SIM-09: Multi-day advance.** The gate registry and a read-only `evaluateGates`, and
   `advanceDays`: a loop over `runDay` that stops at the first gate hit, yields to the host between
-  days, honours a cancel signal and returns a JSON-safe result. Every advance adds its own stop-date
-  and repeated-failure gates. `core/pipeline/gates.ts`, `core/pipeline/advance.ts`,
-  `docs/design/day-pipeline.md#gates`
+  days, honours a cancel signal and returns a JSON-safe result. Every advance adds its own
+  repeated-failure gate, plus a stop-date gate when a stop date is given.
+  `core/pipeline/gates.ts`, `core/pipeline/advance.ts`, `docs/design/day-pipeline.md#gates`
 - **SIM-10: Engine API.** `createEngine` from an `EngineState` and a list of system bundles,
   queries that run for a viewer, commands that run for a controller as one pipeline step and land
   in a command log, the built-in `sim` system (clock, status, pending gates, reports, events,
