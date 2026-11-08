@@ -122,6 +122,8 @@ export interface WorldPreview {
   promotions: PreviewPromotion[];
   /** The best-known active wrestlers, best known first. */
   topWorkers: PreviewWorker[];
+  /** How many active people (wrestlers and staff, employed or not) the world starts with. */
+  peopleCount: number;
   /** Continents, their countries and their regions, most populous first. */
   regions: PreviewContinent[];
   /** Every registered new-game setting. */
@@ -146,6 +148,7 @@ type ContentPreview = Pick<
   | 'startDate'
   | 'promotions'
   | 'topWorkers'
+  | 'peopleCount'
   | 'regions'
   | 'takenShortNames'
   | 'takenNames'
@@ -381,6 +384,7 @@ function contentPreview(
     startDate: content.startDate,
     promotions: previewPromotions(world, places),
     topWorkers: previewWorkers(world, places),
+    peopleCount: world.tables.people.values().filter((person) => person.status === 'active').length,
     regions: previewRegions(places),
     takenShortNames: allPromotions.map((promotion) => promotion.shortName).sort(compareText),
     takenNames: allPromotions.map((promotion) => promotion.name).sort(compareText),

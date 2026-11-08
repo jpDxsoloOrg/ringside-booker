@@ -258,6 +258,8 @@ When a minimum and maximum cross, the two are swapped rather than failing.
   country-level (population-weighted) popularity, with ring name, promotion
   short name (null for a free agent), age, ring style and that popularity
   summary;
+- `peopleCount`: how many active people (wrestlers and staff, employed or not)
+  the world starts with;
 - `regions`: continents → countries → regions with populations, for the
   founding form;
 - `settings`: every registered setting;
