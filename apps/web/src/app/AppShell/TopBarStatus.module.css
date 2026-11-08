@@ -76,16 +76,17 @@
 
 /*
  * A narrow desktop window: the bar is the container (AppShell's .topBar), and the strip gives up
- * its least important items first so the date and Next Day always fit.
+ * its least important items first so the date and Next Day always fit. The sample chip outlasts
+ * popularity (and is narrower than it), so sample figures stay marked on common laptop widths.
  */
 @container (width < 72rem) {
-  .sampleItem {
+  .item[data-status='popularity'] {
     display: none;
   }
 }
 
 @container (width < 60rem) {
-  .item[data-status='popularity'] {
+  .sampleItem {
     display: none;
   }
 }

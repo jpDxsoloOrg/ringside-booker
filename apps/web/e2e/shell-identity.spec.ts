@@ -71,6 +71,23 @@ test.describe('shell identity', () => {
     await expectNoHorizontalScroll(page);
   });
 
+  test('a laptop-width window still marks the status figures as a sample', async ({
+    page,
+  }, testInfo) => {
+    test.skip(isPhone(testInfo), 'Desktop layout only');
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await settleOffice(page);
+
+    const topBar = page.getByRole('banner');
+    const status = topBar.getByRole('group', { name: 'Status (sample figures)' });
+    await expect(status.getByText('Sample', { exact: true })).toBeVisible();
+    await expect(status.getByText('Cash')).toBeVisible();
+    await expect(topBar.getByRole('button', { name: 'Next day' })).toBeInViewport({ ratio: 1 });
+    const overflow = await topBar.evaluate((element) => element.scrollWidth - element.clientWidth);
+    expect(overflow, 'the top bar fits its width').toBeLessThanOrEqual(0);
+    await expectNoHorizontalScroll(page);
+  });
+
   test('desktop sidebar has the brand block and marks the current page with the rail', async ({
     page,
   }, testInfo) => {

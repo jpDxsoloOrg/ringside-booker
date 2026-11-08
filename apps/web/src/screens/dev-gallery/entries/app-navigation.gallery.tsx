@@ -93,6 +93,6 @@ export const galleryEntry: GalleryEntry = {
   title: 'App navigation',
   group: 'Primitives',
   notes:
-    'The shell itself is at /game after /dev/enter-shell in dev builds. These are its top bar end and nav items as static pieces. The status strip drops popularity, then cash, as the bar narrows.',
+    'The shell itself is at /game after /dev/enter-shell in dev builds. These are its top bar end and nav items as static pieces. The status strip drops popularity, the sample chip, the cash change, then cash, as the bar narrows.',
   render: () => <NavigationDemo />,
 };
