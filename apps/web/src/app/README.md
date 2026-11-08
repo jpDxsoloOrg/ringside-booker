@@ -10,6 +10,7 @@ accessibility plumbing that every page shares.
 | `router.tsx`              | The route tree, built from `routes.ts` and `navigation.ts`                 |
 | `RequireWorld.tsx`        | Sends `/game/*` to the title screen when no world is loaded                |
 | `session/sessionStore.ts` | Zustand: is a world loaded, and the local seat (whose promotion, if any)   |
+| `settings/`               | Viewer settings: schema, store (localStorage), effects on `<html>`         |
 | `layouts/OutOfGameLayout` | Title, load, new game and settings: centred, no navigation                 |
 | `AppShell/`               | Desktop sidebar and top bar; phone top bar, bottom tab bar and More sheet  |
 | `a11y/`                   | Skip link, focus on navigation, page titles and the live announcer         |
