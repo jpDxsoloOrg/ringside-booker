@@ -1,9 +1,9 @@
 /**
  * The simulation runtime: the engine's live state in one container.
  *
- * The world, the RNG, the tunables, the event bus, the trace store, the registered phases and gates,
- * the failure log and the last day's report travel together through every step, so the pipeline takes one argument instead of
- * seven. The host (the Web Worker, the headless runner or a test) supplies the only outside
+ * The world, the RNG, the tunables, the event bus, the trace store, the registered phases and
+ * gates, the failure log and the last day's report travel together through every step, so the
+ * pipeline takes one argument instead of nine. The host (the Web Worker, the headless runner or a test) supplies the only outside
  * dependency, a `now()` clock used for step timings, so the engine itself never reads the clock.
  */
 

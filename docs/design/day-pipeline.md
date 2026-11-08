@@ -220,8 +220,9 @@ Everything a day needs travels in one `SimRuntime`: the world, the RNG
 registry, the tunables, the event bus, the trace store, the phase registry,
 the gate registry, the failure log and the host. It also holds
 `lastDayReport`, the report of the last day a multi-day advance simulated,
-for the status query. That one is not saved. `createRuntime` builds one with defaults for
-everything but the world, checks the RNG seed matches the world's, and
+for the status query. That one is not saved. `createRuntime` builds one with
+defaults for everything but the world, checks the RNG seed matches the
+world's, and
 installs the seeded ID minter. The runtime is generic over the table registry,
 so the pipeline tests run on a small toy registry instead of the full game
 schema.
