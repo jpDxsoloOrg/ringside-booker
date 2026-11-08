@@ -170,6 +170,31 @@ describe('runCli', () => {
     expect(await runCli(['--days', '5', '--people', '5', '--json'], io)).toBe(EXIT_OK);
     const report: unknown = JSON.parse(io.out());
     expect(report).toMatchObject({ daysAdvanced: 5, stoppedBy: { kind: 'completed' } });
+    // Every RunSummary field and nothing else when neither --check-determinism nor --trace is set.
+    expect(Object.keys(report ?? {}).sort()).toEqual(
+      [
+        'daysAdvanced',
+        'daysPerSecond',
+        'endDate',
+        'eventsByType',
+        'failuresByStep',
+        'firstFailures',
+        'loadIssues',
+        'startDate',
+        'stoppedBy',
+        'wallMs',
+        'worldHash',
+      ].sort(),
+    );
+  });
+
+  it('adds the determinism check to --json output when asked for', async () => {
+    const io = captureIo();
+    expect(
+      await runCli(['--days', '3', '--people', '3', '--json', '--check-determinism'], io),
+    ).toBe(EXIT_OK);
+    const report: unknown = JSON.parse(io.out());
+    expect(report).toMatchObject({ determinism: { match: true, differences: [] } });
   });
 
   it('prints a stored trace as a tree', async () => {
