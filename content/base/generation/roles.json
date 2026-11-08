@@ -1,0 +1,240 @@
+[
+  {
+    "key": "wrestler",
+    "label": "Wrestler",
+    "role": "wrestler",
+    "performer": true,
+    "genderShares": { "male": 0.68, "female": 0.3, "nonBinary": 0.02 },
+    "stageShares": {
+      "rookie": 0.2,
+      "prospect": 0.24,
+      "established": 0.3,
+      "veteran": 0.18,
+      "legend": 0.08
+    },
+    "stageAges": {
+      "rookie": { "min": 18, "max": 24 },
+      "prospect": { "min": 21, "max": 28 },
+      "established": { "min": 26, "max": 36 },
+      "veteran": { "min": 33, "max": 45 },
+      "legend": { "min": 40, "max": 58 }
+    },
+    "roleSkills": [],
+    "performerAttributes": [
+      "ringwork",
+      "psychology",
+      "stamina",
+      "safety",
+      "athleticism",
+      "mic",
+      "charisma",
+      "presence"
+    ],
+    "debut": { "ageSd": 2.2, "minAge": 17, "maxAge": 30 },
+    "motivationWeights": { "money": 30, "legacy": 25, "power": 8, "enjoyment": 25, "thrill": 12 }
+  },
+  {
+    "key": "occasional-wrestler",
+    "label": "Occasional wrestler",
+    "role": "occasionalWrestler",
+    "performer": true,
+    "genderShares": { "male": 0.7, "female": 0.28, "nonBinary": 0.02 },
+    "stageShares": {
+      "rookie": 0.1,
+      "prospect": 0.15,
+      "established": 0.3,
+      "veteran": 0.3,
+      "legend": 0.15
+    },
+    "stageAges": {
+      "rookie": { "min": 18, "max": 24 },
+      "prospect": { "min": 21, "max": 28 },
+      "established": { "min": 26, "max": 36 },
+      "veteran": { "min": 33, "max": 45 },
+      "legend": { "min": 40, "max": 58 }
+    },
+    "roleSkills": [],
+    "performerAttributes": [
+      "ringwork",
+      "psychology",
+      "stamina",
+      "safety",
+      "athleticism",
+      "mic",
+      "charisma",
+      "presence"
+    ],
+    "debut": { "ageSd": 2.2, "minAge": 17, "maxAge": 30 },
+    "motivationWeights": { "money": 40, "legacy": 15, "power": 10, "enjoyment": 25, "thrill": 10 }
+  },
+  {
+    "key": "manager",
+    "label": "Manager",
+    "role": "manager",
+    "performer": false,
+    "genderShares": { "male": 0.55, "female": 0.43, "nonBinary": 0.02 },
+    "stageShares": {
+      "rookie": 0.15,
+      "prospect": 0.2,
+      "established": 0.35,
+      "veteran": 0.2,
+      "legend": 0.1
+    },
+    "stageAges": {
+      "rookie": { "min": 18, "max": 24 },
+      "prospect": { "min": 21, "max": 28 },
+      "established": { "min": 26, "max": 36 },
+      "veteran": { "min": 33, "max": 45 },
+      "legend": { "min": 40, "max": 58 }
+    },
+    "roleSkills": [],
+    "performerAttributes": [
+      "ringwork",
+      "psychology",
+      "stamina",
+      "safety",
+      "athleticism",
+      "mic",
+      "charisma",
+      "presence"
+    ],
+    "debut": { "ageSd": 3, "minAge": 17, "maxAge": 35 },
+    "motivationWeights": { "money": 30, "legacy": 15, "power": 25, "enjoyment": 25, "thrill": 5 }
+  },
+  {
+    "key": "presenter",
+    "label": "Presenter",
+    "role": "presenter",
+    "performer": false,
+    "genderShares": { "male": 0.48, "female": 0.5, "nonBinary": 0.02 },
+    "stageShares": {
+      "rookie": 0.2,
+      "prospect": 0.25,
+      "established": 0.35,
+      "veteran": 0.15,
+      "legend": 0.05
+    },
+    "stageAges": {
+      "rookie": { "min": 18, "max": 24 },
+      "prospect": { "min": 21, "max": 28 },
+      "established": { "min": 26, "max": 36 },
+      "veteran": { "min": 33, "max": 45 },
+      "legend": { "min": 40, "max": 58 }
+    },
+    "roleSkills": ["broadcasting"],
+    "performerAttributes": [
+      "ringwork",
+      "psychology",
+      "stamina",
+      "safety",
+      "athleticism",
+      "mic",
+      "charisma",
+      "presence"
+    ],
+    "debut": null,
+    "motivationWeights": { "money": 30, "legacy": 15, "power": 10, "enjoyment": 40, "thrill": 5 }
+  },
+  {
+    "key": "announcer",
+    "label": "Announcer",
+    "role": "announcer",
+    "performer": false,
+    "genderShares": { "male": 0.55, "female": 0.43, "nonBinary": 0.02 },
+    "stageShares": {
+      "rookie": 0.15,
+      "prospect": 0.2,
+      "established": 0.35,
+      "veteran": 0.2,
+      "legend": 0.1
+    },
+    "stageAges": {
+      "rookie": { "min": 18, "max": 24 },
+      "prospect": { "min": 21, "max": 28 },
+      "established": { "min": 26, "max": 36 },
+      "veteran": { "min": 33, "max": 45 },
+      "legend": { "min": 40, "max": 58 }
+    },
+    "roleSkills": ["broadcasting"],
+    "performerAttributes": [
+      "ringwork",
+      "psychology",
+      "stamina",
+      "safety",
+      "athleticism",
+      "mic",
+      "charisma",
+      "presence"
+    ],
+    "debut": null,
+    "motivationWeights": { "money": 25, "legacy": 30, "power": 5, "enjoyment": 40, "thrill": 0 }
+  },
+  {
+    "key": "referee",
+    "label": "Referee",
+    "role": "referee",
+    "performer": false,
+    "genderShares": { "male": 0.85, "female": 0.13, "nonBinary": 0.02 },
+    "stageShares": {
+      "rookie": 0.2,
+      "prospect": 0.25,
+      "established": 0.3,
+      "veteran": 0.18,
+      "legend": 0.07
+    },
+    "stageAges": {
+      "rookie": { "min": 18, "max": 24 },
+      "prospect": { "min": 21, "max": 28 },
+      "established": { "min": 26, "max": 36 },
+      "veteran": { "min": 33, "max": 45 },
+      "legend": { "min": 40, "max": 58 }
+    },
+    "roleSkills": ["officiating"],
+    "performerAttributes": [
+      "ringwork",
+      "psychology",
+      "stamina",
+      "safety",
+      "athleticism",
+      "mic",
+      "charisma",
+      "presence"
+    ],
+    "debut": null,
+    "motivationWeights": { "money": 30, "legacy": 15, "power": 5, "enjoyment": 45, "thrill": 5 }
+  },
+  {
+    "key": "producer",
+    "label": "Producer",
+    "role": "producer",
+    "performer": false,
+    "genderShares": { "male": 0.8, "female": 0.18, "nonBinary": 0.02 },
+    "stageShares": {
+      "rookie": 0.1,
+      "prospect": 0.2,
+      "established": 0.35,
+      "veteran": 0.25,
+      "legend": 0.1
+    },
+    "stageAges": {
+      "rookie": { "min": 22, "max": 30 },
+      "prospect": { "min": 25, "max": 34 },
+      "established": { "min": 30, "max": 42 },
+      "veteran": { "min": 38, "max": 52 },
+      "legend": { "min": 45, "max": 65 }
+    },
+    "roleSkills": ["producing", "booking"],
+    "performerAttributes": [
+      "ringwork",
+      "psychology",
+      "stamina",
+      "safety",
+      "athleticism",
+      "mic",
+      "charisma",
+      "presence"
+    ],
+    "debut": null,
+    "motivationWeights": { "money": 25, "legacy": 25, "power": 30, "enjoyment": 20, "thrill": 0 }
+  }
+]

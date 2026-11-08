@@ -22,9 +22,17 @@ import {
   type RegionRecord,
 } from './records/geography';
 import {
+  bodyArchetypeRecord,
+  bodyModifierRecord,
   generationProfileRecord,
+  generationRoleRecord,
+  generationStyleRecord,
   traitIncidenceRecord,
+  type BodyArchetypeRecord,
+  type BodyModifierRecord,
   type GenerationProfileRecord,
+  type GenerationRoleRecord,
+  type GenerationStyleRecord,
   type TraitIncidenceRecord,
 } from './records/generation';
 import {
@@ -94,6 +102,10 @@ export const recordKinds = {
   nameCulture: nameCultureRecord,
   countryNameMix: countryNameMixRecord,
   ringNameWords: ringNameWordsRecord,
+  generationRole: generationRoleRecord,
+  generationStyle: generationStyleRecord,
+  bodyArchetype: bodyArchetypeRecord,
+  bodyModifier: bodyModifierRecord,
   generationProfile: generationProfileRecord,
   traitIncidence: traitIncidenceRecord,
   person: personRecord,
@@ -119,6 +131,10 @@ export const recordSchemas = {
   nameCulture: nameCultureRecord.entry,
   countryNameMix: countryNameMixRecord.entry,
   ringNameWords: ringNameWordsRecord.entry,
+  generationRole: generationRoleRecord.entry,
+  generationStyle: generationStyleRecord.entry,
+  bodyArchetype: bodyArchetypeRecord.entry,
+  bodyModifier: bodyModifierRecord.entry,
   generationProfile: generationProfileRecord.entry,
   traitIncidence: traitIncidenceRecord.entry,
   person: personRecord.entry,
@@ -142,6 +158,10 @@ export interface PackRecords {
   nameCulture: NameCultureRecord;
   countryNameMix: CountryNameMixRecord;
   ringNameWords: RingNameWordsRecord;
+  generationRole: GenerationRoleRecord;
+  generationStyle: GenerationStyleRecord;
+  bodyArchetype: BodyArchetypeRecord;
+  bodyModifier: BodyModifierRecord;
   generationProfile: GenerationProfileRecord;
   traitIncidence: TraitIncidenceRecord;
   person: PersonRecord;

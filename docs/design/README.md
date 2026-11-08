@@ -17,4 +17,5 @@ Game and technical design for Ringside Booker. Each game system gets its own doc
 | [engine-api.md](engine-api.md)                 | The engine API: queries, commands, controllers and viewers, system bundles and the engine state |
 | [geography.md](geography.md)                   | The map: continents, countries and regions, the one-regional model, roll-ups and weighted picks |
 | [names.md](names.md)                           | Name cultures, country name mixes, weighted picks, gender handling, uniqueness and ring names   |
+| [world-generation.md](world-generation.md)     | Generating people: the spec, roles, profiles, correlated talent, bodies, dates and streams      |
 | [default-world.md](default-world.md)           | The shipped world's promotions, brands, titles, venues, networks, deals, shows and naming rules |

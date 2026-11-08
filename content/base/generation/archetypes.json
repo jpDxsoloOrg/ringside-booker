@@ -1,0 +1,393 @@
+[
+  {
+    "key": "compact-flyer",
+    "label": "Compact flyer",
+    "build": "slim",
+    "heightCm": { "min": 160, "max": 175 },
+    "weightKg": { "min": 60, "max": 80 },
+    "scale": {
+      "female": { "heightCm": 0.93, "weightKg": 0.8 },
+      "nonBinary": { "heightCm": 0.96, "weightKg": 0.88 }
+    },
+    "styleWeights": {
+      "allRounder": 2,
+      "technician": 2,
+      "brawler": 0,
+      "highFlyer": 10,
+      "powerhouse": 0,
+      "hardcore": 1,
+      "striker": 2,
+      "grappler": 1,
+      "showman": 2,
+      "nonWrestler": 1
+    }
+  },
+  {
+    "key": "lean-flyer",
+    "label": "Lean flyer",
+    "build": "lean",
+    "heightCm": { "min": 170, "max": 183 },
+    "weightKg": { "min": 72, "max": 88 },
+    "scale": {
+      "female": { "heightCm": 0.93, "weightKg": 0.8 },
+      "nonBinary": { "heightCm": 0.96, "weightKg": 0.88 }
+    },
+    "styleWeights": {
+      "allRounder": 4,
+      "technician": 3,
+      "brawler": 1,
+      "highFlyer": 9,
+      "powerhouse": 0,
+      "hardcore": 2,
+      "striker": 3,
+      "grappler": 2,
+      "showman": 3,
+      "nonWrestler": 2
+    }
+  },
+  {
+    "key": "lean-technician",
+    "label": "Lean technician",
+    "build": "lean",
+    "heightCm": { "min": 172, "max": 185 },
+    "weightKg": { "min": 78, "max": 95 },
+    "scale": {
+      "female": { "heightCm": 0.93, "weightKg": 0.8 },
+      "nonBinary": { "heightCm": 0.96, "weightKg": 0.88 }
+    },
+    "styleWeights": {
+      "allRounder": 5,
+      "technician": 10,
+      "brawler": 2,
+      "highFlyer": 3,
+      "powerhouse": 0,
+      "hardcore": 1,
+      "striker": 4,
+      "grappler": 6,
+      "showman": 2,
+      "nonWrestler": 3
+    }
+  },
+  {
+    "key": "athletic-all-rounder",
+    "label": "Athletic all-rounder",
+    "build": "athletic",
+    "heightCm": { "min": 178, "max": 192 },
+    "weightKg": { "min": 88, "max": 108 },
+    "scale": {
+      "female": { "heightCm": 0.93, "weightKg": 0.8 },
+      "nonBinary": { "heightCm": 0.96, "weightKg": 0.88 }
+    },
+    "styleWeights": {
+      "allRounder": 10,
+      "technician": 6,
+      "brawler": 4,
+      "highFlyer": 4,
+      "powerhouse": 3,
+      "hardcore": 3,
+      "striker": 5,
+      "grappler": 5,
+      "showman": 6,
+      "nonWrestler": 4
+    }
+  },
+  {
+    "key": "tall-athlete",
+    "label": "Tall athlete",
+    "build": "athletic",
+    "heightCm": { "min": 186, "max": 200 },
+    "weightKg": { "min": 95, "max": 115 },
+    "scale": {
+      "female": { "heightCm": 0.93, "weightKg": 0.8 },
+      "nonBinary": { "heightCm": 0.96, "weightKg": 0.88 }
+    },
+    "styleWeights": {
+      "allRounder": 5,
+      "technician": 7,
+      "brawler": 3,
+      "highFlyer": 1,
+      "powerhouse": 3,
+      "hardcore": 1,
+      "striker": 3,
+      "grappler": 4,
+      "showman": 5,
+      "nonWrestler": 2
+    }
+  },
+  {
+    "key": "muscular-showman",
+    "label": "Muscular showman",
+    "build": "muscular",
+    "heightCm": { "min": 180, "max": 195 },
+    "weightKg": { "min": 98, "max": 118 },
+    "scale": {
+      "female": { "heightCm": 0.93, "weightKg": 0.8 },
+      "nonBinary": { "heightCm": 0.96, "weightKg": 0.88 }
+    },
+    "styleWeights": {
+      "allRounder": 6,
+      "technician": 2,
+      "brawler": 3,
+      "highFlyer": 1,
+      "powerhouse": 5,
+      "hardcore": 1,
+      "striker": 2,
+      "grappler": 2,
+      "showman": 10,
+      "nonWrestler": 2
+    }
+  },
+  {
+    "key": "stocky-striker",
+    "label": "Stocky striker",
+    "build": "stocky",
+    "heightCm": { "min": 168, "max": 182 },
+    "weightKg": { "min": 88, "max": 108 },
+    "scale": {
+      "female": { "heightCm": 0.93, "weightKg": 0.8 },
+      "nonBinary": { "heightCm": 0.96, "weightKg": 0.88 }
+    },
+    "styleWeights": {
+      "allRounder": 3,
+      "technician": 3,
+      "brawler": 5,
+      "highFlyer": 0,
+      "powerhouse": 2,
+      "hardcore": 3,
+      "striker": 10,
+      "grappler": 6,
+      "showman": 1,
+      "nonWrestler": 3
+    }
+  },
+  {
+    "key": "stocky-grappler",
+    "label": "Stocky grappler",
+    "build": "stocky",
+    "heightCm": { "min": 172, "max": 186 },
+    "weightKg": { "min": 95, "max": 115 },
+    "scale": {
+      "female": { "heightCm": 0.93, "weightKg": 0.8 },
+      "nonBinary": { "heightCm": 0.96, "weightKg": 0.88 }
+    },
+    "styleWeights": {
+      "allRounder": 3,
+      "technician": 5,
+      "brawler": 4,
+      "highFlyer": 0,
+      "powerhouse": 3,
+      "hardcore": 2,
+      "striker": 4,
+      "grappler": 10,
+      "showman": 1,
+      "nonWrestler": 2
+    }
+  },
+  {
+    "key": "compact-powerhouse",
+    "label": "Compact powerhouse",
+    "build": "stocky",
+    "heightCm": { "min": 165, "max": 178 },
+    "weightKg": { "min": 95, "max": 118 },
+    "scale": {
+      "female": { "heightCm": 0.93, "weightKg": 0.8 },
+      "nonBinary": { "heightCm": 0.96, "weightKg": 0.88 }
+    },
+    "styleWeights": {
+      "allRounder": 2,
+      "technician": 2,
+      "brawler": 6,
+      "highFlyer": 0,
+      "powerhouse": 6,
+      "hardcore": 3,
+      "striker": 4,
+      "grappler": 5,
+      "showman": 2,
+      "nonWrestler": 2
+    }
+  },
+  {
+    "key": "wiry-scrapper",
+    "label": "Wiry scrapper",
+    "build": "lean",
+    "heightCm": { "min": 175, "max": 190 },
+    "weightKg": { "min": 78, "max": 98 },
+    "scale": {
+      "female": { "heightCm": 0.93, "weightKg": 0.8 },
+      "nonBinary": { "heightCm": 0.96, "weightKg": 0.88 }
+    },
+    "styleWeights": {
+      "allRounder": 2,
+      "technician": 1,
+      "brawler": 4,
+      "highFlyer": 2,
+      "powerhouse": 0,
+      "hardcore": 10,
+      "striker": 2,
+      "grappler": 1,
+      "showman": 3,
+      "nonWrestler": 2
+    }
+  },
+  {
+    "key": "power-brawler",
+    "label": "Power brawler",
+    "build": "heavy",
+    "heightCm": { "min": 182, "max": 196 },
+    "weightKg": { "min": 110, "max": 135 },
+    "scale": {
+      "female": { "heightCm": 0.93, "weightKg": 0.8 },
+      "nonBinary": { "heightCm": 0.96, "weightKg": 0.88 }
+    },
+    "styleWeights": {
+      "allRounder": 3,
+      "technician": 1,
+      "brawler": 10,
+      "highFlyer": 0,
+      "powerhouse": 6,
+      "hardcore": 6,
+      "striker": 4,
+      "grappler": 3,
+      "showman": 3,
+      "nonWrestler": 2
+    }
+  },
+  {
+    "key": "strongman",
+    "label": "Strongman",
+    "build": "muscular",
+    "heightCm": { "min": 183, "max": 198 },
+    "weightKg": { "min": 115, "max": 140 },
+    "scale": {
+      "female": { "heightCm": 0.93, "weightKg": 0.8 },
+      "nonBinary": { "heightCm": 0.96, "weightKg": 0.88 }
+    },
+    "styleWeights": {
+      "allRounder": 3,
+      "technician": 1,
+      "brawler": 5,
+      "highFlyer": 0,
+      "powerhouse": 10,
+      "hardcore": 3,
+      "striker": 3,
+      "grappler": 4,
+      "showman": 4,
+      "nonWrestler": 1
+    }
+  },
+  {
+    "key": "big-bruiser",
+    "label": "Big bruiser",
+    "build": "heavy",
+    "heightCm": { "min": 178, "max": 192 },
+    "weightKg": { "min": 125, "max": 160 },
+    "scale": {
+      "female": { "heightCm": 0.93, "weightKg": 0.8 },
+      "nonBinary": { "heightCm": 0.96, "weightKg": 0.88 }
+    },
+    "styleWeights": {
+      "allRounder": 1,
+      "technician": 0,
+      "brawler": 8,
+      "highFlyer": 0,
+      "powerhouse": 5,
+      "hardcore": 7,
+      "striker": 1,
+      "grappler": 3,
+      "showman": 3,
+      "nonWrestler": 2
+    }
+  },
+  {
+    "key": "super-heavy-giant",
+    "label": "Super-heavy giant",
+    "build": "superHeavy",
+    "heightCm": { "min": 198, "max": 218 },
+    "weightKg": { "min": 140, "max": 190 },
+    "scale": {
+      "female": { "heightCm": 0.93, "weightKg": 0.8 },
+      "nonBinary": { "heightCm": 0.96, "weightKg": 0.88 }
+    },
+    "styleWeights": {
+      "allRounder": 1,
+      "technician": 0,
+      "brawler": 4,
+      "highFlyer": 0,
+      "powerhouse": 8,
+      "hardcore": 2,
+      "striker": 1,
+      "grappler": 1,
+      "showman": 4,
+      "nonWrestler": 1
+    }
+  },
+  {
+    "key": "everyday-average",
+    "label": "Everyday average",
+    "build": "average",
+    "heightCm": { "min": 172, "max": 186 },
+    "weightKg": { "min": 80, "max": 100 },
+    "scale": {
+      "female": { "heightCm": 0.93, "weightKg": 0.8 },
+      "nonBinary": { "heightCm": 0.96, "weightKg": 0.88 }
+    },
+    "styleWeights": {
+      "allRounder": 8,
+      "technician": 5,
+      "brawler": 5,
+      "highFlyer": 2,
+      "powerhouse": 1,
+      "hardcore": 4,
+      "striker": 4,
+      "grappler": 4,
+      "showman": 5,
+      "nonWrestler": 8
+    }
+  },
+  {
+    "key": "slight-civilian",
+    "label": "Slight civilian",
+    "build": "slim",
+    "heightCm": { "min": 165, "max": 182 },
+    "weightKg": { "min": 58, "max": 78 },
+    "scale": {
+      "female": { "heightCm": 0.93, "weightKg": 0.8 },
+      "nonBinary": { "heightCm": 0.96, "weightKg": 0.88 }
+    },
+    "styleWeights": {
+      "allRounder": 0,
+      "technician": 0,
+      "brawler": 0,
+      "highFlyer": 0,
+      "powerhouse": 0,
+      "hardcore": 0,
+      "striker": 0,
+      "grappler": 0,
+      "showman": 1,
+      "nonWrestler": 6
+    }
+  },
+  {
+    "key": "heavyset-civilian",
+    "label": "Heavyset civilian",
+    "build": "heavy",
+    "heightCm": { "min": 170, "max": 190 },
+    "weightKg": { "min": 95, "max": 130 },
+    "scale": {
+      "female": { "heightCm": 0.93, "weightKg": 0.8 },
+      "nonBinary": { "heightCm": 0.96, "weightKg": 0.88 }
+    },
+    "styleWeights": {
+      "allRounder": 0,
+      "technician": 0,
+      "brawler": 1,
+      "highFlyer": 0,
+      "powerhouse": 0,
+      "hardcore": 0,
+      "striker": 0,
+      "grappler": 0,
+      "showman": 1,
+      "nonWrestler": 5
+    }
+  }
+]

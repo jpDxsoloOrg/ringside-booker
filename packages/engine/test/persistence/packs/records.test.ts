@@ -99,11 +99,72 @@ const VALID_RECORDS: Readonly<Record<RecordKind, Fixture>> = {
       ['"{nickname}" {family}', 5],
     ],
   },
-  generationProfile: {
-    key: 'wrestler-technician',
-    label: 'Technician',
+  generationRole: {
+    key: 'wrestler',
+    label: 'Wrestler',
     role: 'wrestler',
-    style: 'technician',
+    performer: true,
+    genderShares: { male: 0.68, female: 0.3, nonBinary: 0.02 },
+    stageShares: { rookie: 0.2, prospect: 0.24, established: 0.3, veteran: 0.18, legend: 0.08 },
+    stageAges: {
+      rookie: { min: 18, max: 24 },
+      prospect: { min: 21, max: 28 },
+      established: { min: 26, max: 36 },
+      veteran: { min: 33, max: 45 },
+      legend: { min: 40, max: 58 },
+    },
+    roleSkills: [],
+    performerAttributes: ['ringwork', 'psychology', 'mic', 'charisma'],
+    debut: { ageSd: 2.2, minAge: 17, maxAge: 30 },
+    motivationWeights: { money: 30, legacy: 25, power: 8, enjoyment: 25, thrill: 12 },
+  },
+  generationStyle: {
+    key: 'high-flyer',
+    style: 'highFlyer',
+    weight: 11,
+    promotionStyles: ['highFlying'],
+    attributeModifiers: { athleticism: 8, safety: -4 },
+    wearMultiplier: 1.15,
+    maskedChance: 0.3,
+  },
+  bodyArchetype: {
+    key: 'compact-flyer',
+    label: 'Compact flyer',
+    build: 'slim',
+    heightCm: { min: 160, max: 175 },
+    weightKg: { min: 60, max: 80 },
+    scale: {
+      female: { heightCm: 0.93, weightKg: 0.8 },
+      nonBinary: { heightCm: 0.96, weightKg: 0.88 },
+    },
+    styleWeights: {
+      allRounder: 2,
+      technician: 2,
+      brawler: 0,
+      highFlyer: 10,
+      powerhouse: 0,
+      hardcore: 1,
+      striker: 2,
+      grappler: 1,
+      showman: 2,
+      nonWrestler: 1,
+    },
+  },
+  bodyModifier: {
+    key: 'heavy-stamina',
+    label: 'Heavier wrestlers tire sooner',
+    attribute: 'stamina',
+    measure: 'weightKg',
+    direction: 'above',
+    from: 110,
+    perUnit: -0.25,
+    limit: 20,
+  },
+  generationProfile: {
+    key: 'wrestler-established',
+    label: 'Wrestler, established',
+    role: 'wrestler',
+    stage: 'established',
     attributes: ATTRIBUTE_DISTRIBUTIONS,
   },
   traitIncidence: {
@@ -622,6 +683,58 @@ describe('names and generation', () => {
     expect(parseIssues(recordSchemas.traitIncidence, incidence)).toEqual([
       'roleMultipliers.wrestler: Too big: expected number to be <=10',
     ]);
+  });
+
+  it('rejects generation roles whose shares do not add up or whose skill lists are mixed up', () => {
+    const shares = record('generationRole', {
+      genderShares: { male: 0.7, female: 0.4, nonBinary: 0.02 },
+    });
+    expect(parseIssues(recordSchemas.generationRole, shares)).toEqual([
+      'genderShares: Shares must add up to 1, got 1.12',
+    ]);
+    const skills = record('generationRole', { roleSkills: ['ringwork'] });
+    expect(parseIssues(recordSchemas.generationRole, skills)[0]).toMatch(
+      /^roleSkills\.0: ringwork is not a crew attribute/,
+    );
+    const performer = record('generationRole', { performerAttributes: ['booking'] });
+    expect(parseIssues(recordSchemas.generationRole, performer)[0]).toMatch(
+      /^performerAttributes\.0: booking is not an in-ring or character attribute/,
+    );
+    const ages = record('generationRole', {
+      stageAges: {
+        rookie: { min: 24, max: 18 },
+        prospect: { min: 21, max: 28 },
+        established: { min: 26, max: 36 },
+        veteran: { min: 33, max: 45 },
+        legend: { min: 40, max: 58 },
+      },
+    });
+    expect(parseIssues(recordSchemas.generationRole, ages)).toEqual([
+      'stageAges.rookie.max: min must not be greater than max',
+    ]);
+    const debut = record('generationRole', { debut: { ageSd: 2, minAge: 12, maxAge: 30 } });
+    expect(recordSchemas.generationRole.safeParse(debut).success).toBe(false);
+    const motivations = record('generationRole', {
+      motivationWeights: { money: 0, legacy: 0, power: 0, enjoyment: 0, thrill: 0 },
+    });
+    expect(parseIssues(recordSchemas.generationRole, motivations)).toEqual([
+      'motivationWeights: At least one motivation needs a weight above 0',
+    ]);
+  });
+
+  it('rejects an archetype missing a ring style and a profile with an unknown career stage', () => {
+    const archetype = record('bodyArchetype', {
+      styleWeights: { allRounder: 1, technician: 1 },
+    });
+    expect(recordSchemas.bodyArchetype.safeParse(archetype).success).toBe(false);
+    const range = record('bodyArchetype', { heightCm: { min: 190, max: 170 } });
+    expect(parseIssues(recordSchemas.bodyArchetype, range)).toEqual([
+      'heightCm.max: min must not be greater than max',
+    ]);
+    const profile = record('generationProfile', { stage: 'superstar' });
+    expect(recordSchemas.generationProfile.safeParse(profile).success).toBe(false);
+    const style = record('generationStyle', { attributeModifiers: { strength: 4 } });
+    expect(recordSchemas.generationStyle.safeParse(style).success).toBe(false);
   });
 
   it('rejects an unknown trait key and a base chance above 1', () => {
