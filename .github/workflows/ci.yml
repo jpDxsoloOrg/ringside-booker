@@ -56,6 +56,18 @@ jobs:
       - name: Test with coverage
         run: npm test -- --coverage
 
+      # Checks the shipped world against the content rules and the committed real-name blocklist
+      # (content/blocklist/real-names.txt). It needs no secrets, so it runs the same on pull
+      # requests from forks. Until the default world pack lands (WLD-08/WLD-09) there is nothing
+      # to check; once content/worlds/default exists the check always runs.
+      - name: Validate world content
+        run: |
+          if [ -d content/worlds/default ]; then
+            npm run validate:world -- --strict
+          else
+            echo "::notice::content/worlds/default does not exist yet; world validation skipped"
+          fi
+
       - name: Build
         run: npm run build
 
