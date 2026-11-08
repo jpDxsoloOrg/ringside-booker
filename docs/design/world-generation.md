@@ -378,7 +378,7 @@ expectedHeadroom(age) = H0 × clamp((Z − age) / (Z − 18), 0, 1) ^ k
 | `k`    | `worldgen.potential.curveExponent`   | 1.3     |
 
 It is `H0` at 18 and younger, falls smoothly, and is exactly 0 from `Z` on.
-There are no bands: a 30-year-old and a 31-year-old differ by about 1.5
+There are no bands: a 30-year-old and a 31-year-old differ by about 1.6
 points, not a whole tier. With the defaults:
 
 | Age | Expected headroom | Share of `H0` |

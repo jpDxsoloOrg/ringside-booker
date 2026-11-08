@@ -395,6 +395,18 @@ describe('reseedPotential', () => {
     const chosen = [ids[5], ids[2]].filter((id): id is PersonId => id !== undefined);
     const partial = reseed(chosen, 'partial');
     expect(partial.results.map((result) => result.personId)).toEqual([ids[2], ids[5]]);
+    // The requested people really were re-rolled: what was written is the new development.
+    for (const result of partial.results) {
+      expect(partial.world.tables.people.require(result.personId).development).toEqual(
+        result.development.value,
+      );
+    }
+    const changed = chosen.filter(
+      (id) =>
+        JSON.stringify(partial.world.tables.people.require(id).development) !==
+        JSON.stringify(partial.before.get(id)?.development),
+    );
+    expect(changed.length).toBeGreaterThan(0);
     for (const person of partial.world.tables.people.values()) {
       const original = partial.before.get(person.id);
       if (chosen.includes(person.id)) {
