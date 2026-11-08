@@ -1,0 +1,452 @@
+[
+  {
+    "key": "us",
+    "name": "United States",
+    "code": "US",
+    "continentKey": "na",
+    "population": 340100000,
+    "wrestlingInterest": 80,
+    "economy": 75,
+    "preferredStyle": "entertainment"
+  },
+  {
+    "key": "ca",
+    "name": "Canada",
+    "code": "CA",
+    "continentKey": "na",
+    "population": 41500000,
+    "wrestlingInterest": 70,
+    "economy": 65,
+    "preferredStyle": "mainstream"
+  },
+  {
+    "key": "gl",
+    "name": "Greenland",
+    "code": "GL",
+    "continentKey": "na",
+    "population": 100000,
+    "wrestlingInterest": 10,
+    "economy": 55,
+    "preferredStyle": null
+  },
+  {
+    "key": "mx",
+    "name": "Mexico",
+    "code": "MX",
+    "continentKey": "sa",
+    "population": 130900000,
+    "wrestlingInterest": 80,
+    "economy": 35,
+    "preferredStyle": "highFlying"
+  },
+  {
+    "key": "pr",
+    "name": "Puerto Rico",
+    "code": "PR",
+    "continentKey": "sa",
+    "population": 3200000,
+    "wrestlingInterest": 75,
+    "economy": 50,
+    "preferredStyle": "hardcore"
+  },
+  {
+    "key": "do",
+    "name": "Dominican Republic",
+    "code": "DO",
+    "continentKey": "sa",
+    "population": 11400000,
+    "wrestlingInterest": 45,
+    "economy": 30,
+    "preferredStyle": null
+  },
+  {
+    "key": "cr",
+    "name": "Costa Rica",
+    "code": "CR",
+    "continentKey": "sa",
+    "population": 5200000,
+    "wrestlingInterest": 15,
+    "economy": 35,
+    "preferredStyle": null
+  },
+  {
+    "key": "pa",
+    "name": "Panama",
+    "code": "PA",
+    "continentKey": "sa",
+    "population": 4500000,
+    "wrestlingInterest": 30,
+    "economy": 40,
+    "preferredStyle": null
+  },
+  {
+    "key": "co",
+    "name": "Colombia",
+    "code": "CO",
+    "continentKey": "sa",
+    "population": 53400000,
+    "wrestlingInterest": 25,
+    "economy": 30,
+    "preferredStyle": null
+  },
+  {
+    "key": "pe",
+    "name": "Peru",
+    "code": "PE",
+    "continentKey": "sa",
+    "population": 34600000,
+    "wrestlingInterest": 40,
+    "economy": 30,
+    "preferredStyle": "highFlying"
+  },
+  {
+    "key": "br",
+    "name": "Brazil",
+    "code": "BR",
+    "continentKey": "sa",
+    "population": 212800000,
+    "wrestlingInterest": 30,
+    "economy": 30,
+    "preferredStyle": null
+  },
+  {
+    "key": "ar",
+    "name": "Argentina",
+    "code": "AR",
+    "continentKey": "sa",
+    "population": 45900000,
+    "wrestlingInterest": 35,
+    "economy": 30,
+    "preferredStyle": "entertainment"
+  },
+  {
+    "key": "cl",
+    "name": "Chile",
+    "code": "CL",
+    "continentKey": "sa",
+    "population": 19900000,
+    "wrestlingInterest": 30,
+    "economy": 40,
+    "preferredStyle": null
+  },
+  {
+    "key": "gb",
+    "name": "United Kingdom",
+    "code": "GB",
+    "continentKey": "eu",
+    "population": 69300000,
+    "wrestlingInterest": 55,
+    "economy": 60,
+    "preferredStyle": "technical"
+  },
+  {
+    "key": "ie",
+    "name": "Ireland",
+    "code": "IE",
+    "continentKey": "eu",
+    "population": 5400000,
+    "wrestlingInterest": 50,
+    "economy": 70,
+    "preferredStyle": "mainstream"
+  },
+  {
+    "key": "de",
+    "name": "Germany",
+    "code": "DE",
+    "continentKey": "eu",
+    "population": 83600000,
+    "wrestlingInterest": 40,
+    "economy": 65,
+    "preferredStyle": "technical"
+  },
+  {
+    "key": "at",
+    "name": "Austria",
+    "code": "AT",
+    "continentKey": "eu",
+    "population": 9200000,
+    "wrestlingInterest": 35,
+    "economy": 65,
+    "preferredStyle": "technical"
+  },
+  {
+    "key": "ch",
+    "name": "Switzerland",
+    "code": "CH",
+    "continentKey": "eu",
+    "population": 9000000,
+    "wrestlingInterest": 25,
+    "economy": 80,
+    "preferredStyle": null
+  },
+  {
+    "key": "fr",
+    "name": "France",
+    "code": "FR",
+    "continentKey": "eu",
+    "population": 68600000,
+    "wrestlingInterest": 30,
+    "economy": 60,
+    "preferredStyle": "traditional"
+  },
+  {
+    "key": "es",
+    "name": "Spain",
+    "code": "ES",
+    "continentKey": "eu",
+    "population": 49100000,
+    "wrestlingInterest": 30,
+    "economy": 55,
+    "preferredStyle": null
+  },
+  {
+    "key": "pt",
+    "name": "Portugal",
+    "code": "PT",
+    "continentKey": "eu",
+    "population": 10600000,
+    "wrestlingInterest": 25,
+    "economy": 45,
+    "preferredStyle": null
+  },
+  {
+    "key": "it",
+    "name": "Italy",
+    "code": "IT",
+    "continentKey": "eu",
+    "population": 58900000,
+    "wrestlingInterest": 45,
+    "economy": 55,
+    "preferredStyle": "entertainment"
+  },
+  {
+    "key": "nl",
+    "name": "Netherlands",
+    "code": "NL",
+    "continentKey": "eu",
+    "population": 18000000,
+    "wrestlingInterest": 25,
+    "economy": 70,
+    "preferredStyle": null
+  },
+  {
+    "key": "be",
+    "name": "Belgium",
+    "code": "BE",
+    "continentKey": "eu",
+    "population": 11800000,
+    "wrestlingInterest": 25,
+    "economy": 65,
+    "preferredStyle": null
+  },
+  {
+    "key": "se",
+    "name": "Sweden",
+    "code": "SE",
+    "continentKey": "eu",
+    "population": 10600000,
+    "wrestlingInterest": 25,
+    "economy": 65,
+    "preferredStyle": null
+  },
+  {
+    "key": "no",
+    "name": "Norway",
+    "code": "NO",
+    "continentKey": "eu",
+    "population": 5600000,
+    "wrestlingInterest": 15,
+    "economy": 80,
+    "preferredStyle": null
+  },
+  {
+    "key": "pl",
+    "name": "Poland",
+    "code": "PL",
+    "continentKey": "eu",
+    "population": 37500000,
+    "wrestlingInterest": 30,
+    "economy": 45,
+    "preferredStyle": "hardHitting"
+  },
+  {
+    "key": "jp",
+    "name": "Japan",
+    "code": "JP",
+    "continentKey": "as",
+    "population": 123800000,
+    "wrestlingInterest": 75,
+    "economy": 55,
+    "preferredStyle": "hardHitting"
+  },
+  {
+    "key": "kr",
+    "name": "South Korea",
+    "code": "KR",
+    "continentKey": "as",
+    "population": 51700000,
+    "wrestlingInterest": 25,
+    "economy": 55,
+    "preferredStyle": null
+  },
+  {
+    "key": "tw",
+    "name": "Taiwan",
+    "code": "TW",
+    "continentKey": "as",
+    "population": 23400000,
+    "wrestlingInterest": 20,
+    "economy": 60,
+    "preferredStyle": null
+  },
+  {
+    "key": "cn",
+    "name": "China",
+    "code": "CN",
+    "continentKey": "as",
+    "population": 1408300000,
+    "wrestlingInterest": 10,
+    "economy": 35,
+    "preferredStyle": null
+  },
+  {
+    "key": "in",
+    "name": "India",
+    "code": "IN",
+    "continentKey": "as",
+    "population": 1463900000,
+    "wrestlingInterest": 35,
+    "economy": 15,
+    "preferredStyle": "entertainment"
+  },
+  {
+    "key": "ph",
+    "name": "Philippines",
+    "code": "PH",
+    "continentKey": "as",
+    "population": 116800000,
+    "wrestlingInterest": 40,
+    "economy": 20,
+    "preferredStyle": "entertainment"
+  },
+  {
+    "key": "sg",
+    "name": "Singapore",
+    "code": "SG",
+    "continentKey": "as",
+    "population": 6000000,
+    "wrestlingInterest": 30,
+    "economy": 85,
+    "preferredStyle": null
+  },
+  {
+    "key": "my",
+    "name": "Malaysia",
+    "code": "MY",
+    "continentKey": "as",
+    "population": 35900000,
+    "wrestlingInterest": 20,
+    "economy": 35,
+    "preferredStyle": null
+  },
+  {
+    "key": "id",
+    "name": "Indonesia",
+    "code": "ID",
+    "continentKey": "as",
+    "population": 285700000,
+    "wrestlingInterest": 15,
+    "economy": 20,
+    "preferredStyle": null
+  },
+  {
+    "key": "ae",
+    "name": "United Arab Emirates",
+    "code": "AE",
+    "continentKey": "as",
+    "population": 11300000,
+    "wrestlingInterest": 25,
+    "economy": 75,
+    "preferredStyle": "mainstream"
+  },
+  {
+    "key": "za",
+    "name": "South Africa",
+    "code": "ZA",
+    "continentKey": "af",
+    "population": 64700000,
+    "wrestlingInterest": 35,
+    "economy": 25,
+    "preferredStyle": "mainstream"
+  },
+  {
+    "key": "ng",
+    "name": "Nigeria",
+    "code": "NG",
+    "continentKey": "af",
+    "population": 237500000,
+    "wrestlingInterest": 15,
+    "economy": 10,
+    "preferredStyle": null
+  },
+  {
+    "key": "eg",
+    "name": "Egypt",
+    "code": "EG",
+    "continentKey": "af",
+    "population": 118400000,
+    "wrestlingInterest": 12,
+    "economy": 15,
+    "preferredStyle": null
+  },
+  {
+    "key": "ke",
+    "name": "Kenya",
+    "code": "KE",
+    "continentKey": "af",
+    "population": 57500000,
+    "wrestlingInterest": 10,
+    "economy": 10,
+    "preferredStyle": null
+  },
+  {
+    "key": "gh",
+    "name": "Ghana",
+    "code": "GH",
+    "continentKey": "af",
+    "population": 35100000,
+    "wrestlingInterest": 12,
+    "economy": 10,
+    "preferredStyle": null
+  },
+  {
+    "key": "au",
+    "name": "Australia",
+    "code": "AU",
+    "continentKey": "oc",
+    "population": 27400000,
+    "wrestlingInterest": 45,
+    "economy": 65,
+    "preferredStyle": "mainstream"
+  },
+  {
+    "key": "nz",
+    "name": "New Zealand",
+    "code": "NZ",
+    "continentKey": "oc",
+    "population": 5300000,
+    "wrestlingInterest": 40,
+    "economy": 55,
+    "preferredStyle": "traditional"
+  },
+  {
+    "key": "fj",
+    "name": "Fiji",
+    "code": "FJ",
+    "continentKey": "oc",
+    "population": 900000,
+    "wrestlingInterest": 15,
+    "economy": 25,
+    "preferredStyle": null
+  }
+]

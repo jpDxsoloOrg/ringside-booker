@@ -1,0 +1,15 @@
+{
+  "formatVersion": 1,
+  "id": "base",
+  "name": "Ringside Booker Base",
+  "version": "0.1.0",
+  "kind": "base",
+  "description": "Shared data every world builds on: the map of continents, countries and regions.",
+  "author": "Ringside Booker",
+  "dependsOn": [],
+  "files": {
+    "continent": "geography/continents.json",
+    "country": "geography/countries.json",
+    "region": "geography/regions.json"
+  }
+}
