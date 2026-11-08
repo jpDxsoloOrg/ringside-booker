@@ -1,8 +1,8 @@
 ---
-title: ""
+title: ''
 date: YYYY-MM-DD
 epics: []
-milestone: ""
+milestone: ''
 tickets: []
 blogCandidates: []
 ---
