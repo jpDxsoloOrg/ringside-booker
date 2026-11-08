@@ -51,6 +51,9 @@ test.describe('settings', () => {
 
     await enterShell(page);
     expect(await uiScaleOnPage(page)).toBe('1.5');
+    // The top bar's end draws once the engine answers, after the dashboard. Wait for the day
+    // button so the whole bar is measured, not the moment before it fills in.
+    await expect(page.getByTestId('next-day')).toBeVisible();
     await expectNoHorizontalScroll(page);
   });
 
