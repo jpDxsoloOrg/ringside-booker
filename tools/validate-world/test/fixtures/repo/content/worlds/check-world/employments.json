@@ -1,0 +1,242 @@
+[
+  {
+    "key": "aldo-fenwick-fgf",
+    "personKey": "aldo-fenwick",
+    "promotionKey": "fenland-grappling",
+    "role": "wrestler",
+    "ringName": "Aldo Fenwick",
+    "alignment": "face",
+    "push": "mainEvent",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 1200,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 300,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-01-01",
+    "endsOn": "2026-03-01"
+  },
+  {
+    "key": "dara-moorley-fgf",
+    "personKey": "dara-moorley",
+    "promotionKey": "fenland-grappling",
+    "role": "wrestler",
+    "ringName": "Dara Moorley",
+    "alignment": "heel",
+    "push": "upperCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 1200,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 300,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-01-01",
+    "endsOn": "2026-04-20"
+  },
+  {
+    "key": "corin-ashdown-fgf",
+    "personKey": "corin-ashdown",
+    "promotionKey": "fenland-grappling",
+    "role": "wrestler",
+    "ringName": "Corin Ashdown",
+    "alignment": "face",
+    "push": "midCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 1200,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 300,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-01-01",
+    "endsOn": "2026-06-10"
+  },
+  {
+    "key": "davin-brackwater-fgf",
+    "personKey": "davin-brackwater",
+    "promotionKey": "fenland-grappling",
+    "role": "wrestler",
+    "ringName": "Davin Brackwater",
+    "alignment": "heel",
+    "push": "midCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 1200,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 300,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-01-01",
+    "endsOn": "2026-08-01"
+  },
+  {
+    "key": "greta-coldharbour-fgf",
+    "personKey": "greta-coldharbour",
+    "promotionKey": "fenland-grappling",
+    "role": "wrestler",
+    "ringName": "Greta Coldharbour",
+    "alignment": "face",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 1200,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 300,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-01-01",
+    "endsOn": "2026-09-20"
+  },
+  {
+    "key": "fabian-dunmore-fgf",
+    "personKey": "fabian-dunmore",
+    "promotionKey": "fenland-grappling",
+    "role": "wrestler",
+    "ringName": "Fabian Dunmore",
+    "alignment": "heel",
+    "push": "enhancement",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 1200,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 300,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-01-01",
+    "endsOn": "2026-11-10"
+  },
+  {
+    "key": "garth-eastleigh-fgf",
+    "personKey": "garth-eastleigh",
+    "promotionKey": "fenland-grappling",
+    "role": "referee",
+    "ringName": "Garth Eastleigh",
+    "alignment": "face",
+    "push": "none",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 1200,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 300,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-01-01",
+    "endsOn": "2027-01-01"
+  },
+  {
+    "key": "jessamy-farrow-fgf",
+    "personKey": "jessamy-farrow",
+    "promotionKey": "fenland-grappling",
+    "role": "announcer",
+    "ringName": "Jessamy Farrow",
+    "alignment": "heel",
+    "push": "none",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 1200,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 300,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-01-01",
+    "endsOn": "2027-02-20"
+  }
+]

@@ -19,6 +19,7 @@
   "dependencies": {
     "@ringside/engine": "*",
     "comlink": "4.4.2",
+    "idb": "8.0.4",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-router-dom": "6.30.6",
@@ -39,6 +40,7 @@
     "eslint-plugin-jsx-a11y": "6.10.2",
     "eslint-plugin-react": "7.37.5",
     "eslint-plugin-react-hooks": "7.1.1",
+    "fake-indexeddb": "6.2.6",
     "jsdom": "26.1.0",
     "playwright-core": "1.64.1",
     "postcss-custom-media": "12.0.3",

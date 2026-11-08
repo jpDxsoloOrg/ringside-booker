@@ -1,0 +1,17 @@
+[
+  {
+    "key": "fgf-championship",
+    "promotionKey": "fenland-grappling",
+    "name": "Fenland Grappling Championship",
+    "holderCount": 1,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 40,
+    "status": "active",
+    "introducedOn": "2016-01-01",
+    "color": "#c9a227"
+  }
+]

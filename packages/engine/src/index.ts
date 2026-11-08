@@ -139,10 +139,25 @@ export * from './core/events';
 
 export * from './core/trace';
 
-// The day pipeline: phase definitions, the registry, reports and the failure log. The runners
-// (createRuntime, runStep, runDay) stay internal: they need the writable World, and the engine API
-// wraps them for the web app and the tools.
+// The day pipeline: phase and gate definitions, the registries, reports, advance results and the
+// failure log. The runners (createRuntime, runStep, runDay, advanceDays, evaluateGates) stay
+// internal: they need the runtime, and the engine API wraps them for the web app and the tools.
 export {
+  defineGate,
+  GATE_ID_PATTERN,
+  GateRegistry,
+  MAX_ADVANCE_DAYS,
+  REPEATED_FAILURE_GATE_ID,
+  RESERVED_GATE_SYSTEM,
+  STOP_DATE_GATE_ID,
+  type AdvanceFailure,
+  type AdvanceProgress,
+  type AdvanceResult,
+  type AdvanceStop,
+  type CancelSignal,
+  type GateDefinition,
+  type GateHit,
+  type GateSpec,
   definePhase,
   ENGINE_ONLY_GROUPS,
   isEngineOnlyGroup,
@@ -221,6 +236,8 @@ export type {
 } from './model/tx';
 export { tableOf } from './model/world';
 export type { GameTables, GameWorldView } from './model/tables';
+// The game's table registry, which `loadSave` takes to rebuild a World from a save.
+export { TABLES } from './model/tables';
 export type {
   ContentPackRef,
   GenerationLevel,

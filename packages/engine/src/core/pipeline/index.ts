@@ -43,3 +43,25 @@ export {
   type StepFailure,
 } from './runStep';
 export { CLOSE_STEP_ID, OPEN_STEP_ID, runDay } from './runDay';
+export {
+  defineGate,
+  evaluateGates,
+  GATE_ID_PATTERN,
+  GateRegistry,
+  RESERVED_GATE_SYSTEM,
+  type GateDefinition,
+  type GateHit,
+  type GateSpec,
+} from './gates';
+export {
+  advanceDays,
+  MAX_ADVANCE_DAYS,
+  REPEATED_FAILURE_GATE_ID,
+  STOP_DATE_GATE_ID,
+  type AdvanceFailure,
+  type AdvanceOptions,
+  type AdvanceProgress,
+  type AdvanceResult,
+  type AdvanceStop,
+  type CancelSignal,
+} from './advance';

@@ -186,13 +186,13 @@ tunables editor.
 
 The simulation core's own tunables, in `core/tunables/simTunables.ts`:
 
-| Key                                    | Kind    | Default | Range    | Unit  | What it does                                                             |
-| -------------------------------------- | ------- | ------- | -------- | ----- | ------------------------------------------------------------------------ |
-| `sim.traceRetentionPerKind`            | integer | 200     | 0–5000   | count | Full calculation traces kept per kind of result before summarising       |
-| `sim.traceSummaryLimit`                | integer | 5000    | 0–100000 | count | Trace summaries kept as history                                          |
-| `sim.eventLogSize`                     | integer | 500     | 0–10000  | count | Recent domain events kept in the save                                    |
-| `sim.maxEventCascadeDepth`             | integer | 8       | 1–32     | count | How deep a chain of events can go before the rest is stopped             |
-| `sim.stopSkipAfterConsecutiveFailures` | integer | 3       | 1–365    | days  | A multi-day skip stops after this many days in a row with a failed phase |
-| `sim.commandLogSize`                   | integer | 1000    | 0–100000 | count | Recent commands kept in the command log                                  |
+| Key                                    | Kind    | Default | Range    | Unit  | What it does                                                              |
+| -------------------------------------- | ------- | ------- | -------- | ----- | ------------------------------------------------------------------------- |
+| `sim.traceRetentionPerKind`            | integer | 200     | 0–5000   | count | Full calculation traces kept per kind of result before summarising        |
+| `sim.traceSummaryLimit`                | integer | 5000    | 0–100000 | count | Trace summaries kept as history                                           |
+| `sim.eventLogSize`                     | integer | 500     | 0–10000  | count | Recent domain events kept in the save                                     |
+| `sim.maxEventCascadeDepth`             | integer | 8       | 1–32     | count | How deep a chain of events can go before the rest is stopped              |
+| `sim.stopSkipAfterConsecutiveFailures` | integer | 3       | 1–365    | days  | A multi-day skip stops after the same phase fails this many days in a row |
+| `sim.commandLogSize`                   | integer | 1000    | 0–100000 | count | Recent commands kept in the command log                                   |
 
 Game systems add their own balance numbers as they are built.

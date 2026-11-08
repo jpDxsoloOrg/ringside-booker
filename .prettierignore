@@ -3,6 +3,7 @@ package-lock.json
 
 # Build and test output.
 dist
+dist-e2e
 coverage
 
 # Golden fixtures are written byte for byte by the tests (npm run fixtures:write -w @ringside/engine).

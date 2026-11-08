@@ -1,0 +1,1940 @@
+[
+  {
+    "key": "aldo-fenwick",
+    "givenName": "Aldo",
+    "familyName": "Fenwick",
+    "defaultRingName": "Aldo Fenwick",
+    "gender": "male",
+    "birthDate": "1975-01-01",
+    "debutDate": "1993-01-01",
+    "birthRegionKey": "east-fen",
+    "basedInRegionKey": "east-fen",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 175,
+    "weightKg": 70,
+    "build": "athletic",
+    "style": "allRounder",
+    "attributes": {
+      "ringwork": 30,
+      "psychology": 37,
+      "stamina": 44,
+      "safety": 30,
+      "athleticism": 37,
+      "mic": 44,
+      "charisma": 30,
+      "presence": 37,
+      "officiating": 44,
+      "broadcasting": 30,
+      "producing": 37,
+      "booking": 44
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "east-fen": 5
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "dara-moorley",
+    "givenName": "Dara",
+    "familyName": "Moorley",
+    "defaultRingName": "Dara Moorley",
+    "gender": "female",
+    "birthDate": "1978-02-06",
+    "debutDate": "1997-02-06",
+    "birthRegionKey": "west-moor",
+    "basedInRegionKey": "west-moor",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 176,
+    "weightKg": 77,
+    "build": "athletic",
+    "style": "technician",
+    "attributes": {
+      "ringwork": 44,
+      "psychology": 51,
+      "stamina": 37,
+      "safety": 44,
+      "athleticism": 51,
+      "mic": 37,
+      "charisma": 44,
+      "presence": 51,
+      "officiating": 37,
+      "broadcasting": 44,
+      "producing": 51,
+      "booking": 37
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "west-moor": 16
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "corin-ashdown",
+    "givenName": "Corin",
+    "familyName": "Ashdown",
+    "defaultRingName": "Corin Ashdown",
+    "gender": "male",
+    "birthDate": "1981-03-11",
+    "debutDate": "2001-03-11",
+    "birthRegionKey": "east-fen",
+    "basedInRegionKey": "east-fen",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 177,
+    "weightKg": 84,
+    "build": "athletic",
+    "style": "brawler",
+    "attributes": {
+      "ringwork": 37,
+      "psychology": 44,
+      "stamina": 51,
+      "safety": 37,
+      "athleticism": 44,
+      "mic": 51,
+      "charisma": 37,
+      "presence": 44,
+      "officiating": 51,
+      "broadcasting": 37,
+      "producing": 44,
+      "booking": 51
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "east-fen": 27
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "davin-brackwater",
+    "givenName": "Davin",
+    "familyName": "Brackwater",
+    "defaultRingName": "Davin Brackwater",
+    "gender": "male",
+    "birthDate": "1984-04-16",
+    "debutDate": "2005-04-16",
+    "birthRegionKey": "west-moor",
+    "basedInRegionKey": "west-moor",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 178,
+    "weightKg": 91,
+    "build": "athletic",
+    "style": "highFlyer",
+    "attributes": {
+      "ringwork": 51,
+      "psychology": 37,
+      "stamina": 44,
+      "safety": 51,
+      "athleticism": 37,
+      "mic": 44,
+      "charisma": 51,
+      "presence": 37,
+      "officiating": 44,
+      "broadcasting": 51,
+      "producing": 37,
+      "booking": 44
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "west-moor": 38
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "greta-coldharbour",
+    "givenName": "Greta",
+    "familyName": "Coldharbour",
+    "defaultRingName": "Greta Coldharbour",
+    "gender": "female",
+    "birthDate": "1987-05-21",
+    "debutDate": "2009-05-21",
+    "birthRegionKey": "east-fen",
+    "basedInRegionKey": "east-fen",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 179,
+    "weightKg": 98,
+    "build": "athletic",
+    "style": "powerhouse",
+    "attributes": {
+      "ringwork": 44,
+      "psychology": 51,
+      "stamina": 37,
+      "safety": 44,
+      "athleticism": 51,
+      "mic": 37,
+      "charisma": 44,
+      "presence": 51,
+      "officiating": 37,
+      "broadcasting": 44,
+      "producing": 51,
+      "booking": 37
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "east-fen": 9
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "fabian-dunmore",
+    "givenName": "Fabian",
+    "familyName": "Dunmore",
+    "defaultRingName": "Fabian Dunmore",
+    "gender": "male",
+    "birthDate": "1990-06-26",
+    "debutDate": "2008-06-26",
+    "birthRegionKey": "west-moor",
+    "basedInRegionKey": "west-moor",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 180,
+    "weightKg": 105,
+    "build": "athletic",
+    "style": "striker",
+    "attributes": {
+      "ringwork": 37,
+      "psychology": 44,
+      "stamina": 51,
+      "safety": 37,
+      "athleticism": 44,
+      "mic": 51,
+      "charisma": 37,
+      "presence": 44,
+      "officiating": 51,
+      "broadcasting": 37,
+      "producing": 44,
+      "booking": 51
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "west-moor": 20
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "garth-eastleigh",
+    "givenName": "Garth",
+    "familyName": "Eastleigh",
+    "defaultRingName": "Garth Eastleigh",
+    "gender": "male",
+    "birthDate": "1993-07-03",
+    "debutDate": "2012-07-03",
+    "birthRegionKey": "east-fen",
+    "basedInRegionKey": "east-fen",
+    "roles": ["referee"],
+    "motivation": "legacy",
+    "heightCm": 181,
+    "weightKg": 112,
+    "build": "athletic",
+    "style": "nonWrestler",
+    "attributes": {
+      "ringwork": 51,
+      "psychology": 37,
+      "stamina": 44,
+      "safety": 51,
+      "athleticism": 37,
+      "mic": 44,
+      "charisma": 51,
+      "presence": 37,
+      "officiating": 44,
+      "broadcasting": 51,
+      "producing": 37,
+      "booking": 44
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "east-fen": 31
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "jessamy-farrow",
+    "givenName": "Jessamy",
+    "familyName": "Farrow",
+    "defaultRingName": "Jessamy Farrow",
+    "gender": "female",
+    "birthDate": "1996-08-08",
+    "debutDate": "2016-08-08",
+    "birthRegionKey": "west-moor",
+    "basedInRegionKey": "west-moor",
+    "roles": ["announcer"],
+    "motivation": "legacy",
+    "heightCm": 182,
+    "weightKg": 119,
+    "build": "athletic",
+    "style": "nonWrestler",
+    "attributes": {
+      "ringwork": 44,
+      "psychology": 51,
+      "stamina": 37,
+      "safety": 44,
+      "athleticism": 51,
+      "mic": 37,
+      "charisma": 44,
+      "presence": 51,
+      "officiating": 37,
+      "broadcasting": 44,
+      "producing": 51,
+      "booking": 37
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "west-moor": 42
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "ivo-gilmour",
+    "givenName": "Ivo",
+    "familyName": "Gilmour",
+    "defaultRingName": "Ivo Gilmour",
+    "gender": "male",
+    "birthDate": "1999-09-13",
+    "debutDate": "2020-09-13",
+    "birthRegionKey": "east-fen",
+    "basedInRegionKey": "east-fen",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 183,
+    "weightKg": 76,
+    "build": "athletic",
+    "style": "hardcore",
+    "attributes": {
+      "ringwork": 58,
+      "psychology": 44,
+      "stamina": 51,
+      "safety": 58,
+      "athleticism": 44,
+      "mic": 51,
+      "charisma": 58,
+      "presence": 44,
+      "officiating": 51,
+      "broadcasting": 58,
+      "producing": 44,
+      "booking": 51
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "east-fen": 13
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "joren-hartigan",
+    "givenName": "Joren",
+    "familyName": "Hartigan",
+    "defaultRingName": "Joren Hartigan",
+    "gender": "male",
+    "birthDate": "2002-10-18",
+    "debutDate": "2024-10-18",
+    "birthRegionKey": "west-moor",
+    "basedInRegionKey": "west-moor",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 184,
+    "weightKg": 83,
+    "build": "athletic",
+    "style": "allRounder",
+    "attributes": {
+      "ringwork": 51,
+      "psychology": 58,
+      "stamina": 44,
+      "safety": 51,
+      "athleticism": 58,
+      "mic": 44,
+      "charisma": 51,
+      "presence": 58,
+      "officiating": 44,
+      "broadcasting": 51,
+      "producing": 58,
+      "booking": 44
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "west-moor": 24
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "marisol-ingleby",
+    "givenName": "Marisol",
+    "familyName": "Ingleby",
+    "defaultRingName": "Marisol Ingleby",
+    "gender": "female",
+    "birthDate": "1975-11-23",
+    "debutDate": "1993-11-23",
+    "birthRegionKey": "east-fen",
+    "basedInRegionKey": "east-fen",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 185,
+    "weightKg": 90,
+    "build": "athletic",
+    "style": "technician",
+    "attributes": {
+      "ringwork": 44,
+      "psychology": 51,
+      "stamina": 58,
+      "safety": 44,
+      "athleticism": 51,
+      "mic": 58,
+      "charisma": 44,
+      "presence": 51,
+      "officiating": 58,
+      "broadcasting": 44,
+      "producing": 51,
+      "booking": 58
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "east-fen": 35
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "lorcan-jarrow",
+    "givenName": "Lorcan",
+    "familyName": "Jarrow",
+    "defaultRingName": "Lorcan Jarrow",
+    "gender": "male",
+    "birthDate": "1978-12-28",
+    "debutDate": "1997-12-28",
+    "birthRegionKey": "west-moor",
+    "basedInRegionKey": "west-moor",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 186,
+    "weightKg": 97,
+    "build": "athletic",
+    "style": "brawler",
+    "attributes": {
+      "ringwork": 58,
+      "psychology": 44,
+      "stamina": 51,
+      "safety": 58,
+      "athleticism": 44,
+      "mic": 51,
+      "charisma": 58,
+      "presence": 44,
+      "officiating": 51,
+      "broadcasting": 58,
+      "producing": 44,
+      "booking": 51
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "west-moor": 6
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "maddox-kettering",
+    "givenName": "Maddox",
+    "familyName": "Kettering",
+    "defaultRingName": "Maddox Kettering",
+    "gender": "male",
+    "birthDate": "1981-01-05",
+    "debutDate": "2001-01-05",
+    "birthRegionKey": "east-fen",
+    "basedInRegionKey": "east-fen",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 187,
+    "weightKg": 104,
+    "build": "athletic",
+    "style": "highFlyer",
+    "attributes": {
+      "ringwork": 51,
+      "psychology": 58,
+      "stamina": 44,
+      "safety": 51,
+      "athleticism": 58,
+      "mic": 44,
+      "charisma": 51,
+      "presence": 58,
+      "officiating": 44,
+      "broadcasting": 51,
+      "producing": 58,
+      "booking": 44
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "east-fen": 17
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "petra-lindqvist",
+    "givenName": "Petra",
+    "familyName": "Lindqvist",
+    "defaultRingName": "Petra Lindqvist",
+    "gender": "female",
+    "birthDate": "1984-02-10",
+    "debutDate": "2005-02-10",
+    "birthRegionKey": "west-moor",
+    "basedInRegionKey": "west-moor",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 188,
+    "weightKg": 111,
+    "build": "athletic",
+    "style": "powerhouse",
+    "attributes": {
+      "ringwork": 44,
+      "psychology": 51,
+      "stamina": 58,
+      "safety": 44,
+      "athleticism": 51,
+      "mic": 58,
+      "charisma": 44,
+      "presence": 51,
+      "officiating": 58,
+      "broadcasting": 44,
+      "producing": 51,
+      "booking": 58
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "west-moor": 28
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "orrin-marchbank",
+    "givenName": "Orrin",
+    "familyName": "Marchbank",
+    "defaultRingName": "Orrin Marchbank",
+    "gender": "male",
+    "birthDate": "1987-03-15",
+    "debutDate": "2009-03-15",
+    "birthRegionKey": "east-fen",
+    "basedInRegionKey": "east-fen",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 189,
+    "weightKg": 118,
+    "build": "athletic",
+    "style": "striker",
+    "attributes": {
+      "ringwork": 58,
+      "psychology": 44,
+      "stamina": 51,
+      "safety": 58,
+      "athleticism": 44,
+      "mic": 51,
+      "charisma": 58,
+      "presence": 44,
+      "officiating": 51,
+      "broadcasting": 58,
+      "producing": 44,
+      "booking": 51
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "east-fen": 39
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "perrin-northcott",
+    "givenName": "Perrin",
+    "familyName": "Northcott",
+    "defaultRingName": "Perrin Northcott",
+    "gender": "male",
+    "birthDate": "1990-04-20",
+    "debutDate": "2008-04-20",
+    "birthRegionKey": "west-moor",
+    "basedInRegionKey": "west-moor",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 175,
+    "weightKg": 75,
+    "build": "athletic",
+    "style": "grappler",
+    "attributes": {
+      "ringwork": 51,
+      "psychology": 58,
+      "stamina": 65,
+      "safety": 51,
+      "athleticism": 58,
+      "mic": 65,
+      "charisma": 51,
+      "presence": 58,
+      "officiating": 65,
+      "broadcasting": 51,
+      "producing": 58,
+      "booking": 65
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "west-moor": 10
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "saffi-orrell",
+    "givenName": "Saffi",
+    "familyName": "Orrell",
+    "defaultRingName": "Saffi Orrell",
+    "gender": "female",
+    "birthDate": "1993-05-25",
+    "debutDate": "2012-05-25",
+    "birthRegionKey": "east-fen",
+    "basedInRegionKey": "east-fen",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 176,
+    "weightKg": 82,
+    "build": "athletic",
+    "style": "showman",
+    "attributes": {
+      "ringwork": 65,
+      "psychology": 51,
+      "stamina": 58,
+      "safety": 65,
+      "athleticism": 51,
+      "mic": 58,
+      "charisma": 65,
+      "presence": 51,
+      "officiating": 58,
+      "broadcasting": 65,
+      "producing": 51,
+      "booking": 58
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "east-fen": 21
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "rowan-pentreath",
+    "givenName": "Rowan",
+    "familyName": "Pentreath",
+    "defaultRingName": "Rowan Pentreath",
+    "gender": "male",
+    "birthDate": "1996-06-02",
+    "debutDate": "2016-06-02",
+    "birthRegionKey": "west-moor",
+    "basedInRegionKey": "west-moor",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 177,
+    "weightKg": 89,
+    "build": "athletic",
+    "style": "hardcore",
+    "attributes": {
+      "ringwork": 58,
+      "psychology": 65,
+      "stamina": 51,
+      "safety": 58,
+      "athleticism": 65,
+      "mic": 51,
+      "charisma": 58,
+      "presence": 65,
+      "officiating": 51,
+      "broadcasting": 58,
+      "producing": 65,
+      "booking": 51
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "west-moor": 32
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "soren-quarrie",
+    "givenName": "Soren",
+    "familyName": "Quarrie",
+    "defaultRingName": "Soren Quarrie",
+    "gender": "male",
+    "birthDate": "1999-07-07",
+    "debutDate": "2020-07-07",
+    "birthRegionKey": "east-fen",
+    "basedInRegionKey": "east-fen",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 178,
+    "weightKg": 96,
+    "build": "athletic",
+    "style": "allRounder",
+    "attributes": {
+      "ringwork": 51,
+      "psychology": 58,
+      "stamina": 65,
+      "safety": 51,
+      "athleticism": 58,
+      "mic": 65,
+      "charisma": 51,
+      "presence": 58,
+      "officiating": 65,
+      "broadcasting": 51,
+      "producing": 58,
+      "booking": 65
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "east-fen": 43
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "verity-redfern",
+    "givenName": "Verity",
+    "familyName": "Redfern",
+    "defaultRingName": "Verity Redfern",
+    "gender": "female",
+    "birthDate": "2002-08-12",
+    "debutDate": "2024-08-12",
+    "birthRegionKey": "west-moor",
+    "basedInRegionKey": "west-moor",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 179,
+    "weightKg": 103,
+    "build": "athletic",
+    "style": "technician",
+    "attributes": {
+      "ringwork": 65,
+      "psychology": 51,
+      "stamina": 58,
+      "safety": 65,
+      "athleticism": 51,
+      "mic": 58,
+      "charisma": 65,
+      "presence": 51,
+      "officiating": 58,
+      "broadcasting": 65,
+      "producing": 51,
+      "booking": 58
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "west-moor": 14
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "aldo-selwood",
+    "givenName": "Aldo",
+    "familyName": "Selwood",
+    "defaultRingName": "Aldo Selwood",
+    "gender": "male",
+    "birthDate": "1975-09-17",
+    "debutDate": "1993-09-17",
+    "birthRegionKey": "east-fen",
+    "basedInRegionKey": "east-fen",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 180,
+    "weightKg": 110,
+    "build": "athletic",
+    "style": "brawler",
+    "attributes": {
+      "ringwork": 58,
+      "psychology": 65,
+      "stamina": 51,
+      "safety": 58,
+      "athleticism": 65,
+      "mic": 51,
+      "charisma": 58,
+      "presence": 65,
+      "officiating": 51,
+      "broadcasting": 58,
+      "producing": 65,
+      "booking": 51
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "east-fen": 25
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "bram-thornbury",
+    "givenName": "Bram",
+    "familyName": "Thornbury",
+    "defaultRingName": "Bram Thornbury",
+    "gender": "male",
+    "birthDate": "1978-10-22",
+    "debutDate": "1997-10-22",
+    "birthRegionKey": "west-moor",
+    "basedInRegionKey": "west-moor",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 181,
+    "weightKg": 117,
+    "build": "athletic",
+    "style": "highFlyer",
+    "attributes": {
+      "ringwork": 51,
+      "psychology": 58,
+      "stamina": 65,
+      "safety": 51,
+      "athleticism": 58,
+      "mic": 65,
+      "charisma": 51,
+      "presence": 58,
+      "officiating": 65,
+      "broadcasting": 51,
+      "producing": 58,
+      "booking": 65
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "west-moor": 36
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "elowen-upcott",
+    "givenName": "Elowen",
+    "familyName": "Upcott",
+    "defaultRingName": "Elowen Upcott",
+    "gender": "female",
+    "birthDate": "1981-11-27",
+    "debutDate": "2001-11-27",
+    "birthRegionKey": "east-fen",
+    "basedInRegionKey": "east-fen",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 182,
+    "weightKg": 74,
+    "build": "athletic",
+    "style": "powerhouse",
+    "attributes": {
+      "ringwork": 65,
+      "psychology": 72,
+      "stamina": 58,
+      "safety": 65,
+      "athleticism": 72,
+      "mic": 58,
+      "charisma": 65,
+      "presence": 72,
+      "officiating": 58,
+      "broadcasting": 65,
+      "producing": 72,
+      "booking": 58
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "east-fen": 7
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "davin-varley",
+    "givenName": "Davin",
+    "familyName": "Varley",
+    "defaultRingName": "Davin Varley",
+    "gender": "male",
+    "birthDate": "1984-12-04",
+    "debutDate": "2005-12-04",
+    "birthRegionKey": "west-moor",
+    "basedInRegionKey": "west-moor",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 183,
+    "weightKg": 81,
+    "build": "athletic",
+    "style": "striker",
+    "attributes": {
+      "ringwork": 58,
+      "psychology": 65,
+      "stamina": 72,
+      "safety": 58,
+      "athleticism": 65,
+      "mic": 72,
+      "charisma": 58,
+      "presence": 65,
+      "officiating": 72,
+      "broadcasting": 58,
+      "producing": 65,
+      "booking": 72
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "west-moor": 18
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "elric-wickham",
+    "givenName": "Elric",
+    "familyName": "Wickham",
+    "defaultRingName": "Elric Wickham",
+    "gender": "male",
+    "birthDate": "1987-01-09",
+    "debutDate": "2009-01-09",
+    "birthRegionKey": "east-fen",
+    "basedInRegionKey": "east-fen",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 184,
+    "weightKg": 88,
+    "build": "athletic",
+    "style": "grappler",
+    "attributes": {
+      "ringwork": 72,
+      "psychology": 58,
+      "stamina": 65,
+      "safety": 72,
+      "athleticism": 58,
+      "mic": 65,
+      "charisma": 72,
+      "presence": 58,
+      "officiating": 65,
+      "broadcasting": 72,
+      "producing": 58,
+      "booking": 65
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "east-fen": 29
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "hollis-yarwood",
+    "givenName": "Hollis",
+    "familyName": "Yarwood",
+    "defaultRingName": "Hollis Yarwood",
+    "gender": "female",
+    "birthDate": "1990-02-14",
+    "debutDate": "2008-02-14",
+    "birthRegionKey": "west-moor",
+    "basedInRegionKey": "west-moor",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 185,
+    "weightKg": 95,
+    "build": "athletic",
+    "style": "showman",
+    "attributes": {
+      "ringwork": 65,
+      "psychology": 72,
+      "stamina": 58,
+      "safety": 65,
+      "athleticism": 72,
+      "mic": 58,
+      "charisma": 65,
+      "presence": 72,
+      "officiating": 58,
+      "broadcasting": 65,
+      "producing": 72,
+      "booking": 58
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "west-moor": 40
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "garth-zeller",
+    "givenName": "Garth",
+    "familyName": "Zeller",
+    "defaultRingName": "Garth Zeller",
+    "gender": "male",
+    "birthDate": "1993-03-19",
+    "debutDate": "2012-03-19",
+    "birthRegionKey": "east-fen",
+    "basedInRegionKey": "east-fen",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 186,
+    "weightKg": 102,
+    "build": "athletic",
+    "style": "hardcore",
+    "attributes": {
+      "ringwork": 58,
+      "psychology": 65,
+      "stamina": 72,
+      "safety": 58,
+      "athleticism": 65,
+      "mic": 72,
+      "charisma": 58,
+      "presence": 65,
+      "officiating": 72,
+      "broadcasting": 58,
+      "producing": 65,
+      "booking": 72
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "east-fen": 11
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "halden-ablett",
+    "givenName": "Halden",
+    "familyName": "Ablett",
+    "defaultRingName": "Halden Ablett",
+    "gender": "male",
+    "birthDate": "1996-04-24",
+    "debutDate": "2016-04-24",
+    "birthRegionKey": "west-moor",
+    "basedInRegionKey": "west-moor",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 187,
+    "weightKg": 109,
+    "build": "athletic",
+    "style": "allRounder",
+    "attributes": {
+      "ringwork": 72,
+      "psychology": 58,
+      "stamina": 65,
+      "safety": 72,
+      "athleticism": 58,
+      "mic": 65,
+      "charisma": 72,
+      "presence": 58,
+      "officiating": 65,
+      "broadcasting": 72,
+      "producing": 58,
+      "booking": 65
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "west-moor": 22
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "kenna-bowditch",
+    "givenName": "Kenna",
+    "familyName": "Bowditch",
+    "defaultRingName": "Kenna Bowditch",
+    "gender": "female",
+    "birthDate": "1999-05-01",
+    "debutDate": "2020-05-01",
+    "birthRegionKey": "east-fen",
+    "basedInRegionKey": "east-fen",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 188,
+    "weightKg": 116,
+    "build": "athletic",
+    "style": "technician",
+    "attributes": {
+      "ringwork": 65,
+      "psychology": 72,
+      "stamina": 58,
+      "safety": 65,
+      "athleticism": 72,
+      "mic": 58,
+      "charisma": 65,
+      "presence": 72,
+      "officiating": 58,
+      "broadcasting": 65,
+      "producing": 72,
+      "booking": 58
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "east-fen": 33
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "joren-cranwell",
+    "givenName": "Joren",
+    "familyName": "Cranwell",
+    "defaultRingName": "Joren Cranwell",
+    "gender": "male",
+    "birthDate": "2002-06-06",
+    "debutDate": "2024-06-06",
+    "birthRegionKey": "west-moor",
+    "basedInRegionKey": "west-moor",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 189,
+    "weightKg": 73,
+    "build": "athletic",
+    "style": "brawler",
+    "attributes": {
+      "ringwork": 79,
+      "psychology": 65,
+      "stamina": 72,
+      "safety": 79,
+      "athleticism": 65,
+      "mic": 72,
+      "charisma": 79,
+      "presence": 65,
+      "officiating": 72,
+      "broadcasting": 79,
+      "producing": 65,
+      "booking": 72
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "west-moor": 44
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "kestrel-dimmock",
+    "givenName": "Kestrel",
+    "familyName": "Dimmock",
+    "defaultRingName": "Kestrel Dimmock",
+    "gender": "male",
+    "birthDate": "1975-07-11",
+    "debutDate": "1993-07-11",
+    "birthRegionKey": "east-fen",
+    "basedInRegionKey": "east-fen",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 175,
+    "weightKg": 80,
+    "build": "athletic",
+    "style": "highFlyer",
+    "attributes": {
+      "ringwork": 42,
+      "psychology": 49,
+      "stamina": 35,
+      "safety": 42,
+      "athleticism": 49,
+      "mic": 35,
+      "charisma": 42,
+      "presence": 49,
+      "officiating": 35,
+      "broadcasting": 42,
+      "producing": 49,
+      "booking": 35
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "east-fen": 15
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "nerys-ellerby",
+    "givenName": "Nerys",
+    "familyName": "Ellerby",
+    "defaultRingName": "Nerys Ellerby",
+    "gender": "female",
+    "birthDate": "1978-08-16",
+    "debutDate": "1997-08-16",
+    "birthRegionKey": "west-moor",
+    "basedInRegionKey": "west-moor",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 176,
+    "weightKg": 87,
+    "build": "athletic",
+    "style": "powerhouse",
+    "attributes": {
+      "ringwork": 35,
+      "psychology": 42,
+      "stamina": 49,
+      "safety": 35,
+      "athleticism": 42,
+      "mic": 49,
+      "charisma": 35,
+      "presence": 42,
+      "officiating": 49,
+      "broadcasting": 35,
+      "producing": 42,
+      "booking": 49
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "west-moor": 26
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "maddox-fairlie",
+    "givenName": "Maddox",
+    "familyName": "Fairlie",
+    "defaultRingName": "Maddox Fairlie",
+    "gender": "male",
+    "birthDate": "1981-09-21",
+    "debutDate": "2001-09-21",
+    "birthRegionKey": "east-fen",
+    "basedInRegionKey": "east-fen",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 177,
+    "weightKg": 94,
+    "build": "athletic",
+    "style": "striker",
+    "attributes": {
+      "ringwork": 49,
+      "psychology": 35,
+      "stamina": 42,
+      "safety": 49,
+      "athleticism": 35,
+      "mic": 42,
+      "charisma": 49,
+      "presence": 35,
+      "officiating": 42,
+      "broadcasting": 49,
+      "producing": 35,
+      "booking": 42
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "east-fen": 37
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "nevin-gosden",
+    "givenName": "Nevin",
+    "familyName": "Gosden",
+    "defaultRingName": "Nevin Gosden",
+    "gender": "male",
+    "birthDate": "1984-10-26",
+    "debutDate": "2005-10-26",
+    "birthRegionKey": "west-moor",
+    "basedInRegionKey": "west-moor",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 178,
+    "weightKg": 101,
+    "build": "athletic",
+    "style": "grappler",
+    "attributes": {
+      "ringwork": 42,
+      "psychology": 49,
+      "stamina": 35,
+      "safety": 42,
+      "athleticism": 49,
+      "mic": 35,
+      "charisma": 42,
+      "presence": 49,
+      "officiating": 35,
+      "broadcasting": 42,
+      "producing": 49,
+      "booking": 35
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "west-moor": 8
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "quenby-hebburn",
+    "givenName": "Quenby",
+    "familyName": "Hebburn",
+    "defaultRingName": "Quenby Hebburn",
+    "gender": "female",
+    "birthDate": "1987-11-03",
+    "debutDate": "2009-11-03",
+    "birthRegionKey": "east-fen",
+    "basedInRegionKey": "east-fen",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 179,
+    "weightKg": 108,
+    "build": "athletic",
+    "style": "showman",
+    "attributes": {
+      "ringwork": 35,
+      "psychology": 42,
+      "stamina": 49,
+      "safety": 35,
+      "athleticism": 42,
+      "mic": 49,
+      "charisma": 35,
+      "presence": 42,
+      "officiating": 49,
+      "broadcasting": 35,
+      "producing": 42,
+      "booking": 49
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "east-fen": 19
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "perrin-ilsley",
+    "givenName": "Perrin",
+    "familyName": "Ilsley",
+    "defaultRingName": "Perrin Ilsley",
+    "gender": "male",
+    "birthDate": "1990-12-08",
+    "debutDate": "2008-12-08",
+    "birthRegionKey": "west-moor",
+    "basedInRegionKey": "west-moor",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 180,
+    "weightKg": 115,
+    "build": "athletic",
+    "style": "hardcore",
+    "attributes": {
+      "ringwork": 49,
+      "psychology": 35,
+      "stamina": 42,
+      "safety": 49,
+      "athleticism": 35,
+      "mic": 42,
+      "charisma": 49,
+      "presence": 35,
+      "officiating": 42,
+      "broadcasting": 49,
+      "producing": 35,
+      "booking": 42
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "west-moor": 30
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "quill-jessop",
+    "givenName": "Quill",
+    "familyName": "Jessop",
+    "defaultRingName": "Quill Jessop",
+    "gender": "male",
+    "birthDate": "1993-01-13",
+    "debutDate": "2012-01-13",
+    "birthRegionKey": "east-fen",
+    "basedInRegionKey": "east-fen",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 181,
+    "weightKg": 72,
+    "build": "athletic",
+    "style": "allRounder",
+    "attributes": {
+      "ringwork": 42,
+      "psychology": 49,
+      "stamina": 56,
+      "safety": 42,
+      "athleticism": 49,
+      "mic": 56,
+      "charisma": 42,
+      "presence": 49,
+      "officiating": 56,
+      "broadcasting": 42,
+      "producing": 49,
+      "booking": 56
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "east-fen": 41
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "tilda-kirkham",
+    "givenName": "Tilda",
+    "familyName": "Kirkham",
+    "defaultRingName": "Tilda Kirkham",
+    "gender": "female",
+    "birthDate": "1996-02-18",
+    "debutDate": "2016-02-18",
+    "birthRegionKey": "west-moor",
+    "basedInRegionKey": "west-moor",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 182,
+    "weightKg": 79,
+    "build": "athletic",
+    "style": "technician",
+    "attributes": {
+      "ringwork": 56,
+      "psychology": 42,
+      "stamina": 49,
+      "safety": 56,
+      "athleticism": 42,
+      "mic": 49,
+      "charisma": 56,
+      "presence": 42,
+      "officiating": 49,
+      "broadcasting": 56,
+      "producing": 42,
+      "booking": 49
+    },
+    "condition": {
+      "head": 100,
+      "neck": 100,
+      "back": 100,
+      "arms": 100,
+      "torso": 100,
+      "legs": 100
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {}
+    },
+    "regionalPop": {
+      "west-moor": 12
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  }
+]

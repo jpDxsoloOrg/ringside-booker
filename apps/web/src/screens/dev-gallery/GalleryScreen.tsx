@@ -1,5 +1,6 @@
 import { useEffect, useId, useState } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { routes } from '@/app/routes';
 import { Button } from '@/components/Button';
 import { EmptyState } from '@/components/EmptyState';
 import { Cluster } from '@/components/layout';
@@ -15,7 +16,7 @@ import styles from './GalleryScreen.module.css';
 import { useThemePreference } from './useThemeState';
 
 /** Path of the bare page the phone frame loads: one entry, no gallery chrome. */
-export const GALLERY_FRAME_PATH = '/dev/gallery/frame';
+export const GALLERY_FRAME_PATH = routes.dev.galleryFrame();
 
 const THEME_OPTIONS: readonly { readonly preference: ThemePreference; readonly label: string }[] = [
   { preference: 'light', label: 'Light' },

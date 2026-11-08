@@ -1,0 +1,20 @@
+[
+  {
+    "key": "fgf-championship-1",
+    "titleKey": "fgf-championship",
+    "holderPersonKeys": ["dara-moorley"],
+    "wonOn": "2024-02-03",
+    "lostOn": "2025-06-14",
+    "endReason": "lost",
+    "defences": 4
+  },
+  {
+    "key": "fgf-championship-2",
+    "titleKey": "fgf-championship",
+    "holderPersonKeys": ["aldo-fenwick"],
+    "wonOn": "2025-06-14",
+    "lostOn": null,
+    "endReason": null,
+    "defences": 2
+  }
+]

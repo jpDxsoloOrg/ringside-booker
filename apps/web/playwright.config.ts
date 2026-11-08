@@ -4,7 +4,10 @@ import { PROJECT_NAMES } from './e2e/helpers/viewport';
 
 type ProjectList = NonNullable<PlaywrightTestConfig['projects']>;
 
-const PREVIEW_PORT = 4173;
+/** The preview server's port. E2E_PORT moves it, so two checkouts can run their suites at once. */
+const PREVIEW_PORT = Number(process.env['E2E_PORT'] ?? '4173');
+/** Where the e2e build goes: not dist/, which holds the bundle that ships. */
+const E2E_OUT_DIR = 'dist-e2e';
 const isCi = (process.env['CI'] ?? '') !== '';
 
 /**
@@ -55,9 +58,12 @@ export default defineConfig({
   },
   projects: includeWebkit ? [...chromiumProjects, ...webkitProjects] : chromiumProjects,
   webServer: {
-    // The suite runs against a production build, the same bundle that ships.
-    command: 'npm run build && npm run preview',
+    // The suite runs against a production build, the same bundle that ships, plus the dev-only
+    // routes (the enter-shell helper) that VITE_E2E=1 registers. Shipped builds never set it.
+    // It goes to its own folder, so a leftover e2e bundle can never be deployed from dist/.
+    command: `npx tsc -b && npx vite build --outDir ${E2E_OUT_DIR} --emptyOutDir && npx vite preview --outDir ${E2E_OUT_DIR} --port ${String(PREVIEW_PORT)} --strictPort`,
     port: PREVIEW_PORT,
+    env: { VITE_E2E: '1' },
     reuseExistingServer: !isCi,
     // The build runs first, so give it longer than Playwright's 60 second default.
     timeout: 180_000,

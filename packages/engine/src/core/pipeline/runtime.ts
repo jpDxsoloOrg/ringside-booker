@@ -1,9 +1,9 @@
 /**
  * The simulation runtime: the engine's live state in one container.
  *
- * The world, the RNG, the tunables, the event bus, the trace store, the registered phases and the
- * failure log travel together through every step, so the pipeline takes one argument instead of
- * seven. The host (the Web Worker, the headless runner or a test) supplies the only outside
+ * The world, the RNG, the tunables, the event bus, the trace store, the registered phases and
+ * gates, the failure log and the last day's report travel together through every step, so the
+ * pipeline takes one argument instead of nine. The host (the Web Worker, the headless runner or a test) supplies the only outside
  * dependency, a `now()` clock used for step timings, so the engine itself never reads the clock.
  */
 
@@ -18,7 +18,9 @@ import { RngRegistry } from '../rng/registry';
 import { TraceStore, traceStoreLimitsFrom } from '../trace/store';
 import type { ReactionContext } from './context';
 import { PipelineFailureLog } from './failureLog';
+import { GateRegistry } from './gates';
 import { PhaseRegistry } from './registry';
+import type { DayReport } from './report';
 
 /** What the host provides. */
 export interface SimHost {
@@ -34,8 +36,15 @@ export interface SimRuntime<R extends TableRegistry = GameTables> {
   readonly bus: EventBus<ReactionContext<R>>;
   readonly traces: TraceStore;
   readonly phases: PhaseRegistry<R>;
+  /** The checks that stop a multi-day skip before a day is simulated. */
+  readonly gates: GateRegistry<R>;
   readonly failureLog: PipelineFailureLog;
   readonly host: SimHost;
+  /**
+   * The report of the last day `advanceDays` simulated, or null before the first one. Kept for
+   * the status query; it is not saved.
+   */
+  lastDayReport: DayReport | null;
 }
 
 /** The parts of a runtime. Everything but the world has a default. */
@@ -51,6 +60,8 @@ export interface CreateRuntimeOptions<R extends TableRegistry = GameTables> {
   readonly traces?: TraceStore;
   /** Defaults to an empty registry. */
   readonly phases?: PhaseRegistry<R>;
+  /** Defaults to an empty registry. */
+  readonly gates?: GateRegistry<R>;
   /** Defaults to an empty log. */
   readonly failureLog?: PipelineFailureLog;
   /** Defaults to `{ now: () => 0 }`. */
@@ -91,7 +102,9 @@ export function createRuntime<R extends TableRegistry = GameTables>(
     bus,
     traces,
     phases: options.phases ?? new PhaseRegistry<R>(),
+    gates: options.gates ?? new GateRegistry<R>(),
     failureLog: options.failureLog ?? new PipelineFailureLog(),
     host: { now: options.host?.now ?? (() => 0) },
+    lastDayReport: null,
   };
 }

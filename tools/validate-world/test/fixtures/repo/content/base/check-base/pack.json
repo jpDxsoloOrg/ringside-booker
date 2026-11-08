@@ -1,0 +1,17 @@
+{
+  "formatVersion": 1,
+  "id": "check-base",
+  "name": "Check Base",
+  "version": "1.0.0",
+  "kind": "base",
+  "description": "Test fixture for validate-world: one continent, one country with two regions, its name culture and name mix.",
+  "author": "Ringside Booker tests",
+  "dependsOn": [],
+  "files": {
+    "continent": "continents.json",
+    "country": "countries.json",
+    "region": "regions.json",
+    "nameCulture": "cultures.json",
+    "countryNameMix": "name-mixes.json"
+  }
+}
