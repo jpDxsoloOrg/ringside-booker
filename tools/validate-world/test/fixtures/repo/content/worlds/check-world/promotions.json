@@ -1,0 +1,33 @@
+[
+  {
+    "key": "fenland-grappling",
+    "name": "Fenland Grappling Federation",
+    "shortName": "FGF",
+    "foundedOn": "2015-04-11",
+    "status": "active",
+    "homeRegionKey": "east-fen",
+    "regionalPop": {
+      "east-fen": 34,
+      "west-moor": 12
+    },
+    "prestige": 30,
+    "cash": 150000,
+    "style": "traditional",
+    "production": {
+      "stage": 2,
+      "camera": 2,
+      "editing": 2,
+      "pyro": 1,
+      "music": 2,
+      "writing": 2,
+      "marketing": 2,
+      "backOffice": 2
+    },
+    "policies": {
+      "catering": 1,
+      "travel": 1,
+      "medical": 1
+    },
+    "color": "#2f6f4f"
+  }
+]
