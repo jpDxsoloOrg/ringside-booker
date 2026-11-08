@@ -8,11 +8,13 @@ import { readBlogConfig, type BlogConfig } from '../src/config';
 import { BlogTransformError } from '../src/errors';
 import type { PostFrontmatter } from '../src/frontmatter';
 import { loadPost, type LoadedPost } from '../src/load';
-import { toPostPayload, type TransformContext } from '../src/transform';
+import { toPostPayload, type TransformContext, type TransformOptions } from '../src/transform';
 import { catchError, fixturePath } from './helpers';
 
 const NOW = new Date('2026-11-07T12:00:00.000Z');
 const DEFAULT_CONFIG: BlogConfig = readBlogConfig({});
+/** The body alone, without the series header and footer, for exact-output checks. */
+const BODY_ONLY: TransformOptions = { withSeriesNav: false };
 
 let kickoff: LoadedPost;
 let foundations: LoadedPost;
@@ -46,7 +48,7 @@ function withoutOptionalDates(frontmatter: PostFrontmatter): PostFrontmatter {
 
 describe('toPostPayload: content', () => {
   it('removes HTML comments, including multi-line ones', () => {
-    const { content } = toPostPayload(kickoff, context());
+    const { content } = toPostPayload(kickoff, context(), BODY_ONLY);
     expect(content).not.toContain('note to self');
     expect(content).not.toContain('an inline note');
     expect(content.startsWith('This is the hook paragraph.')).toBe(true);
@@ -99,7 +101,7 @@ describe('toPostPayload: content', () => {
 
   it('turns images/01/belt.svg into the public raw URL with the default config', () => {
     const post = withBody(kickoff, '![belt](images/01/belt.svg)\n');
-    expect(toPostPayload(post, context()).content).toBe(
+    expect(toPostPayload(post, context(), BODY_ONLY).content).toBe(
       '![belt](https://raw.githubusercontent.com/jpDxsoloOrg/ringside-booker/main/docs/blog/images/01/belt.svg)\n',
     );
   });
@@ -137,14 +139,16 @@ describe('toPostPayload: content', () => {
       kickoff,
       'A claim.[^1]\n\n[^1]: Some footnote text with [a link](../design/x.md).\n',
     );
-    expect(toPostPayload(post, context()).content).toBe(
+    expect(toPostPayload(post, context(), BODY_ONLY).content).toBe(
       'A claim.[^1]\n\n[^1]: Some footnote text with [a link](https://github.com/jpDxsoloOrg/ringside-booker/blob/main/docs/design/x.md).\n',
     );
   });
 
   it('keeps hard line breaks, but not the spaces in front of a stripped comment', () => {
     const post = withBody(kickoff, 'Line one  \nline two  <!-- note -->\nline three\n');
-    expect(toPostPayload(post, context()).content).toBe('Line one  \nline two\nline three\n');
+    expect(toPostPayload(post, context(), BODY_ONLY).content).toBe(
+      'Line one  \nline two\nline three\n',
+    );
   });
 
   it('produces Markdown that compiles as MDX with GFM', async () => {
@@ -164,6 +168,42 @@ describe('toPostPayload: content', () => {
   it('does not import fs or process, or read the clock', async () => {
     const source = await readFile(new URL('../src/transform.ts', import.meta.url), 'utf8');
     expect(source).not.toMatch(/from 'node:fs|from 'fs|process\.|Date\.now|new Date\(\)/);
+  });
+});
+
+describe('toPostPayload: series navigation', () => {
+  it('puts the series header before the first body line and the footer after the last', () => {
+    const { content } = toPostPayload(foundations, context());
+    const lines = content.split('\n');
+    expect(lines[0]).toBe(
+      '*Part 2 of the [Ringside Booker series](/blog/ringside-booker-series): building a wrestling booking sim in the open.*',
+    );
+    expect(lines[1]).toBe('');
+    expect(lines[2]).toBe('## Opening');
+    expect(content.endsWith('All parts: [series index](/blog/ringside-booker-series)\n')).toBe(
+      true,
+    );
+    expect(content).toContain(
+      "Named streams.\n\n---\n\n**Previous part:** [Why I'm building a booking sim](/blog/ringside-booker-01-kickoff)\n\n",
+    );
+  });
+
+  it('leaves the body alone with withSeriesNav: false', () => {
+    const withNav = toPostPayload(foundations, context()).content;
+    const bodyOnly = toPostPayload(foundations, context(), BODY_ONLY).content;
+    expect(bodyOnly.startsWith('## Opening')).toBe(true);
+    expect(withNav).toContain(bodyOnly.trimEnd());
+    expect(bodyOnly).not.toContain('ringside-booker-series');
+  });
+
+  it('builds the excerpt from the body, not the header', () => {
+    const post = withFrontmatter(foundations, withoutOptionalDates(foundations.frontmatter));
+    expect(toPostPayload(post, context()).excerpt).not.toContain('Part 2');
+  });
+
+  it('compiles as MDX with the header and footer in place', async () => {
+    const { content } = toPostPayload(kickoff, context());
+    await expect(compile(content, { remarkPlugins: [remarkGfm] })).resolves.toBeDefined();
   });
 });
 

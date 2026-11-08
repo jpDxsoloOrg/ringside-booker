@@ -25,8 +25,23 @@ export type { PostStatus } from './frontmatter';
 export { listPosts, loadPost, parsePost, splitFrontmatter } from './load';
 export type { LoadedPost } from './load';
 export { slugify } from './slugify';
-export { toPostPayload } from './transform';
-export type { PostPayload, PostTag, TransformContext } from './transform';
+export { buildTags, excerptFromMarkdown, rewriteForBlog, toPostPayload } from './transform';
+export type { PostPayload, PostTag, TransformContext, TransformOptions } from './transform';
+export {
+  SERIES_INDEX_PATH,
+  SERIES_INDEX_SLUG,
+  buildSeriesNav,
+  escapeMarkdownText,
+  findPublishedNeighbours,
+} from './series';
+export type { SeriesNav, SeriesNeighbours } from './series';
+export {
+  PUBLIC_INDEX_END_MARKER,
+  SERIES_INDEX_TITLE,
+  SERIES_README_PATH,
+  buildIndexPayload,
+} from './indexPost';
+export type { IndexContext } from './indexPost';
 export { formatReport, summarizeIssues } from './check/format';
 export { JOURNAL_SECTIONS, JournalFrontmatter } from './check/journal';
 export { maskTerm } from './check/mask';
@@ -34,8 +49,17 @@ export { CheckUsageError, runChecks } from './check/run';
 export type { CheckScope, RunChecksOptions } from './check/run';
 export { RULE_IDS } from './check/types';
 export type { CheckIssue, RuleId, Severity } from './check/types';
-export { CI_REFUSAL, PUBLISH_USAGE, formatResult, runPublishCommand } from './publish/command';
-export type { DatabaseClient, PublishCommandDeps } from './publish/command';
+export {
+  BatchPublishError,
+  CI_REFUSAL,
+  PUBLISH_USAGE,
+  REPUBLISH_ALL_COMMAND,
+  formatBatchSummary,
+  formatResult,
+  runPublishCommand,
+  staleNavHint,
+} from './publish/command';
+export type { BatchRow, DatabaseClient, PublishCommandDeps } from './publish/command';
 export {
   ENV_FILE_REPO_PATH,
   PublishEnvError,
