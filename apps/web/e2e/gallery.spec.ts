@@ -488,10 +488,7 @@ test.describe('component gallery', () => {
 
   test('a confirm whose action fails stays open and shows the error', async ({ page }) => {
     await gotoEntry(page, 'confirm-dialog', 'ConfirmDialog');
-    await page
-      .locator(ENTRY_PANEL)
-      .getByRole('button', { name: 'Delete locked save' })
-      .click();
+    await page.locator(ENTRY_PANEL).getByRole('button', { name: 'Delete locked save' }).click();
     const confirm = page.getByRole('alertdialog', { name: 'Delete the locked save?' });
     await confirm.getByRole('button', { name: 'Delete anyway' }).click();
 
@@ -510,10 +507,7 @@ test.describe('component gallery', () => {
     // No open animation, so the buttons are measured at full size.
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await gotoEntry(page, 'confirm-dialog', 'ConfirmDialog');
-    await page
-      .locator(ENTRY_PANEL)
-      .getByRole('button', { name: 'Advance a week' })
-      .click();
+    await page.locator(ENTRY_PANEL).getByRole('button', { name: 'Advance a week' }).click();
     const confirm = page.getByRole('alertdialog', { name: 'Advance to next week?' });
     await expect(confirm).toBeVisible();
 
