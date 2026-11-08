@@ -10,8 +10,8 @@ while it does.
 It starts with the pipeline itself (how a day runs, how phases are
 registered, how steps are isolated and reported), then the calendar, because
 every phase needs to answer "do I run today?", and the domain event bus, which
-is how systems hear about each other's changes. Multi-day skips and the gates
-that stop them get their own section when they land.
+is how systems hear about each other's changes. The last part of "Running a
+day" covers multi-day skips and the gates that stop them.
 
 ## Running a day
 
@@ -218,8 +218,11 @@ and check that a phase still sees them in ascending order.
 
 Everything a day needs travels in one `SimRuntime`: the world, the RNG
 registry, the tunables, the event bus, the trace store, the phase registry,
-the failure log and the host. `createRuntime` builds one with defaults for
-everything but the world, checks the RNG seed matches the world's, and
+the gate registry, the failure log and the host. It also holds
+`lastDayReport`, the report of the last day a multi-day advance simulated,
+for the status query. That one is not saved. `createRuntime` builds one with
+defaults for everything but the world, checks the RNG seed matches the
+world's, and
 installs the seeded ID minter. The runtime is generic over the table registry,
 so the pipeline tests run on a small toy registry instead of the full game
 schema.
@@ -227,6 +230,156 @@ schema.
 The host supplies `now()` for step timings and defaults to `() => 0`. Step
 timings are the only place the pipeline needs wall-clock time, so the engine
 itself never reads the clock.
+
+### Gates
+
+A **gate** is a reason for a multi-day skip to stop by itself because the
+player is needed: their show today has no card, a decision is waiting in the
+inbox, the date they asked to stop at has come. Code:
+`packages/engine/src/core/pipeline/gates.ts`.
+
+**When gates are checked.** At the start of every day of a skip, before that
+day is simulated, the first day included. A hit stops the skip with the
+world still on that date, so the player books the show before its day runs.
+If a gate hits before the first day, the skip returns straight away with
+`daysAdvanced: 0` and the reasons, which is how pressing Next Day on an
+unbooked show day explains why nothing happened. Gates are not checked after
+the last day of a skip; the next skip checks them first anyway.
+
+**Registering a gate.** A system registers its gates once, when the engine
+is built, next to its phases:
+
+```ts
+runtime.gates.register({
+  id: 'events.showNeedsBooking', // system.camelName, unique
+  label: 'Show needs booking',
+  check: (view, date) => {
+    const show = playerShowOn(view, date); // an indexed lookup, not a table scan
+    if (show === undefined || show.card.length > 0) {
+      return null;
+    }
+    return {
+      gateId: 'events.showNeedsBooking',
+      reason: `Your show '${show.name}' on ${date} has no card yet`,
+      subject: { kind: 'eventInstance', id: show.id },
+      actionHint: 'booking',
+    };
+  },
+});
+```
+
+`defineGate` (which `register` calls) checks the id and the label.
+`register` throws `PipelineError` for a duplicate id or for an id starting
+with `sim.`, which is kept for the engine's own gates.
+
+The rules for a `check`:
+
+- **It only reads.** It gets a `WorldView` and the date about to be
+  simulated. No transaction, no random numbers, no events.
+- **It is cheap.** It runs every day of a skip, up to 3,650 times in one
+  call, so it uses indexed lookups (`lookup()` on an index, a row by ID)
+  rather than walking whole tables.
+- **It returns null** to let the day run, or a `GateHit`.
+
+`GateHit` is plain JSON: `gateId`, `reason`, an optional `subject` (an
+`EntityRef` the UI can link to) and an optional `actionHint` (the screen route
+key, such as `booking` or `inbox`). The pipeline always sets `gateId` to the
+gate's own id, and a `check` that throws counts as a hit whose reason names
+the gate and the error. A broken gate stops the skip where the player can see
+it, instead of letting the skip run past whatever it was meant to catch.
+
+**Writing reasons.** The reason is shown to the player as it is, so write it
+for them: say what needs doing and name the thing, with its date when it has
+one. "Your show 'Friday Fury' on 2031-03-14 has no card yet", not
+"show_unbooked" or "gate hit". One sentence, no ids, no jargon. If there is a
+screen where they can fix it, set `actionHint` to its route key so the UI can
+offer a button.
+
+**Order and hits.** Gates run in registration order and every hit is
+collected. The first hit is the main reason the UI shows; the rest are listed
+under it, so a day with an unbooked show and a waiting decision mentions
+both.
+
+**`evaluateGates(state, date)`** is the one function that runs the gates. It
+takes anything with the runtime's `world` and `gates` and returns every hit in
+registration order, or `[]`. It only reads, so the status queries
+(`sim.pendingGates`, `sim.status`) call it to say whether Next Day would stop
+right now, and the advance loop calls the same function, so the two never
+disagree. The skip's own two gates below exist only while a skip runs, so
+`evaluateGates` on the runtime reports the registered gates only.
+
+**The built-in gates.** Each advance adds two gates of its own after the
+registered ones:
+
+| Gate                  | Hits when                                                                                                        | Reason                                                                              |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `sim.stopDate`        | The date about to be simulated is the `stopAtDate` the player picked                                             | "Reached the date you asked to stop at"                                             |
+| `sim.repeatedFailure` | The same step failed on each of the last `sim.stopSkipAfterConsecutiveFailures` days (default 3) of this advance | Names the step and its last error message, so the player can put it in a bug report |
+
+The failure count is per advance and per step. Two different phases failing on
+alternate days, or one phase failing every other day, never trips it; a phase
+that fails every day stops a ten-year skip after three days instead of running
+silently to the end.
+
+### Multi-day advance
+
+`advanceDays(runtime, options)` runs `runDay` in a loop. Code:
+`packages/engine/src/core/pipeline/advance.ts`.
+
+| Option        | What it does                                                                                        |
+| ------------- | --------------------------------------------------------------------------------------------------- |
+| `maxDays`     | The most days to run: a whole number from 1 to 3,650 (ten years). Anything else throws `RangeError` |
+| `stopAtDate`  | Stop at the start of this date. Must be after the current date, or it throws `RangeError`           |
+| `signal`      | Anything with a `readonly aborted: boolean`. A host's `AbortSignal` fits                            |
+| `yieldToHost` | Awaited once after every day. Defaults to `() => Promise.resolve()`                                 |
+| `onDay`       | Called after every day with `{ dayIndex, date, totalDays, failedCount }`; `dayIndex` counts from 1  |
+
+Each turn of the loop:
+
+1. `evaluateGates` for the current date. Any hit stops the loop with
+   `{ kind: 'gate', hits }`.
+2. `runDay`, which simulates the date and moves the clock on. Its report
+   becomes `runtime.lastDayReport`.
+3. `onDay(progress)`.
+4. `await yieldToHost()`.
+5. If `signal.aborted` is set, stop with `{ kind: 'cancelled' }`.
+
+The loop ends with `{ kind: 'completed' }` once `maxDays` days have run. A
+signal that is already set before the first day stops it with no days run.
+The headless runner calls `advanceDays` again for runs longer than ten years.
+
+The result, `AdvanceResult`, is plain JSON: `startDate`, `endDate` (the first
+day not simulated), `daysAdvanced`, `stoppedBy`, `failures` (every failed
+step as `{ date, stepId, message }`), `eventsPublished` and `timing.ms`. Like
+the day reports, `timing` comes from the host's clock and is left out of
+determinism checks. Everything else is deterministic: one 30-day advance and
+thirty 1-day advances leave identical state.
+
+### Cancelling and yielding: the host contract
+
+Phases are synchronous, so without a yield a 365-day skip would hold the Web
+Worker for its whole length and a Cancel message could never be read. The
+loop therefore awaits `yieldToHost()` once after every day, and only between
+days:
+
+- **The host decides how to yield.** The Web Worker host posts to a
+  `MessageChannel` and resolves when the message comes back, which lets queued
+  messages (Cancel) run first. Tests and the headless runner use a resolved
+  promise. The engine never uses timers.
+- **Cancel by setting the signal.** The loop reads `signal.aborted` after each
+  yield. The engine only knows the shape `{ readonly aborted: boolean }`; it
+  never names `AbortSignal`, because it is built without the DOM or Node type
+  libraries.
+- **A cancel always lands between whole days.** Each day finishes, clock
+  move included, before the loop yields, so a cancelled skip leaves a world
+  that is exactly some number of whole days further on, never half a day.
+- **`onDay` runs before the yield,** so a host can post progress and then let
+  the UI catch up. It must not change the world; setting the signal from it is
+  fine and takes effect after that day.
+- **What throws:** bad options (`RangeError`, before anything runs) and the
+  rare `InvariantError` from a day that could not close. A failing phase
+  never throws; it shows up in `failures` and, if it keeps failing, in the
+  `sim.repeatedFailure` gate.
 
 ## Calendar
 

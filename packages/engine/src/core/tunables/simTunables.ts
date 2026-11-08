@@ -62,7 +62,7 @@ export const simTunables = defineTunables({
     unit: 'days',
     category: SIM_CATEGORY,
     description:
-      'A multi-day skip stops after this many days in a row where at least one day phase failed.',
+      'A multi-day skip stops after the same day phase has failed this many days in a row.',
     docRef: SIM_DOC,
   },
   'sim.commandLogSize': {
