@@ -438,12 +438,244 @@ The helpers in `packages/engine/test/support/trace.ts`:
 | `expectRollRecorded(result, stream)`            | A roll from that stream is in the trace; returns its record                   |
 | `expectSerialisable(value)`                     | The value is plain JSON and survives a JSON round trip unchanged              |
 
-## Worked example: fatigue recovery
+## Worked example
 
-<!-- PLACEHOLDER (SIM-11): fill this section in from the fatigue recovery formula when it lands. -->
+Fatigue recovery comes from the `condition` system, the reference system. It
+is deliberately tiny: once a day, everyone with some fatigue sheds a little of
+it. It exists to show every piece of the core working together once, so each
+later system can copy its layout instead of working it out again. The fatigue model itself is a
+placeholder; the workers epic owns the real one (gain from matches, effort,
+injuries) and will replace or absorb this system.
 
-> **Placeholder.** This section will walk through the fatigue recovery formula
-> end to end once it is built: its inputs type, the builder chain, the trace it
-> produces for a sample worker, its design doc section and its test file. Until
-> then, the examples in [Building a number](#building-a-number) and
-> [Decision traces](#decision-traces) show the shape.
+| Piece        | File (under `packages/engine/src/systems/condition/`) | What it shows                                       |
+| ------------ | ----------------------------------------------------- | --------------------------------------------------- |
+| Tunables     | `tunables.ts`, added to `systems/tunables.ts`         | Balance numbers with ranges, units and defaults     |
+| RNG stream   | `streams.ts`                                          | A named stream declared by merging `StreamNames`    |
+| Formula      | `formulas/fatigueRecovery.ts`                         | A pure function returning `Traced<number>`          |
+| Domain event | `events.ts`                                           | An event declared by merging `DomainEventMap`       |
+| Day phase    | `phases.ts`                                           | Reads, calls the formula, writes, traces, publishes |
+| Query        | `queries.ts`                                          | A "Why?"-ready view with a `TraceRef`               |
+| Bundle       | `index.ts`, added to `systems/index.ts`               | `defineSystem`, the only way a system plugs in      |
+
+No core file names the system. It reaches the engine only through the
+`defaultSystems` list and the tunables aggregate.
+
+The stream, event and query declarations are types merged into core
+interfaces, and they only exist in a program that loads the file declaring
+them. So the bundle's `index.ts` imports `./streams` and `./events` (and
+`./queries` through its query list), and `systems/index.ts` re-exports the
+bundle. That keeps every declaration reachable from the package entry, so the
+web app, the tools and the tests all see them, including tests and dev screens
+that add their own names with `declare module '@ringside/engine'`.
+
+### The maths
+
+```
+fatigue after = clamp(fatigue before − daily recovery − extra rest, 0, 100)
+extra rest    = a whole number from 0 to the bonus maximum, both ends included
+```
+
+| Tunable                             | Kind    | Default | Range | Unit       | What it does                                                         |
+| ----------------------------------- | ------- | ------- | ----- | ---------- | -------------------------------------------------------------------- |
+| `condition.fatigueRecoveryPerDay`   | number  | 4       | 0–100 | points/day | Fatigue every person sheds each day before any bonus                 |
+| `condition.fatigueRecoveryBonusMax` | integer | 1       | 0–10  | points/day | Largest random extra recovery per day; 0 turns the roll's effect off |
+
+The default of 4 is a placeholder, not a balance decision. The random extra is
+there only so the example shows how a roll appears in a trace.
+
+### The formula
+
+```ts
+export function computeFatigueRecovery(
+  inputs: FatigueRecoveryInputs,
+  deps: { tunables: EngineTunables; rng: RngStream },
+): Traced<number> {
+  const calc = startCalc('Fatigue after a day of rest', inputs.fatigue, {
+    unit: 'points',
+    docRef: FATIGUE_RECOVERY_DOC_REF, // 'docs/design/calculation-traces.md#worked-example'
+    startLabel: 'Fatigue before rest',
+  });
+  calc.subtract(
+    'Daily recovery',
+    calc.tunable(deps.tunables, 'condition.fatigueRecoveryPerDay', 'Daily recovery'),
+  );
+  const bonusMax = calc.tunable(
+    deps.tunables,
+    'condition.fatigueRecoveryBonusMax',
+    'Most extra rest',
+  );
+  const extraRest = rollInt(deps.rng, 0, bonusMax, 'Extra rest');
+  return calc
+    .roll(extraRest.roll)
+    .subtract('Extra rest', extraRest.value)
+    .clamp(FATIGUE_MIN, FATIGUE_MAX)
+    .done();
+}
+```
+
+Things to copy:
+
+- **Inputs are plain values.** The formula gets a number, the tunable reader
+  and one stream. It never sees the World or a `Tx`, so a booking preview can
+  call it too.
+- **Every tunable is read through the builder.** The daily recovery's read is
+  attached to the subtract step that uses it. The bonus maximum is read just
+  before the roll, so it is attached to the roll node: the player can see the
+  range came from a tunable.
+- **The roll is always drawn**, even when the bonus maximum is 0 and the roll
+  can only come up 0. Every call takes exactly one draw from
+  `condition.recovery`, so changing the tunable never shifts the stream.
+- **The ends of the scale are constants with a reason.** 0 and 100 are the
+  range of `fatigue: zStat` on the Person schema, not balance numbers, so they
+  are named constants (`FATIGUE_MIN`, `FATIGUE_MAX`) rather than tunables.
+- **The clamp is always recorded**, applied or not.
+
+### The trace it produces
+
+A person at 50 fatigue, with the default tunables and an extra rest roll of 1:
+
+```json
+{
+  "kind": "formula",
+  "label": "Fatigue after a day of rest",
+  "value": 45,
+  "unit": "points",
+  "docRef": "docs/design/calculation-traces.md#worked-example",
+  "children": [
+    { "kind": "input", "label": "Fatigue before rest", "value": 50, "unit": "points" },
+    {
+      "kind": "subtract",
+      "label": "Daily recovery",
+      "value": 46,
+      "operand": 4,
+      "before": 50,
+      "after": 46,
+      "children": [
+        {
+          "kind": "tunable",
+          "label": "Daily recovery",
+          "key": "condition.fatigueRecoveryPerDay",
+          "value": 4,
+          "defaultValue": 4,
+          "overridden": false,
+          "unit": "points/day",
+          "docRef": "calculation-traces.md#worked-example"
+        }
+      ]
+    },
+    {
+      "kind": "roll",
+      "label": "Extra rest",
+      "value": 1,
+      "roll": {
+        "stream": "condition.recovery",
+        "kind": "int",
+        "label": "Extra rest",
+        "odds": 0.5,
+        "min": 0,
+        "max": 1,
+        "result": 1
+      },
+      "children": [
+        {
+          "kind": "tunable",
+          "label": "Most extra rest",
+          "key": "condition.fatigueRecoveryBonusMax",
+          "value": 1,
+          "defaultValue": 1,
+          "overridden": false,
+          "unit": "points/day",
+          "docRef": "calculation-traces.md#worked-example"
+        }
+      ]
+    },
+    {
+      "kind": "subtract",
+      "label": "Extra rest",
+      "value": 45,
+      "operand": 1,
+      "before": 46,
+      "after": 45
+    },
+    {
+      "kind": "clamp",
+      "label": "Kept between 0 and 100",
+      "value": 45,
+      "min": 0,
+      "max": 100,
+      "before": 45,
+      "after": 45,
+      "applied": false
+    }
+  ]
+}
+```
+
+`replayTrace` starts from the input (50), applies the two subtractions and the
+clamp, and gets 45. The tunable and roll nodes carry no arithmetic; their
+effect is already in the operands of the steps that used them.
+
+### How the "Why?" panel reads it
+
+The panel turns the root and its steps into one sentence, then lets the player
+open each step:
+
+> **Fatigue after a day of rest: 45** = 50 − 4 (daily recovery, tunable) − 1
+> (extra rest, rolled 0–1), checked against 0–100
+
+- "50" is the input node, "Fatigue before rest".
+- "− 4 (daily recovery, tunable)" is the first subtract step. Opening it shows
+  the tunable, its default and whether the save overrides it. If the player
+  had set it to 0, the line would read "− 0 (daily recovery, tunable, changed
+  from 4)".
+- "− 1 (extra rest, rolled 0–1)" comes from the roll node (its range and
+  result) and the subtract step after it. Opening the roll shows the stream,
+  the odds (1 in 2) and the bonus maximum it was rolled against.
+- "checked against 0–100" is the clamp. It did not apply here, so the panel
+  can hide it by default; for a person at 2 fatigue it applied (−3 → 0), and
+  the line would read "kept at 0 (the lowest fatigue can go)".
+
+### The phase, the event and the stored trace
+
+`condition.fatigueRecovery` runs daily in the `housekeeping` group at order 10:
+
+1. It walks the people table in ascending ID order, so the draws always happen
+   in the same order.
+2. A person already at 0 is skipped and draws nothing: no roll could change
+   their result. Only roll when the outcome can matter, and decide that the
+   same way every time, so the stream stays aligned. The stream itself is only
+   fetched once someone needs it, so a day with nobody tired leaves it
+   untouched.
+3. Everyone else gets the formula's value written with
+   `ctx.tx.update('people', personId, { fatigue })`.
+4. The trace is recorded with `ctx.recordTrace({ kind: 'condition.fatigueRecovery', id: personId }, ctx.date, result)`.
+   Recording the same ref again replaces the old trace, so each person has
+   their latest recovery on file.
+5. When fatigue goes from above 0 to 0, the phase publishes
+   `condition.fatigueCleared` with `{ personId }`.
+
+All of this happens inside the phase's own step. If a later phase throws, its
+writes are rolled back and this phase's writes, traces and events stay. If this
+phase throws, its writes, traces, events and draws are all rolled back together,
+so the store never explains a number the world does not have.
+
+### The query
+
+`condition.fatigue` takes `{ personId }` and returns
+`{ personId, fatigue, traceRef }`, or `null` for an unknown person. `traceRef`
+is the ref above when a trace is stored, and `null` otherwise (a person who has
+not recovered yet). A screen shows the number, and its "Why?" button calls
+`trace.get` with the ref. Fatigue is not secret, so every viewer gets the same
+answer; a system with private data would filter on `ctx.viewer` here.
+
+### The tests
+
+- `packages/engine/test/systems/condition/fatigueRecovery.test.ts` covers the
+  formula at its edges: zero fatigue, the top of the scale, both sides of the
+  clamp, each tunable at 0 and at its maximum, the roll's stream and range, and
+  exactly one draw per call. Every numeric case goes through
+  `expectTraceReplays`.
+- `packages/engine/test/systems/condition/phase.test.ts` runs the system
+  through `createEngine(...).advanceDays`: the values after a day, which people
+  draw, the event, the stored traces, determinism for a seed, the query, and a
+  failing phase later in the same group that leaves this phase's writes alone.
