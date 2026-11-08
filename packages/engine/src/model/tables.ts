@@ -8,23 +8,42 @@
 
 import { brandsTable } from './entities/brand';
 import { employmentsTable } from './entities/employment';
+import { eventDefinitionsTable } from './entities/event-definition';
+import { eventInstancesTable } from './entities/event-instance';
+import { participantsTable } from './entities/participant';
 import { peopleTable } from './entities/person';
 import { promotionsTable } from './entities/promotion';
 import { relationshipsTable } from './entities/relationship';
+import { seasonsTable } from './entities/season';
+import { segmentsTable } from './entities/segment';
 import { stablesTable } from './entities/stable';
+import { storylinesTable } from './entities/storyline';
 import { teamsTable } from './entities/team';
+import { titlesTable } from './entities/title';
+import { titleReignsTable } from './entities/title-reign';
 import type { TableRegistry } from './table-def';
 import type { World, WorldView } from './world';
 
 export const TABLES = {
-  // FND-08 and FND-09 add the remaining entries.
+  // FND-09 adds the remaining entries.
+  // FND-06: people.
   people: peopleTable,
+  // FND-07: promotions, brands, employment and groups.
   promotions: promotionsTable,
   brands: brandsTable,
   employments: employmentsTable,
   teams: teamsTable,
   stables: stablesTable,
   relationships: relationshipsTable,
+  // FND-08: titles, events, segments, storylines and seasons.
+  titles: titlesTable,
+  titleReigns: titleReignsTable,
+  eventDefinitions: eventDefinitionsTable,
+  eventInstances: eventInstancesTable,
+  segments: segmentsTable,
+  participants: participantsTable,
+  storylines: storylinesTable,
+  seasons: seasonsTable,
 } as const satisfies TableRegistry;
 
 export type GameTables = typeof TABLES;
