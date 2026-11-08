@@ -252,3 +252,20 @@ export class SchemaViolationError extends EngineError {
     this.problems = lines;
   }
 }
+
+/**
+ * A calculation trace does not reproduce its own value: replaying its steps gives a different
+ * number, a recorded step disagrees with the running value, or the trace cannot be replayed at all.
+ */
+export class TraceReplayError extends EngineError {
+  /** One line per problem, each naming the step it was found at. */
+  readonly problems: readonly string[];
+
+  constructor(label: string, problems: readonly string[]) {
+    super('TRACE_REPLAY', `Trace "${label}" does not replay: ${problems.join('; ')}`, {
+      label,
+      problemCount: problems.length,
+    });
+    this.problems = problems;
+  }
+}
