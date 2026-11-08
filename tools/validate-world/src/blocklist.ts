@@ -11,7 +11,12 @@
  * Matching ignores case, accents and punctuation:
  *
  * - A one-word entry (`Nightfall`) matches a field only when the whole field is that word, so a
- *   common word on the list does not flag every name that contains it.
+ *   common word on the list does not flag every name that contains it. A leading "the" and
+ *   trailing numbers (digits or Roman numerals) are ignored for this, so `The Nightfall`,
+ *   `Nightfall 40` and `Nightfall XX` match too.
+ * - A one-word entry written in capitals (`HCW`, an acronym of two to six letters or digits)
+ *   matches as a whole word anywhere in the field (`HCW World Title`), because an acronym inside a
+ *   name is still the real name.
  * - A longer entry (`Harbour City Wrestling`) matches when its words appear in a row anywhere in
  *   the field (`The Harbour City Wrestling Show`).
  * - Punctuation is tried both as a word break and as nothing, so `A.J. Example` matches
@@ -43,6 +48,8 @@ export interface BlocklistEntry {
   readonly joinedWords: readonly string[];
   /** Every letter and digit, nothing else. */
   readonly compact: string;
+  /** An acronym entry (one word in capitals): matches as a whole word anywhere in a field. */
+  readonly anywhere: boolean;
 }
 
 export interface Blocklist {
@@ -107,11 +114,44 @@ function containsRun(haystack: readonly string[], needle: readonly string[]): bo
   return false;
 }
 
-function wordsMatch(field: readonly string[], entry: readonly string[]): boolean {
+/** Roman numerals from i upwards, in lower case. */
+const ROMAN_NUMERAL = /^m{0,3}(?:cm|cd|d?c{0,3})(?:xc|xl|l?x{0,3})(?:ix|iv|v?i{0,3})$/u;
+
+function isNumberWord(word: string): boolean {
+  return /^\p{N}+$/u.test(word) || (word.length > 0 && ROMAN_NUMERAL.test(word));
+}
+
+/** A field's words without a leading "the" or trailing numbers (`The Example 40` → `example`). */
+function coreWords(field: readonly string[]): readonly string[] {
+  let from = 0;
+  let to = field.length;
+  if (to - from > 1 && field[from] === 'the') {
+    from += 1;
+  }
+  while (to - from > 1 && isNumberWord(field[to - 1] ?? '')) {
+    to -= 1;
+  }
+  return field.slice(from, to);
+}
+
+function wordsMatch(
+  field: readonly string[],
+  entry: readonly string[],
+  anywhere: boolean,
+): boolean {
   if (entry.length === 1) {
-    return field.length === 1 && field[0] === entry[0];
+    if (anywhere) {
+      return field.includes(entry[0] ?? '');
+    }
+    const core = coreWords(field);
+    return core.length === 1 && core[0] === entry[0];
   }
   return containsRun(field, entry);
+}
+
+/** One word written in capitals and digits only, two to six characters long: an acronym. */
+export function isAcronym(name: string): boolean {
+  return /^[\p{Lu}\p{N}]{2,6}$/u.test(name) && /\p{Lu}/u.test(name);
 }
 
 /** True when `value` matches `entry` under the rules at the top of this file. */
@@ -121,8 +161,8 @@ export function matchesEntry(value: string, entry: BlocklistEntry): boolean {
     return true;
   }
   return (
-    wordsMatch(forms.spacedWords, entry.spacedWords) ||
-    wordsMatch(forms.joinedWords, entry.joinedWords)
+    wordsMatch(forms.spacedWords, entry.spacedWords, entry.anywhere) ||
+    wordsMatch(forms.joinedWords, entry.joinedWords, entry.anywhere)
   );
 }
 
@@ -145,7 +185,7 @@ export function parseBlocklist(text: string, source: string): BlocklistEntry[] {
         `${source}:${String(index + 1)}: "${name}" has no letters or digits to match on`,
       );
     }
-    entries.push({ name, source, line: index + 1, ...forms });
+    entries.push({ name, source, line: index + 1, ...forms, anywhere: isAcronym(name) });
   });
   return entries;
 }

@@ -98,7 +98,7 @@ type JsonOutcome = { ok: true; value: unknown } | { ok: false; message: string }
 
 /** Parses JSON text, describing a syntax error with the file path, line and column. */
 export function parseJsonText(text: string, displayPath: string): JsonOutcome {
-  const withoutBom = text.startsWith('﻿') ? text.slice(1) : text;
+  const withoutBom = text.startsWith('\uFEFF') ? text.slice(1) : text;
   try {
     const value: unknown = JSON.parse(withoutBom);
     return { ok: true, value };

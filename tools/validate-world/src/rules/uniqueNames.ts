@@ -49,6 +49,7 @@ export const uniqueNames: ContentRule = {
 
     // Ring names inside each promotion: contract ring names only.
     const firstInPromotion = new Map<string, { personKey: string; employmentKey: string }>();
+    const clashedSlots = new Set<string>();
     for (const [key, merged] of sortedRecords(content, 'employment')) {
       const employment = merged.record;
       const promotionKey = refKey(employment.promotionKey);
@@ -60,6 +61,7 @@ export const uniqueNames: ContentRule = {
         continue;
       }
       if (first.personKey !== personKey) {
+        clashedSlots.add(slot);
         issues.push(
           recordIssue(
             'error',
@@ -88,9 +90,10 @@ export const uniqueNames: ContentRule = {
     for (const [, merged] of sortedRecords(content, 'employment')) {
       claim(merged.record.ringName, refKey(merged.record.personKey));
     }
+    const othersUsing = (name: string, personKey: string): string[] =>
+      [...(holders.get(comparableName(name)) ?? [])].filter((owner) => owner !== personKey).sort();
     for (const [key, merged] of people) {
-      const owners = holders.get(comparableName(merged.record.defaultRingName));
-      const others = [...(owners ?? [])].filter((owner) => owner !== key).sort();
+      const others = othersUsing(merged.record.defaultRingName, key);
       if (others.length > 0) {
         issues.push(
           recordIssue(
@@ -101,6 +104,38 @@ export const uniqueNames: ContentRule = {
             merged,
             ['defaultRingName'],
             `Ring name "${merged.record.defaultRingName}" is also used by ${others.join(', ')}`,
+          ),
+        );
+      }
+    }
+    // A contract ring name that differs from the person's default ring name is checked on the
+    // contract, so a name two people only use under contract (in different promotions) is caught.
+    // A clash inside one promotion is already an error above and is not repeated as a warning.
+    const defaultRingNames = new Map(
+      people.map(([key, merged]) => [key, comparableName(merged.record.defaultRingName)]),
+    );
+    for (const [key, merged] of sortedRecords(content, 'employment')) {
+      const employment = merged.record;
+      const personKey = refKey(employment.personKey);
+      const comparable = comparableName(employment.ringName);
+      if (defaultRingNames.get(personKey) === comparable) {
+        continue;
+      }
+      const slot = `${refKey(employment.promotionKey)}\u0000${comparable}`;
+      if (clashedSlots.has(slot)) {
+        continue;
+      }
+      const others = othersUsing(employment.ringName, personKey);
+      if (others.length > 0) {
+        issues.push(
+          recordIssue(
+            'warning',
+            'unique-names',
+            'employment',
+            key,
+            merged,
+            ['ringName'],
+            `Ring name "${employment.ringName}" is also used by ${others.join(', ')}`,
           ),
         );
       }

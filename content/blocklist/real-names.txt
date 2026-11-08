@@ -5,8 +5,9 @@
 # title, venue, network, event and team name against this list and fails on any match.
 #
 # Format: one name per line. Blank lines and lines starting with # are ignored. Matching ignores
-# case, accents and punctuation. A one-word entry only matches a name that is exactly that word; a
-# longer entry also matches inside a longer name. See tools/validate-world/README.md.
+# case, accents and punctuation. A one-word entry only matches a name that is exactly that word
+# (a leading "the" and trailing numbers are ignored); a one-word entry in capitals (an acronym such
+# as WWE) and a longer entry also match inside a longer name. See tools/validate-world/README.md.
 #
 # This file is data for the checker only. It lives outside every pack and is never loaded by the
 # game. When you spot a near miss in content, add the real name here.
@@ -83,7 +84,7 @@ FMW
 USWA
 WCCW
 WWC
-GLOW
+Glow
 DDT
 
 # Shows and events

@@ -387,6 +387,33 @@ describe('unique-names', () => {
       'otto-brand',
     ]);
   });
+
+  it('warns when two people use one ring name only under contract, in different promotions', async () => {
+    const packs = editRecords(
+      await readMiniWorld(),
+      'mini-world',
+      'employment',
+      patchRecord('otto-brand-rcw', { ringName: 'The Harbour Hammer' }),
+    );
+    const issues = checkRule(uniqueNames, packs, MINI_ROOTS);
+    expect(errorsOf(issues)).toEqual([]);
+    expect(warningsOf(issues).map((issue) => issue.path.join('.'))).toEqual([
+      'employment.jack-marlow-hcw.ringName',
+      'employment.otto-brand-rcw.ringName',
+    ]);
+  });
+
+  it('does not repeat a ring name clash inside one promotion as a warning', async () => {
+    const packs = editRecords(
+      await readMiniWorld(),
+      'mini-world',
+      'employment',
+      patchRecord('nina-vale-hcw', { ringName: 'The Harbour Hammer' }),
+    );
+    const issues = checkRule(uniqueNames, packs, MINI_ROOTS);
+    expect(errorsOf(issues)).toHaveLength(1);
+    expect(warningsOf(issues)).toEqual([]);
+  });
 });
 
 describe('geography', () => {
@@ -534,6 +561,32 @@ describe('blocklist', () => {
     expect(matchesEntry('Duskmoor', entry)).toBe(true);
     expect(matchesEntry('Duskmoor Arena', entry)).toBe(false);
     expect(matchesEntry('Duskmoorland', entry)).toBe(false);
+  });
+
+  it('ignores a leading "the" and trailing numbers when matching a one-word entry', () => {
+    const blocklist = testBlocklist('Duskmoor');
+    for (const variant of [
+      'The Duskmoor',
+      'Duskmoor 40',
+      "Duskmoor '87",
+      'Duskmoor XX',
+      'Duskmoor 2 IV',
+    ]) {
+      expect(findBlockedName(variant, blocklist)?.name, variant).toBe('Duskmoor');
+    }
+    for (const variant of ['The Duskmoor Show', 'Duskmoor Night 3', 'The', 'Duskmoor Mix Tape']) {
+      expect(findBlockedName(variant, blocklist), variant).toBeNull();
+    }
+  });
+
+  it('matches an acronym entry as a whole word anywhere in the name', () => {
+    const blocklist = testBlocklist('GPG', 'Duskmoor');
+    for (const variant of ['GPG', 'GPG World Title', 'The g.p.g. Classic', 'Night of GPG']) {
+      expect(findBlockedName(variant, blocklist)?.name, variant).toBe('GPG');
+    }
+    for (const variant of ['GPGs Title', 'Agpg Arena']) {
+      expect(findBlockedName(variant, blocklist), variant).toBeNull();
+    }
   });
 
   it('skips blank lines and # comments in the file format', () => {

@@ -97,8 +97,12 @@ How names match:
   are the same name. Punctuation is tried both as a space and as nothing, so `A.J. Example`
   matches `AJ Example`, and a name written without spaces (`SmackDown` against `Smack Down`)
   matches too.
-- A **one-word entry** matches only a name that is exactly that word. `Sting` blocks a wrestler
-  called "Sting" but not "Stingray Vance".
+- A **one-word entry** matches only a name that is exactly that word, ignoring a leading "the"
+  and trailing numbers. `Sting` blocks a wrestler called "Sting" or "The Sting" but not
+  "Stingray Vance"; `Starrcade` blocks "Starrcade 1987" and "Starrcade XX".
+- A one-word entry **written in capitals** (an acronym of two to six letters or digits, such as
+  `WWE` or `IWGP`) matches as a whole word anywhere: `NWA` blocks "NWA World Title". Write a
+  common word that is also a name in normal case (`Glow`) so it only blocks the exact name.
 - A **longer entry** also matches inside a longer name: `Ring of Honor` blocks "Ring of Honor
   Classic".
 
@@ -135,7 +139,8 @@ It covers:
 
 `.github/workflows/ci.yml` runs `npm run validate:world -- --strict` after the tests on every pull
 request, including pull requests from forks. The step needs no secrets, so the blocklist check
-always runs.
+always runs once the default world exists. Until `content/worlds/default` lands (WLD-08/WLD-09)
+the step prints a notice and skips; that guard goes when the pack arrives.
 
 ## Tests
 

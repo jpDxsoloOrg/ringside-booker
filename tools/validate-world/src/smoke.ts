@@ -78,18 +78,31 @@ export async function runSmokeDays(loaded: LoadedWorld, days: number): Promise<S
         'the engine does not export the headless API (createEngine, initialEngineState, defaultSystems) yet',
     };
   }
-  const state = api.initialEngineState(loaded.world);
-  const engine = api.createEngine({ state, systems: api.defaultSystems });
+  const failures: string[] = [];
+  let daysAdvanced = 0;
+  let engine: unknown;
+  try {
+    const state = api.initialEngineState(loaded.world);
+    engine = api.createEngine({ state, systems: api.defaultSystems });
+  } catch (error: unknown) {
+    const reason = error instanceof Error ? error.message : String(error);
+    return { status: 'failed', daysAdvanced, failures: [`the engine did not start: ${reason}`] };
+  }
   const advanceDays = field(engine, 'advanceDays');
   if (!isFunction(advanceDays)) {
     return { status: 'skipped', reason: 'the engine object has no advanceDays method' };
   }
-  const failures: string[] = [];
-  let daysAdvanced = 0;
   while (daysAdvanced < days) {
-    const result: unknown = await advanceDays.call(engine, {
-      maxDays: Math.min(days - daysAdvanced, MAX_DAYS_PER_CALL),
-    });
+    let result: unknown;
+    try {
+      result = await advanceDays.call(engine, {
+        maxDays: Math.min(days - daysAdvanced, MAX_DAYS_PER_CALL),
+      });
+    } catch (error: unknown) {
+      const reason = error instanceof Error ? error.message : String(error);
+      failures.push(`advanceDays threw after ${String(daysAdvanced)} days: ${reason}`);
+      break;
+    }
     const advanced = field(result, 'daysAdvanced');
     const reported = field(result, 'failures');
     if (Array.isArray(reported)) {
