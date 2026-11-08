@@ -8,6 +8,15 @@ saves stay on your machine.
 Work in progress. Design docs are in [`docs/design/`](docs/design/), and the build log is in
 [`docs/dev-journal/`](docs/dev-journal/).
 
+## Docs
+
+- Design: [`docs/design/`](docs/design/) for the game and technical design, starting with
+  [`architecture.md`](docs/design/architecture.md)
+- Dev journal: [`docs/dev-journal/README.md`](docs/dev-journal/README.md), dated notes on how
+  the game gets built
+- Blog: [`docs/blog/README.md`](docs/blog/README.md), the public post series, with its tooling in
+  [`tools/blog/`](tools/blog/)
+
 ## Requirements
 
 - Node.js 20.11 or newer (`.nvmrc` pins the 20 line, so `nvm use` picks it up)
