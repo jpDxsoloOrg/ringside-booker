@@ -9,7 +9,7 @@ Game and technical design for Ringside Booker. Each game system gets its own doc
 | [determinism.md](determinism.md)               | Seeded RNG, named streams and what keeps a replay identical                              |
 | [tunables.md](tunables.md)                     | The tunables registry: definitions, units, overrides and validation                      |
 | [data-model.md](data-model.md)                 | Entities, IDs and how the World tables reference each other                              |
-| [day-pipeline.md](day-pipeline.md)             | How a day runs: phases, calendar cadences, and domain events with staged delivery        |
+| [day-pipeline.md](day-pipeline.md)             | How a day runs: phases, step isolation, reports, calendar cadences and domain events     |
 | [ui-tokens.md](ui-tokens.md)                   | Design tokens, light and dark themes, breakpoints and UI scale for the web app           |
 | [data-packs.md](data-packs.md)                 | The data-pack format: manifest, record kinds, keys, references, overrides and versioning |
 | [save-format.md](save-format.md)               | The save document, its versioning and the migration rules                                |

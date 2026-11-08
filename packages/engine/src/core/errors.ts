@@ -314,3 +314,70 @@ export class SaveDocumentError extends EngineError {
     this.problem = problem;
   }
 }
+
+/**
+ * The day pipeline was set up or used in a way it does not allow: a malformed phase definition, a
+ * duplicate phase id, two phases in the same slot, or a phase registered in an engine-only group.
+ * Always a programming error in the system that registered the phase.
+ */
+export class PipelineError extends EngineError {
+  constructor(message: string, details?: ErrorDetails) {
+    super('PIPELINE', message, details);
+  }
+}
+
+/**
+ * Something the engine relies on stopped being true, such as the day's closing step failing to
+ * move the clock forward. Never caused by player input; always an engine bug.
+ */
+export class InvariantError extends EngineError {
+  constructor(message: string, details?: ErrorDetails) {
+    super('INVARIANT', message, details);
+  }
+}
+
+/**
+ * An error flattened to plain JSON, for day reports, the pipeline failure log and bug reports.
+ * `code` is set for engine errors (and any other error that carries a string `code`).
+ */
+export interface SerializedError {
+  name: string;
+  message: string;
+  code?: string;
+  stack?: string;
+}
+
+/** Longest stack kept by {@link serializeError}, so a failure log entry stays small. */
+export const SERIALIZED_STACK_MAX_LENGTH = 4000;
+
+/**
+ * Flattens anything that was thrown into a {@link SerializedError}. Errors keep their name,
+ * message, string `code` and (trimmed) stack. Anything else that was thrown becomes
+ * `{ name: 'NonErrorThrown', message: String(value) }`.
+ */
+export function serializeError(err: unknown): SerializedError {
+  if (!(err instanceof Error)) {
+    return { name: 'NonErrorThrown', message: describeThrown(err) };
+  }
+  const serialized: SerializedError = {
+    name: typeof err.name === 'string' && err.name !== '' ? err.name : 'Error',
+    message: typeof err.message === 'string' ? err.message : describeThrown(err.message),
+  };
+  const code: unknown = Reflect.get(err, 'code');
+  if (typeof code === 'string') {
+    serialized.code = code;
+  }
+  if (typeof err.stack === 'string') {
+    serialized.stack = err.stack.slice(0, SERIALIZED_STACK_MAX_LENGTH);
+  }
+  return serialized;
+}
+
+/** `String(value)`, falling back to {@link describeValue} for values that refuse to convert. */
+function describeThrown(value: unknown): string {
+  try {
+    return String(value);
+  } catch {
+    return describeValue(value);
+  }
+}

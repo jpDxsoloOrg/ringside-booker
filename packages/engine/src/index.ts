@@ -89,7 +89,7 @@ export { cents, isCents, ZERO_CENTS } from './core/money';
 export type { ContentKey } from './core/content-key';
 export { CONTENT_KEY_PATTERN, isContentKey, parseContentKey } from './core/content-key';
 
-export type { ErrorDetails } from './core/errors';
+export type { ErrorDetails, SerializedError } from './core/errors';
 export {
   AppendOnlyError,
   DuplicateIdError,
@@ -105,9 +105,11 @@ export {
   InvalidIdError,
   InvalidOddsError,
   InvalidStatePartError,
+  InvariantError,
   MigrationError,
   MoneyOverflowError,
   NotSerialisableError,
+  PipelineError,
   RegistryError,
   SaveDocumentError,
   SchemaViolationError,
@@ -116,6 +118,8 @@ export {
   TxStateError,
   UniqueIndexError,
   UnknownIndexError,
+  serializeError,
+  SERIALIZED_STACK_MAX_LENGTH,
 } from './core/errors';
 
 export type { JsonArray, JsonObject, JsonPrimitive, JsonProblem, JsonValue } from './core/json';
@@ -134,6 +138,46 @@ export {
 export * from './core/events';
 
 export * from './core/trace';
+
+// The day pipeline: phase definitions, the registry, reports and the failure log. The runners
+// (createRuntime, runStep, runDay) stay internal: they need the writable World, and the engine API
+// wraps them for the web app and the tools.
+export {
+  definePhase,
+  ENGINE_ONLY_GROUPS,
+  isEngineOnlyGroup,
+  isPhaseGroup,
+  MAX_PHASE_ORDER,
+  parsePipelineFailureLogState,
+  PHASE_GROUP_BASES,
+  PHASE_GROUPS,
+  PHASE_ID_PATTERN,
+  phasePosition,
+  PhaseRegistry,
+  PIPELINE_FAILURE_LOG_CAPACITY,
+  PipelineFailureLog,
+  pipelineFailureLogStateSchema,
+  deterministicDayReport,
+  type DayReport,
+  type DeterministicDayReport,
+  type PhaseContext,
+  type PhaseDefinition,
+  type PhaseGroup,
+  type PhaseSpec,
+  type PipelineFailure,
+  type PipelineFailureLogState,
+  type ReactionContext,
+  type ReactionFailureReport,
+  type SimHost,
+  type SimRuntime,
+  type SkippedReason,
+  type StepContext,
+  type StepReport,
+  type DeterministicStepReport,
+  type StepStatus,
+  type StepTiming,
+  type SystemPhaseGroup,
+} from './core/pipeline';
 
 export { hashString128, hashString32, type HashWords } from './core/hash';
 export * from './core/rng';
