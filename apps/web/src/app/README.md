@@ -39,5 +39,5 @@ sidebar treat them as part of the item they sit under.
 - **Announcements.** `useAnnounce()` speaks short status text (`announce('Advanced to Monday')`),
   politely by default.
 - **The dev helper never ships.** `/dev/enter-shell` is registered only when `import.meta.env.DEV`
-  is true or the build sets `VITE_E2E=1`, which the Playwright web server does. A unit test checks
-  the production route list leaves it out.
+  is true or the build sets `VITE_E2E=1`, which the Playwright web server does (into `dist-e2e/`,
+  never `dist/`). A unit test checks the production route list leaves it out.
