@@ -91,6 +91,9 @@ before it reads any setting. Otherwise it:
 6. On the first live publish of a `final` post, writes `publishedAt: YYYY-MM-DD` into the post's
    frontmatter and fills the post's `Published` cell in the series index. Commit both files.
 
+The repo is the source of truth. A hand edit made in the blog's admin editor is overwritten the next
+time the post is published from the repo, so fix typos in the post file and publish again.
+
 If the slug in the file has no post on the blog but a post with the same title does, the
 publisher assumes the slug was renamed and stops, because slugs are permanent. Pass
 `--allow-new-slug` if it really is a new post.
