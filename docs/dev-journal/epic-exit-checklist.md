@@ -55,7 +55,7 @@ still fresh: what shipped, which calls were made and why, what went wrong, and w
 
 - The entry passes `npm run blog:check -- --only journal`.
 - The Decisions section has one block per non-obvious choice made in the epic.
-- Nothing cites research notes, a reference design or a reference study.
+- Nothing cites private notes or outside material.
 ```
 
 ## Closing tickets

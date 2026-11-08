@@ -131,8 +131,8 @@ These match the blog's public rules, because both folders are in a public repo.
 - **Our own game only.** Never name another game. When a comparison helps, say
   "other games in the genre" and describe our own version: what it does and
   why.
-- **No outside sources.** Don't cite research notes, and don't refer to a
-  reference design or a reference study. The journal records what was built
+- **No outside sources.** Don't cite private notes or outside material. The
+  journal records what was built
   and why, in our own terms.
 - **No third-party formulas.** Never paste formulas from somewhere else. Our own
   formulas live in `docs/design/` and can be linked.

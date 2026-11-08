@@ -3,7 +3,7 @@ title: "Why I'm building a wrestling booking sim"
 slug: ringside-booker-01-why-im-building-a-wrestling-booking-sim
 series: ringside-booker
 part: 1
-status: draft
+status: final
 excerpt:
   "I booked a fantasy card, got a rating back and had no idea why. So I'm building a booking sim
   where every number explains itself."

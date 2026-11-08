@@ -17,7 +17,7 @@ script.
 
 | Part | Title                                                                       | Status  | Draws from                                                                 | Published |
 | ---- | --------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------- | --------- |
-| 01   | Why I'm building a wrestling booking sim                                    | draft   | [Project kickoff](../dev-journal/2026-11-project-kickoff.md) journal entry | -         |
+| 01   | Why I'm building a wrestling booking sim                                    | final   | [Project kickoff](../dev-journal/2026-11-project-kickoff.md) journal entry | -         |
 | 02   | Foundations: one World, deterministic days, numbers that explain themselves | planned | Foundation (FND) and simulation (SIM) entries                              | -         |
 | 03   | Same seed, same show: randomness with named streams                         | planned | Simulation (SIM) entry                                                     | -         |
 | 04   | Every number explains itself: the Why? panel                                | planned | Simulation (SIM) and UI entries                                            | -         |
@@ -149,8 +149,8 @@ readable by anyone.
 
 - **First person, in my own voice as the developer.** "I built", "I changed my
   mind", not "we" or "the team".
-- **No other games by name.** Don't name another game, cite research notes, or
-  refer to a reference design or a reference study. When a comparison helps,
+- **No other games by name.** Don't name another game or cite private notes.
+  When a comparison helps,
   say "other games in the genre" and nothing more specific, then describe our
   own version.
 - **No real wrestling.** No real wrestler names, real promotion names or real
@@ -208,7 +208,7 @@ line. Any error exits with 1; warnings alone exit with 0.
 | `no-body-h1`             | error                                | No `# ` heading in the body outside code                                                    |
 | `banned-terms`           | error                                | No term from either banned-terms list, anywhere in the file (see below)                     |
 | `banned-terms-missing`   | warning, or error with flag          | The private banned-terms list was found                                                     |
-| `no-private-references`  | error                                | No citing research notes, a reference design or a reference study outside code              |
+| `no-private-references`  | error                                | No citing private notes or outside material outside code                                    |
 | `no-todo-in-final`       | error in `final`, warning in `draft` | No `TODO`, `TBD`, `TK` or `XXX` outside code                                                |
 | `links-resolve`          | error                                | Relative links and images point at files that exist; anchors match a heading                |
 | `images-have-alt`        | error in `final`, warning in `draft` | Every image has alt text                                                                    |
