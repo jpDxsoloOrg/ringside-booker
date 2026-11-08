@@ -1,0 +1,304 @@
+/*
+ * The "Why?" panel: an office-register breakdown inside a Sheet. The headline (what the number is
+ * and its value) stays pinned at the top while the rows scroll under it. Rows wrap rather than
+ * truncate, and nested levels indent by at most 0.75rem on phones so five levels still fit 390px.
+ */
+
+/* An explained number: the value with its Why? button beside it. */
+.explained {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.explainedValue {
+  font-weight: var(--font-weight-semibold);
+}
+
+.panel {
+  /* Matches the Sheet body's padding, so the pinned headline can reach the scroll edge. */
+  --trace-body-padding: var(--space-5);
+}
+
+.tree {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.headline {
+  position: sticky;
+  inset-block-start: calc(-1 * var(--trace-body-padding, 0px));
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-3);
+  margin-block-start: calc(-1 * var(--trace-body-padding, 0px));
+  padding-block: var(--trace-body-padding, 0px) var(--space-3);
+  border-block-end: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+}
+
+.headlineLabel {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.headlineValue {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-tight);
+  color: var(--color-data);
+}
+
+.toolbar {
+  margin-inline-start: calc(-1 * var(--space-2));
+}
+
+.treeList,
+.children,
+.options,
+.summaryList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.treeList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.children {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-block-start: var(--space-1);
+  padding-inline-start: var(--space-4);
+  border-inline-start: 1px solid var(--color-border);
+  margin-inline-start: var(--space-2);
+}
+
+.item {
+  min-inline-size: 0;
+}
+
+/* The ring goes round the row itself, not the row plus everything open under it. */
+.item:focus-visible {
+  outline: none;
+}
+
+.item:focus-visible > .row {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-control);
+}
+
+.group > .row {
+  cursor: pointer;
+}
+
+.group > .row:hover {
+  background: var(--color-surface-hover);
+}
+
+.chevron {
+  flex: none;
+  display: inline-flex;
+  inline-size: 1rem;
+  padding-block-start: 0.15em;
+  color: var(--color-text-muted);
+}
+
+.rowContent {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-2);
+}
+
+.text {
+  overflow-wrap: anywhere;
+  font-variant-numeric: var(--font-feature-tabular);
+}
+
+.formulaText {
+  font-weight: var(--font-weight-semibold);
+}
+
+.tone-neutral {
+  color: var(--color-text);
+}
+
+.tone-positive {
+  color: var(--color-positive);
+}
+
+.tone-negative {
+  color: var(--color-negative);
+}
+
+.badge {
+  flex: none;
+}
+
+.detail {
+  overflow-wrap: anywhere;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-variant-numeric: var(--font-feature-tabular);
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-block-start: var(--space-1);
+  padding-inline-start: var(--space-3);
+}
+
+.option {
+  overflow-wrap: anywhere;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.option:first-child {
+  color: var(--color-text);
+}
+
+.notice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+}
+
+.error {
+  margin: 0;
+  color: var(--color-negative);
+}
+
+.summaryDate {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.summaryHeading {
+  margin: 0;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.summaryList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.skeleton {
+  display: block;
+  block-size: 1rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-hover);
+}
+
+.skeletonHeadline {
+  block-size: 2.25rem;
+  inline-size: 40%;
+}
+
+.skeletonShort {
+  inline-size: 60%;
+}
+
+.copy {
+  display: flex;
+  flex: 1 1 100%;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.copyActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.copyStatus {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.copyFallback {
+  inline-size: 100%;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  resize: vertical;
+}
+
+@media (pointer: coarse) {
+  .row {
+    min-block-size: var(--tap-target-min);
+    align-items: center;
+  }
+}
+
+@media (--bp-mobile) {
+  .panel {
+    --trace-body-padding: var(--space-4);
+  }
+
+  .headlineValue {
+    font-size: var(--font-size-2xl);
+  }
+
+  /* 0.5rem plus the 1px guide line per level, inside the 0.75rem budget. */
+  .children {
+    padding-inline-start: var(--space-2);
+    margin-inline-start: 0;
+  }
+}

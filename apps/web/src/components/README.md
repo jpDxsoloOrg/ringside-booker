@@ -121,9 +121,31 @@ export const galleryEntry: GalleryEntry = {
 | `Cluster`        | A wrapping row with a token gap                                                                                |
 | `VisuallyHidden` | Text for screen readers only                                                                                   |
 | `format/`        | `formatMoney`, `formatNumber`, `formatPercent`, `formatSigned`, dates                                          |
+| `Explained`      | A derived number with its Why? button: the one element a screen needs to show an explained number              |
+| `WhyButton`      | The help button that opens a number's "Why?" panel; one panel is open at a time                                |
+| `TracePanel`     | The "Why?" panel: a calculation trace as readable steps, inline or fetched by `traceRef`                       |
 
 Money is integer `Cents` and dates are `GameDate` strings from `@ringside/engine`; the formatters
 turn them into text at the edge and nowhere else.
+
+## Why? panel
+
+Every derived number can explain itself (see `docs/design/calculation-traces.md`). A screen shows
+one with `<Explained value={...} label="Attendance" unit="people" trace={...} />`, or with
+`traceRef={...}` when its query hands back a reference; with neither it shows just the number.
+
+- **Words, not formulas.** `Trace/wording.ts` turns each node into a sentence ("Capped 112 → 100
+  (maximum)", "+6 Main event bonus"). The rows and the copy-as-text export both read it, so a bug
+  report says what the player saw.
+- **Every kind has a row.** `Trace/kinds.ts` picks the row for each node kind with an exhaustive
+  switch, so a kind added in the engine fails the typecheck until it has a renderer.
+- **Quiet checks are hidden.** Limits that changed nothing and branches not taken sit behind
+  "Show checks that didn't apply". Groups start open down to depth 2, with Expand all and
+  Collapse all, and the arrow keys move through the tree.
+- **One panel at a time.** `tracePanelStore` holds the open panel's id; opening another replaces
+  it, and closing returns focus to the button that opened it.
+- **Older results.** A `traceRef` whose trace has been summarised shows the summary with "Full
+  breakdown is only kept for recent results".
 
 ## DataTable
 
