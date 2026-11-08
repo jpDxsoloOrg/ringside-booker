@@ -1,7 +1,8 @@
 // ESLint flat config for the whole monorepo.
 //
 // The engine rules in docs/design/architecture.md are enforced here instead of being remembered:
-// no `any`, no Math.random or wall-clock reads in the engine, no DOM or app imports in the engine.
+// no `any`, no Math.random (however it is reached) or wall-clock reads in the engine, no DOM or
+// app imports in the engine.
 // packages/engine/test/lint-guards.test.ts proves the guard rules fire, so an ESLint upgrade that
 // changes how a selector matches fails a test instead of silently dropping a guard.
 
@@ -27,6 +28,28 @@ const MATH_RANDOM_RESTRICTION = {
   property: 'random',
   message: 'Use rng.stream(name) from core/rng. Results must be reproducible from the seed.',
 };
+
+const MATH_RANDOM_MESSAGE = MATH_RANDOM_RESTRICTION.message;
+
+// no-restricted-properties only sees `Math.random` written against the bare `Math` name. These
+// selectors close the ways around it in the engine:
+// - through the global object: `globalThis.Math.random`, `window.Math.random`, `self['Math'].random`
+// - through an alias: `const M = Math`, `const { Math: M } = globalThis`, `pass(Math)`,
+//   `const M = globalThis.Math`. `Math` may only appear as the object of a member access
+//   (`Math.floor`), so it can never be held in a variable where the property check can't see it.
+const NAMED_MATH = ":matches([computed=false][property.name='Math'], [property.value='Math'])";
+const NAMED_RANDOM =
+  ":matches([computed=false][property.name='random'], [property.value='random'])";
+const ENGINE_MATH_RANDOM_SELECTORS = [
+  // <anything>.Math.random, in dotted or bracket form.
+  `MemberExpression${NAMED_RANDOM} > MemberExpression.object${NAMED_MATH}`,
+  // <anything>.Math used as a value rather than reached through.
+  `MemberExpression${NAMED_MATH}:not(MemberExpression > MemberExpression.object)`,
+  // The bare Math global used as a value: assigned, passed, returned or destructured.
+  "Identifier[name='Math']:not(MemberExpression > Identifier.object, MemberExpression > Identifier.property, Property > Identifier.key, TSTypeQuery > Identifier.exprName)",
+  // Math destructured out of the global object: `const { Math: M } = globalThis`.
+  "ObjectPattern > Property:matches([key.name='Math'], [key.value='Math'])",
+].map((selector) => ({ selector, message: MATH_RANDOM_MESSAGE }));
 
 const WALL_CLOCK_MESSAGE =
   'Game time is GameDate from core/date; the engine never reads the wall clock.';
@@ -136,6 +159,7 @@ export default defineConfig(
       'no-restricted-syntax': [
         'error',
         { selector: "NewExpression[callee.name='Date']", message: WALL_CLOCK_MESSAGE },
+        ...ENGINE_MATH_RANDOM_SELECTORS,
       ],
       'no-restricted-globals': [
         'error',

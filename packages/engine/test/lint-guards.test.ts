@@ -89,6 +89,63 @@ describe('lint guards: engine determinism', () => {
   });
 });
 
+// The messages of every rule that bans Math.random point at the seeded streams.
+const MATH_RANDOM_HINT = 'rng.stream(name)';
+
+function mathRandomErrors(messages: Linter.LintMessage[]): Linter.LintMessage[] {
+  return messages.filter(
+    (message) => message.severity === 2 && message.message.includes(MATH_RANDOM_HINT),
+  );
+}
+
+describe('lint guards: no way around the Math.random ban in the engine', () => {
+  // [description, snippet, expected Math.random errors]. Destructuring `random` off the bare Math
+  // name is caught twice: by the property check and by the alias check.
+  const bypasses: readonly [string, string, number][] = [
+    ['bracket access', "export const roll = Math['random']();", 1],
+    ['globalThis.Math.random', 'export const roll = globalThis.Math.random();', 1],
+    ['globalThis in bracket form', "export const roll = globalThis['Math']['random']();", 1],
+    ['window.Math.random', 'export const roll = window.Math.random();', 1],
+    ['self.Math.random', 'export const roll = self.Math.random();', 1],
+    ['an alias of Math', 'const mathAlias = Math;\nexport const roll = mathAlias.random();', 1],
+    [
+      'an alias of globalThis.Math',
+      'const mathAlias = globalThis.Math;\nexport const roll = mathAlias.random();',
+      1,
+    ],
+    [
+      'Math destructured from globalThis',
+      'const { Math: mathAlias } = globalThis;\nexport const roll = mathAlias.random();',
+      1,
+    ],
+    ['random destructured from Math', 'const { random } = Math;\nexport const roll = random();', 2],
+    ['Math passed as a value', "export const roll = Reflect.get(Math, 'random');", 1],
+  ];
+
+  it.each(bypasses)('bans %s in engine source', async (_description, snippet, expectedErrors) => {
+    const messages = await lintSample(`${snippet}\n`, ENGINE_SOURCE_PATH);
+    expect(mathRandomErrors(messages)).toHaveLength(expectedErrors);
+  });
+
+  it.each(bypasses)('bans %s in engine tests', async (_description, snippet, expectedErrors) => {
+    const messages = await lintSample(`${snippet}\n`, ENGINE_TEST_PATH);
+    expect(mathRandomErrors(messages)).toHaveLength(expectedErrors);
+  });
+
+  it('still allows the rest of Math in the engine', async () => {
+    const code = [
+      'export const rounded = Math.floor(2.5) + Math.max(1, 2) + Math.PI;',
+      'export const viaGlobal = globalThis.Math.floor(2.5);',
+      'export type MathLike = typeof Math;',
+      'export const settings = { Math: 1 };',
+      '',
+    ].join('\n');
+    const messages = await lintSample(code, ENGINE_SOURCE_PATH);
+    expect(mathRandomErrors(messages)).toHaveLength(0);
+    expect(errorsFromRule(messages, 'no-restricted-syntax')).toHaveLength(0);
+  });
+});
+
 describe('lint guards: engine has no browser or app dependencies', () => {
   it('bans DOM globals in the engine', async () => {
     const messages = await lintSample("document.title = 'x';\n", ENGINE_SOURCE_PATH);
