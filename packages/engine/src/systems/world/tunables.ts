@@ -1,6 +1,7 @@
 /**
  * World generation tunables (the WLD epic): the balance numbers the generators read when they
- * build people, names and places. The distributions themselves (roles, styles, bodies, attribute
+ * build people, names and places, and the new-game numbers (`newgame.*`) the setup steps and
+ * `foundPromotion` read. The distributions themselves (roles, styles, bodies, attribute
  * profiles) are pack data in `content/base/generation/`; these are the global knobs on top.
  * Merged into `ALL_TUNABLES` in `systems/tunables.ts`.
  */
@@ -12,6 +13,9 @@ const NAMES_DOC = 'names.md#tunables';
 const PEOPLE_CATEGORY = NAMES_CATEGORY;
 const PEOPLE_DOC = 'world-generation.md#tunables';
 const SEEDING_DOC = 'world-generation.md#potential-traits-vices-and-popularity-seeding';
+const NEW_GAME_CATEGORY = 'New game';
+const NEW_GAME_STEPS_DOC = 'new-game.md#setup-steps';
+const FOUNDING_DOC = 'new-game.md#founding-a-promotion';
 
 export const worldTunables = defineTunables({
   'worldgen.names.neutralGivenShare': {
@@ -490,5 +494,227 @@ export const worldTunables = defineTunables({
     description:
       'Multiplies the starting popularity of people who do not wrestle (managers, announcers, referees and the rest). 0 means they start unknown.',
     docRef: SEEDING_DOC,
+  },
+  'newgame.contractFixup.minDays': {
+    kind: 'integer',
+    default: 30,
+    min: 1,
+    max: 3650,
+    unit: 'days',
+    category: NEW_GAME_CATEGORY,
+    description:
+      'Shortest new length, from the start date, for a contract that would otherwise have ended on or before the first day. Such contracts get a random end date between this and the maximum.',
+    docRef: NEW_GAME_STEPS_DOC,
+  },
+  'newgame.contractFixup.maxDays': {
+    kind: 'integer',
+    default: 180,
+    min: 1,
+    max: 3650,
+    unit: 'days',
+    category: NEW_GAME_CATEGORY,
+    description:
+      'Longest new length, from the start date, for a contract that would otherwise have ended on or before the first day.',
+    docRef: NEW_GAME_STEPS_DOC,
+  },
+  'newgame.contractLength.minDays': {
+    kind: 'integer',
+    default: 30,
+    min: 1,
+    max: 3650,
+    unit: 'days',
+    category: NEW_GAME_CATEGORY,
+    description:
+      'With "Shuffle contract lengths" on: the shortest time, from the start date, a running contract can have left.',
+    docRef: NEW_GAME_STEPS_DOC,
+  },
+  'newgame.contractLength.maxDays': {
+    kind: 'integer',
+    default: 720,
+    min: 1,
+    max: 3650,
+    unit: 'days',
+    category: NEW_GAME_CATEGORY,
+    description:
+      'With "Shuffle contract lengths" on: the longest time, from the start date, a running contract can have left.',
+    docRef: NEW_GAME_STEPS_DOC,
+  },
+  'newgame.equalStart.cash': {
+    kind: 'integer',
+    default: 100_000_000,
+    min: 0,
+    max: 100_000_000_000,
+    unit: 'money',
+    category: NEW_GAME_CATEGORY,
+    description:
+      'With "Equal start" on: the cash every promotion starts with, in cents (the default is 1,000,000).',
+    docRef: NEW_GAME_STEPS_DOC,
+  },
+  'newgame.equalStart.homePopularity': {
+    kind: 'integer',
+    default: 35,
+    min: 0,
+    max: 100,
+    unit: 'points',
+    category: NEW_GAME_CATEGORY,
+    description:
+      'With "Equal start" on: every promotion\'s popularity in each region of its home country. It starts unknown everywhere else.',
+    docRef: NEW_GAME_STEPS_DOC,
+  },
+  'newgame.equalStart.prestige': {
+    kind: 'integer',
+    default: 50,
+    min: 0,
+    max: 100,
+    unit: 'points',
+    category: NEW_GAME_CATEGORY,
+    description: 'With "Equal start" on: the prestige every promotion starts with.',
+    docRef: NEW_GAME_STEPS_DOC,
+  },
+  'newgame.found.small.cash': {
+    kind: 'integer',
+    default: 7_500_000,
+    min: 0,
+    max: 100_000_000_000,
+    unit: 'money',
+    category: NEW_GAME_CATEGORY,
+    description:
+      'Cash a small promotion founded at new game starts with, in cents (the default is 75,000).',
+    docRef: FOUNDING_DOC,
+  },
+  'newgame.found.small.homePopularity': {
+    kind: 'integer',
+    default: 8,
+    min: 0,
+    max: 100,
+    unit: 'points',
+    category: NEW_GAME_CATEGORY,
+    description: 'Popularity a small founded promotion starts with in its home region.',
+    docRef: FOUNDING_DOC,
+  },
+  'newgame.found.small.countryPopularity': {
+    kind: 'integer',
+    default: 2,
+    min: 0,
+    max: 100,
+    unit: 'points',
+    category: NEW_GAME_CATEGORY,
+    description:
+      'Popularity a small founded promotion starts with in every other region of its home country.',
+    docRef: FOUNDING_DOC,
+  },
+  'newgame.found.small.prestige': {
+    kind: 'integer',
+    default: 20,
+    min: 0,
+    max: 100,
+    unit: 'points',
+    category: NEW_GAME_CATEGORY,
+    description: 'Prestige a small founded promotion starts with.',
+    docRef: FOUNDING_DOC,
+  },
+  'newgame.found.medium.cash': {
+    kind: 'integer',
+    default: 30_000_000,
+    min: 0,
+    max: 100_000_000_000,
+    unit: 'money',
+    category: NEW_GAME_CATEGORY,
+    description:
+      'Cash a medium promotion founded at new game starts with, in cents (the default is 300,000).',
+    docRef: FOUNDING_DOC,
+  },
+  'newgame.found.medium.homePopularity': {
+    kind: 'integer',
+    default: 20,
+    min: 0,
+    max: 100,
+    unit: 'points',
+    category: NEW_GAME_CATEGORY,
+    description: 'Popularity a medium founded promotion starts with in its home region.',
+    docRef: FOUNDING_DOC,
+  },
+  'newgame.found.medium.countryPopularity': {
+    kind: 'integer',
+    default: 8,
+    min: 0,
+    max: 100,
+    unit: 'points',
+    category: NEW_GAME_CATEGORY,
+    description:
+      'Popularity a medium founded promotion starts with in every other region of its home country.',
+    docRef: FOUNDING_DOC,
+  },
+  'newgame.found.medium.prestige': {
+    kind: 'integer',
+    default: 35,
+    min: 0,
+    max: 100,
+    unit: 'points',
+    category: NEW_GAME_CATEGORY,
+    description: 'Prestige a medium founded promotion starts with.',
+    docRef: FOUNDING_DOC,
+  },
+  'newgame.found.large.cash': {
+    kind: 'integer',
+    default: 120_000_000,
+    min: 0,
+    max: 100_000_000_000,
+    unit: 'money',
+    category: NEW_GAME_CATEGORY,
+    description:
+      'Cash a large promotion founded at new game starts with, in cents (the default is 1,200,000).',
+    docRef: FOUNDING_DOC,
+  },
+  'newgame.found.large.homePopularity': {
+    kind: 'integer',
+    default: 35,
+    min: 0,
+    max: 100,
+    unit: 'points',
+    category: NEW_GAME_CATEGORY,
+    description: 'Popularity a large founded promotion starts with in its home region.',
+    docRef: FOUNDING_DOC,
+  },
+  'newgame.found.large.countryPopularity': {
+    kind: 'integer',
+    default: 18,
+    min: 0,
+    max: 100,
+    unit: 'points',
+    category: NEW_GAME_CATEGORY,
+    description:
+      'Popularity a large founded promotion starts with in every other region of its home country.',
+    docRef: FOUNDING_DOC,
+  },
+  'newgame.found.large.prestige': {
+    kind: 'integer',
+    default: 50,
+    min: 0,
+    max: 100,
+    unit: 'points',
+    category: NEW_GAME_CATEGORY,
+    description: 'Prestige a large founded promotion starts with.',
+    docRef: FOUNDING_DOC,
+  },
+  'newgame.found.titlePrestige': {
+    kind: 'integer',
+    default: 20,
+    min: 0,
+    max: 100,
+    unit: 'points',
+    category: NEW_GAME_CATEGORY,
+    description: "Prestige of the starter kit's championship when you found a promotion.",
+    docRef: FOUNDING_DOC,
+  },
+  'newgame.found.weeklyShowSlots': {
+    kind: 'integer',
+    default: 5,
+    min: 3,
+    max: 12,
+    unit: 'count',
+    category: NEW_GAME_CATEGORY,
+    description: "Segment slots on the starter kit's weekly show when you found a promotion.",
+    docRef: FOUNDING_DOC,
   },
 });

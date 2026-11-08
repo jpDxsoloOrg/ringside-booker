@@ -721,3 +721,7 @@ export { runMigrations } from './persistence/migrations/run';
 // docs/design/engine-api.md.
 export * from './core/api/index';
 export { defaultSystems } from './systems/index';
+
+// New game (WLD-10): the world preview for the wizard, `createNewGame`, and the settings and
+// setup-step registries later systems add their options to. See docs/design/new-game.md.
+export * from './systems/newgame/index';
