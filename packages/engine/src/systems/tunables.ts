@@ -9,6 +9,7 @@
  */
 
 import { simTunables } from '../core/tunables/simTunables';
+import { conditionTunables } from './condition/tunables';
 import { mergeTunables } from '../core/tunables/define';
 import type { TunableOverrides } from '../core/tunables/overrides';
 import {
@@ -18,7 +19,7 @@ import {
   type TunableReader,
 } from '../core/tunables/resolver';
 
-export const ALL_TUNABLES = mergeTunables(simTunables);
+export const ALL_TUNABLES = mergeTunables(simTunables, conditionTunables);
 
 /** Every tunable key the engine knows. */
 export type TunableKey = keyof typeof ALL_TUNABLES;
