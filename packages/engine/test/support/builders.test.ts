@@ -308,6 +308,10 @@ describe('canned worlds', () => {
       const reigns = world.tables.titleReigns.lookup('byTitle', titleId);
       expect(reigns.filter((reign) => reign.lostOn === null)).toHaveLength(1);
       expect(reigns.filter((reign) => reign.lostOn !== null)).toHaveLength(1);
+      const { introducedOn } = world.tables.titles.require(titleId);
+      for (const reign of reigns) {
+        expect(reign.wonOn >= introducedOn, `${reign.id} won before its title existed`).toBe(true);
+      }
     }
     const [show] = world.tables.eventInstances.values();
     expect(show?.status).toBe('completed');

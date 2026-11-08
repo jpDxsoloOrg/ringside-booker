@@ -44,6 +44,8 @@ export function emptyWorld(): BuiltWorld {
 
 /** The tiny world's start date (a Monday): season 1 starts here. */
 export const TINY_WORLD_START = TEST_START_DATE;
+/** The day both of the tiny world's titles were introduced, two years before the start. */
+export const TINY_WORLD_TITLES_INTRODUCED = addYears(TINY_WORLD_START, -2);
 /** The tiny world's last show, a Thursday early in season 2. */
 export const TINY_WORLD_SHOW_DATE = parseGameDate('2026-04-09');
 /** The tiny world's current date: the day after its last show. */
@@ -117,7 +119,8 @@ function addTinyHistory(context: BuildContext): void {
     ),
   );
 
-  // Each title had one earlier champion, whose reign ended the day the current one began.
+  // Each title had one earlier champion (after the title was introduced), whose reign ended the
+  // day the current one began.
   context.insert(
     'titleReigns',
     aTitleReign(
@@ -443,10 +446,22 @@ export function tinyWorld(): BuiltWorld {
         promotion
           .withBrand({ name: 'Test Brand A' })
           .withRoster(8)
-          .withTitle({ name: 'Test Heavyweight Title', prestige: 70 }, { holder: 0 })
           .withTitle(
-            { name: 'Test Tag Team Title', holderCount: 2, color: '#8a8d91' },
-            { holder: [2, 3] },
+            {
+              name: 'Test Heavyweight Title',
+              prestige: 70,
+              introducedOn: TINY_WORLD_TITLES_INTRODUCED,
+            },
+            { holder: 0, wonOn: TINY_WORLD_START },
+          )
+          .withTitle(
+            {
+              name: 'Test Tag Team Title',
+              holderCount: 2,
+              color: '#8a8d91',
+              introducedOn: TINY_WORLD_TITLES_INTRODUCED,
+            },
+            { holder: [2, 3], wonOn: TINY_WORLD_START },
           )
           .withWeeklyShow(
             { name: 'Test Weekly', weekdays: [THURSDAY] },

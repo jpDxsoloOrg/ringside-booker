@@ -22,7 +22,14 @@
  * `settings.season.lengthDays` long) is created unless `.withoutSeason()` is called.
  */
 
-import { addDays, addYears, diffDays, parseGameDate, type Weekday } from '../../src/core/date';
+import {
+  addDays,
+  addYears,
+  diffDays,
+  parseGameDate,
+  type GameDate,
+  type Weekday,
+} from '../../src/core/date';
 import type { PromotionId } from '../../src/core/ids';
 import type { Brand } from '../../src/model/entities/brand';
 import type { Employment } from '../../src/model/entities/employment';
@@ -232,6 +239,8 @@ export interface RosterOptions {
 export interface TitleHolding {
   /** Roster index (or indexes, for a tag or trios title) of the current champions. */
   readonly holder?: number | readonly number[];
+  /** The day the current reign began. Defaults to the title's `introducedOn`. */
+  readonly wonOn?: GameDate;
 }
 
 export interface WeeklyShow {
@@ -366,7 +375,7 @@ function addPromotion(
           titleId: title.id,
           holderIds: holders.map((holder) => holder.personId),
           holderNamesAtTime: holders.map((holder) => holder.ringName),
-          wonOn: title.introducedOn,
+          wonOn: holding.wonOn ?? title.introducedOn,
         },
         sequence,
       ),

@@ -2527,7 +2527,7 @@
         },
         "prestige": 70,
         "status": "active",
-        "introducedOn": "2026-01-05",
+        "introducedOn": "2024-01-05",
         "retiredOn": null,
         "imageRef": null,
         "color": "#c9a227"
@@ -2545,7 +2545,7 @@
         },
         "prestige": 50,
         "status": "active",
-        "introducedOn": "2026-01-05",
+        "introducedOn": "2024-01-05",
         "retiredOn": null,
         "imageRef": null,
         "color": "#8a8d91"
