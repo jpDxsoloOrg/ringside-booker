@@ -38,6 +38,7 @@ import {
   type Traced,
   type TraceNode,
 } from '@ringside/engine';
+import { birthdayAt, rollDebut } from '../../../../src/systems/world/people/dates';
 import { testId } from '../../../support/ids';
 import { expectSerialisable, expectTraceReplays } from '../../../support/trace';
 
@@ -434,6 +435,24 @@ describe('generatePerson', () => {
       expect(ageInYears(person.birthDate, debutDate)).toBeGreaterThanOrEqual(17);
       expect(isAfter(debutDate, worldDate)).toBe(false);
     }
+  });
+
+  it('never debuts a leap-day baby before the drawn debut age', () => {
+    const birthDate = parseGameDate('2000-02-29');
+    expect(birthdayAt(birthDate, 17)).toBe('2017-03-01');
+    expect(birthdayAt(birthDate, 20)).toBe('2020-02-29');
+    expect(birthdayAt(parseGameDate('2001-06-15'), 17)).toBe('2018-06-15');
+    const registry = new RngRegistry('leap-day');
+    const debut = rollDebut(
+      registry.stream('worldgen.people.identity'),
+      { ageSd: 0, minAge: 17, maxAge: 17 },
+      createEngineTunables(),
+      26,
+      birthDate,
+      parseGameDate('2026-06-01'),
+    );
+    expect(debut.value.debutDate).toBe('2017-03-01');
+    expect(ageInYears(birthDate, debut.value.debutDate)).toBe(17);
   });
 
   it('matches the role gender shares within 1.5 percentage points', () => {

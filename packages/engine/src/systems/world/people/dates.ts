@@ -87,6 +87,16 @@ export function rollBirthDate(
   };
 }
 
+/**
+ * The first day on which someone born on `birthDate` is `years` old by `ageInYears`. For a 29
+ * February birthday in a common year, `addYears` lands on 28 February, a day before `ageInYears`
+ * counts the birthday (1 March), so the day after is used instead.
+ */
+export function birthdayAt(birthDate: GameDate, years: number): GameDate {
+  const anniversary = addYears(birthDate, years);
+  return ageInYears(birthDate, anniversary) < years ? addDays(anniversary, 1) : anniversary;
+}
+
 /** A person's debut: the date, the age they debuted at, and the years since. */
 export interface Debut {
   readonly debutDate: GameDate;
@@ -126,7 +136,7 @@ export function rollDebut(
   const debutAge = calc.current;
   const wholeYears = Math.floor(debutAge);
   const extraDays = Math.floor((debutAge - wholeYears) * DAYS_PER_YEAR);
-  const onTime = addDays(addYears(birthDate, wholeYears), extraDays);
+  const onTime = addDays(birthdayAt(birthDate, wholeYears), extraDays);
   const debutDate = isAfter(onTime, worldDate) ? worldDate : onTime;
   calc.note(`Debuted on ${debutDate}`);
   const traced = calc.done();

@@ -137,7 +137,9 @@ For roles with a debut, the debut age is a normal draw around
 `worldgen.people.debutAgeMean` (21) with the role's spread (2.2 for wrestlers),
 kept between the role's limits (17-30 for wrestlers) and never later than the
 current age. The debut date is the birthday at the whole debut age plus the
-fraction of a year in days, and never after the world date. Years since the
+fraction of a year in days, and never after the world date. Someone born on
+29 February counts their birthday on 1 March in other years (as `ageInYears`
+does), so they never debut a day younger than the drawn age. Years since the
 debut are the person's experience, which drives body wear.
 
 ### Ring style
