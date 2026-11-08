@@ -44,9 +44,11 @@ describe('formatTraceNumber', () => {
     expect(formatTraceNumber(3.75, 'stars')).toBe('3.75★');
   });
 
-  it('names days, months and people, singular for one', () => {
+  it('names days, months, years and people, singular for one', () => {
     expect(formatTraceNumber(3, 'days')).toBe('3 days');
     expect(formatTraceNumber(1, 'days')).toBe('1 day');
+    expect(formatTraceNumber(24, 'years')).toBe('24 years');
+    expect(formatTraceNumber(1, 'years')).toBe('1 year');
     expect(formatTraceNumber(2, 'months')).toBe('2 months');
     expect(formatTraceNumber(12_400, 'people')).toBe('12,400 people');
     expect(formatTraceNumber(1, 'people')).toBe('1 person');

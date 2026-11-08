@@ -42,7 +42,7 @@ function money(value: number): string {
  * - `percent` on the 0–100 scale (`15.3` → `15.3%`), `probability` from 0–1 (`0.153` → `15.3%`);
  * - `ratio` as a plain factor (`0.885`), `multiplier` as `×1.15`, both with up to 3 decimals;
  * - `points` (`37.6`), `points/day` (`4/day`), `stars` (`3.75★`);
- * - `days` and `months` with their word, `count` grouped (`12,400`), `people` (`12,400 people`);
+ * - `days`, `months` and `years` with their word, `count` grouped (`12,400`), `people` (`12,400 people`);
  * - anything else, or no unit, as the number with up to 2 decimals.
  */
 export function formatTraceNumber(value: number, unit?: TraceDisplayUnit): string {
@@ -67,6 +67,8 @@ export function formatTraceNumber(value: number, unit?: TraceDisplayUnit): strin
       return plural(value, 'day', 'days');
     case 'months':
       return plural(value, 'month', 'months');
+    case 'years':
+      return plural(value, 'year', 'years');
     case 'people':
       return plural(value, 'person', 'people');
     case 'points':

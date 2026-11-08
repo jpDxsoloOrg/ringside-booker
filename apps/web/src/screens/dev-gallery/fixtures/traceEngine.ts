@@ -4,9 +4,17 @@
  * shows, and refuses everything else. Screens get the same answers from the real engine.
  */
 import { ENGINE_VERSION, refKey } from '@ringside/engine';
-import type { QueryArgs, QueryData, QueryName, Reason, StoredTraceEntry } from '@ringside/engine';
+import type {
+  LoadFailure,
+  QueryArgs,
+  QueryData,
+  QueryName,
+  Reason,
+  StoredTraceEntry,
+} from '@ringside/engine';
 import type { EngineTransport } from '@/app/engine/transport';
 import type { HostQueryResponse } from '@/worker/engineHost';
+import type { LoadSaveFailure, SaveSlotResult } from '@/worker/saveGames';
 
 /** How long the stand-in takes to answer, so the panel's loading state is visible. */
 const ANSWER_DELAY_MS = 600;
@@ -17,6 +25,30 @@ const FIXTURE_REVISION = 1;
 const NOT_IN_GALLERY: Reason = {
   code: 'notInGallery',
   message: 'The gallery only answers trace lookups.',
+};
+
+/** The gallery keeps no saves: every save, load and import is refused with this. */
+const NO_SAVES_IN_GALLERY = 'The gallery has no saves.';
+
+const SAVE_REFUSED: SaveSlotResult = {
+  ok: false,
+  message: NO_SAVES_IN_GALLERY,
+  storageError: null,
+};
+
+const LOAD_REFUSED: LoadSaveFailure = {
+  ok: false,
+  stage: 'storage',
+  issues: [{ path: '', message: NO_SAVES_IN_GALLERY }],
+  truncated: 0,
+  storageError: null,
+};
+
+const INSPECT_REFUSED: LoadFailure = {
+  ok: false,
+  stage: 'decode',
+  issues: [{ path: '', message: NO_SAVES_IN_GALLERY }],
+  truncated: 0,
 };
 
 type FixtureQueries = { readonly [K in QueryName]?: (args: QueryArgs<K>) => QueryData<K> };
@@ -58,6 +90,12 @@ export function createTraceFixtureTransport(
       cancelAdvance: () => undefined,
       isWorldLoaded: () => true,
       getSeat: () => null,
+      loadFromSlot: () => Promise.resolve(LOAD_REFUSED),
+      saveToSlot: () => Promise.resolve(SAVE_REFUSED),
+      createSlot: () => Promise.resolve(SAVE_REFUSED),
+      autosave: () => Promise.resolve(SAVE_REFUSED),
+      inspectSave: () => Promise.resolve(INSPECT_REFUSED),
+      unloadWorld: () => ({ revision: FIXTURE_REVISION }),
     },
     onFatal: () => () => undefined,
     terminate: () => undefined,

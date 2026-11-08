@@ -62,15 +62,16 @@ describe('app router', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Badge' })).toBeInTheDocument();
   });
 
-  it.each([
-    [routes.newGame(), 'New game'],
-  ])('renders a placeholder at %s until the screen is built', async (path, title) => {
-    renderAt(path);
+  it.each([[routes.newGame(), 'New game']])(
+    'renders a placeholder at %s until the screen is built',
+    async (path, title) => {
+      renderAt(path);
 
-    expect(await screen.findByRole('heading', { level: 1, name: title })).toBeInTheDocument();
-    expect(screen.getByRole('main')).toHaveAttribute('id', 'main');
-    expect(screen.queryByRole('navigation')).toBeNull();
-  });
+      expect(await screen.findByRole('heading', { level: 1, name: title })).toBeInTheDocument();
+      expect(screen.getByRole('main')).toHaveAttribute('id', 'main');
+      expect(screen.queryByRole('navigation')).toBeNull();
+    },
+  );
 });
 
 describe('settings route', () => {
