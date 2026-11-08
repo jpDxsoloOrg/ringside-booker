@@ -6,6 +6,38 @@
 /** 'system' follows the OS light or dark setting; the others force a theme. */
 export type ThemePreference = 'system' | 'light' | 'dark';
 
+/**
+ * The themes tokens.css actually defines. The game ships dark only for now (design decision
+ * D-11). Adding a light theme means a `[data-theme='light']` block in tokens.css, 'light' here
+ * and in SHIPPED_THEMES, and the choices it brings back in SELECTABLE_THEME_PREFERENCES.
+ */
+export type ThemeName = 'dark';
+
+export const SHIPPED_THEMES: readonly ThemeName[] = ['dark'];
+
+/** The theme on :root, and what any preference resolves to when its theme does not ship. */
+export const DEFAULT_THEME: ThemeName = 'dark';
+
+/**
+ * The preferences a player can pick from. With one shipped theme there is nothing to choose, so
+ * settings and the gallery hide the choice while this has fewer than two entries.
+ */
+export const SELECTABLE_THEME_PREFERENCES: readonly ThemePreference[] = ['dark'];
+
+function isShippedTheme(theme: string): theme is ThemeName {
+  return SHIPPED_THEMES.some((shippedTheme) => shippedTheme === theme);
+}
+
+/**
+ * The theme a preference puts on screen. 'system' asks for whichever theme matches the OS
+ * setting; a theme that does not ship falls back to DEFAULT_THEME, which is what the tokens show
+ * in that case too (there is no block for it, so the :root values apply).
+ */
+export function resolveTheme(preference: ThemePreference, osPrefersDark: boolean): ThemeName {
+  const requestedTheme = preference === 'system' ? (osPrefersDark ? 'dark' : 'light') : preference;
+  return isShippedTheme(requestedTheme) ? requestedTheme : DEFAULT_THEME;
+}
+
 export const UI_SCALE_MIN = 0.8;
 export const UI_SCALE_MAX = 1.5;
 export const UI_SCALE_DEFAULT = 1;
@@ -42,8 +74,9 @@ function stopFollowingSystem(): void {
 
 /**
  * Puts a theme preference into effect. 'light' and 'dark' set `data-theme` on `<html>`; 'system'
- * removes it so the `prefers-color-scheme` rules in tokens.css apply, and keeps the theme-color
- * meta in step when the OS setting changes.
+ * removes it so tokens.css picks the theme (any `prefers-color-scheme` rules it has apply), and
+ * keeps the theme-color meta in step when the OS setting changes. While dark is the only shipped
+ * theme every preference shows the dark tokens; see resolveTheme.
  */
 export function applyTheme(preference: ThemePreference): void {
   const rootElement = document.documentElement;

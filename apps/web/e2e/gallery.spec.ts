@@ -1,9 +1,9 @@
 /**
  * The component gallery at /dev/gallery, on desktop and phone. Every entry opens without console
  * errors (the fixture fails the test on any), fits the viewport with no horizontal scroll, and has
- * no serious accessibility issues in either theme. On desktop the entry list and the phone frame
- * work; on a phone a select replaces the list, buttons meet the touch target and the entry panel
- * runs edge to edge. The interactive primitives (Tabs, Sheet, ConfirmDialog) are opened from their
+ * no serious accessibility issues in the dark theme, the only one that ships. On desktop the entry
+ * list and the phone frame work; on a phone a select replaces the list, buttons meet the touch
+ * target and the entry panel runs edge to edge. The interactive primitives (Tabs, Sheet, ConfirmDialog) are opened from their
  * entries and driven from the keyboard too.
  */
 import { expect, test } from './fixtures';
@@ -132,32 +132,42 @@ test.describe('component gallery', () => {
     }
   });
 
-  test('has no serious accessibility issues in the dark theme', async ({ page }, testInfo) => {
-    test.slow();
-    await page.getByRole('button', { name: 'Dark', exact: true }).click();
-    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-
-    const phone = isPhone(testInfo);
-    for (const entry of await readEntries(page)) {
-      await test.step(entry.title, async () => {
-        await openEntry(page, entry, phone);
-        await expectNoSeriousA11yViolations(page);
-      });
-    }
-  });
-
   test('deep links to an entry by #id', async ({ page }) => {
     await page.goto(`${GALLERY_PATH}#stat-bar`);
     await expect(page.getByRole('heading', { level: 2, name: 'StatBar' })).toBeVisible();
   });
 
-  test('switches theme from the toolbar', async ({ page }) => {
-    await page.getByRole('button', { name: 'Dark', exact: true }).click();
+  test('renders dark with the self-hosted display and body fonts', async ({ page }) => {
+    const fontHostRequests: string[] = [];
+    page.on('request', (request) => {
+      const url = new URL(request.url());
+      if (url.hostname !== 'localhost' && url.hostname !== '127.0.0.1') {
+        fontHostRequests.push(request.url());
+      }
+    });
+    await page.goto(`${GALLERY_PATH}#tokens-type`);
+    await expect(page.getByRole('heading', { level: 2, name: 'Type scale' })).toBeVisible();
+
+    // Dark is the only theme, so there is no theme toggle and the canvas is the dark navy.
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-    await page.getByRole('button', { name: 'Light', exact: true }).click();
-    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
-    await page.getByRole('button', { name: 'System', exact: true }).click();
-    await expect(page.locator('html')).not.toHaveAttribute('data-theme');
+    await expect(page.getByRole('group', { name: 'Theme' })).toHaveCount(0);
+    const background = await page.evaluate(
+      () => window.getComputedStyle(document.body).backgroundColor,
+    );
+    expect(background).toBe('rgb(9, 13, 22)');
+
+    const fontsLoaded = await page.evaluate(async () => {
+      await document.fonts.ready;
+      return {
+        display: document.fonts.check('700 2rem "Barlow Condensed"'),
+        body: document.fonts.check('400 1rem "Inter"'),
+        heading: window.getComputedStyle(document.querySelector('h1') ?? document.body).fontFamily,
+      };
+    });
+    expect(fontsLoaded.display, 'Barlow Condensed loaded').toBe(true);
+    expect(fontsLoaded.body, 'Inter loaded').toBe(true);
+    expect(fontsLoaded.heading).toMatch(/^"Barlow Condensed"/);
+    expect(fontHostRequests, 'requests that left the app origin').toEqual([]);
   });
 
   test('renders the entry in a 390px phone frame on desktop', async ({ page }, testInfo) => {
@@ -168,7 +178,6 @@ test.describe('component gallery', () => {
     }
 
     await page.goto(`${GALLERY_PATH}#badge`);
-    await page.getByRole('button', { name: 'Dark', exact: true }).click();
     await frameToggle.click();
     await expect(frameToggle).toHaveAttribute('aria-pressed', 'true');
 

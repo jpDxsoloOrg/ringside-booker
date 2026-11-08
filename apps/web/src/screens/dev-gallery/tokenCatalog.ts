@@ -67,10 +67,25 @@ function declarationsOf(rules: readonly CssRule[], selector: string): readonly T
   );
 }
 
+/** The top-level rule whose selector list includes `[data-theme='<theme>']`. */
+function themeDeclarationsOf(
+  rules: readonly CssRule[],
+  theme: EffectiveTheme,
+): readonly TokenDeclaration[] {
+  const themeSelector = `[data-theme='${theme}']`;
+  return (
+    rules.find(
+      (rule) =>
+        rule.atRules.length === 0 &&
+        rule.selector.split(',').some((selector) => selector.trim() === themeSelector),
+    )?.declarations ?? []
+  );
+}
+
 export interface TokenCatalog {
-  /** The theme-independent `:root` block: palette, spacing, type, radii, shadows and sizes. */
+  /** The theme-independent `:root` block: palette, spacing, type, shape, shadows and sizes. */
   readonly base: readonly TokenDeclaration[];
-  /** Semantic colour declarations per theme. */
+  /** Semantic colour (and glow) declarations per shipped theme. */
   readonly themes: Readonly<Record<EffectiveTheme, readonly TokenDeclaration[]>>;
 }
 
@@ -80,8 +95,7 @@ export function readTokenCatalog(css: string): TokenCatalog {
   return {
     base: declarationsOf(rules, ':root'),
     themes: {
-      light: declarationsOf(rules, ":root, [data-theme='light']"),
-      dark: declarationsOf(rules, "[data-theme='dark']"),
+      dark: themeDeclarationsOf(rules, 'dark'),
     },
   };
 }
@@ -140,4 +154,30 @@ export function remValue(value: string): number | undefined {
   if (value === '0') return 0;
   const match = /^(\d*\.?\d+)rem$/.exec(value);
   return match?.[1] === undefined ? undefined : Number(match[1]);
+}
+
+/** CSS pixels in one rem at the default root size, the size the gallery's previews assume. */
+const PX_PER_REM = 16;
+
+/**
+ * A base token's length in CSS pixels: `0`, rem (at 16px) or px, following var() references to
+ * other base tokens. Undefined for anything else.
+ */
+export function baseLengthInPx(name: string, catalog = tokenCatalog): number | undefined {
+  const lookup = new Map(catalog.base.map((token): [string, string] => [token.name, token.value]));
+  const seen = new Set<string>();
+  let current = name;
+  while (!seen.has(current)) {
+    seen.add(current);
+    const value = lookup.get(current);
+    if (value === undefined) return undefined;
+    const rem = remValue(value);
+    if (rem !== undefined) return rem * PX_PER_REM;
+    const pxMatch = /^(\d*\.?\d+)px$/.exec(value)?.[1];
+    if (pxMatch !== undefined) return Number(pxMatch);
+    const reference = VAR_REFERENCE.exec(value)?.[1];
+    if (reference === undefined) return undefined;
+    current = reference;
+  }
+  return undefined;
 }
