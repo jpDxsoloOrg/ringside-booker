@@ -276,3 +276,17 @@ order, and who wins.
 - No minutes appear on the booking screen. The Why? trace on a rating shows the
   slot role and duration class wherever they mattered, for example
   "Main event (long): stamina check failed for X, −6".
+
+## D-11: Hybrid visual identity, dark only (2026-11-08)
+
+**Choice:** Two visual registers share one palette: a front-office look for
+the management screens and a sports-broadcast look for show moments. The theme
+is dark only for now. Interactive pieces come from Radix UI, TanStack Table and
+Lucide, styled with our own tokens.
+
+**Why:** The game is mostly management, which needs to be readable for long
+sessions. The highlights are live events, which should feel like TV.
+
+**What it means:** see [`visual-identity.md`](visual-identity.md) for the
+palette, type, shapes and signature components. The reference mockups are in
+[`mockups/`](mockups/).
