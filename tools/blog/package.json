@@ -9,6 +9,8 @@
   },
   "scripts": {
     "check": "tsx src/cli/check.ts",
+    "journal:new": "tsx src/cli/journalNew.ts",
+    "journal:due": "tsx src/cli/journalDue.ts",
     "test": "vitest run",
     "typecheck": "tsc -b"
   },
