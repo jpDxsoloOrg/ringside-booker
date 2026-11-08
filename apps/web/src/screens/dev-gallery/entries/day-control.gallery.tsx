@@ -204,7 +204,11 @@ function DayControlDemo() {
           {REPORTS.map(({ title, report }) => (
             <div key={title}>
               <p className={styles['caption']}>{title}</p>
-              <AdvanceSummaryBanner report={report} onDismiss={() => undefined} />
+              <AdvanceSummaryBanner
+                report={report}
+                label={`Last advance: ${title}`}
+                onDismiss={() => undefined}
+              />
             </div>
           ))}
         </Stack>

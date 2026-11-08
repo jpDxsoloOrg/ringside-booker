@@ -106,6 +106,14 @@
   flex: none;
 }
 
+/*
+ * The strip is only as tall as the button, and on phones its slot clips, so the button's focus
+ * ring is drawn inside it rather than off it.
+ */
+.ticker .pauseButton:focus-visible {
+  outline-offset: -2px;
+}
+
 /* ---- The crawl ---------------------------------------------------------------------------- */
 
 /* Seconds the crawl spends per headline, by speed. */

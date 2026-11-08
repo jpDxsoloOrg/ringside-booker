@@ -96,19 +96,17 @@ function CardView<Row>({
   checking,
 }: CardProps<Row>) {
   const { media, title, subtitles, stats, meta } = cardColumns;
-  const titleId = `${domId}-title`;
-  const detailsId = `${domId}-details`;
 
   const content: ReactNode = (
     <>
       {media !== undefined && <div className={styles['cardMedia']}>{media.cell(row)}</div>}
       <div className={styles['cardBody']}>
         {title !== undefined && (
-          <p id={titleId} className={styles['cardTitle']} data-column-id={title.id}>
+          <p className={styles['cardTitle']} data-column-id={title.id}>
             {title.cell(row)}
           </p>
         )}
-        <div id={detailsId} className={styles['cardDetails']}>
+        <div className={styles['cardDetails']}>
           {subtitles.length > 0 && (
             <p className={styles['cardSubtitle']}>
               {subtitles.map((column) => (
@@ -195,14 +193,15 @@ function CardView<Row>({
     }
   };
 
+  // The card is named by its own content, title first: everything it shows, so its name always
+  // holds its visible text (WCAG 2.5.3, label in name). A name of the title alone left the rest
+  // of the card out, and a button's children are read as one run of text anyway.
   return (
     <li data-row-id={rowId} className={itemClassName}>
       <div
         id={domId}
         role="button"
         tabIndex={0}
-        aria-labelledby={title === undefined ? undefined : titleId}
-        aria-describedby={detailsId}
         aria-current={isSelected || undefined}
         className={classNames(
           styles['card'],

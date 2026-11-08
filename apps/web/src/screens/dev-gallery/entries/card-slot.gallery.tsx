@@ -20,7 +20,7 @@ function CardSlotDemo() {
           <CardSlot
             slotRole="pre-show"
             slotNumber={0}
-            headingLevel={4}
+            headingLevel={3}
             emptyTitle="No pre-show bout"
             emptyHint="Streams before the broadcast. Optional."
             onAddMatch={() => {
@@ -32,7 +32,7 @@ function CardSlotDemo() {
           <CardSlot
             slotRole="opener"
             slotNumber={1}
-            headingLevel={4}
+            headingLevel={3}
             chips={[
               { id: 'type', kind: 'match-type', label: 'Singles' },
               { id: 'story', kind: 'storyline', label: 'Street protocol grudge' },
@@ -49,7 +49,7 @@ function CardSlotDemo() {
           <CardSlot
             slotRole="midcard"
             slotNumber={2}
-            headingLevel={4}
+            headingLevel={3}
             chips={[
               { id: 'type', kind: 'match-type', label: 'Tag team' },
               { id: 'title', kind: 'title', label: 'Tag titles on the line' },
@@ -65,7 +65,7 @@ function CardSlotDemo() {
           <CardSlot
             slotRole="midcard"
             slotNumber={3}
-            headingLevel={4}
+            headingLevel={3}
             emptyTitle="Unassigned segment"
             emptyHint="Add a midcard match or a promo to keep the crowd with you."
             dragHandle={<CardSlotDragHandle label="Move slot 3" />}
@@ -81,7 +81,7 @@ function CardSlotDemo() {
           <CardSlot
             slotRole="semi-main"
             slotNumber={4}
-            headingLevel={4}
+            headingLevel={3}
             chips={[
               { id: 'type', kind: 'match-type', label: 'Promo' },
               { id: 'story', kind: 'storyline', label: 'Contender queue' },
@@ -94,7 +94,7 @@ function CardSlotDemo() {
           <CardSlot
             slotRole="main-event"
             slotNumber={5}
-            headingLevel={4}
+            headingLevel={3}
             chips={[
               { id: 'type', kind: 'match-type', label: 'World title' },
               { id: 'title', kind: 'title', label: 'Coastal Crown' },

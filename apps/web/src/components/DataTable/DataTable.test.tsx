@@ -285,24 +285,35 @@ describe('DataTable selection and keyboard', () => {
     const onActivate = vi.fn();
     renderTable({ onActivate });
 
-    const card = screen.getByRole('button', { name: 'Worker 2' });
+    const card = screen.getByRole('button', { name: /^Worker 2\b/ });
     await user.click(card);
     expect(onActivate).toHaveBeenLastCalledWith(wrestlers[1]);
     expect(card).toHaveAttribute('aria-current', 'true');
 
-    const firstCard = screen.getByRole('button', { name: 'Worker 1' });
+    const firstCard = screen.getByRole('button', { name: /^Worker 1\b/ });
     firstCard.focus();
     await user.keyboard('{Enter}');
     expect(onActivate).toHaveBeenLastCalledWith(wrestlers[0]);
-    screen.getByRole('button', { name: 'Worker 3' }).focus();
+    screen.getByRole('button', { name: /^Worker 3\b/ }).focus();
     await user.keyboard(' ');
     expect(onActivate).toHaveBeenLastCalledWith(wrestlers[2]);
+  });
+
+  it('names a card button by its own content, title first', () => {
+    useMobileLayout();
+    renderTable({ onActivate: vi.fn() });
+
+    // No aria-label or aria-labelledby: the name is the card's text, so it holds all of it.
+    const card = screen.getByRole('button', { name: /^Worker 2\b/ });
+    expect(card).not.toHaveAttribute('aria-labelledby');
+    expect(card).not.toHaveAttribute('aria-label');
+    expect(card).toHaveAccessibleName(/^Worker 2 Manager\b/);
   });
 
   it('leaves cards as plain list items when nothing handles a tap', () => {
     useMobileLayout();
     renderTable();
-    expect(screen.queryByRole('button', { name: 'Worker 1' })).toBeNull();
+    expect(screen.queryByRole('button', { name: /^Worker 1\b/ })).toBeNull();
   });
 });
 
