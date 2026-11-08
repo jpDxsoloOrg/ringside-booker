@@ -103,8 +103,9 @@ test.describe('DataTable on a phone', () => {
     expect(before[0]).toBe('Worker 1');
 
     await section(page).getByLabel('Sort by').selectOption({ label: 'Popularity' });
+    // Wait for the re-render rather than reading the list straight after the change event.
+    await expect.poll(async () => cardNames(page)).not.toEqual(before);
     const after = await cardNames(page);
-    expect(after).not.toEqual(before);
     expect([...after].sort()).toEqual([...before].sort());
 
     // High to low first: the first card's popularity meter is the largest.

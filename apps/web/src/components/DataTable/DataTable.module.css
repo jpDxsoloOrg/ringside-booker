@@ -108,9 +108,14 @@
   padding: 0;
 }
 
-/* Header sort buttons fill the cell so the whole header is the target. */
+/*
+ * Header sort buttons fill the cell so the whole header is the target. They are block-level
+ * flex boxes, not inline-flex: an inline box sits on the line's baseline, and a row-reversed one
+ * takes that baseline from the icon, which lifted end-aligned headers above the others.
+ */
 .sortButton {
-  display: inline-flex;
+  display: flex;
+  inline-size: 100%;
   align-items: center;
   gap: var(--space-1);
   padding: 0;
@@ -182,6 +187,7 @@
   justify-content: center;
 }
 
+/* Reversed, so the icon sits before the label and the label lines up with the numbers below. */
 .align-end .sortButton {
   flex-direction: row-reverse;
 }
