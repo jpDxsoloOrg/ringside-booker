@@ -74,7 +74,9 @@ function renderGame({
     .mockResolvedValue(autosaveResult ?? { ok: true, slot: fakeSlot({ slotId: SLOT_ID }) });
   const advanceSpy = vi.spyOn(transport.host, 'advanceDays');
   const router = createMemoryRouter(buildAppRoutes({ includeDevRoutes: false }), {
-    initialEntries: [routes.game.office()],
+    // A placeholder screen, not the office: the sample dashboard's large DOM makes every role
+    // query slow enough that a 30-day skip outlasts the test timeout in CI.
+    initialEntries: [routes.game.calendar()],
     future: routerFutureFlags,
   });
   render(
@@ -111,11 +113,8 @@ async function skip(user: ReturnType<typeof userEvent.setup>, quickChoice: strin
   await user.click(within(sheet).getByRole('button', { name: 'Start' }));
 }
 
-/** A long skip re-renders the whole styled shell once a day, which takes over a second in jsdom. */
-const SUMMARY_TIMEOUT_MS = 5000;
-
 async function summary(): Promise<HTMLElement> {
-  return screen.findByRole('region', { name: 'Last advance' }, { timeout: SUMMARY_TIMEOUT_MS });
+  return screen.findByRole('region', { name: 'Last advance' });
 }
 
 beforeEach(() => {
