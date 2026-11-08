@@ -58,6 +58,20 @@ async function expectInsideViewport(page: Page, locator: Locator): Promise<void>
   expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
 }
 
+/**
+ * The bug's icon is drawn whole (at least its 1em size, not squashed by a shrinking bar) and
+ * inside the bug, so a bug down to its dot and icon still shows what it does.
+ */
+async function expectIconWhole(button: Locator): Promise<void> {
+  const icon = button.locator('svg');
+  const fontSize = await icon.evaluate((svg) => parseFloat(getComputedStyle(svg).fontSize));
+  const iconBox = await boxOf(icon);
+  const buttonBox = await boxOf(button);
+  expect(iconBox.width).toBeGreaterThanOrEqual(fontSize - 0.5);
+  expect(iconBox.x).toBeGreaterThanOrEqual(buttonBox.x);
+  expect(iconBox.x + iconBox.width).toBeLessThanOrEqual(buttonBox.x + buttonBox.width);
+}
+
 /** Where the overlay and its Stop button sat the moment the overlay opened. */
 interface OverlayOpening {
   readonly overlay: Box;
@@ -153,6 +167,7 @@ test.describe('day control', () => {
       expect(Math.abs(middle(dateBox) - middle(buttonBox))).toBeLessThan(4);
       await expectInsideViewport(page, dateButton);
       await expectInsideViewport(page, nextDay);
+      await expectIconWhole(nextDay);
       await expect(page.getByRole('banner').getByTestId('cash-chip')).toHaveCount(0);
       await expectNoHorizontalScroll(page);
     });
@@ -213,7 +228,8 @@ test.describe('day control', () => {
 
   // A large UI scale on a 390px phone leaves the bar short of room, and the fallback fonts that
   // show until the web fonts load run wider still. The day button gives way (its label shortens,
-  // then hides behind the dot and the icon) so the bar never pushes the page sideways.
+  // then hides behind the dot and the icon, which stay whole), then the date drops its year, so
+  // the bar never pushes the page sideways.
   for (const fonts of ['web fonts', 'fallback fonts'] as const) {
     for (const scale of PHONE_BAR_SCALES) {
       test(`phone: the bar fits at ${scale}x UI scale with the ${fonts}`, async ({
@@ -235,6 +251,7 @@ test.describe('day control', () => {
         await expectInsideViewport(page, dateButton);
         await expectInsideViewport(page, nextDay);
         expect((await boxOf(nextDay)).width).toBeGreaterThanOrEqual(TAP_TARGET_MIN_PX);
+        await expectIconWhole(nextDay);
         await expectNoHorizontalScroll(page);
       });
     }
