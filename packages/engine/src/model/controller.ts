@@ -11,9 +11,10 @@
 
 import { z } from 'zod';
 import { PLAYER_REF_TARGET, type RefSpec } from './table-def';
+import { PLAYER_ID_MAX_LENGTH } from './world-meta';
 
-/** Longest allowed player identifier, matching `PlayerSchema.playerId` in world metadata. */
-export const PLAYER_ID_MAX_LENGTH = 64;
+/** Longest allowed player identifier, shared with `PlayerSchema.playerId` in world metadata. */
+export { PLAYER_ID_MAX_LENGTH };
 
 export const HumanControllerSchema = z.strictObject({
   kind: z.literal('human'),

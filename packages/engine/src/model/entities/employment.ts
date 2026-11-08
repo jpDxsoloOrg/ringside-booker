@@ -363,13 +363,23 @@ function isOnOrBefore(date: GameDate, other: GameDate): boolean {
 }
 
 /**
- * The stored status could have been reached by today: a contract that has been active must have
- * started by the current date, and nothing can have ended in the future.
+ * The stored status could have been reached by today: no offer is dated in the future, a contract
+ * that has been active must have started by the current date, and nothing can have ended in the
+ * future.
  */
 function checkReachableState(view: WorldView): IntegrityIssue[] {
   const today = view.meta.currentDate;
   const issues: IntegrityIssue[] = [];
   for (const employment of employmentRows(view)) {
+    if (!isOnOrBefore(employment.offeredOn, today)) {
+      issues.push({
+        code: 'employments.unreachableState',
+        table: 'employments',
+        id: employment.id,
+        path: 'offeredOn',
+        message: `Employment ${employment.id} was offered on ${employment.offeredOn}, which is after today (${today})`,
+      });
+    }
     if (isStartedStatus(employment.status) && !isOnOrBefore(employment.startsOn, today)) {
       issues.push({
         code: 'employments.unreachableState',

@@ -307,9 +307,10 @@ reached:
   an employment that was active (`expired`, `released`, `quit`) cannot end
   before `startsOn`; an `expired` employment has an `endsOn` and did not end
   before it.
-- **Against the calendar (invariant `employments.unreachableState`):** an
-  `active`, `expired`, `released` or `quit` employment has `startsOn` on or
-  before the current date, and no `endedOn` is in the future.
+- **Against the calendar (invariant `employments.unreachableState`):** no
+  `offeredOn` is in the future; an `active`, `expired`, `released` or `quit`
+  employment has `startsOn` on or before the current date; and no `endedOn` is
+  in the future.
 
 #### Invariants
 

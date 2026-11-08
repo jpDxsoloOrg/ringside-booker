@@ -53,9 +53,12 @@ export const WorldSettingsSchema = z.strictObject({
   extra: z.record(z.string().min(1), z.union([z.boolean(), z.number(), z.string()])),
 });
 
+/** Longest allowed player identifier. Human controllers use the same limit. */
+export const PLAYER_ID_MAX_LENGTH = 64;
+
 export const PlayerSchema = z.strictObject({
   /** Stable player identifier, referenced by human controllers. */
-  playerId: z.string().min(1).max(64),
+  playerId: z.string().min(1).max(PLAYER_ID_MAX_LENGTH),
   displayName: z.string().min(1).max(40),
 });
 

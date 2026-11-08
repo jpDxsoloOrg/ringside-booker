@@ -292,6 +292,31 @@ describe('employment invariants', () => {
     ]);
   });
 
+  it('reports an offer dated after today and accepts one dated today', () => {
+    const world = validCompanyWorld();
+    const today = world.meta.currentDate;
+    world.tables.employments._put(
+      makeEmployment(6, 5, 1, {
+        status: 'offered',
+        offeredOn: date('2026-01-10'),
+        startsOn: date('2026-02-01'),
+        endsOn: null,
+      }),
+    );
+    expect(invariantIssues(world).map((issue) => [issue.code, issue.id, issue.path])).toEqual([
+      ['employments.unreachableState', testId('employment', 6), 'offeredOn'],
+    ]);
+    world.tables.employments._put(
+      makeEmployment(6, 5, 1, {
+        status: 'offered',
+        offeredOn: today,
+        startsOn: date('2026-02-01'),
+        endsOn: null,
+      }),
+    );
+    expect(invariantIssues(world)).toEqual([]);
+  });
+
   it('indexes employments by person, promotion, status and promotion+status', () => {
     const employments = validCompanyWorld().tables.employments;
     const ids = (rows: readonly Employment[]): string[] => rows.map((row) => row.id);
