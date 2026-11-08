@@ -1,3 +1,8 @@
+/*
+ * Buttons speak in the display face: Barlow Condensed, uppercase, a little tracking, like the
+ * labels on a broadcast graphic. Office corners (the control radius); depth comes from the fill,
+ * not a shadow. See docs/design/visual-identity.md.
+ */
 .button {
   position: relative;
   display: inline-flex;
@@ -7,16 +12,30 @@
   min-block-size: 2.25rem;
   padding: var(--space-2) var(--space-4);
   border: 1px solid transparent;
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-control);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
   line-height: var(--line-height-tight);
+  letter-spacing: 0.04em;
   text-align: center;
+  text-transform: uppercase;
   cursor: pointer;
   transition:
     background-color var(--motion-fast) var(--easing-standard),
     border-color var(--motion-fast) var(--easing-standard),
+    box-shadow var(--motion-fast) var(--easing-standard),
     color var(--motion-fast) var(--easing-standard);
+}
+
+/*
+ * Keyboard focus: a 2px cyan ring set 2px off the button. Cyan is far brighter than the canvas and
+ * every surface, and the gap keeps it apart from the fills, the red-orange primary included. Cyan
+ * never means "live", so focus is never mistaken for an action state.
+ */
+.button:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }
 
 .button:disabled {
@@ -30,26 +49,50 @@
 .size-sm {
   min-block-size: 1.75rem;
   padding: var(--space-1) var(--space-3);
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   gap: var(--space-1);
 }
 
-/* Touch screens: every button is at least a comfortable finger's height. */
+.size-lg {
+  min-block-size: 3rem;
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--font-size-xl);
+  letter-spacing: 0.05em;
+}
+
+/*
+ * Every button is at least a comfortable finger's height on a touch screen and at phone width,
+ * so a phone used with a mouse, or a narrow window on a touch laptop, still gets 44px targets.
+ */
 @media (pointer: coarse) {
   .button {
     min-block-size: var(--tap-target-min);
   }
 }
 
-.variant-primary {
-  background: var(--color-accent);
-  color: var(--color-accent-contrast);
+@media (--bp-mobile) {
+  .button {
+    min-block-size: var(--tap-target-min);
+  }
 }
 
+/* Primary: the action fill with white text (4.9:1). One per area, for the main action. */
+.variant-primary {
+  background: var(--color-action);
+  color: var(--color-action-contrast);
+}
+
+/* Secondary: a cyan outline and cyan label on whatever the button sits on. */
 .variant-secondary {
-  background: var(--color-surface);
-  border-color: var(--color-border-strong);
-  color: var(--color-text);
+  background: transparent;
+  border-color: var(--color-data);
+  color: var(--color-data);
+}
+
+/* Prestige: a gold fill with dark ink, for title and award moments. */
+.variant-prestige {
+  background: var(--color-prestige);
+  color: var(--color-text-inverse);
 }
 
 .variant-ghost {
@@ -57,6 +100,7 @@
   color: var(--color-text);
 }
 
+/* Danger: the negative rose with dark ink, so a destructive action never looks like "go live". */
 .variant-danger {
   background: var(--color-negative);
   color: var(--color-text-inverse);
@@ -64,25 +108,32 @@
 
 /*
  * Hover only where a pointer can hover. On touch screens a tapped button would otherwise keep
- * its hover colour until the next tap somewhere else.
+ * its hover look until the next tap somewhere else. Fills keep their colour (so their text keeps
+ * its contrast) and gain a ring; outlines and ghosts gain the hover surface.
  */
 @media (hover: hover) {
   .variant-primary:hover:not(:disabled) {
-    background: var(--color-text);
-    color: var(--color-text-inverse);
+    box-shadow: var(--glow-action);
   }
 
   .variant-secondary:hover:not(:disabled) {
-    background: var(--color-surface-sunken);
+    background: var(--color-surface-hover);
+  }
+
+  .variant-prestige:hover:not(:disabled) {
+    box-shadow:
+      0 0 0 2px var(--color-bg),
+      0 0 0 3px var(--color-prestige);
   }
 
   .variant-ghost:hover:not(:disabled) {
-    background: var(--color-surface-sunken);
+    background: var(--color-surface-hover);
   }
 
   .variant-danger:hover:not(:disabled) {
-    background: var(--color-text);
-    color: var(--color-text-inverse);
+    box-shadow:
+      0 0 0 2px var(--color-bg),
+      0 0 0 3px var(--color-negative);
   }
 }
 
@@ -97,7 +148,19 @@
   min-inline-size: 1.75rem;
 }
 
+.iconOnly.size-lg {
+  padding: var(--space-2);
+  min-inline-size: 3rem;
+}
+
 @media (pointer: coarse) {
+  .iconOnly,
+  .iconOnly.size-sm {
+    min-inline-size: var(--tap-target-min);
+  }
+}
+
+@media (--bp-mobile) {
   .iconOnly,
   .iconOnly.size-sm {
     min-inline-size: var(--tap-target-min);

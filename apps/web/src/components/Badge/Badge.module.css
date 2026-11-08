@@ -1,14 +1,23 @@
+/*
+ * Chips: pill-shaped labels in the display face, uppercase with a little tracking
+ * (docs/design/visual-identity.md). Each tone is one colour role; the component resolves the
+ * older tone names (info, warning, accent) to their role before picking a class, so only the
+ * role classes exist here.
+ */
 .badge {
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
   max-inline-size: 100%;
-  padding: 0.125rem var(--space-2);
+  padding: 0.0625rem var(--space-2);
   border: 1px solid transparent;
   border-radius: var(--radius-pill);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
   line-height: var(--line-height-snug);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -16,11 +25,11 @@
 }
 
 /*
- * Soft: the tone colour on the surface, with a matching outline. Each status colour is checked
- * against --color-surface in tokens.test.ts, so this pairing stays readable in both themes.
+ * Soft: the role colour as text and outline on whatever the badge sits on. Every text role is
+ * checked against the canvas, the surface and the raised surface in tokens.test.ts.
  */
 .soft {
-  background: var(--color-surface);
+  background: transparent;
 }
 
 .soft.tone-neutral {
@@ -28,9 +37,19 @@
   color: var(--color-text);
 }
 
-.soft.tone-info {
-  border-color: var(--color-info);
-  color: var(--color-info);
+.soft.tone-data {
+  border-color: var(--color-data);
+  color: var(--color-data);
+}
+
+.soft.tone-action {
+  border-color: var(--color-action-bright);
+  color: var(--color-action-bright);
+}
+
+.soft.tone-prestige {
+  border-color: var(--color-prestige);
+  color: var(--color-prestige);
 }
 
 .soft.tone-positive {
@@ -43,17 +62,10 @@
   color: var(--color-negative);
 }
 
-.soft.tone-warning {
-  border-color: var(--color-warning);
-  color: var(--color-warning);
-}
-
-.soft.tone-accent {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
-}
-
-/* Solid: a filled pill. The inverse text colour sits on the tone in both themes. */
+/*
+ * Solid: a filled pill for something to notice. Dark ink on the bright fills; the action fill is
+ * the primary-button red with white text, the same pairing as the primary button.
+ */
 .solid {
   color: var(--color-text-inverse);
 }
@@ -62,8 +74,17 @@
   background: var(--color-text);
 }
 
-.solid.tone-info {
-  background: var(--color-info);
+.solid.tone-data {
+  background: var(--color-data);
+}
+
+.solid.tone-action {
+  background: var(--color-action);
+  color: var(--color-action-contrast);
+}
+
+.solid.tone-prestige {
+  background: var(--color-prestige);
 }
 
 .solid.tone-positive {
@@ -74,18 +95,10 @@
   background: var(--color-negative);
 }
 
-.solid.tone-warning {
-  background: var(--color-warning);
-}
-
-.solid.tone-accent {
-  background: var(--color-accent);
-  color: var(--color-accent-contrast);
-}
-
 /* Counts are short and centred, with a minimum width so a single digit still looks round. */
 .count {
   justify-content: center;
   min-inline-size: 1.5rem;
   padding-inline: var(--space-1);
+  letter-spacing: 0;
 }

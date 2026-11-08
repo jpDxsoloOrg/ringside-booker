@@ -1,9 +1,46 @@
+/*
+ * Office card: the panel for management screens. A rounded card on the surface step with a 1px
+ * hairline; depth comes from the surface steps, not a shadow (docs/design/visual-identity.md).
+ */
 .panel {
   min-inline-size: 0;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-1);
+  border-radius: var(--radius-card);
+}
+
+/*
+ * Broadcast panel: square corners with the top-left and bottom-right corners cut off at the
+ * chamfer. clip-path would cut the border off along the diagonals, so the hairline is the
+ * panel's own background showing through a 1px gap, and the surface is a pseudo-element cut to
+ * the same shape one pixel in. The diagonals get a hairline too.
+ */
+.variant-broadcast {
+  --panel-cut: polygon(
+    var(--chamfer) 0,
+    100% 0,
+    100% calc(100% - var(--chamfer)),
+    calc(100% - var(--chamfer)) 100%,
+    0 100%,
+    0 var(--chamfer)
+  );
+
+  position: relative;
+  isolation: isolate;
+  padding: 1px;
+  border: 0;
+  border-radius: 0;
+  background: var(--color-border);
+  clip-path: var(--panel-cut);
+}
+
+.variant-broadcast::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  background: var(--color-surface);
+  clip-path: var(--panel-cut);
 }
 
 .header {
@@ -26,9 +63,31 @@
   min-inline-size: 0;
 }
 
+/* Headings are in the display face (global.css): condensed and uppercase, like the mockups. */
 .title {
   font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+/* Broadcast headers: heavier, wider tracking, behind a skewed red-orange slash. */
+.variant-broadcast .title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: 0.06em;
+}
+
+.variant-broadcast .title::before {
+  content: '';
+  flex: none;
+  inline-size: 0.375rem;
+  block-size: 1em;
+  background: var(--color-action-bright);
+  transform: skewX(var(--skew-broadcast));
 }
 
 .subtitle {
@@ -53,7 +112,9 @@
   border: 0;
   background: none;
   font: inherit;
+  letter-spacing: inherit;
   text-align: start;
+  text-transform: inherit;
   cursor: pointer;
 }
 
@@ -85,14 +146,18 @@
 
 /*
  * Phones: panels run edge to edge to win back width. No side border, no side radius and no side
- * margin; the content keeps its padding plus the notch inset.
+ * margin; the content keeps its padding plus the notch inset. A broadcast panel keeps its cut
+ * corners, which are its identity, and its hairline frame.
  */
 @media (--bp-mobile) {
   .panel {
     margin-inline: 0;
     border-inline-width: 0;
     border-radius: 0;
-    box-shadow: none;
+  }
+
+  .toggle {
+    min-block-size: var(--tap-target-min);
   }
 
   .header {

@@ -25,17 +25,22 @@
   overflow: hidden;
 }
 
+/* Stat numbers are in the display face with tabular figures, so a column of them lines up. */
 .value {
   flex: none;
   min-inline-size: 2.5rem;
-  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
   text-align: end;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: var(--font-feature-tabular);
 }
 
 .delta {
   margin-inline-start: var(--space-1);
-  font-weight: var(--font-weight-regular);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
 }
 
 .delta-up {
@@ -46,16 +51,29 @@
   color: var(--color-negative);
 }
 
+/* The empty part of the bar: one surface step up, so it shows on the canvas and on a panel. */
 .track {
-  fill: var(--color-surface-sunken);
+  fill: var(--color-surface-hover);
 }
 
+/*
+ * Fills by role. Cyan (data) is the normal meter colour, red-orange (action) marks a weak spot,
+ * gold (prestige) an elite value. The component resolves the older tone names to these roles.
+ */
 .tone-neutral {
   fill: var(--color-text-muted);
 }
 
-.tone-info {
-  fill: var(--color-info);
+.tone-data {
+  fill: var(--color-data);
+}
+
+.tone-action {
+  fill: var(--color-action-bright);
+}
+
+.tone-prestige {
+  fill: var(--color-prestige);
 }
 
 .tone-positive {
@@ -66,18 +84,9 @@
   fill: var(--color-negative);
 }
 
-.tone-warning {
-  fill: var(--color-warning);
-}
-
-.tone-accent {
-  fill: var(--color-accent);
-}
-
 /*
  * A recent gain: the newest part of the bar as a lighter positive tint. It has to be lighter, not
- * just green: a high value already has a positive (green) fill, and a solid green gain would
- * vanish into it.
+ * just green: a positive fill would otherwise swallow a solid green gain.
  */
 .gain {
   fill: var(--color-positive);
