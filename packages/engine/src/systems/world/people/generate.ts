@@ -20,8 +20,10 @@
  *   standout bonus (2). Always 30 draws, so attributes never shift with anything else.
  * - `worldgen.names.person`: the legal name (see the name generator).
  *
- * After the core person is built, the registered seeds (potential, traits, vices, popularity; WLD-07)
- * run in that order on streams of their own.
+ * After the core person is built, the seeds (potential, traits, vices, popularity; WLD-07) run in
+ * that order on streams of their own: `worldgen.people.potential`, `.traits`, `.vices` and
+ * `.popularity`. The context's `hooks` replace them; without `hooks` the defaults from `seeds.ts`
+ * run, and `hooks: {}` turns them all off.
  *
  * Design: docs/design/world-generation.md#generating-people.
  */
@@ -49,6 +51,7 @@ import { buildAttributes, drawAttributes, talentOf } from './attributes';
 import { chooseArchetype, rollCondition, rollIsMasked, rollBodySize, rollStyle } from './body';
 import { compiledGenerationOf, profileOf, roleOf, styleOf, type CompiledRole } from './content';
 import { rollAge, rollBirthDate, rollDebut } from './dates';
+import { DEFAULT_SEED_HOOKS } from './seeds';
 import { formatNumber, GENDER_LABELS, ROLE_LABELS, STAGE_LABELS, STYLE_LABELS } from './labels';
 import type {
   GenerateContext,
@@ -342,7 +345,7 @@ export function generatePerson(spec: GenerateSpec, ctx: GenerateContext): Traced
     vices: { alcohol: 'none', substances: 'none' },
   };
 
-  const seeded = runSeeds(core, ctx.hooks ?? {}, {
+  const seeded = runSeeds(core, ctx.hooks ?? DEFAULT_SEED_HOOKS, {
     talent: talent.value,
     stage: stage.value,
     spec,
@@ -410,7 +413,7 @@ export interface PersonGeneratorOptions {
   readonly names: NameGenerator;
   /** Defaults to every engine tunable at its default value. */
   readonly tunables?: EngineTunables;
-  /** The WLD-07 seeds, injected here so this generator works before (and without) them. */
+  /** The seeds to run. Defaults to the WLD-07 seeds; `{}` runs none. */
   readonly hooks?: PersonSeedHooks;
   /** Parse every result with `PersonSchema` (default true). */
   readonly validate?: boolean;

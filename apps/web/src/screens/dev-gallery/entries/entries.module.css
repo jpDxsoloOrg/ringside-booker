@@ -478,3 +478,13 @@
   margin: 0;
   font-size: var(--font-size-lg);
 }
+
+/* The app navigation entry's top bar pieces: sized like a bar, so the status strip's container
+   queries apply, and right-aligned like the real bar's end. */
+.topBarStage {
+  container-type: inline-size;
+  justify-content: flex-end;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}

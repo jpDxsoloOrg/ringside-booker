@@ -13,6 +13,8 @@ accessibility plumbing that every page shares.
 | `settings/`               | Viewer settings: schema, store (localStorage), effects on `<html>`         |
 | `layouts/OutOfGameLayout` | Title, load, new game and settings: centred, no navigation                 |
 | `AppShell/`               | Desktop sidebar and top bar; phone top bar, bottom tab bar and More sheet  |
+| `AppShell/day/`           | The day button, Skip days, the progress overlay and the advance summary    |
+| `AppShell/status/`        | The status chips (date, cash, popularity) and the chip registry            |
 | `a11y/`                   | Skip link, focus on navigation, page titles and the live announcer         |
 | `dev/EnterShellRoute.tsx` | Dev and e2e builds only: fake a loaded world and open the shell            |
 | `engine/`                 | Engine provider, query cache, status store and the engine hooks            |
@@ -29,6 +31,22 @@ accessibility plumbing that every page shares.
 Nothing in `AppShell/` changes. Detail pages that are not nav items (a worker's profile at
 `routes.game.worker(id)`) get a route next to the screen routes in `router.tsx`; the top bar and
 sidebar treat them as part of the item they sit under.
+
+## The shell's look
+
+The shell follows `docs/design/visual-identity.md` and the mockups in `docs/design/mockups/`.
+Desktop: the wordmark and the promotion's crest block head the sidebar, the current nav item has
+a red-orange rail, and the top bar ends with the game's status and the day control
+(`TopBarStatus`, below). While no world answers `sim.status` (the dev helper's faked world, or a
+shell rendered without an engine) it shows the sample status strip instead (`StatusStrip`: week,
+season, date, cash with its weekly change, popularity) and the unwired Next Day bug
+(`NextDaySlot`). The news `Ticker` runs along the bottom of the main column. Phones keep a crest, a short status and Next Day
+in the top bar, and the ticker rides just above the bottom tab bar.
+
+Two slots let later epics fill the chrome without restyling it: `renderTopBarEnd` replaces the
+end of the top bar, and `ticker` replaces the sample headlines (`null` leaves the strip out).
+`AppShell/shellPreview.ts` still supplies the sidebar's sample promotion, the ticker's headlines
+and the fallback status strip, and every place that shows them says so.
 
 ## Talking to the engine
 
@@ -70,6 +88,27 @@ the screens show the first 20 in `LoadErrorSheet`. Listing, deleting, exporting 
 on the main thread through `screens/saves/saveStorage.tsx`, which tests replace with
 `src/test/fakeStorage.ts`. "Main menu" in the sidebar and the More sheet saves into the session's
 slot, unloads the world and returns to the title screen; a failed save keeps the player in the game.
+
+## Moving time
+
+The end of the top bar (`AppShell/TopBarStatus.tsx`) shows the game's status and the control that
+moves time. Status comes from two engine built-ins, `sim.status` (date, season, the seat's cash and
+popularity) and `sim.pendingGates` (why Next Day would stop today), read by
+`status/useShellStatus.ts`; the web app adds no engine queries of its own.
+
+- **The day button** (`day/DayControl.tsx`) reads "Next day" until a gate waits. Then
+  `day/dayControlState.ts` turns the gates into a button by their route hint: `inbox` ("2 decisions
+  waiting", which outranks everything), `booking` ("Go to show"), and anything else "Needs
+  attention" with the gate's reason. Shift+N presses it outside text fields and dialogs.
+- **Skip days** (`day/SkipDaysSheet.tsx`) takes a length (1 to 3,650 days) and an optional stop
+  date, both checked against the engine's rules, with the calendar maths from `@ringside/engine`.
+- **One controller** (`day/DayAdvanceProvider.tsx`) runs every advance: the overlay reads its
+  progress, `AdvanceSummary` shows the result under the top bar and the live region announces it.
+  After each advance that moved a day it asks `shouldAutosave` and, when told to, calls the host's
+  `autosave`.
+- **Status chips** come from `status/StatusChips.tsx`. Another system adds one with
+  `registerStatusChip({ id, order, render })` (`status/statusChipRegistry.ts`) instead of editing
+  the shell.
 
 ## Rules
 

@@ -520,6 +520,39 @@ export type {
   PersonGeneratorOptions,
 } from './systems/world/people/generate';
 export { generatePerson, PersonGenerator } from './systems/world/people/generate';
+// Potential, traits, vices and popularity seeding (WLD-07).
+export type { HeadroomCurve, SeedPotentialOptions } from './systems/world/people/potential';
+export {
+  ceilingKeysFor,
+  expectedHeadroom,
+  expectedHeadroomOf,
+  HEADROOM_START_AGE,
+  headroomCurveOf,
+  LATE_BLOOMER_MAX_AGE,
+  LATE_BLOOMER_MIN_AGE,
+  seedPotential,
+} from './systems/world/people/potential';
+export type { SeedTraitsOptions } from './systems/world/people/traits';
+export { seedTraits, traitChance, traitLabel, traitRecordsOf } from './systems/world/people/traits';
+export type { SeedVicesOptions } from './systems/world/people/vices';
+export { seedVices, viceChance } from './systems/world/people/vices';
+export type { RegionRelation, SeedPopularityOptions } from './systems/world/people/popularity';
+export {
+  homeReputation,
+  REPUTATION_MAX,
+  regionRelation,
+  seedPopularity,
+} from './systems/world/people/popularity';
+export {
+  DEFAULT_SEED_HOOKS,
+  popularitySeedHook,
+  potentialSeedHook,
+  traitsSeedHook,
+  vicesSeedHook,
+} from './systems/world/people/seeds';
+export type { ReseededPerson, ReseedFilter, ReseedOptions } from './systems/world/people/reseed';
+export { estimateTalent, reseedPotential, stageForAge } from './systems/world/people/reseed';
+export { exactAge, experienceYearsAt } from './systems/world/people/dates';
 export type { Venue, VenueKind } from './model/entities/venue';
 export {
   isVenueOpenOn,

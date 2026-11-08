@@ -63,7 +63,7 @@ still fresh: what shipped, which calls were made and why, what went wrong, and w
 | Epic | Closing ticket ID | Entry file                                     |
 | ---- | ----------------- | ---------------------------------------------- |
 | FND  | FND-13            | [2026-11-foundation.md](2026-11-foundation.md) |
-| SIM  | SIM-13            | -                                              |
+| SIM  | SIM-13            | [2026-11-sim-core.md](2026-11-sim-core.md)     |
 | WLD  | WLD-12            | -                                              |
 | UI   | UI-14             | -                                              |
 

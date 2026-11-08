@@ -1,0 +1,150 @@
+/*
+ * The placeholder office dashboard (docs/design/mockups/): a KPI row, then the "Up next" card in
+ * the broadcast register beside the champions column, then the roster leaders. Phones stack it
+ * all in one column; the kits handle their own phone layouts (2-up KPIs, swipe row, cards).
+ */
+.screen {
+  display: grid;
+  gap: var(--space-6);
+  min-inline-size: 0;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.headingGroup {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.heading {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-tight);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.subtitle {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* The placeholder notice: gold outline, so it reads as information and not an error. */
+.sampleNote {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-prestige);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  font-size: var(--font-size-sm);
+}
+
+.sampleNoteIcon {
+  flex: none;
+  color: var(--color-prestige);
+}
+
+/*
+ * The main column and the champions column share a row while there is room; when there is not,
+ * the champions drop below at full width and their list spreads into a grid.
+ */
+.columns {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-6);
+}
+
+.mainColumn {
+  display: grid;
+  flex: 999 1 34rem;
+  gap: var(--space-6);
+  min-inline-size: 0;
+}
+
+.sideColumn {
+  flex: 1 1 20rem;
+  min-inline-size: 0;
+}
+
+.slots {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.upNextFooter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.projection {
+  color: var(--color-text-muted);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.projectionValue {
+  color: var(--color-data);
+  font-variant-numeric: tabular-nums;
+}
+
+/* "Manage card": the primary show action, skewed like the other broadcast actions. */
+.manageCard {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: var(--tap-target-min);
+  padding: var(--space-2) var(--space-5);
+  border: 1px solid var(--color-action-bright);
+  background: var(--color-action);
+  color: var(--color-action-contrast);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition:
+    background-color var(--motion-fast) var(--easing-standard),
+    box-shadow var(--motion-fast) var(--easing-standard);
+}
+
+@media (hover: hover) {
+  .manageCard:hover {
+    background: var(--color-action-bright);
+    box-shadow: var(--glow-action);
+  }
+}
+
+@media (--bp-mobile) {
+  .screen {
+    gap: var(--space-5);
+  }
+
+  .heading {
+    font-size: var(--font-size-2xl);
+  }
+
+  .manageCard {
+    justify-content: center;
+    inline-size: 100%;
+  }
+}

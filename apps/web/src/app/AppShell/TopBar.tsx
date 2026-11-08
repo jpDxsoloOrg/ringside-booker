@@ -12,20 +12,33 @@ export interface TopBarProps {
   /** Where the player is, for the "Section › Page" title. Null on a page no nav item owns. */
   readonly location: NavLocation | null;
   readonly compact: boolean;
+  /** A small promotion crest before the title, for the phone bar where there is no sidebar. */
+  readonly crest?: ReactNode;
   /** Replaces the default page title at the start of the bar. */
   readonly start?: ReactNode;
-  /** The end of the bar: the status chips and the day control live here. */
+  /**
+   * The end of the bar: the status chips and the day control live here. On a phone it may shrink,
+   * so the page title gives way before the day button does.
+   */
   readonly end?: ReactNode;
 }
 
-/** The bar above the content: the page title at the start, the game status at the end. */
-export function TopBar({ location, compact, start, end }: TopBarProps) {
+/**
+ * The bar above the content: the page title at the start, the game status and the live Next Day
+ * bug at the end. A thin red-orange to cyan stripe runs along its bottom edge.
+ */
+export function TopBar({ location, compact, crest, start, end }: TopBarProps) {
   return (
     <header className={styles['topBar']} data-compact={compact ? 'true' : 'false'}>
       <div className={styles['topBarStart']}>
+        {crest !== undefined && <span className={styles['topBarCrest']}>{crest}</span>}
         {start ?? <PageTitle location={location} compact={compact} />}
       </div>
-      {end !== undefined && <div className={styles['topBarEnd']}>{end}</div>}
+      {end !== undefined && (
+        <div className={styles['topBarEnd']} data-compact={compact ? 'true' : 'false'}>
+          {end}
+        </div>
+      )}
     </header>
   );
 }

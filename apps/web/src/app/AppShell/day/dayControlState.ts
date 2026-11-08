@@ -1,0 +1,128 @@
+import type { GateHit } from '@ringside/engine';
+import { routes } from '../../routes';
+
+/** What the day control's main button does. */
+export type DayPrimaryAction =
+  /** Nothing is waiting: advance one day. */
+  | { readonly kind: 'next' }
+  /**
+   * A gate is waiting, so a day would not move. The button names it and goes to the screen that
+   * deals with it, or (with no screen to go to) shows the reasons.
+   */
+  | {
+      readonly kind: 'gate';
+      readonly label: string;
+      /** The player-facing reason of the gate that decides the button. */
+      readonly reason: string;
+      /** Where the button goes, or null when no screen deals with this gate. */
+      readonly to: string | null;
+    }
+  /** Days are advancing. */
+  | { readonly kind: 'busy' };
+
+export interface DayControlState {
+  readonly primary: DayPrimaryAction;
+  /** Skip days is offered only when a day can actually move. */
+  readonly skipEnabled: boolean;
+}
+
+export interface DeriveDayControlOptions {
+  /** True while an advance runs, whoever started it. */
+  readonly advancing: boolean;
+}
+
+/** How one route hint turns into a button. `count` is how many waiting gates share the hint. */
+interface GateRoute {
+  readonly label: (count: number) => string;
+  readonly to: (hit: GateHit) => string;
+}
+
+/** The route hint for the inbox. Its gates outrank every other kind. */
+export const INBOX_HINT = 'inbox';
+
+/** The route hint for booking a show. */
+export const BOOKING_HINT = 'booking';
+
+/** The label of a gate whose hint no screen handles yet. */
+export const GENERIC_GATE_LABEL = 'Needs attention';
+
+/**
+ * The route hints the button knows. A hint missing from this map still gets a button
+ * ({@link GENERIC_GATE_LABEL}, with the gate's own reason), so a gate added by a later system
+ * works before anything here changes.
+ */
+const GATE_ROUTES: Readonly<Record<string, GateRoute>> = {
+  [INBOX_HINT]: {
+    label: (count) => `${String(count)} ${count === 1 ? 'decision' : 'decisions'} waiting`,
+    to: () => `${routes.game.inbox()}?filter=decisions`,
+  },
+  [BOOKING_HINT]: {
+    label: () => 'Go to show',
+    to: (hit) =>
+      hit.subject?.kind === 'eventInstance'
+        ? `${routes.game.booking()}?event=${encodeURIComponent(hit.subject.id)}`
+        : routes.game.booking(),
+  },
+};
+
+/**
+ * Hints in the order they win when several gates hit at once. Unanswered decisions come before a
+ * show: booking with a contract or discipline call still open means acting on stale information.
+ * Hints not listed here keep the engine's registration order, after these.
+ */
+const HINT_PRIORITY: readonly string[] = [INBOX_HINT, BOOKING_HINT];
+
+function hintRank(hit: GateHit): number {
+  const rank = hit.actionHint === undefined ? -1 : HINT_PRIORITY.indexOf(hit.actionHint);
+  return rank === -1 ? HINT_PRIORITY.length : rank;
+}
+
+/** The gate that decides the button: the best-ranked hint, then registration order. */
+export function leadingGate(gates: readonly GateHit[]): GateHit | undefined {
+  let leading: GateHit | undefined;
+  for (const hit of gates) {
+    if (leading === undefined || hintRank(hit) < hintRank(leading)) leading = hit;
+  }
+  return leading;
+}
+
+function routeFor(hit: GateHit): GateRoute | undefined {
+  if (hit.actionHint === undefined || !Object.hasOwn(GATE_ROUTES, hit.actionHint)) return undefined;
+  return GATE_ROUTES[hit.actionHint];
+}
+
+/**
+ * The day control's state from the gates waiting today. Pure: the same gates and flag always give
+ * the same buttons.
+ *
+ * - An advance running: the button is busy and Skip is off.
+ * - No gates: "Next day", and Skip is on.
+ * - Gates: the leading gate's label and destination, and Skip is off, because a skip would stop
+ *   before simulating a single day.
+ */
+export function deriveDayControl(
+  gates: readonly GateHit[],
+  { advancing }: DeriveDayControlOptions,
+): DayControlState {
+  if (advancing) return { primary: { kind: 'busy' }, skipEnabled: false };
+  const leading = leadingGate(gates);
+  if (leading === undefined) return { primary: { kind: 'next' }, skipEnabled: true };
+
+  const route = routeFor(leading);
+  if (route === undefined) {
+    return {
+      primary: { kind: 'gate', label: GENERIC_GATE_LABEL, reason: leading.reason, to: null },
+      skipEnabled: false,
+    };
+  }
+  const sameHint = gates.filter((hit) => hit.actionHint === leading.actionHint).length;
+  return {
+    primary: {
+      kind: 'gate',
+      label: route.label(sameHint),
+      reason: leading.reason,
+      to: route.to(leading),
+    },
+    skipEnabled: false,
+  };
+}
