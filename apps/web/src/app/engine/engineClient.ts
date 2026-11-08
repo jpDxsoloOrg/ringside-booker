@@ -7,14 +7,25 @@
  * transport failures reject, including every call still waiting when the engine dies.
  */
 
-import type { CommandArgs, CommandName, QueryArgs, QueryData, QueryName } from '@ringside/engine';
+import type {
+  CommandArgs,
+  CommandName,
+  InspectReport,
+  QueryArgs,
+  QueryData,
+  QueryName,
+} from '@ringside/engine';
+import type { AutosaveOptions } from '@/storage';
 import type {
   AdvanceOutcome,
   AdvanceProgress,
   AdvanceRequest,
   HostCommandResponse,
   HostQueryResponse,
+  LoadSaveResult,
+  LoadSlotWhich,
   PingResult,
+  SaveSlotResult,
 } from '@/worker/engineHost';
 import { createEngineStatusStore } from './engineStatusStore';
 import type { EngineStatusState } from './engineStatusStore';
@@ -169,6 +180,56 @@ export class EngineClient {
         this.status.getState().setLastError(errorMessage(error));
       }
     })();
+  }
+
+  /**
+   * Loads a save slot into the engine. On success the revision moves on, so every cached query
+   * from the previous game refetches. A save that will not load resolves with its stage and issues.
+   */
+  async loadFromSlot(slotId: string, which: LoadSlotWhich = 'latest'): Promise<LoadSaveResult> {
+    const result = await this.#busyCall((host) => host.loadFromSlot(slotId, which));
+    if (result.ok) {
+      this.status.getState().setRevision(result.revision);
+      this.cache.invalidateAll();
+    }
+    return result;
+  }
+
+  /** A manual save of the running game into its slot. Refusals resolve; they never throw. */
+  async saveToSlot(slotId: string): Promise<SaveSlotResult> {
+    return this.#busyCall((host) => host.saveToSlot(slotId));
+  }
+
+  /** Creates a new slot holding the running game. */
+  async createSlot(label: string): Promise<SaveSlotResult> {
+    return this.#busyCall((host) => host.createSlot(label));
+  }
+
+  /** Writes the running game as its slot's autosave. */
+  async autosave(slotId: string, options: AutosaveOptions): Promise<SaveSlotResult> {
+    return this.#busyCall((host) => host.autosave(slotId, options));
+  }
+
+  /** Reads a save's header in the engine without loading it, for importing a file. */
+  inspectSave(bytes: Uint8Array): Promise<InspectReport> {
+    return this.#call((host) => host.inspectSave(bytes));
+  }
+
+  /** Stops the running game and forgets every cached query. */
+  async unloadWorld(): Promise<void> {
+    const { revision } = await this.#call(async (host) => host.unloadWorld());
+    this.status.getState().setRevision(revision);
+    this.cache.invalidateAll();
+  }
+
+  /** A host call that counts as a command while it runs, so the status shows the engine busy. */
+  async #busyCall<T>(run: (host: EngineHostClient) => Promise<T>): Promise<T> {
+    this.status.getState().beginCall('command');
+    try {
+      return await this.#call(run);
+    } finally {
+      this.status.getState().endCall('command');
+    }
   }
 
   /**
