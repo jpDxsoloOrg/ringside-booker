@@ -71,7 +71,7 @@ function MyWidgetDemo() {
 export const galleryEntry: GalleryEntry = {
   id: 'my-widget', // unique kebab-case; also the #hash that deep links to it
   title: 'MyWidget',
-  group: 'Primitives', // 'Tokens' | 'Primitives' | 'Art' | 'Data' | 'Overlays' | 'Engine'
+  group: 'Primitives', // 'Tokens' | 'Primitives' | 'Broadcast' | 'Art' | 'Data' | 'Overlays' | 'Engine'
   notes: 'Optional: what to look for.',
   render: () => <MyWidgetDemo />,
 };
@@ -106,6 +106,14 @@ export const galleryEntry: GalleryEntry = {
 | `DropdownMenu`   | A menu of actions behind a button, such as a row's "more" menu             |
 | `Select`         | Pick one option from a short list                                          |
 | `Switch`         | An on/off setting that applies straight away                               |
+| `LiveBugButton`  | The skewed show action with a live dot: Next Day, Go Live                  |
+| `LowerThird`     | Broadcast header block: kicker, big title, meta row, optional wedge        |
+| `ScoreBug`       | A strip of 2–4 key numbers, each with an optional Why? chip                |
+| `Ticker`         | The news crawl; pauses on hover or focus, static with reduced motion       |
+| `SegmentedMeter` | Hype, heat or fatigue as ticks that turn red-orange past a threshold       |
+| `CardSlot`       | A booking slot: role, matchup, chips, winner, or the empty add actions     |
+| `ChamferPanel`   | The broadcast container with chamfered corners (`Panel` is the office one) |
+| `SlashDivider`   | A band of 45° slashes, or the inline `//` between items                    |
 | `Stack`          | Children in a column (or row) with a token gap                             |
 | `Cluster`        | A wrapping row with a token gap                                            |
 | `VisuallyHidden` | Text for screen readers only                                               |
@@ -170,3 +178,23 @@ tokens. Screens import our wrappers, never `@radix-ui/*` directly, so the props 
 - jsdom lacks pointer capture, `scrollIntoView` and `ResizeObserver`; `src/test/domStubs.ts` stubs
   them for unit tests. Layout, positioning and pointer behaviour are checked by the e2e specs
   (`gallery.spec.ts` and `overlays.spec.ts`) in a real browser.
+
+## Broadcast kit
+
+The components for show moments (see the broadcast register in
+`docs/design/visual-identity.md`): `LiveBugButton`, `LowerThird`, `ScoreBug`, `Ticker`,
+`SegmentedMeter`, `CardSlot`, `ChamferPanel` and `SlashDivider`. They sit in the gallery's
+**Broadcast** group.
+
+- **Generic on purpose.** None of them knows a game type. A screen passes text, numbers, image
+  subjects and slots (`children`, `footer`, `why`, `dragHandle`, `actions`), so booking and results
+  screens compose them from whatever their queries return.
+- **Motion.** Transitions use the `--motion-*` tokens, which reduced motion sets to 0ms. Looping
+  animations (the live dot, the ticker crawl) also have their own reduced-motion rules for the OS
+  setting and for `data-reduced-motion="on"`. Where the DOM itself changes, `useReducedMotion()`
+  from `styles/useReducedMotion.ts` decides: the ticker drops its loop copy and pause button and
+  becomes a wrapping static list. `broadcastKit.test.ts` checks these rules for every stylesheet.
+- **Never colour alone.** The meter adds a warning icon and a word in the danger zone, and the
+  card slot's winner marker says "Winner" (or the label you pass).
+- **Phones.** `CardSlot` stacks its sides, a four-stat `ScoreBug` wraps to 2×2, and a `docked`
+  `Ticker` sticks above the bottom tab bar.

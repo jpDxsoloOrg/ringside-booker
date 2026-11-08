@@ -1,0 +1,227 @@
+/*
+ * The news crawl: a label badge, the moving headlines and a pause button on one strip. The track
+ * holds the list twice and slides left by half its width, so the loop has no seam.
+ */
+.ticker {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-inline-size: 0;
+  min-block-size: 2.25rem;
+  padding-inline-end: var(--space-2);
+  border-block-start: 2px solid var(--color-action-bright);
+  background: var(--color-surface);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Sticks to the bottom of the viewport; on phones it sits on top of the bottom tab bar. */
+.docked {
+  position: sticky;
+  inset-block-end: 0;
+  z-index: var(--z-nav);
+}
+
+@media (--bp-mobile) {
+  .docked {
+    inset-block-end: calc(var(--bottom-nav-height) + var(--safe-bottom));
+  }
+}
+
+.badge {
+  flex: none;
+  align-self: stretch;
+  display: inline-flex;
+  align-items: center;
+  padding-inline: var(--space-4) var(--space-3);
+  background: var(--color-action);
+  color: var(--color-action-contrast);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: 0.08em;
+  clip-path: polygon(0 0, 100% 0, calc(100% - var(--space-2)) 100%, 0 100%);
+}
+
+.viewport {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  overflow: hidden;
+}
+
+.track {
+  display: flex;
+  inline-size: max-content;
+}
+
+.list {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin: 0;
+  padding: 0 var(--space-8) 0 0;
+  list-style: none;
+  white-space: nowrap;
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text);
+}
+
+/* A square marker between headlines. */
+.item + .item::before {
+  content: '';
+  flex: none;
+  inline-size: 0.375rem;
+  block-size: 0.375rem;
+  margin-inline-end: var(--space-6);
+  background: var(--color-text-subtle);
+}
+
+.tag {
+  flex: none;
+  padding: 0 var(--space-2);
+  color: var(--color-text-inverse);
+  font-weight: var(--font-weight-extrabold);
+  transform: skewX(var(--skew-broadcast));
+}
+
+.tag-action {
+  background: var(--color-action-bright);
+}
+
+.tag-data {
+  background: var(--color-data);
+}
+
+.tag-prestige {
+  background: var(--color-prestige);
+}
+
+.pauseButton {
+  flex: none;
+}
+
+/* ---- The crawl ---------------------------------------------------------------------------- */
+
+/* Seconds the crawl spends per headline, by speed. */
+.speed-slow {
+  --ticker-seconds-per-item: 12s;
+}
+
+.speed-normal {
+  --ticker-seconds-per-item: 9s;
+}
+
+.speed-fast {
+  --ticker-seconds-per-item: 6s;
+}
+
+.items-1 {
+  --ticker-items: 1;
+}
+
+.items-2 {
+  --ticker-items: 2;
+}
+
+.items-3 {
+  --ticker-items: 3;
+}
+
+.items-4 {
+  --ticker-items: 4;
+}
+
+.items-5 {
+  --ticker-items: 5;
+}
+
+.items-6 {
+  --ticker-items: 6;
+}
+
+.items-7 {
+  --ticker-items: 7;
+}
+
+.items-8 {
+  --ticker-items: 8;
+}
+
+.items-9 {
+  --ticker-items: 9;
+}
+
+.items-10 {
+  --ticker-items: 10;
+}
+
+.items-11 {
+  --ticker-items: 11;
+}
+
+.items-12 {
+  --ticker-items: 12;
+}
+
+.crawling .track {
+  animation: ticker-crawl calc(var(--ticker-seconds-per-item) * var(--ticker-items)) linear infinite;
+}
+
+/* Pauses under the pointer, while focus is inside, or from the pause button. */
+.crawling .viewport:hover .track,
+.crawling:focus-within .track,
+.paused .track {
+  animation-play-state: paused;
+}
+
+@keyframes ticker-crawl {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* ---- Static: reduced motion -------------------------------------------------------------- */
+
+.static {
+  align-items: stretch;
+}
+
+.static .viewport {
+  padding-block: var(--space-2);
+}
+
+.static .track {
+  inline-size: auto;
+}
+
+.static .list {
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-6);
+  padding-inline-end: 0;
+  white-space: normal;
+}
+
+.static .item + .item::before {
+  margin-inline-end: var(--space-4);
+}
+
+/* Script switches to the static list; this covers the first paint and the in-game setting. */
+@media (prefers-reduced-motion: reduce) {
+  :global(:root:not([data-reduced-motion='off'])) .track {
+    animation: none;
+  }
+}
+
+:global([data-reduced-motion='on']) .track {
+  animation: none;
+}

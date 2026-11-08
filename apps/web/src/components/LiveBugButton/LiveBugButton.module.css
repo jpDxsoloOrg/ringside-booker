@@ -1,0 +1,108 @@
+/*
+ * The live bug: a skewed red-orange button. The button box carries the skew; .content skews back
+ * so the label and icon read straight. White on --color-action is 4.9:1.
+ */
+.bug {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 2.25rem;
+  padding: var(--space-2) var(--space-5);
+  border: 1px solid var(--color-action-bright);
+  border-radius: 0;
+  background: var(--color-action);
+  color: var(--color-action-contrast);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transform: skewX(var(--skew-broadcast));
+  transition:
+    box-shadow var(--motion-fast) var(--easing-standard),
+    background-color var(--motion-fast) var(--easing-standard);
+}
+
+.content {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  transform: skewX(calc(-1 * var(--skew-broadcast)));
+}
+
+.label {
+  min-inline-size: 0;
+}
+
+.size-lg {
+  min-block-size: 3rem;
+  padding: var(--space-3) var(--space-8);
+  font-size: var(--font-size-2xl);
+  gap: var(--space-3);
+}
+
+/* Touch screens: at least a comfortable finger's height. */
+@media (pointer: coarse) {
+  .bug {
+    min-block-size: var(--tap-target-min);
+  }
+}
+
+@media (hover: hover) {
+  .bug:hover:not(:disabled) {
+    background: var(--color-action-bright);
+    box-shadow: var(--glow-action);
+  }
+}
+
+.bug:focus-visible {
+  box-shadow: var(--glow-action);
+}
+
+.bug:disabled {
+  cursor: not-allowed;
+}
+
+.bug:disabled:not([aria-busy='true']) {
+  opacity: 0.55;
+}
+
+/* The live dot: a white disc with a soft halo that breathes over one --motion-pulse cycle. */
+.dot {
+  flex: none;
+  inline-size: 0.5em;
+  block-size: 0.5em;
+  border-radius: var(--radius-pill);
+  background: var(--color-action-contrast);
+}
+
+.pulse {
+  animation: live-pulse var(--motion-pulse) var(--easing-standard) infinite;
+}
+
+@keyframes live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.35;
+    transform: scale(0.7);
+  }
+}
+
+/* Reduced motion: the dot stays lit and still. Script drops .pulse too; this covers first paint. */
+@media (prefers-reduced-motion: reduce) {
+  :global(:root:not([data-reduced-motion='off'])) .pulse {
+    animation: none;
+  }
+}
+
+:global([data-reduced-motion='on']) .pulse {
+  animation: none;
+}

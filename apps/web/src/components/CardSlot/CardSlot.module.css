@@ -1,0 +1,314 @@
+/* The accent colour comes from the accent class through --slot-accent. */
+.accent-data {
+  --slot-accent: var(--color-data);
+}
+
+.accent-prestige {
+  --slot-accent: var(--color-prestige);
+}
+
+.accent-action {
+  --slot-accent: var(--color-action-bright);
+}
+
+/* A booked slot: a square panel with a 4px accent bar down the left edge. */
+.slot {
+  display: grid;
+  min-inline-size: 0;
+  border: 1px solid var(--color-border);
+  border-inline-start: 4px solid var(--slot-accent);
+  background: var(--color-surface);
+}
+
+/* The main event glows, so it reads as the night's biggest slot at a glance. */
+.slot[data-role='main-event'] {
+  border-color: var(--color-action-bright);
+  box-shadow: var(--glow-action);
+}
+
+/* Empty and pre-show slots are dashed outlines: space to fill, not a booked segment. */
+.empty,
+.preShow {
+  border-style: dashed;
+  border-inline-start-style: solid;
+}
+
+.empty {
+  border-inline-start-color: var(--color-border-strong);
+  background: var(--color-bg);
+}
+
+.slot[data-role='main-event'].empty {
+  box-shadow: none;
+}
+
+/* ---- Header: handle, role tag, chips, actions --------------------------------------------- */
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  min-inline-size: 0;
+  padding: var(--space-2) var(--space-3);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.handle {
+  display: inline-flex;
+  flex: none;
+}
+
+/* The role tag: a skewed block with the label drawn straight inside. */
+.roleTag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  background: var(--slot-accent);
+  color: var(--color-text-inverse);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-tight);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transform: skewX(var(--skew-broadcast));
+}
+
+.roleTag > * {
+  transform: skewX(calc(-1 * var(--skew-broadcast)));
+}
+
+.empty .roleTag {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.chips {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  max-inline-size: 100%;
+  padding: 0.125rem var(--space-2);
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.chip-title {
+  border-color: var(--color-prestige);
+  color: var(--color-prestige);
+}
+
+.chip-storyline {
+  border-color: var(--color-action-bright);
+  color: var(--color-action-bright);
+}
+
+.actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-inline-start: auto;
+}
+
+.dragHandle {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-text-muted);
+  cursor: grab;
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+@media (hover: hover) {
+  .dragHandle:hover {
+    color: var(--color-text);
+  }
+}
+
+@media (pointer: coarse) {
+  .dragHandle {
+    inline-size: var(--tap-target-min);
+    block-size: var(--tap-target-min);
+  }
+}
+
+/* ---- Matchup: side A vs side B -------------------------------------------------------------- */
+
+.matchup {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+}
+
+.oneSide {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.side {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-inline-size: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+}
+
+/* The chosen winner: a gold outline and the marker beside the side's tag. */
+.winner {
+  border-color: var(--color-prestige);
+  box-shadow: inset 0 0 0 1px var(--color-prestige);
+}
+
+.avatars {
+  display: flex;
+  flex: none;
+}
+
+.avatars > * + * {
+  margin-inline-start: calc(-1 * var(--space-3));
+}
+
+.sideText {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.sideTags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+}
+
+.sideLabel {
+  color: var(--color-text-muted);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.winnerMarker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-prestige);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.sideName {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-tight);
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.sideDetail {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.versus {
+  justify-self: center;
+  color: var(--color-action-bright);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-extrabold);
+  text-transform: uppercase;
+}
+
+/* ---- Empty slot ------------------------------------------------------------------------------ */
+
+.emptyBody {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+}
+
+.emptyTitle {
+  color: var(--color-text-muted);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.emptyHint {
+  max-inline-size: 36rem;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.emptyActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-block-start: var(--space-2);
+}
+
+/* ---- Phones: the sides stack, with "vs" between them ---------------------------------------- */
+
+@media (--bp-mobile) {
+  .matchup {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-2);
+  }
+
+  .sideName {
+    font-size: var(--font-size-lg);
+  }
+
+  .versus {
+    font-size: var(--font-size-lg);
+  }
+
+  .emptyBody {
+    padding: var(--space-4) var(--space-3);
+  }
+
+  .emptyActions {
+    display: grid;
+    justify-self: stretch;
+  }
+}

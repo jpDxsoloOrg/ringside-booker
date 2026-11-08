@@ -1,0 +1,68 @@
+.meter {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-3);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.label {
+  min-inline-size: 0;
+  color: var(--color-text);
+}
+
+.value {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-inline-start: auto;
+  color: var(--color-data);
+  font-variant-numeric: tabular-nums;
+}
+
+.valueDanger {
+  color: var(--color-action-bright);
+}
+
+.dangerLabel::before {
+  content: '(';
+}
+
+.dangerLabel::after {
+  content: ')';
+}
+
+/* The ticks: equal slanted blocks with a small gap, filling the width available. */
+.ticks {
+  display: flex;
+  gap: var(--space-1);
+  padding-inline: var(--space-1);
+}
+
+.tick {
+  flex: 1 1 0;
+  min-inline-size: 0.25rem;
+  block-size: 0.625rem;
+  background: var(--color-surface-hover);
+  transform: skewX(var(--skew-broadcast));
+  transition: background-color var(--motion-base) var(--easing-standard);
+}
+
+.filled {
+  background: var(--color-data);
+}
+
+.filledDanger {
+  background: var(--color-action-bright);
+}
