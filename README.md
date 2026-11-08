@@ -55,8 +55,8 @@ Each workspace also has its own `test` and `typecheck` scripts, for example
 
 ## Running end-to-end tests
 
-The web app has a Playwright suite in [`apps/web/e2e/`](apps/web/e2e/). It builds the app with
-`VITE_E2E=1`, serves it with `vite preview` on http://localhost:4173/ and runs every spec on two
+The web app has a Playwright suite in [`apps/web/e2e/`](apps/web/e2e/). It builds the app,
+serves it with `vite preview` on http://localhost:4173/ and runs every spec on two
 projects: `desktop` (Chromium, 1440×900) and `phone` (Chromium, 390×844 with touch). A third
 project, `phone-webkit`, runs the phone settings on WebKit; it only joins the run when
 `E2E_WEBKIT=1` is set, which CI does on pushes to `main`.
