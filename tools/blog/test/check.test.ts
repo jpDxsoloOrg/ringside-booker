@@ -1,14 +1,22 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { formatReport, summarizeIssues } from '../src/check/format';
 import { bannedTermPattern, maskTerm, maskTermsIn, parseTermList } from '../src/check/mask';
-import { CheckUsageError, loadPrivateBannedTerms, runChecks } from '../src/check/run';
+import {
+  CheckUsageError,
+  loadPrivateBannedTerms,
+  loadRealNameBlocklist,
+  REAL_NAMES_PATH,
+  runChecks,
+} from '../src/check/run';
 import type { RunChecksOptions } from '../src/check/run';
 import type { CheckIssue, RuleId } from '../src/check/types';
 import {
+  catchAsyncError,
   copyFixtureRepo,
   editRepoFile,
   lineContaining,
@@ -23,6 +31,11 @@ const JOURNAL_ENTRY = 'docs/dev-journal/2026-11-first-entry.md';
 const INBOX = 'docs/dev-journal/_inbox.md';
 const BANNED_COMPANY = 'Fictional Banned Co';
 const PRIVATE_FOLDER = 'fictional-private-notes/mechanics';
+
+/** A list term that ignores case. */
+function plain(name: string): { name: string; caseSensitive: boolean } {
+  return { name, caseSensitive: false };
+}
 
 let repoRoot = '';
 
@@ -210,6 +223,73 @@ describe('banned-terms', () => {
   });
 });
 
+describe('banned-terms with [case] names', () => {
+  /** The real repository, whose committed real-name list these tests read. */
+  const REAL_REPO_ROOT = fileURLToPath(new URL('../../../', import.meta.url));
+
+  /** Puts the committed real-name list into the fixture repo in place of the fixture list. */
+  async function useCommittedList(): Promise<void> {
+    const committed = await readFile(join(REAL_REPO_ROOT, REAL_NAMES_PATH), 'utf8');
+    await writeRepoFile(repoRoot, REAL_NAMES_PATH, committed);
+  }
+
+  it('passes the everyday word in lower case', async () => {
+    await useCommittedList();
+    await replaceHook(FINAL_POST, 'It was a loss to sting less, and the edge of the glow.');
+    expect(withRule(await check(), 'banned-terms')).toEqual([]);
+  });
+
+  it('flags the capitalised ring name alone in a sentence, masked', async () => {
+    await useCommittedList();
+    const text = await replaceHook(FINAL_POST, 'The main event was a loss to Sting last week.');
+    const issues = withRule(await check(), 'banned-terms');
+    expect(issues).toEqual([
+      expect.objectContaining({ file: FINAL_POST, line: lineContaining(text, 'loss to') }),
+    ]);
+    expect(issues[0]?.message).toContain('S****');
+    expect(formatReport(issues)).not.toContain('Sting');
+  });
+
+  it('flags the name in capitals too', async () => {
+    await useCommittedList();
+    await replaceHook(FINAL_POST, 'The poster said STING in red letters.');
+    expect(withRule(await check(), 'banned-terms')).toHaveLength(1);
+  });
+
+  it('still flags every committed name written the way the list writes it', async () => {
+    const terms = await loadRealNameBlocklist(REAL_REPO_ROOT);
+    expect(terms.filter((term) => term.caseSensitive).length).toBeGreaterThan(0);
+    for (const term of terms) {
+      const sentence = `Last night ${term.name} wrestled in the main event.`;
+      expect(bannedTermPattern(term).test(sentence), term.name).toBe(true);
+    }
+  });
+
+  it('still ignores case for names of more than one word and for unflagged names', async () => {
+    const terms = await loadRealNameBlocklist(REAL_REPO_ROOT);
+    for (const term of terms.filter((candidate) => !candidate.caseSensitive)) {
+      const sentence = `last night ${term.name.toLowerCase()} wrestled in the main event.`;
+      expect(bannedTermPattern(term).test(sentence), term.name).toBe(true);
+    }
+  });
+
+  it('rejects an unknown flag or [case] on a longer name, without printing the line', async () => {
+    await expect(
+      loadPrivateBannedTerms({ BLOG_BANNED_TERMS: 'Secret Name [case]' }, repoRoot),
+    ).rejects.toThrow(/line 1: \[case\] is only for one-word names/);
+    await expect(
+      loadPrivateBannedTerms({ BLOG_BANNED_TERMS: 'One\nSecret [nocase]' }, repoRoot),
+    ).rejects.toThrow(/private banned-terms list, line 2: unknown flag/);
+    const error = await catchAsyncError(
+      loadPrivateBannedTerms({ BLOG_BANNED_TERMS: 'Secret [nocase]' }, repoRoot),
+      CheckUsageError,
+    );
+    expect(error.message).not.toContain('Secret');
+    await writeRepoFile(repoRoot, REAL_NAMES_PATH, 'Two Words [case]\n');
+    await expect(check()).rejects.toThrow(CheckUsageError);
+  });
+});
+
 describe('banned-terms-missing', () => {
   it('is a warning when the list is missing and not required', async () => {
     const issues = await runChecks({
@@ -240,16 +320,16 @@ describe('banned-terms-missing', () => {
     await writeFile(listPath, '# private\n\nFrom File\n');
     expect(
       await loadPrivateBannedTerms({ BLOG_BANNED_TERMS: 'One\nTwo Words\n' }, repoRoot),
-    ).toEqual(['One', 'Two Words']);
+    ).toEqual([plain('One'), plain('Two Words')]);
     expect(
       await loadPrivateBannedTerms(
         { BLOG_BANNED_TERMS: '  ', BLOG_BANNED_TERMS_FILE: listPath },
         repoRoot,
       ),
-    ).toEqual(['From File']);
+    ).toEqual([plain('From File')]);
     await mkdir(join(repoRoot, '.config', 'ringside-booker'), { recursive: true });
     await writeFile(join(repoRoot, '.config', 'ringside-booker', 'banned-terms.txt'), 'Default\n');
-    expect(await loadPrivateBannedTerms({}, repoRoot)).toEqual(['Default']);
+    expect(await loadPrivateBannedTerms({}, repoRoot)).toEqual([plain('Default')]);
     expect(
       await loadPrivateBannedTerms(
         { BLOG_BANNED_TERMS_FILE: join(repoRoot, 'nope.txt') },
@@ -449,19 +529,39 @@ describe('masking', () => {
   });
 
   it('masks every term inside a message', () => {
-    expect(maskTermsIn(`title "The ${BANNED_COMPANY} post"`, [BANNED_COMPANY])).toBe(
+    expect(maskTermsIn(`title "The ${BANNED_COMPANY} post"`, [plain(BANNED_COMPANY)])).toBe(
       'title "The F******** B***** C* post"',
     );
   });
 
   it('matches whole words and escapes regular expression characters', () => {
-    expect(bannedTermPattern('a.b (c)').test('see a.b (c) here')).toBe(true);
-    expect(bannedTermPattern('a.b').test('axb')).toBe(false);
-    expect(bannedTermPattern('Co').test('Company')).toBe(false);
+    expect(bannedTermPattern(plain('a.b (c)')).test('see a.b (c) here')).toBe(true);
+    expect(bannedTermPattern(plain('a.b')).test('axb')).toBe(false);
+    expect(bannedTermPattern(plain('Co')).test('Company')).toBe(false);
   });
 
   it('parses a term list, ignoring comments and blank lines', () => {
-    expect(parseTermList('# header\n\n  One  \r\nTwo words\n')).toEqual(['One', 'Two words']);
+    expect(parseTermList('# header\n\n  One  \r\nTwo words\n')).toEqual([
+      plain('One'),
+      plain('Two words'),
+    ]);
+  });
+
+  it('reads the [case] flag on a one-word term', () => {
+    expect(parseTermList('Nightjar [case]\nNightjar[case]\n')).toEqual([
+      { name: 'Nightjar', caseSensitive: true },
+      { name: 'Nightjar', caseSensitive: true },
+    ]);
+  });
+
+  it('matches a [case] term only as written or in capitals', () => {
+    const term = { name: 'Nightjar', caseSensitive: true };
+    expect('Nightjar won. NIGHTJAR! nightjar, NightJar'.match(bannedTermPattern(term))).toEqual([
+      'Nightjar',
+      'NIGHTJAR',
+    ]);
+    expect(bannedTermPattern(term).test('Nightjars')).toBe(false);
+    expect(maskTermsIn('a nightjar beat Nightjar', [term])).toBe('a nightjar beat N*******');
   });
 });
 
