@@ -99,3 +99,12 @@ export {
 
 export { hashString128, hashString32, type HashWords } from './core/hash';
 export * from './core/rng';
+
+export * from './core/tunables/index';
+export {
+  ALL_TUNABLES,
+  createEngineTunables,
+  loadEngineTunables,
+  type EngineTunables,
+  type TunableKey,
+} from './systems/tunables';
