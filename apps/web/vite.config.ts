@@ -37,6 +37,8 @@ export default defineConfig(({ command }) => ({
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
     setupFiles: ['src/test/setup.ts'],
     css: {
+      // Stylesheets imported as text (`?raw`) keep their text, so the gallery can read the tokens.
+      include: [/\.css\?raw$/],
       // Plain class names in tests, so a test can query by class when it has to.
       modules: { classNameStrategy: 'non-scoped' },
     },

@@ -1,0 +1,184 @@
+.screen {
+  display: grid;
+  gap: var(--space-6);
+  max-inline-size: var(--content-max-width);
+  margin-inline: auto;
+  padding: calc(var(--safe-top) + var(--space-8)) calc(var(--safe-right) + var(--space-8))
+    calc(var(--safe-bottom) + var(--space-10)) calc(var(--safe-left) + var(--space-8));
+}
+
+.header {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.title {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.lead {
+  max-inline-size: 60ch;
+  color: var(--color-text-muted);
+}
+
+.toolbar {
+  padding-block: var(--space-1);
+}
+
+.toolLabel {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Desktop: entry list on the left, the selected entry beside it. */
+.body {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-6);
+}
+
+.entryList {
+  position: sticky;
+  inset-block-start: var(--space-4);
+  display: grid;
+  gap: var(--space-4);
+  max-block-size: calc(100dvh - var(--space-8));
+  overflow-y: auto;
+}
+
+.entryGroup {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.groupLabel {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.entryLinks {
+  display: grid;
+  gap: var(--space-1);
+  padding: 0;
+  list-style: none;
+}
+
+.entryLink {
+  display: block;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+}
+
+.entryLink:hover {
+  background: var(--color-surface-sunken);
+}
+
+.selected {
+  background: var(--color-surface);
+  color: var(--color-accent);
+  font-weight: var(--font-weight-semibold);
+  box-shadow: inset 2px 0 0 var(--color-accent);
+}
+
+/* The phone picker: hidden on desktop, where the list does the job. */
+.entryPicker {
+  display: none;
+  gap: var(--space-1);
+}
+
+.select {
+  min-block-size: var(--tap-target-min);
+  padding-inline: var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.entry {
+  min-inline-size: 0;
+}
+
+.entryBody {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.notes {
+  max-inline-size: 70ch;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/*
+ * The phone frame is a real phone width in CSS pixels, not rem, so it stays 390px whatever the UI
+ * scale. Its height is a common phone's viewport height; the entry scrolls inside it.
+ */
+.phoneFrame {
+  justify-self: start;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-sunken);
+}
+
+.phoneFrameViewport {
+  display: block;
+  inline-size: 390px;
+  block-size: 844px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+}
+
+/* The page inside the phone frame: only the entry. */
+.frameScreen {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-4);
+}
+
+.frameTitle {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+}
+
+/* Phones: a select replaces the list, entries stack, and the entry panel runs edge to edge. */
+@media (--bp-mobile) {
+  .screen {
+    gap: var(--space-4);
+    padding: calc(var(--safe-top) + var(--space-6)) 0 calc(var(--safe-bottom) + var(--space-8));
+  }
+
+  .header {
+    padding-inline: calc(var(--safe-left) + var(--space-4)) calc(var(--safe-right) + var(--space-4));
+  }
+
+  .title {
+    font-size: var(--font-size-2xl);
+  }
+
+  .body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .entryList,
+  .desktopOnly {
+    display: none;
+  }
+
+  .entryPicker {
+    display: grid;
+  }
+}

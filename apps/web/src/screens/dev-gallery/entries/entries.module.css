@@ -1,0 +1,372 @@
+/* Shared styles for gallery entries. Entry-specific previews sit further down. */
+
+.caption {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  overflow-wrap: anywhere;
+}
+
+.subheading {
+  margin-block-end: var(--space-2);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+}
+
+.mono {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  overflow-wrap: anywhere;
+}
+
+/* A labelled example: what it is above, the thing itself below. */
+.example {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.demoBox {
+  min-inline-size: 3rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-sunken);
+  font-size: var(--font-size-sm);
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: var(--tap-target-min);
+}
+
+/* Token rows: name and value on the left, a preview on the right; stacked on phones. */
+.tokenList {
+  display: grid;
+  gap: var(--space-3);
+  padding: 0;
+  list-style: none;
+}
+
+.tokenRow {
+  display: grid;
+  grid-template-columns: minmax(0, 14rem) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-1) var(--space-6);
+}
+
+.tokenName {
+  display: grid;
+  gap: var(--space-1);
+}
+
+/* Colour swatches: a card per token that reflows to the width available. */
+.swatchGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+  gap: var(--space-3);
+  padding: 0;
+  list-style: none;
+}
+
+.swatchCard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-1) var(--space-3);
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.swatch {
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+}
+
+.swatchFill {
+  stroke: var(--color-border-strong);
+  stroke-width: 1;
+}
+
+.contrastLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Spacing bars and radius tiles are SVG; the fill follows the theme. */
+.tokenShape {
+  fill: var(--color-accent);
+}
+
+.radiusTile {
+  inline-size: 4rem;
+  block-size: 4rem;
+}
+
+.radiusFill {
+  fill: var(--color-surface-sunken);
+  stroke: var(--color-border-strong);
+  stroke-width: 0.0625;
+}
+
+.shadowGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr));
+  gap: var(--space-6);
+  padding: var(--space-2);
+  list-style: none;
+}
+
+.shadowCard {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+}
+
+.shadow-1 {
+  box-shadow: var(--shadow-1);
+}
+
+.shadow-2 {
+  box-shadow: var(--shadow-2);
+}
+
+.shadow-3 {
+  box-shadow: var(--shadow-3);
+}
+
+/* Type samples, one class per type token. */
+.sample {
+  overflow-wrap: anywhere;
+}
+
+.font-size-xs {
+  font-size: var(--font-size-xs);
+}
+
+.font-size-sm {
+  font-size: var(--font-size-sm);
+}
+
+.font-size-md {
+  font-size: var(--font-size-md);
+}
+
+.font-size-lg {
+  font-size: var(--font-size-lg);
+}
+
+.font-size-xl {
+  font-size: var(--font-size-xl);
+}
+
+.font-size-2xl {
+  font-size: var(--font-size-2xl);
+}
+
+.font-size-3xl {
+  font-size: var(--font-size-3xl);
+}
+
+.font-weight-regular {
+  font-weight: var(--font-weight-regular);
+}
+
+.font-weight-medium {
+  font-weight: var(--font-weight-medium);
+}
+
+.font-weight-semibold {
+  font-weight: var(--font-weight-semibold);
+}
+
+.font-weight-bold {
+  font-weight: var(--font-weight-bold);
+}
+
+.line-height-tight {
+  max-inline-size: 22rem;
+  line-height: var(--line-height-tight);
+}
+
+.line-height-snug {
+  max-inline-size: 22rem;
+  line-height: var(--line-height-snug);
+}
+
+.line-height-normal {
+  max-inline-size: 22rem;
+  line-height: var(--line-height-normal);
+}
+
+.font-family-ui {
+  font-family: var(--font-family-ui);
+}
+
+.font-family-mono {
+  font-family: var(--font-family-mono);
+}
+
+/* Breakpoints and other definition lists. */
+.definitionTable {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.definitionTable th,
+.definitionTable td {
+  padding: var(--space-2);
+  border-block-end: 1px solid var(--color-border);
+  text-align: start;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.definitionTable th {
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Icons: a grid of named tiles. */
+.iconGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+  gap: var(--space-2);
+  padding: 0;
+  list-style: none;
+}
+
+.iconTile {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  overflow-wrap: anywhere;
+}
+
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  gap: var(--space-3) var(--space-8);
+}
+
+/* Formatter examples: call on the left, output on the right. */
+.formatList {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.formatRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 16rem);
+  align-items: baseline;
+  gap: var(--space-1) var(--space-6);
+}
+
+.formatRow dt {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.formatRow dd {
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+/* Placeholder art grids. */
+.artGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(6rem, 1fr));
+  gap: var(--space-3);
+  padding: 0;
+  list-style: none;
+}
+
+.artItem {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  text-align: center;
+}
+
+.artCaption {
+  max-inline-size: 100%;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-snug);
+  overflow-wrap: anywhere;
+}
+
+.sizeRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-4);
+  padding: 0;
+  list-style: none;
+}
+
+/* Engine dice. */
+.seedField {
+  display: grid;
+  gap: var(--space-1);
+  max-inline-size: 20rem;
+}
+
+.seedInput {
+  min-block-size: var(--tap-target-min);
+  padding-inline: var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.diceRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(2.5rem, 1fr));
+  gap: var(--space-2);
+  padding: 0;
+  list-style: none;
+}
+
+.die {
+  display: grid;
+  place-items: center;
+  block-size: 2.5rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-sunken);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (--bp-mobile) {
+  .tokenRow,
+  .formatRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .formatList {
+    gap: var(--space-3);
+  }
+}

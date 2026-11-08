@@ -1,12 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
-import {
-  appRoutes,
-  includeDevRoutes,
-  routerFutureFlags,
-  routerProviderFutureFlags,
-} from './router';
+import { appRoutes, routerFutureFlags, routerProviderFutureFlags } from './router';
 
 function renderAt(path: string): void {
   const router = createMemoryRouter(appRoutes, {
@@ -26,18 +21,27 @@ describe('app router', () => {
     expect(screen.getByText(`Version ${__APP_VERSION__}`)).toBeInTheDocument();
   });
 
-  it('registers the dev gallery in test mode', async () => {
-    expect(includeDevRoutes).toBe(true);
+  it('links the placeholder home to the gallery', async () => {
+    renderAt('/');
 
-    renderAt('/dev/gallery');
+    expect(await screen.findByRole('link', { name: 'Gallery' })).toHaveAttribute(
+      'href',
+      '/dev/gallery',
+    );
+  });
+
+  it('registers the component gallery in every build', async () => {
+    renderAt('/dev/gallery#button');
 
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Component gallery' }),
     ).toBeInTheDocument();
-    expect(screen.getByRole('region', { name: 'Button' })).toHaveAttribute('id', 'gallery-button');
-    expect(screen.getByRole('region', { name: 'ImageSlot' })).toHaveAttribute(
-      'id',
-      'gallery-image-slot',
-    );
+    expect(screen.getByRole('heading', { level: 2, name: 'Button' })).toBeInTheDocument();
+  });
+
+  it('registers the bare page the phone frame loads', async () => {
+    renderAt('/dev/gallery/frame?theme=light#badge');
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Badge' })).toBeInTheDocument();
   });
 });
