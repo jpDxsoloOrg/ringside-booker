@@ -15,15 +15,15 @@ outlined. "Draws from" names the dev journal entries the post is built from.
 "Published" is the date the post first went live, filled in by the publish
 script.
 
-| Part | Title                                                                       | Status  | Draws from                                                                 | Published  |
-| ---- | --------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------- | ---------- |
-| 01   | Why I'm building a wrestling booking sim                                    | final   | [Project kickoff](../dev-journal/2026-11-project-kickoff.md) journal entry | 2026-11-08 |
-| 02   | Foundations: one World, deterministic days, numbers that explain themselves | planned | Foundation (FND) and simulation (SIM) entries                              | -          |
-| 03   | Same seed, same show: randomness with named streams                         | planned | Simulation (SIM) entry                                                     | -          |
-| 04   | Every number explains itself: the Why? panel                                | planned | Simulation (SIM) and UI entries                                            | -          |
-| 05   | Building a fictional wrestling world from scratch                           | planned | World (WLD) entry                                                          | -          |
-| 06   | A desktop game that fits on a phone                                         | planned | UI entry                                                                   | -          |
-| 07   | How a match gets its rating                                                 | planned | Match rating epic entry (later)                                            | -          |
+| Part | Title                                                                       | Status  | Draws from                                                                            | Published  |
+| ---- | --------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------- | ---------- |
+| 01   | Why I'm building a wrestling booking sim                                    | final   | [Project kickoff](../dev-journal/2026-11-project-kickoff.md) journal entry            | 2026-11-08 |
+| 02   | Foundations: one World, deterministic days, numbers that explain themselves | planned | [Foundation](../dev-journal/2026-11-foundation.md) (FND) and simulation (SIM) entries | -          |
+| 03   | Same seed, same show: randomness with named streams                         | planned | Simulation (SIM) entry                                                                | -          |
+| 04   | Every number explains itself: the Why? panel                                | planned | Simulation (SIM) and UI entries                                                       | -          |
+| 05   | Building a fictional wrestling world from scratch                           | planned | World (WLD) entry                                                                     | -          |
+| 06   | A desktop game that fits on a phone                                         | planned | UI entry                                                                              | -          |
+| 07   | How a match gets its rating                                                 | planned | Match rating epic entry (later)                                                       | -          |
 
 When a post's status changes, its row changes in the same commit. The title and
 status in the row must match the file.
@@ -222,9 +222,16 @@ the private-reference rule skips them.
 
 #### Banned terms
 
-Two lists feed the `banned-terms` rule. Matching ignores case and only matches
-whole words, and it covers the whole file: frontmatter, prose, code, comments
-and alt text.
+Two lists feed the `banned-terms` rule. Matching only matches whole words, and
+it covers the whole file: frontmatter, prose, code, comments and alt text. It
+ignores case, except for a one-word name flagged `[case]` in a list
+(`Nightjar [case]`, a made-up example). That's a name that is also an everyday
+word, so it only matches written the way the list writes it or in capitals:
+"the nightjar sang" passes, "a loss to Nightjar" fails. The world content check
+reads the lists through the same matcher
+(`tools/validate-world/src/realNameMatcher.ts`), so both read the flag the same
+way. A flagged word that starts a sentence is still caught, so reword it if
+that happens.
 
 1. **The real-name blocklist**, `content/blocklist/real-names.txt`. It's
    committed, and the world content check (WLD-03) uses the same file, so the

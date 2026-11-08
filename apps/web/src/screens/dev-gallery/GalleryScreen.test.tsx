@@ -74,18 +74,6 @@ describe('GalleryScreen', () => {
     expect(entryHeading('Engine in the browser')).toBeInTheDocument();
   });
 
-  it('applies the theme buttons to the document', async () => {
-    const user = userEvent.setup();
-    renderGallery();
-
-    await user.click(await screen.findByRole('button', { name: 'Dark' }));
-    expect(document.documentElement).toHaveAttribute('data-theme', 'dark');
-    expect(screen.getByRole('button', { name: 'Dark' })).toHaveAttribute('aria-pressed', 'true');
-
-    await user.click(screen.getByRole('button', { name: 'System' }));
-    expect(document.documentElement).not.toHaveAttribute('data-theme');
-  });
-
   it('puts the entry in a 390px phone frame on desktop', async () => {
     const user = userEvent.setup();
     renderGallery('/dev/gallery#badge');
@@ -185,12 +173,19 @@ describe('engine entry', () => {
 });
 
 describe('theme state', () => {
-  it('follows data-theme changes made outside the gallery', async () => {
+  it('shows the dark tokens and no theme toggle while dark is the only theme', async () => {
     renderGallery('/dev/gallery#tokens-colours');
-    await screen.findByText(/Showing the light theme/);
+    expect(await screen.findByText(/Showing the dark theme/)).toBeInTheDocument();
+    expect(screen.queryByRole('group', { name: 'Theme' })).not.toBeInTheDocument();
+    expect(screen.getAllByText('#090d16').length).toBeGreaterThan(0);
+  });
+
+  it('stays on the dark tokens whatever preference is applied', async () => {
+    renderGallery('/dev/gallery#tokens-colours');
+    await screen.findByText(/Showing the dark theme/);
 
     await act(async () => {
-      applyTheme('dark');
+      applyTheme('light');
       // The MutationObserver reports on a later tick; let it run inside act.
       await new Promise((resolve) => {
         setTimeout(resolve, 0);
@@ -198,5 +193,32 @@ describe('theme state', () => {
     });
 
     expect(await screen.findByText(/Showing the dark theme/)).toBeInTheDocument();
+  });
+});
+
+describe('shape and type entries', () => {
+  it('lists the office radii and the broadcast shape and glow tokens', async () => {
+    renderGallery('/dev/gallery#tokens-radii');
+    await screen.findByRole('heading', { level: 2, name: 'Shape' });
+    for (const tokenName of [
+      '--radius-card',
+      '--radius-control',
+      '--radius-pill',
+      '--chamfer',
+      '--skew-broadcast',
+      '--glow-action',
+      '--glow-data',
+    ]) {
+      expect(screen.getByText(tokenName)).toBeInTheDocument();
+    }
+  });
+
+  it('shows the display and interface font families', async () => {
+    renderGallery('/dev/gallery#tokens-type');
+    await screen.findByRole('heading', { level: 2, name: 'Type scale' });
+    expect(screen.getAllByText('--font-family-display').length).toBeGreaterThan(0);
+    expect(screen.getByText('--font-family-ui')).toBeInTheDocument();
+    expect(screen.getByText(/^'Barlow Condensed'/)).toBeInTheDocument();
+    expect(screen.getByText(/^'Inter'/)).toBeInTheDocument();
   });
 });

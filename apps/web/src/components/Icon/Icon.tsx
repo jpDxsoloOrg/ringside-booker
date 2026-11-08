@@ -1,55 +1,58 @@
-import { useId } from 'react';
 import { classNames } from '../classNames';
 import styles from './Icon.module.css';
-import { ICON_PATHS } from './icons';
+import { ICON_GLYPHS } from './icons';
 import type { IconName } from './icons';
 
 export type IconSize = 'inherit' | 'sm' | 'md' | 'lg';
 
-export interface IconProps {
+interface IconBaseProps {
   /** Which icon to draw. */
   readonly name: IconName;
-  /**
-   * Accessible name. Without one the icon is decoration and hidden from assistive technology,
-   * which is right whenever text next to it already says the same thing.
-   */
-  readonly title?: string;
   /** `inherit` (the default) follows the surrounding font size. */
   readonly size?: IconSize;
   readonly className?: string | undefined;
 }
 
-/** An inline SVG icon from the game's own small set. Colour comes from `currentColor`. */
-export function Icon({ name, title, size = 'inherit', className }: IconProps) {
-  const titleId = useId();
-  const paths = ICON_PATHS[name].map((path) => <path key={path} d={path} />);
+/**
+ * An icon that repeats what the text next to it already says. It is hidden from assistive
+ * technology.
+ */
+export interface DecorativeIconProps extends IconBaseProps {
+  readonly decorative: true;
+  readonly label?: never;
+}
+
+/** An icon that carries meaning on its own. It is announced as an image named by `label`. */
+export interface LabelledIconProps extends IconBaseProps {
+  readonly label: string;
+  readonly decorative?: never;
+}
+
+/**
+ * Every icon is either explicitly decorative or has a label, so an icon that means something can
+ * never ship without an accessible name.
+ */
+export type IconProps = DecorativeIconProps | LabelledIconProps;
+
+/** An inline SVG icon drawn from Lucide. Colour comes from `currentColor`. */
+export function Icon(props: IconProps) {
+  const { name, size = 'inherit', className } = props;
+  const Glyph = ICON_GLYPHS[name];
   const iconClassName = classNames(styles['icon'], styles[`size-${size}`], className);
 
-  if (title === undefined) {
+  if (props.label === undefined) {
     return (
-      <svg
-        className={iconClassName}
-        viewBox="0 0 24 24"
-        aria-hidden="true"
-        focusable="false"
-        data-icon={name}
-      >
-        {paths}
-      </svg>
+      <Glyph className={iconClassName} aria-hidden="true" focusable="false" data-icon={name} />
     );
   }
 
   return (
-    <svg
+    <Glyph
       className={iconClassName}
-      viewBox="0 0 24 24"
       role="img"
-      aria-labelledby={titleId}
+      aria-label={props.label}
       focusable="false"
       data-icon={name}
-    >
-      <title id={titleId}>{title}</title>
-      {paths}
-    </svg>
+    />
   );
 }

@@ -140,10 +140,12 @@ export * from './core/events';
 export * from './core/trace';
 
 // The day pipeline: phase and gate definitions, the registries, reports, advance results and the
-// failure log. The runners (createRuntime, runStep, runDay, advanceDays, evaluateGates) stay
-// internal: they need the runtime, and the engine API wraps them for the web app and the tools.
+// failure log. The runners (createRuntime, runStep, runDay, advanceDays) stay internal: they need
+// the runtime, and the engine API wraps them for the web app and the tools. `evaluateGates` is
+// exported because it only reads; the engine's `sim.pendingGates` query is how the UI calls it.
 export {
   defineGate,
+  evaluateGates,
   GATE_ID_PATTERN,
   GateRegistry,
   MAX_ADVANCE_DAYS,
@@ -151,6 +153,7 @@ export {
   RESERVED_GATE_SYSTEM,
   STOP_DATE_GATE_ID,
   type AdvanceFailure,
+  type AdvanceOptions,
   type AdvanceProgress,
   type AdvanceResult,
   type AdvanceStop,
@@ -479,6 +482,9 @@ export {
   LOCATION_CODE_PATTERN,
   RegionSchema,
 } from './model/entities/geography';
+// Geography queries (WLD-04): hierarchy lookups, population-weighted roll-ups and weighted picks.
+export type { AggregateOptions, Geography, GeographySource } from './systems/world/geography';
+export { createGeography, geographyOf, pickRegion, regionWeight } from './systems/world/geography';
 export type { Venue, VenueKind } from './model/entities/venue';
 export {
   isVenueOpenOn,
@@ -641,3 +647,9 @@ export {
 } from './persistence/migrations/registry';
 export type { AppliedMigration, MigrationRun } from './persistence/migrations/run';
 export { runMigrations } from './persistence/migrations/run';
+
+// The engine API (SIM-10): createEngine, system bundles, typed queries and commands, controllers
+// and viewers (D-07), the command log, the engine state and its save-format registration. See
+// docs/design/engine-api.md.
+export * from './core/api/index';
+export { defaultSystems } from './systems/index';

@@ -55,12 +55,14 @@ select {
   color: inherit;
 }
 
+/* Headings use the display face; body text stays in the UI face (see visual-identity.md). */
 h1,
 h2,
 h3,
 h4,
 h5,
 h6 {
+  font-family: var(--font-family-display);
   line-height: var(--line-height-tight);
   text-wrap: balance;
 }
@@ -69,10 +71,14 @@ a {
   color: var(--color-accent);
 }
 
-/* Numbers line up in columns wherever they appear in a table or are marked as numeric. */
+/*
+ * Numbers line up in columns wherever they appear in a table, are marked as numeric, or carry the
+ * .tabular helper class (the one global class: stat numbers outside tables use it).
+ */
 td,
-[data-numeric] {
-  font-variant-numeric: tabular-nums;
+[data-numeric],
+.tabular {
+  font-variant-numeric: var(--font-feature-tabular);
 }
 
 /*
@@ -93,10 +99,12 @@ html.scroll-locked {
   :root:not([data-reduced-motion='off']) {
     --motion-fast: 0ms;
     --motion-base: 0ms;
+    --motion-pulse: 0ms;
   }
 }
 
 [data-reduced-motion='on'] {
   --motion-fast: 0ms;
   --motion-base: 0ms;
+  --motion-pulse: 0ms;
 }

@@ -4,16 +4,20 @@ The visual language every screen builds on. Tokens are CSS custom properties def
 `apps/web/src/styles/tokens.css`; the reset and base styles are in `global.css`, and the layout
 breakpoints in `breakpoints.css`. `main.tsx` imports those three files once, in that order.
 
-The look is calm and original: warm neutral greys with one burnt-orange accent, dark surfaces in
-the dark theme, and enough contrast that dense tables stay readable.
+**[`visual-identity.md`](visual-identity.md) is the source of truth** for the look: the colour
+roles and their hex values, the two type families, the shapes and the signature components (design
+decision D-11). This doc covers how those decisions are turned into tokens and how components use
+them. If the two disagree, visual-identity.md wins and this doc and `tokens.css` get fixed.
 
 ## Rules
 
 - **Components use semantic tokens only, never palette tokens.** `--palette-*` values exist so the
-  theme blocks have something to point at. A component that reads `--palette-neutral-900` breaks
+  theme blocks have something to point at. A component that reads `--palette-navy-100` breaks
   the moment a theme remaps it. Use `--color-text`.
 - **Sizes in rem so UI scale works.** The UI scale setting multiplies the root font size, so
-  anything in `rem` grows with it. Hairlines (1px borders, the 2px focus ring) are the exception.
+  anything in `rem` grows with it. Hairlines (1px borders, the 2px focus ring) and corner shapes
+  (radii, the chamfer) are the exception: they are in px because a corner reads the same at any
+  scale.
 - **One breakpoint, `--bp-mobile`.** Below it a screen switches to its phone layout. `--bp-wide`
   only caps widths on very large screens and never introduces a third layout.
 - **Semantic colours are hex, not colour maths.** Theme blocks point at palette hex values (or a
@@ -24,117 +28,154 @@ the dark theme, and enough contrast that dense tables stay readable.
 - **Global CSS is imported once,** from `main.tsx`. Components never import `tokens.css`,
   `breakpoints.css` or `global.css`.
 
-## Themes
+## Theme
 
-| Theme  | How it is chosen                                                      |
-| ------ | --------------------------------------------------------------------- |
-| Light  | The default, and `data-theme="light"` on `<html>`                     |
-| Dark   | `data-theme="dark"` on `<html>`                                       |
-| System | No `data-theme` attribute: follows `prefers-color-scheme`, with no JS |
+The game is **dark only** for now (D-11). `tokens.css` has one theme block,
+`:root, [data-theme='dark']`, so the dark values apply with or without the attribute, and it sets
+`color-scheme: dark` so scrollbars and native form controls match.
 
-The dark declarations appear twice in `tokens.css`, once for `[data-theme='dark']` and once inside
-`@media (prefers-color-scheme: dark)` for `:root:not([data-theme='light'])`. `tokens.test.ts` fails
-if the two copies differ. Each theme sets `color-scheme`, so scrollbars and native form controls
-match.
+The theme layer stays so a light theme can come back without touching components:
 
-`applyTheme(preference)` in `styles/theme.ts` sets or removes the attribute and copies the
-resolved `--color-bg` into `<meta name="theme-color">`. While the preference is `system` it also
-refreshes that meta when the OS setting changes. `main.tsx` applies `system` at start-up until the
-settings screen restores a saved choice.
+- `styles/theme.ts` keeps `ThemePreference` (`system`, `light`, `dark`) and `applyTheme`, which sets
+  or removes `data-theme` on `<html>` and copies the resolved `--color-bg` into
+  `<meta name="theme-color">`.
+- `SHIPPED_THEMES` lists the themes `tokens.css` defines (`['dark']`), and `resolveTheme` turns a
+  preference into one of them; anything that does not ship falls back to `DEFAULT_THEME` (dark),
+  which is also what the CSS shows, since no block matches it.
+- `SELECTABLE_THEME_PREFERENCES` is what a player may choose (`['dark']`). Settings and the
+  gallery hide the theme choice while it has fewer than two entries.
+- `main.tsx` applies `DEFAULT_THEME` at start-up.
+
+To add a light theme: a `[data-theme='light']` block (and, to follow the OS, a
+`@media (prefers-color-scheme: light)` copy for `:root:not([data-theme='dark'])`), `'light'` in
+`ThemeName` and `SHIPPED_THEMES`, the choices in `SELECTABLE_THEME_PREFERENCES`, and the light
+theme's entries in `tokens.test.ts` and the gallery's token catalog.
 
 ## Colour tokens
 
-| Token                     | Purpose                                        | Light value | Dark value  |
-| ------------------------- | ---------------------------------------------- | ----------- | ----------- |
-| `--color-bg`              | Page background                                | `#f6f5f3`   | `#131312`   |
-| `--color-surface`         | Panels, cards, table bodies                    | `#ffffff`   | `#1d1c1a`   |
-| `--color-surface-raised`  | Menus, popovers, sheets (above a surface)      | `#ffffff`   | `#262523`   |
-| `--color-surface-sunken`  | Wells, input backgrounds, table headers        | `#ecebe7`   | `#131312`   |
-| `--color-border`          | Dividers and quiet outlines                    | `#dcdad5`   | `#302e2b`   |
-| `--color-border-strong`   | Input outlines and borders that must be seen   | `#7d7970`   | `#7d7970`   |
-| `--color-text`            | Body text                                      | `#1d1c1a`   | `#ecebe7`   |
-| `--color-text-muted`      | Secondary text, captions, column headers       | `#5f5b54`   | `#a19d95`   |
-| `--color-text-inverse`    | Text on a `--color-text` background (tooltips) | `#ffffff`   | `#131312`   |
-| `--color-accent`          | Primary actions, links, the selected item      | `#964512`   | `#f29652`   |
-| `--color-accent-contrast` | Text and icons on `--color-accent`             | `#ffffff`   | `#131312`   |
-| `--color-positive`        | Gains, wins, healthy                           | `#1f6639`   | `#5fbf7f`   |
-| `--color-negative`        | Losses, errors, injuries                       | `#962d29`   | `#eb7772`   |
-| `--color-warning`         | Needs attention soon                           | `#7a5b0e`   | `#e8bb45`   |
-| `--color-info`            | Neutral notices                                | `#245594`   | `#6ea6ea`   |
-| `--color-focus`           | Keyboard focus ring                            | `#2f6bb8`   | `#f8b682`   |
-| `--color-overlay`         | Scrim behind sheets and dialogs                | `#1d1c1a99` | `#000000a6` |
-| `--color-cat-1`           | Categorical series 1 (charts, tags)            | `#2f6bb8`   | `#6ea6ea`   |
-| `--color-cat-2`           | Categorical series 2                           | `#b95a17`   | `#f29652`   |
-| `--color-cat-3`           | Categorical series 3                           | `#217d75`   | `#4fbdb3`   |
-| `--color-cat-4`           | Categorical series 4                           | `#6b4fbf`   | `#a68ce8`   |
-| `--color-cat-5`           | Categorical series 5                           | `#b04683`   | `#e584b6`   |
-| `--color-cat-6`           | Categorical series 6                           | `#6a7526`   | `#a9b85a`   |
-| `--color-cat-7`           | Categorical series 7                           | `#876610`   | `#e8bb45`   |
-| `--color-cat-8`           | Categorical series 8                           | `#5f5b54`   | `#a19d95`   |
-| `--color-metal-gold`      | Gold belt plates                               | `#c9a227`   | `#d9b54a`   |
-| `--color-metal-silver`    | Silver belt plates                             | `#a9adb3`   | `#c4c8cd`   |
-| `--color-metal-bronze`    | Bronze belt plates                             | `#b27a46`   | `#c99062`   |
-| `--color-metal-plain`     | Plain (untiered) belt plates                   | `#a19d95`   | `#c4c1ba`   |
-| `--color-metal-ink`       | Engraving and outlines on metal                | `#1d1c1a`   | `#131312`   |
-| `--color-belt-strap`      | Belt strap                                     | `#302e2b`   | `#46433e`   |
+### Roles
 
-The categorical hues are placeholders until the chart components settle on a final set. Light
-`--color-cat-7` uses `--palette-amber-650` rather than the 600 step, because placeholder initials
-sit on every category colour in `--color-text-inverse` and the 600 step fell just short of 4.5:1
-against white.
+These match the roles table in visual-identity.md exactly; `tokens.test.ts` fails if a hex drifts.
+
+| Token                     | Purpose                                     | Value     |
+| ------------------------- | ------------------------------------------- | --------- |
+| `--color-bg`              | Page background                             | `#090d16` |
+| `--color-surface`         | Cards, panels                               | `#0f172a` |
+| `--color-surface-raised`  | Popovers, active panels, score bugs         | `#131d31` |
+| `--color-surface-hover`   | Row and card hover                          | `#1a2740` |
+| `--color-border`          | Hairlines between and around things         | `#24334d` |
+| `--color-border-strong`   | Inputs, focusable outlines                  | `#3b4d6b` |
+| `--color-text`            | Body and headings                           | `#f1f5f9` |
+| `--color-text-muted`      | Secondary text, labels                      | `#94a3b8` |
+| `--color-text-subtle`     | Large or decorative text only               | `#64748b` |
+| `--color-action`          | Primary button fills                        | `#d7301a` |
+| `--color-action-contrast` | Text and icons on `--color-action` (white)  | `#ffffff` |
+| `--color-action-bright`   | Live states, glows, large display text      | `#ff3b1d` |
+| `--color-data`            | Numbers, meters, charts, links, info        | `#00e5ff` |
+| `--color-prestige`        | Titles, champions, awards, top picks        | `#facc15` |
+| `--color-positive`        | Rising deltas, good outcomes                | `#34d399` |
+| `--color-negative`        | Falling deltas, injuries, losses            | `#fb7185` |
+| `--color-face`            | Face alignment chip (the data hue)          | `#00e5ff` |
+| `--color-heel`            | Heel alignment chip (the action-bright hue) | `#ff3b1d` |
+| `--color-tweener`         | Tweener alignment chip                      | `#a78bfa` |
+
+### Older names
+
+These came before D-11. They are mapped onto the roles so existing components keep working until
+they are restyled; new code uses the roles.
+
+| Token                     | Now follows                                 | Value       |
+| ------------------------- | ------------------------------------------- | ----------- |
+| `--color-accent`          | `--color-action-bright`                     | `#ff3b1d`   |
+| `--color-accent-contrast` | Dark ink on the bright accent               | `#090d16`   |
+| `--color-surface-sunken`  | `--color-bg` (wells, input backgrounds)     | `#090d16`   |
+| `--color-text-inverse`    | Dark ink on light fills (tooltips, avatars) | `#090d16`   |
+| `--color-warning`         | `--color-prestige`                          | `#facc15`   |
+| `--color-info`            | `--color-data`                              | `#00e5ff`   |
+| `--color-focus`           | `--color-data` (keyboard focus ring)        | `#00e5ff`   |
+| `--color-overlay`         | Scrim behind sheets and dialogs             | `#05080fb3` |
+
+The focus ring is cyan rather than red-orange so it never reads as "live" and stays visible around
+a red-orange primary button.
+
+### Categorical, metal and glow tokens
+
+| Token                                                | Purpose                                 | Value                                             |
+| ---------------------------------------------------- | --------------------------------------- | ------------------------------------------------- |
+| `--color-cat-1` … `--color-cat-8`                    | Placeholder avatars, chart series, tags | sky, orange, teal, violet, pink, lime, gold, navy |
+| `--color-metal-gold` / `silver` / `bronze` / `plain` | Belt plates by tier                     | `#d9b54a` / `#c4c8cd` / `#c99062` / `#cbd5e1`     |
+| `--color-metal-ink`                                  | Engraving and outlines on metal         | `#090d16`                                         |
+| `--color-belt-strap`                                 | Belt strap                              | `#3b4d6b`                                         |
+| `--glow-action`                                      | Live-state glow (box-shadow)            | ring + halo in `#ff3b1d`                          |
+| `--glow-data`                                        | Highlighted-data glow (box-shadow)      | ring + halo in `#00e5ff`                          |
 
 The metal colours are a deliberate exception to "category palette only": a belt's tier is
-information, not decoration, so gold, silver and bronze have their own tokens.
+information, not decoration, so gold, silver and bronze have their own tokens. Glows are static
+shadows; anything that pulses one animates over `--motion-pulse`, which reduced motion sets to 0.
 
 ### Contrast
 
-`tokens.test.ts` resolves every semantic colour to its hex value per theme and checks WCAG 2
-contrast ratios:
+`tokens.test.ts` resolves every semantic colour to its hex value and checks WCAG 2 contrast ratios:
 
-| Pair                                                   | Minimum |
-| ------------------------------------------------------ | ------- |
-| `text` on `bg`, `surface`, `surface-raised`            | 4.5     |
-| `accent-contrast` on `accent`                          | 4.5     |
-| `positive`, `negative`, `warning`, `info` on `surface` | 4.5     |
-| `text-muted` on `surface`                              | 3.0     |
-| `focus` on `bg`                                        | 3.0     |
-| `border-strong` on `surface`                           | 3.0     |
-| `text-inverse` on each of `cat-1` … `cat-8`            | 4.5     |
-| `metal-ink` on each `metal-*` tier                     | 4.5     |
+| Pair                                                                                                                                                                                             | Minimum |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------- |
+| Every text role (`text`, `text-muted`, `action-bright`, `data`, `prestige`, `positive`, `negative`, `face`, `heel`, `tweener`, `accent`, `warning`, `info`) on `bg`, `surface`, `surface-raised` | 4.5     |
+| `text-subtle` on `bg`, `surface`, `surface-raised` (large text only)                                                                                                                             | 3.0     |
+| `action-contrast` (white) on `action`                                                                                                                                                            | 4.5     |
+| `accent-contrast` on `accent`                                                                                                                                                                    | 4.5     |
+| `text-inverse` on `text`                                                                                                                                                                         | 4.5     |
+| `focus` on `bg` and `surface-raised`                                                                                                                                                             | 3.0     |
+| `text-inverse` on each of `cat-1` … `cat-8`                                                                                                                                                      | 4.5     |
+| `metal-ink` on each `metal-*` tier                                                                                                                                                               | 4.5     |
+
+`--color-border-strong` (`#3b4d6b`) is a hairline at about 2.1:1 on `--color-surface`, below the
+3:1 that WCAG asks of a control's only visible boundary. A control that relies on its outline
+alone needs a second cue (a fill, a label, or a stronger outline); the component restyles handle
+that per component.
 
 ## Other tokens
 
-These are the same in both themes.
+These do not change with the theme.
 
-| Token                                      | Purpose                            | Value                                   |
-| ------------------------------------------ | ---------------------------------- | --------------------------------------- |
-| `--space-0` … `--space-10`                 | Spacing scale, 0.25rem per step    | `0` … `2.5rem`                          |
-| `--radius-sm` / `md` / `lg` / `pill`       | Corner radius                      | `0.25rem` / `0.5rem` / `0.75rem` / pill |
-| `--font-family-ui`                         | Interface text (system font stack) | `system-ui, …`                          |
-| `--font-family-mono`                       | Code, IDs, seeds                   | `ui-monospace, …`                       |
-| `--font-size-xs` … `--font-size-3xl`       | Type scale                         | `0.75rem` … `2.25rem` (`md` is `1rem`)  |
-| `--line-height-tight` / `snug` / `normal`  | Headings / dense rows / body text  | `1.2` / `1.35` / `1.5`                  |
-| `--font-weight-regular` … `bold`           | Weights                            | `400` / `500` / `600` / `700`           |
-| `--shadow-1` … `--shadow-3`                | Elevation, low to high             | Layered shadows                         |
-| `--z-nav`                                  | Navigation bars                    | `100`                                   |
-| `--z-sheet`                                | Sheets and side panels             | `400`                                   |
-| `--z-toast`                                | Toasts                             | `500`                                   |
-| `--z-overlay`                              | Dialogs and their scrim            | `600`                                   |
-| `--motion-fast` / `--motion-base`          | Transition durations               | `120ms` / `200ms` (`0ms` reduced)       |
-| `--easing-standard`                        | Default easing curve               | `cubic-bezier(0.2, 0, 0, 1)`            |
-| `--sidebar-width`                          | Desktop sidebar                    | `15rem`                                 |
-| `--topbar-height`                          | Top bar                            | `3.5rem`                                |
-| `--bottom-nav-height`                      | Phone bottom navigation            | `3.75rem`                               |
-| `--content-max-width`                      | Cap on content width               | `90rem`                                 |
-| `--tap-target-min`                         | Smallest touch target              | `2.75rem`                               |
-| `--image-size-xs` … `--image-size-xl`      | ImageSlot sizes                    | `1.5` / `2` / `3` / `5` / `8rem`        |
-| `--safe-top` / `right` / `bottom` / `left` | Notch and home-indicator insets    | `env(safe-area-inset-*, 0px)`           |
-| `--ui-scale`                               | UI scale, set by `applyUiScale`    | `0.8` to `1.5`, default `1`             |
+| Token                                      | Purpose                                   | Value                                  |
+| ------------------------------------------ | ----------------------------------------- | -------------------------------------- |
+| `--space-0` … `--space-10`                 | Spacing scale, 0.25rem per step           | `0` … `2.5rem`                         |
+| `--radius-card` / `control` / `pill`       | Office corners: cards, controls, chips    | `10px` / `8px` / `999px`               |
+| `--radius-sm` / `md` / `lg`                | Older names (`md` = control, `lg` = card) | `4px` / `8px` / `10px`                 |
+| `--chamfer`                                | Broadcast panel corner cut                | `8px`                                  |
+| `--skew-broadcast`                         | Skew on bugs, tabs, show actions          | `-12deg` (text inside un-skews)        |
+| `--font-family-display`                    | Headings, labels, chips, stat numbers     | Barlow Condensed, then system stacks   |
+| `--font-family-ui`                         | Body, tables, forms                       | Inter, then the system UI stack        |
+| `--font-family-mono`                       | Code, IDs, seeds                          | `ui-monospace, …`                      |
+| `--font-feature-tabular`                   | Tabular figures (`.tabular`, `td`)        | `tabular-nums`                         |
+| `--font-size-xs` … `--font-size-3xl`       | Type scale                                | `0.75rem` … `2.25rem` (`md` is `1rem`) |
+| `--line-height-tight` / `snug` / `normal`  | Headings / dense rows / body text         | `1.2` / `1.35` / `1.5`                 |
+| `--font-weight-regular` … `extrabold`      | Weights                                   | `400` / `500` / `600` / `700` / `800`  |
+| `--shadow-1` … `--shadow-3`                | Elevation, low to high                    | Layered shadows                        |
+| `--z-nav`                                  | Navigation bars                           | `100`                                  |
+| `--z-sheet`                                | Sheets and side panels                    | `400`                                  |
+| `--z-toast`                                | Toasts                                    | `500`                                  |
+| `--z-overlay`                              | Dialogs and their scrim                   | `600`                                  |
+| `--z-popover`                              | Popovers, menus, selects, tooltips        | `700`                                  |
+| `--motion-fast` / `--motion-base`          | Transition durations                      | `120ms` / `200ms` (`0ms` reduced)      |
+| `--motion-pulse`                           | One cycle of a live pulse                 | `1600ms` (`0ms` reduced)               |
+| `--easing-standard`                        | Default easing curve                      | `cubic-bezier(0.2, 0, 0, 1)`           |
+| `--sidebar-width`                          | Desktop sidebar                           | `15rem`                                |
+| `--topbar-height`                          | Top bar                                   | `3.5rem`                               |
+| `--bottom-nav-height`                      | Phone bottom navigation                   | `3.75rem`                              |
+| `--content-max-width`                      | Cap on content width                      | `90rem`                                |
+| `--tap-target-min`                         | Smallest touch target                     | `2.75rem`                              |
+| `--image-size-xs` … `--image-size-xl`      | ImageSlot sizes                           | `1.5` / `2` / `3` / `5` / `8rem`       |
+| `--safe-top` / `right` / `bottom` / `left` | Notch and home-indicator insets           | `env(safe-area-inset-*, 0px)`          |
+| `--ui-scale`                               | UI scale, set by `applyUiScale`           | `0.8` to `1.5`, default `1`            |
 
-Body text is `--font-size-md` (1rem, so 16px at scale 1). Table cells and anything marked
-`data-numeric` use tabular numbers so columns of figures line up.
+Body text is `--font-size-md` (1rem, so 16px at scale 1) in Inter; headings (`h1`–`h6`) use the
+display family. Both fonts are self-hosted: `main.tsx` imports the `@fontsource/barlow-condensed`
+(600, 700, 800) and `@fontsource/inter` (400, 500, 600) weight files, Vite bundles them, and the
+game never contacts a font CDN. Table cells, anything marked `data-numeric` and anything with the
+global `.tabular` class use tabular numbers so columns of figures line up.
 
-Reduced motion sets both durations to `0ms`, either from the OS (`prefers-reduced-motion: reduce`,
+Reduced motion sets all three durations to `0ms`, either from the OS (`prefers-reduced-motion: reduce`,
 unless `<html data-reduced-motion="off">`) or from the setting (`data-reduced-motion="on"`).
 Components animate with the motion tokens so they inherit this for free.
 

@@ -1,8 +1,9 @@
 import { useSyncExternalStore } from 'react';
-import type { ThemePreference } from '@/styles/theme';
+import { DEFAULT_THEME, resolveTheme } from '@/styles/theme';
+import type { ThemeName, ThemePreference } from '@/styles/theme';
 
-/** The theme actually on screen once 'system' is resolved against the OS setting. */
-export type EffectiveTheme = 'light' | 'dark';
+/** The theme actually on screen once the preference is resolved against what ships. */
+export type EffectiveTheme = ThemeName;
 
 const DARK_SCHEME_QUERY = '(prefers-color-scheme: dark)';
 
@@ -28,13 +29,11 @@ export function readThemePreference(): ThemePreference {
   return attribute === 'light' || attribute === 'dark' ? attribute : 'system';
 }
 
-/** The theme on screen: the forced one, or the OS preference when following the system. */
+/** The theme on screen: the preference resolved against the OS setting and the shipped themes. */
 export function readEffectiveTheme(): EffectiveTheme {
-  const preference = readThemePreference();
-  if (preference !== 'system') return preference;
   const prefersDark =
     typeof window.matchMedia === 'function' && window.matchMedia(DARK_SCHEME_QUERY).matches;
-  return prefersDark ? 'dark' : 'light';
+  return resolveTheme(readThemePreference(), prefersDark);
 }
 
 function serverPreference(): ThemePreference {
@@ -42,7 +41,7 @@ function serverPreference(): ThemePreference {
 }
 
 function serverEffectiveTheme(): EffectiveTheme {
-  return 'light';
+  return DEFAULT_THEME;
 }
 
 /** The current theme preference, kept current as it changes. */

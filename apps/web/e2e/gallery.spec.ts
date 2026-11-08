@@ -1,10 +1,10 @@
 /**
  * The component gallery at /dev/gallery, on desktop and phone. Every entry opens without console
  * errors (the fixture fails the test on any), fits the viewport with no horizontal scroll, and has
- * no serious accessibility issues in either theme. On desktop the entry list and the phone frame
- * work; on a phone a select replaces the list, buttons meet the touch target and the entry panel
- * runs edge to edge. The interactive primitives (Tabs, Sheet, ConfirmDialog) are opened from their
- * entries and driven from the keyboard too.
+ * no serious accessibility issues in the dark theme, the only one that ships. On desktop the entry
+ * list and the phone frame work; on a phone a select replaces the list, buttons meet the touch
+ * target and the entry panel runs edge to edge. The interactive primitives (Tabs, Sheet,
+ * ConfirmDialog) are opened from their entries and driven from the keyboard too.
  */
 import { expect, test } from './fixtures';
 import type { Locator, Page } from '@playwright/test';
@@ -132,32 +132,42 @@ test.describe('component gallery', () => {
     }
   });
 
-  test('has no serious accessibility issues in the dark theme', async ({ page }, testInfo) => {
-    test.slow();
-    await page.getByRole('button', { name: 'Dark', exact: true }).click();
-    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-
-    const phone = isPhone(testInfo);
-    for (const entry of await readEntries(page)) {
-      await test.step(entry.title, async () => {
-        await openEntry(page, entry, phone);
-        await expectNoSeriousA11yViolations(page);
-      });
-    }
-  });
-
   test('deep links to an entry by #id', async ({ page }) => {
     await page.goto(`${GALLERY_PATH}#stat-bar`);
     await expect(page.getByRole('heading', { level: 2, name: 'StatBar' })).toBeVisible();
   });
 
-  test('switches theme from the toolbar', async ({ page }) => {
-    await page.getByRole('button', { name: 'Dark', exact: true }).click();
+  test('renders dark with the self-hosted display and body fonts', async ({ page }) => {
+    const fontHostRequests: string[] = [];
+    page.on('request', (request) => {
+      const url = new URL(request.url());
+      if (url.hostname !== 'localhost' && url.hostname !== '127.0.0.1') {
+        fontHostRequests.push(request.url());
+      }
+    });
+    await page.goto(`${GALLERY_PATH}#tokens-type`);
+    await expect(page.getByRole('heading', { level: 2, name: 'Type scale' })).toBeVisible();
+
+    // Dark is the only theme, so there is no theme toggle and the canvas is the dark navy.
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-    await page.getByRole('button', { name: 'Light', exact: true }).click();
-    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
-    await page.getByRole('button', { name: 'System', exact: true }).click();
-    await expect(page.locator('html')).not.toHaveAttribute('data-theme');
+    await expect(page.getByRole('group', { name: 'Theme' })).toHaveCount(0);
+    const background = await page.evaluate(
+      () => window.getComputedStyle(document.body).backgroundColor,
+    );
+    expect(background).toBe('rgb(9, 13, 22)');
+
+    const fontsLoaded = await page.evaluate(async () => {
+      await document.fonts.ready;
+      return {
+        display: document.fonts.check('700 2rem "Barlow Condensed"'),
+        body: document.fonts.check('400 1rem "Inter"'),
+        heading: window.getComputedStyle(document.querySelector('h1') ?? document.body).fontFamily,
+      };
+    });
+    expect(fontsLoaded.display, 'Barlow Condensed loaded').toBe(true);
+    expect(fontsLoaded.body, 'Inter loaded').toBe(true);
+    expect(fontsLoaded.heading).toMatch(/^"Barlow Condensed"/);
+    expect(fontHostRequests, 'requests that left the app origin').toEqual([]);
   });
 
   test('renders the entry in a 390px phone frame on desktop', async ({ page }, testInfo) => {
@@ -168,7 +178,6 @@ test.describe('component gallery', () => {
     }
 
     await page.goto(`${GALLERY_PATH}#badge`);
-    await page.getByRole('button', { name: 'Dark', exact: true }).click();
     await frameToggle.click();
     await expect(frameToggle).toHaveAttribute('aria-pressed', 'true');
 
@@ -317,15 +326,16 @@ test.describe('component gallery', () => {
     expect(sheetBox.x, 'leaves the page showing on the left').toBeGreaterThan(viewport.width / 2);
     expect(Math.round(sheetBox.height)).toBe(viewport.height);
 
-    // The page heading sits beside the sheet, under a see-through backdrop.
+    // The page heading sits beside the sheet, under a see-through backdrop. While the sheet is
+    // open the page behind it is hidden from screen readers, so the lookup includes hidden nodes.
     const headingBox = await page
-      .getByRole('heading', { level: 1, name: 'Component gallery' })
+      .getByRole('heading', { level: 1, name: 'Component gallery', includeHidden: true })
       .boundingBox();
     expect(headingBox).not.toBeNull();
     expect(headingBox?.x ?? Number.POSITIVE_INFINITY).toBeLessThan(sheetBox.x);
-    const backdropColour = await sheet.evaluate(
-      (element) => window.getComputedStyle(element, '::backdrop').backgroundColor,
-    );
+    const backdropColour = await page
+      .locator('[data-sheet-overlay]')
+      .evaluate((element) => window.getComputedStyle(element).backgroundColor);
     expect(colourAlpha(backdropColour), `backdrop ${backdropColour}`).toBeGreaterThan(0);
     expect(colourAlpha(backdropColour), `backdrop ${backdropColour}`).toBeLessThan(1);
 
@@ -397,7 +407,7 @@ test.describe('component gallery', () => {
   test('an open sheet has no serious accessibility issues', async ({ page }) => {
     const { sheet } = await openSheet(page, 'Open bottom lg');
     await expect(sheet).toHaveAttribute('data-side', 'bottom');
-    await expectNoSeriousA11yViolations(page, { include: ['dialog[open]'] });
+    await expectNoSeriousA11yViolations(page, { include: ['[role="dialog"]'] });
   });
 
   test('a confirm opened from a sheet keeps the page locked until both close', async ({ page }) => {
@@ -496,7 +506,7 @@ test.describe('component gallery', () => {
     await expect(confirm).toBeVisible();
     await expect(confirm.getByRole('button', { name: 'Delete anyway' })).toBeEnabled();
     // The error state is the busiest the dialog gets: title, body, alert and both buttons.
-    await expectNoSeriousA11yViolations(page, { include: ['dialog[open]'] });
+    await expectNoSeriousA11yViolations(page, { include: ['[role="alertdialog"]'] });
   });
 
   test('confirm buttons stack full width with touch-sized targets on a phone', async ({

@@ -53,13 +53,13 @@ export function Sidebar({ sections, badges }: SidebarProps) {
       <ul className={styles['sidebarFooter']}>
         <li>
           <Link to={routes.settings()} className={styles['navLink']}>
-            <Icon name="settings" size="md" className={styles['navIcon']} />
+            <Icon name="settings" size="md" className={styles['navIcon']} decorative />
             <span className={styles['navLabel']}>Settings</span>
           </Link>
         </li>
         <li>
           <Link to={routes.title()} className={styles['navLink']}>
-            <Icon name="log-out" size="md" className={styles['navIcon']} />
+            <Icon name="log-out" size="md" className={styles['navIcon']} decorative />
             <span className={styles['navLabel']}>Main menu</span>
           </Link>
         </li>

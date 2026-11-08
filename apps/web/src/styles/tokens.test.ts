@@ -1,8 +1,9 @@
 /**
  * @vitest-environment node
  *
- * Contrast check for both themes. Reads tokens.css, resolves each semantic colour to its palette
- * hex, and checks the WCAG 2 contrast ratio of the pairs the UI relies on. Semantic tokens are
+ * Contrast check for the shipped theme. Reads tokens.css, resolves each semantic colour to its
+ * palette hex, checks the roles against docs/design/visual-identity.md, and checks the WCAG 2
+ * contrast ratio of the pairs the UI relies on. Semantic tokens are
  * plain hex or var() references to hex palette entries on purpose, so a small parser is enough.
  */
 import { readFileSync } from 'node:fs';
@@ -113,20 +114,34 @@ function contrastRatio(firstHex: string, secondHex: string): number {
   return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05);
 }
 
+/**
+ * Every semantic colour role from docs/design/visual-identity.md, then the older names that are
+ * mapped onto those roles so existing components keep working.
+ */
 const SEMANTIC_COLOUR_TOKENS = [
   '--color-bg',
   '--color-surface',
   '--color-surface-raised',
-  '--color-surface-sunken',
+  '--color-surface-hover',
   '--color-border',
   '--color-border-strong',
   '--color-text',
   '--color-text-muted',
+  '--color-text-subtle',
+  '--color-action',
+  '--color-action-contrast',
+  '--color-action-bright',
+  '--color-data',
+  '--color-prestige',
+  '--color-positive',
+  '--color-negative',
+  '--color-face',
+  '--color-heel',
+  '--color-tweener',
+  '--color-surface-sunken',
   '--color-text-inverse',
   '--color-accent',
   '--color-accent-contrast',
-  '--color-positive',
-  '--color-negative',
   '--color-warning',
   '--color-info',
   '--color-focus',
@@ -140,6 +155,60 @@ const SEMANTIC_COLOUR_TOKENS = [
   '--color-belt-strap',
 ];
 
+/** The hex values visual-identity.md gives each role. tokens.css must match them exactly. */
+const VISUAL_IDENTITY_ROLES: Readonly<Record<string, string>> = {
+  '--color-bg': '#090d16',
+  '--color-surface': '#0f172a',
+  '--color-surface-raised': '#131d31',
+  '--color-surface-hover': '#1a2740',
+  '--color-border': '#24334d',
+  '--color-border-strong': '#3b4d6b',
+  '--color-text': '#f1f5f9',
+  '--color-text-muted': '#94a3b8',
+  '--color-text-subtle': '#64748b',
+  '--color-action': '#d7301a',
+  '--color-action-bright': '#ff3b1d',
+  '--color-data': '#00e5ff',
+  '--color-prestige': '#facc15',
+  '--color-positive': '#34d399',
+  '--color-negative': '#fb7185',
+  '--color-face': '#00e5ff',
+  '--color-heel': '#ff3b1d',
+  '--color-tweener': '#a78bfa',
+};
+
+/** Older names and the role each one now follows. */
+const MAPPED_LEGACY_TOKENS: Readonly<Record<string, string>> = {
+  '--color-accent': '--color-action-bright',
+  '--color-surface-sunken': '--color-bg',
+  '--color-info': '--color-data',
+  '--color-warning': '--color-prestige',
+  '--color-focus': '--color-data',
+};
+
+/**
+ * Colours that are read as text. Body text and every accent role used for words or numbers
+ * (deltas, alignment chips, prestige, data, live labels) meet WCAG AA for normal text.
+ */
+const NORMAL_TEXT_ROLES = [
+  '--color-text',
+  '--color-text-muted',
+  '--color-action-bright',
+  '--color-data',
+  '--color-prestige',
+  '--color-positive',
+  '--color-negative',
+  '--color-face',
+  '--color-heel',
+  '--color-tweener',
+  '--color-accent',
+  '--color-warning',
+  '--color-info',
+];
+
+/** The two backgrounds text sits on most: the canvas and the raised surface. */
+const TEXT_BACKGROUNDS = ['--color-bg', '--color-surface', '--color-surface-raised'];
+
 interface ContrastRequirement {
   readonly foreground: string;
   readonly background: string;
@@ -147,20 +216,24 @@ interface ContrastRequirement {
 }
 
 const CONTRAST_REQUIREMENTS: readonly ContrastRequirement[] = [
-  // Body text: WCAG AA for normal text.
-  { foreground: '--color-text', background: '--color-bg', minimum: 4.5 },
-  { foreground: '--color-text', background: '--color-surface', minimum: 4.5 },
-  { foreground: '--color-text', background: '--color-surface-raised', minimum: 4.5 },
+  // Text roles: WCAG AA for normal text on the canvas and on panels.
+  ...NORMAL_TEXT_ROLES.flatMap((foreground) =>
+    TEXT_BACKGROUNDS.map((background) => ({ foreground, background, minimum: 4.5 })),
+  ),
+  // Subtle text is for large or decorative text only, so it meets AA for large text.
+  ...TEXT_BACKGROUNDS.map((background) => ({
+    foreground: '--color-text-subtle',
+    background,
+    minimum: 3,
+  })),
+  // Primary buttons: white text on the action fill.
+  { foreground: '--color-action-contrast', background: '--color-action', minimum: 4.5 },
   { foreground: '--color-accent-contrast', background: '--color-accent', minimum: 4.5 },
-  // Status colours show up as text in tables (money up or down, warnings), so they meet AA too.
-  { foreground: '--color-positive', background: '--color-surface', minimum: 4.5 },
-  { foreground: '--color-negative', background: '--color-surface', minimum: 4.5 },
-  { foreground: '--color-warning', background: '--color-surface', minimum: 4.5 },
-  { foreground: '--color-info', background: '--color-surface', minimum: 4.5 },
-  // Secondary text, focus ring and strong borders: WCAG AA for large text and UI parts.
-  { foreground: '--color-text-muted', background: '--color-surface', minimum: 3 },
+  // Tooltips: inverse text on a --color-text background.
+  { foreground: '--color-text-inverse', background: '--color-text', minimum: 4.5 },
+  // Keyboard focus ring: WCAG AA for UI parts.
   { foreground: '--color-focus', background: '--color-bg', minimum: 3 },
-  { foreground: '--color-border-strong', background: '--color-surface', minimum: 3 },
+  { foreground: '--color-focus', background: '--color-surface-raised', minimum: 3 },
   // Placeholder art: initials and monograms sit on a category colour and get small at the xs and
   // sm image sizes, so they meet AA for normal text.
   ...Array.from({ length: 8 }, (_, index) => ({
@@ -178,16 +251,10 @@ const CONTRAST_REQUIREMENTS: readonly ContrastRequirement[] = [
 
 const blocks = parseBlocks(tokensCss);
 const palette = findBlock(blocks, ':root').declarations;
-const lightBlock = findBlock(blocks, ":root, [data-theme='light']");
-const darkBlock = findBlock(blocks, "[data-theme='dark']");
-const systemDarkBlock = findBlock(
-  blocks,
-  ":root:not([data-theme='light'])",
-  '@media (prefers-color-scheme: dark)',
-);
+const darkBlock = findBlock(blocks, ":root, [data-theme='dark']");
 
+/** Only dark ships for now (D-11). A light theme adds its own entry here. */
 const themes = [
-  { name: 'light', tokens: new Map([...palette, ...lightBlock.declarations]) },
   { name: 'dark', tokens: new Map([...palette, ...darkBlock.declarations]) },
 ] as const;
 
@@ -212,29 +279,57 @@ describe('token parser', () => {
 });
 
 describe('theme blocks', () => {
-  it('sets color-scheme so native controls match', () => {
-    expect(lightBlock.declarations.get('color-scheme')).toBe('light');
+  it('makes dark the default on :root and sets color-scheme so native controls match', () => {
     expect(darkBlock.declarations.get('color-scheme')).toBe('dark');
-    expect(systemDarkBlock.declarations.get('color-scheme')).toBe('dark');
   });
 
-  it('keeps the system dark block identical to the data-theme dark block', () => {
-    expect([...systemDarkBlock.declarations]).toEqual([...darkBlock.declarations]);
+  it('ships no light or OS-dependent theme while the game is dark only', () => {
+    const themeSelectors = blocks
+      .filter((block) => block.selector.includes('[data-theme='))
+      .map((block) => block.selector);
+    expect(themeSelectors).toEqual([":root, [data-theme='dark']"]);
+    expect(blocks.filter((block) => block.atRules.length > 0)).toEqual([]);
   });
 
   it('keeps palette tokens out of the theme blocks', () => {
-    for (const block of [lightBlock, darkBlock]) {
-      const paletteNames = [...block.declarations.keys()].filter((name) =>
-        name.startsWith('--palette-'),
-      );
-      expect(paletteNames).toEqual([]);
-    }
+    const paletteNames = [...darkBlock.declarations.keys()].filter((name) =>
+      name.startsWith('--palette-'),
+    );
+    expect(paletteNames).toEqual([]);
+  });
+
+  it('defines the shape and glow tokens', () => {
+    expect(palette.get('--radius-card')).toBe('10px');
+    expect(palette.get('--radius-control')).toBe('8px');
+    expect(palette.get('--radius-pill')).toBe('999px');
+    expect(palette.get('--skew-broadcast')).toBe('-12deg');
+    expect(palette.get('--chamfer')).toBe('8px');
+    expect(darkBlock.declarations.get('--glow-action')).toMatch(/#ff3b1d/);
+    expect(darkBlock.declarations.get('--glow-data')).toMatch(/#00e5ff/);
+  });
+
+  it('names Barlow Condensed for display and Inter for the interface', () => {
+    expect(palette.get('--font-family-display')).toMatch(/^'Barlow Condensed',/);
+    expect(palette.get('--font-family-ui')).toMatch(/^'Inter',/);
+    expect(palette.get('--font-feature-tabular')).toBe('tabular-nums');
   });
 });
 
 describe.each(themes)('$name theme', ({ tokens }) => {
   it.each(SEMANTIC_COLOUR_TOKENS)('defines %s as a hex colour', (name) => {
     expect(resolveColour(tokens, name)).toMatch(HEX_COLOUR);
+  });
+
+  it.each(Object.entries(VISUAL_IDENTITY_ROLES))('sets %s to %s', (name, hex) => {
+    expect(resolveColour(tokens, name)).toBe(hex);
+  });
+
+  it.each(Object.entries(MAPPED_LEGACY_TOKENS))('maps %s onto %s', (legacyName, roleName) => {
+    expect(resolveColour(tokens, legacyName)).toBe(resolveColour(tokens, roleName));
+  });
+
+  it('puts white text on the action fill', () => {
+    expect(resolveColour(tokens, '--color-action-contrast')).toBe('#ffffff');
   });
 
   it.each(CONTRAST_REQUIREMENTS)(

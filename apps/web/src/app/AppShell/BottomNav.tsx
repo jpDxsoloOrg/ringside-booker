@@ -39,7 +39,7 @@ export function BottomNav({ items, badges, moreIsCurrent, moreOpen, onOpenMore }
             data-current={moreIsCurrent ? 'true' : 'false'}
             onClick={onOpenMore}
           >
-            <Icon name="more" size="md" className={styles['navIcon']} />
+            <Icon name="more" size="md" className={styles['navIcon']} decorative />
             <span className={styles['navLabel']}>More</span>
           </button>
         </li>

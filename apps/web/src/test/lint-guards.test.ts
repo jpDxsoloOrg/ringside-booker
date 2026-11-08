@@ -23,6 +23,7 @@ const WEB_APP_SOURCE_PATH = 'apps/web/src/app/sample.ts';
 const WEB_TEST_SUPPORT_PATH = 'apps/web/src/test/sample.ts';
 const WEB_UNIT_TEST_PATH = 'apps/web/src/screens/sample.test.tsx';
 const WEB_E2E_PATH = 'apps/web/e2e/sample.spec.ts';
+const ICON_SOURCE_PATH = 'apps/web/src/components/Icon/sample.ts';
 
 const TESTING_FIXTURE_IMPORT = [
   "import { tinyWorld } from '@ringside/engine/testing';",
@@ -117,6 +118,62 @@ describe('lint guards: engine test fixtures stay out of shipped web code', () =>
       expect(errorsFromRule(messages, 'no-restricted-imports')).toHaveLength(0);
     },
   );
+});
+
+describe('lint guards: Lucide stays behind the Icon component', () => {
+  const NAMED_LUCIDE_IMPORT = "import { Star } from 'lucide-react';\nexport const glyph = Star;\n";
+
+  it.each([WEB_COMPONENT_PATH, WEB_APP_SOURCE_PATH, WEB_UNIT_TEST_PATH])(
+    'bans lucide-react imports in %s',
+    async (relativePath) => {
+      const messages = await lintSample(NAMED_LUCIDE_IMPORT, relativePath);
+      const errors = errorsFromRule(messages, 'no-restricted-syntax');
+      expect(errors).toHaveLength(1);
+      expect(errors[0]?.message).toContain('Icon component');
+    },
+  );
+
+  it('bans re-exporting lucide-react outside the Icon component', async () => {
+    const code = "export { Star } from 'lucide-react';\n";
+    const messages = await lintSample(code, WEB_SOURCE_PATH);
+    expect(errorsFromRule(messages, 'no-restricted-syntax')).toHaveLength(1);
+  });
+
+  it('bans subpath and dynamic imports outside the Icon component', async () => {
+    const code = [
+      "import { DynamicIcon } from 'lucide-react/dynamic';",
+      "export const lazyGlyphs = import('lucide-react');",
+      'export const used = DynamicIcon;',
+      '',
+    ].join('\n');
+    const messages = await lintSample(code, WEB_SOURCE_PATH);
+    expect(errorsFromRule(messages, 'no-restricted-syntax')).toHaveLength(2);
+  });
+
+  it('allows named glyph imports inside the Icon component', async () => {
+    const messages = await lintSample(NAMED_LUCIDE_IMPORT, ICON_SOURCE_PATH);
+    expect(errorsFromRule(messages, 'no-restricted-syntax')).toHaveLength(0);
+  });
+
+  it('bans namespace, re-export-all and dynamic imports inside the Icon component', async () => {
+    const code = [
+      "import * as glyphs from 'lucide-react';",
+      "export * from 'lucide-react';",
+      "export const lazyGlyphs = import('lucide-react');",
+      'export const used = glyphs;',
+      '',
+    ].join('\n');
+    const messages = await lintSample(code, ICON_SOURCE_PATH);
+    const errors = errorsFromRule(messages, 'no-restricted-syntax');
+    expect(errors).toHaveLength(3);
+    expect(errors.every((error) => error.message.includes('by name'))).toBe(true);
+  });
+
+  it('leaves packages that only start with the same letters alone', async () => {
+    const code = "import { x } from 'lucide-reactive';\nexport const used = x;\n";
+    const messages = await lintSample(code, WEB_SOURCE_PATH);
+    expect(errorsFromRule(messages, 'no-restricted-syntax')).toHaveLength(0);
+  });
 });
 
 describe('lint guards: React hooks', () => {

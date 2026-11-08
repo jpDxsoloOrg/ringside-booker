@@ -2,17 +2,21 @@
  * `--smoke-days n`: after a world loads, run it forward `n` days through the engine's public API
  * and fail if any day-pipeline step reported an error.
  *
- * The run goes through `initialEngineState`, `createEngine` and `engine.advanceDays`. Until the
- * engine exports all three, the smoke run is skipped with a notice instead of failing, so the
- * option can sit in scripts before the headless API is finished. The exports are looked up at run
- * time and every value they return is checked before it is used.
+ * The run goes through `initialEngineState`, `createEngine` with `defaultSystems`, and
+ * `engine.advanceDays`, exactly as a new game would.
  */
 
-import * as engineModule from '@ringside/engine';
-import type { LoadedWorld } from '@ringside/engine';
+import {
+  createEngine,
+  defaultSystems,
+  initialEngineState,
+  MAX_ADVANCE_DAYS,
+  type AdvanceFailure,
+  type Engine,
+  type LoadedWorld,
+} from '@ringside/engine';
 
 export type SmokeOutcome =
-  | { readonly status: 'skipped'; readonly reason: string }
   | { readonly status: 'passed'; readonly daysAdvanced: number }
   | {
       readonly status: 'failed';
@@ -20,103 +24,48 @@ export type SmokeOutcome =
       readonly failures: readonly string[];
     };
 
-/** The most days one `advanceDays` call is asked for; longer runs loop. */
-const MAX_DAYS_PER_CALL = 3650;
-
 /** The most failures listed in the outcome. */
 const MAX_LISTED_FAILURES = 20;
 
-type AnyFunction = (...args: unknown[]) => unknown;
-
-function isFunction(value: unknown): value is AnyFunction {
-  return typeof value === 'function';
+function describeError(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }
 
-function isObject(value: unknown): value is object {
-  return typeof value === 'object' && value !== null;
-}
-
-function field(value: unknown, name: string): unknown {
-  return isObject(value) ? Reflect.get(value, name) : undefined;
-}
-
-function describeFailure(failure: unknown): string {
-  const date = field(failure, 'date');
-  const stepId = field(failure, 'stepId');
-  const message = field(failure, 'message');
-  return `${typeof date === 'string' ? date : '?'} ${typeof stepId === 'string' ? stepId : '?'}: ${typeof message === 'string' ? message : JSON.stringify(failure)}`;
-}
-
-/** The engine's headless API, when it is exported. */
-interface HeadlessApi {
-  readonly createEngine: AnyFunction;
-  readonly initialEngineState: AnyFunction;
-  readonly defaultSystems: unknown;
-}
-
-function headlessApi(): HeadlessApi | null {
-  const createEngine: unknown = Reflect.get(engineModule, 'createEngine');
-  const initialEngineState: unknown = Reflect.get(engineModule, 'initialEngineState');
-  const defaultSystems: unknown = Reflect.get(engineModule, 'defaultSystems');
-  if (
-    !isFunction(createEngine) ||
-    !isFunction(initialEngineState) ||
-    defaultSystems === undefined
-  ) {
-    return null;
-  }
-  return { createEngine, initialEngineState, defaultSystems };
+function describeFailure(failure: AdvanceFailure): string {
+  return `${failure.date} ${failure.stepId}: ${failure.message}`;
 }
 
 /** Advances the loaded world `days` days and collects every reported step failure. */
 export async function runSmokeDays(loaded: LoadedWorld, days: number): Promise<SmokeOutcome> {
-  const api = headlessApi();
-  if (api === null) {
-    return {
-      status: 'skipped',
-      reason:
-        'the engine does not export the headless API (createEngine, initialEngineState, defaultSystems) yet',
-    };
-  }
   const failures: string[] = [];
   let daysAdvanced = 0;
-  let engine: unknown;
+  let engine: Engine;
   try {
-    const state = api.initialEngineState(loaded.world);
-    engine = api.createEngine({ state, systems: api.defaultSystems });
+    engine = createEngine({ state: initialEngineState(loaded.world), systems: defaultSystems });
   } catch (error: unknown) {
-    const reason = error instanceof Error ? error.message : String(error);
-    return { status: 'failed', daysAdvanced, failures: [`the engine did not start: ${reason}`] };
-  }
-  const advanceDays = field(engine, 'advanceDays');
-  if (!isFunction(advanceDays)) {
-    return { status: 'skipped', reason: 'the engine object has no advanceDays method' };
+    return {
+      status: 'failed',
+      daysAdvanced,
+      failures: [`the engine did not start: ${describeError(error)}`],
+    };
   }
   while (daysAdvanced < days) {
-    let result: unknown;
     try {
-      result = await advanceDays.call(engine, {
-        maxDays: Math.min(days - daysAdvanced, MAX_DAYS_PER_CALL),
+      const result = await engine.advanceDays({
+        maxDays: Math.min(days - daysAdvanced, MAX_ADVANCE_DAYS),
       });
+      failures.push(...result.failures.map(describeFailure));
+      if (result.daysAdvanced <= 0) {
+        failures.push(`stopped after ${String(daysAdvanced)} days (${result.stoppedBy.kind})`);
+        break;
+      }
+      daysAdvanced += result.daysAdvanced;
     } catch (error: unknown) {
-      const reason = error instanceof Error ? error.message : String(error);
-      failures.push(`advanceDays threw after ${String(daysAdvanced)} days: ${reason}`);
-      break;
-    }
-    const advanced = field(result, 'daysAdvanced');
-    const reported = field(result, 'failures');
-    if (Array.isArray(reported)) {
-      const list: unknown[] = reported;
-      failures.push(...list.map(describeFailure));
-    }
-    if (typeof advanced !== 'number' || advanced <= 0) {
-      const stoppedBy = field(field(result, 'stoppedBy'), 'kind');
       failures.push(
-        `stopped after ${String(daysAdvanced)} days (${typeof stoppedBy === 'string' ? stoppedBy : 'no progress'})`,
+        `advanceDays threw after ${String(daysAdvanced)} days: ${describeError(error)}`,
       );
       break;
     }
-    daysAdvanced += advanced;
   }
   if (failures.length > 0) {
     return { status: 'failed', daysAdvanced, failures: failures.slice(0, MAX_LISTED_FAILURES) };

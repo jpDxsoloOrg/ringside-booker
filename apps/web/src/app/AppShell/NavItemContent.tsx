@@ -19,7 +19,7 @@ export function NavItemContent({ item, badges, short = false }: NavItemContentPr
 
   return (
     <>
-      <Icon name={item.icon} size="md" className={styles['navIcon']} />
+      <Icon name={item.icon} size="md" className={styles['navIcon']} decorative />
       <span className={styles['navLabel']}>{label}</span>
       {item.badgeKey !== undefined && (
         <CountBadge

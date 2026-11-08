@@ -23,15 +23,15 @@ validate-world <packDir...> [--root <packId>] [--seed <s>] [--report <file.md>]
                [--blocklist <file>] [--strict] [--smoke-days <n>]
 ```
 
-| Option               | What it does                                                                                                                                            |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `packDir...`         | One or more pack folders, each with a `pack.json`.                                                                                                      |
-| `--root <packId>`    | The pack(s) to load from, repeatable. Default: every pack passed in.                                                                                    |
-| `--seed <s>`         | The seed IDs are minted from. Default `validate`. The report does not depend on it.                                                                     |
-| `--report <file.md>` | Also writes the report as GitHub-flavoured markdown.                                                                                                    |
-| `--blocklist <file>` | An extra real-name list, repeatable. It is checked on top of the committed list and never replaces it.                                                  |
-| `--strict`           | Warnings fail the run too.                                                                                                                              |
-| `--smoke-days <n>`   | Advances the loaded world `n` days through the engine API and fails on any step error. Skipped with a notice until the engine exports its headless API. |
+| Option               | What it does                                                                                                                  |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `packDir...`         | One or more pack folders, each with a `pack.json`.                                                                            |
+| `--root <packId>`    | The pack(s) to load from, repeatable. Default: every pack passed in.                                                          |
+| `--seed <s>`         | The seed IDs are minted from. Default `validate`. The report does not depend on it.                                           |
+| `--report <file.md>` | Also writes the report as GitHub-flavoured markdown.                                                                          |
+| `--blocklist <file>` | An extra real-name list, repeatable. It is checked on top of the committed list and never replaces it.                        |
+| `--strict`           | Warnings fail the run too.                                                                                                    |
+| `--smoke-days <n>`   | Advances the loaded world `n` days through the engine API (`createEngine` with `defaultSystems`) and fails on any step error. |
 
 Packs named in `dependsOn` that were not passed in are found by pack ID anywhere under `content/`,
 so pointing the tool at a world pack is enough.
@@ -86,6 +86,9 @@ Format:
 - One name per line.
 - Blank lines and lines starting with `#` are ignored. Use `#` lines to group names.
 - Write the name the way it is usually written; case, accents and punctuation don't matter.
+- A one-word name that is also an everyday word ends with the flag `[case]` (`Sting [case]`).
+  It then matches only written the way the list writes it or in capitals. Any other flag, or
+  `[case]` on a longer name, stops the run with exit code 2.
 
 What gets checked: every person's legal name and default ring name, every contract's ring name,
 every promotion's full and short name, and the names of brands, titles, venues, networks, event
@@ -102,9 +105,19 @@ How names match:
   "Stingray Vance"; `Starrcade` blocks "Starrcade 1987" and "Starrcade XX".
 - A one-word entry **written in capitals** (an acronym of two to six letters or digits, such as
   `WWE` or `IWGP`) matches as a whole word anywhere: `NWA` blocks "NWA World Title". Write a
-  common word that is also a name in normal case (`Glow`) so it only blocks the exact name.
+  common word that is also a name in normal case and flag it (`Glow [case]`) so it only blocks
+  the exact name.
 - A **longer entry** also matches inside a longer name: `Ring of Honor` blocks "Ring of Honor
-  Classic".
+  Classic". It always ignores case.
+- A **`[case]` entry** follows the same rules but compares letters with their case kept (accents
+  and punctuation are still ignored): `Sting [case]` blocks "Sting", "STING" and "The Sting" but
+  not "sting". Use it for the everyday words on the list so the blog checker can tell the word
+  from the name.
+
+The matching lives in [`src/realNameMatcher.ts`](src/realNameMatcher.ts). The blog checker
+(`tools/blog`) imports the same module to scan posts and journal entries, so the two tools read
+the list, and the `[case]` flag, the same way. In running text a name matches as whole words
+anywhere, with case ignored unless the entry is flagged `[case]`.
 
 **Add a name when you spot a near miss.** If a generated or hand-written name comes close to a
 real one, add the real name to the list in the same change that renames the content, so the next

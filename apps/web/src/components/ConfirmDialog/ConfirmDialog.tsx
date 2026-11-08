@@ -1,7 +1,8 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import * as Dialog from '@radix-ui/react-dialog';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Button } from '../Button';
-import { useModalDialog } from '../Sheet';
+import { useBodyScrollLock, useOverlayFocus } from '../Sheet';
 import styles from './ConfirmDialog.module.css';
 
 /** `danger` for destructive or irreversible actions: a red confirm button and Cancel focused first. */
@@ -41,26 +42,21 @@ function errorMessageFrom(error: unknown): string {
   return CONFIRM_FALLBACK_ERROR;
 }
 
-function actionButton(
-  dialog: HTMLDialogElement | null,
-  action: InitialFocusTarget,
-): HTMLElement | null {
-  return dialog?.querySelector<HTMLElement>(`[data-confirm-action="${action}"]`) ?? null;
+function actionButton(content: HTMLElement | null, action: InitialFocusTarget): HTMLElement | null {
+  return content?.querySelector<HTMLElement>(`[data-confirm-action="${action}"]`) ?? null;
 }
 
 /**
- * A small centred dialog that asks before an action happens. Built on the native `<dialog>`, so it
- * traps focus, closes on Escape, and returns focus to whatever opened it. It can open on top of a
- * `Sheet`; the page stays scroll-locked until both have closed.
+ * A small centred dialog that asks before an action happens. It is a modal Radix dialog with the
+ * `alertdialog` role, so it traps focus, closes on Escape, and returns focus to whatever opened
+ * it. A click outside does nothing: a confirmation is a decision, and a stray click should not
+ * count as one. It can open on top of a `Sheet`; the page stays scroll-locked until both have
+ * closed.
  *
  * Nothing is rendered while it is closed.
  */
-export function ConfirmDialog(props: ConfirmDialogProps) {
-  if (!props.open) return null;
-  return <OpenConfirmDialog {...props} />;
-}
-
-function OpenConfirmDialog({
+export function ConfirmDialog({
+  open,
   onClose,
   onConfirm,
   title,
@@ -69,63 +65,122 @@ function OpenConfirmDialog({
   cancelLabel = 'Cancel',
   tone = 'default',
 }: ConfirmDialogProps) {
-  const dialogRef = useRef<HTMLDialogElement>(null);
-  const titleId = useId();
-  const bodyId = useId();
+  const initialFocus: InitialFocusTarget = tone === 'danger' ? 'cancel' : 'confirm';
+  const focusHandlers = useOverlayFocus(open, (content) => actionButton(content, initialFocus));
+  // Read by the Escape handler: while the action runs the dialog cannot be dismissed.
+  const isPendingRef = useRef(false);
+  useBodyScrollLock(open);
+
+  useLayoutEffect(() => {
+    if (open) isPendingRef.current = false;
+  }, [open]);
+
+  return (
+    <Dialog.Root
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) onClose();
+      }}
+    >
+      <Dialog.Portal>
+        <Dialog.Overlay className={styles['overlay']} />
+        <Dialog.Content
+          role="alertdialog"
+          className={styles['dialog']}
+          data-tone={tone}
+          {...focusHandlers}
+          onInteractOutside={(event) => {
+            event.preventDefault();
+          }}
+          onEscapeKeyDown={(event) => {
+            if (isPendingRef.current) event.preventDefault();
+          }}
+        >
+          <ConfirmBody
+            onClose={onClose}
+            onConfirm={onConfirm}
+            title={title}
+            body={body}
+            confirmLabel={confirmLabel}
+            cancelLabel={cancelLabel}
+            tone={tone}
+            initialFocus={initialFocus}
+            onPendingChange={(isPending) => {
+              isPendingRef.current = isPending;
+            }}
+          />
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
+}
+
+interface ConfirmBodyProps {
+  readonly onClose: () => void;
+  readonly onConfirm: () => Promise<void> | void;
+  readonly title: ReactNode;
+  readonly body: ReactNode;
+  readonly confirmLabel: string;
+  readonly cancelLabel: string;
+  readonly tone: ConfirmDialogTone;
+  readonly initialFocus: InitialFocusTarget;
+  readonly onPendingChange: (isPending: boolean) => void;
+}
+
+/** What is inside the dialog. Radix mounts it only while open, so each opening starts clean. */
+function ConfirmBody({
+  onClose,
+  onConfirm,
+  title,
+  body,
+  confirmLabel,
+  cancelLabel,
+  tone,
+  initialFocus,
+  onPendingChange,
+}: ConfirmBodyProps) {
+  const actionsRef = useRef<HTMLDivElement>(null);
   const [isPending, setIsPending] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const initialFocus: InitialFocusTarget = tone === 'danger' ? 'cancel' : 'confirm';
-
-  useModalDialog(dialogRef, {
-    onRequestClose: onClose,
-    // A confirmation is a decision; a stray click outside should not count as one.
-    closeOnBackdrop: false,
-    dismissible: !isPending,
-    getInitialFocus: (dialog) => actionButton(dialog, initialFocus),
-  });
 
   // After a failure the buttons are enabled again; put focus back where it started.
   useEffect(() => {
-    if (errorMessage !== null) actionButton(dialogRef.current, initialFocus)?.focus();
+    if (errorMessage !== null) actionButton(actionsRef.current, initialFocus)?.focus();
   }, [errorMessage, initialFocus]);
+
+  const updatePending = (nextPending: boolean) => {
+    setIsPending(nextPending);
+    onPendingChange(nextPending);
+  };
 
   const handleConfirm = async () => {
     if (isPending) return;
-    setIsPending(true);
+    updatePending(true);
     setErrorMessage(null);
     try {
       await onConfirm();
     } catch (error: unknown) {
       setErrorMessage(errorMessageFrom(error));
-      setIsPending(false);
+      updatePending(false);
       return;
     }
     onClose();
   };
 
   return (
-    <dialog
-      ref={dialogRef}
-      role="alertdialog"
-      aria-labelledby={titleId}
-      aria-describedby={bodyId}
-      className={styles['dialog']}
-      data-tone={tone}
-    >
+    <>
       <div className={styles['content']}>
-        <h2 id={titleId} className={styles['title']}>
-          {title}
-        </h2>
-        <div id={bodyId} className={styles['body']}>
-          {body}
-        </div>
+        <Dialog.Title className={styles['title']}>{title}</Dialog.Title>
+        <Dialog.Description asChild>
+          <div className={styles['body']}>{body}</div>
+        </Dialog.Description>
         {errorMessage !== null && (
           <p role="alert" className={styles['error']}>
             {errorMessage}
           </p>
         )}
       </div>
-      <div className={styles['actions']}>
+      <div ref={actionsRef} className={styles['actions']}>
         <Button data-confirm-action="cancel" disabled={isPending} onClick={onClose}>
           {cancelLabel}
         </Button>
@@ -140,6 +195,6 @@ function OpenConfirmDialog({
           {confirmLabel}
         </Button>
       </div>
-    </dialog>
+    </>
   );
 }

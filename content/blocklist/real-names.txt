@@ -9,6 +9,11 @@
 # (a leading "the" and trailing numbers are ignored); a one-word entry in capitals (an acronym such
 # as WWE) and a longer entry also match inside a longer name. See tools/validate-world/README.md.
 #
+# A one-word name that is also an everyday word ends with the flag [case] (`Sting [case]`). It
+# then matches only as written here or in capitals, so the blog checker passes "a loss to sting
+# less" but still flags the capitalised name. The world validator and the blog checker share
+# one matcher (tools/validate-world/src/realNameMatcher.ts), so both read the flag the same way.
+#
 # This file is data for the checker only. It lives outside every pack and is never loaded by the
 # game. When you spot a near miss in content, add the real name here.
 
@@ -31,7 +36,7 @@ Pro Wrestling NOAH
 DDT Pro-Wrestling
 Dragon Gate
 World Wonder Ring Stardom
-Stardom
+Stardom [case]
 Consejo Mundial de Lucha Libre
 Lucha Libre AAA Worldwide
 Asistencia Asesoría y Administración
@@ -84,7 +89,7 @@ FMW
 USWA
 WCCW
 WWC
-Glow
+Glow [case]
 DDT
 
 # Shows and events
@@ -93,10 +98,10 @@ SmackDown
 Friday Night SmackDown
 NXT
 Monday Nitro
-Nitro
+Nitro [case]
 WCW Thunder
 AEW Dynamite
-Dynamite
+Dynamite [case]
 WrestleMania
 SummerSlam
 Royal Rumble
@@ -148,7 +153,7 @@ AXS TV
 FITE
 TV Asahi
 Samurai TV
-Peacock
+Peacock [case]
 Netflix
 ESPN
 Sky Sports
@@ -178,7 +183,7 @@ Steve Austin
 The Rock
 Dwayne Johnson
 The Undertaker
-Undertaker
+Undertaker [case]
 Mark Calaway
 John Cena
 Ric Flair
@@ -195,15 +200,15 @@ Paul Levesque
 Kevin Nash
 Scott Hall
 Razor Ramon
-Sting
+Sting [case]
 Goldberg
 Bill Goldberg
 Mick Foley
 Cactus Jack
-Mankind
+Mankind [case]
 Kurt Angle
 Chris Jericho
-Edge
+Edge [case]
 Christian Cage
 Rey Mysterio
 Eddie Guerrero

@@ -115,8 +115,61 @@
   block-size: 4rem;
 }
 
+/* Broadcast shape previews: a chamfered panel, a skewed bug with un-skewed text, and glows. */
+.shapePreview {
+  display: inline-grid;
+  place-items: center;
+  justify-self: start;
+  min-inline-size: 7rem;
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+}
+
+.shapePreviewLabel {
+  font-family: var(--font-family-display);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.chamferPreview {
+  border: 0;
+  clip-path: polygon(
+    var(--chamfer) 0,
+    100% 0,
+    100% calc(100% - var(--chamfer)),
+    calc(100% - var(--chamfer)) 100%,
+    0 100%,
+    0 var(--chamfer)
+  );
+}
+
+.skewPreview {
+  border-color: var(--color-action);
+  background: var(--color-action);
+  color: var(--color-action-contrast);
+  transform: skewX(var(--skew-broadcast));
+}
+
+.skewPreview .shapePreviewLabel {
+  transform: skewX(calc(-1 * var(--skew-broadcast)));
+}
+
+.glow-action {
+  margin: var(--space-2);
+  box-shadow: var(--glow-action);
+  color: var(--color-action-bright);
+}
+
+.glow-data {
+  margin: var(--space-2);
+  box-shadow: var(--glow-data);
+  color: var(--color-data);
+}
+
 .radiusFill {
-  fill: var(--color-surface-sunken);
+  fill: var(--color-surface-hover);
   stroke: var(--color-border-strong);
   stroke-width: 0.0625;
 }
@@ -198,6 +251,10 @@
   font-weight: var(--font-weight-bold);
 }
 
+.font-weight-extrabold {
+  font-weight: var(--font-weight-extrabold);
+}
+
 .line-height-tight {
   max-inline-size: 22rem;
   line-height: var(--line-height-tight);
@@ -211,6 +268,16 @@
 .line-height-normal {
   max-inline-size: 22rem;
   line-height: var(--line-height-normal);
+}
+
+.displaySample {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-2xl);
+  text-transform: uppercase;
+}
+
+.font-family-display {
+  font-family: var(--font-family-display);
 }
 
 .font-family-ui {
@@ -242,10 +309,10 @@
   font-weight: var(--font-weight-semibold);
 }
 
-/* Icons: a grid of named tiles. */
+/* Icons: a grid of named tiles per group. Two columns or more, down to a 390px phone. */
 .iconGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 8rem), 1fr));
   gap: var(--space-2);
   padding: 0;
   list-style: none;
@@ -261,6 +328,10 @@
   font-family: var(--font-family-mono);
   font-size: var(--font-size-xs);
   overflow-wrap: anywhere;
+}
+
+.iconName {
+  min-inline-size: 0;
 }
 
 .statGrid {

@@ -1,6 +1,10 @@
 // Banned terms are matched here and never printed as they are. The repo and its CI logs are
 // public, so every message shows a term masked: the first letter of each word, the rest as `*`.
 
+import { parseTermLines, textPattern } from '@ringside/validate-world/real-name-matcher';
+
+import type { BannedTerm } from './types';
+
 /**
  * Masks a term for output: `Fictional Banned Co` becomes `F******** B***** C*`. Whitespace
  * between words is kept as single spaces; every other character after a word's first is a `*`.
@@ -17,39 +21,33 @@ export function maskTerm(term: string): string {
     .join(' ');
 }
 
-function escapeRegExp(text: string): string {
-  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+/**
+ * A global pattern for one term in running text, from the real-name matcher the world validator
+ * uses too. It only matches whole words: the characters on either side may not be letters, digits
+ * or underscores. A plain term ignores case and the whitespace inside it matches any run of
+ * whitespace, so a term split across a line break in the source is still found. A `[case]` term
+ * (`Sting [case]`, a name that is also an everyday word) matches only as written or in capitals.
+ */
+export function bannedTermPattern(term: BannedTerm): RegExp {
+  return textPattern(term);
 }
 
 /**
- * A global, case-insensitive pattern for one term. It only matches whole words: the characters
- * on either side may not be letters, digits or underscores. Whitespace inside the term matches
- * any run of whitespace, so a term split across a line break in the source is still found.
+ * Reads a term list: one term per line, `#` comment lines and blank lines ignored, and an optional
+ * `[case]` flag after a one-word term. Throws `TermLineError` (with the line, never the term) for
+ * a line it cannot use.
  */
-export function bannedTermPattern(term: string): RegExp {
-  const body = term
-    .trim()
-    .split(/\s+/)
-    .map((word) => escapeRegExp(word))
-    .join('\\s+');
-  return new RegExp(`(?<![\\p{L}\\p{N}_])${body}(?![\\p{L}\\p{N}_])`, 'giu');
-}
-
-/** Reads a term list: one term per line, `#` comment lines and blank lines ignored. */
-export function parseTermList(text: string): string[] {
-  return text
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter((line) => line !== '' && !line.startsWith('#'));
+export function parseTermList(text: string): BannedTerm[] {
+  return parseTermLines(text).map(({ spec }) => spec);
 }
 
 /** Replaces every occurrence of every term in `text` with the term's mask. */
-export function maskTermsIn(text: string, terms: readonly string[]): string {
+export function maskTermsIn(text: string, terms: readonly BannedTerm[]): string {
   // Longest first, so a longer term is masked before a shorter one inside it.
-  const sortedTerms = [...terms].sort((left, right) => right.length - left.length);
+  const sortedTerms = [...terms].sort((left, right) => right.name.length - left.name.length);
   let masked = text;
   for (const term of sortedTerms) {
-    masked = masked.replace(bannedTermPattern(term), maskTerm(term));
+    masked = masked.replace(bannedTermPattern(term), maskTerm(term.name));
   }
   return masked;
 }

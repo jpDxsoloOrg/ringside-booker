@@ -258,9 +258,7 @@ export async function runValidateWorld(argv: readonly string[], io: CliIo): Prom
   let smokeFailed = false;
   if (options.smokeDays !== null) {
     const outcome = await runSmokeDays(loaded.value, options.smokeDays);
-    if (outcome.status === 'skipped') {
-      io.stdout(`\nSmoke run skipped: ${outcome.reason}.\n`);
-    } else if (outcome.status === 'passed') {
+    if (outcome.status === 'passed') {
       io.stdout(
         `\nSmoke run: ${String(outcome.daysAdvanced)} days advanced with no step errors.\n`,
       );

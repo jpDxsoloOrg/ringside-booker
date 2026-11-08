@@ -1,3 +1,4 @@
+import { forwardRef } from 'react';
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { classNames } from '../classNames';
 import { Icon } from '../Icon';
@@ -30,22 +31,29 @@ export interface ButtonProps extends Omit<
   readonly children: ReactNode;
 }
 
-/** The game's standard button. Renders `<button type="button">` unless `type` says otherwise. */
-export function Button({
-  variant = 'secondary',
-  size = 'md',
-  loading = false,
-  iconStart,
-  iconEnd,
-  type = 'button',
-  disabled = false,
-  className,
-  children,
-  ...buttonAttributes
-}: ButtonProps) {
+/**
+ * The game's standard button. Renders `<button type="button">` unless `type` says otherwise. It
+ * forwards its ref, so it can be the trigger of a Tooltip, Popover or DropdownMenu.
+ */
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+  {
+    variant = 'secondary',
+    size = 'md',
+    loading = false,
+    iconStart,
+    iconEnd,
+    type = 'button',
+    disabled = false,
+    className,
+    children,
+    ...buttonAttributes
+  },
+  ref,
+) {
   return (
     <button
       {...buttonAttributes}
+      ref={ref}
       type={type}
       disabled={disabled || loading}
       aria-busy={loading ? true : undefined}
@@ -58,11 +66,11 @@ export function Button({
       )}
     >
       <span className={styles['content']}>
-        {iconStart !== undefined && <Icon name={iconStart} />}
+        {iconStart !== undefined && <Icon name={iconStart} decorative />}
         {children}
-        {iconEnd !== undefined && <Icon name={iconEnd} />}
+        {iconEnd !== undefined && <Icon name={iconEnd} decorative />}
       </span>
       {loading && <span className={styles['spinner']} aria-hidden="true" />}
     </button>
   );
-}
+});

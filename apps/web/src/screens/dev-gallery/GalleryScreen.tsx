@@ -6,7 +6,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { Cluster } from '@/components/layout';
 import { Panel } from '@/components/Panel';
 import { classNames } from '@/components/classNames';
-import { applyTheme } from '@/styles/theme';
+import { applyTheme, SELECTABLE_THEME_PREFERENCES } from '@/styles/theme';
 import type { ThemePreference } from '@/styles/theme';
 import { useIsMobile } from '@/styles/useMediaQuery';
 import { galleryEntries } from './entries';
@@ -18,11 +18,11 @@ import { useThemePreference } from './useThemeState';
 /** Path of the bare page the phone frame loads: one entry, no gallery chrome. */
 export const GALLERY_FRAME_PATH = routes.dev.galleryFrame();
 
-const THEME_OPTIONS: readonly { readonly preference: ThemePreference; readonly label: string }[] = [
-  { preference: 'light', label: 'Light' },
-  { preference: 'dark', label: 'Dark' },
-  { preference: 'system', label: 'System' },
-];
+const THEME_LABELS: Readonly<Record<ThemePreference, string>> = {
+  light: 'Light',
+  dark: 'Dark',
+  system: 'System',
+};
 
 interface EntryGroup {
   readonly group: GalleryGroup;
@@ -48,9 +48,15 @@ function EntryContent({ entry }: { readonly entry: GalleryEntry }) {
   return <>{entry.render()}</>;
 }
 
+/**
+ * Switches between the themes a player can choose. Dark is the only shipped theme for now (D-11),
+ * so with fewer than two choices there is nothing to switch and the toggle is left out.
+ */
 function ThemeToggle() {
   const preference = useThemePreference();
   const labelId = useId();
+
+  if (SELECTABLE_THEME_PREFERENCES.length < 2) return null;
 
   return (
     <Cluster gap={2}>
@@ -59,17 +65,17 @@ function ThemeToggle() {
       </span>
       <div role="group" aria-labelledby={labelId}>
         <Cluster gap={1}>
-          {THEME_OPTIONS.map((option) => (
+          {SELECTABLE_THEME_PREFERENCES.map((option) => (
             <Button
-              key={option.preference}
+              key={option}
               size="sm"
-              variant={option.preference === preference ? 'primary' : 'secondary'}
-              aria-pressed={option.preference === preference}
+              variant={option === preference ? 'primary' : 'secondary'}
+              aria-pressed={option === preference}
               onClick={() => {
-                applyTheme(option.preference);
+                applyTheme(option);
               }}
             >
-              {option.label}
+              {THEME_LABELS[option]}
             </Button>
           ))}
         </Cluster>
@@ -192,7 +198,7 @@ export function GalleryScreen() {
       <header className={styles['header']}>
         <h1 className={styles['title']}>Component gallery</h1>
         <p className={styles['lead']}>
-          Every finished UI building block. Check each one in both themes and at phone width.
+          Every finished UI building block. Check each one at desktop and at phone width.
         </p>
         <Cluster gap={6} className={styles['toolbar']}>
           <ThemeToggle />
