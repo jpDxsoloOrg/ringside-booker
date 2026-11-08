@@ -189,6 +189,13 @@ export class EventBusMisuseError extends EngineError {
   }
 }
 
+/** The trace store was used in a way it does not allow, such as recording after a commit. */
+export class TraceStoreMisuseError extends EngineError {
+  constructor(reason: string) {
+    super('TRACE_STORE_MISUSE', `Trace store misuse: ${reason}`, { reason });
+  }
+}
+
 /** A saved state part (RNG, events, ...) failed validation on load. */
 export class InvalidStatePartError extends EngineError {
   /** One line per problem, each starting with the path of the bad field. */

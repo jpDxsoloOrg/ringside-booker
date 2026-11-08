@@ -110,6 +110,7 @@ export {
   RegistryError,
   SchemaViolationError,
   TraceReplayError,
+  TraceStoreMisuseError,
   TxStateError,
   UniqueIndexError,
   UnknownIndexError,

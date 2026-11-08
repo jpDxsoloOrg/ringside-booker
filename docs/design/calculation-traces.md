@@ -4,8 +4,8 @@ Every number in the game explains itself. A match rating, an attendance
 figure, a wage demand or a computer GM's pick comes with a breakdown of the
 inputs and steps that produced it, and the "Why?" panel shows that breakdown to
 the player. This doc covers the shape of those breakdowns, the builders that
-make them, the checks that keep them honest, and the conventions every formula
-in every system follows.
+make them, the checks that keep them honest, how they are kept once a result is
+recorded, and the conventions every formula in every system follows.
 
 Code: `packages/engine/src/core/trace/`. Test helpers:
 `packages/engine/test/support/trace.ts`.
@@ -246,6 +246,135 @@ number value is a recorded fact and replays to itself.
 
 Numbers are compared within `epsilon`, relative to their size once they are
 above 1. Each problem in the error names the step it was found at.
+
+## Retention
+
+A formula's trace is only useful if the "Why?" panel can find it later, but a
+busy world makes thousands of results a month, and keeping every tree forever
+would bury the save. The trace store (`core/trace/store.ts`) keeps full traces
+for recent results, a short summary for older ones, and nothing beyond that.
+
+### Refs and kinds
+
+Every stored trace is filed under a `TraceRef`:
+
+```ts
+interface TraceRef {
+  kind: string; // what sort of result: 'segment.rating', 'show.attendance', 'contract.ask'
+  id: string; // what it belongs to, usually an entity ID such as 'seg_...'
+}
+```
+
+The kind is dot-separated camelCase words, like a tunable key. It never
+contains a colon, so `refKey(ref)`, which is `${kind}:${id}`, is unique. The
+system that owns a result picks its kind and decides which results are worth
+recording; the store does not care what the kind means.
+
+Recording the same ref again replaces what was there. A re-rated segment has
+one trace, the latest one, never a history of drafts.
+
+### Per-kind retention
+
+The newest `sim.traceRetentionPerKind` full traces of **each kind** are kept.
+Limits are counted per kind because results arrive at very different rates: a
+world produces far more segment ratings than contract asks, and one global
+limit would let segments push everything else out.
+
+When a kind goes over its limit, its oldest full traces are demoted to
+summaries. A retention of 0 keeps no full traces for any kind: every result is
+summarised as soon as it is committed.
+
+### Summaries
+
+A summary keeps what a history screen needs to say what a number was and why:
+
+| Field             | Kept from the full trace                                   |
+| ----------------- | ---------------------------------------------------------- |
+| `ref`, `date`     | What the result was for, and the game date it was recorded |
+| `seq`             | Its place in the store's order (see below)                 |
+| `label`, `value`  | The root's label and the result, such as "Match rating" 76 |
+| `unit`            | The root's unit, when it has one                           |
+| `topContributors` | The three steps that moved the value most, largest first   |
+
+A contributor is a direct step of the root with its label and its effect,
+`after - before`. Arithmetic steps always count; a limit (`min`, `max`,
+`clamp`) counts only when it applied, since a ceiling that was not reached
+moved nothing. Steps with no effect are left out, and ties keep trace order. A
+decision trace has no arithmetic steps at its root, so its summary keeps the
+chosen value and no contributors.
+
+At most `sim.traceSummaryLimit` summaries are kept across all kinds. Past
+that, the oldest are dropped for good. A limit of 0 keeps no summaries, so
+results past the retention limit disappear entirely.
+
+### Order
+
+The store hands out a sequence number (`seq`) to every trace it commits, and
+saves the counter with the store. "Oldest" always means "lowest `seq`", never
+wall-clock time or the order a `Map` happened to be filled in, so a game that is
+saved and loaded demotes and drops exactly the same entries as one that was
+not. A summary keeps the `seq` of the trace it came from, so an old result
+demoted late still counts as old.
+
+### Staging
+
+Traces are written through a staging that belongs to one pipeline step or
+command:
+
+```ts
+const traces = store.stage();
+traces.record({ kind: 'segment.rating', id: segmentId }, today, rating);
+// ... the rest of the step ...
+traces.commit(); // or traces.discard() when the step fails
+```
+
+Nothing staged is visible to `get`, `has` or `listByKind` until `commit()`.
+When a step throws, the pipeline rolls back its world writes and discards its
+staging along with them. The result never happened, so its trace must not
+exist either: a "Why?" panel that explains a rating the world does not have
+would be worse than no explanation. Discarding uses up no sequence numbers.
+
+`commit()` gives each staged trace the next `seq` in the order it was recorded,
+then applies retention to the kinds it touched, then trims the summaries. A
+staging cannot be used again once it is committed or discarded.
+
+`record` fits the trace into the [size limits](#size-limits), checks it is
+plain JSON and validates it with the same schema a load uses (a `-0` is stored
+as `0`), so everything in the store can be saved and loaded again. A trace that
+fails the schema throws `SchemaViolationError` at `record`, not when the save is
+next loaded.
+
+### Saving
+
+The store's state is one part of the save:
+
+```ts
+interface TraceStoreState {
+  version: 1;
+  seq: number; // the last seq handed out
+  full: StoredTrace[]; // sorted by seq
+  summaries: TraceSummary[]; // sorted by seq
+}
+```
+
+`traceStoreStateSchema` validates it on load. Every trace goes through
+`traceNodeSchema`, which knows every node kind and its fields and enforces the
+same limits as the builders (12 levels, 400 nodes), so a hand-edited save
+cannot load an unknown kind or an unbounded tree. The schema also checks that
+both arrays are in `seq` order, that no `seq` is above the store's, and that a
+ref appears only once. Loading applies the current limits straight away, so a
+save made with higher limits is trimmed the same way a commit would trim it.
+
+### Tunables
+
+| Tunable                     | Default | Controls                                        |
+| --------------------------- | ------- | ----------------------------------------------- |
+| `sim.traceRetentionPerKind` | 200     | Full traces kept per kind before summarising    |
+| `sim.traceSummaryLimit`     | 5000    | Summaries kept across all kinds before dropping |
+
+Both are expected to be tuned once real formulas exist and save sizes can be
+measured. Changing either applies at once (`setLimits`), not just on the next
+commit.
 
 ## Formula module conventions
 
