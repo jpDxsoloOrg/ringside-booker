@@ -4,7 +4,8 @@
  * The registry holds the nine real tables plus placeholders for the sibling kinds they reference.
  * `people`, `eventInstances` and `employments` are plain stubs. `promotions` and
  * `eventDefinitions` carry the one extra field the invariants here read (a promotion's `status`,
- * an event definition's `promotionId`), standing in for the real schemas until they land.
+ * an event definition's `promotionId`), so the fixtures stay small. The other production tables
+ * are left out: their invariants read sibling tables these fixtures replace with stubs.
  */
 
 import { z } from 'zod';
@@ -51,7 +52,15 @@ export const eventDefinitionsFakeTable = defineTable({
 });
 
 export const GEO_MEDIA_REGISTRY = {
-  ...TABLES,
+  continents: TABLES.continents,
+  countries: TABLES.countries,
+  regions: TABLES.regions,
+  venues: TABLES.venues,
+  networks: TABLES.networks,
+  deals: TABLES.deals,
+  mail: TABLES.mail,
+  news: TABLES.news,
+  ledgerEntries: TABLES.ledgerEntries,
   people: stubTable('person', 'people'),
   promotions: promotionsFakeTable,
   eventDefinitions: eventDefinitionsFakeTable,
