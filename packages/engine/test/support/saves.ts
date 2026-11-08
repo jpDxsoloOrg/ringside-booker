@@ -16,8 +16,9 @@ export const TEST_SAVED_AT = '2026-11-08T12:00:00.000Z';
 export const TEST_ENGINE_VERSION = '0.1.0';
 
 /**
- * Placeholder simulation parts: the right kind of empty value for each, until SIM-10 supplies the
- * real engine state.
+ * Placeholder simulation parts for save-format tests that only care about the World. They are not
+ * real engine state: tests that need one build it with `initialEngineState(world)` or an engine's
+ * `exportState()`, and save it with `engineSaveState`.
  */
 export const PLACEHOLDER_SIM_STATE: Readonly<Record<SimStatePart, JsonValue>> = {
   rng: {},

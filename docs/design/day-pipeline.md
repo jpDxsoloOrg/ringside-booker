@@ -128,7 +128,7 @@ Worker and the multi-day loop yields between days, not inside them.
 
 ### Step isolation
 
-Every step (the engine's two, each phase, and later each command) runs through
+Every step (the engine's two, each phase, and each command) runs through
 one wrapper, `runStep`. Before the step starts it takes an RNG snapshot and
 opens an event staging and a trace staging. Then it runs the step inside
 `world.transact`.
@@ -140,7 +140,10 @@ opens an event staging and a trace staging. Then it runs the step inside
   it records the failure: a `failed` step report with the error, an entry in
   the failure log, and a `pipeline.stepFailed` event published from a fresh
   staging and delivered straight away, so the news feed or a debug panel can
-  show it. The rest of the day carries on.
+  show it. The rest of the day carries on. A failed command skips the
+  `pipeline.stepFailed` notice (`runStep`'s `announceFailure: false`): the
+  caller gets the error back directly, and a failed command must leave the
+  event log as it was (see [engine-api.md](engine-api.md)).
 
 Restoring the RNG matters as much as rolling back the writes. Without it, a
 step that draws three numbers and then crashes would still use them up, and

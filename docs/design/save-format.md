@@ -58,7 +58,9 @@ Code: `packages/engine/src/persistence/` (`save-document.ts`,
   `failureLog`, `commandLog`) are named slots. The engine state that owns
   them supplies their schemas when it saves and loads. A slot without a
   schema accepts any plain JSON value, which is how the save format exists
-  before every part of the simulation does.
+  before every part of the simulation does. The engine API supplies all six
+  (`engineStateParts`, `createEngineSaveDocumentSchema()` and
+  `engineLoadOptions()`; see [engine-api.md](engine-api.md#registering-the-parts-with-the-save-format)).
 - **The header** repeats a few facts from the world so a slot list never has to
   unpack it. It is rebuilt on every save. A world has no single "player
   promotion" (D-07), so the saver names the promotion shown in the header:

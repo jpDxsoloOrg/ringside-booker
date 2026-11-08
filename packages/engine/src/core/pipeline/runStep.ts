@@ -32,6 +32,12 @@ export interface RunStepOptions {
   readonly group?: PhaseGroup | null;
   /** The date the step simulates. Defaults to the world's current date. */
   readonly date?: GameDate;
+  /**
+   * Publish `pipeline.stepFailed` when the step fails. Defaults to true. Commands turn it off: a
+   * failed command hands its error straight back to the caller and must leave the event log
+   * exactly as it was, so it is only recorded in the failure log.
+   */
+  readonly announceFailure?: boolean;
 }
 
 /** The step id failures of a reaction are logged under: `reaction:<subscriberId>`. */
@@ -154,12 +160,15 @@ export interface StepFailure {
   readonly startedAt: number;
   /** Lines the step logged before it failed. */
   readonly logs?: readonly string[];
+  /** Publish `pipeline.stepFailed` for it. Defaults to true. */
+  readonly announce?: boolean;
 }
 
 /**
  * Records a failed step: adds it to the failure log, publishes `pipeline.stepFailed` from a fresh
- * staging that is committed (and delivered) straight away, and returns the failed report. Used by
- * {@link runStep} and by the day runner when a phase's condition throws.
+ * staging that is committed (and delivered) straight away (unless `announce` is false), and
+ * returns the failed report. Used by {@link runStep} and by the day runner when a phase's
+ * condition throws.
  */
 export function reportStepFailure<R extends TableRegistry>(
   runtime: SimRuntime<R>,
@@ -171,9 +180,11 @@ export function reportStepFailure<R extends TableRegistry>(
 
   const logs = [...(failure.logs ?? [])];
   const reactionFailures: ReactionFailureReport[] = [];
-  const notice = runtime.bus.stage(source, date);
-  notice.publish('pipeline.stepFailed', { stepId, message: error.message });
-  deliver(runtime, notice.commit(), logs, reactionFailures);
+  if (failure.announce !== false) {
+    const notice = runtime.bus.stage(source, date);
+    notice.publish('pipeline.stepFailed', { stepId, message: error.message });
+    deliver(runtime, notice.commit(), logs, reactionFailures);
+  }
 
   return {
     stepId,
@@ -193,7 +204,8 @@ export function reportStepFailure<R extends TableRegistry>(
  *
  * On success the step's traces are stored, its events committed and then delivered to their
  * reactions. On failure its writes, RNG draws, events and traces are all rolled back, the error is
- * recorded, and `pipeline.stepFailed` is published. Never throws for an error inside `run`.
+ * recorded, and `pipeline.stepFailed` is published (unless `announceFailure` is false). Never
+ * throws for an error inside `run`.
  */
 export function runStep<R extends TableRegistry>(
   runtime: SimRuntime<R>,
@@ -217,6 +229,7 @@ export function runStep<R extends TableRegistry>(
       error: outcome.error,
       startedAt,
       logs,
+      announce: options.announceFailure ?? true,
     });
   }
 

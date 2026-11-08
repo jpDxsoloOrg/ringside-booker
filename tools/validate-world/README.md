@@ -23,15 +23,15 @@ validate-world <packDir...> [--root <packId>] [--seed <s>] [--report <file.md>]
                [--blocklist <file>] [--strict] [--smoke-days <n>]
 ```
 
-| Option               | What it does                                                                                                                                            |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `packDir...`         | One or more pack folders, each with a `pack.json`.                                                                                                      |
-| `--root <packId>`    | The pack(s) to load from, repeatable. Default: every pack passed in.                                                                                    |
-| `--seed <s>`         | The seed IDs are minted from. Default `validate`. The report does not depend on it.                                                                     |
-| `--report <file.md>` | Also writes the report as GitHub-flavoured markdown.                                                                                                    |
-| `--blocklist <file>` | An extra real-name list, repeatable. It is checked on top of the committed list and never replaces it.                                                  |
-| `--strict`           | Warnings fail the run too.                                                                                                                              |
-| `--smoke-days <n>`   | Advances the loaded world `n` days through the engine API and fails on any step error. Skipped with a notice until the engine exports its headless API. |
+| Option               | What it does                                                                                                                  |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `packDir...`         | One or more pack folders, each with a `pack.json`.                                                                            |
+| `--root <packId>`    | The pack(s) to load from, repeatable. Default: every pack passed in.                                                          |
+| `--seed <s>`         | The seed IDs are minted from. Default `validate`. The report does not depend on it.                                           |
+| `--report <file.md>` | Also writes the report as GitHub-flavoured markdown.                                                                          |
+| `--blocklist <file>` | An extra real-name list, repeatable. It is checked on top of the committed list and never replaces it.                        |
+| `--strict`           | Warnings fail the run too.                                                                                                    |
+| `--smoke-days <n>`   | Advances the loaded world `n` days through the engine API (`createEngine` with `defaultSystems`) and fails on any step error. |
 
 Packs named in `dependsOn` that were not passed in are found by pack ID anywhere under `content/`,
 so pointing the tool at a world pack is enough.
