@@ -159,7 +159,8 @@ the list is empty, and a test checks that it always forms one unbroken chain.
 - **Money** is in whole currency units (the loader converts to cents). Cash
   may be negative; wages, fees and deal terms can't.
 - **Regional popularity** is sparse: `{ "<region ref>": 1-100 }`. A region
-  left out is 0.
+  left out is 0. Each region appears once: `harbour-coast` and
+  `base-world:harbour-coast` name the same region, so listing both is an error.
 - **Colours** are `#rrggbb`. **Images** (`logoRef`, `imageRef`) are a relative
   asset path or `placeholder:<kind>`; left out or null means a generated
   placeholder.

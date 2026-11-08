@@ -125,6 +125,18 @@ describe('resolvePacks', () => {
       expect.objectContaining({ code: 'manifest', packId: 'mini-base', path: ['version'] }),
     );
   });
+
+  it('reports record files that are not an object instead of throwing', () => {
+    const base = readFixturePack('mini-base');
+    const broken: RawPack = { ...base };
+    // Parsed JSON can hold anything; the type cannot, so set it past the type checker.
+    Reflect.set(broken, 'files', null);
+    const result = resolvePacks([broken], ['mini-base']);
+    expect(result.ok).toBe(false);
+    expect(result.issues).toContainEqual(
+      expect.objectContaining({ code: 'schema', packId: 'mini-base', path: ['files'] }),
+    );
+  });
 });
 
 describe('satisfiesRange', () => {

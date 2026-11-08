@@ -11,7 +11,7 @@
 import { z } from 'zod';
 import { isGameDate, type GameDate } from '../../core/date';
 import { CENTS_PER_UNIT } from '../../core/money';
-import { keySchema, refSchema } from './keys';
+import { isPackRef, keySchema, parseRef, refSchema } from './keys';
 
 /** An ISO `YYYY-MM-DD` date, years 1900-2999. Every date in every pack uses this schema. */
 export const isoDateSchema = z.custom<GameDate>(isGameDate, {
@@ -38,9 +38,30 @@ export const nonNegativeWholeMoneySchema = z.number().int().min(0).max(MAX_WHOLE
 
 /**
  * Popularity per region, sparse: a region left out reads as 0, and values run 1-100 so a pack never
- * spells out a zero.
+ * spells out a zero. A region may appear once: `harbour-coast` and `mini-base:harbour-coast` name
+ * the same region, so listing both is an error rather than one value silently replacing the other.
  */
-export const regionalPopSchema = z.record(refSchema, z.number().min(1).max(100));
+export const regionalPopSchema = z
+  .record(refSchema, z.number().min(1).max(100))
+  .superRefine((popularity, context) => {
+    const firstRefByKey = new Map<string, string>();
+    for (const ref of Object.keys(popularity)) {
+      if (!isPackRef(ref)) {
+        continue;
+      }
+      const { key } = parseRef(ref);
+      const firstRef = firstRefByKey.get(key);
+      if (firstRef !== undefined) {
+        context.addIssue({
+          code: 'custom',
+          message: `${ref} names the same region as ${firstRef}; list each region once`,
+          path: [ref],
+        });
+        continue;
+      }
+      firstRefByKey.set(key, ref);
+    }
+  });
 
 /** `#rrggbb`. */
 export const hexColorSchema = z

@@ -251,4 +251,29 @@ describe('mergeRecords', () => {
       ['schema', 'brand'],
     ]);
   });
+
+  it('reports data passed in under a name that is not a record kind', () => {
+    const world = readFixturePack('mini-world');
+    const files: Record<string, unknown> = { ...world.files, gimmick: [] };
+    const issues = mergeIssues([readFixturePack('mini-base'), { ...world, files }], ['mini-world']);
+    expect(issues.map((issue) => [issue.code, issue.packId, issue.path])).toEqual([
+      ['unlisted-file', 'mini-world', ['files', 'gimmick']],
+    ]);
+  });
+
+  it('rejects regional popularity that names one region twice', () => {
+    const world = readFixturePack('mini-world');
+    const promotions = recordsOf(world, 'promotion').map((promotion) => ({
+      ...promotion,
+      regionalPop: { 'harbour-coast': 10, 'mini-base:harbour-coast': 50 },
+    }));
+    const issues = mergeIssues(
+      [readFixturePack('mini-base'), withFiles(world, { promotion: promotions })],
+      ['mini-world'],
+    );
+    expect(issues.map((issue) => [issue.code, issue.path])).toEqual([
+      ['schema', ['promotion', 'harbour-city-wrestling', 'regionalPop', 'mini-base:harbour-coast']],
+      ['schema', ['promotion', 'river-city-wrestling', 'regionalPop', 'mini-base:harbour-coast']],
+    ]);
+  });
 });

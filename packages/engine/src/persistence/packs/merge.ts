@@ -35,7 +35,7 @@ import {
 import { employmentRecord, personRecord, teamRecord, titleReignRecord } from './records/people';
 import type { PackRecords, RawPack } from './index';
 import { hasErrors, packError, type PackIssue, type Result } from './issues';
-import { RECORD_KINDS, type RecordKind } from './keys';
+import { isRecordKind, RECORD_KINDS, type RecordKind } from './keys';
 
 /** A record after merging, with the packs it came from. */
 export interface MergedRecord<Record> {
@@ -324,6 +324,18 @@ function checkFileList(pack: RawPack, issues: PackIssue[]): void {
           kind,
           path: ['files', kind],
           message: `Data was passed in for ${kind}, but the manifest of ${packId} lists no file for it`,
+        }),
+      );
+    }
+  }
+  for (const name of Object.keys(pack.files).sort(compareText)) {
+    if (!isRecordKind(name)) {
+      issues.push(
+        packError({
+          code: 'unlisted-file',
+          packId,
+          path: ['files', name],
+          message: `Data was passed in for ${name}, which is not a record kind`,
         }),
       );
     }

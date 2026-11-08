@@ -58,6 +58,19 @@ function checkManifests(packs: readonly RawPack[], issues: PackIssue[]): Map<str
       continue;
     }
     const manifest: PackManifest = parsed.data;
+    // `files` usually comes straight from parsed JSON, so check its shape rather than trust the type.
+    const files: unknown = pack.files;
+    if (typeof files !== 'object' || files === null || Array.isArray(files)) {
+      issues.push(
+        packError({
+          code: 'schema',
+          packId: manifest.id,
+          path: ['files'],
+          message: `Expected the record files of ${manifest.id} as an object keyed by record kind`,
+        }),
+      );
+      continue;
+    }
     if (byId.has(manifest.id)) {
       duplicateIds.add(manifest.id);
       continue;
