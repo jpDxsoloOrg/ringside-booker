@@ -32,9 +32,27 @@ describe('createWorld', () => {
     expect(world.meta.worldName).toBe('Toy World');
   });
 
-  it('builds a world from the (still empty) production registry', () => {
+  it('builds an empty world from the production registry', () => {
     const world = createWorld(TABLES, toyMeta());
-    expect(Object.keys(world.tables)).toEqual([]);
+    expect(Object.keys(world.tables).sort()).toEqual(Object.keys(TABLES).sort());
+    for (const table of Object.values(world.tables)) {
+      expect(table.size).toBe(0);
+    }
+  });
+
+  it('registers the title, event, segment, storyline and season tables', () => {
+    expect(Object.keys(TABLES)).toEqual(
+      expect.arrayContaining([
+        'titles',
+        'titleReigns',
+        'eventDefinitions',
+        'eventInstances',
+        'segments',
+        'participants',
+        'storylines',
+        'seasons',
+      ]),
+    );
   });
 
   it('throws RegistryError when two entries share a table name', () => {

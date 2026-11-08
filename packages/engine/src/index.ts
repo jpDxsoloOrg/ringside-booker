@@ -169,3 +169,135 @@ export type {
   IntegrityReport,
 } from './model/integrity';
 export { checkWorld, MAX_INTEGRITY_ISSUES } from './model/integrity';
+
+// Titles, events, segments, storylines and seasons (FND-08).
+export type {
+  DivisionGender,
+  Title,
+  TitleDivision,
+  TitleHolderCount,
+  TitleStatus,
+} from './model/entities/title';
+export {
+  DIVISION_GENDERS,
+  HEX_COLOR_PATTERN,
+  TITLE_HOLDER_COUNTS,
+  TITLE_STATUSES,
+  TitleDivisionSchema,
+  TitleSchema,
+  titlesTable,
+} from './model/entities/title';
+export type { ReignEndReason, TitleReign } from './model/entities/title-reign';
+export {
+  MAX_REIGN_HOLDERS,
+  REIGN_END_REASONS,
+  TitleReignSchema,
+  titleReignsTable,
+} from './model/entities/title-reign';
+export type {
+  AnnualRecurrence,
+  DatesRecurrence,
+  EventDefinition,
+  EventImportance,
+  EveryNWeeksRecurrence,
+  MonthlyRecurrence,
+  Recurrence,
+  RecurrenceKind,
+  RecurrenceWeek,
+  ShowFormat,
+  WeeklyRecurrence,
+} from './model/entities/event-definition';
+export {
+  AnnualRecurrenceSchema,
+  DatesRecurrenceSchema,
+  EVENT_IMPORTANCES,
+  EVERY_N_WEEKS_MAX,
+  EVERY_N_WEEKS_MIN,
+  EventDefinitionSchema,
+  eventDefinitionsTable,
+  EveryNWeeksRecurrenceSchema,
+  MAX_RECURRENCE_DATES,
+  MonthlyRecurrenceSchema,
+  PRE_SHOW_SLOTS_MAX,
+  PRE_SHOW_SLOTS_MIN,
+  RECURRENCE_WEEKS,
+  RecurrenceSchema,
+  SHOW_SLOTS_MAX,
+  SHOW_SLOTS_MIN,
+  ShowFormatSchema,
+  WeeklyRecurrenceSchema,
+} from './model/entities/event-definition';
+export type { RecurrenceView } from './model/recurrence';
+/**
+ * Show recurrence helpers (`recurrence.occursOn`, `recurrence.nextOccurrence`) live under one
+ * namespace because the calendar already exports a `nextOccurrence` for phase cadences.
+ */
+export * as recurrence from './model/recurrence';
+export type {
+  EventInstance,
+  EventInstanceStatus,
+  EventResult,
+} from './model/entities/event-instance';
+export {
+  EVENT_INSTANCE_STATUSES,
+  EventInstanceSchema,
+  eventInstancesTable,
+  EventResultSchema,
+} from './model/entities/event-instance';
+export type {
+  AngleBeat,
+  AngleDetails,
+  AngleSegment,
+  MatchDetails,
+  MatchOutcome,
+  MatchSegment,
+  Segment,
+  SegmentCrew,
+  SegmentKind,
+  SegmentRating,
+} from './model/entities/segment';
+export {
+  AngleSegmentSchema,
+  isAngle,
+  isMatch,
+  MatchOutcomeSchema,
+  MatchSegmentSchema,
+  MAX_ANGLE_BEATS,
+  MAX_ANNOUNCERS,
+  MAX_STARS,
+  MIN_ANGLE_BEATS,
+  SEGMENT_KINDS,
+  SegmentSchema,
+  segmentSlotKey,
+  segmentsTable,
+  STAR_STEP,
+} from './model/entities/segment';
+export type { Participant, ParticipantRole } from './model/entities/participant';
+export {
+  MAX_SIDE,
+  PARTICIPANT_ROLES,
+  ParticipantSchema,
+  participantsTable,
+} from './model/entities/participant';
+export type {
+  Storyline,
+  StorylineMember,
+  StorylineSide,
+  StorylineStatus,
+} from './model/entities/storyline';
+export {
+  MAX_STORYLINE_MEMBERS,
+  MAX_STORYLINE_SUMMARY_LENGTH,
+  MIN_STORYLINE_MEMBERS,
+  STORYLINE_SIDES,
+  STORYLINE_STATUSES,
+  StorylineSchema,
+  storylinesTable,
+} from './model/entities/storyline';
+export type { Season, SeasonStatus } from './model/entities/season';
+export {
+  ACTIVE_SEASON_KEY,
+  SEASON_STATUSES,
+  SeasonSchema,
+  seasonsTable,
+} from './model/entities/season';

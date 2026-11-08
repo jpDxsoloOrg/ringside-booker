@@ -6,11 +6,28 @@
  * (FND-10) rather than at compile time, so the schema tickets can land in any order.
  */
 
+import { eventDefinitionsTable } from './entities/event-definition';
+import { eventInstancesTable } from './entities/event-instance';
+import { participantsTable } from './entities/participant';
+import { seasonsTable } from './entities/season';
+import { segmentsTable } from './entities/segment';
+import { storylinesTable } from './entities/storyline';
+import { titlesTable } from './entities/title';
+import { titleReignsTable } from './entities/title-reign';
 import type { TableRegistry } from './table-def';
 import type { World, WorldView } from './world';
 
 export const TABLES = {
-  // FND-06..09 add entries
+  // FND-06, FND-07 and FND-09 add their entries.
+  // FND-08: titles, events, segments, storylines and seasons.
+  titles: titlesTable,
+  titleReigns: titleReignsTable,
+  eventDefinitions: eventDefinitionsTable,
+  eventInstances: eventInstancesTable,
+  segments: segmentsTable,
+  participants: participantsTable,
+  storylines: storylinesTable,
+  seasons: seasonsTable,
 } as const satisfies TableRegistry;
 
 export type GameTables = typeof TABLES;
