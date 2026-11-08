@@ -85,7 +85,8 @@ land border or a short hop: a bridge, a tunnel or a short ferry. That includes
 cross-border pairs such as Northeast ↔ Quebec, Southwest ↔ Northwest Mexico,
 Southern England ↔ France and Western Japan ↔ South Korea. Island countries
 with no short hop (Taiwan, the Philippines, New Zealand, Fiji, Greenland) have
-none.
+none, and so do countries whose bordering countries aren't on the map (the
+United Arab Emirates and all five African countries).
 
 Adjacency is always mutual: the engine's `neighboursAreMutual` invariant
 rejects a world where A lists B but B doesn't list A, and the pack loader warns
