@@ -20,6 +20,7 @@ import { TONES } from '@/components/tone';
 import { applyTheme } from '@/styles/theme';
 import type { ThemePreference } from '@/styles/theme';
 import styles from './DevGalleryScreen.module.css';
+import { DataTableDemo } from './DataTableDemo';
 import { ImageSlotDemo } from './ImageSlotDemo';
 
 interface GalleryEntry {
@@ -40,6 +41,7 @@ export const galleryEntries: readonly GalleryEntry[] = [
   { id: 'gallery-layout', title: 'Layout' },
   { id: 'gallery-format', title: 'Formatters' },
   { id: 'gallery-image-slot', title: 'ImageSlot' },
+  { id: 'gallery-data-table', title: 'DataTable' },
 ];
 
 function sectionTitle(id: string): string {
@@ -414,6 +416,9 @@ export function DevGalleryScreen() {
       </Panel>
       <Panel id="gallery-image-slot" title={sectionTitle('gallery-image-slot')}>
         <ImageSlotDemo />
+      </Panel>
+      <Panel id="gallery-data-table" title={sectionTitle('gallery-data-table')}>
+        <DataTableDemo />
       </Panel>
     </main>
   );

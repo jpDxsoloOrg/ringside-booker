@@ -21,6 +21,7 @@ const SECTION_IDS = [
   'gallery-layout',
   'gallery-format',
   'gallery-image-slot',
+  'gallery-data-table',
 ] as const;
 
 /** The smallest touch target, 2.75rem at the default 16px root size. */
@@ -67,8 +68,13 @@ test.describe('component gallery', () => {
     }, TAB_PROBE_ATTRIBUTE);
     expect(buttonCount).toBeGreaterThan(20);
 
+    // Every Tab stop, not only buttons: links, selects and custom widgets such as the DataTable
+    // grid and its phone cards take a turn too.
     const focusableCount = await page.evaluate(
-      () => document.querySelectorAll('main a[href], main button:not([disabled])').length,
+      () =>
+        document.querySelectorAll(
+          'main a[href], main button:not([disabled]), main select, main [tabindex="0"]',
+        ).length,
     );
     const reached = new Set<string>();
     // Start before the first element so the first Tab lands on the page's first control.
