@@ -316,6 +316,41 @@ describe('runDay: failure isolation', () => {
     expect(eventTypes(runtime)).toEqual(['day.started', 'test.widgetScored', 'day.ended']);
   });
 
+  it('fails a phase that returns a promise and rolls back what it wrote first', () => {
+    const runtime = toyRuntime();
+    // An `async` run writes, then hands back a promise. TypeScript lets a function that returns
+    // anything stand in for a void one, so the pipeline has to catch it at runtime.
+    const asVoid =
+      (fn: (ctx: ToyContext) => unknown): ((ctx: ToyContext) => void) =>
+      (ctx) =>
+        fn(ctx);
+    runtime.phases.register(
+      phase(
+        'shows.async',
+        0,
+        asVoid((ctx) => {
+          setScore(ctx, 1, 42);
+          return Promise.resolve();
+        }),
+      ),
+    );
+    runtime.phases.register(
+      phase('shows.after', 1, (ctx) => {
+        setScore(ctx, 2, 5);
+      }),
+    );
+
+    const report = runDay(runtime);
+
+    expect(scoreOf(runtime, 1)).toBe(0);
+    expect(scoreOf(runtime, 2)).toBe(5);
+    expect(report.steps.find((step) => step.stepId === 'shows.async')).toMatchObject({
+      status: 'failed',
+      error: { code: 'TX_STATE' },
+    });
+    expect(report.failedCount).toBe(1);
+  });
+
   it('puts the RNG back so the next phase draws what it would have without the failure', () => {
     const drawsOfB = (registerFailingA: boolean): number[] => {
       const runtime = toyRuntime();

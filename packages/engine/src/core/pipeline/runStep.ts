@@ -52,7 +52,8 @@ function runUnit<R extends TableRegistry>(
   label: string,
   source: EventSource,
   date: GameDate,
-  run: (ctx: StepContext<R>) => void,
+  // Typed `unknown` so whatever `run` returns reaches `transact` (see below).
+  run: (ctx: StepContext<R>) => unknown,
   log: (message: string) => void,
 ): UnitOutcome {
   const rngSnapshot = runtime.rng.snapshot();
@@ -64,7 +65,9 @@ function runUnit<R extends TableRegistry>(
     recordedRefs.add(refKey(ref));
   };
 
-  const result = runtime.world.transact(label, (tx) => {
+  // `run` is typed to return void, but a function returning a promise still fits that type. Its
+  // result is handed back to `transact`, which refuses (and rolls back) a body that returns one.
+  const result = runtime.world.transact(label, (tx) =>
     run({
       date,
       tx,
@@ -74,8 +77,8 @@ function runUnit<R extends TableRegistry>(
       publish: eventStaging.publish,
       recordTrace,
       log,
-    });
-  });
+    }),
+  );
 
   if (result.ok) {
     traceStaging.commit();
