@@ -150,3 +150,77 @@ inline code spans and fenced code blocks:
   content rules too.
 - **No H1 in the body.** The blog renders `title` as the page's H1, so sections
   start at `##`.
+
+## Checking a post
+
+`npm run blog:check` checks every post in this folder and every file in
+[`docs/dev-journal/`](../dev-journal/). CI runs it on every pull request, and
+the publish script runs it first and refuses to push a post that has errors.
+Run it from the repo root; file paths are relative to the root.
+
+```sh
+npm run blog:check                                    # everything
+npm run blog:check -- docs/blog/01-why-im-building-a-wrestling-booking-sim.md
+npm run blog:check -- --only blog                     # or --only journal
+npm run blog:check -- --require-banned-terms          # what the publish script runs
+```
+
+Checking named files runs the per-file rules on those files only, but the
+series index is always compared against the whole folder. Each problem prints
+as `path:line  severity  rule  message`, followed by a `N errors, M warnings`
+line. Any error exits with 1; warnings alone exit with 0.
+
+| Rule                     | Severity                             | What it checks                                                                              |
+| ------------------------ | ------------------------------------ | ------------------------------------------------------------------------------------------- |
+| `frontmatter-valid`      | error                                | The frontmatter block parses and matches the [frontmatter](#frontmatter) rules              |
+| `file-name-matches-part` | error                                | `NN` in the file name equals `part`; parts and slugs are unique                             |
+| `mdx-compiles`           | error                                | `draft` and `final` posts compile with the blog's MDX setup (see [MDX safety](#mdx-safety)) |
+| `no-body-h1`             | error                                | No `# ` heading in the body outside code                                                    |
+| `banned-terms`           | error                                | No term from either banned-terms list, anywhere in the file (see below)                     |
+| `banned-terms-missing`   | warning, or error with flag          | The private banned-terms list was found                                                     |
+| `no-private-references`  | error                                | No citing research notes, a reference design or a reference study outside code              |
+| `no-todo-in-final`       | error in `final`, warning in `draft` | No `TODO`, `TBD`, `TK` or `XXX` outside code                                                |
+| `links-resolve`          | error                                | Relative links and images point at files that exist; anchors match a heading                |
+| `images-have-alt`        | error in `final`, warning in `draft` | Every image has alt text                                                                    |
+| `series-index-sync`      | error                                | Every post has a row in the [series index](#series-index) with the same title and status    |
+| `excerpt-length`         | warning                              | The excerpt is 50 to 200 characters                                                         |
+| `journal-*`              | see the journal README               | Journal file names, frontmatter, sections and index rows                                    |
+
+The banned-terms and private-reference rules also run on the journal, including
+`_inbox.md`. This README and the journal's README state the content rules, so
+the private-reference rule skips them.
+
+### Banned terms
+
+Two lists feed the `banned-terms` rule. Matching ignores case and only matches
+whole words, and it covers the whole file: frontmatter, prose, code, comments
+and alt text.
+
+1. **The real-name blocklist**, `content/blocklist/real-names.txt`. It's
+   committed, and the world content check (WLD-03) uses the same file, so the
+   game data and the writing share one list. One name per line; lines starting
+   with `#` and blank lines are ignored. Add a real wrestler or promotion name
+   whenever I spot a near miss. Until the file exists, this list is empty.
+2. **The private list.** Some terms must never appear in the public repo at
+   all, not even inside a blocklist: other games' names, and the names of
+   private folders and material. That list lives outside the repo and uses the
+   same format. The checker reads it from, in order:
+   - `BLOG_BANNED_TERMS`, the terms themselves, one per line;
+   - the file named by `BLOG_BANNED_TERMS_FILE`;
+   - `~/.config/ringside-booker/banned-terms.txt` when neither is set.
+
+   Locally, create that file, or point `BLOG_BANNED_TERMS_FILE` at wherever
+   the list lives. In CI, the list is the repository secret
+   `BLOG_BANNED_TERMS` (one term per line), which the `blog-check` step passes
+   in as an environment variable. Pull requests from forks don't get secrets,
+   so there the check runs on the committed list only.
+
+A missing or empty private list is a `banned-terms-missing` warning, so a fresh
+clone or a fork can still run the check. With `--require-banned-terms`, which
+the publish script always passes, it's an error. Nothing gets published without
+the full list.
+
+The output never prints a banned term. It shows a mask instead: the first
+letter of each word and a `*` for every other character, so
+`Fictional Banned Co` prints as `F******** B***** C*`. The line number says
+where to look.
