@@ -24,6 +24,22 @@ export function catchError<ErrorType extends Error>(
   throw new Error(`expected ${errorClass.name} to be thrown`);
 }
 
+/** Awaits `promise`, expects it to reject with an instance of `errorClass`, and returns that error. */
+export async function catchAsyncError<ErrorType extends Error>(
+  promise: Promise<unknown>,
+  errorClass: abstract new (...args: never[]) => ErrorType,
+): Promise<ErrorType> {
+  try {
+    await promise;
+  } catch (error: unknown) {
+    if (error instanceof errorClass) {
+      return error;
+    }
+    throw error;
+  }
+  throw new Error(`expected ${errorClass.name} to be thrown`);
+}
+
 /**
  * Copies the fixture repository at test/fixtures/repo into a fresh temporary folder and returns
  * its path, so a test can edit files without touching the committed fixtures.
