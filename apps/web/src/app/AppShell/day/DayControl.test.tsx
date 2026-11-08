@@ -111,8 +111,11 @@ async function skip(user: ReturnType<typeof userEvent.setup>, quickChoice: strin
   await user.click(within(sheet).getByRole('button', { name: 'Start' }));
 }
 
+/** A long skip re-renders the whole styled shell once a day, which takes over a second in jsdom. */
+const SUMMARY_TIMEOUT_MS = 5000;
+
 async function summary(): Promise<HTMLElement> {
-  return screen.findByRole('region', { name: 'Last advance' });
+  return screen.findByRole('region', { name: 'Last advance' }, { timeout: SUMMARY_TIMEOUT_MS });
 }
 
 beforeEach(() => {
