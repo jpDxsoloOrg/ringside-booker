@@ -1,15 +1,39 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { RouteHeading } from '@/app/a11y/RouteHeading';
+import { useDocumentTitle } from '@/app/a11y/useDocumentTitle';
+import { isNoWorldRedirect } from '@/app/RequireWorld';
+import { routes } from '@/app/routes';
 import styles from './HomePlaceholderScreen.module.css';
 
-/** Stand-in home screen until the real title screen and app shell arrive. */
+/** Stand-in title screen until the real one (with save slots) arrives. */
 export function HomePlaceholderScreen() {
+  useDocumentTitle(null);
+  const location = useLocation();
+  const cameFromGameRoute = isNoWorldRedirect(location.state);
+
   return (
-    <main className={styles['screen']}>
-      <h1 className={styles['title']}>Ringside Booker</h1>
+    <div className={styles['screen']}>
+      <RouteHeading className={styles['title']}>Ringside Booker</RouteHeading>
       <p className={styles['version']}>Version {__APP_VERSION__}</p>
-      <p className={styles['links']}>
-        <Link to="/dev/gallery">Gallery</Link>
-      </p>
-    </main>
+      {cameFromGameRoute && (
+        <p className={styles['notice']} role="status">
+          Load or start a game first.
+        </p>
+      )}
+      <ul className={styles['links']}>
+        <li>
+          <Link to={routes.newGame()}>New game</Link>
+        </li>
+        <li>
+          <Link to={routes.load()}>Load game</Link>
+        </li>
+        <li>
+          <Link to={routes.settings()}>Settings</Link>
+        </li>
+        <li>
+          <Link to={routes.dev.gallery()}>Gallery</Link>
+        </li>
+      </ul>
+    </div>
   );
 }

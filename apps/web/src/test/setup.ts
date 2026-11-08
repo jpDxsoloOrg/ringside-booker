@@ -11,6 +11,8 @@ import { installMatchMedia, resetMatchMedia } from './matchMedia';
 const hasDom = typeof window !== 'undefined';
 
 if (hasDom) {
+  // jsdom has no scrolling; RouteFocus scrolls on every navigation.
+  window.scrollTo = () => undefined;
   installMatchMedia();
   installDialogPolyfill();
 }

@@ -1,0 +1,296 @@
+import { matchPath } from 'react-router-dom';
+import type { ComponentType } from 'react';
+import type { IconName } from '@/components/Icon';
+import { routes } from './routes';
+
+/**
+ * The in-game navigation, declared as data.
+ *
+ * The sidebar, the phone bottom bar, the More sheet, the top bar title and the router all read
+ * this list, so a feature epic adds a screen by adding one item here (plus its path in
+ * `routes.ts` and the screen component). Nothing in the shell changes.
+ *
+ * Ids are stable; labels and grouping are a first pass and will move as screens land.
+ */
+
+/** A slot in the phone bottom bar, left to right. The fifth place is always "More". */
+export type MobileSlot = 1 | 2 | 3 | 4;
+
+/** Counts a nav item can show in a badge. `useNavBadges` supplies them. */
+export type NavBadgeKey = 'unreadMail' | 'pendingDecisions';
+
+interface NavItemBase {
+  /** Stable id, unique across every section. */
+  readonly id: string;
+  /** Text in the sidebar and the More sheet, and the screen's `h1`. */
+  readonly label: string;
+  /** A shorter label for the phone bottom bar, where space is tight. */
+  readonly shortLabel?: string;
+  readonly icon: IconName;
+  /** The item's URL, from a `routes` builder. */
+  readonly to: string;
+  /** Where the item sits in the phone bottom bar, if it is one of the primaries. */
+  readonly mobilePrimary?: MobileSlot;
+  /**
+   * The slot this item fills when the item that normally holds it is hidden, for example when
+   * the player runs no promotion and Roster disappears.
+   */
+  readonly mobileFallback?: MobileSlot;
+  readonly badgeKey?: NavBadgeKey;
+}
+
+/** A screen that is not built yet: the router shows `PlaceholderScreen` with the item's label. */
+export interface PlaceholderNavItem extends NavItemBase {
+  readonly status: 'placeholder';
+}
+
+/** A built screen: the router renders `screen` at the item's path. */
+export interface LiveNavItem extends NavItemBase {
+  readonly status: 'live';
+  readonly screen: ComponentType;
+}
+
+export type NavItem = PlaceholderNavItem | LiveNavItem;
+
+export interface NavSection {
+  readonly id: string;
+  readonly label: string;
+  /** Hidden while the local viewer runs no promotion (unemployed). */
+  readonly requiresPromotion: boolean;
+  readonly items: readonly NavItem[];
+}
+
+export const navigationSections: readonly NavSection[] = [
+  {
+    id: 'office',
+    label: 'Office',
+    requiresPromotion: false,
+    items: [
+      {
+        id: 'dashboard',
+        label: 'Dashboard',
+        shortLabel: 'Office',
+        icon: 'home',
+        to: routes.game.office(),
+        mobilePrimary: 1,
+        badgeKey: 'pendingDecisions',
+        status: 'placeholder',
+      },
+      {
+        id: 'inbox',
+        label: 'Inbox',
+        icon: 'inbox',
+        to: routes.game.inbox(),
+        mobileFallback: 3,
+        badgeKey: 'unreadMail',
+        status: 'placeholder',
+      },
+      {
+        id: 'news',
+        label: 'News',
+        icon: 'newspaper',
+        to: routes.game.news(),
+        mobileFallback: 4,
+        status: 'placeholder',
+      },
+    ],
+  },
+  {
+    id: 'world',
+    label: 'World',
+    requiresPromotion: false,
+    items: [
+      {
+        id: 'workers',
+        label: 'Workers',
+        icon: 'users',
+        to: routes.game.workers(),
+        mobileFallback: 2,
+        status: 'placeholder',
+      },
+      {
+        id: 'promotions',
+        label: 'Promotions',
+        icon: 'building',
+        to: routes.game.promotions(),
+        status: 'placeholder',
+      },
+      {
+        id: 'event-history',
+        label: 'Event history',
+        icon: 'history',
+        to: routes.game.eventHistory(),
+        status: 'placeholder',
+      },
+    ],
+  },
+  {
+    id: 'your-promotion',
+    label: 'Your promotion',
+    requiresPromotion: true,
+    items: [
+      {
+        id: 'roster',
+        label: 'Roster',
+        icon: 'clipboard',
+        to: routes.game.roster(),
+        mobilePrimary: 2,
+        status: 'placeholder',
+      },
+      {
+        id: 'booking',
+        label: 'Booking',
+        icon: 'ticket',
+        to: routes.game.booking(),
+        mobilePrimary: 3,
+        status: 'placeholder',
+      },
+      {
+        id: 'calendar',
+        label: 'Calendar',
+        icon: 'calendar',
+        to: routes.game.calendar(),
+        mobilePrimary: 4,
+        status: 'placeholder',
+      },
+    ],
+  },
+  {
+    id: 'creative',
+    label: 'Creative',
+    requiresPromotion: true,
+    items: [
+      {
+        id: 'titles',
+        label: 'Titles',
+        icon: 'trophy',
+        to: routes.game.titles(),
+        status: 'placeholder',
+      },
+      {
+        id: 'storylines',
+        label: 'Storylines',
+        icon: 'book',
+        to: routes.game.storylines(),
+        status: 'placeholder',
+      },
+      {
+        id: 'teams',
+        label: 'Teams & stables',
+        icon: 'link',
+        to: routes.game.teams(),
+        status: 'placeholder',
+      },
+      {
+        id: 'tournaments',
+        label: 'Tournaments',
+        icon: 'bracket',
+        to: routes.game.tournaments(),
+        status: 'placeholder',
+      },
+      {
+        id: 'brands',
+        label: 'Brands',
+        icon: 'layers',
+        to: routes.game.brands(),
+        status: 'placeholder',
+      },
+    ],
+  },
+  {
+    id: 'business',
+    label: 'Business',
+    requiresPromotion: true,
+    items: [
+      {
+        id: 'finances',
+        label: 'Finances',
+        icon: 'money',
+        to: routes.game.finances(),
+        status: 'placeholder',
+      },
+      {
+        id: 'contracts',
+        label: 'Contracts',
+        icon: 'file-text',
+        to: routes.game.contracts(),
+        status: 'placeholder',
+      },
+      {
+        id: 'networks',
+        label: 'Networks',
+        icon: 'tv',
+        to: routes.game.networks(),
+        status: 'placeholder',
+      },
+      {
+        id: 'production',
+        label: 'Production',
+        icon: 'video',
+        to: routes.game.production(),
+        status: 'placeholder',
+      },
+    ],
+  },
+];
+
+export interface NavigationContext {
+  /** Whether the local viewer runs a promotion. */
+  readonly hasPromotion: boolean;
+}
+
+/** The sections the viewer can see: promotion sections drop out while unemployed. */
+export function visibleNavigation(
+  sections: readonly NavSection[],
+  { hasPromotion }: NavigationContext,
+): readonly NavSection[] {
+  return sections.filter((section) => hasPromotion || !section.requiresPromotion);
+}
+
+const MOBILE_SLOTS: readonly MobileSlot[] = [1, 2, 3, 4];
+
+/**
+ * The phone bottom bar's items in slot order, from already-filtered sections. Each slot takes the
+ * visible item marked `mobilePrimary` for it, or else the visible item marked `mobileFallback`.
+ * A slot with neither is left out.
+ */
+export function mobilePrimaryItems(visibleSections: readonly NavSection[]): readonly NavItem[] {
+  const items = visibleSections.flatMap((section) => section.items);
+  const primaries: NavItem[] = [];
+  for (const slot of MOBILE_SLOTS) {
+    const chosen =
+      items.find((item) => item.mobilePrimary === slot) ??
+      items.find((item) => item.mobileFallback === slot);
+    if (chosen !== undefined) primaries.push(chosen);
+  }
+  return primaries;
+}
+
+/** Every item in every section, flattened in display order. */
+export function allNavItems(sections: readonly NavSection[]): readonly NavItem[] {
+  return sections.flatMap((section) => section.items);
+}
+
+export interface NavLocation {
+  readonly section: NavSection;
+  readonly item: NavItem;
+}
+
+/**
+ * The section and item whose screen is at `pathname`, or under it (a detail page such as
+ * `/game/workers/per_x` belongs to Workers). Null for a path no item owns.
+ */
+export function findNavLocation(
+  sections: readonly NavSection[],
+  pathname: string,
+): NavLocation | null {
+  for (const section of sections) {
+    for (const item of section.items) {
+      const ownsPath =
+        matchPath({ path: item.to, end: true }, pathname) !== null ||
+        matchPath({ path: `${item.to}/*`, end: false }, pathname) !== null;
+      if (ownsPath) return { section, item };
+    }
+  }
+  return null;
+}

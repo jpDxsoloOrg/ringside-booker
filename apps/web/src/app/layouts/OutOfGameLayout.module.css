@@ -1,0 +1,23 @@
+.layout {
+  min-block-size: 100dvh;
+}
+
+.main {
+  inline-size: 100%;
+  max-inline-size: 48rem;
+  margin-inline: auto;
+  padding: calc(var(--safe-top) + var(--space-10)) calc(var(--safe-right) + var(--space-8))
+    calc(var(--safe-bottom) + var(--space-10)) calc(var(--safe-left) + var(--space-8));
+}
+
+/* The main area takes focus from the skip link and RouteFocus; it needs no ring of its own. */
+.main:focus {
+  outline: none;
+}
+
+@media (--bp-mobile) {
+  .main {
+    padding: calc(var(--safe-top) + var(--space-6)) calc(var(--safe-right) + var(--space-4))
+      calc(var(--safe-bottom) + var(--space-6)) calc(var(--safe-left) + var(--space-4));
+  }
+}

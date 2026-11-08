@@ -130,6 +130,7 @@ const ENGINE_RESTRICTED_GLOBALS = [
 export default defineConfig(
   globalIgnores([
     '**/dist/**',
+    '**/dist-e2e/**',
     '**/coverage/**',
     '**/*.tsbuildinfo',
     'content/**',
