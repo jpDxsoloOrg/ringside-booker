@@ -1,0 +1,32 @@
+{
+  "name": "ringside-booker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A wrestling promotion management sim that runs in the browser.",
+  "license": "UNLICENSED",
+  "workspaces": [
+    "packages/*",
+    "apps/*",
+    "tools/*"
+  ],
+  "engines": {
+    "node": ">=20.11"
+  },
+  "packageManager": "npm@10.8.2",
+  "scripts": {
+    "typecheck": "tsc -b",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "build": "npm run build --workspaces --if-present"
+  },
+  "devDependencies": {
+    "@types/node": "20.19.43",
+    "@vitest/coverage-v8": "3.2.7",
+    "prettier": "3.9.10",
+    "typescript": "5.9.3",
+    "vitest": "3.2.7"
+  }
+}

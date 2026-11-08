@@ -15,6 +15,7 @@ pipeline for all of them makes long skips slow, and most of that detail never
 shows up on screen anyway.
 
 **What it means:**
+
 - Each shortcut is its own named tunable (`ai.skipInMatchInjuries`,
   `ai.skipResultMorale`, `ai.scoreBonus`, ...) that defaults on. Nothing is
   hidden in an `if (isAI)` branch.
@@ -31,12 +32,13 @@ from those wrestlers, not mostly by how popular they are. Raw popularity
 belongs on the business side (tickets, TV, merch, sponsors). A **hype** value
 per promotion and per upcoming event connects the two.
 
-**Why:** If popularity is most of the crowd reaction *and* most of the revenue,
+**Why:** If popularity is most of the crowd reaction _and_ most of the revenue,
 popular companies snowball and cold ones get punished twice. Scoring against
 expectation means a hot act that underdelivers gets a flat reaction, and an
 unknown who overdelivers gets noticed. That's what booking is about.
 
 **What it means:**
+
 - Crowd score = performance vs an expectation built from popularity, momentum
   and card position, with diminishing returns at the top.
 - Good shows, storyline heat and a hot title picture build hype. Hype decays
@@ -54,6 +56,7 @@ and coarse checks.
 matters. A single model avoids keeping two popularity systems in sync.
 
 **What it means:**
+
 - World data defines continents → countries → regions with population and
   wrestling interest.
 - Popularity spreads from where a wrestler performs and where shows air.
@@ -68,6 +71,7 @@ best segments.
 booking. If order doesn't matter, the booking screen is just a list.
 
 **What it means:**
+
 - The show score combines segment quality with card-flow effects: opener
   energy, main event in the last slot, variety of match types and segment kinds,
   pacing (too many talking segments in a row), and repetition (same matchup or
@@ -104,6 +108,7 @@ workers already under contract with the promotion. Signing free agents and
 poaching from other companies works as normal at any time.
 
 **What it means:**
+
 - A draft is a scheduled calendar event (it can also air as a show segment)
   with settings chosen when you schedule it:
   - **Order:** snake, a lottery weighted toward the brand that lost the last
@@ -127,6 +132,7 @@ brands. The brands compete with each other over **seasons**, and a scoreboard
 shows the standings.
 
 **What it means:**
+
 - At setup you choose, per brand, whether **you book it** or a **computer GM**
   does. You can book them all for full control, or book one brand and compete
   against the GMs.
@@ -151,6 +157,7 @@ built after the single-player core is playable, but the engine is designed for
 it from day one.
 
 **What it means now (foundation):**
+
 - **Controllers.** Every promotion (and every brand, for D-06) is assigned a
   controller: a human player or the computer. Single-player is just "one human
   controller". Nothing in the engine assumes there is exactly one player.
@@ -165,6 +172,7 @@ it from day one.
   other promotions' workers.
 
 **What it means later (multiplayer epic):**
+
 - **Server-authoritative.** A small AWS backend (accounts, lobbies, turn sync)
   runs the engine and owns the save of record. Clients send commands and get
   results back. I'm not doing lockstep (every client re-simulating), because
@@ -185,6 +193,7 @@ it from day one.
 you can change it between seasons.
 
 **What a season drives:**
+
 - **Season end:** awards, rankings snapshot and a season recap screen. This is
   the same machinery that would otherwise run at year end.
 - **Brand wars (D-06):** a brand-war season is a game season, so the
@@ -218,6 +227,7 @@ getting TV time, promo time and a story that's going somewhere. That's what
 they actually care about.
 
 **How it works:**
+
 - The usual loss penalty (scaled by who they lost to and their push level) is
   multiplied by `1 − storyShield`.
 - `storyShield` comes from the storyline's heat: 0 below a minimum heat, rising
@@ -245,6 +255,7 @@ better. The interesting choices are who's on the card, what they do, in what
 order, and who wins.
 
 **How it works:**
+
 - **Show formats.** Each event type has a slot count. For example, a weekly TV
   show has 6 slots and a big event has 8–10. Bigger production budgets can
   unlock an extra slot. Slot counts are set per event type and are tunables.
