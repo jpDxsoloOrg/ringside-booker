@@ -75,6 +75,14 @@ td,
   font-variant-numeric: tabular-nums;
 }
 
+/*
+ * An open sheet or dialog stops the page behind it from scrolling. useBodyScrollLock adds and
+ * removes this class (counting nested overlays), so no script ever writes an inline style.
+ */
+html.scroll-locked {
+  overflow: hidden;
+}
+
 :focus-visible {
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;

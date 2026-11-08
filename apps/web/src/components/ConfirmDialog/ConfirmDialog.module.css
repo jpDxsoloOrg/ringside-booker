@@ -1,0 +1,93 @@
+/*
+ * A small modal <dialog>, centred in the viewport. The global reset zeroes every margin, so the
+ * browser's own `margin: auto` for dialogs is put back here.
+ */
+.dialog {
+  margin: auto;
+  inline-size: min(28rem, calc(100vw - 2 * var(--space-4)));
+  max-inline-size: none;
+  max-block-size: calc(100dvh - 2 * var(--space-4));
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  box-shadow: var(--shadow-3);
+  animation: pop-in var(--motion-base) var(--easing-standard);
+}
+
+/* `display: grid` only while open, so the browser's `dialog:not([open])` hiding still applies. */
+.dialog[open] {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
+.dialog::backdrop {
+  background: var(--color-overlay);
+  animation: fade-in var(--motion-base) var(--easing-standard);
+}
+
+.content {
+  display: grid;
+  align-content: start;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-5) var(--space-4);
+  overflow-y: auto;
+}
+
+.title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+}
+
+.body {
+  color: var(--color-text-muted);
+}
+
+.error {
+  padding: var(--space-2) var(--space-3);
+  border-inline-start: 3px solid var(--color-negative);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-sunken);
+  color: var(--color-negative);
+  font-size: var(--font-size-sm);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5) var(--space-5);
+}
+
+/* Phones: the buttons stack full width, each at least a finger's height. */
+@media (--bp-mobile) {
+  .actions {
+    flex-direction: column;
+    padding-inline: var(--space-4);
+  }
+
+  .content {
+    padding-inline: var(--space-4);
+  }
+
+  .actions > * {
+    inline-size: 100%;
+    min-block-size: var(--tap-target-min);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}

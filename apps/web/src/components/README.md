@@ -58,6 +58,9 @@ components/
 | `CountBadge`     | A small count such as unread mail, capped at `99+`                         |
 | `StatBar`        | A 0–100 value such as an attribute, popularity or condition                |
 | `EmptyState`     | What to show when a list, table or screen has nothing in it                |
+| `Tabs`           | `Tabs`, `TabList`, `Tab`, `TabPanel`: switch between views in one area     |
+| `Sheet`          | A side panel over the page; a bottom sheet on phones                       |
+| `ConfirmDialog`  | Ask before a destructive or irreversible action, with async `onConfirm`    |
 | `Stack`          | Children in a column (or row) with a token gap                             |
 | `Cluster`        | A wrapping row with a token gap                                            |
 | `VisuallyHidden` | Text for screen readers only                                               |
@@ -65,3 +68,19 @@ components/
 
 Money is integer `Cents` and dates are `GameDate` strings from `@ringside/engine`; the formatters
 turn them into text at the edge and nowhere else.
+
+## Overlays
+
+`Sheet` and `ConfirmDialog` are built on the native `<dialog>` element opened with `showModal()`,
+which gives the focus trap, Escape and the top layer without a library. Both are controlled: the
+parent owns `open` and clears it in `onClose`. Nothing renders while they are closed, and on close
+focus goes back to the control that opened them.
+
+- A screen that wants "a side panel" uses `Sheet` with a `side`. On phones the sheet decides to
+  open from the bottom instead (turn that off with `responsiveSide={false}`).
+- While any overlay is open, `useBodyScrollLock` puts the `scroll-locked` class on `<html>`. Holds
+  are counted, so a `ConfirmDialog` opened from inside a `Sheet` keeps the page locked when it
+  closes.
+- A new overlay reuses `useModalDialog` from `Sheet/` rather than wiring `<dialog>` again.
+- jsdom has no `showModal()`; `src/test/dialog.ts` stubs it (and Escape) for unit tests. Focus
+  trapping and layout are checked by the gallery e2e spec in a real browser.
