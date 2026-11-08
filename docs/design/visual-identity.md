@@ -118,6 +118,79 @@ Motion is sparing and only means something live or changing: the live-bug pulse,
 the ticker crawl, meter fills animating to new values after a day advances.
 Everything respects `prefers-reduced-motion`.
 
+## Accessibility
+
+A dark UI fails contrast easily, and token checks on paper miss what happens in
+place: a ring clipped by a scrolling panel, a label that does not match what is
+on screen, a crawl that keeps moving. So the look is checked in the running app,
+at desktop width (1440px) and phone width (390px), with WebKit joining on pushes
+to `main`.
+
+### What is checked, and where
+
+| Check          | Bar                                                                                                                                                       | Spec                                                                                |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| axe            | No serious or critical violation of WCAG 2.0, 2.1 or 2.2, levels A and AA                                                                                 | `gallery`, `smoke`, `shell`, `overlays` and `accessibility` specs                   |
+| Focus ring     | Every Tab stop draws a ring at least 2px wide, 3:1 against the surface it sits on, not cut off by a clipping container and not hidden under a fixed bar   | `accessibility.spec.ts`: every gallery entry, the shell, the More sheet, open menus |
+| Reduced motion | Nothing animates or transitions; the ticker is a static list, the live dot is still, meters jump to their value                                           | `accessibility.spec.ts`, `broadcast.spec.ts`, `src/styles/motion.test.ts`           |
+| Keyboard paths | Skip link first, focus to the new page's heading, sidebar or tab bar, More sheet traps focus, menus and tables move with the arrows, Escape returns focus | `shell`, `gallery`, `overlays` and `data-table` specs                               |
+
+axe scans every gallery entry, every route in the shell and the out-of-game
+screens, the open sheets, dialogs, menus and option lists, and the
+reduced-motion layouts. The one exception the helper allows: an open group in
+the Why? panel's tree is named by its own row (the ARIA tree pattern), while its
+visible text also takes in the child rows under it. axe reads that as "label not
+in name"; each child row has its own name, so the check holds row by row.
+
+### Focus
+
+The ring is 2px of `--color-focus` (cyan), 2px off the control. Cyan is far
+brighter than every surface (at least 3:1 on canvas, surface and raised) and
+never means "live", so it stays clear next to a red-orange button. Where a
+container clips, the ring moves inside the control instead of being cut off:
+
+- The sidebar wordmark (`-4px`) and the ticker's pause button (`-2px`), which
+  sit in clipping strips.
+- Tabs, menu items and select options (`-2px`), which sit in clipping lists.
+- A data table draws its ring on its scroll box, not on the table, so the ring
+  stays in view while the rows scroll.
+
+The sidebar, the main area and sheet bodies have `scroll-padding-block`, so
+tabbing to a control scrolls it into view with room for its ring.
+
+### Reduced motion
+
+Reduced motion comes from the device (unless the player turned motion back on in
+Settings) or from the in-game setting. Either way the motion tokens drop to
+`0ms`, so transitions and the sheet and dialog entrances finish at once, and
+each looping animation has its own rule to stop:
+
+- **Ticker**: becomes a static, wrapping list of every headline, with no pause
+  button.
+- **Live bug**: the dot stays lit and still.
+- **Meters**: segmented meters and stat bars jump to their new value.
+- **Button spinner** and **table loading rows**: stand still.
+
+`motion.test.ts` reads every stylesheet and fails if a transition or a one-off
+animation is timed without a motion token, or if a looping animation has no
+reduced-motion rule for both the device and the setting.
+
+### Results of the pass (November 2026)
+
+With the 2.1 and 2.2 rules switched on and every impact counted, the gallery and
+the shell now come back with no findings at all, on both widths and with motion
+on or off. What the pass found and fixed:
+
+| Finding                                                                          | Impact   | Fix                                                       |
+| -------------------------------------------------------------------------------- | -------- | --------------------------------------------------------- |
+| Phone table cards were named by their title alone, not the text they show        | Serious  | Cards take their name from their own content, title first |
+| The sidebar's wordmark, crest and footer links sat outside every landmark        | Moderate | The sidebar is a labelled `aside`                         |
+| The table's ring scrolled out of view with the rows                              | Focus    | The scroll box draws the ring                             |
+| The wordmark's and the phone ticker pause button's rings were clipped            | Focus    | Inset rings                                               |
+| The last links in the sidebar, main area and More sheet scrolled in flush        | Focus    | Scroll padding                                            |
+| The table loading rows kept pulsing when only the in-game setting asked for less | Motion   | The pulse follows the setting as well as the device       |
+| Gallery only: a skipped heading level, and several banners with the same name    | Moderate | Card slot headings are `h3`; each banner has its own name |
+
 ## Phones
 
 - The left sidebar becomes a bottom tab bar (Office, Roster, Booking, Calendar,
