@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { AppendOnlyError } from '../../../src/core/errors';
 import { cents } from '../../../src/core/money';
 import {
   LEDGER_CATEGORIES,
@@ -75,6 +76,28 @@ describe('ledger table', () => {
     // Transactions refuse update and delete on append-only tables with AppendOnlyError.
     expect(ledgerEntriesTable.appendOnly).toBe(true);
     expect(TABLES.ledgerEntries.appendOnly).toBe(true);
+  });
+
+  it('refuses tx.update and tx.delete on a ledger row and leaves the row as it was', () => {
+    const world = emptyGeoMediaWorld();
+    const entry = makeLedgerEntry(1);
+    world.tables.ledgerEntries._put(entry);
+
+    const updated = world.transact('edit-ledger', (tx) => {
+      tx.update('ledgerEntries', entry.id, { amount: cents(1) });
+    });
+    const deleted = world.transact('remove-ledger', (tx) => {
+      tx.delete('ledgerEntries', entry.id);
+    });
+
+    for (const result of [updated, deleted]) {
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.error).toBeInstanceOf(AppendOnlyError);
+      }
+    }
+    expect(world.tables.ledgerEntries.get(entry.id)).toEqual(entry);
+    expect(world.tables.ledgerEntries.size).toBe(1);
   });
 
   it("byPromotionMonth returns one promotion's entries for 2026-03 only", () => {
