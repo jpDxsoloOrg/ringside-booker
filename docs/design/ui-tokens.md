@@ -120,6 +120,7 @@ These are the same in both themes.
 | `--z-sheet`                                | Sheets and side panels             | `400`                                   |
 | `--z-toast`                                | Toasts                             | `500`                                   |
 | `--z-overlay`                              | Dialogs and their scrim            | `600`                                   |
+| `--z-popover`                              | Popovers, menus, selects, tooltips | `700`                                   |
 | `--motion-fast` / `--motion-base`          | Transition durations               | `120ms` / `200ms` (`0ms` reduced)       |
 | `--easing-standard`                        | Default easing curve               | `cubic-bezier(0.2, 0, 0, 1)`            |
 | `--sidebar-width`                          | Desktop sidebar                    | `15rem`                                 |

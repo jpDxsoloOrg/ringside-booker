@@ -10,6 +10,7 @@
 export const ICON_NAMES = [
   'menu',
   'close',
+  'check',
   'chevron-right',
   'chevron-down',
   'more',
@@ -65,6 +66,7 @@ export const ICON_PATHS: Readonly<Record<IconName, readonly string[]>> = {
   menu: ['M4 6h16', 'M4 12h16', 'M4 18h16'],
   close: ['M6 6l12 12', 'M18 6 6 18'],
   'chevron-right': ['M9 5l7 7-7 7'],
+  check: ['M5 12.5l4.5 4.5L19 7.5'],
   'chevron-down': ['M5 9l7 7 7-7'],
   more: [dot(5, 12), dot(12, 12), dot(19, 12)],
   calendar: ['M4 6h16v14H4z', 'M4 10h16', 'M8 3v5', 'M16 3v5'],

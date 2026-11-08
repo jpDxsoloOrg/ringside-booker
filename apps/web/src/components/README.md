@@ -96,6 +96,11 @@ export const galleryEntry: GalleryEntry = {
 | `Tabs`           | `Tabs`, `TabList`, `Tab`, `TabPanel`: switch between views in one area     |
 | `Sheet`          | A side panel over the page; a bottom sheet on phones                       |
 | `ConfirmDialog`  | Ask before a destructive or irreversible action, with async `onConfirm`    |
+| `Tooltip`        | A short hint on hover or focus. Never the only copy of anything            |
+| `Popover`        | A small panel anchored to a button: detail, a filter, quick controls       |
+| `DropdownMenu`   | A menu of actions behind a button, such as a row's "more" menu             |
+| `Select`         | Pick one option from a short list                                          |
+| `Switch`         | An on/off setting that applies straight away                               |
 | `Stack`          | Children in a column (or row) with a token gap                             |
 | `Cluster`        | A wrapping row with a token gap                                            |
 | `VisuallyHidden` | Text for screen readers only                                               |
@@ -127,18 +132,34 @@ restyled table cells, so each layout keeps its screen reader semantics.
   windowing yet; a screen that needs thousands of rows should page them, or windowing should be
   added behind the same props.
 
-## Overlays
+## Overlays and Radix
 
-`Sheet` and `ConfirmDialog` are built on the native `<dialog>` element opened with `showModal()`,
-which gives the focus trap, Escape and the top layer without a library. Both are controlled: the
-parent owns `open` and clears it in `onClose`. Nothing renders while they are closed, and on close
-focus goes back to the control that opened them.
+The interactive behaviour of `Tabs`, `Sheet`, `ConfirmDialog`, `Tooltip`, `Popover`,
+`DropdownMenu`, `Select` and `Switch` comes from [Radix UI](https://www.radix-ui.com/primitives)
+(see `docs/design/visual-identity.md`): focus management, keyboard handling and screen reader
+semantics. Radix ships no styles, so the look is still ours, in each component's CSS Module on the
+tokens. Screens import our wrappers, never `@radix-ui/*` directly, so the props stay ours too.
 
+- `Sheet` and `ConfirmDialog` are modal Radix dialogs. Both are controlled: the parent owns `open`
+  and clears it in `onClose`. Nothing renders while they are closed. They trap focus, close on
+  Escape (the topmost one only), and hide the rest of the page from screen readers.
+- Radix only returns focus to its own `Trigger` part. Our overlays are opened by any control, so
+  `useOverlayFocus` (in `Sheet/`) remembers what had focus on open and focuses it again on close,
+  and picks the first element to focus. A new modal overlay reuses it.
 - A screen that wants "a side panel" uses `Sheet` with a `side`. On phones the sheet decides to
   open from the bottom instead (turn that off with `responsiveSide={false}`).
 - While any overlay is open, `useBodyScrollLock` puts the `scroll-locked` class on `<html>`. Holds
   are counted, so a `ConfirmDialog` opened from inside a `Sheet` keeps the page locked when it
   closes.
-- A new overlay reuses `useModalDialog` from `Sheet/` rather than wiring `<dialog>` again.
-- jsdom has no `showModal()`; `src/test/dialog.ts` stubs it (and Escape) for unit tests. Focus
-  trapping and layout are checked by the gallery e2e spec in a real browser.
+- Stacking uses the `--z-sheet`, `--z-overlay` and `--z-popover` tokens, so a confirm opens above
+  a sheet and a menu or select opened inside either sits above both.
+- Animate a Radix part only in its open state (`[data-state='open']`). Radix keeps a closing part
+  mounted until an animation running on it ends, so an animation that also matched the closed
+  state would leave it on screen.
+- `Tooltip`, `Popover` and `DropdownMenu` take their trigger as a single element that forwards its
+  ref, such as `Button` or `IconButton`.
+- Radix sets a few inline styles of its own (positioning, `pointer-events` while modal). The
+  no-`style` rule is about our markup; it never applies to what a library does at run time.
+- jsdom lacks pointer capture, `scrollIntoView` and `ResizeObserver`; `src/test/domStubs.ts` stubs
+  them for unit tests. Layout, positioning and pointer behaviour are checked by the e2e specs
+  (`gallery.spec.ts` and `overlays.spec.ts`) in a real browser.

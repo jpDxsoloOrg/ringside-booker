@@ -1,0 +1,32 @@
+/* A small dark-on-light (or light-on-dark) label over everything else, kept narrow on phones. */
+.tooltip {
+  z-index: var(--z-popover);
+  max-inline-size: min(18rem, calc(100vw - 2 * var(--space-4)));
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-text);
+  color: var(--color-text-inverse);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-snug);
+  box-shadow: var(--shadow-2);
+}
+
+.arrow {
+  fill: var(--color-text);
+}
+
+/*
+ * Entry animations only match the open state. Radix keeps a closing part mounted until an
+ * animation running on it ends, so one that also matched the closed state would never let go.
+ */
+.tooltip[data-state='delayed-open'],
+.tooltip[data-state='instant-open'] {
+  animation: fade-in var(--motion-fast) var(--easing-standard);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
