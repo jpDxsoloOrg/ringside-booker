@@ -1,0 +1,331 @@
+/*
+ * The new-game wizard. Office register (docs/design/visual-identity.md): rounded cards on the
+ * surface step, condensed caps for headings and labels, the action red-orange kept for the one
+ * primary button per area.
+ *
+ * Desktop: a three-column grid, the step rail on the left, the step in the middle and the summary
+ * on the right. Below --bp-mobile: one column, a "Step N of 4" header with a progress bar, and
+ * Back/Next in a bar pinned to the bottom of the screen above the safe-area inset.
+ */
+
+.screen {
+  display: grid;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+
+.header {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  justify-self: start;
+  min-block-size: var(--tap-target-min);
+  color: var(--color-data);
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
+.backIcon {
+  flex: none;
+}
+
+.heading {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-tight);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 12rem minmax(0, 1fr) 19rem;
+  align-items: start;
+  gap: var(--space-6);
+  min-inline-size: 0;
+}
+
+/* ---- Step rail ------------------------------------------------------------------------------- */
+
+.rail {
+  position: sticky;
+  inset-block-start: var(--space-6);
+}
+
+.railList {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.railItem {
+  position: relative;
+}
+
+.railButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  inline-size: 100%;
+  min-block-size: var(--tap-target-min);
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-inline-start: 3px solid var(--color-border);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  background: none;
+  color: var(--color-text-muted);
+  font: inherit;
+  text-align: start;
+}
+
+button.railButton {
+  cursor: pointer;
+}
+
+button.railButton:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+button.railButton:disabled {
+  cursor: not-allowed;
+}
+
+.railItem[data-state='done'] .railButton {
+  border-inline-start-color: var(--color-data);
+  color: var(--color-text);
+}
+
+.railItem[data-state='current'] .railButton {
+  border-inline-start-color: var(--color-action-bright);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+}
+
+.railNumber {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-family-display);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+.railItem[data-state='current'] .railNumber {
+  border-color: var(--color-action-bright);
+  color: var(--color-action-bright);
+}
+
+.railLabel {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.visuallyHidden {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- Phone step header ----------------------------------------------------------------------- */
+
+.compactProgress {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.compactLabel {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.progressBar {
+  inline-size: 100%;
+  block-size: 0.375rem;
+  border: 0;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  background: var(--color-surface-raised);
+  appearance: none;
+}
+
+.progressBar::-webkit-progress-bar {
+  background: var(--color-surface-raised);
+}
+
+.progressBar::-webkit-progress-value {
+  background: var(--color-data);
+}
+
+.progressBar::-moz-progress-bar {
+  background: var(--color-data);
+}
+
+/* ---- The step -------------------------------------------------------------------------------- */
+
+.stepPanel {
+  display: grid;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+
+.stepHeading {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.stepHeading:focus {
+  outline: none;
+}
+
+.stepHeading:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.waiting {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  color: var(--color-text-muted);
+}
+
+.actionBar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--color-border);
+}
+
+/* ---- Summary --------------------------------------------------------------------------------- */
+
+.summary {
+  position: sticky;
+  inset-block-start: var(--space-6);
+  min-inline-size: 0;
+}
+
+/* ---- Start failure --------------------------------------------------------------------------- */
+
+.failure {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-negative);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.failureText {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.failureTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-negative);
+  font-weight: var(--font-weight-bold);
+}
+
+.failureNote {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.failureDetails {
+  max-block-size: 12rem;
+  overflow: auto;
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-sunken);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  white-space: pre-wrap;
+}
+
+.failureActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* A laptop-sized window: the summary moves under the step. */
+@media (width < 72rem) {
+  .layout {
+    grid-template-columns: 11rem minmax(0, 1fr);
+  }
+
+  .summary {
+    position: static;
+    grid-column: 2;
+  }
+}
+
+@media (--bp-mobile) {
+  .screen {
+    gap: var(--space-4);
+  }
+
+  .heading {
+    font-size: var(--font-size-2xl);
+  }
+
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .stepHeading {
+    font-size: var(--font-size-xl);
+  }
+
+  /* Back and Next stay in reach: pinned to the bottom edge, clear of the home indicator. */
+  .actionBar {
+    position: sticky;
+    inset-block-end: 0;
+    z-index: var(--z-nav);
+    flex-wrap: nowrap;
+    margin-inline: calc(-1 * var(--space-4));
+    padding: var(--space-3) var(--space-4) calc(var(--space-3) + var(--safe-bottom));
+    background: var(--color-bg);
+  }
+
+  .actionBar > button {
+    flex: 1 1 0;
+  }
+}
