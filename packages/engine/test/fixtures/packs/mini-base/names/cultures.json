@@ -1,0 +1,23 @@
+[
+  {
+    "key": "cormeric",
+    "label": "Cormeric",
+    "given": {
+      "male": [
+        ["Jack", 5],
+        ["Otto", 3]
+      ],
+      "female": [
+        ["Nina", 4],
+        ["Sam", 2]
+      ],
+      "neutral": [["Sam", 1]]
+    },
+    "surnames": [
+      ["Marlow", 3],
+      ["Vale", 2],
+      ["Reed", 1]
+    ],
+    "surnameStyle": "single"
+  }
+]

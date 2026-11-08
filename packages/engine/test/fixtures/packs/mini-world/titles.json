@@ -1,0 +1,17 @@
+[
+  {
+    "key": "hcw-heavyweight",
+    "promotionKey": "harbour-city-wrestling",
+    "name": "HCW Heavyweight Championship",
+    "holderCount": 1,
+    "division": {
+      "gender": "open",
+      "minWeightKg": null,
+      "maxWeightKg": null
+    },
+    "prestige": 45,
+    "status": "active",
+    "introducedOn": "2013-01-01",
+    "color": "#c9a227"
+  }
+]

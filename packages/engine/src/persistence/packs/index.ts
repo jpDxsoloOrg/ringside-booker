@@ -2,8 +2,9 @@
  * Data packs: the authoring format every shipped and modded piece of world content is written in.
  *
  * A pack is a folder with a manifest (`pack.json`) and one JSON file per record kind, each file an
- * array of records. This module only describes and checks that format. Turning packs into a World
- * (resolving keys to IDs, merging packs, applying overrides) is the loader's job (WLD-02).
+ * array of records. The schemas describe and check that format (WLD-01); the loader (WLD-02) turns
+ * a set of packs into a World: `resolvePacks` → `mergeRecords` → `checkReferences` →
+ * `materialiseWorld`, or all of it in one call with `loadWorldFromPacks`.
  *
  * Format doc: docs/design/data-packs.md.
  */
@@ -62,9 +63,17 @@ import {
 } from './records/people';
 
 export * from './fields';
+export * from './issues';
 export * from './keys';
+export * from './library';
+export * from './load';
 export * from './manifest';
+export * from './materialise';
+export * from './merge';
 export * from './migrations';
+export * from './references';
+export * from './resolve';
+export * from './semver';
 export * from './records/generation';
 export * from './records/geography';
 export * from './records/names';

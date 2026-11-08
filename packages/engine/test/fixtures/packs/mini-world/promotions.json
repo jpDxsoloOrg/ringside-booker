@@ -1,0 +1,64 @@
+[
+  {
+    "key": "harbour-city-wrestling",
+    "name": "Harbour City Wrestling",
+    "shortName": "HCW",
+    "foundedOn": "2012-05-19",
+    "status": "active",
+    "homeRegionKey": "harbour-coast",
+    "regionalPop": {
+      "harbour-coast": 41,
+      "mini-base:north-ridge": 12
+    },
+    "prestige": 38,
+    "cash": 250000,
+    "style": "traditional",
+    "production": {
+      "stage": 3,
+      "camera": 3,
+      "editing": 2,
+      "pyro": 1,
+      "music": 2,
+      "writing": 3,
+      "marketing": 2,
+      "backOffice": 3
+    },
+    "policies": {
+      "catering": 1,
+      "travel": 1,
+      "medical": 2
+    },
+    "color": "#1f6f8b"
+  },
+  {
+    "key": "river-city-wrestling",
+    "name": "River City Wrestling",
+    "shortName": "RCW",
+    "foundedOn": "2018-02-10",
+    "status": "active",
+    "homeRegionKey": "vell-lowlands",
+    "regionalPop": {
+      "vell-lowlands": 25
+    },
+    "prestige": 22,
+    "cash": 90000,
+    "style": "hardHitting",
+    "ownerPersonKey": "otto-brand",
+    "production": {
+      "stage": 3,
+      "camera": 3,
+      "editing": 2,
+      "pyro": 1,
+      "music": 2,
+      "writing": 3,
+      "marketing": 2,
+      "backOffice": 3
+    },
+    "policies": {
+      "catering": 0,
+      "travel": 1,
+      "medical": 1
+    },
+    "color": "#8b3a1f"
+  }
+]
