@@ -1,0 +1,16 @@
+.screen {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.heading {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+}
+
+@media (--bp-mobile) {
+  .heading {
+    font-size: var(--font-size-xl);
+  }
+}

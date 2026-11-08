@@ -1,0 +1,288 @@
+/*
+ * The in-game frame. Desktop: sidebar | (top bar over main), with the main area scrolling on its
+ * own. Phones (--bp-mobile): no sidebar, a sticky compact top bar, the page scrolling as a whole,
+ * and a fixed bottom tab bar the content is padded to clear.
+ */
+.shell {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  grid-template-rows: var(--topbar-height) minmax(0, 1fr);
+  grid-template-areas:
+    'sidebar topbar'
+    'sidebar main';
+  block-size: 100dvh;
+}
+
+/* ---- Sidebar ---------------------------------------------------------------------------- */
+
+.sidebar {
+  grid-area: sidebar;
+  display: flex;
+  flex-direction: column;
+  min-block-size: 0;
+  overflow-y: auto;
+  padding-inline-start: var(--safe-left);
+  border-inline-end: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.brand {
+  display: flex;
+  flex: none;
+  align-items: center;
+  block-size: var(--topbar-height);
+  padding-inline: var(--space-4);
+  border-block-end: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.sidebarNav {
+  display: grid;
+  flex: 1 0 auto;
+  align-content: start;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-2);
+}
+
+.navSection {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.navSectionHeading {
+  padding-inline: var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.navList,
+.sidebarFooter,
+.moreFooter,
+.bottomNavList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.navList {
+  display: grid;
+  gap: var(--space-0);
+}
+
+.sidebarFooter {
+  display: grid;
+  gap: var(--space-0);
+  padding: var(--space-3) var(--space-2) calc(var(--safe-bottom) + var(--space-3));
+  border-block-start: 1px solid var(--color-border);
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-block-size: 2.25rem;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+  transition: background-color var(--motion-fast) var(--easing-standard);
+}
+
+.navLink:hover {
+  background: var(--color-surface-sunken);
+}
+
+.navLink[aria-current='page'] {
+  background: var(--color-surface-sunken);
+  color: var(--color-accent);
+  font-weight: var(--font-weight-semibold);
+  box-shadow: inset 3px 0 0 var(--color-accent);
+}
+
+.navIcon {
+  flex: none;
+}
+
+.navLabel {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.navBadge {
+  flex: none;
+}
+
+/* ---- Top bar ---------------------------------------------------------------------------- */
+
+.topBar {
+  grid-area: topbar;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-inline-size: 0;
+  padding-inline: var(--space-6) calc(var(--safe-right) + var(--space-6));
+  border-block-end: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.topBarStart {
+  min-inline-size: 0;
+}
+
+.topBarEnd {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.pageTitle {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  overflow: hidden;
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.crumbSection {
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-regular);
+}
+
+.crumbSeparator {
+  color: var(--color-text-muted);
+}
+
+/* ---- Main ------------------------------------------------------------------------------- */
+
+.main {
+  grid-area: main;
+  min-block-size: 0;
+  overflow-y: auto;
+}
+
+/* The main area takes focus from the skip link and RouteFocus; it needs no ring of its own. */
+.main:focus {
+  outline: none;
+}
+
+.content {
+  max-inline-size: var(--content-max-width);
+  margin-inline: auto;
+  padding: var(--space-6) calc(var(--safe-right) + var(--space-8)) var(--space-10) var(--space-8);
+}
+
+/* ---- Phone bottom bar and More sheet ---------------------------------------------------- */
+
+.bottomNav {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: var(--z-nav);
+  block-size: calc(var(--bottom-nav-height) + var(--safe-bottom));
+  padding: 0 var(--safe-right) var(--safe-bottom) var(--safe-left);
+  border-block-start: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.bottomNavList {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  block-size: 100%;
+}
+
+.tab {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  inline-size: 100%;
+  block-size: 100%;
+  min-block-size: var(--tap-target-min);
+  padding: var(--space-1);
+  border: 0;
+  background: none;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.tab .navLabel {
+  flex: none;
+  max-inline-size: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.tab .navBadge {
+  position: absolute;
+  inset-block-start: var(--space-1);
+  inset-inline-start: calc(50% + var(--space-2));
+}
+
+.tab[aria-current='page'],
+.tab[data-current='true'] {
+  color: var(--color-accent);
+  font-weight: var(--font-weight-semibold);
+}
+
+.moreBody {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.moreFooter {
+  display: grid;
+  gap: var(--space-0);
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--color-border);
+}
+
+@media (pointer: coarse) {
+  .navLink {
+    min-block-size: var(--tap-target-min);
+  }
+}
+
+@media (--bp-mobile) {
+  .shell {
+    display: block;
+    block-size: auto;
+    min-block-size: 100dvh;
+  }
+
+  .topBar {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: var(--z-nav);
+    block-size: calc(var(--topbar-height) + var(--safe-top));
+    padding: var(--safe-top) calc(var(--safe-right) + var(--space-4)) 0
+      calc(var(--safe-left) + var(--space-4));
+  }
+
+  .main {
+    overflow: visible;
+    padding-block-end: calc(var(--bottom-nav-height) + var(--safe-bottom));
+  }
+
+  .content {
+    padding: var(--space-4) calc(var(--safe-right) + var(--space-4)) var(--space-6)
+      calc(var(--safe-left) + var(--space-4));
+  }
+}
