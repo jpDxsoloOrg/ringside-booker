@@ -1,0 +1,483 @@
+[
+  {
+    "key": "pro-au-indie",
+    "name": "Wattle Pro Wrestling",
+    "shortName": "WATTLE",
+    "logoRef": null,
+    "foundedOn": "2023-02-25",
+    "status": "active",
+    "homeRegionKey": "au-victoria-tasmania",
+    "regionalPop": {
+      "au-victoria-tasmania": 18
+    },
+    "prestige": 22,
+    "cash": 40000,
+    "style": "traditional",
+    "ownerPersonKey": null,
+    "bookerPersonKey": null,
+    "parentPromotionKey": null,
+    "production": {
+      "stage": 1,
+      "camera": 1,
+      "editing": 0,
+      "pyro": 0,
+      "music": 1,
+      "writing": 1,
+      "marketing": 1,
+      "backOffice": 0
+    },
+    "policies": {
+      "catering": 0,
+      "travel": 0,
+      "medical": 1
+    },
+    "color": "#ca8a04"
+  },
+  {
+    "key": "pro-ca",
+    "name": "Boreal Championship Wrestling",
+    "shortName": "BOREAL",
+    "logoRef": null,
+    "foundedOn": "2003-02-08",
+    "status": "active",
+    "homeRegionKey": "ca-ontario",
+    "regionalPop": {
+      "ca-ontario": 42,
+      "ca-quebec": 25,
+      "ca-prairies": 18,
+      "us-great-lakes": 16,
+      "us-northeast": 15
+    },
+    "prestige": 58,
+    "cash": 1500000,
+    "style": "traditional",
+    "ownerPersonKey": null,
+    "bookerPersonKey": null,
+    "parentPromotionKey": null,
+    "production": {
+      "stage": 3,
+      "camera": 4,
+      "editing": 3,
+      "pyro": 2,
+      "music": 3,
+      "writing": 3,
+      "marketing": 4,
+      "backOffice": 4
+    },
+    "policies": {
+      "catering": 2,
+      "travel": 1,
+      "medical": 2
+    },
+    "color": "#4c6ef5"
+  },
+  {
+    "key": "pro-de",
+    "name": "Eisenwerk Wrestling",
+    "shortName": "EISEN",
+    "logoRef": null,
+    "foundedOn": "2009-11-07",
+    "status": "active",
+    "homeRegionKey": "de-west",
+    "regionalPop": {
+      "de-west": 40,
+      "de-north": 25,
+      "de-south": 25,
+      "de-east": 15,
+      "nl-all": 18,
+      "be-all": 16
+    },
+    "prestige": 45,
+    "cash": 400000,
+    "style": "mainstream",
+    "ownerPersonKey": null,
+    "bookerPersonKey": null,
+    "parentPromotionKey": null,
+    "production": {
+      "stage": 3,
+      "camera": 3,
+      "editing": 2,
+      "pyro": 3,
+      "music": 3,
+      "writing": 2,
+      "marketing": 3,
+      "backOffice": 3
+    },
+    "policies": {
+      "catering": 1,
+      "travel": 1,
+      "medical": 1
+    },
+    "color": "#64748b"
+  },
+  {
+    "key": "pro-flagship",
+    "name": "Altura Wrestling Entertainment",
+    "shortName": "ALTURA",
+    "logoRef": null,
+    "foundedOn": "1989-03-13",
+    "status": "active",
+    "homeRegionKey": "us-northeast",
+    "regionalPop": {
+      "us-northeast": 75,
+      "us-mid-atlantic": 73,
+      "us-great-lakes": 72,
+      "us-midwest": 70,
+      "us-southeast": 71,
+      "us-florida": 70,
+      "us-texas": 69,
+      "us-california": 68,
+      "us-plains": 66,
+      "us-southwest": 67,
+      "us-mountain": 65,
+      "us-pacific-northwest": 66,
+      "ca-ontario": 44,
+      "ca-quebec": 36,
+      "ca-atlantic": 38,
+      "ca-prairies": 35,
+      "ca-british-columbia": 37,
+      "gb-london": 42,
+      "gb-south": 38,
+      "gb-midlands-wales": 36,
+      "gb-north": 35,
+      "gb-scotland-ni": 32,
+      "ie-all": 25,
+      "de-north": 16,
+      "de-east": 12,
+      "de-west": 18,
+      "de-south": 15,
+      "fr-all": 12,
+      "nl-all": 14,
+      "se-all": 10,
+      "it-all": 11,
+      "es-all": 10,
+      "au-new-south-wales": 24,
+      "au-victoria-tasmania": 22,
+      "au-queensland": 21,
+      "au-west-central": 18,
+      "nz-all": 20
+    },
+    "prestige": 80,
+    "cash": 40000000,
+    "style": "entertainment",
+    "ownerPersonKey": null,
+    "bookerPersonKey": null,
+    "parentPromotionKey": null,
+    "production": {
+      "stage": 8,
+      "camera": 8,
+      "editing": 7,
+      "pyro": 8,
+      "music": 7,
+      "writing": 7,
+      "marketing": 8,
+      "backOffice": 7
+    },
+    "policies": {
+      "catering": 3,
+      "travel": 3,
+      "medical": 3
+    },
+    "color": "#2b6cb0"
+  },
+  {
+    "key": "pro-jp-kansai-indie",
+    "name": "Hibari Pro Wrestling",
+    "shortName": "HIBARI",
+    "logoRef": null,
+    "foundedOn": "2019-04-21",
+    "status": "active",
+    "homeRegionKey": "jp-kansai",
+    "regionalPop": {
+      "jp-kansai": 18
+    },
+    "prestige": 32,
+    "cash": 120000,
+    "style": "highFlying",
+    "ownerPersonKey": null,
+    "bookerPersonKey": null,
+    "parentPromotionKey": null,
+    "production": {
+      "stage": 2,
+      "camera": 2,
+      "editing": 1,
+      "pyro": 1,
+      "music": 2,
+      "writing": 1,
+      "marketing": 1,
+      "backOffice": 1
+    },
+    "policies": {
+      "catering": 0,
+      "travel": 1,
+      "medical": 1
+    },
+    "color": "#db2777"
+  },
+  {
+    "key": "pro-jp-major",
+    "name": "Tessen Pro Wrestling",
+    "shortName": "TESSEN",
+    "logoRef": null,
+    "foundedOn": "1994-09-17",
+    "status": "active",
+    "homeRegionKey": "jp-kanto",
+    "regionalPop": {
+      "jp-kanto": 65,
+      "jp-tohoku": 58,
+      "jp-chubu": 60,
+      "jp-kansai": 62,
+      "jp-western": 57,
+      "jp-hokkaido": 55,
+      "kr-all": 18,
+      "tw-all": 14
+    },
+    "prestige": 75,
+    "cash": 8000000,
+    "style": "hardHitting",
+    "ownerPersonKey": null,
+    "bookerPersonKey": null,
+    "parentPromotionKey": null,
+    "production": {
+      "stage": 5,
+      "camera": 6,
+      "editing": 5,
+      "pyro": 4,
+      "music": 5,
+      "writing": 6,
+      "marketing": 5,
+      "backOffice": 6
+    },
+    "policies": {
+      "catering": 2,
+      "travel": 2,
+      "medical": 3
+    },
+    "color": "#b91c1c"
+  },
+  {
+    "key": "pro-mx-major",
+    "name": "Cielo Alto Lucha Libre",
+    "shortName": "CIELO",
+    "logoRef": null,
+    "foundedOn": "1991-05-24",
+    "status": "active",
+    "homeRegionKey": "mx-mexico-city",
+    "regionalPop": {
+      "mx-mexico-city": 65,
+      "mx-west": 60,
+      "mx-northeast": 58,
+      "mx-northwest": 56,
+      "mx-south": 59,
+      "mx-yucatan": 55,
+      "us-southwest": 22,
+      "us-texas": 24,
+      "us-california": 19
+    },
+    "prestige": 70,
+    "cash": 5000000,
+    "style": "highFlying",
+    "ownerPersonKey": null,
+    "bookerPersonKey": null,
+    "parentPromotionKey": null,
+    "production": {
+      "stage": 5,
+      "camera": 5,
+      "editing": 4,
+      "pyro": 6,
+      "music": 6,
+      "writing": 4,
+      "marketing": 5,
+      "backOffice": 4
+    },
+    "policies": {
+      "catering": 2,
+      "travel": 2,
+      "medical": 2
+    },
+    "color": "#0e9f8e"
+  },
+  {
+    "key": "pro-uk",
+    "name": "Ashlar Pro Wrestling",
+    "shortName": "ASHLAR",
+    "logoRef": null,
+    "foundedOn": "2012-09-15",
+    "status": "active",
+    "homeRegionKey": "gb-north",
+    "regionalPop": {
+      "gb-north": 42,
+      "gb-midlands-wales": 28,
+      "gb-scotland-ni": 25,
+      "gb-london": 17
+    },
+    "prestige": 52,
+    "cash": 900000,
+    "style": "technical",
+    "ownerPersonKey": null,
+    "bookerPersonKey": null,
+    "parentPromotionKey": null,
+    "production": {
+      "stage": 3,
+      "camera": 3,
+      "editing": 3,
+      "pyro": 2,
+      "music": 2,
+      "writing": 4,
+      "marketing": 3,
+      "backOffice": 3
+    },
+    "policies": {
+      "catering": 1,
+      "travel": 1,
+      "medical": 2
+    },
+    "color": "#7c3aed"
+  },
+  {
+    "key": "pro-us-greatlakes",
+    "name": "Blast Furnace Wrestling",
+    "shortName": "BLAST",
+    "logoRef": null,
+    "foundedOn": "2011-10-29",
+    "status": "active",
+    "homeRegionKey": "us-great-lakes",
+    "regionalPop": {
+      "us-great-lakes": 42,
+      "us-midwest": 25,
+      "us-mid-atlantic": 18,
+      "us-southeast": 15,
+      "ca-ontario": 16
+    },
+    "prestige": 48,
+    "cash": 650000,
+    "style": "hardcore",
+    "ownerPersonKey": null,
+    "bookerPersonKey": null,
+    "parentPromotionKey": null,
+    "production": {
+      "stage": 2,
+      "camera": 3,
+      "editing": 2,
+      "pyro": 3,
+      "music": 3,
+      "writing": 2,
+      "marketing": 3,
+      "backOffice": 2
+    },
+    "policies": {
+      "catering": 1,
+      "travel": 1,
+      "medical": 1
+    },
+    "color": "#c2410c"
+  },
+  {
+    "key": "pro-us-southeast",
+    "name": "Longleaf Championship Wrestling",
+    "shortName": "LEAF",
+    "logoRef": null,
+    "foundedOn": "2008-04-12",
+    "status": "active",
+    "homeRegionKey": "us-southeast",
+    "regionalPop": {
+      "us-southeast": 40,
+      "us-florida": 28,
+      "us-mid-atlantic": 18,
+      "us-texas": 15
+    },
+    "prestige": 55,
+    "cash": 1200000,
+    "style": "traditional",
+    "ownerPersonKey": null,
+    "bookerPersonKey": null,
+    "parentPromotionKey": null,
+    "production": {
+      "stage": 3,
+      "camera": 4,
+      "editing": 3,
+      "pyro": 2,
+      "music": 3,
+      "writing": 4,
+      "marketing": 3,
+      "backOffice": 3
+    },
+    "policies": {
+      "catering": 1,
+      "travel": 2,
+      "medical": 2
+    },
+    "color": "#3f7d3a"
+  },
+  {
+    "key": "pro-us-texas-indie",
+    "name": "Hardpan Pro Wrestling",
+    "shortName": "HARDPN",
+    "logoRef": null,
+    "foundedOn": "2021-08-14",
+    "status": "active",
+    "homeRegionKey": "us-texas",
+    "regionalPop": {
+      "us-texas": 20
+    },
+    "prestige": 28,
+    "cash": 85000,
+    "style": "hardHitting",
+    "ownerPersonKey": null,
+    "bookerPersonKey": null,
+    "parentPromotionKey": null,
+    "production": {
+      "stage": 1,
+      "camera": 2,
+      "editing": 1,
+      "pyro": 0,
+      "music": 1,
+      "writing": 2,
+      "marketing": 1,
+      "backOffice": 1
+    },
+    "policies": {
+      "catering": 0,
+      "travel": 0,
+      "medical": 1
+    },
+    "color": "#a16207"
+  },
+  {
+    "key": "pro-us-west-women",
+    "name": "Golden Poppy Wrestling",
+    "shortName": "POPPY",
+    "logoRef": null,
+    "foundedOn": "2016-06-18",
+    "status": "active",
+    "homeRegionKey": "us-california",
+    "regionalPop": {
+      "us-california": 40,
+      "us-pacific-northwest": 22,
+      "us-southwest": 20,
+      "us-mountain": 15
+    },
+    "prestige": 50,
+    "cash": 750000,
+    "style": "technical",
+    "ownerPersonKey": null,
+    "bookerPersonKey": null,
+    "parentPromotionKey": null,
+    "production": {
+      "stage": 3,
+      "camera": 3,
+      "editing": 3,
+      "pyro": 2,
+      "music": 3,
+      "writing": 4,
+      "marketing": 3,
+      "backOffice": 3
+    },
+    "policies": {
+      "catering": 1,
+      "travel": 1,
+      "medical": 2
+    },
+    "color": "#e0882b"
+  }
+]

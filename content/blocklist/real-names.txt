@@ -63,6 +63,7 @@ Women of Wrestling
 Shimmer Women Athletes
 Chikara
 Beyond Wrestling
+Pro Wrestling Grind
 
 # Promotions (short names)
 WWE
@@ -174,6 +175,7 @@ The Dudley Boyz
 The Hart Foundation
 The Midnight Express
 The Rock 'n' Roll Express
+Los Brazos
 
 # Performers
 Hulk Hogan

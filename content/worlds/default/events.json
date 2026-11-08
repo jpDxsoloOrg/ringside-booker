@@ -1,0 +1,905 @@
+[
+  {
+    "key": "au-indie-fortnightly",
+    "promotionKey": "pro-au-indie",
+    "brandKey": null,
+    "name": "Wattle Saturday",
+    "importance": "minor",
+    "recurrence": {
+      "kind": "everyNWeeks",
+      "intervalWeeks": 2,
+      "weekday": 5,
+      "anchor": "2027-01-02"
+    },
+    "format": {
+      "slots": 5,
+      "preShowSlots": 0
+    },
+    "televised": false,
+    "preferredRegionKey": "au-victoria-tasmania",
+    "preferredVenueKey": "the-gumleaf-room",
+    "activeFrom": "2023-04-01",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "ca-breakup-season",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "name": "Breakup Season",
+    "importance": "major",
+    "recurrence": {
+      "kind": "annual",
+      "month": 3,
+      "week": 4,
+      "weekday": 5
+    },
+    "format": {
+      "slots": 8,
+      "preShowSlots": 0
+    },
+    "televised": false,
+    "preferredRegionKey": "ca-quebec",
+    "preferredVenueKey": "tarrin-quay-hall",
+    "activeFrom": "2011-03-26",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "ca-first-frost",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "name": "First Frost",
+    "importance": "major",
+    "recurrence": {
+      "kind": "annual",
+      "month": 10,
+      "week": 3,
+      "weekday": 5
+    },
+    "format": {
+      "slots": 8,
+      "preShowSlots": 0
+    },
+    "televised": false,
+    "preferredRegionKey": "ca-ontario",
+    "preferredVenueKey": "lowhallow-arena",
+    "activeFrom": "2005-10-15",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "ca-long-twilight",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "name": "Long Twilight",
+    "importance": "major",
+    "recurrence": {
+      "kind": "annual",
+      "month": 6,
+      "week": 4,
+      "weekday": 5
+    },
+    "format": {
+      "slots": 8,
+      "preShowSlots": 0
+    },
+    "televised": false,
+    "preferredRegionKey": "ca-ontario",
+    "preferredVenueKey": "lowhallow-arena",
+    "activeFrom": "2007-06-23",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "ca-weekly",
+    "promotionKey": "pro-ca",
+    "brandKey": null,
+    "name": "Boreal Friday Night",
+    "importance": "minor",
+    "recurrence": {
+      "kind": "weekly",
+      "weekdays": [4]
+    },
+    "format": {
+      "slots": 5,
+      "preShowSlots": 0
+    },
+    "televised": false,
+    "preferredRegionKey": "ca-ontario",
+    "preferredVenueKey": "ontario-civic-hall",
+    "activeFrom": "2003-04-04",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "de-fortnightly",
+    "promotionKey": "pro-de",
+    "brandKey": null,
+    "name": "Eisenwerk Samstag",
+    "importance": "minor",
+    "recurrence": {
+      "kind": "everyNWeeks",
+      "intervalWeeks": 2,
+      "weekday": 5,
+      "anchor": "2027-01-02"
+    },
+    "format": {
+      "slots": 5,
+      "preShowSlots": 0
+    },
+    "televised": false,
+    "preferredRegionKey": "de-west",
+    "preferredVenueKey": "western-germany-civic-hall",
+    "activeFrom": "2010-01-16",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "de-hochofen",
+    "promotionKey": "pro-de",
+    "brandKey": null,
+    "name": "Hochofen",
+    "importance": "major",
+    "recurrence": {
+      "kind": "annual",
+      "month": 4,
+      "week": 3,
+      "weekday": 5
+    },
+    "format": {
+      "slots": 8,
+      "preShowSlots": 0
+    },
+    "televised": false,
+    "preferredRegionKey": "de-west",
+    "preferredVenueKey": "haldenmark-arena",
+    "activeFrom": "2011-04-16",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "de-schmiedefest",
+    "promotionKey": "pro-de",
+    "brandKey": null,
+    "name": "Schmiedefest",
+    "importance": "major",
+    "recurrence": {
+      "kind": "annual",
+      "month": 9,
+      "week": 4,
+      "weekday": 5
+    },
+    "format": {
+      "slots": 8,
+      "preShowSlots": 0
+    },
+    "televised": false,
+    "preferredRegionKey": "de-west",
+    "preferredVenueKey": "haldenmark-arena",
+    "activeFrom": "2012-09-22",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "flagship-altitude",
+    "promotionKey": "pro-flagship",
+    "brandKey": null,
+    "name": "Altitude",
+    "importance": "flagship",
+    "recurrence": {
+      "kind": "annual",
+      "month": 4,
+      "week": 1,
+      "weekday": 6
+    },
+    "format": {
+      "slots": 10,
+      "preShowSlots": 2
+    },
+    "televised": true,
+    "preferredRegionKey": "us-mid-atlantic",
+    "preferredVenueKey": "kestlewood-stadium",
+    "activeFrom": "1990-04-01",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "flagship-cold-front",
+    "promotionKey": "pro-flagship",
+    "brandKey": null,
+    "name": "Cold Front",
+    "importance": "major",
+    "recurrence": {
+      "kind": "annual",
+      "month": 2,
+      "week": 2,
+      "weekday": 6
+    },
+    "format": {
+      "slots": 8,
+      "preShowSlots": 1
+    },
+    "televised": true,
+    "preferredRegionKey": "ca-ontario",
+    "preferredVenueKey": "velmont-lakeshore-arena",
+    "activeFrom": "1999-02-14",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "flagship-ember-night",
+    "promotionKey": "pro-flagship",
+    "brandKey": null,
+    "name": "Ember Night",
+    "importance": "major",
+    "recurrence": {
+      "kind": "annual",
+      "month": 11,
+      "week": 2,
+      "weekday": 6
+    },
+    "format": {
+      "slots": 8,
+      "preShowSlots": 1
+    },
+    "televised": true,
+    "preferredRegionKey": "us-northeast",
+    "preferredVenueKey": "calderwick-arena",
+    "activeFrom": "2004-11-14",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "flagship-harvest-brawl",
+    "promotionKey": "pro-flagship",
+    "brandKey": null,
+    "name": "Harvest Brawl",
+    "importance": "major",
+    "recurrence": {
+      "kind": "annual",
+      "month": 9,
+      "week": 2,
+      "weekday": 6
+    },
+    "format": {
+      "slots": 8,
+      "preShowSlots": 1
+    },
+    "televised": true,
+    "preferredRegionKey": "us-northeast",
+    "preferredVenueKey": "harrowmere-arena",
+    "activeFrom": "1997-09-14",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "flagship-longest-day",
+    "promotionKey": "pro-flagship",
+    "brandKey": null,
+    "name": "Longest Day",
+    "importance": "major",
+    "recurrence": {
+      "kind": "annual",
+      "month": 6,
+      "week": 3,
+      "weekday": 6
+    },
+    "format": {
+      "slots": 8,
+      "preShowSlots": 1
+    },
+    "televised": true,
+    "preferredRegionKey": "us-mid-atlantic",
+    "preferredVenueKey": "brackwater-arena",
+    "activeFrom": "1994-06-19",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "flagship-mainstage-weekly",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-main-brand",
+    "name": "Altura Mainstage",
+    "importance": "regular",
+    "recurrence": {
+      "kind": "weekly",
+      "weekdays": [0]
+    },
+    "format": {
+      "slots": 6,
+      "preShowSlots": 0
+    },
+    "televised": true,
+    "preferredRegionKey": "us-northeast",
+    "preferredVenueKey": "harrowmere-arena",
+    "activeFrom": "1993-01-11",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "flagship-overclock-weekly",
+    "promotionKey": "pro-flagship",
+    "brandKey": "flagship-young-brand",
+    "name": "Altura Overclock",
+    "importance": "regular",
+    "recurrence": {
+      "kind": "weekly",
+      "weekdays": [2]
+    },
+    "format": {
+      "slots": 6,
+      "preShowSlots": 0
+    },
+    "televised": true,
+    "preferredRegionKey": "us-northeast",
+    "preferredVenueKey": "calderwick-arena",
+    "activeFrom": "2002-08-28",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "flagship-showcase-monthly",
+    "promotionKey": "pro-flagship",
+    "brandKey": null,
+    "name": "Altura Showcase",
+    "importance": "major",
+    "recurrence": {
+      "kind": "monthly",
+      "week": "last",
+      "weekday": 6
+    },
+    "format": {
+      "slots": 8,
+      "preShowSlots": 1
+    },
+    "televised": true,
+    "preferredRegionKey": "us-mid-atlantic",
+    "preferredVenueKey": "brackwater-arena",
+    "activeFrom": "1996-01-28",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "jp-kansai-indie-fortnightly",
+    "promotionKey": "pro-jp-kansai-indie",
+    "brandKey": null,
+    "name": "Hibari Sky Sunday",
+    "importance": "minor",
+    "recurrence": {
+      "kind": "everyNWeeks",
+      "intervalWeeks": 2,
+      "weekday": 6,
+      "anchor": "2027-01-03"
+    },
+    "format": {
+      "slots": 5,
+      "preShowSlots": 0
+    },
+    "televised": false,
+    "preferredRegionKey": "jp-kansai",
+    "preferredVenueKey": "the-hibiki-room",
+    "activeFrom": "2019-05-12",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "jp-major-autumn-tempering",
+    "promotionKey": "pro-jp-major",
+    "brandKey": null,
+    "name": "Autumn Tempering",
+    "importance": "major",
+    "recurrence": {
+      "kind": "annual",
+      "month": 10,
+      "week": 3,
+      "weekday": 6
+    },
+    "format": {
+      "slots": 8,
+      "preShowSlots": 0
+    },
+    "televised": true,
+    "preferredRegionKey": "jp-tohoku",
+    "preferredVenueKey": "tsukikage-arena",
+    "activeFrom": "2005-10-16",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "jp-major-grand-forge",
+    "promotionKey": "pro-jp-major",
+    "brandKey": null,
+    "name": "Tessen Grand Forge",
+    "importance": "flagship",
+    "recurrence": {
+      "kind": "annual",
+      "month": 12,
+      "week": 2,
+      "weekday": 6
+    },
+    "format": {
+      "slots": 10,
+      "preShowSlots": 1
+    },
+    "televised": true,
+    "preferredRegionKey": "jp-kanto",
+    "preferredVenueKey": "mizunagi-arena",
+    "activeFrom": "1995-12-10",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "jp-major-iron-bloom",
+    "promotionKey": "pro-jp-major",
+    "brandKey": null,
+    "name": "Iron Bloom",
+    "importance": "major",
+    "recurrence": {
+      "kind": "annual",
+      "month": 4,
+      "week": 2,
+      "weekday": 6
+    },
+    "format": {
+      "slots": 8,
+      "preShowSlots": 1
+    },
+    "televised": true,
+    "preferredRegionKey": "jp-kanto",
+    "preferredVenueKey": "mizunagi-arena",
+    "activeFrom": "1998-04-12",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "jp-major-summer-forge",
+    "promotionKey": "pro-jp-major",
+    "brandKey": null,
+    "name": "Summer Forge",
+    "importance": "major",
+    "recurrence": {
+      "kind": "annual",
+      "month": 8,
+      "week": 1,
+      "weekday": 6
+    },
+    "format": {
+      "slots": 8,
+      "preShowSlots": 0
+    },
+    "televised": true,
+    "preferredRegionKey": "jp-chubu",
+    "preferredVenueKey": "hoshizora-hall",
+    "activeFrom": "2001-08-05",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "jp-major-weekly",
+    "promotionKey": "pro-jp-major",
+    "brandKey": null,
+    "name": "Tessen Iron Hour",
+    "importance": "regular",
+    "recurrence": {
+      "kind": "weekly",
+      "weekdays": [5]
+    },
+    "format": {
+      "slots": 6,
+      "preShowSlots": 0
+    },
+    "televised": true,
+    "preferredRegionKey": "jp-kanto",
+    "preferredVenueKey": "kanto-civic-hall",
+    "activeFrom": "1997-04-05",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "mx-major-fiesta-de-invierno",
+    "promotionKey": "pro-mx-major",
+    "brandKey": null,
+    "name": "Fiesta de Invierno",
+    "importance": "major",
+    "recurrence": {
+      "kind": "annual",
+      "month": 12,
+      "week": 1,
+      "weekday": 6
+    },
+    "format": {
+      "slots": 8,
+      "preShowSlots": 0
+    },
+    "televised": true,
+    "preferredRegionKey": "mx-northeast",
+    "preferredVenueKey": "arena-bosque-rojo",
+    "activeFrom": "2003-12-07",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "mx-major-gran-vuelo",
+    "promotionKey": "pro-mx-major",
+    "brandKey": null,
+    "name": "Gran Vuelo",
+    "importance": "flagship",
+    "recurrence": {
+      "kind": "annual",
+      "month": 9,
+      "week": "last",
+      "weekday": 4
+    },
+    "format": {
+      "slots": 10,
+      "preShowSlots": 1
+    },
+    "televised": true,
+    "preferredRegionKey": "mx-mexico-city",
+    "preferredVenueKey": "arena-tres-garzas",
+    "activeFrom": "1993-09-24",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "mx-major-noche-de-plumas",
+    "promotionKey": "pro-mx-major",
+    "brandKey": null,
+    "name": "Noche de Plumas",
+    "importance": "major",
+    "recurrence": {
+      "kind": "annual",
+      "month": 3,
+      "week": 3,
+      "weekday": 4
+    },
+    "format": {
+      "slots": 8,
+      "preShowSlots": 1
+    },
+    "televised": true,
+    "preferredRegionKey": "mx-mexico-city",
+    "preferredVenueKey": "arena-tres-garzas",
+    "activeFrom": "1996-03-15",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "mx-major-tormenta-de-verano",
+    "promotionKey": "pro-mx-major",
+    "brandKey": null,
+    "name": "Tormenta de Verano",
+    "importance": "major",
+    "recurrence": {
+      "kind": "annual",
+      "month": 7,
+      "week": 2,
+      "weekday": 6
+    },
+    "format": {
+      "slots": 8,
+      "preShowSlots": 0
+    },
+    "televised": true,
+    "preferredRegionKey": "mx-west",
+    "preferredVenueKey": "coliseo-valle-azul",
+    "activeFrom": "1999-07-11",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "mx-major-weekly",
+    "promotionKey": "pro-mx-major",
+    "brandKey": null,
+    "name": "Viernes de Cielo",
+    "importance": "regular",
+    "recurrence": {
+      "kind": "weekly",
+      "weekdays": [4]
+    },
+    "format": {
+      "slots": 6,
+      "preShowSlots": 0
+    },
+    "televised": true,
+    "preferredRegionKey": "mx-mexico-city",
+    "preferredVenueKey": "arena-tres-garzas",
+    "activeFrom": "1992-01-10",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "uk-dry-stone",
+    "promotionKey": "pro-uk",
+    "brandKey": null,
+    "name": "Dry Stone",
+    "importance": "major",
+    "recurrence": {
+      "kind": "annual",
+      "month": 11,
+      "week": 2,
+      "weekday": 6
+    },
+    "format": {
+      "slots": 8,
+      "preShowSlots": 0
+    },
+    "televised": true,
+    "preferredRegionKey": "gb-north",
+    "preferredVenueKey": "northern-england-civic-hall",
+    "activeFrom": "2016-11-13",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "uk-masons-mark",
+    "promotionKey": "pro-uk",
+    "brandKey": null,
+    "name": "Mason's Mark",
+    "importance": "major",
+    "recurrence": {
+      "kind": "annual",
+      "month": 5,
+      "week": 1,
+      "weekday": 6
+    },
+    "format": {
+      "slots": 8,
+      "preShowSlots": 0
+    },
+    "televised": true,
+    "preferredRegionKey": "gb-midlands-wales",
+    "preferredVenueKey": "ambry-hall",
+    "activeFrom": "2015-05-03",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "uk-weekly",
+    "promotionKey": "pro-uk",
+    "brandKey": null,
+    "name": "Ashlar Thursday",
+    "importance": "regular",
+    "recurrence": {
+      "kind": "weekly",
+      "weekdays": [3]
+    },
+    "format": {
+      "slots": 6,
+      "preShowSlots": 0
+    },
+    "televised": true,
+    "preferredRegionKey": "gb-north",
+    "preferredVenueKey": "northern-england-civic-hall",
+    "activeFrom": "2014-01-09",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "us-greatlakes-fortnightly",
+    "promotionKey": "pro-us-greatlakes",
+    "brandKey": null,
+    "name": "Furnace Fights",
+    "importance": "minor",
+    "recurrence": {
+      "kind": "everyNWeeks",
+      "intervalWeeks": 2,
+      "weekday": 5,
+      "anchor": "2027-01-02"
+    },
+    "format": {
+      "slots": 5,
+      "preShowSlots": 0
+    },
+    "televised": false,
+    "preferredRegionKey": "us-great-lakes",
+    "preferredVenueKey": "the-cinder-room",
+    "activeFrom": "2012-02-04",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "us-greatlakes-molten-pour",
+    "promotionKey": "pro-us-greatlakes",
+    "brandKey": null,
+    "name": "Molten Pour",
+    "importance": "major",
+    "recurrence": {
+      "kind": "annual",
+      "month": 3,
+      "week": 2,
+      "weekday": 5
+    },
+    "format": {
+      "slots": 8,
+      "preShowSlots": 0
+    },
+    "televised": false,
+    "preferredRegionKey": "us-great-lakes",
+    "preferredVenueKey": "slagbury-arena",
+    "activeFrom": "2013-03-09",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "us-greatlakes-slag-heap",
+    "promotionKey": "pro-us-greatlakes",
+    "brandKey": null,
+    "name": "Slag Heap",
+    "importance": "major",
+    "recurrence": {
+      "kind": "annual",
+      "month": 10,
+      "week": "last",
+      "weekday": 5
+    },
+    "format": {
+      "slots": 8,
+      "preShowSlots": 0
+    },
+    "televised": false,
+    "preferredRegionKey": "us-great-lakes",
+    "preferredVenueKey": "great-lakes-civic-hall",
+    "activeFrom": "2014-10-25",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "us-southeast-homecoming-throwdown",
+    "promotionKey": "pro-us-southeast",
+    "brandKey": null,
+    "name": "Homecoming Throwdown",
+    "importance": "major",
+    "recurrence": {
+      "kind": "annual",
+      "month": 11,
+      "week": "last",
+      "weekday": 5
+    },
+    "format": {
+      "slots": 8,
+      "preShowSlots": 0
+    },
+    "televised": true,
+    "preferredRegionKey": "us-southeast",
+    "preferredVenueKey": "pinebarrow-arena",
+    "activeFrom": "2012-11-24",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "us-southeast-pine-needle-classic",
+    "promotionKey": "pro-us-southeast",
+    "brandKey": null,
+    "name": "Pine Needle Classic",
+    "importance": "major",
+    "recurrence": {
+      "kind": "annual",
+      "month": 5,
+      "week": 4,
+      "weekday": 5
+    },
+    "format": {
+      "slots": 8,
+      "preShowSlots": 0
+    },
+    "televised": true,
+    "preferredRegionKey": "us-southeast",
+    "preferredVenueKey": "pinebarrow-arena",
+    "activeFrom": "2010-05-22",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "us-southeast-weekly",
+    "promotionKey": "pro-us-southeast",
+    "brandKey": null,
+    "name": "Longleaf Saturday Night",
+    "importance": "regular",
+    "recurrence": {
+      "kind": "weekly",
+      "weekdays": [5]
+    },
+    "format": {
+      "slots": 6,
+      "preShowSlots": 0
+    },
+    "televised": true,
+    "preferredRegionKey": "us-southeast",
+    "preferredVenueKey": "southeast-civic-hall",
+    "activeFrom": "2009-01-10",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "us-texas-indie-weekly",
+    "promotionKey": "pro-us-texas-indie",
+    "brandKey": null,
+    "name": "Hardpan Friday",
+    "importance": "minor",
+    "recurrence": {
+      "kind": "weekly",
+      "weekdays": [4]
+    },
+    "format": {
+      "slots": 5,
+      "preShowSlots": 0
+    },
+    "televised": false,
+    "preferredRegionKey": "us-texas",
+    "preferredVenueKey": "the-mesquell-room",
+    "activeFrom": "2021-09-03",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "us-west-women-fortnightly",
+    "promotionKey": "pro-us-west-women",
+    "brandKey": null,
+    "name": "Poppy Fields",
+    "importance": "minor",
+    "recurrence": {
+      "kind": "everyNWeeks",
+      "intervalWeeks": 2,
+      "weekday": 6,
+      "anchor": "2027-01-03"
+    },
+    "format": {
+      "slots": 5,
+      "preShowSlots": 0
+    },
+    "televised": false,
+    "preferredRegionKey": "us-california",
+    "preferredVenueKey": "the-larkgrove-room",
+    "activeFrom": "2016-07-10",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "us-west-women-poppy-gold",
+    "promotionKey": "pro-us-west-women",
+    "brandKey": null,
+    "name": "Poppy Gold",
+    "importance": "major",
+    "recurrence": {
+      "kind": "annual",
+      "month": 9,
+      "week": 3,
+      "weekday": 5
+    },
+    "format": {
+      "slots": 8,
+      "preShowSlots": 0
+    },
+    "televised": false,
+    "preferredRegionKey": "us-california",
+    "preferredVenueKey": "california-civic-hall",
+    "activeFrom": "2018-09-15",
+    "activeUntil": null,
+    "logoRef": null
+  },
+  {
+    "key": "us-west-women-superbloom",
+    "promotionKey": "pro-us-west-women",
+    "brandKey": null,
+    "name": "Superbloom",
+    "importance": "major",
+    "recurrence": {
+      "kind": "annual",
+      "month": 4,
+      "week": 2,
+      "weekday": 5
+    },
+    "format": {
+      "slots": 8,
+      "preShowSlots": 0
+    },
+    "televised": false,
+    "preferredRegionKey": "us-california",
+    "preferredVenueKey": "california-civic-hall",
+    "activeFrom": "2017-04-08",
+    "activeUntil": null,
+    "logoRef": null
+  }
+]
