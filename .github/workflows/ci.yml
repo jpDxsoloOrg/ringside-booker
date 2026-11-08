@@ -44,6 +44,15 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      # Checks docs/blog and docs/dev-journal against the MDX and public content rules. The
+      # private banned-terms list comes from a repository secret; on PRs from forks the secret is
+      # empty, and the missing list is reported as a warning instead of failing the build.
+      - name: Check blog and journal content
+        id: blog-check
+        run: npm run blog:check
+        env:
+          BLOG_BANNED_TERMS: ${{ secrets.BLOG_BANNED_TERMS }}
+
       - name: Test with coverage
         run: npm test -- --coverage
 
