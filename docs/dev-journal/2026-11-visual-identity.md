@@ -88,8 +88,8 @@ an accessibility pass checked all of it in the running app at desktop and phone 
   wrong. `apps/web/e2e/accessibility.spec.ts`, `e2e/helpers/focus.ts`, `styles/motion.test.ts`,
   `docs/design/visual-identity.md#accessibility`
 
-Paths starting with `components/`, `app/`, `screens/`, `styles/` or `src/` are under
-`apps/web/src/`. The visual identity guide, D-11 and the design mockups landed just before the
+Paths starting with `components/`, `app/`, `screens/` or `styles/` are under `apps/web/src/`;
+paths starting with `src/` or `e2e/` are under `apps/web/`. The visual identity guide, D-11 and the design mockups landed just before the
 epic started (`docs/design/visual-identity.md`, `docs/design/mockups/`).
 
 ### Before and after
