@@ -1,8 +1,9 @@
 /**
  * Brands: the shows-and-roster divisions inside a promotion.
  *
- * Every promotion has at least one brand once WLD-10 founds it. A brand can carry its own
- * controller for brand wars (D-06); a null controller means the promotion's controller runs it.
+ * A promotion may have no brands at all, in which case it runs every show itself. A brand can
+ * carry its own controller for brand wars (D-06); a null controller means the promotion's
+ * controller runs it.
  */
 
 import { z } from 'zod';
