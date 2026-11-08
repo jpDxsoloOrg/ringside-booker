@@ -337,6 +337,24 @@ export class InvariantError extends EngineError {
 }
 
 /**
+ * The name generator (WLD-05) could not find a free name: every retry and every middle initial was
+ * already taken. This means the content's name lists are far too small for the world, so it is a
+ * content bug to fix in the pack, not a situation the game should handle at run time. `scope` is
+ * the country key for legal names, or `ring names`.
+ */
+export class NameSpaceExhaustedError extends EngineError {
+  constructor(kind: 'legal' | 'ring', scope: string, attempts: number) {
+    super(
+      'NAME_SPACE_EXHAUSTED',
+      kind === 'legal'
+        ? `No free legal name for country ${scope} after ${String(attempts)} attempts; its name lists are too small`
+        : `No free ring name after ${String(attempts)} attempts; the ring name words are too few`,
+      { kind, scope, attempts },
+    );
+  }
+}
+
+/**
  * An error flattened to plain JSON, for day reports, the pipeline failure log and bug reports.
  * `code` is set for engine errors (and any other error that carries a string `code`).
  */

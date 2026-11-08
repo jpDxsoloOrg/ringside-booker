@@ -1,0 +1,764 @@
+[
+  {
+    "key": "us",
+    "countryKey": "us",
+    "cultures": [
+      {
+        "cultureKey": "anglo",
+        "weight": 70
+      },
+      {
+        "cultureKey": "hispanic",
+        "weight": 18
+      },
+      {
+        "cultureKey": "west-african",
+        "weight": 6
+      },
+      {
+        "cultureKey": "south-asian",
+        "weight": 6
+      }
+    ]
+  },
+  {
+    "key": "ca",
+    "countryKey": "ca",
+    "cultures": [
+      {
+        "cultureKey": "anglo",
+        "weight": 62
+      },
+      {
+        "cultureKey": "francophone",
+        "weight": 22
+      },
+      {
+        "cultureKey": "south-asian",
+        "weight": 6
+      },
+      {
+        "cultureKey": "chinese",
+        "weight": 5
+      },
+      {
+        "cultureKey": "filipino",
+        "weight": 3
+      },
+      {
+        "cultureKey": "italian",
+        "weight": 2
+      }
+    ]
+  },
+  {
+    "key": "gl",
+    "countryKey": "gl",
+    "cultures": [
+      {
+        "cultureKey": "nordic",
+        "weight": 100
+      }
+    ]
+  },
+  {
+    "key": "mx",
+    "countryKey": "mx",
+    "cultures": [
+      {
+        "cultureKey": "hispanic",
+        "weight": 100
+      }
+    ]
+  },
+  {
+    "key": "pr",
+    "countryKey": "pr",
+    "cultures": [
+      {
+        "cultureKey": "hispanic",
+        "weight": 90
+      },
+      {
+        "cultureKey": "anglo",
+        "weight": 10
+      }
+    ]
+  },
+  {
+    "key": "do",
+    "countryKey": "do",
+    "cultures": [
+      {
+        "cultureKey": "hispanic",
+        "weight": 100
+      }
+    ]
+  },
+  {
+    "key": "cr",
+    "countryKey": "cr",
+    "cultures": [
+      {
+        "cultureKey": "hispanic",
+        "weight": 100
+      }
+    ]
+  },
+  {
+    "key": "pa",
+    "countryKey": "pa",
+    "cultures": [
+      {
+        "cultureKey": "hispanic",
+        "weight": 96
+      },
+      {
+        "cultureKey": "anglo",
+        "weight": 4
+      }
+    ]
+  },
+  {
+    "key": "co",
+    "countryKey": "co",
+    "cultures": [
+      {
+        "cultureKey": "hispanic",
+        "weight": 100
+      }
+    ]
+  },
+  {
+    "key": "pe",
+    "countryKey": "pe",
+    "cultures": [
+      {
+        "cultureKey": "hispanic",
+        "weight": 94
+      },
+      {
+        "cultureKey": "japanese",
+        "weight": 3
+      },
+      {
+        "cultureKey": "chinese",
+        "weight": 3
+      }
+    ]
+  },
+  {
+    "key": "br",
+    "countryKey": "br",
+    "cultures": [
+      {
+        "cultureKey": "lusophone",
+        "weight": 88
+      },
+      {
+        "cultureKey": "italian",
+        "weight": 5
+      },
+      {
+        "cultureKey": "germanic",
+        "weight": 3
+      },
+      {
+        "cultureKey": "japanese",
+        "weight": 2
+      },
+      {
+        "cultureKey": "arabic",
+        "weight": 2
+      }
+    ]
+  },
+  {
+    "key": "ar",
+    "countryKey": "ar",
+    "cultures": [
+      {
+        "cultureKey": "hispanic",
+        "weight": 78
+      },
+      {
+        "cultureKey": "italian",
+        "weight": 18
+      },
+      {
+        "cultureKey": "germanic",
+        "weight": 2
+      },
+      {
+        "cultureKey": "slavic",
+        "weight": 2
+      }
+    ]
+  },
+  {
+    "key": "cl",
+    "countryKey": "cl",
+    "cultures": [
+      {
+        "cultureKey": "hispanic",
+        "weight": 92
+      },
+      {
+        "cultureKey": "germanic",
+        "weight": 4
+      },
+      {
+        "cultureKey": "italian",
+        "weight": 4
+      }
+    ]
+  },
+  {
+    "key": "gb",
+    "countryKey": "gb",
+    "cultures": [
+      {
+        "cultureKey": "anglo",
+        "weight": 86
+      },
+      {
+        "cultureKey": "south-asian",
+        "weight": 8
+      },
+      {
+        "cultureKey": "west-african",
+        "weight": 3
+      },
+      {
+        "cultureKey": "slavic",
+        "weight": 3
+      }
+    ]
+  },
+  {
+    "key": "ie",
+    "countryKey": "ie",
+    "cultures": [
+      {
+        "cultureKey": "anglo",
+        "weight": 92
+      },
+      {
+        "cultureKey": "slavic",
+        "weight": 5
+      },
+      {
+        "cultureKey": "lusophone",
+        "weight": 3
+      }
+    ]
+  },
+  {
+    "key": "de",
+    "countryKey": "de",
+    "cultures": [
+      {
+        "cultureKey": "germanic",
+        "weight": 86
+      },
+      {
+        "cultureKey": "slavic",
+        "weight": 6
+      },
+      {
+        "cultureKey": "arabic",
+        "weight": 4
+      },
+      {
+        "cultureKey": "italian",
+        "weight": 4
+      }
+    ]
+  },
+  {
+    "key": "at",
+    "countryKey": "at",
+    "cultures": [
+      {
+        "cultureKey": "germanic",
+        "weight": 90
+      },
+      {
+        "cultureKey": "slavic",
+        "weight": 8
+      },
+      {
+        "cultureKey": "italian",
+        "weight": 2
+      }
+    ]
+  },
+  {
+    "key": "ch",
+    "countryKey": "ch",
+    "cultures": [
+      {
+        "cultureKey": "germanic",
+        "weight": 62
+      },
+      {
+        "cultureKey": "francophone",
+        "weight": 23
+      },
+      {
+        "cultureKey": "italian",
+        "weight": 12
+      },
+      {
+        "cultureKey": "lusophone",
+        "weight": 3
+      }
+    ]
+  },
+  {
+    "key": "fr",
+    "countryKey": "fr",
+    "cultures": [
+      {
+        "cultureKey": "francophone",
+        "weight": 84
+      },
+      {
+        "cultureKey": "arabic",
+        "weight": 8
+      },
+      {
+        "cultureKey": "west-african",
+        "weight": 4
+      },
+      {
+        "cultureKey": "lusophone",
+        "weight": 2
+      },
+      {
+        "cultureKey": "italian",
+        "weight": 2
+      }
+    ]
+  },
+  {
+    "key": "es",
+    "countryKey": "es",
+    "cultures": [
+      {
+        "cultureKey": "hispanic",
+        "weight": 94
+      },
+      {
+        "cultureKey": "arabic",
+        "weight": 3
+      },
+      {
+        "cultureKey": "lusophone",
+        "weight": 3
+      }
+    ]
+  },
+  {
+    "key": "pt",
+    "countryKey": "pt",
+    "cultures": [
+      {
+        "cultureKey": "lusophone",
+        "weight": 96
+      },
+      {
+        "cultureKey": "west-african",
+        "weight": 4
+      }
+    ]
+  },
+  {
+    "key": "it",
+    "countryKey": "it",
+    "cultures": [
+      {
+        "cultureKey": "italian",
+        "weight": 95
+      },
+      {
+        "cultureKey": "arabic",
+        "weight": 3
+      },
+      {
+        "cultureKey": "slavic",
+        "weight": 2
+      }
+    ]
+  },
+  {
+    "key": "nl",
+    "countryKey": "nl",
+    "cultures": [
+      {
+        "cultureKey": "germanic",
+        "weight": 88
+      },
+      {
+        "cultureKey": "arabic",
+        "weight": 5
+      },
+      {
+        "cultureKey": "west-african",
+        "weight": 3
+      },
+      {
+        "cultureKey": "malay",
+        "weight": 4
+      }
+    ]
+  },
+  {
+    "key": "be",
+    "countryKey": "be",
+    "cultures": [
+      {
+        "cultureKey": "germanic",
+        "weight": 56
+      },
+      {
+        "cultureKey": "francophone",
+        "weight": 38
+      },
+      {
+        "cultureKey": "arabic",
+        "weight": 4
+      },
+      {
+        "cultureKey": "italian",
+        "weight": 2
+      }
+    ]
+  },
+  {
+    "key": "se",
+    "countryKey": "se",
+    "cultures": [
+      {
+        "cultureKey": "nordic",
+        "weight": 88
+      },
+      {
+        "cultureKey": "arabic",
+        "weight": 6
+      },
+      {
+        "cultureKey": "slavic",
+        "weight": 6
+      }
+    ]
+  },
+  {
+    "key": "no",
+    "countryKey": "no",
+    "cultures": [
+      {
+        "cultureKey": "nordic",
+        "weight": 92
+      },
+      {
+        "cultureKey": "slavic",
+        "weight": 5
+      },
+      {
+        "cultureKey": "south-asian",
+        "weight": 3
+      }
+    ]
+  },
+  {
+    "key": "pl",
+    "countryKey": "pl",
+    "cultures": [
+      {
+        "cultureKey": "slavic",
+        "weight": 100
+      }
+    ]
+  },
+  {
+    "key": "jp",
+    "countryKey": "jp",
+    "cultures": [
+      {
+        "cultureKey": "japanese",
+        "weight": 100
+      }
+    ]
+  },
+  {
+    "key": "kr",
+    "countryKey": "kr",
+    "cultures": [
+      {
+        "cultureKey": "korean",
+        "weight": 100
+      }
+    ]
+  },
+  {
+    "key": "tw",
+    "countryKey": "tw",
+    "cultures": [
+      {
+        "cultureKey": "chinese",
+        "weight": 100
+      }
+    ]
+  },
+  {
+    "key": "cn",
+    "countryKey": "cn",
+    "cultures": [
+      {
+        "cultureKey": "chinese",
+        "weight": 100
+      }
+    ]
+  },
+  {
+    "key": "in",
+    "countryKey": "in",
+    "cultures": [
+      {
+        "cultureKey": "south-asian",
+        "weight": 100
+      }
+    ]
+  },
+  {
+    "key": "ph",
+    "countryKey": "ph",
+    "cultures": [
+      {
+        "cultureKey": "filipino",
+        "weight": 95
+      },
+      {
+        "cultureKey": "chinese",
+        "weight": 3
+      },
+      {
+        "cultureKey": "hispanic",
+        "weight": 2
+      }
+    ]
+  },
+  {
+    "key": "sg",
+    "countryKey": "sg",
+    "cultures": [
+      {
+        "cultureKey": "chinese",
+        "weight": 74
+      },
+      {
+        "cultureKey": "malay",
+        "weight": 14
+      },
+      {
+        "cultureKey": "south-asian",
+        "weight": 9
+      },
+      {
+        "cultureKey": "anglo",
+        "weight": 3
+      }
+    ]
+  },
+  {
+    "key": "my",
+    "countryKey": "my",
+    "cultures": [
+      {
+        "cultureKey": "malay",
+        "weight": 68
+      },
+      {
+        "cultureKey": "chinese",
+        "weight": 23
+      },
+      {
+        "cultureKey": "south-asian",
+        "weight": 9
+      }
+    ]
+  },
+  {
+    "key": "id",
+    "countryKey": "id",
+    "cultures": [
+      {
+        "cultureKey": "malay",
+        "weight": 96
+      },
+      {
+        "cultureKey": "chinese",
+        "weight": 4
+      }
+    ]
+  },
+  {
+    "key": "ae",
+    "countryKey": "ae",
+    "cultures": [
+      {
+        "cultureKey": "arabic",
+        "weight": 55
+      },
+      {
+        "cultureKey": "south-asian",
+        "weight": 35
+      },
+      {
+        "cultureKey": "filipino",
+        "weight": 6
+      },
+      {
+        "cultureKey": "anglo",
+        "weight": 4
+      }
+    ]
+  },
+  {
+    "key": "za",
+    "countryKey": "za",
+    "cultures": [
+      {
+        "cultureKey": "southern-african",
+        "weight": 78
+      },
+      {
+        "cultureKey": "anglo",
+        "weight": 10
+      },
+      {
+        "cultureKey": "germanic",
+        "weight": 8
+      },
+      {
+        "cultureKey": "south-asian",
+        "weight": 4
+      }
+    ]
+  },
+  {
+    "key": "ng",
+    "countryKey": "ng",
+    "cultures": [
+      {
+        "cultureKey": "west-african",
+        "weight": 100
+      }
+    ]
+  },
+  {
+    "key": "eg",
+    "countryKey": "eg",
+    "cultures": [
+      {
+        "cultureKey": "arabic",
+        "weight": 100
+      }
+    ]
+  },
+  {
+    "key": "ke",
+    "countryKey": "ke",
+    "cultures": [
+      {
+        "cultureKey": "east-african",
+        "weight": 96
+      },
+      {
+        "cultureKey": "south-asian",
+        "weight": 2
+      },
+      {
+        "cultureKey": "arabic",
+        "weight": 2
+      }
+    ]
+  },
+  {
+    "key": "gh",
+    "countryKey": "gh",
+    "cultures": [
+      {
+        "cultureKey": "west-african",
+        "weight": 100
+      }
+    ]
+  },
+  {
+    "key": "au",
+    "countryKey": "au",
+    "cultures": [
+      {
+        "cultureKey": "anglo",
+        "weight": 82
+      },
+      {
+        "cultureKey": "italian",
+        "weight": 4
+      },
+      {
+        "cultureKey": "chinese",
+        "weight": 5
+      },
+      {
+        "cultureKey": "south-asian",
+        "weight": 4
+      },
+      {
+        "cultureKey": "slavic",
+        "weight": 2
+      },
+      {
+        "cultureKey": "pacific",
+        "weight": 3
+      }
+    ]
+  },
+  {
+    "key": "nz",
+    "countryKey": "nz",
+    "cultures": [
+      {
+        "cultureKey": "anglo",
+        "weight": 70
+      },
+      {
+        "cultureKey": "pacific",
+        "weight": 22
+      },
+      {
+        "cultureKey": "chinese",
+        "weight": 4
+      },
+      {
+        "cultureKey": "south-asian",
+        "weight": 4
+      }
+    ]
+  },
+  {
+    "key": "fj",
+    "countryKey": "fj",
+    "cultures": [
+      {
+        "cultureKey": "pacific",
+        "weight": 62
+      },
+      {
+        "cultureKey": "south-asian",
+        "weight": 38
+      }
+    ]
+  }
+]

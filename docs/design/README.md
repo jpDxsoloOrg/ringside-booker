@@ -16,3 +16,4 @@ Game and technical design for Ringside Booker. Each game system gets its own doc
 | [calculation-traces.md](calculation-traces.md) | The `Traced<T>` shape, the trace builders, replay checks and formula module conventions         |
 | [engine-api.md](engine-api.md)                 | The engine API: queries, commands, controllers and viewers, system bundles and the engine state |
 | [geography.md](geography.md)                   | The map: continents, countries and regions, the one-regional model, roll-ups and weighted picks |
+| [names.md](names.md)                           | Name cultures, country name mixes, weighted picks, gender handling, uniqueness and ring names   |

@@ -94,7 +94,10 @@ const VALID_RECORDS: Readonly<Record<RecordKind, Fixture>> = {
     adjectives: ['Iron', 'Silent'],
     nouns: ['Storm', 'Anchor'],
     nicknames: ['The Hammer'],
-    patterns: ['{adjective} {noun}', '"{nickname}" {family}'],
+    patterns: [
+      ['{adjective} {noun}', 30],
+      ['"{nickname}" {family}', 5],
+    ],
   },
   generationProfile: {
     key: 'wrestler-technician',
@@ -568,14 +571,43 @@ describe('names and generation', () => {
   });
 
   it('rejects a ring name pattern with an unknown or no placeholder', () => {
-    const unknownPlaceholder = record('ringNameWords', { patterns: ['{colour} {noun}'] });
+    const unknownPlaceholder = record('ringNameWords', { patterns: [['{colour} {noun}', 1]] });
     expect(parseIssues(recordSchemas.ringNameWords, unknownPlaceholder)[0]).toMatch(
-      /^patterns\.0: Unknown placeholder \{colour\}/,
+      /^patterns\.0\.0: Unknown placeholder \{colour\}/,
     );
-    const noPlaceholder = record('ringNameWords', { patterns: ['The Storm'] });
+    const noPlaceholder = record('ringNameWords', { patterns: [['The Storm', 1]] });
     expect(parseIssues(recordSchemas.ringNameWords, noPlaceholder)).toEqual([
-      'patterns.0: A pattern needs at least one placeholder, such as {noun}',
+      'patterns.0.0: A pattern needs at least one placeholder, such as {noun}',
     ]);
+  });
+
+  it('rejects a ring name pattern listed twice or with a weight below 1', () => {
+    const repeated = record('ringNameWords', {
+      patterns: [
+        ['{noun}', 2],
+        ['{noun}', 3],
+      ],
+    });
+    expect(parseIssues(recordSchemas.ringNameWords, repeated)).toEqual([
+      'patterns: Each pattern may appear only once',
+    ]);
+    const zeroWeight = record('ringNameWords', { patterns: [['{noun}', 0]] });
+    expect(recordSchemas.ringNameWords.safeParse(zeroWeight).success).toBe(false);
+  });
+
+  it('asks double-surname cultures, and only them, for a double surname chance', () => {
+    const doubleWithout = record('nameCulture', { surnameStyle: 'double' });
+    expect(parseIssues(recordSchemas.nameCulture, doubleWithout)).toEqual([
+      'doubleSurnameChance: A culture with surnameStyle "double" must set doubleSurnameChance',
+    ]);
+    const doubleWith = record('nameCulture', { surnameStyle: 'double', doubleSurnameChance: 0.35 });
+    expect(recordSchemas.nameCulture.safeParse(doubleWith).success).toBe(true);
+    const singleWith = record('nameCulture', { doubleSurnameChance: 0.2 });
+    expect(parseIssues(recordSchemas.nameCulture, singleWith)).toEqual([
+      'doubleSurnameChance: doubleSurnameChance only applies to surnameStyle "double", not "single"',
+    ]);
+    const outOfRange = record('nameCulture', { surnameStyle: 'double', doubleSurnameChance: 1.5 });
+    expect(recordSchemas.nameCulture.safeParse(outOfRange).success).toBe(false);
   });
 
   it('rejects a generation profile with a misspelt attribute and a role multiplier above 10', () => {

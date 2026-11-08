@@ -18,8 +18,9 @@ import {
   type LoadedTunables,
   type TunableReader,
 } from '../core/tunables/resolver';
+import { worldTunables } from './world/tunables';
 
-export const ALL_TUNABLES = mergeTunables(simTunables, conditionTunables);
+export const ALL_TUNABLES = mergeTunables(simTunables, conditionTunables, worldTunables);
 
 /** Every tunable key the engine knows. */
 export type TunableKey = keyof typeof ALL_TUNABLES;
