@@ -94,7 +94,9 @@ export default defineConfig(
   {
     plugins: { promise: promisePlugin },
     rules: {
-      'promise/prefer-await-to-then': 'error',
+      // strict also reports `await pending.then(...)`, which the default lets through even though
+      // it is still a .then chain.
+      'promise/prefer-await-to-then': ['error', { strict: true }],
       // Single letters are for loop indexes only. Generic type parameters (T, K) are not
       // checked by id-length, so they need no exception here.
       'id-length': ['error', { min: 2, exceptions: ['i', 'j', 'k', '_'], properties: 'never' }],

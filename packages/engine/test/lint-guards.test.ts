@@ -156,6 +156,17 @@ describe('lint guards: rules for every workspace', () => {
     },
   );
 
+  it('bans .then chains that sit behind an await', async () => {
+    const code = [
+      'export async function nextValue(pending: Promise<number>): Promise<number> {',
+      '  return await pending.then((value) => value + 1);',
+      '}',
+      '',
+    ].join('\n');
+    const messages = await lintSample(code, ENGINE_SOURCE_PATH);
+    expect(errorsFromRule(messages, 'promise/prefer-await-to-then')).toHaveLength(1);
+  });
+
   it('allows non-null assertions in tests only', async () => {
     const code = 'declare const scores: number[];\nexport const first = scores[0]!;\n';
     const testMessages = await lintSample(code, ENGINE_TEST_PATH);
