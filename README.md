@@ -30,6 +30,7 @@ Run these from the repository root.
 
 | Script                 | What it does                                                     |
 | ---------------------- | ---------------------------------------------------------------- |
+| `npm run dev`          | Starts the web app's Vite dev server at http://localhost:5173/   |
 | `npm test`             | Runs every Vitest project once (engine, web, tools)              |
 | `npm run test:watch`   | Runs Vitest in watch mode                                        |
 | `npm run typecheck`    | `tsc -b` over all project references; declarations go to `dist/` |
@@ -108,9 +109,10 @@ ringside-booker/
     └── blog/              blog series
 ```
 
-`apps/web` is a bare workspace for now (TypeScript and Vitest only). The UI bootstrap adds Vite
-and React to this package rather than recreating it. Tools each get their own workspace under
-`tools/<name>`; see [`tools/README.md`](tools/README.md).
+`apps/web` is a Vite + React app. Its dev server reads the engine straight from
+`packages/engine/src`, so engine edits hot-reload; production builds go through the
+`@ringside/engine` package entry. In dev builds `/dev/gallery` lists the shared UI components.
+Tools each get their own workspace under `tools/<name>`; see [`tools/README.md`](tools/README.md).
 
 The full architecture is in [`docs/design/architecture.md`](docs/design/architecture.md).
 
