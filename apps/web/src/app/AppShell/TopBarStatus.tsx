@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
+import type { GameDate } from '@ringside/engine';
 import { Button } from '@/components/Button';
-import { formatGameDate } from '@/components/format';
+import { formatShortGameDateParts } from '@/components/format';
 import { Icon } from '@/components/Icon';
 import { VisuallyHidden } from '@/components/layout';
 import { Sheet } from '@/components/Sheet';
@@ -23,6 +24,20 @@ export interface TopBarStatusProps {
    * world), such as the sample status strip. Nothing by default.
    */
   readonly fallback?: ReactNode;
+}
+
+/**
+ * The phone bar's date. The year is its own piece, which drops out of sight when the bar runs
+ * short of room; it stays in the text, so the button's name keeps the whole date.
+ */
+function ShortDate({ date }: { readonly date: GameDate }) {
+  const { monthDay, year } = formatShortGameDateParts(date);
+  return (
+    <time dateTime={date} className={styles['dateText']}>
+      <span>{monthDay}</span>
+      <span>{year}</span>
+    </time>
+  );
 }
 
 /**
@@ -66,7 +81,7 @@ export function TopBarStatus({ compact, fallback = null }: TopBarStatusProps) {
               setStatusOpen(true);
             }}
           >
-            <time dateTime={status.date}>{formatGameDate(status.date, 'short')}</time>
+            <ShortDate date={status.date} />
             {advance.autosave.kind === 'failed' && (
               <>
                 <Icon name="warning" className={styles['dateWarning']} decorative />

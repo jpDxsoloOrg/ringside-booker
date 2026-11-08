@@ -13,7 +13,7 @@ const isCi = (process.env['CI'] ?? '') !== '';
 /**
  * WebKit is the engine behind every iPhone browser, so it gets its own phone project. It is
  * slower to run and needs extra system libraries, so it only joins the run when E2E_WEBKIT=1:
- * CI sets that on pushes to main, and pull requests run Chromium only.
+ * CI sets that for pull requests and pushes to main alike, and local runs can leave it off.
  */
 const includeWebkit = process.env['E2E_WEBKIT'] === '1';
 

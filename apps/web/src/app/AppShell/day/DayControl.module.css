@@ -51,6 +51,19 @@
   background: var(--color-surface-hover);
 }
 
+/*
+ * The date's day and year. The year wraps onto a second line that the box clips, so when the bar
+ * runs short it drops out whole, whatever font is showing, and the day stays.
+ */
+.dateText {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  block-size: 1lh;
+  overflow: hidden;
+  line-height: var(--line-height-tight);
+}
+
 .dateWarning {
   color: var(--color-warning);
 }
@@ -65,9 +78,25 @@
     flex: 0 1 auto;
   }
 
+  /* The date gives way before the day button: its year drops out first (.dateText). */
+  .dateButton {
+    flex: 0 1 auto;
+  }
+
   .primary {
     padding-inline: var(--space-3);
     font-size: var(--font-size-md);
+  }
+}
+
+/*
+ * A narrow top bar (a phone at a large UI scale): the day button is down to its dot and icon,
+ * which it never shrinks below (LiveBugButton's .shrinkable, same 21rem width), so the date takes
+ * all of the squeeze.
+ */
+@container (width < 21rem) {
+  .dayControl {
+    flex: none;
   }
 }
 

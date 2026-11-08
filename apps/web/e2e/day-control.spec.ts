@@ -6,7 +6,7 @@
  * its Stop button fit the screen.
  */
 import type { Locator, Page } from '@playwright/test';
-import { expect, test } from './fixtures';
+import { allowConsoleError, expect, test } from './fixtures';
 import { expectNoSeriousA11yViolations } from './helpers/a11y';
 import { enterGameFromSampleSave } from './helpers/game';
 import { expectNoHorizontalScroll } from './helpers/layout';
@@ -17,6 +17,15 @@ const SAMPLE_DATE_LONG = 'Friday, April 10, 2026';
 const NEXT_DATE_LONG = 'Saturday, April 11, 2026';
 const WEEK_LATER_LONG = 'Saturday, April 18, 2026';
 const SAMPLE_DATE_SHORT = 'Apr 10, 2026';
+
+/** UI scales the phone bar is checked at: the default, a step up and the largest. */
+const PHONE_BAR_SCALES = ['1', '1.25', '1.5'] as const;
+
+/** The self-hosted font files. Blocking them leaves the fallback fonts, which run wider. */
+const WEB_FONT_FILES = /\.woff2?$/;
+
+/** The smallest touch target, 2.75rem at the default 16px root size. */
+const TAP_TARGET_MIN_PX = 44;
 
 /** The longest skip, so there is time to see the overlay and stop it. */
 const LONG_SKIP_DAYS = '3650';
@@ -47,6 +56,20 @@ async function expectInsideViewport(page: Page, locator: Locator): Promise<void>
   expect(box.y).toBeGreaterThanOrEqual(0);
   expect(box.x + box.width).toBeLessThanOrEqual(viewport.width);
   expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
+}
+
+/**
+ * The bug's icon is drawn whole (at least its 1em size, not squashed by a shrinking bar) and
+ * inside the bug, so a bug down to its dot and icon still shows what it does.
+ */
+async function expectIconWhole(button: Locator): Promise<void> {
+  const icon = button.locator('svg');
+  const fontSize = await icon.evaluate((svg) => parseFloat(getComputedStyle(svg).fontSize));
+  const iconBox = await boxOf(icon);
+  const buttonBox = await boxOf(button);
+  expect(iconBox.width).toBeGreaterThanOrEqual(fontSize - 0.5);
+  expect(iconBox.x).toBeGreaterThanOrEqual(buttonBox.x);
+  expect(iconBox.x + iconBox.width).toBeLessThanOrEqual(buttonBox.x + buttonBox.width);
 }
 
 /** Where the overlay and its Stop button sat the moment the overlay opened. */
@@ -86,6 +109,15 @@ function recordOverlayOpening(): void {
 
 function dayButton(page: Page, name: string): Locator {
   return page.getByTestId('day-control').getByRole('button', { name });
+}
+
+/** Sets the UI scale on the settings screen; it is stored, so the next load starts with it. */
+async function setUiScale(page: Page, scale: string): Promise<void> {
+  await page.goto('/settings');
+  await page.getByRole('slider', { name: 'UI scale' }).fill(scale);
+  await expect
+    .poll(() => page.evaluate(() => document.documentElement.style.getPropertyValue('--ui-scale')))
+    .toBe(scale);
 }
 
 test.describe('day control', () => {
@@ -135,6 +167,7 @@ test.describe('day control', () => {
       expect(Math.abs(middle(dateBox) - middle(buttonBox))).toBeLessThan(4);
       await expectInsideViewport(page, dateButton);
       await expectInsideViewport(page, nextDay);
+      await expectIconWhole(nextDay);
       await expect(page.getByRole('banner').getByTestId('cash-chip')).toHaveCount(0);
       await expectNoHorizontalScroll(page);
     });
@@ -192,4 +225,35 @@ test.describe('day control', () => {
       await expectNoHorizontalScroll(page);
     });
   });
+
+  // A large UI scale on a 390px phone leaves the bar short of room, and the fallback fonts that
+  // show until the web fonts load run wider still. The day button gives way (its label shortens,
+  // then hides behind the dot and the icon, which stay whole), then the date drops its year, so
+  // the bar never pushes the page sideways.
+  for (const fonts of ['web fonts', 'fallback fonts'] as const) {
+    for (const scale of PHONE_BAR_SCALES) {
+      test(`phone: the bar fits at ${scale}x UI scale with the ${fonts}`, async ({
+        page,
+      }, testInfo) => {
+        test.skip(!isPhone(testInfo), 'The phone top bar');
+        if (fonts === 'fallback fonts') {
+          // Chromium logs each blocked request as an error; only these are expected.
+          allowConsoleError('net::ERR_BLOCKED_BY_CLIENT');
+          await page.route(WEB_FONT_FILES, (route) => route.abort('blockedbyclient'));
+        }
+        await setUiScale(page, scale);
+        await enterGameFromSampleSave(page);
+
+        const dateButton = page.getByTestId('status-date');
+        const nextDay = dayButton(page, 'Next day');
+        await expect(dateButton).toContainText(SAMPLE_DATE_SHORT);
+        await expect(nextDay).toBeVisible();
+        await expectInsideViewport(page, dateButton);
+        await expectInsideViewport(page, nextDay);
+        expect((await boxOf(nextDay)).width).toBeGreaterThanOrEqual(TAP_TARGET_MIN_PX);
+        await expectIconWhole(nextDay);
+        await expectNoHorizontalScroll(page);
+      });
+    }
+  }
 });

@@ -29,6 +29,16 @@ const TAB_PROBE_ATTRIBUTE = 'data-tab-probe';
 /** A bottom sheet on a phone is capped at 85% of the viewport height. */
 const BOTTOM_SHEET_MAX_HEIGHT_RATIO = 0.85;
 
+/**
+ * The first family in a computed font-family list, without quotes. Engines serialise the list
+ * differently: Chromium quotes a family name that has spaces ("Barlow Condensed", Arial) and
+ * WebKit leaves it bare (Barlow Condensed, Arial), so the raw string cannot be matched as is.
+ */
+function firstFontFamily(fontFamily: string): string {
+  const [first = ''] = fontFamily.split(',');
+  return first.trim().replace(/^(["'])(.*)\1$/, '$2');
+}
+
 /** Opens one gallery entry by deep link and waits for its heading. */
 async function gotoEntry(page: Page, entryId: string, entryTitle: string): Promise<void> {
   await page.goto(`${GALLERY_PATH}#${entryId}`);
@@ -181,7 +191,7 @@ test.describe('component gallery', () => {
     });
     expect(fontsLoaded.display, 'Barlow Condensed loaded').toBe(true);
     expect(fontsLoaded.body, 'Inter loaded').toBe(true);
-    expect(fontsLoaded.heading).toMatch(/^"Barlow Condensed"/);
+    expect(firstFontFamily(fontsLoaded.heading), 'first heading font').toBe('Barlow Condensed');
     expect(fontHostRequests, 'requests that left the app origin').toEqual([]);
   });
 

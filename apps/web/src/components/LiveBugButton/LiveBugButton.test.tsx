@@ -31,6 +31,19 @@ describe('LiveBugButton', () => {
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 
+  it('can give way in a crowded bar and keeps its label as the name', () => {
+    render(
+      <>
+        <LiveBugButton iconEnd="next-day">Go live</LiveBugButton>
+        <LiveBugButton iconEnd="next-day" shrinkable>
+          Next day
+        </LiveBugButton>
+      </>,
+    );
+    expect(screen.getByRole('button', { name: 'Go live' })).not.toHaveClass('shrinkable');
+    expect(screen.getByRole('button', { name: 'Next day' })).toHaveClass('bug', 'shrinkable');
+  });
+
   it('comes in a large size', () => {
     render(<LiveBugButton size="lg">Go live</LiveBugButton>);
     expect(screen.getByRole('button', { name: 'Go live' })).toHaveClass('size-lg');

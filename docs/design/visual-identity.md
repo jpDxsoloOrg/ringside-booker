@@ -123,8 +123,8 @@ Everything respects `prefers-reduced-motion`.
 A dark UI fails contrast easily, and token checks on paper miss what happens in
 place: a ring clipped by a scrolling panel, a label that does not match what is
 on screen, a crawl that keeps moving. So the look is checked in the running app,
-at desktop width (1440px) and phone width (390px), with WebKit joining on pushes
-to `main`.
+at desktop width (1440px) and phone width (390px), with the WebKit phone project
+running on every pull request and every push to `main`.
 
 ### What is checked, and where
 

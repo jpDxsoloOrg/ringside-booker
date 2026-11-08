@@ -11,6 +11,8 @@
  * - axe: the reduced-motion layouts (the static ticker, the still bug) have no serious or critical
  *   violations either. The default layouts are scanned by the gallery, shell and smoke specs.
  */
+import { readdirSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { expect, test } from './fixtures';
 import type { Locator, Page } from '@playwright/test';
 import { expectNoSeriousA11yViolations } from './helpers/a11y';
@@ -19,6 +21,18 @@ import { enterShell } from './helpers/shell';
 import { isPhone } from './helpers/viewport';
 
 const GALLERY_PATH = '/dev/gallery';
+
+/** The gallery's entry files. Each is named after its entry id (the registry test checks). */
+const GALLERY_ENTRIES_DIRECTORY = fileURLToPath(
+  new URL('../src/screens/dev-gallery/entries/', import.meta.url),
+);
+const GALLERY_ENTRY_SUFFIX = '.gallery.tsx';
+
+/** Every gallery entry id, read from disk so each entry gets its own test. */
+const GALLERY_ENTRY_IDS: readonly string[] = readdirSync(GALLERY_ENTRIES_DIRECTORY)
+  .filter((fileName) => fileName.endsWith(GALLERY_ENTRY_SUFFIX))
+  .map((fileName) => fileName.slice(0, -GALLERY_ENTRY_SUFFIX.length))
+  .sort();
 const ENTRY_PANEL = '#gallery-entry';
 
 /** Enough Tab stops for the busiest entry (the data table) without walking it all night. */
@@ -50,6 +64,32 @@ async function readEntries(page: Page): Promise<readonly GalleryEntrySummary[]> 
       title: option.textContent,
     })),
   );
+}
+
+/** Opens an entry by id alone, taking its title from the gallery's own list. */
+async function gotoEntryById(page: Page, entryId: string): Promise<Locator> {
+  await page.goto(`${GALLERY_PATH}#${entryId}`);
+  const option = page.locator(`select option[value="${entryId}"]`);
+  await expect(option, `a gallery entry with the id ${entryId}`).toHaveCount(1);
+  return gotoEntry(page, { id: entryId, title: (await option.textContent()) ?? '' });
+}
+
+/** How many visible, enabled controls inside `selector` the Tab key should reach. */
+async function countTabbable(page: Page, selector: string): Promise<number> {
+  return page.evaluate((containerSelector) => {
+    const container = document.querySelector(containerSelector);
+    if (container === null) return 0;
+    const candidates = container.querySelectorAll<HTMLElement>(
+      'a[href], button, input, select, textarea, [tabindex]',
+    );
+    return Array.from(candidates).filter(
+      (element) =>
+        element.tabIndex >= 0 &&
+        !element.matches(':disabled') &&
+        element.closest('[inert]') === null &&
+        element.checkVisibility(),
+    ).length;
+  }, selector);
 }
 
 async function gotoEntry(page: Page, entry: GalleryEntrySummary): Promise<Locator> {
@@ -120,23 +160,27 @@ async function expectShellStill(page: Page): Promise<void> {
 }
 
 test.describe('focus rings', () => {
-  test('every Tab stop in every gallery entry shows a clear, unclipped ring', async ({ page }) => {
-    test.slow();
-    const failures: string[] = [];
-    let totalStops = 0;
-    for (const entry of await readEntries(page)) {
-      await test.step(entry.title, async () => {
-        const heading = await gotoEntry(page, entry);
-        // A click on the heading starts the Tab order inside the entry, without focusing anything.
-        await heading.click();
-        const result = await tabThroughAndCheckRings(page, ENTRY_PANEL, MAX_STOPS_PER_ENTRY);
-        totalStops += result.stops;
-        failures.push(...result.failures.map((failure) => `${entry.id}: ${failure}`));
-      });
-    }
-    expect(totalStops, 'the walk reached the controls').toBeGreaterThan(150);
-    expect(failures, 'Tab stops whose focus ring falls short').toEqual([]);
+  test('the gallery lists exactly the entries the focus ring tests walk', async ({ page }) => {
+    const entries = await readEntries(page);
+    expect(entries.map((entry) => entry.id).sort()).toEqual([...GALLERY_ENTRY_IDS]);
   });
+
+  // One test per entry, so a slow engine walks them in parallel and a failure names the entry.
+  for (const entryId of GALLERY_ENTRY_IDS) {
+    test(`every Tab stop in the ${entryId} gallery entry shows a clear, unclipped ring`, async ({
+      page,
+    }) => {
+      const heading = await gotoEntryById(page, entryId);
+      // A click on the heading starts the Tab order inside the entry, without focusing anything.
+      await heading.click();
+      const tabbable = await countTabbable(page, ENTRY_PANEL);
+      const result = await tabThroughAndCheckRings(page, ENTRY_PANEL, MAX_STOPS_PER_ENTRY);
+      if (tabbable > 0) {
+        expect(result.stops, 'the walk reached the entry controls').toBeGreaterThan(0);
+      }
+      expect(result.failures, 'Tab stops whose focus ring falls short').toEqual([]);
+    });
+  }
 
   test('every Tab stop in the shell shows a clear, unclipped ring', async ({ page }) => {
     await enterShell(page);

@@ -139,8 +139,36 @@ export type GameDateStyle = 'short' | 'long';
  * in the player's time zone.
  */
 export function formatGameDate(date: GameDate, style: GameDateStyle = 'short'): string {
-  const utcMidnight = new Date(Date.UTC(year(date), month(date) - 1, dayOfMonth(date)));
-  return (style === 'long' ? longDateFormat : shortDateFormat).format(utcMidnight);
+  return (style === 'long' ? longDateFormat : shortDateFormat).format(utcMidnightOf(date));
+}
+
+/** The short date in two pieces, so a crowded bar can drop the year and keep the day. */
+export interface ShortGameDateParts {
+  /** `Jan 1`. */
+  readonly monthDay: string;
+  /** `, 2031`: the year with the separator before it. */
+  readonly year: string;
+}
+
+/**
+ * The short game date split before its year: `Jan 1` and `, 2031`. The two pieces join back into
+ * `formatGameDate(date)`.
+ */
+export function formatShortGameDateParts(date: GameDate): ShortGameDateParts {
+  const parts = shortDateFormat.formatToParts(utcMidnightOf(date));
+  const yearIndex = parts.findIndex((part) => part.type === 'year');
+  if (yearIndex < 0) return { monthDay: joinParts(parts), year: '' };
+  const splitAt = parts[yearIndex - 1]?.type === 'literal' ? yearIndex - 1 : yearIndex;
+  return { monthDay: joinParts(parts.slice(0, splitAt)), year: joinParts(parts.slice(splitAt)) };
+}
+
+/** Game dates are calendar days, so they are formatted at UTC midnight. */
+function utcMidnightOf(date: GameDate): Date {
+  return new Date(Date.UTC(year(date), month(date) - 1, dayOfMonth(date)));
+}
+
+function joinParts(parts: readonly Intl.DateTimeFormatPart[]): string {
+  return parts.map((part) => part.value).join('');
 }
 
 /**

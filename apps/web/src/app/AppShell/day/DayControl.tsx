@@ -59,6 +59,7 @@ export function DayControl({ gates, compact = false, onOpenSkip }: DayControlPro
     <div className={styles['dayControl']} data-testid="day-control">
       <LiveBugButton
         className={styles['primary']}
+        shrinkable={compact}
         iconEnd={primary.kind === 'gate' ? 'chevron-right' : 'next-day'}
         busy={primary.kind === 'busy'}
         title={`${label} (${DAY_SHORTCUT})`}

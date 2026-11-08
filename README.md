@@ -60,7 +60,7 @@ The web app has a Playwright suite in [`apps/web/e2e/`](apps/web/e2e/). It build
 serves it with `vite preview` on http://localhost:4173/ and runs every spec on two
 projects: `desktop` (Chromium, 1440×900) and `phone` (Chromium, 390×844 with touch). A third
 project, `phone-webkit`, runs the phone settings on WebKit; it only joins the run when
-`E2E_WEBKIT=1` is set, which CI does on pushes to `main`.
+`E2E_WEBKIT=1` is set, which CI does on every pull request and push to `main`.
 
 | Script                                 | What it does                                                     |
 | -------------------------------------- | ---------------------------------------------------------------- |
@@ -170,8 +170,8 @@ Every pull request and every push to `main` runs the `check` job in
 A PR merges only when `check` is green.
 
 Once `check` passes, the `e2e` job installs the Playwright browsers (cached per Playwright
-version) and runs the end-to-end suite on the `desktop` and `phone` projects. Pushes to `main`
-also run `phone-webkit`. When the job fails, the Playwright report and test output are uploaded
+version) and runs the end-to-end suite on the `desktop`, `phone` and `phone-webkit` projects,
+for pull requests and pushes to `main` alike. When the job fails, the Playwright report and test output are uploaded
 as the `playwright-report` artifact.
 
 To run the same sequence locally before pushing:
