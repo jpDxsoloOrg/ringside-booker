@@ -1,0 +1,702 @@
+[
+  {
+    "key": "wrestler-rookie",
+    "label": "Wrestler, rookie",
+    "role": "wrestler",
+    "stage": "rookie",
+    "attributes": {
+      "ringwork": { "mean": 35, "sd": 12, "talentWeight": 0.65 },
+      "psychology": { "mean": 30, "sd": 11, "talentWeight": 0.62 },
+      "stamina": { "mean": 55, "sd": 12, "talentWeight": 0.3 },
+      "safety": { "mean": 45, "sd": 12, "talentWeight": 0.4 },
+      "athleticism": { "mean": 54, "sd": 13, "talentWeight": 0.4 },
+      "mic": { "mean": 30, "sd": 14, "talentWeight": 0.45 },
+      "charisma": { "mean": 38, "sd": 14, "talentWeight": 0.5 },
+      "presence": { "mean": 38, "sd": 13, "talentWeight": 0.35 },
+      "officiating": { "mean": 8, "sd": 6, "talentWeight": 0 },
+      "broadcasting": { "mean": 8, "sd": 7, "talentWeight": 0.1 },
+      "producing": { "mean": 8, "sd": 8, "talentWeight": 0.15 },
+      "booking": { "mean": 10, "sd": 10, "talentWeight": 0.25 }
+    }
+  },
+  {
+    "key": "wrestler-prospect",
+    "label": "Wrestler, prospect",
+    "role": "wrestler",
+    "stage": "prospect",
+    "attributes": {
+      "ringwork": { "mean": 45, "sd": 12, "talentWeight": 0.65 },
+      "psychology": { "mean": 40, "sd": 12, "talentWeight": 0.62 },
+      "stamina": { "mean": 58, "sd": 12, "talentWeight": 0.3 },
+      "safety": { "mean": 52, "sd": 12, "talentWeight": 0.4 },
+      "athleticism": { "mean": 56, "sd": 13, "talentWeight": 0.4 },
+      "mic": { "mean": 37, "sd": 14, "talentWeight": 0.45 },
+      "charisma": { "mean": 44, "sd": 14, "talentWeight": 0.5 },
+      "presence": { "mean": 44, "sd": 13, "talentWeight": 0.35 },
+      "officiating": { "mean": 9, "sd": 6, "talentWeight": 0 },
+      "broadcasting": { "mean": 10, "sd": 7, "talentWeight": 0.1 },
+      "producing": { "mean": 11, "sd": 8, "talentWeight": 0.15 },
+      "booking": { "mean": 13, "sd": 10, "talentWeight": 0.25 }
+    }
+  },
+  {
+    "key": "wrestler-established",
+    "label": "Wrestler, established",
+    "role": "wrestler",
+    "stage": "established",
+    "attributes": {
+      "ringwork": { "mean": 55, "sd": 13, "talentWeight": 0.65 },
+      "psychology": { "mean": 52, "sd": 13, "talentWeight": 0.62 },
+      "stamina": { "mean": 58, "sd": 12, "talentWeight": 0.3 },
+      "safety": { "mean": 60, "sd": 12, "talentWeight": 0.4 },
+      "athleticism": { "mean": 55, "sd": 13, "talentWeight": 0.4 },
+      "mic": { "mean": 45, "sd": 15, "talentWeight": 0.45 },
+      "charisma": { "mean": 50, "sd": 14, "talentWeight": 0.5 },
+      "presence": { "mean": 50, "sd": 13, "talentWeight": 0.35 },
+      "officiating": { "mean": 10, "sd": 6, "talentWeight": 0 },
+      "broadcasting": { "mean": 12, "sd": 7, "talentWeight": 0.1 },
+      "producing": { "mean": 15, "sd": 8, "talentWeight": 0.15 },
+      "booking": { "mean": 18, "sd": 10, "talentWeight": 0.25 }
+    }
+  },
+  {
+    "key": "wrestler-veteran",
+    "label": "Wrestler, veteran",
+    "role": "wrestler",
+    "stage": "veteran",
+    "attributes": {
+      "ringwork": { "mean": 62, "sd": 12, "talentWeight": 0.65 },
+      "psychology": { "mean": 63, "sd": 12, "talentWeight": 0.62 },
+      "stamina": { "mean": 52, "sd": 12, "talentWeight": 0.3 },
+      "safety": { "mean": 63, "sd": 12, "talentWeight": 0.4 },
+      "athleticism": { "mean": 48, "sd": 13, "talentWeight": 0.4 },
+      "mic": { "mean": 52, "sd": 15, "talentWeight": 0.45 },
+      "charisma": { "mean": 55, "sd": 14, "talentWeight": 0.5 },
+      "presence": { "mean": 56, "sd": 13, "talentWeight": 0.35 },
+      "officiating": { "mean": 12, "sd": 6, "talentWeight": 0 },
+      "broadcasting": { "mean": 15, "sd": 7, "talentWeight": 0.1 },
+      "producing": { "mean": 20, "sd": 8, "talentWeight": 0.15 },
+      "booking": { "mean": 25, "sd": 10, "talentWeight": 0.25 }
+    }
+  },
+  {
+    "key": "wrestler-legend",
+    "label": "Wrestler, legend",
+    "role": "wrestler",
+    "stage": "legend",
+    "attributes": {
+      "ringwork": { "mean": 64, "sd": 12, "talentWeight": 0.65 },
+      "psychology": { "mean": 68, "sd": 11, "talentWeight": 0.62 },
+      "stamina": { "mean": 42, "sd": 12, "talentWeight": 0.3 },
+      "safety": { "mean": 62, "sd": 12, "talentWeight": 0.4 },
+      "athleticism": { "mean": 38, "sd": 13, "talentWeight": 0.4 },
+      "mic": { "mean": 58, "sd": 15, "talentWeight": 0.45 },
+      "charisma": { "mean": 62, "sd": 14, "talentWeight": 0.5 },
+      "presence": { "mean": 64, "sd": 13, "talentWeight": 0.35 },
+      "officiating": { "mean": 14, "sd": 6, "talentWeight": 0 },
+      "broadcasting": { "mean": 18, "sd": 7, "talentWeight": 0.1 },
+      "producing": { "mean": 26, "sd": 8, "talentWeight": 0.15 },
+      "booking": { "mean": 32, "sd": 10, "talentWeight": 0.25 }
+    }
+  },
+  {
+    "key": "occasional-wrestler-rookie",
+    "label": "Occasional wrestler, rookie",
+    "role": "occasionalWrestler",
+    "stage": "rookie",
+    "attributes": {
+      "ringwork": { "mean": 27, "sd": 12, "talentWeight": 0.65 },
+      "psychology": { "mean": 22, "sd": 11, "talentWeight": 0.62 },
+      "stamina": { "mean": 50, "sd": 12, "talentWeight": 0.3 },
+      "safety": { "mean": 37, "sd": 12, "talentWeight": 0.4 },
+      "athleticism": { "mean": 51, "sd": 13, "talentWeight": 0.4 },
+      "mic": { "mean": 33, "sd": 14, "talentWeight": 0.45 },
+      "charisma": { "mean": 41, "sd": 14, "talentWeight": 0.5 },
+      "presence": { "mean": 41, "sd": 13, "talentWeight": 0.35 },
+      "officiating": { "mean": 8, "sd": 6, "talentWeight": 0 },
+      "broadcasting": { "mean": 8, "sd": 7, "talentWeight": 0.1 },
+      "producing": { "mean": 8, "sd": 8, "talentWeight": 0.15 },
+      "booking": { "mean": 10, "sd": 10, "talentWeight": 0.25 }
+    }
+  },
+  {
+    "key": "occasional-wrestler-prospect",
+    "label": "Occasional wrestler, prospect",
+    "role": "occasionalWrestler",
+    "stage": "prospect",
+    "attributes": {
+      "ringwork": { "mean": 37, "sd": 12, "talentWeight": 0.65 },
+      "psychology": { "mean": 32, "sd": 12, "talentWeight": 0.62 },
+      "stamina": { "mean": 53, "sd": 12, "talentWeight": 0.3 },
+      "safety": { "mean": 44, "sd": 12, "talentWeight": 0.4 },
+      "athleticism": { "mean": 53, "sd": 13, "talentWeight": 0.4 },
+      "mic": { "mean": 40, "sd": 14, "talentWeight": 0.45 },
+      "charisma": { "mean": 47, "sd": 14, "talentWeight": 0.5 },
+      "presence": { "mean": 47, "sd": 13, "talentWeight": 0.35 },
+      "officiating": { "mean": 9, "sd": 6, "talentWeight": 0 },
+      "broadcasting": { "mean": 10, "sd": 7, "talentWeight": 0.1 },
+      "producing": { "mean": 11, "sd": 8, "talentWeight": 0.15 },
+      "booking": { "mean": 13, "sd": 10, "talentWeight": 0.25 }
+    }
+  },
+  {
+    "key": "occasional-wrestler-established",
+    "label": "Occasional wrestler, established",
+    "role": "occasionalWrestler",
+    "stage": "established",
+    "attributes": {
+      "ringwork": { "mean": 47, "sd": 13, "talentWeight": 0.65 },
+      "psychology": { "mean": 44, "sd": 13, "talentWeight": 0.62 },
+      "stamina": { "mean": 53, "sd": 12, "talentWeight": 0.3 },
+      "safety": { "mean": 52, "sd": 12, "talentWeight": 0.4 },
+      "athleticism": { "mean": 52, "sd": 13, "talentWeight": 0.4 },
+      "mic": { "mean": 48, "sd": 15, "talentWeight": 0.45 },
+      "charisma": { "mean": 53, "sd": 14, "talentWeight": 0.5 },
+      "presence": { "mean": 53, "sd": 13, "talentWeight": 0.35 },
+      "officiating": { "mean": 10, "sd": 6, "talentWeight": 0 },
+      "broadcasting": { "mean": 12, "sd": 7, "talentWeight": 0.1 },
+      "producing": { "mean": 15, "sd": 8, "talentWeight": 0.15 },
+      "booking": { "mean": 18, "sd": 10, "talentWeight": 0.25 }
+    }
+  },
+  {
+    "key": "occasional-wrestler-veteran",
+    "label": "Occasional wrestler, veteran",
+    "role": "occasionalWrestler",
+    "stage": "veteran",
+    "attributes": {
+      "ringwork": { "mean": 54, "sd": 12, "talentWeight": 0.65 },
+      "psychology": { "mean": 55, "sd": 12, "talentWeight": 0.62 },
+      "stamina": { "mean": 47, "sd": 12, "talentWeight": 0.3 },
+      "safety": { "mean": 55, "sd": 12, "talentWeight": 0.4 },
+      "athleticism": { "mean": 45, "sd": 13, "talentWeight": 0.4 },
+      "mic": { "mean": 55, "sd": 15, "talentWeight": 0.45 },
+      "charisma": { "mean": 58, "sd": 14, "talentWeight": 0.5 },
+      "presence": { "mean": 59, "sd": 13, "talentWeight": 0.35 },
+      "officiating": { "mean": 12, "sd": 6, "talentWeight": 0 },
+      "broadcasting": { "mean": 15, "sd": 7, "talentWeight": 0.1 },
+      "producing": { "mean": 20, "sd": 8, "talentWeight": 0.15 },
+      "booking": { "mean": 25, "sd": 10, "talentWeight": 0.25 }
+    }
+  },
+  {
+    "key": "occasional-wrestler-legend",
+    "label": "Occasional wrestler, legend",
+    "role": "occasionalWrestler",
+    "stage": "legend",
+    "attributes": {
+      "ringwork": { "mean": 56, "sd": 12, "talentWeight": 0.65 },
+      "psychology": { "mean": 60, "sd": 11, "talentWeight": 0.62 },
+      "stamina": { "mean": 37, "sd": 12, "talentWeight": 0.3 },
+      "safety": { "mean": 54, "sd": 12, "talentWeight": 0.4 },
+      "athleticism": { "mean": 35, "sd": 13, "talentWeight": 0.4 },
+      "mic": { "mean": 61, "sd": 15, "talentWeight": 0.45 },
+      "charisma": { "mean": 65, "sd": 14, "talentWeight": 0.5 },
+      "presence": { "mean": 67, "sd": 13, "talentWeight": 0.35 },
+      "officiating": { "mean": 14, "sd": 6, "talentWeight": 0 },
+      "broadcasting": { "mean": 18, "sd": 7, "talentWeight": 0.1 },
+      "producing": { "mean": 26, "sd": 8, "talentWeight": 0.15 },
+      "booking": { "mean": 32, "sd": 10, "talentWeight": 0.25 }
+    }
+  },
+  {
+    "key": "manager-rookie",
+    "label": "Manager, rookie",
+    "role": "manager",
+    "stage": "rookie",
+    "attributes": {
+      "ringwork": { "mean": 12, "sd": 8, "talentWeight": 0.1 },
+      "psychology": { "mean": 25, "sd": 10, "talentWeight": 0.3 },
+      "stamina": { "mean": 35, "sd": 10, "talentWeight": 0.05 },
+      "safety": { "mean": 15, "sd": 8, "talentWeight": 0.05 },
+      "athleticism": { "mean": 30, "sd": 10, "talentWeight": 0.05 },
+      "mic": { "mean": 45, "sd": 14, "talentWeight": 0.55 },
+      "charisma": { "mean": 45, "sd": 14, "talentWeight": 0.55 },
+      "presence": { "mean": 40, "sd": 13, "talentWeight": 0.4 },
+      "officiating": { "mean": 10, "sd": 7, "talentWeight": 0.05 },
+      "broadcasting": { "mean": 12, "sd": 8, "talentWeight": 0.1 },
+      "producing": { "mean": 10, "sd": 8, "talentWeight": 0.1 },
+      "booking": { "mean": 15, "sd": 10, "talentWeight": 0.3 }
+    }
+  },
+  {
+    "key": "manager-prospect",
+    "label": "Manager, prospect",
+    "role": "manager",
+    "stage": "prospect",
+    "attributes": {
+      "ringwork": { "mean": 13, "sd": 8, "talentWeight": 0.1 },
+      "psychology": { "mean": 30, "sd": 10, "talentWeight": 0.3 },
+      "stamina": { "mean": 35, "sd": 10, "talentWeight": 0.05 },
+      "safety": { "mean": 15, "sd": 8, "talentWeight": 0.05 },
+      "athleticism": { "mean": 30, "sd": 10, "talentWeight": 0.05 },
+      "mic": { "mean": 50, "sd": 14, "talentWeight": 0.55 },
+      "charisma": { "mean": 50, "sd": 14, "talentWeight": 0.55 },
+      "presence": { "mean": 44, "sd": 13, "talentWeight": 0.4 },
+      "officiating": { "mean": 11, "sd": 7, "talentWeight": 0.05 },
+      "broadcasting": { "mean": 13, "sd": 8, "talentWeight": 0.1 },
+      "producing": { "mean": 12, "sd": 8, "talentWeight": 0.1 },
+      "booking": { "mean": 18, "sd": 10, "talentWeight": 0.3 }
+    }
+  },
+  {
+    "key": "manager-established",
+    "label": "Manager, established",
+    "role": "manager",
+    "stage": "established",
+    "attributes": {
+      "ringwork": { "mean": 14, "sd": 8, "talentWeight": 0.1 },
+      "psychology": { "mean": 35, "sd": 10, "talentWeight": 0.3 },
+      "stamina": { "mean": 32, "sd": 10, "talentWeight": 0.05 },
+      "safety": { "mean": 15, "sd": 8, "talentWeight": 0.05 },
+      "athleticism": { "mean": 28, "sd": 10, "talentWeight": 0.05 },
+      "mic": { "mean": 55, "sd": 14, "talentWeight": 0.55 },
+      "charisma": { "mean": 55, "sd": 14, "talentWeight": 0.55 },
+      "presence": { "mean": 48, "sd": 13, "talentWeight": 0.4 },
+      "officiating": { "mean": 12, "sd": 7, "talentWeight": 0.05 },
+      "broadcasting": { "mean": 15, "sd": 8, "talentWeight": 0.1 },
+      "producing": { "mean": 14, "sd": 8, "talentWeight": 0.1 },
+      "booking": { "mean": 22, "sd": 10, "talentWeight": 0.3 }
+    }
+  },
+  {
+    "key": "manager-veteran",
+    "label": "Manager, veteran",
+    "role": "manager",
+    "stage": "veteran",
+    "attributes": {
+      "ringwork": { "mean": 15, "sd": 8, "talentWeight": 0.1 },
+      "psychology": { "mean": 40, "sd": 10, "talentWeight": 0.3 },
+      "stamina": { "mean": 28, "sd": 10, "talentWeight": 0.05 },
+      "safety": { "mean": 15, "sd": 8, "talentWeight": 0.05 },
+      "athleticism": { "mean": 24, "sd": 10, "talentWeight": 0.05 },
+      "mic": { "mean": 60, "sd": 14, "talentWeight": 0.55 },
+      "charisma": { "mean": 60, "sd": 14, "talentWeight": 0.55 },
+      "presence": { "mean": 52, "sd": 13, "talentWeight": 0.4 },
+      "officiating": { "mean": 13, "sd": 7, "talentWeight": 0.05 },
+      "broadcasting": { "mean": 17, "sd": 8, "talentWeight": 0.1 },
+      "producing": { "mean": 16, "sd": 8, "talentWeight": 0.1 },
+      "booking": { "mean": 28, "sd": 10, "talentWeight": 0.3 }
+    }
+  },
+  {
+    "key": "manager-legend",
+    "label": "Manager, legend",
+    "role": "manager",
+    "stage": "legend",
+    "attributes": {
+      "ringwork": { "mean": 15, "sd": 8, "talentWeight": 0.1 },
+      "psychology": { "mean": 45, "sd": 10, "talentWeight": 0.3 },
+      "stamina": { "mean": 22, "sd": 10, "talentWeight": 0.05 },
+      "safety": { "mean": 15, "sd": 8, "talentWeight": 0.05 },
+      "athleticism": { "mean": 20, "sd": 10, "talentWeight": 0.05 },
+      "mic": { "mean": 64, "sd": 14, "talentWeight": 0.55 },
+      "charisma": { "mean": 64, "sd": 14, "talentWeight": 0.55 },
+      "presence": { "mean": 56, "sd": 13, "talentWeight": 0.4 },
+      "officiating": { "mean": 14, "sd": 7, "talentWeight": 0.05 },
+      "broadcasting": { "mean": 19, "sd": 8, "talentWeight": 0.1 },
+      "producing": { "mean": 18, "sd": 8, "talentWeight": 0.1 },
+      "booking": { "mean": 34, "sd": 10, "talentWeight": 0.3 }
+    }
+  },
+  {
+    "key": "presenter-rookie",
+    "label": "Presenter, rookie",
+    "role": "presenter",
+    "stage": "rookie",
+    "attributes": {
+      "ringwork": { "mean": 12, "sd": 8, "talentWeight": 0.1 },
+      "psychology": { "mean": 15, "sd": 9, "talentWeight": 0.2 },
+      "stamina": { "mean": 35, "sd": 10, "talentWeight": 0.05 },
+      "safety": { "mean": 15, "sd": 8, "talentWeight": 0.05 },
+      "athleticism": { "mean": 30, "sd": 10, "talentWeight": 0.05 },
+      "mic": { "mean": 40, "sd": 13, "talentWeight": 0.4 },
+      "charisma": { "mean": 40, "sd": 13, "talentWeight": 0.4 },
+      "presence": { "mean": 30, "sd": 12, "talentWeight": 0.2 },
+      "officiating": { "mean": 10, "sd": 7, "talentWeight": 0.05 },
+      "broadcasting": { "mean": 40, "sd": 14, "talentWeight": 0.6 },
+      "producing": { "mean": 10, "sd": 8, "talentWeight": 0.1 },
+      "booking": { "mean": 10, "sd": 8, "talentWeight": 0.15 }
+    }
+  },
+  {
+    "key": "presenter-prospect",
+    "label": "Presenter, prospect",
+    "role": "presenter",
+    "stage": "prospect",
+    "attributes": {
+      "ringwork": { "mean": 13, "sd": 8, "talentWeight": 0.1 },
+      "psychology": { "mean": 18, "sd": 9, "talentWeight": 0.2 },
+      "stamina": { "mean": 35, "sd": 10, "talentWeight": 0.05 },
+      "safety": { "mean": 15, "sd": 8, "talentWeight": 0.05 },
+      "athleticism": { "mean": 30, "sd": 10, "talentWeight": 0.05 },
+      "mic": { "mean": 44, "sd": 13, "talentWeight": 0.4 },
+      "charisma": { "mean": 44, "sd": 13, "talentWeight": 0.4 },
+      "presence": { "mean": 32, "sd": 12, "talentWeight": 0.2 },
+      "officiating": { "mean": 11, "sd": 7, "talentWeight": 0.05 },
+      "broadcasting": { "mean": 48, "sd": 14, "talentWeight": 0.6 },
+      "producing": { "mean": 12, "sd": 8, "talentWeight": 0.1 },
+      "booking": { "mean": 12, "sd": 8, "talentWeight": 0.15 }
+    }
+  },
+  {
+    "key": "presenter-established",
+    "label": "Presenter, established",
+    "role": "presenter",
+    "stage": "established",
+    "attributes": {
+      "ringwork": { "mean": 14, "sd": 8, "talentWeight": 0.1 },
+      "psychology": { "mean": 22, "sd": 9, "talentWeight": 0.2 },
+      "stamina": { "mean": 32, "sd": 10, "talentWeight": 0.05 },
+      "safety": { "mean": 15, "sd": 8, "talentWeight": 0.05 },
+      "athleticism": { "mean": 28, "sd": 10, "talentWeight": 0.05 },
+      "mic": { "mean": 48, "sd": 13, "talentWeight": 0.4 },
+      "charisma": { "mean": 48, "sd": 13, "talentWeight": 0.4 },
+      "presence": { "mean": 35, "sd": 12, "talentWeight": 0.2 },
+      "officiating": { "mean": 12, "sd": 7, "talentWeight": 0.05 },
+      "broadcasting": { "mean": 55, "sd": 14, "talentWeight": 0.6 },
+      "producing": { "mean": 14, "sd": 8, "talentWeight": 0.1 },
+      "booking": { "mean": 15, "sd": 8, "talentWeight": 0.15 }
+    }
+  },
+  {
+    "key": "presenter-veteran",
+    "label": "Presenter, veteran",
+    "role": "presenter",
+    "stage": "veteran",
+    "attributes": {
+      "ringwork": { "mean": 15, "sd": 8, "talentWeight": 0.1 },
+      "psychology": { "mean": 25, "sd": 9, "talentWeight": 0.2 },
+      "stamina": { "mean": 28, "sd": 10, "talentWeight": 0.05 },
+      "safety": { "mean": 15, "sd": 8, "talentWeight": 0.05 },
+      "athleticism": { "mean": 24, "sd": 10, "talentWeight": 0.05 },
+      "mic": { "mean": 52, "sd": 13, "talentWeight": 0.4 },
+      "charisma": { "mean": 52, "sd": 13, "talentWeight": 0.4 },
+      "presence": { "mean": 38, "sd": 12, "talentWeight": 0.2 },
+      "officiating": { "mean": 13, "sd": 7, "talentWeight": 0.05 },
+      "broadcasting": { "mean": 62, "sd": 14, "talentWeight": 0.6 },
+      "producing": { "mean": 16, "sd": 8, "talentWeight": 0.1 },
+      "booking": { "mean": 18, "sd": 8, "talentWeight": 0.15 }
+    }
+  },
+  {
+    "key": "presenter-legend",
+    "label": "Presenter, legend",
+    "role": "presenter",
+    "stage": "legend",
+    "attributes": {
+      "ringwork": { "mean": 15, "sd": 8, "talentWeight": 0.1 },
+      "psychology": { "mean": 28, "sd": 9, "talentWeight": 0.2 },
+      "stamina": { "mean": 22, "sd": 10, "talentWeight": 0.05 },
+      "safety": { "mean": 15, "sd": 8, "talentWeight": 0.05 },
+      "athleticism": { "mean": 20, "sd": 10, "talentWeight": 0.05 },
+      "mic": { "mean": 55, "sd": 13, "talentWeight": 0.4 },
+      "charisma": { "mean": 55, "sd": 13, "talentWeight": 0.4 },
+      "presence": { "mean": 42, "sd": 12, "talentWeight": 0.2 },
+      "officiating": { "mean": 14, "sd": 7, "talentWeight": 0.05 },
+      "broadcasting": { "mean": 66, "sd": 14, "talentWeight": 0.6 },
+      "producing": { "mean": 18, "sd": 8, "talentWeight": 0.1 },
+      "booking": { "mean": 20, "sd": 8, "talentWeight": 0.15 }
+    }
+  },
+  {
+    "key": "announcer-rookie",
+    "label": "Announcer, rookie",
+    "role": "announcer",
+    "stage": "rookie",
+    "attributes": {
+      "ringwork": { "mean": 12, "sd": 8, "talentWeight": 0.1 },
+      "psychology": { "mean": 25, "sd": 10, "talentWeight": 0.3 },
+      "stamina": { "mean": 35, "sd": 10, "talentWeight": 0.05 },
+      "safety": { "mean": 15, "sd": 8, "talentWeight": 0.05 },
+      "athleticism": { "mean": 30, "sd": 10, "talentWeight": 0.05 },
+      "mic": { "mean": 38, "sd": 13, "talentWeight": 0.4 },
+      "charisma": { "mean": 35, "sd": 12, "talentWeight": 0.3 },
+      "presence": { "mean": 30, "sd": 12, "talentWeight": 0.2 },
+      "officiating": { "mean": 10, "sd": 7, "talentWeight": 0.05 },
+      "broadcasting": { "mean": 40, "sd": 14, "talentWeight": 0.6 },
+      "producing": { "mean": 10, "sd": 8, "talentWeight": 0.1 },
+      "booking": { "mean": 10, "sd": 8, "talentWeight": 0.15 }
+    }
+  },
+  {
+    "key": "announcer-prospect",
+    "label": "Announcer, prospect",
+    "role": "announcer",
+    "stage": "prospect",
+    "attributes": {
+      "ringwork": { "mean": 13, "sd": 8, "talentWeight": 0.1 },
+      "psychology": { "mean": 30, "sd": 10, "talentWeight": 0.3 },
+      "stamina": { "mean": 35, "sd": 10, "talentWeight": 0.05 },
+      "safety": { "mean": 15, "sd": 8, "talentWeight": 0.05 },
+      "athleticism": { "mean": 30, "sd": 10, "talentWeight": 0.05 },
+      "mic": { "mean": 42, "sd": 13, "talentWeight": 0.4 },
+      "charisma": { "mean": 37, "sd": 12, "talentWeight": 0.3 },
+      "presence": { "mean": 32, "sd": 12, "talentWeight": 0.2 },
+      "officiating": { "mean": 11, "sd": 7, "talentWeight": 0.05 },
+      "broadcasting": { "mean": 48, "sd": 14, "talentWeight": 0.6 },
+      "producing": { "mean": 12, "sd": 8, "talentWeight": 0.1 },
+      "booking": { "mean": 12, "sd": 8, "talentWeight": 0.15 }
+    }
+  },
+  {
+    "key": "announcer-established",
+    "label": "Announcer, established",
+    "role": "announcer",
+    "stage": "established",
+    "attributes": {
+      "ringwork": { "mean": 14, "sd": 8, "talentWeight": 0.1 },
+      "psychology": { "mean": 35, "sd": 10, "talentWeight": 0.3 },
+      "stamina": { "mean": 32, "sd": 10, "talentWeight": 0.05 },
+      "safety": { "mean": 15, "sd": 8, "talentWeight": 0.05 },
+      "athleticism": { "mean": 28, "sd": 10, "talentWeight": 0.05 },
+      "mic": { "mean": 46, "sd": 13, "talentWeight": 0.4 },
+      "charisma": { "mean": 40, "sd": 12, "talentWeight": 0.3 },
+      "presence": { "mean": 35, "sd": 12, "talentWeight": 0.2 },
+      "officiating": { "mean": 12, "sd": 7, "talentWeight": 0.05 },
+      "broadcasting": { "mean": 55, "sd": 14, "talentWeight": 0.6 },
+      "producing": { "mean": 14, "sd": 8, "talentWeight": 0.1 },
+      "booking": { "mean": 15, "sd": 8, "talentWeight": 0.15 }
+    }
+  },
+  {
+    "key": "announcer-veteran",
+    "label": "Announcer, veteran",
+    "role": "announcer",
+    "stage": "veteran",
+    "attributes": {
+      "ringwork": { "mean": 15, "sd": 8, "talentWeight": 0.1 },
+      "psychology": { "mean": 40, "sd": 10, "talentWeight": 0.3 },
+      "stamina": { "mean": 28, "sd": 10, "talentWeight": 0.05 },
+      "safety": { "mean": 15, "sd": 8, "talentWeight": 0.05 },
+      "athleticism": { "mean": 24, "sd": 10, "talentWeight": 0.05 },
+      "mic": { "mean": 50, "sd": 13, "talentWeight": 0.4 },
+      "charisma": { "mean": 42, "sd": 12, "talentWeight": 0.3 },
+      "presence": { "mean": 38, "sd": 12, "talentWeight": 0.2 },
+      "officiating": { "mean": 13, "sd": 7, "talentWeight": 0.05 },
+      "broadcasting": { "mean": 62, "sd": 14, "talentWeight": 0.6 },
+      "producing": { "mean": 16, "sd": 8, "talentWeight": 0.1 },
+      "booking": { "mean": 18, "sd": 8, "talentWeight": 0.15 }
+    }
+  },
+  {
+    "key": "announcer-legend",
+    "label": "Announcer, legend",
+    "role": "announcer",
+    "stage": "legend",
+    "attributes": {
+      "ringwork": { "mean": 15, "sd": 8, "talentWeight": 0.1 },
+      "psychology": { "mean": 45, "sd": 10, "talentWeight": 0.3 },
+      "stamina": { "mean": 22, "sd": 10, "talentWeight": 0.05 },
+      "safety": { "mean": 15, "sd": 8, "talentWeight": 0.05 },
+      "athleticism": { "mean": 20, "sd": 10, "talentWeight": 0.05 },
+      "mic": { "mean": 52, "sd": 13, "talentWeight": 0.4 },
+      "charisma": { "mean": 45, "sd": 12, "talentWeight": 0.3 },
+      "presence": { "mean": 42, "sd": 12, "talentWeight": 0.2 },
+      "officiating": { "mean": 14, "sd": 7, "talentWeight": 0.05 },
+      "broadcasting": { "mean": 66, "sd": 14, "talentWeight": 0.6 },
+      "producing": { "mean": 18, "sd": 8, "talentWeight": 0.1 },
+      "booking": { "mean": 20, "sd": 8, "talentWeight": 0.15 }
+    }
+  },
+  {
+    "key": "referee-rookie",
+    "label": "Referee, rookie",
+    "role": "referee",
+    "stage": "rookie",
+    "attributes": {
+      "ringwork": { "mean": 12, "sd": 8, "talentWeight": 0.1 },
+      "psychology": { "mean": 25, "sd": 10, "talentWeight": 0.3 },
+      "stamina": { "mean": 45, "sd": 10, "talentWeight": 0.1 },
+      "safety": { "mean": 30, "sd": 10, "talentWeight": 0.15 },
+      "athleticism": { "mean": 30, "sd": 10, "talentWeight": 0.05 },
+      "mic": { "mean": 30, "sd": 12, "talentWeight": 0.3 },
+      "charisma": { "mean": 35, "sd": 12, "talentWeight": 0.3 },
+      "presence": { "mean": 30, "sd": 12, "talentWeight": 0.2 },
+      "officiating": { "mean": 40, "sd": 14, "talentWeight": 0.6 },
+      "broadcasting": { "mean": 12, "sd": 8, "talentWeight": 0.1 },
+      "producing": { "mean": 10, "sd": 8, "talentWeight": 0.1 },
+      "booking": { "mean": 10, "sd": 8, "talentWeight": 0.15 }
+    }
+  },
+  {
+    "key": "referee-prospect",
+    "label": "Referee, prospect",
+    "role": "referee",
+    "stage": "prospect",
+    "attributes": {
+      "ringwork": { "mean": 13, "sd": 8, "talentWeight": 0.1 },
+      "psychology": { "mean": 30, "sd": 10, "talentWeight": 0.3 },
+      "stamina": { "mean": 48, "sd": 10, "talentWeight": 0.1 },
+      "safety": { "mean": 34, "sd": 10, "talentWeight": 0.15 },
+      "athleticism": { "mean": 30, "sd": 10, "talentWeight": 0.05 },
+      "mic": { "mean": 33, "sd": 12, "talentWeight": 0.3 },
+      "charisma": { "mean": 37, "sd": 12, "talentWeight": 0.3 },
+      "presence": { "mean": 32, "sd": 12, "talentWeight": 0.2 },
+      "officiating": { "mean": 48, "sd": 14, "talentWeight": 0.6 },
+      "broadcasting": { "mean": 13, "sd": 8, "talentWeight": 0.1 },
+      "producing": { "mean": 12, "sd": 8, "talentWeight": 0.1 },
+      "booking": { "mean": 12, "sd": 8, "talentWeight": 0.15 }
+    }
+  },
+  {
+    "key": "referee-established",
+    "label": "Referee, established",
+    "role": "referee",
+    "stage": "established",
+    "attributes": {
+      "ringwork": { "mean": 14, "sd": 8, "talentWeight": 0.1 },
+      "psychology": { "mean": 35, "sd": 10, "talentWeight": 0.3 },
+      "stamina": { "mean": 48, "sd": 10, "talentWeight": 0.1 },
+      "safety": { "mean": 38, "sd": 10, "talentWeight": 0.15 },
+      "athleticism": { "mean": 28, "sd": 10, "talentWeight": 0.05 },
+      "mic": { "mean": 36, "sd": 12, "talentWeight": 0.3 },
+      "charisma": { "mean": 40, "sd": 12, "talentWeight": 0.3 },
+      "presence": { "mean": 35, "sd": 12, "talentWeight": 0.2 },
+      "officiating": { "mean": 55, "sd": 14, "talentWeight": 0.6 },
+      "broadcasting": { "mean": 15, "sd": 8, "talentWeight": 0.1 },
+      "producing": { "mean": 14, "sd": 8, "talentWeight": 0.1 },
+      "booking": { "mean": 15, "sd": 8, "talentWeight": 0.15 }
+    }
+  },
+  {
+    "key": "referee-veteran",
+    "label": "Referee, veteran",
+    "role": "referee",
+    "stage": "veteran",
+    "attributes": {
+      "ringwork": { "mean": 15, "sd": 8, "talentWeight": 0.1 },
+      "psychology": { "mean": 40, "sd": 10, "talentWeight": 0.3 },
+      "stamina": { "mean": 44, "sd": 10, "talentWeight": 0.1 },
+      "safety": { "mean": 40, "sd": 10, "talentWeight": 0.15 },
+      "athleticism": { "mean": 24, "sd": 10, "talentWeight": 0.05 },
+      "mic": { "mean": 38, "sd": 12, "talentWeight": 0.3 },
+      "charisma": { "mean": 42, "sd": 12, "talentWeight": 0.3 },
+      "presence": { "mean": 38, "sd": 12, "talentWeight": 0.2 },
+      "officiating": { "mean": 62, "sd": 14, "talentWeight": 0.6 },
+      "broadcasting": { "mean": 17, "sd": 8, "talentWeight": 0.1 },
+      "producing": { "mean": 16, "sd": 8, "talentWeight": 0.1 },
+      "booking": { "mean": 18, "sd": 8, "talentWeight": 0.15 }
+    }
+  },
+  {
+    "key": "referee-legend",
+    "label": "Referee, legend",
+    "role": "referee",
+    "stage": "legend",
+    "attributes": {
+      "ringwork": { "mean": 15, "sd": 8, "talentWeight": 0.1 },
+      "psychology": { "mean": 42, "sd": 10, "talentWeight": 0.3 },
+      "stamina": { "mean": 38, "sd": 10, "talentWeight": 0.1 },
+      "safety": { "mean": 40, "sd": 10, "talentWeight": 0.15 },
+      "athleticism": { "mean": 20, "sd": 10, "talentWeight": 0.05 },
+      "mic": { "mean": 40, "sd": 12, "talentWeight": 0.3 },
+      "charisma": { "mean": 45, "sd": 12, "talentWeight": 0.3 },
+      "presence": { "mean": 42, "sd": 12, "talentWeight": 0.2 },
+      "officiating": { "mean": 66, "sd": 14, "talentWeight": 0.6 },
+      "broadcasting": { "mean": 19, "sd": 8, "talentWeight": 0.1 },
+      "producing": { "mean": 18, "sd": 8, "talentWeight": 0.1 },
+      "booking": { "mean": 20, "sd": 8, "talentWeight": 0.15 }
+    }
+  },
+  {
+    "key": "producer-rookie",
+    "label": "Producer, rookie",
+    "role": "producer",
+    "stage": "rookie",
+    "attributes": {
+      "ringwork": { "mean": 12, "sd": 8, "talentWeight": 0.1 },
+      "psychology": { "mean": 30, "sd": 11, "talentWeight": 0.3 },
+      "stamina": { "mean": 35, "sd": 10, "talentWeight": 0.05 },
+      "safety": { "mean": 15, "sd": 8, "talentWeight": 0.05 },
+      "athleticism": { "mean": 30, "sd": 10, "talentWeight": 0.05 },
+      "mic": { "mean": 30, "sd": 12, "talentWeight": 0.3 },
+      "charisma": { "mean": 35, "sd": 12, "talentWeight": 0.3 },
+      "presence": { "mean": 30, "sd": 12, "talentWeight": 0.2 },
+      "officiating": { "mean": 10, "sd": 7, "talentWeight": 0.05 },
+      "broadcasting": { "mean": 12, "sd": 8, "talentWeight": 0.1 },
+      "producing": { "mean": 40, "sd": 14, "talentWeight": 0.6 },
+      "booking": { "mean": 25, "sd": 13, "talentWeight": 0.45 }
+    }
+  },
+  {
+    "key": "producer-prospect",
+    "label": "Producer, prospect",
+    "role": "producer",
+    "stage": "prospect",
+    "attributes": {
+      "ringwork": { "mean": 13, "sd": 8, "talentWeight": 0.1 },
+      "psychology": { "mean": 36, "sd": 11, "talentWeight": 0.3 },
+      "stamina": { "mean": 35, "sd": 10, "talentWeight": 0.05 },
+      "safety": { "mean": 15, "sd": 8, "talentWeight": 0.05 },
+      "athleticism": { "mean": 30, "sd": 10, "talentWeight": 0.05 },
+      "mic": { "mean": 33, "sd": 12, "talentWeight": 0.3 },
+      "charisma": { "mean": 37, "sd": 12, "talentWeight": 0.3 },
+      "presence": { "mean": 32, "sd": 12, "talentWeight": 0.2 },
+      "officiating": { "mean": 11, "sd": 7, "talentWeight": 0.05 },
+      "broadcasting": { "mean": 13, "sd": 8, "talentWeight": 0.1 },
+      "producing": { "mean": 48, "sd": 14, "talentWeight": 0.6 },
+      "booking": { "mean": 30, "sd": 13, "talentWeight": 0.45 }
+    }
+  },
+  {
+    "key": "producer-established",
+    "label": "Producer, established",
+    "role": "producer",
+    "stage": "established",
+    "attributes": {
+      "ringwork": { "mean": 14, "sd": 8, "talentWeight": 0.1 },
+      "psychology": { "mean": 42, "sd": 11, "talentWeight": 0.3 },
+      "stamina": { "mean": 32, "sd": 10, "talentWeight": 0.05 },
+      "safety": { "mean": 15, "sd": 8, "talentWeight": 0.05 },
+      "athleticism": { "mean": 28, "sd": 10, "talentWeight": 0.05 },
+      "mic": { "mean": 36, "sd": 12, "talentWeight": 0.3 },
+      "charisma": { "mean": 40, "sd": 12, "talentWeight": 0.3 },
+      "presence": { "mean": 35, "sd": 12, "talentWeight": 0.2 },
+      "officiating": { "mean": 12, "sd": 7, "talentWeight": 0.05 },
+      "broadcasting": { "mean": 15, "sd": 8, "talentWeight": 0.1 },
+      "producing": { "mean": 55, "sd": 14, "talentWeight": 0.6 },
+      "booking": { "mean": 38, "sd": 13, "talentWeight": 0.45 }
+    }
+  },
+  {
+    "key": "producer-veteran",
+    "label": "Producer, veteran",
+    "role": "producer",
+    "stage": "veteran",
+    "attributes": {
+      "ringwork": { "mean": 15, "sd": 8, "talentWeight": 0.1 },
+      "psychology": { "mean": 48, "sd": 11, "talentWeight": 0.3 },
+      "stamina": { "mean": 28, "sd": 10, "talentWeight": 0.05 },
+      "safety": { "mean": 15, "sd": 8, "talentWeight": 0.05 },
+      "athleticism": { "mean": 24, "sd": 10, "talentWeight": 0.05 },
+      "mic": { "mean": 38, "sd": 12, "talentWeight": 0.3 },
+      "charisma": { "mean": 42, "sd": 12, "talentWeight": 0.3 },
+      "presence": { "mean": 38, "sd": 12, "talentWeight": 0.2 },
+      "officiating": { "mean": 13, "sd": 7, "talentWeight": 0.05 },
+      "broadcasting": { "mean": 17, "sd": 8, "talentWeight": 0.1 },
+      "producing": { "mean": 62, "sd": 14, "talentWeight": 0.6 },
+      "booking": { "mean": 45, "sd": 13, "talentWeight": 0.45 }
+    }
+  },
+  {
+    "key": "producer-legend",
+    "label": "Producer, legend",
+    "role": "producer",
+    "stage": "legend",
+    "attributes": {
+      "ringwork": { "mean": 15, "sd": 8, "talentWeight": 0.1 },
+      "psychology": { "mean": 52, "sd": 11, "talentWeight": 0.3 },
+      "stamina": { "mean": 22, "sd": 10, "talentWeight": 0.05 },
+      "safety": { "mean": 15, "sd": 8, "talentWeight": 0.05 },
+      "athleticism": { "mean": 20, "sd": 10, "talentWeight": 0.05 },
+      "mic": { "mean": 40, "sd": 12, "talentWeight": 0.3 },
+      "charisma": { "mean": 45, "sd": 12, "talentWeight": 0.3 },
+      "presence": { "mean": 42, "sd": 12, "talentWeight": 0.2 },
+      "officiating": { "mean": 14, "sd": 7, "talentWeight": 0.05 },
+      "broadcasting": { "mean": 19, "sd": 8, "talentWeight": 0.1 },
+      "producing": { "mean": 66, "sd": 14, "talentWeight": 0.6 },
+      "booking": { "mean": 50, "sd": 13, "talentWeight": 0.45 }
+    }
+  }
+]

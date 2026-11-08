@@ -1,0 +1,52 @@
+[
+  {
+    "key": "heavy-stamina",
+    "label": "Heavier wrestlers tire sooner",
+    "attribute": "stamina",
+    "measure": "weightKg",
+    "direction": "above",
+    "from": 110,
+    "perUnit": -0.25,
+    "limit": 20
+  },
+  {
+    "key": "light-athleticism",
+    "label": "Light frames move quicker",
+    "attribute": "athleticism",
+    "measure": "weightKg",
+    "direction": "below",
+    "from": 85,
+    "perUnit": 0.15,
+    "limit": 4
+  },
+  {
+    "key": "heavy-athleticism",
+    "label": "Big frames move slower",
+    "attribute": "athleticism",
+    "measure": "weightKg",
+    "direction": "above",
+    "from": 120,
+    "perUnit": -0.12,
+    "limit": 8
+  },
+  {
+    "key": "tall-presence",
+    "label": "Height fills the screen",
+    "attribute": "presence",
+    "measure": "heightCm",
+    "direction": "above",
+    "from": 182,
+    "perUnit": 0.25,
+    "limit": 8
+  },
+  {
+    "key": "heavy-presence",
+    "label": "Size fills the screen",
+    "attribute": "presence",
+    "measure": "weightKg",
+    "direction": "above",
+    "from": 105,
+    "perUnit": 0.08,
+    "limit": 5
+  }
+]

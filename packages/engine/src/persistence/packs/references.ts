@@ -19,7 +19,14 @@ import { isPackRef, parseRef, RECORD_KINDS, type RecordKind, type RecordReferenc
 import { packError, packWarning, type PackIssue } from './issues';
 import type { MergedRecord, MergedRecords } from './merge';
 import { continentReferences, countryReferences, regionReferences } from './records/geography';
-import { generationProfileReferences, traitIncidenceReferences } from './records/generation';
+import {
+  bodyArchetypeReferences,
+  bodyModifierReferences,
+  generationProfileReferences,
+  generationRoleReferences,
+  generationStyleReferences,
+  traitIncidenceReferences,
+} from './records/generation';
 import {
   countryNameMixReferences,
   nameCultureReferences,
@@ -49,6 +56,10 @@ export const RECORD_REFERENCES = {
   nameCulture: nameCultureReferences,
   countryNameMix: countryNameMixReferences,
   ringNameWords: ringNameWordsReferences,
+  generationRole: generationRoleReferences,
+  generationStyle: generationStyleReferences,
+  bodyArchetype: bodyArchetypeReferences,
+  bodyModifier: bodyModifierReferences,
   generationProfile: generationProfileReferences,
   traitIncidence: traitIncidenceReferences,
   person: personReferences,

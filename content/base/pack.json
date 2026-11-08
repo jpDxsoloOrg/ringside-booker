@@ -4,7 +4,7 @@
   "name": "Ringside Booker Base",
   "version": "0.1.0",
   "kind": "base",
-  "description": "Shared data every world builds on: the map of continents, countries and regions, and the name lists people and ring names are generated from.",
+  "description": "Shared data every world builds on: the map of continents, countries and regions, the name lists people and ring names are generated from, and the roles, styles, bodies and attribute profiles new people are rolled from.",
   "author": "Ringside Booker",
   "dependsOn": [],
   "files": {
@@ -13,6 +13,11 @@
     "region": "geography/regions.json",
     "nameCulture": "names/cultures.json",
     "countryNameMix": "names/country-mix.json",
-    "ringNameWords": "names/ring-words.json"
+    "ringNameWords": "names/ring-words.json",
+    "generationRole": "generation/roles.json",
+    "generationStyle": "generation/styles.json",
+    "bodyArchetype": "generation/archetypes.json",
+    "bodyModifier": "generation/body-modifiers.json",
+    "generationProfile": "generation/profiles.json"
   }
 }

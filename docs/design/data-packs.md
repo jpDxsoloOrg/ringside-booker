@@ -245,15 +245,73 @@ name words is in [names.md](names.md).
 
 ### Generation
 
-**`generationProfile`**: how attributes are rolled for one role and style. The
-full shape is settled by the attribute generator (WLD-06).
+The records the people generator rolls new people from. The base pack ships
+them in `content/base/generation/`; how they are used is in
+[world-generation.md](world-generation.md#generating-people). None of them
+refer to other records: roles, styles, builds and attributes are engine lists.
+
+**`generationRole`**: who gets a person role, and how old they are.
+
+| Field                 | Type                                | Rules                                                                                                  |
+| --------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `key`                 | key                                 |                                                                                                        |
+| `label`               | string                              | 1-60 characters                                                                                        |
+| `role`                | person role                         | One record per role                                                                                    |
+| `performer`           | boolean                             | True for wrestling roles: they get a ring style and can roll a natural standout                        |
+| `genderShares`        | `{ male, female, nonBinary }`       | 0-1 each, adding up to 1                                                                               |
+| `stageShares`         | career stage → share                | `rookie`, `prospect`, `established`, `veteran`, `legend`; 0-1 each, adding up to 1                     |
+| `stageAges`           | career stage → `{ min, max }`       | Whole years, 16-80, `min` ≤ `max`                                                                      |
+| `roleSkills`          | attributes                          | Crew attributes only (`officiating`, `broadcasting`, `producing`, `booking`); may be empty; no repeats |
+| `performerAttributes` | attributes                          | In-ring and character attributes only; at least one; no repeats. A natural standout picks one          |
+| `debut`               | `{ ageSd, minAge, maxAge }` \| null | Null = no debut date. `ageSd` 0-10; ages are whole years from 14, `minAge` ≤ `maxAge`                  |
+| `motivationWeights`   | motivation → number                 | Every motivation, 0-1000 each, at least one above 0                                                    |
+
+**`generationStyle`**: one ring style's place in the style pick.
+
+| Field                | Type               | Rules                                                                     |
+| -------------------- | ------------------ | ------------------------------------------------------------------------- |
+| `key`                | key                |                                                                           |
+| `style`              | ring style         | One record per style, `nonWrestler` included                              |
+| `weight`             | number             | 0-1000. `nonWrestler` is never picked for a wrestler, whatever its weight |
+| `promotionStyles`    | promotion styles   | No repeats. A home region preferring one of these boosts the style        |
+| `attributeModifiers` | attribute → number | Sparse; -30..30 points each                                               |
+| `wearMultiplier`     | number             | 0-3; multiplies the expected body wear per year                           |
+| `maskedChance`       | number             | 0-1                                                                       |
+
+**`bodyArchetype`**: a body shape.
+
+| Field          | Type                                                   | Rules                                                                  |
+| -------------- | ------------------------------------------------------ | ---------------------------------------------------------------------- |
+| `key`          | key                                                    |                                                                        |
+| `label`        | string                                                 | 1-60 characters                                                        |
+| `build`        | build                                                  | `slim` ... `superHeavy`                                                |
+| `heightCm`     | `{ min, max }`                                         | 100-260, `min` ≤ `max`                                                 |
+| `weightKg`     | `{ min, max }`                                         | 30-300, `min` ≤ `max`                                                  |
+| `scale`        | `{ female, nonBinary }`, each `{ heightCm, weightKg }` | Factors 0.5-1.5. Men use the ranges as they are                        |
+| `styleWeights` | ring style → number                                    | Every style, 0-1000 each. 0 means the archetype never works that style |
+
+**`bodyModifier`**: an attribute that moves with height or weight.
+
+| Field       | Type                     | Rules                                                         |
+| ----------- | ------------------------ | ------------------------------------------------------------- |
+| `key`       | key                      |                                                               |
+| `label`     | string                   | 1-60 characters; shown in the attribute's Why? trace          |
+| `attribute` | attribute                |                                                               |
+| `measure`   | `heightCm` \| `weightKg` |                                                               |
+| `direction` | `above` \| `below`       | Which side of `from` counts                                   |
+| `from`      | number                   | 0-300, the threshold in cm or kg                              |
+| `perUnit`   | number                   | -5..5 points per cm or kg past the threshold                  |
+| `limit`     | number                   | 0-50, the most the modifier can move the attribute either way |
+
+**`generationProfile`**: how attributes are rolled for one role at one career
+stage.
 
 | Field        | Type                                     | Rules                                                                                        |
 | ------------ | ---------------------------------------- | -------------------------------------------------------------------------------------------- |
 | `key`        | key                                      |                                                                                              |
 | `label`      | string                                   | 1-60 characters                                                                              |
 | `role`       | person role                              | `wrestler`, `occasionalWrestler`, `manager`, `presenter`, `announcer`, `referee`, `producer` |
-| `style`      | ring style \| null                       | Null for non-wrestlers or any style                                                          |
+| `stage`      | career stage                             | `rookie`, `prospect`, `established`, `veteran`, `legend`. One profile per role and stage     |
 | `attributes` | attribute → `{ mean, sd, talentWeight }` | Every engine attribute, no others. `mean` 0-100, `sd` 0-50, `talentWeight` 0-1               |
 
 **`traitIncidence`**: how often a generated person holds a trait.
@@ -726,8 +784,9 @@ player's own choices.
   load order. `contentKeys` maps record kind → key → minted ID for every record
   that became an entity, so later systems, saves and mods can find a pack
   record's entity by key.
-- **Content library.** Name cultures, name mixes, ring name words, generation
-  profiles and trait incidence never become entities. The loader returns them
+- **Content library.** Name cultures, name mixes, ring name words, the
+  generation records (roles, styles, body archetypes, body modifiers,
+  profiles) and trait incidence never become entities. The loader returns them
   as a frozen `ContentLibrary` for the generators, with references reduced to
   bare keys. A save stores only `contentPacks`; the library is rebuilt from
   the packs when the save is loaded, which keeps name lists out of every save.

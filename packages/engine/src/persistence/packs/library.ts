@@ -1,8 +1,9 @@
 /**
  * The content library: pack data that is not part of the World.
  *
- * Name cultures, country name mixes, ring name words, generation profiles and trait incidence feed
- * the people generator (WLD-05, WLD-06). They are never World entities and never go into a save:
+ * Name cultures, country name mixes, ring name words and the generation records (roles, styles,
+ * body archetypes, body modifiers, profiles, trait incidence) feed the people generator (WLD-05,
+ * WLD-06). They are never World entities and never go into a save:
  * a save records only which packs (and versions) it was built from in `WorldMeta.contentPacks`,
  * and the library is rebuilt from those packs on load. That keeps megabytes of name lists out of
  * every save.
@@ -15,7 +16,14 @@
 import type { ContentPackRef } from '../../model/world-meta';
 import { isPackRef, parseRef, type PackRef } from './keys';
 import type { MergedContent } from './merge';
-import type { GenerationProfileRecord, TraitIncidenceRecord } from './records/generation';
+import type {
+  BodyArchetypeRecord,
+  BodyModifierRecord,
+  GenerationProfileRecord,
+  GenerationRoleRecord,
+  GenerationStyleRecord,
+  TraitIncidenceRecord,
+} from './records/generation';
 import type { CountryNameMixRecord, NameCultureRecord, RingNameWordsRecord } from './records/names';
 
 export interface ContentLibrary {
@@ -25,6 +33,10 @@ export interface ContentLibrary {
   /** Keyed by country key. */
   readonly countryNameMixes: Readonly<Record<string, CountryNameMixRecord>>;
   readonly ringNameWords: Readonly<Record<string, RingNameWordsRecord>>;
+  readonly generationRoles: Readonly<Record<string, GenerationRoleRecord>>;
+  readonly generationStyles: Readonly<Record<string, GenerationStyleRecord>>;
+  readonly bodyArchetypes: Readonly<Record<string, BodyArchetypeRecord>>;
+  readonly bodyModifiers: Readonly<Record<string, BodyModifierRecord>>;
   readonly generationProfiles: Readonly<Record<string, GenerationProfileRecord>>;
   readonly traitIncidence: Readonly<Record<string, TraitIncidenceRecord>>;
 }
@@ -80,6 +92,10 @@ export function buildContentLibrary(content: MergedContent): ContentLibrary {
     nameCultures: byKey(records.nameCulture),
     countryNameMixes: byKey(records.countryNameMix, bareMix),
     ringNameWords: byKey(records.ringNameWords),
+    generationRoles: byKey(records.generationRole),
+    generationStyles: byKey(records.generationStyle),
+    bodyArchetypes: byKey(records.bodyArchetype),
+    bodyModifiers: byKey(records.bodyModifier),
     generationProfiles: byKey(records.generationProfile),
     traitIncidence: byKey(records.traitIncidence),
   });

@@ -21,7 +21,14 @@ import type { z } from 'zod';
 import type { GameDate } from '../../core/date';
 import type { ContentPackRef } from '../../model/world-meta';
 import { continentRecord, countryRecord, regionRecord } from './records/geography';
-import { generationProfileRecord, traitIncidenceRecord } from './records/generation';
+import {
+  bodyArchetypeRecord,
+  bodyModifierRecord,
+  generationProfileRecord,
+  generationRoleRecord,
+  generationStyleRecord,
+  traitIncidenceRecord,
+} from './records/generation';
 import { countryNameMixRecord, nameCultureRecord, ringNameWordsRecord } from './records/names';
 import {
   brandRecord,
@@ -76,6 +83,10 @@ const FULL_PARSERS: {
   nameCulture: (value) => nameCultureRecord.full.safeParse(value),
   countryNameMix: (value) => countryNameMixRecord.full.safeParse(value),
   ringNameWords: (value) => ringNameWordsRecord.full.safeParse(value),
+  generationRole: (value) => generationRoleRecord.full.safeParse(value),
+  generationStyle: (value) => generationStyleRecord.full.safeParse(value),
+  bodyArchetype: (value) => bodyArchetypeRecord.full.safeParse(value),
+  bodyModifier: (value) => bodyModifierRecord.full.safeParse(value),
   generationProfile: (value) => generationProfileRecord.full.safeParse(value),
   traitIncidence: (value) => traitIncidenceRecord.full.safeParse(value),
   person: (value) => personRecord.full.safeParse(value),
@@ -99,6 +110,10 @@ const ENTRY_PARSERS: Readonly<Record<RecordKind, (value: unknown) => ParseOutcom
   nameCulture: (value) => nameCultureRecord.entry.safeParse(value),
   countryNameMix: (value) => countryNameMixRecord.entry.safeParse(value),
   ringNameWords: (value) => ringNameWordsRecord.entry.safeParse(value),
+  generationRole: (value) => generationRoleRecord.entry.safeParse(value),
+  generationStyle: (value) => generationStyleRecord.entry.safeParse(value),
+  bodyArchetype: (value) => bodyArchetypeRecord.entry.safeParse(value),
+  bodyModifier: (value) => bodyModifierRecord.entry.safeParse(value),
   generationProfile: (value) => generationProfileRecord.entry.safeParse(value),
   traitIncidence: (value) => traitIncidenceRecord.entry.safeParse(value),
   person: (value) => personRecord.entry.safeParse(value),
@@ -423,6 +438,10 @@ export function mergeRecords(packs: readonly RawPack[]): Result<MergedContent> {
     nameCulture: finishKind('nameCulture', working('nameCulture'), issues),
     countryNameMix: finishKind('countryNameMix', working('countryNameMix'), issues),
     ringNameWords: finishKind('ringNameWords', working('ringNameWords'), issues),
+    generationRole: finishKind('generationRole', working('generationRole'), issues),
+    generationStyle: finishKind('generationStyle', working('generationStyle'), issues),
+    bodyArchetype: finishKind('bodyArchetype', working('bodyArchetype'), issues),
+    bodyModifier: finishKind('bodyModifier', working('bodyModifier'), issues),
     generationProfile: finishKind('generationProfile', working('generationProfile'), issues),
     traitIncidence: finishKind('traitIncidence', working('traitIncidence'), issues),
     person: finishKind('person', working('person'), issues),
