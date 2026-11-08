@@ -53,7 +53,7 @@ import {
   regionalPopSchema,
   wholeMoneySchema,
 } from '../fields';
-import { keySchema, parseRef, refListSchema, refSchema } from '../keys';
+import { keySchema, parseRef, refListSchema, refSchema, type RecordReference } from '../keys';
 
 // ---------------------------------------------------------------------------------------------
 // Promotions and brands
@@ -308,3 +308,48 @@ export type NetworkRecord = z.output<typeof networkRecord.full>;
 export type DealTermsRecord = z.output<typeof dealTermsSchema>;
 export type DealRecord = z.output<typeof dealRecord.full>;
 export type EventDefinitionRecord = z.output<typeof eventDefinitionRecord.full>;
+
+// ---------------------------------------------------------------------------------------------
+// Reference fields, checked by the loader (WLD-02)
+
+export const promotionReferences = [
+  { path: ['homeRegionKey'], target: 'region' },
+  { path: ['regionalPop', '{}'], target: 'region' },
+  { path: ['ownerPersonKey'], target: 'person' },
+  { path: ['bookerPersonKey'], target: 'person' },
+  { path: ['parentPromotionKey'], target: 'promotion' },
+] as const satisfies readonly RecordReference[];
+
+export const brandReferences = [
+  { path: ['promotionKey'], target: 'promotion' },
+] as const satisfies readonly RecordReference[];
+
+export const titleReferences = [
+  { path: ['promotionKey'], target: 'promotion' },
+  { path: ['brandKey'], target: 'brand' },
+] as const satisfies readonly RecordReference[];
+
+export const venueReferences = [
+  { path: ['regionKey'], target: 'region' },
+  { path: ['exclusivePromotionKey'], target: 'promotion' },
+] as const satisfies readonly RecordReference[];
+
+export const networkReferences = [
+  { path: ['coverage', 'continentKeys', '[]'], target: 'continent' },
+  { path: ['coverage', 'countryKeys', '[]'], target: 'country' },
+  { path: ['coverage', 'regionKeys', '[]'], target: 'region' },
+  { path: ['ownerPromotionKey'], target: 'promotion' },
+] as const satisfies readonly RecordReference[];
+
+export const dealReferences = [
+  { path: ['promotionKey'], target: 'promotion' },
+  { path: ['networkKey'], target: 'network' },
+  { path: ['eventDefinitionKey'], target: 'eventDefinition' },
+] as const satisfies readonly RecordReference[];
+
+export const eventDefinitionReferences = [
+  { path: ['promotionKey'], target: 'promotion' },
+  { path: ['brandKey'], target: 'brand' },
+  { path: ['preferredRegionKey'], target: 'region' },
+  { path: ['preferredVenueKey'], target: 'venue' },
+] as const satisfies readonly RecordReference[];

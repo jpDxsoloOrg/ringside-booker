@@ -502,3 +502,19 @@ export {
   recordFileSchema,
   recordSchemas,
 } from './persistence/packs';
+// The pack loader (WLD-02): parsed pack JSON in, a validated World (or structured issues) out.
+export type {
+  ContentLibrary,
+  LoadedWorld,
+  LoadWorldOptions,
+  MergedContent,
+  PackIssue,
+  PackIssueCode,
+  PackIssueSeverity,
+} from './persistence/packs';
+export {
+  DEFAULT_WORLD_SETTINGS,
+  formatPackIssue,
+  loadWorldFromPacks,
+  PACK_ISSUE_CODES,
+} from './persistence/packs';

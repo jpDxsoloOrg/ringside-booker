@@ -96,9 +96,9 @@ describe('WorldMetaSchema', () => {
   });
 
   it('requires contentKeys values to be entity IDs', () => {
-    const valid = toyMeta({ contentKeys: { base: { 'worker.ace': 'per_0000000001' } } });
+    const valid = toyMeta({ contentKeys: { person: { 'jack-marlow': 'per_0000000001' } } });
     expect(WorldMetaSchema.safeParse(valid).success).toBe(true);
-    const invalid = toyMeta({ contentKeys: { base: { 'worker.ace': 'ace' } } });
+    const invalid = toyMeta({ contentKeys: { person: { 'jack-marlow': 'ace' } } });
     expect(WorldMetaSchema.safeParse(invalid).success).toBe(false);
   });
 
