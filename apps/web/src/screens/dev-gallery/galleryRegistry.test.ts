@@ -62,6 +62,22 @@ describe('gallery registry', () => {
     );
   });
 
+  it('has an entry for every office component', () => {
+    const officeIds = galleryEntries
+      .filter((entry) => entry.group === 'Office')
+      .map((entry) => entry.id);
+    expect(officeIds).toEqual(
+      expect.arrayContaining([
+        'kpi-card',
+        'delta-chip',
+        'sparkline',
+        'alignment-chip',
+        'champion-card',
+        'stat-table',
+      ]),
+    );
+  });
+
   it('lists entries by group order, then by title', () => {
     const ranks = galleryEntries.map((entry) => GALLERY_GROUPS.indexOf(entry.group));
     expect(ranks).toEqual([...ranks].sort((first, second) => first - second));

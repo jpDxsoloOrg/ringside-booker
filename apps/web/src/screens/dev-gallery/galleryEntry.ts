@@ -5,6 +5,7 @@ export const GALLERY_GROUPS = [
   'Tokens',
   'Primitives',
   'Broadcast',
+  'Office',
   'Art',
   'Data',
   'Overlays',
