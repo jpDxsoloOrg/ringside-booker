@@ -62,7 +62,8 @@ Tooling skips them when it lists entries:
 2. Fill in the frontmatter: `title`, `date` (ISO `YYYY-MM-DD`), `epics` (epic
    prefixes such as `[FND, SIM]`), `milestone` (a name, or empty), `tickets`
    (ticket IDs closed, such as `[FND-01, FND-02]`) and `blogCandidates` (short
-   working titles, may be empty).
+   working titles, may be empty). Replace the `# Title of the entry` heading
+   with the same title.
 3. Write each section. Delete the italic prompt lines once a section is filled
    in. If a section has nothing to say, write "Nothing this time." rather than
    deleting it, so every entry keeps the same shape.
