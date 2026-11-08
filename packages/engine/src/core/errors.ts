@@ -101,3 +101,46 @@ export class MoneyOverflowError extends EngineError {
     );
   }
 }
+
+/** A value that must be plain JSON (a save part, an event payload, a trace input) is not. */
+export class NotSerialisableError extends EngineError {
+  /** Where the bad value sits, for example `$.a[2].b` or `events.title.changed.holderId`. */
+  readonly path: string;
+
+  constructor(path: string, reason: string) {
+    super('NOT_SERIALISABLE', `${path} is not serialisable: it is ${reason}`, { path, reason });
+    this.path = path;
+  }
+}
+
+/** Two event subscribers were registered with the same id. */
+export class DuplicateSubscriberError extends EngineError {
+  constructor(subscriberId: string) {
+    super(
+      'DUPLICATE_SUBSCRIBER',
+      `An event subscriber with id ${JSON.stringify(subscriberId)} is already registered`,
+      { subscriberId },
+    );
+  }
+}
+
+/** The event bus was used in a way it does not allow, such as publishing after a commit. */
+export class EventBusMisuseError extends EngineError {
+  constructor(reason: string) {
+    super('EVENT_BUS_MISUSE', `Event bus misuse: ${reason}`, { reason });
+  }
+}
+
+/** A saved state part (RNG, events, ...) failed validation on load. */
+export class InvalidStatePartError extends EngineError {
+  /** One line per problem, each starting with the path of the bad field. */
+  readonly problems: readonly string[];
+
+  constructor(part: string, problems: readonly string[]) {
+    super('INVALID_STATE_PART', `Invalid ${part} state: ${problems.join('; ')}`, {
+      part,
+      problemCount: problems.length,
+    });
+    this.problems = problems;
+  }
+}
