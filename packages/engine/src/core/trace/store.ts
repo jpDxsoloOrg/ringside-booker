@@ -20,7 +20,12 @@
 
 import { z } from 'zod';
 import { isGameDate, type GameDate } from '../date';
-import { InvalidArgumentError, InvalidStatePartError, TraceStoreMisuseError } from '../errors';
+import {
+  InvalidArgumentError,
+  InvalidStatePartError,
+  SchemaViolationError,
+  TraceStoreMisuseError,
+} from '../errors';
 import { assertJsonValue, formatPath } from '../json';
 import type { TunableReader } from '../tunables/resolver';
 import type { simTunables } from '../tunables/simTunables';
@@ -124,7 +129,8 @@ export interface TraceStoreState {
 export interface TraceStaging {
   /**
    * Stages a result's trace. Recording the same ref again replaces the earlier staged entry. The
-   * trace is fitted into the size limits and checked to be plain JSON.
+   * trace is fitted into the size limits, checked to be plain JSON and validated with the same
+   * schema a load uses (which also copies it, so the caller's objects are never frozen).
    */
   record(ref: TraceRef, date: GameDate, traced: Traced<TraceValue>): void;
   /** Adds every staged trace to the store, then applies the retention limits. Closes the staging. */
@@ -133,12 +139,20 @@ export interface TraceStaging {
   discard(): void;
 }
 
-interface StagedTrace {
-  readonly ref: TraceRef;
-  readonly date: GameDate;
+interface StagedTraceContent {
   readonly trace: TraceNode;
   readonly value: TraceValue;
 }
+
+interface StagedTrace extends StagedTraceContent {
+  readonly ref: TraceRef;
+  readonly date: GameDate;
+}
+
+const stagedTraceContentSchema: z.ZodType<StagedTraceContent> = z.strictObject({
+  trace: traceNodeSchema,
+  value: traceValueSchema,
+});
 
 export class TraceStore {
   #retentionPerKind: number;
@@ -269,13 +283,11 @@ export class TraceStore {
             'a game date (YYYY-MM-DD)',
           );
         }
-        const trace = limitTrace(traced.trace);
-        assertJsonValue(trace, `traces["${refKey(ref)}"].trace`);
-        assertJsonValue(traced.value, `traces["${refKey(ref)}"].value`);
         const key = refKey(ref);
+        const { trace, value } = checkRecordedTrace(key, traced);
         // Deleted first, so a re-recorded ref takes the position of its latest record.
         staged.delete(key);
-        staged.set(key, { ref: { kind: ref.kind, id: ref.id }, date, trace, value: traced.value });
+        staged.set(key, { ref: { kind: ref.kind, id: ref.id }, date, trace, value });
       },
       commit: () => {
         assertOpen('commit');
@@ -379,11 +391,11 @@ function effectOf(node: TraceNode): number | null {
     case 'subtract':
     case 'multiply':
     case 'divide':
-      return node.after - node.before;
+      return stepEffect(node.before, node.after);
     case 'min':
     case 'max':
     case 'clamp':
-      return node.applied ? node.after - node.before : null;
+      return node.applied ? stepEffect(node.before, node.after) : null;
     case 'formula':
     case 'input':
     case 'constant':
@@ -395,6 +407,36 @@ function effectOf(node: TraceNode): number | null {
     case 'note':
       return null;
   }
+}
+
+/**
+ * `after - before`, held to the largest finite number either way: two finite values far apart can
+ * differ by more than a number can hold, and an infinite effect would not survive a save.
+ */
+function stepEffect(before: number, after: number): number {
+  return Math.min(Number.MAX_VALUE, Math.max(-Number.MAX_VALUE, after - before));
+}
+
+/**
+ * The trace and value of a recorded result, ready to store: fitted into the size limits, checked to
+ * be plain JSON (naming the bad path) and validated with the schema a load uses, so whatever is
+ * committed can be saved and loaded again. The parsed copy is what gets stored (and frozen).
+ */
+function checkRecordedTrace(key: string, traced: Traced<TraceValue>): StagedTraceContent {
+  const trace = limitTrace(traced.trace);
+  assertJsonValue(trace, `traces["${key}"].trace`);
+  assertJsonValue(traced.value, `traces["${key}"].value`);
+  const result = stagedTraceContentSchema.safeParse({ trace, value: traced.value });
+  if (!result.success) {
+    throw new SchemaViolationError(
+      `traces["${key}"]`,
+      result.error.issues.map((issue) => ({
+        path: formatPath('$', issue.path),
+        message: issue.message,
+      })),
+    );
+  }
+  return result.data;
 }
 
 /**

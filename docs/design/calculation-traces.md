@@ -338,8 +338,11 @@ would be worse than no explanation. Discarding uses up no sequence numbers.
 then applies retention to the kinds it touched, then trims the summaries. A
 staging cannot be used again once it is committed or discarded.
 
-`record` fits the trace into the [size limits](#size-limits) and checks it is
-plain JSON, so everything in the store can be saved.
+`record` fits the trace into the [size limits](#size-limits), checks it is
+plain JSON and validates it with the same schema a load uses (a `-0` is stored
+as `0`), so everything in the store can be saved and loaded again. A trace that
+fails the schema throws `SchemaViolationError` at `record`, not when the save is
+next loaded.
 
 ### Saving
 

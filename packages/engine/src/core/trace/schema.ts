@@ -39,10 +39,13 @@ const ARITHMETIC_KINDS = Object.values(ARITHMETIC_KIND_NAMES);
 
 const TRACE_UNITS: readonly TraceUnit[] = [...TUNABLE_UNITS, 'stars'];
 
-/** A number a trace can hold: finite (zod rejects NaN and infinities) and never `-0`. */
+/**
+ * A number a trace can hold: finite (zod rejects NaN and infinities). A `-0` is read as `0`, the
+ * way the builders write it, so a trace never depends on the sign of zero.
+ */
 export const traceNumberSchema = z
   .number({ error: 'must be a finite number' })
-  .refine((value) => !Object.is(value, -0), { error: 'must not be -0' });
+  .transform((value) => (value === 0 ? 0 : value));
 
 export const traceValueSchema: z.ZodType<TraceValue> = z.union(
   [traceNumberSchema, z.boolean(), z.string(), z.null()],

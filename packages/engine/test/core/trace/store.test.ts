@@ -5,6 +5,7 @@ import {
   InvalidArgumentError,
   InvalidStatePartError,
   RngRegistry,
+  SchemaViolationError,
   TRACE_MAX_DEPTH,
   TRACE_MAX_NODES,
   TraceStore,
@@ -14,6 +15,7 @@ import {
   inputOf,
   isFullTrace,
   makeGameDate,
+  mapTraced,
   refKey,
   rollInt,
   startCalc,
@@ -175,6 +177,38 @@ describe('TraceStore staging', () => {
     expect(() => {
       staging.record(ref('k', 'a'), NOT_A_DATE, rating(1));
     }).toThrow(InvalidArgumentError);
+  });
+
+  it('rejects a hand-built trace the load schema would reject, at record time', () => {
+    const staging = new TraceStore(ROOMY).stage();
+    const handBuilt: TraceNode = { kind: 'input', label: 'Popularity', value: 64 };
+    const badTrace = { ...handBuilt, extra: 'not a trace field' } as TraceNode;
+    expect(() => {
+      staging.record(ref('k', 'a'), START_DATE, { value: 64, trace: badTrace });
+    }).toThrow(SchemaViolationError);
+  });
+
+  it('stores -0 as 0, so the state loads again without going through JSON', () => {
+    const store = new TraceStore(ROOMY);
+    const negated = mapTraced(inputOf('Momentum', 0), 'Momentum, reversed', (value) => -value);
+    expect(Object.is(negated.value, -0)).toBe(true);
+    recordAndCommit(store, [{ ref: ref('k', 'a'), traced: rating(1) }]);
+    const staging = store.stage();
+    staging.record(ref('k', 'zero'), START_DATE, negated);
+    staging.commit();
+    const entry = expectFull(store.get(ref('k', 'zero')));
+    expect(Object.is(entry.value, 0)).toBe(true);
+    expect(Object.is(entry.trace.value, 0)).toBe(true);
+    const loaded = TraceStore.fromState(store.toState(), store.limits);
+    expect(loaded.get(ref('k', 'zero'))).toStrictEqual(entry);
+  });
+
+  it('copies the recorded trace rather than freezing the caller objects', () => {
+    const traced = rating(5);
+    const staging = new TraceStore(ROOMY).stage();
+    staging.record(ref('k', 'a'), START_DATE, traced);
+    staging.commit();
+    expect(Object.isFrozen(traced.trace)).toBe(false);
   });
 
   it('stores decision traces as well as numbers', () => {
@@ -388,6 +422,16 @@ describe('topContributors', () => {
       { label: 'First', effect: 2 },
       { label: 'Second', effect: -2 },
     ]);
+  });
+
+  it('holds an effect too large for a number to the largest finite number', () => {
+    const traced = startCalc('Runaway', -Number.MAX_VALUE).multiply('Flip', -1).done();
+    const [flip] = topContributors(traced.trace);
+    expect(flip).toStrictEqual({ label: 'Flip', effect: Number.MAX_VALUE });
+    const store = new TraceStore({ retentionPerKind: 0, summaryLimit: 1 });
+    recordAndCommit(store, [{ ref: ref('k', 'a'), traced }]);
+    const loaded = TraceStore.fromState(JSON.parse(JSON.stringify(store.toState())), store.limits);
+    expect(loaded.get(ref('k', 'a'))).toStrictEqual(store.get(ref('k', 'a')));
   });
 
   it('gives no contributors for a trace without arithmetic steps', () => {
