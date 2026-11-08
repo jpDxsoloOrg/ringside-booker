@@ -49,6 +49,17 @@ export class InvalidArgumentError extends EngineError {
   }
 }
 
+/**
+ * An odds or sampling helper (`chance`, `intBetween`, `weightedPick`, ...) was given arguments that
+ * do not describe valid odds: a probability outside [0, 1], reversed or non-whole bounds, an empty
+ * list, a bad weight. Always a caller bug; the message names the helper and the bad value.
+ */
+export class InvalidOddsError extends EngineError {
+  constructor(functionName: string, problem: string, details?: ErrorDetails) {
+    super('INVALID_ODDS', `${functionName}: ${problem}`, { functionName, ...details });
+  }
+}
+
 /** A value is not a well-formed ID of the expected entity kind. */
 export class InvalidIdError extends EngineError {
   constructor(expectedKind: string, value: unknown) {
@@ -186,6 +197,73 @@ export class InvalidStatePartError extends EngineError {
   constructor(part: string, problems: readonly string[]) {
     super('INVALID_STATE_PART', `Invalid ${part} state: ${problems.join('; ')}`, {
       part,
+      problemCount: problems.length,
+    });
+    this.problems = problems;
+  }
+}
+
+/** A transaction tried to insert a row whose ID its table already holds. */
+export class DuplicateIdError extends EngineError {
+  constructor(table: string, id: string) {
+    super('DUPLICATE_ID', `Table ${table} already has a row with ID ${JSON.stringify(id)}`, {
+      table,
+      id,
+    });
+  }
+}
+
+/** A transaction tried to update or delete a row of a table that only ever grows. */
+export class AppendOnlyError extends EngineError {
+  constructor(table: string, operation: 'update' | 'delete', id: string) {
+    super(
+      'APPEND_ONLY',
+      `Table ${table} is append-only: cannot ${operation} row ${JSON.stringify(id)}`,
+      { table, operation, id },
+    );
+  }
+}
+
+/**
+ * A transaction was used in a way it does not allow: opened inside another one, given an async
+ * body, used after it ended, or asked to mint an ID with no ID factory installed.
+ */
+export class TxStateError extends EngineError {
+  constructor(reason: string) {
+    super('TX_STATE', `Transaction misuse: ${reason}`, { reason });
+  }
+}
+
+/**
+ * A write failed its schema while write validation was on. `paths` lists the bad fields (for
+ * example `$.settings.season.lengthDays`); `problems` has one `path: message` line per issue.
+ */
+export class SchemaViolationError extends EngineError {
+  readonly paths: readonly string[];
+  readonly problems: readonly string[];
+
+  constructor(target: string, problems: readonly { path: string; message: string }[]) {
+    const lines = problems.map((problem) => `${problem.path}: ${problem.message}`);
+    super('SCHEMA_VIOLATION', `Invalid write to ${target}: ${lines.join('; ')}`, {
+      target,
+      problemCount: problems.length,
+    });
+    this.paths = problems.map((problem) => problem.path);
+    this.problems = lines;
+  }
+}
+
+/**
+ * A calculation trace does not reproduce its own value: replaying its steps gives a different
+ * number, a recorded step disagrees with the running value, or the trace cannot be replayed at all.
+ */
+export class TraceReplayError extends EngineError {
+  /** One line per problem, each naming the step it was found at. */
+  readonly problems: readonly string[];
+
+  constructor(label: string, problems: readonly string[]) {
+    super('TRACE_REPLAY', `Trace "${label}" does not replay: ${problems.join('; ')}`, {
+      label,
       problemCount: problems.length,
     });
     this.problems = problems;

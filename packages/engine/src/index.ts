@@ -8,7 +8,6 @@
 export const ENGINE_VERSION = '0.1.0';
 
 export type {
-  Brand,
   BrandId,
   ContinentId,
   CountryId,
@@ -37,6 +36,8 @@ export type {
   TitleReignId,
   VenueId,
 } from './core/ids';
+/** The nominal-type helper, exported as `Branded` because `Brand` is the brand entity. */
+export type { Brand as Branded } from './core/brand';
 // createIdFactory is deliberately not exported: IDs are only minted inside world transactions.
 export {
   ENTITY_KIND_LIST,
@@ -90,6 +91,8 @@ export { CONTENT_KEY_PATTERN, isContentKey, parseContentKey } from './core/conte
 
 export type { ErrorDetails } from './core/errors';
 export {
+  AppendOnlyError,
+  DuplicateIdError,
   DuplicateSubscriberError,
   EngineError,
   EntityNotFoundError,
@@ -100,10 +103,14 @@ export {
   InvalidContentKeyError,
   InvalidDateError,
   InvalidIdError,
+  InvalidOddsError,
   InvalidStatePartError,
   MoneyOverflowError,
   NotSerialisableError,
   RegistryError,
+  SchemaViolationError,
+  TraceReplayError,
+  TxStateError,
   UniqueIndexError,
   UnknownIndexError,
 } from './core/errors';
@@ -120,6 +127,8 @@ export {
 
 export * from './core/events';
 
+export * from './core/trace';
+
 export { hashString128, hashString32, type HashWords } from './core/hash';
 export * from './core/rng';
 
@@ -132,8 +141,9 @@ export {
   type TunableKey,
 } from './systems/tunables';
 
-// The World store. MutableTable and createWorld are deliberately not exported: only transactions
-// write to the world.
+// The World store. MutableTable, createWorld and transact are deliberately not exported: only
+// transactions write to the world, and systems get their Tx from the day pipeline. The UI never
+// sees a Tx; it gets ChangeSets back from commands.
 export type {
   EntityRow,
   IndexSpec,
@@ -147,6 +157,18 @@ export type {
 } from './model/table-def';
 export type { ReadonlyTable } from './model/table';
 export type { DeepReadonly, WorldView } from './model/world';
+export type {
+  AnyId,
+  ChangeSet,
+  RowPatch,
+  RowUpdater,
+  TableChanges,
+  TableKey,
+  TransactOptions,
+  Tx,
+  TxResult,
+  ValidateMode,
+} from './model/tx';
 export { tableOf } from './model/world';
 export type { GameTables, GameWorldView } from './model/tables';
 export type {
@@ -167,5 +189,292 @@ export type {
   IntegrityCheck,
   IntegrityIssue,
   IntegrityReport,
+  IntegritySeverity,
 } from './model/integrity';
 export { checkWorld, MAX_INTEGRITY_ISSUES } from './model/integrity';
+
+export * from './model/entities/person';
+// Controllers (D-07): who runs a promotion or a brand.
+export type {
+  ComputerController,
+  Controller,
+  ControllerKind,
+  HumanController,
+} from './model/controller';
+export {
+  ComputerControllerSchema,
+  ControllerSchema,
+  HumanControllerSchema,
+  PLAYER_ID_MAX_LENGTH,
+} from './model/controller';
+
+// Promotions, brands, employments and groups (FND-07).
+export type { PromotionStyle } from './model/entities/promotion-style';
+export { PROMOTION_STYLES, PromotionStyleSchema } from './model/entities/promotion-style';
+export type {
+  Policies,
+  PolicyArea,
+  Production,
+  ProductionArea,
+  Promotion,
+  PromotionStatus,
+} from './model/entities/promotion';
+export {
+  POLICY_AREAS,
+  PRODUCTION_AREAS,
+  PRODUCTION_LEVEL_MAX,
+  PRODUCTION_LEVEL_MIN,
+  PROMOTION_STATUSES,
+  PromotionSchema,
+} from './model/entities/promotion';
+export type { Brand } from './model/entities/brand';
+export { BrandSchema } from './model/entities/brand';
+export type {
+  Alignment,
+  ContractKind,
+  ContractPerks,
+  ContractTerms,
+  Employment,
+  EmploymentRole,
+  EmploymentStatus,
+  Leave,
+  LeaveKind,
+  Push,
+  RevenueShares,
+} from './model/entities/employment';
+export {
+  ALIGNMENTS,
+  canTransition,
+  CONTRACT_KINDS,
+  EMPLOYMENT_ROLES,
+  EMPLOYMENT_STATUSES,
+  EMPLOYMENT_TRANSITIONS,
+  EmploymentSchema,
+  ENDED_EMPLOYMENT_STATUSES,
+  isTerminalStatus,
+  LEAVE_KINDS,
+  promotionStatusKey,
+  PUSH_LEVELS,
+  STARTED_EMPLOYMENT_STATUSES,
+} from './model/entities/employment';
+export type { Team, TeamKind, TeamStatus } from './model/entities/team';
+export { TEAM_KINDS, TEAM_SIZE, TEAM_STATUSES, TeamSchema } from './model/entities/team';
+export type { Stable, StableStatus } from './model/entities/stable';
+export {
+  STABLE_MAX_MEMBERS,
+  STABLE_MIN_MEMBERS,
+  STABLE_STATUSES,
+  StableSchema,
+} from './model/entities/stable';
+export type { Relationship, RelationshipBond } from './model/entities/relationship';
+export {
+  RELATIONSHIP_BONDS,
+  RelationshipSchema,
+  relationshipKey,
+  ROMANTIC_BONDS,
+} from './model/entities/relationship';
+// Titles, events, segments, storylines and seasons (FND-08).
+export type {
+  DivisionGender,
+  Title,
+  TitleDivision,
+  TitleHolderCount,
+  TitleStatus,
+} from './model/entities/title';
+export {
+  DIVISION_GENDERS,
+  HEX_COLOR_PATTERN,
+  TITLE_HOLDER_COUNTS,
+  TITLE_STATUSES,
+  TitleDivisionSchema,
+  TitleSchema,
+  titlesTable,
+} from './model/entities/title';
+export type { ReignEndReason, TitleReign } from './model/entities/title-reign';
+export {
+  MAX_REIGN_HOLDERS,
+  REIGN_END_REASONS,
+  TitleReignSchema,
+  titleReignsTable,
+} from './model/entities/title-reign';
+export type {
+  AnnualRecurrence,
+  DatesRecurrence,
+  EventDefinition,
+  EventImportance,
+  EveryNWeeksRecurrence,
+  MonthlyRecurrence,
+  Recurrence,
+  RecurrenceKind,
+  RecurrenceWeek,
+  ShowFormat,
+  WeeklyRecurrence,
+} from './model/entities/event-definition';
+export {
+  AnnualRecurrenceSchema,
+  DatesRecurrenceSchema,
+  EVENT_IMPORTANCES,
+  EVERY_N_WEEKS_MAX,
+  EVERY_N_WEEKS_MIN,
+  EventDefinitionSchema,
+  eventDefinitionsTable,
+  EveryNWeeksRecurrenceSchema,
+  MAX_RECURRENCE_DATES,
+  MonthlyRecurrenceSchema,
+  PRE_SHOW_SLOTS_MAX,
+  PRE_SHOW_SLOTS_MIN,
+  RECURRENCE_WEEKS,
+  RecurrenceSchema,
+  SHOW_SLOTS_MAX,
+  SHOW_SLOTS_MIN,
+  ShowFormatSchema,
+  WeeklyRecurrenceSchema,
+} from './model/entities/event-definition';
+export type { RecurrenceView } from './model/recurrence';
+/**
+ * Show recurrence helpers (`recurrence.occursOn`, `recurrence.nextOccurrence`) live under one
+ * namespace because the calendar already exports a `nextOccurrence` for phase cadences.
+ */
+export * as recurrence from './model/recurrence';
+export type {
+  EventInstance,
+  EventInstanceStatus,
+  EventResult,
+} from './model/entities/event-instance';
+export {
+  EVENT_INSTANCE_STATUSES,
+  EventInstanceSchema,
+  eventInstancesTable,
+  EventResultSchema,
+} from './model/entities/event-instance';
+export type {
+  AngleBeat,
+  AngleDetails,
+  AngleSegment,
+  MatchDetails,
+  MatchOutcome,
+  MatchSegment,
+  Segment,
+  SegmentCrew,
+  SegmentKind,
+  SegmentRating,
+} from './model/entities/segment';
+export {
+  AngleSegmentSchema,
+  isAngle,
+  isMatch,
+  MatchOutcomeSchema,
+  MatchSegmentSchema,
+  MAX_ANGLE_BEATS,
+  MAX_ANNOUNCERS,
+  MAX_STARS,
+  MIN_ANGLE_BEATS,
+  SEGMENT_KINDS,
+  SegmentSchema,
+  segmentSlotKey,
+  segmentsTable,
+  STAR_STEP,
+} from './model/entities/segment';
+export type { Participant, ParticipantRole } from './model/entities/participant';
+export {
+  MAX_SIDE,
+  PARTICIPANT_ROLES,
+  ParticipantSchema,
+  participantsTable,
+} from './model/entities/participant';
+export type {
+  Storyline,
+  StorylineMember,
+  StorylineSide,
+  StorylineStatus,
+} from './model/entities/storyline';
+export {
+  MAX_STORYLINE_MEMBERS,
+  MAX_STORYLINE_SUMMARY_LENGTH,
+  MIN_STORYLINE_MEMBERS,
+  STORYLINE_SIDES,
+  STORYLINE_STATUSES,
+  StorylineSchema,
+  storylinesTable,
+} from './model/entities/storyline';
+export type { Season, SeasonStatus } from './model/entities/season';
+export {
+  ACTIVE_SEASON_KEY,
+  SEASON_STATUSES,
+  SeasonSchema,
+  seasonsTable,
+} from './model/entities/season';
+// Entity schemas: geography, venues, media, mail, news and the ledger.
+export type { Continent, Country, Region } from './model/entities/geography';
+export {
+  ContinentSchema,
+  CountrySchema,
+  LOCATION_CODE_PATTERN,
+  RegionSchema,
+} from './model/entities/geography';
+export type { Venue, VenueKind } from './model/entities/venue';
+export {
+  isVenueOpenOn,
+  VENUE_CAPACITY_MAX,
+  VENUE_KINDS,
+  VenueKindSchema,
+  VenueSchema,
+} from './model/entities/venue';
+export type {
+  CoverageHolder,
+  Network,
+  NetworkCoverage,
+  NetworkKind,
+  NetworkStatus,
+} from './model/entities/network';
+export {
+  coveredRegionIds,
+  NETWORK_KINDS,
+  NETWORK_REACH_TIER_MAX,
+  NETWORK_STATUSES,
+  NetworkCoverageSchema,
+  NetworkKindSchema,
+  NetworkSchema,
+  NetworkStatusSchema,
+} from './model/entities/network';
+export type { Deal, DealStatus, DealTerms, DealTimeslot } from './model/entities/deal';
+export {
+  DEAL_STATUSES,
+  DEAL_TIMESLOTS,
+  DealSchema,
+  DealStatusSchema,
+  DealTermsSchema,
+  DealTimeslotSchema,
+} from './model/entities/deal';
+export type {
+  Mail,
+  MailCategory,
+  MailDecision,
+  MailDecisionOption,
+  MailSender,
+  MessageRefs,
+} from './model/entities/mail';
+export {
+  DECISION_KEY_PATTERN,
+  MAIL_CATEGORIES,
+  MAIL_DECISION_OPTIONS_MAX,
+  MAIL_DECISION_OPTIONS_MIN,
+  MailCategorySchema,
+  MailDecisionSchema,
+  MailSchema,
+  MailSenderSchema,
+  MessageRefsSchema,
+} from './model/entities/mail';
+export type { News, NewsImportance, NewsKind } from './model/entities/news';
+export { NEWS_KINDS, NewsKindSchema, NewsSchema } from './model/entities/news';
+export type { LedgerCategory, LedgerEntry, LedgerRefs } from './model/entities/ledger-entry';
+export {
+  hasLedgerSign,
+  LEDGER_CATEGORIES,
+  LEDGER_CATEGORY_SIGN,
+  LEDGER_COST_CATEGORIES,
+  LEDGER_INCOME_CATEGORIES,
+  LedgerCategorySchema,
+  LedgerEntrySchema,
+  ledgerMonthKey,
+} from './model/entities/ledger-entry';

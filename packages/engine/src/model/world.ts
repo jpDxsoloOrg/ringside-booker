@@ -2,14 +2,16 @@
  * The World store: all game state in one object.
  *
  * A world is its metadata plus one table per registry entry. `World<R>` is the writable form that
- * only the model layer and transactions hold; `WorldView<R>` is the deep read-only form handed to
- * queries, formulas and invariants. Entities reference each other only by ID.
+ * only the model layer and the pipeline hold; `WorldView<R>` is the deep read-only form handed to
+ * queries, formulas and invariants. Entities reference each other only by ID. All writes go
+ * through `world.transact` (see `model/tx.ts`).
  */
 
 import { RegistryError } from '../core/errors';
-import type { EntityKind } from '../core/ids';
+import type { EntityKind, IdFactory } from '../core/ids';
 import { MutableTable, type ReadonlyTable } from './table';
 import type { EntityRow, RowOf, TableDef, TableName, TableRegistry } from './table-def';
+import { createTransactor, type Transactor, type ValidateMode } from './tx';
 import type { WorldMeta } from './world-meta';
 
 type Primitive = string | number | boolean | bigint | symbol | null | undefined;
@@ -21,11 +23,31 @@ export type DeepReadonly<T> = T extends Primitive
     ? readonly DeepReadonly<Element>[]
     : { readonly [Key in keyof T]: DeepReadonly<T[Key]> };
 
-/** The writable world. Not exported from the package; writes go through transactions. */
-export interface World<R extends TableRegistry> {
+/**
+ * The data of a world: its metadata and its tables. Transactions write here; nothing else does
+ * (save loading fills a fresh world's tables before anyone reads them).
+ */
+export interface WorldData<R extends TableRegistry> {
   /** Replaced as a whole by transactions, never edited in place. */
   meta: WorldMeta;
   readonly tables: { readonly [Name in keyof R]: MutableTable<RowOf<R[Name]>> };
+}
+
+/** The writable world: its data plus `transact` and `setIdFactory`. Not exported from the package. */
+export interface World<R extends TableRegistry> extends WorldData<R>, Transactor<R> {}
+
+export interface CreateWorldOptions {
+  /**
+   * The factory `tx.create` mints IDs from. The runtime installs the seeded minter; tests install
+   * one over `sequentialIdEntropy`. Without one, `tx.create` throws. See `world.setIdFactory`.
+   */
+  readonly idFactory?: IdFactory;
+  /**
+   * `always` parses every written row and metadata patch with its schema and freezes stored rows.
+   * Test setup and the test builders turn it on; the default is `never`, for speed. A single
+   * `transact` call can override it.
+   */
+  readonly validateWrites?: ValidateMode;
 }
 
 /** The read-only world handed to queries, formulas and invariants. */
@@ -74,9 +96,13 @@ function isTablesOf<R extends TableRegistry>(
 
 /**
  * Builds an empty world with one table per registry entry. Throws `RegistryError` when two entries
- * share a table name or a kind. FND-05 adds an `options` argument for the ID factory.
+ * share a table name or a kind.
  */
-export function createWorld<R extends TableRegistry>(registry: R, meta: WorldMeta): World<R> {
+export function createWorld<R extends TableRegistry>(
+  registry: R,
+  meta: WorldMeta,
+  options: CreateWorldOptions = {},
+): World<R> {
   assertValidRegistry(registry);
   const tables: Record<TableName, MutableTable<EntityRow>> = {};
   for (const [name, def] of Object.entries(registry)) {
@@ -85,7 +111,8 @@ export function createWorld<R extends TableRegistry>(registry: R, meta: WorldMet
   if (!isTablesOf(registry, tables)) {
     throw new RegistryError('Could not build a table for every registry entry');
   }
-  return { meta, tables };
+  const data: WorldData<R> = { meta, tables };
+  return Object.assign(data, createTransactor(data, options));
 }
 
 function isTableOf<K extends EntityKind, E extends EntityRow<K>>(

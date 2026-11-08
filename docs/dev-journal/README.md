@@ -70,6 +70,9 @@ Tooling skips them when it lists entries:
 4. Move the bullets from `_inbox.md` into `## Raw notes`, then delete them from
    the inbox.
 5. Add a row to the top of the [Index](#index).
+6. Run `npm run blog:check -- --only journal`. It checks the file name, the
+   frontmatter, the ten sections and the index row, plus the public content
+   rules (see [`docs/blog/README.md`](../blog/README.md#checking-a-post)).
 
 ## Content rules
 

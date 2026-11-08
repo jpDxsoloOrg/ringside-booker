@@ -53,6 +53,36 @@ Run these from the repository root.
 Each workspace also has its own `test` and `typecheck` scripts, for example
 `npm test -w @ringside/engine`.
 
+## Running end-to-end tests
+
+The web app has a Playwright suite in [`apps/web/e2e/`](apps/web/e2e/). It builds the app with
+`VITE_E2E=1`, serves it with `vite preview` on http://localhost:4173/ and runs every spec on two
+projects: `desktop` (Chromium, 1440×900) and `phone` (Chromium, 390×844 with touch). A third
+project, `phone-webkit`, runs the phone settings on WebKit; it only joins the run when
+`E2E_WEBKIT=1` is set, which CI does on pushes to `main`.
+
+| Script                                 | What it does                                                     |
+| -------------------------------------- | ---------------------------------------------------------------- |
+| `npm run e2e:install -w @ringside/web` | Downloads Chromium and WebKit plus their system libraries (once) |
+| `npm run e2e -w @ringside/web`         | Builds the app and runs the suite headless                       |
+| `npm run e2e:ui -w @ringside/web`      | Opens Playwright's UI mode to run and debug specs one at a time  |
+
+To run one project, pass it after `--`:
+
+```sh
+npm run e2e -w @ringside/web -- --project=phone
+E2E_WEBKIT=1 npm run e2e -w @ringside/web -- --project=phone-webkit
+```
+
+`e2e:install` uses `--with-deps`, which installs system packages and may ask for `sudo`. Without
+it, `npx playwright install chromium` from `apps/web` is enough for the two Chromium projects.
+
+Every route listed in [`apps/web/e2e/routes-under-test.ts`](apps/web/e2e/routes-under-test.ts)
+gets the smoke sweep: exactly one `h1`, no horizontal scrolling and no serious axe accessibility
+violations. Any console error or uncaught exception fails the test that caused it. Failed runs
+leave an HTML report in `apps/web/playwright-report/` (`npx playwright show-report` from
+`apps/web` opens it).
+
 ## CI
 
 Every pull request and every push to `main` runs the `check` job in
@@ -68,6 +98,11 @@ Every pull request and every push to `main` runs the `check` job in
 
 A PR merges only when `check` is green.
 
+Once `check` passes, the `e2e` job installs the Playwright browsers (cached per Playwright
+version) and runs the end-to-end suite on the `desktop` and `phone` projects. Pushes to `main`
+also run `phone-webkit`. When the job fails, the Playwright report and test output are uploaded
+as the `playwright-report` artifact.
+
 To run the same sequence locally before pushing:
 
 ```sh
@@ -78,13 +113,38 @@ That is `npm run format:check && npm run lint && npm run typecheck && npm test`,
 the first step that fails.
 
 The lint config ([`eslint.config.js`](eslint.config.js)) is where the engine rules below are
-enforced: no `any` anywhere, and inside `packages/engine` no `Math.random`, no wall-clock reads
-(`Date.now`, `new Date()`, `performance.now`), no DOM or browser globals, no timers and no imports
-from `apps/` or UI libraries. [`packages/engine/test/lint-guards.test.ts`](packages/engine/test/lint-guards.test.ts)
+enforced: no `any` anywhere, and inside `packages/engine` no `Math.random` (including through
+`globalThis`, `window`, an alias of `Math` or a computed key), no wall-clock reads (`Date.now`,
+`new Date()`, `performance.now`), no DOM or browser globals, no timers and no imports from `apps/`
+or UI libraries. [`packages/engine/test/lint-guards.test.ts`](packages/engine/test/lint-guards.test.ts)
 checks that each of those rules still fires, so a dependency update can't switch one off quietly.
 
-Dependabot ([`.github/dependabot.yml`](.github/dependabot.yml)) opens weekly grouped PRs for dev
-dependencies, runtime dependencies and GitHub Actions.
+## Contributing
+
+Run `npm run verify` before opening a PR; CI runs the same checks plus the build.
+
+### Dependency updates
+
+Dependabot ([`.github/dependabot.yml`](.github/dependabot.yml)) opens weekly PRs: one grouped PR
+for minor and patch updates of dev dependencies, one for runtime dependencies, and one per GitHub
+Actions update. Major versions of the dev toolchain (TypeScript, ESLint, Vitest, Vite and the rest)
+are ignored there on purpose: they get upgraded deliberately in their own ticket, with the lint
+guards and tests as the safety net. When you add a dev dependency, add it to the `ignore` list in
+that file as well, since Dependabot can't scope an ignore rule to dev dependencies on its own.
+
+### Known `npm audit` advisories
+
+CI audits runtime dependencies only (`npm audit --omit=dev`), because only those ship to players.
+A full `npm audit` also lists advisories in the dev toolchain. They come from the pinned Vitest 3 /
+Vite 5 line (`vitest`, `vite`, `vite-node`, `esbuild`, `tinypool`, `@vitest/*`), the coverage
+tooling (`test-exclude`, `glob`, `minimatch`) and `typescript-eslint` (through `minimatch`). None
+of them is code that ships in the built game: they affect the local dev server, build tooling and
+test runner. The fixes all need major upgrades, so they are left alone until the next deliberate
+toolchain upgrade, which clears them in one go. Don't run `npm audit fix --force` to silence them.
+
+The runtime audit currently reports two moderate advisories in `react-router` (through
+`react-router-dom` 6). They sit below the `high` level the CI step reports on, and the fix is the
+React Router 7 major upgrade, which is a deliberate change of its own.
 
 ## Repository layout
 

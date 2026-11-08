@@ -26,6 +26,9 @@ import {
 } from './table-def';
 import type { WorldView } from './world';
 
+/** How serious an issue is. An issue without a severity is an error. */
+export type IntegritySeverity = 'error' | 'warning';
+
 export interface IntegrityIssue {
   /** Stable code such as `ref.dangling` or `id.wrongKind`. Invariants use their own codes. */
   readonly code: string;
@@ -38,11 +41,13 @@ export interface IntegrityIssue {
   readonly target?: RefTarget;
   /** For dangling references: the ID (or player ID) that was not found. */
   readonly missingId?: string;
+  /** Omitted for errors; `warning` for a legal but suspicious state that does not fail the report. */
+  readonly severity?: IntegritySeverity;
   readonly message: string;
 }
 
 export interface IntegrityReport {
-  /** True when no issue was found (and so none was truncated either). */
+  /** True when no error-level issue was found, listed or truncated. Warnings do not count. */
   readonly ok: boolean;
   /** At most `MAX_INTEGRITY_ISSUES` issues, in a stable order. */
   readonly issues: readonly IntegrityIssue[];
@@ -65,8 +70,13 @@ export const MAX_INTEGRITY_ISSUES = 200;
 class IssueCollector {
   readonly issues: IntegrityIssue[] = [];
   truncated = 0;
+  /** Error-level issues found, including truncated ones. */
+  errorCount = 0;
 
   add(issue: IntegrityIssue): void {
+    if (issue.severity !== 'warning') {
+      this.errorCount += 1;
+    }
     if (this.issues.length < MAX_INTEGRITY_ISSUES) {
       this.issues.push(issue);
     } else {
@@ -294,7 +304,7 @@ export function checkWorld(
   }
 
   return {
-    ok: collector.issues.length === 0 && collector.truncated === 0,
+    ok: collector.errorCount === 0,
     issues: collector.issues,
     truncated: collector.truncated,
   };
