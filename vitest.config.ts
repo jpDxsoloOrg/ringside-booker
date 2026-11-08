@@ -12,6 +12,8 @@ export default defineConfig({
           root: `${repoRoot}packages/engine`,
           environment: 'node',
           include: ['test/**/*.test.ts'],
+          // Restarts the TestIds counters and turns test-world write validation on before each test.
+          setupFiles: ['test/support/setup.ts'],
         },
       },
       // The web app keeps its test setup (jsdom, React plugin, aliases) in its own Vite config, so

@@ -5,5 +5,8 @@ package-lock.json
 dist
 coverage
 
+# Golden fixtures are written byte for byte by the tests (npm run fixtures:write -w @ringside/engine).
+packages/engine/test/fixtures/worlds
+
 # content/**/*.json is formatted like everything else for now. If shipped data packs turn into
 # large generated files, add the generated paths here instead of reformatting them on every run.

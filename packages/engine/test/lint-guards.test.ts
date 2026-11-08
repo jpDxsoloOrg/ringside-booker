@@ -267,3 +267,53 @@ describe('lint guards: rules for every workspace', () => {
     expect(idLengthErrors[0]?.message).toContain("'q'");
   });
 });
+
+describe('lint guards: the shared test fixtures never ship', () => {
+  const importFixtures = [
+    "import { tinyWorld } from '@ringside/engine/testing';",
+    'export const world = tinyWorld();',
+    '',
+  ].join('\n');
+
+  function fixtureErrors(messages: Linter.LintMessage[]): Linter.LintMessage[] {
+    return errorsFromRule(messages, 'no-restricted-imports').filter((message) =>
+      message.message.includes('Test fixtures'),
+    );
+  }
+
+  it.each(['apps/web/src/sample.ts', ENGINE_SOURCE_PATH])(
+    'bans @ringside/engine/testing in %s',
+    async (relativePath) => {
+      const messages = await lintSample(importFixtures, relativePath);
+      expect(errorsFromRule(messages, 'no-restricted-imports')).toHaveLength(1);
+      expect(fixtureErrors(messages)).toHaveLength(1);
+    },
+  );
+
+  it.each([
+    'tools/sim-runner/src/sample.ts',
+    'apps/web/src/storage/sample.test.ts',
+    'apps/web/e2e/sample.spec.ts',
+    'apps/web/src/test/sample.ts',
+    ENGINE_TEST_PATH,
+  ])('allows @ringside/engine/testing in %s', async (relativePath) => {
+    const messages = await lintSample(importFixtures, relativePath);
+    expect(errorsFromRule(messages, 'no-restricted-imports')).toHaveLength(0);
+  });
+
+  it('keeps the engine dependency ban next to the fixture ban in engine source', async () => {
+    const code = "import { useState } from 'react';\nexport const hook = useState;\n";
+    const messages = await lintSample(code, ENGINE_SOURCE_PATH);
+    expect(errorsFromRule(messages, 'no-restricted-imports')).toHaveLength(1);
+  });
+
+  it.each([WEB_SOURCE_PATH, WEB_TEST_PATH, 'apps/web/e2e/sample.spec.ts'])(
+    'keeps the engine internals ban in %s',
+    async (relativePath) => {
+      const code =
+        "import { parseId } from '@ringside/engine/src/core/ids';\nexport const parse = parseId;\n";
+      const messages = await lintSample(code, relativePath);
+      expect(errorsFromRule(messages, 'no-restricted-imports')).toHaveLength(1);
+    },
+  );
+});
