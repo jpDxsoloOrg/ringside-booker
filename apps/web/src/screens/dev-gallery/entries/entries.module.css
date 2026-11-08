@@ -447,3 +447,34 @@
     gap: var(--space-3);
   }
 }
+
+/* Why? panel: explained numbers as small stat cards, values on the left so a side panel never covers them. */
+.explainedList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 11rem), 1fr));
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.explainedCard {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.explainedCard dt {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.explainedCard dd {
+  margin: 0;
+  font-size: var(--font-size-lg);
+}
