@@ -37,10 +37,28 @@ describe('gallery registry', () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it('covers the tokens, primitives, art and engine built so far', () => {
+  it('covers the tokens, primitives, broadcast kit, art and engine built so far', () => {
     const groupsInUse = new Set(galleryEntries.map((entry) => entry.group));
     expect([...groupsInUse]).toEqual(
-      expect.arrayContaining(['Tokens', 'Primitives', 'Art', 'Engine']),
+      expect.arrayContaining(['Tokens', 'Primitives', 'Broadcast', 'Art', 'Engine']),
+    );
+  });
+
+  it('has an entry for every broadcast component', () => {
+    const broadcastIds = galleryEntries
+      .filter((entry) => entry.group === 'Broadcast')
+      .map((entry) => entry.id);
+    expect(broadcastIds).toEqual(
+      expect.arrayContaining([
+        'live-bug-button',
+        'lower-third',
+        'score-bug',
+        'ticker',
+        'segmented-meter',
+        'card-slot',
+        'chamfer-panel',
+        'slash-divider',
+      ]),
     );
   });
 
