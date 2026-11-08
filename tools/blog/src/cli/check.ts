@@ -48,8 +48,8 @@ async function main(argv: readonly string[]): Promise<number> {
     return 2;
   }
 
-  // npm runs workspace scripts from the workspace folder; INIT_CWD is where the command was typed.
-  const invokedFrom = process.env['INIT_CWD'] ?? process.cwd();
+  // Relative paths are read from the repo root, as docs/blog/README.md says. npm runs the script
+  // from tools/blog, and INIT_CWD depends on how npm was called, so neither is used.
   try {
     const issues = await runChecks({
       repoRoot: REPO_ROOT,
@@ -57,7 +57,7 @@ async function main(argv: readonly string[]): Promise<number> {
       ...(values.only === undefined ? {} : { only: values.only }),
       ...(positionals.length === 0
         ? {}
-        : { files: positionals.map((file) => resolve(invokedFrom, file)) }),
+        : { files: positionals.map((file) => resolve(REPO_ROOT, file)) }),
     });
     process.stdout.write(formatReport(issues));
     return issues.some((issue) => issue.severity === 'error') ? 1 : 0;
