@@ -1,0 +1,135 @@
+.screen {
+  display: grid;
+  gap: var(--space-6);
+  max-inline-size: var(--content-max-width);
+  margin-inline: auto;
+  padding: calc(var(--safe-top) + var(--space-8)) calc(var(--safe-right) + var(--space-8))
+    calc(var(--safe-bottom) + var(--space-10)) calc(var(--safe-left) + var(--space-8));
+}
+
+.intro {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.title {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.lead {
+  max-inline-size: 60ch;
+  color: var(--color-text-muted);
+}
+
+.groupLabel {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.sectionNav a {
+  font-size: var(--font-size-sm);
+}
+
+.caption {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.subheading {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Icons: a grid of named tiles that reflows to the width available. */
+.iconGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+  gap: var(--space-2);
+  padding: 0;
+  list-style: none;
+}
+
+.iconTile {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  overflow-wrap: anywhere;
+}
+
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  gap: var(--space-3) var(--space-8);
+}
+
+/* A labelled example: what it is above, the thing itself below. */
+.example {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.demoBox {
+  min-inline-size: 3rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-sunken);
+  font-size: var(--font-size-sm);
+}
+
+/* Formatter examples: call on the left, output on the right; stacked on phones. */
+.formatList {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.formatRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 16rem);
+  align-items: baseline;
+  gap: var(--space-1) var(--space-6);
+}
+
+.formatRow dt {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.formatRow dd {
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+/* Phones: the panels run edge to edge, so only the intro keeps a side gutter. */
+@media (--bp-mobile) {
+  .screen {
+    gap: var(--space-4);
+    padding: calc(var(--safe-top) + var(--space-6)) 0 calc(var(--safe-bottom) + var(--space-8));
+  }
+
+  .intro {
+    padding-inline: calc(var(--safe-left) + var(--space-4)) calc(var(--safe-right) + var(--space-4));
+  }
+
+  .title {
+    font-size: var(--font-size-2xl);
+  }
+
+  .formatList {
+    gap: var(--space-3);
+  }
+
+  .formatRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
