@@ -1,0 +1,231 @@
+/*
+ * Design tokens: the visual language every screen builds on.
+ *
+ * Two layers:
+ *   1. Primitive palette (--palette-*): raw hex values. Only this file reads them.
+ *   2. Semantic tokens (--color-*, --space-*, --font-*, ...): what components use.
+ *
+ * Components use semantic tokens only, never palette tokens, so a theme is a remap of the semantic
+ * layer and nothing else. Semantic colours resolve to plain hex (no color-mix, no HSL maths) so
+ * tokens.test.ts can check contrast with a small parser. See docs/design/ui-tokens.md.
+ *
+ * Sizes are in rem so the UI scale setting (--ui-scale on <html>, see global.css) grows text and
+ * spacing together.
+ */
+
+:root {
+  /* Neutrals: a slightly warm grey, light to dark. */
+  --palette-neutral-0: #ffffff;
+  --palette-neutral-50: #f6f5f3;
+  --palette-neutral-100: #ecebe7;
+  --palette-neutral-200: #dcdad5;
+  --palette-neutral-300: #c4c1ba;
+  --palette-neutral-400: #a19d95;
+  --palette-neutral-500: #7d7970;
+  --palette-neutral-600: #5f5b54;
+  --palette-neutral-700: #46433e;
+  --palette-neutral-800: #302e2b;
+  --palette-neutral-850: #262523;
+  --palette-neutral-900: #1d1c1a;
+  --palette-neutral-950: #131312;
+
+  /* The one warm accent: a burnt orange. */
+  --palette-accent-300: #f8b682;
+  --palette-accent-400: #f29652;
+  --palette-accent-500: #e27a2c;
+  --palette-accent-600: #b95a17;
+  --palette-accent-700: #964512;
+
+  /* Status hues. */
+  --palette-green-300: #8fd6a5;
+  --palette-green-400: #5fbf7f;
+  --palette-green-500: #3a9f5e;
+  --palette-green-600: #2a7f49;
+  --palette-green-700: #1f6639;
+
+  --palette-red-300: #f4a3a0;
+  --palette-red-400: #eb7772;
+  --palette-red-500: #d64f4a;
+  --palette-red-600: #b83a35;
+  --palette-red-700: #962d29;
+
+  --palette-amber-300: #f2d27a;
+  --palette-amber-400: #e8bb45;
+  --palette-amber-500: #c99a1f;
+  --palette-amber-600: #9a7413;
+  --palette-amber-700: #7a5b0e;
+
+  --palette-blue-300: #9cc3f2;
+  --palette-blue-400: #6ea6ea;
+  --palette-blue-500: #4787d6;
+  --palette-blue-600: #2f6bb8;
+  --palette-blue-700: #245594;
+
+  /* Extra hues for categorical colours (charts, tags). */
+  --palette-teal-400: #4fbdb3;
+  --palette-teal-600: #217d75;
+  --palette-violet-400: #a68ce8;
+  --palette-violet-600: #6b4fbf;
+  --palette-pink-400: #e584b6;
+  --palette-pink-600: #b04683;
+  --palette-olive-400: #a9b85a;
+  --palette-olive-600: #6a7526;
+
+  /* Spacing: a 0.25rem step. */
+  --space-0: 0;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-7: 1.75rem;
+  --space-8: 2rem;
+  --space-9: 2.25rem;
+  --space-10: 2.5rem;
+
+  /* Corner radius. */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-pill: 999rem;
+
+  /* Type. System fonts only: the game works offline and never downloads a web font. */
+  --font-family-ui:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  --font-family-mono:
+    ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.375rem;
+  --font-size-2xl: 1.75rem;
+  --font-size-3xl: 2.25rem;
+  --line-height-tight: 1.2;
+  --line-height-snug: 1.35;
+  --line-height-normal: 1.5;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Elevation. */
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 12%);
+  --shadow-2: 0 2px 6px rgb(0 0 0 / 14%), 0 1px 2px rgb(0 0 0 / 10%);
+  --shadow-3: 0 8px 24px rgb(0 0 0 / 18%), 0 2px 6px rgb(0 0 0 / 12%);
+
+  /* Stacking layers. */
+  --z-nav: 100;
+  --z-sheet: 400;
+  --z-toast: 500;
+  --z-overlay: 600;
+
+  /* Motion. global.css sets the durations to 0ms when reduced motion is on. */
+  --motion-fast: 120ms;
+  --motion-base: 200ms;
+  --easing-standard: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Layout sizes. */
+  --sidebar-width: 15rem;
+  --topbar-height: 3.5rem;
+  --bottom-nav-height: 3.75rem;
+  --content-max-width: 90rem;
+  --tap-target-min: 2.75rem;
+}
+
+/* Light theme: the default, and what an explicit data-theme='light' picks. */
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+  --color-bg: var(--palette-neutral-50);
+  --color-surface: var(--palette-neutral-0);
+  --color-surface-raised: var(--palette-neutral-0);
+  --color-surface-sunken: var(--palette-neutral-100);
+  --color-border: var(--palette-neutral-200);
+  --color-border-strong: var(--palette-neutral-500);
+  --color-text: var(--palette-neutral-900);
+  --color-text-muted: var(--palette-neutral-600);
+  --color-text-inverse: var(--palette-neutral-0);
+  --color-accent: var(--palette-accent-700);
+  --color-accent-contrast: var(--palette-neutral-0);
+  --color-positive: var(--palette-green-700);
+  --color-negative: var(--palette-red-700);
+  --color-warning: var(--palette-amber-700);
+  --color-info: var(--palette-blue-700);
+  --color-focus: var(--palette-blue-600);
+  --color-overlay: #1d1c1a99;
+  --color-cat-1: var(--palette-blue-600);
+  --color-cat-2: var(--palette-accent-600);
+  --color-cat-3: var(--palette-teal-600);
+  --color-cat-4: var(--palette-violet-600);
+  --color-cat-5: var(--palette-pink-600);
+  --color-cat-6: var(--palette-olive-600);
+  --color-cat-7: var(--palette-amber-600);
+  --color-cat-8: var(--palette-neutral-600);
+}
+
+/*
+ * Dark theme. The same declarations appear twice: once for an explicit data-theme='dark', and once
+ * for "system" (no attribute) when the OS prefers dark, so following the OS needs no script.
+ * tokens.test.ts fails if the two copies drift apart.
+ */
+[data-theme='dark'] {
+  color-scheme: dark;
+  --color-bg: var(--palette-neutral-950);
+  --color-surface: var(--palette-neutral-900);
+  --color-surface-raised: var(--palette-neutral-850);
+  --color-surface-sunken: var(--palette-neutral-950);
+  --color-border: var(--palette-neutral-800);
+  --color-border-strong: var(--palette-neutral-500);
+  --color-text: var(--palette-neutral-100);
+  --color-text-muted: var(--palette-neutral-400);
+  --color-text-inverse: var(--palette-neutral-950);
+  --color-accent: var(--palette-accent-400);
+  --color-accent-contrast: var(--palette-neutral-950);
+  --color-positive: var(--palette-green-400);
+  --color-negative: var(--palette-red-400);
+  --color-warning: var(--palette-amber-400);
+  --color-info: var(--palette-blue-400);
+  --color-focus: var(--palette-accent-300);
+  --color-overlay: #000000a6;
+  --color-cat-1: var(--palette-blue-400);
+  --color-cat-2: var(--palette-accent-400);
+  --color-cat-3: var(--palette-teal-400);
+  --color-cat-4: var(--palette-violet-400);
+  --color-cat-5: var(--palette-pink-400);
+  --color-cat-6: var(--palette-olive-400);
+  --color-cat-7: var(--palette-amber-400);
+  --color-cat-8: var(--palette-neutral-400);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --color-bg: var(--palette-neutral-950);
+    --color-surface: var(--palette-neutral-900);
+    --color-surface-raised: var(--palette-neutral-850);
+    --color-surface-sunken: var(--palette-neutral-950);
+    --color-border: var(--palette-neutral-800);
+    --color-border-strong: var(--palette-neutral-500);
+    --color-text: var(--palette-neutral-100);
+    --color-text-muted: var(--palette-neutral-400);
+    --color-text-inverse: var(--palette-neutral-950);
+    --color-accent: var(--palette-accent-400);
+    --color-accent-contrast: var(--palette-neutral-950);
+    --color-positive: var(--palette-green-400);
+    --color-negative: var(--palette-red-400);
+    --color-warning: var(--palette-amber-400);
+    --color-info: var(--palette-blue-400);
+    --color-focus: var(--palette-accent-300);
+    --color-overlay: #000000a6;
+    --color-cat-1: var(--palette-blue-400);
+    --color-cat-2: var(--palette-accent-400);
+    --color-cat-3: var(--palette-teal-400);
+    --color-cat-4: var(--palette-violet-400);
+    --color-cat-5: var(--palette-pink-400);
+    --color-cat-6: var(--palette-olive-400);
+    --color-cat-7: var(--palette-amber-400);
+    --color-cat-8: var(--palette-neutral-400);
+  }
+}

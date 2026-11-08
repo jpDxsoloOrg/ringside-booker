@@ -1,0 +1,14 @@
+/*
+ * The layout breakpoints, as PostCSS custom media. postcss.config.js makes these available in every
+ * CSS file, so a CSS Module writes `@media (--bp-mobile) { ... }` without importing this file.
+ *
+ * One layout breakpoint: --bp-mobile. --bp-wide is only for capping widths on very large screens,
+ * never for a third layout. breakpoints.ts mirrors these queries for script and
+ * breakpoints.test.ts fails if the two disagree.
+ *
+ * Media queries in rem resolve against the browser default font size, not the scaled root, so a
+ * desktop player at 150% UI scale keeps the desktop layout.
+ */
+
+@custom-media --bp-mobile (width < 48rem);
+@custom-media --bp-wide (width >= 90rem);
