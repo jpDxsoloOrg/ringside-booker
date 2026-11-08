@@ -74,7 +74,7 @@ what I decided, why, and what is still open, so later entries can say which call
   modifiers, clamps and rolls.
 - **Alternatives:** Debug logging; explaining only headline numbers.
 - **Why:** The "Why?" panel is the point. If I can't explain a number, it doesn't ship.
-- **Revisit if:** Tracing is too slow in the AI hot path. Then I'd summarise, not drop.
+- **Revisit if:** Tracing makes rival shows too slow in long skips. Then I'd summarise, not drop.
 
 #### Phase pipeline with per-step rollback
 
@@ -88,7 +88,7 @@ what I decided, why, and what is still open, so later entries can say which call
 
 - **Decision:** Systems publish domain events; news, the feed, achievements and mods subscribe.
 - **Alternatives:** Systems calling each other directly.
-- **Why:** Systems stay decoupled, and the same events fire for player and AI shows.
+- **Why:** Systems stay decoupled, and the same events fire for player and rival shows.
 - **Revisit if:** Event chains get hard to follow.
 
 #### Controllers, commands and a viewer on every query
@@ -99,12 +99,19 @@ what I decided, why, and what is still open, so later entries can say which call
 - **Why:** Retrofitting a second human is a rewrite; doing it now is cheap (D-07).
 - **Revisit if:** Passing a viewer makes simple single-player queries awkward.
 
+#### The engine as its own package
+
+- **Decision:** A monorepo where the engine is a pure TypeScript package with no DOM or React.
+- **Alternatives:** Engine code inside the web app.
+- **Why:** The same engine runs in a worker, a headless runner and, later, on a server.
+- **Revisit if:** The package boundary slows everyday work.
+
 #### Queries and commands across a Web Worker
 
 - **Decision:** The UI never touches the World. It sends commands and reads queries through a Web
   Worker.
 - **Alternatives:** The engine on the main thread.
-- **Why:** Skips and AI turns don't freeze the page, and the same boundary works for a server.
+- **Why:** Skips and rival turns don't freeze the page, and the same boundary works for a server.
 - **Revisit if:** Copying results across the worker gets slow.
 
 #### IndexedDB saves with `.rbsave` export
@@ -129,6 +136,25 @@ what I decided, why, and what is still open, so later entries can say which call
 - **Alternatives:** Desktop only; mobile first.
 - **Why:** A booking sim is dense, but I want to check my promotion on my phone.
 - **Revisit if:** A screen can't work at phone width without hurting desktop.
+
+#### Content and balance as data
+
+- **Decision:** Workers, promotions, titles, events and balance numbers are JSON packs checked by
+  zod. The shipped world is the first pack.
+- **Alternatives:** Content in code.
+- **Why:** Worlds can be edited and shared without a build, and one schema gives types and runtime
+  checks.
+- **Revisit if:** Packs need logic that data can't express.
+
+#### The rest of the stack
+
+- **Decision:** Strict TypeScript with no `any`; React, React Router and Vite; Zustand for UI-only
+  state; Comlink; Vitest; ESLint and Prettier; Playwright; CI on every PR. Placeholder art goes
+  through one `ImageSlot` component.
+- **Alternatives:** Something new for each job.
+- **Why:** Tools I know keep the risk in the simulation, not the toolchain, and real art can replace
+  the placeholders without touching a screen.
+- **Revisit if:** One of them fights the worker boundary.
 
 ### Game design
 
@@ -277,8 +303,7 @@ with it.
 
 ## Open questions
 
-See "Still open" above: default world size, the scripting sandbox, trace history in saves, and the
-multiplayer backend.
+See "Still open" above.
 
 ## Blog angle
 
