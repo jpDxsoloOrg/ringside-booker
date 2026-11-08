@@ -74,12 +74,20 @@
   animation: slide-from-bottom var(--motion-base) var(--easing-standard);
 }
 
-/* Visual only for now: tap the backdrop or Close to dismiss. */
-.handle {
+/*
+ * Visual only for now: tap the backdrop or Close to dismiss. The space around the handle is
+ * padding on a full-width bar, not margin, so it belongs to the sheet and not to the backdrop.
+ */
+.handleBar {
   flex: none;
+  display: flex;
+  justify-content: center;
+  padding-block-start: var(--space-2);
+}
+
+.handle {
   inline-size: 2.5rem;
   block-size: 0.25rem;
-  margin: var(--space-2) auto 0;
   border-radius: var(--radius-pill);
   background: var(--color-border-strong);
 }

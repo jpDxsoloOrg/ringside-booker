@@ -88,7 +88,13 @@ function OpenSheet({
       data-side={resolvedSide}
       data-size={size}
     >
-      {showsHandle && <div className={styles['handle']} aria-hidden="true" />}
+      {showsHandle && (
+        // The bar spans the sheet's full width so a tap beside the handle lands on sheet content.
+        // Only a tap on the dialog box itself counts as a backdrop click.
+        <div className={styles['handleBar']} aria-hidden="true">
+          <div className={styles['handle']} />
+        </div>
+      )}
       <div className={styles['header']}>
         <h2 id={titleId} className={styles['title']} tabIndex={-1}>
           {title}

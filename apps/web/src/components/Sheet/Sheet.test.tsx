@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { useState } from 'react';
+import { StrictMode, useState } from 'react';
 import type { ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { BP_MOBILE_QUERY } from '@/styles/breakpoints';
@@ -122,6 +122,28 @@ describe('Sheet', () => {
     expect(trigger).toHaveFocus();
   });
 
+  it('opens and returns focus the same way under StrictMode', async () => {
+    // StrictMode mounts, unmounts and remounts effects in development, which closes and reopens
+    // the dialog once; the opener must still be the trigger, not the sheet's own content.
+    const user = userEvent.setup();
+    render(
+      <StrictMode>
+        <SheetHarness />
+      </StrictMode>,
+    );
+    const trigger = screen.getByRole('button', { name: 'Open sheet' });
+
+    await user.click(trigger);
+    expect(getDialog()).toHaveAttribute('open');
+    expect(screen.getByRole('button', { name: 'First action' })).toHaveFocus();
+    expect(isScrollLocked()).toBe(true);
+
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(trigger).toHaveFocus();
+    expect(isScrollLocked()).toBe(false);
+  });
+
   it('closes from the Close button and returns focus to the trigger', async () => {
     const user = userEvent.setup();
     render(<SheetHarness />);
@@ -209,7 +231,25 @@ describe('Sheet', () => {
     await user.click(screen.getByRole('button', { name: 'Open sheet' }));
 
     expect(getDialog()).toHaveAttribute('data-side', 'bottom');
-    expect(container.querySelector('.handle')).toHaveAttribute('aria-hidden', 'true');
+    const handleBar = container.querySelector('.handleBar');
+    expect(handleBar).toHaveAttribute('aria-hidden', 'true');
+    expect(handleBar?.querySelector('.handle')).toBeInstanceOf(HTMLElement);
+  });
+
+  it('stays open when the drag handle is tapped', async () => {
+    setMatchMedia((query) => query === BP_MOBILE_QUERY);
+    const handleClose = vi.fn();
+    const user = userEvent.setup();
+    const { container } = render(<SheetHarness onClose={handleClose} />);
+    await user.click(screen.getByRole('button', { name: 'Open sheet' }));
+
+    const handleBar = container.querySelector('.handleBar');
+    expect(handleBar).toBeInstanceOf(HTMLElement);
+    if (!(handleBar instanceof HTMLElement)) return;
+    await user.click(handleBar);
+
+    expect(handleClose).not.toHaveBeenCalled();
+    expect(getDialog()).toHaveAttribute('open');
   });
 
   it('switches to a bottom sheet when the window narrows while open', async () => {

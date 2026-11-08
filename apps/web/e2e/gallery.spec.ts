@@ -268,6 +268,11 @@ test.describe('component gallery', () => {
     expect(await page.evaluate(() => window.scrollY)).toBe(pageScrollBefore);
     await expect(sheet.getByRole('button', { name: 'Save notes' })).toBeInViewport();
 
+    // The drag handle is visual only: a tap on the strip around it is inside the sheet, not on
+    // the backdrop, so the sheet stays open.
+    await page.mouse.click(sheetBox.x + 24, sheetBox.y + 6);
+    await expect(sheet).toBeVisible();
+
     await sheet.getByRole('button', { name: 'Close' }).click();
     await expect(sheet).toBeHidden();
     await expect(opener).toBeFocused();
@@ -373,6 +378,8 @@ test.describe('component gallery', () => {
     await expect(confirm.getByRole('alert')).toContainText('locked by another tab');
     await expect(confirm).toBeVisible();
     await expect(confirm.getByRole('button', { name: 'Delete anyway' })).toBeEnabled();
+    // The error state is the busiest the dialog gets: title, body, alert and both buttons.
+    await expectNoSeriousA11yViolations(page, { include: ['dialog[open]'] });
   });
 
   test('confirm buttons stack full width with touch-sized targets on a phone', async ({
