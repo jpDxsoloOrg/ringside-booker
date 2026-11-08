@@ -7,11 +7,226 @@ own error report, so one broken step never cancels the rest of the day. This
 doc covers how a day runs and how the parts of the engine talk to each other
 while it does.
 
-This doc fills in as the pipeline is built. The phase list, step isolation and
-multi-day skips get their own sections when the pipeline itself lands. It
-starts with the calendar, because every phase needs to answer "do I run
-today?" before anything else, and the domain event bus, which is how systems
-hear about each other's changes.
+It starts with the pipeline itself (how a day runs, how phases are
+registered, how steps are isolated and reported), then the calendar, because
+every phase needs to answer "do I run today?", and the domain event bus, which
+is how systems hear about each other's changes. Multi-day skips and the gates
+that stop them get their own section when they land.
+
+## Running a day
+
+Code: `packages/engine/src/core/pipeline/`. Tests:
+`packages/engine/test/core/pipeline/`.
+
+### The day contract
+
+**A day simulates date D in full, then the clock moves to D + 1.**
+
+`runDay(runtime)` reads D from the world metadata (`meta.currentDate`) and
+runs these steps, in this order:
+
+1. **`pipeline.open`**, the engine's own step, publishes `day.started`.
+2. **Every registered phase** whose cadence matches D and whose condition
+   holds, in group-then-order sequence. Every one of them sees the same date D
+   in `ctx.date`.
+3. **`pipeline.close`**, the engine's other step, sets
+   `currentDate: addDays(D, 1)` and `daysSimulated + 1` in one metadata write,
+   then publishes `day.ended` with the number of failed steps.
+
+Nothing moves the date before the day's work is done, so every result (a show
+rating, the attendance, the money it made) is stamped with the day it
+happened on. A loop that moved the date first and then simulated "yesterday"
+would put a show and its gate receipts on different days.
+
+`runDay` returns a `DayReport` and never throws for a failing phase. The only
+thing it throws for is the close step failing (in practice, the date running
+past the last supported year), because the clock would not have moved and
+carrying on would simulate the same day again. That throws `InvariantError`.
+
+### Groups
+
+Each phase belongs to a **group**, and each group has a numeric base. A
+phase's position in the day is its group's base plus its `order` (a whole
+number from 0 to 99), so the day's order never depends on which system
+registered first.
+
+| Group          | Base | What belongs here                                                                     |
+| -------------- | ---- | ------------------------------------------------------------------------------------- |
+| `open`         | 0    | Engine only: `pipeline.open`.                                                         |
+| `housekeeping` | 100  | Clearing up from yesterday: expiring offers, finishing leave, healing, birthdays.     |
+| `worldEvents`  | 200  | Random world events, off-screen injuries and morale for rival rosters (D-01).         |
+| `aiTurns`      | 300  | Computer-controlled promotions and brands making their decisions.                     |
+| `contracts`    | 400  | Negotiations, signings, renewals and releases.                                        |
+| `shows`        | 500  | Every show booked for today, player and rival, rated and resolved.                    |
+| `settlement`   | 600  | What a show earned on the day: tickets, viewers, live merch.                          |
+| `growth`       | 700  | Skill and popularity growth and decline, momentum and relationship decay.             |
+| `money`        | 800  | Wages, running costs, sponsors and the ledger.                                        |
+| `periodic`     | 900  | Weekly, monthly and yearly jobs, and the season end (a daily phase with a condition). |
+| `close`        | 1000 | Engine only: `pipeline.close`.                                                        |
+
+`settlement` sits straight after `shows` so a show's revenue lands on the day
+of the show. Groups are 100 apart so a later system can slot in without
+anything else being renumbered.
+
+### Registering a phase
+
+A system describes its phase and registers it once, when the engine is built:
+
+```ts
+registry.register({
+  id: 'money.payroll', // system.camelName, unique
+  group: 'money',
+  order: 10, // 0 to 99, unique within the group
+  cadence: { kind: 'weekly', weekday: 'fri' },
+  run: (ctx) => {
+    for (const employment of ctx.read.tables.employments.values()) {
+      // ... ctx.tx.create('ledgerEntries', { ... }), ctx.publish(...), ctx.recordTrace(...)
+    }
+  },
+});
+```
+
+`definePhase` (which `register` calls) checks the id, the group, the order and
+the cadence. `register` then throws `PipelineError` when:
+
+- another phase already has the id,
+- another phase already holds the same group and order,
+- the group is `open` or `close`, or the id starts with `pipeline.` (both are
+  the engine's own).
+
+An optional `when: (view) => boolean` turns a phase off for the day without a
+cadence, for settings such as "aging disabled" or for the season end check. It
+only reads. A `when` that throws counts as a failed step.
+
+The context a phase gets:
+
+| Field         | What it is                                                                          |
+| ------------- | ----------------------------------------------------------------------------------- |
+| `date`        | D, the day being simulated                                                          |
+| `tx`          | The step's transaction. `tx.create(...)` mints the new row's ID from the seeded RNG |
+| `read`        | The world as it stands, including the step's own writes (`tx.view`)                 |
+| `rng(name)`   | A named random stream                                                               |
+| `tunables`    | Every engine tunable, typed by key                                                  |
+| `publish`     | Stages a domain event                                                               |
+| `recordTrace` | Stages a calculation trace                                                          |
+| `log`         | Adds a line to the step's report                                                    |
+
+There is no `ids` handle: the runtime installs the seeded ID minter on the
+world, so `tx.create` draws each kind's IDs from its own `ids.<prefix>` stream
+(see `determinism.md`). That replaces any ID factory the world was built with,
+including the sequential one the test fixtures use.
+
+### No async in phases
+
+`run`, `when` and every reaction are synchronous. A phase that needs to do a
+lot of work (computer booking for dozens of promotions) still does it in one
+synchronous call. The order of the day is part of the save's determinism, and
+an `await` would let the order depend on scheduling. The world's `transact`
+rejects a body that returns a promise, and the pipeline never wraps it in
+anything async. The UI stays responsive because the engine runs in a Web
+Worker and the multi-day loop yields between days, not inside them.
+
+### Step isolation
+
+Every step (the engine's two, each phase, and later each command) runs through
+one wrapper, `runStep`. Before the step starts it takes an RNG snapshot and
+opens an event staging and a trace staging. Then it runs the step inside
+`world.transact`.
+
+- **The step returns:** its writes stay, its traces are stored, its events are
+  committed (getting their sequence numbers) and then delivered to reactions.
+- **The step throws:** the transaction has already undone its writes. The
+  wrapper puts the RNG back to the snapshot and discards both stagings. Then
+  it records the failure: a `failed` step report with the error, an entry in
+  the failure log, and a `pipeline.stepFailed` event published from a fresh
+  staging and delivered straight away, so the news feed or a debug panel can
+  show it. The rest of the day carries on.
+
+Restoring the RNG matters as much as rolling back the writes. Without it, a
+step that draws three numbers and then crashes would still use them up, and
+the next phase on the same stream would get different numbers than it would
+have without the crash. Fixing the crash would then change that phase's
+results too, and a before-and-after comparison of the fix would be
+misleading. With the restore, a failed step changes nothing but the report.
+
+One transaction per step is also what keeps a bad step contained. A single
+`try` around several unrelated jobs means one broken job cancels all of them;
+here every job has its own.
+
+### Reactions
+
+Committed events are delivered with `bus.dispatch`, which the pipeline hands a
+runner. The runner puts each reaction through the same wrapper as a step: its
+own transaction, its own RNG snapshot, its own stagings, and the event source
+`{ kind: 'reaction', id: subscriberId }`. Reactions get the same context as a
+phase (on the event's date).
+
+A reaction that throws loses its own writes, draws, events and traces and
+nothing else. The step that published the event keeps its writes, and the
+failure is listed on that step's report under `reactionFailures` (subscriber
+id, the event's `seq` and the error). It also goes into the failure log as
+`reaction:<subscriberId>`. A failed reaction does not count as a failed step.
+
+### Reports
+
+`runStep` returns a `StepReport`; `runDay` returns a `DayReport` with one
+`StepReport` per step, skipped phases included.
+
+| `StepReport` field | Meaning                                                                        |
+| ------------------ | ------------------------------------------------------------------------------ |
+| `stepId`, `group`  | The phase (or `pipeline.open`/`pipeline.close`); `group` is null for a command |
+| `status`           | `ok`, `failed` or `skipped`                                                    |
+| `skippedReason`    | `cadence` (not today) or `condition` (`when` returned false)                   |
+| `error`            | The serialised error (`name`, `message`, `code`, `stack`) of a failed step     |
+| `eventsPublished`  | Events the step itself committed (0 when it failed)                            |
+| `tracesRecorded`   | Distinct traces the step committed (0 when it failed)                          |
+| `reactionFailures` | Reactions to its events that failed                                            |
+| `logs`             | `ctx.log` lines from the step and its reactions, plus pipeline notes           |
+| `timing.ms`        | How long it took, by the host's clock                                          |
+
+The `DayReport` adds the date, `failedCount` (failed steps) and
+`eventsPublished` (every event committed during the day, reactions and failure
+notices included).
+
+**Two things in a report are not deterministic:** everything under `timing`,
+and the `stack` of an error. `deterministicDayReport(report)` strips both, and
+it is what tests compare between two runs.
+
+`serializeError` turns anything thrown into plain JSON. Errors keep their
+name, message, string `code` and a stack trimmed to 4,000 characters; anything
+else thrown becomes `{ name: 'NonErrorThrown', message: String(value) }`.
+
+### The failure log
+
+Day reports go away once the UI has shown them. The `PipelineFailureLog` keeps
+the last 100 failures (`{ date, stepId, error }`, oldest dropped first) across
+days and is saved with the game, so a bug report can include them.
+`pipelineFailureLogStateSchema` validates it on load, and the engine API
+registers it with the save format as the `failureLog` part.
+
+### Iteration order
+
+Phases read entities only through the table methods `values()`, `ids()`,
+`entries()` and `lookup()`, which always return rows in ascending ID order.
+They never iterate a raw `Map`. A `Map` iterates in insertion order, and
+insertion order after loading a save is not the order the rows were created
+in, so a phase that looped over a `Map` could give different results before
+and after a save and load. The runDay tests insert rows in reverse ID order
+and check that a phase still sees them in ascending order.
+
+### The runtime
+
+Everything a day needs travels in one `SimRuntime`: the world, the RNG
+registry, the tunables, the event bus, the trace store, the phase registry,
+the failure log and the host. `createRuntime` builds one with defaults for
+everything but the world, checks the RNG seed matches the world's, and
+installs the seeded ID minter. The runtime is generic over the table registry,
+so the pipeline tests run on a small toy registry instead of the full game
+schema.
+
+The host supplies `now()` for step timings and defaults to `() => 0`. Step
+timings are the only place the pipeline needs wall-clock time, so the engine
+itself never reads the clock.
 
 ## Calendar
 
@@ -90,15 +305,17 @@ a cadence built by hand without `defineCadence` still can't skip days silently.
 
 ### How a phase declares its cadence
 
-A phase carries its cadence next to its name and its step function. The phase
-registry itself comes with the pipeline, but the shape is:
+A phase carries its cadence next to its id and its step function (see
+"Registering a phase" above):
 
 ```ts
-const payroll = {
-  name: 'money.payroll',
-  cadence: defineCadence({ kind: 'weekly', weekday: 'fri' }),
+registry.register({
+  id: 'money.payroll',
+  group: 'money',
+  order: 10,
+  cadence: { kind: 'weekly', weekday: 'fri' },
   run: runPayroll,
-};
+});
 ```
 
 Each day the pipeline calls `matchesCadence(currentDate, phase.cadence)` and
@@ -115,10 +332,6 @@ Some schedules aren't cadences:
 - **Event recurrence.** "Every other week" and tour schedules belong to the
   event calendar, which expands its own recurrence rules on top of the same
   `core/date.ts` helpers.
-
-Step timings in the day report are the only place the pipeline needs wall-clock
-time. The host passes in a `now()` function for that, so the engine itself
-still never reads the clock.
 
 ## Domain events
 
