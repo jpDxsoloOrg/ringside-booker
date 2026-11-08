@@ -167,6 +167,11 @@ function maskMarkdown(body: string, filePath: string): MaskedMarkdown {
         ]);
       }
       position = closeIndex + 3;
+      if (/^[ \t]*(\r?\n|$)/.test(body.slice(position))) {
+        // The comment ended its line, so drop the spaces before it too. Left in place, two of
+        // them would turn into a hard line break.
+        text = text.replace(/[ \t]+$/, '');
+      }
       continue;
     }
 
@@ -262,12 +267,17 @@ function lineNumberAt(body: string, index: number): number {
   return body.slice(0, index).split('\n').length;
 }
 
-/** Removes the blank lines a stripped comment leaves behind, and trims the ends. */
+/**
+ * Removes the blank lines a stripped comment leaves behind, and the blank lines at both ends.
+ * Trailing spaces on lines with text are kept, because two of them are a Markdown hard line
+ * break, and so is the first line's indentation.
+ */
 function tidyBlankLines(text: string): string {
   return text
-    .replace(/[ \t]+$/gm, '')
+    .replace(/^[ \t]+$/gm, '')
     .replace(/\n{3,}/g, '\n\n')
-    .trim();
+    .replace(/^\n+/, '')
+    .replace(/\s+$/, '');
 }
 
 function unmask(text: string, spans: readonly MaskedSpan[]): string {
@@ -296,8 +306,12 @@ type LinkKind = 'link' | 'image';
 const INLINE_LINK_PATTERN =
   /(!?)\[((?:[^[\]\\]|\\.|\[(?:[^[\]\\]|\\.)*\])*)\]\(([ \t]*)(<[^<>\n]*>|[^\s()<>]*(?:\([^\s()]*\)[^\s()<>]*)*)((?:[ \t\n]+(?:"[^"\n]*"|'[^'\n]*'|\([^()\n]*\)))?[ \t]*)\)/g;
 
-/** `[label]: destination` reference definitions. Groups: 1 everything before the destination, 2 destination. */
-const REFERENCE_DEFINITION_PATTERN = /^([ \t]{0,3}\[(?:[^[\]\\]|\\.)+\]:[ \t]*)(<[^<>\n]*>|\S+)/gm;
+/**
+ * `[label]: destination` reference definitions. Groups: 1 everything before the destination,
+ * 2 destination. A label starting with `^` is a GFM footnote, whose text is prose, not a URL.
+ */
+const REFERENCE_DEFINITION_PATTERN =
+  /^([ \t]{0,3}\[(?!\^)(?:[^[\]\\]|\\.)+\]:[ \t]*)(<[^<>\n]*>|\S+)/gm;
 
 function rewriteInlineLinks(text: string, linkContext: LinkContext): string {
   let output = '';

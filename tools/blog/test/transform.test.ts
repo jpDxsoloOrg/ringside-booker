@@ -132,6 +132,21 @@ describe('toPostPayload: content', () => {
     expect(content).toContain('`[arch](../design/architecture.md)` and `<!-- kept -->`');
   });
 
+  it('leaves GFM footnote definitions as prose, rewriting only the links inside them', () => {
+    const post = withBody(
+      kickoff,
+      'A claim.[^1]\n\n[^1]: Some footnote text with [a link](../design/x.md).\n',
+    );
+    expect(toPostPayload(post, context()).content).toBe(
+      'A claim.[^1]\n\n[^1]: Some footnote text with [a link](https://github.com/jpDxsoloOrg/ringside-booker/blob/main/docs/design/x.md).\n',
+    );
+  });
+
+  it('keeps hard line breaks, but not the spaces in front of a stripped comment', () => {
+    const post = withBody(kickoff, 'Line one  \nline two  <!-- note -->\nline three\n');
+    expect(toPostPayload(post, context()).content).toBe('Line one  \nline two\nline three\n');
+  });
+
   it('produces Markdown that compiles as MDX with GFM', async () => {
     const raw = await readFile(kickoff.path, 'utf8');
     const { content } = toPostPayload(kickoff, context());
