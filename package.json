@@ -15,8 +15,11 @@
   },
   "packageManager": "npm@10.8.2",
   "scripts": {
+    "dev": "npm run dev -w @ringside/web",
     "typecheck": "tsc -b",
     "test": "vitest run",
+    "posttest": "npm run test:tz",
+    "test:tz": "TZ=Pacific/Kiritimati vitest run --project engine test/core/calendar && TZ=America/St_Johns vitest run --project engine test/core/calendar",
     "test:watch": "vitest",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -37,5 +40,8 @@
     "typescript": "5.9.3",
     "typescript-eslint": "8.72.1",
     "vitest": "3.2.7"
+  },
+  "overrides": {
+    "vite": "5.4.21"
   }
 }

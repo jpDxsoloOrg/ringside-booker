@@ -47,8 +47,8 @@ A stream gives you two things:
 - `nextUint32()`: a whole number from 0 to 4,294,967,295, both ends included.
 - `nextFloat()`: `nextUint32() / 2^32`, so 0 is possible and 1 never is.
 
-Odds helpers such as `chance(0.15)` and `intBetween(1, 6)` sit on top of these
-and get their own section here when they land.
+Game code never reads these directly. The odds helpers below sit on top of
+them and state the odds of every decision exactly.
 
 Streams are created lazily. The first `rng.stream('condition.recovery')` call
 derives the stream from the seed; later calls return the same object. A stream
@@ -131,3 +131,134 @@ different future. Golden-value tests lock them:
 The same frozen arrays must come out of every JavaScript engine, Node and the
 browser's Web Worker alike, because the generator uses integer maths only. If
 one of these ever has to change, it needs a save migration that re-seeds.
+
+## Odds helpers
+
+Code: `packages/engine/src/core/rng/odds.ts`.
+
+Every random decision goes through a small set of free functions that take the
+stream first: `chance(stream, 0.15)`, `intBetween(stream, 1, 6)`. Each one says
+exactly what its odds are, which ends of a range can come up, and how many raw
+draws it takes from the stream.
+
+| Helper                                 | Odds                                                                                          | Ends                                                    | Draws consumed                                                  | Throws `RangeError` when                                                             |
+| -------------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `chance(s, p)`                         | true with `Math.round(p * 2^32) / 2^32` (exactly `p` to 2^-32); `p = 0` never, `p = 1` always | n/a                                                     | 1, always (also for 0 and 1)                                    | `p` is not finite or is outside [0, 1]                                               |
+| `percent(s, k)`                        | `chance(s, k / 100)`, draw for draw                                                           | n/a                                                     | 1                                                               | `k` is not finite or is outside [0, 100]                                             |
+| `oneIn(s, n)`                          | true with exactly `1 / n`                                                                     | n/a                                                     | as `intBetween(s, 1, n)`                                        | `n` is not a whole number, is below 1 or above 2^32                                  |
+| `intBetween(s, min, max)`              | each whole number exactly `1 / (max - min + 1)`                                               | both included                                           | 1, plus a redraw with odds below `span / 2^32` (see below)      | a bound is not a whole number, `min > max`, or the range holds more than 2^32 values |
+| `floatBetween(s, min, max)`            | uniform                                                                                       | `min` included, `max` excluded; `min = max` gives `min` | 1                                                               | a bound is not finite or `min > max`                                                 |
+| `pick(s, items)`                       | each item `1 / items.length`                                                                  | first and last both reachable                           | as `intBetween(s, 0, length - 1)`                               | the list is empty                                                                    |
+| `weightedPick(s, entries)`             | each item `weight / totalWeight` (to 2^-32); weight 0 is never picked                         | n/a                                                     | 1                                                               | the list is empty, a weight is negative or not finite, or every weight is 0          |
+| `shuffle(s, items)`                    | every order equally likely (Fisher–Yates); returns a new array, input untouched               | n/a                                                     | `length - 1` `intBetween` calls; none for 0 or 1 items          | never                                                                                |
+| `normal(s, mean, sd)`                  | normal distribution (Box–Muller)                                                              | unbounded                                               | 2, plus a redraw of the first when it is exactly 0 (odds 2^-32) | `mean` is not finite, or `sd` is not finite or is negative                           |
+| `clampedNormal(s, mean, sd, min, max)` | `normal`, then clamped; the clipped tails land on the ends                                    | both included                                           | 2, as `normal`                                                  | as `normal`, plus a bound that is not finite or `min > max`                          |
+
+Every error message names the bad value, for example
+`intBetween: min (6) must not be greater than max (1)`. Arguments are checked
+before anything is drawn, so a rejected call leaves the stream where it was.
+
+### Rules behind the helpers
+
+- **Bad input throws; nothing is clamped or swapped.** A helper that quietly
+  accepts `intBetween(6, 1)` has to pick a meaning for it, and every meaning is
+  an off-by-one waiting to happen: a reversed range that silently excludes both
+  of its nominal ends shifts every result built on it by one. Throwing turns
+  that whole class of bug into a failing test.
+- **Draw counts don't depend on the odds.** `chance(0)` and `chance(1)` still
+  draw. If they skipped the draw, tuning a probability to 0 would move every
+  later roll in that stream, and comparing two balance runs that differ by one
+  number would show noise everywhere. The same goes for `intBetween(5, 5)` and
+  `oneIn(1)`.
+- **`intBetween` is exact.** The usual `min + draw % span` shortcut favours the
+  low values by up to `span / 2^32`. That's tiny, but it's still not the odds
+  the code says. Instead the top `2^32 mod span` draw values are rejected and
+  redrawn, so every value has exactly the same number of draw values behind it.
+  For a six-sided die the redraw happens 4 times in 2^32 calls. A span that is
+  a power of two never redraws.
+- **One way to write "1 in N".** `oneIn(s, n)` is `intBetween(s, 1, n) === 1`.
+  The tempting version, "roll 0 to N and check for 1", has N + 1 outcomes and
+  fires 1 time in N + 1, not N. Every 1-in-N check in the game uses `oneIn`.
+- **`normal` keeps no spare.** Box–Muller makes two normal values per pair of
+  draws. Caching the second one would make each call depend on whether the call
+  before it used the cache, so the spare is thrown away and every call takes
+  exactly two draws.
+- **`weightedPick` walks the weights in order.** One `nextFloat()` draw is
+  scaled by the total weight, and the first entry whose running total passes it
+  wins. Reordering the entries changes which draw picks which entry, so data
+  lists should keep a stable order.
+
+### Recorded rolls
+
+Code: `packages/engine/src/core/rng/rolls.ts`.
+
+Formulas that need to explain their rolls in a Why? trace use the recorded
+forms: `rollChance`, `rollInt`, `rollOneIn`, `rollFloat`, `rollNormal`,
+`rollPick` and `rollWeighted`. Each returns `{ value, roll }`, where `roll` is a
+`RollRecord`:
+
+```json
+{
+  "stream": "condition.injury",
+  "kind": "chance",
+  "label": "Injury check",
+  "odds": 0.25,
+  "result": false
+}
+```
+
+- `kind` is one of `chance`, `oneIn`, `int`, `float`, `pick`, `weighted`,
+  `normal`.
+- `odds` is the stated odds, where they're exact. For a chance or a 1-in-N
+  it's the probability of `true` (`p` or `1 / n`), whichever way the roll went.
+  For an integer range or a pick list it's one value's share, and for a
+  weighted pick it's the chosen entry's `weight / totalWeight`. Continuous
+  rolls (`float`, `normal`) leave it out.
+- `min` and `max` are the range ends, `options` the number of choices.
+- `result` is the outcome. For picks it's a description from the caller's
+  `describe(item)` function, so a record never holds an entity, only text.
+
+Every field is a string, a boolean or a finite number, so a record survives
+`JSON.stringify` unchanged and can be saved inside a trace.
+
+A recorded helper calls the plain helper and only adds the record. It takes
+exactly the same draws, so switching a call site between `chance` and
+`rollChance` never changes a result.
+
+## ID minting
+
+Code: `packages/engine/src/core/rng/ids.ts`, on top of `packages/engine/src/core/ids.ts`.
+
+New entity IDs come from the seeded RNG, so a replay creates the same IDs.
+`core/ids.ts` is the only place that defines what an ID looks like (prefix,
+body length, alphabet, collision retries) through `createIdFactory(entropy)`.
+`createIdMinter(rng)` adds just one thing: it routes each entity kind to its
+own stream, `ids.<prefix>`, so people come from `ids.per`, seasons from
+`ids.sea`, and so on.
+
+- **One stream per kind.** A new system that creates titles doesn't change the
+  IDs of people created on the same day, for the same reason systems get their
+  own streams.
+- **Lazy.** The factory for a kind is built the first time that kind is minted.
+  A kind that has never been minted never touches its stream, so it isn't
+  saved.
+- **Same seed, same order, same IDs.** IDs look random, so they don't leak
+  creation order, and they're unlikely to collide when data packs are merged.
+
+### Coupling with snapshots
+
+The minter doesn't keep its own copy of a stream. Every draw asks the registry
+for the live stream (`rng.stream('ids.per')`), which is the same object each
+time. That gives two guarantees the pipeline relies on:
+
+1. **A rollback rewinds minting.** When a pipeline step fails, the runtime
+   restores the RNG snapshot taken before the step. The ID streams are part of
+   that snapshot, so the step's retry, or the next step, mints the same IDs the
+   failed step would have. No ID is skipped and none is handed out twice.
+2. **A restored stream stays in the save.** If a step is the first to mint a
+   kind and then fails, the restore resets that stream and marks it untouched.
+   Because the minter goes through `rng.stream()` on each draw, the next mint
+   marks it touched again, so `toState()` keeps saving it.
+
+Anything else that holds on to a stream across steps must follow the same rule:
+ask the registry, don't cache a copy of the state.

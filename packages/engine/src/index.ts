@@ -78,6 +78,8 @@ export {
   year,
 } from './core/date';
 
+export * from './core/calendar';
+
 export type { Cents } from './core/money';
 /** Money helpers live under one namespace because their names (`add`, `sum`, ...) are generic. */
 export * as money from './core/money';
@@ -88,14 +90,35 @@ export { CONTENT_KEY_PATTERN, isContentKey, parseContentKey } from './core/conte
 
 export type { ErrorDetails } from './core/errors';
 export {
+  DuplicateSubscriberError,
   EngineError,
+  EntityNotFoundError,
+  EventBusMisuseError,
   IdCollisionError,
   InvalidArgumentError,
+  InvalidCadenceError,
   InvalidContentKeyError,
   InvalidDateError,
   InvalidIdError,
+  InvalidStatePartError,
   MoneyOverflowError,
+  NotSerialisableError,
+  RegistryError,
+  UniqueIndexError,
+  UnknownIndexError,
 } from './core/errors';
+
+export type { JsonArray, JsonObject, JsonPrimitive, JsonProblem, JsonValue } from './core/json';
+export {
+  appendPathSegment,
+  assertJsonValue,
+  findJsonProblem,
+  formatPath,
+  isJsonValue,
+  zJsonValue,
+} from './core/json';
+
+export * from './core/events';
 
 export { hashString128, hashString32, type HashWords } from './core/hash';
 export * from './core/rng';
@@ -108,3 +131,41 @@ export {
   type EngineTunables,
   type TunableKey,
 } from './systems/tunables';
+
+// The World store. MutableTable and createWorld are deliberately not exported: only transactions
+// write to the world.
+export type {
+  EntityRow,
+  IndexSpec,
+  Invariant,
+  RefSpec,
+  RefTarget,
+  RowOf,
+  TableDef,
+  TableName,
+  TableRegistry,
+} from './model/table-def';
+export type { ReadonlyTable } from './model/table';
+export type { DeepReadonly, WorldView } from './model/world';
+export { tableOf } from './model/world';
+export type { GameTables, GameWorldView } from './model/tables';
+export type {
+  ContentPackRef,
+  GenerationLevel,
+  Player,
+  WorldMeta,
+  WorldSettings,
+} from './model/world-meta';
+export {
+  GENERATION_LEVELS,
+  SEASON_LENGTH_DAYS_MAX,
+  SEASON_LENGTH_DAYS_MIN,
+  WorldMetaSchema,
+} from './model/world-meta';
+export type {
+  CheckWorldOptions,
+  IntegrityCheck,
+  IntegrityIssue,
+  IntegrityReport,
+} from './model/integrity';
+export { checkWorld, MAX_INTEGRITY_ISSUES } from './model/integrity';

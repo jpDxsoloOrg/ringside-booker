@@ -101,3 +101,93 @@ export class MoneyOverflowError extends EngineError {
     );
   }
 }
+
+/** A row was asked for by ID but its table has no row with that ID. */
+export class EntityNotFoundError extends EngineError {
+  constructor(kind: string, id: string) {
+    super('ENTITY_NOT_FOUND', `No ${kind} with ID ${JSON.stringify(id)}`, { kind, id });
+  }
+}
+
+/** A second row tried to take a key that a unique index already holds for another row. */
+export class UniqueIndexError extends EngineError {
+  constructor(table: string, index: string, key: string) {
+    super(
+      'UNIQUE_INDEX',
+      `Table ${table}: unique index ${index} already holds key ${JSON.stringify(key)}`,
+      { table, index, key },
+    );
+  }
+}
+
+/** A lookup named an index the table does not declare, or used it the wrong way. */
+export class UnknownIndexError extends EngineError {
+  constructor(table: string, index: string, reason = 'is not declared') {
+    super('UNKNOWN_INDEX', `Table ${table}: index ${index} ${reason}`, { table, index, reason });
+  }
+}
+
+/** A table registry is malformed: duplicate names or kinds, or a key that differs from its table. */
+export class RegistryError extends EngineError {
+  constructor(message: string, details?: ErrorDetails) {
+    super('REGISTRY', message, details);
+  }
+}
+
+/**
+ * A phase cadence is ambiguous or out of range, such as a monthly job on the 31st (which would
+ * silently skip every shorter month) or a yearly job on 29 February. `field` names the bad part,
+ * for example `monthly.day`.
+ */
+export class InvalidCadenceError extends EngineError {
+  constructor(field: string, value: unknown, reason: string) {
+    super('INVALID_CADENCE', `Invalid cadence: ${field} ${reason}, got ${describeValue(value)}`, {
+      field,
+      value: describeValue(value),
+      reason,
+    });
+  }
+}
+
+/** A value that must be plain JSON (a save part, an event payload, a trace input) is not. */
+export class NotSerialisableError extends EngineError {
+  /** Where the bad value sits, for example `$.a[2].b` or `events.title.changed.holderId`. */
+  readonly path: string;
+
+  constructor(path: string, reason: string) {
+    super('NOT_SERIALISABLE', `${path} is not serialisable: it is ${reason}`, { path, reason });
+    this.path = path;
+  }
+}
+
+/** Two event subscribers were registered with the same id. */
+export class DuplicateSubscriberError extends EngineError {
+  constructor(subscriberId: string) {
+    super(
+      'DUPLICATE_SUBSCRIBER',
+      `An event subscriber with id ${JSON.stringify(subscriberId)} is already registered`,
+      { subscriberId },
+    );
+  }
+}
+
+/** The event bus was used in a way it does not allow, such as publishing after a commit. */
+export class EventBusMisuseError extends EngineError {
+  constructor(reason: string) {
+    super('EVENT_BUS_MISUSE', `Event bus misuse: ${reason}`, { reason });
+  }
+}
+
+/** A saved state part (RNG, events, ...) failed validation on load. */
+export class InvalidStatePartError extends EngineError {
+  /** One line per problem, each starting with the path of the bad field. */
+  readonly problems: readonly string[];
+
+  constructor(part: string, problems: readonly string[]) {
+    super('INVALID_STATE_PART', `Invalid ${part} state: ${problems.join('; ')}`, {
+      part,
+      problemCount: problems.length,
+    });
+    this.problems = problems;
+  }
+}
