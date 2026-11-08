@@ -8,7 +8,6 @@
 export const ENGINE_VERSION = '0.1.0';
 
 export type {
-  Brand,
   BrandId,
   ContinentId,
   CountryId,
@@ -37,6 +36,8 @@ export type {
   TitleReignId,
   VenueId,
 } from './core/ids';
+/** The nominal-type helper, exported as `Branded` because `Brand` is the brand entity. */
+export type { Brand as Branded } from './core/brand';
 // createIdFactory is deliberately not exported: IDs are only minted inside world transactions.
 export {
   ENTITY_KIND_LIST,
@@ -169,3 +170,83 @@ export type {
   IntegrityReport,
 } from './model/integrity';
 export { checkWorld, MAX_INTEGRITY_ISSUES } from './model/integrity';
+
+// Controllers (D-07): who runs a promotion or a brand.
+export type {
+  ComputerController,
+  Controller,
+  ControllerKind,
+  HumanController,
+} from './model/controller';
+export {
+  ComputerControllerSchema,
+  ControllerSchema,
+  HumanControllerSchema,
+  PLAYER_ID_MAX_LENGTH,
+} from './model/controller';
+
+// Promotions, brands, employments and groups (FND-07).
+export type { PromotionStyle } from './model/entities/promotion-style';
+export { PROMOTION_STYLES, PromotionStyleSchema } from './model/entities/promotion-style';
+export type {
+  Policies,
+  PolicyArea,
+  Production,
+  ProductionArea,
+  Promotion,
+  PromotionStatus,
+} from './model/entities/promotion';
+export {
+  POLICY_AREAS,
+  PRODUCTION_AREAS,
+  PRODUCTION_LEVEL_MAX,
+  PRODUCTION_LEVEL_MIN,
+  PROMOTION_STATUSES,
+  PromotionSchema,
+} from './model/entities/promotion';
+export type { Brand } from './model/entities/brand';
+export { BrandSchema } from './model/entities/brand';
+export type {
+  Alignment,
+  ContractKind,
+  ContractPerks,
+  ContractTerms,
+  Employment,
+  EmploymentRole,
+  EmploymentStatus,
+  Leave,
+  LeaveKind,
+  Push,
+  RevenueShares,
+} from './model/entities/employment';
+export {
+  ALIGNMENTS,
+  canTransition,
+  CONTRACT_KINDS,
+  EMPLOYMENT_ROLES,
+  EMPLOYMENT_STATUSES,
+  EMPLOYMENT_TRANSITIONS,
+  EmploymentSchema,
+  ENDED_EMPLOYMENT_STATUSES,
+  isTerminalStatus,
+  LEAVE_KINDS,
+  promotionStatusKey,
+  PUSH_LEVELS,
+  STARTED_EMPLOYMENT_STATUSES,
+} from './model/entities/employment';
+export type { Team, TeamKind, TeamStatus } from './model/entities/team';
+export { TEAM_KINDS, TEAM_SIZE, TEAM_STATUSES, TeamSchema } from './model/entities/team';
+export type { Stable, StableStatus } from './model/entities/stable';
+export {
+  STABLE_MAX_MEMBERS,
+  STABLE_MIN_MEMBERS,
+  STABLE_STATUSES,
+  StableSchema,
+} from './model/entities/stable';
+export type { Relationship, RelationshipBond } from './model/entities/relationship';
+export {
+  RELATIONSHIP_BONDS,
+  RelationshipSchema,
+  relationshipKey,
+  ROMANTIC_BONDS,
+} from './model/entities/relationship';
