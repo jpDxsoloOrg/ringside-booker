@@ -1,6 +1,7 @@
 import { act, screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { CURRENT_FORMAT_VERSION, ENGINE_VERSION } from '@ringside/engine';
 import { ANNOUNCE_DELAY_MS } from '@/app/a11y/LiveAnnouncer';
 import { routes } from '@/app/routes';
 import { useSessionStore } from '@/app/session/sessionStore';
@@ -14,6 +15,7 @@ import {
 } from '@/test/goldenSave';
 import { renderApp, storeRealSlot } from '@/test/renderApp';
 import { resetSaveDb } from '@/test/saves';
+import * as storage from '@/storage';
 
 const QUOTA_MESSAGE = 'The browser has no room left for saves. Delete or export old saves.';
 
@@ -319,6 +321,41 @@ describe('SaveSlotsScreen load', () => {
 
   it('asks before loading a backup, then enters the game on that date', async () => {
     const slot = await storeRealSlot(await goldenSaveBytes(), { label: 'Backed up' });
+    // A second manual save rotates the first one into backup-1, a real backup blob to load.
+    const resaved = await storage.saveToSlot(slot.slotId, await goldenSaveBytes(), slot.header, {
+      formatVersion: CURRENT_FORMAT_VERSION,
+      engineVersion: ENGINE_VERSION,
+      savedAt: '2026-11-06T10:00:00.000Z',
+    });
+    if (!resaved.ok) throw new Error(resaved.error.message);
+    expect(resaved.value.backups.map((backup) => backup.kind)).toEqual(['backup-1']);
+    const { router } = await openSlots(createFakeStorage([resaved.value]));
+    const user = userEvent.setup();
+
+    await user.click(
+      within(await screen.findByRole('article', { name: 'Backed up' })).getByRole('button', {
+        name: 'Backups of Backed up',
+      }),
+    );
+    const sheet = screen.getByRole('dialog', { name: 'Backups of Backed up' });
+    expect(sheet).toHaveTextContent('Before a manual save');
+    await user.click(within(sheet).getByRole('button', { name: /^Load this backup/ }));
+    const confirm = screen.getByRole('alertdialog', { name: 'Load this backup?' });
+    expect(confirm).toHaveTextContent(
+      'Load the backup from Apr 10, 2026? Your latest save stays in the slot until you save over it.',
+    );
+    // Nothing loads until the player confirms.
+    expect(useSessionStore.getState().worldLoaded).toBe(false);
+
+    await user.click(within(confirm).getByRole('button', { name: 'Load backup' }));
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Dashboard' })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe(routes.game.office());
+    expect(useSessionStore.getState().saveSlotId).toBe(slot.slotId);
+  });
+
+  it('reports a backup that cannot be read instead of entering the game', async () => {
+    const slot = await storeRealSlot(await goldenSaveBytes(), { label: 'Missing backup' });
     const withBackup = fakeSlot({
       ...slot,
       backups: [
@@ -335,25 +372,22 @@ describe('SaveSlotsScreen load', () => {
     const user = userEvent.setup();
 
     await user.click(
-      within(await screen.findByRole('article', { name: 'Backed up' })).getByRole('button', {
-        name: 'Backups of Backed up',
+      within(await screen.findByRole('article', { name: 'Missing backup' })).getByRole('button', {
+        name: 'Backups of Missing backup',
       }),
     );
-    const sheet = screen.getByRole('dialog', { name: 'Backups of Backed up' });
-    expect(sheet).toHaveTextContent('Before a manual save');
+    const sheet = screen.getByRole('dialog', { name: 'Backups of Missing backup' });
     await user.click(within(sheet).getByRole('button', { name: /^Load this backup/ }));
     const confirm = screen.getByRole('alertdialog', { name: 'Load this backup?' });
-    expect(confirm).toHaveTextContent(
-      'Load the backup from Apr 10, 2026? Your latest save stays in the slot until you save over it.',
-    );
 
-    // The slot has no real backup-1 blob, so the load stops at storage and the error opens.
+    // The slot has no backup-1 blob, so the load stops at storage and the error report opens.
     await user.click(within(confirm).getByRole('button', { name: 'Load backup' }));
 
     expect(
-      await screen.findByRole('dialog', { name: "Couldn't load Backed up" }),
+      await screen.findByRole('dialog', { name: "Couldn't load Missing backup" }),
     ).toHaveTextContent('Reading the save from this browser');
     expect(router.state.location.pathname).toBe(routes.load());
+    expect(useSessionStore.getState().worldLoaded).toBe(false);
   });
 });
 
