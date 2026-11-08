@@ -85,6 +85,13 @@ describe('ChampionCard', () => {
     expect(stars?.querySelectorAll('.starEmpty')).toHaveLength(1);
   });
 
+  it('keeps the prestige text to 0-100 and never prints NaN', () => {
+    const { rerender } = render(<ChampionCard title={CROWN} reign={REIGN} prestige={140} />);
+    expect(screen.getByText('Prestige 100')).toBeInTheDocument();
+    rerender(<ChampionCard title={CROWN} reign={REIGN} prestige={Number.NaN} />);
+    expect(screen.getByText('Prestige 0')).toBeInTheDocument();
+  });
+
   it('says a title is vacant instead of showing a reign', () => {
     render(<ChampionCard title={CROWN} reign={null} prestige={40} />);
     const card = screen.getByRole('article', { name: CROWN.name });

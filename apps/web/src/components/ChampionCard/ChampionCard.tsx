@@ -17,11 +17,15 @@ const STAR_KEYS = Array.from(
   (_, index) => `star-${String(index)}`,
 );
 
+/** Prestige kept to 0–100; a missing or non-finite value counts as 0. */
+export function clampPrestige(prestige: number): number {
+  if (!Number.isFinite(prestige)) return 0;
+  return Math.min(Math.max(prestige, 0), PRESTIGE_MAX);
+}
+
 /** How many of the five stars a prestige value fills: one per 20 points, rounded, clamped. */
 export function prestigeStars(prestige: number): number {
-  if (!Number.isFinite(prestige)) return 0;
-  const share = Math.min(Math.max(prestige, 0), PRESTIGE_MAX) / PRESTIGE_MAX;
-  return Math.round(share * PRESTIGE_STAR_COUNT);
+  return Math.round((clampPrestige(prestige) / PRESTIGE_MAX) * PRESTIGE_STAR_COUNT);
 }
 
 /** A reign length in words: `1 day`, `142 days`, `1,204 days`. */
@@ -96,7 +100,7 @@ export function ChampionCard({
   const headingId = useId();
   const Heading = HEADING_TAGS[headingLevel];
   const belt: ImageSubject = { ...title, kind: 'title', tier: title.tier ?? 'gold' };
-  const prestigeText = formatNumber(Math.min(Math.max(prestige, 0), PRESTIGE_MAX));
+  const prestigeText = formatNumber(clampPrestige(prestige));
 
   return (
     <article

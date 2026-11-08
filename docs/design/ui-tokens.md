@@ -226,8 +226,9 @@ results.
 
 **Theme-aware.** The art is inline SVG, not image files or data URLs, and every fill is a CSS
 Module class that reads a semantic token (`--color-cat-*`, `--color-surface-raised`,
-`--color-text-inverse`, the metal and strap tokens). Shapes stay the same across themes; colours follow the theme. SVG stays sharp at
-any size and on high-density screens, and slot sizes are in rem, so they grow with the UI scale.
+`--color-text-inverse`, the metal and strap tokens). Shapes stay the same across themes; colours
+follow the theme. SVG stays sharp at any size and on high-density screens, and slot sizes are in
+rem, so they grow with the UI scale.
 
 **Accessibility.** The SVG or `<img>` is named after the entity (`role="img"` and `aria-label`, or
 `alt`). Pass `decorative` when the name is already printed next to the slot; the art is then

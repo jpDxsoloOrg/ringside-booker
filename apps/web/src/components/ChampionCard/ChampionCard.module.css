@@ -180,7 +180,8 @@
 
 /*
  * Phones: one horizontal swipe row. Each card is 85% of the row's width (a container query unit,
- * so it follows the row rather than the window) and the next one peeks in; cards snap to the start. The row scrolls inside itself, so the page never scrolls sideways.
+ * so it follows the row rather than the window) and the next one peeks in; cards snap to the
+ * start. The row scrolls inside itself, so the page never scrolls sideways.
  */
 @media (--bp-mobile) {
   .list {

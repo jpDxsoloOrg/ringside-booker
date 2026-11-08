@@ -3,6 +3,7 @@ export {
   ChampionCardList,
   PRESTIGE_MAX,
   PRESTIGE_STAR_COUNT,
+  clampPrestige,
   formatReignDays,
   prestigeStars,
 } from './ChampionCard';

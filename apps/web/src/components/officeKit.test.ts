@@ -4,8 +4,8 @@
  * Checks the office kit's stylesheets (KpiCard, DeltaChip, Sparkline, AlignmentChip, ChampionCard
  * and the DataTable stat-table look) against the office register in
  * docs/design/visual-identity.md: semantic tokens only, calm shapes (rounded cards, no skew, no
- * glow, nothing looping but a loading skeleton), Barlow Condensed tabular numbers, and the phone layouts the ticket
- * promises (KPI cards 2-up, champion cards in a swipe row).
+ * glow, nothing looping but a loading skeleton), Barlow Condensed tabular numbers, and the phone
+ * layouts the kit promises (KPI cards 2-up, champion cards in a swipe row).
  */
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
