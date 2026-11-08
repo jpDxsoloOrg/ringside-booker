@@ -24,6 +24,7 @@ const WEB_TEST_SUPPORT_PATH = 'apps/web/src/test/sample.ts';
 const WEB_UNIT_TEST_PATH = 'apps/web/src/screens/sample.test.tsx';
 const WEB_E2E_PATH = 'apps/web/e2e/sample.spec.ts';
 const ICON_SOURCE_PATH = 'apps/web/src/components/Icon/sample.ts';
+const WEB_WORKER_PATH = 'apps/web/src/worker/sample.ts';
 
 const TESTING_FIXTURE_IMPORT = [
   "import { tinyWorld } from '@ringside/engine/testing';",
@@ -93,7 +94,7 @@ describe('lint guards: web app reaches the engine through its public entry', () 
 
   it('allows the public engine entry', async () => {
     const code =
-      "import { createEngine } from '@ringside/engine';\nexport const used = createEngine;\n";
+      "import { ENGINE_VERSION } from '@ringside/engine';\nexport const used = ENGINE_VERSION;\n";
     const messages = await lintSample(code, WEB_SOURCE_PATH);
     expect(errorsFromRule(messages, 'no-restricted-imports')).toHaveLength(0);
   });
@@ -101,6 +102,35 @@ describe('lint guards: web app reaches the engine through its public entry', () 
   it('still bans engine source paths in web test files', async () => {
     const code = "import { x } from '@ringside/engine/src/core/rng';\nexport const used = x;\n";
     const messages = await lintSample(code, WEB_TEST_SUPPORT_PATH);
+    expect(errorsFromRule(messages, 'no-restricted-imports')).toHaveLength(1);
+  });
+});
+
+describe('lint guards: only the worker creates an engine', () => {
+  const CREATE_ENGINE_IMPORT =
+    "import { createEngine } from '@ringside/engine';\nexport const used = createEngine;\n";
+
+  it.each([WEB_SOURCE_PATH, WEB_APP_SOURCE_PATH, WEB_COMPONENT_PATH])(
+    'bans createEngine in %s',
+    async (relativePath) => {
+      const messages = await lintSample(CREATE_ENGINE_IMPORT, relativePath);
+      const errors = errorsFromRule(messages, 'no-restricted-imports');
+      expect(errors).toHaveLength(1);
+      expect(errors[0]?.message).toContain('Web Worker');
+    },
+  );
+
+  it.each([WEB_WORKER_PATH, WEB_TEST_SUPPORT_PATH, WEB_UNIT_TEST_PATH])(
+    'allows createEngine in %s',
+    async (relativePath) => {
+      const messages = await lintSample(CREATE_ENGINE_IMPORT, relativePath);
+      expect(errorsFromRule(messages, 'no-restricted-imports')).toHaveLength(0);
+    },
+  );
+
+  it('still bans engine source paths in the worker', async () => {
+    const code = "import { x } from '@ringside/engine/src/core/rng';\nexport const used = x;\n";
+    const messages = await lintSample(code, WEB_WORKER_PATH);
     expect(errorsFromRule(messages, 'no-restricted-imports')).toHaveLength(1);
   });
 });
