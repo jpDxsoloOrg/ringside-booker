@@ -96,3 +96,6 @@ export {
   InvalidIdError,
   MoneyOverflowError,
 } from './core/errors';
+
+export { hashString128, hashString32, type HashWords } from './core/hash';
+export * from './core/rng';
