@@ -1,6 +1,7 @@
 import { matchPath } from 'react-router-dom';
 import type { ComponentType } from 'react';
 import type { IconName } from '@/components/Icon';
+import { OfficeScreen } from '@/screens/office/OfficeScreen';
 import { routes } from './routes';
 
 /**
@@ -74,7 +75,8 @@ export const navigationSections: readonly NavSection[] = [
         to: routes.game.office(),
         mobilePrimary: 1,
         badgeKey: 'pendingDecisions',
-        status: 'placeholder',
+        status: 'live',
+        screen: OfficeScreen,
       },
       {
         id: 'inbox',
