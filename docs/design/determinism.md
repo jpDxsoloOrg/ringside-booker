@@ -209,10 +209,11 @@ forms: `rollChance`, `rollInt`, `rollOneIn`, `rollFloat`, `rollNormal`,
 
 - `kind` is one of `chance`, `oneIn`, `int`, `float`, `pick`, `weighted`,
   `normal`.
-- `odds` is the probability of the result that came up, where it's exact:
-  `p` for a chance, `1 / n` for a 1-in-N, one value's share of an integer range
-  or a pick list, and the chosen entry's `weight / totalWeight` for a weighted
-  pick. Continuous rolls (`float`, `normal`) leave it out.
+- `odds` is the stated odds, where they're exact. For a chance or a 1-in-N
+  it's the probability of `true` (`p` or `1 / n`), whichever way the roll went.
+  For an integer range or a pick list it's one value's share, and for a
+  weighted pick it's the chosen entry's `weight / totalWeight`. Continuous
+  rolls (`float`, `normal`) leave it out.
 - `min` and `max` are the range ends, `options` the number of choices.
 - `result` is the outcome. For picks it's a description from the caller's
   `describe(item)` function, so a record never holds an entity, only text.

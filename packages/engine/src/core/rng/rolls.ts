@@ -32,7 +32,11 @@ export interface RollRecord {
   kind: RollKind;
   /** What the roll decided, in words (for example "Injury check"). */
   label: string;
-  /** Probability of the result that came up, where it is known exactly. */
+  /**
+   * The stated odds, where they are known exactly. For `chance` and `oneIn` this is the
+   * probability of `true` (whatever the result was); for `int`, `pick` and `weighted` it is the
+   * probability of the value that came up. Continuous rolls (`float`, `normal`) leave it out.
+   */
   odds?: number;
   /** Lower end of the range: included for `int` and `float`, the clamp floor elsewhere. */
   min?: number;
