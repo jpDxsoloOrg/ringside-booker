@@ -101,7 +101,7 @@ replay creates the same IDs.
 ### Randomness
 
 No `Math.random()` anywhere in the engine (lint rule). All randomness comes
-from a seeded, serialisable RNG with **named streams** (`rng.stream('injuries')`),
+from a seeded, serialisable RNG with **named streams** (`rng.stream('injury.roll')`),
 so adding a new random call in one system doesn't shift the results of another.
 Helpers state odds exactly: `chance(0.15)`, `intBetween(1, 6)` with both ends
 included and documented.
