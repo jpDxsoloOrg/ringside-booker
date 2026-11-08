@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["node"],
+    "rootDir": ".",
+    "outDir": "dist/e2e-types"
+  },
+  "include": ["playwright.config.ts", "e2e"]
+}
