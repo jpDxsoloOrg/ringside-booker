@@ -27,22 +27,23 @@ beforeEach(() => {
 });
 
 describe('app router', () => {
-  it('renders the placeholder home at /', async () => {
+  it('renders the title screen at /', async () => {
     renderAt('/');
 
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Ringside Booker' }),
     ).toBeInTheDocument();
-    expect(screen.getByText(`Version ${__APP_VERSION__}`)).toBeInTheDocument();
+    expect(screen.getByText(`App v${__APP_VERSION__}`)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Load game' })).toHaveAttribute('href', routes.load());
   });
 
-  it('links the placeholder home to the gallery', async () => {
-    renderAt('/');
+  it('renders the saved games screen at /load', async () => {
+    renderAt(routes.load());
 
-    expect(await screen.findByRole('link', { name: 'Gallery' })).toHaveAttribute(
-      'href',
-      '/dev/gallery',
-    );
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Saved games' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('navigation', { name: 'Main' })).toBeNull();
   });
 
   it('registers the component gallery in every build', async () => {
@@ -61,7 +62,6 @@ describe('app router', () => {
   });
 
   it.each([
-    [routes.load(), 'Load game'],
     [routes.newGame(), 'New game'],
     [routes.settings(), 'Settings'],
   ])('renders a placeholder at %s until the screen is built', async (path, title) => {

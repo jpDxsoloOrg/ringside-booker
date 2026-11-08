@@ -5,6 +5,7 @@ import type { NavSection } from '../navigation';
 import { routes } from '../routes';
 import { classNames } from '@/components/classNames';
 import styles from './AppShell.module.css';
+import { MainMenuButton } from './MainMenuButton';
 import { NavItemContent } from './NavItemContent';
 import type { NavBadgeCounts } from './useNavBadges';
 
@@ -16,7 +17,7 @@ export interface SidebarProps {
   readonly badges: NavBadgeCounts;
 }
 
-/** The desktop left sidebar: the game's name, every visible section, then settings and exit. */
+/** The desktop left sidebar: the game's name, every visible section, then settings and "Main menu". */
 export function Sidebar({ sections, badges }: SidebarProps) {
   const headingIdPrefix = useId();
 
@@ -58,10 +59,7 @@ export function Sidebar({ sections, badges }: SidebarProps) {
           </Link>
         </li>
         <li>
-          <Link to={routes.title()} className={styles['navLink']}>
-            <Icon name="log-out" size="md" className={styles['navIcon']} decorative />
-            <span className={styles['navLabel']}>Main menu</span>
-          </Link>
+          <MainMenuButton />
         </li>
       </ul>
     </div>

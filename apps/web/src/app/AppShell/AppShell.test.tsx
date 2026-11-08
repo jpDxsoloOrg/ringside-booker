@@ -148,10 +148,7 @@ describe('AppShell on a phone', () => {
       'href',
       routes.settings(),
     );
-    expect(within(sheet).getByRole('link', { name: 'Main menu' })).toHaveAttribute(
-      'href',
-      routes.title(),
-    );
+    expect(within(sheet).getByRole('button', { name: 'Main menu' })).toBeEnabled();
 
     await user.click(within(sheet).getByRole('link', { name: 'Titles' }));
 

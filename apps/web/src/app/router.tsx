@@ -5,9 +5,10 @@ import {
   GalleryFrameScreen,
   GalleryScreen,
 } from '@/screens/dev-gallery/GalleryScreen';
-import { HomePlaceholderScreen } from '@/screens/home-placeholder/HomePlaceholderScreen';
 import { NotFoundScreen } from '@/screens/not-found/NotFoundScreen';
 import { PlaceholderScreen } from '@/screens/placeholder/PlaceholderScreen';
+import { SaveSlotsScreen } from '@/screens/saves/SaveSlotsScreen';
+import { TitleScreen } from '@/screens/title/TitleScreen';
 import { LiveAnnouncer } from './a11y/LiveAnnouncer';
 import { RouteFocus } from './a11y/RouteFocus';
 import { AppShell } from './AppShell/AppShell';
@@ -55,8 +56,8 @@ const galleryRoutes: RouteObject[] = [
 
 /** The screens outside a game, in the centred layout with no navigation. */
 const outOfGameRoutes: RouteObject[] = [
-  { path: routes.title(), element: <HomePlaceholderScreen /> },
-  { path: routes.load(), element: <PlaceholderScreen title="Load game" /> },
+  { path: routes.title(), element: <TitleScreen /> },
+  { path: routes.load(), element: <SaveSlotsScreen /> },
   // The new-game wizard replaces this placeholder when it lands.
   { path: routes.newGame(), element: <PlaceholderScreen title="New game" /> },
   { path: routes.settings(), element: <PlaceholderScreen title="Settings" /> },
