@@ -188,9 +188,11 @@ describe('defineCadence', () => {
     } catch (error) {
       caught = error;
     }
-    expect(caught).toBeInstanceOf(InvalidCadenceError);
     expect(caught).toBeInstanceOf(EngineError);
-    const cadenceError = caught as InvalidCadenceError; // eslint-disable-line @typescript-eslint/no-unsafe-type-assertion -- checked by toBeInstanceOf above
+    if (!(caught instanceof InvalidCadenceError)) {
+      throw new Error('expected an InvalidCadenceError');
+    }
+    const cadenceError = caught;
     expect(cadenceError.code).toBe('INVALID_CADENCE');
     expect(cadenceError.message).toContain('monthly.day');
     expect(cadenceError.message).toContain("'last'");

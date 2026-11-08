@@ -244,6 +244,11 @@ export function defineCadence(cadence: Cadence): Cadence {
  */
 export function matchesCadence(date: GameDate, cadence: Cadence): boolean {
   assertValidCadence(cadence);
+  return matchesCheckedCadence(date, cadence);
+}
+
+/** `matchesCadence` for a cadence that has already been checked. */
+function matchesCheckedCadence(date: GameDate, cadence: Cadence): boolean {
   switch (cadence.kind) {
     case 'daily':
       return true;
@@ -267,7 +272,7 @@ export function nextOccurrence(from: GameDate, cadence: Cadence): GameDate {
   assertValidCadence(cadence);
   for (let offset = 0; offset < MAX_OCCURRENCE_SEARCH_DAYS; offset += 1) {
     const candidate = addDays(from, offset);
-    if (matchesCadence(candidate, cadence)) {
+    if (matchesCheckedCadence(candidate, cadence)) {
       return candidate;
     }
   }
