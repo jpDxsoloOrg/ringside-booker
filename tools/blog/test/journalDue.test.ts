@@ -159,13 +159,14 @@ describe('computeJournalDue', () => {
 });
 
 describe('readClosingTickets', () => {
-  it('reads FND-13, SIM-13, WLD-12 and UI-14 from the epic exit checklist', async () => {
+  it('reads FND-13, SIM-13, WLD-12, UI-14 and VIS-10 from the epic exit checklist', async () => {
     const text = await readFile(join(REPO_ROOT, EPIC_EXIT_CHECKLIST_PATH), 'utf8');
     expect(Object.fromEntries(readClosingTickets(text))).toEqual({
       FND: 'FND-13',
       SIM: 'SIM-13',
       WLD: 'WLD-12',
       UI: 'UI-14',
+      VIS: 'VIS-10',
     });
   });
 

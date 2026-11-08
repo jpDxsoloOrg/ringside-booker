@@ -60,12 +60,13 @@ still fresh: what shipped, which calls were made and why, what went wrong, and w
 
 ## Closing tickets
 
-| Epic | Closing ticket ID | Entry file                                     |
-| ---- | ----------------- | ---------------------------------------------- |
-| FND  | FND-13            | [2026-11-foundation.md](2026-11-foundation.md) |
-| SIM  | SIM-13            | [2026-11-sim-core.md](2026-11-sim-core.md)     |
-| WLD  | WLD-12            | -                                              |
-| UI   | UI-14             | -                                              |
+| Epic | Closing ticket ID | Entry file                                                 |
+| ---- | ----------------- | ---------------------------------------------------------- |
+| FND  | FND-13            | [2026-11-foundation.md](2026-11-foundation.md)             |
+| SIM  | SIM-13            | [2026-11-sim-core.md](2026-11-sim-core.md)                 |
+| WLD  | WLD-12            | [2026-11-world-generation.md](2026-11-world-generation.md) |
+| UI   | UI-14             | [2026-11-app-shell.md](2026-11-app-shell.md)               |
+| VIS  | VIS-10            | [2026-11-visual-identity.md](2026-11-visual-identity.md)   |
 
 The Entry file column is filled in when each entry is written. Every later epic adds its row here
 when its ticket pack is drafted, along with the closing ticket above.
