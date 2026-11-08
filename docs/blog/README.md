@@ -222,9 +222,16 @@ the private-reference rule skips them.
 
 #### Banned terms
 
-Two lists feed the `banned-terms` rule. Matching ignores case and only matches
-whole words, and it covers the whole file: frontmatter, prose, code, comments
-and alt text.
+Two lists feed the `banned-terms` rule. Matching only matches whole words, and
+it covers the whole file: frontmatter, prose, code, comments and alt text. It
+ignores case, except for a one-word name flagged `[case]` in a list
+(`Nightjar [case]`, a made-up example). That's a name that is also an everyday
+word, so it only matches written the way the list writes it or in capitals:
+"the nightjar sang" passes, "a loss to Nightjar" fails. The world content check
+reads the lists through the same matcher
+(`tools/validate-world/src/realNameMatcher.ts`), so both read the flag the same
+way. A flagged word that starts a sentence is still caught, so reword it if
+that happens.
 
 1. **The real-name blocklist**, `content/blocklist/real-names.txt`. It's
    committed, and the world content check (WLD-03) uses the same file, so the

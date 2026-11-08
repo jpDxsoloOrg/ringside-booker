@@ -14,6 +14,8 @@ import {
   journalSections,
 } from './journal';
 import type { JournalRuleContext } from './journal';
+import { TermLineError } from '@ringside/validate-world/real-name-matcher';
+
 import { maskTermsIn, parseTermList } from './mask';
 import { bodyAfterFrontmatter, readSource } from './markdown';
 import {
@@ -33,7 +35,7 @@ import {
   validatePostFrontmatter,
 } from './rules';
 import type { ContentRuleContext, PostEntry, PostRuleContext } from './rules';
-import type { BannedTerms, CheckIssue, SourceFile } from './types';
+import type { BannedTerm, BannedTerms, CheckIssue, SourceFile } from './types';
 
 export const BLOG_DIR = 'docs/blog';
 /** List (a), owned by the world content tooling. */
@@ -55,7 +57,10 @@ export interface RunChecksOptions {
   readonly requireBannedTerms: boolean;
   /** Check only the blog or only the journal. Both when left out. */
   readonly only?: CheckScope;
-  /** The private list itself, instead of reading it from the environment. For tests. */
+  /**
+   * The private list itself, one list line per item (so `Name [case]` works), instead of reading
+   * it from the environment. For tests.
+   */
   readonly privateBannedTerms?: readonly string[];
   /** Where BLOG_BANNED_TERMS and BLOG_BANNED_TERMS_FILE are read from. Defaults to process.env. */
   readonly env?: NodeJS.ProcessEnv;
@@ -82,7 +87,9 @@ export async function runChecks(options: RunChecksOptions): Promise<CheckIssue[]
     privateTerms:
       options.privateBannedTerms === undefined
         ? await loadPrivateBannedTerms(options.env ?? process.env, options.homeDir ?? homedir())
-        : nonEmptyOrNull(options.privateBannedTerms),
+        : nonEmptyOrNull(
+            parseListOrThrow(options.privateBannedTerms.join('\n'), PRIVATE_LIST_LABEL),
+          ),
   };
   const fileExists = (repoPath: string): boolean => existsSync(join(repoRoot, repoPath));
   const issues: CheckIssue[] = [...bannedTermsMissing(terms, options.requireBannedTerms)];
@@ -225,16 +232,36 @@ function selectFiles(repoRoot: string, files: readonly string[]): Set<string> {
   return selected;
 }
 
-/** List (a): the committed real-name blocklist. Empty until the file exists. */
-export async function loadRealNameBlocklist(repoRoot: string): Promise<string[]> {
+/** How a line of the private list is named in errors; the line itself is never printed. */
+const PRIVATE_LIST_LABEL = 'the private banned-terms list';
+
+/**
+ * Parses a term list, turning an unusable line into a usage error that names the list and the
+ * line number but not the line, which may hold a private term.
+ */
+function parseListOrThrow(text: string, listLabel: string): BannedTerm[] {
   try {
-    return parseTermList(await readFile(join(repoRoot, REAL_NAMES_PATH), 'utf8'));
+    return parseTermList(text);
+  } catch (error: unknown) {
+    if (error instanceof TermLineError) {
+      throw new CheckUsageError(`${listLabel}, line ${String(error.line)}: ${error.message}`);
+    }
+    throw error;
+  }
+}
+
+/** List (a): the committed real-name blocklist. Empty until the file exists. */
+export async function loadRealNameBlocklist(repoRoot: string): Promise<BannedTerm[]> {
+  let text: string;
+  try {
+    text = await readFile(join(repoRoot, REAL_NAMES_PATH), 'utf8');
   } catch (error: unknown) {
     if (isMissingFileError(error)) {
       return [];
     }
     throw error;
   }
+  return parseListOrThrow(text, REAL_NAMES_PATH);
 }
 
 /**
@@ -245,29 +272,30 @@ export async function loadRealNameBlocklist(repoRoot: string): Promise<string[]>
 export async function loadPrivateBannedTerms(
   env: NodeJS.ProcessEnv,
   homeDir: string,
-): Promise<readonly string[] | null> {
+): Promise<readonly BannedTerm[] | null> {
   const inline = env['BLOG_BANNED_TERMS'];
   if (inline !== undefined && inline.trim() !== '') {
-    return nonEmptyOrNull(parseTermList(inline));
+    return nonEmptyOrNull(parseListOrThrow(inline, PRIVATE_LIST_LABEL));
   }
   const configuredPath = env['BLOG_BANNED_TERMS_FILE']?.trim() ?? '';
   const listPath =
     configuredPath === ''
       ? join(homeDir, DEFAULT_BANNED_TERMS_FILE)
       : resolve(configuredPath.replace(/^~(?=$|[/\\])/, homeDir));
+  let text: string;
   try {
-    return nonEmptyOrNull(parseTermList(await readFile(listPath, 'utf8')));
+    text = await readFile(listPath, 'utf8');
   } catch (error: unknown) {
     if (isMissingFileError(error)) {
       return null;
     }
     throw error;
   }
+  return nonEmptyOrNull(parseListOrThrow(text, PRIVATE_LIST_LABEL));
 }
 
-function nonEmptyOrNull(terms: readonly string[]): readonly string[] | null {
-  const cleaned = terms.map((term) => term.trim()).filter((term) => term !== '');
-  return cleaned.length === 0 ? null : cleaned;
+function nonEmptyOrNull(terms: readonly BannedTerm[]): readonly BannedTerm[] | null {
+  return terms.length === 0 ? null : terms;
 }
 
 function isMissingFileError(error: unknown): boolean {

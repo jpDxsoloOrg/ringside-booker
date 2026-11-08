@@ -11,7 +11,7 @@ import type { LoadedPost } from '../load';
 import { INLINE_LINK_PATTERN, REFERENCE_DEFINITION_PATTERN, toPostPayload } from '../transform';
 import { bannedTermPattern, maskTerm } from './mask';
 import { blankOut, bodyText, frontmatterKeyLine, lineAt, readTableAfterHeading } from './markdown';
-import type { BannedTerms, CheckIssue, RuleId, Severity, SourceFile } from './types';
+import type { BannedTerm, BannedTerms, CheckIssue, RuleId, Severity, SourceFile } from './types';
 import { SETUP_FILE } from './types';
 
 // The blog rules, one exported function per rule. Each takes the context it needs and returns
@@ -455,7 +455,7 @@ export function noBodyH1(context: PostRuleContext): CheckIssue[] {
  */
 export function bannedTerms(context: ContentRuleContext): CheckIssue[] {
   const { source } = context;
-  const lists: { readonly terms: readonly string[]; readonly label: string }[] = [
+  const lists: { readonly terms: readonly BannedTerm[]; readonly label: string }[] = [
     { terms: context.bannedTerms.realNames, label: 'the real-name blocklist' },
     { terms: context.bannedTerms.privateTerms ?? [], label: 'the private banned-terms list' },
   ];
@@ -463,7 +463,7 @@ export function bannedTerms(context: ContentRuleContext): CheckIssue[] {
   const seen = new Set<string>();
   for (const list of lists) {
     for (const term of list.terms) {
-      const masked = maskTerm(term);
+      const masked = maskTerm(term.name);
       if (bannedTermPattern(term).test(source.path)) {
         issues.push(
           makeIssue(

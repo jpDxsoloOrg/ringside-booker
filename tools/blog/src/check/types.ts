@@ -1,6 +1,8 @@
 // The shapes shared by the blog and journal checker: rule IDs, issues and the source files the
 // rules read.
 
+import type { TermSpec } from '@ringside/validate-world/real-name-matcher';
+
 export const RULE_IDS = [
   'frontmatter-valid',
   'file-name-matches-part',
@@ -55,10 +57,13 @@ export interface SourceFile {
   readonly frontmatterProblem: { readonly line: number; readonly message: string } | null;
 }
 
+/** One term from a banned-terms list: its name and whether it only matches as written. */
+export type BannedTerm = TermSpec;
+
 /** The two banned-term lists, already parsed. */
 export interface BannedTerms {
   /** List (a): the committed real-name blocklist. Empty when the file does not exist yet. */
-  readonly realNames: readonly string[];
+  readonly realNames: readonly BannedTerm[];
   /** List (b): the private list kept outside the repo, or null when it was not found. */
-  readonly privateTerms: readonly string[] | null;
+  readonly privateTerms: readonly BannedTerm[] | null;
 }
