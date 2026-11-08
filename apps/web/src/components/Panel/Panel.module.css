@@ -1,0 +1,105 @@
+.panel {
+  min-inline-size: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-3) var(--space-4);
+}
+
+/* Without a body (collapsed), the header is the whole panel and needs no divider. */
+.expanded .header {
+  border-block-end: 1px solid var(--color-border);
+}
+
+.titles {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+}
+
+.subtitle {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* The disclosure button fills the heading so the whole title row is the click target. */
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: 2rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.chevron {
+  transition: transform var(--motion-fast) var(--easing-standard);
+}
+
+.toggle[aria-expanded='false'] .chevron {
+  transform: rotate(-90deg);
+}
+
+@media (pointer: coarse) {
+  .toggle {
+    min-block-size: var(--tap-target-min);
+  }
+}
+
+.body {
+  min-inline-size: 0;
+}
+
+.padding-md {
+  padding: var(--space-4);
+}
+
+.padding-none {
+  padding: 0;
+}
+
+/*
+ * Phones: panels run edge to edge to win back width. No side border, no side radius and no side
+ * margin; the content keeps its padding plus the notch inset.
+ */
+@media (--bp-mobile) {
+  .panel {
+    margin-inline: 0;
+    border-inline-width: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .header {
+    padding-inline: calc(var(--safe-left) + var(--space-4)) calc(var(--safe-right) + var(--space-4));
+  }
+
+  .padding-md {
+    padding-inline: calc(var(--safe-left) + var(--space-4)) calc(var(--safe-right) + var(--space-4));
+  }
+}

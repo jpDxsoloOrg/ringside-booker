@@ -47,3 +47,24 @@ export {
   traceDepth,
 } from './limits';
 export { assertTraceReplays, replayTrace } from './replay';
+export { traceNodeSchema } from './schema';
+export {
+  TRACE_REF_KIND_PATTERN,
+  TRACE_SUMMARY_CONTRIBUTORS,
+  TraceStore,
+  isFullTrace,
+  parseTraceStoreState,
+  refKey,
+  summariseTrace,
+  topContributors,
+  traceStoreLimitsFrom,
+  traceStoreStateSchema,
+  type StoredTrace,
+  type StoredTraceEntry,
+  type TraceContributor,
+  type TraceRef,
+  type TraceStaging,
+  type TraceStoreLimits,
+  type TraceStoreState,
+  type TraceSummary,
+} from './store';

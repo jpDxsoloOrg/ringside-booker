@@ -34,6 +34,10 @@ describe('app router', () => {
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Component gallery' }),
     ).toBeInTheDocument();
-    expect(screen.getByText('No components yet.')).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Button' })).toHaveAttribute('id', 'gallery-button');
+    expect(screen.getByRole('region', { name: 'ImageSlot' })).toHaveAttribute(
+      'id',
+      'gallery-image-slot',
+    );
   });
 });

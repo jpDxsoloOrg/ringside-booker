@@ -12,6 +12,30 @@ import type { CheckIssue, SourceFile } from './types';
 export const JOURNAL_DIR = 'docs/dev-journal';
 export const JOURNAL_README_PATH = 'docs/dev-journal/README.md';
 
+/** The epic exit checklist and closing-ticket table. It lives with the entries but is not one. */
+export const EPIC_EXIT_CHECKLIST_PATH = 'docs/dev-journal/epic-exit-checklist.md';
+
+/** The journal template and inbox, which journal:new reads. */
+export const JOURNAL_TEMPLATE_PATH = 'docs/dev-journal/_template.md';
+export const JOURNAL_INBOX_PATH = 'docs/dev-journal/_inbox.md';
+
+/** Topics are kebab-case: lowercase letters and digits separated by single hyphens. */
+export const JOURNAL_TOPIC_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+
+/** Markdown files in docs/dev-journal that are not entries, besides the `_` templates and inbox. */
+const JOURNAL_NON_ENTRY_FILES: ReadonlySet<string> = new Set([
+  'README.md',
+  posix.basename(EPIC_EXIT_CHECKLIST_PATH),
+]);
+
+/**
+ * Whether a Markdown file in docs/dev-journal is a journal entry, or is meant to be one. The
+ * README, the epic exit checklist and `_` files (the template and the inbox) are not.
+ */
+export function isJournalEntryFileName(fileName: string): boolean {
+  return !JOURNAL_NON_ENTRY_FILES.has(fileName) && !fileName.startsWith('_');
+}
+
 /** `YYYY-MM-<topic>.md`, with an optional `-2`, `-3`... for a second entry on the same topic. */
 export const JOURNAL_FILE_NAME_PATTERN = /^\d{4}-\d{2}-[a-z0-9]+(-[a-z0-9]+)*(-\d+)?\.md$/;
 

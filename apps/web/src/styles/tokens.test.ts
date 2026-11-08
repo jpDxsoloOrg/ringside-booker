@@ -132,6 +132,12 @@ const SEMANTIC_COLOUR_TOKENS = [
   '--color-focus',
   '--color-overlay',
   ...Array.from({ length: 8 }, (_, index) => `--color-cat-${String(index + 1)}`),
+  '--color-metal-gold',
+  '--color-metal-silver',
+  '--color-metal-bronze',
+  '--color-metal-plain',
+  '--color-metal-ink',
+  '--color-belt-strap',
 ];
 
 interface ContrastRequirement {
@@ -155,6 +161,19 @@ const CONTRAST_REQUIREMENTS: readonly ContrastRequirement[] = [
   { foreground: '--color-text-muted', background: '--color-surface', minimum: 3 },
   { foreground: '--color-focus', background: '--color-bg', minimum: 3 },
   { foreground: '--color-border-strong', background: '--color-surface', minimum: 3 },
+  // Placeholder art: initials and monograms sit on a category colour and get small at the xs and
+  // sm image sizes, so they meet AA for normal text.
+  ...Array.from({ length: 8 }, (_, index) => ({
+    foreground: '--color-text-inverse',
+    background: `--color-cat-${String(index + 1)}`,
+    minimum: 4.5,
+  })),
+  // Engraved initials on a belt plate, for every metal tier.
+  ...['gold', 'silver', 'bronze', 'plain'].map((tier) => ({
+    foreground: '--color-metal-ink',
+    background: `--color-metal-${tier}`,
+    minimum: 4.5,
+  })),
 ];
 
 const blocks = parseBlocks(tokensCss);

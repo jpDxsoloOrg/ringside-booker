@@ -9,6 +9,8 @@ test-results/
 .env
 .env.*
 !.env.example
+# The blog publisher's settings, including the blog database URL. Never committed.
+tools/blog/.env.local
 .DS_Store
 .vscode/
 .idea/

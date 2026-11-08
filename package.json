@@ -27,6 +27,9 @@
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix",
     "blog:check": "npm run -w @ringside/blog-tools check --",
+    "blog:publish": "npm run -w @ringside/blog-tools publish --",
+    "journal:new": "npm run -w @ringside/blog-tools journal:new --",
+    "journal:due": "npm run -w @ringside/blog-tools journal:due --",
     "verify": "npm run format:check && npm run lint && npm run typecheck && npm test"
   },
   "devDependencies": {

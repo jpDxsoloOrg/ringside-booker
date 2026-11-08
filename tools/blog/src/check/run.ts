@@ -7,6 +7,7 @@ import { POST_FILE_NAME_PATTERN } from '../frontmatter';
 import {
   JOURNAL_DIR,
   JOURNAL_README_PATH,
+  isJournalEntryFileName,
   journalFileName,
   journalFrontmatter,
   journalIndexSync,
@@ -123,7 +124,7 @@ export async function runChecks(options: RunChecksOptions): Promise<CheckIssue[]
     const readme = journalFiles.find((source) => source.path === JOURNAL_README_PATH) ?? null;
     for (const source of journalFiles.filter(isSelected)) {
       checkContent(source, source.path !== JOURNAL_README_PATH);
-      if (isEntryFile(source.path)) {
+      if (isJournalEntryFileName(fileName(source.path))) {
         const context: JournalRuleContext = { source, readme };
         issues.push(
           ...journalFileName(context),
@@ -150,8 +151,8 @@ function fileName(repoPath: string): string {
 }
 
 /**
- * Every Markdown file in docs/blog or docs/dev-journal except the README and `_` files (templates
- * and the inbox) is a post or a journal entry, or is meant to be one.
+ * Every Markdown file in docs/blog except the README and `_` files (the template) is a post, or is
+ * meant to be one. The journal has its own list of non-entry files (isJournalEntryFileName).
  */
 function isEntryFile(repoPath: string): boolean {
   const name = fileName(repoPath);

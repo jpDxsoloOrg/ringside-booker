@@ -36,17 +36,23 @@ Month-level names keep the folder readable as a timeline. The `date` field in
 the frontmatter keeps the exact order inside a month.
 
 Files whose names start with `_` are templates or working files, not entries.
-Tooling skips them when it lists entries:
+Tooling skips them when it lists entries, along with this README and the epic
+exit checklist:
 
-- [`_template.md`](_template.md): copy this to start a new entry.
+- [`_template.md`](_template.md): the shape of every entry. `npm run journal:new`
+  starts from it.
 - [`_inbox.md`](_inbox.md): quick notes between entries.
+- [`epic-exit-checklist.md`](epic-exit-checklist.md): the checklist line and the
+  closing ticket every epic gets, and the table of closing tickets.
 
 ## Cadence
 
 1. **Epic close.** One entry when each epic closes. Every epic ends with a
    "Write the <Epic name> dev journal entry" ticket (for example FND-13,
-   SIM-13, WLD-12 and UI-14). Future epics get the same closing ticket by the
-   BLOG-10 convention.
+   SIM-13, WLD-12 and UI-14). Future epics get the same closing ticket and a
+   checklist line in their README, both copied from
+   [`epic-exit-checklist.md`](epic-exit-checklist.md), and add their row to its
+   closing-ticket table.
 2. **Milestones.** One entry per named milestone that spans several epics (for
    example "first playable season"). Set the `milestone` field.
 3. **Thirty quiet days.** If 30 days pass with no entry, write a short "state of
@@ -58,21 +64,64 @@ Tooling skips them when it lists entries:
 
 ## Writing an entry
 
-1. Copy `_template.md` to `YYYY-MM-<topic>.md`.
-2. Fill in the frontmatter: `title`, `date` (ISO `YYYY-MM-DD`), `epics` (epic
+1. Run `npm run journal:new -- <topic> --epic <PREFIX>` (see
+   [Journal commands](#journal-commands)). It writes `YYYY-MM-<topic>.md` with
+   the title, date, epics and tickets filled in, a `## What I built` bullet per
+   ticket listing its commits, and the inbox notes under `## Raw notes`, and it
+   empties the inbox. Copying `_template.md` by hand works too.
+2. Check the frontmatter: `title`, `date` (ISO `YYYY-MM-DD`), `epics` (epic
    prefixes such as `[FND, SIM]`), `milestone` (a name, or empty), `tickets`
    (ticket IDs closed, such as `[FND-01, FND-02]`) and `blogCandidates` (short
-   working titles, may be empty). Replace the `# Title of the entry` heading
-   with the same title.
-3. Write each section. Delete the italic prompt lines once a section is filled
-   in. If a section has nothing to say, write "Nothing this time." rather than
-   deleting it, so every entry keeps the same shape.
-4. Move the bullets from `_inbox.md` into `## Raw notes`, then delete them from
-   the inbox.
+   working titles, may be empty). The `#` heading carries the same title.
+3. Write each section. Turn each ticket's commit list into a sentence about
+   what it does and the files it touched. Delete the italic prompt lines once a
+   section is filled in. If a section has nothing to say, write "Nothing this
+   time." rather than deleting it, so every entry keeps the same shape.
+4. If you copied the template by hand, move the bullets from `_inbox.md` into
+   `## Raw notes`, then delete them from the inbox.
 5. Add a row to the top of the [Index](#index).
 6. Run `npm run blog:check -- --only journal`. It checks the file name, the
    frontmatter, the ten sections and the index row, plus the public content
    rules (see [`docs/blog/README.md`](../blog/README.md#checking-a-post)).
+
+## Journal commands
+
+Both commands run from the repo root.
+
+```sh
+npm run journal:new -- <topic> [--epic <PREFIX>]... [--force]
+npm run journal:due -- [--threshold <commits>]
+```
+
+**`journal:new`** scaffolds an entry. `<topic>` is the kebab-case topic.
+`--epic` (repeatable) keeps only that epic's tickets in `tickets` and in the
+`## What I built` bullets; without it every ticket in the commits is listed.
+Commits are read from the newest entry's `date` onwards (from the first commit
+when there are no entries), and commits without a ticket ID get their own
+bullet so nothing disappears. If `YYYY-MM-<topic>.md` is taken the entry gets
+`-2`, `-3` and so on; `--force` overwrites the first name instead. The command
+prints the new file's path and rewrites `_inbox.md` to its header.
+
+**`journal:due`** says which epics need an entry. It prints one row per epic
+prefix found in the commit history:
+
+```
+| Epic | Last entry                            | Commits since | Status |
+| ---- | ------------------------------------- | ------------- | ------ |
+| FND  | 2027-01-foundation.md (2027-01-12)    | 3             | ok     |
+| SIM  | -                                     | 14            | due    |
+```
+
+An epic is `due` when it has `--threshold` (default 10) or more commits after
+its last entry's date, or when its closing ticket from
+[`epic-exit-checklist.md`](epic-exit-checklist.md) shows up in a commit with no
+entry for the epic after it. Commits on an entry's own date count as covered by
+it. A last line says whether a `state-of-the-build` entry is due (the newest
+entry is more than 30 days old). The command is advisory and always exits 0.
+
+Both read the ticket ID from each commit subject: `[FND-01] subject`,
+`FND-01: subject`, or the conventional `feat: subject (FND-01)`, which may name
+several tickets. Merge commits are skipped.
 
 ## Content rules
 

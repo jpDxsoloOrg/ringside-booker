@@ -110,6 +110,7 @@ export {
   RegistryError,
   SchemaViolationError,
   TraceReplayError,
+  TraceStoreMisuseError,
   TxStateError,
   UniqueIndexError,
   UnknownIndexError,
@@ -478,3 +479,26 @@ export {
   LedgerEntrySchema,
   ledgerMonthKey,
 } from './model/entities/ledger-entry';
+
+// Data packs: the authoring format for shipped and modded content (WLD-01). Every pack schema and
+// helper lives under the `packs` namespace because names such as `keySchema` are generic; the main
+// types and schemas are also exported directly.
+export * as packs from './persistence/packs';
+export type {
+  PackId,
+  PackKey,
+  PackKind,
+  PackManifest,
+  PackRecordEntry,
+  PackRecords,
+  PackRef,
+  RawPack,
+  RecordKind,
+} from './persistence/packs';
+export {
+  PACK_FORMAT_VERSION,
+  packManifestSchema,
+  RECORD_KINDS,
+  recordFileSchema,
+  recordSchemas,
+} from './persistence/packs';

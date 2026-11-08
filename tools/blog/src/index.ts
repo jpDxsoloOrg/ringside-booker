@@ -34,3 +34,29 @@ export { CheckUsageError, runChecks } from './check/run';
 export type { CheckScope, RunChecksOptions } from './check/run';
 export { RULE_IDS } from './check/types';
 export type { CheckIssue, RuleId, Severity } from './check/types';
+export { CI_REFUSAL, PUBLISH_USAGE, formatResult, runPublishCommand } from './publish/command';
+export type { DatabaseClient, PublishCommandDeps } from './publish/command';
+export {
+  ENV_FILE_REPO_PATH,
+  PublishEnvError,
+  loadEnvFile,
+  parseEnvText,
+  readPublishEnv,
+} from './publish/env';
+export type { EnvFile, PublishEnv } from './publish/env';
+export { BlogSchemaError, REQUIRED_BLOG_SCHEMA, assertBlogSchema } from './publish/preflight';
+export type { Queryable } from './publish/queryable';
+export {
+  BlogAuthorError,
+  BlogPublishError,
+  BlogSlugChangeError,
+  publishPost,
+} from './publish/upsert';
+export type { FieldChange, PublishAction, PublishOptions, PublishResult } from './publish/upsert';
+export {
+  insertPublishedAt,
+  setPublishedCell,
+  updateSeriesIndex,
+  writeBack,
+} from './publish/writeBack';
+export type { WriteBackOptions, WriteBackResult } from './publish/writeBack';

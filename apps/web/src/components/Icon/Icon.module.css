@@ -1,0 +1,31 @@
+.icon {
+  flex: none;
+  display: inline-block;
+  vertical-align: middle;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Follows the font size of the text around it. */
+.size-inherit {
+  inline-size: 1em;
+  block-size: 1em;
+}
+
+.size-sm {
+  inline-size: 1rem;
+  block-size: 1rem;
+}
+
+.size-md {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+}
+
+.size-lg {
+  inline-size: 2rem;
+  block-size: 2rem;
+}

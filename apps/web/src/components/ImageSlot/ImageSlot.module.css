@@ -1,0 +1,150 @@
+/*
+ * ImageSlot frame plus the fills used by the generated placeholders. Placeholder art is inline SVG
+ * so every colour here is a theme token and follows light and dark mode.
+ */
+
+.slot {
+  display: inline-block;
+  flex: none;
+  overflow: hidden;
+  vertical-align: middle;
+  line-height: 0;
+}
+
+.xs {
+  width: var(--image-size-xs);
+  height: var(--image-size-xs);
+}
+
+.sm {
+  width: var(--image-size-sm);
+  height: var(--image-size-sm);
+}
+
+.md {
+  width: var(--image-size-md);
+  height: var(--image-size-md);
+}
+
+.lg {
+  width: var(--image-size-lg);
+  height: var(--image-size-lg);
+}
+
+.xl {
+  width: var(--image-size-xl);
+  height: var(--image-size-xl);
+}
+
+.square {
+  border-radius: var(--radius-sm);
+}
+
+.circle {
+  border-radius: 50%;
+}
+
+.image,
+.art {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.image {
+  object-fit: cover;
+  background: var(--color-surface-sunken);
+}
+
+/* Placeholder fills. */
+
+.cat1 {
+  fill: var(--color-cat-1);
+}
+
+.cat2 {
+  fill: var(--color-cat-2);
+}
+
+.cat3 {
+  fill: var(--color-cat-3);
+}
+
+.cat4 {
+  fill: var(--color-cat-4);
+}
+
+.cat5 {
+  fill: var(--color-cat-5);
+}
+
+.cat6 {
+  fill: var(--color-cat-6);
+}
+
+.cat7 {
+  fill: var(--color-cat-7);
+}
+
+.cat8 {
+  fill: var(--color-cat-8);
+}
+
+.inverse {
+  fill: var(--color-text-inverse);
+}
+
+.outlineInverse {
+  fill: none;
+  stroke: var(--color-text-inverse);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.lettering {
+  font-family: var(--font-family-ui);
+  font-weight: var(--font-weight-bold);
+  fill: var(--color-text-inverse);
+}
+
+.strap {
+  fill: var(--color-belt-strap);
+}
+
+.metalGold,
+.metalSilver,
+.metalBronze,
+.metalPlain {
+  stroke: var(--color-metal-ink);
+  stroke-width: 1.25;
+}
+
+.metalGold {
+  fill: var(--color-metal-gold);
+}
+
+.metalSilver {
+  fill: var(--color-metal-silver);
+}
+
+.metalBronze {
+  fill: var(--color-metal-bronze);
+}
+
+.metalPlain {
+  fill: var(--color-metal-plain);
+}
+
+.engraving {
+  font-family: var(--font-family-ui);
+  font-weight: var(--font-weight-bold);
+  fill: var(--color-metal-ink);
+}
+
+.engravingLine {
+  fill: none;
+  stroke: var(--color-metal-ink);
+  stroke-width: 0.75;
+  opacity: 0.6;
+}
