@@ -14,6 +14,8 @@ Run them from the repo root. File paths are relative to the root.
 | --------------------------------------------------------------- | ---------------------------------------------------- |
 | `npm run blog:check -- [--only blog\|journal] [file...]`        | Checks posts and journal entries against the rules   |
 | `npm run blog:publish -- <file> [flags]`                        | Publishes one post to the blog                       |
+| `npm run blog:publish -- --all [flags]`                         | Publishes the whole series and its index post        |
+| `npm run blog:publish -- --index-only [flags]`                  | Publishes just the series index post                 |
 | `npm run journal:new -- <topic> [--epic <PREFIX>]... [--force]` | Scaffolds a journal entry from commits and the inbox |
 | `npm run journal:due -- [--threshold <commits>]`                | Lists epics that have shipped work since their entry |
 
@@ -26,13 +28,16 @@ npm run blog:publish -- docs/blog/01-why-im-building-a-wrestling-booking-sim.md 
 npm run blog:publish -- docs/blog/01-why-im-building-a-wrestling-booking-sim.md
 ```
 
-`blog:publish` takes one post file and these flags:
+`blog:publish` takes one post file, or `--all` or `--index-only` instead of a file, and these
+flags:
 
-| Flag               | What it does                                                                                       |
-| ------------------ | -------------------------------------------------------------------------------------------------- |
-| `--dry-run`        | Runs every step inside a transaction, prints what would change, then rolls back. Nothing is saved. |
-| `--no-write-back`  | Doesn't write `publishedAt` back into the post and the series index.                               |
-| `--allow-new-slug` | Publishes even though a post with the same title already exists on the blog under another slug.    |
+| Flag               | What it does                                                                                                        |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| `--all`            | Publishes every `draft` and `final` post in part order, then the series index post.                                 |
+| `--index-only`     | Publishes just the series index post.                                                                               |
+| `--dry-run`        | Runs every step inside a transaction, prints what would change, then rolls back. Nothing is saved.                  |
+| `--no-write-back`  | Doesn't write `publishedAt` back into the post and the series index.                                                |
+| `--allow-new-slug` | Publishes even though a post with the same title already exists on the blog under another slug. One post file only. |
 
 Exit codes: 0 published (or nothing to do), 1 refused or failed, 2 bad arguments.
 
@@ -93,6 +98,72 @@ publisher assumes the slug was renamed and stops, because slugs are permanent. P
 The publisher writes to the blog's database directly with `pg` rather than through the blog's
 HTTP API or ORM. The statements are in [`src/publish/sql.ts`](src/publish/sql.ts), with every
 value passed as a parameter.
+
+### Series navigation
+
+Every post the publisher builds gets the series navigation added to its content, so no post
+file holds it:
+
+- a header line before the first paragraph: _Part N of the Ringside Booker series: building a
+  wrestling booking sim in the open_, linking to the index post;
+- a footer after the last paragraph: a rule, then **Previous part** and **Next part** links to
+  the nearest `final` parts on either side, each in its own paragraph so they never share a line
+  on a phone, then a link to the series index. A side with no `final` part is left out.
+
+Only `final` posts are on the blog, so only they are linked. A draft gets the same footer as any
+other part, but nothing links to it. The navigation lives in the content instead of the blog's
+templates because the blog is shared with other writing; the series logic stays in this repo,
+in [`src/series.ts`](src/series.ts). The blog's own previous/next links at the bottom of every
+post go by publish date across everything on the blog, which is why the footer says "part".
+
+### The series index post
+
+`ringside-booker-series` on the blog is built from
+[`docs/blog/README.md`](../../docs/blog/README.md) by [`src/indexPost.ts`](src/indexPost.ts):
+the README's first paragraph, then **Published parts** (every `final` post, linked, with its
+excerpt) and **Coming up** (every `draft`, `outline` and `planned` part, title only, no link).
+The excerpt is the first paragraph cut to 160 characters. Nothing below the
+`<!-- public-index-end -->` marker in the README is read, so the rules never reach the blog. A
+README without the marker is an error.
+
+### Publishing the whole series
+
+Publishing a part changes what the other parts should show: a new `final` part means the part
+before it needs a **Next part** link, and the index needs a new entry. After a single-file publish
+that changes what readers can see (a post going up, coming down or retitled), the publisher
+names what is now out of date:
+
+```text
+Part 1's Next link and the series index are out of date; run `npm run blog:publish -- --all`
+```
+
+`--all` fixes that in one command:
+
+```sh
+npm run blog:publish -- --all --dry-run
+npm run blog:publish -- --all
+```
+
+1. Runs `blog:check` on the whole `docs/blog` folder with `--require-banned-terms`. Any error
+   stops it before it connects.
+2. Builds every `draft` and `final` post and the index post. A post that can't be built stops it
+   before it connects too.
+3. Publishes the posts in part order, then the index. Each post is its own transaction, the
+   same as a single-file publish, so posts that haven't changed report `unchanged` and write
+   nothing. `publishedAt` is written back for `final` posts going out for the first time.
+4. Prints a `Part | Slug | Action` table.
+
+The first failure stops the run. Posts before it stay published (each was committed on its
+own and is consistent), the table marks the failed post `failed` and the rest `not run`, and
+the error says which posts were already written. Fix the problem and run `--all` again; posts
+that went out the first time come back `unchanged`.
+
+When to use which:
+
+- **A new or edited part:** publish the file, then run `--all` if it printed the out-of-date
+  hint. Running `--all` straight away does the same thing.
+- **Only the index changed** (a planned row added or retitled in the README): `--index-only`.
+- **Anything that touches every post** (the navigation wording, the transform): `--all`.
 
 ### What each status does on the blog
 
@@ -186,7 +257,7 @@ Git runs through `execFile` with an argument array, never a shell.
 | `src/check/`   | The blog and journal checker and its rules                                  |
 | `src/journal/` | Journal tooling: git history, inbox, entry scaffolding, the due report      |
 | `src/publish/` | The publisher: settings, preflight, SQL, upsert and the write-back          |
-| `src/*.ts`     | Post frontmatter, loading and the publish transform                         |
+| `src/*.ts`     | Post frontmatter, loading, the publish transform, series nav and index post |
 | `test/`        | Vitest tests; `test/fixtures/repo` is a small repo the checker tests run on |
 
 ## Tests
