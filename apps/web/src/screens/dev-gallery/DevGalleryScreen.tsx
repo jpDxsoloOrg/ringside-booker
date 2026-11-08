@@ -19,8 +19,11 @@ import { StatBar } from '@/components/StatBar';
 import { TONES } from '@/components/tone';
 import { applyTheme } from '@/styles/theme';
 import type { ThemePreference } from '@/styles/theme';
+import { ConfirmDialogDemo } from './ConfirmDialogDemo';
 import styles from './DevGalleryScreen.module.css';
 import { ImageSlotDemo } from './ImageSlotDemo';
+import { SheetDemo } from './SheetDemo';
+import { TabsDemo } from './TabsDemo';
 
 interface GalleryEntry {
   /** Stable key and the section's anchor id, used by the e2e spec. */
@@ -40,6 +43,9 @@ export const galleryEntries: readonly GalleryEntry[] = [
   { id: 'gallery-layout', title: 'Layout' },
   { id: 'gallery-format', title: 'Formatters' },
   { id: 'gallery-image-slot', title: 'ImageSlot' },
+  { id: 'gallery-tabs', title: 'Tabs' },
+  { id: 'gallery-sheet', title: 'Sheet' },
+  { id: 'gallery-confirm-dialog', title: 'ConfirmDialog' },
 ];
 
 function sectionTitle(id: string): string {
@@ -414,6 +420,15 @@ export function DevGalleryScreen() {
       </Panel>
       <Panel id="gallery-image-slot" title={sectionTitle('gallery-image-slot')}>
         <ImageSlotDemo />
+      </Panel>
+      <Panel id="gallery-tabs" title={sectionTitle('gallery-tabs')}>
+        <TabsDemo />
+      </Panel>
+      <Panel id="gallery-sheet" title={sectionTitle('gallery-sheet')}>
+        <SheetDemo />
+      </Panel>
+      <Panel id="gallery-confirm-dialog" title={sectionTitle('gallery-confirm-dialog')}>
+        <ConfirmDialogDemo />
       </Panel>
     </main>
   );
