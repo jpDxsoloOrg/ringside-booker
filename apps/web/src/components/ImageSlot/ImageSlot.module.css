@@ -90,6 +90,62 @@
   fill: var(--color-cat-8);
 }
 
+/*
+ * Category tints for the ringed initials: `color` only, so the ring and the lettering draw in the
+ * same colour through currentColor. Each one is checked as text on the raised surface in
+ * tokens.test.ts, since the initials get small at the xs and sm sizes.
+ */
+
+.tint1 {
+  color: var(--color-cat-1);
+}
+
+.tint2 {
+  color: var(--color-cat-2);
+}
+
+.tint3 {
+  color: var(--color-cat-3);
+}
+
+.tint4 {
+  color: var(--color-cat-4);
+}
+
+.tint5 {
+  color: var(--color-cat-5);
+}
+
+.tint6 {
+  color: var(--color-cat-6);
+}
+
+.tint7 {
+  color: var(--color-cat-7);
+}
+
+.tint8 {
+  color: var(--color-cat-8);
+}
+
+/* Ringed initials: a raised-surface disc, a category ring and initials in the display face. */
+.ringBackground {
+  fill: var(--color-surface-raised);
+}
+
+.ring {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3;
+}
+
+.ringLettering {
+  font-family: var(--font-family-display);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.02em;
+  fill: currentColor;
+}
+
 .inverse {
   fill: var(--color-text-inverse);
 }

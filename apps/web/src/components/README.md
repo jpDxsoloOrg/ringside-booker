@@ -74,7 +74,7 @@ function MyWidgetDemo() {
 export const galleryEntry: GalleryEntry = {
   id: 'my-widget', // unique kebab-case; also the #hash that deep links to it
   title: 'MyWidget',
-  group: 'Primitives', // 'Tokens' | 'Primitives' | 'Broadcast' | 'Art' | 'Data' | 'Overlays' | 'Engine'
+  group: 'Primitives', // 'Tokens' | 'Primitives' | 'Broadcast' | 'Office' | 'Art' | 'Data' | 'Overlays' | 'Engine'
   notes: 'Optional: what to look for.',
   render: () => <MyWidgetDemo />,
 };
@@ -117,6 +117,11 @@ export const galleryEntry: GalleryEntry = {
 | `CardSlot`       | A booking slot: role, matchup, chips, winner, or the empty add actions                                         |
 | `ChamferPanel`   | The broadcast container with chamfered corners (`Panel` is the office one)                                     |
 | `SlashDivider`   | A band of 45° slashes, or the inline `//` between items                                                        |
+| `KpiCard`        | An office stat card: label, big number, delta chip, optional sparkline. `KpiCardGrid` lays them out            |
+| `DeltaChip`      | A change in a number: ▲/▼, the signed amount and a note, in the positive or negative colour                    |
+| `Sparkline`      | A tiny inline-SVG line of a recent series, named by its ends and trend                                         |
+| `AlignmentChip`  | FACE / HEEL / TWEENER in the alignment colours, always with the word                                           |
+| `ChampionCard`   | A title and its champion: belt, champion, reign, defences, prestige. `ChampionCardList` lays them out          |
 | `Stack`          | Children in a column (or row) with a token gap                                                                 |
 | `Cluster`        | A wrapping row with a token gap                                                                                |
 | `VisuallyHidden` | Text for screen readers only                                                                                   |
@@ -164,8 +169,10 @@ with its `on…Change`).
 - **Card roles are chosen by the screen.** Each column says where it goes on a phone card:
   `media`, `title`, `subtitle`, `stat` (the first six are shown, labelled with `cardLabel` or the
   header), `meta` or `hidden`. Only the screen knows which few numbers matter most on a phone.
-- **Stat-table look.** Headers are Barlow Condensed capitals with a little tracking, as are the
-  card stat labels. `numeric` columns sit on the right with the global `.tabular` class.
+- **Stat-table look.** Headers are Barlow Condensed capitals with a little tracking over a strong
+  hairline, as are the card stat labels. `numeric` columns sit on the right with the global
+  `.tabular` class. A hovered, selected or checked row lifts to `--color-surface-hover`, and
+  `striped` adds zebra rows on the desktop table.
 - **Sorting** (`sortable`, on by default; start with `initialSort`): numbers numerically, text
   naturally ("Worker 2" before "Worker 10"), empty values last in both directions, ties by row id.
   A header click cycles through the column's first direction (high to low for `numeric` columns,
@@ -247,3 +254,33 @@ The components for show moments (see the broadcast register in
   card slot's winner marker says "Winner" (or the label you pass).
 - **Phones.** `CardSlot` stacks its sides, a four-stat `ScoreBug` wraps to 2×2, and a `docked`
   `Ticker` sticks above the bottom tab bar.
+
+## Office kit
+
+The components for the management screens (see the office register in
+`docs/design/visual-identity.md`): `KpiCard` (with `KpiCardGrid`), `DeltaChip`, `Sparkline`,
+`AlignmentChip`, `ChampionCard` (with `ChampionCardList`) and the stat-table look of `DataTable`.
+They sit in the gallery's **Office** group.
+
+- **Calm.** Rounded cards (`--radius-card`), hairlines and surface steps; no skew, no glow, and
+  nothing loops. Labels are Barlow Condensed capitals, body text is Inter, and every number is
+  Barlow Condensed with tabular figures. `officeKit.test.ts` checks these rules for every
+  stylesheet.
+- **Never colour alone.** A delta has an arrow and a sign (rose, not the action red, for bad
+  news; `goodWhen="down"` for numbers that are better lower, such as payroll). A sparkline's
+  accessible name gives its first and last values and the trend. An alignment chip always says
+  FACE, HEEL or TWEENER. Prestige is a number as well as stars.
+- **Data in, no game types.** Screens pass formatted values, `ImageSubject`s and slots (`why`,
+  `footer`), so a finance or titles query can feed the kit directly. `AlignmentChip` takes the
+  engine's `Alignment`.
+- **Sparklines draw with SVG attributes**, like `StatBar`, so there are no inline styles and no
+  chart library. Fewer than two points draw nothing.
+- **People placeholders are ringed initials**: a ring and initials in a category colour from the
+  id, on the raised surface. `personStyle="silhouette"` still draws a silhouette.
+- **Stat tables.** `DataTable` headers are condensed capitals over a strong hairline, a hovered
+  row lifts to `--color-surface-hover`, and `striped` adds zebra rows, worked out from each row's
+  place so sorting never moves a stripe. Use `DeltaChip variant="plain"` in signed columns.
+- **Phones.** `KpiCardGrid` goes 2-up below `--bp-mobile`, and `ChampionCardList` becomes a
+  horizontal swipe row that scrolls inside itself and snaps each card. On a phone the row is a
+  focusable region, so the arrow keys scroll it too. `apps/web/e2e/office.spec.ts` checks both
+  layouts in a real browser.

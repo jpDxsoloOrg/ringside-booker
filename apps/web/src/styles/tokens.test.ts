@@ -247,6 +247,19 @@ const CONTRAST_REQUIREMENTS: readonly ContrastRequirement[] = [
     background: `--color-cat-${String(index + 1)}`,
     minimum: 4.5,
   })),
+  // Ringed initials (the default person placeholder): the category colour as lettering on the
+  // raised surface, AA for normal text since the initials get small at the xs and sm sizes.
+  ...Array.from({ length: 8 }, (_, index) => ({
+    foreground: `--color-cat-${String(index + 1)}`,
+    background: '--color-surface-raised',
+    minimum: 4.5,
+  })),
+  // Solid alignment chips: dark ink on the face, heel and tweener fills.
+  ...['--color-face', '--color-heel', '--color-tweener'].map((background) => ({
+    foreground: '--color-text-inverse',
+    background,
+    minimum: 4.5,
+  })),
   // Engraved initials on a belt plate, for every metal tier.
   ...['gold', 'silver', 'bronze', 'plain'].map((tier) => ({
     foreground: '--color-metal-ink',
