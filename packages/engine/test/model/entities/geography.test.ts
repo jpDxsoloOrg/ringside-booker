@@ -171,8 +171,11 @@ describe('locations are always IDs', () => {
           return;
         }
         fieldsChecked += 1;
-        // A value that wraps onto the next line (a long `z.array(` call) is checked with it.
-        const value = `${match[2] ?? ''} ${lines[index + 1] ?? ''}`;
+        // A value that wraps onto the next line (a long `z.array(` call) is checked with it. A value
+        // that ends on its own line is checked alone, so the next field cannot vouch for it.
+        const ownValue = (match[2] ?? '').trim();
+        const endsOnItsLine = ownValue.endsWith(',') || ownValue.endsWith(';');
+        const value = endsOnItsLine ? ownValue : `${ownValue} ${lines[index + 1] ?? ''}`;
         if (!ID_TYPED.test(value)) {
           offenders.push(`${fileName}:${String(index + 1)}: ${trimmed}`);
         }
