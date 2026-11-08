@@ -65,7 +65,7 @@ function assertYearAndMonth(functionName: string, year: number, month: number): 
       functionName,
       'year',
       year,
-      `an integer in ${MIN_GAME_YEAR}..${MAX_GAME_YEAR}`,
+      `an integer in ${String(MIN_GAME_YEAR)}..${String(MAX_GAME_YEAR)}`,
     );
   }
   if (!Number.isInteger(month) || month < 1 || month > MONTHS_PER_YEAR) {
@@ -89,14 +89,14 @@ function readParts(value: string): CalendarParts | string {
   const month = Number(match[2]);
   const day = Number(match[3]);
   if (year < MIN_GAME_YEAR || year > MAX_GAME_YEAR) {
-    return `year must be ${MIN_GAME_YEAR}-${MAX_GAME_YEAR}`;
+    return `year must be ${String(MIN_GAME_YEAR)}-${String(MAX_GAME_YEAR)}`;
   }
   if (month < 1 || month > MONTHS_PER_YEAR) {
     return 'month must be 01-12';
   }
   const monthLength = daysInMonth(year, month);
   if (day < 1 || day > monthLength) {
-    return `day must be 01-${monthLength} in that month`;
+    return `day must be 01-${String(monthLength)} in that month`;
   }
   return { year, month, day };
 }
@@ -110,19 +110,26 @@ function partsOf(date: GameDate): CalendarParts {
   };
 }
 
-/** The single place parts become a GameDate; callers have already range-checked them. */
+/**
+ * The single place parts become a GameDate. Callers have already range-checked the parts; the
+ * final check is a cheap guard so a bug in the arithmetic can never brand a bad string.
+ */
 function formatParts(parts: CalendarParts): GameDate {
   const yearText = String(parts.year).padStart(4, '0');
   const monthText = String(parts.month).padStart(2, '0');
   const dayText = String(parts.day).padStart(2, '0');
-  return `${yearText}-${monthText}-${dayText}` as GameDate;
+  const text = `${yearText}-${monthText}-${dayText}`;
+  if (!isGameDate(text)) {
+    throw new InvalidDateError(text, 'calendar arithmetic produced an invalid date');
+  }
+  return text;
 }
 
 function assertYearInRange(functionName: string, parts: CalendarParts): void {
   if (parts.year < MIN_GAME_YEAR || parts.year > MAX_GAME_YEAR) {
     throw new InvalidDateError(
-      `${parts.year}-${parts.month}-${parts.day}`,
-      `${functionName} left the supported years ${MIN_GAME_YEAR}-${MAX_GAME_YEAR}`,
+      `${String(parts.year)}-${String(parts.month)}-${String(parts.day)}`,
+      `${functionName} left the supported years ${String(MIN_GAME_YEAR)}-${String(MAX_GAME_YEAR)}`,
     );
   }
 }
@@ -148,7 +155,10 @@ export function parseGameDate(value: unknown): GameDate {
 export function makeGameDate(year: number, month: number, day: number): GameDate {
   assertYearAndMonth('makeGameDate', year, month);
   if (!Number.isInteger(day) || day < 1 || day > daysInMonth(year, month)) {
-    throw new InvalidDateError(`${year}-${month}-${day}`, 'day is not in that month');
+    throw new InvalidDateError(
+      `${String(year)}-${String(month)}-${String(day)}`,
+      'day is not in that month',
+    );
   }
   return formatParts({ year, month, day });
 }
@@ -178,7 +188,7 @@ export function fromEpochDay(epochDay: number): GameDate {
   if (epochDay < MIN_EPOCH_DAY || epochDay > MAX_EPOCH_DAY) {
     throw new InvalidDateError(
       epochDay,
-      `epoch day is outside the supported years ${MIN_GAME_YEAR}-${MAX_GAME_YEAR}`,
+      `epoch day is outside the supported years ${String(MIN_GAME_YEAR)}-${String(MAX_GAME_YEAR)}`,
     );
   }
   const shiftedDay = epochDay + 719_468;

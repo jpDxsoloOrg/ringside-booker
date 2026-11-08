@@ -25,6 +25,11 @@ describe('cents', () => {
     expect(isCents(12)).toBe(true);
   });
 
+  it('folds negative zero into zero', () => {
+    expect(Object.is(cents(-0), 0)).toBe(true);
+    expect(Object.is(sub(cents(5), cents(5)), 0)).toBe(true);
+  });
+
   it('rejects fractions and non-finite numbers', () => {
     expect(() => cents(1.5)).toThrow(InvalidArgumentError);
     expect(() => cents(Number.NaN)).toThrow(InvalidArgumentError);

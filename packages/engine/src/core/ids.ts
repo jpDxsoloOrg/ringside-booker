@@ -79,7 +79,7 @@ export const ID_BODY_ALPHABET = '0123456789abcdefghjkmnpqrstvwxyz';
 /** Number of characters in an ID body. */
 export const ID_BODY_LENGTH = 10;
 
-const ID_BODY_SOURCE = `[0-9a-hjkmnp-tv-z]{${ID_BODY_LENGTH}}`;
+const ID_BODY_SOURCE = `[0-9a-hjkmnp-tv-z]{${String(ID_BODY_LENGTH)}}`;
 
 export function isEntityKind(value: unknown): value is EntityKind {
   return typeof value === 'string' && Object.hasOwn(ENTITY_KINDS, value);
@@ -89,12 +89,21 @@ export function isEntityKind(value: unknown): value is EntityKind {
 export const ENTITY_KIND_LIST: readonly EntityKind[] =
   Object.keys(ENTITY_KINDS).filter(isEntityKind);
 
+function hasPatternForEveryKind(
+  table: Partial<Record<EntityKind, RegExp>>,
+): table is Record<EntityKind, RegExp> {
+  return ENTITY_KIND_LIST.every((kind) => table[kind] !== undefined);
+}
+
 function buildIdPatterns(): Readonly<Record<EntityKind, RegExp>> {
-  const entries = ENTITY_KIND_LIST.map(
-    (kind) => [kind, new RegExp(`^${ENTITY_KINDS[kind]}_${ID_BODY_SOURCE}$`)] as const,
-  );
-  // Object.fromEntries loses the key type; the entries above cover every kind exactly once.
-  return Object.freeze(Object.fromEntries(entries) as Record<EntityKind, RegExp>);
+  const table: Partial<Record<EntityKind, RegExp>> = {};
+  for (const kind of ENTITY_KIND_LIST) {
+    table[kind] = new RegExp(`^${ENTITY_KINDS[kind]}_${ID_BODY_SOURCE}$`);
+  }
+  if (!hasPatternForEveryKind(table)) {
+    throw new InvalidArgumentError('buildIdPatterns', 'ENTITY_KINDS', null, 'a prefix per kind');
+  }
+  return Object.freeze(table);
 }
 
 /** The full-match pattern for each kind's IDs, for example `/^per_[0-9a-hjkmnp-tv-z]{10}$/`. */
@@ -182,11 +191,6 @@ function drawIdBody(entropy: IdEntropy): string {
   return encodeHalf(highHalf) + encodeHalf(lowHalf);
 }
 
-/** The single place a raw string becomes a typed ID; callers have already built a valid one. */
-function brandId<K extends EntityKind>(value: string): IdOf<K> {
-  return value as IdOf<K>;
-}
-
 /**
  * Creates an ID factory over `entropy`. The factory keeps no state of its own, so two factories
  * over the same entropy sequence mint the same IDs.
@@ -196,7 +200,7 @@ export function createIdFactory(entropy: IdEntropy): IdFactory {
     next<K extends EntityKind>(kind: K, exists: (id: IdOf<K>) => boolean): IdOf<K> {
       const prefix = ENTITY_KINDS[kind];
       for (let attempt = 1; attempt <= ID_MAX_ATTEMPTS; attempt += 1) {
-        const candidate = brandId<K>(`${prefix}_${drawIdBody(entropy)}`);
+        const candidate = parseId(kind, `${prefix}_${drawIdBody(entropy)}`);
         if (!exists(candidate)) {
           return candidate;
         }

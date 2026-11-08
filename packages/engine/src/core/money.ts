@@ -25,12 +25,16 @@ export function isCents(value: unknown): value is Cents {
   return Number.isSafeInteger(value);
 }
 
-/** The single place a number becomes Cents; callers have checked it is a safe integer. */
+/**
+ * The single place a number becomes Cents. Throws `MoneyOverflowError` when it is not a safe
+ * integer, and folds negative zero into zero so saves never hold `-0`.
+ */
 function checkedCents(operation: string, value: number): Cents {
-  if (!Number.isSafeInteger(value)) {
+  const normalized = value === 0 ? 0 : value;
+  if (!isCents(normalized)) {
     throw new MoneyOverflowError(operation, value);
   }
-  return value as Cents;
+  return normalized;
 }
 
 /**
@@ -73,7 +77,7 @@ export function sum(amounts: readonly Cents[]): Cents {
 }
 
 export function negate(amount: Cents): Cents {
-  return checkedCents('negate', amount === 0 ? 0 : -amount);
+  return checkedCents('negate', 0 - amount);
 }
 
 /** Rounds to the nearest integer with halves going away from zero, so 2.5 → 3 and -2.5 → -3. */

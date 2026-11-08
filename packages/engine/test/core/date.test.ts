@@ -101,11 +101,13 @@ describe('epoch days', () => {
       for (let monthNumber = 1; monthNumber <= 12; monthNumber += 1) {
         const length = monthNumber === 2 && leap ? 29 : (monthLengths[monthNumber - 1] ?? 0);
         for (let dayNumber = 1; dayNumber <= length; dayNumber += 1) {
-          const text = `${yearNumber}-${String(monthNumber).padStart(2, '0')}-${String(dayNumber).padStart(2, '0')}`;
+          const text = `${String(yearNumber)}-${String(monthNumber).padStart(2, '0')}-${String(dayNumber).padStart(2, '0')}`;
           const gameDate = date(text);
           const epochDay = toEpochDay(gameDate);
           if (epochDay !== expectedEpochDay || fromEpochDay(epochDay) !== text) {
-            expect.fail(`${text}: epoch day ${epochDay}, expected ${expectedEpochDay}`);
+            expect.fail(
+              `${text}: epoch day ${String(epochDay)}, expected ${String(expectedEpochDay)}`,
+            );
           }
           expectedEpochDay += 1;
           checkedDays += 1;

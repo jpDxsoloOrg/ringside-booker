@@ -39,7 +39,7 @@ export function scriptedIdEntropy(draws: readonly number[]): IdEntropy & { reado
     nextUint32(): number {
       const draw = draws[index];
       if (draw === undefined) {
-        throw new Error(`scriptedIdEntropy ran out of draws after ${draws.length}`);
+        throw new Error(`scriptedIdEntropy ran out of draws after ${String(draws.length)}`);
       }
       index += 1;
       return draw;

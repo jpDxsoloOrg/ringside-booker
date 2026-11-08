@@ -62,7 +62,7 @@ export class InvalidIdError extends EngineError {
 /** The ID factory kept drawing IDs that already exist. */
 export class IdCollisionError extends EngineError {
   constructor(kind: string, attempts: number) {
-    super('ID_COLLISION', `Could not mint a new ${kind} ID after ${attempts} attempts`, {
+    super('ID_COLLISION', `Could not mint a new ${kind} ID after ${String(attempts)} attempts`, {
       kind,
       attempts,
     });
@@ -91,9 +91,13 @@ export class InvalidContentKeyError extends EngineError {
 /** A money calculation produced a value outside the safe integer range. */
 export class MoneyOverflowError extends EngineError {
   constructor(operation: string, result: number) {
-    super('MONEY_OVERFLOW', `${operation} overflowed the safe integer range (got ${result})`, {
-      operation,
-      result,
-    });
+    super(
+      'MONEY_OVERFLOW',
+      `${operation} overflowed the safe integer range (got ${String(result)})`,
+      {
+        operation,
+        result,
+      },
+    );
   }
 }
