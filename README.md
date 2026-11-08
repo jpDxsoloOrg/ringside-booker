@@ -36,9 +36,45 @@ Run these from the repository root.
 | `npm run format`       | Formats the repository with Prettier                             |
 | `npm run format:check` | Checks formatting without writing anything                       |
 | `npm run build`        | Runs the `build` script of every workspace that has one          |
+| `npm run lint`         | Runs ESLint over the repository and fails on any warning         |
+| `npm run lint:fix`     | Runs ESLint and applies the fixes it can make                    |
+| `npm run verify`       | Format check, lint, typecheck and tests, stopping at a failure   |
 
 Each workspace also has its own `test` and `typecheck` scripts, for example
 `npm test -w @ringside/engine`.
+
+## CI
+
+Every pull request and every push to `main` runs the `check` job in
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml). It runs, in order:
+
+1. `npm ci`
+2. `npm audit --omit=dev --audit-level=high` (reports only; it never fails the job)
+3. `npm run format:check`
+4. `npm run lint`
+5. `npm run typecheck`
+6. `npm test -- --coverage` (the coverage report is kept as a build artifact for 7 days)
+7. `npm run build`
+
+A PR merges only when `check` is green.
+
+To run the same sequence locally before pushing:
+
+```sh
+npm run verify
+```
+
+That is `npm run format:check && npm run lint && npm run typecheck && npm test`, and it stops at
+the first step that fails.
+
+The lint config ([`eslint.config.js`](eslint.config.js)) is where the engine rules below are
+enforced: no `any` anywhere, and inside `packages/engine` no `Math.random`, no wall-clock reads
+(`Date.now`, `new Date()`, `performance.now`), no DOM or browser globals, no timers and no imports
+from `apps/` or UI libraries. [`packages/engine/test/lint-guards.test.ts`](packages/engine/test/lint-guards.test.ts)
+checks that each of those rules still fires, so a dependency update can't switch one off quietly.
+
+Dependabot ([`.github/dependabot.yml`](.github/dependabot.yml)) opens weekly grouped PRs for dev
+dependencies, runtime dependencies and GitHub Actions.
 
 ## Repository layout
 
