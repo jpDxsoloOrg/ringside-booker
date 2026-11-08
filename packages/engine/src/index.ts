@@ -187,3 +187,5 @@ export type {
   IntegrityReport,
 } from './model/integrity';
 export { checkWorld, MAX_INTEGRITY_ISSUES } from './model/integrity';
+
+export * from './model/entities/person';

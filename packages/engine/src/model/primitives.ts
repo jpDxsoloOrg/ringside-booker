@@ -14,8 +14,11 @@ import { isCents, type Cents } from '../core/money';
 
 export { zWeekday } from '../core/date';
 
-/** An ID of one entity kind, for example `zId('person')` accepts `per_0000000001` only. */
-export function zId<K extends EntityKind>(kind: K): z.ZodType<IdOf<K>> {
+/**
+ * An ID of one entity kind, for example `zId('person')` accepts `per_0000000001` only. The schema's
+ * input type is the ID type too, so it can also key a record (`z.record(zId('region'), zStat)`).
+ */
+export function zId<K extends EntityKind>(kind: K): z.ZodCustom<IdOf<K>, IdOf<K>> {
   return z.custom<IdOf<K>>((value) => isId(kind, value), {
     message: `Expected a ${kind} ID (${ENTITY_KINDS[kind]}_ followed by 10 base32 characters)`,
   });

@@ -6,10 +6,12 @@
  * (FND-10) rather than at compile time, so the schema tickets can land in any order.
  */
 
+import { peopleTable } from './entities/person';
 import type { TableRegistry } from './table-def';
 import type { World, WorldView } from './world';
 
 export const TABLES = {
+  people: peopleTable,
   // FND-06..09 add entries
 } as const satisfies TableRegistry;
 
