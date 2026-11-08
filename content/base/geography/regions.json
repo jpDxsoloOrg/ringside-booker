@@ -1,0 +1,629 @@
+[
+  {
+    "key": "us-pacific-northwest",
+    "name": "Pacific Northwest",
+    "countryKey": "us",
+    "population": 16400000,
+    "wrestlingInterest": 70,
+    "neighbourKeys": ["us-california", "us-mountain", "ca-british-columbia"]
+  },
+  {
+    "key": "us-california",
+    "name": "California",
+    "countryKey": "us",
+    "population": 39400000,
+    "neighbourKeys": ["us-pacific-northwest", "us-southwest", "mx-northwest"]
+  },
+  {
+    "key": "us-southwest",
+    "name": "Southwest",
+    "countryKey": "us",
+    "population": 13000000,
+    "preferredStyle": "highFlying",
+    "neighbourKeys": ["us-california", "us-mountain", "us-texas", "us-plains", "mx-northwest"]
+  },
+  {
+    "key": "us-mountain",
+    "name": "Mountain",
+    "countryKey": "us",
+    "population": 11200000,
+    "wrestlingInterest": 65,
+    "neighbourKeys": ["us-pacific-northwest", "us-southwest", "us-plains", "ca-prairies"]
+  },
+  {
+    "key": "us-texas",
+    "name": "Texas",
+    "countryKey": "us",
+    "population": 31300000,
+    "wrestlingInterest": 90,
+    "preferredStyle": "traditional",
+    "neighbourKeys": ["us-southwest", "us-plains", "us-southeast", "mx-northwest", "mx-northeast"]
+  },
+  {
+    "key": "us-plains",
+    "name": "Plains",
+    "countryKey": "us",
+    "population": 10800000,
+    "preferredStyle": "traditional",
+    "neighbourKeys": [
+      "us-southwest",
+      "us-mountain",
+      "us-texas",
+      "us-midwest",
+      "us-southeast",
+      "ca-prairies"
+    ]
+  },
+  {
+    "key": "us-midwest",
+    "name": "Midwest",
+    "countryKey": "us",
+    "population": 33900000,
+    "neighbourKeys": ["us-plains", "us-great-lakes", "us-southeast", "ca-ontario"]
+  },
+  {
+    "key": "us-great-lakes",
+    "name": "Great Lakes",
+    "countryKey": "us",
+    "population": 28900000,
+    "neighbourKeys": ["us-midwest", "us-southeast", "us-mid-atlantic", "ca-ontario"]
+  },
+  {
+    "key": "us-southeast",
+    "name": "Southeast",
+    "countryKey": "us",
+    "population": 55300000,
+    "wrestlingInterest": 95,
+    "preferredStyle": "traditional",
+    "neighbourKeys": [
+      "us-texas",
+      "us-plains",
+      "us-midwest",
+      "us-great-lakes",
+      "us-florida",
+      "us-mid-atlantic"
+    ]
+  },
+  {
+    "key": "us-florida",
+    "name": "Florida",
+    "countryKey": "us",
+    "population": 23400000,
+    "wrestlingInterest": 85,
+    "neighbourKeys": ["us-southeast"]
+  },
+  {
+    "key": "us-mid-atlantic",
+    "name": "Mid-Atlantic",
+    "countryKey": "us",
+    "population": 41300000,
+    "preferredStyle": "hardcore",
+    "neighbourKeys": ["us-great-lakes", "us-southeast", "us-northeast"]
+  },
+  {
+    "key": "us-northeast",
+    "name": "Northeast",
+    "countryKey": "us",
+    "population": 35200000,
+    "wrestlingInterest": 85,
+    "neighbourKeys": ["us-mid-atlantic", "ca-ontario", "ca-quebec", "ca-atlantic"]
+  },
+  {
+    "key": "ca-british-columbia",
+    "name": "British Columbia",
+    "countryKey": "ca",
+    "population": 5700000,
+    "neighbourKeys": ["ca-prairies", "us-pacific-northwest"]
+  },
+  {
+    "key": "ca-prairies",
+    "name": "Prairies and the North",
+    "countryKey": "ca",
+    "population": 7800000,
+    "wrestlingInterest": 75,
+    "preferredStyle": "technical",
+    "neighbourKeys": ["ca-british-columbia", "ca-ontario", "us-mountain", "us-plains"]
+  },
+  {
+    "key": "ca-ontario",
+    "name": "Ontario",
+    "countryKey": "ca",
+    "population": 16300000,
+    "neighbourKeys": ["ca-prairies", "ca-quebec", "us-midwest", "us-great-lakes", "us-northeast"]
+  },
+  {
+    "key": "ca-quebec",
+    "name": "Quebec",
+    "countryKey": "ca",
+    "population": 9000000,
+    "wrestlingInterest": 60,
+    "preferredStyle": "highFlying",
+    "neighbourKeys": ["ca-ontario", "ca-atlantic", "us-northeast"]
+  },
+  {
+    "key": "ca-atlantic",
+    "name": "Atlantic Canada",
+    "countryKey": "ca",
+    "population": 2700000,
+    "wrestlingInterest": 85,
+    "neighbourKeys": ["ca-quebec", "us-northeast"]
+  },
+  {
+    "key": "gl-all",
+    "name": "Greenland",
+    "countryKey": "gl",
+    "population": 100000,
+    "neighbourKeys": []
+  },
+  {
+    "key": "mx-northwest",
+    "name": "Northwest Mexico",
+    "countryKey": "mx",
+    "population": 16500000,
+    "wrestlingInterest": 70,
+    "neighbourKeys": ["mx-northeast", "mx-west", "us-california", "us-southwest", "us-texas"]
+  },
+  {
+    "key": "mx-northeast",
+    "name": "Northeast Mexico",
+    "countryKey": "mx",
+    "population": 15800000,
+    "neighbourKeys": ["mx-northwest", "mx-west", "mx-mexico-city", "mx-south", "us-texas"]
+  },
+  {
+    "key": "mx-west",
+    "name": "Western Mexico",
+    "countryKey": "mx",
+    "population": 27500000,
+    "neighbourKeys": ["mx-northwest", "mx-northeast", "mx-mexico-city", "mx-south"]
+  },
+  {
+    "key": "mx-mexico-city",
+    "name": "Mexico City",
+    "countryKey": "mx",
+    "population": 34000000,
+    "wrestlingInterest": 95,
+    "neighbourKeys": ["mx-northeast", "mx-west", "mx-south"]
+  },
+  {
+    "key": "mx-south",
+    "name": "Southern Mexico",
+    "countryKey": "mx",
+    "population": 31200000,
+    "neighbourKeys": ["mx-northeast", "mx-west", "mx-mexico-city", "mx-yucatan"]
+  },
+  {
+    "key": "mx-yucatan",
+    "name": "Yucatán Peninsula",
+    "countryKey": "mx",
+    "population": 5300000,
+    "wrestlingInterest": 65,
+    "neighbourKeys": ["mx-south"]
+  },
+  {
+    "key": "pr-all",
+    "name": "Puerto Rico",
+    "countryKey": "pr",
+    "population": 3200000,
+    "neighbourKeys": ["do-all"]
+  },
+  {
+    "key": "do-all",
+    "name": "Dominican Republic",
+    "countryKey": "do",
+    "population": 11400000,
+    "neighbourKeys": ["pr-all"]
+  },
+  {
+    "key": "cr-all",
+    "name": "Costa Rica",
+    "countryKey": "cr",
+    "population": 5200000,
+    "neighbourKeys": ["pa-all"]
+  },
+  {
+    "key": "pa-all",
+    "name": "Panama",
+    "countryKey": "pa",
+    "population": 4500000,
+    "neighbourKeys": ["cr-all", "co-all"]
+  },
+  {
+    "key": "co-all",
+    "name": "Colombia",
+    "countryKey": "co",
+    "population": 53400000,
+    "neighbourKeys": ["pa-all", "pe-all", "br-north-centre-west"]
+  },
+  {
+    "key": "pe-all",
+    "name": "Peru",
+    "countryKey": "pe",
+    "population": 34600000,
+    "neighbourKeys": ["co-all", "br-north-centre-west", "cl-all"]
+  },
+  {
+    "key": "br-southeast",
+    "name": "Southeast Brazil",
+    "countryKey": "br",
+    "population": 88800000,
+    "wrestlingInterest": 40,
+    "neighbourKeys": ["br-south", "br-northeast", "br-north-centre-west"]
+  },
+  {
+    "key": "br-south",
+    "name": "Southern Brazil",
+    "countryKey": "br",
+    "population": 31100000,
+    "neighbourKeys": ["ar-all", "br-southeast", "br-north-centre-west"]
+  },
+  {
+    "key": "br-northeast",
+    "name": "Northeast Brazil",
+    "countryKey": "br",
+    "population": 57400000,
+    "neighbourKeys": ["br-southeast", "br-north-centre-west"]
+  },
+  {
+    "key": "br-north-centre-west",
+    "name": "North and Centre-West Brazil",
+    "countryKey": "br",
+    "population": 35700000,
+    "wrestlingInterest": 20,
+    "neighbourKeys": ["co-all", "pe-all", "br-southeast", "br-south", "br-northeast"]
+  },
+  {
+    "key": "ar-all",
+    "name": "Argentina",
+    "countryKey": "ar",
+    "population": 45900000,
+    "neighbourKeys": ["cl-all", "br-south"]
+  },
+  {
+    "key": "cl-all",
+    "name": "Chile",
+    "countryKey": "cl",
+    "population": 19900000,
+    "neighbourKeys": ["pe-all", "ar-all"]
+  },
+  {
+    "key": "gb-london",
+    "name": "London",
+    "countryKey": "gb",
+    "population": 9100000,
+    "neighbourKeys": ["gb-south", "gb-midlands-wales"]
+  },
+  {
+    "key": "gb-south",
+    "name": "Southern England",
+    "countryKey": "gb",
+    "population": 21800000,
+    "neighbourKeys": ["gb-london", "gb-midlands-wales", "fr-all"]
+  },
+  {
+    "key": "gb-midlands-wales",
+    "name": "Midlands and Wales",
+    "countryKey": "gb",
+    "population": 14300000,
+    "neighbourKeys": ["gb-london", "gb-south", "gb-north"]
+  },
+  {
+    "key": "gb-north",
+    "name": "Northern England",
+    "countryKey": "gb",
+    "population": 15900000,
+    "wrestlingInterest": 70,
+    "preferredStyle": "traditional",
+    "neighbourKeys": ["gb-midlands-wales", "gb-scotland-ni"]
+  },
+  {
+    "key": "gb-scotland-ni",
+    "name": "Scotland and Northern Ireland",
+    "countryKey": "gb",
+    "population": 7400000,
+    "preferredStyle": "hardHitting",
+    "neighbourKeys": ["gb-north", "ie-all"]
+  },
+  {
+    "key": "ie-all",
+    "name": "Ireland",
+    "countryKey": "ie",
+    "population": 5400000,
+    "neighbourKeys": ["gb-scotland-ni"]
+  },
+  {
+    "key": "de-north",
+    "name": "Northern Germany",
+    "countryKey": "de",
+    "population": 15300000,
+    "neighbourKeys": ["de-east", "de-west"]
+  },
+  {
+    "key": "de-east",
+    "name": "Eastern Germany",
+    "countryKey": "de",
+    "population": 14900000,
+    "wrestlingInterest": 30,
+    "neighbourKeys": ["de-north", "de-west", "de-south", "pl-all"]
+  },
+  {
+    "key": "de-west",
+    "name": "Western Germany",
+    "countryKey": "de",
+    "population": 29000000,
+    "wrestlingInterest": 55,
+    "neighbourKeys": ["de-north", "de-east", "de-south", "nl-all", "be-all", "fr-all"]
+  },
+  {
+    "key": "de-south",
+    "name": "Southern Germany",
+    "countryKey": "de",
+    "population": 24700000,
+    "neighbourKeys": ["de-east", "de-west", "fr-all", "ch-all", "at-all"]
+  },
+  {
+    "key": "at-all",
+    "name": "Austria",
+    "countryKey": "at",
+    "population": 9200000,
+    "neighbourKeys": ["de-south", "ch-all", "it-all"]
+  },
+  {
+    "key": "ch-all",
+    "name": "Switzerland",
+    "countryKey": "ch",
+    "population": 9000000,
+    "neighbourKeys": ["de-south", "fr-all", "at-all", "it-all"]
+  },
+  {
+    "key": "fr-all",
+    "name": "France",
+    "countryKey": "fr",
+    "population": 68600000,
+    "neighbourKeys": ["gb-south", "de-west", "de-south", "be-all", "ch-all", "it-all", "es-all"]
+  },
+  {
+    "key": "es-all",
+    "name": "Spain",
+    "countryKey": "es",
+    "population": 49100000,
+    "neighbourKeys": ["fr-all", "pt-all"]
+  },
+  {
+    "key": "pt-all",
+    "name": "Portugal",
+    "countryKey": "pt",
+    "population": 10600000,
+    "neighbourKeys": ["es-all"]
+  },
+  {
+    "key": "it-all",
+    "name": "Italy",
+    "countryKey": "it",
+    "population": 58900000,
+    "neighbourKeys": ["fr-all", "ch-all", "at-all"]
+  },
+  {
+    "key": "nl-all",
+    "name": "Netherlands",
+    "countryKey": "nl",
+    "population": 18000000,
+    "neighbourKeys": ["de-west", "be-all"]
+  },
+  {
+    "key": "be-all",
+    "name": "Belgium",
+    "countryKey": "be",
+    "population": 11800000,
+    "neighbourKeys": ["de-west", "fr-all", "nl-all"]
+  },
+  {
+    "key": "se-all",
+    "name": "Sweden",
+    "countryKey": "se",
+    "population": 10600000,
+    "neighbourKeys": ["no-all"]
+  },
+  {
+    "key": "no-all",
+    "name": "Norway",
+    "countryKey": "no",
+    "population": 5600000,
+    "neighbourKeys": ["se-all"]
+  },
+  {
+    "key": "pl-all",
+    "name": "Poland",
+    "countryKey": "pl",
+    "population": 37500000,
+    "neighbourKeys": ["de-east"]
+  },
+  {
+    "key": "jp-hokkaido",
+    "name": "Hokkaido",
+    "countryKey": "jp",
+    "population": 5100000,
+    "wrestlingInterest": 60,
+    "neighbourKeys": ["jp-tohoku"]
+  },
+  {
+    "key": "jp-tohoku",
+    "name": "Tohoku",
+    "countryKey": "jp",
+    "population": 8400000,
+    "neighbourKeys": ["jp-hokkaido", "jp-kanto", "jp-chubu"]
+  },
+  {
+    "key": "jp-kanto",
+    "name": "Kanto",
+    "countryKey": "jp",
+    "population": 43500000,
+    "wrestlingInterest": 90,
+    "neighbourKeys": ["jp-tohoku", "jp-chubu"]
+  },
+  {
+    "key": "jp-chubu",
+    "name": "Chubu",
+    "countryKey": "jp",
+    "population": 20700000,
+    "neighbourKeys": ["jp-tohoku", "jp-kanto", "jp-kansai"]
+  },
+  {
+    "key": "jp-kansai",
+    "name": "Kansai",
+    "countryKey": "jp",
+    "population": 22200000,
+    "wrestlingInterest": 80,
+    "preferredStyle": "highFlying",
+    "neighbourKeys": ["jp-chubu", "jp-western"]
+  },
+  {
+    "key": "jp-western",
+    "name": "Western Japan",
+    "countryKey": "jp",
+    "population": 24700000,
+    "neighbourKeys": ["jp-kansai", "kr-all"]
+  },
+  {
+    "key": "kr-all",
+    "name": "South Korea",
+    "countryKey": "kr",
+    "population": 51700000,
+    "neighbourKeys": ["jp-western"]
+  },
+  {
+    "key": "tw-all",
+    "name": "Taiwan",
+    "countryKey": "tw",
+    "population": 23400000,
+    "neighbourKeys": []
+  },
+  {
+    "key": "cn-all",
+    "name": "China",
+    "countryKey": "cn",
+    "population": 1408300000,
+    "neighbourKeys": ["in-all"]
+  },
+  {
+    "key": "in-all",
+    "name": "India",
+    "countryKey": "in",
+    "population": 1463900000,
+    "neighbourKeys": ["cn-all"]
+  },
+  {
+    "key": "ph-all",
+    "name": "Philippines",
+    "countryKey": "ph",
+    "population": 116800000,
+    "neighbourKeys": []
+  },
+  {
+    "key": "sg-all",
+    "name": "Singapore",
+    "countryKey": "sg",
+    "population": 6000000,
+    "neighbourKeys": ["my-all"]
+  },
+  {
+    "key": "my-all",
+    "name": "Malaysia",
+    "countryKey": "my",
+    "population": 35900000,
+    "neighbourKeys": ["sg-all", "id-all"]
+  },
+  {
+    "key": "id-all",
+    "name": "Indonesia",
+    "countryKey": "id",
+    "population": 285700000,
+    "neighbourKeys": ["my-all"]
+  },
+  {
+    "key": "ae-all",
+    "name": "United Arab Emirates",
+    "countryKey": "ae",
+    "population": 11300000,
+    "neighbourKeys": []
+  },
+  {
+    "key": "za-all",
+    "name": "South Africa",
+    "countryKey": "za",
+    "population": 64700000,
+    "neighbourKeys": []
+  },
+  {
+    "key": "ng-all",
+    "name": "Nigeria",
+    "countryKey": "ng",
+    "population": 237500000,
+    "neighbourKeys": []
+  },
+  {
+    "key": "eg-all",
+    "name": "Egypt",
+    "countryKey": "eg",
+    "population": 118400000,
+    "neighbourKeys": []
+  },
+  {
+    "key": "ke-all",
+    "name": "Kenya",
+    "countryKey": "ke",
+    "population": 57500000,
+    "neighbourKeys": []
+  },
+  {
+    "key": "gh-all",
+    "name": "Ghana",
+    "countryKey": "gh",
+    "population": 35100000,
+    "neighbourKeys": []
+  },
+  {
+    "key": "au-new-south-wales",
+    "name": "New South Wales and the ACT",
+    "countryKey": "au",
+    "population": 9000000,
+    "neighbourKeys": ["au-victoria-tasmania", "au-queensland", "au-west-central"]
+  },
+  {
+    "key": "au-victoria-tasmania",
+    "name": "Victoria and Tasmania",
+    "countryKey": "au",
+    "population": 7600000,
+    "wrestlingInterest": 55,
+    "neighbourKeys": ["au-new-south-wales", "au-west-central"]
+  },
+  {
+    "key": "au-queensland",
+    "name": "Queensland",
+    "countryKey": "au",
+    "population": 5600000,
+    "neighbourKeys": ["au-new-south-wales", "au-west-central"]
+  },
+  {
+    "key": "au-west-central",
+    "name": "Western and Central Australia",
+    "countryKey": "au",
+    "population": 5200000,
+    "wrestlingInterest": 35,
+    "neighbourKeys": ["au-new-south-wales", "au-victoria-tasmania", "au-queensland"]
+  },
+  {
+    "key": "nz-all",
+    "name": "New Zealand",
+    "countryKey": "nz",
+    "population": 5300000,
+    "neighbourKeys": []
+  },
+  {
+    "key": "fj-all",
+    "name": "Fiji",
+    "countryKey": "fj",
+    "population": 900000,
+    "neighbourKeys": []
+  }
+]

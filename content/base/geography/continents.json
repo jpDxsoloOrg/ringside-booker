@@ -1,0 +1,32 @@
+[
+  {
+    "key": "na",
+    "name": "North America",
+    "code": "NA"
+  },
+  {
+    "key": "sa",
+    "name": "Latin America",
+    "code": "LA"
+  },
+  {
+    "key": "eu",
+    "name": "Europe",
+    "code": "EU"
+  },
+  {
+    "key": "as",
+    "name": "Asia",
+    "code": "AS"
+  },
+  {
+    "key": "af",
+    "name": "Africa",
+    "code": "AF"
+  },
+  {
+    "key": "oc",
+    "name": "Oceania",
+    "code": "OC"
+  }
+]

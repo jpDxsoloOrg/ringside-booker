@@ -482,6 +482,9 @@ export {
   LOCATION_CODE_PATTERN,
   RegionSchema,
 } from './model/entities/geography';
+// Geography queries (WLD-04): hierarchy lookups, population-weighted roll-ups and weighted picks.
+export type { AggregateOptions, Geography, GeographySource } from './systems/world/geography';
+export { createGeography, geographyOf, pickRegion, regionWeight } from './systems/world/geography';
 export type { Venue, VenueKind } from './model/entities/venue';
 export {
   isVenueOpenOn,
