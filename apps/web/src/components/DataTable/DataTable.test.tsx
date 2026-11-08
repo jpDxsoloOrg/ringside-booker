@@ -1,4 +1,4 @@
-import { act, render, screen, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { BP_MOBILE_QUERY } from '@/styles/breakpoints';
@@ -80,6 +80,18 @@ function bodyNames(): string[] {
   return within(body!)
     .getAllByRole('row')
     .map((row) => row.querySelector('[data-column-id="name"]')?.textContent ?? '');
+}
+
+type User = ReturnType<typeof userEvent.setup>;
+
+/** Picks an option in the phone "Sort by" select (a Radix Select) from the keyboard. */
+async function chooseSortBy(user: User, optionLabel: string): Promise<void> {
+  screen.getByRole('combobox', { name: 'Sort by' }).focus();
+  await user.keyboard('{Enter}');
+  await user.click(await screen.findByRole('option', { name: optionLabel }));
+  await waitFor(() => {
+    expect(screen.queryByRole('listbox')).toBeNull();
+  });
 }
 
 // jsdom does not lay anything out, so it has no scrollIntoView.
@@ -192,7 +204,7 @@ describe('DataTable sorting', () => {
     const direction = screen.getByRole('button', { name: 'Sort descending' });
     expect(direction).toBeDisabled();
 
-    await user.selectOptions(screen.getByRole('combobox', { name: 'Sort by' }), 'Popularity');
+    await chooseSortBy(user, 'Popularity');
     expect(cardNames()).toEqual(['Worker 2', 'Worker 3', 'Worker 1']);
     expect(direction).toHaveAttribute('aria-pressed', 'true');
 
@@ -200,7 +212,7 @@ describe('DataTable sorting', () => {
     expect(cardNames()).toEqual(['Worker 1', 'Worker 3', 'Worker 2']);
     expect(direction).toHaveAttribute('aria-pressed', 'false');
 
-    await user.selectOptions(screen.getByRole('combobox', { name: 'Sort by' }), 'Default order');
+    await chooseSortBy(user, 'Default order');
     expect(cardNames()).toEqual(['Worker 1', 'Worker 2', 'Worker 3']);
   });
 });
