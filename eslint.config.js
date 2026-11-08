@@ -103,7 +103,15 @@ const ENGINE_RESTRICTED_GLOBALS = [
 ];
 
 export default defineConfig(
-  globalIgnores(['**/dist/**', '**/coverage/**', '**/*.tsbuildinfo', 'content/**']),
+  globalIgnores([
+    '**/dist/**',
+    '**/coverage/**',
+    '**/*.tsbuildinfo',
+    'content/**',
+    // Playwright's HTML report and per-test output (traces, screenshots).
+    '**/playwright-report/**',
+    '**/test-results/**',
+  ]),
 
   // Plain JavaScript (this file and any future build scripts) runs in Node.
   {

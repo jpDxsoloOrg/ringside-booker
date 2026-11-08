@@ -9,5 +9,9 @@
     "outDir": "dist/types"
   },
   "include": ["src"],
-  "references": [{ "path": "../../packages/engine" }, { "path": "./tsconfig.node.json" }]
+  "references": [
+    { "path": "../../packages/engine" },
+    { "path": "./tsconfig.node.json" },
+    { "path": "./tsconfig.e2e.json" }
+  ]
 }

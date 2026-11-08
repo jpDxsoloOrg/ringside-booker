@@ -53,6 +53,36 @@ Run these from the repository root.
 Each workspace also has its own `test` and `typecheck` scripts, for example
 `npm test -w @ringside/engine`.
 
+## Running end-to-end tests
+
+The web app has a Playwright suite in [`apps/web/e2e/`](apps/web/e2e/). It builds the app with
+`VITE_E2E=1`, serves it with `vite preview` on http://localhost:4173/ and runs every spec on two
+projects: `desktop` (Chromium, 1440×900) and `phone` (Chromium, 390×844 with touch). A third
+project, `phone-webkit`, runs the phone settings on WebKit; it only joins the run when
+`E2E_WEBKIT=1` is set, which CI does on pushes to `main`.
+
+| Script                                 | What it does                                                     |
+| -------------------------------------- | ---------------------------------------------------------------- |
+| `npm run e2e:install -w @ringside/web` | Downloads Chromium and WebKit plus their system libraries (once) |
+| `npm run e2e -w @ringside/web`         | Builds the app and runs the suite headless                       |
+| `npm run e2e:ui -w @ringside/web`      | Opens Playwright's UI mode to run and debug specs one at a time  |
+
+To run one project, pass it after `--`:
+
+```sh
+npm run e2e -w @ringside/web -- --project=phone
+E2E_WEBKIT=1 npm run e2e -w @ringside/web -- --project=phone-webkit
+```
+
+`e2e:install` uses `--with-deps`, which installs system packages and may ask for `sudo`. Without
+it, `npx playwright install chromium` from `apps/web` is enough for the two Chromium projects.
+
+Every route listed in [`apps/web/e2e/routes-under-test.ts`](apps/web/e2e/routes-under-test.ts)
+gets the smoke sweep: exactly one `h1`, no horizontal scrolling and no serious axe accessibility
+violations. Any console error or uncaught exception fails the test that caused it. Failed runs
+leave an HTML report in `apps/web/playwright-report/` (`npx playwright show-report` from
+`apps/web` opens it).
+
 ## CI
 
 Every pull request and every push to `main` runs the `check` job in
@@ -67,6 +97,11 @@ Every pull request and every push to `main` runs the `check` job in
 7. `npm run build`
 
 A PR merges only when `check` is green.
+
+Once `check` passes, the `e2e` job installs the Playwright browsers (cached per Playwright
+version) and runs the end-to-end suite on the `desktop` and `phone` projects. Pushes to `main`
+also run `phone-webkit`. When the job fails, the Playwright report and test output are uploaded
+as the `playwright-report` artifact.
 
 To run the same sequence locally before pushing:
 
