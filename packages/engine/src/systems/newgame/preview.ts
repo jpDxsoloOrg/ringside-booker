@@ -13,6 +13,7 @@
  * See docs/design/new-game.md#world-preview.
  */
 
+import { assertSerialisable } from '../../core/api/serialisable';
 import { ageInYears, type GameDate } from '../../core/date';
 import type { PersonId, PromotionId, RegionId } from '../../core/ids';
 import type { Employment } from '../../model/entities/employment';
@@ -21,7 +22,7 @@ import type { PromotionStyle } from '../../model/entities/promotion-style';
 import type { GameWorld } from '../../model/tables';
 import type { RawPack } from '../../persistence/packs/index';
 import type { PackIssue, Result } from '../../persistence/packs/issues';
-import type { PackManifest } from '../../persistence/packs/manifest';
+import { packManifestSchema, type PackManifest } from '../../persistence/packs/manifest';
 import { materialiseWorld } from '../../persistence/packs/materialise';
 import { geographyOf, type Geography } from '../world/geography';
 import { createEngineTunables } from '../tunables';
@@ -150,7 +151,13 @@ type ContentPreview = Pick<
   | 'takenNames'
 >;
 
-const memo = new Map<string, Readonly<ContentPreview>>();
+/** A memoised content preview and the (warning) issues the packs loaded with. */
+interface MemoEntry {
+  readonly content: Readonly<ContentPreview>;
+  readonly issues: readonly PackIssue[];
+}
+
+const memo = new Map<string, MemoEntry>();
 
 function deepFreeze<T>(value: T): T {
   if (typeof value === 'object' && value !== null) {
@@ -368,7 +375,9 @@ function contentPreview(
   };
   const allPromotions = world.tables.promotions.values();
   const preview: ContentPreview = {
-    manifest: root.manifest,
+    // A fresh copy (parsing builds new objects): the memo freezes the preview, and the caller's
+    // pack must stay as it was.
+    manifest: packManifestSchema.parse(root.manifest),
     startDate: content.startDate,
     promotions: previewPromotions(world, places),
     topWorkers: previewWorkers(world, places),
@@ -385,16 +394,14 @@ function contentPreview(
  */
 export function previewWorld(packs: readonly RawPack[], rootPackId: string): Result<WorldPreview> {
   const key = memoKey(packs, rootPackId);
-  let content = memo.get(key);
-  let issues: readonly PackIssue[] = [];
-  if (content === undefined) {
+  let entry = memo.get(key);
+  if (entry === undefined) {
     const built = contentPreview(packs, rootPackId);
     if (!built.ok) {
       return built;
     }
-    content = built.value;
-    issues = built.issues;
-    memo.set(key, content);
+    entry = { content: built.value, issues: built.issues };
+    memo.set(key, entry);
     while (memo.size > PREVIEW_MEMO_SIZE) {
       const oldest = memo.keys().next();
       if (oldest.done === true) {
@@ -409,18 +416,16 @@ export function previewWorld(packs: readonly RawPack[], rootPackId: string): Res
     medium: foundingValues(tunables, 'medium'),
     large: foundingValues(tunables, 'large'),
   };
-  return {
-    ok: true,
-    value: {
-      ...content,
-      settings: newGameSettings(),
-      seasonLength: {
-        presets: SEASON_PRESETS.map((preset) => ({ ...preset })),
-        defaultPreset: DEFAULT_SEASON_PRESET,
-        customWeeks: { min: CUSTOM_SEASON_WEEKS_MIN, max: CUSTOM_SEASON_WEEKS_MAX },
-      },
-      foundingSizes,
+  const preview: WorldPreview = {
+    ...entry.content,
+    settings: newGameSettings(),
+    seasonLength: {
+      presets: SEASON_PRESETS.map((preset) => ({ ...preset })),
+      defaultPreset: DEFAULT_SEASON_PRESET,
+      customWeeks: { min: CUSTOM_SEASON_WEEKS_MIN, max: CUSTOM_SEASON_WEEKS_MAX },
     },
-    issues,
+    foundingSizes,
   };
+  assertSerialisable(preview, 'previewWorld');
+  return { ok: true, value: preview, issues: entry.issues };
 }

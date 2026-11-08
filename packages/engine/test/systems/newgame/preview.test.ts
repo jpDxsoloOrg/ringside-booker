@@ -177,6 +177,22 @@ describe('previewWorld', () => {
     expect(second).toEqual(first);
   });
 
+  it('leaves the packs it was given unfrozen, on a fresh load and from the memo', () => {
+    const [base, world] = miniWorldPacks();
+    if (base === undefined || world === undefined) {
+      throw new Error('fixture packs missing');
+    }
+    // A version no other test uses, so the first call really loads the packs.
+    const packs = [base, { ...world, manifest: { ...world.manifest, version: '1.0.7' } }];
+    const first = previewWorld(packs, 'mini-world');
+    const second = previewWorld(packs, 'mini-world');
+    expect(first.ok && second.ok).toBe(true);
+    for (const pack of packs) {
+      expect(Object.isFrozen(pack.manifest)).toBe(false);
+    }
+    expect(second.issues).toEqual(first.issues);
+  });
+
   it('returns the pack issues for packs that do not load', () => {
     const result = previewWorld([], 'mini-world');
     expect(result.ok).toBe(false);
