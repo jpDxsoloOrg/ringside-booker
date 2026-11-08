@@ -51,6 +51,7 @@ Definitions are declared with `defineTunables`. Every definition has:
 | `probability`          | 0–1, so `0.15` means a 15% chance                   |
 | `ratio`, `multiplier`  | A plain factor; `1` means "unchanged"               |
 | `days`, `months`       | Whole or fractional calendar time                   |
+| `years`                | Whole or fractional years, such as an age           |
 | `money`, `money/month` | Whole cents (`Cents`). Only allowed on `integer`    |
 | `count`                | A number of things                                  |
 | `flag`                 | The unit of every `boolean` tunable, and only those |
@@ -198,7 +199,9 @@ The simulation core's own tunables, in `core/tunables/simTunables.ts`:
 Game systems add their own balance numbers as they are built, each in its own
 `systems/<name>/tunables.ts`. World generation's are in
 `systems/world/tunables.ts`; the name generator's `worldgen.names.*` tunables
-are listed in [names.md](names.md#tunables).
+are listed in [names.md](names.md#tunables) and the people generator's
+`worldgen.people.*` tunables in
+[world-generation.md](world-generation.md#tunables).
 
 ## Condition tunables
 

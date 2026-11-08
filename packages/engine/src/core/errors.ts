@@ -355,6 +355,32 @@ export class NameSpaceExhaustedError extends EngineError {
 }
 
 /**
+ * The people generator was asked for something the content library cannot provide: no generation
+ * role for a person role, no attribute profile for a role and career stage, no body archetype that
+ * suits a ring style, or a spec that contradicts the role (a ring style for a non-wrestler). The
+ * message says which record is missing or which spec field is wrong.
+ */
+export class GenerationContentError extends EngineError {
+  constructor(problem: string, details?: ErrorDetails) {
+    super('GENERATION_CONTENT', `People generator: ${problem}`, details);
+  }
+}
+
+/**
+ * The people generator built a person that does not parse with `PersonSchema`. Always a generator
+ * or content bug: the generator checks its own output so a bad person never reaches the world.
+ */
+export class InvalidGeneratedPersonError extends EngineError {
+  constructor(problems: readonly string[]) {
+    super(
+      'INVALID_GENERATED_PERSON',
+      `The people generator built a person that does not parse: ${problems.join('; ')}`,
+      { problems: problems.join('; ') },
+    );
+  }
+}
+
+/**
  * An error flattened to plain JSON, for day reports, the pipeline failure log and bug reports.
  * `code` is set for engine errors (and any other error that carries a string `code`).
  */
