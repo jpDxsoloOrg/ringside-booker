@@ -1,9 +1,15 @@
 import { fileURLToPath } from 'node:url';
 import react from '@vitejs/plugin-react';
+import { searchForWorkspaceRoot } from 'vite';
 import { defineConfig } from 'vitest/config';
 import packageJson from './package.json' with { type: 'json' };
 
 const sourceDirectory = fileURLToPath(new URL('./src', import.meta.url));
+/**
+ * The repo's `content/` folder: the shipped data packs. The engine worker discovers them through
+ * the `@content` alias with a lazy `import.meta.glob`, so pack JSON never lands in the main bundle.
+ */
+const contentDirectory = fileURLToPath(new URL('../../content', import.meta.url));
 const engineSourceEntry = fileURLToPath(
   new URL('../../packages/engine/src/index.ts', import.meta.url),
 );
@@ -12,6 +18,7 @@ export default defineConfig(({ command }) => ({
   plugins: [react()],
   resolve: {
     alias: [
+      { find: /^@content(?=\/|$)/, replacement: contentDirectory },
       { find: '@', replacement: sourceDirectory },
       // The dev server and tests read the engine straight from source so engine edits hot-reload.
       // Production builds go through the package entry, the same boundary the app ships with.
@@ -20,6 +27,12 @@ export default defineConfig(({ command }) => ({
         ? [{ find: /^@ringside\/engine$/, replacement: engineSourceEntry }]
         : []),
     ],
+  },
+  server: {
+    fs: {
+      // Setting `allow` replaces Vite's default, so the workspace root is listed again.
+      allow: [searchForWorkspaceRoot(process.cwd()), contentDirectory],
+    },
   },
   define: {
     __APP_VERSION__: JSON.stringify(packageJson.version),

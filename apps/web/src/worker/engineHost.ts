@@ -7,6 +7,11 @@
  * either. It wraps the engine's own multi-day advance with an abort signal going in and throttled
  * progress coming out; the day loop, the gates and cancellation stay in the engine.
  *
+ * It starts new games too: the bundled content packs are read here (`contentPacks.ts`), the
+ * new-game wizard's world list and preview are built from them, and `startNewGame` runs the
+ * engine's `createNewGame` and installs the result the same way a loaded save is installed. Only
+ * the plain summary goes back; the world itself never leaves the worker.
+ *
  * It also loads and saves games. Storage runs here in the worker for those calls, so a save's
  * bytes go from IndexedDB through the engine's checks into a running engine without visiting the
  * main thread (see `saveGames.ts`). Listing, deleting, exporting and importing slots run on the
@@ -22,11 +27,13 @@
 import {
   addDays,
   assertSerialisable,
+  createNewGame,
   defaultSystems,
   ENGINE_VERSION,
   INTERNAL,
   INVALID_ARGS,
   inspectSave,
+  previewWorld,
   serializeError,
 } from '@ringside/engine';
 import type {
@@ -41,16 +48,23 @@ import type {
   EngineState,
   GameDate,
   InspectReport,
+  NewGameInput,
+  NewGameSummary,
+  PackIssue,
+  PackManifest,
   QueryArgs,
   QueryData,
   QueryName,
   QueryResult,
   Reason,
   TunableIssue,
+  WorldPreview,
 } from '@ringside/engine';
 import * as storage from '@/storage';
+import { loadBundledContentPacks } from './contentPacks';
+import type { ContentPackSet } from './contentPacks';
 import type { SlotRecord } from '@/storage';
-import { resolveLocalViewer } from './localViewer';
+import { LOCAL_OBSERVER_PLAYER_ID, resolveLocalViewer } from './localViewer';
 import type { LocalSeat } from './localViewer';
 import {
   decodeSaveBytes,
@@ -142,6 +156,39 @@ export type AdvanceOutcome =
   | (AdvanceResult & { readonly ok: true; readonly revision: number })
   | { readonly ok: false; readonly reasons: Reason[]; readonly revision: number };
 
+/** The world packs the app can start a new game from, and any problems reading the bundle. */
+export interface WorldPackList {
+  /** The manifest of every bundled pack of kind `world`, by pack ID. */
+  readonly packs: readonly PackManifest[];
+  /** Bundle problems: a pack whose manifest or files would not load is left out of `packs`. */
+  readonly issues: readonly PackIssue[];
+}
+
+/** What `previewWorld` returns: the engine's preview, or the pack issues that stopped it. */
+export type WorldPreviewResult =
+  | { readonly ok: true; readonly value: WorldPreview; readonly issues: readonly PackIssue[] }
+  | { readonly ok: false; readonly issues: readonly PackIssue[] };
+
+/**
+ * What the new-game wizard sends: the engine's new-game input without `playerId`, which the host
+ * fills in from the local human controller so the player runs the promotion they chose.
+ */
+export type StartNewGameInput = Omit<NewGameInput, 'playerId'>;
+
+/**
+ * How starting a new game ended: the engine's summary, the seat the new world is played from and
+ * the revision it starts at, or the engine's reasons for refusing (the running game, if any, is
+ * left as it was).
+ */
+export type StartNewGameResult =
+  | {
+      readonly ok: true;
+      readonly summary: NewGameSummary;
+      readonly seat: LocalSeat;
+      readonly revision: number;
+    }
+  | { readonly ok: false; readonly reasons: readonly Reason[]; readonly revision: number };
+
 /** The host as the main thread sees it. Every member is plain data in and out, or a callback. */
 export interface EngineHost {
   ping(): Promise<PingResult>;
@@ -173,6 +220,15 @@ export interface EngineHost {
   autosave(slotId: string, options: AutosaveOptions): Promise<SaveSlotResult>;
   /** Reads a save's header without loading it, for importing a file. */
   inspectSave(bytes: Uint8Array): Promise<InspectReport>;
+  /** The bundled world packs a new game can start from. */
+  listWorldPacks(): Promise<WorldPackList>;
+  /** What a world pack (and the packs it depends on) holds, for the new-game wizard. */
+  previewWorld(rootPackId: string): Promise<WorldPreviewResult>;
+  /**
+   * Builds a new world from the bundled packs and makes it the running game, played by the local
+   * human controller. It is not saved: the wizard creates a slot for it next.
+   */
+  startNewGame(input: StartNewGameInput): Promise<StartNewGameResult>;
   /**
    * Stops the running game. Every call after it gets the noWorld reason until a game loads.
    * Returns the revision after it, which is newer than any result from the old game.
@@ -217,6 +273,8 @@ export interface EngineHostOptions {
   readonly now?: () => number;
   /** The real-world time a save records, as an ISO string. Defaults to the system clock. */
   readonly savedAtNow?: () => string;
+  /** Where new games read their packs from. Defaults to the packs bundled with the app. */
+  readonly loadContentPacks?: () => Promise<ContentPackSet>;
 }
 
 interface RunningEngine {
@@ -249,6 +307,7 @@ export function createEngineHost(
   const progressIntervalMs = options.progressIntervalMs ?? PROGRESS_INTERVAL_MS;
   const now = options.now ?? defaultNow;
   const savedAtNow = options.savedAtNow ?? defaultSavedAtNow;
+  const loadContentPacks = options.loadContentPacks ?? loadBundledContentPacks;
 
   let running: RunningEngine | null = null;
   let revision = 0;
@@ -356,6 +415,44 @@ export function createEngineHost(
   }
 
   /**
+   * The player ID a new game is played by: the local human controller's, or the observer's
+   * (`local`) when no world is loaded or the seat is not a human's. The host then issues every
+   * command as that controller, so the player runs the promotion they just chose.
+   */
+  function localPlayerId(): string {
+    const controller = running?.seat.controller;
+    return controller?.kind === 'human' ? controller.playerId : LOCAL_OBSERVER_PLAYER_ID;
+  }
+
+  async function startNewGame(input: StartNewGameInput): Promise<StartNewGameResult> {
+    if (advanceAbort !== null) {
+      return { ok: false, reasons: [ADVANCE_BUSY_REASON], revision };
+    }
+    const { packs } = await loadContentPacks();
+    const created = createNewGame(packs, { ...input, playerId: localPlayerId() });
+    if (!created.ok) {
+      return checked({ ok: false, reasons: created.reasons, revision }, 'startNewGame');
+    }
+    let install: InstallResult;
+    try {
+      install = installEngine(created.state);
+    } catch (error: unknown) {
+      const reason: Reason = {
+        code: INTERNAL,
+        message: `The new game could not start: ${serializeError(error).message}`,
+      };
+      return { ok: false, reasons: [reason], revision };
+    }
+    const result: StartNewGameResult = {
+      ok: true,
+      summary: created.summary,
+      seat: install.seat,
+      revision: install.revision,
+    };
+    return checked(result, 'startNewGame');
+  }
+
+  /**
    * Encodes the running game under `label` and hands it to `write`. Problems come back as data:
    * no game loaded, a slot that is gone, a game that would not encode or a storage refusal.
    */
@@ -417,6 +514,21 @@ export function createEngineHost(
     inspectSave(bytes: Uint8Array): Promise<InspectReport> {
       return inspectSave(bytes);
     },
+
+    async listWorldPacks(): Promise<WorldPackList> {
+      const { packs, issues } = await loadContentPacks();
+      const worlds = packs
+        .filter((pack) => pack.manifest.kind === 'world')
+        .map((pack) => pack.manifest);
+      return checked({ packs: worlds, issues: [...issues] }, 'listWorldPacks');
+    },
+
+    async previewWorld(rootPackId: string): Promise<WorldPreviewResult> {
+      const { packs } = await loadContentPacks();
+      return checked(previewWorld(packs, rootPackId), 'previewWorld');
+    },
+
+    startNewGame,
 
     unloadWorld(): UnloadResult {
       advanceAbort?.abort();
