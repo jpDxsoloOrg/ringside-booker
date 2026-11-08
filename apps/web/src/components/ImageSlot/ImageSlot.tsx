@@ -5,7 +5,7 @@ import { GenericPlace } from './placeholders/GenericPlace';
 import { LogoMark } from './placeholders/LogoMark';
 import { PersonInitials } from './placeholders/PersonInitials';
 import { PersonSilhouette } from './placeholders/PersonSilhouette';
-import type { PlaceholderProps } from './placeholders/shared';
+import type { FrameShape, PlaceholderProps } from './placeholders/shared';
 import { getImageResolverVersion, resolveImageUrl, subscribeToImageResolvers } from './resolver';
 import { IMAGE_SLOT_SIZE_REM, PIXELS_PER_REM } from './types';
 import type { ImageSlotSize, ImageSubject, PersonStyle } from './types';
@@ -14,10 +14,10 @@ export interface ImageSlotProps {
   readonly subject: ImageSubject;
   readonly size: ImageSlotSize;
   /** Frame shape. People default to a circle, everything else to a rounded square. */
-  readonly shape?: 'square' | 'circle';
+  readonly shape?: FrameShape;
   /** Hide from assistive tech, for slots that sit next to the entity's name. */
   readonly decorative?: boolean;
-  /** How people without an image are drawn. Defaults to initials. */
+  /** How people without an image are drawn: ringed initials (the default) or a silhouette. */
   readonly personStyle?: PersonStyle;
 }
 
@@ -42,14 +42,15 @@ const SIZE_CLASSES: Readonly<Record<ImageSlotSize, string | undefined>> = {
 
 function Placeholder({
   personStyle,
+  frameShape,
   ...placeholderProps
-}: PlaceholderProps & { readonly personStyle: PersonStyle }) {
+}: PlaceholderProps & { readonly personStyle: PersonStyle; readonly frameShape: FrameShape }) {
   switch (placeholderProps.subject.kind) {
     case 'person':
       return personStyle === 'silhouette' ? (
         <PersonSilhouette {...placeholderProps} />
       ) : (
-        <PersonInitials {...placeholderProps} />
+        <PersonInitials {...placeholderProps} frameShape={frameShape} />
       );
     case 'title':
       return <Belt {...placeholderProps} />;
@@ -79,7 +80,7 @@ function ImageSlotView({
 
   const url = resolveImageUrl(subject);
   const showImage = url !== null && url !== failedUrl && !failedImageUrls.has(url);
-  const frameShape = shape ?? (subject.kind === 'person' ? 'circle' : 'square');
+  const frameShape: FrameShape = shape ?? (subject.kind === 'person' ? 'circle' : 'square');
   const frameClass = [styles['slot'], SIZE_CLASSES[size], styles[frameShape]]
     .filter((className) => className !== undefined)
     .join(' ');
@@ -102,7 +103,12 @@ function ImageSlotView({
           }}
         />
       ) : (
-        <Placeholder subject={subject} decorative={decorative} personStyle={personStyle} />
+        <Placeholder
+          subject={subject}
+          decorative={decorative}
+          personStyle={personStyle}
+          frameShape={frameShape}
+        />
       )}
     </span>
   );

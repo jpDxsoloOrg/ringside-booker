@@ -211,7 +211,7 @@ and never draw entity art themselves, so swapping in real images later changes n
 
 | Kind                                         | Generator          | What it draws                                                                                                                                        |
 | -------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `person`                                     | `PersonInitials`   | Initials on a category colour (the default)                                                                                                          |
+| `person`                                     | `PersonInitials`   | Ringed initials (the default): a ring and initials in a category colour on the raised surface; the ring follows the frame shape                      |
 | `person` with `personStyle="silhouette"`     | `PersonSilhouette` | One of three head-and-shoulders outlines: short hair, long hair, hooded and masked                                                                   |
 | `title`                                      | `Belt`             | Strap, two side plates, a centre plate (oval, shield, hexagon or circle) engraved with initials, in the `tier` metal                                 |
 | `promotion`, `brand`, `event`, `network`     | `LogoMark`         | An outer shape (circle, shield, star-burst, diamond or hexagon) with a smaller copy inside in a second colour, and a monogram of up to three letters |
@@ -225,8 +225,8 @@ in the UI and never touches the engine's random streams, so changing the art can
 results.
 
 **Theme-aware.** The art is inline SVG, not image files or data URLs, and every fill is a CSS
-Module class that reads a semantic token (`--color-cat-*`, `--color-text-inverse`, the metal and
-strap tokens). Shapes stay the same across themes; colours follow the theme. SVG stays sharp at
+Module class that reads a semantic token (`--color-cat-*`, `--color-surface-raised`,
+`--color-text-inverse`, the metal and strap tokens). Shapes stay the same across themes; colours follow the theme. SVG stays sharp at
 any size and on high-density screens, and slot sizes are in rem, so they grow with the UI scale.
 
 **Accessibility.** The SVG or `<img>` is named after the entity (`role="img"` and `aria-label`, or

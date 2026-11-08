@@ -3,6 +3,9 @@ import styles from '../ImageSlot.module.css';
 import { graphemesOf } from '../initials';
 import type { ImageSubject } from '../types';
 
+/** The ImageSlot frame: people default to a circle, everything else to a rounded square. */
+export type FrameShape = 'square' | 'circle';
+
 /** What every placeholder generator receives. */
 export interface PlaceholderProps {
   readonly subject: ImageSubject;
@@ -20,6 +23,21 @@ export const CATEGORY_FILLS: readonly (string | undefined)[] = [
   styles['cat6'],
   styles['cat7'],
   styles['cat8'],
+];
+
+/**
+ * The eight category tints, in token order: each sets `color`, so a placeholder can draw a ring
+ * and lettering in the same category colour with `currentColor`. Picked by hash; never by name.
+ */
+export const CATEGORY_TINTS: readonly (string | undefined)[] = [
+  styles['tint1'],
+  styles['tint2'],
+  styles['tint3'],
+  styles['tint4'],
+  styles['tint5'],
+  styles['tint6'],
+  styles['tint7'],
+  styles['tint8'],
 ];
 
 /** Every placeholder draws in the same 64 × 64 box and scales to the slot. */
