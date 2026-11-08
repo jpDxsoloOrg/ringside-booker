@@ -104,6 +104,7 @@ export {
   MoneyOverflowError,
   NotSerialisableError,
   RegistryError,
+  TraceReplayError,
   UniqueIndexError,
   UnknownIndexError,
 } from './core/errors';
@@ -119,6 +120,8 @@ export {
 } from './core/json';
 
 export * from './core/events';
+
+export * from './core/trace';
 
 export { hashString128, hashString32, type HashWords } from './core/hash';
 export * from './core/rng';
