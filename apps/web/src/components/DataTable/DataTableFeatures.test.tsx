@@ -347,7 +347,7 @@ describe('DataTable checkbox selection', () => {
     expect(onActivate).not.toHaveBeenCalled();
 
     // The card itself is still a button with nothing interactive nested inside it.
-    const card = screen.getByRole('button', { name: 'Cy Moss' });
+    const card = screen.getByRole('button', { name: /^Cy Moss\b/ });
     expect(within(card).queryByRole('checkbox')).toBeNull();
   });
 });

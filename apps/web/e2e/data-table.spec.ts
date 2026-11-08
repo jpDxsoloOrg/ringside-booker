@@ -226,7 +226,7 @@ test.describe('DataTable on a phone', () => {
   });
 
   test('tapping a card opens it', async ({ page }) => {
-    const card = section(page).getByRole('button', { name: 'Worker 3', exact: true });
+    const card = section(page).getByRole('button', { name: /^Worker 3\b/ });
     await card.tap();
     await expect(section(page).getByText('Opened Worker 3.')).toBeVisible();
   });
