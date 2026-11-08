@@ -323,6 +323,7 @@ stage.
 | `baseChance`      | number               | 0-1                             |
 | `roleMultipliers` | person role → number | 0-10 each; roles left out use 1 |
 | `minAge?`         | integer              | 0-100. Default: any age         |
+| `description?`    | string               | 1-300 characters; notes only    |
 
 Which traits can't be held together is not pack data; it comes from the
 engine's exclusive trait pairs.

@@ -286,6 +286,17 @@ WRK decides how potential drains with age and gates growth and decline, and how
 a ceiling caps an attribute. The −1000..1000 scale is a placeholder that WRK can
 change with a migration.
 
+Seeding: generated people get their starting `development`, `traits`, `vices`
+and `regionalPop` from the WLD-07 seeds (see
+[world-generation.md](world-generation.md#potential-traits-vices-and-popularity-seeding)).
+Ceilings and the potential number come from one smooth curve over age, so they
+never disagree; ceilings cover the in-ring and character attributes for
+wrestlers and the role's own skills for everyone else, and are never below the
+current value. Vices start as `hidden` or `none`, and popularity is seeded
+sparsely, outward from the region the person is based in. Hand-made pack people
+keep what the pack gives them unless the new-game "re-roll potential" option
+recomputes their `development`.
+
 Vices: `hidden` means the player's promotion has not discovered the vice;
 `known` means it has. Discovery is per world for now; if multiplayer needs it
 per promotion, it moves to a per-promotion record.
