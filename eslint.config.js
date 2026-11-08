@@ -8,13 +8,19 @@
 import eslintJs from '@eslint/js';
 import { defineConfig, globalIgnores } from 'eslint/config';
 import prettierConfig from 'eslint-config-prettier';
+import jsxA11yPlugin from 'eslint-plugin-jsx-a11y';
 import promisePlugin from 'eslint-plugin-promise';
+import reactPlugin from 'eslint-plugin-react';
+import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
-const TYPESCRIPT_FILES = ['**/*.ts'];
+const TYPESCRIPT_FILES = ['**/*.ts', '**/*.tsx'];
 const ENGINE_FILES = ['packages/engine/**/*.ts'];
-const TEST_FILES = ['**/*.test.ts', 'packages/engine/test/**'];
+const TEST_FILES = ['**/*.test.ts', '**/*.test.tsx', 'packages/engine/test/**'];
+const WEB_FILES = ['apps/web/**/*.{ts,tsx}'];
+// Web test support: unit tests, the Vitest setup and helpers, and the Playwright specs.
+const WEB_TEST_FILES = ['apps/web/**/*.test.{ts,tsx}', 'apps/web/src/test/**', 'apps/web/e2e/**'];
 
 const MATH_RANDOM_RESTRICTION = {
   object: 'Math',
@@ -30,6 +36,20 @@ const ENGINE_GLOBALS_MESSAGE =
 
 const ENGINE_IMPORT_MESSAGE =
   'Engine code has no imports from apps/ and no UI or browser storage libraries.';
+
+const STYLE_PROP_MESSAGE = 'Use CSS Modules and tokens';
+
+// The web app reaches the engine only through its public entry, never through engine source paths.
+const ENGINE_INTERNALS_RESTRICTION = {
+  group: ['@ringside/engine/src', '@ringside/engine/src/*', '**/packages/engine/**'],
+  message: 'Import from the public @ringside/engine entry only.',
+};
+
+// The shared test fixtures must never ship in app code; tests and test support may use them.
+const ENGINE_TESTING_RESTRICTION = {
+  group: ['@ringside/engine/testing', '@ringside/engine/testing/*'],
+  message: 'Test fixtures are for tests only and never ship in app or engine code.',
+};
 
 const ENGINE_RESTRICTED_GLOBALS = [
   'window',
@@ -141,6 +161,41 @@ export default defineConfig(
           ],
         },
       ],
+    },
+  },
+
+  // Web app: browser globals, React hook rules, accessibility, no inline styles, and the engine
+  // reached only through its public entry.
+  {
+    files: WEB_FILES,
+    extends: [jsxA11yPlugin.flatConfigs.recommended],
+    plugins: { react: reactPlugin, 'react-hooks': reactHooksPlugin },
+    languageOptions: { globals: globals.browser },
+    settings: { react: { version: 'detect' } },
+    rules: {
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'error',
+      'react/forbid-dom-props': [
+        'error',
+        { forbid: [{ propName: 'style', message: STYLE_PROP_MESSAGE }] },
+      ],
+      'react/forbid-component-props': [
+        'error',
+        { forbid: [{ propName: 'style', message: STYLE_PROP_MESSAGE }] },
+      ],
+      'no-restricted-imports': [
+        'error',
+        { patterns: [ENGINE_INTERNALS_RESTRICTION, ENGINE_TESTING_RESTRICTION] },
+      ],
+    },
+  },
+
+  // Web test support may use the shared engine test fixtures. A later block replaces the
+  // no-restricted-imports options instead of adding to them, so the internals ban is repeated.
+  {
+    files: WEB_TEST_FILES,
+    rules: {
+      'no-restricted-imports': ['error', { patterns: [ENGINE_INTERNALS_RESTRICTION] }],
     },
   },
 
