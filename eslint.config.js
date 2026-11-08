@@ -114,6 +114,17 @@ const ENGINE_TESTING_RESTRICTION = {
   message: 'Test fixtures are for tests only and never ship in app or engine code.',
 };
 
+// The engine runs in its Web Worker. Only the worker host builds one (createEngineHost, used by
+// engine.worker.ts and the in-process test transport); React code asks it through the engine
+// hooks. Test files and test support may build engines of their own.
+const WEB_WORKER_FILES = ['apps/web/src/worker/**'];
+const CREATE_ENGINE_RESTRICTION = {
+  name: '@ringside/engine',
+  importNames: ['createEngine'],
+  message:
+    'The engine runs in its Web Worker; only apps/web/src/worker creates one. Use useEngineQuery, useEngineCommand or useAdvanceDays.',
+};
+
 // Icons are drawn only through the Icon component, so the icon set can be swapped in one place.
 // Inside it, Lucide glyphs are named imports so the bundle carries only the icons we map.
 const ICON_FILES = ['apps/web/src/components/Icon/**'];
@@ -311,6 +322,20 @@ export default defineConfig(
   },
   {
     files: WEB_FILES,
+    ignores: FIXTURE_USER_FILES,
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [CREATE_ENGINE_RESTRICTION],
+          patterns: [ENGINE_INTERNALS_RESTRICTION, ENGINE_TESTING_RESTRICTION],
+        },
+      ],
+    },
+  },
+  // The worker is the one place in shipped web code that creates an engine.
+  {
+    files: WEB_WORKER_FILES,
     ignores: FIXTURE_USER_FILES,
     rules: {
       'no-restricted-imports': [
