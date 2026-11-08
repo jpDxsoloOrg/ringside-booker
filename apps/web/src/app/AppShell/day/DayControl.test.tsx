@@ -113,8 +113,14 @@ async function skip(user: ReturnType<typeof userEvent.setup>, quickChoice: strin
   await user.click(within(sheet).getByRole('button', { name: 'Start' }));
 }
 
+/**
+ * A 30-day skip moves the fake engine a day at a time through the real shell, which takes over a
+ * second under coverage on a CI runner: longer than the default wait for an element.
+ */
+const SUMMARY_TIMEOUT_MS = 4000;
+
 async function summary(): Promise<HTMLElement> {
-  return screen.findByRole('region', { name: 'Last advance' });
+  return screen.findByRole('region', { name: 'Last advance' }, { timeout: SUMMARY_TIMEOUT_MS });
 }
 
 beforeEach(() => {
