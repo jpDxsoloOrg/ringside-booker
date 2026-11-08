@@ -80,6 +80,8 @@ describe('Icon', () => {
       'pause',
       'next-day',
       'add',
+      'decrease',
+      'reset',
       'drag-handle',
       'info',
       'why',

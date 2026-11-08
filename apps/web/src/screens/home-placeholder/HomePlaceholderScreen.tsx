@@ -3,6 +3,7 @@ import { RouteHeading } from '@/app/a11y/RouteHeading';
 import { useDocumentTitle } from '@/app/a11y/useDocumentTitle';
 import { isNoWorldRedirect } from '@/app/RequireWorld';
 import { routes } from '@/app/routes';
+import { settingsLinkState } from '@/app/settings/settingsNavigation';
 import styles from './HomePlaceholderScreen.module.css';
 
 /** Stand-in title screen until the real one (with save slots) arrives. */
@@ -28,7 +29,9 @@ export function HomePlaceholderScreen() {
           <Link to={routes.load()}>Load game</Link>
         </li>
         <li>
-          <Link to={routes.settings()}>Settings</Link>
+          <Link to={routes.settings()} state={settingsLinkState(routes.title())}>
+            Settings
+          </Link>
         </li>
         <li>
           <Link to={routes.dev.gallery()}>Gallery</Link>

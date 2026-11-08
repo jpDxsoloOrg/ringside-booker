@@ -1,8 +1,9 @@
 import { useId } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import { Icon } from '@/components/Icon';
 import type { NavSection } from '../navigation';
 import { routes } from '../routes';
+import { settingsLinkState } from '../settings/settingsNavigation';
 import { classNames } from '@/components/classNames';
 import styles from './AppShell.module.css';
 import { NavItemContent } from './NavItemContent';
@@ -19,6 +20,8 @@ export interface SidebarProps {
 /** The desktop left sidebar: the game's name, every visible section, then settings and exit. */
 export function Sidebar({ sections, badges }: SidebarProps) {
   const headingIdPrefix = useId();
+  // Settings' back link returns to the game screen the player was on.
+  const location = useLocation();
 
   return (
     <div className={styles['sidebar']} data-testid="sidebar">
@@ -52,7 +55,11 @@ export function Sidebar({ sections, badges }: SidebarProps) {
       </nav>
       <ul className={styles['sidebarFooter']}>
         <li>
-          <Link to={routes.settings()} className={styles['navLink']}>
+          <Link
+            to={routes.settings()}
+            state={settingsLinkState(`${location.pathname}${location.search}`)}
+            className={styles['navLink']}
+          >
             <Icon name="settings" size="md" className={styles['navIcon']} decorative />
             <span className={styles['navLabel']}>Settings</span>
           </Link>

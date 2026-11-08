@@ -16,7 +16,8 @@ import { createRoot } from 'react-dom/client';
 import { RouterProvider } from 'react-router-dom';
 import { EngineProvider } from '@/app/engine/EngineProvider';
 import { createAppRouter, routerProviderFutureFlags } from '@/app/router';
-import { applyTheme, DEFAULT_THEME } from '@/styles/theme';
+import { applySettingsToDocument } from '@/app/settings/SettingsEffects';
+import { initializeSettings } from '@/app/settings/settingsStore';
 
 const rootElement = document.getElementById('root');
 if (rootElement === null) {
@@ -25,8 +26,10 @@ if (rootElement === null) {
   );
 }
 
-// Dark is the only shipped theme (D-11); the settings screen can apply a saved choice later.
-applyTheme(DEFAULT_THEME);
+// Read the viewer's settings from localStorage synchronously and put the theme, UI scale and motion
+// preference on <html> before the first render, so the first paint already has them and nothing
+// flashes or jumps. SettingsEffects keeps them applied from here on.
+applySettingsToDocument(initializeSettings());
 
 const router = createAppRouter();
 
