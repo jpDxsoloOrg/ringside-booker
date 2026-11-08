@@ -11,7 +11,7 @@
  * updating an existing row keeps the cache.
  */
 
-import type { EntityKind } from '../core/ids';
+import { isId, type EntityKind } from '../core/ids';
 import { EntityNotFoundError, UniqueIndexError, UnknownIndexError } from '../core/errors';
 import type { EntityRow, IndexSpec, TableDef, TableName } from './table-def';
 
@@ -46,6 +46,26 @@ export function compareIds(left: string, right: string): number {
   return left > right ? 1 : 0;
 }
 
+/** True when `value` is a well-formed ID of the kind `table` holds. */
+export function isIdOfTable<E extends EntityRow>(
+  table: ReadonlyTable<E>,
+  value: unknown,
+): value is E['id'] {
+  return isId(table.kind, value);
+}
+
+/**
+ * True when `candidate` carries an ID of the kind `table` holds. Only the ID is checked here: the
+ * other fields are guaranteed by the caller's static types, and checked against the table's schema
+ * when write validation is on.
+ */
+export function hasIdOfTable<E extends EntityRow>(
+  table: ReadonlyTable<E>,
+  candidate: object,
+): candidate is E {
+  return isIdOfTable(table, Reflect.get(candidate, 'id'));
+}
+
 interface IndexState<E extends EntityRow> {
   readonly spec: IndexSpec<E>;
   /** Index key → storage keys of the rows filed under it. */
@@ -65,7 +85,9 @@ function indexKeysOf<E>(spec: IndexSpec<E>, row: E): readonly string[] {
 
 /**
  * The writable table behind every `ReadonlyTable`. Internal to the model layer: transactions
- * (FND-05) and save loading call the underscore methods; systems and the UI never see them.
+ * (`model/tx.ts`) and save loading call the underscore methods; systems and the UI never see them.
+ * Rolling a transaction back also goes through `_put` and `_delete`, so indexes are restored with
+ * the rows.
  */
 export class MutableTable<E extends EntityRow> implements ReadonlyTable<E> {
   readonly name: TableName;

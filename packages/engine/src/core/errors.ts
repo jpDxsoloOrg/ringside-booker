@@ -191,3 +191,53 @@ export class InvalidStatePartError extends EngineError {
     this.problems = problems;
   }
 }
+
+/** A transaction tried to insert a row whose ID its table already holds. */
+export class DuplicateIdError extends EngineError {
+  constructor(table: string, id: string) {
+    super('DUPLICATE_ID', `Table ${table} already has a row with ID ${JSON.stringify(id)}`, {
+      table,
+      id,
+    });
+  }
+}
+
+/** A transaction tried to update or delete a row of a table that only ever grows. */
+export class AppendOnlyError extends EngineError {
+  constructor(table: string, operation: 'update' | 'delete', id: string) {
+    super(
+      'APPEND_ONLY',
+      `Table ${table} is append-only: cannot ${operation} row ${JSON.stringify(id)}`,
+      { table, operation, id },
+    );
+  }
+}
+
+/**
+ * A transaction was used in a way it does not allow: opened inside another one, given an async
+ * body, used after it ended, or asked to mint an ID with no ID factory installed.
+ */
+export class TxStateError extends EngineError {
+  constructor(reason: string) {
+    super('TX_STATE', `Transaction misuse: ${reason}`, { reason });
+  }
+}
+
+/**
+ * A write failed its schema while write validation was on. `paths` lists the bad fields (for
+ * example `$.settings.season.lengthDays`); `problems` has one `path: message` line per issue.
+ */
+export class SchemaViolationError extends EngineError {
+  readonly paths: readonly string[];
+  readonly problems: readonly string[];
+
+  constructor(target: string, problems: readonly { path: string; message: string }[]) {
+    const lines = problems.map((problem) => `${problem.path}: ${problem.message}`);
+    super('SCHEMA_VIOLATION', `Invalid write to ${target}: ${lines.join('; ')}`, {
+      target,
+      problemCount: problems.length,
+    });
+    this.paths = problems.map((problem) => problem.path);
+    this.problems = lines;
+  }
+}

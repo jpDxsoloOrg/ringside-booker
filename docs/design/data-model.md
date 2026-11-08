@@ -25,7 +25,7 @@ Code: `packages/engine/src/model/`.
   `playerId` must be listed in `meta.players`.
 - **Reads and writes.** Everyone reads through `WorldView`, a deep read-only
   view whose tables only have read methods. Writes go through a transaction
-  (see the transactions section, to come); nothing outside the model layer can
+  (see [Transactions](#transactions)); nothing outside the model layer can
   write to a table without a cast.
 - **Rows are plain JSON.** No classes, no `Map` or `Set` inside a row, and no
   `undefined` values (an optional field is left out instead). Rows serialise into a save as they are and
@@ -129,6 +129,79 @@ ones with the table, row, exact path such as `tagIds[1]`, and missing ID), runs
 every invariant, and optionally parses every row with its schema. A reference
 to a kind that has no table is reported once per field, not once per row.
 Reports are capped at 200 issues, with a count of how many more were found.
+
+## Transactions
+
+A transaction (`Tx`) is the only way to change the world. Code:
+`packages/engine/src/model/tx.ts`.
+
+```ts
+const result = world.transact('contracts.expire', (tx) => {
+  tx.update('employments', employmentId, { status: 'ended' });
+  return tx.create('news', { headline, date });
+});
+```
+
+- **One transaction per pipeline step.** The day pipeline opens a transaction
+  for each step of each phase. If a step throws, only that step's writes are
+  undone, the error goes into the day's report, and the next step runs. One
+  bad step never cancels the rest of the day, so steps should stay small.
+- **Savepoints for commands.** `tx.savepoint(label, body)` opens a nested
+  scope that rolls back only its own writes when it throws and hands the
+  failure back as a result. A command runs in a savepoint, so it is either
+  fully applied or rejected with its reasons, and the step around it carries
+  on. Savepoints nest. While one is open, only its own `tx` may write.
+- **Bodies are synchronous.** A body that returns a promise is rolled back and
+  fails with `TxStateError`. The undo journal assumes nothing else writes
+  between an op and its undo, and the engine never needs to wait for anything.
+  Opening a second top-level transaction inside one also throws; use a
+  savepoint instead. A `tx` used after its transaction has ended throws too.
+- **What rollback restores.** Every write is applied straight away (reads
+  inside a transaction see its own writes) and recorded in an undo journal:
+  the ID of each inserted row, the previous version of each updated or deleted
+  row, and the previous metadata. Rolling back walks the journal backwards and
+  puts each row back through the table's own write methods, so rows, every
+  index, the cached ID order and the metadata all end up exactly as they were.
+  IDs minted and RNG draws made during a failed transaction are not given
+  back; the replay of the same day draws them the same way, so this stays
+  deterministic. A property test runs 500 random write sequences that end in a
+  throw and checks the world is byte-identical afterwards.
+- **Why a journal and not snapshots.** A day touches a small part of the world.
+  Recording the previous version of only what changed is far cheaper than
+  copying thousands of rows before every step, and rollbacks are rare.
+- **Write rules.** `insert` needs a valid ID of the table's kind that is not
+  taken (`DuplicateIdError`). `create` mints the ID from the world's ID
+  factory and inserts the row. `update` takes a partial patch or an updater
+  function and may not change the ID. Append-only tables (the ledger) refuse
+  `update` and `delete` (`AppendOnlyError`). A unique index clash throws
+  `UniqueIndexError` and the whole transaction rolls back like any other
+  error. Updaters must return a new object, never edit the row they were
+  given.
+- **IDs come from an installed factory.** `tx.create` mints through the
+  `IdFactory` passed to `createWorld` or installed later with
+  `world.setIdFactory`. The game runtime installs the minter over the seeded
+  RNG streams; tests install one over predictable test entropy. With no
+  factory installed `create` throws instead of falling back to an unseeded
+  source, and the factory cannot be swapped while a transaction is open.
+- **Write validation.** With `validateWrites: 'always'` on the world (tests and
+  the test builders), every written row is parsed with its table's schema and
+  every metadata change with the metadata schema; a failure throws
+  `SchemaViolationError` naming the bad paths, such as `$.amount`. Stored rows
+  are also deep-frozen, so a test that mutates a row it got back fails loudly.
+  The default is `'never'`, because parsing every write in a daily loop over
+  hundreds of workers is measurable. A single `transact` call can override
+  the world setting. Saving always validates the whole world, so bad data is
+  still caught at save and load time.
+- **ChangeSet.** A committed transaction returns
+  `{ meta, tables: { [table]: { inserted, updated, deleted } } }`: the net
+  effect per row, each list in ID order, with tables nothing touched left
+  out. Insert then update reports an insert, insert then delete reports
+  nothing, update then delete reports a delete, and delete then re-insert
+  reports an update. It is plain JSON, so it crosses the worker boundary, and
+  the UI uses it to refresh only the queries that read a changed table.
+- **Who sees what.** The engine's public API exports the `Tx`, `TxResult` and
+  `ChangeSet` types but not `transact` itself: systems get their `tx` from the
+  pipeline, and the UI only ever sees change sets.
 
 ## How to add a field
 
