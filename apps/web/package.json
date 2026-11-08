@@ -19,7 +19,7 @@
   "dependencies": {
     "@ringside/engine": "*",
     "comlink": "4.4.2",
-    "react": "18.3.1",
+    "react": "19.3.1",
     "react-dom": "18.3.1",
     "react-router-dom": "6.30.6",
     "zod": "4.6.7",
@@ -33,7 +33,7 @@
     "@testing-library/jest-dom": "6.10.0",
     "@testing-library/react": "16.3.3",
     "@testing-library/user-event": "14.6.8",
-    "@types/react": "18.3.31",
+    "@types/react": "19.3.0",
     "@types/react-dom": "18.3.7",
     "@vitejs/plugin-react": "4.7.0",
     "eslint-plugin-jsx-a11y": "6.10.2",
