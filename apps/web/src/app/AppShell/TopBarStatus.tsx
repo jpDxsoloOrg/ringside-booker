@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { ReactNode } from 'react';
 import { Button } from '@/components/Button';
 import { formatGameDate } from '@/components/format';
 import { Icon } from '@/components/Icon';
@@ -17,6 +18,11 @@ import { useShellStatus } from './status/useShellStatus';
 export interface TopBarStatusProps {
   /** True on phones: the date and the day button only, with the rest in a status sheet. */
   readonly compact: boolean;
+  /**
+   * Drawn instead when the engine has answered but no world is loaded (the dev helper's faked
+   * world), such as the sample status strip. Nothing by default.
+   */
+  readonly fallback?: ReactNode;
 }
 
 /**
@@ -27,15 +33,16 @@ export interface TopBarStatusProps {
  * sheet with every chip and Skip days.
  *
  * It draws nothing until the engine has answered `sim.status`, so a shell with no game loaded
- * (the dev helper's faked world) shows no controls that could not work.
+ * (the dev helper's faked world) shows no controls that could not work. If the engine refuses
+ * because no world is loaded, it draws `fallback` instead.
  */
-export function TopBarStatus({ compact }: TopBarStatusProps) {
-  const { status, gates } = useShellStatus();
+export function TopBarStatus({ compact, fallback = null }: TopBarStatusProps) {
+  const { status, gates, loading } = useShellStatus();
   const advance = useDayAdvance();
   const [skipOpen, setSkipOpen] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
 
-  if (status === undefined) return null;
+  if (status === undefined) return loading ? null : fallback;
 
   const busy = advance.running || advance.autosave.kind === 'saving';
   const { skipEnabled } = deriveDayControl(gates, { advancing: busy });

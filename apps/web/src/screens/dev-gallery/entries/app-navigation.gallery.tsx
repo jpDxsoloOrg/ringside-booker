@@ -1,8 +1,12 @@
 import { NavItemContent } from '@/app/AppShell/NavItemContent';
 import shellStyles from '@/app/AppShell/AppShell.module.css';
+import { NextDaySlot } from '@/app/AppShell/NextDaySlot';
+import { shellPreview } from '@/app/AppShell/shellPreview';
+import { StatusStrip } from '@/app/AppShell/StatusStrip';
 import type { NavBadgeCounts } from '@/app/AppShell/useNavBadges';
 import { mobilePrimaryItems, navigationSections, visibleNavigation } from '@/app/navigation';
 import type { NavSection } from '@/app/navigation';
+import { classNames } from '@/components/classNames';
 import { Stack } from '@/components/layout';
 import type { GalleryEntry } from '../galleryEntry';
 import styles from './entries.module.css';
@@ -38,9 +42,31 @@ function PrimaryStrip({ hasPromotion }: { readonly hasPromotion: boolean }) {
   );
 }
 
+const PREVIEW_STATUS = shellPreview({ hasPromotion: true }).status;
+
+function TopBarDemo() {
+  return (
+    <Stack gap={3}>
+      <h3 className={styles['subheading']}>Top bar end</h3>
+      <p className={styles['caption']}>
+        The status strip and the Next Day bug, as the desktop bar draws them, then the phone bar.
+      </p>
+      <div className={classNames(shellStyles['topBarEnd'], styles['topBarStage'])}>
+        <StatusStrip status={PREVIEW_STATUS} compact={false} />
+        <NextDaySlot compact={false} />
+      </div>
+      <div className={classNames(shellStyles['topBarEnd'], styles['topBarStage'])}>
+        <StatusStrip status={PREVIEW_STATUS} compact />
+        <NextDaySlot compact />
+      </div>
+    </Stack>
+  );
+}
+
 function NavigationDemo() {
   return (
     <Stack gap={6}>
+      <TopBarDemo />
       <Stack gap={3}>
         <h3 className={styles['subheading']}>Sidebar sections</h3>
         <p className={styles['caption']}>
@@ -67,6 +93,6 @@ export const galleryEntry: GalleryEntry = {
   title: 'App navigation',
   group: 'Primitives',
   notes:
-    'The shell itself is at /game after /dev/enter-shell in dev builds. These are its nav items as static lists.',
+    'The shell itself is at /game after /dev/enter-shell in dev builds. These are its top bar end and nav items as static pieces. The status strip drops popularity, the sample chip, the cash change, then cash, as the bar narrows.',
   render: () => <NavigationDemo />,
 };

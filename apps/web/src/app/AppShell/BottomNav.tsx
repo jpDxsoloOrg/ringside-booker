@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom';
+import { CountBadge } from '@/components/Badge';
 import { Icon } from '@/components/Icon';
 import type { NavItem } from '../navigation';
 import { classNames } from '@/components/classNames';
@@ -16,10 +17,22 @@ export interface BottomNavProps {
   readonly moreIsCurrent: boolean;
   readonly moreOpen: boolean;
   readonly onOpenMore: () => void;
+  /** The badge counts of the items only the More sheet lists, added up. 0 shows no badge. */
+  readonly moreCount?: number;
 }
 
-/** The phone tab bar, fixed to the bottom edge: the four primaries and "More". */
-export function BottomNav({ items, badges, moreIsCurrent, moreOpen, onOpenMore }: BottomNavProps) {
+/**
+ * The phone tab bar, fixed to the bottom edge: the four primaries and "More", each an icon over a
+ * condensed capital label. The current tab turns red-orange with a bar along its top edge.
+ */
+export function BottomNav({
+  items,
+  badges,
+  moreIsCurrent,
+  moreOpen,
+  onOpenMore,
+  moreCount = 0,
+}: BottomNavProps) {
   return (
     <nav aria-label="Primary" className={styles['bottomNav']} data-testid="bottom-nav">
       <ul className={styles['bottomNavList']}>
@@ -41,6 +54,11 @@ export function BottomNav({ items, badges, moreIsCurrent, moreOpen, onOpenMore }
           >
             <Icon name="more" size="md" className={styles['navIcon']} decorative />
             <span className={styles['navLabel']}>More</span>
+            <CountBadge
+              count={moreCount}
+              label={`${String(moreCount)} waiting in More`}
+              className={styles['navBadge']}
+            />
           </button>
         </li>
       </ul>

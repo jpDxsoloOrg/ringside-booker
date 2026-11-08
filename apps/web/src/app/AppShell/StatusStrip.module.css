@@ -1,0 +1,148 @@
+/*
+ * The top bar's status strip, in the broadcast register: condensed capital labels over tabular
+ * numbers, items split by hairlines. Cash is a number, so it takes the data colour.
+ */
+.status {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  min-inline-size: 0;
+}
+
+.item {
+  display: grid;
+  align-content: center;
+  gap: var(--space-0);
+  min-inline-size: 0;
+  padding-inline: var(--space-4);
+  border-inline-start: 1px solid var(--color-border);
+}
+
+.item:first-child {
+  border-inline-start: 0;
+}
+
+.label {
+  color: var(--color-text-muted);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.value {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--color-text);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.icon {
+  align-self: center;
+  color: var(--color-data);
+}
+
+.cash {
+  color: var(--color-data);
+}
+
+.popularity {
+  color: var(--color-prestige);
+}
+
+.delta {
+  font-size: var(--font-size-xs);
+}
+
+.sampleItem {
+  display: flex;
+  align-items: center;
+  padding-inline-start: var(--space-3);
+}
+
+.sampleItem dd {
+  margin: 0;
+}
+
+/*
+ * A narrow desktop window: the bar is the container (AppShell's .topBar), and the strip gives up
+ * its least important items first so the date and Next Day always fit. The sample chip outlasts
+ * popularity (and is narrower than it), so sample figures stay marked on common laptop widths.
+ */
+@container (width < 72rem) {
+  .item[data-status='popularity'] {
+    display: none;
+  }
+}
+
+@container (width < 60rem) {
+  .sampleItem {
+    display: none;
+  }
+}
+
+@container (width < 48rem) {
+  .delta {
+    display: none;
+  }
+}
+
+@container (width < 40rem) {
+  .item[data-status='cash'] {
+    display: none;
+  }
+}
+
+/* ---- Phone: two short stacked lines ----------------------------------------------------- */
+
+.compact {
+  display: grid;
+  justify-items: end;
+  gap: var(--space-0);
+  margin: 0;
+  min-inline-size: 0;
+  font-family: var(--font-family-display);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+  white-space: nowrap;
+}
+
+.compactItem dd {
+  margin: 0;
+}
+
+.compactDate {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.compactCash {
+  color: var(--color-data);
+  font-size: var(--font-size-sm);
+}
+
+.hidden {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
