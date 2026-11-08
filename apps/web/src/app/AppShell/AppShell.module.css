@@ -1,16 +1,21 @@
 /*
- * The in-game frame. Desktop: sidebar | (top bar over main), with the main area scrolling on its
- * own. Phones (--bp-mobile): no sidebar, a sticky compact top bar, the page scrolling as a whole,
- * and a fixed bottom tab bar the content is padded to clear.
+ * The in-game frame (docs/design/visual-identity.md, mockups in docs/design/mockups/).
+ * Desktop: sidebar | (top bar over main over ticker), with the main area scrolling on its own.
+ * Phones (--bp-mobile): no sidebar, a sticky compact top bar, the page scrolling as a whole, and
+ * the ticker and the bottom tab bar fixed to the bottom edge, which the content is padded to clear.
  */
 .shell {
+  --shell-ticker-height: 2.5rem;
+
   display: grid;
   grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
-  grid-template-rows: var(--topbar-height) minmax(0, 1fr);
+  grid-template-rows: var(--topbar-height) minmax(0, 1fr) auto;
   grid-template-areas:
     'sidebar topbar'
-    'sidebar main';
+    'sidebar main'
+    'sidebar ticker';
   block-size: 100dvh;
+  background: var(--color-bg);
 }
 
 /* ---- Sidebar ---------------------------------------------------------------------------- */
@@ -26,19 +31,83 @@
   background: var(--color-surface);
 }
 
+/* The wordmark sits level with the top bar, so the two read as one header band. */
 .brand {
   display: flex;
   flex: none;
   align-items: center;
+  gap: 0.3em;
   block-size: var(--topbar-height);
   padding-inline: var(--space-4);
   border-block-end: 1px solid var(--color-border);
   color: var(--color-text);
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: 0.02em;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1;
+  letter-spacing: 0.04em;
   text-decoration: none;
   text-transform: uppercase;
+}
+
+.brandAccent {
+  color: var(--color-action-bright);
+}
+
+/* The promotion the player runs: crest placeholder, name in gold, a muted line under it. */
+.promotionBlock {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-3);
+  margin: var(--space-3) var(--space-2) 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface-raised);
+}
+
+.promotionText {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  margin: 0;
+}
+
+.promotionName {
+  color: var(--color-prestige);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.promotionTagline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-tight);
+}
+
+.promotionSample {
+  font-size: var(--font-size-xs);
+}
+
+.promotionCrestEmpty {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  inline-size: var(--image-size-md);
+  block-size: var(--image-size-md);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
 }
 
 .sidebarNav {
@@ -57,9 +126,10 @@
 .navSectionHeading {
   padding-inline: var(--space-3);
   color: var(--color-text-muted);
+  font-family: var(--font-family-display);
   font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: 0.06em;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
@@ -84,6 +154,7 @@
   border-block-start: 1px solid var(--color-border);
 }
 
+/* Nav items: Lucide icon, then the label in condensed capitals. */
 .navLink {
   display: flex;
   align-items: center;
@@ -92,20 +163,37 @@
   padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-md);
   color: var(--color-text);
-  font-size: var(--font-size-sm);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.05em;
   text-decoration: none;
-  transition: background-color var(--motion-fast) var(--easing-standard);
+  text-transform: uppercase;
+  transition:
+    background-color var(--motion-fast) var(--easing-standard),
+    color var(--motion-fast) var(--easing-standard);
+}
+
+.navLink .navIcon {
+  color: var(--color-text-muted);
 }
 
 .navLink:hover {
-  background: var(--color-surface-sunken);
+  background: var(--color-surface-hover);
 }
 
+/* The current page: a lifted row with the red-orange rail down its leading edge. */
 .navLink[aria-current='page'] {
-  background: var(--color-surface-sunken);
-  color: var(--color-accent);
-  font-weight: var(--font-weight-semibold);
-  box-shadow: inset 3px 0 0 var(--color-accent);
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+  font-weight: var(--font-weight-bold);
+  box-shadow: inset 3px 0 0 var(--color-action-bright);
+}
+
+.navLink[aria-current='page'] .navIcon {
+  color: var(--color-action-bright);
 }
 
 .navIcon {
@@ -125,6 +213,9 @@
 
 .topBar {
   grid-area: topbar;
+  position: relative;
+  /* The status strip drops its less important items as the bar narrows (TopBarStatus). */
+  container-type: inline-size;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -135,34 +226,81 @@
   background: var(--color-surface);
 }
 
+/* A short red-orange stripe fading out along the bottom edge: the broadcast accent. */
+.topBar::after {
+  position: absolute;
+  inset: auto 0 -1px;
+  block-size: 2px;
+  background: linear-gradient(90deg, var(--color-action-bright), transparent 40%);
+  content: '';
+  pointer-events: none;
+}
+
 .topBarStart {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
   min-inline-size: 0;
+}
+
+.topBarCrest {
+  display: inline-flex;
+  flex: none;
 }
 
 .topBarEnd {
   display: flex;
   flex: none;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-4);
+  min-inline-size: 0;
 }
 
 .pageTitle {
   display: flex;
   align-items: baseline;
   gap: var(--space-2);
+  min-inline-size: 0;
   overflow: hidden;
-  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-tight);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
 .crumbSection {
   color: var(--color-text-muted);
-  font-weight: var(--font-weight-regular);
+  font-weight: var(--font-weight-semibold);
 }
 
 .crumbSeparator {
-  color: var(--color-text-muted);
+  color: var(--color-action-bright);
+}
+
+/* The Next Day bug, until the day control wires it: shown in place but marked unavailable. */
+.topBarEnd .nextDay[aria-disabled='true'] {
+  cursor: not-allowed;
+}
+
+.topBarEnd .nextDayCompact {
+  padding-inline: var(--space-3);
+  font-size: var(--font-size-md);
+}
+
+.visuallyHidden {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* ---- Main ------------------------------------------------------------------------------- */
@@ -182,6 +320,13 @@
   max-inline-size: var(--content-max-width);
   margin-inline: auto;
   padding: var(--space-6) calc(var(--safe-right) + var(--space-8)) var(--space-10) var(--space-8);
+}
+
+/* ---- Ticker ----------------------------------------------------------------------------- */
+
+.tickerSlot {
+  grid-area: ticker;
+  min-inline-size: 0;
 }
 
 /* ---- Phone bottom bar and More sheet ---------------------------------------------------- */
@@ -216,9 +361,13 @@
   border: 0;
   background: none;
   color: var(--color-text-muted);
+  font-family: var(--font-family-display);
   font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.06em;
   text-align: center;
   text-decoration: none;
+  text-transform: uppercase;
   cursor: pointer;
 }
 
@@ -230,6 +379,10 @@
   text-overflow: ellipsis;
 }
 
+.tab .navIcon {
+  color: inherit;
+}
+
 .tab .navBadge {
   position: absolute;
   inset-block-start: var(--space-1);
@@ -238,8 +391,17 @@
 
 .tab[aria-current='page'],
 .tab[data-current='true'] {
-  color: var(--color-accent);
-  font-weight: var(--font-weight-semibold);
+  color: var(--color-action-bright);
+}
+
+/* The current tab's bar along the top edge, so the state is not colour alone. */
+.tab[aria-current='page']::before,
+.tab[data-current='true']::before {
+  position: absolute;
+  inset: 0 25% auto;
+  block-size: 2px;
+  background: var(--color-action-bright);
+  content: '';
 }
 
 .moreBody {
@@ -262,6 +424,9 @@
 
 @media (--bp-mobile) {
   .shell {
+    /* The pause button keeps a full tap target on phones, so the strip is a little taller. */
+    --shell-ticker-height: calc(var(--tap-target-min) + var(--space-1));
+
     display: block;
     block-size: auto;
     min-block-size: 100dvh;
@@ -271,14 +436,49 @@
     position: sticky;
     inset-block-start: 0;
     z-index: var(--z-nav);
+    gap: var(--space-2);
     block-size: calc(var(--topbar-height) + var(--safe-top));
     padding: var(--safe-top) calc(var(--safe-right) + var(--space-4)) 0
       calc(var(--safe-left) + var(--space-4));
   }
 
+  .topBarStart {
+    flex: 1 1 auto;
+    gap: var(--space-2);
+  }
+
+  .topBarEnd {
+    gap: var(--space-3);
+  }
+
+  .pageTitle {
+    font-size: var(--font-size-lg);
+  }
+
   .main {
     overflow: visible;
     padding-block-end: calc(var(--bottom-nav-height) + var(--safe-bottom));
+  }
+
+  .shell[data-ticker='on'] .main {
+    padding-block-end: calc(
+      var(--bottom-nav-height) + var(--safe-bottom) + var(--shell-ticker-height)
+    );
+  }
+
+  /* The ticker rides just above the tab bar. */
+  .tickerSlot {
+    position: fixed;
+    inset: auto 0 calc(var(--bottom-nav-height) + var(--safe-bottom));
+    z-index: var(--z-nav);
+    block-size: var(--shell-ticker-height);
+    padding-inline: var(--safe-left) var(--safe-right);
+    overflow: hidden;
+    background: var(--color-surface);
+  }
+
+  .tickerSlot > * {
+    block-size: 100%;
   }
 
   .content {

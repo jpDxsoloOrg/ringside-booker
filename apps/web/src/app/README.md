@@ -30,6 +30,20 @@ Nothing in `AppShell/` changes. Detail pages that are not nav items (a worker's 
 `routes.game.worker(id)`) get a route next to the screen routes in `router.tsx`; the top bar and
 sidebar treat them as part of the item they sit under.
 
+## The shell's look
+
+The shell follows `docs/design/visual-identity.md` and the mockups in `docs/design/mockups/`.
+Desktop: the wordmark and the promotion's crest block head the sidebar, the current nav item has
+a red-orange rail, and the top bar ends with the status strip (`TopBarStatus`: week, season, date,
+cash with its weekly change, popularity) and the live Next Day bug (`NextDaySlot`). The news
+`Ticker` runs along the bottom of the main column. Phones keep a crest, a short status and Next Day
+in the top bar, and the ticker rides just above the bottom tab bar.
+
+Two slots let later epics fill the chrome without restyling it: `renderTopBarEnd` replaces the
+status strip and the bug (the day control), and `ticker` replaces the sample headlines (`null`
+leaves the strip out). Until then `AppShell/shellPreview.ts` supplies sample figures, and every
+place that shows them says so.
+
 ## Talking to the engine
 
 The engine runs in a Web Worker (`src/worker/engine.worker.ts`). The worker's host owns the world,

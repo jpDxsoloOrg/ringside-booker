@@ -1,4 +1,4 @@
-import type { NavBadgeKey } from '../navigation';
+import type { NavBadgeKey, NavItem, NavSection } from '../navigation';
 
 export type NavBadgeCounts = Readonly<Record<NavBadgeKey, number>>;
 
@@ -17,3 +17,19 @@ export const NAV_BADGE_LABELS: Readonly<Record<NavBadgeKey, (count: number) => s
   unreadMail: (count) => `${String(count)} unread`,
   pendingDecisions: (count) => `${String(count)} waiting`,
 };
+
+/**
+ * The total of the badges on items that only the More sheet lists, so the phone's More tab can
+ * show that something behind it needs a look. Items in the tab bar show their own badge.
+ */
+export function countBehindMore(
+  visibleSections: readonly NavSection[],
+  primaries: readonly NavItem[],
+  badges: NavBadgeCounts,
+): number {
+  const inTabBar = new Set(primaries.map((item) => item.id));
+  return visibleSections
+    .flatMap((section) => section.items)
+    .filter((item) => !inTabBar.has(item.id) && item.badgeKey !== undefined)
+    .reduce((total, item) => total + (item.badgeKey === undefined ? 0 : badges[item.badgeKey]), 0);
+}
