@@ -89,7 +89,7 @@ export { cents, isCents, ZERO_CENTS } from './core/money';
 export type { ContentKey } from './core/content-key';
 export { CONTENT_KEY_PATTERN, isContentKey, parseContentKey } from './core/content-key';
 
-export type { ErrorDetails } from './core/errors';
+export type { ErrorDetails, SerializedError } from './core/errors';
 export {
   AppendOnlyError,
   DuplicateIdError,
@@ -105,23 +105,32 @@ export {
   InvalidIdError,
   InvalidOddsError,
   InvalidStatePartError,
+  InvariantError,
+  MigrationError,
   MoneyOverflowError,
   NotSerialisableError,
+  PipelineError,
   RegistryError,
+  SaveDocumentError,
   SchemaViolationError,
   TraceReplayError,
   TraceStoreMisuseError,
   TxStateError,
   UniqueIndexError,
   UnknownIndexError,
+  serializeError,
+  SERIALIZED_STACK_MAX_LENGTH,
 } from './core/errors';
 
 export type { JsonArray, JsonObject, JsonPrimitive, JsonProblem, JsonValue } from './core/json';
 export {
   appendPathSegment,
   assertJsonValue,
+  cloneJson,
   findJsonProblem,
   formatPath,
+  isJsonArray,
+  isJsonObject,
   isJsonValue,
   zJsonValue,
 } from './core/json';
@@ -129,6 +138,46 @@ export {
 export * from './core/events';
 
 export * from './core/trace';
+
+// The day pipeline: phase definitions, the registry, reports and the failure log. The runners
+// (createRuntime, runStep, runDay) stay internal: they need the writable World, and the engine API
+// wraps them for the web app and the tools.
+export {
+  definePhase,
+  ENGINE_ONLY_GROUPS,
+  isEngineOnlyGroup,
+  isPhaseGroup,
+  MAX_PHASE_ORDER,
+  parsePipelineFailureLogState,
+  PHASE_GROUP_BASES,
+  PHASE_GROUPS,
+  PHASE_ID_PATTERN,
+  phasePosition,
+  PhaseRegistry,
+  PIPELINE_FAILURE_LOG_CAPACITY,
+  PipelineFailureLog,
+  pipelineFailureLogStateSchema,
+  deterministicDayReport,
+  type DayReport,
+  type DeterministicDayReport,
+  type PhaseContext,
+  type PhaseDefinition,
+  type PhaseGroup,
+  type PhaseSpec,
+  type PipelineFailure,
+  type PipelineFailureLogState,
+  type ReactionContext,
+  type ReactionFailureReport,
+  type SimHost,
+  type SimRuntime,
+  type SkippedReason,
+  type StepContext,
+  type StepReport,
+  type DeterministicStepReport,
+  type StepStatus,
+  type StepTiming,
+  type SystemPhaseGroup,
+} from './core/pipeline';
 
 export { hashString128, hashString32, type HashWords } from './core/hash';
 export * from './core/rng';
@@ -502,3 +551,76 @@ export {
   recordFileSchema,
   recordSchemas,
 } from './persistence/packs';
+
+// The pack loader (WLD-02): parsed pack JSON in, a validated World (or structured issues) out.
+export type {
+  ContentLibrary,
+  LoadedWorld,
+  LoadWorldOptions,
+  MergedContent,
+  PackIssue,
+  PackIssueCode,
+  PackIssueSeverity,
+} from './persistence/packs';
+export {
+  DEFAULT_WORLD_SETTINGS,
+  formatPackIssue,
+  loadWorldFromPacks,
+  PACK_ISSUE_CODES,
+} from './persistence/packs';
+
+// Saves (FND-11): the save document, the codec, migrations and the load pipeline. See
+// docs/design/save-format.md.
+export type {
+  SaveDocument,
+  SaveHeader,
+  SaveState,
+  SerializedTables,
+  SerializedWorld,
+  SimStatePart,
+  StatePartSchemas,
+} from './persistence/save-document';
+export {
+  createSaveDocumentSchema,
+  SAVE_FORMAT,
+  SAVE_LABEL_MAX_LENGTH,
+  SaveHeaderSchema,
+  SerializedWorldSchema,
+  SIM_STATE_PARTS,
+} from './persistence/save-document';
+export type {
+  SaveableState,
+  SaveExtras,
+  SerialisableWorld,
+  WorldDocument,
+  WorldToDocumentExtras,
+} from './persistence/world-document';
+export {
+  createSaveDocument,
+  documentToWorld,
+  serialiseWorld,
+  worldToDocument,
+} from './persistence/world-document';
+export type { DecodeOptions } from './persistence/codec';
+export { decodeSave, encodeSave, MAX_SAVE_BYTES, serialiseSaveDocument } from './persistence/codec';
+export type { LoadFailure, LoadIssue, LoadResult, LoadStage } from './persistence/report';
+export { LOAD_STAGES, MAX_LOAD_ISSUES } from './persistence/report';
+export type {
+  LoadOptions,
+  LoadReport,
+  LoadSuccess,
+  ReadOptions,
+  TraceCheck,
+  TunableOverrideCheck,
+} from './persistence/load';
+export { loadSave } from './persistence/load';
+export type { InspectReport, InspectSuccess } from './persistence/inspect';
+export { inspectSave } from './persistence/inspect';
+export type { Migration } from './persistence/migrations/registry';
+export {
+  assertMigrationChain,
+  CURRENT_FORMAT_VERSION,
+  MIGRATIONS,
+} from './persistence/migrations/registry';
+export type { AppliedMigration, MigrationRun } from './persistence/migrations/run';
+export { runMigrations } from './persistence/migrations/run';

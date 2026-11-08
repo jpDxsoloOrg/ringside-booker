@@ -1,13 +1,44 @@
 # Ringside Booker: the blog series
 
-I'm building a wrestling booking sim in the open, and these are the posts. The
-dev journal in [`docs/dev-journal/`](../dev-journal/) is where I write things
-down while they're fresh. This folder is where the parts worth reading end up:
-one post per milestone, plus deep dives on the systems I think are interesting.
-Each post is written here as Markdown, checked, and then pushed to my personal
-blog. The repo is public, so drafts and outlines here are public too.
+I'm building a wrestling booking sim in the open, and these are the posts: one
+per milestone, plus deep dives on the systems I think are interesting.
 
-## Files
+The dev journal in [`docs/dev-journal/`](../dev-journal/) is where I write
+things down while they're fresh. This folder is where the parts worth reading
+end up. Each post is written here as Markdown, checked, and then pushed to my
+personal blog. The repo is public, so drafts and outlines here are public too.
+
+## Series index
+
+Titles on `planned` rows are tentative. They'll change when the post gets
+outlined. "Draws from" names the dev journal entries the post is built from.
+"Published" is the date the post first went live, filled in by the publish
+script.
+
+| Part | Title                                                                       | Status  | Draws from                                                                 | Published |
+| ---- | --------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------- | --------- |
+| 01   | Why I'm building a wrestling booking sim                                    | outline | [Project kickoff](../dev-journal/2026-11-project-kickoff.md) journal entry | -         |
+| 02   | Foundations: one World, deterministic days, numbers that explain themselves | planned | Foundation (FND) and simulation (SIM) entries                              | -         |
+| 03   | Same seed, same show: randomness with named streams                         | planned | Simulation (SIM) entry                                                     | -         |
+| 04   | Every number explains itself: the Why? panel                                | planned | Simulation (SIM) and UI entries                                            | -         |
+| 05   | Building a fictional wrestling world from scratch                           | planned | World (WLD) entry                                                          | -         |
+| 06   | A desktop game that fits on a phone                                         | planned | UI entry                                                                   | -         |
+| 07   | How a match gets its rating                                                 | planned | Match rating epic entry (later)                                            | -         |
+
+When a post's status changes, its row changes in the same commit. The title and
+status in the row must match the file.
+
+<!-- public-index-end -->
+
+## Rules
+
+Everything below the series index is how the series is written, checked and
+published. None of it goes to the blog: the
+[series index post](#series-navigation-and-the-index-post) is built from the
+first paragraph of this README and the table above, and stops at the
+`public-index-end` marker just before this heading.
+
+### Files
 
 - Posts are named `docs/blog/NN-<kebab-title>.md`. `NN` is two digits, starts at
   `01`, and is equal to the post's `part`. `<kebab-title>` is lowercase letters,
@@ -24,7 +55,7 @@ blog. The repo is public, so drafts and outlines here are public too.
 - To start a post, copy `_template.md` to the next free number and add its row
   to the [series index](#series-index).
 
-## Frontmatter
+### Frontmatter
 
 Every post starts with a YAML frontmatter block. Unknown keys are an error.
 The blog stores each post as one `Post` record (`title`, `slug`, `content`,
@@ -71,7 +102,7 @@ Rules for the fields:
 - Optional fields that aren't set are left out of the file or commented out (as
   in the template). An empty value doesn't count as "not set".
 
-## Status lifecycle
+### Status lifecycle
 
 A post normally moves through these states in order. `status` is the only thing
 that decides what the publish script does with it. To take a live post down,
@@ -90,27 +121,26 @@ approximation of the live page, not the real thing. The checker (see
 [MDX safety](#mdx-safety)) is what catches problems that only show up when the
 post is rendered for real.
 
-## Series index
+### Series navigation and the index post
 
-Titles on `planned` rows are tentative. They'll change when the post gets
-outlined. "Draws from" names the dev journal entries the post is built from.
-"Published" is the date the post first went live, filled in by the publish
-script.
+The publish script adds the series navigation to every post it pushes, so
+don't write it into the post:
 
-| Part | Title                                                                       | Status  | Draws from                                                                 | Published |
-| ---- | --------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------- | --------- |
-| 01   | Why I'm building a wrestling booking sim                                    | outline | [Project kickoff](../dev-journal/2026-11-project-kickoff.md) journal entry | -         |
-| 02   | Foundations: one World, deterministic days, numbers that explain themselves | planned | Foundation (FND) and simulation (SIM) entries                              | -         |
-| 03   | Same seed, same show: randomness with named streams                         | planned | Simulation (SIM) entry                                                     | -         |
-| 04   | Every number explains itself: the Why? panel                                | planned | Simulation (SIM) and UI entries                                            | -         |
-| 05   | Building a fictional wrestling world from scratch                           | planned | World (WLD) entry                                                          | -         |
-| 06   | A desktop game that fits on a phone                                         | planned | UI entry                                                                   | -         |
-| 07   | How a match gets its rating                                                 | planned | Match rating epic entry (later)                                            | -         |
+- a header line before the first paragraph, "Part N of the Ringside Booker
+  series", linking to the index post;
+- a footer after the last paragraph with links to the previous and next
+  `final` parts, one per line, and a link back to the index. Drafts and
+  planned parts are never linked.
 
-When a post's status changes, its row changes in the same commit. The title and
-status in the row must match the file.
+The index post, `ringside-booker-series` on the blog, opens with the first
+paragraph of this README, lists every `final` part with its excerpt, and lists
+the `draft`, `outline` and `planned` parts under "Coming up" without links.
+Publishing a new part leaves the navigation on the other parts out of date
+until they are pushed again; `npm run blog:publish -- --all` republishes the
+whole series and the index in one go (see
+[`tools/blog/README.md`](../../tools/blog/README.md#publishing-the-whole-series)).
 
-## Content rules
+### Content rules
 
 These are the same rules the dev journal follows, because both folders live in
 the public repo `jpDxsoloOrg/ringside-booker`. They apply from the first commit,
@@ -133,7 +163,7 @@ readable by anyone.
 - **Images are our own work and have alt text.** Every image has alt text that
   describes what it shows.
 
-## MDX safety
+### MDX safety
 
 The blog renders posts as MDX, not plain Markdown. Some ordinary Markdown text
 breaks an MDX page at render time, so these rules apply everywhere outside
@@ -151,7 +181,7 @@ inline code spans and fenced code blocks:
 - **No H1 in the body.** The blog renders `title` as the page's H1, so sections
   start at `##`.
 
-## Checking a post
+### Checking a post
 
 `npm run blog:check` checks every post in this folder and every file in
 [`docs/dev-journal/`](../dev-journal/). CI runs it on every pull request, and
@@ -190,7 +220,7 @@ The banned-terms and private-reference rules also run on the journal, including
 `_inbox.md`. This README and the journal's README state the content rules, so
 the private-reference rule skips them.
 
-### Banned terms
+#### Banned terms
 
 Two lists feed the `banned-terms` rule. Matching ignores case and only matches
 whole words, and it covers the whole file: frontmatter, prose, code, comments

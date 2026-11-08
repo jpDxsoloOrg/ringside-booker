@@ -1,0 +1,123 @@
+[
+  {
+    "key": "jack-marlow-hcw",
+    "personKey": "jack-marlow",
+    "promotionKey": "harbour-city-wrestling",
+    "role": "wrestler",
+    "ringName": "The Harbour Hammer",
+    "alignment": "face",
+    "push": "upperCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 2500,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 500,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-03-01",
+    "endsOn": "2027-03-01",
+    "brandKey": "hcw-friday"
+  },
+  {
+    "key": "nina-vale-hcw",
+    "personKey": "nina-vale",
+    "promotionKey": "harbour-city-wrestling",
+    "role": "wrestler",
+    "ringName": "Nina Vale",
+    "alignment": "face",
+    "push": "midCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 1800,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 500,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-03-01",
+    "endsOn": "2027-03-01"
+  },
+  {
+    "key": "otto-brand-rcw",
+    "personKey": "otto-brand",
+    "promotionKey": "river-city-wrestling",
+    "role": "wrestler",
+    "ringName": "Otto Brand",
+    "alignment": "face",
+    "push": "midCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 1500,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 500,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-03-01",
+    "endsOn": "2027-03-01"
+  },
+  {
+    "key": "sam-reed-rcw",
+    "personKey": "sam-reed",
+    "promotionKey": "river-city-wrestling",
+    "role": "wrestler",
+    "ringName": "Sam Reed",
+    "alignment": "face",
+    "push": "lowerCard",
+    "terms": {
+      "kind": "written",
+      "exclusive": true,
+      "monthlyWage": 900,
+      "perAppearanceFee": 0,
+      "signingBonus": 0,
+      "shares": {
+        "gateBp": 0,
+        "merchBp": 500,
+        "broadcastBp": 0
+      },
+      "appearanceCap": null,
+      "perks": {
+        "creativeControl": false,
+        "noHouseShows": false,
+        "ironClad": false,
+        "travelCovered": true
+      }
+    },
+    "startsOn": "2025-03-01",
+    "endsOn": "2027-03-01"
+  }
+]

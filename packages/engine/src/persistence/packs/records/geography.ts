@@ -10,7 +10,7 @@ import { LOCATION_CODE_PATTERN } from '../../../model/entities/geography';
 import { PromotionStyleSchema } from '../../../model/entities/promotion-style';
 import { zNonNegativeInt } from '../../../model/primitives';
 import { defineRecordKind, percentSchema } from '../fields';
-import { keySchema, parseRef, refListSchema, refSchema } from '../keys';
+import { keySchema, parseRef, refListSchema, refSchema, type RecordReference } from '../keys';
 
 const locationCodeSchema = z
   .string()
@@ -52,7 +52,10 @@ export const regionRecord = defineRecordKind(
     wrestlingInterest: percentSchema.optional(),
     /** Left out = the country's preferred style. Null = no preference. */
     preferredStyle: PromotionStyleSchema.nullable().optional(),
-    /** Bordering regions. Adjacency must be mutual; the loader checks that across packs. */
+    /**
+     * Bordering regions. Adjacency should be mutual; when a neighbour does not list this region
+     * back, the loader warns (`one-sided-neighbour`) and stores the adjacency both ways.
+     */
     neighbourKeys: refListSchema,
   }),
   (region, context) => {
@@ -71,3 +74,17 @@ export const regionRecord = defineRecordKind(
 export type ContinentRecord = z.output<typeof continentRecord.full>;
 export type CountryRecord = z.output<typeof countryRecord.full>;
 export type RegionRecord = z.output<typeof regionRecord.full>;
+
+// ---------------------------------------------------------------------------------------------
+// Reference fields, checked by the loader (WLD-02)
+
+export const continentReferences = [] as const satisfies readonly RecordReference[];
+
+export const countryReferences = [
+  { path: ['continentKey'], target: 'continent' },
+] as const satisfies readonly RecordReference[];
+
+export const regionReferences = [
+  { path: ['countryKey'], target: 'country' },
+  { path: ['neighbourKeys', '[]'], target: 'region' },
+] as const satisfies readonly RecordReference[];

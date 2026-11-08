@@ -125,3 +125,24 @@ export const RECORD_KINDS = [
 export const RecordKindSchema = z.enum(RECORD_KINDS);
 
 export type RecordKind = z.infer<typeof RecordKindSchema>;
+
+/** True when `value` names a record kind. */
+export function isRecordKind(value: unknown): value is RecordKind {
+  return RECORD_KINDS.some((kind) => kind === value);
+}
+
+/**
+ * One reference field of a record kind, for the loader's reference check (WLD-02). `path` walks
+ * from the record to the reference: a field name steps into that field, `[]` into every element of
+ * a list and `{}` onto every key of an object (regional popularity is keyed by region). For
+ * example `['coverage', 'regionKeys', '[]']` or `['regionalPop', '{}']`.
+ */
+export interface RecordReference {
+  readonly path: readonly string[];
+  readonly target: RecordKind;
+}
+
+/** Path step: every element of a list. */
+export const EACH_ELEMENT = '[]';
+/** Path step: every key of an object. */
+export const EACH_KEY = '{}';

@@ -9,7 +9,7 @@
 import { z } from 'zod';
 import { hasDuplicates } from '../../../model/entities/unique';
 import { defineRecordKind } from '../fields';
-import { keySchema, parseRef, refSchema } from '../keys';
+import { keySchema, parseRef, refSchema, type RecordReference } from '../keys';
 
 /** A name and how often it is picked relative to the others in its list (a whole number ≥ 1). */
 export const weightedNameSchema = z.tuple([
@@ -136,3 +136,15 @@ export const ringNameWordsRecord = defineRecordKind(
 export type NameCultureRecord = z.output<typeof nameCultureRecord.full>;
 export type CountryNameMixRecord = z.output<typeof countryNameMixRecord.full>;
 export type RingNameWordsRecord = z.output<typeof ringNameWordsRecord.full>;
+
+// ---------------------------------------------------------------------------------------------
+// Reference fields, checked by the loader (WLD-02)
+
+export const nameCultureReferences = [] as const satisfies readonly RecordReference[];
+
+export const countryNameMixReferences = [
+  { path: ['countryKey'], target: 'country' },
+  { path: ['cultures', '[]', 'cultureKey'], target: 'nameCulture' },
+] as const satisfies readonly RecordReference[];
+
+export const ringNameWordsReferences = [] as const satisfies readonly RecordReference[];

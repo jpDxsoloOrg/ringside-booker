@@ -1,0 +1,24 @@
+{
+  "formatVersion": 1,
+  "id": "mini-world",
+  "name": "Mini World",
+  "version": "1.0.0",
+  "kind": "world",
+  "description": "Test fixture: two promotions, a brand, a title with its current reign, four people and their contracts.",
+  "author": "Ringside Booker tests",
+  "dependsOn": [
+    {
+      "id": "mini-base",
+      "version": "^1.0.0"
+    }
+  ],
+  "startDate": "2026-01-05",
+  "files": {
+    "promotion": "promotions.json",
+    "brand": "brands.json",
+    "title": "titles.json",
+    "person": "people.json",
+    "employment": "employments.json",
+    "titleReign": "title-reigns.json"
+  }
+}

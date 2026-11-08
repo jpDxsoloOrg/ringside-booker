@@ -63,7 +63,7 @@ import {
   percentSchema,
   regionalPopSchema,
 } from '../fields';
-import { keySchema, parseRef, refListSchema, refSchema } from '../keys';
+import { keySchema, parseRef, refListSchema, refSchema, type RecordReference } from '../keys';
 
 // ---------------------------------------------------------------------------------------------
 // People
@@ -314,3 +314,29 @@ export type ContractTermsRecord = z.output<typeof contractTermsRecordSchema>;
 export type EmploymentRecord = z.output<typeof employmentRecord.full>;
 export type TeamRecord = z.output<typeof teamRecord.full>;
 export type TitleReignRecord = z.output<typeof titleReignRecord.full>;
+
+// ---------------------------------------------------------------------------------------------
+// Reference fields, checked by the loader (WLD-02). `gimmickKey` is a content key, not a record.
+
+export const personReferences = [
+  { path: ['birthRegionKey'], target: 'region' },
+  { path: ['basedInRegionKey'], target: 'region' },
+  { path: ['regionalPop', '{}'], target: 'region' },
+] as const satisfies readonly RecordReference[];
+
+export const employmentReferences = [
+  { path: ['personKey'], target: 'person' },
+  { path: ['promotionKey'], target: 'promotion' },
+  { path: ['brandKey'], target: 'brand' },
+  { path: ['managerPersonKey'], target: 'person' },
+] as const satisfies readonly RecordReference[];
+
+export const teamReferences = [
+  { path: ['memberKeys', '[]'], target: 'person' },
+] as const satisfies readonly RecordReference[];
+
+export const titleReignReferences = [
+  { path: ['titleKey'], target: 'title' },
+  { path: ['holderPersonKeys', '[]'], target: 'person' },
+  { path: ['teamKey'], target: 'team' },
+] as const satisfies readonly RecordReference[];

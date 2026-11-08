@@ -1,0 +1,22 @@
+[
+  {
+    "key": "cormere",
+    "name": "Cormere",
+    "code": "CRM",
+    "continentKey": "arden",
+    "population": 8200000,
+    "wrestlingInterest": 62,
+    "economy": 55,
+    "preferredStyle": "traditional"
+  },
+  {
+    "key": "vellmark",
+    "name": "Vellmark",
+    "code": "VLM",
+    "continentKey": "arden",
+    "population": 5100000,
+    "wrestlingInterest": 48,
+    "economy": 61,
+    "preferredStyle": null
+  }
+]

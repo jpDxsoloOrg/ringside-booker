@@ -6,7 +6,7 @@ import { Client } from 'pg';
 import { runPublishCommand } from '../publish/command';
 import { ENV_FILE_REPO_PATH, loadEnvFile } from '../publish/env';
 
-// `npm run blog:publish -- <file> [--dry-run] [--no-write-back] [--allow-new-slug]`
+// `npm run blog:publish -- <file> | --all | --index-only [--dry-run] [--no-write-back] [--allow-new-slug]`
 // See tools/blog/README.md. Publishing is a local command only: it refuses to run when CI is set,
 // and the database URL is read from the gitignored tools/blog/.env.local and nowhere else.
 

@@ -17,7 +17,7 @@ import {
   TraitKeySchema,
 } from '../../../model/entities/person';
 import { chanceSchema, defineRecordKind, percentSchema } from '../fields';
-import { keySchema } from '../keys';
+import { keySchema, type RecordReference } from '../keys';
 
 /** Largest standard deviation a profile may give an attribute. */
 export const ATTRIBUTE_SD_MAX = 50;
@@ -62,3 +62,10 @@ export const traitIncidenceRecord = defineRecordKind(
 export type AttributeDistribution = z.output<typeof attributeDistributionSchema>;
 export type GenerationProfileRecord = z.output<typeof generationProfileRecord.full>;
 export type TraitIncidenceRecord = z.output<typeof traitIncidenceRecord.full>;
+
+// ---------------------------------------------------------------------------------------------
+// Reference fields, checked by the loader (WLD-02). `traitKey` names an engine trait, not a record.
+
+export const generationProfileReferences = [] as const satisfies readonly RecordReference[];
+
+export const traitIncidenceReferences = [] as const satisfies readonly RecordReference[];

@@ -23,3 +23,4 @@ export * from './world-builder';
 export * from './worlds';
 export * from './assertions';
 export * from './serialise';
+export * from './saves';

@@ -1,0 +1,25 @@
+[
+  {
+    "key": "harbour-coast",
+    "name": "Harbour Coast",
+    "countryKey": "cormere",
+    "population": 1900000,
+    "neighbourKeys": ["north-ridge"]
+  },
+  {
+    "key": "north-ridge",
+    "name": "North Ridge",
+    "countryKey": "cormere",
+    "population": 900000,
+    "wrestlingInterest": 70,
+    "preferredStyle": "hardHitting",
+    "neighbourKeys": ["harbour-coast", "vell-lowlands"]
+  },
+  {
+    "key": "vell-lowlands",
+    "name": "Vell Lowlands",
+    "countryKey": "vellmark",
+    "population": 2300000,
+    "neighbourKeys": ["north-ridge"]
+  }
+]

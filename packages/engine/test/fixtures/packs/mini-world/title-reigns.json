@@ -1,0 +1,11 @@
+[
+  {
+    "key": "hcw-heavyweight-jack-1",
+    "titleKey": "hcw-heavyweight",
+    "holderPersonKeys": ["jack-marlow"],
+    "wonOn": "2025-09-13",
+    "lostOn": null,
+    "endReason": null,
+    "defences": 3
+  }
+]

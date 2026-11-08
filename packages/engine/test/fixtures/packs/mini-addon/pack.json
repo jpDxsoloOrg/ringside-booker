@@ -1,0 +1,20 @@
+{
+  "formatVersion": 1,
+  "id": "mini-addon",
+  "name": "Mini Add-on",
+  "version": "0.1.0",
+  "kind": "addon",
+  "description": "Test fixture: gives River City Wrestling more cash and writes Sam Reed out of the world.",
+  "author": "Ringside Booker tests",
+  "dependsOn": [
+    {
+      "id": "mini-world",
+      "version": "^1.0.0"
+    }
+  ],
+  "files": {
+    "promotion": "promotions.json",
+    "person": "people.json",
+    "employment": "employments.json"
+  }
+}

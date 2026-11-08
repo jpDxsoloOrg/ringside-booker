@@ -1,0 +1,214 @@
+[
+  {
+    "key": "jack-marlow",
+    "givenName": "Jack",
+    "familyName": "Marlow",
+    "defaultRingName": "Jack Marlow",
+    "gender": "male",
+    "birthDate": "1996-04-12",
+    "debutDate": "2016-04-12",
+    "birthRegionKey": "harbour-coast",
+    "basedInRegionKey": "harbour-coast",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 180,
+    "weightKg": 95,
+    "build": "athletic",
+    "style": "technician",
+    "attributes": {
+      "ringwork": 55,
+      "psychology": 55,
+      "stamina": 55,
+      "safety": 55,
+      "athleticism": 55,
+      "mic": 55,
+      "charisma": 55,
+      "presence": 55,
+      "officiating": 55,
+      "broadcasting": 55,
+      "producing": 55,
+      "booking": 55
+    },
+    "condition": {
+      "head": 100,
+      "neck": 95,
+      "back": 90,
+      "arms": 100,
+      "torso": 100,
+      "legs": 92
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {
+        "ringwork": 80
+      }
+    },
+    "regionalPop": {
+      "harbour-coast": 20
+    },
+    "traits": ["workhorse", "professional"],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "nina-vale",
+    "givenName": "Nina",
+    "familyName": "Vale",
+    "defaultRingName": "Nina Vale",
+    "gender": "female",
+    "birthDate": "1998-07-30",
+    "debutDate": "2018-07-30",
+    "birthRegionKey": "north-ridge",
+    "basedInRegionKey": "north-ridge",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 180,
+    "weightKg": 95,
+    "build": "athletic",
+    "style": "allRounder",
+    "attributes": {
+      "ringwork": 55,
+      "psychology": 55,
+      "stamina": 55,
+      "safety": 55,
+      "athleticism": 55,
+      "mic": 55,
+      "charisma": 55,
+      "presence": 55,
+      "officiating": 55,
+      "broadcasting": 55,
+      "producing": 55,
+      "booking": 55
+    },
+    "condition": {
+      "head": 100,
+      "neck": 95,
+      "back": 90,
+      "arms": 100,
+      "torso": 100,
+      "legs": 92
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {
+        "ringwork": 80
+      }
+    },
+    "regionalPop": {
+      "north-ridge": 20
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "otto-brand",
+    "givenName": "Otto",
+    "familyName": "Brand",
+    "defaultRingName": "Otto Brand",
+    "gender": "male",
+    "birthDate": "1985-11-02",
+    "debutDate": "2005-11-02",
+    "birthRegionKey": "vell-lowlands",
+    "basedInRegionKey": "vell-lowlands",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 180,
+    "weightKg": 95,
+    "build": "athletic",
+    "style": "allRounder",
+    "attributes": {
+      "ringwork": 55,
+      "psychology": 55,
+      "stamina": 55,
+      "safety": 55,
+      "athleticism": 55,
+      "mic": 55,
+      "charisma": 55,
+      "presence": 55,
+      "officiating": 55,
+      "broadcasting": 55,
+      "producing": 55,
+      "booking": 55
+    },
+    "condition": {
+      "head": 100,
+      "neck": 95,
+      "back": 90,
+      "arms": 100,
+      "torso": 100,
+      "legs": 92
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {
+        "ringwork": 80
+      }
+    },
+    "regionalPop": {
+      "vell-lowlands": 20
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  },
+  {
+    "key": "sam-reed",
+    "givenName": "Sam",
+    "familyName": "Reed",
+    "defaultRingName": "Sam Reed",
+    "gender": "nonBinary",
+    "birthDate": "2000-01-20",
+    "debutDate": "2020-01-20",
+    "birthRegionKey": "vell-lowlands",
+    "basedInRegionKey": "vell-lowlands",
+    "roles": ["wrestler"],
+    "motivation": "legacy",
+    "heightCm": 180,
+    "weightKg": 95,
+    "build": "athletic",
+    "style": "allRounder",
+    "attributes": {
+      "ringwork": 55,
+      "psychology": 55,
+      "stamina": 55,
+      "safety": 55,
+      "athleticism": 55,
+      "mic": 55,
+      "charisma": 55,
+      "presence": 55,
+      "officiating": 55,
+      "broadcasting": 55,
+      "producing": 55,
+      "booking": 55
+    },
+    "condition": {
+      "head": 100,
+      "neck": 95,
+      "back": 90,
+      "arms": 100,
+      "torso": 100,
+      "legs": 92
+    },
+    "development": {
+      "potential": 100,
+      "ceilings": {
+        "ringwork": 80
+      }
+    },
+    "regionalPop": {
+      "vell-lowlands": 20
+    },
+    "traits": [],
+    "vices": {
+      "alcohol": "none",
+      "substances": "none"
+    }
+  }
+]

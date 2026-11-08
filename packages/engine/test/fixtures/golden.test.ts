@@ -7,11 +7,22 @@
  */
 
 import { describe, expect, it } from 'vitest';
+import { serialiseSaveDocument } from '../../src/persistence/codec';
+import { tinySaveDocument } from '../support/saves';
 import { serialiseWorld } from '../support/serialise';
 import { tinyWorld } from '../support/worlds';
 
 describe('golden fixtures', () => {
   it('tinyWorld matches worlds/tiny-world.json', async () => {
     await expect(serialiseWorld(tinyWorld().world)).toMatchFileSnapshot('./worlds/tiny-world.json');
+  });
+
+  // The current-version save of tinyWorld. While format v1 is unfrozen this is regenerated with
+  // the world fixture. Once a format version is frozen its fixture is frozen too: the next version
+  // gets its own file here, and the old one stays to test the migration from it.
+  it('a v1 save of tinyWorld matches saves/v1-tiny.json', async () => {
+    await expect(`${serialiseSaveDocument(tinySaveDocument(), 2)}\n`).toMatchFileSnapshot(
+      './saves/v1-tiny.json',
+    );
   });
 });

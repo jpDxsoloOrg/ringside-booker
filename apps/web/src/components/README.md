@@ -92,6 +92,10 @@ export const galleryEntry: GalleryEntry = {
 | `CountBadge`     | A small count such as unread mail, capped at `99+`                         |
 | `StatBar`        | A 0–100 value such as an attribute, popularity or condition                |
 | `EmptyState`     | What to show when a list, table or screen has nothing in it                |
+| `DataTable`      | Any dense list: a sortable table on desktop, stacked cards on phones       |
+| `Tabs`           | `Tabs`, `TabList`, `Tab`, `TabPanel`: switch between views in one area     |
+| `Sheet`          | A side panel over the page; a bottom sheet on phones                       |
+| `ConfirmDialog`  | Ask before a destructive or irreversible action, with async `onConfirm`    |
 | `Stack`          | Children in a column (or row) with a token gap                             |
 | `Cluster`        | A wrapping row with a token gap                                            |
 | `VisuallyHidden` | Text for screen readers only                                               |
@@ -99,3 +103,42 @@ export const galleryEntry: GalleryEntry = {
 
 Money is integer `Cents` and dates are `GameDate` strings from `@ringside/engine`; the formatters
 turn them into text at the edge and nowhere else.
+
+## DataTable
+
+`DataTable<Row>` takes rows, column definitions, `getRowId` and a `caption`, and gives both
+layouts: a captioned, sortable table with sticky headers on desktop, and a labelled list of
+stacked cards with a "Sort by" select below `--bp-mobile`. The cards are their own DOM, not
+restyled table cells, so each layout keeps its screen reader semantics.
+
+- **Card roles are chosen by the screen.** Each column says where it goes on a phone card:
+  `media`, `title`, `subtitle`, `stat` (the first six are shown, labelled with `cardLabel` or the
+  header), `meta` or `hidden`. Only the screen knows which few numbers matter most on a phone.
+- **Sorting** happens on the rows the screen passes in: numbers numerically, text naturally
+  ("Worker 2" before "Worker 10"), empty values last in both directions, ties by row id. A header
+  click cycles through the column's first direction (high to low for `numeric` columns, A to Z
+  otherwise), the other direction, then no sort. For big engine-side lists, control `sort` and
+  pass it to the query through `onSortChange` instead.
+- **Keyboard:** the table is one Tab stop. Up and Down move the selection, Home and End jump,
+  Enter opens the selected row. A click on a link or button inside a cell does not open the row.
+- **Keep `columns` and `getRowId` stable** (module level or `useMemo`) so rows only re-render
+  when their own data or selection changes.
+- **Size:** built and benchmarked for 500 rows by 10 columns (`DataTable.bench.ts`). There is no
+  windowing yet; a screen that needs thousands of rows should page them, or windowing should be
+  added behind the same props.
+
+## Overlays
+
+`Sheet` and `ConfirmDialog` are built on the native `<dialog>` element opened with `showModal()`,
+which gives the focus trap, Escape and the top layer without a library. Both are controlled: the
+parent owns `open` and clears it in `onClose`. Nothing renders while they are closed, and on close
+focus goes back to the control that opened them.
+
+- A screen that wants "a side panel" uses `Sheet` with a `side`. On phones the sheet decides to
+  open from the bottom instead (turn that off with `responsiveSide={false}`).
+- While any overlay is open, `useBodyScrollLock` puts the `scroll-locked` class on `<html>`. Holds
+  are counted, so a `ConfirmDialog` opened from inside a `Sheet` keeps the page locked when it
+  closes.
+- A new overlay reuses `useModalDialog` from `Sheet/` rather than wiring `<dialog>` again.
+- jsdom has no `showModal()`; `src/test/dialog.ts` stubs it (and Escape) for unit tests. Focus
+  trapping and layout are checked by the gallery e2e spec in a real browser.

@@ -96,7 +96,11 @@ export const WorldMetaSchema = z
       .refine((packs) => !hasDuplicates(packs.map((pack) => pack.id)), {
         message: 'content pack ids must be unique',
       }),
-    /** Pack ID → pack record key → the ID minted for that record. Filled by WLD-02. */
+    /**
+     * Record kind → pack record key → the ID minted for that record, so later systems, saves and
+     * mods can find a pack record's entity. Filled by the pack loader (WLD-02); only kinds that
+     * become entities appear. Keys are unique within a kind, not across kinds, hence the kind level.
+     */
     contentKeys: z.record(z.string().min(1), z.record(z.string().min(1), zMintedId)),
     /** Days the world has advanced since it was created. */
     daysSimulated: zNonNegativeInt,

@@ -1,0 +1,38 @@
+/* Shared styles for the Tabs, Sheet and ConfirmDialog gallery demos. */
+.example {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.subheading {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+}
+
+.caption {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.sideLabel {
+  min-inline-size: 4rem;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.panelText {
+  max-inline-size: 60ch;
+}
+
+.noteList {
+  display: grid;
+  gap: var(--space-2);
+  padding-inline-start: var(--space-5);
+}
+
+.status {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}

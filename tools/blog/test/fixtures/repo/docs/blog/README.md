@@ -10,6 +10,8 @@ A small copy of docs/blog for the checker tests.
 | 02   | The second fixture post | draft   | First entry   | -         |
 | 03   | A planned post, no file | planned | Later entries | -         |
 
+<!-- public-index-end -->
+
 ## Content rules
 
 Don't cite research notes or refer to a reference design or a reference study. The README states

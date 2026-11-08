@@ -4,6 +4,7 @@ import type { BlogConfig } from './config';
 import { BlogTransformError } from './errors';
 import { POST_FILE_NAME_PATTERN, SERIES_NAME } from './frontmatter';
 import type { LoadedPost } from './load';
+import { buildSeriesNav } from './series';
 import { slugify } from './slugify';
 
 // Turns a repo post into exactly the record the blog stores. Pure: the clock and the config come
@@ -36,6 +37,14 @@ export interface TransformContext {
   readonly now: Date;
 }
 
+export interface TransformOptions {
+  /**
+   * Add the series header before the body and the previous/next footer after it. On by default;
+   * off only for callers that want the body alone.
+   */
+  readonly withSeriesNav?: boolean;
+}
+
 /** Posts live here; relative links are resolved against this repo folder. */
 const BLOG_DIR = 'docs/blog';
 /** Images must resolve inside this folder; it is what `assetBaseUrl` serves. */
@@ -43,7 +52,11 @@ const IMAGES_DIR = 'docs/blog/images';
 const EXCERPT_MAX_LENGTH = 160;
 
 /** Builds the blog payload for one post. Throws BlogTransformError for posts that can't be pushed. */
-export function toPostPayload(post: LoadedPost, context: TransformContext): PostPayload {
+export function toPostPayload(
+  post: LoadedPost,
+  context: TransformContext,
+  options: TransformOptions = {},
+): PostPayload {
   const { frontmatter } = post;
   if (frontmatter.status === 'planned' || frontmatter.status === 'outline') {
     throw new BlogTransformError(post.path, [
@@ -52,15 +65,7 @@ export function toPostPayload(post: LoadedPost, context: TransformContext): Post
   }
 
   const masked = maskMarkdown(post.body, post.path);
-  const problems: string[] = [];
-  const linkContext: LinkContext = { post, context, problems };
-  const rewritten = rewriteReferenceDefinitions(
-    rewriteInlineLinks(masked.text, linkContext),
-    linkContext,
-  );
-  if (problems.length > 0) {
-    throw new BlogTransformError(post.path, problems);
-  }
+  const body = rewriteMasked(masked, post.path, context);
 
   const excerpt = frontmatter.excerpt ?? excerptFromBody(masked);
   if (excerpt === '') {
@@ -69,17 +74,50 @@ export function toPostPayload(post: LoadedPost, context: TransformContext): Post
     ]);
   }
 
+  let content = body;
+  if (options.withSeriesNav ?? true) {
+    const nav = buildSeriesNav(post, context.allPosts);
+    content = `${nav.header}\n\n${body}\n\n${nav.footer}`;
+  }
+
   const published = frontmatter.status === 'final';
   return {
     title: frontmatter.title,
     slug: frontmatter.slug,
-    content: `${unmask(rewritten, masked.spans)}\n`,
+    content: `${content}\n`,
     excerpt,
     published,
     publishedAt: resolvePublishedAt(frontmatter.publishedAt, published, context.now),
     coverImage: frontmatter.coverImage ?? null,
     tags: buildTags(frontmatter.tags),
   };
+}
+
+/**
+ * Turns any Markdown from docs/blog into blog-ready Markdown the way a post body is turned:
+ * comments stripped, links and images made absolute, blank lines tidied. `path` names the file
+ * in error messages. Throws BlogTransformError listing every link that can't be rewritten.
+ */
+export function rewriteForBlog(markdown: string, path: string, context: TransformContext): string {
+  return rewriteMasked(maskMarkdown(markdown, path), path, context);
+}
+
+/** The plain-text excerpt the transform would build from this Markdown, or '' when it has no prose. */
+export function excerptFromMarkdown(markdown: string, path: string): string {
+  return excerptFromBody(maskMarkdown(markdown, path));
+}
+
+function rewriteMasked(masked: MaskedMarkdown, path: string, context: TransformContext): string {
+  const problems: string[] = [];
+  const linkContext: LinkContext = { path, context, problems };
+  const rewritten = rewriteReferenceDefinitions(
+    rewriteInlineLinks(masked.text, linkContext),
+    linkContext,
+  );
+  if (problems.length > 0) {
+    throw new BlogTransformError(path, problems);
+  }
+  return unmask(rewritten, masked.spans);
 }
 
 function resolvePublishedAt(
@@ -94,7 +132,7 @@ function resolvePublishedAt(
 }
 
 /** The post's tags plus the series tag, one per slug (the first name wins), sorted by slug. */
-function buildTags(frontmatterTags: readonly string[]): PostTag[] {
+export function buildTags(frontmatterTags: readonly string[]): PostTag[] {
   const tagsBySlug = new Map<string, PostTag>();
   for (const name of [SERIES_NAME, ...frontmatterTags]) {
     const slug = slugify(name);
@@ -291,7 +329,8 @@ function unmask(text: string, spans: readonly MaskedSpan[]): string {
 // ---------------------------------------------------------------------------------------------
 
 interface LinkContext {
-  readonly post: LoadedPost;
+  /** The file being rewritten, for error messages. */
+  readonly path: string;
   readonly context: TransformContext;
   readonly problems: string[];
 }
