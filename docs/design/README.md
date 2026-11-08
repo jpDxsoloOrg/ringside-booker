@@ -12,5 +12,5 @@ Game and technical design for Ringside Booker. Each game system gets its own doc
 | [day-pipeline.md](day-pipeline.md)             | How a day runs: phases, calendar cadences, and domain events with staged delivery        |
 | [ui-tokens.md](ui-tokens.md)                   | Design tokens, light and dark themes, breakpoints and UI scale for the web app           |
 | [data-packs.md](data-packs.md)                 | The data-pack format: manifest, record kinds, keys, references, overrides and versioning |
-| save-format.md (to come)                       | The save document, its versioning and the migration rules                                |
+| [save-format.md](save-format.md)               | The save document, its versioning and the migration rules                                |
 | [calculation-traces.md](calculation-traces.md) | The `Traced<T>` shape, the trace builders, replay checks and formula module conventions  |

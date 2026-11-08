@@ -212,8 +212,8 @@ const result = world.transact('contracts.expire', (tx) => {
    rows by it, add an index.
 3. Document it in the entity's section below.
 4. Once the save format is frozen, bump the format version and add a tested
-   migration that fills the field in older saves (see the save format doc, to
-   come).
+   migration that fills the field in older saves (see
+   [save-format.md](save-format.md)).
 
 ## People
 
