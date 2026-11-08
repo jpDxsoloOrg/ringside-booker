@@ -134,7 +134,10 @@ function ToggleGroup<Value extends string>({
   );
 }
 
-/** Gallery demo: forty placeholder workers in a DataTable, with every layout and state. */
+/**
+ * Gallery demo: forty placeholder workers in a DataTable, with every layout and state, plus the
+ * filter box, row checkboxes and the column picker.
+ */
 function DataTableDemo() {
   const [layout, setLayout] = useState<DataTableLayout>('auto');
   const [density, setDensity] = useState<DataTableDensity>('comfortable');
@@ -170,7 +173,7 @@ function DataTableDemo() {
       </Cluster>
       <p className={styles['caption']} aria-live="polite">
         {openedWorker === null
-          ? 'Click a row, or select one with the arrow keys and press Enter, to open it.'
+          ? 'Click a row, or select one with the arrow keys and press Enter, to open it. Space ticks the selected row; Shift-click a checkbox to tick a range.'
           : `Opened ${openedWorker.name}.`}
       </p>
       <DataTable
@@ -181,6 +184,10 @@ function DataTableDemo() {
         layout={layout}
         density={density}
         loading={isLoading}
+        filterable
+        filterLabel="Filter workers"
+        selectable
+        columnPicker
         onActivate={setOpenedWorker}
         emptyState={
           <EmptyState
@@ -199,6 +206,6 @@ export const galleryEntry: GalleryEntry = {
   title: 'DataTable',
   group: 'Data',
   notes:
-    'A sortable table on desktop and stacked cards on phones. Try each layout, density, loading and empty.',
+    'Sorting, filtering, row checkboxes and hidden columns (TanStack Table under our own markup). A table on desktop and stacked cards on phones. Try each layout, density, loading and empty.',
   render: () => <DataTableDemo />,
 };

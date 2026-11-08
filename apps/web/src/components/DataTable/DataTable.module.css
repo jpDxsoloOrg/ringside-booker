@@ -4,7 +4,154 @@
  */
 
 .dataTable {
+  display: grid;
+  gap: var(--space-3);
   min-inline-size: 0;
+}
+
+/* ---------------------------------------------------------------- toolbar */
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-3);
+  min-inline-size: 0;
+}
+
+.toolbarLabel {
+  color: var(--color-text-muted);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.filterField {
+  display: grid;
+  flex: 1 1 14rem;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  max-inline-size: 24rem;
+}
+
+.filterInputWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.filterIcon {
+  position: absolute;
+  inset-inline-start: var(--space-3);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.filterInput {
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 2.5rem;
+  padding: var(--space-2) var(--space-3) var(--space-2) calc(var(--space-3) * 2 + 1rem);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--font-size-sm);
+}
+
+.filterInput::placeholder {
+  color: var(--color-text-muted);
+}
+
+@media (pointer: coarse) {
+  .filterInput {
+    min-block-size: var(--tap-target-min);
+  }
+}
+
+.toolbarEnd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-inline-start: auto;
+  min-inline-size: 0;
+}
+
+.toolbarStatus {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-3);
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: var(--font-feature-tabular);
+}
+
+.checkedCount {
+  color: var(--color-data);
+  font-weight: var(--font-weight-semibold);
+}
+
+.columnPickerList {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.columnPickerItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: 2rem;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+@media (pointer: coarse) {
+  .columnPickerItem {
+    min-block-size: var(--tap-target-min);
+  }
+}
+
+/* ---------------------------------------------------------------- checkboxes */
+
+/* A wider hit area around the box; the label never shows text of its own. */
+.checkTarget {
+  display: inline-grid;
+  place-items: center;
+  min-inline-size: 1.75rem;
+  min-block-size: 1.75rem;
+  cursor: pointer;
+}
+
+@media (pointer: coarse) {
+  .checkTarget {
+    min-inline-size: var(--tap-target-min);
+    min-block-size: var(--tap-target-min);
+  }
+}
+
+.checkbox {
+  inline-size: 1rem;
+  block-size: 1rem;
+  margin: 0;
+  accent-color: var(--color-data);
+  cursor: pointer;
+}
+
+.table .checkCell {
+  inline-size: 2.75rem;
+  padding-block: 0;
+  padding-inline: var(--space-2);
+  text-align: center;
 }
 
 /* ---------------------------------------------------------------- table */
@@ -54,15 +201,22 @@
   padding: var(--space-1) var(--space-3);
 }
 
+/*
+ * Office stat-table header: Barlow Condensed caps with a little tracking, muted, over a hairline.
+ * The header's own sort buttons inherit the face and the case.
+ */
 .table th {
   position: sticky;
   inset-block-start: 0;
   z-index: 1;
   background: var(--color-surface-sunken);
   color: var(--color-text-muted);
-  font-size: var(--font-size-xs);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.06em;
   text-align: start;
+  text-transform: uppercase;
   white-space: nowrap;
 }
 
@@ -82,8 +236,16 @@
   }
 }
 
-.rowSelected td {
+.rowSelected td,
+.rowChecked td {
   background: var(--color-surface-sunken);
+}
+
+/* Stands in for rows outside the render window; rowWindow.ts sets the height. */
+.windowSpacer td {
+  block-size: var(--window-spacer-size, 0);
+  padding: 0;
+  border: 0;
 }
 
 .rowSelected td:first-child {
@@ -205,35 +367,20 @@
   min-inline-size: 0;
 }
 
+/* The Select's label sits above its field, so the direction toggle lines up with the field. */
 .cardSortBar {
   display: flex;
-  align-items: center;
+  align-items: end;
   gap: var(--space-2);
   min-inline-size: 0;
 }
 
-.cardSortLabel {
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  white-space: nowrap;
-}
-
 .cardSortSelect {
   flex: 1 1 auto;
-  min-inline-size: 0;
-  min-block-size: 2.25rem;
-  padding: var(--space-1) var(--space-2);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-  font-size: var(--font-size-sm);
 }
 
-@media (pointer: coarse) {
-  .cardSortSelect {
-    min-block-size: var(--tap-target-min);
-  }
+.cardSortDirection {
+  flex: none;
 }
 
 .cardList {
@@ -245,7 +392,23 @@
 }
 
 .cardItem {
+  position: relative;
   min-inline-size: 0;
+}
+
+/* The checkbox sits in the card's top corner; the card leaves room for it. */
+.cardCheck {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+}
+
+.cardItemCheckable .card {
+  padding-inline-end: calc(var(--tap-target-min) + var(--space-1));
+}
+
+.cardItemChecked .card {
+  border-color: var(--color-data);
 }
 
 /* Picture on the left, everything else stacked beside it. */
@@ -339,9 +502,14 @@
   min-inline-size: 0;
 }
 
+/* Stat labels match the table header: Barlow Condensed caps. */
 .cardStat dt {
   color: var(--color-text-muted);
+  font-family: var(--font-family-display);
   font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   overflow-wrap: anywhere;
 }
 

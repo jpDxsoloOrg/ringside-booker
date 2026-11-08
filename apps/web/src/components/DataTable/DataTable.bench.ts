@@ -5,9 +5,11 @@
  *
  * The ceiling DataTable is built for is 500 rows by 10 columns. Measured on a development laptop
  * (2026-11): the React work (sort plus render, no DOM) takes about 23 ms, inside the 50 ms budget.
+ * Moving the row work onto TanStack Table left it where it was (about 29 ms on both sides of the
+ * change, measured back to back on a busy machine).
  * A full jsdom render takes about 120 ms, nearly all of it jsdom building 5,000 cells, which a
  * real browser does several times faster. Past that size a screen should page or window its rows
- * behind the same props (see the DataTable notes in components/README.md).
+ * behind the same props (see rowWindow.ts and the DataTable notes in components/README.md).
  */
 import { cleanup, render } from '@testing-library/react';
 import { createElement } from 'react';

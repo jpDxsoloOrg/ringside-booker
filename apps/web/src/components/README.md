@@ -87,29 +87,29 @@ export const galleryEntry: GalleryEntry = {
 
 ## What is here
 
-| Component        | Use it for                                                                 |
-| ---------------- | -------------------------------------------------------------------------- |
-| `Button`         | Every clickable action. Variants `primary`, `secondary`, `ghost`, `danger` |
-| `IconButton`     | An action shown as an icon only. Its `label` is required                   |
-| `Icon`           | One of the inline SVG icons in `Icon/icons.ts`                             |
-| `Panel`          | A titled surface grouping related content, optionally collapsible          |
-| `Badge`          | A short status label in one of the tones                                   |
-| `CountBadge`     | A small count such as unread mail, capped at `99+`                         |
-| `StatBar`        | A 0–100 value such as an attribute, popularity or condition                |
-| `EmptyState`     | What to show when a list, table or screen has nothing in it                |
-| `DataTable`      | Any dense list: a sortable table on desktop, stacked cards on phones       |
-| `Tabs`           | `Tabs`, `TabList`, `Tab`, `TabPanel`: switch between views in one area     |
-| `Sheet`          | A side panel over the page; a bottom sheet on phones                       |
-| `ConfirmDialog`  | Ask before a destructive or irreversible action, with async `onConfirm`    |
-| `Tooltip`        | A short hint on hover or focus. Never the only copy of anything            |
-| `Popover`        | A small panel anchored to a button: detail, a filter, quick controls       |
-| `DropdownMenu`   | A menu of actions behind a button, such as a row's "more" menu             |
-| `Select`         | Pick one option from a short list                                          |
-| `Switch`         | An on/off setting that applies straight away                               |
-| `Stack`          | Children in a column (or row) with a token gap                             |
-| `Cluster`        | A wrapping row with a token gap                                            |
-| `VisuallyHidden` | Text for screen readers only                                               |
-| `format/`        | `formatMoney`, `formatNumber`, `formatPercent`, `formatSigned`, dates      |
+| Component        | Use it for                                                                    |
+| ---------------- | ----------------------------------------------------------------------------- |
+| `Button`         | Every clickable action. Variants `primary`, `secondary`, `ghost`, `danger`    |
+| `IconButton`     | An action shown as an icon only. Its `label` is required                      |
+| `Icon`           | One of the inline SVG icons in `Icon/icons.ts`                                |
+| `Panel`          | A titled surface grouping related content, optionally collapsible             |
+| `Badge`          | A short status label in one of the tones                                      |
+| `CountBadge`     | A small count such as unread mail, capped at `99+`                            |
+| `StatBar`        | A 0–100 value such as an attribute, popularity or condition                   |
+| `EmptyState`     | What to show when a list, table or screen has nothing in it                   |
+| `DataTable`      | Any dense list: sort, filter, checkboxes; a table on desktop, cards on phones |
+| `Tabs`           | `Tabs`, `TabList`, `Tab`, `TabPanel`: switch between views in one area        |
+| `Sheet`          | A side panel over the page; a bottom sheet on phones                          |
+| `ConfirmDialog`  | Ask before a destructive or irreversible action, with async `onConfirm`       |
+| `Tooltip`        | A short hint on hover or focus. Never the only copy of anything               |
+| `Popover`        | A small panel anchored to a button: detail, a filter, quick controls          |
+| `DropdownMenu`   | A menu of actions behind a button, such as a row's "more" menu                |
+| `Select`         | Pick one option from a short list                                             |
+| `Switch`         | An on/off setting that applies straight away                                  |
+| `Stack`          | Children in a column (or row) with a token gap                                |
+| `Cluster`        | A wrapping row with a token gap                                               |
+| `VisuallyHidden` | Text for screen readers only                                                  |
+| `format/`        | `formatMoney`, `formatNumber`, `formatPercent`, `formatSigned`, dates         |
 
 Money is integer `Cents` and dates are `GameDate` strings from `@ringside/engine`; the formatters
 turn them into text at the edge and nowhere else.
@@ -121,21 +121,45 @@ layouts: a captioned, sortable table with sticky headers on desktop, and a label
 stacked cards with a "Sort by" select below `--bp-mobile`. The cards are their own DOM, not
 restyled table cells, so each layout keeps its screen reader semantics.
 
+[TanStack Table](https://tanstack.com/table) (see `docs/design/visual-identity.md`) does the row
+work: sorting, the filter, checked rows and hidden columns. It is headless, so the markup and the
+look stay ours. Screens never import `@tanstack/*`; they pass our `ColumnDef` and props, and
+`tableModel.ts` / `useDataTableModel.ts` translate them. Every piece of state can be left to the
+table or controlled by the screen (`sort` / `filter` / `checkedRowIds` / `hiddenColumnIds`, each
+with its `on…Change`).
+
 - **Card roles are chosen by the screen.** Each column says where it goes on a phone card:
   `media`, `title`, `subtitle`, `stat` (the first six are shown, labelled with `cardLabel` or the
   header), `meta` or `hidden`. Only the screen knows which few numbers matter most on a phone.
-- **Sorting** happens on the rows the screen passes in: numbers numerically, text naturally
-  ("Worker 2" before "Worker 10"), empty values last in both directions, ties by row id. A header
-  click cycles through the column's first direction (high to low for `numeric` columns, A to Z
-  otherwise), the other direction, then no sort. For big engine-side lists, control `sort` and
-  pass it to the query through `onSortChange` instead.
+- **Stat-table look.** Headers are Barlow Condensed capitals with a little tracking, as are the
+  card stat labels. `numeric` columns sit on the right with the global `.tabular` class.
+- **Sorting** (`sortable`, on by default; start with `initialSort`): numbers numerically, text
+  naturally ("Worker 2" before "Worker 10"), empty values last in both directions, ties by row id.
+  A header click cycles through the column's first direction (high to low for `numeric` columns,
+  A to Z otherwise), the other direction, then no sort. On phones the "Sort by" select and a
+  direction toggle do the same. For big engine-side lists, control `sort` and pass it to the query
+  through `onSortChange` instead.
+- **Filter** (`filterable`): a search box above the rows that matches any searched column,
+  ignoring case and accents. Columns are searched by their `filterValue`, or by their text
+  `sortValue` when they have no `filterValue`; numbers are only searched when a column asks for it
+  through `filterValue`. Escape clears the box, and "No matches" offers "Clear filter".
+- **Checked rows** (`selectable`): a checkbox per row and "select all" in the header, for bulk
+  actions. Shift-click checks a range, Space checks the current row from the keyboard, and the
+  toolbar shows the count with "Clear selection". This is separate from the current row
+  (`selectedRowId` / `onSelect`), which the arrow keys move and Enter opens. On a card the
+  checkbox sits in the corner as the card's sibling, so the card stays one clean button.
+- **Hidden columns** (`columnPicker`, `defaultHiddenColumnIds`): a "Columns" popover lists every
+  column whose `hideable` is not false. The `title` column cannot be hidden. Hidden columns leave
+  the cards too.
 - **Keyboard:** the table is one Tab stop. Up and Down move the selection, Home and End jump,
-  Enter opens the selected row. A click on a link or button inside a cell does not open the row.
+  Enter opens the selected row, Space checks it when `selectable`. A click on a link, button or
+  checkbox inside a cell does not open the row.
 - **Keep `columns` and `getRowId` stable** (module level or `useMemo`) so rows only re-render
-  when their own data or selection changes.
+  when their own data, selection or checkbox changes.
 - **Size:** built and benchmarked for 500 rows by 10 columns (`DataTable.bench.ts`). There is no
-  windowing yet; a screen that needs thousands of rows should page them, or windowing should be
-  added behind the same props.
+  windowing yet. `rowWindow.ts` is the hook point: from `WINDOWING_ROW_THRESHOLD` (300) rows a
+  roster should switch on `@tanstack/react-virtual` there, and the comment in that file lists the
+  steps. Nothing outside that file has to change.
 
 ## Overlays and Radix
 
