@@ -1,0 +1,139 @@
+/*
+ * KPI card: the office register's stat card (docs/design/visual-identity.md). A rounded card on
+ * the surface step with a hairline, a label in Barlow Condensed capitals, the big number in Barlow
+ * Condensed with tabular figures, and a footer under a hairline. Calm on purpose: no skew, no glow.
+ */
+.kpiCard {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.label {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  color: var(--color-text-muted);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.08em;
+  line-height: var(--line-height-snug);
+  text-transform: uppercase;
+  overflow-wrap: break-word;
+}
+
+.icon {
+  flex: none;
+  color: var(--color-text-muted);
+}
+
+/* Number, chip and sparkline on one line; the chip and line drop below when the card is narrow. */
+.body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  min-inline-size: 0;
+}
+
+.value {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+  font-variant-numeric: var(--font-feature-tabular);
+  overflow-wrap: anywhere;
+}
+
+.unit {
+  color: var(--color-text-muted);
+  font-family: var(--font-family-ui);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-regular);
+}
+
+.tone-neutral {
+  color: var(--color-text);
+}
+
+.tone-data {
+  color: var(--color-data);
+}
+
+.tone-prestige {
+  color: var(--color-prestige);
+}
+
+.delta {
+  flex: none;
+}
+
+.sparkline {
+  flex: 1 1 4rem;
+  min-inline-size: 3rem;
+  max-inline-size: 7rem;
+}
+
+/* Footer line and the Why? chip share the bottom row; the chip wraps under a long footer. */
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-2);
+  padding-block-start: var(--space-2);
+  border-block-start: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: var(--font-feature-tabular);
+}
+
+.footerText {
+  flex: 1 1 8rem;
+  min-inline-size: 0;
+  overflow-wrap: break-word;
+}
+
+.why {
+  flex: none;
+  margin-inline-start: auto;
+}
+
+/* As many columns as fit on desktop; always two on a phone. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+@media (--bp-mobile) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2);
+  }
+
+  .kpiCard {
+    padding: var(--space-3);
+  }
+
+  .value {
+    font-size: var(--font-size-2xl);
+  }
+}

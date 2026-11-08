@@ -203,6 +203,27 @@ root font size to `calc(var(--ui-scale, 1) * 100%)`, so at 1.25 every rem-based 
 spacing, layout sizes) is 25% larger. It also respects the browser's own font size setting,
 because the base is `100%` rather than a fixed pixel size.
 
+## Viewer settings
+
+The Settings screen (`/settings`, `apps/web/src/screens/settings`) is where the player picks the
+UI scale (80% to 150% in 5% steps), reduced motion (match device, on, off) and how money is
+written (compact `$1.2M` or full `$1,234,567`). The theme choice stays hidden while dark is the
+only theme (D-11); the preference and `applyTheme` are still there for when a light theme ships.
+
+- **Per browser, never in a save.** Settings describe the device, not the world, so they live in
+  `localStorage['rb.settings']` as a versioned object. A save moved to a phone keeps the phone's
+  own settings.
+- **Validated field by field.** `parseSettings` keeps each valid field and defaults the rest, so a
+  hand-edited or corrupt entry never breaks the app or resets the other settings.
+- **Applied before the first paint.** `main.tsx` reads and applies them synchronously before
+  React renders; `SettingsEffects` keeps `<html>` in step after that.
+- **Storage can fail.** In a private window or with site data blocked the store keeps working in
+  memory and the screen says the settings won't be remembered.
+- **Motion.** `on` sets `data-reduced-motion="on"`; `off` sets `data-reduced-motion="off"`, which
+  keeps full motion even when the OS asks for less; `match device` removes the attribute and
+  leaves it to the media query.
+- **Money.** Screens format money with `useMoneyFormatter()`, which fills in the chosen style.
+
 ## Placeholder art
 
 Until real images exist, every entity picture is drawn by `ImageSlot`
@@ -211,7 +232,7 @@ and never draw entity art themselves, so swapping in real images later changes n
 
 | Kind                                         | Generator          | What it draws                                                                                                                                        |
 | -------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `person`                                     | `PersonInitials`   | Initials on a category colour (the default)                                                                                                          |
+| `person`                                     | `PersonInitials`   | Ringed initials (the default): a ring and initials in a category colour on the raised surface; the ring follows the frame shape                      |
 | `person` with `personStyle="silhouette"`     | `PersonSilhouette` | One of three head-and-shoulders outlines: short hair, long hair, hooded and masked                                                                   |
 | `title`                                      | `Belt`             | Strap, two side plates, a centre plate (oval, shield, hexagon or circle) engraved with initials, in the `tier` metal                                 |
 | `promotion`, `brand`, `event`, `network`     | `LogoMark`         | An outer shape (circle, shield, star-burst, diamond or hexagon) with a smaller copy inside in a second colour, and a monogram of up to three letters |
@@ -225,9 +246,10 @@ in the UI and never touches the engine's random streams, so changing the art can
 results.
 
 **Theme-aware.** The art is inline SVG, not image files or data URLs, and every fill is a CSS
-Module class that reads a semantic token (`--color-cat-*`, `--color-text-inverse`, the metal and
-strap tokens). Shapes stay the same across themes; colours follow the theme. SVG stays sharp at
-any size and on high-density screens, and slot sizes are in rem, so they grow with the UI scale.
+Module class that reads a semantic token (`--color-cat-*`, `--color-surface-raised`,
+`--color-text-inverse`, the metal and strap tokens). Shapes stay the same across themes; colours
+follow the theme. SVG stays sharp at any size and on high-density screens, and slot sizes are in
+rem, so they grow with the UI scale.
 
 **Accessibility.** The SVG or `<img>` is named after the entity (`role="img"` and `aria-label`, or
 `alt`). Pass `decorative` when the name is already printed next to the slot; the art is then

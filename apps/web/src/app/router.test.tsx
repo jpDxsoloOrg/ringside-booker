@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import type { RouteObject } from 'react-router-dom';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -27,22 +28,23 @@ beforeEach(() => {
 });
 
 describe('app router', () => {
-  it('renders the placeholder home at /', async () => {
+  it('renders the title screen at /', async () => {
     renderAt('/');
 
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Ringside Booker' }),
     ).toBeInTheDocument();
-    expect(screen.getByText(`Version ${__APP_VERSION__}`)).toBeInTheDocument();
+    expect(screen.getByText(`App v${__APP_VERSION__}`)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Load game' })).toHaveAttribute('href', routes.load());
   });
 
-  it('links the placeholder home to the gallery', async () => {
-    renderAt('/');
+  it('renders the saved games screen at /load', async () => {
+    renderAt(routes.load());
 
-    expect(await screen.findByRole('link', { name: 'Gallery' })).toHaveAttribute(
-      'href',
-      '/dev/gallery',
-    );
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Saved games' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('navigation', { name: 'Main' })).toBeNull();
   });
 
   it('registers the component gallery in every build', async () => {
@@ -60,16 +62,37 @@ describe('app router', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Badge' })).toBeInTheDocument();
   });
 
-  it.each([
-    [routes.load(), 'Load game'],
-    [routes.newGame(), 'New game'],
-    [routes.settings(), 'Settings'],
-  ])('renders a placeholder at %s until the screen is built', async (path, title) => {
-    renderAt(path);
+  it.each([[routes.newGame(), 'New game']])(
+    'renders a placeholder at %s until the screen is built',
+    async (path, title) => {
+      renderAt(path);
 
-    expect(await screen.findByRole('heading', { level: 1, name: title })).toBeInTheDocument();
+      expect(await screen.findByRole('heading', { level: 1, name: title })).toBeInTheDocument();
+      expect(screen.getByRole('main')).toHaveAttribute('id', 'main');
+      expect(screen.queryByRole('navigation')).toBeNull();
+    },
+  );
+});
+
+describe('settings route', () => {
+  it('renders the settings screen in the out-of-game layout', async () => {
+    renderAt(routes.settings());
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Settings' })).toBeInTheDocument();
     expect(screen.getByRole('main')).toHaveAttribute('id', 'main');
     expect(screen.queryByRole('navigation')).toBeNull();
+    expect(screen.getByRole('slider', { name: 'UI scale' })).toBeInTheDocument();
+  });
+
+  it('is linked from the title screen, and its back link returns there', async () => {
+    const user = userEvent.setup();
+    const router = renderAt(routes.title());
+
+    await user.click(await screen.findByRole('link', { name: 'Settings' }));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Settings' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('link', { name: 'Back' }));
+    expect(router.state.location.pathname).toBe(routes.title());
   });
 });
 

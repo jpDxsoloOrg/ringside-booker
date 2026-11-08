@@ -51,6 +51,21 @@ async function openSheet(
   return { opener, sheet };
 }
 
+/** Opens a Why? panel from the gallery's Why? panel entry, with motion off. */
+async function openWhyPanel(
+  page: Page,
+  openerName: string,
+  panelTitle: string,
+): Promise<{ opener: Locator; panel: Locator }> {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await gotoEntry(page, 'why-panel', 'Why? panel');
+  const opener = page.locator(ENTRY_PANEL).getByRole('button', { name: openerName });
+  await opener.click();
+  const panel = page.getByRole('dialog', { name: panelTitle });
+  await expect(panel).toBeVisible();
+  return { opener, panel };
+}
+
 /** Alpha of a computed CSS colour such as `rgba(29, 28, 26, 0.6)`; 1 for an opaque `rgb()`. */
 function colourAlpha(colour: string): number {
   const channels = colour.match(/[\d.]+/g) ?? [];
@@ -531,5 +546,127 @@ test.describe('component gallery', () => {
     expect(Math.round(confirmBox.width)).toBe(Math.round(cancelBox.width));
     expect(confirmBox.y, 'stacked, not side by side').toBeGreaterThan(cancelBox.y);
     await expectNoHorizontalScroll(page);
+  });
+
+  test('the Why? panel opens on the right and leaves the page showing on desktop', async ({
+    page,
+  }, testInfo) => {
+    test.skip(isPhone(testInfo), 'On a phone the panel is a bottom sheet.');
+
+    const { opener, panel } = await openWhyPanel(
+      page,
+      'Why is Attendance 9,000 people?',
+      'Attendance',
+    );
+    await expect(panel).toHaveAttribute('data-side', 'right');
+    await expect(panel.getByRole('tree', { name: 'Breakdown of Attendance' })).toBeVisible();
+    await expect(panel.getByText('Capped 9,518 → 9,000 (maximum)')).toBeVisible();
+
+    const viewport = page.viewportSize();
+    const panelBox = await panel.boundingBox();
+    expect(viewport).not.toBeNull();
+    expect(panelBox).not.toBeNull();
+    if (viewport === null || panelBox === null) return;
+    expect(Math.round(panelBox.x + panelBox.width), 'right edge').toBe(viewport.width);
+    expect(panelBox.x, 'leaves the page showing').toBeGreaterThan(viewport.width / 2);
+
+    // The entry and its numbers stay in view beside the panel, under the see-through backdrop.
+    const entryHeading = page.getByRole('heading', {
+      level: 2,
+      name: 'Why? panel',
+      includeHidden: true,
+    });
+    await expect(entryHeading).toBeInViewport();
+    const headingBox = await entryHeading.boundingBox();
+    expect(headingBox?.x ?? Number.POSITIVE_INFINITY).toBeLessThan(panelBox.x);
+    const openerBox = await page
+      .locator(ENTRY_PANEL)
+      .getByRole('button', { name: 'Why is Attendance 9,000 people?', includeHidden: true })
+      .boundingBox();
+    expect((openerBox?.x ?? Number.POSITIVE_INFINITY) + (openerBox?.width ?? 0)).toBeLessThan(
+      panelBox.x,
+    );
+
+    await expectNoSeriousA11yViolations(page, { include: ['[role="dialog"]'] });
+
+    await page.keyboard.press('Escape');
+    await expect(panel).toBeHidden();
+    await expect(opener).toBeFocused();
+  });
+
+  test('on a phone the Why? panel is a bottom sheet that scrolls inside itself', async ({
+    page,
+  }, testInfo) => {
+    test.skip(!isPhone(testInfo), 'Bottom sheets replace side panels on phones.');
+
+    const { opener, panel } = await openWhyPanel(
+      page,
+      'Why is Attendance 9,000 people?',
+      'Attendance',
+    );
+    await expect(panel).toHaveAttribute('data-side', 'bottom');
+    await panel.getByRole('button', { name: 'Expand all' }).click();
+    await panel.getByRole('button', { name: /Show checks that didn't apply/ }).click();
+
+    const viewport = page.viewportSize();
+    const panelBox = await panel.boundingBox();
+    expect(viewport).not.toBeNull();
+    expect(panelBox).not.toBeNull();
+    if (viewport === null || panelBox === null) return;
+    expect(panelBox.y).toBeGreaterThanOrEqual(0);
+    expect(Math.round(panelBox.width)).toBe(viewport.width);
+    expect(Math.round(panelBox.y + panelBox.height), 'bottom edge').toBe(viewport.height);
+    expect(panelBox.height).toBeLessThanOrEqual(
+      viewport.height * BOTTOM_SHEET_MAX_HEIGHT_RATIO + 1,
+    );
+
+    // Close is reachable without scrolling, and rows wrap rather than run off the side.
+    const closeButton = panel.getByRole('button', { name: 'Close' });
+    await expect(closeButton).toBeInViewport();
+    const body = panel.locator('[data-sheet-body]');
+    const fitsWidth = await body.evaluate((element) => element.scrollWidth <= element.clientWidth);
+    expect(fitsWidth, 'the rows fit the phone width').toBe(true);
+
+    const pageScrollBefore = await page.evaluate(() => window.scrollY);
+    const scroll = await body.evaluate((element) => {
+      const overflow = element.scrollHeight - element.clientHeight;
+      element.scrollTop = overflow;
+      return { overflow, scrollTop: element.scrollTop };
+    });
+    expect(scroll.overflow, 'the breakdown is taller than the sheet').toBeGreaterThan(0);
+    expect(scroll.scrollTop, 'the breakdown scrolled').toBeGreaterThan(0);
+    expect(await page.evaluate(() => window.scrollY)).toBe(pageScrollBefore);
+
+    // The final value stays pinned at the top while the steps scroll under it.
+    const headline = panel.getByText('9,000', { exact: true }).first();
+    await expect(headline).toBeInViewport();
+    const headlineBox = await headline.boundingBox();
+    const bodyBox = await body.boundingBox();
+    expect(headlineBox?.y ?? 0).toBeGreaterThanOrEqual((bodyBox?.y ?? 0) - 1);
+
+    await closeButton.click();
+    await expect(panel).toBeHidden();
+    await expect(opener).toBeFocused();
+  });
+
+  test('a Why? panel fetched by reference loads its trace, or says it was summarised', async ({
+    page,
+  }) => {
+    const recent = await openWhyPanel(
+      page,
+      'Why is Recent attendance 9,000 people?',
+      'Recent attendance',
+    );
+    await expect(recent.panel.getByRole('tree')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(recent.panel).toBeHidden();
+
+    await page
+      .locator(ENTRY_PANEL)
+      .getByRole('button', { name: 'Why is Older attendance 6,400 people?' })
+      .click();
+    const older = page.getByRole('dialog', { name: 'Older attendance' });
+    await expect(older.getByText('Full breakdown is only kept for recent results')).toBeVisible();
+    await expect(older.getByRole('tree')).toHaveCount(0);
   });
 });

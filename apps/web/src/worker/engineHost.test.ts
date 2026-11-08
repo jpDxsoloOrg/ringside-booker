@@ -1,5 +1,6 @@
-import { describe, expect, it, vi } from 'vitest';
-import { ENGINE_VERSION } from '@ringside/engine';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { addDays, CURRENT_FORMAT_VERSION, ENGINE_VERSION } from '@ringside/engine';
+import type { GameDate } from '@ringside/engine';
 import { TEST_PLAYER_ID } from '@ringside/engine/testing';
 import { createInProcessTransport } from '@/app/engine/transport';
 import {
@@ -13,6 +14,16 @@ import type { FakeEngineOptions } from '@/test/fakeEngine';
 import { ADVANCE_BUSY_REASON, createEngineHost, NO_WORLD_REASON } from './engineHost';
 import type { AdvanceProgress, EngineHostOptions } from './engineHost';
 import { yieldToEventLoop } from './yieldToEventLoop';
+import * as storage from '@/storage';
+import {
+  damagedGoldenSave,
+  goldenGameDate,
+  goldenHumanController,
+  goldenSaveBytes,
+  goldenSaveDocument,
+  truncatedGoldenSave,
+} from '@/test/goldenSave';
+import { expectOk, resetSaveDb } from '@/test/saves';
 
 const LOCAL_CONTROLLER = { kind: 'human', playerId: TEST_PLAYER_ID } as const;
 
@@ -227,5 +238,253 @@ describe('yieldToEventLoop', () => {
     await yieldToEventLoop();
     order.push('yielded');
     expect(order).toEqual(['message', 'yielded']);
+  });
+});
+
+/** Stores `bytes` in a new slot under the golden save's header, the way an import would. */
+async function storeSlot(bytes: Uint8Array, label = 'Golden save'): Promise<string> {
+  const { header } = goldenSaveDocument();
+  const slot = expectOk(
+    await storage.createSlot(label, bytes, header, {
+      formatVersion: CURRENT_FORMAT_VERSION,
+      engineVersion: ENGINE_VERSION,
+      savedAt: '2026-11-01T10:00:00.000Z',
+    }),
+  );
+  return slot.slotId;
+}
+
+/** A host with no world, the way the worker starts. */
+function emptyHost() {
+  const { host } = createInProcessTransport(fakeEngineFactory(), {
+    progressIntervalMs: 0,
+    savedAtNow: () => '2026-11-08T09:30:00.000Z',
+  });
+  return host;
+}
+
+describe('engine host loadFromSlot', () => {
+  beforeEach(async () => {
+    await resetSaveDb();
+  });
+
+  it('loads a valid save and plays as its human controller', async () => {
+    const host = emptyHost();
+    const slotId = await storeSlot(await goldenSaveBytes());
+
+    const result = await host.loadFromSlot(slotId, 'latest');
+
+    if (!result.ok) throw new Error(`load failed at ${result.stage}`);
+    expect(result.summary.seat.controller).toEqual(goldenHumanController());
+    expect(result.summary.label).toBe('Golden save');
+    expect(result.summary.promotionName).toBe('Test Promotion A');
+    expect(result.summary.gameDate).toBe(goldenGameDate());
+    expect(result.summary.migrationsApplied).toEqual([]);
+    expect(result.warnings).toEqual([]);
+    expect(host.isWorldLoaded()).toBe(true);
+    expect(host.getSeat()).toEqual(result.summary.seat);
+  });
+
+  it('reports a truncated gzip stream at the decode stage', async () => {
+    const host = emptyHost();
+    const slotId = await storeSlot(await truncatedGoldenSave());
+
+    const result = await host.loadFromSlot(slotId, 'latest');
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.stage).toBe('decode');
+    expect(result.issues.length).toBeGreaterThan(0);
+    expect(host.isWorldLoaded()).toBe(false);
+  });
+
+  it('reports a schema violation at the validate stage with its path', async () => {
+    const host = emptyHost();
+    const slotId = await storeSlot(damagedGoldenSave(['header', 'gameDate'], 'yesterday'));
+
+    const result = await host.loadFromSlot(slotId, 'latest');
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.stage).toBe('validate');
+    expect(result.issues.map((issue) => issue.path)).toContain('header.gameDate');
+  });
+
+  it('refuses a save from a newer format at the version stage', async () => {
+    const host = emptyHost();
+    const slotId = await storeSlot(damagedGoldenSave(['formatVersion'], 99));
+
+    const result = await host.loadFromSlot(slotId, 'latest');
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.stage).toBe('version');
+    expect(result.issues[0]?.path).toBe('formatVersion');
+  });
+
+  it("checks the simulation's own parts: a malformed rng fails at validate", async () => {
+    const host = emptyHost();
+    const slotId = await storeSlot(damagedGoldenSave(['state', 'rng', 'streams'], 'not streams'));
+
+    const result = await host.loadFromSlot(slotId, 'latest');
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.stage).toBe('validate');
+    expect(result.issues.some((issue) => issue.path.startsWith('state.rng'))).toBe(true);
+  });
+
+  it('reports a missing slot at the storage stage', async () => {
+    const host = emptyHost();
+
+    const result = await host.loadFromSlot('no-such-slot', 'latest');
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.stage).toBe('storage');
+    expect(result.storageError?.code).toBe('notFound');
+  });
+
+  it('keeps the running game when another save fails to load', async () => {
+    const host = emptyHost();
+    const goodSlot = await storeSlot(await goldenSaveBytes());
+    const badSlot = await storeSlot(damagedGoldenSave(['formatVersion'], 99), 'Broken');
+    const loaded = await host.loadFromSlot(goodSlot, 'latest');
+    if (!loaded.ok) throw new Error('load failed');
+
+    const failed = await host.loadFromSlot(badSlot, 'latest');
+
+    expect(failed.ok).toBe(false);
+    expect(host.isWorldLoaded()).toBe(true);
+    expect(host.getSeat()).toEqual(loaded.summary.seat);
+  });
+});
+
+describe('engine host saving', () => {
+  beforeEach(async () => {
+    await resetSaveDb();
+  });
+
+  it('continues on the same date after a save and a load', async () => {
+    const host = emptyHost();
+    const slotId = await storeSlot(await goldenSaveBytes());
+    const loaded = await host.loadFromSlot(slotId, 'latest');
+    if (!loaded.ok) throw new Error('load failed');
+
+    const advance = await host.advanceDays({ maxDays: 1 }, () => undefined);
+    if (!advance.ok) throw new Error('advance refused');
+    const nextDay: GameDate = addDays(loaded.summary.gameDate, 1);
+    const saved = await host.saveToSlot(slotId);
+    if (!saved.ok) throw new Error(saved.message);
+    expect(saved.slot.header.gameDate).toBe(nextDay);
+    expect(saved.slot.header.promotionName).toBe('Test Promotion A');
+    expect(saved.slot.updatedAt).toBe('2026-11-08T09:30:00.000Z');
+    expect(saved.slot.backups).toHaveLength(1);
+
+    host.unloadWorld();
+    expect(host.isWorldLoaded()).toBe(false);
+    const reloaded = await host.loadFromSlot(slotId, 'latest');
+
+    if (!reloaded.ok) throw new Error(`reload failed at ${reloaded.stage}`);
+    expect(reloaded.summary.gameDate).toBe(nextDay);
+  });
+
+  it('loads a backup: the save before the last manual save', async () => {
+    const host = emptyHost();
+    const slotId = await storeSlot(await goldenSaveBytes());
+    const loaded = await host.loadFromSlot(slotId, 'latest');
+    if (!loaded.ok) throw new Error('load failed');
+    await host.advanceDays({ maxDays: 2 }, () => undefined);
+    const saved = await host.saveToSlot(slotId);
+    if (!saved.ok) throw new Error(saved.message);
+
+    const backup = await host.loadFromSlot(slotId, 'backup-1');
+
+    if (!backup.ok) throw new Error(`backup failed at ${backup.stage}`);
+    expect(backup.summary.gameDate).toBe(goldenGameDate());
+  });
+
+  it('creates a slot for a game that was never saved', async () => {
+    const host = emptyHost();
+    host.installEngine(fakeEngineState());
+
+    const created = await host.createSlot('My new league');
+
+    if (!created.ok) throw new Error(created.message);
+    expect(created.slot.label).toBe('My new league');
+    expect(created.slot.header.label).toBe('My new league');
+    const listed = expectOk(await storage.listSlots());
+    expect(listed.map((slot) => slot.slotId)).toEqual([created.slot.slotId]);
+  });
+
+  it('cuts a label longer than a save header allows', async () => {
+    const host = emptyHost();
+    host.installEngine(fakeEngineState());
+    const longLabel = `${'A very long imported league name '.repeat(3)}(imported)`;
+
+    const created = await host.createSlot(longLabel);
+
+    if (!created.ok) throw new Error(created.message);
+    expect(created.slot.label).toBe(longLabel);
+    expect(created.slot.header.label.length).toBeLessThanOrEqual(60);
+    const reloaded = await host.loadFromSlot(created.slot.slotId, 'latest');
+    expect(reloaded.ok).toBe(true);
+  });
+
+  it('writes an autosave that the next latest load picks up', async () => {
+    const host = emptyHost();
+    const slotId = await storeSlot(await goldenSaveBytes());
+    const loaded = await host.loadFromSlot(slotId, 'latest');
+    if (!loaded.ok) throw new Error('load failed');
+    await host.advanceDays({ maxDays: 3 }, () => undefined);
+
+    const autosaved = await host.autosave(slotId, { monthlyBackup: true });
+
+    if (!autosaved.ok) throw new Error(autosaved.message);
+    expect(autosaved.slot.lastAutosaveAt).toBe('2026-11-08T09:30:00.000Z');
+    expect(autosaved.slot.backups[0]?.reason).toBe('monthly');
+    const reloaded = await host.loadFromSlot(slotId, 'latest');
+    if (!reloaded.ok) throw new Error('reload failed');
+    expect(reloaded.summary.gameDate).toBe(addDays(loaded.summary.gameDate, 3));
+  });
+
+  it('refuses to save with no game loaded, and names a missing slot', async () => {
+    const host = emptyHost();
+    const nothing = await host.saveToSlot('anything');
+    expect(nothing).toEqual({
+      ok: false,
+      message: 'There is no game loaded to save.',
+      storageError: null,
+    });
+
+    host.installEngine(fakeEngineState());
+    const missing = await host.saveToSlot('no-such-slot');
+    expect(missing.ok).toBe(false);
+    if (missing.ok) return;
+    expect(missing.storageError?.code).toBe('notFound');
+  });
+
+  it('unloads the world: calls get the noWorld reason and the revision moves on', async () => {
+    const host = emptyHost();
+    const install = host.installEngine(fakeEngineState());
+
+    const unloaded = host.unloadWorld();
+
+    expect(unloaded.revision).toBeGreaterThan(install.revision);
+    expect(host.isWorldLoaded()).toBe(false);
+    expect(host.getSeat()).toBeNull();
+    const { revision, result } = await host.query('counter.get', {});
+    expect(result).toEqual({ ok: false, reasons: [NO_WORLD_REASON] });
+    expect(revision).toBe(unloaded.revision);
+  });
+
+  it('inspects save bytes for an import', async () => {
+    const host = emptyHost();
+
+    const report = await host.inspectSave(await goldenSaveBytes());
+
+    if (!report.ok) throw new Error(`inspect failed at ${report.stage}`);
+    expect(report.header.label).toBe('Test save');
+    expect(report.formatVersion).toBe(CURRENT_FORMAT_VERSION);
   });
 });

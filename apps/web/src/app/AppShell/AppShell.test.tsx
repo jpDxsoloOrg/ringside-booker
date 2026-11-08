@@ -148,15 +148,42 @@ describe('AppShell on a phone', () => {
       'href',
       routes.settings(),
     );
-    expect(within(sheet).getByRole('link', { name: 'Main menu' })).toHaveAttribute(
-      'href',
-      routes.title(),
-    );
+    expect(within(sheet).getByRole('button', { name: 'Main menu' })).toBeEnabled();
 
     await user.click(within(sheet).getByRole('link', { name: 'Titles' }));
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Titles' })).toBeInTheDocument();
     expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('opens Settings from the sidebar and returns to the game screen it left', async () => {
+    loadWorld({ employed: true });
+    const router = renderApp(routes.game.roster());
+    const user = userEvent.setup();
+
+    const sidebar = await screen.findByTestId('sidebar');
+    await user.click(within(sidebar).getByRole('link', { name: 'Settings' }));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Settings' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('link', { name: 'Back to game' }));
+    expect(router.state.location.pathname).toBe(routes.game.roster());
+    expect(await screen.findByRole('heading', { level: 1, name: 'Roster' })).toBeInTheDocument();
+  });
+
+  it('opens Settings from the More sheet and returns to the game screen it left', async () => {
+    usePhoneLayout();
+    loadWorld({ employed: true });
+    const router = renderApp(routes.game.titles());
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole('button', { name: 'More' }));
+    const sheet = screen.getByRole('dialog', { name: 'Menu' });
+    await user.click(within(sheet).getByRole('link', { name: 'Settings' }));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Settings' })).toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).toBeNull();
+
+    await user.click(screen.getByRole('link', { name: 'Back to game' }));
+    expect(router.state.location.pathname).toBe(routes.game.titles());
   });
 
   it('leaves the promotion sections out of the More sheet while unemployed', async () => {

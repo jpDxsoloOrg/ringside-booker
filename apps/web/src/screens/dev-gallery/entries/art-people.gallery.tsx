@@ -47,7 +47,7 @@ export const galleryEntry: GalleryEntry = {
   title: 'People',
   group: 'Art',
   notes:
-    'ImageSlot placeholders for people: initials or a silhouette, coloured from the id. ' +
+    'ImageSlot placeholders for people: ringed initials (the default) or a silhouette, coloured from the id. ' +
     'Regenerate moves to a new seed for new names and ids.',
   render: () => <PeopleArt />,
 };

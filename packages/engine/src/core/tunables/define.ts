@@ -22,6 +22,7 @@ export type TunableUnit =
   | 'multiplier'
   | 'days'
   | 'months'
+  | 'years'
   | 'money'
   | 'money/month'
   | 'count'
@@ -38,6 +39,7 @@ export const TUNABLE_UNITS: readonly TunableUnit[] = [
   'multiplier',
   'days',
   'months',
+  'years',
   'money',
   'money/month',
   'count',

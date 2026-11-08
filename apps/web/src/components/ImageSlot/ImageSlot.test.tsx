@@ -49,9 +49,9 @@ describe('ImageSlot placeholders', () => {
   it('keeps the colour when a person is renamed', () => {
     const before = renderMarkup(worker);
     const after = renderMarkup({ ...worker, name: 'Marlo Quint-Ash' });
-    const fillOf = (markup: string) => /<rect[^>]*class="(cat\d)"/.exec(markup)?.[1];
-    expect(fillOf(after)).toBe(fillOf(before));
-    expect(fillOf(before)).toMatch(/^cat[1-8]$/);
+    const tintOf = (markup: string) => /<g class="(tint\d)"/.exec(markup)?.[1];
+    expect(tintOf(after)).toBe(tintOf(before));
+    expect(tintOf(before)).toMatch(/^tint[1-8]$/);
   });
 
   it.each<[ImageKind, RegExp]>([
@@ -78,6 +78,29 @@ describe('ImageSlot placeholders', () => {
       'data-placeholder',
       'place',
     );
+  });
+
+  it('draws people as ringed initials: a ring and initials in one tint on the raised surface', () => {
+    const { container } = render(<ImageSlot subject={worker} size="md" />);
+    const art = container.querySelector('svg[data-placeholder="person-initials"]');
+    expect(art?.querySelector(':scope > rect')).toHaveClass('ringBackground');
+    const tint = art?.querySelector(':scope > g');
+    expect(tint?.getAttribute('class')).toMatch(/^tint[1-8]$/);
+    expect(tint?.querySelector('circle')).toHaveClass('ring');
+    expect(tint?.querySelector('text')).toHaveClass('ringLettering');
+    expect(tint?.querySelector('text')).toHaveTextContent('MQ');
+  });
+
+  it('does not squeeze ordinary initials in the condensed face', () => {
+    const { container } = render(<ImageSlot subject={worker} size="xs" />);
+    expect(container.querySelector('text')).not.toHaveAttribute('textLength');
+  });
+
+  it('draws the ring as a rounded square in a square frame', () => {
+    const { container } = render(<ImageSlot subject={worker} size="md" shape="square" />);
+    const ring = container.querySelector('.ring');
+    expect(ring?.tagName.toLowerCase()).toBe('rect');
+    expect(container.querySelector('circle')).toBeNull();
   });
 
   it('draws silhouettes when asked', () => {

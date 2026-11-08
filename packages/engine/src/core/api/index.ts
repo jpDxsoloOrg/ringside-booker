@@ -62,6 +62,7 @@ export {
   type SystemSpec,
 } from './system';
 export { initialEngineState, type EngineState } from './state';
+export { worldHash } from './stateHash';
 export {
   createEngineSaveDocumentSchema,
   engineLoadOptions,

@@ -1,0 +1,177 @@
+/* Office register: a single column of panels, the same on desktop and phone. */
+.screen {
+  display: grid;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: var(--space-2);
+  min-block-size: var(--tap-target-min);
+  color: var(--color-data);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
+.heading {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+}
+
+.intro {
+  margin-block-start: calc(-1 * var(--space-3));
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.panelBody {
+  display: grid;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+
+/* UI scale: label and live value, a hint, then − slider + across the full width. */
+.scale {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.scaleHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.fieldLabel {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.scaleValue {
+  color: var(--color-data);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+.fieldHint {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.scaleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.slider {
+  flex: 1;
+  min-inline-size: 0;
+  min-block-size: var(--tap-target-min);
+  margin: 0;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+/* Theme previews: a canvas tile with a surface card and an accent bar, in the previewed theme. */
+.swatchGroup {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.swatch {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 0.1875rem;
+  inline-size: 2.5rem;
+  block-size: 1.75rem;
+  padding: 0.25rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+}
+
+.swatchSurface {
+  border-radius: 0.125rem;
+  background: var(--color-surface-raised);
+}
+
+.swatchAccent {
+  block-size: 0.1875rem;
+  inline-size: 60%;
+  border-radius: var(--radius-pill);
+  background: var(--color-action-bright);
+}
+
+/* About: label and value pairs. */
+.facts {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.fact {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-4);
+  padding-block: var(--space-1);
+  border-block-end: 1px solid var(--color-border);
+  font-size: var(--font-size-sm);
+}
+
+.fact:last-child {
+  border-block-end: 0;
+}
+
+.fact dt {
+  color: var(--color-text-muted);
+}
+
+.fact dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-sunken);
+  color: var(--color-warning);
+  font-size: var(--font-size-sm);
+}
+
+.resetRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (--bp-mobile) {
+  .heading {
+    font-size: var(--font-size-2xl);
+  }
+
+  /* On a phone the reset button spans the width like the other controls. */
+  .resetRow > * {
+    flex: 1;
+  }
+}

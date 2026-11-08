@@ -7,10 +7,16 @@
  * either. It wraps the engine's own multi-day advance with an abort signal going in and throttled
  * progress coming out; the day loop, the gates and cancellation stay in the engine.
  *
+ * It also loads and saves games. Storage runs here in the worker for those calls, so a save's
+ * bytes go from IndexedDB through the engine's checks into a running engine without visiting the
+ * main thread (see `saveGames.ts`). Listing, deleting, exporting and importing slots run on the
+ * main thread, which needs the DOM for downloads and file pickers.
+ *
  * Every result is plain JSON. The engine checks its own results when `debugChecks` is on (dev and
  * test builds); the host checks the advance outcome and progress objects it builds itself the same
  * way. Nothing here throws for game reasons: a call before a world is loaded, a second advance or
- * bad advance options come back as `{ ok: false, reasons }`.
+ * bad advance options come back as `{ ok: false, reasons }`, and a save that will not load comes
+ * back as the stage that refused it and its issues.
  */
 
 import {
@@ -20,6 +26,7 @@ import {
   ENGINE_VERSION,
   INTERNAL,
   INVALID_ARGS,
+  inspectSave,
   serializeError,
 } from '@ringside/engine';
 import type {
@@ -33,6 +40,7 @@ import type {
   Engine,
   EngineState,
   GameDate,
+  InspectReport,
   QueryArgs,
   QueryData,
   QueryName,
@@ -40,9 +48,39 @@ import type {
   Reason,
   TunableIssue,
 } from '@ringside/engine';
+import * as storage from '@/storage';
+import type { SlotRecord } from '@/storage';
 import { resolveLocalViewer } from './localViewer';
 import type { LocalSeat } from './localViewer';
+import {
+  decodeSaveBytes,
+  encodeEngineState,
+  encodeFailure,
+  fromStorage,
+  NO_GAME_TO_SAVE_MESSAGE,
+  readSlotBytes,
+  seatPromotionName,
+  seatWarnings,
+  stageFailure,
+  tunableIssueWarnings,
+} from './saveGames';
+import type {
+  AutosaveOptions,
+  EncodedSave,
+  LoadSaveResult,
+  LoadSlotWhich,
+  SaveSlotResult,
+} from './saveGames';
 import { yieldToEventLoop } from './yieldToEventLoop';
+
+export type {
+  LoadFailureStage,
+  LoadSaveFailure,
+  LoadSaveResult,
+  LoadSaveSummary,
+  LoadSlotWhich,
+  SaveSlotResult,
+} from './saveGames';
 
 /** Builds an engine: `createEngine` in the worker, a wrapper adding test systems in tests. */
 export type EngineFactory = (options: CreateEngineOptions) => Engine;
@@ -121,6 +159,30 @@ export interface EngineHost {
   isWorldLoaded(): boolean;
   /** The local seat, so the session store can mirror it. Null before a world is loaded. */
   getSeat(): LocalSeat | null;
+  /**
+   * Loads a save from a slot and makes it the running game: the newest of its manual save and
+   * autosave (`latest`), or one of its backups. The save is checked stage by stage; a save that
+   * fails a stage leaves the running game (if any) as it was.
+   */
+  loadFromSlot(slotId: string, which: LoadSlotWhich): Promise<LoadSaveResult>;
+  /** A manual save of the running game into an existing slot (its backups rotate). */
+  saveToSlot(slotId: string): Promise<SaveSlotResult>;
+  /** Creates a new slot holding the running game, for a game that has never been saved. */
+  createSlot(label: string): Promise<SaveSlotResult>;
+  /** Writes the running game as the slot's autosave, rotating a monthly backup first if asked. */
+  autosave(slotId: string, options: AutosaveOptions): Promise<SaveSlotResult>;
+  /** Reads a save's header without loading it, for importing a file. */
+  inspectSave(bytes: Uint8Array): Promise<InspectReport>;
+  /**
+   * Stops the running game. Every call after it gets the noWorld reason until a game loads.
+   * Returns the revision after it, which is newer than any result from the old game.
+   */
+  unloadWorld(): UnloadResult;
+}
+
+/** What unloading the world reports. */
+export interface UnloadResult {
+  readonly revision: number;
 }
 
 /** What installing a world reports. */
@@ -153,6 +215,8 @@ export interface EngineHostOptions {
   readonly progressIntervalMs?: number;
   /** A millisecond clock for throttling progress. Defaults to `performance.now`. */
   readonly now?: () => number;
+  /** The real-world time a save records, as an ISO string. Defaults to the system clock. */
+  readonly savedAtNow?: () => string;
 }
 
 interface RunningEngine {
@@ -162,6 +226,10 @@ interface RunningEngine {
 
 function defaultNow(): number {
   return performance.now();
+}
+
+function defaultSavedAtNow(): string {
+  return new Date().toISOString();
 }
 
 /** The reason for advance options the engine refused, or for an advance that broke. */
@@ -180,6 +248,7 @@ export function createEngineHost(
     options.debugChecks ?? (import.meta.env.DEV || import.meta.env.MODE === 'test');
   const progressIntervalMs = options.progressIntervalMs ?? PROGRESS_INTERVAL_MS;
   const now = options.now ?? defaultNow;
+  const savedAtNow = options.savedAtNow ?? defaultSavedAtNow;
 
   let running: RunningEngine | null = null;
   let revision = 0;
@@ -234,21 +303,129 @@ export function createEngineHost(
     }
   }
 
+  function installEngine(state: EngineState): InstallResult {
+    // Built before the old game stops, so an engine that refuses the state leaves it running.
+    const engine = engineFactory({
+      state,
+      systems: defaultSystems,
+      host: { yieldToHost: yieldToEventLoop },
+      debugChecks,
+    });
+    advanceAbort?.abort();
+    const { seat, warnings } = resolveLocalViewer(state);
+    running = { engine, seat };
+    revision += 1;
+    return { seat, revision, warnings, loadIssues: [...engine.loadIssues] };
+  }
+
+  async function loadFromSlot(slotId: string, which: LoadSlotWhich): Promise<LoadSaveResult> {
+    if (advanceAbort !== null) {
+      return stageFailure('build', ADVANCE_BUSY_REASON.message);
+    }
+    const read = await readSlotBytes(slotId, which);
+    if (!read.ok) return read;
+    const decoded = await decodeSaveBytes(read.bytes);
+    if (!decoded.ok) return decoded;
+
+    let install: InstallResult;
+    try {
+      install = installEngine(decoded.state);
+    } catch (error: unknown) {
+      return stageFailure(
+        'build',
+        `The game could not start from this save: ${serializeError(error).message}`,
+      );
+    }
+    const result: LoadSaveResult = {
+      ok: true,
+      summary: {
+        label: read.label,
+        seat: install.seat,
+        promotionName: seatPromotionName(decoded.state, install.seat.promotionId),
+        gameDate: decoded.state.world.meta.currentDate,
+        migrationsApplied: decoded.migrationsApplied,
+      },
+      warnings: [
+        ...decoded.warnings,
+        ...tunableIssueWarnings(install.loadIssues),
+        ...seatWarnings(install.warnings),
+      ],
+      revision: install.revision,
+    };
+    return checked(result, 'loadFromSlot');
+  }
+
+  /**
+   * Encodes the running game under `label` and hands it to `write`. Problems come back as data:
+   * no game loaded, a slot that is gone, a game that would not encode or a storage refusal.
+   */
+  async function writeSave(
+    label: string | storage.StorageResult<string>,
+    write: (encoded: EncodedSave) => Promise<storage.StorageResult<SlotRecord>>,
+  ): Promise<SaveSlotResult> {
+    const current = running;
+    if (current === null) {
+      return { ok: false, message: NO_GAME_TO_SAVE_MESSAGE, storageError: null };
+    }
+    if (typeof label !== 'string' && !label.ok) {
+      return { ok: false, message: label.error.message, storageError: label.error };
+    }
+    let encoded: EncodedSave;
+    try {
+      encoded = await encodeEngineState(
+        current.engine.exportState(),
+        current.seat,
+        typeof label === 'string' ? label : label.value,
+        savedAtNow(),
+      );
+    } catch (error: unknown) {
+      return encodeFailure(error);
+    }
+    return checked(fromStorage(await write(encoded)), 'save');
+  }
+
+  /** The label of an existing slot, which the save header repeats. */
+  async function slotLabel(slotId: string): Promise<storage.StorageResult<string>> {
+    const slot = await storage.getSlot(slotId);
+    return slot.ok ? { ok: true, value: slot.value.label } : slot;
+  }
+
   // The engine's advanceDays does not take an `issuedBy`: time moving is not a command. When it
   // does (multiplayer "ready" turns), the seat's controller is passed here like every command.
   return {
-    installEngine(state: EngineState): InstallResult {
+    installEngine,
+    loadFromSlot,
+
+    async saveToSlot(slotId: string): Promise<SaveSlotResult> {
+      return writeSave(await slotLabel(slotId), ({ bytes, header, meta }) =>
+        storage.saveToSlot(slotId, bytes, header, meta),
+      );
+    },
+
+    createSlot(label: string): Promise<SaveSlotResult> {
+      return writeSave(label, ({ bytes, header, meta }) =>
+        storage.createSlot(label, bytes, header, meta),
+      );
+    },
+
+    async autosave(slotId: string, autosaveOptions: AutosaveOptions): Promise<SaveSlotResult> {
+      return writeSave(await slotLabel(slotId), ({ bytes, header, meta }) =>
+        storage.writeAutosave(slotId, bytes, header, meta, autosaveOptions),
+      );
+    },
+
+    inspectSave(bytes: Uint8Array): Promise<InspectReport> {
+      return inspectSave(bytes);
+    },
+
+    unloadWorld(): UnloadResult {
       advanceAbort?.abort();
-      const engine = engineFactory({
-        state,
-        systems: defaultSystems,
-        host: { yieldToHost: yieldToEventLoop },
-        debugChecks,
-      });
-      const { seat, warnings } = resolveLocalViewer(state);
-      running = { engine, seat };
-      revision += 1;
-      return { seat, revision, warnings, loadIssues: [...engine.loadIssues] };
+      if (running !== null) {
+        running = null;
+        // Every cached query belongs to the old game, so the revision moves on.
+        revision += 1;
+      }
+      return { revision };
     },
 
     ping(): Promise<PingResult> {

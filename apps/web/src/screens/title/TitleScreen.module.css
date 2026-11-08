@@ -1,0 +1,133 @@
+/*
+ * The title screen: a broadcast-style wordmark (condensed, uppercase, a red-orange slash) over a
+ * single column of full-width menu buttons, the same on desktop and on a phone.
+ * See docs/design/visual-identity.md.
+ */
+
+.screen {
+  display: grid;
+  gap: var(--space-6);
+  max-inline-size: 28rem;
+  margin-inline: auto;
+}
+
+.brand {
+  display: grid;
+  gap: var(--space-2);
+}
+
+/* A short skewed bar above the wordmark: the broadcast register's slash divider. */
+.slash {
+  display: block;
+  inline-size: 3rem;
+  block-size: 0.375rem;
+  background: var(--color-action-bright);
+  transform: skewX(var(--skew-broadcast));
+}
+
+.wordmark {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-tight);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tagline {
+  color: var(--color-text-muted);
+}
+
+.notice {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.menu {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.continue {
+  inline-size: 100%;
+}
+
+.continueText {
+  display: grid;
+  gap: var(--space-1);
+  justify-items: center;
+  min-inline-size: 0;
+}
+
+/* The save's name, promotion and date: body type, so a long label wraps instead of shouting. */
+.continueDetail {
+  font-family: var(--font-family-ui);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: normal;
+  text-transform: none;
+  overflow-wrap: anywhere;
+}
+
+/* The other menu items look like secondary buttons: a cyan outline, condensed uppercase label. */
+.menuLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  inline-size: 100%;
+  min-block-size: var(--tap-target-min);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-data);
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-data);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color var(--motion-fast) var(--easing-standard);
+}
+
+.menuLink:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.menuLink:disabled {
+  cursor: progress;
+  opacity: 0.55;
+}
+
+@media (hover: hover) {
+  .menuLink:hover:not(:disabled) {
+    background: var(--color-surface-hover);
+  }
+}
+
+.storageError {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-negative);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (--bp-mobile) {
+  .wordmark {
+    font-size: var(--font-size-2xl);
+  }
+}

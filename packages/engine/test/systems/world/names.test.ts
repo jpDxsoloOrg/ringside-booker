@@ -164,6 +164,10 @@ function aLibrary(
         ],
       },
     },
+    generationRoles: {},
+    generationStyles: {},
+    bodyArchetypes: {},
+    bodyModifiers: {},
     generationProfiles: {},
     traitIncidence: {},
   };

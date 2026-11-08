@@ -1,0 +1,55 @@
+/*
+ * Delta chip: an arrow, a signed amount and an optional note. Emerald for good news, rose for bad
+ * news, muted for no change. The arrow and the sign carry the direction, so colour is never the
+ * only signal (docs/design/visual-identity.md).
+ */
+.deltaChip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  max-inline-size: 100%;
+  font-family: var(--font-family-display);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-snug);
+  white-space: nowrap;
+  font-variant-numeric: var(--font-feature-tabular);
+}
+
+/* The pill for KPI cards: the role colour as text and hairline on whatever it sits on. */
+.variant-chip {
+  padding: 0.0625rem var(--space-2);
+  border: 1px solid currentColor;
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-sm);
+  letter-spacing: 0.03em;
+}
+
+/* Bare arrow and number, sized by the table cell or line around it. */
+.variant-plain {
+  font-size: inherit;
+}
+
+.arrow {
+  font-size: 0.75em;
+}
+
+.suffix {
+  font-family: var(--font-family-ui);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-xs);
+  letter-spacing: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tone-positive {
+  color: var(--color-positive);
+}
+
+.tone-negative {
+  color: var(--color-negative);
+}
+
+.tone-neutral {
+  color: var(--color-text-muted);
+}

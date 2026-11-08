@@ -10,6 +10,7 @@ accessibility plumbing that every page shares.
 | `router.tsx`              | The route tree, built from `routes.ts` and `navigation.ts`                 |
 | `RequireWorld.tsx`        | Sends `/game/*` to the title screen when no world is loaded                |
 | `session/sessionStore.ts` | Zustand: is a world loaded, and the local seat (whose promotion, if any)   |
+| `settings/`               | Viewer settings: schema, store (localStorage), effects on `<html>`         |
 | `layouts/OutOfGameLayout` | Title, load, new game and settings: centred, no navigation                 |
 | `AppShell/`               | Desktop sidebar and top bar; phone top bar, bottom tab bar and More sheet  |
 | `a11y/`                   | Skip link, focus on navigation, page titles and the live announcer         |
@@ -48,6 +49,27 @@ result is older refetches and keeps showing the old data (`isStale`) meanwhile. 
 dies, `EngineProvider` shows the "simulation stopped" screen in place of the routes. Only
 `src/worker` may import `createEngine` (a lint rule checks it). Tests use
 `createInProcessTransport` with `src/test/fakeEngine.ts` instead of a worker.
+
+## Saves
+
+The title screen (`screens/title`) and the saved games list at `/load` (`screens/saves`) are the
+way into a game. Loading and saving run in the engine worker, so a save's bytes go from IndexedDB
+through the engine's staged checks into a running engine without visiting the main thread:
+
+| Host method                   | What it does                                                          |
+| ----------------------------- | --------------------------------------------------------------------- |
+| `loadFromSlot(slotId, which)` | Reads `latest` or a backup, runs `loadSave`, installs the engine      |
+| `saveToSlot(slotId)`          | `exportState` → `createSaveDocument` → `encodeSave` → manual save     |
+| `createSlot(label)`           | The same, into a new slot (the new-game flow)                         |
+| `autosave(slotId, options)`   | The same, into the slot's autosave (monthly backup on request)        |
+| `inspectSave(bytes)`          | Reads a file's header for an import                                   |
+| `unloadWorld()`               | Stops the game; the revision moves on so every cached query refetches |
+
+A load that fails comes back as the stage that refused it and up to 50 issues with document paths;
+the screens show the first 20 in `LoadErrorSheet`. Listing, deleting, exporting and importing run
+on the main thread through `screens/saves/saveStorage.tsx`, which tests replace with
+`src/test/fakeStorage.ts`. "Main menu" in the sidebar and the More sheet saves into the session's
+slot, unloads the world and returns to the title screen; a failed save keeps the player in the game.
 
 ## Rules
 

@@ -97,11 +97,13 @@ export {
   EngineError,
   EntityNotFoundError,
   EventBusMisuseError,
+  GenerationContentError,
   IdCollisionError,
   InvalidArgumentError,
   InvalidCadenceError,
   InvalidContentKeyError,
   InvalidDateError,
+  InvalidGeneratedPersonError,
   InvalidIdError,
   InvalidOddsError,
   InvalidStatePartError,
@@ -198,7 +200,7 @@ export {
   type SystemPhaseGroup,
 } from './core/pipeline';
 
-export { hashString128, hashString32, type HashWords } from './core/hash';
+export { hashString128, hashString32, stableStringify, type HashWords } from './core/hash';
 export * from './core/rng';
 
 export * from './core/tunables/index';
@@ -500,6 +502,24 @@ export { legalDisplayName, NameRegistry, normaliseName } from './systems/world/n
 export type { TablePick, WeightedTable } from './systems/world/names/weighted';
 export { buildWeightedTable, pickFromTable, pickTableEntry } from './systems/world/names/weighted';
 export { worldTunables } from './systems/world/tunables';
+// People generation (WLD-06): a new person from a short spec, correlated attributes, seed hooks.
+export type {
+  ArchetypeKey,
+  CareerStage,
+  GenerateContext,
+  GenerateSpec,
+  GeneratedPerson,
+  PersonSeedHook,
+  PersonSeedHooks,
+  PersonSeedInput,
+  StreamSource,
+} from './systems/world/people/spec';
+export { CAREER_STAGES } from './systems/world/people/spec';
+export type {
+  PersonGenerateRequest,
+  PersonGeneratorOptions,
+} from './systems/world/people/generate';
+export { generatePerson, PersonGenerator } from './systems/world/people/generate';
 export type { Venue, VenueKind } from './model/entities/venue';
 export {
   isVenueOpenOn,

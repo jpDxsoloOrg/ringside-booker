@@ -77,6 +77,8 @@ interface TableRowProps<Row> {
   readonly domId: string;
   readonly columns: readonly ColumnDef<Row>[];
   readonly isSelected: boolean;
+  /** Draws the row as a zebra stripe: every other row when the table is `striped`. */
+  readonly isStriped: boolean;
   /** `undefined` when the table has no checkboxes. */
   readonly isChecked: boolean | undefined;
   readonly checking: RowChecking<Row> | null;
@@ -88,6 +90,7 @@ function TableRowView<Row>({
   domId,
   columns,
   isSelected,
+  isStriped,
   isChecked,
   checking,
 }: TableRowProps<Row>) {
@@ -98,6 +101,7 @@ function TableRowView<Row>({
       aria-selected={isSelected}
       className={classNames(
         styles['row'],
+        isStriped && styles['rowStriped'],
         isSelected && styles['rowSelected'],
         isChecked === true && styles['rowChecked'],
       )}
@@ -188,6 +192,7 @@ export function DataTableTable<Row>({
   rowDomId,
   emptyContent,
   loading,
+  striped,
 }: DataTableViewProps<Row>) {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const rowIds = useMemo(() => rows.map(getRowId), [rows, getRowId]);
@@ -267,7 +272,8 @@ export function DataTableTable<Row>({
           <WindowSpacer heightPx={rowWindow.spaceBefore} columnCount={columnCount} />
         )}
         {rowWindow.items.map((row, offset) => {
-          const rowId = rowIds[rowWindow.startIndex + offset] ?? getRowId(row);
+          const rowIndex = rowWindow.startIndex + offset;
+          const rowId = rowIds[rowIndex] ?? getRowId(row);
           return (
             <TableRow
               key={rowId}
@@ -276,6 +282,7 @@ export function DataTableTable<Row>({
               domId={rowDomId(rowId)}
               columns={columns}
               isSelected={rowId === selectedRowId}
+              isStriped={striped && rowIndex % 2 === 1}
               isChecked={checking === null ? undefined : checking.checkedRowIds.has(rowId)}
               checking={checking}
             />

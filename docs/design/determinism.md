@@ -265,3 +265,26 @@ time. That gives two guarantees the pipeline relies on:
 
 Anything else that holds on to a stream across steps must follow the same rule:
 ask the registry, don't cache a copy of the state.
+
+## World hash
+
+`worldHash(state)` (`packages/engine/src/core/api/stateHash.ts`) turns a whole
+`EngineState` into 16 hex digits. Two runs from the same state with the same
+commands must end with the same hash. The headless runner prints it after
+every run, and `--check-determinism` runs twice and compares the two, which CI
+does on every PR.
+
+- **Canonical text.** `stableStringify` (`core/hash.ts`) writes JSON with every
+  object's keys sorted and arrays in their own order, so the order keys were
+  inserted in never changes the hash. It refuses anything that isn't plain JSON
+  through `assertJsonValue`, the same check the save writer uses.
+- **Two passes.** The hash is two `hashString32` results over that text, the
+  second one salted, joined into 64 bits. It isn't cryptographic; it only has
+  to make an accidental match between two different worlds very unlikely.
+- **Left out.** Every `timing` field (host wall-clock time) and the `stack` of
+  every serialised error. Both differ between two identical runs. Everything
+  else counts: the World, the touched RNG streams, tunable overrides, traces,
+  the event log, the failure log and the command log.
+- **Not frozen.** Unlike the seed hashes above, nothing in a save depends on
+  the world hash, so changing how it is built only changes the hashes tools
+  print. Compare hashes from the same engine build.

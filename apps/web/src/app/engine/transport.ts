@@ -9,6 +9,7 @@ import type {
   CommandData,
   CommandName,
   CommandResult,
+  InspectReport,
   QueryArgs,
   QueryData,
   QueryName,
@@ -23,9 +24,14 @@ import type {
   EngineHostOptions,
   HostCommandResponse,
   HostQueryResponse,
+  LoadSaveResult,
+  LoadSlotWhich,
   PingResult,
+  SaveSlotResult,
+  UnloadResult,
   WorkerEngineHost,
 } from '@/worker/engineHost';
+import type { AutosaveOptions } from '@/storage';
 import type { LocalSeat } from '@/worker/localViewer';
 import {
   CRASH_FOR_TESTING_MESSAGE,
@@ -50,6 +56,12 @@ export interface EngineHostClient {
   cancelAdvance(): void | Promise<void>;
   isWorldLoaded(): boolean | Promise<boolean>;
   getSeat(): LocalSeat | null | Promise<LocalSeat | null>;
+  loadFromSlot(slotId: string, which: LoadSlotWhich): Promise<LoadSaveResult>;
+  saveToSlot(slotId: string): Promise<SaveSlotResult>;
+  createSlot(label: string): Promise<SaveSlotResult>;
+  autosave(slotId: string, options: AutosaveOptions): Promise<SaveSlotResult>;
+  inspectSave(bytes: Uint8Array): Promise<InspectReport>;
+  unloadWorld(): UnloadResult | Promise<UnloadResult>;
 }
 
 export type FatalListener = (fatal: EngineFatal) => void;
@@ -83,6 +95,12 @@ interface WireEngineHost {
   cancelAdvance(): void;
   isWorldLoaded(): boolean;
   getSeat(): LocalSeat | null;
+  loadFromSlot(slotId: string, which: LoadSlotWhich): Promise<LoadSaveResult>;
+  saveToSlot(slotId: string): Promise<SaveSlotResult>;
+  createSlot(label: string): Promise<SaveSlotResult>;
+  autosave(slotId: string, options: AutosaveOptions): Promise<SaveSlotResult>;
+  inspectSave(bytes: Uint8Array): Promise<InspectReport>;
+  unloadWorld(): UnloadResult;
 }
 
 /** Keeps the fatal listeners and makes sure they hear about a death once. */
@@ -159,6 +177,13 @@ export function createWorkerTransport(): EngineTransport {
     cancelAdvance: () => remote.cancelAdvance(),
     isWorldLoaded: () => remote.isWorldLoaded(),
     getSeat: () => remote.getSeat(),
+    loadFromSlot: (slotId, which) => remote.loadFromSlot(slotId, which),
+    saveToSlot: (slotId) => remote.saveToSlot(slotId),
+    createSlot: (label) => remote.createSlot(label),
+    autosave: (slotId, options) => remote.autosave(slotId, options),
+    // Copied, not transferred: the import keeps the bytes to store them once they pass.
+    inspectSave: (bytes) => remote.inspectSave(bytes),
+    unloadWorld: () => remote.unloadWorld(),
   };
 
   return {

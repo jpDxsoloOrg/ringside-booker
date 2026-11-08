@@ -1,0 +1,40 @@
+/*
+ * Sparkline: a line and a faint area under it, in one colour role. The stroke keeps its width
+ * however far the SVG is stretched (vector-effect in the markup).
+ */
+.sparkline {
+  display: block;
+  inline-size: 5rem;
+  block-size: 1.5rem;
+  flex: none;
+  overflow: visible;
+}
+
+.line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.area {
+  fill: currentColor;
+  opacity: 0.14;
+}
+
+.tone-data {
+  color: var(--color-data);
+}
+
+.tone-prestige {
+  color: var(--color-prestige);
+}
+
+.tone-positive {
+  color: var(--color-positive);
+}
+
+.tone-negative {
+  color: var(--color-negative);
+}

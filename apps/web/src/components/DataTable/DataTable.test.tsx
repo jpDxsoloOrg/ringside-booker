@@ -369,3 +369,40 @@ describe('DataTable empty and loading states', () => {
     expect(within(list).getAllByRole('listitem')).toHaveLength(5);
   });
 });
+
+describe('DataTable stat-table look', () => {
+  function bodyRows(): HTMLElement[] {
+    const [, body] = screen.getAllByRole('rowgroup');
+    return within(body!).getAllByRole('row');
+  }
+
+  it('has no zebra rows by default', () => {
+    renderTable();
+    expect(bodyRows().some((row) => row.classList.contains('rowStriped'))).toBe(false);
+  });
+
+  it('stripes every other row when striped, by its place in the sorted order', async () => {
+    const user = userEvent.setup();
+    renderTable({ striped: true });
+    expect(bodyRows().map((row) => row.classList.contains('rowStriped'))).toEqual([
+      false,
+      true,
+      false,
+    ]);
+
+    // Sorting moves rows, but the stripe stays with the position, not the row.
+    await user.click(screen.getByRole('button', { name: 'Popularity' }));
+    expect(bodyNames()).toEqual(['Worker 2', 'Worker 3', 'Worker 1']);
+    expect(bodyRows().map((row) => row.classList.contains('rowStriped'))).toEqual([
+      false,
+      true,
+      false,
+    ]);
+  });
+
+  it('leaves the phone cards unstriped', () => {
+    useMobileLayout();
+    const { container } = renderTable({ striped: true });
+    expect(container.querySelector('.rowStriped')).toBeNull();
+  });
+});

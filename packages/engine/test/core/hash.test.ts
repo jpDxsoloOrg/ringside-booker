@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { hashString128, hashString32 } from '@ringside/engine';
+import {
+  hashString128,
+  hashString32,
+  NotSerialisableError,
+  stableStringify,
+} from '@ringside/engine';
 
 // Regression lock. Saves re-derive RNG streams from these hashes, so these values must never
 // change. If this test fails, the hash changed: revert it, or ship a save migration that re-seeds.
@@ -48,4 +53,32 @@ describe('hashString32', () => {
       expect(hashString32(input)).toBe(expectedWords[0]);
     }
   });
+});
+
+describe('stableStringify', () => {
+  it('gives the same text whatever order the keys were added in', () => {
+    expect(stableStringify({ b: 1, a: 2 })).toBe(stableStringify({ a: 2, b: 1 }));
+    expect(stableStringify({ b: 1, a: 2 })).toBe('{"a":2,"b":1}');
+  });
+
+  it('sorts keys at every depth and keeps array order', () => {
+    const value = { z: [3, { y: true, x: null }, 1], a: { d: 'text', c: -0 } };
+    expect(stableStringify(value)).toBe('{"a":{"c":0,"d":"text"},"z":[3,{"x":null,"y":true},1]}');
+  });
+
+  it('round-trips through JSON.parse', () => {
+    const value = { name: 'Ringside \u2603', list: [1.5, 'two', false], nested: { key: null } };
+    expect(JSON.parse(stableStringify(value))).toEqual(value);
+  });
+
+  it('throws NotSerialisableError for a Map', () => {
+    expect(() => stableStringify({ table: new Map([['a', 1]]) })).toThrow(NotSerialisableError);
+  });
+
+  it.each([[undefined], [Number.NaN], [new Set([1])], [{ list: [1, undefined] }]])(
+    'throws for the non-JSON value %j',
+    (value) => {
+      expect(() => stableStringify(value)).toThrow(NotSerialisableError);
+    },
+  );
 });

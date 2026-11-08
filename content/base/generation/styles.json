@@ -1,0 +1,92 @@
+[
+  {
+    "key": "all-rounder",
+    "style": "allRounder",
+    "weight": 20,
+    "promotionStyles": ["mainstream", "traditional"],
+    "attributeModifiers": {},
+    "wearMultiplier": 1.0,
+    "maskedChance": 0.03
+  },
+  {
+    "key": "technician",
+    "style": "technician",
+    "weight": 14,
+    "promotionStyles": ["technical", "traditional"],
+    "attributeModifiers": { "ringwork": 3, "psychology": 4, "safety": 4, "charisma": -3 },
+    "wearMultiplier": 0.9,
+    "maskedChance": 0.04
+  },
+  {
+    "key": "brawler",
+    "style": "brawler",
+    "weight": 12,
+    "promotionStyles": ["traditional", "hardHitting"],
+    "attributeModifiers": { "stamina": 2, "athleticism": -3, "mic": 2 },
+    "wearMultiplier": 1.1,
+    "maskedChance": 0.03
+  },
+  {
+    "key": "high-flyer",
+    "style": "highFlyer",
+    "weight": 11,
+    "promotionStyles": ["highFlying"],
+    "attributeModifiers": { "athleticism": 8, "stamina": 3, "safety": -4 },
+    "wearMultiplier": 1.15,
+    "maskedChance": 0.3
+  },
+  {
+    "key": "powerhouse",
+    "style": "powerhouse",
+    "weight": 9,
+    "promotionStyles": ["mainstream", "hardHitting"],
+    "attributeModifiers": { "presence": 5, "athleticism": -3, "stamina": -2 },
+    "wearMultiplier": 1.05,
+    "maskedChance": 0.03
+  },
+  {
+    "key": "hardcore",
+    "style": "hardcore",
+    "weight": 5,
+    "promotionStyles": ["hardcore"],
+    "attributeModifiers": { "safety": -6, "presence": 2 },
+    "wearMultiplier": 1.4,
+    "maskedChance": 0.08
+  },
+  {
+    "key": "striker",
+    "style": "striker",
+    "weight": 9,
+    "promotionStyles": ["hardHitting"],
+    "attributeModifiers": { "athleticism": 3, "ringwork": 2, "mic": -2 },
+    "wearMultiplier": 1.2,
+    "maskedChance": 0.05
+  },
+  {
+    "key": "grappler",
+    "style": "grappler",
+    "weight": 8,
+    "promotionStyles": ["technical", "hardHitting"],
+    "attributeModifiers": { "ringwork": 4, "stamina": 2, "charisma": -3 },
+    "wearMultiplier": 1.0,
+    "maskedChance": 0.03
+  },
+  {
+    "key": "showman",
+    "style": "showman",
+    "weight": 12,
+    "promotionStyles": ["entertainment", "mainstream"],
+    "attributeModifiers": { "charisma": 6, "mic": 5, "ringwork": -3, "psychology": -2 },
+    "wearMultiplier": 0.85,
+    "maskedChance": 0.06
+  },
+  {
+    "key": "non-wrestler",
+    "style": "nonWrestler",
+    "weight": 0,
+    "promotionStyles": [],
+    "attributeModifiers": {},
+    "wearMultiplier": 0.3,
+    "maskedChance": 0
+  }
+]
