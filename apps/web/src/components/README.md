@@ -4,8 +4,8 @@ The building blocks every screen composes: buttons, icons, panels, badges, stat 
 states, layout helpers and formatters. Screens use these instead of inventing their own controls,
 so the whole game looks and behaves the same, on desktop and on a phone.
 
-Every component is in the dev gallery at `/dev/gallery` (dev and e2e builds only). Add a section
-there when you add a component.
+Every component is in the component gallery at `/dev/gallery`. It ships in every build but no
+navigation links to it, so it can be checked on a deployed build from a real phone.
 
 ## Folder convention
 
@@ -43,8 +43,42 @@ components/
 - **Phone-ready.** Below `--bp-mobile` the component still fits a 390px screen, and on touch
   screens (`@media (pointer: coarse)`) every control is at least `--tap-target-min` tall.
 - **Tested.** Unit tests sit next to the component; the gallery e2e spec
-  (`apps/web/e2e/gallery.spec.ts`) checks layout, keyboard reach and accessibility at desktop and
-  phone sizes.
+  (`apps/web/e2e/gallery.spec.ts`) opens every gallery entry and checks layout, console errors,
+  keyboard reach and accessibility at desktop and phone sizes.
+- **In the gallery.** Every new component ships with a gallery entry (see below).
+
+## Gallery entries
+
+Each UI ticket's checklist includes a **Gallery entry** item: the component ships with a
+`*.gallery.tsx` file in `apps/web/src/screens/dev-gallery/entries/`. Adding the file is the only
+step; `entries/index.ts` collects every file with `import.meta.glob`, so there is no shared list
+to edit and parallel tickets never conflict on one.
+
+```tsx
+// apps/web/src/screens/dev-gallery/entries/my-widget.gallery.tsx
+import { MyWidget } from '@/components/MyWidget';
+import type { GalleryEntry } from '../galleryEntry';
+
+function MyWidgetDemo() {
+  return <MyWidget />; // every variant and state, as a screen would use it
+}
+
+export const galleryEntry: GalleryEntry = {
+  id: 'my-widget', // unique kebab-case; also the #hash that deep links to it
+  title: 'MyWidget',
+  group: 'Primitives', // 'Tokens' | 'Primitives' | 'Art' | 'Data' | 'Overlays' | 'Engine'
+  notes: 'Optional: what to look for.',
+  render: () => <MyWidgetDemo />,
+};
+```
+
+- Show every variant, size and state, including disabled, loading and empty.
+- Keep `render` cheap and free of side effects; hooks go in a component it returns.
+- Shared entry styles live in `entries/entries.module.css`.
+- The gallery test (`galleryRegistry.test.ts`) fails on a missing `galleryEntry` export or a
+  reused id, and the e2e spec opens the new entry on desktop and phone with no extra wiring.
+- Check the entry in both themes and with the phone frame, which loads it in a 390px iframe so
+  the `--bp-mobile` rules apply.
 
 ## What is here
 

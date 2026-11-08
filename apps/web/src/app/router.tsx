@@ -1,6 +1,10 @@
 import { createBrowserRouter } from 'react-router-dom';
 import type { RouteObject } from 'react-router-dom';
-import { DevGalleryScreen } from '@/screens/dev-gallery/DevGalleryScreen';
+import {
+  GALLERY_FRAME_PATH,
+  GalleryFrameScreen,
+  GalleryScreen,
+} from '@/screens/dev-gallery/GalleryScreen';
 import { HomePlaceholderScreen } from '@/screens/home-placeholder/HomePlaceholderScreen';
 
 /**
@@ -18,15 +22,19 @@ export const routerFutureFlags = {
 /** The matching flag for `<RouterProvider future={...}>`. */
 export const routerProviderFutureFlags = { v7_startTransition: true } as const;
 
-/** Dev-only screens ship in dev builds and in the end-to-end build, never in a release build. */
-export const includeDevRoutes: boolean = import.meta.env.DEV || import.meta.env.VITE_E2E === '1';
-
-const devRoutes: RouteObject[] = [{ path: '/dev/gallery', element: <DevGalleryScreen /> }];
+/**
+ * The component gallery ships in every build on purpose: it is small, linked from no navigation,
+ * and handy for checking a deployed build on a real phone.
+ */
+const galleryRoutes: RouteObject[] = [
+  { path: '/dev/gallery', element: <GalleryScreen /> },
+  { path: GALLERY_FRAME_PATH, element: <GalleryFrameScreen /> },
+];
 
 /** Every route in the app. Tests build a memory router from the same list. */
 export const appRoutes: RouteObject[] = [
   { path: '/', element: <HomePlaceholderScreen /> },
-  ...(includeDevRoutes ? devRoutes : []),
+  ...galleryRoutes,
 ];
 
 /** The app's router. Browser history gives clean URLs such as /game/office, with no `#`. */

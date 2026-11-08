@@ -55,9 +55,8 @@ export default defineConfig({
   },
   projects: includeWebkit ? [...chromiumProjects, ...webkitProjects] : chromiumProjects,
   webServer: {
-    // A production build with VITE_E2E=1 keeps the dev-only routes such as /dev/gallery.
+    // The suite runs against a production build, the same bundle that ships.
     command: 'npm run build && npm run preview',
-    env: { VITE_E2E: '1' },
     port: PREVIEW_PORT,
     reuseExistingServer: !isCi,
     // The build runs first, so give it longer than Playwright's 60 second default.
