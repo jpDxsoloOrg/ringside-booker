@@ -83,7 +83,9 @@ export function useEngineQuery<K extends QueryName>(
     void client.fetchQuery(name, stableArgs);
   }, [client, enabled, entryRevision, name, stableArgs, worldRevision]);
 
-  const shown = entry ?? (keepPreviousData ? lastShown : undefined);
+  // Without keepPreviousData, a result the world has moved past is not shown while it refetches.
+  const entryIsCurrent = entry !== undefined && (!enabled || entry.revision >= worldRevision);
+  const shown = keepPreviousData ? (entry ?? lastShown) : entryIsCurrent ? entry : undefined;
   if (shown === undefined) {
     return { status: 'loading', data: undefined, error: null, revision: null, isStale: false };
   }

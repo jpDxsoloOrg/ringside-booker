@@ -186,6 +186,34 @@ describe('useEngineCommand', () => {
     );
   });
 
+  it('shows loading instead of old data while refetching when keepPreviousData is off', async () => {
+    const { wrapper } = setup();
+    const seen: EngineQueryState<'counter.get'>[] = [];
+    const { result } = renderHook(
+      () => {
+        const counter = useEngineQuery('counter.get', {}, { keepPreviousData: false });
+        seen.push(counter);
+        return { counter, increment: useEngineCommand('counter.increment') };
+      },
+      { wrapper },
+    );
+    await waitFor(() => {
+      expect(result.current.counter.status).toBe('success');
+    });
+    const seenBeforeCommand = seen.length;
+
+    await act(async () => {
+      await result.current.increment.run({ amount: 4 });
+    });
+    await waitFor(() => {
+      expect(result.current.counter.data).toEqual({ value: 4 });
+    });
+    const afterCommand = seen.slice(seenBeforeCommand);
+    expect(afterCommand).toContainEqual(expect.objectContaining({ status: 'loading' }));
+    expect(afterCommand).not.toContainEqual(expect.objectContaining({ data: { value: 0 } }));
+    expect(result.current.counter.isStale).toBe(false);
+  });
+
   it('resolves a refused command with its reasons and leaves the revision alone', async () => {
     const { wrapper, querySpy } = setup();
     const { result } = renderHook(
@@ -287,20 +315,26 @@ describe('useAdvanceDays', () => {
     expect(result.current.busy).toBe('idle');
   });
 
-  it('cancels after the current day', async () => {
+  it('cancels a 365-day advance within one day', async () => {
     const { wrapper } = setup();
-    const { result } = renderHook(() => useAdvanceDays(), { wrapper });
+    const { result } = renderHook(
+      () => ({ advance: useAdvanceDays(), client: useEngineClient() }),
+      { wrapper },
+    );
 
     let running: Promise<AdvanceOutcome> | undefined;
     act(() => {
-      running = result.current.start({ maxDays: 3650 });
+      running = result.current.advance.start({ maxDays: 365 });
     });
     await waitFor(() => {
-      expect(result.current.running).toBe(true);
-      expect(result.current.progress?.daysDone ?? 0).toBeGreaterThanOrEqual(1);
+      expect(result.current.advance.running).toBe(true);
+      expect(result.current.advance.progress?.daysDone ?? 0).toBeGreaterThanOrEqual(1);
     });
+    // Each simulated day raises the revision by one, so it counts the days done so far.
+    let revisionAtCancel = 0;
     act(() => {
-      result.current.cancel();
+      revisionAtCancel = result.current.client.status.getState().revision;
+      result.current.advance.cancel();
     });
     let outcome: AdvanceOutcome | undefined;
     await act(async () => {
@@ -309,8 +343,10 @@ describe('useAdvanceDays', () => {
 
     expect(outcome).toMatchObject({ ok: true, stoppedBy: { kind: 'cancelled' } });
     if (outcome?.ok !== true) return;
-    expect(outcome.daysAdvanced).toBeLessThan(3650);
-    expect(result.current.running).toBe(false);
+    expect(outcome.daysAdvanced).toBeLessThan(365);
+    // The advance stops after the day it was on when the cancel landed: at most one more day.
+    expect(outcome.revision - revisionAtCancel).toBeLessThanOrEqual(1);
+    expect(result.current.advance.running).toBe(false);
   });
 
   it('refetches mounted queries as days pass', async () => {
