@@ -3,8 +3,8 @@
  * errors (the fixture fails the test on any), fits the viewport with no horizontal scroll, and has
  * no serious accessibility issues in the dark theme, the only one that ships. On desktop the entry
  * list and the phone frame work; on a phone a select replaces the list, buttons meet the touch
- * target and the entry panel runs edge to edge. The interactive primitives (Tabs, Sheet, ConfirmDialog) are opened from their
- * entries and driven from the keyboard too.
+ * target and the entry panel runs edge to edge. The interactive primitives (Tabs, Sheet,
+ * ConfirmDialog) are opened from their entries and driven from the keyboard too.
  */
 import { expect, test } from './fixtures';
 import type { Locator, Page } from '@playwright/test';

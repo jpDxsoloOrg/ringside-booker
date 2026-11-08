@@ -12,7 +12,7 @@ them. If the two disagree, visual-identity.md wins and this doc and `tokens.css`
 ## Rules
 
 - **Components use semantic tokens only, never palette tokens.** `--palette-*` values exist so the
-  theme blocks have something to point at. A component that reads `--palette-neutral-900` breaks
+  theme blocks have something to point at. A component that reads `--palette-navy-100` breaks
   the moment a theme remaps it. Use `--color-text`.
 - **Sizes in rem so UI scale works.** The UI scale setting multiplies the root font size, so
   anything in `rem` grows with it. Hairlines (1px borders, the 2px focus ring) and corner shapes
