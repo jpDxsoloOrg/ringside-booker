@@ -104,6 +104,17 @@ describe('loadSave: success', () => {
       ],
     });
   });
+  it('joins a trace path that starts with an index without a stray dot', async () => {
+    const doc = editableDoc();
+    doc.state.traces = [{ kind: 'old-shape' }];
+    const report = await loadSave(await encodeSave(doc), TABLES, {
+      validateTraces: () => ({
+        kept: [],
+        dropped: [{ path: '[0]', message: 'Unknown trace shape.' }],
+      }),
+    });
+    expect(report).toMatchObject({ ok: true, warnings: [{ path: 'state.traces[0]' }] });
+  });
 });
 
 describe('loadSave: each stage reports its own failure', () => {

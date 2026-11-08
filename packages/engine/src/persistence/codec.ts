@@ -42,14 +42,13 @@ function sortKeys(value: JsonValue): JsonValue {
   if (isJsonArray(value)) {
     return value.map(sortKeys);
   }
-  const sorted: Record<string, JsonValue> = {};
-  for (const key of Object.keys(value).sort()) {
-    const entry = value[key];
-    if (entry !== undefined) {
-      sorted[key] = sortKeys(entry);
-    }
-  }
-  return sorted;
+  // Object.fromEntries defines own properties, so a `__proto__` key loaded from a save is written
+  // back out instead of silently replacing the object's prototype.
+  return Object.fromEntries(
+    Object.keys(value)
+      .sort()
+      .map((key): [string, JsonValue] => [key, sortKeys(value[key] ?? null)]),
+  );
 }
 
 /**

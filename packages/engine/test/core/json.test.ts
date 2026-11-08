@@ -194,3 +194,16 @@ describe('cloneJson', () => {
     expect(cloneJson(-0)).toBe(-0);
   });
 });
+
+describe('cloneJson and __proto__ keys', () => {
+  it('keeps a __proto__ key read from a file as an ordinary key', () => {
+    const parsed: unknown = JSON.parse('{"__proto__":{"polluted":true},"kept":1}');
+    if (!isJsonValue(parsed)) {
+      throw new Error('expected JSON');
+    }
+    const copy = cloneJson(parsed);
+    expect(Object.getPrototypeOf(copy)).toBe(Object.prototype);
+    expect(Object.keys(copy ?? {})).toEqual(['__proto__', 'kept']);
+    expect(JSON.stringify(copy)).toBe('{"__proto__":{"polluted":true},"kept":1}');
+  });
+});

@@ -202,6 +202,14 @@ export async function readSaveDocument(
   return { ok: true, value: { doc: parsed.value, formatVersion: formatVersion.value } };
 }
 
+/** A path relative to the traces part (`recent[0]` or `[2].kind`) as a document path. */
+function tracePath(relative: string): string {
+  if (relative === '') {
+    return 'state.traces';
+  }
+  return relative.startsWith('[') ? `state.traces${relative}` : `state.traces.${relative}`;
+}
+
 /** Runs the validate-stage hooks that drop bad tunable overrides and traces, collecting warnings. */
 function dropUnreadableParts(
   doc: JsonObject,
@@ -233,7 +241,7 @@ function dropUnreadableParts(
     const checked = options.validateTraces(traces);
     for (const dropped of checked.dropped) {
       warnings.push({
-        path: dropped.path === '' ? 'state.traces' : `state.traces.${dropped.path}`,
+        path: tracePath(dropped.path),
         message: `${dropped.message} The trace was dropped.`,
       });
     }

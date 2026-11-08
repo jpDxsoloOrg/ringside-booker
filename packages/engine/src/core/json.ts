@@ -101,14 +101,11 @@ export function cloneJson(value: JsonValue): JsonValue {
   if (isJsonArray(value)) {
     return value.map((entry) => cloneJson(entry));
   }
-  const copy: Record<string, JsonValue> = {};
-  for (const key of Object.keys(value)) {
-    const entry = value[key];
-    if (entry !== undefined) {
-      copy[key] = cloneJson(entry);
-    }
-  }
-  return copy;
+  // Object.fromEntries defines own properties, so a `__proto__` key read from a file stays a key
+  // instead of replacing the copy's prototype.
+  return Object.fromEntries(
+    Object.entries(value).map(([key, entry]): [string, JsonValue] => [key, cloneJson(entry)]),
+  );
 }
 
 /** `Array.isArray` narrowed to JSON arrays (the built-in guard loses readonly array types). */

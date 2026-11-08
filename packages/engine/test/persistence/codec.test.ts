@@ -1,6 +1,7 @@
 import { gunzipSync } from 'node:zlib';
 import { describe, expect, it } from 'vitest';
 import { NotSerialisableError } from '../../src/core/errors';
+import { isJsonValue } from '../../src/core/json';
 import {
   decodeSave,
   encodeSave,
@@ -73,6 +74,20 @@ describe('encodeSave', () => {
     const text = gunzipSync(bytes).toString('utf8');
     expect(text.startsWith('{"engineVersion":"0.1.0","format":"ringside-booker/save"')).toBe(true);
     expect(text).toBe(serialiseSaveDocument(tinySaveDocument()));
+  });
+
+  it('writes back a __proto__ key a loaded part holds instead of dropping it', async () => {
+    const parsed: unknown = JSON.parse('{"__proto__":{"knob":2},"other":1}');
+    if (!isJsonValue(parsed)) {
+      throw new Error('expected JSON');
+    }
+    const doc = tinySaveDocument();
+    const withProtoKey: SaveDocument = {
+      ...doc,
+      state: { ...doc.state, tunableOverrides: parsed },
+    };
+    const text = gunzipSync(await encodeSave(withProtoKey)).toString('utf8');
+    expect(text).toContain('"tunableOverrides":{"__proto__":{"knob":2},"other":1}');
   });
 
   it('refuses a non-finite number and names its path', async () => {
