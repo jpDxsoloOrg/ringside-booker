@@ -75,7 +75,15 @@ describe('Icon', () => {
       'settings',
     ]);
     expect(STATE_ICON_NAMES).toEqual(['up', 'down', 'flat', 'injured', 'warning', 'check', 'live']);
-    expect(ACTION_ICON_NAMES).toEqual(['play', 'next-day', 'add', 'drag-handle', 'info', 'why']);
+    expect(ACTION_ICON_NAMES).toEqual([
+      'play',
+      'pause',
+      'next-day',
+      'add',
+      'drag-handle',
+      'info',
+      'why',
+    ]);
   });
 
   it('has every name exactly once across the gallery groups', () => {

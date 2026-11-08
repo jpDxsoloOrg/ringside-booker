@@ -39,6 +39,7 @@ import {
   Minus,
   Network,
   Newspaper,
+  Pause,
   Play,
   Plus,
   Radio,
@@ -87,7 +88,15 @@ export const STATE_ICON_NAMES = [
 ] as const;
 
 /** Things the player does. */
-export const ACTION_ICON_NAMES = ['play', 'next-day', 'add', 'drag-handle', 'info', 'why'] as const;
+export const ACTION_ICON_NAMES = [
+  'play',
+  'pause',
+  'next-day',
+  'add',
+  'drag-handle',
+  'info',
+  'why',
+] as const;
 
 /** Interface chrome and the other screens and objects. */
 export const GENERAL_ICON_NAMES = [
@@ -171,6 +180,7 @@ export const ICON_GLYPHS: Readonly<Record<IconName, LucideIcon>> = {
   live: Radio,
 
   play: Play,
+  pause: Pause,
   'next-day': StepForward,
   add: Plus,
   'drag-handle': GripVertical,
