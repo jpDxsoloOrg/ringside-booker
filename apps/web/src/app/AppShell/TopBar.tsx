@@ -14,7 +14,10 @@ export interface TopBarProps {
   readonly compact: boolean;
   /** Replaces the default page title at the start of the bar. */
   readonly start?: ReactNode;
-  /** The end of the bar: the status chips and the day control live here. */
+  /**
+   * The end of the bar: the status chips and the day control live here. On a phone it may shrink,
+   * so the page title gives way before the day button does.
+   */
   readonly end?: ReactNode;
 }
 
@@ -25,7 +28,11 @@ export function TopBar({ location, compact, start, end }: TopBarProps) {
       <div className={styles['topBarStart']}>
         {start ?? <PageTitle location={location} compact={compact} />}
       </div>
-      {end !== undefined && <div className={styles['topBarEnd']}>{end}</div>}
+      {end !== undefined && (
+        <div className={styles['topBarEnd']} data-compact={compact ? 'true' : 'false'}>
+          {end}
+        </div>
+      )}
     </header>
   );
 }

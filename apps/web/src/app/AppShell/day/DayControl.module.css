@@ -1,0 +1,403 @@
+/*
+ * The day control (broadcast register): the live-bug day button and Skip days at the end of the
+ * top bar, the skip sheet's form, the progress overlay and the summary banner under the top bar.
+ */
+
+/* ---- Top bar ---------------------------------------------------------------------------- */
+
+.topBarStatus {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.dayControl {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+/* The bug's skew reaches past its box; a little room keeps it off the Skip button. */
+.primary {
+  margin-inline: var(--space-1);
+}
+
+/* Phone: the date that opens the status sheet. A finger's height, and the label never wraps. */
+.dateButton {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-1);
+  min-block-size: var(--tap-target-min);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+
+.dateButton:hover {
+  background: var(--color-surface-hover);
+}
+
+.dateWarning {
+  color: var(--color-warning);
+}
+
+/* On a phone the bar is short of room: the bug keeps a finger's height but trims its padding. */
+@media (--bp-mobile) {
+  .topBarStatus {
+    gap: var(--space-2);
+  }
+
+  .dayControl {
+    flex: 0 1 auto;
+  }
+
+  .primary {
+    padding-inline: var(--space-3);
+    font-size: var(--font-size-md);
+  }
+}
+
+/* ---- Lists in sheets ---------------------------------------------------------------------- */
+
+.gateList,
+.failureList {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gateItem,
+.failure {
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-sunken);
+  overflow-wrap: anywhere;
+}
+
+.failure {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.failureMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.stepId {
+  font-family: var(--font-family-mono);
+  color: var(--color-data);
+}
+
+.failureMessage {
+  font-size: var(--font-size-sm);
+}
+
+.copyStatus {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* ---- Skip sheet --------------------------------------------------------------------------- */
+
+.skipForm {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.fieldset {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.field {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.fieldLabel {
+  padding: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.fieldHint {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.fieldError {
+  color: var(--color-negative);
+  font-size: var(--font-size-sm);
+}
+
+.quickChips {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin-block-end: var(--space-2);
+}
+
+.quickChip {
+  min-block-size: 2.25rem;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-sunken);
+  color: var(--color-text);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+
+.quickChip:hover {
+  background: var(--color-surface-hover);
+}
+
+.quickChip[aria-pressed='true'] {
+  border-color: var(--color-data);
+  background: var(--color-surface-raised);
+  color: var(--color-data);
+}
+
+.textInput {
+  inline-size: 100%;
+  min-block-size: 2.5rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-sunken);
+  color: var(--color-text);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  color-scheme: dark;
+}
+
+.textInput[aria-invalid='true'] {
+  border-color: var(--color-negative);
+}
+
+.preview {
+  color: var(--color-data);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.checkRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-block-size: 2.25rem;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.checkbox {
+  inline-size: 1rem;
+  block-size: 1rem;
+  margin: 0;
+  accent-color: var(--color-data);
+}
+
+.sheetFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  inline-size: 100%;
+}
+
+@media (pointer: coarse) {
+  .quickChip,
+  .checkRow,
+  .textInput {
+    min-block-size: var(--tap-target-min);
+  }
+}
+
+/* ---- Progress overlay --------------------------------------------------------------------- */
+
+.overlay {
+  inline-size: min(26rem, calc(100vw - 2 * var(--space-4)));
+  max-block-size: calc(100dvh - 2 * var(--space-4));
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0;
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  clip-path: polygon(
+    var(--chamfer) 0,
+    100% 0,
+    100% calc(100% - var(--chamfer)),
+    calc(100% - var(--chamfer)) 100%,
+    0 100%,
+    0 var(--chamfer)
+  );
+}
+
+.overlay::backdrop {
+  background: var(--color-overlay);
+}
+
+.overlayBody {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  border-block-start: 3px solid var(--color-action-bright);
+  text-align: center;
+}
+
+.overlayTitle {
+  color: var(--color-action-bright);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* One line whatever the date, so Stop never shifts while the days tick by. */
+.overlayDate {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (--bp-mobile) {
+  .overlayDate {
+    font-size: var(--font-size-lg);
+  }
+}
+
+.overlayCount {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.progress {
+  inline-size: 100%;
+  block-size: 0.5rem;
+  border: 0;
+  border-radius: 0;
+  background: var(--color-surface-sunken);
+  accent-color: var(--color-data);
+  appearance: none;
+}
+
+.progress::-webkit-progress-bar {
+  background: var(--color-surface-sunken);
+}
+
+.progress::-webkit-progress-value {
+  background: var(--color-data);
+}
+
+.progress::-moz-progress-bar {
+  background: var(--color-data);
+}
+
+.stopButton {
+  justify-self: stretch;
+}
+
+/* ---- Summary banner ----------------------------------------------------------------------- */
+
+.summary {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-block-end: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-inline-start: 3px solid var(--color-data);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.summary[data-tone='warning'] {
+  border-inline-start-color: var(--color-warning);
+}
+
+.summaryBody {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.summaryHeadline {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.summaryReason {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.failureLink {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: var(--space-1);
+  min-block-size: 2rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-warning);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+@media (pointer: coarse) {
+  .failureLink {
+    min-block-size: var(--tap-target-min);
+  }
+}
