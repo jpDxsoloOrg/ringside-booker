@@ -1,0 +1,62 @@
+/*
+ * A raised card anchored to its trigger. Radix sets the --radix-popover-* sizes, so it never
+ * grows past the room it has on screen, and the body scrolls when the content is taller.
+ */
+.popover {
+  z-index: var(--z-popover);
+  display: flex;
+  flex-direction: column;
+  inline-size: max-content;
+  max-inline-size: min(22rem, calc(100vw - 2 * var(--space-4)));
+  max-block-size: var(--radix-popover-content-available-height);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  box-shadow: var(--shadow-3);
+  transform-origin: var(--radix-popover-content-transform-origin);
+}
+
+.popover:focus {
+  outline: none;
+}
+
+.header {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.title {
+  min-inline-size: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.body {
+  min-block-size: 0;
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  font-size: var(--font-size-sm);
+}
+
+/*
+ * Entry animations only match the open state. Radix keeps a closing part mounted until an
+ * animation running on it ends, so one that also matched the closed state would never let go.
+ */
+.popover[data-state='open'] {
+  animation: pop-in var(--motion-fast) var(--easing-standard);
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}

@@ -1,0 +1,125 @@
+.field {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.label {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Looks like a text input with a chevron; the whole box is the button. */
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  min-block-size: 2.5rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  text-align: start;
+  cursor: pointer;
+}
+
+.trigger[data-placeholder] .value {
+  color: var(--color-text-muted);
+}
+
+.trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.value {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevron {
+  flex: none;
+  display: inline-flex;
+  color: var(--color-text-muted);
+}
+
+/* The list: at least as wide as the field, never wider or taller than the room on screen. */
+.content {
+  z-index: var(--z-popover);
+  min-inline-size: var(--radix-select-trigger-width);
+  max-inline-size: calc(100vw - 2 * var(--space-4));
+  max-block-size: var(--radix-select-content-available-height);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  box-shadow: var(--shadow-3);
+}
+
+.viewport {
+  padding: var(--space-1);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-block-size: 2.25rem;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+}
+
+.item[data-highlighted] {
+  background: var(--color-surface-sunken);
+}
+
+.item[data-highlighted]:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+.item[data-disabled] {
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.indicator {
+  display: inline-flex;
+  color: var(--color-accent);
+}
+
+@media (pointer: coarse) {
+  .trigger,
+  .item {
+    min-block-size: var(--tap-target-min);
+  }
+}
+
+/*
+ * Entry animations only match the open state. Radix keeps a closing part mounted until an
+ * animation running on it ends, so one that also matched the closed state would never let go.
+ */
+.content[data-state='open'] {
+  animation: fade-in var(--motion-fast) var(--easing-standard);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}

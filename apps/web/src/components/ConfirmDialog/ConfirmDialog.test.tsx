@@ -75,7 +75,7 @@ describe('ConfirmDialog', () => {
 
     const dialog = await openDialog(user);
 
-    expect(dialog.tagName).toBe('DIALOG');
+    expect(dialog).toHaveAttribute('data-state', 'open');
     expect(dialog).toHaveAccessibleDescription(
       'Their contract ends today and they join the free agents.',
     );
@@ -98,6 +98,38 @@ describe('ConfirmDialog', () => {
 
     expect(dialog).toHaveAttribute('data-tone', 'danger');
     expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus();
+  });
+
+  it('traps focus between its two buttons', async () => {
+    const user = userEvent.setup();
+    render(<ConfirmHarness />);
+
+    await openDialog(user);
+    const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+    const confirmButton = screen.getByRole('button', { name: 'Release' });
+    expect(confirmButton).toHaveFocus();
+
+    await user.tab();
+    expect(cancelButton).toHaveFocus();
+    await user.tab();
+    expect(confirmButton).toHaveFocus();
+    await user.tab({ shift: true });
+    expect(cancelButton).toHaveFocus();
+  });
+
+  it('opens from the keyboard and Escape returns focus to the opener', async () => {
+    const user = userEvent.setup();
+    render(<ConfirmHarness tone="danger" />);
+    const opener = screen.getByRole('button', { name: 'Release worker' });
+
+    await user.tab();
+    await user.keyboard('{Enter}');
+    expect(screen.getByRole('alertdialog', { name: 'Release this worker?' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus();
+
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    expect(opener).toHaveFocus();
   });
 
   it('closes after onConfirm resolves and returns focus to the opener', async () => {
@@ -217,12 +249,17 @@ describe('ConfirmDialog', () => {
 
   it('does not close on a backdrop click', async () => {
     const user = userEvent.setup();
-    render(<ConfirmHarness />);
+    const handleClose = vi.fn();
+    render(<ConfirmHarness onClose={handleClose} />);
 
     const dialog = await openDialog(user);
-    await user.click(dialog);
+    const backdrop = dialog.previousElementSibling;
+    expect(backdrop).toBeInstanceOf(HTMLElement);
+    if (!(backdrop instanceof HTMLElement)) return;
+    await user.click(backdrop);
 
     expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+    expect(handleClose).not.toHaveBeenCalled();
   });
 
   it('keeps the page locked when it closes on top of an open Sheet', async () => {

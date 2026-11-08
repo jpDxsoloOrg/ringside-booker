@@ -63,12 +63,54 @@ describe('Tabs', () => {
     expect(screen.queryByText('Titles content')).toBeNull();
   });
 
-  it('keeps only the selected tab in the Tab order', () => {
+  it('keeps only the selected tab in the Tab order', async () => {
+    const user = userEvent.setup();
     render(<SampleTabs />);
+    await user.click(tab('Finances'));
 
-    expect(tab('Roster')).toHaveAttribute('tabindex', '0');
+    expect(tab('Finances')).toHaveAttribute('tabindex', '0');
+    expect(tab('Roster')).toHaveAttribute('tabindex', '-1');
     expect(tab('Titles')).toHaveAttribute('tabindex', '-1');
-    expect(tab('Finances')).toHaveAttribute('tabindex', '-1');
+
+    // One stop for the strip: Shift+Tab out of the panel lands on the selected tab only.
+    await user.tab();
+    expect(screen.getByRole('tabpanel', { name: 'Finances' })).toHaveFocus();
+    await user.tab({ shift: true });
+    expect(tab('Finances')).toHaveFocus();
+  });
+
+  it('is one Tab stop from the first render, landing on the selected tab', async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <button type="button">Before</button>
+        <Tabs defaultValue="titles">
+          <TabList label="Promotion">
+            {TAB_VALUES.map((value) => (
+              <Tab key={value} value={value}>
+                {tabLabel(value)}
+              </Tab>
+            ))}
+          </TabList>
+          {TAB_VALUES.map((value) => (
+            <TabPanel key={value} value={value}>
+              <p>{tabLabel(value)} content</p>
+            </TabPanel>
+          ))}
+        </Tabs>
+      </>,
+    );
+
+    await user.tab();
+    expect(screen.getByRole('button', { name: 'Before' })).toHaveFocus();
+    await user.tab();
+    expect(tab('Titles')).toHaveFocus();
+    await user.tab();
+    expect(screen.getByRole('tabpanel', { name: 'Titles' })).toHaveFocus();
+    await user.tab({ shift: true });
+    expect(tab('Titles')).toHaveFocus();
+    await user.tab({ shift: true });
+    expect(screen.getByRole('button', { name: 'Before' })).toHaveFocus();
   });
 
   it('selects a tab on click', async () => {
@@ -81,6 +123,7 @@ describe('Tabs', () => {
     expect(tab('Finances')).toHaveAttribute('aria-selected', 'true');
     expect(tab('Finances')).toHaveAttribute('tabindex', '0');
     expect(screen.getByText('Finances content')).toBeVisible();
+    expect(handleChange).toHaveBeenCalledTimes(1);
     expect(handleChange).toHaveBeenCalledWith('finances');
   });
 
