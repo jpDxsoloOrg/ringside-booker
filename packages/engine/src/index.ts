@@ -90,6 +90,8 @@ export { CONTENT_KEY_PATTERN, isContentKey, parseContentKey } from './core/conte
 
 export type { ErrorDetails } from './core/errors';
 export {
+  AppendOnlyError,
+  DuplicateIdError,
   DuplicateSubscriberError,
   EngineError,
   EntityNotFoundError,
@@ -104,6 +106,8 @@ export {
   MoneyOverflowError,
   NotSerialisableError,
   RegistryError,
+  SchemaViolationError,
+  TxStateError,
   UniqueIndexError,
   UnknownIndexError,
 } from './core/errors';
@@ -132,8 +136,9 @@ export {
   type TunableKey,
 } from './systems/tunables';
 
-// The World store. MutableTable and createWorld are deliberately not exported: only transactions
-// write to the world.
+// The World store. MutableTable, createWorld and transact are deliberately not exported: only
+// transactions write to the world, and systems get their Tx from the day pipeline. The UI never
+// sees a Tx; it gets ChangeSets back from commands.
 export type {
   EntityRow,
   IndexSpec,
@@ -147,6 +152,18 @@ export type {
 } from './model/table-def';
 export type { ReadonlyTable } from './model/table';
 export type { DeepReadonly, WorldView } from './model/world';
+export type {
+  AnyId,
+  ChangeSet,
+  RowPatch,
+  RowUpdater,
+  TableChanges,
+  TableKey,
+  TransactOptions,
+  Tx,
+  TxResult,
+  ValidateMode,
+} from './model/tx';
 export { tableOf } from './model/world';
 export type { GameTables, GameWorldView } from './model/tables';
 export type {
