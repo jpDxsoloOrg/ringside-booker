@@ -20,8 +20,18 @@ const TYPESCRIPT_FILES = ['**/*.ts', '**/*.tsx'];
 const ENGINE_FILES = ['packages/engine/**/*.ts'];
 const TEST_FILES = ['**/*.test.ts', '**/*.test.tsx', 'packages/engine/test/**'];
 const WEB_FILES = ['apps/web/**/*.{ts,tsx}'];
-// Web test support: unit tests, the Vitest setup and helpers, and the Playwright specs.
-const WEB_TEST_FILES = ['apps/web/**/*.test.{ts,tsx}', 'apps/web/src/test/**', 'apps/web/e2e/**'];
+// Code that ships: app source and package source. It must never import the shared test fixtures.
+const SHIPPED_FILES = ['apps/**', 'packages/*/src/**'];
+// Test code inside those folders, which may use the fixtures: unit tests, Playwright specs, the
+// Vitest setup files and the web app's test helpers (apps/web/src/test).
+const FIXTURE_USER_FILES = [
+  '**/*.test.ts',
+  '**/*.test.tsx',
+  'apps/*/e2e/**',
+  'apps/*/vitest.setup.ts',
+  'apps/*/src/test/**',
+];
+const ENGINE_SOURCE_FILES = ['packages/engine/src/**'];
 
 const MATH_RANDOM_RESTRICTION = {
   object: 'Math',
@@ -75,6 +85,21 @@ const ENGINE_GLOBALS_MESSAGE =
 const ENGINE_IMPORT_MESSAGE =
   'Engine code has no imports from apps/ and no UI or browser storage libraries.';
 
+// The engine stays free of UI, app and browser storage dependencies.
+const ENGINE_DEPENDENCY_RESTRICTION = {
+  group: [
+    'react',
+    'react-dom',
+    'react/*',
+    '@ringside/web',
+    '@ringside/web/*',
+    '**/apps/**',
+    'idb',
+    'comlink',
+  ],
+  message: ENGINE_IMPORT_MESSAGE,
+};
+
 const STYLE_PROP_MESSAGE = 'Use CSS Modules and tokens';
 
 // The web app reaches the engine only through its public entry, never through engine source paths.
@@ -83,7 +108,7 @@ const ENGINE_INTERNALS_RESTRICTION = {
   message: 'Import from the public @ringside/engine entry only.',
 };
 
-// The shared test fixtures must never ship in app code; tests and test support may use them.
+// The shared test fixtures (@ringside/engine/testing) never ship; tests and tools may use them.
 const ENGINE_TESTING_RESTRICTION = {
   group: ['@ringside/engine/testing', '@ringside/engine/testing/*'],
   message: 'Test fixtures are for tests only and never ship in app or engine code.',
@@ -188,26 +213,7 @@ export default defineConfig(
         'error',
         ...ENGINE_RESTRICTED_GLOBALS.map((name) => ({ name, message: ENGINE_GLOBALS_MESSAGE })),
       ],
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            {
-              group: [
-                'react',
-                'react-dom',
-                'react/*',
-                '@ringside/web',
-                '@ringside/web/*',
-                '**/apps/**',
-                'idb',
-                'comlink',
-              ],
-              message: ENGINE_IMPORT_MESSAGE,
-            },
-          ],
-        },
-      ],
+      'no-restricted-imports': ['error', { patterns: [ENGINE_DEPENDENCY_RESTRICTION] }],
     },
   },
 
@@ -230,19 +236,39 @@ export default defineConfig(
         'error',
         { forbid: [{ propName: 'style', message: STYLE_PROP_MESSAGE }] },
       ],
+      'no-restricted-imports': ['error', { patterns: [ENGINE_INTERNALS_RESTRICTION] }],
+    },
+  },
+
+  // Shipped code never imports the shared test fixtures. Tests, Playwright specs, setup files and
+  // every workspace under tools/** may. A later block replaces the no-restricted-imports options
+  // of an earlier one instead of adding to them, so the two blocks after this one repeat the
+  // engine and web bans for the shipped files they cover.
+  {
+    files: SHIPPED_FILES,
+    ignores: FIXTURE_USER_FILES,
+    rules: {
+      'no-restricted-imports': ['error', { patterns: [ENGINE_TESTING_RESTRICTION] }],
+    },
+  },
+  {
+    files: ENGINE_SOURCE_FILES,
+    ignores: FIXTURE_USER_FILES,
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        { patterns: [ENGINE_DEPENDENCY_RESTRICTION, ENGINE_TESTING_RESTRICTION] },
+      ],
+    },
+  },
+  {
+    files: WEB_FILES,
+    ignores: FIXTURE_USER_FILES,
+    rules: {
       'no-restricted-imports': [
         'error',
         { patterns: [ENGINE_INTERNALS_RESTRICTION, ENGINE_TESTING_RESTRICTION] },
       ],
-    },
-  },
-
-  // Web test support may use the shared engine test fixtures. A later block replaces the
-  // no-restricted-imports options instead of adding to them, so the internals ban is repeated.
-  {
-    files: WEB_TEST_FILES,
-    rules: {
-      'no-restricted-imports': ['error', { patterns: [ENGINE_INTERNALS_RESTRICTION] }],
     },
   },
 
