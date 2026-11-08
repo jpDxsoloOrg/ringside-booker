@@ -147,6 +147,7 @@ These match the blog's public rules, because both folders are in a public repo.
 
 Newest entry at the top. Each new entry adds one row.
 
-| Date       | Entry                                         | Epics | Blog post |
-| ---------- | --------------------------------------------- | ----- | --------- |
-| 2026-11-07 | [Project kickoff](2026-11-project-kickoff.md) | -     | Part 01   |
+| Date       | Entry                                                                 | Epics | Blog post         |
+| ---------- | --------------------------------------------------------------------- | ----- | ----------------- |
+| 2026-11-08 | [Foundation: repo, data model and persistence](2026-11-foundation.md) | FND   | Part 02 (planned) |
+| 2026-11-07 | [Project kickoff](2026-11-project-kickoff.md)                         | -     | Part 01           |
