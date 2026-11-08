@@ -51,6 +51,15 @@ describe('journal rules', () => {
     expect(await checkJournal()).toEqual([]);
   });
 
+  it('do not treat the epic exit checklist as an entry', async () => {
+    await writeRepoFile(
+      repoRoot,
+      'docs/dev-journal/epic-exit-checklist.md',
+      '# Epic exit checklist\n\n## Closing tickets\n\n| Epic | Closing ticket ID | Entry file |\n',
+    );
+    expect(await checkJournal()).toEqual([]);
+  });
+
   it('fail a file name without a two-digit month', async () => {
     await writeRepoFile(repoRoot, 'docs/dev-journal/2026-1-x.md', validEntry);
     await indexEntry('2026-1-x.md');
