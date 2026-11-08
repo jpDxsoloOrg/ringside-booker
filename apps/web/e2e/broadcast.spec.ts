@@ -118,6 +118,13 @@ test.describe('broadcast kit', () => {
     await page.getByRole('heading', { level: 2, name: 'Ticker' }).click();
     expect(await computed(track, 'animation-play-state')).toBe('paused');
 
+    // Resuming works while focus is still on the button: focus on the button is not focus on a
+    // headline, so it must not hold the crawl still.
+    await pause.click();
+    await expect(pause).toHaveAttribute('aria-pressed', 'false');
+    await expect(pause).toBeFocused();
+    expect(await computed(track, 'animation-play-state')).toBe('running');
+
     const viewportWidth = await page.evaluate(() => document.documentElement.clientWidth);
     const tickerBox = await boxOf(ticker);
     expect(tickerBox.x + tickerBox.width).toBeLessThanOrEqual(viewportWidth);

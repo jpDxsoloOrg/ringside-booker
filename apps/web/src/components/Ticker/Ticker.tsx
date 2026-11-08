@@ -66,7 +66,7 @@ function TickerItems({ items }: { readonly items: readonly TickerItem[] }) {
 
 /**
  * The news crawl. Headlines move right to left behind a label badge, pause while the pointer is
- * over them or focus is inside, and can be paused with the button at the end. With reduced motion
+ * over them or a headline has focus, and can be paused with the button at the end. With reduced motion
  * the crawl becomes a static list that wraps and the pause button goes away.
  *
  * The crawl loops by drawing the list twice. The second copy is hidden from screen readers and

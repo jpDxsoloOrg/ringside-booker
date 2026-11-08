@@ -173,11 +173,20 @@
   animation: ticker-crawl calc(var(--ticker-seconds-per-item) * var(--ticker-items)) linear infinite;
 }
 
-/* Pauses under the pointer, while focus is inside, or from the pause button. */
-.crawling .viewport:hover .track,
-.crawling:focus-within .track,
+/*
+ * Pauses while focus is on a headline (a link inside one) or from the pause button. Focus on the
+ * button itself does not count, or the button could never resume the crawl it paused.
+ */
+.crawling .viewport:focus-within .track,
 .paused .track {
   animation-play-state: paused;
+}
+
+/* Pauses under a real pointer. A tap leaves :hover stuck on touch screens, so they skip this. */
+@media (hover: hover) {
+  .crawling .viewport:hover .track {
+    animation-play-state: paused;
+  }
 }
 
 @keyframes ticker-crawl {

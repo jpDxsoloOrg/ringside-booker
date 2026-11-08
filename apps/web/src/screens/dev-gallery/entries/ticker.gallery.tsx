@@ -39,6 +39,6 @@ export const galleryEntry: GalleryEntry = {
   title: 'Ticker',
   group: 'Broadcast',
   notes:
-    'Pauses under the pointer, while focus is inside, and from the pause button. Turn on reduced motion to see the static list.',
+    'Pauses under the pointer, while a headline has focus, and from the pause button. Turn on reduced motion to see the static list.',
   render: () => <TickerDemo />,
 };
