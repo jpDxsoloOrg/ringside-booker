@@ -231,8 +231,14 @@ const CONTRAST_REQUIREMENTS: readonly ContrastRequirement[] = [
   { foreground: '--color-accent-contrast', background: '--color-accent', minimum: 4.5 },
   // Tooltips: inverse text on a --color-text background.
   { foreground: '--color-text-inverse', background: '--color-text', minimum: 4.5 },
-  // Keyboard focus ring: WCAG AA for UI parts.
+  // Dark ink on the bright fills: prestige and danger buttons, solid data, prestige, positive and
+  // negative badges.
+  ...['--color-data', '--color-prestige', '--color-positive', '--color-negative'].map(
+    (background) => ({ foreground: '--color-text-inverse', background, minimum: 4.5 }),
+  ),
+  // Keyboard focus ring: WCAG AA for UI parts, on the canvas and on both panel surfaces.
   { foreground: '--color-focus', background: '--color-bg', minimum: 3 },
+  { foreground: '--color-focus', background: '--color-surface', minimum: 3 },
   { foreground: '--color-focus', background: '--color-surface-raised', minimum: 3 },
   // Placeholder art: initials and monograms sit on a category colour and get small at the xs and
   // sm image sizes, so they meet AA for normal text.
