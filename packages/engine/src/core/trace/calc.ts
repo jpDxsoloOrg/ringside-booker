@@ -18,7 +18,7 @@ import { InvalidArgumentError } from '../errors';
 import type { RollRecord } from '../rng/rolls';
 import type { TunableDefinitions, TunableValue } from '../tunables/define';
 import type { TunableReader } from '../tunables/resolver';
-import { assertFiniteNumber, withoutNegativeZero } from './helpers';
+import { assertFiniteNumber, roundByMode, withoutNegativeZero } from './helpers';
 import { createTraceBudget, type TraceBudget } from './limits';
 import { tunableNode } from './tunable-node';
 import type {
@@ -197,7 +197,7 @@ class CalcBuilder implements Calc {
 
   round(mode: RoundMode, label?: string): Calc {
     const before = this.#current;
-    const after = withoutNegativeZero(Math[mode](before));
+    const after = withoutNegativeZero(roundByMode(mode, before));
     const node: RoundNode = {
       kind: 'round',
       label: label ?? ROUND_LABELS[mode],

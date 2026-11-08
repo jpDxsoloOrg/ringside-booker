@@ -9,7 +9,7 @@
  */
 
 import { TraceReplayError } from '../errors';
-import { walkTrace } from './helpers';
+import { roundByMode, walkTrace } from './helpers';
 import { isTruncationNote } from './limits';
 import type { FormulaNode, TraceNode, Traced } from './types';
 
@@ -90,7 +90,7 @@ function applyStep(step: TraceNode, current: number, check: ReplayCheck | null):
     }
     case 'round': {
       checkNumber(check, step, 'before', step.before, current);
-      const after = Math[step.mode](current);
+      const after = roundByMode(step.mode, current);
       checkNumber(check, step, 'after', step.after, after);
       checkNumber(check, step, 'value', step.value, after);
       return after;

@@ -8,6 +8,7 @@ import type {
   ConstantNode,
   EntityRef,
   InputNode,
+  RoundMode,
   TraceNode,
   TraceNodeKind,
   TraceNodeOfKind,
@@ -30,6 +31,21 @@ export function assertTraceValue(functionName: string, argumentName: string, val
       value,
       'a finite number, true/false, text or null',
     );
+  }
+}
+
+/**
+ * Rounds `value` the way a round step names it. Spelled out per mode so every `Math` member the
+ * engine reads stays a fixed name the no-random lint rule can check.
+ */
+export function roundByMode(mode: RoundMode, value: number): number {
+  switch (mode) {
+    case 'round':
+      return Math.round(value);
+    case 'floor':
+      return Math.floor(value);
+    case 'ceil':
+      return Math.ceil(value);
   }
 }
 
