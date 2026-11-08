@@ -141,7 +141,7 @@ stream first: `chance(stream, 0.15)`, `intBetween(stream, 1, 6)`. Each one says
 exactly what its odds are, which ends of a range can come up, and how many raw
 draws it takes from the stream.
 
-| Helper                                 | Odds                                                                                          | Ends                                                    | Draws consumed                                                  | Throws `RangeError` when                                                             |
+| Helper                                 | Odds                                                                                          | Ends                                                    | Draws consumed                                                  | Throws `InvalidOddsError` when                                                       |
 | -------------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
 | `chance(s, p)`                         | true with `Math.round(p * 2^32) / 2^32` (exactly `p` to 2^-32); `p = 0` never, `p = 1` always | n/a                                                     | 1, always (also for 0 and 1)                                    | `p` is not finite or is outside [0, 1]                                               |
 | `percent(s, k)`                        | `chance(s, k / 100)`, draw for draw                                                           | n/a                                                     | 1                                                               | `k` is not finite or is outside [0, 100]                                             |
@@ -154,7 +154,10 @@ draws it takes from the stream.
 | `normal(s, mean, sd)`                  | normal distribution (Box–Muller)                                                              | unbounded                                               | 2, plus a redraw of the first when it is exactly 0 (odds 2^-32) | `mean` is not finite, or `sd` is not finite or is negative                           |
 | `clampedNormal(s, mean, sd, min, max)` | `normal`, then clamped; the clipped tails land on the ends                                    | both included                                           | 2, as `normal`                                                  | as `normal`, plus a bound that is not finite or `min > max`                          |
 
-Every error message names the bad value, for example
+Every error is an `InvalidOddsError`, a subclass of `EngineError` with the code
+`INVALID_ODDS`, so a bad call is reported as a rule violation like any other
+engine failure rather than as an unexpected crash. Every error message names
+the bad value, for example
 `intBetween: min (6) must not be greater than max (1)`. Arguments are checked
 before anything is drawn, so a rejected call leaves the stream where it was.
 

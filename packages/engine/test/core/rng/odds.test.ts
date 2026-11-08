@@ -1,6 +1,8 @@
 import './testStreams';
 import { describe, expect, it } from 'vitest';
 import {
+  EngineError,
+  InvalidOddsError,
   RngRegistry,
   chance,
   clampedNormal,
@@ -72,15 +74,15 @@ describe('intBetween', () => {
     expect(intBetween(plain, 0, 0xffff_ffff)).toBe(raw.nextUint32());
   });
 
-  it('throws a RangeError naming both values when the bounds are reversed', () => {
+  it('throws an InvalidOddsError naming both values when the bounds are reversed', () => {
     const stream = freshStream();
-    expect(() => intBetween(stream, 6, 1)).toThrow(RangeError);
+    expect(() => intBetween(stream, 6, 1)).toThrow(InvalidOddsError);
     expect(() => intBetween(stream, 6, 1)).toThrow(/min \(6\).*max \(1\)/);
   });
 
   it('throws on non-integer and non-finite bounds', () => {
     const stream = freshStream();
-    expect(() => intBetween(stream, 1.5, 3)).toThrow(RangeError);
+    expect(() => intBetween(stream, 1.5, 3)).toThrow(InvalidOddsError);
     expect(() => intBetween(stream, 1.5, 3)).toThrow(/1\.5/);
     expect(() => intBetween(stream, 1, 3.25)).toThrow(/3\.25/);
     expect(() => intBetween(stream, Number.NaN, 3)).toThrow(/NaN/);
@@ -88,7 +90,7 @@ describe('intBetween', () => {
   });
 
   it('throws when the range holds more than 2^32 values', () => {
-    expect(() => intBetween(freshStream(), 0, 0x1_0000_0000)).toThrow(RangeError);
+    expect(() => intBetween(freshStream(), 0, 0x1_0000_0000)).toThrow(InvalidOddsError);
   });
 });
 
@@ -119,12 +121,12 @@ describe('chance and percent', () => {
     expect(() => chance(stream, 1.5)).toThrow(/1\.5/);
     expect(() => chance(stream, Number.NaN)).toThrow(/NaN/);
     expect(() => percent(stream, 101)).toThrow(/101/);
-    expect(() => percent(stream, -1)).toThrow(RangeError);
+    expect(() => percent(stream, -1)).toThrow(InvalidOddsError);
   });
 
   it('does not draw when the argument is rejected', () => {
     const [checked, raw] = twinStreams();
-    expect(() => chance(checked, 2)).toThrow(RangeError);
+    expect(() => chance(checked, 2)).toThrow(InvalidOddsError);
     expect(checked.nextUint32()).toBe(raw.nextUint32());
   });
 });
@@ -177,7 +179,7 @@ describe('floatBetween', () => {
   it('throws when min > max or a bound is not finite', () => {
     const stream = freshStream();
     expect(() => floatBetween(stream, 2, 1)).toThrow(/min \(2\).*max \(1\)/);
-    expect(() => floatBetween(stream, 0, Number.POSITIVE_INFINITY)).toThrow(RangeError);
+    expect(() => floatBetween(stream, 0, Number.POSITIVE_INFINITY)).toThrow(InvalidOddsError);
   });
 });
 
@@ -434,5 +436,60 @@ describe('draw-count invariants', () => {
     expectDrawCount((stream) => normal(stream, 100, 0), 2);
     expectDrawCount((stream) => clampedNormal(stream, 50, 10, 0, 100), 2);
     expectDrawCount((stream) => clampedNormal(stream, 50, 10, 50, 50), 2);
+  });
+});
+
+/** Runs a call that must fail and returns what it threw, narrowed to an InvalidOddsError. */
+function catchOddsError(badCall: () => unknown): InvalidOddsError {
+  try {
+    badCall();
+  } catch (error) {
+    if (error instanceof InvalidOddsError) {
+      return error;
+    }
+    throw new Error(`Expected an InvalidOddsError, got ${String(error)}`);
+  }
+  throw new Error('Expected an InvalidOddsError, but nothing was thrown');
+}
+
+describe('odds helper errors', () => {
+  const badCalls: readonly [string, (stream: RngStream) => unknown][] = [
+    ['chance', (stream) => chance(stream, 1.5)],
+    ['percent', (stream) => percent(stream, 101)],
+    ['intBetween', (stream) => intBetween(stream, 6, 1)],
+    ['oneIn', (stream) => oneIn(stream, 0)],
+    ['floatBetween', (stream) => floatBetween(stream, 2, 1)],
+    ['pick', (stream) => pick(stream, [])],
+    ['weightedPick', (stream) => weightedPick(stream, [{ item: 'a', weight: -1 }])],
+    ['normal', (stream) => normal(stream, 0, -1)],
+    ['clampedNormal', (stream) => clampedNormal(stream, 0, 1, 5, 4)],
+  ];
+
+  it.each(badCalls)(
+    '%s throws an InvalidOddsError that is an EngineError, not a bare RangeError',
+    (functionName, badCall) => {
+      const oddsError = catchOddsError(() => badCall(freshStream()));
+      expect(oddsError).toBeInstanceOf(EngineError);
+      expect(oddsError).not.toBeInstanceOf(RangeError);
+      expect(oddsError.code).toBe('INVALID_ODDS');
+      expect(oddsError.name).toBe('InvalidOddsError');
+      expect(oddsError.message.startsWith(`${functionName}: `)).toBe(true);
+      expect(oddsError.details?.['functionName']).toBe(functionName);
+    },
+  );
+
+  it('carries the bad argument and value in its details', () => {
+    const oddsError = catchOddsError(() => chance(freshStream(), Number.NaN));
+    expect(oddsError.details).toEqual({
+      functionName: 'chance',
+      argumentName: 'probability',
+      value: 'NaN',
+    });
+  });
+
+  it('is thrown before anything is drawn, so a rejected call leaves the stream alone', () => {
+    const [rejected, untouched] = twinStreams();
+    catchOddsError(() => intBetween(rejected, 6, 1));
+    expect(rejected.nextUint32()).toBe(untouched.nextUint32());
   });
 });

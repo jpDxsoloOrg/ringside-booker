@@ -49,6 +49,17 @@ export class InvalidArgumentError extends EngineError {
   }
 }
 
+/**
+ * An odds or sampling helper (`chance`, `intBetween`, `weightedPick`, ...) was given arguments that
+ * do not describe valid odds: a probability outside [0, 1], reversed or non-whole bounds, an empty
+ * list, a bad weight. Always a caller bug; the message names the helper and the bad value.
+ */
+export class InvalidOddsError extends EngineError {
+  constructor(functionName: string, problem: string, details?: ErrorDetails) {
+    super('INVALID_ODDS', `${functionName}: ${problem}`, { functionName, ...details });
+  }
+}
+
 /** A value is not a well-formed ID of the expected entity kind. */
 export class InvalidIdError extends EngineError {
   constructor(expectedKind: string, value: unknown) {

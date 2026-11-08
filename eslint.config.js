@@ -1,7 +1,8 @@
 // ESLint flat config for the whole monorepo.
 //
 // The engine rules in docs/design/architecture.md are enforced here instead of being remembered:
-// no `any`, no Math.random or wall-clock reads in the engine, no DOM or app imports in the engine.
+// no `any`, no Math.random (however it is reached) or wall-clock reads in the engine, no DOM or
+// app imports in the engine.
 // packages/engine/test/lint-guards.test.ts proves the guard rules fire, so an ESLint upgrade that
 // changes how a selector matches fails a test instead of silently dropping a guard.
 
@@ -27,6 +28,43 @@ const MATH_RANDOM_RESTRICTION = {
   property: 'random',
   message: 'Use rng.stream(name) from core/rng. Results must be reproducible from the seed.',
 };
+
+const MATH_RANDOM_MESSAGE = MATH_RANDOM_RESTRICTION.message;
+
+// no-restricted-properties only sees `Math.random` written against the bare `Math` name. These
+// selectors close the ways around it in the engine:
+// - through the global object: `globalThis.Math.random`, `window.Math.random`, `self['Math'].random`
+// - through an alias: `const M = Math`, `const { Math: M } = globalThis`, `pass(Math)`,
+//   `const M = globalThis.Math`. `Math` may only appear as the object of a member access
+//   (`Math.floor`), so it can never be held in a variable where the property check can't see it.
+// - through a computed key: `Math[key]`, `Math['ran' + 'dom']`. Only fixed keys can be checked, so
+//   the engine never reads a property of `Math` by a key worked out at run time.
+// A fixed key is a plain name (`.Math`), a string (`['Math']`) or a template with no `${}` parts.
+// `owner` is the path from the matched node to the member or property that holds the key.
+function fixedKey(name, { owner = '', keyField = 'property' } = {}) {
+  const key = `${owner}${keyField}`;
+  return (
+    `:matches([${owner}computed=false][${key}.name='${name}'], [${key}.value='${name}'], ` +
+    `[${key}.type='TemplateLiteral'][${key}.expressions.length=0][${key}.quasis.0.value.cooked='${name}'])`
+  );
+}
+const NAMED_MATH = fixedKey('Math');
+const NAMED_RANDOM = fixedKey('random');
+const NOT_FIXED_KEY =
+  ":not([property.type='Literal']):not([property.type='TemplateLiteral'][property.expressions.length=0])";
+const ENGINE_MATH_RANDOM_SELECTORS = [
+  // <anything>.Math.random, in dotted, bracket or template form.
+  `MemberExpression${NAMED_RANDOM} > MemberExpression.object${NAMED_MATH}`,
+  // <anything>.Math used as a value rather than reached through.
+  `MemberExpression${NAMED_MATH}:not(MemberExpression > MemberExpression.object)`,
+  // The bare Math global used as a value: assigned, passed, returned or destructured.
+  "Identifier[name='Math']:not(MemberExpression > Identifier.object, MemberExpression > Identifier.property, Property > Identifier.key, TSTypeQuery > Identifier.exprName)",
+  // Math destructured out of the global object: `const { Math: M } = globalThis`.
+  `ObjectPattern > Property${fixedKey('Math', { keyField: 'key' })}`,
+  // A property of Math (bare or through the global object) read by a key that isn't fixed.
+  `MemberExpression[computed=true]${NOT_FIXED_KEY}[object.type='Identifier'][object.name='Math']`,
+  `MemberExpression[computed=true]${NOT_FIXED_KEY}[object.type='MemberExpression']${fixedKey('Math', { owner: 'object.' })}`,
+].map((selector) => ({ selector, message: MATH_RANDOM_MESSAGE }));
 
 const WALL_CLOCK_MESSAGE =
   'Game time is GameDate from core/date; the engine never reads the wall clock.';
@@ -136,6 +174,7 @@ export default defineConfig(
       'no-restricted-syntax': [
         'error',
         { selector: "NewExpression[callee.name='Date']", message: WALL_CLOCK_MESSAGE },
+        ...ENGINE_MATH_RANDOM_SELECTORS,
       ],
       'no-restricted-globals': [
         'error',

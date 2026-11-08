@@ -78,13 +78,38 @@ That is `npm run format:check && npm run lint && npm run typecheck && npm test`,
 the first step that fails.
 
 The lint config ([`eslint.config.js`](eslint.config.js)) is where the engine rules below are
-enforced: no `any` anywhere, and inside `packages/engine` no `Math.random`, no wall-clock reads
-(`Date.now`, `new Date()`, `performance.now`), no DOM or browser globals, no timers and no imports
-from `apps/` or UI libraries. [`packages/engine/test/lint-guards.test.ts`](packages/engine/test/lint-guards.test.ts)
+enforced: no `any` anywhere, and inside `packages/engine` no `Math.random` (including through
+`globalThis`, `window`, an alias of `Math` or a computed key), no wall-clock reads (`Date.now`,
+`new Date()`, `performance.now`), no DOM or browser globals, no timers and no imports from `apps/`
+or UI libraries. [`packages/engine/test/lint-guards.test.ts`](packages/engine/test/lint-guards.test.ts)
 checks that each of those rules still fires, so a dependency update can't switch one off quietly.
 
-Dependabot ([`.github/dependabot.yml`](.github/dependabot.yml)) opens weekly grouped PRs for dev
-dependencies, runtime dependencies and GitHub Actions.
+## Contributing
+
+Run `npm run verify` before opening a PR; CI runs the same checks plus the build.
+
+### Dependency updates
+
+Dependabot ([`.github/dependabot.yml`](.github/dependabot.yml)) opens weekly PRs: one grouped PR
+for minor and patch updates of dev dependencies, one for runtime dependencies, and one per GitHub
+Actions update. Major versions of the dev toolchain (TypeScript, ESLint, Vitest, Vite and the rest)
+are ignored there on purpose: they get upgraded deliberately in their own ticket, with the lint
+guards and tests as the safety net. When you add a dev dependency, add it to the `ignore` list in
+that file as well, since Dependabot can't scope an ignore rule to dev dependencies on its own.
+
+### Known `npm audit` advisories
+
+CI audits runtime dependencies only (`npm audit --omit=dev`), because only those ship to players.
+A full `npm audit` also lists advisories in the dev toolchain. They come from the pinned Vitest 3 /
+Vite 5 line (`vitest`, `vite`, `vite-node`, `esbuild`, `tinypool`, `@vitest/*`), the coverage
+tooling (`test-exclude`, `glob`, `minimatch`) and `typescript-eslint` (through `minimatch`). None
+of them is code that ships in the built game: they affect the local dev server, build tooling and
+test runner. The fixes all need major upgrades, so they are left alone until the next deliberate
+toolchain upgrade, which clears them in one go. Don't run `npm audit fix --force` to silence them.
+
+The runtime audit currently reports two moderate advisories in `react-router` (through
+`react-router-dom` 6). They sit below the `high` level the CI step reports on, and the fix is the
+React Router 7 major upgrade, which is a deliberate change of its own.
 
 ## Repository layout
 
