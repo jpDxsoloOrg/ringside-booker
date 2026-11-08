@@ -78,6 +78,8 @@ export {
   year,
 } from './core/date';
 
+export * from './core/calendar';
+
 export type { Cents } from './core/money';
 /** Money helpers live under one namespace because their names (`add`, `sum`, ...) are generic. */
 export * as money from './core/money';
@@ -92,6 +94,7 @@ export {
   EntityNotFoundError,
   IdCollisionError,
   InvalidArgumentError,
+  InvalidCadenceError,
   InvalidContentKeyError,
   InvalidDateError,
   InvalidIdError,
