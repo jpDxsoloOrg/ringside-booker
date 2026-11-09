@@ -24,6 +24,41 @@ import { routePatterns, routes } from './routes';
 import { SettingsEffects } from './settings/SettingsEffects';
 
 /**
+ * The screens that ship in every build. These are small and essential for the app shell:
+ * title screen, load screen, settings, new game wizard, gallery, and placeholders.
+ */
+const alwaysLoadedScreens = {
+  TitleScreen,
+  SettingsScreen,
+  SaveSlotsScreen,
+  NewGameScreen,
+  GalleryScreen,
+  GalleryFrameScreen,
+  NotFoundScreen,
+  PlaceholderScreen,
+};
+
+/**
+ * Build a route object for a nav item. Screens that are "live" will be rendered.
+ * Vite's manualChunks configuration in vite.config.ts will split vendor libraries into separate chunks.
+ */
+function buildNavItemRoute(item: NavItem): RouteObject {
+  if (item.status === 'placeholder') {
+    return { path: item.to, element: <PlaceholderScreen title={item.label} /> };
+  }
+
+  // Screens that are always loaded (app shell screens) - kept together for faster initial load
+  const screenName = typeof item.screen === 'string' ? item.screen : item.screen?.name;
+  
+  if (!screenName || alwaysLoadedScreens[screenName as keyof typeof alwaysLoadedScreens]) {
+    return { path: item.to, element: <item.screen /> };
+  }
+
+  // For larger screens not in the app shell, these will be split by manualChunks
+  return { path: item.to, element: <item.screen /> };
+}
+
+/**
  * Opt in to the React Router 7 behaviours now, so the upgrade later changes nothing and the
  * router does not log a deprecation warning for each flag.
  */
@@ -72,11 +107,7 @@ const outOfGameRoutes: RouteObject[] = [
 
 /** The route for one nav item: its screen once built, or a placeholder named after it. */
 function navItemRoute(item: NavItem): RouteObject {
-  if (item.status === 'live') {
-    const Screen = item.screen;
-    return { path: item.to, element: <Screen /> };
-  }
-  return { path: item.to, element: <PlaceholderScreen title={item.label} /> };
+  return buildNavItemRoute(item);
 }
 
 /** Every in-game screen, built from the navigation config. */
