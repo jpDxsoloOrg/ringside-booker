@@ -80,10 +80,12 @@ export {
 } from './engine';
 export {
   MAX_LIST_LIMIT,
+  myPromotion,
   simSystem,
   type ClockView,
   type NoArgs,
   type PendingGates,
+  type PromotionRow,
   type PromotionStatus,
   type SimStatus,
   type TunableChange,

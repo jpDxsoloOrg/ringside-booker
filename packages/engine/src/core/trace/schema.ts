@@ -55,6 +55,11 @@ export const traceValueSchema: z.ZodType<TraceValue> = z.union(
 export const traceUnitSchema: z.ZodType<TraceUnit> = z.enum(TRACE_UNITS, {
   error: 'is not a trace unit',
 });
+export const traceRefSchema = z.strictObject({
+
+  kind: z.string().min(1, { error: 'must not be empty' }),
+  id: z.string().min(1, { error: 'must not be empty' }),
+});
 
 const entityRefSchema: z.ZodType<EntityRef> = z.strictObject({
   kind: z.enum(ENTITY_KIND_LIST, { error: 'is not an entity kind' }),

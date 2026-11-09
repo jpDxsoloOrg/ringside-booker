@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useEngineQuery } from '../engine/useEngineQuery';
 import type { ReactNode } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { ImageSlot } from '@/components/ImageSlot';
@@ -83,7 +84,17 @@ export function AppShell({
   );
   const primaries = useMemo(() => mobilePrimaryItems(visibleSections), [visibleSections]);
   const preview = useMemo(() => shellPreview({ hasPromotion }), [hasPromotion]);
+
+  /** The myPromotion query fetches real promotion data from the engine. It runs while the app is loading and keeps current when the world changes. */
+  const myPromotionQuery = useEngineQuery('promotions.myPromotion', {});
+
   const navLocation = findNavLocation(visibleSections, location.pathname);
+
+  // Use real promotion data when available from the query; otherwise fall back to sample (dev mode or no world).
+  const engineClient = useOptionalEngineClient();
+  const hasEngine = engineClient !== null;
+  const promotion = myPromotionQuery.data ?? preview.promotion;
+  const isSample = !myPromotionQuery.data && engineClient !== null;
 
   // The sheet belongs to the page it was opened on, so any navigation closes it.
   const [moreOpenedAt, setMoreOpenedAt] = useState<string | null>(null);
@@ -91,7 +102,6 @@ export function AppShell({
   const moreIsCurrent =
     navLocation !== null && !primaries.some((item) => item.id === navLocation.item.id);
 
-  const hasEngine = useOptionalEngineClient() !== null;
   const layout: TopBarLayout = { compact: isMobile };
   const sampleTopBarEnd = (
     <>
@@ -113,7 +123,7 @@ export function AppShell({
     ) : (
       ticker
     );
-  const promotion = preview.promotion;
+
   const crest =
     isMobile && promotion !== null ? (
       <ImageSlot
@@ -136,7 +146,7 @@ export function AppShell({
     >
       <SkipLink />
       {!isMobile && (
-        <Sidebar sections={visibleSections} badges={badges} promotion={promotion} sample />
+        <Sidebar sections={visibleSections} badges={badges} promotion={promotion} sample={isSample} />
       )}
       <TopBar
         location={navLocation}

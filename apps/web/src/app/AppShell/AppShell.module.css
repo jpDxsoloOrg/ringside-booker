@@ -102,6 +102,13 @@
   line-height: var(--line-height-tight);
 }
 
+.promotionLogo {
+  display: inline-block;
+  width: var(--image-size-sm);
+  height: var(--image-size-sm);
+  object-fit: contain;
+}
+
 .promotionSample {
   font-size: var(--font-size-xs);
 }

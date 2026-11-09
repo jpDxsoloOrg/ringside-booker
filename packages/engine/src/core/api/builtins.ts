@@ -61,6 +61,23 @@ export interface PromotionStatus {
   };
 }
 
+/** A promotion's full row for display purposes: logo and short name plus cash and popularity. */
+export interface PromotionRow {
+  id: PromotionId;
+  name: string;
+  /** Two to eight uppercase letters or digits, for tight spaces such as a card header. */
+  shortName: string;
+  /** The image reference (a relative asset path). */
+  logoRef: string | null;
+  cash: Cents | null;
+  popularity: {
+    homeRegionId: RegionId;
+    homeRegion: number;
+    prestige: number;
+    traceRef: TraceRef | null;
+  } | null;
+}
+
 /** `sim.status`: what the top bar shows. */
 export interface SimStatus {
   date: GameDate;
@@ -97,6 +114,7 @@ declare module './maps' {
     'sim.commandLog': { args: { limit: number }; result: CommandLogEntry[] };
     'trace.get': { args: { ref: TraceRef }; result: StoredTraceEntry | null };
     'tunables.list': { args: { category?: string }; result: TunableRow[] };
+    'promotions.myPromotion': { args: NoArgs; result: PromotionRow | null };
   }
   interface CommandMap {
     'tunables.setOverride': {
@@ -169,6 +187,29 @@ const simStatus = defineQuery('sim.status', {
                 traceRef: null,
               },
             },
+    };
+  },
+});
+
+/** The viewer's promotion at a glance, read straight from its row. */
+export const myPromotion = defineQuery('promotions.myPromotion', {
+  args: noArgs,
+  run: (ctx) => {
+    const promotionId = viewerPromotionIds(ctx.read, ctx.viewer)[0];
+    if (promotionId === undefined) return null;
+    const promotion = ctx.read.tables.promotions.get(promotionId);
+    return promotion === undefined ? null : {
+      id: promotion.id,
+      name: promotion.name,
+      shortName: promotion.shortName,
+      logoRef: promotion.logoRef,
+      cash: promotion.cash,
+      popularity: {
+        homeRegionId: promotion.homeRegionId,
+        homeRegion: promotion.regionalPop[promotion.homeRegionId] ?? 0,
+        prestige: promotion.prestige,
+        traceRef: null,
+      },
     };
   },
 });
