@@ -11,6 +11,12 @@ import styles from './WorkerProfile.module.css';
 
 export interface WorkerProfileHeaderProps {
   readonly header: WorkerProfileHeaderData;
+  /**
+   * How the ring name is marked up. `page` (the default) makes it the screen's one `h1`, which is
+   * what the profile wants. `section` makes it an `h3`, for showing the header inside another page
+   * such as the component gallery.
+   */
+  readonly heading?: 'page' | 'section';
 }
 
 /** "183 cm · 104 kg": height and weight as the header writes them. */
@@ -23,7 +29,7 @@ export function sizeText(heightCm: number, weightKg: number): string {
  * different one, then age, size with the weight class, style, employer, push, alignment and
  * whether they can work today.
  */
-export function WorkerProfileHeader({ header }: WorkerProfileHeaderProps) {
+export function WorkerProfileHeader({ header, heading = 'page' }: WorkerProfileHeaderProps) {
   const subject: ImageSubject = {
     kind: 'person',
     id: header.personId,
@@ -36,7 +42,11 @@ export function WorkerProfileHeader({ header }: WorkerProfileHeaderProps) {
     <header className={styles['header']}>
       <ImageSlot subject={subject} size="lg" decorative />
       <div className={styles['identity']}>
-        <RouteHeading className={styles['heading']}>{header.ringName}</RouteHeading>
+        {heading === 'page' ? (
+          <RouteHeading className={styles['heading']}>{header.ringName}</RouteHeading>
+        ) : (
+          <h3 className={styles['heading']}>{header.ringName}</h3>
+        )}
         {showLegalName && (
           <p className={styles['legalName']}>
             <span className={styles['factLabel']}>Real name</span> {header.legalName}

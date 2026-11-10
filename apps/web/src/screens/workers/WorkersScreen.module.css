@@ -119,10 +119,16 @@
 
 /* ---------------------------------------------------------------- cells */
 
+/*
+ * The ring name stays on one line and is cut with an ellipsis (WorkerLink's truncate); the whole
+ * name is still the link's text and its tooltip. The cap is the Name column's width.
+ */
 .name {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0;
   min-inline-size: 0;
+  max-inline-size: 16rem;
 }
 
 .legalName {
@@ -145,6 +151,12 @@
   align-items: center;
   gap: var(--space-2);
   min-inline-size: 0;
+}
+
+/* Every grade chip is as wide as the widest grade ("A+"), so the numbers beside them line up. */
+.grade {
+  justify-content: center;
+  min-inline-size: 2.5rem;
 }
 
 .none {
@@ -174,6 +186,17 @@
    */
   .table li[data-row-id] {
     position: relative;
+  }
+
+  /* A card has the room a table cell does not: a long ring name wraps instead of being cut. */
+  .name {
+    max-inline-size: none;
+  }
+
+  .table li[data-row-id] .name a {
+    overflow: visible;
+    overflow-wrap: anywhere;
+    white-space: normal;
   }
 
   .table li[data-row-id] .name a::after {

@@ -174,7 +174,7 @@ const EVERY_KIND_ROWS: Readonly<Record<TraceNodeKind, string>> = {
   round: 'Rounded down 37.6 → 37',
   roll: 'Crowd swing: rolled 37 on 0–100 (both ends possible)',
   branch: 'Because Main event slot',
-  decision: 'Title decision: retain',
+  decision: 'Title decision: Retain',
   note: 'Title match',
 };
 
@@ -257,12 +257,38 @@ describe('TracePanel rows', () => {
     expect(within(row).getByText('default 12')).toBeInTheDocument();
   });
 
+  it('names the setting behind a tunable row by its key', () => {
+    renderPanel(attendanceTrace);
+    const overridden = treeItemByText('Fans per hype point: 15');
+    expect(within(overridden).getByText('attendance.hypeFans')).toBeInTheDocument();
+    const untouched = treeItemByText('Largest walk-up swing: 500');
+    expect(within(untouched).getByText('Game setting')).toBeInTheDocument();
+    expect(within(untouched).getByText('attendance.walkUpSwing')).toBeInTheDocument();
+  });
+
+  it("puts a decision root's choice in words at the top", () => {
+    renderPanel({
+      kind: 'decision',
+      label: 'Expected push',
+      value: 'mainEvent',
+      chosen: 'mainEvent',
+      reason: 'A standing of 0.89 reaches the main event mark of 0.85',
+      considered: [
+        { option: 'mainEvent', score: 0.89 },
+        { option: 'upperCard', score: 0.89 },
+      ],
+    });
+    expect(screen.getAllByText('Main event').length).toBeGreaterThan(0);
+    expect(screen.queryByText(/mainEvent|upperCard/)).not.toBeInTheDocument();
+    expect(screen.getByText('Also considered: Upper card, score 0.89')).toBeInTheDocument();
+  });
+
   it('lists the chosen option first, then the others with their scores', () => {
     renderPanel(everyKindTrace);
-    const options = within(treeItemByText('Title decision: retain')).getAllByRole('listitem');
+    const options = within(treeItemByText('Title decision: Retain')).getAllByRole('listitem');
     expect(options.map((option) => option.textContent)).toEqual([
-      'Chosen: retain, score 62',
-      'Also considered: change, score 48',
+      'Chosen: Retain, score 62',
+      'Also considered: Change, score 48',
     ]);
   });
 
