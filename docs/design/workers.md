@@ -46,7 +46,7 @@ The rules are checked in this order and the first one that matches wins:
 | #   | Rule                                                      | Status                     | Reason shown                               | `until`             |
 | --- | --------------------------------------------------------- | -------------------------- | ------------------------------------------ | ------------------- |
 | 1   | Person status is `retired`, `deceased` or `outOfBusiness` | `retired`                  | "Retired", "Deceased", "Left the business" | none                |
-| 2   | No `debutDate`, or `debutDate` is after the date          | `notDebuted`               | "Has not debuted yet"                      | the debut date      |
+| 2   | `debutDate` is after the date, or missing (see below)     | `notDebuted`               | "Has not debuted yet"                      | the debut date      |
 | 3   | An `injury` with `date < injury.expectedReturn`           | `injured`                  | "Injured (leg injury)"                     | `expectedReturn`    |
 | 4   | A `restrictions[]` entry with `date < until`              | `rehab` or `personalLeave` | "In rehab", "On personal leave"            | the entry's `until` |
 | 5   | Person status is `hiatus`                                 | `personalLeave`            | "On hiatus"                                | none                |
@@ -55,6 +55,12 @@ The rules are checked in this order and the first one that matches wins:
 
 Details:
 
+- A missing `debutDate` only means "not debuted yet" for someone who holds a
+  role that has a debut: wrestler, occasional wrestler or manager
+  (`DEBUT_ROLES`). Referees, announcers, presenters and producers never get a
+  debut date (see [world-generation.md](world-generation.md)), so for them a
+  missing date is skipped and the later rules decide. A debut date that is
+  still ahead counts for every role.
 - When several restrictions are running, the one that ends last is the one
   reported.
 - A `semiRetired` person is `available`, with the reason "Semi-retired: works

@@ -18,6 +18,7 @@ export { ageOn, experienceYears } from './helpers/age';
 export {
   AVAILABILITY_STATUSES,
   availabilityOf,
+  DEBUT_ROLES,
   type Availability,
   type AvailabilityStatus,
 } from './helpers/availability';

@@ -79,6 +79,29 @@ describe('availabilityOf', () => {
       });
     });
 
+    it('applies to a manager with no debut date', () => {
+      const manager = aPerson({ roles: ['manager'], style: 'nonWrestler', debutDate: null });
+      expect(availabilityOf(manager, null, TODAY).status).toBe('notDebuted');
+    });
+
+    it.each(['referee', 'announcer', 'presenter', 'producer'] as const)(
+      'does not apply to a %s, a role that never has a debut date',
+      (role) => {
+        const crew = aPerson({ roles: [role], style: 'nonWrestler', debutDate: null });
+        expect(availabilityOf(crew, null, TODAY)).toEqual({
+          status: 'available',
+          reason: 'Available',
+          until: null,
+          canWorkAngles: true,
+        });
+      },
+    );
+
+    it('still applies to crew whose debut date is ahead', () => {
+      const crew = aPerson({ roles: ['referee'], style: 'nonWrestler', debutDate: TOMORROW });
+      expect(availabilityOf(crew, null, TODAY).status).toBe('notDebuted');
+    });
+
     it('applies while the debut is ahead, until the debut date', () => {
       const result = availabilityOf(aPerson({ debutDate: TOMORROW }), null, TODAY);
       expect(result.status).toBe('notDebuted');

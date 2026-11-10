@@ -17,6 +17,7 @@ import {
   RESTRICTION_KINDS,
   type BodyPart,
   type Person,
+  type PersonRole,
   type Restriction,
 } from '../../../model/entities/person';
 
@@ -42,6 +43,12 @@ export interface Availability {
   /** True when the person can appear in talking segments on the date. */
   canWorkAngles: boolean;
 }
+
+/**
+ * The roles a career starts in with a debut. Referees, announcers, presenters and producers have
+ * no debut date at all, so a missing date only means "not debuted yet" for someone in these roles.
+ */
+export const DEBUT_ROLES: readonly PersonRole[] = ['wrestler', 'occasionalWrestler', 'manager'];
 
 const INJURED_PART_TEXT: Readonly<Record<BodyPart, string>> = {
   head: 'head injury',
@@ -91,7 +98,8 @@ function longestRestriction(
  * The first rule that matches wins:
  *
  * 1. retired, deceased or out of the business → `retired`;
- * 2. no debut date, or a debut still ahead → `notDebuted`;
+ * 2. a debut still ahead, or no debut date for someone in a role that has one (`DEBUT_ROLES`) →
+ *    `notDebuted`;
  * 3. an injury not yet healed → `injured`;
  * 4. a restriction still running → `rehab` or `personalLeave`;
  * 5. on hiatus → `personalLeave`;
@@ -99,7 +107,7 @@ function longestRestriction(
  * 7. otherwise `available`.
  */
 export function availabilityOf(
-  person: Pick<Person, 'status' | 'debutDate' | 'injury' | 'restrictions'>,
+  person: Pick<Person, 'status' | 'roles' | 'debutDate' | 'injury' | 'restrictions'>,
   employment: Pick<Employment, 'leave'> | null,
   date: GameDate,
 ): Availability {
@@ -117,9 +125,11 @@ export function availabilityOf(
   }
 
   if (person.debutDate === null) {
-    return unavailable('notDebuted', 'Has not debuted yet', null);
-  }
-  if (isAfter(person.debutDate, date)) {
+    // Crew roles never get a debut date, so for them a missing date is not a reason to sit out.
+    if (person.roles.some((role) => DEBUT_ROLES.includes(role))) {
+      return unavailable('notDebuted', 'Has not debuted yet', null);
+    }
+  } else if (isAfter(person.debutDate, date)) {
     return unavailable('notDebuted', 'Has not debuted yet', person.debutDate);
   }
 

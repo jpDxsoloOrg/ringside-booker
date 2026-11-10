@@ -87,6 +87,15 @@ describe('the workers helpers on the default world', () => {
     }
   });
 
+  it('has nobody waiting on a debut: the shipped referees and announcers can work', () => {
+    const waiting = people.filter(
+      (person) =>
+        availabilityOf(person, primaryEmploymentOf(world, person.id, today), today).status ===
+        'notDebuted',
+    );
+    expect(waiting.map((person) => person.defaultRingName)).toEqual([]);
+  });
+
   it('lets every current champion hold the title they hold', () => {
     const openReigns = world.tables.titleReigns.values().filter((reign) => reign.lostOn === null);
     expect(openReigns.length).toBeGreaterThan(0);
