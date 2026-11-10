@@ -7,6 +7,13 @@ import { goldenSaveBytes } from '@/test/goldenSave';
 import { renderApp, storeRealSlot } from '@/test/renderApp';
 import { expectOk, resetSaveDb } from '@/test/saves';
 import { routes } from '../routes';
+
+/**
+ * Loading a real save through the fake worker and saving it again on the way out can take longer
+ * than Testing Library's 1 s default when the suite runs in parallel on a busy CI machine, which
+ * made this file fail now and then (UI-20).
+ */
+const SAVE_ROUND_TRIP_MS = 10_000;
 import { useSessionStore } from '../session/sessionStore';
 
 /** Loads a real slot through the slot list and waits for the office. */
@@ -15,11 +22,17 @@ async function enterGame() {
   const rendered = renderApp(routes.load(), createFakeStorage([slot]));
   const user = userEvent.setup();
   await user.click(
-    within(await screen.findByRole('article', { name: 'Shell league' })).getByRole('button', {
+    within(
+      await screen.findByRole('article', { name: 'Shell league' }, { timeout: SAVE_ROUND_TRIP_MS }),
+    ).getByRole('button', {
       name: 'Load Shell league',
     }),
   );
-  await screen.findByRole('heading', { level: 1, name: 'Dashboard' });
+  await screen.findByRole(
+    'heading',
+    { level: 1, name: 'Dashboard' },
+    { timeout: SAVE_ROUND_TRIP_MS },
+  );
   return { ...rendered, slot, user };
 }
 
@@ -36,7 +49,11 @@ describe('Main menu in the shell', () => {
     await user.click(within(sidebar).getByRole('button', { name: 'Main menu' }));
 
     expect(
-      await screen.findByRole('heading', { level: 1, name: 'Ringside Booker' }),
+      await screen.findByRole(
+        'heading',
+        { level: 1, name: 'Ringside Booker' },
+        { timeout: SAVE_ROUND_TRIP_MS },
+      ),
     ).toBeInTheDocument();
     expect(router.state.location.pathname).toBe(routes.title());
     expect(useSessionStore.getState().worldLoaded).toBe(false);
@@ -54,9 +71,9 @@ describe('Main menu in the shell', () => {
       within(screen.getByTestId('sidebar')).getByRole('button', { name: 'Main menu' }),
     );
 
-    expect(await screen.findByText(/Couldn't save before leaving/)).toHaveTextContent(
-      `Save slot ${slot.slotId} does not exist.`,
-    );
+    expect(
+      await screen.findByText(/Couldn't save before leaving/, {}, { timeout: SAVE_ROUND_TRIP_MS }),
+    ).toHaveTextContent(`Save slot ${slot.slotId} does not exist.`);
     expect(router.state.location.pathname).toBe(routes.game.office());
     expect(useSessionStore.getState().worldLoaded).toBe(true);
     expect(transport.host.isWorldLoaded()).toBe(true);
