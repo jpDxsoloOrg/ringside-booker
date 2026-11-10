@@ -47,6 +47,47 @@ export {
   type WeightClass,
   type WeightClassInputs,
 } from './formulas/weightClass';
+export {
+  NO_WEIGHTS_NOTE,
+  OCCASIONAL_WRESTLER_NOTE,
+  overallByRole,
+  overallOf,
+  RATING_ROLE_LABELS,
+  roleRating,
+  type RoleRatingInputs,
+} from './formulas/roleRating';
+export {
+  EXPECTED_PUSH_DOC_REF,
+  fanBaseOf,
+  FOOTPRINT_TRACE_TOP_REGIONS,
+  footprintPopularity,
+  footprintPopularityValue,
+  NO_FANS_NOTE,
+  type FanBase,
+  type FanBaseRegion,
+  type FootprintPopularityInputs,
+  type FootprintRegion,
+  type FootprintRegionalPop,
+} from './formulas/footprintPopularity';
+export {
+  CREW_NOT_PUSHED_RULE,
+  CREW_ROLES,
+  expectedPush,
+  PUSH_LABELS,
+  pushStanding,
+  STAR_REASON,
+  type ExpectedPushInputs,
+  type PushStanding,
+} from './formulas/expectedPush';
+export { expectedPushAt, footprintPopularityAt } from './helpers/expectedPushAt';
+export {
+  DEFAULT_RATING_WEIGHTS,
+  RATING_WEIGHTS_CATEGORY,
+  ratingWeightKey,
+  ratingWeightTunables,
+  ROLE_RATINGS_DOC_REF,
+  type RatingWeightKey,
+} from './ratingWeights';
 export { workersTunables } from './tunables';
 
 export const workersSystem: SystemBundle = defineSystem({

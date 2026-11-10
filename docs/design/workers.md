@@ -11,17 +11,20 @@ employment rows when it is asked for (see
 [data-model.md](data-model.md#stored-and-derived)), so there is no flag to keep
 in sync and no migration when a rule changes.
 
-| Question                           | Function                                     | Returns                |
-| ---------------------------------- | -------------------------------------------- | ---------------------- |
-| How old are they?                  | `ageOn(person, date)`                        | Whole years            |
-| How long have they been wrestling? | `experienceYears(person, date)`              | Years, with a fraction |
-| Can they work today?               | `availabilityOf(person, employment, date)`   | `Availability`         |
-| May they hold this title?          | `isEligibleForTitle(person, title)`          | `Reason[]`             |
-| Which weight class?                | `weightClass({ weightKg }, { tunables })`    | `Traced<WeightClass>`  |
-| What grade is this value?          | `gradeOf(value)`                             | Grade, band and reason |
-| Who do they work for?              | `activeEmploymentsOf`, `primaryEmploymentOf` | Employment rows        |
-| Are they a free agent?             | `isFreeAgent(read, personId, date)`          | `boolean`              |
-| What are they mainly?              | `mainRoleOf(person, primaryEmployment)`      | `RatingRole`           |
+| Question                                   | Function                                       | Returns                |
+| ------------------------------------------ | ---------------------------------------------- | ---------------------- |
+| How old are they?                          | `ageOn(person, date)`                          | Whole years            |
+| How long have they been wrestling?         | `experienceYears(person, date)`                | Years, with a fraction |
+| Can they work today?                       | `availabilityOf(person, employment, date)`     | `Availability`         |
+| May they hold this title?                  | `isEligibleForTitle(person, title)`            | `Reason[]`             |
+| Which weight class?                        | `weightClass({ weightKg }, { tunables })`      | `Traced<WeightClass>`  |
+| What grade is this value?                  | `gradeOf(value)`                               | Grade, band and reason |
+| Who do they work for?                      | `activeEmploymentsOf`, `primaryEmploymentOf`   | Employment rows        |
+| Are they a free agent?                     | `isFreeAgent(read, personId, date)`            | `boolean`              |
+| What are they mainly?                      | `mainRoleOf(person, primaryEmployment)`        | `RatingRole`           |
+| How good are they at a job?                | `roleRating`, `overallOf`, `overallByRole`     | `Traced<number>`       |
+| How known are they to these fans?          | `footprintPopularity`, `footprintPopularityAt` | `Traced<number>`       |
+| Where on the card would they expect to be? | `expectedPush`, `expectedPushAt`               | `Traced<Push>`         |
 
 All of them are exported from `@ringside/engine`.
 
@@ -224,3 +227,200 @@ presenter, announcer, referee, producer and booker. An occasional wrestler is
 rated as a wrestler. `mainRoleOf(person, primaryEmployment)` is the role their
 main employer hired them in, or for a free agent the first role they hold in
 the standard role order (wrestler first), whatever order the row stores them in.
+
+## Role ratings
+
+There is **no stored overall** anywhere, on purpose. A 70-rated referee and a
+70-rated wrestler are good at different jobs, and one number per person would
+have to pretend they are the same thing. Instead a person has a rating for
+every one of the seven roles, worked out on read from their twelve attributes
+and that role's weights. Screens show the main role's rating by default.
+
+```
+rating = Σ (weight × attribute) ÷ Σ weight
+```
+
+over the attributes whose weight for the role is above 0, in the standard
+attribute order, kept between 0 and 100.
+
+- `roleRating({ role, attributes }, { tunables })` is the formula.
+- `overallOf(person, role, { tunables })` is the same for a person row. An
+  occasional wrestler's wrestler rating uses the wrestler weights, and the
+  trace has a note saying so.
+- `overallByRole(person, { tunables })` gives all seven at once.
+
+Every weight is its own tunable, `workers.rating.<role>.<attribute>`: 84 of
+them, 0 to 10 in steps of 0.5, in the `Worker ratings` category. The defaults
+(a blank cell is 0, so the attribute does not count for that role):
+
+| Attribute    | Wrestler | Manager | Presenter | Announcer | Referee | Producer | Booker |
+| ------------ | -------- | ------- | --------- | --------- | ------- | -------- | ------ |
+| Ring work    | 3        |         |           |           |         |          |        |
+| Psychology   | 2        | 1       |           | 1         | 1       | 2        | 1.5    |
+| Stamina      | 1        |         |           |           | 0.5     |          |        |
+| Safety       | 1        |         |           |           |         |          |        |
+| Athleticism  | 1.5      |         |           |           |         |          |        |
+| Mic skills   | 1        | 3       | 2         | 1.5       |         |          |        |
+| Charisma     | 1.5      | 2       | 2         | 0.5       |         |          |        |
+| Presence     | 1        | 1.5     | 2         |           |         |          |        |
+| Officiating  |          |         |           |           | 4       |          |        |
+| Broadcasting |          |         | 1         | 3         |         |          |        |
+| Producing    |          |         |           |           |         | 4        | 1      |
+| Booking      |          |         |           |           |         | 1        | 4      |
+| Total weight | 12       | 7.5     | 7         | 6         | 5.5     | 7        | 6.5    |
+
+Rules that hold whatever the weights are set to:
+
+- **0 means 0.** A weight overridden to 0 takes the attribute out of the
+  rating, and its line out of the trace, on the next read. A weight above 0 on
+  an attribute the role did not use before brings it in.
+- **All weights 0 gives 0.** If every weight for a role is 0 there is nothing
+  to average, so the rating is 0 and the trace has the note "Every weight for
+  this role is 0, so the rating is 0".
+- **No rounding in the engine.** Rounding inside the formula would make sorts
+  unstable and the trace wrong by up to half a point. Screens show a whole
+  number or one decimal place.
+
+### Worked example
+
+Rook Halvorsen, an upper-card wrestler in the default world, rated as a
+wrestler:
+
+```
+Wrestler rating: 67.08
+  Ring work 84 × weight 3        252     (workers.rating.wrestler.ringwork)
+  Psychology 80 × weight 2       160     (workers.rating.wrestler.psychology)
+  Stamina 69 × weight 1           69     (workers.rating.wrestler.stamina)
+  Safety 71 × weight 1            71     (workers.rating.wrestler.safety)
+  Athleticism 51 × weight 1.5     76.5   (workers.rating.wrestler.athleticism)
+  Mic skills 46 × weight 1        46     (workers.rating.wrestler.mic)
+  Charisma 61 × weight 1.5        91.5   (workers.rating.wrestler.charisma)
+  Presence 39 × weight 1          39     (workers.rating.wrestler.presence)
+                                 805
+  ÷ Total weight 12               67.08
+  Kept between 0 and 100          67.08
+```
+
+The Why? panel shows exactly these lines, each with the tunable that set its
+weight. The same person rates 42.2 as a booker and 30.3 as a referee, which is
+why there is no single overall.
+
+## Expected push
+
+Expected push is where on the card a worker would expect to be at a given
+promotion: main event, upper card, mid card, lower card or enhancement. The
+profile shows it as "Would expect: Upper card at Altura" with a Why?. It is
+derived on read from stored popularity, so when popularity moves, expected
+push follows with nothing to keep in sync.
+
+`expectedPush(inputs, { tunables })` takes the job (`employmentRole`), the
+worker's and the promotion's regional popularity, the promotion's name and the
+map's regions. `expectedPushAt(read, personId, promotionId, tunables)` gathers
+those from the world: it uses the job the person has at that promotion, or the
+job they are known for when they do not work there.
+
+The steps, every one of them in the trace:
+
+1. **Crew are not pushed.** A referee, announcer, producer, presenter or booker
+   expects `none`. Wrestlers and managers go on.
+2. **The promotion's fan base.** The regions where the promotion's popularity
+   is at least `workers.expectedPush.footprintMinPop` (10). Each region counts
+   by its fans: `population × promotion popularity ÷ 100`. If no region
+   reaches the minimum, every region where the promotion has any popularity
+   counts. If there are none of those either, the promotion has no fans yet and
+   the answer is `enhancement`: nobody is a draw there.
+3. **Two popularity figures over that fan base.** The worker's (`W`) and the
+   promotion's own (`P`), each the fan-weighted mean of regional popularity.
+   This is `footprintPopularity`, described below.
+4. **Standing.**
+   `standing = W ÷ max(P, workers.expectedPush.minPromotionPop)`. A standing of
+   1 means the worker is as well known to these fans as the promotion itself.
+   The floor (5) stops a promotion almost nobody has heard of from turning
+   every worker into a headliner.
+5. **The decision.** If `W` is at least `workers.expectedPush.starPop` (75) the
+   worker expects the main event: a star is a star anywhere. Otherwise it is
+   the first position, from the top down, whose threshold the standing reaches:
+
+   | Position    | Standing at least | Tunable                               |
+   | ----------- | ----------------- | ------------------------------------- |
+   | Main event  | 0.85              | `workers.expectedPush.mainEventRatio` |
+   | Upper card  | 0.65              | `workers.expectedPush.upperCardRatio` |
+   | Mid card    | 0.45              | `workers.expectedPush.midCardRatio`   |
+   | Lower card  | 0.25              | `workers.expectedPush.lowerCardRatio` |
+   | Enhancement | anything lower    |                                       |
+
+   A standing exactly on a threshold earns the position. The thresholds are
+   checked top down, so one set out of order by an override makes a position
+   unreachable and never throws.
+
+**Why a ratio and not size tiers.** The obvious way to do this is a table per
+promotion size: "at a big promotion you need 70 to main event, at a small one
+40". That makes expectations jump the day a promotion crosses a size line, and
+it needs a row for every size. A ratio has neither problem. The same worker
+expects less as the promotion grows, a little at a time, and a promotion that
+is big in one country and unknown in another is judged by the fans it actually
+has. This follows the "smooth scaling instead of hard size tiers" default in
+[design-decisions.md](design-decisions.md).
+
+**Why the star rule.** A ratio alone says a worker at 80 should only be upper
+card at a promotion at 100. Nobody that famous thinks of themselves as anything
+but a headliner, so popularity of 75 or more among the promotion's fans is
+enough on its own. Setting `starPop` to 100 effectively turns the rule off.
+
+Rook Halvorsen again, at Altura Wrestling Entertainment: his popularity among
+Altura's fans is 40.8, Altura's own is 58.6, so his standing is 0.70. That
+reaches the upper card mark of 0.65 and not the main event mark of 0.85.
+
+### Footprint popularity
+
+`footprintPopularity({ subjectPop, promotionPop, promotionName, regions }, { tunables })`
+is steps 2 and 3 on their own: how well known a subject is among one
+promotion's fans.
+
+```
+fans in a region      = population × promotion popularity there ÷ 100
+footprint popularity  = Σ (fans × subject popularity) ÷ Σ fans
+```
+
+The subject can be a person or the promotion itself. Its trace is labelled
+"Popularity where <promotion> draws" and lists the five regions with the most
+fans one by one, then the rest as a single line, then the total.
+
+- `footprintPopularityValue(...)` is the same number with no trace, added up
+  in the same order, for lists that need it for a whole roster.
+- `footprintPopularityAt(read, personId, promotionId, tunables)` reads the
+  inputs from the world.
+- `fanBaseOf(promotionPop, regions, minPop)` gives the fan base itself.
+
+This is the one place a footprint is worked out. Roster columns, fit and
+morale read this helper, so no two screens can disagree about how known
+someone is to a promotion's crowd. A wrestler who is a star at home and unknown
+where a promotion runs has a low footprint popularity there, whatever their
+world figure says.
+
+### Calibration
+
+`packages/engine/test/systems/workers/calibration.test.ts` runs expected push
+for every employed wrestler in the default world and compares it with the push
+they actually have. With the defaults above:
+
+| Promotion                       | Own popularity | Wrestlers | Exact | Within one position |
+| ------------------------------- | -------------- | --------- | ----- | ------------------- |
+| Altura Wrestling Entertainment  | 58.6           | 44        | 100%  | 100%                |
+| Tessen Pro Wrestling            | 55.1           | 26        | 100%  | 100%                |
+| Cielo Alto Lucha Libre          | 53.1           | 26        | 100%  | 100%                |
+| Ashlar Pro Wrestling            | 35.0           | 12        | 92%   | 100%                |
+| Golden Poppy Wrestling          | 34.7           | 12        | 92%   | 100%                |
+| Longleaf Championship Wrestling | 31.2           | 12        | 83%   | 100%                |
+| Eisenwerk Wrestling             | 28.9           | 12        | 92%   | 100%                |
+| Blast Furnace Wrestling         | 26.2           | 12        | 92%   | 100%                |
+| Boreal Championship Wrestling   | 25.6           | 13        | 85%   | 100%                |
+| Hardpan Pro Wrestling           | 20.0           | 8         | 50%   | 100%                |
+| Hibari Pro Wrestling            | 18.0           | 8         | 88%   | 100%                |
+| Wattle Pro Wrestling            | 18.0           | 8         | 63%   | 88%                 |
+
+Overall 99% of wrestlers are within one card position. The test fails below
+50%, so a change to the defaults or to the world that breaks the fit shows up
+there. It also checks that a fixed worker expects a lower push from Altura than
+from the smallest promotion, and never a higher push from a more popular
+promotion than from a less popular one.
