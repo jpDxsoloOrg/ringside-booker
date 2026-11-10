@@ -1,0 +1,426 @@
+/*
+ * The calendar, in the office register (docs/design/visual-identity.md): a rounded card of
+ * hairlines on the surface step, condensed capitals for the month and the weekday headings only.
+ * Desktop draws the month as a grid; below --bp-mobile the screen swaps it for the agenda (a list
+ * of weeks), so nothing here ever needs to scroll sideways.
+ */
+.calendar {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.notice {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* Toolbar: month navigation, the scope switch, then whatever other features add. */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3) var(--space-5);
+  min-inline-size: 0;
+}
+
+.monthNav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  min-inline-size: 0;
+}
+
+.monthTitle {
+  min-inline-size: 0;
+  margin-inline-start: var(--space-2);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.scope {
+  flex: 0 1 24rem;
+  min-inline-size: 0;
+}
+
+.toolbarItems {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  margin-inline-start: auto;
+}
+
+.toolbarItem {
+  display: inline-flex;
+  min-inline-size: 0;
+}
+
+/* Legend: what each importance colour and the dashed edge mean, in words. */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.legendSwatch {
+  flex: none;
+  inline-size: 0.25rem;
+  block-size: 0.875rem;
+  border-radius: 1px;
+  background: var(--color-importance-regular);
+}
+
+.legendSwatch[data-importance='house'] {
+  background: var(--color-importance-house);
+}
+
+.legendSwatch[data-importance='minor'] {
+  background: var(--color-importance-minor);
+}
+
+.legendSwatch[data-importance='major'] {
+  background: var(--color-importance-major);
+}
+
+.legendSwatch[data-importance='flagship'] {
+  background: var(--color-importance-flagship);
+}
+
+.legendDashed {
+  flex: none;
+  inline-size: 1.25rem;
+  block-size: 0.875rem;
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-sm);
+}
+
+.month {
+  min-inline-size: 0;
+}
+
+/* The month grid: seven equal columns that never grow past the page. */
+.grid {
+  inline-size: 100%;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.weekday {
+  padding: var(--space-2);
+  border-block-end: 1px solid var(--color-border-strong);
+  color: var(--color-text-muted);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.06em;
+  text-align: start;
+  text-transform: uppercase;
+}
+
+.day {
+  /* A table cell's height is a minimum: a busy day grows its whole week. */
+  block-size: 7rem;
+  min-inline-size: 0;
+  padding: var(--space-2);
+  border-block-end: 1px solid var(--color-border);
+  border-inline-end: 1px solid var(--color-border);
+  vertical-align: top;
+}
+
+.day:last-child {
+  border-inline-end: 0;
+}
+
+.grid tbody tr:last-child .day {
+  border-block-end: 0;
+}
+
+/* Days of the months either side sit on the canvas, with a muted number. */
+.day[data-outside='true'] {
+  background: var(--color-bg);
+}
+
+.day[data-outside='true'] .dayNumber {
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-regular);
+}
+
+/* Today: a ring in the action colour, and the number in a filled pill. */
+.day[data-today='true'] {
+  box-shadow: inset 0 0 0 2px var(--color-action);
+}
+
+.day[data-today='true'] .dayNumber {
+  background: var(--color-action);
+  color: var(--color-action-contrast);
+}
+
+.day:focus-visible {
+  outline-offset: -3px;
+}
+
+.dayHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  margin-block-end: var(--space-1);
+}
+
+.dayNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 1.5rem;
+  padding-inline: var(--space-1);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.dayShows,
+.moreShows,
+.agendaDays,
+.agendaShows {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dayShows > li,
+.moreShows > li,
+.agendaShows > li {
+  min-inline-size: 0;
+}
+
+.moreButton {
+  margin-block-start: var(--space-1);
+}
+
+.moreShows {
+  inline-size: min(18rem, 100%);
+  gap: var(--space-2);
+}
+
+/* The agenda: one section per week. */
+.agenda {
+  display: grid;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+
+.agendaWeek {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.agendaWeekHeading {
+  padding-block-end: var(--space-1);
+  border-block-end: 1px solid var(--color-border-strong);
+  color: var(--color-text-muted);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.agendaDays {
+  gap: var(--space-2);
+}
+
+.agendaDay {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+/* Today's row: a rail in the action colour, one surface step up. */
+.agendaDay[data-today='true'] {
+  border-inline-start: 3px solid var(--color-action);
+  background: var(--color-surface-raised);
+}
+
+.agendaDayHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.agendaDayText {
+  font-weight: var(--font-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.agendaShows {
+  gap: var(--space-2);
+}
+
+.agendaEmpty {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* The show sheet. */
+.sheetBody {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.sheetHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.sheetLead {
+  min-inline-size: 0;
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.sheetNote {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.facts {
+  display: grid;
+  min-inline-size: 0;
+  margin: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+}
+
+.fact {
+  display: grid;
+  grid-template-columns: minmax(0, 7rem) minmax(0, 1fr);
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.fact:last-child {
+  border-block-end: 0;
+}
+
+.fact dt {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.fact dd {
+  min-inline-size: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.factNote {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-regular);
+}
+
+.factWithWhy {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.sheetSection {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.sheetSectionHeading {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Footer: the actions other features add, then Cancel show at the far end. */
+.sheetActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.sheetAction {
+  display: inline-flex;
+  min-inline-size: 0;
+}
+
+.cancelButton {
+  margin-inline-start: auto;
+}
+
+/* Phones: the toolbar is two lines, month navigation and then the scope switch across the width. */
+@media (--bp-mobile) {
+  .toolbar {
+    gap: var(--space-3);
+  }
+
+  .monthNav,
+  .scope,
+  .toolbarItems {
+    flex: 1 1 100%;
+  }
+
+  .toolbarItems {
+    margin-inline-start: 0;
+  }
+
+  .monthTitle {
+    flex: 1 1 auto;
+    font-size: var(--font-size-xl);
+  }
+
+  .fact {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+}

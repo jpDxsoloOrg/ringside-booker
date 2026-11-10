@@ -1,6 +1,7 @@
 import { matchPath } from 'react-router-dom';
 import type { ComponentType } from 'react';
 import type { IconName } from '@/components/Icon';
+import { CalendarScreen } from '@/screens/calendar/CalendarScreen';
 import { OfficeScreen } from '@/screens/office/OfficeScreen';
 import { routes } from './routes';
 
@@ -153,7 +154,8 @@ export const navigationSections: readonly NavSection[] = [
         icon: 'calendar',
         to: routes.game.calendar(),
         mobilePrimary: 4,
-        status: 'placeholder',
+        status: 'live',
+        screen: CalendarScreen,
       },
     ],
   },
