@@ -124,6 +124,28 @@ describe('formatGameDate', () => {
     expect(formatGameDate(date, 'long')).toBe('Wednesday, January 1, 2031');
   });
 
+  it('writes the day-first styles: weekday, day, month, then the year when asked', () => {
+    const monday = parseGameDate('2027-01-04');
+    expect(formatGameDate(monday, 'dayMonth')).toBe('Mon 4 Jan');
+    expect(formatGameDate(monday, 'dayMonthYear')).toBe('Mon 4 Jan 2027');
+  });
+
+  it('keeps the day-first styles right across a year boundary', () => {
+    expect(formatGameDate(parseGameDate('2027-12-30'), 'dayMonth')).toBe('Thu 30 Dec');
+    expect(formatGameDate(parseGameDate('2027-12-30'), 'dayMonthYear')).toBe('Thu 30 Dec 2027');
+    expect(formatGameDate(parseGameDate('2027-12-31'), 'dayMonthYear')).toBe('Fri 31 Dec 2027');
+    expect(formatGameDate(parseGameDate('2028-01-01'), 'dayMonthYear')).toBe('Sat 1 Jan 2028');
+  });
+
+  it.each(['America/Los_Angeles', 'Pacific/Auckland', 'UTC'])(
+    'never shifts the day-first styles in the %s time zone',
+    (timeZone) => {
+      process.env['TZ'] = timeZone;
+      expect(formatGameDate(parseGameDate('2028-01-01'), 'dayMonth')).toBe('Sat 1 Jan');
+      expect(formatGameDate(parseGameDate('2027-12-31'), 'dayMonthYear')).toBe('Fri 31 Dec 2027');
+    },
+  );
+
   it.each(['America/Los_Angeles', 'Pacific/Auckland', 'UTC'])(
     'never shifts the day in the %s time zone',
     (timeZone) => {

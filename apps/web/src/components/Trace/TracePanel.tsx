@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { isFullTrace } from '@ringside/engine';
-import type { TraceRef, TraceSummary } from '@ringside/engine';
+import type { QueryArgs, TraceNode, TraceRef, TraceSummary } from '@ringside/engine';
 import { useEngineQuery } from '@/app/engine/useEngineQuery';
 import type { EngineQueryError } from '@/app/engine/queryCache';
 import { Button } from '../Button';
@@ -19,7 +19,7 @@ import {
   summaryToText,
   traceToText,
 } from './traceToText';
-import type { TraceSource } from './traceSource';
+import type { TraceQueryName, TraceSource } from './traceSource';
 import { TraceTree } from './TraceTree';
 
 export interface TracePanelProps {
@@ -186,6 +186,71 @@ function TraceRefPanel({ title, traceRef, open, onClose, renderEntityLink }: Tra
     const summary = query.data;
     getCopyText = () => summaryToText(summary);
     body = <TraceSummaryView summary={query.data} />;
+  }
+
+  return (
+    <Sheet
+      open={open}
+      onClose={onClose}
+      title={title}
+      side="right"
+      size="md"
+      className={PANEL_CLASS}
+      footer={getCopyText === null ? undefined : <CopyTextButton getText={getCopyText} />}
+    >
+      {body}
+    </Sheet>
+  );
+}
+
+/**
+ * `TraceQueryName` only admits queries whose answer carries a trace; this reads it back out of
+ * the answer, whose exact type is not known for a query name passed as a type parameter.
+ */
+function hasTrace(answer: unknown): answer is { readonly trace: TraceNode } {
+  return typeof answer === 'object' && answer !== null && 'trace' in answer;
+}
+
+export interface TraceQueryPanelProps<Name extends TraceQueryName> extends Omit<
+  TracePanelProps,
+  'source'
+> {
+  /** The query that builds the trace. */
+  readonly queryName: Name;
+  readonly args: QueryArgs<Name>;
+}
+
+/**
+ * A panel whose trace is built by an engine query the first time it opens. Nothing is asked of
+ * the engine while it is closed, so a list can put one beside every row.
+ */
+export function TraceQueryPanel<Name extends TraceQueryName>({
+  title,
+  queryName,
+  args,
+  open,
+  onClose,
+  renderEntityLink,
+}: TraceQueryPanelProps<Name>) {
+  const query = useEngineQuery(queryName, args, { enabled: open });
+  const answer: unknown = query.data;
+
+  let body: ReactNode;
+  let getCopyText: (() => string) | null = null;
+  if (query.status === 'loading') {
+    body = <TraceLoading />;
+  } else if (query.status === 'error' || !hasTrace(answer)) {
+    body = (
+      <p className={styles['error']} role="alert">
+        The breakdown could not be loaded. {errorText(query.error)}
+      </p>
+    );
+  } else {
+    const { trace } = answer;
+    getCopyText = () => traceToText(trace);
+    body = (
+      <TraceTree root={trace} {...(renderEntityLink === undefined ? {} : { renderEntityLink })} />
+    );
   }
 
   return (

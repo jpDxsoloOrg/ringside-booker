@@ -76,9 +76,20 @@ function cellValueComparator<Row extends RowData>(): SortFn<DataTableFeatures, R
   };
 }
 
-/** Row ids in ascending order: the tie breaker. */
-function rowIdComparator<Row extends RowData>(): SortFn<DataTableFeatures, Row> {
-  return (rowA, rowB) => compareRowIds(rowA.id, rowB.id);
+/**
+ * The tie breaker, ascending: the screen's own order for equal rows when it gives one, then row
+ * ids, so two rows never compare equal.
+ */
+function tieComparator<Row extends RowData>(
+  compareTies: ((left: Row, right: Row) => number) | undefined,
+): SortFn<DataTableFeatures, Row> {
+  if (compareTies === undefined) {
+    return (rowA, rowB) => compareRowIds(rowA.id, rowB.id);
+  }
+  return (rowA, rowB) => {
+    const byScreen = compareTies(rowA.original, rowB.original);
+    return byScreen !== 0 ? byScreen : compareRowIds(rowA.id, rowB.id);
+  };
 }
 
 /** Whether a column can be hidden from the column picker. */
@@ -118,6 +129,7 @@ export function buildModelColumns<Row extends RowData>(
   columns: readonly ColumnDef<Row>[],
   getRowId: (row: Row) => string,
   sortable: boolean,
+  compareTies?: (left: Row, right: Row) => number,
 ): TanStackColumnDef<DataTableFeatures, Row>[] {
   const compareCellValues = cellValueComparator<Row>();
   const modelColumns: TanStackColumnDef<DataTableFeatures, Row>[] = columns.map((column) => {
@@ -137,7 +149,7 @@ export function buildModelColumns<Row extends RowData>(
   modelColumns.push({
     id: ROW_ID_COLUMN_ID,
     accessorFn: getRowId,
-    sortFn: rowIdComparator<Row>(),
+    sortFn: tieComparator<Row>(compareTies),
     enableGlobalFilter: false,
     enableHiding: false,
   });

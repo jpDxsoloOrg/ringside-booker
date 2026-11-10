@@ -114,6 +114,30 @@ function contrastRatio(firstHex: string, secondHex: string): number {
   return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05);
 }
 
+/** The show importance colours, lowest importance first. */
+const IMPORTANCE_COLOUR_TOKENS = [
+  '--color-importance-house',
+  '--color-importance-minor',
+  '--color-importance-regular',
+  '--color-importance-major',
+  '--color-importance-flagship',
+];
+
+/** `foreground` laid over `background` at `opacity`, as an opaque hex: what a tint looks like. */
+function blendOver(foregroundHex: string, backgroundHex: string, opacity: number): string {
+  const channel = (hex: string, start: number): number =>
+    Number.parseInt(hex.slice(start, start + 2), 16);
+  return `#${[1, 3, 5]
+    .map((start) =>
+      Math.round(
+        channel(foregroundHex, start) * opacity + channel(backgroundHex, start) * (1 - opacity),
+      )
+        .toString(16)
+        .padStart(2, '0'),
+    )
+    .join('')}`;
+}
+
 /**
  * Every semantic colour role from docs/design/visual-identity.md, then the older names that are
  * mapped onto those roles so existing components keep working.
@@ -153,6 +177,7 @@ const SEMANTIC_COLOUR_TOKENS = [
   '--color-metal-plain',
   '--color-metal-ink',
   '--color-belt-strap',
+  ...IMPORTANCE_COLOUR_TOKENS,
 ];
 
 /** The hex values visual-identity.md gives each role. tokens.css must match them exactly. */
@@ -260,6 +285,14 @@ const CONTRAST_REQUIREMENTS: readonly ContrastRequirement[] = [
     background,
     minimum: 4.5,
   })),
+  // Show importance: the bar on a calendar chip is a UI part on a panel or a popover.
+  ...IMPORTANCE_COLOUR_TOKENS.flatMap((foreground) =>
+    ['--color-surface', '--color-surface-raised'].map((background) => ({
+      foreground,
+      background,
+      minimum: 3,
+    })),
+  ),
   // Engraved initials on a belt plate, for every metal tier.
   ...['gold', 'silver', 'bronze', 'plain'].map((tier) => ({
     foreground: '--color-metal-ink',
@@ -349,6 +382,36 @@ describe.each(themes)('$name theme', ({ tokens }) => {
 
   it('puts white text on the action fill', () => {
     expect(resolveColour(tokens, '--color-action-contrast')).toBe('#ffffff');
+  });
+
+  it('aliases every importance colour to an existing palette step', () => {
+    expect(IMPORTANCE_COLOUR_TOKENS.map((name) => resolveColour(tokens, name))).toEqual([
+      resolveColour(tokens, '--palette-navy-400'),
+      resolveColour(tokens, '--palette-teal-400'),
+      resolveColour(tokens, '--palette-sky-400'),
+      resolveColour(tokens, '--palette-orange-400'),
+      resolveColour(tokens, '--color-prestige'),
+    ]);
+  });
+
+  // A calendar chip's name and tag are normal-size text on the importance colour laid over the
+  // surface at the tint opacity, on a panel and inside a popover.
+  describe.each(IMPORTANCE_COLOUR_TOKENS)('text on the %s tint', (importance) => {
+    it.each(
+      ['--color-surface', '--color-surface-raised'].flatMap((surface) =>
+        ['--color-text', '--color-text-muted'].map((text) => ({ surface, text })),
+      ),
+    )('$text over $surface has contrast of at least 4.5', ({ surface, text }) => {
+      const opacity = Number(tokens.get('--opacity-importance-tint'));
+      expect(opacity).toBeGreaterThan(0);
+      expect(opacity).toBeLessThanOrEqual(0.25);
+      const tint = blendOver(
+        resolveColour(tokens, importance),
+        resolveColour(tokens, surface),
+        opacity,
+      );
+      expect(contrastRatio(resolveColour(tokens, text), tint)).toBeGreaterThanOrEqual(4.5);
+    });
   });
 
   it.each(CONTRAST_REQUIREMENTS)(

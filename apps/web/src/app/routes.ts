@@ -1,4 +1,4 @@
-import type { PersonId } from '@ringside/engine';
+import type { EventInstanceId, PersonId } from '@ringside/engine';
 
 /**
  * Every URL in the app, built here and nowhere else. Screens, links and tests call these builders
@@ -46,6 +46,19 @@ function gameScreenPath(screenId: GameScreenId): string {
   return `${GAME_ROOT}/${GAME_SCREEN_SEGMENTS[screenId]}`;
 }
 
+/** What a link into the calendar can ask for. Anything left out takes the screen's default. */
+export interface CalendarLinkOptions {
+  /** The month to open on, as `YYYY-MM`. The month of the game's date when left out. */
+  readonly month?: string;
+  /** Whose shows to list: the viewer's own (`mine`, the default) or every promotion's. */
+  readonly scope?: 'mine' | 'world';
+  /** A stored show whose sheet opens straight away. */
+  readonly show?: EventInstanceId;
+}
+
+/** The names of the calendar's search parameters. */
+export const CALENDAR_PARAMS = { month: 'month', scope: 'scope', show: 'show' } as const;
+
 /** Path builders for every route. */
 export const routes = {
   /** The title screen. */
@@ -64,6 +77,18 @@ export const routes = {
     eventHistory: (): string => gameScreenPath('eventHistory'),
     roster: (): string => gameScreenPath('roster'),
     calendar: (): string => gameScreenPath('calendar'),
+    /**
+     * The calendar on a chosen month, scope or show: `/game/calendar?month=2027-01&show=evi_…`.
+     * With no options it is the same URL as `calendar()`.
+     */
+    calendarAt: (options: CalendarLinkOptions = {}): string => {
+      const search = new URLSearchParams();
+      if (options.month !== undefined) search.set(CALENDAR_PARAMS.month, options.month);
+      if (options.scope !== undefined) search.set(CALENDAR_PARAMS.scope, options.scope);
+      if (options.show !== undefined) search.set(CALENDAR_PARAMS.show, options.show);
+      const query = search.toString();
+      return query === '' ? gameScreenPath('calendar') : `${gameScreenPath('calendar')}?${query}`;
+    },
     booking: (): string => gameScreenPath('booking'),
     titles: (): string => gameScreenPath('titles'),
     storylines: (): string => gameScreenPath('storylines'),

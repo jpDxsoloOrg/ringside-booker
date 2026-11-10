@@ -39,6 +39,14 @@ const longDateFormat = new Intl.DateTimeFormat(LOCALE, {
   month: 'long',
   day: 'numeric',
 });
+/** The pieces of the day-first styles: `Mon`, `4`, `Jan` and `2027`, joined by hand in that order. */
+const dayFirstDateFormat = new Intl.DateTimeFormat(LOCALE, {
+  timeZone: 'UTC',
+  weekday: 'short',
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+});
 const relativeDayFormat = new Intl.RelativeTimeFormat(LOCALE, { numeric: 'auto' });
 
 /** Swaps the ASCII hyphen-minus that Intl writes for a true minus sign. */
@@ -131,15 +139,41 @@ export function formatSigned(value: number, options: FormatNumberOptions = {}): 
   return `${value > 0 ? '+' : MINUS_SIGN}${magnitude}`;
 }
 
-export type GameDateStyle = 'short' | 'long';
+export type GameDateStyle = 'short' | 'long' | 'dayMonth' | 'dayMonthYear';
 
 /**
- * A game date for display: `short` is `Jan 1, 2031`, `long` is `Wednesday, January 1, 2031`.
+ * A game date for display:
+ *
+ * - `short` is `Jan 1, 2031`;
+ * - `long` is `Wednesday, January 1, 2031`;
+ * - `dayMonth` is `Mon 4 Jan`, for calendar rows and week labels where the year is already on
+ *   screen;
+ * - `dayMonthYear` is `Mon 4 Jan 2027`, the same with its year.
+ *
  * Game dates are calendar days, not instants, so they are formatted in UTC and never shift a day
  * in the player's time zone.
  */
 export function formatGameDate(date: GameDate, style: GameDateStyle = 'short'): string {
-  return (style === 'long' ? longDateFormat : shortDateFormat).format(utcMidnightOf(date));
+  const instant = utcMidnightOf(date);
+  switch (style) {
+    case 'long':
+      return longDateFormat.format(instant);
+    case 'dayMonth':
+      return dayFirstText(instant, false);
+    case 'dayMonthYear':
+      return dayFirstText(instant, true);
+    case 'short':
+      return shortDateFormat.format(instant);
+  }
+}
+
+/** `Mon 4 Jan`, with ` 2027` after it when asked: weekday, day, month, in that order. */
+function dayFirstText(instant: Date, withYear: boolean): string {
+  const parts = dayFirstDateFormat.formatToParts(instant);
+  const partOf = (type: Intl.DateTimeFormatPartTypes): string =>
+    parts.find((part) => part.type === type)?.value ?? '';
+  const dayMonth = `${partOf('weekday')} ${partOf('day')} ${partOf('month')}`;
+  return withYear ? `${dayMonth} ${partOf('year')}` : dayMonth;
 }
 
 /** The short date in two pieces, so a crowded bar can drop the year and keep the day. */

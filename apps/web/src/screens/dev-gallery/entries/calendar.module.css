@@ -1,0 +1,41 @@
+/* Calendar gallery previews. */
+
+/* A column about as wide as a day on the month grid, so the ellipsis and the tight line show. */
+.cellWidth {
+  inline-size: min(100%, 9.5rem);
+}
+
+/* A column about as wide as a phone's content area, for the row density and the agenda. */
+.phoneWidth {
+  inline-size: min(100%, 22.375rem);
+}
+
+.chipList {
+  display: grid;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chipExample {
+  display: grid;
+  grid-template-columns: minmax(0, 12rem) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  min-inline-size: 0;
+}
+
+.chipPair {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+@media (--bp-mobile) {
+  .chipExample {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

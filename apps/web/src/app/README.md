@@ -33,6 +33,36 @@ Nothing in `AppShell/` changes. Detail pages that are not nav items get a route 
 `gameDetailRoutes` in `router.tsx`, next to the screen routes, with their pattern in
 `routePatterns`; the top bar and sidebar treat them as part of the item they sit under.
 
+## The workers list
+
+World > Workers (`/game/workers`, `screens/workers/WorkersScreen.tsx`) is live: everyone in the
+world in one `DataTable`, a table on desktop and cards on a phone. It reads one query,
+`workers.list`, which returns:
+
+- `rows`: one plain row per person who passed the filters (names, picture, roles and main role,
+  age, style, main-role overall with its grade, top and world popularity, employer or `null` for a
+  free agent, push, alignment, availability). Numbers only, no traces;
+- `total` and `freeAgents`: the counts before any filter, for the "286 people · 44 free agents"
+  line;
+- `facets`: the promotions, continents and countries that appear, for the filter selects.
+
+Rows never carry development, vices, morale or contract terms, for any viewer.
+
+- **Filters and sort live in the URL** (`?employer=free&sort=age:desc`), read and written by
+  `screens/workers/workersListParams.ts`. Changes replace the history entry, so Back leaves the
+  list, and a profile opened from the list comes back to the same URL.
+- **The engine filters; the screen sorts.** Only the filters are sent as arguments, so re-sorting
+  never refetches. `WORKER_COLUMNS` (`workerColumns.tsx`) holds the columns and their `sortValue`s.
+  People the sort leaves equal go by ring name, then id (`compareWorkerTies`), as in `workers.list`.
+- **Why? on demand.** The Overall and Top popularity cells use `LazyWhyButton` with
+  `workers.explain`, which builds the trace only when the panel opens.
+- **Phone.** Below `--bp-mobile` the filter bar moves into a bottom `Sheet` behind a
+  "Filters (n)" button, and the DataTable's own "Sort by" select sits above the cards. A card is
+  not a button there: the name's link is stretched over the whole card, so the Why? buttons and
+  the availability chip inside it stay separate controls.
+- **Refusals.** If the engine cannot answer, the screen shows the reason in an `EmptyState` under
+  the heading.
+
 ## The worker profile
 
 `/game/workers/:personId` (`routePatterns.worker`, built with `routes.game.worker(id)`) is the
@@ -73,6 +103,15 @@ game a person named in any "Why?" breakdown links to their profile, and followin
 the panel. Outside the shell (the component gallery, the title and new-game screens) there is no
 provider and names stay plain text. Other entity kinds stay plain until their screens exist; they
 get their links by extending `gameEntityLink`.
+
+## The calendar
+
+`/game/calendar` (`screens/calendar/`) is a nav item, not a detail page: `CalendarScreen` owns the
+heading and loads the month views as their own chunk. The month, the scope and the open show are
+in the URL, so link to it with `routes.game.calendarAt({ month, scope, show })`, for example
+straight to a show's sheet from the Office or from Booking. Other features add to the screen
+through five slots (sheet actions and sections, chip badges, day markers, toolbar items) instead
+of editing it; `screens/calendar/README.md` lists them.
 
 ## The shell's look
 

@@ -29,6 +29,8 @@ push, alignment, role, popularity, momentum or morale once the world exists.
 | How known are they to these fans?          | `footprintPopularity`, `footprintPopularityAt` | `Traced<number>`       |
 | Where on the card would they expect to be? | `expectedPush`, `expectedPushAt`               | `Traced<Push>`         |
 | Everything a profile shows, for one viewer | `workers.profile` (a query)                    | `WorkerProfile`        |
+| Everyone in the world, filtered and sorted | `workers.list` (a query)                       | `WorkerList`           |
+| Why is this number in a list what it is?   | `workers.explain` (a query)                    | `WorkerExplanation`    |
 
 All of them are exported from `@ringside/engine`.
 
@@ -280,6 +282,108 @@ The rules are in the query and nowhere else, so no screen has to remember them:
 "The viewer runs that promotion" means the promotion's own controller is the
 same human (`viewerPromotionIds`). A computer controller and a human who runs
 nothing see every contract's terms and morale as `null`.
+
+## Workers list
+
+`workers.list` (`systems/workers/queries/list.ts`) is everyone in the world as
+one row each, for the World > Workers screen and for anything else that needs to
+pick people out of the whole world (scouting, rival AI, a world editor).
+
+### Arguments
+
+Both parts are optional. With neither, the answer is every person, best
+main-role overall first.
+
+`filters`: a person must pass every filter that is set. A list filter passes
+anyone who matches one of its entries, and an empty list is the same as leaving
+the filter out.
+
+| Filter         | Passes                                                                             |
+| -------------- | ---------------------------------------------------------------------------------- |
+| `roles`        | Anyone who holds one of these roles                                                |
+| `statuses`     | Anyone whose status is one of these (`active`, `retired`, ...)                     |
+| `availability` | Anyone whose [availability](#availability) today is one of these                   |
+| `genders`      | Anyone of one of these genders                                                     |
+| `styles`       | Anyone with one of these ring styles                                               |
+| `employer`     | `{ kind: 'any' }`, `{ kind: 'freeAgent' }` or `{ kind: 'promotion', promotionId }` |
+| `continentId`  | Anyone based in a region of this continent                                         |
+| `countryId`    | Anyone based in a region of this country                                           |
+| `ageMin`       | Anyone at least this old, in whole years                                           |
+| `ageMax`       | Anyone at most this old                                                            |
+| `attributeMin` | A list of `{ attribute, min }`; every one must hold                                |
+| `overallMin`   | Anyone whose main-role overall is at least this                                    |
+
+"Based in" follows `basedInRegionId` to its country and continent through
+`geographyOf`. Age is `ageOn(person, today)`. Employer is
+[`primaryEmploymentOf`](#employer-free-agent-and-main-role): a free agent is
+someone with no working contract today, the same as everywhere else.
+
+No status is left out by default. A retired person is in the list unless a
+`statuses` filter excludes them.
+
+`sort`: `{ key, direction }`. The keys are `overall`, `ringName`, `age`,
+`popularity` (the top country's value), `employer` (its name) and each of the
+twelve attribute keys. The default is `overall`, `desc`.
+
+- Someone with no value for the key (a free agent's employer, the top popularity
+  of someone unknown everywhere) goes last in both directions.
+- Equal values are ordered by ring name, then by ID, ascending whatever the
+  direction. Names compare lower-cased in plain code-unit order, so the order is
+  the same on every machine.
+
+An argument this build does not know is refused (`invalidArgs`). A filter nobody
+passes is not a refusal: the answer has `rows: []`.
+
+### The answer
+
+`{ rows, total, freeAgents, facets }`:
+
+- `rows`: the people who passed, sorted. Each row has `personId`, `ringName`
+  (at the main employer, or the person's own default), `legalName`, `imageRef`,
+  `gender`, `roles`, `mainRole`, `age`, `style`, `overall` (the main-role
+  [rating](#role-ratings), not rounded), `grade`, `topPopularity`
+  (`{ value, countryId, countryName }`, or `null` for someone unknown
+  everywhere), `worldPopularity`, `employer` (`{ promotionId, name, shortName }`
+  or `null`), `push`, `alignment` (both `null` for a free agent) and
+  `availability` (`{ status, label, until }`).
+- `total`: how many people the world holds, before any filter.
+- `freeAgents`: how many of those have no employer, before any filter.
+- `facets`: the promotions that employ someone, and the continents and countries
+  someone is based in, each sorted by name. They are worked out before the
+  filters, so a filter control never loses the option it is set to.
+
+The list shows the top country's popularity, not the world figure. A local hero
+at 70 in one country would read as 3 worldwide, which hides exactly what a scout
+wants to see.
+
+### What is hidden
+
+A row never has development (potential and ceilings), vices, morale or contract
+terms, for any viewer, the all-seeing one included. Push and alignment are
+public, as on the profile. Every viewer gets the same rows.
+
+### No traces in rows
+
+Rows carry numbers only, so a few hundred of them stay small. The list is built
+in one pass over the people in ID order, with one
+[`createPopularityRoller`](geography.md#popularity-roll-up) for the whole call
+and each region's country and continent and each promotion's names looked up
+once. On the default world (286 people) one call takes under 10 ms in Node.
+
+Every number in a row can still explain itself. `workers.explain`
+(`systems/workers/queries/explain.ts`) takes `{ personId, metric }` and returns
+`{ value, trace }` for one number:
+
+| `metric`          | What it explains                                                                 |
+| ----------------- | -------------------------------------------------------------------------------- |
+| `overall`         | The rating in the main role (`overallOf`)                                        |
+| `topPopularity`   | The roll-up of the country the list named; the world roll-up for someone unknown |
+| `worldPopularity` | The whole map's roll-up                                                          |
+
+It runs the same `roleRating` and `popularityRollup` code as the profile, so a
+list, its "Why?" and the profile cannot disagree. A test checks that every value
+matches `workers.list` to within 1e-9 for everyone in the default world. An
+unknown person is refused with `notFound`, like the profile.
 
 ## Role ratings
 

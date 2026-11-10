@@ -634,7 +634,38 @@ export {
   WORKER_PROFILE_HIDDEN_FIELDS,
   workerProfileOf,
 } from './systems/workers/index';
-export { ATTRIBUTE_LABELS, STYLE_LABELS } from './systems/world/people/labels';
+export { ATTRIBUTE_LABELS, GENDER_LABELS, STYLE_LABELS } from './systems/world/people/labels';
+// The workers list (WRK1-06): the `workers.list` rows, filters and sort keys, and the on-demand
+// "Why?" behind a row's numbers. See docs/design/workers.md#workers-list.
+export type {
+  WorkerAttributeMinimum,
+  WorkerEmployerFilter,
+  WorkerExplainArgs,
+  WorkerExplainMetric,
+  WorkerExplanation,
+  WorkerList,
+  WorkerListArgs,
+  WorkerListContinentFacet,
+  WorkerListCountryFacet,
+  WorkerListFacets,
+  WorkerListFilters,
+  WorkerListSort,
+  WorkerRow,
+  WorkerRowAvailability,
+  WorkerRowEmployer,
+  WorkerRowTopPopularity,
+  WorkerSortDirection,
+  WorkerSortKey,
+} from './systems/workers/index';
+export {
+  DEFAULT_WORKER_SORT,
+  WORKER_EXPLAIN_METRICS,
+  WORKER_SORT_DIRECTIONS,
+  WORKER_SORT_FIELDS,
+  WORKER_SORT_KEYS,
+  workerExplanationOf,
+  workerListOf,
+} from './systems/workers/index';
 // Calendar (EVT1): who controls a show, the one definition every booking command, gate and screen
 // shares, and the cancellation record. See docs/design/calendar.md#lifecycle.
 export type { CancelShowReasonCode, ShowOwnership } from './systems/calendar/index';

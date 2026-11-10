@@ -1,7 +1,9 @@
 import { matchPath } from 'react-router-dom';
 import type { ComponentType } from 'react';
 import type { IconName } from '@/components/Icon';
+import { CalendarScreen } from '@/screens/calendar/CalendarScreen';
 import { OfficeScreen } from '@/screens/office/OfficeScreen';
+import { WorkersScreen } from '@/screens/workers/WorkersScreen';
 import { routes } from './routes';
 
 /**
@@ -108,7 +110,8 @@ export const navigationSections: readonly NavSection[] = [
         icon: 'user-search',
         to: routes.game.workers(),
         mobileFallback: 2,
-        status: 'placeholder',
+        status: 'live',
+        screen: WorkersScreen,
       },
       {
         id: 'promotions',
@@ -153,7 +156,8 @@ export const navigationSections: readonly NavSection[] = [
         icon: 'calendar',
         to: routes.game.calendar(),
         mobilePrimary: 4,
-        status: 'placeholder',
+        status: 'live',
+        screen: CalendarScreen,
       },
     ],
   },

@@ -1,9 +1,10 @@
 import { useId } from 'react';
 import type { ReactNode } from 'react';
+import { parseId } from '@ringside/engine';
 import { EngineProvider } from '@/app/engine/EngineProvider';
 import type { EngineTransport } from '@/app/engine/transport';
 import { Stack } from '@/components/layout';
-import { Explained } from '@/components/Trace';
+import { Explained, LazyWhyButton } from '@/components/Trace';
 import type { GalleryEntry } from '../galleryEntry';
 import { createTraceFixtureTransport } from '../fixtures/traceEngine';
 import {
@@ -16,8 +17,14 @@ import {
 } from '../fixtures/traces';
 import styles from './entries.module.css';
 
+/** Stands in for a list row's person; the stand-in engine answers for anyone. */
+const SAMPLE_PERSON_ID = parseId('person', 'per_0000000001');
+const SAMPLE_OVERALL = 71;
+
 function createGalleryTraceTransport(): EngineTransport {
-  return createTraceFixtureTransport([recentAttendanceEntry, summarisedAttendance]);
+  return createTraceFixtureTransport([recentAttendanceEntry, summarisedAttendance], undefined, {
+    'workers.explain': () => ({ value: SAMPLE_OVERALL, trace: matchRatingTrace }),
+  });
 }
 
 function ExampleRow({ name, children }: { readonly name: string; readonly children: ReactNode }) {
@@ -32,6 +39,7 @@ function ExampleRow({ name, children }: { readonly name: string; readonly childr
 function WhyPanelSample() {
   const inlineHeadingId = useId();
   const fetchedHeadingId = useId();
+  const lazyHeadingId = useId();
   return (
     <Stack gap={6}>
       <section aria-labelledby={inlineHeadingId} className={styles['example']}>
@@ -79,6 +87,29 @@ function WhyPanelSample() {
           </dl>
         </EngineProvider>
       </section>
+      <section aria-labelledby={lazyHeadingId} className={styles['example']}>
+        <h3 id={lazyHeadingId} className={styles['subheading']}>
+          Built when opened
+        </h3>
+        <p className={styles['caption']}>
+          LazyWhyButton, for list rows that carry numbers only. Nothing is asked of the engine until
+          the panel opens; the stand-in then answers workers.explain after a short pause.
+        </p>
+        <EngineProvider createTransport={createGalleryTraceTransport}>
+          <dl className={styles['explainedList']}>
+            <ExampleRow name="Overall in a list row">
+              <span className="tabular">{SAMPLE_OVERALL}</span>{' '}
+              <LazyWhyButton
+                label="Overall"
+                value={SAMPLE_OVERALL}
+                unit="points"
+                queryName="workers.explain"
+                args={{ personId: SAMPLE_PERSON_ID, metric: 'overall' }}
+              />
+            </ExampleRow>
+          </dl>
+        </EngineProvider>
+      </section>
     </Stack>
   );
 }
@@ -90,6 +121,7 @@ export const galleryEntry: GalleryEntry = {
   notes:
     'Explained numbers with their Why? buttons. The panel opens on the right on desktop and as a ' +
     'bottom sheet on phones. Checks that changed nothing are hidden behind a toggle, and the ' +
-    'footer copies the breakdown as text. Arrow keys move through the steps.',
+    'footer copies the breakdown as text. Arrow keys move through the steps. LazyWhyButton is ' +
+    'the same button for a number whose breakdown is only built when the panel opens.',
   render: () => <WhyPanelSample />,
 };
