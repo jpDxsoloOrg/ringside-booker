@@ -4,6 +4,9 @@ on:
   pull_request:
   push:
     branches: [main]
+  # The end-to-end suite no longer gates pull requests or main: features are tested by hand on
+  # the deployed site. Run it on demand from the Actions tab when a full browser pass is wanted.
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -85,6 +88,7 @@ jobs:
 
   e2e:
     name: e2e
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     needs: check
     runs-on: ubuntu-latest
     timeout-minutes: 20
