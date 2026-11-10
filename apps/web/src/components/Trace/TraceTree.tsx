@@ -7,7 +7,7 @@ import { Icon } from '../Icon';
 import { classNames } from '../classNames';
 import { formatTraceValue } from './formatTraceValue';
 import { renderTraceRow } from './kinds';
-import { plainEntityLabel } from './rows/rowTypes';
+import { useEntityLinkRenderer } from '@/app/entityLinks';
 import type { EntityLinkRenderer } from './rows/rowTypes';
 import { traceTopLevelNodes } from './traceToText';
 import styles from './Trace.module.css';
@@ -19,7 +19,10 @@ export const DEFAULT_OPEN_DEPTH = 2;
 export interface TraceTreeProps {
   /** The trace to show. Its label and value are the headline; its steps are the rows. */
   readonly root: TraceNode;
-  /** Draws the names of entities that inputs point at. Plain text by default. */
+  /**
+   * Draws the names of entities that inputs point at. Left out, the nearest `EntityLinkContext`
+   * decides: links to profiles inside the game, plain text everywhere else.
+   */
   readonly renderEntityLink?: EntityLinkRenderer;
   /** Starts with the checks that changed nothing on show. False by default. */
   readonly defaultShowAllChecks?: boolean;
@@ -205,9 +208,11 @@ function TreeItem({
  */
 export function TraceTree({
   root,
-  renderEntityLink = plainEntityLabel,
+  renderEntityLink: renderEntityLinkProp,
   defaultShowAllChecks = false,
 }: TraceTreeProps) {
+  const contextEntityLink = useEntityLinkRenderer();
+  const renderEntityLink = renderEntityLinkProp ?? contextEntityLink;
   const idPrefix = useId();
   const treeRef = useRef<HTMLUListElement>(null);
   const [showAllChecks, setShowAllChecks] = useState(defaultShowAllChecks);

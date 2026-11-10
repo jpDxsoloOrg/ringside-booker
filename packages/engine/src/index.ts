@@ -606,9 +606,57 @@ export {
   roleRating,
   STAR_REASON,
 } from './systems/workers/index';
+// The worker profile (WRK1-05): the `workers.profile` query's result and the words it uses.
+export type {
+  ViceKind,
+  WorkerProfile,
+  WorkerProfileAttribute,
+  WorkerProfileContract,
+  WorkerProfileEmployer,
+  WorkerProfileExpectedPush,
+  WorkerProfileHeader,
+  WorkerProfileHiddenField,
+  WorkerProfilePartner,
+  WorkerProfilePlace,
+  WorkerProfilePopularity,
+  WorkerProfileReign,
+  WorkerProfileRoleRating,
+  WorkerProfileTeam,
+  WorkerProfileTrait,
+  WorkerProfileVice,
+} from './systems/workers/index';
+export {
+  ATTRIBUTE_GROUP_LABELS,
+  TRAIT_LABELS,
+  VICE_KINDS,
+  VICE_LABELS,
+  WORKER_NOT_FOUND,
+  WORKER_PROFILE_HIDDEN_FIELDS,
+  workerProfileOf,
+} from './systems/workers/index';
+export { ATTRIBUTE_LABELS, STYLE_LABELS } from './systems/world/people/labels';
 // Calendar (EVT1): who controls a show, the one definition every booking command, gate and screen
 // shares, and the cancellation record. See docs/design/calendar.md#lifecycle.
 export type { CancelShowReasonCode, ShowOwnership } from './systems/calendar/index';
+// The calendar's read side (EVT1-03): the one row every calendar query returns, and the wording of
+// a recurrence. See docs/design/calendar.md#queries.
+export type {
+  CalendarProjectedView,
+  CalendarRangeView,
+  CalendarScope,
+  CalendarShow,
+  CalendarShowDetail,
+  CalendarShowStatus,
+  CalendarWindowArgs,
+  NextShowView,
+} from './systems/calendar/index';
+export {
+  CALENDAR_RANGE_MESSAGES,
+  CALENDAR_SCOPES,
+  MAX_CALENDAR_RANGE_DAYS,
+  recurrenceText,
+  toCalendarShow,
+} from './systems/calendar/index';
 export {
   CANCEL_SHOW_REASON_CODES,
   controlsShow,

@@ -6,6 +6,7 @@ import { Ticker } from '@/components/Ticker';
 import { useIsMobile } from '@/styles/useMediaQuery';
 import { MAIN_CONTENT_ID, SkipLink } from '../a11y/SkipLink';
 import { useOptionalEngineClient } from '../engine/EngineProvider';
+import { EntityLinkContext, gameEntityLink } from '../entityLinks';
 import {
   findNavLocation,
   mobilePrimaryItems,
@@ -191,11 +192,16 @@ export function AppShell({
   };
 
   // With an engine the crest shows the promotion the save runs (UI-18); without one, the sample.
-  return hasEngine ? (
-    <DayAdvanceProvider>
-      <EnginePromotion fallback={preview.promotion}>{renderShell}</EnginePromotion>
-    </DayAdvanceProvider>
-  ) : (
-    renderShell(preview.promotion, true)
+  // Everything in the shell is in the game, so names inside "Why?" panels link to their profiles.
+  return (
+    <EntityLinkContext.Provider value={gameEntityLink}>
+      {hasEngine ? (
+        <DayAdvanceProvider>
+          <EnginePromotion fallback={preview.promotion}>{renderShell}</EnginePromotion>
+        </DayAdvanceProvider>
+      ) : (
+        renderShell(preview.promotion, true)
+      )}
+    </EntityLinkContext.Provider>
   );
 }

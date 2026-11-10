@@ -192,6 +192,33 @@ The built-in codes:
 | `busy`           | A command arrived while `advanceDays` was running                     |
 | `internal`       | A query or command threw, or returned something that isn't plain JSON |
 
+### Refusing a query
+
+A command says no in `validate`. A query has no such step: its `run` only
+returns data. When a query has to refuse (the person it was asked about does not
+exist, say), it calls `refuseQuery` with a reason of its own:
+
+```ts
+run: (ctx, args) => {
+  const person = ctx.read.tables.people.get(args.personId);
+  if (person === undefined) {
+    return refuseQuery({ code: 'notFound', message: 'No such worker' });
+  }
+  // ...
+};
+```
+
+`refuseQuery(reason | reasons)` never returns. It throws a `QueryRefusal`, an
+error that carries the reasons, and `engine.query` hands them back as
+`{ ok: false, reasons }` exactly as given. That is not a bug, so it is not
+reported as `internal` and nothing is written to the failure log. Any other
+throw from a query is still `internal`.
+
+Use it for "there is nothing to show and here is why". A query that has an
+empty answer (no rows, `null` for an optional detail) should return that
+instead. Both `refuseQuery` and `QueryRefusal` live in `core/api/result.ts`
+and are exported from `@ringside/engine`.
+
 ## Controllers, viewers and the command log
 
 Following design decision D-07, nothing in the engine assumes a single player.
@@ -264,6 +291,20 @@ Commands other systems add:
 | Command               | Args                  | Does                                                                                                       |
 | --------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------- |
 | `calendar.cancelShow` | `{ eventInstanceId }` | Calls off a show the issuer controls and publishes `show.cancelled` ([calendar.md](calendar.md#lifecycle)) |
+
+Queries other systems add:
+
+| Query                | Args                                          | Returns                                                                                                               |
+| -------------------- | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `condition.fatigue`  | `{ personId }`                                | A person's fatigue and the trace behind it, or null                                                                   |
+| `calendar.range`     | `{ from, to, scope, promotionId?, brandId? }` | `{ today, horizonEnd, shows }`: the stored shows in the window ([calendar.md](calendar.md#range))                     |
+| `calendar.projected` | `{ from, to, scope, promotionId?, brandId? }` | `{ today, projectionEnd, shows }`: shows past the horizon, worked out on read ([calendar.md](calendar.md#projection)) |
+| `calendar.show`      | `{ eventInstanceId }`                         | One show's row, placement trace and recurrence wording, or null ([calendar.md](calendar.md#one-show))                 |
+| `calendar.nextShow`  | `{ scope? }`                                  | `{ show, daysUntil }` for the first open show from today, or null ([calendar.md](calendar.md#the-next-show))          |
+
+The calendar queries share one row, `CalendarShow`. `scope` is `mine` or
+`world`; a window may cover at most 366 days and is refused with
+`invalidArgs` on `to` otherwise. See [calendar.md](calendar.md#queries).
 
 ### The status and pending-gate queries
 

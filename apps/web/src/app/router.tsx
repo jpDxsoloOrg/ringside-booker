@@ -89,6 +89,22 @@ function navItemRoute(item: NavItem): RouteObject {
 /** Every in-game screen, built from the navigation config. */
 export const gameScreenRoutes: RouteObject[] = allNavItems(navigationSections).map(navItemRoute);
 
+/**
+ * Detail pages that sit under a navigation item without being one, such as one worker's profile
+ * under Workers (`/game/workers/:personId`). `findNavLocation` gives each to the item whose path
+ * it starts with, so the sidebar highlight needs nothing here.
+ */
+export const gameDetailRoutes: RouteObject[] = [
+  {
+    path: routePatterns.worker,
+    // Its own chunk: the profile pulls in the tabs, the drill-down and the career tables (UI-21).
+    lazy: async () => {
+      const { WorkerProfileScreen } = await import('@/screens/workers/profile/WorkerProfileScreen');
+      return { Component: WorkerProfileScreen };
+    },
+  },
+];
+
 const gameRoute: RouteObject = {
   path: routes.game.root(),
   element: (
@@ -99,6 +115,7 @@ const gameRoute: RouteObject = {
   children: [
     { index: true, element: <Navigate to={routes.game.office()} replace /> },
     ...gameScreenRoutes,
+    ...gameDetailRoutes,
   ],
 };
 

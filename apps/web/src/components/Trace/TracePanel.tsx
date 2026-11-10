@@ -29,7 +29,7 @@ export interface TracePanelProps {
   readonly source: TraceSource;
   readonly open: boolean;
   readonly onClose: () => void;
-  /** Draws the names of entities that inputs point at. Plain text by default. */
+  /** Draws the names of entities that inputs point at. The `EntityLinkContext`'s by default. */
   readonly renderEntityLink?: EntityLinkRenderer;
 }
 

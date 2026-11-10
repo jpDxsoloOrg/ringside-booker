@@ -237,3 +237,176 @@ today's date, and `show.cancelled` is published. Three things it does not do:
 - `show.cancelled { eventInstanceId, promotionId, date, reason }`: one per
   show closed by the daily phase (`notRun`) and one per cancel command
   (`byPromotion`). `date` is the show's date.
+
+## Queries
+
+Screens read the calendar through four queries. None of them changes anything,
+and they all return the same row, so a month grid, a show sheet and the "Next
+show" tile agree about every show. The code is in `queries.ts`, the row in
+`view.ts`.
+
+| Query                | Args                                          | Returns                                           |
+| -------------------- | --------------------------------------------- | ------------------------------------------------- |
+| `calendar.range`     | `{ from, to, scope, promotionId?, brandId? }` | `{ today, horizonEnd, shows }`: the stored shows  |
+| `calendar.projected` | `{ from, to, scope, promotionId?, brandId? }` | `{ today, projectionEnd, shows }`: not stored yet |
+| `calendar.show`      | `{ eventInstanceId }`                         | One stored show with its detail, or null          |
+| `calendar.nextShow`  | `{ scope? }` (default `mine`)                 | `{ show, daysUntil }`, or null                    |
+
+### The row
+
+`CalendarShow` is plain JSON:
+
+| Field             | What it holds                                                         |
+| ----------------- | --------------------------------------------------------------------- |
+| `key`             | The show's id, or `<definitionId>\|<date>` for a projected show       |
+| `eventInstanceId` | The show's id, or null when projected                                 |
+| `definitionId`    | The definition it comes from, or null for a one-off                   |
+| `promotion`       | `{ id, name, shortName, color }`                                      |
+| `isOwn`           | True when the viewer is the human player who runs the show            |
+| `brand`           | `{ id, name }`, or null for a promotion-wide show                     |
+| `name`            | The show's name                                                       |
+| `importance`      | `house` to `flagship`                                                 |
+| `format`          | `{ slots, preShowSlots }`                                             |
+| `televised`       | From the definition as it stands now; null for a one-off              |
+| `date`, `airDate` | The day it runs and the day it airs                                   |
+| `status`          | `scheduled`, `booked`, `completed`, `cancelled`, or `projected`       |
+| `cancellation`    | `{ reason, on }` for a cancelled show, otherwise null                 |
+| `region`          | `{ id, name, countryName }`                                           |
+| `venue`           | `{ id, name, capacity, kind }`, or null while the venue is not chosen |
+| `segmentCount`    | How many segments are on the card                                     |
+| `canCancel`       | True when the viewer could cancel the show right now                  |
+
+A projected show has no id, so screens key rows by `key` and hide anything
+that needs an id (Book, Cancel) for them.
+
+Two things are never in a row:
+
+- **Money.** Schedules are public: a real promotion's TV dates are no secret,
+  so every viewer sees every promotion's shows, where they are held and
+  whether they ran. What a rival's show took at the gate is not public. The
+  row is built field by field and the show's `result` is never copied, and no
+  calendar query reads a promotion's cash. That holds for the viewer's own
+  shows too; a show's takings belong to the show report.
+- **Lengths.** A show has slots, not a running time (D-10). No field is a
+  number of minutes or a clock time.
+
+`canCancel` is `isOwn` plus the rules of `calendar.cancelShow`: the show is
+still open and dated today or later. The command and the row both ask one
+helper, `cancelRefusal(read, show, controller, today)`, so a Cancel button
+is never offered for a show the command would refuse.
+
+### Scopes and viewers
+
+`scope` is `world` for every promotion's shows or `mine` for the shows the
+viewer runs. `promotionId` and `brandId` narrow either scope, for a
+promotion's calendar tab and a brand's shows tab.
+
+| Viewer                   | `world`                              | `mine`                 |
+| ------------------------ | ------------------------------------ | ---------------------- |
+| A human who runs shows   | Everything; their own marked `isOwn` | The shows they control |
+| A human who runs nothing | Everything, none `isOwn`             | Empty                  |
+| The computer's seat      | Everything, none `isOwn`             | Empty                  |
+| The omniscient viewer    | Everything, none `isOwn`             | Empty                  |
+
+"Controls" is the rule in [Who controls a show](#who-controls-a-show), so a
+brand handed to a second player shows up in that player's `mine`.
+
+The computer's seat gets the world view only. A screen is only ever drawn for
+the computer's seat when a player is between jobs, and that player runs none
+of the computer's promotions: marking every computer show as their own would
+offer them a Cancel button on all of them. So `isOwn` asks for a human
+controller on top of the control rule. The command is untouched: the computer
+can still cancel the shows it runs.
+
+### Range
+
+`calendar.range` walks the `byDate` index one day at a time from `from`
+through `to`, both included, and returns the stored shows of every status.
+`horizonEnd` is today plus `calendar.scheduleHorizonDays`, which tells the
+screen where stored shows stop and projected ones begin.
+
+Shows are sorted by date, then importance (flagship first), then promotion
+name, then `key`. The key is unique, so the order never depends on how the
+rows were found.
+
+A window covers at most 366 days (`to - from`), enough for a year view across
+a leap year. A query has no rules step, so the limit is part of the argument
+check. Both refusals come back as `invalidArgs` on the field `to`:
+
+| Refused when                | The player reads                                |
+| --------------------------- | ----------------------------------------------- |
+| `to - from` is over 366     | "A calendar range can cover at most 366 days."  |
+| `to` is earlier than `from` | "A calendar range cannot end before it starts." |
+
+The engine puts the field in front of an argument message, so the reason's
+`message` reads "to: A calendar range can cover at most 366 days.".
+
+### Projection
+
+`calendar.projected` fills in the dates past the horizon. For every
+schedulable definition (the same test the daily schedule uses) it lists the
+occurrences between
+
+- the later of `from` and the day after `horizonEnd`, and
+- the earlier of `to` and today plus `calendar.projectionMaxDays`,
+
+and returns one row for each that has no stored show under
+`byDefinitionAirDate`. Nothing is written. A projected row has status
+`projected`, no id, no cancellation, a `segmentCount` of 0 and `canCancel`
+false, and its region and venue are what `placeShow` picks today.
+
+Because the stored-show check is the schedule's own idempotency key, the two
+queries never return the same airing twice: the day the horizon reaches a
+date, the show moves from `calendar.projected` to `calendar.range`. A date
+whose show was cancelled is not projected either, because the cancelled row
+still holds the key.
+
+The window takes the same 366-day limit as `calendar.range`, and
+`projectionEnd` is returned so the screen can stop offering "next" where the
+projection stops. With `calendar.projectionMaxDays` at 0 there are no
+projected shows. A definition's `activeUntil` ends its projection, and a
+dormant or closed promotion projects nothing.
+
+A projected show is a forecast, not a promise: a definition that changes
+before the horizon reaches a date changes what is stored for it.
+
+### One show
+
+`calendar.show` returns the row plus:
+
+- `placementTrace`: the decision trace of `placeShow` for the show's
+  definition and date, for the Why? on the show sheet. It is returned only
+  while the stored venue and region are still what the rule picks. Once
+  something else has set either one, the rule no longer explains where the
+  show is, and the field is null. It is also null for a one-off.
+- `definition`: `{ recurrenceText }`, or null for a one-off.
+
+`recurrenceText(recurrence)` says how often a show runs:
+
+| Kind          | Reads                                                    |
+| ------------- | -------------------------------------------------------- |
+| `weekly`      | "Every Monday", "Every Monday and Thursday", "Every day" |
+| `everyNWeeks` | "Every 2 weeks on Saturday"                              |
+| `monthly`     | "Last Sunday of every month"                             |
+| `annual`      | "2nd Sunday of February every year"                      |
+| `dates`       | "On 1 set date", "On 4 set dates"                        |
+
+It lives in the engine so every screen that describes a schedule says it the
+same way. It names weekdays, weeks and months, never a time or a length.
+
+### The next show
+
+`calendar.nextShow` returns the first open (`scheduled` or `booked`) show
+dated today or later, in the calendar order above, with `daysUntil` (0 for
+today). It reads the open shows through the `byStatus` index instead of
+walking dates: there are never more open shows than the horizon holds, and
+it finds the next one however far ahead it is. It returns null when nothing
+is open, which for `mine` includes every viewer who runs no shows.
+
+### Cost
+
+On the default world after two simulated years, a 42-day `calendar.range`
+for the whole world (65 shows) takes about 0.2 ms and a 42-day
+`calendar.projected` (68 shows) about 0.45 ms, against a budget of 20 ms
+each. The benchmark is
+`packages/engine/test/systems/calendar/queries.bench.ts`.

@@ -1,0 +1,26 @@
+/*
+ * Availability chip: a status badge with the first day back beside it. The colours come from the
+ * badge's own roles; this file only lays the two pieces out and gives the pair a focus ring.
+ */
+.availabilityChip {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  max-inline-size: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: help;
+}
+
+.until {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

@@ -18,7 +18,7 @@ export interface ExplainedProps {
   readonly trace?: TraceNode | null;
   /** Where to fetch the breakdown from, when the screen only has a reference. */
   readonly traceRef?: TraceRef | null;
-  /** Draws the names of entities that inputs point at. Plain text by default. */
+  /** Draws the names of entities that inputs point at. The `EntityLinkContext`'s by default. */
   readonly renderEntityLink?: EntityLinkRenderer;
   readonly className?: string;
 }

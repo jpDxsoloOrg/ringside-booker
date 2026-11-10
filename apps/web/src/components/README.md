@@ -121,6 +121,8 @@ export const galleryEntry: GalleryEntry = {
 | `DeltaChip`           | A change in a number: ▲/▼, the signed amount and a note, in the positive or negative colour                                                              |
 | `Sparkline`           | A tiny inline-SVG line of a recent series, named by its ends and trend                                                                                   |
 | `AlignmentChip`       | FACE / HEEL / TWEENER in the alignment colours, always with the word                                                                                     |
+| `AvailabilityChip`    | Whether someone can work today: the status in words and colour, the first day back, the reason in a tooltip                                              |
+| `WorkerLink`          | A person's name as a link to their profile. Use it wherever a screen shows a worker's name                                                               |
 | `ChampionCard`        | A title and its champion: belt, champion, reign, defences, prestige. `ChampionCardList` lays them out                                                    |
 | `Stack`               | Children in a column (or row) with a token gap                                                                                                           |
 | `Cluster`             | A wrapping row with a token gap                                                                                                                          |
@@ -148,6 +150,10 @@ one with `<Explained value={...} label="Attendance" unit="people" trace={...} />
 - **Quiet checks are hidden.** Limits that changed nothing and branches not taken sit behind
   "Show checks that didn't apply". Groups start open down to depth 2, with Expand all and
   Collapse all, and the arrow keys move through the tree.
+- **Names link in the game.** An input that points at an entity draws its name through the
+  nearest `EntityLinkContext` (`app/entityLinks.tsx`). `AppShell` provides one that links people to
+  their profiles; with no provider (the gallery, screens outside a game) names are plain text. A
+  `renderEntityLink` prop still wins where a screen passes one.
 - **One panel at a time.** `tracePanelStore` holds the open panel's id; opening another replaces
   it, and closing returns focus to the button that opened it.
 - **Older results.** A `traceRef` whose trace has been summarised shows the summary with "Full
@@ -260,7 +266,8 @@ The components for show moments (see the broadcast register in
 
 The components for the management screens (see the office register in
 `docs/design/visual-identity.md`): `KpiCard` (with `KpiCardGrid`), `DeltaChip`, `Sparkline`,
-`AlignmentChip`, `ChampionCard` (with `ChampionCardList`) and the stat-table look of `DataTable`.
+`AlignmentChip`, `AvailabilityChip`, `ChampionCard` (with `ChampionCardList`) and the stat-table
+look of `DataTable`.
 They sit in the gallery's **Office** group.
 
 - **Calm.** Rounded cards (`--radius-card`), hairlines and surface steps; no skew, no glow, and
@@ -273,7 +280,9 @@ They sit in the gallery's **Office** group.
   FACE, HEEL or TWEENER. Prestige is a number as well as stars.
 - **Data in, no game types.** Screens pass formatted values, `ImageSubject`s and slots (`why`,
   `footer`), so a finance or titles query can feed the kit directly. `AlignmentChip` takes the
-  engine's `Alignment`.
+  engine's `Alignment`, and `AvailabilityChip` the engine's `Availability` (what `availabilityOf`
+  or `workers.profile` returns). Its tooltip is never the only copy of the reason: a screen that
+  must show it on a phone prints it too, as the profile's Overview tab does.
 - **Sparklines draw with SVG attributes**, like `StatBar`, so there are no inline styles and no
   chart library. Fewer than two points draw nothing.
 - **People placeholders are ringed initials**: a ring and initials in a category colour from the
