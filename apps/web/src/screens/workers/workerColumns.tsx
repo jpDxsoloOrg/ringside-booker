@@ -162,3 +162,19 @@ export const WORKER_COLUMNS: readonly ColumnDef<WorkerRow>[] = [
     card: 'meta',
   },
 ];
+
+function lowerCaseOrder(left: string, right: string): number {
+  const leftName = left.toLowerCase();
+  const rightName = right.toLowerCase();
+  if (leftName === rightName) return 0;
+  return leftName < rightName ? -1 : 1;
+}
+
+/**
+ * The order of two people the sort leaves equal (the same age, the same employer): by ring name,
+ * as `workers.list` orders them, so the screen and the engine agree. The table settles what is
+ * still equal by person id.
+ */
+export function compareWorkerTies(left: WorkerRow, right: WorkerRow): number {
+  return lowerCaseOrder(left.ringName, right.ringName);
+}

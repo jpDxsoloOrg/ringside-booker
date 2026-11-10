@@ -188,7 +188,8 @@ with its `on…Change`).
   `.tabular` class. A hovered, selected or checked row lifts to `--color-surface-hover`, and
   `striped` adds zebra rows on the desktop table.
 - **Sorting** (`sortable`, on by default; start with `initialSort`): numbers numerically, text
-  naturally ("Worker 2" before "Worker 10"), empty values last in both directions, ties by row id.
+  naturally ("Worker 2" before "Worker 10"), empty values last in both directions, ties by row id
+  (or by `compareTies` first, when a screen has its own order for equal rows).
   A header click cycles through the column's first direction (high to low for `numeric` columns,
   A to Z otherwise), the other direction, then no sort. On phones the "Sort by" select and a
   direction toggle do the same. For big engine-side lists, control `sort` and pass it to the query

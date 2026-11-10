@@ -53,6 +53,7 @@ Rows never carry development, vices, morale or contract terms, for any viewer.
   list, and a profile opened from the list comes back to the same URL.
 - **The engine filters; the screen sorts.** Only the filters are sent as arguments, so re-sorting
   never refetches. `WORKER_COLUMNS` (`workerColumns.tsx`) holds the columns and their `sortValue`s.
+  People the sort leaves equal go by ring name, then id (`compareWorkerTies`), as in `workers.list`.
 - **Why? on demand.** The Overall and Top popularity cells use `LazyWhyButton` with
   `workers.explain`, which builds the trace only when the panel opens.
 - **Phone.** Below `--bp-mobile` the filter bar moves into a bottom `Sheet` behind a

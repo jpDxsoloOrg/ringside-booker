@@ -30,6 +30,11 @@ export interface DataTableProps<Row extends DataTableRowData> {
   /** A unique, stable id per row. Used for keys, selection and to break sort ties. */
   readonly getRowId: (row: Row) => string;
   /**
+   * Orders rows whose sort values are equal, ascending in both directions; row ids only settle
+   * what it leaves equal. Keep the function stable (module level). Without it ties go by row id.
+   */
+  readonly compareTies?: (left: Row, right: Row) => number;
+  /**
    * A row's name in words, for its checkbox ("Select Worker 3"). Defaults to the `title`
    * column's text, then the row id.
    */
@@ -125,6 +130,7 @@ export function DataTable<Row extends DataTableRowData>({
   rows,
   columns,
   getRowId,
+  compareTies,
   getRowLabel,
   caption,
   sortable = true,
@@ -193,6 +199,7 @@ export function DataTable<Row extends DataTableRowData>({
     rows,
     columns,
     getRowId,
+    compareTies,
     sortable,
     sort: activeSort,
     onSortChange: changeSort,

@@ -15,7 +15,7 @@ import { formatNumber } from '@/components/format';
 import { Sheet } from '@/components/Sheet';
 import { useTracePanelStore } from '@/components/Trace';
 import { useIsMobile } from '@/styles/useMediaQuery';
-import { WORKER_COLUMNS } from './workerColumns';
+import { compareWorkerTies, WORKER_COLUMNS } from './workerColumns';
 import { NO_WORKER_FACETS, WorkersFilterBar } from './WorkersFilterBar';
 import {
   activeFilterCount,
@@ -190,6 +190,7 @@ export function WorkersScreen() {
         rows={rows}
         columns={WORKER_COLUMNS}
         getRowId={rowId}
+        compareTies={compareWorkerTies}
         getRowLabel={rowLabel}
         caption={TITLE}
         sort={sort}

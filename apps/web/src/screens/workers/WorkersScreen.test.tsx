@@ -3,7 +3,7 @@ import { userEvent } from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { beforeEach, describe, expect, it } from 'vitest';
-import type { PersonId, QueryName } from '@ringside/engine';
+import type { PersonId, QueryName, WorkerListArgs } from '@ringside/engine';
 import { tinyWorld } from '@ringside/engine/testing';
 import { EngineProvider } from '@/app/engine/EngineProvider';
 import { createInProcessTransport } from '@/app/engine/transport';
@@ -63,7 +63,13 @@ function renderWorkers(path: string = routes.game.workers(), options: RenderOpti
   );
   const listArgs = (): unknown[] =>
     asked.filter((query) => query.name === 'workers.list').map((query) => query.args);
-  return { router, user: userEvent.setup(), asked, listArgs };
+  /** The person ids of `workers.list` for `args`, in the engine's own order. */
+  const engineOrder = async (args: WorkerListArgs): Promise<string[]> => {
+    const answer = await runQuery('workers.list', args);
+    if (!answer.result.ok) throw new Error('The engine refused the list.');
+    return answer.result.data.rows.map((row) => row.personId);
+  };
+  return { router, user: userEvent.setup(), asked, listArgs, engineOrder };
 }
 
 /** The people of the tiny world, in ID order. */
@@ -181,6 +187,24 @@ describe('WorkersScreen', () => {
     expect(listArgs()).toHaveLength(askedBefore);
   });
 
+  it.each([
+    { url: 'employer:asc', key: 'employer', direction: 'asc' },
+    { url: 'employer:desc', key: 'employer', direction: 'desc' },
+    { url: 'age:asc', key: 'age', direction: 'asc' },
+    { url: 'age:desc', key: 'age', direction: 'desc' },
+  ] as const)(
+    'orders people the sort leaves equal as the engine does ($url)',
+    async ({ url, key, direction }) => {
+      const { engineOrder } = renderWorkers(`${routes.game.workers()}?sort=${url}`);
+      const rows = await findRows();
+
+      // Eight people share each employer, so most of this order is decided inside ties.
+      const expected = await engineOrder({ sort: { key, direction } });
+      expect(expected).toHaveLength(TINY_WORLD_PEOPLE);
+      expect(rows.map((row) => row.getAttribute('data-row-id'))).toEqual(expected);
+    },
+  );
+
   it('sends Employer = Free agent to the engine and keeps it in the URL', async () => {
     const { router, user, listArgs } = renderWorkers();
     await findRows();
@@ -257,17 +281,24 @@ describe('WorkersScreen', () => {
     const profilePath = link.getAttribute('href');
 
     await user.click(link);
-    await waitFor(() => {
-      expect(router.state.location.pathname).toBe(profilePath);
-    });
+    await waitFor(
+      () => {
+        expect(router.state.location.pathname).toBe(profilePath);
+      },
+      { timeout: LOAD_MS },
+    );
     expect(workersListUrlFrom(router.state.location.state)).toBe(listUrl);
 
     await user.click(
       await screen.findByRole('link', { name: 'Back to Workers' }, { timeout: LOAD_MS }),
     );
-    await waitFor(() => {
-      expect(`${router.state.location.pathname}${router.state.location.search}`).toBe(listUrl);
-    });
+    // The profile is loaded lazily and the suite runs many files at once: allow for a slow turn.
+    await waitFor(
+      () => {
+        expect(`${router.state.location.pathname}${router.state.location.search}`).toBe(listUrl);
+      },
+      { timeout: LOAD_MS },
+    );
   });
 
   it('opens the profile when a row is clicked away from its controls', async () => {
@@ -280,9 +311,14 @@ describe('WorkersScreen', () => {
     if (ageCell === null) throw new Error('The row has no age cell.');
     await user.click(ageCell);
 
-    await waitFor(() => {
-      expect(router.state.location.pathname).toBe(`${routes.game.workers()}/${rowPersonId ?? ''}`);
-    });
+    await waitFor(
+      () => {
+        expect(router.state.location.pathname).toBe(
+          `${routes.game.workers()}/${rowPersonId ?? ''}`,
+        );
+      },
+      { timeout: LOAD_MS },
+    );
     expect(workersListUrlFrom(router.state.location.state)).toBe(routes.game.workers());
   });
 
