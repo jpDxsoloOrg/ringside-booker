@@ -46,11 +46,17 @@ export function routeFocusTarget(): HTMLElement | null {
  *   then reads the new page, and the next Tab starts from the content.
  * - A new page starts scrolled to the top; back and forward restore where that page was left,
  *   remembered per history entry.
+ * - A screen that replaces its own query string (the profile's `?tab=`, a list's filters) has not
+ *   changed page: focus and scroll are left alone, so the arrow keys keep working along a tab
+ *   strip. A pushed query change (a wizard step) is still a new page.
  */
 export function RouteFocus() {
   const location = useLocation();
   const navigationType = useNavigationType();
   const pagePath = `${location.pathname}${location.search}`;
+  // A screen that rewrites its own query string in place (the selected tab, a list's filters)
+  // is still the same page: focus and scroll stay where the player has them.
+  const sameScreenUpdate = navigationType === NavigationType.Replace;
   const previousRef = useRef<ShownPage | null>(null);
   const currentKeyRef = useRef(location.key);
   const savedScrollRef = useRef(new Map<string, ScrollPosition>());
@@ -72,21 +78,33 @@ export function RouteFocus() {
 
   // Scroll before paint, so the new page never flashes at the old position.
   useLayoutEffect(() => {
-    const isNewPage = isPageChange(previousRef.current, location.key, pagePath);
+    const isNewPage = isPageChange(
+      previousRef.current,
+      location.key,
+      pagePath,
+      location.pathname,
+      sameScreenUpdate,
+    );
     currentKeyRef.current = location.key;
     if (!isNewPage) return;
     const saved = savedScrollRef.current.get(location.key);
     applyScroll(navigationType === NavigationType.Pop && saved !== undefined ? saved : TOP);
-  }, [location.key, pagePath, navigationType]);
+  }, [location.key, location.pathname, pagePath, navigationType, sameScreenUpdate]);
 
   useEffect(() => {
-    const isNewPage = isPageChange(previousRef.current, location.key, pagePath);
-    previousRef.current = { key: location.key, path: pagePath };
+    const isNewPage = isPageChange(
+      previousRef.current,
+      location.key,
+      pagePath,
+      location.pathname,
+      sameScreenUpdate,
+    );
+    previousRef.current = { key: location.key, path: pagePath, pathname: location.pathname };
     if (!isNewPage) return;
     if (navigationType !== NavigationType.Replace) playerHasNavigatedRef.current = true;
     if (!playerHasNavigatedRef.current) return;
     routeFocusTarget()?.focus({ preventScroll: true });
-  }, [location.key, pagePath, navigationType]);
+  }, [location.key, location.pathname, pagePath, navigationType, sameScreenUpdate]);
 
   return null;
 }
@@ -95,13 +113,23 @@ export function RouteFocus() {
 interface ShownPage {
   readonly key: string;
   readonly path: string;
+  /** The path without its query string. */
+  readonly pathname: string;
 }
 
 /**
  * Whether the location moved to another page. Not on the first render (the page load, where
- * focus stays where the browser put it) and not when only the hash changed (an in-page link,
- * which the browser scrolls to itself).
+ * focus stays where the browser put it), not when only the hash changed (an in-page link, which
+ * the browser scrolls to itself), and not when a screen replaced its own query string (a tab or a
+ * filter kept in the URL), where the player is still using the control they just touched.
  */
-function isPageChange(previous: ShownPage | null, key: string, path: string): boolean {
-  return previous !== null && previous.key !== key && previous.path !== path;
+function isPageChange(
+  previous: ShownPage | null,
+  key: string,
+  path: string,
+  pathname: string,
+  replaced: boolean,
+): boolean {
+  if (previous === null || previous.key === key || previous.path === path) return false;
+  return !(replaced && previous.pathname === pathname);
 }

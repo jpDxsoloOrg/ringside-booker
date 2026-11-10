@@ -36,6 +36,8 @@ export {
 export {
   INTERNAL,
   INVALID_ARGS,
+  QueryRefusal,
+  refuseQuery,
   type CommandEvent,
   type CommandResult,
   type QueryResult,

@@ -2,12 +2,12 @@ import type { ReactNode } from 'react';
 import type { EntityRef, TraceNode } from '@ringside/engine';
 
 /**
- * Draws the name of an entity a trace points at. Feature screens pass one that links to the
- * profile; until they exist the default shows the label as plain text.
+ * Draws the name of an entity a trace points at. Inside the game the shell provides one that
+ * links people to their profiles (`app/entityLinks.tsx`); everywhere else the label is plain text.
  */
 export type EntityLinkRenderer = (ref: EntityRef, label: string) => ReactNode;
 
-/** Shows the label as plain text: the default until entity profile screens exist. */
+/** Shows the label as plain text: the default outside the game. */
 export const plainEntityLabel: EntityLinkRenderer = (_ref, label) => label;
 
 /** What every row renderer gets. */

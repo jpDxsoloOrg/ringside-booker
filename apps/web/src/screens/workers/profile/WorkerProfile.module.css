@@ -1,0 +1,334 @@
+/*
+ * The worker profile, in the office register (docs/design/visual-identity.md): rounded cards on
+ * the surface step, hairlines, condensed display type for the name, labels and big numbers only.
+ * Desktop is the primary layout; below --bp-mobile everything stacks in one column and the tab
+ * strip scrolls inside itself (Tabs handles that), so the page never scrolls sideways.
+ */
+.screen {
+  display: grid;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  justify-self: start;
+  min-block-size: var(--tap-target-min);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+}
+
+.backLink:hover,
+.backLink:focus-visible {
+  color: var(--color-data);
+  text-decoration: underline;
+}
+
+.heading {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-tight);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+/* Header: picture, identity, then the at-a-glance facts across the full width. */
+.header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-4) var(--space-5);
+  min-inline-size: 0;
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.identity {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.legalName {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.chips,
+.chipList {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  min-inline-size: 0;
+}
+
+.chipList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.facts {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--space-3) var(--space-5);
+  margin: 0;
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--color-border);
+}
+
+.fact {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.fact dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.factLabel {
+  color: var(--color-text-muted);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.explainedText {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.subheading {
+  margin-block: var(--space-4) var(--space-2);
+  color: var(--color-text-muted);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Overview: two columns of cards while there is room. */
+.overview {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.overallBlock {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.overallLine,
+.expectedLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  min-inline-size: 0;
+}
+
+.bigNumber {
+  color: var(--color-data);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-tight);
+}
+
+.background {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: var(--space-3) var(--space-5);
+  margin: 0;
+}
+
+/* Attributes: the three groups side by side, then the role table. */
+.attributes,
+.career {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.attributeGroups {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.attributeList {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.attributeRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.gradeChip {
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: help;
+}
+
+.roleTable {
+  inline-size: 100%;
+  border-collapse: collapse;
+}
+
+.roleTable th,
+.roleTable td {
+  padding: var(--space-2) var(--space-4);
+  border-block-end: 1px solid var(--color-border);
+  text-align: start;
+  vertical-align: middle;
+}
+
+.roleTable tbody tr:last-child th,
+.roleTable tbody tr:last-child td {
+  border-block-end: 0;
+}
+
+.roleTable thead th {
+  color: var(--color-text-muted);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.roleTable tbody th {
+  font-weight: var(--font-weight-medium);
+}
+
+.roleTable .numeric {
+  text-align: end;
+}
+
+.roleTable [data-main-role] {
+  background: var(--color-surface-raised);
+}
+
+.roleName {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.partners {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+}
+
+/* Loading: quiet blocks where the header will be. */
+.skeleton {
+  display: block;
+  block-size: 1rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-hover);
+}
+
+.skeletonHeading {
+  block-size: 2.25rem;
+  inline-size: min(60%, 20rem);
+}
+
+.skeletonShort {
+  inline-size: 60%;
+}
+
+@media (--bp-mobile) {
+  .heading {
+    font-size: var(--font-size-2xl);
+  }
+
+  .header {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: start;
+    padding: var(--space-4);
+  }
+
+  .facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .overview,
+  .attributeGroups {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Stacked rows: the role on its own line, then the rating and the grade side by side. */
+  .roleTable thead {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .roleTable tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-1) var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-block-end: 1px solid var(--color-border);
+  }
+
+  .roleTable tbody tr:last-child {
+    border-block-end: 0;
+  }
+
+  .roleTable tbody th,
+  .roleTable tbody td {
+    padding: 0;
+    border-block-end: 0;
+  }
+
+  .roleTable tbody th {
+    grid-column: 1 / -1;
+  }
+
+  .roleTable .numeric {
+    text-align: start;
+  }
+}

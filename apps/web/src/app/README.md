@@ -18,6 +18,7 @@ accessibility plumbing that every page shares.
 | `a11y/`                   | Skip link, focus on navigation, page titles and the live announcer         |
 | `dev/EnterShellRoute.tsx` | Dev and e2e builds only: fake a loaded world and open the shell            |
 | `engine/`                 | Engine provider, query cache, status store and the engine hooks            |
+| `entityLinks.tsx`         | How names inside "Why?" panels link to profiles in the game                |
 
 ## Adding a screen
 
@@ -28,9 +29,50 @@ accessibility plumbing that every page shares.
    after a navigation) and it calls `useDocumentTitle(label)`.
 4. Add the path to `apps/web/e2e/routes-under-test.ts` so the smoke sweep checks it.
 
-Nothing in `AppShell/` changes. Detail pages that are not nav items (a worker's profile at
-`routes.game.worker(id)`) get a route next to the screen routes in `router.tsx`; the top bar and
-sidebar treat them as part of the item they sit under.
+Nothing in `AppShell/` changes. Detail pages that are not nav items get a route in
+`gameDetailRoutes` in `router.tsx`, next to the screen routes, with their pattern in
+`routePatterns`; the top bar and sidebar treat them as part of the item they sit under.
+
+## The worker profile
+
+`/game/workers/:personId` (`routePatterns.worker`, built with `routes.game.worker(id)`) is the
+first detail page: `screens/workers/profile/WorkerProfileScreen.tsx`, loaded as its own chunk. It
+reads one query, `workers.profile`, and shows the header and a strip of tabs. The selected tab is
+in the URL (`?tab=attributes`); a tab that is unknown or hidden falls back to Overview. A person
+the engine does not know shows "Worker not found" with the engine's reason and a link back.
+
+Link to it with `WorkerLink` (`components/WorkerLink`), never with a hand-built `Link`. From the
+workers list it carries the list's URL in the navigation state, so the profile's "Back to Workers"
+returns to the same filters. A screen that navigates to a profile in code passes
+`workerLinkState(location)` as the navigation state for the same effect.
+
+### Adding a profile tab
+
+The profile's tabs are a shell extension point, like the status chips. Overview (order 10),
+Attributes (20), Popularity (30) and Career (40) are built in. Another feature adds its tab from
+its own files, without editing the profile:
+
+```ts
+registerProfileTab({
+  id: 'health', // also the ?tab= value
+  label: 'Health',
+  order: 60, // 50 and up; say which in the feature's own docs
+  render: ({ profile, personId, viewerPromotionId }) => <HealthTab personId={personId} />,
+  visible: ({ profile }) => profile.header.mainRole === 'wrestler', // optional
+});
+```
+
+`registerProfileTab` (`screens/workers/profile/profileTabs.ts`) returns a function that removes
+the tab again, throws for an id that is taken, and every open profile re-renders when the list
+changes. `render` only runs while its tab is selected, so a tab can run its own queries.
+
+### Names in "Why?" panels
+
+`AppShell` provides `gameEntityLink` through `EntityLinkContext` (`entityLinks.tsx`), so inside the
+game a person named in any "Why?" breakdown links to their profile, and following the link closes
+the panel. Outside the shell (the component gallery, the title and new-game screens) there is no
+provider and names stay plain text. Other entity kinds stay plain until their screens exist; they
+get their links by extending `gameEntityLink`.
 
 ## The shell's look
 
@@ -108,7 +150,7 @@ popularity) and `sim.pendingGates` (why Next Day would stop today), read by
   `autosave`.
 - **Status chips** come from `status/StatusChips.tsx`. Another system adds one with
   `registerStatusChip({ id, order, render })` (`status/statusChipRegistry.ts`) instead of editing
-  the shell.
+  the shell. Profile tabs work the same way: see [Adding a profile tab](#adding-a-profile-tab).
 
 ## Rules
 

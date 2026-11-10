@@ -74,7 +74,7 @@ export const routes = {
     contracts: (): string => gameScreenPath('contracts'),
     networks: (): string => gameScreenPath('networks'),
     production: (): string => gameScreenPath('production'),
-    /** One worker's profile. The screen arrives with the worker epic. */
+    /** One worker's profile. */
     worker: (personId: PersonId): string =>
       `${gameScreenPath('workers')}/${encodeURIComponent(personId)}`,
   },
@@ -94,4 +94,9 @@ export const routes = {
 /** Route path patterns the router registers, for routes whose builder takes arguments. */
 export const routePatterns = {
   enterShell: '/dev/enter-shell',
+  /** One worker's profile; `routes.game.worker(personId)` builds the URL. */
+  worker: `${gameScreenPath('workers')}/:personId`,
 } as const;
+
+/** The name of the worker profile route's parameter. */
+export const WORKER_ROUTE_PARAM = 'personId';

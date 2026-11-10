@@ -20,7 +20,7 @@ export interface WhyButtonProps {
   readonly source: TraceSource;
   /** The panel's heading. The label by default. */
   readonly panelTitle?: string;
-  /** Draws the names of entities that inputs point at. Plain text by default. */
+  /** Draws the names of entities that inputs point at. The `EntityLinkContext`'s by default. */
   readonly renderEntityLink?: EntityLinkRenderer;
   /** `sm` by default, to sit beside a number. */
   readonly size?: ButtonSize;

@@ -74,3 +74,37 @@ export function internalReason(error: unknown): Reason {
     message: `Something went wrong inside the game: ${serializeError(error).message}`,
   };
 }
+
+/**
+ * Thrown by a query's `run` to refuse the call with reasons of its own, such as `notFound`. The
+ * engine hands the reasons back as `{ ok: false, reasons }` instead of reporting a bug. Throw it
+ * through {@link refuseQuery}.
+ */
+export class QueryRefusal extends Error {
+  readonly reasons: readonly Reason[];
+
+  constructor(reasons: readonly Reason[]) {
+    super(reasons.map((reason) => reason.message).join(' '));
+    this.name = 'QueryRefusal';
+    this.reasons = reasons;
+  }
+}
+
+/**
+ * Refuses the query that is running. The caller gets `{ ok: false, reasons }` with exactly these
+ * reasons, so a screen can show "No such worker" instead of an internal error.
+ *
+ * ```ts
+ * const person = ctx.read.tables.people.get(args.personId);
+ * if (person === undefined) {
+ *   return refuseQuery({ code: 'notFound', message: 'No such worker' });
+ * }
+ * ```
+ */
+export function refuseQuery(reasons: Reason | readonly Reason[]): never {
+  throw new QueryRefusal(isReasonList(reasons) ? reasons : [reasons]);
+}
+
+function isReasonList(reasons: Reason | readonly Reason[]): reasons is readonly Reason[] {
+  return Array.isArray(reasons);
+}

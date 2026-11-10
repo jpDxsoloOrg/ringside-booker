@@ -22,7 +22,7 @@ export interface PopularityDrilldownProps {
   readonly rollup: PopularityRollupView;
   /** Whose popularity this is: a person's or a promotion's name. Names the list. */
   readonly subjectName: string;
-  /** Draws the names of entities inside the Why? panels. Plain text by default. */
+  /** Draws the names of entities inside the Why? panels. The `EntityLinkContext`'s by default. */
   readonly renderEntityLink?: EntityLinkRenderer;
   /** Continents that start open. None by default. */
   readonly initiallyOpen?: readonly ContinentId[];

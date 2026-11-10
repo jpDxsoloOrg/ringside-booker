@@ -45,6 +45,7 @@ import {
   INTERNAL,
   internalReason,
   invalidArgsReasons,
+  QueryRefusal,
   type CommandEvent,
   type CommandResult,
   type QueryResult,
@@ -314,6 +315,10 @@ export function createEngine(options: CreateEngineOptions): Engine {
       }
       return { ok: true, data };
     } catch (error: unknown) {
+      if (error instanceof QueryRefusal) {
+        // The query said no on purpose: its own reasons, and nothing for the failure log.
+        return { ok: false, reasons: error.reasons.map((reason) => ({ ...reason })) };
+      }
       return { ok: false, reasons: [internalReason(error)] };
     }
   }
