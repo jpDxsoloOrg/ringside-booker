@@ -489,6 +489,45 @@ export {
 // Geography queries (WLD-04): hierarchy lookups, population-weighted roll-ups and weighted picks.
 export type { AggregateOptions, Geography, GeographySource } from './systems/world/geography';
 export { createGeography, geographyOf, pickRegion, regionWeight } from './systems/world/geography';
+// Workers (WRK1-01): age, availability, title eligibility, weight class, grades, employer and
+// main-role helpers every system and screen shares. See docs/design/workers.md.
+export type {
+  Availability,
+  AvailabilityStatus,
+  Grade,
+  GradeBand,
+  GradeResult,
+  RatingRole,
+  TitleEligibilityCode,
+  WeightClass,
+  WeightClassInputs,
+} from './systems/workers/index';
+export {
+  activeEmploymentsOf,
+  ageOn,
+  AVAILABILITY_STATUSES,
+  availabilityOf,
+  DEBUT_ROLES,
+  experienceYears,
+  GRADE_BANDS,
+  GRADE_BANDS_REASON,
+  gradeFloorOf,
+  gradeOf,
+  GRADES,
+  isEligibleForTitle,
+  isFreeAgent,
+  mainRoleOf,
+  primaryEmploymentOf,
+  RATING_ROLES,
+  ratingRoleOfPersonRole,
+  TITLE_ELIGIBILITY_CODES,
+  WEIGHT_CLASS_DOC_REF,
+  WEIGHT_CLASS_LABELS,
+  WEIGHT_CLASSES,
+  weightClass,
+  workersSystem,
+  workersTunables,
+} from './systems/workers/index';
 // Name generation (WLD-05): weighted name tables, the name registry and the name generator.
 export type {
   NameGeneratorOptions,
