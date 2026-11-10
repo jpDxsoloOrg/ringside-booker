@@ -18,10 +18,10 @@ describe('traceToText', () => {
           Percent scale: 100 · Fixed: percentages are stored as 0 to 100
         +900 Show hype · 7,560 → 8,460 · Card announced two weeks out
           Hype for this show: 60
-          Fans per hype point: 15 · Custom setting · default 12
+          Fans per hype point: 15 · Custom setting · default 12 · attendance.hypeFans
         ×1.1 Weekend show · 8,460 → 9,306 · Saturday night crowd
         Walk-up crowd: rolled 212 on −500 to 500 (both ends possible) · Random stream attendance.walkUp
-          Largest walk-up swing: 500 · Game setting
+          Largest walk-up swing: 500 · Game setting · attendance.walkUpSwing
         +212 Walk-up crowd · 9,306 → 9,518
         Checked 9,518 against a minimum of 0: not reached · No negative crowd
         Capped 9,518 → 9,000 (maximum) · Kept between 0 and the venue size"
@@ -58,10 +58,10 @@ describe('traceToText', () => {
       ],
     };
     expect(traceToText(decision).split('\n')).toEqual([
-      'Title decision: retain',
-      '  Title decision: retain · Keeping the title scored higher',
-      '    Chosen: retain, score 62 · Reign is still drawing',
-      '    Also considered: change, score 48',
+      'Title decision: Retain',
+      '  Title decision: Retain · Keeping the title scored higher',
+      '    Chosen: Retain, score 62 · Reign is still drawing',
+      '    Also considered: Change, score 48',
     ]);
   });
 });

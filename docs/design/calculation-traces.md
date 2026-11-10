@@ -150,6 +150,19 @@ arithmetic step says why it applies ("Show is in their home region"). Names of
 people and promotions go in an `input` node with a `ref`, so the UI shows the
 current name even after a rename.
 
+Two things the panel adds to a label by itself, so formulas do not repeat them:
+
+- **A tunable's key.** The row for a `tunable` node ends with its key ("Ring
+  work weight: 3 · Game setting · `workers.rating.wrestler.ringwork`"). The
+  label says what the number is; the key is what to look for in the tunables
+  list or a balance profile to change it.
+- **A decision's options in words.** A `decision` carries its options as the
+  codes the data uses (`mainEvent`, `lightHeavyweight`), since `chosen` is the
+  value the caller gets back. The panel turns a camelCase code into words
+  ("Main event", "Light heavyweight") in the headline and in the list of
+  options. An option that is not a code (a name, a sentence) is shown as it
+  is.
+
 ## Constants and tunables
 
 Every balance number is a tunable (see [tunables.md](tunables.md)), read
