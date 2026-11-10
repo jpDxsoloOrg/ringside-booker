@@ -363,10 +363,13 @@ still unread when its epic ships gets wired or removed.
 ### Stored and derived
 
 Stored: everything in the field table. Derived by WRK queries and never
-stored:
+stored (the helpers and formulas are in [workers.md](workers.md)):
 
 - **Age** from `birthDate` and the current date.
 - **Experience** from `debutDate` (and later, match history).
+- **Availability** (can they work today, why not, until when) from the status,
+  debut date, injury, restrictions and the employment's leave, compared with
+  the date. See [workers.md](workers.md#availability).
 - **Weight class** from `weightKg`, using bands that are tunables. Changing the
   bands never needs a data migration, which is why the row stores a number and
   not a class.

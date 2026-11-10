@@ -11,7 +11,12 @@
 import { simSystem } from '../core/api/builtins';
 import type { SystemBundle } from '../core/api/system';
 import { conditionSystem } from './condition';
+import { workersSystem } from './workers';
 
-export { conditionSystem };
+export { conditionSystem, workersSystem };
 
-export const defaultSystems: readonly SystemBundle[] = Object.freeze([simSystem, conditionSystem]);
+export const defaultSystems: readonly SystemBundle[] = Object.freeze([
+  simSystem,
+  conditionSystem,
+  workersSystem,
+]);
