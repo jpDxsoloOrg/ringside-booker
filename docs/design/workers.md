@@ -803,3 +803,69 @@ result-morale formula, which works out the story shield. Anything that changes
 morale because of a match result goes through that formula first and hands the
 answer to this door. No feature works out loss morale on its own, or a wrestler
 booked to lose in a hot angle ends up angry about it.
+
+## Hooks for later features
+
+Several features that are not built yet hang off this system. Each one plugs
+into something that already exists, so none of them needs to edit the workers
+code or the profile screen to arrive. This is the list, so a feature can check
+what it is promised before it starts.
+
+| Later feature                 | What it uses                                                                                              | Where                                                                |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| Development and training      | A Development tab on the profile, through `registerProfileTab`                                            | `apps/web/src/screens/workers/profile/profileTabs.ts`                |
+| Popularity and momentum drift | `popularityAnchor`, `applyPopularityChange`, `applyMomentumChange`                                        | [Popularity door](#popularity-door), [Momentum door](#momentum-door) |
+| Injuries, rehab and health    | `availabilityOf` reading `injury` and `restrictions[]` by date; a Health tab through `registerProfileTab` | [Availability](#availability)                                        |
+| Anything that shows a worker  | `WorkerLink` for the name, `gameEntityLink` inside "Why?" panels                                          | `apps/web/src/components/WorkerLink`                                 |
+| Anything with a title rule    | `isEligibleForTitle`, never a local gender or weight check                                                | [Title eligibility](#title-eligibility)                              |
+| Anything that changes a role  | `setRole`, with `setRoleProblems` to check first                                                          | [Push, alignment and role](#push-alignment-and-role)                 |
+| Anything that compares fame   | `createPopularityRoller(...).rollValues`, the one roll-up                                                 | [geography.md](geography.md#popularity-roll-up)                      |
+
+### Profile tabs
+
+The profile's tab strip is a registry. Overview (order 10), Attributes (20),
+Popularity (30) and Career (40) are built in. A feature adds its own tab from
+its own files:
+
+```ts
+registerProfileTab({
+  id: 'health', // also the ?tab= value
+  label: 'Health',
+  order: 60, // 50 and up
+  render: ({ profile, personId, viewerPromotionId }) => <HealthTab personId={personId} />,
+  visible: ({ profile }) => profile.header.mainRole === 'wrestler', // optional
+});
+```
+
+- `order` places the tab among the others, lowest first. Feature tabs use 50 and
+  up (`FIRST_FEATURE_TAB_ORDER`), and each feature writes the number it took in
+  its own doc so two features don't pick the same slot.
+- `render` only runs while its tab is selected, so a tab can run its own
+  queries without slowing the rest of the profile down.
+- `visible` leaves the tab out for profiles it makes no sense on. A hidden tab
+  named in the URL falls back to Overview.
+- An id that is already taken throws, and the call returns a function that
+  removes the tab again.
+
+A tab gets the `workers.profile` answer, which already follows the
+[viewer rules](#what-a-viewer-may-see). A tab that runs its own query has to
+pass the same viewer, so it can't show a rival's private numbers by accident.
+
+### Drift pulls towards the anchor
+
+Drift is not written yet, but its two ends are. `popularityAnchor({ charisma })`
+is the level a person's popularity settles around, and it is the same function
+the [popularity door](#popularity-door) uses for its taper, so a gain slows
+down towards the same number that drift later pulls back to. Drift works out
+its own delta per region and hands it to `applyPopularityChange`, and does the
+same for momentum with `applyMomentumChange`. It never writes the rows itself:
+the [ownership test](#who-may-call-a-door) fails if it tries.
+
+### Injuries only write dates
+
+An injury system has nothing to switch on or off here. It writes
+`person.injury` with an `expectedReturn`, or adds a `restrictions[]` entry with
+an `until`, and [availability](#availability) reads them by date on every ask.
+Both dates are the [first day back](#until-is-the-first-day-back). Healing
+needs no clean-up step, because a date that has passed stops counting on its
+own.
