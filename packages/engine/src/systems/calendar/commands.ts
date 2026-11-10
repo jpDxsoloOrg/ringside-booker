@@ -10,28 +10,18 @@
 import { z } from 'zod';
 import { defineCommand } from '../../core/api/command';
 import type { Reason } from '../../core/api/result';
-import { isBefore } from '../../core/date';
 import { EntityNotFoundError } from '../../core/errors';
 import type { EventInstanceId } from '../../core/ids';
 import { zId } from '../../model/primitives';
-import { cancelShow } from './cancel';
-import { controlsShow } from './control';
+import { cancelRefusal, cancelShow, type CancelShowReasonCode } from './cancel';
+
+export { CANCEL_SHOW_REASON_CODES, type CancelShowReasonCode } from './cancel';
 
 declare module '../../core/api/maps' {
   interface CommandMap {
     'calendar.cancelShow': { args: { eventInstanceId: EventInstanceId }; result: null };
   }
 }
-
-/** The reason codes `calendar.cancelShow` can refuse with, besides `invalidArgs`. */
-export const CANCEL_SHOW_REASON_CODES = [
-  'notFound',
-  'notYourShow',
-  'alreadyCancelled',
-  'alreadyCompleted',
-  'showInPast',
-] as const;
-export type CancelShowReasonCode = (typeof CANCEL_SHOW_REASON_CODES)[number];
 
 const CANCEL_SHOW_MESSAGES: Readonly<Record<CancelShowReasonCode, string>> = {
   notFound: 'That show no longer exists.',
@@ -61,19 +51,8 @@ export const cancelShowCommand = defineCommand('calendar.cancelShow', {
     if (show === undefined) {
       return refusal('notFound');
     }
-    if (!controlsShow(read, show, issuedBy)) {
-      return refusal('notYourShow', show.id);
-    }
-    if (show.status === 'cancelled') {
-      return refusal('alreadyCancelled', show.id);
-    }
-    if (show.status === 'completed') {
-      return refusal('alreadyCompleted', show.id);
-    }
-    if (isBefore(show.date, read.meta.currentDate)) {
-      return refusal('showInPast', show.id);
-    }
-    return [];
+    const refused = cancelRefusal(read, show, issuedBy);
+    return refused === null ? [] : refusal(refused, show.id);
   },
   apply: (ctx, args) => {
     const show = ctx.read.tables.eventInstances.get(args.eventInstanceId);
