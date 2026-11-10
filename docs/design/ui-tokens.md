@@ -113,6 +113,23 @@ The metal colours are a deliberate exception to "category palette only": a belt'
 information, not decoration, so gold, silver and bronze have their own tokens. Glows are static
 shadows; anything that pulses one animates over `--motion-pulse`, which reduced motion sets to 0.
 
+### Show importance
+
+A show's importance has its own five colours, lowest to highest. They draw the bar down the side
+of a calendar chip and, at `--opacity-importance-tint` (0.14) over the surface, the chip's tint.
+
+| Token                         | Importance | Follows                                |
+| ----------------------------- | ---------- | -------------------------------------- |
+| `--color-importance-house`    | House show | `--palette-navy-400`                   |
+| `--color-importance-minor`    | Minor      | `--palette-teal-400`                   |
+| `--color-importance-regular`  | Regular    | `--palette-sky-400`                    |
+| `--color-importance-major`    | Major      | `--palette-orange-400`                 |
+| `--color-importance-flagship` | Flagship   | `--color-prestige` (the prestige gold) |
+
+All five are aliases of existing palette steps, so the calendar adds no new hue. Colour never
+carries the importance alone: the label (`IMPORTANCE_LABELS` in `screens/calendar/importance.ts`)
+is in the show sheet and in every chip's accessible name.
+
 ### Contrast
 
 `tokens.test.ts` resolves every semantic colour to its hex value and checks WCAG 2 contrast ratios:
@@ -128,6 +145,8 @@ shadows; anything that pulses one animates over `--motion-pulse`, which reduced 
 | `focus` on `bg`, `surface` and `surface-raised`                                                                                                                                                  | 3.0     |
 | `text-inverse` on each of `cat-1` … `cat-8`                                                                                                                                                      | 4.5     |
 | `metal-ink` on each `metal-*` tier                                                                                                                                                               | 4.5     |
+| Each `importance-*` colour on `surface` and `surface-raised` (the chip's bar)                                                                                                                    | 3.0     |
+| `text` and `text-muted` on each `importance-*` tint over `surface` and `surface-raised`                                                                                                          | 4.5     |
 
 `--color-border-strong` (`#3b4d6b`) is a hairline at about 2.1:1 on `--color-surface`, below the
 3:1 that WCAG asks of a control's only visible boundary. A control that relies on its outline
