@@ -811,15 +811,15 @@ into something that already exists, so none of them needs to edit the workers
 code or the profile screen to arrive. This is the list, so a feature can check
 what it is promised before it starts.
 
-| Later feature                 | What it uses                                                                                              | Where                                                                |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| Development and training      | A Development tab on the profile, through `registerProfileTab`                                            | `apps/web/src/screens/workers/profile/profileTabs.ts`                |
-| Popularity and momentum drift | `popularityAnchor`, `applyPopularityChange`, `applyMomentumChange`                                        | [Popularity door](#popularity-door), [Momentum door](#momentum-door) |
-| Injuries, rehab and health    | `availabilityOf` reading `injury` and `restrictions[]` by date; a Health tab through `registerProfileTab` | [Availability](#availability)                                        |
-| Anything that shows a worker  | `WorkerLink` for the name, `gameEntityLink` inside "Why?" panels                                          | `apps/web/src/components/WorkerLink`                                 |
-| Anything with a title rule    | `isEligibleForTitle`, never a local gender or weight check                                                | [Title eligibility](#title-eligibility)                              |
-| Anything that changes a role  | `setRole`, with `setRoleProblems` to check first                                                          | [Push, alignment and role](#push-alignment-and-role)                 |
-| Anything that compares fame   | `createPopularityRoller(...).rollValues`, the one roll-up                                                 | [geography.md](geography.md#popularity-roll-up)                      |
+| Later feature                 | What it uses                                                                                              | Where                                                                    |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Development and training      | A Development tab on the profile, through `registerProfileTab`                                            | `apps/web/src/screens/workers/profile/profileTabs.ts`                    |
+| Popularity and momentum drift | `popularityAnchor`, `applyPopularityChange`, `applyMomentumChange`                                        | [Popularity door](#popularity-door), [Momentum door](#momentum-door)     |
+| Injuries, rehab and health    | `availabilityOf` reading `injury` and `restrictions[]` by date; a Health tab through `registerProfileTab` | [Availability](#availability)                                            |
+| Anything that shows a worker  | `WorkerLink` for the name, `gameEntityLink` inside "Why?" panels                                          | `apps/web/src/components/WorkerLink`, `apps/web/src/app/entityLinks.tsx` |
+| Anything with a title rule    | `isEligibleForTitle`, never a local gender or weight check                                                | [Title eligibility](#title-eligibility)                                  |
+| Anything that changes a role  | `setRole`, with `setRoleProblems` to check first                                                          | [Push, alignment and role](#push-alignment-and-role)                     |
+| Anything that compares fame   | `createPopularityRoller(...).rollValues`, the one roll-up                                                 | [geography.md](geography.md#popularity-roll-up)                          |
 
 ### Profile tabs
 
