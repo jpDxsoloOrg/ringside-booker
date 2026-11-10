@@ -49,32 +49,22 @@ export default defineConfig(({ command }) => ({
   },
   build: {
     target: 'es2022',
-    // Vite automatically splits bundles when imports are in separate files.
-    // By structure (e.g., dynamic imports), we guide it to split routes and vendors.
     rollupOptions: {
       output: {
-        // Split vendor libraries into their own chunks for better caching and smaller main bundle.
-        manualChunks: {
-          // React Router goes in a separate chunk with its types
-          'react-router': ['react-router-dom'],
-          // Radix UI components can be split, but they're small individually; grouping them helps
-          'radix-ui': [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-popover',
-            '@radix-ui/react-select',
-            '@radix-ui/react-switch',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-tooltip',
-          ],
-          // TanStack Table is large and should be separate
-          'tanstack-table': ['@tanstack/react-table'],
-          // Zustand for state management
-          'zustand': ['zustand'],
-          // Lucide React icons (SVG components can be tree-shaken or kept together)
-          'lucide-react': ['lucide-react'],
-          // Engine entry point if not already split via alias
-          'engine-entry': ['@ringside/engine'],
+        /**
+         * Large libraries go in their own chunks, so the main bundle stays under Vite's 500 kB
+         * warning and a code change does not invalidate the cached vendor files (UI-21).
+         */
+        manualChunks: (id: string): string | undefined => {
+          if (!id.includes('/node_modules/')) return undefined;
+          if (/\/node_modules\/(react|react-dom|scheduler)\//.test(id)) return 'react';
+          if (/\/node_modules\/(react-router|react-router-dom|@remix-run)\//.test(id)) {
+            return 'react-router';
+          }
+          if (id.includes('/node_modules/@radix-ui/')) return 'radix-ui';
+          if (id.includes('/node_modules/@tanstack/')) return 'tanstack';
+          if (id.includes('/node_modules/lucide-react/')) return 'lucide';
+          return undefined;
         },
       },
     },

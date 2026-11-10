@@ -56,8 +56,13 @@ describe('app router', () => {
   it('registers the component gallery in every build', async () => {
     renderAt('/dev/gallery#button');
 
+    // The gallery is its own lazily loaded chunk, which can take more than a second under load.
     expect(
-      await screen.findByRole('heading', { level: 1, name: 'Component gallery' }),
+      await screen.findByRole(
+        'heading',
+        { level: 1, name: 'Component gallery' },
+        { timeout: 5000 },
+      ),
     ).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: 'Button' })).toBeInTheDocument();
   });
@@ -65,7 +70,9 @@ describe('app router', () => {
   it('registers the bare page the phone frame loads', async () => {
     renderAt('/dev/gallery/frame?theme=dark#badge');
 
-    expect(await screen.findByRole('heading', { level: 1, name: 'Badge' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Badge' }, { timeout: 5000 }),
+    ).toBeInTheDocument();
   });
 
   it('renders the new-game wizard in the wide out-of-game layout', async () => {

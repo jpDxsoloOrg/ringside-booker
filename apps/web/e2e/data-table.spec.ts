@@ -50,6 +50,11 @@ test.describe('DataTable on desktop', () => {
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(isPhone(testInfo), 'The table layout is the desktop layout.');
     await page.goto(GALLERY_PATH);
+    // The gallery is its own chunk, so wait until every row and its popularity meter is drawn
+    // before a test reads the starting order.
+    await expect(
+      section(page).locator('tbody td[data-column-id="popularity"] [role="meter"]'),
+    ).toHaveCount(FIXTURE_ROW_COUNT);
   });
 
   test('clicking the Popularity header sorts high to low, then low to high', async ({ page }) => {

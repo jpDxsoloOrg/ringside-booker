@@ -1,11 +1,5 @@
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
 import type { RouteObject } from 'react-router-dom';
-import {
-  GALLERY_FRAME_PATH,
-  GalleryFrameScreen,
-  GalleryScreen,
-} from '@/screens/dev-gallery/GalleryScreen';
-import { NewGameScreen } from '@/screens/new-game/NewGameScreen';
 import { NotFoundScreen } from '@/screens/not-found/NotFoundScreen';
 import { PlaceholderScreen } from '@/screens/placeholder/PlaceholderScreen';
 import { SaveSlotsScreen } from '@/screens/saves/SaveSlotsScreen';
@@ -22,41 +16,6 @@ import type { NavItem } from './navigation';
 import { RequireWorld } from './RequireWorld';
 import { routePatterns, routes } from './routes';
 import { SettingsEffects } from './settings/SettingsEffects';
-
-/**
- * The screens that ship in every build. These are small and essential for the app shell:
- * title screen, load screen, settings, new game wizard, gallery, and placeholders.
- */
-const alwaysLoadedScreens = {
-  TitleScreen,
-  SettingsScreen,
-  SaveSlotsScreen,
-  NewGameScreen,
-  GalleryScreen,
-  GalleryFrameScreen,
-  NotFoundScreen,
-  PlaceholderScreen,
-};
-
-/**
- * Build a route object for a nav item. Screens that are "live" will be rendered.
- * Vite's manualChunks configuration in vite.config.ts will split vendor libraries into separate chunks.
- */
-function buildNavItemRoute(item: NavItem): RouteObject {
-  if (item.status === 'placeholder') {
-    return { path: item.to, element: <PlaceholderScreen title={item.label} /> };
-  }
-
-  // Screens that are always loaded (app shell screens) - kept together for faster initial load
-  const screenName = typeof item.screen === 'string' ? item.screen : item.screen?.name;
-  
-  if (!screenName || alwaysLoadedScreens[screenName as keyof typeof alwaysLoadedScreens]) {
-    return { path: item.to, element: <item.screen /> };
-  }
-
-  // For larger screens not in the app shell, these will be split by manualChunks
-  return { path: item.to, element: <item.screen /> };
-}
 
 /**
  * Opt in to the React Router 7 behaviours now, so the upgrade later changes nothing and the
@@ -88,12 +47,25 @@ function RootLayout() {
 }
 
 /**
- * The component gallery ships in every build on purpose: it is small, linked from no navigation,
- * and handy for checking a deployed build on a real phone.
+ * The component gallery ships in every build on purpose: it is linked from no navigation and
+ * handy for checking a deployed build on a real phone. It renders every component entry, so it
+ * loads as its own chunk the first time it is opened instead of sitting in the main bundle (UI-21).
  */
 const galleryRoutes: RouteObject[] = [
-  { path: routes.dev.gallery(), element: <GalleryScreen /> },
-  { path: GALLERY_FRAME_PATH, element: <GalleryFrameScreen /> },
+  {
+    path: routes.dev.gallery(),
+    lazy: async () => {
+      const { GalleryScreen } = await import('@/screens/dev-gallery/GalleryScreen');
+      return { Component: GalleryScreen };
+    },
+  },
+  {
+    path: routes.dev.galleryFrame(),
+    lazy: async () => {
+      const { GalleryFrameScreen } = await import('@/screens/dev-gallery/GalleryScreen');
+      return { Component: GalleryFrameScreen };
+    },
+  },
 ];
 
 /** The screens outside a game, in the centred layout with no navigation. */
@@ -107,7 +79,11 @@ const outOfGameRoutes: RouteObject[] = [
 
 /** The route for one nav item: its screen once built, or a placeholder named after it. */
 function navItemRoute(item: NavItem): RouteObject {
-  return buildNavItemRoute(item);
+  if (item.status === 'live') {
+    const Screen = item.screen;
+    return { path: item.to, element: <Screen /> };
+  }
+  return { path: item.to, element: <PlaceholderScreen title={item.label} /> };
 }
 
 /** Every in-game screen, built from the navigation config. */
@@ -147,7 +123,15 @@ export function buildAppRoutes({ includeDevRoutes }: AppRouteOptions): RouteObje
         // column.
         {
           element: <OutOfGameLayout width="wide" />,
-          children: [{ path: routes.newGame(), element: <NewGameScreen /> }],
+          children: [
+            {
+              path: routes.newGame(),
+              lazy: async () => {
+                const { NewGameScreen } = await import('@/screens/new-game/NewGameScreen');
+                return { Component: NewGameScreen };
+              },
+            },
+          ],
         },
         gameRoute,
         ...galleryRoutes,
