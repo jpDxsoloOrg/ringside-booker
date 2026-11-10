@@ -4,7 +4,10 @@
  * How old are they, can they work today, may they hold this title, which weight class are they in,
  * what grade is a 72, who do they work for. Each question is answered once here, by a plain helper
  * (`helpers/`) or a traced formula (`formulas/`), so the answers cannot drift apart between
- * screens and systems. Nothing here is stored: every answer is derived on read.
+ * screens and systems. Nothing those return is stored: every answer is derived on read.
+ *
+ * It also owns the doors (`doors.ts`): the only code that changes push, alignment, role, regional
+ * popularity, momentum and morale once the world exists.
  *
  * Design: docs/design/workers.md.
  */
@@ -47,6 +50,43 @@ export {
   type WeightClass,
   type WeightClassInputs,
 } from './formulas/weightClass';
+export {
+  applyMomentumChange,
+  applyMoraleChange,
+  applyPopularityChange,
+  CREW_ROLES,
+  DOOR_TRACE_KINDS,
+  DOORS_DOC_REF,
+  ROLE_CHANGED_REASON_KEY,
+  SET_ROLE_PROBLEM_CODES,
+  setAlignment,
+  setPush,
+  setRole,
+  setRoleProblems,
+  type ApplyMomentumChangeArgs,
+  type ApplyMoraleChangeArgs,
+  type ApplyPopularityChangeArgs,
+  type DoorContext,
+  type DoorReason,
+  type DoorResult,
+  type DoorSource,
+  type PopularityDoorResult,
+  type PopularitySubject,
+  type SetAlignmentArgs,
+  type SetPushArgs,
+  type SetRoleArgs,
+  type SetRoleProblemCode,
+} from './doors';
+export {
+  POPULARITY_DOC_REF,
+  popularityAnchor,
+  type PopularityAnchorInputs,
+} from './formulas/popularityAnchor';
+export {
+  popularityChange,
+  type PopularityChangeInputs,
+  type PopularitySubjectKind,
+} from './formulas/popularityChange';
 export { workersTunables } from './tunables';
 
 export const workersSystem: SystemBundle = defineSystem({
