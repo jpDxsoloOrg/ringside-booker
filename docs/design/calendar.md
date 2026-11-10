@@ -410,3 +410,47 @@ for the whole world (65 shows) takes about 0.2 ms and a 42-day
 `calendar.projected` (68 shows) about 0.45 ms, against a budget of 20 ms
 each. The benchmark is
 `packages/engine/test/systems/calendar/queries.bench.ts`.
+
+## Integration
+
+The calendar is finished on its own: shows are scheduled, drawn, closed and
+cancelled without any other feature. The features below work with it. Each one
+connects through a door listed here and never by editing the calendar's own
+files, and each one does its wiring in its own code when it is built.
+
+**Wired today: none.** None of these features is in the game yet, so every
+calendar slot is empty and every "until then" below is what the player sees.
+
+| Feature         | Door it uses                                                                                      | Until then                                                          |
+| --------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Booking         | Sheet action `booking.book`; `controlsShow` for its gates; sets `booked` and back to `scheduled`  | A show cannot be given a card; a past one reads "Not run (no card)" |
+| Schedule editor | Toolbar item `calendar.newShow`; `scheduleDefinitionWindow` after every create, change and retire | Only the shows in the world data exist                              |
+| Rival calendars | `scheduleDefinitionWindow` when a rival adds a show; `calendar.range` and `calendar.projected`    | Rivals run only the shows they start with                           |
+| Skip days       | A skip target `calendar.nextShow`, from `calendar.nextShow { scope: 'mine' }`                     | Skip days has no "Until next show"                                  |
+| Office          | An office panel `calendar.nextShow`, from `calendar.nextShow` and `calendar.range`                | The Office has no Next show panel                                   |
+| Brands          | `calendar.range { brandId }`; future `scheduled` shows follow a definition that changes brand     | A show's brand tag is the one its definition started with           |
+| Hype            | Chip badge and sheet section `eco.hype`                                                           | Chips and sheets say nothing about hype                             |
+| TV deals        | The `show.cancelled` event; sheet section `eco.airing`                                            | The sheet does not say where a show airs                            |
+| Drafts          | Day markers `brw.draft`; a chip badge on the show a draft airs on                                 | No draft day is marked                                              |
+
+The slots (sheet action, sheet section, chip badge, day markers, toolbar item)
+are described in `apps/web/src/screens/calendar/README.md`, which also lists
+the ids registered so far.
+
+Three rules hold for every feature in the table:
+
+- **Shows made during a day schedule themselves.** The daily horizon step runs
+  in `housekeeping`, before rivals take their turns, so a definition created
+  later the same day would wait until tomorrow. Whatever creates or changes a
+  definition calls
+  `scheduleDefinitionWindow(tx, read, definitionId, today, today + H)` in the
+  same transaction, where `H` is `calendar.scheduleHorizonDays`, and the show
+  is on the calendar at once. The idempotency key makes a second call
+  harmless.
+- **One answer to "who controls this show".** Every gate and command that
+  needs it calls `showControllerOf` or `controlsShow`. Nothing compares a
+  promotion's controller for a show on its own.
+- **Cancelling writes one row.** `calendar.cancelShow` changes the show and
+  nothing else. A feature that keeps something per show (a card, an airing)
+  listens for `show.cancelled` and decides for itself what that means; a card
+  stays as read-only history.

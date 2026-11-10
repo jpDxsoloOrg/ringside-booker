@@ -71,6 +71,20 @@ feature, such as `booking.open`.
 | Day markers   | `registerCalendarDayMarkers({ id, useMarkers })`         | A badge on a day, on the grid and the agenda | Drafts (draft day), seasons (season end)          |
 | Toolbar item  | `registerCalendarToolbarItem({ id, order, render })`     | The end of the calendar's toolbar            | One-off shows ("New show")                        |
 
+### Registered so far
+
+Nothing is registered yet: no feature that uses a slot is in the game. When one registers, add
+its id here. The ids the planned features will use are in
+[`docs/design/calendar.md`](../../../../../docs/design/calendar.md#integration).
+
+| Slot          | Registered ids |
+| ------------- | -------------- |
+| Sheet action  | None           |
+| Sheet section | None           |
+| Chip badge    | None           |
+| Day markers   | None           |
+| Toolbar item  | None           |
+
 What each `render` is given:
 
 - **Sheet action and section:** `{ show, isOwn, today }`. `show` is the calendar row (or the
