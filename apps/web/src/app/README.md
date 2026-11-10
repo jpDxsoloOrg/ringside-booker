@@ -56,6 +56,9 @@ Rows never carry development, vices, morale or contract terms, for any viewer.
   People the sort leaves equal go by ring name, then id (`compareWorkerTies`), as in `workers.list`.
 - **Why? on demand.** The Overall and Top popularity cells use `LazyWhyButton` with
   `workers.explain`, which builds the trace only when the panel opens.
+- **Long names and grades.** In the table a ring name stays on one line and is cut with an
+  ellipsis (`WorkerLink` with `truncate`); the link text and its tooltip keep the whole name. On a
+  phone card the name wraps. Grade chips share one width, so the overall numbers line up.
 - **Phone.** Below `--bp-mobile` the filter bar moves into a bottom `Sheet` behind a
   "Filters (n)" button, and the DataTable's own "Sort by" select sits above the cards. A card is
   not a button there: the name's link is stretched over the whole card, so the Why? buttons and
@@ -70,6 +73,17 @@ first detail page: `screens/workers/profile/WorkerProfileScreen.tsx`, loaded as 
 reads one query, `workers.profile`, and shows the header and a strip of tabs. The selected tab is
 in the URL (`?tab=attributes`); a tab that is unknown or hidden falls back to Overview. A person
 the engine does not know shows "Worker not found" with the engine's reason and a link back.
+While the query is out, the screen shows the profile's shape in quiet blocks (header card, tab
+strip, four panels), so nothing jumps when the answer arrives.
+
+The header is `WorkerProfileHeader`. On the profile the ring name is the page's `h1`; with
+`heading="section"` it is an `h3`, which is how the component gallery shows it
+(`/dev/gallery#worker-profile-header`).
+
+`screens/workers/defaultWorldWhy.test.ts` starts a new game on the shipped default world and
+reads every "Why?" the list and the profile offer in the panel's own words: each rating names its
+weight settings, each choice reads as words and nothing prints a broken number. A feature that
+adds a derived number to the profile adds its breakdown to that test.
 
 Link to it with `WorkerLink` (`components/WorkerLink`), never with a hand-built `Link`. From the
 workers list it carries the list's URL in the navigation state, so the profile's "Back to Workers"

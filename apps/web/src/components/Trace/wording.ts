@@ -90,15 +90,19 @@ export function constantLine(node: ConstantNode): TraceLine {
   });
 }
 
+/**
+ * A setting's row ends with its key, the name it goes by in the tunables list and in a balance
+ * profile, so a player who wants to change the number knows what to look for.
+ */
 export function tunableLine(node: TunableNode): TraceLine {
   const text = `${node.label}: ${formatTraceValue(node.value, node.unit)}`;
   if (node.overridden) {
     return line(text, {
       badge: 'Custom setting',
-      details: [`default ${formatTraceValue(node.defaultValue, node.unit)}`],
+      details: [`default ${formatTraceValue(node.defaultValue, node.unit)}`, node.key],
     });
   }
-  return line(text, { details: ['Game setting'] });
+  return line(text, { details: ['Game setting', node.key] });
 }
 
 /** Multiplying and dividing factors are plain numbers, whatever the running value's unit. */
@@ -218,18 +222,35 @@ export function branchLine(node: BranchNode): TraceLine {
   return line(`Did not apply: ${node.condition}`, { details, hiddenByDefault: true });
 }
 
-function optionText(option: string | boolean): string {
-  return typeof option === 'boolean' ? (option ? 'yes' : 'no') : option;
+/** An option the engine names with a code: one word, or several run together in camelCase. */
+const CHOICE_CODE_PATTERN = /^[a-z][a-z0-9]*(?:[A-Z][a-z0-9]*)*$/;
+
+/**
+ * A decision's option as the player reads it. The engine names options with the same codes the
+ * data uses (`mainEvent`, `lightHeavyweight`); they read as words here ("Main event", "Light
+ * heavyweight"). Text that is not a code (a name, a sentence) is left as it is.
+ */
+export function choiceText(option: string | boolean): string {
+  if (typeof option === 'boolean') return option ? 'yes' : 'no';
+  if (!CHOICE_CODE_PATTERN.test(option)) return option;
+  const words = option.replace(/[A-Z]/g, (letter) => ` ${letter.toLowerCase()}`);
+  return `${words.charAt(0).toUpperCase()}${words.slice(1)}`;
+}
+
+/** A trace's own value as the headline shows it: a decision's choice in words, a number in its unit. */
+export function traceValueText(node: TraceNode): string {
+  if (node.kind === 'decision') return choiceText(node.chosen);
+  return formatTraceValue(node.value, node.unit);
 }
 
 export function decisionLine(node: DecisionNode): TraceLine {
   const chosen = node.considered.filter((option) => option.option === node.chosen);
   const others = node.considered.filter((option) => option.option !== node.chosen);
   const describe = (prefix: string, option: DecisionNode['considered'][number]): string => {
-    const base = `${prefix}: ${optionText(option.option)}, score ${formatTraceNumber(option.score)}`;
+    const base = `${prefix}: ${choiceText(option.option)}, score ${formatTraceNumber(option.score)}`;
     return option.reason === undefined ? base : `${base}${TEXT_SEPARATOR}${option.reason}`;
   };
-  return line(`${node.label}: ${optionText(node.chosen)}`, {
+  return line(`${node.label}: ${choiceText(node.chosen)}`, {
     details: [node.reason],
     items: [
       ...chosen.map((option) => describe('Chosen', option)),

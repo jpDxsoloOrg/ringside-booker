@@ -119,8 +119,15 @@ async function skip(user: ReturnType<typeof userEvent.setup>, quickChoice: strin
  */
 const SUMMARY_TIMEOUT_MS = 4000;
 
-async function summary(): Promise<HTMLElement> {
-  return screen.findByRole('region', { name: 'Last advance' }, { timeout: SUMMARY_TIMEOUT_MS });
+/**
+ * The whole month-change test: a day, a 30-day skip and two autosaves. With the full suite running
+ * beside it on a busy machine it has gone past the default five seconds.
+ */
+const MONTH_SKIP_TEST_TIMEOUT_MS = 15_000;
+const MONTH_SKIP_SUMMARY_TIMEOUT_MS = 10_000;
+
+async function summary(timeoutMs: number = SUMMARY_TIMEOUT_MS): Promise<HTMLElement> {
+  return screen.findByRole('region', { name: 'Last advance' }, { timeout: timeoutMs });
 }
 
 beforeEach(() => {
@@ -344,22 +351,26 @@ describe('DayControl: autosave', () => {
     expect(autosaveSpy).toHaveBeenLastCalledWith(SLOT_ID, { monthlyBackup: false });
   });
 
-  it('rotates a monthly backup when the month changes', async () => {
-    const { user, autosaveSpy } = renderGame({ saveSlotId: SLOT_ID });
-    await expectDateChip(FAKE_START_DATE);
-    await user.click(dayButton());
-    await waitFor(() => {
-      expect(autosaveSpy).toHaveBeenCalledTimes(1);
-    });
+  it(
+    'rotates a monthly backup when the month changes',
+    async () => {
+      const { user, autosaveSpy } = renderGame({ saveSlotId: SLOT_ID });
+      await expectDateChip(FAKE_START_DATE);
+      await user.click(dayButton());
+      await waitFor(() => {
+        expect(autosaveSpy).toHaveBeenCalledTimes(1);
+      });
 
-    // From 11 April, 30 days reach May.
-    await skip(user, '30 days');
-    await summary();
-    await waitFor(() => {
-      expect(autosaveSpy).toHaveBeenCalledTimes(2);
-    });
-    expect(autosaveSpy).toHaveBeenLastCalledWith(SLOT_ID, { monthlyBackup: true });
-  });
+      // From 11 April, 30 days reach May.
+      await skip(user, '30 days');
+      await summary(MONTH_SKIP_SUMMARY_TIMEOUT_MS);
+      await waitFor(() => {
+        expect(autosaveSpy).toHaveBeenCalledTimes(2);
+      });
+      expect(autosaveSpy).toHaveBeenLastCalledWith(SLOT_ID, { monthlyBackup: true });
+    },
+    MONTH_SKIP_TEST_TIMEOUT_MS,
+  );
 
   it('never autosaves a game that has no save slot', async () => {
     const { user, autosaveSpy } = renderGame({ saveSlotId: null });

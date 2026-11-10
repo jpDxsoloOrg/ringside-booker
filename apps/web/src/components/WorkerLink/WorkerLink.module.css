@@ -10,3 +10,16 @@
 .workerLink:focus-visible {
   text-decoration: underline;
 }
+
+/*
+ * One line, cut with an ellipsis. A block, so the cut happens at the edge of whatever holds the
+ * link; the holder needs a width of its own (min-inline-size: 0 inside a grid or flex row).
+ */
+.truncate {
+  display: block;
+  max-inline-size: 100%;
+  overflow: hidden;
+  overflow-wrap: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

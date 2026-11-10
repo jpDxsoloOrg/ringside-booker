@@ -6,7 +6,7 @@
 import type { TraceNode, TraceSummary } from '@ringside/engine';
 import { formatGameDate } from '../format';
 import { formatTraceDelta, formatTraceValue } from './formatTraceValue';
-import { describeTraceNode, traceLineText } from './wording';
+import { describeTraceNode, traceLineText, traceValueText } from './wording';
 
 const INDENT = '  ';
 
@@ -15,7 +15,7 @@ export const SUMMARISED_NOTICE = 'Full breakdown is only kept for recent results
 
 /** The big line at the top of the panel: what the number is and its value. */
 export function traceHeadline(root: TraceNode): string {
-  return `${root.label}: ${formatTraceValue(root.value, root.unit)}`;
+  return `${root.label}: ${traceValueText(root)}`;
 }
 
 /**

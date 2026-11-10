@@ -9,6 +9,7 @@ import { useEngineQuery } from '@/app/engine/useEngineQuery';
 import { workersListUrlFrom } from '@/app/entityLinks';
 import { routes, WORKER_ROUTE_PARAM } from '@/app/routes';
 import { useSessionStore } from '@/app/session/sessionStore';
+import { classNames } from '@/components/classNames';
 import { EmptyState } from '@/components/EmptyState';
 import { Icon } from '@/components/Icon';
 import { VisuallyHidden } from '@/components/layout';
@@ -62,18 +63,41 @@ function WorkerNotFound({ reason }: { readonly reason: string }) {
   );
 }
 
+/** How many facts the header shows for someone under contract: the skeleton holds their place. */
+const SKELETON_FACTS = 6;
+const SKELETON_PANELS = 4;
+
+function skeletonKeys(count: number): readonly string[] {
+  return Array.from({ length: count }, (_, index) => String(index));
+}
+
+/** The profile's shape in quiet blocks: header card, tab strip and the Overview's panels. */
 function WorkerProfileLoading() {
   useDocumentTitle('Worker');
   return (
     <div className={styles['screen']} aria-busy="true">
       <BackToWorkers />
-      <RouteHeading className={styles['heading']}>
-        <VisuallyHidden>{LOADING_TITLE}</VisuallyHidden>
-        <span className={`${styles['skeleton'] ?? ''} ${styles['skeletonHeading'] ?? ''}`} />
-      </RouteHeading>
-      <span className={styles['skeleton']} />
-      <span className={styles['skeleton']} />
-      <span className={`${styles['skeleton'] ?? ''} ${styles['skeletonShort'] ?? ''}`} />
+      <div className={classNames(styles['header'], styles['skeletonHeader'])}>
+        <span className={classNames(styles['skeleton'], styles['skeletonPicture'])} />
+        <div className={styles['identity']}>
+          <RouteHeading className={styles['heading']}>
+            <VisuallyHidden>{LOADING_TITLE}</VisuallyHidden>
+            <span className={classNames(styles['skeleton'], styles['skeletonHeading'])} />
+          </RouteHeading>
+          <span className={classNames(styles['skeleton'], styles['skeletonChips'])} />
+        </div>
+        <div className={styles['facts']}>
+          {skeletonKeys(SKELETON_FACTS).map((key) => (
+            <span key={key} className={classNames(styles['skeleton'], styles['skeletonFact'])} />
+          ))}
+        </div>
+      </div>
+      <span className={classNames(styles['skeleton'], styles['skeletonTabs'])} />
+      <div className={styles['overview']}>
+        {skeletonKeys(SKELETON_PANELS).map((key) => (
+          <span key={key} className={classNames(styles['skeleton'], styles['skeletonPanel'])} />
+        ))}
+      </div>
     </div>
   );
 }

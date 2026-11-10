@@ -5,13 +5,12 @@ import { Button } from '../Button';
 import { Cluster } from '../layout';
 import { Icon } from '../Icon';
 import { classNames } from '../classNames';
-import { formatTraceValue } from './formatTraceValue';
 import { renderTraceRow } from './kinds';
 import { useEntityLinkRenderer } from '@/app/entityLinks';
 import type { EntityLinkRenderer } from './rows/rowTypes';
 import { traceTopLevelNodes } from './traceToText';
 import styles from './Trace.module.css';
-import { describeTraceNode } from './wording';
+import { describeTraceNode, traceValueText } from './wording';
 
 /** Groups down to this depth start open; deeper ones start closed. Top-level rows are depth 1. */
 export const DEFAULT_OPEN_DEPTH = 2;
@@ -311,7 +310,7 @@ export function TraceTree({
       <div className={styles['headline']}>
         <span className={styles['headlineLabel']}>{root.label}</span>
         <span className={classNames(styles['headlineValue'], 'tabular')}>
-          {formatTraceValue(root.value, root.unit)}
+          {traceValueText(root)}
         </span>
       </div>
       <Cluster gap={2} className={styles['toolbar']}>
