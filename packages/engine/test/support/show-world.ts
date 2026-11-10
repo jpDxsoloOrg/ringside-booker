@@ -148,6 +148,7 @@ export function makeInstance(
     venueId: null,
     regionId: regionId(1),
     result: null,
+    cancellation: null,
     ...overrides,
   };
 }

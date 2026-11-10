@@ -225,3 +225,13 @@ The weight class limits, in `systems/workers/tunables.ts`. See
 | `workers.weightClass.cruiserweightMaxKg`    | integer | 93      | 40–250 | kilograms | Heaviest weight that still counts as a cruiserweight                                      |
 | `workers.weightClass.lightHeavyweightMaxKg` | integer | 105     | 40–250 | kilograms | Heaviest weight that still counts as a light heavyweight                                  |
 | `workers.weightClass.heavyweightMaxKg`      | integer | 130     | 40–250 | kilograms | Heaviest weight that still counts as a heavyweight; anyone over it is a super heavyweight |
+
+## Calendar tunables
+
+How far ahead shows are kept, in `systems/calendar/tunables.ts`. See
+[calendar.md](calendar.md#horizon).
+
+| Key                            | Kind    | Default | Range  | Unit | What it does                                                           |
+| ------------------------------ | ------- | ------- | ------ | ---- | ---------------------------------------------------------------------- |
+| `calendar.scheduleHorizonDays` | integer | 90      | 0–730  | days | How far past today shows are stored; 0 stores only today's shows       |
+| `calendar.projectionMaxDays`   | integer | 400     | 0–1100 | days | How far past today the calendar projects shows; 0 turns projection off |

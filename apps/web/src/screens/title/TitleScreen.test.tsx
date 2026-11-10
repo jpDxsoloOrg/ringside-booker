@@ -1,11 +1,11 @@
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { routes } from '@/app/routes';
 import { useSessionStore } from '@/app/session/sessionStore';
 import { BUNDLED_ENGINE_VERSION } from '@/engineVersion';
 import { createFakeStorage, fakeSlot } from '@/test/fakeStorage';
-import { damagedGoldenSave, goldenSaveBytes } from '@/test/goldenSave';
+import { damagedGoldenSave, goldenSaveBytes, olderBuildSaveBytes } from '@/test/goldenSave';
 import { renderApp, storeRealSlot } from '@/test/renderApp';
 import { resetSaveDb } from '@/test/saves';
 
@@ -92,5 +92,34 @@ describe('TitleScreen', () => {
     const sheet = await screen.findByRole('dialog', { name: "Couldn't load Future league" });
     expect(sheet).toHaveTextContent('Checking the save version');
     expect(router.state.location.pathname).toBe(routes.title());
+  });
+
+  it('says a Continue save was made with an older build, and hides Continue once it is deleted', async () => {
+    const slot = await storeRealSlot(olderBuildSaveBytes(), { label: 'Old league' });
+    const { router } = renderApp(routes.title(), createFakeStorage([slot]));
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole('button', { name: /^Continue/ }));
+
+    const sheet = await screen.findByRole('dialog', { name: 'Made with an older build' });
+    expect(sheet).toHaveTextContent('Start a new game.');
+    expect(within(sheet).getByRole('button', { name: 'Export this save' })).toBeInTheDocument();
+    expect(screen.queryByTestId('load-error')).toBeNull();
+    expect(router.state.location.pathname).toBe(routes.title());
+
+    await user.click(within(sheet).getByRole('button', { name: 'Delete this save' }));
+    await user.click(
+      within(await screen.findByRole('alertdialog', { name: 'Delete Old league?' })).getByRole(
+        'button',
+        { name: 'Delete' },
+      ),
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: /^Continue/ })).toBeNull();
+    });
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Made with an older build' })).toBeNull();
+    });
   });
 });

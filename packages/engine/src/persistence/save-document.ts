@@ -46,6 +46,12 @@ export const SAVE_LABEL_MAX_LENGTH = 60;
 const ENGINE_VERSION_PATTERN = /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.+-]+)?$/;
 
 /**
+ * The shape of a save schema fingerprint: 32 lowercase hex characters. The fingerprint itself is
+ * computed in `core/api/saveFingerprint.ts`, which knows the simulation schemas.
+ */
+export const SAVE_SCHEMA_FINGERPRINT_PATTERN = /^[0-9a-f]{32}$/;
+
+/**
  * The header: what a save-slot list shows without decompressing the world. It repeats a few facts
  * from the world (its name, dates and the saving controller's promotion), so it is rebuilt from the
  * world on every save and never edited on its own.
@@ -65,6 +71,11 @@ export const SaveHeaderSchema = z.strictObject({
   /** That promotion's cash, or null when there is no promotion in the header. */
   cash: zCents.nullable(),
   label: z.string().min(1).max(SAVE_LABEL_MAX_LENGTH),
+  /**
+   * A hash of the whole save document schema of the build that wrote the save. Optional: saves
+   * from before it existed have none. Read only to explain a failed load (see `compat.ts`).
+   */
+  schemaFingerprint: z.string().regex(SAVE_SCHEMA_FINGERPRINT_PATTERN).optional(),
 });
 
 export type SaveHeader = z.infer<typeof SaveHeaderSchema>;

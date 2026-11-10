@@ -797,9 +797,19 @@ One dated show.
 | `venueId`           | `VenueId \| null`                                             |                                               |
 | `regionId`          | `RegionId`                                                    |                                               |
 | `result`            | `null \| { score; attendance; gate: Cents; viewers \| null }` | set exactly when completed; EVT/ECO extend it |
+| `cancellation`      | `null \| { reason: 'notRun' \| 'byPromotion'; on: GameDate }` | set exactly when cancelled                    |
 
 Refs: `promotionId`, `eventDefinitionId`, `brandId`, `venueId`, `regionId`.
-Indexes: `byPromotion`, `byDate`, `byDefinition`.
+Indexes: `byPromotion`, `byDate`, `byDefinition`, `byStatus` (so a phase can
+read only the open shows) and the unique `byDefinitionAirDate`, keyed
+`<eventDefinitionId>|<airDate>`.
+
+There is at most one instance per definition and air date, whatever its
+status. The unique index enforces it, and the calendar uses the same key to
+decide whether a date still needs a show, so a cancelled or taped show is
+never scheduled a second time. One-offs have no definition and are left out of
+that index. `cancellation.reason` tells a show nobody ran (`notRun`) from one
+its promotion called off (`byPromotion`). See [calendar.md](calendar.md).
 
 ### Segments (`segments`, `seg_`)
 

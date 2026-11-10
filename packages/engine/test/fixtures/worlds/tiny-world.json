@@ -790,7 +790,8 @@
           "attendance": 2800,
           "gate": 8400000,
           "viewers": 150000
-        }
+        },
+        "cancellation": null
       }
     ],
     "ledgerEntries": [

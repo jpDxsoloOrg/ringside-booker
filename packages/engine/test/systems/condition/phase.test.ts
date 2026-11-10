@@ -270,7 +270,7 @@ describe('condition.fatigueRecovery failure isolation', () => {
       definePhase({
         id: 'conditionFailureTest.explode',
         group: 'housekeeping',
-        order: 20,
+        order: 30,
         cadence: { kind: 'daily' },
         run: (ctx) => {
           for (const person of ctx.read.tables.people.values()) {

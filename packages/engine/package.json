@@ -12,7 +12,7 @@
   "scripts": {
     "test": "vitest run --root ../.. --project engine",
     "typecheck": "tsc -b . test",
-    "fixtures:write": "vitest run --root ../.. --project engine -u test/fixtures"
+    "fixtures:write": "vitest run --root ../.. --project engine -u test/fixtures test/persistence/fingerprint.test.ts"
   },
   "dependencies": {
     "zod": "4.6.7"

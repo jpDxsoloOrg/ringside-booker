@@ -4,6 +4,7 @@
  * `tinySaveDocument()` serialised.
  */
 
+import { engineSaveSchemaFingerprint } from '../../src/core/api/saveFingerprint';
 import type { JsonValue } from '../../src/core/json';
 import type { SaveDocument, SimStatePart } from '../../src/persistence/save-document';
 import { worldToDocument, type SerialisableWorld } from '../../src/persistence/world-document';
@@ -46,9 +47,12 @@ export function testSaveDocument(
 
 /**
  * A v1 save of `tinyWorld()` with the placeholder parts, saved by promotion A's controller, at
- * `TEST_SAVED_AT`.
+ * `TEST_SAVED_AT`, stamped with this build's schema fingerprint as every real save is.
  */
 export function tinySaveDocument(): SaveDocument {
   const { world, ids } = tinyWorld();
-  return testSaveDocument(world, { headerPromotionId: ids.promotions.A ?? null });
+  return testSaveDocument(world, {
+    headerPromotionId: ids.promotions.A ?? null,
+    schemaFingerprint: engineSaveSchemaFingerprint(),
+  });
 }

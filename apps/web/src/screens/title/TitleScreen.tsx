@@ -10,6 +10,7 @@ import { Icon } from '@/components/Icon';
 import { BUNDLED_ENGINE_VERSION } from '@/engineVersion';
 import { LoadErrorSheet } from '@/screens/saves/LoadErrorSheet';
 import type { SaveProblem } from '@/screens/saves/LoadErrorSheet';
+import { OlderBuildSheet, olderBuildProblem } from '@/screens/saves/OlderBuildSheet';
 import { importProblem } from '@/screens/saves/SaveSlotsScreen';
 import type { HighlightSlotState } from '@/screens/saves/SaveSlotsScreen';
 import { slotSummaryLine } from '@/screens/saves/slotFormat';
@@ -17,11 +18,12 @@ import { useImportSave } from '@/screens/saves/useImportSave';
 import { useLoadGame } from '@/screens/saves/useLoadGame';
 import { useSaveSlots } from '@/screens/saves/useSaveSlots';
 import type { SlotRecord } from '@/storage';
+import type { LoadSaveFailure } from '@/worker/engineHost';
 import styles from './TitleScreen.module.css';
 
 interface ContinueError {
   readonly slot: SlotRecord;
-  readonly problem: SaveProblem;
+  readonly problem: LoadSaveFailure;
 }
 
 /**
@@ -68,6 +70,18 @@ export function TitleScreen() {
       setExporting(false);
     }
   };
+
+  const deleteFailedSave = async (slot: SlotRecord): Promise<void> => {
+    const deleted = await saveSlots.deleteSlot(slot.slotId);
+    if (!deleted.ok) throw new Error(deleted.error.message);
+  };
+
+  // A save from an older build gets its own short sheet; every other failure gets the details.
+  const olderBuild =
+    continueError === null
+      ? null
+      : olderBuildProblem(continueError.slot.label, continueError.problem);
+  const detailedError = olderBuild === null ? continueError : null;
 
   return (
     <div className={styles['screen']} aria-busy={pending !== null ? true : undefined}>
@@ -142,19 +156,32 @@ export function TitleScreen() {
       </footer>
 
       <LoadErrorSheet
-        problem={continueError?.problem ?? null}
-        title={continueError === null ? '' : `Couldn't load ${continueError.slot.label}`}
+        problem={detailedError?.problem ?? null}
+        title={detailedError === null ? '' : `Couldn't load ${detailedError.slot.label}`}
         onClose={() => {
           setContinueError(null);
         }}
         exporting={exporting}
-        {...(continueError === null
+        {...(detailedError === null
           ? {}
           : {
               onExport: () => {
-                void exportFailedSave(continueError.slot);
+                void exportFailedSave(detailedError.slot);
               },
             })}
+      />
+      <OlderBuildSheet
+        olderBuild={olderBuild}
+        onClose={() => {
+          setContinueError(null);
+        }}
+        exporting={exporting}
+        onExport={() => {
+          if (continueError !== null) void exportFailedSave(continueError.slot);
+        }}
+        onDelete={async () => {
+          if (continueError !== null) await deleteFailedSave(continueError.slot);
+        }}
       />
       <LoadErrorSheet
         problem={importError}
