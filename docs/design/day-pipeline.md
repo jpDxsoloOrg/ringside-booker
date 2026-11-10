@@ -683,3 +683,15 @@ The core events the bus starts with:
 | `day.ended`           | `date`, `failedSteps`           | The pipeline finishes a day          |
 | `pipeline.stepFailed` | `stepId`, `message`             | A step threw and was rolled back     |
 | `tunables.changed`    | `key`, `value` (null = default) | A tunable override is set or cleared |
+
+The workers system's events, one per [door](workers.md#doors). Each payload
+also carries `source` (`player`, `ai` or `system`) and `reasonKey`:
+
+| Event                         | Payload                                                                   | Published when                                                |
+| ----------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| `employment.pushChanged`      | `employmentId`, `personId`, `promotionId`, `from`, `to`                   | A worker's card position changes                              |
+| `employment.alignmentChanged` | `employmentId`, `personId`, `promotionId`, `from`, `to`                   | A worker turns                                                |
+| `employment.roleChanged`      | `employmentId`, `personId`, `promotionId`, `from`, `to`                   | A worker's job with the promotion changes                     |
+| `popularity.changed`          | `subjectKind`, `subjectId`, `worldBefore`, `worldAfter`, `regionsChanged` | A person's or promotion's popularity changes in a region      |
+| `momentum.changed`            | `employmentId`, `personId`, `promotionId`, `before`, `after`              | A worker's momentum changes (`before` is null the first time) |
+| `morale.changed`              | `employmentId`, `personId`, `promotionId`, `before`, `after`              | A worker's morale changes                                     |

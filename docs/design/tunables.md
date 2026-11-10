@@ -217,22 +217,28 @@ The reference system's placeholders, in `systems/condition/tunables.ts`. See
 ## Workers tunables
 
 In `systems/workers/tunables.ts`: the weight class limits (see
-[workers.md](workers.md#weight-class)) and the expected push numbers (see
-[workers.md](workers.md#expected-push)).
+[workers.md](workers.md#weight-class)), the expected push numbers (see
+[workers.md](workers.md#expected-push)) and the numbers the doors use (see
+[workers.md](workers.md#doors)).
 
-| Key                                         | Kind    | Default | Range  | Unit      | What it does                                                                                                              |
-| ------------------------------------------- | ------- | ------- | ------ | --------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `workers.weightClass.lightweightMaxKg`      | integer | 70      | 40–250 | kilograms | Heaviest weight that still counts as a lightweight                                                                        |
-| `workers.weightClass.cruiserweightMaxKg`    | integer | 93      | 40–250 | kilograms | Heaviest weight that still counts as a cruiserweight                                                                      |
-| `workers.weightClass.lightHeavyweightMaxKg` | integer | 105     | 40–250 | kilograms | Heaviest weight that still counts as a light heavyweight                                                                  |
-| `workers.weightClass.heavyweightMaxKg`      | integer | 130     | 40–250 | kilograms | Heaviest weight that still counts as a heavyweight; anyone over it is a super heavyweight                                 |
-| `workers.expectedPush.footprintMinPop`      | number  | 10      | 0–100  | points    | Lowest popularity a promotion needs in a region for the region to count as part of its fan base                           |
-| `workers.expectedPush.minPromotionPop`      | number  | 5       | 0–100  | points    | Lowest promotion popularity a worker's popularity is measured against                                                     |
-| `workers.expectedPush.starPop`              | number  | 75      | 0–100  | points    | Popularity among a promotion's fans at which a worker expects the main event anywhere; 100 effectively turns the rule off |
-| `workers.expectedPush.mainEventRatio`       | number  | 0.85    | 0–3    | ratio     | Standing against the promotion at which a worker expects the main event                                                   |
-| `workers.expectedPush.upperCardRatio`       | number  | 0.65    | 0–3    | ratio     | Standing at which a worker expects the upper card                                                                         |
-| `workers.expectedPush.midCardRatio`         | number  | 0.45    | 0–3    | ratio     | Standing at which a worker expects the mid card                                                                           |
-| `workers.expectedPush.lowerCardRatio`       | number  | 0.25    | 0–3    | ratio     | Standing at which a worker expects the lower card; anyone below it expects enhancement work                               |
+| Key                                         | Kind    | Default | Range  | Unit       | What it does                                                                                                              |
+| ------------------------------------------- | ------- | ------- | ------ | ---------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `workers.weightClass.lightweightMaxKg`      | integer | 70      | 40–250 | kilograms  | Heaviest weight that still counts as a lightweight                                                                        |
+| `workers.weightClass.cruiserweightMaxKg`    | integer | 93      | 40–250 | kilograms  | Heaviest weight that still counts as a cruiserweight                                                                      |
+| `workers.weightClass.lightHeavyweightMaxKg` | integer | 105     | 40–250 | kilograms  | Heaviest weight that still counts as a light heavyweight                                                                  |
+| `workers.weightClass.heavyweightMaxKg`      | integer | 130     | 40–250 | kilograms  | Heaviest weight that still counts as a heavyweight; anyone over it is a super heavyweight                                 |
+| `workers.expectedPush.footprintMinPop`      | number  | 10      | 0–100  | points     | Lowest popularity a promotion needs in a region for the region to count as part of its fan base                           |
+| `workers.expectedPush.minPromotionPop`      | number  | 5       | 0–100  | points     | Lowest promotion popularity a worker's popularity is measured against                                                     |
+| `workers.expectedPush.starPop`              | number  | 75      | 0–100  | points     | Popularity among a promotion's fans at which a worker expects the main event anywhere; 100 effectively turns the rule off |
+| `workers.expectedPush.mainEventRatio`       | number  | 0.85    | 0–3    | ratio      | Standing against the promotion at which a worker expects the main event                                                   |
+| `workers.expectedPush.upperCardRatio`       | number  | 0.65    | 0–3    | ratio      | Standing at which a worker expects the upper card                                                                         |
+| `workers.expectedPush.midCardRatio`         | number  | 0.45    | 0–3    | ratio      | Standing at which a worker expects the mid card                                                                           |
+| `workers.expectedPush.lowerCardRatio`       | number  | 0.25    | 0–3    | ratio      | Standing at which a worker expects the lower card; anyone below it expects enhancement work                               |
+| `workers.popularity.anchorFromCharisma`     | number  | 1       | 0–2    | multiplier | How much of a person's charisma sets their popularity anchor; 0 puts every anchor at 0                                    |
+| `workers.popularity.taperSpan`              | number  | 40      | 0–100  | points     | Points above the anchor over which a popularity gain shrinks to nothing; 0 applies the taper floor straight away          |
+| `workers.popularity.taperFloor`             | number  | 0.25    | 0–1    | ratio      | Smallest share of a popularity gain that still lands above the anchor; 0 lets gains stop completely                       |
+| `workers.popularity.dropBelow`              | number  | 0       | 0–10   | points     | A regional popularity that a change leaves below this is removed; 0 removes only exact zeros                              |
+| `workers.momentum.initialPopFactor`         | number  | 1       | 0–2    | multiplier | Share of home-region popularity a first appearance starts momentum from; 0 starts everyone at 0                           |
 
 ### Worker rating weights
 
