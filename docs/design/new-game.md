@@ -178,14 +178,15 @@ reasons plus that step's report, never a world.
 | 600   | `wld.equalStart`               | WLD   | `equalStart`               | Every promotion: cash 1,000,000, prestige 50, popularity 35 in every region of its home country and none elsewhere; all deals removed. |
 | 700   | `wld.rerollPotential`          | WLD   | `rerollPotential`          | WLD-07's `reseedPotential` for everyone (stream `newgame.potential`).                                                                  |
 | 800   | `wld.storeSettings`            | WLD   | always                     | Stores every setting and the season length in `WorldMeta.settings`.                                                                    |
+| 810   | `calendar.scheduleOpening`     | EVT   | always                     | Schedules every show from the start date through start + `calendar.scheduleHorizonDays` (see [calendar.md](calendar.md#horizon)).      |
 | 900+  | pricing, production, networks  | ECO   | ECO's own settings         | Expected here, after the equal start reset, so the reset never throws their work away.                                                 |
 
 After the last step, `createNewGame` publishes `world.created`
 (`{ startDate, seasonLengthDays, promotionId, playerId }`) from the
 `wld.worldCreated` step, checks the finished world with `checkWorld`, and
 builds the `EngineState`: `initialEngineState(world)` with the RNG state as
-the setup left it, the tunable overrides, and the event log holding
-`world.created` as event 1. `createEngine({ state, systems })` accepts it as
+the setup left it, the tunable overrides, and the event log holding the
+opening schedule's `calendar.horizonExtended` followed by `world.created`. `createEngine({ state, systems })` accepts it as
 it is. No system is subscribed yet when new game runs, so `world.created` is
 a record in the event log rather than something a reaction handles; a system
 that needs to change the world at new game registers a setup step instead.

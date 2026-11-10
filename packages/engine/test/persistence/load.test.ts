@@ -66,6 +66,9 @@ describe('loadSave: success', () => {
       savedAt: doc.savedAt,
       label: doc.header.label,
       engineVersion: doc.engineVersion,
+      ...(doc.header.schemaFingerprint === undefined
+        ? {}
+        : { schemaFingerprint: doc.header.schemaFingerprint }),
     });
     expect(serialiseSaveDocument(resaved)).toBe(serialiseSaveDocument(doc));
   });

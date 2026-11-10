@@ -45,6 +45,11 @@ export interface SaveExtras {
   readonly label: string;
   /** The engine build writing the save, normally `ENGINE_VERSION`. */
   readonly engineVersion: string;
+  /**
+   * The writing build's save schema fingerprint (`engineSaveSchemaFingerprint()`), stamped in the
+   * header. Left out, the header has none.
+   */
+  readonly schemaFingerprint?: string;
 }
 
 export interface WorldToDocumentExtras extends SaveExtras {
@@ -130,6 +135,9 @@ function buildHeader(world: SerializedWorld, extras: SaveExtras): SaveHeader {
     daysSimulated: meta.daysSimulated,
     cash: promotion?.cash ?? null,
     label: extras.label,
+    ...(extras.schemaFingerprint === undefined
+      ? {}
+      : { schemaFingerprint: extras.schemaFingerprint }),
   };
 }
 

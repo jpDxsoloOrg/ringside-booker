@@ -25,6 +25,7 @@ Code: `packages/engine/src/persistence/` (`save-document.ts`,
     "daysSimulated": 95,
     "gameDate": "2026-04-10",
     "label": "Before the big show", // 1-60 characters
+    "schemaFingerprint": "ee11af26c283d020881b64555950d42c", // optional; see "Older builds"
     "promotionName": "Test Promotion A", // or null in a sandbox / observer game
     "promotionShortName": "TPA",
     "startDate": "2026-01-05",
@@ -163,7 +164,9 @@ branches on it.
 changes edit v1 in place and the golden fixture
 (`test/fixtures/saves/v1-tiny.json`) is regenerated with
 `npm run fixtures:write -w @ringside/engine`. Nobody has saves worth keeping
-yet, and a migration per schema tweak would only add noise.
+yet, and a migration per schema tweak would only add noise. A save left behind
+by such a change is explained instead of upgraded: see
+[Older builds](#older-builds-until-the-format-freezes).
 
 **From the first public build on, every change to any schema bumps
 `CURRENT_FORMAT_VERSION` and ships a migration and a fixture.** That covers
@@ -172,6 +175,48 @@ framework and its tests exist now, so that day is routine.
 
 A save is never partly loaded. A newer save is refused at the `version` stage
 with a message saying so; an older one is upgraded first or not at all.
+
+## Older builds (until the format freezes)
+
+While v1 is unfrozen, a build that changes a schema makes yesterday's saves
+fail today's load. That is expected, but a list of paths such as
+`state.world.tables.people[3]` reads like a bug. So a save says which shape of
+data it was written with, and a failed load can tell "made with an older build"
+from a real problem.
+
+- **The fingerprint.** `engineSaveSchemaFingerprint()` (`core/api/saveFingerprint.ts`)
+  hashes the JSON Schema of the whole save document, every simulation part
+  included, to 32 hex characters. Any schema edit changes it. Every save the
+  game writes stamps it in the optional header field `schemaFingerprint`. It is
+  optional and never renamed, like every header field, and a save without it
+  still loads when its data is valid.
+- **The guarded stages.** `validate`, `build` and `integrity` are where a
+  schema change shows up.
+- **The rule.** A load that fails at a guarded stage with a fingerprint that is
+  not this build's (a missing one counts as different) is reported as **"Made
+  with an older build"**: one sentence, with Export, Delete and Start a new
+  game, and no issue list. `classifyLoadFailure` in `persistence/compat.ts`
+  decides. A failure with this build's own fingerprint is a real bug and keeps
+  the detailed report. Failures at `decode`, `parse`, `format`, `version` and
+  `migrate` are never reclassified, so a save from a newer build keeps its own
+  message.
+- **Only on failure.** A different fingerprint alone means nothing: a save
+  from an older build that still passes every check just loads.
+
+The fingerprint is a snapshot in the tests
+(`test/fixtures/saves/schema-fingerprint.txt`), so a pull request that changes
+any save schema shows it in its diff. `npm run fixtures:write -w @ringside/engine`
+updates it with the golden save. The value is not frozen: a zod upgrade can
+change the JSON Schema text and with it every fingerprint, which is harmless
+because the fingerprint is only read after a load has already failed.
+
+The web tests keep one frozen old save,
+`apps/web/src/screens/saves/fixtures/older-build.rbsave` (no fingerprint, and
+one row with a field the schema no longer knows). It is never regenerated; it
+has to keep failing the same way as the schemas move on.
+
+Once the format is frozen, new changes ship migrations instead and this guard
+only covers saves from before the freeze.
 
 ## Writing a migration
 

@@ -18,6 +18,7 @@ import {
   createSaveDocumentSchema,
   documentToWorld,
   encodeSave,
+  engineSaveSchemaFingerprint,
   engineSaveState,
   initialEngineState,
   TABLES,
@@ -41,6 +42,7 @@ async function buildSampleSave(): Promise<void> {
     savedAt: golden.savedAt,
     label: golden.header.label,
     engineVersion: golden.engineVersion,
+    schemaFingerprint: engineSaveSchemaFingerprint(),
   });
   const bytes = await encodeSave(doc);
   writeFileSync(SAMPLE_SAVE_PATH, bytes);

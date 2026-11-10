@@ -29,6 +29,7 @@ function engineUnavailable(message: string): LoadSaveFailure {
     issues: [{ path: '', message }],
     truncated: 0,
     storageError: null,
+    compat: null,
   };
 }
 

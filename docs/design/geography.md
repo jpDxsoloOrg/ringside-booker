@@ -135,17 +135,20 @@ come later.
 ## Aggregation
 
 A country's figure is the population-weighted mean of its regions; a
-continent's is the population-weighted mean of its countries. Regions missing
-from the value map count as 0, because popularity maps are sparse.
+continent's is the population-weighted mean of its countries; the world's is
+the population-weighted mean of its continents. Regions missing from the value
+map count as 0, because popularity maps are sparse.
 
 ```
-country value   = Σ over its regions   (region value × region population ÷ country's region population)
-continent value = Σ over its countries (country value × country's region population ÷ continent's region population)
+country value   = Σ over its regions    (region value × region population ÷ country's region population)
+continent value = Σ over its countries  (country value × country's region population ÷ continent's region population)
+world value     = Σ over the continents (continent value × continent's region population ÷ every region's population)
 ```
 
 The weights use the regions' populations (a country's population is the sum of
 its regions here), so the continent value is exactly the population-weighted
-mean over every region on the continent. When nobody lives in a country (every
+mean over every region on the continent, and the world value is the same mean
+over every region on the map. When nobody lives in a country (every
 region has population 0), its regions count equally. A country with no regions
 is 0.
 
@@ -169,6 +172,14 @@ region's value (linked to the region) and its population share. A continent's
 trace has one line per country, and each country line holds that country's own
 trace, so the "Why?" panel can drill from a continent down to a single region.
 
+The world's trace has one line per continent, largest population first, and
+inside each continent one line per country. It stops there: a country is a
+single input line linked to the country, without its regions. The full tree of
+six continents, 45 countries and 83 regions is bigger than one trace is allowed
+to be (see [calculation-traces.md](calculation-traces.md)), and a trace that
+runs out of room drops its last lines, which here would be whole continents.
+The regions are one click away, in the country's or the continent's own Why?.
+
 ```ts
 const geography = geographyOf(world);
 const byCountry = geography.aggregateByCountry(popularity, {
@@ -177,6 +188,90 @@ const byCountry = geography.aggregateByCountry(popularity, {
 });
 byCountry.get(japanId); // { value: 41.2, trace: { label: 'Popularity in Japan', ... } }
 ```
+
+## Popularity roll-up
+
+Popularity is the value that gets rolled up most, so it has its own file on top
+of the aggregates above:
+`packages/engine/src/systems/world/formulas/popularityRollup.ts`. It is the
+single D-03 roll-up. Every feature that shows or checks popularity above a
+region (a worker's profile, a list column, a promotion's fan base, a booking
+check, a rival's decision) reads it from here, for people and promotions
+alike, since both store the same sparse region → popularity record. No other
+file works out a country, continent or world popularity.
+
+The other shared helpers for a person (availability, title eligibility, weight
+class, grades) are in [workers.md](workers.md).
+
+### The four levels
+
+| Level     | Where it comes from                               | Has a Why? |
+| --------- | ------------------------------------------------- | ---------- |
+| Region    | Stored on the person or promotion (`regionalPop`) | No         |
+| Country   | Population-weighted mean of its regions           | Yes        |
+| Continent | Population-weighted mean of its countries         | Yes        |
+| World     | Population-weighted mean of the continents        | Yes        |
+
+**Regions missing count as 0.** A wrestler who has only ever worked the
+Southeast has one entry, and every other region reads as 0 at every level. That
+is what makes a local hero's country figure small: 60 in one region of twelve
+is not 60 in the United States.
+
+### Two ways to ask
+
+```ts
+const geography = geographyOf(read);
+
+// One subject, with explanations: a profile, a detail panel.
+const rollup = popularityRollup(person.regionalPop, geography);
+rollup.world; // Traced<number>, "Popularity worldwide"
+rollup.countries.get(japanId); // Traced<number>, "Popularity in Japan"
+const view = popularityRollupView(rollup, geography); // plain JSON for the query result
+
+// Many subjects, numbers only: a list.
+const roller = createPopularityRoller(geography);
+const values = roller.rollValues(person.regionalPop);
+values.top; // { countryId, value } or null when they have no fans anywhere
+```
+
+- **`popularityRollup`** builds every level with its trace. Use it when the
+  screen shows one person or promotion and the player can ask Why?. The trace
+  label can be changed with `valueLabel` ("Fan base" gives "Fan base in Japan").
+- **`createPopularityRoller(geography).rollValues`** is the fast path. Creating
+  the roller works out every population share once (region in country, country
+  in continent, continent in world); `rollValues` then only multiplies and
+  adds, and builds no trace. Use it for anything that rolls a whole roster or
+  the whole world: list columns, sorting, filters, AI checks. Rolling all 286
+  people of the default world takes about 2 ms. It also returns `top` (the
+  highest country, ties to the lower ID) and `topContinent`, both `null` when
+  every value is 0.
+- The two agree to within 1e-9 on every person and promotion in the default
+  world; a test holds them to it. A list can show the fast number and the
+  profile the traced one without the player ever seeing two different figures.
+
+### The view
+
+`popularityRollupView(rollup, geography)` is what a query hands to a screen:
+
+```
+{ world: { value, trace },
+  continents: [{ id, name, value, trace,
+    countries: [{ id, name, value, trace,
+      regions: [{ id, name, population, value }] }] }] }
+```
+
+Continents and countries are sorted by value, highest first, then by name;
+regions by population. Every place on the map is listed, zeros included, so
+the screen decides what to hide. The traces travel inline as `TraceNode`s and
+are never put in the trace store: a roll-up is worked out on read, has no date
+it happened on and changes whenever popularity does, so storing it would only
+fill the store with copies. List queries return the numbers only.
+
+The roll-up is pure and never reads the world: callers pass `geographyOf(read)`.
+
+On screen, `PopularityDrilldown` (`apps/web/src/components/PopularityDrilldown`)
+draws a view: the worldwide figure, a row per continent that opens into its
+countries, and each country into its regions.
 
 ## Picking a region
 
@@ -202,6 +297,7 @@ chosen; an empty list or all-zero weights is a caller bug and throws.
 | `countryOf(regionId)`, `continentOf(regionId)`        | Where a region is                                       |
 | `aggregateByCountry(values, options?)`                | `Map<CountryId, Traced<number>>`, every country         |
 | `aggregateByContinent(values, options?)`              | `Map<ContinentId, Traced<number>>`, every continent     |
+| `aggregateWorld(values, options?)`                    | `Traced<number>`, the whole map                         |
 | `regionWeight(region)`                                | `population × interest ÷ 100`                           |
 | `pickRegion(stream, candidates, weightFn)`            | One candidate, weighted                                 |
 

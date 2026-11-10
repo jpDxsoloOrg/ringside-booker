@@ -13,13 +13,16 @@
 
 import {
   appendPathSegment,
+  classifyLoadFailure,
   createSaveDocument,
   CURRENT_FORMAT_VERSION,
   encodeSave,
   ENGINE_VERSION,
   engineLoadOptions,
+  engineSaveSchemaFingerprint,
   engineSaveState,
   engineStateFromSave,
+  inspectSave,
   loadSave,
   SAVE_LABEL_MAX_LENGTH,
   serializeError,
@@ -32,6 +35,7 @@ import type {
   LoadIssue,
   LoadStage,
   PromotionId,
+  SaveCompat,
   SaveDocument,
   SaveHeader,
   TunableIssue,
@@ -68,6 +72,11 @@ export interface LoadSaveFailure {
   readonly truncated: number;
   /** The storage problem, when `stage` is `storage`. */
   readonly storageError: StorageError | null;
+  /**
+   * Set when the save failed because it was made with an older build (its schema fingerprint is
+   * not this build's). Null for every other failure, which keeps the detailed report.
+   */
+  readonly compat: SaveCompat | null;
 }
 
 export type LoadSaveResult =
@@ -103,12 +112,46 @@ export function storageLoadFailure(error: StorageError): LoadSaveFailure {
     issues: [{ path: '', message: error.message }],
     truncated: 0,
     storageError: error,
+    compat: null,
   };
 }
 
 /** A load failure at an engine stage with one issue for the whole file. */
 export function stageFailure(stage: LoadStage, message: string): LoadSaveFailure {
-  return { ok: false, stage, issues: [{ path: '', message }], truncated: 0, storageError: null };
+  return {
+    ok: false,
+    stage,
+    issues: [{ path: '', message }],
+    truncated: 0,
+    storageError: null,
+    compat: null,
+  };
+}
+
+/**
+ * Marks a failure as "made with an older build" when it stopped at a guarded stage and the
+ * save's schema fingerprint is not this build's. Only the header is read. A header that cannot be
+ * read leaves the failure as it is.
+ */
+export async function withCompat(
+  failure: LoadSaveFailure,
+  bytes: Uint8Array,
+): Promise<LoadSaveFailure> {
+  const currentFingerprint = engineSaveSchemaFingerprint();
+  if (
+    classifyLoadFailure({ stage: failure.stage, savedFingerprint: null, currentFingerprint }) ===
+    null
+  ) {
+    return failure;
+  }
+  const inspected = await inspectSave(bytes);
+  if (!inspected.ok) return failure;
+  const compat = classifyLoadFailure({
+    stage: failure.stage,
+    savedFingerprint: inspected.header.schemaFingerprint ?? null,
+    currentFingerprint,
+  });
+  return compat === null ? failure : { ...failure, compat };
 }
 
 /** The bytes of one save in a slot, read from storage. */
@@ -141,21 +184,28 @@ export interface DecodedSave {
 export async function decodeSaveBytes(bytes: Uint8Array): Promise<DecodedSave | LoadSaveFailure> {
   const report = await loadSave(bytes, TABLES, engineLoadOptions());
   if (!report.ok) {
-    return {
-      ok: false,
-      stage: report.stage,
-      issues: [...report.issues],
-      truncated: report.truncated,
-      storageError: null,
-    };
+    return withCompat(
+      {
+        ok: false,
+        stage: report.stage,
+        issues: [...report.issues],
+        truncated: report.truncated,
+        storageError: null,
+        compat: null,
+      },
+      bytes,
+    );
   }
   let state: EngineState;
   try {
     state = engineStateFromSave(report.doc);
   } catch (error: unknown) {
-    return stageFailure(
-      'build',
-      `The save could not be turned into a game: ${serializeError(error).message}`,
+    return withCompat(
+      stageFailure(
+        'build',
+        `The save could not be turned into a game: ${serializeError(error).message}`,
+      ),
+      bytes,
     );
   }
   return {
@@ -219,6 +269,7 @@ export async function encodeEngineState(
     savedAt,
     label: headerLabel(label),
     engineVersion: ENGINE_VERSION,
+    schemaFingerprint: engineSaveSchemaFingerprint(),
   });
   const bytes = await encodeSave(doc);
   return {

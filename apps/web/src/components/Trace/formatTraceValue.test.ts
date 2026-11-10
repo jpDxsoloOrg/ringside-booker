@@ -40,6 +40,11 @@ describe('formatTraceNumber', () => {
     expect(formatTraceNumber(4, 'points/day')).toBe('4/day');
   });
 
+  it('shows kilograms with kg', () => {
+    expect(formatTraceNumber(93, 'kilograms')).toBe('93 kg');
+    expect(formatTraceNumber(92.5, 'kilograms')).toBe('92.5 kg');
+  });
+
   it('shows stars with the star sign', () => {
     expect(formatTraceNumber(3.75, 'stars')).toBe('3.75★');
   });

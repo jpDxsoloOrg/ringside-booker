@@ -11,10 +11,11 @@ import { formatGameDate } from '@/components/format';
 import { Icon } from '@/components/Icon';
 import { isStorageError } from '@/storage';
 import type { BackupMeta, ImportResult, SlotRecord } from '@/storage';
-import type { LoadFailureStage } from '@/worker/engineHost';
+import type { LoadFailureStage, LoadSaveFailure } from '@/worker/engineHost';
 import { BackupsSheet } from './BackupsSheet';
 import { LoadErrorSheet, storageProblem } from './LoadErrorSheet';
 import type { SaveProblem } from './LoadErrorSheet';
+import { OlderBuildSheet, olderBuildProblem } from './OlderBuildSheet';
 import { SaveSlotCard } from './SaveSlotCard';
 import styles from './SaveSlotsScreen.module.css';
 import { UNREADABLE_STAGES } from './slotFormat';
@@ -52,7 +53,7 @@ export function importProblem(result: Extract<ImportResult, { ok: false }>): Sav
 
 interface SlotLoadError {
   readonly slot: SlotRecord;
-  readonly problem: SaveProblem;
+  readonly problem: LoadSaveFailure;
 }
 
 interface BackupChoice {
@@ -146,6 +147,10 @@ export function SaveSlotsScreen() {
   };
 
   const listState = saveSlots.state;
+  // A save from an older build gets its own short sheet; every other failure gets the details.
+  const olderBuild =
+    loadError === null ? null : olderBuildProblem(loadError.slot.label, loadError.problem);
+  const detailedError = olderBuild === null ? loadError : null;
 
   return (
     <div className={styles['screen']} aria-busy={pending !== null ? true : undefined}>
@@ -245,19 +250,32 @@ export function SaveSlotsScreen() {
       )}
 
       <LoadErrorSheet
-        problem={loadError?.problem ?? null}
-        title={loadError === null ? '' : `Couldn't load ${loadError.slot.label}`}
+        problem={detailedError?.problem ?? null}
+        title={detailedError === null ? '' : `Couldn't load ${detailedError.slot.label}`}
+        onClose={() => {
+          setLoadError(null);
+        }}
+        exporting={detailedError !== null && exportingSlotId === detailedError.slot.slotId}
+        {...(detailedError === null
+          ? {}
+          : {
+              onExport: () => {
+                void startExport(detailedError.slot);
+              },
+            })}
+      />
+      <OlderBuildSheet
+        olderBuild={olderBuild}
         onClose={() => {
           setLoadError(null);
         }}
         exporting={loadError !== null && exportingSlotId === loadError.slot.slotId}
-        {...(loadError === null
-          ? {}
-          : {
-              onExport: () => {
-                void startExport(loadError.slot);
-              },
-            })}
+        onExport={() => {
+          if (loadError !== null) void startExport(loadError.slot);
+        }}
+        onDelete={async () => {
+          if (loadError !== null) await confirmDelete(loadError.slot);
+        }}
       />
       <LoadErrorSheet
         problem={importError}

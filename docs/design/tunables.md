@@ -54,6 +54,7 @@ Definitions are declared with `defineTunables`. Every definition has:
 | `years`                | Whole or fractional years, such as an age           |
 | `money`, `money/month` | Whole cents (`Cents`). Only allowed on `integer`    |
 | `count`                | A number of things                                  |
+| `kilograms`            | A body weight or a weight limit, in kilograms       |
 | `flag`                 | The unit of every `boolean` tunable, and only those |
 | `choice`               | The unit of every `enum` tunable, and only those    |
 
@@ -212,3 +213,25 @@ The reference system's placeholders, in `systems/condition/tunables.ts`. See
 | ----------------------------------- | ------- | ------- | ----- | ---------- | -------------------------------------------------------------------- |
 | `condition.fatigueRecoveryPerDay`   | number  | 4       | 0–100 | points/day | Fatigue every person sheds each day before any bonus                 |
 | `condition.fatigueRecoveryBonusMax` | integer | 1       | 0–10  | points/day | Largest random extra recovery per day; 0 turns the roll's effect off |
+
+## Workers tunables
+
+The weight class limits, in `systems/workers/tunables.ts`. See
+[workers.md](workers.md#weight-class).
+
+| Key                                         | Kind    | Default | Range  | Unit      | What it does                                                                              |
+| ------------------------------------------- | ------- | ------- | ------ | --------- | ----------------------------------------------------------------------------------------- |
+| `workers.weightClass.lightweightMaxKg`      | integer | 70      | 40–250 | kilograms | Heaviest weight that still counts as a lightweight                                        |
+| `workers.weightClass.cruiserweightMaxKg`    | integer | 93      | 40–250 | kilograms | Heaviest weight that still counts as a cruiserweight                                      |
+| `workers.weightClass.lightHeavyweightMaxKg` | integer | 105     | 40–250 | kilograms | Heaviest weight that still counts as a light heavyweight                                  |
+| `workers.weightClass.heavyweightMaxKg`      | integer | 130     | 40–250 | kilograms | Heaviest weight that still counts as a heavyweight; anyone over it is a super heavyweight |
+
+## Calendar tunables
+
+How far ahead shows are kept, in `systems/calendar/tunables.ts`. See
+[calendar.md](calendar.md#horizon).
+
+| Key                            | Kind    | Default | Range  | Unit | What it does                                                           |
+| ------------------------------ | ------- | ------- | ------ | ---- | ---------------------------------------------------------------------- |
+| `calendar.scheduleHorizonDays` | integer | 90      | 0–730  | days | How far past today shows are stored; 0 stores only today's shows       |
+| `calendar.projectionMaxDays`   | integer | 400     | 0–1100 | days | How far past today the calendar projects shows; 0 turns projection off |

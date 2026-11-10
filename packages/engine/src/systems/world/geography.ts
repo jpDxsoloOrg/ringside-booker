@@ -76,6 +76,13 @@ export interface Geography {
     values: ReadonlyMap<RegionId, number>,
     options?: AggregateOptions,
   ): Map<ContinentId, Traced<number>>;
+  /**
+   * The whole map's population-weighted mean of `values`: each continent's aggregate weighted by
+   * the continent's share of the world's population. Regions missing from `values` count as 0.
+   * The trace lists the continents and, inside each, its countries as single lines; a country's
+   * regions are in that country's own aggregate.
+   */
+  aggregateWorld(values: ReadonlyMap<RegionId, number>, options?: AggregateOptions): Traced<number>;
 }
 
 function compareIds(left: string, right: string): number {
@@ -224,6 +231,46 @@ export function createGeography(source: GeographySource): Geography {
     return weightedMean(`${valueLabel} in ${target.name}`, parts, options, 'No regions, so 0');
   };
 
+  /** A continent's people: the sum of its countries' region populations. */
+  const continentPopulation = (continentId: ContinentId): number =>
+    countriesOf(continentId).reduce((sum, row) => sum + regionPopulation(row.id), 0);
+
+  /** Continents, most populous first (ties by ID), the order the world's trace lists them in. */
+  const continentsByPopulation = continents
+    .map((row) => ({ id: row.id, row, population: continentPopulation(row.id) }))
+    .sort(byPopulation);
+
+  /**
+   * A continent's mean. With `countryDetail` each country line holds that country's own trace,
+   * down to its regions. Without it a country is a single input line, which is how the world's
+   * trace lists them: on the shipped map the full tree of every continent, country and region
+   * would not fit one trace, and the last continents would be cut from the explanation.
+   */
+  const continentAggregate = (
+    target: Continent,
+    values: ReadonlyMap<RegionId, number>,
+    options: AggregateOptions,
+    countryDetail: boolean,
+  ): Traced<number> => {
+    const valueLabel = options.valueLabel ?? 'Value';
+    const parts = countriesOf(target.id).map((member) => {
+      const aggregate = countryAggregate(member, values, options);
+      return {
+        label: member.name,
+        value: countryDetail
+          ? aggregate
+          : inputOf(
+              `${valueLabel} in ${member.name}`,
+              aggregate.value,
+              { kind: 'country', id: member.id },
+              options.unit,
+            ),
+        population: regionPopulation(member.id),
+      };
+    });
+    return weightedMean(`${valueLabel} in ${target.name}`, parts, options, 'No countries, so 0');
+  };
+
   return {
     continents,
     countries,
@@ -243,20 +290,20 @@ export function createGeography(source: GeographySource): Geography {
       return result;
     },
     aggregateByContinent(values, options = {}) {
-      const valueLabel = options.valueLabel ?? 'Value';
       const result = new Map<ContinentId, Traced<number>>();
       for (const row of continents) {
-        const parts = countriesOf(row.id).map((member) => ({
-          label: member.name,
-          value: countryAggregate(member, values, options),
-          population: regionPopulation(member.id),
-        }));
-        result.set(
-          row.id,
-          weightedMean(`${valueLabel} in ${row.name}`, parts, options, 'No countries, so 0'),
-        );
+        result.set(row.id, continentAggregate(row, values, options, true));
       }
       return result;
+    },
+    aggregateWorld(values, options = {}) {
+      const valueLabel = options.valueLabel ?? 'Value';
+      const parts = continentsByPopulation.map((entry) => ({
+        label: entry.row.name,
+        value: continentAggregate(entry.row, values, options, false),
+        population: entry.population,
+      }));
+      return weightedMean(`${valueLabel} worldwide`, parts, options, 'No continents, so 0');
     },
   };
 }

@@ -101,12 +101,15 @@ describe('createNewGame: determinism and the engine state', () => {
     expect(engine.exportState().world).toEqual(state.world);
   });
 
-  it('records world.created as the first event', () => {
+  it('records the opening schedule and then world.created as the first events', () => {
     const { state, summary } = newGame(baseInput());
-    expect(state.events.recent).toHaveLength(1);
-    expect(state.events.recent[0]).toMatchObject({
+    expect(state.events.recent.map((event) => event.type)).toEqual([
+      'calendar.horizonExtended',
+      'world.created',
+    ]);
+    expect(state.events.recent[1]).toMatchObject({
       type: 'world.created',
-      seq: 1,
+      seq: 2,
       date: PACK_START,
       payload: {
         startDate: PACK_START,
@@ -510,6 +513,7 @@ describe('createNewGame: setup steps', () => {
       { id: 'wld.equalStart', order: 600 },
       { id: 'wld.rerollPotential', order: 700 },
       { id: 'wld.storeSettings', order: 800 },
+      { id: 'calendar.scheduleOpening', order: 810 },
     ]);
   });
 
@@ -577,6 +581,7 @@ describe('createNewGame: setup steps', () => {
       'wld.rerollPotential',
       'test.after',
       'wld.storeSettings',
+      'calendar.scheduleOpening',
     ]);
     newGame(baseInput({ settings: { equalStart: true } }));
     expect(seen).toEqual(['before equal start', '650', 'after re-roll']);

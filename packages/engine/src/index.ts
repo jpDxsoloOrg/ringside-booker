@@ -200,7 +200,13 @@ export {
   type SystemPhaseGroup,
 } from './core/pipeline';
 
-export { hashString128, hashString32, stableStringify, type HashWords } from './core/hash';
+export {
+  hashString128,
+  hashString32,
+  hashWordsToHex,
+  stableStringify,
+  type HashWords,
+} from './core/hash';
 export * from './core/rng';
 
 export * from './core/tunables/index';
@@ -489,6 +495,64 @@ export {
 // Geography queries (WLD-04): hierarchy lookups, population-weighted roll-ups and weighted picks.
 export type { AggregateOptions, Geography, GeographySource } from './systems/world/geography';
 export { createGeography, geographyOf, pickRegion, regionWeight } from './systems/world/geography';
+// Workers (WRK1-01): age, availability, title eligibility, weight class, grades, employer and
+// main-role helpers every system and screen shares. See docs/design/workers.md.
+export type {
+  Availability,
+  AvailabilityStatus,
+  Grade,
+  GradeBand,
+  GradeResult,
+  RatingRole,
+  TitleEligibilityCode,
+  WeightClass,
+  WeightClassInputs,
+} from './systems/workers/index';
+export {
+  activeEmploymentsOf,
+  ageOn,
+  AVAILABILITY_STATUSES,
+  availabilityOf,
+  DEBUT_ROLES,
+  experienceYears,
+  GRADE_BANDS,
+  GRADE_BANDS_REASON,
+  gradeFloorOf,
+  gradeOf,
+  GRADES,
+  isEligibleForTitle,
+  isFreeAgent,
+  mainRoleOf,
+  primaryEmploymentOf,
+  RATING_ROLES,
+  ratingRoleOfPersonRole,
+  TITLE_ELIGIBILITY_CODES,
+  WEIGHT_CLASS_DOC_REF,
+  WEIGHT_CLASS_LABELS,
+  WEIGHT_CLASSES,
+  weightClass,
+  workersSystem,
+  workersTunables,
+} from './systems/workers/index';
+// The D-03 popularity roll-up (WRK1-03): world, continents and countries from per-region values.
+export type {
+  PopularityContinentView,
+  PopularityCountryView,
+  PopularityRegionView,
+  PopularityRoller,
+  PopularityRollup,
+  PopularityRollupOptions,
+  PopularityRollupView,
+  PopularityValues,
+  RegionalPopularity,
+  TopContinentPopularity,
+  TopCountryPopularity,
+} from './systems/world/formulas/popularityRollup';
+export {
+  createPopularityRoller,
+  popularityRollup,
+  popularityRollupView,
+} from './systems/world/formulas/popularityRollup';
 // Name generation (WLD-05): weighted name tables, the name registry and the name generator.
 export type {
   NameGeneratorOptions,
@@ -708,6 +772,13 @@ export type {
 export { loadSave } from './persistence/load';
 export type { InspectReport, InspectSuccess } from './persistence/inspect';
 export { inspectSave } from './persistence/inspect';
+export type { CompatGuardedStage, LoadFailureFacts, SaveCompat } from './persistence/compat';
+export { classifyLoadFailure, COMPAT_GUARDED_STAGES } from './persistence/compat';
+export {
+  engineSaveSchemaFingerprint,
+  fingerprintOf,
+  SAVE_SCHEMA_FINGERPRINT_PATTERN,
+} from './core/api/saveFingerprint';
 export type { Migration } from './persistence/migrations/registry';
 export {
   assertMigrationChain,

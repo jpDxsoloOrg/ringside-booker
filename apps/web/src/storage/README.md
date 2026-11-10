@@ -4,7 +4,8 @@ Save slots in the browser: IndexedDB (through `idb`), an autosave per slot,
 three rotating backups and `.rbsave` export and import. Storage keeps bytes
 safe and never looks inside them apart from the header the caller passes in.
 The engine produces and checks the bytes (`encodeSave`, `inspectSave`,
-`loadSave`; see `docs/design/save-format.md`).
+`loadSave`; see `docs/design/save-format.md`). A save from an older build that
+no longer loads is explained, not listed as errors: see "Older builds" there.
 
 Everything is exported from `index.ts`. No function throws at its caller: each
 returns a `StorageResult` (`{ ok: true, value }` or `{ ok: false, error }`),

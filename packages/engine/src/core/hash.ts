@@ -59,6 +59,13 @@ export function hashString128(input: string): HashWords {
   return [laneOne >>> 0, laneTwo >>> 0, laneThree >>> 0, laneFour >>> 0];
 }
 
+const HEX_DIGITS_PER_WORD = 8;
+
+/** Four hash words as 32 lowercase hex characters, first word first. */
+export function hashWordsToHex(words: HashWords): string {
+  return words.map((word) => word.toString(16).padStart(HEX_DIGITS_PER_WORD, '0')).join('');
+}
+
 /**
  * Hashes a string to one unsigned 32-bit word: the first word of {@link hashString128}.
  *

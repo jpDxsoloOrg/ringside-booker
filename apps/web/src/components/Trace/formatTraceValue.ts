@@ -43,6 +43,7 @@ function money(value: number): string {
  * - `ratio` as a plain factor (`0.885`), `multiplier` as `×1.15`, both with up to 3 decimals;
  * - `points` (`37.6`), `points/day` (`4/day`), `stars` (`3.75★`);
  * - `days`, `months` and `years` with their word, `count` grouped (`12,400`), `people` (`12,400 people`);
+ * - `kilograms` as `95 kg`;
  * - anything else, or no unit, as the number with up to 2 decimals.
  */
 export function formatTraceNumber(value: number, unit?: TraceDisplayUnit): string {
@@ -71,6 +72,8 @@ export function formatTraceNumber(value: number, unit?: TraceDisplayUnit): strin
       return plural(value, 'year', 'years');
     case 'people':
       return plural(value, 'person', 'people');
+    case 'kilograms':
+      return `${decimal(value)} kg`;
     case 'points':
     case 'count':
     case 'flag':
