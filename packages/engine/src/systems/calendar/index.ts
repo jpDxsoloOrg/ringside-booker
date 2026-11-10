@@ -7,8 +7,9 @@
  * phase closes shows whose day ended without them running, and `calendar.cancelShow`
  * (`commands.ts`) lets a show's controller call it off. `control.ts` is the one definition of who
  * controls a show. Screens read the schedule through the queries in `queries.ts`, which return the
- * one row shape in `view.ts` and work out the dates past the horizon on read. Nothing here is random, so the system has no random stream. Dates past the
- * horizon are never stored. See docs/design/calendar.md.
+ * one row shape in `view.ts` and work out the dates past the horizon on read. Nothing here is
+ * random, so the system has no random stream. Dates past the horizon are never stored. See
+ * docs/design/calendar.md.
  */
 
 // The event declarations are types only, and the setup step registers itself on import.
