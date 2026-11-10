@@ -265,6 +265,20 @@ Commands other systems add:
 | --------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------- |
 | `calendar.cancelShow` | `{ eventInstanceId }` | Calls off a show the issuer controls and publishes `show.cancelled` ([calendar.md](calendar.md#lifecycle)) |
 
+Queries other systems add:
+
+| Query                | Args                                          | Returns                                                                                                               |
+| -------------------- | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `condition.fatigue`  | `{ personId }`                                | A person's fatigue and the trace behind it, or null                                                                   |
+| `calendar.range`     | `{ from, to, scope, promotionId?, brandId? }` | `{ today, horizonEnd, shows }`: the stored shows in the window ([calendar.md](calendar.md#range))                     |
+| `calendar.projected` | `{ from, to, scope, promotionId?, brandId? }` | `{ today, projectionEnd, shows }`: shows past the horizon, worked out on read ([calendar.md](calendar.md#projection)) |
+| `calendar.show`      | `{ eventInstanceId }`                         | One show's row, placement trace and recurrence wording, or null ([calendar.md](calendar.md#one-show))                 |
+| `calendar.nextShow`  | `{ scope? }`                                  | `{ show, daysUntil }` for the first open show from today, or null ([calendar.md](calendar.md#the-next-show))          |
+
+The calendar queries share one row, `CalendarShow`. `scope` is `mine` or
+`world`; a window may cover at most 366 days and is refused with
+`invalidArgs` on `to` otherwise. See [calendar.md](calendar.md#queries).
+
 ### The status and pending-gate queries
 
 The top bar (UI-10) renders these two and nothing else.
