@@ -489,6 +489,25 @@ export {
 // Geography queries (WLD-04): hierarchy lookups, population-weighted roll-ups and weighted picks.
 export type { AggregateOptions, Geography, GeographySource } from './systems/world/geography';
 export { createGeography, geographyOf, pickRegion, regionWeight } from './systems/world/geography';
+// The D-03 popularity roll-up (WRK1-03): world, continents and countries from per-region values.
+export type {
+  PopularityContinentView,
+  PopularityCountryView,
+  PopularityRegionView,
+  PopularityRoller,
+  PopularityRollup,
+  PopularityRollupOptions,
+  PopularityRollupView,
+  PopularityValues,
+  RegionalPopularity,
+  TopContinentPopularity,
+  TopCountryPopularity,
+} from './systems/world/formulas/popularityRollup';
+export {
+  createPopularityRoller,
+  popularityRollup,
+  popularityRollupView,
+} from './systems/world/formulas/popularityRollup';
 // Name generation (WLD-05): weighted name tables, the name registry and the name generator.
 export type {
   NameGeneratorOptions,
