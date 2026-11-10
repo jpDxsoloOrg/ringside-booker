@@ -9,7 +9,8 @@
  */
 
 import { z } from 'zod';
-import { compareDates } from '../../core/date';
+import { compareDates, type GameDate } from '../../core/date';
+import type { EventDefinitionId } from '../../core/ids';
 import { defineTable } from '../table-def';
 import { zGameDate, zId, zNonNegativeCents, zNonNegativeInt, zStat } from '../primitives';
 import { isPresentIff, zName } from './entity-refinements';
@@ -17,6 +18,19 @@ import { ShowFormatSchema, zEventImportance } from './event-definition';
 
 export const EVENT_INSTANCE_STATUSES = ['scheduled', 'booked', 'completed', 'cancelled'] as const;
 export type EventInstanceStatus = (typeof EVENT_INSTANCE_STATUSES)[number];
+
+/**
+ * Why a show did not happen. `notRun`: its day passed with the show still open, so the day's close
+ * shut it. `byPromotion`: the promotion that owned it called it off.
+ */
+export const CANCELLATION_REASONS = ['notRun', 'byPromotion'] as const;
+export type CancellationReason = (typeof CANCELLATION_REASONS)[number];
+
+/** The reason a show was cancelled and the day that happened. */
+export const EventCancellationSchema = z.strictObject({
+  reason: z.enum(CANCELLATION_REASONS),
+  on: zGameDate,
+});
 
 /**
  * What a completed show produced. The EVT and ECO epics extend it (score components, revenue
@@ -53,6 +67,8 @@ export const EventInstanceSchema = z
     regionId: zId('region'),
     /** Set exactly when the show is completed. */
     result: EventResultSchema.nullable(),
+    /** Set exactly when the show is cancelled. */
+    cancellation: EventCancellationSchema.nullable(),
   })
   .refine((instance) => compareDates(instance.airDate, instance.date) >= 0, {
     message: 'airDate must not be before date',
@@ -61,10 +77,26 @@ export const EventInstanceSchema = z
   .refine((instance) => isPresentIff(instance.result, instance.status === 'completed'), {
     message: 'result is set exactly when status is completed',
     path: ['result'],
+  })
+  .refine((instance) => isPresentIff(instance.cancellation, instance.status === 'cancelled'), {
+    message: 'cancellation is set exactly when status is cancelled',
+    path: ['cancellation'],
   });
 
 export type EventResult = z.infer<typeof EventResultSchema>;
+export type EventCancellation = z.infer<typeof EventCancellationSchema>;
 export type EventInstance = z.infer<typeof EventInstanceSchema>;
+
+/**
+ * The key a recurring show is filed under in the unique `byDefinitionAirDate` index. The calendar
+ * looks a date up with it before scheduling, so a definition never gets two shows for one air date.
+ */
+export function definitionAirDateKey(
+  eventDefinitionId: EventDefinitionId,
+  airDate: GameDate,
+): string {
+  return `${eventDefinitionId}|${airDate}`;
+}
 
 export const eventInstancesTable = defineTable({
   kind: 'eventInstance',
@@ -81,5 +113,19 @@ export const eventInstancesTable = defineTable({
     { name: 'byPromotion', key: (instance) => instance.promotionId },
     { name: 'byDate', key: (instance) => instance.date },
     { name: 'byDefinition', key: (instance) => instance.eventDefinitionId },
+    /** Lets a phase scan only the open (scheduled or booked) shows. */
+    { name: 'byStatus', key: (instance) => instance.status },
+    /**
+     * At most one show per definition and air date, whatever its status. One-offs have no
+     * definition and stay out of the index.
+     */
+    {
+      name: 'byDefinitionAirDate',
+      key: (instance) =>
+        instance.eventDefinitionId === null
+          ? null
+          : definitionAirDateKey(instance.eventDefinitionId, instance.airDate),
+      unique: true,
+    },
   ],
 });

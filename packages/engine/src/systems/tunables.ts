@@ -9,6 +9,7 @@
  */
 
 import { simTunables } from '../core/tunables/simTunables';
+import { calendarTunables } from './calendar/tunables';
 import { conditionTunables } from './condition/tunables';
 import { mergeTunables } from '../core/tunables/define';
 import type { TunableOverrides } from '../core/tunables/overrides';
@@ -20,7 +21,12 @@ import {
 } from '../core/tunables/resolver';
 import { worldTunables } from './world/tunables';
 
-export const ALL_TUNABLES = mergeTunables(simTunables, conditionTunables, worldTunables);
+export const ALL_TUNABLES = mergeTunables(
+  simTunables,
+  conditionTunables,
+  worldTunables,
+  calendarTunables,
+);
 
 /** Every tunable key the engine knows. */
 export type TunableKey = keyof typeof ALL_TUNABLES;

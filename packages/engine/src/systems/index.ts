@@ -10,8 +10,13 @@
 
 import { simSystem } from '../core/api/builtins';
 import type { SystemBundle } from '../core/api/system';
+import { calendarSystem } from './calendar';
 import { conditionSystem } from './condition';
 
-export { conditionSystem };
+export { calendarSystem, conditionSystem };
 
-export const defaultSystems: readonly SystemBundle[] = Object.freeze([simSystem, conditionSystem]);
+export const defaultSystems: readonly SystemBundle[] = Object.freeze([
+  simSystem,
+  conditionSystem,
+  calendarSystem,
+]);

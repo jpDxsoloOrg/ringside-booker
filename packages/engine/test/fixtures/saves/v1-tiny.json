@@ -9,6 +9,7 @@
     "label": "Test save",
     "promotionName": "Test Promotion A",
     "promotionShortName": "TPA",
+    "schemaFingerprint": "ee11af26c283d020881b64555950d42c",
     "startDate": "2026-01-05",
     "worldName": "Test Tiny World"
   },
@@ -794,6 +795,7 @@
           {
             "airDate": "2026-04-09",
             "brandId": "brd_0000000001",
+            "cancellation": null,
             "date": "2026-04-09",
             "eventDefinitionId": "evd_0000000001",
             "format": {

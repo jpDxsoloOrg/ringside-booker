@@ -212,3 +212,13 @@ The reference system's placeholders, in `systems/condition/tunables.ts`. See
 | ----------------------------------- | ------- | ------- | ----- | ---------- | -------------------------------------------------------------------- |
 | `condition.fatigueRecoveryPerDay`   | number  | 4       | 0–100 | points/day | Fatigue every person sheds each day before any bonus                 |
 | `condition.fatigueRecoveryBonusMax` | integer | 1       | 0–10  | points/day | Largest random extra recovery per day; 0 turns the roll's effect off |
+
+## Calendar tunables
+
+How far ahead shows are kept, in `systems/calendar/tunables.ts`. See
+[calendar.md](calendar.md#horizon).
+
+| Key                            | Kind    | Default | Range  | Unit | What it does                                                           |
+| ------------------------------ | ------- | ------- | ------ | ---- | ---------------------------------------------------------------------- |
+| `calendar.scheduleHorizonDays` | integer | 90      | 0–730  | days | How far past today shows are stored; 0 stores only today's shows       |
+| `calendar.projectionMaxDays`   | integer | 400     | 0–1100 | days | How far past today the calendar projects shows; 0 turns projection off |

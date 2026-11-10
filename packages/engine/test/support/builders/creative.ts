@@ -12,7 +12,8 @@
  * - event definition `Test Show 001`: a regular televised weekly show on Mondays with
  *   `format: { slots: 6, preShowSlots: 0 }`, active from `TEST_START_DATE`;
  * - event instance `Test Event 001`: a scheduled one-off on `TEST_START_DATE` in `reg_0000000001`
- *   with the same format. A completed instance gets a default result;
+ *   with the same format. A completed instance gets a default result, and a cancelled one is
+ *   cancelled by its promotion on its own date;
  * - match and angle: the next free main-card slot of their instance (pass `preShow: true` for the
  *   pre-show, or `slot` to pick one). A match is a singles match with no outcome yet; an angle is a
  *   one-beat promo;
@@ -149,6 +150,7 @@ export function anEventInstance(
     venueId: null,
     regionId: testId('region'),
     result: overrides.status === 'completed' ? DEFAULT_EVENT_RESULT : null,
+    cancellation: overrides.status === 'cancelled' ? { reason: 'byPromotion', on: date } : null,
   };
   return buildRow(EventInstanceSchema, 'anEventInstance', defaults, overrides);
 }
