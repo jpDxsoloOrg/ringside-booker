@@ -200,6 +200,9 @@ check, a rival's decision) reads it from here, for people and promotions
 alike, since both store the same sparse region → popularity record. No other
 file works out a country, continent or world popularity.
 
+The other shared helpers for a person (availability, title eligibility, weight
+class, grades) are in [workers.md](workers.md).
+
 ### The four levels
 
 | Level     | Where it comes from                               | Has a Why? |
