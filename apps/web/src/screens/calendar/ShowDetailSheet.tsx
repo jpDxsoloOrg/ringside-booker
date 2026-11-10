@@ -11,6 +11,7 @@ import { Sheet } from '@/components/Sheet';
 import { WhyButton } from '@/components/Trace';
 import styles from './Calendar.module.css';
 import { IMPORTANCE_LABELS } from './importance';
+import { placementTraceInWords, VENUE_NOT_CHOSEN_TEXT } from './placementWording';
 import { useShowSheetActions, useShowSheetSections } from './registry';
 import type { ShowSheetContext } from './registry';
 import { slotsText } from './slotsText';
@@ -66,14 +67,15 @@ function venueFact(show: CalendarShow | CalendarShowDetail): ReactNode {
     show.venue === null
       ? 'Venue not chosen yet'
       : `${show.venue.name} (holds ${formatNumber(show.venue.capacity)})`;
-  const trace = isDetail(show) ? show.placementTrace : null;
-  if (trace === null) return venueText;
+  const placementTrace = isDetail(show) ? show.placementTrace : null;
+  if (placementTrace === null) return venueText;
+  const trace = placementTraceInWords(placementTrace, show.venue?.name ?? null);
   return (
     <span className={styles['factWithWhy']}>
       {venueText}
       <WhyButton
         label="the venue"
-        value={show.venue?.name ?? 'not chosen yet'}
+        value={show.venue?.name ?? VENUE_NOT_CHOSEN_TEXT}
         panelTitle="Where the show is held"
         source={{ trace }}
       />

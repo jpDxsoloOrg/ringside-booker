@@ -134,6 +134,9 @@ describe('ShowDetailSheet', () => {
     );
     const panel = await screen.findByRole('dialog', { name: 'Where the show is held' });
     expect(within(panel).getByText(/The show has a preferred venue/)).toBeInTheDocument();
+    // The outcome is the venue, in words: never the rule's key.
+    expect(within(panel).getAllByText(/Altura Civic Arena/).length).toBeGreaterThan(0);
+    expect(panel).not.toHaveTextContent(/preferredVenue|notChosen/);
   });
 
   it('has no Why? on the venue without the reasoning', () => {
