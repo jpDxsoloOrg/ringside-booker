@@ -241,6 +241,68 @@ describe('aggregateByContinent', () => {
   });
 });
 
+describe('aggregateWorld', () => {
+  const geography = createGeography(testMap());
+
+  it('weights each continent by its share of the world’s population', () => {
+    // Mainland (80M) is 40, Ocean (2M) is 82: (40 × 80 + 82 × 2) ÷ 82 = 41.02...
+    const values = new Map<RegionId, number>([
+      [NORTH, 50],
+      [SOUTH, 10],
+      [SMALL_ALL, 60],
+      [ISLAND_ALL, 82],
+    ]);
+    const result = geography.aggregateWorld(values, { valueLabel: 'Popularity', unit: 'points' });
+    expect(result.value).toBeCloseTo((40 * 80 + 82 * 2) / 82, 9);
+    expectTraceReplays(result);
+    expect(result.trace.label).toBe('Popularity worldwide');
+    expect(result.trace.docRef).toBe('geography.md#aggregation');
+    expect(result.trace.unit).toBe('points');
+    // One line per continent, the most populous first. Inside a continent each country is one
+    // input line: its regions are explained by the country's own aggregate.
+    expect(findTraceNodes(result.trace, 'add').map((node) => node.label)).toEqual([
+      'Mainland',
+      'Bigland',
+      'Smallia',
+      'Ocean',
+      'Isle',
+    ]);
+    expect(findTraceNodes(result.trace, 'formula').map((node) => node.label)).toEqual(
+      expect.arrayContaining(['Popularity in Mainland', 'Popularity in Ocean']),
+    );
+    const countryInputs = findTraceNodes(result.trace, 'input')
+      .filter((node) => node.ref?.kind === 'country')
+      .map((node) => [node.label, node.value, node.ref?.id]);
+    expect(countryInputs).toEqual([
+      ['Popularity in Bigland', 20, BIG_COUNTRY],
+      ['Popularity in Smallia', 60, SMALL_COUNTRY],
+      ['Popularity in Isle', 82, ISLAND],
+    ]);
+    expect(findTraceNodes(result.trace, 'input').some((node) => node.ref?.kind === 'region')).toBe(
+      false,
+    );
+  });
+
+  it('equals the population-weighted mean over every region on the map', () => {
+    const values = new Map<RegionId, number>([
+      [NORTH, 33],
+      [SOUTH, 71],
+      [SMALL_ALL, 12],
+      [ISLAND_ALL, 90],
+    ]);
+    const expected = (33 * 10 + 71 * 30 + 12 * 40 + 90 * 2) / 82;
+    expect(geography.aggregateWorld(values).value).toBeCloseTo(expected, 9);
+  });
+
+  it('is 0 for an empty value map and for a map with no continents', () => {
+    expect(geography.aggregateWorld(new Map()).value).toBe(0);
+    const bare = createGeography({ continents: [], countries: [], regions: [] });
+    const result = bare.aggregateWorld(new Map());
+    expect(result.value).toBe(0);
+    expectTraceReplays(result);
+  });
+});
+
 describe('regionWeight', () => {
   it('is population × interest / 100', () => {
     expect(regionWeight(aRegion({ population: 2_000_000, wrestlingInterest: 35 }))).toBe(700_000);

@@ -528,6 +528,25 @@ export {
   workersSystem,
   workersTunables,
 } from './systems/workers/index';
+// The D-03 popularity roll-up (WRK1-03): world, continents and countries from per-region values.
+export type {
+  PopularityContinentView,
+  PopularityCountryView,
+  PopularityRegionView,
+  PopularityRoller,
+  PopularityRollup,
+  PopularityRollupOptions,
+  PopularityRollupView,
+  PopularityValues,
+  RegionalPopularity,
+  TopContinentPopularity,
+  TopCountryPopularity,
+} from './systems/world/formulas/popularityRollup';
+export {
+  createPopularityRoller,
+  popularityRollup,
+  popularityRollupView,
+} from './systems/world/formulas/popularityRollup';
 // Name generation (WLD-05): weighted name tables, the name registry and the name generator.
 export type {
   NameGeneratorOptions,
