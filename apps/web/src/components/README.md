@@ -131,6 +131,7 @@ export const galleryEntry: GalleryEntry = {
 | `Explained`           | A derived number with its Why? button: the one element a screen needs to show an explained number                                                        |
 | `WhyButton`           | The help button that opens a number's "Why?" panel; one panel is open at a time                                                                          |
 | `TracePanel`          | The "Why?" panel: a calculation trace as readable steps, inline or fetched by `traceRef`                                                                 |
+| `LazyWhyButton`       | A Why? button for a list cell: the trace is built by an engine query (`workers.explain`) only when the panel opens                                       |
 | `PopularityDrilldown` | A person's or promotion's popularity from the world down: continents open into countries, countries into regions, with a Why? on every worked-out figure |
 
 Money is integer `Cents` and dates are `GameDate` strings from `@ringside/engine`; the formatters
@@ -158,6 +159,12 @@ one with `<Explained value={...} label="Attendance" unit="people" trace={...} />
   it, and closing returns focus to the button that opened it.
 - **Older results.** A `traceRef` whose trace has been summarised shows the summary with "Full
   breakdown is only kept for recent results".
+- **Lists explain on demand.** A list query returns numbers only, so a few hundred rows stay
+  small. A cell that shows a derived number puts a
+  `<LazyWhyButton label="Overall" value={72} queryName="workers.explain" args={{ personId, metric: 'overall' }} />`
+  beside it. It looks like `WhyButton` and shares the one open panel, but it asks the engine only
+  when it is opened, shows the loading state meanwhile, and reuses the cached answer after that.
+  `queryName` takes any query whose answer is `{ value, trace }` (`TraceQueryName`).
 
 ## DataTable
 
