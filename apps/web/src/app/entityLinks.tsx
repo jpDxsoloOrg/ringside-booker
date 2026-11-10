@@ -53,6 +53,8 @@ export function workersListUrlFrom(state: unknown): string | null {
 export interface PersonProfileLinkProps {
   readonly personId: PersonId;
   readonly className?: string | undefined;
+  /** A tooltip, for a link whose text is cut short on screen. */
+  readonly title?: string | undefined;
   readonly children: ReactNode;
 }
 
@@ -60,13 +62,19 @@ export interface PersonProfileLinkProps {
  * A link to one worker's profile. It closes whichever "Why?" panel is open on the way, so a name
  * followed from inside a panel never leaves the panel sitting over the new page.
  */
-export function PersonProfileLink({ personId, className, children }: PersonProfileLinkProps) {
+export function PersonProfileLink({
+  personId,
+  className,
+  title,
+  children,
+}: PersonProfileLinkProps) {
   const location = useLocation();
   return (
     <Link
       to={routes.game.worker(personId)}
       state={workerLinkState(location)}
       className={className}
+      title={title}
       onClick={() => {
         useTracePanelStore.setState({ openPanelId: null });
       }}

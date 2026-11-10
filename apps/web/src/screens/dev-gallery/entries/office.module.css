@@ -13,6 +13,14 @@
   max-inline-size: 24rem;
 }
 
+/* A column too narrow for a long name, like a name cell in a crowded table. */
+.narrowColumn {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+  max-inline-size: 14rem;
+}
+
 .chipRow {
   display: flex;
   flex-wrap: wrap;

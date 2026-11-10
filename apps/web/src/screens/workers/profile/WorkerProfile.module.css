@@ -195,8 +195,11 @@
   min-inline-size: 0;
 }
 
+/* As wide as the widest grade ("A+"), so every bar in a group ends at the same place. */
 .gradeChip {
   display: inline-flex;
+  justify-content: center;
+  min-inline-size: 2.5rem;
   padding: 0;
   border: 0;
   border-radius: var(--radius-pill);
@@ -258,7 +261,10 @@
   gap: var(--space-1) var(--space-3);
 }
 
-/* Loading: quiet blocks where the header will be. */
+/*
+ * Loading: quiet blocks the size of what is coming (the picture, the name, the chips, the row of
+ * facts, the tab strip and the first panels), so the page does not jump when the profile arrives.
+ */
 .skeleton {
   display: block;
   block-size: 1rem;
@@ -271,8 +277,30 @@
   inline-size: min(60%, 20rem);
 }
 
-.skeletonShort {
-  inline-size: 60%;
+.skeletonPicture {
+  inline-size: var(--image-size-lg);
+  block-size: var(--image-size-lg);
+  border-radius: var(--radius-md);
+}
+
+.skeletonChips {
+  block-size: 1.5rem;
+  inline-size: min(70%, 14rem);
+  border-radius: var(--radius-pill);
+}
+
+.skeletonFact {
+  block-size: 2.75rem;
+}
+
+.skeletonTabs {
+  block-size: var(--tap-target-min);
+  inline-size: min(100%, 26rem);
+}
+
+.skeletonPanel {
+  block-size: 9rem;
+  border-radius: var(--radius-card);
 }
 
 @media (--bp-mobile) {

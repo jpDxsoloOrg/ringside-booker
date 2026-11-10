@@ -26,7 +26,7 @@ function portraitOf(row: WorkerRow): ImageSubject {
 function NameCell({ row }: { readonly row: WorkerRow }) {
   return (
     <span className={styles['name']}>
-      <WorkerLink personId={row.personId} name={row.ringName} />
+      <WorkerLink personId={row.personId} name={row.ringName} truncate />
       {row.legalName !== row.ringName && (
         <span className={styles['legalName']}>{row.legalName}</span>
       )}
@@ -49,7 +49,9 @@ function OverallCell({ row }: { readonly row: WorkerRow }) {
   return (
     <span className={styles['explained']}>
       <span className="tabular">{formatNumber(rounded)}</span>
-      <Badge tone="data">{row.grade}</Badge>
+      <Badge tone="data" className={styles['grade']}>
+        {row.grade}
+      </Badge>
       <LazyWhyButton
         label={`${row.ringName} overall`}
         value={rounded}

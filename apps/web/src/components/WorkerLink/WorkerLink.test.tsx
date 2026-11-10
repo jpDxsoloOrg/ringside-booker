@@ -63,6 +63,42 @@ describe('WorkerLink', () => {
   });
 });
 
+describe('WorkerLink truncate', () => {
+  const LONG_NAME = 'The Incomparable Grand Duke Maximilian Thunderstone the Third';
+
+  function renderLinks() {
+    const router = createMemoryRouter(
+      [
+        {
+          path: routes.game.roster(),
+          element: (
+            <>
+              <WorkerLink personId={PERSON_ID} name={LONG_NAME} truncate />
+              <WorkerLink personId={PERSON_ID} name="Test Worker 001" />
+            </>
+          ),
+        },
+      ],
+      { initialEntries: [routes.game.roster()], future: routerFutureFlags },
+    );
+    render(<RouterProvider router={router} future={routerProviderFutureFlags} />);
+  }
+
+  it('keeps the whole name as the link text and as its tooltip', () => {
+    renderLinks();
+
+    const link = screen.getByRole('link', { name: LONG_NAME });
+    expect(link).toHaveTextContent(LONG_NAME);
+    expect(link).toHaveAttribute('title', LONG_NAME);
+  });
+
+  it('adds no tooltip to a name that wraps', () => {
+    renderLinks();
+
+    expect(screen.getByRole('link', { name: 'Test Worker 001' })).not.toHaveAttribute('title');
+  });
+});
+
 describe('workersListUrlFrom', () => {
   it('only trusts a workers list URL', () => {
     expect(workersListUrlFrom({ workersListUrl: '/game/workers?role=referee' })).toBe(

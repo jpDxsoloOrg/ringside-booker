@@ -43,6 +43,28 @@ describe('GalleryScreen', () => {
     expect(await screen.findByRole('heading', { level: 2, name: 'StatBar' })).toBeInTheDocument();
   });
 
+  it('shows the worker profile header with section headings, never a second page heading', async () => {
+    renderGallery('/dev/gallery#worker-profile-header');
+    await screen.findByRole('heading', { level: 2, name: 'Worker profile header' });
+
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+    expect(screen.getByRole('heading', { level: 3, name: 'Gallery Champion' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 3, name: 'Sample Rookie' })).toBeInTheDocument();
+    expect(screen.getByText('Free agent')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Why is Weight class Super heavyweight?' }),
+    ).toBeInTheDocument();
+  });
+
+  it('shows worker links, wrapped and cut to one line', async () => {
+    renderGallery('/dev/gallery#worker-link');
+    await screen.findByRole('heading', { level: 2, name: 'WorkerLink' });
+
+    const links = screen.getAllByRole('link', { name: 'Gallery Champion' });
+    expect(links).toHaveLength(2);
+    expect(links.filter((link) => link.hasAttribute('title'))).toHaveLength(1);
+  });
+
   it('falls back to the first entry for an unknown hash', async () => {
     renderGallery('/dev/gallery#no-such-entry');
     await screen.findByRole('heading', { level: 1, name: 'Component gallery' });

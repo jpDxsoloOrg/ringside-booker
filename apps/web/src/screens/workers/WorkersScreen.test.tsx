@@ -164,6 +164,16 @@ describe('WorkersScreen', () => {
     expect(cells.getByRole('button', { name: /^Why is .+ overall \d+\?$/ })).toBeInTheDocument();
   });
 
+  it('keeps the whole ring name on a name that may be cut short on screen', async () => {
+    renderWorkers(`${routes.game.workers()}?sort=ringName:asc`);
+    const [first] = await findRows();
+    if (first === undefined) throw new Error('The list has no rows.');
+
+    const [nameLink] = within(first).getAllByRole('link');
+    expect(nameLink).toHaveAccessibleName(/^Test /);
+    expect(nameLink).toHaveAttribute('title', nameLink?.textContent);
+  });
+
   it('sorts by the column the URL names and writes a new sort back', async () => {
     const { router, user, listArgs } = renderWorkers(`${routes.game.workers()}?sort=age:asc`);
     await findRows();

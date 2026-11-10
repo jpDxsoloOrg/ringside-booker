@@ -79,8 +79,22 @@ describe('gallery registry', () => {
         'delta-chip',
         'sparkline',
         'alignment-chip',
+        'availability-chip',
+        'worker-link',
+        'worker-profile-header',
         'champion-card',
         'stat-table',
+      ]),
+    );
+  });
+
+  it('has an entry for every piece of the Workers screens', () => {
+    expect(galleryEntries.map((entry) => entry.id)).toEqual(
+      expect.arrayContaining([
+        'popularity-drilldown',
+        'availability-chip',
+        'worker-link',
+        'worker-profile-header',
       ]),
     );
   });
