@@ -20,3 +20,6 @@ tools/blog/.env.local
 CLAUDE.md
 .claude/
 research/
+
+# Local ticket notes
+issues/
