@@ -119,18 +119,121 @@ preferred venue was used (`preferredVenue`) or left open (`notChosen`).
 
 A show moves `scheduled` → `booked` → `completed`, or ends as `cancelled`.
 
+| Status      | Meaning                                                |
+| ----------- | ------------------------------------------------------ |
+| `scheduled` | On the books with no finished card                     |
+| `booked`    | Its card is locked in and it is waiting for its day    |
+| `completed` | It ran. The row carries its `result`                   |
+| `cancelled` | It will not happen. The row carries its `cancellation` |
+
+`scheduled` and `booked` are the two **open** statuses. `completed` and
+`cancelled` are final: nothing moves a show out of either.
+
 A cancelled show carries a `cancellation` record, `{ reason, on }`, so the two
 ways a show can fail to happen stay apart:
 
 | Reason        | Meaning                                   |
 | ------------- | ----------------------------------------- |
-| `notRun`      | Its day passed with the show still open   |
-| `byPromotion` | The promotion that owned it called it off |
+| `notRun`      | Its day ended with the show still open    |
+| `byPromotion` | The controller that runs it called it off |
+
+`on` is the day the show was cancelled, not the show's own date. A show for
+20 January called off on the 5th has `on` set to the 5th, which is what lets
+the show sheet say "Cancelled by you on 5 Jan".
 
 `cancellation` is set exactly when the status is `cancelled`, the same way
 `result` is set exactly when the status is `completed`. The `byStatus` index
 lets a phase read only the open shows instead of scanning every stored one.
 
-The rules for closing an unrun show, who may cancel a show and what cancelling
-costs are part of the show lifecycle work and are written up here when they
-land.
+### Closing shows that did not run
+
+The phase `calendar.closePastShows` (settlement, order 90, daily) keeps the
+calendar honest. It takes every open show dated **today or earlier**, in id
+order, sets it to `cancelled` with reason `notRun`, and publishes one
+`show.cancelled` for each. At the end of any day, no `scheduled` or `booked`
+show is dated on or before that day.
+
+Why there, and not earlier in the day:
+
+- It runs after the whole `shows` group. A show that ran today is already
+  `completed` by the time the close looks, so only the ones nobody ran are
+  closed. Until show night exists, that is every show.
+- It runs in `settlement` at a high order, after anything that settles a
+  show's takings, and before `growth`, `money` and the periodic jobs, so they
+  all see the day's final statuses.
+- "Today or earlier" rather than "today" is the safety net. If the close
+  itself fails one day, its writes are rolled back and the shows stay open;
+  the next day's run picks them up.
+
+A feature that needs to react to an unrun show (a missed TV airing, lost
+momentum) subscribes to `show.cancelled`. It does not move this phase or run
+ahead of it.
+
+A booked show that does not run closes the same way as an unbooked one. The
+row does not say whether it had a card; a screen that wants to tell "Not run"
+from "Not run (no card)" counts the show's segments.
+
+### Who controls a show
+
+One rule, in `control.ts`, used by every command, gate and screen that needs
+to know whose show it is:
+
+1. If the show belongs to a brand and that brand has a controller of its own,
+   that controller runs the show.
+2. Otherwise the promotion's controller does.
+
+So a brand handed to a second player, or to the computer as a GM, takes its
+shows with it, and a promotion-wide show always stays with the promotion.
+
+| Helper                                   | Answers                                          |
+| ---------------------------------------- | ------------------------------------------------ |
+| `showControllerOf(read, show)`           | The controller that runs the show                |
+| `sameController(a, b)`                   | Both the computer, or both the same human player |
+| `controlsShow(read, show, controller)`   | Does this controller run the show?               |
+| `viewerControlsShow(read, show, viewer)` | The same for a query's viewer                    |
+
+The omniscient viewer sees every show and runs none, so
+`viewerControlsShow` is always false for it. Two computer controllers count
+as the same controller: the computer is one seat, however many promotions it
+runs.
+
+Nothing else reads a brand's or a promotion's `controller` to decide who may
+act on a show.
+
+### Cancelling a show
+
+`calendar.cancelShow { eventInstanceId }` calls off one show. Schedules are
+public, so anyone can see a rival's shows, but only the controller that runs
+a show can cancel it. The first rule that fails is the one the player is
+told about:
+
+| Code               | Refused when                            | The player reads                                                   |
+| ------------------ | --------------------------------------- | ------------------------------------------------------------------ |
+| `notFound`         | There is no such show                   | "That show no longer exists."                                      |
+| `notYourShow`      | The issuer is not the show's controller | "Only the promotion (or brand) that runs this show can cancel it." |
+| `alreadyCancelled` | The show is cancelled                   | "This show has already been cancelled."                            |
+| `alreadyCompleted` | The show has run                        | "This show has already taken place."                               |
+| `showInPast`       | The show's date is before today         | "This show's day has passed."                                      |
+
+Today's show can still be cancelled before the day runs. A human can never
+cancel a computer promotion's show, and the computer can only cancel shows
+the computer runs. Like every command, it is refused while the game is moving
+forward.
+
+When it applies, the show becomes `cancelled` with reason `byPromotion` and
+today's date, and `show.cancelled` is published. Three things it does not do:
+
+- **It never deletes the row.** The cancelled show keeps its place in the
+  `byDefinitionAirDate` index, so the daily horizon skips that date for good
+  and a cancelled show never comes back.
+- **It does not touch the show's segments.** What happens to a locked card
+  when its show is cancelled belongs to booking.
+- **It costs nothing and upsets nobody.** Cancelling has no price and no
+  effect on anyone's morale here. If a later feature adds a reaction, it has
+  to follow D-09.
+
+### Events
+
+- `show.cancelled { eventInstanceId, promotionId, date, reason }`: one per
+  show closed by the daily phase (`notRun`) and one per cancel command
+  (`byPromotion`). `date` is the show's date.

@@ -417,11 +417,15 @@ export type { RecurrenceView } from './model/recurrence';
  */
 export * as recurrence from './model/recurrence';
 export type {
+  CancellationReason,
+  EventCancellation,
   EventInstance,
   EventInstanceStatus,
   EventResult,
 } from './model/entities/event-instance';
 export {
+  CANCELLATION_REASONS,
+  EventCancellationSchema,
   EVENT_INSTANCE_STATUSES,
   EventInstanceSchema,
   eventInstancesTable,
@@ -498,22 +502,54 @@ export { createGeography, geographyOf, pickRegion, regionWeight } from './system
 // Workers (WRK1-01): age, availability, title eligibility, weight class, grades, employer and
 // main-role helpers every system and screen shares. See docs/design/workers.md.
 export type {
+  ApplyMomentumChangeArgs,
+  ApplyMoraleChangeArgs,
+  ApplyPopularityChangeArgs,
   Availability,
   AvailabilityStatus,
+  DoorContext,
+  DoorReason,
+  DoorResult,
+  DoorSource,
   Grade,
   GradeBand,
   GradeResult,
+  PopularityAnchorInputs,
+  PopularityChangeInputs,
+  PopularityDoorResult,
+  PopularitySubject,
+  PopularitySubjectKind,
   RatingRole,
+  ExpectedPushInputs,
+  FanBase,
+  FanBaseRegion,
+  FootprintPopularityInputs,
+  FootprintRegion,
+  FootprintRegionalPop,
+  PushStanding,
+  RatingWeightKey,
+  RoleRatingInputs,
+  SetAlignmentArgs,
+  SetPushArgs,
+  SetRoleArgs,
+  SetRoleProblemCode,
   TitleEligibilityCode,
   WeightClass,
   WeightClassInputs,
 } from './systems/workers/index';
+// The doors (WRK1-04) are the only way to change push, alignment, role, regional popularity,
+// momentum and morale after world creation. See docs/design/workers.md#doors.
 export {
   activeEmploymentsOf,
   ageOn,
+  applyMomentumChange,
+  applyMoraleChange,
+  applyPopularityChange,
   AVAILABILITY_STATUSES,
   availabilityOf,
   DEBUT_ROLES,
+  DOOR_TRACE_KINDS,
+  DOORS_DOC_REF,
   experienceYears,
   GRADE_BANDS,
   GRADE_BANDS_REASON,
@@ -523,9 +559,18 @@ export {
   isEligibleForTitle,
   isFreeAgent,
   mainRoleOf,
+  POPULARITY_DOC_REF,
+  popularityAnchor,
+  popularityChange,
   primaryEmploymentOf,
   RATING_ROLES,
   ratingRoleOfPersonRole,
+  ROLE_CHANGED_REASON_KEY,
+  SET_ROLE_PROBLEM_CODES,
+  setAlignment,
+  setPush,
+  setRole,
+  setRoleProblems,
   TITLE_ELIGIBILITY_CODES,
   WEIGHT_CLASS_DOC_REF,
   WEIGHT_CLASS_LABELS,
@@ -534,6 +579,43 @@ export {
   workersSystem,
   workersTunables,
 } from './systems/workers/index';
+// Role ratings and expected push (WRK1-02): the rating per role, popularity among a promotion's
+// fans and the card position a worker would expect there. See docs/design/workers.md.
+export {
+  CREW_NOT_PUSHED_RULE,
+  CREW_ROLES,
+  DEFAULT_RATING_WEIGHTS,
+  EXPECTED_PUSH_DOC_REF,
+  expectedPush,
+  expectedPushAt,
+  fanBaseOf,
+  footprintPopularity,
+  footprintPopularityAt,
+  footprintPopularityValue,
+  NO_FANS_NOTE,
+  NO_WEIGHTS_NOTE,
+  OCCASIONAL_WRESTLER_NOTE,
+  overallByRole,
+  overallOf,
+  PUSH_LABELS,
+  pushStanding,
+  RATING_ROLE_LABELS,
+  ratingWeightKey,
+  ratingWeightTunables,
+  ROLE_RATINGS_DOC_REF,
+  roleRating,
+  STAR_REASON,
+} from './systems/workers/index';
+// Calendar (EVT1): who controls a show, the one definition every booking command, gate and screen
+// shares, and the cancellation record. See docs/design/calendar.md#lifecycle.
+export type { CancelShowReasonCode, ShowOwnership } from './systems/calendar/index';
+export {
+  CANCEL_SHOW_REASON_CODES,
+  controlsShow,
+  sameController,
+  showControllerOf,
+  viewerControlsShow,
+} from './systems/calendar/index';
 // The D-03 popularity roll-up (WRK1-03): world, continents and countries from per-region values.
 export type {
   PopularityContinentView,
