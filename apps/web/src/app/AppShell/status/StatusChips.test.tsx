@@ -1,6 +1,6 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { cents, parseGameDate, parseId } from '@ringside/engine';
+import { cents, parseGameDate, parseId, startCalc } from '@ringside/engine';
 import type { SimStatus } from '@ringside/engine';
 import { registerStatusChip } from './statusChipRegistry';
 import { StatusChip, StatusChips } from './StatusChips';
@@ -11,12 +11,14 @@ const STATUS: SimStatus = {
   promotion: {
     promotionId: parseId('promotion', 'pro_00000000ab'),
     name: 'Harbor City Wrestling',
+    shortName: 'HCW',
     cash: cents(-250_000),
     popularity: {
       homeRegionId: parseId('region', 'reg_00000000ab'),
       homeRegion: 64,
       prestige: 58,
       traceRef: null,
+      trace: startCalc('Popularity in Harbor City', 64).done().trace,
     },
   },
 };
@@ -35,6 +37,10 @@ describe('StatusChips', () => {
     expect(screen.getByTestId('date-chip')).toHaveTextContent('Season 3');
     expect(screen.getByTestId('popularity-chip')).toHaveTextContent('64');
     expect(screen.getByTestId('popularity-chip')).toHaveTextContent('Prestige 58');
+    // The popularity has a Why? even before a system stores a trace for it (UI-19).
+    expect(
+      within(screen.getByTestId('popularity-chip')).getByRole('button', { name: /^Why is /u }),
+    ).toBeInTheDocument();
     expect(screen.getByTestId('promotion-chip')).toHaveTextContent('Harbor City Wrestling');
   });
 

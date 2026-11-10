@@ -1,11 +1,12 @@
 /**
  * New-game settings: the options the new-game wizard shows, declared in one registry.
  *
- * The wizard renders straight from this registry, so an option only appears once a system has
- * implemented it and registered it here. The four settings `WorldMeta.settings` names
- * (`agingEnabled`, `sandbox`, `generationLevel`, `levelPlayingField`) are stored in their typed
- * fields; every other registered setting is stored by key in `WorldMeta.settings.extra`. Season
- * length is not a setting here: it has its own presets (see `season.ts`).
+ * The wizard renders from the preview's settings list; `groupSettings` filters out some until
+ * systems that read them exist. An option only appears once it has a registration and is not
+ * hidden by `SKIPPED_SETTING_KEYS`. The four settings `WorldMeta.settings` names (`agingEnabled`,
+ * `sandbox`, `generationLevel`, `levelPlayingField`) are stored in their typed fields; every
+ * other registered setting is stored by key in `WorldMeta.settings.extra`. Season length is not
+ * a setting here: it has its own presets (see `season.ts`).
  *
  * Systems read a setting with {@link getSetting}, which is typed through {@link NewGameSettingMap}.
  * A system that registers a setting adds its key to that map by declaration merging, the same way

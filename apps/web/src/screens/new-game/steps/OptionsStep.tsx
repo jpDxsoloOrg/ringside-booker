@@ -39,8 +39,13 @@ function groupSettings(
   settings: readonly NewGameSettingDef[],
 ): readonly { group: NewGameSettingGroup; settings: NewGameSettingDef[] }[] {
   const groups: { group: NewGameSettingGroup; settings: NewGameSettingDef[] }[] = [];
+
+  /** Hide these until systems that read them exist. They are still stored in the draft so they can be used later. */
+  const SKIPPED_SETTING_KEYS = new Set(['agingEnabled', 'sandbox', 'generationLevel']);
+
   for (const definition of settings) {
     const existing = groups.find((entry) => entry.group === definition.group);
+    if (SKIPPED_SETTING_KEYS.has(definition.key)) continue;
     if (existing === undefined) {
       groups.push({ group: definition.group, settings: [definition] });
     } else {

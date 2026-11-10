@@ -89,7 +89,10 @@ describe('SaveSlotsScreen list', () => {
 
     await user.click(await screen.findByRole('button', { name: 'New game' }));
 
-    expect(router.state.location.pathname).toBe(routes.newGame());
+    // The wizard is lazily loaded, so the navigation lands once its chunk is in.
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe(routes.newGame());
+    });
   });
 
   it('marks a save from an older format as needing an upgrade', async () => {

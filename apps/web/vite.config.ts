@@ -49,6 +49,25 @@ export default defineConfig(({ command }) => ({
   },
   build: {
     target: 'es2022',
+    rollupOptions: {
+      output: {
+        /**
+         * Large libraries go in their own chunks, so the main bundle stays under Vite's 500 kB
+         * warning and a code change does not invalidate the cached vendor files (UI-21).
+         */
+        manualChunks: (id: string): string | undefined => {
+          if (!id.includes('/node_modules/')) return undefined;
+          if (/\/node_modules\/(react|react-dom|scheduler)\//.test(id)) return 'react';
+          if (/\/node_modules\/(react-router|react-router-dom|@remix-run)\//.test(id)) {
+            return 'react-router';
+          }
+          if (id.includes('/node_modules/@radix-ui/')) return 'radix-ui';
+          if (id.includes('/node_modules/@tanstack/')) return 'tanstack';
+          if (id.includes('/node_modules/lucide-react/')) return 'lucide';
+          return undefined;
+        },
+      },
+    },
   },
   test: {
     name: 'web',

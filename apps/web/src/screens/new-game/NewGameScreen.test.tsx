@@ -299,7 +299,7 @@ describe('NewGameScreen', () => {
     expect(shortName).not.toHaveAttribute('aria-invalid');
   });
 
-  it('renders every setting the preview registers, including one added by a test', async () => {
+  it('renders every setting the preview registers except the ones no system reads yet', async () => {
     chooseExistingPromotion();
     renderWizard('/new?step=3');
     await expectStepHeading('Game options');
@@ -307,9 +307,9 @@ describe('NewGameScreen', () => {
     const testSwitch = screen.getByRole('switch', { name: 'Test rivalry rule' });
     expect(testSwitch).toHaveAccessibleDescription(TEST_SETTING.description);
     expect(testSwitch).not.toBeChecked();
-    expect(screen.getByRole('switch', { name: 'Aging' })).toBeChecked();
-    expect(screen.getByRole('group', { name: 'New content' })).toBeInTheDocument();
-    expect(screen.getByRole('radio', { name: 'Low' })).toBeChecked();
+    // Aging, sandbox and new content are registered but hidden until a system reads them (WLD-13).
+    expect(screen.queryByRole('switch', { name: 'Aging' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('group', { name: 'New content' })).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 3, name: 'Difficulty' })).toBeInTheDocument();
   });
 

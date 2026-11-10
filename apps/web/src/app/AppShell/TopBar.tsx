@@ -54,10 +54,14 @@ function PageTitle({ location, compact }: PageTitleProps) {
     return <p className={styles['pageTitle']}>Ringside Booker</p>;
   }
   if (compact) {
-    return <p className={styles['pageTitle']}>{location.item.label}</p>;
+    return (
+      <p className={styles['pageTitle']} title={location.item.label}>
+        {location.item.label}
+      </p>
+    );
   }
   return (
-    <p className={styles['pageTitle']}>
+    <p className={styles['pageTitle']} title={`${location.section.label} › ${location.item.label}`}>
       <span className={styles['crumbSection']}>{location.section.label}</span>
       <span className={styles['crumbSeparator']} aria-hidden="true">
         ›

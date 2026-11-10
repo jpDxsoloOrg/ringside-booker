@@ -1,11 +1,5 @@
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
 import type { RouteObject } from 'react-router-dom';
-import {
-  GALLERY_FRAME_PATH,
-  GalleryFrameScreen,
-  GalleryScreen,
-} from '@/screens/dev-gallery/GalleryScreen';
-import { NewGameScreen } from '@/screens/new-game/NewGameScreen';
 import { NotFoundScreen } from '@/screens/not-found/NotFoundScreen';
 import { PlaceholderScreen } from '@/screens/placeholder/PlaceholderScreen';
 import { SaveSlotsScreen } from '@/screens/saves/SaveSlotsScreen';
@@ -53,12 +47,25 @@ function RootLayout() {
 }
 
 /**
- * The component gallery ships in every build on purpose: it is small, linked from no navigation,
- * and handy for checking a deployed build on a real phone.
+ * The component gallery ships in every build on purpose: it is linked from no navigation and
+ * handy for checking a deployed build on a real phone. It renders every component entry, so it
+ * loads as its own chunk the first time it is opened instead of sitting in the main bundle (UI-21).
  */
 const galleryRoutes: RouteObject[] = [
-  { path: routes.dev.gallery(), element: <GalleryScreen /> },
-  { path: GALLERY_FRAME_PATH, element: <GalleryFrameScreen /> },
+  {
+    path: routes.dev.gallery(),
+    lazy: async () => {
+      const { GalleryScreen } = await import('@/screens/dev-gallery/GalleryScreen');
+      return { Component: GalleryScreen };
+    },
+  },
+  {
+    path: routes.dev.galleryFrame(),
+    lazy: async () => {
+      const { GalleryFrameScreen } = await import('@/screens/dev-gallery/GalleryScreen');
+      return { Component: GalleryFrameScreen };
+    },
+  },
 ];
 
 /** The screens outside a game, in the centred layout with no navigation. */
@@ -116,7 +123,15 @@ export function buildAppRoutes({ includeDevRoutes }: AppRouteOptions): RouteObje
         // column.
         {
           element: <OutOfGameLayout width="wide" />,
-          children: [{ path: routes.newGame(), element: <NewGameScreen /> }],
+          children: [
+            {
+              path: routes.newGame(),
+              lazy: async () => {
+                const { NewGameScreen } = await import('@/screens/new-game/NewGameScreen');
+                return { Component: NewGameScreen };
+              },
+            },
+          ],
         },
         gameRoute,
         ...galleryRoutes,

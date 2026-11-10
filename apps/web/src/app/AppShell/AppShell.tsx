@@ -18,10 +18,12 @@ import styles from './AppShell.module.css';
 import { BottomNav } from './BottomNav';
 import { AdvanceSummary } from './day/AdvanceSummary';
 import { DayAdvanceProvider } from './day/DayAdvanceProvider';
+import { EnginePromotion } from './EnginePromotion';
 import { LoadNoticeBanner } from './LoadNoticeBanner';
 import { MoreSheet } from './MoreSheet';
 import { NextDaySlot } from './NextDaySlot';
 import { shellPreview } from './shellPreview';
+import type { ShellPromotion } from './shellPreview';
 import { Sidebar } from './Sidebar';
 import { StatusStrip } from './StatusStrip';
 import { TopBar } from './TopBar';
@@ -113,74 +115,87 @@ export function AppShell({
     ) : (
       ticker
     );
-  const promotion = preview.promotion;
-  const crest =
-    isMobile && promotion !== null ? (
-      <ImageSlot
-        subject={{
-          kind: 'promotion',
-          id: promotion.id,
-          name: promotion.name,
-          shortName: promotion.shortName,
-        }}
-        size="sm"
-        decorative
-      />
-    ) : undefined;
+  const renderShell = (promotion: ShellPromotion | null, sample: boolean) => {
+    const crest =
+      isMobile && promotion !== null ? (
+        <ImageSlot
+          subject={{
+            kind: 'promotion',
+            id: promotion.id,
+            name: promotion.name,
+            shortName: promotion.shortName,
+          }}
+          size="sm"
+          decorative
+        />
+      ) : undefined;
 
-  const shell = (
-    <div
-      className={styles['shell']}
-      data-layout={isMobile ? 'mobile' : 'desktop'}
-      data-ticker={tickerContent === null ? 'off' : 'on'}
-    >
-      <SkipLink />
-      {!isMobile && (
-        <Sidebar sections={visibleSections} badges={badges} promotion={promotion} sample />
-      )}
-      <TopBar
-        location={navLocation}
-        compact={isMobile}
-        {...(crest === undefined ? {} : { crest })}
-        {...(topBarStart === undefined ? {} : { start: topBarStart })}
-        {...(topBarEnd === undefined ? {} : { end: topBarEnd })}
-      />
-      <main id={MAIN_CONTENT_ID} tabIndex={-1} className={styles['main']}>
-        <div className={styles['content']}>
-          {hasEngine && <AdvanceSummary />}
-          <LoadNoticeBanner />
-          {children ?? <Outlet />}
-        </div>
-      </main>
-      {tickerContent !== null && (
-        <div className={styles['tickerSlot']} data-testid="ticker-slot">
-          {tickerContent}
-        </div>
-      )}
-      {isMobile && (
-        <>
-          <BottomNav
-            items={primaries}
-            badges={badges}
-            moreCount={countBehindMore(visibleSections, primaries, badges)}
-            moreIsCurrent={moreIsCurrent}
-            moreOpen={moreOpen}
-            onOpenMore={() => {
-              setMoreOpenedAt(location.key);
-            }}
-          />
-          <MoreSheet
-            open={moreOpen}
-            onClose={() => {
-              setMoreOpenedAt(null);
-            }}
+    return (
+      <div
+        className={styles['shell']}
+        data-layout={isMobile ? 'mobile' : 'desktop'}
+        data-ticker={tickerContent === null ? 'off' : 'on'}
+      >
+        <SkipLink />
+        {!isMobile && (
+          <Sidebar
             sections={visibleSections}
             badges={badges}
+            promotion={promotion}
+            sample={sample}
           />
-        </>
-      )}
-    </div>
-  );
+        )}
+        <TopBar
+          location={navLocation}
+          compact={isMobile}
+          {...(crest === undefined ? {} : { crest })}
+          {...(topBarStart === undefined ? {} : { start: topBarStart })}
+          {...(topBarEnd === undefined ? {} : { end: topBarEnd })}
+        />
+        <main id={MAIN_CONTENT_ID} tabIndex={-1} className={styles['main']}>
+          <div className={styles['content']}>
+            {hasEngine && <AdvanceSummary />}
+            <LoadNoticeBanner />
+            {children ?? <Outlet />}
+          </div>
+        </main>
+        {tickerContent !== null && (
+          <div className={styles['tickerSlot']} data-testid="ticker-slot">
+            {tickerContent}
+          </div>
+        )}
+        {isMobile && (
+          <>
+            <BottomNav
+              items={primaries}
+              badges={badges}
+              moreCount={countBehindMore(visibleSections, primaries, badges)}
+              moreIsCurrent={moreIsCurrent}
+              moreOpen={moreOpen}
+              onOpenMore={() => {
+                setMoreOpenedAt(location.key);
+              }}
+            />
+            <MoreSheet
+              open={moreOpen}
+              onClose={() => {
+                setMoreOpenedAt(null);
+              }}
+              sections={visibleSections}
+              badges={badges}
+            />
+          </>
+        )}
+      </div>
+    );
+  };
 
-  return hasEngine ? <DayAdvanceProvider>{shell}</DayAdvanceProvider> : shell;
+  // With an engine the crest shows the promotion the save runs (UI-18); without one, the sample.
+  return hasEngine ? (
+    <DayAdvanceProvider>
+      <EnginePromotion fallback={preview.promotion}>{renderShell}</EnginePromotion>
+    </DayAdvanceProvider>
+  ) : (
+    renderShell(preview.promotion, true)
+  );
 }

@@ -17,8 +17,8 @@ export interface ShellPromotion {
   readonly name: string;
   /** A short form for the crest monogram, such as "LCW". */
   readonly shortName: string;
-  /** A small line under the name, such as the promotion's reach. */
-  readonly tagline: string;
+  /** A small line under the name, such as the promotion's reach. The sample has one. */
+  readonly tagline?: string;
 }
 
 /** What the top bar's status strip shows. */

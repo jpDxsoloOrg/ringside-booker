@@ -270,9 +270,11 @@
 }
 
 .pageTitle {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
+  /*
+   * Block, not flex: text-overflow only draws the ellipsis on a block container's own line,
+   * so a flex title was cut off hard at phone width (UI-17).
+   */
+  display: block;
   min-inline-size: 0;
   overflow: hidden;
   font-family: var(--font-family-display);
@@ -291,6 +293,7 @@
 }
 
 .crumbSeparator {
+  margin-inline: var(--space-2);
   color: var(--color-action-bright);
 }
 
@@ -455,11 +458,6 @@
     block-size: calc(var(--topbar-height) + var(--safe-top));
     padding: var(--safe-top) calc(var(--safe-right) + var(--space-4)) 0
       calc(var(--safe-left) + var(--space-4));
-
-    /* Allow flex to work properly on mobile */
-    display: flex;
-    min-inline-size: 100%;
-    max-inline-size: fit-content;
   }
 
   /*
@@ -474,18 +472,12 @@
 
   /* The title asks for no width of its own; it fills what is left and ends in an ellipsis. */
   .topBarStart > .pageTitle {
-    /* Fix for issue UI-17 (#78): Allow titles to wrap properly on mobile */
-    flex: 0 1 clamp(70px, 35%, 90%);
-    min-inline-size: clamp(60px, 25%, 80%);
-    max-inline-size: 100%;
-    text-wrap: wrap;
-    overflow-wrap: anywhere;
-    white-space: pre-wrap;
+    flex: 1 1 auto;
+    contain: inline-size;
   }
 
   .topBarEnd {
     gap: var(--space-3);
-    flex-shrink: 0; /* Keep end items from shrinking too much */
   }
 
   .pageTitle {

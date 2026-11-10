@@ -262,7 +262,7 @@ When a minimum and maximum cross, the two are swapped rather than failing.
   the world starts with;
 - `regions`: continents → countries → regions with populations, for the
   founding form;
-- `settings`: every registered setting;
+- `settings`: every registered setting; some may be hidden in the wizard until a system uses them;
 - `seasonLength`: the presets, the default preset and the custom week range;
 - `foundingSizes`: each size's cash, home and country popularity and prestige
   from the tunables;
