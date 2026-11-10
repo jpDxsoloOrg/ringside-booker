@@ -124,6 +124,26 @@ describe('popularityRollup on the mini geography', () => {
     ]);
   });
 
+  it('explains a continent with its countries, each drilling down to its regions', () => {
+    const { geography, continent, northOne, northTwo, southOne, southTwo } = miniWorld();
+    const rollup = popularityRollup({ [northOne]: 50, [southTwo]: 20 }, geography);
+    const trace = required(rollup.continents.get(continent), 'continent').trace;
+    const lines = findTraceNodes(trace, 'add').map((node) => [node.label, node.reason]);
+    // Countries by population (North 3M, South 2M of 5M), with their regions inside.
+    expect(lines).toContainEqual(['Test Country North', '60.0% of the population']);
+    expect(lines).toContainEqual(['Test Country South', '40.0% of the population']);
+    expect(
+      findTraceNodes(trace, 'input')
+        .filter((node) => node.ref?.kind === 'region')
+        .map((node) => [node.ref?.id, node.value]),
+    ).toEqual([
+      [northOne, 50],
+      [northTwo, 0],
+      [southOne, 0],
+      [southTwo, 20],
+    ]);
+  });
+
   it('makes the world the population-weighted mean of the continents', () => {
     const { geography, continent, northOne, southTwo } = miniWorld();
     const rollup = popularityRollup({ [northOne]: 80, [southTwo]: 20 }, geography);

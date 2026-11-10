@@ -15,7 +15,7 @@
 
 import { assertSerialisable } from '../../core/api/serialisable';
 import { ageInYears, type GameDate } from '../../core/date';
-import type { PersonId, PromotionId, RegionId } from '../../core/ids';
+import type { PersonId, PromotionId } from '../../core/ids';
 import type { Employment } from '../../model/entities/employment';
 import type { Person } from '../../model/entities/person';
 import type { PromotionStyle } from '../../model/entities/promotion-style';
@@ -24,6 +24,7 @@ import type { RawPack } from '../../persistence/packs/index';
 import type { PackIssue, Result } from '../../persistence/packs/issues';
 import { packManifestSchema, type PackManifest } from '../../persistence/packs/manifest';
 import { materialiseWorld } from '../../persistence/packs/materialise';
+import { createPopularityRoller, type PopularityRoller } from '../world/formulas/popularityRollup';
 import { geographyOf, type Geography } from '../world/geography';
 import { createEngineTunables } from '../tunables';
 import { contentKeysById } from './contentKeys';
@@ -191,30 +192,10 @@ function memoKey(packs: readonly RawPack[], rootPackId: string): string {
   return `${rootPackId}|${versions.join(',')}`;
 }
 
-/** Population-weighted popularity per country from a sparse regional record. */
-function countryPopularity(
-  geography: Geography,
-  regionalPop: Readonly<Record<RegionId, number>>,
-): Map<string, number> {
-  const totals = new Map<string, { weighted: number; population: number }>();
-  for (const country of geography.countries) {
-    let weighted = 0;
-    let population = 0;
-    for (const region of geography.regionsOf(country.id)) {
-      weighted += (regionalPop[region.id] ?? 0) * region.population;
-      population += region.population;
-    }
-    totals.set(country.id, { weighted, population });
-  }
-  const result = new Map<string, number>();
-  for (const [countryId, total] of totals) {
-    result.set(countryId, total.population > 0 ? total.weighted / total.population : 0);
-  }
-  return result;
-}
-
 interface Places {
   readonly geography: Geography;
+  /** The shared popularity roll-up for this map (geography.md#popularity-roll-up). */
+  readonly popularity: PopularityRoller;
   readonly regionKeys: ReadonlyMap<string, string>;
   readonly countryKeys: ReadonlyMap<string, string>;
   readonly continentKeys: ReadonlyMap<string, string>;
@@ -256,7 +237,7 @@ function previewPromotions(world: GameWorld, places: Places): PreviewPromotion[]
       rosterSize,
       titleCount,
       homeCountryPopularity: oneDecimal(
-        countryPopularity(geography, promotion.regionalPop).get(country.id) ?? 0,
+        places.popularity.rollValues(promotion.regionalPop).countries[country.id] ?? 0,
       ),
       regionsKnownIn: Object.keys(promotion.regionalPop).length,
       brands,
@@ -283,14 +264,9 @@ function previewWorkers(world: GameWorld, places: Places): PreviewWorker[] {
     .values()
     .filter((person) => person.status === 'active' && person.roles.includes('wrestler'))
     .map((person) => {
-      let bestCountryId: string | null = null;
-      let best = 0;
-      for (const [countryId, value] of countryPopularity(geography, person.regionalPop)) {
-        if (value > best) {
-          best = value;
-          bestCountryId = countryId;
-        }
-      }
+      const top = places.popularity.rollValues(person.regionalPop).top;
+      const bestCountryId = top === null ? null : top.countryId;
+      const best = top === null ? 0 : top.value;
       return { person, bestCountryId, best };
     })
     .sort((left, right) => right.best - left.best || compareText(left.person.id, right.person.id))
@@ -370,8 +346,10 @@ function contentPreview(
     return { ok: false, issues: materialised.issues };
   }
   const { world } = materialised.value;
+  const geography = geographyOf(world);
   const places: Places = {
-    geography: geographyOf(world),
+    geography,
+    popularity: createPopularityRoller(geography),
     regionKeys: contentKeysById(world.meta, 'region'),
     countryKeys: contentKeysById(world.meta, 'country'),
     continentKeys: contentKeysById(world.meta, 'continent'),
