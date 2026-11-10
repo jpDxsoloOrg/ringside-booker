@@ -609,6 +609,25 @@ export {
 // Calendar (EVT1): who controls a show, the one definition every booking command, gate and screen
 // shares, and the cancellation record. See docs/design/calendar.md#lifecycle.
 export type { CancelShowReasonCode, ShowOwnership } from './systems/calendar/index';
+// The calendar's read side (EVT1-03): the one row every calendar query returns, and the wording of
+// a recurrence. See docs/design/calendar.md#queries.
+export type {
+  CalendarProjectedView,
+  CalendarRangeView,
+  CalendarScope,
+  CalendarShow,
+  CalendarShowDetail,
+  CalendarShowStatus,
+  CalendarWindowArgs,
+  NextShowView,
+} from './systems/calendar/index';
+export {
+  CALENDAR_RANGE_MESSAGES,
+  CALENDAR_SCOPES,
+  MAX_CALENDAR_RANGE_DAYS,
+  recurrenceText,
+  toCalendarShow,
+} from './systems/calendar/index';
 export {
   CANCEL_SHOW_REASON_CODES,
   controlsShow,
