@@ -104,6 +104,15 @@ the panel. Outside the shell (the component gallery, the title and new-game scre
 provider and names stay plain text. Other entity kinds stay plain until their screens exist; they
 get their links by extending `gameEntityLink`.
 
+## The calendar
+
+`/game/calendar` (`screens/calendar/`) is a nav item, not a detail page: `CalendarScreen` owns the
+heading and loads the month views as their own chunk. The month, the scope and the open show are
+in the URL, so link to it with `routes.game.calendarAt({ month, scope, show })`, for example
+straight to a show's sheet from the Office or from Booking. Other features add to the screen
+through five slots (sheet actions and sections, chip badges, day markers, toolbar items) instead
+of editing it; `screens/calendar/README.md` lists them.
+
 ## The shell's look
 
 The shell follows `docs/design/visual-identity.md` and the mockups in `docs/design/mockups/`.

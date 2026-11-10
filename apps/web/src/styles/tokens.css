@@ -209,6 +209,18 @@
   --color-cat-7: var(--palette-gold-400);
   --color-cat-8: var(--palette-navy-400);
 
+  /*
+   * Show importance, lowest to highest: the bar and tint on a calendar chip. Each is an alias of
+   * an existing step, and flagship is the prestige gold. A chip's tint is the importance colour
+   * at --opacity-importance-tint over the surface; tokens.test.ts checks text on every tint.
+   */
+  --color-importance-house: var(--palette-navy-400);
+  --color-importance-minor: var(--palette-teal-400);
+  --color-importance-regular: var(--palette-sky-400);
+  --color-importance-major: var(--palette-orange-400);
+  --color-importance-flagship: var(--color-prestige);
+  --opacity-importance-tint: 0.14;
+
   /* Belt placeholders. */
   --color-metal-gold: var(--palette-metal-gold);
   --color-metal-silver: var(--palette-metal-silver);

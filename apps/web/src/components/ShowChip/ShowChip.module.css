@@ -1,0 +1,172 @@
+/*
+ * A show on a calendar. The importance colour is picked by [data-importance] and drawn twice: a
+ * 4px bar down the leading edge, and a tint (the same colour at --opacity-importance-tint over
+ * whatever the chip sits on). tokens.test.ts checks text on every tint.
+ */
+.chip {
+  --chip-importance: var(--color-importance-regular);
+
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  inline-size: 100%;
+  min-inline-size: 0;
+  padding: var(--space-1) var(--space-2) var(--space-1) calc(var(--space-2) + 4px);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-snug);
+  text-align: start;
+  cursor: pointer;
+}
+
+.chip[data-importance='house'] {
+  --chip-importance: var(--color-importance-house);
+}
+
+.chip[data-importance='minor'] {
+  --chip-importance: var(--color-importance-minor);
+}
+
+.chip[data-importance='regular'] {
+  --chip-importance: var(--color-importance-regular);
+}
+
+.chip[data-importance='major'] {
+  --chip-importance: var(--color-importance-major);
+}
+
+.chip[data-importance='flagship'] {
+  --chip-importance: var(--color-importance-flagship);
+}
+
+/* The importance bar. */
+.chip::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inline-size: 4px;
+  background: var(--chip-importance);
+}
+
+/* The tint, behind the text. Rival shows have none, which is what mutes them. */
+.chip::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--chip-importance);
+  opacity: 0;
+}
+
+/* The viewer's own shows: full-strength text, the tint, and a solid edge in the importance colour. */
+.chip[data-own='true'] {
+  border-color: var(--chip-importance);
+  color: var(--color-text);
+}
+
+.chip[data-own='true']::after {
+  opacity: var(--opacity-importance-tint);
+}
+
+/* Projected: not on the schedule yet, so the edge is dashed. */
+.chip[data-status='projected'] {
+  border-style: dashed;
+}
+
+.chip:hover {
+  background: var(--color-surface-hover);
+}
+
+.name {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  overflow: hidden;
+  font-weight: var(--font-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chip[data-status='cancelled'] .name {
+  text-decoration: line-through;
+}
+
+.status {
+  flex: none;
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+/* The tag keeps its width (up to its cap), so a long show name gives way before a short tag. */
+.tag {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  max-inline-size: 45%;
+  color: var(--color-text-muted);
+}
+
+.tagText {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dot {
+  flex: none;
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+}
+
+.badge {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+/*
+ * Grid: one tight line in a month cell. A cancelled chip has no room for its tag beside the
+ * word, so the tag stays for screen readers only.
+ */
+.density-grid[data-status='cancelled'] .tag {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Row: a full-width line in a list, a popover or the phone agenda. */
+.density-row {
+  padding-block: var(--space-2);
+  font-size: var(--font-size-sm);
+}
+
+.density-row .tag {
+  max-inline-size: 40%;
+}
+
+/* A finger-sized target on phones and touch screens. */
+@media (--bp-mobile) {
+  .chip {
+    min-block-size: var(--tap-target-min);
+  }
+}
+
+@media (pointer: coarse) {
+  .chip {
+    min-block-size: var(--tap-target-min);
+  }
+}
