@@ -61,6 +61,21 @@ describe('ShowChip', () => {
     expect(screen.queryByText('Overclock')).not.toBeInTheDocument();
   });
 
+  it('leaves out a brand tag that would only repeat the show’s name', () => {
+    const show = galleryShow();
+    const brand = show.brand;
+    if (brand === null) throw new Error('The gallery show has a brand.');
+    render(
+      <ShowChip
+        show={{ ...show, name: 'Altura Mainstage', brand: { ...brand, name: 'Altura Mainstage' } }}
+        onOpen={ignoreOpen}
+        density="grid"
+      />,
+    );
+    expect(screen.getAllByText('Altura Mainstage')).toHaveLength(1);
+    expect(screen.getByRole('button')).toHaveAccessibleName('Altura Mainstage , Regular');
+  });
+
   it('tags a show with the promotion’s short name when asked', () => {
     render(
       <ShowChip show={galleryRivalShow(0)} onOpen={ignoreOpen} density="grid" tag="promotion" />,

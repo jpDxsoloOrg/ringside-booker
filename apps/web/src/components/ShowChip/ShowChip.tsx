@@ -10,7 +10,8 @@ export type ShowChipDensity = 'grid' | 'row';
 
 /**
  * Which name the chip's tag carries: the show's brand (for a list of one promotion's shows), or
- * the promotion's short name (for a list that mixes promotions).
+ * the promotion's short name (for a list that mixes promotions). A brand tag that would repeat the
+ * show's own name is not drawn.
  */
 export type ShowChipTag = 'brand' | 'promotion';
 
@@ -31,9 +32,14 @@ export function showChipStatusLabel(show: CalendarShow): string | null {
   return show.cancellation?.reason === 'notRun' ? 'Not run' : 'Cancelled';
 }
 
+/**
+ * The tag's words, or null for no tag. A brand named after its own weekly show would only repeat
+ * the name beside it and squeeze both in a month cell, so that tag is left out.
+ */
 function tagTextOf(show: CalendarShow, tag: ShowChipTag): string | null {
   if (tag === 'promotion') return show.promotion.shortName;
-  return show.brand?.name ?? null;
+  const brandName = show.brand?.name ?? null;
+  return brandName === show.name ? null : brandName;
 }
 
 /** The promotion's own colour as a small dot. Decorative: the tag's text says who it is. */

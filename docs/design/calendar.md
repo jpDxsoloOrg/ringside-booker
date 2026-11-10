@@ -411,6 +411,67 @@ for the whole world (65 shows) takes about 0.2 ms and a 42-day
 each. The benchmark is
 `packages/engine/test/systems/calendar/queries.bench.ts`.
 
+## Screen
+
+Code: `apps/web/src/screens/calendar/`, whose README covers the files, the URL
+state, the keyboard and the extension slots. This section is what the player
+sees and where each value on it comes from.
+
+On a desktop window the month is a grid, Monday first, with up to three shows
+on a day and the rest behind "+N more". Picking a show opens its sheet at the
+side.
+
+![The calendar on desktop: January 2027 as a month grid](screenshots/calendar-desktop.png)
+
+Below `--bp-mobile` the same month is an agenda grouped by week, and the sheet
+comes up from the bottom of the screen.
+
+![The calendar on a phone: the month as weeks](screenshots/calendar-phone.png)
+
+A chip says whose show it is with a tag: the brand in My shows, the
+promotion's short name in Whole world. A brand named after its own weekly show
+would only repeat the name beside it, so that tag is left out and the name
+gets the room.
+
+### What is stored and what is worked out
+
+Every derived value on a screen has to explain itself. On the calendar and
+the show sheet almost everything is a stored fact printed as it is:
+
+| Value                            | Where it comes from                                            | Why?                                  |
+| -------------------------------- | -------------------------------------------------------------- | ------------------------------------- |
+| Date, and "Airs" when it differs | Stored on the show                                             | Not needed                            |
+| Promotion, brand                 | Stored on the show                                             | Not needed                            |
+| Importance                       | Stored on the show (copied from its definition)                | Not needed                            |
+| Card ("6 main slots")            | The show's stored format, as slot counts                       | Not needed                            |
+| Television                       | The definition's stored flag                                   | Not needed                            |
+| Runs ("Every Monday")            | The definition's stored recurrence, put into words             | Not needed                            |
+| Status                           | Stored status, plus the stored cancellation reason and day     | Not needed                            |
+| "(no card)" on a not-run show    | The show has no segments                                       | Not needed: the words are the reason  |
+| "+N more", shows on a day        | A count of the chips listed behind it                          | Not needed: the list is the breakdown |
+| Region and venue                 | **Derived** by the placement rule ([Placement](#placement))    | Yes, beside the venue                 |
+| Region and venue, projected      | The same rule, as a forecast for a date that is not stored yet | No: the sheet says it is a projection |
+
+The venue's Why? opens the placement decision. Its headline is the outcome in
+the player's words (the venue's name, or "Not chosen yet"), followed by the
+engine's own reason and each rule it checked. The rule keys the engine uses
+for the outcome (`preferredVenue`, `notChosen`) never reach the screen.
+
+Nothing on the calendar states a running time: a card is slots
+(`design-decisions.md` D-10). The engine tests check the rows and the web
+tests check the words.
+
+### The hand-test script as a test
+
+`packages/engine/test/systems/calendar/walkthrough.test.ts` starts a new game
+on the shipped default world as its biggest promotion and checks the dates,
+names and counts a person testing the calendar is told to expect: the weekly
+shows of January 2027, the major shows, the rivals' weekdays, the busiest
+Saturday, the first projected date and what one day does to it, a cancelled
+show after a save and a reload, and an unbooked show after its day passes. If
+the world pack moves a show, that test fails and the script needs the new
+date.
+
 ## Integration
 
 The calendar is finished on its own: shows are scheduled, drawn, closed and

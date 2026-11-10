@@ -120,12 +120,14 @@ get their links by extending `gameEntityLink`.
 
 ## The calendar
 
-`/game/calendar` (`screens/calendar/`) is a nav item, not a detail page: `CalendarScreen` owns the
-heading and loads the month views as their own chunk. The month, the scope and the open show are
-in the URL, so link to it with `routes.game.calendarAt({ month, scope, show })`, for example
-straight to a show's sheet from the Office or from Booking. Other features add to the screen
-through five slots (sheet actions and sections, chip badges, day markers, toolbar items) instead
-of editing it; `screens/calendar/README.md` lists them.
+Your promotion > Calendar is live. `/game/calendar` (`screens/calendar/`) is a nav item, not a
+detail page: `CalendarScreen` owns the heading and loads the month views as their own chunk. The
+month, the scope and the open show are in the URL, so link to it with
+`routes.game.calendarAt({ month, scope, show })`, for example straight to a show's sheet from the
+Office or from Booking. Other features add to the screen through five slots (sheet actions and sections, chip badges, day markers, toolbar items) instead
+of editing it; `screens/calendar/README.md` lists the slots and what is registered in each. What
+the screen looks like, and which of its values are stored and which are worked out, is in
+`docs/design/calendar.md` under "Screen".
 
 ## The shell's look
 
