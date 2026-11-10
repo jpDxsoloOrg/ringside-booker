@@ -33,6 +33,8 @@ export interface DataTableModelInput<Row extends DataTableRowData> {
   readonly rows: readonly Row[];
   readonly columns: readonly ColumnDef<Row>[];
   readonly getRowId: (row: Row) => string;
+  /** Orders rows whose sort values are equal, before row ids do. */
+  readonly compareTies?: ((left: Row, right: Row) => number) | undefined;
   readonly sortable: boolean;
   readonly sort: SortState;
   readonly onSortChange: (sort: SortState) => void;
@@ -73,6 +75,7 @@ export function useDataTableModel<Row extends DataTableRowData>({
   rows,
   columns,
   getRowId,
+  compareTies,
   sortable,
   sort,
   onSortChange,
@@ -84,8 +87,8 @@ export function useDataTableModel<Row extends DataTableRowData>({
   onHiddenColumnIdsChange,
 }: DataTableModelInput<Row>): DataTableModel<Row> {
   const modelColumns = useMemo(
-    () => buildModelColumns(columns, getRowId, sortable),
-    [columns, getRowId, sortable],
+    () => buildModelColumns(columns, getRowId, sortable, compareTies),
+    [columns, getRowId, sortable, compareTies],
   );
   const columnsById = useMemo(
     () => new Map(columns.map((column) => [column.id, column] as const)),

@@ -16,7 +16,10 @@
 // imports this system, including programs that only see the emitted .d.ts files.
 import './events';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
-import { workersQueries } from './queries/profile';
+import type { QueryDefinition } from '../../core/api/query';
+import { explainQuery } from './queries/explain';
+import { listQuery } from './queries/list';
+import { profileQuery } from './queries/profile';
 
 export { ageOn, experienceYears } from './helpers/age';
 export {
@@ -138,6 +141,37 @@ export {
   type ViceKind,
 } from './labels';
 export {
+  DEFAULT_WORKER_SORT,
+  listQuery,
+  WORKER_SORT_DIRECTIONS,
+  WORKER_SORT_FIELDS,
+  WORKER_SORT_KEYS,
+  workerListOf,
+  type WorkerAttributeMinimum,
+  type WorkerEmployerFilter,
+  type WorkerList,
+  type WorkerListArgs,
+  type WorkerListContinentFacet,
+  type WorkerListCountryFacet,
+  type WorkerListFacets,
+  type WorkerListFilters,
+  type WorkerListSort,
+  type WorkerRow,
+  type WorkerRowAvailability,
+  type WorkerRowEmployer,
+  type WorkerRowTopPopularity,
+  type WorkerSortDirection,
+  type WorkerSortKey,
+} from './queries/list';
+export {
+  explainQuery,
+  WORKER_EXPLAIN_METRICS,
+  workerExplanationOf,
+  type WorkerExplainArgs,
+  type WorkerExplainMetric,
+  type WorkerExplanation,
+} from './queries/explain';
+export {
   profileQuery,
   WORKER_NOT_FOUND,
   WORKER_PROFILE_HIDDEN_FIELDS,
@@ -158,6 +192,9 @@ export {
   type WorkerProfileTrait,
   type WorkerProfileVice,
 } from './queries/profile';
+
+/** Every query the workers system answers. */
+export const workersQueries: readonly QueryDefinition[] = [profileQuery, listQuery, explainQuery];
 
 export const workersSystem: SystemBundle = defineSystem({
   id: 'workers',

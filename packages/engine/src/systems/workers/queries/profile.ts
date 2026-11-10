@@ -529,5 +529,3 @@ export const profileQuery: QueryDefinition<'workers.profile'> = defineQuery('wor
     workerProfileOf(ctx.read, args.personId, ctx.viewer, ctx.tunables) ??
     refuseQuery({ code: WORKER_NOT_FOUND, message: 'No such worker' }),
 });
-
-export const workersQueries: readonly QueryDefinition[] = [profileQuery];

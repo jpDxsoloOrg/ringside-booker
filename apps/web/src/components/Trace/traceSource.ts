@@ -1,4 +1,4 @@
-import type { TraceNode, TraceRef } from '@ringside/engine';
+import type { QueryData, QueryName, TraceNode, TraceRef } from '@ringside/engine';
 
 /** Where a panel gets its trace: handed over inline, or fetched from the engine by reference. */
 export type TraceSource = { readonly trace: TraceNode } | { readonly traceRef: TraceRef };
@@ -12,3 +12,11 @@ export function traceSourceOf(
   if (traceRef !== undefined && traceRef !== null) return { traceRef };
   return null;
 }
+
+/**
+ * The engine queries that answer with a trace built on demand (`{ value, trace }`), such as
+ * `workers.explain`. A `LazyWhyButton` can ask any of them.
+ */
+export type TraceQueryName = {
+  [Name in QueryName]: QueryData<Name> extends { readonly trace: TraceNode } ? Name : never;
+}[QueryName];

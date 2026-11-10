@@ -149,6 +149,40 @@ describe('DataTable sorting through TanStack', () => {
     expect(bodyRowIds()).toEqual(['w3', 'w1', 'w2', 'w4']);
   });
 
+  it('breaks ties with compareTies before row ids, ascending in both directions', async () => {
+    const user = userEvent.setup();
+    const byNameBackwards = (left: Worker, right: Worker): number =>
+      right.name.localeCompare(left.name);
+    renderTable({ compareTies: byNameBackwards });
+
+    // w1 (Bo Kane) and w3 (Ana Ríos) tie on 70: Bo comes first here, whichever way the sort runs.
+    await user.click(headerButton('Popularity'));
+    expect(bodyRowIds()).toEqual(['w2', 'w1', 'w3', 'w4']);
+    await user.click(headerButton('Popularity'));
+    expect(bodyRowIds()).toEqual(['w4', 'w1', 'w3', 'w2']);
+  });
+
+  it('orders rows with no value by compareTies too, and falls back to row ids', async () => {
+    const user = userEvent.setup();
+    const byName = (left: Worker, right: Worker): number => left.name.localeCompare(right.name);
+    renderTable({ compareTies: byName });
+
+    // No wage: w4 (Cy Moss) before w2 (José Vega) by name, where row ids would say w2 first.
+    await user.click(headerButton('Wage'));
+    expect(bodyRowIds()).toEqual(['w1', 'w3', 'w4', 'w2']);
+
+    // A comparison that calls everything equal leaves the order to the row ids.
+    renderTable({
+      compareTies: () => 0,
+      initialSort: { columnId: 'popularity', direction: 'desc' },
+    });
+    const [, second] = screen.getAllByRole('grid');
+    const ids = within(within(second!).getAllByRole('rowgroup')[1]!)
+      .getAllByRole('row')
+      .map((row) => row.getAttribute('data-row-id'));
+    expect(ids).toEqual(['w2', 'w1', 'w3', 'w4']);
+  });
+
   it('starts from initialSort', () => {
     renderTable({ initialSort: { columnId: 'popularity', direction: 'asc' } });
     expect(bodyRowIds()).toEqual(['w4', 'w1', 'w3', 'w2']);

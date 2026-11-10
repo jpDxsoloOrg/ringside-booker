@@ -1,7 +1,8 @@
 /**
  * A stand-in engine for the gallery's "Why?" panel demo. The gallery has no game loaded, so this
- * transport answers `trace.get` from fixture entries, after a short pause so the loading state
- * shows, and refuses everything else. Screens get the same answers from the real engine.
+ * transport answers `trace.get` from fixture entries (and any other query a demo hands it an
+ * answer for), after a short pause so the loading state shows, and refuses everything else.
+ * Screens get the same answers from the real engine.
  */
 import { ENGINE_VERSION, refKey } from '@ringside/engine';
 import type {
@@ -52,7 +53,8 @@ const INSPECT_REFUSED: LoadFailure = {
   truncated: 0,
 };
 
-type FixtureQueries = { readonly [K in QueryName]?: (args: QueryArgs<K>) => QueryData<K> };
+/** Canned answers by query name. */
+export type FixtureQueries = { readonly [K in QueryName]?: (args: QueryArgs<K>) => QueryData<K> };
 
 async function pause(milliseconds: number): Promise<void> {
   await new Promise<void>((resolve) => {
@@ -60,13 +62,18 @@ async function pause(milliseconds: number): Promise<void> {
   });
 }
 
-/** A transport whose `trace.get` returns the matching entry, or null for an unknown ref. */
+/**
+ * A transport whose `trace.get` returns the matching entry, or null for an unknown ref.
+ * `otherQueries` adds canned answers for more queries, such as `workers.explain`.
+ */
 export function createTraceFixtureTransport(
   entries: readonly StoredTraceEntry[],
   answerDelayMs = ANSWER_DELAY_MS,
+  otherQueries: FixtureQueries = {},
 ): EngineTransport {
   const byKey = new Map(entries.map((entry) => [refKey(entry.ref), entry]));
   const queries: FixtureQueries = {
+    ...otherQueries,
     'trace.get': (args) => byKey.get(refKey(args.ref)) ?? null,
   };
 
