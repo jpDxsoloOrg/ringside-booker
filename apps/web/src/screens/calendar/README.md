@@ -15,10 +15,11 @@
 | `importance.ts`       | The importance labels (House show, Minor, Regular, Major, Flagship)      |
 | `slotsText.ts`        | "6 main slots", "8 main slots + 1 pre-show"                              |
 | `statusText.ts`       | A show's status in words, and the badge tone that goes with it           |
+| `placementWording.ts` | The venue's Why? with its outcome in words instead of the rule's key     |
 | `registry.ts`         | The five extension slots (below)                                         |
 
 The chip is a shared component, `components/ShowChip`, so other screens can list shows the same
-way.
+way. It leaves out a brand tag that would only repeat the show's name.
 
 ## Data
 
