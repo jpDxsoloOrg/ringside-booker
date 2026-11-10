@@ -16,6 +16,7 @@
 // imports this system, including programs that only see the emitted .d.ts files.
 import './events';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
+import { workersQueries } from './queries/profile';
 
 export { ageOn, experienceYears } from './helpers/age';
 export {
@@ -129,7 +130,36 @@ export {
 } from './formulas/popularityChange';
 export { workersTunables } from './tunables';
 
+export {
+  ATTRIBUTE_GROUP_LABELS,
+  TRAIT_LABELS,
+  VICE_KINDS,
+  VICE_LABELS,
+  type ViceKind,
+} from './labels';
+export {
+  profileQuery,
+  WORKER_NOT_FOUND,
+  WORKER_PROFILE_HIDDEN_FIELDS,
+  workerProfileOf,
+  type WorkerProfile,
+  type WorkerProfileAttribute,
+  type WorkerProfileContract,
+  type WorkerProfileEmployer,
+  type WorkerProfileExpectedPush,
+  type WorkerProfileHeader,
+  type WorkerProfileHiddenField,
+  type WorkerProfilePartner,
+  type WorkerProfilePlace,
+  type WorkerProfilePopularity,
+  type WorkerProfileReign,
+  type WorkerProfileRoleRating,
+  type WorkerProfileTeam,
+  type WorkerProfileTrait,
+  type WorkerProfileVice,
+} from './queries/profile';
+
 export const workersSystem: SystemBundle = defineSystem({
   id: 'workers',
-  queries: [],
+  queries: workersQueries,
 });

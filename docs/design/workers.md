@@ -28,6 +28,7 @@ push, alignment, role, popularity, momentum or morale once the world exists.
 | How good are they at a job?                | `roleRating`, `overallOf`, `overallByRole`     | `Traced<number>`       |
 | How known are they to these fans?          | `footprintPopularity`, `footprintPopularityAt` | `Traced<number>`       |
 | Where on the card would they expect to be? | `expectedPush`, `expectedPushAt`               | `Traced<Push>`         |
+| Everything a profile shows, for one viewer | `workers.profile` (a query)                    | `WorkerProfile`        |
 
 All of them are exported from `@ringside/engine`.
 
@@ -230,6 +231,55 @@ presenter, announcer, referee, producer and booker. An occasional wrestler is
 rated as a wrestler. `mainRoleOf(person, primaryEmployment)` is the role their
 main employer hired them in, or for a free agent the first role they hold in
 the standard role order (wrestler first), whatever order the row stores them in.
+
+## The profile query
+
+`workers.profile` (`systems/workers/queries/profile.ts`) is everything the
+worker profile screen shows about one person, for one viewer:
+
+| Part           | What is in it                                                                                                        |
+| -------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `header`       | Names, picture, age, height and weight with the weight class, style, places, employer, push, alignment, availability |
+| `attributes`   | The twelve attributes in their three groups, each with its grade and the reason for the grade                        |
+| `overall`      | The rating in every role (`RATING_ROLES`), each with its trace, and which one is the main role                       |
+| `expectedPush` | The card position they would expect at the viewer's first promotion, or `null` for a viewer who runs none            |
+| `popularity`   | The [roll-up](geography.md#popularity-roll-up) as a view, plus the country and continent they are best known in      |
+| `traits`       | Trait keys with their labels                                                                                         |
+| `vices`        | Only the vices that are `known` or `recovering`                                                                      |
+| `career`       | Contracts, title reigns and teams, each newest first                                                                 |
+| `hidden`       | What this viewer was not shown                                                                                       |
+
+Every derived number carries its trace inline. Nothing on a profile is stored,
+so there is no stored trace to point at, and one person's traces are small
+enough to send whole (the popularity tree is the largest part).
+
+An unknown person is refused with the reason `notFound` ("No such worker"),
+through [`refuseQuery`](engine-api.md#refusing-a-query).
+
+### What a viewer may see
+
+The rules are in the query and nowhere else, so no screen has to remember them:
+
+- **Development is never returned.** Potential and the attribute ceilings are
+  hidden from every viewer, the all-seeing one included. What the player learns
+  about someone's future comes from scouting, not from this query.
+- **Vices only once known.** A vice in the `hidden` state is left out, for
+  everyone. `known` and `recovering` ones are listed with their state.
+- **Contract terms and morale belong to the employer.** A contract's `terms`
+  and `morale` are returned when the viewer runs that promotion (or is
+  all-seeing). For any other promotion they are `null`, and `hidden` lists
+  `contractTerms` and `morale` so the screen can write "Private" instead of
+  leaving a gap. Employer, role, ring name, dates, push and alignment are public:
+  anyone watching the shows knows them.
+- **Momentum is public.** It is on-screen form, something the audience sees,
+  so every viewer gets it.
+- **Offers stay between the two sides.** An employment that is still `offered`,
+  or was `declined` or `withdrawn`, is only listed for the promotion that made
+  it. A rival's bid for one of your wrestlers is not on their profile.
+
+"The viewer runs that promotion" means the promotion's own controller is the
+same human (`viewerPromotionIds`). A computer controller and a human who runs
+nothing see every contract's terms and morale as `null`.
 
 ## Role ratings
 
