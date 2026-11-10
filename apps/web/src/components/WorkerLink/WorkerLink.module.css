@@ -1,0 +1,12 @@
+/* A name that links to a profile: the data colour, underlined only when pointed at or focused. */
+.workerLink {
+  color: var(--color-data);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.workerLink:hover,
+.workerLink:focus-visible {
+  text-decoration: underline;
+}
