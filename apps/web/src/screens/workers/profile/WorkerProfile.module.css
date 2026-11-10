@@ -314,6 +314,11 @@
     padding: var(--space-4);
   }
 
+  /* The loading blocks have no content to size them, so they take the card's width. */
+  .skeletonHeader {
+    justify-items: stretch;
+  }
+
   .facts {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

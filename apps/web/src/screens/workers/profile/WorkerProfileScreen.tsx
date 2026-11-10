@@ -77,7 +77,7 @@ function WorkerProfileLoading() {
   return (
     <div className={styles['screen']} aria-busy="true">
       <BackToWorkers />
-      <div className={styles['header']}>
+      <div className={classNames(styles['header'], styles['skeletonHeader'])}>
         <span className={classNames(styles['skeleton'], styles['skeletonPicture'])} />
         <div className={styles['identity']}>
           <RouteHeading className={styles['heading']}>
