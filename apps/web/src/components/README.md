@@ -90,45 +90,46 @@ export const galleryEntry: GalleryEntry = {
 
 ## What is here
 
-| Component        | Use it for                                                                                                     |
-| ---------------- | -------------------------------------------------------------------------------------------------------------- |
-| `Button`         | Every clickable action. Variants `primary`, `secondary`, `prestige`, `ghost`, `danger`; sizes `sm`, `md`, `lg` |
-| `IconButton`     | An action shown as an icon only. Its `label` is required                                                       |
-| `Icon`           | One of the inline SVG icons in `Icon/icons.ts`                                                                 |
-| `Panel`          | A titled surface grouping related content, optionally collapsible. `office` card or `broadcast` (chamfered)    |
-| `Badge`          | A short status chip in one of the colour roles (see `tone.ts`)                                                 |
-| `CountBadge`     | A small count such as unread mail, capped at `99+`                                                             |
-| `StatBar`        | A 0–100 value such as an attribute, popularity or condition. Cyan, red-orange when weak, gold when elite       |
-| `EmptyState`     | What to show when a list, table or screen has nothing in it                                                    |
-| `DataTable`      | Any dense list: sort, filter, checkboxes; a table on desktop, cards on phones                                  |
-| `Tabs`           | `Tabs`, `TabList`, `Tab`, `TabPanel`: switch between views in one area                                         |
-| `Sheet`          | A side panel over the page; a bottom sheet on phones                                                           |
-| `ConfirmDialog`  | Ask before a destructive or irreversible action, with async `onConfirm`                                        |
-| `Tooltip`        | A short hint on hover or focus. Never the only copy of anything                                                |
-| `Popover`        | A small panel anchored to a button: detail, a filter, quick controls                                           |
-| `DropdownMenu`   | A menu of actions behind a button, such as a row's "more" menu                                                 |
-| `Select`         | Pick one option from a short list                                                                              |
-| `Switch`         | An on/off setting that applies straight away                                                                   |
-| `LiveBugButton`  | The skewed show action with a live dot: Next Day, Go Live                                                      |
-| `LowerThird`     | Broadcast header block: kicker, big title, meta row, optional wedge                                            |
-| `ScoreBug`       | A strip of 2–4 key numbers, each with an optional Why? chip                                                    |
-| `Ticker`         | The news crawl; pauses on hover or focus, static with reduced motion                                           |
-| `SegmentedMeter` | Hype, heat or fatigue as ticks that turn red-orange past a threshold                                           |
-| `CardSlot`       | A booking slot: role, matchup, chips, winner, or the empty add actions                                         |
-| `ChamferPanel`   | The broadcast container with chamfered corners (`Panel` is the office one)                                     |
-| `SlashDivider`   | A band of 45° slashes, or the inline `//` between items                                                        |
-| `KpiCard`        | An office stat card: label, big number, delta chip, optional sparkline. `KpiCardGrid` lays them out            |
-| `DeltaChip`      | A change in a number: ▲/▼, the signed amount and a note, in the positive or negative colour                    |
-| `Sparkline`      | A tiny inline-SVG line of a recent series, named by its ends and trend                                         |
-| `AlignmentChip`  | FACE / HEEL / TWEENER in the alignment colours, always with the word                                           |
-| `ChampionCard`   | A title and its champion: belt, champion, reign, defences, prestige. `ChampionCardList` lays them out          |
-| `Stack`          | Children in a column (or row) with a token gap                                                                 |
-| `Cluster`        | A wrapping row with a token gap                                                                                |
-| `VisuallyHidden` | Text for screen readers only                                                                                   |
-| `format/`        | `formatMoney`, `formatNumber`, `formatPercent`, `formatSigned`, dates                                          |
-| `Explained`      | A derived number with its Why? button: the one element a screen needs to show an explained number              |
-| `WhyButton`      | The help button that opens a number's "Why?" panel; one panel is open at a time                                |
-| `TracePanel`     | The "Why?" panel: a calculation trace as readable steps, inline or fetched by `traceRef`                       |
+| Component             | Use it for                                                                                                                                               |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Button`              | Every clickable action. Variants `primary`, `secondary`, `prestige`, `ghost`, `danger`; sizes `sm`, `md`, `lg`                                           |
+| `IconButton`          | An action shown as an icon only. Its `label` is required                                                                                                 |
+| `Icon`                | One of the inline SVG icons in `Icon/icons.ts`                                                                                                           |
+| `Panel`               | A titled surface grouping related content, optionally collapsible. `office` card or `broadcast` (chamfered)                                              |
+| `Badge`               | A short status chip in one of the colour roles (see `tone.ts`)                                                                                           |
+| `CountBadge`          | A small count such as unread mail, capped at `99+`                                                                                                       |
+| `StatBar`             | A 0–100 value such as an attribute, popularity or condition. Cyan, red-orange when weak, gold when elite                                                 |
+| `EmptyState`          | What to show when a list, table or screen has nothing in it                                                                                              |
+| `DataTable`           | Any dense list: sort, filter, checkboxes; a table on desktop, cards on phones                                                                            |
+| `Tabs`                | `Tabs`, `TabList`, `Tab`, `TabPanel`: switch between views in one area                                                                                   |
+| `Sheet`               | A side panel over the page; a bottom sheet on phones                                                                                                     |
+| `ConfirmDialog`       | Ask before a destructive or irreversible action, with async `onConfirm`                                                                                  |
+| `Tooltip`             | A short hint on hover or focus. Never the only copy of anything                                                                                          |
+| `Popover`             | A small panel anchored to a button: detail, a filter, quick controls                                                                                     |
+| `DropdownMenu`        | A menu of actions behind a button, such as a row's "more" menu                                                                                           |
+| `Select`              | Pick one option from a short list                                                                                                                        |
+| `Switch`              | An on/off setting that applies straight away                                                                                                             |
+| `LiveBugButton`       | The skewed show action with a live dot: Next Day, Go Live                                                                                                |
+| `LowerThird`          | Broadcast header block: kicker, big title, meta row, optional wedge                                                                                      |
+| `ScoreBug`            | A strip of 2–4 key numbers, each with an optional Why? chip                                                                                              |
+| `Ticker`              | The news crawl; pauses on hover or focus, static with reduced motion                                                                                     |
+| `SegmentedMeter`      | Hype, heat or fatigue as ticks that turn red-orange past a threshold                                                                                     |
+| `CardSlot`            | A booking slot: role, matchup, chips, winner, or the empty add actions                                                                                   |
+| `ChamferPanel`        | The broadcast container with chamfered corners (`Panel` is the office one)                                                                               |
+| `SlashDivider`        | A band of 45° slashes, or the inline `//` between items                                                                                                  |
+| `KpiCard`             | An office stat card: label, big number, delta chip, optional sparkline. `KpiCardGrid` lays them out                                                      |
+| `DeltaChip`           | A change in a number: ▲/▼, the signed amount and a note, in the positive or negative colour                                                              |
+| `Sparkline`           | A tiny inline-SVG line of a recent series, named by its ends and trend                                                                                   |
+| `AlignmentChip`       | FACE / HEEL / TWEENER in the alignment colours, always with the word                                                                                     |
+| `ChampionCard`        | A title and its champion: belt, champion, reign, defences, prestige. `ChampionCardList` lays them out                                                    |
+| `Stack`               | Children in a column (or row) with a token gap                                                                                                           |
+| `Cluster`             | A wrapping row with a token gap                                                                                                                          |
+| `VisuallyHidden`      | Text for screen readers only                                                                                                                             |
+| `format/`             | `formatMoney`, `formatNumber`, `formatPercent`, `formatSigned`, dates                                                                                    |
+| `Explained`           | A derived number with its Why? button: the one element a screen needs to show an explained number                                                        |
+| `WhyButton`           | The help button that opens a number's "Why?" panel; one panel is open at a time                                                                          |
+| `TracePanel`          | The "Why?" panel: a calculation trace as readable steps, inline or fetched by `traceRef`                                                                 |
+| `PopularityDrilldown` | A person's or promotion's popularity from the world down: continents open into countries, countries into regions, with a Why? on every worked-out figure |
 
 Money is integer `Cents` and dates are `GameDate` strings from `@ringside/engine`; the formatters
 turn them into text at the edge and nowhere else.

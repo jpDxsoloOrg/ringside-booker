@@ -1,0 +1,206 @@
+/*
+ * A tree of places: the world, then continents, countries and regions, each one line. On desktop a
+ * line is name, bar and value side by side; the three columns are the same width at every level,
+ * so the bars and the numbers line up down the whole list and only the names step in.
+ */
+.drilldown {
+  --drilldown-indent: var(--space-5);
+  /* Room for a two-decimal figure plus the Why? button, so the numbers share a right edge. */
+  --drilldown-value-size: 6.5rem;
+  /* The Why? button's width and the gap before it: a region has no button and keeps the space. */
+  --drilldown-why-size: calc(1.75rem + var(--space-1));
+
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.list {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-inline-size: 0;
+}
+
+.item {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(6rem, 1.4fr) var(--drilldown-value-size);
+  grid-template-areas: 'place bar value';
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  min-inline-size: 0;
+  min-block-size: 2.25rem;
+  border-radius: var(--radius-sm);
+}
+
+.row:hover {
+  background: var(--color-surface-hover);
+}
+
+/* The worldwide line is the headline: it sits above the list behind a hairline. */
+.level-world {
+  padding-block-end: var(--space-2);
+  border-block-end: 1px solid var(--color-border);
+  border-radius: 0;
+}
+
+.level-world .name {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.level-continent .name {
+  font-weight: var(--font-weight-semibold);
+}
+
+.level-country .place {
+  padding-inline-start: var(--drilldown-indent);
+}
+
+/* A region has no chevron, so it steps in by one more chevron's width to sit under its country's name. */
+.level-region .place {
+  padding-inline-start: calc(var(--drilldown-indent) * 2 + 1rem + var(--space-2));
+}
+
+.level-region {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.place {
+  grid-area: place;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  min-inline-size: 0;
+  min-block-size: 2.25rem;
+  text-align: start;
+}
+
+.level-world .place {
+  padding-inline-start: var(--space-1);
+}
+
+.disclosure {
+  padding-block: 0;
+  padding-inline-end: var(--space-1);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  /* The chevron keeps its place when the name wraps. */
+  flex-wrap: nowrap;
+}
+
+.chevron {
+  flex: none;
+  color: var(--color-text-muted);
+  transition: transform var(--motion-fast) var(--easing-standard);
+}
+
+.disclosure[aria-expanded='false'] .chevron {
+  transform: rotate(-90deg);
+}
+
+.name {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.detail {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+}
+
+.bar {
+  grid-area: bar;
+}
+
+.value {
+  grid-area: value;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-inline-size: 0;
+}
+
+.stored {
+  padding-inline-end: var(--drilldown-why-size);
+  font-weight: var(--font-weight-semibold);
+}
+
+.empty {
+  margin: 0;
+  padding: var(--space-3) var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.footer {
+  display: flex;
+  padding-block-start: var(--space-2);
+}
+
+@media (pointer: coarse) {
+  .disclosure {
+    min-block-size: var(--tap-target-min);
+  }
+
+  .drilldown {
+    --drilldown-why-size: calc(var(--tap-target-min) + var(--space-1));
+    --drilldown-value-size: 7.5rem;
+  }
+}
+
+/*
+ * Phones: one stacked list. The name and the value share the first line and the bar runs under
+ * them at full width, so nothing is squeezed at 390px. Every disclosure is a 44px target, and the
+ * levels step in less, to keep the bars long.
+ */
+@media (--bp-mobile) {
+  .drilldown {
+    --drilldown-indent: var(--space-3);
+    --drilldown-why-size: calc(var(--tap-target-min) + var(--space-1));
+  }
+
+  .row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'place value'
+      'bar bar';
+    gap: 0 var(--space-2);
+    padding-block-end: var(--space-2);
+  }
+
+  .place,
+  .disclosure {
+    min-block-size: var(--tap-target-min);
+  }
+
+  .level-country .bar {
+    margin-inline-start: var(--drilldown-indent);
+  }
+
+  .level-region .place {
+    padding-inline-start: calc(var(--drilldown-indent) * 2);
+  }
+
+  .level-region .bar {
+    margin-inline-start: calc(var(--drilldown-indent) * 2);
+  }
+}
