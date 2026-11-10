@@ -684,6 +684,15 @@ The core events the bus starts with:
 | `pipeline.stepFailed` | `stepId`, `message`             | A step threw and was rolled back     |
 | `tunables.changed`    | `key`, `value` (null = default) | A tunable override is set or cleared |
 
+Systems add their own next to their code. The calendar's
+([calendar.md](calendar.md)):
+
+| Event                      | Payload                                            | Published when                                            |
+| -------------------------- | -------------------------------------------------- | --------------------------------------------------------- |
+| `show.scheduled`           | `eventInstanceId`, `promotionId`, `date`           | The daily horizon phase stores a new show                 |
+| `show.cancelled`           | `eventInstanceId`, `promotionId`, `date`, `reason` | A show's day ends with it still open, or it is called off |
+| `calendar.horizonExtended` | `from`, `through`, `created`                       | A new game stores its opening schedule                    |
+
 The workers system's events, one per [door](workers.md#doors). Each payload
 also carries `source` (`player`, `ai` or `system`) and `reasonKey`:
 

@@ -259,6 +259,12 @@ entries (0 keeps none, though `seq` still counts) and is saved as the
 | `tunables.setOverride`   | `{ key, value }` | Sets an override and publishes `tunables.changed` |
 | `tunables.clearOverride` | `{ key }`        | Removes one, so the default applies again         |
 
+Commands other systems add:
+
+| Command               | Args                  | Does                                                                                                       |
+| --------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `calendar.cancelShow` | `{ eventInstanceId }` | Calls off a show the issuer controls and publishes `show.cancelled` ([calendar.md](calendar.md#lifecycle)) |
+
 ### The status and pending-gate queries
 
 The top bar (UI-10) renders these two and nothing else.

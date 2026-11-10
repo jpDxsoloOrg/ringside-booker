@@ -417,11 +417,15 @@ export type { RecurrenceView } from './model/recurrence';
  */
 export * as recurrence from './model/recurrence';
 export type {
+  CancellationReason,
+  EventCancellation,
   EventInstance,
   EventInstanceStatus,
   EventResult,
 } from './model/entities/event-instance';
 export {
+  CANCELLATION_REASONS,
+  EventCancellationSchema,
   EVENT_INSTANCE_STATUSES,
   EventInstanceSchema,
   eventInstancesTable,
@@ -602,6 +606,16 @@ export {
   roleRating,
   STAR_REASON,
 } from './systems/workers/index';
+// Calendar (EVT1): who controls a show, the one definition every booking command, gate and screen
+// shares, and the cancellation record. See docs/design/calendar.md#lifecycle.
+export type { CancelShowReasonCode, ShowOwnership } from './systems/calendar/index';
+export {
+  CANCEL_SHOW_REASON_CODES,
+  controlsShow,
+  sameController,
+  showControllerOf,
+  viewerControlsShow,
+} from './systems/calendar/index';
 // The D-03 popularity roll-up (WRK1-03): world, continents and countries from per-region values.
 export type {
   PopularityContinentView,
