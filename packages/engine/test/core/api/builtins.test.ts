@@ -64,7 +64,7 @@ describe('sim.status', () => {
   it('shows a human their promotion, its home popularity and the season', () => {
     const engine = statusEngine();
     const status = engine.query('sim.status', {}, { kind: 'controller', controller: HUMAN });
-    expect(status).toEqual({
+    expect(status).toMatchObject({
       ok: true,
       data: {
         date: TEST_START_DATE,
@@ -73,13 +73,30 @@ describe('sim.status', () => {
           promotionId: testId('promotion', 1),
           name: 'Test Promotion A',
           cash: 123_456,
-          popularity: { homeRegionId: HOME_REGION, homeRegion: 42, prestige: 61, traceRef: null },
+          popularity: {
+            homeRegionId: HOME_REGION,
+            homeRegion: 42,
+            prestige: 61,
+            traceRef: null,
+          },
         },
       },
     });
+    if (!status.ok || status.data.promotion === null) throw new Error('expected a promotion');
+    expect(status.data.promotion.shortName).toMatch(/^[A-Z0-9]{2,8}$/u);
     expect(() => {
       assertSerialisable(status, 'status');
     }).not.toThrow();
+  });
+
+  it('explains the home popularity with a trace built on the spot', () => {
+    const engine = statusEngine();
+    const status = engine.query('sim.status', {}, { kind: 'controller', controller: HUMAN });
+    if (!status.ok || status.data.promotion === null) throw new Error('expected a promotion');
+    const { trace } = status.data.promotion.popularity;
+    expect(trace.value).toBe(42);
+    expect(trace.label).toMatch(/^Popularity in /);
+    expect(JSON.stringify(trace)).toContain('Starting popularity from the world you began in');
   });
 
   it('has no promotion for the omniscient viewer, the computer or a human without one', () => {

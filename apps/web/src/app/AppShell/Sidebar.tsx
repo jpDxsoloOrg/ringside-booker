@@ -11,7 +11,6 @@ import styles from './AppShell.module.css';
 import { MainMenuButton } from './MainMenuButton';
 import { NavItemContent } from './NavItemContent';
 import type { ShellPromotion } from './shellPreview';
-import type { PromotionRow } from '@ringside/engine';
 import type { NavBadgeCounts } from './useNavBadges';
 
 const navLinkClass = classNames(styles['navLink']);
@@ -21,7 +20,7 @@ export interface SidebarProps {
   readonly sections: readonly NavSection[];
   readonly badges: NavBadgeCounts;
   /** The promotion the player runs, for the crest block. Null while unemployed. */
-  readonly promotion?: (ShellPromotion | PromotionRow) | null;
+  readonly promotion?: ShellPromotion | null;
   /** Marks the promotion block as sample data. */
   readonly sample?: boolean;
 }
@@ -88,7 +87,7 @@ export function Sidebar({ sections, badges, promotion = null, sample = false }: 
 }
 
 interface PromotionBlockProps {
-  readonly promotion: (ShellPromotion | PromotionRow) | null;
+  readonly promotion: ShellPromotion | null;
   readonly sample: boolean;
 }
 
@@ -107,10 +106,6 @@ function PromotionBlock({ promotion, sample }: PromotionBlockProps) {
       </div>
     );
   }
-  // `ShellPromotion` is the sample type; `PromotionRow` is what the engine's myPromotion query
-  // returns. Both carry id, name and shortName, so the crest is the same either way.
-  const tagline = 'tagline' in promotion ? promotion.tagline : undefined;
-  const logoRef = 'logoRef' in promotion ? promotion.logoRef : undefined;
   return (
     <div className={styles['promotionBlock']} data-testid="promotion-block">
       <ImageSlot
@@ -126,8 +121,7 @@ function PromotionBlock({ promotion, sample }: PromotionBlockProps) {
       <p className={styles['promotionText']}>
         <span className={styles['promotionName']}>{promotion.name}</span>
         <span className={styles['promotionTagline']}>
-          {tagline}
-          {logoRef !== undefined && logoRef !== null && <img src={logoRef} alt="" className={styles['promotionLogo']} />}
+          {promotion.tagline}
           {sample && (
             <Badge tone="neutral" className={styles['promotionSample']}>
               Sample

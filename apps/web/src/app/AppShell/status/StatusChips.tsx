@@ -127,6 +127,7 @@ function PopularityChip({ promotion, placement }: PromotionChipProps) {
         value={popularity.homeRegion}
         label="Popularity in your home region"
         traceRef={popularity.traceRef}
+        trace={popularity.traceRef === null ? popularity.trace : null}
       />
     </StatusChip>
   );

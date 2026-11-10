@@ -85,6 +85,19 @@ async function expectPromotionInTopBar(page: Page, name: string, phone: boolean)
     await page.keyboard.press('Escape');
   } else {
     await expect(topBar.getByTestId('promotion-chip')).toHaveText(new RegExp(name));
+    // The sidebar crest follows the save, not the sample promotion (UI-18).
+    const crest = page.getByTestId('promotion-block');
+    await expect(crest).toContainText(name);
+    await expect(crest).not.toContainText('Sample');
+    // Popularity explains itself even before a system moves it (UI-19).
+    await topBar
+      .getByTestId('popularity-chip')
+      .getByRole('button', { name: /^Why is / })
+      .click();
+    await expect(page.getByRole('dialog')).toContainText(
+      'Starting popularity from the world you began in',
+    );
+    await page.keyboard.press('Escape');
   }
 }
 

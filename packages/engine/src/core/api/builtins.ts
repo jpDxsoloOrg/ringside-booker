@@ -23,7 +23,9 @@ import type { Cents } from '../money';
 import type { PipelineFailure } from '../pipeline/failureLog';
 import type { GateHit } from '../pipeline/gates';
 import type { DayReport } from '../pipeline/report';
+import { startCalc } from '../trace/calc';
 import { TRACE_REF_KIND_PATTERN, type StoredTraceEntry, type TraceRef } from '../trace/store';
+import type { TraceNode } from '../trace/types';
 import type { TunableRawValue } from '../tunables/define';
 import { describeTunables, type TunableRow } from '../tunables/describe';
 import { validateOverride } from '../tunables/validate';
@@ -50,32 +52,22 @@ export interface ClockView {
 export interface PromotionStatus {
   promotionId: PromotionId;
   name: string;
+  /** Two to eight uppercase letters or digits, for the crest monogram and tight spaces. */
+  shortName: string;
   cash: Cents;
   popularity: {
     homeRegionId: RegionId;
     /** Popularity in the home region, 0-100 (0 when the region has none). */
     homeRegion: number;
     prestige: number;
-    /** The trace behind the popularity figure, once a popularity epic records one. */
+    /** The stored trace behind the popularity figure, once a popularity system records one. */
     traceRef: TraceRef | null;
+    /**
+     * Built on the spot while no popularity system records a trace: where today's figure comes
+     * from, so the top bar's Why? has something true to say (UI-19).
+     */
+    trace: TraceNode;
   };
-}
-
-/** A promotion's full row for display purposes: logo and short name plus cash and popularity. */
-export interface PromotionRow {
-  id: PromotionId;
-  name: string;
-  /** Two to eight uppercase letters or digits, for tight spaces such as a card header. */
-  shortName: string;
-  /** The image reference (a relative asset path). */
-  logoRef: string | null;
-  cash: Cents | null;
-  popularity: {
-    homeRegionId: RegionId;
-    homeRegion: number;
-    prestige: number;
-    traceRef: TraceRef | null;
-  } | null;
 }
 
 /** `sim.status`: what the top bar shows. */
@@ -114,7 +106,6 @@ declare module './maps' {
     'sim.commandLog': { args: { limit: number }; result: CommandLogEntry[] };
     'trace.get': { args: { ref: TraceRef }; result: StoredTraceEntry | null };
     'tunables.list': { args: { category?: string }; result: TunableRow[] };
-    'promotions.myPromotion': { args: NoArgs; result: PromotionRow | null };
   }
   interface CommandMap {
     'tunables.setOverride': {
@@ -163,6 +154,16 @@ const clockGet = defineQuery('clock.get', {
   }),
 });
 
+/** Why the home-region popularity reads what it does, before any system moves it. */
+function homePopularityTrace(value: number, regionName: string | undefined): TraceNode {
+  const where = regionName ?? 'your home region';
+  return startCalc(`Popularity in ${where}`, value, {
+    startLabel: 'Starting popularity from the world you began in',
+  })
+    .note('Nothing moves popularity yet. Shows, results and news will once those systems exist.')
+    .done().trace;
+}
+
 const simStatus = defineQuery('sim.status', {
   args: noArgs,
   run: (ctx) => {
@@ -170,6 +171,10 @@ const simStatus = defineQuery('sim.status', {
     const [promotionId] = viewerPromotionIds(ctx.read, ctx.viewer);
     const promotion =
       promotionId === undefined ? undefined : ctx.read.tables.promotions.get(promotionId);
+    const homeRegion =
+      promotion === undefined ? undefined : ctx.read.tables.regions.get(promotion.homeRegionId);
+    const homePopularity =
+      promotion === undefined ? 0 : (promotion.regionalPop[promotion.homeRegionId] ?? 0);
     return {
       date: ctx.date,
       season: season === undefined ? null : { number: season.number, endDate: season.endDate },
@@ -179,37 +184,16 @@ const simStatus = defineQuery('sim.status', {
           : {
               promotionId: promotion.id,
               name: promotion.name,
+              shortName: promotion.shortName,
               cash: promotion.cash,
               popularity: {
                 homeRegionId: promotion.homeRegionId,
-                homeRegion: promotion.regionalPop[promotion.homeRegionId] ?? 0,
+                homeRegion: homePopularity,
                 prestige: promotion.prestige,
                 traceRef: null,
+                trace: homePopularityTrace(homePopularity, homeRegion?.name),
               },
             },
-    };
-  },
-});
-
-/** The viewer's promotion at a glance, read straight from its row. */
-export const myPromotion = defineQuery('promotions.myPromotion', {
-  args: noArgs,
-  run: (ctx) => {
-    const promotionId = viewerPromotionIds(ctx.read, ctx.viewer)[0];
-    if (promotionId === undefined) return null;
-    const promotion = ctx.read.tables.promotions.get(promotionId);
-    return promotion === undefined ? null : {
-      id: promotion.id,
-      name: promotion.name,
-      shortName: promotion.shortName,
-      logoRef: promotion.logoRef,
-      cash: promotion.cash,
-      popularity: {
-        homeRegionId: promotion.homeRegionId,
-        homeRegion: promotion.regionalPop[promotion.homeRegionId] ?? 0,
-        prestige: promotion.prestige,
-        traceRef: null,
-      },
     };
   },
 });

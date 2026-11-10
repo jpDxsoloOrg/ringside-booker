@@ -13,6 +13,12 @@
 /* The desktop top bar's status, shown at its real width: it scrolls inside the stage on a phone. */
 .barDemo {
   overflow-x: auto;
+
+  /*
+   * In a phone frame the desktop bar is wider than the stage and scrolls sideways. When Tab
+   * scrolls it, keep room for the focus ring (and the day button's skew), not just the button.
+   */
+  scroll-padding-inline: var(--space-6);
 }
 
 .row {

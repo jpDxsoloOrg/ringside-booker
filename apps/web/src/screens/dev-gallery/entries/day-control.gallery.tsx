@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { addDays, cents, parseGameDate, parseId } from '@ringside/engine';
+import { addDays, cents, parseGameDate, parseId, startCalc } from '@ringside/engine';
 import type { AdvanceResult, SimStatus } from '@ringside/engine';
 import { AdvanceOverlay } from '@/app/AppShell/day/AdvanceOverlay';
 import { AdvanceSummaryBanner } from '@/app/AppShell/day/AdvanceSummary';
@@ -22,12 +22,14 @@ const STATUS: SimStatus = {
   promotion: {
     promotionId: parseId('promotion', 'pro_00000000ab'),
     name: 'Harbor City Wrestling',
+    shortName: 'HCW',
     cash: cents(124_350_000),
     popularity: {
       homeRegionId: parseId('region', 'reg_00000000ab'),
       homeRegion: 64,
       prestige: 58,
       traceRef: null,
+      trace: startCalc('Popularity in Harbor City', 64).done().trace,
     },
   },
 };
