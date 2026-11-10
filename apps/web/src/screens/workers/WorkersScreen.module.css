@@ -1,0 +1,190 @@
+/*
+ * World > Workers, in the office register (docs/design/visual-identity.md): a rounded filter card
+ * on the surface step above the table, hairlines, pill chips. Desktop is the primary layout: the
+ * filters wrap across the page above the table. Below --bp-mobile the table is a list of cards
+ * (DataTable does that) and the filters open in a bottom sheet, one field per row, so nothing
+ * here can make the page scroll sideways.
+ */
+.screen {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-4);
+  min-inline-size: 0;
+}
+
+.heading {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-tight);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.count {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-3);
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.shown {
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+  font-variant-numeric: var(--font-feature-tabular);
+}
+
+/* ---------------------------------------------------------------- filters */
+
+.filterPanel {
+  min-inline-size: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.filters {
+  display: grid;
+  align-items: end;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.filters-bar {
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+}
+
+.filters-sheet {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* Two fields that read as one filter: an age range, an attribute and its minimum. */
+.pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: end;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.field {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.fieldLabel {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.numberInput {
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 2.5rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+}
+
+.numberInput:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.clear {
+  display: flex;
+  align-items: end;
+  min-inline-size: 0;
+}
+
+.filterButton {
+  display: flex;
+  min-inline-size: 0;
+}
+
+/* ---------------------------------------------------------------- cells */
+
+.name {
+  display: grid;
+  gap: 0;
+  min-inline-size: 0;
+}
+
+.legalName {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-regular);
+  overflow-wrap: anywhere;
+}
+
+.chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  vertical-align: middle;
+}
+
+.explained {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.none {
+  color: var(--color-text-muted);
+}
+
+@media (--bp-mobile) {
+  .heading {
+    font-size: var(--font-size-2xl);
+  }
+
+  /* Every control in the sheet and above the cards is a full 44px tap target. */
+  .numberInput,
+  .filters-sheet button,
+  .filterButton button {
+    min-block-size: var(--tap-target-min);
+  }
+
+  .filterButton button {
+    flex: 1 1 auto;
+  }
+
+  /*
+   * The whole card opens the profile: the name's link stretches over its card. The card's other
+   * controls (the Why? buttons, the availability chip) sit above that layer, each at least 44px
+   * tall, so they still get their own taps.
+   */
+  .table li[data-row-id] {
+    position: relative;
+  }
+
+  .table li[data-row-id] .name a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .table li[data-row-id] button {
+    position: relative;
+    z-index: 1;
+    min-block-size: var(--tap-target-min);
+  }
+}
