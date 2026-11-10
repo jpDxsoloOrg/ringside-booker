@@ -125,7 +125,7 @@ export const galleryEntry: GalleryEntry = {
 | `Sparkline`           | A tiny inline-SVG line of a recent series, named by its ends and trend                                                                                                                                            |
 | `AlignmentChip`       | FACE / HEEL / TWEENER in the alignment colours, always with the word                                                                                                                                              |
 | `AvailabilityChip`    | Whether someone can work today: the status in words and colour, the first day back, the reason in a tooltip                                                                                                       |
-| `WorkerLink`          | A person's name as a link to their profile. Use it wherever a screen shows a worker's name                                                                                                                        |
+| `WorkerLink`          | A person's name as a link to their profile. Use it wherever a screen shows a worker's name; `truncate` keeps a long name on one line with an ellipsis and the whole name as the tooltip                           |
 | `ChampionCard`        | A title and its champion: belt, champion, reign, defences, prestige. `ChampionCardList` lays them out                                                                                                             |
 | `Stack`               | Children in a column (or row) with a token gap                                                                                                                                                                    |
 | `Cluster`             | A wrapping row with a token gap                                                                                                                                                                                   |
@@ -150,6 +150,13 @@ one with `<Explained value={...} label="Attendance" unit="people" trace={...} />
 - **Words, not formulas.** `Trace/wording.ts` turns each node into a sentence ("Capped 112 → 100
   (maximum)", "+6 Main event bonus"). The rows and the copy-as-text export both read it, so a bug
   report says what the player saw.
+- **Settings are named.** A tunable's row ends with its key ("Ring work weight: 3 · Game setting ·
+  `workers.rating.wrestler.ringwork`"), the name the tunables list and a balance profile know it
+  by. An overridden one says "Custom setting" and its default before the key.
+- **Choices read as words.** The engine names a decision's options with the codes the data uses
+  (`mainEvent`, `lightHeavyweight`). `choiceText` in `Trace/wording.ts` turns a code into words
+  ("Main event", "Light heavyweight") in the headline, the row and the options under it; text that
+  is not a code is left alone.
 - **Every kind has a row.** `Trace/kinds.ts` picks the row for each node kind with an exhaustive
   switch, so a kind added in the engine fails the typecheck until it has a renderer.
 - **Quiet checks are hidden.** Limits that changed nothing and branches not taken sit behind

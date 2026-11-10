@@ -258,6 +258,13 @@ enough to send whole (the popularity tree is the largest part).
 An unknown person is refused with the reason `notFound` ("No such worker"),
 through [`refuseQuery`](engine-api.md#refusing-a-query).
 
+The web app has a test that reads all of these breakdowns for people across
+the default world, in the words the "Why?" panel shows
+(`apps/web/src/screens/workers/defaultWorldWhy.test.ts`): every rating line
+names its `workers.rating.*` setting, the expected push and the weight class
+read as words ("Main event", "Light heavyweight") with their settings named,
+and every country lists its regions by population share.
+
 ### What a viewer may see
 
 The rules are in the query and nowhere else, so no screen has to remember them:
