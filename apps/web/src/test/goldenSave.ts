@@ -9,10 +9,13 @@
  * (`initialEngineState`). `e2e/fixtures/build-sample-save.ts` builds the e2e sample the same way.
  */
 
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import {
   createSaveDocument,
   documentToWorld,
   encodeSave,
+  engineSaveSchemaFingerprint,
   engineSaveState,
   initialEngineState,
   isJsonObject,
@@ -45,6 +48,7 @@ export function goldenSaveDocument(): SaveDocument {
     savedAt: stored.savedAt,
     label: stored.header.label,
     engineVersion: stored.engineVersion,
+    schemaFingerprint: engineSaveSchemaFingerprint(),
   });
 }
 
@@ -103,3 +107,22 @@ export async function truncatedGoldenSave(keepBytes = 64): Promise<Uint8Array> {
   const bytes = await goldenSaveBytes();
   return bytes.slice(0, keepBytes);
 }
+
+/**
+ * The frozen "older build" save (`src/screens/saves/fixtures/older-build.rbsave`): no schema
+ * fingerprint in its header and one row a strict schema refuses. Never regenerated.
+ */
+export function olderBuildSaveBytes(): Uint8Array {
+  const path = join(
+    import.meta.dirname,
+    '..',
+    'screens',
+    'saves',
+    'fixtures',
+    'older-build.rbsave',
+  );
+  return new Uint8Array(readFileSync(path));
+}
+
+/** The label in the frozen older-build save's header. */
+export const OLDER_BUILD_SAVE_LABEL = 'Older build test save';

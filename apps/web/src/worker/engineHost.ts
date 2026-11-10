@@ -77,6 +77,7 @@ import {
   seatWarnings,
   stageFailure,
   tunableIssueWarnings,
+  withCompat,
 } from './saveGames';
 import type {
   AutosaveOptions,
@@ -95,6 +96,7 @@ export type {
   LoadSlotWhich,
   SaveSlotResult,
 } from './saveGames';
+export type { SaveCompat } from '@ringside/engine';
 
 /** Builds an engine: `createEngine` in the worker, a wrapper adding test systems in tests. */
 export type EngineFactory = (options: CreateEngineOptions) => Engine;
@@ -390,9 +392,12 @@ export function createEngineHost(
     try {
       install = installEngine(decoded.state);
     } catch (error: unknown) {
-      return stageFailure(
-        'build',
-        `The game could not start from this save: ${serializeError(error).message}`,
+      return withCompat(
+        stageFailure(
+          'build',
+          `The game could not start from this save: ${serializeError(error).message}`,
+        ),
+        read.bytes,
       );
     }
     const result: LoadSaveResult = {

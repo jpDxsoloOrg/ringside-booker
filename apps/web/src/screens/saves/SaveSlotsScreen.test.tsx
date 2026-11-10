@@ -11,6 +11,7 @@ import {
   damagedGoldenSave,
   goldenHumanController,
   goldenSaveBytes,
+  olderBuildSaveBytes,
   truncatedGoldenSave,
 } from '@/test/goldenSave';
 import { renderApp, storeRealSlot } from '@/test/renderApp';
@@ -414,5 +415,90 @@ describe('TitleScreen Continue', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Dashboard' })).toBeInTheDocument();
     expect(router.state.location.pathname).toBe(routes.game.office());
     expect(useSessionStore.getState().saveSlotId).toBe(newer.slotId);
+  });
+});
+
+describe('SaveSlotsScreen: a save made with an older build', () => {
+  async function loadOlderBuildSlot() {
+    const slot = await storeRealSlot(olderBuildSaveBytes(), { label: 'Old league' });
+    const fake = createFakeStorage([slot]);
+    const rendered = await openSlots(fake);
+    const user = userEvent.setup();
+    await user.click(
+      within(await screen.findByRole('article', { name: 'Old league' })).getByRole('button', {
+        name: 'Load Old league',
+      }),
+    );
+    const sheet = await screen.findByRole('dialog', { name: 'Made with an older build' });
+    return { fake, user, sheet, ...rendered };
+  }
+
+  it('says so in one sentence, with Export and Delete and no issue list', async () => {
+    const { sheet, router } = await loadOlderBuildSlot();
+
+    expect(sheet).toHaveTextContent(
+      "This save was made with an older build of Ringside Booker, and this build can't open it. Start a new game. Export it first if you want to keep the file.",
+    );
+    expect(within(sheet).getByRole('button', { name: 'Export this save' })).toBeInTheDocument();
+    expect(within(sheet).getByRole('button', { name: 'Delete this save' })).toBeInTheDocument();
+    expect(within(sheet).getByRole('button', { name: 'Copy details' })).toBeInTheDocument();
+    expect(within(sheet).getByRole('link', { name: 'Start a new game' })).toHaveAttribute(
+      'href',
+      routes.newGame(),
+    );
+    expect(screen.queryByTestId('load-error')).toBeNull();
+    expect(within(sheet).queryAllByRole('listitem')).toHaveLength(0);
+    expect(sheet).not.toHaveTextContent('legacyMicSkill');
+    expect(screen.queryByRole('dialog', { name: "Couldn't load Old league" })).toBeNull();
+    expect(router.state.location.pathname).toBe(routes.load());
+    expect(useSessionStore.getState().worldLoaded).toBe(false);
+  });
+
+  it('exports the save from the sheet', async () => {
+    const { sheet, user, fake } = await loadOlderBuildSlot();
+
+    await user.click(within(sheet).getByRole('button', { name: 'Export this save' }));
+
+    await waitFor(() => {
+      expect(fake.downloads).toEqual([FAKE_EXPORT_FILE_NAME]);
+    });
+  });
+
+  it('asks before deleting, then removes the slot and closes the sheet', async () => {
+    const { sheet, user } = await loadOlderBuildSlot();
+
+    await user.click(within(sheet).getByRole('button', { name: 'Delete this save' }));
+    const dialog = await screen.findByRole('alertdialog', { name: 'Delete Old league?' });
+    // The card is still there behind the open dialogs.
+    expect(screen.getByRole('article', { name: 'Old league', hidden: true })).toBeInTheDocument();
+    await user.click(within(dialog).getByRole('button', { name: 'Delete' }));
+
+    await waitFor(() => {
+      expect(screen.queryByRole('article', { name: 'Old league', hidden: true })).toBeNull();
+    });
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Made with an older build' })).toBeNull();
+    });
+    expect(await screen.findByText('No saved games yet')).toBeInTheDocument();
+  });
+
+  it("keeps the detailed report for a save that fails with this build's fingerprint", async () => {
+    const slot = await storeRealSlot(
+      damagedGoldenSave(['state', 'world', 'tables', 'people'], [1]),
+      { label: 'Buggy league' },
+    );
+    await openSlots(createFakeStorage([slot]));
+    const user = userEvent.setup();
+
+    await user.click(
+      within(await screen.findByRole('article', { name: 'Buggy league' })).getByRole('button', {
+        name: 'Load Buggy league',
+      }),
+    );
+
+    const sheet = await screen.findByRole('dialog', { name: "Couldn't load Buggy league" });
+    expect(sheet).toHaveTextContent('(validate)');
+    expect(screen.getByTestId('load-error')).toBeInTheDocument();
+    expect(screen.queryByRole('dialog', { name: 'Made with an older build' })).toBeNull();
   });
 });

@@ -200,7 +200,13 @@ export {
   type SystemPhaseGroup,
 } from './core/pipeline';
 
-export { hashString128, hashString32, stableStringify, type HashWords } from './core/hash';
+export {
+  hashString128,
+  hashString32,
+  hashWordsToHex,
+  stableStringify,
+  type HashWords,
+} from './core/hash';
 export * from './core/rng';
 
 export * from './core/tunables/index';
@@ -708,6 +714,13 @@ export type {
 export { loadSave } from './persistence/load';
 export type { InspectReport, InspectSuccess } from './persistence/inspect';
 export { inspectSave } from './persistence/inspect';
+export type { CompatGuardedStage, LoadFailureFacts, SaveCompat } from './persistence/compat';
+export { classifyLoadFailure, COMPAT_GUARDED_STAGES } from './persistence/compat';
+export {
+  engineSaveSchemaFingerprint,
+  fingerprintOf,
+  SAVE_SCHEMA_FINGERPRINT_PATTERN,
+} from './core/api/saveFingerprint';
 export type { Migration } from './persistence/migrations/registry';
 export {
   assertMigrationChain,

@@ -42,6 +42,7 @@ const LOAD_REFUSED: LoadSaveFailure = {
   issues: [{ path: '', message: NO_SAVES_IN_GALLERY }],
   truncated: 0,
   storageError: null,
+  compat: null,
 };
 
 const INSPECT_REFUSED: LoadFailure = {
