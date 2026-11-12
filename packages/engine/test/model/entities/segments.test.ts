@@ -383,7 +383,7 @@ describe('segments against their instance', () => {
     putSinglesMatch(world, 1, {
       slot: 0,
       outcome: { kind: 'draw' },
-      rating: { score: 50, stars: 2, traceId: null },
+      rating: { score: 50, stars: 2, workRate: 55, crowd: 50, expectation: 45, traceId: null },
     });
     world.tables.segments._put(
       makeAngle(2, {
