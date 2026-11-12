@@ -16,12 +16,14 @@ import { aTeam, worldBuilder } from '@ringside/engine/testing';
 import { EngineProvider } from '@/app/engine/EngineProvider';
 import { createInProcessTransport } from '@/app/engine/transport';
 import type { InProcessTransport } from '@/app/engine/transport';
-import { buildAppRoutes, routerFutureFlags, routerProviderFutureFlags } from '@/app/router';
+import { LiveAnnouncer } from '@/app/a11y/LiveAnnouncer';
+import { routerFutureFlags, routerProviderFutureFlags } from '@/app/router';
 import { useSessionStore } from '@/app/session/sessionStore';
 import { BP_MOBILE_QUERY } from '@/styles/breakpoints';
 import { BOOKING_WORLD_START, fakeEngineFactory } from '@/test/fakeEngine';
 import { setMatchMedia } from '@/test/matchMedia';
 import { RUNNING_TIME_WORDS } from '@/test/runningTimeWords';
+import { BookingView } from '../BookingView';
 import { bookingShowUrl } from '../bookingUrl';
 import { registerSegmentEditorSection } from '../registries/segmentEditorSections';
 import { useSegmentEditor } from './editorStore';
@@ -126,17 +128,30 @@ async function command<K extends CommandName>(
   if (!result.ok) throw new Error(`${name} was refused: ${JSON.stringify(result.reasons)}`);
 }
 
+/**
+ * The booking view on its own, without the app shell or the lazily loaded route chunk: the card,
+ * its commands and the editor are the real ones, but the DOM every query walks stays small and
+ * there is no chunk to wait for. The BookingScreen tests cover the route and the shell.
+ */
 function renderBooking(built: EditorWorld) {
-  const router = createMemoryRouter(buildAppRoutes({ includeDevRoutes: false }), {
+  const router = createMemoryRouter([{ path: '*', element: <BookingView /> }], {
     initialEntries: [bookingShowUrl(built.show.eventInstanceId)],
     future: routerFutureFlags,
   });
   render(
     <EngineProvider createTransport={() => built.transport}>
-      <RouterProvider router={router} future={routerProviderFutureFlags} />
+      <LiveAnnouncer>
+        <RouterProvider router={router} future={routerProviderFutureFlags} />
+      </LiveAnnouncer>
     </EngineProvider>,
   );
-  return userEvent.setup();
+  // No pause between simulated keys and clicks: nothing here depends on typing speed.
+  return userEvent.setup({ delay: null });
+}
+
+/** The roster picker's sheet, once it is open ("Add to Side 1", "Add a speaker"). */
+async function findPicker(): Promise<HTMLElement> {
+  return screen.findByRole('dialog', { name: /^Add (to Side \d+|a speaker)$/ });
 }
 
 /** Clicks an add action on a slot's row and waits for the editor. */
@@ -165,7 +180,7 @@ async function pick(
   const opener = buttons[index];
   if (opener === undefined) throw new Error(`No "${button}" button ${String(index)}.`);
   await user.click(opener);
-  const picker = await screen.findByRole('listbox');
+  const picker = await findPicker();
   await user.click(await within(picker).findByRole('option', { name }, { timeout: LOAD_MS }));
 }
 
@@ -208,7 +223,14 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe('SegmentEditorSheet', () => {
+/**
+ * A backstop for a heavily loaded machine only: each test takes well under a second on its own
+ * (the first one longest, as it warms up every component), but a full parallel run can slow
+ * everything several times over.
+ */
+const TEST_TIMEOUT_MS = 15_000;
+
+describe('SegmentEditorSheet', { timeout: TEST_TIMEOUT_MS }, () => {
   it('books a singles match with a planned winner and saves it in one command', async () => {
     const built = await editorWorld();
     const spy = vi.spyOn(built.transport.host, 'command');
@@ -258,23 +280,22 @@ describe('SegmentEditorSheet', () => {
     const editor = await openNew(user, 'Slot 2: Midcard', 'Add match', 'Slot 2 · Midcard');
 
     await user.click(first(within(editor).getAllByRole('button', { name: 'Add wrestler' })));
-    let picker = await screen.findByRole('listbox');
+    const picker = await findPicker();
     await within(picker).findByRole('option', { name: /Kai Moreno/ }, { timeout: LOAD_MS });
     expect(within(picker).queryByRole('option', { name: /Tia Cruz/ })).toBeNull();
-    await user.click(screen.getByRole('button', { name: 'Bookable only' }));
-    picker = screen.getByRole('listbox');
-    const tia = within(picker).getByRole('option', { name: /Tia Cruz/ });
+    await user.click(within(picker).getByRole('button', { name: 'Bookable only' }));
+    const tia = await within(picker).findByRole('option', { name: /Tia Cruz/ });
     expect(tia).toHaveAttribute('aria-disabled', 'true');
     expect(tia).toHaveAccessibleDescription(/^Can't wrestle on this date: /);
     await user.click(tia);
     expect(within(editor).queryByRole('link', { name: 'Tia Cruz' })).toBeNull();
-    await user.click(screen.getByRole('button', { name: 'Done' }));
+    await user.click(within(picker).getByRole('button', { name: 'Done' }));
     await user.click(within(editor).getByRole('button', { name: 'Cancel' }));
 
     const promo = await openNew(user, 'Slot 3: Midcard', 'Add talking segment', 'Slot 3 · Midcard');
     await pick(user, promo, 'Add speaker', 0, /Tia Cruz/);
     // A promo takes up to four speakers, so the picker stays open for more.
-    await user.click(screen.getByRole('button', { name: 'Done' }));
+    await user.click(within(await findPicker()).getByRole('button', { name: 'Done' }));
     expect(await within(promo).findByRole('link', { name: 'Tia Cruz' })).toBeInTheDocument();
     expect(within(promo).getByRole('button', { name: 'Save' })).toBeEnabled();
   });
@@ -287,7 +308,7 @@ describe('SegmentEditorSheet', () => {
 
     await choose(user, 'Match type', TAG_TEAM);
     await user.click(first(within(editor).getAllByRole('button', { name: 'Add team' })));
-    const picker = await screen.findByRole('listbox', { name: 'Teams' });
+    const picker = within(await findPicker()).getByRole('listbox', { name: 'Teams' });
     await user.click(
       await within(picker).findByRole('option', { name: /The Hale Storm/ }, { timeout: LOAD_MS }),
     );
@@ -300,7 +321,7 @@ describe('SegmentEditorSheet', () => {
 
     await pick(user, editor, 'Add wrestler', 1, /Rhea Cortez/);
     // Side 2 takes two, so the picker stays open for the second.
-    await user.click(within(screen.getByRole('listbox')).getByRole('option', { name: /Sam Reed/ }));
+    await user.click(within(await findPicker()).getByRole('option', { name: /Sam Reed/ }));
     await user.click(within(editor).getByRole('button', { name: 'Save' }));
     await waitFor(() => {
       expect(sentDraft(spy, 'booking.addSegment')).toBeDefined();
