@@ -24,6 +24,7 @@ import {
 import { showsTunables } from './shows/tunables';
 import { workersTunables } from './workers/tunables';
 import { worldTunables } from './world/tunables';
+import { momentumTunables } from './match/aftermath/momentumTunables';
 
 export const ALL_TUNABLES = mergeTunables(
   simTunables,
@@ -34,6 +35,7 @@ export const ALL_TUNABLES = mergeTunables(
   matchTunables,
   bookingTunables,
   showsTunables,
+  momentumTunables,
 );
 
 /** Every tunable key the engine knows. */
