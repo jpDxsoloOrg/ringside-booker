@@ -121,7 +121,7 @@ npm run sim -- --days 90 --world path/to/state.json
 | `--tunable <key=value>` | Overrides a tunable through the `tunables.setOverride` command (repeatable)     |
 | `--json`                | Prints the summary as JSON                                                      |
 | `--check-determinism`   | Runs twice from the same start and compares the hash, event counts and failures |
-| `--strict`              | Exits 1 when any step fails                                                     |
+| `--strict`              | Exits 1 when any step fails or a show dated before the end date is still open   |
 | `--trace <kind:id>`     | Prints one stored trace at the end                                              |
 
 Exit codes:
@@ -129,7 +129,7 @@ Exit codes:
 | Code | Meaning                                                                         |
 | ---- | ------------------------------------------------------------------------------- |
 | 0    | The run finished                                                                |
-| 1    | The two runs of `--check-determinism` differ, or a step failed with `--strict`  |
+| 1    | The determinism runs differ, or `--strict` found a failed step or an open show  |
 | 2    | Bad arguments, a tunable the engine refused, or a world file that can't be read |
 | 3    | A gate stopped the run; the gate's reason is printed                            |
 

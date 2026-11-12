@@ -3,7 +3,12 @@ import { describe, expect, it } from 'vitest';
 import { createEngine, initialEngineState } from '../../../src/core/api';
 import { compareDates } from '../../../src/core/date';
 import { defaultSystems } from '../../../src/systems';
-import { SYSTEMS_WITHOUT_SHOW_DAY_GATE, tinyWorld } from '../../support';
+import {
+  SYSTEMS_WITHOUT_SHOW_DAY_GATE,
+  SYSTEMS_WITHOUT_SHOW_NIGHT,
+  tinyWorld,
+  type BuiltWorld,
+} from '../../support';
 import {
   advance,
   cancelledEvents,
@@ -16,6 +21,16 @@ import {
 } from './lifecycle-world';
 
 const TODAY = gameDate(LIFECYCLE_START);
+
+// Show night (`shows.runShows`) runs a locked show and a computer show before the day closes. These
+// tests are about the safety net for shows nothing ran, so they leave show night out;
+// shows/runShows.test.ts covers how the two meet.
+function engineWithoutShowNight(built: BuiltWorld) {
+  return createEngine({
+    state: initialEngineState(built.world),
+    systems: SYSTEMS_WITHOUT_SHOW_NIGHT,
+  });
+}
 
 describe('calendar.closePastShows', () => {
   it('is a daily settlement phase at order 90, after the whole shows group', () => {
@@ -30,7 +45,7 @@ describe('calendar.closePastShows', () => {
       addShow({ date: TODAY }),
       addShow({ date: TODAY, status: 'booked' }),
     ]);
-    const state = await advance(engineOver(built), 1);
+    const state = await advance(engineWithoutShowNight(built), 1);
     expect(built.shows).toHaveLength(2);
     for (const id of built.shows) {
       expect(showIn(state, id)).toMatchObject({
@@ -86,7 +101,7 @@ describe('calendar.closePastShows', () => {
       addShow({ date: TODAY, status: 'completed' });
       return closed;
     });
-    const engine = engineOver(built);
+    const engine = engineWithoutShowNight(built);
     await advance(engine, 1);
     const inIdOrder = [...built.shows].sort();
     expect(inIdOrder).toEqual(built.shows);

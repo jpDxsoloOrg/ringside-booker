@@ -1442,3 +1442,31 @@ export {
   type ShowSlotInput,
   type ShowStarsInputs,
 } from './systems/shows/index';
+
+// Show night (EVT3-03): the `shows.runShows` phase that runs every show dated today, rates each
+// segment and writes results, plus the seams later features plug into: segment result appliers
+// and the match outcome resolver. See docs/design/show-night.md#phase and #seams.
+export {
+  BOOKED_RESULT_REASON,
+  NO_PLAN_NO_CONTEST_REASON,
+  OUTCOME_DECISION_LABEL,
+  hasShowsToday,
+  isSegmentRun,
+  listSegmentResultAppliers,
+  matchOutcomeResolver,
+  plannedOrNoContest,
+  registerMatchOutcomeResolver,
+  registerSegmentResultApplier,
+  runShowsPhase,
+  showsPhases,
+  unregisterMatchOutcomeResolver,
+  unregisterSegmentResultApplier,
+  type MatchOutcomeDeps,
+  type MatchOutcomeInput,
+  type MatchOutcomeResolution,
+  type MatchOutcomeResolver,
+  type MatchOutcomeSide,
+  type SegmentResult,
+  type SegmentResultApplier,
+  type SegmentResultSide,
+} from './systems/shows/index';

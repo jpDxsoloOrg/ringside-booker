@@ -28,3 +28,15 @@ export const SYSTEMS_WITHOUT_SHOW_DAY_GATE: readonly SystemBundle[] = systemsWit
   defaultSystems,
   [SHOW_NEEDS_BOOKING_GATE_ID],
 );
+
+/**
+ * The default systems without the show-day gate and without show night (`shows.runShows`). For
+ * the calendar's close-past-shows tests: they check the safety net for shows nothing ran, which
+ * show night would otherwise run first.
+ */
+export const SYSTEMS_WITHOUT_SHOW_NIGHT: readonly SystemBundle[] =
+  SYSTEMS_WITHOUT_SHOW_DAY_GATE.map((system) =>
+    system.phases.some((phase) => phase.id === 'shows.runShows')
+      ? { ...system, phases: system.phases.filter((phase) => phase.id !== 'shows.runShows') }
+      : system,
+  );

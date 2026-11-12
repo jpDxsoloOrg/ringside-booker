@@ -13,8 +13,106 @@ off-screen score and show stars formulas and the show score modifier seam. The s
 
 ## Phase
 
-Filled by EVT3-03. The `shows.runShows` phase runs each booked show on its
-day and writes every segment's `rating` and `outcome` and the show's `result`.
+`systems/shows/phases.ts`. One phase, `shows.runShows` (group `shows`, order
+10, daily), resolves **every show dated today**, the player's and the
+rivals', so a show's results, and later its attendance and money, all share
+its date. It is skipped on a day with no open show (`hasShowsToday`).
+
+### Which shows run
+
+The day's shows are read through the `byDate` index and run by air date, then
+id. Ids come from the seeded random stream, so id order is not the order shows
+were made in; sorting by air date first means a live episode resolves before
+an episode taped the same night. Then, for each show:
+
+- `cancelled` and `completed` shows are never touched.
+- A show a **human** runs (its brand's controller when the brand has one, else
+  its promotion's, through the calendar's `showControllerOf`) runs only once
+  its card is locked (`booked`). A `scheduled` one is logged and left alone;
+  the show-day gate normally stops the clock before that can happen, and the
+  calendar's `calendar.closePastShows` (settlement, order 90) marks it Not
+  run at the end of the day.
+- A show the **computer** runs plays its card when it has one, whether it is
+  `scheduled` or `booked`, and is scored [off-screen](#off-screen-score) when
+  it has none.
+
+### Running a card
+
+`systems/shows/context.ts` reads the show once (`showContextOf`): its format,
+region and region name, promotion, brand, importance, whether it is televised
+(from its definition; a one-off show counts as not televised), whether a human
+runs it, and its card in running order (the pre-show first, then the main
+card, each by slot, through booking's `cardSegments`). Each segment's people
+are grouped into sides: in a match the competitors' sides are the sides and
+ringside people and interferers ride along on theirs; in an angle every role
+counts. `slotRoleInput(segment, format)` turns the stored 0-based slot into
+MTCH1's 1-based slot position.
+
+Then each segment, in running order (`runSegment.ts`):
+
+1. A segment that already has a rating (BRW3's aired draft) is left as it is;
+   its stored score still counts toward the show score. The rating being set is
+   what marks a segment as run (`isSegmentRun`): a match's `outcome` holds the
+   plan before the show and the result after, so it cannot.
+2. A match's result is decided by the [outcome resolver](#match-outcome-resolver)
+   and written to `outcome` (and `match.finishKey` when the resolver chose a
+   finish) before rating, because the stored-segment adapter reads the row and
+   finish effects must see the real result.
+3. The segment is rated with MTCH1's `rateSegment(ratingInputFromSegment(...))`
+   in `live` mode, seeded by the segment id and drawing on the world's
+   `match.rating` stream. The promotion's rating policy comes through
+   `ratingPolicyFor` inside `rateSegment`, so rival edges reach ratings only
+   through that door (D-01). A rating the pipeline refuses is logged and the
+   segment counts as an empty slot; it never throws.
+4. `rating` is written: `score`, `stars`, the `workRate`, `crowd` and
+   `expectation` components (kept within 0..100; a talking segment has no work
+   rate) and the trace's ref key.
+5. The trace is stored under `shows.segmentScore` (or
+   `shows.rivalSegmentScore` on a computer show). It starts with MTCH1's slot
+   lines ("Main event (long)", "Slot weight ×1.75"), then the resolver's
+   decision ("How the match ended: Booked result"), then the numbers.
+6. Winners, losers and drawers are worked out from the result, competitors
+   only and each list by id: a win makes the winning side's competitors winners
+   and every other side's losers; a draw puts every competitor in `drawIds`; a
+   no contest and an angle leave all three empty. Every registered
+   [result applier](#segment-result-appliers) runs, in order.
+7. `segment.completed` is published.
+
+Then the show score (`showScore`, above) is computed from one entry per
+main-card slot (an empty slot, or a segment that could not be rated, counts as
+empty) and one per rated pre-show segment, each with its `slotWeightOf`
+weight. Every show score modifier's `gather` runs first and the registered
+modifiers are passed in. The trace is stored under `shows.showScore`, the
+instance becomes `completed` with its `result` (`attendance`, `gate` and
+`viewers` stay null until EVT6 and ECO8), and `show.completed` is published
+with `offscreen: false` and the number of segments on the card.
+
+An off-screen show writes its result with `rawScore` equal to its score,
+stores the trace under `shows.showScore` and publishes `show.completed` with
+`offscreen: true` and `segmentCount: 0`. It runs no segment and no applier and
+publishes no `segment.completed`. It draws `shows.offscreen` exactly once, so
+adding or removing another show never changes its roll.
+
+Show night writes only segments' `outcome`, `match.finishKey` and `rating` and
+shows' `status` and `result`. Morale, momentum, popularity and fatigue belong
+to the features that react to its events and appliers (WRK8, MTCH3, MTCH4);
+losers inside hot storylines are WRK8's to shield (D-09), so show night only
+reports `storylineIds`.
+
+### Why a failure rolls back the whole day's shows
+
+A phase is one step and one transaction ([day-pipeline.md](day-pipeline.md)).
+If anything throws while a show runs, every show of that day rolls back with
+it: no ratings, results, events, traces or random draws are kept, the failure
+lands in `sim.failures`, and the shows stay unrun, so the calendar closes them
+as Not run at the end of the day. That is honest but harsh, which is why every
+step that can meet bad data (a rating the pipeline refuses, an applier) logs
+and skips rather than throwing. Running one step per show would need pipeline
+support that does not exist; a savepoint is no substitute, because it rolls
+back table writes but not staged events, traces or random draws.
+
+Running the phase a second time on the same date changes nothing: every show
+it ran is `completed`.
 
 ## Show score
 
@@ -183,9 +281,69 @@ registerShowScoreModifier({
 - `listShowScoreModifiers()` returns them in run order; the shows phase passes
   that list to `showScore`. `unregisterShowScoreModifier(id)` is for tests.
 
+### Segment result appliers
+
+`systems/shows/registries.ts`. Features that react to a segment's result
+inside the shows phase, in the same transaction, register an applier: EVT3-04
+settles titles through one, and MTCH3 (popularity) and MTCH4 (fatigue) add
+theirs later.
+
+```ts
+registerSegmentResultApplier({
+  id: 'shows.titleOutcome', // system.camelName, unique
+  order: 100, // lower runs first; ties run by id
+  apply: (ctx, result) => {
+    /* read the world through ctx.read, write through ctx.tx */
+  },
+});
+```
+
+`result` is plain data: the segment, show, promotion, brand, date, importance
+and region; `humanShow`; `kind`, the stored `slot`, `preShow`, the slot role
+(`roleKey`) and `durationClass`; the `sides` (`{ side, personIds, teamIds }`);
+the `outcome` (null for an angle); `winnerIds`, `loserIds` and `drawIds`;
+`storylineIds` and `titleIds`; the `finishKey`, `methodKey` and
+`titleCanChange` the resolver returned; and the `score` and `stars`. An
+applier that throws rolls back the whole day's shows (see
+[above](#why-a-failure-rolls-back-the-whole-days-shows)), so it should log bad
+data with `ctx.log` and skip it. A malformed id, a non-finite order or a
+duplicate id throws a `RegistryError`. `listSegmentResultAppliers()` returns
+them in run order; `unregisterSegmentResultApplier(id)` is for tests.
+
+### Match outcome resolver
+
+`systems/shows/registries.ts`. How a match ends is decided before it is rated,
+by one resolver:
+
+```ts
+registerMatchOutcomeResolver({
+  id: 'match.resolveOutcome',
+  resolve: (input, { read, tunables, rng }) => ({
+    outcome, // MatchOutcome
+    finishKey, // ContentKey | null
+    methodKey, // ContentKey | null
+    titleCanChange, // Traced<boolean> | null
+    trace, // the decision, shown in the segment's Why? panel
+  }),
+});
+```
+
+`input` holds the segment, show, promotion and region ids, the booker's
+`plan` (the planned `outcome`, or null), the planned finish and the sides with
+their competitors. `rng` is the phase's own stream lookup, so a resolver draws
+only from its own named streams. At most one resolver may be registered (a
+second throws a `RegistryError`). MTCH2 registers its `resolveMatchOutcome`
+here (EVT3-07) instead of editing the phase.
+
+Until then the built-in `plannedOrNoContest` decides: a planned result is used
+as booked ("Booked result"), and a match with no plan ends as a no contest
+("No winner was planned for this match, so it ends as a no contest"). It
+leaves the finish null and `titleCanChange` null, so EVT3-04 reads the
+method's `changesTitles`.
+
 ### Still to come
 
-Filled by EVT3-03..04: EVT6's attendance and gate and ECO8's viewers.
+Filled by EVT3-04 and later: EVT6's attendance and gate and ECO8's viewers.
 
 The save break: EVT3-01 changed the segment rating and show result shapes, so
 saves made before it fail to load with the "Made with an older build" message

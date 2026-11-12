@@ -8,6 +8,7 @@
 
 import { readFile } from 'node:fs/promises';
 import {
+  compareDates,
   createEngine,
   defaultSystems,
   engineStateParts,
@@ -303,4 +304,21 @@ export async function runSimulation(
     finalState,
     trace,
   };
+}
+
+/**
+ * The shows dated before the state's current date that are still open (`scheduled` or `booked`),
+ * by id. Show night runs a show on its day and the calendar closes whatever it did not, so after a
+ * clean run this is empty; `--strict` fails when it is not.
+ */
+export function openPastShows(state: EngineState): string[] {
+  const today = state.world.meta.currentDate;
+  return state.world.tables.eventInstances
+    .filter(
+      (show) =>
+        (show.status === 'scheduled' || show.status === 'booked') &&
+        compareDates(show.date, today) < 0,
+    )
+    .map((show) => show.id)
+    .sort();
 }
