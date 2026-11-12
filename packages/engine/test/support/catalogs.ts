@@ -10,9 +10,11 @@ import type { ContentKey } from '../../src/core/content-key';
 import type { Catalogs } from '../../src/model/catalogs';
 import {
   angleTypeRecord,
+  finishRecord,
   matchTypeRecord,
   methodRecord,
   toAngleTypeDef,
+  toFinishDef,
   toMatchTypeDef,
   toMethodDef,
 } from '../../src/persistence/packs/records/catalogs';
@@ -60,6 +62,7 @@ function readTestCatalogs(): Catalogs {
       toMatchTypeDef,
     ),
     methods: catalogFrom('methods.json', (value) => methodRecord.full.parse(value), toMethodDef),
+    finishes: catalogFrom('finishes.json', (value) => finishRecord.full.parse(value), toFinishDef),
   };
 }
 
