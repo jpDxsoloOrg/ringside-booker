@@ -7,7 +7,8 @@
  * - `unequalSides`: a type with `equalSides` has sides of different sizes (only when every side's
  *   size is allowed on its own; a wrong-sized side already says what is wrong).
  * - `speakerCount`: an angle's speakers are outside its type's `speakers` range.
- * - `noPlannedResult`: a match's `outcome` is null.
+ * - `noPlannedResult`: a match's `outcome` is null. Skipped on a show whose results Random winners
+ *   decides (MTCH2's `randomWinnersActive`): there every result is decided on the night.
  * - `tooFewFilled`: fewer main-card slots are filled than `minFilledMainSlots`.
  * - `emptyMainEvent`: the last main-card slot is open, while `booking.requireMainEvent` is on.
  *
@@ -17,6 +18,7 @@
  */
 
 import { angleTypeOf, matchTypeOf } from '../../../../model/catalogs';
+import { randomWinnersActive } from '../../../match/finishes/randomWinners';
 import { minFilledMainSlots } from '../../formulas/minFilledMainSlots';
 import { slotLabel } from '../../view';
 import type { BookingCheck, BookingCheckInput, BookingIssueDraft } from '../types';
@@ -47,6 +49,10 @@ function anglePhrase(name: string): string {
 
 function segmentIssues(input: BookingCheckInput): BookingIssueDraft[] {
   const issues: BookingIssueDraft[] = [];
+  const decidedOnTheNight = randomWinnersActive(input.read, {
+    promotionId: input.instance.promotionId,
+    brandId: input.instance.brandId,
+  });
   for (const segment of input.segments) {
     const where = at(segment);
     const place = placeOf(input, segment);
@@ -103,7 +109,7 @@ function segmentIssues(input: BookingCheckInput): BookingIssueDraft[] {
         });
       }
     }
-    if (segment.outcome === null) {
+    if (segment.outcome === null && !decidedOnTheNight) {
       issues.push({
         code: 'noPlannedResult',
         severity: 'error',

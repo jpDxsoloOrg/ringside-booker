@@ -172,6 +172,7 @@ function RegisteredSection({ section, controls, card, slot, disabled }: Register
     show: card.show,
     slot,
     disabled,
+    randomWinners: card.randomWinners,
   });
   if (content === null || content === undefined || content === false) return null;
   return (
@@ -342,6 +343,7 @@ function EditorBody({
         methods={methods}
         disabled={disabled}
         invalid={areas.has('result')}
+        randomWinners={card.randomWinners}
         onChange={controls.setResult}
       />
       <div className={styles['field']} data-invalid={areas.has('label') ? '' : undefined}>

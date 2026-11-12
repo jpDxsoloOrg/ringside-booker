@@ -473,13 +473,15 @@ describe('the contract warnings', () => {
 });
 
 describe('the check registry', () => {
-  it('runs the built-in checks at orders 100 to 190', () => {
+  it('runs the built-in checks at orders 100 to 190, then the features from 200', () => {
     expect(registeredBookingChecks().map(({ id, order }) => ({ id, order }))).toEqual([
       { id: 'booking.people', order: 100 },
       { id: 'booking.cardWide', order: 110 },
       { id: 'booking.structure', order: 120 },
       { id: 'booking.titles', order: 130 },
       { id: 'booking.warnings', order: 190 },
+      // MTCH2's finish check (EVT2-07), registered when the match system loads.
+      { id: 'match.finish', order: 200 },
     ]);
   });
 
@@ -573,6 +575,7 @@ describe('the check registry', () => {
       'booking.structure',
       'booking.titles',
       'booking.warnings',
+      'match.finish',
       'test.alpha',
       'test.zeta',
     ]);

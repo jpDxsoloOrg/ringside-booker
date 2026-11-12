@@ -30,12 +30,21 @@ export interface PlannedResultFieldProps {
   readonly methods: readonly MethodOption[];
   readonly disabled: boolean;
   readonly invalid: boolean;
+  /**
+   * True when Random winners decides this show's results (MTCH2): nothing can be planned, so the
+   * field only says so.
+   */
+  readonly randomWinners?: boolean;
   readonly onChange: (outcome: MatchOutcome | null) => void;
 }
 
+/** What the Result field says on a Random winners show, in place of the winner choice. */
+export const RANDOM_WINNERS_RESULT_TEXT = 'Decided on the night (Random winners)';
+
 /**
  * Who wins and how: a winner (any side), a draw or a no contest, and for a win the method. A new
- * win starts on the first method that can move a title. Talking segments have no result.
+ * win starts on the first method that can move a title. Talking segments have no result. On a
+ * Random winners show the choice is replaced by "Decided on the night (Random winners)".
  */
 export function PlannedResultField({
   draft,
@@ -44,9 +53,18 @@ export function PlannedResultField({
   methods,
   disabled,
   invalid,
+  randomWinners = false,
   onChange,
 }: PlannedResultFieldProps) {
   if (draft.kind !== 'match') return null;
+  if (randomWinners) {
+    return (
+      <div className={styles['field']} data-invalid={invalid ? '' : undefined}>
+        <p className={styles['legend']}>Result</p>
+        <p className={styles['hint']}>{RANDOM_WINNERS_RESULT_TEXT}</p>
+      </div>
+    );
+  }
   const outcome = draft.outcome;
   const titlesOnTheLine = draft.match.titleIds.length > 0;
   const options: RadioOption<ResultChoice>[] = [
