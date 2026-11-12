@@ -42,6 +42,7 @@ export const gameRoutes: readonly RouteUnderTest[] = [
   { path: '/game/contracts', name: 'contracts', heading: 'Contracts', needsWorld: true },
   { path: '/game/networks', name: 'networks', heading: 'Networks', needsWorld: true },
   { path: '/game/production', name: 'production', heading: 'Production', needsWorld: true },
+  { path: '/game/match-lab', name: 'match lab', heading: 'Match lab', needsWorld: true },
 ];
 
 /**

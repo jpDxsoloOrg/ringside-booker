@@ -874,3 +874,19 @@ promotionShortName, style, roles, popularity, available, unavailableReason }`:
   the name case-insensitively (up to 40 characters) and `limit` (1–500, 300 by
   default) caps the list, with `total` counting every match. A row never holds
   development, vices, morale or contract terms.
+
+### The Match lab screen
+
+Your promotion > Match lab (`apps/web/src/screens/match-lab/`, MTCH1-07) is the
+first screen on these queries. The setup column picks a match or a talking
+segment and its type (`match.catalog`), the slot role, event size, region and
+television; the duration and weight chips under the slot role come from
+`match.slotInfo` before anything is rated, each with its Why?. The sides column
+builds the line-up from a picker over `match.labWorkers`; the lab lets a
+line-up break the type's limits on purpose (up to 30 sides of 6) so the
+warnings can be seen. Run calls `match.preview` with the current seed (1 on a
+fresh lab), Re-roll seed moves to the next seed and runs, and Run x100 runs
+`match.preview` and a 100-run `match.previewBatch` together. Nothing re-rates
+on its own: changing the setup marks the shown result "Out of date: run
+again", and a result from an earlier game day says when it was rated. Other
+features add panels with `registerLabPanel` (see `apps/web/src/app/README.md`).

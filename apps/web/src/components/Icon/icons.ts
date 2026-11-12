@@ -28,6 +28,7 @@ import {
   FastForward,
   FilePenLine,
   FileText,
+  FlaskConical,
   GripVertical,
   House,
   Inbox,
@@ -77,6 +78,7 @@ export const NAV_ICON_NAMES = [
   'finance',
   'inbox',
   'settings',
+  'lab',
 ] as const;
 
 /** States shown next to a value. Each one sits beside a sign or a label, never colour alone. */
@@ -177,6 +179,7 @@ export const ICON_GLYPHS: Readonly<Record<IconName, LucideIcon>> = {
   finance: CircleDollarSign,
   inbox: Inbox,
   settings: Settings,
+  lab: FlaskConical,
 
   up: ArrowUp,
   down: ArrowDown,

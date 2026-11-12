@@ -1,0 +1,585 @@
+/*
+ * The Match lab (docs/design/match-rating.md#previews). Desktop: setup | sides and the Run bar |
+ * result. The lab measures its own width rather than the window's, so the sidebar and the UI scale
+ * are already counted: three columns when there is room, two (setup beside the sides, the result
+ * below) on narrower desktops, and one stacked column otherwise. On phones the Run bar sticks to
+ * the bottom, above the tab bar.
+ */
+
+.labFrame {
+  container: lab / inline-size;
+  min-inline-size: 0;
+}
+
+.lab {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'setup'
+    'sides'
+    'run'
+    'result';
+  gap: var(--space-4);
+  align-items: start;
+}
+
+@container lab (width >= 40rem) {
+  .lab {
+    grid-template-columns: minmax(15rem, 19rem) minmax(0, 1fr);
+    grid-template-rows: auto auto 1fr auto;
+    grid-template-areas:
+      'setup sides'
+      'setup run'
+      'setup .'
+      'result result';
+  }
+}
+
+@container lab (width >= 64rem) {
+  .lab {
+    grid-template-columns: minmax(15rem, 18rem) minmax(0, 1fr) minmax(0, 1.4fr);
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas:
+      'setup sides result'
+      'setup run result'
+      'setup . result';
+  }
+}
+
+.setupColumn,
+.sidesColumn,
+.resultColumn {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.setupColumn {
+  grid-area: setup;
+}
+
+.sidesColumn {
+  grid-area: sides;
+}
+
+.resultColumn {
+  grid-area: result;
+}
+
+.notice {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* ---- Setup ------------------------------------------------------------------------------ */
+
+.setupFields {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.slotField {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.chipsNote {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.rules {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.rulesLabel {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* ---- Sides ------------------------------------------------------------------------------ */
+
+.sides {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.side {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+}
+
+.sideHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  inline-size: 100%;
+  min-block-size: 2rem;
+}
+
+.sideTitle {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.sideCount {
+  flex: 1 1 auto;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.workerChips {
+  display: grid;
+  gap: var(--space-1);
+  inline-size: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.workerChip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  padding: var(--space-1) var(--space-1) var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.workerChipText {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  min-inline-size: 0;
+}
+
+.workerChipName {
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.workerChipMeta {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.unavailable {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.sidesFooter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-block-start: var(--space-3);
+}
+
+/* ---- Run bar ---------------------------------------------------------------------------- */
+
+.runBar {
+  grid-area: run;
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.runButtons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.seed {
+  color: var(--color-text-muted);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.runButtons .seed {
+  margin-inline-start: auto;
+}
+
+.runReason {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.refusal {
+  display: grid;
+  gap: var(--space-1);
+  color: var(--color-negative);
+  font-size: var(--font-size-sm);
+}
+
+@media (--bp-mobile) {
+  /*
+   * The bar sticks above the tab bar (and the ticker) while the lab scrolls past it. It sits in
+   * the lab's own grid, so it stays in reach from the setup down to the end of the result.
+   */
+  .runBar {
+    position: sticky;
+    inset-block-end: var(--shell-bottom-chrome, var(--safe-bottom));
+    z-index: 1;
+    padding-block-end: var(--space-3);
+    border-color: var(--color-border-strong);
+    background: var(--color-surface-raised);
+    box-shadow: var(--shadow-2);
+  }
+
+  .runButtons {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .runButtons > button {
+    min-block-size: var(--tap-target-min);
+    padding-inline: var(--space-2);
+  }
+
+  .runButtons .seed {
+    grid-column: 1 / -1;
+    margin-inline-start: 0;
+    text-align: center;
+  }
+}
+
+/* ---- Result ----------------------------------------------------------------------------- */
+
+.result {
+  container: labresult / inline-size;
+  display: grid;
+  gap: var(--space-3);
+}
+
+/* A narrow result column stacks the four numbers two by two, so the stars have room. */
+@container labresult (width < 34rem) {
+  .scoreBug > dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.outOfDate {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.resultLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  font-size: var(--font-size-sm);
+}
+
+.resultMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.resultPanel,
+.linesPanel,
+.extraPanel,
+.setupPanel,
+.sidesPanel {
+  min-inline-size: 0;
+}
+
+.stamina {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.linesTable {
+  min-inline-size: 0;
+}
+
+/* ---- Warnings --------------------------------------------------------------------------- */
+
+.warnings {
+  min-inline-size: 0;
+}
+
+.warningList {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.warning {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-inline-start-width: 3px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-raised);
+  font-size: var(--font-size-sm);
+}
+
+.warning[data-severity='error'] {
+  border-inline-start-color: var(--color-negative);
+}
+
+.warning[data-severity='error'] > svg {
+  color: var(--color-negative);
+}
+
+.warning[data-severity='warning'] {
+  border-inline-start-color: var(--color-prestige);
+}
+
+.warning[data-severity='warning'] > svg {
+  color: var(--color-prestige);
+}
+
+.warning > svg {
+  flex: none;
+  margin-block-start: 0.125rem;
+}
+
+.warningSeverity {
+  font-weight: var(--font-weight-semibold);
+}
+
+/* ---- Run x100 --------------------------------------------------------------------------- */
+
+.batch {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--color-border);
+}
+
+.batchHeading,
+.batchSubheading {
+  color: var(--color-text-muted);
+  font-family: var(--font-family-display);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.batchHeading {
+  font-size: var(--font-size-sm);
+}
+
+.batchSubheading {
+  font-size: var(--font-size-xs);
+}
+
+.batchSummary {
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.starCounts {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.starCountList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.starCount {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-raised);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.starCountValue {
+  color: var(--color-prestige);
+  font-weight: var(--font-weight-semibold);
+}
+
+.starCountRuns {
+  color: var(--color-text-muted);
+}
+
+.statLines {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  font-size: var(--font-size-xs);
+}
+
+.statLine {
+  display: grid;
+  grid-template-columns: 6rem minmax(0, 1fr);
+  gap: var(--space-2);
+}
+
+.statLine dt {
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-semibold);
+}
+
+.statLine dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.batchNote {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+/* ---- Worker picker ---------------------------------------------------------------------- */
+
+.picker {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.pickerPanel {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+  padding-block-start: var(--space-3);
+}
+
+.pickerSearch {
+  display: grid;
+  gap: var(--space-1);
+  max-inline-size: 24rem;
+}
+
+.pickerSearchLabel {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.pickerSearchWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.pickerSearchIcon {
+  position: absolute;
+  inset-inline-start: var(--space-3);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.pickerSearchInput {
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 2.5rem;
+  padding: var(--space-2) var(--space-3) var(--space-2) calc(var(--space-3) * 2 + 1rem);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--font-size-sm);
+}
+
+.pickerNote {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.pickerFooter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  inline-size: 100%;
+}
+
+.pickerCount {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (pointer: coarse) {
+  .pickerSearchInput {
+    min-block-size: var(--tap-target-min);
+  }
+}
+
+@media (--bp-mobile) {
+  .pickerSearch {
+    max-inline-size: none;
+  }
+
+  .pickerSearchInput {
+    min-block-size: var(--tap-target-min);
+  }
+}

@@ -1,0 +1,28 @@
+/* The lab's frame: the page heading and whatever is under it. MatchLab.module.css has the rest. */
+.screen {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.intro {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.heading {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.lead,
+.loading {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+@media (--bp-mobile) {
+  .heading {
+    font-size: var(--font-size-xl);
+  }
+}
