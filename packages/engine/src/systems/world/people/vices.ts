@@ -18,14 +18,14 @@ import type { GameDate } from '../../../core/date';
 import { rollChance, type RngStream } from '../../../core/rng';
 import { inputOf, startCalc, traced, type TraceNode, type Traced } from '../../../core/trace';
 import type { Person, Vices } from '../../../model/entities/person';
-import { createEngineTunables, type EngineTunables, type TunableKey } from '../../tunables';
+import { createEngineTunables, type EngineTunables, type NumberTunableKey } from '../../tunables';
 import { experienceYearsAt } from './dates';
 import { formatNumber } from './labels';
 
 const VICES_DOC_REF = 'world-generation.md#vices';
 
 /** The vices in roll order, with their base chance tunable and trace words. */
-const VICE_ROLLS: readonly (readonly [keyof Vices, TunableKey, string])[] = [
+const VICE_ROLLS: readonly (readonly [keyof Vices, NumberTunableKey, string])[] = [
   ['alcohol', 'worldgen.vices.alcoholChance', 'Drinking problem'],
   ['substances', 'worldgen.vices.substancesChance', 'Drug problem'],
 ];
@@ -40,7 +40,7 @@ export interface SeedVicesOptions {
 
 /** The chance of one vice for someone `experienceYears` past their debut, traced. */
 export function viceChance(
-  baseKey: TunableKey,
+  baseKey: NumberTunableKey,
   label: string,
   experienceYears: number,
   tunables: EngineTunables,

@@ -29,7 +29,7 @@ import { tunableNode } from '../../../core/trace/tunable-node';
 import type { Region } from '../../../model/entities/geography';
 import { WRESTLING_ROLES, type Person, type RegionalPop } from '../../../model/entities/person';
 import type { CareerStage } from '../../../persistence/packs/records/generation';
-import { createEngineTunables, type EngineTunables, type TunableKey } from '../../tunables';
+import { createEngineTunables, type EngineTunables, type NumberTunableKey } from '../../tunables';
 import type { Geography } from '../geography';
 import { formatNumber, STAGE_LABELS } from './labels';
 
@@ -54,14 +54,14 @@ const RELATION_WORDS: Readonly<Record<Exclude<RegionRelation, 'home'>, string>> 
   world: 'another continent',
 };
 
-const SPREAD_KEYS: Readonly<Record<Exclude<RegionRelation, 'home'>, TunableKey>> = {
+const SPREAD_KEYS: Readonly<Record<Exclude<RegionRelation, 'home'>, NumberTunableKey>> = {
   country: 'worldgen.popularity.countrySpread',
   neighbour: 'worldgen.popularity.neighbourSpread',
   continent: 'worldgen.popularity.continentSpread',
   world: 'worldgen.popularity.worldSpread',
 };
 
-const STAGE_BASE_KEYS: Readonly<Record<CareerStage, TunableKey>> = {
+const STAGE_BASE_KEYS: Readonly<Record<CareerStage, NumberTunableKey>> = {
   rookie: 'worldgen.popularity.stageBase.rookie',
   prospect: 'worldgen.popularity.stageBase.prospect',
   established: 'worldgen.popularity.stageBase.established',
