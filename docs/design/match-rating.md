@@ -770,14 +770,22 @@ them to every result. A warning never stops a rating.
 | `sideSize`        | error    | "Side 2 has 2 people: Singles takes 1 a side"                    |
 | `unequalSides`    | warning  | "The sides are uneven (2 against 1): Tag Team takes equal sides" |
 | `duplicatePerson` | error    | "Kade Morrow is on both sides" / "is on side 1 twice"            |
-| `injured`         | error    | "Kade Morrow is injured until 2026-05-01"                        |
-| `inactive`        | error    | "Kade Morrow is on hiatus" (or retired, has died, has left)      |
+| `injured`         | error    | "Kade Morrow: Injured (arm injury) until 1 May"                  |
+| `inactive`        | error    | "Kade Morrow: Retired" (or Deceased, Left the business)          |
+| `unavailable`     | error    | "Kade Morrow: On personal leave until 12 Mar"                    |
 | `nonWrestler`     | warning  | "Kade Morrow is not a wrestler" (matches only)                   |
 | `speakerCount`    | warning  | "Five speakers in a Promo: it takes 1 to 4"                      |
 
-Uneven sides are only reported when every side's size is allowed on its own. A
-talking segment flags an injury only when the injury rules out talking
-segments; semi-retired workers are not flagged.
+Uneven sides are only reported when every side's size is allowed on its own.
+Availability is WRK1's `availabilityOf(person, employment, date)` against the
+person's active contract with the segment's promotion (none for a free agent),
+so a warning carries WRK1's reason with the first day back
+(`availabilityText`, `systems/match/availabilityText.ts`): `injured` for an
+injury, `inactive` for someone retired, dead or gone, `unavailable` for rehab,
+personal leave, hiatus, a suspension, time off or a debut still ahead. A match
+needs someone available; a talking segment needs someone who can work angles,
+so an injury that allows angles is not flagged there. Semi-retired workers are
+not flagged.
 
 ### Adding a rating effect
 
@@ -870,7 +878,8 @@ limit?, promotionId? }` → `{ rows, total }`. `mine` is the promotion's
 promotionShortName, style, roles, popularity, available, unavailableReason }`:
   the ring name with the lab's promotion (else the default ring name), the main
   employer's short name, popularity in `regionId`, and WRK1's `availabilityOf`
-  on today's date. Rows are sorted by popularity, then name; `search` matches
+  on today's date, its reason written with the day back ("On personal leave
+  until 12 Mar"). Rows are sorted by popularity, then name; `search` matches
   the name case-insensitively (up to 40 characters) and `limit` (1–500, 300 by
   default) caps the list, with `total` counting every match. A row never holds
   development, vices, morale or contract terms.
