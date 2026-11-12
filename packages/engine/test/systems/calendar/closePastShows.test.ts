@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { createEngine, initialEngineState } from '../../../src/core/api';
 import { compareDates } from '../../../src/core/date';
 import { defaultSystems } from '../../../src/systems';
-import { tinyWorld } from '../../support';
+import { SYSTEMS_WITHOUT_SHOW_DAY_GATE, tinyWorld } from '../../support';
 import {
   advance,
   cancelledEvents,
@@ -129,7 +129,7 @@ describe('calendar.closePastShows', () => {
   it('leaves no past show open after 30 days on the tiny world', async () => {
     const engine = createEngine({
       state: initialEngineState(tinyWorld().world),
-      systems: defaultSystems,
+      systems: SYSTEMS_WITHOUT_SHOW_DAY_GATE,
     });
     const state = await advance(engine, 30);
     const today = state.world.meta.currentDate;
