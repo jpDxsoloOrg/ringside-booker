@@ -1374,6 +1374,29 @@ export {
   WORKER_PICK_KINDS,
 } from './systems/booking/index';
 
+// The booking checks (EVT2-04): `validateCard`, the one answer the booking screen, `booking.lockCard`
+// and the rival booker (AIP4) share, the check registry other features plug their rules into, and
+// the minimum-filled formula. See docs/design/booking.md#validation.
+export type {
+  BookingCheck,
+  BookingCheckInput,
+  BookingIssue,
+  BookingIssueDraft,
+  BookingSeverity,
+  BookingValidation,
+  ChecklistItem,
+  MinFilledMainSlotsInputs,
+  ValidateCardDeps,
+} from './systems/booking/index';
+export {
+  CHECK_FAILED_CODE,
+  MAX_LOCK_REASONS,
+  minFilledMainSlots,
+  registerBookingCheck,
+  registeredBookingChecks,
+  validateCard,
+} from './systems/booking/index';
+
 // The shows system (EVT3-01): show night's domain events (`segment.completed`, `show.completed`,
 // `title.changed`, `title.defended`), trace kinds and refs, random stream and tunables. The phase
 // and queries arrive with EVT3-03..05. See docs/design/show-night.md.

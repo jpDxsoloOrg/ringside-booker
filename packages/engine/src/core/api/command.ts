@@ -20,6 +20,7 @@
 
 import type { z } from 'zod';
 import type { GameWorldView } from '../../model/tables';
+import { createEngineTunables, type EngineTunables } from '../../systems/tunables';
 import { RegistryError } from '../errors';
 import type { PhaseContext } from '../pipeline/context';
 import type { TunableRawValue } from '../tunables/define';
@@ -48,6 +49,15 @@ export interface CommandContext extends PhaseContext {
   readonly tunableOverrides: TunableOverrideWriter;
 }
 
+/**
+ * What `validate` may read besides the world: the save's tunables, so a rule built on a tunable
+ * (the booking checks behind `booking.lockCard`) refuses before a transaction opens. The engine
+ * always passes it; a direct call that leaves it out gets the default tunables.
+ */
+export interface CommandValidateEnv {
+  readonly tunables: EngineTunables;
+}
+
 /** What a system writes to define a command. */
 export interface CommandSpec<N extends CommandName> {
   /** Checks the arguments. Its output is what `validate` and `apply` receive. */
@@ -56,7 +66,12 @@ export interface CommandSpec<N extends CommandName> {
    * The rules: every reason the command is not allowed right now, or an empty list. Reads only;
    * it runs before any transaction is opened. Reason messages are shown to the player.
    */
-  validate?(read: GameWorldView, args: CommandArgs<N>, issuedBy: Controller): Reason[];
+  validate?(
+    read: GameWorldView,
+    args: CommandArgs<N>,
+    issuedBy: Controller,
+    env: CommandValidateEnv,
+  ): Reason[];
   /**
    * Makes the change through `ctx.tx`, publishes its events and records its traces. Returns plain
    * JSON (checked in debug builds). Synchronous. Throwing rolls everything back.
@@ -69,7 +84,12 @@ export interface CommandDefinition<N extends CommandName = CommandName> {
   readonly name: N;
   readonly args: z.ZodType<CommandArgs<N>>;
   /** Always present: a spec without `validate` allows everything its arguments allow. */
-  validate(read: GameWorldView, args: CommandArgs<N>, issuedBy: Controller): Reason[];
+  validate(
+    read: GameWorldView,
+    args: CommandArgs<N>,
+    issuedBy: Controller,
+    env?: CommandValidateEnv,
+  ): Reason[];
   apply(ctx: CommandContext, args: CommandArgs<N>, issuedBy: Controller): CommandData<N>;
 }
 
@@ -90,8 +110,12 @@ export function defineCommand<N extends CommandName>(
   return Object.freeze({
     name,
     args: spec.args,
-    validate: (read: GameWorldView, args: CommandArgs<N>, issuedBy: Controller) =>
-      spec.validate?.(read, args, issuedBy) ?? [],
+    validate: (
+      read: GameWorldView,
+      args: CommandArgs<N>,
+      issuedBy: Controller,
+      env?: CommandValidateEnv,
+    ) => spec.validate?.(read, args, issuedBy, env ?? { tunables: createEngineTunables() }) ?? [],
     apply: (ctx: CommandContext, args: CommandArgs<N>, issuedBy: Controller) =>
       spec.apply(ctx, args, issuedBy),
   });

@@ -374,7 +374,7 @@ export function createEngine(options: CreateEngineOptions): Engine {
 
     let reasons: Reason[];
     try {
-      reasons = definition.validate(runtime.world, args, issuedBy);
+      reasons = definition.validate(runtime.world, args, issuedBy, { tunables });
       if (debugChecks) {
         assertSerialisable(reasons, `commands["${name}"].reasons`);
       }

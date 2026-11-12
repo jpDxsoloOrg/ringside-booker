@@ -31,6 +31,7 @@ export {
   type CommandContext,
   type CommandDefinition,
   type CommandSpec,
+  type CommandValidateEnv,
   type TunableOverrideWriter,
 } from './command';
 export {

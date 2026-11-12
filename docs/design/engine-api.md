@@ -140,9 +140,10 @@ Tests can declare their own entries the same way, merging into
 2. **The arguments** are parsed with the command's schema. Bad ones come back
    as `invalidArgs` reasons, one per problem, each naming its `field`
    (`amount`, `types[2]`, `ref.kind`).
-3. **`validate(read, args, issuedBy)`** returns every reason the command is not
-   allowed right now. Any reason rejects the command before a transaction is
-   opened.
+3. **`validate(read, args, issuedBy, env)`** returns every reason the command
+   is not allowed right now. Any reason rejects the command before a
+   transaction is opened. `env.tunables` is the save's tunable reader, for a
+   rule built on a tunable (`booking.lockCard` runs the booking checks here).
 4. **`apply(ctx, args, issuedBy)`** runs as one pipeline step through
    `runStep`, with the event source `{ kind: 'command', id: name }` and the
    step id `command:<name>`. It gets a `CommandContext`: a normal step context

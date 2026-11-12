@@ -549,6 +549,8 @@ describe('who may book a show', () => {
 
   it('declares every refusal code it adds', () => {
     expect([...BOOKING_COMMAND_REASON_CODES].sort()).toEqual([
+      'cardNotLocked',
+      'cardNotRunnable',
       'notYourShow',
       'segmentNotFound',
       'showNotFound',
@@ -724,13 +726,15 @@ describe('determinism', () => {
 const BOOKING_COMMAND_NAMES: readonly CommandName[] = bookingCommands.map(
   (command) => command.name,
 );
-it('registers the six booking commands', () => {
+it('registers the six card commands and Lock / Unlock', () => {
   expect([...BOOKING_COMMAND_NAMES].sort()).toEqual([
     'booking.addSegment',
     'booking.clearCard',
+    'booking.lockCard',
     'booking.moveSegment',
     'booking.removeSegment',
     'booking.setResult',
+    'booking.unlockCard',
     'booking.updateSegment',
   ]);
 });

@@ -15,7 +15,8 @@
  * one `card.changed`. A command that would change nothing (the same draft, a move onto its own
  * slot, the same result, clearing an empty card) succeeds and publishes nothing.
  *
- * Locking and unlocking a card come with the booking checks in EVT2-04.
+ * `booking.lockCard` and `booking.unlockCard` (EVT2-04) move a show between `scheduled` and
+ * `booked`. Lock is refused with `cardNotRunnable` while `validateCard` finds any error.
  *
  * Design notes: docs/design/booking.md#commands.
  */
@@ -32,6 +33,8 @@ import { zId } from '../../model/primitives';
 import type { GameWorldView } from '../../model/tables';
 import type { DeepReadonly } from '../../model/world';
 import { controlsShow } from '../calendar/control';
+import type { BookingIssue } from './validate/types';
+import { validateCard } from './validate/validateCard';
 import { editBlockOf } from './control';
 import { draftFromSegment, SegmentDraftSchema, type SegmentDraft } from './draft';
 import type { CardChange } from './events';
@@ -89,6 +92,14 @@ declare module '../../core/api/maps' {
       args: { eventInstanceId: EventInstanceId };
       result: { removed: number };
     };
+    'booking.lockCard': {
+      args: { eventInstanceId: EventInstanceId };
+      result: { status: 'booked' };
+    };
+    'booking.unlockCard': {
+      args: { eventInstanceId: EventInstanceId };
+      result: { status: 'scheduled' };
+    };
   }
 }
 
@@ -97,6 +108,8 @@ export const BOOKING_COMMAND_REASON_CODES = [
   'showNotFound',
   'segmentNotFound',
   'notYourShow',
+  'cardNotRunnable',
+  'cardNotLocked',
 ] as const;
 export type BookingCommandReasonCode = (typeof BOOKING_COMMAND_REASON_CODES)[number];
 
@@ -364,6 +377,95 @@ export const clearCardCommand = defineCommand('booking.clearCard', {
   },
 });
 
+// ---------------------------------------------------------------------------------------------
+// Lock and unlock (EVT2-04)
+
+/** The most `cardNotRunnable` reasons a refused lock lists; the checklist has the rest. */
+export const MAX_LOCK_REASONS = 10;
+
+function notRunnable(show: Show, issue: BookingIssue): Reason {
+  return {
+    code: 'cardNotRunnable',
+    message: issue.message,
+    subject:
+      issue.segmentId === undefined
+        ? { kind: 'eventInstance', id: show.id }
+        : { kind: 'segment', id: issue.segmentId },
+  };
+}
+
+/**
+ * Locks a card so the show can run: the show becomes `booked`, which clears the show-day gate.
+ * Refused while the card has any booking error; warnings never block.
+ */
+export const lockCardCommand = defineCommand('booking.lockCard', {
+  args: z.strictObject({ eventInstanceId: zId('eventInstance') }),
+  validate: (read, args, issuedBy, env) => {
+    const show = read.tables.eventInstances.get(args.eventInstanceId);
+    if (show === undefined) {
+      return [showNotFound()];
+    }
+    const refused = showRefusals(read, show, issuedBy).map((reason) =>
+      reason.code === 'cardLocked' ? { ...reason, message: 'This card is already locked' } : reason,
+    );
+    if (refused.length > 0) {
+      return refused;
+    }
+    const validation = validateCard(read, show.id, {
+      tunables: env.tunables,
+      today: read.meta.currentDate,
+    });
+    return validation.errors.slice(0, MAX_LOCK_REASONS).map((issue) => notRunnable(show, issue));
+  },
+  apply: (ctx, args) => {
+    const show = ctx.read.tables.eventInstances.require(args.eventInstanceId);
+    ctx.tx.update('eventInstances', show.id, { status: 'booked' });
+    ctx.publish('card.locked', {
+      eventInstanceId: show.id,
+      promotionId: show.promotionId,
+      brandId: show.brandId,
+    });
+    return { status: 'booked' } as const;
+  },
+});
+
+/** Unlocks a locked card so it can change again; the show goes back to `scheduled`. */
+export const unlockCardCommand = defineCommand('booking.unlockCard', {
+  args: z.strictObject({ eventInstanceId: zId('eventInstance') }),
+  validate: (read, args, issuedBy) => {
+    const show = read.tables.eventInstances.get(args.eventInstanceId);
+    if (show === undefined) {
+      return [showNotFound()];
+    }
+    const refused = showRefusals(read, show, issuedBy).filter(
+      (reason) => reason.code !== 'cardLocked',
+    );
+    if (refused.length > 0) {
+      return refused;
+    }
+    if (show.status !== 'booked') {
+      return [
+        {
+          code: 'cardNotLocked',
+          message: "This card isn't locked",
+          subject: { kind: 'eventInstance', id: show.id },
+        },
+      ];
+    }
+    return [];
+  },
+  apply: (ctx, args) => {
+    const show = ctx.read.tables.eventInstances.require(args.eventInstanceId);
+    ctx.tx.update('eventInstances', show.id, { status: 'scheduled' });
+    ctx.publish('card.unlocked', {
+      eventInstanceId: show.id,
+      promotionId: show.promotionId,
+      brandId: show.brandId,
+    });
+    return { status: 'scheduled' } as const;
+  },
+});
+
 export const bookingCommands = [
   addSegmentCommand,
   updateSegmentCommand,
@@ -371,4 +473,6 @@ export const bookingCommands = [
   moveSegmentCommand,
   setResultCommand,
   clearCardCommand,
+  lockCardCommand,
+  unlockCardCommand,
 ] as const;
