@@ -22,6 +22,365 @@
     ],
     "contentPacks": [],
     "contentKeys": {},
+    "catalogs": {
+      "angleTypes": {
+        "angle.attack": {
+          "key": "angle.attack",
+          "name": "Attack",
+          "order": 40,
+          "defaultBeatKey": "beat.attack",
+          "speakers": {
+            "min": 1,
+            "max": 6
+          },
+          "speakerWeights": {
+            "mic": 0.1,
+            "charisma": 0.3,
+            "presence": 0.6
+          },
+          "hidden": false,
+          "description": "An ambush in the ring, backstage or in the car park. Few words, lots of impact."
+        },
+        "angle.confrontation": {
+          "key": "angle.confrontation",
+          "name": "Confrontation",
+          "order": 30,
+          "defaultBeatKey": "beat.staredown",
+          "speakers": {
+            "min": 2,
+            "max": 8
+          },
+          "speakerWeights": {
+            "mic": 0.4,
+            "charisma": 0.3,
+            "presence": 0.3
+          },
+          "hidden": false,
+          "description": "Rivals come face to face. Words are traded and it may not stay peaceful."
+        },
+        "angle.contract-signing": {
+          "key": "angle.contract-signing",
+          "name": "Contract Signing",
+          "shortName": "Signing",
+          "order": 50,
+          "defaultBeatKey": "beat.contract-signing",
+          "speakers": {
+            "min": 2,
+            "max": 4
+          },
+          "speakerWeights": {
+            "mic": 0.5,
+            "charisma": 0.3,
+            "presence": 0.2
+          },
+          "hidden": false,
+          "description": "A table, a contract and two people who do not like each other. It rarely ends with just a signature."
+        },
+        "angle.interview": {
+          "key": "angle.interview",
+          "name": "Interview",
+          "order": 20,
+          "defaultBeatKey": "beat.interview",
+          "speakers": {
+            "min": 1,
+            "max": 3
+          },
+          "speakerWeights": {
+            "mic": 0.5,
+            "charisma": 0.35,
+            "presence": 0.15
+          },
+          "hidden": false,
+          "description": "A backstage or ringside interviewer asks the questions and the talent answers."
+        },
+        "angle.promo": {
+          "key": "angle.promo",
+          "name": "Promo",
+          "order": 10,
+          "defaultBeatKey": "beat.promo",
+          "speakers": {
+            "min": 1,
+            "max": 4
+          },
+          "speakerWeights": {
+            "mic": 0.6,
+            "charisma": 0.3,
+            "presence": 0.1
+          },
+          "hidden": false,
+          "description": "Someone takes the microphone and talks to the crowd, an opponent or the camera."
+        },
+        "angle.video-package": {
+          "key": "angle.video-package",
+          "name": "Video Package",
+          "shortName": "Video",
+          "order": 60,
+          "defaultBeatKey": "beat.video-package",
+          "speakers": {
+            "min": 1,
+            "max": 6
+          },
+          "speakerWeights": {
+            "mic": 0.3,
+            "charisma": 0.4,
+            "presence": 0.3
+          },
+          "hidden": false,
+          "description": "A pre-recorded piece that builds a rivalry or introduces someone new."
+        }
+      },
+      "matchTypes": {
+        "match.battle-royal": {
+          "key": "match.battle-royal",
+          "name": "Battle Royal",
+          "shortName": "Royal",
+          "order": 70,
+          "sides": {
+            "min": 6,
+            "max": 30
+          },
+          "sideSize": {
+            "min": 1,
+            "max": 1
+          },
+          "equalSides": true,
+          "durationShift": 1,
+          "workRateFactor": 0.85,
+          "crowdFactor": 1.05,
+          "styleAffinity": [],
+          "allowsTitles": false,
+          "hidden": false,
+          "description": "A crowded ring where going over the top rope eliminates you. The last one left wins. Loose work, but crowds enjoy the chaos."
+        },
+        "match.endurance": {
+          "key": "match.endurance",
+          "name": "Endurance Match",
+          "shortName": "Endurance",
+          "order": 80,
+          "sides": {
+            "min": 2,
+            "max": 2
+          },
+          "sideSize": {
+            "min": 1,
+            "max": 1
+          },
+          "equalSides": true,
+          "durationShift": 1,
+          "workRateFactor": 1,
+          "crowdFactor": 1,
+          "styleAffinity": [
+            "technician",
+            "grappler"
+          ],
+          "allowsTitles": true,
+          "hidden": false,
+          "description": "A long one-on-one contest that rewards conditioning and patient mat work."
+        },
+        "match.four-way": {
+          "key": "match.four-way",
+          "name": "Four-Way",
+          "order": 50,
+          "sides": {
+            "min": 4,
+            "max": 4
+          },
+          "sideSize": {
+            "min": 1,
+            "max": 1
+          },
+          "equalSides": true,
+          "durationShift": 0,
+          "workRateFactor": 1,
+          "crowdFactor": 1,
+          "styleAffinity": [],
+          "allowsTitles": true,
+          "hidden": false,
+          "description": "Four workers, every one for themselves. The first fall ends it."
+        },
+        "match.handicap": {
+          "key": "match.handicap",
+          "name": "Handicap",
+          "order": 60,
+          "sides": {
+            "min": 2,
+            "max": 2
+          },
+          "sideSize": {
+            "min": 1,
+            "max": 3
+          },
+          "equalSides": false,
+          "durationShift": 0,
+          "workRateFactor": 1,
+          "crowdFactor": 1,
+          "styleAffinity": [],
+          "allowsTitles": true,
+          "hidden": false,
+          "description": "Two sides of different sizes: one worker against two or three, or two against three."
+        },
+        "match.singles": {
+          "key": "match.singles",
+          "name": "Singles",
+          "order": 10,
+          "sides": {
+            "min": 2,
+            "max": 2
+          },
+          "sideSize": {
+            "min": 1,
+            "max": 1
+          },
+          "equalSides": true,
+          "durationShift": 0,
+          "workRateFactor": 1,
+          "crowdFactor": 1,
+          "styleAffinity": [],
+          "allowsTitles": true,
+          "hidden": false,
+          "description": "One against one. The plainest test of two workers, and the base every other type is measured against."
+        },
+        "match.sprint": {
+          "key": "match.sprint",
+          "name": "Sprint",
+          "order": 90,
+          "sides": {
+            "min": 2,
+            "max": 2
+          },
+          "sideSize": {
+            "min": 1,
+            "max": 1
+          },
+          "equalSides": true,
+          "durationShift": -1,
+          "workRateFactor": 1,
+          "crowdFactor": 1,
+          "styleAffinity": [
+            "highFlyer",
+            "striker"
+          ],
+          "allowsTitles": true,
+          "hidden": false,
+          "description": "A short, fast one-on-one bout with no time to settle in."
+        },
+        "match.tag-team": {
+          "key": "match.tag-team",
+          "name": "Tag Team",
+          "shortName": "Tag",
+          "order": 20,
+          "sides": {
+            "min": 2,
+            "max": 2
+          },
+          "sideSize": {
+            "min": 2,
+            "max": 2
+          },
+          "equalSides": true,
+          "durationShift": 0,
+          "workRateFactor": 1,
+          "crowdFactor": 1,
+          "styleAffinity": [],
+          "allowsTitles": true,
+          "hidden": false,
+          "description": "Two pairs, one worker from each side legal at a time, with tags to change over."
+        },
+        "match.trios": {
+          "key": "match.trios",
+          "name": "Six-Person Tag",
+          "shortName": "Trios",
+          "order": 30,
+          "sides": {
+            "min": 2,
+            "max": 2
+          },
+          "sideSize": {
+            "min": 3,
+            "max": 3
+          },
+          "equalSides": true,
+          "durationShift": 0,
+          "workRateFactor": 1,
+          "crowdFactor": 1,
+          "styleAffinity": [],
+          "allowsTitles": true,
+          "hidden": false,
+          "description": "Two teams of three. Busy and fast, and a good way to get many people on a card."
+        },
+        "match.triple-threat": {
+          "key": "match.triple-threat",
+          "name": "Three-Way",
+          "order": 40,
+          "sides": {
+            "min": 3,
+            "max": 3
+          },
+          "sideSize": {
+            "min": 1,
+            "max": 1
+          },
+          "equalSides": true,
+          "durationShift": 0,
+          "workRateFactor": 1,
+          "crowdFactor": 1,
+          "styleAffinity": [],
+          "allowsTitles": true,
+          "hidden": false,
+          "description": "Three workers, every one for themselves. The first fall ends it."
+        }
+      },
+      "methods": {
+        "method.count-out": {
+          "key": "method.count-out",
+          "name": "Count-Out",
+          "order": 50,
+          "changesTitles": false,
+          "hidden": false,
+          "description": "One side stays outside the ring past the referee's count."
+        },
+        "method.disqualification": {
+          "key": "method.disqualification",
+          "name": "Disqualification",
+          "order": 60,
+          "changesTitles": false,
+          "hidden": false,
+          "description": "One side breaks the rules badly enough that the referee awards the match to the other."
+        },
+        "method.knockout": {
+          "key": "method.knockout",
+          "name": "Knockout",
+          "order": 30,
+          "changesTitles": true,
+          "hidden": false,
+          "description": "The opponent cannot answer the referee's count."
+        },
+        "method.pinfall": {
+          "key": "method.pinfall",
+          "name": "Pinfall",
+          "order": 10,
+          "changesTitles": true,
+          "hidden": false,
+          "description": "Shoulders held to the mat for a three count."
+        },
+        "method.referee-stoppage": {
+          "key": "method.referee-stoppage",
+          "name": "Referee Stoppage",
+          "order": 40,
+          "changesTitles": true,
+          "hidden": false,
+          "description": "The referee ends the match because one side cannot go on safely."
+        },
+        "method.submission": {
+          "key": "method.submission",
+          "name": "Submission",
+          "order": 20,
+          "changesTitles": true,
+          "hidden": false,
+          "description": "The opponent gives up to a hold."
+        }
+      }
+    },
     "daysSimulated": 95
   },
   "tables": {
@@ -2278,7 +2637,7 @@
         "outcome": {
           "kind": "win",
           "winningSide": 1,
-          "methodKey": "finish.pinfall"
+          "methodKey": "method.pinfall"
         }
       },
       {
@@ -2351,7 +2710,7 @@
         "outcome": {
           "kind": "win",
           "winningSide": 0,
-          "methodKey": "finish.pinfall"
+          "methodKey": "method.pinfall"
         }
       },
       {
@@ -2381,7 +2740,7 @@
         "outcome": {
           "kind": "win",
           "winningSide": 0,
-          "methodKey": "finish.pinfall"
+          "methodKey": "method.pinfall"
         }
       }
     ],

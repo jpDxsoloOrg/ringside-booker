@@ -170,6 +170,9 @@ function aLibrary(
     bodyModifiers: {},
     generationProfiles: {},
     traitIncidence: {},
+    matchTypes: {},
+    angleTypes: {},
+    methods: {},
   };
 }
 

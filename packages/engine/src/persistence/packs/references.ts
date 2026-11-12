@@ -5,8 +5,8 @@
  * Which fields are references, and what they point at, is declared next to each record schema
  * (`regionReferences`, `employmentReferences`, ...) and collected in `RECORD_REFERENCES`, so a new
  * reference field cannot be added to a schema without the table in the same file being in view.
- * `traitKey` and `gimmickKey` are not pack references (they name engine traits and catalog entries)
- * and are not in any table.
+ * `traitKey`, `gimmickKey` and `defaultBeatKey` are not pack references (they name engine traits and
+ * catalog entries) and are not in any table.
  *
  * A qualified reference (`example-world:harbour-coast`) must also name a pack that defined or
  * overrode that record. Region adjacency is checked both ways: a neighbour that does not list the
@@ -18,6 +18,7 @@
 import { isPackRef, parseRef, RECORD_KINDS, type RecordKind, type RecordReference } from './keys';
 import { packError, packWarning, type PackIssue } from './issues';
 import type { MergedRecord, MergedRecords } from './merge';
+import { angleTypeReferences, matchTypeReferences, methodReferences } from './records/catalogs';
 import { continentReferences, countryReferences, regionReferences } from './records/geography';
 import {
   bodyArchetypeReferences,
@@ -73,6 +74,9 @@ export const RECORD_REFERENCES = {
   employment: employmentReferences,
   team: teamReferences,
   titleReign: titleReignReferences,
+  matchType: matchTypeReferences,
+  angleType: angleTypeReferences,
+  method: methodReferences,
 } as const satisfies Record<RecordKind, readonly RecordReference[]>;
 
 /** One reference value found in a record, with where it is. */

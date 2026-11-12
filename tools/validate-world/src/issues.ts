@@ -21,6 +21,7 @@ export const RULE_IDS = [
   'free-agents',
   'age-sanity',
   'blocklist',
+  'segment-keys',
 ] as const;
 
 export type RuleId = (typeof RULE_IDS)[number];

@@ -26,6 +26,7 @@ import { aRelationship, aStable, aTeam } from './builders/promotions';
 import {
   aMatch,
   anAngle,
+  DEFAULT_METHOD_KEY,
   anEventInstance,
   aParticipant,
   aStoryline,
@@ -227,7 +228,7 @@ function addTinyHistory(context: BuildContext): void {
       sequence,
     ),
   );
-  const winMethod = parseContentKey('finish.pinfall');
+  const winMethod = DEFAULT_METHOD_KEY;
   const opener = context.insert(
     'segments',
     aMatch(
@@ -426,7 +427,8 @@ type DeepPartialLedger = Parameters<typeof aLedgerEntry>[0];
  * - last Thursday's completed show with 4 segments: main-card slots 0-2 are a match, a two-beat
  *   angle and the title match (both matches with outcomes and ratings), pre-show slot 0 is a
  *   match; and their 8 participants;
- * - 1 venue, 2 relationships, 2 mail (one with an open decision), 2 news and 5 ledger entries.
+ * - 1 venue, 2 relationships, 2 mail (one with an open decision), 2 news and 5 ledger entries;
+ * - the shipped base catalogs on its metadata (`TEST_CATALOGS`), so every segment key resolves.
  */
 export function tinyWorld(): BuiltWorld {
   return worldBuilder({
@@ -435,6 +437,7 @@ export function tinyWorld(): BuiltWorld {
     currentDate: TINY_WORLD_TODAY,
   })
     .withGeography('mini')
+    .withCatalogs()
     .withSeasons(2)
     .withPromotion(
       {
@@ -525,6 +528,7 @@ function patternedPerson(rosterIndex: number, startDate: GameDate): DeepPartial<
 export function rosterWorld(rosterSize: number): BuiltWorld {
   return worldBuilder()
     .withGeography('mini')
+    .withCatalogs()
     .withPromotion({ name: 'Test Promotion A' }, (promotion) =>
       promotion.withRoster(rosterSize, {
         person: (rosterIndex) => patternedPerson(rosterIndex, TEST_START_DATE),

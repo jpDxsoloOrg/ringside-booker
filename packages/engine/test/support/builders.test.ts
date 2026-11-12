@@ -353,9 +353,14 @@ describe('canned worlds', () => {
     expectValidWorld(built!.world);
   });
 
-  it('uses only placeholder names', () => {
+  it('uses only placeholder names (the shipped catalogs on its metadata aside)', () => {
     const names: string[] = [];
-    JSON.parse(serialiseWorld(tinyWorld().world), (key, value: unknown) => {
+    const withoutCatalogs = JSON.stringify(
+      JSON.parse(serialiseWorld(tinyWorld().world), (key, value: unknown) =>
+        key === 'catalogs' ? undefined : value,
+      ),
+    );
+    JSON.parse(withoutCatalogs, (key, value: unknown) => {
       const isName = ['name', 'worldName', 'defaultRingName', 'ringName', 'displayName'];
       if (isName.includes(key) && typeof value === 'string') {
         names.push(value);

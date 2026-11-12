@@ -55,6 +55,7 @@ import {
 
 export const DEFAULT_SHOW_SLOTS = 6;
 export const DEFAULT_MATCH_TYPE_KEY = parseContentKey('match.singles');
+export const DEFAULT_METHOD_KEY = parseContentKey('method.pinfall');
 export const DEFAULT_ANGLE_TYPE_KEY = parseContentKey('angle.promo');
 export const DEFAULT_BEAT_KEY = parseContentKey('beat.promo');
 

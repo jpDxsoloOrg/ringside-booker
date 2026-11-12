@@ -1,0 +1,44 @@
+[
+  {
+    "key": "pinfall",
+    "name": "Pinfall",
+    "order": 10,
+    "changesTitles": true,
+    "description": "Shoulders held to the mat for a three count."
+  },
+  {
+    "key": "submission",
+    "name": "Submission",
+    "order": 20,
+    "changesTitles": true,
+    "description": "The opponent gives up to a hold."
+  },
+  {
+    "key": "knockout",
+    "name": "Knockout",
+    "order": 30,
+    "changesTitles": true,
+    "description": "The opponent cannot answer the referee's count."
+  },
+  {
+    "key": "referee-stoppage",
+    "name": "Referee Stoppage",
+    "order": 40,
+    "changesTitles": true,
+    "description": "The referee ends the match because one side cannot go on safely."
+  },
+  {
+    "key": "count-out",
+    "name": "Count-Out",
+    "order": 50,
+    "changesTitles": false,
+    "description": "One side stays outside the ring past the referee's count."
+  },
+  {
+    "key": "disqualification",
+    "name": "Disqualification",
+    "order": 60,
+    "changesTitles": false,
+    "description": "One side breaks the rules badly enough that the referee awards the match to the other."
+  }
+]

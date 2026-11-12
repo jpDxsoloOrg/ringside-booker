@@ -167,7 +167,7 @@ describe('checkReferences', () => {
 });
 
 describe('RECORD_REFERENCES', () => {
-  const NOT_PACK_REFERENCES = new Set(['key', 'traitKey', 'gimmickKey']);
+  const NOT_PACK_REFERENCES = new Set(['key', 'traitKey', 'gimmickKey', 'defaultBeatKey']);
 
   it.each(RECORD_KINDS)('lists every top-level reference field of %s', (kind) => {
     const fieldNames = Object.keys(recordKinds[kind].fields.shape);

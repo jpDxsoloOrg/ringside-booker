@@ -72,6 +72,10 @@ ids.people[0]; // per_0000000001, the first wrestler on A's roster
   transaction with write validation on, so a world the builder returns is one the game could hold.
 - Season 1 is created from the start date unless you call `.withoutSeason()`;
   `.withSeasons(n)` creates `n` back-to-back seasons with only the last one active.
+- `.withCatalogs(catalogs = TEST_CATALOGS)` puts catalogs on `meta.catalogs`, as a new game
+  snapshots them from the packs. `TEST_CATALOGS` is the shipped base catalogs
+  (`content/base/catalogs/*.json`) read through the real record schemas, so tests follow the
+  shipped data. Without the call a world has `catalogs: {}`.
 - `.with(label, (context) => { ... })` runs your own step in the same transaction. Pass
   `context.sequence` to the builders so IDs and names continue the world's sequence, and use
   `context.insert(table, row)` so the IDs land in `ids`.
@@ -82,8 +86,9 @@ ids.people[0]; // per_0000000001, the first wrestler on A's roster
 
 - `emptyWorld()`: metadata only.
 - `tinyWorld()`: two promotions (one run by `player-1`, one by the computer) and at least one row
-  in every table; see its doc comment in `worlds.ts` for the exact contents.
-- `rosterWorld(n)`: one promotion with `n` wrestlers, for performance and save-size tests.
+  in every table, with `TEST_CATALOGS`; see its doc comment in `worlds.ts` for the exact contents.
+- `rosterWorld(n)`: one promotion with `n` wrestlers, with `TEST_CATALOGS`, for performance and
+  save-size tests.
 
 ## Saves
 

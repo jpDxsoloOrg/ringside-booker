@@ -1,0 +1,100 @@
+[
+  {
+    "key": "singles",
+    "name": "Singles",
+    "order": 10,
+    "sides": { "min": 2, "max": 2 },
+    "sideSize": { "min": 1, "max": 1 },
+    "durationShift": 0,
+    "styleAffinity": [],
+    "description": "One against one. The plainest test of two workers, and the base every other type is measured against."
+  },
+  {
+    "key": "tag-team",
+    "name": "Tag Team",
+    "shortName": "Tag",
+    "order": 20,
+    "sides": { "min": 2, "max": 2 },
+    "sideSize": { "min": 2, "max": 2 },
+    "durationShift": 0,
+    "styleAffinity": [],
+    "description": "Two pairs, one worker from each side legal at a time, with tags to change over."
+  },
+  {
+    "key": "trios",
+    "name": "Six-Person Tag",
+    "shortName": "Trios",
+    "order": 30,
+    "sides": { "min": 2, "max": 2 },
+    "sideSize": { "min": 3, "max": 3 },
+    "durationShift": 0,
+    "styleAffinity": [],
+    "description": "Two teams of three. Busy and fast, and a good way to get many people on a card."
+  },
+  {
+    "key": "triple-threat",
+    "name": "Three-Way",
+    "order": 40,
+    "sides": { "min": 3, "max": 3 },
+    "sideSize": { "min": 1, "max": 1 },
+    "durationShift": 0,
+    "styleAffinity": [],
+    "description": "Three workers, every one for themselves. The first fall ends it."
+  },
+  {
+    "key": "four-way",
+    "name": "Four-Way",
+    "order": 50,
+    "sides": { "min": 4, "max": 4 },
+    "sideSize": { "min": 1, "max": 1 },
+    "durationShift": 0,
+    "styleAffinity": [],
+    "description": "Four workers, every one for themselves. The first fall ends it."
+  },
+  {
+    "key": "handicap",
+    "name": "Handicap",
+    "order": 60,
+    "sides": { "min": 2, "max": 2 },
+    "sideSize": { "min": 1, "max": 3 },
+    "equalSides": false,
+    "durationShift": 0,
+    "styleAffinity": [],
+    "description": "Two sides of different sizes: one worker against two or three, or two against three."
+  },
+  {
+    "key": "battle-royal",
+    "name": "Battle Royal",
+    "shortName": "Royal",
+    "order": 70,
+    "sides": { "min": 6, "max": 30 },
+    "sideSize": { "min": 1, "max": 1 },
+    "durationShift": 1,
+    "workRateFactor": 0.85,
+    "crowdFactor": 1.05,
+    "styleAffinity": [],
+    "allowsTitles": false,
+    "description": "A crowded ring where going over the top rope eliminates you. The last one left wins. Loose work, but crowds enjoy the chaos."
+  },
+  {
+    "key": "endurance",
+    "name": "Endurance Match",
+    "shortName": "Endurance",
+    "order": 80,
+    "sides": { "min": 2, "max": 2 },
+    "sideSize": { "min": 1, "max": 1 },
+    "durationShift": 1,
+    "styleAffinity": ["technician", "grappler"],
+    "description": "A long one-on-one contest that rewards conditioning and patient mat work."
+  },
+  {
+    "key": "sprint",
+    "name": "Sprint",
+    "order": 90,
+    "sides": { "min": 2, "max": 2 },
+    "sideSize": { "min": 1, "max": 1 },
+    "durationShift": -1,
+    "styleAffinity": ["highFlyer", "striker"],
+    "description": "A short, fast one-on-one bout with no time to settle in."
+  }
+]

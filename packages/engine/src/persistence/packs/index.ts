@@ -14,6 +14,14 @@ import { formatPath } from '../../core/json';
 import type { RecordKind } from './keys';
 import type { PackManifest } from './manifest';
 import {
+  angleTypeRecord,
+  matchTypeRecord,
+  methodRecord,
+  type AngleTypeRecord,
+  type MatchTypeRecord,
+  type MethodRecord,
+} from './records/catalogs';
+import {
   continentRecord,
   countryRecord,
   regionRecord,
@@ -82,6 +90,7 @@ export * from './migrations';
 export * from './references';
 export * from './resolve';
 export * from './semver';
+export * from './records/catalogs';
 export * from './records/generation';
 export * from './records/geography';
 export * from './records/names';
@@ -119,6 +128,9 @@ export const recordKinds = {
   employment: employmentRecord,
   team: teamRecord,
   titleReign: titleReignRecord,
+  matchType: matchTypeRecord,
+  angleType: angleTypeRecord,
+  method: methodRecord,
 } as const satisfies Record<RecordKind, { entry: z.ZodType }>;
 
 type RecordKindBuilders = typeof recordKinds;
@@ -148,6 +160,9 @@ export const recordSchemas = {
   employment: employmentRecord.entry,
   team: teamRecord.entry,
   titleReign: titleReignRecord.entry,
+  matchType: matchTypeRecord.entry,
+  angleType: angleTypeRecord.entry,
+  method: methodRecord.entry,
 } as const satisfies Record<RecordKind, z.ZodType>;
 
 /** A complete record of each kind, as written in a pack. */
@@ -175,6 +190,9 @@ export interface PackRecords {
   employment: EmploymentRecord;
   team: TeamRecord;
   titleReign: TitleReignRecord;
+  matchType: MatchTypeRecord;
+  angleType: AngleTypeRecord;
+  method: MethodRecord;
 }
 
 /** One element of a pack file of the given kind: a full record, a patch or a removal. */
