@@ -1023,3 +1023,29 @@ export {
   slotRoleOf,
   slotWeightOf,
 } from './systems/match/index';
+
+// The in-ring rating formulas (MTCH1-03): worker performance, side aggregation and work rate.
+// See docs/design/match-rating.md#worker-performance.
+export type {
+  MatchLeader,
+  PerformanceAttributeKey,
+  PerformanceAxis,
+  SideAggregateInputs,
+  SideAggregateMember,
+  SideDecayKey,
+  TalkWeights,
+  WorkerPerformanceInputs,
+  WorkRateInputs,
+  WorkRateSide,
+  WorkRateWorker,
+} from './systems/match/index';
+export {
+  aggregateWeights,
+  MATCH_RATING_STREAM,
+  matchLeaderOf,
+  PERFORMANCE_AXES,
+  PERFORMANCE_AXIS_LABELS,
+  sideAggregate,
+  workerPerformance,
+  workRate,
+} from './systems/match/index';
