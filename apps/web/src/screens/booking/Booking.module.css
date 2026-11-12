@@ -1,0 +1,477 @@
+/*
+ * The booking screen: a header for the chosen show, then the card beside a side column with the
+ * checklist (desktop). Below --bp-mobile it is one column with a sticky bar at the bottom.
+ */
+.booking {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.muted {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* ---- Header ------------------------------------------------------------------------------- */
+
+.showHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'picker picker'
+    'title actions';
+  gap: var(--space-3) var(--space-6);
+  align-items: end;
+  min-inline-size: 0;
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.showPicker {
+  display: flex;
+  flex-wrap: wrap;
+  grid-area: picker;
+  align-items: end;
+  gap: var(--space-2) var(--space-4);
+  min-inline-size: 0;
+}
+
+.showPicker > :first-child {
+  flex: 0 1 28rem;
+  min-inline-size: 0;
+}
+
+.calendarLink {
+  padding-block: var(--space-2);
+  color: var(--color-data);
+  font-size: var(--font-size-sm);
+}
+
+.showTitle {
+  display: grid;
+  grid-area: title;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.showTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: 0;
+  list-style: none;
+}
+
+.showName {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-tight);
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.showMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.countdown {
+  color: var(--color-action-bright);
+  font-weight: var(--font-weight-bold);
+}
+
+.headerActions {
+  grid-area: actions;
+  min-inline-size: 0;
+}
+
+.lockBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2) var(--space-3);
+}
+
+.lockHint {
+  color: var(--color-negative);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+/* ---- Messages ----------------------------------------------------------------------------- */
+
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-negative);
+  border-inline-start-width: 4px;
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-2);
+}
+
+.noticeBody {
+  display: grid;
+  flex: 1 1 auto;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.noticeTitle {
+  font-weight: var(--font-weight-bold);
+}
+
+.noticeList {
+  padding-inline-start: var(--space-4);
+  overflow-wrap: anywhere;
+}
+
+.editBlock {
+  padding: var(--space-2) var(--space-4);
+  border: 1px dashed var(--color-border-strong);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* ---- Columns ------------------------------------------------------------------------------ */
+
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 22rem);
+  align-items: start;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+
+.mainColumn,
+.sideColumn {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.sideHeading {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.featurePanel {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+/* ---- The card ----------------------------------------------------------------------------- */
+
+.board {
+  display: grid;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+
+.cardSection {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.sectionHeading {
+  color: var(--color-text-muted);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.slotList {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.slotItem {
+  min-inline-size: 0;
+}
+
+/* The row the checklist scrolls to and focuses. */
+.slotRow {
+  min-inline-size: 0;
+  outline-offset: 2px;
+}
+
+.slotRow:focus-visible,
+.slotRow:focus {
+  outline: 2px solid var(--color-focus);
+}
+
+.durationChip {
+  display: inline-flex;
+  align-items: center;
+  padding-inline-start: var(--space-2);
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text-muted);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.slotActions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.moveButton {
+  min-inline-size: var(--tap-target-min);
+  min-block-size: var(--tap-target-min);
+}
+
+/* ---- Checklist ---------------------------------------------------------------------------- */
+
+.checklist {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.checkLines {
+  display: grid;
+  gap: var(--space-2);
+  padding: 0;
+  list-style: none;
+}
+
+.checkLine {
+  display: flex;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+}
+
+.checkLine[data-state='passed'] .checkIcon {
+  color: var(--color-positive);
+}
+
+.checkLine[data-state='error'] {
+  border-color: var(--color-negative);
+}
+
+.checkLine[data-state='error'] .checkIcon {
+  color: var(--color-negative);
+}
+
+.checkLine[data-state='warning'] {
+  border-color: var(--color-prestige);
+}
+
+.checkLine[data-state='warning'] .checkIcon {
+  color: var(--color-prestige);
+}
+
+.checkIcon {
+  display: inline-flex;
+  flex: none;
+  padding-block-start: 0.125rem;
+}
+
+.checkText {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.checkLabel {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.checkDetail {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  overflow-wrap: anywhere;
+}
+
+.issueGroup {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.issueHeading {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.issueGroup[data-severity='error'] .issueHeading {
+  color: var(--color-negative);
+}
+
+.issueGroup[data-severity='warning'] .issueHeading {
+  color: var(--color-prestige);
+}
+
+.issueList {
+  display: grid;
+  gap: var(--space-1);
+  padding: 0;
+  list-style: none;
+}
+
+.issueButton,
+.issueText {
+  display: grid;
+  gap: 0.125rem;
+  inline-size: 100%;
+  padding: var(--space-2);
+  border: 0;
+  border-inline-start: 3px solid var(--color-border-strong);
+  background: none;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+
+.issueGroup[data-severity='error'] .issueButton,
+.issueGroup[data-severity='error'] .issueText {
+  border-inline-start-color: var(--color-negative);
+}
+
+.issueGroup[data-severity='warning'] .issueButton,
+.issueGroup[data-severity='warning'] .issueText {
+  border-inline-start-color: var(--color-prestige);
+}
+
+.issueButton {
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .issueButton:hover {
+    background: var(--color-surface-hover);
+  }
+}
+
+.issuePlace {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ---- Phone sticky bar --------------------------------------------------------------------- */
+
+.phoneBar {
+  display: none;
+}
+
+@media (--bp-mobile) {
+  .showHeader {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'picker'
+      'title'
+      'actions';
+    padding: var(--space-3);
+  }
+
+  .showPicker > :first-child {
+    flex: 1 1 100%;
+  }
+
+  .showName {
+    font-size: var(--font-size-2xl);
+  }
+
+  .lockBar {
+    justify-content: flex-start;
+  }
+
+  .columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /*
+   * The phone's only sticky element: it rides above the tab bar (and the ticker) while the card
+   * scrolls under it, so Lock is always in reach.
+   */
+  .phoneBar {
+    position: sticky;
+    inset-block-end: var(--shell-bottom-chrome, var(--safe-bottom));
+    z-index: 1;
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-2);
+    border: 1px solid var(--color-border-strong);
+    background: var(--color-surface-raised);
+    box-shadow: var(--shadow-2);
+  }
+
+  .phoneSummary {
+    min-block-size: var(--tap-target-min);
+    padding: var(--space-1) var(--space-2);
+    border: 0;
+    background: none;
+    color: var(--color-text);
+    font-size: var(--font-size-sm);
+    text-align: start;
+    overflow-wrap: anywhere;
+  }
+
+  .phoneBarRow {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .phoneProblems {
+    flex: 1 1 auto;
+    min-block-size: var(--tap-target-min);
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-weight: var(--font-weight-bold);
+    text-align: start;
+  }
+
+  .phoneProblems[data-state='error'] {
+    border-color: var(--color-negative);
+    color: var(--color-negative);
+  }
+
+  .phoneProblems[data-state='ok'] {
+    color: var(--color-positive);
+  }
+}
