@@ -6,13 +6,15 @@
  * Design: docs/design/match-rating.md#warnings.
  */
 
-import { isBefore, type GameDate } from '../../../core/date';
+import type { GameDate } from '../../../core/date';
 import type { PersonId, PromotionId } from '../../../core/ids';
 import type { Catalogs } from '../../../model/catalogs';
-import { promotionStatusKey } from '../../../model/entities/employment';
-import type { Person, PersonStatus } from '../../../model/entities/person';
+import { promotionStatusKey, type Employment } from '../../../model/entities/employment';
+import type { Person } from '../../../model/entities/person';
 import type { GameWorldView } from '../../../model/tables';
 import type { DeepReadonly } from '../../../model/world';
+import { availabilityOf, type AvailabilityStatus } from '../../workers/helpers/availability';
+import { availabilityText } from '../availabilityText';
 import type { SegmentRatingInput, SegmentWarning } from './types';
 
 const NUMBER_WORDS = [
@@ -67,21 +69,36 @@ function sideName(side: number): string {
   return `Side ${String(side + 1)}`;
 }
 
-const INACTIVE_TEXT: Readonly<Partial<Record<PersonStatus, string>>> = {
-  retired: 'is retired',
-  deceased: 'has died',
-  outOfBusiness: 'has left the business',
-  hiatus: 'is on hiatus',
+/** The warning code for each way WRK1's `availabilityOf` can rule someone out. */
+const UNAVAILABLE_CODE: Readonly<
+  Record<Exclude<AvailabilityStatus, 'available'>, 'injured' | 'inactive' | 'unavailable'>
+> = {
+  injured: 'injured',
+  retired: 'inactive',
+  rehab: 'unavailable',
+  personalLeave: 'unavailable',
+  suspended: 'unavailable',
+  timeOff: 'unavailable',
+  notDebuted: 'unavailable',
 };
 
-/** The ring name each person uses with the promotion, else their default ring name. */
-function namerFor(read: GameWorldView, promotionId: PromotionId): (person: Person) => string {
-  const ringNames = new Map(
+/** Each person's active contract with the promotion: ring name, and any leave it carries. */
+interface Contracts {
+  readonly nameOf: (person: Person) => string;
+  readonly contractOf: (personId: PersonId) => DeepReadonly<Employment> | null;
+}
+
+/** The promotion's active contracts, by person. */
+function contractsFor(read: GameWorldView, promotionId: PromotionId): Contracts {
+  const contracts = new Map(
     read.tables.employments
       .lookup('byPromotionStatus', promotionStatusKey(promotionId, 'active'))
-      .map((employment) => [employment.personId, employment.ringName]),
+      .map((employment) => [employment.personId, employment]),
   );
-  return (person) => ringNames.get(person.id) ?? person.defaultRingName;
+  return {
+    nameOf: (person) => contracts.get(person.id)?.ringName ?? person.defaultRingName,
+    contractOf: (personId) => contracts.get(personId) ?? null,
+  };
 }
 
 /** The count checks: sides, people per side and equal sides for a match, speakers for an angle. */
@@ -151,7 +168,7 @@ function countWarnings(
 function duplicateWarnings(
   input: SegmentRatingInput,
   read: GameWorldView,
-  nameOf: (person: Person) => string,
+  { nameOf }: Contracts,
 ): SegmentWarning[] {
   const sidesByPerson = new Map<PersonId, number[]>();
   for (const side of input.sides) {
@@ -181,12 +198,17 @@ function duplicateWarnings(
   return warnings;
 }
 
-/** Injured, inactive or not a wrestler. Each person once, on the first side they appear on. */
+/**
+ * Unavailable on the date or not a wrestler. Each person once, on the first side they appear on.
+ * Availability is WRK1's `availabilityOf` against the person's contract with the promotion (a free
+ * agent has none): a match needs someone available, a talking segment someone who can work angles,
+ * so an injury that allows angles is fine there.
+ */
 function personWarnings(
   input: SegmentRatingInput,
   read: GameWorldView,
   date: GameDate,
-  nameOf: (person: Person) => string,
+  { nameOf, contractOf }: Contracts,
 ): SegmentWarning[] {
   const warnings: SegmentWarning[] = [];
   const seen = new Set<PersonId>();
@@ -202,32 +224,17 @@ function personWarnings(
       }
       const name = nameOf(person);
       const at = { personId, side: side.side };
-      const inactive = INACTIVE_TEXT[person.status];
-      if (inactive !== undefined) {
+      const availability = availabilityOf(person, contractOf(personId), date);
+      if (
+        availability.status !== 'available' &&
+        (input.kind === 'match' || !availability.canWorkAngles)
+      ) {
         warnings.push({
-          code: 'inactive',
+          code: UNAVAILABLE_CODE[availability.status],
           severity: 'error',
-          message: `${name} ${inactive}`,
+          message: `${name}: ${availabilityText(availability, date)}`,
           ...at,
         });
-      }
-      const { injury } = person;
-      if (injury !== null && isBefore(date, injury.expectedReturn)) {
-        if (input.kind === 'match') {
-          warnings.push({
-            code: 'injured',
-            severity: 'error',
-            message: `${name} is injured until ${injury.expectedReturn}`,
-            ...at,
-          });
-        } else if (!injury.canWorkAngles) {
-          warnings.push({
-            code: 'injured',
-            severity: 'error',
-            message: `${name} is injured until ${injury.expectedReturn} and cannot appear on camera`,
-            ...at,
-          });
-        }
       }
       if (input.kind === 'match' && person.style === 'nonWrestler') {
         warnings.push({
@@ -258,11 +265,11 @@ export function segmentWarnings(
   catalogs: DeepReadonly<Catalogs>,
   date: GameDate,
 ): SegmentWarning[] {
-  const nameOf = namerFor(read, input.promotionId);
+  const contracts = contractsFor(read, input.promotionId);
   const found = [
     ...countWarnings(input, catalogs),
-    ...duplicateWarnings(input, read, nameOf),
-    ...personWarnings(input, read, date, nameOf),
+    ...duplicateWarnings(input, read, contracts),
+    ...personWarnings(input, read, date, contracts),
   ];
   return found
     .map((warning, index) => ({ warning, index }))

@@ -137,6 +137,8 @@ export const galleryEntry: GalleryEntry = {
 | `LazyWhyButton`       | A Why? button for a list cell: the trace is built by an engine query (`workers.explain`) only when the panel opens                                                                                                |
 | `PopularityDrilldown` | A person's or promotion's popularity from the world down: continents open into countries, countries into regions, with a Why? on every worked-out figure                                                          |
 | `ShowChip`            | One show on a calendar or in a list of shows: importance bar and tint, name, brand or promotion tag; struck through when cancelled, dashed when projected. Other features add badges with `registerShowChipBadge` |
+| `StarRating`          | A 0–5 star rating in quarter steps, filled by a CSS clip; named "3.75 stars out of 5", "No stars" for 0. Sizes `sm`, `md`, `lg`; tones `office`, `broadcast`                                                      |
+| `Histogram`           | How values spread across bins: inline-SVG bars, ticks, an optional mean line and ±1 sd band, and a hidden table of the same numbers. "No runs yet" when empty                                                     |
 
 Money is integer `Cents` and dates are `GameDate` strings from `@ringside/engine`; the formatters
 turn them into text at the edge and nowhere else.
@@ -265,8 +267,8 @@ tokens. Screens import our wrappers, never `@radix-ui/*` directly, so the props 
 
 The components for show moments (see the broadcast register in
 `docs/design/visual-identity.md`): `LiveBugButton`, `LowerThird`, `ScoreBug`, `Ticker`,
-`SegmentedMeter`, `CardSlot`, `ChamferPanel` and `SlashDivider`. They sit in the gallery's
-**Broadcast** group.
+`SegmentedMeter`, `CardSlot`, `ChamferPanel`, `SlashDivider` and `StarRating`. They sit in the
+gallery's **Broadcast** group.
 
 - **Generic on purpose.** None of them knows a game type. A screen passes text, numbers, image
   subjects and slots (`children`, `footer`, `why`, `dragHandle`, `actions`), so booking and results

@@ -450,6 +450,20 @@
     min-block-size: 100dvh;
   }
 
+  /*
+   * How much of the bottom edge the fixed tab bar (and the ticker, when it runs) covers, for
+   * screens with a bar of their own that sticks to the bottom, such as the Match lab's Run bar.
+   */
+  .shell {
+    --shell-bottom-chrome: calc(var(--bottom-nav-height) + var(--safe-bottom));
+  }
+
+  .shell[data-ticker='on'] {
+    --shell-bottom-chrome: calc(
+      var(--bottom-nav-height) + var(--safe-bottom) + var(--shell-ticker-height)
+    );
+  }
+
   .topBar {
     position: sticky;
     inset-block-start: 0;

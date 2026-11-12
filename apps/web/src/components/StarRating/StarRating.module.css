@@ -1,0 +1,93 @@
+/*
+ * StarRating: five star glyphs. Each star is an empty outline with a filled copy on top, and the
+ * fill class clips the copy to a quarter, half, three quarters or the whole star. Colours are
+ * semantic tokens: prestige gold for the fill, a strong hairline for the empty outline.
+ */
+.starRating {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  vertical-align: middle;
+  line-height: 1;
+}
+
+.stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.star {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  inline-size: 1em;
+  block-size: 1em;
+}
+
+.glyphEmpty,
+.glyphFilled {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.glyphEmpty {
+  color: var(--color-border-strong);
+}
+
+.glyphFilled {
+  color: var(--color-prestige);
+  fill: currentColor;
+}
+
+.fill-0 .glyphFilled {
+  clip-path: inset(0 100% 0 0);
+}
+
+.fill-25 .glyphFilled {
+  clip-path: inset(0 75% 0 0);
+}
+
+.fill-50 .glyphFilled {
+  clip-path: inset(0 50% 0 0);
+}
+
+.fill-75 .glyphFilled {
+  clip-path: inset(0 25% 0 0);
+}
+
+.fill-100 .glyphFilled {
+  clip-path: none;
+}
+
+.size-sm {
+  font-size: var(--font-size-sm);
+}
+
+.size-md {
+  font-size: var(--font-size-lg);
+}
+
+.size-lg {
+  font-size: var(--font-size-2xl);
+}
+
+.noStars {
+  color: var(--color-text-muted);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Broadcast: the filled stars glow faintly, like the other show-moment numbers. Nothing moves. */
+.tone-broadcast .glyphFilled {
+  filter: drop-shadow(0 0 0.25rem var(--color-prestige));
+}
+
+.tone-broadcast .glyphEmpty {
+  color: var(--color-text-subtle);
+}

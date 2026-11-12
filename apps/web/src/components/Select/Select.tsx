@@ -10,6 +10,27 @@ export interface SelectOption {
   readonly value: string;
   readonly label: string;
   readonly disabled?: boolean;
+  /**
+   * A heading the option is listed under, such as a country above its regions. Options with the
+   * same group should sit next to each other; each run of them is drawn as one labelled group.
+   */
+  readonly group?: string;
+}
+
+interface OptionRun {
+  readonly group: string | undefined;
+  readonly options: readonly SelectOption[];
+}
+
+/** The options split into runs that share a group, in the order given. */
+export function groupSelectOptions(options: readonly SelectOption[]): readonly OptionRun[] {
+  const runs: { group: string | undefined; options: SelectOption[] }[] = [];
+  for (const option of options) {
+    const last = runs.at(-1);
+    if (last !== undefined && last.group === option.group) last.options.push(option);
+    else runs.push({ group: option.group, options: [option] });
+  }
+  return runs;
 }
 
 interface SelectSharedProps {
@@ -41,13 +62,29 @@ export interface UncontrolledSelectProps extends SelectSharedProps {
 /** Either controlled (`value` + `onValueChange`) or uncontrolled (optional `defaultValue`). */
 export type SelectProps = ControlledSelectProps | UncontrolledSelectProps;
 
+function renderItem(option: SelectOption) {
+  return (
+    <RadixSelect.Item
+      key={option.value}
+      value={option.value}
+      disabled={option.disabled ?? false}
+      className={styles['item']}
+    >
+      <RadixSelect.ItemText>{option.label}</RadixSelect.ItemText>
+      <RadixSelect.ItemIndicator className={styles['indicator']}>
+        <Icon name="check" decorative />
+      </RadixSelect.ItemIndicator>
+    </RadixSelect.Item>
+  );
+}
+
 /**
  * Pick one option from a short list, styled to match the game rather than the browser. Built on
  * Radix Select: Enter, Space or the arrow keys open it, Up and Down move, typing jumps to a match,
  * Enter picks and Escape closes without changing anything.
  *
  * The list opens below the field (above when there is no room) and is never wider than the
- * screen, so it works the same on a phone.
+ * screen, so it works the same on a phone. Options that name a `group` are listed under it.
  */
 export function Select({
   label,
@@ -102,19 +139,22 @@ export function Select({
             className={styles['content']}
           >
             <RadixSelect.Viewport className={styles['viewport']}>
-              {options.map((option) => (
-                <RadixSelect.Item
-                  key={option.value}
-                  value={option.value}
-                  disabled={option.disabled ?? false}
-                  className={styles['item']}
-                >
-                  <RadixSelect.ItemText>{option.label}</RadixSelect.ItemText>
-                  <RadixSelect.ItemIndicator className={styles['indicator']}>
-                    <Icon name="check" decorative />
-                  </RadixSelect.ItemIndicator>
-                </RadixSelect.Item>
-              ))}
+              {groupSelectOptions(options).map((run, index) =>
+                run.group === undefined ? (
+                  run.options.map(renderItem)
+                ) : (
+                  <RadixSelect.Group
+                    // A group name may repeat further down the list, so the run's place is the key.
+                    key={`group-${String(index)}`}
+                    className={styles['group']}
+                  >
+                    <RadixSelect.Label className={styles['groupLabel']}>
+                      {run.group}
+                    </RadixSelect.Label>
+                    {run.options.map(renderItem)}
+                  </RadixSelect.Group>
+                ),
+              )}
             </RadixSelect.Viewport>
           </RadixSelect.Content>
         </RadixSelect.Portal>

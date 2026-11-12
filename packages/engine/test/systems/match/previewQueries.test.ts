@@ -529,7 +529,10 @@ describe('match.labWorkers', () => {
     const rival = result.data.rows.find((row) => row.personId === at(lab.rivals, 0));
     expect(rival?.promotionShortName).toBe('TPB');
     const injured = result.data.rows.find((row) => row.personId === at(lab.roster, 2));
-    expect(injured).toMatchObject({ available: false, unavailableReason: 'Injured (back injury)' });
+    expect(injured).toMatchObject({
+      available: false,
+      unavailableReason: 'Injured (back injury) until 4 Feb',
+    });
   });
 
   it('searches names and limits the list', () => {

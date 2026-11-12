@@ -5,6 +5,8 @@
  *   offer, from the world's catalog snapshot.
  * - `match.slotRoles`: the role, duration class and weight of every slot of a show format, with
  *   the traces inline (a query cannot store traces).
+ * - `match.slotInfo` (MTCH1-07): the duration class and weight one slot role gives a segment of a
+ *   given kind and type, with their traces, for the Match lab's chips before a Run.
  *
  * - `match.finishes` (MTCH2): the finishes a match of a given type and side count may end with,
  *   with their effects, title flag and methods. Design: docs/design/match-finishes.md.
@@ -30,6 +32,7 @@ import {
 import type { DurationShift } from '../../model/catalogs';
 import { zContentKey } from '../../model/primitives';
 import { MAX_SIDE } from '../../model/entities/participant';
+import type { SegmentKind } from './rating/types';
 import {
   FINISH_OUTCOME_KINDS,
   methodOf,
@@ -45,6 +48,7 @@ import {
   durationClassOf,
   slotRoleOf,
   slotWeightOf,
+  SLOT_ROLES,
   type DurationClass,
   type SlotRole,
 } from './slots';
@@ -139,6 +143,25 @@ export interface SlotRoleRow {
   weightTrace: TraceNode;
 }
 
+/** `match.slotInfo` arguments. */
+export interface SlotInfoArgs {
+  slotRole: SlotRole;
+  kind: SegmentKind;
+  /** The match type, for a match (required there); ignored for a talking segment. */
+  typeKey?: ContentKey | undefined;
+}
+
+/** `match.slotInfo`: what one slot role gives a segment, with the rules that decided it. */
+export interface SlotInfo {
+  role: SlotRole;
+  roleLabel: string;
+  durationClass: DurationClass;
+  durationLabel: string;
+  weight: number;
+  durationTrace: TraceNode;
+  weightTrace: TraceNode;
+}
+
 /** `match.finishes` arguments. */
 export interface FinishesArgs {
   matchTypeKey: ContentKey;
@@ -184,6 +207,7 @@ declare module '../../core/api/maps' {
   interface QueryMap {
     'match.catalog': { args: { includeHidden?: boolean | undefined }; result: MatchCatalog };
     'match.slotRoles': { args: SlotRolesArgs; result: SlotRoleRow[] };
+    'match.slotInfo': { args: SlotInfoArgs; result: SlotInfo };
     'match.finishes': { args: FinishesArgs; result: FinishOption[] };
   }
 }
@@ -317,6 +341,52 @@ export const slotRolesQuery: QueryDefinition<'match.slotRoles'> = defineQuery('m
   },
 });
 
+const slotInfoArgs = z.strictObject({
+  slotRole: z.enum(SLOT_ROLES),
+  kind: z.enum(['match', 'angle']),
+  typeKey: zContentKey.optional(),
+});
+
+/**
+ * `match.slotInfo`. A match is shifted by its match type (refused as `invalidArgs` when the type
+ * is missing or unknown); a talking segment never is, whatever `typeKey` says.
+ */
+export const slotInfoQuery: QueryDefinition<'match.slotInfo'> = defineQuery('match.slotInfo', {
+  args: slotInfoArgs,
+  run: (ctx, args) => {
+    let matchType: MatchTypeDef | null = null;
+    if (args.kind === 'match') {
+      if (args.typeKey === undefined) {
+        return refuseQuery({
+          code: INVALID_ARGS,
+          message: 'typeKey: pick the match type',
+          field: 'typeKey',
+        });
+      }
+      matchType = matchTypeOf(ctx.read, args.typeKey) ?? null;
+      if (matchType === null) {
+        return refuseQuery({
+          code: INVALID_ARGS,
+          message: `typeKey: there is no match type "${args.typeKey}"`,
+          field: 'typeKey',
+        });
+      }
+    }
+    const deps = { tunables: ctx.tunables };
+    const duration = durationClassOf({ role: args.slotRole, matchType }, deps);
+    const weight = slotWeightOf({ role: args.slotRole }, deps);
+    return {
+      role: args.slotRole,
+      roleLabel: SLOT_ROLE_LABELS[args.slotRole],
+      durationClass: duration.value,
+      durationLabel: DURATION_CLASS_LABELS[duration.value],
+      weight: weight.value,
+      durationTrace: duration.trace,
+      weightTrace: weight.trace,
+    };
+  },
+});
+
 const finishesArgs = z.strictObject({
   matchTypeKey: zContentKey,
   sideCount: z
@@ -381,6 +451,7 @@ function finishOption(read: Parameters<typeof methodOf>[0], finish: FinishEntry)
 export const matchQueries: readonly QueryDefinition[] = [
   catalogQuery,
   slotRolesQuery,
+  slotInfoQuery,
   finishesQuery,
   // The Match lab's previews and setup queries (MTCH1-06).
   previewQuery,

@@ -68,6 +68,7 @@ export const SEGMENT_WARNING_CODES = [
   'duplicatePerson',
   'injured',
   'inactive',
+  'unavailable',
   'nonWrestler',
   'speakerCount',
 ] as const;

@@ -1,0 +1,57 @@
+/*
+ * Histogram: bars in the data colour, hairline axes, muted tick labels, a gold mean line and a
+ * faint data band for one standard deviation either side. All geometry is SVG attributes; the
+ * chart keeps its proportions and fills its container's width.
+ */
+.histogram {
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.chart {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  overflow: visible;
+}
+
+.bar {
+  fill: var(--color-data);
+}
+
+.band {
+  fill: var(--color-data);
+  opacity: 0.12;
+}
+
+.axis {
+  stroke: var(--color-border-strong);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.mean {
+  stroke: var(--color-prestige);
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
+  vector-effect: non-scaling-stroke;
+}
+
+.tick {
+  fill: var(--color-text-muted);
+  font-family: var(--font-family-display);
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.empty {
+  display: grid;
+  place-items: center;
+  min-block-size: 8rem;
+  padding: var(--space-4);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-sunken);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
