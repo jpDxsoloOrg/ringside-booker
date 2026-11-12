@@ -163,7 +163,7 @@ interface MatchResolution {
 
 `MatchResolutionSchema` (`systems/match/finishes/resolution.ts`) checks that
 `methodKey` agrees with the outcome. The rater, `match.simulate` and EVT3
-share this shape. The lab's Run rates an unresolved match (no `resolution`),
+share this shape. `match.preview` rates an unresolved match (no `resolution`),
 so its results do not change; `ratingInputFromSegment` fills the resolution
 from a stored match that has both an `outcome` and a `finishKey`, else null.
 A resolution naming a finish the catalogs do not hold leaves a note and no
@@ -353,7 +353,14 @@ when the lab's winner is Auto in a Random winners game.
 
 ## Simulate
 
-The Match lab's **Simulate** (MTCH2-04) is the query `match.simulate`
+Since MTCH2-07 the Match lab's one **Run** simulates every match: it asks
+`match.simulate` with the plan from the Winner and finish group (Auto by
+default) and a fresh seed the web picks, and with Runs above 1 also
+`match.simulateBatch` (below). A talking segment, which has no result, is
+rated with `match.preview`; so is a match on a save from before finishes,
+where the Winner and finish group says why.
+
+The simulation itself (MTCH2-04) is the query `match.simulate`
 (`systems/match/simulateQuery.ts`). Its arguments are `match.preview`'s plus
 the plan: `winner` (`'auto'`, `'draw'` or `{ side }` with the stored 0-based
 side), `finishKey` (null for Auto) and `methodKey` (null, the default, to let
@@ -375,7 +382,7 @@ the world's RNG. The winner and finish rolls come from
 and method share one stream), the rating rolls from the preview's
 `match.preview` stream. The same arguments always give the same night;
 another seed can change the winner, finish and method. The rating rolls are
-the same as Run's for the same seed, so Run and Simulate differ only by the
+the same as `match.preview`'s for the same seed, so the two differ only by the
 finish effects.
 
 The result (`SimulateResult`) is the rated `preview`, the `outcome`, the
@@ -390,6 +397,20 @@ the auto-winner uses `match.randomWinners.randomness` and the winner decision
 is labelled "Random winners mode, winner decided on the night". The lab is a
 sandbox, so a booked side or Draw is still honoured in a Random winners game
 (standard mode); only the booking screen refuses it.
+
+`match.simulateBatch` (MTCH2-07) takes `match.simulate`'s arguments plus
+`runs` (1–500, like `match.previewBatch`). Run `i` is `match.simulate` with
+seed `previewSeed + i`, so run 0 is the single Simulate with the same seed;
+the lab sends the batch from seed `s` and the single night on `s + runs − 1`,
+so the night shown in full is one of the nights counted. It returns
+`match.previewBatch`'s statistics over the simulated nights (rated with their
+finishes) plus `sides` (every side in order with its competitors' `names` and
+`wins`, even with none), `draws`, `noContests`, `finishes` (`key`, `name`,
+`category`, `count`; most common first, ties by name, unused finishes left
+out) and `randomWinnersMode`. Side wins, draws and no contests add up to
+`runs`, and so do the finish counts. No traces travel; like the preview batch
+it never writes, and the tests check the engine state is byte-identical after
+a 500-run batch. A plan that one night refuses refuses the whole batch.
 
 `match.resultMode` (args `{}`) returns `{ randomWinners }`: the same check for
 the viewer's first promotion, false for a viewer who runs none (the
@@ -412,7 +433,7 @@ doors they use are already open:
 | AIP5 (rival winners) | wires from its own pack | `autoFinish` over `allowedFinishes` for the outcome it picked, keeping to `allowsTitleChange` finishes when it plans a title change.                                                                                                                                                                   |
 
 Until EVT3 lands no real result uses a finish, so every finish, auto-winner
-and Random winners path is exercised through the Match lab's Simulate. Its
+and Random winners path is exercised through the Match lab's Run. Its
 tests cover the MTCH7 door too: a registered filter that bans
 disqualifications removes `finish.disqualification` and `finish.count-out`
 from `match.finishes`, refuses them as a booked finish (`finishNotAllowed`)

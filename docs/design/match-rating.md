@@ -291,7 +291,7 @@ finishes, gimmicks and stipulations plug in later as rating modifiers.
 | `match.workRate.varianceSd`                | 4       | 0–20, step 0.5 | points     |
 
 Category `Match: work rate`. Every number here is a first pass, to be tuned
-with the Match lab's Run x100 (MTCH1-07). A penalty rate of 0 turns its check
+with the Match lab's Runs at 100 (MTCH1-07). A penalty rate of 0 turns its check
 off; a spread of 0 makes every match of that class a 50.
 
 ### Worked example: two 70s, midcard then main event
@@ -586,7 +586,7 @@ speaker's talk with one speaker" and "side-aggregates each side, then across
 sides".)
 
 All numbers in these sections are a first pass, to be tuned with the Match
-lab's Run x100 (MTCH1-07); any change is recorded here. Three choices are
+lab's Runs at 100 (MTCH1-07); any change is recorded here. Three choices are
 deliberate: the crowd is driven by expectation rather than popularity, high
 scores are compressed rather than re-rolled, and stars blend work rate with the
 crowd rather than reading match quality alone.
@@ -908,11 +908,20 @@ television; the duration and weight chips under the slot role come from
 `match.slotInfo` before anything is rated, each with its Why?. The sides column
 builds the line-up from a picker over `match.labWorkers`; the lab lets a
 line-up break the type's limits on purpose (up to 30 sides of 6) so the
-warnings can be seen. Run calls `match.preview` with the current seed (1 on a
-fresh lab), Re-roll seed moves to the next seed and runs, and Run x100 runs
-`match.preview` and a 100-run `match.previewBatch` together. Nothing re-rates
-on its own: changing the setup marks the shown result "Out of date: run
-again", and a result from an earlier game day says when it was rated. Worker
+warnings can be seen. The lab has one action, **Run**, with a **Runs**
+slider from 1 to 100 beside it (1 by default; MTCH2-07). Every Run picks a
+fresh seed in the web layer, so pressing it again gives another night; there
+are no seed controls or seed readout. A match always plays its result out
+(`match.simulate`, see
+[match-finishes.md](match-finishes.md#simulate)); a talking segment is rated
+with `match.preview`. With Runs above 1 the lab also sends the batch from the
+same seed (`match.simulateBatch` for a match, `match.previewBatch` for a
+talking segment) and shows the batch's last night in full above the counts:
+how often each side won and drew, the finishes most common first, the score
+histogram and the summaries. Nothing re-runs on its own: changing the setup,
+the sides or the Winner and finish group marks the shown result "Out of date:
+run again" (Runs does not), and a result from an earlier game day says when
+it was rated. Worker
 names on the side chips and in the Each worker table are WRK1 `WorkerLink`s to
 the worker's profile, and person inputs in the lab's Why? panels link the same
 way through the shell's `EntityLinkContext` (MTCH1-08). Other features add
@@ -920,7 +929,7 @@ panels with `registerLabPanel` (see `apps/web/src/app/README.md`).
 
 ## First tuning pass
 
-Done with Run x100 on a new default-world game as Altura Wrestling
+Done with the lab's Run x100 (now Runs at 100) on a new default-world game as Altura Wrestling
 Entertainment (MTCH1-09), Regular televised show in the home region, seed 1.
 The checks run as tests in
 `apps/web/src/screens/match-lab/defaultWorldLab.test.ts`, so a later change to
