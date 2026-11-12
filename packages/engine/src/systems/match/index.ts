@@ -235,6 +235,54 @@ export {
   type FinishesArgs,
 } from './queries';
 
+// The Match lab's previews (MTCH1-06): `match.preview`, `match.previewBatch`, `match.labOptions`
+// and `match.labWorkers`, the preview arguments and the batch statistics.
+// Design: docs/design/match-rating.md#previews.
+export { MATCH_PREVIEW_STREAM } from './streams';
+export {
+  PREVIEW_BATCH_MAX_RUNS,
+  PREVIEW_MAX_SIDE_SIZE,
+  PREVIEW_SEED_MAX,
+  PreviewArgsSchema,
+  PreviewBatchArgsSchema,
+  previewInputOf,
+  type PreviewArgs,
+  type PreviewBatchArgs,
+} from './previewArgs';
+export {
+  PREVIEW_REASON_CODES,
+  type PreviewBatchResult,
+  type PreviewResult,
+  type StarStats,
+} from './previewQueries';
+export {
+  LAB_WORKERS_DEFAULT_LIMIT,
+  LAB_WORKERS_MAX_LIMIT,
+  LAB_WORKERS_MAX_SEARCH,
+  LAB_WORKER_SCOPES,
+  type LabDefaults,
+  type LabImportance,
+  type LabOptions,
+  type LabPromotion,
+  type LabRegion,
+  type LabWorkerRow,
+  type LabWorkerScope,
+  type LabWorkers,
+  type LabWorkersArgs,
+} from './labQueries';
+export {
+  SCORE_HISTOGRAM_BINS,
+  SCORE_HISTOGRAM_WIDTH,
+  quantileOfSorted,
+  quarterCounts,
+  roundTenth,
+  scoreHistogram,
+  statsOf,
+  type HistogramBin,
+  type QuarterCount,
+  type Stats,
+} from './stats';
+
 export const matchSystem: SystemBundle = defineSystem({
   id: 'match',
   queries: matchQueries,

@@ -8,6 +8,9 @@
  *
  * - `match.finishes` (MTCH2): the finishes a match of a given type and side count may end with,
  *   with their effects, title flag and methods. Design: docs/design/match-finishes.md.
+ * - `match.preview`, `match.previewBatch` (`previewQueries.ts`), `match.labOptions` and
+ *   `match.labWorkers` (`labQueries.ts`) (MTCH1-06): the Match lab's rating previews on a detached
+ *   stream and its setup queries. Their `QueryMap` entries sit beside them.
  *
  * None is secret, so every viewer sees the same answer. Design: docs/design/match-rating.md.
  */
@@ -34,6 +37,8 @@ import {
   type FinishOutcomeKind,
 } from '../../model/catalogs';
 import { allowedFinishes, type FinishEntry } from './finishes/allowed';
+import { labQueries } from './labQueries';
+import { previewBatchQuery, previewQuery } from './previewQueries';
 import {
   DURATION_CLASS_LABELS,
   SLOT_ROLE_LABELS,
@@ -377,4 +382,8 @@ export const matchQueries: readonly QueryDefinition[] = [
   catalogQuery,
   slotRolesQuery,
   finishesQuery,
+  // The Match lab's previews and setup queries (MTCH1-06).
+  previewQuery,
+  previewBatchQuery,
+  ...labQueries,
 ];
