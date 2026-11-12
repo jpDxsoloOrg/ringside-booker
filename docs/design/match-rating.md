@@ -108,7 +108,7 @@ Override `match.slot.weight.mainEvent` to 0.5 and the main event still weighs
 
 ## Queries
 
-Both are open to every viewer and return plain JSON.
+All three are open to every viewer and return plain JSON.
 
 - **`match.catalog`** `{ includeHidden? }` → `{ matchTypes, angleTypes,
 methods, available }`. The options are the catalog entries in display order
@@ -124,6 +124,11 @@ durationClass, durationLabel, weight, roleTrace, durationTrace, weightTrace }`.
   slot). An unknown key comes back as an `invalidArgs` reason naming its index,
   such as `matchTypeKeys[2]`. The card builder (EVT2) calls this after every
   reorder instead of working roles out itself.
+- **`match.slotInfo`** `{ slotRole, kind, typeKey? }` → `{ role, roleLabel,
+durationClass, durationLabel, weight, durationTrace, weightTrace }`: what one
+  slot role gives a segment, for the Match lab's duration and weight chips before
+  a Run. A match is shifted by its type (`typeKey` is required there; a missing
+  or unknown one comes back as `invalidArgs`); a talking segment never is.
 
 ## Worker performance
 

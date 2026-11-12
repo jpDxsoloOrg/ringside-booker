@@ -102,6 +102,77 @@ describe('match.catalog', () => {
   });
 });
 
+describe('match.slotInfo', () => {
+  it('gives a midcard singles a standard class and weight 1, with both traces', () => {
+    const result = engineWith(TEST_CATALOGS).query(
+      'match.slotInfo',
+      { slotRole: 'midcard', kind: 'match', typeKey: parseContentKey('match.singles') },
+      PLAYER,
+    );
+    if (!result.ok) {
+      throw new Error(JSON.stringify(result.reasons));
+    }
+    expect(result.data).toMatchObject({
+      role: 'midcard',
+      roleLabel: 'Midcard',
+      durationClass: 'standard',
+      durationLabel: 'Standard',
+      weight: 1,
+    });
+    expect(result.data.durationTrace.kind).toBe('decision');
+    expect(result.data.weightTrace.kind).toBe('formula');
+    expect(fieldNamesOf(result.data).filter((name) => /minute|length/i.test(name))).toEqual([]);
+    expectSerialisable(result.data);
+  });
+
+  it('agrees with match.slotRoles for the main event and shifts by the match type', () => {
+    const engine = engineWith(TEST_CATALOGS);
+    const main = engine.query(
+      'match.slotInfo',
+      { slotRole: 'mainEvent', kind: 'match', typeKey: parseContentKey('match.singles') },
+      PLAYER,
+    );
+    const sprint = engine.query(
+      'match.slotInfo',
+      { slotRole: 'midcard', kind: 'match', typeKey: parseContentKey('match.sprint') },
+      PLAYER,
+    );
+    const talk = engine.query(
+      'match.slotInfo',
+      { slotRole: 'midcard', kind: 'angle', typeKey: parseContentKey('angle.promo') },
+      PLAYER,
+    );
+    if (!main.ok || !sprint.ok || !talk.ok) {
+      throw new Error('match.slotInfo was refused');
+    }
+    expect([main.data.durationLabel, main.data.weight]).toEqual(['Long', 1.75]);
+    expect(sprint.data.durationLabel).toBe('Short');
+    expect(talk.data.durationLabel).toBe('Standard');
+  });
+
+  it('refuses a match with no or an unknown match type', () => {
+    const engine = engineWith(TEST_CATALOGS);
+    const missing = engine.query('match.slotInfo', { slotRole: 'opener', kind: 'match' }, PLAYER);
+    const unknown = engine.query(
+      'match.slotInfo',
+      { slotRole: 'opener', kind: 'match', typeKey: parseContentKey('match.nope') },
+      PLAYER,
+    );
+    expect(missing).toMatchObject({
+      ok: false,
+      reasons: [{ code: 'invalidArgs', field: 'typeKey' }],
+    });
+    expect(unknown).toMatchObject({
+      ok: false,
+      reasons: [{ code: 'invalidArgs', field: 'typeKey' }],
+    });
+    expect(
+      engine.queryRaw('match.slotInfo', { slotRole: 'opener', kind: 'angle', minutes: 5 }, PLAYER)
+        .ok,
+    ).toBe(false);
+  });
+});
+
 describe('match.slotRoles', () => {
   it('returns one row per slot of a 6-slot card with a pre-show', () => {
     const result = engineWith(TEST_CATALOGS).query(
