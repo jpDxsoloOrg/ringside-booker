@@ -100,35 +100,40 @@ export function LabResult({ result, ratedOn, today, outOfDate }: LabResultProps)
       )}
       <ScoreBug label="Lab result" stats={stats} className={styles['scoreBug']} />
       <p className={styles['resultLine']}>
-        <span>Crowd expected</span>
-        <Explained
-          label="Crowd expectation"
-          value={Math.round(expected)}
-          trace={result.expectation.trace}
-        />
-        <span aria-hidden="true">·</span>
-        <span>got</span>
-        <Explained label="Crowd" value={Math.round(crowd)} trace={result.crowd.trace} />
-        <span aria-hidden="true">·</span>
-        <span>{expectationGapText(crowd, expected)}</span>
+        <span className={styles['resultPart']}>
+          <span>Crowd expected</span>
+          <Explained
+            label="Crowd expectation"
+            value={Math.round(expected)}
+            trace={result.expectation.trace}
+          />
+        </span>
+        <span className={styles['resultPart']}>
+          <span>got</span>
+          <Explained label="Crowd" value={Math.round(crowd)} trace={result.crowd.trace} />
+        </span>
+        <span className={styles['resultPart']}>{expectationGapText(crowd, expected)}</span>
       </p>
       <p className={styles['resultLine']}>
-        <span>{SLOT_ROLE_LABELS[slot.role]}</span>
-        <span aria-hidden="true">·</span>
-        <span>{DURATION_CLASS_LABELS[slot.durationClass]}</span>
-        <WhyButton
-          label="Duration class"
-          value={DURATION_CLASS_LABELS[slot.durationClass]}
-          source={slot.durationTrace}
-        />
-        <span aria-hidden="true">·</span>
-        <span>weight {weightText(slot.weight)}</span>
-        <WhyButton
-          label="Slot weight"
-          value={slot.weight}
-          unit="multiplier"
-          source={slot.weightTrace}
-        />
+        <span className={styles['resultPart']}>
+          <span>{SLOT_ROLE_LABELS[slot.role]}</span>
+          <span aria-hidden="true">·</span>
+          <span>{DURATION_CLASS_LABELS[slot.durationClass]}</span>
+          <WhyButton
+            label="Duration class"
+            value={DURATION_CLASS_LABELS[slot.durationClass]}
+            source={slot.durationTrace}
+          />
+        </span>
+        <span className={styles['resultPart']}>
+          <span>weight {weightText(slot.weight)}</span>
+          <WhyButton
+            label="Slot weight"
+            value={slot.weight}
+            unit="multiplier"
+            source={slot.weightTrace}
+          />
+        </span>
       </p>
       <p className={styles['resultMeta']}>
         <span>{result.policy.label}</span>
