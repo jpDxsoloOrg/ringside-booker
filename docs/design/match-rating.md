@@ -811,6 +811,20 @@ morale) and CRTV7 (gimmicks and managers) follow:
    amount and that the trace still replays; reset the registries in
    `afterEach`.
 
+## Partners
+
+Five features meet the rating at a seam; whichever of a pair reaches main
+second does the wiring (MTCH1-08 is MTCH1's half). Each partner keeps its
+effect in its own system folder, so MTCH1's files only gain registrations.
+
+| Partner                 | Registers                                                                                                              | Stage and order                                                                            | State                                                                                                                                                     |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| WRK1 (workers)          | Nothing in the pipeline: `availabilityOf` for warnings and `match.labWorkers`, `WorkerLink` for lab names              | (warnings, lab)                                                                            | Wired (MTCH1-08). The lab picker keeps `match.labWorkers` for both tabs: `workers.list` has no popularity in a chosen region, no name search and no limit |
+| AIP1 (rival shortcuts)  | The rating policy provider (`registerRatingPolicyProvider`) reading `aiShortcut` for the score bonus and simple inputs | Policy door; the bonus is a `score` line                                                   | Not on main; AIP1 wires it from its own pack, with the lab's "Rate as" select (until then every promotion gets "Same rules for every promotion")          |
+| CRTV7 (gimmicks)        | Gimmick fit and manager modifiers (`registerRatingModifier`)                                                           | Gimmick on `performance` and `crowd`, manager on `talk` and `crowd`; `RATING_ORDER.normal` | Not on main; CRTV7 wires it from its own pack                                                                                                             |
+| SOC3 (backstage morale) | The morale multiplier, `detail: false` so rivals get it too                                                            | `workRate`, `RATING_ORDER.late` (before compression)                                       | Not on main; SOC3 wires it from its own pack                                                                                                              |
+| MOD8 (script hooks)     | Hook point `match.segmentScore` (honoured field `score`, 0..100, no cancel), applied in `runStage('score', ...)`       | `score`, after the modifiers, before the final round                                       | Not on main; MOD8 wires it from its own pack                                                                                                              |
+
 ## Previews
 
 The Match lab, EVT4's live forecast, AIP4's rival booker and POL2's balance lab
@@ -897,5 +911,8 @@ warnings can be seen. Run calls `match.preview` with the current seed (1 on a
 fresh lab), Re-roll seed moves to the next seed and runs, and Run x100 runs
 `match.preview` and a 100-run `match.previewBatch` together. Nothing re-rates
 on its own: changing the setup marks the shown result "Out of date: run
-again", and a result from an earlier game day says when it was rated. Other
-features add panels with `registerLabPanel` (see `apps/web/src/app/README.md`).
+again", and a result from an earlier game day says when it was rated. Worker
+names on the side chips and in the Each worker table are WRK1 `WorkerLink`s to
+the worker's profile, and person inputs in the lab's Why? panels link the same
+way through the shell's `EntityLinkContext` (MTCH1-08). Other features add
+panels with `registerLabPanel` (see `apps/web/src/app/README.md`).

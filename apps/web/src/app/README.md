@@ -138,8 +138,9 @@ bar sticks above the tab bar and the worker picker is a bottom sheet). `MatchLab
 heading and loads the rest as its own chunk. The lab's state (`labStore.ts`) lives for the session
 and empties when the seat's world changes; Run, Re-roll seed and Run x100 ask the engine directly
 (`match.preview`, `match.previewBatch`), so a shown result never re-rolls behind the player's back
-after a Next Day. Worker names go through `renderWorkerName` (`workerName.tsx`), plain text until
-MTCH1-08 makes them profile links.
+after a Next Day. Worker names on the side chips and in the Each worker table go through
+`renderWorkerName` (`workerName.tsx`), a `WorkerLink` to the worker's profile; person inputs in the
+lab's Why? panels link through `EntityLinkContext` like everywhere else in the game.
 
 ### Adding a Match lab panel
 
