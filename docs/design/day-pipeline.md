@@ -705,6 +705,14 @@ also carries `source` (`player`, `ai` or `system`) and `reasonKey`:
 | `momentum.changed`            | `employmentId`, `personId`, `promotionId`, `before`, `after`              | A worker's momentum changes (`before` is null the first time) |
 | `morale.changed`              | `employmentId`, `personId`, `promotionId`, `before`, `after`              | A worker's morale changes                                     |
 
+The booking system's events ([booking.md](booking.md#commands)):
+
+| Event           | Payload                                                            | Published when                      |
+| --------------- | ------------------------------------------------------------------ | ----------------------------------- |
+| `card.changed`  | `eventInstanceId`, `promotionId`, `brandId`, `segmentId`, `change` | A booking command changes a card    |
+| `card.locked`   | `eventInstanceId`, `promotionId`, `brandId`                        | A card is locked (EVT2-04)          |
+| `card.unlocked` | `eventInstanceId`, `promotionId`, `brandId`                        | A locked card is unlocked (EVT2-04) |
+
 The shows system's events ([show-night.md](show-night.md#events)):
 
 | Event               | Payload                                                                                                                                                                                | Published when                            |
