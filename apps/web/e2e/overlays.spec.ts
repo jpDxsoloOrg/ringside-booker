@@ -122,6 +122,15 @@ test.describe('overlays and menus', () => {
     await expect(menu.getByRole('menuitem', { name: 'Book on next show' })).toBeFocused();
     await page.keyboard.press('End');
     await expect(menu.getByRole('menuitem', { name: 'Release' })).toBeFocused();
+    // The "Set push" submenu sits above the separator: Right arrow opens it on its first
+    // choice and Left arrow comes back to the parent menu.
+    await page.keyboard.press('ArrowUp');
+    const setPush = menu.getByRole('menuitem', { name: 'Set push' });
+    await expect(setPush).toBeFocused();
+    await page.keyboard.press('ArrowRight');
+    await expect(page.getByRole('menuitem', { name: 'Main event' })).toBeFocused();
+    await page.keyboard.press('ArrowLeft');
+    await expect(setPush).toBeFocused();
     // The disabled "Give a title shot" is skipped on the way back up.
     await page.keyboard.press('ArrowUp');
     await expect(menu.getByRole('menuitem', { name: 'Renegotiate contract' })).toBeFocused();
