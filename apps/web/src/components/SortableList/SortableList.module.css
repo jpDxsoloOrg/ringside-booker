@@ -1,7 +1,7 @@
 /*
  * A sortable item. While it is being dragged, or shifted out of the way, `SortableItem` writes its
  * offset to --sortable-x and --sortable-y; the transform is only applied then, so a resting item
- * makes no stacking context.
+ * makes no stacking context. Timing comes from the motion tokens, so reduced motion turns it off.
  */
 .item {
   min-inline-size: 0;
@@ -10,7 +10,11 @@
 .moving {
   position: relative;
   transform: translate3d(var(--sortable-x, 0), var(--sortable-y, 0), 0);
-  transition: var(--sortable-transition, none);
+}
+
+/* Items making way glide; the item under the pointer or keys follows it exactly. */
+.moving:not(.dragging) {
+  transition: transform var(--motion-base) var(--easing-standard);
 }
 
 .dragging {

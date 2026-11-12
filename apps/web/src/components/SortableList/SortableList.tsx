@@ -17,7 +17,6 @@ import {
 import { createContext, useCallback, useContext, useLayoutEffect, useMemo, useRef } from 'react';
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { classNames } from '../classNames';
-import { useReducedMotion } from '@/styles/useReducedMotion';
 import styles from './SortableList.module.css';
 
 /**
@@ -195,12 +194,11 @@ export function SortableItem({
   children,
 }: SortableItemProps) {
   const listDisabled = useContext(ListDisabledContext);
-  const reducedMotion = useReducedMotion();
   const sortable = useSortable({
     id,
     disabled: { draggable: dragDisabled || listDisabled, droppable: false },
   });
-  const { setNodeRef, transform, transition, isDragging } = sortable;
+  const { setNodeRef, transform, isDragging } = sortable;
   const nodeRef = useRef<HTMLElement | null>(null);
 
   const setRefs = useCallback(
@@ -213,14 +211,12 @@ export function SortableItem({
 
   const offsetX = transform?.x ?? 0;
   const offsetY = transform?.y ?? 0;
-  const motion = reducedMotion ? 'none' : (transition ?? 'none');
   useLayoutEffect(() => {
     const node = nodeRef.current;
     if (node === null) return;
     node.style.setProperty('--sortable-x', `${String(offsetX)}px`);
     node.style.setProperty('--sortable-y', `${String(offsetY)}px`);
-    node.style.setProperty('--sortable-transition', motion);
-  }, [offsetX, offsetY, motion]);
+  }, [offsetX, offsetY]);
 
   const handle = useMemo<SortableHandle>(
     () => ({
