@@ -11,7 +11,7 @@
 import { TraceReplayError } from '../errors';
 import { roundByMode, walkTrace } from './helpers';
 import { isTruncationNote } from './limits';
-import type { FormulaNode, TraceNode, Traced } from './types';
+import type { ArithmeticKind, FormulaNode, TraceNode, Traced } from './types';
 
 /** True when `actual` is within `epsilon` of `expected`, relative to their size once above 1. */
 function isClose(actual: number, expected: number, epsilon: number): boolean {
@@ -58,7 +58,8 @@ function applyStep(step: TraceNode, current: number, check: ReplayCheck | null):
     case 'add':
     case 'subtract':
     case 'multiply':
-    case 'divide': {
+    case 'divide':
+    case 'power': {
       checkNumber(check, step, 'before', step.before, current);
       const after = applyArithmeticStep(step.kind, step.label, current, step.operand);
       checkNumber(check, step, 'after', step.after, after);
@@ -111,7 +112,7 @@ function applyStep(step: TraceNode, current: number, check: ReplayCheck | null):
 }
 
 function applyArithmeticStep(
-  kind: 'add' | 'subtract' | 'multiply' | 'divide',
+  kind: ArithmeticKind,
   label: string,
   current: number,
   operand: number,
@@ -128,6 +129,8 @@ function applyArithmeticStep(
         throw new TraceReplayError(label, ['divides by 0']);
       }
       return current / operand;
+    case 'power':
+      return current ** operand;
   }
 }
 

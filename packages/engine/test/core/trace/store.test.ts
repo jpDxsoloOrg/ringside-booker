@@ -434,6 +434,14 @@ describe('topContributors', () => {
     expect(loaded.get(ref('k', 'a'))).toStrictEqual(store.get(ref('k', 'a')));
   });
 
+  it('counts a power step by its effect on the running value', () => {
+    const traced = startCalc('x', 0.5).power('Curve', 2).add('Bonus', 0.1).done();
+    expect(topContributors(traced.trace)).toStrictEqual([
+      { label: 'Curve', effect: -0.25 },
+      { label: 'Bonus', effect: expect.closeTo(0.1, 12) as number },
+    ]);
+  });
+
   it('gives no contributors for a trace without arithmetic steps', () => {
     expect(topContributors(inputOf('Popularity', 64).trace)).toStrictEqual([]);
   });
@@ -554,6 +562,7 @@ describe('traceNodeSchema', () => {
       .roll(swing.roll)
       .add('Swing', swing.value, 'Luck')
       .multiply('Scale', 1.5)
+      .power('Curve', 1)
       .max('Floor', 0)
       .clamp(0, 100)
       .round('floor')

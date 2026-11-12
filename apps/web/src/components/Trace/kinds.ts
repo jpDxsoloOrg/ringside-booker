@@ -40,6 +40,7 @@ export function renderTraceRow(
     case 'subtract':
     case 'multiply':
     case 'divide':
+    case 'power':
       return createElement(ArithmeticRow, { node, renderEntityLink });
     case 'min':
     case 'max':
