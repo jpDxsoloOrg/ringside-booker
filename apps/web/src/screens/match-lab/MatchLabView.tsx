@@ -4,15 +4,18 @@ import type { GameDate, LabOptions, MatchCatalog, RegionId } from '@ringside/eng
 import { useEngineQuery } from '@/app/engine/useEngineQuery';
 import { EmptyState } from '@/components/EmptyState';
 import { Panel } from '@/components/Panel';
+import { useIsMobile } from '@/styles/useMediaQuery';
 import { LabBatchResult } from './LabBatchResult';
 import { labPanelsFor, useLabPanels } from './labPanelRegistry';
 import type { LabPanelContext, LabPanelPlacement } from './labPanelRegistry';
 import { LabResult } from './LabResult';
 import { LabRunBar } from './LabRunBar';
 import { LabSetupPanel, startingSides } from './LabSetupPanel';
-import { isOutOfDate, useLabStore } from './labStore';
+import { isOutOfDate, isSimulationOutOfDate, useLabStore } from './labStore';
 import { LabWarnings } from './LabWarnings';
 import styles from './MatchLab.module.css';
+import { LabResultGroup } from './result/LabResultGroup';
+import { MatchResultBlock } from './result/MatchResultBlock';
 import { SidesBuilder } from './SidesBuilder';
 import { useLabRunner } from './useLabRunner';
 import { WorkerLinesTable } from './WorkerLinesTable';
@@ -59,7 +62,10 @@ function Lab({ options, catalog, regionId, today }: LabProps) {
   const submitted = useLabStore((state) => state.submitted);
   const lastRun = useLabStore((state) => state.lastRun);
   const lastBatch = useLabStore((state) => state.lastBatch);
+  const plan = useLabStore((state) => state.result);
+  const simulation = useLabStore((state) => state.simulation);
   const runner = useLabRunner(today);
+  const isMobile = useIsMobile();
   const [pickerSide, setPickerSide] = useState<number | null>(null);
 
   const outOfDate = isOutOfDate({ setup, sides, previewSeed }, submitted);
@@ -69,6 +75,7 @@ function Lab({ options, catalog, regionId, today }: LabProps) {
     sides,
     result,
     batch: lastBatch?.result ?? null,
+    simulation: simulation?.result ?? null,
   };
 
   let resultBody: ReactNode;
@@ -77,7 +84,19 @@ function Lab({ options, catalog, regionId, today }: LabProps) {
       <EmptyState
         icon="lab"
         title="Nothing rated yet"
-        body="Put someone on every side and press Run to rate one night. Run x100 shows the spread."
+        body="Put someone on every side and press Run to rate one night, or Simulate to play out who wins too. Run x100 shows the spread."
+      />
+    );
+  } else if (simulation !== null) {
+    resultBody = (
+      <MatchResultBlock
+        simulation={simulation.result}
+        ratedOn={simulation.date}
+        today={today}
+        outOfDate={isSimulationOutOfDate(
+          { setup, sides, previewSeed, result: plan },
+          simulation.args,
+        )}
       />
     );
   } else {
@@ -110,6 +129,11 @@ function Lab({ options, catalog, regionId, today }: LabProps) {
               setPickerSide(side);
             }}
           />
+          {isMobile && setup.kind === 'match' && (
+            <Panel title="Result plan" className={styles['setupPanel']}>
+              <LabResultGroup />
+            </Panel>
+          )}
         </div>
         <LabRunBar runner={runner} />
         <div className={styles['resultColumn']}>
