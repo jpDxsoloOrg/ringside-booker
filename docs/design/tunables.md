@@ -442,3 +442,16 @@ morale, momentum or popularity, so nothing here tunes them.
 | `shows.titles.drawCountsAsDefence`    | boolean | true    |        | flag       | A drawn title match counts as a successful defence                      |
 | `shows.stars.zeroAt`                  | number  | 35      | 0–80   | points     | Show score that earns zero stars                                        |
 | `shows.stars.pointsPerStar`           | number  | 12      | 0–30   | points     | Show score points per star (0 = any score above zero-stars earns 5)     |
+
+## Booking tunables
+
+The thresholds a card is held to before it can be locked (EVT2-04), in
+`systems/booking/tunables.ts`, category `Booking`. See
+[booking.md](booking.md#validation).
+
+| Key                                  | Kind    | Default | Range | Unit  | What it does                                                          |
+| ------------------------------------ | ------- | ------- | ----- | ----- | --------------------------------------------------------------------- |
+| `booking.maxAppearancesPerShow`      | integer | 2       | 1–6   | count | Most segments of any kind one person may appear in on one show        |
+| `booking.maxMatchesPerPersonPerShow` | integer | 1       | 1–4   | count | Most matches one person may wrestle on one show                       |
+| `booking.minFilledMainShare`         | number  | 0.5     | 0–1   | ratio | Share of main-card slots that must be filled to lock (0 = no minimum) |
+| `booking.requireMainEvent`           | boolean | true    |       | flag  | The last main-card slot must be filled to lock                        |
