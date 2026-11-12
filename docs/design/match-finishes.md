@@ -343,3 +343,48 @@ human: the brand's `controller` when the show's brand has one, else the
 promotion's. Rival promotions (computer controllers) keep their own booking
 logic. The Match lab is a sandbox: MTCH2-04 uses Random winners mode only
 when the lab's winner is Auto in a Random winners game.
+
+## Simulate
+
+The Match lab's **Simulate** (MTCH2-04) is the query `match.simulate`
+(`systems/match/simulateQuery.ts`). Its arguments are `match.preview`'s plus
+the plan: `winner` (`'auto'`, `'draw'` or `{ side }` with the stored 0-based
+side), `finishKey` (null for Auto) and `methodKey` (null, the default, to let
+the finish decide). Only a match can be simulated; an angle is `invalidArgs`,
+and a save with no finish catalog is `noFinishCatalog`.
+
+It builds the sides with `autoWinnerInputsOf` for the show's promotion and
+region, resolves the plan with `resolveMatchOutcome` (no stipulations until
+MTCH7), then rates the match exactly as `match.preview` does, with the
+`resolution` on the rating input, so the work rate and crowd traces carry the
+finish lines ("Disqualification finish −4", "Draw: the crowd wanted a
+winner"). A refusal from `resolveMatchOutcome` comes back unchanged as
+`{ ok: false, reasons }`.
+
+Like every preview it never writes, never stores a trace and never draws from
+the world's RNG. The winner and finish rolls come from
+`detachedStream(meta.seed, 'match.auto-winner', String(previewSeed))` and
+`detachedStream(meta.seed, 'match.finish', String(previewSeed))` (the finish
+and method share one stream), the rating rolls from the preview's
+`match.preview` stream. The same arguments always give the same night;
+another seed can change the winner, finish and method. The rating rolls are
+the same as Run's for the same seed, so Run and Simulate differ only by the
+finish effects.
+
+The result (`SimulateResult`) is the rated `preview`, the `outcome`, the
+`finish` (`key`, `name`, `category`, `summary`, `allowsTitleChange`), the
+`method` (`key`, `name`, or null without a winner), `winningSide` (0-based, or
+null), the winners' names, the "Match result" decision as `resultTrace`, and
+`randomWinnersMode`.
+
+`randomWinnersMode` is true when the winner is Auto and Random winners applies
+to the viewer's first promotion (`randomWinnersActive` with no brand). Then
+the auto-winner uses `match.randomWinners.randomness` and the winner decision
+is labelled "Random winners mode: winner decided on the night". The lab is a
+sandbox, so a booked side or Draw is still honoured in a Random winners game
+(standard mode); only the booking screen refuses it.
+
+`match.resultMode` (args `{}`) returns `{ randomWinners }`: the same check for
+the viewer's first promotion, false for a viewer who runs none (the
+all-seeing viewer, a computer seat). The lab's Winner choice and MTCH2-05's
+booking editor read it so the web never reads world settings itself.
