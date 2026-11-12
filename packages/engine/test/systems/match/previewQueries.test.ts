@@ -25,6 +25,7 @@ import {
 import { TEST_PLAYER_ID, TEST_START_DATE } from '../../support/builders/build-row';
 import { worldBuilder } from '../../support';
 import { expectSerialisable } from '../../support/trace';
+import { measureAgainstReference } from '../../support/cpu-budget';
 import { updatePerson } from './rating/fixtures';
 
 const PLAYER: Viewer = {
@@ -355,6 +356,9 @@ describe('match.previewBatch', () => {
   });
 });
 
+/** How many reference workloads a 500-run battle royal batch may cost (23 to 31 today). */
+const BATCH_REFERENCE_BUDGET = 50;
+
 describe('a 30-person battle royal', () => {
   const battleRoyal = (): { engine: Engine; args: PreviewArgs } => {
     const { world, ids } = worldBuilder()
@@ -400,22 +404,27 @@ describe('a 30-person battle royal', () => {
     }
   });
 
-  // Performance guard: a generous budget (about 1 s alone on a laptop), skipped on CI where shared
-  // runners vary. It counts this process's CPU time rather than the wall clock, so a full parallel
-  // test run on a busy machine does not starve it into failing.
+  // Performance guard, skipped on CI where shared runners vary. A fixed number of milliseconds
+  // failed on a busy machine: under load the same batch costs two or three times the CPU time. So
+  // the batch is timed against a reference workload run in the same process just before and after
+  // it (see support/cpu-budget.ts), which a busy machine slows by the same factor. The batch costs
+  // 23 to 31 reference runs, alone or under load; the budget of 50 fails a batch 1.8 times slower.
   it.skipIf(process.env['CI'] !== undefined)(
-    'runs a 500-run batch in under 3 s of CPU time',
+    "runs a 500-run batch in under 50 times the reference workload's CPU time",
     { retry: 1, timeout: 30_000 },
     () => {
       const { engine, args } = battleRoyal();
       // Warm up, so the timing is of the ratings and not of the first call's compilation.
       engine.query('match.previewBatch', { ...args, runs: 20 }, PLAYER);
-      const started = process.cpuUsage();
-      const result = engine.query('match.previewBatch', { ...args, runs: 500 }, PLAYER);
-      const used = process.cpuUsage(started);
-      const elapsedMs = (used.user + used.system) / 1000;
-      expect(result.ok).toBe(true);
-      expect(elapsedMs).toBeLessThan(3000);
+      let ok = false;
+      const timing = measureAgainstReference(() => {
+        ok = engine.query('match.previewBatch', { ...args, runs: 500 }, PLAYER).ok;
+      });
+      expect(ok).toBe(true);
+      expect(
+        timing.ratio,
+        `${timing.workMs.toFixed(0)} ms of CPU time against ${timing.referenceMs.toFixed(1)} ms for the reference`,
+      ).toBeLessThan(BATCH_REFERENCE_BUDGET);
     },
   );
 });
