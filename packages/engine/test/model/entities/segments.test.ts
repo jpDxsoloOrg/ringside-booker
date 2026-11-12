@@ -32,7 +32,14 @@ import {
   type ShowWorld,
 } from '../../support/show-world';
 
-const COMPLETED_RESULT = { score: 60, attendance: 900, gate: ZERO_CENTS, viewers: null };
+const COMPLETED_RESULT = {
+  score: 60,
+  rawScore: 60,
+  traceId: null,
+  attendance: 900,
+  gate: ZERO_CENTS,
+  viewers: null,
+};
 
 function worldWithInstance(
   format: { slots: number; preShowSlots: number } = { slots: 6, preShowSlots: 2 },
@@ -125,7 +132,7 @@ describe('SegmentSchema', () => {
   it('rates in quarter stars from 0 to 5', () => {
     const rated = (stars: number): unknown => ({
       ...makeMatch(1),
-      rating: { score: 70, stars, traceId: null },
+      rating: { score: 70, stars, workRate: 68, crowd: 72, expectation: 65, traceId: null },
     });
     expect(SegmentSchema.safeParse(rated(4.1)).success).toBe(false);
     expect(SegmentSchema.safeParse(rated(4.25)).success).toBe(true);
@@ -307,7 +314,7 @@ describe('participants and sides', () => {
     );
     putSinglesMatch(world, 1, {
       outcome: { kind: 'win', winningSide: 1, methodKey: key('method.pinfall') },
-      rating: { score: 72, stars: 3.5, traceId: null },
+      rating: { score: 72, stars: 3.5, workRate: 70, crowd: 74, expectation: 66, traceId: null },
     });
     expect(check(world).ok).toBe(true);
   });
@@ -379,7 +386,10 @@ describe('segments against their instance', () => {
       rating: { score: 50, stars: 2, traceId: null },
     });
     world.tables.segments._put(
-      makeAngle(2, { slot: 1, rating: { score: 50, stars: 2, traceId: null } }),
+      makeAngle(2, {
+        slot: 1,
+        rating: { score: 50, stars: 2, workRate: null, crowd: 52, expectation: 48, traceId: null },
+      }),
     );
     const report = check(world);
     expect(issueCodes(report)).toEqual([

@@ -704,3 +704,12 @@ also carries `source` (`player`, `ai` or `system`) and `reasonKey`:
 | `popularity.changed`          | `subjectKind`, `subjectId`, `worldBefore`, `worldAfter`, `regionsChanged` | A person's or promotion's popularity changes in a region      |
 | `momentum.changed`            | `employmentId`, `personId`, `promotionId`, `before`, `after`              | A worker's momentum changes (`before` is null the first time) |
 | `morale.changed`              | `employmentId`, `personId`, `promotionId`, `before`, `after`              | A worker's morale changes                                     |
+
+The shows system's events ([show-night.md](show-night.md#events)):
+
+| Event               | Payload                                                                                                                                                                                | Published when                            |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| `segment.completed` | `segmentId`, `eventInstanceId`, `promotionId`, `brandId`, `kind`, `slot`, `preShow`, `winnerIds`, `loserIds`, `drawIds`, `storylineIds`, `titleIds`, `finishKey`, `methodKey`, `score` | A segment is run and rated on show night  |
+| `show.completed`    | `eventInstanceId`, `promotionId`, `brandId`, `date`, `importance`, `score`, `rawScore`, `offscreen`, `segmentCount`                                                                    | A show is run, on screen or off it        |
+| `title.changed`     | `titleId`, `promotionId`, `fromReignId`, `toReignId`, `segmentId`, `eventInstanceId`, `newHolderIds`, `previousHolderIds`                                                              | A title changes hands in a segment        |
+| `title.defended`    | `titleId`, `promotionId`, `reignId`, `segmentId`, `eventInstanceId`, `defences`                                                                                                        | A champion keeps their title in a segment |

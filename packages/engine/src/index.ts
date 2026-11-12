@@ -1327,3 +1327,21 @@ export {
   writeSegment,
 } from './systems/booking/index';
 export { CardWriteError } from './core/errors';
+
+// The shows system (EVT3-01): show night's domain events (`segment.completed`, `show.completed`,
+// `title.changed`, `title.defended`), trace kinds and refs, random stream and tunables. The phase
+// and queries arrive with EVT3-03..05. See docs/design/show-night.md.
+export {
+  RIVAL_SEGMENT_SCORE_TRACE_KIND,
+  SEGMENT_SCORE_TRACE_KIND,
+  SHOW_SCORE_TRACE_KIND,
+  SHOWS_OFFSCREEN_STREAM,
+  SHOWS_TRACE_KINDS,
+  TITLE_OUTCOME_TRACE_KIND,
+  segmentScoreTraceRef,
+  showScoreTraceRef,
+  showsSystem,
+  showsTunables,
+  titleOutcomeTraceRef,
+  traceRefFromKey,
+} from './systems/shows/index';
