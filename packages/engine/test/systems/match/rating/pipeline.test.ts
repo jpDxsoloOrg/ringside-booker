@@ -243,7 +243,10 @@ describe('modifier order and registration', () => {
       { replace: true },
     );
     resetMatchRegistriesForTests();
-    expect(ratingModifiersFor('crowd')).toEqual([]);
+    // The finish effect modifiers (MTCH2-02) are built-ins; the extra is gone.
+    expect(ratingModifiersFor('crowd').map((modifier) => modifier.id)).toEqual([
+      'match.finishCrowd',
+    ]);
     expect(segmentRaterFor('match')).toBeDefined();
     const { world, promo } = tinyRating();
     expect(rate(world, inputOf(world, promo.id)).kind).toBe('angle');
