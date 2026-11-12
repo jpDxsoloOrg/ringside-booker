@@ -440,3 +440,31 @@ export const matchSystem: SystemBundle = defineSystem({
   id: 'match',
   queries: matchQueries,
 });
+
+// Momentum from a match result and a worker's earlier matches (MTCH3-02). Design:
+// docs/design/match-aftermath.md#momentum-gain and #prior-matches.
+export {
+  AFTERMATH_TUNABLES_CATEGORY,
+  MOMENTUM_GAIN_TUNABLES_DOC,
+  momentumTunables,
+} from './aftermath/momentumTunables';
+export {
+  MOMENTUM_GAIN_DOC_REF,
+  MOMENTUM_GAIN_LABEL,
+  NO_CONTEST_MOMENTUM_NOTE,
+  NO_CONTRACT_MOMENTUM_REASON,
+  PER_MATCH_LIMIT_LABEL,
+  momentumGain,
+  noContractMomentum,
+  type MomentumGainInputs,
+  type MomentumOpponent,
+} from './aftermath/formulas/momentumGain';
+export {
+  priorMatchesOf,
+  resultOf,
+  winStreakBefore,
+  type MatchPosition,
+  type MatchResultForSide,
+  type PriorMatch,
+  type WinStreak,
+} from './aftermath/history';
