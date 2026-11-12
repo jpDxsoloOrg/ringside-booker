@@ -435,10 +435,10 @@ describe('topContributors', () => {
   });
 
   it('counts a power step by its effect on the running value', () => {
-    const traced = startCalc('x', 0.5).power('Curve', 2).add('Bonus', 0.1).done();
+    const traced = startCalc('x', 0.5).power('Curve', 2).add('Bonus', 0.125).done();
     expect(topContributors(traced.trace)).toStrictEqual([
       { label: 'Curve', effect: -0.25 },
-      { label: 'Bonus', effect: expect.closeTo(0.1, 12) as number },
+      { label: 'Bonus', effect: 0.125 },
     ]);
   });
 

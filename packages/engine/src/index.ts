@@ -1532,3 +1532,7 @@ export {
   RIVAL_MATCH_RESULT_TRACE_KIND,
   matchResultTraceRef,
 } from './systems/shows/index';
+
+// Promotion popularity after shows (EVT5-01): show reach, region expectation and the popularity
+// change formulas. See docs/design/promotion-popularity.md.
+export * from './systems/promoPop/index';
