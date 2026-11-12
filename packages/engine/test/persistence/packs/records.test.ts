@@ -308,6 +308,29 @@ const VALID_RECORDS: Readonly<Record<RecordKind, Fixture>> = {
     endReason: null,
     defences: 3,
   },
+  matchType: {
+    key: 'singles',
+    name: 'Singles',
+    order: 10,
+    sides: { min: 2, max: 2 },
+    sideSize: { min: 1, max: 1 },
+    durationShift: 0,
+    styleAffinity: [],
+  },
+  angleType: {
+    key: 'promo',
+    name: 'Promo',
+    order: 10,
+    defaultBeatKey: 'beat.promo',
+    speakers: { min: 1, max: 4 },
+    speakerWeights: { mic: 0.6, charisma: 0.3, presence: 0.1 },
+  },
+  method: {
+    key: 'pinfall',
+    name: 'Pinfall',
+    order: 10,
+    changesTitles: true,
+  },
 };
 
 function isObject(value: unknown): value is Readonly<Record<string, unknown>> {

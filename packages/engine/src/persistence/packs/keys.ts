@@ -124,6 +124,10 @@ export const RECORD_KINDS = [
   'employment',
   'team',
   'titleReign',
+  // Match and segment catalogs (MTCH1). They refer to no other kind and never become entities.
+  'matchType',
+  'angleType',
+  'method',
 ] as const;
 
 export const RecordKindSchema = z.enum(RECORD_KINDS);

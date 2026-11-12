@@ -272,6 +272,37 @@ export type {
 } from './model/integrity';
 export { checkWorld, MAX_INTEGRITY_ISSUES } from './model/integrity';
 
+// Runtime catalogs (MTCH1): the match types, angle types and win methods snapshotted into
+// `WorldMeta.catalogs` at new game, and the only readers phases, queries and commands use.
+export type {
+  AngleTypeDef,
+  CatalogListOptions,
+  CatalogName,
+  CatalogReader,
+  Catalogs,
+  DurationShift,
+  MatchTypeDef,
+  MethodDef,
+} from './model/catalogs';
+export {
+  angleTypeOf,
+  angleTypesOf,
+  AngleTypeDefSchema,
+  CatalogsSchema,
+  DURATION_SHIFTS,
+  hasCatalog,
+  matchTypeOf,
+  matchTypesOf,
+  MatchTypeDefSchema,
+  methodOf,
+  methodsOf,
+  MethodDefSchema,
+} from './model/catalogs';
+export {
+  checkSegmentContentKeys,
+  SEGMENT_KEY_ISSUE_CODES,
+} from './systems/match/catalog/checkSegmentKeys';
+
 export * from './model/entities/person';
 // Controllers (D-07): who runs a promotion or a brand.
 export type {

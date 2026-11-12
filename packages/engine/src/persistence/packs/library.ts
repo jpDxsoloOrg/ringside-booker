@@ -16,6 +16,7 @@
 import type { ContentPackRef } from '../../model/world-meta';
 import { isPackRef, parseRef, type PackRef } from './keys';
 import type { MergedContent } from './merge';
+import type { AngleTypeRecord, MatchTypeRecord, MethodRecord } from './records/catalogs';
 import type {
   BodyArchetypeRecord,
   BodyModifierRecord,
@@ -39,6 +40,13 @@ export interface ContentLibrary {
   readonly bodyModifiers: Readonly<Record<string, BodyModifierRecord>>;
   readonly generationProfiles: Readonly<Record<string, GenerationProfileRecord>>;
   readonly traitIncidence: Readonly<Record<string, TraitIncidenceRecord>>;
+  /**
+   * The match and segment catalogs by pack key, for tools that list them. A running game reads
+   * them from its `WorldMeta.catalogs` snapshot instead.
+   */
+  readonly matchTypes: Readonly<Record<string, MatchTypeRecord>>;
+  readonly angleTypes: Readonly<Record<string, AngleTypeRecord>>;
+  readonly methods: Readonly<Record<string, MethodRecord>>;
 }
 
 function deepFreeze<T>(value: T): T {
@@ -98,5 +106,8 @@ export function buildContentLibrary(content: MergedContent): ContentLibrary {
     bodyModifiers: byKey(records.bodyModifier),
     generationProfiles: byKey(records.generationProfile),
     traitIncidence: byKey(records.traitIncidence),
+    matchTypes: byKey(records.matchType),
+    angleTypes: byKey(records.angleType),
+    methods: byKey(records.method),
   });
 }
