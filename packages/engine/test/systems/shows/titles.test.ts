@@ -136,9 +136,10 @@ describe('a challenger win', () => {
     expect(defendedEvents(runtime)).toHaveLength(1);
     const decision = decisionOf(runtime, segmentId, built.titles.world);
     expect(decision.chosen).toBe('retained');
-    expect(decision.reason).toBe("Count-Out can't change titles");
+    // MTCH2's title rule (EVT3-07): the count-out finish never moves a title.
+    expect(decision.reason).toBe("Count-out: titles can't change hands on this finish");
     expect(ruleLabels(decision)).toContainEqual({
-      label: 'Count-Out can change titles',
+      label: "Count-out: titles can't change hands on this finish",
       passed: false,
     });
   });

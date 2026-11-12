@@ -105,7 +105,7 @@ export const galleryEntry: GalleryEntry = {
 | `EmptyState`          | What to show when a list, table or screen has nothing in it                                                                                                                                                       |
 | `DataTable`           | Any dense list: sort, filter, checkboxes; a table on desktop, cards on phones                                                                                                                                     |
 | `Tabs`                | `Tabs`, `TabList`, `Tab`, `TabPanel`: switch between views in one area                                                                                                                                            |
-| `Sheet`               | A side panel over the page; a bottom sheet on phones                                                                                                                                                              |
+| `Sheet`               | A side panel over the page; a bottom sheet on phones. `phoneHeight="full"` fills a phone screen for a long form                                                                                                   |
 | `ConfirmDialog`       | Ask before a destructive or irreversible action, with async `onConfirm`                                                                                                                                           |
 | `Tooltip`             | A short hint on hover or focus. Never the only copy of anything                                                                                                                                                   |
 | `Popover`             | A small panel anchored to a button: detail, a filter, quick controls                                                                                                                                              |
@@ -141,6 +141,7 @@ export const galleryEntry: GalleryEntry = {
 | `Histogram`           | How values spread across bins: inline-SVG bars, ticks, an optional mean line and ±1 sd band, and a hidden table of the same numbers. "No runs yet" when empty                                                     |
 | `SegmentResultCard`   | One finished segment from `shows.results`: sides with the winner marked, the result line, stars with a Why? on each number and the title banner; `revealed={false}` keeps its height                              |
 | `SortableList`        | Reorder a list by drag or keyboard: `SortableList`, `SortableItem`, `useSortableHandle`; `insert` or `swap` mode, every step announced. The only place that imports `@dnd-kit`                                    |
+| `RosterPicker`        | Pick people or a team for a segment: debounced search, Bookable only / This brand / Teams filters, push, alignment and availability; unbookable rows dimmed with the reason. Also `AvailabilityBadge`             |
 
 Money is integer `Cents` and dates are `GameDate` strings from `@ringside/engine`; the formatters
 turn them into text at the edge and nowhere else.

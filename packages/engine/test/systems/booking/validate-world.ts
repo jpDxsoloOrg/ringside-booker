@@ -75,8 +75,16 @@ function only<T>(value: T | undefined, what: string): T {
   return value;
 }
 
-export function validateWorld(): ValidateWorld {
+export interface ValidateWorldOptions {
+  /** Turns on MTCH2's Random winners new-game setting. */
+  readonly randomWinners?: boolean;
+}
+
+export function validateWorld(options: ValidateWorldOptions = {}): ValidateWorld {
   const { world, ids } = worldBuilder({
+    ...(options.randomWinners === undefined
+      ? {}
+      : { settings: { extra: { randomWinners: options.randomWinners } } }),
     startDate: START,
     players: [
       { playerId: 'player-1', displayName: 'Test Player 1' },
@@ -185,6 +193,8 @@ export interface MatchOptions {
   readonly type?: string;
   readonly titleIds?: readonly TitleId[];
   readonly outcome?: MatchOutcome | null;
+  /** A planned finish (MTCH2), such as `finish.disqualification`; Auto when left out. */
+  readonly finishKey?: string;
 }
 
 /** A match with one side per list of people. Side 0 wins by pinfall unless told otherwise. */
@@ -198,6 +208,7 @@ export function match(
     match: {
       matchTypeKey: parseContentKey(options.type ?? 'match.singles'),
       titleIds: [...(options.titleIds ?? [])],
+      ...(options.finishKey === undefined ? {} : { finishKey: parseContentKey(options.finishKey) }),
     },
     participants: sides.flatMap((people, side) =>
       people.map((personId) => competitor(personId, side)),

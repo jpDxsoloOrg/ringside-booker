@@ -19,18 +19,36 @@ export const SHOW_SCORE_TRACE_KIND = 'shows.showScore';
 /** Why a title changed hands or was kept. Id: `${segmentId}|${titleId}`. */
 export const TITLE_OUTCOME_TRACE_KIND = 'shows.titleOutcome';
 
+/**
+ * How a match ended on a human-controlled show: the outcome resolver's decision, the result line's
+ * winner Why? (EVT3-07). Id: the segment id.
+ */
+export const MATCH_RESULT_TRACE_KIND = 'match.result';
+/** How a match ended on a computer-controlled show. Id: the segment id. */
+export const RIVAL_MATCH_RESULT_TRACE_KIND = 'match.rivalResult';
+
 /** Every trace kind the shows system stores. */
 export const SHOWS_TRACE_KINDS = [
   SEGMENT_SCORE_TRACE_KIND,
   RIVAL_SEGMENT_SCORE_TRACE_KIND,
   SHOW_SCORE_TRACE_KIND,
   TITLE_OUTCOME_TRACE_KIND,
+  MATCH_RESULT_TRACE_KIND,
+  RIVAL_MATCH_RESULT_TRACE_KIND,
 ] as const;
 
 /** Where a segment's score trace is stored: its own kind for human-controlled shows. */
 export function segmentScoreTraceRef(segmentId: SegmentId, humanShow: boolean): TraceRef {
   return {
     kind: humanShow ? SEGMENT_SCORE_TRACE_KIND : RIVAL_SEGMENT_SCORE_TRACE_KIND,
+    id: segmentId,
+  };
+}
+
+/** Where a match's result trace is stored: its own kind for human-controlled shows. */
+export function matchResultTraceRef(segmentId: SegmentId, humanShow: boolean): TraceRef {
+  return {
+    kind: humanShow ? MATCH_RESULT_TRACE_KIND : RIVAL_MATCH_RESULT_TRACE_KIND,
     id: segmentId,
   };
 }

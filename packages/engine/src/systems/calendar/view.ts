@@ -69,6 +69,12 @@ export interface CalendarShow {
   segmentCount: number;
   /** True when the viewer could cancel the show right now. */
   canCancel: boolean;
+  /**
+   * The show score once the show is `completed`, null before (and for a projected show). Results
+   * are public, so a rival's score is here too; its money never is. Optional so rows built by hand
+   * elsewhere stay valid; the calendar queries always fill it.
+   */
+  score?: number | null;
 }
 
 /** `calendar.show`: one stored show with the reasoning behind where it is held. */
@@ -207,6 +213,7 @@ export function calendarRowBuilder(
           isOwn &&
           viewer.kind === 'controller' &&
           cancelRefusal(read, instance, viewer.controller, today) === null,
+        score: instance.status === 'completed' ? (instance.result?.score ?? null) : null,
       };
     },
     projected(definition, date) {
@@ -236,6 +243,7 @@ export function calendarRowBuilder(
         venue,
         segmentCount: 0,
         canCancel: false,
+        score: null,
       };
     },
   };

@@ -5,8 +5,9 @@
  * - Segment result appliers run, in order, after a segment is rated and its result written. EVT3-04
  *   settles titles through one; MTCH3 (popularity) and MTCH4 (fatigue) add theirs later.
  * - The match outcome resolver decides how a match ends before it is rated. At most one may be
- *   registered; MTCH2 registers its `resolveMatchOutcome` here (EVT3-07). Until then the built-in
- *   `plannedOrNoContest` uses the booked result, and a match nobody planned ends as a no contest.
+ *   registered; the match bundle registers MTCH2's `match.resolveOutcome` here at module load
+ *   (EVT3-07, `systems/match/finishes/showNight.ts`). Without it the built-in `plannedOrNoContest`
+ *   uses the booked result, and a match nobody planned ends as a no contest.
  *
  * Both registries are module-level, like the rater and show score modifier registries: a system
  * registers at module load and tests unregister what they added.

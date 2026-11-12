@@ -278,7 +278,14 @@ describe('shows.results', () => {
     expect(promoView.rating?.workRate).toBeNull();
 
     const main = segment(view.segments, built.card.main);
-    expect(main.outcome).toEqual({ kind: 'win', winningSide: 1, methodName: 'Pinfall' });
+    expect(main.outcome).toEqual({
+      kind: 'win',
+      winningSide: 1,
+      methodName: 'Pinfall',
+      // MTCH2 picks the finish on the night and keeps the decision for the winner Why? (EVT3-07).
+      finishName: expect.any(String) as unknown,
+      resultTraceRef: { kind: 'match.result', id: built.card.main },
+    });
     expect(main.durationLabel).toBe('Long');
     expect(main.rating?.traceRef).toEqual({ kind: 'shows.segmentScore', id: built.card.main });
     const winner = at(built.roster, 1);
@@ -306,11 +313,11 @@ describe('shows.results', () => {
     expect(tag.titles[0]?.outcomeTraceRef).not.toBeNull();
 
     const vacant = segment(view.segments, built.card.vacant);
-    expect(vacant.outcome).toEqual({ kind: 'draw' });
+    expect(vacant.outcome).toMatchObject({ kind: 'draw' });
     expect(vacant.titles[0]?.outcome).toBe('stillVacant');
 
     const noContest = segment(view.segments, built.card.noContest);
-    expect(noContest.outcome).toEqual({ kind: 'noContest' });
+    expect(noContest.outcome).toMatchObject({ kind: 'noContest' });
     expect(noContest.titles[0]?.outcome).toBe('none');
   });
 

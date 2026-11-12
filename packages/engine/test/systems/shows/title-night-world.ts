@@ -68,6 +68,8 @@ export interface TitleNightOptions {
   readonly today?: GameDate;
   /** `appearancesThisYear` every roster contract starts with. Defaults to 0. */
   readonly appearances?: number;
+  /** Turns on the Random winners new-game setting (MTCH2). Off by default. */
+  readonly randomWinners?: boolean;
 }
 
 /** Builds the title night world. */
@@ -79,6 +81,7 @@ export function titleNightWorld(options: TitleNightOptions = {}): TitleNightWorl
     startDate: START,
     currentDate: today,
     players: [{ playerId: 'player-1', displayName: 'Test Player 1' }],
+    ...(options.randomWinners === true ? { settings: { extra: { randomWinners: true } } } : {}),
   })
     .withCatalogs()
     .withGeography('mini')

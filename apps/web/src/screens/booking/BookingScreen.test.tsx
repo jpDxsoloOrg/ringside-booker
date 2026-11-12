@@ -194,7 +194,7 @@ describe('BookingScreen', () => {
       slot: 1,
       kind: 'angle',
     });
-    expect(await screen.findByRole('dialog', { name: 'Add talking segment' })).toBeInTheDocument();
+    expect(await screen.findByRole('dialog', { name: 'Slot 2 · Midcard' })).toBeInTheDocument();
 
     // A card is slots, never minutes.
     expect(document.body.textContent).not.toMatch(RUNNING_TIME_WORDS);

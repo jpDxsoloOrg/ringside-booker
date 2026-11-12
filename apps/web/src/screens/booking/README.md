@@ -20,7 +20,15 @@ column with a sticky bar at the bottom. The engine side is in
 | `registries/bookingPanels.ts`   | `registerBookingPanel`: feature panels beside or under the card                 |
 | `sections/index.ts`             | The append-only list of feature files that register panels (and editor parts)   |
 | `editor/editorStore.ts`         | `useSegmentEditor`: the seam the segment editor (EVT2-06) opens from            |
-| `editor/SegmentEditorSheet.tsx` | A stand-in sheet until EVT2-06 replaces it                                      |
+| `editor/SegmentEditorSheet.tsx` | The segment editor: a match or talking segment for one slot, saved whole        |
+| `editor/useSegmentDraft.ts`     | The editor's local draft and its pure reducers                                  |
+| `editor/editorText.ts`          | Limits as short text, side names, the slot title                                |
+| `editor/SideBuilder.tsx`        | One block per side with its people, hints from the catalog's limits             |
+| `editor/EditorRosterPicker.tsx` | `RosterPicker` fed by `booking.availableWorkers` for the draft                  |
+| `editor/TypeField.tsx`          | The type `Select` and its Long / Short chip from `match.slotRoles`              |
+| `editor/TitlesField.tsx`        | Titles on the line, with the missing-champion note                              |
+| `editor/PlannedResultField.tsx` | Winner, draw or no contest, and the method                                      |
+| `editor/useRoster.ts`           | The show's roster by person and team, for names and availability                |
 
 ## Data
 
@@ -83,6 +91,10 @@ returns an unregister function and throws for a taken id. `validation` is null w
 load. Expected users: EVT4's forecast, EVT6's venue and crowd, CRTV8's tournament matches, AIP4's
 auto-fill.
 
+Registered so far: `shows.ranBanner` (side, order 5, `screens/show-results/bookingPanel.tsx`):
+"This show has run" and "See results" on a completed show. `booking.card` already answers a
+completed show with `canEdit: false`, so the board is read-only by itself.
+
 ### The segment editor (EVT2-06)
 
 The card never imports the editor. Its add actions call
@@ -92,6 +104,59 @@ draws `<SegmentEditorSheet card={card} />` with the loaded card, so the editor f
 the segment (and its `draft`, the editor's starting point) there. EVT2-06 replaces the body of
 `editor/SegmentEditorSheet.tsx`, keeping its name and props, and saves through
 `booking.addSegment` / `booking.updateSegment`; the card refetches on its own.
+
+The editor (EVT2-06) works on a local copy of the engine's `SegmentDraft` and writes nothing
+until **Save**, which sends the whole draft in one `booking.addSegment` or
+`booking.updateSegment`. Its body, top to bottom: Kind (only when adding), Type, Sides, Titles
+(matches whose type allows them), Result (matches), Billing line, then registered sections.
+
+- **Type.** `match.catalog`'s types in catalog order with their limits ("2 sides · 1 each",
+  "1–4 speakers"). A match type that moves the slot's size shows a Long or Short chip, read from
+  `match.slotRoles` with the type in this slot, so it matches the card's own Why?. Changing the
+  type drops sides past its most (and the people on them), clears a winner that no longer exists
+  and takes titles off a type that can't carry them.
+- **Sides.** One block per side, or Speakers (with an optional second side for a type that takes
+  more than one speaker). Hints come from the catalog only ("Needs 1 more on this side"); Save
+  needs people on two sides of a match, or one speaker. Everything finer is the engine's refusal
+  or the checklist's problem, never the editor's own rule.
+- **Roster picker.** `components/RosterPicker`, fed by `booking.availableWorkers` with the
+  draft's kind and a 200 ms debounced search. Bookable only is on by default; unbookable rows are
+  dimmed with the reason as their description. A team adds every member with its `teamId`.
+  Until MTCH5 owns beats, changing a talking segment's speakers drops its beats so the engine
+  writes the type's default beat.
+- **Titles and result.** `booking.card`'s `titleOptions`, with "Add the champion, … to a side"
+  as a heads-up (the engine's `championMissing` decides). A new win starts on the first method
+  that can move a title; one that can't says "(titles can't change)" when titles are on the line.
+  On a Random winners show (`booking.card`'s `randomWinners`) the Result choice is replaced by
+  "Decided on the night (Random winners)" and the card row's menu has no Winner entry.
+- **Saving.** Refusals show at the top of the sheet word for word, and the part of the sheet a
+  reason's `field` names gets a red edge. Success closes the sheet and announces "Saved to slot
+  3". Remove asks first. Closing with changes asks "Discard changes?". The draft is taken from
+  the card once, when the sheet opens; a refetch never replaces what is being edited.
+- **Phone.** The sheet fills the screen (`Sheet` `phoneHeight="full"`); the picker is a bottom
+  sheet over it.
+
+### Editor sections
+
+```ts
+registerSegmentEditorSection({
+  id: 'match.finish', // feature-prefixed, unique
+  order: 10, // after the Result field, lowest first, then by id
+  appliesTo: 'match', // 'match' | 'angle' | 'both'
+  title: 'Finish',
+  render: ({ draft, patch, show, slot, disabled, randomWinners }) => <FinishField ... />,
+});
+```
+
+`randomWinners` is true when Random winners decides the show's results, for a section that plans
+part of the result. Wired so far (EVT2-07): MTCH2's Finish section,
+`sections/BookingFinishSection.tsx`; see `docs/design/booking.md#integration`.
+
+A section changes only its part of the draft with `patch` (`label`, `storylineIds`, `crew`,
+`outcome`, or fields of `match` / `angle` for its own kind) and never calls a command: the sheet
+saves it with everything else. If a section needs a field the draft lacks, it widens
+`SegmentDraftSchema`. Register from a feature file listed in `sections/index.ts`; the registry is
+`registries/segmentEditorSections.ts`.
 
 ### The calendar
 

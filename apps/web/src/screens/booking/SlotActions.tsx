@@ -52,6 +52,8 @@ export interface SlotActionsProps {
   readonly section: BookingSectionView;
   /** Move up / Move down as visible buttons (phones) as well as in the menu. */
   readonly showMoveButtons: boolean;
+  /** True when Random winners decides the show's results: no Winner menu, nothing to plan. */
+  readonly randomWinners?: boolean;
   readonly onEdit: (segmentId: SegmentId) => void;
   readonly onSetResult: (segmentId: SegmentId, result: MatchOutcome) => void;
   readonly onMove: (from: BookingSlotView, to: BookingSlotView) => void;
@@ -125,6 +127,7 @@ function FilledSlotActions({
   section,
   segment,
   showMoveButtons,
+  randomWinners = false,
   onEdit,
   onSetResult,
   onMove,
@@ -146,7 +149,7 @@ function FilledSlotActions({
       },
     },
   ];
-  if (segment.kind === 'match') {
+  if (segment.kind === 'match' && !randomWinners) {
     items.push({
       kind: 'submenu',
       id: 'winner',

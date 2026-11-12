@@ -1267,6 +1267,10 @@ export {
   resolveMatchOutcome,
 } from './systems/match/index';
 
+// MTCH2's booking check (EVT2-07): planned finishes fit their matches, and Random winners shows
+// plan nothing. See docs/design/booking.md#integration.
+export { FINISH_BOOKING_CHECK_ID, FINISH_BOOKING_CODES } from './systems/match/index';
+
 // The Match lab's Simulate (MTCH2-04): `match.simulate` resolves a plan and rates the match with
 // its finish on detached streams; `match.simulateBatch` (MTCH2-07) plays it out many times and
 // counts the outcomes; `match.resultMode` says whether Random winners decides the viewer's
@@ -1509,4 +1513,22 @@ export {
   type ShowResultsView,
   type ShowSummaryView,
   type TitleResultOutcome,
+} from './systems/shows/index';
+
+// MTCH2 on show night (EVT3-07): the match outcome resolver the match bundle registers with show
+// night, and the match result trace behind the results page's winner Why?. See
+// docs/design/show-night.md#integration.
+export {
+  BOOKED_NO_CONTEST_REASON,
+  MATCH_OUTCOME_RESOLVER_ID,
+  RANDOM_WINNERS_SET_ASIDE_NOTE,
+  bookedResultFallbackNote,
+  planSetAsideNote,
+  resolveOnShowNight,
+  showNightOutcomeResolver,
+} from './systems/match/index';
+export {
+  MATCH_RESULT_TRACE_KIND,
+  RIVAL_MATCH_RESULT_TRACE_KIND,
+  matchResultTraceRef,
 } from './systems/shows/index';

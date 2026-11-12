@@ -68,9 +68,12 @@ function only<T>(value: T | undefined, what: string): T {
 }
 
 /** Builds the command world. Shows are inserted directly, so no show is on the calendar twice. */
-export function commandWorld(): CommandWorld {
+export function commandWorld(options: { readonly randomWinners?: boolean } = {}): CommandWorld {
   let shows: Record<ShowName, EventInstanceId> | undefined;
   const { world, ids } = worldBuilder({
+    ...(options.randomWinners === undefined
+      ? {}
+      : { settings: { extra: { randomWinners: options.randomWinners } } }),
     startDate: START,
     currentDate: TODAY,
     players: [

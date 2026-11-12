@@ -38,6 +38,7 @@ import type { GameWorldView } from '../../model/tables';
 import type { DeepReadonly } from '../../model/world';
 import { viewerControlsShow } from '../calendar/control';
 import { shortDayText } from '../match/availabilityText';
+import { randomWinnersActive } from '../match/finishes/randomWinners';
 import {
   DURATION_CLASS_LABELS,
   durationClassOf,
@@ -254,6 +255,11 @@ export interface BookingCard {
   editBlock: Reason | null;
   /** True when the card is locked (the show is `booked`). */
   locked: boolean;
+  /**
+   * True when Random winners decides this show's results (MTCH2's `randomWinnersActive`): nothing
+   * is planned, and the editor says "Decided on the night (Random winners)".
+   */
+  randomWinners: boolean;
   /** The pre-show first when the show has one, then the main card. */
   sections: BookingSectionView[];
   /** The promotion's active titles, by prestige, for the editor's titles field. */
@@ -531,6 +537,10 @@ export function buildCardView(
     canEdit: editBlock === null && viewerControlsShow(read, instance, deps.viewer),
     editBlock,
     locked: instance.status === 'booked',
+    randomWinners: randomWinnersActive(read, {
+      promotionId: instance.promotionId,
+      brandId: instance.brandId,
+    }),
     sections,
     titleOptions: titleOptionsOf(read, instance, people),
   };

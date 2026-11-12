@@ -9,7 +9,9 @@
  *    controller when the brand has one, else the promotion's;
  * 3. can the card still change (`editBlockOf`: `showCompleted`, `showCancelled`, `showPast`,
  *    `cardLocked`);
- * 4. is the change itself sound (`structuralProblems`, the writer's own rules).
+ * 4. is the change itself sound (`structuralProblems`, the writer's own rules), and, on a show
+ *    where Random winners decides the results (MTCH2's `randomWinnersActive`), does it plan none
+ *    (`randomWinners`): no planned result and no planned finish.
  *
  * `apply` then calls the card writer once, so the change happens whole or not at all, and publishes
  * one `card.changed`. A command that would change nothing (the same draft, a move onto its own
@@ -24,6 +26,7 @@
 import { z } from 'zod';
 import { defineCommand, type CommandContext } from '../../core/api/command';
 import type { Reason } from '../../core/api/result';
+import type { ContentKey } from '../../core/content-key';
 import { stableStringify } from '../../core/hash';
 import type { EventInstanceId, SegmentId } from '../../core/ids';
 import type { Controller } from '../../model/controller';
@@ -33,6 +36,8 @@ import { zId } from '../../model/primitives';
 import type { GameWorldView } from '../../model/tables';
 import type { DeepReadonly } from '../../model/world';
 import { controlsShow } from '../calendar/control';
+import { RANDOM_WINNERS_MESSAGE } from '../match/finishes/resolve';
+import { randomWinnersActive } from '../match/finishes/randomWinners';
 import type { BookingIssue } from './validate/types';
 import { validateCard } from './validate/validateCard';
 import { editBlockOf } from './control';
@@ -110,6 +115,7 @@ export const BOOKING_COMMAND_REASON_CODES = [
   'notYourShow',
   'cardNotRunnable',
   'cardNotLocked',
+  'randomWinners',
 ] as const;
 export type BookingCommandReasonCode = (typeof BOOKING_COMMAND_REASON_CODES)[number];
 
@@ -182,6 +188,48 @@ function checkSegment(
   return checkShow(read, segment.eventInstanceId, issuedBy, (show) => then(segment, show));
 }
 
+/**
+ * On a show whose results Random winners decides, a planned result or a planned finish is refused,
+ * not silently ignored, so the booking screen can say why. Empty on any other show.
+ */
+function randomWinnersRefusals(
+  read: GameWorldView,
+  show: Show,
+  plan: {
+    readonly outcome: DeepReadonly<MatchOutcome> | null;
+    readonly finishKey: ContentKey | null;
+  },
+): Reason[] {
+  if (plan.outcome === null && plan.finishKey === null) {
+    return [];
+  }
+  if (!randomWinnersActive(read, { promotionId: show.promotionId, brandId: show.brandId })) {
+    return [];
+  }
+  return [
+    {
+      code: 'randomWinners',
+      message: RANDOM_WINNERS_MESSAGE,
+      field: plan.outcome === null ? 'match.finishKey' : 'outcome',
+      subject: { kind: 'eventInstance', id: show.id },
+    },
+  ];
+}
+
+/** The Random winners refusal for a whole draft: only a match plans anything. */
+function draftRandomWinnersRefusals(
+  read: GameWorldView,
+  show: Show,
+  draft: DeepReadonly<SegmentDraft>,
+): Reason[] {
+  return draft.kind === 'match'
+    ? randomWinnersRefusals(read, show, {
+        outcome: draft.outcome,
+        finishKey: draft.match.finishKey,
+      })
+    : [];
+}
+
 function onlyCodes(reasons: Reason[], codes: readonly StructuralProblemCode[]): Reason[] {
   return reasons.filter((reason) => (codes as readonly string[]).includes(reason.code));
 }
@@ -228,13 +276,14 @@ export const addSegmentCommand = defineCommand('booking.addSegment', {
     draft: SegmentDraftSchema,
   }),
   validate: (read, args, issuedBy) =>
-    checkShow(read, args.eventInstanceId, issuedBy, (show) =>
-      structuralProblems(read, {
+    checkShow(read, args.eventInstanceId, issuedBy, (show) => [
+      ...structuralProblems(read, {
         instance: show,
         draft: args.draft,
         target: { preShow: args.preShow, slot: args.slot },
       }),
-    ),
+      ...draftRandomWinnersRefusals(read, show, args.draft),
+    ]),
   apply: (ctx, args) => {
     const show = ctx.read.tables.eventInstances.require(args.eventInstanceId);
     const segmentId = writeSegment(ctx.tx, {
@@ -256,13 +305,14 @@ export const addSegmentCommand = defineCommand('booking.addSegment', {
 export const updateSegmentCommand = defineCommand('booking.updateSegment', {
   args: z.strictObject({ ...segmentIdArgs, draft: SegmentDraftSchema }),
   validate: (read, args, issuedBy) =>
-    checkSegment(read, args.segmentId, issuedBy, (segment, show) =>
-      structuralProblems(read, {
+    checkSegment(read, args.segmentId, issuedBy, (segment, show) => [
+      ...structuralProblems(read, {
         instance: show,
         draft: args.draft,
         target: { preShow: segment.preShow, slot: segment.slot, segmentId: segment.id },
       }),
-    ),
+      ...draftRandomWinnersRefusals(read, show, args.draft),
+    ]),
   apply: (ctx, args) => {
     const { segment, show } = segmentAndShow(ctx, args.segmentId);
     const before = stableStringify(draftFromSegment(ctx.read, segment.id));
@@ -323,7 +373,9 @@ export const moveSegmentCommand = defineCommand('booking.moveSegment', {
 
 /**
  * Sets a match's planned result from the card row's quick winner menu, or clears it with null so
- * it is decided on the night. The segment editor sends the result inside its draft instead.
+ * it is decided on the night. The segment editor sends the result inside its draft instead. A
+ * planned finish the new result no longer fits goes back to Auto (see `setPlannedOutcome`). On a
+ * Random winners show only null is accepted.
  */
 export const setResultCommand = defineCommand('booking.setResult', {
   args: z.strictObject({ ...segmentIdArgs, result: MatchOutcomeSchema.nullable() }),
@@ -342,14 +394,17 @@ export const setResultCommand = defineCommand('booking.setResult', {
       if (draft.kind !== 'match') {
         return [];
       }
-      return onlyCodes(
-        structuralProblems(read, {
-          instance: show,
-          draft: { ...draft, outcome: args.result },
-          target: { preShow: segment.preShow, slot: segment.slot, segmentId: segment.id },
-        }),
-        ['winnerWithoutCompetitor', 'unknownMethod'],
-      );
+      return [
+        ...onlyCodes(
+          structuralProblems(read, {
+            instance: show,
+            draft: { ...draft, outcome: args.result },
+            target: { preShow: segment.preShow, slot: segment.slot, segmentId: segment.id },
+          }),
+          ['winnerWithoutCompetitor', 'unknownMethod'],
+        ),
+        ...randomWinnersRefusals(read, show, { outcome: args.result, finishKey: null }),
+      ];
     }),
   apply: (ctx, args) => {
     const { segment, show } = segmentAndShow(ctx, args.segmentId);

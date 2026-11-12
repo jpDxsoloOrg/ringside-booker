@@ -20,6 +20,10 @@ import { matchQueries } from './queries';
 import './rating/builtins';
 // Registers the Random winners new-game setting at module load (MTCH2-03).
 import './settings';
+// Registers the `match.finish` booking check at module load (EVT2-07).
+import './finishes/bookingCheck';
+// Registers MTCH2's match outcome resolver with show night at module load (EVT3-07).
+import './finishes/showNight';
 
 export {
   DURATION_CLASSES,
@@ -381,6 +385,11 @@ export {
 } from './finishes/autoWinner';
 export { randomWinnersActive, type RandomWinnersArgs } from './finishes/randomWinners';
 export {
+  FINISH_BOOKING_CHECK_ID,
+  FINISH_BOOKING_CODES,
+  finishBookingCheck,
+} from './finishes/bookingCheck';
+export {
   BOOKED_FINISH_LABEL,
   BOOKED_FINISH_REASON,
   BOOKED_WINNER_REASON,
@@ -399,6 +408,17 @@ export {
   type ResolveMatchReasonCode,
   type ResolveStreamName,
 } from './finishes/resolve';
+
+// How a match ends on show night (EVT3-07). Design: docs/design/match-finishes.md#integration.
+export {
+  BOOKED_NO_CONTEST_REASON,
+  MATCH_OUTCOME_RESOLVER_ID,
+  RANDOM_WINNERS_SET_ASIDE_NOTE,
+  bookedResultFallbackNote,
+  planSetAsideNote,
+  resolveOnShowNight,
+  showNightOutcomeResolver,
+} from './finishes/showNight';
 
 // The Match lab's Simulate and the result mode (MTCH2-04), and its batch (MTCH2-07).
 // Design: docs/design/match-finishes.md#simulate.

@@ -57,4 +57,7 @@ export const routesUnderTest: readonly RouteUnderTest[] = [
   { path: '/no-such-page', name: 'not found', heading: 'Page not found', needsWorld: false },
   { path: '/dev/gallery', name: 'component gallery', needsWorld: false },
   ...gameRoutes,
+  // A detail page under Event history, not a nav item, so it stays out of gameRoutes. The sweep
+  // has no world behind it, so this checks the page's no-world state.
+  { path: '/game/event-history/evi_0000000001', name: 'show results', needsWorld: true },
 ];

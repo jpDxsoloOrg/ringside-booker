@@ -18,7 +18,7 @@
 import type { Reason } from '../../core/api/result';
 import { CardWriteError, InvalidArgumentError } from '../../core/errors';
 import type { EventInstanceId, PersonId, SegmentId } from '../../core/ids';
-import { angleTypeOf, matchTypeOf, methodOf } from '../../model/catalogs';
+import { angleTypeOf, finishOf, matchTypeOf, methodOf } from '../../model/catalogs';
 import type { Employment } from '../../model/entities/employment';
 import { promotionStatusKey } from '../../model/entities/employment';
 import type { EventInstance } from '../../model/entities/event-instance';
@@ -578,8 +578,32 @@ export function clearCard(tx: Tx<GameTables>, eventInstanceId: EventInstanceId):
 }
 
 /**
+ * True when a planned result can end with the planned finish (MTCH2): the same outcome kind, and
+ * for a win one of the finish's methods. A result decided on the night fits any finish.
+ */
+function outcomeFitsFinish(
+  read: GameWorldView,
+  finishKey: string,
+  outcome: DeepReadonly<MatchOutcome> | null,
+): boolean {
+  if (outcome === null) {
+    return true;
+  }
+  const finish = finishOf(read, finishKey);
+  if (finish?.outcomeKind !== outcome.kind) {
+    return false;
+  }
+  return (
+    outcome.kind !== 'win' ||
+    finish.methods.some((method) => method.methodKey === outcome.methodKey)
+  );
+}
+
+/**
  * Sets a match's planned result, or clears it with null (decided on the night). The winning side
- * must have a competitor and the method must be one the game offers.
+ * must have a competitor and the method must be one the game offers. A planned finish the new
+ * result cannot end with (a draw on a Disqualification, a pinfall on a Count-out) goes back to
+ * Auto (`finishKey: null`), so the card never holds a finish that contradicts its result.
  *
  * @throws CardWriteError for an angle or an outcome that breaks those rules; nothing is written.
  * @throws EntityNotFoundError for an unknown segment.
@@ -605,8 +629,13 @@ export function setPlannedOutcome(
       throw new CardWriteError('setPlannedOutcome', problems);
     }
     const planned: MatchOutcome | null = outcome === null ? null : { ...outcome };
+    const { finishKey } = segment.match;
+    const keptFinish =
+      finishKey !== null && outcomeFitsFinish(read, finishKey, planned) ? finishKey : null;
     inner.update('segments', segmentId, (previous) =>
-      previous.kind === 'match' ? { ...previous, outcome: planned } : previous,
+      previous.kind === 'match'
+        ? { ...previous, match: { ...previous.match, finishKey: keptFinish }, outcome: planned }
+        : previous,
     );
   });
 }

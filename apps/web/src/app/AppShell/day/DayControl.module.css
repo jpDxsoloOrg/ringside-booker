@@ -425,8 +425,48 @@
   cursor: pointer;
 }
 
+/* "See results: <show>" links to the shows the advance completed (EVT3-06). */
+.resultsLinks {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  margin: var(--space-1) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.resultsLink,
+.resultsLinkFirst {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 2rem;
+  color: var(--color-data);
+  font-weight: var(--font-weight-bold);
+}
+
+/* The first link is the one to follow: drawn as a button, the action colour. */
+.resultsLinkFirst {
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-action);
+  color: var(--color-action-contrast);
+  text-decoration: none;
+}
+
+.resultsLinkFirst:hover {
+  background: var(--color-action-bright);
+}
+
+.resultsMore {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
 @media (pointer: coarse) {
-  .failureLink {
+  .failureLink,
+  .resultsLink,
+  .resultsLinkFirst {
     min-block-size: var(--tap-target-min);
   }
 }

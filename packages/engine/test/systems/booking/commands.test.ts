@@ -552,6 +552,7 @@ describe('who may book a show', () => {
       'cardNotLocked',
       'cardNotRunnable',
       'notYourShow',
+      'randomWinners',
       'segmentNotFound',
       'showNotFound',
     ]);

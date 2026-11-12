@@ -9,6 +9,8 @@ import { firstFocusableIn, useOverlayFocus } from './useOverlayFocus';
 
 export type SheetSide = 'right' | 'left' | 'bottom';
 export type SheetSize = 'sm' | 'md' | 'lg';
+/** How tall a phone's bottom sheet may grow. */
+export type SheetPhoneHeight = 'auto' | 'full';
 
 export interface SheetProps {
   /** Whether the sheet is showing. The parent owns this and clears it in `onClose`. */
@@ -29,6 +31,12 @@ export interface SheetProps {
    * false keeps `side` on every screen size.
    */
   readonly responsiveSide?: boolean;
+  /**
+   * On phones, `auto` (the default) caps a bottom sheet at 85% of the screen with a drag handle;
+   * `full` gives it the whole screen for a long form such as an editor: no handle, the safe areas
+   * kept clear and the footer pinned at the bottom. Desktop is unchanged.
+   */
+  readonly phoneHeight?: SheetPhoneHeight;
   /** Accessible name of the Close button. `Close` by default. */
   readonly closeLabel?: string;
   readonly className?: string;
@@ -60,13 +68,15 @@ export function Sheet({
   size = 'md',
   footer,
   responsiveSide = true,
+  phoneHeight = 'auto',
   closeLabel = 'Close',
   className,
   children,
 }: SheetProps) {
   const isMobile = useIsMobile();
   const resolvedSide: SheetSide = responsiveSide && isMobile ? 'bottom' : side;
-  const showsHandle = resolvedSide === 'bottom' && isMobile;
+  const fullOnPhone = resolvedSide === 'bottom' && isMobile && phoneHeight === 'full';
+  const showsHandle = resolvedSide === 'bottom' && isMobile && !fullOnPhone;
   const focusHandlers = useOverlayFocus(open, sheetInitialFocus);
   useBodyScrollLock(open);
 
@@ -85,10 +95,12 @@ export function Sheet({
             styles['sheet'],
             styles[`side-${resolvedSide}`],
             styles[`size-${size}`],
+            fullOnPhone && styles['phone-full'],
             className,
           )}
           data-side={resolvedSide}
           data-size={size}
+          data-phone-height={fullOnPhone ? 'full' : undefined}
           {...focusHandlers}
         >
           {showsHandle && (

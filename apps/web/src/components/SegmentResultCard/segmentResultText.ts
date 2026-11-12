@@ -44,6 +44,22 @@ export function resultLine(
   return outcome.methodName === undefined ? line : `${line} · ${outcome.methodName}`;
 }
 
+/**
+ * What the result's Why? button explains: the method and the finish ("Pinfall · Clean"), else the
+ * kind of result ("Draw", "No contest").
+ */
+export function resultWhyValue(
+  outcome: Pick<NonNullable<SegmentResultView['outcome']>, 'kind' | 'methodName' | 'finishName'>,
+): string {
+  const parts = [outcome.methodName, outcome.finishName].filter(
+    (part): part is string => part !== undefined,
+  );
+  if (parts.length > 0) return parts.join(' · ');
+  if (outcome.kind === 'draw') return 'Draw';
+  if (outcome.kind === 'noContest') return 'No contest';
+  return 'Win';
+}
+
 /** The side that won, or null for a draw, a no contest, a talking segment or no result. */
 export function winningSideOf(segment: Pick<SegmentResultView, 'outcome'>): number | null {
   return segment.outcome?.kind === 'win' ? (segment.outcome.winningSide ?? null) : null;

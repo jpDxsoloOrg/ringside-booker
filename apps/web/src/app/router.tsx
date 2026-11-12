@@ -16,6 +16,8 @@ import type { NavItem } from './navigation';
 import { RequireWorld } from './RequireWorld';
 import { routePatterns, routes } from './routes';
 import { SettingsEffects } from './settings/SettingsEffects';
+// The results page's calendar section, action and chip badge, registered before any calendar draws.
+import '@/screens/show-results/calendarHooks';
 
 /**
  * Opt in to the React Router 7 behaviours now, so the upgrade later changes nothing and the
@@ -101,6 +103,14 @@ export const gameDetailRoutes: RouteObject[] = [
     lazy: async () => {
       const { WorkerProfileScreen } = await import('@/screens/workers/profile/WorkerProfileScreen');
       return { Component: WorkerProfileScreen };
+    },
+  },
+  {
+    path: routePatterns.showResults,
+    // Its own chunk: the results page, its reveal and the sections other features add (EVT3-06).
+    lazy: async () => {
+      const { ShowResultsScreen } = await import('@/screens/show-results/ShowResultsScreen');
+      return { Component: ShowResultsScreen };
     },
   },
 ];

@@ -420,21 +420,54 @@ booking editor read it so the web never reads world settings itself.
 ## Integration
 
 MTCH2-05 wires MTCH2 to the features it works with that are on `main`. When
-it ran, none of its partners were: there was no `systems/booking/` (EVT2), no
+it ran, none of its partners were (EVT2 has since wired booking in EVT2-07): there was no `systems/booking/` (EVT2), no
 `systems/shows/` (EVT3), no stipulation catalog (MTCH7) and no rival booking
 step (AIP5). Each of them wires MTCH2 from its own integration ticket; the
 doors they use are already open:
 
-| Partner              | Status                  | The door it uses                                                                                                                                                                                                                                                                                       |
-| -------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| EVT2 (booking)       | wires from its own pack | `match.finishes` (with `outcomeKind`) and the lab's `FinishSelect` for a Finish section; `allowedFinishes` and `titleCanChange` for booking checks; `randomWinnersActive` to refuse planned results (`randomWinners`) and `match.resultMode` for the editor's "Decided on the night (Random winners)". |
-| EVT3 (show night)    | wires from its own pack | `resolveMatchOutcome` with the world's `match.auto-winner` and `match.finish` streams, then the rater with the `resolution`; `titleCanChange` before a reign changes; the "Match result" trace for the results page's winner Why?.                                                                     |
-| MTCH7 (stipulations) | wires from its own pack | `registerFinishFilter` with the stipulation keys in `ctx.stipulationKeys`; the lab's list, `match.finishes`, Simulate and `resolveMatchOutcome` all follow the filter.                                                                                                                                 |
-| AIP5 (rival winners) | wires from its own pack | `autoFinish` over `allowedFinishes` for the outcome it picked, keeping to `allowsTitleChange` finishes when it plans a title change.                                                                                                                                                                   |
+| Partner              | Status                  | The door it uses                                                                                                                                                                                                                                                                                                                                                                                              |
+| -------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| EVT2 (booking)       | wired (EVT2-07)         | The booking editor's Finish section reads `match.finishes` (with `outcomeKind`) through the lab's `FinishSelectView`; the `match.finish` booking check uses `allowedFinishes` and `titleCanChange`; `randomWinnersActive` refuses planned results (`randomWinners`), and `booking.card`'s `randomWinners` gives the editor "Decided on the night (Random winners)". See [booking.md](booking.md#integration). |
+| EVT3 (show night)    | wired (EVT3-07)         | `match.resolveOutcome` registered with show night's `registerMatchOutcomeResolver` (`finishes/showNight.ts`); see [Show night](#show-night) below.                                                                                                                                                                                                                                                            |
+| MTCH7 (stipulations) | wires from its own pack | `registerFinishFilter` with the stipulation keys in `ctx.stipulationKeys`; the lab's list, `match.finishes`, Simulate and `resolveMatchOutcome` all follow the filter.                                                                                                                                                                                                                                        |
+| AIP5 (rival winners) | wires from its own pack | `autoFinish` over `allowedFinishes` for the outcome it picked, keeping to `allowsTitleChange` finishes when it plans a title change.                                                                                                                                                                                                                                                                          |
 
-Until EVT3 lands no real result uses a finish, so every finish, auto-winner
+Until EVT3-07 no real result used a finish, so every finish, auto-winner
 and Random winners path is exercised through the Match lab's Run. Its
 tests cover the MTCH7 door too: a registered filter that bans
 disqualifications removes `finish.disqualification` and `finish.count-out`
 from `match.finishes`, refuses them as a booked finish (`finishNotAllowed`)
 and never picks them on the night.
+
+### Show night
+
+EVT3-07 registers `showNightOutcomeResolver` (`match.resolveOutcome`,
+`systems/match/finishes/showNight.ts`) from the match bundle at module load,
+replacing show night's built-in `plannedOrNoContest`. For every match on a
+run card it calls `resolveMatchOutcome` with the match type and stipulations
+from the stored segment, the competitors' auto-winner inputs
+(`autoWinnerInputsOf`) and the world's `match.auto-winner` and `match.finish`
+streams:
+
+- **Plan.** The segment's `outcome` and `match.finishKey`: a planned win books
+  its side and method (an Auto finish is then picked among the finishes that
+  list the method), a planned draw books Draw, and no plan is Auto.
+- **No plan.** An unplanned match (a rival card, or any match in a Random
+  winners game) gets an automatic winner and finish, never a no contest.
+- **Random winners.** Mode `randomWinners` when `randomWinnersActive(read,
+{ promotionId, brandId })` is true. A result booked anyway is set aside and
+  decided on the night, with the note "Random winners: the booked result was
+  set aside and decided on the night"; show night cannot refuse a locked card.
+- **Booked no contest.** Kept, with a no-contest finish picked by `autoFinish`
+  (the plan shape has no no-contest winner).
+- **A refused plan** (a finish the match no longer allows, a finish that does
+  not suit the winner) is tried again with only the winner booked, then falls
+  back to the booked result without a finish; each step adds a note with the
+  reasons.
+- **Title rule.** `titleCanChange({ finish, method })` is returned with the
+  resolution, so EVT3-04's title decision reads the method **and** the finish:
+  a challenger's disqualification win keeps the reign open with one more
+  defence.
+
+The resolver's "Match result" decision is stored under `match.result` (rival
+shows: `match.rivalResult`) and is the results page's winner Why?.
