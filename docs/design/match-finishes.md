@@ -221,3 +221,125 @@ the title change hands?". A draw or no contest has no method, so it never
 moves a title, and neither do a count-out or a disqualification. The reason
 names the failing condition, for example "Disqualification: titles can't
 change hands on this finish".
+
+## Auto winner
+
+When nobody booked a winner (rival matches until AIP5 books their results, and
+every match on your shows in [Random winners](#random-winners) mode), the
+winner is decided automatically (MTCH2-03). Each side gets a score
+(`autoWinnerScore`, `systems/match/formulas/autoWinnerScore.ts`), with means
+over the side's competitors:
+
+```
+score = match.autoWinner.popularityWeight × mean(popularity in the show's region)
+      + mean(match.autoWinner.push.<push>)
+      + match.autoWinner.momentumWeight × mean(momentum ?? 0)
+      + mean(match.autoWinner.alignment.<alignment>)
+```
+
+Each term is one labelled step of the trace: "Popularity in <region>", "Push",
+"Momentum" and "Alignment". A null momentum counts 0 with the note "No momentum
+yet (counts as 0)"; a null alignment (not employed by the promotion) counts 0
+with the note "Not employed here". Nothing is clamped.
+
+The inputs come from the world through `autoWinnerInputsOf(read, { promotionId,
+regionId, sides })` (`systems/match/finishes/autoWinnerInputs.ts`): popularity
+is `person.regionalPop[regionId]` (0 when absent), and push, momentum and
+alignment come from the person's **active** employment with the promotion
+running the show. Free agents and other promotions' workers (the lab's
+"Everyone" picker) get push `none`, momentum null and alignment null. Only
+competitors count; `competitorSidesOf(participants)` drops ringside people and
+interferers, who never win. Sides come out in side order and competitors in
+person id order.
+
+`autoWinner({ sides, randomness, mode }, { rng })`
+(`systems/match/finishes/autoWinner.ts`) then picks the side:
+
+- each side's total is its score plus, when the randomness is above 0, one
+  roll `rollFloat(rng, −randomness, randomness)` labelled "Unpredictability,
+  Side N"; at randomness 0 there is no roll and the note "No unpredictability
+  (0)";
+- the rule "Highest score wins" picks the highest total;
+- on an exact tie, the rule "Tie broken by lowest person id" picks the side
+  whose lowest competitor id sorts first.
+
+It never produces a draw, and a side with nobody competing is never passed in.
+The decision is labelled "Winner decided automatically", or "Random winners
+mode: winner decided on the night" in Random winners mode, and the randomness
+(a tunable read) is its first child.
+
+The randomness is `match.autoWinner.randomness` (5 by default; 0 makes the
+auto-winner fully deterministic) or, in Random winners mode,
+`match.randomWinners.randomness` (60, at least 1). The rolls draw on the
+`match.auto-winner` stream (`MATCH_AUTO_WINNER_STREAM`); stream names are
+lowercase, so it is not `match.autoWinner`.
+
+## Resolving a match
+
+`resolveMatchOutcome(input, deps)` (`systems/match/finishes/resolve.ts`) is the
+one entry point the Match lab's Simulate (MTCH2-04) and the show night (EVT3)
+call. It is pure: it reads only its input, the catalogs and the tunables, and
+draws only on the streams `deps.rng(name)` hands it (`match.auto-winner` and
+`match.finish`).
+
+The input is the match type, its stipulations, the sides (as
+`autoWinnerInputsOf` returns them), the region's name, the mode (`standard`
+or `randomWinners`) and the plan: `winner` (`'auto'`, `{ side }` with the
+stored 0-based side, or `'draw'`), `finishKey` (null for Auto) and `methodKey`
+(null to let the finish decide). The steps:
+
+1. **Allowed finishes**: `allowedFinishes` for the match type, the number of
+   sides and the stipulations. A planned finish outside them is
+   `finishNotAllowed`.
+2. **Outcome kind**: the planned finish's `outcomeKind`, else `draw` for a
+   planned Draw, else `win`. A planned side with a finish nobody wins, or a
+   Draw with a finish that is not a draw, is `finishOutcomeMismatch`.
+3. **Random winners**: in Random winners mode a planned side, Draw, finish or
+   method is `randomWinners` ("Results on your shows are decided on the night
+   (Random winners).").
+4. **Winner** (wins only): the planned side, or `autoWinner` over the sides
+   with somebody competing. A planned side the match does not have, or with
+   nobody competing on it, is `unknownSide`; a match with nobody competing at
+   all is `noCompetitors`.
+5. **Finish**: the planned one, or `autoFinish` over the allowed finishes of
+   that outcome kind (and, with a planned method, only those listing it), with
+   the winner's alignment (`winnerAlignmentOf`; null without a winner). None
+   left (a Draw on a match type with no draw finish) is `noFinishAvailable`.
+6. **Method**: `chooseMethod`. A planned method the finish does not list (or,
+   with an Auto finish, that no candidate lists, or any method on a draw) is
+   `methodNotInFinish`.
+
+Every plan problem (steps 1–3, the planned side and the planned method) is
+found before anything is rolled, and all of them are returned together, each
+with a `field` (`plan.finishKey`, `plan.winner`, `plan.methodKey` or `plan`).
+The codes are `RESOLVE_MATCH_REASON_CODES`.
+
+On success the result is a `Traced<MatchResolution>`: the trace is one
+decision "Match result" (value "Side 2 wins", "Draw" or "No contest", reason
+the finish and method) whose three children are the winner decision ("Who
+won", or the auto-winner), the finish decision ("Finish" for a booked one, or
+"Finish decided on the night") and the method decision, so one Why? shows the
+whole reasoning. Nothing is written to the world: morale, momentum and
+popularity belong to EVT3, WRK8 and MTCH3.
+
+## Random winners
+
+**Random winners** is a new-game setting (`randomWinners`, boolean, off by
+default, group Difficulty), registered by `systems/match/settings.ts` and
+stored in `WorldMeta.settings.extra`, so a save from before it reads false.
+The wizard's Options step shows it from the registry with no web change.
+
+With it on, you still book every match on your shows, but not who wins: each
+result is decided on the night through the auto-winner with the larger
+`match.randomWinners.randomness`, and the trace starts "Random winners mode".
+The rule is strict: a planned winner, Draw, finish or method on your shows is
+refused (`randomWinners`), not silently ignored, so the booking screen can say
+why.
+
+`randomWinnersActive(read, { promotionId, brandId })`
+(`systems/match/finishes/randomWinners.ts`, exported from the engine for EVT2
+and EVT3) is true when the setting is on **and** the show's controller is
+human: the brand's `controller` when the show's brand has one, else the
+promotion's. Rival promotions (computer controllers) keep their own booking
+logic. The Match lab is a sandbox: MTCH2-04 uses Random winners mode only
+when the lab's winner is Auto in a Random winners game.

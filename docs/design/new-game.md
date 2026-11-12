@@ -103,6 +103,7 @@ Built-in settings:
 | `equalStart`               | boolean | false   | difficulty | `settings.extra.equalStart`               | A one-time reset of cash, prestige and popularity (step 600).                            |
 | `randomiseContractLengths` | boolean | false   | advanced   | `settings.extra.randomiseContractLengths` | New random end dates for running contracts (step 500).                                   |
 | `rerollPotential`          | boolean | false   | advanced   | `settings.extra.rerollPotential`          | Fresh potential rolls for everyone (step 700).                                           |
+| `randomWinners`            | boolean | false   | difficulty | `settings.extra.randomWinners`            | Every result on your shows is decided on the night (MTCH2-03, registered by `match`).    |
 
 The four settings `WorldMeta.settings` names have typed fields; every other
 registered setting is stored by key in `WorldMeta.settings.extra`. Systems
