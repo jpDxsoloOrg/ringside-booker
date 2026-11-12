@@ -400,6 +400,17 @@ export {
   type ResolveStreamName,
 } from './finishes/resolve';
 
+// The Match lab's Simulate and the result mode (MTCH2-04).
+// Design: docs/design/match-finishes.md#simulate.
+export {
+  SIMULATE_REASON_CODES,
+  SimulateArgsSchema,
+  type ResultMode,
+  type SimulateArgs,
+  type SimulateResult,
+  type SimulatedFinish,
+} from './simulateQuery';
+
 export const matchSystem: SystemBundle = defineSystem({
   id: 'match',
   queries: matchQueries,

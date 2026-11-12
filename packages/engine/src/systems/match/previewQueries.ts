@@ -77,7 +77,7 @@ declare module '../../core/api/maps' {
 }
 
 /** The rating input for the preview, after the checks a rating cannot make itself. */
-function previewInput(ctx: QueryContext, args: PreviewArgs): SegmentRatingInput {
+export function previewInput(ctx: QueryContext, args: PreviewArgs): SegmentRatingInput {
   const { read } = ctx;
   if (matchTypesOf(read, { includeHidden: true }).length === 0) {
     return refuseQuery({
@@ -92,7 +92,7 @@ function previewInput(ctx: QueryContext, args: PreviewArgs): SegmentRatingInput 
 }
 
 /** Rates `input` on the detached stream for `key`. Refuses like `rateSegment`. */
-function rateWithKey(
+export function rateWithKey(
   ctx: QueryContext,
   input: SegmentRatingInput,
   key: number,
