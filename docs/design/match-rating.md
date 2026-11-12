@@ -124,3 +124,184 @@ durationClass, durationLabel, weight, roleTrace, durationTrace, weightTrace }`.
   slot). An unknown key comes back as an `invalidArgs` reason naming its index,
   such as `matchTypeKeys[2]`. The card builder (EVT2) calls this after every
   reorder instead of working roles out itself.
+
+## Worker performance
+
+`systems/match/formulas/workerPerformance.ts`:
+`workerPerformance(inputs, { tunables })` → `Traced<number>`, 0–100. How well
+one worker performs tonight on one axis. The rater (MTCH1-05) reads the person
+and passes plain values in; the formula never reads the world. The trace is
+titled "<name>: <axis>", such as "Kade Morrow: In-ring".
+
+In words:
+
+1. **Weighted mean** of the axis's attributes: `Σ(weight × attribute) ÷ Σ
+weight`. A weight of 0 leaves its attribute out; when every weight is 0 the
+   mean is 0, with the note "All weights are 0".
+   - **In-ring**: ringwork, psychology, athleticism and safety, weighted by the
+     `match.perf.inRing.*` tunables.
+   - **Entertainment**: charisma, presence and mic, weighted by
+     `match.perf.entertainment.*`.
+   - **Talk**: mic, charisma and presence, weighted by the angle type's
+     `speakerWeights` from the catalog. These are not tunables; each line says
+     "Weight set by <angle type>".
+2. **Style** (in-ring only): `+ match.perf.styleAffinityBonus` when the worker's
+   style is in the match type's `styleAffinity` ("Suits this match type");
+   `− match.perf.nonWrestlerPenalty` for the `nonWrestler` style.
+3. **Fatigue** (in-ring and entertainment): `− fatigue ×
+match.perf.fatiguePenaltyPerPoint`.
+4. **Working hurt** (in-ring only): `− match.perf.injuredPenalty` when the
+   worker is injured. In MTCH1 that is a plain flag the rater works out from the
+   stored injury.
+5. Kept between 0 and 100. Not rounded.
+
+Popularity, momentum, morale and chemistry are not here. Popularity and
+momentum belong to the crowd side (D-02); the rest are later rating modifiers.
+
+| Key                                 | Default | Range          | Unit   |
+| ----------------------------------- | ------- | -------------- | ------ |
+| `match.perf.inRing.ringwork`        | 0.5     | 0–1, step 0.05 | ratio  |
+| `match.perf.inRing.psychology`      | 0.2     | 0–1, step 0.05 | ratio  |
+| `match.perf.inRing.athleticism`     | 0.2     | 0–1, step 0.05 | ratio  |
+| `match.perf.inRing.safety`          | 0.1     | 0–1, step 0.05 | ratio  |
+| `match.perf.entertainment.charisma` | 0.5     | 0–1, step 0.05 | ratio  |
+| `match.perf.entertainment.presence` | 0.3     | 0–1, step 0.05 | ratio  |
+| `match.perf.entertainment.mic`      | 0.2     | 0–1, step 0.05 | ratio  |
+| `match.perf.styleAffinityBonus`     | 3       | 0–50           | points |
+| `match.perf.nonWrestlerPenalty`     | 20      | 0–50           | points |
+| `match.perf.injuredPenalty`         | 25      | 0–50           | points |
+| `match.perf.fatiguePenaltyPerPoint` | 0.15    | 0–1, step 0.05 | ratio  |
+
+Category `Match: performance`. Every bonus and penalty at 0 turns that rule off.
+
+### Worked example: in-ring
+
+Ringwork 80, psychology 60, athleticism 70 and safety 50, rested and healthy,
+in a match type that does not suit the style:
+
+```
+80 × 0.5 + 60 × 0.2 + 70 × 0.2 + 50 × 0.1 = 71, ÷ total weight 1 = 71
+```
+
+At fatigue 100 the same worker would lose `100 × 0.15 = 15`; working hurt
+would cost another 25. (`workerPerformance.test.ts`: "is the weighted mean of
+the in-ring attributes" and the fatigue and injury cases.)
+
+## Sides
+
+`systems/match/formulas/sideAggregate.ts`:
+`sideAggregate({ label, members, decayKey }, { tunables })` → `Traced<number>`.
+One number for a group from its members' numbers. Work rate uses it twice:
+workers into a side (`match.side.depthDecay`), then sides into the match
+(`match.sides.depthDecay`). MTCH1-04 adds `match.starPower.depthDecay` for star
+power.
+
+1. Rank the members by value, **numerically**, highest first; equal values by
+   id, ascending. Never the default string sort, which would put 9 above 55.5.
+2. Weights `w_i = decay^i` for rank i from 0, divided by their sum so they add
+   up to 1 (`aggregateWeights(count, decay)`). Decay 0 counts only the best member
+   (`0^0` is 1); decay 1 is a plain mean.
+3. Result: `Σ value_i × w_i`. Each member is one line of the trace, such as
+   "Kade Morrow (best on side) × 0.65" or "Side 2 (2nd side) × 0.41".
+
+`aggregateWeights` throws a `RangeError` naming the input when `count` is not a
+whole number of at least 1, when `decay` is not a number from 0 to 1, or when
+the weights would not be finite or sum to 1 within 1e-9. An empty member list
+throws too; the rater refuses an empty side before it gets here.
+
+| Key                      | Default | Range          | Unit  |
+| ------------------------ | ------- | -------------- | ----- |
+| `match.side.depthDecay`  | 0.55    | 0–1, step 0.05 | ratio |
+| `match.sides.depthDecay` | 0.7     | 0–1, step 0.05 | ratio |
+
+Category `Match: performance`.
+
+### Worked example: three workers on a side
+
+Values 9, 100 and 55.5 at the default decay 0.55. Ranked: 100, 55.5, 9. Raw
+weights 1, 0.55 and 0.3025 sum to 1.8525, so the weights are 0.54, 0.30 and
+0.16:
+
+```
+100 × 0.5398 + 55.5 × 0.2969 + 9 × 0.1633 = 71.93
+```
+
+(`sideAggregate.test.ts`: "ranks numerically, never by string".)
+
+## Work rate
+
+`systems/match/formulas/workRate.ts`:
+`workRate(inputs, { tunables, rng? })` → `Traced<number>`, at least 0. The
+in-ring half of a match rating. D-10: a main event is a real test of stamina
+and psychology; an opener isn't. So every check is keyed by the slot's
+duration class (short, standard or long), never by minutes.
+
+Inputs: the duration class and its label ("Main event (long)"), the sides with
+each worker's in-ring performance and stamina, the worker count, the match
+leader (highest psychology, ties by id; `matchLeaderOf` picks one) and the
+match type's name and `workRateFactor`.
+
+1. **Stamina check**, per worker:
+   `need = staminaNeed.<class> × (2 ÷ max(2, workerCount)) ^ sharedLoadExponent`.
+   The need is set for a singles match; in bigger matches people share the
+   load (exponent 0 means everyone carries the full need). The worker loses
+   `max(0, need − stamina) × staminaPenaltyPerPoint`. The line reads
+   "Main event (long): stamina check failed for Kade Morrow, −6" or "...
+   passed for Kade Morrow".
+2. **Sides**: the side aggregate per side with `match.side.depthDecay`, then
+   across the sides with `match.sides.depthDecay`.
+3. **Psychology check** on the leader: lose `max(0, psychologyNeed.<class> −
+leader psychology) × psychologyPenaltyPerPoint`, with the line "Nobody to
+   lead a long match: best psychology 52 (Kade Morrow), needs 70" (or "Kade
+   Morrow can lead a long match: ...").
+4. **Showcase spread**, how much a great or terrible match can show:
+   `50 + (value − 50) × spread.<class>`. Long matches stretch further from 50,
+   short ones less.
+5. **Match type**: `× workRateFactor`, a catalog constant labelled with the
+   match type.
+6. **Variance**: with an rng (the rater passes `match.rating`),
+   `+ rollNormal(0, varianceSd)`, "Night-to-night variance". Without one the
+   trace says "No variance roll". At sd 0 the roll is 0, so the value matches
+   the no-rng value.
+7. **At least 0.** There is no upper clamp here: MTCH1-04's soft compression and
+   the rater's clamp finish it.
+
+Popularity and momentum never enter work rate (D-02). Morale, chemistry, crew,
+finishes, gimmicks and stipulations plug in later as rating modifiers.
+
+| Key                                        | Default | Range          | Unit       |
+| ------------------------------------------ | ------- | -------------- | ---------- |
+| `match.workRate.staminaNeed.short`         | 0       | 0–100          | points     |
+| `match.workRate.staminaNeed.standard`      | 40      | 0–100          | points     |
+| `match.workRate.staminaNeed.long`          | 65      | 0–100          | points     |
+| `match.workRate.sharedLoadExponent`        | 0.5     | 0–2, step 0.05 | ratio      |
+| `match.workRate.staminaPenaltyPerPoint`    | 0.4     | 0–2, step 0.05 | ratio      |
+| `match.workRate.psychologyNeed.short`      | 20      | 0–100          | points     |
+| `match.workRate.psychologyNeed.standard`   | 45      | 0–100          | points     |
+| `match.workRate.psychologyNeed.long`       | 70      | 0–100          | points     |
+| `match.workRate.psychologyPenaltyPerPoint` | 0.5     | 0–2, step 0.05 | ratio      |
+| `match.workRate.spread.short`              | 0.8     | 0–2, step 0.05 | multiplier |
+| `match.workRate.spread.standard`           | 1       | 0–2, step 0.05 | multiplier |
+| `match.workRate.spread.long`               | 1.15    | 0–2, step 0.05 | multiplier |
+| `match.workRate.varianceSd`                | 4       | 0–20, step 0.5 | points     |
+
+Category `Match: work rate`. Every number here is a first pass, to be tuned
+with the Match lab's Run x100 (MTCH1-07). A penalty rate of 0 turns its check
+off; a spread of 0 makes every match of that class a 50.
+
+### Worked example: two 70s, midcard then main event
+
+Two workers with every in-ring attribute at 70 (performance 70 each), stamina
+70, leader psychology 70, a Singles match (factor 1), no variance roll.
+
+- **Midcard (standard)**: need `40 × (2 ÷ 2)^0.5 = 40`, both pass. Each side
+  is 70, across sides 70. The leader needs 45 and has 70. Spread
+  `50 + 20 × 1 = 70`. **Work rate 70.**
+- **Main event (long)**, stamina 50 instead: need 65, each is 15 short and
+  loses `15 × 0.4 = 6`, so each side is 64. The leader needs 70 and has 70.
+  Spread `50 + 14 × 1.15 = 66.1`. **Work rate 66.1.**
+
+With psychology 52 the leader would be 18 short and cost `18 × 0.5 = 9`. In a
+tag match of four, the need falls to `65 × (2 ÷ 4)^0.5 ≈ 46`. (`workRate.test.ts`:
+"worked examples", "costs 9 when the leader has 52", "shares the load between
+four workers".)

@@ -3,13 +3,11 @@
  *
  * So far: the slot derivations of D-10 (`slots.ts`: role, duration class and weight from a slot's
  * position, never stored), the match tunables (`tunables.ts`) and two queries (`queries.ts`):
- * `match.catalog` and `match.slotRoles`. The runtime catalogs it reads live in
+ * `match.catalog` and `match.slotRoles`. The in-ring formulas (`formulas/`): worker performance,
+ * side aggregation and work rate. The runtime catalogs it reads live in
  * `model/catalogs.ts`. No phase yet. Design: docs/design/match-rating.md.
  */
 
-// The stream declarations are types only; importing them keeps them in every program that imports
-// this system.
-import './streams';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
 import { matchQueries } from './queries';
 
@@ -42,6 +40,46 @@ export {
   type SlotRolesArgs,
 } from './queries';
 export { matchTunables } from './tunables';
+export { MATCH_RATING_STREAM } from './streams';
+export {
+  ALL_WEIGHTS_ZERO_NOTE,
+  NON_WRESTLER_LABEL,
+  PERFORMANCE_AXES,
+  PERFORMANCE_AXIS_LABELS,
+  PERFORMANCE_MAX,
+  PERFORMANCE_MIN,
+  SUITS_MATCH_TYPE_LABEL,
+  WORKER_PERFORMANCE_DOC_REF,
+  WORKING_HURT_LABEL,
+  workerPerformance,
+  type PerformanceAttributeKey,
+  type PerformanceAxis,
+  type TalkWeights,
+  type WorkerPerformanceInputs,
+} from './formulas/workerPerformance';
+export {
+  SIDES_DOC_REF,
+  aggregateWeights,
+  rankLabel,
+  rankMembers,
+  sideAggregate,
+  type SideAggregateInputs,
+  type SideAggregateMember,
+  type SideDecayKey,
+} from './formulas/sideAggregate';
+export {
+  ACROSS_SIDES_LABEL,
+  NO_VARIANCE_NOTE,
+  VARIANCE_LABEL,
+  WORK_RATE_DOC_REF,
+  matchLeaderOf,
+  sideLabel,
+  workRate,
+  type MatchLeader,
+  type WorkRateInputs,
+  type WorkRateSide,
+  type WorkRateWorker,
+} from './formulas/workRate';
 
 export const matchSystem: SystemBundle = defineSystem({
   id: 'match',
