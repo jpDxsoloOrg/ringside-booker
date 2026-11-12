@@ -16,6 +16,8 @@
 
 import { defineSystem, type SystemBundle } from '../../core/api/system';
 import { matchQueries } from './queries';
+import { aftermathQueries } from './aftermath/queries';
+import { pruneAftermathsPhase } from './aftermath/prune';
 // Registers the built-in `match` and `angle` raters at module load.
 import './rating/builtins';
 // Registers the Random winners new-game setting at module load (MTCH2-03).
@@ -461,7 +463,9 @@ export {
 
 export const matchSystem: SystemBundle = defineSystem({
   id: 'match',
-  queries: matchQueries,
+  // MTCH3-03: the weekly prune of stored aftermaths.
+  phases: [pruneAftermathsPhase],
+  queries: [...matchQueries, ...aftermathQueries],
 });
 
 // Momentum from a match result and a worker's earlier matches (MTCH3-02). Design:
@@ -490,3 +494,53 @@ export {
   type PriorMatch,
   type WinStreak,
 } from './aftermath/history';
+
+// The aftermath engine (MTCH3-03): regional spread, the reach seam, the aftermath of one match
+// (Simulate and show night), the applier, the stored rows' prune phase and `match.aftermath`.
+// Design: docs/design/match-aftermath.md#regional-spread onwards.
+export {
+  listPopularityReach,
+  registerPopularityReach,
+  resetPopularityReachForTests,
+  type PopularityReachProvider,
+  type ReachContext,
+  type ReachRegion,
+} from './aftermath/reach';
+export {
+  SHOW_REGION_REASON,
+  segmentRegionWeights,
+  type RegionWeightLine,
+  type RegionWeightSource,
+  type SegmentRegionWeights,
+} from './aftermath/regionWeights';
+export {
+  AFTERMATH_DOC_REF,
+  computeSegmentAftermath,
+  hasMomentum,
+  listNames,
+  type AftermathInput,
+  type AftermathMomentum,
+  type AftermathNoMomentum,
+  type AftermathPopularity,
+  type AftermathRegionRow,
+  type AftermathRollupRow,
+  type AftermathWorker,
+  type SegmentAftermath,
+  type SimulatedAftermathInput,
+} from './aftermath/computeSegmentAftermath';
+export {
+  AFTERMATH_TRACE_KINDS,
+  applySegmentAftermath,
+  momentumGainTraceRef,
+  popularityGainTraceRef,
+  type AppliedAftermath,
+} from './aftermath/apply';
+export { aftermathsToPrune, pruneAftermathsPhase } from './aftermath/prune';
+export {
+  AFTERMATH_NOT_FOUND_MESSAGES,
+  type AftermathQueryArgs,
+  type AftermathRegionView,
+  type AftermathResult,
+  type AftermathSegmentView,
+  type AftermathWorkerView,
+} from './aftermath/queries';
