@@ -21,6 +21,7 @@ import {
   type LoadedTunables,
   type TunableReader,
 } from '../core/tunables/resolver';
+import { promoPopTunables } from './promoPop/tunables';
 import { showsTunables } from './shows/tunables';
 import { workersTunables } from './workers/tunables';
 import { worldTunables } from './world/tunables';
@@ -34,6 +35,7 @@ export const ALL_TUNABLES = mergeTunables(
   matchTunables,
   bookingTunables,
   showsTunables,
+  promoPopTunables,
 );
 
 /** Every tunable key the engine knows. */
