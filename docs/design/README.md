@@ -24,3 +24,4 @@ Game and technical design for Ringside Booker. Each game system gets its own doc
 | [workers.md](workers.md)                       | The shared worker model: availability, title eligibility, weight class, grades, employer and main role                        |
 | [match-rating.md](match-rating.md)             | Judging one segment: slot roles, duration classes and slot weights (D-10), and the match queries                              |
 | [match-finishes.md](match-finishes.md)         | How a match ends: the finish catalog, its checks, which finishes a match allows and the filter seam                           |
+| [show-night.md](show-night.md)                 | Show night: running a show, segment and show scores, off-screen shows, title outcomes and the events it announces             |
