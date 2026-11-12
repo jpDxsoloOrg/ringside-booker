@@ -584,3 +584,216 @@ lab's Run x100 (MTCH1-07); any change is recorded here. Three choices are
 deliberate: the crowd is driven by expectation rather than popularity, high
 scores are compressed rather than re-rolled, and stars blend work rate with the
 crowd rather than reading match quality alone.
+
+## Pipeline and seams
+
+`systems/match/rating/` turns the formulas above into one pipeline that every
+later feature plugs into instead of editing. One entry point rates a segment
+from plain input:
+
+```ts
+rateSegment(input, { read, tunables, mode?, seed?, rng? })
+  → { ok: true, data: SegmentRatingResult } | { ok: false, reasons }
+```
+
+`input` is a `SegmentRatingInput`: the kind (`match` or `angle`), the match or
+angle type key, the sides (stored 0-based side numbers and person ids), the
+slot (a role given outright, as the Match lab does, or a slot position on a
+card), the show (importance, region, televised, date) and the promotion running
+it. It is an object so later features add optional fields (MTCH2's resolution,
+MTCH8's titles, storylines and crew) without breaking callers.
+
+The result is plain JSON: the score (whole, 0–100), the stars (quarter steps,
+0–5), work rate (null for a talking segment) or talk (null for a match), crowd,
+expectation and star power, each with its trace; the slot's role, duration
+class and weight with their rules; one line per worker; the warnings; and the
+policy used. `rateSegment` never writes and never touches the world's RNG: the
+only stream it rolls on is the one passed in (a detached one in the lab, the
+world's `match.rating` stream when EVT3 runs a show). Without one the traces
+say "No variance roll".
+
+It refuses, with a reason the player can read, an unknown kind or type key
+(`unknownType`), no sides or a side with nobody on it (`emptySide`), a person
+the world does not have (`unknownPerson`), a side number outside 0–29 or listed
+twice (`invalidSide`), a slot past the end of the card (`invalidSlot`) and an
+unknown promotion (`unknownPromotion`). Anything that can still be rated, such
+as a third side in a Singles match, is a [warning](#warnings) instead.
+
+### Stages
+
+Every number passes through a **stage**. A stage continues the formula's own
+trace (it adds no level, so the deep work rate trace stays inside the limit),
+runs the rating modifiers registered for it, then finishes:
+
+```
+per worker   workerPerformance ─► performance ─┐   (in-ring + entertainment, or talk + entertainment)
+per side     sideAggregate     ─► side ────────┤
+match        workRate          ─► workRate ────┤   soft compression
+angle        speakerScore      ─► talk ────────┤   soft compression
+             starPower, crowdExpectation ─► expectation   kept 0–100
+             crowdScore                  ─► crowd         soft compression (0–100)
+             segmentScore + policy bonus ─► score         rounded, kept 0–100
+             starRating                  ─► stars         to the cap, quarter steps
+```
+
+The work rate, talk and crowd stages always end in
+[soft compression](#soft-compression). The formulas already finish the other
+values themselves, so the expectation (0–100), score (rounded, 0–100), a
+performance (0–100) and the stars (their cap, quarter steps) are finished again
+only when a modifier ran; an untouched trace gains no lines.
+
+The score and stars traces carry two notes at the top, right after their
+starting value: "<Role> (<duration class>)", such as "Main event (long)", and
+"Slot weight ×1.75". The Why? panel therefore always shows the slot role and
+duration class, and never minutes.
+
+The built-in **match rater** gathers each worker's own inputs from the world
+(attributes, style, fatigue, an injury not yet healed on the show date,
+popularity in the show's region, momentum on an active contract with the
+promotion, else 0 with "Not under contract here"; the name is the ring name
+with that promotion). Every per-worker number comes from that worker's own row,
+so no value can leak from one worker to the next. It picks the match leader by
+psychology, passes the duration label and worker count to work rate and rolls on
+the stream it was given. Entertainment is side-aggregated across everyone in the
+segment. The built-in **angle rater** does the same with talk (the angle type's
+speaker weights) in place of in-ring performance and `speakerScore` in place of
+work rate; angle types have no crowd factor, so it is 1. An injured worker may
+talk; [warnings](#warnings) flag one whose injury rules out talking segments.
+
+### Rating modifiers
+
+```ts
+registerRatingModifier({ id, stage, order, detail?, applies, apply }) → unregister
+```
+
+- `id` is `system.camelName` (`mtch2.finishEffects`) and unique; a duplicate
+  throws `RegistryError`.
+- `stage` is one of `performance`, `side`, `workRate`, `talk`, `expectation`,
+  `crowd`, `score` and `stars`.
+- `order` is a whole number from 1 to 99. Lower runs first; equal orders run in
+  id order, so packs built in parallel never collide. Use `RATING_ORDER`
+  (`early` 10, `normal` 50, `late` 90) rather than guessing.
+- `applies(ctx, subject?)` says whether the effect applies; `apply(calc, ctx,
+subject?)` adds its steps to the stage's calc. On the `performance` stage the
+  subject is the worker (`{ kind: 'worker', personId, side, axis }`), on the
+  `side` stage the side (`{ kind: 'side', side, personIds }`).
+- `detail: true` marks a booking detail the rival shortcut may skip (see the
+  policy door below).
+
+A modifier **may** add, subtract, multiply, clamp, note and branch through the
+calc it is handed, read the context (`ctx.read`, `ctx.input`, `ctx.matchType`,
+`ctx.angleType`, `ctx.role`, `ctx.durationClass`, `ctx.policy`, `ctx.tunables`)
+and roll on `ctx.rng` when it is not null. It **may not** replace the value
+wholesale (the calc has no "set"), write to the world, keep state between calls
+or roll on any other stream. One effect is one labelled line, such as "Clean
+finish +3" or "Tag team experience +2".
+
+`ratingModifiersFor(stage)` lists a stage's modifiers in the order they run.
+
+### Adding a rater
+
+```ts
+registerSegmentRater(kind, rater, { replace? }) → unregister
+```
+
+A rater is `(ctx: RatingContext) => SegmentRatingResult`. MTCH1 registers
+`match` and the simple `angle` rater from `systems/match/index.ts` at module
+load. Replacing a kind needs `{ replace: true }`, so MTCH5's beat-based angle
+rater is an explicit swap; the function it returns restores the rater it
+replaced. A rater should run its numbers through `runStage(stage, value, ctx,
+subject?)` so modifiers reach it. `rateSegment` attaches the warnings, so a
+rater returns `warnings: []`.
+
+`RatingContext` is read-only: `mode` (`preview` or `live`), `seed`, `read`,
+`date` (the show's), `tunables`, `input`, `segmentKind`, `matchType` or
+`angleType`, `durationClass`, `role`, `slot` (with its traces), `policy` and
+`rng` (or null).
+
+Registries are module-level, like `registerSetupStep`: a feature registers from
+its system module, so loading the system is enough. Tests that register extras
+call `resetMatchRegistriesForTests()` in `afterEach`; it restores the two
+built-in raters, no modifiers and no policy provider.
+
+### The policy door (D-01)
+
+[D-01](design-decisions.md#d-01-rival-promotions-use-simplified-rules-2026-11-07)
+says rival shortcuts are named tunables, never an `if (isAI)` branch. The
+rating's only door for them is the policy:
+
+```ts
+RatingPolicy = { scoreBonus: Traced<number>, simpleInputs, skipInMatchInjuries, label, lines }
+registerRatingPolicyProvider((read, tunables, promotionId) => RatingPolicy, { id? }) → unregister
+ratingPolicyFor(read, tunables, promotionId) → RatingPolicy
+```
+
+There is at most one provider; a second throws, naming the first. With none,
+every promotion gets `NEUTRAL_RATING_POLICY`: a score bonus of 0 ("Same rules
+for every promotion"), both flags false, label "Full rules". MTCH1 itself never
+looks at who controls a promotion. AIP1 registers the provider that reads its
+own tunables.
+
+- `scoreBonus` is added to the segment score as one line, titled with the
+  policy's first line ("Same rules for every promotion +0").
+- `simpleInputs` skips every `detail: true` modifier, each with the note
+  "Rival shortcut: simple booking inputs, <id> skipped".
+- `skipInMatchInjuries` is carried for MTCH4, which reads it before rolling
+  in-match injuries. MTCH1 does not use it.
+
+### The stored-segment adapter
+
+`ratingInputFromSegment(read, segmentId)` builds the input EVT3 rates a booked
+segment with: the `segments` row's kind and match or angle type; its
+participants (index `bySegment`; competitors for a match, speakers for an
+angle) grouped by side, each side ordered by entrance order (unordered last)
+then id; and its show's importance, region, date and promotion. The slot is the
+stored 0-based slot plus 1, out of the show format's main-card slots (pre-show
+slots count on their own); `televised` comes from the show's event definition,
+false for a one-off. It throws `EntityNotFoundError` for a segment or show that
+does not exist.
+
+### Warnings
+
+`segmentWarnings(input, read, catalogs, date)` returns the booking problems the
+lab shows and EVT2's `booking.validate` reports, each `{ code, severity,
+message, personId?, side? }`, errors first, then by side (whole-segment
+warnings before side ones), then in the order found. `rateSegment` attaches
+them to every result. A warning never stops a rating.
+
+| Code              | Severity | Example                                                          |
+| ----------------- | -------- | ---------------------------------------------------------------- |
+| `sideCount`       | error    | "Three sides in a Singles match: it takes 2"                     |
+| `sideSize`        | error    | "Side 2 has 2 people: Singles takes 1 a side"                    |
+| `unequalSides`    | warning  | "The sides are uneven (2 against 1): Tag Team takes equal sides" |
+| `duplicatePerson` | error    | "Kade Morrow is on both sides" / "is on side 1 twice"            |
+| `injured`         | error    | "Kade Morrow is injured until 2026-05-01"                        |
+| `inactive`        | error    | "Kade Morrow is on hiatus" (or retired, has died, has left)      |
+| `nonWrestler`     | warning  | "Kade Morrow is not a wrestler" (matches only)                   |
+| `speakerCount`    | warning  | "Five speakers in a Promo: it takes 1 to 4"                      |
+
+Uneven sides are only reported when every side's size is allowed on its own. A
+talking segment flags an injury only when the injury rules out talking
+segments; semi-retired workers are not flagged.
+
+### Adding a rating effect
+
+The recipe MTCH2 (finishes), MTCH6 (chemistry and teamwork), MTCH7
+(stipulations), MTCH8 (crew, title stakes, storyline heat), SOC3 (backstage
+morale) and CRTV7 (gimmicks and managers) follow:
+
+1. Pick the stage the effect belongs to: a worker's own night is
+   `performance`, a team's is `side`, the match as a whole is `workRate` (or
+   `talk`), what the crowd hoped for is `expectation`, how it reacted is
+   `crowd`, and a flat change to the result is `score` or `stars`.
+2. Add any numbers as tunables in your system's `tunables.ts`, never as
+   literals.
+3. From your system module, call `registerRatingModifier` with an id in your
+   system's namespace, the stage, an order from `RATING_ORDER`, `applies`
+   (read `ctx.input` and the world through `ctx.read`; add an optional field
+   to `SegmentRatingInput` if the booking needs to carry something new) and
+   `apply`, which adds one labelled line with `calc.add`, `calc.subtract` or
+   `calc.multiply`, reading its tunable through `calc.tunable` so the line
+   shows it.
+4. Mark it `detail: true` if a rival on simple booking inputs should skip it.
+5. Test that it appears as exactly one labelled line, moves the value by its
+   amount and that the trace still replays; reset the registries in
+   `afterEach`.
