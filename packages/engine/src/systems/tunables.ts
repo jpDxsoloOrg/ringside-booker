@@ -28,6 +28,8 @@ import { workersTunables } from './workers/tunables';
 import { worldTunables } from './world/tunables';
 import { momentumTunables } from './match/aftermath/momentumTunables';
 
+import { financeTunables } from './finance/tunables';
+
 export const ALL_TUNABLES = mergeTunables(
   simTunables,
   conditionTunables,
@@ -40,6 +42,7 @@ export const ALL_TUNABLES = mergeTunables(
   aftermathTunables,
   momentumTunables,
   promoPopTunables,
+  financeTunables,
 );
 
 /** Every tunable key the engine knows. */

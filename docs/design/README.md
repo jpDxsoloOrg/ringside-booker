@@ -27,5 +27,6 @@ Game and technical design for Ringside Booker. Each game system gets its own doc
 | [match-aftermath.md](match-aftermath.md)           | What a result does to the people in it: momentum gain, prior matches and win streaks                                          |
 | [booking.md](booking.md)                           | Booking a show's card: open slots, planned results, who may edit a show and the card writer                                   |
 | [show-night.md](show-night.md)                     | Show night: running a show, segment and show scores, off-screen shows, title outcomes and the events it announces             |
-| -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | [promotion-popularity.md](promotion-popularity.md) | Promotion popularity after shows: show reach, what each region's fans expected and how one show moves popularity              |
+| ----------------------------------------------     | ----------------------------------------------------------------------------------------------------------------------------- |
+| [finances.md](finances.md)                         | The economy: `postMoney` (the only way cash moves), ledger categories, payroll, show costs, policies and the finance queries  |

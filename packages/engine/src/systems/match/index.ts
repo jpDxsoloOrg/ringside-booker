@@ -476,7 +476,6 @@ export {
   MOMENTUM_GAIN_LABEL,
   NO_CONTEST_MOMENTUM_NOTE,
   NO_CONTRACT_MOMENTUM_REASON,
-  PER_MATCH_LIMIT_LABEL,
   momentumGain,
   noContractMomentum,
   type MomentumGainInputs,

@@ -7,6 +7,7 @@
 import { describe, expect, it } from 'vitest';
 import { addDays } from '../../src/core/date';
 import { LEDGER_COST_CATEGORIES } from '../../src/model/entities/ledger-entry';
+import { ledgerEntryTraceRef } from '../../src/systems/finance/traces';
 import { cents } from '../../src/core/money';
 import { TABLES } from '../../src/model/tables';
 import { encodeSave } from '../../src/persistence/codec';
@@ -37,7 +38,10 @@ describe('save size and speed', () => {
       'post ledger entries',
       (tx) => {
         for (let i = 0; i < LEDGER_ENTRIES; i++) {
-          tx.create('ledgerEntries', {
+          // Every row carries a trace ref, as rows posted through postMoney do.
+          const id = tx.mintId('ledgerEntries');
+          tx.insert('ledgerEntries', {
+            id,
             promotionId,
             date: addDays(TEST_START_DATE, i % 365),
             category: LEDGER_COST_CATEGORIES[i % LEDGER_COST_CATEGORIES.length] ?? 'otherCost',
@@ -48,6 +52,7 @@ describe('save size and speed', () => {
               personId: ids.people[i % ROSTER_SIZE] ?? null,
               dealId: null,
             },
+            traceRef: ledgerEntryTraceRef({ id }, true),
           });
         }
       },

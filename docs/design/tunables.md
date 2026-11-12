@@ -510,3 +510,10 @@ in `systems/promoPop/tunables.ts`, category `Promotion popularity`. See
 | `promoPop.diminishingPower`           | number | 1.5     | 0–5   | ratio      | How sharply gains shrink as popularity rises (0 = no diminishing)                       |
 | `promoPop.lossFullFrom`               | number | 25      | 0–100 | points     | Popularity from which a bad show costs its full loss (0 = losses never scaled down)     |
 | `promoPop.monthlyGainCap`             | number | 3       | 0–100 | points     | Most popularity shows can win in one region in one calendar month (0 = no gains at all) |
+
+## Finance tunables
+
+The economy's numbers (ECO1), in `systems/finance/tunables.ts`, category
+`Finances`, each with a docRef into [finances.md](finances.md). The set starts
+empty: ECO1-02 adds reach and size, ECO1-03 wages and medical, and ECO1-04 show
+costs and importance, each in its own block.

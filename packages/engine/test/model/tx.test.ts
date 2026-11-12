@@ -413,6 +413,24 @@ describe('ID minting', () => {
     expect(snapshot(world)).toBe(before);
   });
 
+  it('mintId mints the next free ID without inserting, for a row that names its own ID', () => {
+    const world = emptyTxWorld();
+    world.tables.owners._put(makeOwner(1));
+    world.tables.widgets._put(makeWidget(1, ownerId(1), { serial: 'taken' }));
+    const result = expectOk(
+      world.transact('mint', (tx) => {
+        const id = tx.mintId('widgets');
+        const sizeAfterMint = tx.view.tables.widgets.size;
+        tx.insert('widgets', makeWidget(2, ownerId(1), { id, serial: `named ${id}` }));
+        return { id, sizeAfterMint };
+      }),
+    );
+    // Body 1 is taken, so the minter skips it; minting alone inserts nothing.
+    expect(result.value.id).toBe(widgetId(2));
+    expect(result.value.sizeAfterMint).toBe(1);
+    expect(world.tables.widgets.require(widgetId(2)).serial).toBe(`named ${widgetId(2)}`);
+  });
+
   it('setIdFactory inside an open transaction throws TxStateError', () => {
     const world = emptyTxWorld();
     world.tables.owners._put(makeOwner(1));

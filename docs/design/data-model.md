@@ -177,7 +177,9 @@ const result = world.transact('contracts.expire', (tx) => {
   copying thousands of rows before every step, and rollbacks are rare.
 - **Write rules.** `insert` needs a valid ID of the table's kind that is not
   taken (`DuplicateIdError`). `create` mints the ID from the world's ID
-  factory and inserts the row. `update` takes a partial patch or an updater
+  factory and inserts the row. `mintId` mints an ID without inserting, for a
+  row whose fields name its own ID (a ledger row's `traceRef`); insert it
+  with `insert`. `update` takes a partial patch or an updater
   function and may not change the ID. Append-only tables (the ledger) refuse
   `update` and `delete` (`AppendOnlyError`). A unique index clash throws
   `UniqueIndexError` and the whole transaction rolls back like any other
@@ -1091,8 +1093,16 @@ the text catalogs behind the keys, belong to the systems that send them.
 ### The ledger
 
 Every movement of a promotion's cash is one `LedgerEntry`: a date, a category,
-a signed amount in cents, an optional memo (up to 120 characters) and optional
-references to the event, person or deal it came from.
+a signed amount in cents, an optional memo (up to 120 characters), optional
+references to the event, person or deal it came from, and `traceRef`: where
+the row's Why? trace is stored. `traceRef` is null only for rows written before
+the finance system (test fixtures).
+
+**Only `postMoney` writes rows and moves cash.** During play, the finance
+system's `postMoney` ([finances.md](finances.md#postmoney)) is the one way a
+promotion's cash changes: it appends the row and moves the cash in the same
+transaction. A test fails if any other code writes `promotions.cash`, apart from
+a new world's opening balances.
 
 **Sign convention:** income is positive and costs are negative, and the
 category decides which (`LEDGER_CATEGORY_SIGN`). The schema refuses an amount
@@ -1100,20 +1110,29 @@ with the wrong sign, and refuses zero. That makes "the sum of a promotion's
 entries over a period equals its cash change over that period" a check the
 economy can test.
 
-| Income (+)    | Costs (−)        |
-| ------------- | ---------------- |
-| `tickets`     | `wages`          |
-| `liveMerch`   | `appearanceFees` |
-| `merch`       | `signingBonuses` |
-| `broadcast`   | `severance`      |
-| `ppv`         | `venueRent`      |
-| `streaming`   | `production`     |
-| `sponsorship` | `travel`         |
-| `otherIncome` | `marketing`      |
-|               | `backOffice`     |
-|               | `medical`        |
-|               | `catering`       |
-|               | `otherCost`      |
+The set is complete for the whole economy epic (ECO1-01 added `subsidyIncome`,
+`charity`, `networkUpkeep`, `buyout` and `subsidy`), so later features never
+change the enum. The player-facing labels and who posts each category are in
+[finances.md](finances.md#categories).
+
+| Income (+)      | Costs (−)        |
+| --------------- | ---------------- |
+| `tickets`       | `wages`          |
+| `liveMerch`     | `appearanceFees` |
+| `merch`         | `signingBonuses` |
+| `broadcast`     | `severance`      |
+| `ppv`           | `venueRent`      |
+| `streaming`     | `production`     |
+| `sponsorship`   | `travel`         |
+| `otherIncome`   | `marketing`      |
+| `subsidyIncome` | `backOffice`     |
+|                 | `medical`        |
+|                 | `catering`       |
+|                 | `otherCost`      |
+|                 | `charity`        |
+|                 | `networkUpkeep`  |
+|                 | `buyout`         |
+|                 | `subsidy`        |
 
 **Append-only:** the ledger table is `appendOnly`, so transactions refuse to
 update or delete its rows. Money has to reconcile, and an edited history can't

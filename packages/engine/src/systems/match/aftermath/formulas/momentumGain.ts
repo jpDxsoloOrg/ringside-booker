@@ -28,12 +28,13 @@ import { constantOf, startCalc, type Calc, type Traced } from '../../../../core/
 import { formatNumber } from '../../../world/people/labels';
 import type { EngineTunables } from '../../../tunables';
 import type { MatchResultForSide } from '../history';
+// Shared with the popularity gain so both per-match limits read the same in a Why?.
+import { PER_MATCH_LIMIT_LABEL } from './popularityGain';
 
 export const MOMENTUM_GAIN_DOC_REF = 'docs/design/match-aftermath.md#momentum-gain';
 
 export const MOMENTUM_GAIN_LABEL = 'Momentum change from this match';
 export const NO_CONTEST_MOMENTUM_NOTE = 'A no contest changes nothing';
-export const PER_MATCH_LIMIT_LABEL = 'Per-match limit';
 export const NO_CONTRACT_MOMENTUM_REASON = 'No contract with this promotion: counts as 0';
 
 /** One competitor on another side. */

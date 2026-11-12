@@ -1567,3 +1567,23 @@ export { initialMomentum } from './systems/workers/index';
 // Promotion popularity after shows (EVT5-01): show reach, region expectation and the popularity
 // change formulas. See docs/design/promotion-popularity.md.
 export * from './systems/promoPop/index';
+
+// The finance system (ECO1-01): `postMoney`, the only way cash moves during play, the player-facing
+// ledger category labels, the finance trace kinds and events. See docs/design/finances.md.
+export {
+  CASH_TRACE_KIND,
+  FINANCE_TRACE_KINDS,
+  FINANCE_TUNABLE_CATEGORY,
+  LEDGER_CATEGORY_LABELS,
+  LEDGER_ENTRY_TRACE_KIND,
+  POST_MONEY_MEMO_MAX,
+  RIVAL_LEDGER_ENTRY_TRACE_KIND,
+  cashTraceRef,
+  financeSystem,
+  financeTunables,
+  ledgerCategoryKind,
+  ledgerEntryTraceRef,
+  postMoney,
+  type LedgerCategoryKind,
+  type PostMoneyInput,
+} from './systems/finance/index';
