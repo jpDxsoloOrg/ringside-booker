@@ -223,7 +223,14 @@ function addTinyHistory(context: BuildContext): void {
         status: 'completed',
         venueId: venue.id,
         regionId: venue.regionId,
-        result: { score: 62, attendance: 2800, gate: cents(8_400_000), viewers: 150_000 },
+        result: {
+          score: 62,
+          rawScore: 62,
+          traceId: null,
+          attendance: 2800,
+          gate: cents(8_400_000),
+          viewers: 150_000,
+        },
       },
       sequence,
     ),
@@ -234,7 +241,7 @@ function addTinyHistory(context: BuildContext): void {
     aMatch(
       {
         eventInstanceId: show.id,
-        rating: { score: 55, stars: 2.75, traceId: null },
+        rating: { score: 55, stars: 2.75, workRate: 52, crowd: 58, expectation: 50, traceId: null },
         outcome: { kind: 'win', winningSide: 1, methodKey: winMethod },
       },
       sequence,
@@ -246,7 +253,7 @@ function addTinyHistory(context: BuildContext): void {
       {
         eventInstanceId: show.id,
         storylineIds: [storyline.id],
-        rating: { score: 64, stars: 3, traceId: null },
+        rating: { score: 64, stars: 3, workRate: null, crowd: 66, expectation: 60, traceId: null },
         angle: {
           beats: [
             { beatKey: parseContentKey('beat.promo'), personIds: [person(0)] },
@@ -268,7 +275,7 @@ function addTinyHistory(context: BuildContext): void {
           titleIds: [required(heavyweightTitle, 'heavyweight title')],
           finishKey: parseContentKey('finish.clean'),
         },
-        rating: { score: 71, stars: 3.5, traceId: null },
+        rating: { score: 71, stars: 3.5, workRate: 70, crowd: 74, expectation: 68, traceId: null },
         outcome: { kind: 'win', winningSide: 0, methodKey: winMethod },
       },
       sequence,
@@ -280,7 +287,7 @@ function addTinyHistory(context: BuildContext): void {
       {
         eventInstanceId: show.id,
         preShow: true,
-        rating: { score: 40, stars: 2, traceId: null },
+        rating: { score: 40, stars: 2, workRate: 42, crowd: 36, expectation: 38, traceId: null },
         outcome: { kind: 'win', winningSide: 0, methodKey: winMethod },
       },
       sequence,
@@ -525,21 +532,24 @@ function patternedPerson(rosterIndex: number, startDate: GameDate): DeepPartial<
 
 /**
  * One computer-run promotion in the mini geography with `rosterSize` wrestlers under contract,
- * each with different attributes from a fixed arithmetic pattern (no randomness). For performance
- * and save-size tests.
+ * each with different attributes from a fixed arithmetic pattern (no randomness), and a weekly
+ * Monday show, so a headless run schedules and runs a show every week. For performance and
+ * save-size tests and the headless runner.
  */
 export function rosterWorld(rosterSize: number): BuiltWorld {
   return worldBuilder()
     .withGeography('mini')
     .withCatalogs()
     .withPromotion({ name: 'Test Promotion A' }, (promotion) =>
-      promotion.withRoster(rosterSize, {
-        person: (rosterIndex) => patternedPerson(rosterIndex, TEST_START_DATE),
-        employment: (rosterIndex) => ({
-          push: rosterIndex % 10 === 0 ? 'mainEvent' : 'midCard',
-          alignment: rosterIndex % 2 === 0 ? 'face' : 'heel',
-        }),
-      }),
+      promotion
+        .withRoster(rosterSize, {
+          person: (rosterIndex) => patternedPerson(rosterIndex, TEST_START_DATE),
+          employment: (rosterIndex) => ({
+            push: rosterIndex % 10 === 0 ? 'mainEvent' : 'midCard',
+            alignment: rosterIndex % 2 === 0 ? 'face' : 'heel',
+          }),
+        })
+        .withWeeklyShow({ name: 'Test Weekly', weekdays: [0] }),
     )
     .build();
 }

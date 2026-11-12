@@ -9,6 +9,7 @@
  */
 
 import { simTunables } from '../core/tunables/simTunables';
+import { bookingTunables } from './booking/tunables';
 import { calendarTunables } from './calendar/tunables';
 import { conditionTunables } from './condition/tunables';
 import { matchTunables } from './match/tunables';
@@ -20,6 +21,7 @@ import {
   type LoadedTunables,
   type TunableReader,
 } from '../core/tunables/resolver';
+import { showsTunables } from './shows/tunables';
 import { workersTunables } from './workers/tunables';
 import { worldTunables } from './world/tunables';
 
@@ -30,6 +32,8 @@ export const ALL_TUNABLES = mergeTunables(
   workersTunables,
   calendarTunables,
   matchTunables,
+  bookingTunables,
+  showsTunables,
 );
 
 /** Every tunable key the engine knows. */

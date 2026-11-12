@@ -1405,6 +1405,8 @@
         "regionId": "reg_0000000001",
         "result": {
           "score": 62,
+          "rawScore": 62,
+          "traceId": null,
           "attendance": 2800,
           "gate": 8400000,
           "viewers": 150000
@@ -2884,6 +2886,9 @@
         "rating": {
           "score": 55,
           "stars": 2.75,
+          "workRate": 52,
+          "crowd": 58,
+          "expectation": 50,
           "traceId": null
         },
         "kind": "match",
@@ -2916,6 +2921,9 @@
         "rating": {
           "score": 64,
           "stars": 3,
+          "workRate": null,
+          "crowd": 66,
+          "expectation": 60,
           "traceId": null
         },
         "kind": "angle",
@@ -2955,6 +2963,9 @@
         "rating": {
           "score": 71,
           "stars": 3.5,
+          "workRate": 70,
+          "crowd": 74,
+          "expectation": 68,
           "traceId": null
         },
         "kind": "match",
@@ -2987,6 +2998,9 @@
         "rating": {
           "score": 40,
           "stars": 2,
+          "workRate": 42,
+          "crowd": 36,
+          "expectation": 38,
           "traceId": null
         },
         "kind": "match",

@@ -1,7 +1,7 @@
 /**
  * The top bar's status and day control against the real engine and day pipeline in the worker,
- * entered through the sample save. Desktop: Next day moves the date chip and a 7-day skip ends
- * with its summary. Phone: the compact bar holds the date and the day button on one line, the
+ * entered through the sample save. Desktop: Next day moves the date chip and a 7-day skip stops
+ * at the player's unbooked show with its summary. Phone: the compact bar holds the date and the day button on one line, the
  * status sheet opens from the date, the skip sheet is a bottom sheet, and the progress overlay and
  * its Stop button fit the screen.
  */
@@ -16,6 +16,9 @@ import { isPhone } from './helpers/viewport';
 const SAMPLE_DATE_LONG = 'Friday, April 10, 2026';
 const NEXT_DATE_LONG = 'Saturday, April 11, 2026';
 const WEEK_LATER_LONG = 'Saturday, April 18, 2026';
+/** The sample world's next weekly show, which the player has not booked. */
+const SHOW_DATE_LONG = 'Thursday, April 16, 2026';
+const SHOW_REASON = "Your show 'Test Weekly' on 2026-04-16 has no card yet";
 const SAMPLE_DATE_SHORT = 'Apr 10, 2026';
 
 /** UI scales the phone bar is checked at: the default, a step up and the largest. */
@@ -121,7 +124,7 @@ async function setUiScale(page: Page, scale: string): Promise<void> {
 }
 
 test.describe('day control', () => {
-  test('desktop: Next day moves the date, and a 7-day skip ends with a summary', async ({
+  test('desktop: Next day moves the date, and a 7-day skip stops at the unbooked show', async ({
     page,
   }, testInfo) => {
     test.skip(isPhone(testInfo), 'The desktop top bar');
@@ -145,8 +148,10 @@ test.describe('day control', () => {
     await sheet.getByRole('button', { name: 'Start' }).click();
 
     const summary = page.getByRole('region', { name: 'Last advance' });
-    await expect(summary).toContainText(`Advanced 7 days to ${WEEK_LATER_LONG}`);
-    await expect(dateChip).toContainText(WEEK_LATER_LONG);
+    // The show-day gate stops the skip before the player's show on Thursday the 16th.
+    await expect(summary).toContainText(`Advanced 5 days to ${SHOW_DATE_LONG}`);
+    await expect(summary).toContainText(SHOW_REASON);
+    await expect(dateChip).toContainText(SHOW_DATE_LONG);
     await expectNoSeriousA11yViolations(page);
   });
 

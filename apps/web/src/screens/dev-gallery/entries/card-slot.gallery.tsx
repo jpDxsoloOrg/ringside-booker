@@ -105,6 +105,62 @@ function CardSlotDemo() {
             dragHandle={<CardSlotDragHandle label="Move slot 5" />}
           />
         </li>
+        <li>
+          <CardSlot
+            slotRole="midcard"
+            slotNumber={6}
+            headingLevel={3}
+            chips={[{ id: 'type', kind: 'match-type', label: 'Triple threat' }]}
+            sides={[
+              BROADCAST_SIDES.openerFace,
+              BROADCAST_SIDES.openerHeel,
+              BROADCAST_SIDES.mainChallenger,
+            ]}
+            winnerIndex={2}
+            issues={{ errors: 0, warnings: 1 }}
+          />
+        </li>
+        <li>
+          <CardSlot
+            slotRole="midcard"
+            slotNumber={7}
+            headingLevel={3}
+            chips={[{ id: 'type', kind: 'match-type', label: 'Four-way' }]}
+            sides={[
+              BROADCAST_SIDES.openerFace,
+              BROADCAST_SIDES.openerHeel,
+              BROADCAST_SIDES.mainChampion,
+              BROADCAST_SIDES.mainChallenger,
+            ]}
+            issues={{ errors: 2, warnings: 0 }}
+          />
+        </li>
+        <li>
+          <CardSlot
+            slotRole="opener"
+            slotNumber={8}
+            headingLevel={3}
+            chips={[{ id: 'type', kind: 'match-type', label: 'Singles' }]}
+            sideA={BROADCAST_SIDES.openerFace}
+            sideB={BROADCAST_SIDES.openerHeel}
+            resultLabel="Draw"
+          />
+        </li>
+        <li>
+          <CardSlot
+            slotRole="midcard"
+            slotNumber={9}
+            headingLevel={3}
+            emptyHint="A talking segment label, as the booking screen uses it."
+            onAddMatch={() => {
+              setLastAction('Add match on slot 9.');
+            }}
+            onAddPromo={() => {
+              setLastAction('Add talking segment on slot 9.');
+            }}
+            addPromoLabel="Add talking segment"
+          />
+        </li>
       </ol>
     </Stack>
   );
@@ -115,6 +171,6 @@ export const galleryEntry: GalleryEntry = {
   title: 'CardSlot',
   group: 'Broadcast',
   notes:
-    'A five-slot card: empty pre-show, a booked opener with a winner, a tag title match, an empty slot, a promo and the main event. On a phone the sides stack.',
+    'A card: empty pre-show, a booked opener with a winner, a tag title match, an empty slot, a promo and the main event, then a triple threat with a warning, a four-way with two problems, a draw and an open slot with "Add talking segment". On a phone the sides stack.',
   render: () => <CardSlotDemo />,
 };

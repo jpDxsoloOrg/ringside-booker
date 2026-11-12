@@ -30,7 +30,45 @@ export interface DropdownMenuSeparator {
   readonly id: string;
 }
 
-export type DropdownMenuEntry = DropdownMenuAction | DropdownMenuSeparator;
+/**
+ * A nested menu, such as "Winner ▸" with one item per choice. Right arrow (or a click or tap)
+ * opens it, Left arrow or Escape goes back to the parent menu.
+ */
+export interface DropdownMenuSubmenu {
+  readonly kind: 'submenu';
+  readonly id: string;
+  readonly label: string;
+  readonly icon?: IconName;
+  readonly disabled?: boolean;
+  /** The submenu's actions and separators. Submenus do not nest further. */
+  readonly items: readonly (DropdownMenuAction | DropdownMenuSeparator)[];
+}
+
+export type DropdownMenuEntry = DropdownMenuAction | DropdownMenuSeparator | DropdownMenuSubmenu;
+
+function MenuItem({ entry }: { readonly entry: DropdownMenuAction }) {
+  return (
+    <RadixMenu.Item
+      disabled={entry.disabled ?? false}
+      onSelect={entry.onSelect}
+      className={styles['item']}
+      data-tone={entry.tone ?? 'default'}
+    >
+      {entry.icon !== undefined && (
+        <Icon name={entry.icon} className={styles['itemIcon']} decorative />
+      )}
+      <span className={styles['itemLabel']}>{entry.label}</span>
+    </RadixMenu.Item>
+  );
+}
+
+function renderFlatEntry(entry: DropdownMenuAction | DropdownMenuSeparator) {
+  return entry.kind === 'separator' ? (
+    <RadixMenu.Separator key={entry.id} className={styles['separator']} />
+  ) : (
+    <MenuItem key={entry.id} entry={entry} />
+  );
+}
 
 export type DropdownMenuAlign = 'start' | 'center' | 'end';
 
@@ -87,21 +125,31 @@ export function DropdownMenu({
           className={classNames(styles['menu'], className)}
         >
           {items.map((entry) =>
-            entry.kind === 'separator' ? (
-              <RadixMenu.Separator key={entry.id} className={styles['separator']} />
+            entry.kind === 'submenu' ? (
+              <RadixMenu.Sub key={entry.id}>
+                <RadixMenu.SubTrigger
+                  disabled={entry.disabled ?? false}
+                  className={classNames(styles['item'], styles['subTrigger'])}
+                >
+                  {entry.icon !== undefined && (
+                    <Icon name={entry.icon} className={styles['itemIcon']} decorative />
+                  )}
+                  <span className={styles['itemLabel']}>{entry.label}</span>
+                  <Icon name="chevron-right" className={styles['subChevron']} decorative />
+                </RadixMenu.SubTrigger>
+                <RadixMenu.Portal>
+                  <RadixMenu.SubContent
+                    sideOffset={2}
+                    collisionPadding={8}
+                    loop
+                    className={classNames(styles['menu'], styles['subMenu'])}
+                  >
+                    {entry.items.map(renderFlatEntry)}
+                  </RadixMenu.SubContent>
+                </RadixMenu.Portal>
+              </RadixMenu.Sub>
             ) : (
-              <RadixMenu.Item
-                key={entry.id}
-                disabled={entry.disabled ?? false}
-                onSelect={entry.onSelect}
-                className={styles['item']}
-                data-tone={entry.tone ?? 'default'}
-              >
-                {entry.icon !== undefined && (
-                  <Icon name={entry.icon} className={styles['itemIcon']} decorative />
-                )}
-                <span className={styles['itemLabel']}>{entry.label}</span>
-              </RadixMenu.Item>
+              renderFlatEntry(entry)
             ),
           )}
         </RadixMenu.Content>

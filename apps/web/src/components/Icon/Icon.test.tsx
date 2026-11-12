@@ -75,7 +75,18 @@ describe('Icon', () => {
       'settings',
       'lab',
     ]);
-    expect(STATE_ICON_NAMES).toEqual(['up', 'down', 'flat', 'injured', 'warning', 'check', 'live']);
+    expect(STATE_ICON_NAMES).toEqual([
+      'up',
+      'down',
+      'flat',
+      'injured',
+      'warning',
+      'check',
+      'live',
+      'error',
+      'lock',
+      'unlock',
+    ]);
     expect(ACTION_ICON_NAMES).toEqual([
       'play',
       'pause',
@@ -86,6 +97,7 @@ describe('Icon', () => {
       'drag-handle',
       'info',
       'why',
+      'edit',
     ]);
   });
 

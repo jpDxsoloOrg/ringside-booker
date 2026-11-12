@@ -18,8 +18,13 @@ import type { DomainEventMap } from '../../../src/core/events/types';
 import type { BrandId, EventInstanceId, PromotionId } from '../../../src/core/ids';
 import type { Controller } from '../../../src/model/controller';
 import type { EventInstance } from '../../../src/model/entities/event-instance';
-import { defaultSystems } from '../../../src/systems';
-import { anEventInstance, worldBuilder, type BuildContext, type BuiltWorld } from '../../support';
+import {
+  anEventInstance,
+  SYSTEMS_WITHOUT_SHOW_DAY_GATE,
+  worldBuilder,
+  type BuildContext,
+  type BuiltWorld,
+} from '../../support';
 
 export const PLAYER_ONE: Controller = { kind: 'human', playerId: 'player-1' };
 export const PLAYER_TWO: Controller = { kind: 'human', playerId: 'player-2' };
@@ -118,8 +123,13 @@ export function lifecycleWorld(options: LifecycleOptions = {}): BuiltWorld & Lif
   return lifecycleWorldWith(() => null, options);
 }
 
+// The show-day gate would stop every day with the player's unbooked show; these tests are about
+// the calendar, so they run without it. booking/gate.test.ts covers the gate.
 export function engineOver(built: BuiltWorld): Engine {
-  return createEngine({ state: initialEngineState(built.world), systems: defaultSystems });
+  return createEngine({
+    state: initialEngineState(built.world),
+    systems: SYSTEMS_WITHOUT_SHOW_DAY_GATE,
+  });
 }
 
 /** Advances `days` days and fails the test if any step failed. Returns the state afterwards. */

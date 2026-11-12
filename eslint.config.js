@@ -148,6 +148,21 @@ const LUCIDE_NAMESPACE_SELECTORS = [
   },
 ];
 
+// Drag and drop stays behind SortableList, so the library can be swapped in one folder.
+const SORTABLE_FILES = ['apps/web/src/components/SortableList/**'];
+const DND_KIT_SOURCE = '[source.value=/^@dnd-kit\\u002F/]';
+const DND_KIT_OUTSIDE_SORTABLE_MESSAGE =
+  'Reorder with SortableList from @/components/SortableList; only it imports @dnd-kit.';
+const DND_KIT_SELECTORS = [
+  { selector: `ImportDeclaration${DND_KIT_SOURCE}`, message: DND_KIT_OUTSIDE_SORTABLE_MESSAGE },
+  { selector: `ImportExpression${DND_KIT_SOURCE}`, message: DND_KIT_OUTSIDE_SORTABLE_MESSAGE },
+  {
+    selector: `ExportNamedDeclaration${DND_KIT_SOURCE}`,
+    message: DND_KIT_OUTSIDE_SORTABLE_MESSAGE,
+  },
+  { selector: `ExportAllDeclaration${DND_KIT_SOURCE}`, message: DND_KIT_OUTSIDE_SORTABLE_MESSAGE },
+];
+
 const ENGINE_RESTRICTED_GLOBALS = [
   'window',
   'document',
@@ -289,6 +304,17 @@ export default defineConfig(
           message: LUCIDE_OUTSIDE_ICON_MESSAGE,
         },
         { selector: `ExportAllDeclaration${LUCIDE_SOURCE}`, message: LUCIDE_OUTSIDE_ICON_MESSAGE },
+        ...DND_KIT_SELECTORS,
+      ],
+    },
+  },
+  {
+    files: SORTABLE_FILES,
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        { selector: `ImportDeclaration${LUCIDE_SOURCE}`, message: LUCIDE_OUTSIDE_ICON_MESSAGE },
+        { selector: `ImportExpression${LUCIDE_SOURCE}`, message: LUCIDE_OUTSIDE_ICON_MESSAGE },
       ],
     },
   },

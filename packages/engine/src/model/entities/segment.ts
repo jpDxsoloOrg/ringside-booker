@@ -47,12 +47,18 @@ export const SegmentCrewSchema = z.strictObject({
 });
 
 /**
- * A segment's rating, set when the show is completed. A placeholder shape for MTCH, which may add
- * components. `traceId` links to the recent-traces store kept in the save for the Why? panel.
+ * A segment's rating, written by EVT3's `shows.runShows` when the show is completed. `score` and
+ * `stars` are the rater's result; `workRate`, `crowd` and `expectation` are its components, each
+ * null only when the segment's rater produces no such component (a talking segment has no work
+ * rate). `traceId` holds the ref key (`refKey(ref)` from `core/trace/store.ts`) of the rating's
+ * trace in the recent-traces store kept in the save for the Why? panel, or null when none was kept.
  */
 export const SegmentRatingSchema = z.strictObject({
   score: zStat,
   stars: z.number().min(0).max(MAX_STARS).multipleOf(STAR_STEP),
+  workRate: zStat.nullable(),
+  crowd: zStat.nullable(),
+  expectation: zStat.nullable(),
   traceId: z.string().min(1).nullable(),
 });
 
@@ -60,7 +66,10 @@ export const SegmentRatingSchema = z.strictObject({
 const segmentBaseShape = {
   id: zId('segment'),
   eventInstanceId: zId('eventInstance'),
-  /** Position within its card section, counted from 0. */
+  /**
+   * Position within its card section, counted from 0, below the format's slot count for the
+   * section. Open slots are simply absent: a card may have gaps while it is being booked.
+   */
   slot: zNonNegativeInt,
   /** True for the pre-show section, false for the main card. Each section numbers from 0. */
   preShow: z.boolean(),
@@ -104,11 +113,18 @@ export const AngleDetailsSchema = z.strictObject({
   beats: z.array(AngleBeatSchema).min(MIN_ANGLE_BEATS).max(MAX_ANGLE_BEATS),
 });
 
+/**
+ * A match on the card. Its `outcome` holds the booker's planned result before the show runs and
+ * the result that happened afterwards: one field, so every reader has one source of truth.
+ */
 export const MatchSegmentSchema = z.strictObject({
   ...segmentBaseShape,
   kind: z.literal('match'),
   match: MatchDetailsSchema,
-  /** Set only once the show is completed. */
+  /**
+   * The planned result while the show is scheduled or booked; the result that happened once it is
+   * completed (written by EVT3). Null when nothing is planned (decided on the night).
+   */
   outcome: MatchOutcomeSchema.nullable(),
 });
 
@@ -173,8 +189,11 @@ function segmentsBySection(view: WorldView): Map<string, DeepReadonly<Segment>[]
 }
 
 /**
- * Rules (3) and (4): within an instance, each section's slots run 0, 1, 2, ... with no gaps or
- * repeats, and a section holds no more segments than the instance's format allows.
+ * Rules (3) and (4): every segment sits in a slot its instance's format has, and a section holds no
+ * more segments than the format allows. Each section numbers from 0; open slots are simply absent,
+ * so a card being booked can fill any slots in any order (D-10: a slot's role comes from its
+ * position in the format, not from how many segments the card has). Two segments in one slot are
+ * refused at write time by the unique `bySlot` index.
  */
 function checkCardSlots(view: WorldView): IntegrityIssue[] {
   const instances = tableOf(view, eventInstancesTable);
@@ -184,21 +203,24 @@ function checkCardSlots(view: WorldView): IntegrityIssue[] {
     if (first === undefined) {
       continue;
     }
-    const section = sectionName(first.preShow);
-    const slots = group.map((segment) => segment.slot).sort((left, right) => left - right);
-    if (slots.some((slot, index) => slot !== index)) {
-      issues.push({
-        code: 'segments.slotsNotContiguous',
-        table: eventInstancesTable.name,
-        id: first.eventInstanceId,
-        message: `eventInstances ${first.eventInstanceId}: ${section} slots are ${slots.join(', ')}; they must run 0..${String(slots.length - 1)} with no gaps or repeats`,
-      });
-    }
     const instance = instances.get(first.eventInstanceId);
     if (instance === undefined) {
       continue;
     }
+    const section = sectionName(first.preShow);
     const capacity = first.preShow ? instance.format.preShowSlots : instance.format.slots;
+    const outside = group
+      .map((segment) => segment.slot)
+      .filter((slot) => slot >= capacity)
+      .sort((left, right) => left - right);
+    if (outside.length > 0) {
+      issues.push({
+        code: 'segments.slotOutsideFormat',
+        table: eventInstancesTable.name,
+        id: first.eventInstanceId,
+        message: `eventInstances ${first.eventInstanceId}: ${section} slots ${outside.join(', ')} are outside the format's ${String(capacity)} ${section} slots (0..${String(capacity - 1)})`,
+      });
+    }
     if (group.length > capacity) {
       issues.push({
         code: first.preShow ? 'segments.tooManyPreShow' : 'segments.tooManyMainCard',
@@ -251,8 +273,9 @@ function checkMatchSides(view: WorldView): IntegrityIssue[] {
 }
 
 /**
- * Rules (6) and (7): titles on the line belong to the show's promotion, and a rating or outcome
- * exists only once the show is completed.
+ * Rules (6) and (7): titles on the line belong to the show's promotion, and a rating exists only
+ * once the show is completed. A match `outcome` on a show that has not run is the booker's planned
+ * result, so it is allowed whatever the status.
  */
 function checkAgainstInstance(view: WorldView): IntegrityIssue[] {
   const instances = tableOf(view, eventInstancesTable);
@@ -263,13 +286,12 @@ function checkAgainstInstance(view: WorldView): IntegrityIssue[] {
     if (instance === undefined) {
       continue;
     }
-    const hasResult = segment.rating !== null || (isMatch(segment) && segment.outcome !== null);
-    if (hasResult && instance.status !== 'completed') {
+    if (segment.rating !== null && instance.status !== 'completed') {
       issues.push({
         code: 'segments.resultBeforeCompletion',
         table: TABLE,
         id: segment.id,
-        message: `segments ${segment.id}: has a rating or outcome but ${instance.id} is ${instance.status}`,
+        message: `segments ${segment.id}: has a rating but ${instance.id} is ${instance.status}`,
       });
     }
     if (!isMatch(segment)) {
@@ -318,7 +340,7 @@ export const segmentsTable = defineTable<'segment', Segment>({
     { name: 'bySlot', key: segmentSlotKey, unique: true },
   ],
   invariants: [
-    { name: 'cardSlotsContiguousAndWithinFormat', check: checkCardSlots },
+    { name: 'cardSlotsWithinFormat', check: checkCardSlots },
     { name: 'matchSidesValid', check: checkMatchSides },
     { name: 'segmentMatchesItsInstance', check: checkAgainstInstance },
   ],

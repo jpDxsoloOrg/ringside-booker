@@ -1,6 +1,7 @@
 import { matchPath } from 'react-router-dom';
 import type { ComponentType } from 'react';
 import type { IconName } from '@/components/Icon';
+import { BookingScreen } from '@/screens/booking';
 import { CalendarScreen } from '@/screens/calendar/CalendarScreen';
 import { MatchLabScreen } from '@/screens/match-lab/MatchLabScreen';
 import { OfficeScreen } from '@/screens/office/OfficeScreen';
@@ -149,7 +150,8 @@ export const navigationSections: readonly NavSection[] = [
         icon: 'booking',
         to: routes.game.booking(),
         mobilePrimary: 3,
-        status: 'placeholder',
+        status: 'live',
+        screen: BookingScreen,
       },
       {
         id: 'calendar',

@@ -8,11 +8,15 @@
  * - a gate that stops a multi-day advance at the start of a chosen date, with an optional
  *   player-facing reason, subject and route hint;
  * - a phase that throws on a chosen date, so a step failure shows up in the advance result.
+ *
+ * The real show-day gate (`booking.showNeedsBooking`) is taken out unless a test asks for it:
+ * player-1's unbooked weekly show would otherwise stop every skip that crosses it.
  */
 
 import { z } from 'zod';
 import {
   addDays,
+  parseGameDate,
   createEngine,
   defineCommand,
   defineGate,
@@ -20,6 +24,7 @@ import {
   defineQuery,
   defineSystem,
   initialEngineState,
+  SHOW_NEEDS_BOOKING_GATE_ID,
 } from '@ringside/engine';
 import type {
   CreateEngineOptions,
@@ -27,10 +32,17 @@ import type {
   EngineState,
   GameDate,
   GateHit,
+  PersonId,
   SystemBundle,
   Viewer,
 } from '@ringside/engine';
-import { TINY_WORLD_TODAY, tinyWorld } from '@ringside/engine/testing';
+import {
+  systemsWithoutGates,
+  TEST_PLAYER_ID,
+  TINY_WORLD_TODAY,
+  tinyWorld,
+  worldBuilder,
+} from '@ringside/engine/testing';
 import type { EngineFactory } from '@/worker/engineHost';
 
 declare module '@ringside/engine' {
@@ -69,7 +81,58 @@ export function fakeAdvanceDay(dayNumber: number): GameDate {
   return addDays(FAKE_START_DATE, dayNumber - 1);
 }
 
+/** The booking world's first day: a Friday. Its Thursday show is six days away. */
+export const BOOKING_WORLD_START: GameDate = parseGameDate('2026-04-10');
+
+/** What `bookingFakeState` builds: the state to install and the roster, in builder order. */
+export interface BookingFakeWorld {
+  readonly state: EngineState;
+  /** Twelve wrestlers, all contracted to Test Promotion A. */
+  readonly roster: readonly PersonId[];
+}
+
+/**
+ * A world for the booking screen: Test Promotion A, run by the local player, with a roster of
+ * twelve and "Test Weekly" on Thursdays (six main-card slots and a pre-show), and the computer's
+ * Test Promotion B with a show of its own. The shipped catalogs are on it, so matches can be
+ * booked. Stored shows appear after the first simulated day; the card starts empty, so tests
+ * book what they need through the transport. The golden tiny world is left alone.
+ */
+export function bookingFakeState(): BookingFakeWorld {
+  const THURSDAY = 3;
+  const SATURDAY = 5;
+  const { world, ids } = worldBuilder({
+    worldName: 'Test Booking World',
+    startDate: parseGameDate('2026-01-05'),
+    currentDate: BOOKING_WORLD_START,
+  })
+    .withCatalogs()
+    .withGeography('mini')
+    .withPromotion(
+      {
+        name: 'Test Promotion A',
+        shortName: 'TPA',
+        controller: { kind: 'human', playerId: TEST_PLAYER_ID },
+      },
+      (promotion) =>
+        promotion
+          .withBrand({ name: 'Test Brand A' })
+          .withRoster(12)
+          .withWeeklyShow(
+            { name: 'Test Weekly', weekdays: [THURSDAY] },
+            { format: { slots: 6, preShowSlots: 1 } },
+          ),
+    )
+    .withPromotion({ name: 'Test Promotion B', shortName: 'TPB' }, (promotion) =>
+      promotion.withWeeklyShow({ name: 'Test Rival Weekly', weekdays: [SATURDAY] }),
+    )
+    .build();
+  return { state: initialEngineState(world), roster: ids.people.slice(0, 12) };
+}
+
 export interface FakeEngineOptions {
+  /** Keeps the real show-day gate. Off when left out. */
+  readonly showDayGate?: boolean;
   /** A multi-day advance stops at the start of this date. Never, when left out. */
   readonly gateDate?: GameDate;
   /** What the gate's hit says and links to. The reason is {@link FAKE_GATE_REASON} by default. */
@@ -151,6 +214,11 @@ function fakeSystem(options: FakeEngineOptions): SystemBundle {
 
 /** An engine factory that adds the test system to whatever the host asks for. */
 export function fakeEngineFactory(options: FakeEngineOptions = {}): EngineFactory {
-  return (engineOptions: CreateEngineOptions): Engine =>
-    createEngine({ ...engineOptions, systems: [...engineOptions.systems, fakeSystem(options)] });
+  return (engineOptions: CreateEngineOptions): Engine => {
+    const systems =
+      options.showDayGate === true
+        ? engineOptions.systems
+        : systemsWithoutGates(engineOptions.systems, [SHOW_NEEDS_BOOKING_GATE_ID]);
+    return createEngine({ ...engineOptions, systems: [...systems, fakeSystem(options)] });
+  };
 }

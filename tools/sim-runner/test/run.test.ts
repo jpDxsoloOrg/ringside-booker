@@ -4,7 +4,13 @@ import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { addDays, defaultSystems, defineSystem, diffDays } from '@ringside/engine';
 import type { TunableSetting } from '../src/args';
-import { fixtureState, readStateFile, runSimulation, type CompletedRun } from '../src/run';
+import {
+  fixtureState,
+  openPastShows,
+  readStateFile,
+  runSimulation,
+  type CompletedRun,
+} from '../src/run';
 import { runCli, EXIT_FAILED, EXIT_GATE, EXIT_OK, EXIT_USAGE, type CliIo } from '../src/cli';
 
 /** A gate that stops every run five days after the world's start date. */
@@ -104,6 +110,13 @@ describe('runSimulation on the roster fixture', () => {
     expect(summary.eventsByType['day.started']).toBe(30);
     expect(summary.worldHash).toMatch(/^[0-9a-f]{16}$/);
     expect(run.advanceCalls).toBe(1);
+  });
+
+  it('runs the weekly show every week and leaves no past show open', async () => {
+    const run = await completedRun(20, '1', 60);
+    expect(run.summary.failuresByStep).toEqual({});
+    expect(run.summary.eventsByType['show.completed']).toBeGreaterThanOrEqual(8);
+    expect(openPastShows(run.finalState)).toEqual([]);
   });
 
   it('gives the same world hash for two runs with the same seed', async () => {
@@ -250,6 +263,20 @@ describe('runCli', () => {
     expect(io.out()).toContain('MISMATCH: the two runs differ');
     expect(io.out()).toContain('world hash:');
     expect(io.err()).toContain('Determinism check failed');
+  });
+
+  it('exits 1 under --strict when a show dated before the end is still open', async () => {
+    // Without show night and the day close, nothing runs or closes the weekly show.
+    const systems = defaultSystems.map((system) => ({
+      ...system,
+      phases: system.phases.filter(
+        (phase) => phase.id !== 'shows.runShows' && phase.id !== 'calendar.closePastShows',
+      ),
+    }));
+    const io = captureIo();
+    const code = await runCli(['--days', '10', '--people', '5', '--strict'], io, { systems });
+    expect(code).toBe(EXIT_FAILED);
+    expect(io.err()).toMatch(/--strict: 1 show\(s\) dated before 2026-01-15 are still open: evi_/);
   });
 
   it('exits 1 under --strict when a step fails', async () => {

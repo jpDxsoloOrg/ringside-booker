@@ -1286,3 +1286,227 @@ export {
   SimulateArgsSchema,
   SimulateBatchArgsSchema,
 } from './systems/match/index';
+
+// The booking system (EVT2-01): the card rules, the segment draft and the card writer every
+// booking command and the rival booker write cards through. See docs/design/booking.md.
+export type {
+  AngleDraft,
+  CardPosition,
+  CardShow,
+  CardTarget,
+  EditBlockCode,
+  MatchDraft,
+  ParticipantDraft,
+  SegmentDraft,
+  SegmentDraftInput,
+  StructuralCheck,
+  StructuralProblemCode,
+  WriteSegmentArgs,
+} from './systems/booking/index';
+export {
+  AngleDetailsDraftSchema,
+  AngleDraftSchema,
+  canReadCard,
+  cardSegments,
+  clearCard,
+  draftFromSegment,
+  EDIT_BLOCK_CODES,
+  editBlockOf,
+  emptyCrew,
+  hasCard,
+  MatchDetailsDraftSchema,
+  MatchDraftSchema,
+  moveSegment,
+  PARK_SLOT,
+  ParticipantDraftSchema,
+  removeSegment,
+  SegmentDraftSchema,
+  setPlannedOutcome,
+  STRUCTURAL_PROBLEM_CODES,
+  structuralProblems,
+  writeSegment,
+} from './systems/booking/index';
+export { CardWriteError } from './core/errors';
+// The booking commands (EVT2-02): add, update, remove, move, set result and clear, each checked
+// against who runs the show and whether its card can still change. See
+// docs/design/booking.md#commands.
+export type {
+  AddSegmentArgs,
+  BookingCommandReasonCode,
+  CardChange,
+  MoveSegmentArgs,
+  SetResultArgs,
+  UpdateSegmentArgs,
+} from './systems/booking/index';
+export { BOOKING_COMMAND_REASON_CODES, CARD_CHANGES } from './systems/booking/index';
+
+// The booking screen's reads (EVT2-03): the shows to book, a card with its derived slot roles, the
+// workers who can go on it with their availability chips, and the show-day gate. See
+// docs/design/booking.md#queries and #gate.
+export type {
+  AvailabilityView,
+  AvailableTeamRow,
+  AvailableWorkerRow,
+  AvailableWorkersView,
+  BookingCard,
+  BookingPersonView,
+  BookingResultView,
+  BookingSectionView,
+  BookingSegmentView,
+  BookingShowRow,
+  BookingShowsView,
+  BookingShowView,
+  BookingSideView,
+  BookingSlotView,
+  BookingTitleOption,
+  BookingTitleView,
+  WorkerPickKind,
+} from './systems/booking/index';
+export {
+  AVAILABILITY_LABELS,
+  availabilityLabel,
+  BOOKING_UNAVAILABLE_REASON,
+  DEFAULT_BOOKING_SHOWS,
+  MAX_BOOKING_SHOWS,
+  MAX_WORKER_SEARCH,
+  SHOW_NEEDS_BOOKING_GATE_ID,
+  slotLabel,
+  WORKER_PICK_KINDS,
+} from './systems/booking/index';
+
+// The booking checks (EVT2-04): `validateCard`, the one answer the booking screen, `booking.lockCard`
+// and the rival booker (AIP4) share, the check registry other features plug their rules into, and
+// the minimum-filled formula. See docs/design/booking.md#validation.
+export type {
+  BookingCheck,
+  BookingCheckInput,
+  BookingIssue,
+  BookingIssueDraft,
+  BookingSeverity,
+  BookingValidation,
+  ChecklistItem,
+  MinFilledMainSlotsInputs,
+  ValidateCardDeps,
+} from './systems/booking/index';
+export {
+  CHECK_FAILED_CODE,
+  MAX_LOCK_REASONS,
+  minFilledMainSlots,
+  registerBookingCheck,
+  registeredBookingChecks,
+  validateCard,
+} from './systems/booking/index';
+
+// The shows system (EVT3-01): show night's domain events (`segment.completed`, `show.completed`,
+// `title.changed`, `title.defended`), trace kinds and refs, random stream and tunables. The phase
+// and queries arrive with EVT3-03..05. See docs/design/show-night.md.
+export {
+  RIVAL_SEGMENT_SCORE_TRACE_KIND,
+  SEGMENT_SCORE_TRACE_KIND,
+  SHOW_SCORE_TRACE_KIND,
+  SHOWS_OFFSCREEN_STREAM,
+  SHOWS_TRACE_KINDS,
+  TITLE_OUTCOME_TRACE_KIND,
+  segmentScoreTraceRef,
+  showScoreTraceRef,
+  showsSystem,
+  showsTunables,
+  titleOutcomeTraceRef,
+  traceRefFromKey,
+} from './systems/shows/index';
+
+// The show score (EVT3-02): the slot-weighted show score, the off-screen score of a rival show
+// nobody booked, the show's stars, and the modifier seam later features (EVT4, CRTV, BRW) add show
+// score lines through. See docs/design/show-night.md#show-score and #seams.
+export {
+  OFFSCREEN_SHOW_SCORE_DOC_REF,
+  SHOW_SCORE_DOC_REF,
+  SHOW_SCORE_MAX,
+  SHOW_SCORE_MIN,
+  SHOW_SCORE_MODIFIER_STAGES,
+  SHOW_STARS_MAX,
+  SHOW_STARS_MIN,
+  listShowScoreModifiers,
+  offscreenShowScore,
+  registerShowScoreModifier,
+  showScore,
+  showStars,
+  sortShowScoreModifiers,
+  unregisterShowScoreModifier,
+  type OffscreenShowScoreInputs,
+  type ShowScoreDeps,
+  type ShowScoreInputs,
+  type ShowScoreModifier,
+  type ShowScoreModifierStage,
+  type ShowScoreResult,
+  type ShowSlotInput,
+  type ShowStarsInputs,
+} from './systems/shows/index';
+
+// Show night (EVT3-03): the `shows.runShows` phase that runs every show dated today, rates each
+// segment and writes results, plus the seams later features plug into: segment result appliers
+// and the match outcome resolver. See docs/design/show-night.md#phase and #seams.
+export {
+  BOOKED_RESULT_REASON,
+  NO_PLAN_NO_CONTEST_REASON,
+  OUTCOME_DECISION_LABEL,
+  hasShowsToday,
+  isSegmentRun,
+  listSegmentResultAppliers,
+  matchOutcomeResolver,
+  plannedOrNoContest,
+  registerMatchOutcomeResolver,
+  registerSegmentResultApplier,
+  runShowsPhase,
+  showsPhases,
+  unregisterMatchOutcomeResolver,
+  unregisterSegmentResultApplier,
+  type MatchOutcomeDeps,
+  type MatchOutcomeInput,
+  type MatchOutcomeResolution,
+  type MatchOutcomeResolver,
+  type MatchOutcomeSide,
+  type SegmentResult,
+  type SegmentResultApplier,
+  type SegmentResultSide,
+} from './systems/shows/index';
+
+// Title outcomes and appearances (EVT3-04): the built-in `shows.titleOutcome` applier that moves
+// or keeps each title on the line, and the per-show appearance counts with their 1 January reset.
+// See docs/design/show-night.md#title-outcomes and #appearances.
+export {
+  TITLE_OUTCOME_APPLIER_ID,
+  countAppearances,
+  countsAsDefence,
+  resetAppearancesPhase,
+  showWorkers,
+  titleOutcomeApplier,
+  titleOutcomeDecision,
+  type TitleOutcome,
+  type TitleOutcomeDeps,
+  type TitleOutcomeInputs,
+} from './systems/shows/index';
+
+// Results queries (EVT3-05): `shows.results` (one show's results page), `shows.lastCompleted` and
+// `shows.completedSince` (compact lines for the Office panel and the "See results" links), and the
+// view types screens import. See docs/design/show-night.md#results-queries.
+export {
+  DEFAULT_COMPLETED_SINCE,
+  MAX_COMPLETED_SINCE,
+  MAX_RESULTS_RANGE_DAYS,
+  RESULTS_RANGE_MESSAGES,
+  RESULTS_SCOPES,
+  SHOW_NOT_FOUND_MESSAGE,
+  type CompletedSinceArgs,
+  type ResultsScope,
+  type SegmentMemberView,
+  type SegmentOutcomeView,
+  type SegmentRatingView,
+  type SegmentResultView,
+  type SegmentSideView,
+  type SegmentTitleView,
+  type ShowResultView,
+  type ShowResultsView,
+  type ShowSummaryView,
+  type TitleResultOutcome,
+} from './systems/shows/index';

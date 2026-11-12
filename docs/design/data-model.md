@@ -786,22 +786,22 @@ slots on major and flagship shows.
 
 One dated show.
 
-| Field               | Type                                                          | Notes                                         |
-| ------------------- | ------------------------------------------------------------- | --------------------------------------------- |
-| `id`                | `EventInstanceId`                                             |                                               |
-| `promotionId`       | `PromotionId`                                                 |                                               |
-| `eventDefinitionId` | `EventDefinitionId \| null`                                   | null for a one-off                            |
-| `brandId`           | `BrandId \| null`                                             |                                               |
-| `name`              | string, 1–60                                                  |                                               |
-| `importance`        | as on the definition                                          | copied at scheduling                          |
-| `format`            | `ShowFormat`                                                  | copied at scheduling                          |
-| `date`              | `GameDate`                                                    | the live or taping date                       |
-| `airDate`           | `GameDate`                                                    | not before `date`; equal unless taped         |
-| `status`            | `'scheduled' \| 'booked' \| 'completed' \| 'cancelled'`       |                                               |
-| `venueId`           | `VenueId \| null`                                             |                                               |
-| `regionId`          | `RegionId`                                                    |                                               |
-| `result`            | `null \| { score; attendance; gate: Cents; viewers \| null }` | set exactly when completed; EVT/ECO extend it |
-| `cancellation`      | `null \| { reason: 'notRun' \| 'byPromotion'; on: GameDate }` | set exactly when cancelled                    |
+| Field               | Type                                                          | Notes                                 |
+| ------------------- | ------------------------------------------------------------- | ------------------------------------- |
+| `id`                | `EventInstanceId`                                             |                                       |
+| `promotionId`       | `PromotionId`                                                 |                                       |
+| `eventDefinitionId` | `EventDefinitionId \| null`                                   | null for a one-off                    |
+| `brandId`           | `BrandId \| null`                                             |                                       |
+| `name`              | string, 1–60                                                  |                                       |
+| `importance`        | as on the definition                                          | copied at scheduling                  |
+| `format`            | `ShowFormat`                                                  | copied at scheduling                  |
+| `date`              | `GameDate`                                                    | the live or taping date               |
+| `airDate`           | `GameDate`                                                    | not before `date`; equal unless taped |
+| `status`            | `'scheduled' \| 'booked' \| 'completed' \| 'cancelled'`       |                                       |
+| `venueId`           | `VenueId \| null`                                             |                                       |
+| `regionId`          | `RegionId`                                                    |                                       |
+| `result`            | `null \| EventResult` (below)                                 | set exactly when completed            |
+| `cancellation`      | `null \| { reason: 'notRun' \| 'byPromotion'; on: GameDate }` | set exactly when cancelled            |
 
 Refs: `promotionId`, `eventDefinitionId`, `brandId`, `venueId`, `regionId`.
 Indexes: `byPromotion`, `byDate`, `byDefinition`, `byStatus` (so a phase can
@@ -815,6 +815,21 @@ never scheduled a second time. One-offs have no definition and are left out of
 that index. `cancellation.reason` tells a show nobody ran (`notRun`) from one
 its promotion called off (`byPromotion`). See [calendar.md](calendar.md).
 
+`EventResult` is what a completed show produced. Each field has one writer;
+the last three stay null until that feature lands, and crowd size is never the
+same number as crowd reaction (D-02):
+
+| Field        | Type            | Written by                                                              |
+| ------------ | --------------- | ----------------------------------------------------------------------- |
+| `score`      | 0–100           | EVT3: the final show score                                              |
+| `rawScore`   | 0–100           | EVT3: the score before any `cap`-stage modifier; equals `score` if none |
+| `traceId`    | string or null  | EVT3: the ref key of the show score's trace                             |
+| `attendance` | int ≥ 0 or null | EVT6                                                                    |
+| `gate`       | `Cents` or null | EVT6: ticket revenue                                                    |
+| `viewers`    | int ≥ 0 or null | ECO8; null for a show that did not air                                  |
+
+See [show-night.md](show-night.md).
+
 ### Segments (`segments`, `seg_`)
 
 A segment is a match or an angle, as a union on `kind`, so nothing can build a
@@ -827,20 +842,23 @@ Shared fields:
 | ----------------- | ----------------------------------------------------------------------------- | -------------------------------------------- |
 | `id`              | `SegmentId`                                                                   |                                              |
 | `eventInstanceId` | `EventInstanceId`                                                             |                                              |
-| `slot`            | int ≥ 0                                                                       | position within its card section, from 0     |
+| `slot`            | int ≥ 0                                                                       | position in its section, from 0; gaps = open |
 | `preShow`         | boolean                                                                       | true = pre-show section, false = main card   |
 | `label`           | string or null                                                                | a billing line such as a contender's match   |
 | `storylineIds`    | `StorylineId[]`                                                               | unique                                       |
 | `crew`            | `{ refereeId: PersonId \| null; producerId: PersonId \| null; announcerIds }` | at most 4 announcers                         |
-| `rating`          | `null \| { score: 0–100; stars: 0–5 in quarter stars; traceId \| null }`      | set once the show is completed; MTCH extends |
+| `rating`          | `null \| SegmentRating` (below)                                               | set once the show is completed               |
 
 `kind: 'match'` adds:
 
 - `match`: `{ matchTypeKey; stipulationKeys[]; titleIds: TitleId[]; finishKey | null }`.
   `finishKey` is the planned finish (`finish.clean`); `null` means "decided on
   the night". See [match-finishes.md](match-finishes.md).
-- `outcome`, the outcome union:
-  - `null` until the show is completed;
+- `outcome`, the outcome union. While the show is `scheduled` or `booked` it is
+  the booker's planned result; once the show is `completed` it is the result
+  that happened (written by EVT3). One field, so there is one source of truth.
+  See [booking.md](booking.md#planned-results).
+  - `null`: nothing planned (decided on the night), or no result yet;
   - `{ kind: 'win'; winningSide; methodKey }`, where `winningSide` is a
     participant `side` (0–29, `MAX_SIDE`);
   - `{ kind: 'draw' }`;
@@ -860,8 +878,21 @@ validate:world's `segment-keys` rule check. A finish key resolves against
 `checkSegmentFinishes` and the `segment-finishes` rule check
 ([match-finishes.md](match-finishes.md)); beats and stipulations get their
 catalogs (and checks) with MTCH5 and MTCH7.
+`SegmentRating` is written by EVT3's `shows.runShows` from the segment's
+rater ([match-rating.md](match-rating.md)):
+
+| Field         | Type                 | Notes                                                         |
+| ------------- | -------------------- | ------------------------------------------------------------- |
+| `score`       | 0–100                | the segment score                                             |
+| `stars`       | 0–5 in quarter stars |                                                               |
+| `workRate`    | 0–100 or null        | null only when the rater has no work rate (a talking segment) |
+| `crowd`       | 0–100 or null        | null only when the rater has no crowd component               |
+| `expectation` | 0–100 or null        | null only when the rater has no expectation component         |
+| `traceId`     | string or null       | the trace's ref key, `refKey(ref)`                            |
+
 `traceId` links to the recent-traces store kept in the save, so the Why? panel
-can find a segment's trace.
+can find a segment's trace; `traceRefFromKey` (`systems/shows/traces.ts`)
+turns it back into a ref.
 
 Refs: `eventInstanceId`, `storylineIds[]`, `crew.refereeId`,
 `crew.producerId`, `crew.announcerIds[]`, `match.titleIds[]`,
@@ -960,18 +991,20 @@ the rest at write time):
 | ------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
 | `titleReigns.holderCountMismatch`                      | a reign has exactly `title.holderCount` holders                                           |
 | `titleReigns.overlap`                                  | reigns of one title do not overlap in time                                                |
-| `segments.slotsNotContiguous`                          | within an instance, main-card slots run 0..n-1, and pre-show slots run 0..m-1, separately |
+| `segments.slotOutsideFormat`                           | a main-card slot is below `format.slots`, and a pre-show slot below `format.preShowSlots` |
 | `segments.tooManyMainCard` / `segments.tooManyPreShow` | a section holds no more segments than `format.slots` / `format.preShowSlots`              |
 | `segments.winningSideWithoutCompetitor`                | a match's `outcome.winningSide` has a `competitor` participant                            |
 | `segments.titleFromOtherPromotion`                     | a match's `titleIds` belong to the instance's promotion                                   |
-| `segments.resultBeforeCompletion`                      | `rating` and `outcome` are set only once the instance is `completed`                      |
+| `segments.resultBeforeCompletion`                      | `rating` is set only once the instance is `completed`; `outcome` may hold a plan earlier  |
 | `segments.tooFewSides`                                 | a match has competitors on at least two distinct sides                                    |
 | `seasons.activeCount` / `seasons.activeNotLatest`      | a non-empty table has exactly one active season, and it has the highest number            |
 | `seasons.numberGap`                                    | season numbers run 1..n                                                                   |
 | `seasons.notContiguous` / `seasons.overlap`            | each season starts the day after the previous one ends                                    |
 
 Slot and format issues are reported against the `eventInstances` row, since
-they are about the card as a whole.
+they are about the card as a whole. A card may have gaps: each section numbers
+from 0 and open slots are simply absent, so a booker can fill the main event
+first and leave slot 3 open (D-10, [booking.md](booking.md#the-card-model)).
 
 ## Geography, media, mail, news and ledger
 

@@ -6,4 +6,5 @@ export type {
   DropdownMenuItemTone,
   DropdownMenuProps,
   DropdownMenuSeparator,
+  DropdownMenuSubmenu,
 } from './DropdownMenu';

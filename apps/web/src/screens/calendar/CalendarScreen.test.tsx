@@ -494,7 +494,7 @@ describe('CalendarScreen', () => {
         removeAction = registerShowSheetAction({
           id: 'test.book',
           order: 10,
-          render: ({ isOwn }) => (isOwn ? <button type="button">Book this show</button> : null),
+          render: ({ isOwn }) => (isOwn ? <button type="button">Tape this show</button> : null),
         });
         removeBadge = registerShowChipBadge({
           id: 'test.taped',
@@ -510,13 +510,13 @@ describe('CalendarScreen', () => {
 
       await user.click(chip);
       const sheet = await screen.findByRole('dialog', { name: 'Test Weekly' });
-      expect(within(sheet).getByRole('button', { name: 'Book this show' })).toBeInTheDocument();
+      expect(within(sheet).getByRole('button', { name: 'Tape this show' })).toBeInTheDocument();
 
       act(() => {
         removeAction();
         removeBadge();
       });
-      expect(within(sheet).queryByRole('button', { name: 'Book this show' })).toBeNull();
+      expect(within(sheet).queryByRole('button', { name: 'Tape this show' })).toBeNull();
       expect(screen.queryByText('Taped')).not.toBeInTheDocument();
     });
 

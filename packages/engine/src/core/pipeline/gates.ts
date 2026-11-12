@@ -22,7 +22,7 @@ import { describeValue, PipelineError, serializeError } from '../errors';
 import type { EntityRef } from '../trace/types';
 import type { SimRuntime } from './runtime';
 
-/** A gate id: `system.camelName`, such as `events.showNeedsBooking`. */
+/** A gate id: `system.camelName`, such as `booking.showNeedsBooking`. */
 export const GATE_ID_PATTERN = /^[a-z][a-zA-Z0-9]*\.[a-z][a-zA-Z0-9]*$/;
 
 /** The system prefix of the engine's built-in gates (`sim.stopDate`, `sim.repeatedFailure`). */
@@ -69,7 +69,7 @@ export function defineGate<R extends TableRegistry = GameTables>(
 ): GateDefinition<R> {
   if (!GATE_ID_PATTERN.test(spec.id)) {
     throw new PipelineError(
-      `Gate id ${describeValue(spec.id)} must look like "system.camelName", for example "events.showNeedsBooking"`,
+      `Gate id ${describeValue(spec.id)} must look like "system.camelName", for example "booking.showNeedsBooking"`,
       { gateId: spec.id },
     );
   }

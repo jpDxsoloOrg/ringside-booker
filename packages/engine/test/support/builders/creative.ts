@@ -23,7 +23,6 @@
  */
 
 import { parseContentKey } from '../../../src/core/content-key';
-import { cents } from '../../../src/core/money';
 import {
   EventDefinitionSchema,
   type EventDefinition,
@@ -62,8 +61,10 @@ export const DEFAULT_BEAT_KEY = parseContentKey('beat.promo');
 /** The result a completed event instance gets when the test does not give one. */
 export const DEFAULT_EVENT_RESULT: EventResult = {
   score: 50,
-  attendance: 1000,
-  gate: cents(2_000_000),
+  rawScore: 50,
+  traceId: null,
+  attendance: null,
+  gate: null,
   viewers: null,
 };
 

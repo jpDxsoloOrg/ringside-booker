@@ -254,7 +254,7 @@ is built, next to its phases:
 
 ```ts
 runtime.gates.register({
-  id: 'events.showNeedsBooking', // system.camelName, unique
+  id: 'booking.showNeedsBooking', // system.camelName, unique
   label: 'Show needs booking',
   check: (view, date) => {
     const show = playerShowOn(view, date); // an indexed lookup, not a table scan
@@ -262,7 +262,7 @@ runtime.gates.register({
       return null;
     }
     return {
-      gateId: 'events.showNeedsBooking',
+      gateId: 'booking.showNeedsBooking',
       reason: `Your show '${show.name}' on ${date} has no card yet`,
       subject: { kind: 'eventInstance', id: show.id },
       actionHint: 'booking',
@@ -270,6 +270,9 @@ runtime.gates.register({
   },
 });
 ```
+
+The real show-day gate (EVT2-03) is `booking/gates.ts`; see
+[booking.md](booking.md#gate).
 
 `defineGate` (which `register` calls) checks the id and the label.
 `register` throws `PipelineError` for a duplicate id or for an id starting
@@ -704,3 +707,20 @@ also carries `source` (`player`, `ai` or `system`) and `reasonKey`:
 | `popularity.changed`          | `subjectKind`, `subjectId`, `worldBefore`, `worldAfter`, `regionsChanged` | A person's or promotion's popularity changes in a region      |
 | `momentum.changed`            | `employmentId`, `personId`, `promotionId`, `before`, `after`              | A worker's momentum changes (`before` is null the first time) |
 | `morale.changed`              | `employmentId`, `personId`, `promotionId`, `before`, `after`              | A worker's morale changes                                     |
+
+The booking system's events ([booking.md](booking.md#commands)):
+
+| Event           | Payload                                                            | Published when                      |
+| --------------- | ------------------------------------------------------------------ | ----------------------------------- |
+| `card.changed`  | `eventInstanceId`, `promotionId`, `brandId`, `segmentId`, `change` | A booking command changes a card    |
+| `card.locked`   | `eventInstanceId`, `promotionId`, `brandId`                        | A card is locked (EVT2-04)          |
+| `card.unlocked` | `eventInstanceId`, `promotionId`, `brandId`                        | A locked card is unlocked (EVT2-04) |
+
+The shows system's events ([show-night.md](show-night.md#events)):
+
+| Event               | Payload                                                                                                                                                                                | Published when                            |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| `segment.completed` | `segmentId`, `eventInstanceId`, `promotionId`, `brandId`, `kind`, `slot`, `preShow`, `winnerIds`, `loserIds`, `drawIds`, `storylineIds`, `titleIds`, `finishKey`, `methodKey`, `score` | A segment is run and rated on show night  |
+| `show.completed`    | `eventInstanceId`, `promotionId`, `brandId`, `date`, `importance`, `score`, `rawScore`, `offscreen`, `segmentCount`                                                                    | A show is run, on screen or off it        |
+| `title.changed`     | `titleId`, `promotionId`, `fromReignId`, `toReignId`, `segmentId`, `eventInstanceId`, `newHolderIds`, `previousHolderIds`                                                              | A title changes hands in a segment        |
+| `title.defended`    | `titleId`, `promotionId`, `reignId`, `segmentId`, `eventInstanceId`, `defences`                                                                                                        | A champion keeps their title in a segment |

@@ -22,8 +22,8 @@ import {
   loadSave,
   TABLES,
 } from '../../../src';
-import { defaultSystems } from '../../../src/systems';
 import type { CalendarShow } from '../../../src/systems/calendar';
+import { SYSTEMS_WITHOUT_SHOW_DAY_GATE } from '../../support';
 import { expectTraceContains } from '../../support/trace';
 import { startDefaultGame } from './default-game';
 
@@ -46,8 +46,10 @@ const SATURDAY = 5;
 /** Words a calendar row must never carry: a card is slots, never a running time. */
 const RUNNING_TIME = /\bmin(ute)?s?\b|\bhours?\b|duration/i;
 
+// The show-day gate would stop every day with the player's unbooked show; these tests are about
+// the calendar, so they run without it. booking/gate.test.ts covers the gate.
 function engineOver(state: EngineState): Engine {
-  return createEngine({ state, systems: defaultSystems });
+  return createEngine({ state, systems: SYSTEMS_WITHOUT_SHOW_DAY_GATE });
 }
 
 function ask<Name extends QueryName>(

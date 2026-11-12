@@ -1,0 +1,54 @@
+/**
+ * The booking system's balance numbers: the thresholds the booking checks (EVT2-04) hold a card
+ * to before it can be locked.
+ *
+ * Design notes: docs/design/booking.md#validation.
+ */
+
+import { defineTunables } from '../../core/tunables/define';
+
+const BOOKING_CATEGORY = 'Booking';
+const VALIDATION_DOC = 'booking.md#validation';
+
+export const bookingTunables = defineTunables({
+  'booking.maxAppearancesPerShow': {
+    kind: 'integer',
+    default: 2,
+    min: 1,
+    max: 6,
+    unit: 'count',
+    category: BOOKING_CATEGORY,
+    description: 'Most segments of any kind one person may appear in on one show',
+    docRef: VALIDATION_DOC,
+  },
+  'booking.maxMatchesPerPersonPerShow': {
+    kind: 'integer',
+    default: 1,
+    min: 1,
+    max: 4,
+    unit: 'count',
+    category: BOOKING_CATEGORY,
+    description: 'Most matches one person may wrestle on one show',
+    docRef: VALIDATION_DOC,
+  },
+  'booking.minFilledMainShare': {
+    kind: 'number',
+    default: 0.5,
+    min: 0,
+    max: 1,
+    step: 0.05,
+    unit: 'ratio',
+    category: BOOKING_CATEGORY,
+    description:
+      'Share of main-card slots that must be filled before a card can be locked (0 = no minimum)',
+    docRef: VALIDATION_DOC,
+  },
+  'booking.requireMainEvent': {
+    kind: 'boolean',
+    default: true,
+    unit: 'flag',
+    category: BOOKING_CATEGORY,
+    description: 'A card can only be locked with its main event (the last main-card slot) filled',
+    docRef: VALIDATION_DOC,
+  },
+});

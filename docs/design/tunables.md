@@ -419,3 +419,39 @@ The auto-winner and Random winners (MTCH2-03) add to the same category. See
 | `match.autoWinner.alignment.tweener` | number | 1       | −20–20 | points     | Points for a tweener                                                 |
 | `match.autoWinner.randomness`        | number | 5       | 0–200  | points     | Most unpredictability per side; 0 = always the same winner           |
 | `match.randomWinners.randomness`     | number | 60      | 1–1000 | points     | Most unpredictability per side in Random winners mode; never below 1 |
+
+## Shows tunables
+
+Show night's numbers (EVT3), in `systems/shows/tunables.ts`, category `Shows`.
+See [show-night.md](show-night.md) for what each does. EVT3 never writes
+morale, momentum or popularity, so nothing here tunes them.
+
+| Key                                   | Kind    | Default | Range  | Unit       | What it does                                                            |
+| ------------------------------------- | ------- | ------- | ------ | ---------- | ----------------------------------------------------------------------- |
+| `shows.score.preShowFactor`           | number  | 0       | 0–2    | multiplier | How much pre-show segments count toward the show score (0 = not at all) |
+| `shows.emptySlotPenalty`              | number  | 5       | 0–50   | points     | Show score lost for each empty main-card slot                           |
+| `shows.offscreen.base`                | number  | 12      | 0–100  | points     | Starting score of a show run off-screen                                 |
+| `shows.offscreen.prestigeWeight`      | number  | 0.3     | 0–2    | multiplier | Points per point of the promotion's prestige                            |
+| `shows.offscreen.popularityWeight`    | number  | 0.35    | 0–2    | multiplier | Points per point of the roster's popularity                             |
+| `shows.offscreen.importance.house`    | number  | −6      | −30–30 | points     | Points for an off-screen house show                                     |
+| `shows.offscreen.importance.minor`    | number  | −3      | −30–30 | points     | Points for an off-screen minor show                                     |
+| `shows.offscreen.importance.regular`  | number  | 0       | −30–30 | points     | Points for an off-screen regular show                                   |
+| `shows.offscreen.importance.major`    | number  | 4       | −30–30 | points     | Points for an off-screen major show                                     |
+| `shows.offscreen.importance.flagship` | number  | 8       | −30–30 | points     | Points for an off-screen flagship show                                  |
+| `shows.offscreen.spread`              | number  | 8       | 0–50   | points     | Largest random swing either way (0 = no randomness)                     |
+| `shows.titles.drawCountsAsDefence`    | boolean | true    |        | flag       | A drawn title match counts as a successful defence                      |
+| `shows.stars.zeroAt`                  | number  | 35      | 0–80   | points     | Show score that earns zero stars                                        |
+| `shows.stars.pointsPerStar`           | number  | 12      | 0–30   | points     | Show score points per star (0 = any score above zero-stars earns 5)     |
+
+## Booking tunables
+
+The thresholds a card is held to before it can be locked (EVT2-04), in
+`systems/booking/tunables.ts`, category `Booking`. See
+[booking.md](booking.md#validation).
+
+| Key                                  | Kind    | Default | Range | Unit  | What it does                                                          |
+| ------------------------------------ | ------- | ------- | ----- | ----- | --------------------------------------------------------------------- |
+| `booking.maxAppearancesPerShow`      | integer | 2       | 1–6   | count | Most segments of any kind one person may appear in on one show        |
+| `booking.maxMatchesPerPersonPerShow` | integer | 1       | 1–4   | count | Most matches one person may wrestle on one show                       |
+| `booking.minFilledMainShare`         | number  | 0.5     | 0–1   | ratio | Share of main-card slots that must be filled to lock (0 = no minimum) |
+| `booking.requireMainEvent`           | boolean | true    |       | flag  | The last main-card slot must be filled to lock                        |

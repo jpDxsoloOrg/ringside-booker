@@ -21,6 +21,7 @@ import {
   ChevronLeft,
   ChevronRight,
   CircleDollarSign,
+  CircleX,
   CircleQuestionMark,
   ClipboardList,
   Download,
@@ -36,6 +37,8 @@ import {
   LayoutDashboard,
   Layers,
   Link,
+  Lock,
+  LockOpen,
   LogOut,
   Menu,
   MessageCircleQuestionMark,
@@ -43,6 +46,7 @@ import {
   Network,
   Newspaper,
   Pause,
+  Pencil,
   Play,
   Plus,
   Radio,
@@ -90,6 +94,9 @@ export const STATE_ICON_NAMES = [
   'warning',
   'check',
   'live',
+  'error',
+  'lock',
+  'unlock',
 ] as const;
 
 /** Things the player does. */
@@ -103,6 +110,7 @@ export const ACTION_ICON_NAMES = [
   'drag-handle',
   'info',
   'why',
+  'edit',
 ] as const;
 
 /** Interface chrome and the other screens and objects. */
@@ -188,6 +196,9 @@ export const ICON_GLYPHS: Readonly<Record<IconName, LucideIcon>> = {
   warning: TriangleAlert,
   check: Check,
   live: Radio,
+  error: CircleX,
+  lock: Lock,
+  unlock: LockOpen,
 
   play: Play,
   pause: Pause,
@@ -198,6 +209,7 @@ export const ICON_GLYPHS: Readonly<Record<IconName, LucideIcon>> = {
   'drag-handle': GripVertical,
   info: Info,
   why: MessageCircleQuestionMark,
+  edit: Pencil,
 
   menu: Menu,
   close: X,

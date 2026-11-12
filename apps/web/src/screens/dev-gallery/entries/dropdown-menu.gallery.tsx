@@ -36,6 +36,20 @@ function workerActions(report: (action: string) => void): readonly DropdownMenuE
   });
   return [
     ...SAFE_ACTIONS.map(toEntry),
+    {
+      kind: 'submenu',
+      id: 'push',
+      label: 'Set push',
+      icon: 'up',
+      items: ['Main event', 'Upper midcard', 'Midcard'].map((push) => ({
+        kind: 'item' as const,
+        id: push,
+        label: push,
+        onSelect: () => {
+          report(`Set push: ${push}`);
+        },
+      })),
+    },
     { kind: 'separator', id: 'danger-zone' },
     ...DANGER_ACTIONS.map(toEntry),
   ];

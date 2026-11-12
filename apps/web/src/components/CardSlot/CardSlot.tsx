@@ -1,4 +1,4 @@
-import { forwardRef, useId } from 'react';
+import { forwardRef, Fragment, useId } from 'react';
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { Button } from '../Button';
 import { classNames } from '../classNames';
@@ -44,6 +44,27 @@ export interface CardSlotSide {
 const HEADING_TAGS = { 2: 'h2', 3: 'h3', 4: 'h4' } as const;
 
 export type CardSlotSideKey = 'a' | 'b';
+
+/** How many problems the booking checks found on a slot. Shown as an icon and words. */
+export interface CardSlotIssues {
+  readonly errors: number;
+  readonly warnings: number;
+}
+
+/** "2 problems", "1 warning", "1 problem, 2 warnings". Empty when there are none. */
+export function cardSlotIssuesText({ errors, warnings }: CardSlotIssues): string {
+  const parts: string[] = [];
+  if (errors > 0) parts.push(`${String(errors)} ${errors === 1 ? 'problem' : 'problems'}`);
+  if (warnings > 0) parts.push(`${String(warnings)} ${warnings === 1 ? 'warning' : 'warnings'}`);
+  return parts.join(', ');
+}
+
+const SIDE_KEYS = 'abcdefghijklmnopqrstuvwxyz';
+
+/** `a`, `b`, `c` … for the side at `index`, as drawn in `data-side`. */
+function sideKeyOf(index: number): string {
+  return SIDE_KEYS[index] ?? String(index + 1);
+}
 export type CardSlotAccent = 'data' | 'prestige' | 'action';
 
 export interface CardSlotProps {
@@ -61,8 +82,21 @@ export interface CardSlotProps {
   readonly sideA?: CardSlotSide;
   /** The second side. Without it (and with `sideA`) the segment is one side, such as a promo. */
   readonly sideB?: CardSlotSide;
+  /**
+   * Every side, in order, for a match with any number of sides (a triple threat, a four-way).
+   * Takes the place of `sideA` / `sideB`; "vs" is drawn between each pair.
+   */
+  readonly sides?: readonly CardSlotSide[];
   /** The side the booker picked to win. */
   readonly winner?: CardSlotSideKey;
+  /** The winning side's index in `sides` (or 0 / 1 for side A / B). Takes the place of `winner`. */
+  readonly winnerIndex?: number;
+  /** A result that has no winner, such as "Draw" or "No contest", shown under the matchup. */
+  readonly resultLabel?: string;
+  /** The booking problems on this slot, as an icon and words in the header. Hidden at 0 and 0. */
+  readonly issues?: CardSlotIssues;
+  /** Drawn right after the role tag, such as a Why? button for the role and a duration chip. */
+  readonly roleAside?: ReactNode;
   /** Text of the winner marker. "Winner" by default. */
   readonly winnerLabel?: string;
   /**
@@ -78,6 +112,8 @@ export interface CardSlotProps {
   readonly onAddMatch?: () => void;
   /** Empty slot: called by the "Add promo" button. The button shows only when this is given. */
   readonly onAddPromo?: () => void;
+  /** The text of the `onAddPromo` button. "Add promo" by default. */
+  readonly addPromoLabel?: string;
   /** Empty slot heading. "Open slot" by default. */
   readonly emptyTitle?: string;
   /** Empty slot hint under the heading. */
@@ -96,7 +132,7 @@ export function defaultCardSlotAccent(
 
 interface SideViewProps {
   readonly side: CardSlotSide;
-  readonly sideKey: CardSlotSideKey;
+  readonly sideKey: string;
   readonly isWinner: boolean;
   readonly winnerLabel: string;
 }
@@ -146,20 +182,30 @@ export function CardSlot({
   chips = [],
   sideA,
   sideB,
+  sides,
   winner,
+  winnerIndex,
+  resultLabel,
+  issues,
+  roleAside,
   winnerLabel = 'Winner',
   accent,
   dragHandle,
   actions,
   onAddMatch,
   onAddPromo,
+  addPromoLabel = 'Add promo',
   emptyTitle = 'Open slot',
   emptyHint,
   className,
 }: CardSlotProps) {
   const headingId = useId();
   const Heading = HEADING_TAGS[headingLevel];
-  const isEmpty = sideA === undefined;
+  const allSides: readonly CardSlotSide[] =
+    sides ?? [sideA, sideB].filter((side): side is CardSlotSide => side !== undefined);
+  const isEmpty = allSides.length === 0;
+  const winningIndex = winnerIndex ?? (winner === 'a' ? 0 : winner === 'b' ? 1 : undefined);
+  const issuesText = issues === undefined ? '' : cardSlotIssuesText(issues);
   const resolvedAccent = accent ?? defaultCardSlotAccent(slotRole, chips);
   const label = roleLabel ?? CARD_SLOT_ROLE_LABELS[slotRole];
 
@@ -192,6 +238,7 @@ export function CardSlot({
           )}
           <span>{label}</span>
         </Heading>
+        {roleAside !== undefined && <span className={styles['roleAside']}>{roleAside}</span>}
         {chips.length > 0 && (
           <ul className={styles['chips']} aria-label="Segment details">
             {chips.map((chip) => (
@@ -205,6 +252,16 @@ export function CardSlot({
               </li>
             ))}
           </ul>
+        )}
+        {issues !== undefined && issuesText !== '' && (
+          <span
+            className={styles['issues']}
+            data-severity={issues.errors > 0 ? 'error' : 'warning'}
+            data-part="issues"
+          >
+            <Icon name={issues.errors > 0 ? 'error' : 'warning'} decorative />
+            {issuesText}
+          </span>
         )}
         {actions !== undefined && <span className={styles['actions']}>{actions}</span>}
       </div>
@@ -222,27 +279,40 @@ export function CardSlot({
               )}
               {onAddPromo !== undefined && (
                 <Button iconStart="add" onClick={onAddPromo}>
-                  Add promo
+                  {addPromoLabel}
                 </Button>
               )}
             </div>
           )}
         </div>
       ) : (
-        <div className={classNames(styles['matchup'], sideB === undefined && styles['oneSide'])}>
-          <SideView side={sideA} sideKey="a" isWinner={winner === 'a'} winnerLabel={winnerLabel} />
-          {sideB !== undefined && (
-            <>
-              <span className={styles['versus']}>vs</span>
-              <SideView
-                side={sideB}
-                sideKey="b"
-                isWinner={winner === 'b'}
-                winnerLabel={winnerLabel}
-              />
-            </>
+        <>
+          <div
+            className={classNames(
+              styles['matchup'],
+              allSides.length === 1 && styles['oneSide'],
+              allSides.length > 2 && styles['multiSide'],
+            )}
+            data-sides={allSides.length}
+          >
+            {allSides.map((side, index) => (
+              <Fragment key={sideKeyOf(index)}>
+                {index > 0 && <span className={styles['versus']}>vs</span>}
+                <SideView
+                  side={side}
+                  sideKey={sideKeyOf(index)}
+                  isWinner={winningIndex === index}
+                  winnerLabel={winnerLabel}
+                />
+              </Fragment>
+            ))}
+          </div>
+          {resultLabel !== undefined && (
+            <p className={styles['result']} data-part="result">
+              {resultLabel}
+            </p>
           )}
-        </div>
+        </>
       )}
     </article>
   );
