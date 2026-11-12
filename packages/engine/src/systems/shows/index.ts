@@ -25,6 +25,36 @@ export {
   traceRefFromKey,
 } from './traces';
 export { showsTunables } from './tunables';
+export {
+  OFFSCREEN_SHOW_SCORE_DOC_REF,
+  offscreenShowScore,
+  type OffscreenShowScoreInputs,
+} from './formulas/offscreenShowScore';
+export {
+  SHOW_SCORE_DOC_REF,
+  SHOW_SCORE_MAX,
+  SHOW_SCORE_MIN,
+  showScore,
+  type ShowScoreDeps,
+  type ShowScoreInputs,
+  type ShowScoreResult,
+  type ShowSlotInput,
+} from './formulas/showScore';
+export {
+  SHOW_STARS_MAX,
+  SHOW_STARS_MIN,
+  showStars,
+  type ShowStarsInputs,
+} from './formulas/showStars';
+export {
+  SHOW_SCORE_MODIFIER_STAGES,
+  listShowScoreModifiers,
+  registerShowScoreModifier,
+  sortShowScoreModifiers,
+  unregisterShowScoreModifier,
+  type ShowScoreModifier,
+  type ShowScoreModifierStage,
+} from './showScoreModifiers';
 
 export const showsSystem: SystemBundle = defineSystem({
   id: 'shows',

@@ -1345,3 +1345,31 @@ export {
   titleOutcomeTraceRef,
   traceRefFromKey,
 } from './systems/shows/index';
+
+// The show score (EVT3-02): the slot-weighted show score, the off-screen score of a rival show
+// nobody booked, the show's stars, and the modifier seam later features (EVT4, CRTV, BRW) add show
+// score lines through. See docs/design/show-night.md#show-score and #seams.
+export {
+  OFFSCREEN_SHOW_SCORE_DOC_REF,
+  SHOW_SCORE_DOC_REF,
+  SHOW_SCORE_MAX,
+  SHOW_SCORE_MIN,
+  SHOW_SCORE_MODIFIER_STAGES,
+  SHOW_STARS_MAX,
+  SHOW_STARS_MIN,
+  listShowScoreModifiers,
+  offscreenShowScore,
+  registerShowScoreModifier,
+  showScore,
+  showStars,
+  sortShowScoreModifiers,
+  unregisterShowScoreModifier,
+  type OffscreenShowScoreInputs,
+  type ShowScoreDeps,
+  type ShowScoreInputs,
+  type ShowScoreModifier,
+  type ShowScoreModifierStage,
+  type ShowScoreResult,
+  type ShowSlotInput,
+  type ShowStarsInputs,
+} from './systems/shows/index';
