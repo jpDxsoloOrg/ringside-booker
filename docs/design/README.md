@@ -22,3 +22,4 @@ Game and technical design for Ringside Booker. Each game system gets its own doc
 | [new-game.md](new-game.md)                     | Starting a game: the world preview, the new-game input, settings, season length, controllers, setup steps and founding        |
 | [calendar.md](calendar.md)                     | The show calendar: the stored horizon, how definitions become dated shows, venue and region placement, and the show lifecycle |
 | [workers.md](workers.md)                       | The shared worker model: availability, title eligibility, weight class, grades, employer and main role                        |
+| [match-rating.md](match-rating.md)             | Judging one segment: slot roles, duration classes and slot weights (D-10), and the match queries                              |

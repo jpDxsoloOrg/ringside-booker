@@ -279,3 +279,25 @@ How far ahead shows are kept, in `systems/calendar/tunables.ts`. See
 | ------------------------------ | ------- | ------- | ------ | ---- | ---------------------------------------------------------------------- |
 | `calendar.scheduleHorizonDays` | integer | 90      | 0–730  | days | How far past today shows are stored; 0 stores only today's shows       |
 | `calendar.projectionMaxDays`   | integer | 400     | 0–1100 | days | How far past today the calendar projects shows; 0 turns projection off |
+
+## Match tunables
+
+The slot numbers of D-10, in `systems/match/tunables.ts`, category
+`Match: slots`. See [match-rating.md](match-rating.md#slots).
+
+| Key                                 | Kind    | Default  | Range               | Unit       | What it does                                                         |
+| ----------------------------------- | ------- | -------- | ------------------- | ---------- | -------------------------------------------------------------------- |
+| `match.slot.weight.preShow`         | number  | 0.4      | 0–5                 | multiplier | How much a pre-show segment counts toward the show score             |
+| `match.slot.weight.opener`          | number  | 0.9      | 0–5                 | multiplier | How much the opener counts toward the show score                     |
+| `match.slot.weight.midcard`         | number  | 1        | 0–5                 | multiplier | How much a midcard segment counts toward the show score              |
+| `match.slot.weight.semiMain`        | number  | 1.25     | 0–5                 | multiplier | How much the semi-main counts toward the show score                  |
+| `match.slot.weight.mainEvent`       | number  | 1.75     | 0–5                 | multiplier | How much the main event counts; never less than another slot         |
+| `match.slot.durationClass.preShow`  | enum    | short    | short/standard/long | choice     | Duration class of a pre-show segment before its match type shifts it |
+| `match.slot.durationClass.opener`   | enum    | standard | short/standard/long | choice     | Duration class of the opener before its match type shifts it         |
+| `match.slot.durationClass.midcard`  | enum    | standard | short/standard/long | choice     | Duration class of a midcard segment before its match type shifts it  |
+| `match.slot.durationClass.semiMain` | enum    | standard | short/standard/long | choice     | Duration class of the semi-main before its match type shifts it      |
+| `match.slot.semiMainFromSlots`      | integer | 4        | 3–12                | count      | Smallest main card that has a semi-main                              |
+
+These are the first `enum` tunables in the engine. A table of keys a formula
+reads as numbers is typed `NumberTunableKey` (from `systems/tunables.ts`)
+rather than `TunableKey`, which also covers enum and boolean keys.
