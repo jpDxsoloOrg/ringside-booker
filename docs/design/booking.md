@@ -218,22 +218,23 @@ refused with `busy` while days are advancing.
 
 The UI shows these messages as they are and never re-words them.
 
-| Code                      | When                                                      | Player message                                                    |
-| ------------------------- | --------------------------------------------------------- | ----------------------------------------------------------------- |
-| `invalidArgs`             | the arguments do not parse (a negative slot, a bad id)    | names the field                                                   |
-| `showNotFound`            | the show does not exist                                   | "That show no longer exists"                                      |
-| `segmentNotFound`         | the segment does not exist                                | "That segment is no longer on the card"                           |
-| `notYourShow`             | the issuer does not run the show                          | "Only the person running {brand or promotion} can book this show" |
-| `showCompleted`           | the show has run                                          | "This show has already run"                                       |
-| `showCancelled`           | the show was cancelled                                    | "This show was cancelled"                                         |
-| `showPast`                | its date is before today                                  | "This show has already happened"                                  |
-| `cardLocked`              | the card is locked (`booked`)                             | "Unlock the card to change it"                                    |
-| `slotOutsideFormat`       | add or move to a slot the format does not have            | "Slot 7 doesn't exist on this show"                               |
-| `slotTaken`               | add to a filled slot                                      | "Slot 3 already has a segment"                                    |
-| `notAMatch`               | `setResult` on an angle                                   | "Only a match has a result to plan"                               |
-| `winnerWithoutCompetitor` | the planned winning side has no competitor                | "Side 3 has nobody wrestling, so it can't win"                    |
-| `unknownMethod`           | the planned way of winning is not offered                 | "That way of winning isn't available"                             |
-| other structural codes    | add or update with a draft the writer refuses (see above) | the writer's message, naming the person, title or slot            |
+| Code                      | When                                                      | Player message                                                     |
+| ------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------ |
+| `invalidArgs`             | the arguments do not parse (a negative slot, a bad id)    | names the field                                                    |
+| `showNotFound`            | the show does not exist                                   | "That show no longer exists"                                       |
+| `segmentNotFound`         | the segment does not exist                                | "That segment is no longer on the card"                            |
+| `notYourShow`             | the issuer does not run the show                          | "Only the person running {brand or promotion} can book this show"  |
+| `showCompleted`           | the show has run                                          | "This show has already run"                                        |
+| `showCancelled`           | the show was cancelled                                    | "This show was cancelled"                                          |
+| `showPast`                | its date is before today                                  | "This show has already happened"                                   |
+| `cardLocked`              | the card is locked (`booked`)                             | "Unlock the card to change it"                                     |
+| `slotOutsideFormat`       | add or move to a slot the format does not have            | "Slot 7 doesn't exist on this show"                                |
+| `slotTaken`               | add to a filled slot                                      | "Slot 3 already has a segment"                                     |
+| `notAMatch`               | `setResult` on an angle                                   | "Only a match has a result to plan"                                |
+| `winnerWithoutCompetitor` | the planned winning side has no competitor                | "Side 3 has nobody wrestling, so it can't win"                     |
+| `unknownMethod`           | the planned way of winning is not offered                 | "That way of winning isn't available"                              |
+| `randomWinners`           | a planned result or finish on a Random winners show       | "Results on your shows are decided on the night (Random winners)." |
+| other structural codes    | add or update with a draft the writer refuses (see above) | the writer's message, naming the person, title or slot             |
 
 `notYourShow` names whoever runs the show: the brand when it has its own
 controller, otherwise the promotion.
@@ -444,7 +445,7 @@ day by day, stored injuries never change.
 | `sideSize`           | `booking.structure` | a side outside the type's `sideSize`                                                                            | "Slot 2: Side 2 has 1 wrestler; Tag Team takes 2 a side"           |
 | `unequalSides`       | `booking.structure` | uneven sides in an `equalSides` type (only when every side's size is allowed)                                   | "Slot 2: the sides are uneven (2 against 1); … takes equal sides"  |
 | `speakerCount`       | `booking.structure` | an angle's `speaker` participants outside the angle type's `speakers`                                           | "Slot 2: One speaker in a Confrontation; it takes 2 to 8"          |
-| `noPlannedResult`    | `booking.structure` | a match's `outcome` is null                                                                                     | "Opener: no result planned; pick a winner, a draw or a no contest" |
+| `noPlannedResult`    | `booking.structure` | a match's `outcome` is null (skipped on a Random winners show, see [Integration](#integration))                 | "Opener: no result planned; pick a winner, a draw or a no contest" |
 | `tooFewFilled`       | `booking.structure` | filled main-card slots below `minFilledMainSlots`                                                               | "Main card: 2 of 6 slots filled (needs 3)"                         |
 | `emptyMainEvent`     | `booking.structure` | the last main-card slot is open, while `booking.requireMainEvent` is on                                         | "The main event (Slot 6) is empty"                                 |
 | `titleNotAllowed`    | `booking.titles`    | a title on a match type with `allowsTitles: false`                                                              | "Slot 2: titles can't be on the line in a Battle Royal"            |
@@ -597,3 +598,66 @@ shows no morale warning (D-09). Other features add parts of the editor (finish, 
 stipulations, crew, storylines) with `registerSegmentEditorSection`; a section patches its part of
 the same draft and is saved with it, the one write path. Until MTCH5's beats section exists,
 changing a talking segment's speakers drops its beats so the writer gives the type's default beat.
+
+## Integration
+
+EVT2-07 wires booking to the partner features that were on `main` when it ran.
+Partners plug in only through `registerBookingCheck` (engine, order 200 and
+up, registered when the partner's system module loads),
+`registerSegmentEditorSection` and `registerBookingPanel` (web, one import line
+each in `screens/booking/sections/index.ts`).
+
+| Partner                | Status                  | How it is wired                                                                                                                                                                                                                                                                                                                                                                                                                |
+| ---------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| MTCH2 (finishes)       | wired (EVT2-07)         | The editor's **Finish** section (`sections/BookingFinishSection.tsx`, `match.finish`, order 10) and the `match.finish` booking check (`systems/match/finishes/bookingCheck.ts`, order 200). Random winners: the commands refuse a planned result or finish with `randomWinners`, `noPlannedResult` is skipped, `booking.card` carries `randomWinners`, and the editor says "Decided on the night (Random winners)". See below. |
+| EVT3 (show night)      | wires from its own pack | EVT3 reads cards through `cardSegments` and the planned `outcome`; it wires booking itself (EVT3-07).                                                                                                                                                                                                                                                                                                                          |
+| WRK6 (injuries by day) | wires from its own pack | Not on `main`: no `systems/health/`. Availability is still WRK1's `availabilityOf`, so the chips and `personUnavailable` follow it the day WRK6 changes injuries.                                                                                                                                                                                                                                                              |
+| MTCH5 (beats)          | wires from its own pack | Not on `main`: no beat catalog. Talking segments keep the writer's default beat.                                                                                                                                                                                                                                                                                                                                               |
+| MTCH7 (stipulations)   | wires from its own pack | Not on `main`: no stipulation catalog. The Finish section and the finish check already pass `stipulationKeys` to `allowedFinishes`, so MTCH7's finish filter applies to booking with no change here.                                                                                                                                                                                                                           |
+| MTCH8 (crew)           | wires from its own pack | Not on `main`: no `CrewPicker`. The draft's `crew` stays Auto.                                                                                                                                                                                                                                                                                                                                                                 |
+| EVT8 (schedule editor) | wires from its own pack | Not on `main`: the calendar has no one-off or tour commands yet.                                                                                                                                                                                                                                                                                                                                                               |
+| ECO11, ECO12           | wires from its own pack | Not on `main`: no development assignments, no tour deals.                                                                                                                                                                                                                                                                                                                                                                      |
+| SOC6 (discipline)      | wires from its own pack | Not on `main`: no suspensions.                                                                                                                                                                                                                                                                                                                                                                                                 |
+| BRW2 (brand drafts)    | wires from its own pack | Not on `main`: no draft scheduling.                                                                                                                                                                                                                                                                                                                                                                                            |
+| MP1, MP2 (seats, tabs) | wires from its own pack | Not on `main`: no hot-seat seats or tab host. Every booking query and command already takes the seat's viewer and `issuedBy`.                                                                                                                                                                                                                                                                                                  |
+| POL7 (accessibility)   | wires from its own pack | Not on `main`: no stricter sweep or high-contrast tokens.                                                                                                                                                                                                                                                                                                                                                                      |
+
+### Finishes (MTCH2)
+
+**Finish section.** For a match, the editor shows a Finish select after the
+billing line: Auto (decided on the night) first, then the finishes
+`match.finishes` allows for the match type, the sides built, the stipulations
+and the planned result's kind (a draw offers only the draw finishes). It
+patches `match.finishKey` on the draft, saved with the segment by
+`booking.addSegment` or `booking.updateSegment`. Picking a finish keeps the
+planned way of winning when the finish ends with it, and otherwise switches to
+the finish's first one (one that can move a title when a title is on the
+line). When a later change leaves the booked finish out (another type, a
+draw, a way of winning the finish does not end with) it goes back to Auto and
+the section says so.
+
+**Quick Winner menu.** `booking.setResult` (and `setPlannedOutcome`) keeps a
+planned finish only while the new result fits it; otherwise the finish goes
+back to Auto, so a card never holds a finish that contradicts its result.
+
+**`match.finish` check** (order 200, checklist line "Finishes fit their
+matches"); only matches with a booked finish are checked:
+
+| Code                      | Severity | Rule                                                                                        | Message                                                                               |
+| ------------------------- | -------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `finishNotAllowed`        | error    | the finish is gone, or `allowedFinishes` leaves it out for the type, sides and stipulations | "Slot 2: a Disqualification finish can't end this match; pick another finish or Auto" |
+| `finishOutcomeMismatch`   | error    | the planned result is not the finish's outcome kind                                         | "Opener: a Disqualification finish ends in a winner, but the plan is a draw"          |
+| `methodNotInFinish`       | error    | a planned win by a way the finish does not end with                                         | "Opener: a Disqualification finish can't be won by Pinfall"                           |
+| `finishBlocksTitleChange` | warning  | a title match won by a side without the champion where `titleCanChange` is false            | "The title can't change hands on a Disqualification finish"                           |
+
+**Random winners.** When `randomWinnersActive` is true for the show (the
+setting is on and a human runs the show), nothing is planned:
+`booking.addSegment` and `booking.updateSegment` refuse a draft with a result
+or a finish, and `booking.setResult` anything but null, with `randomWinners`
+("Results on your shows are decided on the night (Random winners)."); the
+`noPlannedResult` error is skipped, so the card locks with no results; the
+`match.finish` check turns any planned result or finish left on the card into a
+`randomWinners` error. `booking.card` carries `randomWinners`, so the editor
+replaces the Result choice with "Decided on the night (Random winners)", the
+Finish section says "Decided on the night", and the card row's menu has no
+Winner entry. Shows the computer runs are never affected.
