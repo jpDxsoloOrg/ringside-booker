@@ -517,3 +517,19 @@ The economy's numbers (ECO1), in `systems/finance/tunables.ts`, category
 `Finances`, each with a docRef into [finances.md](finances.md). The set starts
 empty: ECO1-02 adds reach and size, ECO1-03 wages and medical, and ECO1-04 show
 costs and importance, each in its own block.
+
+### Reach and size tunables
+
+How big a company is (ECO1-02). See
+[finances.md](finances.md#reach-and-size). Every weight is 0-means-0.
+
+| Key                                  | Kind   | Default | Range | Unit   | What it does                                                                               |
+| ------------------------------------ | ------ | ------- | ----- | ------ | ------------------------------------------------------------------------------------------ |
+| `finance.reach.weight.homeRegion`    | number | 1       | 0–10  | ratio  | How much popularity in the home region counts towards reach; 0 = this level does not count |
+| `finance.reach.weight.homeCountry`   | number | 3       | 0–10  | ratio  | Same, home country                                                                         |
+| `finance.reach.weight.homeContinent` | number | 2       | 0–10  | ratio  | Same, home continent                                                                       |
+| `finance.reach.weight.world`         | number | 2       | 0–10  | ratio  | Same, whole world                                                                          |
+| `finance.size.regionalAt`            | number | 6       | 0–100 | points | Reach at which a company counts as Regional                                                |
+| `finance.size.nationalAt`            | number | 25      | 0–100 | points | Reach at which a company counts as National                                                |
+| `finance.size.continentalAt`         | number | 45      | 0–100 | points | Reach at which a company counts as Continental                                             |
+| `finance.size.globalAt`              | number | 70      | 0–100 | points | Reach at which a company counts as Global                                                  |
