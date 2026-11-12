@@ -56,6 +56,22 @@
   overflow-wrap: anywhere;
 }
 
+.subChevron {
+  flex: none;
+  margin-inline-start: auto;
+  color: var(--color-text-muted);
+}
+
+.subTrigger[data-state='open'] {
+  background: var(--color-surface-sunken);
+}
+
+/* A submenu is sized by its own items, not by the trigger of the root menu. */
+.subMenu {
+  min-inline-size: 10rem;
+  max-block-size: var(--radix-dropdown-menu-content-available-height);
+}
+
 .separator {
   block-size: 1px;
   margin: var(--space-1) calc(-1 * var(--space-1));

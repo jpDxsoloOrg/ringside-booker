@@ -109,7 +109,7 @@ export const galleryEntry: GalleryEntry = {
 | `ConfirmDialog`       | Ask before a destructive or irreversible action, with async `onConfirm`                                                                                                                                           |
 | `Tooltip`             | A short hint on hover or focus. Never the only copy of anything                                                                                                                                                   |
 | `Popover`             | A small panel anchored to a button: detail, a filter, quick controls                                                                                                                                              |
-| `DropdownMenu`        | A menu of actions behind a button, such as a row's "more" menu                                                                                                                                                    |
+| `DropdownMenu`        | A menu of actions behind a button, such as a row's "more" menu; one level of submenus ("Winner ▸")                                                                                                                |
 | `Select`              | Pick one option from a short list                                                                                                                                                                                 |
 | `Switch`              | An on/off setting that applies straight away                                                                                                                                                                      |
 | `LiveBugButton`       | The skewed show action with a live dot: Next Day, Go Live                                                                                                                                                         |
@@ -117,7 +117,7 @@ export const galleryEntry: GalleryEntry = {
 | `ScoreBug`            | A strip of 2–4 key numbers, each with an optional Why? chip                                                                                                                                                       |
 | `Ticker`              | The news crawl; pauses on hover or focus, static with reduced motion                                                                                                                                              |
 | `SegmentedMeter`      | Hype, heat or fatigue as ticks that turn red-orange past a threshold                                                                                                                                              |
-| `CardSlot`            | A booking slot: role, matchup, chips, winner, or the empty add actions                                                                                                                                            |
+| `CardSlot`            | A booking slot: role, matchup of any number of sides, chips, winner or result, problem marker, or the empty add actions                                                                                           |
 | `ChamferPanel`        | The broadcast container with chamfered corners (`Panel` is the office one)                                                                                                                                        |
 | `SlashDivider`        | A band of 45° slashes, or the inline `//` between items                                                                                                                                                           |
 | `KpiCard`             | An office stat card: label, big number, delta chip, optional sparkline. `KpiCardGrid` lays them out                                                                                                               |
@@ -140,6 +140,7 @@ export const galleryEntry: GalleryEntry = {
 | `StarRating`          | A 0–5 star rating in quarter steps, filled by a CSS clip; named "3.75 stars out of 5", "No stars" for 0. Sizes `sm`, `md`, `lg`; tones `office`, `broadcast`                                                      |
 | `Histogram`           | How values spread across bins: inline-SVG bars, ticks, an optional mean line and ±1 sd band, and a hidden table of the same numbers. "No runs yet" when empty                                                     |
 | `SegmentResultCard`   | One finished segment from `shows.results`: sides with the winner marked, the result line, stars with a Why? on each number and the title banner; `revealed={false}` keeps its height                              |
+| `SortableList`        | Reorder a list by drag or keyboard: `SortableList`, `SortableItem`, `useSortableHandle`; `insert` or `swap` mode, every step announced. The only place that imports `@dnd-kit`                                    |
 
 Money is integer `Cents` and dates are `GameDate` strings from `@ringside/engine`; the formatters
 turn them into text at the edge and nowhere else.

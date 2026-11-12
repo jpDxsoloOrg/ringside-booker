@@ -573,3 +573,13 @@ Unlocking puts the gate back on the show's day.
 `{ eventInstanceId }` → `BookingValidation`. The same viewer rule as
 `booking.card`: the show's controller or the omniscient viewer; anyone else
 gets `notYourShow`, an unknown id `showNotFound`.
+
+## The booking screen
+
+`/game/booking` (EVT2-05, `apps/web/src/screens/booking/`, see its README) reads `booking.shows`,
+`booking.card` and `booking.validate` and issues the commands above. It opens on `?event=`
+(the gate's "Go to show" and the calendar's "Book this show" link there) or `nextToBookId`,
+shows every slot of the format by role with the role's and size's Why?, reorders by drag,
+keyboard and Move up / Move down with swap semantics, and turns Lock card on only when the card
+is runnable. Refusals are shown as the engine words them. Other features add panels with
+`registerBookingPanel`; the segment editor (EVT2-06) opens from the `useSegmentEditor` store.

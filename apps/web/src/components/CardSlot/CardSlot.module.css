@@ -121,6 +121,30 @@
   color: var(--color-action-bright);
 }
 
+.roleAside {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+}
+
+/* The problems on a slot: an icon and words, so colour is never the only cue. */
+.issues {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+}
+
+.issues[data-severity='error'] {
+  color: var(--color-negative);
+}
+
+.issues[data-severity='warning'] {
+  color: var(--color-prestige);
+}
+
 .actions {
   display: inline-flex;
   align-items: center;
@@ -254,6 +278,36 @@
   text-transform: uppercase;
 }
 
+/* Three or more sides wrap as a row of tiles with "vs" between them. */
+.multiSide {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.multiSide > .side {
+  flex: 1 1 12rem;
+}
+
+.multiSide > .versus {
+  flex: none;
+  align-self: center;
+  font-size: var(--font-size-lg);
+}
+
+/* A result with no winner (Draw, No contest), under the matchup. */
+.result {
+  justify-self: center;
+  margin-block-end: var(--space-3);
+  padding: 0.125rem var(--space-3);
+  border: 1px solid var(--color-prestige);
+  color: var(--color-prestige);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
 /* ---- Empty slot ------------------------------------------------------------------------------ */
 
 .emptyBody {
@@ -293,6 +347,14 @@
   .matchup {
     grid-template-columns: minmax(0, 1fr);
     gap: var(--space-2);
+  }
+
+  .multiSide {
+    display: grid;
+  }
+
+  .multiSide > .versus {
+    align-self: auto;
   }
 
   .sideName {
