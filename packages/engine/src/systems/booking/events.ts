@@ -1,8 +1,44 @@
 /**
  * The booking system's domain events.
  *
- * None yet: the card writer (`writer.ts`) is called by commands and phases that publish their own
- * events. The booking commands (EVT2-02) declare theirs here by merging into `DomainEventMap`.
+ * The booking commands (EVT2-02) publish `card.changed` once for every command that changes a
+ * card. The card writer itself publishes nothing: the rival booker (AIP4) writes cards from its own
+ * phase and announces them its own way. `card.locked` and `card.unlocked` are declared here for the
+ * lock commands of EVT2-04. Payloads carry ids and primitives only.
+ *
+ * Design notes: docs/design/booking.md#commands.
  */
 
-export {};
+import type { BrandId, EventInstanceId, PromotionId, SegmentId } from '../../core/ids';
+
+/** What a `card.changed` did to the card. */
+export const CARD_CHANGES = ['added', 'updated', 'removed', 'moved', 'result', 'cleared'] as const;
+export type CardChange = (typeof CARD_CHANGES)[number];
+
+declare module '../../core/events/types' {
+  interface DomainEventMap {
+    /**
+     * A booking command changed a show's card. `segmentId` is the segment it changed (for a move,
+     * the one that was moved), or null when the whole card was cleared.
+     */
+    'card.changed': {
+      eventInstanceId: EventInstanceId;
+      promotionId: PromotionId;
+      brandId: BrandId | null;
+      segmentId: SegmentId | null;
+      change: CardChange;
+    };
+    /** A show's card was locked: the show is `booked` and its card can no longer change. */
+    'card.locked': {
+      eventInstanceId: EventInstanceId;
+      promotionId: PromotionId;
+      brandId: BrandId | null;
+    };
+    /** A show's locked card was unlocked so it can be changed again. */
+    'card.unlocked': {
+      eventInstanceId: EventInstanceId;
+      promotionId: PromotionId;
+      brandId: BrandId | null;
+    };
+  }
+}
