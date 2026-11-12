@@ -254,7 +254,7 @@ is built, next to its phases:
 
 ```ts
 runtime.gates.register({
-  id: 'events.showNeedsBooking', // system.camelName, unique
+  id: 'booking.showNeedsBooking', // system.camelName, unique
   label: 'Show needs booking',
   check: (view, date) => {
     const show = playerShowOn(view, date); // an indexed lookup, not a table scan
@@ -262,7 +262,7 @@ runtime.gates.register({
       return null;
     }
     return {
-      gateId: 'events.showNeedsBooking',
+      gateId: 'booking.showNeedsBooking',
       reason: `Your show '${show.name}' on ${date} has no card yet`,
       subject: { kind: 'eventInstance', id: show.id },
       actionHint: 'booking',
@@ -270,6 +270,9 @@ runtime.gates.register({
   },
 });
 ```
+
+The real show-day gate (EVT2-03) is `booking/gates.ts`; see
+[booking.md](booking.md#gate).
 
 `defineGate` (which `register` calls) checks the id and the label.
 `register` throws `PipelineError` for a duplicate id or for an id starting
