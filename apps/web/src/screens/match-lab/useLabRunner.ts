@@ -2,7 +2,8 @@ import { useCallback } from 'react';
 import type { GameDate, QueryArgs, QueryData, QueryName } from '@ringside/engine';
 import { useAnnounce } from '@/app/a11y/LiveAnnouncer';
 import { useEngineClient } from '@/app/engine/EngineProvider';
-import { LAB_BATCH_RUNS, previewArgsOf, useLabStore } from './labStore';
+import { LAB_BATCH_RUNS, previewArgsOf, simulateArgsOf, useLabStore } from './labStore';
+import { outcomeHeadline } from './result/resultText';
 import { seedText, statsSummary } from './labText';
 
 /** Said when the engine could not be reached at all. */
@@ -15,14 +16,16 @@ type Answer<K extends QueryName> =
 export interface LabRunner {
   /** Rates the segment once with the current seed. */
   readonly run: () => Promise<void>;
-  /** Moves to the next seed, then rates once. */
+  /** Resolves the result plan and rates the match with its finish, with the current seed. */
+  readonly simulate: () => Promise<void>;
+  /** Moves to the next seed, then rates once (or simulates, when a Simulate is on screen). */
   readonly reroll: () => Promise<void>;
   /** Rates once and runs the same segment 100 times for the spread. */
   readonly runBatch: () => Promise<void>;
 }
 
 /**
- * The lab's Run, Re-roll seed and Run x100. They ask the engine directly instead of through
+ * The lab's Run, Simulate, Re-roll seed and Run x100. They ask the engine directly instead of through
  * `useEngineQuery`, so the answer stays on screen as it was, dated, after a Next Day: nothing
  * re-rolls behind the player's back. Answers that arrive after the lab was reset are dropped.
  */
@@ -58,12 +61,29 @@ export function useLabRunner(today: GameDate | null): LabRunner {
     announce(`${seedText(args.previewSeed)}: score ${String(answer.data.score.value)}`);
   }, [announce, ask, today]);
 
+  const simulate = useCallback(async (): Promise<void> => {
+    const store = useLabStore.getState();
+    const args = simulateArgsOf(store);
+    if (args === null || store.pending !== null) return;
+    const ticket = store.startRequest('simulate');
+    const answer = await ask('match.simulate', args);
+    if (!answer.ok) {
+      useLabStore.getState().failRequest(ticket, answer.reasons);
+      return;
+    }
+    useLabStore.getState().finishSimulation(ticket, { args, result: answer.data, date: today });
+    announce(
+      `${seedText(args.previewSeed)}: ${outcomeHeadline(answer.data)}, score ${String(answer.data.preview.score.value)}`,
+    );
+  }, [announce, ask, today]);
+
   const reroll = useCallback(async (): Promise<void> => {
     const store = useLabStore.getState();
     if (previewArgsOf(store) === null || store.pending !== null) return;
+    const simulating = store.simulation !== null && simulateArgsOf(store) !== null;
     store.nextSeed();
-    await run();
-  }, [run]);
+    await (simulating ? simulate() : run());
+  }, [run, simulate]);
 
   const runBatch = useCallback(async (): Promise<void> => {
     const store = useLabStore.getState();
@@ -87,5 +107,5 @@ export function useLabRunner(today: GameDate | null): LabRunner {
     announce(`${String(LAB_BATCH_RUNS)} runs: ${statsSummary(batch.data.score)}`);
   }, [announce, ask, today]);
 
-  return { run, reroll, runBatch };
+  return { run, simulate, reroll, runBatch };
 }

@@ -284,6 +284,11 @@
     gap: var(--space-1) var(--space-2);
   }
 
+  /* With Simulate, the four buttons sit two by two. */
+  .runButtons[data-buttons='4'] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .runButtons > button {
     min-block-size: var(--tap-target-min);
     padding-inline: var(--space-2);

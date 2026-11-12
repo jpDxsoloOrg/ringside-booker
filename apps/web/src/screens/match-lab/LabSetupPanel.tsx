@@ -17,9 +17,11 @@ import { Select } from '@/components/Select';
 import type { SelectOption } from '@/components/Select';
 import { Switch } from '@/components/Switch';
 import { WhyButton } from '@/components/Trace';
+import { useIsMobile } from '@/styles/useMediaQuery';
 import { useLabStore } from './labStore';
 import { weightText } from './labText';
 import styles from './MatchLab.module.css';
+import { LabResultGroup } from './result/LabResultGroup';
 
 /** The rules the lab rates by when no Run has said otherwise. */
 export const DEFAULT_RULES_LABEL = 'Full rules';
@@ -106,7 +108,8 @@ export interface LabSetupPanelProps {
 /**
  * The left column: what the segment is (a match or a talking segment, and its type), where it sits
  * on the card, and the show it is on. The duration and weight chips follow the slot role at once;
- * nothing is rated until Run.
+ * nothing is rated until Run. For a match, the Winner and finish group that Simulate plays out
+ * comes last.
  */
 export function LabSetupPanel({ options, catalog, rulesLabel }: LabSetupPanelProps) {
   const setup = useLabStore((state) => state.setup);
@@ -116,6 +119,7 @@ export function LabSetupPanel({ options, catalog, rulesLabel }: LabSetupPanelPro
   const setImportance = useLabStore((state) => state.setImportance);
   const setRegion = useLabStore((state) => state.setRegion);
   const setTelevised = useLabStore((state) => state.setTelevised);
+  const isMobile = useIsMobile();
 
   const typeOptions: readonly SelectOption[] =
     setup.kind === 'match'
@@ -207,6 +211,8 @@ export function LabSetupPanel({ options, catalog, rulesLabel }: LabSetupPanelPro
           <span className={styles['rulesLabel']}>Rules</span>
           <Badge tone="neutral">{rulesLabel ?? DEFAULT_RULES_LABEL}</Badge>
         </p>
+        {/* On a phone the Winner and finish group sits under the sides instead (MatchLabView). */}
+        {!isMobile && <LabResultGroup />}
       </div>
     </Panel>
   );
