@@ -12,6 +12,7 @@ import {
 import { initialMomentum } from '../../../../src/systems/workers';
 import { createEngineTunables } from '../../../../src/systems/tunables';
 import { expectTraceContains, expectTraceReplays } from '../../../support/trace';
+import { DEFAULT_METHOD_KEY } from '../../../support/builders/creative';
 import { testId } from '../../../support/ids';
 import { worldBuilder, type WorldBuilder } from '../../../support/world-builder';
 
@@ -219,7 +220,9 @@ describe('winStreakBefore', () => {
 
 describe('resultOf', () => {
   it('reads a result from a side', () => {
-    const win = { outcome: { kind: 'win', winningSide: 1, methodKey: 'pinfall' } } as const;
+    const win = {
+      outcome: { kind: 'win', winningSide: 1, methodKey: DEFAULT_METHOD_KEY },
+    } as const;
     expect(resultOf(win, 1)).toBe('win');
     expect(resultOf(win, 0)).toBe('loss');
     expect(resultOf({ outcome: { kind: 'draw' } }, 0)).toBe('draw');
@@ -236,7 +239,9 @@ describe('initialMomentum', () => {
         promotion.withRoster(1, { person: () => ({ regionalPop: { [testId('region', 1)]: 40 } }) }),
       )
       .build();
-    const employment = world.tables.employments.require(ids.employments[0] ?? '');
+    const [employmentId] = ids.employments;
+    if (employmentId === undefined) throw new Error('no employment');
+    const employment = world.tables.employments.require(employmentId);
     const start = initialMomentum(world, employment, createEngineTunables());
     expect(start.value).toBe(40);
     expectTraceReplays(start);
