@@ -197,6 +197,54 @@ orders:
 | `result`  | 20    | Aftermath (MTCH3)     |
 | `result`  | 30    | Physical toll (MTCH4) |
 
+## Show results
+
+One show's results live at `/game/event-history/:eventInstanceId` (`screens/show-results/`,
+link with `routes.game.showResults(eventInstanceId)`), a detail page under Event history, so the
+sidebar keeps Event history highlighted. It is its own chunk. The page reads `shows.results` and
+nothing else: a lower third whose title is the page's `h1`, a "Final score" score bug (score with
+its Why?, stars, and attendance and viewers once EVT6 and ECO8 fill them), then the card, the
+pre-show first under its own divider, each segment a `SegmentResultCard`. A rival show scored
+off-screen says its card was not booked in detail; a show that has not run says so, with "Book this
+show" for your own.
+
+`routes.game.showResults(id, { reveal: true })` adds `?reveal=1`, which the Next Day summary's
+"See results" links use: the cards come out one at a time (`useRevealSequence`, one every
+`REVEAL_STEP_MS`, faded in with `--motion-base`), then the score, with "Next segment" and "Show
+all" in a bar at the bottom of the screen and a polite live region reading each result. Reduced
+motion (the in-game setting or the OS) shows everything at once. When the reveal ends, `?reveal`
+is replaced out of the URL, so a reload never plays it again. The parts the page draws are in
+`ResultsBroadcast.tsx`, without engine queries, so the gallery shows them at
+`/dev/gallery#show-results`.
+
+Other ways in: the advance summary links to up to three of your shows an advance completed
+(`shows.completedSince`, then "and N more"), even after a plain one-day Next Day; the calendar's
+show sheet has a "Result" section and a "Results" button and completed chips a score badge
+(`screens/show-results/calendarHooks.tsx`, registered by the router); Booking shows "This show has
+run" for a completed show (`bookingPanel.tsx`, through Booking's feature list).
+
+### Adding a results section
+
+Another feature adds a titled panel under the card, without editing the page:
+
+```ts
+import { registerResultsSection } from '@/screens/show-results';
+
+registerResultsSection({
+  id: 'mtch3.popularity', // feature-prefixed, unique
+  label: 'Popularity & momentum',
+  order: 10,
+  render: ({ eventInstanceId, view }) => <PopularityChanges view={view} />, // or null
+});
+```
+
+`registerResultsSection` (`screens/show-results/resultsSectionRegistry.ts`) returns a function
+that removes the section again and throws for an id that is taken; `listResultsSections()` gives
+them in display order. Sections are drawn in `order`, then by id, each as a broadcast `Panel`
+headed by its `label`, only once the reveal has finished; one whose `render` returns null is left
+out. `view` is the page's `shows.results` answer. Expected users: MTCH3 (popularity and
+momentum), EVT4 (card flow), ECO (show money), CRTV and BRW3.
+
 ## The shell's look
 
 The shell follows `docs/design/visual-identity.md` and the mockups in `docs/design/mockups/`.
@@ -259,7 +307,9 @@ slot, unloads the world and returns to the title screen; a failed save keeps the
 The end of the top bar (`AppShell/TopBarStatus.tsx`) shows the game's status and the control that
 moves time. Status comes from two engine built-ins, `sim.status` (date, season, the seat's cash and
 popularity) and `sim.pendingGates` (why Next Day would stop today), read by
-`status/useShellStatus.ts`; the web app adds no engine queries of its own.
+`status/useShellStatus.ts`; the web app adds no engine queries of its own. After an advance that
+moved the clock, `AdvanceSummary` also asks `shows.completedSince` for the shows of yours it ran,
+and links to their results (see [Show results](#show-results)).
 
 - **The day button** (`day/DayControl.tsx`) reads "Next day" until a gate waits. Then
   `day/dayControlState.ts` turns the gates into a button by their route hint: `inbox` ("2 decisions

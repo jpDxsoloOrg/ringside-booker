@@ -6,4 +6,4 @@
  *
  * Expected: EVT4's forecast, EVT6's venue and crowd, CRTV8's tournament matches, AIP4's auto-fill.
  */
-export {};
+import '@/screens/show-results/bookingPanel';

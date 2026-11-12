@@ -112,6 +112,12 @@ describe('findNavLocation', () => {
     expect(findNavLocation(navigationSections, detailPath)?.item.id).toBe('workers');
   });
 
+  it('gives a show results page to Event history', () => {
+    const resultsPath = routes.game.showResults(parseId('eventInstance', 'evi_0000000001'));
+
+    expect(findNavLocation(navigationSections, resultsPath)?.item.id).toBe('event-history');
+  });
+
   it('returns null for a path no item owns', () => {
     expect(findNavLocation(navigationSections, '/game/nowhere')).toBeNull();
   });

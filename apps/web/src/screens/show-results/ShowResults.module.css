@@ -1,0 +1,160 @@
+/* The results page: lower third and score bug on top, then the card, then other features' panels. */
+.screen {
+  display: grid;
+  gap: var(--space-5);
+  min-inline-size: 0;
+  max-inline-size: 64rem;
+}
+
+/* The heading of the pages with no results to show (not found, no world). */
+.pageHeading {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+}
+
+/* The show name inside the lower third's h1: focused by RouteFocus after a navigation. */
+.title {
+  overflow-wrap: anywhere;
+}
+
+.title:focus {
+  outline: none;
+}
+
+.header {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.scoreBug {
+  min-inline-size: 0;
+}
+
+/* A score not revealed yet: a dash in the value's place, so the bug keeps its size. */
+.pending {
+  color: var(--color-text-subtle);
+}
+
+.scoreIn {
+  display: inline-flex;
+  align-items: center;
+  animation: score-in var(--motion-base) var(--easing-standard);
+}
+
+@keyframes score-in {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+}
+
+.note {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.cardSection {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.sectionHeading {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cardList {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cardItem {
+  min-inline-size: 0;
+}
+
+/* A card coming out during the reveal. Instant under reduced motion: the token is 0ms there. */
+.fadeIn {
+  animation: card-in var(--motion-base) var(--easing-standard);
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-2));
+  }
+}
+
+/* What the live region says: read out, never drawn. */
+.live {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* "Next segment" and "Show all", kept in reach at the bottom of the screen while the reveal runs. */
+.revealBar {
+  position: sticky;
+  inset-block-end: var(--space-3);
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  justify-self: end;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-2);
+}
+
+/* Loading: the page's shape in quiet blocks. */
+.skeleton {
+  display: block;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-hover);
+}
+
+.skeletonHeader {
+  block-size: 7rem;
+}
+
+.skeletonBug {
+  block-size: 5rem;
+}
+
+.skeletonCard {
+  block-size: 9rem;
+  border-radius: var(--radius-card);
+}
+
+@media (--bp-mobile) {
+  .screen {
+    gap: var(--space-4);
+  }
+
+  .pageHeading {
+    font-size: var(--font-size-xl);
+  }
+
+  /* On a phone the bar spans the column, above the bottom navigation and the safe area. */
+  .revealBar {
+    inset-block-end: calc(var(--shell-bottom-chrome, var(--safe-bottom)) + var(--space-2));
+    justify-self: stretch;
+  }
+
+  .revealBar > * {
+    flex: 1 1 0;
+  }
+}

@@ -60,6 +60,9 @@ export interface CalendarLinkOptions {
 /** The names of the calendar's search parameters. */
 export const CALENDAR_PARAMS = { month: 'month', scope: 'scope', show: 'show' } as const;
 
+/** The names of the results page's search parameters. */
+export const SHOW_RESULTS_PARAMS = { reveal: 'reveal' } as const;
+
 /** Path builders for every route. */
 export const routes = {
   /** The title screen. */
@@ -105,6 +108,17 @@ export const routes = {
     /** One worker's profile. */
     worker: (personId: PersonId): string =>
       `${gameScreenPath('workers')}/${encodeURIComponent(personId)}`,
+    /**
+     * One show's results page, under Event history. `reveal` plays the segments in one at a time,
+     * the way the Next Day summary opens it: `/game/event-history/evi_…?reveal=1`.
+     */
+    showResults: (
+      eventInstanceId: EventInstanceId,
+      options: { readonly reveal?: boolean } = {},
+    ): string => {
+      const path = `${gameScreenPath('eventHistory')}/${encodeURIComponent(eventInstanceId)}`;
+      return options.reveal === true ? `${path}?${SHOW_RESULTS_PARAMS.reveal}=1` : path;
+    },
   },
   dev: {
     /** The component gallery: in every build, linked from no navigation. */
@@ -124,7 +138,12 @@ export const routePatterns = {
   enterShell: '/dev/enter-shell',
   /** One worker's profile; `routes.game.worker(personId)` builds the URL. */
   worker: `${gameScreenPath('workers')}/:personId`,
+  /** One show's results; `routes.game.showResults(eventInstanceId)` builds the URL. */
+  showResults: `${gameScreenPath('eventHistory')}/:eventInstanceId`,
 } as const;
 
 /** The name of the worker profile route's parameter. */
 export const WORKER_ROUTE_PARAM = 'personId';
+
+/** The name of the results page route's parameter. */
+export const SHOW_RESULTS_ROUTE_PARAM = 'eventInstanceId';

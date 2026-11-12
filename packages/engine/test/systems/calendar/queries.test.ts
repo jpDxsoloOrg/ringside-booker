@@ -130,6 +130,7 @@ describe('calendar.range', () => {
       venue: { id: built.rivalVenue, name: 'Test Rival Arena', capacity: 12_000, kind: 'arena' },
       segmentCount: 0,
       canCancel: false,
+      score: null,
     });
 
     const weekly = showOn(shows, built.weekly, SECOND_MONDAY);
@@ -192,6 +193,34 @@ describe('calendar.range', () => {
     // The trace is the placement rule's reasoning, not part of the row.
     const row = { ...detail, placementTrace: null };
     expect(fieldNamesOf(row).filter((name) => FORBIDDEN_FIELD.test(name))).toEqual([]);
+  });
+
+  it("gives a completed show's score, a rival's too, and null for every other show", () => {
+    const built = calendarWorldWith((context, { promotionB }) =>
+      context.insert(
+        'eventInstances',
+        anEventInstance(
+          { promotionId: promotionB, date: START, status: 'completed' },
+          context.sequence,
+        ),
+      ),
+    );
+    const engine = engineOver(built);
+    const score = built.kept.result?.score;
+    expect(score).toEqual(expect.any(Number));
+    for (const viewer of [AS_PLAYER_ONE, AS_COMPUTER, OMNISCIENT]) {
+      const { shows } = ask(engine, 'calendar.range', { ...SIX_WEEKS, scope: 'world' }, viewer);
+      for (const show of shows) {
+        expect(show.score).toBe(show.eventInstanceId === built.kept.id ? score : null);
+      }
+    }
+    const projected = ask(
+      engine,
+      'calendar.projected',
+      { ...LONGEST, scope: 'world' },
+      AS_PLAYER_ONE,
+    );
+    expect(projected.shows.every((show) => show.score === null)).toBe(true);
   });
 
   it("reports a cancelled show's reason and the day it was called off", () => {
@@ -492,6 +521,7 @@ describe('calendar.projected', () => {
       venue: null,
       segmentCount: 0,
       canCancel: false,
+      score: null,
     });
     expect(view.shows.every((show) => compareDates(show.date, HORIZON_END) > 0)).toBe(true);
     expect(view.shows.every((show) => compareDates(show.date, LONGEST.to) <= 0)).toBe(true);
