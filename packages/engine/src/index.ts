@@ -1002,6 +1002,8 @@ export type {
   MatchTypeOption,
   MethodOption,
   SlotDeps,
+  SlotInfo,
+  SlotInfoArgs,
   SlotPosition,
   SlotRole,
   SlotRoleRow,

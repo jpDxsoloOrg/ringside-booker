@@ -44,6 +44,8 @@ export {
   type MatchCatalog,
   type MatchTypeOption,
   type MethodOption,
+  type SlotInfo,
+  type SlotInfoArgs,
   type SlotRoleRow,
   type SlotRolesArgs,
 } from './queries';

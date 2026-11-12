@@ -2,6 +2,7 @@ import { matchPath } from 'react-router-dom';
 import type { ComponentType } from 'react';
 import type { IconName } from '@/components/Icon';
 import { CalendarScreen } from '@/screens/calendar/CalendarScreen';
+import { MatchLabScreen } from '@/screens/match-lab/MatchLabScreen';
 import { OfficeScreen } from '@/screens/office/OfficeScreen';
 import { WorkersScreen } from '@/screens/workers/WorkersScreen';
 import { routes } from './routes';
@@ -158,6 +159,14 @@ export const navigationSections: readonly NavSection[] = [
         mobilePrimary: 4,
         status: 'live',
         screen: CalendarScreen,
+      },
+      {
+        id: 'match-lab',
+        label: 'Match lab',
+        icon: 'lab',
+        to: routes.game.matchLab(),
+        status: 'live',
+        screen: MatchLabScreen,
       },
     ],
   },

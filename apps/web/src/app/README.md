@@ -129,6 +129,46 @@ of editing it; `screens/calendar/README.md` lists the slots and what is register
 the screen looks like, and which of its values are stored and which are worked out, is in
 `docs/design/calendar.md` under "Screen".
 
+## The Match lab
+
+Your promotion > Match lab is live. `/game/match-lab` (`screens/match-lab/`, link with
+`routes.game.matchLab()`) rates a segment that is on no card: setup on the left, sides in the
+middle, the result on the right (two columns, then one, as the lab gets narrower; on phones the Run
+bar sticks above the tab bar and the worker picker is a bottom sheet). `MatchLabScreen` owns the
+heading and loads the rest as its own chunk. The lab's state (`labStore.ts`) lives for the session
+and empties when the seat's world changes; Run, Re-roll seed and Run x100 ask the engine directly
+(`match.preview`, `match.previewBatch`), so a shown result never re-rolls behind the player's back
+after a Next Day. Worker names go through `renderWorkerName` (`workerName.tsx`), plain text until
+MTCH1-08 makes them profile links.
+
+### Adding a Match lab panel
+
+Another feature adds a titled panel to the lab from its own files, without editing the lab:
+
+```ts
+registerLabPanel({
+  id: 'mtch3.aftermath',
+  order: 20,
+  title: 'Aftermath',
+  placement: 'result', // the default; 'setup' sits at the bottom of the setup column
+  render: ({ setup, sides, result, batch }) => <Aftermath result={result} />,
+  visible: ({ result }) => result !== null, // optional
+});
+```
+
+`registerLabPanel` (`screens/match-lab/labPanelRegistry.ts`) returns a function that removes the
+panel again, throws for an id that is taken, and every open lab re-renders when the list changes.
+Panels of one placement are drawn in `order`, then by id. The render props only grow (MTCH2 adds
+`simulation`). Reserved orders:
+
+| Placement | Order | Panel                 |
+| --------- | ----- | --------------------- |
+| `setup`   | 10    | Match options (MTCH7) |
+| `setup`   | 20    | Crew (MTCH8)          |
+| `setup`   | 30    | Stakes (MTCH8)        |
+| `result`  | 20    | Aftermath (MTCH3)     |
+| `result`  | 30    | Physical toll (MTCH4) |
+
 ## The shell's look
 
 The shell follows `docs/design/visual-identity.md` and the mockups in `docs/design/mockups/`.

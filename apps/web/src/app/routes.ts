@@ -28,6 +28,7 @@ export const GAME_SCREEN_SEGMENTS = {
   contracts: 'contracts',
   networks: 'networks',
   production: 'production',
+  matchLab: 'match-lab',
 } as const;
 
 export type GameScreenId = keyof typeof GAME_SCREEN_SEGMENTS;
@@ -99,6 +100,8 @@ export const routes = {
     contracts: (): string => gameScreenPath('contracts'),
     networks: (): string => gameScreenPath('networks'),
     production: (): string => gameScreenPath('production'),
+    /** The Match lab: rate a hypothetical segment before booking it. */
+    matchLab: (): string => gameScreenPath('matchLab'),
     /** One worker's profile. */
     worker: (personId: PersonId): string =>
       `${gameScreenPath('workers')}/${encodeURIComponent(personId)}`,

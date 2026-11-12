@@ -108,7 +108,7 @@ Override `match.slot.weight.mainEvent` to 0.5 and the main event still weighs
 
 ## Queries
 
-Both are open to every viewer and return plain JSON.
+All three are open to every viewer and return plain JSON.
 
 - **`match.catalog`** `{ includeHidden? }` → `{ matchTypes, angleTypes,
 methods, available }`. The options are the catalog entries in display order
@@ -124,6 +124,11 @@ durationClass, durationLabel, weight, roleTrace, durationTrace, weightTrace }`.
   slot). An unknown key comes back as an `invalidArgs` reason naming its index,
   such as `matchTypeKeys[2]`. The card builder (EVT2) calls this after every
   reorder instead of working roles out itself.
+- **`match.slotInfo`** `{ slotRole, kind, typeKey? }` → `{ role, roleLabel,
+durationClass, durationLabel, weight, durationTrace, weightTrace }`: what one
+  slot role gives a segment, for the Match lab's duration and weight chips before
+  a Run. A match is shifted by its type (`typeKey` is required there; a missing
+  or unknown one comes back as `invalidArgs`); a talking segment never is.
 
 ## Worker performance
 
@@ -869,3 +874,19 @@ promotionShortName, style, roles, popularity, available, unavailableReason }`:
   the name case-insensitively (up to 40 characters) and `limit` (1–500, 300 by
   default) caps the list, with `total` counting every match. A row never holds
   development, vices, morale or contract terms.
+
+### The Match lab screen
+
+Your promotion > Match lab (`apps/web/src/screens/match-lab/`, MTCH1-07) is the
+first screen on these queries. The setup column picks a match or a talking
+segment and its type (`match.catalog`), the slot role, event size, region and
+television; the duration and weight chips under the slot role come from
+`match.slotInfo` before anything is rated, each with its Why?. The sides column
+builds the line-up from a picker over `match.labWorkers`; the lab lets a
+line-up break the type's limits on purpose (up to 30 sides of 6) so the
+warnings can be seen. Run calls `match.preview` with the current seed (1 on a
+fresh lab), Re-roll seed moves to the next seed and runs, and Run x100 runs
+`match.preview` and a 100-run `match.previewBatch` together. Nothing re-rates
+on its own: changing the setup marks the shown result "Out of date: run
+again", and a result from an earlier game day says when it was rated. Other
+features add panels with `registerLabPanel` (see `apps/web/src/app/README.md`).

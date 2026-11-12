@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import { Select } from './Select';
+import { groupSelectOptions, Select } from './Select';
 import type { SelectOption } from './Select';
 
 const MATCH_TYPES: readonly SelectOption[] = [
@@ -103,5 +103,36 @@ describe('Select', () => {
     render(<Select label="Sort roster by" hideLabel options={MATCH_TYPES} defaultValue="tag" />);
 
     expect(screen.getByRole('combobox', { name: 'Sort roster by' })).toHaveTextContent('Tag team');
+  });
+
+  it('lists grouped options under their group names', async () => {
+    const user = userEvent.setup();
+    const regions: readonly SelectOption[] = [
+      { value: 'north', label: 'North', group: 'Testland' },
+      { value: 'south', label: 'South', group: 'Testland' },
+      { value: 'east', label: 'East', group: 'Otherland' },
+    ];
+    render(<Select label="Region" options={regions} defaultValue="north" />);
+
+    await user.click(screen.getByRole('combobox', { name: 'Region' }));
+    const groups = await screen.findAllByRole('group');
+    expect(groups.map((group) => group.textContent)).toEqual([
+      'TestlandNorthSouth',
+      'OtherlandEast',
+    ]);
+  });
+
+  it('splits options into runs that share a group', () => {
+    const runs = groupSelectOptions([
+      { value: 'a', label: 'A' },
+      { value: 'b', label: 'B', group: 'One' },
+      { value: 'c', label: 'C', group: 'One' },
+      { value: 'd', label: 'D', group: 'Two' },
+    ]);
+    expect(runs.map((run) => [run.group, run.options.length])).toEqual([
+      [undefined, 1],
+      ['One', 2],
+      ['Two', 1],
+    ]);
   });
 });

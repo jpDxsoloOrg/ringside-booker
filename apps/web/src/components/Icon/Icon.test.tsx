@@ -73,6 +73,7 @@ describe('Icon', () => {
       'finance',
       'inbox',
       'settings',
+      'lab',
     ]);
     expect(STATE_ICON_NAMES).toEqual(['up', 'down', 'flat', 'injured', 'warning', 'check', 'live']);
     expect(ACTION_ICON_NAMES).toEqual([
