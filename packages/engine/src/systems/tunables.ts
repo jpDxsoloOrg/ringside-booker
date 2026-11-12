@@ -11,6 +11,7 @@
 import { simTunables } from '../core/tunables/simTunables';
 import { calendarTunables } from './calendar/tunables';
 import { conditionTunables } from './condition/tunables';
+import { matchTunables } from './match/tunables';
 import { mergeTunables } from '../core/tunables/define';
 import type { TunableOverrides } from '../core/tunables/overrides';
 import {
@@ -28,10 +29,21 @@ export const ALL_TUNABLES = mergeTunables(
   worldTunables,
   workersTunables,
   calendarTunables,
+  matchTunables,
 );
 
 /** Every tunable key the engine knows. */
 export type TunableKey = keyof typeof ALL_TUNABLES;
+
+/**
+ * Every tunable key whose value is a number (`number` and `integer` kinds). Use it for a table of
+ * keys a formula reads as numbers; `TunableKey` also covers the enum and boolean tunables.
+ */
+export type NumberTunableKey = {
+  [Key in TunableKey]: (typeof ALL_TUNABLES)[Key]['kind'] extends 'number' | 'integer'
+    ? Key
+    : never;
+}[TunableKey];
 
 /** The reader formulas take: typed access to every engine tunable. */
 export type EngineTunables = TunableReader<typeof ALL_TUNABLES>;
