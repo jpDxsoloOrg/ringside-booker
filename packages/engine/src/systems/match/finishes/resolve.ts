@@ -446,8 +446,12 @@ export function resolveMatchOutcome(
     methodKey: method.value,
   };
   const label = outcomeLabel(outcome, winner);
+  // A finish named after its only method (Disqualification, Count-out) is said once.
+  const methodLabel = method.value === null ? null : methodName(catalogs, method.value);
   const because =
-    method.value === null ? finish.name : `${finish.name}, ${methodName(catalogs, method.value)}`;
+    methodLabel === null || methodLabel.toLowerCase() === finish.name.toLowerCase()
+      ? finish.name
+      : `${finish.name}, ${methodLabel}`;
   const trace = limitTrace({
     kind: 'decision',
     label: MATCH_RESULT_LABEL,

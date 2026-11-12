@@ -20,6 +20,7 @@ import type { PersonId } from '../../../core/ids';
 import { startCalc, type Calc, type Traced } from '../../../core/trace';
 import type { Alignment, Push } from '../../../model/entities/employment';
 import type { EngineTunables } from '../../tunables';
+import { PUSH_LABELS } from '../../workers/formulas/expectedPush';
 
 export const AUTO_WINNER_DOC_REF = 'match-finishes.md#auto-winner';
 
@@ -111,13 +112,9 @@ export function autoWinnerScore(
   }
 
   const popularityLabel = autoWinnerPopularityLabel(regionName);
-  const popularity = meanOf(
-    `Mean ${popularityLabel.toLowerCase()}`,
-    competitors,
-    (calc, competitor) => {
-      calc.add(competitor.name, competitor.popularityInRegion);
-    },
-  );
+  const popularity = meanOf(`Mean popularity in ${regionName}`, competitors, (calc, competitor) => {
+    calc.add(competitor.name, competitor.popularityInRegion);
+  });
   const popularityTerm = startCalc(popularityLabel, popularity, {
     unit: 'points',
     docRef: AUTO_WINNER_DOC_REF,
@@ -130,7 +127,7 @@ export function autoWinnerScore(
 
   const push = meanOf('Mean push points', competitors, (calc, competitor) => {
     calc.add(
-      `${competitor.name} (${competitor.push})`,
+      `${competitor.name} (${PUSH_LABELS[competitor.push].toLowerCase()})`,
       calc.tunable(tunables, pushKey(competitor.push)),
     );
   });

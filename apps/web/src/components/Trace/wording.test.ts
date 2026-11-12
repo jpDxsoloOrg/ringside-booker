@@ -66,4 +66,18 @@ describe('tunable rows', () => {
       'Ring work weight: 0 · Custom setting · default 3 · workers.rating.wrestler.ringwork',
     );
   });
+
+  it('words a choice setting’s option instead of showing its code', () => {
+    const row = describeTraceNode({
+      kind: 'tunable',
+      label: "Midcard's duration class",
+      key: 'match.slot.durationClass.midcard',
+      value: 'long',
+      defaultValue: 'standard',
+      overridden: true,
+    });
+    expect(traceLineText(row)).toBe(
+      "Midcard's duration class: Long · Custom setting · default Standard · match.slot.durationClass.midcard",
+    );
+  });
 });

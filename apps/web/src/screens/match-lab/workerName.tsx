@@ -9,6 +9,6 @@ import { WorkerLink } from '@/components/WorkerLink';
  * phone screen. Person inputs inside the lab's Why? panels link through `AppShell`'s
  * `EntityLinkContext`, so they need nothing here.
  */
-export function renderWorkerName(personId: PersonId, name: string): ReactNode {
-  return <WorkerLink personId={personId} name={name} />;
+export function renderWorkerName(personId: PersonId, name: string, className?: string): ReactNode {
+  return <WorkerLink personId={personId} name={name} className={className} />;
 }

@@ -90,16 +90,21 @@ export function constantLine(node: ConstantNode): TraceLine {
   });
 }
 
+/** A setting's value: a choice setting's option in words ("Standard", not `standard`). */
+function tunableValueText(value: TunableNode['value'], node: TunableNode): string {
+  return typeof value === 'string' ? choiceText(value) : formatTraceValue(value, node.unit);
+}
+
 /**
  * A setting's row ends with its key, the name it goes by in the tunables list and in a balance
  * profile, so a player who wants to change the number knows what to look for.
  */
 export function tunableLine(node: TunableNode): TraceLine {
-  const text = `${node.label}: ${formatTraceValue(node.value, node.unit)}`;
+  const text = `${node.label}: ${tunableValueText(node.value, node)}`;
   if (node.overridden) {
     return line(text, {
       badge: 'Custom setting',
-      details: [`default ${formatTraceValue(node.defaultValue, node.unit)}`, node.key],
+      details: [`default ${tunableValueText(node.defaultValue, node)}`, node.key],
     });
   }
   return line(text, { details: ['Game setting', node.key] });

@@ -27,7 +27,9 @@ function WorkerChip({ side, personId, row, onRemove }: WorkerChipProps) {
   return (
     <li className={styles['workerChip']}>
       <span className={styles['workerChipText']}>
-        <span className={styles['workerChipName']}>{renderWorkerName(personId, name)}</span>
+        <span className={styles['workerChipName']}>
+          {renderWorkerName(personId, name, styles['workerChipLink'])}
+        </span>
         <span className={styles['workerChipMeta']}>
           {row === undefined ? 'Popularity unknown' : `Popularity ${formatNumber(row.popularity)}`}
         </span>

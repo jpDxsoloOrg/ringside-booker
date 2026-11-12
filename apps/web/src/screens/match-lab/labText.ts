@@ -68,10 +68,15 @@ export function expectationGapText(got: number, expected: number): string {
   return `${String(Math.abs(gap))} ${gap < 0 ? 'below' : 'above'} expectation`;
 }
 
-/** A stamina penalty chip: "Passed" with no penalty, "Failed −6" with one. */
+/**
+ * A stamina penalty chip: "Passed" with no penalty, "Failed −6" with one. A penalty under a point
+ * keeps a decimal ("Failed −0.4"), so a small miss never reads as "Passed" on a failed chip.
+ */
 export function staminaText(penalty: number): string {
-  const points = Math.round(Math.abs(penalty));
-  return points === 0 ? 'Passed' : `Failed ${MINUS_SIGN}${String(points)}`;
+  const points = Math.abs(penalty);
+  if (points === 0) return 'Passed';
+  const shown = formatNumber(points, { maximumFractionDigits: points < 1 ? 2 : 0 });
+  return `Failed ${MINUS_SIGN}${shown}`;
 }
 
 /** A star value as text: "3.75 stars", "1 star". */

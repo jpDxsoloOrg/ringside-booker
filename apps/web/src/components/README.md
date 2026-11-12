@@ -163,7 +163,8 @@ one with `<Explained value={...} label="Attendance" unit="people" trace={...} />
 - **Choices read as words.** The engine names a decision's options with the codes the data uses
   (`mainEvent`, `lightHeavyweight`). `choiceText` in `Trace/wording.ts` turns a code into words
   ("Main event", "Light heavyweight") in the headline, the row and the options under it; text that
-  is not a code is left alone.
+  is not a code is left alone. A choice setting's value reads the same way ("Midcard's duration
+  class: Standard", not `standard`).
 - **Every kind has a row.** `Trace/kinds.ts` picks the row for each node kind with an exhaustive
   switch, so a kind added in the engine fails the typecheck until it has a renderer.
 - **Quiet checks are hidden.** Limits that changed nothing and branches not taken sit behind

@@ -272,7 +272,7 @@ person id order.
 
 It never produces a draw, and a side with nobody competing is never passed in.
 The decision is labelled "Winner decided automatically", or "Random winners
-mode: winner decided on the night" in Random winners mode, and the randomness
+mode, winner decided on the night" in Random winners mode, and the randomness
 (a tunable read) is its first child.
 
 The randomness is `match.autoWinner.randomness` (5 by default; 0 makes the
@@ -387,7 +387,7 @@ null), the winners' names, the "Match result" decision as `resultTrace`, and
 `randomWinnersMode` is true when the winner is Auto and Random winners applies
 to the viewer's first promotion (`randomWinnersActive` with no brand). Then
 the auto-winner uses `match.randomWinners.randomness` and the winner decision
-is labelled "Random winners mode: winner decided on the night". The lab is a
+is labelled "Random winners mode, winner decided on the night". The lab is a
 sandbox, so a booked side or Draw is still honoured in a Random winners game
 (standard mode); only the booking screen refuses it.
 

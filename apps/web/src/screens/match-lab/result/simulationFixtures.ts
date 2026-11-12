@@ -153,7 +153,7 @@ export function randomWinnersSimulation(): SimulateResult {
     resultTrace: resultTrace(
       'Side 1 wins',
       'Clean, Pinfall',
-      'Random winners mode: winner decided on the night',
+      'Random winners mode, winner decided on the night',
     ),
   };
 }
