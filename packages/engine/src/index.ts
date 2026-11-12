@@ -1327,6 +1327,18 @@ export {
   writeSegment,
 } from './systems/booking/index';
 export { CardWriteError } from './core/errors';
+// The booking commands (EVT2-02): add, update, remove, move, set result and clear, each checked
+// against who runs the show and whether its card can still change. See
+// docs/design/booking.md#commands.
+export type {
+  AddSegmentArgs,
+  BookingCommandReasonCode,
+  CardChange,
+  MoveSegmentArgs,
+  SetResultArgs,
+  UpdateSegmentArgs,
+} from './systems/booking/index';
+export { BOOKING_COMMAND_REASON_CODES, CARD_CHANGES } from './systems/booking/index';
 
 // The shows system (EVT3-01): show night's domain events (`segment.completed`, `show.completed`,
 // `title.changed`, `title.defended`), trace kinds and refs, random stream and tunables. The phase

@@ -13,6 +13,7 @@
 // imports this system.
 import './events';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
+import { bookingCommands } from './commands';
 
 export { cardSegments, hasCard } from './card';
 export {
@@ -53,9 +54,27 @@ export {
   type WriteSegmentArgs,
 } from './writer';
 
+// The booking commands (EVT2-02): the six ways a booker changes a card.
+export {
+  addSegmentCommand,
+  BOOKING_COMMAND_REASON_CODES,
+  bookingCommands,
+  clearCardCommand,
+  moveSegmentCommand,
+  removeSegmentCommand,
+  setResultCommand,
+  updateSegmentCommand,
+  type AddSegmentArgs,
+  type BookingCommandReasonCode,
+  type MoveSegmentArgs,
+  type SetResultArgs,
+  type UpdateSegmentArgs,
+} from './commands';
+export { CARD_CHANGES, type CardChange } from './events';
+
 export const bookingSystem: SystemBundle = defineSystem({
   id: 'booking',
   queries: [],
-  commands: [],
+  commands: [...bookingCommands],
   gates: [],
 });
