@@ -99,6 +99,10 @@ ids.people[0]; // per_0000000001, the first wrestler on A's roster
 - `gzipJson(value)` (in `gzip-json.ts`, Node only and not exported from the testing entry): packs
   any value the way an `.rbsave` is packed, without the encoder's checks, so a test can hand the
   loader a document the encoder would refuse.
+- `measureAgainstReference(run)` (in `cpu-budget.ts`, Node only and not exported from the testing
+  entry): times `run` in CPU time against a fixed plain-JavaScript workload measured just before
+  and after it, so a speed guard can bound the ratio, which holds on a busy machine where a fixed
+  number of milliseconds does not.
 
 ## Assertions
 
