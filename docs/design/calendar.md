@@ -275,6 +275,7 @@ show" tile agree about every show. The code is in `queries.ts`, the row in
 | `venue`           | `{ id, name, capacity, kind }`, or null while the venue is not chosen |
 | `segmentCount`    | How many segments are on the card                                     |
 | `canCancel`       | True when the viewer could cancel the show right now                  |
+| `score`           | The show score once `completed` (EVT3-06), otherwise null             |
 
 A projected show has no id, so screens key rows by `key` and hide anything
 that needs an id (Book, Cancel) for them.
@@ -284,8 +285,9 @@ Two things are never in a row:
 - **Money.** Schedules are public: a real promotion's TV dates are no secret,
   so every viewer sees every promotion's shows, where they are held and
   whether they ran. What a rival's show took at the gate is not public. The
-  row is built field by field and the show's `result` is never copied, and no
-  calendar query reads a promotion's cash. That holds for the viewer's own
+  row is built field by field and the show's `result` is never copied (only
+  its `score`, which was public the night the show aired), and no calendar
+  query reads a promotion's cash. That holds for the viewer's own
   shows too; a show's takings belong to the show report.
 - **Lengths.** A show has slots, not a running time (D-10). No field is a
   number of minutes or a clock time.
@@ -352,8 +354,8 @@ occurrences between
 
 and returns one row for each that has no stored show under
 `byDefinitionAirDate`. Nothing is written. A projected row has status
-`projected`, no id, no cancellation, a `segmentCount` of 0 and `canCancel`
-false, and its region and venue are what `placeShow` picks today.
+`projected`, no id, no cancellation, a `segmentCount` of 0, `canCancel`
+false and a null `score`, and its region and venue are what `placeShow` picks today.
 
 Because the stored-show check is the schedule's own idempotency key, the two
 queries never return the same airing twice: the day the horizon reaches a
