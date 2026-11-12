@@ -139,7 +139,9 @@ export function SortableList({
     <DndContext
       sensors={sensors}
       collisionDetection={closestCenter}
-      accessibility={{ announcements }}
+      // The instructions and the live region go to the end of the body, not inside the list
+      // (an <ol> may only hold <li>s).
+      accessibility={{ announcements, container: document.body }}
       onDragEnd={handleDragEnd}
     >
       <SortableContext
