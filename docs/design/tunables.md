@@ -455,3 +455,10 @@ The thresholds a card is held to before it can be locked (EVT2-04), in
 | `booking.maxMatchesPerPersonPerShow` | integer | 3       | 1–4   | count | Most matches one person may wrestle on one show (each match past the first is a warning) |
 | `booking.minFilledMainShare`         | number  | 0.5     | 0–1   | ratio | Share of main-card slots that must be filled to lock (0 = no minimum)                    |
 | `booking.requireMainEvent`           | boolean | true    |       | flag  | The last main-card slot must be filled to lock                                           |
+
+## Finance tunables
+
+The economy's numbers (ECO1), in `systems/finance/tunables.ts`, category
+`Finances`, each with a docRef into [finances.md](finances.md). The set starts
+empty: ECO1-02 adds reach and size, ECO1-03 wages and medical, and ECO1-04 show
+costs and importance, each in its own block.

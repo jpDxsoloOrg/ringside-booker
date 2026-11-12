@@ -724,3 +724,10 @@ The shows system's events ([show-night.md](show-night.md#events)):
 | `show.completed`    | `eventInstanceId`, `promotionId`, `brandId`, `date`, `importance`, `score`, `rawScore`, `offscreen`, `segmentCount`                                                                    | A show is run, on screen or off it        |
 | `title.changed`     | `titleId`, `promotionId`, `fromReignId`, `toReignId`, `segmentId`, `eventInstanceId`, `newHolderIds`, `previousHolderIds`                                                              | A title changes hands in a segment        |
 | `title.defended`    | `titleId`, `promotionId`, `reignId`, `segmentId`, `eventInstanceId`, `defences`                                                                                                        | A champion keeps their title in a segment |
+
+The finance system's events ([finances.md](finances.md#postmoney)):
+
+| Event                   | Payload                                                      | Published when                                            |
+| ----------------------- | ------------------------------------------------------------ | --------------------------------------------------------- |
+| `finance.moneyPosted`   | `promotionId`, `ledgerEntryId`, `category`, `amount`, `date` | `postMoney` writes a row for a human-controlled promotion |
+| `finance.policyChanged` | `promotionId`, `area`, `from`, `to`                          | A promotion changes a spending policy (ECO1-04)           |
