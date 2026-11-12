@@ -129,7 +129,7 @@ describe('showReach', () => {
     const tunables = createEngineTunables({ 'promoPop.neighbourReach': 0 });
     expect(weights(reachWith(untelevised(), tunables))).toEqual({ Texas: 1 });
     const televised = reachWith({ ...untelevised(), deals: [nationalDeal(2)] }, tunables);
-    expect(weights(televised).Oklahoma).toBe(0.3);
+    expect(weights(televised)['Oklahoma']).toBe(0.3);
   });
 
   it('drops the TV regions when their tier reach is 0', () => {
