@@ -4,7 +4,7 @@ import type { SegmentId, TitleId } from '../../../src/core/ids';
 import { startDecision, type DecisionNode, type TraceNode } from '../../../src/core/trace';
 import type { SimRuntime } from '../../../src/core/pipeline/runtime';
 import { checkWorld } from '../../../src/model/integrity';
-import { TABLES, type GameTables } from '../../../src/model/tables';
+import { TABLES } from '../../../src/model/tables';
 import {
   CHAMPION_WON_REASON,
   DRAW_DEFENCE_REASON,
@@ -44,11 +44,7 @@ function openReign(built: TitleNightWorld, titleId: TitleId) {
   return built.world.tables.titleReigns.lookupOne('openByTitle', titleId);
 }
 
-function decisionOf(
-  runtime: SimRuntime<GameTables>,
-  segmentId: SegmentId,
-  titleId: TitleId,
-): DecisionNode {
+function decisionOf(runtime: SimRuntime, segmentId: SegmentId, titleId: TitleId): DecisionNode {
   const entry = runtime.traces.get(titleOutcomeTraceRef(segmentId, titleId));
   if (entry === undefined || !('trace' in entry) || entry.trace.kind !== 'decision') {
     throw new Error(`No title outcome trace for ${segmentId} and ${titleId}`);
@@ -88,10 +84,13 @@ describe('a challenger win', () => {
   it('closes the old reign and opens a new one for the winner', () => {
     const built = titleNightWorld();
     const before = openReign(built, built.titles.world);
+    if (before === undefined) {
+      throw new Error('The world title has no champion');
+    }
     const segmentId = worldTitleMatch(built, winFor(1));
     const { runtime } = runNight(built);
 
-    const closed = built.world.tables.titleReigns.require(before?.id ?? '');
+    const closed = built.world.tables.titleReigns.require(before.id);
     expect(closed).toMatchObject({ lostOn: TODAY, endReason: 'lost', endedInSegmentId: segmentId });
     const current = openReign(built, built.titles.world);
     const challenger = member(built, 1);
@@ -111,7 +110,7 @@ describe('a challenger win', () => {
       {
         titleId: built.titles.world,
         promotionId: built.world.tables.titles.require(built.titles.world).promotionId,
-        fromReignId: before?.id,
+        fromReignId: before.id,
         toReignId: current?.id,
         segmentId,
         eventInstanceId: built.show,

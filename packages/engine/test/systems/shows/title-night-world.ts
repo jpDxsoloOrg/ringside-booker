@@ -21,7 +21,7 @@ import { runStep } from '../../../src/core/pipeline/runStep';
 import { createRuntime, type SimRuntime } from '../../../src/core/pipeline/runtime';
 import type { TunableOverrides } from '../../../src/core/tunables/overrides';
 import type { MatchOutcome } from '../../../src/model/entities/segment';
-import type { GameTables, GameWorld } from '../../../src/model/tables';
+import type { GameWorld } from '../../../src/model/tables';
 import {
   MatchDraftSchema,
   type MatchDraft,
@@ -194,7 +194,7 @@ export function winFor(side: number, methodKey = PINFALL): MatchOutcome {
 }
 
 export interface NightRun {
-  readonly runtime: SimRuntime<GameTables>;
+  readonly runtime: SimRuntime;
   readonly report: StepReport;
 }
 
@@ -218,21 +218,19 @@ export function runNight(built: TitleNightWorld, overrides: TunableOverrides = {
 }
 
 /** The title events the night published, oldest first. */
-export function titleEvents(runtime: SimRuntime<GameTables>): AnyDomainEvent[] {
+export function titleEvents(runtime: SimRuntime): AnyDomainEvent[] {
   return runtime.bus.recent({ limit: 1000, types: ['title.changed', 'title.defended'] });
 }
 
 /** The `title.changed` payloads, oldest first. */
-export function changedEvents(runtime: SimRuntime<GameTables>): DomainEventMap['title.changed'][] {
+export function changedEvents(runtime: SimRuntime): DomainEventMap['title.changed'][] {
   return titleEvents(runtime).flatMap((event) =>
     event.type === 'title.changed' ? [event.payload] : [],
   );
 }
 
 /** The `title.defended` payloads, oldest first. */
-export function defendedEvents(
-  runtime: SimRuntime<GameTables>,
-): DomainEventMap['title.defended'][] {
+export function defendedEvents(runtime: SimRuntime): DomainEventMap['title.defended'][] {
   return titleEvents(runtime).flatMap((event) =>
     event.type === 'title.defended' ? [event.payload] : [],
   );
