@@ -7,6 +7,7 @@ import {
   angleTypeContentKey,
   catalogsFromRecords,
   describePackIssues,
+  finishContentKey,
   loadWorldFromPacks,
   matchTypeContentKey,
   mergeRecords,
@@ -17,7 +18,7 @@ import {
   type MergedContent,
   type RawPack,
 } from '../../../src/persistence/packs';
-import { parseIssues } from '../../support/schema-issues';
+import { issuePaths, parseIssues } from '../../support/schema-issues';
 import { miniWorldPacks, testPack } from '../../support/fixture-packs';
 
 type Fixture = Record<string, unknown>;
@@ -311,5 +312,201 @@ describe('loading a world with catalog packs', () => {
     if (loaded.ok) {
       expect(loaded.value.world.meta.catalogs).toEqual({});
     }
+  });
+});
+
+// ---------------------------------------------------------------------------------------------
+// Finishes (MTCH2-01)
+
+const CLEAN: Fixture = {
+  key: 'clean',
+  name: 'Clean finish',
+  order: 10,
+  summary: 'One side beats the other fair and square.',
+  category: 'clean',
+  outcomeKind: 'win',
+  methods: [
+    { methodKey: 'pinfall', weight: 6 },
+    { methodKey: 'catalog-base:count-out', weight: 1 },
+  ],
+  effects: { workRate: 0, crowd: 1 },
+  allowsTitleChange: true,
+  gains: { winner: 1, loser: 1 },
+  autoWeight: 60,
+  requiresTwoSides: false,
+};
+
+const STALEMATE: Fixture = {
+  ...CLEAN,
+  key: 'stalemate',
+  name: 'Stalemate',
+  order: 90,
+  category: 'draw',
+  outcomeKind: 'draw',
+  methods: [],
+  allowsTitleChange: false,
+  autoWeight: 1,
+  matchTypes: { except: ['tag-team'] },
+};
+
+describe('finish records', () => {
+  it('accept a win and a draw', () => {
+    expect(parseIssues(recordSchemas.finish, CLEAN)).toEqual([]);
+    expect(parseIssues(recordSchemas.finish, STALEMATE)).toEqual([]);
+  });
+
+  it('refuse a win with no methods, a draw that changes titles and both only and except', () => {
+    const result = recordFileSchema('finish').safeParse([
+      { ...CLEAN, methods: [] },
+      {
+        ...STALEMATE,
+        allowsTitleChange: true,
+        matchTypes: { only: ['singles'], except: ['tag-team'] },
+      },
+    ]);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(describePackIssues('finishes.json', result.error)).toEqual([
+        'finishes.json[0].methods: a win finish needs at least one method',
+        'finishes.json[1].allowsTitleChange: a draw finish cannot change a title',
+        'finishes.json[1].matchTypes: list matchTypes.only or matchTypes.except, not both',
+      ]);
+    }
+  });
+
+  it('refuse effects outside -10..10, a weight of 0 and gains above 3', () => {
+    expect(
+      issuePaths(recordSchemas.finish, {
+        ...CLEAN,
+        effects: { workRate: 11, crowd: 0 },
+        methods: [{ methodKey: 'pinfall', weight: 0 }],
+        gains: { winner: 3.5, loser: 1 },
+      }),
+    ).toEqual(['methods.0.weight', 'effects.workRate', 'gains.winner']);
+  });
+
+  it('form finish content keys', () => {
+    expect(finishContentKey('count-out')).toBe('finish.count-out');
+  });
+});
+
+const FINISH_BASE = testPack({
+  id: 'catalog-base',
+  kind: 'base',
+  records: {
+    matchType: [SINGLES, TAG],
+    method: [PINFALL, COUNT_OUT],
+    finish: [CLEAN, STALEMATE],
+  },
+});
+
+const FINISH_ADDON = testPack({
+  id: 'catalog-addon',
+  dependsOn: [{ id: 'catalog-base', version: '^1.0.0' }],
+  records: {
+    finish: [
+      { key: 'stalemate', $remove: true },
+      { key: 'clean', $override: 'patch', autoWeight: 40, matchTypes: { only: ['singles'] } },
+    ],
+  },
+});
+
+describe('merging finish records', () => {
+  const content = merged([FINISH_BASE, FINISH_ADDON], ['catalog-addon']);
+
+  it('removes and patches finishes through an add-on', () => {
+    expect([...content.records.finish.keys()]).toEqual(['clean']);
+    expect(content.records.finish.get('clean')?.record.autoWeight).toBe(40);
+    expect(content.records.finish.get('clean')?.sourcePackId).toBe('catalog-addon');
+  });
+
+  it('rechecks a patched finish, so a patch cannot turn a win into a draw with methods', () => {
+    const badPatch = testPack({
+      id: 'catalog-addon',
+      dependsOn: [{ id: 'catalog-base', version: '^1.0.0' }],
+      records: { finish: [{ key: 'clean', $override: 'patch', outcomeKind: 'draw' }] },
+    });
+    const resolved = resolvePacks([FINISH_BASE, badPatch], ['catalog-addon']);
+    expect(resolved.ok).toBe(true);
+    if (!resolved.ok) {
+      return;
+    }
+    const result = mergeRecords(resolved.value);
+    expect(result.ok).toBe(false);
+    expect(result.issues.map((issue) => issue.path)).toEqual(
+      expect.arrayContaining([
+        ['finish', 'clean', 'methods'],
+        ['finish', 'clean', 'allowsTitleChange'],
+      ]),
+    );
+  });
+
+  it('snapshots finishes keyed by content key, with references as content keys', () => {
+    const catalogs = catalogsFromRecords(content.records);
+    expect(catalogs.finishes).toEqual({
+      'finish.clean': {
+        key: 'finish.clean',
+        name: 'Clean finish',
+        order: 10,
+        summary: 'One side beats the other fair and square.',
+        category: 'clean',
+        outcomeKind: 'win',
+        methods: [
+          { methodKey: 'method.pinfall', weight: 6 },
+          { methodKey: 'method.count-out', weight: 1 },
+        ],
+        effects: { workRate: 0, crowd: 1 },
+        allowsTitleChange: true,
+        gains: { winner: 1, loser: 1 },
+        autoWeight: 40,
+        requiresTwoSides: false,
+        matchTypes: { only: ['match.singles'] },
+      },
+    });
+    const base = catalogsFromRecords(merged([FINISH_BASE], ['catalog-base']).records);
+    expect(base.finishes?.[parseContentKey('finish.stalemate')]?.matchTypes).toEqual({
+      except: ['match.tag-team'],
+    });
+  });
+});
+
+describe('loading a world with finish packs', () => {
+  it('lands the finishes in meta.catalogs and the library', () => {
+    const loaded = loadWorldFromPacks(
+      [...miniWorldPacks(), FINISH_BASE, FINISH_ADDON],
+      ['mini-world', 'catalog-addon'],
+      { seed: 'finish-seed' },
+    );
+    expect(loaded.ok).toBe(true);
+    if (!loaded.ok) {
+      return;
+    }
+    expect(Object.keys(loaded.value.world.meta.catalogs.finishes ?? {})).toEqual(['finish.clean']);
+    expect(Object.keys(loaded.value.library.finishes)).toEqual(['clean']);
+  });
+
+  it('refuses a finish naming a method no pack defines', () => {
+    const addon = testPack({
+      id: 'catalog-addon',
+      dependsOn: [{ id: 'catalog-base', version: '^1.0.0' }],
+      records: {
+        finish: [
+          { key: 'clean', $override: 'patch', methods: [{ methodKey: 'body-slam', weight: 1 }] },
+        ],
+      },
+    });
+    const loaded = loadWorldFromPacks(
+      [...miniWorldPacks(), FINISH_BASE, addon],
+      ['mini-world', 'catalog-addon'],
+      { seed: 'finish-seed' },
+    );
+    expect(loaded.ok).toBe(false);
+    expect(loaded.issues.map((issue) => issue.path)).toContainEqual([
+      'finish',
+      'clean',
+      'methods',
+      0,
+      'methodKey',
+    ]);
   });
 });

@@ -379,6 +379,265 @@
           "hidden": false,
           "description": "The opponent gives up to a hold."
         }
+      },
+      "finishes": {
+        "finish.cheating": {
+          "key": "finish.cheating",
+          "name": "Cheating finish",
+          "order": 30,
+          "summary": "Feet on the ropes, a fistful of tights or a hidden object; the referee misses it.",
+          "category": "cheating",
+          "outcomeKind": "win",
+          "methods": [
+            {
+              "methodKey": "method.pinfall",
+              "weight": 3
+            },
+            {
+              "methodKey": "method.submission",
+              "weight": 1
+            }
+          ],
+          "effects": {
+            "workRate": -1,
+            "crowd": -1
+          },
+          "allowsTitleChange": true,
+          "gains": {
+            "winner": 0.85,
+            "loser": 0.7
+          },
+          "autoWeight": 12,
+          "requiresTwoSides": false,
+          "matchTypes": {}
+        },
+        "finish.clean": {
+          "key": "finish.clean",
+          "name": "Clean finish",
+          "order": 10,
+          "summary": "One side beats the other fair and square; nobody can argue with the result.",
+          "category": "clean",
+          "outcomeKind": "win",
+          "methods": [
+            {
+              "methodKey": "method.pinfall",
+              "weight": 6
+            },
+            {
+              "methodKey": "method.submission",
+              "weight": 3
+            },
+            {
+              "methodKey": "method.knockout",
+              "weight": 1
+            }
+          ],
+          "effects": {
+            "workRate": 0,
+            "crowd": 1
+          },
+          "allowsTitleChange": true,
+          "gains": {
+            "winner": 1,
+            "loser": 1
+          },
+          "autoWeight": 60,
+          "requiresTwoSides": false,
+          "matchTypes": {}
+        },
+        "finish.controversial": {
+          "key": "finish.controversial",
+          "name": "Controversial finish",
+          "order": 70,
+          "summary": "A missed kick-out or a fast count; the result stands but the crowd hates it.",
+          "category": "controversial",
+          "outcomeKind": "win",
+          "methods": [
+            {
+              "methodKey": "method.pinfall",
+              "weight": 1
+            }
+          ],
+          "effects": {
+            "workRate": -2,
+            "crowd": -4
+          },
+          "allowsTitleChange": true,
+          "gains": {
+            "winner": 0.7,
+            "loser": 0.5
+          },
+          "autoWeight": 2,
+          "requiresTwoSides": false,
+          "matchTypes": {}
+        },
+        "finish.count-out": {
+          "key": "finish.count-out",
+          "name": "Count-out",
+          "order": 50,
+          "summary": "One side stays outside too long and loses on the count; the title can't change hands.",
+          "category": "countOut",
+          "outcomeKind": "win",
+          "methods": [
+            {
+              "methodKey": "method.count-out",
+              "weight": 1
+            }
+          ],
+          "effects": {
+            "workRate": -3,
+            "crowd": -2
+          },
+          "allowsTitleChange": false,
+          "gains": {
+            "winner": 0.6,
+            "loser": 0.4
+          },
+          "autoWeight": 4,
+          "requiresTwoSides": true,
+          "matchTypes": {}
+        },
+        "finish.disqualification": {
+          "key": "finish.disqualification",
+          "name": "Disqualification",
+          "order": 60,
+          "summary": "One side goes too far and the referee throws them out; the title can't change hands.",
+          "category": "disqualification",
+          "outcomeKind": "win",
+          "methods": [
+            {
+              "methodKey": "method.disqualification",
+              "weight": 1
+            }
+          ],
+          "effects": {
+            "workRate": -4,
+            "crowd": -3
+          },
+          "allowsTitleChange": false,
+          "gains": {
+            "winner": 0.5,
+            "loser": 0.3
+          },
+          "autoWeight": 4,
+          "requiresTwoSides": true,
+          "matchTypes": {}
+        },
+        "finish.double-count-out": {
+          "key": "finish.double-count-out",
+          "name": "Double count-out",
+          "order": 80,
+          "summary": "Both sides brawl outside past the count and nobody wins.",
+          "category": "draw",
+          "outcomeKind": "draw",
+          "methods": [],
+          "effects": {
+            "workRate": -3,
+            "crowd": -3
+          },
+          "allowsTitleChange": false,
+          "gains": {
+            "winner": 1,
+            "loser": 1
+          },
+          "autoWeight": 1,
+          "requiresTwoSides": true,
+          "matchTypes": {}
+        },
+        "finish.flash": {
+          "key": "finish.flash",
+          "name": "Flash finish",
+          "order": 20,
+          "summary": "A sudden roll-up out of nowhere steals it before the match finds its stride.",
+          "category": "clean",
+          "outcomeKind": "win",
+          "methods": [
+            {
+              "methodKey": "method.pinfall",
+              "weight": 1
+            }
+          ],
+          "effects": {
+            "workRate": -1,
+            "crowd": 0
+          },
+          "allowsTitleChange": true,
+          "gains": {
+            "winner": 0.6,
+            "loser": 0.5
+          },
+          "autoWeight": 10,
+          "requiresTwoSides": false,
+          "matchTypes": {}
+        },
+        "finish.interference": {
+          "key": "finish.interference",
+          "name": "Outside interference",
+          "order": 40,
+          "summary": "Someone from outside the match gets involved and swings it.",
+          "category": "cheating",
+          "outcomeKind": "win",
+          "methods": [
+            {
+              "methodKey": "method.pinfall",
+              "weight": 1
+            }
+          ],
+          "effects": {
+            "workRate": -2,
+            "crowd": -1
+          },
+          "allowsTitleChange": true,
+          "gains": {
+            "winner": 0.8,
+            "loser": 0.6
+          },
+          "autoWeight": 6,
+          "requiresTwoSides": false,
+          "matchTypes": {}
+        },
+        "finish.no-contest": {
+          "key": "finish.no-contest",
+          "name": "No contest",
+          "order": 100,
+          "summary": "The referee throws the match out; the title can't change hands.",
+          "category": "noContest",
+          "outcomeKind": "noContest",
+          "methods": [],
+          "effects": {
+            "workRate": -5,
+            "crowd": -5
+          },
+          "allowsTitleChange": false,
+          "gains": {
+            "winner": 1,
+            "loser": 1
+          },
+          "autoWeight": 1,
+          "requiresTwoSides": false,
+          "matchTypes": {}
+        },
+        "finish.stalemate": {
+          "key": "finish.stalemate",
+          "name": "Stalemate",
+          "order": 90,
+          "summary": "Neither side can put the other away and the referee calls it even.",
+          "category": "draw",
+          "outcomeKind": "draw",
+          "methods": [],
+          "effects": {
+            "workRate": -2,
+            "crowd": -3
+          },
+          "allowsTitleChange": false,
+          "gains": {
+            "winner": 1,
+            "loser": 1
+          },
+          "autoWeight": 1,
+          "requiresTwoSides": false,
+          "matchTypes": {}
+        }
       }
     },
     "daysSimulated": 95
@@ -2705,7 +2964,7 @@
           "titleIds": [
             "tit_0000000001"
           ],
-          "finishKey": null
+          "finishKey": "finish.clean"
         },
         "outcome": {
           "kind": "win",

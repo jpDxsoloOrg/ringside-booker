@@ -9,10 +9,16 @@
  * - An **angle type** is a kind of talking segment: the beat it starts with, how many speakers it
  *   takes and the stat mix of its simple speaker score.
  * - A **method** is how a match is won, and whether a win that way can move a title.
+ * - A **finish** is how a match ends (MTCH2): its category and outcome kind, the methods a win
+ *   that way uses, its work-rate and crowd effects, whether a title can change hands, the winner
+ *   and loser gain factors and its automatic-pick weight. Unlike the other three it refers to
+ *   other kinds: `methods[].methodKey` names a method and `matchTypes.only` / `except` name match
+ *   types, as pack references the loader checks.
  *
- * These records refer to no other kind and never become entities. The loader snapshots the merged
- * records into `WorldMeta.catalogs` at new game, keyed by content key: pack key `singles` becomes
- * `match.singles`, `promo` becomes `angle.promo` and `pinfall` becomes `method.pinfall`.
+ * These records never become entities. The loader snapshots the merged records into
+ * `WorldMeta.catalogs` at new game, keyed by content key: pack key `singles` becomes
+ * `match.singles`, `promo` becomes `angle.promo`, `pinfall` becomes `method.pinfall` and `clean`
+ * becomes `finish.clean`.
  *
  * Format doc: docs/design/data-packs.md, "Match and segment catalogs".
  */
@@ -39,17 +45,37 @@ import {
   type AngleTypeDef,
   type MatchTypeDef,
   type MethodDef,
+  FINISH_NAME_MAX_LENGTH,
+  finishAutoWeightSchema,
+  finishCategorySchema,
+  finishEffectsSchema,
+  finishGainsSchema,
+  finishMethodWeightSchema,
+  finishOutcomeKindSchema,
+  finishSummarySchema,
+  refineFinish,
+  type FinishDef,
 } from '../../../model/catalogs';
 import { zContentKey } from '../../../model/primitives';
 import { zName } from '../../../model/entities/entity-refinements';
 import { defineRecordKind } from '../fields';
-import { keySchema, type PackKey, type RecordReference } from '../keys';
+import {
+  EACH_ELEMENT,
+  keySchema,
+  parseRef,
+  refListSchema,
+  refSchema,
+  type PackKey,
+  type PackRef,
+  type RecordReference,
+} from '../keys';
 import type { MergedRecords } from '../merge';
 
 /** The content-key namespace of each catalog. */
 export const MATCH_TYPE_CONTENT_PREFIX = 'match';
 export const ANGLE_TYPE_CONTENT_PREFIX = 'angle';
 export const METHOD_CONTENT_PREFIX = 'method';
+export const FINISH_CONTENT_PREFIX = 'finish';
 /** The namespace an angle type's default beat must be in (MTCH5's beat catalog). */
 export const BEAT_CONTENT_PREFIX = 'beat';
 
@@ -66,6 +92,11 @@ export function angleTypeContentKey(packKey: PackKey | string): ContentKey {
 /** The content key a method is stored under: `pinfall` → `method.pinfall`. */
 export function methodContentKey(packKey: PackKey | string): ContentKey {
   return parseContentKey(`${METHOD_CONTENT_PREFIX}.${packKey}`);
+}
+
+/** The content key a finish is stored under: `clean` → `finish.clean`. */
+export function finishContentKey(packKey: PackKey | string): ContentKey {
+  return parseContentKey(`${FINISH_CONTENT_PREFIX}.${packKey}`);
 }
 
 const nameSchema = zName(CATALOG_NAME_MAX_LENGTH);
@@ -136,9 +167,40 @@ export const methodRecord = defineRecordKind(
   }),
 );
 
+export const finishRecord = defineRecordKind(
+  z.strictObject({
+    key: keySchema,
+    name: zName(FINISH_NAME_MAX_LENGTH),
+    /** Display order, 0-999; lower comes first, ties by key. */
+    order: orderSchema,
+    /** One line for the player, at most 140 characters. */
+    summary: finishSummarySchema,
+    category: finishCategorySchema,
+    outcomeKind: finishOutcomeKindSchema,
+    /** The methods a win this way uses, by method key, with pick weights 1-100. Empty unless a win. */
+    methods: z.array(z.strictObject({ methodKey: refSchema, weight: finishMethodWeightSchema })),
+    /** Whole-step effects on the rating's work-rate and crowd parts, -10 to 10. */
+    effects: finishEffectsSchema,
+    /** A title on the line may change hands. Never true for a draw or no contest. */
+    allowsTitleChange: z.boolean(),
+    /** Popularity gain factors, 0-3, for the winner and the loser. */
+    gains: finishGainsSchema,
+    /** Weight when a finish is picked automatically, 0-100; 0 = never. */
+    autoWeight: finishAutoWeightSchema,
+    /** Only for matches with exactly two sides. */
+    requiresTwoSides: z.boolean(),
+    /** Only these match types, or every type but these. Left out = every type. */
+    matchTypes: z
+      .strictObject({ only: refListSchema.optional(), except: refListSchema.optional() })
+      .optional(),
+  }),
+  refineFinish,
+);
+
 export type MatchTypeRecord = z.output<typeof matchTypeRecord.full>;
 export type AngleTypeRecord = z.output<typeof angleTypeRecord.full>;
 export type MethodRecord = z.output<typeof methodRecord.full>;
+export type FinishRecord = z.output<typeof finishRecord.full>;
 
 // ---------------------------------------------------------------------------------------------
 // Records to runtime entries, defaults filled in
@@ -190,6 +252,38 @@ export function toMethodDef(record: MethodRecord): MethodDef {
   };
 }
 
+function keyOf(ref: PackRef): string {
+  return parseRef(ref).key;
+}
+
+/** A finish record as its runtime catalog entry, its references turned into content keys. */
+export function toFinishDef(record: FinishRecord): FinishDef {
+  const { only, except } = record.matchTypes ?? {};
+  return {
+    key: finishContentKey(record.key),
+    name: record.name,
+    order: record.order,
+    summary: record.summary,
+    category: record.category,
+    outcomeKind: record.outcomeKind,
+    methods: record.methods.map((method) => ({
+      methodKey: methodContentKey(keyOf(method.methodKey)),
+      weight: method.weight,
+    })),
+    effects: { ...record.effects },
+    allowsTitleChange: record.allowsTitleChange,
+    gains: { ...record.gains },
+    autoWeight: record.autoWeight,
+    requiresTwoSides: record.requiresTwoSides,
+    matchTypes: {
+      ...(only === undefined ? {} : { only: only.map((ref) => matchTypeContentKey(keyOf(ref))) }),
+      ...(except === undefined
+        ? {}
+        : { except: except.map((ref) => matchTypeContentKey(keyOf(ref))) }),
+    },
+  };
+}
+
 function compareText(left: string, right: string): number {
   if (left === right) {
     return 0;
@@ -218,27 +312,36 @@ function catalogOf<PackRecord, Def extends { readonly key: ContentKey }>(
 
 /**
  * The runtime catalogs for `WorldMeta.catalogs`, from merged pack records: every match type,
- * angle type and method keyed by content key, in key order. A kind no pack defines is left out, so
+ * angle type, method and finish keyed by content key, in key order. A kind no pack defines is left out, so
  * nothing checks segment keys against a catalog that does not exist.
  */
 export function catalogsFromRecords(
-  records: Pick<MergedRecords, 'matchType' | 'angleType' | 'method'>,
+  records: Pick<MergedRecords, 'matchType' | 'angleType' | 'method' | 'finish'>,
 ): Catalogs {
   const angleTypes = catalogOf(records.angleType, toAngleTypeDef);
   const matchTypes = catalogOf(records.matchType, toMatchTypeDef);
   const methods = catalogOf(records.method, toMethodDef);
+  const finishes = catalogOf(records.finish, toFinishDef);
   return {
     ...(angleTypes === undefined ? {} : { angleTypes }),
     ...(matchTypes === undefined ? {} : { matchTypes }),
     ...(methods === undefined ? {} : { methods }),
+    ...(finishes === undefined ? {} : { finishes }),
   };
 }
 
 // ---------------------------------------------------------------------------------------------
-// Reference fields: none. `defaultBeatKey` is a content key, not a pack reference.
+// Reference fields. `defaultBeatKey` is a content key, not a pack reference. A finish names
+// methods and match types by pack key.
 
 export const matchTypeReferences = [] as const satisfies readonly RecordReference[];
 
 export const angleTypeReferences = [] as const satisfies readonly RecordReference[];
 
 export const methodReferences = [] as const satisfies readonly RecordReference[];
+
+export const finishReferences = [
+  { path: ['methods', EACH_ELEMENT, 'methodKey'], target: 'method' },
+  { path: ['matchTypes', 'only', EACH_ELEMENT], target: 'matchType' },
+  { path: ['matchTypes', 'except', EACH_ELEMENT], target: 'matchType' },
+] as const satisfies readonly RecordReference[];

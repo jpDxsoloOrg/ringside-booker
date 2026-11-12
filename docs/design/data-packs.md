@@ -652,10 +652,19 @@ One record of each kind:
 { "key": "count-out", "name": "Count-Out", "order": 50, "changesTitles": false }
 ```
 
+**`finish`** (MTCH2): how a match ends, in `content/base/catalogs/finishes.json`
+and stored as `finish.<key>`. Unlike the three kinds above it refers to other
+kinds: `methods[].methodKey` names a method and `matchTypes.only` /
+`matchTypes.except` name match types, as pack references the loader checks.
+The fields, the shipped entries and the rules are in
+[match-finishes.md](match-finishes.md#catalog).
+
 `validate:world`'s `segment-keys` rule checks the shipped catalogs: at least
 one visible singles-like match type (`sides.min` 2, `sideSize.min` 1), unique
-names within each catalog, `beat.` default keys, and that every stored
-segment's match type, win method and angle type resolves.
+names within each catalog, `beat.` default keys, that every stored
+segment's match type, win method and angle type resolves, and that the finish
+catalog passes `checkFinishCatalog`. Its `segment-finishes` rule checks every
+stored match's planned finish.
 
 ## A worked example
 

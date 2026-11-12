@@ -16,7 +16,12 @@
 import type { ContentPackRef } from '../../model/world-meta';
 import { isPackRef, parseRef, type PackRef } from './keys';
 import type { MergedContent } from './merge';
-import type { AngleTypeRecord, MatchTypeRecord, MethodRecord } from './records/catalogs';
+import type {
+  AngleTypeRecord,
+  FinishRecord,
+  MatchTypeRecord,
+  MethodRecord,
+} from './records/catalogs';
 import type {
   BodyArchetypeRecord,
   BodyModifierRecord,
@@ -47,6 +52,7 @@ export interface ContentLibrary {
   readonly matchTypes: Readonly<Record<string, MatchTypeRecord>>;
   readonly angleTypes: Readonly<Record<string, AngleTypeRecord>>;
   readonly methods: Readonly<Record<string, MethodRecord>>;
+  readonly finishes: Readonly<Record<string, FinishRecord>>;
 }
 
 function deepFreeze<T>(value: T): T {
@@ -109,5 +115,6 @@ export function buildContentLibrary(content: MergedContent): ContentLibrary {
     matchTypes: byKey(records.matchType),
     angleTypes: byKey(records.angleType),
     methods: byKey(records.method),
+    finishes: byKey(records.finish),
   });
 }
