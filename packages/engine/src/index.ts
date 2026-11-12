@@ -1510,3 +1510,21 @@ export {
   type ShowSummaryView,
   type TitleResultOutcome,
 } from './systems/shows/index';
+
+// MTCH2 on show night (EVT3-07): the match outcome resolver the match bundle registers with show
+// night, and the match result trace behind the results page's winner Why?. See
+// docs/design/show-night.md#integration.
+export {
+  BOOKED_NO_CONTEST_REASON,
+  MATCH_OUTCOME_RESOLVER_ID,
+  RANDOM_WINNERS_SET_ASIDE_NOTE,
+  bookedResultFallbackNote,
+  planSetAsideNote,
+  resolveOnShowNight,
+  showNightOutcomeResolver,
+} from './systems/match/index';
+export {
+  MATCH_RESULT_TRACE_KIND,
+  RIVAL_MATCH_RESULT_TRACE_KIND,
+  matchResultTraceRef,
+} from './systems/shows/index';

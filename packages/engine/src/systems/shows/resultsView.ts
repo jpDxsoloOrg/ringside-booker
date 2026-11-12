@@ -57,7 +57,7 @@ import {
 import type { EngineTunables } from '../tunables';
 import { slotRoleInput } from './context';
 import { showStars } from './formulas/showStars';
-import { titleOutcomeTraceRef, traceRefFromKey } from './traces';
+import { matchResultTraceRef, titleOutcomeTraceRef, traceRefFromKey } from './traces';
 
 // ---------------------------------------------------------------------------------------------
 // View types
@@ -106,6 +106,8 @@ export interface SegmentOutcomeView {
   methodName?: string;
   /** The finish the match went with, when it had one. */
   finishName?: string;
+  /** How the match ended and why (the winner Why?), or null when it is not kept. */
+  resultTraceRef: TraceRef | null;
 }
 
 export interface SegmentRatingView {
@@ -295,6 +297,7 @@ function sidesOf(
 
 function outcomeOf(
   read: GameWorldView,
+  deps: ResultsViewDeps,
   segment: DeepReadonly<Segment>,
   run: boolean,
 ): SegmentOutcomeView | null {
@@ -305,14 +308,19 @@ function outcomeOf(
   const finishName =
     segment.match.finishKey === null ? undefined : finishOf(read, segment.match.finishKey)?.name;
   const withFinish = finishName === undefined ? {} : { finishName };
+  // A segment is on a human or a computer show, so at most one of the two is kept.
+  const resultTraceRef =
+    keptRef(deps.traces, matchResultTraceRef(segment.id, true)) ??
+    keptRef(deps.traces, matchResultTraceRef(segment.id, false));
   if (outcome.kind !== 'win') {
-    return { kind: outcome.kind, ...withFinish };
+    return { kind: outcome.kind, ...withFinish, resultTraceRef };
   }
   return {
     kind: 'win',
     winningSide: outcome.winningSide,
     methodName: methodOf(read, outcome.methodKey)?.name ?? outcome.methodKey,
     ...withFinish,
+    resultTraceRef,
   };
 }
 
@@ -443,7 +451,7 @@ function segmentViewOf(
     label: segment.label,
     titles: titlesOf(read, deps, instance, segment, run, order),
     sides: sidesOf(read, people, segment),
-    outcome: outcomeOf(read, segment, run),
+    outcome: outcomeOf(read, deps, segment, run),
     rating: run ? ratingOf(deps, segment) : null,
     storylines: segment.storylineIds.flatMap((id) => {
       const storyline = read.tables.storylines.get(id);
