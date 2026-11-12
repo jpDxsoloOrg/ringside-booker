@@ -12,6 +12,10 @@
  * `match.blend.*`, `match.stars.*` and `match.angle.*` (MTCH1-04): the crowd half of a rating (D-02),
  * soft compression, the segment score blend, star ratings and the simple talking segment score.
  * See docs/design/match-rating.md#star-power.
+ *
+ * `match.finish.*` and `match.autoFinish.*` (MTCH2-02): how strongly a finish's catalog effects move
+ * work rate and crowd, the crowd's draw penalty and how often a heel winner cheats. See
+ * docs/design/match-finishes.md#finish-effects.
  */
 
 import { defineTunables } from '../../core/tunables/define';
@@ -179,6 +183,10 @@ function starCap(defaultValue: number, description: string) {
     docRef: STARS_DOC,
   } as const;
 }
+
+const RESULTS_CATEGORY = 'Match results';
+const FINISH_EFFECTS_DOC = 'match-finishes.md#finish-effects';
+const FINISH_ON_THE_NIGHT_DOC = 'match-finishes.md#finish-on-the-night';
 
 export const matchTunables = defineTunables({
   'match.slot.weight.preShow': slotWeight(
@@ -503,5 +511,29 @@ export const matchTunables = defineTunables({
     TALKING_CATEGORY,
     TALKING_DOC,
     'Spread of the how-the-promo-landed roll; 0 turns the variance off',
+  ),
+  'match.finish.effectScale': matchNumber(
+    1,
+    { min: 0, max: 3, step: 0.05 },
+    'multiplier',
+    RESULTS_CATEGORY,
+    FINISH_EFFECTS_DOC,
+    'How strongly a finish changes work rate and crowd',
+  ),
+  'match.finish.drawCrowdPenalty': matchNumber(
+    2,
+    { min: 0, max: 20, step: 0.5 },
+    'points',
+    RESULTS_CATEGORY,
+    FINISH_EFFECTS_DOC,
+    'Crowd lost when a match ends without a winner',
+  ),
+  'match.autoFinish.heelCheatingFactor': matchNumber(
+    2,
+    { min: 0, max: 10, step: 0.1 },
+    'multiplier',
+    RESULTS_CATEGORY,
+    FINISH_ON_THE_NIGHT_DOC,
+    "How much more often a heel winner's finish is a cheating one",
   ),
 });

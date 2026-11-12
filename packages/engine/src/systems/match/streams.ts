@@ -24,3 +24,15 @@ declare module '../../core/rng/streams' {
 
 /** The name of the detached stream a preview rolls on. */
 export const MATCH_PREVIEW_STREAM = 'match.preview';
+
+// MTCH2-02: the finish decided on the night and the method that ends the match. `autoFinish` and
+// `chooseMethod` take any `RngStream`, so `match.simulate` can hand them a detached preview stream
+// and EVT3 the world's `match.finish` stream.
+declare module '../../core/rng/streams' {
+  interface StreamNames {
+    'match.finish': true;
+  }
+}
+
+/** The stream the finish and method picks draw from. */
+export const MATCH_FINISH_STREAM = 'match.finish';

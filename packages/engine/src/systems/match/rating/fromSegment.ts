@@ -4,6 +4,8 @@
  * Reads the `segments` row (its kind and match or angle type), its participants (competitors for a
  * match, speakers for an angle, grouped by side, each side ordered by entrance order then id) and
  * its show (importance, region, date, promotion, the slot position and whether it is televised).
+ * A completed match with an `outcome` and a `finishKey` also gets its `resolution` (MTCH2-02), so
+ * its finish effects apply; any other segment gets `resolution: null`.
  *
  * Design: docs/design/match-rating.md#the-stored-segment-adapter.
  */
@@ -11,7 +13,9 @@
 import { EntityNotFoundError } from '../../../core/errors';
 import type { PersonId, SegmentId } from '../../../core/ids';
 import type { Participant, ParticipantRole } from '../../../model/entities/participant';
+import type { Segment } from '../../../model/entities/segment';
 import type { GameWorldView } from '../../../model/tables';
+import type { MatchResolution } from '../finishes/resolution';
 import type { SegmentRatingInput, SegmentRatingSide } from './types';
 
 /** Entrance order first (unordered entrants last), then id. */
@@ -42,6 +46,19 @@ function sidesOf(participants: readonly Participant[], role: ParticipantRole): S
       side,
       personIds: [...members].sort(compareParticipants).map((member): PersonId => member.personId),
     }));
+}
+
+/** A completed match's outcome, finish and method; null unless the outcome and finish are set. */
+function resolutionOf(segment: Segment): MatchResolution | null {
+  if (segment.kind !== 'match' || segment.outcome === null || segment.match.finishKey === null) {
+    return null;
+  }
+  const { outcome } = segment;
+  return {
+    outcome,
+    finishKey: segment.match.finishKey,
+    methodKey: outcome.kind === 'win' ? outcome.methodKey : null,
+  };
 }
 
 /**
@@ -80,5 +97,6 @@ export function ratingInputFromSegment(
       date: show.date,
     },
     promotionId: show.promotionId,
+    resolution: resolutionOf(segment),
   };
 }
