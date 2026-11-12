@@ -12,11 +12,22 @@ const PAGE_HEAD = [
   '<style>',
   '  .too-wide { width: calc(100vw + 200px); height: 10px; }',
   '  .clips { overflow-x: hidden; }',
+  '  td, button { min-width: 44px; min-height: 44px; padding: 12px; }',
   '</style>',
 ].join('\n');
 
 function buildPage(bodyHtml: string): string {
   return `<!doctype html><html lang="en"><head>${PAGE_HEAD}</head><body>${bodyHtml}</body></html>`;
+}
+
+/** A one-day calendar grid: a named cell with a day number, a marker and one show button. */
+function gridWithCell(name: string, day: string, marker: string, show: string): string {
+  return [
+    '<main><h1>Grid</h1><table role="grid" aria-label="January 2027"><tbody><tr>',
+    `<td role="gridcell" tabindex="0" aria-label="${name}">`,
+    `<span>${day}</span> <span>${marker}</span> <button type="button">${show}</button>`,
+    '</td></tr></tbody></table></main>',
+  ].join('');
 }
 
 test.describe('harness: horizontal scroll check', () => {
@@ -42,6 +53,26 @@ test.describe('harness: accessibility scan', () => {
     await page.setContent(buildPage('<main><h1>Images</h1><img src="data:,"></main>'));
 
     await expect(expectNoSeriousA11yViolations(page)).rejects.toThrow(/image-alt/);
+  });
+
+  test('lets a grid cell hold named buttons when its own text is in its name', async ({ page }) => {
+    await page.setContent(
+      buildPage(
+        gridWithCell('Monday, January 18, 2027, Draft day, 1 show', '18', 'Draft day', 'Raw'),
+      ),
+    );
+
+    await expectNoSeriousA11yViolations(page);
+  });
+
+  test('fails a grid cell whose own text is missing from its name', async ({ page }) => {
+    await page.setContent(
+      buildPage(gridWithCell('Monday, January 18, 2027, 1 show', '18', 'Draft day', 'Raw')),
+    );
+
+    await expect(expectNoSeriousA11yViolations(page)).rejects.toThrow(
+      /label-content-name-mismatch/,
+    );
   });
 
   test('passes a page with no violations', async ({ page }) => {
