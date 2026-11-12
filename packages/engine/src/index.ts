@@ -989,3 +989,37 @@ export { defaultSystems } from './systems/index';
 // New game (WLD-10): the world preview for the wizard, `createNewGame`, and the settings and
 // setup-step registries later systems add their options to. See docs/design/new-game.md.
 export * from './systems/newgame/index';
+
+// The match system (MTCH1-02): slot role, duration class and slot weight from a slot's position
+// (D-10, never stored), the match tunables, and the `match.catalog` and `match.slotRoles` queries.
+// See docs/design/match-rating.md#slots.
+export type {
+  AngleTypeOption,
+  CountRange,
+  DurationClass,
+  DurationClassInputs,
+  MatchCatalog,
+  MatchTypeOption,
+  MethodOption,
+  SlotDeps,
+  SlotPosition,
+  SlotRole,
+  SlotRoleRow,
+  SlotRolesArgs,
+  SlotWeightInputs,
+} from './systems/match/index';
+export {
+  DURATION_CLASS_LABELS,
+  DURATION_CLASSES,
+  durationClassOf,
+  matchSystem,
+  matchTunables,
+  SLOT_ROLE_LABELS,
+  SLOT_ROLES,
+  SLOT_ROLES_MAX_PRE_SHOW_SLOTS,
+  SLOT_ROLES_MAX_SLOTS,
+  SLOT_ROLES_MIN_SLOTS,
+  SLOTS_DOC_REF,
+  slotRoleOf,
+  slotWeightOf,
+} from './systems/match/index';
