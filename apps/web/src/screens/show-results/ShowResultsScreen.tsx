@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { isId } from '@ringside/engine';
 import type { EventInstanceId, ShowResultsView, ShowResultView } from '@ringside/engine';
 import { RouteHeading } from '@/app/a11y/RouteHeading';
@@ -132,8 +132,12 @@ interface CompletedPageProps {
 function CompletedPage({ view, result }: CompletedPageProps) {
   useDocumentTitle(`${view.name} results`);
   const [searchParams, setSearchParams] = useSearchParams();
-  // Read once: the URL loses `?reveal` when the reveal ends, and the cards must not hide again.
-  const [revealRequested] = useState(() => searchParams.get(SHOW_RESULTS_PARAMS.reveal) === '1');
+  const location = useLocation();
+  const wantsReveal = searchParams.get(SHOW_RESULTS_PARAMS.reveal) === '1';
+  // The reveal starts afresh on each visit that asks for it, even from this same page (a "See
+  // results" link followed again). Taking `?reveal` out when it ends does not restart anything.
+  const [revealVisit, setRevealVisit] = useState(location.key);
+  if (wantsReveal && location.key !== revealVisit) setRevealVisit(location.key);
 
   // Take ?reveal out of the URL (replacing the entry), so a reload shows everything at once.
   const endReveal = useCallback(() => {
@@ -150,10 +154,11 @@ function CompletedPage({ view, result }: CompletedPageProps) {
 
   return (
     <CompletedResults
+      key={revealVisit}
       view={view}
       result={result}
-      revealRequested={revealRequested}
-      {...(revealRequested ? { onRevealEnd: endReveal } : {})}
+      revealRequested={wantsReveal}
+      {...(wantsReveal ? { onRevealEnd: endReveal } : {})}
     />
   );
 }

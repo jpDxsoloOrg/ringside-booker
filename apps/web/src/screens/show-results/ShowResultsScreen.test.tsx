@@ -141,6 +141,17 @@ describe('ShowResultsScreen', () => {
     expect(router.state.location.pathname).toBe(routes.game.showResults(SHOW));
   });
 
+  it('plays the reveal again when a reveal link is followed from the page itself', async () => {
+    const { router } = renderResults();
+    await findHeading();
+    expect(screen.queryByText(/^Coming up:/)).toBeNull();
+
+    await act(async () => {
+      await router.navigate(routes.game.showResults(SHOW, { reveal: true }));
+    });
+    expect(screen.getAllByText(/^Coming up:/)).toHaveLength(4);
+  });
+
   it('reveals one card per step on its own, then the score, and announces the main event', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     renderResults(routes.game.showResults(SHOW, { reveal: true }));
