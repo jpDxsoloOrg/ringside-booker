@@ -127,6 +127,8 @@ until **Save**, which sends the whole draft in one `booking.addSegment` or
 - **Titles and result.** `booking.card`'s `titleOptions`, with "Add the champion, … to a side"
   as a heads-up (the engine's `championMissing` decides). A new win starts on the first method
   that can move a title; one that can't says "(titles can't change)" when titles are on the line.
+  On a Random winners show (`booking.card`'s `randomWinners`) the Result choice is replaced by
+  "Decided on the night (Random winners)" and the card row's menu has no Winner entry.
 - **Saving.** Refusals show at the top of the sheet word for word, and the part of the sheet a
   reason's `field` names gets a red edge. Success closes the sheet and announces "Saved to slot
   3". Remove asks first. Closing with changes asks "Discard changes?". The draft is taken from
@@ -142,9 +144,13 @@ registerSegmentEditorSection({
   order: 10, // after the Result field, lowest first, then by id
   appliesTo: 'match', // 'match' | 'angle' | 'both'
   title: 'Finish',
-  render: ({ draft, patch, show, slot, disabled }) => <FinishField ... />,
+  render: ({ draft, patch, show, slot, disabled, randomWinners }) => <FinishField ... />,
 });
 ```
+
+`randomWinners` is true when Random winners decides the show's results, for a section that plans
+part of the result. Wired so far (EVT2-07): MTCH2's Finish section,
+`sections/BookingFinishSection.tsx`; see `docs/design/booking.md#integration`.
 
 A section changes only its part of the draft with `patch` (`label`, `storylineIds`, `crew`,
 `outcome`, or fields of `match` / `angle` for its own kind) and never calls a command: the sheet

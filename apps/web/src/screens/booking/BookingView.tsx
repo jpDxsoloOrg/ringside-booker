@@ -482,6 +482,7 @@ function ShowBooking({ rows, row, onSelect }: ShowBookingProps) {
             slot={slot}
             section={section}
             showMoveButtons={isMobile}
+            randomWinners={card.randomWinners}
             onEdit={openExisting}
             onSetResult={handleSetResult}
             onMove={(from, to) => {

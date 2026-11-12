@@ -22,6 +22,11 @@ export interface SegmentEditorSectionContext {
   readonly slot: BookingSlotView;
   /** True while the sheet is saving, or when the card can no longer change. */
   readonly disabled: boolean;
+  /**
+   * True when Random winners decides this show's results (MTCH2): a section that plans part of the
+   * result (the finish) says "Decided on the night" instead.
+   */
+  readonly randomWinners: boolean;
 }
 
 /** One part another feature adds to the segment editor: finish, beats, stipulations, crew. */

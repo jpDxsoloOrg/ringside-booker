@@ -483,6 +483,7 @@ export const GALLERY_EDITOR_CARD: BookingCard = {
   canEdit: true,
   editBlock: null,
   locked: false,
+  randomWinners: false,
   sections: galleryCard([null, GALLERY_SINGLES, GALLERY_TAG, GALLERY_PROMO, null, null]),
   titleOptions: TITLE_OPTIONS,
 };

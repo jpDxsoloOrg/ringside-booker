@@ -1,9 +1,13 @@
+import { useState } from 'react';
 import { Button } from '@/components/Button';
 import { EngineProvider } from '@/app/engine/EngineProvider';
 import type { EngineTransport } from '@/app/engine/transport';
 import { Cluster, Stack } from '@/components/layout';
 import { SegmentEditorSheet } from '@/screens/booking/editor/SegmentEditorSheet';
 import { useSegmentEditor } from '@/screens/booking/editor/editorStore';
+// The Finish section (MTCH2, EVT2-07) registers itself when the booking screen loads.
+import '@/screens/booking/sections';
+import { DRAW_FINISHES, SINGLES_FINISHES } from '@/screens/match-lab/result/simulationFixtures';
 import type { GalleryEntry } from '../galleryEntry';
 import { createTraceFixtureTransport } from '../fixtures/traceEngine';
 import {
@@ -25,6 +29,9 @@ function createEditorTransport(): EngineTransport {
     'match.catalog': () => GALLERY_CATALOG,
     'match.slotRoles': gallerySlotRoles,
     'booking.availableWorkers': (args) => galleryAvailableWorkers(args.kind, args.search),
+    'match.finishes': (args) => [
+      ...(args.outcomeKind === 'draw' ? DRAW_FINISHES : SINGLES_FINISHES),
+    ],
   });
 }
 
@@ -32,6 +39,7 @@ function SegmentEditorDemo() {
   const openNew = useSegmentEditor((state) => state.openNew);
   const openExisting = useSegmentEditor((state) => state.openExisting);
   const eventInstanceId = GALLERY_EDITOR_CARD.show.eventInstanceId;
+  const [randomWinners, setRandomWinners] = useState(false);
   return (
     <EngineProvider createTransport={createEditorTransport}>
       <Stack gap={4}>
@@ -69,8 +77,17 @@ function SegmentEditorDemo() {
           >
             New match in the opener
           </Button>
+          <Button
+            variant="ghost"
+            aria-pressed={randomWinners}
+            onClick={() => {
+              setRandomWinners((on) => !on);
+            }}
+          >
+            Random winners show
+          </Button>
         </Cluster>
-        <SegmentEditorSheet card={GALLERY_EDITOR_CARD} />
+        <SegmentEditorSheet card={{ ...GALLERY_EDITOR_CARD, randomWinners }} />
       </Stack>
     </EngineProvider>
   );
@@ -81,6 +98,6 @@ export const galleryEntry: GalleryEntry = {
   title: 'Segment editor',
   group: 'Overlays',
   notes:
-    'The booking screen’s segment editor (EVT2-06) on a static card: kind (new only), type with its limits and Long/Short chip, sides with the roster picker, titles (another brand, missing champion), the planned result and method, the billing line. A full-height sheet on a phone.',
+    'The booking screen’s segment editor (EVT2-06) on a static card: kind (new only), type with its limits and Long/Short chip, sides with the roster picker, titles (another brand, missing champion), the planned result and method, the billing line, then MTCH2’s Finish section (EVT2-07). "Random winners show" swaps the result for "Decided on the night (Random winners)". A full-height sheet on a phone.',
   render: () => <SegmentEditorDemo />,
 };
