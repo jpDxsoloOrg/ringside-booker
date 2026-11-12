@@ -234,6 +234,45 @@ describe('DropdownMenu', () => {
     expect(handlers.titleShot).not.toHaveBeenCalled();
   });
 
+  it('opens a submenu with the right arrow and runs its item', async () => {
+    const user = userEvent.setup();
+    const onDraw = vi.fn();
+    render(
+      <DropdownMenu
+        label="Segment actions"
+        trigger={<Button>Actions</Button>}
+        items={[
+          { kind: 'item', id: 'edit', label: 'Edit', onSelect: vi.fn() },
+          {
+            kind: 'submenu',
+            id: 'winner',
+            label: 'Winner',
+            items: [
+              { kind: 'item', id: 'side-1', label: 'Side 1', onSelect: vi.fn() },
+              { kind: 'item', id: 'draw', label: 'Draw', onSelect: onDraw },
+            ],
+          },
+        ]}
+      />,
+    );
+
+    getTrigger().focus();
+    await user.keyboard('{Enter}');
+    const winner = await screen.findByRole('menuitem', { name: 'Winner' });
+    expect(winner).toHaveAttribute('aria-haspopup', 'menu');
+    await user.keyboard('{ArrowDown}');
+    await waitFor(() => {
+      expect(winner).toHaveFocus();
+    });
+    await user.keyboard('{ArrowRight}');
+    await user.click(await screen.findByRole('menuitem', { name: 'Draw' }));
+
+    expect(onDraw).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(screen.queryByRole('menu')).toBeNull();
+    });
+  });
+
   it('names the menu after its trigger when no label is given', async () => {
     const user = userEvent.setup();
     render(<MenuWithOverlays />);

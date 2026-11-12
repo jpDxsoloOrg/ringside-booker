@@ -171,4 +171,74 @@ describe('CardSlot', () => {
     );
     expect(withoutIds(reduced.innerHTML)).toBe(withoutIds(withMotion.innerHTML));
   });
+
+  it('draws any number of sides with vs between every pair', () => {
+    const sides: readonly CardSlotSide[] = [
+      SIDE_A,
+      SIDE_B,
+      { name: 'Rhea Cortez', members: [person('per_000004', 'Rhea Cortez')] },
+      { name: 'Tia Cruz', members: [person('per_000005', 'Tia Cruz')] },
+    ];
+    render(<CardSlot slotRole="midcard" sides={sides} winnerIndex={2} />);
+
+    const slot = screen.getByRole('article', { name: 'Midcard' });
+    expect(within(slot).getAllByText('vs')).toHaveLength(3);
+    const winner = slot.querySelector('[data-winner="true"]');
+    expect(winner).toHaveAttribute('data-side', 'c');
+    expect(winner).toHaveTextContent('Rhea Cortez');
+    expect(within(slot).getAllByText('Winner')).toHaveLength(1);
+  });
+
+  it('draws a triple threat as three sides', () => {
+    const sides: readonly CardSlotSide[] = [
+      SIDE_A,
+      SIDE_B,
+      { name: 'Rhea Cortez', members: [person('per_000004', 'Rhea Cortez')] },
+    ];
+    render(<CardSlot slotRole="opener" sides={sides} />);
+
+    const slot = screen.getByRole('article', { name: 'Opener' });
+    expect(slot.querySelectorAll('[data-side]')).toHaveLength(3);
+    expect(within(slot).getAllByText('vs')).toHaveLength(2);
+    expect(within(slot).queryByText('Winner')).toBeNull();
+  });
+
+  it('shows a result with no winner in words', () => {
+    render(<CardSlot slotRole="opener" sideA={SIDE_A} sideB={SIDE_B} resultLabel="Draw" />);
+
+    const slot = screen.getByRole('article', { name: 'Opener' });
+    expect(within(slot).getByText('Draw')).toBeInTheDocument();
+    expect(slot.querySelector('[data-winner="true"]')).toBeNull();
+  });
+
+  it('marks its problems with an icon and words', () => {
+    const { rerender } = render(
+      <CardSlot slotRole="opener" sideA={SIDE_A} issues={{ errors: 2, warnings: 1 }} />,
+    );
+    const marker = screen.getByText('2 problems, 1 warning');
+    expect(marker).toHaveAttribute('data-severity', 'error');
+    expect(marker.querySelector('svg')).not.toBeNull();
+
+    rerender(<CardSlot slotRole="opener" sideA={SIDE_A} issues={{ errors: 0, warnings: 1 }} />);
+    expect(screen.getByText('1 warning')).toHaveAttribute('data-severity', 'warning');
+
+    rerender(<CardSlot slotRole="opener" sideA={SIDE_A} issues={{ errors: 0, warnings: 0 }} />);
+    expect(document.querySelector('[data-part="issues"]')).toBeNull();
+  });
+
+  it('names the promo button with its own label and draws the role aside', async () => {
+    const onAddPromo = vi.fn();
+    render(
+      <CardSlot
+        slotRole="midcard"
+        onAddPromo={onAddPromo}
+        addPromoLabel="Add talking segment"
+        roleAside={<span>Long</span>}
+      />,
+    );
+
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Add talking segment' }));
+    expect(onAddPromo).toHaveBeenCalledTimes(1);
+    expect(screen.getByText('Long')).toBeInTheDocument();
+  });
 });
