@@ -83,6 +83,15 @@ const everyKindTrace: TraceNode = {
       after: 29.9,
     },
     {
+      kind: 'power',
+      label: 'Steady curve',
+      value: 29.9,
+      unit: 'points',
+      operand: 1,
+      before: 29.9,
+      after: 29.9,
+    },
+    {
       kind: 'max',
       label: 'Lowest it can go',
       value: 112,
@@ -168,6 +177,7 @@ const EVERY_KIND_ROWS: Readonly<Record<TraceNodeKind, string>> = {
   subtract: '−4 Tired legs',
   multiply: '×1.15 Hot crowd',
   divide: '÷2 Split between partners',
+  power: 'raised to the power 1 (Steady curve)',
   max: 'Raised 29.9 → 112 (minimum)',
   clamp: 'Capped 112 → 100 (maximum)',
   min: 'Capped 100 → 45 (maximum)',
@@ -210,7 +220,7 @@ describe('TracePanel rows', () => {
     renderPanel(everyKindTrace);
     const dialog = screen.getByRole('dialog', { name: 'Breakdown' });
     // The root is the headline; every other node is a row.
-    expect(within(dialog).getAllByRole('treeitem')).toHaveLength(17);
+    expect(within(dialog).getAllByRole('treeitem')).toHaveLength(18);
     for (const text of Object.values(EVERY_KIND_ROWS)) {
       expect(within(dialog).getByText(text, { exact: false })).toBeInTheDocument();
     }

@@ -1563,3 +1563,7 @@ export {
   winStreakBefore,
 } from './systems/match/index';
 export { initialMomentum } from './systems/workers/index';
+
+// Promotion popularity after shows (EVT5-01): show reach, region expectation and the popularity
+// change formulas. See docs/design/promotion-popularity.md.
+export * from './systems/promoPop/index';

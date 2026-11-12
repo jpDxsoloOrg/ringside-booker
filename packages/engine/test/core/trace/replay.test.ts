@@ -32,6 +32,22 @@ function handBuilt(
 }
 
 describe('replayTrace', () => {
+  it('replays a power step and catches a tampered one', () => {
+    const steps: TraceNode[] = [
+      { kind: 'input', label: 'Share left', value: 0.25 },
+      { kind: 'power', label: 'Curve', value: 0.125, operand: 1.5, before: 0.25, after: 0.125 },
+    ];
+    expect(replayTrace(handBuilt(0.125, steps).trace)).toBeCloseTo(0.125, 12);
+    expectTraceReplays(handBuilt(0.125, steps));
+    const tampered: TraceNode[] = [
+      { kind: 'input', label: 'Share left', value: 0.25 },
+      { kind: 'power', label: 'Curve', value: 0.2, operand: 1.5, before: 0.25, after: 0.2 },
+    ];
+    expect(() => {
+      assertTraceReplays(handBuilt(0.2, tampered));
+    }).toThrow(/records after 0.2 but replay gives 0.125/);
+  });
+
   it('recomputes a hand-built formula from its starting value', () => {
     expect(replayTrace(handBuilt(25).trace)).toBe(25);
     expectTraceReplays(handBuilt(25));

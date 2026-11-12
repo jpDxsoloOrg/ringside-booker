@@ -110,7 +110,7 @@ export function tunableLine(node: TunableNode): TraceLine {
   return line(text, { details: ['Game setting', node.key] });
 }
 
-/** Multiplying and dividing factors are plain numbers, whatever the running value's unit. */
+/** Multiplying and dividing factors and exponents are plain numbers, whatever the running value's unit. */
 function factor(operand: number): string {
   return formatTraceNumber(operand, 'ratio');
 }
@@ -125,6 +125,8 @@ function arithmeticSentence(node: ArithmeticNode): string {
       return `×${factor(node.operand)} ${node.label}`;
     case 'divide':
       return `÷${factor(node.operand)} ${node.label}`;
+    case 'power':
+      return `raised to the power ${factor(node.operand)} (${node.label})`;
   }
 }
 
@@ -289,6 +291,7 @@ export function describeTraceNode(node: TraceNode): TraceLine {
     case 'subtract':
     case 'multiply':
     case 'divide':
+    case 'power':
       return arithmeticLine(node);
     case 'min':
     case 'max':

@@ -57,6 +57,11 @@ export interface Calc {
   multiply(label: string, factor: number | Traced<number>, reason?: string): Calc;
   /** Divides by `divisor`. Throws `InvalidArgumentError` when the divisor is 0. */
   divide(label: string, divisor: number | Traced<number>, reason?: string): Calc;
+  /**
+   * Raises the running value to `exponent`. Throws `InvalidArgumentError` for a negative value with
+   * a fractional exponent (no real result) and for 0 raised to a negative exponent (infinite).
+   */
+  power(label: string, exponent: number | Traced<number>, reason?: string): Calc;
   /** A ceiling: the value becomes `Math.min(value, limit)`. Recorded even when it does not bite. */
   min(label: string, limit: number | Traced<number>): Calc;
   /** A floor: the value becomes `Math.max(value, limit)`. Recorded even when it does not bite. */
@@ -108,6 +113,8 @@ function applyArithmetic(kind: ArithmeticKind, before: number, operand: number):
       return before * operand;
     case 'divide':
       return before / operand;
+    case 'power':
+      return before ** operand;
   }
 }
 
@@ -162,6 +169,21 @@ class CalcBuilder implements Calc {
       throw new InvalidArgumentError('Calc.divide', 'divisor', operand, 'a number other than 0');
     }
     return this.#arithmetic('divide', label, divisor, reason);
+  }
+
+  power(label: string, exponent: number | Traced<number>, reason?: string): Calc {
+    const operand = isTraced(exponent) ? exponent.value : exponent;
+    // A negative base with a fractional exponent has no real result; `**` would give NaN.
+    assertFiniteNumber('Calc.power', 'exponent', operand);
+    if (this.#current < 0 && !Number.isInteger(operand)) {
+      throw new InvalidArgumentError(
+        'Calc.power',
+        'exponent',
+        operand,
+        `a whole number, because the value is negative (${String(this.#current)})`,
+      );
+    }
+    return this.#arithmetic('power', label, exponent, reason);
   }
 
   min(label: string, limit: number | Traced<number>): Calc {

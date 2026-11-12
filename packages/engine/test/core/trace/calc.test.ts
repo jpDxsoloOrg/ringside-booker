@@ -177,6 +177,39 @@ describe('startCalc', () => {
     }
   });
 
+  it('raises the running value to a power, embedding a traced exponent', () => {
+    const exponent = inputOf('Curve', 1.5);
+    const result = startCalc('Diminishing returns', 0.25)
+      .power('Diminishing returns', exponent, 'Gains shrink as popularity rises')
+      .done();
+    expect(result.value).toBeCloseTo(0.125, 12);
+    const step = expectTraceContains(result, { kind: 'power' });
+    expect(step).toMatchObject({
+      operand: 1.5,
+      before: 0.25,
+      reason: 'Gains shrink as popularity rises',
+    });
+    expect(step.children).toStrictEqual([exponent.trace]);
+    expectTraceReplays(result);
+    expectSerialisable(result);
+  });
+
+  it('raises to the power 0 to give 1, and a negative value to a whole power', () => {
+    expect(startCalc('x', 0).power('Nothing left', 0).done().value).toBe(1);
+    const cubed = startCalc('x', -2).power('Cubed', 3).done();
+    expect(cubed.value).toBe(-8);
+    expectTraceReplays(cubed);
+  });
+
+  it('refuses a negative value with a fractional exponent, and 0 to a negative power', () => {
+    expect(() => startCalc('x', -4).power('Root', 0.5)).toThrow(InvalidArgumentError);
+    expect(() => startCalc('x', -4).power('Root', untraced(0.5, 'Half'))).toThrow(
+      /whole number, because the value is negative/,
+    );
+    expect(() => startCalc('x', 0).power('Inverse', -1)).toThrow(InvalidArgumentError);
+    expect(() => startCalc('x', 2).power('Bad', Number.NaN)).toThrow(InvalidArgumentError);
+  });
+
   it('throws on divide by 0, from a number or a traced value', () => {
     expect(() => startCalc('x', 10).divide('Split', 0)).toThrow(InvalidArgumentError);
     expect(() => startCalc('x', 10).divide('Split', untraced(0, 'Nobody'))).toThrow(

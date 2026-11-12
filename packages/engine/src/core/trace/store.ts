@@ -391,6 +391,7 @@ function effectOf(node: TraceNode): number | null {
     case 'subtract':
     case 'multiply':
     case 'divide':
+    case 'power':
       return stepEffect(node.before, node.after);
     case 'min':
     case 'max':

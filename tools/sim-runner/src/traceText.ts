@@ -73,7 +73,13 @@ export function describeRoll(roll: RollRecord): string {
   return `rolled ${result}${range} (stream ${roll.stream})`;
 }
 
-const ARITHMETIC_SYMBOLS = { add: '+', subtract: '-', multiply: '×', divide: '÷' } as const;
+const ARITHMETIC_SYMBOLS = {
+  add: '+',
+  subtract: '-',
+  multiply: '×',
+  divide: '÷',
+  power: '^',
+} as const;
 
 /** What a limit did, when it changed the value: `(was 104, kept within 0..100)`. */
 function limitDetail(applied: boolean, before: number, limit: string): string {
@@ -99,7 +105,8 @@ export function describeNode(node: TraceNode, inheritedUnit?: TraceUnit): string
     case 'add':
     case 'subtract':
     case 'multiply':
-    case 'divide': {
+    case 'divide':
+    case 'power': {
       const reason = node.reason === undefined ? '' : `: ${node.reason}`;
       return `${head} (${formatNumber(node.before)} ${ARITHMETIC_SYMBOLS[node.kind]} ${formatNumber(node.operand)}${reason})`;
     }

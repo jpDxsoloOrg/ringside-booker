@@ -1,0 +1,311 @@
+/**
+ * The promotion popularity system's balance numbers: how far a show reaches, what each region's fans
+ * expect, and how far one show can move a promotion's popularity there (EVT5).
+ *
+ * Every number here is 0-means-0: setting one to 0 removes exactly the effect its description names.
+ * Design: docs/design/promotion-popularity.md.
+ */
+
+import { defineTunables } from '../../core/tunables/define';
+
+const CATEGORY = 'Promotion popularity';
+const REACH_DOC = 'promotion-popularity.md#show-reach';
+const EXPECTATION_DOC = 'promotion-popularity.md#region-expectation';
+const CHANGE_DOC = 'promotion-popularity.md#show-popularity-change';
+const CAP_DOC = 'promotion-popularity.md#monthly-cap';
+
+export const promoPopTunables = defineTunables({
+  'promoPop.neighbourReach': {
+    kind: 'number',
+    default: 0.5,
+    min: 0,
+    max: 1,
+    step: 0.05,
+    unit: 'ratio',
+    category: CATEGORY,
+    description: 'How much of a show a neighbouring region sees (0 = neighbours are not reached)',
+    docRef: REACH_DOC,
+  },
+  'promoPop.tvReach.tier0': {
+    kind: 'number',
+    default: 0.1,
+    min: 0,
+    max: 1,
+    step: 0.05,
+    unit: 'ratio',
+    category: CATEGORY,
+    description:
+      'How much of a show a region sees on a reach tier 0 network (0 = not reached that way)',
+    docRef: REACH_DOC,
+  },
+  'promoPop.tvReach.tier1': {
+    kind: 'number',
+    default: 0.2,
+    min: 0,
+    max: 1,
+    step: 0.05,
+    unit: 'ratio',
+    category: CATEGORY,
+    description:
+      'How much of a show a region sees on a reach tier 1 network (0 = not reached that way)',
+    docRef: REACH_DOC,
+  },
+  'promoPop.tvReach.tier2': {
+    kind: 'number',
+    default: 0.3,
+    min: 0,
+    max: 1,
+    step: 0.05,
+    unit: 'ratio',
+    category: CATEGORY,
+    description:
+      'How much of a show a region sees on a reach tier 2 network (0 = not reached that way)',
+    docRef: REACH_DOC,
+  },
+  'promoPop.tvReach.tier3': {
+    kind: 'number',
+    default: 0.45,
+    min: 0,
+    max: 1,
+    step: 0.05,
+    unit: 'ratio',
+    category: CATEGORY,
+    description:
+      'How much of a show a region sees on a reach tier 3 network (0 = not reached that way)',
+    docRef: REACH_DOC,
+  },
+  'promoPop.tvReach.tier4': {
+    kind: 'number',
+    default: 0.6,
+    min: 0,
+    max: 1,
+    step: 0.05,
+    unit: 'ratio',
+    category: CATEGORY,
+    description:
+      'How much of a show a region sees on a reach tier 4 network (0 = not reached that way)',
+    docRef: REACH_DOC,
+  },
+  'promoPop.expect.popularityWeight': {
+    kind: 'number',
+    default: 0.6,
+    min: 0,
+    max: 2,
+    step: 0.05,
+    unit: 'ratio',
+    category: CATEGORY,
+    description:
+      "Expected score per point of the promotion's popularity in the region (0 = popularity raises no expectations)",
+    docRef: EXPECTATION_DOC,
+  },
+  'promoPop.expect.prestigeWeight': {
+    kind: 'number',
+    default: 0.2,
+    min: 0,
+    max: 1,
+    step: 0.05,
+    unit: 'ratio',
+    category: CATEGORY,
+    description:
+      "Expected score per point of the promotion's prestige (0 = prestige raises no expectations)",
+    docRef: EXPECTATION_DOC,
+  },
+  'promoPop.expect.importance.house': {
+    kind: 'number',
+    default: 0.8,
+    min: 0,
+    max: 3,
+    step: 0.05,
+    unit: 'multiplier',
+    category: CATEGORY,
+    description:
+      'How much more fans expect from a house show, on the popularity part only (0 = popularity raises no expectations)',
+    docRef: EXPECTATION_DOC,
+  },
+  'promoPop.expect.importance.minor': {
+    kind: 'number',
+    default: 0.9,
+    min: 0,
+    max: 3,
+    step: 0.05,
+    unit: 'multiplier',
+    category: CATEGORY,
+    description:
+      'How much more fans expect from a minor show, on the popularity part only (0 = popularity raises no expectations)',
+    docRef: EXPECTATION_DOC,
+  },
+  'promoPop.expect.importance.regular': {
+    kind: 'number',
+    default: 1.0,
+    min: 0,
+    max: 3,
+    step: 0.05,
+    unit: 'multiplier',
+    category: CATEGORY,
+    description:
+      'How much more fans expect from a regular show, on the popularity part only (0 = popularity raises no expectations)',
+    docRef: EXPECTATION_DOC,
+  },
+  'promoPop.expect.importance.major': {
+    kind: 'number',
+    default: 1.15,
+    min: 0,
+    max: 3,
+    step: 0.05,
+    unit: 'multiplier',
+    category: CATEGORY,
+    description:
+      'How much more fans expect from a major show, on the popularity part only (0 = popularity raises no expectations)',
+    docRef: EXPECTATION_DOC,
+  },
+  'promoPop.expect.importance.flagship': {
+    kind: 'number',
+    default: 1.3,
+    min: 0,
+    max: 3,
+    step: 0.05,
+    unit: 'multiplier',
+    category: CATEGORY,
+    description:
+      'How much more fans expect from a flagship show, on the popularity part only (0 = popularity raises no expectations)',
+    docRef: EXPECTATION_DOC,
+  },
+  'promoPop.deadZone': {
+    kind: 'number',
+    default: 3,
+    min: 0,
+    max: 20,
+    step: 0.5,
+    unit: 'points',
+    category: CATEGORY,
+    description: 'Score margin either way that changes nothing (0 = any margin counts)',
+    docRef: CHANGE_DOC,
+  },
+  'promoPop.blowoutMargin': {
+    kind: 'number',
+    default: 25,
+    min: 0,
+    max: 100,
+    step: 1,
+    unit: 'points',
+    category: CATEGORY,
+    description:
+      'Score margin that earns the full gain or loss; at or below the dead zone, anything outside it counts in full',
+    docRef: CHANGE_DOC,
+  },
+  'promoPop.maxGainPerShow': {
+    kind: 'number',
+    default: 3,
+    min: 0,
+    max: 10,
+    step: 0.1,
+    unit: 'points',
+    category: CATEGORY,
+    description:
+      'Most popularity one show can win in a region before event size, reach and shaping (0 = no gains)',
+    docRef: CHANGE_DOC,
+  },
+  'promoPop.maxLossPerShow': {
+    kind: 'number',
+    default: 2.5,
+    min: 0,
+    max: 10,
+    step: 0.1,
+    unit: 'points',
+    category: CATEGORY,
+    description:
+      'Most popularity one show can lose in a region before event size, reach and shaping (0 = no losses)',
+    docRef: CHANGE_DOC,
+  },
+  'promoPop.impact.house': {
+    kind: 'number',
+    default: 0.4,
+    min: 0,
+    max: 3,
+    step: 0.05,
+    unit: 'multiplier',
+    category: CATEGORY,
+    description: 'How much a house show moves popularity, up or down (0 = it moves nothing)',
+    docRef: CHANGE_DOC,
+  },
+  'promoPop.impact.minor': {
+    kind: 'number',
+    default: 0.7,
+    min: 0,
+    max: 3,
+    step: 0.05,
+    unit: 'multiplier',
+    category: CATEGORY,
+    description: 'How much a minor show moves popularity, up or down (0 = it moves nothing)',
+    docRef: CHANGE_DOC,
+  },
+  'promoPop.impact.regular': {
+    kind: 'number',
+    default: 1,
+    min: 0,
+    max: 3,
+    step: 0.05,
+    unit: 'multiplier',
+    category: CATEGORY,
+    description: 'How much a regular show moves popularity, up or down (0 = it moves nothing)',
+    docRef: CHANGE_DOC,
+  },
+  'promoPop.impact.major': {
+    kind: 'number',
+    default: 1.3,
+    min: 0,
+    max: 3,
+    step: 0.05,
+    unit: 'multiplier',
+    category: CATEGORY,
+    description: 'How much a major show moves popularity, up or down (0 = it moves nothing)',
+    docRef: CHANGE_DOC,
+  },
+  'promoPop.impact.flagship': {
+    kind: 'number',
+    default: 1.6,
+    min: 0,
+    max: 3,
+    step: 0.05,
+    unit: 'multiplier',
+    category: CATEGORY,
+    description: 'How much a flagship show moves popularity, up or down (0 = it moves nothing)',
+    docRef: CHANGE_DOC,
+  },
+  'promoPop.diminishingPower': {
+    kind: 'number',
+    default: 1.5,
+    min: 0,
+    max: 5,
+    step: 0.1,
+    unit: 'ratio',
+    category: CATEGORY,
+    description:
+      'How sharply gains shrink as popularity rises: × (1 − popularity ÷ 100) to this power (0 = no diminishing)',
+    docRef: CHANGE_DOC,
+  },
+  'promoPop.lossFullFrom': {
+    kind: 'number',
+    default: 25,
+    min: 0,
+    max: 100,
+    step: 1,
+    unit: 'points',
+    category: CATEGORY,
+    description:
+      'Popularity from which a bad show costs its full loss; below it losses shrink (0 = losses never scaled down)',
+    docRef: CHANGE_DOC,
+  },
+  'promoPop.monthlyGainCap': {
+    kind: 'number',
+    default: 3,
+    min: 0,
+    max: 100,
+    step: 0.5,
+    unit: 'points',
+    category: CATEGORY,
+    description:
+      'Most popularity shows can win in one region in one calendar month (0 = no gains at all)',
+    docRef: CAP_DOC,
+  },
+});
