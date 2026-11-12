@@ -16,9 +16,11 @@ import { worldBuilder } from '@ringside/engine/testing';
 import { EngineProvider } from '@/app/engine/EngineProvider';
 import { createInProcessTransport } from '@/app/engine/transport';
 import type { InProcessTransport } from '@/app/engine/transport';
-import { buildAppRoutes, routerFutureFlags, routerProviderFutureFlags } from '@/app/router';
+import { LiveAnnouncer } from '@/app/a11y/LiveAnnouncer';
+import { routerFutureFlags, routerProviderFutureFlags } from '@/app/router';
 import { useSessionStore } from '@/app/session/sessionStore';
 import { BOOKING_WORLD_START, fakeEngineFactory } from '@/test/fakeEngine';
+import { BookingView } from '../BookingView';
 import { bookingShowUrl } from '../bookingUrl';
 import { useSegmentEditor } from '../editor/editorStore';
 import { RANDOM_WINNERS_RESULT_TEXT } from '../editor/PlannedResultField';
@@ -160,17 +162,24 @@ async function finishWorld(randomWinners: boolean): Promise<FinishWorld> {
   return { transport, eventInstanceId: show.eventInstanceId };
 }
 
+/**
+ * The booking view on its own, without the app shell or the lazily loaded route chunk (as the
+ * segment editor tests do). Importing the section file above registers the Finish section.
+ */
 function renderBooking(built: FinishWorld): UserEvent {
-  const router = createMemoryRouter(buildAppRoutes({ includeDevRoutes: false }), {
+  const router = createMemoryRouter([{ path: '*', element: <BookingView /> }], {
     initialEntries: [bookingShowUrl(built.eventInstanceId)],
     future: routerFutureFlags,
   });
   render(
     <EngineProvider createTransport={() => built.transport}>
-      <RouterProvider router={router} future={routerProviderFutureFlags} />
+      <LiveAnnouncer>
+        <RouterProvider router={router} future={routerProviderFutureFlags} />
+      </LiveAnnouncer>
     </EngineProvider>,
   );
-  return userEvent.setup();
+  // No pause between simulated keys and clicks: nothing here depends on typing speed.
+  return userEvent.setup({ delay: null });
 }
 
 /** Opens a new match in slot 2 and puts Kai Moreno against Rex Hale. */
@@ -186,7 +195,7 @@ async function newSingles(user: UserEvent): Promise<HTMLElement> {
     const opener = within(editor).getAllByRole('button', { name: 'Add wrestler' })[index];
     if (opener === undefined) throw new Error(`No "Add wrestler" button ${String(index)}.`);
     await user.click(opener);
-    const picker = await screen.findByRole('listbox');
+    const picker = await screen.findByRole('dialog', { name: /^Add to Side \d+$/ });
     await user.click(await within(picker).findByRole('option', { name }, { timeout: LOAD_MS }));
   }
   await within(editor).findByRole('link', { name: 'Rex Hale' });
@@ -222,7 +231,10 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe('BookingFinishSection', () => {
+/** A backstop for a heavily loaded machine only; each test takes about a second on its own. */
+const TEST_TIMEOUT_MS = 15_000;
+
+describe('BookingFinishSection', { timeout: TEST_TIMEOUT_MS }, () => {
   it('narrows the finishes to a draw and saves the one picked with the match', async () => {
     const built = await finishWorld(false);
     const spy = vi.spyOn(built.transport.host, 'command');
