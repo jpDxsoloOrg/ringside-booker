@@ -20,6 +20,7 @@ import {
   type LoadedTunables,
   type TunableReader,
 } from '../core/tunables/resolver';
+import { showsTunables } from './shows/tunables';
 import { workersTunables } from './workers/tunables';
 import { worldTunables } from './world/tunables';
 
@@ -30,6 +31,7 @@ export const ALL_TUNABLES = mergeTunables(
   workersTunables,
   calendarTunables,
   matchTunables,
+  showsTunables,
 );
 
 /** Every tunable key the engine knows. */
