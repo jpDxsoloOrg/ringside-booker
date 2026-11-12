@@ -316,7 +316,9 @@ table.
 
 - `segment.completed`: one per segment, in card order. `winnerIds`, `loserIds`
   and `drawIds` list competitors only; a no contest and a talking segment have
-  all three empty. `finishKey` stays null until MTCH2's finishes are wired in.
+  all three empty. `finishKey` is the finish MTCH2's resolver picked (EVT3-07);
+  it is null only for an angle, or when the resolver fell back to the booked
+  result without a finish.
 - `show.completed`: one per show, after its segments, with `score`,
   `rawScore` and whether it was scored off-screen.
 - `title.changed` and `title.defended`: one per title on the line in a
@@ -330,6 +332,8 @@ Traces (`systems/shows/traces.ts`), stored with `ctx.recordTrace`:
 | `shows.rivalSegmentScore` | segment id                 | A segment's score on a computer-controlled show |
 | `shows.showScore`         | event instance id          | A show's score                                  |
 | `shows.titleOutcome`      | `${segmentId}\|${titleId}` | Why a title changed hands or was kept           |
+| `match.result`            | segment id                 | How a match ended on a human-controlled show    |
+| `match.rivalResult`       | segment id                 | How a match ended on a computer-controlled show |
 
 Rival segments use their own kind so a busy rival schedule never pushes the
 player's breakdowns out of `sim.traceRetentionPerKind`. A stored rating or
@@ -481,7 +485,12 @@ only from its own named streams. At most one resolver may be registered (a
 second throws a `RegistryError`). MTCH2 registers its `resolveMatchOutcome`
 here (EVT3-07) instead of editing the phase.
 
-Until then the built-in `plannedOrNoContest` decides: a planned result is used
+The resolver's decision is also stored on its own, under `match.result` (or
+`match.rivalResult` on a computer show) with the segment id, and the results
+page's result line opens it as the winner Why? (`resultTraceRef` on the
+segment's outcome view).
+
+Without MTCH2 the built-in `plannedOrNoContest` decides: a planned result is used
 as booked ("Booked result"), and a match with no plan ends as a no contest
 ("No winner was planned for this match, so it ends as a no contest"). It
 leaves the finish null and `titleCanChange` null, so EVT3-04 reads the
@@ -494,3 +503,36 @@ Filled by EVT3-04 and later: EVT6's attendance and gate and ECO8's viewers.
 The save break: EVT3-01 changed the segment rating and show result shapes, so
 saves made before it fail to load with the "Made with an older build" message
 and a new game is needed.
+
+## Integration
+
+EVT3-07 wires show night into the partners that were on `main` when it ran.
+Partners that land later wire show night from their own integration tickets
+through the seams above.
+
+| Partner                                                   | Status                  | How it is wired                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| --------------------------------------------------------- | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| MTCH2 (finishes)                                          | wired (EVT3-07)         | The match bundle registers `match.resolveOutcome` (`systems/match/finishes/showNight.ts`) as the [match outcome resolver](#match-outcome-resolver). It adapts `resolveMatchOutcome`: plan = `outcome` + `match.finishKey`, mode `randomWinners` when `randomWinnersActive` is true for the show's promotion and brand, streams `match.auto-winner` and `match.finish`. It returns `finishKey`, `methodKey` and `titleCanChange` (MTCH2's title rule), so EVT3-04's decision reads the method **and** the finish; `segment.completed.finishKey` is filled. See [match-finishes.md](match-finishes.md#integration) for the cases (unplanned, booked no contest, refused plans). |
+| MTCH3 (popularity, momentum)                              | wires from its own pack | `registerSegmentResultApplier({ id: 'match.aftermath', order: 30, ... })` and a results section at order 30.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| WRK8 (morale)                                             | wires from its own pack | Subscribes to `segment.completed` and `show.completed`; the D-09 story shield reads `storylineIds`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| AIP4 (rival booking)                                      | wires from its own pack | Books rival cards before shows, so they run through `shows.runShows` instead of the off-screen score.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| DAY2 (Office)                                             | wires from its own pack | `registerOfficePanel({ id: 'shows.lastShow', ... })` over `shows.lastCompleted`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| MTCH4, MTCH6                                              | wires from its own pack | Result appliers at order 40 (physical toll) and 50 (chemistry).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ECO1/3/7/8/10/11, DAY1/3/4/5/8, SOC5/7, BRW3, MP7, POL2/8 | wires from its own pack | Subscribe to `show.completed`, `segment.completed` and `title.changed`, or read `shows.completedSince`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+
+**Applier order.** Titles 10 (`shows.titleOutcome`, built in), then MTCH3's
+aftermath 30, MTCH4's physical toll 40 and MTCH6's chemistry 50 as they land.
+Only the title applier runs today.
+
+**Results sections.** None besides the page's own yet; MTCH3's "Popularity &
+momentum" (30) is the first to come.
+
+**Random winners and booking.** Show night decides every match on a Random
+winners show on the night; a result booked anyway is set aside with a note
+("Random winners: the booked result was set aside and decided on the night").
+Relaxing EVT2-04's `noPlannedResult` booking check for Random winners games is
+EVT2-07's (booking integration), not show night's.
+
+**Show scores.** With MTCH2 wired every match has a finish, so finish effects
+now reach real ratings. See the EVT3-07 progress log for the measured change in
+show score levels over the 60- and 365-day sims.
