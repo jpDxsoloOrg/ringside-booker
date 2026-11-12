@@ -3,7 +3,8 @@
  *
  * Checks every person's legal name and default ring name, every contract's ring name, every
  * promotion's full and short name, and the names of brands, titles, venues, networks, event
- * definitions and teams against the blocklist (see `../blocklist.ts` for how names are compared).
+ * definitions, teams and the match and segment catalogs (match types, angle types, methods) against
+ * the blocklist (see `../blocklist.ts` for how names are compared).
  * Each hit is an error naming the pack, file, record key, field and the entry it matched.
  */
 
@@ -84,6 +85,33 @@ export function createBlocklistRule(blocklist: Blocklist): ContentRule {
         ]),
         ...checkKind(content, blocklist, 'team', (team) => [
           { field: ['name'], label: 'Team name', value: team.name },
+        ]),
+        ...checkKind(content, blocklist, 'matchType', (matchType) => [
+          { field: ['name'], label: 'Match type name', value: matchType.name },
+          ...(matchType.shortName === undefined
+            ? []
+            : [
+                {
+                  field: ['shortName'],
+                  label: 'Match type short name',
+                  value: matchType.shortName,
+                },
+              ]),
+        ]),
+        ...checkKind(content, blocklist, 'angleType', (angleType) => [
+          { field: ['name'], label: 'Angle type name', value: angleType.name },
+          ...(angleType.shortName === undefined
+            ? []
+            : [
+                {
+                  field: ['shortName'],
+                  label: 'Angle type short name',
+                  value: angleType.shortName,
+                },
+              ]),
+        ]),
+        ...checkKind(content, blocklist, 'method', (method) => [
+          { field: ['name'], label: 'Method name', value: method.name },
         ]),
       ];
     },
