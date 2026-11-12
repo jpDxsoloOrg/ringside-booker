@@ -299,6 +299,14 @@ describe('WorkersScreen', () => {
     );
     expect(workersListUrlFrom(router.state.location.state)).toBe(listUrl);
 
+    // The loading skeleton has its own Back link, which is replaced when the profile arrives: wait
+    // for the loaded profile so the click does not land on a link that has just left the page.
+    await waitFor(
+      () => {
+        expect(document.querySelector('[aria-busy="true"]')).toBeNull();
+      },
+      { timeout: LOAD_MS },
+    );
     await user.click(
       await screen.findByRole('link', { name: 'Back to Workers' }, { timeout: LOAD_MS }),
     );
