@@ -8,13 +8,13 @@ import type {
   PersonId,
   PlannedWinner,
   PreviewArgs,
-  PreviewBatchArgs,
   PreviewBatchResult,
   PreviewResult,
   PromotionId,
   RegionId,
   SegmentKind,
   SimulateArgs,
+  SimulateBatchResult,
   SimulateResult,
   SlotRole,
 } from '@ringside/engine';
@@ -27,11 +27,11 @@ export const LAB_MAX_SIDES = 30;
 /** The most people one side holds: the most a preview takes. */
 export const LAB_MAX_SIDE_SIZE = PREVIEW_MAX_SIDE_SIZE;
 
-/** The seed a fresh lab rolls with. */
-export const LAB_FIRST_SEED = 1;
+/** The most nights one Run plays out (the Runs slider's top). */
+export const LAB_MAX_RUNS = 100;
 
-/** How many nights Run x100 rolls. */
-export const LAB_BATCH_RUNS = 100;
+/** The Runs a fresh lab starts with: one night, shown in full. */
+export const LAB_DEFAULT_RUNS = 1;
 
 /** What the segment is and the show it is on. */
 export interface LabSetup {
@@ -47,23 +47,8 @@ export interface LabSetup {
   readonly promotionId: PromotionId | null;
 }
 
-/** One Run's answer, kept until the next Run or until the world changes. */
-export interface LabRun {
-  readonly args: PreviewArgs;
-  readonly result: PreviewResult;
-  /** The game date the run was rated on, so a result from before a Next Day says so. */
-  readonly date: GameDate | null;
-}
-
-/** One Run x100's answer. */
-export interface LabBatchRun {
-  readonly args: PreviewBatchArgs;
-  readonly result: PreviewBatchResult;
-  readonly date: GameDate | null;
-}
-
 /**
- * The result the lab plays out on Simulate (MTCH2-04): who wins (Auto, a stored 0-based side or a
+ * The result a Run plays out for a match (MTCH2-04): who wins (Auto, a stored 0-based side or a
  * Draw) and the finish (null for Auto). The winner goes back to Auto when the match type changes.
  */
 export interface LabResultPlan {
@@ -74,15 +59,37 @@ export interface LabResultPlan {
 /** The plan a fresh lab, or a new match type, starts with. */
 export const AUTO_RESULT_PLAN: LabResultPlan = { winner: 'auto', finishKey: null };
 
-/** One Simulate's answer, kept until the next Run or Simulate, or until the world changes. */
-export interface LabSimulation {
-  readonly args: SimulateArgs;
-  readonly result: SimulateResult;
-  readonly date: GameDate | null;
+/**
+ * A batch's summary: `match.simulateBatch`'s (with the outcome counts) for a match,
+ * `match.previewBatch`'s for a talking segment.
+ */
+export type LabBatch = PreviewBatchResult | SimulateBatchResult;
+
+/** True for a match batch, which counts who won and how. */
+export function isSimulateBatch(batch: LabBatch): batch is SimulateBatchResult {
+  return 'sides' in batch;
 }
 
-/** Which button's request is on its way. */
-export type LabPending = 'run' | 'batch' | 'simulate' | null;
+/**
+ * One Run's answer (MTCH2-07), kept until the next Run or until the world changes. Every Run rolls
+ * on a fresh seed; with Runs above 1 the night shown in full is the batch's last.
+ */
+export interface LabRun {
+  /** The arguments of the night shown in full. */
+  readonly args: PreviewArgs;
+  /** The plan the match played out; null when nothing was simulated (a talking segment). */
+  readonly plan: LabResultPlan | null;
+  /** The night shown in full: its rating, warnings and worker lines. */
+  readonly rating: PreviewResult;
+  /** The same night's winner and finish; null for a talking segment. */
+  readonly simulation: SimulateResult | null;
+  /** How many nights the Run played out. */
+  readonly runs: number;
+  /** The summary of every night; null with Runs at 1. */
+  readonly batch: LabBatch | null;
+  /** The game date the run was rated on, so a result from before a Next Day says so. */
+  readonly date: GameDate | null;
+}
 
 export interface LabState {
   /** False until the lab's defaults have been read from `match.labOptions`. */
@@ -92,19 +99,14 @@ export interface LabState {
   readonly sides: readonly (readonly PersonId[])[];
   /** What the picker knew about each person placed, for their chips until a fresher list arrives. */
   readonly people: Readonly<Record<PersonId, LabWorkerRow>>;
-  /** The seed the next Run rolls with. */
-  readonly previewSeed: number;
-  /** The arguments of the Run on screen, or null before the first. */
-  readonly submitted: PreviewArgs | null;
-  /** The arguments of the Run x100 on screen, or null. */
-  readonly batch: PreviewBatchArgs | null;
+  /** How many nights the next Run plays out, 1 to {@link LAB_MAX_RUNS}. */
+  readonly runs: number;
+  /** The Run on screen, or null before the first. */
   readonly lastRun: LabRun | null;
-  readonly lastBatch: LabBatchRun | null;
-  /** The result Simulate plays out. */
+  /** The result a match's Run plays out. */
   readonly result: LabResultPlan;
-  /** The Simulate on screen, or null (a Run replaces it). */
-  readonly simulation: LabSimulation | null;
-  readonly pending: LabPending;
+  /** True while a Run is on its way. */
+  readonly pending: boolean;
   /** The engine's reasons for refusing the last request, in player words. */
   readonly refusal: readonly string[];
 
@@ -122,11 +124,10 @@ export interface LabState {
   readonly clearAll: () => void;
   readonly setWinner: (winner: PlannedWinner) => void;
   readonly setFinish: (finishKey: ContentKey | null) => void;
-  readonly nextSeed: () => void;
-  readonly startRequest: (pending: Exclude<LabPending, null>) => number;
+  /** Sets Runs, kept whole and within 1 to {@link LAB_MAX_RUNS}. */
+  readonly setRuns: (runs: number) => void;
+  readonly startRequest: () => number;
   readonly finishRun: (ticket: number, run: LabRun) => void;
-  readonly finishBatch: (ticket: number, batch: LabBatchRun) => void;
-  readonly finishSimulation: (ticket: number, simulation: LabSimulation) => void;
   readonly failRequest: (ticket: number, reasons: readonly string[]) => void;
   /** Back to an empty, unseeded lab: the world changed. */
   readonly reset: () => void;
@@ -147,14 +148,10 @@ const EMPTY_LAB = {
   setup: EMPTY_SETUP,
   sides: [[], []],
   people: {},
-  previewSeed: LAB_FIRST_SEED,
-  submitted: null,
-  batch: null,
+  runs: LAB_DEFAULT_RUNS,
   lastRun: null,
-  lastBatch: null,
   result: AUTO_RESULT_PLAN,
-  simulation: null,
-  pending: null,
+  pending: false,
   refusal: [],
 } as const satisfies Partial<LabState>;
 
@@ -182,13 +179,14 @@ export function sideOf(sides: readonly (readonly PersonId[])[], personId: Person
 }
 
 /**
- * The preview arguments the lab would send now, or null while something is missing: a type, a
- * region, a promotion, or someone on every side.
+ * The preview arguments the lab would send now with `previewSeed`, or null while something is
+ * missing: a type, a region, a promotion, or someone on every side.
  */
 export function previewArgsOf(
-  state: Pick<LabState, 'setup' | 'sides' | 'previewSeed'>,
+  state: Pick<LabState, 'setup' | 'sides'>,
+  previewSeed: number,
 ): PreviewArgs | null {
-  const { setup, sides, previewSeed } = state;
+  const { setup, sides } = state;
   if (setup.typeKey === null || setup.regionId === null || setup.promotionId === null) return null;
   if (sides.length === 0 || sides.some((side) => side.length === 0)) return null;
   return {
@@ -204,36 +202,30 @@ export function previewArgsOf(
   };
 }
 
-/**
- * The Simulate arguments the lab would send now: the preview arguments plus the result plan, or
- * null while something is missing or the segment is a talking segment (nobody wins one).
- */
-export function simulateArgsOf(
-  state: Pick<LabState, 'setup' | 'sides' | 'previewSeed' | 'result'>,
-): SimulateArgs | null {
-  const args = previewArgsOf(state);
-  if (args?.kind !== 'match') return null;
-  return {
-    ...args,
-    winner: state.result.winner,
-    finishKey: state.result.finishKey,
-    methodKey: null,
-  };
+/** The Simulate arguments for a match: its preview arguments plus the plan to play out. */
+export function simulateArgsOf(args: PreviewArgs, plan: LabResultPlan): SimulateArgs {
+  return { ...args, winner: plan.winner, finishKey: plan.finishKey, methodKey: null };
 }
 
-/** The preview arguments inside Simulate's, without the plan. */
-export function previewPartOf(args: SimulateArgs): PreviewArgs {
-  return {
-    kind: args.kind,
-    typeKey: args.typeKey,
-    sides: args.sides,
-    slotRole: args.slotRole,
-    importance: args.importance,
-    regionId: args.regionId,
-    televised: args.televised,
-    ...(args.promotionId === undefined ? {} : { promotionId: args.promotionId }),
-    previewSeed: args.previewSeed,
-  };
+/** Runs as the slider may hold it: whole, 1 to {@link LAB_MAX_RUNS}. */
+export function clampRuns(runs: number): number {
+  if (!Number.isFinite(runs)) return LAB_DEFAULT_RUNS;
+  return Math.min(LAB_MAX_RUNS, Math.max(1, Math.round(runs)));
+}
+
+/** A whole number from 0 to 2^32 − 1 from the browser's random source. */
+function randomUint32(): number {
+  return crypto.getRandomValues(new Uint32Array(1))[0] ?? 0;
+}
+
+/**
+ * A fresh seed for a Run of `runs` nights: night `i` rolls with the seed plus `i`, so the seed is
+ * picked low enough that the last night's seed is still a valid preview seed. The engine stays
+ * deterministic for a given seed; only the lab picks a new one every time.
+ */
+export function freshSeed(runs: number, random: () => number = randomUint32): number {
+  const choices = PREVIEW_SEED_MAX - (clampRuns(runs) - 1) + 1;
+  return random() % choices;
 }
 
 /** True when two plans ask for the same result. */
@@ -265,28 +257,18 @@ export function sameSegment(left: PreviewArgs, right: PreviewArgs): boolean {
 }
 
 /**
- * True when the setup or the sides changed after the result on screen was rated: the screen says
- * "Out of date: run again" rather than re-rating on every change.
+ * True when the setup, the sides or (for a match) the winner and finish changed after the Run on
+ * screen: the result says "Out of date: run again" rather than re-running on every change. Runs
+ * and the seed are not part of it.
  */
 export function isOutOfDate(
-  state: Pick<LabState, 'setup' | 'sides' | 'previewSeed'>,
-  shown: PreviewArgs | null,
+  state: Pick<LabState, 'setup' | 'sides' | 'result'>,
+  shown: Pick<LabRun, 'args' | 'plan'> | null,
 ): boolean {
   if (shown === null) return false;
-  const current = previewArgsOf(state);
-  return current === null || !sameSegment(current, shown);
-}
-
-/** True when the setup, the sides or the result plan changed after the Simulate on screen. */
-export function isSimulationOutOfDate(
-  state: Pick<LabState, 'setup' | 'sides' | 'previewSeed' | 'result'>,
-  shown: SimulateArgs | null,
-): boolean {
-  if (shown === null) return false;
-  return (
-    isOutOfDate(state, previewPartOf(shown)) ||
-    !samePlan(state.result, { winner: shown.winner, finishKey: shown.finishKey })
-  );
+  const current = previewArgsOf(state, shown.args.previewSeed);
+  if (current === null || !sameSegment(current, shown.args)) return true;
+  return shown.plan !== null && !samePlan(state.result, shown.plan);
 }
 
 /** The plan with a removed side's winner put back to Auto (later sides move down one). */
@@ -297,7 +279,7 @@ function planWithoutSide(plan: LabResultPlan, side: number): LabResultPlan {
 }
 
 /**
- * The Match lab's state: the setup, the sides, the seed and the last answers. It lives for the
+ * The Match lab's state: the setup, the sides, the result plan, Runs and the last answer. It lives for the
  * session, so leaving the lab and coming back keeps the line-up, and it empties when the session's
  * world changes (a load, a new game, a quit).
  */
@@ -392,50 +374,21 @@ export const useLabStore = create<LabState>()((set, get) => ({
   setFinish: (finishKey) => {
     set((state) => ({ result: { ...state.result, finishKey } }));
   },
-  nextSeed: () => {
-    set((state) => ({
-      previewSeed: state.previewSeed >= PREVIEW_SEED_MAX ? LAB_FIRST_SEED : state.previewSeed + 1,
-    }));
+  setRuns: (runs) => {
+    set({ runs: clampRuns(runs) });
   },
-  startRequest: (pending) => {
+  startRequest: () => {
     requestTicket += 1;
-    set({ pending, refusal: [] });
+    set({ pending: true, refusal: [] });
     return requestTicket;
   },
   finishRun: (ticket, run) => {
     if (ticket !== requestTicket) return;
-    // A new single night replaces the batch too, unless the batch is of this very segment.
-    const { lastBatch } = get();
-    const keepBatch = lastBatch !== null && sameSegment(lastBatch.args, run.args);
-    set({
-      pending: null,
-      submitted: run.args,
-      lastRun: run,
-      simulation: null,
-      ...(keepBatch ? {} : { batch: null, lastBatch: null }),
-    });
-  },
-  finishBatch: (ticket, batch) => {
-    if (ticket !== requestTicket) return;
-    set({ pending: null, batch: batch.args, lastBatch: batch });
-  },
-  finishSimulation: (ticket, simulation) => {
-    if (ticket !== requestTicket) return;
-    // The simulated night is also the Run on screen: its rating, warnings and worker lines.
-    const args = previewPartOf(simulation.args);
-    const { lastBatch } = get();
-    const keepBatch = lastBatch !== null && sameSegment(lastBatch.args, args);
-    set({
-      pending: null,
-      submitted: args,
-      lastRun: { args, result: simulation.result.preview, date: simulation.date },
-      simulation,
-      ...(keepBatch ? {} : { batch: null, lastBatch: null }),
-    });
+    set({ pending: false, lastRun: run });
   },
   failRequest: (ticket, reasons) => {
     if (ticket !== requestTicket) return;
-    set({ pending: null, refusal: reasons });
+    set({ pending: false, refusal: reasons });
   },
   reset: () => {
     requestTicket += 1;

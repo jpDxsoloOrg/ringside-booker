@@ -6,8 +6,11 @@ import { ScoreBug } from '@/components/ScoreBug';
 import type { ScoreBugStats } from '@/components/ScoreBug';
 import { StarRating, STAR_RATING_MAX } from '@/components/StarRating';
 import { Explained, WhyButton } from '@/components/Trace';
-import { expectationGapText, seedText, starsText, weightText } from './labText';
+import { expectationGapText, starsText, weightText } from './labText';
 import styles from './MatchLab.module.css';
+
+/** The badge on a result whose setup changed since its Run. */
+export const OUT_OF_DATE_TEXT = 'Out of date: run again';
 
 /** The stars as the glyphs draw them: a raised cap can go past five, the glyphs can't. */
 function glyphStars(stars: number): number {
@@ -20,23 +23,15 @@ export interface LabResultProps {
   readonly ratedOn: GameDate | null;
   /** The game's date now: a result from an earlier day says when it was rated. */
   readonly today: GameDate | null;
-  /** The setup or sides changed since the Run. */
+  /** The setup, the sides or the winner and finish changed since the Run. */
   readonly outOfDate: boolean;
-  /** What the out-of-date badge says; Simulate's result says "simulate again". */
-  readonly outOfDateText?: string;
 }
 
 /**
  * One rated night: Score, Stars, Work rate (or Talk) and Crowd on a score bug, each with its Why?,
- * then what the crowd expected against what it got, the slot, and the seed to quote.
+ * then what the crowd expected against what it got, the slot and the rules it was rated under.
  */
-export function LabResult({
-  result,
-  ratedOn,
-  today,
-  outOfDate,
-  outOfDateText = 'Out of date: run again',
-}: LabResultProps) {
+export function LabResult({ result, ratedOn, today, outOfDate }: LabResultProps) {
   const performance =
     result.workRate !== null
       ? { id: 'workRate', label: 'Work rate', traced: result.workRate }
@@ -98,7 +93,7 @@ export function LabResult({
       {outOfDate && (
         <p className={styles['outOfDate']} role="status">
           <Badge tone="prestige" variant="solid">
-            {outOfDateText}
+            {OUT_OF_DATE_TEXT}
           </Badge>
           <span>The setup changed since this run.</span>
         </p>
@@ -136,7 +131,6 @@ export function LabResult({
         />
       </p>
       <p className={styles['resultMeta']}>
-        <span className={styles['seed']}>{seedText(result.previewSeed)}</span>
         <span>{result.policy.label}</span>
         {earlierDay && <span>Rated on {formatGameDate(ratedOn, 'long')}</span>}
       </p>

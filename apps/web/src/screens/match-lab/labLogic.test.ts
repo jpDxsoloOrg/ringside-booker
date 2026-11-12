@@ -1,14 +1,26 @@
 import { describe, expect, it } from 'vitest';
-import { parseContentKey, parseId } from '@ringside/engine';
+import { parseContentKey, parseId, PREVIEW_SEED_MAX } from '@ringside/engine';
 import type { MatchTypeOption, Stats } from '@ringside/engine';
 import { RUNNING_TIME_WORDS } from '@/test/runningTimeWords';
 import { labPanelsFor } from './labPanelRegistry';
 import type { LabPanelContext, LabPanelDefinition } from './labPanelRegistry';
-import { isOutOfDate, previewArgsOf, resizeSides, sameSegment, sideOf } from './labStore';
+import {
+  AUTO_RESULT_PLAN,
+  clampRuns,
+  freshSeed,
+  isOutOfDate,
+  LAB_MAX_RUNS,
+  previewArgsOf,
+  resizeSides,
+  sameSegment,
+  sideOf,
+} from './labStore';
 import type { LabSetup } from './labStore';
 import {
   expectationGapText,
   matchLimitsText,
+  runsText,
+  shareText,
   staminaText,
   statsSummary,
   weightText,
@@ -60,20 +72,44 @@ describe('the lab store helpers', () => {
   });
 
   it('builds preview arguments only when every side has someone', () => {
-    expect(previewArgsOf({ setup: SETUP, sides: [[ADA], []], previewSeed: 1 })).toBeNull();
-    const args = previewArgsOf({ setup: SETUP, sides: [[ADA], [BO]], previewSeed: 4 });
+    expect(previewArgsOf({ setup: SETUP, sides: [[ADA], []] }, 1)).toBeNull();
+    const args = previewArgsOf({ setup: SETUP, sides: [[ADA], [BO]] }, 4);
     expect(args).toMatchObject({ sides: [[ADA], [BO]], previewSeed: 4, slotRole: 'midcard' });
   });
 
   it('calls a result out of date when the segment changed, not when only the seed did', () => {
-    const state = { setup: SETUP, sides: [[ADA], [BO]], previewSeed: 1 };
-    const shown = previewArgsOf(state);
-    if (shown === null) throw new Error('The lab built no arguments.');
-    expect(isOutOfDate({ ...state, previewSeed: 9 }, shown)).toBe(false);
-    expect(sameSegment(shown, { ...shown, previewSeed: 2 })).toBe(true);
+    const state = { setup: SETUP, sides: [[ADA], [BO]], result: AUTO_RESULT_PLAN };
+    const args = previewArgsOf(state, 1);
+    if (args === null) throw new Error('The lab built no arguments.');
+    const shown = { args, plan: null };
+    expect(sameSegment(args, { ...args, previewSeed: 2 })).toBe(true);
+    expect(isOutOfDate(state, shown)).toBe(false);
     expect(isOutOfDate({ ...state, sides: [[BO], [ADA]] }, shown)).toBe(true);
     expect(isOutOfDate({ ...state, setup: { ...SETUP, televised: false } }, shown)).toBe(true);
     expect(isOutOfDate(state, null)).toBe(false);
+  });
+
+  it('keeps Runs whole and between 1 and 100', () => {
+    expect(clampRuns(0)).toBe(1);
+    expect(clampRuns(50.4)).toBe(50);
+    expect(clampRuns(250)).toBe(LAB_MAX_RUNS);
+    expect(clampRuns(Number.NaN)).toBe(1);
+  });
+
+  it('picks a fresh seed low enough that every night of the Run has a valid seed', () => {
+    expect(freshSeed(1, () => 7)).toBe(7);
+    // The largest random number lands on the last seed that leaves room for 100 nights.
+    const top = 2 ** 32 - 1;
+    for (const runs of [1, 50, 100]) {
+      for (const draw of [0, 1, top, top - 1, PREVIEW_SEED_MAX]) {
+        const seed = freshSeed(runs, () => draw);
+        expect(seed).toBeGreaterThanOrEqual(0);
+        expect(seed + runs - 1).toBeLessThanOrEqual(PREVIEW_SEED_MAX);
+      }
+    }
+    // The browser's random source: two Runs in a row (almost surely) roll different seeds.
+    const seeds = new Set(Array.from({ length: 20 }, () => freshSeed(1)));
+    expect(seeds.size).toBeGreaterThan(1);
   });
 });
 
@@ -82,6 +118,13 @@ describe('the lab wording', () => {
 
   it('summarises a batch as the ticket words it', () => {
     expect(statsSummary(stats)).toBe('Mean 63.4 · spread ±5.1 · range 49–77 · middle 80% 57–70');
+  });
+
+  it('words Runs and a share of them', () => {
+    expect(runsText(1)).toBe('1 run');
+    expect(runsText(50)).toBe('50 runs');
+    expect(shareText(31, 50)).toBe('62%');
+    expect(shareText(0, 0)).toBe('0%');
   });
 
   it('words the expectation gap, weights and stamina', () => {
@@ -121,8 +164,8 @@ describe('labPanelsFor', () => {
     setup: SETUP,
     sides: [],
     result: null,
-    batch: null,
     simulation: null,
+    batch: null,
   };
   const panel = (
     id: string,

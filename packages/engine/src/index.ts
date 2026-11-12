@@ -1268,12 +1268,21 @@ export {
 } from './systems/match/index';
 
 // The Match lab's Simulate (MTCH2-04): `match.simulate` resolves a plan and rates the match with
-// its finish on detached streams; `match.resultMode` says whether Random winners decides the
-// viewer's results. See docs/design/match-finishes.md#simulate.
+// its finish on detached streams; `match.simulateBatch` (MTCH2-07) plays it out many times and
+// counts the outcomes; `match.resultMode` says whether Random winners decides the viewer's
+// results. See docs/design/match-finishes.md#simulate.
 export type {
+  FinishCount,
   ResultMode,
+  SideWinCount,
   SimulateArgs,
+  SimulateBatchArgs,
+  SimulateBatchResult,
   SimulateResult,
   SimulatedFinish,
 } from './systems/match/index';
-export { SIMULATE_REASON_CODES, SimulateArgsSchema } from './systems/match/index';
+export {
+  SIMULATE_REASON_CODES,
+  SimulateArgsSchema,
+  SimulateBatchArgsSchema,
+} from './systems/match/index';

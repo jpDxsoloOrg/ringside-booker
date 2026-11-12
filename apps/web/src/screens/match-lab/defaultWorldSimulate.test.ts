@@ -1,6 +1,6 @@
-// The Match lab's Simulate hand-test script (MTCH2-06) run against a new default-world game as
+// The Match lab's Run hand-test script (MTCH2-06, MTCH2-07) run against a new default-world game as
 // Altura: Auto winner and finish, a booked side, Draw, a booked finish, a tag match, a match type
-// that limits its finishes, Re-roll seed, and a game started with Random winners. Every Why? the
+// that limits its finishes, a fresh seed per Run, Runs at 50, and a game started with Random winners. Every Why? the
 // result block offers (Winner, Stars, Score, Work rate, Crowd) is read in the player's words:
 // readable labels, the settings named by key, no raw codes, no broken numbers, no running time.
 import { describe, expect, it } from 'vitest';
@@ -12,6 +12,7 @@ import type {
   MatchCatalog,
   PlannedWinner,
   SimulateArgs,
+  SimulateBatchResult,
   SimulateResult,
   TraceNode,
 } from '@ringside/engine';
@@ -97,13 +98,21 @@ function labOn(settings: Readonly<Record<string, unknown>> = {}) {
     return ask(engine.query('match.simulate', simulateArgs, VIEWER), 'match.simulate');
   }
 
+  /** What Run sends with Runs above 1: the same plan played out `runs` times. */
+  function simulateBatch(simulateArgs: SimulateArgs, runs: number): SimulateBatchResult {
+    return ask(
+      engine.query('match.simulateBatch', { ...simulateArgs, runs }, VIEWER),
+      'match.simulateBatch',
+    );
+  }
+
   function person(index: number): LabWorkerRow {
     const row = roster[index];
     if (row === undefined) throw new Error(`The roster has no one at ${String(index)}.`);
     return row;
   }
 
-  return { engine, options, roster, finishes, finishKey, args, simulate, person };
+  return { engine, options, roster, finishes, finishKey, args, simulate, simulateBatch, person };
 }
 
 /** The Why? panels of a simulated result block, by the name each button carries. */
@@ -307,6 +316,44 @@ describe('Simulate in the Match lab on a new default-world game', () => {
     },
     AUDIT_TIMEOUT_MS,
   );
+});
+
+describe('Run with Runs at 50 on a new default-world game', () => {
+  /** Runs on the lab's slider. */
+  const RUNS = 50;
+
+  it('counts who won, the draws and the finishes so each adds up to 50', () => {
+    const batch = lab.simulateBatch(lab.args('Singles', singles), RUNS);
+    expect(batch.runs).toBe(RUNS);
+    expect(batch.sides.map((side) => side.names)).toEqual([
+      [lab.person(0).name],
+      [lab.person(1).name],
+    ]);
+    const outcomes = batch.sides.reduce((total, side) => total + side.wins, 0);
+    expect(outcomes + batch.draws + batch.noContests).toBe(RUNS);
+    expect(batch.finishes.reduce((total, finish) => total + finish.count, 0)).toBe(RUNS);
+    expect(batch.histogram.reduce((total, bin) => total + bin.count, 0)).toBe(RUNS);
+    // The clean finish is the usual one, and comes first.
+    expect(batch.finishes[0]?.name).toBe('Clean finish');
+    for (const finish of batch.finishes) expectReadable('Finish count', finish.name);
+  });
+
+  it('shows a last night that is one of the nights counted', () => {
+    const setup = lab.args('Singles', singles, { winner: { side: 1 } });
+    const batch = lab.simulateBatch(setup, RUNS);
+    const last = lab.simulate({ ...setup, previewSeed: setup.previewSeed + RUNS - 1 });
+    expect(batch.sides.map((side) => side.wins)).toEqual([0, RUNS]);
+    expect(last.winningSide).toBe(1);
+    expect(batch.finishes.map((finish) => finish.key)).toContain(last.finish.key);
+    expect(last.preview.score.value).toBeGreaterThanOrEqual(batch.score.min);
+    expect(last.preview.score.value).toBeLessThanOrEqual(batch.score.max);
+  });
+
+  it('draws every night of a booked Draw', () => {
+    const batch = lab.simulateBatch(lab.args('Singles', singles, { winner: 'draw' }), RUNS);
+    expect(batch.draws).toBe(RUNS);
+    expect(batch.finishes.every((finish) => finish.category === 'draw')).toBe(true);
+  });
 });
 
 describe('Simulate in a new game started with Random winners', () => {

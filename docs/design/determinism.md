@@ -135,7 +135,7 @@ one of these ever has to change, it needs a save migration that re-seeds.
 ### Detached streams
 
 Some code has to roll without the roll counting: the Match lab's previews
-(`match.preview`, `match.previewBatch`) rate a segment as often as the player
+(`match.preview`, `match.previewBatch`, `match.simulate`, `match.simulateBatch`) rate a segment as often as the player
 likes, and the next real show must come out the same however many previews ran.
 They draw from `detachedStream(seed, name, key)` (`core/rng/registry.ts`), a
 stream derived like any other but from `name + "#" + key` (the previews use

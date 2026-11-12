@@ -13,9 +13,10 @@
  * - `match.preview`, `match.previewBatch` (`previewQueries.ts`), `match.labOptions` and
  *   `match.labWorkers` (`labQueries.ts`) (MTCH1-06): the Match lab's rating previews on a detached
  *   stream and its setup queries. Their `QueryMap` entries sit beside them.
- * - `match.simulate` and `match.resultMode` (`simulateQuery.ts`, MTCH2-04): the lab's Simulate,
- *   which resolves a plan and rates the match with its finish, and whether Random winners decides
- *   the viewer's results.
+ * - `match.simulate`, `match.simulateBatch` and `match.resultMode` (`simulateQuery.ts`, MTCH2-04,
+ *   MTCH2-07): the lab's Run for a match, which resolves a plan and rates the match with its
+ *   finish (once, or many times with the outcomes counted), and whether Random winners decides the
+ *   viewer's results.
  *
  * None is secret, so every viewer sees the same answer. Design: docs/design/match-rating.md.
  */
@@ -461,6 +462,6 @@ export const matchQueries: readonly QueryDefinition[] = [
   previewQuery,
   previewBatchQuery,
   ...labQueries,
-  // The lab's Simulate and the result mode (MTCH2-04).
+  // The lab's Simulate, its batch and the result mode (MTCH2-04, MTCH2-07).
   ...simulateQueries,
 ];

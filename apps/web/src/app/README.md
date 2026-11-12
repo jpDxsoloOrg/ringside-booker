@@ -136,20 +136,25 @@ Your promotion > Match lab is live. `/game/match-lab` (`screens/match-lab/`, lin
 middle, the result on the right (two columns, then one, as the lab gets narrower; on phones the Run
 bar sticks above the tab bar and the worker picker is a bottom sheet). `MatchLabScreen` owns the
 heading and loads the rest as its own chunk. The lab's state (`labStore.ts`) lives for the session
-and empties when the seat's world changes; Run, Re-roll seed and Run x100 ask the engine directly
-(`match.preview`, `match.previewBatch`), so a shown result never re-rolls behind the player's back
-after a Next Day. Worker names on the side chips and in the Each worker table go through
+and empties when the seat's world changes. The lab has one action, **Run**, with a **Runs** slider
+(1–100, 1 by default) beside it (MTCH2-07). Every Run picks a fresh seed (`freshSeed` in
+`labStore.ts`, from the browser's random source, low enough that every night's seed is valid), so
+there are no seed controls. `useLabRunner` asks the engine directly, so a shown result never
+re-rolls behind the player's back after a Next Day. Worker names on the side chips and in the Each worker table go through
 `renderWorkerName` (`workerName.tsx`), a `WorkerLink` to the worker's profile; person inputs in the
 lab's Why? panels link through `EntityLinkContext` like everywhere else in the game.
 
-For a match, **Simulate** (beside Run) plays the result out too: the Winner and finish group at the
-bottom of the setup (under the sides on a phone) picks the winner (Auto, a side or Draw) and the
-finish (Auto or any the match type allows), and Simulate asks `match.simulate` with the current
-seed. The answer (`MatchResultBlock`) heads the result panel: who won with a Why? on the winner,
-the method and finish, then the usual score bug, rated with the finish's effects. Re-roll seed
-simulates again while a Simulate is on screen; Run goes back to a rating with no result. Auto reads
-"Auto (Random winners)" when `match.resultMode` says Random winners decides the player's results.
-The result components live in `screens/match-lab/result/`.
+For a match, Run always plays the result out: the Winner and finish group at the bottom of the
+setup (under the sides on a phone) picks the winner (Auto, a side or Draw) and the finish (Auto or
+any the match type allows), and Run asks `match.simulate`. The answer (`MatchResultBlock`) heads
+the result panel: who won with a Why? on the winner, the method and finish, then the usual score
+bug, rated with the finish's effects. A talking segment is rated with `match.preview` and has no
+winner. With Runs above 1, Run also asks `match.simulateBatch` (a talking segment:
+`match.previewBatch`) from the same fresh seed; the night shown in full is the batch's last, and
+`LabBatchResult` adds who won (a bar per side, draws, no contests), the finishes most common first
+and the score histogram and summaries. Changing the setup, the sides or the plan marks the result
+"Out of date: run again". Auto reads "Auto (Random winners)" when `match.resultMode` says Random
+winners decides the player's results. The result components live in `screens/match-lab/result/`.
 
 `screens/match-lab/defaultWorldLab.test.ts` is the lab's hand-test script against a new
 default-world game as Altura: the defaults, every Why? a Run offers read in the panel's own words
@@ -170,15 +175,19 @@ registerLabPanel({
   order: 20,
   title: 'Aftermath',
   placement: 'result', // the default; 'setup' sits at the bottom of the setup column
-  render: ({ setup, sides, result, batch, simulation }) => <Aftermath simulation={simulation} />,
+  render: ({ setup, sides, result, simulation, batch }) => <Aftermath simulation={simulation} />,
   visible: ({ result }) => result !== null, // optional
 });
 ```
 
 `registerLabPanel` (`screens/match-lab/labPanelRegistry.ts`) returns a function that removes the
 panel again, throws for an id that is taken, and every open lab re-renders when the list changes.
-Panels of one placement are drawn in `order`, then by id. The render props only grow: MTCH2-04 added
-`simulation`, the `match.simulate` answer on screen (null before a Simulate and after a Run). Reserved orders:
+Panels of one placement are drawn in `order`, then by id. The render props only grow: `result` is
+the rating of the night shown in full; MTCH2-04 added `simulation`, that same night's
+`match.simulate` answer (null before the first Run and for a talking segment); since MTCH2-07
+`batch` is the summary of every night when Runs was above 1 (null at 1), a `SimulateBatchResult`
+for a match (`isSimulateBatch` tells) and a `PreviewBatchResult` for a talking segment. Reserved
+orders:
 
 | Placement | Order | Panel                 |
 | --------- | ----- | --------------------- |

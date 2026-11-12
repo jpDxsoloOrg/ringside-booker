@@ -1,33 +1,22 @@
-import type { FinishCategory, GameDate, SimulateResult } from '@ringside/engine';
+import type { GameDate, SimulateResult } from '@ringside/engine';
 import { Badge } from '@/components/Badge';
-import type { Tone } from '@/components/tone';
 import { Explained } from '@/components/Trace';
 import { LabResult } from '../LabResult';
 import styles from './Result.module.css';
 import {
   FINISH_CATEGORY_LABELS,
+  FINISH_CATEGORY_TONES,
   methodLineText,
   noTitleChangeText,
   outcomeHeadline,
 } from './resultText';
-
-/** The badge colour of each finish category: clean wins read positive, a mess reads negative. */
-const CATEGORY_TONES: Readonly<Record<FinishCategory, Tone>> = {
-  clean: 'positive',
-  cheating: 'prestige',
-  countOut: 'data',
-  disqualification: 'negative',
-  controversial: 'prestige',
-  draw: 'neutral',
-  noContest: 'negative',
-};
 
 export interface MatchResultBlockProps {
   readonly simulation: SimulateResult;
   /** The game date it was simulated on. */
   readonly ratedOn: GameDate | null;
   readonly today: GameDate | null;
-  /** The setup, sides or result plan changed since the Simulate. */
+  /** The setup, sides or result plan changed since the Run. */
   readonly outOfDate: boolean;
   /**
    * True when titles are on the line, so a finish that can't move them says so. Nothing sets it
@@ -67,7 +56,7 @@ export function MatchResultBlock({
       </div>
       <p className={styles['methodLine']}>
         <span>{methodLineText(simulation)}</span>
-        <Badge tone={CATEGORY_TONES[finish.category]}>
+        <Badge tone={FINISH_CATEGORY_TONES[finish.category]}>
           {FINISH_CATEGORY_LABELS[finish.category]}
         </Badge>
       </p>
@@ -80,7 +69,6 @@ export function MatchResultBlock({
         ratedOn={ratedOn}
         today={today}
         outOfDate={outOfDate}
-        outOfDateText="Out of date: simulate again"
       />
     </div>
   );

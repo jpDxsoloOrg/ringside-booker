@@ -127,6 +127,52 @@ export const previewQuery: QueryDefinition<'match.preview'> = defineQuery('match
 });
 
 /**
+ * Collects the numbers of a batch of rated nights and summarises them as `match.previewBatch`
+ * returns them. `match.simulateBatch` (MTCH2-07) adds its outcome counts on top of the same
+ * summary, so both batches read alike.
+ */
+export interface RatingTally {
+  /** Adds one rated night. */
+  add: (result: SegmentRatingResult) => void;
+  /** The summary of every night added so far. Throws a RangeError when none was. */
+  summary: () => PreviewBatchResult;
+}
+
+/** A new, empty {@link RatingTally}. */
+export function ratingTally(): RatingTally {
+  const scores: number[] = [];
+  const stars: number[] = [];
+  const workRates: number[] = [];
+  const talks: number[] = [];
+  const crowds: number[] = [];
+  let expectation = 0;
+  return {
+    add: (result) => {
+      scores.push(result.score.value);
+      stars.push(result.stars.value);
+      crowds.push(result.crowd.value);
+      if (result.workRate !== null) {
+        workRates.push(result.workRate.value);
+      }
+      if (result.talk !== null) {
+        talks.push(result.talk.value);
+      }
+      expectation = result.expectation.value;
+    },
+    summary: () => ({
+      runs: scores.length,
+      score: statsOf(scores),
+      stars: { ...statsOf(stars), byQuarter: quarterCounts(stars) },
+      workRate: workRates.length === 0 ? null : statsOf(workRates),
+      talk: talks.length === 0 ? null : statsOf(talks),
+      crowd: statsOf(crowds),
+      expectation: roundTenth(expectation),
+      histogram: scoreHistogram(scores),
+    }),
+  };
+}
+
+/**
  * `match.previewBatch`. Run `i` rolls on the detached stream keyed `previewSeed + i`, so run 0 is
  * exactly `match.preview` with the same seed. Same viewer scoping as `match.preview`, and no
  * per-worker lines or traces at all.
@@ -136,36 +182,12 @@ export const previewBatchQuery: QueryDefinition<'match.previewBatch'> = defineQu
   {
     args: PreviewBatchArgsSchema,
     run: (ctx, args) => {
-      const scores: number[] = [];
-      const stars: number[] = [];
-      const workRates: number[] = [];
-      const talks: number[] = [];
-      const crowds: number[] = [];
       const input = previewInput(ctx, args);
-      let expectation = 0;
+      const tally = ratingTally();
       for (let run = 0; run < args.runs; run += 1) {
-        const result = rateWithKey(ctx, input, args.previewSeed + run);
-        scores.push(result.score.value);
-        stars.push(result.stars.value);
-        crowds.push(result.crowd.value);
-        if (result.workRate !== null) {
-          workRates.push(result.workRate.value);
-        }
-        if (result.talk !== null) {
-          talks.push(result.talk.value);
-        }
-        expectation = result.expectation.value;
+        tally.add(rateWithKey(ctx, input, args.previewSeed + run));
       }
-      return {
-        runs: args.runs,
-        score: statsOf(scores),
-        stars: { ...statsOf(stars), byQuarter: quarterCounts(stars) },
-        workRate: workRates.length === 0 ? null : statsOf(workRates),
-        talk: talks.length === 0 ? null : statsOf(talks),
-        crowd: statsOf(crowds),
-        expectation: roundTenth(expectation),
-        histogram: scoreHistogram(scores),
-      };
+      return tally.summary();
     },
   },
 );

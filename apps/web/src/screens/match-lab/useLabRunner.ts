@@ -2,32 +2,55 @@ import { useCallback } from 'react';
 import type { GameDate, QueryArgs, QueryData, QueryName } from '@ringside/engine';
 import { useAnnounce } from '@/app/a11y/LiveAnnouncer';
 import { useEngineClient } from '@/app/engine/EngineProvider';
-import { LAB_BATCH_RUNS, previewArgsOf, simulateArgsOf, useLabStore } from './labStore';
+import { freshSeed, previewArgsOf, simulateArgsOf, useLabStore } from './labStore';
+import type { LabRun } from './labStore';
 import { outcomeHeadline } from './result/resultText';
-import { seedText, statsSummary } from './labText';
+import { statsSummary } from './labText';
 
 /** Said when the engine could not be reached at all. */
 const UNREACHABLE = 'The game engine did not answer. Try again.';
+
+type Refusable =
+  { readonly ok: true } | { readonly ok: false; readonly reasons: readonly string[] };
 
 type Answer<K extends QueryName> =
   | { readonly ok: true; readonly data: QueryData<K> }
   | { readonly ok: false; readonly reasons: readonly string[] };
 
+/** The reasons of every refused answer, each once. */
+function reasonsOf(answers: readonly (Refusable | null)[]): string[] {
+  return [
+    ...new Set(answers.flatMap((answer) => (answer === null || answer.ok ? [] : answer.reasons))),
+  ];
+}
+
+/** What the screen reader hears when a Run lands. */
+function announcement(run: LabRun): string {
+  const score = `score ${String(run.rating.score.value)}`;
+  const night = run.simulation === null ? score : `${outcomeHeadline(run.simulation)}, ${score}`;
+  if (run.batch === null) return night;
+  return `${String(run.runs)} runs: ${statsSummary(run.batch.score)}. Last run: ${night}`;
+}
+
+/** How a Run plays out: `simulate` for a match with finishes, else rating only. */
+export interface LabRunOptions {
+  readonly simulate: boolean;
+}
+
 export interface LabRunner {
-  /** Rates the segment once with the current seed. */
-  readonly run: () => Promise<void>;
-  /** Resolves the result plan and rates the match with its finish, with the current seed. */
-  readonly simulate: () => Promise<void>;
-  /** Moves to the next seed, then rates once (or simulates, when a Simulate is on screen). */
-  readonly reroll: () => Promise<void>;
-  /** Rates once and runs the same segment 100 times for the spread. */
-  readonly runBatch: () => Promise<void>;
+  /**
+   * Plays out Runs nights on a fresh seed. A match is simulated (winner and finish from the plan)
+   * when `simulate` is true; a talking segment, or a match on a save with no finishes, is rated.
+   */
+  readonly run: (options: LabRunOptions) => Promise<void>;
 }
 
 /**
- * The lab's Run, Simulate, Re-roll seed and Run x100. They ask the engine directly instead of through
- * `useEngineQuery`, so the answer stays on screen as it was, dated, after a Next Day: nothing
- * re-rolls behind the player's back. Answers that arrive after the lab was reset are dropped.
+ * The lab's Run (MTCH2-07). Every Run picks a fresh seed: night `i` rolls with the seed plus `i`,
+ * and the night shown in full is the last one, so it is one of the nights the batch counted. It
+ * asks the engine directly instead of through `useEngineQuery`, so the answer stays on screen as it
+ * was, dated, after a Next Day: nothing re-rolls behind the player's back. Answers that arrive
+ * after the lab was reset, or after a newer Run, are dropped.
  */
 export function useLabRunner(today: GameDate | null): LabRunner {
   const client = useEngineClient();
@@ -47,65 +70,66 @@ export function useLabRunner(today: GameDate | null): LabRunner {
     [client],
   );
 
-  const run = useCallback(async (): Promise<void> => {
-    const store = useLabStore.getState();
-    const args = previewArgsOf(store);
-    if (args === null || store.pending !== null) return;
-    const ticket = store.startRequest('run');
-    const answer = await ask('match.preview', args);
-    if (!answer.ok) {
-      useLabStore.getState().failRequest(ticket, answer.reasons);
-      return;
-    }
-    useLabStore.getState().finishRun(ticket, { args, result: answer.data, date: today });
-    announce(`${seedText(args.previewSeed)}: score ${String(answer.data.score.value)}`);
-  }, [announce, ask, today]);
+  const run = useCallback(
+    async ({ simulate }: LabRunOptions): Promise<void> => {
+      const store = useLabStore.getState();
+      if (store.pending) return;
+      const { runs } = store;
+      const seed = freshSeed(runs);
+      const args = previewArgsOf(store, seed + runs - 1);
+      if (args === null) return;
+      const ticket = store.startRequest();
+      const batched = runs > 1;
 
-  const simulate = useCallback(async (): Promise<void> => {
-    const store = useLabStore.getState();
-    const args = simulateArgsOf(store);
-    if (args === null || store.pending !== null) return;
-    const ticket = store.startRequest('simulate');
-    const answer = await ask('match.simulate', args);
-    if (!answer.ok) {
-      useLabStore.getState().failRequest(ticket, answer.reasons);
-      return;
-    }
-    useLabStore.getState().finishSimulation(ticket, { args, result: answer.data, date: today });
-    announce(
-      `${seedText(args.previewSeed)}: ${outcomeHeadline(answer.data)}, score ${String(answer.data.preview.score.value)}`,
-    );
-  }, [announce, ask, today]);
+      let landed: LabRun;
+      if (simulate && args.kind === 'match') {
+        const plan = store.result;
+        const simulateArgs = simulateArgsOf(args, plan);
+        const [single, batch] = await Promise.all([
+          ask('match.simulate', simulateArgs),
+          batched
+            ? ask('match.simulateBatch', { ...simulateArgs, previewSeed: seed, runs })
+            : Promise.resolve(null),
+        ]);
+        if (!single.ok || (batch !== null && !batch.ok)) {
+          useLabStore.getState().failRequest(ticket, reasonsOf([single, batch]));
+          return;
+        }
+        landed = {
+          args,
+          plan,
+          rating: single.data.preview,
+          simulation: single.data,
+          runs,
+          batch: batch?.data ?? null,
+          date: today,
+        };
+      } else {
+        const [single, batch] = await Promise.all([
+          ask('match.preview', args),
+          batched
+            ? ask('match.previewBatch', { ...args, previewSeed: seed, runs })
+            : Promise.resolve(null),
+        ]);
+        if (!single.ok || (batch !== null && !batch.ok)) {
+          useLabStore.getState().failRequest(ticket, reasonsOf([single, batch]));
+          return;
+        }
+        landed = {
+          args,
+          plan: null,
+          rating: single.data,
+          simulation: null,
+          runs,
+          batch: batch?.data ?? null,
+          date: today,
+        };
+      }
+      useLabStore.getState().finishRun(ticket, landed);
+      announce(announcement(landed));
+    },
+    [announce, ask, today],
+  );
 
-  const reroll = useCallback(async (): Promise<void> => {
-    const store = useLabStore.getState();
-    if (previewArgsOf(store) === null || store.pending !== null) return;
-    const simulating = store.simulation !== null && simulateArgsOf(store) !== null;
-    store.nextSeed();
-    await (simulating ? simulate() : run());
-  }, [run, simulate]);
-
-  const runBatch = useCallback(async (): Promise<void> => {
-    const store = useLabStore.getState();
-    const args = previewArgsOf(store);
-    if (args === null || store.pending !== null) return;
-    const ticket = store.startRequest('batch');
-    const batchArgs = { ...args, runs: LAB_BATCH_RUNS };
-    const [single, batch] = await Promise.all([
-      ask('match.preview', args),
-      ask('match.previewBatch', batchArgs),
-    ]);
-    if (!single.ok || !batch.ok) {
-      const reasons = [...(single.ok ? [] : single.reasons), ...(batch.ok ? [] : batch.reasons)];
-      useLabStore.getState().failRequest(ticket, [...new Set(reasons)]);
-      return;
-    }
-    const after = useLabStore.getState();
-    // Both land under one ticket: the single night first (it clears an older batch), then the batch.
-    after.finishRun(ticket, { args, result: single.data, date: today });
-    after.finishBatch(ticket, { args: batchArgs, result: batch.data, date: today });
-    announce(`${String(LAB_BATCH_RUNS)} runs: ${statsSummary(batch.data.score)}`);
-  }, [announce, ask, today]);
-
-  return { run, simulate, reroll, runBatch };
+  return { run };
 }

@@ -233,25 +233,53 @@
   background: var(--color-surface);
 }
 
-.runButtons {
+/* Run, then the Runs slider filling the rest of the row (on phones too). */
+.runControls {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
+  min-inline-size: 0;
 }
 
-.seed {
+.runButton {
+  flex: none;
+  min-inline-size: 6.5rem;
+}
+
+.runsField {
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-columns: auto minmax(0, 1fr) 2.25rem;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.runsLabel {
   color: var(--color-text-muted);
   font-family: var(--font-family-display);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
-  font-variant-numeric: tabular-nums;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
-.runButtons .seed {
-  margin-inline-start: auto;
+/* A native range: arrow keys, Page Up/Down, Home and End come with it. */
+.runsSlider {
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 2rem;
+  margin: 0;
+  accent-color: var(--color-data);
+  cursor: pointer;
+}
+
+.runsValue {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+  text-align: end;
 }
 
 .runReason {
@@ -285,26 +313,17 @@
     box-shadow: var(--shadow-2);
   }
 
-  .runButtons {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-1) var(--space-2);
+  .runControls {
+    gap: var(--space-2);
   }
 
-  /* With Simulate, the four buttons sit two by two. */
-  .runButtons[data-buttons='4'] {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .runButtons > button {
+  .runButton {
     min-block-size: var(--tap-target-min);
-    padding-inline: var(--space-2);
+    min-inline-size: 5.5rem;
   }
 
-  .runButtons .seed {
-    grid-column: 1 / -1;
-    margin-inline-start: 0;
-    text-align: center;
+  .runsSlider {
+    min-block-size: var(--tap-target-min);
   }
 }
 
@@ -321,6 +340,12 @@
   .scoreBug > dl {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+/* "Last of 50 runs, in full": above the night shown when Runs was above 1. */
+.lastRunNote {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
 }
 
 .outOfDate {
@@ -426,7 +451,7 @@
   font-weight: var(--font-weight-semibold);
 }
 
-/* ---- Run x100 --------------------------------------------------------------------------- */
+/* ---- Runs above 1 ----------------------------------------------------------------------- */
 
 .batch {
   display: grid;
@@ -458,9 +483,63 @@
   font-variant-numeric: tabular-nums;
 }
 
-.starCounts {
+.batchGroup {
   display: grid;
-  gap: var(--space-1);
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.outcomeList,
+.finishCountList {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Name and count on one line, the bar under them across the row. */
+.outcomeRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-1) var(--space-2);
+  align-items: baseline;
+  font-size: var(--font-size-sm);
+}
+
+.outcomeLabel {
+  min-inline-size: 0;
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.outcomeCount {
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.outcomeBar {
+  grid-column: 1 / -1;
+}
+
+.finishCount {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  font-size: var(--font-size-sm);
+}
+
+.finishCountName {
+  font-weight: var(--font-weight-semibold);
+}
+
+.finishCountRuns {
+  margin-inline-start: auto;
+  font-family: var(--font-family-display);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
 }
 
 .starCountList {
