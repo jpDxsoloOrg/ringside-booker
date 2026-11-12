@@ -100,6 +100,12 @@ export interface Tx<R extends TableRegistry = TableRegistry> {
    */
   create<Name extends TableKey<R>>(table: Name, fields: Omit<RowOf<R[Name]>, 'id'>): RowOf<R[Name]>;
   /**
+   * Mints a new ID for `table` with the world's ID factory without inserting anything, for a row
+   * whose fields must name its own ID (a ledger row's trace ref, for example). Insert the row with
+   * `insert`. Throws `TxStateError` when no ID factory is installed.
+   */
+  mintId<Name extends TableKey<R>>(table: Name): RowOf<R[Name]>['id'];
+  /**
    * Shallow-merges `change` into the row, or replaces the row with what the updater returns.
    * Changing the ID throws `InvalidArgumentError`; a missing row throws `EntityNotFoundError`.
    * Returns the new row.
@@ -304,7 +310,7 @@ class TxCore<R extends TableRegistry> {
     return stored;
   }
 
-  createRow<E extends EntityRow>(table: MutableTable<E>, fields: Omit<E, 'id'>): E {
+  mintRowId<E extends EntityRow>(table: MutableTable<E>): E['id'] {
     const factory = this.currentIdFactory();
     if (factory === null) {
       throw new TxStateError('no IdFactory installed');
@@ -313,6 +319,14 @@ class TxCore<R extends TableRegistry> {
       table.kind,
       (candidate) => isIdOfTable(table, candidate) && table.has(candidate),
     );
+    if (!isIdOfTable(table, id)) {
+      throw new InvalidIdError(table.kind, id);
+    }
+    return id;
+  }
+
+  createRow<E extends EntityRow>(table: MutableTable<E>, fields: Omit<E, 'id'>): E {
+    const id = this.mintRowId(table);
     const row = { ...fields, id };
     if (!hasIdOfTable(table, row)) {
       throw new InvalidIdError(table.kind, id);
@@ -437,6 +451,11 @@ class TxScope<R extends TableRegistry> implements Tx<R> {
   ): RowOf<R[Name]> {
     const core = this.writableCore();
     return core.createRow(core.state.tables[table], fields);
+  }
+
+  mintId<Name extends TableKey<R>>(table: Name): RowOf<R[Name]>['id'] {
+    const core = this.writableCore();
+    return core.mintRowId(core.state.tables[table]);
   }
 
   update<Name extends TableKey<R>>(
