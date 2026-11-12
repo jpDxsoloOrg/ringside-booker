@@ -20,8 +20,13 @@ import {
   showScoreTraceRef,
   unregisterMatchOutcomeResolver,
   unregisterSegmentResultApplier,
+  matchOutcomeResolver,
   type SegmentResult,
 } from '../../../src/systems/shows';
+import {
+  MATCH_OUTCOME_RESOLVER_ID,
+  showNightOutcomeResolver,
+} from '../../../src/systems/match/finishes/showNight';
 import { createEngineTunables } from '../../../src/systems/tunables';
 import { SYSTEMS_WITHOUT_SHOW_DAY_GATE } from '../../support';
 import { PINFALL, SUBMISSION } from '../booking/command-world';
@@ -42,7 +47,16 @@ const RESOLVER_ID = 'test.alwaysDraw';
 afterEach(() => {
   unregisterSegmentResultApplier(APPLIER_ID);
   unregisterMatchOutcomeResolver(RESOLVER_ID);
+  // Tests of the seam itself set MTCH2's resolver aside; put it back.
+  if (matchOutcomeResolver().id !== MATCH_OUTCOME_RESOLVER_ID) {
+    registerMatchOutcomeResolver(showNightOutcomeResolver);
+  }
 });
+
+/** Sets MTCH2's resolver aside, so the built-in one (or a test's) decides. */
+function withoutMatchResolver(): void {
+  unregisterMatchOutcomeResolver(MATCH_OUTCOME_RESOLVER_ID);
+}
 
 function required<T>(value: T | null | undefined, what: string): T {
   if (value === null || value === undefined) {
@@ -157,11 +171,7 @@ describe('shows.runShows', () => {
       const segmentTrace = storedTrace(engine, SEGMENT_SCORE_TRACE_KIND, mainEvent);
       const children = segmentTrace.kind === 'formula' ? segmentTrace.children : [];
       expect(children[1]).toMatchObject({ kind: 'note', label: 'Main event (long)' });
-      expect(children[3]).toMatchObject({
-        kind: 'decision',
-        label: 'How the match ended',
-        reason: 'Booked result',
-      });
+      expect(children[3]).toMatchObject({ kind: 'decision', label: 'Match result' });
     });
 
     it('publishes segment.completed for each segment in card order, then show.completed', async () => {
@@ -191,7 +201,10 @@ describe('shows.runShows', () => {
         { winnerIds: [], loserIds: [], drawIds: [] },
         { winnerIds: [person(9)], loserIds: [person(10)], drawIds: [] },
       ]);
-      expect(segments[1]).toMatchObject({ methodKey: SUBMISSION, finishKey: null });
+      expect(segments[1]).toMatchObject({
+        methodKey: SUBMISSION,
+        finishKey: expect.stringMatching(/^finish\./) as unknown,
+      });
 
       const shows = showEvents(engine).filter((event) => event.eventInstanceId === human);
       expect(shows).toEqual([
@@ -229,7 +242,8 @@ describe('shows.runShows', () => {
     );
   });
 
-  it('ends every unplanned match on a rival card as a no contest, with the reason traced', async () => {
+  it('ends every unplanned match on a rival card as a no contest without MTCH2, with the reason traced', async () => {
+    withoutMatchResolver();
     const built = showNightWorld();
     const { engine, state } = await runDay(built);
     for (const segmentId of built.rivalMatches) {
@@ -298,6 +312,7 @@ describe('shows.runShows', () => {
   });
 
   it('uses a registered outcome resolver instead of the planned result', async () => {
+    withoutMatchResolver();
     registerMatchOutcomeResolver({
       id: RESOLVER_ID,
       resolve: () => ({
@@ -324,6 +339,7 @@ describe('shows.runShows', () => {
   });
 
   it('refuses a second resolver', () => {
+    withoutMatchResolver();
     const resolver = {
       id: RESOLVER_ID,
       resolve: () => {

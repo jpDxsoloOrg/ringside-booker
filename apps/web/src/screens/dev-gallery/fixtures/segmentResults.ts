@@ -55,6 +55,11 @@ export function segmentScoreRef(segmentId: string): TraceRef {
   return { kind: 'shows.segmentScore', id: segmentId };
 }
 
+/** Where a match's result trace is kept, like `match.result`. */
+export function matchResultRef(segmentId: string): TraceRef {
+  return { kind: 'match.result', id: segmentId };
+}
+
 /** Where a title outcome's trace is kept, like `shows.titleOutcome`. */
 export function titleOutcomeRef(segmentId: string, titleId: string): TraceRef {
   return { kind: 'shows.titleOutcome', id: `${segmentId}|${titleId}` };
@@ -93,7 +98,13 @@ export function singlesWin(): SegmentResultView {
     typeKey: 'match.singles',
     typeName: 'Singles',
     sides: [side(0, [competitor('Vance Troy')]), side(1, [competitor('Kai Moreno')])],
-    outcome: { kind: 'win', winningSide: 1, methodName: 'Pinfall' },
+    outcome: {
+      kind: 'win',
+      winningSide: 1,
+      methodName: 'Pinfall',
+      finishName: 'Clean',
+      resultTraceRef: matchResultRef(SEGMENT_IDS.singles),
+    },
     rating: rating(64, 2.5, SEGMENT_IDS.singles),
     storylines: [{ id: parseId('storyline', 'sty_0000000301'), name: 'Harbour grudge' }],
   };
@@ -117,7 +128,12 @@ export function tagNewChampions(): SegmentResultView {
       side(0, [competitor('Otto Krell'), competitor('Bastian Volk')], 'The Iron Ferry'),
       side(1, [competitor('Rook Halloway'), competitor('Dax Ember')], 'Night Shift'),
     ],
-    outcome: { kind: 'win', winningSide: 1, methodName: 'Submission' },
+    outcome: {
+      kind: 'win',
+      winningSide: 1,
+      methodName: 'Submission',
+      resultTraceRef: matchResultRef(SEGMENT_IDS.tag),
+    },
     rating: rating(71, 3.25, SEGMENT_IDS.tag),
     titles: [
       {
@@ -152,7 +168,12 @@ export function tripleThreatRetained(): SegmentResultView {
       side(1, [competitor('Sable Aranda')]),
       side(2, [competitor('Jonah Pike')]),
     ],
-    outcome: { kind: 'win', winningSide: 0, methodName: 'Pinfall' },
+    outcome: {
+      kind: 'win',
+      winningSide: 0,
+      methodName: 'Pinfall',
+      resultTraceRef: matchResultRef(SEGMENT_IDS.tripleThreat),
+    },
     rating: rating(84, 4.25, SEGMENT_IDS.tripleThreat),
     titles: [
       {
@@ -179,7 +200,11 @@ export function drawResult(): SegmentResultView {
     durationClass: 'standard',
     durationLabel: 'Standard',
     sides: [side(0, [competitor('Ivy Calder')]), side(1, [competitor('Petra Lune')])],
-    outcome: { kind: 'draw', finishName: 'Time-limit draw' },
+    outcome: {
+      kind: 'draw',
+      finishName: 'Time-limit draw',
+      resultTraceRef: matchResultRef(SEGMENT_IDS.draw),
+    },
     rating: rating(58, 2, SEGMENT_IDS.draw),
     storylines: [],
   };
@@ -197,7 +222,7 @@ export function noContestResult(): SegmentResultView {
     durationClass: 'standard',
     durationLabel: 'Standard',
     sides: [side(0, [competitor('Brick Callahan')]), side(1, [competitor('Silas Thorn')])],
-    outcome: { kind: 'noContest' },
+    outcome: { kind: 'noContest', resultTraceRef: null },
     rating: { ...rating(41, 1, SEGMENT_IDS.noContest), traceRef: null },
     storylines: [],
   };
@@ -265,6 +290,25 @@ const titleDecision: TraceNode = {
   ],
 };
 
+const resultDecision: TraceNode = {
+  kind: 'decision',
+  label: 'Match result',
+  value: 'Side 2 wins',
+  chosen: 'Side 2 wins',
+  reason: 'Clean, Pinfall',
+  considered: [],
+  children: [
+    {
+      kind: 'decision',
+      label: 'Who won',
+      value: 'Side 2',
+      chosen: 'Side 2',
+      reason: 'Booked winner',
+      considered: [],
+    },
+  ],
+};
+
 const STORED_DATE = parseGameDate('2031-03-14');
 
 /** Stand-in traces for every ref above, for the gallery's fake engine. */
@@ -281,6 +325,12 @@ export function segmentResultTraces(): StoredTrace[] {
     titleOutcomeRef(SEGMENT_IDS.tag, TITLE_IDS.tag),
     titleOutcomeRef(SEGMENT_IDS.tripleThreat, TITLE_IDS.world),
   ];
+  const resultRefs = [
+    SEGMENT_IDS.singles,
+    SEGMENT_IDS.tag,
+    SEGMENT_IDS.tripleThreat,
+    SEGMENT_IDS.draw,
+  ].map((id) => matchResultRef(id));
   return [
     ...scoreRefs.map((ref, index) => ({
       ref,
@@ -295,6 +345,13 @@ export function segmentResultTraces(): StoredTrace[] {
       seq: scoreRefs.length + index + 1,
       trace: titleDecision,
       value: 'changed',
+    })),
+    ...resultRefs.map((ref, index) => ({
+      ref,
+      date: STORED_DATE,
+      seq: scoreRefs.length + titleRefs.length + index + 1,
+      trace: resultDecision,
+      value: 'win',
     })),
   ];
 }

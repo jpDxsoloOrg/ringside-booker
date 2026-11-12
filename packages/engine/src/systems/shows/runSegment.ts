@@ -25,7 +25,7 @@ import {
   type MatchOutcomeResolution,
   type SegmentResult,
 } from './registries';
-import { segmentScoreTraceRef } from './traces';
+import { matchResultTraceRef, segmentScoreTraceRef } from './traces';
 
 /** Who won, lost and drew: competitors only, each list by id. */
 export interface ResultPeople {
@@ -180,6 +180,13 @@ export function runSegment(
   const ref = segmentScoreTraceRef(segment.id, show.humanShow);
   ctx.tx.update('segments', segment.id, { rating: storedRating(rated.data, refKey(ref)) });
   ctx.recordTrace(ref, ctx.date, withOutcomeLine(rated.data.score, resolution?.trace ?? null));
+  if (resolution !== null) {
+    // The result line's winner Why? on the results page (EVT3-07).
+    ctx.recordTrace(matchResultTraceRef(segment.id, show.humanShow), ctx.date, {
+      value: resolution.outcome.kind,
+      trace: resolution.trace,
+    });
+  }
 
   const outcome = resolution?.outcome ?? null;
   const people = resultPeople(outcome, entry.sides);

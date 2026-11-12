@@ -31,6 +31,11 @@ export {
   titleOutcomeTraceRef,
   traceRefFromKey,
 } from './traces';
+export {
+  MATCH_RESULT_TRACE_KIND,
+  RIVAL_MATCH_RESULT_TRACE_KIND,
+  matchResultTraceRef,
+} from './traces';
 export { showsTunables } from './tunables';
 export {
   OFFSCREEN_SHOW_SCORE_DOC_REF,

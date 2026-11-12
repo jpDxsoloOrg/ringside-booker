@@ -5,6 +5,9 @@ import {
   RIVAL_SEGMENT_SCORE_TRACE_KIND,
   SEGMENT_SCORE_TRACE_KIND,
   SHOWS_TRACE_KINDS,
+  MATCH_RESULT_TRACE_KIND,
+  RIVAL_MATCH_RESULT_TRACE_KIND,
+  matchResultTraceRef,
   segmentScoreTraceRef,
   showScoreTraceRef,
   titleOutcomeTraceRef,
@@ -18,7 +21,7 @@ const TITLE = titleId(2);
 
 describe('shows trace refs', () => {
   it('uses kinds that match the trace kind pattern', () => {
-    expect(SHOWS_TRACE_KINDS).toHaveLength(4);
+    expect(SHOWS_TRACE_KINDS).toHaveLength(6);
     for (const kind of SHOWS_TRACE_KINDS) {
       expect(kind).toMatch(TRACE_REF_KIND_PATTERN);
     }
@@ -35,12 +38,25 @@ describe('shows trace refs', () => {
     });
   });
 
+  it('keeps human and computer-controlled match results under separate kinds', () => {
+    expect(matchResultTraceRef(SEGMENT, true)).toEqual({
+      kind: MATCH_RESULT_TRACE_KIND,
+      id: SEGMENT,
+    });
+    expect(matchResultTraceRef(SEGMENT, false)).toEqual({
+      kind: RIVAL_MATCH_RESULT_TRACE_KIND,
+      id: SEGMENT,
+    });
+  });
+
   it('round-trips every ref through its key', () => {
     const refs = [
       segmentScoreTraceRef(SEGMENT, true),
       segmentScoreTraceRef(SEGMENT, false),
       showScoreTraceRef(SHOW),
       titleOutcomeTraceRef(SEGMENT, TITLE),
+      matchResultTraceRef(SEGMENT, true),
+      matchResultTraceRef(SEGMENT, false),
     ];
     for (const ref of refs) {
       expect(traceRefFromKey(refKey(ref))).toEqual(ref);
