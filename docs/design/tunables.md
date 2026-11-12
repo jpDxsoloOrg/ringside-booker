@@ -388,3 +388,15 @@ and `Match: talking segments` for the simple talk score. See
 | `match.stars.cap.angle`                   | number | 4       | 0–5    | stars  | The most stars a talking segment can get                      |
 | `match.angle.talkShare`                   | number | 0.35    | 0–1    | ratio  | Share of talk in a talking segment's score                    |
 | `match.angle.varianceSd`                  | number | 4       | 0–20   | points | Spread of the how-the-promo-landed roll; 0 turns it off       |
+
+### Match result tunables
+
+How a finish changes a resolved match's rating and how the finish decided on
+the night is picked (MTCH2-02), in the same file, category `Match results`.
+See [match-finishes.md](match-finishes.md#finish-effects) for what each does.
+
+| Key                                   | Kind   | Default | Range | Unit       | What it does                                                 |
+| ------------------------------------- | ------ | ------- | ----- | ---------- | ------------------------------------------------------------ |
+| `match.finish.effectScale`            | number | 1       | 0–3   | multiplier | How strongly a finish changes work rate and crowd; 0 is none |
+| `match.finish.drawCrowdPenalty`       | number | 2       | 0–20  | points     | Crowd lost when a match ends without a winner                |
+| `match.autoFinish.heelCheatingFactor` | number | 2       | 0–10  | multiplier | How much more often a heel winner's finish is a cheating one |

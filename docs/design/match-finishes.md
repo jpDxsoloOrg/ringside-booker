@@ -125,3 +125,99 @@ match type and its number of competitor sides (`segments.finishNotAllowed`);
 a set `outcome` has the finish's `outcomeKind`
 (`segments.finishOutcomeMismatch`); and a win's `methodKey` is one of the
 finish's methods (`segments.methodNotInFinish`).
+
+## Finish effects
+
+A finish changes how a resolved match is received (MTCH2-02). Its catalog
+`effects.workRate` and `effects.crowd` become one line each on the rating's
+work rate and crowd stages, such as "Disqualification finish −4", through the
+rating modifier seam ([match-rating.md](match-rating.md#pipeline-and-seams)):
+
+```
+effect = catalogPoints × match.finish.effectScale
+crowd only, draws only: effect −= match.finish.drawCrowdPenalty
+```
+
+`finishEffect({ target, finishName, catalogPoints, outcomeKind }, { tunables })`
+in `systems/match/formulas/finishEffect.ts` computes it. The trace starts at
+the catalog points labelled with the finish ("Disqualification finish"; a
+name that already ends in "finish", such as "Clean finish", is kept), then
+multiplies by "Finish effect scale" and, for a draw's crowd, subtracts "Draw:
+the crowd wanted a winner". Nothing is clamped here: the stages' soft
+compression runs after every modifier. With `effectScale` 0 the effects
+vanish; with `drawCrowdPenalty` 0 the draw line stays but does nothing.
+
+The modifiers `match.finishWorkRate` (work rate stage) and `match.finishCrowd`
+(crowd stage) sit at `RATING_ORDER.normal` in
+`systems/match/finishes/modifiers.ts` and are built-ins: they register with
+the raters, so `resetMatchRegistriesForTests` keeps them. They apply only to a
+match whose rating input carries a `resolution`:
+
+```ts
+interface MatchResolution {
+  outcome: MatchOutcome; // win (winningSide, methodKey), draw or noContest
+  finishKey: ContentKey;
+  methodKey: ContentKey | null; // the win's method, null when nobody won
+}
+```
+
+`MatchResolutionSchema` (`systems/match/finishes/resolution.ts`) checks that
+`methodKey` agrees with the outcome. The rater, `match.simulate` and EVT3
+share this shape. The lab's Run rates an unresolved match (no `resolution`),
+so its results do not change; `ratingInputFromSegment` fills the resolution
+from a stored match that has both an `outcome` and a `finishKey`, else null.
+A resolution naming a finish the catalogs do not hold leaves a note and no
+effect. The outcome must be resolved before the segment is rated, because the
+finish feeds the rating.
+
+## Finish on the night
+
+When the booker left the finish open, `autoFinish({ candidates,
+winnerAlignment }, { tunables, rng })` (`systems/match/finishes/autoFinish.ts`)
+picks one: a decision "Finish decided on the night" with the rule "Only
+finishes this match type allows". The caller passes the allowed finishes
+(`allowedFinishes`) narrowed to the outcome kind, so a disallowed finish can
+never come up.
+
+Each candidate's weight is its `autoWeight`, times
+`match.autoFinish.heelCheatingFactor` for a `cheating` finish when the winner
+is a heel (a "The winner is a heel" branch records the check). Candidates
+that weigh 0 are listed with "Never picked automatically" and left out of the
+roll; the pick is one weighted roll labelled "Finish". One candidate is used
+without a roll ("Only finish available"); if every candidate weighs 0 the
+first in catalog order is used, with a note.
+
+`winnerAlignmentOf(alignments)` gives the winning side's alignment: the one
+most members have, `tweener` on a tie, null when nobody on the side is
+employed by the promotion (pass null for them).
+
+Rolls draw from the stream the caller hands over: `match.simulate` a detached
+preview stream, EVT3 the world's `match.finish` stream (`MATCH_FINISH_STREAM`).
+
+## Method
+
+`chooseMethod({ finish, plannedMethodKey, methodNames }, { rng })`
+(`systems/match/finishes/chooseMethod.ts`) decides how the match ended:
+
+- a draw or no contest has no method: null, with the note "No method: nobody
+  won";
+- a booked method the finish lists is kept ("Booked method");
+- otherwise a finish with one method uses it without a roll, and one with
+  several rolls by the finish's method weights (roll label "Method").
+
+A booked method the finish does not list is the caller's error and throws;
+MTCH2-03 checks it first and refuses with a reason.
+
+## Title changes
+
+A title on the line changes hands only when **both** hold:
+
+1. the method can change titles (`changesTitles` in the method catalog);
+2. the finish allows a title change (`allowsTitleChange`).
+
+`titleCanChange({ finish, method })` (`systems/match/finishes/titleRule.ts`,
+exported from the engine for EVT3) records both as rules of the decision "Can
+the title change hands?". A draw or no contest has no method, so it never
+moves a title, and neither do a count-out or a disqualification. The reason
+names the failing condition, for example "Disqualification: titles can't
+change hands on this finish".
