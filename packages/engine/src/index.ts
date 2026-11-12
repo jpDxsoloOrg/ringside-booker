@@ -1205,3 +1205,64 @@ export {
   SCORE_HISTOGRAM_BINS,
   SCORE_HISTOGRAM_WIDTH,
 } from './systems/match/index';
+
+// Finish effects as rating modifiers, the finish decided on the night, the method and the title
+// rule (MTCH2-02): `MatchResolution` (the shape the rater, `match.simulate` and EVT3 share),
+// `finishEffect`, `autoFinish`, `chooseMethod` and `titleCanChange`. `allowedFinishes` is exported
+// with MTCH2-01 above. See docs/design/match-finishes.md#finish-effects.
+export type {
+  AutoFinishCandidate,
+  AutoFinishDeps,
+  AutoFinishInputs,
+  ChooseMethodInputs,
+  FinishEffectInputs,
+  FinishEffectTarget,
+  MatchResolution,
+  TitleCanChangeInputs,
+} from './systems/match/index';
+export {
+  MATCH_FINISH_STREAM,
+  MatchResolutionSchema,
+  autoFinish,
+  chooseMethod,
+  finishEffect,
+  finishEffectLabel,
+  registerFinishModifiers,
+  titleCanChange,
+  winnerAlignmentOf,
+} from './systems/match/index';
+
+// The auto-winner, resolveMatchOutcome and the Random winners new-game setting (MTCH2-03):
+// `resolveMatchOutcome` is the one entry point `match.simulate` and the show night call;
+// `randomWinnersActive` tells EVT2 and EVT3 whether a show's results are decided on the night.
+// See docs/design/match-finishes.md#resolving-a-match.
+export type {
+  AutoWinnerCompetitor,
+  AutoWinnerInputs,
+  AutoWinnerInputsArgs,
+  AutoWinnerMode,
+  AutoWinnerScoreInputs,
+  AutoWinnerSide,
+  AutoWinnerSideIds,
+  AutoWinnerSideScore,
+  MatchPlan,
+  PlannedWinner,
+  RandomWinnersArgs,
+  ResolveMatchOutcomeDeps,
+  ResolveMatchOutcomeInput,
+  ResolveMatchOutcomeResult,
+  ResolveMatchReasonCode,
+  ResolveStreamName,
+} from './systems/match/index';
+export {
+  MATCH_AUTO_WINNER_STREAM,
+  RANDOM_WINNERS_MESSAGE,
+  RANDOM_WINNERS_SETTING,
+  RESOLVE_MATCH_REASON_CODES,
+  autoWinner,
+  autoWinnerInputsOf,
+  autoWinnerScore,
+  competitorSidesOf,
+  randomWinnersActive,
+  resolveMatchOutcome,
+} from './systems/match/index';

@@ -125,3 +125,221 @@ match type and its number of competitor sides (`segments.finishNotAllowed`);
 a set `outcome` has the finish's `outcomeKind`
 (`segments.finishOutcomeMismatch`); and a win's `methodKey` is one of the
 finish's methods (`segments.methodNotInFinish`).
+
+## Finish effects
+
+A finish changes how a resolved match is received (MTCH2-02). Its catalog
+`effects.workRate` and `effects.crowd` become one line each on the rating's
+work rate and crowd stages, such as "Disqualification finish −4", through the
+rating modifier seam ([match-rating.md](match-rating.md#pipeline-and-seams)):
+
+```
+effect = catalogPoints × match.finish.effectScale
+crowd only, draws only: effect −= match.finish.drawCrowdPenalty
+```
+
+`finishEffect({ target, finishName, catalogPoints, outcomeKind }, { tunables })`
+in `systems/match/formulas/finishEffect.ts` computes it. The trace starts at
+the catalog points labelled with the finish ("Disqualification finish"; a
+name that already ends in "finish", such as "Clean finish", is kept), then
+multiplies by "Finish effect scale" and, for a draw's crowd, subtracts "Draw:
+the crowd wanted a winner". Nothing is clamped here: the stages' soft
+compression runs after every modifier. With `effectScale` 0 the effects
+vanish; with `drawCrowdPenalty` 0 the draw line stays but does nothing.
+
+The modifiers `match.finishWorkRate` (work rate stage) and `match.finishCrowd`
+(crowd stage) sit at `RATING_ORDER.normal` in
+`systems/match/finishes/modifiers.ts` and are built-ins: they register with
+the raters, so `resetMatchRegistriesForTests` keeps them. They apply only to a
+match whose rating input carries a `resolution`:
+
+```ts
+interface MatchResolution {
+  outcome: MatchOutcome; // win (winningSide, methodKey), draw or noContest
+  finishKey: ContentKey;
+  methodKey: ContentKey | null; // the win's method, null when nobody won
+}
+```
+
+`MatchResolutionSchema` (`systems/match/finishes/resolution.ts`) checks that
+`methodKey` agrees with the outcome. The rater, `match.simulate` and EVT3
+share this shape. The lab's Run rates an unresolved match (no `resolution`),
+so its results do not change; `ratingInputFromSegment` fills the resolution
+from a stored match that has both an `outcome` and a `finishKey`, else null.
+A resolution naming a finish the catalogs do not hold leaves a note and no
+effect. The outcome must be resolved before the segment is rated, because the
+finish feeds the rating.
+
+## Finish on the night
+
+When the booker left the finish open, `autoFinish({ candidates,
+winnerAlignment }, { tunables, rng })` (`systems/match/finishes/autoFinish.ts`)
+picks one: a decision "Finish decided on the night" with the rule "Only
+finishes this match type allows". The caller passes the allowed finishes
+(`allowedFinishes`) narrowed to the outcome kind, so a disallowed finish can
+never come up.
+
+Each candidate's weight is its `autoWeight`, times
+`match.autoFinish.heelCheatingFactor` for a `cheating` finish when the winner
+is a heel (a "The winner is a heel" branch records the check). Candidates
+that weigh 0 are listed with "Never picked automatically" and left out of the
+roll; the pick is one weighted roll labelled "Finish". One candidate is used
+without a roll ("Only finish available"); if every candidate weighs 0 the
+first in catalog order is used, with a note.
+
+`winnerAlignmentOf(alignments)` gives the winning side's alignment: the one
+most members have, `tweener` on a tie, null when nobody on the side is
+employed by the promotion (pass null for them).
+
+Rolls draw from the stream the caller hands over: `match.simulate` a detached
+preview stream, EVT3 the world's `match.finish` stream (`MATCH_FINISH_STREAM`).
+
+## Method
+
+`chooseMethod({ finish, plannedMethodKey, methodNames }, { rng })`
+(`systems/match/finishes/chooseMethod.ts`) decides how the match ended:
+
+- a draw or no contest has no method: null, with the note "No method: nobody
+  won";
+- a booked method the finish lists is kept ("Booked method");
+- otherwise a finish with one method uses it without a roll, and one with
+  several rolls by the finish's method weights (roll label "Method").
+
+A booked method the finish does not list is the caller's error and throws;
+MTCH2-03 checks it first and refuses with a reason.
+
+## Title changes
+
+A title on the line changes hands only when **both** hold:
+
+1. the method can change titles (`changesTitles` in the method catalog);
+2. the finish allows a title change (`allowsTitleChange`).
+
+`titleCanChange({ finish, method })` (`systems/match/finishes/titleRule.ts`,
+exported from the engine for EVT3) records both as rules of the decision "Can
+the title change hands?". A draw or no contest has no method, so it never
+moves a title, and neither do a count-out or a disqualification. The reason
+names the failing condition, for example "Disqualification: titles can't
+change hands on this finish".
+
+## Auto winner
+
+When nobody booked a winner (rival matches until AIP5 books their results, and
+every match on your shows in [Random winners](#random-winners) mode), the
+winner is decided automatically (MTCH2-03). Each side gets a score
+(`autoWinnerScore`, `systems/match/formulas/autoWinnerScore.ts`), with means
+over the side's competitors:
+
+```
+score = match.autoWinner.popularityWeight × mean(popularity in the show's region)
+      + mean(match.autoWinner.push.<push>)
+      + match.autoWinner.momentumWeight × mean(momentum ?? 0)
+      + mean(match.autoWinner.alignment.<alignment>)
+```
+
+Each term is one labelled step of the trace: "Popularity in <region>", "Push",
+"Momentum" and "Alignment". A null momentum counts 0 with the note "No momentum
+yet (counts as 0)"; a null alignment (not employed by the promotion) counts 0
+with the note "Not employed here". Nothing is clamped.
+
+The inputs come from the world through `autoWinnerInputsOf(read, { promotionId,
+regionId, sides })` (`systems/match/finishes/autoWinnerInputs.ts`): popularity
+is `person.regionalPop[regionId]` (0 when absent), and push, momentum and
+alignment come from the person's **active** employment with the promotion
+running the show. Free agents and other promotions' workers (the lab's
+"Everyone" picker) get push `none`, momentum null and alignment null. Only
+competitors count; `competitorSidesOf(participants)` drops ringside people and
+interferers, who never win. Sides come out in side order and competitors in
+person id order.
+
+`autoWinner({ sides, randomness, mode }, { rng })`
+(`systems/match/finishes/autoWinner.ts`) then picks the side:
+
+- each side's total is its score plus, when the randomness is above 0, one
+  roll `rollFloat(rng, −randomness, randomness)` labelled "Unpredictability,
+  Side N"; at randomness 0 there is no roll and the note "No unpredictability
+  (0)";
+- the rule "Highest score wins" picks the highest total;
+- on an exact tie, the rule "Tie broken by lowest person id" picks the side
+  whose lowest competitor id sorts first.
+
+It never produces a draw, and a side with nobody competing is never passed in.
+The decision is labelled "Winner decided automatically", or "Random winners
+mode: winner decided on the night" in Random winners mode, and the randomness
+(a tunable read) is its first child.
+
+The randomness is `match.autoWinner.randomness` (5 by default; 0 makes the
+auto-winner fully deterministic) or, in Random winners mode,
+`match.randomWinners.randomness` (60, at least 1). The rolls draw on the
+`match.auto-winner` stream (`MATCH_AUTO_WINNER_STREAM`); stream names are
+lowercase, so it is not `match.autoWinner`.
+
+## Resolving a match
+
+`resolveMatchOutcome(input, deps)` (`systems/match/finishes/resolve.ts`) is the
+one entry point the Match lab's Simulate (MTCH2-04) and the show night (EVT3)
+call. It is pure: it reads only its input, the catalogs and the tunables, and
+draws only on the streams `deps.rng(name)` hands it (`match.auto-winner` and
+`match.finish`).
+
+The input is the match type, its stipulations, the sides (as
+`autoWinnerInputsOf` returns them), the region's name, the mode (`standard`
+or `randomWinners`) and the plan: `winner` (`'auto'`, `{ side }` with the
+stored 0-based side, or `'draw'`), `finishKey` (null for Auto) and `methodKey`
+(null to let the finish decide). The steps:
+
+1. **Allowed finishes**: `allowedFinishes` for the match type, the number of
+   sides and the stipulations. A planned finish outside them is
+   `finishNotAllowed`.
+2. **Outcome kind**: the planned finish's `outcomeKind`, else `draw` for a
+   planned Draw, else `win`. A planned side with a finish nobody wins, or a
+   Draw with a finish that is not a draw, is `finishOutcomeMismatch`.
+3. **Random winners**: in Random winners mode a planned side, Draw, finish or
+   method is `randomWinners` ("Results on your shows are decided on the night
+   (Random winners).").
+4. **Winner** (wins only): the planned side, or `autoWinner` over the sides
+   with somebody competing. A planned side the match does not have, or with
+   nobody competing on it, is `unknownSide`; a match with nobody competing at
+   all is `noCompetitors`.
+5. **Finish**: the planned one, or `autoFinish` over the allowed finishes of
+   that outcome kind (and, with a planned method, only those listing it), with
+   the winner's alignment (`winnerAlignmentOf`; null without a winner). None
+   left (a Draw on a match type with no draw finish) is `noFinishAvailable`.
+6. **Method**: `chooseMethod`. A planned method the finish does not list (or,
+   with an Auto finish, that no candidate lists, or any method on a draw) is
+   `methodNotInFinish`.
+
+Every plan problem (steps 1–3, the planned side and the planned method) is
+found before anything is rolled, and all of them are returned together, each
+with a `field` (`plan.finishKey`, `plan.winner`, `plan.methodKey` or `plan`).
+The codes are `RESOLVE_MATCH_REASON_CODES`.
+
+On success the result is a `Traced<MatchResolution>`: the trace is one
+decision "Match result" (value "Side 2 wins", "Draw" or "No contest", reason
+the finish and method) whose three children are the winner decision ("Who
+won", or the auto-winner), the finish decision ("Finish" for a booked one, or
+"Finish decided on the night") and the method decision, so one Why? shows the
+whole reasoning. Nothing is written to the world: morale, momentum and
+popularity belong to EVT3, WRK8 and MTCH3.
+
+## Random winners
+
+**Random winners** is a new-game setting (`randomWinners`, boolean, off by
+default, group Difficulty), registered by `systems/match/settings.ts` and
+stored in `WorldMeta.settings.extra`, so a save from before it reads false.
+The wizard's Options step shows it from the registry with no web change.
+
+With it on, you still book every match on your shows, but not who wins: each
+result is decided on the night through the auto-winner with the larger
+`match.randomWinners.randomness`, and the trace starts "Random winners mode".
+The rule is strict: a planned winner, Draw, finish or method on your shows is
+refused (`randomWinners`), not silently ignored, so the booking screen can say
+why.
+
+`randomWinnersActive(read, { promotionId, brandId })`
+(`systems/match/finishes/randomWinners.ts`, exported from the engine for EVT2
+and EVT3) is true when the setting is on **and** the show's controller is
+human: the brand's `controller` when the show's brand has one, else the
+promotion's. Rival promotions (computer controllers) keep their own booking
+logic. The Match lab is a sandbox: MTCH2-04 uses Random winners mode only
+when the lab's winner is Auto in a Random winners game.

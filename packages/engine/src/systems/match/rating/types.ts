@@ -15,6 +15,7 @@ import type { PersonId, PromotionId, RegionId } from '../../../core/ids';
 import type { Traced } from '../../../core/trace';
 import type { EventImportance } from '../../../model/entities/event-definition';
 import type { SegmentKind } from '../../../model/entities/segment';
+import type { MatchResolution } from '../finishes/resolution';
 import type { PerformanceAxis } from '../formulas/workerPerformance';
 import type { DurationClass, SlotPosition, SlotRole } from '../slots';
 
@@ -48,6 +49,12 @@ export interface SegmentRatingInput {
   readonly event: SegmentRatingEvent;
   /** The promotion running the show: momentum is read from contracts with it. */
   readonly promotionId: PromotionId;
+  /**
+   * How the match ended, when it has been resolved (Simulate, a show night): the finish effects
+   * (MTCH2-02) read it. Left out or null for an unresolved match (the lab's Run), which then gets
+   * no finish effect.
+   */
+  readonly resolution?: MatchResolution | null;
 }
 
 /** A booking problem, for the lab and EVT2's booking validation. `message` is player text. */
