@@ -30,8 +30,9 @@ export interface MatchResultBlockProps {
  * rule that picked it, how (method and finish, with the finish's category), then MTCH1's score bug,
  * crowd line and slot, rated with the finish's effects. No minutes anywhere (D-10).
  *
- * EVT3's `SegmentResultCard` takes over on show night; until it exists this block is the only place
- * finishes are seen.
+ * Show night's results use EVT3's `SegmentResultCard`, whose result line opens the same "Match
+ * result" decision (EVT3-07). This block stays the lab's own: it adds the finish's category and
+ * summary and the Run's freshness, which a results page does not need.
  */
 export function MatchResultBlock({
   simulation,

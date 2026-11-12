@@ -16,6 +16,7 @@ import { Explained, WhyButton } from '../Trace';
 import {
   comingUpText,
   resultLine,
+  resultWhyValue,
   segmentResultAccent,
   slotHeadingLabel,
   titleBannerText,
@@ -146,6 +147,7 @@ function Body({ segment, interactive, renderPersonLink }: BodyProps) {
       ? null
       : (segment.sides.find((side) => side.side === winningSide)?.label ?? null);
   const traceRef = interactive ? (rating?.traceRef ?? null) : null;
+  const resultTraceRef = segment.outcome?.resultTraceRef ?? null;
   const isMatch = segment.kind === 'match';
 
   return (
@@ -167,9 +169,19 @@ function Body({ segment, interactive, renderPersonLink }: BodyProps) {
         ))}
       </ul>
       {line !== null && (
-        <p className={styles['resultLine']} data-part="result">
-          {line}
-        </p>
+        <div className={styles['resultRow']}>
+          <p className={styles['resultLine']} data-part="result">
+            {line}
+          </p>
+          {interactive && resultTraceRef !== null && segment.outcome !== null && (
+            <WhyButton
+              label="the result"
+              value={resultWhyValue(segment.outcome)}
+              panelTitle="How the match ended"
+              source={{ traceRef: resultTraceRef }}
+            />
+          )}
+        </div>
       )}
       {rating !== null && (
         <dl className={styles['stats']}>

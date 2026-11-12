@@ -14,7 +14,7 @@ import {
   tripleThreatRetained,
 } from '@/screens/dev-gallery/fixtures/segmentResults';
 import { SegmentResultCard } from './SegmentResultCard';
-import { listText, resultLine, segmentResultAccent } from './segmentResultText';
+import { listText, resultLine, resultWhyValue, segmentResultAccent } from './segmentResultText';
 
 function withEngine(children: ReactNode) {
   return (
@@ -126,6 +126,23 @@ describe('SegmentResultCard', () => {
     ]) {
       expect(within(card).getByRole('button', { name })).toBeInTheDocument();
     }
+  });
+
+  it('gives the result line a Why? with the method and finish (EVT3-07)', () => {
+    const card = renderCard(singlesWin());
+
+    expect(
+      within(card).getByRole('button', { name: 'Why is the result Pinfall · Clean?' }),
+    ).toBeInTheDocument();
+  });
+
+  it('words the result Why? from the method and finish, else the kind of result', () => {
+    expect(resultWhyValue({ kind: 'win', methodName: 'Pinfall', finishName: 'Clean finish' })).toBe(
+      'Pinfall · Clean finish',
+    );
+    expect(resultWhyValue({ kind: 'draw', finishName: 'Stalemate' })).toBe('Stalemate');
+    expect(resultWhyValue({ kind: 'draw' })).toBe('Draw');
+    expect(resultWhyValue({ kind: 'noContest' })).toBe('No contest');
   });
 
   it('shows plain numbers and no Why? without a trace', () => {
