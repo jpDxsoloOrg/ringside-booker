@@ -1267,6 +1267,10 @@ export {
   resolveMatchOutcome,
 } from './systems/match/index';
 
+// MTCH2's booking check (EVT2-07): planned finishes fit their matches, and Random winners shows
+// plan nothing. See docs/design/booking.md#integration.
+export { FINISH_BOOKING_CHECK_ID, FINISH_BOOKING_CODES } from './systems/match/index';
+
 // The Match lab's Simulate (MTCH2-04): `match.simulate` resolves a plan and rates the match with
 // its finish on detached streams; `match.simulateBatch` (MTCH2-07) plays it out many times and
 // counts the outcomes; `match.resultMode` says whether Random winners decides the viewer's

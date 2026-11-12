@@ -20,6 +20,8 @@ import { matchQueries } from './queries';
 import './rating/builtins';
 // Registers the Random winners new-game setting at module load (MTCH2-03).
 import './settings';
+// Registers the `match.finish` booking check at module load (EVT2-07).
+import './finishes/bookingCheck';
 
 export {
   DURATION_CLASSES,
@@ -380,6 +382,11 @@ export {
   type AutoWinnerSideScore,
 } from './finishes/autoWinner';
 export { randomWinnersActive, type RandomWinnersArgs } from './finishes/randomWinners';
+export {
+  FINISH_BOOKING_CHECK_ID,
+  FINISH_BOOKING_CODES,
+  finishBookingCheck,
+} from './finishes/bookingCheck';
 export {
   BOOKED_FINISH_LABEL,
   BOOKED_FINISH_REASON,
