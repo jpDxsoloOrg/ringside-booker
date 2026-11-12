@@ -102,21 +102,8 @@ export function WorkersScreen() {
     [navigate, location],
   );
 
-  if (query.status === 'error') {
-    return (
-      <div className={styles['screen']}>
-        <RouteHeading className={styles['heading']}>{TITLE}</RouteHeading>
-        <EmptyState
-          size="page"
-          icon="user-search"
-          title="The workers list could not be loaded"
-          body={errorText(query.error)}
-        />
-      </div>
-    );
-  }
-
-  const list = query.data;
+  const failed = query.status === 'error';
+  const list = failed ? undefined : query.data;
   const rows = list?.rows ?? NO_ROWS;
   const facets = list?.facets ?? NO_WORKER_FACETS;
   const activeCount = activeFilterCount(filters);
@@ -124,6 +111,8 @@ export function WorkersScreen() {
     changeFilters(NO_WORKERS_FILTERS);
   };
 
+  // One tree for every state, so the heading RouteFocus focused on arrival stays mounted when the
+  // query settles into an error: swapping in a second heading dropped focus to <body>.
   return (
     <div className={styles['screen']}>
       <div className={styles['intro']}>
@@ -140,85 +129,96 @@ export function WorkersScreen() {
         )}
       </div>
 
-      {isMobile ? (
-        <div className={styles['filterButton']}>
-          <Button
-            variant="secondary"
-            iconStart="settings"
-            aria-haspopup="dialog"
-            onClick={() => {
-              setSheetOpen(true);
-            }}
-          >
-            {filtersButtonText(activeCount)}
-          </Button>
-          <Sheet
-            open={sheetOpen}
-            onClose={() => {
-              setSheetOpen(false);
-            }}
-            title="Filters"
-            side="bottom"
-            size="lg"
-            footer={
+      {failed ? (
+        <EmptyState
+          size="page"
+          icon="user-search"
+          title="The workers list could not be loaded"
+          body={errorText(query.error)}
+        />
+      ) : (
+        <>
+          {isMobile ? (
+            <div className={styles['filterButton']}>
               <Button
-                variant="primary"
+                variant="secondary"
+                iconStart="settings"
+                aria-haspopup="dialog"
                 onClick={() => {
-                  setSheetOpen(false);
+                  setSheetOpen(true);
                 }}
               >
-                {`Show ${counted(rows.length, 'worker', 'workers')}`}
+                {filtersButtonText(activeCount)}
               </Button>
-            }
-          >
-            <WorkersFilterBar
-              filters={filters}
-              facets={facets}
-              onChange={changeFilters}
-              layout="sheet"
-            />
-          </Sheet>
-        </div>
-      ) : (
-        <section className={styles['filterPanel']} aria-label="Filters">
-          <WorkersFilterBar filters={filters} facets={facets} onChange={changeFilters} />
-        </section>
-      )}
-
-      <DataTable
-        className={styles['table']}
-        rows={rows}
-        columns={WORKER_COLUMNS}
-        getRowId={rowId}
-        compareTies={compareWorkerTies}
-        getRowLabel={rowLabel}
-        caption={TITLE}
-        sort={sort}
-        onSortChange={changeSort}
-        filterable
-        filterLabel="Search by name"
-        columnPicker
-        loading={query.status === 'loading'}
-        // On a phone the name is the way in: its link covers the whole card (see the CSS), so the
-        // card is not a button with a link and more buttons inside it.
-        {...(isMobile ? {} : { onActivate: openProfile })}
-        emptyState={
-          <EmptyState
-            icon="user-search"
-            title={activeCount > 0 ? 'Nobody matches these filters' : 'Nobody to show'}
-            {...(activeCount > 0
-              ? {
-                  body: 'Loosen a filter, or clear them all.',
-                  action: (
-                    <Button size="sm" onClick={clearFilters}>
-                      Clear filters
-                    </Button>
-                  ),
+              <Sheet
+                open={sheetOpen}
+                onClose={() => {
+                  setSheetOpen(false);
+                }}
+                title="Filters"
+                side="bottom"
+                size="lg"
+                footer={
+                  <Button
+                    variant="primary"
+                    onClick={() => {
+                      setSheetOpen(false);
+                    }}
+                  >
+                    {`Show ${counted(rows.length, 'worker', 'workers')}`}
+                  </Button>
                 }
-              : { body: 'This world has no people in it.' })}
+              >
+                <WorkersFilterBar
+                  filters={filters}
+                  facets={facets}
+                  onChange={changeFilters}
+                  layout="sheet"
+                />
+              </Sheet>
+            </div>
+          ) : (
+            <section className={styles['filterPanel']} aria-label="Filters">
+              <WorkersFilterBar filters={filters} facets={facets} onChange={changeFilters} />
+            </section>
+          )}
+
+          <DataTable
+            className={styles['table']}
+            rows={rows}
+            columns={WORKER_COLUMNS}
+            getRowId={rowId}
+            compareTies={compareWorkerTies}
+            getRowLabel={rowLabel}
+            caption={TITLE}
+            sort={sort}
+            onSortChange={changeSort}
+            filterable
+            filterLabel="Search by name"
+            columnPicker
+            loading={query.status === 'loading'}
+            // On a phone the name is the way in: its link covers the whole card (see the CSS), so the
+            // card is not a button with a link and more buttons inside it.
+            {...(isMobile ? {} : { onActivate: openProfile })}
+            emptyState={
+              <EmptyState
+                icon="user-search"
+                title={activeCount > 0 ? 'Nobody matches these filters' : 'Nobody to show'}
+                {...(activeCount > 0
+                  ? {
+                      body: 'Loosen a filter, or clear them all.',
+                      action: (
+                        <Button size="sm" onClick={clearFilters}>
+                          Clear filters
+                        </Button>
+                      ),
+                    }
+                  : { body: 'This world has no people in it.' })}
+              />
+            }
           />
-        }
-      />
+        </>
+      )}
     </div>
   );
 }

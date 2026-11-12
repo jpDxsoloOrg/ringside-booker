@@ -360,6 +360,16 @@ describe('WorkersScreen', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Workers' })).toBeInTheDocument();
     expect(screen.queryByRole('grid')).toBeNull();
   });
+
+  it('keeps the focused heading when the list fails to load', async () => {
+    renderWorkers(routes.game.workers(), { refuseList: true });
+    const heading = screen.getByRole('heading', { level: 1, name: 'Workers' });
+    heading.focus();
+
+    await screen.findByText('The workers list could not be loaded', {}, { timeout: LOAD_MS });
+    expect(screen.getByRole('heading', { level: 1, name: 'Workers' })).toBe(heading);
+    expect(heading).toHaveFocus();
+  });
 });
 
 describe('WorkersScreen on a phone', () => {
