@@ -21,7 +21,12 @@ function useSideNames(): readonly (readonly string[])[] {
  * a match only. Whether Auto means Random winners comes from `match.resultMode`; the web never
  * reads the world's settings itself.
  */
-export function LabResultGroup() {
+export interface LabResultGroupProps {
+  /** True inside a panel that already carries the title (the phone layout): no heading or rule. */
+  readonly bare?: boolean;
+}
+
+export function LabResultGroup({ bare = false }: LabResultGroupProps) {
   const setup = useLabStore((state) => state.setup);
   const plan = useLabStore((state) => state.result);
   const setWinner = useLabStore((state) => state.setWinner);
@@ -39,10 +44,16 @@ export function LabResultGroup() {
 
   if (setup.kind !== 'match' || setup.typeKey === null) return null;
   return (
-    <section className={styles['group']} aria-labelledby={titleId}>
-      <h3 id={titleId} className={styles['groupTitle']}>
-        {RESULT_GROUP_TITLE}
-      </h3>
+    <section
+      className={bare ? styles['bareGroup'] : styles['group']}
+      aria-label={bare ? RESULT_GROUP_TITLE : undefined}
+      aria-labelledby={bare ? undefined : titleId}
+    >
+      {!bare && (
+        <h3 id={titleId} className={styles['groupTitle']}>
+          {RESULT_GROUP_TITLE}
+        </h3>
+      )}
       <WinnerSelect
         sides={sideNames}
         value={plan.winner}

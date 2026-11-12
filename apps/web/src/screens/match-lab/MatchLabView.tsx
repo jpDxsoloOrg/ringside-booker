@@ -14,7 +14,7 @@ import { LabSetupPanel, startingSides } from './LabSetupPanel';
 import { isOutOfDate, isSimulationOutOfDate, useLabStore } from './labStore';
 import { LabWarnings } from './LabWarnings';
 import styles from './MatchLab.module.css';
-import { LabResultGroup } from './result/LabResultGroup';
+import { LabResultGroup, RESULT_GROUP_TITLE } from './result/LabResultGroup';
 import { MatchResultBlock } from './result/MatchResultBlock';
 import { SidesBuilder } from './SidesBuilder';
 import { useLabRunner } from './useLabRunner';
@@ -130,8 +130,8 @@ function Lab({ options, catalog, regionId, today }: LabProps) {
             }}
           />
           {isMobile && setup.kind === 'match' && (
-            <Panel title="Result plan" className={styles['setupPanel']}>
-              <LabResultGroup />
+            <Panel title={RESULT_GROUP_TITLE} className={styles['setupPanel']}>
+              <LabResultGroup bare />
             </Panel>
           )}
         </div>
