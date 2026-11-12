@@ -242,12 +242,13 @@ controller, otherwise the promotion.
 
 How a card meets the calendar's show lifecycle ([calendar.md](calendar.md#lifecycle)):
 
-- **A locked card that never runs.** The calendar's `calendar.closePastShows`
-  closes `booked` shows as well as `scheduled` ones at the end of their day,
-  with reason `notRun`. Until the show night (EVT3) runs cards, a locked show
-  is therefore marked Not run when its day ends, so the calendar stays honest.
-  Its segments are kept. Once EVT3 ships, its shows phase completes the show
-  first and the close rule no longer sees it.
+- **A locked card runs on its day.** The show night's `shows.runShows` phase
+  ([show-night.md](show-night.md#phase)) runs every `booked` show dated today,
+  rates its segments and marks it completed, so the calendar's
+  `calendar.closePastShows` never sees it. That close rule still closes `booked`
+  shows as well as `scheduled` ones at the end of their day, with reason
+  `notRun`, so a locked show the shows phase did not run (a game built without
+  show night, as some tests are) is marked Not run and keeps its segments.
 - **A cancelled show keeps its card.** `calendar.cancelShow` on a show with a
   card deletes nothing: the segments stay as read-only history, and every
   booking command is refused with `showCancelled`. The booking show list and
