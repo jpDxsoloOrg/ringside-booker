@@ -1,13 +1,18 @@
 /**
- * The card-wide checks (errors): nobody is booked more often than one show allows.
+ * The card-wide checks: a person may be booked more than once on a card, but working several matches
+ * is flagged and there is a hard limit so a card can't be absurd.
  *
- * - `alreadyOnCard`: a competitor in more matches than `booking.maxMatchesPerPersonPerShow`. Each
+ * - `workingTwice` (warning): a competitor in a second (or later) match within the limit. Each such
+ *   match gets one warning naming the earlier ones ("Kai Moreno is also in the Opener: working twice
+ *   tires them more and raises their injury risk"). Talking segments never warn: promos cost no
+ *   stamina. The stamina and injury costs themselves are MTCH4-01, MTCH4-02 and WRK6-02.
+ * - `alreadyOnCard` (error): a competitor in more matches than `booking.maxMatchesPerPersonPerShow`. Each
  *   match past the limit gets one issue naming the earlier ones ("Kai Moreno is already in a match on
  *   this card (Opener)").
  * - `tooManyAppearances`: someone in more segments of any kind, in any role, than
  *   `booking.maxAppearancesPerShow`. Each segment past the limit gets one issue.
  *
- * Both walk the card in running order, so the later segments are the ones flagged.
+ * All three walk the card in running order, so the later segments are the ones flagged.
  *
  * Design notes: docs/design/booking.md#validation.
  */
@@ -16,7 +21,24 @@ import type { PersonId } from '../../../../core/ids';
 import type { Segment } from '../../../../model/entities/segment';
 import type { DeepReadonly } from '../../../../model/world';
 import type { BookingCheck, BookingCheckInput, BookingIssueDraft } from '../types';
-import { at, nameOf, participantsOf, placeOf } from './shared';
+import { at, countWord, nameOf, participantsOf, placeOf } from './shared';
+
+/** How often someone works, in player words: "twice", "three times". */
+function timesWord(count: number): string {
+  return count === 2 ? 'twice' : `${countWord(count).toLowerCase()} times`;
+}
+
+/** "the Opener" for a slot named by its role, "Slot 3" for one named by number. */
+function inPlace(place: string): string {
+  return /slot/i.test(place) ? place : `the ${place}`;
+}
+
+/** "the Opener", "the Opener and Slot 3", "the Opener, Slot 2 and Slot 3". */
+function placesList(places: readonly string[]): string {
+  const named = places.map(inPlace);
+  const last = named.at(-1) ?? '';
+  return named.length <= 1 ? last : `${named.slice(0, -1).join(', ')} and ${last}`;
+}
 
 export const CARD_WIDE_CHECK_ID = 'booking.cardWide';
 
@@ -44,6 +66,15 @@ function cardWideIssues(input: BookingCheckInput): BookingIssueDraft[] {
           code: 'alreadyOnCard',
           severity: 'error',
           message: `${nameOf(input, personId)} is already in ${already} on this card (${places})`,
+          ...at(segment),
+          personId,
+        });
+      } else if (earlier.length > 0) {
+        const places = placesList(earlier.map((match) => placeOf(input, match)));
+        issues.push({
+          code: 'workingTwice',
+          severity: 'warning',
+          message: `${nameOf(input, personId)} is also in ${places}: working ${timesWord(earlier.length + 1)} tires them more and raises their injury risk`,
           ...at(segment),
           personId,
         });

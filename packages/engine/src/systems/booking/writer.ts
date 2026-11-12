@@ -351,7 +351,7 @@ function angleProblems(
 /**
  * Everything about putting `draft` at `target` on `instance`'s card that would break a card rule or
  * point at nothing, as player-facing reasons; empty when the write is sound. The commands refuse
- * these; softer problems (a wrestler booked twice on one show, an uneven match) belong to the
+ * these; softer problems (a wrestler working twice on one show, an uneven match) belong to the
  * booking checks of EVT2-04. Hidden match types, angle types and methods are allowed only when the
  * segment being replaced already uses them.
  */
