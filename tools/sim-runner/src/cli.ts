@@ -10,7 +10,7 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { SystemBundle } from '@ringside/engine';
 import { parseRunnerArgs, USAGE, type ArgumentError, type RunnerOptions } from './args';
-import { loadStartState, runSimulation, type CompletedRun } from './run';
+import { loadStartState, openPastShows, runSimulation, type CompletedRun } from './run';
 import {
   compareRuns,
   formatDeterminismText,
@@ -132,6 +132,13 @@ export async function runCli(
   }
   if (options.strict && firstRun.failures.length > 0) {
     io.stderr(`--strict: ${String(firstRun.failures.length)} steps failed.\n`);
+    return EXIT_FAILED;
+  }
+  const unrun = openPastShows(firstRun.finalState);
+  if (options.strict && unrun.length > 0) {
+    io.stderr(
+      `--strict: ${String(unrun.length)} show(s) dated before ${firstRun.summary.endDate} are still open: ${unrun.slice(0, 5).join(', ')}\n`,
+    );
     return EXIT_FAILED;
   }
   return EXIT_OK;

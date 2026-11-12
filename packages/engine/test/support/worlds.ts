@@ -532,21 +532,24 @@ function patternedPerson(rosterIndex: number, startDate: GameDate): DeepPartial<
 
 /**
  * One computer-run promotion in the mini geography with `rosterSize` wrestlers under contract,
- * each with different attributes from a fixed arithmetic pattern (no randomness). For performance
- * and save-size tests.
+ * each with different attributes from a fixed arithmetic pattern (no randomness), and a weekly
+ * Monday show, so a headless run schedules and runs a show every week. For performance and
+ * save-size tests and the headless runner.
  */
 export function rosterWorld(rosterSize: number): BuiltWorld {
   return worldBuilder()
     .withGeography('mini')
     .withCatalogs()
     .withPromotion({ name: 'Test Promotion A' }, (promotion) =>
-      promotion.withRoster(rosterSize, {
-        person: (rosterIndex) => patternedPerson(rosterIndex, TEST_START_DATE),
-        employment: (rosterIndex) => ({
-          push: rosterIndex % 10 === 0 ? 'mainEvent' : 'midCard',
-          alignment: rosterIndex % 2 === 0 ? 'face' : 'heel',
-        }),
-      }),
+      promotion
+        .withRoster(rosterSize, {
+          person: (rosterIndex) => patternedPerson(rosterIndex, TEST_START_DATE),
+          employment: (rosterIndex) => ({
+            push: rosterIndex % 10 === 0 ? 'mainEvent' : 'midCard',
+            alignment: rosterIndex % 2 === 0 ? 'face' : 'heel',
+          }),
+        })
+        .withWeeklyShow({ name: 'Test Weekly', weekdays: [0] }),
     )
     .build();
 }
