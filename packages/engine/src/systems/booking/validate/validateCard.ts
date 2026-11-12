@@ -64,8 +64,8 @@ const CHECKLIST_LINES: readonly { id: string; label: string; codes: readonly str
   },
   {
     id: 'notTwice',
-    label: 'Nobody is booked twice',
-    codes: ['alreadyOnCard', 'tooManyAppearances'],
+    label: 'Nobody is booked too often',
+    codes: ['alreadyOnCard', 'tooManyAppearances', 'workingTwice'],
   },
   {
     id: 'sides',

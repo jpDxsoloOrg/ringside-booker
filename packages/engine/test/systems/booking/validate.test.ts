@@ -74,7 +74,7 @@ describe('a runnable card', () => {
       { id: 'mainEvent', label: 'Main event booked', passed: true },
       { id: 'results', label: 'Every match has a result', passed: true },
       { id: 'available', label: 'Everyone is available', passed: true },
-      { id: 'notTwice', label: 'Nobody is booked twice', passed: true },
+      { id: 'notTwice', label: 'Nobody is booked too often', passed: true },
       { id: 'sides', label: 'Sides fit their match types', passed: true },
       { id: 'titles', label: 'Title matches are set up correctly', passed: true },
     ]);
@@ -163,31 +163,139 @@ describe('the people checks', () => {
 });
 
 describe('the card-wide checks', () => {
-  it('refuses someone in a second match, naming the first', () => {
+  const WORKING_TWICE =
+    'Mia Torres is also in the Opener: working twice tires them more and raises their injury risk';
+
+  it('warns about a second match, naming the first, and still lets the card lock', () => {
     const built = validateWorld();
     const card = bookRunnable(built);
     book(built, 1, match([[who(built, 6)], [who(built, 11)]]));
     const result = validate(built);
+    expect(result.errors).toEqual([]);
+    expect(said(result.warnings)).toEqual([{ code: 'workingTwice', message: WORKING_TWICE }]);
+    expect(result.warnings[0]?.slot).toEqual({ preShow: false, slot: 1 });
+    expect(result.warnings[0]?.segmentId).not.toBe(card.opener);
+    expect(result.warnings[0]?.personId).toBe(who(built, 6));
+    expect(result.runnable).toBe(true);
+    const line = result.checklist.find((entry) => entry.id === 'notTwice');
+    expect(line).toMatchObject({
+      label: 'Nobody is booked too often',
+      passed: false,
+      severity: 'warning',
+      detail: WORKING_TWICE,
+    });
+    const engine = createEngine({
+      state: initialEngineState(built.world),
+      systems: defaultSystems,
+    });
+    expect(engine.command('booking.lockCard', { eventInstanceId: built.show }, PLAYER_ONE).ok).toBe(
+      true,
+    );
+  });
+
+  it('warns about each extra match, naming every earlier one', () => {
+    const built = validateWorld();
+    bookRunnable(built);
+    book(built, 1, match([[who(built, 6)], [who(built, 11)]]));
+    book(built, 3, match([[who(built, 6)], [who(built, 1)]]));
+    expect(said(validate(built).warnings)).toEqual([
+      { code: 'workingTwice', message: WORKING_TWICE },
+      {
+        code: 'workingTwice',
+        message:
+          'Mia Torres is also in the Opener and Slot 2: working three times tires them more and raises their injury risk',
+      },
+    ]);
+    expect(validate(built).errors).toEqual([]);
+  });
+
+  it('refuses a fourth match at the default limit of three', () => {
+    const built = validateWorld();
+    bookRunnable(built);
+    book(built, 1, match([[who(built, 6)], [who(built, 11)]]));
+    book(built, 3, match([[who(built, 6)], [who(built, 1)]]));
+    book(built, 4, match([[who(built, 6)], [who(built, 0)]]));
+    const result = validate(built);
+    expect(said(result.errors)).toEqual([
+      {
+        code: 'alreadyOnCard',
+        message: 'Mia Torres is already in 3 matches on this card (Opener, Slot 2, Slot 4)',
+      },
+    ]);
+    expect(result.errors[0]?.slot).toEqual({ preShow: false, slot: 4 });
+    expect(result.runnable).toBe(false);
+    expect(codes(result.warnings)).toEqual(['workingTwice', 'workingTwice']);
+  });
+
+  it('refuses a match past a lower limit, naming the earlier one', () => {
+    const built = validateWorld();
+    bookRunnable(built);
+    book(built, 1, match([[who(built, 6)], [who(built, 11)]]));
+    const result = validate(built, { 'booking.maxMatchesPerPersonPerShow': 1 });
     expect(said(result.errors)).toEqual([
       { code: 'alreadyOnCard', message: 'Mia Torres is already in a match on this card (Opener)' },
     ]);
-    expect(result.errors[0]?.slot).toEqual({ preShow: false, slot: 1 });
-    expect(result.errors[0]?.segmentId).not.toBe(card.opener);
-    expect(validate(built, { 'booking.maxMatchesPerPersonPerShow': 2 }).errors).toEqual([]);
+    expect(result.warnings).toEqual([]);
   });
 
-  it('refuses a third segment of any kind for one person', () => {
+  it('gives no warning for a match and a talking segment, or for several talking segments', () => {
+    const built = validateWorld();
+    bookRunnable(built);
+    book(built, 1, angle([who(built, 6)]));
+    book(built, 3, angle([who(built, 5)], 'angle.interview'));
+    const result = validate(built);
+    expect(result.errors).toEqual([]);
+    expect(result.warnings).toEqual([]);
+    expect(result.checklist.find((entry) => entry.id === 'notTwice')?.passed).toBe(true);
+  });
+
+  it('refuses a fifth segment of any kind for one person at the default limit of four', () => {
     const built = validateWorld();
     bookRunnable(built);
     book(built, 1, angle([who(built, 5)]));
     book(built, 3, angle([who(built, 5)], 'angle.interview'));
+    book(built, 4, angle([who(built, 5)]));
+    expect(validate(built).errors).toEqual([]);
+    book(built, 0, angle([who(built, 5)]), { preShow: true });
     expect(said(validate(built).errors)).toEqual([
       {
         code: 'tooManyAppearances',
-        message: 'Kai Moreno is in 3 segments on this card; the most is 2',
+        message: 'Kai Moreno is in 5 segments on this card; the most is 4',
       },
     ]);
-    expect(validate(built, { 'booking.maxAppearancesPerShow': 3 }).errors).toEqual([]);
+    expect(validate(built, { 'booking.maxAppearancesPerShow': 5 }).errors).toEqual([]);
+  });
+
+  it('still refuses the same person twice in one segment', () => {
+    const built = validateWorld();
+    bookRunnable(built);
+    const engine = createEngine({
+      state: initialEngineState(built.world),
+      systems: defaultSystems,
+    });
+    const twice = engine.command(
+      'booking.addSegment',
+      {
+        eventInstanceId: built.show,
+        preShow: false,
+        slot: 1,
+        draft: match([[who(built, 6)], [who(built, 6)]]),
+      },
+      PLAYER_ONE,
+    );
+    expect(twice.ok).toBe(false);
+    expect(JSON.stringify(twice)).toContain('duplicatePerson');
+    const elsewhere = engine.command(
+      'booking.addSegment',
+      {
+        eventInstanceId: built.show,
+        preShow: false,
+        slot: 1,
+        draft: match([[who(built, 6)], [who(built, 11)]]),
+      },
+      PLAYER_ONE,
+    );
+    expect(elsewhere.ok).toBe(true);
   });
 });
 
@@ -603,12 +711,16 @@ describe('the order of issues', () => {
     ).toEqual([
       ['tooFewFilled', 'card'],
       ['noPlannedResult', 'pre 0'],
-      ['alreadyOnCard', 'main 0'],
       ['championMissing', 'main 0'],
       ['personUnavailable', 'main 3'],
-      ['alreadyOnCard', 'main 3'],
       ['noPlannedResult', 'main 3'],
       ['emptyMainEvent', 'main 5'],
+    ]);
+    expect(
+      result.warnings.filter((issue) => issue.code === 'workingTwice').map((issue) => issue.slot),
+    ).toEqual([
+      { preShow: false, slot: 0 },
+      { preShow: false, slot: 3 },
     ]);
   });
 

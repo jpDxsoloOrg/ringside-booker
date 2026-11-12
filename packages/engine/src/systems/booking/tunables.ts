@@ -13,7 +13,7 @@ const VALIDATION_DOC = 'booking.md#validation';
 export const bookingTunables = defineTunables({
   'booking.maxAppearancesPerShow': {
     kind: 'integer',
-    default: 2,
+    default: 4,
     min: 1,
     max: 6,
     unit: 'count',
@@ -23,12 +23,13 @@ export const bookingTunables = defineTunables({
   },
   'booking.maxMatchesPerPersonPerShow': {
     kind: 'integer',
-    default: 1,
+    default: 3,
     min: 1,
     max: 4,
     unit: 'count',
     category: BOOKING_CATEGORY,
-    description: 'Most matches one person may wrestle on one show',
+    description:
+      'Most matches one person may wrestle on one show (each match past the first is a warning)',
     docRef: VALIDATION_DOC,
   },
   'booking.minFilledMainShare': {

@@ -449,9 +449,9 @@ The thresholds a card is held to before it can be locked (EVT2-04), in
 `systems/booking/tunables.ts`, category `Booking`. See
 [booking.md](booking.md#validation).
 
-| Key                                  | Kind    | Default | Range | Unit  | What it does                                                          |
-| ------------------------------------ | ------- | ------- | ----- | ----- | --------------------------------------------------------------------- |
-| `booking.maxAppearancesPerShow`      | integer | 2       | 1–6   | count | Most segments of any kind one person may appear in on one show        |
-| `booking.maxMatchesPerPersonPerShow` | integer | 1       | 1–4   | count | Most matches one person may wrestle on one show                       |
-| `booking.minFilledMainShare`         | number  | 0.5     | 0–1   | ratio | Share of main-card slots that must be filled to lock (0 = no minimum) |
-| `booking.requireMainEvent`           | boolean | true    |       | flag  | The last main-card slot must be filled to lock                        |
+| Key                                  | Kind    | Default | Range | Unit  | What it does                                                                             |
+| ------------------------------------ | ------- | ------- | ----- | ----- | ---------------------------------------------------------------------------------------- |
+| `booking.maxAppearancesPerShow`      | integer | 4       | 1–6   | count | Most segments of any kind one person may appear in on one show                           |
+| `booking.maxMatchesPerPersonPerShow` | integer | 3       | 1–4   | count | Most matches one person may wrestle on one show (each match past the first is a warning) |
+| `booking.minFilledMainShare`         | number  | 0.5     | 0–1   | ratio | Share of main-card slots that must be filled to lock (0 = no minimum)                    |
+| `booking.requireMainEvent`           | boolean | true    |       | flag  | The last main-card slot must be filled to lock                                           |

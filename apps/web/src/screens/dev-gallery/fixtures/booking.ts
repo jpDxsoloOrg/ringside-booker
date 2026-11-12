@@ -189,7 +189,7 @@ const LINES = [
   ['mainEvent', 'Main event booked'],
   ['results', 'Every match has a result'],
   ['available', 'Everyone is available'],
-  ['notTwice', 'Nobody is booked twice'],
+  ['notTwice', 'Nobody is booked too often'],
   ['sides', 'Sides fit their match types'],
   ['titles', 'Title matches are set up correctly'],
 ] as const;

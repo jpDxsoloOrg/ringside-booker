@@ -415,7 +415,7 @@ answer the booking screen (`booking.validate`), `booking.lockCard` and AIP4's
 rival booker share. It returns `{ errors, warnings, runnable, checklist }`:
 
 - **Errors** are availability and structure problems. Any error blocks Lock.
-- **Warnings** are brand, contract and title-division questions. They are shown
+- **Warnings** are brand, contract, title-division and working-twice questions. They are shown
   in amber and never block: the owner may want a cruiserweight to challenge
   upward as a story, or a worker from the other brand for one night. (The
   reference booker silently drops such titles; we do not.)
@@ -434,54 +434,68 @@ day by day, stored injuries never change.
 
 ### Error codes
 
-| Code                 | Check               | Rule                                                                                                            | Message                                                            |
-| -------------------- | ------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `personUnavailable`  | `booking.people`    | not `available` on the show's date; someone who only talks (an angle, ringside) is fine if they can work angles | "Kai Moreno can't wrestle: Injured (leg injury) until 12 Feb"      |
-| `notOnRoster`        | `booking.people`    | no active contract with the show's promotion any more                                                           | "Kai Moreno is no longer on the Apex Wrestling roster"             |
-| `notAWrestler`       | `booking.people`    | a match competitor without `wrestler` or `occasionalWrestler` among their roles                                 | "Sam Reed isn't a wrestler, so can't compete in a match"           |
-| `alreadyOnCard`      | `booking.cardWide`  | a competitor in more matches than `booking.maxMatchesPerPersonPerShow`                                          | "Kai Moreno is already in a match on this card (Opener)"           |
-| `tooManyAppearances` | `booking.cardWide`  | in more segments of any kind, in any role, than `booking.maxAppearancesPerShow`                                 | "Kai Moreno is in 3 segments on this card; the most is 2"          |
-| `sideCount`          | `booking.structure` | competitor sides outside the match type's `sides`                                                               | "Slot 2: Two sides in a Three-Way match; it takes 3"               |
-| `sideSize`           | `booking.structure` | a side outside the type's `sideSize`                                                                            | "Slot 2: Side 2 has 1 wrestler; Tag Team takes 2 a side"           |
-| `unequalSides`       | `booking.structure` | uneven sides in an `equalSides` type (only when every side's size is allowed)                                   | "Slot 2: the sides are uneven (2 against 1); … takes equal sides"  |
-| `speakerCount`       | `booking.structure` | an angle's `speaker` participants outside the angle type's `speakers`                                           | "Slot 2: One speaker in a Confrontation; it takes 2 to 8"          |
-| `noPlannedResult`    | `booking.structure` | a match's `outcome` is null (skipped on a Random winners show, see [Integration](#integration))                 | "Opener: no result planned; pick a winner, a draw or a no contest" |
-| `tooFewFilled`       | `booking.structure` | filled main-card slots below `minFilledMainSlots`                                                               | "Main card: 2 of 6 slots filled (needs 3)"                         |
-| `emptyMainEvent`     | `booking.structure` | the last main-card slot is open, while `booking.requireMainEvent` is on                                         | "The main event (Slot 6) is empty"                                 |
-| `titleNotAllowed`    | `booking.titles`    | a title on a match type with `allowsTitles: false`                                                              | "Slot 2: titles can't be on the line in a Battle Royal"            |
-| `titleTwiceOnCard`   | `booking.titles`    | the title is on the line in an earlier match of the card                                                        | "The Crown Title is already on the line in Slot 2"                 |
-| `titleRetired`       | `booking.titles`    | the title was retired after it was booked                                                                       | "The Crown Title has been retired"                                 |
-| `championMissing`    | `booking.titles`    | a holder of the title's open reign is not a competitor; a vacant title has no holders to check                  | "The champion Rhea Cortez isn't in this match"                     |
-| `titleSideSize`      | `booking.titles`    | a competitor side without exactly the title's `holderCount` people                                              | "The Altura Tag Team Championship needs 2 wrestlers on each side"  |
+| Code                 | Check               | Rule                                                                                                            | Message                                                                    |
+| -------------------- | ------------------- | --------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `personUnavailable`  | `booking.people`    | not `available` on the show's date; someone who only talks (an angle, ringside) is fine if they can work angles | "Kai Moreno can't wrestle: Injured (leg injury) until 12 Feb"              |
+| `notOnRoster`        | `booking.people`    | no active contract with the show's promotion any more                                                           | "Kai Moreno is no longer on the Apex Wrestling roster"                     |
+| `notAWrestler`       | `booking.people`    | a match competitor without `wrestler` or `occasionalWrestler` among their roles                                 | "Sam Reed isn't a wrestler, so can't compete in a match"                   |
+| `alreadyOnCard`      | `booking.cardWide`  | a competitor in more matches than `booking.maxMatchesPerPersonPerShow`                                          | "Kai Moreno is already in 3 matches on this card (Opener, Slot 2, Slot 4)" |
+| `tooManyAppearances` | `booking.cardWide`  | in more segments of any kind, in any role, than `booking.maxAppearancesPerShow`                                 | "Kai Moreno is in 5 segments on this card; the most is 4"                  |
+| `sideCount`          | `booking.structure` | competitor sides outside the match type's `sides`                                                               | "Slot 2: Two sides in a Three-Way match; it takes 3"                       |
+| `sideSize`           | `booking.structure` | a side outside the type's `sideSize`                                                                            | "Slot 2: Side 2 has 1 wrestler; Tag Team takes 2 a side"                   |
+| `unequalSides`       | `booking.structure` | uneven sides in an `equalSides` type (only when every side's size is allowed)                                   | "Slot 2: the sides are uneven (2 against 1); … takes equal sides"          |
+| `speakerCount`       | `booking.structure` | an angle's `speaker` participants outside the angle type's `speakers`                                           | "Slot 2: One speaker in a Confrontation; it takes 2 to 8"                  |
+| `noPlannedResult`    | `booking.structure` | a match's `outcome` is null (skipped on a Random winners show, see [Integration](#integration))                 | "Opener: no result planned; pick a winner, a draw or a no contest"         |
+| `tooFewFilled`       | `booking.structure` | filled main-card slots below `minFilledMainSlots`                                                               | "Main card: 2 of 6 slots filled (needs 3)"                                 |
+| `emptyMainEvent`     | `booking.structure` | the last main-card slot is open, while `booking.requireMainEvent` is on                                         | "The main event (Slot 6) is empty"                                         |
+| `titleNotAllowed`    | `booking.titles`    | a title on a match type with `allowsTitles: false`                                                              | "Slot 2: titles can't be on the line in a Battle Royal"                    |
+| `titleTwiceOnCard`   | `booking.titles`    | the title is on the line in an earlier match of the card                                                        | "The Crown Title is already on the line in Slot 2"                         |
+| `titleRetired`       | `booking.titles`    | the title was retired after it was booked                                                                       | "The Crown Title has been retired"                                         |
+| `championMissing`    | `booking.titles`    | a holder of the title's open reign is not a competitor; a vacant title has no holders to check                  | "The champion Rhea Cortez isn't in this match"                             |
+| `titleSideSize`      | `booking.titles`    | a competitor side without exactly the title's `holderCount` people                                              | "The Altura Tag Team Championship needs 2 wrestlers on each side"          |
 
 "Opener", "Semi-main" and "Main event" name a slot with that role; any other
 slot is named by number ("Slot 3", "Pre-show slot 1").
 
 ### Warning codes
 
-| Code              | Check              | Rule                                                                                     | Message                                                         |
-| ----------------- | ------------------ | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| `appearanceCap`   | `booking.warnings` | `terms.appearanceCap` is set and `appearancesThisYear + 1` is above it                   | "Kai Moreno has used 24 of 24 contracted appearances this year" |
-| `noHouseShows`    | `booking.warnings` | the contract's `noHouseShows` perk is set and the show's importance is `house`           | "Kai Moreno's contract rules out house shows"                   |
-| `otherBrand`      | `booking.warnings` | the contract's brand is set and is not the show's                                        | "Kai Moreno works for Altura Overclock"                         |
-| `titleOtherBrand` | `booking.warnings` | the title's brand is set and is not the show's                                           | "The Crown Title belongs to Altura Overclock"                   |
-| `titleDivision`   | `booking.warnings` | WRK1's `isEligibleForTitle` gender or weight reasons, for each competitor not holding it | "Kai Moreno: The Women's Title is a women's title"              |
-| `injuredTalking`  | `booking.warnings` | an injured worker who can still work angles, booked to talk                              | "Tia Cruz is injured: can talk but not wrestle"                 |
-| `checkFailed`     | the failing check  | a registered check threw                                                                 | "A booking check (<id>) failed; the card can still be locked"   |
+| Code              | Check              | Rule                                                                                     | Message                                                                                        |
+| ----------------- | ------------------ | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `appearanceCap`   | `booking.warnings` | `terms.appearanceCap` is set and `appearancesThisYear + 1` is above it                   | "Kai Moreno has used 24 of 24 contracted appearances this year"                                |
+| `noHouseShows`    | `booking.warnings` | the contract's `noHouseShows` perk is set and the show's importance is `house`           | "Kai Moreno's contract rules out house shows"                                                  |
+| `otherBrand`      | `booking.warnings` | the contract's brand is set and is not the show's                                        | "Kai Moreno works for Altura Overclock"                                                        |
+| `titleOtherBrand` | `booking.warnings` | the title's brand is set and is not the show's                                           | "The Crown Title belongs to Altura Overclock"                                                  |
+| `titleDivision`   | `booking.warnings` | WRK1's `isEligibleForTitle` gender or weight reasons, for each competitor not holding it | "Kai Moreno: The Women's Title is a women's title"                                             |
+| `injuredTalking`  | `booking.warnings` | an injured worker who can still work angles, booked to talk                              | "Tia Cruz is injured: can talk but not wrestle"                                                |
+| `workingTwice`    | `booking.cardWide` | a competitor in a second or later match, within `booking.maxMatchesPerPersonPerShow`     | "Kai Moreno is also in the Opener: working twice tires them more and raises their injury risk" |
+| `checkFailed`     | the failing check  | a registered check threw                                                                 | "A booking check (<id>) failed; the card can still be locked"                                  |
 
 The first three are given once per person, on the first segment they are in.
+`workingTwice` is given on each later match, naming the earlier ones ("is also
+in the Opener and Slot 2: working three times …").
+
+**Booking someone more than once.** A person may be booked in several segments
+of one card. Talking segments (angles, a match role that only talks or stands at
+ringside) never warn: promos cost no stamina. Each extra match a competitor
+works gets the `workingTwice` warning, which never blocks Lock. Past
+`booking.maxMatchesPerPersonPerShow` matches (`alreadyOnCard`) or
+`booking.maxAppearancesPerShow` segments (`tooManyAppearances`) it is an error,
+so a card can't be absurd. The costs themselves are not validation's: extra
+stamina loss and injury chance for working twice are MTCH4-01 and MTCH4-02, and
+promos letting someone recover less than a night off is WRK6-02. The same
+person twice in one segment is still refused by the writer (`duplicatePerson`).
 `appearancesThisYear` is counted by the show night (EVT3) after each show;
 appearances on other locked cards that have not run yet are not counted. A
 later feature can refine that with a check of its own.
 
 ### Thresholds
 
-| Tunable                              | Default | Range | What it does                                                   |
-| ------------------------------------ | ------- | ----- | -------------------------------------------------------------- |
-| `booking.maxAppearancesPerShow`      | 2       | 1–6   | Most segments of any kind one person may appear in on one show |
-| `booking.maxMatchesPerPersonPerShow` | 1       | 1–4   | Most matches one person may wrestle on one show                |
-| `booking.minFilledMainShare`         | 0.5     | 0–1   | Share of main-card slots that must be filled; 0 is no minimum  |
-| `booking.requireMainEvent`           | true    |       | The last main-card slot must be filled                         |
+| Tunable                              | Default | Range | What it does                                                                                           |
+| ------------------------------------ | ------- | ----- | ------------------------------------------------------------------------------------------------------ |
+| `booking.maxAppearancesPerShow`      | 4       | 1–6   | Most segments of any kind one person may appear in on one show                                         |
+| `booking.maxMatchesPerPersonPerShow` | 3       | 1–4   | Most matches one person may wrestle on one show; each match past the first is a `workingTwice` warning |
+| `booking.minFilledMainShare`         | 0.5     | 0–1   | Share of main-card slots that must be filled; 0 is no minimum                                          |
+| `booking.requireMainEvent`           | true    |       | The last main-card slot must be filled                                                                 |
 
 **`minFilledMainSlots`** (`booking/formulas/minFilledMainSlots.ts`) is
 `ceil(slots × booking.minFilledMainShare)`, kept within 0..slots. A tiny
@@ -502,7 +516,8 @@ The booking screen's checklist always lists these lines, in order, each with
 3. `results`: "Every match has a result";
 4. `available`: "Everyone is available" (the people checks and the contract
    warnings);
-5. `notTwice`: "Nobody is booked twice";
+5. `notTwice`: "Nobody is booked too often" (the card-wide errors and the
+   `workingTwice` warning);
 6. `sides`: "Sides fit their match types";
 7. `titles`: "Title matches are set up correctly" (the title errors and
    warnings);
