@@ -1532,3 +1532,10 @@ export {
   RIVAL_MATCH_RESULT_TRACE_KIND,
   matchResultTraceRef,
 } from './systems/shows/index';
+export {
+  popularityGain,
+  type PopularityFinish,
+  type PopularityGainInputs,
+  type PopularityOpponent,
+  type PopularityOutcome,
+} from './systems/match/index';

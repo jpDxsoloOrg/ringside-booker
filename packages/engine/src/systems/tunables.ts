@@ -13,6 +13,7 @@ import { bookingTunables } from './booking/tunables';
 import { calendarTunables } from './calendar/tunables';
 import { conditionTunables } from './condition/tunables';
 import { matchTunables } from './match/tunables';
+import { aftermathTunables } from './match/aftermath/tunables';
 import { mergeTunables } from '../core/tunables/define';
 import type { TunableOverrides } from '../core/tunables/overrides';
 import {
@@ -34,6 +35,7 @@ export const ALL_TUNABLES = mergeTunables(
   matchTunables,
   bookingTunables,
   showsTunables,
+  aftermathTunables,
 );
 
 /** Every tunable key the engine knows. */

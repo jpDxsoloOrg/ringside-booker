@@ -436,6 +436,29 @@ export {
   type SimulatedFinish,
 } from './simulateQuery';
 
+// Aftermath: what one match result is worth in popularity (MTCH3-01).
+// Design: docs/design/match-aftermath.md#popularity-gain.
+export { aftermathTunables } from './aftermath/tunables';
+export {
+  CLASSIC_MATCH_LABEL,
+  NO_CONTEST_LABEL,
+  NO_CONTEST_REASON,
+  NO_FINISH_LABEL,
+  NO_MOMENTUM_LABEL,
+  NO_OPPONENTS_NOTE,
+  NO_SCORE_LABEL,
+  PER_MATCH_LIMIT_LABEL,
+  POPULARITY_GAIN_DOC_REF,
+  POPULARITY_GAIN_LABEL,
+  PRE_SHOW_LABEL,
+  WIN_FLOOR_LABEL,
+  popularityGain,
+  type PopularityFinish,
+  type PopularityGainInputs,
+  type PopularityOpponent,
+  type PopularityOutcome,
+} from './aftermath/formulas/popularityGain';
+
 export const matchSystem: SystemBundle = defineSystem({
   id: 'match',
   queries: matchQueries,

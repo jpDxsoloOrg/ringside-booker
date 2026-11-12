@@ -26,3 +26,4 @@ Game and technical design for Ringside Booker. Each game system gets its own doc
 | [match-finishes.md](match-finishes.md)         | How a match ends: the finish catalog, its checks, which finishes a match allows and the filter seam                           |
 | [booking.md](booking.md)                       | Booking a show's card: open slots, planned results, who may edit a show and the card writer                                   |
 | [show-night.md](show-night.md)                 | Show night: running a show, segment and show scores, off-screen shows, title outcomes and the events it announces             |
+| [match-aftermath.md](match-aftermath.md)       | What a match result is worth: the popularity gain formula, its order of steps, limits and momentum                            |
