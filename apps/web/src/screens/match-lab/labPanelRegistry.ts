@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { PersonId, PreviewBatchResult, PreviewResult } from '@ringside/engine';
+import type { PersonId, PreviewBatchResult, PreviewResult, SimulateResult } from '@ringside/engine';
 import { createExtensionRegistry } from '@/components/extensionRegistry';
 import type { LabSetup } from './labStore';
 
@@ -7,7 +7,7 @@ import type { LabSetup } from './labStore';
 export type LabPanelPlacement = 'setup' | 'result';
 
 /**
- * What a panel is drawn from. Additive: later features add fields (MTCH2 adds `simulation`), so a
+ * What a panel is drawn from. Additive: later features add fields (MTCH2-04 added `simulation`), so a
  * panel reads only what it needs.
  */
 export interface LabPanelContext {
@@ -18,6 +18,11 @@ export interface LabPanelContext {
   readonly result: PreviewResult | null;
   /** The Run x100 on screen, or null. */
   readonly batch: PreviewBatchResult | null;
+  /**
+   * The Simulate on screen (MTCH2-04), or null before one or after a Run. MTCH3's Aftermath and
+   * MTCH4's Physical panels read the outcome from it.
+   */
+  readonly simulation: SimulateResult | null;
 }
 
 /** One titled panel another feature adds to the Match lab. */

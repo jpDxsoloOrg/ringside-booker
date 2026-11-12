@@ -6,6 +6,7 @@ import type {
   LabOptions,
   LabWorkerRow,
   PersonId,
+  PlannedWinner,
   PreviewArgs,
   PreviewBatchArgs,
   PreviewBatchResult,
@@ -13,6 +14,8 @@ import type {
   PromotionId,
   RegionId,
   SegmentKind,
+  SimulateArgs,
+  SimulateResult,
   SlotRole,
 } from '@ringside/engine';
 import { PREVIEW_MAX_SIDE_SIZE, PREVIEW_SEED_MAX } from '@ringside/engine';
@@ -59,8 +62,27 @@ export interface LabBatchRun {
   readonly date: GameDate | null;
 }
 
+/**
+ * The result the lab plays out on Simulate (MTCH2-04): who wins (Auto, a stored 0-based side or a
+ * Draw) and the finish (null for Auto). The winner goes back to Auto when the match type changes.
+ */
+export interface LabResultPlan {
+  readonly winner: PlannedWinner;
+  readonly finishKey: ContentKey | null;
+}
+
+/** The plan a fresh lab, or a new match type, starts with. */
+export const AUTO_RESULT_PLAN: LabResultPlan = { winner: 'auto', finishKey: null };
+
+/** One Simulate's answer, kept until the next Run or Simulate, or until the world changes. */
+export interface LabSimulation {
+  readonly args: SimulateArgs;
+  readonly result: SimulateResult;
+  readonly date: GameDate | null;
+}
+
 /** Which button's request is on its way. */
-export type LabPending = 'run' | 'batch' | null;
+export type LabPending = 'run' | 'batch' | 'simulate' | null;
 
 export interface LabState {
   /** False until the lab's defaults have been read from `match.labOptions`. */
@@ -78,6 +100,10 @@ export interface LabState {
   readonly batch: PreviewBatchArgs | null;
   readonly lastRun: LabRun | null;
   readonly lastBatch: LabBatchRun | null;
+  /** The result Simulate plays out. */
+  readonly result: LabResultPlan;
+  /** The Simulate on screen, or null (a Run replaces it). */
+  readonly simulation: LabSimulation | null;
   readonly pending: LabPending;
   /** The engine's reasons for refusing the last request, in player words. */
   readonly refusal: readonly string[];
@@ -94,10 +120,13 @@ export interface LabState {
   readonly addSide: () => void;
   readonly removeSide: (side: number) => void;
   readonly clearAll: () => void;
+  readonly setWinner: (winner: PlannedWinner) => void;
+  readonly setFinish: (finishKey: ContentKey | null) => void;
   readonly nextSeed: () => void;
   readonly startRequest: (pending: Exclude<LabPending, null>) => number;
   readonly finishRun: (ticket: number, run: LabRun) => void;
   readonly finishBatch: (ticket: number, batch: LabBatchRun) => void;
+  readonly finishSimulation: (ticket: number, simulation: LabSimulation) => void;
   readonly failRequest: (ticket: number, reasons: readonly string[]) => void;
   /** Back to an empty, unseeded lab: the world changed. */
   readonly reset: () => void;
@@ -123,6 +152,8 @@ const EMPTY_LAB = {
   batch: null,
   lastRun: null,
   lastBatch: null,
+  result: AUTO_RESULT_PLAN,
+  simulation: null,
   pending: null,
   refusal: [],
 } as const satisfies Partial<LabState>;
@@ -173,6 +204,47 @@ export function previewArgsOf(
   };
 }
 
+/**
+ * The Simulate arguments the lab would send now: the preview arguments plus the result plan, or
+ * null while something is missing or the segment is a talking segment (nobody wins one).
+ */
+export function simulateArgsOf(
+  state: Pick<LabState, 'setup' | 'sides' | 'previewSeed' | 'result'>,
+): SimulateArgs | null {
+  const args = previewArgsOf(state);
+  if (args?.kind !== 'match') return null;
+  return {
+    ...args,
+    winner: state.result.winner,
+    finishKey: state.result.finishKey,
+    methodKey: null,
+  };
+}
+
+/** The preview arguments inside Simulate's, without the plan. */
+export function previewPartOf(args: SimulateArgs): PreviewArgs {
+  return {
+    kind: args.kind,
+    typeKey: args.typeKey,
+    sides: args.sides,
+    slotRole: args.slotRole,
+    importance: args.importance,
+    regionId: args.regionId,
+    televised: args.televised,
+    ...(args.promotionId === undefined ? {} : { promotionId: args.promotionId }),
+    previewSeed: args.previewSeed,
+  };
+}
+
+/** True when two plans ask for the same result. */
+export function samePlan(left: LabResultPlan, right: LabResultPlan): boolean {
+  const sameWinner =
+    typeof left.winner === 'object' && typeof right.winner === 'object'
+      ? left.winner.side === right.winner.side
+      : left.winner === right.winner;
+  return sameWinner && left.finishKey === right.finishKey;
+}
+
 /** True when two previews rate the same segment, whatever their seeds. */
 export function sameSegment(left: PreviewArgs, right: PreviewArgs): boolean {
   return (
@@ -205,6 +277,25 @@ export function isOutOfDate(
   return current === null || !sameSegment(current, shown);
 }
 
+/** True when the setup, the sides or the result plan changed after the Simulate on screen. */
+export function isSimulationOutOfDate(
+  state: Pick<LabState, 'setup' | 'sides' | 'previewSeed' | 'result'>,
+  shown: SimulateArgs | null,
+): boolean {
+  if (shown === null) return false;
+  return (
+    isOutOfDate(state, previewPartOf(shown)) ||
+    !samePlan(state.result, { winner: shown.winner, finishKey: shown.finishKey })
+  );
+}
+
+/** The plan with a removed side's winner put back to Auto (later sides move down one). */
+function planWithoutSide(plan: LabResultPlan, side: number): LabResultPlan {
+  return typeof plan.winner === 'object' && plan.winner.side >= side
+    ? { ...plan, winner: 'auto' }
+    : plan;
+}
+
 /**
  * The Match lab's state: the setup, the sides, the seed and the last answers. It lives for the
  * session, so leaving the lab and coming back keeps the line-up, and it empties when the session's
@@ -233,13 +324,21 @@ export const useLabStore = create<LabState>()((set, get) => ({
     set((state) => ({
       setup: { ...state.setup, kind, typeKey },
       sides: resizeSides(state.sides, sideCount),
+      result: AUTO_RESULT_PLAN,
     }));
   },
   setType: (typeKey, sideCount) => {
-    set((state) => ({
-      setup: { ...state.setup, typeKey },
-      sides: resizeSides(state.sides, sideCount),
-    }));
+    set((state) => {
+      const sides = resizeSides(state.sides, sideCount);
+      return {
+        setup: { ...state.setup, typeKey },
+        sides,
+        // A new match type puts the winner back to Auto; the finish stays while the new type
+        // allows it (the Finish select resets it, and says so, when it doesn't).
+        result:
+          typeKey === state.setup.typeKey ? state.result : { ...state.result, winner: 'auto' },
+      };
+    });
   },
   setSlotRole: (slotRole) => {
     set((state) => ({ setup: { ...state.setup, slotRole } }));
@@ -276,11 +375,22 @@ export const useLabStore = create<LabState>()((set, get) => ({
   },
   removeSide: (side) => {
     set((state) =>
-      state.sides.length <= 1 ? {} : { sides: state.sides.filter((_, index) => index !== side) },
+      state.sides.length <= 1
+        ? {}
+        : {
+            sides: state.sides.filter((_, index) => index !== side),
+            result: planWithoutSide(state.result, side),
+          },
     );
   },
   clearAll: () => {
     set((state) => ({ sides: state.sides.map(() => []) }));
+  },
+  setWinner: (winner) => {
+    set((state) => ({ result: { ...state.result, winner } }));
+  },
+  setFinish: (finishKey) => {
+    set((state) => ({ result: { ...state.result, finishKey } }));
   },
   nextSeed: () => {
     set((state) => ({
@@ -301,12 +411,27 @@ export const useLabStore = create<LabState>()((set, get) => ({
       pending: null,
       submitted: run.args,
       lastRun: run,
+      simulation: null,
       ...(keepBatch ? {} : { batch: null, lastBatch: null }),
     });
   },
   finishBatch: (ticket, batch) => {
     if (ticket !== requestTicket) return;
     set({ pending: null, batch: batch.args, lastBatch: batch });
+  },
+  finishSimulation: (ticket, simulation) => {
+    if (ticket !== requestTicket) return;
+    // The simulated night is also the Run on screen: its rating, warnings and worker lines.
+    const args = previewPartOf(simulation.args);
+    const { lastBatch } = get();
+    const keepBatch = lastBatch !== null && sameSegment(lastBatch.args, args);
+    set({
+      pending: null,
+      submitted: args,
+      lastRun: { args, result: simulation.result.preview, date: simulation.date },
+      simulation,
+      ...(keepBatch ? {} : { batch: null, lastBatch: null }),
+    });
   },
   failRequest: (ticket, reasons) => {
     if (ticket !== requestTicket) return;

@@ -142,6 +142,15 @@ after a Next Day. Worker names on the side chips and in the Each worker table go
 `renderWorkerName` (`workerName.tsx`), a `WorkerLink` to the worker's profile; person inputs in the
 lab's Why? panels link through `EntityLinkContext` like everywhere else in the game.
 
+For a match, **Simulate** (beside Run) plays the result out too: the Winner and finish group at the
+bottom of the setup (under the sides on a phone) picks the winner (Auto, a side or Draw) and the
+finish (Auto or any the match type allows), and Simulate asks `match.simulate` with the current
+seed. The answer (`MatchResultBlock`) heads the result panel: who won with a Why? on the winner,
+the method and finish, then the usual score bug, rated with the finish's effects. Re-roll seed
+simulates again while a Simulate is on screen; Run goes back to a rating with no result. Auto reads
+"Auto (Random winners)" when `match.resultMode` says Random winners decides the player's results.
+The result components live in `screens/match-lab/result/`.
+
 ### Adding a Match lab panel
 
 Another feature adds a titled panel to the lab from its own files, without editing the lab:
@@ -152,15 +161,15 @@ registerLabPanel({
   order: 20,
   title: 'Aftermath',
   placement: 'result', // the default; 'setup' sits at the bottom of the setup column
-  render: ({ setup, sides, result, batch }) => <Aftermath result={result} />,
+  render: ({ setup, sides, result, batch, simulation }) => <Aftermath simulation={simulation} />,
   visible: ({ result }) => result !== null, // optional
 });
 ```
 
 `registerLabPanel` (`screens/match-lab/labPanelRegistry.ts`) returns a function that removes the
 panel again, throws for an id that is taken, and every open lab re-renders when the list changes.
-Panels of one placement are drawn in `order`, then by id. The render props only grow (MTCH2 adds
-`simulation`). Reserved orders:
+Panels of one placement are drawn in `order`, then by id. The render props only grow: MTCH2-04 added
+`simulation`, the `match.simulate` answer on screen (null before a Simulate and after a Run). Reserved orders:
 
 | Placement | Order | Panel                 |
 | --------- | ----- | --------------------- |

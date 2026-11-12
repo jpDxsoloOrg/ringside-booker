@@ -129,8 +129,8 @@ describe('autoFinish', () => {
       overrides: { 'match.autoFinish.heelCheatingFactor': 0 },
     });
     const considered = result.trace.kind === 'decision' ? result.trace.considered : [];
-    const cheatingKey = parseContentKey('finish.cheating');
-    expect(considered.find((entry) => entry.option === cheatingKey)).toMatchObject({
+    const cheatingName = finish('finish.cheating').name;
+    expect(considered.find((entry) => entry.option === cheatingName)).toMatchObject({
       score: 0,
       reason: NEVER_PICKED_REASON,
     });
@@ -151,6 +151,33 @@ describe('autoFinish', () => {
 
   it('refuses an empty candidate list', () => {
     expect(() => pick('empty', { candidates: [] })).toThrow(InvalidArgumentError);
+  });
+
+  it('names the options and the chosen finish by finish name, and returns the key', () => {
+    const result = pick('named');
+    if (result.trace.kind !== 'decision') {
+      throw new Error('not a decision');
+    }
+    const names = WIN_CANDIDATES.map((candidate) => candidate.name);
+    expect(result.trace.considered.map((entry) => entry.option)).toEqual(names);
+    const picked = WIN_CANDIDATES.find((candidate) => candidate.key === result.value);
+    expect(result.trace.chosen).toBe(picked?.name);
+    expect(String(result.trace.chosen)).not.toMatch(/^finish\./);
+  });
+
+  it('keeps options distinct when two finishes share a name', () => {
+    const [first, second] = WIN_CANDIDATES;
+    if (first === undefined || second === undefined) {
+      throw new Error('need two candidates');
+    }
+    const result = pick('shared-name', {
+      candidates: [first, { ...second, name: first.name }],
+    });
+    const options = result.trace.kind === 'decision' ? result.trace.considered : [];
+    expect(options.map((entry) => entry.option)).toEqual([
+      `${first.name} (${first.key})`,
+      `${first.name} (${second.key})`,
+    ]);
   });
 });
 
@@ -183,6 +210,9 @@ describe('chooseMethod', () => {
       BOOKED_METHOD_REASON,
     );
     expect(findTraceNodes(result.trace, 'roll')).toHaveLength(0);
+    expect(result.trace.kind === 'decision' ? result.trace.chosen : null).toBe(
+      METHOD_NAMES['method.submission'],
+    );
   });
 
   it('gives null for a draw and a no contest', () => {

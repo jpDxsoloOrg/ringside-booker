@@ -143,6 +143,11 @@ export const galleryEntry: GalleryEntry = {
 Money is integer `Cents` and dates are `GameDate` strings from `@ringside/engine`; the formatters
 turn them into text at the edge and nowhere else.
 
+Some screens keep components of their own that still get gallery entries: the Match lab's
+`MatchResultBlock` (a simulated match: headline with a Why? on the winner, method and finish, then
+the lab's score bug), `FinishSelect` (Auto or a finish, with the reset message in a live region)
+and `WinnerSelect` live in `screens/match-lab/result/`, not here.
+
 ## Why? panel
 
 Every derived number can explain itself (see `docs/design/calculation-traces.md`). A screen shows

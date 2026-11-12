@@ -22,13 +22,21 @@ export interface LabResultProps {
   readonly today: GameDate | null;
   /** The setup or sides changed since the Run. */
   readonly outOfDate: boolean;
+  /** What the out-of-date badge says; Simulate's result says "simulate again". */
+  readonly outOfDateText?: string;
 }
 
 /**
  * One rated night: Score, Stars, Work rate (or Talk) and Crowd on a score bug, each with its Why?,
  * then what the crowd expected against what it got, the slot, and the seed to quote.
  */
-export function LabResult({ result, ratedOn, today, outOfDate }: LabResultProps) {
+export function LabResult({
+  result,
+  ratedOn,
+  today,
+  outOfDate,
+  outOfDateText = 'Out of date: run again',
+}: LabResultProps) {
   const performance =
     result.workRate !== null
       ? { id: 'workRate', label: 'Work rate', traced: result.workRate }
@@ -90,7 +98,7 @@ export function LabResult({ result, ratedOn, today, outOfDate }: LabResultProps)
       {outOfDate && (
         <p className={styles['outOfDate']} role="status">
           <Badge tone="prestige" variant="solid">
-            Out of date: run again
+            {outOfDateText}
           </Badge>
           <span>The setup changed since this run.</span>
         </p>
