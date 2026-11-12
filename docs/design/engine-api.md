@@ -294,13 +294,17 @@ Commands other systems add:
 
 Queries other systems add:
 
-| Query                | Args                                          | Returns                                                                                                               |
-| -------------------- | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `condition.fatigue`  | `{ personId }`                                | A person's fatigue and the trace behind it, or null                                                                   |
-| `calendar.range`     | `{ from, to, scope, promotionId?, brandId? }` | `{ today, horizonEnd, shows }`: the stored shows in the window ([calendar.md](calendar.md#range))                     |
-| `calendar.projected` | `{ from, to, scope, promotionId?, brandId? }` | `{ today, projectionEnd, shows }`: shows past the horizon, worked out on read ([calendar.md](calendar.md#projection)) |
-| `calendar.show`      | `{ eventInstanceId }`                         | One show's row, placement trace and recurrence wording, or null ([calendar.md](calendar.md#one-show))                 |
-| `calendar.nextShow`  | `{ scope? }`                                  | `{ show, daysUntil }` for the first open show from today, or null ([calendar.md](calendar.md#the-next-show))          |
+| Query                | Args                                                                                             | Returns                                                                                                                                |
+| -------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `condition.fatigue`  | `{ personId }`                                                                                   | A person's fatigue and the trace behind it, or null                                                                                    |
+| `calendar.range`     | `{ from, to, scope, promotionId?, brandId? }`                                                    | `{ today, horizonEnd, shows }`: the stored shows in the window ([calendar.md](calendar.md#range))                                      |
+| `calendar.projected` | `{ from, to, scope, promotionId?, brandId? }`                                                    | `{ today, projectionEnd, shows }`: shows past the horizon, worked out on read ([calendar.md](calendar.md#projection))                  |
+| `calendar.show`      | `{ eventInstanceId }`                                                                            | One show's row, placement trace and recurrence wording, or null ([calendar.md](calendar.md#one-show))                                  |
+| `calendar.nextShow`  | `{ scope? }`                                                                                     | `{ show, daysUntil }` for the first open show from today, or null ([calendar.md](calendar.md#the-next-show))                           |
+| `match.preview`      | `{ kind, typeKey, sides, slotRole, importance, regionId, televised, promotionId?, previewSeed }` | One rated segment with every trace inline, never written and rolled on a detached stream ([match-rating.md](match-rating.md#previews)) |
+| `match.previewBatch` | The preview arguments and `runs` (1–500)                                                         | Statistics, a 20-bin score histogram and a quarter-star count over the runs ([match-rating.md](match-rating.md#previews))              |
+| `match.labOptions`   | `{}`                                                                                             | The Match lab's regions, event sizes, the viewer's promotion and defaults ([match-rating.md](match-rating.md#previews))                |
+| `match.labWorkers`   | `{ scope, regionId, search?, limit?, promotionId? }`                                             | `{ rows, total }`: the lab's worker picker, nothing hidden ([match-rating.md](match-rating.md#previews))                               |
 
 The calendar queries share one row, `CalendarShow`. `scope` is `mine` or
 `world`; a window may cover at most 366 days and is refused with

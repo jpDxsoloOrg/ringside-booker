@@ -54,6 +54,12 @@ export interface WorkRateInputs {
   workerCount: number;
   leader: MatchLeader;
   matchType: Pick<MatchTypeDef, 'name' | 'workRateFactor'>;
+  /**
+   * Runs on each side's aggregate before the sides are combined. The rater passes its `side` rating
+   * stage here (MTCH1-05), so a side modifier such as teamwork reaches work rate. Left out, the side
+   * aggregate is used as it is.
+   */
+  sideStage?: (side: WorkRateSide, value: Traced<number>) => Traced<number>;
 }
 
 export const NO_VARIANCE_NOTE = 'No variance roll';
@@ -113,15 +119,25 @@ export function matchLeaderOf(candidates: readonly MatchLeader[]): MatchLeader {
   return leader;
 }
 
+/** What a worker's stamina check found: the need, the worker's stamina and the traced penalty. */
+export interface StaminaCheck {
+  /** `staminaNeed.<class> × (2 ÷ max(2, workerCount)) ^ sharedLoadExponent`. */
+  need: number;
+  /** The worker's stamina. */
+  have: number;
+  /** `max(0, need − have) × staminaPenaltyPerPoint`. */
+  penalty: Traced<number>;
+}
+
 /**
- * Step 1 for one worker: `performance − max(0, need − stamina) × staminaPenaltyPerPoint`, where
- * `need = staminaNeed.<class> × (2 ÷ max(2, workerCount)) ^ sharedLoadExponent`.
+ * A worker's stamina check for a match of `durationClass` worked by `workerCount` people. The rater
+ * reads it for the per-worker lines; `workRate` subtracts the same penalty.
  */
-function afterStaminaCheck(
-  worker: WorkRateWorker,
-  inputs: WorkRateInputs,
+export function staminaCheckOf(
+  worker: Pick<WorkRateWorker, 'name' | 'stamina'>,
+  inputs: Pick<WorkRateInputs, 'durationClass' | 'workerCount'>,
   tunables: EngineTunables,
-): Traced<number> {
+): StaminaCheck {
   const classLabel = DURATION_CLASS_LABELS[inputs.durationClass];
   const sharers = Math.max(SINGLES_WORKERS, inputs.workerCount);
   const penalty = startCalc(`Stamina penalty for ${worker.name}`, 0, {
@@ -146,6 +162,21 @@ function afterStaminaCheck(
       penalty.tunable(tunables, 'match.workRate.staminaPenaltyPerPoint', 'Stamina penalty'),
     );
   const cost = penalty.done();
+  const need =
+    tunables.get(STAMINA_NEED_KEYS[inputs.durationClass]) * (SINGLES_WORKERS / sharers) ** exponent;
+  return { need, have: worker.stamina, penalty: cost };
+}
+
+/**
+ * Step 1 for one worker: `performance − max(0, need − stamina) × staminaPenaltyPerPoint`, where
+ * `need = staminaNeed.<class> × (2 ÷ max(2, workerCount)) ^ sharedLoadExponent`.
+ */
+function afterStaminaCheck(
+  worker: WorkRateWorker,
+  inputs: WorkRateInputs,
+  tunables: EngineTunables,
+): Traced<number> {
+  const cost = staminaCheckOf(worker, inputs, tunables).penalty;
   const verdict =
     cost.value > 0
       ? `stamina check failed for ${worker.name}, ${minus(cost.value)}`
@@ -221,10 +252,8 @@ export function workRate(
   }
   const { tunables } = deps;
 
-  const sideValues: SideAggregateMember[] = inputs.sides.map((side) => ({
-    id: String(side.side).padStart(2, '0'),
-    name: sideLabel(side.side),
-    value: sideAggregate(
+  const sideValues: SideAggregateMember[] = inputs.sides.map((side) => {
+    const aggregate = sideAggregate(
       {
         label: sideLabel(side.side),
         members: side.members.map((worker) => ({
@@ -235,8 +264,13 @@ export function workRate(
         decayKey: 'match.side.depthDecay',
       },
       { tunables },
-    ),
-  }));
+    );
+    return {
+      id: String(side.side).padStart(2, '0'),
+      name: sideLabel(side.side),
+      value: inputs.sideStage === undefined ? aggregate : inputs.sideStage(side, aggregate),
+    };
+  });
   const acrossSides = sideAggregate(
     { label: ACROSS_SIDES_LABEL, members: sideValues, decayKey: 'match.sides.depthDecay' },
     { tunables },

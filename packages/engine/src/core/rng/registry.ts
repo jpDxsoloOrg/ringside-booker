@@ -134,6 +134,20 @@ class SeededStream implements RngStream {
   }
 }
 
+/**
+ * A stream that belongs to no registry: its state is derived from `seed`, the stream name and a
+ * caller's `key` (`name + "#" + key`), and it is never saved, snapshotted or restored. Drawing from
+ * it can never move a world stream, so the Match lab's previews (and MTCH6's pair chemistry) can
+ * roll as often as they like without changing what happens on the next real show.
+ *
+ * The same seed, name and key always give the same sequence; a different key gives a different
+ * one. See `docs/design/determinism.md#detached-streams`.
+ */
+export function detachedStream(seed: string, name: StreamName, key: string): RngStream {
+  assertStreamName(name);
+  return new SeededStream(name, seedState(seed, `${name}#${key}`));
+}
+
 /** Seeded, serialisable source of every random number in the engine. */
 export class RngRegistry {
   /** The game seed every stream is derived from. */

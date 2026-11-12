@@ -1112,3 +1112,94 @@ export {
   registerFinishFilter,
   SEGMENT_FINISH_ISSUE_CODES,
 } from './systems/match/index';
+
+// The rating pipeline (MTCH1-05): `rateSegment`, the rater registry, rating modifiers and their
+// stages, the rating policy door (D-01, neutral by default), segment warnings and the
+// stored-segment adapter. See docs/design/match-rating.md#pipeline-and-seams.
+export type {
+  RateSegmentOptions,
+  RatingContext,
+  RatingMode,
+  RatingModifier,
+  RatingPolicy,
+  RatingPolicyProvider,
+  RatingPolicySummary,
+  RatingStage,
+  RatingSubject,
+  SegmentRater,
+  SegmentRatingEvent,
+  SegmentRatingInput,
+  SegmentRatingResult,
+  SegmentRatingSide,
+  SegmentRatingSlot,
+  SegmentWarning,
+  SegmentWarningCode,
+  SideSubject,
+  SlotDerivation,
+  StaminaCheck,
+  WorkerLine,
+  WorkerStaminaLine,
+  WorkerSubject,
+} from './systems/match/index';
+export {
+  ANGLE_CROWD_FACTOR,
+  NEUTRAL_RATING_POLICY,
+  NEUTRAL_RATING_POLICY_LABEL,
+  NOT_UNDER_CONTRACT_NOTE,
+  RATE_SEGMENT_REASON_CODES,
+  RATING_ORDER,
+  RATING_STAGE_LABELS,
+  RATING_STAGES,
+  SEGMENT_WARNING_CODES,
+  rateSegment,
+  ratingInputFromSegment,
+  ratingModifiersFor,
+  ratingPolicyFor,
+  registerRatingModifier,
+  registerRatingPolicyProvider,
+  registerSegmentRater,
+  resetMatchRegistriesForTests,
+  segmentRaterFor,
+  segmentWarnings,
+  skippedDetailNote,
+  staminaCheckOf,
+} from './systems/match/index';
+
+// The Match lab's previews (MTCH1-06): `match.preview` and `match.previewBatch` rate a segment on a
+// detached stream (`detachedStream`, exported with the RNG) without writing or touching the world's
+// RNG; `match.labOptions` and `match.labWorkers` give the lab its setup and picker.
+// See docs/design/match-rating.md#previews.
+export type {
+  HistogramBin,
+  LabDefaults,
+  LabImportance,
+  LabOptions,
+  LabPromotion,
+  LabRegion,
+  LabWorkerRow,
+  LabWorkerScope,
+  LabWorkers,
+  LabWorkersArgs,
+  PreviewArgs,
+  PreviewBatchArgs,
+  PreviewBatchResult,
+  PreviewResult,
+  QuarterCount,
+  StarStats,
+  Stats,
+} from './systems/match/index';
+export {
+  LAB_WORKER_SCOPES,
+  LAB_WORKERS_DEFAULT_LIMIT,
+  LAB_WORKERS_MAX_LIMIT,
+  LAB_WORKERS_MAX_SEARCH,
+  MATCH_PREVIEW_STREAM,
+  PREVIEW_BATCH_MAX_RUNS,
+  PREVIEW_MAX_SIDE_SIZE,
+  PREVIEW_REASON_CODES,
+  PREVIEW_SEED_MAX,
+  PreviewArgsSchema,
+  PreviewBatchArgsSchema,
+  SCORE_HISTOGRAM_BINS,
+  SCORE_HISTOGRAM_WIDTH,
+} from './systems/match/index';
