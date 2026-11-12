@@ -309,7 +309,8 @@ describe('WorkersScreen', () => {
       },
       { timeout: LOAD_MS },
     );
-  });
+    // Two lazy screen loads in one test: give it room when the whole suite runs at once.
+  }, 15_000);
 
   it('opens the profile when a row is clicked away from its controls', async () => {
     const { router, user } = renderWorkers();
