@@ -37,11 +37,12 @@ const CATALOG_FILES = {
   matchType: 'catalogs/match-types.json',
   angleType: 'catalogs/angle-types.json',
   method: 'catalogs/methods.json',
+  finish: 'catalogs/finishes.json',
 } as const;
 
 type CatalogKind = keyof typeof CATALOG_FILES;
 
-const CATALOG_KINDS: readonly CatalogKind[] = ['matchType', 'angleType', 'method'];
+const CATALOG_KINDS: readonly CatalogKind[] = ['matchType', 'angleType', 'method', 'finish'];
 
 /** The mini world with the shipped catalogs added to its base pack, each file edited by `edit`. */
 async function miniWorldWithCatalogs(
@@ -222,6 +223,23 @@ describe('segment-keys', () => {
     );
     expect(segmentKeys.check(world, content).map(formatIssue)).toEqual([
       'error segment-keys mini-base/catalogs/methods.json method.submission.name: method submission is named "pinfall!", already used by pinfall',
+    ]);
+  });
+
+  it('fails a finish catalog that leaves a match type with no automatic win finish', async () => {
+    const { world, content } = load(
+      await miniWorldWithCatalogs({
+        finish: (records) =>
+          records.map((record) => {
+            if (record['key'] === 'clean') {
+              return { ...record, matchTypes: { except: ['sprint'] } };
+            }
+            return record['outcomeKind'] === 'win' ? { ...record, autoWeight: 0 } : record;
+          }),
+      }),
+    );
+    expect(segmentKeys.check(world, content).map(formatIssue)).toEqual([
+      'error segment-keys mini-base/catalogs/match-types.json matchType.sprint: match type match.sprint allows no win finish with an autoWeight above 0, so no finish can be picked automatically',
     ]);
   });
 });
