@@ -827,7 +827,7 @@ Shared fields:
 | ----------------- | ----------------------------------------------------------------------------- | -------------------------------------------- |
 | `id`              | `SegmentId`                                                                   |                                              |
 | `eventInstanceId` | `EventInstanceId`                                                             |                                              |
-| `slot`            | int ≥ 0                                                                       | position within its card section, from 0     |
+| `slot`            | int ≥ 0                                                                       | position in its section, from 0; gaps = open |
 | `preShow`         | boolean                                                                       | true = pre-show section, false = main card   |
 | `label`           | string or null                                                                | a billing line such as a contender's match   |
 | `storylineIds`    | `StorylineId[]`                                                               | unique                                       |
@@ -839,8 +839,11 @@ Shared fields:
 - `match`: `{ matchTypeKey; stipulationKeys[]; titleIds: TitleId[]; finishKey | null }`.
   `finishKey` is the planned finish (`finish.clean`); `null` means "decided on
   the night". See [match-finishes.md](match-finishes.md).
-- `outcome`, the outcome union:
-  - `null` until the show is completed;
+- `outcome`, the outcome union. While the show is `scheduled` or `booked` it is
+  the booker's planned result; once the show is `completed` it is the result
+  that happened (written by EVT3). One field, so there is one source of truth.
+  See [booking.md](booking.md#planned-results).
+  - `null`: nothing planned (decided on the night), or no result yet;
   - `{ kind: 'win'; winningSide; methodKey }`, where `winningSide` is a
     participant `side` (0–29, `MAX_SIDE`);
   - `{ kind: 'draw' }`;
@@ -960,18 +963,20 @@ the rest at write time):
 | ------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
 | `titleReigns.holderCountMismatch`                      | a reign has exactly `title.holderCount` holders                                           |
 | `titleReigns.overlap`                                  | reigns of one title do not overlap in time                                                |
-| `segments.slotsNotContiguous`                          | within an instance, main-card slots run 0..n-1, and pre-show slots run 0..m-1, separately |
+| `segments.slotOutsideFormat`                           | a main-card slot is below `format.slots`, and a pre-show slot below `format.preShowSlots` |
 | `segments.tooManyMainCard` / `segments.tooManyPreShow` | a section holds no more segments than `format.slots` / `format.preShowSlots`              |
 | `segments.winningSideWithoutCompetitor`                | a match's `outcome.winningSide` has a `competitor` participant                            |
 | `segments.titleFromOtherPromotion`                     | a match's `titleIds` belong to the instance's promotion                                   |
-| `segments.resultBeforeCompletion`                      | `rating` and `outcome` are set only once the instance is `completed`                      |
+| `segments.resultBeforeCompletion`                      | `rating` is set only once the instance is `completed`; `outcome` may hold a plan earlier  |
 | `segments.tooFewSides`                                 | a match has competitors on at least two distinct sides                                    |
 | `seasons.activeCount` / `seasons.activeNotLatest`      | a non-empty table has exactly one active season, and it has the highest number            |
 | `seasons.numberGap`                                    | season numbers run 1..n                                                                   |
 | `seasons.notContiguous` / `seasons.overlap`            | each season starts the day after the previous one ends                                    |
 
 Slot and format issues are reported against the `eventInstances` row, since
-they are about the card as a whole.
+they are about the card as a whole. A card may have gaps: each section numbers
+from 0 and open slots are simply absent, so a booker can fill the main event
+first and leave slot 3 open (D-10, [booking.md](booking.md#the-card-model)).
 
 ## Geography, media, mail, news and ledger
 
