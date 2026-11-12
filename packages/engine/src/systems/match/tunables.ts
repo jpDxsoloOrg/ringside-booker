@@ -7,6 +7,11 @@
  *
  * `match.perf.*`, `match.side(s).*` and `match.workRate.*` (MTCH1-03): the in-ring formulas' weights,
  * penalties, side decays and work rate checks. See docs/design/match-rating.md#worker-performance.
+ *
+ * `match.starPower.*`, `match.expectation.*`, `match.crowd.*`, `match.compression.*`,
+ * `match.blend.*`, `match.stars.*` and `match.angle.*` (MTCH1-04): the crowd half of a rating (D-02),
+ * soft compression, the segment score blend, star ratings and the simple talking segment score.
+ * See docs/design/match-rating.md#star-power.
  */
 
 import { defineTunables } from '../../core/tunables/define';
@@ -116,6 +121,64 @@ function workRateNumber(
 const NEED_RANGE = { min: 0, max: 100, step: 1 };
 const PER_POINT_RANGE = { min: 0, max: 2, step: 0.05 };
 const SPREAD_RANGE = { min: 0, max: 2, step: 0.05 };
+
+// Crowd, scoring, stars and talking segments (MTCH1-04).
+const CROWD_CATEGORY = 'Match: crowd';
+const SCORING_CATEGORY = 'Match: scoring';
+const STARS_CATEGORY = 'Match: stars';
+const TALKING_CATEGORY = 'Match: talking segments';
+const STAR_POWER_DOC = 'match-rating.md#star-power';
+const EXPECTATION_DOC = 'match-rating.md#crowd-and-expectation-d-02';
+const COMPRESSION_DOC = 'match-rating.md#soft-compression';
+const SEGMENT_SCORE_DOC = 'match-rating.md#segment-score';
+const STARS_DOC = 'match-rating.md#star-ratings';
+const TALKING_DOC = 'match-rating.md#talking-segments-simple';
+
+const SHARE_RANGE = { min: 0, max: 1, step: 0.05 };
+const OFFSET_RANGE = { min: -30, max: 30, step: 1 };
+const VARIANCE_SD_RANGE = { min: 0, max: 20, step: 0.5 };
+
+/** A weight or share, 0..1. */
+function share(defaultValue: number, category: string, docRef: string, description: string) {
+  return matchNumber(defaultValue, SHARE_RANGE, 'ratio', category, docRef, description);
+}
+
+/** A flat change to what the crowd expects, in points, −30..30. */
+function expectationOffset(defaultValue: number, description: string) {
+  return matchNumber(
+    defaultValue,
+    OFFSET_RANGE,
+    'points',
+    CROWD_CATEGORY,
+    EXPECTATION_DOC,
+    description,
+  );
+}
+
+/** The share of work rate in a match's segment score for one promotion style. */
+function workRateShare(defaultValue: number, styleName: string) {
+  return share(
+    defaultValue,
+    SCORING_CATEGORY,
+    SEGMENT_SCORE_DOC,
+    `Share of work rate in a match's score at a ${styleName} promotion; the crowd gets the rest`,
+  );
+}
+
+/** The most stars a segment can get, 0..5 in quarter stars. */
+function starCap(defaultValue: number, description: string) {
+  return {
+    kind: 'number',
+    default: defaultValue,
+    min: 0,
+    max: 5,
+    step: 0.25,
+    unit: 'stars',
+    category: STARS_CATEGORY,
+    description,
+    docRef: STARS_DOC,
+  } as const;
+}
 
 export const matchTunables = defineTunables({
   'match.slot.weight.preShow': slotWeight(
@@ -292,5 +355,153 @@ export const matchTunables = defineTunables({
     { min: 0, max: 20, step: 0.5 },
     'points',
     'Spread of the night-to-night work rate roll; 0 turns the variance off',
+  ),
+  // Crowd, scoring, stars and talking segments (MTCH1-04). See docs/design/match-rating.md.
+  'match.starPower.depthDecay': matchNumber(
+    0.5,
+    SHARE_RANGE,
+    'ratio',
+    CROWD_CATEGORY,
+    STAR_POWER_DOC,
+    'How much each next-most-popular worker adds to star power; 0 counts only the biggest star',
+  ),
+  'match.starPower.curve': share(
+    0.8,
+    CROWD_CATEGORY,
+    STAR_POWER_DOC,
+    'Diminishing returns at the top of star power; 0 makes star power plain popularity',
+  ),
+  'match.expectation.base': matchNumber(
+    25,
+    { min: 0, max: 100, step: 1 },
+    'points',
+    CROWD_CATEGORY,
+    EXPECTATION_DOC,
+    'What a crowd expects from anyone before star power, momentum and the slot',
+  ),
+  'match.expectation.starWeight': share(
+    0.5,
+    CROWD_CATEGORY,
+    EXPECTATION_DOC,
+    'How much star power raises what the crowd expects',
+  ),
+  'match.expectation.momentumWeight': share(
+    0.1,
+    CROWD_CATEGORY,
+    EXPECTATION_DOC,
+    'How much momentum with the promotion raises (or lowers) what the crowd expects',
+  ),
+  'match.expectation.slot.preShow': expectationOffset(-8, 'Expectation change on the pre-show'),
+  'match.expectation.slot.opener': expectationOffset(-3, 'Expectation change for the opener'),
+  'match.expectation.slot.midcard': expectationOffset(0, 'Expectation change in the midcard'),
+  'match.expectation.slot.semiMain': expectationOffset(4, 'Expectation change for the semi-main'),
+  'match.expectation.slot.mainEvent': expectationOffset(8, 'Expectation change for the main event'),
+  'match.expectation.importance.house': expectationOffset(-6, 'Expectation change at a house show'),
+  'match.expectation.importance.minor': expectationOffset(
+    -3,
+    'Expectation change at a minor event',
+  ),
+  'match.expectation.importance.regular': expectationOffset(
+    0,
+    'Expectation change at a regular event',
+  ),
+  'match.expectation.importance.major': expectationOffset(4, 'Expectation change at a major event'),
+  'match.expectation.importance.flagship': expectationOffset(
+    8,
+    'Expectation change at a flagship event',
+  ),
+  'match.expectation.televised': expectationOffset(2, 'Expectation change when the show is on TV'),
+  'match.crowd.performanceWeight': share(
+    0.55,
+    CROWD_CATEGORY,
+    EXPECTATION_DOC,
+    'Weight of work rate (or talk) in what the crowd thinks was delivered',
+  ),
+  'match.crowd.entertainmentWeight': share(
+    0.25,
+    CROWD_CATEGORY,
+    EXPECTATION_DOC,
+    'Weight of entertainment in what the crowd thinks was delivered',
+  ),
+  'match.crowd.starWeight': share(
+    0.2,
+    CROWD_CATEGORY,
+    EXPECTATION_DOC,
+    'Weight of star power in what the crowd thinks was delivered',
+  ),
+  'match.crowd.surpriseWeight': share(
+    0.5,
+    CROWD_CATEGORY,
+    EXPECTATION_DOC,
+    'How much beating or missing expectation moves the crowd; 0 ignores expectation',
+  ),
+  'match.crowd.varianceSd': matchNumber(
+    3,
+    VARIANCE_SD_RANGE,
+    'points',
+    CROWD_CATEGORY,
+    EXPECTATION_DOC,
+    'Spread of the crowd-on-the-night roll; 0 turns the variance off',
+  ),
+  'match.compression.knee': matchNumber(
+    85,
+    { min: 50, max: 100, step: 1 },
+    'points',
+    SCORING_CATEGORY,
+    COMPRESSION_DOC,
+    'Where soft compression starts; 100 turns it off inside the scale',
+  ),
+  'match.compression.factor': share(
+    0.4,
+    SCORING_CATEGORY,
+    COMPRESSION_DOC,
+    'How much of each point above the knee is kept; 0 flattens everything above it, 1 keeps it all',
+  ),
+  'match.blend.workRateShare.mainstream': workRateShare(0.45, 'mainstream'),
+  'match.blend.workRateShare.traditional': workRateShare(0.5, 'traditional'),
+  'match.blend.workRateShare.technical': workRateShare(0.65, 'technical'),
+  'match.blend.workRateShare.hardHitting': workRateShare(0.6, 'hard-hitting'),
+  'match.blend.workRateShare.hardcore': workRateShare(0.5, 'hardcore'),
+  'match.blend.workRateShare.highFlying': workRateShare(0.6, 'high-flying'),
+  'match.blend.workRateShare.entertainment': workRateShare(0.3, 'entertainment'),
+  'match.stars.performanceShare': share(
+    0.7,
+    STARS_CATEGORY,
+    STARS_DOC,
+    'Share of work rate (or talk) in a star rating; the crowd gets the rest',
+  ),
+  'match.stars.zeroAt': matchNumber(
+    35,
+    { min: 0, max: 80, step: 1 },
+    'points',
+    STARS_CATEGORY,
+    STARS_DOC,
+    'The blended score that is worth no stars at all',
+  ),
+  'match.stars.pointsPerStar': matchNumber(
+    12,
+    { min: 0, max: 30, step: 0.5 },
+    'points',
+    STARS_CATEGORY,
+    STARS_DOC,
+    'Points of blended score above the zero for each star; 0 gives every segment above it the cap',
+  ),
+  'match.stars.cap.short': starCap(3.5, 'The most stars a short match can get'),
+  'match.stars.cap.standard': starCap(4.75, 'The most stars a standard match can get'),
+  'match.stars.cap.long': starCap(5, 'The most stars a long match can get'),
+  'match.stars.cap.angle': starCap(4, 'The most stars a talking segment can get'),
+  'match.angle.talkShare': share(
+    0.35,
+    TALKING_CATEGORY,
+    SEGMENT_SCORE_DOC,
+    "Share of talk in a talking segment's score; the crowd gets the rest",
+  ),
+  'match.angle.varianceSd': matchNumber(
+    4,
+    VARIANCE_SD_RANGE,
+    'points',
+    TALKING_CATEGORY,
+    TALKING_DOC,
+    'Spread of the how-the-promo-landed roll; 0 turns the variance off',
   ),
 });
