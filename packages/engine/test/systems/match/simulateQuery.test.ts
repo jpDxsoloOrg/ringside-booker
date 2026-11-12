@@ -152,6 +152,26 @@ describe('match.simulate', () => {
     expect(first.randomWinnersMode).toBe(false);
   });
 
+  it('names the finish and method in the result Why? by name, never by content key', () => {
+    const sim = simWorld();
+    for (let seed = 0; seed < 20; seed += 1) {
+      const result = simulate(sim, singles(sim, { previewSeed: seed }));
+      const decisions = findTraceNodes(result.resultTrace, 'decision');
+      const options = decisions.flatMap((node) => [
+        node.chosen,
+        ...node.considered.map((entry) => entry.option),
+      ]);
+      expect(options.filter((option) => /^(finish|method)\./.test(String(option)))).toEqual([]);
+      expect(options).toContain(result.finish.name);
+    }
+    const booked = simulate(
+      sim,
+      singles(sim, { winner: { side: 0 }, finishKey: parseContentKey('finish.disqualification') }),
+    );
+    const chosen = findTraceNodes(booked.resultTrace, 'decision').map((node) => node.chosen);
+    expect(chosen).toContain('Disqualification');
+  });
+
   it('never moves the world, its RNG, traces or event log over 50 calls', () => {
     const sim = simWorld();
     const before = JSON.stringify(sim.engine.exportState());
