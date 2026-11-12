@@ -162,6 +162,45 @@ describe('RosterPicker', () => {
     expect(props.onSearchChange).toHaveBeenCalledWith('Kai');
   });
 
+  it('hides people already booked elsewhere on the card until Hide booked is turned off', async () => {
+    const user = userEvent.setup({ delay: null });
+    const BOOKED = person(4, 'Mia Stone', {
+      bookedElsewhere: true,
+      notes: ['On this card: Opener'],
+    });
+    renderPicker({ people: [KAI, BOOKED], bookedFilter: true });
+    const hideBooked = screen.getByRole('button', { name: 'Hide booked' });
+    expect(hideBooked).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.queryByRole('option', { name: /Mia Stone/ })).not.toBeInTheDocument();
+    expect(
+      screen.getByText('1 already on this card is hidden. Turn off Hide booked to see them.'),
+    ).toBeInTheDocument();
+
+    await user.click(hideBooked);
+    expect(screen.getByRole('option', { name: /Mia Stone/ })).toBeInTheDocument();
+    expect(screen.getByText('On this card: Opener')).toBeInTheDocument();
+  });
+
+  it('hides a team with a member booked elsewhere, and says why the list is empty', async () => {
+    const user = userEvent.setup({ delay: null });
+    renderPicker({
+      people: [person(4, 'Mia Stone', { bookedElsewhere: true })],
+      teams: [{ ...TEAM, bookedElsewhere: true }],
+      bookedFilter: true,
+    });
+    expect(screen.getByText(/Everyone left is already on this card/)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Teams' }));
+    expect(screen.queryByRole('option', { name: /The Hale Storm/ })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Hide booked' }));
+    expect(screen.getByRole('option', { name: /The Hale Storm/ })).toBeInTheDocument();
+  });
+
+  it('has no Hide booked filter unless the screen asks for it', () => {
+    renderPicker({ people: [person(4, 'Mia Stone', { bookedElsewhere: true })] });
+    expect(screen.queryByRole('button', { name: 'Hide booked' })).not.toBeInTheDocument();
+    expect(screen.getByRole('option', { name: /Mia Stone/ })).toBeInTheDocument();
+  });
+
   it('says so when nobody matches', async () => {
     const user = userEvent.setup();
     renderPicker({ people: [TIA] });

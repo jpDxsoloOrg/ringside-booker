@@ -49,14 +49,12 @@ export function pickerPerson(
     : inDraft !== undefined
       ? `Already on ${sideLabel(inDraft.side)} of this segment`
       : null;
+  const elsewhere = row.onCard.filter((place) => place.segmentId !== context.segmentId);
   const notes = [
     ...(row.otherBrand && row.brandName !== null ? [`Other brand: ${row.brandName}`] : []),
-    ...row.onCard
-      .filter((place) => place.segmentId !== context.segmentId)
-      .map(
-        (place) =>
-          `On this card: ${slotNameOnCard(context.card, place.segmentId, place.slotLabel)}`,
-      ),
+    ...elsewhere.map(
+      (place) => `On this card: ${slotNameOnCard(context.card, place.segmentId, place.slotLabel)}`,
+    ),
   ];
   return {
     personId: row.personId,
@@ -69,15 +67,20 @@ export function pickerPerson(
     bookable: row.bookable,
     reason,
     otherBrand: row.otherBrand,
+    bookedElsewhere: elsewhere.length > 0,
     notes,
   };
 }
 
-/** A team row as the picker shows it: members named, and who stops it being bookable. */
+/**
+ * A team row as the picker shows it: members named, who stops it being bookable, and whether a
+ * member is already booked in another segment of the card (not `segmentId`, the one being edited).
+ */
 export function pickerTeam(
   team: AvailableTeamRow,
   people: ReadonlyMap<PersonId, AvailableWorkerRow>,
   draft: SegmentDraft,
+  segmentId: SegmentId | null = null,
 ): RosterPickerTeam {
   const members = team.memberIds.map((personId) => people.get(personId));
   const memberNames = team.memberIds.map(
@@ -104,6 +107,9 @@ export function pickerTeam(
     bookable: team.bookable,
     reason,
     otherBrand: members.some((member) => member?.otherBrand === true),
+    bookedElsewhere: members.some(
+      (member) => member?.onCard.some((place) => place.segmentId !== segmentId) === true,
+    ),
   };
 }
 
@@ -161,8 +167,8 @@ export function EditorRosterPicker({
     [query.data, kind, draft, card, segmentId],
   );
   const teams = useMemo(
-    () => (query.data?.teams ?? []).map((team) => pickerTeam(team, roster, draft)),
-    [query.data, roster, draft],
+    () => (query.data?.teams ?? []).map((team) => pickerTeam(team, roster, draft, segmentId)),
+    [query.data, roster, draft, segmentId],
   );
 
   const side = shown.side;
@@ -174,6 +180,7 @@ export function EditorRosterPicker({
       people={people}
       {...(kind === 'match' ? { teams } : {})}
       initialMode={shown.mode}
+      bookedFilter
       loading={query.status === 'loading'}
       onSearchChange={setSearch}
       onPickPerson={(person) => {

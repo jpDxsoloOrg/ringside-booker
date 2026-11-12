@@ -43,6 +43,8 @@ export interface RosterPickerPerson {
   readonly reason: string | null;
   /** True when they work for another brand than the show's. */
   readonly otherBrand: boolean;
+  /** True when they are already booked in another segment of this card: Hide booked drops them. */
+  readonly bookedElsewhere?: boolean;
   /** Short notes after the chips: "Other brand: Altura Overclock", "On this card: Opener". */
   readonly notes: readonly string[];
 }
@@ -58,6 +60,8 @@ export interface RosterPickerTeam {
   readonly reason: string | null;
   /** True when any member works for another brand than the show's. */
   readonly otherBrand: boolean;
+  /** True when any member is already booked in another segment of this card. */
+  readonly bookedElsewhere?: boolean;
 }
 
 export type RosterPickerMode = 'people' | 'teams';
@@ -80,10 +84,19 @@ export interface RosterPickerProps {
   readonly onPickTeam?: (team: RosterPickerTeam) => void;
   /** A line above the list, such as "Side 1: 1 of 2". */
   readonly status?: string;
+  /**
+   * Offer the Hide booked filter (on when the picker opens), which drops rows marked
+   * `bookedElsewhere`. Off by default, for pickers that aren't building a card.
+   */
+  readonly bookedFilter?: boolean;
 }
 
 function isBookable(row: { readonly selectable: boolean; readonly bookable?: boolean }): boolean {
   return row.bookable ?? row.selectable;
+}
+
+function isBookedElsewhere(row: { readonly bookedElsewhere?: boolean }): boolean {
+  return row.bookedElsewhere ?? false;
 }
 
 const AVAILABILITY_ICONS: Readonly<Record<AvailabilityStatus, IconName>> = {
@@ -212,10 +225,12 @@ export function RosterPicker({
   onPickPerson,
   onPickTeam,
   status,
+  bookedFilter = false,
 }: RosterPickerProps) {
   const [text, setText] = useState('');
   const [bookableOnly, setBookableOnly] = useState(true);
   const [thisBrand, setThisBrand] = useState(false);
+  const [hideBooked, setHideBooked] = useState(bookedFilter);
   const [mode, setMode] = useState<RosterPickerMode>(initialMode);
   const [active, setActive] = useState(0);
   const searchId = useId();
@@ -228,6 +243,7 @@ export function RosterPicker({
     setWasOpen(open);
     if (open) {
       setText('');
+      setHideBooked(bookedFilter);
       setMode(initialMode);
       setActive(0);
     }
@@ -248,11 +264,13 @@ export function RosterPicker({
   }, [trimmed]);
 
   const showingTeams = mode === 'teams' && teams !== undefined;
+  const hidingBooked = bookedFilter && hideBooked;
   const rows = useMemo<readonly PickerRow[]>(() => {
     if (showingTeams) {
       return teams
         .filter((team) => !bookableOnly || isBookable(team))
         .filter((team) => !thisBrand || !team.otherBrand)
+        .filter((team) => !hidingBooked || !isBookedElsewhere(team))
         .map((team) => ({
           key: team.teamId,
           selectable: team.selectable,
@@ -267,6 +285,7 @@ export function RosterPicker({
     return people
       .filter((person) => !bookableOnly || isBookable(person))
       .filter((person) => !thisBrand || !person.otherBrand)
+      .filter((person) => !hidingBooked || !isBookedElsewhere(person))
       .map((person) => ({
         key: person.personId,
         selectable: person.selectable,
@@ -277,7 +296,16 @@ export function RosterPicker({
         },
         content: personContent(person),
       }));
-  }, [bookableOnly, onPickPerson, onPickTeam, people, showingTeams, teams, thisBrand]);
+  }, [
+    bookableOnly,
+    hidingBooked,
+    onPickPerson,
+    onPickTeam,
+    people,
+    showingTeams,
+    teams,
+    thisBrand,
+  ]);
 
   const activeIndex = rows.length === 0 ? -1 : Math.min(active, rows.length - 1);
   const optionId = (index: number): string => `${listId}-option-${String(index)}`;
@@ -312,11 +340,18 @@ export function RosterPicker({
   };
 
   const listLabel = showingTeams ? 'Teams' : 'People';
-  // Rows the Bookable only filter hides (after the brand filter), so the list can say so.
-  const hidden = bookableOnly
-    ? showingTeams
-      ? teams.filter((team) => !isBookable(team) && (!thisBrand || !team.otherBrand)).length
-      : people.filter((person) => !isBookable(person) && (!thisBrand || !person.otherBrand)).length
+  // Rows each filter hides (after the brand filter), so the list can say so. Someone both
+  // unbookable and booked elsewhere counts once, under Bookable only.
+  const candidates: readonly {
+    readonly selectable: boolean;
+    readonly bookable?: boolean;
+    readonly otherBrand: boolean;
+    readonly bookedElsewhere?: boolean;
+  }[] = (showingTeams ? teams : people).filter((row) => !thisBrand || !row.otherBrand);
+  const hidden = bookableOnly ? candidates.filter((row) => !isBookable(row)).length : 0;
+  const hiddenBooked = hidingBooked
+    ? candidates.filter((row) => isBookedElsewhere(row) && (!bookableOnly || isBookable(row)))
+        .length
     : 0;
 
   return (
@@ -380,6 +415,17 @@ export function RosterPicker({
           >
             This brand
           </FilterChip>
+          {bookedFilter && (
+            <FilterChip
+              pressed={hideBooked}
+              onToggle={() => {
+                setHideBooked(!hideBooked);
+                setActive(0);
+              }}
+            >
+              Hide booked
+            </FilterChip>
+          )}
           {teams !== undefined && (
             <FilterChip
               pressed={showingTeams}
@@ -408,7 +454,9 @@ export function RosterPicker({
             body={
               hidden > 0
                 ? 'Turn off Bookable only to see everyone, with why they can’t be booked.'
-                : 'Try another name.'
+                : hiddenBooked > 0
+                  ? 'Everyone left is already on this card. Turn off Hide booked to see them.'
+                  : 'Try another name.'
             }
           />
         ) : (
@@ -455,6 +503,11 @@ export function RosterPicker({
         {hidden > 0 && rows.length > 0 && (
           <p className={styles['status']}>
             {`${String(hidden)} ${hidden === 1 ? 'more is' : 'more are'} hidden because they can’t be booked. Turn off Bookable only to see why.`}
+          </p>
+        )}
+        {hiddenBooked > 0 && rows.length > 0 && (
+          <p className={styles['status']}>
+            {`${String(hiddenBooked)} already on this card ${hiddenBooked === 1 ? 'is' : 'are'} hidden. Turn off Hide booked to see them.`}
           </p>
         )}
       </div>
