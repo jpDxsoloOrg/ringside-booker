@@ -176,6 +176,7 @@ function aLibrary(
     matchTypes: {},
     angleTypes: {},
     methods: {},
+    finishes: {},
   };
 }
 

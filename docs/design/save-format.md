@@ -55,11 +55,13 @@ Code: `packages/engine/src/persistence/` (`save-document.ts`,
 - **The world** is the World store's metadata plus every table as an array of
   rows in canonical (ascending ID) order. The game seed is
   `state.world.meta.seed`; it is not repeated anywhere else.
-  The metadata also carries `catalogs`, the match types, angle types and win
-  methods snapshotted from the content packs at new game, so a save keeps the
+  The metadata also carries `catalogs`, the match types, angle types, win
+  methods and finishes snapshotted from the content packs at new game, so a save keeps the
   catalogs its game started with even after the bundled ones change. A save
   written before the field existed loads with `catalogs: {}` (it has no match
-  types until a new game is started).
+  types until a new game is started). Finishes (MTCH2) are an optional
+  `catalogs.finishes` entry: a save started before them loads without one and
+  has no finishes until a new game is started.
 - **The simulation parts** (`rng`, `tunableOverrides`, `traces`, `events`,
   `failureLog`, `commandLog`) are named slots. The engine state that owns
   them supplies their schemas when it saves and loads. A slot without a

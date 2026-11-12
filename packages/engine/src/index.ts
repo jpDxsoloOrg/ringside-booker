@@ -1023,3 +1023,92 @@ export {
   slotRoleOf,
   slotWeightOf,
 } from './systems/match/index';
+
+// The in-ring rating formulas (MTCH1-03): worker performance, side aggregation and work rate.
+// See docs/design/match-rating.md#worker-performance.
+export type {
+  MatchLeader,
+  PerformanceAttributeKey,
+  PerformanceAxis,
+  SideAggregateInputs,
+  SideAggregateMember,
+  SideDecayKey,
+  TalkWeights,
+  WorkerPerformanceInputs,
+  WorkRateInputs,
+  WorkRateSide,
+  WorkRateWorker,
+} from './systems/match/index';
+export {
+  aggregateWeights,
+  MATCH_RATING_STREAM,
+  matchLeaderOf,
+  PERFORMANCE_AXES,
+  PERFORMANCE_AXIS_LABELS,
+  sideAggregate,
+  workerPerformance,
+  workRate,
+} from './systems/match/index';
+
+// The crowd and scoring formulas (MTCH1-04): star power, crowd expectation and score, soft
+// compression, segment score, star rating and speaker score. See docs/design/match-rating.md#star-power.
+export type {
+  CrowdExpectationInputs,
+  CrowdScoreInputs,
+  SegmentScoreInputs,
+  SoftCompressionInputs,
+  SpeakerScoreInputs,
+  SpeakerScoreSide,
+  SpeakerScoreSpeaker,
+  StarPowerInputs,
+  StarPowerMember,
+  StarRatingInputs,
+} from './systems/match/index';
+export {
+  crowdExpectation,
+  crowdScore,
+  DEFAULT_POLICY_LABEL,
+  EVENT_IMPORTANCE_LABELS,
+  PROMOTION_STYLE_LABELS,
+  SEGMENT_PERFORMANCE_LABELS,
+  segmentScore,
+  softCompression,
+  speakerScore,
+  starPower,
+  starRating,
+} from './systems/match/index';
+
+// Finishes (MTCH2-01): the finish catalog (structured category, outcome kind, effects, title flag,
+// gains and auto-pick weight), its readers and check, the allowed-finish rule with its filter seam
+// for MTCH7, the segment finish check and the `match.finishes` query.
+// See docs/design/match-finishes.md.
+export type { FinishCategory, FinishDef, FinishEntry, FinishOutcomeKind } from './model/catalogs';
+export {
+  FINISH_CATEGORIES,
+  FINISH_OUTCOME_KINDS,
+  FinishDefSchema,
+  FinishEntrySchema,
+  finishOf,
+  finishesOf,
+} from './model/catalogs';
+export type {
+  AllowedFinishesArgs,
+  FinishCatalogIssue,
+  FinishFilter,
+  FinishFilterContext,
+  FinishMethodOption,
+  FinishOption,
+  FinishesArgs,
+  ReadonlyFinishEntry,
+} from './systems/match/index';
+export {
+  allowedFinishes,
+  checkFinishCatalog,
+  checkSegmentFinishes,
+  FINISH_CATALOG_ISSUE_CODES,
+  finishAdmitsMatchType,
+  FINISHES_REASON_CODES,
+  finishSideCount,
+  registerFinishFilter,
+  SEGMENT_FINISH_ISSUE_CODES,
+} from './systems/match/index';

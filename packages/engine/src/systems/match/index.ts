@@ -2,14 +2,16 @@
  * The match system: everything about a single segment on a card.
  *
  * So far: the slot derivations of D-10 (`slots.ts`: role, duration class and weight from a slot's
- * position, never stored), the match tunables (`tunables.ts`) and two queries (`queries.ts`):
- * `match.catalog` and `match.slotRoles`. The runtime catalogs it reads live in
- * `model/catalogs.ts`. No phase yet. Design: docs/design/match-rating.md.
+ * position, never stored), the match tunables (`tunables.ts`) and the queries (`queries.ts`):
+ * `match.catalog`, `match.slotRoles` and `match.finishes`. The rating formulas (`formulas/`):
+ * worker performance, side aggregation and work rate (MTCH1-03); star power, crowd expectation,
+ * crowd score, soft compression, segment score, star rating and speaker score (MTCH1-04).
+ * Finishes (MTCH2): the catalog check (`catalog/finishes.ts`), the allowed-finish rule and filter
+ * seam (`finishes/allowed.ts`) and the segment finish check (`catalog/checkSegmentFinishes.ts`).
+ * The runtime catalogs it reads live in `model/catalogs.ts`. No phase yet. Design:
+ * docs/design/match-rating.md and match-finishes.md.
  */
 
-// The stream declarations are types only; importing them keeps them in every program that imports
-// this system.
-import './streams';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
 import { matchQueries } from './queries';
 
@@ -42,6 +44,125 @@ export {
   type SlotRolesArgs,
 } from './queries';
 export { matchTunables } from './tunables';
+export { MATCH_RATING_STREAM } from './streams';
+export {
+  ALL_WEIGHTS_ZERO_NOTE,
+  NON_WRESTLER_LABEL,
+  PERFORMANCE_AXES,
+  PERFORMANCE_AXIS_LABELS,
+  PERFORMANCE_MAX,
+  PERFORMANCE_MIN,
+  SUITS_MATCH_TYPE_LABEL,
+  WORKER_PERFORMANCE_DOC_REF,
+  WORKING_HURT_LABEL,
+  workerPerformance,
+  type PerformanceAttributeKey,
+  type PerformanceAxis,
+  type TalkWeights,
+  type WorkerPerformanceInputs,
+} from './formulas/workerPerformance';
+export {
+  SIDES_DOC_REF,
+  aggregateWeights,
+  rankLabel,
+  rankMembers,
+  sideAggregate,
+  type SideAggregateInputs,
+  type SideAggregateMember,
+  type SideDecayKey,
+} from './formulas/sideAggregate';
+export {
+  ACROSS_SIDES_LABEL,
+  NO_VARIANCE_NOTE,
+  VARIANCE_LABEL,
+  WORK_RATE_DOC_REF,
+  matchLeaderOf,
+  sideLabel,
+  workRate,
+  type MatchLeader,
+  type WorkRateInputs,
+  type WorkRateSide,
+  type WorkRateWorker,
+} from './formulas/workRate';
+
+export {
+  STAR_POWER_DOC_REF,
+  starPower,
+  type StarPowerInputs,
+  type StarPowerMember,
+} from './formulas/starPower';
+export {
+  EVENT_IMPORTANCE_LABELS,
+  EXPECTATION_DOC_REF,
+  EXPECTATION_LABEL,
+  NOT_TELEVISED_LABEL,
+  crowdExpectation,
+  type CrowdExpectationInputs,
+} from './formulas/crowdExpectation';
+export {
+  CROWD_LABEL,
+  CROWD_VARIANCE_LABEL,
+  CROWD_WEIGHTS_ZERO_NOTE,
+  DELIVERED_LABEL,
+  crowdScore,
+  type CrowdScoreInputs,
+} from './formulas/crowdScore';
+export {
+  COMPRESSION_DOC_REF,
+  softCompression,
+  type SoftCompressionInputs,
+} from './formulas/softCompression';
+export {
+  DEFAULT_POLICY_LABEL,
+  PROMOTION_STYLE_LABELS,
+  SEGMENT_PERFORMANCE_LABELS,
+  SEGMENT_SCORE_DOC_REF,
+  SEGMENT_SCORE_LABEL,
+  segmentScore,
+  type SegmentScoreInputs,
+} from './formulas/segmentScore';
+export {
+  NEAREST_QUARTER_LABEL,
+  POINTS_PER_STAR_ZERO_NOTE,
+  STARS_DOC_REF,
+  STARS_LABEL,
+  starRating,
+  type StarRatingInputs,
+} from './formulas/starRating';
+export {
+  PROMO_VARIANCE_LABEL,
+  TALKING_DOC_REF,
+  speakerScore,
+  type SpeakerScoreInputs,
+  type SpeakerScoreSide,
+  type SpeakerScoreSpeaker,
+} from './formulas/speakerScore';
+export { signedNumber, summaryOf } from './formulas/shared';
+
+// Finishes (MTCH2): the catalog check, the allowed-finish rule and its filter seam, the segment
+// finish check and the `match.finishes` query. Design: docs/design/match-finishes.md.
+export {
+  FINISH_CATALOG_ISSUE_CODES,
+  checkFinishCatalog,
+  finishAdmitsMatchType,
+  type FinishCatalogIssue,
+} from './catalog/finishes';
+export {
+  allowedFinishes,
+  finishSideCount,
+  registerFinishFilter,
+  type AllowedFinishesArgs,
+  type FinishEntry as ReadonlyFinishEntry,
+  type FinishFilter,
+  type FinishFilterContext,
+} from './finishes/allowed';
+export { SEGMENT_FINISH_ISSUE_CODES, checkSegmentFinishes } from './catalog/checkSegmentFinishes';
+export {
+  FINISHES_REASON_CODES,
+  type FinishMethodOption,
+  type FinishOption,
+  type FinishesArgs,
+} from './queries';
 
 export const matchSystem: SystemBundle = defineSystem({
   id: 'match',

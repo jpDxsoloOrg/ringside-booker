@@ -20,7 +20,7 @@
 import type { z } from 'zod';
 import type { GameDate } from '../../core/date';
 import type { ContentPackRef } from '../../model/world-meta';
-import { angleTypeRecord, matchTypeRecord, methodRecord } from './records/catalogs';
+import { angleTypeRecord, finishRecord, matchTypeRecord, methodRecord } from './records/catalogs';
 import { continentRecord, countryRecord, regionRecord } from './records/geography';
 import {
   bodyArchetypeRecord,
@@ -104,6 +104,7 @@ const FULL_PARSERS: {
   matchType: (value) => matchTypeRecord.full.safeParse(value),
   angleType: (value) => angleTypeRecord.full.safeParse(value),
   method: (value) => methodRecord.full.safeParse(value),
+  finish: (value) => finishRecord.full.safeParse(value),
 };
 
 /** Parses one element of a record file: a full record, a patch or a removal. */
@@ -134,6 +135,7 @@ const ENTRY_PARSERS: Readonly<Record<RecordKind, (value: unknown) => ParseOutcom
   matchType: (value) => matchTypeRecord.entry.safeParse(value),
   angleType: (value) => angleTypeRecord.entry.safeParse(value),
   method: (value) => methodRecord.entry.safeParse(value),
+  finish: (value) => finishRecord.entry.safeParse(value),
 };
 
 type Fields = Readonly<Record<string, unknown>>;
@@ -465,6 +467,7 @@ export function mergeRecords(packs: readonly RawPack[]): Result<MergedContent> {
     matchType: finishKind('matchType', working('matchType'), issues),
     angleType: finishKind('angleType', working('angleType'), issues),
     method: finishKind('method', working('method'), issues),
+    finish: finishKind('finish', working('finish'), issues),
   };
 
   if (hasErrors(issues)) {

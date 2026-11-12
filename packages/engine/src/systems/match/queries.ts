@@ -6,7 +6,10 @@
  * - `match.slotRoles`: the role, duration class and weight of every slot of a show format, with
  *   the traces inline (a query cannot store traces).
  *
- * Neither is secret, so every viewer sees the same answer. Design: docs/design/match-rating.md.
+ * - `match.finishes` (MTCH2): the finishes a match of a given type and side count may end with,
+ *   with their effects, title flag and methods. Design: docs/design/match-finishes.md.
+ *
+ * None is secret, so every viewer sees the same answer. Design: docs/design/match-rating.md.
  */
 
 import { z } from 'zod';
@@ -23,6 +26,14 @@ import {
 } from '../../model/catalogs';
 import type { DurationShift } from '../../model/catalogs';
 import { zContentKey } from '../../model/primitives';
+import { MAX_SIDE } from '../../model/entities/participant';
+import {
+  FINISH_OUTCOME_KINDS,
+  methodOf,
+  type FinishCategory,
+  type FinishOutcomeKind,
+} from '../../model/catalogs';
+import { allowedFinishes, type FinishEntry } from './finishes/allowed';
 import {
   DURATION_CLASS_LABELS,
   SLOT_ROLE_LABELS,
@@ -123,10 +134,52 @@ export interface SlotRoleRow {
   weightTrace: TraceNode;
 }
 
+/** `match.finishes` arguments. */
+export interface FinishesArgs {
+  matchTypeKey: ContentKey;
+  /** Sides actually built, 2..30; left out, the match type's minimum. */
+  sideCount?: number | undefined;
+  /** Stipulations on the match, for the filters MTCH7 registers. */
+  stipulationKeys?: ContentKey[] | undefined;
+  /** Only finishes with this outcome kind. */
+  outcomeKind?: FinishOutcomeKind | undefined;
+}
+
+/** A win method a finish allows. */
+export interface FinishMethodOption {
+  key: ContentKey;
+  name: string;
+  /** True when a win by this method can move a title. */
+  changesTitles: boolean;
+}
+
+/** A finish as booking and the lab offer it. */
+export interface FinishOption {
+  key: ContentKey;
+  name: string;
+  summary: string;
+  category: FinishCategory;
+  outcomeKind: FinishOutcomeKind;
+  /** A title on the line may change hands. */
+  allowsTitleChange: boolean;
+  /** Whole-step effects on the rating's work-rate and crowd parts. */
+  effects: { workRate: number; crowd: number };
+  methods: FinishMethodOption[];
+  /** True when the finish can be picked automatically (`autoWeight > 0`). */
+  autoPickable: boolean;
+}
+
+/** `match.finishes` refusal codes. */
+export const FINISHES_REASON_CODES = {
+  unknownMatchType: 'unknownMatchType',
+  noFinishCatalog: 'noFinishCatalog',
+} as const;
+
 declare module '../../core/api/maps' {
   interface QueryMap {
     'match.catalog': { args: { includeHidden?: boolean | undefined }; result: MatchCatalog };
     'match.slotRoles': { args: SlotRolesArgs; result: SlotRoleRow[] };
+    'match.finishes': { args: FinishesArgs; result: FinishOption[] };
   }
 }
 
@@ -259,4 +312,69 @@ export const slotRolesQuery: QueryDefinition<'match.slotRoles'> = defineQuery('m
   },
 });
 
-export const matchQueries: readonly QueryDefinition[] = [catalogQuery, slotRolesQuery];
+const finishesArgs = z.strictObject({
+  matchTypeKey: zContentKey,
+  sideCount: z
+    .number()
+    .int()
+    .min(2)
+    .max(MAX_SIDE + 1)
+    .optional(),
+  stipulationKeys: z.array(zContentKey).optional(),
+  outcomeKind: z.enum(FINISH_OUTCOME_KINDS).optional(),
+});
+
+export const finishesQuery: QueryDefinition<'match.finishes'> = defineQuery('match.finishes', {
+  args: finishesArgs,
+  run: (ctx, args) => {
+    const { catalogs } = ctx.read.meta;
+    if (catalogs.finishes === undefined) {
+      return refuseQuery({
+        code: FINISHES_REASON_CODES.noFinishCatalog,
+        message: 'This save was started before finishes existed. Start a new game to use finishes.',
+      });
+    }
+    if (matchTypeOf(ctx.read, args.matchTypeKey) === undefined) {
+      return refuseQuery({
+        code: FINISHES_REASON_CODES.unknownMatchType,
+        field: 'matchTypeKey',
+        message: `There is no match type "${args.matchTypeKey}".`,
+      });
+    }
+    const finishes = allowedFinishes(catalogs, {
+      matchTypeKey: args.matchTypeKey,
+      sideCount: args.sideCount,
+      stipulationKeys: args.stipulationKeys,
+    });
+    return finishes
+      .filter((finish) => args.outcomeKind === undefined || finish.outcomeKind === args.outcomeKind)
+      .map((finish) => finishOption(ctx.read, finish));
+  },
+});
+
+function finishOption(read: Parameters<typeof methodOf>[0], finish: FinishEntry): FinishOption {
+  return {
+    key: finish.key,
+    name: finish.name,
+    summary: finish.summary,
+    category: finish.category,
+    outcomeKind: finish.outcomeKind,
+    allowsTitleChange: finish.allowsTitleChange,
+    effects: { workRate: finish.effects.workRate, crowd: finish.effects.crowd },
+    methods: finish.methods.map((method) => {
+      const def = methodOf(read, method.methodKey);
+      return {
+        key: method.methodKey,
+        name: def?.name ?? method.methodKey,
+        changesTitles: def?.changesTitles ?? false,
+      };
+    }),
+    autoPickable: finish.autoWeight > 0,
+  };
+}
+
+export const matchQueries: readonly QueryDefinition[] = [
+  catalogQuery,
+  slotRolesQuery,
+  finishesQuery,
+];

@@ -264,7 +264,10 @@ function addTinyHistory(context: BuildContext): void {
         eventInstanceId: show.id,
         label: 'Title match',
         storylineIds: [storyline.id],
-        match: { titleIds: [required(heavyweightTitle, 'heavyweight title')] },
+        match: {
+          titleIds: [required(heavyweightTitle, 'heavyweight title')],
+          finishKey: parseContentKey('finish.clean'),
+        },
         rating: { score: 71, stars: 3.5, traceId: null },
         outcome: { kind: 'win', winningSide: 0, methodKey: winMethod },
       },
@@ -425,8 +428,8 @@ type DeepPartialLedger = Parameters<typeof aLedgerEntry>[0];
  *   with 1 network for that show;
  * - promotion B, computer-run, with 8 wrestlers;
  * - last Thursday's completed show with 4 segments: main-card slots 0-2 are a match, a two-beat
- *   angle and the title match (both matches with outcomes and ratings), pre-show slot 0 is a
- *   match; and their 8 participants;
+ *   angle and the title match (both matches with outcomes and ratings; the title match's planned
+ *   finish is `finish.clean`), pre-show slot 0 is a match; and their 8 participants;
  * - 1 venue, 2 relationships, 2 mail (one with an open decision), 2 news and 5 ledger entries;
  * - the shipped base catalogs on its metadata (`TEST_CATALOGS`), so every segment key resolves.
  */

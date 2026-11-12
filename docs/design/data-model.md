@@ -837,6 +837,8 @@ Shared fields:
 `kind: 'match'` adds:
 
 - `match`: `{ matchTypeKey; stipulationKeys[]; titleIds: TitleId[]; finishKey | null }`.
+  `finishKey` is the planned finish (`finish.clean`); `null` means "decided on
+  the night". See [match-finishes.md](match-finishes.md).
 - `outcome`, the outcome union:
   - `null` until the show is completed;
   - `{ kind: 'win'; winningSide; methodKey }`, where `winningSide` is a
@@ -853,8 +855,11 @@ The content keys (`matchTypeKey`, `stipulationKeys`, `finishKey`,
 MTCH and WLD. The World's schema does not check they resolve. The match type,
 method and angle type keys resolve against `meta.catalogs`, which
 `checkSegmentContentKeys` (`systems/match/catalog/checkSegmentKeys.ts`) and
-validate:world's `segment-keys` rule check; beats, finishes and stipulations
-get their catalogs (and checks) with MTCH5, MTCH2 and MTCH7.
+validate:world's `segment-keys` rule check. A finish key resolves against
+`meta.catalogs.finishes` and must suit the match, which
+`checkSegmentFinishes` and the `segment-finishes` rule check
+([match-finishes.md](match-finishes.md)); beats and stipulations get their
+catalogs (and checks) with MTCH5 and MTCH7.
 `traceId` links to the recent-traces store kept in the save, so the Why? panel
 can find a segment's trace.
 

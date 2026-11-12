@@ -17,9 +17,11 @@ import {
   angleTypeRecord,
   matchTypeRecord,
   methodRecord,
+  finishRecord,
   type AngleTypeRecord,
   type MatchTypeRecord,
   type MethodRecord,
+  type FinishRecord,
 } from './records/catalogs';
 import {
   continentRecord,
@@ -131,6 +133,7 @@ export const recordKinds = {
   matchType: matchTypeRecord,
   angleType: angleTypeRecord,
   method: methodRecord,
+  finish: finishRecord,
 } as const satisfies Record<RecordKind, { entry: z.ZodType }>;
 
 type RecordKindBuilders = typeof recordKinds;
@@ -163,6 +166,7 @@ export const recordSchemas = {
   matchType: matchTypeRecord.entry,
   angleType: angleTypeRecord.entry,
   method: methodRecord.entry,
+  finish: finishRecord.entry,
 } as const satisfies Record<RecordKind, z.ZodType>;
 
 /** A complete record of each kind, as written in a pack. */
@@ -193,6 +197,7 @@ export interface PackRecords {
   matchType: MatchTypeRecord;
   angleType: AngleTypeRecord;
   method: MethodRecord;
+  finish: FinishRecord;
 }
 
 /** One element of a pack file of the given kind: a full record, a patch or a removal. */

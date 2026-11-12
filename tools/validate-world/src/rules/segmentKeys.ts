@@ -11,12 +11,18 @@
  * - Every angle type's `defaultBeatKey` is a content key in the `beat.` namespace (error). The
  *   record schema already refuses anything else; this keeps the rule honest if it ever loosens.
  *
+ * - The finish catalog (MTCH2) passes the engine's `checkFinishCatalog`: entries are well formed,
+ *   their methods and match types resolve, every match type has an automatic win finish, and a
+ *   win finish that can change a title lists a method that can move one (error, on the record).
+ *
  * A world whose packs define no match types at all has no match type catalog, so the singles check
  * is skipped, the same way the engine skips a catalog the world does not hold.
  */
 
 import {
+  checkFinishCatalog,
   checkSegmentContentKeys,
+  type FinishCatalogIssue,
   isContentKey,
   packs,
   type GameWorldView,
@@ -135,16 +141,59 @@ function checkDefaultBeats(content: MergedContent): ValidationIssue[] {
     );
 }
 
+/** `methods[1].methodKey` → `['methods', 1, 'methodKey']`. */
+function pathSteps(path: string | undefined): (string | number)[] {
+  if (path === undefined) {
+    return [];
+  }
+  return path
+    .split(/[.[\]]/)
+    .filter((step) => step !== '')
+    .map((step) => (/^\d+$/.test(step) ? Number(step) : step));
+}
+
+function finishCatalogIssue(content: MergedContent, issue: FinishCatalogIssue): ValidationIssue {
+  const finishPrefix = `${packs.FINISH_CONTENT_PREFIX}.`;
+  const matchTypePrefix = `${packs.MATCH_TYPE_CONTENT_PREFIX}.`;
+  const field = pathSteps(issue.path);
+  if (issue.key.startsWith(finishPrefix)) {
+    const key = issue.key.slice(finishPrefix.length);
+    const merged = content.records.finish.get(key);
+    if (merged !== undefined) {
+      return recordIssue('error', 'segment-keys', 'finish', key, merged, field, issue.message);
+    }
+  }
+  if (issue.key.startsWith(matchTypePrefix)) {
+    const key = issue.key.slice(matchTypePrefix.length);
+    const merged = content.records.matchType.get(key);
+    if (merged !== undefined) {
+      return recordIssue('error', 'segment-keys', 'matchType', key, merged, field, issue.message);
+    }
+  }
+  return validationError({
+    code: 'segment-keys',
+    packId: content.packs.at(-1)?.id ?? '',
+    path: [issue.key, ...field],
+    message: issue.message,
+  });
+}
+
+function checkFinishes(content: MergedContent): ValidationIssue[] {
+  const catalogs = packs.catalogsFromRecords(content.records);
+  return checkFinishCatalog(catalogs).map((issue) => finishCatalogIssue(content, issue));
+}
+
 export const segmentKeys: ContentRule = {
   id: 'segment-keys',
   description:
-    'Every stored segment key names a catalog entry; the catalogs have a singles-like match type, unique names and beat default keys',
+    'Every stored segment key names a catalog entry; the catalogs have a singles-like match type, unique names and beat default keys, and the finish catalog is sound',
   check(world, content) {
     return [
       ...checkSegments(world, content),
       ...checkSinglesLike(content),
       ...CATALOG_KINDS.flatMap((kind) => checkUniqueNames(content, kind)),
       ...checkDefaultBeats(content),
+      ...checkFinishes(content),
     ];
   },
 };

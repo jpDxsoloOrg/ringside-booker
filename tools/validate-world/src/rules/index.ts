@@ -15,6 +15,7 @@ import { geography } from './geography';
 import type { ContentRule } from './helpers';
 import { promotionStaffing } from './promotionStaffing';
 import { reignChronology } from './reignChronology';
+import { segmentFinishes } from './segmentFinishes';
 import { segmentKeys } from './segmentKeys';
 import { uniqueNames } from './uniqueNames';
 
@@ -38,6 +39,7 @@ export function contentRules(setup: RuleSetup): readonly ContentRule[] {
     ageSanity,
     createBlocklistRule(setup.blocklist),
     segmentKeys,
+    segmentFinishes,
   ];
 }
 

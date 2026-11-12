@@ -57,6 +57,7 @@ Definitions are declared with `defineTunables`. Every definition has:
 | `kilograms`            | A body weight or a weight limit, in kilograms       |
 | `flag`                 | The unit of every `boolean` tunable, and only those |
 | `choice`               | The unit of every `enum` tunable, and only those    |
+| `stars`                | A star rating, 0–5 in quarter steps (a star cap)    |
 
 ## What `defineTunables` checks
 
@@ -301,3 +302,89 @@ The slot numbers of D-10, in `systems/match/tunables.ts`, category
 These are the first `enum` tunables in the engine. A table of keys a formula
 reads as numbers is typed `NumberTunableKey` (from `systems/tunables.ts`)
 rather than `TunableKey`, which also covers enum and boolean keys.
+
+### Match performance and work rate tunables
+
+The in-ring formulas of MTCH1-03, in the same file: category `Match:
+performance` for the worker performance weights, bonuses and penalties and the
+side decays, `Match: work rate` for the work rate checks. See
+[match-rating.md](match-rating.md#worker-performance) for what each does.
+
+| Key                                        | Kind   | Default | Range | Unit       | What it does                                                |
+| ------------------------------------------ | ------ | ------- | ----- | ---------- | ----------------------------------------------------------- |
+| `match.perf.inRing.ringwork`               | number | 0.5     | 0–1   | ratio      | Weight of ringwork in in-ring performance                   |
+| `match.perf.inRing.psychology`             | number | 0.2     | 0–1   | ratio      | Weight of psychology in in-ring performance                 |
+| `match.perf.inRing.athleticism`            | number | 0.2     | 0–1   | ratio      | Weight of athleticism in in-ring performance                |
+| `match.perf.inRing.safety`                 | number | 0.1     | 0–1   | ratio      | Weight of safety in in-ring performance                     |
+| `match.perf.entertainment.charisma`        | number | 0.5     | 0–1   | ratio      | Weight of charisma in entertainment performance             |
+| `match.perf.entertainment.presence`        | number | 0.3     | 0–1   | ratio      | Weight of presence in entertainment performance             |
+| `match.perf.entertainment.mic`             | number | 0.2     | 0–1   | ratio      | Weight of mic skill in entertainment performance            |
+| `match.perf.styleAffinityBonus`            | number | 3       | 0–50  | points     | Bonus when the style suits the match type                   |
+| `match.perf.nonWrestlerPenalty`            | number | 20      | 0–50  | points     | Penalty for a non-wrestler in the ring                      |
+| `match.perf.injuredPenalty`                | number | 25      | 0–50  | points     | Penalty for working hurt                                    |
+| `match.perf.fatiguePenaltyPerPoint`        | number | 0.15    | 0–1   | ratio      | Performance lost per point of fatigue                       |
+| `match.side.depthDecay`                    | number | 0.55    | 0–1   | ratio      | How much each next-best worker on a side counts             |
+| `match.sides.depthDecay`                   | number | 0.7     | 0–1   | ratio      | How much each next-best side counts                         |
+| `match.workRate.staminaNeed.short`         | number | 0       | 0–100 | points     | Stamina a short singles match asks of each worker           |
+| `match.workRate.staminaNeed.standard`      | number | 40      | 0–100 | points     | Stamina a standard singles match asks of each worker        |
+| `match.workRate.staminaNeed.long`          | number | 65      | 0–100 | points     | Stamina a long singles match asks of each worker            |
+| `match.workRate.sharedLoadExponent`        | number | 0.5     | 0–2   | ratio      | How much bigger matches share the load; 0 means no sharing  |
+| `match.workRate.staminaPenaltyPerPoint`    | number | 0.4     | 0–2   | ratio      | Performance lost per point of stamina short                 |
+| `match.workRate.psychologyNeed.short`      | number | 20      | 0–100 | points     | Psychology the leader of a short match needs                |
+| `match.workRate.psychologyNeed.standard`   | number | 45      | 0–100 | points     | Psychology the leader of a standard match needs             |
+| `match.workRate.psychologyNeed.long`       | number | 70      | 0–100 | points     | Psychology the leader of a long match needs                 |
+| `match.workRate.psychologyPenaltyPerPoint` | number | 0.5     | 0–2   | ratio      | Work rate lost per point of psychology the leader is short  |
+| `match.workRate.spread.short`              | number | 0.8     | 0–2   | multiplier | How far a short match can stray from 50                     |
+| `match.workRate.spread.standard`           | number | 1       | 0–2   | multiplier | How far a standard match can stray from 50                  |
+| `match.workRate.spread.long`               | number | 1.15    | 0–2   | multiplier | How far a long match can stray from 50                      |
+| `match.workRate.varianceSd`                | number | 4       | 0–20  | points     | Spread of the night-to-night work rate roll; 0 turns it off |
+
+### Match crowd, scoring, stars and talking segment tunables
+
+The crowd and scoring formulas of MTCH1-04, in the same file: category `Match:
+crowd` for star power, expectation and the crowd score, `Match: scoring` for
+soft compression and the segment score blend, `Match: stars` for star ratings
+and `Match: talking segments` for the simple talk score. See
+[match-rating.md](match-rating.md#star-power) for what each does.
+
+| Key                                       | Kind   | Default | Range  | Unit   | What it does                                                  |
+| ----------------------------------------- | ------ | ------- | ------ | ------ | ------------------------------------------------------------- |
+| `match.starPower.depthDecay`              | number | 0.5     | 0–1    | ratio  | How much each next-most-popular worker adds to star power     |
+| `match.starPower.curve`                   | number | 0.8     | 0–1    | ratio  | Diminishing returns at the top of star power; 0 is linear     |
+| `match.expectation.base`                  | number | 25      | 0–100  | points | What a crowd expects before star power, momentum and the slot |
+| `match.expectation.starWeight`            | number | 0.5     | 0–1    | ratio  | How much star power raises the expectation                    |
+| `match.expectation.momentumWeight`        | number | 0.1     | 0–1    | ratio  | How much momentum moves the expectation                       |
+| `match.expectation.slot.preShow`          | number | −8      | −30–30 | points | Expectation change on the pre-show                            |
+| `match.expectation.slot.opener`           | number | −3      | −30–30 | points | Expectation change for the opener                             |
+| `match.expectation.slot.midcard`          | number | 0       | −30–30 | points | Expectation change in the midcard                             |
+| `match.expectation.slot.semiMain`         | number | 4       | −30–30 | points | Expectation change for the semi-main                          |
+| `match.expectation.slot.mainEvent`        | number | 8       | −30–30 | points | Expectation change for the main event                         |
+| `match.expectation.importance.house`      | number | −6      | −30–30 | points | Expectation change at a house show                            |
+| `match.expectation.importance.minor`      | number | −3      | −30–30 | points | Expectation change at a minor event                           |
+| `match.expectation.importance.regular`    | number | 0       | −30–30 | points | Expectation change at a regular event                         |
+| `match.expectation.importance.major`      | number | 4       | −30–30 | points | Expectation change at a major event                           |
+| `match.expectation.importance.flagship`   | number | 8       | −30–30 | points | Expectation change at a flagship event                        |
+| `match.expectation.televised`             | number | 2       | −30–30 | points | Expectation change when the show is on TV                     |
+| `match.crowd.performanceWeight`           | number | 0.55    | 0–1    | ratio  | Weight of work rate (or talk) in what was delivered           |
+| `match.crowd.entertainmentWeight`         | number | 0.25    | 0–1    | ratio  | Weight of entertainment in what was delivered                 |
+| `match.crowd.starWeight`                  | number | 0.2     | 0–1    | ratio  | Weight of star power in what was delivered                    |
+| `match.crowd.surpriseWeight`              | number | 0.5     | 0–1    | ratio  | How much beating or missing expectation moves the crowd       |
+| `match.crowd.varianceSd`                  | number | 3       | 0–20   | points | Spread of the crowd-on-the-night roll; 0 turns it off         |
+| `match.compression.knee`                  | number | 85      | 50–100 | points | Where soft compression starts; 100 turns it off               |
+| `match.compression.factor`                | number | 0.4     | 0–1    | ratio  | Share of each point above the knee that is kept               |
+| `match.blend.workRateShare.mainstream`    | number | 0.45    | 0–1    | ratio  | Work rate share of a match's score, mainstream promotion      |
+| `match.blend.workRateShare.traditional`   | number | 0.5     | 0–1    | ratio  | Work rate share of a match's score, traditional promotion     |
+| `match.blend.workRateShare.technical`     | number | 0.65    | 0–1    | ratio  | Work rate share of a match's score, technical promotion       |
+| `match.blend.workRateShare.hardHitting`   | number | 0.6     | 0–1    | ratio  | Work rate share of a match's score, hard-hitting promotion    |
+| `match.blend.workRateShare.hardcore`      | number | 0.5     | 0–1    | ratio  | Work rate share of a match's score, hardcore promotion        |
+| `match.blend.workRateShare.highFlying`    | number | 0.6     | 0–1    | ratio  | Work rate share of a match's score, high-flying promotion     |
+| `match.blend.workRateShare.entertainment` | number | 0.3     | 0–1    | ratio  | Work rate share of a match's score, entertainment promotion   |
+| `match.stars.performanceShare`            | number | 0.7     | 0–1    | ratio  | Share of work rate (or talk) in a star rating                 |
+| `match.stars.zeroAt`                      | number | 35      | 0–80   | points | The blended score worth no stars                              |
+| `match.stars.pointsPerStar`               | number | 12      | 0–30   | points | Points above the zero for each star; 0 gives the cap          |
+| `match.stars.cap.short`                   | number | 3.5     | 0–5    | stars  | The most stars a short match can get                          |
+| `match.stars.cap.standard`                | number | 4.75    | 0–5    | stars  | The most stars a standard match can get                       |
+| `match.stars.cap.long`                    | number | 5       | 0–5    | stars  | The most stars a long match can get                           |
+| `match.stars.cap.angle`                   | number | 4       | 0–5    | stars  | The most stars a talking segment can get                      |
+| `match.angle.talkShare`                   | number | 0.35    | 0–1    | ratio  | Share of talk in a talking segment's score                    |
+| `match.angle.varianceSd`                  | number | 4       | 0–20   | points | Spread of the how-the-promo-landed roll; 0 turns it off       |
