@@ -16,6 +16,8 @@ import type { NavItem } from './navigation';
 import { RequireWorld } from './RequireWorld';
 import { routePatterns, routes } from './routes';
 import { SettingsEffects } from './settings/SettingsEffects';
+// The results page's calendar section, action and chip badge, registered before any calendar draws.
+import '@/screens/show-results/calendarHooks';
 
 /**
  * Opt in to the React Router 7 behaviours now, so the upgrade later changes nothing and the

@@ -1,0 +1,18 @@
+/* The calendar sheet's "Result" line: "Score 64 · ★★★". */
+.resultLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+}
+
+.score {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-weight: var(--font-weight-bold);
+}
+
+.separator {
+  color: var(--color-text-muted);
+}
