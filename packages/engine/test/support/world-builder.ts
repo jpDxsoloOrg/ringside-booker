@@ -34,6 +34,7 @@ import type { PromotionId } from '../../src/core/ids';
 import type { Brand } from '../../src/model/entities/brand';
 import type { Employment } from '../../src/model/entities/employment';
 import type { EventDefinition } from '../../src/model/entities/event-definition';
+import type { EventInstance } from '../../src/model/entities/event-instance';
 import type { Person } from '../../src/model/entities/person';
 import type { Promotion } from '../../src/model/entities/promotion';
 import type { Title } from '../../src/model/entities/title';
@@ -51,7 +52,13 @@ import {
   type DeepPartial,
 } from './builders/build-row';
 import { aBrand, anEmployment, aPromotion } from './builders/promotions';
-import { anEventDefinition, aSeason, aTitle, aTitleReign } from './builders/creative';
+import {
+  anEventDefinition,
+  anEventInstance,
+  aSeason,
+  aTitle,
+  aTitleReign,
+} from './builders/creative';
 import { aContinent, aCountry, aRegion } from './builders/geography';
 import { aPerson, DEFAULT_PERSON_AGE } from './builders/people';
 import { TEST_CATALOGS } from './catalogs';
@@ -517,6 +524,31 @@ export class WorldBuilder {
   /** Leaves the seasons table empty, as a world still being set up has it. */
   withoutSeason(): this {
     return this.withSeasons(0);
+  }
+
+  /**
+   * Adds one dated show for promotion `label` (default `A`), held in the world's first region. The
+   * show is a scheduled one-off on the start date unless `overrides` say otherwise; its id is
+   * `ids.eventInstances` in the order shows were added.
+   */
+  withEventInstance(overrides: DeepPartial<EventInstance> = {}, label: PromotionLabel = 'A'): this {
+    this.steps.push((context) => {
+      const promotionId = context.ids.promotions[label];
+      const [regionId] = context.ids.regions;
+      if (promotionId === undefined || regionId === undefined) {
+        throw new Error(
+          `WorldBuilder: withEventInstance needs promotion ${label} and a geography added first`,
+        );
+      }
+      context.insert(
+        'eventInstances',
+        anEventInstance(
+          { promotionId, regionId, date: context.meta.startDate, ...overrides },
+          context.sequence,
+        ),
+      );
+    });
+    return this;
   }
 
   /** Runs a custom step inside the build transaction, after the steps added before it. */
