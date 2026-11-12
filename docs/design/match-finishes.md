@@ -187,6 +187,10 @@ roll; the pick is one weighted roll labelled "Finish". One candidate is used
 without a roll ("Only finish available"); if every candidate weighs 0 the
 first in catalog order is used, with a note.
 
+The decision's options are the finishes' names ("Clean finish",
+"Disqualification"), so the Why? reads as words; the returned value is still
+the content key. Two candidates that share a name show as "name (key)".
+
 `winnerAlignmentOf(alignments)` gives the winning side's alignment: the one
 most members have, `tweener` on a tie, null when nobody on the side is
 employed by the promotion (pass null for them).
@@ -204,6 +208,9 @@ preview stream, EVT3 the world's `match.finish` stream (`MATCH_FINISH_STREAM`).
 - a booked method the finish lists is kept ("Booked method");
 - otherwise a finish with one method uses it without a roll, and one with
   several rolls by the finish's method weights (roll label "Method").
+
+As with the finish, the options are the methods' names ("Pinfall"), and a
+booked finish's "Finish" decision chooses the finish's name.
 
 A booked method the finish does not list is the caller's error and throws;
 MTCH2-03 checks it first and refuses with a reason.
@@ -388,3 +395,25 @@ sandbox, so a booked side or Draw is still honoured in a Random winners game
 the viewer's first promotion, false for a viewer who runs none (the
 all-seeing viewer, a computer seat). The lab's Winner choice and MTCH2-05's
 booking editor read it so the web never reads world settings itself.
+
+## Integration
+
+MTCH2-05 wires MTCH2 to the features it works with that are on `main`. When
+it ran, none of its partners were: there was no `systems/booking/` (EVT2), no
+`systems/shows/` (EVT3), no stipulation catalog (MTCH7) and no rival booking
+step (AIP5). Each of them wires MTCH2 from its own integration ticket; the
+doors they use are already open:
+
+| Partner              | Status                  | The door it uses                                                                                                                                                                                                                                                                                       |
+| -------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| EVT2 (booking)       | wires from its own pack | `match.finishes` (with `outcomeKind`) and the lab's `FinishSelect` for a Finish section; `allowedFinishes` and `titleCanChange` for booking checks; `randomWinnersActive` to refuse planned results (`randomWinners`) and `match.resultMode` for the editor's "Decided on the night (Random winners)". |
+| EVT3 (show night)    | wires from its own pack | `resolveMatchOutcome` with the world's `match.auto-winner` and `match.finish` streams, then the rater with the `resolution`; `titleCanChange` before a reign changes; the "Match result" trace for the results page's winner Why?.                                                                     |
+| MTCH7 (stipulations) | wires from its own pack | `registerFinishFilter` with the stipulation keys in `ctx.stipulationKeys`; the lab's list, `match.finishes`, Simulate and `resolveMatchOutcome` all follow the filter.                                                                                                                                 |
+| AIP5 (rival winners) | wires from its own pack | `autoFinish` over `allowedFinishes` for the outcome it picked, keeping to `allowsTitleChange` finishes when it plans a title change.                                                                                                                                                                   |
+
+Until EVT3 lands no real result uses a finish, so every finish, auto-winner
+and Random winners path is exercised through the Match lab's Simulate. Its
+tests cover the MTCH7 door too: a registered filter that bans
+disqualifications removes `finish.disqualification` and `finish.count-out`
+from `match.finishes`, refuses them as a booked finish (`finishNotAllowed`)
+and never picks them on the night.
