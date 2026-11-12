@@ -20,6 +20,8 @@ import {
   RANDOM_WINNERS_LABEL,
   registerFinishFilter,
   type SimulateArgs,
+  type SimulateBatchArgs,
+  type SimulateBatchResult,
   type SimulateResult,
 } from '../../../src/systems/match';
 import { TEST_PLAYER_ID } from '../../support/builders/build-row';
@@ -306,6 +308,112 @@ describe('match.simulate', () => {
     const result = simulate(sim, singles(sim, { winner: { side: 0 } }));
     expect(result.randomWinnersMode).toBe(false);
     expect(result.winningSide).toBe(0);
+  });
+});
+
+function simulateBatch(
+  sim: SimWorld,
+  args: SimulateBatchArgs,
+  viewer: Viewer = PLAYER,
+): SimulateBatchResult {
+  const result = sim.engine.query('match.simulateBatch', args, viewer);
+  if (!result.ok) {
+    throw new Error(JSON.stringify(result.reasons));
+  }
+  expectSerialisable(result.data);
+  return result.data;
+}
+
+/** Side wins, draws and no contests together: every run ends exactly one way. */
+function outcomeTotal(batch: SimulateBatchResult): number {
+  return batch.sides.reduce((total, side) => total + side.wins, 0) + batch.draws + batch.noContests;
+}
+
+describe('match.simulateBatch', () => {
+  it('counts every side, draw, no contest and finish so each adds up to the runs', () => {
+    const sim = simWorld({ equal: true });
+    const batch = simulateBatch(sim, { ...singles(sim), runs: 100 });
+    expect(batch.runs).toBe(100);
+    expect(batch.sides.map((side) => side.side)).toEqual([0, 1]);
+    expect(batch.sides.every((side) => side.names.length === 1)).toBe(true);
+    expect(outcomeTotal(batch)).toBe(100);
+    expect(batch.finishes.reduce((total, finish) => total + finish.count, 0)).toBe(100);
+    const counts = batch.finishes.map((finish) => finish.count);
+    expect(counts).toEqual([...counts].sort((left, right) => right - left));
+    expect(batch.histogram.reduce((total, bin) => total + bin.count, 0)).toBe(100);
+    expect(batch.workRate).not.toBeNull();
+    expect(batch.randomWinnersMode).toBe(false);
+    expect(JSON.stringify(batch)).not.toContain('"trace"');
+    // Two equal wrestlers split the wins.
+    expect(batch.sides.every((side) => side.wins > 0)).toBe(true);
+  });
+
+  it('makes run i the single Simulate with seed previewSeed + i', () => {
+    const sim = simWorld();
+    for (const seed of [7, 8]) {
+      const single = simulate(sim, singles(sim, { previewSeed: seed }));
+      const batch = simulateBatch(sim, { ...singles(sim, { previewSeed: seed }), runs: 1 });
+      expect(batch.score).toMatchObject({
+        min: single.preview.score.value,
+        max: single.preview.score.value,
+      });
+      expect(batch.finishes).toEqual([
+        {
+          key: single.finish.key,
+          name: single.finish.name,
+          category: single.finish.category,
+          count: 1,
+        },
+      ]);
+      expect(batch.sides.find((side) => side.side === single.winningSide)?.wins ?? 0).toBe(
+        single.winningSide === null ? 0 : 1,
+      );
+    }
+    // Two runs from seed 7 are the single nights on 7 and 8.
+    const pair = simulateBatch(sim, { ...singles(sim), runs: 2 });
+    const scores = [7, 8]
+      .map((seed) => simulate(sim, singles(sim, { previewSeed: seed })).preview.score.value)
+      .sort((left, right) => left - right);
+    expect([pair.score.min, pair.score.max]).toEqual(scores);
+  });
+
+  it('keeps a booked Side 2 winning and a booked Draw drawn on every run', () => {
+    const sim = simWorld();
+    const booked = simulateBatch(sim, { ...singles(sim, { winner: { side: 1 } }), runs: 40 });
+    expect(booked.sides.map((side) => side.wins)).toEqual([0, 40]);
+    const drawn = simulateBatch(sim, { ...singles(sim, { winner: 'draw' }), runs: 40 });
+    expect(drawn.draws).toBe(40);
+    expect(drawn.sides.map((side) => side.wins)).toEqual([0, 0]);
+    expect(drawn.finishes.every((finish) => finish.category === 'draw')).toBe(true);
+  });
+
+  it('never moves the world, its RNG, traces or event log over a 500-run batch', () => {
+    const sim = simWorld();
+    const before = JSON.stringify(sim.engine.exportState());
+    simulateBatch(sim, { ...singles(sim), runs: 500 });
+    expect(JSON.stringify(sim.engine.exportState())).toBe(before);
+  });
+
+  it('says when Random winners decides the Auto winner', () => {
+    const sim = simWorld({ randomWinners: true });
+    expect(simulateBatch(sim, { ...singles(sim), runs: 5 }).randomWinnersMode).toBe(true);
+    expect(
+      simulateBatch(sim, { ...singles(sim, { winner: { side: 0 } }), runs: 5 }).randomWinnersMode,
+    ).toBe(false);
+  });
+
+  it('refuses an angle and more than 500 runs', () => {
+    const sim = simWorld();
+    const angle = sim.engine.query(
+      'match.simulateBatch',
+      { ...singles(sim, { kind: 'angle', typeKey: parseContentKey('angle.promo') }), runs: 5 },
+      PLAYER,
+    );
+    expect(!angle.ok && angle.reasons.map((reason) => reason.field)).toEqual(['kind']);
+    const tooMany = sim.engine.query('match.simulateBatch', { ...singles(sim), runs: 501 }, PLAYER);
+    expect(!tooMany.ok && tooMany.reasons.map((reason) => [reason.code, reason.field])).toEqual([
+      ['invalidArgs', 'runs'],
+    ]);
   });
 });
 

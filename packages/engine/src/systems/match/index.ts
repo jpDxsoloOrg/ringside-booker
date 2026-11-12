@@ -400,13 +400,18 @@ export {
   type ResolveStreamName,
 } from './finishes/resolve';
 
-// The Match lab's Simulate and the result mode (MTCH2-04).
+// The Match lab's Simulate and the result mode (MTCH2-04), and its batch (MTCH2-07).
 // Design: docs/design/match-finishes.md#simulate.
 export {
   SIMULATE_REASON_CODES,
   SimulateArgsSchema,
+  SimulateBatchArgsSchema,
+  type FinishCount,
   type ResultMode,
+  type SideWinCount,
   type SimulateArgs,
+  type SimulateBatchArgs,
+  type SimulateBatchResult,
   type SimulateResult,
   type SimulatedFinish,
 } from './simulateQuery';
