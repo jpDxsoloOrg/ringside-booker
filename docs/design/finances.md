@@ -97,7 +97,95 @@ cost. The web app uses these and never its own wording.
 
 ## Reach and size
 
-Filled by ECO1-02.
+"How big is this company?" has one answer, used by every economic number that
+depends on size (ticket prices, sponsorship, TV deal value, what workers ask
+for). Code: `systems/finance/formulas/promotionReach.ts`,
+`formulas/promotionSize.ts`, `reach.ts` and `queries/company.ts`.
+
+**Reach** is a smooth number from 0 to 100, a weighted mean of the promotion's
+popularity at four levels:
+
+```
+reach = (wRegion × home region + wCountry × home country
+         + wContinent × home continent + wWorld × world)
+        ÷ (wRegion + wCountry + wContinent + wWorld)
+```
+
+kept between 0 and 100. The home region figure is the stored value; the
+country, continent and world figures come from WRK1's single roll-up
+(`popularityRollup`, [geography.md](geography.md#popularity-roll-up)), so
+nothing here computes its own population-weighted figures, and the Why? of
+each line drills down through the roll-up to the regions. When every weight
+is 0 reach is 0 and the trace says "Every reach weight is 0"; there is no
+division by zero. Reach is exact; screens round it to one decimal.
+
+On the shipped map the three roll-up traces together are bigger than one trace
+may hold (400 nodes), so each line keeps a share (country 80, continent 120,
+world 150 nodes) and ends with "N more steps not shown" when it runs over. That
+way the division and the clamp are always in the Why?.
+
+**Size** is a display label read off reach: the largest size whose threshold
+reach has reached, otherwise Local. The walk goes from Global down, so if the
+thresholds are tuned out of order it still answers, and the trace notes
+"Thresholds are out of order".
+
+**Only reach feeds formulas, never the size label.** Reach has no steps, so a
+small popularity move makes a small reach move and nothing downstream jumps when
+a company crosses a threshold. The label is for screens only.
+
+Reach is never stored or cached: `reachOf(read, promotionId, tunables)` works it
+out on every read, so a popularity change (EVT5) shows on the next query.
+
+| Tunable                              | Default | What it is                              |
+| ------------------------------------ | ------- | --------------------------------------- |
+| `finance.reach.weight.homeRegion`    | 1       | Weight of the home region               |
+| `finance.reach.weight.homeCountry`   | 3       | Weight of the home country              |
+| `finance.reach.weight.homeContinent` | 2       | Weight of the home continent            |
+| `finance.reach.weight.world`         | 2       | Weight of the whole world               |
+| `finance.size.regionalAt`            | 6       | Reach at which a company is Regional    |
+| `finance.size.nationalAt`            | 25      | Reach at which a company is National    |
+| `finance.size.continentalAt`         | 45      | Reach at which a company is Continental |
+| `finance.size.globalAt`              | 70      | Reach at which a company is Global      |
+
+A weight of 0 means that level does not count.
+
+**Worked example: Altura** (home region US Northeast). Popularity is 75 in the
+Northeast, 70.3 in the United States, 66.9 in North America and 6.0 worldwide:
+
+```
+(1 × 75 + 3 × 70.3 + 2 × 66.9 + 2 × 6.0) ÷ 8 = 431.6 ÷ 8 = 54.0
+```
+
+54.0 reaches the Continental threshold (45) but not the Global one (70), so
+Altura is **Continental**.
+
+**Worked example: Hardpan** (home region US Texas). Popularity is 20 in Texas,
+1.8 in the United States, 1.6 in North America and 0.1 worldwide:
+
+```
+(1 × 20 + 3 × 1.8 + 2 × 1.6 + 2 × 0.1) ÷ 8 = 29.0 ÷ 8 = 3.6
+```
+
+3.6 is below the Regional threshold (6), so Hardpan is **Local**.
+
+The default world with these values (checked by `reach-default-world.test.ts`
+against the tiers in [default-world.md](default-world.md#tier-values)):
+
+| Tier     | Promotions and reach                                                                          | Size        |
+| -------- | --------------------------------------------------------------------------------------------- | ----------- |
+| Flagship | Altura 54.0                                                                                   | Continental |
+| National | Cielo Alto 34.9, Tessen 32.1                                                                  | National    |
+| Regional | Eisenwerk 17.4, Boreal 16.2, Ashlar 12.9, Longleaf 12.4, Blast Furnace 12.0, Golden Poppy 9.0 | Regional    |
+| Local    | Wattle 5.2, Hardpan 3.6, Hibari 3.5                                                           | Local       |
+
+**The query.** `finance.company { promotionId }` returns the promotion's name,
+`reach` with `reachTrace`, `size`, `sizeLabel` with `sizeTrace`, and `nextSize`
+(the smallest larger size whose threshold is above reach, with that threshold,
+or null). The traces are inline, so nothing goes in the trace store. It is
+public: company size is common knowledge and is built only from popularity,
+which every viewer can already see, so any viewer may ask about any promotion.
+It never returns cash or ledger figures. An unknown promotion is refused with
+`unknownPromotion`.
 
 ## Payroll
 
@@ -124,3 +212,6 @@ Filled by ECO1-05.
 How later features plug into the economy. The first seam is `postMoney`
 itself: a new kind of income or cost posts through it with its own category and
 a trace. Others are added by ECO1-02..05.
+
+- **Company size (ECO1-02).** A feature that scales with company size calls
+  `reachOf` and reads `reach`, never `size`; the label is display only.
