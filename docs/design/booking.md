@@ -169,3 +169,86 @@ uses it, so an old card stays editable after a pack hides an entry.
 Every message is written for the player and names the person, title or slot:
 "Slot 7 doesn't exist on this show", "Kid Vega isn't on the Apex Wrestling
 roster", "The Crown Title has been retired".
+
+## Commands
+
+Every card change a person makes is one of six commands (EVT2-02, D-07), so it
+names the controller that issued it and lands in the command log. The code is
+`booking/commands.ts`.
+
+| Command                 | Arguments                                                | Returns           |
+| ----------------------- | -------------------------------------------------------- | ----------------- |
+| `booking.addSegment`    | `eventInstanceId`, `preShow`, `slot`, `draft`            | `{ segmentId }`   |
+| `booking.updateSegment` | `segmentId`, `draft` (the whole draft)                   | `{ segmentId }`   |
+| `booking.removeSegment` | `segmentId`                                              | `null`            |
+| `booking.moveSegment`   | `segmentId`, `toPreShow`, `toSlot`                       | `{ swappedWith }` |
+| `booking.setResult`     | `segmentId`, `result` (win, draw, no contest, or `null`) | `null`            |
+| `booking.clearCard`     | `eventInstanceId`                                        | `{ removed }`     |
+
+Slots are 0-based here, as stored. `updateSegment` takes the whole draft on
+purpose: the editor sections other features add (finish, beats, stipulations,
+crew, storylines) change only their part of the draft and save through it, so
+there is one write path. A section that needs a field the draft does not carry
+widens `SegmentDraftSchema` rather than adding a command. `setResult` is the
+card row's quick winner menu; the segment editor sends the result inside its
+draft.
+
+Each command's `validate` asks the same questions in the same order, and the
+first that fails is the only reason returned:
+
+1. Does the show (or segment) exist?
+2. Does the issuer run the show? This is the calendar's `controlsShow`: the
+   brand's controller when the brand has one, otherwise the promotion's. GM
+   brands and hot-seat brand wars need nothing extra.
+3. Can the card still change? (`editBlockOf`, above.)
+4. Is the change sound? (`structuralProblems`, the writer's rules.) A move only
+   checks that the target slot exists; a result only checks the winning side
+   and the method.
+
+`apply` then calls the writer once, so the change is all or nothing, and
+publishes one `card.changed { eventInstanceId, promotionId, brandId, segmentId,
+change }`, where `change` is `added`, `updated`, `removed`, `moved`, `result`
+or `cleared` (`segmentId` is null for `cleared`). A command that changes
+nothing succeeds and publishes nothing: the same draft again, a move onto its
+own slot, the result it already has, or clearing an empty card. `card.locked`
+and `card.unlocked` are declared for EVT2-04's lock commands. Commands are
+refused with `busy` while days are advancing.
+
+### Refusals
+
+The UI shows these messages as they are and never re-words them.
+
+| Code                      | When                                                      | Player message                                                    |
+| ------------------------- | --------------------------------------------------------- | ----------------------------------------------------------------- |
+| `invalidArgs`             | the arguments do not parse (a negative slot, a bad id)    | names the field                                                   |
+| `showNotFound`            | the show does not exist                                   | "That show no longer exists"                                      |
+| `segmentNotFound`         | the segment does not exist                                | "That segment is no longer on the card"                           |
+| `notYourShow`             | the issuer does not run the show                          | "Only the person running {brand or promotion} can book this show" |
+| `showCompleted`           | the show has run                                          | "This show has already run"                                       |
+| `showCancelled`           | the show was cancelled                                    | "This show was cancelled"                                         |
+| `showPast`                | its date is before today                                  | "This show has already happened"                                  |
+| `cardLocked`              | the card is locked (`booked`)                             | "Unlock the card to change it"                                    |
+| `slotOutsideFormat`       | add or move to a slot the format does not have            | "Slot 7 doesn't exist on this show"                               |
+| `slotTaken`               | add to a filled slot                                      | "Slot 3 already has a segment"                                    |
+| `notAMatch`               | `setResult` on an angle                                   | "Only a match has a result to plan"                               |
+| `winnerWithoutCompetitor` | the planned winning side has no competitor                | "Side 3 has nobody wrestling, so it can't win"                    |
+| `unknownMethod`           | the planned way of winning is not offered                 | "That way of winning isn't available"                             |
+| other structural codes    | add or update with a draft the writer refuses (see above) | the writer's message, naming the person, title or slot            |
+
+`notYourShow` names whoever runs the show: the brand when it has its own
+controller, otherwise the promotion.
+
+## Lifecycle
+
+How a card meets the calendar's show lifecycle ([calendar.md](calendar.md#lifecycle)):
+
+- **A locked card that never runs.** The calendar's `calendar.closePastShows`
+  closes `booked` shows as well as `scheduled` ones at the end of their day,
+  with reason `notRun`. Until the show night (EVT3) runs cards, a locked show
+  is therefore marked Not run when its day ends, so the calendar stays honest.
+  Its segments are kept. Once EVT3 ships, its shows phase completes the show
+  first and the close rule no longer sees it.
+- **A cancelled show keeps its card.** `calendar.cancelShow` on a show with a
+  card deletes nothing: the segments stay as read-only history, and every
+  booking command is refused with `showCancelled`. The booking show list and
+  the show-day gate (EVT2-03) leave cancelled shows out.
