@@ -100,6 +100,7 @@ export {
   applyMoraleChange,
   applyPopularityChange,
   DOOR_TRACE_KINDS,
+  initialMomentum,
   DOORS_DOC_REF,
   ROLE_CHANGED_REASON_KEY,
   SET_ROLE_PROBLEM_CODES,

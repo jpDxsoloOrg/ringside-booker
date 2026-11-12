@@ -49,6 +49,7 @@ import type { DoorSource } from './events';
 import { CREW_ROLES } from './formulas/expectedPush';
 import { popularityAnchor, POPULARITY_DOC_REF } from './formulas/popularityAnchor';
 import { popularityChange } from './formulas/popularityChange';
+import type { EngineTunables } from '../tunables';
 
 export type { DoorSource } from './events';
 
@@ -653,10 +654,64 @@ export interface ApplyMomentumChangeArgs {
   reason: DoorReason;
 }
 
+const MOMENTUM_CALC_OPTIONS = { unit: 'points', docRef: MOMENTUM_DOC_REF } as const;
+
+/**
+ * Starts the calculation of a first momentum: the person's popularity in the home region of the
+ * employing promotion times `workers.momentum.initialPopFactor`. The door continues it with the
+ * delta; {@link initialMomentum} finishes it on its own.
+ */
+function startInitialMomentum(
+  read: GameWorldView,
+  employment: Pick<Employment, 'personId' | 'promotionId'>,
+  tunables: EngineTunables,
+  label: string,
+  door: string,
+): Calc {
+  const person = requirePerson(read, door, employment.personId);
+  const promotion = read.tables.promotions.require(employment.promotionId);
+  const homeRegion = read.tables.regions.require(promotion.homeRegionId);
+  const calc = startCalc(label, person.regionalPop[homeRegion.id] ?? 0, {
+    ...MOMENTUM_CALC_OPTIONS,
+    startLabel: `Popularity in ${homeRegion.name}`,
+  });
+  return calc
+    .multiply(
+      'Starting share of home popularity',
+      calc.tunable(
+        tunables,
+        'workers.momentum.initialPopFactor',
+        'Starting share of home popularity',
+      ),
+    )
+    .note('First appearance: starts from home-region popularity');
+}
+
+/**
+ * The momentum an employment with no momentum yet starts from, exactly as
+ * {@link applyMomentumChange} will initialise it before adding its first delta (not clamped: the
+ * door clamps after adding). Callers that judge a change before making it (the match aftermath)
+ * use it so their "before" matches the door's.
+ */
+export function initialMomentum(
+  read: GameWorldView,
+  employment: Pick<Employment, 'personId' | 'promotionId'>,
+  tunables: EngineTunables,
+): Traced<number> {
+  return startInitialMomentum(
+    read,
+    employment,
+    tunables,
+    'Starting momentum',
+    'initialMomentum',
+  ).done();
+}
+
 /**
  * Adds to a worker's momentum and keeps it between -100 and 100. Momentum is empty until the first
  * appearance under a contract: the first change starts it from the person's popularity in the
- * promotion's home region times `workers.momentum.initialPopFactor`, then adds the delta.
+ * promotion's home region times `workers.momentum.initialPopFactor` ({@link initialMomentum}),
+ * then adds the delta.
  */
 export function applyMomentumChange(
   ctx: DoorContext,
@@ -665,29 +720,10 @@ export function applyMomentumChange(
   const employment = requireOpenEmployment(ctx.read, 'applyMomentumChange', args.employmentId);
   requireReason('applyMomentumChange', args.reason);
   const before = employment.momentum;
-  const options = { unit: 'points', docRef: MOMENTUM_DOC_REF } as const;
-  let calc: Calc;
-  if (before === null) {
-    const person = requirePerson(ctx.read, 'applyMomentumChange', employment.personId);
-    const promotion = ctx.read.tables.promotions.require(employment.promotionId);
-    const homeRegion = ctx.read.tables.regions.require(promotion.homeRegionId);
-    calc = startCalc('Momentum', person.regionalPop[homeRegion.id] ?? 0, {
-      ...options,
-      startLabel: `Popularity in ${homeRegion.name}`,
-    });
-    calc
-      .multiply(
-        'Starting share of home popularity',
-        calc.tunable(
-          ctx.tunables,
-          'workers.momentum.initialPopFactor',
-          'Starting share of home popularity',
-        ),
-      )
-      .note('First appearance: starts from home-region popularity');
-  } else {
-    calc = startCalc('Momentum', before, { ...options, startLabel: 'Momentum before' });
-  }
+  const calc =
+    before === null
+      ? startInitialMomentum(ctx.read, employment, ctx.tunables, 'Momentum', 'applyMomentumChange')
+      : startCalc('Momentum', before, { ...MOMENTUM_CALC_OPTIONS, startLabel: 'Momentum before' });
   const result = calc
     .add(args.reason.label, args.delta)
     .clamp(SIGNED_SCALE_MIN, SIGNED_SCALE_MAX)
