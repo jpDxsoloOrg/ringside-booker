@@ -2,48 +2,35 @@
 // Wrestling Entertainment: the defaults, every number's Why? in the words the panel shows (readable
 // labels, the settings named by key, no raw codes, no broken numbers, nothing about running time),
 // the first tuning pass's checks from docs/design/match-rating.md, and an old save without catalogs.
-import { readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import {
   createEngine,
-  createNewGame,
   defaultSystems,
   documentToWorld,
   initialEngineState,
   OMNISCIENT_VIEWER,
-  packManifestSchema,
-  RECORD_KINDS,
   SLOT_ROLES,
   TABLES,
 } from '@ringside/engine';
 import type {
   ContentKey,
-  Engine,
   LabOptions,
   LabWorkerRow,
   MatchCatalog,
   PreviewArgs,
   PreviewBatchResult,
   PreviewResult,
-  RawPack,
-  RecordKind,
   SlotRole,
   TraceNode,
-  Viewer,
 } from '@ringside/engine';
 import { tinySaveDocument } from '@ringside/engine/testing';
 import { traceToText } from '@/components/Trace/traceToText';
+import {
+  DEFAULT_WORLD_PROMOTION_NAME as PLAYER_PROMOTION_NAME,
+  DEFAULT_WORLD_VIEWER as VIEWER,
+  startDefaultWorldGame,
+} from '@/test/defaultWorld';
 import { RUNNING_TIME_WORDS } from '@/test/runningTimeWords';
-
-// A path, not a URL: under jsdom the URL class is not the one node:fs accepts.
-const CONTENT_ROOT = join(dirname(fileURLToPath(import.meta.url)), '../../../../../content');
-
-const PLAYER_ID = 'local-player';
-const PLAYER_PROMOTION_KEY = 'pro-flagship';
-const PLAYER_PROMOTION_NAME = 'Altura Wrestling Entertainment';
-const VIEWER: Viewer = { kind: 'controller', controller: { kind: 'human', playerId: PLAYER_ID } };
 
 /** Run x100, as the lab's button does. */
 const BATCH_RUNS = 100;
@@ -56,43 +43,7 @@ const RAW_CODE = /(?<![.\w])[a-z]+[A-Z]\w*(?![.\w])/;
 /** The words the ticket bans on the lab: no running time (D-10). */
 const MINUTES = /\bminutes?\b|\bmins?\b/i;
 
-function readJson(path: string): unknown {
-  return JSON.parse(readFileSync(path, 'utf8'));
-}
-
-/** Reads a shipped pack the way the tools do: its manifest and every file the manifest lists. */
-function readContentPack(folder: string): RawPack {
-  const packRoot = join(CONTENT_ROOT, folder);
-  const manifest = packManifestSchema.parse(readJson(join(packRoot, 'pack.json')));
-  const files: Partial<Record<RecordKind, unknown>> = {};
-  for (const kind of RECORD_KINDS) {
-    const file = manifest.files[kind];
-    if (file !== undefined) {
-      files[kind] = readJson(join(packRoot, file));
-    }
-  }
-  return { manifest, files };
-}
-
-/** A new game on the default world, playing Altura, before any day has run. */
-function startDefaultGame(): Engine {
-  const game = createNewGame([readContentPack('base'), readContentPack('worlds/default')], {
-    rootPackId: 'default-world',
-    seed: 'match-lab-owner-test',
-    playerId: PLAYER_ID,
-    playerName: 'Alex Booker',
-    saveName: 'Match lab owner test',
-    seasonLength: { preset: '6m' },
-    player: { mode: 'existing', promotionKey: PLAYER_PROMOTION_KEY },
-    settings: {},
-  });
-  if (!game.ok) {
-    throw new Error(`The new game was refused: ${JSON.stringify(game.reasons)}`);
-  }
-  return createEngine({ state: game.state, systems: defaultSystems });
-}
-
-const engine = startDefaultGame();
+const engine = startDefaultWorldGame('match-lab-owner-test');
 
 function ask<T>(answer: { ok: true; data: T } | { ok: false; reasons: unknown }, name: string): T {
   if (!answer.ok) throw new Error(`${name} was refused: ${JSON.stringify(answer.reasons)}`);

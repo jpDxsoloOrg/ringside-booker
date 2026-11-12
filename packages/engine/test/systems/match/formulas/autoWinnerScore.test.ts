@@ -80,6 +80,10 @@ describe('autoWinnerScore', () => {
       expect(step(result, label)?.kind).toBe('add');
     }
     expect(step(result, 'Popularity in Great Lakes')?.value).toBeCloseTo(30, 9);
+    // Region names keep their capitals and pushes are said in words, not codes.
+    const labels = JSON.stringify(result.trace);
+    expect(labels).toContain('"Mean popularity in Great Lakes"');
+    expect(labels).toContain('"Worker 1 (mid card)"');
   });
 
   it.each<[Push, number]>([

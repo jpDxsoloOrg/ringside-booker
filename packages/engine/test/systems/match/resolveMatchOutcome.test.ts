@@ -117,6 +117,22 @@ describe('resolveMatchOutcome', () => {
     expect(finish?.methods.map((method) => method.methodKey)).toContain(resolution.methodKey);
   });
 
+  it('names a finish once when its only method has the same name', () => {
+    const result = resolve({ winner: { side: 1 }, finishKey: key('finish.disqualification') });
+    resolved(result);
+    if (result.ok) {
+      const trace = result.resolution.trace;
+      expect(trace.kind === 'decision' ? trace.reason : '').toBe('Disqualification');
+    }
+    // Count-out's method is spelt Count-Out: still said once.
+    const countOut = resolve({ winner: { side: 1 }, finishKey: key('finish.count-out') });
+    resolved(countOut);
+    if (countOut.ok) {
+      const trace = countOut.resolution.trace;
+      expect(trace.kind === 'decision' ? trace.reason : '').toBe('Count-out');
+    }
+  });
+
   it('gives a Draw with an Auto finish a draw finish and no method', () => {
     const resolution = resolved(resolve({ winner: 'draw' }));
     expect(resolution.outcome).toEqual({ kind: 'draw' });

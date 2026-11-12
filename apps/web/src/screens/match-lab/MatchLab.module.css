@@ -193,6 +193,13 @@
   overflow-wrap: anywhere;
 }
 
+/* The name link is a comfortable target (WCAG 2.5.8) without making the chip taller. */
+.workerChipLink {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 1.5rem;
+}
+
 .workerChipMeta {
   color: var(--color-text-muted);
   font-size: var(--font-size-xs);
