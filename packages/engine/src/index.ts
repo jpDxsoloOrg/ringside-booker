@@ -1164,3 +1164,29 @@ export {
   skippedDetailNote,
   staminaCheckOf,
 } from './systems/match/index';
+
+// Finish effects as rating modifiers, the finish decided on the night, the method and the title
+// rule (MTCH2-02): `MatchResolution` (the shape the rater, `match.simulate` and EVT3 share),
+// `finishEffect`, `autoFinish`, `chooseMethod` and `titleCanChange`. `allowedFinishes` is exported
+// with MTCH2-01 above. See docs/design/match-finishes.md#finish-effects.
+export type {
+  AutoFinishCandidate,
+  AutoFinishDeps,
+  AutoFinishInputs,
+  ChooseMethodInputs,
+  FinishEffectInputs,
+  FinishEffectTarget,
+  MatchResolution,
+  TitleCanChangeInputs,
+} from './systems/match/index';
+export {
+  MATCH_FINISH_STREAM,
+  MatchResolutionSchema,
+  autoFinish,
+  chooseMethod,
+  finishEffect,
+  finishEffectLabel,
+  registerFinishModifiers,
+  titleCanChange,
+  winnerAlignmentOf,
+} from './systems/match/index';

@@ -235,6 +235,60 @@ export {
   type FinishesArgs,
 } from './queries';
 
+// Finish effects, finish on the night, method and the title rule (MTCH2-02).
+// Design: docs/design/match-finishes.md#finish-effects.
+export { MATCH_FINISH_STREAM } from './streams';
+export { MatchResolutionSchema, type MatchResolution } from './finishes/resolution';
+export {
+  DRAW_CROWD_PENALTY_LABEL,
+  FINISH_EFFECTS_DOC_REF,
+  finishEffect,
+  finishEffectLabel,
+  type FinishEffectInputs,
+  type FinishEffectTarget,
+} from './formulas/finishEffect';
+export {
+  FINISH_CROWD_MODIFIER_ID,
+  FINISH_WORK_RATE_MODIFIER_ID,
+  finishCrowdModifier,
+  finishWorkRateModifier,
+  registerFinishModifiers,
+  unknownFinishNote,
+} from './finishes/modifiers';
+export {
+  ALL_WEIGHTS_ZERO_FINISH_NOTE,
+  AUTO_FINISH_LABEL,
+  AUTO_FINISH_RULE,
+  FINISH_ON_THE_NIGHT_DOC_REF,
+  NEVER_PICKED_REASON,
+  ONLY_FINISH_NOTE,
+  PICKED_BY_ROLL_REASON,
+  autoFinish,
+  winnerAlignmentOf,
+  type AutoFinishCandidate,
+  type AutoFinishDeps,
+  type AutoFinishInputs,
+} from './finishes/autoFinish';
+export {
+  BOOKED_METHOD_REASON,
+  METHOD_BY_ROLL_REASON,
+  METHOD_DECISION_LABEL,
+  METHOD_DOC_REF,
+  NO_METHOD_NOTE,
+  NO_METHOD_OPTION,
+  ONLY_METHOD_REASON,
+  chooseMethod,
+  type ChooseMethodInputs,
+} from './finishes/chooseMethod';
+export {
+  NO_WINNER_RULE,
+  TITLE_CAN_CHANGE_REASON,
+  TITLE_CHANGES_DOC_REF,
+  TITLE_RULE_LABEL,
+  titleCanChange,
+  type TitleCanChangeInputs,
+} from './finishes/titleRule';
+
 export const matchSystem: SystemBundle = defineSystem({
   id: 'match',
   queries: matchQueries,
