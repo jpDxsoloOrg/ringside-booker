@@ -88,6 +88,11 @@ function slotName(position: CardPosition): string {
   return position.preShow ? `Pre-show slot ${shown}` : `Slot ${shown}`;
 }
 
+/** "The Boreal Championship", without doubling a name that already starts with "The". */
+function theTitle(name: string): string {
+  return /^the /i.test(name) ? name : `The ${name}`;
+}
+
 /** "Side 2" for stored side 1. */
 function sideName(side: number): string {
   return `Side ${String(side + 1)}`;
@@ -307,14 +312,14 @@ function matchProblems(
     } else if (title.promotionId !== instance.promotionId) {
       problems.push({
         code: 'titleNotOurs',
-        message: `The ${title.name} isn't one of this promotion's titles`,
+        message: `${theTitle(title.name)} isn't one of this promotion's titles`,
         field: 'match.titleIds',
         subject: { kind: 'title', id: title.id },
       });
     } else if (title.status === 'retired') {
       problems.push({
         code: 'titleRetired',
-        message: `The ${title.name} has been retired`,
+        message: `${theTitle(title.name)} has been retired`,
         field: 'match.titleIds',
         subject: { kind: 'title', id: title.id },
       });

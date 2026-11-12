@@ -79,7 +79,7 @@ function bookingWorld(options: BookingWorldOptions = {}): BookingWorld {
         .withRoster(10)
         .withTitle({ name: 'Test Heavyweight Title' })
         .withTitle({
-          name: 'Test Old Title',
+          name: 'The Old Crown',
           status: 'retired',
           retiredOn: parseGameDate(START),
         }),
@@ -782,7 +782,7 @@ describe('structuralProblems', () => {
     expect(withTitles([booking.retiredTitle])).toEqual([
       expect.objectContaining({
         code: 'titleRetired',
-        message: 'The Test Old Title has been retired',
+        message: 'The Old Crown has been retired',
       }),
     ]);
     expect(withTitles([GHOST_TITLE]).map((problem) => problem.code)).toEqual(['titleNotOurs']);
