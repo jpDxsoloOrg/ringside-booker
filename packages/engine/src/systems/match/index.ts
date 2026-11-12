@@ -3,8 +3,9 @@
  *
  * So far: the slot derivations of D-10 (`slots.ts`: role, duration class and weight from a slot's
  * position, never stored), the match tunables (`tunables.ts`) and two queries (`queries.ts`):
- * `match.catalog` and `match.slotRoles`. The in-ring formulas (`formulas/`): worker performance,
- * side aggregation and work rate. The runtime catalogs it reads live in
+ * `match.catalog` and `match.slotRoles`. The rating formulas (`formulas/`): worker performance,
+ * side aggregation and work rate (MTCH1-03); star power, crowd expectation, crowd score, soft
+ * compression, segment score, star rating and speaker score (MTCH1-04). The runtime catalogs it reads live in
  * `model/catalogs.ts`. No phase yet. Design: docs/design/match-rating.md.
  */
 
@@ -80,6 +81,60 @@ export {
   type WorkRateSide,
   type WorkRateWorker,
 } from './formulas/workRate';
+
+export {
+  STAR_POWER_DOC_REF,
+  starPower,
+  type StarPowerInputs,
+  type StarPowerMember,
+} from './formulas/starPower';
+export {
+  EVENT_IMPORTANCE_LABELS,
+  EXPECTATION_DOC_REF,
+  EXPECTATION_LABEL,
+  NOT_TELEVISED_LABEL,
+  crowdExpectation,
+  type CrowdExpectationInputs,
+} from './formulas/crowdExpectation';
+export {
+  CROWD_LABEL,
+  CROWD_VARIANCE_LABEL,
+  CROWD_WEIGHTS_ZERO_NOTE,
+  DELIVERED_LABEL,
+  crowdScore,
+  type CrowdScoreInputs,
+} from './formulas/crowdScore';
+export {
+  COMPRESSION_DOC_REF,
+  softCompression,
+  type SoftCompressionInputs,
+} from './formulas/softCompression';
+export {
+  DEFAULT_POLICY_LABEL,
+  PROMOTION_STYLE_LABELS,
+  SEGMENT_PERFORMANCE_LABELS,
+  SEGMENT_SCORE_DOC_REF,
+  SEGMENT_SCORE_LABEL,
+  segmentScore,
+  type SegmentScoreInputs,
+} from './formulas/segmentScore';
+export {
+  NEAREST_QUARTER_LABEL,
+  POINTS_PER_STAR_ZERO_NOTE,
+  STARS_DOC_REF,
+  STARS_LABEL,
+  starRating,
+  type StarRatingInputs,
+} from './formulas/starRating';
+export {
+  PROMO_VARIANCE_LABEL,
+  TALKING_DOC_REF,
+  speakerScore,
+  type SpeakerScoreInputs,
+  type SpeakerScoreSide,
+  type SpeakerScoreSpeaker,
+} from './formulas/speakerScore';
+export { signedNumber, summaryOf } from './formulas/shared';
 
 export const matchSystem: SystemBundle = defineSystem({
   id: 'match',

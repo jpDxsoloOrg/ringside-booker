@@ -1049,3 +1049,31 @@ export {
   workerPerformance,
   workRate,
 } from './systems/match/index';
+
+// The crowd and scoring formulas (MTCH1-04): star power, crowd expectation and score, soft
+// compression, segment score, star rating and speaker score. See docs/design/match-rating.md#star-power.
+export type {
+  CrowdExpectationInputs,
+  CrowdScoreInputs,
+  SegmentScoreInputs,
+  SoftCompressionInputs,
+  SpeakerScoreInputs,
+  SpeakerScoreSide,
+  SpeakerScoreSpeaker,
+  StarPowerInputs,
+  StarPowerMember,
+  StarRatingInputs,
+} from './systems/match/index';
+export {
+  crowdExpectation,
+  crowdScore,
+  DEFAULT_POLICY_LABEL,
+  EVENT_IMPORTANCE_LABELS,
+  PROMOTION_STYLE_LABELS,
+  SEGMENT_PERFORMANCE_LABELS,
+  segmentScore,
+  softCompression,
+  speakerScore,
+  starPower,
+  starRating,
+} from './systems/match/index';

@@ -16,12 +16,12 @@ import { formatNumber } from '../../world/people/labels';
 export const SIDES_DOC_REF = 'match-rating.md#sides';
 
 /**
- * The tunables a side aggregate can decay by. MTCH1-04 adds `match.starPower.depthDecay` for the
- * star power of a side.
+ * The tunables a side aggregate can decay by: workers into a side, sides into a match, and the
+ * popularity of everyone in a segment into its star power.
  */
 export type SideDecayKey = Extract<
   NumberTunableKey,
-  'match.side.depthDecay' | 'match.sides.depthDecay'
+  'match.side.depthDecay' | 'match.sides.depthDecay' | 'match.starPower.depthDecay'
 >;
 
 export interface SideAggregateMember {
@@ -42,6 +42,7 @@ export interface SideAggregateInputs {
 const RANK_NOUNS: Readonly<Record<SideDecayKey, string>> = {
   'match.side.depthDecay': 'on side',
   'match.sides.depthDecay': 'side',
+  'match.starPower.depthDecay': 'draw',
 };
 
 /** How far the weights may drift from summing to 1 before something is wrong. */
