@@ -34,6 +34,9 @@ import { worldBuilder } from '../../support/world-builder';
 import { testId } from '../../support/ids';
 import { expectSerialisable } from '../../support/trace';
 
+// The share tests draw thousands of names; under coverage on a busy CI runner they can pass 5 s.
+const SAMPLING_TEST_MS = 15_000;
+
 type NameCultureRecord = packs.NameCultureRecord;
 type WeightedName = packs.WeightedName;
 
@@ -427,21 +430,33 @@ describe('gender handling', () => {
     expect(Math.abs(shares.female - 0.25)).toBeLessThanOrEqual(0.01);
   });
 
-  it('names men from the male list and the neutral list at the neutral share', () => {
-    const shares = listShares('male');
-    expect(shares.female).toBe(0);
-    expect(Math.abs(shares.neutral - 0.05)).toBeLessThanOrEqual(0.005);
-    expect(listShares('female', { 'worldgen.names.neutralGivenShare': 0 })).toEqual({
-      male: 0,
-      female: 1,
-      neutral: 0,
-    });
-  });
+  it(
+    'names men from the male list and the neutral list at the neutral share',
+    () => {
+      const shares = listShares('male');
+      expect(shares.female).toBe(0);
+      expect(Math.abs(shares.neutral - 0.05)).toBeLessThanOrEqual(0.005);
+      expect(listShares('female', { 'worldgen.names.neutralGivenShare': 0 })).toEqual({
+        male: 0,
+        female: 1,
+        neutral: 0,
+      });
+    },
+    SAMPLING_TEST_MS,
+  );
 
-  it('follows the non-binary neutral share tunable, including 0 and 1', () => {
-    expect(listShares('nonBinary', { 'worldgen.names.nonbinaryNeutralShare': 1 }).neutral).toBe(1);
-    expect(listShares('nonBinary', { 'worldgen.names.nonbinaryNeutralShare': 0 }).neutral).toBe(0);
-  });
+  it(
+    'follows the non-binary neutral share tunable, including 0 and 1',
+    () => {
+      expect(listShares('nonBinary', { 'worldgen.names.nonbinaryNeutralShare': 1 }).neutral).toBe(
+        1,
+      );
+      expect(listShares('nonBinary', { 'worldgen.names.nonbinaryNeutralShare': 0 }).neutral).toBe(
+        0,
+      );
+    },
+    SAMPLING_TEST_MS,
+  );
 
   it('falls back to the gendered lists when a culture has no neutral names', () => {
     const library = aLibrary([
