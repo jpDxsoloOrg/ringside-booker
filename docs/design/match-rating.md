@@ -305,3 +305,282 @@ With psychology 52 the leader would be 18 short and cost `18 × 0.5 = 9`. In a
 tag match of four, the need falls to `65 × (2 ÷ 4)^0.5 ≈ 46`. (`workRate.test.ts`:
 "worked examples", "costs 9 when the leader has 52", "shares the load between
 four workers".)
+
+## Star power
+
+`systems/match/formulas/starPower.ts`:
+`starPower({ regionName, members }, { tunables })` → `Traced<number>`, 0–100,
+titled "Star power in <region>". How much drawing power the people in a segment
+bring in the show's region. D-02: popularity enters a rating **once**, here,
+and star power then feeds both what the crowd thinks was delivered and what it
+expected. Each member's `popularity` is their `regionalPop[regionId]` for the
+show's region, 0 when they have none there (D-03).
+
+1. **Aggregate** everyone in the segment, across every side, with the side
+   aggregate and `match.starPower.depthDecay`: the biggest star counts most
+   ("Kade Morrow (best draw) × 0.67", "Rex Vallor (2nd draw) × 0.33").
+2. **Diminishing returns**: `sp = agg × (1 + curve × (100 − agg) ÷ 100)`.
+   Curve 0 is plain popularity; at the default 0.8, 50 → 70, 80 → 92.8 and
+   100 → 100, so a midcarder gains a lot from a bump in popularity and a top
+   star very little.
+3. Kept between 0 and 100.
+
+| Key                          | Default | Range          | Unit  |
+| ---------------------------- | ------- | -------------- | ----- |
+| `match.starPower.depthDecay` | 0.5     | 0–1, step 0.05 | ratio |
+| `match.starPower.curve`      | 0.8     | 0–1, step 0.05 | ratio |
+
+Category `Match: crowd`.
+
+### Worked example: a 90 and a 30
+
+Ranked 90 then 30; weights 1 and 0.5 shared to 0.67 and 0.33, so the aggregate
+is `90 × 2/3 + 30 × 1/3 = 70`. Bent: `70 × (1 + 0.8 × 30 ÷ 100) = 86.8`.
+(`starPower.test.ts`: "weights the biggest star most" and "bends 50 to 70".)
+
+## Crowd and expectation (D-02)
+
+A crowd judges a segment against what it **expects** from those workers in that
+slot, not mostly by how popular they are
+([D-02](design-decisions.md#d-02-crowds-react-to-expectation-popularity-drives-money-hype-links-them-2026-11-07)). Two formulas do that: one for the expectation,
+one for the reaction.
+
+### Expectation
+
+`systems/match/formulas/crowdExpectation.ts`:
+`crowdExpectation(inputs, { tunables })` → `Traced<number>`, 0–100, titled
+"Expected". Inputs: the segment's star power, the mean of the participants'
+employment momentum with the promoting promotion (−100..100, a null momentum
+counts as 0), the slot role and its label, the event's importance and whether
+the show is televised.
+
+```
+expected = base + starPower × starWeight + momentum × momentumWeight
+         + slot.<role> + importance.<importance> + (televised ? televised : 0)
+```
+
+kept between 0 and 100. Each term is exactly one line: "Base expectation +25",
+"Star power 92.8 × 0.5", "Momentum +0 × 0.1", "Card position: Main event +8",
+"Event size: Regular +0" and "On TV +2" (or "Not on TV +0"). Star power is one
+flat line here; its own story is shown where it is delivered.
+
+### Crowd score
+
+`systems/match/formulas/crowdScore.ts`:
+`crowdScore(inputs, { tunables, rng? })` → `Traced<number>`, at least 0,
+titled "Crowd". Inputs: the performance (work rate for a match, talk for a
+talking segment) and its label, the side-aggregated entertainment axis, star
+power, the expectation, and the match or angle type's `crowdFactor` and name.
+
+1. **Delivered**: `(performance × performanceWeight + entertainment ×
+entertainmentWeight + starPower × starWeight) ÷ the sum of the three
+weights`. When the weights add up to 0, delivered is 0 with the note "All
+   crowd weights are 0". The line reads "Delivered 69.91".
+2. **Surprise**: `(delivered − expected) × surpriseWeight`, read as "Below
+   expectation −5.74", "Above expectation +5" or "Met expectation +0". Inside
+   it are the lines "Delivered 69.91" and "Expected 81.4", so the "Why?" panel
+   reads delivered against expected.
+3. **Type**: `× crowdFactor`, labelled "<type> crowd factor".
+4. **Variance**: with an rng (`match.rating`), `+ rollNormal(0, varianceSd)`,
+   "Crowd on the night"; without one the note "No variance roll".
+5. **At least 0.** Soft compression and the final clamp happen in the rater.
+
+Popularity appears in a rating twice and only twice: through star power in
+delivered, and through star power in the expectation. A hot act that
+underdelivers therefore gets a flat reaction, and an unknown who overdelivers
+gets noticed. The performance is read as one flat line ("Work rate 66.1"):
+work rate has its own section and its trace is too deep to nest.
+
+| Key                                     | Default | Range          | Unit   |
+| --------------------------------------- | ------- | -------------- | ------ |
+| `match.expectation.base`                | 25      | 0–100          | points |
+| `match.expectation.starWeight`          | 0.5     | 0–1, step 0.05 | ratio  |
+| `match.expectation.momentumWeight`      | 0.1     | 0–1, step 0.05 | ratio  |
+| `match.expectation.slot.preShow`        | −8      | −30–30         | points |
+| `match.expectation.slot.opener`         | −3      | −30–30         | points |
+| `match.expectation.slot.midcard`        | 0       | −30–30         | points |
+| `match.expectation.slot.semiMain`       | 4       | −30–30         | points |
+| `match.expectation.slot.mainEvent`      | 8       | −30–30         | points |
+| `match.expectation.importance.house`    | −6      | −30–30         | points |
+| `match.expectation.importance.minor`    | −3      | −30–30         | points |
+| `match.expectation.importance.regular`  | 0       | −30–30         | points |
+| `match.expectation.importance.major`    | 4       | −30–30         | points |
+| `match.expectation.importance.flagship` | 8       | −30–30         | points |
+| `match.expectation.televised`           | 2       | −30–30         | points |
+| `match.crowd.performanceWeight`         | 0.55    | 0–1, step 0.05 | ratio  |
+| `match.crowd.entertainmentWeight`       | 0.25    | 0–1, step 0.05 | ratio  |
+| `match.crowd.starWeight`                | 0.2     | 0–1, step 0.05 | ratio  |
+| `match.crowd.surpriseWeight`            | 0.5     | 0–1, step 0.05 | ratio  |
+| `match.crowd.varianceSd`                | 3       | 0–20, step 0.5 | points |
+
+Category `Match: crowd`. Surprise weight 0 ignores expectation altogether.
+Hype (ECO3), storyline heat and title stakes (MTCH8) and finishes (MTCH2) will
+arrive as rating modifiers; nothing here assumes them.
+
+### Worked example: the same two stars, opener and main event
+
+Two workers with popularity 80 each: star power `80 × (1 + 0.8 × 0.2) = 92.8`.
+Momentum 0, a regular televised show.
+
+- **Opener**: `25 + 92.8 × 0.5 + 0 − 3 + 0 + 2 = 70.4`.
+- **Main event**: `25 + 46.4 + 0 + 8 + 0 + 2 = 81.4`, **11 points higher** for
+  the same two workers. That is D-02 at work.
+
+They deliver a work rate of 66.1 (the long match above) with entertainment 60:
+`66.1 × 0.55 + 60 × 0.25 + 92.8 × 0.2 = 69.915`.
+
+- In the main event: `(69.915 − 81.4) × 0.5 = −5.74`, crowd **64.17**.
+- As the opener: `(69.915 − 70.4) × 0.5 = −0.24`, crowd **69.67**.
+
+(`crowdExpectation.test.ts`: "expects 11 points more of the same two stars in
+the main event"; `crowdScore.test.ts`: "reads delivered, expected and the
+surprise as separate lines" and "reacts better to the same match as an
+opener".)
+
+## Soft compression
+
+`systems/match/formulas/softCompression.ts`:
+`softCompression({ value, label }, { tunables })` → `Traced<number>`, 0–100.
+Values near the top of the scale are squeezed instead of re-rolled:
+
+```
+value > knee ? knee + (value − knee) × factor : value
+```
+
+then at most 100 and at least 0. A branch node "Above the knee at 85" says
+whether the knee was crossed. Nothing here is random, and how far above the
+knee a value was still matters: a 120 still beats a 95. The rater compresses
+work rate (or talk) and the crowd before the final clamp.
+
+When the value's trace is a formula (work rate, the crowd), the compression
+steps continue that formula under the new title instead of wrapping it, so a
+work rate trace already at the depth limit loses nothing.
+
+| Key                        | Default | Range          | Unit   |
+| -------------------------- | ------- | -------------- | ------ |
+| `match.compression.knee`   | 85      | 50–100         | points |
+| `match.compression.factor` | 0.4     | 0–1, step 0.05 | ratio  |
+
+Category `Match: scoring`. Factor 0 flattens everything above the knee to the
+knee; knee 100 turns compression off inside the scale.
+
+### Worked example
+
+At the defaults, 85 stays 85, `95 → 85 + 10 × 0.4 = 89` and
+`120 → 85 + 35 × 0.4 = 99`. (`softCompression.test.ts`: "maps 95 to 89 and
+120 to 99 at the defaults".)
+
+## Segment score
+
+`systems/match/formulas/segmentScore.ts`:
+`segmentScore(inputs, { tunables })` → `Traced<number>`, a whole number 0–100,
+titled "Segment score". The number a segment adds to the show.
+
+```
+score = performance × share + crowd × (1 − share) + policyBonus
+```
+
+rounded to the nearest whole number and kept between 0 and 100. For a match the
+share is `match.blend.workRateShare.<promotion style>`: a technical promotion
+leans on work rate, an entertainment one on the crowd. A talking segment uses
+`match.angle.talkShare` whatever the style. The policy line reads "Same rules
+for every promotion +0" until a promotion's policies can change a score; a
+provider passes its own label and traced bonus. Performance and crowd are each
+one flat line, as they have their own sections.
+
+| Key                                       | Default | Range          | Unit  |
+| ----------------------------------------- | ------- | -------------- | ----- |
+| `match.blend.workRateShare.mainstream`    | 0.45    | 0–1, step 0.05 | ratio |
+| `match.blend.workRateShare.traditional`   | 0.5     | 0–1, step 0.05 | ratio |
+| `match.blend.workRateShare.technical`     | 0.65    | 0–1, step 0.05 | ratio |
+| `match.blend.workRateShare.hardHitting`   | 0.6     | 0–1, step 0.05 | ratio |
+| `match.blend.workRateShare.hardcore`      | 0.5     | 0–1, step 0.05 | ratio |
+| `match.blend.workRateShare.highFlying`    | 0.6     | 0–1, step 0.05 | ratio |
+| `match.blend.workRateShare.entertainment` | 0.3     | 0–1, step 0.05 | ratio |
+
+Category `Match: scoring`. `match.angle.talkShare` is listed under
+[Talking segments](#talking-segments-simple).
+
+### Worked example
+
+The main event above at a mainstream promotion: `66.1 × 0.45 + 64.17 × 0.55 =
+65.04`, **65**. (`segmentScore.test.ts`: "blends work rate and crowd at a
+mainstream promotion and rounds".)
+
+## Star ratings
+
+`systems/match/formulas/starRating.ts`:
+`starRating({ kind, performance, crowd, durationClass, durationLabel }, { tunables })`
+→ `Traced<number>` in unit `stars`, 0–5 in quarter steps (the segment schema's
+rule), titled "Stars".
+
+1. **Blend**: `base = performance × performanceShare + crowd × (1 −
+performanceShare)`, lines "Work rate × 0.7" and "Crowd × 0.3" ("Talk × 0.7"
+   for a talking segment). Stars lean on the performance but not entirely, so a
+   great match in front of a dead crowd rates well but not perfectly.
+2. **Scale**: `(base − zeroAt) ÷ pointsPerStar`. When `pointsPerStar` is 0, a
+   base above `zeroAt` gets the cap and anything else 0, with the note "Points
+   per star is 0".
+3. **Cap** by duration class: `match.stars.cap.<class>` for a match,
+   `match.stars.cap.angle` for a talking segment, with the line "Midcard
+   (standard): at most 4.75 stars". Kept between 0 and the cap.
+4. **Nearest quarter star**: `× 4`, round, `÷ 4`.
+
+| Key                            | Default | Range          | Unit   |
+| ------------------------------ | ------- | -------------- | ------ |
+| `match.stars.performanceShare` | 0.7     | 0–1, step 0.05 | ratio  |
+| `match.stars.zeroAt`           | 35      | 0–80           | points |
+| `match.stars.pointsPerStar`    | 12      | 0–30, step 0.5 | points |
+| `match.stars.cap.short`        | 3.5     | 0–5, step 0.25 | stars  |
+| `match.stars.cap.standard`     | 4.75    | 0–5, step 0.25 | stars  |
+| `match.stars.cap.long`         | 5       | 0–5, step 0.25 | stars  |
+| `match.stars.cap.angle`        | 4       | 0–5, step 0.25 | stars  |
+
+Category `Match: stars`. `stars` is a tunable unit as well as a trace unit.
+
+### Worked example
+
+The main event above: `66.1 × 0.7 + 64.17 × 0.3 = 65.52`, `(65.52 − 35) ÷ 12
+= 2.54`, **2.5 stars**. A base of 35 is 0 stars; a base of 95 is `60 ÷ 12 = 5`
+stars in a long match, but 4.75 in a standard one and 3.5 in a short one.
+(`starRating.test.ts`: "names the blend and rounds to the nearest quarter
+star" and "gives base 95 five stars long".)
+
+## Talking segments (simple)
+
+`systems/match/formulas/speakerScore.ts`:
+`speakerScore({ angleType, sides }, { tunables, rng? })` → `Traced<number>`,
+0–100, titled "Talk: <angle type>". A talking segment has no work rate; this
+**talk** value takes its place in the crowd score, the segment score and the
+stars (the Match lab shows "Talk" instead of "Work rate"). MTCH5's beat scores
+replace it behind the same rater.
+
+1. Each speaker's talk is `workerPerformance` on the talk axis with the angle
+   type's speaker weights (a note names them).
+2. The side aggregate per side (`match.side.depthDecay`), then across sides
+   (`match.sides.depthDecay`), as in work rate.
+3. **Variance**: with an rng, `+ rollNormal(0, match.angle.varianceSd)`, "How
+   the promo landed"; without one the note "No variance roll".
+4. Kept between 0 and 100.
+
+| Key                      | Default | Range          | Unit   |
+| ------------------------ | ------- | -------------- | ------ |
+| `match.angle.talkShare`  | 0.35    | 0–1, step 0.05 | ratio  |
+| `match.angle.varianceSd` | 4       | 0–20, step 0.5 | points |
+
+Category `Match: talking segments`. `talkShare` is the share of talk in a
+talking segment's [segment score](#segment-score).
+
+### Worked example
+
+One speaker with talk 72 scores 72. Two speakers on side 1 with 80 and 40 make
+`80 × 0.65 + 40 × 0.35 = 65.81`; against a side of 50 the segment's talk is
+`65.81 × 0.59 + 50 × 0.41 = 59.3`. (`speakerScore.test.ts`: "equals the
+speaker's talk with one speaker" and "side-aggregates each side, then across
+sides".)
+
+All numbers in these sections are a first pass, to be tuned with the Match
+lab's Run x100 (MTCH1-07); any change is recorded here. Three choices are
+deliberate: the crowd is driven by expectation rather than popularity, high
+scores are compressed rather than re-rolled, and stars blend work rate with the
+crowd rather than reading match quality alone.
