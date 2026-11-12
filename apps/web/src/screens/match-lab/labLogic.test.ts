@@ -114,7 +114,13 @@ describe('the lab wording', () => {
 });
 
 describe('labPanelsFor', () => {
-  const context: LabPanelContext = { setup: SETUP, sides: [], result: null, batch: null };
+  const context: LabPanelContext = {
+    setup: SETUP,
+    sides: [],
+    result: null,
+    batch: null,
+    simulation: null,
+  };
   const panel = (
     id: string,
     order: number,
