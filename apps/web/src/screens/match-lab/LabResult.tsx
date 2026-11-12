@@ -98,10 +98,14 @@ export function LabResult({ result, ratedOn, today, outOfDate }: LabResultProps)
       <ScoreBug label="Lab result" stats={stats} className={styles['scoreBug']} />
       <p className={styles['resultLine']}>
         <span>Crowd expected</span>
-        <Explained label="Crowd expectation" value={expected} trace={result.expectation.trace} />
+        <Explained
+          label="Crowd expectation"
+          value={Math.round(expected)}
+          trace={result.expectation.trace}
+        />
         <span aria-hidden="true">·</span>
         <span>got</span>
-        <Explained label="Crowd" value={crowd} trace={result.crowd.trace} />
+        <Explained label="Crowd" value={Math.round(crowd)} trace={result.crowd.trace} />
         <span aria-hidden="true">·</span>
         <span>{expectationGapText(crowd, expected)}</span>
       </p>

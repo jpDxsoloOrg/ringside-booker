@@ -3,6 +3,7 @@ import type { LabWorkerRow, MatchCatalog, PersonId, RegionId } from '@ringside/e
 import { LAB_WORKERS_MAX_LIMIT } from '@ringside/engine';
 import { useEngineQuery } from '@/app/engine/useEngineQuery';
 import { Badge } from '@/components/Badge';
+import { formatNumber } from '@/components/format';
 import { Button, IconButton } from '@/components/Button';
 import { Icon } from '@/components/Icon';
 import { Panel } from '@/components/Panel';
@@ -28,7 +29,7 @@ function WorkerChip({ side, personId, row, onRemove }: WorkerChipProps) {
       <span className={styles['workerChipText']}>
         <span className={styles['workerChipName']}>{renderWorkerName(personId, name)}</span>
         <span className={styles['workerChipMeta']}>
-          {row === undefined ? 'Popularity unknown' : `Popularity ${String(row.popularity)}`}
+          {row === undefined ? 'Popularity unknown' : `Popularity ${formatNumber(row.popularity)}`}
         </span>
         {row !== undefined && !row.available && (
           <Badge tone="negative" className={styles['unavailable']}>

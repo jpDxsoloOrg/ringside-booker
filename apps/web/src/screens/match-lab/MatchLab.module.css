@@ -14,11 +14,15 @@
 .lab {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
+  /*
+   * One column: the Run bar goes last, so on a phone it sticks to the bottom edge from the top of
+   * the lab to its end (a sticky bar only stays put while it would otherwise be below the screen).
+   */
   grid-template-areas:
     'setup'
     'sides'
-    'run'
-    'result';
+    'result'
+    'run';
   gap: var(--space-4);
   align-items: start;
 }
@@ -267,7 +271,8 @@
     position: sticky;
     inset-block-end: var(--shell-bottom-chrome, var(--safe-bottom));
     z-index: 1;
-    padding-block-end: var(--space-3);
+    gap: var(--space-1);
+    padding: var(--space-2);
     border-color: var(--color-border-strong);
     background: var(--color-surface-raised);
     box-shadow: var(--shadow-2);
@@ -276,6 +281,7 @@
   .runButtons {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-1) var(--space-2);
   }
 
   .runButtons > button {
