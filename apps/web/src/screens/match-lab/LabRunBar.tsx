@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useId, useRef } from 'react';
 import { FINISHES_REASON_CODES, parseContentKey } from '@ringside/engine';
 import { useEngineQuery } from '@/app/engine/useEngineQuery';
 import { Button } from '@/components/Button';
@@ -8,6 +8,7 @@ import type { LabState } from './labStore';
 import type { LabRunner } from './useLabRunner';
 import { seedText } from './labText';
 import styles from './MatchLab.module.css';
+import { useStickyBarScrollPadding } from './useStickyBarScrollPadding';
 
 /** Why Run can't go yet, in player words, or null when it can. */
 export function runBlocker(state: Pick<LabState, 'setup' | 'sides'>): string | null {
@@ -53,7 +54,8 @@ export interface LabRunBarProps {
 
 /**
  * Run, Simulate (matches only), Re-roll seed and Run x100. Under the sides on desktop; on phones it sticks to the bottom of
- * the screen, above the tab bar, so it stays in reach while the line-up is built.
+ * the screen, above the tab bar, so it stays in reach while the line-up is built, and the page's
+ * bottom scroll padding grows to match so a focused control never hides under it.
  */
 export function LabRunBar({ runner }: LabRunBarProps) {
   const setup = useLabStore((state) => state.setup);
@@ -64,6 +66,8 @@ export function LabRunBar({ runner }: LabRunBarProps) {
   const reasonId = useId();
   const simulateReasonId = useId();
   const finishCatalogMessage = useFinishCatalogMessage(setup);
+  const barRef = useRef<HTMLDivElement>(null);
+  useStickyBarScrollPadding(barRef);
 
   const blocker = runBlocker({ setup, sides });
   const disabled = blocker !== null || pending !== null;
@@ -76,7 +80,7 @@ export function LabRunBar({ runner }: LabRunBarProps) {
       : { 'aria-describedby': simulateReason === blocker ? reasonId : simulateReasonId };
 
   return (
-    <div className={styles['runBar']}>
+    <div ref={barRef} className={styles['runBar']}>
       <div className={styles['runButtons']} data-buttons={canSimulate ? 4 : 3}>
         <Button
           variant="primary"
