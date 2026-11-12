@@ -4,6 +4,7 @@
  */
 import type { FinishCategory, FinishOption, PlannedWinner, SimulateResult } from '@ringside/engine';
 import { finishEffectLabel } from '@ringside/engine';
+import type { Tone } from '@/components/tone';
 import { sideLabel } from '../labText';
 
 /** The Finish select's Auto option. */
@@ -28,6 +29,17 @@ export const FINISH_CATEGORY_LABELS: Readonly<Record<FinishCategory, string>> = 
   controversial: 'Controversial',
   draw: 'Draw',
   noContest: 'No contest',
+};
+
+/** The badge colour of each finish category: clean wins read positive, a mess reads negative. */
+export const FINISH_CATEGORY_TONES: Readonly<Record<FinishCategory, Tone>> = {
+  clean: 'positive',
+  cheating: 'prestige',
+  countOut: 'data',
+  disqualification: 'negative',
+  controversial: 'prestige',
+  draw: 'neutral',
+  noContest: 'negative',
 };
 
 /** The winner choice as a radio value: `auto`, `draw` or `side-1` for the 0-based side 1. */

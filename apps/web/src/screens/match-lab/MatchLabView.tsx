@@ -11,7 +11,8 @@ import type { LabPanelContext, LabPanelPlacement } from './labPanelRegistry';
 import { LabResult } from './LabResult';
 import { LabRunBar } from './LabRunBar';
 import { LabSetupPanel, startingSides } from './LabSetupPanel';
-import { isOutOfDate, isSimulationOutOfDate, useLabStore } from './labStore';
+import { isOutOfDate, useLabStore } from './labStore';
+import { runsText } from './labText';
 import { LabWarnings } from './LabWarnings';
 import styles from './MatchLab.module.css';
 import { LabResultGroup, RESULT_GROUP_TITLE } from './result/LabResultGroup';
@@ -58,24 +59,20 @@ interface LabProps {
 function Lab({ options, catalog, regionId, today }: LabProps) {
   const setup = useLabStore((state) => state.setup);
   const sides = useLabStore((state) => state.sides);
-  const previewSeed = useLabStore((state) => state.previewSeed);
-  const submitted = useLabStore((state) => state.submitted);
   const lastRun = useLabStore((state) => state.lastRun);
-  const lastBatch = useLabStore((state) => state.lastBatch);
   const plan = useLabStore((state) => state.result);
-  const simulation = useLabStore((state) => state.simulation);
   const runner = useLabRunner(today);
   const isMobile = useIsMobile();
   const [pickerSide, setPickerSide] = useState<number | null>(null);
 
-  const outOfDate = isOutOfDate({ setup, sides, previewSeed }, submitted);
-  const result = lastRun?.result ?? null;
+  const outOfDate = isOutOfDate({ setup, sides, result: plan }, lastRun);
+  const result = lastRun?.rating ?? null;
   const context: LabPanelContext = {
     setup,
     sides,
     result,
-    batch: lastBatch?.result ?? null,
-    simulation: simulation?.result ?? null,
+    simulation: lastRun?.simulation ?? null,
+    batch: lastRun?.batch ?? null,
   };
 
   let resultBody: ReactNode;
@@ -83,31 +80,38 @@ function Lab({ options, catalog, regionId, today }: LabProps) {
     resultBody = (
       <EmptyState
         icon="lab"
-        title="Nothing rated yet"
-        body="Put someone on every side and press Run to rate one night, or Simulate to play out who wins too. Run x100 shows the spread."
-      />
-    );
-  } else if (simulation !== null) {
-    resultBody = (
-      <MatchResultBlock
-        simulation={simulation.result}
-        ratedOn={simulation.date}
-        today={today}
-        outOfDate={isSimulationOutOfDate(
-          { setup, sides, previewSeed, result: plan },
-          simulation.args,
-        )}
+        title="Nothing run yet"
+        body="Put someone on every side and press Run. A match plays out who wins and how; raise Runs to see how often."
       />
     );
   } else {
-    resultBody = (
-      <LabResult
-        result={lastRun.result}
-        ratedOn={lastRun.date}
-        today={today}
-        outOfDate={outOfDate}
-      />
-    );
+    const night =
+      lastRun.simulation === null ? (
+        <LabResult
+          result={lastRun.rating}
+          ratedOn={lastRun.date}
+          today={today}
+          outOfDate={outOfDate}
+        />
+      ) : (
+        <MatchResultBlock
+          simulation={lastRun.simulation}
+          ratedOn={lastRun.date}
+          today={today}
+          outOfDate={outOfDate}
+        />
+      );
+    resultBody =
+      lastRun.batch === null ? (
+        night
+      ) : (
+        <>
+          <p className={styles['lastRunNote']}>
+            Last of {runsText(lastRun.runs)}, in full. The counts for all of them are below.
+          </p>
+          {night}
+        </>
+      );
   }
 
   return (
@@ -140,7 +144,7 @@ function Lab({ options, catalog, regionId, today }: LabProps) {
           <Panel title="Result" variant="broadcast" className={styles['resultPanel']}>
             {resultBody}
             {result !== null && <LabWarnings warnings={result.warnings} />}
-            {lastBatch !== null && <LabBatchResult batch={lastBatch.result} />}
+            {lastRun?.batch != null && <LabBatchResult batch={lastRun.batch} />}
           </Panel>
           {result !== null && result.workers.length > 0 && (
             <Panel title="Each worker" padding="none" className={styles['linesPanel']}>

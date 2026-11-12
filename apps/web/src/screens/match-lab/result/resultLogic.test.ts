@@ -1,13 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { parseContentKey, parseId } from '@ringside/engine';
 import { RUNNING_TIME_WORDS } from '@/test/runningTimeWords';
-import {
-  AUTO_RESULT_PLAN,
-  isSimulationOutOfDate,
-  previewArgsOf,
-  previewPartOf,
-  simulateArgsOf,
-} from '../labStore';
+import { AUTO_RESULT_PLAN, isOutOfDate, previewArgsOf, simulateArgsOf } from '../labStore';
 import type { LabResultPlan, LabSetup } from '../labStore';
 import { finishesArgsOf, outcomeKindOf } from './FinishSelect';
 import {
@@ -42,32 +36,39 @@ const SETUP: LabSetup = {
 };
 
 function state(result: LabResultPlan = AUTO_RESULT_PLAN, setup: LabSetup = SETUP) {
-  return { setup, sides: [[ADA], [BO]], previewSeed: 3, result };
+  return { setup, sides: [[ADA], [BO]], result };
+}
+
+/** The Run on screen for `plan`, rolled with seed 3. */
+function shownRun(plan: LabResultPlan) {
+  const args = previewArgsOf(state(plan), 3);
+  if (args === null) throw new Error('The lab built no arguments.');
+  return { args, plan };
 }
 
 describe('simulateArgsOf', () => {
-  it('adds the plan to the preview arguments, for a match only', () => {
-    const args = simulateArgsOf(state({ winner: { side: 1 }, finishKey: DQ }));
-    expect(args).toMatchObject({ winner: { side: 1 }, finishKey: DQ, methodKey: null });
-    expect(args === null ? null : previewPartOf(args)).toEqual(previewArgsOf(state()));
-    expect(simulateArgsOf(state(AUTO_RESULT_PLAN, { ...SETUP, kind: 'angle' }))).toBeNull();
+  it('adds the plan to the preview arguments', () => {
+    const args = previewArgsOf(state(), 3);
+    if (args === null) throw new Error('The lab built no arguments.');
+    expect(simulateArgsOf(args, { winner: { side: 1 }, finishKey: DQ })).toEqual({
+      ...args,
+      winner: { side: 1 },
+      finishKey: DQ,
+      methodKey: null,
+    });
   });
 
   it('is out of date when the plan or the segment changes, not for the same plan', () => {
-    const shown = simulateArgsOf(state({ winner: { side: 1 }, finishKey: null }));
-    expect(isSimulationOutOfDate(state({ winner: { side: 1 }, finishKey: null }), shown)).toBe(
+    const plan: LabResultPlan = { winner: { side: 1 }, finishKey: null };
+    const shown = shownRun(plan);
+    expect(isOutOfDate(state(plan), shown)).toBe(false);
+    expect(isOutOfDate(state({ winner: { side: 0 }, finishKey: null }), shown)).toBe(true);
+    expect(isOutOfDate(state({ winner: { side: 1 }, finishKey: DQ }), shown)).toBe(true);
+    expect(isOutOfDate(state(plan, { ...SETUP, televised: false }), shown)).toBe(true);
+    // A rating with no plan (a talking segment) ignores the Winner and finish group.
+    expect(isOutOfDate(state({ winner: 'draw', finishKey: null }), { ...shown, plan: null })).toBe(
       false,
     );
-    expect(isSimulationOutOfDate(state({ winner: { side: 0 }, finishKey: null }), shown)).toBe(
-      true,
-    );
-    expect(isSimulationOutOfDate(state({ winner: { side: 1 }, finishKey: DQ }), shown)).toBe(true);
-    expect(
-      isSimulationOutOfDate(
-        state({ winner: { side: 1 }, finishKey: null }, { ...SETUP, televised: false }),
-        shown,
-      ),
-    ).toBe(true);
   });
 });
 

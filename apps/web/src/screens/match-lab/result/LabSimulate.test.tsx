@@ -12,6 +12,7 @@ import { routes } from '@/app/routes';
 import { useSessionStore } from '@/app/session/sessionStore';
 import { useTracePanelStore } from '@/components/Trace';
 import { fakeEngineFactory, fakeEngineState } from '@/test/fakeEngine';
+import { OUT_OF_DATE_TEXT } from '../LabResult';
 import { useLabStore } from '../labStore';
 import { MatchResultBlock } from './MatchResultBlock';
 import { AUTO_FINISH_LABEL, FINISH_RESET_MESSAGE } from './resultText';
@@ -94,7 +95,7 @@ beforeEach(() => {
   useTracePanelStore.setState({ openPanelId: null });
 });
 
-describe('the Match lab Result group and Simulate', () => {
+describe('the Match lab Winner and finish group and Run', () => {
   it('narrows the finishes to the two draw finishes when Draw is chosen', async () => {
     const { user } = renderLab();
     await findFinish();
@@ -122,12 +123,12 @@ describe('the Match lab Result group and Simulate', () => {
     expect(useLabStore.getState().result.finishKey).toBeNull();
   });
 
-  it('simulates a winner with a Why? on it, and the same again for the same seed', async () => {
+  it('plays out a booked winner with a Why? on it, on a fresh roll every Run', async () => {
     const { transport, user } = renderLab();
     await findFinish();
     await fillSides(transport, 2);
     await user.click(screen.getByRole('radio', { name: /^Side 2:/ }));
-    await user.click(screen.getByRole('button', { name: 'Simulate' }));
+    await user.click(screen.getByRole('button', { name: 'Run' }));
     const why = await screen.findByRole(
       'button',
       { name: /^Why is Winner Side 2 wins: .+\?$/ },
@@ -135,19 +136,32 @@ describe('the Match lab Result group and Simulate', () => {
     );
     expect(why).toBeInTheDocument();
     expect(screen.getByRole('group', { name: 'Lab result' })).toBeInTheDocument();
-    const first = useLabStore.getState().simulation?.result;
-    expect(first?.winningSide).toBe(1);
+    const first = useLabStore.getState().lastRun;
+    expect(first?.simulation?.winningSide).toBe(1);
     await waitFor(() => {
-      expect(useLabStore.getState().pending).toBeNull();
+      expect(useLabStore.getState().pending).toBe(false);
     });
-    await user.click(screen.getByRole('button', { name: 'Simulate' }));
+    await user.click(screen.getByRole('button', { name: 'Run' }));
     await waitFor(() => {
-      expect(useLabStore.getState().pending).toBeNull();
+      expect(useLabStore.getState().lastRun).not.toBe(first);
     });
-    expect(useLabStore.getState().simulation?.result).toEqual(first);
+    const second = useLabStore.getState().lastRun;
+    expect(second?.simulation?.winningSide).toBe(1);
+    expect(second?.args.previewSeed).not.toBe(first?.args.previewSeed);
   });
 
-  it('shows a refused Simulate inline', async () => {
+  it('marks the result out of date when the winner changes, until the next Run', async () => {
+    const { transport, user } = renderLab();
+    await findFinish();
+    await fillSides(transport, 2);
+    await user.click(screen.getByRole('button', { name: 'Run' }));
+    await screen.findByRole('group', { name: 'Lab result' }, { timeout: LOAD_MS });
+    expect(screen.queryByText(OUT_OF_DATE_TEXT)).toBeNull();
+    await user.click(screen.getByRole('radio', { name: 'Draw' }));
+    expect(screen.getByText(OUT_OF_DATE_TEXT)).toBeInTheDocument();
+  });
+
+  it('shows a refused Run inline', async () => {
     // A save whose catalog lost its draw finishes: a Draw has nothing to end with.
     const state = fakeEngineState();
     const { catalogs } = state.world.meta;
@@ -159,14 +173,14 @@ describe('the Match lab Result group and Simulate', () => {
     await findFinish();
     await fillSides(transport, 2);
     await user.click(screen.getByRole('radio', { name: 'Draw' }));
-    await user.click(screen.getByRole('button', { name: 'Simulate' }));
+    await user.click(screen.getByRole('button', { name: 'Run' }));
     const message = await screen.findByText(
       "This match can't end in a draw: it has no draw finish.",
       {},
       { timeout: LOAD_MS },
     );
     expect(message.closest('[role="alert"]')).not.toBeNull();
-    expect(useLabStore.getState().simulation).toBeNull();
+    expect(useLabStore.getState().lastRun).toBeNull();
   });
 });
 

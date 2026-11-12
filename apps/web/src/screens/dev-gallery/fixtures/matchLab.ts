@@ -1,16 +1,17 @@
 /**
- * A made-up Match lab result for the gallery: one main-event tag match and a Run x100 over it, so
+ * A made-up Match lab result for the gallery: one main-event tag match and 100 Runs of it, so
  * the result layout can be reviewed without an engine. The numbers are invented but consistent
  * (the score is the work rate and crowd blend, the stars sit on a quarter); each traced number has
  * a short breakdown so its Why? opens. Cards are slot-based (D-10): nothing here says how long a
  * match runs.
  */
-import { parseId } from '@ringside/engine';
+import { parseContentKey, parseId } from '@ringside/engine';
 import type {
   HistogramBin,
   PersonId,
   PreviewBatchResult,
   PreviewResult,
+  SimulateBatchResult,
   QuarterCount,
   SegmentWarning,
   Traced,
@@ -194,4 +195,38 @@ export const sampleLabBatch: PreviewBatchResult = {
   crowd: { mean: 79, sd: 3.9, min: 68.1, p10: 74.2, p50: 79.1, p90: 83.6, max: 88.9 },
   expectation: 74.6,
   histogram: SAMPLE_HISTOGRAM,
+};
+
+/** The same 100 Runs played out as a match (MTCH2-07): who won, the draws and the finishes. */
+export const sampleLabSimulateBatch: SimulateBatchResult = {
+  ...sampleLabBatch,
+  sides: [
+    {
+      side: 0,
+      names: ['Gallery Champion', 'Gallery Partner With A Very Long Ring Name'],
+      wins: 58,
+    },
+    { side: 1, names: ['Gallery Challenger', 'Gallery Rookie'], wins: 37 },
+  ],
+  draws: 3,
+  noContests: 2,
+  finishes: [
+    { key: parseContentKey('finish.clean'), name: 'Clean finish', category: 'clean', count: 71 },
+    { key: parseContentKey('finish.cheating'), name: 'Cheating', category: 'cheating', count: 14 },
+    {
+      key: parseContentKey('finish.disqualification'),
+      name: 'Disqualification',
+      category: 'disqualification',
+      count: 8,
+    },
+    { key: parseContentKey('finish.count-out'), name: 'Count-out', category: 'countOut', count: 2 },
+    { key: parseContentKey('finish.stalemate'), name: 'Stalemate', category: 'draw', count: 3 },
+    {
+      key: parseContentKey('finish.no-contest'),
+      name: 'No contest',
+      category: 'noContest',
+      count: 2,
+    },
+  ],
+  randomWinnersMode: false,
 };

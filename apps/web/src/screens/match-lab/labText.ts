@@ -41,9 +41,14 @@ export function weightText(weight: number): string {
   return `×${weight.toFixed(2)}`;
 }
 
-/** "Seed 3". */
-export function seedText(seed: number): string {
-  return `Seed ${String(seed)}`;
+/** "1 run", "50 runs". */
+export function runsText(runs: number): string {
+  return `${formatNumber(runs)} ${plural(runs, 'run', 'runs')}`;
+}
+
+/** "62%" of `count` out of `total`, whole percent. */
+export function shareText(count: number, total: number): string {
+  return `${String(total === 0 ? 0 : Math.round((count / total) * 100))}%`;
 }
 
 /** A batch statistic: whole numbers stay whole, anything else gets one decimal. */

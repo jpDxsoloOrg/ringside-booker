@@ -3,10 +3,10 @@ import { FINISHES_REASON_CODES, parseContentKey } from '@ringside/engine';
 import { useEngineQuery } from '@/app/engine/useEngineQuery';
 import { Button } from '@/components/Button';
 import { Icon } from '@/components/Icon';
-import { LAB_BATCH_RUNS, useLabStore } from './labStore';
+import { LAB_MAX_RUNS, useLabStore } from './labStore';
 import type { LabState } from './labStore';
 import type { LabRunner } from './useLabRunner';
-import { seedText } from './labText';
+import { runsText } from './labText';
 import styles from './MatchLab.module.css';
 import { useStickyBarScrollPadding } from './useStickyBarScrollPadding';
 
@@ -17,17 +17,6 @@ export function runBlocker(state: Pick<LabState, 'setup' | 'sides'>): string | n
   if (state.setup.promotionId === null) return 'Run a promotion to use the Match lab';
   if (state.sides.some((side) => side.length === 0)) return 'Add someone to every side';
   return null;
-}
-
-/**
- * Why Simulate can't go yet, or null when it can: Run's reasons first, then a save with no finish
- * catalog (the Result group says the same).
- */
-export function simulateBlocker(
-  state: Pick<LabState, 'setup' | 'sides'>,
-  finishCatalogMessage: string | null,
-): string | null {
-  return runBlocker(state) ?? finishCatalogMessage;
 }
 
 /** Stands in for the match type while there is none; the query is not sent then. */
@@ -53,93 +42,74 @@ export interface LabRunBarProps {
 }
 
 /**
- * Run, Simulate (matches only), Re-roll seed and Run x100. Under the sides on desktop; on phones it sticks to the bottom of
- * the screen, above the tab bar, so it stays in reach while the line-up is built, and the page's
- * bottom scroll padding grows to match so a focused control never hides under it.
+ * The lab's one action (MTCH2-07): Run, and a Runs slider from 1 to 100 beside it. A match always
+ * plays out its winner and finish (from the Winner and finish group, Auto by default); a talking
+ * segment is rated. Every Run rolls on a fresh seed, so pressing it again gives another night.
+ *
+ * Under the sides on desktop; on phones it sticks to the bottom of the screen, above the tab bar,
+ * so it stays in reach while the line-up is built, and the page's bottom scroll padding grows to
+ * match so a focused control never hides under it.
  */
 export function LabRunBar({ runner }: LabRunBarProps) {
   const setup = useLabStore((state) => state.setup);
   const sides = useLabStore((state) => state.sides);
-  const previewSeed = useLabStore((state) => state.previewSeed);
+  const runs = useLabStore((state) => state.runs);
+  const setRuns = useLabStore((state) => state.setRuns);
   const pending = useLabStore((state) => state.pending);
   const refusal = useLabStore((state) => state.refusal);
   const reasonId = useId();
-  const simulateReasonId = useId();
+  const runsId = useId();
   const finishCatalogMessage = useFinishCatalogMessage(setup);
   const barRef = useRef<HTMLDivElement>(null);
   useStickyBarScrollPadding(barRef);
 
   const blocker = runBlocker({ setup, sides });
-  const disabled = blocker !== null || pending !== null;
   const described = blocker === null ? {} : { 'aria-describedby': reasonId };
-  const canSimulate = setup.kind === 'match';
-  const simulateReason = simulateBlocker({ setup, sides }, finishCatalogMessage);
-  const simulateDescribed =
-    simulateReason === null
-      ? {}
-      : { 'aria-describedby': simulateReason === blocker ? reasonId : simulateReasonId };
+  // A save from before finishes rates a match without a result; the Winner and finish group says why.
+  const simulate = setup.kind === 'match' && finishCatalogMessage === null;
 
   return (
     <div ref={barRef} className={styles['runBar']}>
-      <div className={styles['runButtons']} data-buttons={canSimulate ? 4 : 3}>
+      <div className={styles['runControls']}>
         <Button
           variant="primary"
           iconStart="play"
-          loading={pending === 'run'}
-          disabled={disabled}
+          className={styles['runButton']}
+          loading={pending}
+          disabled={blocker !== null || pending}
           {...described}
           onClick={() => {
-            void runner.run();
+            void runner.run({ simulate });
           }}
         >
           Run
         </Button>
-        {canSimulate && (
-          <Button
-            iconStart="trophy"
-            loading={pending === 'simulate'}
-            disabled={simulateReason !== null || pending !== null}
-            {...simulateDescribed}
-            onClick={() => {
-              void runner.simulate();
+        <div className={styles['runsField']}>
+          <label htmlFor={runsId} className={styles['runsLabel']}>
+            Runs
+          </label>
+          <input
+            id={runsId}
+            type="range"
+            className={styles['runsSlider']}
+            min={1}
+            max={LAB_MAX_RUNS}
+            step={1}
+            value={runs}
+            aria-valuetext={runsText(runs)}
+            onChange={(event) => {
+              setRuns(event.currentTarget.valueAsNumber);
             }}
-          >
-            Simulate
-          </Button>
-        )}
-        <Button
-          iconStart="reset"
-          disabled={disabled}
-          {...described}
-          onClick={() => {
-            void runner.reroll();
-          }}
-        >
-          Re-roll seed
-        </Button>
-        <Button
-          iconStart="fast-forward"
-          loading={pending === 'batch'}
-          disabled={disabled}
-          {...described}
-          onClick={() => {
-            void runner.runBatch();
-          }}
-        >
-          Run x{LAB_BATCH_RUNS}
-        </Button>
-        <span className={styles['seed']}>{seedText(previewSeed)}</span>
+          />
+          <output htmlFor={runsId} className={styles['runsValue']} aria-hidden="true">
+            {runs}
+          </output>
+        </div>
       </div>
       {blocker !== null && (
         <p id={reasonId} className={styles['runReason']}>
           <Icon name="info" size="sm" decorative />
           {blocker}
-        </p>
-      )}
-      {canSimulate && blocker === null && simulateReason !== null && (
-        <p id={simulateReasonId} className={styles['runReason']}>
-          <Icon name="info" size="sm" decorative />
-          {simulateReason}
         </p>
       )}
       {refusal.length > 0 && (

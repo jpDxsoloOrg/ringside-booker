@@ -32,7 +32,7 @@ import {
 } from '@/test/defaultWorld';
 import { RUNNING_TIME_WORDS } from '@/test/runningTimeWords';
 
-/** Run x100, as the lab's button does. */
+/** Runs at the top of the lab's slider. */
 const BATCH_RUNS = 100;
 const AUDIT_TIMEOUT_MS = 60_000;
 
@@ -266,6 +266,15 @@ describe('the Match lab on a new default-world game', () => {
     expect(promo.workRate).toBeNull();
     expect(promo.talk).not.toBeNull();
     expectReadablePanels(promo);
+    // Runs at 50 on a talking segment: the score spread, talk in place of work rate, no winner.
+    const promos = ask(
+      engine.query('match.previewBatch', { ...args('Promo', [[person(0)]]), runs: 50 }, VIEWER),
+      'match.previewBatch',
+    );
+    expect(promos.histogram.reduce((total, bin) => total + bin.count, 0)).toBe(50);
+    expect(promos.talk).not.toBeNull();
+    expect(promos.workRate).toBeNull();
+    expect(promos).not.toHaveProperty('sides');
 
     const threeSides = preview(args('Singles', [[person(0)], [person(1)], [person(2)]]));
     expectInRange(threeSides);
@@ -291,7 +300,7 @@ describe('the Match lab on a new default-world game', () => {
  * The first tuning pass (docs/design/match-rating.md). The numbers move when the default world or
  * the tunables do; the checks are the ones the design asks for, not exact values.
  */
-describe('the first tuning pass with Run x100', () => {
+describe('the first tuning pass with Runs at 100', () => {
   it('puts two average midcarders in a standard singles at about 2.5 to 3.25 stars', () => {
     // Altura's midcarders by push, most popular first; the two in the middle are the average pair.
     const list = ask(engine.query('workers.list', {}, VIEWER), 'workers.list');

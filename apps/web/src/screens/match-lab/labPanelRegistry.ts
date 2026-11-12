@@ -1,28 +1,33 @@
 import type { ReactNode } from 'react';
-import type { PersonId, PreviewBatchResult, PreviewResult, SimulateResult } from '@ringside/engine';
+import type { PersonId, PreviewResult, SimulateResult } from '@ringside/engine';
 import { createExtensionRegistry } from '@/components/extensionRegistry';
-import type { LabSetup } from './labStore';
+import type { LabBatch, LabSetup } from './labStore';
 
 /** Where a panel sits: at the bottom of the setup column, or under the result. */
 export type LabPanelPlacement = 'setup' | 'result';
 
 /**
  * What a panel is drawn from. Additive: later features add fields (MTCH2-04 added `simulation`), so a
- * panel reads only what it needs.
+ * panel reads only what it needs. Since MTCH2-07 the lab has one Run: every Run of a match is
+ * simulated, and with Runs above 1 the night shown in full is the last of the batch.
  */
 export interface LabPanelContext {
   readonly setup: LabSetup;
   /** One list of people per side. */
   readonly sides: readonly (readonly PersonId[])[];
-  /** The Run on screen, or null before the first. */
+  /** The rating of the night shown in full, or null before the first Run. */
   readonly result: PreviewResult | null;
-  /** The Run x100 on screen, or null. */
-  readonly batch: PreviewBatchResult | null;
   /**
-   * The Simulate on screen (MTCH2-04), or null before one or after a Run. MTCH3's Aftermath and
-   * MTCH4's Physical panels read the outcome from it.
+   * The same night's winner and finish, or null before the first Run and for a talking segment
+   * (and for a match on a save with no finishes). MTCH3's Aftermath and MTCH4's Physical panels
+   * read the outcome from it.
    */
   readonly simulation: SimulateResult | null;
+  /**
+   * The summary of every night when Runs was above 1, else null. A match's batch also counts who
+   * won and the finishes (`isSimulateBatch` tells them apart).
+   */
+  readonly batch: LabBatch | null;
 }
 
 /** One titled panel another feature adds to the Match lab. */

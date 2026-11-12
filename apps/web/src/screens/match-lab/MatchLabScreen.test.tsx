@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
@@ -103,8 +103,25 @@ async function runOnce(user: UserEvent, button = 'Run'): Promise<void> {
   await user.click(screen.getByRole('button', { name: button }));
   await screen.findByRole('group', { name: 'Lab result' }, { timeout: LOAD_MS });
   await waitFor(() => {
-    expect(useLabStore.getState().pending).toBeNull();
+    expect(useLabStore.getState().pending).toBe(false);
   });
+}
+
+/** Sets the Runs slider the way a drag or the arrow keys end up setting it. */
+function setRuns(runs: number): void {
+  fireEvent.change(screen.getByRole('slider', { name: 'Runs' }), {
+    target: { value: String(runs) },
+  });
+}
+
+/** The count on each of a list's items: "28 wins · 56%" → 28, a finish's "12 runs" → 12. */
+function countsIn(list: HTMLElement): number[] {
+  return within(list)
+    .getAllByRole('listitem')
+    .map((item) => {
+      const count = within(item).getByText(/^\d+(?: (?:wins?|runs?) · \d+%)?$/);
+      return Number.parseInt(count.textContent, 10);
+    });
 }
 
 const cleanups: (() => void)[] = [];
@@ -154,7 +171,7 @@ describe('MatchLabScreen', () => {
     expect(screen.queryByText('Add someone to every side')).toBeNull();
   });
 
-  it('runs a night with four numbers, a Why? on each, the same again for the same seed', async () => {
+  it('runs a night with four numbers and a Why? on each, then a fresh roll on the next Run', async () => {
     const { transport, user } = renderLab();
     await findSlotRole();
     await fillSides(transport, 2);
@@ -169,13 +186,19 @@ describe('MatchLabScreen', () => {
     }
     expect(within(scoreBug()).getByRole('img', { name: /stars? out of 5|No stars/ })).toBeVisible();
     expect(screen.getByText(/^Expected \d+/)).toBeInTheDocument();
-    expect(screen.getAllByText('Seed 1').length).toBeGreaterThan(0);
     expect(screen.getByText(/(below|above|right on) expectation/)).toBeInTheDocument();
     expect(screen.getByRole('grid', { name: 'Each worker' })).toBeInTheDocument();
+    // A match always plays out who won and how.
+    expect(screen.getByRole('button', { name: /^Why is Winner Side [12] wins: / })).toBeVisible();
+    const firstRun = useLabStore.getState().lastRun;
 
     await runOnce(user);
-    expect(scoreBugValues()).toEqual(first);
+    await waitFor(() => {
+      expect(useLabStore.getState().lastRun).not.toBe(firstRun);
+    });
+    expect(useLabStore.getState().lastRun?.args.previewSeed).not.toBe(firstRun?.args.previewSeed);
     expect(document.body.textContent).not.toMatch(RUNNING_TIME_WORDS);
+    expect(document.body.textContent).not.toMatch(/\bSeed\b/);
   });
 
   it('opens the Why? panel on the score', async () => {
@@ -224,18 +247,38 @@ describe('MatchLabScreen', () => {
     });
   });
 
-  it('re-rolls to the next seed', async () => {
+  it('has one action button, Run, and a Runs slider at 1, with no seed controls', async () => {
+    renderLab();
+    await findSlotRole();
+    const run = screen.getByRole('button', { name: 'Run' });
+    const bar = run.parentElement?.parentElement;
+    if (bar == null) throw new Error('Run is in no bar.');
+    expect(within(bar).getAllByRole('button')).toEqual([run]);
+    const slider = within(bar).getByRole('slider', { name: 'Runs' });
+    expect(slider).toHaveValue('1');
+    expect(slider).toHaveAttribute('min', '1');
+    expect(slider).toHaveAttribute('max', '100');
+    expect(slider).toHaveAttribute('aria-valuetext', '1 run');
+    for (const gone of ['Simulate', 'Re-roll seed', 'Run x100']) {
+      expect(screen.queryByRole('button', { name: gone })).toBeNull();
+    }
+    expect(document.body.textContent).not.toMatch(/\bSeed\b/);
+
+    setRuns(50);
+    expect(slider).toHaveValue('50');
+    expect(slider).toHaveAttribute('aria-valuetext', '50 runs');
+    expect(useLabStore.getState().runs).toBe(50);
+  });
+
+  it('rates a talking segment with no winner', async () => {
     const { transport, user } = renderLab();
     await findSlotRole();
-    await fillSides(transport, 2);
+    await user.click(screen.getByRole('radio', { name: 'Talking segment' }));
+    await fillSides(transport, 1);
     await runOnce(user);
-    expect(screen.getAllByText('Seed 1').length).toBeGreaterThan(0);
-
-    await runOnce(user, 'Re-roll seed');
-    await waitFor(() => {
-      expect(screen.getAllByText('Seed 2').length).toBeGreaterThan(0);
-    });
-    expect(screen.queryByText('Seed 1')).toBeNull();
+    expect(Object.keys(scoreBugValues())).toEqual(['Score', 'Stars', 'Talk', 'Crowd']);
+    expect(screen.queryByRole('button', { name: /^Why is Winner / })).toBeNull();
+    expect(useLabStore.getState().lastRun?.simulation).toBeNull();
   });
 
   it('marks the result out of date when the setup changes, until the next Run', async () => {
@@ -253,26 +296,48 @@ describe('MatchLabScreen', () => {
     });
   });
 
-  it('runs a hundred nights into a histogram and a summary', async () => {
+  it('runs 50 nights: the last in full, who won, the finishes and the score spread', async () => {
     const { transport, user } = renderLab();
     await findSlotRole();
     await fillSides(transport, 2);
+    setRuns(50);
 
-    await user.click(screen.getByRole('button', { name: 'Run x100' }));
+    await user.click(screen.getByRole('button', { name: 'Run' }));
     const table = await screen.findByRole(
       'table',
-      { name: 'Score over 100 runs' },
+      { name: 'Score over 50 runs' },
       { timeout: LOAD_MS },
     );
     expect(within(table).getAllByRole('row').length).toBeGreaterThan(1);
+    expect(screen.getByRole('heading', { name: 'Over 50 runs' })).toBeInTheDocument();
+    expect(screen.getByText(/^Last of 50 runs, in full/)).toBeInTheDocument();
+    // The last night in full, with its winner and Why? panels.
+    expect(scoreBug()).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Why is Winner / })).toBeInTheDocument();
+
+    const winners = screen.getByRole('list', { name: 'Who won' });
+    const outcomes = countsIn(winners);
+    expect(within(winners).getByText(/^Side 1: /)).toBeInTheDocument();
+    expect(within(winners).getByText('Draws')).toBeInTheDocument();
+    expect(outcomes.reduce((total, count) => total + count, 0)).toBe(50);
+    const finishes = screen.getByRole('list', { name: 'Finishes, most common first' });
+    const finishCounts = countsIn(finishes);
+    expect(finishCounts.reduce((total, count) => total + count, 0)).toBe(50);
+    expect(finishCounts).toEqual([...finishCounts].sort((left, right) => right - left));
+
     const summaries = screen.getAllByText(
       /^Mean [\d.]+ · spread ±[\d.]+ · range [\d.]+–[\d.]+ · middle 80% [\d.]+–[\d.]+$/,
     );
     // The score's summary, then one line each for stars, work rate and crowd.
     expect(summaries).toHaveLength(4);
     expect(screen.getAllByText(/runs? at [\d.]+ stars?/).length).toBeGreaterThan(0);
-    // The single night shows too, so the numbers have their Why? panels.
-    expect(scoreBug()).toBeInTheDocument();
+
+    // Back to one run: the counts go with the next Run.
+    setRuns(1);
+    await runOnce(user);
+    await waitFor(() => {
+      expect(screen.queryByRole('heading', { name: 'Over 50 runs' })).toBeNull();
+    });
   });
 
   it('warns about three sides in a singles match instead of refusing it', async () => {
