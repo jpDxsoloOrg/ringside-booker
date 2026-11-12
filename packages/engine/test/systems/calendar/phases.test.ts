@@ -8,14 +8,16 @@ import {
 } from '../../../src/core/api';
 import { addDays, compareDates, parseGameDate } from '../../../src/core/date';
 import { defaultSystems } from '../../../src/systems';
-import { worldBuilder } from '../../support';
+import { SYSTEMS_WITHOUT_SHOW_DAY_GATE, worldBuilder } from '../../support';
 import { expectedShowKeys, startDefaultGame, storedShowKeys } from './default-game';
 
 const OMNISCIENT = { kind: 'omniscient' } as const;
 const HORIZON_DAYS = 90;
 
+// The show-day gate would stop every day with the player's unbooked show; these tests are about
+// the calendar, so they run without it. booking/gate.test.ts covers the gate.
 function engineOver(state: EngineState): Engine {
-  return createEngine({ state, systems: defaultSystems });
+  return createEngine({ state, systems: SYSTEMS_WITHOUT_SHOW_DAY_GATE });
 }
 
 async function advance(engine: Engine, days: number): Promise<EngineState> {

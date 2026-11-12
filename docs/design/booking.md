@@ -252,3 +252,154 @@ How a card meets the calendar's show lifecycle ([calendar.md](calendar.md#lifecy
   card deletes nothing: the segments stay as read-only history, and every
   booking command is refused with `showCancelled`. The booking show list and
   the show-day gate (EVT2-03) leave cancelled shows out.
+
+## Queries
+
+The booking screen reads three queries (EVT2-03, `booking/queries.ts`); the
+card view they share is built in `booking/view.ts`.
+
+**Scoping.** A card is private while it is being booked. `booking.card` and
+`booking.availableWorkers` answer only for a show the viewer runs (the
+calendar's `controlsShow`, so a brand with its own controller counts) or for
+the omniscient viewer of tools and tests (`canReadCard`). Anyone else gets
+`notYourShow` ("Friday Fury isn't one of your shows"); an unknown id gets
+`showNotFound`. A rival's card becomes public only after it airs, through the
+results queries (AIP4, EVT8). `booking.shows` lists only the viewer's own
+shows; the omniscient viewer runs none, so it gets an empty list.
+
+### `booking.shows`
+
+`{ limit?: 1..60 }` (default 20) →
+`{ rows, nextToBookId, available, unavailableReason }`.
+
+The viewer's shows dated today or later with status `scheduled` or `booked`,
+by date, then id. They are read through the `byStatus` index (at most the
+calendar's horizon) and kept when the viewer runs them, which covers both a
+promotion the player runs and a brand they run inside someone else's
+promotion, and leaves out a brand the computer runs inside theirs.
+
+| Row field                      | What it is                                        |
+| ------------------------------ | ------------------------------------------------- |
+| `eventInstanceId`, `name`      | the show                                          |
+| `date`, `importance`           | as stored                                         |
+| `brandName`                    | the show's brand, or null                         |
+| `status`                       | `scheduled` or `booked`                           |
+| `filledMain` / `slots`         | segments booked on the main card / its slot count |
+| `filledPreShow`/`preShowSlots` | the same for the pre-show                         |
+| `needsBooking`                 | today's show, still `scheduled`: Next Day stops   |
+| `locked`                       | the card is locked (`booked`)                     |
+
+`nextToBookId` is the first `scheduled` show (from the whole list, not only
+the rows the limit keeps). `available` is false on a save that cannot book
+shows: one with no `eventInstances` at all (from before EVT1) or no match
+types in `meta.catalogs` (from before MTCH1). `unavailableReason` then says
+"This save was made before shows could be booked. Start a new game to book
+shows."
+
+### `booking.card`
+
+`{ eventInstanceId }` → `BookingCard`:
+
+- `show`: id, name, date, air date, importance, promotion, brand id and name,
+  status, `isToday`, `daysUntil` (0 on the day) and `format`.
+- `canEdit`: the viewer runs the show and `editBlockOf` finds nothing.
+  `editBlock` is that reason (whoever asks) and `locked` is `status ===
+'booked'`.
+- `sections`: the pre-show first when the format has one, then the main card.
+  Every slot of the format is listed, filled or open.
+- `titleOptions`: the promotion's active titles by prestige (highest first),
+  with holders, holder ring names, `vacant` and `otherBrand` (the title belongs
+  to another brand than the show's), for the editor's titles field.
+
+Each **slot** is `{ slot, displayNumber, preShow, role, roleLabel,
+durationClass, durationLabel, weight, roleTrace, durationTrace, weightTrace,
+segment }`. The role, class and weight are derived on every read with MTCH1's
+`slotRoleOf`, `durationClassOf` and `slotWeightOf`
+([match-rating.md](match-rating.md#slots)); nothing is stored. The card view is
+the one place stored 0-based slots become MTCH1's 1-based ones. The duration
+class uses the segment's match type, so a battle royal in a midcard slot reads
+Long; a talking segment and an open slot use the slot's own class. Queries
+cannot store traces, so each trace travels inline for the screen's `Explained`
+panel. No field anywhere in the result is a length or a time (D-10).
+
+A filled slot's **segment** is `{ segmentId, kind, label, typeKey, typeName,
+durationShiftNote, titles, sides, result, storylineIds, finishKey,
+stipulationKeys, draft }`:
+
+- `durationShiftNote`: "Battle Royal runs a step longer than its slot" for a
+  match type that moves the class, else null.
+- `sides`: by side, each `{ side, name, teamId, people }`. The name is the
+  team's when everyone on the side is listed with the same team, else the ring
+  names joined with " & ". Each person has `ringName` (from their contract with
+  the show's promotion, else their default ring name), `imageRef`, `role`, an
+  availability chip on the show's date and `otherBrand`.
+- `result`: the planned result before the show and the real one after
+  (`{ kind, winningSide, methodKey, methodName }`), or null.
+- `draft`: `draftFromSegment`, the editor's starting point.
+
+### `booking.availableWorkers`
+
+`{ eventInstanceId, kind: 'match' | 'angle', search?: string (≤ 60) }` →
+`{ people, teams }`.
+
+`people` holds every active contract of the show's promotion (read through the
+`byPromotionStatus` index) in a role that can take part: wrestlers for a match,
+and also managers and presenters for an angle. Each row has the ring name,
+image, gender, person roles, the contract's role, push and alignment, its
+brand, `otherBrand` (contracted to a brand other than the show's), the
+availability chip, `bookable`, `onCard` (`{ segmentId, slotLabel }` for each
+segment of this card they are already in, such as "Slot 3" or "Pre-show slot
+1"), `appearancesThisYear` and `appearanceCap`.
+
+`bookable` follows WRK1 on the show's date: for a match the person must be
+`available`; for an angle they must be able to work talking segments, so an
+injured worker whose injury allows it can still be put in a promo.
+
+`teams` holds the active teams whose members all have active contracts here,
+with `bookable` when every member is. `search` matches ring names and given and
+family names, ignoring case and surrounding spaces; a team matches on its name
+or a member. People sort bookable first, then by push (main event first), then
+ring name, then id; teams bookable first, then by name, then id.
+
+### Availability chips
+
+`view.ts` words WRK1's statuses the same way on every booking screen; WRK1's
+longer `reason` is kept for the tooltip.
+
+| Status          | Chip                   |
+| --------------- | ---------------------- |
+| `available`     | "Available"            |
+| `injured`       | "Injured until 12 Feb" |
+| `rehab`         | "Rehab"                |
+| `personalLeave` | "Personal leave"       |
+| `suspended`     | "Suspended"            |
+| `timeOff`       | "Time off"             |
+| `notDebuted`    | "Not debuted"          |
+| `retired`       | "Retired"              |
+
+The injury date is WRK1's first day back, with the year added when it falls in
+another year.
+
+## Gate
+
+`booking.showNeedsBooking` (`booking/gates.ts`, label "Show needs booking")
+stops Next Day and every skip on the day of a show a human player runs until
+its card is locked. For the day being checked it reads that day's shows
+through the `byDate` index, keeps the `scheduled` ones whose
+`showControllerOf` is human (a brand's own controller counts, as everywhere),
+and reports the lowest id. A cancelled show never stops the clock, card or not; `booking.shows` leaves cancelled shows out too. With two of the player's shows on one day, locking
+the first makes the gate name the second.
+
+The hit is `{ reason, subject: { kind: 'eventInstance', id }, actionHint:
+'booking' }`. The web shell maps the `booking` hint to its "Go to show" button
+(`/game/booking?event=<id>`). The reason is:
+
+- "Your show '<name>' on <date> has no card yet" when nothing is booked;
+- "Your card for '<name>' on <date> isn't locked yet" once something is.
+
+Locking the card (status `booked`, EVT2-04) clears it. Computer-run shows never
+stop the clock, so headless runs of a world without a human promotion are
+unaffected. Tests about something else that must run through the player's show
+days (the calendar's phases, the web shell's skips) use the default systems
+without this gate (`SYSTEMS_WITHOUT_SHOW_DAY_GATE` and `systemsWithoutGates`
+in the engine's test support, and the web test engine's `showDayGate` option).

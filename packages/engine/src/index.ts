@@ -1340,6 +1340,40 @@ export type {
 } from './systems/booking/index';
 export { BOOKING_COMMAND_REASON_CODES, CARD_CHANGES } from './systems/booking/index';
 
+// The booking screen's reads (EVT2-03): the shows to book, a card with its derived slot roles, the
+// workers who can go on it with their availability chips, and the show-day gate. See
+// docs/design/booking.md#queries and #gate.
+export type {
+  AvailabilityView,
+  AvailableTeamRow,
+  AvailableWorkerRow,
+  AvailableWorkersView,
+  BookingCard,
+  BookingPersonView,
+  BookingResultView,
+  BookingSectionView,
+  BookingSegmentView,
+  BookingShowRow,
+  BookingShowsView,
+  BookingShowView,
+  BookingSideView,
+  BookingSlotView,
+  BookingTitleOption,
+  BookingTitleView,
+  WorkerPickKind,
+} from './systems/booking/index';
+export {
+  AVAILABILITY_LABELS,
+  availabilityLabel,
+  BOOKING_UNAVAILABLE_REASON,
+  DEFAULT_BOOKING_SHOWS,
+  MAX_BOOKING_SHOWS,
+  MAX_WORKER_SEARCH,
+  SHOW_NEEDS_BOOKING_GATE_ID,
+  slotLabel,
+  WORKER_PICK_KINDS,
+} from './systems/booking/index';
+
 // The shows system (EVT3-01): show night's domain events (`segment.completed`, `show.completed`,
 // `title.changed`, `title.defended`), trace kinds and refs, random stream and tunables. The phase
 // and queries arrive with EVT3-03..05. See docs/design/show-night.md.

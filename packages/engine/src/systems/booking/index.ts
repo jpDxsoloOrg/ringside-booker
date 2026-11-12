@@ -14,6 +14,8 @@
 import './events';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
 import { bookingCommands } from './commands';
+import { bookingGates } from './gates';
+import { bookingQueries } from './queries';
 
 export { cardSegments, hasCard } from './card';
 export {
@@ -72,9 +74,48 @@ export {
 } from './commands';
 export { CARD_CHANGES, type CardChange } from './events';
 
+// The booking screen's reads and the show-day gate (EVT2-03).
+export { bookingGates, SHOW_NEEDS_BOOKING_GATE_ID, showNeedsBookingGate } from './gates';
+export {
+  availableWorkersQuery,
+  BOOKING_UNAVAILABLE_REASON,
+  bookingQueries,
+  cardQuery,
+  DEFAULT_BOOKING_SHOWS,
+  MAX_BOOKING_SHOWS,
+  MAX_WORKER_SEARCH,
+  showsQuery,
+  WORKER_PICK_KINDS,
+  type AvailableTeamRow,
+  type AvailableWorkerRow,
+  type AvailableWorkersView,
+  type BookingShowRow,
+  type BookingShowsView,
+  type WorkerPickKind,
+} from './queries';
+export {
+  AVAILABILITY_LABELS,
+  availabilityLabel,
+  availabilityView,
+  buildCardView,
+  slotLabel,
+  type AvailabilityView,
+  type BookingCard,
+  type BookingPersonView,
+  type BookingResultView,
+  type BookingSectionView,
+  type BookingSegmentView,
+  type BookingShowView,
+  type BookingSideView,
+  type BookingSlotView,
+  type BookingTitleOption,
+  type BookingTitleView,
+  type CardViewDeps,
+} from './view';
+
 export const bookingSystem: SystemBundle = defineSystem({
   id: 'booking',
-  queries: [],
+  queries: bookingQueries,
   commands: [...bookingCommands],
-  gates: [],
+  gates: bookingGates,
 });

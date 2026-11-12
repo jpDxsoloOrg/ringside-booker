@@ -29,11 +29,11 @@ import type {
 } from '../../../src/core/ids';
 import type { Controller } from '../../../src/model/controller';
 import { definitionAirDateKey } from '../../../src/model/entities/event-instance';
-import { defaultSystems } from '../../../src/systems';
 import { scheduleAll } from '../../../src/systems/calendar';
 import {
   anEventDefinition,
   aVenue,
+  SYSTEMS_WITHOUT_SHOW_DAY_GATE,
   worldBuilder,
   type BuildContext,
   type BuiltWorld,
@@ -208,7 +208,9 @@ export function engineOver(
 ): Engine {
   return createEngine({
     state: { ...initialEngineState(built.world), tunableOverrides },
-    systems: defaultSystems,
+    // The show-day gate would stop on player-1's unbooked Mondays; these tests are about the
+    // calendar, so they run without it. booking/gate.test.ts covers the gate.
+    systems: SYSTEMS_WITHOUT_SHOW_DAY_GATE,
   });
 }
 
