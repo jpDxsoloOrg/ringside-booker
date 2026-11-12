@@ -49,6 +49,7 @@ function RosterPickerDemo() {
         title="Add to Side 1"
         people={people}
         teams={GALLERY_PICKER_TEAMS}
+        bookedFilter
         initialMode={mode ?? 'people'}
         onSearchChange={setSearch}
         onPickPerson={(person) => {

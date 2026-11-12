@@ -121,7 +121,9 @@ until **Save**, which sends the whole draft in one `booking.addSegment` or
   or the checklist's problem, never the editor's own rule.
 - **Roster picker.** `components/RosterPicker`, fed by `booking.availableWorkers` with the
   draft's kind and a 200 ms debounced search. Bookable only is on by default; unbookable rows are
-  dimmed with the reason as their description. A team adds every member with its `teamId`.
+  dimmed with the reason as their description. Hide booked is on by default too: people already
+  in another segment of this card (and teams with such a member) are left out, and the list says
+  how many; turning it off shows them with "On this card: …". A team adds every member with its `teamId`.
   Until MTCH5 owns beats, changing a talking segment's speakers drops its beats so the engine
   writes the type's default beat.
 - **Titles and result.** `booking.card`'s `titleOptions`, with "Add the champion, … to a side"

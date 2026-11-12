@@ -148,6 +148,7 @@ export function galleryPickerPeople(): RosterPickerPerson[] {
     selectable: row.bookable,
     reason: row.bookable ? null : `Can't wrestle on this date: ${row.availability.reason}`,
     otherBrand: row.otherBrand,
+    bookedElsewhere: row.onCard.length > 0,
     notes: [
       ...(row.brandName === null ? [] : [`Other brand: ${row.brandName}`]),
       ...(WORKERS[index]?.onCard === null ? [] : [`On this card: ${WORKERS[index]?.onCard ?? ''}`]),
