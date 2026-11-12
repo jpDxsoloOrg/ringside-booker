@@ -74,8 +74,10 @@ feature, such as `booking.open`.
 
 ### Registered so far
 
-Nothing is registered yet: no feature that uses a slot is in the game. When one registers, add
-its id here. The ids the planned features will use are in
+- `booking.book` (sheet action, order 10): "Book this show" / "Edit card" for your own open
+  shows, from `screens/booking/calendarAction.tsx`.
+
+When another feature registers, add its id here. The ids the planned features will use are in
 [`docs/design/calendar.md`](../../../../../docs/design/calendar.md#integration).
 
 | Slot          | Registered ids |
