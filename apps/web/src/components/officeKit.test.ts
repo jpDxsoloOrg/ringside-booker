@@ -1,8 +1,8 @@
 /**
  * @vitest-environment node
  *
- * Checks the office kit's stylesheets (KpiCard, DeltaChip, Sparkline, AlignmentChip, ChampionCard
- * and the DataTable stat-table look) against the office register in
+ * Checks the office kit's stylesheets (KpiCard, DeltaChip, Sparkline, AlignmentChip,
+ * AvailabilityChip, ChampionCard and the DataTable stat-table look) against the office register in
  * docs/design/visual-identity.md: semantic tokens only, calm shapes (rounded cards, no skew, no
  * glow, nothing looping but a loading skeleton), Barlow Condensed tabular numbers, and the phone
  * layouts the kit promises (KPI cards 2-up, champion cards in a swipe row).
@@ -15,6 +15,7 @@ const OFFICE_STYLESHEETS = [
   'DeltaChip/DeltaChip.module.css',
   'Sparkline/Sparkline.module.css',
   'AlignmentChip/AlignmentChip.module.css',
+  'AvailabilityChip/AvailabilityChip.module.css',
   'ChampionCard/ChampionCard.module.css',
   'DataTable/DataTable.module.css',
 ] as const;
