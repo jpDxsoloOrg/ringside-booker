@@ -142,6 +142,15 @@ after a Next Day. Worker names on the side chips and in the Each worker table go
 `renderWorkerName` (`workerName.tsx`), a `WorkerLink` to the worker's profile; person inputs in the
 lab's Why? panels link through `EntityLinkContext` like everywhere else in the game.
 
+`screens/match-lab/defaultWorldLab.test.ts` is the lab's hand-test script against a new
+default-world game as Altura: the defaults, every Why? a Run offers read in the panel's own words
+(settings named by key, choices as words, no broken numbers, nothing about running time), one
+stamina line per worker, the star cap line and the first tuning pass's checks from
+`docs/design/match-rating.md`. A feature that adds a number to a lab result adds its breakdown to
+that test. `oldSaveLab.test.tsx` loads a save without catalogs from the saved games list and checks
+the lab's "start a new game" message. The result's parts, with a made-up sample and no engine, are
+in the gallery at `/dev/gallery#match-lab`.
+
 ### Adding a Match lab panel
 
 Another feature adds a titled panel to the lab from its own files, without editing the lab:
