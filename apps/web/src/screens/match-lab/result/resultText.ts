@@ -77,7 +77,7 @@ export function outcomeHeadline(
 export function methodLineText(simulation: Pick<SimulateResult, 'method' | 'finish'>): string {
   const { method } = simulation;
   const finish = finishEffectLabel(simulation.finish.name);
-  return method === null || method.name === simulation.finish.name
+  return method === null || method.name.toLowerCase() === simulation.finish.name.toLowerCase()
     ? finish
     : `${method.name} · ${finish}`;
 }

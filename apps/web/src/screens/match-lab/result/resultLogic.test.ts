@@ -96,6 +96,10 @@ describe('the result wording', () => {
       methodLineText(winSimulation()),
       methodLineText(drawSimulation()),
       methodLineText(disqualificationSimulation()),
+      methodLineText({
+        method: { key: parseContentKey('method.count-out'), name: 'Count-Out' },
+        finish: { ...disqualificationSimulation().finish, name: 'Count-out' },
+      }),
       noTitleChangeText('Disqualification'),
       finishOptionLabel({ name: 'Count-out', allowsTitleChange: false }),
     ];
@@ -106,6 +110,7 @@ describe('the result wording', () => {
       'Pinfall · Clean finish',
       'Stalemate finish',
       'Disqualification finish',
+      'Count-out finish',
       "Titles can't change hands on a Disqualification finish",
       'Count-out (no title change)',
     ]);
