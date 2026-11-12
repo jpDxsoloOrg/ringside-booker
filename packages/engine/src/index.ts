@@ -1190,3 +1190,38 @@ export {
   titleCanChange,
   winnerAlignmentOf,
 } from './systems/match/index';
+
+// The auto-winner, resolveMatchOutcome and the Random winners new-game setting (MTCH2-03):
+// `resolveMatchOutcome` is the one entry point `match.simulate` and the show night call;
+// `randomWinnersActive` tells EVT2 and EVT3 whether a show's results are decided on the night.
+// See docs/design/match-finishes.md#resolving-a-match.
+export type {
+  AutoWinnerCompetitor,
+  AutoWinnerInputs,
+  AutoWinnerInputsArgs,
+  AutoWinnerMode,
+  AutoWinnerScoreInputs,
+  AutoWinnerSide,
+  AutoWinnerSideIds,
+  AutoWinnerSideScore,
+  MatchPlan,
+  PlannedWinner,
+  RandomWinnersArgs,
+  ResolveMatchOutcomeDeps,
+  ResolveMatchOutcomeInput,
+  ResolveMatchOutcomeResult,
+  ResolveMatchReasonCode,
+  ResolveStreamName,
+} from './systems/match/index';
+export {
+  MATCH_AUTO_WINNER_STREAM,
+  RANDOM_WINNERS_MESSAGE,
+  RANDOM_WINNERS_SETTING,
+  RESOLVE_MATCH_REASON_CODES,
+  autoWinner,
+  autoWinnerInputsOf,
+  autoWinnerScore,
+  competitorSidesOf,
+  randomWinnersActive,
+  resolveMatchOutcome,
+} from './systems/match/index';
