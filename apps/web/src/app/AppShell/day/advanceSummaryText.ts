@@ -1,4 +1,4 @@
-import type { AdvanceResult, Reason } from '@ringside/engine';
+import type { AdvanceResult, Reason, ShowSummaryView } from '@ringside/engine';
 import { formatGameDate, formatNumber } from '@/components/format';
 
 /** The words the summary banner and the announcement share. */
@@ -72,4 +72,18 @@ export function failuresToText(failures: AdvanceResult['failures']): string {
   return failures
     .map((failure) => `${failure.date}  ${failure.stepId}  ${failure.message}`)
     .join('\n');
+}
+
+/** The most "See results" links the summary shows; the rest are counted. */
+export const MAX_RESULTS_LINKS = 3;
+
+/** "See results: Altura Mainstage": a link from the summary to a show the advance completed. */
+export function seeResultsText(show: Pick<ShowSummaryView, 'name'>): string {
+  return `See results: ${show.name}`;
+}
+
+/** "and 2 more": the completed shows the summary had no room to link, or null when none. */
+export function moreResultsText(total: number): string | null {
+  const hidden = total - MAX_RESULTS_LINKS;
+  return hidden > 0 ? `and ${formatNumber(hidden)} more` : null;
 }

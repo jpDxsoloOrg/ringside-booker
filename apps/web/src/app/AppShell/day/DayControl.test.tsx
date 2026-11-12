@@ -9,12 +9,13 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { initialEngineState } from '@ringside/engine';
-import type { EngineState, GameDate } from '@ringside/engine';
+import { diffDays, initialEngineState, parseContentKey } from '@ringside/engine';
+import type { CommandArgs, CommandName, EngineState, GameDate, PersonId } from '@ringside/engine';
 import { worldBuilder } from '@ringside/engine/testing';
 import { formatGameDate } from '@/components/format';
 import { BP_MOBILE_QUERY } from '@/styles/breakpoints';
 import {
+  bookingFakeState,
   FAKE_FAILING_STEP_ID,
   FAKE_FAILURE_MESSAGE,
   FAKE_START_DATE,
@@ -28,6 +29,7 @@ import { setMatchMedia } from '@/test/matchMedia';
 import type { SaveSlotResult } from '@/worker/engineHost';
 import { EngineProvider } from '../../engine/EngineProvider';
 import { createInProcessTransport } from '../../engine/transport';
+import type { InProcessTransport } from '../../engine/transport';
 import { buildAppRoutes, routerFutureFlags, routerProviderFutureFlags } from '../../router';
 import { routes } from '../../routes';
 import { useSessionStore } from '../../session/sessionStore';
@@ -438,5 +440,107 @@ describe('DayControl without a promotion', () => {
         start ?? '',
       );
     });
+  });
+});
+
+async function command<K extends CommandName>(
+  transport: InProcessTransport,
+  name: K,
+  args: CommandArgs<K>,
+): Promise<void> {
+  const { result } = await transport.host.command(name, args);
+  if (!result.ok) throw new Error(`${name} was refused: ${JSON.stringify(result.reasons)}`);
+}
+
+/**
+ * The booking world on the day of the player's Thursday show, its card full of singles matches
+ * with planned winners and locked, so the next Next Day runs it.
+ */
+async function renderShowDay() {
+  const transport = createInProcessTransport(fakeEngineFactory(), { progressIntervalMs: 0 });
+  const { state, roster } = bookingFakeState();
+  const install = transport.host.installEngine(state);
+  // One simulated day stores the shows.
+  await transport.host.advanceDays({ maxDays: 1 }, () => undefined);
+  const shows = await transport.host.query('booking.shows', {});
+  if (!shows.result.ok) throw new Error('booking.shows was refused.');
+  const show = shows.result.data.rows[0];
+  if (show === undefined) throw new Error('The booking world has no show.');
+  const pairs: (readonly [PersonId, PersonId])[] = [];
+  for (let index = 0; index + 1 < roster.length; index += 2) {
+    const first = roster[index];
+    const second = roster[index + 1];
+    if (first !== undefined && second !== undefined) pairs.push([first, second]);
+  }
+  for (const [slot, [first, second]] of pairs.slice(0, show.slots).entries()) {
+    await command(transport, 'booking.addSegment', {
+      eventInstanceId: show.eventInstanceId,
+      preShow: false,
+      slot,
+      draft: {
+        kind: 'match',
+        label: null,
+        storylineIds: [],
+        crew: { refereeId: null, producerId: null, announcerIds: [] },
+        participants: [
+          { personId: first, side: 0, role: 'competitor', teamId: null },
+          { personId: second, side: 1, role: 'competitor', teamId: null },
+        ],
+        match: {
+          matchTypeKey: parseContentKey('match.singles'),
+          stipulationKeys: [],
+          titleIds: [],
+          finishKey: null,
+        },
+        outcome: { kind: 'win', winningSide: 0, methodKey: parseContentKey('method.pinfall') },
+      },
+    });
+  }
+  await command(transport, 'booking.lockCard', { eventInstanceId: show.eventInstanceId });
+  const clock = await transport.host.query('clock.get', {});
+  if (!clock.result.ok) throw new Error('clock.get was refused.');
+  const daysToShow = diffDays(clock.result.data.date, show.date);
+  if (daysToShow > 0) await transport.host.advanceDays({ maxDays: daysToShow }, () => undefined);
+  useSessionStore.getState().setLoaded({ saveSlotId: null, seat: install.seat });
+  const router = createMemoryRouter(buildAppRoutes({ includeDevRoutes: false }), {
+    initialEntries: [routes.game.calendar()],
+    future: routerFutureFlags,
+  });
+  render(
+    <EngineProvider createTransport={() => transport}>
+      <RouterProvider router={router} future={routerProviderFutureFlags} />
+    </EngineProvider>,
+  );
+  return { show, router, user: userEvent.setup() };
+}
+
+describe('DayControl: a show night', () => {
+  it('banners a plain Next Day that ran your show, with a link to its results', async () => {
+    const { show, router, user } = await renderShowDay();
+    await expectDateChip(show.date);
+
+    await user.click(dayButton());
+
+    const banner = await summary();
+    const link = within(banner).getByRole('link', { name: `See results: ${show.name}` });
+    expect(link).toHaveAttribute(
+      'href',
+      routes.game.showResults(show.eventInstanceId, { reveal: true }),
+    );
+    expect(within(banner).queryByText(/^and \d+ more$/)).toBeNull();
+
+    await user.click(link);
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe(routes.game.showResults(show.eventInstanceId));
+    });
+  });
+
+  it('leaves a plain Next Day with no show of yours unbannered', async () => {
+    const { user } = renderGame();
+    await expectDateChip(FAKE_START_DATE);
+    await user.click(dayButton());
+    await expectDateChip(fakeAdvanceDay(2));
+    expect(screen.queryByRole('link', { name: /^See results/ })).toBeNull();
+    expect(screen.queryByRole('region', { name: 'Last advance' })).toBeNull();
   });
 });

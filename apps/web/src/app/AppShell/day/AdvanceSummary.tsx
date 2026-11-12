@@ -1,31 +1,107 @@
 import { useState } from 'react';
-import type { AdvanceResult } from '@ringside/engine';
+import { Link } from 'react-router-dom';
+import { MAX_COMPLETED_SINCE } from '@ringside/engine';
+import type { AdvanceResult, ShowSummaryView } from '@ringside/engine';
+import { useEngineQuery } from '@/app/engine/useEngineQuery';
+import { routes } from '@/app/routes';
+import { useHasPromotion } from '@/app/session/sessionStore';
 import { Button, IconButton } from '@/components/Button';
 import { formatGameDate } from '@/components/format';
 import { Icon } from '@/components/Icon';
 import { Sheet } from '@/components/Sheet';
-import { describeAdvance, describeRefusal, failuresToText } from './advanceSummaryText';
+import {
+  describeAdvance,
+  describeRefusal,
+  failuresToText,
+  MAX_RESULTS_LINKS,
+  moreResultsText,
+  seeResultsText,
+} from './advanceSummaryText';
 import type { AdvanceReport } from './DayAdvanceProvider';
 import { useOptionalDayAdvance } from './DayAdvanceProvider';
 import styles from './DayControl.module.css';
 
+/** What else, besides the report itself, can earn the banner. */
+export interface BannerExtras {
+  /** True when the advance completed one of your shows: its results are worth a link. */
+  readonly hasResults?: boolean;
+}
+
 /**
  * Whether a report earns the banner. A plain Next Day that ran its one day is only announced (the
- * date chip already shows the new day); anything longer, anything that stopped early, any failed
- * step and any refusal gets the banner.
+ * date chip already shows the new day), unless it ran one of your shows; anything longer,
+ * anything that stopped early, any failed step and any refusal gets the banner.
  */
-export function reportNeedsBanner(report: AdvanceReport): boolean {
+export function reportNeedsBanner(
+  report: AdvanceReport,
+  { hasResults = false }: BannerExtras = {},
+): boolean {
   if (report.kind === 'refused') return true;
   const { result, daysRequested } = report;
-  return daysRequested > 1 || result.stoppedBy.kind !== 'completed' || result.failures.length > 0;
+  return (
+    hasResults ||
+    daysRequested > 1 ||
+    result.stoppedBy.kind !== 'completed' ||
+    result.failures.length > 0
+  );
+}
+
+type AdvancedReport = Extract<AdvanceReport, { kind: 'advanced' }>;
+
+interface ReportBannerProps<Report extends AdvanceReport = AdvanceReport> {
+  readonly report: Report;
+  readonly onDismiss: () => void;
+}
+
+/** An advance that moved the clock: asks which of your shows it completed, for their links. */
+function AdvancedReportBanner({ report, onDismiss }: ReportBannerProps<AdvancedReport>) {
+  const completed = useEngineQuery(
+    'shows.completedSince',
+    {
+      from: report.result.startDate,
+      to: report.result.endDate,
+      scope: 'mine',
+      limit: MAX_COMPLETED_SINCE,
+    },
+    { keepPreviousData: false },
+  );
+  const results = completed.data ?? [];
+  if (!reportNeedsBanner(report, { hasResults: results.length > 0 })) return null;
+  return <AdvanceSummaryBanner report={report} onDismiss={onDismiss} results={results} />;
 }
 
 /** The banner under the top bar after an advance, from the shell's advance controller. */
 export function AdvanceSummary() {
   const advance = useOptionalDayAdvance();
+  const hasPromotion = useHasPromotion();
   const report = advance?.report ?? null;
-  if (advance === null || report === null || !reportNeedsBanner(report)) return null;
+  if (advance === null || report === null) return null;
+  // Only your own shows get "See results" links; without a promotion there are none to ask for.
+  if (report.kind === 'advanced' && report.result.daysAdvanced > 0 && hasPromotion) {
+    return <AdvancedReportBanner report={report} onDismiss={advance.dismissReport} />;
+  }
+  if (!reportNeedsBanner(report)) return null;
   return <AdvanceSummaryBanner report={report} onDismiss={advance.dismissReport} />;
+}
+
+/** "See results: <show>" for up to three shows the advance completed, then "and N more". */
+function ResultsLinks({ results }: { readonly results: readonly ShowSummaryView[] }) {
+  const more = moreResultsText(results.length);
+  return (
+    <ul className={styles['resultsLinks']} aria-label="Results">
+      {results.slice(0, MAX_RESULTS_LINKS).map((show, index) => (
+        <li key={show.eventInstanceId}>
+          <Link
+            to={routes.game.showResults(show.eventInstanceId, { reveal: true })}
+            className={index === 0 ? styles['resultsLinkFirst'] : styles['resultsLink']}
+          >
+            {seeResultsText(show)}
+          </Link>
+        </li>
+      ))}
+      {more !== null && <li className={styles['resultsMore']}>{more}</li>}
+    </ul>
+  );
 }
 
 export interface AdvanceSummaryBannerProps {
@@ -36,6 +112,8 @@ export interface AdvanceSummaryBannerProps {
    * shows several at once (the gallery) gives each its own, so every region is told apart.
    */
   readonly label?: string;
+  /** Your shows the advance completed, newest first: each gets a "See results" link. */
+  readonly results?: readonly ShowSummaryView[];
 }
 
 /**
@@ -46,6 +124,7 @@ export function AdvanceSummaryBanner({
   report,
   onDismiss,
   label = 'Last advance',
+  results = [],
 }: AdvanceSummaryBannerProps) {
   const [failuresOpen, setFailuresOpen] = useState(false);
   const text =
@@ -62,6 +141,7 @@ export function AdvanceSummaryBanner({
       <div className={styles['summaryBody']}>
         <p className={styles['summaryHeadline']}>{text.headline}</p>
         {text.reason !== null && <p className={styles['summaryReason']}>{text.reason}</p>}
+        {results.length > 0 && <ResultsLinks results={results} />}
         {report.kind === 'advanced' && text.failures !== null && (
           <>
             <button
