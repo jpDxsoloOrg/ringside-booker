@@ -19,7 +19,12 @@ import {
   winnerFromValue,
   winnerValue,
 } from './resultText';
-import { drawSimulation, noContestSimulation, winSimulation } from './simulationFixtures';
+import {
+  disqualificationSimulation,
+  drawSimulation,
+  noContestSimulation,
+  winSimulation,
+} from './simulationFixtures';
 
 const ADA = parseId('person', 'per_0000000001');
 const BO = parseId('person', 'per_0000000002');
@@ -90,6 +95,7 @@ describe('the result wording', () => {
       outcomeHeadline(noContestSimulation()),
       methodLineText(winSimulation()),
       methodLineText(drawSimulation()),
+      methodLineText(disqualificationSimulation()),
       noTitleChangeText('Disqualification'),
       finishOptionLabel({ name: 'Count-out', allowsTitleChange: false }),
     ];
@@ -99,6 +105,7 @@ describe('the result wording', () => {
       'No contest',
       'Pinfall · Clean finish',
       'Stalemate finish',
+      'Disqualification finish',
       "Titles can't change hands on a Disqualification finish",
       'Count-out (no title change)',
     ]);

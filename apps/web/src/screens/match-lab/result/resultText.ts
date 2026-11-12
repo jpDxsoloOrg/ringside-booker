@@ -70,10 +70,16 @@ export function outcomeHeadline(
   return winnerNames.length === 0 ? wins : `${wins}: ${namesText(winnerNames)}`;
 }
 
-/** "Pinfall · Clean finish", or "Double count-out finish" when nobody won. */
+/**
+ * "Pinfall · Clean finish"; "Double count-out finish" when nobody won, and "Disqualification
+ * finish" when the method is the finish's own name.
+ */
 export function methodLineText(simulation: Pick<SimulateResult, 'method' | 'finish'>): string {
+  const { method } = simulation;
   const finish = finishEffectLabel(simulation.finish.name);
-  return simulation.method === null ? finish : `${simulation.method.name} · ${finish}`;
+  return method === null || method.name === simulation.finish.name
+    ? finish
+    : `${method.name} · ${finish}`;
 }
 
 /** "Titles can't change hands on a Disqualification finish". */
