@@ -1,0 +1,385 @@
+/*
+ * A finished segment in CardSlot's visual language: a square panel with a 4px accent bar, a skewed
+ * role tag and outlined chips. The same tokens as CardSlot, its own rules (no shared CSS file).
+ */
+.accent-data {
+  --card-accent: var(--color-data);
+}
+
+.accent-prestige {
+  --card-accent: var(--color-prestige);
+}
+
+.accent-action {
+  --card-accent: var(--color-action-bright);
+}
+
+.card {
+  display: grid;
+  min-inline-size: 0;
+  border: 1px solid var(--color-border);
+  border-inline-start: 4px solid var(--card-accent);
+  background: var(--color-surface);
+}
+
+.card[data-role='mainEvent'] {
+  border-color: var(--color-action-bright);
+  box-shadow: var(--glow-action);
+}
+
+.preShow {
+  border-style: dashed;
+  border-inline-start-style: solid;
+}
+
+/* ---- Header: role tag and chips -------------------------------------------------------------- */
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  min-inline-size: 0;
+  padding: var(--space-2) var(--space-3);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.roleTag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  background: var(--card-accent);
+  color: var(--color-text-inverse);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-tight);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transform: skewX(var(--skew-broadcast));
+}
+
+.roleTag > * {
+  transform: skewX(calc(-1 * var(--skew-broadcast)));
+}
+
+.chips,
+.storylines {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  max-inline-size: 100%;
+  padding: 0.125rem var(--space-2);
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text-muted);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.chip-type {
+  color: var(--color-text);
+}
+
+.chip-title {
+  border-color: var(--color-prestige);
+  color: var(--color-prestige);
+}
+
+.chip-storyline {
+  border-color: var(--color-action-bright);
+  color: var(--color-action-bright);
+}
+
+/* ---- Body ------------------------------------------------------------------------------------ */
+
+.body {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+  padding: var(--space-3);
+}
+
+.billing {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-style: italic;
+  overflow-wrap: anywhere;
+}
+
+/* Any number of sides: two or three across on a desktop, stacked on a phone. */
+.sides {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: var(--space-3);
+  min-inline-size: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.oneSide {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.side {
+  min-inline-size: 0;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+}
+
+.sideInner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-inline-size: 0;
+  padding: var(--space-3);
+}
+
+/* The winners: a gold outline and the marker above the names. */
+.winner {
+  border-color: var(--color-prestige);
+  box-shadow: inset 0 0 0 1px var(--color-prestige);
+}
+
+/* The losers stay readable: muted text, not faded pictures or low contrast. */
+.side[data-result='lost'] {
+  background: var(--color-surface-sunken);
+}
+
+.side[data-result='lost'] .members {
+  color: var(--color-text-muted);
+}
+
+.avatars {
+  display: flex;
+  flex: none;
+}
+
+.avatars > * + * {
+  margin-inline-start: calc(-1 * var(--space-3));
+}
+
+.sideText {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.winnerMarker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-prestige);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.members {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-tight);
+  text-transform: uppercase;
+}
+
+.member {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+/* People who are not competing (ringside, managers) read smaller. */
+.member:not([data-role='competitor']) {
+  font-size: var(--font-size-sm);
+}
+
+.resultLine {
+  color: var(--color-text);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+/* ---- Stats: stars and score, work rate, crowd, expected -------------------------------------- */
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: var(--space-2) var(--space-5);
+  padding-block-start: var(--space-2);
+  border-block-start: 1px solid var(--color-border);
+}
+
+.stat {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.stat dt {
+  color: var(--color-text-muted);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.stat dd {
+  display: flex;
+  align-items: center;
+
+  /* A Why? button's height, so a hidden card (no buttons) is exactly as tall as a revealed one. */
+  min-block-size: 1.75rem;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+.scoreValue {
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* ---- Title banners --------------------------------------------------------------------------- */
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-inline-size: 0;
+  min-block-size: 1.75rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface-raised);
+}
+
+.banner-prestige {
+  border-color: var(--color-prestige);
+  color: var(--color-prestige);
+}
+
+.bannerText {
+  display: grid;
+  flex: 1 1 auto;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.bannerHeadline {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-tight);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.bannerTitle {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  overflow-wrap: anywhere;
+}
+
+/* ---- Unrevealed: the hidden card keeps the height, the placeholder covers it ------------------ */
+
+.reveal {
+  display: grid;
+  min-inline-size: 0;
+}
+
+.reveal > * {
+  grid-area: 1 / 1;
+}
+
+.concealed {
+  visibility: hidden;
+}
+
+.placeholder {
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.footer {
+  padding: var(--space-2) var(--space-3);
+  border-block-start: 1px solid var(--color-border);
+}
+
+/* ---- Phones: sides stack, the stats become a two-column grid, every target is 44px tall ------- */
+
+@media (--bp-mobile) {
+  .sides {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-2);
+  }
+
+  .members {
+    font-size: var(--font-size-md);
+  }
+
+  .member {
+    display: flex;
+    align-items: center;
+    min-block-size: var(--tap-target-min);
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .statScore {
+    grid-column: 1 / -1;
+  }
+
+  .stat dd {
+    min-block-size: var(--tap-target-min);
+  }
+
+  .banner {
+    flex-wrap: wrap;
+  }
+
+  .bannerHeadline {
+    font-size: var(--font-size-md);
+  }
+
+  .placeholder {
+    font-size: var(--font-size-lg);
+  }
+}
