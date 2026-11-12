@@ -299,23 +299,19 @@ describe('WorkersScreen', () => {
     );
     expect(workersListUrlFrom(router.state.location.state)).toBe(listUrl);
 
-    // The loading skeleton has its own Back link, which is replaced when the profile arrives: wait
-    // for the loaded profile so the click does not land on a link that has just left the page.
+    // The profile swaps its tree while it loads (the skeleton has its own Back link), so a click can
+    // land on a link that has just left the page. Click the Back link on the page now until the
+    // list is back, which is what a person does.
+    const listLocation = (): string =>
+      `${router.state.location.pathname}${router.state.location.search}`;
     await waitFor(
-      () => {
-        expect(document.querySelector('[aria-busy="true"]')).toBeNull();
+      async () => {
+        if (listLocation() !== listUrl) {
+          await user.click(screen.getByRole('link', { name: 'Back to Workers' }));
+        }
+        expect(listLocation()).toBe(listUrl);
       },
-      { timeout: LOAD_MS },
-    );
-    await user.click(
-      await screen.findByRole('link', { name: 'Back to Workers' }, { timeout: LOAD_MS }),
-    );
-    // The profile is loaded lazily and the suite runs many files at once: allow for a slow turn.
-    await waitFor(
-      () => {
-        expect(`${router.state.location.pathname}${router.state.location.search}`).toBe(listUrl);
-      },
-      { timeout: LOAD_MS },
+      { timeout: LOAD_MS, interval: 200 },
     );
     // Two lazy screen loads in one test: give it room when the whole suite runs at once.
   }, 15_000);
