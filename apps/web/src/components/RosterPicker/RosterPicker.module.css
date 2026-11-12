@@ -1,0 +1,192 @@
+/*
+ * The roster picker: search, filter chips, then a list of people (or teams). Rows that can't be
+ * picked are dimmed and say why underneath, so the reason is never only in a tooltip.
+ */
+.picker {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.search {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.searchLabel {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.searchWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  inset-inline-start: var(--space-3);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.searchInput {
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 2.5rem;
+  padding: var(--space-2) var(--space-3) var(--space-2) calc(var(--space-3) * 2 + 1rem);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--font-size-sm);
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.filter {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-block-size: 2rem;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.filter:hover {
+  background: var(--color-surface-hover);
+}
+
+.filter[aria-pressed='true'] {
+  border-color: var(--color-data);
+  color: var(--color-text);
+}
+
+.status {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.list {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  cursor: pointer;
+}
+
+.row[data-active] {
+  border-color: var(--color-focus);
+  background: var(--color-surface-hover);
+}
+
+.row:not([data-selectable]) {
+  cursor: not-allowed;
+}
+
+/* Dimmed, but the name and the reason stay readable. */
+.row:not([data-selectable]) .rowMain {
+  opacity: 0.6;
+}
+
+.rowMain {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.rowText {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.rowName {
+  overflow: hidden;
+  font-weight: var(--font-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowChips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  min-inline-size: 0;
+}
+
+.push,
+.note {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.note {
+  color: var(--color-warning);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.teamIcon {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--image-size-sm);
+  block-size: var(--image-size-sm);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-sunken);
+  color: var(--color-text-muted);
+}
+
+.reason {
+  padding-inline-start: calc(var(--image-size-sm) + var(--space-3));
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+@media (pointer: coarse) {
+  .searchInput,
+  .filter,
+  .row {
+    min-block-size: var(--tap-target-min);
+  }
+}
+
+@media (--bp-mobile) {
+  .searchInput,
+  .filter {
+    min-block-size: var(--tap-target-min);
+  }
+}

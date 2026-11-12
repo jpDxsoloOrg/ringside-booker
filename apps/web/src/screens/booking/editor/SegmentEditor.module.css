@@ -1,0 +1,296 @@
+/*
+ * The segment editor: one column of fields inside the sheet. Each field is a borderless group
+ * with a label-sized legend; a field the engine refused is marked with a red edge.
+ */
+.editor {
+  display: grid;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+
+.field {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.field[data-invalid] {
+  padding-inline-start: var(--space-3);
+  border-inline-start: 3px solid var(--color-negative);
+}
+
+.legend {
+  padding: 0;
+  margin: 0 0 var(--space-1);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.hint {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.warnNote {
+  color: var(--color-warning);
+  font-size: var(--font-size-xs);
+}
+
+.blocked {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* ---- Refusal ------------------------------------------------------------------------------ */
+
+.refusal {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-negative);
+  border-inline-start-width: 4px;
+  background: var(--color-surface);
+}
+
+.refusalTitle {
+  font-weight: var(--font-weight-semibold);
+}
+
+.refusalList {
+  margin: 0;
+  padding-inline-start: var(--space-5);
+  font-size: var(--font-size-sm);
+}
+
+/* ---- Type --------------------------------------------------------------------------------- */
+
+.shift {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* ---- Sides -------------------------------------------------------------------------------- */
+
+.sides {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+  gap: var(--space-3);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.side {
+  display: grid;
+  align-content: start;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.sideHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  min-inline-size: 0;
+}
+
+.sideTitle {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.sideHead > :last-child:not(:first-child, .hint) {
+  margin-inline-start: auto;
+}
+
+.empty {
+  color: var(--color-text-subtle);
+  font-size: var(--font-size-sm);
+}
+
+.people {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.person {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.personText {
+  display: grid;
+  flex: 1 1 auto;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.personChips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+}
+
+.personReason {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.sideActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.addSide {
+  justify-self: start;
+}
+
+/* ---- Titles ------------------------------------------------------------------------------- */
+
+.titles {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.title {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  min-inline-size: 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.checkbox {
+  inline-size: 1.125rem;
+  block-size: 1.125rem;
+  margin: 0;
+  accent-color: var(--color-action);
+}
+
+.titleLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-inline-size: 0;
+  min-block-size: 2.5rem;
+  cursor: pointer;
+}
+
+.titleText {
+  display: grid;
+  min-inline-size: 0;
+}
+
+.titleName {
+  overflow: hidden;
+  font-weight: var(--font-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.titleHolders {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.titleNotes {
+  display: grid;
+  grid-column: 2;
+  gap: var(--space-1);
+}
+
+/* ---- Billing line ------------------------------------------------------------------------- */
+
+.textInput {
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 2.5rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--font-size-sm);
+}
+
+/* ---- Footer ------------------------------------------------------------------------------- */
+
+.footer {
+  display: grid;
+  gap: var(--space-2);
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.saveHint {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  text-align: end;
+}
+
+.footerButtons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+/* Remove sits apart from Cancel and Save, on the start edge. */
+.remove {
+  margin-inline-end: auto;
+}
+
+@media (pointer: coarse) {
+  .textInput,
+  .titleLabel {
+    min-block-size: var(--tap-target-min);
+  }
+}
+
+@media (--bp-mobile) {
+  .textInput,
+  .titleLabel {
+    min-block-size: var(--tap-target-min);
+  }
+
+  .saveHint {
+    text-align: start;
+  }
+}

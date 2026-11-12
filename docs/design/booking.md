@@ -583,3 +583,17 @@ shows every slot of the format by role with the role's and size's Why?, reorders
 keyboard and Move up / Move down with swap semantics, and turns Lock card on only when the card
 is runnable. Refusals are shown as the engine words them. Other features add panels with
 `registerBookingPanel`; the segment editor (EVT2-06) opens from the `useSegmentEditor` store.
+
+### The segment editor
+
+Filling or changing a slot happens in one sheet (EVT2-06, `screens/booking/editor/`): Match or
+Talking segment, the type, each side built from a roster picker that reads
+`booking.availableWorkers`, titles on the line, the planned winner and method (or a draw or no
+contest) and a billing line. It edits a local `SegmentDraft` and saves it whole with one
+`booking.addSegment` or `booking.updateSegment`, so nothing half-built reaches the world. It never
+adds rules of its own beyond the catalog's limits: whatever the engine refuses is shown in the
+engine's words, and softer problems are left to the checklist above. Picking someone to lose
+shows no morale warning (D-09). Other features add parts of the editor (finish, beats,
+stipulations, crew, storylines) with `registerSegmentEditorSection`; a section patches its part of
+the same draft and is saved with it, the one write path. Until MTCH5's beats section exists,
+changing a talking segment's speakers drops its beats so the writer gives the type's default beat.

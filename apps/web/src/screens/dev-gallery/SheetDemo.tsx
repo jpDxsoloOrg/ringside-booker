@@ -3,7 +3,7 @@ import { Button } from '@/components/Button';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { Cluster, Stack } from '@/components/layout';
 import { Sheet } from '@/components/Sheet';
-import type { SheetSide, SheetSize } from '@/components/Sheet';
+import type { SheetPhoneHeight, SheetSide, SheetSize } from '@/components/Sheet';
 import styles from './InteractiveDemos.module.css';
 
 const SHEET_SIDES: readonly SheetSide[] = ['right', 'left', 'bottom'];
@@ -19,6 +19,7 @@ const NOTES = Array.from(
 interface OpenSheet {
   readonly side: SheetSide;
   readonly size: SheetSize;
+  readonly phoneHeight?: SheetPhoneHeight;
 }
 
 function capitalise(word: string): string {
@@ -59,13 +60,29 @@ export function SheetDemo() {
           ))}
         </Cluster>
       ))}
+      <Cluster gap={2}>
+        <span className={styles['sideLabel']}>Full on a phone</span>
+        <Button
+          size="sm"
+          onClick={() => {
+            setOpenSheet({ side: 'right', size: 'lg', phoneHeight: 'full' });
+          }}
+        >
+          Open right lg, full height on a phone
+        </Button>
+      </Cluster>
 
       <Sheet
         open={openSheet !== null}
         onClose={closeSheet}
         side={openSheet?.side ?? 'right'}
         size={openSheet?.size ?? 'md'}
-        title={openSheet === null ? '' : `${capitalise(openSheet.side)} sheet (${openSheet.size})`}
+        phoneHeight={openSheet?.phoneHeight ?? 'auto'}
+        title={
+          openSheet === null
+            ? ''
+            : `${capitalise(openSheet.side)} sheet (${openSheet.size}${openSheet.phoneHeight === 'full' ? ', full on a phone' : ''})`
+        }
         footer={
           <>
             <Button variant="ghost" onClick={closeSheet}>
