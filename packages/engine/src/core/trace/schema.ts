@@ -37,7 +37,7 @@ const ARITHMETIC_KIND_NAMES = {
 } as const satisfies Record<ArithmeticKind, ArithmeticKind>;
 const ARITHMETIC_KINDS = Object.values(ARITHMETIC_KIND_NAMES);
 
-const TRACE_UNITS: readonly TraceUnit[] = [...TUNABLE_UNITS, 'stars'];
+const TRACE_UNITS: readonly TraceUnit[] = TUNABLE_UNITS;
 
 /**
  * A number a trace can hold: finite (zod rejects NaN and infinities). A `-0` is read as `0`, the

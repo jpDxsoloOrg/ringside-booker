@@ -21,8 +21,8 @@ export interface Traced<T> {
   trace: TraceNode;
 }
 
-/** What a traced number measures: every tunable unit, plus star ratings. */
-export type TraceUnit = TunableUnit | 'stars';
+/** What a traced number measures: every tunable unit (star ratings included). */
+export type TraceUnit = TunableUnit;
 
 /** Any value a trace node can show. Numbers are always finite. */
 export type TraceValue = number | boolean | string | null;
