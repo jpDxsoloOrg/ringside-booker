@@ -15,6 +15,7 @@ import { geography } from './geography';
 import type { ContentRule } from './helpers';
 import { promotionStaffing } from './promotionStaffing';
 import { reignChronology } from './reignChronology';
+import { segmentKeys } from './segmentKeys';
 import { uniqueNames } from './uniqueNames';
 
 export type { ContentRule } from './helpers';
@@ -36,6 +37,7 @@ export function contentRules(setup: RuleSetup): readonly ContentRule[] {
     freeAgents,
     ageSanity,
     createBlocklistRule(setup.blocklist),
+    segmentKeys,
   ];
 }
 

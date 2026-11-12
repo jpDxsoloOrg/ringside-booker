@@ -9,6 +9,7 @@
 import { z } from 'zod';
 import { compareDates } from '../core/date';
 import { kindOfId } from '../core/ids';
+import { CatalogsSchema } from './catalogs';
 import { zGameDate, zNonNegativeInt } from './primitives';
 
 /** Shortest and longest allowed season, in days (four weeks to two years). */
@@ -102,6 +103,13 @@ export const WorldMetaSchema = z
      * become entities appear. Keys are unique within a kind, not across kinds, hence the kind level.
      */
     contentKeys: z.record(z.string().min(1), z.record(z.string().min(1), zMintedId)),
+    /**
+     * The content catalogs the running game reads (match types, angle types, win methods, ...),
+     * keyed by content key: a snapshot of the merged packs taken at new game, so a save keeps
+     * behaving the same after the bundled catalogs change. Empty for a world built without packs.
+     * Read it through the readers in `model/catalogs.ts`.
+     */
+    catalogs: CatalogsSchema.default({}),
     /** Days the world has advanced since it was created. */
     daysSimulated: zNonNegativeInt,
   })

@@ -5,8 +5,14 @@ import { ZERO_CENTS } from '../../../src/core/money';
 import type { TitleId } from '../../../src/core/ids';
 import { EventDefinitionSchema } from '../../../src/model/entities/event-definition';
 import { EventInstanceSchema } from '../../../src/model/entities/event-instance';
-import { ParticipantSchema } from '../../../src/model/entities/participant';
-import { isAngle, isMatch, SegmentSchema, type Segment } from '../../../src/model/entities/segment';
+import { MAX_SIDE, ParticipantSchema } from '../../../src/model/entities/participant';
+import {
+  isAngle,
+  isMatch,
+  MatchOutcomeSchema,
+  SegmentSchema,
+  type Segment,
+} from '../../../src/model/entities/segment';
 import {
   check,
   emptyShowWorld,
@@ -143,7 +149,7 @@ describe('SegmentSchema', () => {
     expect(SegmentSchema.safeParse(outcome({ kind: 'noContest' })).success).toBe(true);
     expect(
       SegmentSchema.safeParse(
-        outcome({ kind: 'win', winningSide: 1, methodKey: key('finish.pinfall') }),
+        outcome({ kind: 'win', winningSide: 1, methodKey: key('method.pinfall') }),
       ).success,
     ).toBe(true);
     expect(SegmentSchema.safeParse(outcome({ kind: 'win', winningSide: 1 })).success).toBe(false);
@@ -174,9 +180,22 @@ describe('SegmentSchema', () => {
 });
 
 describe('ParticipantSchema', () => {
-  it('accepts sides 0-7 only', () => {
+  it('accepts sides 0-29 only, so a 30-person battle royal fits', () => {
+    expect(MAX_SIDE).toBe(29);
     expect(ParticipantSchema.safeParse(makeParticipant(1, { side: 7 })).success).toBe(true);
-    expect(ParticipantSchema.safeParse(makeParticipant(1, { side: 8 })).success).toBe(false);
+    expect(ParticipantSchema.safeParse(makeParticipant(1, { side: 29 })).success).toBe(true);
+    expect(ParticipantSchema.safeParse(makeParticipant(1, { side: 30 })).success).toBe(false);
+    expect(ParticipantSchema.safeParse(makeParticipant(1, { side: -1 })).success).toBe(false);
+  });
+
+  it('lets a win name side 29 and refuses side 30', () => {
+    const win = (winningSide: number) => ({
+      kind: 'win',
+      winningSide,
+      methodKey: key('method.pinfall'),
+    });
+    expect(MatchOutcomeSchema.safeParse(win(29)).success).toBe(true);
+    expect(MatchOutcomeSchema.safeParse(win(30)).success).toBe(false);
   });
 });
 
@@ -247,7 +266,7 @@ describe('participants and sides', () => {
       makeInstance(1, { status: 'completed', result: COMPLETED_RESULT }),
     );
     putSinglesMatch(world, 1, {
-      outcome: { kind: 'win', winningSide: 3, methodKey: key('finish.pinfall') },
+      outcome: { kind: 'win', winningSide: 3, methodKey: key('method.pinfall') },
     });
     const report = check(world);
     expect(issueCodes(report)).toEqual(['segments.winningSideWithoutCompetitor']);
@@ -260,7 +279,7 @@ describe('participants and sides', () => {
       makeInstance(1, { status: 'completed', result: COMPLETED_RESULT }),
     );
     putSinglesMatch(world, 1, {
-      outcome: { kind: 'win', winningSide: 1, methodKey: key('finish.pinfall') },
+      outcome: { kind: 'win', winningSide: 1, methodKey: key('method.pinfall') },
       rating: { score: 72, stars: 3.5, traceId: null },
     });
     expect(check(world).ok).toBe(true);

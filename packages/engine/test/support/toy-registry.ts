@@ -144,6 +144,7 @@ export function toyMeta(overrides: Partial<WorldMeta> = {}): WorldMeta {
     players: [{ playerId: TOY_PLAYER_ID, displayName: 'Player One' }],
     contentPacks: [],
     contentKeys: {},
+    catalogs: {},
     daysSimulated: 0,
     ...overrides,
   };

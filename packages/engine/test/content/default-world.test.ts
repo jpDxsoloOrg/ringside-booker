@@ -81,6 +81,36 @@ describe('the default world with its people', () => {
     expect(code).toBe(EXIT_OK);
   });
 
+  it('snapshots every base catalog entry into meta.catalogs, keyed by content key', () => {
+    const { catalogs } = loadedWorld().world.meta;
+    const shippedKeys = (file: string, prefix: string): string[] => {
+      const records: unknown = readJson(`${CONTENT_ROOT}base/catalogs/${file}`);
+      if (!Array.isArray(records)) {
+        throw new Error(`${file} is not an array`);
+      }
+      const entries: unknown[] = records;
+      return entries
+        .map((record) =>
+          typeof record === 'object' && record !== null && 'key' in record
+            ? `${prefix}.${String(record.key)}`
+            : '',
+        )
+        .sort();
+    };
+    expect(Object.keys(catalogs.matchTypes ?? {}).sort()).toEqual(
+      shippedKeys('match-types.json', 'match'),
+    );
+    expect(Object.keys(catalogs.angleTypes ?? {}).sort()).toEqual(
+      shippedKeys('angle-types.json', 'angle'),
+    );
+    expect(Object.keys(catalogs.methods ?? {}).sort()).toEqual(
+      shippedKeys('methods.json', 'method'),
+    );
+    expect(Object.keys(catalogs.matchTypes ?? {})).toHaveLength(9);
+    expect(Object.keys(catalogs.angleTypes ?? {})).toHaveLength(6);
+    expect(Object.keys(catalogs.methods ?? {})).toHaveLength(6);
+  });
+
   it('has wrestlers in every 5-year age bucket from 18-22 to 43-47', () => {
     const { startDate } = loadedWorld().world.meta;
     const ages = wrestlers().map((person) => ageInYears(person.birthDate, startDate));

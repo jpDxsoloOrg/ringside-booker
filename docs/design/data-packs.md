@@ -542,6 +542,121 @@ fails.
 | `live`                | boolean                                           |                                                         |
 | `terms`               | `{ feePerShow, perThousandViewers, costPerShow }` | Whole currency units, 0 or more each                    |
 
+### Match and segment catalogs
+
+The match types, talking segments (angle types) and win methods that booking
+offers and match rating reads (MTCH1). The base pack ships them in
+`content/base/catalogs/`. They refer to no other kind and never become
+entities: the loader snapshots the merged records into the world metadata
+(`meta.catalogs`) at new game, with every default filled in, and the running
+game reads them only through the readers in `model/catalogs.ts`
+(`matchTypesOf`, `matchTypeOf`, `angleTypesOf`, `angleTypeOf`, `methodsOf`,
+`methodOf`). Lists come sorted by `order`, then key, and leave `hidden`
+entries out unless asked.
+
+**Content keys.** Segments store catalog entries by content key, not pack
+key. The key is the pack key in the catalog's namespace: match type `singles`
+is `match.singles`, angle type `promo` is `angle.promo`, method `pinfall` is
+`method.pinfall` (`matchTypeContentKey`, `angleTypeContentKey` and
+`methodContentKey` in `records/catalogs.ts`). Later catalogs use their own
+namespaces (`finish.`, `beat.`, `stipulation.`), so a method and a finish can
+share a name without clashing.
+
+**Why a snapshot.** Nothing rebuilds the content library when a save is
+loaded, the catalogs are small, and a snapshot keeps an old save behaving the
+same after the bundled catalogs change. A mod enabled mid-game does not change
+that game's catalogs; it applies to the next new game. A kind no loaded pack
+defines is left out of `meta.catalogs`, and a world built without packs has
+`catalogs: {}`. Saves from before catalogs existed load with `{}`.
+
+**`matchType`**
+
+| Field             | Type           | Rules                                                                                                         |
+| ----------------- | -------------- | ------------------------------------------------------------------------------------------------------------- |
+| `key`             | key            | Becomes `match.<key>`                                                                                         |
+| `name`            | string         | 1-60 characters, shown to the player                                                                          |
+| `shortName?`      | string         | 1-20 characters                                                                                               |
+| `order`           | integer        | 0-999, display order (lower first, ties by key)                                                               |
+| `sides`           | `{ min, max }` | Integers 2-30; `max` at least `min`. Stored sides are numbered 0-29, so 30 sides is the most a match can have |
+| `sideSize`        | `{ min, max }` | People per side, integers 1-6; `max` at least `min`                                                           |
+| `equalSides?`     | boolean        | Every side has the same number of people. Default: true                                                       |
+| `durationShift`   | `-1 \| 0 \| 1` | D-10: pushes the slot's duration class one step shorter or longer. Never minutes                              |
+| `workRateFactor?` | number         | 0.5-1.5, scales the work-rate part of the rating. Default: 1                                                  |
+| `crowdFactor?`    | number         | 0.5-1.5, scales the crowd part of the rating. Default: 1                                                      |
+| `styleAffinity`   | ring styles    | Styles that suit the type, no repeats; may be empty                                                           |
+| `allowsTitles?`   | boolean        | Titles may be on the line. Default: true                                                                      |
+| `hidden?`         | boolean        | Kept out of booking lists unless asked for. Default: false                                                    |
+| `description?`    | string         | Up to 300 characters                                                                                          |
+
+**`angleType`**
+
+| Field            | Type                          | Rules                                                                                                                                                                         |
+| ---------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `key`            | key                           | Becomes `angle.<key>`                                                                                                                                                         |
+| `name`           | string                        | 1-60 characters                                                                                                                                                               |
+| `shortName?`     | string                        | 1-20 characters                                                                                                                                                               |
+| `order`          | integer                       | 0-999                                                                                                                                                                         |
+| `defaultBeatKey` | content key                   | The beat a new angle of this type starts with. A content key in the `beat.` namespace, not a pack reference: the beat catalog comes with MTCH5, which also checks it resolves |
+| `speakers`       | `{ min, max }`                | Integers 1-12; `max` at least `min`                                                                                                                                           |
+| `speakerWeights` | `{ mic, charisma, presence }` | Each 0-1, not all 0: the stat mix of the simple speaker score until MTCH5's beats replace it                                                                                  |
+| `hidden?`        | boolean                       | Default: false                                                                                                                                                                |
+| `description?`   | string                        | Up to 300 characters                                                                                                                                                          |
+
+**`method`**: how a match is won.
+
+| Field           | Type    | Rules                                 |
+| --------------- | ------- | ------------------------------------- |
+| `key`           | key     | Becomes `method.<key>`                |
+| `name`          | string  | 1-60 characters                       |
+| `order`         | integer | 0-999                                 |
+| `changesTitles` | boolean | A win by this method can move a title |
+| `hidden?`       | boolean | Default: false                        |
+| `description?`  | string  | Up to 300 characters                  |
+
+A cross-field problem names the field that is wrong, with the file and entry:
+`match-types.json[2].sides.max: must be at least sides.min`. `$override:
+"patch"` and `$remove` work as for every other kind, so an add-on can hide a
+match type, rename a method or drop one, and the merged result is what lands
+in `meta.catalogs`.
+
+One record of each kind:
+
+```json
+{
+  "key": "battle-royal",
+  "name": "Battle Royal",
+  "shortName": "Royal",
+  "order": 70,
+  "sides": { "min": 6, "max": 30 },
+  "sideSize": { "min": 1, "max": 1 },
+  "durationShift": 1,
+  "workRateFactor": 0.85,
+  "crowdFactor": 1.05,
+  "styleAffinity": [],
+  "allowsTitles": false
+}
+```
+
+```json
+{
+  "key": "confrontation",
+  "name": "Confrontation",
+  "order": 30,
+  "defaultBeatKey": "beat.staredown",
+  "speakers": { "min": 2, "max": 8 },
+  "speakerWeights": { "mic": 0.4, "charisma": 0.3, "presence": 0.3 }
+}
+```
+
+```json
+{ "key": "count-out", "name": "Count-Out", "order": 50, "changesTitles": false }
+```
+
+`validate:world`'s `segment-keys` rule checks the shipped catalogs: at least
+one visible singles-like match type (`sides.min` 2, `sideSize.min` 1), unique
+names within each catalog, `beat.` default keys, and that every stored
+segment's match type, win method and angle type resolves.
+
 ## A worked example
 
 The smallest useful world: one continent, one country, one region, one
@@ -785,6 +900,11 @@ player's own choices.
   load order. `contentKeys` maps record kind → key → minted ID for every record
   that became an entity, so later systems, saves and mods can find a pack
   record's entity by key.
+- **Catalogs.** The match types, angle types and methods are copied into
+  `meta.catalogs`, keyed by content key with defaults filled in, so the save
+  carries the catalogs its game was started with (see
+  [Match and segment catalogs](#match-and-segment-catalogs)). The content
+  library lists them too, by pack key, for tools.
 - **Content library.** Name cultures, name mixes, ring name words, the
   generation records (roles, styles, body archetypes, body modifiers,
   profiles) and trait incidence never become entities. The loader returns them

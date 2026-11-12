@@ -41,6 +41,7 @@ import type { RowOf } from '../../src/model/table-def';
 import { TABLES, type GameTables, type GameWorld } from '../../src/model/tables';
 import type { AnyId, TableKey, Tx } from '../../src/model/tx';
 import { createWorld, type DeepReadonly } from '../../src/model/world';
+import type { Catalogs } from '../../src/model/catalogs';
 import { WorldMetaSchema, type WorldMeta } from '../../src/model/world-meta';
 import {
   buildRow,
@@ -53,6 +54,7 @@ import { aBrand, anEmployment, aPromotion } from './builders/promotions';
 import { anEventDefinition, aSeason, aTitle, aTitleReign } from './builders/creative';
 import { aContinent, aCountry, aRegion } from './builders/geography';
 import { aPerson, DEFAULT_PERSON_AGE } from './builders/people';
+import { TEST_CATALOGS } from './catalogs';
 import { TestIdSequence } from './ids';
 import { testWriteValidation } from './write-validation';
 
@@ -84,6 +86,7 @@ export function aWorldMeta(overrides: TestMetaOverrides = {}): WorldMeta {
     players: [{ playerId: TEST_PLAYER_ID, displayName: 'Test Player 1' }],
     contentPacks: [],
     contentKeys: {},
+    catalogs: {},
     daysSimulated: Math.max(0, diffDays(startDate, currentDate)),
   };
   return buildRow(WorldMetaSchema, 'aWorldMeta', defaults, {
@@ -470,6 +473,7 @@ const GEOGRAPHY_PRESETS: Readonly<Record<GeographyPreset, BuildStep>> = {
 export class WorldBuilder {
   private readonly steps: BuildStep[] = [];
   private seasonCount = 1;
+  private catalogs: Catalogs | null = null;
 
   constructor(private readonly metaOverrides: TestMetaOverrides = {}) {}
 
@@ -501,6 +505,15 @@ export class WorldBuilder {
     return this;
   }
 
+  /**
+   * Puts catalogs on the world's metadata, as a new game snapshots them from the packs. The
+   * default is `TEST_CATALOGS`, the shipped base catalogs. Without this call `catalogs` is `{}`.
+   */
+  withCatalogs(catalogs: Catalogs = TEST_CATALOGS): this {
+    this.catalogs = catalogs;
+    return this;
+  }
+
   /** Leaves the seasons table empty, as a world still being set up has it. */
   withoutSeason(): this {
     return this.withSeasons(0);
@@ -520,7 +533,8 @@ export class WorldBuilder {
 
   /** Builds a new world. Every call returns an identical, independent world. */
   build(): BuiltWorld {
-    const meta = aWorldMeta(this.metaOverrides);
+    const baseMeta = aWorldMeta(this.metaOverrides);
+    const meta = this.catalogs === null ? baseMeta : { ...baseMeta, catalogs: this.catalogs };
     const sequence = new TestIdSequence();
     const world = createWorld(TABLES, meta, {
       idFactory: sequence,

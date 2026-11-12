@@ -13,8 +13,12 @@ import { z } from 'zod';
 import { defineTable } from '../table-def';
 import { zId, zPositiveInt } from '../primitives';
 
-/** Sides are numbered 0..7. A singles match uses sides 0 and 1; an eight-way match uses all. */
-export const MAX_SIDE = 7;
+/**
+ * Sides are numbered from 0 up to `MAX_SIDE` (up to 30 sides). A singles match uses sides 0 and 1;
+ * an eight-way match uses 0..7; a 30-person battle royal uses 0..29. Screens label side `n` as
+ * "Side n+1".
+ */
+export const MAX_SIDE = 29;
 
 /**
  * - `competitor`: wrestles in the match (or is the focus of an angle);

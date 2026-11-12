@@ -12,7 +12,8 @@
  * 4. turns each record into its entity (keys to IDs, whole money units to cents, defaults filled
  *    in, computer controllers on promotions and null controllers on brands), parses it with the
  *    entity schema and inserts it;
- * 5. creates season 1, stores `contentKeys` on the metadata, and runs `checkWorld`.
+ * 5. creates season 1, stores `contentKeys` on the metadata, and runs `checkWorld`. The match and
+ *    segment catalogs (match types, angle types, methods) are snapshotted into `meta.catalogs`.
  *
  * Any error rolls the whole transaction back and comes back as `PackIssue`s; no half-built World
  * ever escapes.
@@ -59,6 +60,7 @@ import type { PackRecords } from './index';
 import { hasErrors, packError, packWarning, type PackIssue, type Result } from './issues';
 import { parseRef, type PackRef, type RecordKind } from './keys';
 import type { MergedContent, MergedRecord, MergedRecords } from './merge';
+import { catalogsFromRecords } from './records/catalogs';
 import type { ContractTermsRecord, TitleReignRecord } from './records/people';
 import { checkReferences, refKey } from './references';
 
@@ -844,6 +846,7 @@ export function materialiseWorld(
     players: [],
     contentPacks: content.packs.map((pack) => ({ ...pack })),
     contentKeys: {},
+    catalogs: catalogsFromRecords(content.records),
     daysSimulated: 0,
   };
   const checkedMeta = WorldMetaSchema.safeParse(meta);

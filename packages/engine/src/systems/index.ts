@@ -12,13 +12,15 @@ import { simSystem } from '../core/api/builtins';
 import type { SystemBundle } from '../core/api/system';
 import { calendarSystem } from './calendar';
 import { conditionSystem } from './condition';
+import { matchSystem } from './match';
 import { workersSystem } from './workers';
 
-export { calendarSystem, conditionSystem, workersSystem };
+export { calendarSystem, conditionSystem, matchSystem, workersSystem };
 
 export const defaultSystems: readonly SystemBundle[] = Object.freeze([
   simSystem,
   conditionSystem,
   workersSystem,
   calendarSystem,
+  matchSystem,
 ]);
