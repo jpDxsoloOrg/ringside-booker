@@ -4,6 +4,7 @@
  * - `booking.shows`: the shows the viewer can book, from today on.
  * - `booking.card`: one show's card, slot by slot, with the derived roles (`view.ts`).
  * - `booking.availableWorkers`: who can go on a show's card, with an availability chip each.
+ * - `booking.validate` (EVT2-04): everything wrong with a card, the same answer Lock enforces.
  *
  * Cards are private while they are being booked: only the show's controller (or the omniscient
  * viewer of tools and tests) reads `booking.card` and `booking.availableWorkers`. A rival's card
@@ -34,6 +35,8 @@ import type { DeepReadonly } from '../../model/world';
 import { viewerControlsShow } from '../calendar/control';
 import { cardSegments } from './card';
 import { canReadCard } from './control';
+import type { BookingValidation } from './validate/types';
+import { validateCard } from './validate/validateCard';
 import {
   availabilityView,
   buildCardView,
@@ -142,6 +145,7 @@ declare module '../../core/api/maps' {
       };
       result: AvailableWorkersView;
     };
+    'booking.validate': { args: { eventInstanceId: EventInstanceId }; result: BookingValidation };
   }
 }
 
@@ -368,8 +372,18 @@ export const availableWorkersQuery: QueryDefinition<'booking.availableWorkers'> 
   },
 );
 
+/** Everything wrong with a card: the same answer `booking.lockCard` enforces. */
+export const validateQuery: QueryDefinition<'booking.validate'> = defineQuery('booking.validate', {
+  args: z.strictObject({ eventInstanceId: zId('eventInstance') }),
+  run: (ctx, args) => {
+    const instance = readableShow(ctx, args.eventInstanceId);
+    return validateCard(ctx.read, instance.id, { tunables: ctx.tunables, today: ctx.date });
+  },
+});
+
 export const bookingQueries: readonly QueryDefinition[] = [
   showsQuery,
   cardQuery,
   availableWorkersQuery,
+  validateQuery,
 ];

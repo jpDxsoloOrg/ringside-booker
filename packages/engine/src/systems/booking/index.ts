@@ -113,6 +113,38 @@ export {
   type CardViewDeps,
 } from './view';
 
+// The booking checks, Lock and Unlock (EVT2-04).
+export { lockCardCommand, MAX_LOCK_REASONS, unlockCardCommand } from './commands';
+export {
+  MIN_FILLED_MAIN_SLOTS_DOC_REF,
+  minFilledMainSlots,
+  type MinFilledMainSlotsInputs,
+} from './formulas/minFilledMainSlots';
+export { validateQuery } from './queries';
+export {
+  BUILT_IN_BOOKING_CHECKS,
+  CARD_WIDE_CHECK_ID,
+  PEOPLE_CHECK_ID,
+  STRUCTURE_CHECK_ID,
+  TITLES_CHECK_ID,
+  WARNINGS_CHECK_ID,
+} from './validate/checks';
+export {
+  CHECK_FAILED_CODE,
+  registerBookingCheck,
+  registeredBookingChecks,
+} from './validate/registry';
+export type {
+  BookingCheck,
+  BookingCheckInput,
+  BookingIssue,
+  BookingIssueDraft,
+  BookingSeverity,
+  BookingValidation,
+  ChecklistItem,
+} from './validate/types';
+export { validateCard, type ValidateCardDeps } from './validate/validateCard';
+
 export const bookingSystem: SystemBundle = defineSystem({
   id: 'booking',
   queries: bookingQueries,

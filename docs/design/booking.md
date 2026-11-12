@@ -403,3 +403,172 @@ unaffected. Tests about something else that must run through the player's show
 days (the calendar's phases, the web shell's skips) use the default systems
 without this gate (`SYSTEMS_WITHOUT_SHOW_DAY_GATE` and `systemsWithoutGates`
 in the engine's test support, and the web test engine's `showDayGate` option).
+
+## Validation
+
+A card is runnable only when it makes sense. `validateCard(read,
+eventInstanceId, { tunables, today? })` (`booking/validate/validateCard.ts`,
+exported from the engine for the rival booker and the results page) is the one
+answer the booking screen (`booking.validate`), `booking.lockCard` and AIP4's
+rival booker share. It returns `{ errors, warnings, runnable, checklist }`:
+
+- **Errors** are availability and structure problems. Any error blocks Lock.
+- **Warnings** are brand, contract and title-division questions. They are shown
+  in amber and never block: the owner may want a cruiserweight to challenge
+  upward as a story, or a worker from the other brand for one night. (The
+  reference booker silently drops such titles; we do not.)
+- `runnable` is `errors.length === 0`.
+
+Each issue is `{ checkId, code, severity, message, segmentId?, slot?:
+{ preShow, slot }, personId?, titleId? }`. The message is player text that
+names the slot, person or title it is about; the UI shows it as it is.
+Issues are sorted card-wide first (no slot), then the pre-show, then the main
+card, each by slot, then by the order of the check that found them, then in
+the order found. The same card always gives the same list.
+
+Availability is read on the **show's date** (WRK1's `availabilityOf` against
+the person's contract with the show's promotion). Until WRK6 changes injuries
+day by day, stored injuries never change.
+
+### Error codes
+
+| Code                 | Check               | Rule                                                                                                            | Message                                                            |
+| -------------------- | ------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `personUnavailable`  | `booking.people`    | not `available` on the show's date; someone who only talks (an angle, ringside) is fine if they can work angles | "Kai Moreno can't wrestle: Injured (leg injury) until 12 Feb"      |
+| `notOnRoster`        | `booking.people`    | no active contract with the show's promotion any more                                                           | "Kai Moreno is no longer on the Apex Wrestling roster"             |
+| `notAWrestler`       | `booking.people`    | a match competitor without `wrestler` or `occasionalWrestler` among their roles                                 | "Sam Reed isn't a wrestler, so can't compete in a match"           |
+| `alreadyOnCard`      | `booking.cardWide`  | a competitor in more matches than `booking.maxMatchesPerPersonPerShow`                                          | "Kai Moreno is already in a match on this card (Opener)"           |
+| `tooManyAppearances` | `booking.cardWide`  | in more segments of any kind, in any role, than `booking.maxAppearancesPerShow`                                 | "Kai Moreno is in 3 segments on this card; the most is 2"          |
+| `sideCount`          | `booking.structure` | competitor sides outside the match type's `sides`                                                               | "Slot 2: Two sides in a Three-Way match; it takes 3"               |
+| `sideSize`           | `booking.structure` | a side outside the type's `sideSize`                                                                            | "Slot 2: Side 2 has 1 wrestler; Tag Team takes 2 a side"           |
+| `unequalSides`       | `booking.structure` | uneven sides in an `equalSides` type (only when every side's size is allowed)                                   | "Slot 2: the sides are uneven (2 against 1); … takes equal sides"  |
+| `speakerCount`       | `booking.structure` | an angle's `speaker` participants outside the angle type's `speakers`                                           | "Slot 2: One speaker in a Confrontation; it takes 2 to 8"          |
+| `noPlannedResult`    | `booking.structure` | a match's `outcome` is null                                                                                     | "Opener: no result planned; pick a winner, a draw or a no contest" |
+| `tooFewFilled`       | `booking.structure` | filled main-card slots below `minFilledMainSlots`                                                               | "Main card: 2 of 6 slots filled (needs 3)"                         |
+| `emptyMainEvent`     | `booking.structure` | the last main-card slot is open, while `booking.requireMainEvent` is on                                         | "The main event (Slot 6) is empty"                                 |
+| `titleNotAllowed`    | `booking.titles`    | a title on a match type with `allowsTitles: false`                                                              | "Slot 2: titles can't be on the line in a Battle Royal"            |
+| `titleTwiceOnCard`   | `booking.titles`    | the title is on the line in an earlier match of the card                                                        | "The Crown Title is already on the line in Slot 2"                 |
+| `titleRetired`       | `booking.titles`    | the title was retired after it was booked                                                                       | "The Crown Title has been retired"                                 |
+| `championMissing`    | `booking.titles`    | a holder of the title's open reign is not a competitor; a vacant title has no holders to check                  | "The champion Rhea Cortez isn't in this match"                     |
+| `titleSideSize`      | `booking.titles`    | a competitor side without exactly the title's `holderCount` people                                              | "The Altura Tag Team Championship needs 2 wrestlers on each side"  |
+
+"Opener", "Semi-main" and "Main event" name a slot with that role; any other
+slot is named by number ("Slot 3", "Pre-show slot 1").
+
+### Warning codes
+
+| Code              | Check              | Rule                                                                                     | Message                                                         |
+| ----------------- | ------------------ | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `appearanceCap`   | `booking.warnings` | `terms.appearanceCap` is set and `appearancesThisYear + 1` is above it                   | "Kai Moreno has used 24 of 24 contracted appearances this year" |
+| `noHouseShows`    | `booking.warnings` | the contract's `noHouseShows` perk is set and the show's importance is `house`           | "Kai Moreno's contract rules out house shows"                   |
+| `otherBrand`      | `booking.warnings` | the contract's brand is set and is not the show's                                        | "Kai Moreno works for Altura Overclock"                         |
+| `titleOtherBrand` | `booking.warnings` | the title's brand is set and is not the show's                                           | "The Crown Title belongs to Altura Overclock"                   |
+| `titleDivision`   | `booking.warnings` | WRK1's `isEligibleForTitle` gender or weight reasons, for each competitor not holding it | "Kai Moreno: The Women's Title is a women's title"              |
+| `injuredTalking`  | `booking.warnings` | an injured worker who can still work angles, booked to talk                              | "Tia Cruz is injured: can talk but not wrestle"                 |
+| `checkFailed`     | the failing check  | a registered check threw                                                                 | "A booking check (<id>) failed; the card can still be locked"   |
+
+The first three are given once per person, on the first segment they are in.
+`appearancesThisYear` is counted by the show night (EVT3) after each show;
+appearances on other locked cards that have not run yet are not counted. A
+later feature can refine that with a check of its own.
+
+### Thresholds
+
+| Tunable                              | Default | Range | What it does                                                   |
+| ------------------------------------ | ------- | ----- | -------------------------------------------------------------- |
+| `booking.maxAppearancesPerShow`      | 2       | 1–6   | Most segments of any kind one person may appear in on one show |
+| `booking.maxMatchesPerPersonPerShow` | 1       | 1–4   | Most matches one person may wrestle on one show                |
+| `booking.minFilledMainShare`         | 0.5     | 0–1   | Share of main-card slots that must be filled; 0 is no minimum  |
+| `booking.requireMainEvent`           | true    |       | The last main-card slot must be filled                         |
+
+**`minFilledMainSlots`** (`booking/formulas/minFilledMainSlots.ts`) is
+`ceil(slots × booking.minFilledMainShare)`, kept within 0..slots. A tiny
+constant is taken off before rounding up so that a whole product such as
+10 × 0.3 (3.0000000000000004 in floating point) needs 3 slots, not 4. At the
+default, a six-slot card needs 3 filled; at 0 any card passes; at 1 every slot
+must be filled. Its trace ("Main card slots", "Share that must be filled",
+"Rounded up") rides on the checklist's first line for its Why?.
+
+### The checklist
+
+The booking screen's checklist always lists these lines, in order, each with
+`{ id, label, passed, severity, detail?, trace? }`:
+
+1. `mainCardFilled`: "Main card filled (n of N, needs m)", with the
+   `minFilledMainSlots` trace;
+2. `mainEvent`: "Main event booked";
+3. `results`: "Every match has a result";
+4. `available`: "Everyone is available" (the people checks and the contract
+   warnings);
+5. `notTwice`: "Nobody is booked twice";
+6. `sides`: "Sides fit their match types";
+7. `titles`: "Title matches are set up correctly" (the title errors and
+   warnings);
+
+then one line for each registered feature check that found something, labelled
+with the check's `label` (or its id). A line with no issues has `passed: true`;
+otherwise `passed` is false, `severity` is `error` when any of its issues is an
+error and `warning` when they are all warnings, and `detail` is its first
+issue's message ("… (and 2 more)").
+
+### Registering a check
+
+Other features add rules without editing booking's files:
+
+```ts
+registerBookingCheck({
+  id: 'brands.exclusivity', // system.camelName, unique
+  order: 200, // features use 200 and up; EVT2's own checks are 100–190
+  label: 'Exclusive workers stay on their brand',
+  run: ({ read, instance, segments, participantsBySegment, today, tunables }) => [
+    // BookingIssue without checkId: { code, severity, message, segmentId?, slot?, personId?, titleId? }
+  ],
+});
+```
+
+Checks run in `order`, then by id; a duplicate or malformed id throws
+`RegistryError` at registration. A check reads only what it is given and never
+writes. It should **never throw**: if it does, its issues are replaced by one
+`checkFailed` warning, so a bug in a later feature can never block booking.
+Use `error` only for a card that cannot run (someone who cannot be there, a
+structure the show night cannot play out); use `warning` for anything the
+owner may choose to book anyway. `registerBookingCheck` returns a function that
+removes the check again (for tests). The built-in checks are
+`booking.people` (100), `booking.cardWide` (110), `booking.structure` (120),
+`booking.titles` (130) and `booking.warnings` (190).
+
+### No morale here (D-09)
+
+Validation never touches morale. Booking someone to lose never produces a
+morale warning: result morale, and the story shield for losses inside a hot
+storyline, are WRK8's, applied after the show.
+
+## Lock and Unlock
+
+| Command              | Arguments         | Returns                   | Publishes       |
+| -------------------- | ----------------- | ------------------------- | --------------- |
+| `booking.lockCard`   | `eventInstanceId` | `{ status: 'booked' }`    | `card.locked`   |
+| `booking.unlockCard` | `eventInstanceId` | `{ status: 'scheduled' }` | `card.unlocked` |
+
+**Lock** checks the show like every booking command (`showNotFound`,
+`notYourShow`, `showCompleted`, `showCancelled`, `showPast`; an already locked
+card is refused with `cardLocked`, "This card is already locked"), then runs
+`validateCard` with the save's tunables (a command's `validate` receives them
+as `env.tunables`). Any error refuses it with up to 10 `cardNotRunnable`
+reasons, one per error, each with the error's message and the segment as its
+subject (the show for a card-wide error). The screen's checklist has the full
+list. Otherwise the show becomes `booked`, which clears the show-day gate, and
+`card.locked { eventInstanceId, promotionId, brandId }` is published.
+`booking.validate` and Lock always agree: they run the same function.
+
+**Unlock** takes a `booked` show back to `scheduled` so its card can change
+again, and publishes `card.unlocked`. It is refused with `notYourShow`,
+`showCompleted`, `showCancelled` or `showPast` as above, and with
+`cardNotLocked` ("This card isn't locked") for a card that is not locked.
+Unlocking puts the gate back on the show's day.
+
+### `booking.validate`
+
+`{ eventInstanceId }` → `BookingValidation`. The same viewer rule as
+`booking.card`: the show's controller or the omniscient viewer; anyone else
+gets `notYourShow`, an unknown id `showNotFound`.
