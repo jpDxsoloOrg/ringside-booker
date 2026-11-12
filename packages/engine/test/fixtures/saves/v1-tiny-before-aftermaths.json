@@ -1,0 +1,3231 @@
+{
+  "engineVersion": "0.1.0",
+  "format": "ringside-booker/save",
+  "formatVersion": 1,
+  "header": {
+    "cash": 1000000000,
+    "daysSimulated": 95,
+    "gameDate": "2026-04-10",
+    "label": "Test save",
+    "promotionName": "Test Promotion A",
+    "promotionShortName": "TPA",
+    "schemaFingerprint": "1044c515436a871d1b5e73b7dda1fbc1",
+    "startDate": "2026-01-05",
+    "worldName": "Test Tiny World"
+  },
+  "savedAt": "2026-11-08T12:00:00.000Z",
+  "state": {
+    "commandLog": [],
+    "events": [],
+    "failureLog": [],
+    "rng": {},
+    "traces": {},
+    "tunableOverrides": {},
+    "world": {
+      "meta": {
+        "catalogs": {
+          "angleTypes": {
+            "angle.attack": {
+              "defaultBeatKey": "beat.attack",
+              "description": "An ambush in the ring, backstage or in the car park. Few words, lots of impact.",
+              "hidden": false,
+              "key": "angle.attack",
+              "name": "Attack",
+              "order": 40,
+              "speakerWeights": {
+                "charisma": 0.3,
+                "mic": 0.1,
+                "presence": 0.6
+              },
+              "speakers": {
+                "max": 6,
+                "min": 1
+              }
+            },
+            "angle.confrontation": {
+              "defaultBeatKey": "beat.staredown",
+              "description": "Rivals come face to face. Words are traded and it may not stay peaceful.",
+              "hidden": false,
+              "key": "angle.confrontation",
+              "name": "Confrontation",
+              "order": 30,
+              "speakerWeights": {
+                "charisma": 0.3,
+                "mic": 0.4,
+                "presence": 0.3
+              },
+              "speakers": {
+                "max": 8,
+                "min": 2
+              }
+            },
+            "angle.contract-signing": {
+              "defaultBeatKey": "beat.contract-signing",
+              "description": "A table, a contract and two people who do not like each other. It rarely ends with just a signature.",
+              "hidden": false,
+              "key": "angle.contract-signing",
+              "name": "Contract Signing",
+              "order": 50,
+              "shortName": "Signing",
+              "speakerWeights": {
+                "charisma": 0.3,
+                "mic": 0.5,
+                "presence": 0.2
+              },
+              "speakers": {
+                "max": 4,
+                "min": 2
+              }
+            },
+            "angle.interview": {
+              "defaultBeatKey": "beat.interview",
+              "description": "A backstage or ringside interviewer asks the questions and the talent answers.",
+              "hidden": false,
+              "key": "angle.interview",
+              "name": "Interview",
+              "order": 20,
+              "speakerWeights": {
+                "charisma": 0.35,
+                "mic": 0.5,
+                "presence": 0.15
+              },
+              "speakers": {
+                "max": 3,
+                "min": 1
+              }
+            },
+            "angle.promo": {
+              "defaultBeatKey": "beat.promo",
+              "description": "Someone takes the microphone and talks to the crowd, an opponent or the camera.",
+              "hidden": false,
+              "key": "angle.promo",
+              "name": "Promo",
+              "order": 10,
+              "speakerWeights": {
+                "charisma": 0.3,
+                "mic": 0.6,
+                "presence": 0.1
+              },
+              "speakers": {
+                "max": 4,
+                "min": 1
+              }
+            },
+            "angle.video-package": {
+              "defaultBeatKey": "beat.video-package",
+              "description": "A pre-recorded piece that builds a rivalry or introduces someone new.",
+              "hidden": false,
+              "key": "angle.video-package",
+              "name": "Video Package",
+              "order": 60,
+              "shortName": "Video",
+              "speakerWeights": {
+                "charisma": 0.4,
+                "mic": 0.3,
+                "presence": 0.3
+              },
+              "speakers": {
+                "max": 6,
+                "min": 1
+              }
+            }
+          },
+          "finishes": {
+            "finish.cheating": {
+              "allowsTitleChange": true,
+              "autoWeight": 12,
+              "category": "cheating",
+              "effects": {
+                "crowd": -1,
+                "workRate": -1
+              },
+              "gains": {
+                "loser": 0.7,
+                "winner": 0.85
+              },
+              "key": "finish.cheating",
+              "matchTypes": {},
+              "methods": [
+                {
+                  "methodKey": "method.pinfall",
+                  "weight": 3
+                },
+                {
+                  "methodKey": "method.submission",
+                  "weight": 1
+                }
+              ],
+              "name": "Cheating finish",
+              "order": 30,
+              "outcomeKind": "win",
+              "requiresTwoSides": false,
+              "summary": "Feet on the ropes, a fistful of tights or a hidden object; the referee misses it."
+            },
+            "finish.clean": {
+              "allowsTitleChange": true,
+              "autoWeight": 60,
+              "category": "clean",
+              "effects": {
+                "crowd": 1,
+                "workRate": 0
+              },
+              "gains": {
+                "loser": 1,
+                "winner": 1
+              },
+              "key": "finish.clean",
+              "matchTypes": {},
+              "methods": [
+                {
+                  "methodKey": "method.pinfall",
+                  "weight": 6
+                },
+                {
+                  "methodKey": "method.submission",
+                  "weight": 3
+                },
+                {
+                  "methodKey": "method.knockout",
+                  "weight": 1
+                }
+              ],
+              "name": "Clean finish",
+              "order": 10,
+              "outcomeKind": "win",
+              "requiresTwoSides": false,
+              "summary": "One side beats the other fair and square; nobody can argue with the result."
+            },
+            "finish.controversial": {
+              "allowsTitleChange": true,
+              "autoWeight": 2,
+              "category": "controversial",
+              "effects": {
+                "crowd": -4,
+                "workRate": -2
+              },
+              "gains": {
+                "loser": 0.5,
+                "winner": 0.7
+              },
+              "key": "finish.controversial",
+              "matchTypes": {},
+              "methods": [
+                {
+                  "methodKey": "method.pinfall",
+                  "weight": 1
+                }
+              ],
+              "name": "Controversial finish",
+              "order": 70,
+              "outcomeKind": "win",
+              "requiresTwoSides": false,
+              "summary": "A missed kick-out or a fast count; the result stands but the crowd hates it."
+            },
+            "finish.count-out": {
+              "allowsTitleChange": false,
+              "autoWeight": 4,
+              "category": "countOut",
+              "effects": {
+                "crowd": -2,
+                "workRate": -3
+              },
+              "gains": {
+                "loser": 0.4,
+                "winner": 0.6
+              },
+              "key": "finish.count-out",
+              "matchTypes": {},
+              "methods": [
+                {
+                  "methodKey": "method.count-out",
+                  "weight": 1
+                }
+              ],
+              "name": "Count-out",
+              "order": 50,
+              "outcomeKind": "win",
+              "requiresTwoSides": true,
+              "summary": "One side stays outside too long and loses on the count; the title can't change hands."
+            },
+            "finish.disqualification": {
+              "allowsTitleChange": false,
+              "autoWeight": 4,
+              "category": "disqualification",
+              "effects": {
+                "crowd": -3,
+                "workRate": -4
+              },
+              "gains": {
+                "loser": 0.3,
+                "winner": 0.5
+              },
+              "key": "finish.disqualification",
+              "matchTypes": {},
+              "methods": [
+                {
+                  "methodKey": "method.disqualification",
+                  "weight": 1
+                }
+              ],
+              "name": "Disqualification",
+              "order": 60,
+              "outcomeKind": "win",
+              "requiresTwoSides": true,
+              "summary": "One side goes too far and the referee throws them out; the title can't change hands."
+            },
+            "finish.double-count-out": {
+              "allowsTitleChange": false,
+              "autoWeight": 1,
+              "category": "draw",
+              "effects": {
+                "crowd": -3,
+                "workRate": -3
+              },
+              "gains": {
+                "loser": 1,
+                "winner": 1
+              },
+              "key": "finish.double-count-out",
+              "matchTypes": {},
+              "methods": [],
+              "name": "Double count-out",
+              "order": 80,
+              "outcomeKind": "draw",
+              "requiresTwoSides": true,
+              "summary": "Both sides brawl outside past the count and nobody wins."
+            },
+            "finish.flash": {
+              "allowsTitleChange": true,
+              "autoWeight": 10,
+              "category": "clean",
+              "effects": {
+                "crowd": 0,
+                "workRate": -1
+              },
+              "gains": {
+                "loser": 0.5,
+                "winner": 0.6
+              },
+              "key": "finish.flash",
+              "matchTypes": {},
+              "methods": [
+                {
+                  "methodKey": "method.pinfall",
+                  "weight": 1
+                }
+              ],
+              "name": "Flash finish",
+              "order": 20,
+              "outcomeKind": "win",
+              "requiresTwoSides": false,
+              "summary": "A sudden roll-up out of nowhere steals it before the match finds its stride."
+            },
+            "finish.interference": {
+              "allowsTitleChange": true,
+              "autoWeight": 6,
+              "category": "cheating",
+              "effects": {
+                "crowd": -1,
+                "workRate": -2
+              },
+              "gains": {
+                "loser": 0.6,
+                "winner": 0.8
+              },
+              "key": "finish.interference",
+              "matchTypes": {},
+              "methods": [
+                {
+                  "methodKey": "method.pinfall",
+                  "weight": 1
+                }
+              ],
+              "name": "Outside interference",
+              "order": 40,
+              "outcomeKind": "win",
+              "requiresTwoSides": false,
+              "summary": "Someone from outside the match gets involved and swings it."
+            },
+            "finish.no-contest": {
+              "allowsTitleChange": false,
+              "autoWeight": 1,
+              "category": "noContest",
+              "effects": {
+                "crowd": -5,
+                "workRate": -5
+              },
+              "gains": {
+                "loser": 1,
+                "winner": 1
+              },
+              "key": "finish.no-contest",
+              "matchTypes": {},
+              "methods": [],
+              "name": "No contest",
+              "order": 100,
+              "outcomeKind": "noContest",
+              "requiresTwoSides": false,
+              "summary": "The referee throws the match out; the title can't change hands."
+            },
+            "finish.stalemate": {
+              "allowsTitleChange": false,
+              "autoWeight": 1,
+              "category": "draw",
+              "effects": {
+                "crowd": -3,
+                "workRate": -2
+              },
+              "gains": {
+                "loser": 1,
+                "winner": 1
+              },
+              "key": "finish.stalemate",
+              "matchTypes": {},
+              "methods": [],
+              "name": "Stalemate",
+              "order": 90,
+              "outcomeKind": "draw",
+              "requiresTwoSides": false,
+              "summary": "Neither side can put the other away and the referee calls it even."
+            }
+          },
+          "matchTypes": {
+            "match.battle-royal": {
+              "allowsTitles": false,
+              "crowdFactor": 1.05,
+              "description": "A crowded ring where going over the top rope eliminates you. The last one left wins. Loose work, but crowds enjoy the chaos.",
+              "durationShift": 1,
+              "equalSides": true,
+              "hidden": false,
+              "key": "match.battle-royal",
+              "name": "Battle Royal",
+              "order": 70,
+              "shortName": "Royal",
+              "sideSize": {
+                "max": 1,
+                "min": 1
+              },
+              "sides": {
+                "max": 30,
+                "min": 6
+              },
+              "styleAffinity": [],
+              "workRateFactor": 0.85
+            },
+            "match.endurance": {
+              "allowsTitles": true,
+              "crowdFactor": 1,
+              "description": "A long one-on-one contest that rewards conditioning and patient mat work.",
+              "durationShift": 1,
+              "equalSides": true,
+              "hidden": false,
+              "key": "match.endurance",
+              "name": "Endurance Match",
+              "order": 80,
+              "shortName": "Endurance",
+              "sideSize": {
+                "max": 1,
+                "min": 1
+              },
+              "sides": {
+                "max": 2,
+                "min": 2
+              },
+              "styleAffinity": [
+                "technician",
+                "grappler"
+              ],
+              "workRateFactor": 1
+            },
+            "match.four-way": {
+              "allowsTitles": true,
+              "crowdFactor": 1,
+              "description": "Four workers, every one for themselves. The first fall ends it.",
+              "durationShift": 0,
+              "equalSides": true,
+              "hidden": false,
+              "key": "match.four-way",
+              "name": "Four-Way",
+              "order": 50,
+              "sideSize": {
+                "max": 1,
+                "min": 1
+              },
+              "sides": {
+                "max": 4,
+                "min": 4
+              },
+              "styleAffinity": [],
+              "workRateFactor": 1
+            },
+            "match.handicap": {
+              "allowsTitles": true,
+              "crowdFactor": 1,
+              "description": "Two sides of different sizes: one worker against two or three, or two against three.",
+              "durationShift": 0,
+              "equalSides": false,
+              "hidden": false,
+              "key": "match.handicap",
+              "name": "Handicap",
+              "order": 60,
+              "sideSize": {
+                "max": 3,
+                "min": 1
+              },
+              "sides": {
+                "max": 2,
+                "min": 2
+              },
+              "styleAffinity": [],
+              "workRateFactor": 1
+            },
+            "match.singles": {
+              "allowsTitles": true,
+              "crowdFactor": 1,
+              "description": "One against one. The plainest test of two workers, and the base every other type is measured against.",
+              "durationShift": 0,
+              "equalSides": true,
+              "hidden": false,
+              "key": "match.singles",
+              "name": "Singles",
+              "order": 10,
+              "sideSize": {
+                "max": 1,
+                "min": 1
+              },
+              "sides": {
+                "max": 2,
+                "min": 2
+              },
+              "styleAffinity": [],
+              "workRateFactor": 1
+            },
+            "match.sprint": {
+              "allowsTitles": true,
+              "crowdFactor": 1,
+              "description": "A short, fast one-on-one bout with no time to settle in.",
+              "durationShift": -1,
+              "equalSides": true,
+              "hidden": false,
+              "key": "match.sprint",
+              "name": "Sprint",
+              "order": 90,
+              "sideSize": {
+                "max": 1,
+                "min": 1
+              },
+              "sides": {
+                "max": 2,
+                "min": 2
+              },
+              "styleAffinity": [
+                "highFlyer",
+                "striker"
+              ],
+              "workRateFactor": 1
+            },
+            "match.tag-team": {
+              "allowsTitles": true,
+              "crowdFactor": 1,
+              "description": "Two pairs, one worker from each side legal at a time, with tags to change over.",
+              "durationShift": 0,
+              "equalSides": true,
+              "hidden": false,
+              "key": "match.tag-team",
+              "name": "Tag Team",
+              "order": 20,
+              "shortName": "Tag",
+              "sideSize": {
+                "max": 2,
+                "min": 2
+              },
+              "sides": {
+                "max": 2,
+                "min": 2
+              },
+              "styleAffinity": [],
+              "workRateFactor": 1
+            },
+            "match.trios": {
+              "allowsTitles": true,
+              "crowdFactor": 1,
+              "description": "Two teams of three. Busy and fast, and a good way to get many people on a card.",
+              "durationShift": 0,
+              "equalSides": true,
+              "hidden": false,
+              "key": "match.trios",
+              "name": "Six-Person Tag",
+              "order": 30,
+              "shortName": "Trios",
+              "sideSize": {
+                "max": 3,
+                "min": 3
+              },
+              "sides": {
+                "max": 2,
+                "min": 2
+              },
+              "styleAffinity": [],
+              "workRateFactor": 1
+            },
+            "match.triple-threat": {
+              "allowsTitles": true,
+              "crowdFactor": 1,
+              "description": "Three workers, every one for themselves. The first fall ends it.",
+              "durationShift": 0,
+              "equalSides": true,
+              "hidden": false,
+              "key": "match.triple-threat",
+              "name": "Three-Way",
+              "order": 40,
+              "sideSize": {
+                "max": 1,
+                "min": 1
+              },
+              "sides": {
+                "max": 3,
+                "min": 3
+              },
+              "styleAffinity": [],
+              "workRateFactor": 1
+            }
+          },
+          "methods": {
+            "method.count-out": {
+              "changesTitles": false,
+              "description": "One side stays outside the ring past the referee's count.",
+              "hidden": false,
+              "key": "method.count-out",
+              "name": "Count-Out",
+              "order": 50
+            },
+            "method.disqualification": {
+              "changesTitles": false,
+              "description": "One side breaks the rules badly enough that the referee awards the match to the other.",
+              "hidden": false,
+              "key": "method.disqualification",
+              "name": "Disqualification",
+              "order": 60
+            },
+            "method.knockout": {
+              "changesTitles": true,
+              "description": "The opponent cannot answer the referee's count.",
+              "hidden": false,
+              "key": "method.knockout",
+              "name": "Knockout",
+              "order": 30
+            },
+            "method.pinfall": {
+              "changesTitles": true,
+              "description": "Shoulders held to the mat for a three count.",
+              "hidden": false,
+              "key": "method.pinfall",
+              "name": "Pinfall",
+              "order": 10
+            },
+            "method.referee-stoppage": {
+              "changesTitles": true,
+              "description": "The referee ends the match because one side cannot go on safely.",
+              "hidden": false,
+              "key": "method.referee-stoppage",
+              "name": "Referee Stoppage",
+              "order": 40
+            },
+            "method.submission": {
+              "changesTitles": true,
+              "description": "The opponent gives up to a hold.",
+              "hidden": false,
+              "key": "method.submission",
+              "name": "Submission",
+              "order": 20
+            }
+          }
+        },
+        "contentKeys": {},
+        "contentPacks": [],
+        "currentDate": "2026-04-10",
+        "daysSimulated": 95,
+        "players": [
+          {
+            "displayName": "Test Player 1",
+            "playerId": "player-1"
+          }
+        ],
+        "seed": "test-seed",
+        "settings": {
+          "agingEnabled": true,
+          "extra": {},
+          "generationLevel": "off",
+          "levelPlayingField": false,
+          "sandbox": false,
+          "season": {
+            "lengthDays": 91
+          }
+        },
+        "startDate": "2026-01-05",
+        "worldName": "Test Tiny World"
+      },
+      "tables": {
+        "brands": [
+          {
+            "active": true,
+            "controller": null,
+            "id": "brd_0000000001",
+            "logoRef": null,
+            "name": "Test Brand A",
+            "priority": 0,
+            "promotionId": "pro_0000000001"
+          }
+        ],
+        "continents": [
+          {
+            "code": "TCA",
+            "id": "ctn_0000000001",
+            "name": "Test Continent"
+          }
+        ],
+        "countries": [
+          {
+            "code": "TNN",
+            "continentId": "ctn_0000000001",
+            "economy": 50,
+            "id": "cty_0000000001",
+            "name": "Test Country North",
+            "population": 3000000,
+            "preferredStyle": null,
+            "wrestlingInterest": 50
+          },
+          {
+            "code": "TNS",
+            "continentId": "ctn_0000000001",
+            "economy": 50,
+            "id": "cty_0000000002",
+            "name": "Test Country South",
+            "population": 2000000,
+            "preferredStyle": null,
+            "wrestlingInterest": 50
+          }
+        ],
+        "deals": [
+          {
+            "endsOn": "2027-01-05",
+            "eventDefinitionId": "evd_0000000001",
+            "id": "dea_0000000001",
+            "live": true,
+            "networkId": "net_0000000001",
+            "offeredOn": "2026-01-05",
+            "promotionId": "pro_0000000001",
+            "startsOn": "2026-01-05",
+            "status": "active",
+            "terms": {
+              "costPerShow": 0,
+              "feePerShow": 100000,
+              "perThousandViewers": 500
+            },
+            "timeslot": "primeTime",
+            "weekday": 3
+          }
+        ],
+        "employments": [
+          {
+            "alignment": "face",
+            "appearancesThisYear": 0,
+            "brandId": "brd_0000000001",
+            "endedOn": null,
+            "endsOn": null,
+            "gimmickKey": null,
+            "id": "emp_0000000001",
+            "lastAppearanceOn": null,
+            "leave": null,
+            "managerPersonId": null,
+            "momentum": null,
+            "morale": 0,
+            "offeredOn": "2026-01-05",
+            "personId": "per_0000000001",
+            "promotionId": "pro_0000000001",
+            "push": "midCard",
+            "ringName": "Test Person 001",
+            "role": "wrestler",
+            "startsOn": "2026-01-05",
+            "status": "active",
+            "terms": {
+              "appearanceCap": null,
+              "exclusive": true,
+              "kind": "written",
+              "monthlyWage": 500000,
+              "perAppearanceFee": 0,
+              "perks": {
+                "creativeControl": false,
+                "ironClad": false,
+                "noHouseShows": false,
+                "travelCovered": false
+              },
+              "shares": {
+                "broadcastBp": 0,
+                "gateBp": 0,
+                "merchBp": 0
+              },
+              "signingBonus": 0
+            }
+          },
+          {
+            "alignment": "face",
+            "appearancesThisYear": 0,
+            "brandId": "brd_0000000001",
+            "endedOn": null,
+            "endsOn": null,
+            "gimmickKey": null,
+            "id": "emp_0000000002",
+            "lastAppearanceOn": null,
+            "leave": null,
+            "managerPersonId": null,
+            "momentum": null,
+            "morale": 0,
+            "offeredOn": "2026-01-05",
+            "personId": "per_0000000002",
+            "promotionId": "pro_0000000001",
+            "push": "midCard",
+            "ringName": "Test Person 002",
+            "role": "wrestler",
+            "startsOn": "2026-01-05",
+            "status": "active",
+            "terms": {
+              "appearanceCap": null,
+              "exclusive": true,
+              "kind": "written",
+              "monthlyWage": 500000,
+              "perAppearanceFee": 0,
+              "perks": {
+                "creativeControl": false,
+                "ironClad": false,
+                "noHouseShows": false,
+                "travelCovered": false
+              },
+              "shares": {
+                "broadcastBp": 0,
+                "gateBp": 0,
+                "merchBp": 0
+              },
+              "signingBonus": 0
+            }
+          },
+          {
+            "alignment": "face",
+            "appearancesThisYear": 0,
+            "brandId": "brd_0000000001",
+            "endedOn": null,
+            "endsOn": null,
+            "gimmickKey": null,
+            "id": "emp_0000000003",
+            "lastAppearanceOn": null,
+            "leave": null,
+            "managerPersonId": null,
+            "momentum": null,
+            "morale": 0,
+            "offeredOn": "2026-01-05",
+            "personId": "per_0000000003",
+            "promotionId": "pro_0000000001",
+            "push": "midCard",
+            "ringName": "Test Person 003",
+            "role": "wrestler",
+            "startsOn": "2026-01-05",
+            "status": "active",
+            "terms": {
+              "appearanceCap": null,
+              "exclusive": true,
+              "kind": "written",
+              "monthlyWage": 500000,
+              "perAppearanceFee": 0,
+              "perks": {
+                "creativeControl": false,
+                "ironClad": false,
+                "noHouseShows": false,
+                "travelCovered": false
+              },
+              "shares": {
+                "broadcastBp": 0,
+                "gateBp": 0,
+                "merchBp": 0
+              },
+              "signingBonus": 0
+            }
+          },
+          {
+            "alignment": "face",
+            "appearancesThisYear": 0,
+            "brandId": "brd_0000000001",
+            "endedOn": null,
+            "endsOn": null,
+            "gimmickKey": null,
+            "id": "emp_0000000004",
+            "lastAppearanceOn": null,
+            "leave": null,
+            "managerPersonId": null,
+            "momentum": null,
+            "morale": 0,
+            "offeredOn": "2026-01-05",
+            "personId": "per_0000000004",
+            "promotionId": "pro_0000000001",
+            "push": "midCard",
+            "ringName": "Test Person 004",
+            "role": "wrestler",
+            "startsOn": "2026-01-05",
+            "status": "active",
+            "terms": {
+              "appearanceCap": null,
+              "exclusive": true,
+              "kind": "written",
+              "monthlyWage": 500000,
+              "perAppearanceFee": 0,
+              "perks": {
+                "creativeControl": false,
+                "ironClad": false,
+                "noHouseShows": false,
+                "travelCovered": false
+              },
+              "shares": {
+                "broadcastBp": 0,
+                "gateBp": 0,
+                "merchBp": 0
+              },
+              "signingBonus": 0
+            }
+          },
+          {
+            "alignment": "face",
+            "appearancesThisYear": 0,
+            "brandId": "brd_0000000001",
+            "endedOn": null,
+            "endsOn": null,
+            "gimmickKey": null,
+            "id": "emp_0000000005",
+            "lastAppearanceOn": null,
+            "leave": null,
+            "managerPersonId": null,
+            "momentum": null,
+            "morale": 0,
+            "offeredOn": "2026-01-05",
+            "personId": "per_0000000005",
+            "promotionId": "pro_0000000001",
+            "push": "midCard",
+            "ringName": "Test Person 005",
+            "role": "wrestler",
+            "startsOn": "2026-01-05",
+            "status": "active",
+            "terms": {
+              "appearanceCap": null,
+              "exclusive": true,
+              "kind": "written",
+              "monthlyWage": 500000,
+              "perAppearanceFee": 0,
+              "perks": {
+                "creativeControl": false,
+                "ironClad": false,
+                "noHouseShows": false,
+                "travelCovered": false
+              },
+              "shares": {
+                "broadcastBp": 0,
+                "gateBp": 0,
+                "merchBp": 0
+              },
+              "signingBonus": 0
+            }
+          },
+          {
+            "alignment": "face",
+            "appearancesThisYear": 0,
+            "brandId": "brd_0000000001",
+            "endedOn": null,
+            "endsOn": null,
+            "gimmickKey": null,
+            "id": "emp_0000000006",
+            "lastAppearanceOn": null,
+            "leave": null,
+            "managerPersonId": null,
+            "momentum": null,
+            "morale": 0,
+            "offeredOn": "2026-01-05",
+            "personId": "per_0000000006",
+            "promotionId": "pro_0000000001",
+            "push": "midCard",
+            "ringName": "Test Person 006",
+            "role": "wrestler",
+            "startsOn": "2026-01-05",
+            "status": "active",
+            "terms": {
+              "appearanceCap": null,
+              "exclusive": true,
+              "kind": "written",
+              "monthlyWage": 500000,
+              "perAppearanceFee": 0,
+              "perks": {
+                "creativeControl": false,
+                "ironClad": false,
+                "noHouseShows": false,
+                "travelCovered": false
+              },
+              "shares": {
+                "broadcastBp": 0,
+                "gateBp": 0,
+                "merchBp": 0
+              },
+              "signingBonus": 0
+            }
+          },
+          {
+            "alignment": "face",
+            "appearancesThisYear": 0,
+            "brandId": "brd_0000000001",
+            "endedOn": null,
+            "endsOn": null,
+            "gimmickKey": null,
+            "id": "emp_0000000007",
+            "lastAppearanceOn": null,
+            "leave": null,
+            "managerPersonId": null,
+            "momentum": null,
+            "morale": 0,
+            "offeredOn": "2026-01-05",
+            "personId": "per_0000000007",
+            "promotionId": "pro_0000000001",
+            "push": "midCard",
+            "ringName": "Test Person 007",
+            "role": "wrestler",
+            "startsOn": "2026-01-05",
+            "status": "active",
+            "terms": {
+              "appearanceCap": null,
+              "exclusive": true,
+              "kind": "written",
+              "monthlyWage": 500000,
+              "perAppearanceFee": 0,
+              "perks": {
+                "creativeControl": false,
+                "ironClad": false,
+                "noHouseShows": false,
+                "travelCovered": false
+              },
+              "shares": {
+                "broadcastBp": 0,
+                "gateBp": 0,
+                "merchBp": 0
+              },
+              "signingBonus": 0
+            }
+          },
+          {
+            "alignment": "face",
+            "appearancesThisYear": 0,
+            "brandId": "brd_0000000001",
+            "endedOn": null,
+            "endsOn": null,
+            "gimmickKey": null,
+            "id": "emp_0000000008",
+            "lastAppearanceOn": null,
+            "leave": null,
+            "managerPersonId": null,
+            "momentum": null,
+            "morale": 0,
+            "offeredOn": "2026-01-05",
+            "personId": "per_0000000008",
+            "promotionId": "pro_0000000001",
+            "push": "midCard",
+            "ringName": "Test Person 008",
+            "role": "wrestler",
+            "startsOn": "2026-01-05",
+            "status": "active",
+            "terms": {
+              "appearanceCap": null,
+              "exclusive": true,
+              "kind": "written",
+              "monthlyWage": 500000,
+              "perAppearanceFee": 0,
+              "perks": {
+                "creativeControl": false,
+                "ironClad": false,
+                "noHouseShows": false,
+                "travelCovered": false
+              },
+              "shares": {
+                "broadcastBp": 0,
+                "gateBp": 0,
+                "merchBp": 0
+              },
+              "signingBonus": 0
+            }
+          },
+          {
+            "alignment": "face",
+            "appearancesThisYear": 0,
+            "brandId": null,
+            "endedOn": null,
+            "endsOn": null,
+            "gimmickKey": null,
+            "id": "emp_0000000009",
+            "lastAppearanceOn": null,
+            "leave": null,
+            "managerPersonId": null,
+            "momentum": null,
+            "morale": 0,
+            "offeredOn": "2026-01-05",
+            "personId": "per_0000000009",
+            "promotionId": "pro_0000000002",
+            "push": "midCard",
+            "ringName": "Test Person 009",
+            "role": "wrestler",
+            "startsOn": "2026-01-05",
+            "status": "active",
+            "terms": {
+              "appearanceCap": null,
+              "exclusive": true,
+              "kind": "written",
+              "monthlyWage": 500000,
+              "perAppearanceFee": 0,
+              "perks": {
+                "creativeControl": false,
+                "ironClad": false,
+                "noHouseShows": false,
+                "travelCovered": false
+              },
+              "shares": {
+                "broadcastBp": 0,
+                "gateBp": 0,
+                "merchBp": 0
+              },
+              "signingBonus": 0
+            }
+          },
+          {
+            "alignment": "face",
+            "appearancesThisYear": 0,
+            "brandId": null,
+            "endedOn": null,
+            "endsOn": null,
+            "gimmickKey": null,
+            "id": "emp_000000000a",
+            "lastAppearanceOn": null,
+            "leave": null,
+            "managerPersonId": null,
+            "momentum": null,
+            "morale": 0,
+            "offeredOn": "2026-01-05",
+            "personId": "per_000000000a",
+            "promotionId": "pro_0000000002",
+            "push": "midCard",
+            "ringName": "Test Person 010",
+            "role": "wrestler",
+            "startsOn": "2026-01-05",
+            "status": "active",
+            "terms": {
+              "appearanceCap": null,
+              "exclusive": true,
+              "kind": "written",
+              "monthlyWage": 500000,
+              "perAppearanceFee": 0,
+              "perks": {
+                "creativeControl": false,
+                "ironClad": false,
+                "noHouseShows": false,
+                "travelCovered": false
+              },
+              "shares": {
+                "broadcastBp": 0,
+                "gateBp": 0,
+                "merchBp": 0
+              },
+              "signingBonus": 0
+            }
+          },
+          {
+            "alignment": "face",
+            "appearancesThisYear": 0,
+            "brandId": null,
+            "endedOn": null,
+            "endsOn": null,
+            "gimmickKey": null,
+            "id": "emp_000000000b",
+            "lastAppearanceOn": null,
+            "leave": null,
+            "managerPersonId": null,
+            "momentum": null,
+            "morale": 0,
+            "offeredOn": "2026-01-05",
+            "personId": "per_000000000b",
+            "promotionId": "pro_0000000002",
+            "push": "midCard",
+            "ringName": "Test Person 011",
+            "role": "wrestler",
+            "startsOn": "2026-01-05",
+            "status": "active",
+            "terms": {
+              "appearanceCap": null,
+              "exclusive": true,
+              "kind": "written",
+              "monthlyWage": 500000,
+              "perAppearanceFee": 0,
+              "perks": {
+                "creativeControl": false,
+                "ironClad": false,
+                "noHouseShows": false,
+                "travelCovered": false
+              },
+              "shares": {
+                "broadcastBp": 0,
+                "gateBp": 0,
+                "merchBp": 0
+              },
+              "signingBonus": 0
+            }
+          },
+          {
+            "alignment": "face",
+            "appearancesThisYear": 0,
+            "brandId": null,
+            "endedOn": null,
+            "endsOn": null,
+            "gimmickKey": null,
+            "id": "emp_000000000c",
+            "lastAppearanceOn": null,
+            "leave": null,
+            "managerPersonId": null,
+            "momentum": null,
+            "morale": 0,
+            "offeredOn": "2026-01-05",
+            "personId": "per_000000000c",
+            "promotionId": "pro_0000000002",
+            "push": "midCard",
+            "ringName": "Test Person 012",
+            "role": "wrestler",
+            "startsOn": "2026-01-05",
+            "status": "active",
+            "terms": {
+              "appearanceCap": null,
+              "exclusive": true,
+              "kind": "written",
+              "monthlyWage": 500000,
+              "perAppearanceFee": 0,
+              "perks": {
+                "creativeControl": false,
+                "ironClad": false,
+                "noHouseShows": false,
+                "travelCovered": false
+              },
+              "shares": {
+                "broadcastBp": 0,
+                "gateBp": 0,
+                "merchBp": 0
+              },
+              "signingBonus": 0
+            }
+          },
+          {
+            "alignment": "face",
+            "appearancesThisYear": 0,
+            "brandId": null,
+            "endedOn": null,
+            "endsOn": null,
+            "gimmickKey": null,
+            "id": "emp_000000000d",
+            "lastAppearanceOn": null,
+            "leave": null,
+            "managerPersonId": null,
+            "momentum": null,
+            "morale": 0,
+            "offeredOn": "2026-01-05",
+            "personId": "per_000000000d",
+            "promotionId": "pro_0000000002",
+            "push": "midCard",
+            "ringName": "Test Person 013",
+            "role": "wrestler",
+            "startsOn": "2026-01-05",
+            "status": "active",
+            "terms": {
+              "appearanceCap": null,
+              "exclusive": true,
+              "kind": "written",
+              "monthlyWage": 500000,
+              "perAppearanceFee": 0,
+              "perks": {
+                "creativeControl": false,
+                "ironClad": false,
+                "noHouseShows": false,
+                "travelCovered": false
+              },
+              "shares": {
+                "broadcastBp": 0,
+                "gateBp": 0,
+                "merchBp": 0
+              },
+              "signingBonus": 0
+            }
+          },
+          {
+            "alignment": "face",
+            "appearancesThisYear": 0,
+            "brandId": null,
+            "endedOn": null,
+            "endsOn": null,
+            "gimmickKey": null,
+            "id": "emp_000000000e",
+            "lastAppearanceOn": null,
+            "leave": null,
+            "managerPersonId": null,
+            "momentum": null,
+            "morale": 0,
+            "offeredOn": "2026-01-05",
+            "personId": "per_000000000e",
+            "promotionId": "pro_0000000002",
+            "push": "midCard",
+            "ringName": "Test Person 014",
+            "role": "wrestler",
+            "startsOn": "2026-01-05",
+            "status": "active",
+            "terms": {
+              "appearanceCap": null,
+              "exclusive": true,
+              "kind": "written",
+              "monthlyWage": 500000,
+              "perAppearanceFee": 0,
+              "perks": {
+                "creativeControl": false,
+                "ironClad": false,
+                "noHouseShows": false,
+                "travelCovered": false
+              },
+              "shares": {
+                "broadcastBp": 0,
+                "gateBp": 0,
+                "merchBp": 0
+              },
+              "signingBonus": 0
+            }
+          },
+          {
+            "alignment": "face",
+            "appearancesThisYear": 0,
+            "brandId": null,
+            "endedOn": null,
+            "endsOn": null,
+            "gimmickKey": null,
+            "id": "emp_000000000f",
+            "lastAppearanceOn": null,
+            "leave": null,
+            "managerPersonId": null,
+            "momentum": null,
+            "morale": 0,
+            "offeredOn": "2026-01-05",
+            "personId": "per_000000000f",
+            "promotionId": "pro_0000000002",
+            "push": "midCard",
+            "ringName": "Test Person 015",
+            "role": "wrestler",
+            "startsOn": "2026-01-05",
+            "status": "active",
+            "terms": {
+              "appearanceCap": null,
+              "exclusive": true,
+              "kind": "written",
+              "monthlyWage": 500000,
+              "perAppearanceFee": 0,
+              "perks": {
+                "creativeControl": false,
+                "ironClad": false,
+                "noHouseShows": false,
+                "travelCovered": false
+              },
+              "shares": {
+                "broadcastBp": 0,
+                "gateBp": 0,
+                "merchBp": 0
+              },
+              "signingBonus": 0
+            }
+          },
+          {
+            "alignment": "face",
+            "appearancesThisYear": 0,
+            "brandId": null,
+            "endedOn": null,
+            "endsOn": null,
+            "gimmickKey": null,
+            "id": "emp_000000000g",
+            "lastAppearanceOn": null,
+            "leave": null,
+            "managerPersonId": null,
+            "momentum": null,
+            "morale": 0,
+            "offeredOn": "2026-01-05",
+            "personId": "per_000000000g",
+            "promotionId": "pro_0000000002",
+            "push": "midCard",
+            "ringName": "Test Person 016",
+            "role": "wrestler",
+            "startsOn": "2026-01-05",
+            "status": "active",
+            "terms": {
+              "appearanceCap": null,
+              "exclusive": true,
+              "kind": "written",
+              "monthlyWage": 500000,
+              "perAppearanceFee": 0,
+              "perks": {
+                "creativeControl": false,
+                "ironClad": false,
+                "noHouseShows": false,
+                "travelCovered": false
+              },
+              "shares": {
+                "broadcastBp": 0,
+                "gateBp": 0,
+                "merchBp": 0
+              },
+              "signingBonus": 0
+            }
+          }
+        ],
+        "eventDefinitions": [
+          {
+            "activeFrom": "2026-01-05",
+            "activeUntil": null,
+            "brandId": "brd_0000000001",
+            "format": {
+              "preShowSlots": 1,
+              "slots": 6
+            },
+            "id": "evd_0000000001",
+            "importance": "regular",
+            "logoRef": null,
+            "name": "Test Weekly",
+            "preferredRegionId": null,
+            "preferredVenueId": null,
+            "promotionId": "pro_0000000001",
+            "recurrence": {
+              "kind": "weekly",
+              "weekdays": [
+                3
+              ]
+            },
+            "televised": true
+          }
+        ],
+        "eventInstances": [
+          {
+            "airDate": "2026-04-09",
+            "brandId": "brd_0000000001",
+            "cancellation": null,
+            "date": "2026-04-09",
+            "eventDefinitionId": "evd_0000000001",
+            "format": {
+              "preShowSlots": 1,
+              "slots": 6
+            },
+            "id": "evi_0000000001",
+            "importance": "regular",
+            "name": "Test Weekly",
+            "promotionId": "pro_0000000001",
+            "regionId": "reg_0000000001",
+            "result": {
+              "attendance": 2800,
+              "gate": 8400000,
+              "rawScore": 62,
+              "score": 62,
+              "traceId": null,
+              "viewers": 150000
+            },
+            "status": "completed",
+            "venueId": "ven_0000000001"
+          }
+        ],
+        "ledgerEntries": [
+          {
+            "amount": 8400000,
+            "category": "tickets",
+            "date": "2026-04-09",
+            "id": "led_0000000001",
+            "memo": null,
+            "promotionId": "pro_0000000001",
+            "refs": {
+              "dealId": null,
+              "eventInstanceId": "evi_0000000001",
+              "personId": null
+            },
+            "traceRef": null
+          },
+          {
+            "amount": 100000,
+            "category": "broadcast",
+            "date": "2026-04-09",
+            "id": "led_0000000002",
+            "memo": null,
+            "promotionId": "pro_0000000001",
+            "refs": {
+              "dealId": "dea_0000000001",
+              "eventInstanceId": "evi_0000000001",
+              "personId": null
+            },
+            "traceRef": null
+          },
+          {
+            "amount": -1500000,
+            "category": "venueRent",
+            "date": "2026-04-09",
+            "id": "led_0000000003",
+            "memo": null,
+            "promotionId": "pro_0000000001",
+            "refs": {
+              "dealId": null,
+              "eventInstanceId": "evi_0000000001",
+              "personId": null
+            },
+            "traceRef": null
+          },
+          {
+            "amount": -4000000,
+            "category": "wages",
+            "date": "2026-04-01",
+            "id": "led_0000000004",
+            "memo": null,
+            "promotionId": "pro_0000000001",
+            "refs": {
+              "dealId": null,
+              "eventInstanceId": null,
+              "personId": null
+            },
+            "traceRef": null
+          },
+          {
+            "amount": -4000000,
+            "category": "wages",
+            "date": "2026-04-01",
+            "id": "led_0000000005",
+            "memo": null,
+            "promotionId": "pro_0000000002",
+            "refs": {
+              "dealId": null,
+              "eventInstanceId": null,
+              "personId": null
+            },
+            "traceRef": null
+          }
+        ],
+        "mail": [
+          {
+            "archived": false,
+            "body": {
+              "key": "mail.test-body",
+              "params": {}
+            },
+            "category": "results",
+            "date": "2026-04-09",
+            "decision": null,
+            "from": {
+              "kind": "system"
+            },
+            "id": "mai_0000000001",
+            "promotionId": "pro_0000000001",
+            "read": true,
+            "refs": {
+              "employmentId": null,
+              "eventInstanceId": "evi_0000000001",
+              "personIds": [],
+              "promotionIds": []
+            },
+            "subject": {
+              "key": "mail.show-results",
+              "params": {
+                "show": "Test Weekly"
+              }
+            }
+          },
+          {
+            "archived": false,
+            "body": {
+              "key": "mail.test-body",
+              "params": {}
+            },
+            "category": "request",
+            "date": "2026-04-10",
+            "decision": {
+              "chosenKey": null,
+              "expiresOn": "2026-04-17",
+              "options": [
+                {
+                  "key": "accept",
+                  "label": {
+                    "key": "decision.accept",
+                    "params": {}
+                  }
+                },
+                {
+                  "key": "decline",
+                  "label": {
+                    "key": "decision.decline",
+                    "params": {}
+                  }
+                }
+              ]
+            },
+            "from": {
+              "kind": "person",
+              "personId": "per_0000000008"
+            },
+            "id": "mai_0000000002",
+            "promotionId": "pro_0000000001",
+            "read": false,
+            "refs": {
+              "employmentId": null,
+              "eventInstanceId": null,
+              "personIds": [
+                "per_0000000008"
+              ],
+              "promotionIds": []
+            },
+            "subject": {
+              "key": "mail.time-off-request",
+              "params": {
+                "days": 7
+              }
+            }
+          }
+        ],
+        "networks": [
+          {
+            "closedOn": null,
+            "coverage": {
+              "continentIds": [],
+              "countryIds": [
+                "cty_0000000001"
+              ],
+              "regionIds": []
+            },
+            "id": "net_0000000001",
+            "kind": "tv",
+            "launchedOn": "2000-01-03",
+            "logoRef": null,
+            "name": "Test Network North",
+            "ownerPromotionId": null,
+            "reachTier": 2,
+            "status": "active"
+          }
+        ],
+        "news": [
+          {
+            "body": {
+              "key": "news.test-body",
+              "params": {}
+            },
+            "date": "2026-01-05",
+            "expiresOn": null,
+            "headline": {
+              "key": "news.test-headline",
+              "params": {}
+            },
+            "id": "nws_0000000001",
+            "importance": 1,
+            "kind": "business",
+            "refs": {
+              "employmentId": null,
+              "eventInstanceId": null,
+              "personIds": [],
+              "promotionIds": [
+                "pro_0000000001",
+                "pro_0000000002"
+              ]
+            }
+          },
+          {
+            "body": {
+              "key": "news.test-body",
+              "params": {}
+            },
+            "date": "2026-04-09",
+            "expiresOn": "2026-05-09",
+            "headline": {
+              "key": "news.test-headline",
+              "params": {}
+            },
+            "id": "nws_0000000002",
+            "importance": 2,
+            "kind": "result",
+            "refs": {
+              "employmentId": null,
+              "eventInstanceId": "evi_0000000001",
+              "personIds": [
+                "per_0000000001",
+                "per_0000000002"
+              ],
+              "promotionIds": []
+            }
+          }
+        ],
+        "participants": [
+          {
+            "eliminationOrder": null,
+            "entranceOrder": null,
+            "id": "ptc_0000000001",
+            "personId": "per_0000000005",
+            "role": "competitor",
+            "segmentId": "seg_0000000001",
+            "side": 0,
+            "teamId": null
+          },
+          {
+            "eliminationOrder": null,
+            "entranceOrder": null,
+            "id": "ptc_0000000002",
+            "personId": "per_0000000006",
+            "role": "competitor",
+            "segmentId": "seg_0000000001",
+            "side": 1,
+            "teamId": null
+          },
+          {
+            "eliminationOrder": null,
+            "entranceOrder": null,
+            "id": "ptc_0000000003",
+            "personId": "per_0000000001",
+            "role": "speaker",
+            "segmentId": "seg_0000000002",
+            "side": 0,
+            "teamId": null
+          },
+          {
+            "eliminationOrder": null,
+            "entranceOrder": null,
+            "id": "ptc_0000000004",
+            "personId": "per_0000000002",
+            "role": "speaker",
+            "segmentId": "seg_0000000002",
+            "side": 1,
+            "teamId": null
+          },
+          {
+            "eliminationOrder": null,
+            "entranceOrder": null,
+            "id": "ptc_0000000005",
+            "personId": "per_0000000001",
+            "role": "competitor",
+            "segmentId": "seg_0000000003",
+            "side": 0,
+            "teamId": null
+          },
+          {
+            "eliminationOrder": null,
+            "entranceOrder": null,
+            "id": "ptc_0000000006",
+            "personId": "per_0000000002",
+            "role": "competitor",
+            "segmentId": "seg_0000000003",
+            "side": 1,
+            "teamId": null
+          },
+          {
+            "eliminationOrder": null,
+            "entranceOrder": null,
+            "id": "ptc_0000000007",
+            "personId": "per_0000000007",
+            "role": "competitor",
+            "segmentId": "seg_0000000004",
+            "side": 0,
+            "teamId": null
+          },
+          {
+            "eliminationOrder": null,
+            "entranceOrder": null,
+            "id": "ptc_0000000008",
+            "personId": "per_0000000008",
+            "role": "competitor",
+            "segmentId": "seg_0000000004",
+            "side": 1,
+            "teamId": null
+          }
+        ],
+        "people": [
+          {
+            "attributes": {
+              "athleticism": 50,
+              "booking": 50,
+              "broadcasting": 50,
+              "charisma": 50,
+              "mic": 50,
+              "officiating": 50,
+              "presence": 50,
+              "producing": 50,
+              "psychology": 50,
+              "ringwork": 50,
+              "safety": 50,
+              "stamina": 50
+            },
+            "basedInRegionId": "reg_0000000001",
+            "birthDate": "1998-01-05",
+            "birthRegionId": "reg_0000000001",
+            "build": "athletic",
+            "career": {
+              "canBook": false,
+              "canOwn": false
+            },
+            "condition": {
+              "arms": 100,
+              "back": 100,
+              "head": 100,
+              "legs": 100,
+              "neck": 100,
+              "torso": 100
+            },
+            "debutDate": "2016-01-05",
+            "defaultRingName": "Test Person 001",
+            "development": {
+              "ceilings": {},
+              "potential": 0
+            },
+            "familyName": "Person 001",
+            "fatigue": 0,
+            "gender": "male",
+            "givenName": "Test",
+            "heightCm": 183,
+            "id": "per_0000000001",
+            "imageRef": null,
+            "injury": null,
+            "masked": false,
+            "motivation": "money",
+            "regionalPop": {},
+            "restrictions": [],
+            "roles": [
+              "wrestler"
+            ],
+            "status": "active",
+            "style": "allRounder",
+            "tags": [],
+            "traits": [],
+            "vices": {
+              "alcohol": "none",
+              "substances": "none"
+            },
+            "weightKg": 100
+          },
+          {
+            "attributes": {
+              "athleticism": 50,
+              "booking": 50,
+              "broadcasting": 50,
+              "charisma": 50,
+              "mic": 50,
+              "officiating": 50,
+              "presence": 50,
+              "producing": 50,
+              "psychology": 50,
+              "ringwork": 50,
+              "safety": 50,
+              "stamina": 50
+            },
+            "basedInRegionId": "reg_0000000001",
+            "birthDate": "1998-01-05",
+            "birthRegionId": "reg_0000000001",
+            "build": "athletic",
+            "career": {
+              "canBook": false,
+              "canOwn": false
+            },
+            "condition": {
+              "arms": 100,
+              "back": 100,
+              "head": 100,
+              "legs": 100,
+              "neck": 100,
+              "torso": 100
+            },
+            "debutDate": "2016-01-05",
+            "defaultRingName": "Test Person 002",
+            "development": {
+              "ceilings": {},
+              "potential": 0
+            },
+            "familyName": "Person 002",
+            "fatigue": 0,
+            "gender": "male",
+            "givenName": "Test",
+            "heightCm": 183,
+            "id": "per_0000000002",
+            "imageRef": null,
+            "injury": null,
+            "masked": false,
+            "motivation": "money",
+            "regionalPop": {},
+            "restrictions": [],
+            "roles": [
+              "wrestler"
+            ],
+            "status": "active",
+            "style": "allRounder",
+            "tags": [],
+            "traits": [],
+            "vices": {
+              "alcohol": "none",
+              "substances": "none"
+            },
+            "weightKg": 100
+          },
+          {
+            "attributes": {
+              "athleticism": 50,
+              "booking": 50,
+              "broadcasting": 50,
+              "charisma": 50,
+              "mic": 50,
+              "officiating": 50,
+              "presence": 50,
+              "producing": 50,
+              "psychology": 50,
+              "ringwork": 50,
+              "safety": 50,
+              "stamina": 50
+            },
+            "basedInRegionId": "reg_0000000001",
+            "birthDate": "1998-01-05",
+            "birthRegionId": "reg_0000000001",
+            "build": "athletic",
+            "career": {
+              "canBook": false,
+              "canOwn": false
+            },
+            "condition": {
+              "arms": 100,
+              "back": 100,
+              "head": 100,
+              "legs": 100,
+              "neck": 100,
+              "torso": 100
+            },
+            "debutDate": "2016-01-05",
+            "defaultRingName": "Test Person 003",
+            "development": {
+              "ceilings": {},
+              "potential": 0
+            },
+            "familyName": "Person 003",
+            "fatigue": 0,
+            "gender": "male",
+            "givenName": "Test",
+            "heightCm": 183,
+            "id": "per_0000000003",
+            "imageRef": null,
+            "injury": null,
+            "masked": false,
+            "motivation": "money",
+            "regionalPop": {},
+            "restrictions": [],
+            "roles": [
+              "wrestler"
+            ],
+            "status": "active",
+            "style": "allRounder",
+            "tags": [],
+            "traits": [],
+            "vices": {
+              "alcohol": "none",
+              "substances": "none"
+            },
+            "weightKg": 100
+          },
+          {
+            "attributes": {
+              "athleticism": 50,
+              "booking": 50,
+              "broadcasting": 50,
+              "charisma": 50,
+              "mic": 50,
+              "officiating": 50,
+              "presence": 50,
+              "producing": 50,
+              "psychology": 50,
+              "ringwork": 50,
+              "safety": 50,
+              "stamina": 50
+            },
+            "basedInRegionId": "reg_0000000001",
+            "birthDate": "1998-01-05",
+            "birthRegionId": "reg_0000000001",
+            "build": "athletic",
+            "career": {
+              "canBook": false,
+              "canOwn": false
+            },
+            "condition": {
+              "arms": 100,
+              "back": 100,
+              "head": 100,
+              "legs": 100,
+              "neck": 100,
+              "torso": 100
+            },
+            "debutDate": "2016-01-05",
+            "defaultRingName": "Test Person 004",
+            "development": {
+              "ceilings": {},
+              "potential": 0
+            },
+            "familyName": "Person 004",
+            "fatigue": 0,
+            "gender": "male",
+            "givenName": "Test",
+            "heightCm": 183,
+            "id": "per_0000000004",
+            "imageRef": null,
+            "injury": null,
+            "masked": false,
+            "motivation": "money",
+            "regionalPop": {},
+            "restrictions": [],
+            "roles": [
+              "wrestler"
+            ],
+            "status": "active",
+            "style": "allRounder",
+            "tags": [],
+            "traits": [],
+            "vices": {
+              "alcohol": "none",
+              "substances": "none"
+            },
+            "weightKg": 100
+          },
+          {
+            "attributes": {
+              "athleticism": 50,
+              "booking": 50,
+              "broadcasting": 50,
+              "charisma": 50,
+              "mic": 50,
+              "officiating": 50,
+              "presence": 50,
+              "producing": 50,
+              "psychology": 50,
+              "ringwork": 50,
+              "safety": 50,
+              "stamina": 50
+            },
+            "basedInRegionId": "reg_0000000001",
+            "birthDate": "1998-01-05",
+            "birthRegionId": "reg_0000000001",
+            "build": "athletic",
+            "career": {
+              "canBook": false,
+              "canOwn": false
+            },
+            "condition": {
+              "arms": 100,
+              "back": 100,
+              "head": 100,
+              "legs": 100,
+              "neck": 100,
+              "torso": 100
+            },
+            "debutDate": "2016-01-05",
+            "defaultRingName": "Test Person 005",
+            "development": {
+              "ceilings": {},
+              "potential": 0
+            },
+            "familyName": "Person 005",
+            "fatigue": 0,
+            "gender": "male",
+            "givenName": "Test",
+            "heightCm": 183,
+            "id": "per_0000000005",
+            "imageRef": null,
+            "injury": null,
+            "masked": false,
+            "motivation": "money",
+            "regionalPop": {},
+            "restrictions": [],
+            "roles": [
+              "wrestler"
+            ],
+            "status": "active",
+            "style": "allRounder",
+            "tags": [],
+            "traits": [],
+            "vices": {
+              "alcohol": "none",
+              "substances": "none"
+            },
+            "weightKg": 100
+          },
+          {
+            "attributes": {
+              "athleticism": 50,
+              "booking": 50,
+              "broadcasting": 50,
+              "charisma": 50,
+              "mic": 50,
+              "officiating": 50,
+              "presence": 50,
+              "producing": 50,
+              "psychology": 50,
+              "ringwork": 50,
+              "safety": 50,
+              "stamina": 50
+            },
+            "basedInRegionId": "reg_0000000001",
+            "birthDate": "1998-01-05",
+            "birthRegionId": "reg_0000000001",
+            "build": "athletic",
+            "career": {
+              "canBook": false,
+              "canOwn": false
+            },
+            "condition": {
+              "arms": 100,
+              "back": 100,
+              "head": 100,
+              "legs": 100,
+              "neck": 100,
+              "torso": 100
+            },
+            "debutDate": "2016-01-05",
+            "defaultRingName": "Test Person 006",
+            "development": {
+              "ceilings": {},
+              "potential": 0
+            },
+            "familyName": "Person 006",
+            "fatigue": 0,
+            "gender": "male",
+            "givenName": "Test",
+            "heightCm": 183,
+            "id": "per_0000000006",
+            "imageRef": null,
+            "injury": null,
+            "masked": false,
+            "motivation": "money",
+            "regionalPop": {},
+            "restrictions": [],
+            "roles": [
+              "wrestler"
+            ],
+            "status": "active",
+            "style": "allRounder",
+            "tags": [],
+            "traits": [],
+            "vices": {
+              "alcohol": "none",
+              "substances": "none"
+            },
+            "weightKg": 100
+          },
+          {
+            "attributes": {
+              "athleticism": 50,
+              "booking": 50,
+              "broadcasting": 50,
+              "charisma": 50,
+              "mic": 50,
+              "officiating": 50,
+              "presence": 50,
+              "producing": 50,
+              "psychology": 50,
+              "ringwork": 50,
+              "safety": 50,
+              "stamina": 50
+            },
+            "basedInRegionId": "reg_0000000001",
+            "birthDate": "1998-01-05",
+            "birthRegionId": "reg_0000000001",
+            "build": "athletic",
+            "career": {
+              "canBook": false,
+              "canOwn": false
+            },
+            "condition": {
+              "arms": 100,
+              "back": 100,
+              "head": 100,
+              "legs": 100,
+              "neck": 100,
+              "torso": 100
+            },
+            "debutDate": "2016-01-05",
+            "defaultRingName": "Test Person 007",
+            "development": {
+              "ceilings": {},
+              "potential": 0
+            },
+            "familyName": "Person 007",
+            "fatigue": 0,
+            "gender": "male",
+            "givenName": "Test",
+            "heightCm": 183,
+            "id": "per_0000000007",
+            "imageRef": null,
+            "injury": null,
+            "masked": false,
+            "motivation": "money",
+            "regionalPop": {},
+            "restrictions": [],
+            "roles": [
+              "wrestler"
+            ],
+            "status": "active",
+            "style": "allRounder",
+            "tags": [],
+            "traits": [],
+            "vices": {
+              "alcohol": "none",
+              "substances": "none"
+            },
+            "weightKg": 100
+          },
+          {
+            "attributes": {
+              "athleticism": 50,
+              "booking": 50,
+              "broadcasting": 50,
+              "charisma": 50,
+              "mic": 50,
+              "officiating": 50,
+              "presence": 50,
+              "producing": 50,
+              "psychology": 50,
+              "ringwork": 50,
+              "safety": 50,
+              "stamina": 50
+            },
+            "basedInRegionId": "reg_0000000001",
+            "birthDate": "1998-01-05",
+            "birthRegionId": "reg_0000000001",
+            "build": "athletic",
+            "career": {
+              "canBook": false,
+              "canOwn": false
+            },
+            "condition": {
+              "arms": 100,
+              "back": 100,
+              "head": 100,
+              "legs": 100,
+              "neck": 100,
+              "torso": 100
+            },
+            "debutDate": "2016-01-05",
+            "defaultRingName": "Test Person 008",
+            "development": {
+              "ceilings": {},
+              "potential": 0
+            },
+            "familyName": "Person 008",
+            "fatigue": 0,
+            "gender": "male",
+            "givenName": "Test",
+            "heightCm": 183,
+            "id": "per_0000000008",
+            "imageRef": null,
+            "injury": null,
+            "masked": false,
+            "motivation": "money",
+            "regionalPop": {},
+            "restrictions": [],
+            "roles": [
+              "wrestler"
+            ],
+            "status": "active",
+            "style": "allRounder",
+            "tags": [],
+            "traits": [],
+            "vices": {
+              "alcohol": "none",
+              "substances": "none"
+            },
+            "weightKg": 100
+          },
+          {
+            "attributes": {
+              "athleticism": 50,
+              "booking": 50,
+              "broadcasting": 50,
+              "charisma": 50,
+              "mic": 50,
+              "officiating": 50,
+              "presence": 50,
+              "producing": 50,
+              "psychology": 50,
+              "ringwork": 50,
+              "safety": 50,
+              "stamina": 50
+            },
+            "basedInRegionId": "reg_0000000001",
+            "birthDate": "1998-01-05",
+            "birthRegionId": "reg_0000000001",
+            "build": "athletic",
+            "career": {
+              "canBook": false,
+              "canOwn": false
+            },
+            "condition": {
+              "arms": 100,
+              "back": 100,
+              "head": 100,
+              "legs": 100,
+              "neck": 100,
+              "torso": 100
+            },
+            "debutDate": "2016-01-05",
+            "defaultRingName": "Test Person 009",
+            "development": {
+              "ceilings": {},
+              "potential": 0
+            },
+            "familyName": "Person 009",
+            "fatigue": 0,
+            "gender": "male",
+            "givenName": "Test",
+            "heightCm": 183,
+            "id": "per_0000000009",
+            "imageRef": null,
+            "injury": null,
+            "masked": false,
+            "motivation": "money",
+            "regionalPop": {},
+            "restrictions": [],
+            "roles": [
+              "wrestler"
+            ],
+            "status": "active",
+            "style": "allRounder",
+            "tags": [],
+            "traits": [],
+            "vices": {
+              "alcohol": "none",
+              "substances": "none"
+            },
+            "weightKg": 100
+          },
+          {
+            "attributes": {
+              "athleticism": 50,
+              "booking": 50,
+              "broadcasting": 50,
+              "charisma": 50,
+              "mic": 50,
+              "officiating": 50,
+              "presence": 50,
+              "producing": 50,
+              "psychology": 50,
+              "ringwork": 50,
+              "safety": 50,
+              "stamina": 50
+            },
+            "basedInRegionId": "reg_0000000001",
+            "birthDate": "1998-01-05",
+            "birthRegionId": "reg_0000000001",
+            "build": "athletic",
+            "career": {
+              "canBook": false,
+              "canOwn": false
+            },
+            "condition": {
+              "arms": 100,
+              "back": 100,
+              "head": 100,
+              "legs": 100,
+              "neck": 100,
+              "torso": 100
+            },
+            "debutDate": "2016-01-05",
+            "defaultRingName": "Test Person 010",
+            "development": {
+              "ceilings": {},
+              "potential": 0
+            },
+            "familyName": "Person 010",
+            "fatigue": 0,
+            "gender": "male",
+            "givenName": "Test",
+            "heightCm": 183,
+            "id": "per_000000000a",
+            "imageRef": null,
+            "injury": null,
+            "masked": false,
+            "motivation": "money",
+            "regionalPop": {},
+            "restrictions": [],
+            "roles": [
+              "wrestler"
+            ],
+            "status": "active",
+            "style": "allRounder",
+            "tags": [],
+            "traits": [],
+            "vices": {
+              "alcohol": "none",
+              "substances": "none"
+            },
+            "weightKg": 100
+          },
+          {
+            "attributes": {
+              "athleticism": 50,
+              "booking": 50,
+              "broadcasting": 50,
+              "charisma": 50,
+              "mic": 50,
+              "officiating": 50,
+              "presence": 50,
+              "producing": 50,
+              "psychology": 50,
+              "ringwork": 50,
+              "safety": 50,
+              "stamina": 50
+            },
+            "basedInRegionId": "reg_0000000001",
+            "birthDate": "1998-01-05",
+            "birthRegionId": "reg_0000000001",
+            "build": "athletic",
+            "career": {
+              "canBook": false,
+              "canOwn": false
+            },
+            "condition": {
+              "arms": 100,
+              "back": 100,
+              "head": 100,
+              "legs": 100,
+              "neck": 100,
+              "torso": 100
+            },
+            "debutDate": "2016-01-05",
+            "defaultRingName": "Test Person 011",
+            "development": {
+              "ceilings": {},
+              "potential": 0
+            },
+            "familyName": "Person 011",
+            "fatigue": 0,
+            "gender": "male",
+            "givenName": "Test",
+            "heightCm": 183,
+            "id": "per_000000000b",
+            "imageRef": null,
+            "injury": null,
+            "masked": false,
+            "motivation": "money",
+            "regionalPop": {},
+            "restrictions": [],
+            "roles": [
+              "wrestler"
+            ],
+            "status": "active",
+            "style": "allRounder",
+            "tags": [],
+            "traits": [],
+            "vices": {
+              "alcohol": "none",
+              "substances": "none"
+            },
+            "weightKg": 100
+          },
+          {
+            "attributes": {
+              "athleticism": 50,
+              "booking": 50,
+              "broadcasting": 50,
+              "charisma": 50,
+              "mic": 50,
+              "officiating": 50,
+              "presence": 50,
+              "producing": 50,
+              "psychology": 50,
+              "ringwork": 50,
+              "safety": 50,
+              "stamina": 50
+            },
+            "basedInRegionId": "reg_0000000001",
+            "birthDate": "1998-01-05",
+            "birthRegionId": "reg_0000000001",
+            "build": "athletic",
+            "career": {
+              "canBook": false,
+              "canOwn": false
+            },
+            "condition": {
+              "arms": 100,
+              "back": 100,
+              "head": 100,
+              "legs": 100,
+              "neck": 100,
+              "torso": 100
+            },
+            "debutDate": "2016-01-05",
+            "defaultRingName": "Test Person 012",
+            "development": {
+              "ceilings": {},
+              "potential": 0
+            },
+            "familyName": "Person 012",
+            "fatigue": 0,
+            "gender": "male",
+            "givenName": "Test",
+            "heightCm": 183,
+            "id": "per_000000000c",
+            "imageRef": null,
+            "injury": null,
+            "masked": false,
+            "motivation": "money",
+            "regionalPop": {},
+            "restrictions": [],
+            "roles": [
+              "wrestler"
+            ],
+            "status": "active",
+            "style": "allRounder",
+            "tags": [],
+            "traits": [],
+            "vices": {
+              "alcohol": "none",
+              "substances": "none"
+            },
+            "weightKg": 100
+          },
+          {
+            "attributes": {
+              "athleticism": 50,
+              "booking": 50,
+              "broadcasting": 50,
+              "charisma": 50,
+              "mic": 50,
+              "officiating": 50,
+              "presence": 50,
+              "producing": 50,
+              "psychology": 50,
+              "ringwork": 50,
+              "safety": 50,
+              "stamina": 50
+            },
+            "basedInRegionId": "reg_0000000001",
+            "birthDate": "1998-01-05",
+            "birthRegionId": "reg_0000000001",
+            "build": "athletic",
+            "career": {
+              "canBook": false,
+              "canOwn": false
+            },
+            "condition": {
+              "arms": 100,
+              "back": 100,
+              "head": 100,
+              "legs": 100,
+              "neck": 100,
+              "torso": 100
+            },
+            "debutDate": "2016-01-05",
+            "defaultRingName": "Test Person 013",
+            "development": {
+              "ceilings": {},
+              "potential": 0
+            },
+            "familyName": "Person 013",
+            "fatigue": 0,
+            "gender": "male",
+            "givenName": "Test",
+            "heightCm": 183,
+            "id": "per_000000000d",
+            "imageRef": null,
+            "injury": null,
+            "masked": false,
+            "motivation": "money",
+            "regionalPop": {},
+            "restrictions": [],
+            "roles": [
+              "wrestler"
+            ],
+            "status": "active",
+            "style": "allRounder",
+            "tags": [],
+            "traits": [],
+            "vices": {
+              "alcohol": "none",
+              "substances": "none"
+            },
+            "weightKg": 100
+          },
+          {
+            "attributes": {
+              "athleticism": 50,
+              "booking": 50,
+              "broadcasting": 50,
+              "charisma": 50,
+              "mic": 50,
+              "officiating": 50,
+              "presence": 50,
+              "producing": 50,
+              "psychology": 50,
+              "ringwork": 50,
+              "safety": 50,
+              "stamina": 50
+            },
+            "basedInRegionId": "reg_0000000001",
+            "birthDate": "1998-01-05",
+            "birthRegionId": "reg_0000000001",
+            "build": "athletic",
+            "career": {
+              "canBook": false,
+              "canOwn": false
+            },
+            "condition": {
+              "arms": 100,
+              "back": 100,
+              "head": 100,
+              "legs": 100,
+              "neck": 100,
+              "torso": 100
+            },
+            "debutDate": "2016-01-05",
+            "defaultRingName": "Test Person 014",
+            "development": {
+              "ceilings": {},
+              "potential": 0
+            },
+            "familyName": "Person 014",
+            "fatigue": 0,
+            "gender": "male",
+            "givenName": "Test",
+            "heightCm": 183,
+            "id": "per_000000000e",
+            "imageRef": null,
+            "injury": null,
+            "masked": false,
+            "motivation": "money",
+            "regionalPop": {},
+            "restrictions": [],
+            "roles": [
+              "wrestler"
+            ],
+            "status": "active",
+            "style": "allRounder",
+            "tags": [],
+            "traits": [],
+            "vices": {
+              "alcohol": "none",
+              "substances": "none"
+            },
+            "weightKg": 100
+          },
+          {
+            "attributes": {
+              "athleticism": 50,
+              "booking": 50,
+              "broadcasting": 50,
+              "charisma": 50,
+              "mic": 50,
+              "officiating": 50,
+              "presence": 50,
+              "producing": 50,
+              "psychology": 50,
+              "ringwork": 50,
+              "safety": 50,
+              "stamina": 50
+            },
+            "basedInRegionId": "reg_0000000001",
+            "birthDate": "1998-01-05",
+            "birthRegionId": "reg_0000000001",
+            "build": "athletic",
+            "career": {
+              "canBook": false,
+              "canOwn": false
+            },
+            "condition": {
+              "arms": 100,
+              "back": 100,
+              "head": 100,
+              "legs": 100,
+              "neck": 100,
+              "torso": 100
+            },
+            "debutDate": "2016-01-05",
+            "defaultRingName": "Test Person 015",
+            "development": {
+              "ceilings": {},
+              "potential": 0
+            },
+            "familyName": "Person 015",
+            "fatigue": 0,
+            "gender": "male",
+            "givenName": "Test",
+            "heightCm": 183,
+            "id": "per_000000000f",
+            "imageRef": null,
+            "injury": null,
+            "masked": false,
+            "motivation": "money",
+            "regionalPop": {},
+            "restrictions": [],
+            "roles": [
+              "wrestler"
+            ],
+            "status": "active",
+            "style": "allRounder",
+            "tags": [],
+            "traits": [],
+            "vices": {
+              "alcohol": "none",
+              "substances": "none"
+            },
+            "weightKg": 100
+          },
+          {
+            "attributes": {
+              "athleticism": 50,
+              "booking": 50,
+              "broadcasting": 50,
+              "charisma": 50,
+              "mic": 50,
+              "officiating": 50,
+              "presence": 50,
+              "producing": 50,
+              "psychology": 50,
+              "ringwork": 50,
+              "safety": 50,
+              "stamina": 50
+            },
+            "basedInRegionId": "reg_0000000001",
+            "birthDate": "1998-01-05",
+            "birthRegionId": "reg_0000000001",
+            "build": "athletic",
+            "career": {
+              "canBook": false,
+              "canOwn": false
+            },
+            "condition": {
+              "arms": 100,
+              "back": 100,
+              "head": 100,
+              "legs": 100,
+              "neck": 100,
+              "torso": 100
+            },
+            "debutDate": "2016-01-05",
+            "defaultRingName": "Test Person 016",
+            "development": {
+              "ceilings": {},
+              "potential": 0
+            },
+            "familyName": "Person 016",
+            "fatigue": 0,
+            "gender": "male",
+            "givenName": "Test",
+            "heightCm": 183,
+            "id": "per_000000000g",
+            "imageRef": null,
+            "injury": null,
+            "masked": false,
+            "motivation": "money",
+            "regionalPop": {},
+            "restrictions": [],
+            "roles": [
+              "wrestler"
+            ],
+            "status": "active",
+            "style": "allRounder",
+            "tags": [],
+            "traits": [],
+            "vices": {
+              "alcohol": "none",
+              "substances": "none"
+            },
+            "weightKg": 100
+          }
+        ],
+        "promotions": [
+          {
+            "bookerPersonId": null,
+            "cash": 1000000000,
+            "color": "#336699",
+            "controller": {
+              "kind": "human",
+              "playerId": "player-1"
+            },
+            "foundedOn": "2000-01-03",
+            "homeRegionId": "reg_0000000001",
+            "id": "pro_0000000001",
+            "logoRef": null,
+            "name": "Test Promotion A",
+            "ownerPersonId": null,
+            "parentPromotionId": null,
+            "policies": {
+              "catering": 1,
+              "medical": 1,
+              "travel": 1
+            },
+            "prestige": 50,
+            "production": {
+              "backOffice": 5,
+              "camera": 5,
+              "editing": 5,
+              "marketing": 5,
+              "music": 5,
+              "pyro": 5,
+              "stage": 5,
+              "writing": 5
+            },
+            "regionalPop": {},
+            "shortName": "TPA",
+            "status": "active",
+            "style": "mainstream"
+          },
+          {
+            "bookerPersonId": null,
+            "cash": 250000000,
+            "color": "#336699",
+            "controller": {
+              "kind": "computer"
+            },
+            "foundedOn": "2000-01-03",
+            "homeRegionId": "reg_0000000001",
+            "id": "pro_0000000002",
+            "logoRef": null,
+            "name": "Test Promotion B",
+            "ownerPersonId": null,
+            "parentPromotionId": null,
+            "policies": {
+              "catering": 1,
+              "medical": 1,
+              "travel": 1
+            },
+            "prestige": 50,
+            "production": {
+              "backOffice": 5,
+              "camera": 5,
+              "editing": 5,
+              "marketing": 5,
+              "music": 5,
+              "pyro": 5,
+              "stage": 5,
+              "writing": 5
+            },
+            "regionalPop": {},
+            "shortName": "TPB",
+            "status": "active",
+            "style": "technical"
+          }
+        ],
+        "regions": [
+          {
+            "countryId": "cty_0000000001",
+            "id": "reg_0000000001",
+            "name": "Test Region North 1",
+            "neighbourRegionIds": [
+              "reg_0000000002"
+            ],
+            "population": 1800000,
+            "preferredStyle": null,
+            "wrestlingInterest": 60
+          },
+          {
+            "countryId": "cty_0000000001",
+            "id": "reg_0000000002",
+            "name": "Test Region North 2",
+            "neighbourRegionIds": [
+              "reg_0000000001",
+              "reg_0000000003"
+            ],
+            "population": 1200000,
+            "preferredStyle": null,
+            "wrestlingInterest": 50
+          },
+          {
+            "countryId": "cty_0000000002",
+            "id": "reg_0000000003",
+            "name": "Test Region South 1",
+            "neighbourRegionIds": [
+              "reg_0000000002",
+              "reg_0000000004"
+            ],
+            "population": 1100000,
+            "preferredStyle": null,
+            "wrestlingInterest": 55
+          },
+          {
+            "countryId": "cty_0000000002",
+            "id": "reg_0000000004",
+            "name": "Test Region South 2",
+            "neighbourRegionIds": [
+              "reg_0000000003"
+            ],
+            "population": 900000,
+            "preferredStyle": null,
+            "wrestlingInterest": 40
+          }
+        ],
+        "relationships": [
+          {
+            "affinity": -40,
+            "bonds": [
+              "rivals"
+            ],
+            "id": "rel_0000000001",
+            "lastChangedOn": "2026-01-05",
+            "mentorId": null,
+            "personAId": "per_0000000001",
+            "personBId": "per_0000000002",
+            "since": "2026-01-05"
+          },
+          {
+            "affinity": 60,
+            "bonds": [
+              "friends"
+            ],
+            "id": "rel_0000000002",
+            "lastChangedOn": "2026-01-05",
+            "mentorId": null,
+            "personAId": "per_0000000003",
+            "personBId": "per_0000000004",
+            "since": "2026-01-05"
+          }
+        ],
+        "seasons": [
+          {
+            "endDate": "2026-04-05",
+            "id": "sea_0000000001",
+            "number": 1,
+            "startDate": "2026-01-05",
+            "status": "completed"
+          },
+          {
+            "endDate": "2026-07-05",
+            "id": "sea_0000000002",
+            "number": 2,
+            "startDate": "2026-04-06",
+            "status": "active"
+          }
+        ],
+        "segments": [
+          {
+            "crew": {
+              "announcerIds": [],
+              "producerId": null,
+              "refereeId": null
+            },
+            "eventInstanceId": "evi_0000000001",
+            "id": "seg_0000000001",
+            "kind": "match",
+            "label": null,
+            "match": {
+              "finishKey": null,
+              "matchTypeKey": "match.singles",
+              "stipulationKeys": [],
+              "titleIds": []
+            },
+            "outcome": {
+              "kind": "win",
+              "methodKey": "method.pinfall",
+              "winningSide": 1
+            },
+            "preShow": false,
+            "rating": {
+              "crowd": 58,
+              "expectation": 50,
+              "score": 55,
+              "stars": 2.75,
+              "traceId": null,
+              "workRate": 52
+            },
+            "slot": 0,
+            "storylineIds": []
+          },
+          {
+            "angle": {
+              "angleTypeKey": "angle.promo",
+              "beats": [
+                {
+                  "beatKey": "beat.promo",
+                  "personIds": [
+                    "per_0000000001"
+                  ]
+                },
+                {
+                  "beatKey": "beat.attack",
+                  "personIds": [
+                    "per_0000000002",
+                    "per_0000000001"
+                  ]
+                }
+              ]
+            },
+            "crew": {
+              "announcerIds": [],
+              "producerId": null,
+              "refereeId": null
+            },
+            "eventInstanceId": "evi_0000000001",
+            "id": "seg_0000000002",
+            "kind": "angle",
+            "label": null,
+            "preShow": false,
+            "rating": {
+              "crowd": 66,
+              "expectation": 60,
+              "score": 64,
+              "stars": 3,
+              "traceId": null,
+              "workRate": null
+            },
+            "slot": 1,
+            "storylineIds": [
+              "sty_0000000001"
+            ]
+          },
+          {
+            "crew": {
+              "announcerIds": [],
+              "producerId": null,
+              "refereeId": null
+            },
+            "eventInstanceId": "evi_0000000001",
+            "id": "seg_0000000003",
+            "kind": "match",
+            "label": "Title match",
+            "match": {
+              "finishKey": "finish.clean",
+              "matchTypeKey": "match.singles",
+              "stipulationKeys": [],
+              "titleIds": [
+                "tit_0000000001"
+              ]
+            },
+            "outcome": {
+              "kind": "win",
+              "methodKey": "method.pinfall",
+              "winningSide": 0
+            },
+            "preShow": false,
+            "rating": {
+              "crowd": 74,
+              "expectation": 68,
+              "score": 71,
+              "stars": 3.5,
+              "traceId": null,
+              "workRate": 70
+            },
+            "slot": 2,
+            "storylineIds": [
+              "sty_0000000001"
+            ]
+          },
+          {
+            "crew": {
+              "announcerIds": [],
+              "producerId": null,
+              "refereeId": null
+            },
+            "eventInstanceId": "evi_0000000001",
+            "id": "seg_0000000004",
+            "kind": "match",
+            "label": null,
+            "match": {
+              "finishKey": null,
+              "matchTypeKey": "match.singles",
+              "stipulationKeys": [],
+              "titleIds": []
+            },
+            "outcome": {
+              "kind": "win",
+              "methodKey": "method.pinfall",
+              "winningSide": 0
+            },
+            "preShow": true,
+            "rating": {
+              "crowd": 36,
+              "expectation": 38,
+              "score": 40,
+              "stars": 2,
+              "traceId": null,
+              "workRate": 42
+            },
+            "slot": 0,
+            "storylineIds": []
+          }
+        ],
+        "stables": [
+          {
+            "disbandedOn": null,
+            "formedOn": "2026-01-05",
+            "id": "stb_0000000001",
+            "imageRef": null,
+            "leaderId": "per_0000000001",
+            "memberIds": [
+              "per_0000000001",
+              "per_0000000007",
+              "per_0000000008"
+            ],
+            "name": "Test Stable A",
+            "promotionId": "pro_0000000001",
+            "status": "active"
+          }
+        ],
+        "storylines": [
+          {
+            "brandId": "brd_0000000001",
+            "endedOn": null,
+            "heat": 60,
+            "id": "sty_0000000001",
+            "members": [
+              {
+                "personId": "per_0000000001",
+                "side": "face"
+              },
+              {
+                "personId": "per_0000000002",
+                "side": "heel"
+              }
+            ],
+            "name": "Test Storyline A",
+            "promotionId": "pro_0000000001",
+            "startedOn": "2026-01-12",
+            "status": "active",
+            "summary": "A former champion wants the title back."
+          }
+        ],
+        "teams": [
+          {
+            "experience": 70,
+            "formedOn": "2025-06-19",
+            "id": "tem_0000000001",
+            "kind": "tag",
+            "memberIds": [
+              "per_0000000003",
+              "per_0000000004"
+            ],
+            "name": "Test Tag Team A",
+            "splitOn": null,
+            "status": "active"
+          }
+        ],
+        "titleReigns": [
+          {
+            "defences": 1,
+            "endReason": null,
+            "endedInSegmentId": null,
+            "holderIds": [
+              "per_0000000001"
+            ],
+            "holderNamesAtTime": [
+              "Test Person 001"
+            ],
+            "id": "trn_0000000001",
+            "lostOn": null,
+            "teamId": null,
+            "titleId": "tit_0000000001",
+            "wonInSegmentId": null,
+            "wonOn": "2026-01-05"
+          },
+          {
+            "defences": 0,
+            "endReason": null,
+            "endedInSegmentId": null,
+            "holderIds": [
+              "per_0000000003",
+              "per_0000000004"
+            ],
+            "holderNamesAtTime": [
+              "Test Person 003",
+              "Test Person 004"
+            ],
+            "id": "trn_0000000002",
+            "lostOn": null,
+            "teamId": "tem_0000000001",
+            "titleId": "tit_0000000002",
+            "wonInSegmentId": null,
+            "wonOn": "2026-01-05"
+          },
+          {
+            "defences": 3,
+            "endReason": "lost",
+            "endedInSegmentId": null,
+            "holderIds": [
+              "per_0000000002"
+            ],
+            "holderNamesAtTime": [
+              "Test Person 002"
+            ],
+            "id": "trn_0000000003",
+            "lostOn": "2026-01-05",
+            "teamId": null,
+            "titleId": "tit_0000000001",
+            "wonInSegmentId": null,
+            "wonOn": "2025-01-05"
+          },
+          {
+            "defences": 0,
+            "endReason": "vacated",
+            "endedInSegmentId": null,
+            "holderIds": [
+              "per_0000000005",
+              "per_0000000006"
+            ],
+            "holderNamesAtTime": [
+              "Test Person 005",
+              "Test Person 006"
+            ],
+            "id": "trn_0000000004",
+            "lostOn": "2026-01-05",
+            "teamId": null,
+            "titleId": "tit_0000000002",
+            "wonInSegmentId": null,
+            "wonOn": "2025-01-05"
+          }
+        ],
+        "titles": [
+          {
+            "brandId": null,
+            "color": "#c9a227",
+            "division": {
+              "gender": "open",
+              "maxWeightKg": null,
+              "minWeightKg": null
+            },
+            "holderCount": 1,
+            "id": "tit_0000000001",
+            "imageRef": null,
+            "introducedOn": "2024-01-05",
+            "name": "Test Heavyweight Title",
+            "prestige": 70,
+            "promotionId": "pro_0000000001",
+            "retiredOn": null,
+            "status": "active"
+          },
+          {
+            "brandId": null,
+            "color": "#8a8d91",
+            "division": {
+              "gender": "open",
+              "maxWeightKg": null,
+              "minWeightKg": null
+            },
+            "holderCount": 2,
+            "id": "tit_0000000002",
+            "imageRef": null,
+            "introducedOn": "2024-01-05",
+            "name": "Test Tag Team Title",
+            "prestige": 50,
+            "promotionId": "pro_0000000001",
+            "retiredOn": null,
+            "status": "active"
+          }
+        ],
+        "venues": [
+          {
+            "capacity": 3000,
+            "closedOn": null,
+            "exclusivePromotionId": null,
+            "id": "ven_0000000001",
+            "imageRef": null,
+            "kind": "arena",
+            "name": "Test Venue North",
+            "openedOn": null,
+            "regionId": "reg_0000000001"
+          }
+        ]
+      }
+    }
+  }
+}

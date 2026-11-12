@@ -105,6 +105,7 @@ function serialiseTables(tables: SerialisableWorld['tables']): SerializedTables 
     mail: [...tables.mail.values()],
     news: [...tables.news.values()],
     ledgerEntries: [...tables.ledgerEntries.values()],
+    aftermaths: [...tables.aftermaths.values()],
   };
 }
 

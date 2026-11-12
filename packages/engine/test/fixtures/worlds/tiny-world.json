@@ -643,6 +643,64 @@
     "daysSimulated": 95
   },
   "tables": {
+    "aftermaths": [
+      {
+        "id": "aft_0000000001",
+        "segmentId": "seg_0000000003",
+        "eventInstanceId": "evi_0000000001",
+        "promotionId": "pro_0000000001",
+        "personId": "per_0000000001",
+        "date": "2026-04-09",
+        "outcome": "win",
+        "showRegionId": "reg_0000000001",
+        "popularity": {
+          "delta": 1.5,
+          "byRegion": {
+            "reg_0000000001": {
+              "before": 50,
+              "after": 51.5
+            }
+          }
+        },
+        "momentum": {
+          "employmentId": "emp_0000000001",
+          "before": 10,
+          "after": 15
+        },
+        "traceIds": {
+          "popularity": "match.popularityGain:seg_0000000003/per_0000000001",
+          "momentum": "match.momentumGain:seg_0000000003/per_0000000001"
+        }
+      },
+      {
+        "id": "aft_0000000002",
+        "segmentId": "seg_0000000003",
+        "eventInstanceId": "evi_0000000001",
+        "promotionId": "pro_0000000001",
+        "personId": "per_0000000002",
+        "date": "2026-04-09",
+        "outcome": "loss",
+        "showRegionId": "reg_0000000001",
+        "popularity": {
+          "delta": -0.5,
+          "byRegion": {
+            "reg_0000000001": {
+              "before": 45,
+              "after": 44.5
+            }
+          }
+        },
+        "momentum": {
+          "employmentId": "emp_0000000002",
+          "before": 5,
+          "after": 0
+        },
+        "traceIds": {
+          "popularity": "match.popularityGain:seg_0000000003/per_0000000002",
+          "momentum": "match.momentumGain:seg_0000000003/per_0000000002"
+        }
+      }
+    ],
     "brands": [
       {
         "id": "brd_0000000001",
