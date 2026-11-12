@@ -46,6 +46,17 @@ export function chooseMethod(
 ): Traced<ContentKey | null> {
   const { finish, plannedMethodKey } = inputs;
   const nameOf = (key: string): string => inputs.methodNames[key] ?? key;
+  // The trace's options are the methods' names ("Pinfall"), or "name (key)" when two methods share
+  // a name, so the Why? reads as words; the returned value is the method's content key.
+  const nameCounts = new Map<string, number>();
+  for (const method of finish.methods) {
+    const name = nameOf(method.methodKey);
+    nameCounts.set(name, (nameCounts.get(name) ?? 0) + 1);
+  }
+  const optionOf = (key: string): string => {
+    const name = nameOf(key);
+    return (nameCounts.get(name) ?? 0) > 1 ? `${name} (${key})` : name;
+  };
   const decision = startDecision<string>(METHOD_DECISION_LABEL, { docRef: METHOD_DOC_REF });
   if (finish.outcomeKind !== 'win' || finish.methods.length === 0) {
     const none = decision.note(NO_METHOD_NOTE).choose(NO_METHOD_OPTION, NO_METHOD_NOTE);
@@ -61,16 +72,16 @@ export function chooseMethod(
       );
     }
     const kept = decision
-      .consider(plannedMethodKey, 1, nameOf(plannedMethodKey))
-      .choose(plannedMethodKey, BOOKED_METHOD_REASON);
+      .consider(nameOf(plannedMethodKey), 1)
+      .choose(nameOf(plannedMethodKey), BOOKED_METHOD_REASON);
     return { value: plannedMethodKey, trace: kept.trace };
   }
   for (const method of finish.methods) {
-    decision.consider(method.methodKey, method.weight, nameOf(method.methodKey));
+    decision.consider(optionOf(method.methodKey), method.weight);
   }
   const [only] = finish.methods;
   if (finish.methods.length === 1 && only !== undefined) {
-    const chosen = decision.choose(only.methodKey, ONLY_METHOD_REASON);
+    const chosen = decision.choose(optionOf(only.methodKey), ONLY_METHOD_REASON);
     return { value: only.methodKey, trace: chosen.trace };
   }
   const picked = rollWeighted(
@@ -79,6 +90,6 @@ export function chooseMethod(
     'Method',
     nameOf,
   );
-  const chosen = decision.roll(picked.roll).choose(picked.value, METHOD_BY_ROLL_REASON);
+  const chosen = decision.roll(picked.roll).choose(optionOf(picked.value), METHOD_BY_ROLL_REASON);
   return { value: picked.value, trace: chosen.trace };
 }

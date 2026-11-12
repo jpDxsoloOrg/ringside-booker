@@ -8,6 +8,9 @@
  * passes the allowed finishes (`allowedFinishes`) already narrowed to the outcome kind it wants,
  * so the pick never lands on a finish the match type disallows.
  *
+ * The trace's options are the finishes' names ("Clean finish"), so the Why? reads as words; the
+ * returned value is the finish's content key.
+ *
  * Design: docs/design/match-finishes.md#finish-on-the-night.
  */
 
@@ -113,29 +116,53 @@ export function autoFinish(inputs: AutoFinishInputs, deps: AutoFinishDeps): Trac
       'at least one finish',
     );
   }
-  const decision = startDecision<ContentKey>(AUTO_FINISH_LABEL, {
+  const labels = optionLabels(inputs.candidates);
+  const labelOf = (key: ContentKey): string => labels.get(key) ?? key;
+  const decision = startDecision<string>(AUTO_FINISH_LABEL, {
     docRef: FINISH_ON_THE_NIGHT_DOC_REF,
   }).rule(AUTO_FINISH_RULE, true);
   if (inputs.candidates.length === 1) {
-    return decision.note(ONLY_FINISH_NOTE).choose(first.key, ONLY_FINISH_NOTE);
+    const only = decision.note(ONLY_FINISH_NOTE).choose(labelOf(first.key), ONLY_FINISH_NOTE);
+    return { value: first.key, trace: only.trace };
   }
-  const names = new Map<ContentKey, string>();
   const entries: { item: ContentKey; weight: number }[] = [];
   for (const candidate of inputs.candidates) {
-    names.set(candidate.key, candidate.name);
     const weight = candidateWeight(candidate, inputs.winnerAlignment, deps.tunables);
     if (weight.value > 0) {
-      decision.consider(candidate.key, weight);
+      decision.consider(labelOf(candidate.key), weight);
       entries.push({ item: candidate.key, weight: weight.value });
     } else {
-      decision.consider(candidate.key, weight, NEVER_PICKED_REASON);
+      decision.consider(labelOf(candidate.key), weight, NEVER_PICKED_REASON);
     }
   }
   if (entries.length === 0) {
-    return decision
+    const fallback = decision
       .note(ALL_WEIGHTS_ZERO_FINISH_NOTE)
-      .choose(first.key, ALL_WEIGHTS_ZERO_FINISH_NOTE);
+      .choose(labelOf(first.key), ALL_WEIGHTS_ZERO_FINISH_NOTE);
+    return { value: first.key, trace: fallback.trace };
   }
-  const picked = rollWeighted(deps.rng, entries, 'Finish', (key) => names.get(key) ?? key);
-  return decision.roll(picked.roll).choose(picked.value, PICKED_BY_ROLL_REASON);
+  const picked = rollWeighted(deps.rng, entries, 'Finish', labelOf);
+  const chosen = decision.roll(picked.roll).choose(labelOf(picked.value), PICKED_BY_ROLL_REASON);
+  return { value: picked.value, trace: chosen.trace };
+}
+
+/**
+ * The option text each candidate shows in the trace: its name, or "name (key)" when two candidates
+ * share a name, so every option stays distinct (the key alone when a candidate has no name).
+ */
+function optionLabels(candidates: readonly AutoFinishCandidate[]): Map<ContentKey, string> {
+  const counts = new Map<string, number>();
+  for (const candidate of candidates) {
+    counts.set(candidate.name, (counts.get(candidate.name) ?? 0) + 1);
+  }
+  const labels = new Map<ContentKey, string>();
+  for (const candidate of candidates) {
+    if (candidate.name.length === 0) {
+      labels.set(candidate.key, candidate.key);
+    } else {
+      const shared = (counts.get(candidate.name) ?? 0) > 1;
+      labels.set(candidate.key, shared ? `${candidate.name} (${candidate.key})` : candidate.name);
+    }
+  }
+  return labels;
 }

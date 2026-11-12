@@ -18,6 +18,7 @@ import { defaultSystems } from '../../../src/systems';
 import {
   DRAW_CROWD_PENALTY_LABEL,
   RANDOM_WINNERS_LABEL,
+  registerFinishFilter,
   type SimulateArgs,
   type SimulateResult,
 } from '../../../src/systems/match';
@@ -152,6 +153,26 @@ describe('match.simulate', () => {
     expect(first.randomWinnersMode).toBe(false);
   });
 
+  it('names the finish and method in the result Why? by name, never by content key', () => {
+    const sim = simWorld();
+    for (let seed = 0; seed < 20; seed += 1) {
+      const result = simulate(sim, singles(sim, { previewSeed: seed }));
+      const decisions = findTraceNodes(result.resultTrace, 'decision');
+      const options = decisions.flatMap((node) => [
+        node.chosen,
+        ...node.considered.map((entry) => entry.option),
+      ]);
+      expect(options.filter((option) => /^(finish|method)\./.test(String(option)))).toEqual([]);
+      expect(options).toContain(result.finish.name);
+    }
+    const booked = simulate(
+      sim,
+      singles(sim, { winner: { side: 0 }, finishKey: parseContentKey('finish.disqualification') }),
+    );
+    const chosen = findTraceNodes(booked.resultTrace, 'decision').map((node) => node.chosen);
+    expect(chosen).toContain('Disqualification');
+  });
+
   it('never moves the world, its RNG, traces or event log over 50 calls', () => {
     const sim = simWorld();
     const before = JSON.stringify(sim.engine.exportState());
@@ -214,6 +235,45 @@ describe('match.simulate', () => {
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.reasons.map((reason) => reason.code)).toEqual(['finishNotAllowed']);
+    }
+  });
+
+  it('follows a registered finish filter, the door MTCH7 stipulations wire through', () => {
+    // A stand-in for MTCH7's "no disqualifications" stipulation: the filter removes both
+    // finishes that stop a match on a rule break.
+    const banned = new Set(['finish.disqualification', 'finish.count-out']);
+    const unregister = registerFinishFilter({
+      id: 'test.no-disqualifications',
+      order: 10,
+      filter: (entries) => entries.filter((entry) => !banned.has(entry.key)),
+    });
+    try {
+      const sim = simWorld();
+      const refused = sim.engine.query(
+        'match.simulate',
+        singles(sim, {
+          winner: { side: 0 },
+          finishKey: parseContentKey('finish.disqualification'),
+        }),
+        PLAYER,
+      );
+      expect(refused.ok ? [] : refused.reasons.map((reason) => reason.code)).toEqual([
+        'finishNotAllowed',
+      ]);
+      const listed = sim.engine.query(
+        'match.finishes',
+        { matchTypeKey: parseContentKey('match.singles') },
+        PLAYER,
+      );
+      const keys = listed.ok ? listed.data.map((option) => option.key) : [];
+      expect(keys.length).toBeGreaterThan(0);
+      expect(keys.filter((key) => banned.has(key))).toEqual([]);
+      for (let seed = 0; seed < 30; seed += 1) {
+        const result = simulate(sim, singles(sim, { previewSeed: seed }));
+        expect(banned.has(result.finish.key)).toBe(false);
+      }
+    } finally {
+      unregister();
     }
   });
 

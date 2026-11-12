@@ -405,7 +405,10 @@ export function resolveMatchOutcome(
     finish = plannedFinish;
     finishTrace = startDecision<string>(BOOKED_FINISH_LABEL, {
       docRef: RESOLVING_A_MATCH_DOC_REF,
-    }).choose(plannedFinish.key, BOOKED_FINISH_REASON);
+    }).choose(
+      plannedFinish.name.length > 0 ? plannedFinish.name : plannedFinish.key,
+      BOOKED_FINISH_REASON,
+    );
   }
 
   // (6) The method. The plan checks above make sure a planned method is one the finish lists.
