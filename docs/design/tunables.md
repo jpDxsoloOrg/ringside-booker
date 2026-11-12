@@ -301,3 +301,39 @@ The slot numbers of D-10, in `systems/match/tunables.ts`, category
 These are the first `enum` tunables in the engine. A table of keys a formula
 reads as numbers is typed `NumberTunableKey` (from `systems/tunables.ts`)
 rather than `TunableKey`, which also covers enum and boolean keys.
+
+### Match performance and work rate tunables
+
+The in-ring formulas of MTCH1-03, in the same file: category `Match:
+performance` for the worker performance weights, bonuses and penalties and the
+side decays, `Match: work rate` for the work rate checks. See
+[match-rating.md](match-rating.md#worker-performance) for what each does.
+
+| Key                                        | Kind   | Default | Range | Unit       | What it does                                                |
+| ------------------------------------------ | ------ | ------- | ----- | ---------- | ----------------------------------------------------------- |
+| `match.perf.inRing.ringwork`               | number | 0.5     | 0–1   | ratio      | Weight of ringwork in in-ring performance                   |
+| `match.perf.inRing.psychology`             | number | 0.2     | 0–1   | ratio      | Weight of psychology in in-ring performance                 |
+| `match.perf.inRing.athleticism`            | number | 0.2     | 0–1   | ratio      | Weight of athleticism in in-ring performance                |
+| `match.perf.inRing.safety`                 | number | 0.1     | 0–1   | ratio      | Weight of safety in in-ring performance                     |
+| `match.perf.entertainment.charisma`        | number | 0.5     | 0–1   | ratio      | Weight of charisma in entertainment performance             |
+| `match.perf.entertainment.presence`        | number | 0.3     | 0–1   | ratio      | Weight of presence in entertainment performance             |
+| `match.perf.entertainment.mic`             | number | 0.2     | 0–1   | ratio      | Weight of mic skill in entertainment performance            |
+| `match.perf.styleAffinityBonus`            | number | 3       | 0–50  | points     | Bonus when the style suits the match type                   |
+| `match.perf.nonWrestlerPenalty`            | number | 20      | 0–50  | points     | Penalty for a non-wrestler in the ring                      |
+| `match.perf.injuredPenalty`                | number | 25      | 0–50  | points     | Penalty for working hurt                                    |
+| `match.perf.fatiguePenaltyPerPoint`        | number | 0.15    | 0–1   | ratio      | Performance lost per point of fatigue                       |
+| `match.side.depthDecay`                    | number | 0.55    | 0–1   | ratio      | How much each next-best worker on a side counts             |
+| `match.sides.depthDecay`                   | number | 0.7     | 0–1   | ratio      | How much each next-best side counts                         |
+| `match.workRate.staminaNeed.short`         | number | 0       | 0–100 | points     | Stamina a short singles match asks of each worker           |
+| `match.workRate.staminaNeed.standard`      | number | 40      | 0–100 | points     | Stamina a standard singles match asks of each worker        |
+| `match.workRate.staminaNeed.long`          | number | 65      | 0–100 | points     | Stamina a long singles match asks of each worker            |
+| `match.workRate.sharedLoadExponent`        | number | 0.5     | 0–2   | ratio      | How much bigger matches share the load; 0 means no sharing  |
+| `match.workRate.staminaPenaltyPerPoint`    | number | 0.4     | 0–2   | ratio      | Performance lost per point of stamina short                 |
+| `match.workRate.psychologyNeed.short`      | number | 20      | 0–100 | points     | Psychology the leader of a short match needs                |
+| `match.workRate.psychologyNeed.standard`   | number | 45      | 0–100 | points     | Psychology the leader of a standard match needs             |
+| `match.workRate.psychologyNeed.long`       | number | 70      | 0–100 | points     | Psychology the leader of a long match needs                 |
+| `match.workRate.psychologyPenaltyPerPoint` | number | 0.5     | 0–2   | ratio      | Work rate lost per point of psychology the leader is short  |
+| `match.workRate.spread.short`              | number | 0.8     | 0–2   | multiplier | How far a short match can stray from 50                     |
+| `match.workRate.spread.standard`           | number | 1       | 0–2   | multiplier | How far a standard match can stray from 50                  |
+| `match.workRate.spread.long`               | number | 1.15    | 0–2   | multiplier | How far a long match can stray from 50                      |
+| `match.workRate.varianceSd`                | number | 4       | 0–20  | points     | Spread of the night-to-night work rate roll; 0 turns it off |
