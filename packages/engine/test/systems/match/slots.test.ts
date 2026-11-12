@@ -116,7 +116,10 @@ describe('durationClassOf', () => {
   it('labels the base class with the role', () => {
     const result = durationClassOf({ role: 'midcard', matchType: SINGLES }, DEPS);
     expect(result.value).toBe('standard');
-    const base = expectTraceContains(result, { kind: 'tunable', label: 'Midcard → Standard' });
+    const base = expectTraceContains(result, {
+      kind: 'tunable',
+      label: "Midcard's duration class",
+    });
     expect(base.key).toBe('match.slot.durationClass.midcard');
   });
 
