@@ -68,7 +68,7 @@ function columnsFor(kind: SegmentKind): readonly ColumnDef<WorkerLine>[] {
     {
       id: 'worker',
       header: 'Worker',
-      cell: (line) => renderWorkerName(line.personId, line.name),
+      cell: (line) => renderWorkerName(line.personId, line.name, styles['lineName']),
       sortValue: (line) => line.name,
       card: 'title',
       width: 'lg',

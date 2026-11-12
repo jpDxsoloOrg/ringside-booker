@@ -92,6 +92,9 @@ describe('the lab wording', () => {
     expect(weightText(1.75)).toBe('×1.75');
     expect(staminaText(0)).toBe('Passed');
     expect(staminaText(-6)).toBe('Failed −6');
+    expect(staminaText(-6.4)).toBe('Failed −6');
+    // A miss under a point still reads as a failed check, the way its chip is coloured.
+    expect(staminaText(-0.37)).toBe('Failed −0.37');
   });
 
   it('states a match type’s limits without any running time', () => {
