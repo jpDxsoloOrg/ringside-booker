@@ -139,6 +139,7 @@ export const galleryEntry: GalleryEntry = {
 | `ShowChip`            | One show on a calendar or in a list of shows: importance bar and tint, name, brand or promotion tag; struck through when cancelled, dashed when projected. Other features add badges with `registerShowChipBadge` |
 | `StarRating`          | A 0–5 star rating in quarter steps, filled by a CSS clip; named "3.75 stars out of 5", "No stars" for 0. Sizes `sm`, `md`, `lg`; tones `office`, `broadcast`                                                      |
 | `Histogram`           | How values spread across bins: inline-SVG bars, ticks, an optional mean line and ±1 sd band, and a hidden table of the same numbers. "No runs yet" when empty                                                     |
+| `SegmentResultCard`   | One finished segment from `shows.results`: sides with the winner marked, the result line, stars with a Why? on each number and the title banner; `revealed={false}` keeps its height                              |
 
 Money is integer `Cents` and dates are `GameDate` strings from `@ringside/engine`; the formatters
 turn them into text at the edge and nowhere else.

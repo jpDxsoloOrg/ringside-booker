@@ -5,7 +5,8 @@
  * EVT3-01 lays the groundwork: the events, trace kinds, random stream and tunables. EVT3-02 adds the
  * show score formulas and modifier seam. EVT3-03 adds the `shows.runShows` phase and the segment
  * result applier and match outcome resolver seams. EVT3-04 settles titles (the built-in
- * `shows.titleOutcome` applier) and counts appearances. Queries arrive with EVT3-05.
+ * `shows.titleOutcome` applier) and counts appearances. EVT3-05 adds the
+ * results queries (`shows.results`, `shows.lastCompleted`, `shows.completedSince`).
  */
 
 // The stream and event declarations are types only. Importing them here brings them into every
@@ -14,6 +15,7 @@ import './events';
 import './streams';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
 import { showsPhases } from './phases';
+import { showsQueries } from './queries';
 import { registerSegmentResultApplier } from './registries';
 import { titleOutcomeApplier } from './titles';
 
@@ -111,11 +113,41 @@ export {
   type TitleOutcomeInputs,
 } from './titles';
 
+export {
+  DEFAULT_COMPLETED_SINCE,
+  MAX_COMPLETED_SINCE,
+  MAX_RESULTS_RANGE_DAYS,
+  RESULTS_RANGE_MESSAGES,
+  RESULTS_SCOPES,
+  SHOW_NOT_FOUND_MESSAGE,
+  completedSinceQuery,
+  lastCompletedQuery,
+  resultsQuery,
+  showsQueries,
+  type CompletedSinceArgs,
+  type ResultsScope,
+} from './queries';
+export {
+  showResultsView,
+  showSummaryView,
+  type ResultsViewDeps,
+  type SegmentMemberView,
+  type SegmentOutcomeView,
+  type SegmentRatingView,
+  type SegmentResultView,
+  type SegmentSideView,
+  type SegmentTitleView,
+  type ShowResultView,
+  type ShowResultsView,
+  type ShowSummaryView,
+  type TitleResultOutcome,
+} from './resultsView';
+
 // The built-in title outcome applier (order 10), registered once at module load.
 registerSegmentResultApplier(titleOutcomeApplier);
 
 export const showsSystem: SystemBundle = defineSystem({
   id: 'shows',
   phases: showsPhases,
-  queries: [],
+  queries: showsQueries,
 });

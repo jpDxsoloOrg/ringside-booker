@@ -336,6 +336,62 @@ player's breakdowns out of `sim.traceRetentionPerKind`. A stored rating or
 result keeps its trace's ref key (`refKey(ref)`) in `traceId`, and
 `traceRefFromKey` turns it back into a ref.
 
+## Results queries
+
+`systems/shows/queries.ts` and `resultsView.ts` (EVT3-05). Show night writes
+results; these queries make them readable without touching the world. The
+view types (`ShowResultsView`, `SegmentResultView`, `ShowSummaryView`) are
+exported from the engine's index; screens import them, and later features
+(MTCH2's lab, DAY2's Office panel, EVT7's archive, DAY1's news) read them, so
+changes to their shapes are additive only.
+
+- `shows.results { eventInstanceId }`: one show's page. The header (name,
+  dates, status, promotion with its colour and logo, brand, importance,
+  format, region, venue), `mine`, `offscreen`, the `result` (score, raw
+  score, stars from [show stars](#show-stars), the score's trace ref,
+  attendance, gate, viewers) and every segment in running order. An unknown
+  id is refused with `notFound` ("That show doesn't exist.").
+- `shows.lastCompleted { scope? }`: the latest completed show (by date, then
+  id) as one `ShowSummaryView`: name, date, promotion, score, stars, the main
+  event slot's type, sides and winner, and every title change. `mine` (the
+  default) keeps the viewer's shows; an omniscient viewer or a player who runs
+  no promotion reads the world. It walks back a day at a time through the
+  `byDate` index, at most 3,650 days and never before the world's first day.
+- `shows.completedSince { from, to, scope, limit? }`: the shows completed with
+  `from <= date < to`, newest first (by date, then id), at most `limit`
+  (1 to 50, 10 by default). It reads `eventInstances.byDate` one day at a
+  time; a range is refused when it ends before it starts or covers more than
+  3,650 days (the most one advance can skip).
+
+Each segment carries its 1-based `slotNumber`, its slot role and duration
+class as keys and words (never minutes), the match or angle type, the sides
+with each member's ring name (the active contract with the show's promotion,
+else the default ring name: names are not stored at the time of the show),
+the result (`win` with the side, method and finish names, `draw` or
+`noContest`; null for a talking segment), the rating with its components, the
+storylines, and each title on the line:
+
+| Title outcome | When                                                                                 |
+| ------------- | ------------------------------------------------------------------------------------ |
+| `newChampion` | A reign was won in this segment; `newHolderNames` is the reign's `holderNamesAtTime` |
+| `retained`    | The title was held going into the segment and nobody won it here                     |
+| `stillVacant` | Nobody held it going in and nobody won it                                            |
+| `none`        | The segment ended in a no contest, or the show has not run yet                       |
+
+Every trace ref is passed through `ctx.traces.has(ref)`: a summarised trace
+keeps its ref (the Why? panel shows the summary), an evicted one gives null,
+so a screen never shows a Why? that opens nothing.
+
+**Who sees what.** Results are public: rival cards and winners were on TV.
+Money is not: `gate` is only returned for the viewer's own promotions (and to
+the omniscient viewer of tools and tests), and is null for a rival's show
+whatever is stored; ECO and EVT6 rely on this. A card is private until it
+airs: a show that has not completed returns `result: null`, and a rival's
+returns no segments at all. The viewer's own unaired card is listed without
+outcomes or ratings, since a match's `outcome` is still the booker's plan. An
+off-screen show (a completed computer show with no card) has
+`offscreen: true` and no segments.
+
 ## Seams
 
 ### Show score modifiers
