@@ -420,6 +420,27 @@ The auto-winner and Random winners (MTCH2-03) add to the same category. See
 | `match.autoWinner.randomness`        | number | 5       | 0–200  | points     | Most unpredictability per side; 0 = always the same winner           |
 | `match.randomWinners.randomness`     | number | 60      | 1–1000 | points     | Most unpredictability per side in Random winners mode; never below 1 |
 
+### Aftermath momentum tunables
+
+How much one match result moves a competitor's momentum (MTCH3-02), in
+`systems/match/aftermath/momentumTunables.ts`, category `Aftermath`. See
+[match-aftermath.md](match-aftermath.md#momentum-gain) for what each does.
+
+| Key                                       | Kind   | Default | Range | Unit   | What it does                                             |
+| ----------------------------------------- | ------ | ------- | ----- | ------ | -------------------------------------------------------- |
+| `match.momentum.winBase`                  | number | 5       | 0–50  | points | Momentum a win is worth                                  |
+| `match.momentum.winGapPerPoint`           | number | 0.2     | 0–2   | ratio  | Extra momentum per point the beaten opponent was hotter  |
+| `match.momentum.winMax`                   | number | 15      | 0–50  | points | Most momentum one win can give                           |
+| `match.momentum.lossBase`                 | number | 5       | 0–50  | points | Momentum a loss costs                                    |
+| `match.momentum.lossGapPerPoint`          | number | 0.2     | 0–2   | ratio  | Extra momentum lost per point the winner was colder      |
+| `match.momentum.lossMax`                  | number | 15      | 0–50  | points | Most momentum one loss can cost                          |
+| `match.momentum.draw`                     | number | 2       | 0–50  | points | Momentum a draw costs                                    |
+| `match.momentum.multiSideWinPerExtraSide` | number | 1       | 0–10  | points | Extra momentum for winning, per side beyond two          |
+| `match.momentum.multiSideLossShare`       | number | 0.35    | 0–1   | ratio  | Smallest share of a loss kept in a match with many sides |
+| `match.momentum.greatMatchFrom`           | number | 85      | 0–100 | points | Segment score from which a match counts as great         |
+| `match.momentum.greatMatchBonus`          | number | 2       | 0–20  | points | Momentum everyone in a great match gains                 |
+| `match.momentum.maxPerSegment`            | number | 15      | 0–50  | points | Most momentum one match can give or take                 |
+
 ## Shows tunables
 
 Show night's numbers (EVT3), in `systems/shows/tunables.ts`, category `Shows`.

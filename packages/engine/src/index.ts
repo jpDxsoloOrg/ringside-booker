@@ -1539,3 +1539,27 @@ export {
   type PopularityOpponent,
   type PopularityOutcome,
 } from './systems/match/index';
+
+// Momentum from a match result and a worker's earlier matches (MTCH3-02): the pure momentum
+// formula, the prior-match history behind win streaks and Recent form, and the door's starting
+// momentum so the aftermath's "before" matches the door's. See
+// docs/design/match-aftermath.md#momentum-gain and #prior-matches.
+export type {
+  MatchPosition,
+  MatchResultForSide,
+  MomentumGainInputs,
+  MomentumOpponent,
+  PriorMatch,
+  WinStreak,
+} from './systems/match/index';
+export {
+  MOMENTUM_GAIN_DOC_REF,
+  NO_CONTEST_MOMENTUM_NOTE,
+  NO_CONTRACT_MOMENTUM_REASON,
+  momentumGain,
+  noContractMomentum,
+  priorMatchesOf,
+  resultOf,
+  winStreakBefore,
+} from './systems/match/index';
+export { initialMomentum } from './systems/workers/index';
