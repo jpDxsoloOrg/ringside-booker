@@ -1,0 +1,19 @@
+/*
+ * A sortable item. While it is being dragged, or shifted out of the way, `SortableItem` writes its
+ * offset to --sortable-x and --sortable-y; the transform is only applied then, so a resting item
+ * makes no stacking context.
+ */
+.item {
+  min-inline-size: 0;
+}
+
+.moving {
+  position: relative;
+  transform: translate3d(var(--sortable-x, 0), var(--sortable-y, 0), 0);
+  transition: var(--sortable-transition, none);
+}
+
+.dragging {
+  z-index: 1;
+  opacity: 0.85;
+}

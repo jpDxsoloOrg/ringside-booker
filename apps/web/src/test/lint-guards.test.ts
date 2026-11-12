@@ -206,6 +206,27 @@ describe('lint guards: Lucide stays behind the Icon component', () => {
   });
 });
 
+describe('lint guards: dnd-kit stays behind SortableList', () => {
+  const DND_IMPORT =
+    "import { useSortable } from '@dnd-kit/sortable';\nexport const hook = useSortable;\n";
+
+  it('bans @dnd-kit imports outside SortableList', async () => {
+    const messages = await lintSample(DND_IMPORT, WEB_SOURCE_PATH);
+    const errors = errorsFromRule(messages, 'no-restricted-syntax');
+    expect(errors).toHaveLength(1);
+    expect(errors[0]?.message).toContain('SortableList');
+  });
+
+  it('allows @dnd-kit inside SortableList, and still bans lucide-react there', async () => {
+    const path = 'apps/web/src/components/SortableList/Sample.tsx';
+    expect(errorsFromRule(await lintSample(DND_IMPORT, path), 'no-restricted-syntax')).toHaveLength(
+      0,
+    );
+    const lucide = "import { Star } from 'lucide-react';\nexport const glyph = Star;\n";
+    expect(errorsFromRule(await lintSample(lucide, path), 'no-restricted-syntax')).toHaveLength(1);
+  });
+});
+
 describe('lint guards: React hooks', () => {
   it('bans a hook called inside a condition', async () => {
     const code = [
