@@ -9,7 +9,7 @@
     "label": "Test save",
     "promotionName": "Test Promotion A",
     "promotionShortName": "TPA",
-    "schemaFingerprint": "bf09b01cde773858c8ca3e3b1c00eeb2",
+    "schemaFingerprint": "3598591e7eceae1339397ace2d94479b",
     "startDate": "2026-01-05",
     "worldName": "Test Tiny World"
   },
@@ -1449,7 +1449,8 @@
               "dealId": null,
               "eventInstanceId": "evi_0000000001",
               "personId": null
-            }
+            },
+            "traceRef": null
           },
           {
             "amount": 100000,
@@ -1462,7 +1463,8 @@
               "dealId": "dea_0000000001",
               "eventInstanceId": "evi_0000000001",
               "personId": null
-            }
+            },
+            "traceRef": null
           },
           {
             "amount": -1500000,
@@ -1475,7 +1477,8 @@
               "dealId": null,
               "eventInstanceId": "evi_0000000001",
               "personId": null
-            }
+            },
+            "traceRef": null
           },
           {
             "amount": -4000000,
@@ -1488,7 +1491,8 @@
               "dealId": null,
               "eventInstanceId": null,
               "personId": null
-            }
+            },
+            "traceRef": null
           },
           {
             "amount": -4000000,
@@ -1501,7 +1505,8 @@
               "dealId": null,
               "eventInstanceId": null,
               "personId": null
-            }
+            },
+            "traceRef": null
           }
         ],
         "mail": [

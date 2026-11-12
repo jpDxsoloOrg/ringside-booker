@@ -51,6 +51,7 @@ export { traceNodeSchema } from './schema';
 export {
   TRACE_REF_KIND_PATTERN,
   TRACE_SUMMARY_CONTRIBUTORS,
+  TraceRefSchema,
   TraceStore,
   isFullTrace,
   parseTraceStoreState,
