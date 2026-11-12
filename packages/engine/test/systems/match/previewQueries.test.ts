@@ -396,22 +396,22 @@ describe('a 30-person battle royal', () => {
     }
   });
 
-  // Performance guard: a generous budget (about 1 s alone on a laptop), skipped on CI where
-  // shared runners vary, and retried because a full parallel test run can starve one worker.
+  // Performance guard: a generous budget (about 1 s alone on a laptop), skipped on CI where shared
+  // runners vary. It counts this process's CPU time rather than the wall clock, so a full parallel
+  // test run on a busy machine does not starve it into failing.
   it.skipIf(process.env['CI'] !== undefined)(
-    'runs a 500-run batch in under 3 s',
-    { retry: 2, timeout: 20_000 },
+    'runs a 500-run batch in under 3 s of CPU time',
+    { retry: 1, timeout: 30_000 },
     () => {
       const { engine, args } = battleRoyal();
       // Warm up, so the timing is of the ratings and not of the first call's compilation.
       engine.query('match.previewBatch', { ...args, runs: 20 }, PLAYER);
-      // eslint-disable-next-line no-restricted-properties -- a speed test has to read the real clock
-      const started = performance.now();
+      const started = process.cpuUsage();
       const result = engine.query('match.previewBatch', { ...args, runs: 500 }, PLAYER);
-      // eslint-disable-next-line no-restricted-properties -- a speed test has to read the real clock
-      const elapsed = performance.now() - started;
+      const used = process.cpuUsage(started);
+      const elapsedMs = (used.user + used.system) / 1000;
       expect(result.ok).toBe(true);
-      expect(elapsed).toBeLessThan(3000);
+      expect(elapsedMs).toBeLessThan(3000);
     },
   );
 });
