@@ -508,7 +508,7 @@ export const matchTunables = defineTunables({
     'Share of work rate (or talk) in a star rating; the crowd gets the rest',
   ),
   'match.stars.zeroAt': matchNumber(
-    35,
+    15,
     { min: 0, max: 80, step: 1 },
     'points',
     STARS_CATEGORY,
@@ -516,7 +516,7 @@ export const matchTunables = defineTunables({
     'The blended score that is worth no stars at all',
   ),
   'match.stars.pointsPerStar': matchNumber(
-    12,
+    15,
     { min: 0, max: 30, step: 0.5 },
     'points',
     STARS_CATEGORY,

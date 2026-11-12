@@ -172,7 +172,7 @@ export function durationClassOf(
   } else {
     const key = DURATION_CLASS_KEYS[role];
     base = deps.tunables.get(key);
-    decision.tunable(deps.tunables, key, `${roleLabel} → ${DURATION_CLASS_LABELS[base]}`);
+    decision.tunable(deps.tunables, key, `${roleLabel}'s duration class`);
   }
 
   if (matchType === null) {

@@ -360,6 +360,14 @@
   min-inline-size: 0;
 }
 
+/*
+ * A name in the table breaks between words only: a narrow result column squeezes the table, and a
+ * name that may break anywhere let the column shrink to a few letters ("Thacker/ay").
+ */
+.linesTable .lineName {
+  overflow-wrap: normal;
+}
+
 /* ---- Warnings --------------------------------------------------------------------------- */
 
 .warnings {
