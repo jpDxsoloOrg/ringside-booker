@@ -223,7 +223,14 @@ function addTinyHistory(context: BuildContext): void {
         status: 'completed',
         venueId: venue.id,
         regionId: venue.regionId,
-        result: { score: 62, attendance: 2800, gate: cents(8_400_000), viewers: 150_000 },
+        result: {
+          score: 62,
+          rawScore: 62,
+          traceId: null,
+          attendance: 2800,
+          gate: cents(8_400_000),
+          viewers: 150_000,
+        },
       },
       sequence,
     ),
@@ -234,7 +241,7 @@ function addTinyHistory(context: BuildContext): void {
     aMatch(
       {
         eventInstanceId: show.id,
-        rating: { score: 55, stars: 2.75, traceId: null },
+        rating: { score: 55, stars: 2.75, workRate: 52, crowd: 58, expectation: 50, traceId: null },
         outcome: { kind: 'win', winningSide: 1, methodKey: winMethod },
       },
       sequence,
@@ -246,7 +253,7 @@ function addTinyHistory(context: BuildContext): void {
       {
         eventInstanceId: show.id,
         storylineIds: [storyline.id],
-        rating: { score: 64, stars: 3, traceId: null },
+        rating: { score: 64, stars: 3, workRate: null, crowd: 66, expectation: 60, traceId: null },
         angle: {
           beats: [
             { beatKey: parseContentKey('beat.promo'), personIds: [person(0)] },
@@ -268,7 +275,7 @@ function addTinyHistory(context: BuildContext): void {
           titleIds: [required(heavyweightTitle, 'heavyweight title')],
           finishKey: parseContentKey('finish.clean'),
         },
-        rating: { score: 71, stars: 3.5, traceId: null },
+        rating: { score: 71, stars: 3.5, workRate: 70, crowd: 74, expectation: 68, traceId: null },
         outcome: { kind: 'win', winningSide: 0, methodKey: winMethod },
       },
       sequence,
@@ -280,7 +287,7 @@ function addTinyHistory(context: BuildContext): void {
       {
         eventInstanceId: show.id,
         preShow: true,
-        rating: { score: 40, stars: 2, traceId: null },
+        rating: { score: 40, stars: 2, workRate: 42, crowd: 36, expectation: 38, traceId: null },
         outcome: { kind: 'win', winningSide: 0, methodKey: winMethod },
       },
       sequence,

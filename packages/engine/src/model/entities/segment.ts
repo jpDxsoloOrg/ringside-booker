@@ -47,12 +47,18 @@ export const SegmentCrewSchema = z.strictObject({
 });
 
 /**
- * A segment's rating, set when the show is completed. A placeholder shape for MTCH, which may add
- * components. `traceId` links to the recent-traces store kept in the save for the Why? panel.
+ * A segment's rating, written by EVT3's `shows.runShows` when the show is completed. `score` and
+ * `stars` are the rater's result; `workRate`, `crowd` and `expectation` are its components, each
+ * null only when the segment's rater produces no such component (a talking segment has no work
+ * rate). `traceId` holds the ref key (`refKey(ref)` from `core/trace/store.ts`) of the rating's
+ * trace in the recent-traces store kept in the save for the Why? panel, or null when none was kept.
  */
 export const SegmentRatingSchema = z.strictObject({
   score: zStat,
   stars: z.number().min(0).max(MAX_STARS).multipleOf(STAR_STEP),
+  workRate: zStat.nullable(),
+  crowd: zStat.nullable(),
+  expectation: zStat.nullable(),
   traceId: z.string().min(1).nullable(),
 });
 

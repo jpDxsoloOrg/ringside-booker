@@ -123,7 +123,14 @@ describe('EventInstanceSchema', () => {
   });
 
   it('rejects a result on a scheduled instance and requires one on a completed one', () => {
-    const result = { score: 70, attendance: 1200, gate: 0, viewers: null };
+    const result = {
+      score: 70,
+      rawScore: 70,
+      traceId: null,
+      attendance: 1200,
+      gate: 0,
+      viewers: null,
+    };
     expect(
       EventInstanceSchema.safeParse({ ...makeInstance(1, { status: 'scheduled' }), result })
         .success,

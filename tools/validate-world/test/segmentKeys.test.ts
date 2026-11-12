@@ -110,7 +110,14 @@ function addShow(
       status: 'completed',
       venueId: null,
       regionId: region.id,
-      result: { score: 50, attendance: 100, gate: cents(100_000), viewers: 0 },
+      result: {
+        score: 50,
+        rawScore: 50,
+        traceId: null,
+        attendance: 100,
+        gate: cents(100_000),
+        viewers: 0,
+      },
       cancellation: null,
     });
     // Built first and passed as variables: `tx.create` takes the segment union with its ID left

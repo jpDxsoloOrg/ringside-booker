@@ -33,16 +33,25 @@ export const EventCancellationSchema = z.strictObject({
 });
 
 /**
- * What a completed show produced. The EVT and ECO epics extend it (score components, revenue
- * lines) with a migration once the format is frozen.
+ * What a completed show produced. EVT3 writes `score`, `rawScore` and `traceId`; EVT6 writes
+ * `attendance` and `gate`; ECO8 writes `viewers`. Each of the last three stays null until the
+ * feature that computes it lands, and crowd size is never the same number as crowd reaction (D-02).
  */
 export const EventResultSchema = z.strictObject({
-  /** The show score, 0-100. */
+  /** The final show score, 0-100. */
   score: zStat,
-  attendance: zNonNegativeInt,
-  /** Ticket revenue. */
-  gate: zNonNegativeCents,
-  /** TV or stream viewers, or null for a show that did not air. */
+  /**
+   * The show score before any `cap`-stage modifier (EVT4's production ceiling); equal to `score`
+   * when no cap applies.
+   */
+  rawScore: zStat,
+  /** The ref key (`refKey(ref)`) of the show score's trace, or null when none was kept. */
+  traceId: z.string().min(1).nullable(),
+  /** People in the building, or null until EVT6 computes it. */
+  attendance: zNonNegativeInt.nullable(),
+  /** Ticket revenue, or null until EVT6 computes it. */
+  gate: zNonNegativeCents.nullable(),
+  /** TV or stream viewers, or null for a show that did not air or until ECO8 computes it. */
   viewers: zNonNegativeInt.nullable(),
 });
 

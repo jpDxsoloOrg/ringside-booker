@@ -9,7 +9,7 @@
     "label": "Test save",
     "promotionName": "Test Promotion A",
     "promotionShortName": "TPA",
-    "schemaFingerprint": "74deca089d54fa035c499602f3117c8e",
+    "schemaFingerprint": "bf09b01cde773858c8ca3e3b1c00eeb2",
     "startDate": "2026-01-05",
     "worldName": "Test Tiny World"
   },
@@ -1428,7 +1428,9 @@
             "result": {
               "attendance": 2800,
               "gate": 8400000,
+              "rawScore": 62,
               "score": 62,
+              "traceId": null,
               "viewers": 150000
             },
             "status": "completed",
@@ -2915,9 +2917,12 @@
             },
             "preShow": false,
             "rating": {
+              "crowd": 58,
+              "expectation": 50,
               "score": 55,
               "stars": 2.75,
-              "traceId": null
+              "traceId": null,
+              "workRate": 52
             },
             "slot": 0,
             "storylineIds": []
@@ -2952,9 +2957,12 @@
             "label": null,
             "preShow": false,
             "rating": {
+              "crowd": 66,
+              "expectation": 60,
               "score": 64,
               "stars": 3,
-              "traceId": null
+              "traceId": null,
+              "workRate": null
             },
             "slot": 1,
             "storylineIds": [
@@ -2986,9 +2994,12 @@
             },
             "preShow": false,
             "rating": {
+              "crowd": 74,
+              "expectation": 68,
               "score": 71,
               "stars": 3.5,
-              "traceId": null
+              "traceId": null,
+              "workRate": 70
             },
             "slot": 2,
             "storylineIds": [
@@ -3018,9 +3029,12 @@
             },
             "preShow": true,
             "rating": {
+              "crowd": 36,
+              "expectation": 38,
               "score": 40,
               "stars": 2,
-              "traceId": null
+              "traceId": null,
+              "workRate": 42
             },
             "slot": 0,
             "storylineIds": []
