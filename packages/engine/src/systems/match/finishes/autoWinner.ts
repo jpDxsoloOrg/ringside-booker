@@ -5,7 +5,7 @@
  * unpredictability roll between −randomness and +randomness. The highest total wins; an exact tie
  * goes to the side whose lowest person id sorts first. It never produces a draw.
  *
- * In Random winners mode the decision is labelled "Random winners mode: winner decided on the
+ * In Random winners mode the decision is labelled "Random winners mode, winner decided on the
  * night", so the Why? panel's first line says so; the caller passes the larger
  * `match.randomWinners.randomness`.
  *
@@ -20,7 +20,7 @@ import { limitTrace, startCalc, startDecision, type Traced } from '../../../core
 import { AUTO_WINNER_DOC_REF } from '../formulas/autoWinnerScore';
 
 export const AUTO_WINNER_LABEL = 'Winner decided automatically';
-export const RANDOM_WINNERS_LABEL = 'Random winners mode: winner decided on the night';
+export const RANDOM_WINNERS_LABEL = 'Random winners mode, winner decided on the night';
 export const NO_UNPREDICTABILITY_NOTE = 'No unpredictability (0)';
 export const HIGHEST_SCORE_RULE = 'Highest score wins';
 export const TIE_BREAK_RULE = 'Tie broken by lowest person id';
