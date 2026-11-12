@@ -184,7 +184,11 @@ describe('startCalc', () => {
       .done();
     expect(result.value).toBeCloseTo(0.125, 12);
     const step = expectTraceContains(result, { kind: 'power' });
-    expect(step).toMatchObject({ operand: 1.5, before: 0.25, reason: 'Gains shrink as popularity rises' });
+    expect(step).toMatchObject({
+      operand: 1.5,
+      before: 0.25,
+      reason: 'Gains shrink as popularity rises',
+    });
     expect(step.children).toStrictEqual([exponent.trace]);
     expectTraceReplays(result);
     expectSerialisable(result);
