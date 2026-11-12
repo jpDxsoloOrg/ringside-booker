@@ -1286,3 +1286,44 @@ export {
   SimulateArgsSchema,
   SimulateBatchArgsSchema,
 } from './systems/match/index';
+
+// The booking system (EVT2-01): the card rules, the segment draft and the card writer every
+// booking command and the rival booker write cards through. See docs/design/booking.md.
+export type {
+  AngleDraft,
+  CardPosition,
+  CardShow,
+  CardTarget,
+  EditBlockCode,
+  MatchDraft,
+  ParticipantDraft,
+  SegmentDraft,
+  SegmentDraftInput,
+  StructuralCheck,
+  StructuralProblemCode,
+  WriteSegmentArgs,
+} from './systems/booking/index';
+export {
+  AngleDetailsDraftSchema,
+  AngleDraftSchema,
+  canReadCard,
+  cardSegments,
+  clearCard,
+  draftFromSegment,
+  EDIT_BLOCK_CODES,
+  editBlockOf,
+  emptyCrew,
+  hasCard,
+  MatchDetailsDraftSchema,
+  MatchDraftSchema,
+  moveSegment,
+  PARK_SLOT,
+  ParticipantDraftSchema,
+  removeSegment,
+  SegmentDraftSchema,
+  setPlannedOutcome,
+  STRUCTURAL_PROBLEM_CODES,
+  structuralProblems,
+  writeSegment,
+} from './systems/booking/index';
+export { CardWriteError } from './core/errors';
