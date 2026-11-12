@@ -12,3 +12,15 @@ declare module '../../core/rng/streams' {
 
 /** The stream the rating rolls draw from. */
 export const MATCH_RATING_STREAM = 'match.rating';
+
+// The Match lab's previews (MTCH1-06) roll on a detached stream of this name, keyed by the
+// preview seed (`detachedStream` in `core/rng/registry.ts`); it is never taken from the world's
+// registry, so a preview can never move a world stream.
+declare module '../../core/rng/streams' {
+  interface StreamNames {
+    'match.preview': true;
+  }
+}
+
+/** The name of the detached stream a preview rolls on. */
+export const MATCH_PREVIEW_STREAM = 'match.preview';
