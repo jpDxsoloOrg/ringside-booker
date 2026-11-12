@@ -492,18 +492,19 @@ interface PopularityTarget {
   anchor: Traced<number> | null;
 }
 
-function popularityTarget(ctx: DoorContext, subject: PopularitySubject): PopularityTarget {
+function popularityTarget(
+  read: GameWorldView,
+  tunables: EngineTunables,
+  subject: PopularitySubject,
+): PopularityTarget {
   if (subject.kind === 'person') {
-    const person = requirePerson(ctx.read, 'applyPopularityChange', subject.id);
+    const person = requirePerson(read, 'applyPopularityChange', subject.id);
     return {
       regionalPop: person.regionalPop,
-      anchor: popularityAnchor(
-        { charisma: person.attributes.charisma },
-        { tunables: ctx.tunables },
-      ),
+      anchor: popularityAnchor({ charisma: person.attributes.charisma }, { tunables }),
     };
   }
-  const promotion = ctx.read.tables.promotions.get(subject.id);
+  const promotion = read.tables.promotions.get(subject.id);
   if (promotion === undefined) {
     throw new InvalidArgumentError(
       'applyPopularityChange',
@@ -534,32 +535,64 @@ function withDeltaTrace(result: Traced<number>, delta: Traced<number>): Traced<n
   return traced(result.value, { ...result.trace, children: [start, asked, ...steps] });
 }
 
+/** One weighted region in a popularity preview. */
+export interface PopularityPreviewRegion {
+  /** The stored value before the change; 0 when nothing is stored. */
+  before: number;
+  /** The value the door would store; 0 when the region would be dropped from the map. */
+  after: number;
+  /** How `after` is worked out: the change asked for × the region's share, tapered, clamped, rounded. */
+  trace: Traced<number>;
+}
+
+/** What {@link applyPopularityChange} would do, worked out without writing anything. */
+export interface PopularityPreview {
+  /** Every weighted region, most populous first (ties by ID). */
+  byRegion: Map<RegionId, PopularityPreviewRegion>;
+  /** The stored map before the change. */
+  before: RegionalPopularity;
+  /** The map the door would store. */
+  after: Record<RegionId, number>;
+  /** The regions whose stored value would change, most populous first. */
+  regionsChanged: RegionId[];
+  /** The points moved over every region: the trace the door records. */
+  total: Traced<number>;
+}
+
+export interface PreviewPopularityChangeArgs {
+  regionWeights: ApplyPopularityChangeArgs['regionWeights'];
+  delta: number | Traced<number>;
+  /** The reason as the player reads it, for the total's label. "Preview" when left out. */
+  label?: string;
+}
+
 /**
- * Changes a person's or a promotion's popularity in the weighted regions. Each region gets
- * `delta × weight`, a person's gains taper above their anchor, and every result stays between 0
- * and 100. The stored map stays sparse: a region that ends at 0, or below
- * `workers.popularity.dropBelow`, is removed.
+ * The popularity door's math with no writes: the before and after value of every weighted region,
+ * with the same taper, clamp, rounding and drop rule {@link applyPopularityChange} applies. The
+ * door calls this and writes what it returns, so a preview and a real change can never disagree.
  */
-export function applyPopularityChange(
-  ctx: DoorContext,
-  args: ApplyPopularityChangeArgs,
-): PopularityDoorResult {
-  requireReason('applyPopularityChange', args.reason);
-  const target = popularityTarget(ctx, args.subject);
-  const regions = weightedRegions(ctx.read, args.regionWeights);
+export function previewPopularityChange(
+  read: GameWorldView,
+  tunables: EngineTunables,
+  subject: PopularitySubject,
+  args: PreviewPopularityChangeArgs,
+): PopularityPreview {
+  const target = popularityTarget(read, tunables, subject);
+  const regions = weightedRegions(read, args.regionWeights);
   const deltaValue = typeof args.delta === 'number' ? args.delta : args.delta.value;
-  const dropBelow = ctx.tunables.get('workers.popularity.dropBelow');
+  const dropBelow = tunables.get('workers.popularity.dropBelow');
 
   const before = target.regionalPop;
   const stored = new Map<RegionId, number>();
-  for (const region of ctx.read.tables.regions.values()) {
+  for (const region of read.tables.regions.values()) {
     const value = before[region.id];
     if (value !== undefined) {
       stored.set(region.id, value);
     }
   }
+  const byRegion = new Map<RegionId, PopularityPreviewRegion>();
   const regionsChanged: RegionId[] = [];
-  const total = startCalc(`Popularity change: ${args.reason.label}`, 0, {
+  const total = startCalc(`Popularity change: ${args.label ?? 'Preview'}`, 0, {
     unit: 'points',
     docRef: POPULARITY_DOC_REF,
     startLabel: 'Points moved so far',
@@ -568,14 +601,14 @@ export function applyPopularityChange(
     const regionBefore = before[region.id] ?? 0;
     const changed = popularityChange(
       {
-        subjectKind: args.subject.kind,
+        subjectKind: subject.kind,
         regionName: region.name,
         before: regionBefore,
         delta: deltaValue,
         weight,
         anchor: target.anchor,
       },
-      { tunables: ctx.tunables },
+      { tunables },
     );
     // The schemas refuse a stored 0, so a region that ends with nothing is left out of the map.
     const tooSmall = changed.value !== 0 && changed.value < dropBelow;
@@ -589,6 +622,19 @@ export function applyPopularityChange(
       );
     }
     total.add(region.name, moved.subtract('Popularity before', regionBefore).done());
+    byRegion.set(region.id, {
+      before: regionBefore,
+      after: regionAfter,
+      trace: tooSmall
+        ? startCalc(`Popularity in ${region.name}`, changed, { unit: 'points' })
+            .multiply(
+              'Too small to keep',
+              0,
+              `Below the drop threshold of ${String(dropBelow)}, so the region is removed`,
+            )
+            .done()
+        : changed,
+    });
     if (regionAfter !== regionBefore) {
       regionsChanged.push(region.id);
     }
@@ -600,7 +646,26 @@ export function applyPopularityChange(
   }
   // The cast names the key type `Object.fromEntries` widens to string.
   const after = Object.fromEntries(stored) as Record<RegionId, number>;
+  return { byRegion, before, after, regionsChanged, total: total.done() };
+}
 
+/**
+ * Changes a person's or a promotion's popularity in the weighted regions. Each region gets
+ * `delta × weight`, a person's gains taper above their anchor, and every result stays between 0
+ * and 100. The stored map stays sparse: a region that ends at 0, or below
+ * `workers.popularity.dropBelow`, is removed.
+ */
+export function applyPopularityChange(
+  ctx: DoorContext,
+  args: ApplyPopularityChangeArgs,
+): PopularityDoorResult {
+  requireReason('applyPopularityChange', args.reason);
+  const preview = previewPopularityChange(ctx.read, ctx.tunables, args.subject, {
+    regionWeights: args.regionWeights,
+    delta: args.delta,
+    label: args.reason.label,
+  });
+  const { before, after, regionsChanged } = preview;
   const roller = createPopularityRoller(geographyOf(ctx.read));
   const worldBefore = roller.rollValues(before).world;
   if (regionsChanged.length === 0) {
@@ -625,11 +690,10 @@ export function applyPopularityChange(
         : DOOR_TRACE_KINDS.promotionPopularity,
     id: args.subject.id,
   };
-  const summed = total.done();
   ctx.recordTrace(
     traceRef,
     ctx.date,
-    typeof args.delta === 'number' ? summed : withDeltaTrace(summed, args.delta),
+    typeof args.delta === 'number' ? preview.total : withDeltaTrace(preview.total, args.delta),
   );
   ctx.publish('popularity.changed', {
     subjectKind: args.subject.kind,
@@ -707,6 +771,38 @@ export function initialMomentum(
   ).done();
 }
 
+/** What {@link applyMomentumChange} would do, worked out without writing anything. */
+export interface MomentumPreview {
+  /** The stored momentum, or null before the first appearance under this contract. */
+  before: number | null;
+  /** The momentum the door would store. */
+  after: number;
+  /** The door's trace: the start (or the starting momentum), the delta and the −100..100 clamp. */
+  trace: Traced<number>;
+}
+
+/**
+ * The momentum door's math with no writes: the same start, delta and clamp
+ * {@link applyMomentumChange} applies, which calls this and writes what it returns. `label` names
+ * the delta's line, as the door's reason label does.
+ */
+export function previewMomentumChange(
+  read: GameWorldView,
+  tunables: EngineTunables,
+  employmentId: EmploymentId,
+  delta: number | Traced<number>,
+  label = 'This change',
+): MomentumPreview {
+  const employment = requireOpenEmployment(read, 'applyMomentumChange', employmentId);
+  const before = employment.momentum;
+  const calc =
+    before === null
+      ? startInitialMomentum(read, employment, tunables, 'Momentum', 'applyMomentumChange')
+      : startCalc('Momentum', before, { ...MOMENTUM_CALC_OPTIONS, startLabel: 'Momentum before' });
+  const trace = calc.add(label, delta).clamp(SIGNED_SCALE_MIN, SIGNED_SCALE_MAX).done();
+  return { before, after: trace.value, trace };
+}
+
 /**
  * Adds to a worker's momentum and keeps it between -100 and 100. Momentum is empty until the first
  * appearance under a contract: the first change starts it from the person's popularity in the
@@ -719,15 +815,14 @@ export function applyMomentumChange(
 ): DoorResult<number | null> {
   const employment = requireOpenEmployment(ctx.read, 'applyMomentumChange', args.employmentId);
   requireReason('applyMomentumChange', args.reason);
-  const before = employment.momentum;
-  const calc =
-    before === null
-      ? startInitialMomentum(ctx.read, employment, ctx.tunables, 'Momentum', 'applyMomentumChange')
-      : startCalc('Momentum', before, { ...MOMENTUM_CALC_OPTIONS, startLabel: 'Momentum before' });
-  const result = calc
-    .add(args.reason.label, args.delta)
-    .clamp(SIGNED_SCALE_MIN, SIGNED_SCALE_MAX)
-    .done();
+  const preview = previewMomentumChange(
+    ctx.read,
+    ctx.tunables,
+    args.employmentId,
+    args.delta,
+    args.reason.label,
+  );
+  const { before, trace: result } = preview;
   if (before === result.value) {
     return unchanged(before);
   }
