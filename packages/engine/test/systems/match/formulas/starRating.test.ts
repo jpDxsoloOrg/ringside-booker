@@ -41,8 +41,8 @@ function stars(
 }
 
 describe('starRating', () => {
-  it('gives 0 stars at base 35', () => {
-    expect(stars(35).value).toBe(0);
+  it('gives 0 stars at base 15', () => {
+    expect(stars(15).value).toBe(0);
     expect(stars(10).value).toBe(0);
   });
 
@@ -64,7 +64,7 @@ describe('starRating', () => {
   });
 
   it('names the blend and rounds to the nearest quarter star', () => {
-    // 66.1 × 0.7 + 64.1725 × 0.3 = 65.52; (65.52 − 35) ÷ 12 = 2.54, to 2.5.
+    // 66.1 × 0.7 + 64.1725 × 0.3 = 65.52; (65.52 − 15) ÷ 15 = 3.37, to 3.25.
     const result = starRating(
       {
         kind: 'match',
@@ -76,7 +76,7 @@ describe('starRating', () => {
       { tunables: createEngineTunables() },
     );
     expectTraceReplays(result);
-    expect(result.value).toBe(2.5);
+    expect(result.value).toBe(3.25);
     expect(result.trace.label).toBe(STARS_LABEL);
     expect(result.trace.unit).toBe('stars');
     expectTraceContains(result, { kind: 'add', label: 'Work rate × 0.7' });
@@ -96,11 +96,11 @@ describe('starRating', () => {
   });
 
   it('gives the cap or nothing when points per star is 0', () => {
-    const above = stars(36, 'standard', { 'match.stars.pointsPerStar': 0 });
+    const above = stars(16, 'standard', { 'match.stars.pointsPerStar': 0 });
     expect(above.value).toBe(4.75);
     expectTraceContains(above, { kind: 'note', label: POINTS_PER_STAR_ZERO_NOTE });
     expect(expectTraceContains(above, { kind: 'branch' }).taken).toBe(true);
-    const at = stars(35, 'standard', { 'match.stars.pointsPerStar': 0 });
+    const at = stars(15, 'standard', { 'match.stars.pointsPerStar': 0 });
     expect(at.value).toBe(0);
     expect(expectTraceContains(at, { kind: 'branch' }).taken).toBe(false);
   });

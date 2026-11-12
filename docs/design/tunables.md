@@ -380,8 +380,8 @@ and `Match: talking segments` for the simple talk score. See
 | `match.blend.workRateShare.highFlying`    | number | 0.6     | 0–1    | ratio  | Work rate share of a match's score, high-flying promotion     |
 | `match.blend.workRateShare.entertainment` | number | 0.3     | 0–1    | ratio  | Work rate share of a match's score, entertainment promotion   |
 | `match.stars.performanceShare`            | number | 0.7     | 0–1    | ratio  | Share of work rate (or talk) in a star rating                 |
-| `match.stars.zeroAt`                      | number | 35      | 0–80   | points | The blended score worth no stars                              |
-| `match.stars.pointsPerStar`               | number | 12      | 0–30   | points | Points above the zero for each star; 0 gives the cap          |
+| `match.stars.zeroAt`                      | number | 15      | 0–80   | points | The blended score worth no stars                              |
+| `match.stars.pointsPerStar`               | number | 15      | 0–30   | points | Points above the zero for each star; 0 gives the cap          |
 | `match.stars.cap.short`                   | number | 3.5     | 0–5    | stars  | The most stars a short match can get                          |
 | `match.stars.cap.standard`                | number | 4.75    | 0–5    | stars  | The most stars a standard match can get                       |
 | `match.stars.cap.long`                    | number | 5       | 0–5    | stars  | The most stars a long match can get                           |

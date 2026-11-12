@@ -534,8 +534,8 @@ performanceShare)`, lines "Work rate × 0.7" and "Crowd × 0.3" ("Talk × 0.7"
 | Key                            | Default | Range          | Unit   |
 | ------------------------------ | ------- | -------------- | ------ |
 | `match.stars.performanceShare` | 0.7     | 0–1, step 0.05 | ratio  |
-| `match.stars.zeroAt`           | 35      | 0–80           | points |
-| `match.stars.pointsPerStar`    | 12      | 0–30, step 0.5 | points |
+| `match.stars.zeroAt`           | 15      | 0–80           | points |
+| `match.stars.pointsPerStar`    | 15      | 0–30, step 0.5 | points |
 | `match.stars.cap.short`        | 3.5     | 0–5, step 0.25 | stars  |
 | `match.stars.cap.standard`     | 4.75    | 0–5, step 0.25 | stars  |
 | `match.stars.cap.long`         | 5       | 0–5, step 0.25 | stars  |
@@ -545,9 +545,10 @@ Category `Match: stars`. `stars` is a tunable unit as well as a trace unit.
 
 ### Worked example
 
-The main event above: `66.1 × 0.7 + 64.17 × 0.3 = 65.52`, `(65.52 − 35) ÷ 12
-= 2.54`, **2.5 stars**. A base of 35 is 0 stars; a base of 95 is `60 ÷ 12 = 5`
-stars in a long match, but 4.75 in a standard one and 3.5 in a short one.
+The main event above: `66.1 × 0.7 + 64.17 × 0.3 = 65.52`, `(65.52 − 15) ÷ 15
+= 3.37`, **3.25 stars**. A base of 15 is 0 stars; a base of 95 is `80 ÷ 15 = 5.33`
+stars before the cap: 5 in a long match, 4.75 in a standard one and 3.5 in a
+short one. The defaults came from the first tuning pass (below).
 (`starRating.test.ts`: "names the blend and rounds to the nearest quarter
 star" and "gives base 95 five stars long".)
 
@@ -916,3 +917,46 @@ names on the side chips and in the Each worker table are WRK1 `WorkerLink`s to
 the worker's profile, and person inputs in the lab's Why? panels link the same
 way through the shell's `EntityLinkContext` (MTCH1-08). Other features add
 panels with `registerLabPanel` (see `apps/web/src/app/README.md`).
+
+## First tuning pass
+
+Done with Run x100 on a new default-world game as Altura Wrestling
+Entertainment (MTCH1-09), Regular televised show in the home region, seed 1.
+The checks run as tests in
+`apps/web/src/screens/match-lab/defaultWorldLab.test.ts`, so a later change to
+the world or the tunables that breaks one fails the build.
+
+| Check (mean of 100 runs)                                     | Before          | After            |
+| ------------------------------------------------------------ | --------------- | ---------------- |
+| Two average midcarders (Mid card push), standard singles     | 1.0–2.0 stars   | 2.2–3.0, avg 2.7 |
+| Upper card pairs                                             | not measured    | 3.1–4.1, avg 3.4 |
+| Main event pairs                                             | about 3.7 stars | 4.2–4.3          |
+| Enhancement pairs                                            | 0–1.1 stars     | 0.2–2.0, avg 1.2 |
+| Altura's top two: Expected as the opener / in the main event | 68.4 / 79.4     | unchanged        |
+| Altura's top eight in a battle royal (score)                 | 76.2            | unchanged        |
+
+One change, both in `Match: stars`:
+
+- `match.stars.zeroAt` 35 → **15** and `match.stars.pointsPerStar` 12 → **15**.
+  The default world's midcarders work at about 55–60 in-ring, so the blend for
+  two of them sits near 55: under the old scale that was 1.75 stars, under the
+  new one 2.7. The wider step keeps headroom at the top: Altura's two best in a
+  main event average 4.4 stars (best night 4.75) instead of hitting the cap.
+  Only stars moved; score, work rate, crowd and expectation are as they were.
+
+What held without a change:
+
+- **Expectation follows the slot.** The same two wrestlers are expected to
+  give 79.4 in the main event and 68.4 as the opener. Their crowd number in
+  the main event does not beat the opener's (82.8 against 84.5 over 100 runs)
+  because they deliver about the same against a bigger expectation; the Crowd
+  Why? shows the delivered line and the surprise against what the crowd
+  expected.
+- **A battle royal is never the best match.** Altura's eight most popular in a
+  battle royal average 76.2, below the best singles any two of them have (the
+  top two alone average 81.5).
+- **Bounds.** No run of 100, for any slot role, a singles of the top two or the
+  bottom two, or a promo, gave a score outside 0–100 or stars outside 0–5.
+
+The star tests (`starRating.test.ts`) moved with the defaults: the worked
+example above is now 3.25 stars.

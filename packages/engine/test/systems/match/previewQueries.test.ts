@@ -337,7 +337,11 @@ describe('match.previewBatch', () => {
       throw new Error(JSON.stringify(batch.reasons));
     }
     expect(batch.data.score).toMatchObject({ min: single.score.value, max: single.score.value });
-    expect(batch.data.stars.p50).toBe(single.stars.value);
+    // Every statistic is rounded to 0.1, so a quarter star such as 1.25 reads 1.3.
+    expect(batch.data.stars.p50).toBe(Math.round(single.stars.value * 10) / 10);
+    expect(batch.data.stars.byQuarter.find((quarter) => quarter.count === 1)?.stars).toBe(
+      single.stars.value,
+    );
     expect(batch.data.workRate?.mean).toBe(Math.round((single.workRate?.value ?? 0) * 10) / 10);
     expect(batch.data.crowd.mean).toBe(Math.round(single.crowd.value * 10) / 10);
   });
