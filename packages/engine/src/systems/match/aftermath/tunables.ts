@@ -187,4 +187,26 @@ export const aftermathTunables = defineTunables({
     description: 'Multiplier for a match on the pre-show',
     docRef: AFTERMATH_DOC,
   },
+  // MTCH3-03: how a match's change spreads, and how many stored aftermaths each worker keeps.
+  'match.popularity.neighbourSpill': {
+    kind: 'number',
+    default: 0.4,
+    min: 0,
+    max: 1,
+    step: 0.05,
+    unit: 'ratio',
+    category: AFTERMATH_CATEGORY,
+    description: "Share of a match's popularity change each neighbouring region gets",
+    docRef: 'match-aftermath.md#regional-spread',
+  },
+  'match.aftermath.keepPerPerson': {
+    kind: 'integer',
+    default: 10,
+    min: 1,
+    max: 100,
+    unit: 'count',
+    category: AFTERMATH_CATEGORY,
+    description: 'How many recent match aftermaths are kept for each worker',
+    docRef: 'match-aftermath.md#stored-aftermaths',
+  },
 });

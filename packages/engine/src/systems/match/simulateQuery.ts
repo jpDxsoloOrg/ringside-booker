@@ -49,6 +49,11 @@ import {
 } from './previewQueries';
 import type { AutoWinnerSide } from './finishes/autoWinnerInputs';
 import type { SegmentRatingInput } from './rating/types';
+import { geographyOf } from '../world/geography';
+import {
+  computeSegmentAftermath,
+  type SegmentAftermath,
+} from './aftermath/computeSegmentAftermath';
 
 /** `match.simulate`: the preview arguments plus the booking plan. */
 export interface SimulateArgs extends PreviewArgs {
@@ -140,6 +145,11 @@ export interface SimulateResult {
   resultTrace: TraceNode;
   /** True when Auto was asked for and Random winners decides the viewer's results. */
   randomWinnersMode: boolean;
+  /**
+   * What the result would do to every competitor's popularity and momentum (MTCH3-03), worked out
+   * from the world as it stands with nothing written.
+   */
+  aftermath: SegmentAftermath;
 }
 
 /** `match.resultMode`: how the viewer's results are decided. */
@@ -220,7 +230,7 @@ function simulateNight(
   args: SimulateArgs,
   prepared: PreparedSimulation,
   key: number,
-): SimulateResult {
+): Omit<SimulateResult, 'aftermath'> {
   const { read } = ctx;
   const { catalogs } = read.meta;
   const { input, sides, randomWinnersMode } = prepared;
@@ -289,8 +299,41 @@ function namesOfSide(sides: readonly AutoWinnerSide[], side: number): string[] {
  */
 export const simulateQuery: QueryDefinition<'match.simulate'> = defineQuery('match.simulate', {
   args: SimulateArgsSchema,
-  run: (ctx, args) => simulateNight(ctx, args, prepareSimulation(ctx, args), args.previewSeed),
+  run: (ctx, args) => {
+    const prepared = prepareSimulation(ctx, args);
+    const night = simulateNight(ctx, args, prepared, args.previewSeed);
+    return { ...night, aftermath: simulatedAftermath(ctx, args, prepared, night) };
+  },
 });
+
+/**
+ * The simulated night's aftermath (MTCH3-03): the same computation show night applies, on a match
+ * that is on no show. Reads only and rolls nothing; the batch leaves it out.
+ */
+function simulatedAftermath(
+  ctx: QueryContext,
+  args: SimulateArgs,
+  prepared: PreparedSimulation,
+  night: Omit<SimulateResult, 'aftermath'>,
+): SegmentAftermath {
+  return computeSegmentAftermath(
+    ctx.read,
+    {
+      promotionId: prepared.input.promotionId,
+      date: ctx.date,
+      regionId: args.regionId,
+      televised: args.televised,
+      importance: args.importance,
+      preShow: args.slotRole === 'preShow',
+      sides: args.sides,
+      outcome: night.outcome,
+      finishKey: night.finish.key,
+      score: night.preview.score.value,
+    },
+    ctx.tunables,
+    geographyOf(ctx.read),
+  );
+}
 
 /**
  * `match.simulateBatch`. Run `i` is `match.simulate` with seed `previewSeed + i`, so run 0 is the
