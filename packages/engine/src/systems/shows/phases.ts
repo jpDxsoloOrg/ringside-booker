@@ -13,6 +13,7 @@ import type { GameWorldView } from '../../model/tables';
 import type { DeepReadonly } from '../../model/world';
 import { hasCard } from '../booking/card';
 import { showControllerOf } from '../calendar/control';
+import { resetAppearancesPhase } from './appearances';
 import { runOffscreenShow, runShowCard } from './runShow';
 
 /** True for a show that has neither run nor been cancelled. */
@@ -79,4 +80,4 @@ export const runShowsPhase: PhaseDefinition = definePhase({
   },
 });
 
-export const showsPhases: readonly PhaseDefinition[] = [runShowsPhase];
+export const showsPhases: readonly PhaseDefinition[] = [resetAppearancesPhase, runShowsPhase];

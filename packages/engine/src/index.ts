@@ -1470,3 +1470,19 @@ export {
   type SegmentResultApplier,
   type SegmentResultSide,
 } from './systems/shows/index';
+
+// Title outcomes and appearances (EVT3-04): the built-in `shows.titleOutcome` applier that moves
+// or keeps each title on the line, and the per-show appearance counts with their 1 January reset.
+// See docs/design/show-night.md#title-outcomes and #appearances.
+export {
+  TITLE_OUTCOME_APPLIER_ID,
+  countAppearances,
+  countsAsDefence,
+  resetAppearancesPhase,
+  showWorkers,
+  titleOutcomeApplier,
+  titleOutcomeDecision,
+  type TitleOutcome,
+  type TitleOutcomeDeps,
+  type TitleOutcomeInputs,
+} from './systems/shows/index';

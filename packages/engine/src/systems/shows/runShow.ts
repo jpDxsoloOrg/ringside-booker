@@ -12,6 +12,7 @@ import type { JsonValue } from '../../core/json';
 import type { EventInstance } from '../../model/entities/event-instance';
 import type { DeepReadonly } from '../../model/world';
 import { SLOT_ROLE_LABELS, slotRoleOf, slotWeightOf } from '../match/slots';
+import { countAppearances } from './appearances';
 import { showContextOf, slotRoleInput, type ShowContext, type ShowSegment } from './context';
 import { offscreenShowScore } from './formulas/offscreenShowScore';
 import { showScore, type ShowScoreInputs, type ShowSlotInput } from './formulas/showScore';
@@ -86,6 +87,7 @@ export function runShowCard(ctx: PhaseContext, instance: DeepReadonly<EventInsta
   for (const entry of show.segments) {
     scores.set(entry.segment.id, runSegment(ctx, show, entry));
   }
+  countAppearances(ctx, show);
 
   const inputs = scoreInputs(ctx, show, scores);
   const modifiers = listShowScoreModifiers();

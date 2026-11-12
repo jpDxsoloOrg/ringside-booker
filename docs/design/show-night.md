@@ -99,6 +99,11 @@ to the features that react to its events and appliers (WRK8, MTCH3, MTCH4);
 losers inside hot storylines are WRK8's to shield (D-09), so show night only
 reports `storylineIds`.
 
+EVT3-04 adds two more writes of show night's own: its built-in title applier
+opens, closes and adds defences to title reigns ([Title outcomes](#title-outcomes)),
+and each run card adds to its workers' appearance counts on their contracts
+([Appearance counts](#appearance-counts)).
+
 ### Why a failure rolls back the whole day's shows
 
 A phase is one step and one transaction ([day-pipeline.md](day-pipeline.md)).
@@ -208,15 +213,100 @@ MTCH1's `RatingPolicy`, never here.
 
 ## Title outcomes
 
-Filled by EVT3-04. A title match ends one of three ways for each title on the
-line: the title changes hands (`title.changed`), the champion keeps it
-(`title.defended`), or nothing happens (a no contest). A draw counts as a
-successful defence while `shows.titles.drawCountsAsDefence` is on (the
-default).
+`systems/shows/titles.ts` (EVT3-04). A title match ends one of three ways for
+each title on the line: the title changes hands (`title.changed`), the
+champion keeps it (`title.defended`), or nothing happens (a no contest). A draw
+counts as a successful defence while `shows.titles.drawCountsAsDefence` is on
+(the default).
+
+It is show night's own [result applier](#segment-result-appliers),
+`shows.titleOutcome` at order 10, so later appliers (MTCH3's popularity at 30)
+already see the new champion. It runs only for a match with titles on the
+line, once per title in title id order, so two titles on one match each get
+their own decision, trace and event.
+
+### The decision
+
+`titleOutcomeDecision` is a traced decision titled "Title outcome: <title
+name>", stored under `shows.titleOutcome` with the id
+`${segmentId}|${titleId}`. The **holders' side** is the side with any holder
+of the title's open reign; a title with no open reign is vacant and every side
+is a challenger side (so is every side when the champion is not in the match).
+
+| Result                     | Rules checked                                                                                                              | Outcome                                                                                                           |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Win by a challenger side   | "<Method> can change titles" (or MTCH2's title rule, below); "Winning side has <n> competitors; the title needs <holders>" | `changed` ("Challengers won by <Method>") when both pass                                                          |
+| (one of those rules fails) |                                                                                                                            | `retained`, or `stillVacant` for a vacant title; the failing rule is the reason ("Count-Out can't change titles") |
+| Win by the holders' side   |                                                                                                                            | `retained` ("Champion won")                                                                                       |
+| Draw                       | Reads `shows.titles.drawCountsAsDefence`                                                                                   | `retained` (`stillVacant` for a vacant title)                                                                     |
+| No contest                 |                                                                                                                            | `noChange` ("No contest: the title stays where it was")                                                           |
+
+Every `retained` adds a defence, except a draw while the flag is off. A
+challenger win that could not move the title (a count-out, say) is still a
+successful defence. `stillVacant` and `noChange` write and publish nothing.
+
+**How MTCH2 slots in.** The method rule reads the win method's `changesTitles`
+from the methods catalog. When the match outcome resolver returns
+`titleCanChange` (MTCH2's title rule: the method **and** the finish allow a
+change, EVT3-07), that result replaces the method rule and its reason is the
+rule's text ("Disqualification: titles can't change hands on this finish").
+Until then `plannedOrNoContest` returns null and the method flag alone
+decides.
+
+### Writes, in order
+
+A `changed` title:
+
+1. closes the old reign, if any: `lostOn` today, `endReason: 'lost'`,
+   `endedInSegmentId` the segment;
+2. then creates the new reign: the winning competitors by id, `wonOn` today,
+   `wonInSegmentId` the segment, 0 defences, `holderNamesAtTime` from each
+   holder's ring name on their active contract with the title's promotion
+   (else their default ring name), and `teamId` the winners' shared team when
+   the title has more than one holder and every winner was listed with the
+   same team;
+3. publishes `title.changed` (`fromReignId` null for a vacant title).
+
+Closing first matters: the `openByTitle` unique index allows one open reign
+per title, and a second one would throw and roll back the whole day's shows. A
+title can change hands twice on one show; the middle reign is won and lost the
+same day, which the `reignsDoNotOverlap` invariant allows.
+
+A defence adds 1 to the open reign's `defences` and publishes
+`title.defended` with the new count.
+
+### Guardrails
+
+A title that no longer exists, is retired, or belongs to another promotion
+than the show's is logged and skipped (no trace, no write). A winning side
+whose size does not fit the title is not an error: EVT2's validation stops it
+on the player's cards, and a rival card that slips through fails the size rule.
+Prestige changes, vacating, stripping and unifying titles belong to CRTV1 and
+CRTV2; show night only ends reigns as "lost".
 
 ## Appearances
 
 Filled by EVT3-03..05: who appeared on the show and in which segments.
+
+### Appearance counts
+
+`systems/shows/appearances.ts` (EVT3-04). After a card's segments have run,
+every distinct person who worked it gets one more appearance: every
+participant in any role (competitors, ringside, interferers, speakers) and
+each segment's crew (referee, producer and announcers). Crew count on purpose:
+they worked the show, and per-appearance contracts pay them, so ECO's fee code
+counts them the same way. For each, their **active** contract with the show's
+promotion gets `appearancesThisYear + 1` and `lastAppearanceOn` set to the
+show's date. Someone in three segments counts once; a guest with no active
+contract with that promotion is skipped. A show scored off-screen counts
+nobody, since it has no card.
+
+The phase `shows.resetAppearances` (group `housekeeping`, order 22, yearly on
+1 January) sets `appearancesThisYear` back to 0 on every contract that has
+any; `lastAppearanceOn` is kept. Housekeeping runs before the `shows` group,
+so a show on 1 January is the first appearance of the new year. EVT2's
+appearance cap warning, ECO's per-appearance fees and WRK8's not-booked
+penalty read these fields.
 
 ## Events
 
