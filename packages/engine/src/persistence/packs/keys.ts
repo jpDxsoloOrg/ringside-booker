@@ -128,6 +128,8 @@ export const RECORD_KINDS = [
   'matchType',
   'angleType',
   'method',
+  // Finishes (MTCH2): refer to methods and match types, never become entities.
+  'finish',
 ] as const;
 
 export const RecordKindSchema = z.enum(RECORD_KINDS);

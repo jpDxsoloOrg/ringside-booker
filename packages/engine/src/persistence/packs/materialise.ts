@@ -13,7 +13,8 @@
  *    in, computer controllers on promotions and null controllers on brands), parses it with the
  *    entity schema and inserts it;
  * 5. creates season 1, stores `contentKeys` on the metadata, and runs `checkWorld`. The match and
- *    segment catalogs (match types, angle types, methods) are snapshotted into `meta.catalogs`.
+ *    segment catalogs (match types, angle types, methods, finishes) are snapshotted into
+ *    `meta.catalogs`.
  *
  * Any error rolls the whole transaction back and comes back as `PackIssue`s; no half-built World
  * ever escapes.

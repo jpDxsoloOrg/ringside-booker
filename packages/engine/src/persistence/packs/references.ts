@@ -18,7 +18,12 @@
 import { isPackRef, parseRef, RECORD_KINDS, type RecordKind, type RecordReference } from './keys';
 import { packError, packWarning, type PackIssue } from './issues';
 import type { MergedRecord, MergedRecords } from './merge';
-import { angleTypeReferences, matchTypeReferences, methodReferences } from './records/catalogs';
+import {
+  angleTypeReferences,
+  finishReferences,
+  matchTypeReferences,
+  methodReferences,
+} from './records/catalogs';
 import { continentReferences, countryReferences, regionReferences } from './records/geography';
 import {
   bodyArchetypeReferences,
@@ -77,6 +82,7 @@ export const RECORD_REFERENCES = {
   matchType: matchTypeReferences,
   angleType: angleTypeReferences,
   method: methodReferences,
+  finish: finishReferences,
 } as const satisfies Record<RecordKind, readonly RecordReference[]>;
 
 /** One reference value found in a record, with where it is. */

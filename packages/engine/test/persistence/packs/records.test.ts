@@ -331,6 +331,20 @@ const VALID_RECORDS: Readonly<Record<RecordKind, Fixture>> = {
     order: 10,
     changesTitles: true,
   },
+  finish: {
+    key: 'clean',
+    name: 'Clean finish',
+    order: 10,
+    summary: 'One side beats the other fair and square.',
+    category: 'clean',
+    outcomeKind: 'win',
+    methods: [{ methodKey: 'pinfall', weight: 1 }],
+    effects: { workRate: 0, crowd: 1 },
+    allowsTitleChange: true,
+    gains: { winner: 1, loser: 1 },
+    autoWeight: 60,
+    requiresTwoSides: false,
+  },
 };
 
 function isObject(value: unknown): value is Readonly<Record<string, unknown>> {
