@@ -83,6 +83,10 @@ returns an unregister function and throws for a taken id. `validation` is null w
 load. Expected users: EVT4's forecast, EVT6's venue and crowd, CRTV8's tournament matches, AIP4's
 auto-fill.
 
+Registered so far: `shows.ranBanner` (side, order 5, `screens/show-results/bookingPanel.tsx`):
+"This show has run" and "See results" on a completed show. `booking.card` already answers a
+completed show with `canEdit: false`, so the board is read-only by itself.
+
 ### The segment editor (EVT2-06)
 
 The card never imports the editor. Its add actions call
