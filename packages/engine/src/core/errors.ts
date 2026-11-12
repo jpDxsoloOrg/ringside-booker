@@ -337,6 +337,27 @@ export class InvariantError extends EngineError {
 }
 
 /**
+ * The card writer (`systems/booking/writer.ts`) was asked for a write that would break the card:
+ * a slot past the format, a person who is not on the roster, a match with one side. `reasons` are
+ * the player-facing reasons from `structuralProblems`. Commands check the same rules first, so
+ * reaching this is a caller bug; the throw rolls the whole step back with nothing written.
+ */
+export class CardWriteError extends EngineError {
+  readonly reasons: readonly { readonly code: string; readonly message: string }[];
+
+  constructor(
+    operation: string,
+    reasons: readonly { readonly code: string; readonly message: string }[],
+  ) {
+    super('CARD_WRITE', `${operation}: ${reasons.map((reason) => reason.message).join('; ')}`, {
+      operation,
+      codes: reasons.map((reason) => reason.code).join(','),
+    });
+    this.reasons = reasons;
+  }
+}
+
+/**
  * The name generator (WLD-05) could not find a free name: every retry and every middle initial was
  * already taken. This means the content's name lists are far too small for the world, so it is a
  * content bug to fix in the pack, not a situation the game should handle at run time. `scope` is

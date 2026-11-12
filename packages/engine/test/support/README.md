@@ -76,6 +76,8 @@ ids.people[0]; // per_0000000001, the first wrestler on A's roster
   snapshots them from the packs. `TEST_CATALOGS` is the shipped base catalogs
   (`content/base/catalogs/*.json`) read through the real record schemas, so tests follow the
   shipped data. Without the call a world has `catalogs: {}`.
+- `.withEventInstance(overrides, label = 'A')` adds a dated show for that promotion in the first
+  region: a scheduled one-off on the start date unless the overrides say otherwise.
 - `.with(label, (context) => { ... })` runs your own step in the same transaction. Pass
   `context.sequence` to the builders so IDs and names continue the world's sequence, and use
   `context.insert(table, row)` so the IDs land in `ids`.

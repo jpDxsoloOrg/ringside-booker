@@ -224,22 +224,43 @@ describe('card slots', () => {
     expect(check(world).ok).toBe(true);
   });
 
-  it('reports main-card slots 0, 1, 3 as not contiguous', () => {
+  it('allows gaps: main-card slots 0, 1 and 3 with slot 2 open', () => {
     const world = worldWithInstance();
     putSinglesMatch(world, 1, { slot: 0 });
     putSinglesMatch(world, 2, { slot: 1 });
     putSinglesMatch(world, 3, { slot: 3 });
+    expect(check(world).ok).toBe(true);
+  });
+
+  it('allows a card with only its last slot filled, and a pre-show not starting at 0', () => {
+    const world = worldWithInstance({ slots: 6, preShowSlots: 2 });
+    putSinglesMatch(world, 1, { slot: 5 });
+    putSinglesMatch(world, 2, { slot: 1, preShow: true });
+    expect(check(world).ok).toBe(true);
+  });
+
+  it('reports a main-card slot past the format as slotOutsideFormat on the instance', () => {
+    const world = worldWithInstance({ slots: 6, preShowSlots: 2 });
+    putSinglesMatch(world, 1, { slot: 0 });
+    putSinglesMatch(world, 2, { slot: 6 });
     const report = check(world);
-    expect(issueCodes(report)).toEqual(['segments.slotsNotContiguous']);
+    expect(issueCodes(report)).toEqual(['segments.slotOutsideFormat']);
     expect(report.issues[0]).toEqual(
       expect.objectContaining({ table: 'eventInstances', id: instanceId(1) }),
     );
   });
 
-  it('reports a pre-show that does not start at slot 0', () => {
-    const world = worldWithInstance();
-    putSinglesMatch(world, 1, { slot: 1, preShow: true });
-    expect(issueCodes(check(world))).toEqual(['segments.slotsNotContiguous']);
+  it('reports a pre-show slot past the format, and any pre-show on a show without one', () => {
+    const withPreShow = worldWithInstance({ slots: 6, preShowSlots: 2 });
+    putSinglesMatch(withPreShow, 1, { slot: 2, preShow: true });
+    expect(issueCodes(check(withPreShow))).toEqual(['segments.slotOutsideFormat']);
+
+    const withoutPreShow = worldWithInstance({ slots: 6, preShowSlots: 0 });
+    putSinglesMatch(withoutPreShow, 1, { slot: 0, preShow: true });
+    expect(issueCodes(check(withoutPreShow))).toEqual([
+      'segments.slotOutsideFormat',
+      'segments.tooManyPreShow',
+    ]);
   });
 
   it('reports 7 main-card segments on a 6-slot instance', () => {
@@ -247,7 +268,10 @@ describe('card slots', () => {
     for (let slot = 0; slot < 7; slot += 1) {
       putSinglesMatch(world, slot + 1, { slot });
     }
-    expect(issueCodes(check(world))).toEqual(['segments.tooManyMainCard']);
+    expect(issueCodes(check(world))).toEqual([
+      'segments.slotOutsideFormat',
+      'segments.tooManyMainCard',
+    ]);
   });
 
   it('reports 3 pre-show segments on an instance with 2 pre-show slots', () => {
@@ -255,7 +279,10 @@ describe('card slots', () => {
     for (let slot = 0; slot < 3; slot += 1) {
       putSinglesMatch(world, slot + 1, { slot, preShow: true });
     }
-    expect(issueCodes(check(world))).toEqual(['segments.tooManyPreShow']);
+    expect(issueCodes(check(world))).toEqual([
+      'segments.slotOutsideFormat',
+      'segments.tooManyPreShow',
+    ]);
   });
 });
 
@@ -331,16 +358,35 @@ describe('participants and sides', () => {
 });
 
 describe('segments against their instance', () => {
-  it('reports a rating or outcome before the show is completed', () => {
+  it('accepts a planned outcome on a show that has not run yet', () => {
+    for (const status of ['scheduled', 'booked'] as const) {
+      const world = emptyShowWorld();
+      world.tables.eventInstances._put(makeInstance(1, { status }));
+      putSinglesMatch(world, 1, {
+        slot: 0,
+        outcome: { kind: 'win', winningSide: 1, methodKey: key('method.pinfall') },
+      });
+      putSinglesMatch(world, 2, { slot: 1, outcome: { kind: 'draw' } });
+      expect(check(world).ok).toBe(true);
+    }
+  });
+
+  it('reports a rating before the show is completed', () => {
     const world = worldWithInstance();
-    putSinglesMatch(world, 1, { slot: 0, outcome: { kind: 'draw' } });
+    putSinglesMatch(world, 1, {
+      slot: 0,
+      outcome: { kind: 'draw' },
+      rating: { score: 50, stars: 2, traceId: null },
+    });
     world.tables.segments._put(
       makeAngle(2, { slot: 1, rating: { score: 50, stars: 2, traceId: null } }),
     );
-    expect(issueCodes(check(world))).toEqual([
+    const report = check(world);
+    expect(issueCodes(report)).toEqual([
       'segments.resultBeforeCompletion',
       'segments.resultBeforeCompletion',
     ]);
+    expect(report.issues.map((issue) => issue.id)).toEqual([segmentId(1), segmentId(2)]);
   });
 
   it('reports a title from another promotion', () => {
