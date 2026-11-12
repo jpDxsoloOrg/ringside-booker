@@ -18,7 +18,11 @@ Code: `packages/engine/src/model/`.
 - **Metadata.** `WorldMeta` (`model/world-meta.ts`) holds what is not a row:
   the world name, start and current date, the seed, the players, the content
   packs the world was built from (with the IDs minted for their records), the
-  number of days simulated, and the settings chosen at new game. The settings
+  content catalogs snapshotted from those packs at new game (`catalogs`: match
+  types, angle types and win methods keyed by content key; `{}` for a world
+  built without packs; see
+  [data-packs.md](data-packs.md#match-and-segment-catalogs)), the number of
+  days simulated, and the settings chosen at new game. The settings
   include the level-playing-field flag (D-01) and the season length in days
   (D-08). There is no "the player's promotion" field: who runs a promotion or a
   brand is the `controller` on its row (D-07), and every human controller's
@@ -836,7 +840,7 @@ Shared fields:
 - `outcome`, the outcome union:
   - `null` until the show is completed;
   - `{ kind: 'win'; winningSide; methodKey }`, where `winningSide` is a
-    participant `side`;
+    participant `side` (0–29, `MAX_SIDE`);
   - `{ kind: 'draw' }`;
   - `{ kind: 'noContest' }`.
 
@@ -846,7 +850,11 @@ either.
 
 The content keys (`matchTypeKey`, `stipulationKeys`, `finishKey`,
 `methodKey`, `angleTypeKey`, `beatKey`) point at data-pack catalogs owned by
-MTCH and WLD. The World does not check they resolve; the content loader does.
+MTCH and WLD. The World's schema does not check they resolve. The match type,
+method and angle type keys resolve against `meta.catalogs`, which
+`checkSegmentContentKeys` (`systems/match/catalog/checkSegmentKeys.ts`) and
+validate:world's `segment-keys` rule check; beats, finishes and stipulations
+get their catalogs (and checks) with MTCH5, MTCH2 and MTCH7.
 `traceId` links to the recent-traces store kept in the save, so the Why? panel
 can find a segment's trace.
 
@@ -862,16 +870,16 @@ second segment in the same slot is refused at write time.
 Who is in a segment. A table of its own because "every segment this person
 was in" is a hot query (history, morale, momentum, AI booking).
 
-| Field              | Type                                                                   | Notes                           |
-| ------------------ | ---------------------------------------------------------------------- | ------------------------------- |
-| `id`               | `ParticipantId`                                                        |                                 |
-| `segmentId`        | `SegmentId`                                                            |                                 |
-| `personId`         | `PersonId`                                                             |                                 |
-| `side`             | int 0–7                                                                | a singles match uses 0 and 1    |
-| `role`             | `'competitor' \| 'ringside' \| 'interferer' \| 'speaker' \| 'subject'` |                                 |
-| `teamId`           | `TeamId \| null`                                                       | the team they represent, if any |
-| `entranceOrder`    | int ≥ 1 or null                                                        | battle royals and similar       |
-| `eliminationOrder` | int ≥ 1 or null                                                        | null when not eliminated        |
+| Field              | Type                                                                   | Notes                                                                                          |
+| ------------------ | ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `id`               | `ParticipantId`                                                        |                                                                                                |
+| `segmentId`        | `SegmentId`                                                            |                                                                                                |
+| `personId`         | `PersonId`                                                             |                                                                                                |
+| `side`             | int 0–29                                                               | a singles match uses 0 and 1; a 30-person battle royal 0–29; screens show side n as "Side n+1" |
+| `role`             | `'competitor' \| 'ringside' \| 'interferer' \| 'speaker' \| 'subject'` |                                                                                                |
+| `teamId`           | `TeamId \| null`                                                       | the team they represent, if any                                                                |
+| `entranceOrder`    | int ≥ 1 or null                                                        | battle royals and similar                                                                      |
+| `eliminationOrder` | int ≥ 1 or null                                                        | null when not eliminated                                                                       |
 
 Refs: `segmentId`, `personId`, `teamId`. Indexes: `bySegment`, `byPerson`,
 unique `bySegmentPerson` (a person appears once per segment).
