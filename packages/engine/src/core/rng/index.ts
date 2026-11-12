@@ -3,6 +3,7 @@
 export { WARM_UP_DRAWS, seedState, type RngStateWords } from './prng';
 export {
   RngRegistry,
+  detachedStream,
   parseRngState,
   rngStateSchema,
   type RngSnapshot,

@@ -797,3 +797,75 @@ morale) and CRTV7 (gimmicks and managers) follow:
 5. Test that it appears as exactly one labelled line, moves the value by its
    amount and that the trace still replays; reset the registries in
    `afterEach`.
+
+## Previews
+
+The Match lab, EVT4's live forecast, AIP4's rival booker and POL2's balance lab
+rate a segment **without** it happening. `systems/match/previewQueries.ts`:
+
+- **`match.preview`** takes `PreviewArgs` (`previewArgs.ts`, zod strict):
+  `{ kind: 'match' | 'angle', typeKey, sides, slotRole, importance, regionId,
+televised, promotionId?, previewSeed }`. `sides` holds 1–30 sides of 0–6
+  person ids each, and the array index is the stored side number. The slot
+  role is given outright (no card position). `promotionId` defaults to the
+  viewer's first promotion; a viewer who runs none (the all-seeing one) must
+  pass one, and one the world does not have is an `invalidArgs` reason, as is
+  an unknown region. The event date is today. It returns the full
+  `SegmentRatingResult` (score, stars, work rate or talk, crowd, expectation,
+  star power, slot, worker lines, warnings, policy) with every trace inline
+  plus `previewSeed`. A query cannot store traces, so they travel inline,
+  already bounded by the trace limits: a 30-person battle royal's work rate and
+  crowd traces are cut to 400 nodes with an "N more steps not shown" note.
+  Refusals are `rateSegment`'s (`unknownType`, `emptySide`, `unknownPerson`,
+  ...) and `noCatalog` on a world without match types. Warnings never refuse a
+  preview; they come back in `warnings`.
+- **`match.previewBatch`** takes the same arguments plus `runs` (1–500) and
+  returns no traces: `{ runs, score, stars (with byQuarter), workRate | null,
+talk | null, crowd, expectation, histogram }`. Each statistic is `{ mean, sd,
+min, p10, p50, p90, max }`: the population standard deviation, percentiles
+  interpolated between the nearest ranks, every value rounded to 0.1
+  (`stats.ts`). The histogram has 20 bins of 5 points (0–5 ... 95–100, the last
+  one closed); `byQuarter` counts the runs on each quarter star from 0 to 5.
+  Expectation has no roll, so it is one number. A 500-run batch of a 30-person
+  battle royal takes about a second in Node.
+
+**Seeds.** Every roll comes from `detachedStream(meta.seed, 'match.preview',
+String(key))`, a stream no registry knows about (see
+[determinism.md](determinism.md#detached-streams)). The single preview's key is
+`previewSeed`; batch run `i` uses `previewSeed + i`, so run 0 is exactly the
+single preview with the same seed. The same arguments and seed always give the
+same JSON; a new seed gives a new night.
+
+**Never writes.** A preview reads the world and nothing else: no rows, no
+traces, no events and no draw from the world's RNG. The tests compare the whole
+exported engine state before and after one preview and a 500-run batch.
+
+**Viewer scoping.** A worker line carries only what a public profile shows (the
+performance numbers come from attributes, style and fatigue), popularity in the
+show's region and momentum (on-screen form, public on the profile). Nothing
+from `development`, `vices`, morale or contract terms is read into a line, so
+every viewer gets the same answer.
+
+`systems/match/labQueries.ts` gives the lab what it needs without WRK1's
+screens:
+
+- **`match.labOptions`** `{}` → `{ available, promotion, regions, importances,
+defaults }`. `promotion` is the viewer's first (`{ id, name, style,
+homeRegionId }`) or null; `regions` are `{ id, name, countryName,
+continentName }` sorted by continent, country and name; `importances` are
+  House show, Minor, Regular, Major and Flagship. The defaults are a televised
+  Regular midcard match in the promotion's home region (else the first region)
+  with the first visible match type that takes two sides of one (Singles).
+- **`match.labWorkers`** `{ scope: 'mine' | 'everyone', regionId, search?,
+limit?, promotionId? }` → `{ rows, total }`. `mine` is the promotion's
+  active roster (index `byPromotionStatus`); `everyone` is everyone still in
+  the business (not retired, dead or gone; someone on hiatus is listed as
+  unavailable). Every role is listed, so managers and presenters can be picked
+  for an angle; `style: 'nonWrestler'` flags them. A row is `{ personId, name,
+promotionShortName, style, roles, popularity, available, unavailableReason }`:
+  the ring name with the lab's promotion (else the default ring name), the main
+  employer's short name, popularity in `regionId`, and WRK1's `availabilityOf`
+  on today's date. Rows are sorted by popularity, then name; `search` matches
+  the name case-insensitively (up to 40 characters) and `limit` (1–500, 300 by
+  default) caps the list, with `total` counting every match. A row never holds
+  development, vices, morale or contract terms.

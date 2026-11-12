@@ -132,6 +132,19 @@ The same frozen arrays must come out of every JavaScript engine, Node and the
 browser's Web Worker alike, because the generator uses integer maths only. If
 one of these ever has to change, it needs a save migration that re-seeds.
 
+### Detached streams
+
+Some code has to roll without the roll counting: the Match lab's previews
+(`match.preview`, `match.previewBatch`) rate a segment as often as the player
+likes, and the next real show must come out the same however many previews ran.
+They draw from `detachedStream(seed, name, key)` (`core/rng/registry.ts`), a
+stream derived like any other but from `name + "#" + key` (the previews use
+`match.preview` keyed by the preview seed) and owned by no registry. It is never
+saved, snapshotted or restored, and drawing from it never touches the
+registry. A preview must never call `rng.stream()`; the preview tests check
+that the whole engine state, the RNG included, is byte-identical after a
+500-run batch. MTCH6 reuses the helper for pair chemistry.
+
 ## Odds helpers
 
 Code: `packages/engine/src/core/rng/odds.ts`.

@@ -1164,3 +1164,42 @@ export {
   skippedDetailNote,
   staminaCheckOf,
 } from './systems/match/index';
+
+// The Match lab's previews (MTCH1-06): `match.preview` and `match.previewBatch` rate a segment on a
+// detached stream (`detachedStream`, exported with the RNG) without writing or touching the world's
+// RNG; `match.labOptions` and `match.labWorkers` give the lab its setup and picker.
+// See docs/design/match-rating.md#previews.
+export type {
+  HistogramBin,
+  LabDefaults,
+  LabImportance,
+  LabOptions,
+  LabPromotion,
+  LabRegion,
+  LabWorkerRow,
+  LabWorkerScope,
+  LabWorkers,
+  LabWorkersArgs,
+  PreviewArgs,
+  PreviewBatchArgs,
+  PreviewBatchResult,
+  PreviewResult,
+  QuarterCount,
+  StarStats,
+  Stats,
+} from './systems/match/index';
+export {
+  LAB_WORKER_SCOPES,
+  LAB_WORKERS_DEFAULT_LIMIT,
+  LAB_WORKERS_MAX_LIMIT,
+  LAB_WORKERS_MAX_SEARCH,
+  MATCH_PREVIEW_STREAM,
+  PREVIEW_BATCH_MAX_RUNS,
+  PREVIEW_MAX_SIDE_SIZE,
+  PREVIEW_REASON_CODES,
+  PREVIEW_SEED_MAX,
+  PreviewArgsSchema,
+  PreviewBatchArgsSchema,
+  SCORE_HISTOGRAM_BINS,
+  SCORE_HISTOGRAM_WIDTH,
+} from './systems/match/index';
