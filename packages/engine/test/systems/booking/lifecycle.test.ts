@@ -1,12 +1,11 @@
 // How cards meet the show lifecycle. Design: docs/design/booking.md#lifecycle
 import { describe, expect, it } from 'vitest';
 import { createEngine, initialEngineState, type Engine } from '../../../src/core/api';
-import { parseGameDate } from '../../../src/core/date';
 import type { EventInstanceId } from '../../../src/core/ids';
 import type { GameWorld } from '../../../src/model/tables';
 import { defaultSystems } from '../../../src/systems';
 import { advance, PLAYER_ONE, showIn } from '../calendar/lifecycle-world';
-import { commandWorld, promo, seed, singles, TODAY, wrestler } from './command-world';
+import { commandWorld, promo, seed, singles, wrestler } from './command-world';
 
 function engineFor(world: GameWorld): Engine {
   return createEngine({ state: initialEngineState(world), systems: defaultSystems });
@@ -43,17 +42,19 @@ function cardOf(engine: Engine, eventInstanceId: EventInstanceId) {
     .world.tables.segments.filter((segment) => segment.eventInstanceId === eventInstanceId);
 }
 
-describe('a locked card that never runs', () => {
-  it('is marked Not run at the end of its day and keeps its segments', async () => {
+describe('a locked card on its day', () => {
+  it('runs on show night, so the day close leaves it alone, and keeps its segments', async () => {
     const { engine, eventInstanceId } = lockedCard('today');
     const before = cardOf(engine, eventInstanceId);
     expect(before).toHaveLength(2);
     const state = await advance(engine, 1);
     expect(showIn(state, eventInstanceId)).toMatchObject({
-      status: 'cancelled',
-      cancellation: { reason: 'notRun', on: parseGameDate(TODAY) },
+      status: 'completed',
+      cancellation: null,
     });
-    expect(cardOf(engine, eventInstanceId)).toEqual(before);
+    const after = cardOf(engine, eventInstanceId);
+    expect(after.map((segment) => segment.id)).toEqual(before.map((segment) => segment.id));
+    expect(after.every((segment) => segment.rating !== null)).toBe(true);
   });
 });
 
