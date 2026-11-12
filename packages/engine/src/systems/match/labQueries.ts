@@ -26,6 +26,7 @@ import { compareIds } from '../../model/table';
 import type { GameWorldView } from '../../model/tables';
 import { geographyOf } from '../world/geography';
 import { availabilityOf } from '../workers/helpers/availability';
+import { availabilityText } from './availabilityText';
 import { primaryEmploymentOf } from '../workers/helpers/employment';
 import { EVENT_IMPORTANCE_LABELS } from './formulas/crowdExpectation';
 import { labPromotionOf, requireRegion } from './previewArgs';
@@ -115,7 +116,7 @@ export interface LabWorkerRow {
   /** Popularity in the asked region, 0 to 100 (0 when unknown there). */
   popularity: number;
   available: boolean;
-  /** Why not, written for the player ("Injured (back injury)"); null when available. */
+  /** Why not, with the day back ("Injured (back injury) until 31 Jan"); null when available. */
   unavailableReason: string | null;
 }
 
@@ -302,7 +303,7 @@ export const labWorkersQuery: QueryDefinition<'match.labWorkers'> = defineQuery(
           roles: [...person.roles],
           popularity: person.regionalPop[args.regionId] ?? 0,
           available,
-          unavailableReason: available ? null : availability.reason,
+          unavailableReason: available ? null : availabilityText(availability, ctx.date),
         });
       }
       rows.sort(

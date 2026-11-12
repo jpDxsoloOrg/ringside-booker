@@ -770,14 +770,22 @@ them to every result. A warning never stops a rating.
 | `sideSize`        | error    | "Side 2 has 2 people: Singles takes 1 a side"                    |
 | `unequalSides`    | warning  | "The sides are uneven (2 against 1): Tag Team takes equal sides" |
 | `duplicatePerson` | error    | "Kade Morrow is on both sides" / "is on side 1 twice"            |
-| `injured`         | error    | "Kade Morrow is injured until 2026-05-01"                        |
-| `inactive`        | error    | "Kade Morrow is on hiatus" (or retired, has died, has left)      |
+| `injured`         | error    | "Kade Morrow: Injured (arm injury) until 1 May"                  |
+| `inactive`        | error    | "Kade Morrow: Retired" (or Deceased, Left the business)          |
+| `unavailable`     | error    | "Kade Morrow: On personal leave until 12 Mar"                    |
 | `nonWrestler`     | warning  | "Kade Morrow is not a wrestler" (matches only)                   |
 | `speakerCount`    | warning  | "Five speakers in a Promo: it takes 1 to 4"                      |
 
-Uneven sides are only reported when every side's size is allowed on its own. A
-talking segment flags an injury only when the injury rules out talking
-segments; semi-retired workers are not flagged.
+Uneven sides are only reported when every side's size is allowed on its own.
+Availability is WRK1's `availabilityOf(person, employment, date)` against the
+person's active contract with the segment's promotion (none for a free agent),
+so a warning carries WRK1's reason with the first day back
+(`availabilityText`, `systems/match/availabilityText.ts`): `injured` for an
+injury, `inactive` for someone retired, dead or gone, `unavailable` for rehab,
+personal leave, hiatus, a suspension, time off or a debut still ahead. A match
+needs someone available; a talking segment needs someone who can work angles,
+so an injury that allows angles is not flagged there. Semi-retired workers are
+not flagged.
 
 ### Adding a rating effect
 
@@ -802,6 +810,20 @@ morale) and CRTV7 (gimmicks and managers) follow:
 5. Test that it appears as exactly one labelled line, moves the value by its
    amount and that the trace still replays; reset the registries in
    `afterEach`.
+
+## Partners
+
+Five features meet the rating at a seam; whichever of a pair reaches main
+second does the wiring (MTCH1-08 is MTCH1's half). Each partner keeps its
+effect in its own system folder, so MTCH1's files only gain registrations.
+
+| Partner                 | Registers                                                                                                              | Stage and order                                                                            | State                                                                                                                                                     |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| WRK1 (workers)          | Nothing in the pipeline: `availabilityOf` for warnings and `match.labWorkers`, `WorkerLink` for lab names              | (warnings, lab)                                                                            | Wired (MTCH1-08). The lab picker keeps `match.labWorkers` for both tabs: `workers.list` has no popularity in a chosen region, no name search and no limit |
+| AIP1 (rival shortcuts)  | The rating policy provider (`registerRatingPolicyProvider`) reading `aiShortcut` for the score bonus and simple inputs | Policy door; the bonus is a `score` line                                                   | Not on main; AIP1 wires it from its own pack, with the lab's "Rate as" select (until then every promotion gets "Same rules for every promotion")          |
+| CRTV7 (gimmicks)        | Gimmick fit and manager modifiers (`registerRatingModifier`)                                                           | Gimmick on `performance` and `crowd`, manager on `talk` and `crowd`; `RATING_ORDER.normal` | Not on main; CRTV7 wires it from its own pack                                                                                                             |
+| SOC3 (backstage morale) | The morale multiplier, `detail: false` so rivals get it too                                                            | `workRate`, `RATING_ORDER.late` (before compression)                                       | Not on main; SOC3 wires it from its own pack                                                                                                              |
+| MOD8 (script hooks)     | Hook point `match.segmentScore` (honoured field `score`, 0..100, no cancel), applied in `runStage('score', ...)`       | `score`, after the modifiers, before the final round                                       | Not on main; MOD8 wires it from its own pack                                                                                                              |
 
 ## Previews
 
@@ -870,7 +892,8 @@ limit?, promotionId? }` → `{ rows, total }`. `mine` is the promotion's
 promotionShortName, style, roles, popularity, available, unavailableReason }`:
   the ring name with the lab's promotion (else the default ring name), the main
   employer's short name, popularity in `regionId`, and WRK1's `availabilityOf`
-  on today's date. Rows are sorted by popularity, then name; `search` matches
+  on today's date, its reason written with the day back ("On personal leave
+  until 12 Mar"). Rows are sorted by popularity, then name; `search` matches
   the name case-insensitively (up to 40 characters) and `limit` (1–500, 300 by
   default) caps the list, with `total` counting every match. A row never holds
   development, vices, morale or contract terms.
@@ -888,5 +911,8 @@ warnings can be seen. Run calls `match.preview` with the current seed (1 on a
 fresh lab), Re-roll seed moves to the next seed and runs, and Run x100 runs
 `match.preview` and a 100-run `match.previewBatch` together. Nothing re-rates
 on its own: changing the setup marks the shown result "Out of date: run
-again", and a result from an earlier game day says when it was rated. Other
-features add panels with `registerLabPanel` (see `apps/web/src/app/README.md`).
+again", and a result from an earlier game day says when it was rated. Worker
+names on the side chips and in the Each worker table are WRK1 `WorkerLink`s to
+the worker's profile, and person inputs in the lab's Why? panels link the same
+way through the shell's `EntityLinkContext` (MTCH1-08). Other features add
+panels with `registerLabPanel` (see `apps/web/src/app/README.md`).

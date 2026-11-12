@@ -45,7 +45,7 @@ function renderLab({ state = fakeEngineState() }: RenderOptions = {}) {
       <RouterProvider router={router} future={routerProviderFutureFlags} />
     </EngineProvider>,
   );
-  return { transport, user: userEvent.setup() };
+  return { transport, router, user: userEvent.setup() };
 }
 
 /** The lab's slot role select, once the lab has loaded. */
@@ -186,6 +186,42 @@ describe('MatchLabScreen', () => {
 
     await user.click(within(scoreBug()).getByRole('button', { name: /^Why is Score / }));
     expect(await screen.findByRole('dialog', { name: 'Score' })).toBeInTheDocument();
+  });
+
+  it("links each worker's name, on the chips and in the result, to their profile", async () => {
+    const { transport, router, user } = renderLab();
+    await findSlotRole();
+    const [first] = await fillSides(transport, 2);
+    if (first === undefined) throw new Error('The roster is empty.');
+    const profile = routes.game.worker(first.personId);
+
+    const side1 = screen.getByRole('list', { name: 'Side 1 line-up' });
+    const chipLink = within(side1).getByRole('link', { name: first.name });
+    expect(chipLink).toHaveAttribute('href', profile);
+    // The remove button stays its own control beside the link.
+    expect(
+      within(side1).getByRole('button', { name: `Remove ${first.name} from Side 1` }),
+    ).toBeInTheDocument();
+
+    await runOnce(user);
+    const grid = screen.getByRole('grid', { name: 'Each worker' });
+    expect(within(grid).getByRole('link', { name: first.name })).toHaveAttribute('href', profile);
+
+    // A person input inside a Why? panel links the same way, through the shell's link context.
+    const popularity = `${first.name}'s popularity`;
+    await user.click(
+      within(grid).getByRole('button', { name: new RegExp(`^Why is ${popularity}`) }),
+    );
+    const panel = await screen.findByRole('dialog', { name: popularity });
+    expect(
+      within(panel).getByRole('link', { name: new RegExp(`^${popularity} in `) }),
+    ).toHaveAttribute('href', profile);
+    await user.keyboard('{Escape}');
+
+    await user.click(within(grid).getByRole('link', { name: first.name }));
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe(profile);
+    });
   });
 
   it('re-rolls to the next seed', async () => {

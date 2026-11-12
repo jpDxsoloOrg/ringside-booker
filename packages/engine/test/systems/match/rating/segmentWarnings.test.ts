@@ -1,5 +1,5 @@
 // Segment warnings (MTCH1-05): every warning code fires on a crafted input, none on a clean
-// singles, sorted by severity then side. Design: docs/design/match-rating.md#warnings
+// singles, sorted by severity then side. Availability is WRK1's `availabilityOf` (MTCH1-08). Design: docs/design/match-rating.md#warnings
 import { describe, expect, it } from 'vitest';
 import { parseContentKey } from '../../../../src/core/content-key';
 import { parseGameDate, type GameDate } from '../../../../src/core/date';
@@ -164,30 +164,72 @@ describe('segmentWarnings', () => {
         severity: 'error',
         personId: person(1),
         side: 1,
-        message: `${nameOf(1)} is injured until 2026-05-01`,
+        message: `${nameOf(1)}: Injured (arm injury) until 1 May; can still do talking segments`,
       },
     ]);
     const promoInput: SegmentRatingInput = { ...fixture.base, kind: 'angle', typeKey: PROMO };
     expect(warningsFor(fixture, promoInput)).toEqual([]);
     updatePerson(world, person(1), (row) => ({ ...row, injury: injuryFor(false) }));
-    expect(warningsFor(fixture, promoInput).map((warning) => warning.code)).toEqual(['injured']);
+    expect(warningsFor(fixture, promoInput)).toEqual([
+      {
+        code: 'injured',
+        severity: 'error',
+        personId: person(1),
+        side: 1,
+        message: `${nameOf(1)}: Injured (arm injury) until 1 May`,
+      },
+    ]);
     // Healed by the show date: no warning.
     expect(
       segmentWarnings(fixture.base, world, TEST_CATALOGS, parseGameDate('2026-05-01')),
     ).toEqual([]);
   });
 
-  it('inactive: someone on hiatus', () => {
+  it('inactive: someone retired', () => {
     const fixture = setup();
     const { person, nameOf, world } = fixture;
-    updatePerson(world, person(0), (row) => ({ ...row, status: 'hiatus' }));
+    updatePerson(world, person(0), (row) => ({ ...row, status: 'retired' }));
     expect(warningsFor(fixture, fixture.base)).toEqual([
       {
         code: 'inactive',
         severity: 'error',
         personId: person(0),
         side: 0,
-        message: `${nameOf(0)} is on hiatus`,
+        message: `${nameOf(0)}: Retired`,
+      },
+    ]);
+  });
+
+  it("unavailable: WRK1's reason for someone on personal leave or hiatus, in a match or a promo", () => {
+    const fixture = setup();
+    const { person, nameOf, world } = fixture;
+    updatePerson(world, person(1), (row) => ({
+      ...row,
+      restrictions: [{ kind: 'personalLeave', until: parseGameDate('2026-03-12') }],
+    }));
+    const leave: SegmentWarning = {
+      code: 'unavailable',
+      severity: 'error',
+      personId: person(1),
+      side: 1,
+      message: `${nameOf(1)}: On personal leave until 12 Mar`,
+    };
+    const onDate = (input: SegmentRatingInput, date: GameDate) =>
+      segmentWarnings(input, world, TEST_CATALOGS, date);
+    const before = parseGameDate('2026-03-11');
+    expect(onDate(fixture.base, before)).toEqual([leave]);
+    expect(onDate({ ...fixture.base, kind: 'angle', typeKey: PROMO }, before)).toEqual([leave]);
+    // Back on the 12th.
+    expect(onDate(fixture.base, parseGameDate('2026-03-12'))).toEqual([]);
+
+    updatePerson(world, person(0), (row) => ({ ...row, status: 'hiatus' }));
+    expect(onDate(fixture.base, parseGameDate('2026-03-12'))).toEqual([
+      {
+        code: 'unavailable',
+        severity: 'error',
+        personId: person(0),
+        side: 0,
+        message: `${nameOf(0)}: On hiatus`,
       },
     ]);
   });
@@ -232,6 +274,7 @@ describe('segmentWarnings', () => {
         'duplicatePerson',
         'inactive',
         'injured',
+        'unavailable',
         'nonWrestler',
         'sideCount',
         'sideSize',
@@ -252,7 +295,7 @@ describe('segmentWarnings', () => {
     });
     expect(warnings.map((warning) => [warning.code, warning.side ?? null])).toEqual([
       ['sideCount', null],
-      ['inactive', 1],
+      ['unavailable', 1],
       ['nonWrestler', 0],
     ]);
   });

@@ -18,6 +18,7 @@ const BROADCAST_STYLESHEETS = [
   'CardSlot/CardSlot.module.css',
   'ChamferPanel/ChamferPanel.module.css',
   'SlashDivider/SlashDivider.module.css',
+  'StarRating/StarRating.module.css',
 ] as const;
 
 function readStylesheet(relativePath: string): string {
