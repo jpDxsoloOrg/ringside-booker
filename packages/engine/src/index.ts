@@ -1486,3 +1486,27 @@ export {
   type TitleOutcomeDeps,
   type TitleOutcomeInputs,
 } from './systems/shows/index';
+
+// Results queries (EVT3-05): `shows.results` (one show's results page), `shows.lastCompleted` and
+// `shows.completedSince` (compact lines for the Office panel and the "See results" links), and the
+// view types screens import. See docs/design/show-night.md#results-queries.
+export {
+  DEFAULT_COMPLETED_SINCE,
+  MAX_COMPLETED_SINCE,
+  MAX_RESULTS_RANGE_DAYS,
+  RESULTS_RANGE_MESSAGES,
+  RESULTS_SCOPES,
+  SHOW_NOT_FOUND_MESSAGE,
+  type CompletedSinceArgs,
+  type ResultsScope,
+  type SegmentMemberView,
+  type SegmentOutcomeView,
+  type SegmentRatingView,
+  type SegmentResultView,
+  type SegmentSideView,
+  type SegmentTitleView,
+  type ShowResultView,
+  type ShowResultsView,
+  type ShowSummaryView,
+  type TitleResultOutcome,
+} from './systems/shows/index';
