@@ -151,6 +151,18 @@
   .footer {
     padding-inline: var(--space-4);
   }
+
+  /*
+   * phoneHeight="full": the whole screen for a long form. No handle and no rounded top; the
+   * header clears the notch, and the footer stays pinned above the home indicator.
+   */
+  .side-bottom.phone-full {
+    block-size: 100dvh;
+    max-block-size: 100dvh;
+    padding-block-start: var(--safe-top);
+    border-block-start: 0;
+    border-radius: 0;
+  }
 }
 
 /*

@@ -1,5 +1,5 @@
 export { Sheet } from './Sheet';
-export type { SheetProps, SheetSide, SheetSize } from './Sheet';
+export type { SheetPhoneHeight, SheetProps, SheetSide, SheetSize } from './Sheet';
 export {
   acquireBodyScrollLock,
   bodyScrollLockCount,

@@ -276,6 +276,31 @@ describe('Sheet', () => {
     expect(handleBar?.querySelector('.handle')).toBeInstanceOf(HTMLElement);
   });
 
+  it('fills a phone screen with no drag handle when phoneHeight is full', async () => {
+    setMatchMedia((query) => query === BP_MOBILE_QUERY);
+    const user = userEvent.setup();
+    render(
+      <SheetHarness side="right" phoneHeight="full" footer={<button type="button">Save</button>} />,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Open sheet' }));
+
+    expect(getDialog()).toHaveAttribute('data-side', 'bottom');
+    expect(getDialog()).toHaveAttribute('data-phone-height', 'full');
+    expect(getDialog().querySelector('.handleBar')).toBeNull();
+    expect(getDialog().querySelector('[data-sheet-footer]')).toHaveTextContent('Save');
+  });
+
+  it('ignores phoneHeight on desktop', async () => {
+    const user = userEvent.setup();
+    render(<SheetHarness side="right" phoneHeight="full" />);
+
+    await user.click(screen.getByRole('button', { name: 'Open sheet' }));
+
+    expect(getDialog()).toHaveAttribute('data-side', 'right');
+    expect(getDialog()).not.toHaveAttribute('data-phone-height');
+  });
+
   it('stays open when the drag handle is tapped', async () => {
     setMatchMedia((query) => query === BP_MOBILE_QUERY);
     const handleClose = vi.fn();
