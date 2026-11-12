@@ -37,6 +37,11 @@ export interface SpeakerScoreSide {
 export interface SpeakerScoreInputs {
   angleType: Pick<AngleTypeDef, 'name' | 'speakerWeights'>;
   sides: readonly SpeakerScoreSide[];
+  /**
+   * Runs on each side's aggregate before the sides are combined (the rater's `side` stage). Left
+   * out, the side aggregate is used as it is.
+   */
+  sideStage?: (side: SpeakerScoreSide, value: Traced<number>) => Traced<number>;
 }
 
 export const PROMO_VARIANCE_LABEL = 'How the promo landed';
@@ -65,10 +70,8 @@ export function speakerScore(
     );
   }
   const { tunables } = deps;
-  const sideValues: SideAggregateMember[] = inputs.sides.map((side) => ({
-    id: String(side.side).padStart(2, '0'),
-    name: sideLabel(side.side),
-    value: sideAggregate(
+  const sideValues: SideAggregateMember[] = inputs.sides.map((side) => {
+    const aggregate = sideAggregate(
       {
         label: sideLabel(side.side),
         members: side.members.map((speaker) => ({
@@ -79,8 +82,13 @@ export function speakerScore(
         decayKey: 'match.side.depthDecay',
       },
       { tunables },
-    ),
-  }));
+    );
+    return {
+      id: String(side.side).padStart(2, '0'),
+      name: sideLabel(side.side),
+      value: inputs.sideStage === undefined ? aggregate : inputs.sideStage(side, aggregate),
+    };
+  });
   const acrossSides = sideAggregate(
     { label: ACROSS_SIDES_LABEL, members: sideValues, decayKey: 'match.sides.depthDecay' },
     { tunables },

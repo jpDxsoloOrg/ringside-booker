@@ -8,12 +8,16 @@
  * crowd score, soft compression, segment score, star rating and speaker score (MTCH1-04).
  * Finishes (MTCH2): the catalog check (`catalog/finishes.ts`), the allowed-finish rule and filter
  * seam (`finishes/allowed.ts`) and the segment finish check (`catalog/checkSegmentFinishes.ts`).
+ * The rating pipeline (`rating/`, MTCH1-05): `rateSegment`, the rater registry, rating modifiers,
+ * the rating policy door, segment warnings and the stored-segment adapter.
  * The runtime catalogs it reads live in `model/catalogs.ts`. No phase yet. Design:
  * docs/design/match-rating.md and match-finishes.md.
  */
 
 import { defineSystem, type SystemBundle } from '../../core/api/system';
 import { matchQueries } from './queries';
+// Registers the built-in `match` and `angle` raters at module load.
+import './rating/builtins';
 
 export {
   DURATION_CLASSES,
@@ -138,6 +142,73 @@ export {
   type SpeakerScoreSpeaker,
 } from './formulas/speakerScore';
 export { signedNumber, summaryOf } from './formulas/shared';
+export { staminaCheckOf, type StaminaCheck } from './formulas/workRate';
+
+// The rating pipeline (MTCH1-05). Design: docs/design/match-rating.md#pipeline-and-seams.
+export {
+  RATING_STAGES,
+  SEGMENT_WARNING_CODES,
+  type RatingStage,
+  type RatingSubject,
+  type RatingPolicySummary,
+  type SegmentKind,
+  type SegmentRatingEvent,
+  type SegmentRatingInput,
+  type SegmentRatingResult,
+  type SegmentRatingSide,
+  type SegmentRatingSlot,
+  type SegmentWarning,
+  type SegmentWarningCode,
+  type SideSubject,
+  type SlotDerivation,
+  type WorkerLine,
+  type WorkerStaminaLine,
+  type WorkerSubject,
+} from './rating/types';
+export type { RatingContext, RatingMode } from './rating/context';
+export {
+  NEUTRAL_RATING_POLICY,
+  NEUTRAL_RATING_POLICY_LABEL,
+  ratingPolicyFor,
+  registerRatingPolicyProvider,
+  type RatingPolicy,
+  type RatingPolicyProvider,
+} from './rating/policy';
+export {
+  RATING_ORDER,
+  RATING_ORDER_MAX,
+  RATING_ORDER_MIN,
+  ratingModifiersFor,
+  registerRatingModifier,
+  registerSegmentRater,
+  segmentRaterFor,
+  type RatingModifier,
+  type SegmentRater,
+} from './rating/registry';
+export {
+  PIPELINE_DOC_REF,
+  RATING_STAGE_LABELS,
+  runStage,
+  skippedDetailNote,
+} from './rating/runStage';
+export {
+  ENTERTAINMENT_LABEL,
+  NOT_UNDER_CONTRACT_NOTE,
+  NO_MOMENTUM_NOTE,
+  durationLabelOf,
+  slotWeightLine,
+} from './rating/common';
+export { matchRater } from './rating/matchRater';
+export { ANGLE_CROWD_FACTOR, angleRater } from './rating/angleRater';
+export {
+  GIVEN_ROLE_NOTE,
+  RATE_SEGMENT_REASON_CODES,
+  rateSegment,
+  type RateSegmentOptions,
+} from './rating/rateSegment';
+export { segmentWarnings } from './rating/segmentWarnings';
+export { ratingInputFromSegment } from './rating/fromSegment';
+export { resetMatchRegistriesForTests } from './rating/builtins';
 
 // Finishes (MTCH2): the catalog check, the allowed-finish rule and its filter seam, the segment
 // finish check and the `match.finishes` query. Design: docs/design/match-finishes.md.
