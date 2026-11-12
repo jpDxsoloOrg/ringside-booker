@@ -431,6 +431,8 @@ describe('createNewGame: settings', () => {
       equalStart: true,
       randomiseContractLengths: false,
       rerollPotential: false,
+      // Registered by the match system (MTCH2-03).
+      randomWinners: false,
     });
     expect(getSetting(state.world, 'equalStart')).toBe(true);
     expect(getSetting(state.world, 'generationLevel')).toBe('low');
@@ -644,6 +646,7 @@ describe('createNewGame: summary', () => {
       equalStart: false,
       randomiseContractLengths: false,
       rerollPotential: false,
+      randomWinners: false,
     });
     expect(weekday(summary.startDate)).toBe(weekday(PACK_START));
   });

@@ -12,6 +12,13 @@
  * `match.blend.*`, `match.stars.*` and `match.angle.*` (MTCH1-04): the crowd half of a rating (D-02),
  * soft compression, the segment score blend, star ratings and the simple talking segment score.
  * See docs/design/match-rating.md#star-power.
+ *
+ * `match.finish.*` and `match.autoFinish.*` (MTCH2-02): how strongly a finish's catalog effects move
+ * work rate and crowd, the crowd's draw penalty and how often a heel winner cheats. See
+ * docs/design/match-finishes.md#finish-effects.
+ *
+ * `match.autoWinner.*` and `match.randomWinners.*` (MTCH2-03): the auto-winner's weights, push and
+ * alignment points and unpredictability. See docs/design/match-finishes.md#auto-winner.
  */
 
 import { defineTunables } from '../../core/tunables/define';
@@ -178,6 +185,36 @@ function starCap(defaultValue: number, description: string) {
     description,
     docRef: STARS_DOC,
   } as const;
+}
+
+const RESULTS_CATEGORY = 'Match results';
+const FINISH_EFFECTS_DOC = 'match-finishes.md#finish-effects';
+const FINISH_ON_THE_NIGHT_DOC = 'match-finishes.md#finish-on-the-night';
+const AUTO_WINNER_DOC = 'match-finishes.md#auto-winner';
+const RANDOM_WINNERS_DOC = 'match-finishes.md#random-winners';
+
+/** Auto-winner points for one push level (MTCH2-03). */
+function pushPoints(defaultPoints: number, level: string) {
+  return matchNumber(
+    defaultPoints,
+    { min: 0, max: 100, step: 1 },
+    'points',
+    RESULTS_CATEGORY,
+    AUTO_WINNER_DOC,
+    `Auto-winner points for a worker pushed ${level}`,
+  );
+}
+
+/** Auto-winner points for one alignment (MTCH2-03). */
+function alignmentEdge(defaultPoints: number, alignment: string) {
+  return matchNumber(
+    defaultPoints,
+    { min: -20, max: 20, step: 0.5 },
+    'points',
+    RESULTS_CATEGORY,
+    AUTO_WINNER_DOC,
+    `Auto-winner points for a ${alignment}`,
+  );
 }
 
 export const matchTunables = defineTunables({
@@ -503,5 +540,71 @@ export const matchTunables = defineTunables({
     TALKING_CATEGORY,
     TALKING_DOC,
     'Spread of the how-the-promo-landed roll; 0 turns the variance off',
+  ),
+  'match.finish.effectScale': matchNumber(
+    1,
+    { min: 0, max: 3, step: 0.05 },
+    'multiplier',
+    RESULTS_CATEGORY,
+    FINISH_EFFECTS_DOC,
+    'How strongly a finish changes work rate and crowd',
+  ),
+  'match.finish.drawCrowdPenalty': matchNumber(
+    2,
+    { min: 0, max: 20, step: 0.5 },
+    'points',
+    RESULTS_CATEGORY,
+    FINISH_EFFECTS_DOC,
+    'Crowd lost when a match ends without a winner',
+  ),
+  'match.autoFinish.heelCheatingFactor': matchNumber(
+    2,
+    { min: 0, max: 10, step: 0.1 },
+    'multiplier',
+    RESULTS_CATEGORY,
+    FINISH_ON_THE_NIGHT_DOC,
+    "How much more often a heel winner's finish is a cheating one",
+  ),
+  // MTCH2-03: the auto-winner and Random winners. See docs/design/match-finishes.md#auto-winner.
+  'match.autoWinner.popularityWeight': matchNumber(
+    0.6,
+    { min: 0, max: 3, step: 0.05 },
+    'multiplier',
+    RESULTS_CATEGORY,
+    AUTO_WINNER_DOC,
+    "Auto-winner points per point of a side's mean popularity in the show's region",
+  ),
+  'match.autoWinner.momentumWeight': matchNumber(
+    0.15,
+    { min: 0, max: 1, step: 0.01 },
+    'multiplier',
+    RESULTS_CATEGORY,
+    AUTO_WINNER_DOC,
+    "Auto-winner points per point of a side's mean momentum",
+  ),
+  'match.autoWinner.push.mainEvent': pushPoints(30, 'as a main eventer'),
+  'match.autoWinner.push.upperCard': pushPoints(22, 'on the upper card'),
+  'match.autoWinner.push.midCard': pushPoints(14, 'on the mid card'),
+  'match.autoWinner.push.lowerCard': pushPoints(7, 'on the lower card'),
+  'match.autoWinner.push.enhancement': pushPoints(0, 'as enhancement talent'),
+  'match.autoWinner.push.none': pushPoints(0, 'not at all'),
+  'match.autoWinner.alignment.face': alignmentEdge(2, 'face'),
+  'match.autoWinner.alignment.heel': alignmentEdge(0, 'heel'),
+  'match.autoWinner.alignment.tweener': alignmentEdge(1, 'tweener'),
+  'match.autoWinner.randomness': matchNumber(
+    5,
+    { min: 0, max: 200, step: 0.5 },
+    'points',
+    RESULTS_CATEGORY,
+    AUTO_WINNER_DOC,
+    'Most unpredictability added to each side of an auto-winner match; 0 = always the same winner',
+  ),
+  'match.randomWinners.randomness': matchNumber(
+    60,
+    { min: 1, max: 1000, step: 1 },
+    'points',
+    RESULTS_CATEGORY,
+    RANDOM_WINNERS_DOC,
+    'Most unpredictability added to each side in Random winners mode; at least 1, so it is never fully predictable',
   ),
 });

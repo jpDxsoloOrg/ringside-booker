@@ -18,6 +18,8 @@ import { defineSystem, type SystemBundle } from '../../core/api/system';
 import { matchQueries } from './queries';
 // Registers the built-in `match` and `angle` raters at module load.
 import './rating/builtins';
+// Registers the Random winners new-game setting at module load (MTCH2-03).
+import './settings';
 
 export {
   DURATION_CLASSES,
@@ -284,6 +286,119 @@ export {
   type QuarterCount,
   type Stats,
 } from './stats';
+
+// Finish effects, finish on the night, method and the title rule (MTCH2-02).
+// Design: docs/design/match-finishes.md#finish-effects.
+export { MATCH_FINISH_STREAM } from './streams';
+export { MatchResolutionSchema, type MatchResolution } from './finishes/resolution';
+export {
+  DRAW_CROWD_PENALTY_LABEL,
+  FINISH_EFFECTS_DOC_REF,
+  finishEffect,
+  finishEffectLabel,
+  type FinishEffectInputs,
+  type FinishEffectTarget,
+} from './formulas/finishEffect';
+export {
+  FINISH_CROWD_MODIFIER_ID,
+  FINISH_WORK_RATE_MODIFIER_ID,
+  finishCrowdModifier,
+  finishWorkRateModifier,
+  registerFinishModifiers,
+  unknownFinishNote,
+} from './finishes/modifiers';
+export {
+  ALL_WEIGHTS_ZERO_FINISH_NOTE,
+  AUTO_FINISH_LABEL,
+  AUTO_FINISH_RULE,
+  FINISH_ON_THE_NIGHT_DOC_REF,
+  NEVER_PICKED_REASON,
+  ONLY_FINISH_NOTE,
+  PICKED_BY_ROLL_REASON,
+  autoFinish,
+  winnerAlignmentOf,
+  type AutoFinishCandidate,
+  type AutoFinishDeps,
+  type AutoFinishInputs,
+} from './finishes/autoFinish';
+export {
+  BOOKED_METHOD_REASON,
+  METHOD_BY_ROLL_REASON,
+  METHOD_DECISION_LABEL,
+  METHOD_DOC_REF,
+  NO_METHOD_NOTE,
+  NO_METHOD_OPTION,
+  ONLY_METHOD_REASON,
+  chooseMethod,
+  type ChooseMethodInputs,
+} from './finishes/chooseMethod';
+export {
+  NO_WINNER_RULE,
+  TITLE_CAN_CHANGE_REASON,
+  TITLE_CHANGES_DOC_REF,
+  TITLE_RULE_LABEL,
+  titleCanChange,
+  type TitleCanChangeInputs,
+} from './finishes/titleRule';
+
+// The auto-winner, resolveMatchOutcome and the Random winners setting (MTCH2-03).
+// Design: docs/design/match-finishes.md#auto-winner.
+export { MATCH_AUTO_WINNER_STREAM } from './streams';
+export { RANDOM_WINNERS_SETTING } from './settings';
+export {
+  AUTO_WINNER_ALIGNMENT_LABEL,
+  AUTO_WINNER_DOC_REF,
+  AUTO_WINNER_MOMENTUM_LABEL,
+  AUTO_WINNER_PUSH_LABEL,
+  NOT_EMPLOYED_HERE_NOTE,
+  NO_COMPETITORS_NOTE,
+  NO_MOMENTUM_COUNTS_ZERO_NOTE,
+  autoWinnerPopularityLabel,
+  autoWinnerScore,
+  type AutoWinnerCompetitor,
+  type AutoWinnerScoreInputs,
+} from './formulas/autoWinnerScore';
+export {
+  autoWinnerInputsOf,
+  competitorSidesOf,
+  type AutoWinnerInputsArgs,
+  type AutoWinnerSide,
+  type AutoWinnerSideIds,
+} from './finishes/autoWinnerInputs';
+export {
+  AUTO_WINNER_LABEL,
+  HIGHEST_SCORE_REASON,
+  HIGHEST_SCORE_RULE,
+  NO_UNPREDICTABILITY_NOTE,
+  RANDOM_WINNERS_LABEL,
+  TIE_BREAK_REASON,
+  TIE_BREAK_RULE,
+  autoWinner,
+  unpredictabilityLabel,
+  type AutoWinnerInputs,
+  type AutoWinnerMode,
+  type AutoWinnerSideScore,
+} from './finishes/autoWinner';
+export { randomWinnersActive, type RandomWinnersArgs } from './finishes/randomWinners';
+export {
+  BOOKED_FINISH_LABEL,
+  BOOKED_FINISH_REASON,
+  BOOKED_WINNER_REASON,
+  MATCH_RESULT_LABEL,
+  NO_WINNER_OPTION,
+  RANDOM_WINNERS_MESSAGE,
+  RESOLVE_MATCH_REASON_CODES,
+  RESOLVING_A_MATCH_DOC_REF,
+  WINNER_DECISION_LABEL,
+  resolveMatchOutcome,
+  type MatchPlan,
+  type PlannedWinner,
+  type ResolveMatchOutcomeDeps,
+  type ResolveMatchOutcomeInput,
+  type ResolveMatchOutcomeResult,
+  type ResolveMatchReasonCode,
+  type ResolveStreamName,
+} from './finishes/resolve';
 
 export const matchSystem: SystemBundle = defineSystem({
   id: 'match',
