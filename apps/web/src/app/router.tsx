@@ -103,6 +103,14 @@ export const gameDetailRoutes: RouteObject[] = [
       return { Component: WorkerProfileScreen };
     },
   },
+  {
+    path: routePatterns.showResults,
+    // Its own chunk: the results page, its reveal and the sections other features add (EVT3-06).
+    lazy: async () => {
+      const { ShowResultsScreen } = await import('@/screens/show-results/ShowResultsScreen');
+      return { Component: ShowResultsScreen };
+    },
+  },
 ];
 
 const gameRoute: RouteObject = {

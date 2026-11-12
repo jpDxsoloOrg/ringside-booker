@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
+import { matchPath } from 'react-router-dom';
 import { parseId } from '@ringside/engine';
-import { CALENDAR_PARAMS, routes } from './routes';
+import {
+  CALENDAR_PARAMS,
+  routePatterns,
+  routes,
+  SHOW_RESULTS_PARAMS,
+  SHOW_RESULTS_ROUTE_PARAM,
+} from './routes';
 
 describe('routes.game.calendarAt', () => {
   const show = parseId('eventInstance', 'evi_0000000001');
@@ -37,5 +44,26 @@ describe('routes.game.calendarAt', () => {
     expect(url.searchParams.get(CALENDAR_PARAMS.month)).toBe('2027-01');
     expect(url.searchParams.get(CALENDAR_PARAMS.scope)).toBe('world');
     expect(url.searchParams.get(CALENDAR_PARAMS.show)).toBe(show);
+  });
+});
+
+describe('routes.game.showResults', () => {
+  const show = parseId('eventInstance', 'evi_0000000001');
+
+  it('sits under Event history', () => {
+    expect(routes.game.showResults(show)).toBe(`/game/event-history/${show}`);
+    expect(routes.game.showResults(show).startsWith(`${routes.game.eventHistory()}/`)).toBe(true);
+  });
+
+  it('asks for the reveal only when told to', () => {
+    expect(routes.game.showResults(show, { reveal: false })).toBe(`/game/event-history/${show}`);
+    const url = new URL(routes.game.showResults(show, { reveal: true }), 'https://example.test');
+    expect(url.searchParams.get(SHOW_RESULTS_PARAMS.reveal)).toBe('1');
+  });
+
+  it('matches the pattern the router registers', () => {
+    expect(matchPath(routePatterns.showResults, routes.game.showResults(show))?.params).toEqual({
+      [SHOW_RESULTS_ROUTE_PARAM]: show,
+    });
   });
 });
