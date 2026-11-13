@@ -739,6 +739,16 @@ export function showChangeWithStatus(
     status,
     summary: null,
     countries: [],
+    // A show older than the detail window keeps only its worldwide change (POL4-08).
+    pruned:
+      status === 'pruned'
+        ? {
+            before: 41.2,
+            after: 42,
+            change: 0.8,
+            note: 'Details are kept for the last 4 weeks.',
+          }
+        : null,
   };
 }
 

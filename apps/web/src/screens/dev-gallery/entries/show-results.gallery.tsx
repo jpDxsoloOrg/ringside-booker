@@ -129,6 +129,32 @@ function offscreenShow(): ShowResultsView {
   };
 }
 
+/** A show older than the detail window (POL4-08): the card is gone, a summary stays. */
+function rolledUpShow(): ShowResultsView {
+  const show = sampleShow();
+  return {
+    ...show,
+    eventInstanceId: parseId('eventInstance', 'evi_0000000903'),
+    name: 'Winter Warfare',
+    date: parseGameDate('2031-01-10'),
+    airDate: parseGameDate('2031-01-10'),
+    segments: [],
+    result: show.result === null ? null : { ...show.result, scoreTraceRef: null, breakdown: null },
+    history: {
+      segments: 7,
+      mainEvent: {
+        typeName: 'Singles',
+        sides: ['Marcus Vale', 'Dante Reyes'],
+        winnerSide: 'Marcus Vale',
+      },
+      titleChanges: [
+        { titleName: 'Crown Heavyweight Championship', newHolderNames: ['Marcus Vale'] },
+      ],
+      note: 'Details are kept for the last 4 weeks.',
+    },
+  };
+}
+
 interface ExampleProps {
   readonly title: string;
   readonly view: ShowResultsView;
@@ -183,6 +209,8 @@ function ShowResultsDemo() {
         />
         <Example title="The reveal in a phone column (390px)" view={show} reveal narrow />
         <Example title="A rival show scored off-screen" view={offscreenShow()} />
+        <Example title="A show older than four weeks: only its summary" view={rolledUpShow()} />
+        <Example title="An older show at phone width (390px)" view={rolledUpShow()} narrow />
         <Example title="Phone width (390px)" view={show} narrow />
         <section className={styles['example']}>
           <h3 className={styles['subheading']}>The Next Day summary&apos;s results links</h3>

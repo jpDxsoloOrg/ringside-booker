@@ -241,6 +241,8 @@ function LedgerRows({ promotionId, filters, onClearFilters }: LedgerRowsProps) {
   }
   const olderCursor = nextCursor;
   const filtered = filters.month !== null || filters.category !== null;
+  // Older rows are rolled into monthly totals (POL4-08): say so wherever the list ends.
+  const rolledUpNote = first.data.rolledUp?.note ?? null;
 
   return (
     <>
@@ -260,7 +262,7 @@ function LedgerRows({ promotionId, filters, onClearFilters }: LedgerRowsProps) {
             <EmptyState
               icon="search"
               title="No rows match these filters"
-              body="Try another month or category."
+              body={rolledUpNote ?? 'Try another month or category.'}
               action={
                 <Button variant="secondary" onClick={onClearFilters}>
                   Clear filters
@@ -269,7 +271,7 @@ function LedgerRows({ promotionId, filters, onClearFilters }: LedgerRowsProps) {
               headingLevel={3}
             />
           ) : (
-            <EmptyState icon="finance" title={LEDGER_EMPTY_TEXT} headingLevel={3} />
+            <EmptyState icon="finance" title={rolledUpNote ?? LEDGER_EMPTY_TEXT} headingLevel={3} />
           )
         }
       />
@@ -281,6 +283,9 @@ function LedgerRows({ promotionId, filters, onClearFilters }: LedgerRowsProps) {
                 nextCursor === null ? ', the oldest included' : ''
               }`}
         </p>
+        {rolledUpNote !== null && olderCursor === null && rows.length > 0 && (
+          <p className={styles['muted']}>{rolledUpNote}</p>
+        )}
         {olderCursor !== null && (
           <Button
             variant="secondary"

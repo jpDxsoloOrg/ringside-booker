@@ -340,4 +340,37 @@ describe('ShowResultsScreen', () => {
     expect(screen.getByText("The results can't be shown")).toBeInTheDocument();
     expect(screen.getByText('No game is loaded')).toBeInTheDocument();
   });
+
+  it('shows an older show as a summary with a plain note once its card is rolled up', async () => {
+    const state = fakeEngineState();
+    // A three-day window: the first Monday's history roll-up (POL4-08) replaces the card.
+    const transport = loadedTransport({
+      ...state,
+      tunableOverrides: { ...state.tunableOverrides, 'history.keepDetailDays': 3 },
+    });
+    await transport.host.advanceDays({ maxDays: 7 }, () => undefined);
+    renderAt(routes.game.showResults(SHOW), transport);
+    await findHeading();
+    expect(
+      (
+        await screen.findAllByText(
+          'Details are kept for the last 3 days.',
+          {},
+          { timeout: LOAD_MS },
+        )
+      ).length,
+    ).toBeGreaterThan(0);
+    expect(screen.getByText('4 segments')).toBeInTheDocument();
+    // The show's money is in its month's totals now, and the section says so.
+    expect(
+      await screen.findByText(
+        "This show's money is now part of its month's totals.",
+        {},
+        { timeout: LOAD_MS },
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryAllByRole('article')).toEqual([]);
+    expect(screen.queryByText("Nothing was on this show's card.")).toBeNull();
+    expect(document.body.textContent).not.toMatch(/undefined|NaN/);
+  });
 });

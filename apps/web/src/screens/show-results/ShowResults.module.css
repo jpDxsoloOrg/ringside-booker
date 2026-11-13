@@ -166,3 +166,31 @@
     font-size: var(--font-size-xl);
   }
 }
+
+/* A show older than the detail window (POL4-08): the note, then its summary facts. */
+.history {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.historyFacts {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+}
+
+.historyFacts > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.historyFacts dt {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  min-inline-size: 7rem;
+}
+
+.historyFacts dd {
+  margin: 0;
+}

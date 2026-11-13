@@ -17,6 +17,7 @@ export const SHOW_MONEY_ROW_LIMIT = 50;
 /** What the section says when it has nothing to list, in plain words. */
 export const SHOW_MONEY_TEXT = {
   none: 'No money moved for this show.',
+  rolledUp: "This show's money is now part of its month's totals.",
   error: "This show's money can't be shown",
   notKept: 'Breakdown no longer kept',
 } as const;
@@ -24,6 +25,11 @@ export const SHOW_MONEY_TEXT = {
 /** The link under the rows: "See April 2026 in the ledger". */
 export function showMoneyLedgerLinkText(month: YearMonth): string {
   return `See ${formatYearMonth(month, 'long')} in the ledger`;
+}
+
+/** The link for a rolled-up show: "See April 2026 in the monthly totals". */
+export function showMoneyMonthlyLinkText(month: YearMonth): string {
+  return `See ${formatYearMonth(month, 'long')} in the monthly totals`;
 }
 
 /** A row's name, as its Why? button reads it: "Travel for Test Weekly". */
@@ -115,6 +121,24 @@ export function ShowMoneySection({ view }: ShowMoneySectionProps) {
   if (query.status === 'error' || data === undefined) {
     return (
       <EmptyState icon="warning" title={SHOW_MONEY_TEXT.error} body={queryErrorText(query.error)} />
+    );
+  }
+  if (data.rows.length === 0 && view.history !== null) {
+    // Older than the detail window (POL4-08): the rows went into the month's totals.
+    const month = yearMonthOf(view.date);
+    return (
+      <EmptyState
+        icon="info"
+        title={SHOW_MONEY_TEXT.rolledUp}
+        body={
+          <>
+            {view.history.note}{' '}
+            <Link to={routes.game.finances({ tab: 'monthly' })}>
+              {showMoneyMonthlyLinkText(month)}
+            </Link>
+          </>
+        }
+      />
     );
   }
   if (data.rows.length === 0) return <EmptyState icon="info" title={SHOW_MONEY_TEXT.none} />;
