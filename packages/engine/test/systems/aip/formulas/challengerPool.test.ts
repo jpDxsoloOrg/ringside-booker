@@ -79,7 +79,8 @@ describe('challengerPool', () => {
       'Strong challenger needs',
     ]);
     for (const formula of formulas) {
-      expectTraceReplays({ value: formula.value, trace: formula });
+      expect(typeof formula.value).toBe('number');
+      expectTraceReplays({ value: Number(formula.value), trace: formula });
     }
   });
 
