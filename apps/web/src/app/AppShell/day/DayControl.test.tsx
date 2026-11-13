@@ -41,7 +41,7 @@ vi.mock('@/app/a11y/LiveAnnouncer', async (importOriginal) => {
   return { ...actual, useAnnounce: () => announceSpy };
 });
 
-const SHOW_REASON = "Your show 'Harbor Lights Showdown' on 2026-04-14 has no card yet";
+const SHOW_REASON = 'Tonight: Harbor Lights Showdown';
 const SLOT_ID = 'slot-1';
 
 /** A world where no human runs anything: the local seat is an observer with no promotion. */
@@ -180,7 +180,7 @@ describe('DayControl: skipping days', () => {
     const { user, router } = renderGame({
       fake: {
         gateDate: fakeAdvanceDay(5),
-        gateHit: { reason: SHOW_REASON, actionHint: 'booking' },
+        gateHit: { reason: SHOW_REASON, actionHint: 'showNight' },
       },
     });
     await expectDateChip(FAKE_START_DATE);
@@ -197,9 +197,13 @@ describe('DayControl: skipping days', () => {
       { politeness: 'polite' },
     );
 
-    // The show now waits: the button goes to booking, with the reason as its description, and
-    // Skip is off.
-    const goToShow = await waitFor(() => dayButton('Go to show'));
+    // The show now waits: the button goes to the show, with the reason as its description, and
+    // Skip is off. The banner offers the same way in.
+    expect(within(banner).getByRole('link', { name: 'Go to the show' })).toHaveAttribute(
+      'href',
+      routes.game.booking(),
+    );
+    const goToShow = await waitFor(() => dayButton('Go to the show'));
     expect(goToShow).toHaveAccessibleDescription(SHOW_REASON);
     expect(screen.getByRole('button', { name: 'Skip days' })).toBeDisabled();
     await user.click(goToShow);
@@ -295,13 +299,13 @@ describe('DayControl: gates waiting today', () => {
         gateDate: FAKE_START_DATE,
         gateHit: {
           reason: SHOW_REASON,
-          actionHint: 'booking',
+          actionHint: 'showNight',
           subject: { kind: 'eventInstance', id: 'evi_harbor' },
         },
       },
     });
 
-    await user.click(await waitFor(() => dayButton('Go to show')));
+    await user.click(await waitFor(() => dayButton('Go to the show')));
 
     expect(router.state.location.pathname).toBe(routes.game.booking());
     expect(router.state.location.search).toBe('?event=evi_harbor');
@@ -453,11 +457,14 @@ async function command<K extends CommandName>(
 }
 
 /**
- * The booking world on the day of the player's Thursday show, its card full of singles matches
- * with planned winners and locked, so the next Next Day runs it.
+ * The booking world the day before the player's Thursday show, its card full of singles matches
+ * with planned winners, with the real show-day gate. There is no lock (EVT2-09): the next Next Day
+ * stops on the show, and the player runs it from the show screen.
  */
-async function renderShowDay() {
-  const transport = createInProcessTransport(fakeEngineFactory(), { progressIntervalMs: 0 });
+async function renderShowEve() {
+  const transport = createInProcessTransport(fakeEngineFactory({ showDayGate: true }), {
+    progressIntervalMs: 0,
+  });
   const { state, roster } = bookingFakeState();
   const install = transport.host.installEngine(state);
   // One simulated day stores the shows.
@@ -496,11 +503,10 @@ async function renderShowDay() {
       },
     });
   }
-  await command(transport, 'booking.lockCard', { eventInstanceId: show.eventInstanceId });
   const clock = await transport.host.query('clock.get', {});
   if (!clock.result.ok) throw new Error('clock.get was refused.');
-  const daysToShow = diffDays(clock.result.data.date, show.date);
-  if (daysToShow > 0) await transport.host.advanceDays({ maxDays: daysToShow }, () => undefined);
+  const daysToEve = diffDays(clock.result.data.date, show.date) - 1;
+  if (daysToEve > 0) await transport.host.advanceDays({ maxDays: daysToEve }, () => undefined);
   useSessionStore.getState().setLoaded({ saveSlotId: null, seat: install.seat });
   const router = createMemoryRouter(buildAppRoutes({ includeDevRoutes: false }), {
     initialEntries: [routes.game.calendar()],
@@ -515,25 +521,45 @@ async function renderShowDay() {
 }
 
 describe('DayControl: a show night', () => {
-  it('banners a plain Next Day that ran your show, with a link to its results', async () => {
-    const { show, router, user } = await renderShowDay();
-    await expectDateChip(show.date);
+  it(
+    'stops Next Day on your show with Tonight; Go to the show, Run the show, then the results',
+    { timeout: 20_000 },
+    async () => {
+      const { show, router, user } = await renderShowEve();
 
-    await user.click(dayButton());
+      await user.click(await waitFor(() => dayButton()));
 
-    const banner = await summary();
-    const link = within(banner).getByRole('link', { name: `See results: ${show.name}` });
-    expect(link).toHaveAttribute(
-      'href',
-      routes.game.showResults(show.eventInstanceId, { reveal: true }),
-    );
-    expect(within(banner).queryByText(/^and \d+ more$/)).toBeNull();
+      // The day ran in full and landed on show day: the banner says so, and nothing ran the show.
+      await expectDateChip(show.date);
+      const banner = await summary();
+      expect(banner).toHaveTextContent(`Tonight: ${show.name}`);
+      expect(within(banner).queryByRole('link', { name: /^See results/ })).toBeNull();
+      const goToShow = await waitFor(() => dayButton('Go to the show'));
+      expect(goToShow).toHaveAccessibleDescription(`Tonight: ${show.name}`);
 
-    await user.click(link);
-    await waitFor(() => {
-      expect(router.state.location.pathname).toBe(routes.game.showResults(show.eventInstanceId));
-    });
-  });
+      await user.click(goToShow);
+      expect(router.state.location.pathname).toBe(routes.game.booking());
+      expect(router.state.location.search).toBe(`?event=${show.eventInstanceId}`);
+
+      const run = await screen.findByRole('button', { name: 'Run the show' }, { timeout: 5_000 });
+      await waitFor(() => {
+        expect(run).toBeEnabled();
+      });
+      await user.click(run);
+
+      await waitFor(
+        () => {
+          expect(router.state.location.pathname).toBe(
+            routes.game.showResults(show.eventInstanceId),
+          );
+        },
+        { timeout: 5_000 },
+      );
+      expect(router.state.location.search).toBe('?reveal=1');
+      // The show has run, so Next Day moves on again.
+      await waitFor(() => dayButton('Next day'));
+    },
+  );
 
   it('leaves a plain Next Day with no show of yours unbannered', async () => {
     const { user } = renderGame();

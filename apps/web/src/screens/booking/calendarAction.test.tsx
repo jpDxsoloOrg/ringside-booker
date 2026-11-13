@@ -69,13 +69,18 @@ describe('the calendar sheet action', () => {
     );
   });
 
-  it('says Edit card once something is booked, booked or not', () => {
+  it('says Edit card once something is booked (a booked show is from an old save)', () => {
     renderAction(context({ segmentCount: 3, status: 'booked' }));
     expect(screen.getByRole('button', { name: 'Edit card' })).toBeInTheDocument();
   });
 
-  it('is there for today’s show', () => {
+  it('is there for today’s show, as Go to the show, booked or not', async () => {
     expect(canOpenInBooking(context({ date: TODAY }))).toBe(true);
+    const router = renderAction(context({ date: TODAY, segmentCount: 3 }));
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Go to the show' }));
+    expect(`${router.state.location.pathname}${router.state.location.search}`).toBe(
+      bookingShowUrl(SHOW_ID),
+    );
   });
 
   it('is not there for a rival, past, projected, completed or cancelled show', () => {

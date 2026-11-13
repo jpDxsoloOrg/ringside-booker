@@ -2,7 +2,7 @@ import { act, render, screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { parseContentKey } from '@ringside/engine';
+import { diffDays, parseContentKey } from '@ringside/engine';
 import type {
   BookingShowRow,
   CommandArgs,
@@ -68,9 +68,10 @@ async function command<K extends CommandName>(
 
 /**
  * The booking world a day in, with the player's Thursday show partly booked: the opener with a
- * planned winner, slot 3 with no result yet, the main event open.
+ * planned winner, slot 3 with no result yet, the main event open. With `onShowDay`, the clock is
+ * then moved to the show's day (the fake engine leaves the show-day gate out).
  */
-async function bookedWorld(): Promise<Booked> {
+async function bookedWorld({ onShowDay = false }: { onShowDay?: boolean } = {}): Promise<Booked> {
   const transport = createInProcessTransport(fakeEngineFactory(), { progressIntervalMs: 0 });
   const { state, roster } = bookingFakeState();
   const install = transport.host.installEngine(state);
@@ -98,6 +99,12 @@ async function bookedWorld(): Promise<Booked> {
   if (!card.result.ok) throw new Error('booking.card was refused.');
   const opener = card.result.data.sections.at(-1)?.slots[0]?.segment?.segmentId;
   if (opener === undefined) throw new Error('The opener was not booked.');
+  if (onShowDay) {
+    const clock = await transport.host.query('clock.get', {});
+    if (!clock.result.ok) throw new Error('clock.get was refused.');
+    const days = diffDays(clock.result.data.date, show.date);
+    if (days > 0) await transport.host.advanceDays({ maxDays: days }, () => undefined);
+  }
   return { transport, roster, show, opener };
 }
 
@@ -200,17 +207,32 @@ describe('BookingScreen', () => {
     expect(document.body.textContent).not.toMatch(RUNNING_TIME_WORDS);
   });
 
-  it('lists what is missing and keeps Lock off until the card can run', async () => {
-    const { transport, roster, show } = await bookedWorld();
-    const { user } = renderBooking(transport, bookingShowUrl(show.eventInstanceId));
+  it('has no Lock card: before show day the card stays editable and nothing runs it', async () => {
+    const { transport, show } = await bookedWorld();
+    renderBooking(transport, bookingShowUrl(show.eventInstanceId));
+
+    await findSlot('Slot 1: Opener');
+    await within(checklist()).findByText('3 problems');
+    expect(screen.queryByRole('button', { name: /lock/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Run the show' })).toBeNull();
+    expect(screen.queryByText(/to run the show$/)).toBeNull();
+    expect(screen.getByText('Scheduled')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Actions for slot 1' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Clear card' })).toBeInTheDocument();
+  });
+
+  it('on show night, keeps Run the show off until the card can run, then runs it and opens the results', async () => {
+    const { transport, roster, show, opener } = await bookedWorld({ onShowDay: true });
+    const { user, router } = renderBooking(transport, bookingShowUrl(show.eventInstanceId));
 
     await findSlot('Slot 1: Opener');
     await within(checklist()).findByText('Main card filled (2 of 6, needs 3)');
     expect(within(checklist()).getByText('Every match has a result')).toBeInTheDocument();
     expect(within(checklist()).getByText('3 problems')).toBeInTheDocument();
-    const lock = screen.getByRole('button', { name: 'Lock card' });
-    expect(lock).toBeDisabled();
-    expect(screen.getByText('Fix 3 problems to lock')).toBeInTheDocument();
+    expect(screen.getByText('Tonight')).toBeInTheDocument();
+    const run = screen.getByRole('button', { name: 'Run the show' });
+    expect(run).toBeDisabled();
+    expect(run).toHaveAccessibleDescription('Fix 3 problems to run the show');
     expect(
       within(screen.getByRole('article', { name: 'Slot 3: Midcard' })).getByText('1 problem'),
     ).toBeInTheDocument();
@@ -233,15 +255,49 @@ describe('BookingScreen', () => {
 
     await waitFor(
       () => {
-        expect(screen.getByRole('button', { name: 'Lock card' })).toBeEnabled();
+        expect(screen.getByRole('button', { name: 'Run the show' })).toBeEnabled();
       },
       { timeout: LOAD_MS },
     );
-    await user.click(screen.getByRole('button', { name: 'Lock card' }));
-    expect(await screen.findByRole('button', { name: 'Unlock card' })).toBeInTheDocument();
-    expect(screen.getByText('Booked')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Actions for slot 1' })).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Add match' })).toBeNull();
+
+    // A refusal (the card changed elsewhere) lists the game's reasons, each jumping to its slot.
+    const realCommand = transport.host.command.bind(transport.host);
+    const spy = vi.spyOn(transport.host, 'command').mockImplementationOnce(async (name, args) => {
+      if (name !== 'shows.runTonight') return realCommand(name, args);
+      return {
+        revision: 0,
+        result: {
+          ok: false,
+          reasons: [
+            {
+              code: 'cardNotRunnable',
+              message: 'Opener: no result planned; pick a winner, a draw or a no contest',
+              subject: { kind: 'segment', id: opener },
+            },
+          ],
+        },
+      };
+    });
+    await user.click(screen.getByRole('button', { name: 'Run the show' }));
+    await user.click(
+      await screen.findByRole('button', {
+        name: 'Opener: no result planned; pick a winner, a draw or a no contest',
+      }),
+    );
+    await waitFor(() => {
+      expect(document.activeElement?.id).toBe('booking-slot-main-0');
+    });
+
+    // The show runs, and the results page opens with the reveal.
+    spy.mockRestore();
+    await user.click(screen.getByRole('button', { name: 'Run the show' }));
+    await waitFor(
+      () => {
+        expect(router.state.location.pathname).toBe(routes.game.showResults(show.eventInstanceId));
+      },
+      { timeout: LOAD_MS },
+    );
+    expect(router.state.location.search).toBe('?reveal=1');
   });
 
   it('moves a segment down with booking.moveSegment', async () => {
@@ -282,7 +338,7 @@ describe('BookingScreen', () => {
             revision: 0,
             result: {
               ok: false,
-              reasons: [{ code: 'cardLocked', message: 'Unlock the card to change it' }],
+              reasons: [{ code: 'showPast', message: 'This show has already happened' }],
             },
           });
         };
@@ -303,7 +359,7 @@ describe('BookingScreen', () => {
       refuse();
     });
 
-    expect(await screen.findByText('Unlock the card to change it')).toBeInTheDocument();
+    expect(await screen.findByText('This show has already happened')).toBeInTheDocument();
     expect(screen.getByText("That change didn't go through")).toBeInTheDocument();
     expect(screen.getByRole('article', { name: 'Slot 1: Opener' })).toHaveAttribute(
       'data-state',
@@ -387,6 +443,6 @@ describe('BookingScreen', () => {
     expect(
       await screen.findByText("You don't run a promotion", {}, { timeout: LOAD_MS }),
     ).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Lock card' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Run the show' })).toBeNull();
   });
 });
