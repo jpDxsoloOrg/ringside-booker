@@ -427,14 +427,41 @@ export function setRole(ctx: DoorContext, args: SetRoleArgs): DoorResult<Employm
 export type PopularitySubject =
   { kind: 'person'; id: PersonId } | { kind: 'promotion'; id: PromotionId };
 
-export interface ApplyPopularityChangeArgs {
+/** What every popularity change says: whose popularity, who asked and why. */
+interface PopularityChangeBase {
   subject: PopularitySubject;
+  source: DoorSource;
+  reason: DoorReason;
+}
+
+/** One change spread over several regions by weight. */
+export interface WeightedPopularityChangeArgs extends PopularityChangeBase {
   /** How much of the change each region gets, 0 to 1. Regions left out are untouched. */
   regionWeights: Readonly<Partial<Record<RegionId, number>>>;
   /** The size of the change in points, before the weights. A traced delta is kept in the trace. */
   delta: number | Traced<number>;
-  source: DoorSource;
-  reason: DoorReason;
+  regionDeltas?: never;
+}
+
+/**
+ * A different change in each region (EVT5-02: one show moves each region it reached by its own
+ * amount). Each region's delta lands at weight 1; a traced delta is kept in that region's trace.
+ */
+export interface RegionDeltasPopularityChangeArgs extends PopularityChangeBase {
+  /** The change in points for each region. Regions left out are untouched. */
+  regionDeltas: Readonly<Partial<Record<RegionId, number | Traced<number>>>>;
+  regionWeights?: never;
+  delta?: never;
+}
+
+/** Either one change spread by weight, or each region's own change. Never both. */
+export type ApplyPopularityChangeArgs =
+  WeightedPopularityChangeArgs | RegionDeltasPopularityChangeArgs;
+
+/** One region's stored popularity before and after a door call (0 when nothing is stored). */
+export interface RegionPopularityChange {
+  before: number;
+  after: number;
 }
 
 /** What the popularity door did: the stored maps, and the worldwide figure each rolls up to. */
@@ -443,42 +470,82 @@ export interface PopularityDoorResult extends DoorResult<RegionalPopularity> {
   worldAfter: number;
   /** The regions whose stored value changed, most populous first. */
   regionsChanged: RegionId[];
+  /** Every region the call named, changed or not, with its value before and after. */
+  byRegion: Partial<Record<RegionId, RegionPopularityChange>>;
 }
 
-/** The regions named in `regionWeights`, most populous first (ties by ID), each with its weight. */
-function weightedRegions(
+/** One region the door is asked to change: how much of which change it gets. */
+interface RegionRequest {
+  region: Region;
+  weight: number;
+  delta: number | Traced<number>;
+}
+
+/** Throws unless every key of `byRegion` is a region on the map. */
+function requireKnownRegions(
   read: GameWorldView,
-  regionWeights: ApplyPopularityChangeArgs['regionWeights'],
-): { region: Region; weight: number }[] {
-  const regionsTable = read.tables.regions;
-  const knownIds = new Set<string>(regionsTable.ids());
-  for (const regionId of Object.keys(regionWeights)) {
+  field: string,
+  byRegion: Readonly<Partial<Record<RegionId, unknown>>>,
+): void {
+  const knownIds = new Set<string>(read.tables.regions.ids());
+  for (const regionId of Object.keys(byRegion)) {
     if (!knownIds.has(regionId)) {
       throw new InvalidArgumentError(
         'applyPopularityChange',
-        'regionWeights',
+        field,
         regionId,
         'the ID of a region on the map',
       );
     }
   }
-  const weighted: { region: Region; weight: number }[] = [];
-  for (const region of regionsTable.values()) {
-    const weight = regionWeights[region.id];
-    if (weight === undefined) {
-      continue;
-    }
-    if (!Number.isFinite(weight)) {
+}
+
+function requireFinite(field: string, value: number): void {
+  if (!Number.isFinite(value)) {
+    throw new InvalidArgumentError('applyPopularityChange', field, value, 'a finite number');
+  }
+}
+
+/**
+ * The regions the call names, most populous first (ties by ID), each with its weight and delta.
+ * Throws when the call mixes the two forms, names an unknown region or gives a number that is
+ * not finite.
+ */
+function requestedRegions(read: GameWorldView, args: ApplyPopularityChangeArgs): RegionRequest[] {
+  const requests: RegionRequest[] = [];
+  if (args.regionDeltas !== undefined) {
+    // The types already refuse the mix; this catches callers the types cannot see.
+    if (Object.hasOwn(args, 'regionWeights') || Object.hasOwn(args, 'delta')) {
       throw new InvalidArgumentError(
         'applyPopularityChange',
-        `regionWeights.${region.id}`,
-        weight,
-        'a finite number',
+        'regionDeltas',
+        'regionDeltas with regionWeights or delta',
+        'either regionDeltas, or regionWeights with delta, never both',
       );
     }
-    weighted.push({ region, weight });
+    const { regionDeltas } = args;
+    requireKnownRegions(read, 'regionDeltas', regionDeltas);
+    for (const region of read.tables.regions.values()) {
+      const delta = regionDeltas[region.id];
+      if (delta === undefined) {
+        continue;
+      }
+      requireFinite(`regionDeltas.${region.id}`, typeof delta === 'number' ? delta : delta.value);
+      requests.push({ region, weight: 1, delta });
+    }
+  } else {
+    requireKnownRegions(read, 'regionWeights', args.regionWeights);
+    const deltaValue = typeof args.delta === 'number' ? args.delta : args.delta.value;
+    for (const region of read.tables.regions.values()) {
+      const weight = args.regionWeights[region.id];
+      if (weight === undefined) {
+        continue;
+      }
+      requireFinite(`regionWeights.${region.id}`, weight);
+      requests.push({ region, weight, delta: deltaValue });
+    }
   }
-  return weighted.sort(
+  return requests.sort(
     (left, right) =>
       right.region.population - left.region.population ||
       compareIds(left.region.id, right.region.id),
@@ -536,9 +603,10 @@ function withDeltaTrace(result: Traced<number>, delta: Traced<number>): Traced<n
 
 /**
  * Changes a person's or a promotion's popularity in the weighted regions. Each region gets
- * `delta × weight`, a person's gains taper above their anchor, and every result stays between 0
- * and 100. The stored map stays sparse: a region that ends at 0, or below
- * `workers.popularity.dropBelow`, is removed.
+ * `delta × weight` (or, with `regionDeltas`, its own delta), a person's gains taper above their
+ * anchor, and every result stays between 0 and 100. The stored map stays sparse: a region that
+ * ends at 0, or below `workers.popularity.dropBelow`, is removed. One call records one trace and
+ * publishes one `popularity.changed`, however many regions it names.
  */
 export function applyPopularityChange(
   ctx: DoorContext,
@@ -546,8 +614,7 @@ export function applyPopularityChange(
 ): PopularityDoorResult {
   requireReason('applyPopularityChange', args.reason);
   const target = popularityTarget(ctx, args.subject);
-  const regions = weightedRegions(ctx.read, args.regionWeights);
-  const deltaValue = typeof args.delta === 'number' ? args.delta : args.delta.value;
+  const regions = requestedRegions(ctx.read, args);
   const dropBelow = ctx.tunables.get('workers.popularity.dropBelow');
 
   const before = target.regionalPop;
@@ -559,19 +626,20 @@ export function applyPopularityChange(
     }
   }
   const regionsChanged: RegionId[] = [];
+  const byRegion: Partial<Record<RegionId, RegionPopularityChange>> = {};
   const total = startCalc(`Popularity change: ${args.reason.label}`, 0, {
     unit: 'points',
     docRef: POPULARITY_DOC_REF,
     startLabel: 'Points moved so far',
   });
-  for (const { region, weight } of regions) {
+  for (const { region, weight, delta } of regions) {
     const regionBefore = before[region.id] ?? 0;
     const changed = popularityChange(
       {
         subjectKind: args.subject.kind,
         regionName: region.name,
         before: regionBefore,
-        delta: deltaValue,
+        delta,
         weight,
         anchor: target.anchor,
       },
@@ -589,6 +657,7 @@ export function applyPopularityChange(
       );
     }
     total.add(region.name, moved.subtract('Popularity before', regionBefore).done());
+    byRegion[region.id] = { before: regionBefore, after: regionAfter };
     if (regionAfter !== regionBefore) {
       regionsChanged.push(region.id);
     }
@@ -609,6 +678,7 @@ export function applyPopularityChange(
       worldBefore,
       worldAfter: worldBefore,
       regionsChanged,
+      byRegion,
     };
   }
   const worldAfter = roller.rollValues(after).world;
@@ -629,7 +699,9 @@ export function applyPopularityChange(
   ctx.recordTrace(
     traceRef,
     ctx.date,
-    typeof args.delta === 'number' ? summed : withDeltaTrace(summed, args.delta),
+    args.delta === undefined || typeof args.delta === 'number'
+      ? summed
+      : withDeltaTrace(summed, args.delta),
   );
   ctx.publish('popularity.changed', {
     subjectKind: args.subject.kind,
@@ -640,7 +712,16 @@ export function applyPopularityChange(
     source: args.source,
     reasonKey: args.reason.key,
   });
-  return { changed: true, before, after, traceRef, worldBefore, worldAfter, regionsChanged };
+  return {
+    changed: true,
+    before,
+    after,
+    traceRef,
+    worldBefore,
+    worldAfter,
+    regionsChanged,
+    byRegion,
+  };
 }
 
 // ---------------------------------------------------------------------------------------------

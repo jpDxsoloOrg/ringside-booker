@@ -775,6 +775,17 @@ line per region, most populous first. Its value is the total of the points
 moved across the regions. When the caller passes a traced `delta`, its working
 is shown once under "Change asked for".
 
+**One delta per region (EVT5-02).** A show moves each region it reached by its
+own amount, so the door has a second form: `regionDeltas`, a delta for each
+region, instead of `regionWeights` and `delta`. Each region's delta lands at
+weight 1 (promotions are never tapered; a person's gains still are), with the
+same clamps, two decimals and sparse map. One call still records one parent
+trace and publishes one `popularity.changed`, however many regions it names; a
+traced delta is kept inside its own region's line. Passing `regionDeltas`
+together with `regionWeights` or `delta` is refused by the types and throws
+`InvalidArgumentError` at run time. Either form returns `byRegion`: each named
+region's stored value before and after the call (0 when nothing is stored).
+
 | Key                                     | Kind   | Default | Range | Unit       | What it does                                                                                          |
 | --------------------------------------- | ------ | ------- | ----- | ---------- | ----------------------------------------------------------------------------------------------------- |
 | `workers.popularity.anchorFromCharisma` | number | 1       | 0–2   | multiplier | How much of a person's charisma sets their popularity anchor; 0 puts every anchor at 0                |
