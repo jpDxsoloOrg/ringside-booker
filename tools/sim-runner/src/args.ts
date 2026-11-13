@@ -52,6 +52,7 @@ events by type and a world hash.
   --strict                fail when any step fails, a past show is still open, a
                           promotion's cash change is not the sum of its new ledger rows,
                           the promotion history keeps more rows than its retention allows,
+                          a computer-run show has someone in two matches,
                           or any event of a --fail-on-event type was published
   --fail-on-event <type>  an event type --strict fails on (repeatable); replaces the
                           default list, ${DEFAULT_FAIL_ON_EVENTS.join(', ')} (a rival job

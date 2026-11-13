@@ -328,6 +328,46 @@ export function openPastShows(state: EngineState): string[] {
     .sort();
 }
 
+/**
+ * The computer-run shows with someone in two matches, as "<show id>: <person id>" lines, sorted.
+ * The rival booker (`aip.bookShow`) books each wrestler in one match per show, so after a clean run
+ * this is empty; `--strict` fails when it is not. Who runs a show follows `showControllerOf`: the
+ * brand's own controller when it has one, else the promotion's.
+ */
+export function doubleBookedRivalShows(state: EngineState): string[] {
+  const { tables } = state.world;
+  const promotions = new Map(tables.promotions.map((row) => [row.id, row.controller.kind]));
+  const brands = new Map(tables.brands.map((row) => [row.id, row.controller?.kind ?? null]));
+  const computerShows = new Set(
+    tables.eventInstances
+      .filter((show) => {
+        const brandKind = show.brandId === null ? null : (brands.get(show.brandId) ?? null);
+        return (brandKind ?? promotions.get(show.promotionId)) === 'computer';
+      })
+      .map((show) => show.id),
+  );
+  const showOfMatch = new Map(
+    tables.segments
+      .filter((segment) => segment.kind === 'match' && computerShows.has(segment.eventInstanceId))
+      .map((segment) => [segment.id, segment.eventInstanceId]),
+  );
+  const seen = new Map<string, string>();
+  const problems = new Set<string>();
+  for (const participant of tables.participants) {
+    const showId = showOfMatch.get(participant.segmentId);
+    if (showId === undefined) {
+      continue;
+    }
+    const key = `${showId}: ${participant.personId}`;
+    const earlier = seen.get(key);
+    if (earlier !== undefined && earlier !== participant.segmentId) {
+      problems.add(key);
+    }
+    seen.set(key, participant.segmentId);
+  }
+  return [...problems].sort();
+}
+
 /** A promotion whose cash moved by a different amount than its new ledger rows add up to. */
 export interface LedgerMismatch {
   readonly promotionId: string;
