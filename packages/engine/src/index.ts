@@ -2229,3 +2229,21 @@ export {
   type PlannedPlacement,
   type PlanOpenSlot,
 } from './systems/aip/index';
+
+// AIP4-05: rivals book their shows on show day (`aip.bookShow`), the booked-card steps later
+// features plug into, and the card decision's summary texts. See
+// docs/design/rival-booking.md#show-day.
+export {
+  BOOK_SHOW_JOB_ID,
+  CARD_BOOKED_SUMMARY_KEY,
+  CARD_DECISION_KIND,
+  CARD_PLAN_TRACE_KIND,
+  CARD_SLOT_TRACE_KIND,
+  cardBookedText,
+  registerBookedCardStep,
+  SHOW_CANCELLED_SUMMARY_KEY,
+  showCancelledText,
+  type BookedCardInput,
+  type BookedCardStepSpec,
+  type ShowBookingContext,
+} from './systems/aip/index';

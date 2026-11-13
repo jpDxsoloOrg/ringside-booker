@@ -20,6 +20,8 @@ import './setup';
 import './decisionKinds';
 // AIP1-05: the weekly roster review registers itself as a job on import.
 import './jobs/rosterReview';
+// AIP4-05: the show-day booker registers itself (and the `card` decision kind) on import.
+import './card/bookShowJob';
 // AIP1-07: the rating policy provider (MTCH1's door) registers itself on import.
 import './ratingPolicy';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
@@ -448,4 +450,25 @@ export {
   type PlanCounts,
   type PlannedPlacement,
   type PlanOpenSlot,
+} from './card';
+export {
+  BOOK_SHOW_JOB_ID,
+  bookShowSavepointLabel,
+  bookedCardSteps,
+  CARD_BOOKED_SUMMARY_KEY,
+  CARD_DECISION_KIND,
+  CARD_PLAN_TRACE_KIND,
+  CARD_SLOT_TRACE_KIND,
+  cardBookedText,
+  NO_PLANNED_RESULT_CODE,
+  registerBookedCardStep,
+  runBookShow,
+  SHOW_CANCELLED_SUMMARY_KEY,
+  SHOW_DAY_DOC_REF,
+  showCancelledText,
+  slotSummaryTrace,
+  type BookedCardInput,
+  type BookedCardStep,
+  type BookedCardStepSpec,
+  type ShowBookingContext,
 } from './card';

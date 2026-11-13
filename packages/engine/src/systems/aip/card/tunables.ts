@@ -24,6 +24,7 @@ export const STORYLINES_DOC_REF = 'rival-booking.md#storylines';
 export const CARD_SCORE_DOC_REF = 'rival-booking.md#card-score';
 export const ORDERING_DOC_REF = 'rival-booking.md#ordering';
 export const PLAN_CARD_DOC_REF = 'rival-booking.md#planning-a-card';
+export const SHOW_DAY_DOC_REF = 'rival-booking.md#show-day';
 
 /** The shapes of match the card planner weighs against each other (`formulas/matchTypeWeight.ts`). */
 export const MATCH_FAMILIES = ['oneOnOne', 'tag', 'trios', 'multiWay', 'other'] as const;

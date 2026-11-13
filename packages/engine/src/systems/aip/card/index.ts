@@ -9,13 +9,19 @@
  * the rest of the card (`fill.ts`, `storylineSegments.ts`, `talk.ts`, `fallback.ts`,
  * `formulas/matchTypeWeight.ts`). AIP4-04 scores and orders the card (`formulas/cardScore.ts`,
  * `order.ts`) and adds `planCard` (`planCard.ts`), the one entry point that plans a whole show.
- * Later AIP4 tickets write the card and add Auto-fill.
+ * AIP4-05 books the rivals' shows on show day: the job `aip.bookShow` (`bookShowJob.ts`, which
+ * registers itself and the `card` decision kind on import), the booked-card steps
+ * (`bookedCardSteps.ts`) and the `aip.cardBooked` event (`events.ts`). Later AIP4 tickets add
+ * Auto-fill.
  *
  * Design: docs/design/rival-booking.md.
  */
 
-// The stream declarations are types only.
+// The stream and event declarations are types only.
 import './streams';
+import './events';
+// AIP4-05: the show-day booker registers itself as a job on import.
+import './bookShowJob';
 
 export { AUTOFILL_STREAM, CARD_PLAN_STREAM } from './streams';
 export {
@@ -39,6 +45,7 @@ export {
   ORDERING_DOC_REF,
   PLAN_CARD_DOC_REF,
   RIVAL_BOOKING_CATEGORY,
+  SHOW_DAY_DOC_REF,
   talkShareKey,
   TITLE_CAP_DOC_REF,
   titleCapKey,
@@ -223,3 +230,25 @@ export type {
   SkippedTitle,
   TitlePicture,
 } from './types';
+export {
+  BOOK_SHOW_JOB_ID,
+  bookShowSavepointLabel,
+  CARD_BOOKED_SUMMARY_KEY,
+  CARD_DECISION_KIND,
+  CARD_PLAN_TRACE_KIND,
+  CARD_SLOT_TRACE_KIND,
+  cardBookedText,
+  NO_PLANNED_RESULT_CODE,
+  runBookShow,
+  SHOW_CANCELLED_SUMMARY_KEY,
+  showCancelledText,
+  slotSummaryTrace,
+} from './bookShowJob';
+export {
+  bookedCardSteps,
+  registerBookedCardStep,
+  type BookedCardInput,
+  type BookedCardStep,
+  type BookedCardStepSpec,
+  type ShowBookingContext,
+} from './bookedCardSteps';
