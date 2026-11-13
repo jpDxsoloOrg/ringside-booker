@@ -4,8 +4,9 @@
  * The save keeps roughly the last month in detail and the current numbers. A rival card's plan
  * trace (`aip.cardPlan`) is summary-only from the start; each written segment's short Why?
  * (`aip.cardSlot`) is kept in full for `aip.card.keepDetailDays` days after the show and then
- * demoted to its summary. The cards themselves (who was on which show, the results) are public
- * facts other features read and are not touched here.
+ * demoted to its summary, and so are AIP5's winner and title decisions (`aip.winner`,
+ * `aip.title`). The cards themselves (who was on which show, the results) are public facts other
+ * features read and are not touched here.
  *
  * The player's own slots that Auto-fill wrote (AIP4-06) carry the same short Why? and go the same
  * way, so every show is swept, not only the computer's; a show without such traces costs nothing.
@@ -21,6 +22,7 @@ import { definePhase, type PhaseDefinition } from '../../../core/pipeline/phase'
 import type { PhaseContext } from '../../../core/pipeline/context';
 import type { EventInstance } from '../../../model/entities/event-instance';
 import type { DeepReadonly } from '../../../model/world';
+import { titleTraceRef, winnerTraceRef } from '../results/traces';
 import { CARD_SLOT_TRACE_KIND } from './bookShowJob';
 
 export const AIP_PRUNE_CARD_DETAIL_PHASE_ID = 'aip.pruneCardDetail';
@@ -32,6 +34,13 @@ function demoteSlots(ctx: PhaseContext, shows: Iterable<DeepReadonly<EventInstan
     const segments = ctx.read.tables.segments.lookup('byEventInstance', show.id);
     for (const segment of segments) {
       ctx.demoteTrace({ kind: CARD_SLOT_TRACE_KIND, id: segment.id });
+      // AIP5: the winner and title decisions follow the same rule.
+      if (segment.kind === 'match') {
+        ctx.demoteTrace(winnerTraceRef(segment.id));
+        for (const titleId of segment.match.titleIds) {
+          ctx.demoteTrace(titleTraceRef(segment.id, titleId));
+        }
+      }
     }
     count += segments.length > 0 ? 1 : 0;
   }

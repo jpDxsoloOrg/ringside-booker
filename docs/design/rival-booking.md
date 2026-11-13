@@ -810,3 +810,290 @@ their keys to the same file.
 | `aip.card.order.prospectBoost`            | 6                       | Card score added with a prospect in a segment                                |
 | `aip.card.order.talkFactor`               | 0.8                     | Share of its speakers' card value a talking segment scores                   |
 | `aip.card.order.hotOpener`                | true                    | Whether the second-best match opens the show                                 |
+
+## Winners
+
+AIP4 writes every rival match with no planned winner. AIP5 has the rival
+booker decide its own results the way a person would: protect the ace, let a
+prospect go over, squash an enhancement worker, pay off a feud. Each winner
+gets a Why? that reads like a booker's reasoning. Code:
+`packages/engine/src/systems/aip/results/`, inside the `aip` bundle (no new
+system). AIP5-01 lays the groundwork described here; the winner and title
+formulas and the step that writes them come with AIP5-02 to AIP5-04.
+
+**Kept apart from the player's Why?** The winner decision's trace kind is
+`aip.winner` (by segment ID) and a title decision's `aip.title` (by
+`<segmentId>|<titleId>`), both helpers in `results/traces.ts`
+(`winnerTraceRef`, `titleTraceRef`). `sim.traceRetentionPerKind` counts per
+kind, so a busy rival schedule never pushes the player's own breakdowns
+(`segment.rating` and the rest) out of the store. Like the card's slot traces,
+both are kept in full for `aip.card.keepDetailDays` (28) days after the show
+and then demoted to a summary by `aip.pruneCardDetail`.
+
+**Decision kinds.** `winner` (chip "Winners") and `title` (chip "Titles"),
+registered in `results/decisionKinds.ts` with the rival desk's registry
+([rival-desk.md](rival-desk.md#decision-log)). `aiDecisions.kind` is an open
+key, so there is no save change.
+
+**Favoured twice.** AIP3 may add a featured boost inside card value, and the
+winner rule protects a prospect on top of that. That is intended (a booker both
+rates and protects a prospect), but balance tuning should look at both
+together.
+
+### Order of rolls
+
+Two streams, declared in `results/streams.ts`:
+
+- `aip.winners`: per segment, in this order: the jitter on each side (in side
+  order), the draw roll, the finale roll, the protection roll, the squash roll,
+  then the method roll. A roll a segment does not need is not drawn, and a rule
+  that decides the winner stops every later rule from drawing, so changing a
+  late rule's tunable never shifts an earlier roll.
+- `aip.titles`: per title on the segment (highest prestige first), the change
+  roll, then the challenger pick.
+
+Shows are booked in event instance ID order and their segments are worked
+through in running order (pre-show first, then by slot), so a change to one
+segment never shifts another show's rolls, and nothing the rivals roll shifts
+the card planner's `aip.card` stream.
+
+### Who wins
+
+`matchWinner(inputs, { tunables, rng })` (`aip/formulas/matchWinner.ts`) is
+one pure decision: no world, transaction or clock access, so AIP5-03 reuses it
+for vacant titles and BRW6 for computer-GM brands. It returns the plan key
+(`side:<n>` or `draw`, read back with `parseWinnerPlan`) and a `reasonKey`;
+`winnerReasonText` turns the key into a short label ("Protected prospect",
+"Squash", "Storyline finale", "Higher value", "Even on value", "Draw").
+
+**Side value.** `rivalSideValue` gives each side the mean of its wrestlers'
+card values, times `1 + jitter`, where the jitter is a float roll between
+`-aip.winner.jitter` and `+aip.winner.jitter` ("Booker's gut feeling,
+<side>"). At 0 nothing is drawn and the trace says "No gut feeling (0)". The
+mean (not the sum) lets a handicap side or a team compare fairly with a single
+wrestler; there is no clamp. Each card value is recorded as its number only,
+not its whole card value tree, so a stored Why? stays small.
+
+The decision first lists every side with its value, then runs these rules in
+order. Each is recorded whether it applied or not, and the first that decides
+ends the decision:
+
+1. **Draw.** Only with exactly two sides and a match type that can end in a
+   draw. `aip.winner.drawChance` (default 0: "Draws are off (0)", no roll);
+   a hit books a draw.
+2. **Storyline finale.** The first storyline (by name, then ID) at its finale
+   with both a face side and a heel side in the match. The caller decides the
+   finale: the storyline's finale segment when it names one, else
+   `ageDays >= aip.winner.finale.minAgeDays`. A roll on
+   `aip.winner.finale.faceChance` gives the faces their win, a miss gives the
+   heels the last word. Otherwise the rule is recorded as not applying, with
+   why ("No storyline on this match", "<name> is 23 days old; finales start
+   at 56").
+3. **Protection.** Exactly one side holds the ace or a prospect: a roll on
+   `aip.winner.protect.ace` or `aip.winner.protect.prospect` puts that side
+   over. Featured wrestlers on two sides cancel out; a chance of 0 draws no
+   roll.
+4. **Squash.** The gap between the highest and lowest `pushIndex` is at least
+   `aip.winner.squash.pushGap` and one side alone has the top push: a roll on
+   `aip.winner.squash.chance` puts it over. A chance of 0 draws no roll.
+5. **Value.** The highest side value wins. An exact tie goes to the side whose
+   lowest person ID sorts first. This rule never books a draw.
+
+Losing a match here never touches morale: AIP5 writes none, and rival result
+morale stays off by default (`ai.skipResultMorale`).
+
+**Worked example.** Kai Moreno (a prospect, card value 58.5, midcard) faces
+Vance Troy (card value 45.2, lower card). Jitter rolls +5% and +4%: 61.4 and
+47.0. Draws are off (0). No storyline on this match. Kai is the only featured
+wrestler, so the booker rolls on 0.75 and the roll hits: "Protecting the
+prospect Kai Moreno". The squash and value rules are not reached and draw
+nothing.
+
+### Inputs
+
+`rivalSegmentInputsOf(read, tunables, segmentId, date)` (`results/inputs.ts`)
+turns one planned rival match into plain inputs. It reads only, sorts every
+list by ID and returns plain JSON, so two calls on the same world agree. It
+returns null for an angle, a missing segment and a match with fewer than two
+competitor sides.
+
+- **Show:** `importance`, `promotionId`, `brandId`, `regionId`, and the
+  booker's title tempo `titleTaste`: AIP1's `titleFocus` taste axis (no ninth
+  axis), labelled "Booker's title taste" when AIP2 stored a taste, else "Title
+  taste (style default)".
+- **Sides,** by side number: `label` (ring names joined with " & "),
+  `personIds`, `cardValues` (AIP1's `cardValue` for each competitor, through
+  the same `cardValueInputsFor` the roster tab uses), `pushIndex` (the side's
+  top push: main event 5, upper card 4, midcard 3, lower card 2, enhancement 1,
+  none 0), `alignment` (the majority, else tweener) and `featured` (`ace`,
+  `prospect` or null from the unit's `aiProfiles.featured`; a side with both
+  counts as prospect).
+- **Storylines:** each of the segment's storylines that is active in this
+  promotion: `ageDays` since it started, `finaleFlag` (true when the storyline
+  names this segment as its finale, false when it names another, null when it
+  names none or the save has no finale field yet), and the sides holding its
+  face and heel members.
+- **Titles,** by prestige then ID: the open reign (`reignId`, `wonOn`,
+  `reignDays`, holders), `championSide` (the side holding every champion, else
+  null), `championContractDaysLeft` (the fewest `diffDays(date, endsOn)` over
+  the champions' contracts; null when every one is open-ended) and
+  `challengerSides`, every other side with its `marketPopularity` (the mean
+  of each competitor's popularity in the promotion's own markets, card value's
+  first step, `marketPopularity` in `formulas/cardValue.ts`), its
+  `contractDaysLeft` and its `eligibility`: every reason from WRK1's
+  `isEligibleForTitle` (weight limits are inclusive ranges) plus the
+  `availabilityOf` status of anyone who cannot work. Codes are kept; messages
+  are the player's text.
+
+Nothing here reads or names a duration (D-10).
+
+### Hook
+
+AIP5's step plugs into the booked-card steps
+([show day](#show-day)) with `registerBookedCardStep`. Its first check is
+`isComputerBooked(read, instance)` (`results/guard.ts`): EVT1's
+`showControllerOf(...).kind === 'computer'`, which follows the brand's own
+controller before the promotion's. A show the player runs, or a computer GM
+brand handed back to "You" between planning and running, is never touched.
+The player's Auto-fill writes through EVT2's card writer and runs no booked-card
+step, so it never decides results.
+
+## Title changes
+
+A rival booker moves a title when a reign has run long, the champion is on the
+way out or the promotion needs a jolt, and keeps it on house shows. AIP5-01
+defines the numbers; AIP5-03 adds three pure, traced pieces in
+`aip/formulas/`: `titleChangeChance`, `challengerPool` and `titleChange`.
+AIP5 only plans the change (the winning side of a title match); EVT3 applies it
+on show night ([Title outcomes](show-night.md#title-outcomes)). AIP5 never
+touches reigns.
+
+- **Reign bands.** The base chance by reign length:
+  `aip.titles.band<n>.maxDays` / `.chance` for n = 1 to 6, (14, 0), (45, 4),
+  (90, 12), (150, 22), (240, 34), (365, 48), and
+  `aip.titles.bandBeyond.chance` 60 past the last band. The days must
+  increase: `reignBandsOf(tunables)` falls back to the default bands and
+  reports the problem when they do not.
+- **Terms on top:** prestige against `aip.titles.prestigePivot` times
+  `aip.titles.changePrestigeWeight` (titles below the pivot change more often;
+  not AIP4's `aip.titles.prestigeWeight`, which sets defence urgency), the
+  booker's title taste times `aip.titles.tempoWeight`, the show's
+  `aip.titles.importance.<importance>`, and `aip.titles.hotShot.bonus` while
+  `aip.titles.hotShot.weeks` weekly popularity readings each fall. Capped at
+  `aip.titles.maxChance`.
+- **Rules:** `aip.titles.houseShowsRetain` keeps titles on house shows; a reign
+  past `aip.titles.overdueDays` is overdue; a champion whose contract ends
+  within `aip.titles.expiringDays` drops the title; a challenger needs
+  `aip.titles.challengerMinContractDays` left.
+- **Challengers,** by the side's popularity in the promotion's own markets
+  against thresholds that rise with the title's prestige (see
+  [Challenger pool](#challenger-pool)).
+
+### Change chance
+
+`titleChangeChance` (unit percent):
+
+```
+chance = clamp(
+  band(reignDays)
+  + aip.titles.changePrestigeWeight × (aip.titles.prestigePivot − prestige)
+  + aip.titles.tempoWeight × (titleTaste − 50)
+  + aip.titles.importance.<importance>
+  + hotShot,
+  0, aip.titles.maxChance)
+```
+
+- `band(d)` is `aip.titles.band<n>.chance` for the first band n (1 to 6) with
+  `d ≤ aip.titles.band<n>.maxDays`, else `aip.titles.bandBeyond.chance`. The
+  Why? line reads "Reign of 112 days: up to 150 days band". If the bands' days
+  do not increase, the default bands are used and each problem is noted.
+- 50 is a constant ("Neutral title taste"): taste is 0-100 and 50 neither
+  speeds up nor slows down changes. The line reads "Booker's title taste 65"
+  for a stored taste or "Title taste (style default) 50" before AIP2 stores one.
+- `hotShot`: no history source → note "No popularity history yet", +0; fewer
+  than `aip.titles.hotShot.weeks + 1` readings → note "Only 2 weekly readings so
+  far", +0; otherwise the readings are sorted by date and, when each of the last
+  `weeks` is strictly lower than the one before, "Popularity fell 3 weeks
+  running (hot-shot)" adds `aip.titles.hotShot.bonus`. A flat or rising week
+  adds nothing and the readings are listed in a note.
+
+The bands as they ship:
+
+| Band   | Reign up to (days) | Base chance |
+| ------ | ------------------ | ----------- |
+| 1      | 14                 | 0%          |
+| 2      | 45                 | 4%          |
+| 3      | 90                 | 12%         |
+| 4      | 150                | 22%         |
+| 5      | 240                | 34%         |
+| 6      | 365                | 48%         |
+| beyond | longer             | 60%         |
+
+With the defaults (pivot 60, prestige weight 0.25, tempo weight 0.3), a
+312-day reign on a 74-prestige title, taste 65, at a major show while
+popularity fell 3 weeks: 48 − 3.5 + 4.5 + 6 + 10 = 65%.
+
+### Challenger pool
+
+`challengerPool` sorts the challenger sides (never the champions):
+
+```
+validNeeds  = max(prestige − aip.titles.valid.gap,  aip.titles.valid.floor)
+strongNeeds = max(prestige − aip.titles.strong.gap, aip.titles.strong.floor)
+```
+
+At prestige 80 a valid challenger needs 50 and a strong one 68; at prestige 20
+the floors hold (40 and 62). Per side, in side order:
+
+1. "<side> is eligible": no WRK1 title eligibility or availability reason; each
+   failing reason is noted in WRK1's words.
+2. "<side>'s contract runs at least 60 more days"
+   (`aip.titles.challengerMinContractDays`); an open-ended contract passes.
+3. Strong at `strongNeeds` or more, valid at `validNeeds` or more (a strong side
+   is valid too). Market popularity is recorded as a number, not its trace.
+
+`eligible` lists the sides passing 1 and 2. The pool is `strong` when any side
+is strong, else `valid`, else `none`.
+
+### Rule order
+
+`titleChange` is one decision, "Title decision: <title>", considering `retain`
+and `side:<n>` for every eligible challenger. Rules in order:
+
+1. **House show.** On a house show with `aip.titles.houseShowsRetain` on, the
+   champion retains ("House show: titles stay put"). With it off, house shows go
+   on like any other.
+2. **Expiring champion.** The champion's contract ends within
+   `aip.titles.expiringDays` (0 = only a contract ending today): the title
+   changes to a strong challenger, else a valid one, else any eligible one.
+   With nobody eligible the champion retains ("...but nobody in this match can
+   take the title").
+3. **Overdue.** The chance is shown, then a reign of `aip.titles.overdueDays`
+   or more changes hands without a chance roll when someone is valid or strong.
+4. **The roll.** "Time for a change?" at the chance (0% draws nothing and notes
+   "Chance is 0%"). A hit with a valid or strong challenger changes the title; a
+   hit with pool `none` retains ("Ready for a change, but no challenger is
+   popular enough (needs 50 in our markets)"); a miss retains.
+
+A change picks from the strong list, else the valid list, weighted by each
+side's value (`rivalSideValue`, at least 1 so every fit challenger keeps a
+chance). One candidate is taken without a roll ("Only one challenger fits").
+
+Reasons for the log (`titleReasonText`): House show, Contract ending, Overdue
+reign, Time for a change, Champion retains, No challenger good enough.
+
+### Order of title rolls
+
+On `aip.titles`, per title: the chance roll (only when rule 4 is reached and
+the chance is above 0), then the pick roll (only with two or more candidates).
+The winners stream is never used here, so title rolls never shift ordinary
+match rolls.
+
+**Popularity history.** The hot-shot term reads weekly readings through one
+pluggable source, `registerPopularityHistorySource({ id, read })`
+(`results/history.ts`, at most one; a second throws). With none registered,
+`popularityHistoryOf` returns null and the decision notes "No popularity
+history yet" and adds nothing. AIP5-06 registers DAY2's promotion snapshots.
+
+**Results tunables.** Category `Rival booking`, in `results/tunables.ts`; the
+table is in [tunables.md](tunables.md#rival-results-tunables).

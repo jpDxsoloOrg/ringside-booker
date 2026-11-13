@@ -858,3 +858,45 @@ matches only; none sets a length (D-10).
 | `aip.card.order.prospectBoost`        | number  | 6       | 0–50   | points      | Card score added to a segment with one of the promotion's prospects in it                                                                                              |
 | `aip.card.order.talkFactor`           | number  | 0.8     | 0–2    | multiplier  | How much of its speakers' card value a talking segment scores                                                                                                          |
 | `aip.card.order.hotOpener`            | boolean | true    |        | flag        | Whether the second-best match opens the show ([ordering](rival-booking.md#ordering))                                                                                   |
+
+## Rival results tunables
+
+The rival results' numbers (AIP5), in `systems/aip/results/tunables.ts`,
+category `Rival booking`, with a docRef to
+[winners](rival-booking.md#winners) or
+[title changes](rival-booking.md#title-changes). A squash is a push gap, never
+a short match; nothing here sets a length (D-10).
+
+| Key                                          | Kind    | Default                   | Range    | Unit        | Meaning                                                                                        |
+| -------------------------------------------- | ------- | ------------------------- | -------- | ----------- | ---------------------------------------------------------------------------------------------- |
+| `aip.winner.jitter`                          | number  | 0.1                       | 0–0.5    | ratio       | Largest random swing on each side's value, either way (0 = none)                               |
+| `aip.winner.drawChance`                      | number  | 0                         | 0–1      | probability | Chance a two-sided non-squash match is booked as a draw (0 = never)                            |
+| `aip.winner.squash.pushGap`                  | integer | 3                         | 1–5      | count       | Push bands between the sides before a match counts as a squash                                 |
+| `aip.winner.squash.chance`                   | number  | 0.92                      | 0–1      | probability | Chance the higher-pushed side wins a squash                                                    |
+| `aip.winner.protect.ace`                     | number  | 0.6                       | 0–1      | probability | Chance the booker protects its ace: the ace's side wins outright                               |
+| `aip.winner.protect.prospect`                | number  | 0.75                      | 0–1      | probability | Chance the booker protects a prospect                                                          |
+| `aip.winner.finale.faceChance`               | number  | 0.7                       | 0–1      | probability | Chance the faces win a storyline's finale                                                      |
+| `aip.winner.finale.minAgeDays`               | integer | 56                        | 7–365    | days        | Without a finale flag, a storyline this old counts as reaching its finale                      |
+| `aip.winner.method.nonTitleWeight`           | number  | 0.15                      | 0–5      | multiplier  | Weight of methods that can't change titles (count-out, disqualification) when picking a method |
+| `aip.titles.band1.maxDays` … `band6.maxDays` | integer | 14, 45, 90, 150, 240, 365 | 1–3650   | days        | Longest reign in each band; the days must increase                                             |
+| `aip.titles.band1.chance` … `band6.chance`   | number  | 0, 4, 12, 22, 34, 48      | 0–100    | percent     | Base chance a title changes hands while the reign is in that band                              |
+| `aip.titles.bandBeyond.chance`               | number  | 60                        | 0–100    | percent     | Base chance once the reign is longer than the last band                                        |
+| `aip.titles.prestigePivot`                   | number  | 60                        | 0–100    | points      | Prestige at which a title neither gains nor loses change chance                                |
+| `aip.titles.changePrestigeWeight`            | number  | 0.25                      | 0–2      | multiplier  | Titles below the pivot change more often, above it less                                        |
+| `aip.titles.tempoWeight`                     | number  | 0.3                       | 0–2      | multiplier  | How much the booker's title taste moves the chance                                             |
+| `aip.titles.houseShowsRetain`                | boolean | true                      |          | flag        | Titles never change on house shows                                                             |
+| `aip.titles.importance.house`                | number  | −20                       | −100–100 | percent     | What a house show adds to the change chance                                                    |
+| `aip.titles.importance.minor`                | number  | −12                       | −100–100 | percent     | Same, minor show                                                                               |
+| `aip.titles.importance.regular`              | number  | −8                        | −100–100 | percent     | Same, regular weekly show                                                                      |
+| `aip.titles.importance.major`                | number  | 6                         | −100–100 | percent     | Same, major show                                                                               |
+| `aip.titles.importance.flagship`             | number  | 15                        | −100–100 | percent     | Same, flagship show                                                                            |
+| `aip.titles.hotShot.weeks`                   | integer | 3                         | 2–12     | count       | Weekly popularity readings that must each fall                                                 |
+| `aip.titles.hotShot.bonus`                   | number  | 10                        | 0–100    | percent     | Change chance added while the promotion's popularity keeps falling                             |
+| `aip.titles.overdueDays`                     | integer | 400                       | 30–3650  | days        | A reign this long is overdue to end                                                            |
+| `aip.titles.expiringDays`                    | integer | 28                        | 0–365    | days        | A champion whose contract ends within this many days drops the title                           |
+| `aip.titles.challengerMinContractDays`       | integer | 60                        | 0–365    | days        | A challenger needs at least this many contract days left to win a title                        |
+| `aip.titles.maxChance`                       | number  | 90                        | 0–100    | percent     | The highest change chance any title match can reach                                            |
+| `aip.titles.valid.gap`                       | number  | 30                        | 0–100    | points      | How far below the title's prestige a valid challenger's market popularity may be               |
+| `aip.titles.valid.floor`                     | number  | 40                        | 0–100    | points      | Least market popularity a valid challenger needs, however low the prestige                     |
+| `aip.titles.strong.gap`                      | number  | 12                        | 0–100    | points      | How far below the title's prestige a strong challenger's market popularity may be              |
+| `aip.titles.strong.floor`                    | number  | 62                        | 0–100    | points      | Least market popularity a strong challenger needs, however low the prestige                    |

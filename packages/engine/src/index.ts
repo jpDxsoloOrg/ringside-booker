@@ -2270,3 +2270,77 @@ export {
   type ShowCardSlot,
   type ShowCardStatusLabel,
 } from './systems/aip/index';
+
+// AIP5-01: rival results groundwork: tunables, streams, trace and decision kinds, the
+// computer-only guard and the input gatherer. See docs/design/rival-booking.md#winners.
+export {
+  aipResultsTunables,
+  isComputerBooked,
+  marketPopularity,
+  NO_POPULARITY_HISTORY_NOTE,
+  popularityHistoryOf,
+  registerPopularityHistorySource,
+  rivalSegmentInputsOf,
+  TITLE_DECISION_KIND,
+  TITLE_TRACE_KIND,
+  titleTraceRef,
+  TITLES_STREAM,
+  WINNER_DECISION_KIND,
+  WINNER_TRACE_KIND,
+  winnerTraceRef,
+  WINNERS_STREAM,
+  type PopularityHistorySource,
+  type PopularityReading,
+  type RivalChallengerSide,
+  type RivalOpenReign,
+  type RivalSegmentInputs,
+  type RivalSide,
+  type RivalStorylineContext,
+  type RivalTitleContext,
+} from './systems/aip/index';
+
+// AIP5-02: who a rival booker puts over in a match, as a traced decision (reused by BRW6).
+// See docs/design/rival-booking.md#winners.
+export {
+  DRAW_PLAN,
+  matchWinner,
+  NO_GUT_FEELING_NOTE,
+  parseWinnerPlan,
+  rivalSideValue,
+  winnerReasonText,
+  winPlanKey,
+  type MatchWinnerDeps,
+  type MatchWinnerInputs,
+  type MatchWinnerResult,
+  type MatchWinnerSide,
+  type MatchWinnerStoryline,
+  type RivalSideValueDeps,
+  type RivalSideValueInputs,
+  type WinnerPlan,
+  type WinnerReasonKey,
+  type WinnerReasonNames,
+} from './systems/aip/index';
+
+// AIP5-03: whether a rival booker moves a title, and to whom, as traced pieces (reused by BRW6
+// and MP). See docs/design/rival-booking.md#title-changes.
+export {
+  challengerPool,
+  RETAIN_PLAN,
+  titleChange,
+  titleChangeChance,
+  titleReasonText,
+  type ChallengerPool,
+  type ChallengerPoolDeps,
+  type ChallengerPoolInputs,
+  type ChallengerPoolKind,
+  type ChallengerPoolSide,
+  type PopularityPoint,
+  type TitleChangeChanceDeps,
+  type TitleChangeChanceInputs,
+  type TitleChangeDeps,
+  type TitleChangeInputs,
+  type TitleChangeResult,
+  type TitleReasonKey,
+  type TitleReasonNames,
+  type TitleTasteSource,
+} from './systems/aip/index';

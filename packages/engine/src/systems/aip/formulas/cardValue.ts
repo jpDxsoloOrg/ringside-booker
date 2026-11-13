@@ -95,8 +95,14 @@ function formatFans(weight: number): string {
  * regions where the promotion has at least `aip.cardValue.marketMinPop` popularity, each weighted
  * by `population × promotion popularity ÷ 100` (the shared fan-base rule, `fanBaseOf`). When no
  * region reaches the minimum, every region the promotion is known in counts; with none, 0.
+ *
+ * Card value's first step; AIP5's title decisions also read it on its own for each challenger.
  */
-function marketPopularity(inputs: CardValueInputs, tunables: EngineTunables): Traced<number> {
+export function marketPopularity(
+  inputs: Pick<CardValueInputs, 'promotionName' | 'workerPop' | 'promotionPop' | 'regions'>,
+  deps: { tunables: EngineTunables },
+): Traced<number> {
+  const { tunables } = deps;
   const calc = startCalc(`Popularity in ${inputs.promotionName}'s markets`, 0, {
     unit: 'points',
     docRef: CARD_VALUE_DOC_REF,
@@ -265,7 +271,7 @@ export function cardValue(
 
   const market = weightedPart(
     'Market popularity',
-    marketPopularity(inputs, tunables),
+    marketPopularity(inputs, { tunables }),
     tunables,
     'aip.cardValue.popularityWeight',
   );

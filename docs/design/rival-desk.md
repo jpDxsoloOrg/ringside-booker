@@ -287,6 +287,13 @@ kind and `decisionKindOf(kind)` looks one up. The rival desk registers
 features register theirs (`push`, `title`, `businessReview`, ...) from their
 own modules.
 
+| Kind           | Chip          | Registered by                                      |
+| -------------- | ------------- | -------------------------------------------------- |
+| `rosterReview` | Roster review | `decisionKinds.ts` (AIP1-05)                       |
+| `card`         | Card          | `card/bookShowJob.ts` (AIP4-05)                    |
+| `winner`       | Winners       | `results/decisionKinds.ts` (AIP5-01, used by AIP5) |
+| `title`        | Titles        | `results/decisionKinds.ts` (AIP5-01, used by AIP5) |
+
 **Pruning.** `aip.pruneDecisionLog` (group `periodic`, order 42, daily)
 deletes expired rows in ID order with the `pruneOnly` delete
 ([Decision log](#decision-log)). On most days it reads only the rows that can
