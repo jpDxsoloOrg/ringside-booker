@@ -92,6 +92,15 @@ The rival desk's phases ([rival-desk.md](rival-desk.md#jobs)), both daily:
 computer unit, and `aip.pruneDecisionLog` (`periodic`, order 42) prunes the
 rival decision log.
 
+On a show day the rival job `aip.bookShow` (a `beforeShow` job, AIP4-05, see
+[rival-booking.md](rival-booking.md#show-day)) runs inside `aip.runTurns`, so
+every computer-run show dated today is booked (or cancelled) in `aiTurns`,
+before `shows.runShows` (`shows`, order 10) runs it with its card. A booked
+card that nothing runs (a world without show night) is closed as Not run by
+`calendar.closePastShows` (`settlement`, order 90) at the end of the day, with
+its segments kept. The player's shows are never touched: the day still stops
+on them (`shows.tonight`).
+
 ### Registering a phase
 
 A system describes its phase and registers it once, when the engine is built:
@@ -765,11 +774,12 @@ The finance system's events ([finances.md](finances.md#postmoney)):
 
 The rival desk's events ([rival-desk.md](rival-desk.md#jobs)):
 
-| Event                  | Payload                                                                  | Published when                                            |
-| ---------------------- | ------------------------------------------------------------------------ | --------------------------------------------------------- |
-| `aip.turnTaken`        | `promotionId`, `brandId`, `date`, `jobIds`                               | A computer unit had at least one rival job due and ran it |
-| `aip.decisionRecorded` | `decisionId`, `promotionId`, `brandId`, `kind`, `revealOn`, `importance` | A rival job records a decision in the decision log        |
-| `aip.jobFailed`        | `jobId`, `promotionId`, `brandId`, `message`                             | A rival job threw and its savepoint rolled it back        |
+| Event                  | Payload                                                                        | Published when                                               |
+| ---------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------ |
+| `aip.turnTaken`        | `promotionId`, `brandId`, `date`, `jobIds`                                     | A computer unit had at least one rival job due and ran it    |
+| `aip.decisionRecorded` | `decisionId`, `promotionId`, `brandId`, `kind`, `revealOn`, `importance`       | A rival job records a decision in the decision log           |
+| `aip.jobFailed`        | `jobId`, `promotionId`, `brandId`, `message`                                   | A rival job threw and its savepoint rolled it back           |
+| `aip.cardBooked`       | `eventInstanceId`, `promotionId`, `brandId`, `segmentCount`, `titleMatchCount` | `aip.bookShow` booked a computer-run show's card on show day |
 
 The promotion popularity system's events ([promotion-popularity.md](promotion-popularity.md#after-every-show)):
 

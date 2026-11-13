@@ -267,12 +267,15 @@ any `aip.jobFailed` (`--fail-on-event` changes the list). A bug in the runner
 itself, outside any job, still throws and fails the step as usual.
 
 **Decisions.** `job.recordDecision({ kind, summary, refs?, traced?,
-traceKind?, revealOn?, importance? })` refuses a kind nobody registered
+traceKind?, traceRef?, revealOn?, importance? })` refuses a kind nobody registered
 (throwing, so the job rolls back), inserts the `aiDecisions` row (`revealOn`
 defaults to today, `importance` to 0), stores `traced` summary-only under
 `{ kind: traceKind ?? 'aip.<kind>', id: '<unitKey>:<date>:<n>' }` (n counts
 the unit's decisions that day) and publishes `aip.decisionRecorded`. It
-returns the decision's ID. Setup steps with no job context (AIP2-02's day-one
+returns the decision's ID. A decision whose trace the caller has already
+recorded passes `traceRef` instead of `traced` (giving both throws); the card
+decision points at its show's `aip.cardPlan` trace this way
+([rival-booking.md](rival-booking.md#show-day)). Setup steps with no job context (AIP2-02's day-one
 appointments) call `writeAiDecision(tx, ctx, unit, spec)`, which does the
 same. Trace IDs are guessable; who may read them is decided by the queries.
 
@@ -280,8 +283,9 @@ same. Trace IDs are guessable; who may read them is decided by the queries.
 with the label of its Decision log filter chip (and optionally a Lucide icon
 name); a duplicate throws `RegistryError`. `decisionKinds()` lists them by
 kind and `decisionKindOf(kind)` looks one up. The rival desk registers
-`rosterReview` ("Roster review"); later features register theirs (`push`,
-`card`, `title`, `businessReview`, ...) from their own modules.
+`rosterReview` ("Roster review") and the card booker `card` ("Card"); later
+features register theirs (`push`, `title`, `businessReview`, ...) from their
+own modules.
 
 **Pruning.** `aip.pruneDecisionLog` (group `periodic`, order 42, daily)
 deletes expired rows in ID order with the `pruneOnly` delete

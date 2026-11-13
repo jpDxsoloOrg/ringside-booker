@@ -527,6 +527,95 @@ planned:
 `mode: 'fresh'` plans the whole card as if it were empty; whoever writes the
 plan clears the card first.
 
+## Show day
+
+`aip.bookShow` (`card/bookShowJob.ts`, AIP4-05) is how rivals book their own
+shows. It is a `beforeShow` rival job ([rival-desk.md](rival-desk.md#jobs)),
+so it runs in `aip.runTurns` (group `aiTurns`) on every day a computer unit has
+an open show, before the `shows` group runs the day's shows
+([day-pipeline.md](day-pipeline.md#groups)).
+
+**Which shows.** The unit's shows dated today that are still `scheduled` and
+whose controller is the computer (`showControllerOf`: the brand's own
+controller when it has one, else the promotion's), in event instance ID order.
+A show a human runs is never touched; the day still stops on it
+(`shows.tonight`) and the player runs it from the show screen. A computer GM
+brand inside the player's promotion is its own unit and books from its own
+roster only. Each show runs in a savepoint of its own
+(`aip.bookShow:<instanceId>`), with its own buffered events and traces, so one
+show going wrong never undoes another: it is logged, published as
+`aip.jobFailed` (which `npm run sim -- --strict` fails on) and left as it was.
+
+**Planning.** `planCard` with the `aip.card` stream: `keepFilled` when the show
+already holds segments (a brand handed to a computer GM after the player booked
+part of it), so those stay where they are; otherwise `fresh`, on a cleared
+card ([keep-filled mode](#keep-filled-mode)).
+
+**Writing.** Each placement goes through EVT2's card writer
+(`writeSegment`), the same code the player's commands use, with no planned
+winner. A placement the writer would refuse (`structuralProblems`) is skipped:
+its slot stays open and the reason goes in the log and the plan trace. The
+booker never throws on a bad placement.
+
+**Booked-card steps.** Right after the card is written and before it is
+validated, every step added with
+`registerBookedCardStep({ id, order, run(ctx, { instance, segmentIds, plan }) })`
+(`card/bookedCardSteps.ts`) runs, by `order` then id, each in its own savepoint
+with its own buffered events and traces. A step that throws is logged and
+skipped, with nothing it did left behind, and the card still books. Duplicate
+ids throw when registering. AIP5 sets the winners here, MTCH8 the crew and
+MTCH7 the stipulations, without editing the booker.
+
+**Validation.** EVT2's `validateCard` checks the card. A match with no planned
+winner (`noPlannedResult`) is fine: AIP5 sets winners, or show night's
+auto-winner decides. Any other error is a planner bug: the segments behind it
+are removed ("Removed Slot 3: <message>" in the plan trace) and the card is
+checked once more.
+
+**Book or cancel.** A card that can run sets the show `booked` and publishes
+`aip.cardBooked { eventInstanceId, promotionId, brandId, segmentCount,
+titleMatchCount }`. The show is cancelled instead, exactly as
+`calendar.cancelShow` does it (`cancelShow`: `status: 'cancelled'`,
+`cancellation: { reason: 'byPromotion', on: today }` and one `show.cancelled`),
+when:
+
+- the plan is `cancel`: fewer wrestlers fit to work than
+  `aip.card.minWorkers` ("Only 3 wrestlers available, needs 5"); or
+- the card still cannot run after the repair, for example too few filled
+  main-card slots for `booking.minFilledMainShare`. The reason is the check's
+  message, and the segments this booking wrote come off again (segments that
+  were already on the card stay).
+
+No save change: the explanation lives in the decision and the trace, and the
+calendar shows the cancellation as called off by the promotion.
+
+Without show night (EVT3) a booked card is not run; the calendar's
+close-past-shows rule marks the show Not run after its day and its segments
+stay readable.
+
+**Decision log.** Each show gets a `card` decision (chip "Card"), hidden
+until the show airs (`revealOn` = the show's air date):
+
+- booked: `aip.decision.card-booked` with `show`, `matches`, `talking`,
+  `titles`: "Booked <show>: 5 matches, 2 talking segments, 1 title match";
+- cancelled: `aip.decision.show-cancelled` with `show`, `reason`: "Cancelled
+  <show>: Only 3 wrestlers available, needs 5".
+
+Refs: the show and its promotion. Importance 1 for a booked card, 2 for a
+cancelled show. The web text catalog (`apps/web/src/text/catalogs/aip.ts`)
+and the engine's `decisionSummaryText` say the same words.
+
+**Traces.** A whole plan is 70 to 330 KB of JSON, and eleven rivals book
+hundreds of shows a year, so rival shows never keep it:
+
+- `aip.cardPlan` (by event instance ID): "Booking <show>", the plan and what
+  happened when it was written (skipped placements, removed segments), stored
+  summary-only. The card decision points at it;
+- `aip.cardSlot` (by segment ID): "Slot <n> · <role>" with the segment's
+  headline reasons and its card score, a few hundred bytes. Full traces of a
+  kind are capped by `sim.traceRetentionPerKind` and `sim.traceBytesPerKind`
+  like any other; older ones are kept as summaries.
+
 ## Random streams
 
 Declared in `card/streams.ts`:
