@@ -33,11 +33,21 @@
   font-size: var(--font-size-sm);
 }
 
+/* A long name stops at the Name column's width in the table instead of widening it. */
+.table .nameLink {
+  max-inline-size: 16rem;
+}
+
+/*
+ * A dotted underline rather than a border: on a touch screen the button grows to the tap target,
+ * and a border would then sit well below the words.
+ */
 .champions {
   padding: 0;
   border: 0;
-  border-block-end: 1px dotted var(--color-text-muted);
   background: none;
+  text-decoration: underline dotted var(--color-text-muted);
+  text-underline-offset: 0.2em;
   color: inherit;
   font: inherit;
   cursor: help;
@@ -53,6 +63,14 @@
     position: relative;
   }
 
+  /* A card has the room to show the whole name, so it wraps there. */
+  .table li[data-row-id] .nameLink {
+    max-inline-size: none;
+    overflow: visible;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
   .table li[data-row-id] a::after {
     content: '';
     position: absolute;
@@ -63,5 +81,15 @@
     position: relative;
     z-index: 1;
     min-block-size: var(--tap-target-min);
+  }
+
+  /*
+   * The champions count sits in a line of card meta: it reaches the tap target with padding and
+   * gives the room back, so it stays level with the words beside it.
+   */
+  .table li[data-row-id] .champions {
+    min-block-size: auto;
+    padding-block: var(--tap-pad-block);
+    margin-block: calc(-1 * var(--tap-pad-block));
   }
 }

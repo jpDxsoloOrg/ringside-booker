@@ -79,7 +79,16 @@ export const PROMOTION_COLUMNS: readonly ColumnDef<PromotionListRow>[] = [
   {
     id: 'name',
     header: 'Name',
-    cell: (row) => <PromotionLink promotionId={row.promotionId} name={row.name} />,
+    // One line cut with an ellipsis in the table; the link keeps the whole name as its accessible
+    // name and tooltip. Cards let it wrap (PromotionsScreen.module.css).
+    cell: (row) => (
+      <PromotionLink
+        promotionId={row.promotionId}
+        name={row.name}
+        truncate
+        className={styles['nameLink']}
+      />
+    ),
     sortValue: (row) => row.name,
     width: 'lg',
     card: 'title',
