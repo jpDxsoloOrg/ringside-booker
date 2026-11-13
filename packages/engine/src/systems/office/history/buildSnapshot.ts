@@ -12,23 +12,16 @@ import type { ContinentId, PromotionId } from '../../../core/ids';
 import { promotionStatusKey } from '../../../model/entities/employment';
 import type { PromotionSnapshot } from '../../../model/entities/promotion-snapshot';
 import type { GameWorldView } from '../../../model/tables';
-import {
-  createPopularityRoller,
-  type PopularityRoller,
-} from '../../world/formulas/popularityRollup';
-import { geographyOf, type Geography } from '../../world/geography';
+import type { EngineTunables } from '../../tunables';
+import { createOfficeRoller, headlinePopularityValue, type OfficeRoller } from '../popularity';
 import { extractSnapshotFields } from './snapshotFields';
 
 /** The map and its popularity roller, worked out once per run and shared by every promotion. */
-export interface SnapshotRoller {
-  readonly geography: Geography;
-  readonly popularity: PopularityRoller;
-}
+export type SnapshotRoller = OfficeRoller;
 
 /** Builds the roller for one snapshot run. Call it once per run, not once per promotion. */
 export function createSnapshotRoller(read: GameWorldView): SnapshotRoller {
-  const geography = geographyOf(read);
-  return { geography, popularity: createPopularityRoller(geography) };
+  return createOfficeRoller(read);
 }
 
 /** A promotion snapshot's columns, without its id and granularity. */
@@ -48,18 +41,18 @@ function popularityValue(value: number): number {
  * - `popularity.world` and `byContinent`: one `rollValues` call over `regionalPop`; continents at 0
  *   are left out.
  * - `popularity.homeRegionValue`: the stored value in the home region, 0 when none is stored.
- * - `popularity.headline`: the home country's roll-up (DAY2-02 will swap in its own headline).
+ * - `popularity.headline`: the headline popularity (`headlinePopularityValue`), so a row and the
+ *   live top bar always use the same `office.popularity.headlineScope`.
  * - `rosterSize`: active contracts that have started by `date`; `averageMorale` is their mean
  *   morale, or null when there are none.
  * - `extra`: every registered field (`registerPromotionSnapshotField`).
- *
- * DAY2-02 adds the engine tunables to the arguments when its headline figure needs them.
  */
 export function buildPromotionSnapshot(
   read: GameWorldView,
   promotionId: PromotionId,
   date: GameDate,
   roller: SnapshotRoller,
+  tunables: EngineTunables,
 ): PromotionSnapshotColumns {
   const promotion = read.tables.promotions.require(promotionId);
   const rolled = roller.popularity.rollValues(promotion.regionalPop);
@@ -70,7 +63,6 @@ export function buildPromotionSnapshot(
       byContinent[continent.id] = value;
     }
   }
-  const homeCountry = roller.geography.countryOf(promotion.homeRegionId);
 
   const contracts = read.tables.employments
     .lookup('byPromotionStatus', promotionStatusKey(promotionId, 'active'))
@@ -83,7 +75,7 @@ export function buildPromotionSnapshot(
     cash: promotion.cash,
     prestige: promotion.prestige,
     popularity: {
-      headline: popularityValue(rolled.countries[homeCountry.id] ?? 0),
+      headline: headlinePopularityValue(read, promotionId, tunables, roller),
       world: popularityValue(rolled.world),
       homeRegionValue: promotion.regionalPop[promotion.homeRegionId] ?? 0,
       byContinent,

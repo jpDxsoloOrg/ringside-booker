@@ -1823,3 +1823,36 @@ export {
   SHOWS_TONIGHT_GATE_ID,
   unregisterBeforeShowRuns,
 } from './systems/shows/index';
+
+// Headline popularity (DAY2-02): the one roll-up level the Office and the top bar lead with, its
+// stored Why? (`office.popularity`), the trace sections seam other features add lines through and
+// `office.fanBase`. Use `headlinePopularityValue` for "a promotion's popularity" as one number.
+// See docs/design/office.md#headline-popularity.
+export {
+  createOfficeRoller,
+  fanBaseQuery,
+  formatPopularity,
+  HEADLINE_POPULARITY_DOC_REF,
+  HEADLINE_SCOPE_CHANGED_SUBSCRIPTION_ID,
+  HEADLINE_SCOPES,
+  HEADLINE_TRAIL_NODES,
+  headlinePopularity,
+  headlinePopularityOf,
+  headlinePopularityValue,
+  NO_PROMOTION,
+  officeQueries,
+  POPULARITY_CHANGED_SUBSCRIPTION_ID,
+  POPULARITY_TRACE_KIND,
+  popularityTraceRef,
+  popularityTraceSectionLines,
+  popularityTraceSections,
+  recordAllHeadlinePopularity,
+  recordHeadlinePopularity,
+  registerPopularityTraceSection,
+  type FanBaseView,
+  type HeadlinePlace,
+  type HeadlinePopularityInputs,
+  type HeadlineScope,
+  type OfficeRoller,
+  type PopularityTraceSectionSpec,
+} from './systems/office/index';

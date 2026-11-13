@@ -24,7 +24,12 @@ import type { PipelineFailure } from '../pipeline/failureLog';
 import type { GateHit } from '../pipeline/gates';
 import type { DayReport } from '../pipeline/report';
 import { startCalc } from '../trace/calc';
-import { TRACE_REF_KIND_PATTERN, type StoredTraceEntry, type TraceRef } from '../trace/store';
+import {
+  isFullTrace,
+  TRACE_REF_KIND_PATTERN,
+  type StoredTraceEntry,
+  type TraceRef,
+} from '../trace/store';
 import type { TraceNode } from '../trace/types';
 import type { TunableRawValue } from '../tunables/define';
 import { describeTunables, type TunableRow } from '../tunables/describe';
@@ -54,6 +59,12 @@ export interface ClockView {
  */
 export const CASH_TRACE_KIND = 'finance.cash';
 
+/**
+ * The trace kind that explains a promotion's headline popularity (id: the promotion id). The office
+ * system records it (DAY2-02); the core owns the string so `sim.status` never imports a system.
+ */
+export const POPULARITY_TRACE_KIND = 'office.popularity';
+
 /** The viewer's promotion at a glance, read straight from its row. */
 export interface PromotionStatus {
   promotionId: PromotionId;
@@ -71,7 +82,18 @@ export interface PromotionStatus {
     /** Popularity in the home region, 0-100 (0 when the region has none). */
     homeRegion: number;
     prestige: number;
-    /** The stored trace behind the popularity figure, once a popularity system records one. */
+    /**
+     * The promotion's headline popularity (`office.popularity.headlineScope`, the home country's
+     * roll-up by default), 0-100, read from its stored Why?. Null while none is stored (a world
+     * made before DAY2-02): the top bar then shows `homeRegion` with no Why?.
+     */
+    headline: number | null;
+    /** The stored Why?'s label, such as "Altura Wrestling popularity"; null with `headline`. */
+    headlineLabel: string | null;
+    /**
+     * The stored trace behind `headline` (kind {@link POPULARITY_TRACE_KIND}), or null while none
+     * is stored.
+     */
     traceRef: TraceRef | null;
     /**
      * Built on the spot while no popularity system records a trace: where today's figure comes
@@ -175,6 +197,16 @@ function homePopularityTrace(value: number, regionName: string | undefined): Tra
     .done().trace;
 }
 
+/** The value and label of a stored popularity Why? (full or summarised); undefined when none. */
+function storedHeadline(
+  entry: StoredTraceEntry | undefined,
+): { value: number; label: string } | undefined {
+  if (entry === undefined || typeof entry.value !== 'number') {
+    return undefined;
+  }
+  return { value: entry.value, label: isFullTrace(entry) ? entry.trace.label : entry.label };
+}
+
 const simStatus = defineQuery('sim.status', {
   args: noArgs,
   run: (ctx) => {
@@ -188,6 +220,10 @@ const simStatus = defineQuery('sim.status', {
       promotion === undefined ? 0 : (promotion.regionalPop[promotion.homeRegionId] ?? 0);
     const cashRef: TraceRef | null =
       promotion === undefined ? null : { kind: CASH_TRACE_KIND, id: promotion.id };
+    const popularityRef: TraceRef | null =
+      promotion === undefined ? null : { kind: POPULARITY_TRACE_KIND, id: promotion.id };
+    const headline =
+      popularityRef === null ? undefined : storedHeadline(ctx.traces.get(popularityRef));
     return {
       date: ctx.date,
       season: season === undefined ? null : { number: season.number, endDate: season.endDate },
@@ -204,7 +240,9 @@ const simStatus = defineQuery('sim.status', {
                 homeRegionId: promotion.homeRegionId,
                 homeRegion: homePopularity,
                 prestige: promotion.prestige,
-                traceRef: null,
+                headline: headline?.value ?? null,
+                headlineLabel: headline?.label ?? null,
+                traceRef: headline === undefined ? null : popularityRef,
                 trace: homePopularityTrace(homePopularity, homeRegion?.name),
               },
             },

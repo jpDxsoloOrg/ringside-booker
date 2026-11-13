@@ -19,17 +19,17 @@ which keeps the trace store free of hundreds of weekly entries a year.
 
 ### Columns
 
-| Column                       | What it holds                                                                              |
-| ---------------------------- | ------------------------------------------------------------------------------------------ |
-| `cash`                       | The promotion's cash at the end of the day, in cents                                       |
-| `prestige`                   | The promotion's prestige                                                                   |
-| `popularity.world`           | The population-weighted world roll-up of `regionalPop` (D-03, WRK1's roller)               |
-| `popularity.byContinent`     | Every continent's roll-up; sparse, a continent at 0 is left out                            |
-| `popularity.homeRegionValue` | The stored value in the home region, 0 when none is stored                                 |
-| `popularity.headline`        | The figure the Office leads with: the home country's roll-up until DAY2-02 defines its own |
-| `rosterSize`                 | People with an active contract that has started (`startsOn` on or before the day)          |
-| `averageMorale`              | The mean morale of those contracts, unrounded; null when nobody is under contract          |
-| `extra`                      | Registered fields, one number each (see [the registry](#the-registry))                     |
+| Column                       | What it holds                                                                                          |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `cash`                       | The promotion's cash at the end of the day, in cents                                                   |
+| `prestige`                   | The promotion's prestige                                                                               |
+| `popularity.world`           | The population-weighted world roll-up of `regionalPop` (D-03, WRK1's roller)                           |
+| `popularity.byContinent`     | Every continent's roll-up; sparse, a continent at 0 is left out                                        |
+| `popularity.homeRegionValue` | The stored value in the home region, 0 when none is stored                                             |
+| `popularity.headline`        | The [headline popularity](#headline-popularity) (`headlinePopularityValue`), same scope as the top bar |
+| `rosterSize`                 | People with an active contract that has started (`startsOn` on or before the day)                      |
+| `averageMorale`              | The mean morale of those contracts, unrounded; null when nobody is under contract                      |
+| `extra`                      | Registered fields, one number each (see [the registry](#the-registry))                                 |
 
 Roll-ups are kept inside 0..100. One roller is built per run and shared by
 every promotion.
@@ -123,3 +123,109 @@ DAY4 (rankings) and POL2 (balance charts).
 | `office.history.fullDetailWeeks` | 52      | 4–520 | Weeks kept at full weekly detail before older weeks are thinned to monthly |
 | `office.trend.weeks`             | 8       | 2–52  | Weeks shown in a KPI sparkline (read by DAY2-03)                           |
 | `office.delta.lookbackDays`      | 7       | 1–90  | How far back a KPI delta compares (read by DAY2-03)                        |
+
+## Headline popularity
+
+A promotion's popularity is stored per region and rolled up by population to
+countries, continents and the world (D-03). The top bar and the Office need
+one number, so DAY2-02 picks one of those levels as the promotion's
+**headline popularity**:
+
+| Key                               | Default       | Options                                               | Meaning                                                                          |
+| --------------------------------- | ------------- | ----------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `office.popularity.headlineScope` | `homeCountry` | `homeRegion`, `homeCountry`, `homeContinent`, `world` | Which D-03 roll-up the Office and the top bar show as the promotion's popularity |
+
+Code: `formulas/headlinePopularity.ts` (the formula), `popularity.ts`
+(`headlinePopularityOf`, `headlinePopularityValue`, `recordHeadlinePopularity`)
+and `queries.ts` (`office.fanBase`).
+
+### One roll-up level, not a new formula
+
+The headline **is** the chosen roll-up, worked out by WRK1's
+`popularityRollup` (traced) or `createPopularityRoller().rollValues` (the fast
+path), kept within 0..100. There is no other arithmetic, so the figure never
+disagrees with the Fan base sheet, which draws the same roll-up. Its Why?:
+
+- root "<Promotion> popularity";
+- the main line, the chosen level's own roll-up trace ("Popularity in
+  <country>", each region with its value × its share of the population),
+  shortened to leave `HEADLINE_TRAIL_NODES` (60) of the 400-node budget for
+  the lines after it;
+- the scope, read through the builder so the Why? names
+  `office.popularity.headlineScope` ("Shows popularity in the home country");
+- two notes for context, "Worldwide 24.1" and "Home region <name> 75" (the one
+  that would repeat the main line is left out);
+- the [trace sections](#trace-sections) lines;
+- the 0..100 clamp.
+
+`headlinePopularityValue(read, promotionId, tunables, roller)` gives the same
+number with no trace (equal within 1e-9), for snapshots and list rows. AIP1,
+DAY4 and BRW should use it whenever they want "a promotion's popularity" as one
+number.
+
+**Not reach.** ECO1's `reachOf` ([finances.md](finances.md#reach-and-size))
+is a weighted blend of all four levels (weights 1, 3, 2, 2) that answers how
+far the company's name carries and sets its size label. The headline is a
+single level the player can find again on the map. Both read the same
+`regionalPop` through the same roll-up, so they move together, but they are
+different numbers and should not be swapped for each other.
+
+On the default world the home-country default reads a little below the home
+region (Altura: about 70 against 75); the top bar's label changes from
+"Popularity in your home region" to the trace's "<Promotion> popularity", whose
+Why? names the country.
+
+### The stored trace
+
+The Why? is stored under `{ kind: 'office.popularity', id: promotionId }`.
+The kind string is core's (`POPULARITY_TRACE_KIND` in `core/api/builtins.ts`,
+re-exported by `systems/office/traces.ts`), as ECO1 does for `finance.cash`,
+so `sim.status` reads it without importing this system. Recording the same ref
+replaces the entry, so each promotion has one. It is re-recorded:
+
+1. by the `office.baselineSnapshot` setup step, for every active promotion;
+2. by the `office.popularityChanged` subscription, after every
+   `popularity.changed` whose `subjectKind` is `promotion` (WRK1's door
+   publishes it for every popularity write, EVT5's shows included);
+3. by the `office.weeklySnapshot` phase every Monday, for every active
+   promotion (this also repairs a trace dropped by retention);
+4. by the `office.headlineScopeChanged` subscription, for every active
+   promotion, when `tunables.changed` names `office.popularity.headlineScope`.
+
+With 12 promotions this is far below `sim.traceRetentionPerKind` (200). A
+world made before DAY2-02 has no trace until its first Monday: `sim.status`
+then returns `headline: null` and the top bar keeps the home-region value and
+its Why? built on the spot ([engine-api.md](engine-api.md#the-status-and-pending-gate-queries)).
+
+### `office.fanBase`
+
+Args `{ promotionId? }` (default: the viewer's first promotion). Result
+`{ promotionId, name, headline: { value, label, traceRef }, scope, rollup }`,
+where `rollup` is WRK1's `PopularityRollupView` (world → continents →
+countries → regions, every derived level with its trace) for the Fan base
+sheet's `PopularityDrilldown`. `headline` reads the stored trace (the same
+entry `sim.status` reads, so the two always agree); with none stored it is
+built on the read and `traceRef` is null. Popularity is public, so any viewer
+may ask about any promotion. Refusals: `noPromotion` ("You don't run a
+promotion, so pick one to look at") and `unknownPromotion`.
+
+### Trace sections
+
+Other features add lines to the Why? without the office system knowing about
+them:
+
+```ts
+registerPopularityTraceSection({
+  id: 'promoPop.recentShows', // unique; a duplicate throws a RegistryError
+  order: 10, // lower first, then by id
+  lines: (read, promotionId, date) => ['Recent shows: Monday Mayhem on 5 January, worldwide +0.8'],
+});
+```
+
+Each line becomes a `note` after the context notes, sections in order. A
+section returning no lines adds nothing. Lines are worked out whenever the
+trace is re-recorded (the four moments above), so a section reads the world as
+it stands then; EVT5's show change publishes `popularity.changed`, so a
+"Recent shows" section is current after every show. The function
+`registerPopularityTraceSection` returns removes the section (for tests).
+EVT5-04's "Recent shows" lines are expected to be the first user.
