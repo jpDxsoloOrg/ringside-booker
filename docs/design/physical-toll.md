@@ -3,8 +3,9 @@
 What a match costs the people who work it: the fatigue they pick up and the
 body condition they lose (MTCH4). This page covers the two "load" formulas for
 one worker in one match and the risk modifier seam (MTCH4-01), and the
-in-match injury chance and roll (MTCH4-02). The show-night applier that writes the results (MTCH4-03)
-and the Match lab's Why? panels (MTCH4-05) build on it. Recovery belongs to
+in-match injury chance and roll (MTCH4-02), ring learning (MTCH4-03), and the
+fixed order, the show-night applier that writes the results and the partner
+wiring (MTCH4-04). The Match lab's Why? panels (MTCH4-05) build on it. Recovery belongs to
 the health system (WRK6), not here.
 
 The code lives inside the `match` system: the inputs, tunables, stream and
@@ -261,7 +262,122 @@ from this feature (D-09; WRK8 owns morale).
 The traces are stored under refs from `physical/traceRefs.ts`, all keyed
 `<segmentId>:<personId>`: `match.fatigue`, `match.wear`, `match.learning`,
 `match.injuryChance` and `match.injuryRoll` (the show-night applier, MTCH4-04,
-stores them).
+stores them; see [Stored traces](#stored-traces)).
+
+## The order
+
+`computePhysicalToll(read, spec, { tunables, policy, wearRng, injuryRng })` in
+`physical/toll.ts` is the one place the pieces run, for the Match lab preview
+(MTCH4-05) and for real shows alike. It always runs them in this order, and a
+test pins it:
+
+1. `collectPhysicalInputs`: who carries load (competitors in a match only);
+2. `collectRiskContributions` for each worker;
+3. fatigue gain for each worker;
+4. the wear load and wear by body part for each worker, **in roll order**
+   (side, entrance order with unset last, person id): one `match.wear` draw
+   each;
+5. ring learning for each worker and attribute (the hidden learning gate and
+   the mentor on the card, with everyone on the show as "the card");
+6. the injury chance for each worker, from fatigue and the worst body part
+   **after** steps 3 and 4;
+7. the injury roll, last: one `match.injury` draw each.
+
+The result is plain JSON: per worker `{ personId, name, side, safety,
+fatigueBefore, fatigueGain, fatigueAfter, wearLoad, wearByPart,
+conditionAfter, worstPartAfter, learning, learningByAttribute, injuryChance,
+injury: { injured, ignoredOverLimit, bodyPartHint, roll }, contributions }`,
+workers in roll order. An angle gives no workers and draws nothing.
+
+`deps.alreadyInjured` names workers who are already hurt (earlier on the same
+show, or before it): they still take the load, but their chance is × 0 with
+the line "Already injured tonight" (or "Already injured"), so nobody is hurt
+twice. Their roll is still drawn, so the stream stays aligned.
+
+## Show night
+
+`physicalTollApplier` (`physical/showNight.ts`) is a
+[segment result applier](show-night.md#segment-result-appliers):
+`{ id: 'match.physicalToll', order: 40 }`, after the title outcome (10) and
+MTCH3's aftermath (30), before MTCH6's chemistry (50). It never reads the
+aftermath's output. It runs for every match on every show, the player's and
+every rival's; an angle costs nothing (owner rule: promos cost no stamina).
+
+`applyPhysicalToll(ctx, segmentId)` (`physical/apply.ts`):
+
+- builds the segment's spec from the world with `segmentSpecFromWorld(read,
+segmentId, { tunables })` (`physical/inputs.ts`): the participants side by
+  side with their entrance order, the show's importance, the duration class
+  from MTCH1's `slotRoleOf` and `durationClassOf`, the producer, and where the
+  segment sits on the card (for the repeat-match factor). Nothing stored asks
+  for keep-it-safe; a risk contribution can switch it on. An angle gives null;
+- reads each person from `ctx.read` when the segment is applied, so a worker in
+  two matches on one show starts the second from where the first left them;
+- runs `computePhysicalToll` with `ctx.rng('match.wear')`,
+  `ctx.rng('match.injury')` and the promotion's injury policy
+  (`injuryPolicyFor`, AIP1's rival rules);
+- writes each worker with **one** `people` update: `fatigue = min(100, before
+  - gain)`, `condition[part] = max(0, condition[part] − wear)`, and each
+in-match attribute `min(100, value + gain)`. There is no attribute door yet,
+    so attributes are written directly; they are not held to the hidden
+    ceilings (the learning gate closes the next match instead);
+- hands each injured worker to the injury handler (above). With none
+  registered it writes nothing about the injury and logs "In-match injury
+  rolled but no injury handler is registered" once per step.
+
+MTCH4 never touches morale (D-09).
+
+### Stored traces
+
+Every match stores up to four traces per worker, so they are kept small
+(owner rules: save size and the 28-day history window):
+
+| Kind                 | Player's shows                    | Rival shows                              |
+| -------------------- | --------------------------------- | ---------------------------------------- |
+| `match.fatigue`      | Fatigue after the match, 4 levels | Summary                                  |
+| `match.wear`         | Condition lost in total, 3 levels | Summary                                  |
+| `match.learning`     | Learning in this match, 3 levels  | Not stored                               |
+| `match.injuryChance` | 3 levels                          | Summary, only when the chance is above 0 |
+| `match.injuryRoll`   | Injured workers only, 3 levels    | Summary, injured workers only            |
+
+"Levels" is how deep the stored tree goes (`compactTrace` and `leanTrace` in
+`core/trace/compact.ts`, `STORED_TRACE_DEPTH` in `apply.ts`): the lines the
+Why? reads first, each with its number; the deeper working is in this page and
+in the Match lab, which works the full trace out again. `match.fatigue` is
+`startCalc` from fatigue going in, plus the gain trace, capped at 100;
+`match.wear` is the wear load times the body part weights added up.
+
+The player's traces are kept in full for `history.keepDetailDays` (28) days:
+the daily `match.prunePhysicalDetail` (`periodic`, order 44) demotes those of
+the shows dated 28 days ago to summaries, with a full sweep on the 1st of each
+month, like `aip.pruneCardDetail`. Rival shows keep only summaries from the
+start (POL4-06).
+
+**Fast paths** ([day-pipeline.md](day-pipeline.md#fast-paths)): for a rival
+show, which stores no full trace, the wear of each body part is worked out as
+plain numbers, and under the rival-rules shortcut the injury chance is the 0
+with its rival-rules line, without the formula. Values and draws are the same.
+
+**Measured** (365 days, default world, `withMyShowsRun`, dev machine under
+other load, 2026-11): the skip went from about 10.2 s to 12.2 s wall, of which
+the physical toll is about 0.75 s and the health system's daily fatigue
+recovery, which now has tired people to recover, about 0.5 s with its traces;
+the rest is the extra traces and garbage collection. The 365-day save went
+from 1.15 to 1.18 MB gzipped (no rival cards) and from 1.45 to 1.59 MB with
+every show carded (budget 1.6 MB); about a third of the growth is
+`health.fatigueRecovery` traces.
+
+### match.physicalForSegment
+
+`match.physicalForSegment { segmentId }` (on the match system) gives, per
+competitor (by side, then id), `fatigueGain`, `fatigueAfter`, `wearTotal`,
+`learning`, `injuryChance` (each `{ value, traceRef }`) and `injured` (`{
+value, traceRef }`), read back from the stored traces: a value and its ref are
+null when the trace is gone or was never stored (a rival's learning). The
+fatigue gain is the "Fatigue from this match" step of the fatigue trace, which
+a summary keeps too. `applied` is false until the match has run. Physical
+numbers are not secret, so every viewer gets the same answer; learning is a
+gain only, never potential or a ceiling.
 
 ## Tunables
 
@@ -456,3 +572,17 @@ Every key has a minimum of 0, so 0 means 0.
 | `match.learning.slowingBand`        | 5       | 0–50   | points     | How close to their limit a worker is before learning slows      |
 | `match.learning.lowPotential`       | 200     | 0–1000 | points     | Below this hidden score (−1000..1000), learning slows           |
 | `match.learning.maxPerSegment`      | 0.2     | 0–5    | points     | Most one match can teach per attribute                          |
+
+## Integration
+
+Which partner features MTCH4 is wired to (MTCH4-04), and the one call an
+unwired partner's pack makes:
+
+| Partner                     | State                   | How                                                                                                                                                                                                                     |
+| --------------------------- | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| EVT3 (show night)           | wired (MTCH4-04)        | The match bundle registers `registerSegmentResultApplier(physicalTollApplier)` at module load (`physical/showNight.ts`).                                                                                                |
+| AIP1 (rival rules)          | wired (MTCH4-04)        | The injury chance reads `skipInMatchInjuries` from the rating policy (`injuryPolicyFor`); the rival desk lists MTCH4 as the consumer of "No in-match injuries", and the Level playing field removes the line.           |
+| WRK6 (injuries)             | wires from its own pack | `registerInjuryHandler({ id: 'health.injure', apply: (ctx, request) => ... })`, calling `health.injure` and returning its injury trace ref (WRK6-07). Until then injuries are rolled, traced and logged, never applied. |
+| SOC2 (mentorships)          | wires from its own pack | Nothing to call: the mentor line reads `relationships` rows with the `mentorship` bond, so seeded mentorships show "Mentor on the card" as soon as SOC2 creates them.                                                   |
+| MTCH7 (stipulations, notes) | wires from its own pack | `registerRiskModifier({ id, order, contribute })` for each stipulation and booking note: fatigue, wear and injury multipliers, an added injury chance, or keep-it-safe, each with its own labelled line.                |
+| WRK4 (growth)               | wires from its own pack | Read potential and ceilings through the same helper as `learningRoom` (`physical/learningRoom.ts`), so an attribute WRK4 calls capped is "closed" here.                                                                 |

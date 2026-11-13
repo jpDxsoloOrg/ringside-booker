@@ -100,7 +100,10 @@ The rival desk's phases ([rival-desk.md](rival-desk.md#jobs)), both daily:
 `aip.runTurns` (`aiTurns`, order 50) runs every due rival job for every
 computer unit, `aip.pruneDecisionLog` (`periodic`, order 42) prunes the
 rival decision log, and `aip.pruneCardDetail` (`periodic`, order 43) keeps
-only a summary of rival card slots older than `history.keepDetailDays`.
+only a summary of rival card slots older than `history.keepDetailDays`. The
+match system's daily `match.prunePhysicalDetail` (`periodic`, order 44) does
+the same for the physical toll traces of the player's matches
+([physical-toll.md](physical-toll.md#stored-traces)).
 
 On a show day the rival job `aip.bookShow` (a `beforeShow` job, AIP4-05, see
 [rival-booking.md](rival-booking.md#show-day)) runs inside `aip.runTurns`, so
@@ -448,13 +451,15 @@ that work **only where the result is identical**: the same world, the same
 stored traces, the same RNG and the same save, byte for byte. Code:
 `packages/engine/src/core/fastPaths.ts`.
 
-| Fast path                       | Where                                                | What it skips                                                                                                                                                                      |
-| ------------------------------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Aftermath without region detail | `applySegmentAftermath` (show night's MTCH3 applier) | The per-region preview and the country and continent roll-ups of each competitor's change. The applier stores none of them; the popularity door works the regions out as it writes |
-| Summary-only record check       | `TraceStaging.record` with `summaryOnly`             | Validating every node of a tree that is kept only as a summary: the tree is fitted into the size limits as before, then only its root and direct steps are checked                 |
-| One-walk record check           | `TraceStaging.record`                                | `assertJsonValue` plus the load schema's zod parse: `copyValidTraceContent` builds the same copy in one walk, or returns null and the full check runs (and throws) as before       |
-| Headline and reach roll-ups     | `headlinePopularityOf` (office), `reachOf` (finance) | Rolling up every country and continent to read the home country, the home continent and the world (`popularityRollupPart`)                                                         |
-| Card values without traces      | `buildCardPool` (rival booker)                       | The card value trace of every worker for every show: `cardValueNumber` does the same steps in the same order. A Why? that shows a card value builds it with `cardValue`            |
+| Fast path                       | Where                                                                | What it skips                                                                                                                                                                      |
+| ------------------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Aftermath without region detail | `applySegmentAftermath` (show night's MTCH3 applier)                 | The per-region preview and the country and continent roll-ups of each competitor's change. The applier stores none of them; the popularity door works the regions out as it writes |
+| Summary-only record check       | `TraceStaging.record` with `summaryOnly`                             | Validating every node of a tree that is kept only as a summary: the tree is fitted into the size limits as before, then only its root and direct steps are checked                 |
+| One-walk record check           | `TraceStaging.record`                                                | `assertJsonValue` plus the load schema's zod parse: `copyValidTraceContent` builds the same copy in one walk, or returns null and the full check runs (and throws) as before       |
+| Headline and reach roll-ups     | `headlinePopularityOf` (office), `reachOf` (finance)                 | Rolling up every country and continent to read the home country, the home continent and the world (`popularityRollupPart`)                                                         |
+| Card values without traces      | `buildCardPool` (rival booker)                                       | The card value trace of every worker for every show: `cardValueNumber` does the same steps in the same order. A Why? that shows a card value builds it with `cardValue`            |
+| Rival wear by body part         | `computePhysicalToll` (MTCH4's applier) on a rival show              | Each body part's wear trace: the same `load × weight` as plain numbers; the show stores only summaries                                                                             |
+| Rival-rules injury chance       | `computePhysicalToll` on a rival show under `ai.skipInMatchInjuries` | The injury chance formula: the policy makes it 0, given with its rival-rules line; the roll is still drawn                                                                         |
 
 **Proof.** `setFastPaths(false)` turns them all off, so the engine takes the
 full path everywhere. `test/core/fastPaths.test.ts` runs a month of the roster

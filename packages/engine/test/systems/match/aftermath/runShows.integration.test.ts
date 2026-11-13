@@ -16,7 +16,11 @@ import {
   type MatchDraft,
   type ParticipantDraft,
 } from '../../../../src/systems/booking';
-import { AFTERMATH_APPLIER_ID, matchSystem } from '../../../../src/systems/match';
+import {
+  AFTERMATH_APPLIER_ID,
+  PHYSICAL_TOLL_APPLIER_ID,
+  matchSystem,
+} from '../../../../src/systems/match';
 import {
   listSegmentResultAppliers,
   registerSegmentResultApplier,
@@ -236,11 +240,12 @@ function showRegionOf(row: Aftermath): { before: number; after: number } {
 }
 
 describe('the aftermath applier on show night', () => {
-  it('is registered at order 30, after the title outcome', () => {
+  it('is registered at order 30, after the title outcome and before the physical toll', () => {
     const order = listSegmentResultAppliers().map((applier) => [applier.id, applier.order]);
     expect(order).toEqual([
       ['shows.titleOutcome', 10],
       [AFTERMATH_APPLIER_ID, 30],
+      [PHYSICAL_TOLL_APPLIER_ID, 40],
     ]);
   });
 

@@ -34,6 +34,10 @@ import './aftermath/showNight';
 import './aftermath/tvReach';
 // Declares the physical toll's `match.wear` stream (MTCH4-01).
 import './physical/streams';
+// Registers the physical toll applier with show night at module load (MTCH4-04).
+import './physical/showNight';
+import { prunePhysicalDetailPhase } from './physical/prune';
+import { physicalQueries } from './physical/queries';
 
 export {
   DURATION_CLASSES,
@@ -485,8 +489,9 @@ export {
 export const matchSystem: SystemBundle = defineSystem({
   id: 'match',
   // MTCH3-03: the weekly prune of stored aftermaths. MTCH3-07: the weekly momentum drift.
-  phases: [momentumDriftPhase, pruneAftermathsPhase],
-  queries: [...matchQueries, ...aftermathQueries, ...recentFormQueries],
+  // MTCH4-04: the daily prune of the player's physical toll traces past the history window.
+  phases: [momentumDriftPhase, pruneAftermathsPhase, prunePhysicalDetailPhase],
+  queries: [...matchQueries, ...aftermathQueries, ...recentFormQueries, ...physicalQueries],
 });
 
 // Momentum from a match result and a worker's earlier matches (MTCH3-02). Design:
@@ -720,4 +725,39 @@ export {
   type MentorOnCard,
   type RingLearningInputs,
   type WorkerRingLearning,
+} from './physical';
+
+// The physical toll in one fixed order, its show-night applier, the prune of its traces and
+// `match.physicalForSegment` (MTCH4-04). Design: docs/design/physical-toll.md#show-night.
+export {
+  ALREADY_INJURED_LABEL,
+  ALREADY_INJURED_TONIGHT_LABEL,
+  CONDITION_LOST_LABEL,
+  FATIGUE_AFTER_LABEL,
+  FATIGUE_FROM_MATCH_LABEL,
+  NO_INJURY_HANDLER_LOG,
+  PHYSICAL_FOR_SEGMENT_NOT_FOUND,
+  PHYSICAL_TOLL_APPLIER_ID,
+  PHYSICAL_TOLL_APPLIER_ORDER,
+  PRUNE_PHYSICAL_DETAIL_PHASE_ID,
+  applyPhysicalToll,
+  applyPhysicalTollOnShowNight,
+  cardPersonIdsOf,
+  computePhysicalToll,
+  conditionLostTrace,
+  fatigueAfterTrace,
+  physicalForSegmentQuery,
+  physicalTollApplier,
+  prunePhysicalDetailPhase,
+  segmentSpecFromWorld,
+  type AlreadyInjured,
+  type PhysicalForSegmentArgs,
+  type PhysicalForSegmentResult,
+  type PhysicalNumber,
+  type PhysicalTollDeps,
+  type PhysicalTollPolicy,
+  type PhysicalTollResult,
+  type PhysicalWorkerRow,
+  type WorkerInjuryResult,
+  type WorkerPhysicalToll,
 } from './physical';

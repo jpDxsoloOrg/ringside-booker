@@ -3,7 +3,9 @@
  * modifier seam, the tunables and the wear stream; the formulas live in `../formulas/`
  * (`fatigueGain.ts`, `conditionWear.ts`, `wearByPart.ts`). MTCH4-02 adds the injury chance
  * (`../formulas/injuryChance.ts`), the injury roll and handler seam (`injuries.ts`) and the trace
- * refs (`traceRefs.ts`). Later MTCH4 tickets add the show-night applier and the queries.
+ * refs (`traceRefs.ts`). MTCH4-03 adds ring learning. MTCH4-04 puts them in one fixed order
+ * (`toll.ts`), applies the toll on show night (`apply.ts`, `showNight.ts`), prunes the player's
+ * traces past the history window (`prune.ts`) and answers `match.physicalForSegment` (`queries.ts`).
  *
  * Design: docs/design/physical-toll.md.
  */
@@ -21,6 +23,7 @@ export {
   type PhysicalParticipant,
   type PhysicalSegmentSpec,
   type PhysicalWorkerInputs,
+  segmentSpecFromWorld,
 } from './inputs';
 export {
   MAX_RISK_MODIFIER_ORDER,
@@ -111,3 +114,42 @@ export {
   type LearningProducer,
   type RingLearningInputs,
 } from '../formulas/ringLearning';
+
+// The physical toll in one fixed order, show night's applier and the query (MTCH4-04).
+export {
+  ALREADY_INJURED_LABEL,
+  ALREADY_INJURED_TONIGHT_LABEL,
+  computePhysicalToll,
+  type AlreadyInjured,
+  type PhysicalTollDeps,
+  type PhysicalTollPolicy,
+  type PhysicalTollResult,
+  type WorkerInjuryResult,
+  type WorkerPhysicalToll,
+} from './toll';
+export {
+  CONDITION_LOST_LABEL,
+  FATIGUE_AFTER_LABEL,
+  FATIGUE_FROM_MATCH_LABEL,
+  NO_INJURY_HANDLER_LOG,
+  applyPhysicalToll,
+  cardPersonIdsOf,
+  conditionLostTrace,
+  fatigueAfterTrace,
+} from './apply';
+export {
+  PHYSICAL_TOLL_APPLIER_ID,
+  PHYSICAL_TOLL_APPLIER_ORDER,
+  applyPhysicalTollOnShowNight,
+  physicalTollApplier,
+} from './showNight';
+export { PRUNE_PHYSICAL_DETAIL_PHASE_ID, prunePhysicalDetailPhase } from './prune';
+export {
+  PHYSICAL_FOR_SEGMENT_NOT_FOUND,
+  physicalForSegmentQuery,
+  physicalQueries,
+  type PhysicalForSegmentArgs,
+  type PhysicalForSegmentResult,
+  type PhysicalNumber,
+  type PhysicalWorkerRow,
+} from './queries';
