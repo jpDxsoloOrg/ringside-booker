@@ -15,6 +15,7 @@ import { StarRating } from '../StarRating';
 import { Explained, WhyButton } from '../Trace';
 import {
   comingUpText,
+  reasonsLine,
   resultLine,
   resultWhyValue,
   segmentResultAccent,
@@ -40,6 +41,8 @@ export interface SegmentResultCardProps {
   readonly renderPersonLink?: (personId: PersonId, name: string) => ReactNode;
   /** Extra content under the card, such as a link to the segment's details. */
   readonly footer?: ReactNode;
+  /** The card's element id, so a page can link to it (the show report's score table does). */
+  readonly id?: string | undefined;
   readonly className?: string | undefined;
 }
 
@@ -149,6 +152,7 @@ function Body({ segment, interactive, renderPersonLink }: BodyProps) {
   const traceRef = interactive ? (rating?.traceRef ?? null) : null;
   const resultTraceRef = segment.outcome?.resultTraceRef ?? null;
   const isMatch = segment.kind === 'match';
+  const reasons = rating === null ? null : reasonsLine(rating.reasons);
 
   return (
     <div className={styles['body']}>
@@ -218,6 +222,11 @@ function Body({ segment, interactive, renderPersonLink }: BodyProps) {
           )}
         </dl>
       )}
+      {reasons !== null && (
+        <p className={styles['reasons']} data-part="reasons">
+          <span className={styles['reasonsLabel']}>Top reasons</span> {reasons}
+        </p>
+      )}
       {segment.storylines.length > 0 && (
         <ul className={styles['storylines']} aria-label="Storylines">
           {segment.storylines.map((storyline) => (
@@ -242,7 +251,8 @@ function Body({ segment, interactive, renderPersonLink }: BodyProps) {
 /**
  * One finished segment, broadcast style: the slot and role, chips for the duration class, the
  * match type and the titles; every side with its people and the winner marked; the result line;
- * the stars and the numbers behind them, each with a Why?; storylines and the title banner. The
+ * the stars and the numbers behind them, each with a Why?, and the top two reasons it scored that
+ * (from its trace); storylines and the title banner. The
  * same accent bar as `CardSlot`: red-orange for the main event, gold for a title match, cyan for
  * the rest. Unrevealed, it keeps its full height and shows "Coming up: <Role>" instead.
  */
@@ -252,6 +262,7 @@ export function SegmentResultCard({
   revealed = true,
   renderPersonLink,
   footer,
+  id,
   className,
 }: SegmentResultCardProps) {
   const headingId = useId();
@@ -260,6 +271,9 @@ export function SegmentResultCard({
 
   return (
     <article
+      id={id}
+      // Focusable from script only, so a link that jumps here can move focus to the card.
+      tabIndex={id === undefined ? undefined : -1}
       aria-labelledby={headingId}
       className={classNames(
         styles['card'],

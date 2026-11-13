@@ -2,7 +2,8 @@
  * The words of a `SegmentResultCard`, kept apart from the component so they can be tested on their
  * own. Nothing here is a time: a segment has a duration class word, never minutes (D-10).
  */
-import type { SegmentResultView, SegmentTitleView } from '@ringside/engine';
+import type { SegmentReasonView, SegmentResultView, SegmentTitleView } from '@ringside/engine';
+import { formatSigned } from '../format';
 
 /** The colour bar down the card's edge, the same three as `CardSlot`'s. */
 export type SegmentResultAccent = 'action' | 'prestige' | 'data';
@@ -100,4 +101,26 @@ export function titleBannerText(
 /** "Coming up: Main event": the placeholder before the card is revealed. */
 export function comingUpText(segment: Pick<SegmentResultView, 'roleLabel'>): string {
   return `Coming up: ${segment.roleLabel}`;
+}
+
+/** "+8", "−5": a reason's effect in whole points. */
+export function reasonEffectText(effect: number): string {
+  return formatSigned(effect);
+}
+
+/**
+ * The segment's top reasons in one line, from its score trace: "Strong work rate (+8), quiet
+ * crowd (−5)". Null when there are none (an older show whose full trace is gone).
+ */
+export function reasonsLine(reasons: readonly SegmentReasonView[]): string | null {
+  if (reasons.length === 0) return null;
+  return reasons
+    .map((reason, index) => {
+      const label =
+        index === 0
+          ? reason.label
+          : `${reason.label.charAt(0).toLowerCase()}${reason.label.slice(1)}`;
+      return `${label} (${reasonEffectText(reason.effect)})`;
+    })
+    .join(', ');
 }
