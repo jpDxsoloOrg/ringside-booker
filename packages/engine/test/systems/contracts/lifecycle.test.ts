@@ -33,6 +33,7 @@ import { contractsRuntime, runDays, runThrough } from './contract-world';
  * ECO4-02); these tests are about contracts running out, so they turn that off.
  */
 const NO_PLAYER_AUTO_RENEWAL = { 'contracts.autoRenewPlayer': false } as const;
+
 interface LifecycleWorld {
   readonly world: GameWorld;
   readonly human: PromotionId;
