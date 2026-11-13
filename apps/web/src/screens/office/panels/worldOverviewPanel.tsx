@@ -1,4 +1,6 @@
-import type { WorldOverview, WorldOverviewPromotion } from '@ringside/engine';
+import { useMemo } from 'react';
+import type { PromotionId, WorldOverview, WorldOverviewPromotion } from '@ringside/engine';
+import { Button } from '@/components/Button';
 import { DataTable } from '@/components/DataTable';
 import type { ColumnDef } from '@/components/DataTable';
 import { formatNumber, formatPopularity } from '@/components/format';
@@ -23,7 +25,7 @@ function popularityText(value: number): string {
   return formatPopularity(value);
 }
 
-const columns: readonly ColumnDef<WorldOverviewPromotion>[] = [
+const baseColumns: readonly ColumnDef<WorldOverviewPromotion>[] = [
   {
     id: 'logo',
     header: 'Logo',
@@ -89,10 +91,42 @@ const columns: readonly ColumnDef<WorldOverviewPromotion>[] = [
   },
 ];
 
+/** The columns, with a Fan base button on every row when the screen can open the sheet. */
+function worldOverviewColumns(
+  openFanBase: ((promotionId: PromotionId) => void) | undefined,
+): readonly ColumnDef<WorldOverviewPromotion>[] {
+  if (openFanBase === undefined) return baseColumns;
+  return [
+    ...baseColumns,
+    {
+      id: 'fanBase',
+      header: 'Fan base',
+      cell: (row) => (
+        <Button
+          variant="ghost"
+          size="sm"
+          iconStart="map"
+          aria-label={`Fan base of ${row.name}`}
+          onClick={() => {
+            openFanBase(row.promotionId);
+          }}
+        >
+          Fan base
+        </Button>
+      ),
+      width: 'sm',
+      card: 'meta',
+      hideable: false,
+    },
+  ];
+}
+
 const getRowId = (row: WorldOverviewPromotion): string => row.promotionId;
 
 export interface WorldOverviewPanelProps {
   readonly overview: WorldOverview;
+  /** Opens the Office's Fan base sheet for a row's promotion (DAY2-05). */
+  readonly openFanBase?: (promotionId: PromotionId) => void;
 }
 
 /**
@@ -100,7 +134,8 @@ export interface WorldOverviewPanelProps {
  * prestige and roster size, most popular first, with the world's totals above. On a phone each
  * promotion is a card.
  */
-export function WorldOverviewPanel({ overview }: WorldOverviewPanelProps) {
+export function WorldOverviewPanel({ overview, openFanBase }: WorldOverviewPanelProps) {
+  const columns = useMemo(() => worldOverviewColumns(openFanBase), [openFanBase]);
   return (
     <Panel title="Promotions" padding="none">
       <p className={styles['totals']}>{worldTotalsLine(overview)}</p>
@@ -122,8 +157,11 @@ registerOfficePanel({
   order: 20,
   column: 'main',
   requiresPromotion: false,
-  render: ({ dashboard }) =>
+  render: ({ dashboard, openFanBase }) =>
     dashboard.worldOverview === null ? null : (
-      <WorldOverviewPanel overview={dashboard.worldOverview} />
+      <WorldOverviewPanel
+        overview={dashboard.worldOverview}
+        {...(openFanBase === undefined ? {} : { openFanBase })}
+      />
     ),
 });

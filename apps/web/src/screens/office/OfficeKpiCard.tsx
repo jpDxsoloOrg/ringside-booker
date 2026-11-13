@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { cents } from '@ringside/engine';
 import type { OfficeKpi } from '@ringside/engine';
 import {
@@ -74,6 +75,8 @@ function traceUnitOf(unit: OfficeKpi['unit']): TraceDisplayUnit {
 
 export interface OfficeKpiCardProps {
   readonly kpi: OfficeKpi;
+  /** A control after the footer text, such as the Popularity card's Fan base button (DAY2-05). */
+  readonly footerAction?: ReactNode;
 }
 
 /**
@@ -81,12 +84,21 @@ export interface OfficeKpiCardProps {
  * last week with its own Why?, and the last eight weeks as a sparkline once there are two points.
  * A card with no value shows "–" and nothing else to explain.
  */
-export function OfficeKpiCard({ kpi }: OfficeKpiCardProps) {
+export function OfficeKpiCard({ kpi, footerAction }: OfficeKpiCardProps) {
   const formatMoney = useMoneyFormatter();
   const moneyStyle = useSettingsStore((state) => state.settings.moneyStyle);
   const unit = traceUnitOf(kpi.unit);
   const icon = KPI_ICONS[kpi.key];
-  const footer = kpi.footer ?? undefined;
+  const footerText = kpi.footer ?? undefined;
+  const footer: ReactNode =
+    footerAction === undefined ? (
+      footerText
+    ) : (
+      <>
+        {footerText !== undefined && <span>{footerText} </span>}
+        {footerAction}
+      </>
+    );
 
   if (kpi.value === null) {
     return (

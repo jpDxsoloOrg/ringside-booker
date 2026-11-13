@@ -19,7 +19,7 @@ import { viewerPromotionIds } from '../../core/api/controller';
 import { compareDates, type GameDate } from '../../core/date';
 import { defineQuery, type QueryContext, type QueryDefinition } from '../../core/api/query';
 import { refuseQuery } from '../../core/api/result';
-import type { PromotionId } from '../../core/ids';
+import type { ContinentId, CountryId, PromotionId, RegionId } from '../../core/ids';
 import { isFullTrace, type TraceRef } from '../../core/trace/store';
 import type { PromotionSnapshotGranularity } from '../../model/entities/promotion-snapshot';
 import { zGameDate, zId } from '../../model/primitives';
@@ -60,6 +60,16 @@ export interface FanBaseView {
   scope: HeadlineScope;
   /** World → continents → countries → regions, each derived level with its trace. */
   rollup: PopularityRollupView;
+  /**
+   * Where the promotion is based, so the Fan base sheet can open its home continent and name its
+   * home country (DAY2-05).
+   */
+  home: {
+    regionId: RegionId;
+    countryId: CountryId;
+    countryName: string;
+    continentId: ContinentId;
+  };
 }
 
 declare module '../../core/api/maps' {
@@ -103,12 +113,19 @@ export const fanBaseQuery: QueryDefinition<'office.fanBase'> = defineQuery('offi
       headline = { value: built.value, label: built.trace.label, traceRef: null };
     }
     const geography = geographyOf(ctx.read);
+    const homeCountry = geography.countryOf(promotion.homeRegionId);
     return {
       promotionId: promotion.id,
       name: promotion.name,
       headline,
       scope: ctx.tunables.get('office.popularity.headlineScope'),
       rollup: popularityRollupView(popularityRollup(promotion.regionalPop, geography), geography),
+      home: {
+        regionId: promotion.homeRegionId,
+        countryId: homeCountry.id,
+        countryName: homeCountry.name,
+        continentId: geography.continentOf(promotion.homeRegionId).id,
+      },
     };
   },
 });

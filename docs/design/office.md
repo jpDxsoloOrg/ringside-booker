@@ -202,10 +202,12 @@ its Why? built on the spot ([engine-api.md](engine-api.md#the-status-and-pending
 ### `office.fanBase`
 
 Args `{ promotionId? }` (default: the viewer's first promotion). Result
-`{ promotionId, name, headline: { value, label, traceRef }, scope, rollup }`,
+`{ promotionId, name, headline: { value, label, traceRef }, scope, rollup, home }`,
 where `rollup` is WRK1's `PopularityRollupView` (world → continents →
 countries → regions, every derived level with its trace) for the Fan base
-sheet's `PopularityDrilldown`. `headline` reads the stored trace (the same
+sheet's `PopularityDrilldown`. `home` is `{ regionId, countryId, countryName, continentId }`, where
+the promotion is based (DAY2-05: the sheet opens on the home continent and
+names the home country). `headline` reads the stored trace (the same
 entry `sim.status` reads, so the two always agree); with none stored it is
 built on the read and `traceRef` is null. Popularity is public, so any viewer
 may ask about any promotion. Refusals: `noPromotion` ("You don't run a
@@ -421,3 +423,53 @@ On a phone (below `--bp-mobile`) the cards go 2-up, each sparkline takes its own
 under the number and chip, the delta's Why? drops under its chip rather than squeezing it, and the
 panels become one column in `order` across both columns. Every Why? is a 44px target and opens
 the breakdown as a bottom sheet. At 360px, 390px and at 150% UI scale nothing scrolls sideways.
+
+## Fan base
+
+DAY2-05 makes the top bar's popularity explain itself. Code:
+`apps/web/src/app/AppShell/status/` (`StatusChips.tsx`, `FanBaseSheet.tsx`,
+`fanBaseColumnRegistry.ts`).
+
+- **The chip** shows the [headline popularity](#headline-popularity) with its
+  stored Why? (the trace above: the home country's regions, each with its
+  value and share of the population, the scope setting
+  `office.popularity.headlineScope` and the worldwide and home-region notes),
+  prestige under it, and a map button, "Open fan base". In the phone's status
+  sheet the button is a full-width "Fan base" row. A world with no headline yet
+  keeps the home-region value with the Why? built on the spot, and no button.
+- **The Fan base sheet** ("Fan base · <promotion>") is a side sheet on desktop
+  and a bottom sheet on a phone. It shows the headline to one decimal, as the
+  Office does, with its Why?; the scope in words ("Shown as popularity in your
+  home country (United States)", "its" for a rival); the headline's last
+  `office.trend.weeks` weeks from `office.series` as a sparkline ending with
+  today's value, with the change since the last record at least
+  `office.delta.lookbackDays` old (hidden, not "coming soon", with fewer than
+  two points); then WRK1's `PopularityDrilldown`, opened on the home continent,
+  with a Why? on every country and continent.
+- **One place**: the chip, the Office's Popularity card ("Fan base" in its
+  footer) and every row of the world overview open the same sheet, one
+  instance per screen. It asks the engine nothing while closed, so the top bar
+  adds no query per day.
+- **One panel at a time**: a Why? opened from inside the sheet replaces it until
+  the breakdown closes, then the sheet comes back. From the phone's status
+  sheet, the Fan base sheet replaces the status sheet, and focus returns to the
+  top bar's date button when it closes.
+
+![The Fan base sheet on a phone](screenshots/fan-base-phone.png)
+
+### Fan base columns
+
+Other features add a figure to every region row without editing the sheet:
+
+```ts
+registerFanBaseColumn({
+  id: 'evt5.thisMonth', // unique; a duplicate throws
+  label: 'This month', // shown before the figure
+  render: (regionId, { promotionId }) => '+1.2', // null shows nothing on that row
+});
+```
+
+The sheet passes the columns to `PopularityDrilldown`'s `regionExtras`, so the
+figures sit after each region's population and wrap on a phone. EVT5-04's
+"This month" gains are the expected first user, with its "Recent shows" lines
+in the Why? through [trace sections](#trace-sections).

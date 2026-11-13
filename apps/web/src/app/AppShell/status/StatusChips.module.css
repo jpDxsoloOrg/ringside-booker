@@ -114,6 +114,23 @@
   gap: var(--space-1);
 }
 
+/* The headline and its Why?, then the Fan base button (DAY2-05). */
+.popularityLine {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* In the phone's status sheet: a full-width Fan base button under prestige. */
+.chipAction {
+  display: flex;
+  padding-block-start: var(--space-2);
+}
+
+.fanBaseButton {
+  inline-size: 100%;
+}
+
 /* Negative cash: rose, with the minus sign the formatter writes, never colour alone. */
 .money.negative {
   color: var(--color-negative);

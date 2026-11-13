@@ -30,6 +30,7 @@ describe('OfficeKpiCard popularity', () => {
     render(
       <StatusChips
         placement="bar"
+        onOpenFanBase={() => undefined}
         status={{
           date: parseGameDate('2031-01-26'),
           season: null,

@@ -19,6 +19,11 @@ export interface OfficePanelContext {
   readonly dashboard: OfficeDashboard;
   /** True below `--bp-mobile`, where the two columns become one. */
   readonly isPhone: boolean;
+  /**
+   * Opens the Office's one Fan base sheet for a promotion (DAY2-05). A panel never draws a sheet
+   * of its own per row.
+   */
+  readonly openFanBase?: (promotionId: PromotionId) => void;
 }
 
 /** One panel on the Office. */

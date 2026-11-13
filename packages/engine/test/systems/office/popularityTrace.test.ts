@@ -282,4 +282,29 @@ describe('office.fanBase', () => {
       ],
     });
   });
+
+  it('names the home region, country and continent, so the sheet can open the home continent (DAY2-05)', () => {
+    const state = newGameState();
+    const promotionId = humanPromotionId(state);
+    const engine = createEngine({ state, systems: [simSystem, officeSystem] });
+    const promotion = state.world.tables.promotions.find((row) => row.id === promotionId);
+    const region = state.world.tables.regions.find((row) => row.id === promotion?.homeRegionId);
+    const country = state.world.tables.countries.find((row) => row.id === region?.countryId);
+    if (promotion === undefined || region === undefined || country === undefined) {
+      throw new Error('The promotion has a home region on the map');
+    }
+
+    const view = engine.query('office.fanBase', {}, VIEWER);
+    if (!view.ok) throw new Error(JSON.stringify(view));
+    expect(view.data.home).toEqual({
+      regionId: region.id,
+      countryId: country.id,
+      countryName: country.name,
+      continentId: country.continentId,
+    });
+    const homeContinent = view.data.rollup.continents.find(
+      (continent) => continent.id === view.data.home.continentId,
+    );
+    expect(homeContinent?.countries.map((candidate) => candidate.id)).toContain(country.id);
+  });
 });
