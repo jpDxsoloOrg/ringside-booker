@@ -26,7 +26,7 @@ const PART_WEIGHTS: Readonly<Record<BodyPart, number>> = {
 const WEIGHT_TOTAL = BODY_PARTS.reduce((total, part) => total + PART_WEIGHTS[part], 0);
 
 function person(serial: number): PersonId {
-  return parseId('person', `per_${String(serial).padStart(6, '0')}`);
+  return parseId('person', `per_${String(serial).padStart(10, '0')}`);
 }
 
 function fatigueGain(name: string, value: number): Traced<number> {
