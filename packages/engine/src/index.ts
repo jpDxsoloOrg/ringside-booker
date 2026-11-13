@@ -1921,3 +1921,20 @@ export {
   type RosterRowsArgs,
   type RosterView,
 } from './systems/roster/index';
+// The roster's counts and on-demand Why? (WRK2-02): `roster.summary` and `roster.explain`. See
+// docs/design/roster.md#roster-summary and #roster-explain.
+export {
+  ROSTER_EXPLAIN_METRICS,
+  ROSTER_PUSHES,
+  ROSTER_SHARED_BRAND_NAME,
+  ROSTER_TOP_COUNT,
+  rosterExplainQuery,
+  rosterSummaryQuery,
+  type RosterBrandCount,
+  type RosterExplainArgs,
+  type RosterExplainMetric,
+  type RosterExplanation,
+  type RosterPush,
+  type RosterSummary,
+  type RosterSummaryArgs,
+} from './systems/roster/index';
