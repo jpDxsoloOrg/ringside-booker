@@ -16,6 +16,7 @@ import { loadSave } from '../../src/persistence/load';
 import { TEST_START_DATE } from '../support/builders/build-row';
 import { testSaveDocument } from '../support/saves';
 import { measureBestAgainstReferenceAsync } from '../support/cpu-budget';
+import { SLOW_TESTS } from '../support/slow';
 import { rosterWorld } from '../support/worlds';
 
 const ROSTER_SIZE = 300;
@@ -63,17 +64,23 @@ describe('save size and speed', () => {
 
     let bytes: Uint8Array = new Uint8Array();
     let loaded = false;
-    // The cheapest of three round trips: one now and then pays for a garbage collection.
-    const timing = await measureBestAgainstReferenceAsync(async () => {
+    const roundTrip = async (): Promise<void> => {
       bytes = await encodeSave(doc);
       loaded = (await loadSave(bytes, TABLES)).ok;
-    }, 3);
-
-    console.log(
-      `save smoke test: ${String(bytes.length)} bytes gzipped, round trip ${timing.workMs.toFixed(0)} ms of CPU time against ${timing.referenceMs.toFixed(1)} ms for the reference`,
-    );
+    };
+    if (SLOW_TESTS) {
+      // The cheapest of three round trips: one now and then pays for a garbage collection.
+      const timing = await measureBestAgainstReferenceAsync(roundTrip, 3);
+      console.log(
+        `save smoke test: ${String(bytes.length)} bytes gzipped, round trip ${timing.workMs.toFixed(0)} ms of CPU time against ${timing.referenceMs.toFixed(1)} ms for the reference`,
+      );
+      expect(timing.ratio).toBeLessThan(ROUND_TRIP_REFERENCE_BUDGET);
+    } else {
+      // The default run checks the size and the round trip once; the CPU budget is timed in the
+      // slow run (support/slow.ts).
+      await roundTrip();
+    }
     expect(loaded).toBe(true);
     expect(bytes.length).toBeLessThan(MAX_ENCODED_BYTES);
-    expect(timing.ratio).toBeLessThan(ROUND_TRIP_REFERENCE_BUDGET);
   });
 });

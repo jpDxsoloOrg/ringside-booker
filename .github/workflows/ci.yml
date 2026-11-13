@@ -16,10 +16,14 @@ permissions:
   contents: read
 
 jobs:
+  # Two jobs run side by side so a pull request's checks take about 5 minutes (POL4-07): `check`
+  # has the static checks, the determinism sim and the build (lint alone takes about 2 minutes),
+  # and `test` has the Vitest run. The slow suites, the time-zone runs and the one-year sim are
+  # left to the end-of-sprint `npm run verify:full` (README, "End of sprint").
   check:
     name: check
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
     steps:
       - name: Check out the repository
         uses: actions/checkout@v7
@@ -56,20 +60,11 @@ jobs:
         env:
           BLOG_BANNED_TERMS: ${{ secrets.BLOG_BANNED_TERMS }}
 
-      # No coverage on every run: it roughly doubled the test step on the runner, and the owner
-      # wants fast CI over exhaustive measurement (2026-11-13). Run `npm test -- --coverage`
-      # locally when you want the report.
-      - name: Test
-        run: npm test
-
       # Runs the roster fixture 60 days twice from the same start and fails if the two runs end in
-      # different worlds (exit 1) or any step fails (--strict). Then times a year on the 300-person
-      # roster, the baseline the README records.
+      # different worlds (exit 1) or any step fails (--strict). The one-year timing run is part of
+      # the end-of-sprint `npm run verify:full`.
       - name: Headless runner determinism check
         run: npm run sim -- --days 60 --check-determinism --strict
-
-      - name: Headless runner one-year timing
-        run: npm run sim -- --days 365 --strict
 
       # Checks the shipped world against every content rule and the committed real-name blocklist
       # (content/blocklist/real-names.txt). It needs no secrets, so it runs the same on pull
@@ -80,10 +75,34 @@ jobs:
       - name: Build
         run: npm run build
 
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js from .nvmrc
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # No coverage on every run: it roughly doubled the test step on the runner, and the owner
+      # wants fast CI over exhaustive measurement (2026-11-13). Run `npm test -- --coverage`
+      # locally when you want the report. The slow suites (RB_SLOW_TESTS=1) and the time-zone runs
+      # (`npm run test:tz`) run at the end of each sprint in `npm run verify:full`.
+      - name: Test
+        run: npm test
+
   e2e:
     name: e2e
     if: ${{ github.event_name == 'workflow_dispatch' }}
-    needs: check
+    needs: [check, test]
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:

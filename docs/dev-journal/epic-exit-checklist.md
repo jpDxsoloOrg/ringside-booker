@@ -7,6 +7,21 @@ which ticket closes which epic, and `npm run journal:due` reads it.
 
 This file is not a journal entry. The journal tools and `npm run blog:check` skip it.
 
+## End of sprint run
+
+Pull requests run only the fast checks, so the slow ones run once at the end of every sprint,
+before the sprint is closed and its epics' entries are written:
+
+- [ ] `npm run verify:full`: format check, lint, typecheck, the slow suites (`npm run test:slow`,
+      which sets `RB_SLOW_TESTS=1`), the time-zone runs (`npm run test:tz`), the 60-day determinism
+      sim, the 365-day strict sim, `npm run validate:world -- --strict`, `npm run blog:check` and
+      the build. It stops at the first failure.
+- [ ] The Playwright suite: `npm run e2e -w @ringside/web` locally, or the CI workflow's
+      `workflow_dispatch` run.
+- [ ] Fix anything that fails before the sprint closes.
+
+The README's "End of sprint" and "Slow suites" sections say what is behind the flag and why.
+
 ## Checklist line
 
 Paste this into the guardrails of every new epic README:

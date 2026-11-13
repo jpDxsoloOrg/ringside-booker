@@ -16,6 +16,12 @@ const repoRoot = fileURLToPath(new URL('.', import.meta.url));
  */
 function workerCount(): number {
   const cores = availableParallelism();
+  // A CI runner runs one job at a time, so its load average is this job's own previous step (lint
+  // and typecheck keep 2 to 4 cores busy). Counting that as other work left a single test worker
+  // on the runner and made the test step four times slower (POL4-07).
+  if (process.env['CI'] !== undefined) {
+    return Math.max(2, cores - 1);
+  }
   const busyCores = Math.round(loadavg()[0] ?? 0);
   return Math.max(Math.ceil(cores / 4), Math.min(cores - 1, cores - 1 - busyCores));
 }
@@ -23,6 +29,15 @@ function workerCount(): number {
 export default defineConfig({
   test: {
     maxWorkers: workerCount(),
+    // The engine runs in worker threads that are reused between its test files, keeping their
+    // module cache: collecting the engine's files fell from about 140 s to 10 s of a run
+    // (POL4-07). Engine state lives in the world each test builds and setup.ts resets the
+    // test-wide counters, so a file cannot see another's world; a test that reads a registry
+    // systems add to when they load (new-game settings, tunables) must not assume which systems
+    // another file in the same worker has loaded. The web app and the tools stay on the default
+    // isolated forks: their tests mock modules and keep state in the DOM and module globals, and a
+    // reused worker stalled the web run.
+    poolOptions: { threads: { isolate: false } },
     projects: [
       {
         test: {
@@ -32,6 +47,9 @@ export default defineConfig({
           include: ['test/**/*.test.ts'],
           // Restarts the TestIds counters and turns test-world write validation on before each test.
           setupFiles: ['test/support/setup.ts'],
+          // Reused threads that keep the engine's modules loaded (see `poolOptions` above).
+          pool: 'threads',
+          isolate: false,
         },
       },
       // Paths are absolute so the config works from a workspace too (`npm run test -w

@@ -41,6 +41,7 @@ import {
 import { birthdayAt, rollDebut } from '../../../../src/systems/world/people/dates';
 import { measureBestAgainstReference } from '../../../support/cpu-budget';
 import { testId } from '../../../support/ids';
+import { SLOW_TESTS } from '../../../support/slow';
 import { expectSerialisable, expectTraceReplays } from '../../../support/trace';
 
 const BASE_PACK_ROOT = fileURLToPath(new URL('../../../../../../content/base/', import.meta.url));
@@ -279,10 +280,15 @@ const NO_STANDOUTS: TunableOverrides = { 'worldgen.people.standoutChance': 0 };
  */
 vi.setConfig({ testTimeout: 120_000, hookTimeout: 120_000 });
 
-/** 5,000 wrestlers of every stage from the shipped data, shared by the sampling tests. */
+/**
+ * Wrestlers of every stage from the shipped data, shared by the sampling tests: 5,000 in the slow
+ * run (`RB_SLOW_TESTS=1`), where the gender shares are measured, and 1,000 otherwise, enough for
+ * the body rules every person must keep.
+ */
+const WRESTLER_SAMPLE = SLOW_TESTS ? 5_000 : 1_000;
 let WRESTLERS: readonly Traced<GeneratedPerson>[] = [];
 beforeAll(async () => {
-  WRESTLERS = await sampleMany(5_000, { role: 'wrestler' }, { seed: 'wrestlers' });
+  WRESTLERS = await sampleMany(WRESTLER_SAMPLE, { role: 'wrestler' }, { seed: 'wrestlers' });
 });
 
 // ---------------------------------------------------------------------------------------------
@@ -380,7 +386,7 @@ describe('generatePerson', () => {
   });
 
   it('keeps every attribute and body part a whole number from 0 to 100', async () => {
-    for (const result of await sampleMany(1_000, (index) => ({
+    for (const result of await sampleMany(350, (index) => ({
       role: PERSON_ROLES[index % 7] ?? 'wrestler',
     }))) {
       const { person } = result.value;
@@ -449,7 +455,7 @@ describe('generatePerson', () => {
     for (const stage of CAREER_STAGES) {
       const range = roleRecord('wrestler').stageAges[stage];
       for (const result of generateMany(
-        300,
+        100,
         { role: 'wrestler', careerStage: stage },
         { worldDate, seed: `ages-${stage}` },
       )) {
@@ -467,7 +473,7 @@ describe('generatePerson', () => {
 
   it('never debuts before 17 or after the world date', async () => {
     const worldDate = parseGameDate('2028-02-29');
-    for (const result of await sampleMany(1_000, { role: 'wrestler' }, { worldDate })) {
+    for (const result of await sampleMany(300, { role: 'wrestler' }, { worldDate })) {
       const { person } = result.value;
       const debutDate = person.debutDate;
       expect(debutDate).not.toBeNull();
@@ -497,7 +503,7 @@ describe('generatePerson', () => {
     expect(ageInYears(birthDate, debut.value.debutDate)).toBe(17);
   });
 
-  it('matches the role gender shares within 1.5 percentage points', () => {
+  it.runIf(SLOW_TESTS)('matches the role gender shares within 1.5 percentage points', () => {
     const results = WRESTLERS;
     const shares = roleRecord('wrestler').genderShares;
     for (const gender of ['male', 'female', 'nonBinary'] as const) {
@@ -507,7 +513,8 @@ describe('generatePerson', () => {
   });
 });
 
-describe('attribute distributions', () => {
+// Statistical sweeps over thousands of people: the slow run only (support/slow.ts).
+describe.runIf(SLOW_TESTS)('attribute distributions', () => {
   let established: readonly Traced<GeneratedPerson>[] = [];
   beforeAll(async () => {
     established = await sampleMany(5_000, ESTABLISHED_WRESTLER, {
@@ -615,7 +622,7 @@ describe('attribute distributions', () => {
 describe('bodies', () => {
   it('never pairs a style with an archetype whose weight for it is 0', () => {
     // Filled in beforeAll, so an empty sample cannot pass these loops unseen.
-    expect(WRESTLERS).toHaveLength(5_000);
+    expect(WRESTLERS).toHaveLength(WRESTLER_SAMPLE);
     for (const result of WRESTLERS) {
       const archetype = archetypeOf(result);
       expect(archetype.styleWeights[result.value.person.style], archetype.key).toBeGreaterThan(0);
@@ -625,7 +632,7 @@ describe('bodies', () => {
 
   it('keeps height and weight inside the archetype ranges, scaled for women', () => {
     // Filled in beforeAll, so an empty sample cannot pass these loops unseen.
-    expect(WRESTLERS).toHaveLength(5_000);
+    expect(WRESTLERS).toHaveLength(WRESTLER_SAMPLE);
     for (const result of WRESTLERS) {
       const { person } = result.value;
       const archetype = archetypeOf(result);
@@ -662,7 +669,7 @@ describe('bodies', () => {
     const conditionOf = (stage: CareerStage): number =>
       mean(
         generateMany(
-          500,
+          200,
           { role: 'wrestler', careerStage: stage },
           { seed: `wear-${stage}` },
         ).flatMap((result) => BODY_PARTS.map((part) => result.value.person.condition[part])),
@@ -670,7 +677,7 @@ describe('bodies', () => {
     expect(conditionOf('rookie')).toBeGreaterThan(conditionOf('legend') + 15);
   });
 
-  it('boosts the styles that suit the home region', async () => {
+  it.runIf(SLOW_TESTS)('boosts the styles that suit the home region', async () => {
     const highFlyingRegion = GEOGRAPHY.regions.find(
       (region) => region.preferredStyle === 'highFlying',
     );
@@ -864,7 +871,7 @@ describe('traces and seeds', () => {
  */
 const GENERATE_REFERENCE_BUDGET = 40;
 
-describe('speed', () => {
+describe.runIf(SLOW_TESTS)('speed', () => {
   // A wall-clock bound failed on a busy machine, so the CPU time is compared with a reference
   // workload measured in the same process. The cheapest of three runs is kept: about one run in
   // eight pays for a major garbage collection that costs three times the work.

@@ -118,7 +118,8 @@ describe('seedPotential', () => {
   it('keeps ceilings between today and 100 and potential inside its range', () => {
     const stream = streamFor('ranges');
     const tunables = createEngineTunables();
-    for (let index = 0; index < 3_000; index++) {
+    // 1,170 is every age (45) with every talent (13) twice; values of 0 to 100 come round as well.
+    for (let index = 0; index < 1_170; index++) {
       const age = 16 + (index % 45);
       const attributeValue = (index * 37) % 101;
       const talent = ((index % 13) - 6) / 2;

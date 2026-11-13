@@ -32,6 +32,7 @@ import {
 } from '@ringside/engine';
 import { worldBuilder } from '../../support/world-builder';
 import { testId } from '../../support/ids';
+import { SLOW_TESTS } from '../../support/slow';
 import { expectSerialisable } from '../../support/trace';
 
 // The share tests draw thousands of names; under coverage on a busy CI runner they can pass 5 s.
@@ -424,14 +425,18 @@ describe('gender handling', () => {
     };
   }
 
-  it('names non-binary people from the neutral list 50% ±1% of the time, else male or female evenly', () => {
-    const shares = listShares('nonBinary');
-    expect(Math.abs(shares.neutral - 0.5)).toBeLessThanOrEqual(0.01);
-    expect(Math.abs(shares.male - 0.25)).toBeLessThanOrEqual(0.01);
-    expect(Math.abs(shares.female - 0.25)).toBeLessThanOrEqual(0.01);
-  });
+  // The share sweeps (20,000 names each) run in the slow run only (support/slow.ts).
+  it.runIf(SLOW_TESTS)(
+    'names non-binary people from the neutral list 50% ±1% of the time, else male or female evenly',
+    () => {
+      const shares = listShares('nonBinary');
+      expect(Math.abs(shares.neutral - 0.5)).toBeLessThanOrEqual(0.01);
+      expect(Math.abs(shares.male - 0.25)).toBeLessThanOrEqual(0.01);
+      expect(Math.abs(shares.female - 0.25)).toBeLessThanOrEqual(0.01);
+    },
+  );
 
-  it(
+  it.runIf(SLOW_TESTS)(
     'names men from the male list and the neutral list at the neutral share',
     () => {
       const shares = listShares('male');
@@ -446,7 +451,7 @@ describe('gender handling', () => {
     SAMPLING_TEST_MS,
   );
 
-  it(
+  it.runIf(SLOW_TESTS)(
     'follows the non-binary neutral share tunable, including 0 and 1',
     () => {
       expect(listShares('nonBinary', { 'worldgen.names.nonbinaryNeutralShare': 1 }).neutral).toBe(
@@ -532,32 +537,35 @@ describe('cultures and surnames', () => {
     expect(single.familyName).toMatch(/^Surname\d+$/);
   });
 
-  it('gives the shipped hispanic culture two surnames about 35% of the time', () => {
-    const { library } = loadBase();
-    const hispanic = library.nameCultures['hispanic'];
-    if (hispanic === undefined) {
-      throw new Error('no hispanic culture');
-    }
-    expect(hispanic.doubleSurnameChance).toBe(0.35);
-    expect(library.nameCultures['lusophone']?.doubleSurnameChance).toBe(0.35);
-    // A fresh registry per name, so retries on taken names cannot favour the longer names.
-    const hispanicOnly = aLibrary([hispanic], { land: [{ cultureKey: 'hispanic', weight: 1 }] });
-    const surnames = new Set(hispanic.surnames.map(([surname]) => surname));
-    const stream = personStream('hispanic-double');
-    const total = 10_000;
-    let doubled = 0;
-    for (let index = 0; index < total; index++) {
-      const { familyName } = generatorFor(hispanicOnly).personName(stream, {
-        countryId: TEST_COUNTRY,
-        gender: index % 2 === 0 ? 'male' : 'female',
-      }).value;
-      if (!surnames.has(familyName)) {
-        doubled += 1;
+  it.runIf(SLOW_TESTS)(
+    'gives the shipped hispanic culture two surnames about 35% of the time',
+    () => {
+      const { library } = loadBase();
+      const hispanic = library.nameCultures['hispanic'];
+      if (hispanic === undefined) {
+        throw new Error('no hispanic culture');
       }
-    }
-    // A second surname equal to the first is dropped, so the rate sits just under 0.35.
-    expect(Math.abs(doubled / total - 0.35)).toBeLessThanOrEqual(0.02);
-  });
+      expect(hispanic.doubleSurnameChance).toBe(0.35);
+      expect(library.nameCultures['lusophone']?.doubleSurnameChance).toBe(0.35);
+      // A fresh registry per name, so retries on taken names cannot favour the longer names.
+      const hispanicOnly = aLibrary([hispanic], { land: [{ cultureKey: 'hispanic', weight: 1 }] });
+      const surnames = new Set(hispanic.surnames.map(([surname]) => surname));
+      const stream = personStream('hispanic-double');
+      const total = 10_000;
+      let doubled = 0;
+      for (let index = 0; index < total; index++) {
+        const { familyName } = generatorFor(hispanicOnly).personName(stream, {
+          countryId: TEST_COUNTRY,
+          gender: index % 2 === 0 ? 'male' : 'female',
+        }).value;
+        if (!surnames.has(familyName)) {
+          doubled += 1;
+        }
+      }
+      // A second surname equal to the first is dropped, so the rate sits just under 0.35.
+      expect(Math.abs(doubled / total - 0.35)).toBeLessThanOrEqual(0.02);
+    },
+  );
 });
 
 describe('uniqueness', () => {
