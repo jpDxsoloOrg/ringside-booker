@@ -1,8 +1,9 @@
 import { useCallback } from 'react';
 import type { GameDate, QueryArgs, QueryData, QueryName } from '@ringside/engine';
+import { PREVIEW_SEED_MAX } from '@ringside/engine';
 import { useAnnounce } from '@/app/a11y/LiveAnnouncer';
 import { useEngineClient } from '@/app/engine/EngineProvider';
-import { freshSeed, previewArgsOf, simulateArgsOf, useLabStore } from './labStore';
+import { freshSeed, labExtensionsOf, previewArgsOf, simulateArgsOf, useLabStore } from './labStore';
 import type { LabRun } from './labStore';
 import { outcomeHeadline } from './result/resultText';
 import { statsSummary } from './labText';
@@ -35,6 +36,12 @@ function announcement(run: LabRun): string {
 /** How a Run plays out: `simulate` for a match with finishes, else rating only. */
 export interface LabRunOptions {
   readonly simulate: boolean;
+  /**
+   * Plays the same nights again on the seed of the Run on screen instead of a fresh one, so a
+   * what-if (MTCH4-05's "Fatigue going in") changes only what it changes. A fresh seed when nothing
+   * has run yet.
+   */
+  readonly sameSeed?: boolean;
 }
 
 export interface LabRunner {
@@ -71,11 +78,17 @@ export function useLabRunner(today: GameDate | null): LabRunner {
   );
 
   const run = useCallback(
-    async ({ simulate }: LabRunOptions): Promise<void> => {
+    async ({ simulate, sameSeed = false }: LabRunOptions): Promise<void> => {
       const store = useLabStore.getState();
       if (store.pending) return;
-      const { runs } = store;
-      const seed = freshSeed(runs);
+      const { runs, lastRun } = store;
+      const seed =
+        sameSeed && lastRun !== null
+          ? Math.min(
+              Math.max(0, lastRun.args.previewSeed - (lastRun.runs - 1)),
+              PREVIEW_SEED_MAX - (runs - 1),
+            )
+          : freshSeed(runs);
       const args = previewArgsOf(store, seed + runs - 1);
       if (args === null) return;
       const ticket = store.startRequest();
@@ -84,7 +97,8 @@ export function useLabRunner(today: GameDate | null): LabRunner {
       let landed: LabRun;
       if (simulate && args.kind === 'match') {
         const plan = store.result;
-        const simulateArgs = simulateArgsOf(args, plan);
+        // Every match Run carries the Physical panel's toll (MTCH4-05): one round-trip per Run.
+        const simulateArgs = { ...simulateArgsOf(args, plan), extensions: labExtensionsOf(store) };
         const [single, batch] = await Promise.all([
           ask('match.simulate', simulateArgs),
           batched

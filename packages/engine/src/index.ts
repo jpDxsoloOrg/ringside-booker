@@ -675,7 +675,12 @@ export {
   WORKER_PROFILE_HIDDEN_FIELDS,
   workerProfileOf,
 } from './systems/workers/index';
-export { ATTRIBUTE_LABELS, GENDER_LABELS, STYLE_LABELS } from './systems/world/people/labels';
+export {
+  ATTRIBUTE_LABELS,
+  BODY_PART_LABELS,
+  GENDER_LABELS,
+  STYLE_LABELS,
+} from './systems/world/people/labels';
 // The workers list (WRK1-06): the `workers.list` rows, filters and sort keys, and the on-demand
 // "Why?" behind a row's numbers. See docs/design/workers.md#workers-list.
 export type {

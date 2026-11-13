@@ -314,7 +314,7 @@ describe('registerPreviewExtension', () => {
       registerPreviewExtension({
         id: 'physical',
         args: z.strictObject({}),
-        run: () => ({ durationClass: 'short', maxInjuriesPerSegment: 1, workers: [] }),
+        run: () => ({ durationClass: 'short' as const, maxInjuriesPerSegment: 1, workers: [] }),
         summarise: () => ({ runs: 0, injuredSegments: 0, injuriesPer100: 0, byPerson: [] }),
       }),
     ).toThrow(/already registered/);

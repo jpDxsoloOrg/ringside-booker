@@ -23,6 +23,8 @@ import { WorkerLinesTable } from './WorkerLinesTable';
 import { WorkerPickerSheet } from './WorkerPickerSheet';
 // The Aftermath panel (MTCH3-04), registered with the lab's chunk.
 import './aftermath/register';
+// The Physical panel (MTCH4-05), registered with the lab's chunk.
+import './physical/register';
 
 /** The empty state when no game answers: the enter-shell helper, or a world that went away. */
 export const NO_GAME_TITLE = 'Load or start a game to use the Match lab';
@@ -63,11 +65,12 @@ function Lab({ options, catalog, regionId, today }: LabProps) {
   const sides = useLabStore((state) => state.sides);
   const lastRun = useLabStore((state) => state.lastRun);
   const plan = useLabStore((state) => state.result);
+  const crew = useLabStore((state) => state.crew);
   const runner = useLabRunner(today);
   const isMobile = useIsMobile();
   const [pickerSide, setPickerSide] = useState<number | null>(null);
 
-  const outOfDate = isOutOfDate({ setup, sides, result: plan }, lastRun);
+  const outOfDate = isOutOfDate({ setup, sides, result: plan, crew }, lastRun);
   const result = lastRun?.rating ?? null;
   const context: LabPanelContext = {
     setup,

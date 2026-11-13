@@ -24,7 +24,10 @@ export function AftermathPanel({ simulation }: AftermathPanelProps) {
   const level = useAftermathViewStore((state) => state.level);
   const setLevel = useAftermathViewStore((state) => state.setLevel);
   const stale = useLabStore((state) =>
-    isOutOfDate({ setup: state.setup, sides: state.sides, result: state.result }, state.lastRun),
+    isOutOfDate(
+      { setup: state.setup, sides: state.sides, result: state.result, crew: state.crew },
+      state.lastRun,
+    ),
   );
   // Already asked for by the lab itself, so this is answered from the cache.
   const options = useEngineQuery('match.labOptions', {});
