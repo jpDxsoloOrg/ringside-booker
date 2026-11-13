@@ -27,7 +27,7 @@ const GEO_CHECK_WORLD = {
   kind: 'world',
   description: 'An empty world on the base map, for checking the geography.',
   author: 'Ringside Booker tests',
-  dependsOn: [{ id: 'base', version: '^0.1.0' }],
+  dependsOn: [{ id: 'base', version: '^0.2.0' }],
   startDate: '2026-01-05',
   files: {},
 };
