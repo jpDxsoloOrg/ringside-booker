@@ -9,6 +9,7 @@ import {
   defineSystem,
   diffDays,
   MAX_ADVANCE_DAYS,
+  registerAiJob,
 } from '@ringside/engine';
 import type { TunableSetting } from '../src/args';
 import {
@@ -370,6 +371,33 @@ describe('runCli', () => {
     expect(io.err()).toMatch(
       /--strict: the ledger does not match the cash for 1 promotion\(s\):\n {2}pro_\w+: cash moved -?\d+ but its ledger rows add up to -?\d+ \(difference -300 cents\)/,
     );
+  });
+
+  it('exits 1 under --strict when a rival job fails, though no step does', async () => {
+    const unregister = registerAiJob({
+      id: 'testRunner.brokenRivalJob',
+      cadence: 'daily',
+      run: () => {
+        throw new Error('broken rival job');
+      },
+    });
+    try {
+      const io = captureIo();
+      const code = await runCli(['--days', '1', '--people', '5', '--strict'], io);
+      expect(code).toBe(EXIT_FAILED);
+      expect(io.err()).toMatch(
+        /--strict: events that mean something failed.*\n {2}aip\.jobFailed: \d+/,
+      );
+      const allowed = captureIo();
+      expect(
+        await runCli(
+          ['--days', '1', '--people', '5', '--strict', '--fail-on-event', 'show.cancelled'],
+          allowed,
+        ),
+      ).toBe(EXIT_OK);
+    } finally {
+      unregister();
+    }
   });
 
   it('exits 1 under --strict when a step fails', async () => {
