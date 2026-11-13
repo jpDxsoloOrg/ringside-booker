@@ -375,6 +375,9 @@ test.describe('rival cards and Auto-fill on a new game', () => {
         );
       }
       await shot(page, 'result-why', testInfo.project.name);
+      // The method row's options run past a phone sheet's fold; axe reads a row cut by the fold
+      // as text missing from its name, so the scan runs with the last row in view.
+      await panel.locator('[data-trace-path]').last().scrollIntoViewIfNeeded();
       await expectNoSeriousA11yViolations(page);
       await closeWhy(page, panel, why);
     });
