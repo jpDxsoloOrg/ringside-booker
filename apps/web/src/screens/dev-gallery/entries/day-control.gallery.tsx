@@ -7,9 +7,9 @@ import type { AdvanceReport, AutosaveState } from '@/app/AppShell/day/DayAdvance
 import { AutosaveIndicator } from '@/app/AppShell/status/AutosaveIndicator';
 import { StatusChips } from '@/app/AppShell/status/StatusChips';
 import { Button } from '@/components/Button';
-import { classNames } from '@/components/classNames';
 import { Stack } from '@/components/layout';
 import { LiveBugButton } from '@/components/LiveBugButton';
+import { BarStage } from '../BarStage';
 import type { GalleryEntry } from '../galleryEntry';
 import broadcast from './broadcast.module.css';
 import styles from './entries.module.css';
@@ -204,7 +204,7 @@ function DayControlDemo() {
     <Stack gap={5}>
       <section className={styles['example']}>
         <h3 className={styles['subheading']}>Top bar status (desktop)</h3>
-        <div className={classNames(broadcast['stage'], broadcast['barDemo'])}>
+        <BarStage>
           <div className={broadcast['row']}>
             <StatusChips status={STATUS} placement="bar" />
             <LiveBugButton iconEnd="next-day">Next day</LiveBugButton>
@@ -219,7 +219,7 @@ function DayControlDemo() {
               Next day
             </LiveBugButton>
           </div>
-        </div>
+        </BarStage>
       </section>
       <section className={styles['example']}>
         <h3 className={styles['subheading']}>Status sheet (phone)</h3>

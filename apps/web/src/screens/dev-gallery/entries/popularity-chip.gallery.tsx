@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { StatusChips } from '@/app/AppShell/status/StatusChips';
 import { EngineProvider } from '@/app/engine/EngineProvider';
 import { Stack } from '@/components/layout';
+import { BarStage } from '../BarStage';
 import type { GalleryEntry } from '../galleryEntry';
 import { createFanBaseTransport, fanBaseStatus } from '../fixtures/fanBase';
 import broadcast from './broadcast.module.css';
@@ -25,7 +26,13 @@ function Example({ heading, caption, withHeadline, narrow = false, children }: E
       </h3>
       <p className={styles['caption']}>{caption}</p>
       <EngineProvider createTransport={() => createFanBaseTransport(withHeadline)}>
-        <div className={narrow ? broadcast['phoneColumn'] : undefined}>{children}</div>
+        {narrow ? (
+          <div className={broadcast['phoneColumn']}>{children}</div>
+        ) : (
+          <BarStage>
+            <div className={broadcast['barContent']}>{children}</div>
+          </BarStage>
+        )}
       </EngineProvider>
     </section>
   );
