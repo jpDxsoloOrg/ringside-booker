@@ -3,7 +3,9 @@ import { describe, expect, it } from 'vitest';
 import { findTraceNodes } from '../../../../src/core/trace';
 import {
   cardScore,
+  cardScoreText,
   NO_FEATURED_NOTE,
+  storylineHeatText,
   NOBODY_IN_IT_NOTE,
   type CardScoreInputs,
 } from '../../../../src/systems/aip';
@@ -127,5 +129,13 @@ describe('cardScore', () => {
       featured: [{ name: 'Star', kind: 'ace' }],
     });
     expect(result.value).toBeCloseTo(142);
+  });
+});
+
+describe('card score reasons', () => {
+  it('reads in whole points for a list (AIP4-08)', () => {
+    expect(cardScoreText(10.72)).toBe('Card score 11');
+    expect(cardScoreText(71)).toBe('Card score 71');
+    expect(storylineHeatText('Ise vs Kuroe', 63.6)).toBe("Storyline 'Ise vs Kuroe' heat 64");
   });
 });

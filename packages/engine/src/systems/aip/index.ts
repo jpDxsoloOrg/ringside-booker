@@ -440,6 +440,7 @@ export {
   SPACED_RULE,
   STORY_ON_CARD,
   storylineHeatText,
+  cardScoreText,
   type CardOrder,
   type CardPlacement,
   type CardPlan,

@@ -176,6 +176,7 @@ export {
   NO_FEATURED_NOTE,
   NOBODY_IN_IT_NOTE,
   storylineHeatText,
+  cardScoreText,
   type CardScoreInputs,
   type FeaturedKind,
 } from './formulas/cardScore';
