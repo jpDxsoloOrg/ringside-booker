@@ -108,9 +108,7 @@ type Show = DeepReadonly<EventInstance>;
 
 /** The slots Auto-fill may fill: the main card, and the pre-show while the planner fills it. */
 function fillableSlotCount(show: Show, tunables: EngineTunables): number {
-  return (
-    show.format.slots + (tunables.get('aip.card.fillPreShow') ? show.format.preShowSlots : 0)
-  );
+  return show.format.slots + (tunables.get('aip.card.fillPreShow') ? show.format.preShowSlots : 0);
 }
 
 /** True when a slot Auto-fill could fill is still empty. */

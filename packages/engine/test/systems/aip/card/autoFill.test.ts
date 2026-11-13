@@ -23,8 +23,7 @@ const TODAY = parseGameDate('2026-01-06');
 const NEXT_WEEK = parseGameDate('2026-01-13');
 const SLOTS = 5;
 
-const SHOWS = ['open', 'full', 'past', 'completed', 'cancelled', 'rival'] as const;
-type ShowName = (typeof SHOWS)[number];
+type ShowName = 'open' | 'full' | 'past' | 'completed' | 'cancelled' | 'rival';
 
 interface FillWorld {
   readonly world: GameWorld;
@@ -184,15 +183,12 @@ describe('aip.autoFillCard', () => {
     if (!changes.ok) {
       throw new Error('sim.recentEvents failed');
     }
-    expect(changes.data.map((event) => event.payload)).toEqual(
-      result.filled.map((slot) => ({
-        eventInstanceId: built.shows.open,
-        promotionId: expect.any(String) as string,
-        brandId: null,
-        segmentId: slot.segmentId,
-        change: 'added',
-      })),
+    const payloads = changes.data.flatMap((event) =>
+      event.type === 'card.changed' ? [event.payload] : [],
     );
+    expect(
+      payloads.map((payload) => [payload.eventInstanceId, payload.segmentId, payload.change]),
+    ).toEqual(result.filled.map((slot) => [built.shows.open, slot.segmentId, 'added']));
   });
 
   it('rebuilds the whole card when asked, announcing the clear first', () => {

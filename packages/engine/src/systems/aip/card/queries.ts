@@ -255,8 +255,7 @@ function sidesOf(
     return {
       name: team?.name ?? sidePeople.map((person) => person.name).join(' & '),
       teamId: team === undefined ? null : team.id,
-      isChampions:
-        champions.size > 0 && members.some((member) => champions.has(member.personId)),
+      isChampions: champions.size > 0 && members.some((member) => champions.has(member.personId)),
       people: sidePeople,
     };
   });
