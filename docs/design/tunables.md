@@ -896,7 +896,7 @@ a short match; nothing here sets a length (D-10).
 | `aip.titles.expiringDays`                    | integer | 28                        | 0–365    | days        | A champion whose contract ends within this many days drops the title                           |
 | `aip.titles.challengerMinContractDays`       | integer | 60                        | 0–365    | days        | A challenger needs at least this many contract days left to win a title                        |
 | `aip.titles.maxChance`                       | number  | 90                        | 0–100    | percent     | The highest change chance any title match can reach                                            |
-| `aip.titles.valid.gap`                       | number  | 30                        | 0–100    | points      | Largest market popularity gap below the champion's for a valid challenger                      |
-| `aip.titles.valid.floor`                     | number  | 40                        | 0–100    | points      | A challenger at or above this market popularity is valid whatever the gap                      |
-| `aip.titles.strong.gap`                      | number  | 12                        | 0–100    | points      | Largest market popularity gap below the champion's for a strong challenger                     |
-| `aip.titles.strong.floor`                    | number  | 62                        | 0–100    | points      | A challenger at or above this market popularity is strong whatever the gap                     |
+| `aip.titles.valid.gap`                       | number  | 30                        | 0–100    | points      | How far below the title's prestige a valid challenger's market popularity may be               |
+| `aip.titles.valid.floor`                     | number  | 40                        | 0–100    | points      | Least market popularity a valid challenger needs, however low the prestige                     |
+| `aip.titles.strong.gap`                      | number  | 12                        | 0–100    | points      | How far below the title's prestige a strong challenger's market popularity may be              |
+| `aip.titles.strong.floor`                    | number  | 62                        | 0–100    | points      | Least market popularity a strong challenger needs, however low the prestige                    |

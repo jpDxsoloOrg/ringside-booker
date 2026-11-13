@@ -321,22 +321,23 @@ export const aipResultsTunables = defineTunables({
   'aip.titles.valid.gap': {
     ...POPULARITY_LINE,
     default: 30,
-    description: "Largest market popularity gap below the champion's for a valid challenger",
+    description: "How far below the title's prestige a valid challenger's market popularity may be",
   },
   'aip.titles.valid.floor': {
     ...POPULARITY_LINE,
     default: 40,
-    description: 'A challenger at or above this market popularity is valid whatever the gap',
+    description: 'Least market popularity a valid challenger needs, however low the prestige',
   },
   'aip.titles.strong.gap': {
     ...POPULARITY_LINE,
     default: 12,
-    description: "Largest market popularity gap below the champion's for a strong challenger",
+    description:
+      "How far below the title's prestige a strong challenger's market popularity may be",
   },
   'aip.titles.strong.floor': {
     ...POPULARITY_LINE,
     default: 62,
-    description: 'A challenger at or above this market popularity is strong whatever the gap',
+    description: 'Least market popularity a strong challenger needs, however low the prestige',
   },
 });
 

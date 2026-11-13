@@ -826,7 +826,11 @@ step, so it never decides results.
 
 A rival booker moves a title when a reign has run long, the champion is on the
 way out or the promotion needs a jolt, and keeps it on house shows. AIP5-01
-defines the numbers; the chance and its Why? come with AIP5-03.
+defines the numbers; AIP5-03 adds three pure, traced pieces in
+`aip/formulas/`: `titleChangeChance`, `challengerPool` and `titleChange`.
+AIP5 only plans the change (the winning side of a title match); EVT3 applies it
+on show night ([Title outcomes](show-night.md#title-outcomes)). AIP5 never
+touches reigns.
 
 - **Reign bands.** The base chance by reign length:
   `aip.titles.band<n>.maxDays` / `.chance` for n = 1 to 6, (14, 0), (45, 4),
@@ -845,10 +849,109 @@ defines the numbers; the chance and its Why? come with AIP5-03.
   past `aip.titles.overdueDays` is overdue; a champion whose contract ends
   within `aip.titles.expiringDays` drops the title; a challenger needs
   `aip.titles.challengerMinContractDays` left.
-- **Challengers,** by the side's market popularity against the champion's: a
-  valid challenger is within `aip.titles.valid.gap` or at least
-  `aip.titles.valid.floor`; a strong one within `aip.titles.strong.gap` or at
-  least `aip.titles.strong.floor`.
+- **Challengers,** by the side's popularity in the promotion's own markets
+  against thresholds that rise with the title's prestige (see
+  [Challenger pool](#challenger-pool)).
+
+### Change chance
+
+`titleChangeChance` (unit percent):
+
+```
+chance = clamp(
+  band(reignDays)
+  + aip.titles.changePrestigeWeight × (aip.titles.prestigePivot − prestige)
+  + aip.titles.tempoWeight × (titleTaste − 50)
+  + aip.titles.importance.<importance>
+  + hotShot,
+  0, aip.titles.maxChance)
+```
+
+- `band(d)` is `aip.titles.band<n>.chance` for the first band n (1 to 6) with
+  `d ≤ aip.titles.band<n>.maxDays`, else `aip.titles.bandBeyond.chance`. The
+  Why? line reads "Reign of 112 days: up to 150 days band". If the bands' days
+  do not increase, the default bands are used and each problem is noted.
+- 50 is a constant ("Neutral title taste"): taste is 0-100 and 50 neither
+  speeds up nor slows down changes. The line reads "Booker's title taste 65"
+  for a stored taste or "Title taste (style default) 50" before AIP2 stores one.
+- `hotShot`: no history source → note "No popularity history yet", +0; fewer
+  than `aip.titles.hotShot.weeks + 1` readings → note "Only 2 weekly readings so
+  far", +0; otherwise the readings are sorted by date and, when each of the last
+  `weeks` is strictly lower than the one before, "Popularity fell 3 weeks
+  running (hot-shot)" adds `aip.titles.hotShot.bonus`. A flat or rising week
+  adds nothing and the readings are listed in a note.
+
+The bands as they ship:
+
+| Band   | Reign up to (days) | Base chance |
+| ------ | ------------------ | ----------- |
+| 1      | 14                 | 0%          |
+| 2      | 45                 | 4%          |
+| 3      | 90                 | 12%         |
+| 4      | 150                | 22%         |
+| 5      | 240                | 34%         |
+| 6      | 365                | 48%         |
+| beyond | longer             | 60%         |
+
+With the defaults (pivot 60, prestige weight 0.25, tempo weight 0.3), a
+312-day reign on a 74-prestige title, taste 65, at a major show while
+popularity fell 3 weeks: 48 − 3.5 + 4.5 + 6 + 10 = 65%.
+
+### Challenger pool
+
+`challengerPool` sorts the challenger sides (never the champions):
+
+```
+validNeeds  = max(prestige − aip.titles.valid.gap,  aip.titles.valid.floor)
+strongNeeds = max(prestige − aip.titles.strong.gap, aip.titles.strong.floor)
+```
+
+At prestige 80 a valid challenger needs 50 and a strong one 68; at prestige 20
+the floors hold (40 and 62). Per side, in side order:
+
+1. "<side> is eligible": no WRK1 title eligibility or availability reason; each
+   failing reason is noted in WRK1's words.
+2. "<side>'s contract runs at least 60 more days"
+   (`aip.titles.challengerMinContractDays`); an open-ended contract passes.
+3. Strong at `strongNeeds` or more, valid at `validNeeds` or more (a strong side
+   is valid too). Market popularity is recorded as a number, not its trace.
+
+`eligible` lists the sides passing 1 and 2. The pool is `strong` when any side
+is strong, else `valid`, else `none`.
+
+### Rule order
+
+`titleChange` is one decision, "Title decision: <title>", considering `retain`
+and `side:<n>` for every eligible challenger. Rules in order:
+
+1. **House show.** On a house show with `aip.titles.houseShowsRetain` on, the
+   champion retains ("House show: titles stay put"). With it off, house shows go
+   on like any other.
+2. **Expiring champion.** The champion's contract ends within
+   `aip.titles.expiringDays` (0 = only a contract ending today): the title
+   changes to a strong challenger, else a valid one, else any eligible one.
+   With nobody eligible the champion retains ("...but nobody in this match can
+   take the title").
+3. **Overdue.** The chance is shown, then a reign of `aip.titles.overdueDays`
+   or more changes hands without a chance roll when someone is valid or strong.
+4. **The roll.** "Time for a change?" at the chance (0% draws nothing and notes
+   "Chance is 0%"). A hit with a valid or strong challenger changes the title; a
+   hit with pool `none` retains ("Ready for a change, but no challenger is
+   popular enough (needs 50 in our markets)"); a miss retains.
+
+A change picks from the strong list, else the valid list, weighted by each
+side's value (`rivalSideValue`, at least 1 so every fit challenger keeps a
+chance). One candidate is taken without a roll ("Only one challenger fits").
+
+Reasons for the log (`titleReasonText`): House show, Contract ending, Overdue
+reign, Time for a change, Champion retains, No challenger good enough.
+
+### Order of title rolls
+
+On `aip.titles`, per title: the chance roll (only when rule 4 is reached and
+the chance is above 0), then the pick roll (only with two or more candidates).
+The winners stream is never used here, so title rolls never shift ordinary
+match rolls.
 
 **Popularity history.** The hot-shot term reads weekly readings through one
 pluggable source, `registerPopularityHistorySource({ id, read })`
