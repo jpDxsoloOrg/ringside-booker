@@ -1,4 +1,4 @@
-// The box office tunables (EVT6-01). Design: docs/design/box-office.md#forecast
+// The box office tunables (EVT6-01, EVT6-04). Design: docs/design/box-office.md#forecast
 import { describe, expect, it } from 'vitest';
 import { createEngine, initialEngineState, type Viewer } from '../../../src/core/api';
 import { boxOfficeSystem, boxOfficeTunables } from '../../../src/systems/boxOffice';
@@ -29,6 +29,29 @@ const EXPECTED_DEFAULTS: Readonly<Record<string, number | boolean>> = {
   'boxOffice.fatigue.perExtraShow': 0.2,
   'boxOffice.fatigue.floor': 0.25,
   'boxOffice.crowd.spread': 0.1,
+  // Show-day money (EVT6-04).
+  'boxOffice.ticket.base': 1000,
+  'boxOffice.ticket.perReachPoint': 60,
+  'boxOffice.ticket.importance.house': 0.8,
+  'boxOffice.ticket.importance.minor': 0.9,
+  'boxOffice.ticket.importance.regular': 1,
+  'boxOffice.ticket.importance.major': 1.5,
+  'boxOffice.ticket.importance.flagship': 2,
+  'boxOffice.rent.base': 25000,
+  'boxOffice.rent.perSeat': 350,
+  'boxOffice.rent.kind.hall': 1,
+  'boxOffice.rent.kind.theatre': 1.1,
+  'boxOffice.rent.kind.arena': 1.25,
+  'boxOffice.rent.kind.stadium': 3.5,
+  'boxOffice.rent.kind.studio': 0.6,
+  'boxOffice.rent.kind.outdoor': 1.2,
+  'boxOffice.rent.ownVenueFactor': 0.25,
+  'boxOffice.merch.perHead': 500,
+  'boxOffice.merch.qualityLow': 0.8,
+  'boxOffice.merch.qualityHigh': 1.2,
+  'boxOffice.merch.spread': 0.05,
+  'boxOffice.gate.workerShareCap': 0.5,
+  'boxOffice.merch.workerShareCap': 0.5,
 };
 
 describe('box office tunables', () => {
@@ -53,7 +76,9 @@ describe('box office tunables', () => {
     }
     expect(list.data.map((row) => row.key).sort()).toEqual(Object.keys(EXPECTED_DEFAULTS).sort());
     for (const row of list.data) {
-      expect(row.docRef).toMatch(/^box-office\.md#(forecast|recent-form|big-show-fatigue)$/);
+      expect(row.docRef).toMatch(
+        /^box-office\.md#(forecast|recent-form|big-show-fatigue|ticket-price|venue-rent|live-merch|worker-shares)$/,
+      );
     }
   });
 
