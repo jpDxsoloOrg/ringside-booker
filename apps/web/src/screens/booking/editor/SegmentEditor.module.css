@@ -289,6 +289,20 @@
   .titleLabel {
     min-block-size: var(--tap-target-min);
   }
+
+  /* Under 16px, Safari on iPhone zooms the page in when the field takes focus (EVT2-10). */
+  .textInput {
+    font-size: var(--font-size-md);
+  }
+
+  /*
+   * The name links to the profile. Padding makes it a full-size target and the matching negative
+   * margin keeps the row's layout as it was; nothing else in the row's text column takes a tap.
+   */
+  .personText .personLink {
+    padding-block: calc((var(--tap-target-min) - 1lh) / 2);
+    margin-block: calc((var(--tap-target-min) - 1lh) / -2);
+  }
 }
 
 @media (--bp-mobile) {
@@ -299,5 +313,12 @@
 
   .saveHint {
     text-align: start;
+  }
+
+  /* Long names wrap onto a second line on a phone rather than being cut off. */
+  .personText .personLink,
+  .titleName {
+    overflow-wrap: anywhere;
+    white-space: normal;
   }
 }

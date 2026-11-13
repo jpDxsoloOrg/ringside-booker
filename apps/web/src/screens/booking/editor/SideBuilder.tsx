@@ -91,7 +91,7 @@ function PersonRow({
         decorative
       />
       <span className={styles['personText']}>
-        <WorkerLink personId={personId} name={name} truncate />
+        <WorkerLink personId={personId} name={name} truncate className={styles['personLink']} />
         <span className={styles['personChips']}>
           {row === undefined ? (
             <span className={styles['hint']}>Not on the roster any more</span>

@@ -54,6 +54,7 @@ function RosterPickerDemo() {
         people={people}
         teams={GALLERY_PICKER_TEAMS}
         bookedFilter
+        genderAndPushFilters
         sortStat={{ key: 'popularity', label: 'Most popular' }}
         statsNote={`Pop: popularity in ${GALLERY_REGION_NAME}, where this show is.`}
         initialMode={mode ?? 'people'}
@@ -77,6 +78,6 @@ export const galleryEntry: GalleryEntry = {
   title: 'RosterPicker',
   group: 'Overlays',
   notes:
-    'The booking editor’s worker picker (EVT2-06): debounced search, Bookable only / This brand / Teams filters, and rows with push, alignment, availability and notes. Arrow keys move, Enter picks, Escape closes. A bottom sheet on a phone.',
+    'The booking editor’s worker picker (EVT2-06): debounced search, Bookable only / This brand / Hide booked / Most popular / Gender / Push / Teams filters, and rows with gender, type, stats, push, alignment, availability and notes. Gender and Push open small menus (EVT2-11); a team shows Mixed when its members differ. One long name checks the phone layout (EVT2-10). Arrow keys move, Enter picks, Escape closes. A bottom sheet on a phone.',
   render: () => <RosterPickerDemo />,
 };
