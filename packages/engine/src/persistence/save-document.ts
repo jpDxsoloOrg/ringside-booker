@@ -117,6 +117,8 @@ const SerializedTablesSchema = z.strictObject({
   // AIP1-01. Default to empty so saves written before the rival desk existed still load.
   aiProfiles: z.array(TABLES.aiProfiles.schema).default([]),
   aiDecisions: z.array(TABLES.aiDecisions.schema).default([]),
+  // WRK6-03. Defaults to empty so saves written before the table existed still load.
+  injuries: z.array(TABLES.injuries.schema).default([]),
 });
 
 /**

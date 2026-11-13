@@ -9,7 +9,7 @@
     "label": "Test save",
     "promotionName": "Test Promotion A",
     "promotionShortName": "TPA",
-    "schemaFingerprint": "2959249470727203b4644ae2916e07b9",
+    "schemaFingerprint": "4ab6f86ea9b52caae799985e0002fce0",
     "startDate": "2026-01-05",
     "worldName": "Test Tiny World"
   },
@@ -1561,6 +1561,7 @@
             "venueId": "ven_0000000001"
           }
         ],
+        "injuries": [],
         "ledgerEntries": [
           {
             "amount": 8400000,
