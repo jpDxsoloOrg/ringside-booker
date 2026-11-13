@@ -41,7 +41,7 @@ import { formatNumber } from '../../world/people/labels';
 import type { TracedTaste } from '../formulas/defaultTaste';
 import { openReignOf } from '../inputs';
 import { pickChallengers } from './challengers';
-import { matchFamilyOf, matchTypeWeight } from './formulas/matchTypeWeight';
+import { familyPlaceOf, matchFamilyOf, matchTypeWeight } from './formulas/matchTypeWeight';
 import { titleUrgency } from './formulas/titleUrgency';
 import { lastDefenceOf } from './titleHistory';
 import { TITLE_PICTURE_DOC_REF } from './tunables';
@@ -141,6 +141,8 @@ function matchTypeFor(
     value: pool.taste.values.riskAppetite,
     trace: pool.taste.traces.riskAppetite,
   };
+  // Shares within a family come from the whole catalog, not just the types that fit tonight.
+  const catalog = matchTypesOf(deps.read);
   const options = new Map<string, string>();
   const weighted: { type: MatchTypeDef; weight: number }[] = [];
   for (const type of fitting) {
@@ -153,6 +155,7 @@ function matchTypeFor(
       {
         typeName: type.name,
         family: matchFamilyOf(type),
+        familyPlace: familyPlaceOf(type, catalog),
         peopleNeeded: 2 * title.holderCount,
         freeWrestlers: free,
         freeTeams: teams,

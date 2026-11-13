@@ -408,6 +408,40 @@ describe('fillCard', () => {
     }
   });
 
+  it('makes plain singles most of the one-on-one matches, title matches included', () => {
+    const built = fillWorld({ roster: 16, champion: 0 });
+    const oneOnOne = new Set(['match.singles', 'match.endurance', 'match.sprint']);
+    const counts = new Map<string, number>();
+    let titleSingles = 0;
+    let titleOneOnOne = 0;
+    for (let index = 0; index < 60; index++) {
+      const { fill } = plan(built, {
+        seed: `singles-${String(index)}`,
+        titles: true,
+        matchSlots: 4,
+        talkSlots: 0,
+      });
+      for (const segment of matchesOf(fill)) {
+        const type = typeOf(segment);
+        if (type === null || !oneOnOne.has(type)) {
+          continue;
+        }
+        counts.set(type, (counts.get(type) ?? 0) + 1);
+        if (segment.source === 'title') {
+          titleOneOnOne += 1;
+          titleSingles += type === 'match.singles' ? 1 : 0;
+        }
+      }
+    }
+    const total = [...counts.values()].reduce((sum, count) => sum + count, 0);
+    const singles = counts.get('match.singles') ?? 0;
+    expect(total).toBeGreaterThan(100);
+    // The default share leaves plain singles 80% of the family's weight.
+    expect(singles / total).toBeGreaterThan(0.6);
+    expect(titleOneOnOne).toBeGreaterThan(10);
+    expect(titleSingles / titleOneOnOne).toBeGreaterThan(0.5);
+  });
+
   it('books a storyline as face against heel, linked to the story', () => {
     const built = fillWorld({
       roster: 8,

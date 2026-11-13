@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { findTraceNodes } from '../../../../src/core/trace';
 import {
+  familyPlaceOf,
   matchFamilyOf,
   matchTypeWeight,
   type MatchTypeWeightInputs,
@@ -93,6 +94,38 @@ describe('matchTypeWeight', () => {
   it('is 0 when the family weight is 0', () => {
     const tuned = createEngineTunables({ 'aip.card.typeWeight.oneOnOne': 0 });
     expect(weigh({}, tuned).value).toBe(0);
+  });
+
+  it("shares a family's weight: the plain type keeps most, the variants split the rest", () => {
+    const plain = weigh({ familyPlace: { plain: true, variants: 2 } });
+    expect(plain.value).toBeCloseTo(80);
+    expect(labels(plain)).toContain('The plain one-on-one match (2 variants share the rest)');
+    const variant = weigh({ typeName: 'Sprint', familyPlace: { plain: false, variants: 2 } });
+    expect(variant.value).toBeCloseTo(10);
+    expect(labels(variant)).toContain('One of 2 one-on-one variants');
+    // A family of one type keeps the whole weight.
+    expect(weigh({ familyPlace: { plain: true, variants: 0 } }).value).toBeCloseTo(100);
+    // Share 0: variants never come up; share 1: the plain type never does.
+    const none = createEngineTunables({ 'aip.card.variantShare': 0 });
+    expect(weigh({ familyPlace: { plain: false, variants: 2 } }, none).value).toBe(0);
+    const all = createEngineTunables({ 'aip.card.variantShare': 1 });
+    expect(weigh({ familyPlace: { plain: true, variants: 2 } }, all).value).toBe(0);
+  });
+
+  it('reads Singles as the plain one-on-one type of the shipped catalog', () => {
+    const types = Object.values(TEST_CATALOGS.matchTypes ?? {})
+      .filter((type) => !type.hidden)
+      .sort((left, right) => left.order - right.order);
+    const placeOf = (key: string) => {
+      const type = types.find((entry) => entry.key === key);
+      if (type === undefined) {
+        throw new Error(`no ${key}`);
+      }
+      return familyPlaceOf(type, types);
+    };
+    expect(placeOf('match.singles')).toEqual({ plain: true, variants: 2 });
+    expect(placeOf('match.sprint')).toEqual({ plain: false, variants: 2 });
+    expect(placeOf('match.tag-team')).toEqual({ plain: true, variants: 0 });
   });
 
   it('follows the comfort margin', () => {

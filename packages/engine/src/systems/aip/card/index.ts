@@ -94,8 +94,12 @@ export {
   type TitlePictureDeps,
 } from './titlePicture';
 export {
+  familyPlaceOf,
   fewTeamsText,
   freeWrestlersText,
+  plainTypeText,
+  variantText,
+  type FamilyPlace,
   MATCH_FAMILY_LABELS,
   matchFamilyOf,
   matchTypeWeight,

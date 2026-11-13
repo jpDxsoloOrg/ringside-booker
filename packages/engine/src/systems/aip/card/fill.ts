@@ -39,7 +39,7 @@ import {
   type SeatRules,
 } from './fallback';
 import { talkRoomFor } from './formulas/cardShape';
-import { matchFamilyOf, matchTypeWeight } from './formulas/matchTypeWeight';
+import { familyPlaceOf, matchFamilyOf, matchTypeWeight } from './formulas/matchTypeWeight';
 import { firstTypeOfFamily, matchSegment } from './matchDraft';
 import { BookerNotes } from './notes';
 import { planStorylineSegment, storylinesForShow, type CardRoom } from './storylineSegments';
@@ -310,6 +310,7 @@ function rollMatchType(
       {
         typeName: type.name,
         family: matchFamilyOf(type),
+        familyPlace: familyPlaceOf(type, types),
         peopleNeeded: needed,
         freeWrestlers: free,
         freeTeams: size >= 2 && size <= 3 ? freeTeams(pool, size, rules, null).length : 0,

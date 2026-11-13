@@ -13,7 +13,7 @@ describe('the card planner tunables', () => {
   const entries = Object.entries(aipCardTunables);
 
   it('are merged into the engine set under Rival booking, docRef rival-booking.md', () => {
-    expect(entries).toHaveLength(40);
+    expect(entries).toHaveLength(41);
     for (const [key, def] of entries) {
       expect(ALL_TUNABLES).toHaveProperty([key]);
       expect(def.category).toBe(RIVAL_BOOKING_CATEGORY);

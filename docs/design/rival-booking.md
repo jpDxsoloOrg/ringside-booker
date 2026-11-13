@@ -284,12 +284,15 @@ one multi-way, anything else (a handicap match, a battle royal) other.
 
 ```
 base        = aip.card.typeWeight.<family>
+share       = 1 − aip.card.variantShare for the family's plain type,
+              aip.card.variantShare ÷ variants for each variant,
+              1 for a family of one type
 poolFactor  = clamp(freeWrestlers ÷ (peopleNeeded × aip.card.poolComfort), 0, 1)
               when freeWrestlers ≥ peopleNeeded, else 0
 tasteFactor = 1 for one-on-one, else 0.5 + riskAppetite ÷ 100
 teamFactor  = aip.card.noTeamFactor for tag and trios with fewer than two
               free teams of that size, else 1
-weight      = base × poolFactor × tasteFactor × teamFactor
+weight      = base × share × poolFactor × tasteFactor × teamFactor
 ```
 
 With exactly enough free wrestlers at the default comfort of 2 a type keeps
@@ -306,9 +309,19 @@ never gets a battle royal while other matches wait. When every type is left
 out, the slot falls back to a one-on-one type with the note "Every match type
 weighs 0 tonight: a one-on-one match".
 
-The weight is per type, so a family with several types (singles, endurance
-and sprint are all one-on-one) is picked that much more often than its base
-weight alone suggests.
+**Plain types and variants.** A family's weight is shared between its types,
+so adding a type never makes the family more common. The family's first type
+by display order is its plain type (Singles for one-on-one, Three-Way for
+multi-way, Handicap for other); the rest are variants (Endurance Match and
+Sprint; Four-Way; Battle Royal). The plain type keeps `1 − aip.card.variantShare`
+of the family weight and the variants split `aip.card.variantShare` evenly, so
+at the default of 0.2 Singles weighs 80 and Endurance and Sprint 10 each: plain
+singles are about four in five one-on-one matches, title matches included. The
+trace says "The plain one-on-one match (2 variants share the rest)" or "One of
+2 one-on-one variants". The family is counted over every non-hidden type
+(`familyPlaceOf(type, matchTypesOf(read))`), not only those that fit tonight,
+so a type's share never depends on the roster. A share of 0 keeps variants off
+rival cards; 1 leaves only variants.
 
 ## Fallback chain
 
@@ -403,29 +416,30 @@ Category `Rival booking`, in `card/tunables.ts`; the table is in
 [tunables.md](tunables.md#rival-booking-tunables). Later AIP4 tickets append
 their keys to the same file.
 
-| Key                                       | Default                 | What it does                                                          |
-| ----------------------------------------- | ----------------------- | --------------------------------------------------------------------- |
-| `aip.card.maxFatigue`                     | 75                      | Fatigue above which a worker is only a last resort                    |
-| `aip.card.minWorkers`                     | 5                       | Fewer wrestlers fit to work than this cancels the show (0 never)      |
-| `aip.card.mixedGender`                    | false                   | Whether a non-title match may mix men and women                       |
-| `aip.card.talkShare.<importance>`         | 0, 0.15, 0.3, 0.2, 0.15 | Talking share on house, minor, regular, major and flagship shows      |
-| `aip.card.talkTasteSwing`                 | 0.5                     | How far the booker's taste moves the talking share                    |
-| `aip.card.maxTalkShare`                   | 0.5                     | The largest talking share                                             |
-| `aip.card.fillPreShow`                    | true                    | Whether the pre-show slots are filled                                 |
-| `aip.titles.maxPerShow.<importance>`      | 1, 1, 2, 4, 6           | Most title matches on house, minor, regular, major and flagship shows |
-| `aip.titles.defenceIntervalDays`          | 28                      | Usual gap between defences at middling title taste                    |
-| `aip.titles.tempoSwing`                   | 0.5                     | How far title taste moves the usual gap                               |
-| `aip.titles.prestigeWeight`               | 0.5                     | Urgency per 100 prestige                                              |
-| `aip.titles.importanceBonus.<importance>` | 0, 0, 0, 1, 2           | Urgency added on house, minor, regular, major and flagship shows      |
-| `aip.titles.dueThreshold`                 | 1                       | Urgency at which a title is due                                       |
-| `aip.titles.recentChallengers`            | 2                       | Latest challengers who rest before challenging again                  |
-| `aip.titles.challengerPool`               | 3                       | Best contenders the challenger is picked from                         |
-| `aip.titles.excludeOtherChampions`        | true                    | Whether champions are kept out of other title pictures                |
-| `aip.card.maxStorylineSegments`           | 2                       | Most storyline segments on one show                                   |
-| `aip.card.storylineMinHeat`               | 0                       | Heat a storyline needs for a segment (0: every active one)            |
-| `aip.card.storylineMatchChance`           | 0.5                     | Chance a storyline gets a match rather than a talking segment         |
-| `aip.card.typeWeight.<family>`            | 100, 35, 10, 6, 2       | Base weight of one-on-one, tag, multi-way, trios and other types      |
-| `aip.card.poolComfort`                    | 2                       | Times the people a match needs before its type gets full weight       |
-| `aip.card.noTeamFactor`                   | 0.25                    | Weight left to tag and trios types with fewer than two free teams     |
-| `aip.card.pickWindow`                     | 5                       | Best free workers each place is chosen from                           |
-| `aip.card.secondSpeakerChance`            | 0.5                     | Chance a talking segment gets a second speaker                        |
+| Key                                       | Default                 | What it does                                                                 |
+| ----------------------------------------- | ----------------------- | ---------------------------------------------------------------------------- |
+| `aip.card.maxFatigue`                     | 75                      | Fatigue above which a worker is only a last resort                           |
+| `aip.card.minWorkers`                     | 5                       | Fewer wrestlers fit to work than this cancels the show (0 never)             |
+| `aip.card.mixedGender`                    | false                   | Whether a non-title match may mix men and women                              |
+| `aip.card.talkShare.<importance>`         | 0, 0.15, 0.3, 0.2, 0.15 | Talking share on house, minor, regular, major and flagship shows             |
+| `aip.card.talkTasteSwing`                 | 0.5                     | How far the booker's taste moves the talking share                           |
+| `aip.card.maxTalkShare`                   | 0.5                     | The largest talking share                                                    |
+| `aip.card.fillPreShow`                    | true                    | Whether the pre-show slots are filled                                        |
+| `aip.titles.maxPerShow.<importance>`      | 1, 1, 2, 4, 6           | Most title matches on house, minor, regular, major and flagship shows        |
+| `aip.titles.defenceIntervalDays`          | 28                      | Usual gap between defences at middling title taste                           |
+| `aip.titles.tempoSwing`                   | 0.5                     | How far title taste moves the usual gap                                      |
+| `aip.titles.prestigeWeight`               | 0.5                     | Urgency per 100 prestige                                                     |
+| `aip.titles.importanceBonus.<importance>` | 0, 0, 0, 1, 2           | Urgency added on house, minor, regular, major and flagship shows             |
+| `aip.titles.dueThreshold`                 | 1                       | Urgency at which a title is due                                              |
+| `aip.titles.recentChallengers`            | 2                       | Latest challengers who rest before challenging again                         |
+| `aip.titles.challengerPool`               | 3                       | Best contenders the challenger is picked from                                |
+| `aip.titles.excludeOtherChampions`        | true                    | Whether champions are kept out of other title pictures                       |
+| `aip.card.maxStorylineSegments`           | 2                       | Most storyline segments on one show                                          |
+| `aip.card.storylineMinHeat`               | 0                       | Heat a storyline needs for a segment (0: every active one)                   |
+| `aip.card.storylineMatchChance`           | 0.5                     | Chance a storyline gets a match rather than a talking segment                |
+| `aip.card.typeWeight.<family>`            | 100, 35, 10, 6, 2       | Base weight of one-on-one, tag, multi-way, trios and other types             |
+| `aip.card.variantShare`                   | 0.2                     | Share of a family's weight its variants split; the plain type keeps the rest |
+| `aip.card.poolComfort`                    | 2                       | Times the people a match needs before its type gets full weight              |
+| `aip.card.noTeamFactor`                   | 0.25                    | Weight left to tag and trios types with fewer than two free teams            |
+| `aip.card.pickWindow`                     | 5                       | Best free workers each place is chosen from                                  |
+| `aip.card.secondSpeakerChance`            | 0.5                     | Chance a talking segment gets a second speaker                               |

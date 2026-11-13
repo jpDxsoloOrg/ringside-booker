@@ -355,6 +355,18 @@ export const aipCardTunables = defineTunables({
     default: 2,
     description: 'Same, for any other shape, such as a handicap match or a battle royal',
   },
+  'aip.card.variantShare': {
+    kind: 'number',
+    default: 0.2,
+    min: 0,
+    max: 1,
+    step: 0.05,
+    unit: 'ratio',
+    category: RIVAL_BOOKING_CATEGORY,
+    description:
+      "Share of a family's weight its variants split (endurance and sprint for one-on-one); the plain type keeps the rest",
+    docRef: MATCH_TYPES_DOC_REF,
+  },
   'aip.card.poolComfort': {
     kind: 'number',
     default: 2,
