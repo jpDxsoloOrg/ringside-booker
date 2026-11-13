@@ -119,7 +119,9 @@ describe('show score modifier registry', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- unread stand-in
     const show = {} as DeepReadonly<EventInstance>;
     // Only this test's modifier: the built-in ones (EVT4-02's production ceiling) read the world.
-    const modifiers = listShowScoreModifiers().filter((modifier) => registered.includes(modifier.id));
+    const modifiers = listShowScoreModifiers().filter((modifier) =>
+      registered.includes(modifier.id),
+    );
     const extras: Record<string, JsonValue> = {};
     for (const modifier of modifiers) {
       if (modifier.gather !== undefined) {
