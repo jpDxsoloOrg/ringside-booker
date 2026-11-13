@@ -224,6 +224,71 @@ export function aipShowCardsFakeState(): ShowCardsFakeWorld {
   return { state: initialEngineState(world), promotions: { own, rival, thin } };
 }
 
+/** The health world's first day. */
+export const HEALTH_WORLD_START: GameDate = parseGameDate('2026-04-10');
+
+/** What `healthFakeState` builds. */
+export interface HealthFakeWorld {
+  readonly state: EngineState;
+  readonly people: {
+    /** The player's wrestler with a new injury the player has not seen, and one healed before. */
+    readonly injured: PersonId;
+    /** The player's wrestler with nothing wrong. */
+    readonly fit: PersonId;
+    /** The computer's wrestler with an injury of their own. */
+    readonly rivalInjured: PersonId;
+  };
+}
+
+/**
+ * A world for the Health tab (WRK6-05): the player's Test Promotion A with two wrestlers, one of
+ * them hurt three days ago (a new injury waiting to be noticed, out for 14 days) after an older
+ * injury long healed, and the computer's Test Promotion B with one wrestler hurt too. It carries
+ * the test injury catalog, so the injuries have their names. The golden tiny world is left alone.
+ */
+export function healthFakeState(): HealthFakeWorld {
+  const hurtOn = addDays(HEALTH_WORLD_START, -3);
+  const longAgo = addDays(HEALTH_WORLD_START, -60);
+  const { world, ids } = worldBuilder({
+    worldName: 'Test Health World',
+    startDate: addDays(HEALTH_WORLD_START, -90),
+    currentDate: HEALTH_WORLD_START,
+  })
+    .withCatalogs()
+    .withInjuryCatalog()
+    .withGeography('mini')
+    .withPromotion(
+      {
+        name: 'Test Promotion A',
+        shortName: 'TPA',
+        controller: { kind: 'human', playerId: TEST_PLAYER_ID },
+      },
+      (promotion) => promotion.withRoster(2),
+    )
+    .withPromotion({ name: 'Test Promotion B', shortName: 'TPB' }, (promotion) =>
+      promotion.withRoster(1),
+    )
+    .withInjury(0, {
+      since: longAgo,
+      expectedReturn: addDays(longAgo, 10),
+      returnedOn: addDays(longAgo, 12),
+      bodyPart: 'arms',
+    })
+    .withInjury(0, {
+      since: hurtOn,
+      expectedReturn: addDays(hurtOn, 14),
+      noticedOn: null,
+      severity: 'severe',
+    })
+    .withInjury(2, { since: hurtOn, expectedReturn: addDays(hurtOn, 14), noticedOn: null })
+    .build();
+  const [injured, fit, rivalInjured] = ids.people;
+  if (injured === undefined || fit === undefined || rivalInjured === undefined) {
+    throw new Error('The health world lost its people.');
+  }
+  return { state: initialEngineState(world), people: { injured, fit, rivalInjured } };
+}
+
 export interface FakeEngineOptions {
   /** Keeps the real show-day gate. Off when left out. */
   readonly showDayGate?: boolean;

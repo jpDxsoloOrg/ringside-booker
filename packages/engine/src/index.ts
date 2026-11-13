@@ -2498,3 +2498,19 @@ export {
   type InjureResult,
   type InjuryDaysInputs,
 } from './systems/health/index';
+
+// The Health tab (WRK6-05): `health.profile`, a worker's fatigue, condition with the age cap and next
+// week's healing, medical care and injuries, and the acknowledge command the tab runs on view.
+// See docs/design/health.md#the-health-profile.
+export {
+  ACKNOWLEDGE_MAX_INJURIES,
+  computeOffscreenInjuryChance,
+  FATIGUE_BANDS,
+  fatigueBandOf,
+  HEALTH_PROFILE_HISTORY_LIMIT,
+  type BodyPartHealth,
+  type FatigueBand,
+  type HealthProfile,
+  type InjuryView,
+  type OffscreenInjuryChanceInputs,
+} from './systems/health/index';

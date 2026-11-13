@@ -788,12 +788,14 @@ so the store never explains a number the world does not have.
 
 ### The query
 
-`health.fatigue` takes `{ personId }` and returns
-`{ personId, fatigue, traceRef }`, or `null` for an unknown person. `traceRef`
-is the ref above when a trace is stored, and `null` otherwise (a person who has
-not recovered yet). A screen shows the number, and its "Why?" button calls
-`trace.get` with the ref. Fatigue is not secret, so every viewer gets the same
-answer; a system with private data would filter on `ctx.viewer` here.
+`health.profile` takes `{ personId }` and returns the Health tab's view, or
+`null` for an unknown person. Its `fatigue.traceRef` is the ref above when a
+trace is stored, and `null` otherwise (a person who has not recovered yet). A
+screen shows the number, and its "Why?" button calls `trace.get` with the ref.
+Numbers with no roll (the condition cap, next week's healing) come back inline
+as `Traced` values instead of refs. Health is not secret, so every viewer gets
+the same answer; a system with private data would filter on `ctx.viewer` here.
+See [health.md](health.md#the-health-profile).
 
 ### The tests
 
@@ -807,3 +809,4 @@ answer; a system with private data would filter on `ctx.viewer` here.
   draw, the event, the stored traces, determinism for a seed, the query, a
   failing phase later in the same group that leaves this phase's writes alone,
   talking-only show days, and the weekly condition recovery.
+  `profileQuery.test.ts` covers the query.

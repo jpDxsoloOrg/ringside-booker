@@ -110,8 +110,9 @@ registerProfileTab({
 the tab again, throws for an id that is taken, and every open profile re-renders when the list
 changes. `render` only runs while its tab is selected, so a tab can run its own queries.
 
-Registered so far: **Form** (order 55, MTCH3-04), `screens/workers/profile/tabs/recentFormTab.tsx`,
-imported once by the router like the results page's calendar hooks; its panel loads with the tab.
+Registered so far: **Health** (order 50, WRK6-05), `screens/workers/health/registerHealthTab.tsx`,
+and **Form** (order 55, MTCH3-04), `screens/workers/profile/tabs/recentFormTab.tsx`, each imported
+once by the router like the results page's calendar hooks; their panels load with the tab.
 
 ### Names in "Why?" panels
 
