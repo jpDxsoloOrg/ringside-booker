@@ -41,6 +41,7 @@ import type {
   GameDate,
   GateHit,
   PersonId,
+  PromotionId,
   ShowPopularityChangeView,
   SystemBundle,
   Viewer,
@@ -137,6 +138,75 @@ export function bookingFakeState(): BookingFakeWorld {
     )
     .build();
   return { state: initialEngineState(world), roster: ids.people.slice(0, 12) };
+}
+
+/** The show-cards world's first day: its rival shows are on it, still to be booked and run. */
+export const SHOW_CARDS_WORLD_START: GameDate = parseGameDate('2026-01-06');
+
+/** What `aipShowCardsFakeState` builds. */
+export interface ShowCardsFakeWorld {
+  readonly state: EngineState;
+  readonly promotions: {
+    /** Test Promotion A, run by the local player. */
+    readonly own: PromotionId;
+    /** Test Promotion B, the computer's, with fourteen wrestlers and a champion. */
+    readonly rival: PromotionId;
+    /** Test Promotion C, the computer's, with three wrestlers: too few for a card. */
+    readonly thin: PromotionId;
+  };
+}
+
+/**
+ * A world for the Shows tab (AIP4-07): the player's Test Promotion A, and two computer-run rivals
+ * with shows on the first day, "Rival Weekly" (Test Promotion B, six slots, a title on the roster)
+ * and "Thin Weekly" (Test Promotion C, three wrestlers), plus B's "Rival Next" a week later. Advance
+ * one day and B's show has been booked by the rival desk, run and revealed, C's has been cancelled
+ * for want of wrestlers, and "Rival Next" is still to come. The golden tiny world is left alone.
+ */
+export function aipShowCardsFakeState(): ShowCardsFakeWorld {
+  const alternating = {
+    employment: (index: number) => ({ alignment: index % 2 === 0 ? 'face' : 'heel' }) as const,
+  };
+  const show = (name: string, date: GameDate) => ({
+    name,
+    date,
+    airDate: date,
+    brandId: null,
+    importance: 'regular',
+    format: { slots: 6, preShowSlots: 0 },
+  }) as const;
+  const { world, ids } = worldBuilder({
+    worldName: 'Test Show Cards World',
+    startDate: parseGameDate('2026-01-05'),
+    currentDate: SHOW_CARDS_WORLD_START,
+  })
+    .withCatalogs()
+    .withGeography('mini')
+    .withPromotion(
+      {
+        name: 'Test Promotion A',
+        shortName: 'TPA',
+        controller: { kind: 'human', playerId: TEST_PLAYER_ID },
+      },
+      (promotion) => promotion.withRoster(12, alternating),
+    )
+    .withPromotion({ name: 'Test Promotion B', shortName: 'TPB' }, (promotion) =>
+      promotion
+        .withRoster(14, alternating)
+        .withTitle({ name: 'Test Rival Title' }, { holder: 0 }),
+    )
+    .withPromotion({ name: 'Test Promotion C', shortName: 'TPC' }, (promotion) =>
+      promotion.withRoster(3),
+    )
+    .withEventInstance(show('Rival Weekly', SHOW_CARDS_WORLD_START), 'B')
+    .withEventInstance(show('Rival Next', addDays(SHOW_CARDS_WORLD_START, 7)), 'B')
+    .withEventInstance(show('Thin Weekly', SHOW_CARDS_WORLD_START), 'C')
+    .build();
+  const { A: own, B: rival, C: thin } = ids.promotions;
+  if (own === undefined || rival === undefined || thin === undefined) {
+    throw new Error('The show-cards world lost a promotion.');
+  }
+  return { state: initialEngineState(world), promotions: { own, rival, thin } };
 }
 
 export interface FakeEngineOptions {

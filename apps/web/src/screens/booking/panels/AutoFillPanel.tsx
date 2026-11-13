@@ -8,7 +8,7 @@
  */
 import { useState } from 'react';
 import { CARD_FULL_MESSAGE } from '@ringside/engine';
-import type { AutoFillResult, BookingCard, EventInstanceId } from '@ringside/engine';
+import type { AutoFillResult, EventInstanceId } from '@ringside/engine';
 import { useEngineCommand } from '@/app/engine/useEngineCommand';
 import { Button } from '@/components/Button';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
@@ -22,8 +22,15 @@ export const REBOOK_QUESTION = 'Replace every segment on this card?';
 /** Which press is on its way. */
 export type AutoFillPending = 'fill' | 'rebook' | null;
 
+/** The part of a card Auto-fill's buttons look at. */
+export interface AutoFillCardState {
+  readonly canEdit: boolean;
+  readonly editBlock: { readonly message: string } | null;
+  readonly sections: readonly { readonly slots: readonly { readonly segment: unknown }[] }[];
+}
+
 /** True when the card has a slot with nothing in it. */
-export function hasOpenSlot(card: Pick<BookingCard, 'sections'>): boolean {
+export function hasOpenSlot(card: Pick<AutoFillCardState, 'sections'>): boolean {
   return card.sections.some((section) => section.slots.some((slot) => slot.segment === null));
 }
 
@@ -31,7 +38,7 @@ export function hasOpenSlot(card: Pick<BookingCard, 'sections'>): boolean {
  * Why each button cannot be pressed, or null when it can. A card that cannot change blocks both,
  * with the engine's reason; a full card only blocks filling.
  */
-export function autoFillBlocks(card: Pick<BookingCard, 'canEdit' | 'editBlock' | 'sections'>): {
+export function autoFillBlocks(card: AutoFillCardState): {
   readonly fill: string | null;
   readonly rebook: string | null;
 } {
@@ -99,7 +106,7 @@ export function AutoFillView({
 
 export interface AutoFillPanelProps {
   readonly eventInstanceId: EventInstanceId;
-  readonly card: Pick<BookingCard, 'canEdit' | 'editBlock' | 'sections'>;
+  readonly card: AutoFillCardState;
 }
 
 /** The panel as the booking screen draws it, sending `aip.autoFillCard`. */
