@@ -58,7 +58,7 @@ describe('parseRunnerArgs', () => {
         '--check-determinism',
         '--strict',
         '--trace',
-        'condition.fatigueRecovery:per_0000000001',
+        'health.fatigueRecovery:per_0000000001',
       ]),
     ).toEqual({
       days: 365,
@@ -70,7 +70,7 @@ describe('parseRunnerArgs', () => {
       checkDeterminism: true,
       strict: true,
       failOnEvents: ['aip.jobFailed'],
-      trace: { kind: 'condition.fatigueRecovery', id: 'per_0000000001' },
+      trace: { kind: 'health.fatigueRecovery', id: 'per_0000000001' },
     });
   });
 
@@ -102,10 +102,10 @@ describe('parseRunnerArgs', () => {
     expect(codesFor(['--days', '1', '--people', people])).toEqual(['invalidPeople']);
   });
 
-  it('parses --tunable condition.fatigueRecoveryPerDay=0 to the number 0', () => {
+  it('parses --tunable health.fatigue.recoveryPerDay=0 to the number 0', () => {
     expect(
-      optionsFor(['--days', '1', '--tunable', 'condition.fatigueRecoveryPerDay=0']).tunables,
-    ).toEqual([{ key: 'condition.fatigueRecoveryPerDay', value: 0 }]);
+      optionsFor(['--days', '1', '--tunable', 'health.fatigue.recoveryPerDay=0']).tunables,
+    ).toEqual([{ key: 'health.fatigue.recoveryPerDay', value: 0 }]);
   });
 
   it('keeps every repeated --tunable in order', () => {
@@ -114,12 +114,12 @@ describe('parseRunnerArgs', () => {
         '--days',
         '1',
         '--tunable',
-        'condition.fatigueRecoveryPerDay=2.5',
+        'health.fatigue.recoveryPerDay=2.5',
         '--tunable',
         'sim.eventLogSize=50',
       ]).tunables,
     ).toEqual([
-      { key: 'condition.fatigueRecoveryPerDay', value: 2.5 },
+      { key: 'health.fatigue.recoveryPerDay', value: 2.5 },
       { key: 'sim.eventLogSize', value: 50 },
     ]);
   });
@@ -143,9 +143,9 @@ describe('parseRunnerArgs', () => {
         '--days',
         '1',
         '--tunable',
-        'condition.fatigueRecoveryPerDay=101',
+        'health.fatigue.recoveryPerDay=101',
         '--tunable',
-        'condition.fatigueRecoveryPerDay=fast',
+        'health.fatigue.recoveryPerDay=fast',
         '--tunable',
         'no-equals-sign',
       ]),

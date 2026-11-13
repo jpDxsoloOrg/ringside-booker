@@ -15,8 +15,8 @@ import { RngRegistry } from '../../../src/core/rng/registry';
 import { replayTrace } from '../../../src/core/trace/replay';
 import { isFullTrace, type StoredTraceEntry } from '../../../src/core/trace/store';
 import { defaultSystems } from '../../../src/systems';
-import { fatigueRecoveryTraceRef } from '../../../src/systems/condition';
-import { RECOVERY_STREAM } from '../../../src/systems/condition/streams';
+import { fatigueRecoveryTraceRef } from '../../../src/systems/health';
+import { RECOVERY_STREAM } from '../../../src/systems/health/streams';
 import type { GameWorld } from '../../../src/model/tables';
 import { aPerson, TEST_PLAYER_ID, testId, worldBuilder } from '../../support';
 import { expectSerialisable } from '../../support/trace';
@@ -53,9 +53,9 @@ function engineOver(world: GameWorld, systems: readonly SystemBundle[] = default
 }
 
 function fatigueOf(engine: Engine, personId: PersonId): number {
-  const result = engine.query('condition.fatigue', { personId }, OMNISCIENT);
+  const result = engine.query('health.fatigue', { personId }, OMNISCIENT);
   if (!result.ok || result.data === null) {
-    throw new Error(`condition.fatigue failed for ${personId}: ${JSON.stringify(result)}`);
+    throw new Error(`health.fatigue failed for ${personId}: ${JSON.stringify(result)}`);
   }
   return result.data.fatigue;
 }
@@ -71,7 +71,7 @@ function storedTrace(engine: Engine, personId: PersonId): StoredTraceEntry | nul
 function clearedEvents(engine: Engine): unknown[] {
   const result = engine.query(
     'sim.recentEvents',
-    { limit: 100, types: ['condition.fatigueCleared'] },
+    { limit: 100, types: ['fatigue.cleared'] },
     OMNISCIENT,
   );
   if (!result.ok) {
@@ -80,7 +80,7 @@ function clearedEvents(engine: Engine): unknown[] {
   return result.data.map((event) => event.payload);
 }
 
-describe('condition.fatigueRecovery phase', () => {
+describe('health.fatigueRecovery phase', () => {
   it('lowers fatigue for one day: 0 stays 0, 2 clears, 40 drops by 4 or 5', async () => {
     const { world, people } = fatigueWorld();
     const [rested, nearlyRested, tired] = people;
@@ -134,7 +134,7 @@ describe('condition.fatigueRecovery phase', () => {
       if (entry === null || !isFullTrace(entry)) {
         throw new Error(`expected a full trace for ${personId}`);
       }
-      expect(entry.ref).toEqual({ kind: 'condition.fatigueRecovery', id: personId });
+      expect(entry.ref).toEqual({ kind: 'health.fatigueRecovery', id: personId });
       expect(entry.date).toBe(world.meta.currentDate);
       expect(entry.value).toBe(fatigueOf(engine, personId));
       expect(replayTrace(entry.trace)).toBe(fatigueOf(engine, personId));
@@ -182,12 +182,12 @@ describe('condition.fatigueRecovery phase', () => {
     const changes = [
       engine.command(
         'tunables.setOverride',
-        { key: 'condition.fatigueRecoveryPerDay', value: 0 },
+        { key: 'health.fatigue.recoveryPerDay', value: 0 },
         { kind: 'human', playerId: TEST_PLAYER_ID },
       ),
       engine.command(
         'tunables.setOverride',
-        { key: 'condition.fatigueRecoveryBonusMax', value: 0 },
+        { key: 'health.fatigue.recoveryBonusMax', value: 0 },
         { kind: 'human', playerId: TEST_PLAYER_ID },
       ),
     ];
@@ -199,11 +199,11 @@ describe('condition.fatigueRecovery phase', () => {
   });
 });
 
-describe('condition.fatigue query', () => {
+describe('health.fatigue query', () => {
   it('returns null for a person who does not exist', () => {
     const engine = engineOver(fatigueWorld().world);
     const result = engine.query(
-      'condition.fatigue',
+      'health.fatigue',
       { personId: testId('person', 99) },
       OMNISCIENT,
     );
@@ -212,14 +212,14 @@ describe('condition.fatigue query', () => {
 
   it('refuses an ID that is not a person ID', () => {
     const engine = engineOver(fatigueWorld().world);
-    const result = engine.queryRaw('condition.fatigue', { personId: 'pro_0000000001' }, OMNISCIENT);
+    const result = engine.queryRaw('health.fatigue', { personId: 'pro_0000000001' }, OMNISCIENT);
     expect(result.ok).toBe(false);
   });
 
   it('returns the current fatigue with no trace before any recovery', () => {
     const { world, people } = fatigueWorld();
     const engine = engineOver(world);
-    const result = engine.query('condition.fatigue', { personId: people[2] }, OMNISCIENT);
+    const result = engine.query('health.fatigue', { personId: people[2] }, OMNISCIENT);
     expect(result).toEqual({
       ok: true,
       data: { personId: people[2], fatigue: 40, traceRef: null },
@@ -232,14 +232,14 @@ describe('condition.fatigue query', () => {
     const engine = engineOver(world);
     await engine.advanceDays({ maxDays: 1 });
 
-    const result = engine.query('condition.fatigue', { personId: tired }, OMNISCIENT);
+    const result = engine.query('health.fatigue', { personId: tired }, OMNISCIENT);
     if (!result.ok || result.data === null) {
       throw new Error('expected a fatigue view');
     }
     expect(result.data.fatigue).toBe(fatigueOf(engine, tired));
-    expect(result.data.traceRef).toEqual({ kind: 'condition.fatigueRecovery', id: tired });
+    expect(result.data.traceRef).toEqual({ kind: 'health.fatigueRecovery', id: tired });
     expect(() => {
-      assertSerialisable(result.data, 'condition.fatigue');
+      assertSerialisable(result.data, 'health.fatigue');
     }).not.toThrow();
 
     if (result.data.traceRef === null) {
@@ -256,19 +256,19 @@ describe('condition.fatigue query', () => {
     const { world, people } = fatigueWorld();
     const engine = engineOver(world);
     await engine.advanceDays({ maxDays: 1 });
-    expect(engine.query('condition.fatigue', { personId: people[0] }, OMNISCIENT)).toEqual({
+    expect(engine.query('health.fatigue', { personId: people[0] }, OMNISCIENT)).toEqual({
       ok: true,
       data: { personId: people[0], fatigue: 0, traceRef: null },
     });
   });
 });
 
-describe('condition.fatigueRecovery failure isolation', () => {
+describe('health.fatigueRecovery failure isolation', () => {
   const failingSystem = defineSystem({
-    id: 'conditionFailureTest',
+    id: 'healthFailureTest',
     phases: [
       definePhase({
-        id: 'conditionFailureTest.explode',
+        id: 'healthFailureTest.explode',
         group: 'housekeeping',
         order: 30,
         cadence: { kind: 'daily' },
@@ -290,7 +290,7 @@ describe('condition.fatigueRecovery failure isolation', () => {
     const result = await engine.advanceDays({ maxDays: 1 });
 
     expect(result.failures).toEqual([
-      expect.objectContaining({ stepId: 'conditionFailureTest.explode' }),
+      expect.objectContaining({ stepId: 'healthFailureTest.explode' }),
     ]);
     expect(fatigueOf(engine, rested)).toBe(0);
     expect(fatigueOf(engine, nearlyRested)).toBe(0);

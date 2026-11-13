@@ -4,8 +4,8 @@ import { RngRegistry, type RngStream } from '../../../src/core/rng/registry';
 import { intBetween } from '../../../src/core/rng/odds';
 import type { Traced } from '../../../src/core/trace/types';
 import type { TunableOverrides } from '../../../src/core/tunables/overrides';
-import { computeFatigueRecovery } from '../../../src/systems/condition';
-import { RECOVERY_STREAM } from '../../../src/systems/condition/streams';
+import { computeFatigueRecovery } from '../../../src/systems/health';
+import { RECOVERY_STREAM } from '../../../src/systems/health/streams';
 import { createEngineTunables } from '../../../src/systems/tunables';
 import {
   expectRollRecorded,
@@ -14,7 +14,7 @@ import {
   expectTraceReplays,
 } from '../../support/trace';
 
-const SEED = 'condition-recovery-test';
+const SEED = 'health-recovery-test';
 
 /**
  * A stream that hands out the given 32-bit draws in order, so a test can choose what the extra
@@ -134,7 +134,7 @@ describe('computeFatigueRecovery', () => {
   it('leaves fatigue unchanged when both tunables are overridden to 0, and says so', () => {
     const result = recover(
       37,
-      { 'condition.fatigueRecoveryPerDay': 0, 'condition.fatigueRecoveryBonusMax': 0 },
+      { 'health.fatigue.recoveryPerDay': 0, 'health.fatigue.recoveryBonusMax': 0 },
       // Any draw: the roll can only come up 0.
       7,
     );
@@ -142,7 +142,7 @@ describe('computeFatigueRecovery', () => {
     expectTraceReplays(result);
     expect(expectTraceContains(result, { kind: 'tunable', label: 'Daily recovery' })).toMatchObject(
       {
-        key: 'condition.fatigueRecoveryPerDay',
+        key: 'health.fatigue.recoveryPerDay',
         value: 0,
         defaultValue: 4,
         overridden: true,
@@ -151,7 +151,7 @@ describe('computeFatigueRecovery', () => {
     expect(
       expectTraceContains(result, { kind: 'tunable', label: 'Most extra rest' }),
     ).toMatchObject({
-      key: 'condition.fatigueRecoveryBonusMax',
+      key: 'health.fatigue.recoveryBonusMax',
       value: 0,
       defaultValue: 1,
       overridden: true,
@@ -170,7 +170,7 @@ describe('computeFatigueRecovery', () => {
   });
 
   it('takes 100 to 0 with the daily recovery at its maximum of 100', () => {
-    const result = recover(100, { 'condition.fatigueRecoveryPerDay': 100 });
+    const result = recover(100, { 'health.fatigue.recoveryPerDay': 100 });
     expect(result.value).toBe(0);
     expectTraceReplays(result);
     expect(expectTraceContains(result, { kind: 'clamp' })).toMatchObject({
@@ -182,7 +182,7 @@ describe('computeFatigueRecovery', () => {
   it('keeps 100 at 100 with no recovery, the clamp checked but not applied', () => {
     const result = recover(
       100,
-      { 'condition.fatigueRecoveryPerDay': 0, 'condition.fatigueRecoveryBonusMax': 0 },
+      { 'health.fatigue.recoveryPerDay': 0, 'health.fatigue.recoveryBonusMax': 0 },
       0,
     );
     expect(result.value).toBe(100);
@@ -194,24 +194,24 @@ describe('computeFatigueRecovery', () => {
   });
 
   it('handles a fractional daily recovery', () => {
-    const result = recover(10, { 'condition.fatigueRecoveryPerDay': 2.5 }, 0);
+    const result = recover(10, { 'health.fatigue.recoveryPerDay': 2.5 }, 0);
     expect(result.value).toBe(7.5);
     expectTraceReplays(result);
   });
 
   it('rolls up to the largest extra rest of 10', () => {
-    const result = recover(50, { 'condition.fatigueRecoveryBonusMax': 10 }, 10);
+    const result = recover(50, { 'health.fatigue.recoveryBonusMax': 10 }, 10);
     expect(result.value).toBe(36);
     expectTraceReplays(result);
     expect(expectRollRecorded(result, RECOVERY_STREAM)).toMatchObject({ min: 0, max: 10 });
   });
 
-  it('records the roll from condition.recovery over 0..bonusMax, with the tunable that set it', () => {
+  it('records the roll from health.recovery over 0..bonusMax, with the tunable that set it', () => {
     for (const bonusMax of [0, 1, 3, 10]) {
-      const result = recover(50, { 'condition.fatigueRecoveryBonusMax': bonusMax }, 0);
+      const result = recover(50, { 'health.fatigue.recoveryBonusMax': bonusMax }, 0);
       const roll = expectRollRecorded(result, RECOVERY_STREAM);
       expect(roll).toEqual({
-        stream: 'condition.recovery',
+        stream: 'health.recovery',
         kind: 'int',
         label: 'Extra rest',
         odds: 1 / (bonusMax + 1),
@@ -222,7 +222,7 @@ describe('computeFatigueRecovery', () => {
       const rollNode = expectTraceContains(result, { kind: 'roll', label: 'Extra rest' });
       expect(rollNode.children?.[0]).toMatchObject({
         kind: 'tunable',
-        key: 'condition.fatigueRecoveryBonusMax',
+        key: 'health.fatigue.recoveryBonusMax',
         value: bonusMax,
       });
     }
@@ -234,7 +234,7 @@ describe('computeFatigueRecovery', () => {
       computeFatigueRecovery(
         { fatigue: 60 },
         {
-          tunables: createEngineTunables({ 'condition.fatigueRecoveryBonusMax': bonusMax }),
+          tunables: createEngineTunables({ 'health.fatigue.recoveryBonusMax': bonusMax }),
           rng: stream,
         },
       );
@@ -244,7 +244,7 @@ describe('computeFatigueRecovery', () => {
 
   it('moves a real stream exactly as far as one intBetween call', () => {
     for (const bonusMax of [0, 1, 10]) {
-      const tunables = createEngineTunables({ 'condition.fatigueRecoveryBonusMax': bonusMax });
+      const tunables = createEngineTunables({ 'health.fatigue.recoveryBonusMax': bonusMax });
       const used = new RngRegistry(SEED).stream(RECOVERY_STREAM);
       const twin = new RngRegistry(SEED).stream(RECOVERY_STREAM);
       for (const fatigue of [1, 40, 100]) {

@@ -4,7 +4,7 @@
  * Each node is one line, `label: value unit`, with what the step did in brackets, and its child
  * steps indented under it. Every step reads in its calculation's unit (see `withStepUnits`), and
  * money reads as dollars and cents (`-$333930.19`), never as raw cents. Rolls read as
- * `rolled 1 in 0..1 (stream condition.recovery)`. An older result whose full trace has been
+ * `rolled 1 in 0..1 (stream health.recovery)`. An older result whose full trace has been
  * summarised prints its value and its largest contributors.
  */
 
@@ -70,7 +70,7 @@ function formatPercent(probability: number): string {
   return `${formatNumber(probability * 100)}%`;
 }
 
-/** A roll in words: `rolled 1 in 0..1 (stream condition.recovery)`. */
+/** A roll in words: `rolled 1 in 0..1 (stream health.recovery)`. */
 export function describeRoll(roll: RollRecord): string {
   const result = typeof roll.result === 'number' ? formatNumber(roll.result) : String(roll.result);
   let range = '';
