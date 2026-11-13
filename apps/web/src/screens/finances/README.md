@@ -16,6 +16,8 @@ local seat runs. The engine side (the ledger, payroll, show costs, policies and 
 | `PoliciesTab.tsx`, `PolicyPicker.tsx` | Travel, Catering and Medical levels with their monthly cost; `finance.setPolicy`  |
 | `financeParams.ts`                    | The URL: tab ids, Ledger filters, month labels                                    |
 | `financeParts.tsx`                    | `SignedMoney` (drawn `−$30,357`, read "minus $30,357") and the refusal state      |
+| `ShowMoneySection.tsx`                | The results page's Show money section: one show's ledger rows, net, ledger link   |
+| `registerShowMoney.ts`                | Registers it (`finance.showMoney`, order 60) for the player's own completed shows |
 
 ## The URL
 
