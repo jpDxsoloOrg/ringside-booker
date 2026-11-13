@@ -641,11 +641,49 @@ at `office.md#kpis-and-deltas`).
 ## Rival desk tunables
 
 The rival desk's numbers (AIP), in `systems/aip/tunables.ts`, category
-`Rival desk`, each with a docRef into [rival-desk.md](rival-desk.md).
+`Rival desk`, each with a docRef into [rival-desk.md](rival-desk.md). The style
+taste defaults (AIP1-04) are category `Rival taste`.
 
-| Key                            | Kind    | Default | Range  | Unit | Meaning                                                                                             |
-| ------------------------------ | ------- | ------- | ------ | ---- | --------------------------------------------------------------------------------------------------- |
-| `aip.decisionLogRetentionDays` | integer | 365     | 0–3650 | days | How long rival decisions stay in the log. 0 keeps none ([decision log](rival-desk.md#decision-log)) |
+One default per promotion style and taste axis, generated in
+`systems/aip/tasteTunables.ts`: `aip.styleTaste.<style>.<axis>`, 56 keys in
+all. Every one is a `number`, range 0–100, step 5, unit `points`, category
+`Rival taste`, docRef `rival-desk.md#taste`, and is the axis of a promotion of
+that style until its booker sets a taste (AIP2). The defaults are the table in
+[rival-desk.md](rival-desk.md#taste). The key segments are the style
+(`mainstream`, `traditional`, `technical`, `hardHitting`, `hardcore`,
+`highFlying`, `entertainment`) and the axis (`wrestlingFocus`,
+`entertainmentFocus`, `athleticFocus`, `starFocus`, `talkShare`,
+`titleFocus`, `youthFocus`, `riskAppetite`).
+
+| Key                                    | Kind    | Default | Range  | Unit       | Meaning                                                                                                       |
+| -------------------------------------- | ------- | ------- | ------ | ---------- | ------------------------------------------------------------------------------------------------------------- |
+| `aip.decisionLogRetentionDays`         | integer | 365     | 0–3650 | days       | How long rival decisions stay in the log. 0 keeps none ([decision log](rival-desk.md#decision-log))           |
+| `aip.cardValue.marketMinPop`           | number  | 10      | 0–100  | points     | Popularity a promotion needs in a region for it to count as a market ([card value](rival-desk.md#card-value)) |
+| `aip.cardValue.popularityWeight`       | number  | 1       | 0–5    | ratio      | How much popularity in the promotion's markets counts toward card value                                       |
+| `aip.cardValue.abilityWeight`          | number  | 1       | 0–5    | ratio      | How much the taste-weighted ability blend counts toward card value                                            |
+| `aip.cardValue.momentumFactor`         | number  | 0.1     | 0–1    | ratio      | Card value added per point of momentum; 0 leaves momentum out                                                 |
+| `aip.cardValue.declineAge`             | number  | 36      | 18–60  | years      | Age after which card value starts to fall                                                                     |
+| `aip.cardValue.declinePerYear`         | number  | 0.04    | 0–0.2  | ratio      | Share of card value lost per year past the decline age; 0 turns the decline off                               |
+| `aip.cardValue.ageFloor`               | number  | 0.5     | 0–1    | multiplier | The least of their card value age can leave a veteran                                                         |
+| `aip.cardValue.youthAge`               | number  | 26      | 16–40  | years      | Workers younger than this get the youth bonus                                                                 |
+| `aip.cardValue.youthBonus`             | number  | 6       | 0–20   | points     | Card value a young worker gains at youth focus 100; 0 turns it off                                            |
+| `aip.needs.workersPerSlot`             | number  | 2       | 0–6    | ratio      | Wrestlers wanted per slot of the largest show ([needs](rival-desk.md#needs))                                  |
+| `aip.needs.defaultSlots`               | integer | 6       | 0–12   | count      | Slots counted for a unit with no active shows                                                                 |
+| `aip.needs.bandShare.mainEvent`        | number  | 0.12    | 0–1    | ratio      | Share of the wanted roster in the main event                                                                  |
+| `aip.needs.bandShare.upperCard`        | number  | 0.2     | 0–1    | ratio      | Same, upper card                                                                                              |
+| `aip.needs.bandShare.midCard`          | number  | 0.33    | 0–1    | ratio      | Same, mid card                                                                                                |
+| `aip.needs.bandShare.lowerCard`        | number  | 0.2     | 0–1    | ratio      | Same, lower card                                                                                              |
+| `aip.needs.bandShare.enhancement`      | number  | 0.15    | 0–1    | ratio      | Same, enhancement                                                                                             |
+| `aip.needs.maxAlignmentGap`            | integer | 3       | 0–20   | count      | Most faces over heels (or heels over faces) before it is a need                                               |
+| `aip.needs.alignmentSeverityPerWorker` | number  | 15      | 0–100  | points     | How pressing each worker past the allowed gap is                                                              |
+| `aip.needs.minPerGenderDivision`       | integer | 4       | 0–20   | count      | Fewest available wrestlers a division with a title wants; 0 never makes a need                                |
+| `aip.needs.contractEndingDays`         | integer | 60      | 0–365  | days       | How soon a champion's contract must end to be a need                                                          |
+| `aip.needs.championUnfitSeverity`      | number  | 80      | 0–100  | points     | How pressing a champion who cannot defend is                                                                  |
+| `aip.needs.championEndingSeverity`     | number  | 60      | 0–100  | points     | How pressing a champion whose contract is ending is                                                           |
+| `aip.needs.minReferees`                | integer | 2       | 0–10   | count      | Fewest referees wanted; 0 never makes a need                                                                  |
+| `aip.needs.minAnnouncers`              | integer | 1       | 0–10   | count      | Fewest announcers wanted; 0 never makes a need                                                                |
+| `aip.needs.minProducers`               | integer | 0       | 0–10   | count      | Fewest producers wanted; 0 never makes a need                                                                 |
+| `aip.needs.minSeverity`                | number  | 10      | 0–100  | points     | Needs less pressing than this are dropped                                                                     |
 
 The Rival rules shortcuts (D-01, AIP1-02), in `systems/aip/shortcuts.ts`,
 category `Rival rules`, docRef [rival-desk.md#shortcuts](rival-desk.md#shortcuts).

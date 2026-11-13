@@ -103,6 +103,51 @@ export {
   type Visibility,
 } from './visibility';
 export { aipRulesQuery, type AipRulesView, type AiShortcutRuleView } from './queries/rules';
+// AIP1-04: taste, card value and roster needs.
+export { storedTaste, STORED_TASTE_LABEL, tasteOf, type TracedTaste } from './taste';
+export {
+  DEFAULT_STYLE_TASTE,
+  STYLE_TASTE_CATEGORY,
+  styleTasteKey,
+  styleTasteTunables,
+  type StyleTasteKey,
+} from './tasteTunables';
+export {
+  defaultTaste,
+  mapTasteAxes,
+  styleTasteLabel,
+  tasteFromAxes,
+  type DefaultTasteInputs,
+} from './formulas/defaultTaste';
+export {
+  CARD_VALUE_GROUPS,
+  CARD_VALUE_MAX,
+  CARD_VALUE_MIN,
+  cardValue,
+  NO_MOMENTUM_LABEL,
+  noFansNote,
+  PRIME_AGE_NOTE,
+  type CardValueInputs,
+} from './formulas/cardValue';
+export {
+  NEED_BANDS,
+  NEED_CREW_ROLES,
+  needSummaryText,
+  NO_NEEDS_REASON,
+  rosterNeeds,
+  rosterReviewDecision,
+  slotsDemanded,
+  TOP_NEED_REASON,
+  type DivisionGender,
+  type Need,
+  type NeedBand,
+  type NeedCrewRole,
+  type NeedKind,
+  type NeedRefs,
+  type NeedsChampion,
+  type NeedsInputs,
+  type NeedsWrestler,
+} from './formulas/needs';
 
 export const aipSystem: SystemBundle = defineSystem({
   id: 'aip',
