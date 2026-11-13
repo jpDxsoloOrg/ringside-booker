@@ -598,8 +598,8 @@ Show costs and the policy preview (ECO1-04), amounts in cents. See
 
 The Office's numbers (DAY2), in `systems/office/tunables.ts`, category
 `Office`, each with a docRef into [office.md](office.md#history) (DAY2-02's
-headline scope points at `office.md#headline-popularity`). DAY2-03 adds its own
-keys to the same file.
+headline scope points at `office.md#headline-popularity`, DAY2-03's morale key
+at `office.md#kpis-and-deltas`).
 
 | Key                               | Kind    | Default       | Range                                                 | Unit   | Meaning                                                                                                                       |
 | --------------------------------- | ------- | ------------- | ----------------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------- |
@@ -607,3 +607,4 @@ keys to the same file.
 | `office.trend.weeks`              | integer | 8             | 2–52                                                  | count  | Weeks shown in a KPI sparkline                                                                                                |
 | `office.delta.lookbackDays`       | integer | 7             | 1–90                                                  | days   | How far back a KPI delta compares                                                                                             |
 | `office.popularity.headlineScope` | enum    | `homeCountry` | `homeRegion`, `homeCountry`, `homeContinent`, `world` | choice | Which D-03 roll-up the Office and the top bar show as the promotion's popularity ([office.md](office.md#headline-popularity)) |
+| `office.morale.namedInWhy`        | integer | 3             | 0–10                                                  | count  | Lowest-morale people named in the average morale's Why? ([office.md](office.md#kpis-and-deltas))                              |
