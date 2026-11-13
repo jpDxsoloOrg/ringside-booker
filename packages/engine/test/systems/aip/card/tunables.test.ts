@@ -13,7 +13,7 @@ describe('the card planner tunables', () => {
   const entries = Object.entries(aipCardTunables);
 
   it('are merged into the engine set under Rival booking, docRef rival-booking.md', () => {
-    expect(entries).toHaveLength(41);
+    expect(entries).toHaveLength(47);
     for (const [key, def] of entries) {
       expect(ALL_TUNABLES).toHaveProperty([key]);
       expect(def.category).toBe(RIVAL_BOOKING_CATEGORY);
@@ -27,6 +27,13 @@ describe('the card planner tunables', () => {
     expect(aipCardTunables['aip.card.talkShare.house'].default).toBe(0);
     expect(aipCardTunables['aip.card.talkShare.regular'].default).toBe(0.3);
     expect(aipCardTunables['aip.titles.maxPerShow.flagship'].default).toBe(6);
+    expect(aipCardTunables['aip.card.variantShare'].default).toBe(0.2);
+    expect(aipCardTunables['aip.card.order.titleWeight'].default).toBe(0.3);
+    expect(aipCardTunables['aip.card.order.heatWeight'].default).toBe(0.2);
+    expect(aipCardTunables['aip.card.order.aceBoost'].default).toBe(12);
+    expect(aipCardTunables['aip.card.order.prospectBoost'].default).toBe(6);
+    expect(aipCardTunables['aip.card.order.talkFactor'].default).toBe(0.8);
+    expect(aipCardTunables['aip.card.order.hotOpener'].default).toBe(true);
   });
 
   it('never mention minutes or length', () => {

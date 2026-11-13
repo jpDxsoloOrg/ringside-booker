@@ -74,10 +74,7 @@ describe('cardScore', () => {
     });
     expect(titled.value).toBeCloseTo(60 + 0.3 * 120);
     expect(lineLabels(titled)).toEqual(
-      expect.arrayContaining([
-        'The World Title is on the line',
-        'The Tag Title is on the line',
-      ]),
+      expect.arrayContaining(['The World Title is on the line', 'The Tag Title is on the line']),
     );
     const story = score({
       storylines: [
