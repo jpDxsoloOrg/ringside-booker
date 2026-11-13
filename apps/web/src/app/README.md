@@ -253,6 +253,17 @@ A feature registers its section from its own folder and adds one import line to
 | ----- | ----------------- | ---------- | ------------------------------------------ |
 | 25    | `evt5.popularity` | Popularity | `screens/promotion-popularity/register.ts` |
 
+## Finances
+
+Business > Finances is live. `/game/finances` (`screens/finances/`, link with
+`routes.game.finances({ tab, month, category })`) shows the seat's books in four tabs: Overview
+(KPI cards and this month by category), Monthly (twelve months by category), Ledger (every row,
+a page of 100 at a time, filtered by month and category) and Policies (Travel, Catering and Medical
+levels, changed with `finance.setPolicy`). The tab and the Ledger's filters are in the URL. Other
+features add tabs and KPI cards with `registerFinanceTab` and `registerFinanceKpi`;
+`screens/finances/README.md` has the slots. The top bar's cash chip has a Why? from
+`sim.status.promotion.cashTraceRef`, the same breakdown the Overview's Cash card opens.
+
 ## The shell's look
 
 The shell follows `docs/design/visual-identity.md` and the mockups in `docs/design/mockups/`.
