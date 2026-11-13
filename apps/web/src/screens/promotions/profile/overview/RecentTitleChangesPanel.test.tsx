@@ -39,9 +39,11 @@ describe('RecentTitleChangesList', () => {
     );
     expect(items[2]).toHaveTextContent('Won the vacant title');
     // A reason without a kept breakdown is plain text; no reason (your own show) shows none.
-    expect(within(items[1] as HTMLElement).getByText('Time for a change')).toBeInTheDocument();
-    expect(within(items[1] as HTMLElement).queryByRole('button')).toBeNull();
-    expect(within(items[2] as HTMLElement).queryByRole('button')).toBeNull();
+    const [, plain, ownShow] = items;
+    if (plain === undefined || ownShow === undefined) throw new Error('Too few changes listed.');
+    expect(within(plain).getByText('Time for a change')).toBeInTheDocument();
+    expect(within(plain).queryByRole('button')).toBeNull();
+    expect(within(ownShow).queryByRole('button')).toBeNull();
   });
 
   it('says when there are none', () => {

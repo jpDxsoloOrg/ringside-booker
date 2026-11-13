@@ -16,7 +16,9 @@ beforeAll(async () => {
   const results = await loaded.transport.host.query('shows.results', {
     eventInstanceId: loaded.rivalShow,
   });
-  if (!results.result.ok) throw new Error('shows.results failed for Rival Weekly.');
+  if (!results.result.ok || results.result.data === null) {
+    throw new Error('shows.results failed for Rival Weekly.');
+  }
   rivalView = results.result.data;
 }, 30_000);
 
