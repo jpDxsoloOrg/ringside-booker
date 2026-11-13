@@ -100,7 +100,12 @@ export {
   type SegmentResultSide,
 } from './registries';
 
-export { countAppearances, resetAppearancesPhase, showWorkers } from './appearances';
+export {
+  countAppearances,
+  distinctWorkersOf,
+  resetAppearancesPhase,
+  showWorkers,
+} from './appearances';
 export {
   CHAMPION_WON_REASON,
   DRAW_DEFENCE_REASON,
