@@ -36,6 +36,12 @@ describe('breakpoints', () => {
     expect(customMedia.get('--bp-wide')).toBe(BP_WIDE_QUERY);
   });
 
+  it('uses min-width / max-width, which iOS Safari before 16.4 understands', () => {
+    for (const query of [BP_MOBILE_QUERY, BP_WIDE_QUERY]) {
+      expect(query).toMatch(/^\((min|max)-width: [\d.]+rem\)$/);
+    }
+  });
+
   it('reads a query body the way the drift check needs', () => {
     const drifted = readCustomMedia('@custom-media --bp-mobile (width < 40rem);');
     expect(drifted.get('--bp-mobile')).not.toBe(BP_MOBILE_QUERY);

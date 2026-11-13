@@ -3,7 +3,7 @@ import { useId } from 'react';
 import type { ReactElement, ReactNode } from 'react';
 import { IconButton } from '../Button';
 import { classNames } from '../classNames';
-import { firstFocusableIn } from '../Sheet';
+import { firstOpenFocusIn } from '../Sheet';
 import styles from './Popover.module.css';
 
 export type PopoverSide = 'top' | 'right' | 'bottom' | 'left';
@@ -46,7 +46,7 @@ function focusPopoverBody(event: Event): void {
   const content = event.currentTarget;
   if (!(content instanceof HTMLElement)) return;
   event.preventDefault();
-  (firstFocusableIn(content.querySelector('[data-popover-body]')) ?? content).focus();
+  (firstOpenFocusIn(content.querySelector('[data-popover-body]')) ?? content).focus();
 }
 
 /**

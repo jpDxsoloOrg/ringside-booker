@@ -157,37 +157,38 @@ that per component.
 
 These do not change with the theme.
 
-| Token                                      | Purpose                                   | Value                                  |
-| ------------------------------------------ | ----------------------------------------- | -------------------------------------- |
-| `--space-0` … `--space-10`                 | Spacing scale, 0.25rem per step           | `0` … `2.5rem`                         |
-| `--radius-card` / `control` / `pill`       | Office corners: cards, controls, chips    | `10px` / `8px` / `999px`               |
-| `--radius-sm` / `md` / `lg`                | Older names (`md` = control, `lg` = card) | `4px` / `8px` / `10px`                 |
-| `--chamfer`                                | Broadcast panel corner cut                | `8px`                                  |
-| `--skew-broadcast`                         | Skew on bugs, tabs, show actions          | `-12deg` (text inside un-skews)        |
-| `--font-family-display`                    | Headings, labels, chips, stat numbers     | Barlow Condensed, then system stacks   |
-| `--font-family-ui`                         | Body, tables, forms                       | Inter, then the system UI stack        |
-| `--font-family-mono`                       | Code, IDs, seeds                          | `ui-monospace, …`                      |
-| `--font-feature-tabular`                   | Tabular figures (`.tabular`, `td`)        | `tabular-nums`                         |
-| `--font-size-xs` … `--font-size-3xl`       | Type scale                                | `0.75rem` … `2.25rem` (`md` is `1rem`) |
-| `--line-height-tight` / `snug` / `normal`  | Headings / dense rows / body text         | `1.2` / `1.35` / `1.5`                 |
-| `--font-weight-regular` … `extrabold`      | Weights                                   | `400` / `500` / `600` / `700` / `800`  |
-| `--shadow-1` … `--shadow-3`                | Elevation, low to high                    | Layered shadows                        |
-| `--z-nav`                                  | Navigation bars                           | `100`                                  |
-| `--z-sheet`                                | Sheets and side panels                    | `400`                                  |
-| `--z-toast`                                | Toasts                                    | `500`                                  |
-| `--z-overlay`                              | Dialogs and their scrim                   | `600`                                  |
-| `--z-popover`                              | Popovers, menus, selects, tooltips        | `700`                                  |
-| `--motion-fast` / `--motion-base`          | Transition durations                      | `120ms` / `200ms` (`0ms` reduced)      |
-| `--motion-pulse`                           | One cycle of a live pulse                 | `1600ms` (`0ms` reduced)               |
-| `--easing-standard`                        | Default easing curve                      | `cubic-bezier(0.2, 0, 0, 1)`           |
-| `--sidebar-width`                          | Desktop sidebar                           | `15rem`                                |
-| `--topbar-height`                          | Top bar                                   | `3.5rem`                               |
-| `--bottom-nav-height`                      | Phone bottom navigation                   | `3.75rem`                              |
-| `--content-max-width`                      | Cap on content width                      | `90rem`                                |
-| `--tap-target-min`                         | Smallest touch target                     | `2.75rem`                              |
-| `--image-size-xs` … `--image-size-xl`      | ImageSlot sizes                           | `1.5` / `2` / `3` / `5` / `8rem`       |
-| `--safe-top` / `right` / `bottom` / `left` | Notch and home-indicator insets           | `env(safe-area-inset-*, 0px)`          |
-| `--ui-scale`                               | UI scale, set by `applyUiScale`           | `0.8` to `1.5`, default `1`            |
+| Token                                      | Purpose                                                                  | Value                                  |
+| ------------------------------------------ | ------------------------------------------------------------------------ | -------------------------------------- |
+| `--space-0` … `--space-10`                 | Spacing scale, 0.25rem per step                                          | `0` … `2.5rem`                         |
+| `--radius-card` / `control` / `pill`       | Office corners: cards, controls, chips                                   | `10px` / `8px` / `999px`               |
+| `--radius-sm` / `md` / `lg`                | Older names (`md` = control, `lg` = card)                                | `4px` / `8px` / `10px`                 |
+| `--chamfer`                                | Broadcast panel corner cut                                               | `8px`                                  |
+| `--skew-broadcast`                         | Skew on bugs, tabs, show actions                                         | `-12deg` (text inside un-skews)        |
+| `--font-family-display`                    | Headings, labels, chips, stat numbers                                    | Barlow Condensed, then system stacks   |
+| `--font-family-ui`                         | Body, tables, forms                                                      | Inter, then the system UI stack        |
+| `--font-family-mono`                       | Code, IDs, seeds                                                         | `ui-monospace, …`                      |
+| `--font-feature-tabular`                   | Tabular figures (`.tabular`, `td`)                                       | `tabular-nums`                         |
+| `--font-size-xs` … `--font-size-3xl`       | Type scale                                                               | `0.75rem` … `2.25rem` (`md` is `1rem`) |
+| `--line-height-tight` / `snug` / `normal`  | Headings / dense rows / body text                                        | `1.2` / `1.35` / `1.5`                 |
+| `--font-weight-regular` … `extrabold`      | Weights                                                                  | `400` / `500` / `600` / `700` / `800`  |
+| `--shadow-1` … `--shadow-3`                | Elevation, low to high                                                   | Layered shadows                        |
+| `--z-nav`                                  | Navigation bars                                                          | `100`                                  |
+| `--z-sheet`                                | Sheets and side panels                                                   | `400`                                  |
+| `--z-toast`                                | Toasts                                                                   | `500`                                  |
+| `--z-overlay`                              | Dialogs and their scrim                                                  | `600`                                  |
+| `--z-popover`                              | Popovers, menus, selects, tooltips                                       | `700`                                  |
+| `--motion-fast` / `--motion-base`          | Transition durations                                                     | `120ms` / `200ms` (`0ms` reduced)      |
+| `--motion-pulse`                           | One cycle of a live pulse                                                | `1600ms` (`0ms` reduced)               |
+| `--easing-standard`                        | Default easing curve                                                     | `cubic-bezier(0.2, 0, 0, 1)`           |
+| `--sidebar-width`                          | Desktop sidebar                                                          | `15rem`                                |
+| `--topbar-height`                          | Top bar                                                                  | `3.5rem`                               |
+| `--bottom-nav-height`                      | Phone bottom navigation                                                  | `3.75rem`                              |
+| `--content-max-width`                      | Cap on content width                                                     | `90rem`                                |
+| `--tap-target-min`                         | Smallest touch target                                                    | `2.75rem`                              |
+| `--tap-pad-block`                          | Hidden padding that lifts a text link to a 44px tap box on touch screens | `0.8125rem`                            |
+| `--image-size-xs` … `--image-size-xl`      | ImageSlot sizes                                                          | `1.5` / `2` / `3` / `5` / `8rem`       |
+| `--safe-top` / `right` / `bottom` / `left` | Notch and home-indicator insets                                          | `env(safe-area-inset-*, 0px)`          |
+| `--ui-scale`                               | UI scale, set by `applyUiScale`                                          | `0.8` to `1.5`, default `1`            |
 
 Body text is `--font-size-md` (1rem, so 16px at scale 1) in Inter; headings (`h1`–`h6`) use the
 display family. Both fonts are self-hosted: `main.tsx` imports the `@fontsource/barlow-condensed`
@@ -202,9 +203,14 @@ Components animate with the motion tokens so they inherit this for free.
 ## Breakpoints
 
 ```css
-@custom-media --bp-mobile (width < 48rem);
-@custom-media --bp-wide (width >= 90rem);
+@custom-media --bp-mobile (max-width: 47.999rem);
+@custom-media --bp-wide (min-width: 90rem);
 ```
+
+They are written with `min-width` / `max-width`, not range syntax (`width < 48rem`), because iOS
+Safari before 16.4 ignores range media queries and `breakpoints.ts` passes the same text to
+`matchMedia`, which no build step rewrites. Hand-written range queries in CSS are still lowered at
+build time; see [browsers.md](browsers.md).
 
 `postcss.config.js` makes these available in every CSS file, so a CSS Module writes
 `@media (--bp-mobile) { ... }` without importing anything. For components whose DOM differs by

@@ -15,6 +15,7 @@
     "fixtures:write": "vitest run --root ../.. --project engine -u test/fixtures test/persistence/fingerprint.test.ts"
   },
   "dependencies": {
+    "fflate": "0.8.2",
     "zod": "4.6.7"
   },
   "devDependencies": {

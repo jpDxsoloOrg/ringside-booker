@@ -428,6 +428,32 @@ describe('DayControl on a phone', () => {
   });
 });
 
+describe('DayControl on a phone, with a show tonight', () => {
+  beforeEach(() => {
+    setMatchMedia((query) => query === BP_MOBILE_QUERY);
+  });
+
+  it('shows the short label, keeps the full one in the name and still goes to the show', async () => {
+    const { user, router } = renderGame({
+      fake: {
+        gateDate: FAKE_START_DATE,
+        gateHit: {
+          reason: SHOW_REASON,
+          actionHint: 'showNight',
+          subject: { kind: 'eventInstance', id: 'evi_harbor' },
+        },
+      },
+    });
+
+    const button = await waitFor(() => dayButton('Tonight: Go to the show'));
+    expect(button).toHaveTextContent('Tonight');
+    expect(button).not.toHaveTextContent('Go to the show');
+    await user.click(button);
+
+    expect(router.state.location.search).toBe('?event=evi_harbor');
+  });
+});
+
 describe('DayControl without a promotion', () => {
   it('still offers Next day while the cash and popularity chips stay hidden', async () => {
     const { user } = renderGame({ state: observerState() });

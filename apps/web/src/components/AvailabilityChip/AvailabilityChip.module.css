@@ -24,3 +24,11 @@
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+
+/* Touch screens: a finger-sized hit area that takes no extra room (see tokens.css). */
+@media (pointer: coarse) {
+  .availabilityChip {
+    padding-block: var(--tap-pad-block);
+    margin-block: calc(-1 * var(--tap-pad-block));
+  }
+}

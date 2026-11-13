@@ -143,6 +143,11 @@
   --bottom-nav-height: 3.75rem;
   --content-max-width: 90rem;
   --tap-target-min: 2.75rem;
+  /*
+   * Extra block padding that lifts a one-line text link or chip (18 to 22px tall) to a 44px tap
+   * box on touch screens; paired with the same negative margin so it takes no room (UI-30).
+   */
+  --tap-pad-block: 0.8125rem;
 
   /* ImageSlot sizes (avatars, belts, logo marks). In rem so they grow with the UI scale. */
   --image-size-xs: 1.5rem;

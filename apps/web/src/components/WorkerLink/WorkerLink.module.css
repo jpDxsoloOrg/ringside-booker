@@ -23,3 +23,14 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/*
+ * Touch screens: a finger-sized hit area. The padding grows the tap box to 44px and the matching
+ * negative margin gives the room back, so lists and table cards keep their spacing (UI-30).
+ */
+@media (pointer: coarse) {
+  .workerLink {
+    padding-block: var(--tap-pad-block);
+    margin-block: calc(-1 * var(--tap-pad-block));
+  }
+}

@@ -266,6 +266,15 @@
   gap: var(--space-1) var(--space-3);
 }
 
+/* Touch screens: the ledger and category links get a finger-sized hit area, no extra room. */
+@media (pointer: coarse) {
+  .rowLinks a,
+  .categoryLine a {
+    padding-block: var(--tap-pad-block);
+    margin-block: calc(-1 * var(--tap-pad-block));
+  }
+}
+
 .ledgerFooter {
   display: flex;
   flex-wrap: wrap;
