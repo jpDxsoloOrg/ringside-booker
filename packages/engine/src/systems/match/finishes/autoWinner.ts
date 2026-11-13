@@ -130,17 +130,17 @@ export function autoWinner(
     decision.rule(TIE_BREAK_RULE, true);
   }
   const upsetGap = upsetGapOf(inputs.sides, best);
-  const upset = inputs.upsetNoteGap !== undefined && upsetGap > inputs.upsetNoteGap.value;
-  if (upset) {
+  const gapSetting = inputs.upsetNoteGap;
+  const upsetTrace =
+    gapSetting !== undefined && upsetGap > gapSetting.value ? gapSetting.trace : null;
+  if (upsetTrace !== null) {
     decision.note(upsetNote(best.label, upsetGap));
   }
   const chosen = decision.choose(best.label, tied ? TIE_BREAK_REASON : HIGHEST_SCORE_REASON);
   // The randomness (a tunable read) leads the story, so the Why? shows where the spread came from.
   // An upset adds the gap setting it was measured against.
   const leading =
-    upset && inputs.upsetNoteGap !== undefined
-      ? [inputs.randomness.trace, inputs.upsetNoteGap.trace]
-      : [inputs.randomness.trace];
+    upsetTrace === null ? [inputs.randomness.trace] : [inputs.randomness.trace, upsetTrace];
   const trace = limitTrace({
     ...chosen.trace,
     children: [...leading, ...(chosen.trace.children ?? [])],

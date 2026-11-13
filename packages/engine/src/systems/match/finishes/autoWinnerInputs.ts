@@ -94,7 +94,7 @@ function storylineHeatOf(
   let best: AutoWinnerStorylineHeat | null = null;
   for (const storylineId of storylineIds) {
     const storyline = read.tables.storylines.get(storylineId);
-    if (storyline === undefined || storyline.status !== 'active') {
+    if (storyline?.status !== 'active') {
       continue;
     }
     const favoured = storyline.members.some(
