@@ -15,9 +15,17 @@ import {
   INJURY_CARD_SEVERITIES,
   INJURY_CARD_SOURCES,
 } from '@/components/InjuryCard';
+import type { Tone } from '@/components/tone';
 
 /** Head, Neck, Back, Arms, Torso, Legs: the injury card's words, so both read the same. */
 export const BODY_PART_LABELS: Readonly<Record<BodyPart, string>> = INJURY_CARD_BODY_PARTS;
+
+/** The badge colour for each severity. The word is always shown too, so it is never colour alone. */
+export const SEVERITY_TONES: Readonly<Record<InjurySeverity, Tone>> = {
+  minor: INJURY_CARD_SEVERITIES.minor.tone,
+  moderate: INJURY_CARD_SEVERITIES.moderate.tone,
+  severe: INJURY_CARD_SEVERITIES.severe.tone,
+};
 
 /** Minor, Moderate, Severe. */
 export const SEVERITY_LABELS: Readonly<Record<InjurySeverity, string>> = {

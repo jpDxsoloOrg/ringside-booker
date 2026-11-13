@@ -3,15 +3,14 @@ import { render as renderPlain, screen, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { ReactElement } from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import { parseGameDate } from '@ringside/engine';
-import type { InjuryId } from '@ringside/engine';
+import { parseGameDate, parseId } from '@ringside/engine';
 import { EngineProvider } from '@/app/engine/EngineProvider';
 import { createInProcessTransport } from '@/app/engine/transport';
 import { fakeEngineFactory } from '@/test/fakeEngine';
 import { InjuryCard } from './InjuryCard';
 import type { InjuryCardInjury } from './InjuryCard';
 
-const INJURY_ID = 'inj_0000000001' as InjuryId;
+const INJURY_ID = parseId('injury', 'inj_0000000001');
 
 const OPEN: InjuryCardInjury = {
   label: 'Sprained ankle',

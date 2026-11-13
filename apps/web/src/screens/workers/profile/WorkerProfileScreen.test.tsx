@@ -131,7 +131,7 @@ describe('WorkerProfileScreen', () => {
     const { user } = renderProfile(routes.game.worker(own));
     await findHeading(/^Test /);
 
-    expect(tabNames()).toEqual(['Overview', 'Attributes', 'Popularity', 'Career', 'Form']);
+    expect(tabNames()).toEqual(['Overview', 'Attributes', 'Popularity', 'Career', 'Health', 'Form']);
     expect(screen.getByRole('tab', { name: 'Overview' })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByText('Would expect:')).toBeInTheDocument();
 
@@ -262,10 +262,10 @@ describe('WorkerProfileScreen: tabs from other features', () => {
   it('shows a registered tab in its place and drops it when it is unregistered', async () => {
     const { own } = tinyPeople();
     const unregister = registerForTest({
-      id: 'health',
-      label: 'Health',
+      id: 'scouting',
+      label: 'Scouting',
       order: 25,
-      render: ({ profile }) => <p>Health of {profile.header.ringName}</p>,
+      render: ({ profile }) => <p>Scouting of {profile.header.ringName}</p>,
     });
     const { router, user } = renderProfile(routes.game.worker(own));
     const heading = await findHeading(/^Test /);
@@ -273,20 +273,21 @@ describe('WorkerProfileScreen: tabs from other features', () => {
     expect(tabNames()).toEqual([
       'Overview',
       'Attributes',
-      'Health',
+      'Scouting',
       'Popularity',
       'Career',
+      'Health',
       'Form',
     ]);
 
-    await user.click(screen.getByRole('tab', { name: 'Health' }));
-    expect(router.state.location.search).toBe('?tab=health');
-    expect(screen.getByText(`Health of ${heading.textContent}`)).toBeInTheDocument();
+    await user.click(screen.getByRole('tab', { name: 'Scouting' }));
+    expect(router.state.location.search).toBe('?tab=scouting');
+    expect(screen.getByText(`Scouting of ${heading.textContent}`)).toBeInTheDocument();
 
     act(() => {
       unregister();
     });
-    expect(tabNames()).toEqual(['Overview', 'Attributes', 'Popularity', 'Career', 'Form']);
+    expect(tabNames()).toEqual(['Overview', 'Attributes', 'Popularity', 'Career', 'Health', 'Form']);
     // The URL still names the tab that went away, so the profile shows Overview.
     expect(screen.getByRole('tab', { name: 'Overview' })).toHaveAttribute('aria-selected', 'true');
   });
@@ -305,6 +306,7 @@ describe('WorkerProfileScreen: tabs from other features', () => {
       'Attributes',
       'Popularity',
       'Career',
+      'Health',
       'Development',
       'Form',
     ]);
@@ -322,7 +324,7 @@ describe('WorkerProfileScreen: tabs from other features', () => {
     renderProfile(`${routes.game.worker(own)}?tab=secret`);
     await findHeading(/^Test /);
 
-    expect(tabNames()).toEqual(['Overview', 'Attributes', 'Popularity', 'Career', 'Form']);
+    expect(tabNames()).toEqual(['Overview', 'Attributes', 'Popularity', 'Career', 'Health', 'Form']);
     expect(screen.queryByText('Secret content')).toBeNull();
     expect(screen.getByRole('tab', { name: 'Overview' })).toHaveAttribute('aria-selected', 'true');
   });
