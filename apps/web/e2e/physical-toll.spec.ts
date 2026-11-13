@@ -27,8 +27,14 @@ const PLAYER = 'Altura Wrestling Entertainment';
 /** Where the spec leaves viewport screenshots, when asked. */
 const SHOTS_DIR = process.env['E2E_SHOTS'];
 
-/** Waits for the page to settle, then checks it fits and has no serious a11y issues. */
+/**
+ * Checks the page fits and has no serious a11y issues, from the top of the page: lower down, the
+ * lab's sticky Run bar sits over whatever scrolled under it, which axe counts as a covered target.
+ */
 async function expectFitsAndAccessible(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    window.scrollTo(0, 0);
+  });
   await expectNoHorizontalScroll(page);
   await expectNoSeriousA11yViolations(page);
 }
