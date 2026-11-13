@@ -6,7 +6,7 @@
  *
  * Both kinds are rival-only, so `sim.traceRetentionPerKind` counts them apart from the player's
  * own breakdowns (`segment.rating` and the rest) and a busy rival schedule never pushes those out.
- * Like the card's slot traces, they are kept in full for `aip.card.keepDetailDays` and then
+ * Like the card's slot traces, they are kept in full for `history.keepDetailDays` and then
  * demoted to a summary by `aip.pruneCardDetail`. See docs/design/rival-booking.md#winners.
  */
 

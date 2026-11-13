@@ -20,7 +20,7 @@
  *
  * Each written segment gets the same short Why? a rival slot gets (`aip.cardSlot`, headline reasons
  * and card score; a few kilobytes), demoted to a summary once the show is
- * `aip.card.keepDetailDays` old. Design: docs/design/rival-booking.md#auto-fill.
+ * `history.keepDetailDays` old. Design: docs/design/rival-booking.md#auto-fill.
  */
 
 import { z } from 'zod';

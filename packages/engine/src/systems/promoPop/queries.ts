@@ -11,7 +11,7 @@
 import { z } from 'zod';
 import { defineQuery, type QueryContext, type QueryDefinition } from '../../core/api/query';
 import { refuseQuery } from '../../core/api/result';
-import { compareDates, yearMonthOf, type GameDate, type YearMonth } from '../../core/date';
+import { yearMonthOf, type GameDate, type YearMonth } from '../../core/date';
 import {
   parseId,
   type CountryId,
@@ -33,7 +33,7 @@ import type { DeepReadonly } from '../../model/world';
 import { geographyOf } from '../world/geography';
 import { reachLabel, type ReachRoute } from './formulas/labels';
 import { monthlyGainsOf, showChangeOf } from './helpers';
-import { lastPruneCutoff } from './phases';
+import { detailKeptNote } from '../history/note';
 import { showChangeTraceRef } from './traces';
 
 /** What the player reads when a show id is unknown. */
@@ -99,6 +99,20 @@ export interface ShowPopularityChangeView {
   summary: ShowChangeSummaryView | null;
   /** Empty unless `status` is `applied`. Largest change first. */
   countries: ShowChangeCountryView[];
+  /**
+   * For a `pruned` show: the worldwide change its summary kept (POL4-08), or null when it kept
+   * none. Null for every other status.
+   */
+  pruned: ShowChangePrunedView | null;
+}
+
+/** What a rolled-up show still says about its popularity: the worldwide figure only. */
+export interface ShowChangePrunedView {
+  before: number;
+  after: number;
+  change: number;
+  /** Plain words for the screen: "Details are kept for the last 4 weeks". */
+  note: string;
 }
 
 /**
@@ -133,16 +147,27 @@ declare module '../../core/api/maps' {
 
 const AGGREGATE_OPTIONS = { valueLabel: 'Popularity change', unit: 'points' } as const;
 
-function statusWithoutRecord(
-  ctx: QueryContext,
-  instance: DeepReadonly<EventInstance>,
-): ShowChangeStatus {
+function statusWithoutRecord(instance: DeepReadonly<EventInstance>): ShowChangeStatus {
   if (instance.status !== 'completed') {
     return 'notCompleted';
   }
-  return compareDates(instance.date, lastPruneCutoff(ctx.date, ctx.tunables)) < 0
-    ? 'pruned'
-    : 'notApplied';
+  return instance.result?.history === undefined ? 'notApplied' : 'pruned';
+}
+
+function prunedViewOf(
+  ctx: QueryContext,
+  instance: DeepReadonly<EventInstance>,
+): ShowChangePrunedView | null {
+  const world = instance.result?.history?.world ?? null;
+  if (world === null) {
+    return null;
+  }
+  return {
+    before: world.before,
+    after: world.after,
+    change: world.after - world.before,
+    note: detailKeptNote(ctx.tunables),
+  };
 }
 
 function routeOf(
@@ -287,14 +312,16 @@ export const showChangeQuery: QueryDefinition<'popularity.showChange'> = defineQ
         score: instance.result?.score ?? null,
       };
       if (record === undefined) {
+        const status = statusWithoutRecord(instance);
         return {
           ...base,
-          status: statusWithoutRecord(ctx, instance),
+          status,
           summary: null,
           countries: [],
+          pruned: status === 'pruned' ? prunedViewOf(ctx, instance) : null,
         };
       }
-      return { ...base, status: 'applied', ...appliedView(ctx, instance, record) };
+      return { ...base, status: 'applied', ...appliedView(ctx, instance, record), pruned: null };
     },
   },
 );

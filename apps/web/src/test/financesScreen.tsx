@@ -31,6 +31,8 @@ export interface RenderFinancesOptions {
   readonly seatPromotionId?: PromotionId | null;
   /** Days to simulate before the screen opens, so money has moved. None by default. */
   readonly daysPlayed?: number;
+  /** `history.keepDetailDays` for the run, when a test needs more rows kept than the default. */
+  readonly keepDetailDays?: number;
 }
 
 export interface RenderedFinances {
@@ -49,7 +51,18 @@ export async function renderFinances(
   options: RenderFinancesOptions = {},
 ): Promise<RenderedFinances> {
   const transport = createInProcessTransport(fakeEngineFactory(), { progressIntervalMs: 0 });
-  const install = transport.host.installEngine(fakeEngineState());
+  const state = fakeEngineState();
+  const install = transport.host.installEngine(
+    options.keepDetailDays === undefined
+      ? state
+      : {
+          ...state,
+          tunableOverrides: {
+            ...state.tunableOverrides,
+            'history.keepDetailDays': options.keepDetailDays,
+          },
+        },
+  );
   if (options.daysPlayed !== undefined) {
     await transport.host.advanceDays({ maxDays: options.daysPlayed }, () => undefined);
   }

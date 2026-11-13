@@ -3,10 +3,10 @@
  *
  * The save keeps roughly the last month in detail and the current numbers. A rival card's plan
  * trace (`aip.cardPlan`) is summary-only from the start; each written segment's short Why?
- * (`aip.cardSlot`) is kept in full for `aip.card.keepDetailDays` days after the show and then
+ * (`aip.cardSlot`) is kept in full for `history.keepDetailDays` days after the show and then
  * demoted to its summary, and so are AIP5's winner and title decisions (`aip.winner`,
- * `aip.title`). The cards themselves (who was on which show, the results) are public facts other
- * features read and are not touched here.
+ * `aip.title`). The cards themselves are not touched here: the weekly `history.rollUp`
+ * (POL4-08) summarises them on the same window.
  *
  * The player's own slots that Auto-fill wrote (AIP4-06) carry the same short Why? and go the same
  * way, so every show is swept, not only the computer's; a show without such traces costs nothing.
@@ -58,7 +58,7 @@ export const pruneCardDetailPhase: PhaseDefinition = definePhase({
   order: 43,
   cadence: { kind: 'daily' },
   run: (ctx) => {
-    const cutoff = cardDetailCutoff(ctx.date, ctx.tunables.get('aip.card.keepDetailDays'));
+    const cutoff = cardDetailCutoff(ctx.date, ctx.tunables.get('history.keepDetailDays'));
     const shows =
       dayOfMonth(ctx.date) === 1
         ? ctx.read.tables.eventInstances

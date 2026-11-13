@@ -13,6 +13,7 @@ import type { IntegrityIssue } from '../integrity';
 import { zCents, zGameDate, zId, zImageRef, zStat, zYearMonth } from '../primitives';
 import { defineTable } from '../table-def';
 import { tableOf } from '../world';
+import { LedgerMonthSchema } from './ledger-entry';
 import { PromotionStyleSchema } from './promotion-style';
 
 export const PROMOTION_STATUSES = ['active', 'dormant', 'closed'] as const;
@@ -110,6 +111,11 @@ export const PromotionSchema = z
     /** `#rrggbb`, used by placeholder logos. */
     color: z.string().regex(HEX_COLOR_PATTERN, 'Expected a hex colour such as #1a2b3c'),
     controller: ControllerSchema,
+    /**
+     * The ledger months rolled up into totals (POL4-08), oldest first, one per month. Empty until
+     * the first roll-up, and in saves made before it.
+     */
+    ledgerMonths: z.array(LedgerMonthSchema).default([]),
   })
   .refine((promotion) => promotion.parentPromotionId !== promotion.id, {
     message: 'A promotion cannot be its own parent',

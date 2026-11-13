@@ -224,7 +224,7 @@ describe('a booked-card step behind the guard', () => {
         : [],
     );
     expect(refs.length).toBeGreaterThan(0);
-    const keep = tunables.get('aip.card.keepDetailDays');
+    const keep = tunables.get('history.keepDetailDays');
     const prune = (date: GameDate): void => {
       const report = runStep(
         runtime,

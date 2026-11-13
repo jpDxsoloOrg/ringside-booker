@@ -82,9 +82,22 @@ describe('PopularitySection', () => {
     expect(within(states).getByText('down 1.5')).toBeInTheDocument();
   });
 
+  it('keeps the worldwide change and says why the regions are gone for an old show', async () => {
+    renderSection(idOf(showChangeWithStatus('pruned')));
+    expect(
+      await screen.findByText(
+        'Worldwide popularity up 0.8, from 41.2 to 42.0',
+        {},
+        { timeout: LOAD_MS },
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Details are kept for the last 4 weeks.')).toBeInTheDocument();
+    expect(screen.queryByRole('grid')).toBeNull();
+    expect(document.body.textContent).not.toMatch(/undefined|NaN/);
+  });
+
   it.each([
     ['notCompleted', POPULARITY_EMPTY_TEXT.notCompleted],
-    ['pruned', POPULARITY_EMPTY_TEXT.pruned],
     ['notApplied', POPULARITY_EMPTY_TEXT.notApplied],
   ] as const)('says why there is nothing to list when the show is %s', async (status, text) => {
     renderSection(idOf(showChangeWithStatus(status)));

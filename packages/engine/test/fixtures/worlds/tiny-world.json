@@ -2956,7 +2956,8 @@
         "controller": {
           "kind": "human",
           "playerId": "player-1"
-        }
+        },
+        "ledgerMonths": []
       },
       {
         "id": "pro_0000000002",
@@ -2995,7 +2996,8 @@
         "color": "#336699",
         "controller": {
           "kind": "computer"
-        }
+        },
+        "ledgerMonths": []
       }
     ],
     "regions": [

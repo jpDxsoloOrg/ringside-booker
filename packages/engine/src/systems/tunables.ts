@@ -35,6 +35,7 @@ import { rosterTunables } from './roster/tunables';
 import { aipTunables } from './aip/tunables';
 import { aipCardTunables } from './aip/card/tunables';
 import { aipResultsTunables } from './aip/results/tunables';
+import { historyTunables } from './history/tunables';
 
 export const ALL_TUNABLES = mergeTunables(
   simTunables,
@@ -55,6 +56,7 @@ export const ALL_TUNABLES = mergeTunables(
   aipTunables,
   aipCardTunables,
   aipResultsTunables,
+  historyTunables,
 );
 
 /** Every tunable key the engine knows. */

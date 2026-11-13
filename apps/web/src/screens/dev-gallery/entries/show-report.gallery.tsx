@@ -89,6 +89,7 @@ function reportShow(): ShowResultsView {
       viewers: null,
     },
     segments,
+    history: null,
   };
 }
 

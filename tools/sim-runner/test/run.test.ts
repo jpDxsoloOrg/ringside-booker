@@ -157,7 +157,13 @@ describe('runSimulation on the roster fixture', () => {
     const wages = outcome.finalState.world.tables.ledgerEntries.filter(
       (row) => row.category === 'wages',
     );
-    expect(wages).toHaveLength(40);
+    // One Wages row a day; rows older than four weeks are rolled into monthly totals (POL4-08),
+    // and the cash check counts those totals.
+    expect(wages.length).toBeGreaterThanOrEqual(28);
+    expect(wages.length).toBeLessThanOrEqual(40);
+    expect(
+      outcome.finalState.world.tables.promotions.some((row) => row.ledgerMonths.length > 0),
+    ).toBe(true);
     expect(ledgerMismatches(start, outcome.finalState)).toEqual([]);
   });
 

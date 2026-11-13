@@ -18,7 +18,7 @@ import type { Traced } from '../../core/trace/types';
 import { LEDGER_CATEGORIES } from '../../model/entities/ledger-entry';
 import type { GameWorldView } from '../../model/tables';
 import { LEDGER_CATEGORY_LABELS } from './categories';
-import { monthBreakdown, monthLabel, monthRows } from './months';
+import { monthBreakdownOf, monthLabel } from './months';
 import { cashTraceRef } from './traces';
 
 export const CASH_TRACE_DOC_REF = 'docs/design/finances.md#queries';
@@ -52,7 +52,7 @@ function earlierLines(
   const lines: EarlierLine[] = [];
   let yearLine: { label: string; net: number } | undefined;
   for (let current = startMonth; current < month; current = addYearMonths(current, 1)) {
-    const net = monthBreakdown(current, monthRows(read, promotionId, current)).net;
+    const net = monthBreakdownOf(read, promotionId, current).net;
     const currentYear = current.slice(0, 4);
     if (currentYear === year) {
       lines.push({ label: monthLabel(current), net });
@@ -87,7 +87,7 @@ export function cashTrace(
   const gameStart = yearMonthOf(read.meta.startDate);
   const startMonth = gameStart < month ? gameStart : month;
   const earlier = earlierLines(read, promotionId, startMonth, month);
-  const breakdown = monthBreakdown(month, monthRows(read, promotionId, month));
+  const breakdown = monthBreakdownOf(read, promotionId, month);
   const sinceStart = earlier.reduce((sum, line) => sum + line.net, breakdown.net);
   const calc = startCalc('Cash', promotion.cash - sinceStart, {
     unit: 'money',

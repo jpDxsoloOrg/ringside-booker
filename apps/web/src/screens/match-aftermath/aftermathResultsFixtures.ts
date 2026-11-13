@@ -56,6 +56,7 @@ export function aftermathShow(): ShowResultsView {
       gate: null,
       viewers: null,
     },
+    history: null,
     segments: [
       promoSegment(),
       singlesWin(),

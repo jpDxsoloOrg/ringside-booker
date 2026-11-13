@@ -158,6 +158,7 @@ export const galleryDecisionLog: AipDecisionLog = {
   kinds: [{ kind: 'rosterReview', chip: 'Roster review', count: 3 }],
   hiddenCount: 2,
   nextBefore: null,
+  keptNote: 'Decisions are kept for the last 4 weeks.',
 };
 
 /** The gallery's inline trace for the reviews' Why? (no engine to fetch a stored one from). */
@@ -169,6 +170,7 @@ export const galleryEmptyDecisionLog: AipDecisionLog = {
   kinds: [],
   hiddenCount: 0,
   nextBefore: null,
+  keptNote: 'Decisions are kept for the last 4 weeks.',
 };
 
 function rule(overrides: Partial<AiShortcutRuleView> & Pick<AiShortcutRuleView, 'key' | 'label'>) {

@@ -119,7 +119,7 @@ export const pruneDecisionLogPhase: PhaseDefinition = definePhase({
   order: 42,
   cadence: { kind: 'daily' },
   run: (ctx) => {
-    const retentionDays = ctx.tunables.get('aip.decisionLogRetentionDays');
+    const retentionDays = ctx.tunables.get('history.keepDetailDays');
     let pruned = pruneDecisionLogOn(ctx.tx, ctx.date, retentionDays);
     // Once a month, a full sweep catches rows a lowered retention or a failed day left behind.
     if (dayOfMonth(ctx.date) === 1) {

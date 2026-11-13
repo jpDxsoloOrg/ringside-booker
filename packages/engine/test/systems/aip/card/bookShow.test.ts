@@ -451,11 +451,11 @@ describe('aip.bookShow', () => {
     );
   });
 
-  it('keeps each slot in full for aip.card.keepDetailDays, then only its summary', () => {
+  it('keeps each slot in full for history.keepDetailDays, then only its summary', () => {
     const built = showWorld();
     const runtime = runtimeOf(built);
     bookTheDay(runtime);
-    const keep = tunables.get('aip.card.keepDetailDays');
+    const keep = tunables.get('history.keepDetailDays');
     const prune = (date: GameDate): void => {
       const report = runStep(
         runtime,
@@ -482,7 +482,7 @@ describe('aip.bookShow', () => {
       expect(entry, slot.id).toBeDefined();
       expect(entry !== undefined && isFullTrace(entry)).toBe(false);
     }
-    // The card itself stays: who was on the show is a public fact.
+    // This phase only demotes traces; the card goes with the weekly history roll-up (POL4-08).
     expect(cardSegments(runtime.world, built.shows.b)).toHaveLength(SLOTS);
   });
 

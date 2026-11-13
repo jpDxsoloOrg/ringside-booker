@@ -614,7 +614,7 @@ hundreds of shows a year, so rival shows never keep it:
   summary-only. The card decision points at it;
 - `aip.cardSlot` (by segment ID): "Slot <n> · <role>" with the segment's
   headline reasons and its card score, a few hundred bytes. It is kept in full
-  for `aip.card.keepDetailDays` (28) days after the show, then only its
+  for `history.keepDetailDays` (28) days after the show, then only its
   summary: `aip.pruneCardDetail` (group `periodic`, order 43, daily) demotes
   the slots of the shows dated exactly that many days ago (the player's
   auto-filled slots too, see [Auto-fill](#auto-fill)), with a full
@@ -684,7 +684,7 @@ AutoFilledSlot = {
 Each written segment gets the same short Why? as a rival slot (`aip.cardSlot`:
 the slot, its headline reasons and card score, a few kilobytes), not the whole
 plan, and `aip.pruneCardDetail` demotes it to its summary once the show is
-`aip.card.keepDetailDays` old, so the player's slots follow the same "about
+`history.keepDetailDays` old, so the player's slots follow the same "about
 the last month in detail" rule.
 
 ## Show cards
@@ -785,7 +785,6 @@ their keys to the same file.
 | `aip.card.talkTasteSwing`                 | 0.5                     | How far the booker's taste moves the talking share                           |
 | `aip.card.maxTalkShare`                   | 0.5                     | The largest talking share                                                    |
 | `aip.card.fillPreShow`                    | true                    | Whether the pre-show slots are filled                                        |
-| `aip.card.keepDetailDays`                 | 28                      | Days a rival show's per-slot Why? is kept in full, then only a summary       |
 | `aip.titles.maxPerShow.<importance>`      | 1, 1, 2, 4, 6           | Most title matches on house, minor, regular, major and flagship shows        |
 | `aip.titles.defenceIntervalDays`          | 28                      | Usual gap between defences at middling title taste                           |
 | `aip.titles.tempoSwing`                   | 0.5                     | How far title taste moves the usual gap                                      |
@@ -827,7 +826,7 @@ formulas and the step that writes them come with AIP5-02 to AIP5-04.
 (`winnerTraceRef`, `titleTraceRef`). `sim.traceRetentionPerKind` counts per
 kind, so a busy rival schedule never pushes the player's own breakdowns
 (`segment.rating` and the rest) out of the store. Like the card's slot traces,
-both are kept in full for `aip.card.keepDetailDays` (28) days after the show
+both are kept in full for `history.keepDetailDays` (28) days after the show
 and then demoted to a summary by `aip.pruneCardDetail`.
 
 **Decision kinds.** `winner` (chip "Winners") and `title` (chip "Titles"),

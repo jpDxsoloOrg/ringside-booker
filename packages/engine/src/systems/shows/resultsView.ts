@@ -35,7 +35,12 @@ import { isFullTrace, type TraceRef } from '../../core/trace/store';
 import type { TraceNode } from '../../core/trace';
 import { angleTypeOf, finishOf, matchTypeOf, methodOf } from '../../model/catalogs';
 import type { EventImportance } from '../../model/entities/event-definition';
-import type { EventInstance, EventInstanceStatus } from '../../model/entities/event-instance';
+import type {
+  EventInstance,
+  EventInstanceStatus,
+  ShowHistoryMainEvent,
+} from '../../model/entities/event-instance';
+import { detailKeptNote } from '../history/note';
 import type { Participant, ParticipantRole } from '../../model/entities/participant';
 import type { Segment, SegmentKind } from '../../model/entities/segment';
 import type { TitleReign } from '../../model/entities/title-reign';
@@ -199,10 +204,25 @@ export interface ShowResultsView {
   /** Null until the show is completed. */
   result: ShowResultView | null;
   /**
-   * The card in running order: pre-show first, then the main card. Empty for an off-screen show
-   * and for a rival's show that has not aired.
+   * The card in running order: pre-show first, then the main card. Empty for an off-screen show,
+   * for a rival's show that has not aired and for a show whose detail was rolled up.
    */
   segments: SegmentResultView[];
+  /**
+   * Set when the show is older than the detail window and its card was rolled up (POL4-08): what
+   * is still known about it, and a plain note saying why the card is gone. Null otherwise.
+   */
+  history: ShowHistoryView | null;
+}
+
+/** What a rolled-up show still shows: its size, main event and title changes. */
+export interface ShowHistoryView {
+  /** How many segments the card had. */
+  segments: number;
+  mainEvent: ShowSummaryView['mainEvent'];
+  titleChanges: ShowSummaryView['titleChanges'];
+  /** "Details are kept for the last 4 weeks." */
+  note: string;
 }
 
 /** One finished show in a line: the Office panel, the Next Day summary, the results links. */
@@ -537,9 +557,13 @@ export function showResultsView(
   const region = read.tables.regions.get(instance.regionId);
   const venue = instance.venueId === null ? undefined : read.tables.venues.get(instance.venueId);
   const card = cardSegments(read, instance.id);
-  const offscreen = isOffscreen(read, instance, card);
+  const kept = instance.result?.history;
+  const offscreen = kept === undefined && isOffscreen(read, instance, card);
   // A card is the booker's secret until it airs: only its own promotion (and tools) see it early.
-  const cardVisible = instance.status === 'completed' || mine || deps.viewer.kind === 'omniscient';
+  // A rolled-up card is gone bar a few kept matches, so none of it is listed.
+  const cardVisible =
+    kept === undefined &&
+    (instance.status === 'completed' || mine || deps.viewer.kind === 'omniscient');
   const people = showPeople(read, instance);
   const order = cardOrderOf(card);
   const segments = cardVisible
@@ -572,36 +596,57 @@ export function showResultsView(
       offscreen,
     ),
     segments,
+    history:
+      kept === undefined
+        ? null
+        : {
+            segments: kept.segments,
+            mainEvent:
+              kept.mainEvent === null
+                ? null
+                : { ...kept.mainEvent, sides: [...kept.mainEvent.sides] },
+            titleChanges: titleChangesOf(read, card),
+            note: detailKeptNote(deps.tunables),
+          },
   };
 }
 
-/** The compact line for one completed show. */
-export function showSummaryView(
+/**
+ * The card's main event in summary words, or null when the main event slot is empty. The history
+ * roll-up (POL4-08) stores this on the show before the card goes.
+ */
+export function mainEventSummaryOf(
   read: GameWorldView,
   instance: DeepReadonly<EventInstance>,
-  deps: ResultsViewDeps,
-): ShowSummaryView {
+): ShowHistoryMainEvent | null {
   const card = cardSegments(read, instance.id);
   const people = showPeople(read, instance);
   const mainEventSlot = instance.format.slots - 1;
   const main = card.find((segment) => !segment.preShow && segment.slot === mainEventSlot);
-  let mainEvent: ShowSummaryView['mainEvent'] = null;
-  if (main !== undefined) {
-    const sides = sidesOf(read, people, main);
-    const outcome = main.kind === 'match' ? main.outcome : null;
-    const winner =
-      instance.status === 'completed' && outcome?.kind === 'win'
-        ? sides.find((side) => side.side === outcome.winningSide)
-        : undefined;
-    mainEvent = {
-      typeName:
-        main.kind === 'match'
-          ? (matchTypeOf(read, main.match.matchTypeKey)?.name ?? main.match.matchTypeKey)
-          : (angleTypeOf(read, main.angle.angleTypeKey)?.name ?? main.angle.angleTypeKey),
-      sides: sides.map((side) => side.label),
-      winnerSide: winner?.label ?? null,
-    };
+  if (main === undefined) {
+    return null;
   }
+  const sides = sidesOf(read, people, main);
+  const outcome = main.kind === 'match' ? main.outcome : null;
+  const winner =
+    instance.status === 'completed' && outcome?.kind === 'win'
+      ? sides.find((side) => side.side === outcome.winningSide)
+      : undefined;
+  return {
+    typeName:
+      main.kind === 'match'
+        ? (matchTypeOf(read, main.match.matchTypeKey)?.name ?? main.match.matchTypeKey)
+        : (angleTypeOf(read, main.angle.angleTypeKey)?.name ?? main.angle.angleTypeKey),
+    sides: sides.map((side) => side.label),
+    winnerSide: winner?.label ?? null,
+  };
+}
+
+/** Every title that changed hands on the card, in card order. */
+function titleChangesOf(
+  read: GameWorldView,
+  card: readonly DeepReadonly<Segment>[],
+): ShowSummaryView['titleChanges'] {
   const titleChanges: ShowSummaryView['titleChanges'] = [];
   for (const segment of card) {
     if (segment.kind !== 'match') {
@@ -619,6 +664,24 @@ export function showSummaryView(
       }
     }
   }
+  return titleChanges;
+}
+
+/** The compact line for one completed show. */
+export function showSummaryView(
+  read: GameWorldView,
+  instance: DeepReadonly<EventInstance>,
+  deps: ResultsViewDeps,
+): ShowSummaryView {
+  const card = cardSegments(read, instance.id);
+  const kept = instance.result?.history?.mainEvent;
+  const mainEvent: ShowSummaryView['mainEvent'] =
+    kept === undefined
+      ? mainEventSummaryOf(read, instance)
+      : kept === null
+        ? null
+        : { ...kept, sides: [...kept.sides] };
+  const titleChanges = titleChangesOf(read, card);
   const score = instance.result?.score ?? 0;
   return {
     eventInstanceId: instance.id,

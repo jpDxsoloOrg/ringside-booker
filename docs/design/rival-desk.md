@@ -87,8 +87,8 @@ transaction layer refuses every update (`AppendOnlyError`) but allows a
 delete, which is how old rows are pruned. Unlike the ledger, nothing has to
 reconcile, so old decisions can go.
 
-**Retention.** `aip.decisionLogRetentionDays` (default 365, 0 keeps none) is
-the window. `pruneDecisionLog(tx, today, days)` deletes a row once its date is
+**Retention.** `history.keepDetailDays` (default 28, 0 keeps none; POL4-08,
+see [save-format.md](save-format.md#history-retention)) is the window. `pruneDecisionLog(tx, today, days)` deletes a row once its date is
 on or before `today - days` and it has been revealed; a plan that has not
 aired yet stays whatever its age. The daily phase `aip.pruneDecisionLog` runs
 it (see [Jobs](#jobs)).

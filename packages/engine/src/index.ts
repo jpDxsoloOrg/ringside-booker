@@ -2344,3 +2344,22 @@ export {
   type TitleReasonNames,
   type TitleTasteSource,
 } from './systems/aip/index';
+// POL4-08: rolling history. The last `history.keepDetailDays` days are kept in detail; older shows
+// keep a summary (`EventResult.history`), older money monthly totals (`Promotion.ledgerMonths`).
+// See docs/design/save-format.md#history-retention.
+export {
+  detailKeptFrom,
+  detailKeptNote,
+  detailKeptNoteFor,
+  HISTORY_ROLL_UP_PHASE_ID,
+  historySystem,
+  keepDetailPeriodText,
+  rollUpHistory,
+  segmentsToKeep,
+  type RollUpCounts,
+} from './systems/history/index';
+export { mainEventSummaryOf, type ShowHistoryView } from './systems/shows/index';
+export type { ShowChangePrunedView } from './systems/promoPop/index';
+export { monthBreakdownOf, rolledUpMonth } from './systems/finance/index';
+export type { ShowHistory, ShowHistoryMainEvent } from './model/entities/event-instance';
+export type { LedgerMonth } from './model/entities/ledger-entry';

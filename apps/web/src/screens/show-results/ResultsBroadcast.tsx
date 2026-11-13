@@ -30,7 +30,9 @@ import { resultsSectionAnchor, segmentCardAnchor } from './showReportLineRegistr
 import { hasReport } from './showReportText';
 import {
   headerAccent,
+  historyMainEventText,
   offscreenNote,
+  segmentCountText,
   revealAnnouncement,
   scoreAnnouncement,
 } from './showResultsText';
@@ -245,6 +247,42 @@ function CardList({
 }
 
 /** What other features registered with `registerResultsSection`, each as a titled panel. */
+/**
+ * A show older than the detail window (POL4-08): its card is gone, so the page says how big it
+ * was, what the main event was and which titles changed hands, with the plain note saying why.
+ */
+function HistorySummary({
+  history,
+}: {
+  readonly history: NonNullable<ShowResultsView['history']>;
+}) {
+  return (
+    <div className={styles['history']}>
+      <p className={styles['note']}>{history.note}</p>
+      <dl className={styles['historyFacts']}>
+        <div>
+          <dt>Card</dt>
+          <dd>{segmentCountText(history.segments)}</dd>
+        </div>
+        {history.mainEvent !== null && (
+          <div>
+            <dt>Main event</dt>
+            <dd>{historyMainEventText(history.mainEvent)}</dd>
+          </div>
+        )}
+        {history.titleChanges.map((change, index) => (
+          <div key={`${change.titleName}-${String(index)}`}>
+            <dt>New champion</dt>
+            <dd>
+              {change.titleName}: {change.newHolderNames.join(' and ')}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
+
 function ResultsSections({ view }: { readonly view: ShowResultsView }) {
   const sections = useResultsSections();
   return (
@@ -359,7 +397,8 @@ export function CompletedResults({
       </div>
 
       {view.offscreen && <p className={styles['note']}>{offscreenNote(view.promotion.name)}</p>}
-      {!view.offscreen && view.segments.length === 0 && (
+      {view.history !== null && <HistorySummary history={view.history} />}
+      {!view.offscreen && view.history === null && view.segments.length === 0 && (
         <p className={styles['note']}>Nothing was on this show&apos;s card.</p>
       )}
 

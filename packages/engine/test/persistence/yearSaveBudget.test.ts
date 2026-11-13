@@ -14,6 +14,10 @@
  *                   every show carded 34.58 / 3.04 MB, 1.20 / 1.32 s
  *   after POL4-06:  no rival cards 9.35 / 0.93 MB, 0.43 / 0.48 s;
  *                   every show carded 17.26 / 1.83 MB, 0.77 / 0.71 s
+ *   AIP4-05 (rivals book real cards): no rival cards 14.37 / 1.54 MB, 0.50 / 0.83 s;
+ *                   every show carded 17.98 / 1.94 MB, 0.59 / 0.77 s
+ *   after POL4-08 (history past 28 days rolled up): no rival cards 10.03 / 1.06 MB, 0.40 / 0.74 s;
+ *                   every show carded 13.01 / 1.37 MB, 0.44 / 0.98 s
  * See docs/design/save-format.md#size-budget.
  *
  * The per-commit check in `npm test` is `saveBudget.test.ts` on the roster world.
@@ -36,6 +40,11 @@ const SLOW = process.env['RB_SLOW_TESTS'] === '1';
 const DAYS = Number(process.env['RB_SAVE_DAYS'] ?? '365');
 /** The on-disk (gzipped) budget for a year with every show carded. */
 const MAX_GZIP_BYTES = 10 * 1_000_000;
+/**
+ * With history older than `history.keepDetailDays` rolled up (POL4-08), a carded year must stay
+ * well under the 1.94 MB it took before: the tables no longer grow with every show ever run.
+ */
+const MAX_ROLLED_UP_GZIP_BYTES = 1.6 * 1_000_000;
 /**
  * Saving and loading each take under a second on a desktop (about 20 runs of the CPU reference
  * workload); this allows double. A ratio, not milliseconds: the engine's test threads share one
@@ -87,5 +96,6 @@ describe.runIf(SLOW)(`a ${String(DAYS)}-day default-world save`, () => {
   it('stays under 10 MB on disk with every show carded', { timeout: TIMEOUT_MS }, async () => {
     const report = await measureYear(true);
     expect(report.gzipBytes).toBeLessThan(MAX_GZIP_BYTES);
+    expect(report.gzipBytes).toBeLessThan(MAX_ROLLED_UP_GZIP_BYTES);
   });
 });
