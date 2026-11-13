@@ -16,6 +16,7 @@ import { diffDays, type GameDate } from '../../../core/date';
 import type {
   BrandId,
   EmploymentId,
+  EventInstanceId,
   PersonId,
   PromotionId,
   RegionId,
@@ -24,11 +25,13 @@ import type {
   TitleId,
   TitleReignId,
 } from '../../../core/ids';
-import { constantOf, startCalc, type Traced } from '../../../core/trace';
+import { constantOf, inputOf, startCalc, type Traced } from '../../../core/trace';
 import type { EventImportance } from '../../../model/entities/event-definition';
 import type { Alignment, Employment, Push } from '../../../model/entities/employment';
 import type { Featured } from '../../../model/entities/ai-profile';
+import type { EventInstance } from '../../../model/entities/event-instance';
 import type { Participant } from '../../../model/entities/participant';
+import type { Promotion } from '../../../model/entities/promotion';
 import type { Title } from '../../../model/entities/title';
 import { compareIds } from '../../../model/table';
 import type { GameWorldView } from '../../../model/tables';
@@ -330,6 +333,52 @@ function sideLabel(side: SideDraft): string {
 }
 
 /**
+ * What every match on one rival show shares: the promotion, the regions, the booker's taste and
+ * its featured wrestlers. Worked out once per show by AIP5-04's step and handed to
+ * {@link rivalSegmentInputsOf}, which otherwise works it out per match.
+ */
+export interface RivalShowContext {
+  readonly eventInstanceId: EventInstanceId;
+  readonly promotion: DeepReadonly<Promotion>;
+  readonly regions: CardValueInputs['regions'];
+  readonly taste: TracedTaste;
+  readonly featured: ReadonlyMap<EmploymentId, FeaturedRole>;
+  /**
+   * Card values the card planner already worked out today, by employment (AIP4's `CardPlan`), so
+   * they are not worked out twice. Recorded as numbers: rival results keep only the value.
+   */
+  readonly cardValues?: Readonly<Record<string, number>>;
+}
+
+/** The planner's card value for an employment, as a plain input, when the show context has one. */
+function knownCardValue(
+  show: RivalShowContext | undefined,
+  employmentId: EmploymentId,
+  name: string,
+): Traced<number> | null {
+  const value = show?.cardValues?.[employmentId];
+  return value === undefined ? null : inputOf(`Card value of ${name}`, value);
+}
+
+/** The shared part of the inputs for every match on `instance`. */
+export function rivalShowContextOf(
+  read: GameWorldView,
+  tunables: EngineTunables,
+  instance: DeepReadonly<EventInstance>,
+  cardValues?: Readonly<Record<string, number>>,
+): RivalShowContext {
+  const deciderBrand = deciderBrandOf(read, instance);
+  return {
+    eventInstanceId: instance.id,
+    promotion: read.tables.promotions.require(instance.promotionId),
+    regions: geographyOf(read).regions,
+    taste: tasteOf(read, tunables, instance.promotionId, deciderBrand),
+    featured: featuredRoles(profileOf(read, instance.promotionId, deciderBrand)?.featured ?? null),
+    ...(cardValues === undefined ? {} : { cardValues }),
+  };
+}
+
+/**
  * The inputs of one planned rival match, or null for an angle, a missing segment and a match with
  * fewer than two competitor sides.
  */
@@ -338,6 +387,7 @@ export function rivalSegmentInputsOf(
   tunables: EngineTunables,
   segmentId: SegmentId,
   date: GameDate,
+  show?: RivalShowContext,
 ): RivalSegmentInputs | null {
   const segment = read.tables.segments.get(segmentId);
   if (segment?.kind !== 'match') {
@@ -355,11 +405,8 @@ export function rivalSegmentInputsOf(
     return null;
   }
 
-  const promotion = read.tables.promotions.require(promotionId);
-  const regions = geographyOf(read).regions;
-  const deciderBrand = deciderBrandOf(read, instance);
-  const taste = tasteOf(read, tunables, promotionId, deciderBrand);
-  const featured = featuredRoles(profileOf(read, promotionId, deciderBrand)?.featured ?? null);
+  const { promotion, regions, taste, featured } =
+    show?.eventInstanceId === instance.id ? show : rivalShowContextOf(read, tunables, instance);
 
   const rivalSides: RivalSide[] = sides.map((side) => {
     const roles = side.competitors.map((competitor) =>
@@ -376,10 +423,11 @@ export function rivalSegmentInputsOf(
               0,
               `${competitor.name} has no contract with ${promotion.name}`,
             )
-          : cardValue(
+          : (knownCardValue(show, competitor.employment.id, competitor.name) ??
+            cardValue(
               cardValueInputsFor(read, tunables, competitor.employment, date, { regions, taste }),
               { tunables },
-            ),
+            )),
       ),
       pushIndex: Math.max(
         ...side.competitors.map((competitor) =>

@@ -133,6 +133,11 @@ export type CardPlan =
       /** "Card plan: <show>": the shape, the title picture, the fill, exclusions and the order. */
       readonly planTrace: Traced<string>;
       readonly counts: PlanCounts;
+      /**
+       * Each pool candidate's card value, by employment ID (values only), for the booked-card
+       * steps: AIP5's results read them instead of working them out again.
+       */
+      readonly cardValues?: Readonly<Record<string, number>>;
     }
   | { readonly kind: 'cancel'; readonly reason: string; readonly planTrace: Traced<string> };
 
@@ -493,5 +498,9 @@ export function planCard(read: GameWorldView, args: PlanCardArgs, deps: PlanCard
     'card',
     `${String(placements.length)} segments planned, ${String(open.length)} slots left open`,
   );
-  return { kind: 'card', placements, open, planTrace, counts };
+  const cardValues: Record<string, number> = {};
+  for (const candidate of pool.candidates) {
+    cardValues[candidate.employmentId] = candidate.cardValue.value;
+  }
+  return { kind: 'card', placements, open, planTrace, counts, cardValues };
 }

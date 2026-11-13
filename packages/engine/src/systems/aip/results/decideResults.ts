@@ -72,6 +72,7 @@ import { isComputerBooked } from './guard';
 import { popularityHistoryOf } from './history';
 import {
   rivalSegmentInputsOf,
+  rivalShowContextOf,
   STORED_TITLE_TASTE_LABEL,
   type RivalSegmentInputs,
   type RivalSide,
@@ -661,6 +662,7 @@ export function decideResults(ctx: ShowBookingContext, input: BookedCardInput): 
     return;
   }
   const streams = showStreams(ctx.read, instance.id);
+  const showContext = rivalShowContextOf(ctx.read, ctx.tunables, instance, input.plan.cardValues);
   let decided = 0;
   for (const segment of cardSegments(ctx.read, instance.id)) {
     if (segment.kind !== 'match') {
@@ -672,7 +674,7 @@ export function decideResults(ctx: ShowBookingContext, input: BookedCardInput): 
       );
       continue;
     }
-    const inputs = rivalSegmentInputsOf(ctx.read, ctx.tunables, segment.id, ctx.date);
+    const inputs = rivalSegmentInputsOf(ctx.read, ctx.tunables, segment.id, ctx.date, showContext);
     if (inputs === null) {
       ctx.log(
         `${instance.name} (${instance.id}): ${segment.id} has fewer than two sides; no result planned`,

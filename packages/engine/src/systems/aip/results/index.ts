@@ -39,6 +39,7 @@ export { isComputerBooked } from './guard';
 export {
   PUSH_INDEX,
   rivalSegmentInputsOf,
+  rivalShowContextOf,
   STORED_TITLE_TASTE_LABEL,
   STYLE_TITLE_TASTE_LABEL,
   titleTasteOf,
@@ -46,6 +47,7 @@ export {
   type RivalChallengerSide,
   type RivalOpenReign,
   type RivalSegmentInputs,
+  type RivalShowContext,
   type RivalSide,
   type RivalStorylineContext,
   type RivalTitleContext,

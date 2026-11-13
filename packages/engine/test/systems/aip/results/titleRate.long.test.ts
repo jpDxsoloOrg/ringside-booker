@@ -147,6 +147,34 @@ function watchingSystem(watch: Watch): SystemBundle {
   });
 }
 
+/** Times `aip.runTurns` (group `aiTurns`, order 50) with phases just before and after it. */
+function turnTimer(timing: { runTurnsMs: number }): SystemBundle {
+  let startedAt = 0;
+  return defineSystem({
+    id: 'timeRivalTurns',
+    phases: [
+      definePhase({
+        id: 'timeRivalTurns.start',
+        group: 'aiTurns',
+        order: 49,
+        cadence: { kind: 'daily' },
+        run: () => {
+          startedAt = now();
+        },
+      }),
+      definePhase({
+        id: 'timeRivalTurns.end',
+        group: 'aiTurns',
+        order: 51,
+        cadence: { kind: 'daily' },
+        run: () => {
+          timing.runTurnsMs += now() - startedAt;
+        },
+      }),
+    ],
+  });
+}
+
 describe.runIf(SLOW_TESTS)(`rival titles over ${String(DAYS)} days of the default world`, () => {
   it(
     'change at a plausible rate, never on a house show, never to someone who cannot hold them',
@@ -172,6 +200,7 @@ describe.runIf(SLOW_TESTS)(`rival titles over ${String(DAYS)} days of the defaul
         },
       });
       try {
+        const timing = { runTurnsMs: 0 };
         const watch: Watch = { planned: [], draws: 0, plannedMatches: 0, unplanned: [] };
         const state = startDefaultGame({
           player: { mode: 'existing', promotionKey: PLAYER_PROMOTION_KEY },
@@ -179,7 +208,7 @@ describe.runIf(SLOW_TESTS)(`rival titles over ${String(DAYS)} days of the defaul
         const start = state.world.meta.currentDate;
         const engine = createEngine({
           state,
-          systems: withMyShowsRun([...defaultSystems, watchingSystem(watch)]),
+          systems: withMyShowsRun([...defaultSystems, watchingSystem(watch), turnTimer(timing)]),
         });
         const simStarted = now();
         const advanced = await engine.advanceDays({ maxDays: DAYS });
@@ -282,6 +311,7 @@ describe.runIf(SLOW_TESTS)(`rival titles over ${String(DAYS)} days of the defaul
           [
             `${String(DAYS)} days, player on Longleaf: sim ${(simMs / 1000).toFixed(1)} s`,
             `aip.decideResults: ${decideMs.toFixed(0)} ms over ${String(decideShows)} rival shows (${(decideMs / Math.max(decideShows, 1)).toFixed(2)} ms a show, ${(decideMs / DAYS).toFixed(2)} ms a day)`,
+            `aip.runTurns (every rival job, show booking included): ${timing.runTurnsMs.toFixed(0)} ms; aip.decideResults is ${((decideMs / Math.max(timing.runTurnsMs, 1)) * 100).toFixed(1)}% of it`,
             `Rival matches planned: ${String(watch.plannedMatches)}, draws ${String(watch.draws)}`,
             `Rival titles: ${String(rivalTitles.length)}; new reigns on computer shows: ${String(onComputerShows)} (${(onComputerShows / rivalTitles.length / years).toFixed(2)} changes per title per year)`,
             `Reigns ended in the run: ${String(ended.length)}, mean ${meanDays(ended).toFixed(0)} days; those also begun in it: ${String(endedInRun.length)}, mean ${meanDays(endedInRun).toFixed(0)} days`,
