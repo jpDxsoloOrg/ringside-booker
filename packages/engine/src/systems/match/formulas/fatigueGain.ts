@@ -63,14 +63,20 @@ export function repeatMatchLabel(matchesEarlierTonight: number): string {
 }
 
 /**
+ * The tunable a repeat-match factor reads: fatigue and wear share `match.fatigue.repeatMatch`; the
+ * injury chance has its own `match.injury.repeatMatch` (MTCH4-02).
+ */
+export type RepeatMatchKey = 'match.fatigue.repeatMatch' | 'match.injury.repeatMatch';
+
+/**
  * The repeat-match factor for a worker with `matchesEarlierTonight` earlier matches on the card:
- * `match.fatigue.repeatMatch ^ matchesEarlierTonight`. Fatigue and wear both use it.
+ * `<key> ^ matchesEarlierTonight`, with `key` defaulting to `match.fatigue.repeatMatch`.
  */
 export function repeatMatchFactor(
   matchesEarlierTonight: number,
   tunables: EngineTunables,
+  key: RepeatMatchKey = 'match.fatigue.repeatMatch',
 ): Traced<number> {
-  const key = 'match.fatigue.repeatMatch';
   const perMatch = traced(tunables.get(key), tunableNode(tunables, key, 'Each extra match'));
   const earlier = matchesEarlierTonight === 1 ? 'match' : 'matches';
   return startCalc(repeatMatchLabel(matchesEarlierTonight), perMatch, { unit: 'multiplier' })
@@ -83,11 +89,12 @@ export function applyRepeatMatch(
   calc: Calc,
   matchesEarlierTonight: number,
   tunables: EngineTunables,
+  key: RepeatMatchKey = 'match.fatigue.repeatMatch',
 ): void {
   if (matchesEarlierTonight <= 0) {
     return;
   }
-  const factor = repeatMatchFactor(matchesEarlierTonight, tunables);
+  const factor = repeatMatchFactor(matchesEarlierTonight, tunables, key);
   calc.multiply(
     `${repeatMatchLabel(matchesEarlierTonight)} ×${formatNumber(factor.value)}`,
     factor,

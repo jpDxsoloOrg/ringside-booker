@@ -9,9 +9,12 @@
  * body traits, a house show and keep-it-safe, with one roughness roll; then spread over the body by
  * the part weights.
  *
+ * `match.injury.*` (MTCH4-02): the in-match injury chance and how many workers one segment can
+ * injure.
+ *
  * Every key has a minimum of 0, so setting one to 0 means exactly 0.
  *
- * Design: docs/design/physical-toll.md#fatigue-gain and #wear.
+ * Design: docs/design/physical-toll.md#fatigue-gain, #wear and #injury-chance.
  */
 
 import { defineTunables } from '../../../core/tunables/define';
@@ -22,8 +25,9 @@ import { DURATION_CLASS_LABELS, type DurationClass } from '../slots';
 const PHYSICAL_CATEGORY = 'Physical toll';
 const FATIGUE_DOC = 'physical-toll.md#fatigue-gain';
 const WEAR_DOC = 'physical-toll.md#wear';
+const INJURY_DOC = 'physical-toll.md#injury-chance';
 
-type PhysicalUnit = 'points' | 'ratio' | 'multiplier';
+type PhysicalUnit = 'points' | 'ratio' | 'multiplier' | 'probability';
 
 function physicalNumber(
   defaultValue: number,
@@ -152,6 +156,64 @@ function partWeight(part: BodyPart) {
   );
 }
 
+const INJURY_SELF_STYLE_DEFAULTS: Readonly<Record<RingStyle, number>> = {
+  allRounder: 1,
+  technician: 1,
+  brawler: 1,
+  highFlyer: 1.4,
+  powerhouse: 1,
+  hardcore: 1.4,
+  striker: 1,
+  grappler: 1,
+  showman: 1,
+  nonWrestler: 1,
+};
+
+const INJURY_OPPONENT_STYLE_DEFAULTS: Readonly<Record<RingStyle, number>> = {
+  allRounder: 1,
+  technician: 1,
+  brawler: 1.2,
+  highFlyer: 1,
+  powerhouse: 1.15,
+  hardcore: 1.3,
+  striker: 1.2,
+  grappler: 1,
+  showman: 1,
+  nonWrestler: 1,
+};
+
+function injurySelfStyle(style: RingStyle) {
+  return factor(
+    INJURY_SELF_STYLE_DEFAULTS[style],
+    INJURY_DOC,
+    `How much a ${STYLE_LABELS[style].toLowerCase()}'s own style raises their injury chance`,
+  );
+}
+
+function injuryOpponentStyle(style: RingStyle) {
+  return factor(
+    INJURY_OPPONENT_STYLE_DEFAULTS[style],
+    INJURY_DOC,
+    `How much a ${STYLE_LABELS[style].toLowerCase()} opponent raises the injury chance`,
+  );
+}
+
+function injuryDuration(durationClass: DurationClass, defaultValue: number) {
+  const word = DURATION_CLASS_LABELS[durationClass].toLowerCase();
+  return factor(defaultValue, INJURY_DOC, `Injury chance in a ${word} match`);
+}
+
+/** A small 0..1 probability step for the per-point injury terms. */
+function injuryPerPoint(defaultValue: number, description: string) {
+  return physicalNumber(
+    defaultValue,
+    { max: 0.01, step: 0.00005 },
+    'probability',
+    INJURY_DOC,
+    description,
+  );
+}
+
 export const physicalTunables = defineTunables({
   // Fatigue gain
   'match.fatigue.base.short': fatigueBase('short', 4),
@@ -259,4 +321,102 @@ export const physicalTunables = defineTunables({
   'match.wear.part.arms': partWeight('arms'),
   'match.wear.part.torso': partWeight('torso'),
   'match.wear.part.legs': partWeight('legs'),
+
+  // In-match injuries (MTCH4-02)
+  'match.injury.enabled': {
+    kind: 'boolean',
+    default: true,
+    unit: 'flag',
+    category: PHYSICAL_CATEGORY,
+    description: 'Workers can get hurt in a match; off, nobody is ever injured in one',
+    docRef: INJURY_DOC,
+  },
+  'match.injury.baseChance': physicalNumber(
+    0.003,
+    { max: 0.2, step: 0.0005 },
+    'probability',
+    INJURY_DOC,
+    'Injury chance for a fresh worker in a standard match before anything moves it',
+  ),
+  'match.injury.perFatiguePoint': injuryPerPoint(
+    0.0001,
+    'Injury chance added per point of fatigue by the end of the match',
+  ),
+  'match.injury.perConditionPointLost': injuryPerPoint(
+    0.0001,
+    'Injury chance added per point the worst body part is below 100',
+  ),
+  'match.injury.duration.short': injuryDuration('short', 0.7),
+  'match.injury.duration.standard': injuryDuration('standard', 1),
+  'match.injury.duration.long': injuryDuration('long', 1.3),
+  'match.injury.opponentSafetyWeight': physicalNumber(
+    0.012,
+    { max: 0.05, step: 0.001 },
+    'ratio',
+    INJURY_DOC,
+    'Injury chance added per point the least safe opponent is below 50 safety (taken off above)',
+  ),
+  'match.injury.minSafetyFactor': factor(
+    0.5,
+    INJURY_DOC,
+    'Least a safe opponent can bring the injury chance to',
+  ),
+  'match.injury.maxSafetyFactor': factor(
+    1.6,
+    INJURY_DOC,
+    'Most a careless opponent can bring the injury chance to',
+  ),
+  'match.injury.selfStyle.allRounder': injurySelfStyle('allRounder'),
+  'match.injury.selfStyle.technician': injurySelfStyle('technician'),
+  'match.injury.selfStyle.brawler': injurySelfStyle('brawler'),
+  'match.injury.selfStyle.highFlyer': injurySelfStyle('highFlyer'),
+  'match.injury.selfStyle.powerhouse': injurySelfStyle('powerhouse'),
+  'match.injury.selfStyle.hardcore': injurySelfStyle('hardcore'),
+  'match.injury.selfStyle.striker': injurySelfStyle('striker'),
+  'match.injury.selfStyle.grappler': injurySelfStyle('grappler'),
+  'match.injury.selfStyle.showman': injurySelfStyle('showman'),
+  'match.injury.selfStyle.nonWrestler': injurySelfStyle('nonWrestler'),
+  'match.injury.opponentStyle.allRounder': injuryOpponentStyle('allRounder'),
+  'match.injury.opponentStyle.technician': injuryOpponentStyle('technician'),
+  'match.injury.opponentStyle.brawler': injuryOpponentStyle('brawler'),
+  'match.injury.opponentStyle.highFlyer': injuryOpponentStyle('highFlyer'),
+  'match.injury.opponentStyle.powerhouse': injuryOpponentStyle('powerhouse'),
+  'match.injury.opponentStyle.hardcore': injuryOpponentStyle('hardcore'),
+  'match.injury.opponentStyle.striker': injuryOpponentStyle('striker'),
+  'match.injury.opponentStyle.grappler': injuryOpponentStyle('grappler'),
+  'match.injury.opponentStyle.showman': injuryOpponentStyle('showman'),
+  'match.injury.opponentStyle.nonWrestler': injuryOpponentStyle('nonWrestler'),
+  'match.injury.injuryProneFactor': factor(
+    1.8,
+    INJURY_DOC,
+    'Injury chance for an injury-prone worker',
+  ),
+  'match.injury.durableFactor': factor(0.5, INJURY_DOC, 'Injury chance for a durable worker'),
+  'match.injury.keepItSafeFactor': factor(
+    0.5,
+    INJURY_DOC,
+    'Injury chance when told to keep it safe',
+  ),
+  'match.injury.repeatMatch': factor(
+    1.4,
+    INJURY_DOC,
+    'Injury chance for each match after the first on the same card, compounding',
+  ),
+  'match.injury.maxChance': physicalNumber(
+    0.2,
+    { max: 1, step: 0.01 },
+    'probability',
+    INJURY_DOC,
+    'Highest injury chance one worker can have in one match',
+  ),
+  'match.injury.maxPerSegment': {
+    kind: 'integer',
+    default: 1,
+    min: 0,
+    max: 10,
+    unit: 'count',
+    category: PHYSICAL_CATEGORY,
+    description: 'Most workers who can be injured in one segment; 0 means nobody is ever hurt',
+    docRef: INJURY_DOC,
+  },
 });
