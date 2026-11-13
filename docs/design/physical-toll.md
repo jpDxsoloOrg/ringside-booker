@@ -390,6 +390,18 @@ a summary keeps too. `applied` is false until the match has run. Physical
 numbers are not secret, so every viewer gets the same answer; learning is a
 gain only, never potential or a ceiling.
 
+### match.segmentInjuries
+
+`match.segmentInjuries { eventInstanceId }` (MTCH4-06, on the match system)
+lists every worker hurt in a match on the show, from WRK6's `injuries` rows with
+`source: 'segment'`, in card order (pre-show first, then by slot, then person
+id): `{ injuryId, segmentId, personId, name, bodyPart, kindLabel,
+expectedReturn, weeksOut, chanceTraceRef, injuryTraceRef }`. `weeksOut` is
+`ceil((expectedReturn − show date) / 7)`, never below 1 (`weeksOutOf`). The
+rows are kept for good; each ref is null once the store no longer has its
+trace. An injury on a rival's show is public news, so every viewer gets the
+same answer. The results page draws it as the injury banner on the match's card.
+
 ## Match lab
 
 After Simulate, the Match lab's **Physical** panel (MTCH4-05,
