@@ -2157,3 +2157,34 @@ export {
   type CompanySize,
   type CompanySizeSource,
 } from './systems/aip/index';
+
+// AIP4-01: the card planner's groundwork: the `Rival booking` tunables, the `aip.card` and
+// `aip.autofill` streams, the card pool and the card-shape formulas. See
+// docs/design/rival-booking.md.
+export {
+  aipCardTunables,
+  appearanceCapReason,
+  AUTOFILL_STREAM,
+  buildCardPool,
+  CARD_EMPLOYMENT_ROLES,
+  CARD_PLAN_STREAM,
+  MAIN_EVENT_RULE,
+  mainEventMustBeMatch,
+  NO_BACK_TO_BACK_REASON,
+  NO_HOUSE_SHOWS_REASON,
+  RIVAL_BOOKING_CATEGORY,
+  talkSlotsFor,
+  talkValueOf,
+  tiredReason,
+  titleMatchCapFor,
+  type CardCandidate,
+  type CardExclusion,
+  type CardPool,
+  type CardPoolArgs,
+  type CardPoolShow,
+  type CardTeam,
+  type CardTitle,
+  type ContractBlock,
+  type TalkSlotsInputs,
+  type TitleMatchCapInputs,
+} from './systems/aip/index';
