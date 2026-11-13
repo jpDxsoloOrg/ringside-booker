@@ -16,6 +16,22 @@ export const CARD_SHAPE_DOC_REF = 'rival-booking.md#card-shape';
 export const TITLE_CAP_DOC_REF = 'rival-booking.md#title-matches';
 export const TITLE_PICTURE_DOC_REF = 'rival-booking.md#title-picture';
 export const CHALLENGERS_DOC_REF = 'rival-booking.md#challengers';
+export const FILLING_DOC_REF = 'rival-booking.md#filling-the-card';
+export const MATCH_TYPES_DOC_REF = 'rival-booking.md#match-types';
+export const FALLBACK_DOC_REF = 'rival-booking.md#fallback-chain';
+export const TALKING_DOC_REF = 'rival-booking.md#talking-segments';
+export const STORYLINES_DOC_REF = 'rival-booking.md#storylines';
+
+/** The shapes of match the card planner weighs against each other (`formulas/matchTypeWeight.ts`). */
+export const MATCH_FAMILIES = ['oneOnOne', 'tag', 'trios', 'multiWay', 'other'] as const;
+export type MatchFamily = (typeof MATCH_FAMILIES)[number];
+
+/** `aip.card.typeWeight.<family>`: the base weight of a match type of that family. */
+export type TypeWeightKey = `aip.card.typeWeight.${MatchFamily}`;
+
+export function typeWeightKey(family: MatchFamily): TypeWeightKey {
+  return `aip.card.typeWeight.${family}`;
+}
 
 /** `aip.card.talkShare.<importance>`: the talking share of a show of that importance. */
 export type TalkShareKey = `aip.card.talkShare.${EventImportance}`;
@@ -55,6 +71,15 @@ const IMPORTANCE_BONUS = {
   unit: 'points',
   category: RIVAL_BOOKING_CATEGORY,
   docRef: TITLE_PICTURE_DOC_REF,
+} as const;
+
+const TYPE_WEIGHT = {
+  kind: 'number',
+  min: 0,
+  max: 1000,
+  unit: 'points',
+  category: RIVAL_BOOKING_CATEGORY,
+  docRef: MATCH_TYPES_DOC_REF,
 } as const;
 
 const TITLE_CAP = {
@@ -270,5 +295,108 @@ export const aipCardTunables = defineTunables({
     description:
       "Whether a champion is kept out of challenging for another of the promotion's titles",
     docRef: CHALLENGERS_DOC_REF,
+  },
+
+  // Filling the card (AIP4-03).
+  'aip.card.maxStorylineSegments': {
+    kind: 'integer',
+    default: 2,
+    min: 0,
+    max: 6,
+    unit: 'count',
+    category: RIVAL_BOOKING_CATEGORY,
+    description: 'Most storyline segments a rival puts on one show',
+    docRef: STORYLINES_DOC_REF,
+  },
+  'aip.card.storylineMinHeat': {
+    kind: 'number',
+    default: 0,
+    min: 0,
+    max: 100,
+    unit: 'points',
+    category: RIVAL_BOOKING_CATEGORY,
+    description: 'Heat a storyline needs before a rival gives it a segment (0: every active one)',
+    docRef: STORYLINES_DOC_REF,
+  },
+  'aip.card.storylineMatchChance': {
+    kind: 'number',
+    default: 0.5,
+    min: 0,
+    max: 1,
+    step: 0.05,
+    unit: 'probability',
+    category: RIVAL_BOOKING_CATEGORY,
+    description:
+      'Chance a storyline with a fit face and heel gets a match rather than a talking segment',
+    docRef: STORYLINES_DOC_REF,
+  },
+  'aip.card.typeWeight.oneOnOne': {
+    ...TYPE_WEIGHT,
+    default: 100,
+    description: 'How often a rival picks a one-on-one match type, against the other kinds',
+  },
+  'aip.card.typeWeight.tag': {
+    ...TYPE_WEIGHT,
+    default: 35,
+    description: 'Same, for a two-on-two tag match type',
+  },
+  'aip.card.typeWeight.multiWay': {
+    ...TYPE_WEIGHT,
+    default: 10,
+    description: 'Same, for a match of three or more singles sides (three-way, four-way)',
+  },
+  'aip.card.typeWeight.trios': {
+    ...TYPE_WEIGHT,
+    default: 6,
+    description: 'Same, for a three-on-three match type',
+  },
+  'aip.card.typeWeight.other': {
+    ...TYPE_WEIGHT,
+    default: 2,
+    description: 'Same, for any other shape, such as a handicap match or a battle royal',
+  },
+  'aip.card.poolComfort': {
+    kind: 'number',
+    default: 2,
+    min: 1,
+    max: 5,
+    step: 0.25,
+    unit: 'multiplier',
+    category: RIVAL_BOOKING_CATEGORY,
+    description:
+      'How many times the wrestlers a match needs must be free before its type gets its full weight',
+    docRef: MATCH_TYPES_DOC_REF,
+  },
+  'aip.card.noTeamFactor': {
+    kind: 'number',
+    default: 0.25,
+    min: 0,
+    max: 1,
+    step: 0.05,
+    unit: 'multiplier',
+    category: RIVAL_BOOKING_CATEGORY,
+    description: 'Weight left to a tag or trios match type when fewer than two teams are free',
+    docRef: MATCH_TYPES_DOC_REF,
+  },
+  'aip.card.pickWindow': {
+    kind: 'integer',
+    default: 5,
+    min: 1,
+    max: 20,
+    unit: 'count',
+    category: RIVAL_BOOKING_CATEGORY,
+    description: 'How many of the best free workers a rival chooses each place on the card from',
+    docRef: FALLBACK_DOC_REF,
+  },
+  'aip.card.secondSpeakerChance': {
+    kind: 'number',
+    default: 0.5,
+    min: 0,
+    max: 1,
+    step: 0.05,
+    unit: 'probability',
+    category: RIVAL_BOOKING_CATEGORY,
+    description: 'Chance a talking segment gets a second speaker',
+    docRef: TALKING_DOC_REF,
   },
 });
