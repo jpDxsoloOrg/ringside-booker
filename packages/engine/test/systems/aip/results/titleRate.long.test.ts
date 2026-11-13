@@ -45,10 +45,14 @@ interface PlannedChange {
   readonly house: boolean;
   /** What stops a new champion: eligibility, availability or a short contract. Empty when fine. */
   readonly problems: readonly string[];
+  /** MTCH2 (AIP5-06): the planned finish lets titles move, and so does its method. */
+  readonly finishMovesTitles: boolean;
 }
 
 interface Watch {
   readonly planned: PlannedChange[];
+  /** `segment|title` of every title a planned rival result keeps where it is. */
+  readonly retained: string[];
   /** Rival matches booked as draws. */
   draws: number;
   /** Rival matches with a planned result. */
@@ -97,8 +101,15 @@ function watchingSystem(watch: Watch): SystemBundle {
                 outcome.kind !== 'win' ||
                 methodOf(ctx.read, outcome.methodKey)?.changesTitles !== true
               ) {
+                for (const titleId of segment.match.titleIds) {
+                  watch.retained.push(`${segment.id}|${titleId}`);
+                }
                 continue;
               }
+              const finish =
+                segment.match.finishKey === null
+                  ? undefined
+                  : ctx.read.meta.catalogs.finishes?.[segment.match.finishKey];
               const winners = ctx.read.tables.participants
                 .lookup('bySegment', segment.id)
                 .filter((row) => row.role === 'competitor' && row.side === outcome.winningSide)
@@ -106,10 +117,11 @@ function watchingSystem(watch: Watch): SystemBundle {
               for (const titleId of segment.match.titleIds) {
                 const title = ctx.read.tables.titles.require(titleId);
                 const reign = openReignOf(ctx.read, titleId);
-                if (reign?.holderIds.every((holderId) => winners.includes(holderId)) === true) {
-                  continue;
-                }
-                if (winners.length !== title.holderCount) {
+                if (
+                  reign?.holderIds.every((holderId) => winners.includes(holderId)) === true ||
+                  winners.length !== title.holderCount
+                ) {
+                  watch.retained.push(`${segment.id}|${titleId}`);
                   continue;
                 }
                 const problems: string[] = [];
@@ -137,6 +149,7 @@ function watchingSystem(watch: Watch): SystemBundle {
                   date: ctx.date,
                   house: show.importance === 'house',
                   problems,
+                  finishMovesTitles: finish?.allowsTitleChange === true,
                 });
               }
             }
@@ -201,7 +214,13 @@ describe.runIf(SLOW_TESTS)(`rival titles over ${String(DAYS)} days of the defaul
       });
       try {
         const timing = { runTurnsMs: 0 };
-        const watch: Watch = { planned: [], draws: 0, plannedMatches: 0, unplanned: [] };
+        const watch: Watch = {
+          planned: [],
+          retained: [],
+          draws: 0,
+          plannedMatches: 0,
+          unplanned: [],
+        };
         const state = startDefaultGame({
           player: { mode: 'existing', promotionKey: PLAYER_PROMOTION_KEY },
         });
@@ -260,6 +279,23 @@ describe.runIf(SLOW_TESTS)(`rival titles over ${String(DAYS)} days of the defaul
           onComputerShows += 1;
         }
         expect(watch.planned.filter((entry) => entry.house)).toEqual([]);
+        // MTCH2 (AIP5-06): every planned change has a finish and a method that let the title move,
+        // and it happened; every planned retention ended with the champions still holding.
+        expect(watch.planned.filter((entry) => !entry.finishMovesTitles)).toEqual([]);
+        const wonIn = new Set(
+          tables.titleReigns.map((reign) => `${String(reign.wonInSegmentId)}|${reign.titleId}`),
+        );
+        const undone = watch.planned.filter((entry) => {
+          const segment = segmentsById.get(entry.segmentId);
+          const show = segment === undefined ? undefined : showsById.get(segment.eventInstanceId);
+          return (
+            show?.status === 'completed' &&
+            entry.problems.length === 0 &&
+            !wonIn.has(`${entry.segmentId}|${entry.titleId}`)
+          );
+        });
+        expect(undone).toEqual([]);
+        expect(watch.retained.filter((key) => wonIn.has(key))).toEqual([]);
         expect(watch.draws).toBe(0);
         expect(watch.unplanned).toEqual([]);
 
@@ -313,6 +349,7 @@ describe.runIf(SLOW_TESTS)(`rival titles over ${String(DAYS)} days of the defaul
             `aip.decideResults: ${decideMs.toFixed(0)} ms over ${String(decideShows)} rival shows (${(decideMs / Math.max(decideShows, 1)).toFixed(2)} ms a show, ${(decideMs / DAYS).toFixed(2)} ms a day)`,
             `aip.runTurns (every rival job, show booking included): ${timing.runTurnsMs.toFixed(0)} ms; aip.decideResults is ${((decideMs / Math.max(timing.runTurnsMs, 1)) * 100).toFixed(1)}% of it`,
             `Rival matches planned: ${String(watch.plannedMatches)}, draws ${String(watch.draws)}`,
+            `Planned title changes: ${String(watch.planned.length)}, planned retentions: ${String(watch.retained.length)}`,
             `Rival titles: ${String(rivalTitles.length)}; new reigns on computer shows: ${String(onComputerShows)} (${(onComputerShows / rivalTitles.length / years).toFixed(2)} changes per title per year)`,
             `Reigns ended in the run: ${String(ended.length)}, mean ${meanDays(ended).toFixed(0)} days; those also begun in it: ${String(endedInRun.length)}, mean ${meanDays(endedInRun).toFixed(0)} days`,
             `Titles defended 4+ times: ${String(defended.length)}, changed hands: ${String(defendedAndChanged.length)} (${(changeShare * 100).toFixed(0)}%)`,

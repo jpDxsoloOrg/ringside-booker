@@ -2,7 +2,8 @@
  * Hand-written AIP5 result views for the gallery (AIP5-05): a win with its method and reason, a
  * draw, a title retained, a new champion, a match whose full reasons are no longer kept and one
  * with long names. The traces copy the shape the rival booker stores (`aip.winner`, `aip.title`);
- * the people, titles and numbers are made up. No engine runs.
+ * the people, titles and numbers are made up. No engine runs. Options read as words, as the booker
+ * stores them since AIP5-06 (side names, finish and method names).
  */
 import { parseId } from '@ringside/engine';
 import type {
@@ -22,8 +23,8 @@ const SHOW = parseId('eventInstance', 'evi_0000000001');
 export const galleryWinnerTrace: TraceNode = {
   kind: 'decision',
   label: 'Booked result: Kai Moreno vs Rex Hale',
-  value: 'side:0',
-  chosen: 'side:0',
+  value: 'Kai Moreno',
+  chosen: 'Kai Moreno',
   reason: 'Higher value',
   considered: [],
   docRef: DOC,
@@ -31,14 +32,13 @@ export const galleryWinnerTrace: TraceNode = {
     {
       kind: 'decision',
       label: 'Who wins',
-      value: 'side:0',
-      chosen: 'side:0',
+      value: 'Kai Moreno',
+      chosen: 'Kai Moreno',
       reason: 'Higher value on the night',
       considered: [
-        { option: 'side:0', score: 64.2, reason: 'Kai Moreno' },
-        { option: 'side:1', score: 51.8, reason: 'Rex Hale' },
+        { option: 'Kai Moreno', score: 64.2 },
+        { option: 'Rex Hale', score: 51.8 },
       ],
-      docRef: DOC,
       children: [
         { kind: 'input', label: 'Card value, Kai Moreno', value: 62, unit: 'points' },
         { kind: 'input', label: 'Card value, Rex Hale', value: 53, unit: 'points' },
@@ -49,17 +49,31 @@ export const galleryWinnerTrace: TraceNode = {
     },
     {
       kind: 'decision',
-      label: 'How the match is won',
-      value: 'method.pinfall',
-      chosen: 'method.pinfall',
-      reason: 'Pinfall',
+      label: 'How the match ends',
+      value: 'Clean finish',
+      chosen: 'Clean finish',
+      reason: 'Picked by weighted roll',
       considered: [
-        { option: 'method.pinfall', score: 1, reason: 'Pinfall' },
-        { option: 'method.submission', score: 1, reason: 'Submission' },
-        { option: 'method.count-out', score: 0.15, reason: 'Count-Out' },
+        { option: 'Clean finish', score: 60 },
+        { option: 'Flash finish', score: 10 },
+        { option: 'Cheating finish', score: 12 },
+        { option: 'Count-out', score: 4 },
+        { option: 'Disqualification', score: 4 },
       ],
-      docRef: DOC,
-      children: [],
+      docRef: 'match-finishes.md#finish-on-the-night',
+    },
+    {
+      kind: 'decision',
+      label: 'How the match is won',
+      value: 'Pinfall',
+      chosen: 'Pinfall',
+      reason: 'Picked by weighted roll',
+      considered: [
+        { option: 'Pinfall', score: 6 },
+        { option: 'Submission', score: 3 },
+        { option: 'Knockout', score: 1 },
+      ],
+      docRef: 'match-finishes.md#method',
     },
   ],
 };
@@ -73,7 +87,7 @@ export const galleryTitleTrace: TraceNode = {
   reason: 'Champion retains',
   considered: [
     { option: 'retain', score: 71, reason: 'Big Joe Sato keeps it' },
-    { option: 'side:1', score: 66, reason: 'Dante Rivers' },
+    { option: 'Dante Rivers', score: 66 },
   ],
   docRef: DOC,
   children: [
