@@ -209,6 +209,14 @@
   cursor: help;
 }
 
+/* Touch screens: a finger-sized hit area that takes no extra room (see tokens.css). */
+@media (pointer: coarse) {
+  .gradeChip {
+    padding-block: var(--tap-pad-block);
+    margin-block: calc(-1 * var(--tap-pad-block));
+  }
+}
+
 .roleTable {
   inline-size: 100%;
   border-collapse: collapse;
