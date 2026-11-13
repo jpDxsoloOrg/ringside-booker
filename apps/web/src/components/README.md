@@ -142,6 +142,7 @@ export const galleryEntry: GalleryEntry = {
 | `SegmentResultCard`   | One finished segment from `shows.results`: sides with the winner marked, the result line, stars with a Why? on each number and the title banner; `revealed={false}` keeps its height                                                         |
 | `SortableList`        | Reorder a list by drag or keyboard: `SortableList`, `SortableItem`, `useSortableHandle`; `insert` or `swap` mode, every step announced. The only place that imports `@dnd-kit`                                                               |
 | `RosterPicker`        | Pick people or a team for a segment: debounced search, Bookable only / This brand / Teams filters (plus Hide booked with `bookedFilter`), push, alignment and availability; unbookable rows dimmed with the reason. Also `AvailabilityBadge` |
+| `RecentForm`          | A worker's last matches: a strip of W / L / D / NC pills named in full, or a list with each match's popularity and momentum change and a Why? while kept; "No matches yet" when empty                                                        |
 
 Money is integer `Cents` and dates are `GameDate` strings from `@ringside/engine`; the formatters
 turn them into text at the edge and nowhere else.
