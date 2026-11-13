@@ -25,7 +25,31 @@ import { nextOccurrence, occursOn } from '../../model/recurrence';
 import type { GameTables } from '../../model/tables';
 import type { Tx } from '../../model/tx';
 import type { DeepReadonly, WorldView } from '../../model/world';
+import type { TraceStaging } from '../../core/trace/store';
+import { createEngineTunables, type EngineTunables } from '../tunables';
+import { adjustScheduledFormat } from './formatAdjusters';
 import { placeShow } from './placement';
+
+/**
+ * How the scheduler runs the scheduled-format adjusters (`formatAdjusters.ts`). The day phase and
+ * the new-game step pass their tunables and their trace recorder; a caller that passes neither
+ * gets the default tunables and no recorded traces.
+ */
+export interface ScheduleOptions {
+  readonly tunables?: EngineTunables;
+  /** Records each adjuster's trace under the new show's id, dated `date`. */
+  readonly recordTrace?: { readonly record: TraceStaging['record']; readonly date: GameDate };
+}
+
+let defaultTunables: EngineTunables | undefined;
+
+function tunablesOf(options: ScheduleOptions): EngineTunables {
+  if (options.tunables !== undefined) {
+    return options.tunables;
+  }
+  defaultTunables ??= createEngineTunables();
+  return defaultTunables;
+}
 
 /**
  * The most dates one call lists for one definition. A show can run every day of the week, and the
@@ -104,8 +128,9 @@ export function isSchedulable(
  * Stores a scheduled show for every date of the definition from `from` through `to` that has no
  * show yet, and returns the new shows' ids, earliest first. A date that already has a row for the
  * definition is skipped whatever the row's status, so a cancelled show and a show taped on an
- * earlier day are never created again. Importance, format, brand and name are copied from the
- * definition. Does not check {@link isSchedulable}; `scheduleAll` does.
+ * earlier day are never created again. Importance, brand and name are copied from the
+ * definition; the format is the definition's after the scheduled-format adjusters
+ * (`formatAdjusters.ts`), which is the definition's own when none is registered. Does not check {@link isSchedulable}; `scheduleAll` does.
  *
  * @throws EntityNotFoundError when the definition is not in the world.
  */
@@ -115,6 +140,7 @@ export function scheduleDefinitionWindow(
   definitionId: EventDefinitionId,
   from: GameDate,
   to: GameDate,
+  options: ScheduleOptions = {},
 ): EventInstanceId[] {
   const definition = read.tables.eventDefinitions.get(definitionId);
   if (definition === undefined) {
@@ -130,13 +156,14 @@ export function scheduleDefinitionWindow(
       continue;
     }
     const placement = placeShow(read, definition, occurrence).value;
+    const adjusted = adjustScheduledFormat(read, definition, occurrence, tunablesOf(options));
     const instance = tx.create('eventInstances', {
       promotionId: definition.promotionId,
       eventDefinitionId: definition.id,
       brandId: definition.brandId,
       name: definition.name,
       importance: definition.importance,
-      format: { slots: definition.format.slots, preShowSlots: definition.format.preShowSlots },
+      format: adjusted.format,
       date: occurrence,
       airDate: occurrence,
       status: 'scheduled',
@@ -146,6 +173,15 @@ export function scheduleDefinitionWindow(
       result: null,
       cancellation: null,
     });
+    if (options.recordTrace !== undefined) {
+      for (const trace of adjusted.traces) {
+        options.recordTrace.record(
+          { kind: trace.kind, id: instance.id },
+          options.recordTrace.date,
+          trace.traced,
+        );
+      }
+    }
     created.push(instance.id);
   }
   return created;
@@ -170,6 +206,7 @@ export function scheduleAll(
   read: WorldView<GameTables>,
   from: GameDate,
   to: GameDate,
+  options: ScheduleOptions = {},
 ): ScheduleSummary {
   const instanceIds: EventInstanceId[] = [];
   const createdByPromotion = new Map<PromotionId, number>();
@@ -177,7 +214,7 @@ export function scheduleAll(
     if (!isSchedulable(read, definition)) {
       continue;
     }
-    const created = scheduleDefinitionWindow(tx, read, definition.id, from, to);
+    const created = scheduleDefinitionWindow(tx, read, definition.id, from, to, options);
     if (created.length === 0) {
       continue;
     }

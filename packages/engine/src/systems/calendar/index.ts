@@ -54,8 +54,18 @@ export {
   occurrencesBetween,
   scheduleAll,
   scheduleDefinitionWindow,
+  type ScheduleOptions,
   type ScheduleSummary,
 } from './schedule';
+export {
+  adjustScheduledFormat,
+  listScheduledFormatAdjusters,
+  registerScheduledFormatAdjuster,
+  type AdjustedFormat,
+  type ScheduledFormatAdjuster,
+  type ScheduledFormatAdjustment,
+  type ScheduledFormatInput,
+} from './formatAdjusters';
 export { CALENDAR_SETUP_STEP } from './setup';
 export {
   calendarRowBuilder,
