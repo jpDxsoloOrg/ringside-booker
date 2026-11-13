@@ -5,8 +5,9 @@
  * ECO7-01 lays the groundwork: the area tables (`areas.ts`), the tunables (`tunables.ts`) and the
  * pure traced formulas (`formulas/`). ECO7-02 adds the read and write sides: the change check and
  * write door (`door.ts`), the `production.setLevel` command, the `production.overview` and
- * `production.changePreview` queries and the effect seam (`effects.ts`). The monthly and per-show
- * postings arrive in ECO7-03 and ECO7-05. Production never rolls, so there is no RNG
+ * `production.changePreview` queries and the effect seam (`effects.ts`). ECO7-03 adds the day
+ * phases (`phases.ts`): the monthly overhead on the 1st and the daily popularity drag above the
+ * ceiling. The per-show postings arrive in ECO7-05. Production never rolls, so there is no RNG
  * stream. EVT4 owns the show-quality ceiling (system `cardFlow`). See docs/design/production.md.
  */
 
@@ -14,6 +15,7 @@ import { defineSystem, type SystemBundle } from '../../core/api/system';
 import './events';
 import './builtinEffects';
 import { setProductionLevelCommand } from './commands';
+import { productionPhases } from './phases';
 import { productionChangePreviewQuery, productionOverviewQuery } from './queries';
 
 export {
@@ -111,8 +113,21 @@ export {
   type ProductionRow,
 } from './queries';
 
+export {
+  MONTHLY_OVERHEAD_PHASE_ID,
+  MONTHLY_OVERHEAD_TRACE_KIND,
+  monthlyOverheadPhase,
+  monthlyOverheadTraceRef,
+  POPULARITY_DRAG_PHASE_ID,
+  POPULARITY_DRAG_REASON_KEY,
+  POPULARITY_DRAG_REASON_LABEL,
+  popularityDragPhase,
+  productionPhases,
+} from './phases';
+
 export const productionSystem: SystemBundle = defineSystem({
   id: 'production',
+  phases: productionPhases,
   queries: [productionOverviewQuery, productionChangePreviewQuery],
   commands: [setProductionLevelCommand],
 });

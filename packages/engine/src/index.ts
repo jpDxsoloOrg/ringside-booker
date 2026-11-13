@@ -2733,3 +2733,13 @@ export {
   type ProductionUpcomingShow,
   type SetProductionLevelResult,
 } from './systems/production/index';
+
+// Production overhead and popularity drag phases (ECO7-03).
+export {
+  MONTHLY_OVERHEAD_PHASE_ID,
+  MONTHLY_OVERHEAD_TRACE_KIND,
+  monthlyOverheadTraceRef,
+  POPULARITY_DRAG_PHASE_ID,
+  POPULARITY_DRAG_REASON_KEY,
+  POPULARITY_DRAG_REASON_LABEL,
+} from './systems/production/index';

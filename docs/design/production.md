@@ -92,6 +92,23 @@ Worked numbers at the defaults:
 - **Altura** (music 7, writing 7, marketing 8, back office 7): $171,500 +
   $85,750 + $614,400 + $343,000 = **$1,214,650 a month**.
 
+### Monthly overhead
+
+Phase `production.monthlyOverhead` (`money` group, order 35, after payroll and
+medical; the 1st of each month). Each **active** promotion, the player's and
+every rival's alike, pays `productionMonthlyCost` at the levels it has that
+morning, as up to three ledger rows dated the 1st: **Production** (music and
+writing), **Marketing** and **Back office**, with memos such as "Production
+overhead for February 2026". Each row's Why? lists the areas behind it
+("Music (level 1)", "Writing (level 2)"). A category at 0 posts nothing; a
+dormant or closed promotion pays nothing. The month's total is also kept as a
+trace (`production.monthlyOverhead`, id the promotion; only a summary for a
+computer-run promotion) for the Production screen's "last charged" line.
+
+The overhead is paid for the month ahead. Lowering a level on the 31st and
+raising it again on the 2nd would dodge a month's overhead, but the raise costs
+the [upgrade fee](#upgrade-fee), which is what the fee is for.
+
 ## Upgrade fee
 
 Lowering or keeping a level is free. Raising an area from one level to another
@@ -155,6 +172,22 @@ amount to remove; its Why? nests the ceiling's own Why?.
 Hardpan at 50 in a region against its ceiling of 30: 20 × 0.02 = 0.4 a day. At
 31: 1 × 0.02 = 0.02, raised to the 0.05 floor. At 30.01: the floor would cross
 the ceiling, so only 0.01 goes.
+
+Phase `production.popularityDrag` (`growth` group, order 90, daily) applies it.
+For each active promotion it works out the ceiling once, finds every region
+above it, and makes **one** popularity door call with each region's own drag
+(`regionDeltas`), so the event log gets one `popularity.changed` (reason
+`production.popularityDrag`, "Marketing and back office can't support this
+popularity") per promotion per day, whatever the number of regions. Each
+region's line reads "Production popularity drag in <region>" and nests the
+drag's Why?. Popularity is stored to two decimals; when the ceiling is not a
+whole hundredth, the loss stops at the lowest stored value above it, so the
+drag never leaves a region below its ceiling. (The door's own drop rule still
+removes a region that falls under `workers.popularity.dropBelow`, which only
+matters with a ceiling near 0.) At or under the ceiling nothing happens. Every
+promotion in the default world starts at or under its ceiling, so the drag
+bites when marketing or back office are lowered, or when show results push
+popularity past the cap.
 
 | Key                                        | Kind   | Default | Range | Unit       | Meaning                                                    |
 | ------------------------------------------ | ------ | ------- | ----- | ---------- | ---------------------------------------------------------- |
