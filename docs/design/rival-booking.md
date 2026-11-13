@@ -749,7 +749,11 @@ nothing about the card leaks. Nothing in either result is a length or a time.
   `toRivalCardSlotProps`, with a "Why this segment?" button on each filled slot
   while `reasonTraceRef` is kept and a "Why this card?" beside the header while
   `planTraceRef` is. Hidden rows open onto `hiddenText`; cancelled rows onto
-  "Show cancelled" and `cancelledReason`.
+  "Show cancelled" and `cancelledReason`. A completed row opens on "Show
+  score N" with "Why this score?" (`scoreTraceRef`, EVT3's `shows.showScore`
+  trace) and a "See results" link to `routes.game.showResults(id)` (AIP4-08).
+  A completed show with none of its segments kept (old shows keep only a
+  summary) has no slots and reads "Details are kept for the last 4 weeks."
 - **Booking > Auto-fill** (side panel `aip.autoFill`, order 50,
   `screens/booking/panels/`): "Auto-fill empty slots" (`keepFilledSlots:
 true`) and "Rebook whole card" behind a confirmation (`false`), off with the
@@ -810,3 +814,23 @@ their keys to the same file.
 | `aip.card.order.prospectBoost`            | 6                       | Card score added with a prospect in a segment                                |
 | `aip.card.order.talkFactor`               | 0.8                     | Share of its speakers' card value a talking segment scores                   |
 | `aip.card.order.hotOpener`                | true                    | Whether the second-best match opens the show                                 |
+
+## Integration
+
+AIP4-08 wired rival card planning to the partners that were on `main` when it
+ran (main up to Sprint 7: EVT3-01..07/09/10 and POL4-06/07 among this list).
+Partners plug in through `registerBookedCardStep`, `buildTalkSegment` and their
+own registries, never through the planner's ordering or validation code.
+
+| Partner                       | Status                  | How it is wired                                                                                                                                                                                                                                                                     |
+| ----------------------------- | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| EVT3 (show night)             | wired (AIP4-08)         | Cards booked by `aip.bookShow` run through `shows.runShows`: every segment is rated and the show is not scored off-screen (that stays for a computer show with no segments). `aip.showCards` rows carry `scoreTraceRef`; the Shows tab shows the score, its Why? and "See results". |
+| AIP3 (push review, featured)  | wires from its own pack | `aiProfiles.featured` exists but nothing names aces or prospects yet (no `aip.pushReview`), so the card score says "No ace or prospects named yet".                                                                                                                                 |
+| AIP5 (winners, title changes) | wires from its own pack | Not on `main`; plugs in through `registerBookedCardStep`.                                                                                                                                                                                                                           |
+| AIP6 (creative upkeep)        | wires from its own pack | No `aip.creativeUpkeep` on `main`. Storyline segments already carry `storylineIds` from `fillCard`.                                                                                                                                                                                 |
+| MTCH7 (stipulations)          | wires from its own pack | No `stipulations.json` catalog on `main`; `aip.card.stipulationChance` is left for MTCH7-07.                                                                                                                                                                                        |
+| MTCH8 (crew)                  | wires from its own pack | No `suggestCrew` on `main`; rival segments keep `crew` empty.                                                                                                                                                                                                                       |
+| MTCH5 (angle beats)           | wires from its own pack | No beat catalog or `angleTemplatesFor` on `main`; `buildTalkSegment` keeps its default beat.                                                                                                                                                                                        |
+| ECO11 (territories)           | wires from its own pack | No development assignments on `main`; no `registerCardPoolSource` seam was added.                                                                                                                                                                                                   |
+| MP3 / MP5 (multiplayer)       | wires from its own pack | No server package or auto-ready on `main`. A promotion whose controller turns `computer` is booked by `aip.bookShow` with no extra code.                                                                                                                                            |
+| POL4 (performance budgets)    | wires from its own pack | POL4-06/07 (save size budget, slow-suite split) are on `main`, but there is no long-skip benchmark with a per-day budget to add `aip.bookShow` to.                                                                                                                                  |
