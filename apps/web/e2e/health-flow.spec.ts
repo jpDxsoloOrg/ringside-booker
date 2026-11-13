@@ -131,7 +131,7 @@ test.describe('injuries and recovery', () => {
       expect(await skipDays(page, FIRST_SKIP_DAYS, phone, true), 'an own injury stop').toBe(true);
       const reason = lastAdvance(page).getByText(/ was injured \(/);
       await expect(reason).toBeVisible();
-      // "Rook Halvorsen was injured (Back spasms, out until 10 January 2027)".
+      // "Rook Halvorsen was injured (Back spasms, out until Jan 10, 2027)".
       name = ((await reason.textContent()) ?? '').split(' was injured (')[0]?.trim() ?? '';
       expect(name, 'the injured worker is named').not.toBe('');
       await expectNoHorizontalScroll(page);
@@ -181,7 +181,7 @@ test.describe('injuries and recovery', () => {
       const why = page.getByRole('dialog', { name: 'Time out' });
       await expect(why).toBeVisible();
       await expect(why).toContainText('days');
-      await expect(why).toContainText(/Severity|severity/);
+      await expect(why).toContainText(/(Minor|Moderate|Severe) injury/);
       await expect(why).toContainText('Medical care');
       await expectNoHorizontalScroll(page);
       await shot(page, 'health-flow-time-out-why', testInfo);

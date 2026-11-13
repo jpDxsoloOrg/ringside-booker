@@ -150,7 +150,7 @@ describe('gateDestination', () => {
 describe('the own-injury stop (roster hint)', () => {
   const injuryGate: GateHit = {
     gateId: 'health.ownWorkerInjured',
-    reason: 'Big Joe was injured (Sprained ankle, out until 14 March 2031)',
+    reason: 'Big Joe was injured (Sprained ankle, out until Mar 14, 2031)',
     subject: { kind: 'person', id: 'per_0000000007' },
     actionHint: ROSTER_HINT,
   };

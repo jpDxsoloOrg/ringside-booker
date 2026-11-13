@@ -417,7 +417,7 @@ the injury is written because a gate cannot read tunables.
 **The gate.** `health.ownWorkerInjured` ("Your worker was injured", `gate.ts`)
 reads the `awaitingNotice` index and stops the day while any injury waits:
 
-- one waiting: "Big Joe was injured (Sprained ankle, out until 14 March 2031)",
+- one waiting: "Big Joe was injured (Sprained ankle, out until Mar 14, 2031)",
   with the ring name from their main contract (or their own) and the injury's
   catalog label;
 - several: "Big Joe and 2 others were injured".
