@@ -14,6 +14,8 @@ import './streams';
 import './decisionKinds';
 // AIP5-04: the booked-card step registers on import.
 import './decideResults';
+// AIP5-06: DAY2's weekly snapshots are the hot-shot term's popularity history.
+import './snapshotHistory';
 
 export { TITLES_STREAM, WINNERS_STREAM } from './streams';
 export {
@@ -33,7 +35,17 @@ export {
   type ReignBandNumber,
   type TitleImportanceKey,
 } from './tunables';
-export { TITLE_TRACE_KIND, titleTraceRef, WINNER_TRACE_KIND, winnerTraceRef } from './traces';
+export {
+  leanTrace,
+  optionWords,
+  RESULT_TRACE_LIMITS_ID,
+  TITLE_TRACE_KIND,
+  titleTraceRef,
+  WINNER_TRACE_KIND,
+  winnerTraceRef,
+  wordedOptions,
+  type WordedSide,
+} from './traces';
 export { TITLE_DECISION_KIND, WINNER_DECISION_KIND } from './decisionKinds';
 export { isComputerBooked } from './guard';
 export {
@@ -59,6 +71,18 @@ export {
   type PopularityHistorySource,
   type PopularityReading,
 } from './history';
+export { SNAPSHOT_HISTORY_SOURCE_ID, weeklyPopularityReadings } from './snapshotHistory';
+export {
+  FINISH_LABEL,
+  hasFinishes,
+  leanFinishTrace,
+  NO_CHANGE_FINISH_RULE,
+  pickRivalFinish,
+  TITLE_CHANGE_FINISH_RULE,
+  type RivalFinish,
+  type RivalFinishArgs,
+  type RivalFinishDeps,
+} from './finish';
 export {
   bookedResultLabel,
   decideResults,

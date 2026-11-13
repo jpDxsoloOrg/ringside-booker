@@ -67,6 +67,7 @@ export {
   type TraceRef,
   type TraceRecordOptions,
   type TraceStaging,
+  type TraceKindLimits,
   type TraceStoreLimits,
   type TraceStoreState,
   type TraceSummary,

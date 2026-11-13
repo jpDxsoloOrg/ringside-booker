@@ -16,6 +16,7 @@
  */
 
 import type { Reason } from '../../core/api/result';
+import type { ContentKey } from '../../core/content-key';
 import { CardWriteError, InvalidArgumentError } from '../../core/errors';
 import type { EventInstanceId, PersonId, SegmentId } from '../../core/ids';
 import { angleTypeOf, finishOf, matchTypeOf, methodOf } from '../../model/catalogs';
@@ -605,13 +606,19 @@ function outcomeFitsFinish(
  * result cannot end with (a draw on a Disqualification, a pinfall on a Count-out) goes back to
  * Auto (`finishKey: null`), so the card never holds a finish that contradicts its result.
  *
- * @throws CardWriteError for an angle or an outcome that breaks those rules; nothing is written.
+ * With `finishKey` (a computer booker planning the finish with the result, AIP5-06) the finish is
+ * set too: it must end with the planned result (the same outcome kind and, for a win, list the
+ * method), and null sets Auto.
+ *
+ * @throws CardWriteError for an angle or an outcome that breaks those rules, or a finish the
+ *   result cannot end with; nothing is written.
  * @throws EntityNotFoundError for an unknown segment.
  */
 export function setPlannedOutcome(
   tx: Tx<GameTables>,
   segmentId: SegmentId,
   outcome: DeepReadonly<MatchOutcome> | null,
+  finishKey?: ContentKey | null,
 ): void {
   atomically(tx, 'booking.setPlannedOutcome', (inner) => {
     const read = inner.view;
@@ -629,9 +636,21 @@ export function setPlannedOutcome(
       throw new CardWriteError('setPlannedOutcome', problems);
     }
     const planned: MatchOutcome | null = outcome === null ? null : { ...outcome };
-    const { finishKey } = segment.match;
+    if (
+      finishKey !== undefined &&
+      finishKey !== null &&
+      !outcomeFitsFinish(read, finishKey, planned)
+    ) {
+      throw new CardWriteError('setPlannedOutcome', [
+        {
+          code: 'finishOutcomeMismatch',
+          message: `The finish ${finishOf(read, finishKey)?.name ?? finishKey} can't end with this result`,
+        },
+      ]);
+    }
+    const current = finishKey === undefined ? segment.match.finishKey : finishKey;
     const keptFinish =
-      finishKey !== null && outcomeFitsFinish(read, finishKey, planned) ? finishKey : null;
+      current !== null && outcomeFitsFinish(read, current, planned) ? current : null;
     inner.update('segments', segmentId, (previous) =>
       previous.kind === 'match'
         ? { ...previous, match: { ...previous.match, finishKey: keptFinish }, outcome: planned }

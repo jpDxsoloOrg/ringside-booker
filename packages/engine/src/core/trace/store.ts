@@ -119,17 +119,31 @@ export interface TraceStoreLimits {
    * Left out, a kind is limited by count only. 0 summarises everything at once.
    */
   readonly bytesPerKind?: number;
+  /**
+   * Limits for particular kinds, replacing `retentionPerKind` and `bytesPerKind` for them: a kind
+   * whose detail is kept for a number of days (rival results, AIP5-06) needs room for those days
+   * whatever the default per-kind limits are.
+   */
+  readonly perKind?: Readonly<Record<string, TraceKindLimits>>;
+}
+
+/** One kind's own limits (`TraceStoreLimits.perKind`). */
+export interface TraceKindLimits {
+  readonly retentionPerKind: number;
+  readonly bytesPerKind: number;
 }
 
 /** Reads the store limits from the engine tunables. */
 export function traceStoreLimitsFrom(
   tunables: Pick<TunableReader<typeof simTunables>, 'get'>,
+  perKind?: Readonly<Record<string, TraceKindLimits>>,
 ): TraceStoreLimits {
-  return {
+  const limits = {
     retentionPerKind: tunables.get('sim.traceRetentionPerKind'),
     summaryLimit: tunables.get('sim.traceSummaryLimit'),
     bytesPerKind: tunables.get('sim.traceBytesPerKind'),
   };
+  return perKind === undefined ? limits : { ...limits, perKind };
 }
 
 /** The trace store part of a save. Both arrays are sorted by `seq`, oldest first. */
@@ -196,6 +210,8 @@ export class TraceStore {
   #summaryLimit: number;
   /** Null when kinds are limited by count only. */
   #bytesPerKind: number | null;
+  /** Kinds with limits of their own. */
+  #perKind: ReadonlyMap<string, TraceKindLimits> = new Map();
   /** The last sequence number handed out. Saved. */
   #seq = 0;
   /**
@@ -218,6 +234,7 @@ export class TraceStore {
     this.#retentionPerKind = checked.retentionPerKind;
     this.#summaryLimit = checked.summaryLimit;
     this.#bytesPerKind = checked.bytesPerKind ?? null;
+    this.#perKind = new Map(Object.entries(checked.perKind ?? {}));
   }
 
   /**
@@ -248,8 +265,14 @@ export class TraceStore {
 
   /** The limits this store enforces. */
   get limits(): TraceStoreLimits {
-    const limits = { retentionPerKind: this.#retentionPerKind, summaryLimit: this.#summaryLimit };
-    return this.#bytesPerKind === null ? limits : { ...limits, bytesPerKind: this.#bytesPerKind };
+    const limits: TraceStoreLimits = {
+      retentionPerKind: this.#retentionPerKind,
+      summaryLimit: this.#summaryLimit,
+      ...(this.#bytesPerKind === null ? {} : { bytesPerKind: this.#bytesPerKind }),
+    };
+    return this.#perKind.size === 0
+      ? limits
+      : { ...limits, perKind: Object.fromEntries(this.#perKind) };
   }
 
   /** The JSON length of one kind's full traces together, as the size budget counts it. */
@@ -263,6 +286,7 @@ export class TraceStore {
     this.#retentionPerKind = checked.retentionPerKind;
     this.#summaryLimit = checked.summaryLimit;
     this.#bytesPerKind = checked.bytesPerKind ?? null;
+    this.#perKind = new Map(Object.entries(checked.perKind ?? {}));
     this.#enforceLimits(this.#fullByKind.keys());
   }
 
@@ -455,9 +479,11 @@ export class TraceStore {
       if (byKey === undefined) {
         continue;
       }
-      const budget = this.#bytesPerKind ?? Number.POSITIVE_INFINITY;
+      const own = this.#perKind.get(kind);
+      const retention = own?.retentionPerKind ?? this.#retentionPerKind;
+      const budget = own?.bytesPerKind ?? this.#bytesPerKind ?? Number.POSITIVE_INFINITY;
       for (const [key, entry] of byKey) {
-        if (byKey.size <= this.#retentionPerKind && this.fullSizeOfKind(kind) <= budget) {
+        if (byKey.size <= retention && this.fullSizeOfKind(kind) <= budget) {
           break;
         }
         this.#deleteFull(key, kind);
@@ -620,10 +646,27 @@ function checkLimits(functionName: string, limits: TraceStoreLimits): TraceStore
       );
     }
   }
-  const checked = { retentionPerKind: limits.retentionPerKind, summaryLimit: limits.summaryLimit };
-  return limits.bytesPerKind === undefined
-    ? checked
-    : { ...checked, bytesPerKind: limits.bytesPerKind };
+  const perKind: Record<string, TraceKindLimits> = {};
+  for (const [kind, own] of Object.entries(limits.perKind ?? {})) {
+    for (const name of ['retentionPerKind', 'bytesPerKind'] as const) {
+      const value = own[name];
+      if (!Number.isSafeInteger(value) || value < 0) {
+        throw new InvalidArgumentError(
+          functionName,
+          `limits.perKind.${kind}.${name}`,
+          value,
+          'a whole number of 0 or more',
+        );
+      }
+    }
+    perKind[kind] = { retentionPerKind: own.retentionPerKind, bytesPerKind: own.bytesPerKind };
+  }
+  return {
+    retentionPerKind: limits.retentionPerKind,
+    summaryLimit: limits.summaryLimit,
+    ...(limits.bytesPerKind === undefined ? {} : { bytesPerKind: limits.bytesPerKind }),
+    ...(Object.keys(perKind).length === 0 ? {} : { perKind }),
+  };
 }
 
 function checkRef(ref: TraceRef): void {

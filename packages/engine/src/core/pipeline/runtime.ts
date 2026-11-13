@@ -10,12 +10,13 @@
 import type { GameTables } from '../../model/tables';
 import type { TableRegistry } from '../../model/table-def';
 import type { World } from '../../model/world';
+import { engineTraceStoreLimits } from '../../systems/traceKindLimits';
 import { createEngineTunables, type EngineTunables } from '../../systems/tunables';
 import { PipelineError } from '../errors';
 import { EventBus } from '../events/bus';
 import { createIdMinter } from '../rng/ids';
 import { RngRegistry } from '../rng/registry';
-import { TraceStore, traceStoreLimitsFrom } from '../trace/store';
+import { TraceStore } from '../trace/store';
 import type { ReactionContext } from './context';
 import { PipelineFailureLog } from './failureLog';
 import { GateRegistry } from './gates';
@@ -93,7 +94,7 @@ export function createRuntime<R extends TableRegistry = GameTables>(
       logSize: tunables.get('sim.eventLogSize'),
       maxCascadeDepth: tunables.get('sim.maxEventCascadeDepth'),
     });
-  const traces = options.traces ?? new TraceStore(traceStoreLimitsFrom(tunables));
+  const traces = options.traces ?? new TraceStore(engineTraceStoreLimits(tunables));
   world.setIdFactory(createIdMinter(rng));
   return {
     world,

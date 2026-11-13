@@ -14,6 +14,7 @@
 
 import { TABLES } from '../../model/tables';
 import { documentToWorld, serialiseWorld } from '../../persistence/world-document';
+import { engineTraceStoreLimits } from '../../systems/traceKindLimits';
 import { loadEngineTunables, type EngineTunables } from '../../systems/tunables';
 import { InvalidArgumentError, PipelineError, RegistryError, serializeError } from '../errors';
 import { EventBus, type EventObserver, type PublishEvent } from '../events/bus';
@@ -26,7 +27,7 @@ import { evaluateGates } from '../pipeline/gates';
 import { runStep } from '../pipeline/runStep';
 import { createRuntime, type SimRuntime } from '../pipeline/runtime';
 import { RngRegistry } from '../rng/registry';
-import { TraceStore, traceStoreLimitsFrom } from '../trace/store';
+import { TraceStore } from '../trace/store';
 import { withOverride, withoutOverride } from '../tunables/resolver';
 import type { TunableIssue } from '../tunables/validate';
 import type { CommandContext, CommandDefinition, TunableOverrideWriter } from './command';
@@ -187,7 +188,7 @@ function buildRuntime(
       debugChecks,
       state: state.events,
     }),
-    traces: TraceStore.fromState(state.traces, traceStoreLimitsFrom(tunables)),
+    traces: TraceStore.fromState(state.traces, engineTraceStoreLimits(tunables)),
     failureLog: PipelineFailureLog.fromState(state.failureLog),
     ...(host.now === undefined ? {} : { host: { now: host.now } }),
   });
@@ -273,7 +274,7 @@ export function createEngine(options: CreateEngineOptions): Engine {
 
   /** Applies the tunables that size the engine's own stores after an override changed. */
   function applyStoreLimits(): void {
-    runtime.traces.setLimits(traceStoreLimitsFrom(tunables));
+    runtime.traces.setLimits(engineTraceStoreLimits(tunables));
     commandLog.resize(tunables.get('sim.commandLogSize'));
   }
 
