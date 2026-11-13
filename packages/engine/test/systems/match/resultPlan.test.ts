@@ -170,7 +170,14 @@ describe('the segment schema', () => {
     world.tables.eventInstances._put(
       makeInstance(1, {
         status: 'completed',
-        result: { score: 60, rawScore: 60, traceId: null, attendance: 900, gate: ZERO_CENTS, viewers: null },
+        result: {
+          score: 60,
+          rawScore: 60,
+          traceId: null,
+          attendance: 900,
+          gate: ZERO_CENTS,
+          viewers: null,
+        },
       }),
     );
     putSinglesMatch(world, 1, {
