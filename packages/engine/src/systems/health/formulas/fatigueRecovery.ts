@@ -8,6 +8,7 @@
 import type { RngStream } from '../../../core/rng/registry';
 import { rollInt } from '../../../core/rng/rolls';
 import { startCalc } from '../../../core/trace/calc';
+import { inputOf } from '../../../core/trace/helpers';
 import type { Traced } from '../../../core/trace/types';
 import type { TraitKey } from '../../../model/entities/person';
 import type { EngineTunables } from '../../tunables';
@@ -42,7 +43,9 @@ export const FATIGUE_RECOVERY_DOC_REF = `${HEALTH_DOC}#fatigue-recovery`;
 
 /** `1 + (stamina − 50) / 50 × staminaWeight`. */
 function staminaFactor(stamina: number, tunables: EngineTunables): Traced<number> {
-  const calc = startCalc('Stamina', stamina, { unit: 'points', startLabel: 'Stamina' });
+  const calc = startCalc('Stamina', inputOf('Stamina', stamina, undefined, 'points'), {
+    unit: 'multiplier',
+  });
   return calc
     .subtract('Midpoint of the 0–100 scale', STAMINA_MIDPOINT)
     .divide('Midpoint of the 0–100 scale', STAMINA_MIDPOINT)
@@ -77,7 +80,10 @@ function ageFactor(age: number, agingEnabled: boolean, tunables: EngineTunables)
   );
   return calc
     .subtract('Older body', loss.done())
-    .max('Least age can leave', calc.tunable(tunables, 'health.fatigue.ageFactorMin'))
+    .max(
+      'Least age can leave',
+      calc.tunable(tunables, 'health.fatigue.ageFactorMin', 'Least age can leave'),
+    )
     .done();
 }
 

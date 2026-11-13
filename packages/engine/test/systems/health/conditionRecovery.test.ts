@@ -45,8 +45,10 @@ describe('computeConditionRecovery', () => {
       docRef: 'docs/design/health.md#condition-recovery',
     });
     expect(
-      expectTraceContains(result, { kind: 'multiply', label: 'Medical care: Apex Wrestling (level 1)' })
-        .operand,
+      expectTraceContains(result, {
+        kind: 'multiply',
+        label: 'Medical care: Apex Wrestling (level 1)',
+      }).operand,
     ).toBe(1);
   });
 
@@ -94,7 +96,9 @@ describe('computeConditionRecovery', () => {
   it('stops at the cap when a week would take it past', () => {
     const result = heal({ cap: capFor(50), current: 69.8 });
     expect(result.value).toBe(70);
-    expect(expectTraceContains(result, { kind: 'min', label: 'Healing cap for their age' })).toMatchObject({
+    expect(
+      expectTraceContains(result, { kind: 'min', label: 'Healing cap for their age' }),
+    ).toMatchObject({
       applied: true,
       limit: 70,
     });

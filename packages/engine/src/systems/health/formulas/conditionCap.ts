@@ -57,10 +57,7 @@ export function computeConditionCap(
   );
   return calc
     .subtract('Age', drop.done())
-    .max(
-      'Lowest cap',
-      calc.tunable(deps.tunables, 'health.condition.capFloor', 'Lowest cap'),
-    )
+    .max('Lowest cap', calc.tunable(deps.tunables, 'health.condition.capFloor', 'Lowest cap'))
     .clamp(CONDITION_MIN, CONDITION_MAX)
     .done();
 }

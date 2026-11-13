@@ -214,11 +214,7 @@ describe('health.recovery phase', () => {
 describe('health.fatigue query', () => {
   it('returns null for a person who does not exist', () => {
     const engine = engineOver(fatigueWorld().world);
-    const result = engine.query(
-      'health.fatigue',
-      { personId: testId('person', 99) },
-      OMNISCIENT,
-    );
+    const result = engine.query('health.fatigue', { personId: testId('person', 99) }, OMNISCIENT);
     expect(result).toEqual({ ok: true, data: null });
   });
 
@@ -366,7 +362,7 @@ describe('health.recovery after a talking-only show day', () => {
     expect(talkedWithoutWrestling(world, addDays(TEST_START_DATE, 1)).size).toBe(0);
   });
 
-  it('halves the next morning\'s daily recovery for the talker only, and says so', async () => {
+  it("halves the next morning's daily recovery for the talker only, and says so", async () => {
     const { world, ids } = promoWorld();
     const engine = engineOver(world);
     const result = await engine.advanceDays({ maxDays: 1 });
@@ -436,9 +432,7 @@ describe('health.conditionRecovery phase', () => {
   }
 
   function conditionOf(engine: Engine, personId: PersonId | undefined): BodyCondition {
-    const person = engine
-      .exportState()
-      .world.tables.people.find((row) => row.id === personId);
+    const person = engine.exportState().world.tables.people.find((row) => row.id === personId);
     if (person === undefined) {
       throw new Error(`no person ${String(personId)}`);
     }

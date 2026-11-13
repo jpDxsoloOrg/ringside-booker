@@ -251,13 +251,10 @@ describe('computeFatigueRecovery', () => {
   it('draws exactly once per call, even when the extra rest is off', () => {
     for (const bonusMax of [0, 1, 10]) {
       const stream = scriptedStream([3, 3, 3]);
-      computeFatigueRecovery(
-        averageAt(60),
-        {
-          tunables: createEngineTunables({ 'health.fatigue.recoveryBonusMax': bonusMax }),
-          rng: stream,
-        },
-      );
+      computeFatigueRecovery(averageAt(60), {
+        tunables: createEngineTunables({ 'health.fatigue.recoveryBonusMax': bonusMax }),
+        rng: stream,
+      });
       expect(stream.drawsTaken).toBe(1);
     }
   });
@@ -279,14 +276,14 @@ describe('computeFatigueRecovery', () => {
 
   it('gives the same result for the same stream state', () => {
     const tunables = createEngineTunables();
-    const first = computeFatigueRecovery(
-      averageAt(63),
-      { tunables, rng: new RngRegistry(SEED).stream(RECOVERY_STREAM) },
-    );
-    const second = computeFatigueRecovery(
-      averageAt(63),
-      { tunables, rng: new RngRegistry(SEED).stream(RECOVERY_STREAM) },
-    );
+    const first = computeFatigueRecovery(averageAt(63), {
+      tunables,
+      rng: new RngRegistry(SEED).stream(RECOVERY_STREAM),
+    });
+    const second = computeFatigueRecovery(averageAt(63), {
+      tunables,
+      rng: new RngRegistry(SEED).stream(RECOVERY_STREAM),
+    });
     expect(second).toEqual(first);
     expectSerialisable(first);
   });
@@ -355,9 +352,9 @@ describe('computeFatigueRecovery: stamina, age, traits and promos', () => {
 
     const workhorse = recover(50, {}, 0, { traits: ['workhorse'] });
     expect(expectTraceContains(workhorse, { kind: 'branch', label: 'Workhorse' }).taken).toBe(true);
-    expect(
-      expectTraceContains(workhorse, { kind: 'tunable', label: 'Workhorse' }).key,
-    ).toBe('health.fatigue.workhorseMultiplier');
+    expect(expectTraceContains(workhorse, { kind: 'tunable', label: 'Workhorse' }).key).toBe(
+      'health.fatigue.workhorseMultiplier',
+    );
     const coaster = recover(50, {}, 0, { traits: ['coaster'] });
     expect(expectTraceContains(coaster, { kind: 'tunable', label: 'Coaster' }).key).toBe(
       'health.fatigue.coasterMultiplier',
@@ -374,12 +371,12 @@ describe('computeFatigueRecovery: stamina, age, traits and promos', () => {
     expect(
       expectTraceContains(result, { kind: 'tunable', label: 'Worked a promo today' }).key,
     ).toBe('health.fatigue.workedPromoRecovery');
-    expect(dailyRecoveryOf({ workedPromo: true }, { 'health.fatigue.workedPromoRecovery': 1 })).toBe(
-      4,
-    );
-    expect(dailyRecoveryOf({ workedPromo: true }, { 'health.fatigue.workedPromoRecovery': 0 })).toBe(
-      0,
-    );
+    expect(
+      dailyRecoveryOf({ workedPromo: true }, { 'health.fatigue.workedPromoRecovery': 1 }),
+    ).toBe(4);
+    expect(
+      dailyRecoveryOf({ workedPromo: true }, { 'health.fatigue.workedPromoRecovery': 0 }),
+    ).toBe(0);
   });
 
   it('recovers only the roll when the daily recovery is 0, whatever the stamina, age and traits', () => {

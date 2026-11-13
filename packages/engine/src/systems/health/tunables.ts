@@ -154,7 +154,8 @@ export const healthTunables = defineTunables({
     step: 0.1,
     unit: 'points',
     category: HEALTH_TUNABLE_CATEGORY,
-    description: 'Condition a damaged body part gets back each week, before traits and medical care',
+    description:
+      'Condition a damaged body part gets back each week, before traits and medical care',
     docRef: CONDITION_DOC,
   },
   'health.condition.durableMultiplier': multiplier(
