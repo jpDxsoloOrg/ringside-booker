@@ -119,7 +119,11 @@ describe('office.dashboard for the viewer’s promotion', () => {
         unit: 'points',
         visibility: 'public',
         extract: (promotion) =>
-          mapTraced(untraced(promotion.prestige, 'Prestige'), 'Half prestige', (v) => v / 2),
+          mapTraced(
+            untraced(promotion.prestige, 'Prestige'),
+            'Half prestige',
+            (prestige) => prestige / 2,
+          ),
         kpi: { order: 10, goodWhen: 'up', footer: 'Half the prestige' },
       }),
       registerPromotionSnapshotField({

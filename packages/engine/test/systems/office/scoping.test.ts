@@ -45,7 +45,7 @@ function refusalCode(result: ReturnType<typeof series>): string | undefined {
 }
 
 /** Every key anywhere in a JSON value. */
-function keysOf(value: unknown, into: Set<string> = new Set()): Set<string> {
+function keysOf(value: unknown, into = new Set<string>()): Set<string> {
   if (Array.isArray(value)) {
     for (const item of value) keysOf(item, into);
   } else if (typeof value === 'object' && value !== null) {
