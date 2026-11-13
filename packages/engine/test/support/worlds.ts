@@ -33,7 +33,12 @@ import {
   aTitleReign,
 } from './builders/creative';
 import { TEST_PLAYER_ID, TEST_START_DATE, type DeepPartial } from './builders/build-row';
-import { worldBuilder, type BuildContext, type BuiltWorld } from './world-builder';
+import {
+  worldBuilder,
+  type BuildContext,
+  type BuiltWorld,
+  type TestMetaOverrides,
+} from './world-builder';
 
 /** A world with metadata and nothing else. */
 export function emptyWorld(): BuiltWorld {
@@ -536,8 +541,8 @@ function patternedPerson(rosterIndex: number, startDate: GameDate): DeepPartial<
  * Monday show, so a headless run schedules and runs a show every week. For performance and
  * save-size tests and the headless runner.
  */
-export function rosterWorld(rosterSize: number): BuiltWorld {
-  return worldBuilder()
+export function rosterWorld(rosterSize: number, meta: TestMetaOverrides = {}): BuiltWorld {
+  return worldBuilder(meta)
     .withGeography('mini')
     .withCatalogs()
     .withPromotion({ name: 'Test Promotion A' }, (promotion) =>
