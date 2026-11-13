@@ -7,7 +7,7 @@ import type {
   BookingSlotView,
   TraceNode,
 } from '@ringside/engine';
-import { issuesBySlot, toCardSlotProps } from './cardSlotProps';
+import { bookingSideText, issuesBySlot, toCardSlotProps } from './cardSlotProps';
 import { defaultWinMethodKey, neighbourSlots } from './SlotActions';
 import { withPendingMove } from './BookingView';
 
@@ -118,6 +118,26 @@ describe('toCardSlotProps', () => {
     expect(props.sides[0]?.members[0]).toMatchObject({ kind: 'person', name: 'Kai Moreno' });
     expect(props.winnerIndex).toBe(2);
     expect(props.resultLabel).toBeUndefined();
+  });
+
+  it("names a team's wrestlers under the team, and in the side's text", () => {
+    const tagged = segment(null, 2);
+    const [first] = tagged.sides;
+    if (first === undefined) throw new Error('no side');
+    const team = {
+      ...first,
+      name: 'Running Axe',
+      teamId: parseId('team', 'tem_0000000001'),
+      people: [person(1, 'Kai Moreno'), person(5, 'Rex Hale')],
+    };
+    const props = toCardSlotProps(
+      slot(1, 'midcard', { ...tagged, sides: [team, ...tagged.sides.slice(1)] }),
+    );
+    expect(props.sides[0]).toMatchObject({ name: 'Running Axe', detail: 'Kai Moreno & Rex Hale' });
+    // A side of individuals is already named by its people.
+    expect(props.sides[1]?.detail).toBeUndefined();
+    expect(bookingSideText(team)).toBe('Running Axe (Kai Moreno & Rex Hale)');
+    expect(bookingSideText(first)).toBe('Kai Moreno');
   });
 
   it('words a draw and a no contest, with no winner', () => {

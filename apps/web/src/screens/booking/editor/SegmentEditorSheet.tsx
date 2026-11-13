@@ -30,6 +30,7 @@ import {
   sideLabel,
   sideLimitsOf,
   slotOfRequest,
+  teamWithMembers,
   typeOptionsFor,
 } from './editorText';
 import { useSegmentEditor } from './editorStore';
@@ -109,9 +110,21 @@ function reasonsOf<T>(result: CommandResult<T>): readonly Reason[] {
   return result.reasons.length > 0 ? result.reasons : [{ code: 'unknown', message: NO_REASON }];
 }
 
+/** The team a side is, when everyone on it is listed for the same team; null otherwise. */
+export function sideTeamName(
+  draft: SegmentDraft,
+  side: number,
+  teams: ReadonlyMap<TeamId, AvailableTeamRow>,
+): string | null {
+  const onSide = peopleOnSide(draft, side);
+  const teamId = onSide[0]?.teamId ?? null;
+  if (teamId === null || !onSide.every((person) => person.teamId === teamId)) return null;
+  return teams.get(teamId)?.name ?? null;
+}
+
 /**
- * A side's name for the result field: "Side 1: " and its team when everyone on it is listed for
- * the same team, else the names joined with " & ", as the card names it.
+ * A side's name for the result field: "Side 1: " and the names joined with " & ", as the card
+ * names them. A team keeps its wrestlers by name: "Side 1: Running Axe (Kai Moreno & Rex Hale)".
  */
 export function sideName(
   draft: SegmentDraft,
@@ -122,16 +135,12 @@ export function sideName(
 ): string {
   const onSide = peopleOnSide(draft, side);
   if (onSide.length === 0) return `${sideLabel(side)} (nobody yet)`;
-  const teamId = onSide[0]?.teamId ?? null;
-  const team =
-    teamId !== null && onSide.every((person) => person.teamId === teamId)
-      ? teams.get(teamId)
-      : undefined;
+  const memberNames = onSide.map(
+    (person) => people.get(person.personId)?.ringName ?? fallbackName(person.personId),
+  );
+  const teamName = sideTeamName(draft, side, teams);
   const names =
-    team?.name ??
-    onSide
-      .map((person) => people.get(person.personId)?.ringName ?? fallbackName(person.personId))
-      .join(' & ');
+    teamName === null ? memberNames.join(' & ') : teamWithMembers(teamName, memberNames);
   return `${sideLabel(side)}: ${names}`;
 }
 
@@ -310,6 +319,9 @@ function EditorBody({
         angleType={angleType}
         card={card}
         roster={roster.people}
+        teamNames={Array.from({ length: sideCount }, (_unused, side) =>
+          sideTeamName(draft, side, roster.teams),
+        )}
         disabled={disabled}
         invalid={areas.has('sides')}
         onOpenPicker={setPicker}

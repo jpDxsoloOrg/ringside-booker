@@ -80,6 +80,52 @@ describe('RosterPicker', () => {
     expect(screen.getByText(/1 more is hidden because they can’t be booked/)).toBeInTheDocument();
   });
 
+  it('shows type and stats as visible text, with full names for screen readers', () => {
+    const stats = (popularity: number, stamina: number) => [
+      { key: 'popularity', short: 'Pop', label: 'Popularity in Greater Lakes', value: popularity },
+      { key: 'stamina', short: 'Stamina', label: 'Stamina', value: stamina },
+    ];
+    renderPicker({
+      people: [
+        { ...KAI, typeLabel: 'High flyer', stats: stats(54, 72) },
+        { ...REX, typeLabel: 'Powerhouse', stats: stats(61, 58) },
+      ],
+      statsNote: 'Pop: popularity in Greater Lakes, where this show is.',
+    });
+    const list = screen.getByRole('listbox', { name: 'People' });
+    const kai = within(list).getByRole('option', { name: /Kai Moreno/ });
+    expect(within(kai).getByText('High flyer')).toBeVisible();
+    expect(within(kai).getByText('Pop')).toHaveAttribute('aria-hidden', 'true');
+    expect(kai).toHaveAccessibleName(
+      expect.stringContaining('High flyer , Popularity in Greater Lakes 54 , Stamina 72'),
+    );
+    expect(
+      screen.getByText('Pop: popularity in Greater Lakes, where this show is.'),
+    ).toBeInTheDocument();
+  });
+
+  it('sorts people by a stat, highest first, while the chip is on', async () => {
+    const user = userEvent.setup({ delay: null });
+    const pop = (value: number) => [{ key: 'popularity', short: 'Pop', label: 'Pop', value }];
+    renderPicker({
+      people: [{ ...KAI, stats: pop(40) }, { ...REX, stats: pop(70) }, person(4, 'Jo Park')],
+      sortStat: { key: 'popularity', label: 'Most popular' },
+    });
+    const list = screen.getByRole('listbox', { name: 'People' });
+    const names = () =>
+      within(list)
+        .getAllByRole('option')
+        .map((option) => option.querySelector('[class*="rowName"]')?.textContent);
+    expect(names()).toEqual(['Kai Moreno', 'Rex Hale', 'Jo Park']);
+    const chip = screen.getByRole('button', { name: 'Most popular' });
+    await user.click(chip);
+    expect(chip).toHaveAttribute('aria-pressed', 'true');
+    // Someone without the stat goes last.
+    expect(names()).toEqual(['Rex Hale', 'Kai Moreno', 'Jo Park']);
+    await user.click(chip);
+    expect(names()).toEqual(['Kai Moreno', 'Rex Hale', 'Jo Park']);
+  });
+
   it('shows unbookable people dimmed with the reason, and never picks them', async () => {
     const user = userEvent.setup();
     const props = renderPicker();

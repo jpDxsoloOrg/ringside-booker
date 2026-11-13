@@ -9,5 +9,6 @@ export type {
   RosterPickerMode,
   RosterPickerPerson,
   RosterPickerProps,
+  RosterPickerStat,
   RosterPickerTeam,
 } from './RosterPicker';

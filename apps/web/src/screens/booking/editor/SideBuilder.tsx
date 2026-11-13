@@ -45,6 +45,8 @@ export interface SideBuilderProps {
   readonly angleType: AngleTypeOption | undefined;
   readonly card: BookingCard;
   readonly roster: ReadonlyMap<PersonId, AvailableWorkerRow>;
+  /** The team each side is, by stored side ("Running Axe"), or null for a side of individuals. */
+  readonly teamNames?: readonly (string | null)[];
   readonly disabled: boolean;
   /** True when a refusal points at the participants. */
   readonly invalid: boolean;
@@ -129,6 +131,7 @@ export function SideBuilder({
   angleType,
   card,
   roster,
+  teamNames = [],
   disabled,
   invalid,
   onOpenPicker,
@@ -162,11 +165,13 @@ export function SideBuilder({
           const full = isMatch
             ? matchType !== undefined && people.length >= matchType.sideSize.max
             : speakersFull;
+          const teamName = isMatch ? (teamNames[side] ?? null) : null;
           const canAddTeam = isMatch && matchType !== undefined && matchType.sideSize.max > 1;
           return (
             <li key={`side-${String(side)}`} className={styles['side']}>
               <div className={styles['sideHead']}>
                 <h4 className={styles['sideTitle']}>{heading}</h4>
+                {teamName !== null && <span className={styles['teamName']}>Team: {teamName}</span>}
                 {hint !== null && <span className={styles['hint']}>{hint}</span>}
                 {sideCount > limits.min && (
                   <Button

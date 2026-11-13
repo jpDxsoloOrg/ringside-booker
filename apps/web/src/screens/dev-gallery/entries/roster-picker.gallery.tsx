@@ -4,7 +4,11 @@ import { Cluster, Stack } from '@/components/layout';
 import { RosterPicker } from '@/components/RosterPicker';
 import type { RosterPickerMode } from '@/components/RosterPicker';
 import type { GalleryEntry } from '../galleryEntry';
-import { GALLERY_PICKER_TEAMS, galleryPickerPeople } from '../fixtures/segmentEditor';
+import {
+  GALLERY_PICKER_TEAMS,
+  GALLERY_REGION_NAME,
+  galleryPickerPeople,
+} from '../fixtures/segmentEditor';
 import styles from './entries.module.css';
 
 const PEOPLE = galleryPickerPeople();
@@ -50,6 +54,8 @@ function RosterPickerDemo() {
         people={people}
         teams={GALLERY_PICKER_TEAMS}
         bookedFilter
+        sortStat={{ key: 'popularity', label: 'Most popular' }}
+        statsNote={`Pop: popularity in ${GALLERY_REGION_NAME}, where this show is.`}
         initialMode={mode ?? 'people'}
         onSearchChange={setSearch}
         onPickPerson={(person) => {

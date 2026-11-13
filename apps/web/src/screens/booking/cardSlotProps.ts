@@ -1,4 +1,10 @@
-import type { BookingIssue, BookingResultView, BookingSlotView, SlotRole } from '@ringside/engine';
+import type {
+  BookingIssue,
+  BookingResultView,
+  BookingSideView,
+  BookingSlotView,
+  SlotRole,
+} from '@ringside/engine';
 import type {
   CardSlotChip,
   CardSlotIssues,
@@ -32,6 +38,18 @@ const RESULT_LABELS: Readonly<Record<Exclude<BookingResultView['kind'], 'win'>, 
   noContest: 'No contest',
 };
 
+/** A team side's wrestlers by name ("Kai Moreno & Rex Hale"); null for a side of individuals. */
+export function teamMembersText(side: Pick<BookingSideView, 'teamId' | 'people'>): string | null {
+  if (side.teamId === null || side.people.length === 0) return null;
+  return side.people.map((person) => person.ringName).join(' & ');
+}
+
+/** A side by name, a team with its wrestlers: "Running Axe (Kai Moreno & Rex Hale)". */
+export function bookingSideText(side: Pick<BookingSideView, 'name' | 'teamId' | 'people'>): string {
+  const members = teamMembersText(side);
+  return members === null ? side.name : `${side.name} (${members})`;
+}
+
 /** What a slot looks like on the card: role, number, chips, sides and the planned result. */
 export function toCardSlotProps(slot: BookingSlotView): CardSlotViewProps {
   const base = {
@@ -50,15 +68,20 @@ export function toCardSlotProps(slot: BookingSlotView): CardSlotViewProps {
       label: title.name,
     })),
   ];
-  const sides = segment.sides.map((side): CardSlotSide => ({
-    name: side.name,
-    members: side.people.map((person) => ({
-      kind: 'person' as const,
-      id: person.personId,
-      name: person.ringName,
-      ...(person.imageRef === null ? {} : { imageRef: person.imageRef }),
-    })),
-  }));
+  const sides = segment.sides.map((side): CardSlotSide => {
+    // A team's wrestlers go under its name, so the card never shows only the team.
+    const members = teamMembersText(side);
+    return {
+      name: side.name,
+      ...(members === null ? {} : { detail: members }),
+      members: side.people.map((person) => ({
+        kind: 'person' as const,
+        id: person.personId,
+        name: person.ringName,
+        ...(person.imageRef === null ? {} : { imageRef: person.imageRef }),
+      })),
+    };
+  });
   const { result } = segment;
   if (result === null) return { ...base, chips, sides };
   if (result.kind === 'win') {

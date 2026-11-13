@@ -10,6 +10,7 @@ import { EmptyState } from '../EmptyState';
 import { Icon } from '../Icon';
 import type { IconName } from '../Icon';
 import { ImageSlot } from '../ImageSlot';
+import { VisuallyHidden } from '../layout';
 import { Sheet } from '../Sheet';
 import styles from './RosterPicker.module.css';
 
@@ -18,6 +19,21 @@ export const ROSTER_SEARCH_DEBOUNCE_MS = 200;
 
 /** Most characters the search box takes. */
 export const ROSTER_SEARCH_MAX_LENGTH = 60;
+
+/**
+ * A number on a person's row, such as popularity or stamina. Shown as "Pop 54" and read out as
+ * "Popularity in Greater Lakes 54". A later stat (fatigue, WRK6) is one more entry.
+ */
+export interface RosterPickerStat {
+  /** Stable key, which `sortStat` names: `popularity`, `stamina`. */
+  readonly key: string;
+  /** What the row shows: "Pop", "Stamina". */
+  readonly short: string;
+  /** What a screen reader says in its place: "Popularity in Greater Lakes", "Stamina". */
+  readonly label: string;
+  /** Already rounded for display. */
+  readonly value: number;
+}
 
 /** Someone the picker lists. */
 export interface RosterPickerPerson {
@@ -47,6 +63,10 @@ export interface RosterPickerPerson {
   readonly bookedElsewhere?: boolean;
   /** Short notes after the chips: "Other brand: Altura Overclock", "On this card: Opener". */
   readonly notes: readonly string[];
+  /** What kind of worker they are, before the stats: "High flyer", or "Manager". */
+  readonly typeLabel?: string;
+  /** Numbers after the type, in order: "Pop 54 · Stamina 72". */
+  readonly stats?: readonly RosterPickerStat[];
 }
 
 /** A team the picker lists; picking it adds every member. */
@@ -89,6 +109,13 @@ export interface RosterPickerProps {
    * `bookedElsewhere`. Off by default, for pickers that aren't building a card.
    */
   readonly bookedFilter?: boolean;
+  /**
+   * Offer a chip that sorts people by one of their stats, highest first (off when the picker
+   * opens): `{ key: 'popularity', label: 'Most popular' }`. Teams keep their order.
+   */
+  readonly sortStat?: { readonly key: string; readonly label: string };
+  /** A line under the filters saying what the stats mean: "Pop: popularity in Greater Lakes". */
+  readonly statsNote?: string;
 }
 
 function isBookable(row: { readonly selectable: boolean; readonly bookable?: boolean }): boolean {
@@ -151,6 +178,39 @@ interface PickerRow {
   readonly name: string;
 }
 
+function statValue(person: RosterPickerPerson, key: string): number {
+  return person.stats?.find((stat) => stat.key === key)?.value ?? Number.NEGATIVE_INFINITY;
+}
+
+/** "High flyer · Pop 54 · Stamina 72", with each stat's full name for screen readers. */
+function statsLine(person: RosterPickerPerson) {
+  const stats = person.stats ?? [];
+  if (person.typeLabel === undefined && stats.length === 0) return null;
+  const parts: { readonly key: string; readonly node: ReactNode }[] = [
+    ...(person.typeLabel === undefined ? [] : [{ key: 'type', node: person.typeLabel }]),
+    ...stats.map((stat) => ({
+      key: stat.key,
+      node: (
+        <span className={styles['stat']}>
+          <span aria-hidden="true">{stat.short}</span>
+          <VisuallyHidden>{stat.label}</VisuallyHidden> {String(stat.value)}
+        </span>
+      ),
+    })),
+  ];
+  return (
+    <span className={styles['rowStats']}>
+      {parts.map((part, index) => (
+        <span key={part.key}>
+          {index > 0 && <span aria-hidden="true"> · </span>}
+          {index > 0 && <VisuallyHidden>, </VisuallyHidden>}
+          {part.node}
+        </span>
+      ))}
+    </span>
+  );
+}
+
 function personContent(person: RosterPickerPerson) {
   return (
     <>
@@ -166,6 +226,7 @@ function personContent(person: RosterPickerPerson) {
       />
       <span className={styles['rowText']}>
         <span className={styles['rowName']}>{person.name}</span>
+        {statsLine(person)}
         <span className={styles['rowChips']}>
           {person.pushLabel !== null && <span className={styles['push']}>{person.pushLabel}</span>}
           {person.alignment !== null && <AlignmentChip alignment={person.alignment} size="sm" />}
@@ -203,7 +264,8 @@ function teamContent(team: RosterPickerTeam) {
 
 /**
  * Picks people (or a team) for one side of a segment: a debounced search, filter chips and a list
- * of rows with each person's push, alignment and availability. Rows that can't be picked are
+ * of rows with each person's type and stats ("High flyer · Pop 54 · Stamina 72"), push, alignment
+ * and availability. Rows that can't be picked are
  * dimmed, say why as their description, and do nothing when chosen.
  *
  * The search box drives the list as a combobox: Up and Down move through the rows, Enter picks the
@@ -226,11 +288,14 @@ export function RosterPicker({
   onPickTeam,
   status,
   bookedFilter = false,
+  sortStat,
+  statsNote,
 }: RosterPickerProps) {
   const [text, setText] = useState('');
   const [bookableOnly, setBookableOnly] = useState(true);
   const [thisBrand, setThisBrand] = useState(false);
   const [hideBooked, setHideBooked] = useState(bookedFilter);
+  const [sorted, setSorted] = useState(false);
   const [mode, setMode] = useState<RosterPickerMode>(initialMode);
   const [active, setActive] = useState(0);
   const searchId = useId();
@@ -244,6 +309,7 @@ export function RosterPicker({
     if (open) {
       setText('');
       setHideBooked(bookedFilter);
+      setSorted(false);
       setMode(initialMode);
       setActive(0);
     }
@@ -265,6 +331,7 @@ export function RosterPicker({
 
   const showingTeams = mode === 'teams' && teams !== undefined;
   const hidingBooked = bookedFilter && hideBooked;
+  const sortKey = sorted && sortStat !== undefined ? sortStat.key : null;
   const rows = useMemo<readonly PickerRow[]>(() => {
     if (showingTeams) {
       return teams
@@ -282,20 +349,25 @@ export function RosterPicker({
           content: teamContent(team),
         }));
     }
-    return people
+    const listed = people
       .filter((person) => !bookableOnly || isBookable(person))
       .filter((person) => !thisBrand || !person.otherBrand)
-      .filter((person) => !hidingBooked || !isBookedElsewhere(person))
-      .map((person) => ({
-        key: person.personId,
-        selectable: person.selectable,
-        reason: person.reason,
-        name: person.name,
-        pick: () => {
-          onPickPerson(person);
-        },
-        content: personContent(person),
-      }));
+      .filter((person) => !hidingBooked || !isBookedElsewhere(person));
+    // A stable sort, so equal stats keep the screen's order.
+    const ordered =
+      sortKey === null
+        ? listed
+        : [...listed].sort((left, right) => statValue(right, sortKey) - statValue(left, sortKey));
+    return ordered.map((person) => ({
+      key: person.personId,
+      selectable: person.selectable,
+      reason: person.reason,
+      name: person.name,
+      pick: () => {
+        onPickPerson(person);
+      },
+      content: personContent(person),
+    }));
   }, [
     bookableOnly,
     hidingBooked,
@@ -303,6 +375,7 @@ export function RosterPicker({
     onPickTeam,
     people,
     showingTeams,
+    sortKey,
     teams,
     thisBrand,
   ]);
@@ -426,6 +499,17 @@ export function RosterPicker({
               Hide booked
             </FilterChip>
           )}
+          {sortStat !== undefined && !showingTeams && (
+            <FilterChip
+              pressed={sorted}
+              onToggle={() => {
+                setSorted(!sorted);
+                setActive(0);
+              }}
+            >
+              {sortStat.label}
+            </FilterChip>
+          )}
           {teams !== undefined && (
             <FilterChip
               pressed={showingTeams}
@@ -438,6 +522,9 @@ export function RosterPicker({
             </FilterChip>
           )}
         </div>
+        {statsNote !== undefined && !showingTeams && (
+          <p className={styles['statsNote']}>{statsNote}</p>
+        )}
         {status !== undefined && (
           <p id={statusId} className={styles['status']} aria-live="polite">
             {status}
