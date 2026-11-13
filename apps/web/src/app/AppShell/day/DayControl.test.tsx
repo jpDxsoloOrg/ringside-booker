@@ -11,7 +11,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { diffDays, initialEngineState, parseContentKey } from '@ringside/engine';
 import type { CommandArgs, CommandName, EngineState, GameDate, PersonId } from '@ringside/engine';
-import { worldBuilder } from '@ringside/engine/testing';
+import { aPerson, TEST_PLAYER_ID, worldBuilder } from '@ringside/engine/testing';
 import { formatGameDate } from '@/components/format';
 import { BP_MOBILE_QUERY } from '@/styles/breakpoints';
 import {
@@ -22,6 +22,7 @@ import {
   fakeAdvanceDay,
   fakeEngineFactory,
   fakeEngineState,
+  healthFakeState,
 } from '@/test/fakeEngine';
 import type { FakeEngineOptions } from '@/test/fakeEngine';
 import { fakeSlot } from '@/test/fakeStorage';
@@ -33,6 +34,7 @@ import type { InProcessTransport } from '../../engine/transport';
 import { buildAppRoutes, routerFutureFlags, routerProviderFutureFlags } from '../../router';
 import { routes } from '../../routes';
 import { useSessionStore } from '../../session/sessionStore';
+import { setRosterInjuriesTabAvailable } from './dayControlState';
 
 const announceSpy = vi.hoisted(() => vi.fn());
 
@@ -595,4 +597,109 @@ describe('DayControl: a show night', () => {
     expect(screen.queryByRole('link', { name: /^See results/ })).toBeNull();
     expect(screen.queryByRole('region', { name: 'Last advance' })).toBeNull();
   });
+});
+
+/**
+ * The own-injury stop (WRK6-04, its button from WRK6-06), with the real gate: the player's worker
+ * was hurt and nobody has seen it yet. Whatever the injury, one tap on "Roster" must clear it.
+ */
+describe('DayControl: the own-injury stop', () => {
+  /** The player's promotion with nobody hurt, and a free agent whose injury is still waiting. */
+  function orphanInjuryState(): EngineState {
+    const built = worldBuilder()
+      .withCatalogs()
+      .withInjuryCatalog()
+      .withGeography('mini')
+      .withPromotion(
+        { name: 'Test Promotion A', controller: { kind: 'human', playerId: TEST_PLAYER_ID } },
+        (promotion) => promotion.withRoster(1),
+      )
+      .with('a free agent', (context) => {
+        context.insert('people', aPerson({ defaultRingName: 'Test Drifter' }, context.sequence));
+      })
+      .withInjury(1, { noticedOn: null })
+      .build();
+    return initialEngineState(built.world);
+  }
+
+  /** The player's promotion with one wrestler hurt today, not seen yet. */
+  function ownInjuryState(): { state: EngineState; injured: PersonId } {
+    const built = worldBuilder()
+      .withCatalogs()
+      .withInjuryCatalog()
+      .withGeography('mini')
+      .withPromotion(
+        { name: 'Test Promotion A', controller: { kind: 'human', playerId: TEST_PLAYER_ID } },
+        (promotion) => promotion.withRoster(2),
+      )
+      .withInjury(0, { noticedOn: null })
+      .build();
+    const [injured] = built.ids.people;
+    if (injured === undefined) throw new Error('The injury world lost its wrestler.');
+    return { state: initialEngineState(built.world), injured };
+  }
+
+  it('reads Roster, opens the Injuries tab and lets the day move once it has loaded', async () => {
+    const { state } = healthFakeState();
+    const { user, router, advanceSpy } = renderGame({ state });
+
+    const button = await waitFor(() => dayButton('Roster'));
+    expect(screen.getByRole('button', { name: 'Skip days' })).toBeDisabled();
+    await user.click(button);
+
+    await waitFor(
+      () => {
+        expect(router.state.location.pathname).toBe(routes.game.roster());
+      },
+      { timeout: 5000 },
+    );
+    expect(router.state.location.search).toBe('?tab=injuries');
+    const table = await screen.findByRole('grid', { name: /^Injured workers/ }, { timeout: 5000 });
+    expect(table.querySelector(`[data-row-id]`)).not.toBeNull();
+    // Only the player's own: the computer's injured wrestler is not listed.
+    expect(table.querySelectorAll('[data-row-id]')).toHaveLength(1);
+    // Seen: the stop is gone and the next day can be played.
+    await waitFor(() => dayButton('Next day'), { timeout: 5000 });
+    expect(screen.getByRole('button', { name: 'Skip days' })).toBeEnabled();
+    expect(advanceSpy).not.toHaveBeenCalled();
+  });
+
+  it('opens the worker’s Health tab when the roster has no Injuries tab, and clears there too', async () => {
+    setRosterInjuriesTabAvailable(false);
+    try {
+      const { state, injured } = ownInjuryState();
+      const { user, router } = renderGame({ state });
+
+      await user.click(await waitFor(() => dayButton('Roster')));
+
+      // The profile is a lazy route: the location moves once its code has loaded.
+      await waitFor(
+        () => {
+          expect(router.state.location.pathname).toBe(routes.game.worker(injured));
+        },
+        { timeout: 5000 },
+      );
+      expect(router.state.location.search).toBe('?tab=health');
+      await waitFor(() => dayButton('Next day'), { timeout: 5000 });
+    } finally {
+      setRosterInjuriesTabAvailable(true);
+    }
+  }, 15_000);
+
+  it('clears an injury the Injuries list does not show (nobody employs the worker any more)', async () => {
+    const { user, router } = renderGame({ state: orphanInjuryState() });
+
+    await user.click(await waitFor(() => dayButton('Roster')));
+
+    await waitFor(
+      () => {
+        expect(router.state.location.search).toBe('?tab=injuries');
+      },
+      { timeout: 5000 },
+    );
+    expect(
+      await screen.findByRole('heading', { name: 'Nobody is injured' }, { timeout: 5000 }),
+    ).toBeInTheDocument();
+    await waitFor(() => dayButton('Next day'), { timeout: 5000 });
+  }, 15_000);
 });
