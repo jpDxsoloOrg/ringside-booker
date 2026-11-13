@@ -543,6 +543,35 @@ describe('table rules', () => {
     expect(inserted.changes.tables['entries']?.inserted).toEqual([entryId(2)]);
   });
 
+  it("'pruneOnly' tables reject update with AppendOnlyError but allow delete", () => {
+    const registry = {
+      ...TX_REGISTRY,
+      entries: { ...TX_REGISTRY.entries, appendOnly: 'pruneOnly' as const },
+    };
+    const world = createWorld(registry, toyMeta(), {
+      idFactory: createIdFactory(sequentialIdEntropy()),
+      validateWrites: 'always',
+    });
+    world.tables.owners._put(makeOwner(1));
+    world.tables.entries._put({ id: entryId(1), ownerId: ownerId(1), amount: 250 });
+
+    const updated = expectFailed(
+      world.transact('edit-log', (tx) => {
+        tx.update('entries', entryId(1), { amount: 1 });
+      }),
+    );
+    expect(updated.error).toBeInstanceOf(AppendOnlyError);
+    expect(world.tables.entries.require(entryId(1)).amount).toBe(250);
+
+    const pruned = expectOk(
+      world.transact('prune-log', (tx) => {
+        tx.delete('entries', entryId(1));
+      }),
+    );
+    expect(pruned.changes.tables['entries']?.deleted).toEqual([entryId(1)]);
+    expect(world.tables.entries.get(entryId(1))).toBeUndefined();
+  });
+
   it('a unique index violation throws UniqueIndexError and rolls back the whole transaction', () => {
     const world = seededTxWorld();
     const before = snapshot(world);
