@@ -198,11 +198,26 @@
   .row {
     min-block-size: var(--tap-target-min);
   }
+
+  /*
+   * The search box takes focus when the picker opens. A phone browser (Safari on iPhone) zooms
+   * the whole page in on a text field smaller than 16px and leaves it zoomed, so the player had
+   * to pinch out to see the picker again (EVT2-10). At 16px it never zooms.
+   */
+  .searchInput {
+    font-size: var(--font-size-md);
+  }
 }
 
 @media (--bp-mobile) {
   .searchInput,
   .filter {
     min-block-size: var(--tap-target-min);
+  }
+
+  /* A long name wraps onto a second line on a phone rather than being cut off. */
+  .rowName {
+    overflow-wrap: anywhere;
+    white-space: normal;
   }
 }
