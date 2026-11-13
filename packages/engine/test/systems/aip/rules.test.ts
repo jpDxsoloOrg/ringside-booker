@@ -117,7 +117,8 @@ describe('aip.rules', () => {
     // MTCH1 is on main: the rival desk's rating policy registers it for the bonus (AIP1-07).
     expect(shortcut(rules(engine), 'ai.scoreBonus').consumers).toEqual(['Match ratings']);
     expect(shortcut(rules(engine), 'ai.simpleBookingInputs').consumers).toEqual(['Match ratings']);
-    expect(shortcut(rules(engine), 'ai.skipInMatchInjuries').consumers).toEqual([]);
+    // MTCH4 reads the injury shortcut on show night (MTCH4-04).
+    expect(shortcut(rules(engine), 'ai.skipInMatchInjuries').consumers).toEqual(['Match injuries']);
     cleanups.push(
       registerAiShortcutConsumer({ key: 'ai.scoreBonus', featureId: 'TEST1', label: 'Ratings' }),
       registerAiShortcutConsumer({ key: 'ai.scoreBonus', featureId: 'TEST2', label: 'Lab' }),

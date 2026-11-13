@@ -5,8 +5,8 @@
  * is that provider: it asks `aiShortcut` for the score bonus, simpler booking and no in-match
  * injuries, so a promotion the player runs, and every promotion under the Level playing field,
  * gets the full rules. It registers itself on import, once (the registry throws on a second), and
- * registers MTCH1 as the consumer of the two shortcuts a rating acts on. MTCH4 registers itself
- * for `ai.skipInMatchInjuries` when it lands.
+ * registers MTCH1 as the consumer of the two shortcuts a rating acts on, and MTCH4 for
+ * `ai.skipInMatchInjuries` (its in-match injuries read the policy on show night, MTCH4-04).
  *
  * Design: docs/design/rival-desk.md#shortcuts, docs/design/match-rating.md#the-policy-door-d-01.
  */
@@ -81,3 +81,9 @@ const MATCH_RATINGS = { featureId: 'MTCH1', label: 'Match ratings' } as const;
 registerRatingPolicyProvider(rivalRatingPolicy, { id: RIVAL_RATING_POLICY_ID, builtIn: true });
 registerAiShortcutConsumer({ key: 'ai.scoreBonus', ...MATCH_RATINGS });
 registerAiShortcutConsumer({ key: 'ai.simpleBookingInputs', ...MATCH_RATINGS });
+// MTCH4-04: show night's physical toll reads `skipInMatchInjuries` from this policy for every match.
+registerAiShortcutConsumer({
+  key: 'ai.skipInMatchInjuries',
+  featureId: 'MTCH4',
+  label: 'Match injuries',
+});

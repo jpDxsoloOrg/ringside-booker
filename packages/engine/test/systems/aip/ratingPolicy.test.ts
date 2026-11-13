@@ -112,12 +112,14 @@ describe('the rival rating policy', () => {
     expect(policy.lines[0]).toBe(NO_RIVAL_BONUS_LINE);
   });
 
-  it('registers MTCH1 as the consumer of the score bonus and simpler booking only', () => {
+  it('registers MTCH1 for the score bonus and simpler booking, MTCH4 for injuries', () => {
     const consumer = { featureId: 'MTCH1', label: 'Match ratings' };
     expect(aiShortcutConsumers('ai.scoreBonus')).toEqual([{ key: 'ai.scoreBonus', ...consumer }]);
     expect(aiShortcutConsumers('ai.simpleBookingInputs')).toEqual([
       { key: 'ai.simpleBookingInputs', ...consumer },
     ]);
-    expect(aiShortcutConsumers('ai.skipInMatchInjuries')).toEqual([]);
+    expect(aiShortcutConsumers('ai.skipInMatchInjuries')).toEqual([
+      { key: 'ai.skipInMatchInjuries', featureId: 'MTCH4', label: 'Match injuries' },
+    ]);
   });
 });
