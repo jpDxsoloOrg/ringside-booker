@@ -16,7 +16,7 @@ import {
 } from '@/screens/dev-gallery/fixtures/traces';
 import { fakeEngineFactory, fakeEngineState } from '@/test/fakeEngine';
 import { Explained } from './Explained';
-import { TracePanel } from './TracePanel';
+import { TracePanel, TraceSummaryView } from './TracePanel';
 import { useTracePanelStore } from './tracePanelStore';
 import { traceToText } from './traceToText';
 import { TEXT_SEPARATOR } from './wording';
@@ -526,5 +526,16 @@ describe('traces fetched by reference', () => {
     );
     await user.click(screen.getByRole('button', { name: 'Why is Unknown 1?' }));
     expect(await screen.findByText('No breakdown is kept for this result.')).toBeInTheDocument();
+  });
+});
+
+describe('a result kept only as a summary', () => {
+  it("says only a summary is kept for another promotion's result", () => {
+    render(<TraceSummaryView summary={{ ...summarisedAttendance, summaryOnly: true }} />);
+    expect(
+      screen.getByText("Only a summary is kept for other promotions' results"),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Full breakdown is only kept for recent results')).toBeNull();
+    expect(screen.getByText('−2,100 Promotion popularity')).toBeInTheDocument();
   });
 });

@@ -14,7 +14,7 @@ import type { EntityLinkRenderer } from './rows/rowTypes';
 import styles from './Trace.module.css';
 import {
   contributorText,
-  SUMMARISED_NOTICE,
+  summaryNotice,
   summaryDateText,
   summaryToText,
   traceToText,
@@ -109,7 +109,7 @@ export function TraceSummaryView({ summary }: { readonly summary: TraceSummary }
       </div>
       <p className={styles['notice']} role="note">
         <Icon name="info" size="sm" decorative />
-        <span>{SUMMARISED_NOTICE}</span>
+        <span>{summaryNotice(summary)}</span>
       </p>
       <p className={styles['summaryDate']}>{summaryDateText(summary)}</p>
       {summary.topContributors.length > 0 && (
