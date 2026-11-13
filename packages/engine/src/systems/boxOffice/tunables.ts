@@ -6,6 +6,7 @@
  */
 
 import { defineTunables } from '../../core/tunables/define';
+import { venueTunables } from './venueTunables';
 
 const BOX_OFFICE_CATEGORY = 'Box office';
 const FORECAST_DOC = 'box-office.md#forecast';
@@ -200,4 +201,5 @@ export const boxOfficeTunables = defineTunables({
       'How far the real crowd can land from the forecast, either way; also the width of the forecast range',
     docRef: FORECAST_DOC,
   },
+  ...venueTunables,
 });
