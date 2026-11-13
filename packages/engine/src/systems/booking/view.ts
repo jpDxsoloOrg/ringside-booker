@@ -168,7 +168,8 @@ export interface BookingTitleView {
 }
 
 export interface BookingResultView {
-  kind: 'win' | 'draw' | 'noContest';
+  /** `auto` and `random` (MTCH2-08) are left to the night: no side and no method yet. */
+  kind: 'win' | 'draw' | 'noContest' | 'auto' | 'random';
   winningSide: number | null;
   methodKey: string | null;
   methodName: string | null;
@@ -322,10 +323,16 @@ function durationShiftNoteOf(matchType: DeepReadonly<MatchTypeDef> | null): stri
 }
 
 function resultOf(read: GameWorldView, segment: DeepReadonly<Segment>): BookingResultView | null {
-  if (segment.kind !== 'match' || segment.outcome === null) {
+  if (segment.kind !== 'match') {
     return null;
   }
   const { outcome } = segment;
+  if (outcome === null) {
+    const plan = segment.match.resultPlan;
+    return plan === undefined
+      ? null
+      : { kind: plan, winningSide: null, methodKey: null, methodName: null };
+  }
   if (outcome.kind !== 'win') {
     return { kind: outcome.kind, winningSide: null, methodKey: null, methodName: null };
   }

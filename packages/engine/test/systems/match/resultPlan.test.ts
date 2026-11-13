@@ -2,6 +2,7 @@
 // through booking and validation to show night. Design: docs/design/match-finishes.md#auto-and-random
 import { describe, expect, it } from 'vitest';
 import { parseContentKey } from '../../../src/core/content-key';
+import { ZERO_CENTS } from '../../../src/core/money';
 import type { PersonId, SegmentId } from '../../../src/core/ids';
 import { RngRegistry } from '../../../src/core/rng/registry';
 import { findTraceNodes, inputOf, walkTrace, type TraceNode } from '../../../src/core/trace';
@@ -169,7 +170,7 @@ describe('the segment schema', () => {
     world.tables.eventInstances._put(
       makeInstance(1, {
         status: 'completed',
-        result: { score: 60, rawScore: 60, traceId: null, attendance: 900, gate: 0, viewers: null },
+        result: { score: 60, rawScore: 60, traceId: null, attendance: 900, gate: ZERO_CENTS, viewers: null },
       }),
     );
     putSinglesMatch(world, 1, {

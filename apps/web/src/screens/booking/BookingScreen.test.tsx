@@ -271,7 +271,8 @@ describe('BookingScreen', () => {
           reasons: [
             {
               code: 'cardNotRunnable',
-              message: 'Opener: no result planned; pick a winner, Auto, Random, a draw or a no contest',
+              message:
+                'Opener: no result planned; pick a winner, Auto, Random, a draw or a no contest',
               subject: { kind: 'segment', id: opener },
             },
           ],
