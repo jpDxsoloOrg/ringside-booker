@@ -14,11 +14,16 @@ export const RIVAL_BOOKING_CATEGORY = 'Rival booking';
 export const CARD_POOL_DOC_REF = 'rival-booking.md#card-pool';
 export const CARD_SHAPE_DOC_REF = 'rival-booking.md#card-shape';
 export const TITLE_CAP_DOC_REF = 'rival-booking.md#title-matches';
+export const TITLE_PICTURE_DOC_REF = 'rival-booking.md#title-picture';
+export const CHALLENGERS_DOC_REF = 'rival-booking.md#challengers';
 
 /** `aip.card.talkShare.<importance>`: the talking share of a show of that importance. */
 export type TalkShareKey = `aip.card.talkShare.${EventImportance}`;
 /** `aip.titles.maxPerShow.<importance>`: the most title matches on a show of that importance. */
 export type TitleCapKey = `aip.titles.maxPerShow.${EventImportance}`;
+
+/** `aip.titles.importanceBonus.<importance>`: urgency a show of that importance adds. */
+export type ImportanceBonusKey = `aip.titles.importanceBonus.${EventImportance}`;
 
 export function talkShareKey(importance: EventImportance): TalkShareKey {
   return `aip.card.talkShare.${importance}`;
@@ -26,6 +31,10 @@ export function talkShareKey(importance: EventImportance): TalkShareKey {
 
 export function titleCapKey(importance: EventImportance): TitleCapKey {
   return `aip.titles.maxPerShow.${importance}`;
+}
+
+export function importanceBonusKey(importance: EventImportance): ImportanceBonusKey {
+  return `aip.titles.importanceBonus.${importance}`;
 }
 
 const TALK_SHARE = {
@@ -36,6 +45,16 @@ const TALK_SHARE = {
   unit: 'ratio',
   category: RIVAL_BOOKING_CATEGORY,
   docRef: CARD_SHAPE_DOC_REF,
+} as const;
+
+const IMPORTANCE_BONUS = {
+  kind: 'number',
+  min: 0,
+  max: 5,
+  step: 0.25,
+  unit: 'points',
+  category: RIVAL_BOOKING_CATEGORY,
+  docRef: TITLE_PICTURE_DOC_REF,
 } as const;
 
 const TITLE_CAP = {
@@ -149,5 +168,107 @@ export const aipCardTunables = defineTunables({
     ...TITLE_CAP,
     default: 6,
     description: 'Same, on the flagship show of the year',
+  },
+
+  // Which titles are defended tonight (AIP4-02).
+  'aip.titles.defenceIntervalDays': {
+    kind: 'number',
+    default: 28,
+    min: 1,
+    max: 365,
+    unit: 'days',
+    category: RIVAL_BOOKING_CATEGORY,
+    description: 'Usual gap between defences of a title, for a booker with middling title taste',
+    docRef: TITLE_PICTURE_DOC_REF,
+  },
+  'aip.titles.tempoSwing': {
+    kind: 'number',
+    default: 0.5,
+    min: 0,
+    max: 1,
+    step: 0.05,
+    unit: 'ratio',
+    category: RIVAL_BOOKING_CATEGORY,
+    description:
+      "How far the booker's title taste moves the usual gap: at 0.5, taste 100 halves it and taste 0 makes it half as long again",
+    docRef: TITLE_PICTURE_DOC_REF,
+  },
+  'aip.titles.prestigeWeight': {
+    kind: 'number',
+    default: 0.5,
+    min: 0,
+    max: 5,
+    step: 0.1,
+    unit: 'points',
+    category: RIVAL_BOOKING_CATEGORY,
+    description:
+      'Urgency a title gains per 100 prestige: prestigious titles are defended more often',
+    docRef: TITLE_PICTURE_DOC_REF,
+  },
+  'aip.titles.importanceBonus.house': {
+    ...IMPORTANCE_BONUS,
+    default: 0,
+    description: 'Urgency a house show adds to every title: big shows put more titles on the line',
+  },
+  'aip.titles.importanceBonus.minor': {
+    ...IMPORTANCE_BONUS,
+    default: 0,
+    description: 'Same, on a minor show',
+  },
+  'aip.titles.importanceBonus.regular': {
+    ...IMPORTANCE_BONUS,
+    default: 0,
+    description: 'Same, on a regular weekly show',
+  },
+  'aip.titles.importanceBonus.major': {
+    ...IMPORTANCE_BONUS,
+    default: 1,
+    description: 'Same, on a major show',
+  },
+  'aip.titles.importanceBonus.flagship': {
+    ...IMPORTANCE_BONUS,
+    default: 2,
+    description: 'Same, on the flagship show of the year',
+  },
+  'aip.titles.dueThreshold': {
+    kind: 'number',
+    default: 1,
+    min: 0,
+    max: 10,
+    step: 0.1,
+    unit: 'points',
+    category: RIVAL_BOOKING_CATEGORY,
+    description: 'Urgency at which a title is due a defence tonight',
+    docRef: TITLE_PICTURE_DOC_REF,
+  },
+  'aip.titles.recentChallengers': {
+    kind: 'integer',
+    default: 2,
+    min: 0,
+    max: 10,
+    unit: 'count',
+    category: RIVAL_BOOKING_CATEGORY,
+    description:
+      "How many of a title's latest challengers rest before they challenge again (0 never)",
+    docRef: CHALLENGERS_DOC_REF,
+  },
+  'aip.titles.challengerPool': {
+    kind: 'integer',
+    default: 3,
+    min: 1,
+    max: 10,
+    unit: 'count',
+    category: RIVAL_BOOKING_CATEGORY,
+    description: 'How many of the best eligible contenders the booker chooses a challenger from',
+    docRef: CHALLENGERS_DOC_REF,
+  },
+  'aip.titles.excludeOtherChampions': {
+    kind: 'boolean',
+    default: true,
+    unit: 'flag',
+    category: RIVAL_BOOKING_CATEGORY,
+    description:
+      "Whether a champion is kept out of challenging for another of the promotion's titles",
+    docRef: CHALLENGERS_DOC_REF,
   },
 });
