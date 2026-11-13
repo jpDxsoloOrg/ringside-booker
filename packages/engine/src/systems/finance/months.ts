@@ -43,10 +43,15 @@ const MONTH_NAMES = [
   'December',
 ] as const;
 
+/** "January 2027": a month, in words. */
+export function monthLabel(month: YearMonth): string {
+  const monthName = MONTH_NAMES[Number(month.slice(5, 7)) - 1] ?? month;
+  return `${monthName} ${month.slice(0, 4)}`;
+}
+
 /** "1 January 2027": the first day of a month, in words. */
 export function firstOfMonthLabel(month: YearMonth): string {
-  const monthName = MONTH_NAMES[Number(month.slice(5, 7)) - 1] ?? month;
-  return `1 ${monthName} ${month.slice(0, 4)}`;
+  return `1 ${monthLabel(month)}`;
 }
 
 /** A promotion's ledger rows dated in `month`, in id order. */

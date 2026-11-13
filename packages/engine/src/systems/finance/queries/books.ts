@@ -43,7 +43,7 @@ import {
   type MonthTotals,
 } from '../months';
 import { payrollFiguresOf } from '../phases';
-import { cashTraceRef } from '../traces';
+import { currentCashTraceRef } from '../../../core/api/builtins';
 
 export type { MonthTotals } from '../months';
 
@@ -201,7 +201,7 @@ export const financeOverviewQuery: QueryDefinition<'finance.overview'> = defineQ
         promotionId: promotion.id,
         date: ctx.date,
         cash: promotion.cash,
-        cashTraceRef: storedRef(ctx, cashTraceRef(promotion.id)),
+        cashTraceRef: currentCashTraceRef(ctx.traces, promotion),
         thisMonth: monthTotalsOf(thisMonth),
         lastMonth: previous.month < startMonth ? null : monthTotalsOf(previous),
         monthlyPayroll: payroll.monthly.value,
