@@ -379,7 +379,8 @@ describe('Simulate in a new game started with Random winners', () => {
     expect(result.randomWinnersMode).toBe(true);
     expect(result.resultTrace.children?.[0]?.label).toMatch(/^Random winners mode/);
     const winner = traceToText(result.resultTrace);
-    expect(winner).toContain('match.randomWinners.randomness');
+    // Random winners is a true coin flip (MTCH2-08): an equal chance, no scores.
+    expect(winner).toContain('Random: every side had an equal chance');
     expectReadableResult(result);
   });
 
