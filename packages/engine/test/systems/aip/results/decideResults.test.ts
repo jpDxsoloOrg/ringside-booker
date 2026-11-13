@@ -17,6 +17,8 @@ import type { MatchSegment } from '../../../../src/model/entities/segment';
 import type { GameWorld } from '../../../../src/model/tables';
 import type { SerializedWorld } from '../../../../src/persistence/save-document';
 import {
+  DECIDE_RESULTS_STEP_ORDER,
+  registerBookedCardStep,
   REIGN_BAND_NUMBERS,
   reignBandChanceKey,
   TITLE_CHANGE_SUMMARY_KEY,
@@ -27,6 +29,7 @@ import {
   winPlanKey,
   WINNERS_BOOKED_SUMMARY_KEY,
 } from '../../../../src/systems/aip';
+import { cardSegments } from '../../../../src/systems/booking/card';
 import { randomWinnersActive } from '../../../../src/systems/match';
 import { getSetting } from '../../../../src/systems/newgame';
 import { aMatch, anEventInstance, aParticipant } from '../../../support/builders/creative';
@@ -568,11 +571,25 @@ describe.runIf(SLOW_TESTS)('aip.decideResults over a year', () => {
   });
 
   it('never books a draw with the draw chance at 0, and does with it at 1', async () => {
-    const never = await play(resultsWorld({ shows: weekly(52, 'regular', 'none') }), 365);
-    const neverTables = tablesOf(never);
-    const outcomes = neverTables.segments.flatMap((segment) =>
-      segment.kind === 'match' && segment.outcome !== null ? [segment.outcome.kind] : [],
-    );
+    // Counted as each card is booked: POL4-08 trims the segments of shows older than the detail
+    // window, so a year's matches are no longer all in the save at the end.
+    const outcomes: string[] = [];
+    const removeWatch = registerBookedCardStep({
+      id: 'test.watchDraws',
+      order: DECIDE_RESULTS_STEP_ORDER + 1,
+      run: (ctx, input) => {
+        for (const segment of cardSegments(ctx.read, input.instance.id)) {
+          if (segment.kind === 'match' && segment.outcome !== null) {
+            outcomes.push(segment.outcome.kind);
+          }
+        }
+      },
+    });
+    try {
+      await play(resultsWorld({ shows: weekly(52, 'regular', 'none') }), 365);
+    } finally {
+      removeWatch();
+    }
     expect(outcomes.length).toBeGreaterThan(52);
     expect(outcomes).not.toContain('draw');
 
