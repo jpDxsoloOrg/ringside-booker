@@ -9,6 +9,7 @@
 import { expect, test } from './fixtures';
 import type { Locator, Page } from '@playwright/test';
 import { expectNoSeriousA11yViolations } from './helpers/a11y';
+import { GALLERY_ENTRY_IDS } from './helpers/gallery';
 import { expectNoHorizontalScroll } from './helpers/layout';
 import { isPhone } from './helpers/viewport';
 
@@ -143,19 +144,19 @@ test.describe('component gallery', () => {
     }
   });
 
-  test('opens every entry without errors, sideways scroll or serious a11y issues', async ({
-    page,
-  }, testInfo) => {
-    test.slow();
-    const phone = isPhone(testInfo);
-    for (const entry of await readEntries(page)) {
-      await test.step(entry.title, async () => {
-        await openEntry(page, entry, phone);
-        await expectNoHorizontalScroll(page);
-        await expectNoSeriousA11yViolations(page);
-      });
-    }
-  });
+  // One test per entry, so a slow engine opens them in parallel and a failure names the entry.
+  for (const entryId of GALLERY_ENTRY_IDS) {
+    test(`opens the ${entryId} entry without errors, sideways scroll or serious a11y issues`, async ({
+      page,
+    }, testInfo) => {
+      const entry = (await readEntries(page)).find((listed) => listed.id === entryId);
+      expect(entry, `the gallery lists the ${entryId} entry`).toBeDefined();
+      if (entry === undefined) return;
+      await openEntry(page, entry, isPhone(testInfo));
+      await expectNoHorizontalScroll(page);
+      await expectNoSeriousA11yViolations(page);
+    });
+  }
 
   test('deep links to an entry by #id', async ({ page }) => {
     await page.goto(`${GALLERY_PATH}#stat-bar`);
