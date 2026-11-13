@@ -4,7 +4,13 @@
  * stand-in engine gives for `match.catalog`, `match.slotRoles` and `booking.availableWorkers`.
  * Nothing here is a length or a time (D-10).
  */
-import { parseContentKey, parseGameDate, parseId, STYLE_LABELS } from '@ringside/engine';
+import {
+  parseContentKey,
+  parseGameDate,
+  parseId,
+  PUSH_LABELS,
+  STYLE_LABELS,
+} from '@ringside/engine';
 import type {
   AvailableTeamRow,
   AvailableWorkerRow,
@@ -88,6 +94,18 @@ const WORKERS: readonly Worker[] = [
   { name: 'Sam Reed', ...AVAILABLE, canWorkAngles: true, brandName: null, onCard: 'Opener' },
 ];
 
+/** Genders by index, with someone non-binary, so the picker's Gender filter has all three. */
+const GENDERS_BY_INDEX = [
+  'male',
+  'male',
+  'female',
+  'male',
+  'female',
+  'male',
+  'female',
+  'nonBinary',
+] as const;
+
 function personId(index: number): PersonId {
   return parseId('person', `per_${String(index + 101).padStart(10, '0')}`);
 }
@@ -102,10 +120,11 @@ export function galleryWorkerRows(kind: 'match' | 'angle'): AvailableWorkerRow[]
     personId: personId(index),
     ringName: worker.name,
     imageRef: 'placeholder:person',
-    gender: index % 3 === 2 ? 'female' : 'male',
+    gender: GENDERS_BY_INDEX[index] ?? 'male',
     roles: ['wrestler'],
     employmentRole: 'wrestler',
-    push: index === 2 ? 'mainEvent' : index < 2 ? 'upperCard' : 'midCard',
+    push:
+      index === 2 ? 'mainEvent' : index < 2 ? 'upperCard' : index === 7 ? 'lowerCard' : 'midCard',
     alignment: index % 2 === 0 ? 'face' : 'heel',
     brandId: null,
     brandName: worker.brandName,
@@ -160,12 +179,9 @@ export function galleryPickerPeople(): RosterPickerPerson[] {
     personId: row.personId,
     name: row.ringName,
     imageRef: row.imageRef,
-    pushLabel:
-      row.push === 'mainEvent'
-        ? 'Main event'
-        : row.push === 'upperCard'
-          ? 'Upper card'
-          : 'Mid card',
+    pushLabel: PUSH_LABELS[row.push],
+    push: row.push,
+    gender: row.gender,
     alignment: row.alignment,
     availability: { status: row.availability.status, label: row.availability.label },
     selectable: row.bookable,
@@ -194,6 +210,8 @@ export const GALLERY_PICKER_TEAMS: readonly RosterPickerTeam[] = [
     teamId: TEAM_ID,
     name: 'The Hale Storm',
     memberNames: ['Kai Moreno', 'Rex Hale'],
+    memberGenders: ['male', 'male'],
+    memberPushes: ['upperCard', 'upperCard'],
     selectable: true,
     reason: null,
     otherBrand: false,
@@ -202,6 +220,8 @@ export const GALLERY_PICKER_TEAMS: readonly RosterPickerTeam[] = [
     teamId: parseId('team', 'tem_0000000102'),
     name: 'Cruz Control',
     memberNames: ['Tia Cruz', 'Jo Park'],
+    memberGenders: ['female', 'male'],
+    memberPushes: ['midCard', 'midCard'],
     selectable: false,
     reason: 'Not everyone can be booked: Tia Cruz: Injured until 12 Feb',
     otherBrand: false,

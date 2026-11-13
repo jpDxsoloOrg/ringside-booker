@@ -247,6 +247,160 @@ describe('RosterPicker', () => {
     expect(screen.getByRole('option', { name: /Mia Stone/ })).toBeInTheDocument();
   });
 
+  describe('gender and push', () => {
+    const ANA = person(5, 'Ana Ruiz', { gender: 'female', push: 'mainEvent' });
+    const BEN = person(6, 'Ben Cole', { gender: 'male', push: 'midCard' });
+    const CAL = person(7, 'Cal Dune', { gender: 'nonBinary', push: 'lowerCard' });
+    const DEE = person(8, 'Dee Marsh', { gender: 'female', push: 'lowerCard' });
+    const MIXED: RosterPickerTeam = {
+      ...TEAM,
+      teamId: parseId('team', 'tem_0000000002'),
+      name: 'Odd Couple',
+      memberNames: ['Ana Ruiz', 'Ben Cole'],
+      memberGenders: ['female', 'male'],
+      memberPushes: ['mainEvent', 'midCard'],
+      otherBrand: false,
+    };
+    const SISTERS: RosterPickerTeam = {
+      ...MIXED,
+      teamId: parseId('team', 'tem_0000000003'),
+      name: 'The Sisters',
+      memberNames: ['Ana Ruiz', 'Dee Marsh'],
+      memberGenders: ['female', 'female'],
+      memberPushes: ['mainEvent', 'lowerCard'],
+    };
+    const names = () =>
+      screen
+        .getAllByRole('option')
+        .map((option) => option.querySelector('[class*="rowName"]')?.textContent);
+
+    function renderFiltered(overrides: Partial<RosterPickerProps> = {}) {
+      return renderPicker({
+        people: [ANA, BEN, CAL, DEE],
+        teams: [MIXED, SISTERS],
+        genderAndPushFilters: true,
+        ...overrides,
+      });
+    }
+
+    it('shows each person’s gender in words first on the stats line', () => {
+      renderFiltered({ people: [{ ...ANA, typeLabel: 'Technician' }, BEN, CAL] });
+      const ana = screen.getByRole('option', { name: /Ana Ruiz/ });
+      expect(within(ana).getByText('Woman')).toBeVisible();
+      expect(ana).toHaveAccessibleName(expect.stringContaining('Woman , Technician'));
+      expect(screen.getByRole('option', { name: /Ben Cole/ })).toHaveTextContent('Man');
+      expect(screen.getByRole('option', { name: /Cal Dune/ })).toHaveTextContent('Non-binary');
+    });
+
+    it('says a team is Mixed when its members differ, and names the gender when they match', async () => {
+      const user = userEvent.setup({ delay: null });
+      renderFiltered();
+      await user.click(screen.getByRole('button', { name: 'Teams' }));
+      expect(screen.getByRole('option', { name: /Odd Couple/ })).toHaveTextContent('Mixed');
+      expect(screen.getByRole('option', { name: /The Sisters/ })).toHaveTextContent('Women');
+    });
+
+    it('narrows by gender, counts who it hides, and keeps teams whose members all match', async () => {
+      const user = userEvent.setup({ delay: null });
+      renderFiltered();
+      const chip = screen.getByRole('button', { name: 'Gender' });
+      await user.click(chip);
+      const menu = await screen.findByRole('dialog', { name: 'Show by gender' });
+      expect(
+        within(menu)
+          .getAllByRole('radio')
+          .map((radio) => radio.closest('label')?.textContent),
+      ).toEqual(['All', 'Men', 'Women', 'Non-binary']);
+      await user.click(within(menu).getByRole('radio', { name: 'Women' }));
+      expect(screen.getByRole('button', { name: 'Gender: Women' })).toBeInTheDocument();
+      expect(names()).toEqual(['Ana Ruiz', 'Dee Marsh']);
+      expect(
+        screen.getByText('2 more are hidden by the Gender or Push filter.'),
+      ).toBeInTheDocument();
+
+      await user.keyboard('{Escape}');
+      await user.click(screen.getByRole('button', { name: 'Teams' }));
+      expect(names()).toEqual(['The Sisters']);
+      expect(
+        screen.getByText('1 more is hidden by the Gender or Push filter.'),
+      ).toBeInTheDocument();
+    });
+
+    it('narrows by one or more pushes, and a team matches when any member does', async () => {
+      const user = userEvent.setup({ delay: null });
+      renderFiltered();
+      await user.click(screen.getByRole('button', { name: 'Push' }));
+      const menu = await screen.findByRole('dialog', { name: 'Show by push' });
+      for (const push of ['Main event', 'Upper card', 'Mid card', 'Enhancement', 'None']) {
+        await user.click(within(menu).getByRole('checkbox', { name: push }));
+      }
+      expect(screen.getByRole('button', { name: 'Push: Lower card' })).toBeInTheDocument();
+      expect(names()).toEqual(['Cal Dune', 'Dee Marsh']);
+      await user.click(within(menu).getByRole('checkbox', { name: 'Mid card' }));
+      expect(screen.getByRole('button', { name: 'Push: 2 chosen' })).toBeInTheDocument();
+      expect(names()).toEqual(['Ben Cole', 'Cal Dune', 'Dee Marsh']);
+
+      await user.keyboard('{Escape}');
+      await user.click(screen.getByRole('button', { name: 'Teams' }));
+      // Both teams have a member at Mid card or Lower card.
+      expect(names()).toEqual(['Odd Couple', 'The Sisters']);
+
+      await user.click(screen.getByRole('button', { name: 'Push: 2 chosen' }));
+      await user.click(
+        within(await screen.findByRole('dialog', { name: 'Show by push' })).getByRole('button', {
+          name: 'Show every push',
+        }),
+      );
+      expect(screen.getByRole('button', { name: 'Push' })).toBeInTheDocument();
+    });
+
+    it('combines with the other filters and says how to see more when nobody is left', async () => {
+      const user = userEvent.setup({ delay: null });
+      renderFiltered({
+        people: [ANA, { ...DEE, selectable: false, reason: 'Injured' }, BEN],
+      });
+      await user.click(screen.getByRole('button', { name: 'Gender' }));
+      await user.click(
+        within(await screen.findByRole('dialog', { name: 'Show by gender' })).getByRole('radio', {
+          name: 'Women',
+        }),
+      );
+      // Dee is hidden by Bookable only and Ben by Gender: each counted once, under its own filter.
+      expect(names()).toEqual(['Ana Ruiz']);
+      expect(screen.getByText(/1 more is hidden because they can’t be booked/)).toBeInTheDocument();
+      expect(
+        screen.getByText('1 more is hidden by the Gender or Push filter.'),
+      ).toBeInTheDocument();
+
+      await user.click(screen.getByRole('radio', { name: 'Men' }));
+      // A click outside closes the menu; the choice stays.
+      await user.click(screen.getByRole('button', { name: 'Bookable only' }));
+      expect(names()).toEqual(['Ben Cole']);
+      await user.click(screen.getByRole('button', { name: 'Gender: Men' }));
+      await user.click(
+        within(await screen.findByRole('dialog', { name: 'Show by gender' })).getByRole('radio', {
+          name: 'Non-binary',
+        }),
+      );
+      expect(screen.getByText('Change the Gender or Push filter to see more.')).toBeInTheDocument();
+    });
+
+    it('never stops anyone being picked: a filter only narrows the list', async () => {
+      const user = userEvent.setup({ delay: null });
+      const props = renderFiltered();
+      await user.click(screen.getByRole('option', { name: /Ben Cole/ }));
+      await user.click(screen.getByRole('option', { name: /Ana Ruiz/ }));
+      expect(props.onPickPerson).toHaveBeenCalledTimes(2);
+    });
+
+    it('has no Gender or Push filter unless the screen asks for it', () => {
+      renderPicker({ people: [ANA, BEN] });
+      expect(screen.queryByRole('button', { name: /^Gender/ })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /^Push/ })).not.toBeInTheDocument();
+      expect(names()).toEqual(['Ana Ruiz', 'Ben Cole']);
+    });
+  });
+
   it('says so when nobody matches', async () => {
     const user = userEvent.setup();
     renderPicker({ people: [TIA] });

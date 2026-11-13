@@ -97,6 +97,8 @@ export function pickerPerson(
     name: row.ringName,
     imageRef: row.imageRef,
     pushLabel: PUSH_LABELS[row.push],
+    push: row.push,
+    gender: row.gender,
     alignment: row.alignment,
     availability: { status: row.availability.status, label: row.availability.label },
     selectable: row.bookable && inDraft === undefined,
@@ -137,10 +139,13 @@ export function pickerTeam(
     : placed.length > 0
       ? `${namesText(placed)} ${placed.length === 1 ? 'is' : 'are'} already in this segment`
       : null;
+  const known = members.filter((member) => member !== undefined);
   return {
     teamId: team.teamId,
     name: team.name,
     memberNames,
+    memberGenders: known.map((member) => member.gender),
+    memberPushes: known.map((member) => member.push),
     selectable: team.bookable && placed.length === 0,
     bookable: team.bookable,
     reason,
@@ -222,6 +227,7 @@ export function EditorRosterPicker({
       {...(kind === 'match' ? { teams } : {})}
       initialMode={shown.mode}
       bookedFilter
+      genderAndPushFilters
       sortStat={{ key: 'popularity', label: 'Most popular' }}
       {...(query.data === undefined ? {} : { statsNote: statsNoteText(regionName) })}
       loading={query.status === 'loading'}
