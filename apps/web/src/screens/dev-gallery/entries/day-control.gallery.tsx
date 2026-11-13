@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { addDays, cents, parseGameDate, parseId, startCalc } from '@ringside/engine';
-import type { AdvanceResult, SimStatus } from '@ringside/engine';
+import type { AdvanceResult, GateHit, SimStatus } from '@ringside/engine';
 import { AdvanceOverlay } from '@/app/AppShell/day/AdvanceOverlay';
 import { AdvanceSummaryBanner } from '@/app/AppShell/day/AdvanceSummary';
 import type { AdvanceReport, AutosaveState } from '@/app/AppShell/day/DayAdvanceProvider';
@@ -55,7 +55,18 @@ function result(overrides: Partial<AdvanceResult>): AdvanceResult {
   };
 }
 
-const REPORTS: readonly { readonly title: string; readonly report: AdvanceReport }[] = [
+const SHOW_NIGHT_HIT: GateHit = {
+  gateId: 'shows.tonight',
+  reason: 'Tonight: Harbor Lights Showdown',
+  subject: { kind: 'eventInstance', id: 'evi_0000000001' },
+  actionHint: 'showNight',
+};
+
+const REPORTS: readonly {
+  readonly title: string;
+  readonly report: AdvanceReport;
+  readonly tonight?: GateHit;
+}[] = [
   { title: 'Completed', report: { kind: 'advanced', daysRequested: 30, result: result({}) } },
   {
     title: 'Stopped at a show',
@@ -69,14 +80,36 @@ const REPORTS: readonly { readonly title: string; readonly report: AdvanceReport
           kind: 'gate',
           hits: [
             {
-              gateId: 'events.showNeedsBooking',
-              reason: "Your show 'Harbor Lights Showdown' on 2031-03-18 has no card yet",
-              actionHint: 'booking',
+              gateId: 'shows.tonight',
+              reason: "Your show 'Harbor Lights Showdown' has no card yet",
+              actionHint: 'showNight',
             },
           ],
         },
       }),
     },
+  },
+  {
+    title: 'Stopped on show night',
+    report: {
+      kind: 'advanced',
+      daysRequested: 30,
+      result: result({
+        endDate: addDays(TODAY, 4),
+        daysAdvanced: 4,
+        stoppedBy: { kind: 'gate', hits: [SHOW_NIGHT_HIT] },
+      }),
+    },
+    tonight: SHOW_NIGHT_HIT,
+  },
+  {
+    title: 'Next Day onto show night',
+    report: {
+      kind: 'advanced',
+      daysRequested: 1,
+      result: result({ endDate: addDays(TODAY, 1), daysAdvanced: 1 }),
+    },
+    tonight: SHOW_NIGHT_HIT,
   },
   {
     title: 'Stopped by you, with a failed step',
@@ -176,7 +209,7 @@ function DayControlDemo() {
           </div>
           <div className={broadcast['row']}>
             <StatusChips status={IN_THE_RED} placement="bar" />
-            <LiveBugButton iconEnd="chevron-right">Go to show</LiveBugButton>
+            <LiveBugButton iconEnd="chevron-right">Go to the show</LiveBugButton>
           </div>
           <div className={broadcast['row']}>
             <StatusChips status={UNEMPLOYED} placement="bar" />
@@ -205,11 +238,12 @@ function DayControlDemo() {
       <section className={styles['example']}>
         <h3 className={styles['subheading']}>Summary banner</h3>
         <Stack gap={3}>
-          {REPORTS.map(({ title, report }) => (
+          {REPORTS.map(({ title, report, tonight }) => (
             <div key={title}>
               <p className={styles['caption']}>{title}</p>
               <AdvanceSummaryBanner
                 report={report}
+                tonight={tonight ?? null}
                 label={`Last advance: ${title}`}
                 onDismiss={() => undefined}
               />

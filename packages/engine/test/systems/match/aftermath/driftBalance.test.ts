@@ -9,8 +9,9 @@
 // Design: docs/design/match-aftermath.md#momentum-drift
 import { describe, expect, it } from 'vitest';
 import { createEngine } from '../../../../src/core/api';
+import { defaultSystems } from '../../../../src/systems';
 import { quantileOfSorted } from '../../../../src/systems/match';
-import { SYSTEMS_WITHOUT_SHOW_DAY_GATE } from '../../../support';
+import { withMyShowsRun } from '../../../support';
 import { cardEveryShowSystem } from '../../../support/card-every-show';
 import { startDefaultGame } from '../../calendar/default-game';
 
@@ -25,7 +26,8 @@ describe('momentum drift on the default world with every show carded', () => {
     async () => {
       const engine = createEngine({
         state: startDefaultGame(),
-        systems: [...SYSTEMS_WITHOUT_SHOW_DAY_GATE, cardEveryShowSystem],
+        // The player runs their shows each show day, as Run the show would (EVT2-09).
+        systems: withMyShowsRun([...defaultSystems, cardEveryShowSystem]),
       });
       const advanced = await engine.advanceDays({ maxDays: DAYS });
       expect(advanced.failures).toEqual([]);

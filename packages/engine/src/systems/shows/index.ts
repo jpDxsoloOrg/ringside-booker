@@ -18,6 +18,7 @@ import { showsPhases } from './phases';
 import { showsQueries } from './queries';
 import { registerSegmentResultApplier } from './registries';
 import { titleOutcomeApplier } from './titles';
+import { runTonightCommand, showsTonightGate } from './tonight';
 
 export { SHOWS_OFFSCREEN_STREAM } from './streams';
 export {
@@ -168,8 +169,32 @@ export {
 // The built-in title outcome applier (order 10), registered once at module load.
 registerSegmentResultApplier(titleOutcomeApplier);
 
+// The player's show night (EVT2-09): the `shows.tonight` gate, `shows.runTonight` and the
+// before-a-show-runs hooks.
+export {
+  MAX_RUN_REASONS,
+  RUN_TONIGHT_REASON_CODES,
+  SHOW_NIGHT_ACTION_HINT,
+  SHOWS_TONIGHT_GATE_ID,
+  myShowsOn,
+  runTonightCommand,
+  showsTonightGate,
+  type RunTonightReasonCode,
+} from './tonight';
+export {
+  listBeforeShowRuns,
+  registerBeforeShowRuns,
+  unregisterBeforeShowRuns,
+  type BeforeShowRunsHook,
+  type BeforeShowRunsInput,
+} from './beforeRun';
+export { compareShows, isOpenShow } from './phases';
+export { runShowNow } from './runShow';
+
 export const showsSystem: SystemBundle = defineSystem({
   id: 'shows',
   phases: showsPhases,
   queries: showsQueries,
+  commands: [runTonightCommand],
+  gates: [showsTonightGate],
 });

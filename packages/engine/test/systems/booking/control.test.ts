@@ -58,11 +58,8 @@ describe('editBlockOf', () => {
     expect(editBlockOf(world, show({ date: parseGameDate('2026-02-01') }))).toBeNull();
   });
 
-  it('blocks a booked show until its card is unlocked', () => {
-    expect(editBlockOf(world, show({ status: 'booked' }))).toMatchObject({
-      code: 'cardLocked',
-      message: 'Unlock the card to change it',
-    });
+  it('leaves a show an old save locked (booked) open: there is no lock (EVT2-09)', () => {
+    expect(editBlockOf(world, show({ status: 'booked' }))).toBeNull();
   });
 
   it('blocks a completed show and a cancelled show', () => {

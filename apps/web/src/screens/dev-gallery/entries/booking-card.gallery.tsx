@@ -105,7 +105,7 @@ function BookingCardDemo() {
       <DraggableBoard />
       <p className={styles['subheading']}>Matches with more than two sides</p>
       <CardBoard rowIdPrefix="gallery-board-4" sections={MULTI_SIDE} onAdd={() => undefined} />
-      <p className={styles['subheading']}>Locked</p>
+      <p className={styles['subheading']}>Read only (a show that has run)</p>
       <CardBoard rowIdPrefix="gallery-board-5" sections={FULL} />
     </Stack>
   );
@@ -116,6 +116,6 @@ export const galleryEntry: GalleryEntry = {
   title: 'Booking card board',
   group: 'Office',
   notes:
-    'The booking screen card from static data: empty, partly filled with problems, full with winners (draggable, swap), triple threat and four-way, and locked (no add or move controls). Each role and size has its Why?. No times anywhere.',
+    'The booking screen card from static data: empty, partly filled with problems, full with winners (draggable, swap), triple threat and four-way, and read only, as for a show that has run (no add or move controls). Each role and size has its Why?. No times anywhere.',
   render: () => <BookingCardDemo />,
 };

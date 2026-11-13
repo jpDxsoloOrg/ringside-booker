@@ -50,19 +50,19 @@ phase's position in the day is its group's base plus its `order` (a whole
 number from 0 to 99), so the day's order never depends on which system
 registered first.
 
-| Group          | Base | What belongs here                                                                     |
-| -------------- | ---- | ------------------------------------------------------------------------------------- |
-| `open`         | 0    | Engine only: `pipeline.open`.                                                         |
-| `housekeeping` | 100  | Clearing up from yesterday: expiring offers, finishing leave, healing, birthdays.     |
-| `worldEvents`  | 200  | Random world events, off-screen injuries and morale for rival rosters (D-01).         |
-| `aiTurns`      | 300  | Computer-controlled promotions and brands making their decisions.                     |
-| `contracts`    | 400  | Negotiations, signings, renewals and releases.                                        |
-| `shows`        | 500  | Every show booked for today, player and rival, rated and resolved.                    |
-| `settlement`   | 600  | What a show earned on the day: tickets, viewers, live merch.                          |
-| `growth`       | 700  | Skill and popularity growth and decline, momentum and relationship decay.             |
-| `money`        | 800  | Wages, running costs, sponsors and the ledger.                                        |
-| `periodic`     | 900  | Weekly, monthly and yearly jobs, and the season end (a daily phase with a condition). |
-| `close`        | 1000 | Engine only: `pipeline.close`.                                                        |
+| Group          | Base | What belongs here                                                                      |
+| -------------- | ---- | -------------------------------------------------------------------------------------- |
+| `open`         | 0    | Engine only: `pipeline.open`.                                                          |
+| `housekeeping` | 100  | Clearing up from yesterday: expiring offers, finishing leave, healing, birthdays.      |
+| `worldEvents`  | 200  | Random world events, off-screen injuries and morale for rival rosters (D-01).          |
+| `aiTurns`      | 300  | Computer-controlled promotions and brands making their decisions.                      |
+| `contracts`    | 400  | Negotiations, signings, renewals and releases.                                         |
+| `shows`        | 500  | Every computer-run show dated today, rated and resolved (the player's run on command). |
+| `settlement`   | 600  | What a show earned on the day: tickets, viewers, live merch.                           |
+| `growth`       | 700  | Skill and popularity growth and decline, momentum and relationship decay.              |
+| `money`        | 800  | Wages, running costs, sponsors and the ledger.                                         |
+| `periodic`     | 900  | Weekly, monthly and yearly jobs, and the season end (a daily phase with a condition).  |
+| `close`        | 1000 | Engine only: `pipeline.close`.                                                         |
 
 `settlement` sits straight after `shows` so a show's revenue lands on the day
 of the show. Groups are 100 apart so a later system can slot in without
@@ -280,25 +280,27 @@ is built, next to its phases:
 
 ```ts
 runtime.gates.register({
-  id: 'booking.showNeedsBooking', // system.camelName, unique
-  label: 'Show needs booking',
+  id: 'shows.tonight', // system.camelName, unique
+  label: 'Show night',
   check: (view, date) => {
-    const show = playerShowOn(view, date); // an indexed lookup, not a table scan
-    if (show === undefined || show.card.length > 0) {
+    const [show] = myShowsOn(view, date); // an indexed lookup, not a table scan
+    if (show === undefined) {
       return null;
     }
     return {
-      gateId: 'booking.showNeedsBooking',
-      reason: `Your show '${show.name}' on ${date} has no card yet`,
+      gateId: 'shows.tonight',
+      reason: `Tonight: ${show.name}`,
       subject: { kind: 'eventInstance', id: show.id },
-      actionHint: 'booking',
+      actionHint: 'showNight',
     };
   },
 });
 ```
 
-The real show-day gate (EVT2-03) is `booking/gates.ts`; see
-[booking.md](booking.md#gate).
+The real show-day gate is `shows/tonight.ts` (EVT2-09, which replaced EVT2-03's
+`booking.showNeedsBooking`): the day stops on every open show of the player's,
+and the show runs only when they press Run the show (`shows.runTonight`). See
+[show-night.md](show-night.md#the-players-shows).
 
 `defineGate` (which `register` calls) checks the id and the label.
 `register` throws `PipelineError` for a duplicate id or for an id starting
@@ -736,11 +738,9 @@ also carries `source` (`player`, `ai` or `system`) and `reasonKey`:
 
 The booking system's events ([booking.md](booking.md#commands)):
 
-| Event           | Payload                                                            | Published when                      |
-| --------------- | ------------------------------------------------------------------ | ----------------------------------- |
-| `card.changed`  | `eventInstanceId`, `promotionId`, `brandId`, `segmentId`, `change` | A booking command changes a card    |
-| `card.locked`   | `eventInstanceId`, `promotionId`, `brandId`                        | A card is locked (EVT2-04)          |
-| `card.unlocked` | `eventInstanceId`, `promotionId`, `brandId`                        | A locked card is unlocked (EVT2-04) |
+| Event          | Payload                                                            | Published when                   |
+| -------------- | ------------------------------------------------------------------ | -------------------------------- |
+| `card.changed` | `eventInstanceId`, `promotionId`, `brandId`, `segmentId`, `change` | A booking command changes a card |
 
 The shows system's events ([show-night.md](show-night.md#events)):
 

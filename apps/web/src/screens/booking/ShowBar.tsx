@@ -4,9 +4,9 @@ import { Button } from '@/components/Button';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import styles from './Booking.module.css';
 
-/** "Fix 3 problems to lock", "Fix 1 problem to lock". */
+/** "Fix 3 problems to run the show", "Fix 1 problem to run the show". */
 export function fixProblemsText(errors: number): string {
-  return `Fix ${String(errors)} ${errors === 1 ? 'problem' : 'problems'} to lock`;
+  return `Fix ${String(errors)} ${errors === 1 ? 'problem' : 'problems'} to run the show`;
 }
 
 /** How many segments are on the card, both sections. */
@@ -17,79 +17,59 @@ export function segmentCountOf(card: BookingCard): number {
   );
 }
 
-/** True when the only thing stopping changes is the lock itself, so the card can be unlocked. */
-export function canUnlock(card: BookingCard): boolean {
-  return card.locked && card.editBlock?.code === 'cardLocked';
-}
-
-export interface LockButtonProps {
+export interface RunShowButtonProps {
   readonly card: BookingCard;
-  /** Null while the checks run: Lock waits for them. */
+  /** Null while the checks run: Run the show waits for them. */
   readonly validation: BookingValidation | null;
   readonly busy: boolean;
-  readonly onLock: () => void;
-  readonly onUnlock: () => void;
-  /** Ids of the text that explains a disabled Lock. */
+  readonly onRun: () => void;
+  /** Ids of the text that explains a disabled Run the show. */
   readonly describedBy?: string;
 }
 
 /**
- * **Lock card** while the card is open (disabled until `booking.validate` says it can run),
- * **Unlock card** once it is locked. Nothing for a show that has run or gone past.
+ * **Run the show** on the day of a show you run (EVT2-09), disabled until `booking.validate` finds
+ * no errors (warnings never block). Nothing on any other day: there is no lock, and a card stays
+ * editable until its show has run.
  */
-export function LockButton({
-  card,
-  validation,
-  busy,
-  onLock,
-  onUnlock,
-  describedBy,
-}: LockButtonProps) {
-  if (card.locked) {
-    if (!canUnlock(card)) return null;
-    return (
-      <Button iconStart="unlock" loading={busy} onClick={onUnlock}>
-        Unlock card
-      </Button>
-    );
-  }
-  if (!card.canEdit) return null;
+export function RunShowButton({ card, validation, busy, onRun, describedBy }: RunShowButtonProps) {
+  if (!card.runsTonight) return null;
   const runnable = validation?.runnable === true;
   return (
     <Button
       variant="primary"
-      iconStart="lock"
+      iconStart="play"
       loading={busy}
       disabled={!runnable}
       aria-describedby={runnable ? undefined : describedBy}
-      onClick={onLock}
+      onClick={onRun}
     >
-      Lock card
+      Run the show
     </Button>
   );
 }
 
-export interface LockBarProps extends Omit<LockButtonProps, 'describedBy'> {
+export interface ShowBarProps extends Omit<RunShowButtonProps, 'describedBy'> {
   /** Resolves once cleared; rejects with the game's reason as the error's message. */
   readonly onClear: () => Promise<void>;
-  /** Leaves Lock and Unlock out, for the phone, where they live in the sticky bar. */
-  readonly hideLock?: boolean;
+  /** Leaves Run the show out, for the phone, where it lives in the sticky bar. */
+  readonly hideRun?: boolean;
 }
 
-/** The card's own actions: Lock or Unlock, why Lock is off, and Clear card (asks first). */
-export function LockBar({ hideLock = false, onClear, ...lock }: LockBarProps) {
+/** The card's own actions: Run the show (tonight), why it is off, and Clear card (asks first). */
+export function ShowBar({ hideRun = false, onClear, ...run }: ShowBarProps) {
   const hintId = useId();
   const [confirmingClear, setConfirmingClear] = useState(false);
-  const { card, validation } = lock;
+  const { card, validation } = run;
   const errors = validation?.errors.length ?? 0;
-  const showHint = !hideLock && !card.locked && card.canEdit && validation !== null && errors > 0;
+  const showHint = !hideRun && card.runsTonight && validation !== null && errors > 0;
   const canClear = card.canEdit && segmentCountOf(card) > 0;
 
   return (
-    <div className={styles['lockBar']}>
-      {!hideLock && <LockButton {...lock} describedBy={hintId} />}
+    <div className={styles['showBar']}>
+      {!hideRun && <RunShowButton {...run} describedBy={hintId} />}
       {showHint && (
-        <p id={hintId} className={styles['lockHint']}>
+        <p id={hintId} className={styles['runHint']}>
           {fixProblemsText(errors)}
         </p>
       )}

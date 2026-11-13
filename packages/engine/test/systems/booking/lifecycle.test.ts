@@ -4,25 +4,20 @@ import { createEngine, initialEngineState, type Engine } from '../../../src/core
 import type { EventInstanceId } from '../../../src/core/ids';
 import type { GameWorld } from '../../../src/model/tables';
 import { defaultSystems } from '../../../src/systems';
+import { withMyShowsRun } from '../../support';
 import { advance, PLAYER_ONE, showIn } from '../calendar/lifecycle-world';
 import { commandWorld, promo, seed, singles, wrestler } from './command-world';
 
+/** The default systems, with the player running their show on its day (as Run the show would). */
 function engineFor(world: GameWorld): Engine {
-  return createEngine({ state: initialEngineState(world), systems: defaultSystems });
-}
-
-/** Locks the show's card the way EVT2-04's lock command will: the show becomes `booked`. */
-function lock(world: GameWorld, eventInstanceId: EventInstanceId): void {
-  const result = world.transact('lock card', (tx) => {
-    tx.update('eventInstances', eventInstanceId, { status: 'booked' });
+  return createEngine({
+    state: initialEngineState(world),
+    systems: withMyShowsRun(defaultSystems),
   });
-  if (!result.ok) {
-    throw result.error;
-  }
 }
 
-/** A command world whose `show` has a match and a promo on its card, locked. */
-function lockedCard(show: 'today' | 'open') {
+/** A command world whose `show` has a match and a promo on its card. There is no lock (EVT2-09). */
+function bookedCard(show: 'today' | 'open') {
   const booked = commandWorld();
   const eventInstanceId = booked.shows[show];
   const match = seed(
@@ -32,7 +27,6 @@ function lockedCard(show: 'today' | 'open') {
     singles(wrestler(booked, 0), wrestler(booked, 1)),
   );
   seed(booked.world, eventInstanceId, 1, promo(wrestler(booked, 2)));
-  lock(booked.world, eventInstanceId);
   return { ...booked, eventInstanceId, match, engine: engineFor(booked.world) };
 }
 
@@ -42,9 +36,9 @@ function cardOf(engine: Engine, eventInstanceId: EventInstanceId) {
     .world.tables.segments.filter((segment) => segment.eventInstanceId === eventInstanceId);
 }
 
-describe('a locked card on its day', () => {
-  it('runs on show night, so the day close leaves it alone, and keeps its segments', async () => {
-    const { engine, eventInstanceId } = lockedCard('today');
+describe('a card on its day', () => {
+  it('runs when the player runs the show, so the day close leaves it alone, and keeps its segments', async () => {
+    const { engine, eventInstanceId } = bookedCard('today');
     const before = cardOf(engine, eventInstanceId);
     expect(before).toHaveLength(2);
     const state = await advance(engine, 1);
@@ -60,7 +54,7 @@ describe('a locked card on its day', () => {
 
 describe('a cancelled show with a card', () => {
   it('keeps its card as history and refuses every edit', () => {
-    const { engine, eventInstanceId, match, ...booked } = lockedCard('open');
+    const { engine, eventInstanceId, match, ...booked } = bookedCard('open');
     const before = cardOf(engine, eventInstanceId);
     const cancelled = engine.command('calendar.cancelShow', { eventInstanceId }, PLAYER_ONE);
     expect(cancelled.ok).toBe(true);

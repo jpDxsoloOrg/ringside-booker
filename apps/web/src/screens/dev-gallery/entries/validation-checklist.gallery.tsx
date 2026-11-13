@@ -28,13 +28,13 @@ const WARNINGS_ONLY = galleryValidation(
 function ValidationChecklistDemo() {
   return (
     <Stack gap={6}>
-      <p className={styles['subheading']}>Problems and a warning (Lock stays off)</p>
+      <p className={styles['subheading']}>Problems and a warning (Run the show stays off)</p>
       <ValidationChecklist
         validation={WITH_PROBLEMS}
         onShowSlot={() => undefined}
         headingLevel={3}
       />
-      <p className={styles['subheading']}>Warnings only (Lock is allowed)</p>
+      <p className={styles['subheading']}>Warnings only (Run the show is allowed)</p>
       <ValidationChecklist validation={WARNINGS_ONLY} headingLevel={3} />
       <p className={styles['subheading']}>Every check passed</p>
       <ValidationChecklist validation={galleryValidation(6, [])} headingLevel={3} />
@@ -49,6 +49,6 @@ export const galleryEntry: GalleryEntry = {
   title: 'Booking checklist',
   group: 'Office',
   notes:
-    'What stands between a card and Lock: each line passed (check), a problem (red, cross) or a warning (amber, triangle), always with words, then every problem with its slot.',
+    'What stands between a card and Run the show: each line passed (check), a problem (red, cross) or a warning (amber, triangle), always with words, then every problem with its slot.',
   render: () => <ValidationChecklistDemo />,
 };

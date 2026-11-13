@@ -1,10 +1,10 @@
 /**
- * The booking-check registry: every rule a card is held to before it can be locked.
+ * The booking-check registry: every rule a card is held to before its show can run.
  *
  * EVT2's own checks register here with orders 100–190; other features (brand exclusivity, sent-down
  * workers, tour deals, finishes, beat limits) register theirs with orders 200 and up, without
  * editing booking's files. Checks run in `order`, then by id. A check that throws becomes one
- * `checkFailed` warning, so a bug in a later feature can never stop a card from being locked.
+ * `checkFailed` warning, so a bug in a later feature can never stop a show from running.
  *
  * Design notes: docs/design/booking.md#validation.
  */
@@ -79,7 +79,7 @@ export function runBookingChecks(input: BookingCheckInput): CheckRun[] {
             checkId: check.id,
             code: CHECK_FAILED_CODE,
             severity: 'warning',
-            message: `A booking check (${check.id}) failed; the card can still be locked`,
+            message: `A booking check (${check.id}) failed; the show can still run`,
           },
         ],
       };

@@ -1,12 +1,14 @@
 // Show night: the shows.runShows phase. Design: docs/design/show-night.md#phase
 import { afterEach, describe, expect, it } from 'vitest';
 import { createEngine, initialEngineState, type EngineState } from '../../../src/core/api';
+import { simSystem } from '../../../src/core/api/builtins';
 import { runStep } from '../../../src/core/pipeline/runStep';
 import { createRuntime } from '../../../src/core/pipeline/runtime';
 import { startDecision, walkTrace, type TraceNode } from '../../../src/core/trace';
 import type { EventInstanceId, SegmentId } from '../../../src/core/ids';
 import type { Segment } from '../../../src/model/entities/segment';
 import { defaultSystems } from '../../../src/systems';
+import { matchSystem } from '../../../src/systems/match';
 import {
   NO_PLAN_NO_CONTEST_REASON,
   RIVAL_SEGMENT_SCORE_TRACE_KIND,
@@ -21,6 +23,7 @@ import {
   unregisterMatchOutcomeResolver,
   unregisterSegmentResultApplier,
   matchOutcomeResolver,
+  showsSystem,
   type SegmentResult,
 } from '../../../src/systems/shows';
 import {
@@ -28,10 +31,11 @@ import {
   showNightOutcomeResolver,
 } from '../../../src/systems/match/finishes/showNight';
 import { createEngineTunables } from '../../../src/systems/tunables';
-import { SYSTEMS_WITHOUT_SHOW_DAY_GATE } from '../../support';
+import { RUN_MY_SHOWS_PHASE_ID, withMyShowsRun } from '../../support';
 import { PINFALL, SUBMISSION } from '../booking/command-world';
 import {
   OMNISCIENT,
+  runsAllButUnrun,
   segmentEvents,
   showEvents,
   showNightEngine,
@@ -213,16 +217,33 @@ describe('shows.runShows', () => {
     });
   });
 
-  it('leaves an unlocked human show and a cancelled show untouched', async () => {
+  it('leaves a human show the player did not run and a cancelled show untouched', async () => {
     const built = showNightWorld();
     const before = initialEngineState(built.world);
     const { state, advanced } = await runDay(built);
     expect(advanced.failures).toEqual([]);
-    for (const id of [built.unlocked, built.cancelled]) {
+    for (const id of [built.unrun, built.cancelled]) {
       expect(showIn(state, id)).toEqual(showIn(before, id));
       expect(cardIn(state, id)).toEqual(cardIn(before, id));
     }
-    expect(showIn(state, built.unlocked).status).toBe('scheduled');
+    expect(showIn(state, built.unrun).status).toBe('scheduled');
+  });
+
+  it('never runs a human show itself, card or not (EVT2-09: the player runs it)', async () => {
+    const built = showNightWorld();
+    const before = initialEngineState(built.world);
+    const engine = createEngine({
+      state: before,
+      systems: [simSystem, matchSystem, showsSystem].map((system) => ({ ...system, gates: [] })),
+    });
+    const advanced = await engine.advanceDays({ maxDays: 1 });
+    expect(advanced.failures).toEqual([]);
+    const state = engine.exportState();
+    for (const id of [built.human, built.unrun]) {
+      expect(showIn(state, id)).toEqual(showIn(before, id));
+      expect(cardIn(state, id)).toEqual(cardIn(before, id));
+    }
+    expect(showIn(state, built.rivalCard).status).toBe('completed');
   });
 
   it('scores a rival show with no card off-screen', async () => {
@@ -298,12 +319,16 @@ describe('shows.runShows', () => {
     const built = showNightWorld();
     const before = initialEngineState(built.world);
     const { engine, state, advanced } = await runDay(built);
-    expect(advanced.failures.map((failure) => failure.stepId)).toEqual(['shows.runShows']);
-    const failures = engine.query('sim.failures', { limit: 10 }, OMNISCIENT);
-    expect(failures.ok && failures.data.map((failure) => failure.stepId)).toEqual([
+    // The player's show (run first, as Run the show would) and the rivals' both roll back.
+    expect(advanced.failures.map((failure) => failure.stepId)).toEqual([
+      RUN_MY_SHOWS_PHASE_ID,
       'shows.runShows',
     ]);
-    expect(showIn(state, built.human).status).toBe('booked');
+    const failures = engine.query('sim.failures', { limit: 10 }, OMNISCIENT);
+    expect(failures.ok && failures.data.map((failure) => failure.stepId).sort()).toEqual(
+      [RUN_MY_SHOWS_PHASE_ID, 'shows.runShows'].sort(),
+    );
+    expect(showIn(state, built.human).status).toBe('scheduled');
     for (const id of [built.human, built.rivalBare[0] ?? null, built.rivalCard]) {
       expect(showIn(state, id)).toEqual(showIn(before, id));
       expect(cardIn(state, id)).toEqual(cardIn(before, id));
@@ -379,22 +404,22 @@ describe('shows.runShows', () => {
     expect(JSON.stringify(runtime.traces.toState())).toBe(traces);
   });
 
-  it('runs before the day closes, so a full day completes the locked show and closes the unlocked one', async () => {
+  it('runs before the day closes, so a full day completes the run show and closes the unrun one', async () => {
     const built = showNightWorld();
     const engine = createEngine({
       state: initialEngineState(built.world),
-      systems: SYSTEMS_WITHOUT_SHOW_DAY_GATE,
+      systems: withMyShowsRun(defaultSystems, runsAllButUnrun),
     });
     const advanced = await engine.advanceDays({ maxDays: 1 });
     expect(advanced.failures).toEqual([]);
     const state = engine.exportState();
     expect(showIn(state, built.human).status).toBe('completed');
     expect(showIn(state, built.rivalCard).status).toBe('completed');
-    expect(showIn(state, built.unlocked)).toMatchObject({
+    expect(showIn(state, built.unrun)).toMatchObject({
       status: 'cancelled',
       cancellation: { reason: 'notRun' },
     });
-    expect(cardIn(state, built.unlocked).every((segment) => segment.rating === null)).toBe(true);
+    expect(cardIn(state, built.unrun).every((segment) => segment.rating === null)).toBe(true);
   });
 });
 

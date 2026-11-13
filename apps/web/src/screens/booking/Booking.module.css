@@ -91,7 +91,7 @@
   min-inline-size: 0;
 }
 
-.lockBar {
+.showBar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -99,7 +99,7 @@
   gap: var(--space-2) var(--space-3);
 }
 
-.lockHint {
+.runHint {
   color: var(--color-negative);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);
@@ -132,6 +132,18 @@
 .noticeList {
   padding-inline-start: var(--space-4);
   overflow-wrap: anywhere;
+}
+
+/* A refusal about one segment jumps to its slot. */
+.noticeJump {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 .editBlock {
@@ -414,7 +426,7 @@
     font-size: var(--font-size-2xl);
   }
 
-  .lockBar {
+  .showBar {
     justify-content: flex-start;
   }
 

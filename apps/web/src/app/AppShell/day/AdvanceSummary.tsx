@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { MAX_COMPLETED_SINCE } from '@ringside/engine';
-import type { AdvanceResult, ShowSummaryView } from '@ringside/engine';
+import type { AdvanceResult, GateHit, ShowSummaryView } from '@ringside/engine';
 import { useEngineQuery } from '@/app/engine/useEngineQuery';
 import { routes } from '@/app/routes';
 import { useHasPromotion } from '@/app/session/sessionStore';
@@ -18,6 +18,7 @@ import {
   seeResultsText,
 } from './advanceSummaryText';
 import type { AdvanceReport } from './DayAdvanceProvider';
+import { gateDestination, SHOW_NIGHT_HINT } from './dayControlState';
 import { useOptionalDayAdvance } from './DayAdvanceProvider';
 import styles from './DayControl.module.css';
 import { useOpenResultsAfterShow } from './useOpenResultsAfterShow';
@@ -26,6 +27,8 @@ import { useOpenResultsAfterShow } from './useOpenResultsAfterShow';
 export interface BannerExtras {
   /** True when the advance completed one of your shows: its results are worth a link. */
   readonly hasResults?: boolean;
+  /** True when the advance stopped on the day of one of your shows ("Tonight: <Show>"). */
+  readonly showNight?: boolean;
 }
 
 /**
@@ -35,12 +38,13 @@ export interface BannerExtras {
  */
 export function reportNeedsBanner(
   report: AdvanceReport,
-  { hasResults = false }: BannerExtras = {},
+  { hasResults = false, showNight = false }: BannerExtras = {},
 ): boolean {
   if (report.kind === 'refused') return true;
   const { result, daysRequested } = report;
   return (
     hasResults ||
+    showNight ||
     daysRequested > 1 ||
     result.stoppedBy.kind !== 'completed' ||
     result.failures.length > 0
@@ -67,9 +71,38 @@ function AdvancedReportBanner({ report, onDismiss }: ReportBannerProps<AdvancedR
     { keepPreviousData: false },
   );
   useOpenResultsAfterShow(report, completed.data);
+  // A Next Day that lands on your show day says so, even though the day itself ran in full.
+  const gates = useEngineQuery('sim.pendingGates', {});
+  const tonight = gates.data?.hits.find((hit) => hit.actionHint === SHOW_NIGHT_HINT) ?? null;
   const results = completed.data ?? [];
-  if (!reportNeedsBanner(report, { hasResults: results.length > 0 })) return null;
-  return <AdvanceSummaryBanner report={report} onDismiss={onDismiss} results={results} />;
+  if (!reportNeedsBanner(report, { hasResults: results.length > 0, showNight: tonight !== null })) {
+    return null;
+  }
+  return (
+    <AdvanceSummaryBanner
+      report={report}
+      onDismiss={onDismiss}
+      results={results}
+      tonight={tonight}
+    />
+  );
+}
+
+/** "Tonight: <Show>" and Go to the show, for the show day the advance stopped on. */
+function TonightLine({ hit, said }: { readonly hit: GateHit; readonly said: boolean }) {
+  const destination = gateDestination(hit);
+  return (
+    <>
+      {!said && <p className={styles['summaryReason']}>{hit.reason}</p>}
+      {destination !== null && (
+        <p className={styles['resultsLinks']}>
+          <Link to={destination.to} className={styles['resultsLinkFirst']}>
+            {destination.label}
+          </Link>
+        </p>
+      )}
+    </>
+  );
 }
 
 /** The banner under the top bar after an advance, from the shell's advance controller. */
@@ -116,6 +149,8 @@ export interface AdvanceSummaryBannerProps {
   readonly label?: string;
   /** Your shows the advance completed, newest first: each gets a "See results" link. */
   readonly results?: readonly ShowSummaryView[];
+  /** The show day the advance stopped on, if any: "Tonight: <Show>" and Go to the show. */
+  readonly tonight?: GateHit | null;
 }
 
 /**
@@ -127,6 +162,7 @@ export function AdvanceSummaryBanner({
   onDismiss,
   label = 'Last advance',
   results = [],
+  tonight = null,
 }: AdvanceSummaryBannerProps) {
   const [failuresOpen, setFailuresOpen] = useState(false);
   const text =
@@ -144,6 +180,7 @@ export function AdvanceSummaryBanner({
         <p className={styles['summaryHeadline']}>{text.headline}</p>
         {text.reason !== null && <p className={styles['summaryReason']}>{text.reason}</p>}
         {results.length > 0 && <ResultsLinks results={results} />}
+        {tonight !== null && <TonightLine hit={tonight} said={text.reason === tonight.reason} />}
         {report.kind === 'advanced' && text.failures !== null && (
           <>
             <button

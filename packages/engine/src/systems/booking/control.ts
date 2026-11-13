@@ -16,12 +16,7 @@ import type { DeepReadonly } from '../../model/world';
 import { viewerControlsShow } from '../calendar/control';
 
 /** The reason codes {@link editBlockOf} returns. */
-export const EDIT_BLOCK_CODES = [
-  'showCompleted',
-  'showCancelled',
-  'showPast',
-  'cardLocked',
-] as const;
+export const EDIT_BLOCK_CODES = ['showCompleted', 'showCancelled', 'showPast'] as const;
 export type EditBlockCode = (typeof EDIT_BLOCK_CODES)[number];
 
 /** The part of a show the card rules read. */
@@ -44,8 +39,9 @@ export function canReadCard(
 
 /**
  * Why `show`'s card cannot be changed on `today`, or null when it can. The first rule that fails is
- * the one returned: the show has not run, was not cancelled, its day has not passed (today's show
- * stays editable) and its card is not locked. Who is asking is not checked here; commands check
+ * the one returned: the show has not run, was not cancelled and its day has not passed (today's
+ * show stays editable until it runs). There is no lock (EVT2-09): a `booked` show, which only an
+ * old save can hold for a player's show, is as open as a `scheduled` one. Who is asking is not checked here; commands check
  * that with the calendar's `controlsShow` first.
  */
 export function editBlockOf(
@@ -62,9 +58,6 @@ export function editBlockOf(
   }
   if (isBefore(show.date, today)) {
     return { code: 'showPast', message: 'This show has already happened', subject };
-  }
-  if (show.status === 'booked') {
-    return { code: 'cardLocked', message: 'Unlock the card to change it', subject };
   }
   return null;
 }

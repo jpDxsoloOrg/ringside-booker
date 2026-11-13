@@ -95,7 +95,7 @@ export function PlannedResultField({
         legend="Result"
         description={
           outcome === null
-            ? 'Nothing planned yet. Every match needs a result before the card can be locked.'
+            ? 'Nothing planned yet. Every match needs a result before the show can run.'
             : 'The plan for the night. Nothing is written until you save.'
         }
         options={options}

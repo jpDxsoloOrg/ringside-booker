@@ -26,7 +26,8 @@ import {
 import { matchSystem } from '../../../src/systems/match';
 import { showsSystem } from '../../../src/systems/shows';
 import { createEngineTunables } from '../../../src/systems/tunables';
-import { showNightWorld } from '../shows/show-night-world';
+import { withMyShowsRun } from '../../support';
+import { runsAllButUnrun, showNightWorld } from '../shows/show-night-world';
 import { bareRuntime, showCostWorld } from './show-cost-world';
 
 const SOURCE = { kind: 'phase', id: 'test.showCosts' } as const;
@@ -260,7 +261,10 @@ describe('the finance.postShowCosts reaction', () => {
     const built = showNightWorld();
     const engine = createEngine({
       state: initialEngineState(built.world),
-      systems: [simSystem, matchSystem, showsSystem, financeSystem],
+      systems: withMyShowsRun(
+        [simSystem, matchSystem, showsSystem, financeSystem],
+        runsAllButUnrun,
+      ),
     });
     await engine.advanceDays({ maxDays: 1 });
     const { world } = engine.exportState();

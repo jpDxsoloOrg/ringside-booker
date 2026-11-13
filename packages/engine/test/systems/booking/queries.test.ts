@@ -212,7 +212,7 @@ describe('booking.card', () => {
     expect(card).toMatchObject({
       canEdit: true,
       editBlock: null,
-      locked: false,
+      runsTonight: true,
       show: {
         eventInstanceId: built.shows.six,
         isToday: true,
@@ -283,7 +283,6 @@ describe('booking.shows', () => {
       filledPreShow: 1,
       preShowSlots: 1,
       needsBooking: true,
-      locked: false,
     });
     expect(view.rows[1]?.needsBooking).toBe(false);
     expect(view).toMatchObject({

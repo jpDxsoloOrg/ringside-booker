@@ -1,5 +1,5 @@
 /**
- * The fewest main-card slots a card must have filled before it can be locked: the main card's slot
+ * The fewest main-card slots a card must have filled before its show can run: the main card's slot
  * count times `booking.minFilledMainShare`, rounded up and kept within 0..slots. At a share of 0
  * there is no minimum; at 1 every slot must be filled.
  *

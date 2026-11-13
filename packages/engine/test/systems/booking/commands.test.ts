@@ -549,8 +549,6 @@ describe('who may book a show', () => {
 
   it('declares every refusal code it adds', () => {
     expect([...BOOKING_COMMAND_REASON_CODES].sort()).toEqual([
-      'cardNotLocked',
-      'cardNotRunnable',
       'notYourShow',
       'randomWinners',
       'segmentNotFound',
@@ -561,7 +559,6 @@ describe('who may book a show', () => {
 
 describe('when a card can change', () => {
   it.each([
-    ['locked', 'cardLocked', 'Unlock the card to change it'],
     ['cancelled', 'showCancelled', 'This show was cancelled'],
     ['yesterday', 'showPast', 'This show has already happened'],
   ] as const)('refuses every edit to the %s show with %s', (show, code, message) => {
@@ -593,6 +590,14 @@ describe('when a card can change', () => {
       () => engine.command('booking.clearCard', { eventInstanceId }, PLAYER_ONE),
       'showCompleted',
     );
+  });
+
+  it('lets every edit through on a show an old save left locked (there is no lock, EVT2-09)', () => {
+    const { engine, eventInstanceId, match, ...booked } = bookedOn('locked');
+    const draft = singles(wrestler(booked, 4), wrestler(booked, 5));
+    for (const edit of everyEdit(engine, eventInstanceId, match, draft, PLAYER_ONE)) {
+      expect(edit()).toMatchObject({ ok: true });
+    }
   });
 
   it("lets every edit through on today's show", () => {
@@ -727,15 +732,13 @@ describe('determinism', () => {
 const BOOKING_COMMAND_NAMES: readonly CommandName[] = bookingCommands.map(
   (command) => command.name,
 );
-it('registers the six card commands and Lock / Unlock', () => {
+it('registers the six card commands and no Lock / Unlock (EVT2-09)', () => {
   expect([...BOOKING_COMMAND_NAMES].sort()).toEqual([
     'booking.addSegment',
     'booking.clearCard',
-    'booking.lockCard',
     'booking.moveSegment',
     'booking.removeSegment',
     'booking.setResult',
-    'booking.unlockCard',
     'booking.updateSegment',
   ]);
 });
