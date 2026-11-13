@@ -12,20 +12,22 @@
  *
  * Traces, under `<segmentId>:<personId>` (`traceRefs.ts`): `match.fatigue`, `match.wear`,
  * `match.learning`, `match.injuryChance`, and `match.injuryRoll` for an injured worker only.
- * The player's own shows keep them in full (until `match.prunePhysicalDetail` demotes them after
- * `history.keepDetailDays`); a rival show keeps only summaries and no learning trace, so a year of
- * rival cards stays small (docs/design/physical-toll.md#stored-traces).
+ * The player's own shows keep them, cut to a few levels (`STORED_TRACE_DEPTH`), until
+ * `match.prunePhysicalDetail` demotes them after `history.keepDetailDays`; a rival show keeps only
+ * summaries of fatigue and wear (and of an injury chance above 0, and an injury), so a year of rival
+ * cards stays small (docs/design/physical-toll.md#stored-traces).
  *
  * Design: docs/design/physical-toll.md#show-night.
  */
 
-import type { EventInstanceId, PersonId, SegmentId } from '../../../core/ids';
+import type { EventInstanceId, PersonId, PromotionId, SegmentId } from '../../../core/ids';
 import type { PhaseContext } from '../../../core/pipeline/context';
-import { startCalc, type Traced } from '../../../core/trace';
+import { startCalc, type Traced, type TraceValue } from '../../../core/trace';
+import { compactTrace, leanTrace } from '../../../core/trace/compact';
+import type { TraceRef } from '../../../core/trace/store';
 import { BODY_PARTS, type BodyCondition, type Person } from '../../../model/entities/person';
 import type { GameWorldView } from '../../../model/tables';
 import { showControllerOf } from '../../calendar/control';
-import { BODY_PART_LABELS } from '../../world/people/labels';
 import type { EngineTunables } from '../../tunables';
 import { CONDITION_WEAR_DOC_REF } from '../formulas/conditionWear';
 import { FATIGUE_GAIN_DOC_REF } from '../formulas/fatigueGain';
@@ -36,6 +38,7 @@ import { INJURY_STREAM, WEAR_STREAM } from './streams';
 import {
   computePhysicalToll,
   type AlreadyInjured,
+  type PhysicalTollPolicy,
   type PhysicalTollResult,
   type WorkerPhysicalToll,
 } from './toll';
@@ -53,11 +56,49 @@ export const NO_INJURY_HANDLER_LOG = 'In-match injury rolled but no injury handl
 export const FATIGUE_AFTER_LABEL = 'Fatigue after the match';
 export const FATIGUE_FROM_MATCH_LABEL = 'Fatigue from this match';
 export const CONDITION_LOST_LABEL = 'Condition lost in this match';
+export const SPREAD_OVER_BODY_LABEL = 'Spread over the body';
 
 const SCALE_TOP = 100;
 
+/**
+ * Levels kept in each stored trace of the player's shows (the root is level 1; `compactTrace`).
+ * Every match stores four of these per worker for 28 days, so each keeps the lines its Why? reads
+ * first and leaves the deeper working to the formulas' docs and the Match lab, which works the full
+ * trace out again. The fatigue trace wraps the gain one level down, so it keeps one level more.
+ */
+export const STORED_TRACE_DEPTH = {
+  fatigue: 4,
+  wear: 3,
+  learning: 3,
+  injuryChance: 3,
+  roll: 3,
+} as const;
+
+/** Levels a summary reads: the root and its steps. */
+const SUMMARY_DEPTH = 2;
+
 /** The steps that already logged a missing injury handler. */
 const loggedNoHandler = new WeakSet<PhaseContext>();
+
+/**
+ * What a step works out once and every segment of it shares: each promotion's injury policy and
+ * each show's people. Neither changes while the shows run (the phase writes results and ratings).
+ */
+interface StepCache {
+  readonly policies: Map<PromotionId, PhysicalTollPolicy>;
+  readonly cards: Map<EventInstanceId, readonly PersonId[]>;
+}
+
+const stepCaches = new WeakMap<PhaseContext, StepCache>();
+
+function stepCacheOf(ctx: PhaseContext): StepCache {
+  let cache = stepCaches.get(ctx);
+  if (cache === undefined) {
+    cache = { policies: new Map(), cards: new Map() };
+    stepCaches.set(ctx, cache);
+  }
+  return cache;
+}
 
 /** `min(100, fatigue going in + this match's gain)`, as the `match.fatigue` trace stores it. */
 export function fatigueAfterTrace(worker: WorkerPhysicalToll): Traced<number> {
@@ -79,21 +120,15 @@ export function conditionLostTrace(
   worker: WorkerPhysicalToll,
   tunables: EngineTunables,
 ): Traced<number> {
-  const weights = startCalc('Body part weights added up', 0, {
-    unit: 'multiplier',
-    startLabel: 'Nothing yet',
-  });
-  for (const part of BODY_PARTS) {
-    weights.add(
-      `${BODY_PART_LABELS[part]} weight`,
-      weights.tunable(tunables, `match.wear.part.${part}`),
-    );
-  }
+  const weights = BODY_PARTS.reduce(
+    (sum, part) => sum + tunables.get(`match.wear.part.${part}`),
+    0,
+  );
   return startCalc(CONDITION_LOST_LABEL, worker.wearLoad, {
     unit: 'points',
     docRef: CONDITION_WEAR_DOC_REF,
   })
-    .multiply('Spread over the body', weights.done())
+    .multiply(SPREAD_OVER_BODY_LABEL, weights, 'The body part weights added up')
     .done();
 }
 
@@ -165,50 +200,65 @@ export function applyPhysicalToll(
     .flat()
     .filter((participant) => participant.role === 'competitor')
     .map((participant) => participant.personId);
-  const policy = injuryPolicyFor(read, tunables, spec.promotionId);
+  const cache = stepCacheOf(ctx);
+  let policy = cache.policies.get(spec.promotionId);
+  if (policy === undefined) {
+    policy = injuryPolicyFor(read, tunables, spec.promotionId);
+    cache.policies.set(spec.promotionId, policy);
+  }
+  let cardPersonIds = cache.cards.get(eventInstanceId);
+  if (cardPersonIds === undefined) {
+    cardPersonIds = cardPersonIdsOf(read, eventInstanceId);
+    cache.cards.set(eventInstanceId, cardPersonIds);
+  }
   const toll = computePhysicalToll(read, spec, {
     tunables,
     policy,
     wearRng: ctx.rng(WEAR_STREAM),
     injuryRng: ctx.rng(INJURY_STREAM),
-    cardPersonIds: cardPersonIdsOf(read, eventInstanceId),
+    cardPersonIds,
     alreadyInjured: alreadyInjuredOf(read, competitors, ctx.date),
+    summaryOnly: !humanShow,
   });
 
-  // A rival show keeps summaries only (POL4-06), and no learning trace at all.
-  const kept = { summaryOnly: !humanShow };
-  for (const worker of toll.workers) {
-    ctx.tx.update('people', worker.personId, (previous) => wornPerson(previous, worker));
-    ctx.recordTrace(
-      fatigueTraceRef(segmentId, worker.personId),
-      ctx.date,
-      fatigueAfterTrace(worker),
-      kept,
-    );
-    ctx.recordTrace(
-      wearTraceRef(segmentId, worker.personId),
-      ctx.date,
-      conditionLostTrace(worker, tunables),
-      kept,
-    );
+  const record = (ref: TraceRef, traced: Traced<TraceValue>, depth: number): void => {
     if (humanShow) {
-      ctx.recordTrace(learningTraceRef(segmentId, worker.personId), ctx.date, worker.learning);
+      ctx.recordTrace(ref, ctx.date, leanTrace(compactTrace(traced, depth)));
+    } else {
+      // A rival show keeps summaries only (POL4-06). A summary reads the root and its steps, so
+      // nothing below them is handed to the store to check.
+      ctx.recordTrace(ref, ctx.date, compactTrace(traced, SUMMARY_DEPTH), { summaryOnly: true });
     }
-    ctx.recordTrace(
-      injuryChanceTraceRef(segmentId, worker.personId),
-      ctx.date,
-      worker.injuryChance,
-      kept,
+  };
+  for (const worker of toll.workers) {
+    const { personId } = worker;
+    ctx.tx.update('people', personId, (previous) => wornPerson(previous, worker));
+    record(
+      fatigueTraceRef(segmentId, personId),
+      fatigueAfterTrace(worker),
+      STORED_TRACE_DEPTH.fatigue,
     );
+    record(
+      wearTraceRef(segmentId, personId),
+      conditionLostTrace(worker, tunables),
+      STORED_TRACE_DEPTH.wear,
+    );
+    // Rivals: no learning trace, and an injury chance only when it is not 0 (by default rival
+    // rules skip in-match injuries, so it always is).
+    if (humanShow) {
+      record(learningTraceRef(segmentId, personId), worker.learning, STORED_TRACE_DEPTH.learning);
+    }
+    if (humanShow || worker.injuryChance.value > 0) {
+      record(
+        injuryChanceTraceRef(segmentId, personId),
+        worker.injuryChance,
+        STORED_TRACE_DEPTH.injuryChance,
+      );
+    }
     if (!worker.injury.injured || worker.injury.bodyPartHint === null) {
       continue;
     }
-    ctx.recordTrace(
-      injuryRollTraceRef(segmentId, worker.personId),
-      ctx.date,
-      worker.injury.roll,
-      kept,
-    );
+    record(injuryRollTraceRef(segmentId, personId), worker.injury.roll, STORED_TRACE_DEPTH.roll);
     const handler = getInjuryHandler();
     if (handler === null) {
       if (!loggedNoHandler.has(ctx)) {
@@ -218,7 +268,7 @@ export function applyPhysicalToll(
       continue;
     }
     handler.apply(ctx, {
-      personId: worker.personId,
+      personId,
       segmentId,
       eventInstanceId,
       date: ctx.date,

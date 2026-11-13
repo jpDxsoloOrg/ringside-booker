@@ -18,13 +18,21 @@
 
 import type { PersonId } from '../../../core/ids';
 import type { RngStream } from '../../../core/rng/registry';
-import { startCalc, type TraceNode, type Traced } from '../../../core/trace';
+import { fastPathsEnabled } from '../../../core/fastPaths';
+import { startCalc, untraced, type TraceNode, type Traced } from '../../../core/trace';
+import { withoutNegativeZero } from '../../../core/trace/helpers';
 import type { BodyCondition, BodyPart } from '../../../model/entities/person';
 import type { GameWorldView } from '../../../model/tables';
 import type { EngineTunables } from '../../tunables';
+import { BODY_PART_LABELS } from '../../world/people/labels';
 import { computeConditionWear } from '../formulas/conditionWear';
 import { computeFatigueGain } from '../formulas/fatigueGain';
-import { conditionAfterWear, computeInjuryChance, worstBodyPart } from '../formulas/injuryChance';
+import {
+  RIVAL_NO_INJURIES_LABEL,
+  conditionAfterWear,
+  computeInjuryChance,
+  worstBodyPart,
+} from '../formulas/injuryChance';
 import { computeWearByPart } from '../formulas/wearByPart';
 import { collectRingLearning } from './collectLearning';
 import { rollSegmentInjuries, type InjuryOutcome, type InjuryRollEntry } from './injuries';
@@ -67,6 +75,12 @@ export interface PhysicalTollDeps {
    * they are never hurt twice. Their roll is still drawn, so the stream stays aligned.
    */
   readonly alreadyInjured?: ReadonlyMap<PersonId, AlreadyInjured>;
+  /**
+   * The caller keeps only summaries of the toll (a rival show, POL4-06), so the fast paths may
+   * leave out traces nobody reads: the wear of each body part, and the injury chance when the
+   * promotion's rules skip in-match injuries. Values and draws are the same either way.
+   */
+  readonly summaryOnly?: boolean;
 }
 
 /** One worker's injury outcome. */
@@ -147,6 +161,39 @@ function entranceOrdersOf(spec: PhysicalSegmentSpec): Map<PersonId, number | nul
   return orders;
 }
 
+/**
+ * Fast path for wear by part (POL4-09): each part's `load × match.wear.part.<part>` with a one-line
+ * trace, the same numbers `computeWearByPart` works out, for a caller that stores none of them.
+ */
+function wearByPartNumbers(
+  load: Traced<number>,
+  tunables: EngineTunables,
+): Record<BodyPart, Traced<number>> {
+  const part = (bodyPart: BodyPart): Traced<number> =>
+    untraced(
+      withoutNegativeZero(load.value * tunables.get(`match.wear.part.${bodyPart}`)),
+      `${BODY_PART_LABELS[bodyPart]} wear`,
+    );
+  return {
+    head: part('head'),
+    neck: part('neck'),
+    back: part('back'),
+    arms: part('arms'),
+    torso: part('torso'),
+    legs: part('legs'),
+  };
+}
+
+/**
+ * Fast path for the injury chance under rival rules (POL4-09): the policy makes it 0 whatever the
+ * formula says, so a caller that stores no trace of it gets the 0 with the rival-rules line only.
+ */
+function rivalRulesNoInjuries(name: string): Traced<number> {
+  return startCalc(`Injury chance for ${name}`, 0, { unit: 'probability' })
+    .branch(RIVAL_NO_INJURIES_LABEL, true)
+    .done();
+}
+
 /** The chance with an "already injured" line: × 0, so the roll cannot come up. */
 function notRolledAgain(chance: Traced<number>, why: AlreadyInjured): Traced<number> {
   const label = why === 'tonight' ? ALREADY_INJURED_TONIGHT_LABEL : ALREADY_INJURED_LABEL;
@@ -167,6 +214,7 @@ export function computePhysicalToll(
   deps: PhysicalTollDeps,
 ): PhysicalTollResult {
   const { tunables } = deps;
+  const fast = deps.summaryOnly === true && fastPathsEnabled();
   // (1) Who carries load.
   const inputs = collectPhysicalInputs(read, spec);
   if (inputs.length === 0) {
@@ -223,7 +271,7 @@ export function computePhysicalToll(
       },
       { tunables, rng: deps.wearRng },
     );
-    const byPart = computeWearByPart(load, { tunables });
+    const byPart = fast ? wearByPartNumbers(load, tunables) : computeWearByPart(load, { tunables });
     return { load, byPart, after: conditionAfterWear(input.condition, byPart) };
   });
 
@@ -243,24 +291,27 @@ export function computePhysicalToll(
     if (after === undefined || gain === undefined) {
       throw new RangeError(`computePhysicalToll: no fatigue or wear for ${input.personId}`);
     }
-    const chance = computeInjuryChance(
-      {
-        name: input.name,
-        durationClass: spec.durationClass,
-        fatigueGoingIn: input.fatigue,
-        fatigueGain: gain,
-        conditionAfterWear: after.after,
-        style: input.style,
-        traits: input.traits,
-        opponents: input.opponents,
-        contributions: contributions[index] ?? [],
-        keepItSafe: spec.keepItSafe,
-        matchesEarlierTonight: input.matchesEarlierTonight,
-        skipInMatchInjuries: deps.policy.skipInMatchInjuries,
-        policyTrace: deps.policy.trace,
-      },
-      { tunables },
-    );
+    const chance =
+      fast && deps.policy.skipInMatchInjuries
+        ? rivalRulesNoInjuries(input.name)
+        : computeInjuryChance(
+            {
+              name: input.name,
+              durationClass: spec.durationClass,
+              fatigueGoingIn: input.fatigue,
+              fatigueGain: gain,
+              conditionAfterWear: after.after,
+              style: input.style,
+              traits: input.traits,
+              opponents: input.opponents,
+              contributions: contributions[index] ?? [],
+              keepItSafe: spec.keepItSafe,
+              matchesEarlierTonight: input.matchesEarlierTonight,
+              skipInMatchInjuries: deps.policy.skipInMatchInjuries,
+              policyTrace: deps.policy.trace,
+            },
+            { tunables },
+          );
     const already = deps.alreadyInjured?.get(input.personId);
     return already === undefined ? chance : notRolledAgain(chance, already);
   });
