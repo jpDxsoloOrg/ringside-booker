@@ -1,6 +1,13 @@
 import { act, render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { cashTraceRef, cents, parseGameDate, parseId, startCalc } from '@ringside/engine';
+import {
+  cashTraceRef,
+  cents,
+  parseGameDate,
+  parseId,
+  popularityTraceRef,
+  startCalc,
+} from '@ringside/engine';
 import type { SimStatus } from '@ringside/engine';
 import { EngineProvider } from '@/app/engine/EngineProvider';
 import { createInProcessTransport } from '@/app/engine/transport';
@@ -21,6 +28,8 @@ const STATUS: SimStatus = {
       homeRegionId: parseId('region', 'reg_00000000ab'),
       homeRegion: 64,
       prestige: 58,
+      headline: null,
+      headlineLabel: null,
       traceRef: null,
       trace: startCalc('Popularity in Harbor City', 64).done().trace,
     },
@@ -78,6 +87,37 @@ describe('StatusChips', () => {
       ).toBeInTheDocument();
     },
   );
+
+  it('shows the headline popularity with its stored Why? once the engine records one', () => {
+    const promotion = STATUS.promotion;
+    if (promotion === null) throw new Error('The sample status has a promotion');
+    const transport = createInProcessTransport(fakeEngineFactory(), { progressIntervalMs: 0 });
+    transport.host.installEngine(fakeEngineState());
+    render(
+      <EngineProvider createTransport={() => transport}>
+        <StatusChips
+          status={{
+            ...STATUS,
+            promotion: {
+              ...promotion,
+              popularity: {
+                ...promotion.popularity,
+                headline: 57.3,
+                headlineLabel: 'Harbor City Wrestling popularity',
+                traceRef: popularityTraceRef(promotion.promotionId),
+              },
+            },
+          }}
+          placement="bar"
+        />
+      </EngineProvider>,
+    );
+    const chip = screen.getByTestId('popularity-chip');
+    expect(chip).toHaveTextContent('57.3');
+    expect(
+      within(chip).getByRole('button', { name: /^Why is Harbor City Wrestling popularity /u }),
+    ).toBeInTheDocument();
+  });
 
   it('shows the cash without a Why? while there is no breakdown of it', () => {
     render(<StatusChips status={STATUS} placement="bar" />);

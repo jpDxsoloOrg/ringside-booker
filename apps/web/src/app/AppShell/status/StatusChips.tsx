@@ -133,9 +133,11 @@ function PopularityChip({ promotion, placement }: PromotionChipProps) {
       testId="popularity-chip"
       secondary={`Prestige ${formatNumber(popularity.prestige)}`}
     >
+      {/* The headline popularity and its stored Why? (DAY2-02); a world without one yet keeps
+          the home-region value and the Why? built on the spot. */}
       <Explained
-        value={popularity.homeRegion}
-        label="Popularity in your home region"
+        value={popularity.headline ?? popularity.homeRegion}
+        label={popularity.headlineLabel ?? 'Popularity in your home region'}
         traceRef={popularity.traceRef}
         trace={popularity.traceRef === null ? popularity.trace : null}
       />

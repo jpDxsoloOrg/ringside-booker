@@ -29,6 +29,8 @@ const STATUS: SimStatus = {
       homeRegionId: parseId('region', 'reg_00000000ab'),
       homeRegion: 64,
       prestige: 58,
+      headline: null,
+      headlineLabel: null,
       traceRef: null,
       trace: startCalc('Popularity in Harbor City', 64).done().trace,
     },

@@ -329,7 +329,10 @@ null before season 1 exists) and the viewer's promotion at a glance:
 ```ts
 promotion: {
   promotionId, name, cash, cashTraceRef,
-  popularity: { homeRegionId, homeRegion, prestige, traceRef },
+  popularity: {
+    homeRegionId, homeRegion, prestige,
+    headline, headlineLabel, traceRef, trace,
+  },
 } | null
 ```
 
@@ -343,11 +346,22 @@ human-run promotion ([finances.md](finances.md#queries)).
 
 The promotion is the first one `viewerPromotionIds` returns, read straight
 from its row: `cash`, popularity in its home region (0 when it has none
-there) and `prestige`. There are no formulas here. `traceRef` stays null
-until a popularity epic records popularity traces, and richer status (a
-population-weighted roll-up, morale) gets added by the epics that own it. The
-omniscient viewer, a computer controller and a human who runs no promotion
-get `promotion: null`.
+there) and `prestige`. There are no formulas here. Richer status (morale)
+gets added by the epics that own it. The omniscient viewer, a computer
+controller and a human who runs no promotion get `promotion: null`.
+
+`headline` is the promotion's headline popularity (DAY2-02): the D-03 roll-up
+level `office.popularity.headlineScope` picks, the home country by default.
+It and `headlineLabel` (the Why?'s root label, "<Promotion> popularity") are
+read from the stored trace of kind `office.popularity`, id the promotion
+(`POPULARITY_TRACE_KIND`, owned by core like `finance.cash`): its `value` and
+root label, or the summary's `value` and `label` once only a summary is kept.
+`traceRef` points at that trace whenever it is stored. The office system
+records it at new game, every Monday, after every `popularity.changed` for the
+promotion and when the scope tunable changes
+([office.md](office.md#headline-popularity)). While none is stored (a world
+made before DAY2-02) `headline`, `headlineLabel` and `traceRef` are null and
+the top bar shows `homeRegion` with `trace`, a Why? built on the spot (UI-19).
 
 `sim.pendingGates` runs every registered gate for today with
 `evaluateGates`, the same function the multi-day advance calls before each
