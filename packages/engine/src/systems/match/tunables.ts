@@ -579,7 +579,7 @@ export const matchTunables = defineTunables({
   ),
   // MTCH2-03: the auto-winner and Random winners. See docs/design/match-finishes.md#auto-winner.
   'match.autoWinner.popularityWeight': matchNumber(
-    0.6,
+    0.45,
     { min: 0, max: 3, step: 0.05 },
     'multiplier',
     RESULTS_CATEGORY,
@@ -594,7 +594,7 @@ export const matchTunables = defineTunables({
     AUTO_WINNER_DOC,
     "Auto-winner points per point of a side's mean momentum",
   ),
-  'match.autoWinner.push.mainEvent': pushPoints(30, 'as a main eventer'),
+  'match.autoWinner.push.mainEvent': pushPoints(24, 'as a main eventer'),
   'match.autoWinner.push.upperCard': pushPoints(22, 'on the upper card'),
   'match.autoWinner.push.midCard': pushPoints(14, 'on the mid card'),
   'match.autoWinner.push.lowerCard': pushPoints(7, 'on the lower card'),
@@ -613,7 +613,7 @@ export const matchTunables = defineTunables({
     "Auto-winner points per point of a side's mean ring skill (ringwork, psychology, athleticism)",
   ),
   'match.autoWinner.staminaWeight': matchNumber(
-    0.2,
+    0.5,
     { min: 0, max: 3, step: 0.05 },
     'multiplier',
     RESULTS_CATEGORY,
@@ -648,7 +648,7 @@ export const matchTunables = defineTunables({
     'Auto-winner points per point of heat of a storyline the side is the crowd favourite in',
   ),
   'match.autoWinner.upsetNoteGap': matchNumber(
-    10,
+    25,
     { min: 0, max: 200, step: 0.5 },
     'points',
     RESULTS_CATEGORY,
@@ -656,7 +656,7 @@ export const matchTunables = defineTunables({
     'How far behind on score a winner must have been for the result to be called an upset',
   ),
   'match.autoWinner.randomness': matchNumber(
-    5,
+    57.5,
     { min: 0, max: 200, step: 0.5 },
     'points',
     RESULTS_CATEGORY,
