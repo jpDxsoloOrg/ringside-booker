@@ -300,7 +300,7 @@ describe('SegmentEditorSheet', { timeout: TEST_TIMEOUT_MS }, () => {
     expect(within(promo).getByRole('button', { name: 'Save' })).toBeEnabled();
   });
 
-  it('adds both members of a team with the team named', async () => {
+  it('adds both members of a team, naming the team and its wrestlers', async () => {
     const built = await editorWorld();
     const spy = vi.spyOn(built.transport.host, 'command');
     const user = renderBooking(built);
@@ -315,8 +315,9 @@ describe('SegmentEditorSheet', { timeout: TEST_TIMEOUT_MS }, () => {
     expect(await within(editor).findByRole('link', { name: 'Kai Moreno' })).toBeInTheDocument();
     expect(within(editor).getByRole('link', { name: 'Rex Hale' })).toBeInTheDocument();
     expect(
-      within(editor).getByRole('radio', { name: 'Side 1: The Hale Storm' }),
+      within(editor).getByRole('radio', { name: 'Side 1: The Hale Storm (Kai Moreno & Rex Hale)' }),
     ).toBeInTheDocument();
+    expect(within(editor).getByText('Team: The Hale Storm')).toBeInTheDocument();
     expect(within(editor).getByText('Needs 2 more on this side')).toBeInTheDocument();
 
     await pick(user, editor, 'Add wrestler', 1, /Rhea Cortez/);

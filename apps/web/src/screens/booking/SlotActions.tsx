@@ -16,6 +16,7 @@ import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { DropdownMenu } from '@/components/DropdownMenu';
 import type { DropdownMenuAction, DropdownMenuEntry } from '@/components/DropdownMenu';
 import styles from './Booking.module.css';
+import { bookingSideText } from './cardSlotProps';
 
 /**
  * The way of winning the quick Winner menu plans: the match type's first method that can move a
@@ -88,7 +89,7 @@ function winnerItems({ segment, methodKey, onSetResult }: WinnerMenuInput): Drop
     ...segment.sides.map((side) =>
       choice(
         `side-${String(side.side)}`,
-        `Side ${String(side.side + 1)}: ${side.name}`,
+        `Side ${String(side.side + 1)}: ${bookingSideText(side)}`,
         methodKey === null ? null : { kind: 'win', winningSide: side.side, methodKey },
       ),
     ),

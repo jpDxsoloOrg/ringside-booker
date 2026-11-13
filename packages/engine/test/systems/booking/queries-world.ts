@@ -4,7 +4,9 @@
  * - promotion A is run by `player-1`. Brand One has no controller of its own; Brand Two is run by
  *   the computer. A's roster of 6: roster 0 wrestles as "Kid Vega" here; roster 2 is injured but
  *   may still talk; roster 3 is injured and may not; roster 5 is contracted to Brand One's sister
- *   Brand Three. Roster 0 and 1 are a tag team, and roster 0 holds the heavyweight title;
+ *   Brand Three. Roster 0 and 1 are a tag team, and roster 0 holds the heavyweight title. Roster 1
+ *   is a high flyer with stamina 72.4 and popularity 54.6 in the shows' region, and unknown
+ *   everywhere else;
  * - promotion B is run by the computer and has one wrestler;
  * - A's shows: `six` today on Brand One (6 slots and a pre-show), `three` on Wednesday (3 slots),
  *   `yesterday` (still scheduled, but past), `brandTwo` on Tuesday (Brand Two's), and B's `rival`
@@ -134,6 +136,14 @@ export function bookingQueriesWorld(options: BookingWorldOptions = {}): BookingQ
       const promotionA = only(context.ids.promotions.A, 'promotion A');
       const promotionB = only(context.ids.promotions.B, 'promotion B');
       const [regionId] = context.ids.regions;
+      // Roster 1 is a high flyer known in the shows' region, for the picker's row (EVT2-06).
+      const secondId = only(second, 'roster 1');
+      const secondPerson = only(context.tx.view.tables.people.get(secondId), 'roster 1 person');
+      context.tx.update('people', secondId, {
+        style: 'highFlyer',
+        attributes: { ...secondPerson.attributes, stamina: 72.4 },
+        regionalPop: { [only(regionId, 'a region')]: 54.6 },
+      });
       const show = (
         name: string,
         date: string,

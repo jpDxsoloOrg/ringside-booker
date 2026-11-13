@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { PUSH_LABELS } from '@ringside/engine';
+import { PUSH_LABELS, RATING_ROLE_LABELS, STYLE_LABELS } from '@ringside/engine';
 import type {
   AvailableTeamRow,
   AvailableWorkerRow,
@@ -15,6 +15,7 @@ import { RosterPicker } from '@/components/RosterPicker';
 import type {
   RosterPickerMode,
   RosterPickerPerson,
+  RosterPickerStat,
   RosterPickerTeam,
 } from '@/components/RosterPicker';
 import type { SegmentEditorKind } from './editorStore';
@@ -33,6 +34,39 @@ function unbookableReason(row: AvailableWorkerRow, kind: SegmentEditorKind): str
     : `Can't appear on this date: ${row.availability.reason}`;
 }
 
+/**
+ * What kind of worker someone is: a wrestler's ring style ("High flyer", the profile's words), or
+ * for anyone hired in another role (a manager or presenter in a talking segment) that role.
+ */
+export function workerTypeLabel(row: Pick<AvailableWorkerRow, 'employmentRole' | 'style'>): string {
+  return row.employmentRole === 'wrestler'
+    ? STYLE_LABELS[row.style]
+    : RATING_ROLE_LABELS[row.employmentRole];
+}
+
+/**
+ * The numbers on a picker row: popularity in the show's region, then stamina for a wrestler. Fatigue
+ * (WRK6) will be one more entry here once the engine tracks it; nothing stands in for it until then.
+ */
+export function workerStats(row: AvailableWorkerRow, regionName: string): RosterPickerStat[] {
+  return [
+    {
+      key: 'popularity',
+      short: 'Pop',
+      label: `Popularity in ${regionName}`,
+      value: Math.round(row.popularity),
+    },
+    ...(row.employmentRole === 'wrestler'
+      ? [{ key: 'stamina', short: 'Stamina', label: 'Stamina', value: Math.round(row.stamina) }]
+      : []),
+  ];
+}
+
+/** The line under the picker's filters that says what "Pop" means for this show. */
+export function statsNoteText(regionName: string): string {
+  return `Pop: popularity in ${regionName}, where this show is.`;
+}
+
 /** A row of `booking.availableWorkers` as the picker shows it for this draft. */
 export function pickerPerson(
   row: AvailableWorkerRow,
@@ -41,6 +75,8 @@ export function pickerPerson(
     readonly draft: SegmentDraft;
     readonly card: BookingCard;
     readonly segmentId: SegmentId | null;
+    /** The show's region, which the popularity is measured in. */
+    readonly regionName: string;
   },
 ): RosterPickerPerson {
   const inDraft = context.draft.participants.find((person) => person.personId === row.personId);
@@ -69,6 +105,8 @@ export function pickerPerson(
     otherBrand: row.otherBrand,
     bookedElsewhere: elsewhere.length > 0,
     notes,
+    typeLabel: workerTypeLabel(row),
+    stats: workerStats(row, context.regionName),
   };
 }
 
@@ -161,10 +199,13 @@ export function EditorRosterPicker({
     { eventInstanceId, kind, ...(search === '' ? {} : { search }) },
     { enabled: open, keepPreviousData: true },
   );
+  const regionName = query.data?.region.name ?? 'this region';
   const people = useMemo(
     () =>
-      (query.data?.people ?? []).map((row) => pickerPerson(row, { kind, draft, card, segmentId })),
-    [query.data, kind, draft, card, segmentId],
+      (query.data?.people ?? []).map((row) =>
+        pickerPerson(row, { kind, draft, card, segmentId, regionName }),
+      ),
+    [query.data, kind, draft, card, segmentId, regionName],
   );
   const teams = useMemo(
     () => (query.data?.teams ?? []).map((team) => pickerTeam(team, roster, draft, segmentId)),
@@ -181,6 +222,8 @@ export function EditorRosterPicker({
       {...(kind === 'match' ? { teams } : {})}
       initialMode={shown.mode}
       bookedFilter
+      sortStat={{ key: 'popularity', label: 'Most popular' }}
+      {...(query.data === undefined ? {} : { statsNote: statsNoteText(regionName) })}
       loading={query.status === 'loading'}
       onSearchChange={setSearch}
       onPickPerson={(person) => {

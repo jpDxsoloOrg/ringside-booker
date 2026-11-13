@@ -124,6 +124,16 @@ until **Save**, which sends the whole draft in one `booking.addSegment` or
   dimmed with the reason as their description. Hide booked is on by default too: people already
   in another segment of this card (and teams with such a member) are left out, and the list says
   how many; turning it off shows them with "On this card: …". A team adds every member with its `teamId`.
+  Each person's row reads "High flyer · Pop 54 · Stamina 72" (`workerTypeLabel`, `workerStats`):
+  the ring style through `STYLE_LABELS` (a manager or presenter shows their role), popularity in
+  the show's region (`booking.availableWorkers`' `region`, named in a line under the filters) and,
+  for wrestlers, stamina, rounded. Screen readers hear "Popularity in <region> 54". Most popular
+  sorts by popularity. Fatigue (WRK6) is not tracked yet; when it is, it is one more entry in
+  `workerStats`, and nothing stands in for it until then.
+- **Teams by name and wrestlers.** A team side says "Team: Running Axe" above its wrestlers; the
+  Result choice, the card row's Winner menu (`bookingSideText`) read "Side 1: Running Axe (Kai
+  Moreno & Rex Hale)", and the card row puts the wrestlers under the team's name
+  (`teamMembersText`).
   Until MTCH5 owns beats, changing a talking segment's speakers drops its beats so the engine
   writes the type's default beat.
 - **Titles and result.** `booking.card`'s `titleOptions`, with "Add the champion, … to a side"

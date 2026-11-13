@@ -118,6 +118,13 @@
   letter-spacing: 0.04em;
 }
 
+.teamName {
+  min-inline-size: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
 .sideHead > :last-child:not(:first-child, .hint) {
   margin-inline-start: auto;
 }

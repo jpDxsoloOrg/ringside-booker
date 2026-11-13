@@ -118,6 +118,14 @@ export function slotNameOnCard(card: BookingCard, segmentId: SegmentId, fallback
     : `Slot ${String(slot.displayNumber)}`;
 }
 
+/**
+ * A team with its wrestlers by name, so a team is never only its name: "Running Axe (Kai Moreno &
+ * Rex Hale)". Just the team's name when it has no members to list.
+ */
+export function teamWithMembers(teamName: string, memberNames: readonly string[]): string {
+  return memberNames.length === 0 ? teamName : `${teamName} (${memberNames.join(' & ')})`;
+}
+
 /** "Rhea Cortez", "Kai Moreno and Tia Cruz", "A, B and C". */
 export function namesText(names: readonly string[]): string {
   if (names.length <= 1) return names[0] ?? '';

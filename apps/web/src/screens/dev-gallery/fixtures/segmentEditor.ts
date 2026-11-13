@@ -4,12 +4,13 @@
  * stand-in engine gives for `match.catalog`, `match.slotRoles` and `booking.availableWorkers`.
  * Nothing here is a length or a time (D-10).
  */
-import { parseContentKey, parseGameDate, parseId } from '@ringside/engine';
+import { parseContentKey, parseGameDate, parseId, STYLE_LABELS } from '@ringside/engine';
 import type {
   AvailableTeamRow,
   AvailableWorkerRow,
   AvailableWorkersView,
   AvailabilityStatus,
+  RingStyle,
   BookingCard,
   BookingPersonView,
   BookingSegmentView,
@@ -36,6 +37,21 @@ interface Worker {
   readonly brandName: string | null;
   readonly onCard: string | null;
 }
+
+/** Each worker's ring style, popularity in the show's region and stamina, by index. */
+const WORKER_STATS: readonly { style: RingStyle; popularity: number; stamina: number }[] = [
+  { style: 'highFlyer', popularity: 54.4, stamina: 72.2 },
+  { style: 'powerhouse', popularity: 61, stamina: 58 },
+  { style: 'technician', popularity: 78.6, stamina: 81 },
+  { style: 'striker', popularity: 33, stamina: 66 },
+  { style: 'brawler', popularity: 47, stamina: 70 },
+  { style: 'hardcore', popularity: 22, stamina: 64 },
+  { style: 'allRounder', popularity: 40, stamina: 75 },
+  { style: 'showman', popularity: 0, stamina: 55 },
+];
+
+/** The region the gallery's show is in. */
+export const GALLERY_REGION_NAME = 'Greater Lakes';
 
 const AVAILABLE = { status: 'available', label: 'Available', reason: 'Available' } as const;
 
@@ -108,6 +124,9 @@ export function galleryWorkerRows(kind: 'match' | 'angle'): AvailableWorkerRow[]
         : [{ segmentId: parseId('segment', 'seg_0000000901'), slotLabel: 'Slot 1' }],
     appearancesThisYear: 4,
     appearanceCap: null,
+    style: WORKER_STATS[index]?.style ?? 'allRounder',
+    popularity: WORKER_STATS[index]?.popularity ?? 0,
+    stamina: WORKER_STATS[index]?.stamina ?? 50,
   }));
 }
 
@@ -128,7 +147,11 @@ export function galleryAvailableWorkers(
   const people = galleryWorkerRows(kind).filter((row) =>
     row.ringName.toLowerCase().includes(needle),
   );
-  return { people, teams: needle === '' || TEAM.name.toLowerCase().includes(needle) ? [TEAM] : [] };
+  return {
+    region: { regionId: parseId('region', 'reg_0000000101'), name: GALLERY_REGION_NAME },
+    people,
+    teams: needle === '' || TEAM.name.toLowerCase().includes(needle) ? [TEAM] : [],
+  };
 }
 
 /** The picker's rows straight from the roster, for the RosterPicker gallery. */
@@ -152,6 +175,16 @@ export function galleryPickerPeople(): RosterPickerPerson[] {
     notes: [
       ...(row.brandName === null ? [] : [`Other brand: ${row.brandName}`]),
       ...(WORKERS[index]?.onCard === null ? [] : [`On this card: ${WORKERS[index]?.onCard ?? ''}`]),
+    ],
+    typeLabel: STYLE_LABELS[row.style],
+    stats: [
+      {
+        key: 'popularity',
+        short: 'Pop',
+        label: `Popularity in ${GALLERY_REGION_NAME}`,
+        value: Math.round(row.popularity),
+      },
+      { key: 'stamina', short: 'Stamina', label: 'Stamina', value: Math.round(row.stamina) },
     ],
   }));
 }

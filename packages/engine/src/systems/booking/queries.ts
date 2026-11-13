@@ -17,7 +17,14 @@ import { z } from 'zod';
 import { defineQuery, type QueryContext, type QueryDefinition } from '../../core/api/query';
 import { refuseQuery } from '../../core/api/result';
 import { compareDates, type GameDate } from '../../core/date';
-import type { BrandId, EventInstanceId, PersonId, SegmentId, TeamId } from '../../core/ids';
+import type {
+  BrandId,
+  EventInstanceId,
+  PersonId,
+  RegionId,
+  SegmentId,
+  TeamId,
+} from '../../core/ids';
 import { matchTypesOf } from '../../model/catalogs';
 import type { EventImportance } from '../../model/entities/event-definition';
 import {
@@ -27,7 +34,7 @@ import {
   type Push,
 } from '../../model/entities/employment';
 import type { EventInstance, EventInstanceStatus } from '../../model/entities/event-instance';
-import type { Gender, PersonRole } from '../../model/entities/person';
+import type { Gender, PersonRole, RingStyle } from '../../model/entities/person';
 import type { TeamKind } from '../../model/entities/team';
 import { zId } from '../../model/primitives';
 import { compareIds } from '../../model/table';
@@ -115,6 +122,15 @@ export interface AvailableWorkerRow {
   appearancesThisYear: number;
   /** Null when the contract has no cap. */
   appearanceCap: number | null;
+  /** Their ring style ("High flyer" through `STYLE_LABELS`); `nonWrestler` for most non-wrestlers. */
+  style: RingStyle;
+  /**
+   * Popularity in the show's region: the stored `regionalPop[show.regionId]`, 0 when absent. Not
+   * rounded; screens round for display.
+   */
+  popularity: number;
+  /** The in-ring `stamina` attribute (0-100), not rounded. Fatigue (WRK6) is not on the row yet. */
+  stamina: number;
 }
 
 /** One team `booking.availableWorkers` lists. */
@@ -129,6 +145,8 @@ export interface AvailableTeamRow {
 
 /** `booking.availableWorkers`. */
 export interface AvailableWorkersView {
+  /** The show's region, which every row's `popularity` is measured in. */
+  region: { regionId: RegionId; name: string };
   people: AvailableWorkerRow[];
   teams: AvailableTeamRow[];
 }
@@ -324,6 +342,9 @@ export const availableWorkersQuery: QueryDefinition<'booking.availableWorkers'> 
           onCard: onCard.get(person.id) ?? [],
           appearancesThisYear: employment.appearancesThisYear,
           appearanceCap: employment.terms.appearanceCap,
+          style: person.style,
+          popularity: person.regionalPop[instance.regionId] ?? 0,
+          stamina: person.attributes.stamina,
         });
       }
       rows.sort(
@@ -367,7 +388,12 @@ export const availableWorkersQuery: QueryDefinition<'booking.availableWorkers'> 
           compareText(left.name, right.name) ||
           compareIds(left.teamId, right.teamId),
       );
-      return { people: rows, teams: teamRows };
+      const region = read.tables.regions.get(instance.regionId);
+      return {
+        region: { regionId: instance.regionId, name: region?.name ?? instance.regionId },
+        people: rows,
+        teams: teamRows,
+      };
     },
   },
 );

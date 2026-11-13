@@ -6,7 +6,7 @@ import {
   GALLERY_SINGLES,
   galleryWorkerRows,
 } from '@/screens/dev-gallery/fixtures/segmentEditor';
-import { pickerPerson, pickerTeam } from './EditorRosterPicker';
+import { pickerPerson, pickerTeam, statsNoteText, workerTypeLabel } from './EditorRosterPicker';
 
 const EDITED = parseId('segment', 'seg_0000000901');
 const OTHER = parseId('segment', 'seg_0000000902');
@@ -23,9 +23,43 @@ function rowOn(segmentIds: readonly (typeof EDITED)[]) {
   };
 }
 
+const CONTEXT = {
+  kind: 'match' as const,
+  draft: DRAFT,
+  card: CARD,
+  segmentId: null,
+  regionName: 'Greater Lakes',
+};
+
 describe('EditorRosterPicker rows', () => {
+  it('gives a wrestler their style, popularity in the show region and stamina, rounded', () => {
+    const row = { ...rowOn([]), style: 'highFlyer' as const, popularity: 54.6, stamina: 72.4 };
+    const picked = pickerPerson(row, CONTEXT);
+    expect(picked.typeLabel).toBe('High flyer');
+    expect(picked.stats).toEqual([
+      { key: 'popularity', short: 'Pop', label: 'Popularity in Greater Lakes', value: 55 },
+      { key: 'stamina', short: 'Stamina', label: 'Stamina', value: 72 },
+    ]);
+    expect(statsNoteText('Greater Lakes')).toBe(
+      'Pop: popularity in Greater Lakes, where this show is.',
+    );
+  });
+
+  it('names a manager by role and leaves stamina off for anyone who does not wrestle', () => {
+    const row = {
+      ...rowOn([]),
+      employmentRole: 'manager' as const,
+      style: 'nonWrestler' as const,
+      popularity: 0,
+    };
+    expect(workerTypeLabel(row)).toBe('Manager');
+    const picked = pickerPerson(row, { ...CONTEXT, kind: 'angle' });
+    expect(picked.typeLabel).toBe('Manager');
+    expect(picked.stats?.map((stat) => `${stat.short} ${String(stat.value)}`)).toEqual(['Pop 0']);
+  });
+
   it('marks someone booked in another segment, not the one being edited', () => {
-    const context = { kind: 'match' as const, draft: DRAFT, card: CARD, segmentId: EDITED };
+    const context = { ...CONTEXT, segmentId: EDITED };
     expect(pickerPerson(rowOn([OTHER]), context).bookedElsewhere).toBe(true);
     expect(pickerPerson(rowOn([EDITED]), context).bookedElsewhere).toBe(false);
     expect(pickerPerson(rowOn([]), context).bookedElsewhere).toBe(false);

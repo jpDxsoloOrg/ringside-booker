@@ -342,7 +342,8 @@ stipulationKeys, draft }`:
 ### `booking.availableWorkers`
 
 `{ eventInstanceId, kind: 'match' | 'angle', search?: string (≤ 60) }` →
-`{ people, teams }`.
+`{ region, people, teams }`, where `region` is the show's region
+(`{ regionId, name }`).
 
 `people` holds every active contract of the show's promotion (read through the
 `byPromotionStatus` index) in a role that can take part: wrestlers for a match,
@@ -352,6 +353,21 @@ brand, `otherBrand` (contracted to a brand other than the show's), the
 availability chip, `bookable`, `onCard` (`{ segmentId, slotLabel }` for each
 segment of this card they are already in, such as "Slot 3" or "Pre-show slot
 1"), `appearancesThisYear` and `appearanceCap`.
+
+For the picker to judge who to book, each row also carries three of WRK1's
+stored values, unrounded, read straight off the person with no roll-up (so the
+query stays as cheap on every debounced search as before):
+
+| Field        | What it is                                                                                |
+| ------------ | ----------------------------------------------------------------------------------------- |
+| `style`      | Their ring style (`RingStyle`); screens word it with WRK1's `STYLE_LABELS` ("High flyer") |
+| `popularity` | Popularity in the show's region: `regionalPop[show.regionId]`, 0 where they are unknown   |
+| `stamina`    | The in-ring `stamina` attribute                                                           |
+
+Fatigue and body condition belong to WRK6, which is not built yet, so no row
+carries them and nothing stands in for them. When WRK6 lands it adds a
+`fatigue` field here and one more stat on the picker row (see the segment
+editor below).
 
 `bookable` follows WRK1 on the show's date: for a match the person must be
 `available`; for an angle they must be able to work talking segments, so an
@@ -605,7 +621,15 @@ is runnable. Refusals are shown as the engine words them. Other features add pan
 Filling or changing a slot happens in one sheet (EVT2-06, `screens/booking/editor/`): Match or
 Talking segment, the type, each side built from a roster picker that reads
 `booking.availableWorkers`, titles on the line, the planned winner and method (or a draw or no
-contest) and a billing line. It edits a local `SegmentDraft` and saves it whole with one
+contest) and a billing line. Each person in the picker reads "High flyer · Pop 54 · Stamina 72"
+in visible text: the ring style for a wrestler (a manager or presenter in a talking segment
+shows their role instead), popularity in the show's region and, for wrestlers, stamina. Screen
+readers hear "Popularity in Greater Lakes 54", and a line under the filters says which region
+Pop means. A Most popular chip sorts the people by that popularity. A picked team is never
+only its name: the editor's side says "Team: Running Axe" over its wrestlers, and the planned
+result, the card row on the board (the wrestlers under the team's name) and its Winner menu read
+"Running Axe (Kai Moreno & Rex Hale)". Show results already list every wrestler on a side by
+name. It edits a local `SegmentDraft` and saves it whole with one
 `booking.addSegment` or `booking.updateSegment`, so nothing half-built reaches the world. It never
 adds rules of its own beyond the catalog's limits: whatever the engine refuses is shown in the
 engine's words, and softer problems are left to the checklist above. Picking someone to lose

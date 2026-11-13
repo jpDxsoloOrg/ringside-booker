@@ -403,6 +403,31 @@ describe('booking.availableWorkers', () => {
     });
   });
 
+  it("gives each row its style, stamina and popularity in the show's region (EVT2-06)", () => {
+    const built = bookingQueriesWorld();
+    const view = ask(engineOver(built.world), 'booking.availableWorkers', {
+      eventInstanceId: built.shows.six,
+      kind: 'match',
+    });
+    const show = built.world.tables.eventInstances.get(built.shows.six);
+    expect(view.region.regionId).toBe(show?.regionId);
+    expect(view.region.name).toBe(
+      show === undefined ? undefined : built.world.tables.regions.get(show.regionId)?.name,
+    );
+    expect(view.people.find((row) => row.personId === person(built, 1))).toMatchObject({
+      style: 'highFlyer',
+      stamina: 72.4,
+      popularity: 54.6,
+    });
+    // Everyone else reads their stored values; a region they are unknown in reads 0.
+    for (const row of view.people) {
+      const stored = built.world.tables.people.get(row.personId);
+      expect(row.style).toBe(stored?.style);
+      expect(row.stamina).toBe(stored?.attributes.stamina);
+      expect(row.popularity).toBe(stored?.regionalPop[view.region.regionId] ?? 0);
+    }
+  });
+
   it('lists where each worker already is on the card', () => {
     const built = bookingQueriesWorld();
     const card = bookSix(built);
@@ -450,7 +475,7 @@ describe('booking.availableWorkers', () => {
       kind: 'match',
       search: 'zzz',
     });
-    expect(nobody).toEqual({ people: [], teams: [] });
+    expect(nobody).toMatchObject({ people: [], teams: [] });
   });
 
   it("refuses a show the viewer doesn't run", () => {
