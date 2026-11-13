@@ -294,6 +294,8 @@ describe('canned worlds', () => {
       popularityShowChanges: 1,
       aftermaths: 2,
       promotionSnapshots: 3,
+      aiProfiles: 1,
+      aiDecisions: 2,
     });
     expect(world.tables.promotions.require(ids.promotions.A!).controller).toEqual({
       kind: 'human',

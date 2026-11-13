@@ -14,9 +14,13 @@ import { testId } from '../support/ids';
 
 const TABLE_DEFS: readonly TableDef[] = Object.values(TABLES);
 
-/** The schema inside any `.nullable()` and `.optional()` wrappers. */
+/** The schema inside any `.nullable()`, `.optional()` and `.default()` wrappers. */
 function unwrap(schema: z.core.$ZodType): z.core.$ZodType {
-  if (schema instanceof z.ZodNullable || schema instanceof z.ZodOptional) {
+  if (
+    schema instanceof z.ZodNullable ||
+    schema instanceof z.ZodOptional ||
+    schema instanceof z.ZodDefault
+  ) {
     return unwrap(schema.unwrap());
   }
   return schema;
@@ -89,7 +93,7 @@ describe('the production table registry', () => {
   it('registers every entity kind exactly once', () => {
     const kindsInRegistry = TABLE_DEFS.map((def) => def.kind).sort();
     expect(kindsInRegistry).toEqual([...ENTITY_KIND_LIST].sort());
-    expect(TABLE_DEFS).toHaveLength(27);
+    expect(TABLE_DEFS).toHaveLength(29);
   });
 
   it('registers the season table', () => {
