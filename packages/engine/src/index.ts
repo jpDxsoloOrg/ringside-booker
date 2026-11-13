@@ -1587,3 +1587,18 @@ export {
   type LedgerCategoryKind,
   type PostMoneyInput,
 } from './systems/finance/index';
+
+// Promotion reach and size (ECO1-02): the one answer to "how big is this company?". Formulas read
+// reach, never the size label. See docs/design/finances.md#reach-and-size.
+export {
+  PROMOTION_SIZE_LABELS,
+  PROMOTION_SIZES,
+  promotionReach,
+  promotionSize,
+  reachOf,
+  type CompanyNextSize,
+  type CompanyView,
+  type PromotionReach,
+  type PromotionReachInputs,
+  type PromotionSize,
+} from './systems/finance/index';

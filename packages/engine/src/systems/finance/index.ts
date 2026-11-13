@@ -12,6 +12,7 @@
 // imports this system, including programs that only see the emitted .d.ts files.
 import './events';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
+import { companyQuery } from './queries/company';
 
 export { LEDGER_CATEGORY_LABELS, ledgerCategoryKind, type LedgerCategoryKind } from './categories';
 export { postMoney, POST_MONEY_MEMO_MAX, type PostMoneyInput } from './post';
@@ -24,11 +25,37 @@ export {
   ledgerEntryTraceRef,
 } from './traces';
 export { FINANCE_TUNABLE_CATEGORY, financeTunables } from './tunables';
+// Reach and size (ECO1-02).
+export {
+  ALL_REACH_WEIGHTS_ZERO_NOTE,
+  promotionReach,
+  REACH_MAX,
+  REACH_MIN,
+  type PromotionReachInputs,
+} from './formulas/promotionReach';
+export {
+  PROMOTION_SIZE_LABELS,
+  PROMOTION_SIZES,
+  promotionSize,
+  SIZE_THRESHOLD_KEYS,
+  sizeThresholds,
+  THRESHOLD_SIZES,
+  THRESHOLDS_OUT_OF_ORDER_NOTE,
+  type PromotionSize,
+  type ThresholdSize,
+} from './formulas/promotionSize';
+export { reachOf, type PromotionReach } from './reach';
+export {
+  companyQuery,
+  UNKNOWN_PROMOTION,
+  type CompanyNextSize,
+  type CompanyView,
+} from './queries/company';
 
 export const financeSystem: SystemBundle = defineSystem({
   id: 'finance',
   phases: [],
   subscriptions: [],
-  queries: [],
+  queries: [companyQuery],
   commands: [],
 });
