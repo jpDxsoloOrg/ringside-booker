@@ -39,6 +39,7 @@ import { historyTunables } from './history/tunables';
 import { physicalTunables } from './match/physical/tunables';
 import { learningTunables } from './match/physical/learningTunables';
 import { cardFlowTunables } from './cardFlow/tunables';
+import { productionTunables } from './production/tunables';
 
 export const ALL_TUNABLES = mergeTunables(
   simTunables,
@@ -63,6 +64,7 @@ export const ALL_TUNABLES = mergeTunables(
   physicalTunables,
   learningTunables,
   cardFlowTunables,
+  productionTunables,
 );
 
 /** Every tunable key the engine knows. */
