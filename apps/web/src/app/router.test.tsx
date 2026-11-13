@@ -3,6 +3,9 @@ import { userEvent } from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import type { RouteObject } from 'react-router-dom';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { EngineProvider } from '@/app/engine/EngineProvider';
+import { createInProcessTransport } from '@/app/engine/transport';
+import { fakeEngineFactory } from '@/test/fakeEngine';
 import { findRouteByPath } from '@/test/routeTree';
 import { DEV_PROMOTION_ID, devRoutesEnabled } from './dev/EnterShellRoute';
 import {
@@ -20,7 +23,12 @@ function renderAt(path: string, routeList: RouteObject[] = appRoutes) {
     initialEntries: [path],
     future: routerFutureFlags,
   });
-  render(<RouterProvider router={router} future={routerProviderFutureFlags} />);
+  render(
+    // The Office reads the engine; with no world installed it says so instead of crashing.
+    <EngineProvider createTransport={() => createInProcessTransport(fakeEngineFactory())}>
+      <RouterProvider router={router} future={routerProviderFutureFlags} />
+    </EngineProvider>,
+  );
   return router;
 }
 

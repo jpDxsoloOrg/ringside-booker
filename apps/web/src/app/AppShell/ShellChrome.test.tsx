@@ -2,6 +2,9 @@ import { render, screen, within } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import type { RouteObject } from 'react-router-dom';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { EngineProvider } from '@/app/engine/EngineProvider';
+import { createInProcessTransport } from '@/app/engine/transport';
+import { fakeEngineFactory } from '@/test/fakeEngine';
 import { BP_MOBILE_QUERY } from '@/styles/breakpoints';
 import { setMatchMedia } from '@/test/matchMedia';
 import { devSeat } from '../dev/EnterShellRoute';
@@ -21,7 +24,16 @@ function renderRoutes(routeList: RouteObject[], path: string): void {
 }
 
 function renderApp(path: string): void {
-  renderRoutes(buildAppRoutes({ includeDevRoutes: false }), path);
+  const router = createMemoryRouter(buildAppRoutes({ includeDevRoutes: false }), {
+    initialEntries: [path],
+    future: routerFutureFlags,
+  });
+  render(
+    // The Office reads the engine; with no world installed it says so instead of crashing.
+    <EngineProvider createTransport={() => createInProcessTransport(fakeEngineFactory())}>
+      <RouterProvider router={router} future={routerProviderFutureFlags} />
+    </EngineProvider>,
+  );
 }
 
 /** The shell on its own at /game/office, with a stub screen and the given props. */
