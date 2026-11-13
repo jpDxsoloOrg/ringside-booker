@@ -56,7 +56,7 @@ function lines(trace: TraceNode): [string, number][] {
   return (trace.children ?? []).map((child) => {
     if (child.kind === 'add') return [child.label, child.operand];
     if (child.kind === 'subtract') return [child.label, -child.operand];
-    return [child.label, child.value ?? 0];
+    return [child.label, typeof child.value === 'number' ? child.value : Number.NaN];
   });
 }
 

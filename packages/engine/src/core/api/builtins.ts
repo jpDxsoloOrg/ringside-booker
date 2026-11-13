@@ -37,7 +37,7 @@ import { validateOverride } from '../tunables/validate';
 import { defineCommand } from './command';
 import type { CommandLogEntry } from './commandLog';
 import { viewerPromotionIds, type Controller } from './controller';
-import { defineQuery } from './query';
+import { defineQuery, type TraceReader } from './query';
 import type { Reason } from './result';
 import { defineSystem } from './system';
 
@@ -60,6 +60,19 @@ export interface ClockView {
 export const CASH_TRACE_KIND = 'finance.cash';
 
 /**
+ * The ref of a promotion's cash Why?, or null when none is stored or the stored one no longer ends
+ * at the promotion's cash (for example a promotion that ran under the computer, which never
+ * rewrites it): a Why? that does not add up to the figure it explains is worse than none.
+ */
+export function currentCashTraceRef(
+  traces: Pick<TraceReader, 'get'>,
+  promotion: { readonly id: PromotionId; readonly cash: number },
+): TraceRef | null {
+  const ref: TraceRef = { kind: CASH_TRACE_KIND, id: promotion.id };
+  return traces.get(ref)?.value === promotion.cash ? ref : null;
+}
+
+/**
  * The trace kind that explains a promotion's headline popularity (id: the promotion id). The office
  * system records it (DAY2-02); the core owns the string so `sim.status` never imports a system.
  */
@@ -73,8 +86,8 @@ export interface PromotionStatus {
   shortName: string;
   cash: Cents;
   /**
-   * The stored trace explaining the cash ("Cash on 1 January + this month's income and costs by
-   * category = cash now"), or null before the finance system has recorded one.
+   * The stored trace explaining the cash (opening balance, each earlier month, this month by
+   * category = cash now), or null when none is stored or it no longer ends at the cash.
    */
   cashTraceRef: TraceRef | null;
   popularity: {
@@ -218,8 +231,6 @@ const simStatus = defineQuery('sim.status', {
       promotion === undefined ? undefined : ctx.read.tables.regions.get(promotion.homeRegionId);
     const homePopularity =
       promotion === undefined ? 0 : (promotion.regionalPop[promotion.homeRegionId] ?? 0);
-    const cashRef: TraceRef | null =
-      promotion === undefined ? null : { kind: CASH_TRACE_KIND, id: promotion.id };
     const popularityRef: TraceRef | null =
       promotion === undefined ? null : { kind: POPULARITY_TRACE_KIND, id: promotion.id };
     const headline =
@@ -235,7 +246,7 @@ const simStatus = defineQuery('sim.status', {
               name: promotion.name,
               shortName: promotion.shortName,
               cash: promotion.cash,
-              cashTraceRef: cashRef !== null && ctx.traces.has(cashRef) ? cashRef : null,
+              cashTraceRef: currentCashTraceRef(ctx.traces, promotion),
               popularity: {
                 homeRegionId: promotion.homeRegionId,
                 homeRegion: homePopularity,

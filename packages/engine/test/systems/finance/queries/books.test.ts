@@ -328,6 +328,35 @@ describe('sim.status cash Why?', () => {
     expect(labels).toContain('Opening balance');
   });
 
+  it('hands out no cash Why? that no longer ends at the cash', async () => {
+    // A promotion run by the computer for a while (as the played e2e save is) never has its cash
+    // Why? rewritten, so the stored one is left behind by the cash.
+    const { engine, human } = await booksWorld(1);
+    const state = engine.exportState();
+    const stale = createEngine({
+      state: {
+        ...state,
+        world: {
+          ...state.world,
+          tables: {
+            ...state.world.tables,
+            promotions: state.world.tables.promotions.map((row) =>
+              row.id === human ? { ...row, cash: cents(row.cash - 1) } : row,
+            ),
+          },
+        },
+      },
+      systems: SYSTEMS_WITHOUT_SHOW_DAY_GATE,
+    });
+    expect(
+      data(engine.query('sim.status', {}, HUMAN_VIEWER)).promotion?.cashTraceRef,
+    ).not.toBeNull();
+    expect(data(stale.query('sim.status', {}, HUMAN_VIEWER)).promotion?.cashTraceRef).toBeNull();
+    expect(
+      data(stale.query('finance.overview', { promotionId: human }, HUMAN_VIEWER)).cashTraceRef,
+    ).toBeNull();
+  });
+
   it('follows every posted row, from the opening balance to the cash now', async () => {
     const { engine, human } = await booksWorld(45);
     const status = data(engine.query('sim.status', {}, HUMAN_VIEWER));
@@ -343,7 +372,7 @@ describe('sim.status cash Why?', () => {
       labels.push(step.label);
       if (step.kind === 'add') total += step.operand;
       else if (step.kind === 'subtract') total -= step.operand;
-      else total += step.value ?? 0;
+      else if (typeof step.value === 'number') total += step.value;
     }
     expect(total).toBe(status.promotion?.cash);
     // 45 days from 20 January ends on 5 March: January and February are one line each.
