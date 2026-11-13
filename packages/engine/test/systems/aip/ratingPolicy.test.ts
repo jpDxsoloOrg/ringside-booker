@@ -119,7 +119,11 @@ describe('the rival rating policy', () => {
       { key: 'ai.simpleBookingInputs', ...consumer },
     ]);
     // MTCH4 reads it on show night (MTCH4-04); WRK6's off-screen injuries too (WRK6-04).
-    expect(aiShortcutConsumers('ai.skipInMatchInjuries')).toEqual([
+    // Registration order follows module load order, which shared test threads change: sort.
+    const injuryConsumers = [...aiShortcutConsumers('ai.skipInMatchInjuries')].sort((left, right) =>
+      left.featureId.localeCompare(right.featureId),
+    );
+    expect(injuryConsumers).toEqual([
       { key: 'ai.skipInMatchInjuries', featureId: 'MTCH4', label: 'Match injuries' },
       { key: 'ai.skipInMatchInjuries', featureId: 'WRK6', label: 'Off-screen injuries' },
     ]);

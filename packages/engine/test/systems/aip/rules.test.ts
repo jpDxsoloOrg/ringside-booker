@@ -118,7 +118,8 @@ describe('aip.rules', () => {
     expect(shortcut(rules(engine), 'ai.scoreBonus').consumers).toEqual(['Match ratings']);
     expect(shortcut(rules(engine), 'ai.simpleBookingInputs').consumers).toEqual(['Match ratings']);
     // MTCH4 reads the injury shortcut on show night (MTCH4-04), WRK6 off screen (WRK6-04).
-    expect(shortcut(rules(engine), 'ai.skipInMatchInjuries').consumers).toEqual([
+    // Sorted: registration order follows module load order, which shared test threads change.
+    expect([...shortcut(rules(engine), 'ai.skipInMatchInjuries').consumers].sort()).toEqual([
       'Match injuries',
       'Off-screen injuries',
     ]);
