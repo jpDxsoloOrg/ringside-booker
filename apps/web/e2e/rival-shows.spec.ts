@@ -142,7 +142,9 @@ test.describe('rival shows and Auto-fill', () => {
     await expect(sheet).not.toContainText(/minute/i);
     // Reasons read in whole points (AIP4-08).
     await expect(sheet).not.toContainText(/Card score \d+\.\d/);
-    const skipLink = page.getByRole('link', { name: 'Skip to content' });
+    // The open sheet hides the page from the accessibility tree, so find the link by its target.
+    const skipLink = page.locator('a[href="#main"]', { hasText: 'Skip to content' });
+    await expect(skipLink).toHaveCount(1);
     await expect(skipLink).not.toBeFocused();
     await expectNoHorizontalScroll(page);
     await shot(page, 'auto-fill-sheet', testInfo.project.name);
