@@ -11,6 +11,11 @@
  *
  * The real show-day gate (`booking.showNeedsBooking`) is taken out unless a test asks for it:
  * player-1's unbooked weekly show would otherwise stop every skip that crosses it.
+ *
+ * `showChanges` hands `popularity.showChange` canned answers by show id (the gallery's fixtures in
+ * `screens/dev-gallery/fixtures/popularityShowChange.ts`: a big televised show, a small untelevised
+ * one, a weak one, a worldwide one and each status without a record); any other show gets the
+ * real answer.
  */
 
 import { z } from 'zod';
@@ -25,14 +30,17 @@ import {
   defineSystem,
   initialEngineState,
   SHOW_NEEDS_BOOKING_GATE_ID,
+  showChangeQuery,
 } from '@ringside/engine';
 import type {
   CreateEngineOptions,
   Engine,
   EngineState,
+  EventInstanceId,
   GameDate,
   GateHit,
   PersonId,
+  ShowPopularityChangeView,
   SystemBundle,
   Viewer,
 } from '@ringside/engine';
@@ -139,6 +147,8 @@ export interface FakeEngineOptions {
   readonly gateHit?: Partial<Pick<GateHit, 'reason' | 'subject' | 'actionHint'>>;
   /** The test phase throws while simulating this date. Never, when left out. */
   readonly failDate?: GameDate;
+  /** Canned `popularity.showChange` answers by show id; other shows get the real answer. */
+  readonly showChanges?: ReadonlyMap<EventInstanceId, ShowPopularityChangeView>;
 }
 
 const noArgs = z.strictObject({});
@@ -212,13 +222,34 @@ function fakeSystem(options: FakeEngineOptions): SystemBundle {
   });
 }
 
+/** `popularity.showChange` answering the canned shows first, then asking the real query. */
+function withShowChanges(
+  systems: readonly SystemBundle[],
+  showChanges: ReadonlyMap<EventInstanceId, ShowPopularityChangeView> | undefined,
+): readonly SystemBundle[] {
+  if (showChanges === undefined) return systems;
+  const canned = defineQuery('popularity.showChange', {
+    args: showChangeQuery.args,
+    run: (ctx, args) => showChanges.get(args.eventInstanceId) ?? showChangeQuery.run(ctx, args),
+  });
+  return systems.map((system) =>
+    system.queries.includes(showChangeQuery)
+      ? {
+          ...system,
+          queries: system.queries.map((query) => (query === showChangeQuery ? canned : query)),
+        }
+      : system,
+  );
+}
+
 /** An engine factory that adds the test system to whatever the host asks for. */
 export function fakeEngineFactory(options: FakeEngineOptions = {}): EngineFactory {
   return (engineOptions: CreateEngineOptions): Engine => {
-    const systems =
+    const gated =
       options.showDayGate === true
         ? engineOptions.systems
         : systemsWithoutGates(engineOptions.systems, [SHOW_NEEDS_BOOKING_GATE_ID]);
+    const systems = withShowChanges(gated, options.showChanges);
     return createEngine({ ...engineOptions, systems: [...systems, fakeSystem(options)] });
   };
 }

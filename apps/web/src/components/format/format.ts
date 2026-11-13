@@ -108,12 +108,17 @@ export function formatMoney(amount: Cents, options: FormatMoneyOptions = {}): st
 export interface FormatNumberOptions {
   /** Most decimal places to show. 0 by default. */
   readonly maximumFractionDigits?: number;
+  /** Fewest decimal places to show, padding with zeros (`0.10`). 0 by default. */
+  readonly minimumFractionDigits?: number;
 }
 
 /** A grouped number (`12,345`), with a true minus sign for negatives. */
 export function formatNumber(value: number, options: FormatNumberOptions = {}): string {
-  const { maximumFractionDigits = 0 } = options;
-  const formatted = new Intl.NumberFormat(LOCALE, { maximumFractionDigits }).format(value);
+  const { maximumFractionDigits = 0, minimumFractionDigits = 0 } = options;
+  const formatted = new Intl.NumberFormat(LOCALE, {
+    minimumFractionDigits,
+    maximumFractionDigits: Math.max(minimumFractionDigits, maximumFractionDigits),
+  }).format(value);
   return withTrueMinus(formatted);
 }
 

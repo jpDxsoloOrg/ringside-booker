@@ -1,0 +1,112 @@
+/*
+ * A show's popularity change: the summary on one line (it wraps, then stacks on phones), then a
+ * group per country with its header line and its regions' table.
+ */
+.list {
+  display: grid;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-5);
+  min-inline-size: 0;
+}
+
+.counts {
+  margin: 0;
+  font-weight: var(--font-weight-semibold);
+}
+
+.world {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.worldLabel {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.capNote {
+  justify-self: start;
+}
+
+/* The chip and its Why? side by side, on a shared baseline. */
+.change {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  white-space: nowrap;
+}
+
+.muted {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.countries {
+  display: grid;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+
+.country {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.countryHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  padding-block-end: var(--space-1);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.countryName {
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+}
+
+.countryCount {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.fold {
+  justify-self: start;
+}
+
+.showAll {
+  justify-self: start;
+}
+
+@media (--bp-mobile) {
+  .summary {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .list,
+  .countries {
+    gap: var(--space-4);
+  }
+
+  .showAll {
+    justify-self: stretch;
+    min-block-size: var(--tap-target-min);
+  }
+}
