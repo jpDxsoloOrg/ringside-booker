@@ -1053,6 +1053,7 @@ listed with EVT4's work.
 | `production.popularityDrag.minPerDay`             | number  | 0.05        | 0–10             | points/day  | Least popularity lost each day while above the ceiling (0 = no floor)    |
 | `production.tvDealMinCamera`                      | integer | 1           | 0–10             | points      | Lowest camera level allowed while the promotion has a TV deal            |
 | `production.feeNeedsCash`                         | boolean | true        |                  | flag        | An upgrade fee must be covered by cash in hand                           |
+| `production.forecastDays`                         | integer | 28          | 1–90             | days        | How many days ahead the production screen adds up the coming shows       |
 
 ## Contracts tunables
 
