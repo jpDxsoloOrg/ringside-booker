@@ -10,6 +10,7 @@ import {
   type TitleChangeChanceInputs,
 } from '../../../../src/systems/aip';
 import { createEngineTunables } from '../../../../src/systems/tunables';
+import { WORKED_TITLE_TUNABLES } from './workedTunables';
 import { expectTraceReplays } from '../../../support/trace';
 
 /** Only the reign band counts. */
@@ -36,7 +37,9 @@ function run(
   chanceInputs: TitleChangeChanceInputs,
   tuned: TunableOverrides = {},
 ): ReturnType<typeof titleChangeChance> {
-  const result = titleChangeChance(chanceInputs, { tunables: createEngineTunables(tuned) });
+  const result = titleChangeChance(chanceInputs, {
+    tunables: createEngineTunables({ ...WORKED_TITLE_TUNABLES, ...tuned }),
+  });
   expectTraceReplays(result);
   return result;
 }
@@ -102,7 +105,7 @@ describe('titleChangeChance', () => {
   it.each(EVENT_IMPORTANCES.map((importance) => [importance]))(
     'adds the %s importance term',
     (importance) => {
-      const tunables = createEngineTunables();
+      const tunables = createEngineTunables(WORKED_TITLE_TUNABLES);
       const result = run(inputs({ importance }));
       expect(result.value).toBe(22 + tunables.get(`aip.titles.importance.${importance}`));
     },
@@ -169,7 +172,8 @@ describe('titleChangeChance', () => {
       'aip.titles.band3.maxDays': 20,
       'aip.titles.band4.chance': 99,
     });
-    expect(result.value).toBe(22);
+    // The shipped default band, not the worked numbers above.
+    expect(result.value).toBe(12);
     expect(notes(result).some((note) => note.includes('the default bands are used'))).toBe(true);
   });
 

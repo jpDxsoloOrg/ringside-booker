@@ -31,16 +31,16 @@ const DEFAULTS: Readonly<Record<string, number | boolean>> = {
   'aip.titles.band1.maxDays': 14,
   'aip.titles.band1.chance': 0,
   'aip.titles.band2.maxDays': 45,
-  'aip.titles.band2.chance': 4,
+  'aip.titles.band2.chance': 2,
   'aip.titles.band3.maxDays': 90,
-  'aip.titles.band3.chance': 12,
+  'aip.titles.band3.chance': 6,
   'aip.titles.band4.maxDays': 150,
-  'aip.titles.band4.chance': 22,
+  'aip.titles.band4.chance': 12,
   'aip.titles.band5.maxDays': 240,
-  'aip.titles.band5.chance': 34,
+  'aip.titles.band5.chance': 18,
   'aip.titles.band6.maxDays': 365,
-  'aip.titles.band6.chance': 48,
-  'aip.titles.bandBeyond.chance': 60,
+  'aip.titles.band6.chance': 26,
+  'aip.titles.bandBeyond.chance': 34,
   'aip.titles.prestigePivot': 60,
   'aip.titles.changePrestigeWeight': 0.25,
   'aip.titles.tempoWeight': 0.3,
@@ -56,10 +56,10 @@ const DEFAULTS: Readonly<Record<string, number | boolean>> = {
   'aip.titles.expiringDays': 28,
   'aip.titles.challengerMinContractDays': 60,
   'aip.titles.maxChance': 90,
-  'aip.titles.valid.gap': 30,
-  'aip.titles.valid.floor': 40,
-  'aip.titles.strong.gap': 12,
-  'aip.titles.strong.floor': 62,
+  'aip.titles.valid.gap': 50,
+  'aip.titles.valid.floor': 12,
+  'aip.titles.strong.gap': 35,
+  'aip.titles.strong.floor': 25,
 };
 
 describe('the rival results tunables', () => {
@@ -117,7 +117,7 @@ describe('the rival results tunables', () => {
 
     const longer = reignBandsOf(createEngineTunables({ 'aip.titles.band6.maxDays': 500 }));
     expect(longer.problems).toEqual([]);
-    expect(longer.bands.at(-1)).toEqual({ band: 6, maxDays: 500, chance: 48 });
+    expect(longer.bands.at(-1)).toEqual({ band: 6, maxDays: 500, chance: 26 });
   });
 
   it('never mention minutes or length', () => {

@@ -178,30 +178,30 @@ export const aipResultsTunables = defineTunables({
     description: 'Base chance a title changes hands while the reign is in the first band',
   },
   'aip.titles.band2.maxDays': { ...BAND_DAYS, default: 45, description: 'Longest reign in band 2' },
-  'aip.titles.band2.chance': { ...BAND_CHANCE, default: 4, description: 'Base chance in band 2' },
+  'aip.titles.band2.chance': { ...BAND_CHANCE, default: 2, description: 'Base chance in band 2' },
   'aip.titles.band3.maxDays': { ...BAND_DAYS, default: 90, description: 'Longest reign in band 3' },
-  'aip.titles.band3.chance': { ...BAND_CHANCE, default: 12, description: 'Base chance in band 3' },
+  'aip.titles.band3.chance': { ...BAND_CHANCE, default: 6, description: 'Base chance in band 3' },
   'aip.titles.band4.maxDays': {
     ...BAND_DAYS,
     default: 150,
     description: 'Longest reign in band 4',
   },
-  'aip.titles.band4.chance': { ...BAND_CHANCE, default: 22, description: 'Base chance in band 4' },
+  'aip.titles.band4.chance': { ...BAND_CHANCE, default: 12, description: 'Base chance in band 4' },
   'aip.titles.band5.maxDays': {
     ...BAND_DAYS,
     default: 240,
     description: 'Longest reign in band 5',
   },
-  'aip.titles.band5.chance': { ...BAND_CHANCE, default: 34, description: 'Base chance in band 5' },
+  'aip.titles.band5.chance': { ...BAND_CHANCE, default: 18, description: 'Base chance in band 5' },
   'aip.titles.band6.maxDays': {
     ...BAND_DAYS,
     default: 365,
     description: 'Longest reign in band 6',
   },
-  'aip.titles.band6.chance': { ...BAND_CHANCE, default: 48, description: 'Base chance in band 6' },
+  'aip.titles.band6.chance': { ...BAND_CHANCE, default: 26, description: 'Base chance in band 6' },
   'aip.titles.bandBeyond.chance': {
     ...BAND_CHANCE,
-    default: 60,
+    default: 34,
     description: 'Base chance a title changes hands once the reign is longer than the last band',
   },
 
@@ -320,23 +320,23 @@ export const aipResultsTunables = defineTunables({
   // Title changes: who may take a title, by the side's market popularity.
   'aip.titles.valid.gap': {
     ...POPULARITY_LINE,
-    default: 30,
+    default: 50,
     description: "How far below the title's prestige a valid challenger's market popularity may be",
   },
   'aip.titles.valid.floor': {
     ...POPULARITY_LINE,
-    default: 40,
+    default: 12,
     description: 'Least market popularity a valid challenger needs, however low the prestige',
   },
   'aip.titles.strong.gap': {
     ...POPULARITY_LINE,
-    default: 12,
+    default: 35,
     description:
       "How far below the title's prestige a strong challenger's market popularity may be",
   },
   'aip.titles.strong.floor': {
     ...POPULARITY_LINE,
-    default: 62,
+    default: 25,
     description: 'Least market popularity a strong challenger needs, however low the prestige',
   },
 });

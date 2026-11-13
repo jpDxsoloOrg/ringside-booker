@@ -13,7 +13,11 @@ import { compareDates, diffDays, type GameDate } from '../../../../src/core/date
 import type { SegmentId, TitleId } from '../../../../src/core/ids';
 import { definePhase } from '../../../../src/core/pipeline/phase';
 import { methodOf } from '../../../../src/model/catalogs';
-import { DECIDE_RESULTS_STEP_ORDER, registerBookedCardStep } from '../../../../src/systems/aip';
+import {
+  DECIDE_RESULTS_STEP_ORDER,
+  registerBookedCardStep,
+  TITLE_DECISION_KIND,
+} from '../../../../src/systems/aip';
 import { employmentAt, openReignOf } from '../../../../src/systems/aip/inputs';
 import { cardSegments } from '../../../../src/systems/booking/card';
 import { showControllerOf } from '../../../../src/systems/calendar/control';
@@ -49,6 +53,8 @@ interface Watch {
   draws: number;
   /** Rival matches with a planned result. */
   plannedMatches: number;
+  /** Rival matches about to run with no planned result: `show (status) date: segment`. */
+  readonly unplanned: string[];
 }
 
 /**
@@ -68,11 +74,18 @@ function watchingSystem(watch: Watch): SystemBundle {
         run: (ctx) => {
           const minContract = ctx.tunables.get('aip.titles.challengerMinContractDays');
           for (const show of ctx.read.tables.eventInstances.lookup('byDate', ctx.date)) {
-            if (show.status !== 'booked' || showControllerOf(ctx.read, show).kind !== 'computer') {
+            if (
+              (show.status !== 'booked' && show.status !== 'scheduled') ||
+              showControllerOf(ctx.read, show).kind !== 'computer'
+            ) {
               continue;
             }
             for (const segment of cardSegments(ctx.read, show.id)) {
-              if (segment.kind !== 'match' || segment.outcome === null) {
+              if (segment.kind !== 'match') {
+                continue;
+              }
+              if (segment.outcome === null) {
+                watch.unplanned.push(`${show.name} (${show.status}) ${ctx.date}: ${segment.id}`);
                 continue;
               }
               watch.plannedMatches += 1;
@@ -159,7 +172,7 @@ describe.runIf(SLOW_TESTS)(`rival titles over ${String(DAYS)} days of the defaul
         },
       });
       try {
-        const watch: Watch = { planned: [], draws: 0, plannedMatches: 0 };
+        const watch: Watch = { planned: [], draws: 0, plannedMatches: 0, unplanned: [] };
         const state = startDefaultGame({
           player: { mode: 'existing', promotionKey: PLAYER_PROMOTION_KEY },
         });
@@ -189,6 +202,7 @@ describe.runIf(SLOW_TESTS)(`rival titles over ${String(DAYS)} days of the defaul
           watch.planned.map((entry) => [`${entry.segmentId}|${entry.titleId}`, entry]),
         );
 
+        expect(watch.unplanned).toEqual([]);
         // Every new reign on a computer show was planned there, by someone who could hold it.
         const newReigns = tables.titleReigns.filter(
           (reign) =>
@@ -209,12 +223,16 @@ describe.runIf(SLOW_TESTS)(`rival titles over ${String(DAYS)} days of the defaul
           const planned = plannedBySegmentTitle.get(
             `${String(reign.wonInSegmentId)}|${reign.titleId}`,
           );
-          expect(planned, `planned change for reign ${reign.id}`).toBeDefined();
+          expect(
+            planned,
+            `planned change for reign ${reign.id}: ${show.name} (${show.importance}) on ${show.date}, ${JSON.stringify(segment?.kind === 'match' ? { outcome: segment.outcome, titles: segment.match.titleIds } : null)}, holders ${reign.holderIds.join(' & ')}`,
+          ).toBeDefined();
           expect(planned?.problems ?? [], `new champions of reign ${reign.id}`).toEqual([]);
           onComputerShows += 1;
         }
         expect(watch.planned.filter((entry) => entry.house)).toEqual([]);
         expect(watch.draws).toBe(0);
+        expect(watch.unplanned).toEqual([]);
 
         // Reign lengths and how often titles move.
         const ended = tables.titleReigns.filter(
@@ -249,6 +267,16 @@ describe.runIf(SLOW_TESTS)(`rival titles over ${String(DAYS)} days of the defaul
           (title) =>
             `${title.name}: ${String(changesOf.get(title.id) ?? 0)} changes, ${String(defencesOf.get(title.id) ?? 0)} defences`,
         );
+        const reasons = new Map<string, number>();
+        for (const row of tables.aiDecisions) {
+          if (row.kind === TITLE_DECISION_KIND) {
+            const reason = `${String(row.summary.params['plan'])}: ${String(row.summary.params['reason'])}`;
+            reasons.set(reason, (reasons.get(reason) ?? 0) + 1);
+          }
+        }
+        const reasonLines = [...reasons.entries()]
+          .sort((left, right) => right[1] - left[1])
+          .map(([reason, count]) => `  ${String(count)} x ${reason}`);
         const changeShare = defended.length === 0 ? 1 : defendedAndChanged.length / defended.length;
         console.log(
           [
@@ -258,6 +286,8 @@ describe.runIf(SLOW_TESTS)(`rival titles over ${String(DAYS)} days of the defaul
             `Rival titles: ${String(rivalTitles.length)}; new reigns on computer shows: ${String(onComputerShows)} (${(onComputerShows / rivalTitles.length / years).toFixed(2)} changes per title per year)`,
             `Reigns ended in the run: ${String(ended.length)}, mean ${meanDays(ended).toFixed(0)} days; those also begun in it: ${String(endedInRun.length)}, mean ${meanDays(endedInRun).toFixed(0)} days`,
             `Titles defended 4+ times: ${String(defended.length)}, changed hands: ${String(defendedAndChanged.length)} (${(changeShare * 100).toFixed(0)}%)`,
+            'Title decisions by plan and reason (the decision log keeps the newest):',
+            ...reasonLines,
             ...perTitle,
           ].join('\n'),
         );

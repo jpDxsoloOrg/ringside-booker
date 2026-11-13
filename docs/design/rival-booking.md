@@ -833,9 +833,11 @@ on show night ([Title outcomes](show-night.md#title-outcomes)). AIP5 never
 touches reigns.
 
 - **Reign bands.** The base chance by reign length:
-  `aip.titles.band<n>.maxDays` / `.chance` for n = 1 to 6, (14, 0), (45, 4),
-  (90, 12), (150, 22), (240, 34), (365, 48), and
-  `aip.titles.bandBeyond.chance` 60 past the last band. The days must
+  `aip.titles.band<n>.maxDays` / `.chance` for n = 1 to 6, (14, 0), (45, 2),
+  (90, 6), (150, 12), (240, 18), (365, 26), and
+  `aip.titles.bandBeyond.chance` 34 past the last band (lowered by AIP5-04's
+  [two-year title check](#two-year-title-check): rival titles are defended
+  about every other week, so these are per-defence chances). The days must
   increase: `reignBandsOf(tunables)` falls back to the default bands and
   reports the problem when they do not.
 - **Terms on top:** prestige against `aip.titles.prestigePivot` times
@@ -886,16 +888,16 @@ The bands as they ship:
 | Band   | Reign up to (days) | Base chance |
 | ------ | ------------------ | ----------- |
 | 1      | 14                 | 0%          |
-| 2      | 45                 | 4%          |
-| 3      | 90                 | 12%         |
-| 4      | 150                | 22%         |
-| 5      | 240                | 34%         |
-| 6      | 365                | 48%         |
-| beyond | longer             | 60%         |
+| 2      | 45                 | 2%          |
+| 3      | 90                 | 6%          |
+| 4      | 150                | 12%         |
+| 5      | 240                | 18%         |
+| 6      | 365                | 26%         |
+| beyond | longer             | 34%         |
 
 With the defaults (pivot 60, prestige weight 0.25, tempo weight 0.3), a
 312-day reign on a 74-prestige title, taste 65, at a major show while
-popularity fell 3 weeks: 48 − 3.5 + 4.5 + 6 + 10 = 65%.
+popularity fell 3 weeks: 26 − 3.5 + 4.5 + 6 + 10 = 43%.
 
 ### Challenger pool
 
@@ -906,8 +908,11 @@ validNeeds  = max(prestige − aip.titles.valid.gap,  aip.titles.valid.floor)
 strongNeeds = max(prestige − aip.titles.strong.gap, aip.titles.strong.floor)
 ```
 
-At prestige 80 a valid challenger needs 50 and a strong one 68; at prestige 20
-the floors hold (40 and 62). Per side, in side order:
+At prestige 80 a valid challenger needs 30 and a strong one 45; at prestige 40
+the floors hold (12 and 25). Popularity in a rival's own markets runs well below
+its titles' prestige on the default world (12-22 for small promotions, 20-55 for
+the big ones), so the gaps are wide and the floors low; AIP5-04 set them from
+the [two-year title check](#two-year-title-check). Per side, in side order:
 
 1. "<side> is eligible": no WRK1 title eligibility or availability reason; each
    failing reason is noted in WRK1's words.
@@ -937,7 +942,7 @@ and `side:<n>` for every eligible challenger. Rules in order:
 4. **The roll.** "Time for a change?" at the chance (0% draws nothing and notes
    "Chance is 0%"). A hit with a valid or strong challenger changes the title; a
    hit with pool `none` retains ("Ready for a change, but no challenger is
-   popular enough (needs 50 in our markets)"); a miss retains.
+   popular enough (needs 30 in our markets)"); a miss retains.
 
 A change picks from the strong list, else the valid list, weighted by each
 side's value (`rivalSideValue`, at least 1 so every fit challenger keeps a
