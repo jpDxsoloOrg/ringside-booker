@@ -43,6 +43,9 @@ const STATUS_TONES: Readonly<Record<ShowCardRow['statusLabel'], Tone>> = {
   Cancelled: 'negative',
 };
 
+/** What a show that ran reads when none of its card is kept (old shows keep only a summary). */
+export const DETAILS_KEPT_TEXT = 'Details are kept for the last 4 weeks.';
+
 /** The link from a completed show's card to its results page. */
 export const SEE_RESULTS_TEXT = 'See results';
 
@@ -153,7 +156,7 @@ function CardBody({
           icon="calendar"
           size="inline"
           headingLevel={slotHeadingLevel}
-          title="Nothing is on this card"
+          title={row.statusLabel === 'Completed' ? DETAILS_KEPT_TEXT : 'Nothing is on this card'}
         />
       </>
     );

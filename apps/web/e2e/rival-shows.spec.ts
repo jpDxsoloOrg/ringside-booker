@@ -9,6 +9,11 @@
  * - The gallery's rival show card (long names, a four-way, three chips) fits a phone, its header
  *   and Why? buttons are full tap targets, and the reasons sheet fills a phone's screen.
  *
+ * - AIP4-08 (EVT3 wired): a rival's aired show opens on its score with the score's Why? and a
+ *   See results link to its full results, which are not the off-screen "wasn't booked in detail"
+ *   page. Auto-fill's reasons read card scores in whole points, and focus never lands on the skip
+ *   link while the sheet opens or closes.
+ *
  * Nothing on these screens is a length or a time.
  */
 import type { Page } from '@playwright/test';
@@ -82,6 +87,22 @@ test.describe('rival shows and Auto-fill', () => {
     await page.keyboard.press('Escape');
     await expect(panel).toBeHidden();
 
+    // EVT3 ran the card: its score, the score's Why? and the results page (AIP4-08).
+    await expect(aired.getByText(/^Show score \d+$/)).toBeVisible();
+    const scoreWhy = aired.getByRole('button', { name: /^Why this score\? / });
+    await scoreWhy.click();
+    const scorePanel = page.getByRole('dialog', { name: /^Why this score\? / });
+    await expect(scorePanel).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(scorePanel).toBeHidden();
+    const seeResults = aired.getByRole('link', { name: 'See results' });
+    if (phone) {
+      expect((await seeResults.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(
+        TAP_TARGET_MIN_PX,
+      );
+    }
+    await expectNoHorizontalScroll(page);
+
     const next = upcoming.locator('article[data-revealed="false"]').first();
     if ((await next.count()) > 0) {
       await next.getByRole('button', { name: SHOW_TOGGLE }).first().click();
@@ -89,6 +110,12 @@ test.describe('rival shows and Auto-fill', () => {
     }
     await expectNoHorizontalScroll(page);
     await expectNoSeriousA11yViolations(page);
+
+    await seeResults.click();
+    await expect(page).toHaveURL(/\/game\/event-history\/evi_/);
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await expect(page.getByText(/wasn't booked in detail/)).toHaveCount(0);
+    await expectNoHorizontalScroll(page);
   });
 
   test('Auto-fill fills the player’s next show and leaves the winners open', async ({
@@ -113,12 +140,17 @@ test.describe('rival shows and Auto-fill', () => {
       sheet.getByRole('button', { name: /^Why this segment\? Slot / }).first(),
     ).toBeVisible();
     await expect(sheet).not.toContainText(/minute/i);
+    // Reasons read in whole points (AIP4-08).
+    await expect(sheet).not.toContainText(/Card score \d+\.\d/);
+    const skipLink = page.getByRole('link', { name: 'Skip to content' });
+    await expect(skipLink).not.toBeFocused();
     await expectNoHorizontalScroll(page);
     await shot(page, 'auto-fill-sheet', testInfo.project.name);
     await expectNoSeriousA11yViolations(page);
 
     await sheet.getByRole('button', { name: 'Done' }).click();
     await expect(sheet).toBeHidden();
+    await expect(skipLink).not.toBeFocused();
     await expect(page.locator('[data-part="winner"]')).toHaveCount(0);
   });
 

@@ -147,7 +147,10 @@ export interface ShowCardRow {
   score: number | null;
   /** The show score's Why? (`shows.score`), with `score`, while the trace is kept. */
   scoreTraceRef: TraceRef | null;
-  /** Running order: filled pre-show slots, then every main-card slot. Empty when hidden. */
+  /**
+   * Running order: filled pre-show slots, then every main-card slot. Empty when hidden, and for a
+   * completed show with no segments kept.
+   */
   slots: ShowCardSlot[];
 }
 
@@ -310,8 +313,13 @@ function slotsOf(
   tunables: EngineTunables,
   show: Show,
 ): ShowCardSlot[] {
-  const people = showPeople(read, show);
   const segments = cardSegments(read, show.id);
+  // A show that ran with nothing kept on its card (scored off-screen, or its segments trimmed
+  // once old) has no slots to list: a row of open slots would read as an unbooked card.
+  if (show.status === 'completed' && segments.length === 0) {
+    return [];
+  }
+  const people = showPeople(read, show);
   const slot = (preShow: boolean, index: number, segment: DeepReadonly<Segment> | undefined) => {
     const role = slotRoleOf(
       { slot: index + 1, slots: show.format.slots, preShow },
