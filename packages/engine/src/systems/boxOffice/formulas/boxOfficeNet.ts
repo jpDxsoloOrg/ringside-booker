@@ -16,6 +16,8 @@ export interface BoxOfficeNetInputs {
   readonly rent: number | Traced<number>;
   readonly grossMerch: number | Traced<number>;
   readonly merchShare: number | Traced<number>;
+  /** Notes added at the end of the Why?, such as "No tickets sold" (EVT6-05's settlement). */
+  readonly notes?: readonly string[];
 }
 
 /** Net box office takings in cents; negative when rent is more than the show took. */
@@ -32,5 +34,8 @@ export function computeBoxOfficeNet(inputs: BoxOfficeNetInputs): Traced<number> 
   calc.subtract('Venue rent', inputs.rent);
   calc.add('Merch sales', inputs.grossMerch);
   calc.subtract("Workers' share of the merch", inputs.merchShare);
+  for (const note of inputs.notes ?? []) {
+    calc.note(note);
+  }
   return calc.done();
 }
