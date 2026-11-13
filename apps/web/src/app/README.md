@@ -121,6 +121,34 @@ the panel. Outside the shell (the component gallery, the title and new-game scre
 provider and names stay plain text. Other entity kinds stay plain until their screens exist; they
 get their links by extending `gameEntityLink`.
 
+## The roster
+
+Your promotion > Roster (`/game/roster`, `screens/roster/RosterScreen.tsx`) is live since WRK2:
+everyone under contract in role tabs with counts (Wrestlers, Managers, Announcers, Referees,
+Producers, Others), a Brand selector when the promotion has brands, Why? on Expects, Overall and
+Popularity (`roster.explain`), and Set push from the row menu or the ticked rows. The tab and the
+brand live in the URL (`?tab=`, `?brand=`). Design: `docs/design/roster.md#screen`.
+
+### Adding a roster tab
+
+Like the profile's tabs, the roster's tab strip is an extension point. The six role tabs take
+orders 10 to 60; another feature adds its tab from its own files:
+
+```ts
+registerRosterTab({
+  id: 'injuries', // also the ?tab= value; never a role group's id
+  label: 'Injuries',
+  order: 70, // reserved: 70 WRK6 Injuries, 80 ECO11 In development
+  render: ({ promotionId, brandId, summary }) => <InjuriesTab promotionId={promotionId} />,
+  count: ({ summary }) => summary.unavailableByStatus.injured ?? 0, // optional badge
+});
+```
+
+`registerRosterTab` (`screens/roster/rosterTabRegistry.ts`) returns a function that removes the
+tab, throws for a taken id, and the open roster re-renders when the list changes. Row menu items
+append to `rosterRowActions` in `screens/roster/rosterColumns.tsx`. The roster's Office panel,
+"Top of your roster" (side, order 30), lives in `screens/roster/officePanel.tsx`.
+
 ## The calendar
 
 Your promotion > Calendar is live. `/game/calendar` (`screens/calendar/`) is a nav item, not a
