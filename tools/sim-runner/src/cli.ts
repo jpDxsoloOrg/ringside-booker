@@ -3,8 +3,8 @@
  * root. See `args.ts` for the options.
  *
  * Exit codes: 0 success, 1 a determinism mismatch (or, under `--strict`, a step failure, a past
- * show still open, a ledger that does not match the cash or a promotion history over its
- * retention), 2 bad
+ * show still open, a ledger that does not match the cash, a promotion history over its
+ * retention or an event of a `--fail-on-event` type, by default `aip.jobFailed`), 2 bad
  * arguments or a world that cannot be read, 3 stopped by a gate.
  */
 
@@ -141,6 +141,15 @@ export async function runCli(
   }
   if (options.strict && firstRun.failures.length > 0) {
     io.stderr(`--strict: ${String(firstRun.failures.length)} steps failed.\n`);
+    return EXIT_FAILED;
+  }
+  const failedEvents = options.failOnEvents
+    .map((type) => ({ type, count: firstRun.summary.eventsByType[type] ?? 0 }))
+    .filter((entry) => entry.count > 0);
+  if (options.strict && failedEvents.length > 0) {
+    io.stderr(
+      `--strict: events that mean something failed were published:\n${failedEvents.map((entry) => `  ${entry.type}: ${String(entry.count)}`).join('\n')}\n`,
+    );
     return EXIT_FAILED;
   }
   const unrun = openPastShows(firstRun.finalState);

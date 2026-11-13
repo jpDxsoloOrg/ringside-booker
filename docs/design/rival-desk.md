@@ -90,8 +90,8 @@ reconcile, so old decisions can go.
 **Retention.** `aip.decisionLogRetentionDays` (default 365, 0 keeps none) is
 the window. `pruneDecisionLog(tx, today, days)` deletes a row once its date is
 on or before `today - days` and it has been revealed; a plan that has not
-aired yet stays whatever its age. The turn runner (AIP1-03) runs it once a
-day.
+aired yet stays whatever its age. The daily phase `aip.pruneDecisionLog` runs
+it (see [Jobs](#jobs)).
 
 **Save size.** Eleven rivals write to the log all year, so a row is kept
 small: templated text, capped ID lists, no stored trace body. The Why? behind
@@ -161,10 +161,113 @@ in the order above, its `label`, `description`, `offText`, `consumer`,
 `inForce` (on, or above 0, and the level playing field is off) and the
 registered `consumers`.
 
+The runner does no work for a unit with nothing due: it makes sure the unit
+has a profile and moves on, with no turn, no event and no `lastTurnOn` change.
+Later jobs add their own shortcuts inside `run` (for example, nothing to
+review when the roster has not changed).
+
 ## Jobs
 
-Later (AIP1-03): the turn runner, the job registry and each job's own random
-stream.
+Every rival behaviour is a **job**: the weekly roster review (AIP1-05), push
+reviews (AIP3), card planning before a show (AIP4), monthly business reviews
+(AIP8), hiring (ECO6), brand GM bookings (BRW6). They all run through one
+phase, so they visit the promotions in the same order, spread over the week
+instead of piling onto one day, and one broken rival never rolls back another
+rival's work.
+
+Code: `packages/engine/src/systems/aip/jobs/` and `phases.ts`.
+
+**Adding a job.** One `registerAiJob({ id, cadence, units?, run })` call in the
+feature's own system module, with no phase of its own. `id` is an API name
+such as `aip.rosterReview`; a duplicate id throws `RegistryError` naming both.
+`units` is `promotions` (whole promotions only), `brands` (computer GM brands
+only) or `all` (the default). `aiJobs()` lists them sorted by id. A job that
+draws random numbers declares its own stream in `streams.ts` (named after the
+job), so one job's draws never shift another's.
+
+**The runner.** `aip.runTurns` (group `aiTurns`, order 50, daily, so before
+contracts and shows) walks `computerUnits` in key order. For each unit it
+calls `ensureProfile` (self-healing: a promotion founded later or a save from
+before the rival desk gets its profile on its first turn), then runs each due
+job in id order. After the unit's jobs it sets the profile's `lastTurnOn` and
+publishes `aip.turnTaken` with the ids of the jobs that ran. Human-controlled
+units never run jobs, and a promotion unit's jobs must leave the brands in
+`unit.excludedBrandIds` alone (`unitCovers`).
+
+**Cadences.**
+
+| Cadence      | Due on                                                                                                                           |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| `daily`      | every day                                                                                                                        |
+| `weekly`     | the unit's weekday: `(toEpochDay(date) - unitOffset(key, 7)) mod 7 = 0`                                                          |
+| `monthly`    | the unit's day of the month: `1 + unitOffset(key, 28)`, so 1 to 28 and every month has it                                        |
+| `beforeShow` | a day the unit has a `scheduled` or `booked` show (`eventInstances` `byDate`): its promotion's, and for a brand unit its brand's |
+
+`beforeShow` jobs see the day's shows as `job.shows`; they run before the
+shows phase (500) runs them. Until a calendar feature stores shows, the
+cadence simply never fires.
+
+**Spreading.** `unitOffset(unitKey, modulo)` is `hashString32(unitKey) %
+modulo`, the foundation's frozen-output hash (`core/hash.ts`). It is a hash of
+the unit's own key and not its position in the list, because a position
+shifts whenever a promotion is founded or closes and would move every later
+rival's review day; the hash never changes, needs no stored state and draws
+no random numbers. `nextDueOn(cadence, unit, from)` gives the first due date
+on or after `from` for weekly and monthly jobs (null for the others), so a
+screen can say when the next review is; nobody should assume "the 1st of the
+month". `isDue(cadence, unit, date, read)` is the runner's own test.
+
+**Savepoints and the buffer.** Each job runs in
+`tx.savepoint('aip.job:<jobId>:<unitKey>', ...)`. A savepoint rolls back rows
+but not staged events or traces, so the job context's `publish`,
+`recordTrace` and `recordDecision` are buffered and handed to the phase's
+stagings only when the savepoint returns `ok: true`. A job that throws
+therefore changes nothing (no rows, events, traces or decisions); the runner
+logs the job, unit and message, publishes `aip.jobFailed` and carries on with
+the next job and the next unit. The job context keeps `PhaseContext`'s exact
+`publish` and `recordTrace` signatures, so it can be passed straight to the
+workers doors (`DoorContext`) and the booking writer.
+
+A rolled-back job has still advanced its random stream. That is
+deterministic (same seed, same failure, same draws) and keeps streams simple,
+so streams are not snapshotted per job.
+
+**Failure visibility.** A job caught by its savepoint does not fail the
+`aip.runTurns` step, so it never reaches the pipeline failure log or the
+repeated-failure stop: one broken rival job must not stop the player's skip.
+It shows instead in the step's log, as the `aip.jobFailed` event (readable
+through `sim.recentEvents`), and in `npm run sim -- --strict`, which fails on
+any `aip.jobFailed` (`--fail-on-event` changes the list). A bug in the runner
+itself, outside any job, still throws and fails the step as usual.
+
+**Decisions.** `job.recordDecision({ kind, summary, refs?, traced?,
+traceKind?, revealOn?, importance? })` refuses a kind nobody registered
+(throwing, so the job rolls back), inserts the `aiDecisions` row (`revealOn`
+defaults to today, `importance` to 0), stores `traced` summary-only under
+`{ kind: traceKind ?? 'aip.<kind>', id: '<unitKey>:<date>:<n>' }` (n counts
+the unit's decisions that day) and publishes `aip.decisionRecorded`. It
+returns the decision's ID. Setup steps with no job context (AIP2-02's day-one
+appointments) call `writeAiDecision(tx, ctx, unit, spec)`, which does the
+same. Trace IDs are guessable; who may read them is decided by the queries.
+
+**Decision kinds.** `registerDecisionKind({ kind, chip, icon? })` adds a kind
+with the label of its Decision log filter chip (and optionally a Lucide icon
+name); a duplicate throws `RegistryError`. `decisionKinds()` lists them by
+kind and `decisionKindOf(kind)` looks one up. The rival desk registers
+`rosterReview` ("Roster review"); later features register theirs (`push`,
+`card`, `title`, `businessReview`, ...) from their own modules.
+
+**Pruning.** `aip.pruneDecisionLog` (group `periodic`, order 42, daily)
+deletes expired rows in ID order with the `pruneOnly` delete
+([Decision log](#decision-log)). On most days it reads only the rows that can
+have expired that day through the indexes: each promotion's rows dated
+`today - retentionDays` (`byPromotionDate`) and the rows revealed today
+(`byRevealOn`). On the 1st of each month it also sweeps the whole log, which
+catches rows a lowered retention left behind.
+
+**What a job must not do.** Write to a human-controlled unit or to a brand in
+`excludedBrandIds`; use `Math.random` (use `job.rng(stream)`); read a worker's
+hidden `development`; or add a phase of its own.
 
 ## Taste
 

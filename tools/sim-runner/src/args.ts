@@ -28,6 +28,13 @@ export const DEFAULT_SEED = '1';
 export const DEFAULT_FIXTURE_PEOPLE = 300;
 /** The `--world` value for the roster fixture. */
 export const ROSTER_FIXTURE = 'fixture:roster';
+/**
+ * Event types `--strict` fails on when no `--fail-on-event` is given: a rival job that threw is
+ * rolled back by its savepoint and never fails a step, so this is where a headless run sees it.
+ */
+export const DEFAULT_FAIL_ON_EVENTS: readonly string[] = Object.freeze(['aip.jobFailed']);
+/** The shape of an event type, as the engine's bus checks it. */
+const EVENT_TYPE_PATTERN = /^[a-z][a-zA-Z0-9]*(\.[a-z][a-zA-Z0-9]*)+$/;
 
 export const USAGE = `Usage: npm run sim -- --days <n> [options]
 
@@ -44,13 +51,17 @@ events by type and a world hash.
   --check-determinism     run twice from the same start and fail if the runs differ
   --strict                fail when any step fails, a past show is still open, a
                           promotion's cash change is not the sum of its new ledger rows,
-                          or the promotion history keeps more rows than its retention allows
+                          the promotion history keeps more rows than its retention allows,
+                          or any event of a --fail-on-event type was published
+  --fail-on-event <type>  an event type --strict fails on (repeatable); replaces the
+                          default list, ${DEFAULT_FAIL_ON_EVENTS.join(', ')} (a rival job
+                          that threw and was rolled back)
   --trace <kind:id>       print one stored trace at the end, for example
                           condition.fatigueRecovery:per_...
   -h, --help              show this help
 
-Exit codes: 0 success, 1 determinism mismatch or a step failure with --strict,
-2 bad arguments or an unreadable world, 3 stopped by a gate.
+Exit codes: 0 success, 1 determinism mismatch, or with --strict a step failure or
+any other check above, 2 bad arguments or an unreadable world, 3 stopped by a gate.
 `;
 
 /** Where the starting world comes from. */
@@ -74,6 +85,8 @@ export interface RunnerOptions {
   readonly json: boolean;
   readonly checkDeterminism: boolean;
   readonly strict: boolean;
+  /** Event types `--strict` fails on. */
+  readonly failOnEvents: readonly string[];
   readonly trace: TraceRef | null;
 }
 
@@ -94,7 +107,8 @@ export type ArgumentErrorCode =
   | 'notFinite'
   | 'notAnOption'
   | 'notAllowed'
-  | 'invalidTrace';
+  | 'invalidTrace'
+  | 'invalidEventType';
 
 /** One problem with the arguments. */
 export interface ArgumentError {
@@ -225,6 +239,7 @@ export function parseRunnerArgs(argv: readonly string[]): ParsedArgs {
         json: { type: 'boolean', default: false },
         'check-determinism': { type: 'boolean', default: false },
         strict: { type: 'boolean', default: false },
+        'fail-on-event': { type: 'string', multiple: true },
         trace: { type: 'string' },
         help: { type: 'boolean', short: 'h', default: false },
       },
@@ -302,6 +317,16 @@ export function parseRunnerArgs(argv: readonly string[]): ParsedArgs {
     }
   }
 
+  const failOnEvents = values['fail-on-event'] ?? [...DEFAULT_FAIL_ON_EVENTS];
+  for (const type of failOnEvents) {
+    if (!EVENT_TYPE_PATTERN.test(type)) {
+      errors.push({
+        code: 'invalidEventType',
+        message: `--fail-on-event must be an event type such as aip.jobFailed, not "${type}"`,
+      });
+    }
+  }
+
   if (errors.length > 0 || world === null) {
     return { kind: 'errors', errors };
   }
@@ -316,6 +341,7 @@ export function parseRunnerArgs(argv: readonly string[]): ParsedArgs {
       json: values.json,
       checkDeterminism: values['check-determinism'],
       strict: values.strict,
+      failOnEvents,
       trace,
     },
   };

@@ -87,6 +87,11 @@ The `periodic` group's weekly phases so far, all on Mondays:
 | `office.weeklySnapshot` | 34    | One promotion history row per active or dormant promotion, then old weeks thinned to one row per month ([office.md](office.md#history)). |
 | `match.pruneAftermaths` | 40    | Each worker keeps only their newest stored aftermaths ([match-aftermath.md](match-aftermath.md#stored-aftermaths)).                      |
 
+The rival desk's phases ([rival-desk.md](rival-desk.md#jobs)), both daily:
+`aip.runTurns` (`aiTurns`, order 50) runs every due rival job for every
+computer unit, and `aip.pruneDecisionLog` (`periodic`, order 42) prunes the
+rival decision log.
+
 ### Registering a phase
 
 A system describes its phase and registers it once, when the engine is built:
@@ -757,6 +762,14 @@ The finance system's events ([finances.md](finances.md#postmoney)):
 | ----------------------- | ------------------------------------------------------------ | --------------------------------------------------------- |
 | `finance.moneyPosted`   | `promotionId`, `ledgerEntryId`, `category`, `amount`, `date` | `postMoney` writes a row for a human-controlled promotion |
 | `finance.policyChanged` | `promotionId`, `area`, `from`, `to`                          | A promotion changes a spending policy (ECO1-04)           |
+
+The rival desk's events ([rival-desk.md](rival-desk.md#jobs)):
+
+| Event                  | Payload                                                                  | Published when                                            |
+| ---------------------- | ------------------------------------------------------------------------ | --------------------------------------------------------- |
+| `aip.turnTaken`        | `promotionId`, `brandId`, `date`, `jobIds`                               | A computer unit had at least one rival job due and ran it |
+| `aip.decisionRecorded` | `decisionId`, `promotionId`, `brandId`, `kind`, `revealOn`, `importance` | A rival job records a decision in the decision log        |
+| `aip.jobFailed`        | `jobId`, `promotionId`, `brandId`, `message`                             | A rival job threw and its savepoint rolled it back        |
 
 The promotion popularity system's events ([promotion-popularity.md](promotion-popularity.md#after-every-show)):
 
