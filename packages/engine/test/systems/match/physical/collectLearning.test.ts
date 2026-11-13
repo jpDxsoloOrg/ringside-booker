@@ -8,12 +8,22 @@ import {
   type PhysicalSegmentSpec,
 } from '../../../../src/systems/match';
 import { createEngineTunables } from '../../../../src/systems/tunables';
+import type { Person } from '../../../../src/model/entities/person';
+import type { DeepPartial } from '../../../support/builders/build-row';
 import { aRelationship } from '../../../support/builders/promotions';
 import { expectTraceReplays } from '../../../support/trace';
 import { worldBuilder } from '../../../support/world-builder';
 
 const TUNABLES = createEngineTunables();
 const OPEN = { potential: 900, ceilings: {} };
+
+const ROSTER: readonly DeepPartial<Person>[] = [
+  { attributes: { ringwork: 40 }, development: OPEN },
+  { attributes: { ringwork: 40 }, development: OPEN },
+  { attributes: { ringwork: 85 }, traits: ['teacher'], development: OPEN },
+  { attributes: { producing: 75 }, development: OPEN },
+  { defaultRingName: 'The Mentor', development: OPEN },
+];
 
 /**
  * 0: a young wrestler; 1: an equal opponent; 2: a veteran teacher (much better, `teacher`);
@@ -24,14 +34,7 @@ function built(options: { mentorship?: boolean } = {}) {
     .withGeography('mini')
     .withPromotion({}, (promotion) =>
       promotion.withRoster(5, {
-        person: (index) =>
-          [
-            { attributes: { ringwork: 40 }, development: OPEN },
-            { attributes: { ringwork: 40 }, development: OPEN },
-            { attributes: { ringwork: 85 }, traits: ['teacher'], development: OPEN },
-            { attributes: { producing: 75 }, development: OPEN },
-            { defaultRingName: 'The Mentor', development: OPEN },
-          ][index] ?? {},
+        person: (index) => ROSTER[index] ?? {},
         employment: (index) => (index === 2 ? { ringName: 'Iron Grady' } : {}),
       }),
     )
