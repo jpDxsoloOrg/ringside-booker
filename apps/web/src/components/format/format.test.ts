@@ -81,6 +81,11 @@ describe('formatNumber', () => {
     expect(formatNumber(-12345)).toBe(`${MINUS_SIGN}12,345`);
     expect(formatNumber(3.14159, { maximumFractionDigits: 2 })).toBe('3.14');
   });
+
+  it('pads to the fewest decimals asked for', () => {
+    expect(formatNumber(34, { minimumFractionDigits: 1, maximumFractionDigits: 1 })).toBe('34.0');
+    expect(formatNumber(0.1, { minimumFractionDigits: 2 })).toBe('0.10');
+  });
 });
 
 describe('formatPercent', () => {
@@ -104,6 +109,8 @@ describe('formatSigned', () => {
   it('shows 0 for a change that rounds away', () => {
     expect(formatSigned(0.2)).toBe('0');
     expect(formatSigned(0.25, { maximumFractionDigits: 1 })).toBe('+0.3');
+    expect(formatSigned(0.004, { minimumFractionDigits: 2, maximumFractionDigits: 2 })).toBe('0');
+    expect(formatSigned(0.1, { minimumFractionDigits: 2, maximumFractionDigits: 2 })).toBe('+0.10');
   });
 });
 
