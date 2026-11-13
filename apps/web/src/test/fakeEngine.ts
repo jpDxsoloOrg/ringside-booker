@@ -167,14 +167,15 @@ export function aipShowCardsFakeState(): ShowCardsFakeWorld {
   const alternating = {
     employment: (index: number) => ({ alignment: index % 2 === 0 ? 'face' : 'heel' }) as const,
   };
-  const show = (name: string, date: GameDate) => ({
-    name,
-    date,
-    airDate: date,
-    brandId: null,
-    importance: 'regular',
-    format: { slots: 6, preShowSlots: 0 },
-  }) as const;
+  const show = (name: string, date: GameDate) =>
+    ({
+      name,
+      date,
+      airDate: date,
+      brandId: null,
+      importance: 'regular',
+      format: { slots: 6, preShowSlots: 0 },
+    }) as const;
   const { world, ids } = worldBuilder({
     worldName: 'Test Show Cards World',
     startDate: parseGameDate('2026-01-05'),
@@ -191,9 +192,7 @@ export function aipShowCardsFakeState(): ShowCardsFakeWorld {
       (promotion) => promotion.withRoster(12, alternating),
     )
     .withPromotion({ name: 'Test Promotion B', shortName: 'TPB' }, (promotion) =>
-      promotion
-        .withRoster(14, alternating)
-        .withTitle({ name: 'Test Rival Title' }, { holder: 0 }),
+      promotion.withRoster(14, alternating).withTitle({ name: 'Test Rival Title' }, { holder: 0 }),
     )
     .withPromotion({ name: 'Test Promotion C', shortName: 'TPC' }, (promotion) =>
       promotion.withRoster(3),
