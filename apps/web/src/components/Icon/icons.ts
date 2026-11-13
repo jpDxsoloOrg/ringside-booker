@@ -40,6 +40,7 @@ import {
   Lock,
   LockOpen,
   LogOut,
+  MapIcon,
   Menu,
   MessageCircleQuestionMark,
   Minus,
@@ -150,6 +151,7 @@ export const GENERAL_ICON_NAMES = [
   'file-text',
   'tv',
   'video',
+  'map',
 ] as const;
 
 export const ICON_NAMES = [
@@ -246,6 +248,7 @@ export const ICON_GLYPHS: Readonly<Record<IconName, LucideIcon>> = {
   'file-text': FileText,
   tv: Tv,
   video: Video,
+  map: MapIcon,
 };
 
 /** True when `value` names an icon in the set. */
