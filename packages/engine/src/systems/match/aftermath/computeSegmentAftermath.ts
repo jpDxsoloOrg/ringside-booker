@@ -41,6 +41,7 @@ import {
   initialMomentum,
   previewMomentumChange,
   previewPopularityChange,
+  type PopularityPreview,
 } from '../../workers/doors';
 import type { Geography } from '../../world/geography';
 import { popularityRollup } from '../../world/formulas/popularityRollup';
@@ -375,6 +376,55 @@ function rollupRows(
   };
 }
 
+/** The per-region and roll-up part of a competitor's popularity change. */
+type PopularityDetail = Pick<AftermathPopularity, 'regions' | 'countries' | 'continents'>;
+
+const NO_REGION_DETAIL: PopularityDetail = Object.freeze({
+  regions: [],
+  countries: [],
+  continents: [],
+});
+
+/** Each region's line of the door's preview, and the country and continent roll-ups around it. */
+function popularityDetail(
+  geography: Geography,
+  lines: readonly RegionWeightLine[],
+  preview: PopularityPreview,
+): PopularityDetail {
+  const regions = lines.map((line): AftermathRegionRow => {
+    const region = preview.regions.get(line.regionId);
+    const before = region?.before ?? 0;
+    const after = region?.after ?? before;
+    return {
+      regionId: line.regionId,
+      name: line.name,
+      source: line.source,
+      reason: line.reason,
+      weight: line.weight,
+      before,
+      after,
+      change: after - before,
+      trace: region?.trace.trace ?? inputOf('Popularity', before).trace,
+    };
+  });
+  return {
+    regions,
+    ...rollupRows(geography, preview.before, preview.after, preview.regionsChanged),
+  };
+}
+
+/** Options for {@link computeSegmentAftermath}. */
+export interface AftermathOptions {
+  /**
+   * Work out the per-region preview and the country and continent roll-ups of each competitor's
+   * popularity change (`regions`, `countries`, `continents`). True by default. Show night's
+   * applier turns it off (POL4-09): the popularity door works the regions out again when it
+   * writes, and nothing it stores reads the roll-ups, which were most of a show night's time.
+   * With it off those three lists are empty; every other field is the same.
+   */
+  readonly regionDetail?: boolean;
+}
+
 /**
  * The aftermath of one match for every competitor, from the world as it stands. Reads only; uses
  * no RNG. An angle, or a match with no result yet, has no workers.
@@ -384,7 +434,9 @@ export function computeSegmentAftermath(
   input: AftermathInput,
   tunables: EngineTunables,
   geography: Geography,
+  options: AftermathOptions = {},
 ): SegmentAftermath {
+  const regionDetail = options.regionDetail !== false;
   const match = resolveMatch(read, input);
   const showRegion = read.tables.regions.require(match.regionId);
   const spread = segmentRegionWeights(
@@ -466,28 +518,18 @@ export function computeSegmentAftermath(
       result,
       measuredAgainst.map((other) => other.name),
     );
-    const preview = previewPopularityChange(
-      read,
-      tunables,
-      { kind: 'person', id: competitor.personId },
-      { regionWeights, delta, label: resultLine },
-    );
-    const regions = spread.lines.map((line): AftermathRegionRow => {
-      const region = preview.regions.get(line.regionId);
-      const before = region?.before ?? 0;
-      const after = region?.after ?? before;
-      return {
-        regionId: line.regionId,
-        name: line.name,
-        source: line.source,
-        reason: line.reason,
-        weight: line.weight,
-        before,
-        after,
-        change: after - before,
-        trace: region?.trace.trace ?? inputOf('Popularity', before).trace,
-      };
-    });
+    const detail = regionDetail
+      ? popularityDetail(
+          geography,
+          spread.lines,
+          previewPopularityChange(
+            read,
+            tunables,
+            { kind: 'person', id: competitor.personId },
+            { regionWeights, delta, label: resultLine },
+          ),
+        )
+      : NO_REGION_DETAIL;
 
     let momentum: AftermathMomentum | AftermathNoMomentum = { none: 'noContract' };
     if (competitor.employment !== undefined) {
@@ -530,11 +572,7 @@ export function computeSegmentAftermath(
       side: competitor.side,
       outcome: result,
       resultLine,
-      popularity: {
-        delta,
-        regions,
-        ...rollupRows(geography, preview.before, preview.after, preview.regionsChanged),
-      },
+      popularity: { delta, ...detail },
       momentum,
     };
   });
