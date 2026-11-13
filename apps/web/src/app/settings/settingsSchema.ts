@@ -52,6 +52,7 @@ const settingFieldSchemas = {
   reducedMotion: z.enum(REDUCED_MOTION_PREFERENCES),
   moneyStyle: z.enum(MONEY_STYLES),
   openResultsAfterShow: z.boolean(),
+  revealOneAtATime: z.boolean(),
 } as const;
 
 export const settingsV1Schema = z.object({
@@ -71,6 +72,7 @@ export const DEFAULT_SETTINGS: SettingsV1 = {
   reducedMotion: 'system',
   moneyStyle: 'compact',
   openResultsAfterShow: true,
+  revealOneAtATime: true,
 };
 
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
@@ -92,6 +94,7 @@ function mergeValidFields(
   const openResults = settingFieldSchemas.openResultsAfterShow.safeParse(
     candidate['openResultsAfterShow'],
   );
+  const revealOne = settingFieldSchemas.revealOneAtATime.safeParse(candidate['revealOneAtATime']);
   return {
     version: SETTINGS_VERSION,
     theme: theme.success ? theme.data : base.theme,
@@ -99,6 +102,7 @@ function mergeValidFields(
     reducedMotion: reducedMotion.success ? reducedMotion.data : base.reducedMotion,
     moneyStyle: moneyStyle.success ? moneyStyle.data : base.moneyStyle,
     openResultsAfterShow: openResults.success ? openResults.data : base.openResultsAfterShow,
+    revealOneAtATime: revealOne.success ? revealOne.data : base.revealOneAtATime,
   };
 }
 

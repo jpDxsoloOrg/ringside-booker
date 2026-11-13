@@ -212,10 +212,16 @@ off-screen says its card was not booked in detail; a show that has not run says 
 show" for your own.
 
 `routes.game.showResults(id, { reveal: true })` adds `?reveal=1`, which the Next Day summary's
-"See results" links use: the cards come out one at a time (`useRevealSequence`, one every
-`REVEAL_STEP_MS`, faded in with `--motion-base`), then the score, with "Next segment" and "Show
-all" in a bar at the bottom of the screen and a polite live region reading each result. Reduced
-motion (the in-game setting or the OS) shows everything at once. When the reveal ends, `?reveal`
+"See results" links use: the cards start as "Coming up" placeholders at full height and come out
+one per tap (EVT3-10: nothing advances on its own). "Next segment" (Enter or Space on it) or a
+click or tap on the next placeholder reveals one card, faded in with `--motion-base`; after the
+last card the button reads "Show score" and brings out the score and the show report. "Show
+all" reveals everything at once. Both sit in `RevealBar`, sticky at the bottom of the screen (on a
+phone it spans the column above the bottom navigation, 44px buttons side by side at 360px), and a
+polite live region reads each result. `useRevealSequence` only counts steps, so a live show night
+(EVT10) can reuse it and `RevealBar` on its own screen. Reduced motion (the in-game setting or the
+OS) shows everything at once, and so does the setting "Reveal results one segment at a time"
+(`revealOneAtATime`, Settings > Show nights, on by default) when it is off. When the reveal ends, `?reveal`
 is replaced out of the URL, so a reload never plays it again. The parts the page draws are in
 `ResultsBroadcast.tsx`, without engine queries, so the gallery shows them at
 `/dev/gallery#show-results`.

@@ -1,5 +1,5 @@
-import { useId, useLayoutEffect, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import type { MouseEvent, ReactNode } from 'react';
 import type {
   PersonId,
   SegmentResultView,
@@ -7,7 +7,6 @@ import type {
   ShowResultView,
 } from '@ringside/engine';
 import { ROUTE_HEADING_ATTRIBUTE } from '@/app/a11y/RouteFocus';
-import { Button } from '@/components/Button';
 import { classNames } from '@/components/classNames';
 import { formatGameDate, formatNumber } from '@/components/format';
 import { VisuallyHidden } from '@/components/layout';
@@ -24,6 +23,7 @@ import { Explained } from '@/components/Trace';
 import { WorkerLink } from '@/components/WorkerLink';
 import { slotsText } from '@/screens/calendar/slotsText';
 import { MAIN_CARD_ANCHOR } from './builtinReportLines';
+import { RevealBar } from './RevealBar';
 import { useResultsSections } from './resultsSectionRegistry';
 import { ShowReport } from './ShowReport';
 import { resultsSectionAnchor, segmentCardAnchor } from './showReportLineRegistry';
@@ -152,10 +152,27 @@ interface CardListProps {
   readonly headingLevel: 2 | 3;
   /** True on the page itself: each card and the main card get the ids the report links to. */
   readonly anchors: boolean;
+  /** While the reveal runs: reveals the next card, so tapping its placeholder brings it out. */
+  readonly onRevealNext?: (() => void) | undefined;
+}
+
+/**
+ * Keeps focus where it is (on Next segment, usually) when the placeholder is clicked or tapped,
+ * instead of moving it onto a button that is about to go.
+ */
+function keepFocus(event: MouseEvent<HTMLButtonElement>): void {
+  event.preventDefault();
 }
 
 /** The card in running order: the pre-show under its own divider, then the main card. */
-function CardList({ segments, revealedCount, animated, headingLevel, anchors }: CardListProps) {
+function CardList({
+  segments,
+  revealedCount,
+  animated,
+  headingLevel,
+  anchors,
+  onRevealNext,
+}: CardListProps) {
   const preShowHeadingId = useId();
   const mainHeadingId = useId();
   const SectionHeading = headingLevel === 2 ? 'h2' : 'h3';
@@ -172,6 +189,7 @@ function CardList({ segments, revealedCount, animated, headingLevel, anchors }: 
           <li
             key={segment.segmentId}
             className={classNames(styles['cardItem'], animated && revealed && styles['fadeIn'])}
+            data-reveal-index={index}
           >
             <SegmentResultCard
               id={anchors ? segmentCardAnchor(segment.segmentId) : undefined}
@@ -180,6 +198,18 @@ function CardList({ segments, revealedCount, animated, headingLevel, anchors }: 
               revealed={revealed}
               renderPersonLink={renderPersonLink}
             />
+            {/* A pointer shortcut for Next segment, which stays the way in for keyboards and
+                screen readers; so this one is out of the tab order and the accessibility tree. */}
+            {onRevealNext !== undefined && index === revealedCount && (
+              <button
+                type="button"
+                className={styles['tapToReveal']}
+                tabIndex={-1}
+                aria-hidden="true"
+                onMouseDown={keepFocus}
+                onClick={onRevealNext}
+              />
+            )}
           </li>
         );
       })}
@@ -257,7 +287,7 @@ function announcementOf(
 export interface CompletedResultsProps {
   readonly view: ShowResultsView;
   readonly result: ShowResultView;
-  /** Play the reveal (when motion is welcome). Read on mount. */
+  /** Play the tap-to-advance reveal (when motion is welcome). Read on mount. */
   readonly revealRequested: boolean;
   /** Called once, when every card and the score are showing. */
   readonly onRevealEnd?: () => void;
@@ -287,6 +317,19 @@ export function CompletedResults({
   });
   // Read on the first render only: the cards fade in only when the reveal ran.
   const [animated] = useState(sequence.playing);
+
+  // A tap reveals the next card wherever it is: bring it into view above the reveal bar (the
+  // cards' scroll margin leaves the bar's room), so a phone player never has to scroll to find it.
+  const shownCount = useRef(sequence.revealedCount);
+  useEffect(() => {
+    const previous = shownCount.current;
+    shownCount.current = sequence.revealedCount;
+    if (!sequence.playing || sequence.revealedCount !== previous + 1) return;
+    const card = headerRef.current?.parentElement?.querySelector<HTMLElement>(
+      `[data-reveal-index="${String(sequence.revealedCount - 1)}"]`,
+    );
+    card?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [sequence.playing, sequence.revealedCount]);
 
   // The reveal buttons go when the reveal ends. When focus went with them, it moves to the show's
   // name, so the next Tab starts from the top of the results instead of the page's start.
@@ -337,6 +380,7 @@ export function CompletedResults({
           animated={animated}
           headingLevel={isPage ? 2 : 3}
           anchors={isPage}
+          onRevealNext={sequence.playing ? sequence.next : undefined}
         />
       )}
 
@@ -347,14 +391,11 @@ export function CompletedResults({
       </p>
 
       {sequence.playing && (
-        <div className={styles['revealBar']} role="group" aria-label="Results reveal">
-          <Button variant="primary" iconStart="chevron-right" onClick={sequence.next}>
-            Next segment
-          </Button>
-          <Button variant="secondary" iconStart="fast-forward" onClick={sequence.showAll}>
-            Show all
-          </Button>
-        </div>
+        <RevealBar
+          onNext={sequence.next}
+          onShowAll={sequence.showAll}
+          nextLabel={sequence.finaleNext ? 'Show score' : 'Next segment'}
+        />
       )}
 
       {!sequence.playing && <ResultsSections view={view} />}

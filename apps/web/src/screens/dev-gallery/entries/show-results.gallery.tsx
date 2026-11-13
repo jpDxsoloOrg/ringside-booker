@@ -175,7 +175,12 @@ function ShowResultsDemo() {
     <EngineProvider createTransport={createShowTraceTransport}>
       <Stack gap={5}>
         <Example title="A major show, everything showing" view={show} />
-        <Example title="The reveal (instant under reduced motion)" view={show} reveal />
+        <Example
+          title="The reveal: tap Next segment or the next card (instant under reduced motion)"
+          view={show}
+          reveal
+        />
+        <Example title="The reveal in a phone column (390px)" view={show} reveal narrow />
         <Example title="A rival show scored off-screen" view={offscreenShow()} />
         <Example title="Phone width (390px)" view={show} narrow />
         <section className={styles['example']}>
@@ -227,6 +232,6 @@ export const galleryEntry: GalleryEntry = {
   title: 'Show results',
   group: 'Broadcast',
   notes:
-    "The results page's parts (EVT3-06) with a made-up show: the lower third, the Final score bug with the score's Why?, the pre-show and main card as SegmentResultCards, the show report once the reveal is over (EVT3-09: verdict, How it was scored, What changed), the reveal with Next segment and Show all (press Play the reveal again; under reduced motion it shows everything at once), a rival show scored off-screen, and the Next Day summary's See results links. On the real page the show's name is the h1; here it is an h2.",
+    "The results page's parts (EVT3-06) with a made-up show: the lower third, the Final score bug with the score's Why?, the pre-show and main card as SegmentResultCards, the show report once the reveal is over (EVT3-09: verdict, How it was scored, What changed), the tap-to-advance reveal (EVT3-10: nothing comes out on its own; Next segment, Enter or Space on it, or a tap on the next card's Coming up placeholder reveals one segment, then Show score brings out the score and the report; Show all reveals everything; press Play the reveal again; under reduced motion it shows everything at once), the reveal's sticky bar in a phone column, a rival show scored off-screen, and the Next Day summary's See results links. On the real page the show's name is the h1; here it is an h2.",
   render: () => <ShowResultsDemo />,
 };

@@ -261,14 +261,24 @@ export function SettingsScreen() {
       </Panel>
 
       <Panel title="Show nights">
-        <Switch
-          label="After a show, open its results"
-          description="When a Next Day or a skip runs one of your shows, go straight to its results page and play the reveal. Off, the day summary only links to them. Running a show yourself always opens its results."
-          checked={settings.openResultsAfterShow}
-          onCheckedChange={(openResultsAfterShow) => {
-            update({ openResultsAfterShow });
-          }}
-        />
+        <div className={styles['panelBody']}>
+          <Switch
+            label="After a show, open its results"
+            description="When a Next Day or a skip runs one of your shows, go straight to its results page and play the reveal. Off, the day summary only links to them. Running a show yourself always opens its results."
+            checked={settings.openResultsAfterShow}
+            onCheckedChange={(openResultsAfterShow) => {
+              update({ openResultsAfterShow });
+            }}
+          />
+          <Switch
+            label="Reveal results one segment at a time"
+            description="A show's results come out one segment per tap of Next segment, then the score. Show all brings everything out at once. Off, the results open with everything showing."
+            checked={settings.revealOneAtATime}
+            onCheckedChange={(revealOneAtATime) => {
+              update({ revealOneAtATime });
+            }}
+          />
+        </div>
       </Panel>
 
       <Panel title="About">
