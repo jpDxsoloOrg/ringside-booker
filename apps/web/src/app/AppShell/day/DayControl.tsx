@@ -39,6 +39,10 @@ export function DayControl({ gates, compact = false, onOpenSkip }: DayControlPro
   const busy = advance.running || advance.autosave.kind === 'saving';
   const { primary, skipEnabled } = deriveDayControl(gates, { advancing: busy });
   const label = primaryLabel(primary);
+  // The phone top bar has room for about ten capitals beside the date, so a long gate label
+  // shows a short one there. The accessible name starts with the words on screen (so voice
+  // control finds it) and goes on with the full label.
+  const phoneLabel = compact && primary.kind === 'gate' ? primary.phoneLabel : null;
 
   const { start } = advance;
   const runPrimary = useCallback(() => {
@@ -63,13 +67,14 @@ export function DayControl({ gates, compact = false, onOpenSkip }: DayControlPro
         iconEnd={primary.kind === 'gate' ? 'chevron-right' : 'next-day'}
         busy={primary.kind === 'busy'}
         title={`${label} (${DAY_SHORTCUT})`}
+        aria-label={phoneLabel === null ? undefined : `${phoneLabel}: ${label}`}
         aria-keyshortcuts={DAY_SHORTCUT}
         aria-describedby={primary.kind === 'gate' ? reasonId : undefined}
         aria-haspopup={primary.kind === 'gate' && primary.to === null ? 'dialog' : undefined}
         data-state={primary.kind}
         onClick={runPrimary}
       >
-        {label}
+        {phoneLabel ?? label}
       </LiveBugButton>
       {primary.kind === 'gate' && (
         <VisuallyHidden>

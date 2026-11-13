@@ -45,6 +45,7 @@ describe('deriveDayControl', () => {
       primary: {
         kind: 'gate',
         label: 'Go to the show',
+        phoneLabel: 'Show tonight',
         reason: showGate.reason,
         to: `${routes.game.booking()}?event=evi_harbor`,
       },
@@ -68,6 +69,7 @@ describe('deriveDayControl', () => {
       primary: {
         kind: 'gate',
         label: '2 decisions waiting',
+        phoneLabel: '2 waiting',
         reason: contractDecision.reason,
         to: `${routes.game.inbox()}?filter=decisions`,
       },
@@ -88,7 +90,13 @@ describe('deriveDayControl', () => {
       actionHint: 'draftRoom',
     };
     expect(deriveDayControl([unknown], idle)).toEqual({
-      primary: { kind: 'gate', label: GENERIC_GATE_LABEL, reason: unknown.reason, to: null },
+      primary: {
+        kind: 'gate',
+        label: GENERIC_GATE_LABEL,
+        phoneLabel: null,
+        reason: unknown.reason,
+        to: null,
+      },
       skipEnabled: false,
     });
   });
