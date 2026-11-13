@@ -1,0 +1,31 @@
+/* "Next" and "Show all", kept in reach at the bottom of the screen while a reveal runs. */
+.bar {
+  position: sticky;
+  inset-block-end: var(--space-3);
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  justify-self: end;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-2);
+}
+
+@media (--bp-mobile) {
+  /*
+   * On a phone the bar spans the column, above the bottom navigation and the safe area. The two
+   * buttons share one row down to 360px (each at least 44px tall from Button's touch rule), and
+   * wrap to two rows rather than overflow on anything narrower.
+   */
+  .bar {
+    inset-block-end: calc(var(--shell-bottom-chrome, var(--safe-bottom)) + var(--space-2));
+    justify-self: stretch;
+  }
+
+  .bar > * {
+    flex: 1 1 0;
+  }
+}

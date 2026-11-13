@@ -8,6 +8,7 @@ import { useDocumentTitle } from '@/app/a11y/useDocumentTitle';
 import type { EngineQueryError } from '@/app/engine/queryCache';
 import { useEngineQuery } from '@/app/engine/useEngineQuery';
 import { routes, SHOW_RESULTS_PARAMS, SHOW_RESULTS_ROUTE_PARAM } from '@/app/routes';
+import { useSettingsStore } from '@/app/settings/settingsStore';
 import { Button } from '@/components/Button';
 import { classNames } from '@/components/classNames';
 import { EmptyState } from '@/components/EmptyState';
@@ -147,13 +148,17 @@ function useShowExpectation(view: ShowResultsView): number | null {
   return null;
 }
 
-/** A finished show's page, with `?reveal=1` playing the reveal and taken out once it ends. */
+/**
+ * A finished show's page, with `?reveal=1` playing the reveal and taken out once it ends. With the
+ * setting "Reveal results one segment at a time" off, it opens fully revealed whatever the URL.
+ */
 function CompletedPage({ view, result }: CompletedPageProps) {
   useDocumentTitle(`${view.name} results`);
   const expectation = useShowExpectation(view);
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   const wantsReveal = searchParams.get(SHOW_RESULTS_PARAMS.reveal) === '1';
+  const revealEnabled = useSettingsStore((state) => state.settings.revealOneAtATime);
   // The reveal starts afresh on each visit that asks for it, even from this same page (a "See
   // results" link followed again). Taking `?reveal` out when it ends does not restart anything.
   const [revealVisit, setRevealVisit] = useState(location.key);
@@ -177,7 +182,7 @@ function CompletedPage({ view, result }: CompletedPageProps) {
       key={revealVisit}
       view={view}
       result={result}
-      revealRequested={wantsReveal}
+      revealRequested={wantsReveal && revealEnabled}
       expectation={expectation}
       {...(wantsReveal ? { onRevealEnd: endReveal } : {})}
     />
@@ -207,8 +212,8 @@ function LoadedShowResults({ eventInstanceId }: { readonly eventInstanceId: Even
 /**
  * One show's results at `/game/event-history/:eventInstanceId`, broadcast style: the lower third,
  * the final score with its Why?, the show report (verdict, how it was scored, what changed), then
- * every segment in card order. Opened with `?reveal=1` (the
- * Next Day summary's links) the segments come out one at a time, unless motion is reduced. Other
+ * every segment in card order. Opened with `?reveal=1` (the Next Day summary's links) the segments
+ * come out one tap at a time, unless motion is reduced or the setting is off. Other
  * features add sections under the card with `registerResultsSection`.
  */
 export function ShowResultsScreen() {
