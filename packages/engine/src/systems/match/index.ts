@@ -19,6 +19,7 @@ import { matchQueries } from './queries';
 import { aftermathQueries } from './aftermath/queries';
 import { recentFormQueries } from './aftermath/recentFormQuery';
 import { pruneAftermathsPhase } from './aftermath/prune';
+import { momentumDriftPhase } from './aftermath/drift';
 // Registers the built-in `match` and `angle` raters at module load.
 import './rating/builtins';
 // Registers the Random winners new-game setting at module load (MTCH2-03).
@@ -468,8 +469,8 @@ export {
 
 export const matchSystem: SystemBundle = defineSystem({
   id: 'match',
-  // MTCH3-03: the weekly prune of stored aftermaths.
-  phases: [pruneAftermathsPhase],
+  // MTCH3-03: the weekly prune of stored aftermaths. MTCH3-07: the weekly momentum drift.
+  phases: [momentumDriftPhase, pruneAftermathsPhase],
   queries: [...matchQueries, ...aftermathQueries, ...recentFormQueries],
 });
 
@@ -490,6 +491,28 @@ export {
   type MomentumGainInputs,
   type MomentumOpponent,
 } from './aftermath/formulas/momentumGain';
+// Momentum drift back toward a resting point each week (MTCH3-07). Design:
+// docs/design/match-aftermath.md#momentum-drift.
+export { MOMENTUM_DRIFT_TUNABLES_DOC } from './aftermath/momentumTunables';
+export {
+  AT_REST_NOTE,
+  DRIFT_OFF_NOTE,
+  MOMENTUM_DRIFT_DOC_REF,
+  SETTLE_WITHIN,
+  driftShare,
+  momentumDrift,
+  momentumDriftLabel,
+  type MomentumDriftInputs,
+} from './aftermath/formulas/momentumDrift';
+export {
+  MOMENTUM_DRIFT_PHASE_ID,
+  MOMENTUM_DRIFT_PHASE_ORDER,
+  MOMENTUM_DRIFT_REASON_KEY,
+  applyMomentumDrift,
+  driftingEmployments,
+  momentumDriftPhase,
+  type DriftingEmployment,
+} from './aftermath/drift';
 export {
   priorMatchesOf,
   resultOf,
