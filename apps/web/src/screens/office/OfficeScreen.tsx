@@ -1,8 +1,11 @@
-import type { OfficeDashboard } from '@ringside/engine';
+import { useCallback, useState } from 'react';
+import type { OfficeDashboard, PromotionId } from '@ringside/engine';
 import { RouteHeading } from '@/app/a11y/RouteHeading';
+import { FanBaseSheet } from '@/app/AppShell/status/FanBaseSheet';
 import { useDocumentTitle } from '@/app/a11y/useDocumentTitle';
 import { useEngineQuery } from '@/app/engine/useEngineQuery';
 import type { EngineQueryError } from '@/app/engine/queryCache';
+import { Button } from '@/components/Button';
 import { EmptyState } from '@/components/EmptyState';
 import { KpiCardGrid } from '@/components/KpiCard';
 import { useIsMobile } from '@/styles/useMediaQuery';
@@ -18,6 +21,14 @@ import {
 import type { OfficePanelContext, OfficePanelDefinition } from './panels/officePanelRegistry';
 
 const SCREEN_TITLE = 'Dashboard';
+
+/** The KPI whose card opens the Fan base sheet. */
+const POPULARITY_KPI = 'popularity.headline';
+
+/** Whose Fan base sheet is open: the seat's own promotion (no id) or a named one. */
+interface FanBaseTarget {
+  readonly promotionId?: PromotionId;
+}
 
 /** The KPI cards drawn while the first answer loads: card shapes, never numbers. */
 const SKELETON_CARDS = 5;
@@ -80,6 +91,20 @@ export function OfficeScreen() {
   const isPhone = useIsMobile();
   const registered = useOfficePanels();
   const dashboard = query.data;
+  // One Fan base sheet for the whole screen, whichever card or row opened it.
+  const [fanBase, setFanBase] = useState<FanBaseTarget | null>(null);
+  const openFanBase = useCallback((target: PromotionId) => {
+    setFanBase({ promotionId: target });
+  }, []);
+  const fanBaseSheet = (
+    <FanBaseSheet
+      open={fanBase !== null}
+      onClose={() => {
+        setFanBase(null);
+      }}
+      {...(fanBase?.promotionId === undefined ? {} : { promotionId: fanBase.promotionId })}
+    />
+  );
 
   const header = (
     <div className={styles['header']}>
@@ -113,7 +138,12 @@ export function OfficeScreen() {
   }
 
   const promotionId = dashboard.promotion?.promotionId ?? null;
-  const context: OfficePanelContext = { promotionId, dashboard, isPhone };
+  const context: OfficePanelContext = {
+    promotionId,
+    dashboard,
+    isPhone,
+    openFanBase,
+  };
   const panels = orderOfficePanels(registered).filter((panel) =>
     officePanelApplies(panel, promotionId),
   );
@@ -124,7 +154,26 @@ export function OfficeScreen() {
       {dashboard.kpis.length > 0 && (
         <KpiCardGrid label="Key numbers">
           {dashboard.kpis.map((kpi) => (
-            <OfficeKpiCard key={kpi.key} kpi={kpi} />
+            <OfficeKpiCard
+              key={kpi.key}
+              kpi={kpi}
+              {...(kpi.key === POPULARITY_KPI
+                ? {
+                    footerAction: (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        iconStart="map"
+                        onClick={() => {
+                          setFanBase({});
+                        }}
+                      >
+                        Fan base
+                      </Button>
+                    ),
+                  }
+                : {})}
+            />
           ))}
         </KpiCardGrid>
       )}
@@ -151,6 +200,7 @@ export function OfficeScreen() {
           />
         </div>
       )}
+      {fanBaseSheet}
     </div>
   );
 }

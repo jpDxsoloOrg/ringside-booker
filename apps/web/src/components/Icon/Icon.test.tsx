@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { Icon } from './Icon';
 import {
   ACTION_ICON_NAMES,
+  GENERAL_ICON_NAMES,
   ICON_GLYPHS,
   ICON_GROUPS,
   ICON_NAMES,
@@ -109,6 +110,11 @@ describe('Icon', () => {
 
   it('maps no names beyond the declared ones', () => {
     expect(Object.keys(ICON_GLYPHS).sort()).toEqual([...ICON_NAMES].sort());
+  });
+
+  it('declares the map the Fan base button draws (DAY2-05)', () => {
+    expect(GENERAL_ICON_NAMES).toContain('map');
+    expect(isIconName('map')).toBe(true);
   });
 
   it('recognises icon names', () => {

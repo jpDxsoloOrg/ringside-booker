@@ -12,7 +12,7 @@ import { Button } from '../Button';
 import { DataTable } from '../DataTable';
 import type { ColumnDef, DataTableLayout } from '../DataTable';
 import { DeltaChip } from '../DeltaChip';
-import { formatNumber, formatSigned } from '../format';
+import { formatNumber, formatPopularity, formatPopularityChange } from '../format';
 import { VisuallyHidden } from '../layout';
 import { traceSourceOf, WhyButton } from '../Trace';
 import type { EntityLinkRenderer } from '../Trace';
@@ -40,28 +40,19 @@ const DEFAULT_PHONE_LIMIT = 5;
 /** Countries past this many start folded, so a worldwide show's list stays short. */
 const OPEN_COUNTRIES = 3;
 const POPULARITY_UNIT = 'points';
-const VALUE_DIGITS = { minimumFractionDigits: 1, maximumFractionDigits: 1 } as const;
-const CHANGE_DIGITS = { minimumFractionDigits: 2, maximumFractionDigits: 2 } as const;
 
-/** A popularity value with one decimal: `58.2`. */
-export function formatPopularity(value: number): string {
-  return formatNumber(value, VALUE_DIGITS);
-}
+/** Popularity values and changes read as everywhere else (`components/format/popularity.ts`). */
+export { formatPopularity, formatPopularityChange };
 
-/** A change with two decimals and its sign: `+0.19`, `−1.48`, or `0` when it rounds away. */
-export function formatPopularityChange(change: number): string {
-  return formatSigned(change, CHANGE_DIGITS);
-}
-
-/** True when the change rounds to 0.00, so it reads as no change at all. */
+/** True when the change rounds to 0.0, so it reads as no change at all. */
 export function isFlatChange(change: number): boolean {
   return formatPopularityChange(change) === '0';
 }
 
-/** The change in words, for screen readers: `up 0.19`, `down 1.48`, `no change`. */
+/** The change in words, for screen readers: `up 0.2`, `down 1.5`, `no change`. */
 export function changeInWords(change: number): string {
   if (isFlatChange(change)) return 'no change';
-  return `${change > 0 ? 'up' : 'down'} ${formatNumber(Math.abs(change), CHANGE_DIGITS)}`;
+  return `${change > 0 ? 'up' : 'down'} ${formatPopularity(Math.abs(change))}`;
 }
 
 function regionsText(count: number): string {

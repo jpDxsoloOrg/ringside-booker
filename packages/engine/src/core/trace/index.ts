@@ -47,6 +47,7 @@ export {
   traceDepth,
 } from './limits';
 export { assertTraceReplays, replayTrace } from './replay';
+export { withStepUnits } from './units';
 export { traceNodeSchema } from './schema';
 export {
   TRACE_REF_KIND_PATTERN,

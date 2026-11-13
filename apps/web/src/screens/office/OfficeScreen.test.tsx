@@ -238,4 +238,47 @@ describe('OfficeScreen', () => {
       'Friday, April 10, 2026',
     );
   });
+
+  it('opens the Fan base sheet from the Popularity card for your promotion (DAY2-05)', async () => {
+    await renderOffice();
+    const user = userEvent.setup({ delay: null });
+
+    const grid = await findKeyNumbers();
+    const popularity = within(grid).getByRole('group', { name: 'Popularity' });
+    await user.click(within(popularity).getByRole('button', { name: 'Fan base' }));
+
+    const sheet = await screen.findByRole(
+      'dialog',
+      { name: /^Fan base · /u },
+      { timeout: LOAD_MS },
+    );
+    expect(sheet).toHaveTextContent('Shown as popularity in your home country');
+    expect(
+      within(sheet).getByRole('group', { name: /^Popularity of .+ by place$/u }),
+    ).toBeVisible();
+  });
+
+  it("opens one Fan base sheet for a world overview row's promotion (DAY2-05)", async () => {
+    await renderOffice({ noPromotion: true });
+    const user = userEvent.setup({ delay: null });
+
+    const table = await screen.findByRole(
+      'grid',
+      { name: 'Promotions in the world' },
+      { timeout: LOAD_MS },
+    );
+    const buttons = within(table).getAllByRole('button', { name: /^Fan base of /u });
+    const first = buttons[0];
+    if (first === undefined) throw new Error('Every row has a Fan base button');
+    const name = (first.getAttribute('aria-label') ?? '').replace(/^Fan base of /u, '');
+    await user.click(first);
+
+    const sheet = await screen.findByRole(
+      'dialog',
+      { name: `Fan base · ${name}` },
+      { timeout: LOAD_MS },
+    );
+    expect(sheet).toHaveTextContent('Shown as popularity in its home country');
+    expect(screen.getAllByRole('dialog')).toHaveLength(1);
+  });
 });

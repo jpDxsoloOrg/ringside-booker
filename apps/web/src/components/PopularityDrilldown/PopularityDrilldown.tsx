@@ -6,14 +6,15 @@ import type {
   PopularityCountryView,
   PopularityRegionView,
   PopularityRollupView,
+  RegionId,
   TraceNode,
 } from '@ringside/engine';
 import { Button } from '../Button';
 import { classNames } from '../classNames';
-import { formatNumber } from '../format';
+import { formatNumber, formatPopularity } from '../format';
 import { Icon } from '../Icon';
 import { StatBar } from '../StatBar';
-import { Explained, formatTraceValue } from '../Trace';
+import { Explained } from '../Trace';
 import type { EntityLinkRenderer } from '../Trace';
 import styles from './PopularityDrilldown.module.css';
 
@@ -26,7 +27,15 @@ export interface PopularityDrilldownProps {
   readonly renderEntityLink?: EntityLinkRenderer;
   /** Continents that start open. None by default. */
   readonly initiallyOpen?: readonly ContinentId[];
+  /**
+   * Extra figures for a region, drawn after its population (the Fan base sheet's registered
+   * columns, DAY2-05). Nothing by default.
+   */
+  readonly regionExtras?: (regionId: RegionId) => ReactNode;
 }
+
+/** A region's extra figures, as `regionExtras` gives them. */
+type RegionExtras = PopularityDrilldownProps['regionExtras'];
 
 const POPULARITY_UNIT = 'points';
 const MILLION = 1_000_000;
@@ -55,6 +64,8 @@ interface PlaceRowProps {
   readonly trace?: TraceNode;
   /** A muted figure after the name, such as a region's population. */
   readonly detail?: string;
+  /** More figures after the detail, such as a registered fan base column. */
+  readonly extras?: ReactNode;
   /** Set on a row that opens: whether it is open, what it controls and how to toggle it. */
   readonly disclosure?: {
     readonly open: boolean;
@@ -72,6 +83,7 @@ function PlaceRow({
   label,
   trace,
   detail,
+  extras,
   disclosure,
   renderEntityLink,
 }: PlaceRowProps) {
@@ -79,6 +91,9 @@ function PlaceRow({
     <>
       <span className={styles['name']}>{name}</span>
       {detail !== undefined && <span className={styles['detail']}>{detail}</span>}
+      {extras !== undefined && extras !== null && extras !== false && (
+        <span className={styles['extras']}>{extras}</span>
+      )}
     </>
   );
   return (
@@ -100,9 +115,7 @@ function PlaceRow({
       <StatBar className={styles['bar']} label={label} value={value} hideLabel showValue={false} />
       <span className={styles['value']}>
         {trace === undefined ? (
-          <span className={classNames(styles['stored'], 'tabular')}>
-            {formatTraceValue(value, POPULARITY_UNIT)}
-          </span>
+          <span className={classNames(styles['stored'], 'tabular')}>{formatPopularity(value)}</span>
         ) : (
           <Explained
             value={value}
@@ -117,7 +130,12 @@ function PlaceRow({
   );
 }
 
-function RegionItem({ region }: { readonly region: PopularityRegionView }) {
+interface RegionItemProps {
+  readonly region: PopularityRegionView;
+  readonly regionExtras: RegionExtras;
+}
+
+function RegionItem({ region, regionExtras }: RegionItemProps) {
   return (
     <li className={styles['item']}>
       <PlaceRow
@@ -126,6 +144,7 @@ function RegionItem({ region }: { readonly region: PopularityRegionView }) {
         value={region.value}
         label={`Popularity in ${region.name}`}
         detail={formatPopulation(region.population)}
+        {...(regionExtras === undefined ? {} : { extras: regionExtras(region.id) })}
       />
     </li>
   );
@@ -136,9 +155,16 @@ interface CountryItemProps {
   readonly open: boolean;
   readonly onToggle: () => void;
   readonly renderEntityLink: EntityLinkRenderer | undefined;
+  readonly regionExtras: RegionExtras;
 }
 
-function CountryItem({ country, open, onToggle, renderEntityLink }: CountryItemProps) {
+function CountryItem({
+  country,
+  open,
+  onToggle,
+  renderEntityLink,
+  regionExtras,
+}: CountryItemProps) {
   const regionsId = useId();
   return (
     <li className={styles['item']}>
@@ -154,7 +180,7 @@ function CountryItem({ country, open, onToggle, renderEntityLink }: CountryItemP
       {open && (
         <ul id={regionsId} className={styles['list']} aria-label={`Regions of ${country.name}`}>
           {country.regions.map((region) => (
-            <RegionItem key={region.id} region={region} />
+            <RegionItem key={region.id} region={region} regionExtras={regionExtras} />
           ))}
         </ul>
       )}
@@ -169,6 +195,7 @@ interface ContinentItemProps {
   readonly isOpen: (id: string) => boolean;
   readonly onToggle: (id: string) => void;
   readonly renderEntityLink: EntityLinkRenderer | undefined;
+  readonly regionExtras: RegionExtras;
 }
 
 function ContinentItem({
@@ -178,6 +205,7 @@ function ContinentItem({
   isOpen,
   onToggle,
   renderEntityLink,
+  regionExtras,
 }: ContinentItemProps) {
   const countriesId = useId();
   const countries = showZero
@@ -215,6 +243,7 @@ function ContinentItem({
                 onToggle(country.id);
               }}
               renderEntityLink={renderEntityLink}
+              regionExtras={regionExtras}
             />
           ))}
         </ul>
@@ -247,6 +276,7 @@ export function PopularityDrilldown({
   subjectName,
   renderEntityLink,
   initiallyOpen = [],
+  regionExtras,
 }: PopularityDrilldownProps) {
   const [openIds, setOpenIds] = useState<ReadonlySet<string>>(() => new Set(initiallyOpen));
   const [showZero, setShowZero] = useState(false);
@@ -294,6 +324,7 @@ export function PopularityDrilldown({
               isOpen={isOpen}
               onToggle={toggle}
               renderEntityLink={renderEntityLink}
+              regionExtras={regionExtras}
             />
           ))}
         </ul>

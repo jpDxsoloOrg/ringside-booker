@@ -52,13 +52,13 @@ function rowOf(table: HTMLElement, region: string): HTMLElement {
 }
 
 describe('formatting', () => {
-  it('writes changes with two decimals, a true minus sign and flat zero', () => {
-    expect(formatPopularityChange(0.19)).toBe('+0.19');
-    expect(formatPopularityChange(-1.48)).toBe('−1.48');
-    expect(formatPopularityChange(0.004)).toBe('0');
-    expect(isFlatChange(-0.004)).toBe(true);
-    expect(changeInWords(0.19)).toBe('up 0.19');
-    expect(changeInWords(-1.48)).toBe('down 1.48');
+  it('writes changes with one decimal, a true minus sign and flat zero', () => {
+    expect(formatPopularityChange(0.19)).toBe('+0.2');
+    expect(formatPopularityChange(-1.48)).toBe('−1.5');
+    expect(formatPopularityChange(0.04)).toBe('0');
+    expect(isFlatChange(-0.04)).toBe(true);
+    expect(changeInWords(0.19)).toBe('up 0.2');
+    expect(changeInWords(-1.48)).toBe('down 1.5');
     expect(changeInWords(0)).toBe('no change');
   });
 });
@@ -99,7 +99,7 @@ describe('PopularityChangeList on desktop', () => {
     expect(northeast).toHaveTextContent('Show region');
     expect(northeast).toHaveTextContent('61 · scored 68');
     expect(northeast).toHaveTextContent('58.2 → 58.5');
-    expect(northeast).toHaveTextContent('+0.31');
+    expect(northeast).toHaveTextContent('+0.3');
     expect(rowOf(states, 'Mid-Atlantic')).toHaveTextContent('Neighbour of Northeast');
     expect(rowOf(states, 'Texas')).toHaveTextContent('TV: National Signal Network');
   });
@@ -107,8 +107,8 @@ describe('PopularityChangeList on desktop', () => {
   it('says the change in words beside the chip', () => {
     renderList(bigTelevisedShowChange);
     const states = regionTable('United States');
-    expect(within(rowOf(states, 'Mid-Atlantic')).getByText('up 0.19')).toBeInTheDocument();
-    expect(within(rowOf(states, 'Texas')).getByText('down 0.12')).toBeInTheDocument();
+    expect(within(rowOf(states, 'Mid-Atlantic')).getByText('up 0.2')).toBeInTheDocument();
+    expect(within(rowOf(states, 'Texas')).getByText('down 0.1')).toBeInTheDocument();
   });
 
   it('labels a change inside the dead zone in words', () => {
@@ -130,7 +130,7 @@ describe('PopularityChangeList on desktop', () => {
     const user = renderList(bigTelevisedShowChange);
     await user.click(
       within(rowOf(regionTable('United States'), 'Texas')).getByRole('button', {
-        name: 'Why is Popularity change in Texas −0.12?',
+        name: 'Why is Popularity change in Texas −0.1?',
       }),
     );
     const dialog = await screen.findByRole('dialog', { name: 'Popularity change in Texas' });
@@ -143,7 +143,7 @@ describe('PopularityChangeList on desktop', () => {
     const user = renderList(smallUntelevisedShowChange);
     const row = rowOf(regionTable('Canada'), SUMMARISED_REGION_NAME);
     expect(row).toHaveTextContent('9.6 → 11.1');
-    expect(row).toHaveTextContent('+1.48');
+    expect(row).toHaveTextContent('+1.5');
     await user.click(
       within(row).getByRole('button', { name: /^Why is Popularity change in Quebec / }),
     );

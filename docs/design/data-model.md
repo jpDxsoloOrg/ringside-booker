@@ -841,14 +841,16 @@ its promotion called off (`byPromotion`). See [calendar.md](calendar.md).
 the last three stay null until that feature lands, and crowd size is never the
 same number as crowd reaction (D-02):
 
-| Field        | Type            | Written by                                                              |
-| ------------ | --------------- | ----------------------------------------------------------------------- |
-| `score`      | 0–100           | EVT3: the final show score                                              |
-| `rawScore`   | 0–100           | EVT3: the score before any `cap`-stage modifier; equals `score` if none |
-| `traceId`    | string or null  | EVT3: the ref key of the show score's trace                             |
-| `attendance` | int ≥ 0 or null | EVT6                                                                    |
-| `gate`       | `Cents` or null | EVT6: ticket revenue                                                    |
-| `viewers`    | int ≥ 0 or null | ECO8; null for a show that did not air                                  |
+| Field         | Type            | Written by                                                                |
+| ------------- | --------------- | ------------------------------------------------------------------------- |
+| `score`       | 0–100           | EVT3: the final show score                                                |
+| `rawScore`    | 0–100           | EVT3: the score before any `cap`-stage modifier; equals `score` if none   |
+| `traceId`     | string or null  | EVT3: the ref key of the show score's trace                               |
+| `attendance`  | int ≥ 0 or null | EVT6-05: people in the building, set when the box office settles          |
+| `gate`        | `Cents` or null | EVT6-05: ticket revenue before workers' shares                            |
+| `viewers`     | int ≥ 0 or null | ECO8; null for a show that did not air                                    |
+| `ticketPrice` | `Cents`, absent | EVT6-05: one ticket's price; absent until the box office settles the show |
+| `merch`       | `Cents`, absent | EVT6-05: live merch sales before workers' shares; absent until settled    |
 
 See [show-night.md](show-night.md).
 

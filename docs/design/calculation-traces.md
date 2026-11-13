@@ -54,6 +54,37 @@ An `input` node can link to the entity it came from with
 `promotion`. The trace points at the entity; it never embeds a copy of it, so
 the "Why?" panel can show the current name and link to the profile.
 
+### Units
+
+A calculation names its unit once, on the formula (`startCalc(label, start,
+{ unit: 'money' })`); the steps the builder records leave `unit` out, so a
+stored trace does not repeat it on every step (that would add about 6% to a
+year's save). Anything that shows a step on its own reads the trace through
+`withStepUnits(root)` first, which hands each step the unit of its calculation
+at read time:
+
+- the steps of a formula (its starting value, additions, limits, rounding,
+  notes) are in the formula's unit;
+- except while the running value is still in its starting value's own unit (a
+  crowd `count` at the start of a `money` formula): steps up to the first
+  multiply or divide stay in that unit, and that multiply or divide is the step
+  that changes it. It gets two read-time fields the builder never records and
+  the save schema refuses: `beforeUnit` (the unit it started from) and, when
+  its factor names a unit of its own, `operandUnit`, so the row reads
+  `×$15.50 Spent per fan · 1,200 → $18,600`, not `×1,550 · $12 → $18,600`;
+- an amount added or subtracted, and a floor or ceiling, is in the same unit as
+  the value it changes, so its own trace inherits that unit;
+- a factor (multiply, divide, power) is a plain number whatever the running
+  value measures, and the inside of an input, decision, roll or branch measures
+  something else, so nothing is passed down there;
+- a node that names its own unit keeps it and passes that unit on instead.
+
+So a money formula's `subtract` step reads `−$333,930.19`, not `−33,393,019`,
+in the "Why?" panel and in the sim-runner's `--trace` output. A formula whose
+starting value is in another unit gives that value its unit itself, with
+`inputOf(label, value, ref, unit)` or a traced value that has one; a plain
+number start takes the formula's unit.
+
 ## Node kinds
 
 | Kind                                    | Records                                                                    | Example                                                           |

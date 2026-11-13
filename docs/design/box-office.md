@@ -191,6 +191,15 @@ well a venue suits the expected crowd:
 
 A sell-out wins when both hold.
 
+`expected` here is the uncapped demand (the forecast's value), so a venue too small
+for the crowd reads "Likely sell-out" rather than "Good fit". The screens show the
+label as a `VenueFitBadge` (EVT6-06): "Likely sell-out" in the positive colour with a
+ticket icon, "Good fit" in the data colour with a check, "Will look empty" in the
+negative colour with a warning sign, so colour is never the only signal. The badge
+only draws the engine's answer; it never works the fit out itself. It appears on the
+booking screen's "Venue and crowd" panel, on each row of the "Choose a venue" sheet
+and on the calendar show sheet's Crowd line (see `apps/web/src/app/README.md`).
+
 ## Generic venues
 
 Every region has a set of generic local venues, so a founded promotion or a
@@ -505,4 +514,133 @@ show still netted about $367,000, so the stadium multiplier was raised to 3.5.
 
 ## Settlement
 
-_Not built yet (EVT6-05)._
+Every completed show, the player's and every rival's, is settled **on its own
+date** (EVT6-05, `settle.ts`): its real crowd is rolled, its money posted and
+`show.settled` published. Settling on the show's day is a deliberate change
+from the reference, which rolled crowds the next morning and so counted a show
+inside its own recent form.
+
+**When.** Two paths, one function (`settleShow`):
+
+- **The player's shows** are settled by the `show.completed` reaction
+  `boxOffice.settleShow`, straight after the step that ran them. The player
+  runs a show with Run the show at the start of its day and goes to its results
+  at once, so the Box office is already there.
+- **Every other show** is settled by the phase `boxOffice.settleShows`
+  (group `settlement`, order 10, daily), straight after the `shows` group. It
+  visits today's `completed` shows whose `result.attendance` is still null,
+  through the `byDate` index, in id order, so it also catches a player's show
+  whose reaction failed (a failed reaction rolls back only its own work).
+
+A show with an attendance is never touched again, so a second pass settles
+nothing and a show is settled exactly once. A cancelled show, or one that has
+not run, is never settled.
+
+**Bad data never throws.** No savepoints: a savepoint rolls back table writes
+but not staged events or traces, and `postMoney` publishes as it goes. So each
+show's inputs are checked first (its promotion exists and is open, its venue
+can be found, the venue holds someone) and a show with bad data is logged and
+skipped before anything is written. A genuine bug rolls the whole step back to
+the failure log; those shows keep `attendance: null`, their results pages say
+"Box office not settled yet", and later days never retry them, so money never
+lands on the wrong date.
+
+**Per show**, in order:
+
+1. A show still without a venue gets the [automatic pick](#automatic-picks).
+2. The crowd: [`forecastAttendance`](#forecast) (recent form leaves the show
+   itself out) → [`computeActualAttendance`](#crowd-roll), one roll on
+   `boxoffice.crowd`, capped at the venue's capacity.
+3. The [ticket price](#ticket-price) from ECO1's reach and the show's size;
+   ticket sales are the price × the crowd.
+4. The [venue rent](#venue-rent); a venue exclusive to the show's own promotion
+   is cheaper.
+5. [Live merch](#live-merch), one roll on `boxoffice.merch`, from the crowd and
+   `result.score`.
+6. The [worker shares](#worker-shares) of each. The workers are every distinct
+   person on the card, the pre-show included, except people who are only talked
+   about (`subject`), each with an active contract with the show's promotion
+   (`cardWorkers.ts`). A show with no card (a rival show scored off-screen) has
+   no workers and no shares.
+7. The [net](#box-office-net).
+
+Then the show's `result` gets `attendance`, `gate` (ticket sales before the
+shares), `ticketPrice` and `merch` (gross merch); the rest of the result is left
+as show night wrote it. `ticketPrice` and `merch` are optional fields, so saves
+made before EVT6-05 still load.
+
+**Money, through `postMoney` only**, to the show's own promotion, rivals
+included, each row with the show in `refs.eventInstanceId`:
+
+| Category    | Amount                                 | Memo                      |
+| ----------- | -------------------------------------- | ------------------------- |
+| `tickets`   | ticket sales − the workers' gate share | "<show name>: tickets"    |
+| `venueRent` | − the rent                             | "<show name>: venue rent" |
+| `liveMerch` | merch sales − the workers' merch share | "<show name>: live merch" |
+
+A line that comes to 0 is not posted (`postMoney` refuses 0) and the net's
+Why? says so ("No tickets sold"). The three rows add up to the net exactly.
+ECO1's show costs (appearance fees, travel, catering) never post `venueRent`,
+so nothing is posted twice: the results page's **Show money** section and the
+show report's Money line list and add up the box office rows with the show
+costs.
+
+**Event.** `show.settled { eventInstanceId, promotionId, attendance, capacity,
+gate, net }`, money in whole cents, once per settled show, rivals' too.
+
+**Traces.** Each line of the player's shows has its own kind, id the show, so
+busy rival settlement never pushes the player's out of
+`sim.traceRetentionPerKind`:
+
+| Kind                        | What it explains                                               |
+| --------------------------- | -------------------------------------------------------------- |
+| `boxOffice.attendance`      | The crowd, starting from the whole forecast                    |
+| `boxOffice.ticketPrice`     | The ticket price; reach is one line (its Why? is on Finances)  |
+| `boxOffice.gate`            | Ticket price × crowd − the workers' share of the gate          |
+| `boxOffice.venueRent`       | The rent                                                       |
+| `boxOffice.liveMerch`       | Merch sales − the workers' share of the merch                  |
+| `boxOffice.net`             | The net, with a note for each line that posted nothing         |
+| `boxOffice.rivalAttendance` | A rival show's crowd, kept short: expected crowd, roll and cap |
+
+A rival's money is private, so its show stores only the short attendance
+trace, and its ledger rows get `postMoney`'s one-line Why?. A worker share of
+0 is one line rather than a check per worker. The player's ledger rows carry a
+short Why? of their own (ticket sales less the share; the rent).
+
+**Save size.** On the default world after 365 days (JSON of the engine
+state): 10.76 MB before EVT6-05, 12.64 MB after. The box office traces are
+about 2.0 MB of that (the player's crowd Why? 0.8 MB, live merch 0.4 MB, the
+rival crowds 0.26 MB, the rest under 0.21 MB each); they stop growing once each
+kind holds `sim.traceRetentionPerKind` traces. The rest is the ledger rows
+(three per show, about 1,750 a year). Keeping the reach roll-up inside the
+ticket price trace would have cost 5 MB more.
+
+**Queries** (`settlementQueries.ts`):
+
+- `boxOffice.showCrowd { eventInstanceId }`, public, any show →
+  `{ status: 'settled' | 'notSettled' | 'notRun', venue, attendance, capacity,
+percentFull, attendanceTraceRef }`. `percentFull` is rounded to a whole
+  percent.
+- `boxOffice.showMoney { eventInstanceId }`, the viewer's own shows
+  (`viewerPromotionIds`) and the omniscient viewer → `{ ticketPrice, grossGate,
+gateShare, tickets, venueRent, grossMerch, merchShare, liveMerch, net }`,
+  each `{ amount, traceRef }` (rent negative, like its row). The amounts come
+  from the result and the show's three ledger rows, so they match the ledger
+  even once the traces are gone. A rival's show is refused with
+  `boxOffice.privateMoney` ("Other promotions' takings are private"); a show
+  not settled with `boxOffice.notSettled`.
+
+Every trace ref passes through `traces.has`, so a Why? never opens nothing.
+
+**Results page.** The **Box office** section (order 35, after MTCH3's 30 and
+before ECO1's Show money at 60; `apps/web/src/screens/box-office/`) shows, for
+the player's own show, Attendance ("82% full · Harrowmere Arena, capacity
+17,500"), Gate, Venue rent, Live merch and Net (signed, with a "Loss" badge
+below 0), each with its Why?. A rival's show shows Attendance only and "Other
+promotions' takings are private". A show that ran but was not settled says
+"Box office not settled yet". The cards fall to one column on a phone. The
+show report's What changed panel has a **Box office** line (35): "Crowd 4,210
+(92% full) · Gate $48,300", the crowd alone for a rival's show.
+
+**Headless.** The sim-runner's summary counts the settled shows and their
+total attendance; `--strict` fails when a completed show was never settled.

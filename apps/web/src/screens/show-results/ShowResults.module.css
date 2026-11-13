@@ -1,5 +1,7 @@
 /* The results page: lower third and score bug on top, then the card, then other features' panels. */
 .screen {
+  --reveal-bar-room: calc(var(--tap-target-min) + var(--space-8));
+
   display: grid;
   gap: var(--space-5);
   min-inline-size: 0;
@@ -78,7 +80,35 @@
 }
 
 .cardItem {
+  position: relative;
   min-inline-size: 0;
+
+  /* Room for the sticky reveal bar when a revealed card is scrolled into view. */
+  scroll-margin-block-end: var(--reveal-bar-room);
+}
+
+/*
+ * The next card's "Coming up" placeholder during the reveal: tapping or clicking anywhere on it
+ * reveals it, like Next segment. It covers the card and draws nothing until hovered.
+ */
+.tapToReveal {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: hover) {
+  .tapToReveal:hover {
+    outline: 2px solid var(--color-data);
+    outline-offset: -2px;
+  }
 }
 
 /* A card coming out during the reveal. Instant under reduced motion: the token is 0ms there. */
@@ -103,22 +133,6 @@
   white-space: nowrap;
 }
 
-/* "Next segment" and "Show all", kept in reach at the bottom of the screen while the reveal runs. */
-.revealBar {
-  position: sticky;
-  inset-block-end: var(--space-3);
-  z-index: 1;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: var(--space-2);
-  justify-self: end;
-  padding: var(--space-2);
-  border: 1px solid var(--color-border-strong);
-  background: var(--color-surface-raised);
-  box-shadow: var(--shadow-2);
-}
-
 /* Loading: the page's shape in quiet blocks. */
 .skeleton {
   display: block;
@@ -141,20 +155,14 @@
 
 @media (--bp-mobile) {
   .screen {
+    --reveal-bar-room: calc(
+      var(--tap-target-min) + var(--space-8) + var(--shell-bottom-chrome, var(--safe-bottom))
+    );
+
     gap: var(--space-4);
   }
 
   .pageHeading {
     font-size: var(--font-size-xl);
-  }
-
-  /* On a phone the bar spans the column, above the bottom navigation and the safe area. */
-  .revealBar {
-    inset-block-end: calc(var(--shell-bottom-chrome, var(--safe-bottom)) + var(--space-2));
-    justify-self: stretch;
-  }
-
-  .revealBar > * {
-    flex: 1 1 0;
   }
 }

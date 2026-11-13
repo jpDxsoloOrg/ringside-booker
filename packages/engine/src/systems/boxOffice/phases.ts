@@ -23,9 +23,12 @@ import type { DeepReadonly } from '../../model/world';
 import { showControllerOf } from '../calendar/control';
 import { addDaysWithinCalendar } from '../calendar/schedule';
 import { registerBeforeShowRuns, type BeforeShowRunsHook } from '../shows/beforeRun';
+import type { GameWorldView } from '../../model/tables';
+import { awaitsSettlement, settleShow } from './settle';
 import { autoPickVenue, hasVenue } from './venueChoice';
 
 export const ASSIGN_VENUES_PHASE_ID = 'boxOffice.assignVenues';
+export const SETTLE_SHOWS_PHASE_ID = 'boxOffice.settleShows';
 export const PICK_ON_SHOW_NIGHT_HOOK_ID = 'boxOffice.pickOnShowNight';
 
 type Show = DeepReadonly<EventInstance>;
@@ -104,4 +107,37 @@ export const pickOnShowNightHook: BeforeShowRunsHook = {
 
 registerBeforeShowRuns(pickOnShowNightHook);
 
-export const boxOfficePhases: readonly PhaseDefinition[] = [assignVenuesPhase];
+/** Today's completed shows the box office has not settled yet, in id order. */
+export function showsToSettle(view: GameWorldView): Show[] {
+  return view.tables.eventInstances
+    .lookup('byDate', view.meta.currentDate)
+    .filter(awaitsSettlement)
+    .sort((left, right) => compareIds(left.id, right.id));
+}
+
+/**
+ * Settles every show completed today that is not settled yet (EVT6-05): the rivals' shows the
+ * shows phase ran, and any of the player's that the `show.completed` reaction could not settle.
+ * Straight after the `shows` group, so a show's crowd and money land on the day it ran. No
+ * savepoints: `postMoney` publishes and records as it goes, so a show with bad data is checked and
+ * skipped before anything is written instead. A genuine bug rolls the whole step back; those shows
+ * then stay unsettled, and later days never retry them, so money never lands on the wrong date.
+ */
+export const settleShowsPhase: PhaseDefinition = definePhase({
+  id: SETTLE_SHOWS_PHASE_ID,
+  group: 'settlement',
+  order: 10,
+  cadence: { kind: 'daily' },
+  when: (view) => showsToSettle(view).length > 0,
+  run: (ctx) => {
+    let settled = 0;
+    for (const show of showsToSettle(ctx.read)) {
+      if (settleShow(ctx, show.id) !== null) {
+        settled += 1;
+      }
+    }
+    ctx.log(`Settled ${String(settled)} show(s)`);
+  },
+});
+
+export const boxOfficePhases: readonly PhaseDefinition[] = [assignVenuesPhase, settleShowsPhase];

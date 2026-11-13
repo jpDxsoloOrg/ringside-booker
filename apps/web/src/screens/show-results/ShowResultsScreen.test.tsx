@@ -3,10 +3,10 @@
  * last Thursday's completed show, `evi_0000000001`, with four rated segments: a pre-show match,
  * then the opener, a promo and the heavyweight title match (retained) on the main card.
  */
-import { act, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { parseId } from '@ringside/engine';
 import type { EngineState } from '@ringside/engine';
 import { EngineProvider } from '@/app/engine/EngineProvider';
@@ -20,7 +20,6 @@ import { bookingFakeState, fakeEngineFactory, fakeEngineState } from '@/test/fak
 import { RUNNING_TIME_WORDS } from '@/test/runningTimeWords';
 import { resetSettingsForTest } from '@/test/settings';
 import { registerResultsSection } from './resultsSectionRegistry';
-import { REVEAL_STEP_MS } from './useRevealSequence';
 
 const SHOW = parseId('eventInstance', 'evi_0000000001');
 
@@ -33,7 +32,6 @@ afterEach(() => {
   for (const cleanup of cleanups.splice(0)) cleanup();
   resetSettingsForTest();
   useSessionStore.getState().clear();
-  vi.useRealTimers();
 });
 
 function renderAt(path: string, transport: InProcessTransport) {
@@ -59,7 +57,7 @@ function loadedTransport(state: EngineState = fakeEngineState()): InProcessTrans
 function renderResults(path: string = routes.game.showResults(SHOW)) {
   const transport = loadedTransport();
   const router = renderAt(path, transport);
-  return { router, transport, user: userEvent.setup() };
+  return { router, transport, user: userEvent.setup({ delay: null }) };
 }
 
 /** Every segment card, in page order. */
@@ -177,26 +175,68 @@ describe('ShowResultsScreen', () => {
     expect(screen.getAllByText(/^Coming up:/)).toHaveLength(4);
   });
 
-  it('reveals one card per step on its own, then the score, and announces the main event', async () => {
-    vi.useFakeTimers({ shouldAdvanceTime: true });
-    renderResults(routes.game.showResults(SHOW, { reveal: true }));
+  it('waits for a tap: Next reveals one card at a time, then the score, and keeps focus', async () => {
+    const { user } = renderResults(routes.game.showResults(SHOW, { reveal: true }));
     await findHeading();
     expect(screen.getAllByText(/^Coming up:/)).toHaveLength(4);
 
-    act(() => {
-      vi.advanceTimersByTime(REVEAL_STEP_MS);
+    // Nothing comes out on its own.
+    await new Promise((resolve) => {
+      window.setTimeout(resolve, 50);
     });
-    expect(screen.getAllByText(/^Coming up:/)).toHaveLength(3);
+    expect(screen.getAllByText(/^Coming up:/)).toHaveLength(4);
 
-    // Three more cards, then the score: each step is timed from the one before.
-    for (let step = 0; step < 4; step += 1) {
-      act(() => {
-        vi.advanceTimersByTime(REVEAL_STEP_MS);
-      });
-    }
-    expect(screen.queryByText(/^Coming up:/)).toBeNull();
+    const next = screen.getByRole('button', { name: 'Next segment' });
+    next.focus();
     const live = document.querySelector('[aria-live="polite"]');
+    for (let remaining = 3; remaining >= 0; remaining -= 1) {
+      await user.keyboard('{Enter}');
+      expect(screen.queryAllByText(/^Coming up:/)).toHaveLength(remaining);
+      expect(live?.textContent).toMatch(/^(Pre-show|Opener|Midcard)/);
+    }
+    // Every card is out; the score and the report still wait for one more tap.
+    const scoreBug = screen.getByRole('group', { name: 'Final score' });
+    expect(within(scoreBug).queryByText('62')).toBeNull();
+    expect(screen.queryByRole('region', { name: 'Show report' })).toBeNull();
+    const finale = screen.getByRole('button', { name: 'Show score' });
+    expect(finale).toHaveFocus();
+
+    await user.keyboard(' ');
+    expect(within(scoreBug).getByText('62')).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Show report' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Show all' })).toBeNull();
     expect(live?.textContent).toMatch(/^Midcard: .+ wins? by .+\. Final score 62/);
+    // The reveal buttons went with focus on them: focus moves to the show's name.
+    expect(document.activeElement?.closest('h1')).not.toBeNull();
+  });
+
+  it('reveals the next card when its placeholder is tapped, and only that one', async () => {
+    renderResults(routes.game.showResults(SHOW, { reveal: true }));
+    await findHeading();
+    const [first, second] = cards();
+    if (first === undefined || second === undefined) throw new Error('Missing cards.');
+    expect(first).toHaveAttribute('data-state', 'hidden');
+
+    // The tap target is the placeholder's own cover, outside the accessibility tree.
+    const cover = first.parentElement?.querySelector('button[aria-hidden="true"]');
+    if (!(cover instanceof HTMLButtonElement)) throw new Error('No tap target on the next card.');
+    expect(second.parentElement?.querySelector('button[aria-hidden="true"]')).toBeNull();
+    fireEvent.click(cover);
+    expect(first).toHaveAttribute('data-state', 'revealed');
+    expect(second).toHaveAttribute('data-state', 'hidden');
+    expect(second.parentElement?.querySelector('button[aria-hidden="true"]')).not.toBeNull();
+  });
+
+  it('opens fully revealed with ?reveal=1 when the one-at-a-time setting is off', async () => {
+    useSettingsStore.getState().update({ revealOneAtATime: false });
+    const { router } = renderResults(routes.game.showResults(SHOW, { reveal: true }));
+    await findHeading();
+    expect(screen.queryByText(/^Coming up:/)).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Next segment' })).toBeNull();
+    expect(screen.getByRole('region', { name: 'Show report' })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(router.state.location.search).toBe('');
+    });
   });
 
   it('shows everything at once under reduced motion, even with ?reveal=1', async () => {

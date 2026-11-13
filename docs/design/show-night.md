@@ -525,9 +525,10 @@ Nothing new is stored, so the save is unchanged.
 | 15    | Appearances        | built in, everyone on the card once                         |
 | 25    | Fans (EVT5)        | `popularity.showChange`: regions gained and lost, the most  |
 | 30    | Popularity (MTCH3) | `match.aftermath`: workers up, down and the same            |
+| 35    | Box office (EVT6)  | `boxOffice.showCrowd`: the crowd and % full; your gate too  |
 | 60    | Money (ECO1)       | `finance.ledger` for the show: the net, your own shows only |
 
-Still to come, each as its own line: the gate (EVT6), TV, PPV and streaming
+Still to come, each as its own line: TV, PPV and streaming
 income (ECO8), injuries (MTCH4, WRK6), morale (WRK8).
 
 **Each segment card** shows its reasons in a line under the numbers ("Top
@@ -540,6 +541,15 @@ that show's results with the reveal; several shows on one skip open the
 first, and the day summary links the rest. Off, the summary only links. Once
 EVT2-09 lands, your shows run from the show screen and always open their
 results, so the setting only matters for shows run some other way.
+
+**The reveal.** Opened from those links, the results page waits for the
+player: the cards start as "Coming up" placeholders, and each tap of Next
+segment (or of the next placeholder) reveals one, the main event last; the
+tap after that shows the score and the show report. Show all reveals
+everything at once. Nothing comes out on a timer (EVT3-10, after owner
+testing found the timed reveal slow). The setting "Reveal results one segment
+at a time" (Settings > Show nights, on by default) turned off opens results
+fully revealed, and so does reduced motion.
 
 ## Seams
 
@@ -671,7 +681,8 @@ aftermath 30, MTCH4's physical toll 40 and MTCH6's chemistry 50 as they land.
 The title applier and MTCH3's aftermath (MTCH3-05) run today.
 
 **Results sections.** EVT5's "Popularity" (25), then MTCH3's "Popularity &
-momentum" (30, MTCH3-05), then ECO1's "Show money" (60, ECO1-06, the player's
+momentum" (30, MTCH3-05), then EVT6's "Box office" (35, EVT6-05; a rival's
+show shows its crowd only), then ECO1's "Show money" (60, ECO1-06, the player's
 own shows only).
 
 **Random winners and booking.** Show night decides every match on a Random

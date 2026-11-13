@@ -1,8 +1,11 @@
+import type { ReactNode } from 'react';
 import { cents } from '@ringside/engine';
 import type { OfficeKpi } from '@ringside/engine';
 import {
   formatGameDate,
   formatNumber,
+  formatPopularity,
+  formatPopularityChange,
   formatSigned,
   formatSignedMoney,
   useMoneyFormatter,
@@ -33,7 +36,11 @@ const KPI_ICONS: Readonly<Record<string, IconName>> = {
   averageMorale: 'office',
 };
 
-/** Decimals for each unit: points and percentages to one place, counts whole, ratios to two. */
+/**
+ * Decimals for each unit: percentages to one place, counts whole, ratios to two. Points
+ * (popularity, morale) go through the shared popularity formatter instead, so the card reads
+ * exactly as the top bar and the Why? panel do.
+ */
 function numberOptions(unit: OfficeKpi['unit']): FormatNumberOptions {
   switch (unit) {
     case 'points':
@@ -47,14 +54,16 @@ function numberOptions(unit: OfficeKpi['unit']): FormatNumberOptions {
   }
 }
 
-/** A number that is not money, in its unit: `69.0`, `44`, `12.5%`. */
+/** A number that is not money, in its unit: `69.3`, `44`, `12.5%`. */
 function formatPlain(value: number, unit: OfficeKpi['unit']): string {
+  if (unit === 'points') return formatPopularity(value);
   const text = formatNumber(value, numberOptions(unit));
   return unit === 'percent' ? `${text}%` : text;
 }
 
 /** A change that is not money, with its sign: `+0.8`, `−2`, `0`. */
 function formatPlainChange(value: number, unit: OfficeKpi['unit']): string {
+  if (unit === 'points') return formatPopularityChange(value);
   const text = formatSigned(value, numberOptions(unit));
   return unit === 'percent' && text !== '0' ? `${text}%` : text;
 }
@@ -66,6 +75,8 @@ function traceUnitOf(unit: OfficeKpi['unit']): TraceDisplayUnit {
 
 export interface OfficeKpiCardProps {
   readonly kpi: OfficeKpi;
+  /** A control after the footer text, such as the Popularity card's Fan base button (DAY2-05). */
+  readonly footerAction?: ReactNode;
 }
 
 /**
@@ -73,12 +84,21 @@ export interface OfficeKpiCardProps {
  * last week with its own Why?, and the last eight weeks as a sparkline once there are two points.
  * A card with no value shows "–" and nothing else to explain.
  */
-export function OfficeKpiCard({ kpi }: OfficeKpiCardProps) {
+export function OfficeKpiCard({ kpi, footerAction }: OfficeKpiCardProps) {
   const formatMoney = useMoneyFormatter();
   const moneyStyle = useSettingsStore((state) => state.settings.moneyStyle);
   const unit = traceUnitOf(kpi.unit);
   const icon = KPI_ICONS[kpi.key];
-  const footer = kpi.footer ?? undefined;
+  const footerText = kpi.footer ?? undefined;
+  const footer: ReactNode =
+    footerAction === undefined ? (
+      footerText
+    ) : (
+      <>
+        {footerText !== undefined && <span>{footerText} </span>}
+        {footerAction}
+      </>
+    );
 
   if (kpi.value === null) {
     return (

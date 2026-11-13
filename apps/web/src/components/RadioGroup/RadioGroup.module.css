@@ -99,3 +99,17 @@
   flex: none;
   align-items: center;
 }
+
+/*
+ * An option shown but refused: still focusable and announced as unavailable. A dashed edge and
+ * the not-allowed cursor mark it; the text keeps full contrast so its reason stays readable.
+ */
+.optionUnavailable {
+  border-style: dashed;
+  background: transparent;
+  cursor: not-allowed;
+}
+
+.optionUnavailable:hover {
+  background: transparent;
+}

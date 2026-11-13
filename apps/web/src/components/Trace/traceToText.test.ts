@@ -1,4 +1,4 @@
-import { assertTraceReplays } from '@ringside/engine';
+import { assertTraceReplays, inputOf, startCalc } from '@ringside/engine';
 import type { TraceNode } from '@ringside/engine';
 import { describe, expect, it } from 'vitest';
 import {
@@ -6,6 +6,7 @@ import {
   matchRatingTrace,
   summarisedAttendance,
 } from '@/screens/dev-gallery/fixtures/traces';
+import { MINUS_SIGN } from '../format';
 import { summaryToText, traceToText } from './traceToText';
 
 describe('traceToText', () => {
@@ -88,7 +89,7 @@ describe('traceToText power steps', () => {
     expect(traceToText(trace).split('\n')).toEqual([
       'Diminishing returns: 0.125',
       '  Share of fans still to win: 0.25',
-      '  raised to the power 1.5 (Popularity curve) · 0.25 → 0.13',
+      '  raised to the power 1.5 (Popularity curve) · 0.25 → 0.125',
     ]);
   });
 });
@@ -116,5 +117,72 @@ describe('gallery trace fixtures', () => {
     expect(() => {
       assertTraceReplays({ value, trace });
     }).not.toThrow();
+  });
+});
+
+describe('traceToText step units', () => {
+  const stepLines = (trace: TraceNode): string[] => traceToText(trace).split('\n').slice(1);
+
+  it('reads every step of a money calculation as money', () => {
+    const trace = startCalc('Change in cash since Mon 1 Feb', 3_870_320_840, {
+      unit: 'money',
+      startLabel: 'This week',
+    })
+      .subtract('Last week (Mon 1 Feb)', 3_903_713_859)
+      .add('Refund', inputOf('Refund', 1_250))
+      .multiply('Shows', inputOf('Shows this week', 2))
+      .done().trace;
+
+    expect(stepLines(trace)).toEqual([
+      '  This week: $38,703,208',
+      `  ${MINUS_SIGN}$39,037,139 Last week (Mon 1 Feb) · $38,703,208 → ${MINUS_SIGN}$333,930`,
+      `  +$12.50 Refund · ${MINUS_SIGN}$333,930 → ${MINUS_SIGN}$333,918`,
+      '    Refund: $12.50',
+      `  ×2 Shows · ${MINUS_SIGN}$333,918 → ${MINUS_SIGN}$667,835`,
+      '    Shows this week: 2',
+    ]);
+  });
+
+  it('reads a monthly cost per month, and caps in the same unit', () => {
+    const trace = startCalc('Monthly payroll', 0, { unit: 'money/month' })
+      .add('Rex Vance', 500_000)
+      .min('Payroll ceiling', 400_000)
+      .done().trace;
+
+    expect(stepLines(trace)).toEqual([
+      '  Starting value: $0/month',
+      '  +$5,000/month Rex Vance · $0/month → $5,000/month',
+      '  Capped $5,000/month → $4,000/month (maximum) · Payroll ceiling',
+    ]);
+  });
+
+  it('reads points, percent, counts and ratios in their own unit', () => {
+    const popularity = startCalc('Popularity', 70, { unit: 'points' }).add('Show', 0.29).done();
+    const share = startCalc('Share', 12, { unit: 'percent' }).add('Bonus', 3.25).done();
+    const crowd = startCalc('Crowd', 1_200, { unit: 'count' }).add('Walk-ups', 1_030).done();
+    const factor = startCalc('Form', 1, { unit: 'ratio' }).multiply('Hot', 1.0625).done();
+
+    expect(stepLines(popularity.trace)[1]).toBe('  +0.3 Show · 70 → 70.3');
+    expect(stepLines(share.trace)[1]).toBe('  +3.3% Bonus · 12% → 15.3%');
+    expect(stepLines(crowd.trace)[1]).toBe('  +1,030 Walk-ups · 1,200 → 2,230');
+    expect(stepLines(factor.trace)[1]).toBe('  ×1.063 Hot · 1 → 1.063');
+  });
+
+  it('shows a crowd times a price per head with each number in its own unit', () => {
+    const trace = startCalc('Merch sales', inputOf('Crowd', 1_200, undefined, 'count'), {
+      unit: 'money',
+    })
+      .add('Walk-ups', 30)
+      .multiply('Spent per fan', inputOf('Per fan', 1_550, undefined, 'money'))
+      .multiply('Show quality', 0.9)
+      .done().trace;
+
+    expect(stepLines(trace)).toEqual([
+      '  Crowd: 1,200',
+      '  +30 Walk-ups · 1,200 → 1,230',
+      '  ×$15.50 Spent per fan · 1,230 → $19,065',
+      '    Per fan: $15.50',
+      '  ×0.9 Show quality · $19,065 → $17,159',
+    ]);
   });
 });

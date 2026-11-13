@@ -7,7 +7,9 @@
  * `forecastAttendance`, which gathers its inputs from the world. EVT6-02 adds generic local venues, `showVenueOf`, `venueAvailability`, `venueFit`
  * and the venue pick (`pickVenue`, `pickVenueFor`, `applyVenueChoice`). EVT6-03 adds the venue
  * commands, the automatic picks (a daily phase and a before-a-show-runs hook) and the forecast
- * and venue queries. Design:
+ * and venue queries. EVT6-05 settles every completed show (`settle.ts`): the crowd, the money
+ * through `postMoney`, `show.settled`, and the `boxOffice.showCrowd` and `boxOffice.showMoney`
+ * queries. Design:
  * docs/design/box-office.md.
  */
 
@@ -16,6 +18,8 @@
 import './events';
 import './streams';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
+import { settlementQueries } from './settlementQueries';
+import { settleShowSubscription } from './settleSubscription';
 import { boxOfficeCommands } from './commands';
 import { boxOfficePhases } from './phases';
 import { boxOfficeQueries } from './queries';
@@ -73,8 +77,8 @@ export {
 export const boxOfficeSystem: SystemBundle = defineSystem({
   id: 'boxOffice',
   phases: boxOfficePhases,
-  subscriptions: [],
-  queries: boxOfficeQueries,
+  subscriptions: [settleShowSubscription],
+  queries: [...boxOfficeQueries, ...settlementQueries],
   commands: boxOfficeCommands,
 });
 
@@ -150,3 +154,42 @@ export {
   venuesQuery,
 } from './queries';
 export { autoPickVenue, choiceOfKey, optionKeyOf } from './venueChoice';
+
+// Settlement (EVT6-05): the crowd on the night and the money, the event and the queries.
+export { cardWorkersOf, type CardWorker } from './cardWorkers';
+export {
+  BOX_OFFICE_CATEGORIES,
+  BOX_OFFICE_MEMOS,
+  awaitsSettlement,
+  settleShow,
+  type BoxOfficeCategory,
+  type ShowSettlement,
+} from './settle';
+export { SETTLE_SHOW_SUBSCRIPTION_ID, settleShowSubscription } from './settleSubscription';
+export { SETTLE_SHOWS_PHASE_ID, settleShowsPhase, showsToSettle } from './phases';
+export {
+  ATTENDANCE_TRACE_KIND,
+  GATE_TRACE_KIND,
+  LIVE_MERCH_TRACE_KIND,
+  NET_TRACE_KIND,
+  RIVAL_ATTENDANCE_TRACE_KIND,
+  SETTLEMENT_TRACE_KINDS,
+  TICKET_PRICE_TRACE_KIND,
+  VENUE_RENT_TRACE_KIND,
+  settlementTraceRef,
+  type SettlementTraceKind,
+} from './traceKinds';
+export {
+  NOT_SETTLED_MESSAGE,
+  PRIVATE_MONEY_MESSAGE,
+  SHOW_CROWD_STATUSES,
+  boxOfficeRowsOf,
+  seesShowMoney,
+  settlementQueries,
+  showCrowdQuery,
+  showMoneyQuery,
+  type BoxOfficeAmount,
+  type ShowCrowd,
+  type ShowCrowdStatus,
+  type ShowMoney,
+} from './settlementQueries';

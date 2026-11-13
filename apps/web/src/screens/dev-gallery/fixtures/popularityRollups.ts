@@ -294,3 +294,6 @@ export function firstContinentId(rollup: PopularityRollupView): ContinentId[] {
   const [first] = rollup.continents;
   return first === undefined ? [] : [first.id];
 }
+
+/** The roll-up builder itself, for fixtures that need a promotion of their own (DAY2-05). */
+export { rollupViewOf as popularityRollupOf };

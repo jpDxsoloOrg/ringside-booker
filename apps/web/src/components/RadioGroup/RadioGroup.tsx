@@ -11,6 +11,11 @@ export interface RadioOption<Value extends string> {
   readonly description?: ReactNode;
   /** A small picture of the option drawn after the text, such as a colour swatch. Decorative. */
   readonly preview?: ReactNode;
+  /**
+   * Shows the option but refuses it: it stays reachable by keyboard and is announced as
+   * unavailable (`aria-disabled`), so put the reason in `description`. Picking it does nothing.
+   */
+  readonly unavailable?: boolean;
 }
 
 export interface RadioGroupProps<Value extends string> {
@@ -49,7 +54,7 @@ export function RadioGroup<Value extends string>({
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const picked = options.find((option) => option.value === event.target.value);
-    if (picked !== undefined) onValueChange(picked.value);
+    if (picked !== undefined && picked.unavailable !== true) onValueChange(picked.value);
   };
 
   return (
@@ -70,7 +75,14 @@ export function RadioGroup<Value extends string>({
           const optionLabelId = `${optionId}-label`;
           const optionDescriptionId = `${optionId}-description`;
           return (
-            <label key={option.value} htmlFor={optionId} className={styles['option']}>
+            <label
+              key={option.value}
+              htmlFor={optionId}
+              className={classNames(
+                styles['option'],
+                option.unavailable === true && styles['optionUnavailable'],
+              )}
+            >
               <input
                 id={optionId}
                 type="radio"
@@ -78,6 +90,7 @@ export function RadioGroup<Value extends string>({
                 value={option.value}
                 checked={option.value === value}
                 onChange={handleChange}
+                aria-disabled={option.unavailable === true ? true : undefined}
                 // Named by the label text alone; the description is read out as a description.
                 aria-labelledby={optionLabelId}
                 aria-describedby={

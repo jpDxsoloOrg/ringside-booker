@@ -1,4 +1,6 @@
 import { act, render, screen, within } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 import {
   cashTraceRef,
@@ -11,9 +13,11 @@ import {
 import type { SimStatus } from '@ringside/engine';
 import { EngineProvider } from '@/app/engine/EngineProvider';
 import { createInProcessTransport } from '@/app/engine/transport';
+import { routerFutureFlags } from '@/app/router';
+import { useSessionStore } from '@/app/session/sessionStore';
 import { fakeEngineFactory, fakeEngineState } from '@/test/fakeEngine';
 import { registerStatusChip } from './statusChipRegistry';
-import { StatusChip, StatusChips } from './StatusChips';
+import { OPEN_FAN_BASE_LABEL, StatusChip, StatusChips } from './StatusChips';
 
 const STATUS: SimStatus = {
   date: parseGameDate('2031-03-14'),
@@ -168,5 +172,89 @@ describe('StatusChips', () => {
       registerStatusChip({ id: 'social.morale', order: 30, render: () => null }),
     ).toThrow(/already registered/);
     unregister();
+  });
+
+  describe('the Fan base button (DAY2-05)', () => {
+    function withHeadline(): SimStatus {
+      const promotion = STATUS.promotion;
+      if (promotion === null) throw new Error('The sample status has a promotion');
+      return {
+        ...STATUS,
+        promotion: {
+          ...promotion,
+          popularity: {
+            ...promotion.popularity,
+            headline: 57.3,
+            headlineLabel: 'Harbor City Wrestling popularity',
+            traceRef: popularityTraceRef(promotion.promotionId),
+          },
+        },
+      };
+    }
+
+    function renderWithEngine(
+      status: SimStatus,
+      placement: 'bar' | 'sheet',
+      onOpenFanBase?: () => void,
+    ) {
+      const transport = createInProcessTransport(fakeEngineFactory(), { progressIntervalMs: 0 });
+      const install = transport.host.installEngine(fakeEngineState());
+      useSessionStore.getState().setLoaded({ saveSlotId: null, seat: install.seat });
+      render(
+        <MemoryRouter future={routerFutureFlags}>
+          <EngineProvider createTransport={() => transport}>
+            <StatusChips
+              status={status}
+              placement={placement}
+              {...(onOpenFanBase === undefined ? {} : { onOpenFanBase })}
+            />
+          </EngineProvider>
+        </MemoryRouter>,
+      );
+    }
+
+    it('sits beside the headline in the bar and opens the Fan base sheet', async () => {
+      renderWithEngine(withHeadline(), 'bar');
+      const user = userEvent.setup({ delay: null });
+      const chip = screen.getByTestId('popularity-chip');
+      expect(chip).toHaveTextContent('Popularity');
+      expect(chip).toHaveTextContent('Prestige 58');
+
+      await user.click(within(chip).getByRole('button', { name: OPEN_FAN_BASE_LABEL }));
+      expect(
+        await screen.findByRole('dialog', { name: /^Fan base/u }, { timeout: 10_000 }),
+      ).toBeInTheDocument();
+    });
+
+    it('is a full-width Fan base button in the phone status sheet', () => {
+      renderWithEngine(withHeadline(), 'sheet');
+      const chip = screen.getByTestId('popularity-chip');
+      expect(within(chip).getByRole('button', { name: 'Fan base' })).toBeInTheDocument();
+      expect(within(chip).queryByRole('button', { name: OPEN_FAN_BASE_LABEL })).toBeNull();
+    });
+
+    it('hands the opening to the top bar when it keeps the sheet', async () => {
+      let opened = 0;
+      renderWithEngine(withHeadline(), 'sheet', () => {
+        opened += 1;
+      });
+      const user = userEvent.setup({ delay: null });
+      await user.click(screen.getByRole('button', { name: 'Fan base' }));
+      expect(opened).toBe(1);
+      expect(screen.queryByRole('dialog')).toBeNull();
+    });
+
+    it.each(['bar', 'sheet'] as const)(
+      'is left out in the %s while there is no headline, which keeps the home region and its Why?',
+      (placement) => {
+        render(<StatusChips status={STATUS} placement={placement} />);
+        const chip = screen.getByTestId('popularity-chip');
+        expect(chip).toHaveTextContent('64');
+        expect(within(chip).queryByRole('button', { name: /fan base/iu })).toBeNull();
+        expect(
+          within(chip).getByRole('button', { name: /^Why is Popularity in your home region /u }),
+        ).toBeInTheDocument();
+      },
+    );
   });
 });

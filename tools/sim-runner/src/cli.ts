@@ -161,6 +161,13 @@ export async function runCli(
     );
     return EXIT_FAILED;
   }
+  const { unsettledShows } = firstRun.summary.boxOffice;
+  if (options.strict && unsettledShows > 0) {
+    io.stderr(
+      `--strict: ${String(unsettledShows)} completed show(s) were never settled by the box office\n`,
+    );
+    return EXIT_FAILED;
+  }
   const historyProblems = promotionHistoryProblems(firstRun.finalState);
   if (options.strict && historyProblems.length > 0) {
     io.stderr(

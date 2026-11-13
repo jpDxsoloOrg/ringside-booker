@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import type { ReactNode } from 'react';
+import { flushSync } from 'react-dom';
 import type { GameDate } from '@ringside/engine';
 import { Button } from '@/components/Button';
 import { formatShortGameDateParts } from '@/components/format';
@@ -13,6 +14,7 @@ import { useDayAdvance } from './day/DayAdvanceProvider';
 import styles from './day/DayControl.module.css';
 import { SkipDaysSheet } from './day/SkipDaysSheet';
 import { AutosaveIndicator } from './status/AutosaveIndicator';
+import { FanBaseSheet } from './status/FanBaseSheet';
 import { StatusChips } from './status/StatusChips';
 import { useShellStatus } from './status/useShellStatus';
 
@@ -56,6 +58,8 @@ export function TopBarStatus({ compact, fallback = null }: TopBarStatusProps) {
   const advance = useDayAdvance();
   const [skipOpen, setSkipOpen] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
+  const [fanBaseOpen, setFanBaseOpen] = useState(false);
+  const dateButtonId = useId();
 
   if (status === undefined) return loading ? null : fallback;
 
@@ -64,6 +68,18 @@ export function TopBarStatus({ compact, fallback = null }: TopBarStatusProps) {
   const openSkip = () => {
     setStatusOpen(false);
     setSkipOpen(true);
+  };
+  // From the phone's status sheet the Fan base sheet replaces it rather than stacking on it. It
+  // opens first, while the button that asked is still there, so it knows to hand focus back to the
+  // date button (`data-return-focus-to`, RETURN_FOCUS_ATTRIBUTE in components/Sheet); then the status sheet closes under it.
+  const openFanBaseFromSheet = () => {
+    flushSync(() => {
+      setFanBaseOpen(true);
+    });
+    setStatusOpen(false);
+  };
+  const openFanBaseFromBar = () => {
+    setFanBaseOpen(true);
   };
   const autosave = <AutosaveIndicator state={advance.autosave} />;
   const daysRequested = advance.progress?.daysRequested ?? advance.daysRequested ?? 0;
@@ -74,6 +90,7 @@ export function TopBarStatus({ compact, fallback = null }: TopBarStatusProps) {
         <>
           <button
             type="button"
+            id={dateButtonId}
             className={styles['dateButton']}
             aria-haspopup="dialog"
             data-testid="status-date"
@@ -108,15 +125,33 @@ export function TopBarStatus({ compact, fallback = null }: TopBarStatusProps) {
               </Button>
             }
           >
-            <StatusChips status={status} placement="sheet" dateTrailing={autosave} />
+            <div data-return-focus-to={dateButtonId}>
+              <StatusChips
+                status={status}
+                placement="sheet"
+                dateTrailing={autosave}
+                onOpenFanBase={openFanBaseFromSheet}
+              />
+            </div>
           </Sheet>
         </>
       ) : (
         <>
-          <StatusChips status={status} placement="bar" dateTrailing={autosave} />
+          <StatusChips
+            status={status}
+            placement="bar"
+            dateTrailing={autosave}
+            onOpenFanBase={openFanBaseFromBar}
+          />
           <DayControl gates={gates} onOpenSkip={openSkip} />
         </>
       )}
+      <FanBaseSheet
+        open={fanBaseOpen}
+        onClose={() => {
+          setFanBaseOpen(false);
+        }}
+      />
       <SkipDaysSheet
         open={skipOpen}
         onClose={() => {

@@ -7,7 +7,7 @@ import { DataTable } from '../DataTable';
 import type { ColumnDef } from '../DataTable';
 import { DeltaChip } from '../DeltaChip';
 import { EmptyState } from '../EmptyState';
-import { formatGameDate, formatSigned } from '../format';
+import { formatGameDate, formatPopularityChange, formatSigned } from '../format';
 import type { Tone } from '../tone';
 import { WhyButton } from '../Trace';
 import type { EntityLinkRenderer } from '../Trace';
@@ -120,7 +120,7 @@ function Change({ label, change, text, traceRef }: ChangeProps) {
 }
 
 function popularityText(change: number): string {
-  return formatSigned(change, { maximumFractionDigits: 1 });
+  return formatPopularityChange(change);
 }
 
 function momentumText(change: number): string {

@@ -94,6 +94,17 @@ export interface ArithmeticNode extends TraceNodeBase {
   readonly after: number;
   /** Why this modifier applies, in plain English. */
   readonly reason?: string;
+  /**
+   * Read time only: the unit `before` is in, when this step turns the running value into the
+   * calculation's unit (a crowd count times a price per head). `withStepUnits` fills it in; the
+   * builder never records it and the save schema does not accept it.
+   */
+  readonly beforeUnit?: TraceUnit;
+  /**
+   * Read time only: the unit of `operand` on such a step, when it is not a plain factor (the price
+   * per head). Filled in by `withStepUnits` like `beforeUnit`.
+   */
+  readonly operandUnit?: TraceUnit;
 }
 
 /**

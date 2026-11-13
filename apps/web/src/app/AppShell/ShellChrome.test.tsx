@@ -98,7 +98,7 @@ describe('shell chrome on desktop', () => {
     expect(status).toHaveTextContent('Mar 14, 2031');
     expect(within(status).getByText('Cash')).toBeInTheDocument();
     expect(within(status).getByText('Popularity')).toBeInTheDocument();
-    expect(status).toHaveTextContent('82%');
+    expect(status).toHaveTextContent('Popularity82');
 
     const nextDay = within(banner).getByRole('button', { name: 'Next day' });
     expect(nextDay).toHaveAttribute('aria-disabled', 'true');

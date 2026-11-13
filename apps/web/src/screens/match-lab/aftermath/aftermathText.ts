@@ -4,11 +4,13 @@
  * here mentions morale: a match result never changes it (D-09).
  */
 import type { AftermathRegionRow, MatchResultForSide, TraceNode } from '@ringside/engine';
-import { formatNumber, formatSigned } from '@/components/format';
+import {
+  formatNumber,
+  formatPopularity,
+  formatPopularityChange,
+  formatSigned,
+} from '@/components/format';
 import type { Tone } from '@/components/tone';
-
-/** Decimals a popularity figure shows. */
-export const POPULARITY_DECIMALS = 1;
 
 /** The empty state before the first Run. */
 export const AFTERMATH_EMPTY_BODY =
@@ -45,14 +47,14 @@ export const AFTERMATH_LEVEL_LABELS: Readonly<Record<AftermathLevel, string>> = 
 
 export const AFTERMATH_LEVELS: readonly AftermathLevel[] = ['region', 'country', 'continent'];
 
-/** `44.6`: one decimal at most. */
+/** `44.6`: one decimal at most, the shared popularity rule. */
 export function popularityText(value: number): string {
-  return formatNumber(value, { maximumFractionDigits: POPULARITY_DECIMALS });
+  return formatPopularity(value);
 }
 
 /** `+2.6`, `−0.4`, or `0` for a change that rounds to nothing. */
 export function popularityChangeText(change: number): string {
-  return formatSigned(change, { maximumFractionDigits: POPULARITY_DECIMALS });
+  return formatPopularityChange(change);
 }
 
 /** `22`: whole numbers. */

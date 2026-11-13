@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { MINUS_SIGN } from '../format';
-import { formatTraceDelta, formatTraceNumber, formatTraceValue } from './formatTraceValue';
+import { formatPopularity, MINUS_SIGN } from '../format';
+import {
+  formatTraceChange,
+  formatTraceDelta,
+  formatTraceNumber,
+  formatTraceValue,
+} from './formatTraceValue';
 
 describe('formatTraceNumber', () => {
   it('formats money from cents, with a true minus sign for losses', () => {
@@ -10,7 +15,17 @@ describe('formatTraceNumber', () => {
   });
 
   it('rounds a fraction of a cent that a multiplier left behind', () => {
-    expect(formatTraceNumber(12_345.6, 'money')).toBe('$123');
+    expect(formatTraceNumber(12_345.6, 'money')).toBe('$123.46');
+    expect(formatTraceNumber(3_870_320_840.4, 'money')).toBe('$38,703,208');
+  });
+
+  it('shows cents only on a small amount that is not whole dollars', () => {
+    expect(formatTraceNumber(1_250, 'money')).toBe('$12.50');
+    expect(formatTraceNumber(-1_250, 'money')).toBe(`${MINUS_SIGN}$12.50`);
+    expect(formatTraceNumber(1_200, 'money')).toBe('$12');
+    expect(formatTraceNumber(99_999, 'money')).toBe('$999.99');
+    expect(formatTraceNumber(100_050, 'money')).toBe('$1,001');
+    expect(formatTraceNumber(1_250, 'money/month')).toBe('$12.50/month');
   });
 
   it('formats money per month', () => {
@@ -34,8 +49,10 @@ describe('formatTraceNumber', () => {
     expect(formatTraceNumber(1.15, 'multiplier')).toBe('×1.15');
   });
 
-  it('shows points with up to two decimals', () => {
+  it('shows points the way popularity reads everywhere: one decimal at most', () => {
     expect(formatTraceNumber(37.6, 'points')).toBe('37.6');
+    expect(formatTraceNumber(70.29, 'points')).toBe('70.3');
+    expect(formatTraceNumber(70.29, 'points')).toBe(formatPopularity(70.29));
     expect(formatTraceNumber(71, 'points')).toBe('71');
     expect(formatTraceNumber(4, 'points/day')).toBe('4/day');
   });
@@ -88,10 +105,31 @@ describe('formatTraceDelta', () => {
     expect(formatTraceDelta(-4, 'points')).toBe(`${MINUS_SIGN}4`);
     expect(formatTraceDelta(-50_000, 'money')).toBe(`${MINUS_SIGN}$500`);
     expect(formatTraceDelta(2.5, 'percent')).toBe('+2.5%');
+    expect(formatTraceDelta(-33_393_019, 'money')).toBe(`${MINUS_SIGN}$333,930`);
+    expect(formatTraceDelta(500_000, 'money/month')).toBe('+$5,000/month');
+    expect(formatTraceDelta(0.19, 'points')).toBe('+0.2');
+    expect(formatTraceDelta(1.5, 'ratio')).toBe('+1.5');
+    expect(formatTraceDelta(-0.25, 'multiplier')).toBe(`${MINUS_SIGN}×0.25`);
+    expect(formatTraceDelta(0.05, 'probability')).toBe('+5%');
+    expect(formatTraceDelta(30, 'count')).toBe('+30');
+    expect(formatTraceDelta(-2, 'days')).toBe(`${MINUS_SIGN}2 days`);
   });
 
   it('shows a change too small to see as ±0', () => {
     expect(formatTraceDelta(0)).toBe('±0');
     expect(formatTraceDelta(0.001)).toBe('±0');
+  });
+});
+
+describe('formatTraceChange', () => {
+  it('shows cents on a big amount only when rounding to the cent moved it', () => {
+    expect(formatTraceChange(3_035_712.6, 3_035_713, 'money')).toBe('$30,357.13 → $30,357.13');
+    expect(formatTraceChange(3_035_700, 3_035_713, 'money')).toBe('$30,357.00 → $30,357.13');
+    expect(formatTraceChange(3_000_000, 3_600_000, 'money')).toBe('$30,000 → $36,000');
+    expect(formatTraceChange(3_000_000, 3_000_000, 'money')).toBe('$30,000 → $30,000');
+    expect(formatTraceChange(3_035_700, 3_035_713, 'money/month')).toBe(
+      '$30,357.00/month → $30,357.13/month',
+    );
+    expect(formatTraceChange(70.29, 70.31, 'points')).toBe('70.3 → 70.3');
   });
 });

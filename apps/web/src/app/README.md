@@ -212,10 +212,16 @@ off-screen says its card was not booked in detail; a show that has not run says 
 show" for your own.
 
 `routes.game.showResults(id, { reveal: true })` adds `?reveal=1`, which the Next Day summary's
-"See results" links use: the cards come out one at a time (`useRevealSequence`, one every
-`REVEAL_STEP_MS`, faded in with `--motion-base`), then the score, with "Next segment" and "Show
-all" in a bar at the bottom of the screen and a polite live region reading each result. Reduced
-motion (the in-game setting or the OS) shows everything at once. When the reveal ends, `?reveal`
+"See results" links use: the cards start as "Coming up" placeholders at full height and come out
+one per tap (EVT3-10: nothing advances on its own). "Next segment" (Enter or Space on it) or a
+click or tap on the next placeholder reveals one card, faded in with `--motion-base`; after the
+last card the button reads "Show score" and brings out the score and the show report. "Show
+all" reveals everything at once. Both sit in `RevealBar`, sticky at the bottom of the screen (on a
+phone it spans the column above the bottom navigation, 44px buttons side by side at 360px), and a
+polite live region reads each result. `useRevealSequence` only counts steps, so a live show night
+(EVT10) can reuse it and `RevealBar` on its own screen. Reduced motion (the in-game setting or the
+OS) shows everything at once, and so does the setting "Reveal results one segment at a time"
+(`revealOneAtATime`, Settings > Show nights, on by default) when it is off. When the reveal ends, `?reveal`
 is replaced out of the URL, so a reload never plays it again. The parts the page draws are in
 `ResultsBroadcast.tsx`, without engine queries, so the gallery shows them at
 `/dev/gallery#show-results`.
@@ -265,8 +271,8 @@ function useGateReportLine({ view }: ResultsSectionProps): ShowReportLineContent
 Lines are drawn with the built-in ones (new champions 10, title defences 11, appearances 15) in
 `order`, then by id. A line returns null while its data loads or when it has nothing to say; there
 are no placeholders. Register it next to the feature's results section (the same file the page
-already imports). Registered so far: `evt5.fans` (25), `mtch3.popularity` (30) and
-`finance.showMoney` (60).
+already imports). Registered so far: `evt5.fans` (25), `mtch3.popularity` (30),
+`boxOffice.crowd` (35) and `finance.showMoney` (60).
 
 ### Adding a results section
 
@@ -298,6 +304,35 @@ A feature registers its section from its own folder and adds one import line to
 | ----- | ----------------- | --------------------- | ------------------------------------------ |
 | 25    | `evt5.popularity` | Popularity            | `screens/promotion-popularity/register.ts` |
 | 30    | `mtch3.aftermath` | Popularity & momentum | `screens/match-aftermath/register.ts`      |
+
+## Venue and crowd
+
+EVT6-06 puts the box office's venue and forecast queries on two screens, without editing either:
+
+- **Booking panel** `boxOffice.venueCrowd` ("Venue and crowd", side, order 20), registered from
+  `screens/booking/venue/register.tsx` through Booking's feature list. It reads
+  `boxOffice.forecast` (refetched on every world revision, so it follows card and venue changes)
+  and shows the venue's picture, name, region, kind and capacity, the expected range with the
+  forecast's Why?, a "Capped by capacity" note when the venue is too small for the top of the
+  range, and a `VenueFitBadge`. While the show has no venue (the game picks the player's venue the
+  day before the show), it says "Not chosen yet: suggested <venue>" with the pick's Why? ("Why
+  this venue?") and offers **Pick for me** (`booking.autoVenue`). A show that can no longer change
+  (`booking.card`'s `canEdit` is false) is read-only; a rival's show reads "Crowd forecasts are only
+  available for your own shows". No phone summary: on a phone the panel sits in the page.
+- **Change venue** opens `VenuePickerSheet` ("Choose a venue"; a full-height bottom sheet on a
+  phone), which reads `boxOffice.venues` only while open. Venues are grouped "In <region>",
+  "Elsewhere in <country>", "Abroad" (behind "Show venues in other countries", `scope: 'world'`)
+  and "Local venues (generic)", each with its expected range, fit and Preferred / Current badges.
+  Closed, exclusive and taken venues stay in the list as unavailable `RadioGroup` options: still
+  reachable by keyboard, `aria-disabled`, the reason in their description. Picking a row only
+  selects it, so moving through the list with the arrow keys sends nothing; **Use this venue**
+  sends `booking.setVenue` and the sheet's **Pick for me** `booking.autoVenue`. A refusal shows in
+  the sheet, which stays open; success closes it.
+- **Calendar sheet line**: the show sheet's `boxOffice.crowd` section ("Crowd", order 5,
+  `screens/box-office/ShowCrowdSection.tsx`, registered by the router) shows the expected range,
+  its Why? and the fit for your own shows still to run. The venue itself stays in the sheet's facts
+  row, which also names a generic local venue from the row's `genericVenue`. The attendance of a
+  settled show comes with EVT6-05's `boxOffice.showCrowd`.
 
 ## Finances
 
@@ -345,7 +380,8 @@ that is taken and returns a function that removes the panel again.
 | 90+   | News and social          |
 
 Registered so far: **World clock** (side, 10) and **World overview** (main, 20, seats with no
-promotion only), both in `screens/office/panels/`.
+promotion only), both in `screens/office/panels/`. A panel that wants the Fan base sheet calls the context's
+`openFanBase(promotionId)` (the world overview does, once per row) instead of drawing a sheet.
 
 ## The shell's look
 
@@ -426,6 +462,22 @@ and links to their results (see [Show results](#show-results)).
 - **Status chips** come from `status/StatusChips.tsx`. Another system adds one with
   `registerStatusChip({ id, order, render })` (`status/statusChipRegistry.ts`) instead of editing
   the shell. Profile tabs work the same way: see [Adding a profile tab](#adding-a-profile-tab).
+- **The popularity chip** shows the headline popularity (`sim.status.promotion.popularity.headline`,
+  docs/design/office.md#headline-popularity) with its stored Why?, prestige under it, and a map
+  button ("Open fan base") that opens the **Fan base sheet** (`status/FanBaseSheet.tsx`). In the
+  phone's status sheet the button is a full-width "Fan base" row; the top bar keeps the one sheet,
+  opens it while the status sheet is still there and then closes the status sheet, so sheets never
+  stack and focus goes back to the date button (`data-return-focus-to`). A world with no headline
+  yet (made before DAY2, until its first Monday) keeps the home-region value with the Why? built on
+  the spot and no button. The sheet asks `office.fanBase`, `office.series` and `tunables.list` only
+  while open; the Office's Popularity card and the world overview rows open the same sheet (one
+  per screen, state in the screen). See docs/design/office.md#fan-base.
+- **Fan base columns.** Another feature adds a figure to every region row of the Fan base sheet
+  with `registerFanBaseColumn({ id, label, render: (regionId, { promotionId }) => node })`
+  (`status/fanBaseColumnRegistry.ts`, exported from `status/index.ts`); `render` returning null
+  shows nothing on that row. The sheet hands the columns to `PopularityDrilldown` through its
+  `regionExtras` prop, so neither changes when a column arrives. EVT5-04's "This month" is the
+  expected first user.
 
 ## Rules
 

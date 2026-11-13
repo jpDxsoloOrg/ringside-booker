@@ -10,6 +10,11 @@ export interface StatusChipContext {
   /** The engine's `sim.status` answer for the local seat. */
   readonly status: SimStatus;
   readonly placement: StatusChipPlacement;
+  /**
+   * Opens the Fan base sheet for the seat's promotion (DAY2-05). Set by the top bar, which owns
+   * the one sheet and closes the phone's status sheet first; left out, a chip opens its own.
+   */
+  readonly openFanBase?: () => void;
 }
 
 /** One chip a system adds to the top bar, such as morale. */

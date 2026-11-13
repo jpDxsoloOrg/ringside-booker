@@ -151,6 +151,20 @@ describe('SettingsScreen', () => {
     );
   });
 
+  it('turns the one-segment-at-a-time reveal off and on under Show nights', async () => {
+    const user = userEvent.setup({ delay: null });
+    renderSettings();
+    await findHeading();
+
+    const toggle = screen.getByRole('switch', { name: 'Reveal results one segment at a time' });
+    expect(toggle).toBeChecked();
+    await user.click(toggle);
+    expect(toggle).not.toBeChecked();
+    expect(useSettingsStore.getState().settings.revealOneAtATime).toBe(false);
+    await user.click(toggle);
+    expect(useSettingsStore.getState().settings.revealOneAtATime).toBe(true);
+  });
+
   it('resets every setting after confirming', async () => {
     const user = userEvent.setup();
     renderSettings();

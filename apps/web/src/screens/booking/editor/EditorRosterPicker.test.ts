@@ -37,7 +37,7 @@ describe('EditorRosterPicker rows', () => {
     const picked = pickerPerson(row, CONTEXT);
     expect(picked.typeLabel).toBe('High flyer');
     expect(picked.stats).toEqual([
-      { key: 'popularity', short: 'Pop', label: 'Popularity in Greater Lakes', value: 55 },
+      { key: 'popularity', short: 'Pop', label: 'Popularity in Greater Lakes', value: 54.6 },
       { key: 'stamina', short: 'Stamina', label: 'Stamina', value: 72 },
     ]);
     expect(statsNoteText('Greater Lakes')).toBe(

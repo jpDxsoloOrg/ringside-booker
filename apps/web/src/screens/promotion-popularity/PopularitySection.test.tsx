@@ -79,7 +79,7 @@ describe('PopularitySection', () => {
     );
     expect(heading).toBeInTheDocument();
     const states = screen.getByRole('grid', { name: 'Regions in United States' });
-    expect(within(states).getByText('down 1.48')).toBeInTheDocument();
+    expect(within(states).getByText('down 1.5')).toBeInTheDocument();
   });
 
   it.each([
