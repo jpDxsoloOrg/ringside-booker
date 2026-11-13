@@ -163,6 +163,15 @@
     min-block-size: var(--tap-target-min);
   }
 
+  /*
+   * A Why? beside a value keeps its 44px target but takes only a line's height in the layout, as
+   * the hidden-padding links do. Otherwise it centres its value in 44px and the value sits lower
+   * than the plain values beside it (Popularity next to Momentum and Morale).
+   */
+  .table li[data-row-id] .explained button {
+    margin-block: calc(-1 * var(--tap-pad-block));
+  }
+
   /* The corner checkbox on a wrestler's card also takes its own taps, above the name's link. */
   .table li[data-row-id] label {
     position: relative;
