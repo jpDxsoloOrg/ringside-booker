@@ -327,8 +327,8 @@ export const healthTunables = defineTunables({
   },
   'health.stopOnOwnInjury': {
     kind: 'boolean',
-    // Off until the injury screens can clear the stop (WRK6-05/06); WRK6-06 turns it on.
-    default: false,
+    // On: the Roster button on the day control (WRK6-06) opens a screen that clears the stop.
+    default: true,
     unit: 'flag',
     category: HEALTH_TUNABLE_CATEGORY,
     description: 'Stop the day when one of your own workers gets hurt, so you see it straight away',

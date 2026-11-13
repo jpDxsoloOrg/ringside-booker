@@ -611,3 +611,45 @@ describe('workers.list on the default world', () => {
     expect(ATTRIBUTE_KEYS).toContain('mic');
   });
 });
+
+describe('workers.list: injured people (WRK6-06)', () => {
+  /** Promotion A has two wrestlers; the second is out with the test arm injury. */
+  function injuredWorld(): { engine: Engine; fit: PersonId; hurt: PersonId } {
+    const { world, ids } = worldBuilder()
+      .withGeography('mini')
+      .withInjuryCatalog()
+      .withPromotion({ name: 'Test Promotion A' }, (promotion) => promotion.withRoster(2))
+      .withInjury(1)
+      .build();
+    const engine = createEngine({
+      state: initialEngineState(world),
+      systems: [simSystem, workersSystem],
+      debugChecks: true,
+    });
+    return {
+      engine,
+      fit: required(ids.people[0], 'the fit wrestler'),
+      hurt: required(ids.people[1], 'the injured wrestler'),
+    };
+  }
+
+  it('keeps only the injured with availability ["injured"], with the injury on the row', () => {
+    const { engine, hurt } = injuredWorld();
+    const list = listOf(engine, { filters: { availability: ['injured'] } });
+
+    expect(idsOf(list)).toEqual([hurt]);
+    expect(list.rows[0]?.availability.status).toBe('injured');
+    expect(list.rows[0]?.injury).toEqual({
+      label: 'Test arm injury',
+      bodyPart: 'arms',
+      expectedReturn: list.rows[0]?.availability.until,
+      daysRemaining: 14,
+    });
+  });
+
+  it('leaves the injury null for everyone who is not injured', () => {
+    const { engine, fit } = injuredWorld();
+    const rows = new Map(listOf(engine).rows.map((row) => [row.personId, row]));
+    expect(rows.get(fit)?.injury).toBeNull();
+  });
+});

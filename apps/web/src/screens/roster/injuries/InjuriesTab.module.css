@@ -1,0 +1,79 @@
+/*
+ * Your promotion > Roster > Injuries (WRK6-06), in the office register like the role tabs: a short
+ * line of help, then the table. Below --bp-mobile DataTable turns rows into cards; the name's link
+ * then stretches over its card, and the Why? sits above that layer with its own 44px tap box, so
+ * nothing here can make the page scroll sideways. Tokens only.
+ */
+.injuries {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.intro {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.table {
+  min-inline-size: 0;
+}
+
+.nameCell {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  max-inline-size: 18rem;
+}
+
+/* A name that opens the Health tab: the data colour, as WorkerLink draws a name. */
+.name {
+  color: var(--color-data);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.name:hover,
+.name:focus-visible {
+  text-decoration: underline;
+}
+
+.daysLeft {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+@media (pointer: coarse) {
+  .name {
+    padding-block: var(--tap-pad-block);
+    margin-block: calc(-1 * var(--tap-pad-block));
+  }
+}
+
+@media (--bp-mobile) {
+  .nameCell {
+    max-inline-size: none;
+  }
+
+  .table li[data-row-id] {
+    position: relative;
+  }
+
+  .table li[data-row-id] .name::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .table li[data-row-id] button {
+    position: relative;
+    z-index: 1;
+    min-block-size: var(--tap-target-min);
+  }
+}

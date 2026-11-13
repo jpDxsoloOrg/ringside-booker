@@ -698,6 +698,7 @@ export type {
   WorkerListSort,
   WorkerRow,
   WorkerRowAvailability,
+  WorkerRowInjury,
   WorkerRowEmployer,
   WorkerRowTopPopularity,
   WorkerSortDirection,
@@ -2526,3 +2527,6 @@ export {
   type InjuryView,
   type OffscreenInjuryChanceInputs,
 } from './systems/health/index';
+
+// Who is out (WRK6-06): `health.report`, every open injury in the world or one promotion's.
+export { type HealthReport, type HealthReportArgs, type InjuredRow } from './systems/health/index';

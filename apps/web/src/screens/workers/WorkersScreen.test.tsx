@@ -3,7 +3,7 @@ import { userEvent } from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { beforeEach, describe, expect, it } from 'vitest';
-import type { PersonId, QueryName, WorkerListArgs } from '@ringside/engine';
+import type { EngineState, PersonId, QueryName, WorkerListArgs } from '@ringside/engine';
 import { tinyWorld } from '@ringside/engine/testing';
 import { EngineProvider } from '@/app/engine/EngineProvider';
 import { createInProcessTransport } from '@/app/engine/transport';
@@ -13,7 +13,7 @@ import { routes } from '@/app/routes';
 import { useSessionStore } from '@/app/session/sessionStore';
 import { useTracePanelStore } from '@/components/Trace';
 import { BP_MOBILE_QUERY } from '@/styles/breakpoints';
-import { fakeEngineFactory, fakeEngineState } from '@/test/fakeEngine';
+import { fakeEngineFactory, fakeEngineState, healthFakeState } from '@/test/fakeEngine';
 import { setMatchMedia } from '@/test/matchMedia';
 import { filtersButtonText, workersCountText } from './WorkersScreen';
 
@@ -30,11 +30,13 @@ interface Asked {
 interface RenderOptions {
   /** Refuse every `workers.list`, as an engine with no world would. */
   readonly refuseList?: boolean;
+  /** The world to load: the fake engine's tiny world by default. */
+  readonly state?: EngineState;
 }
 
 function renderWorkers(path: string = routes.game.workers(), options: RenderOptions = {}) {
   const transport = createInProcessTransport(fakeEngineFactory(), { progressIntervalMs: 0 });
-  const install = transport.host.installEngine(fakeEngineState());
+  const install = transport.host.installEngine(options.state ?? fakeEngineState());
   useSessionStore.getState().setLoaded({ saveSlotId: null, seat: install.seat });
 
   const asked: Asked[] = [];
@@ -425,5 +427,50 @@ describe('WorkersScreen on a phone', () => {
       'href',
       `${routes.game.workers()}/${personId}`,
     );
+  });
+});
+
+describe('the Injured quick filter (WRK6-06)', () => {
+  it('shows nobody injured as an empty state, not an error', async () => {
+    const { router, user, listArgs } = renderWorkers();
+    await findRows();
+
+    const toggle = screen.getByRole('button', { name: 'Injured' });
+    expect(toggle).toHaveAttribute('aria-pressed', 'false');
+    await user.click(toggle);
+
+    await waitFor(() => {
+      expect(router.state.location.search).toBe('?availability=injured');
+    });
+    await waitFor(() => {
+      expect(listArgs().at(-1)).toEqual({ filters: { availability: ['injured'] } });
+    });
+    expect(await screen.findByText('Nobody is injured')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Injured' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('lists everyone hurt with the injury and the return date, and turns off again', async () => {
+    const { people, state } = healthFakeState();
+    const { router, user } = renderWorkers(`${routes.game.workers()}?availability=injured`, {
+      state,
+    });
+
+    const rows = await findRows();
+    expect(rows.map((row) => row.dataset['rowId']).sort()).toEqual(
+      [people.injured, people.rivalInjured].sort(),
+    );
+    const table = await findTable();
+    expect(within(table).getByRole('columnheader', { name: /Injury/ })).toBeInTheDocument();
+    expect(within(table).getByRole('columnheader', { name: /Back on/ })).toBeInTheDocument();
+    expect(within(table).getAllByText(/^Test .* injury · /).length).toBe(2);
+    expect(within(table).getAllByText(/days? left$/).length).toBe(2);
+
+    await user.click(screen.getByRole('button', { name: 'Injured' }));
+    await waitFor(() => {
+      expect(router.state.location.search).toBe('');
+    });
+    await waitFor(() => {
+      expect(within(table).queryByRole('columnheader', { name: /Back on/ })).toBeNull();
+    });
   });
 });

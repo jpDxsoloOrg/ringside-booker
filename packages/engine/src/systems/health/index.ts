@@ -149,9 +149,13 @@ export {
   fatigueBandOf,
   HEALTH_PROFILE_HISTORY_LIMIT,
   healthProfileQuery,
+  healthReportQuery,
   type BodyPartHealth,
   type FatigueBand,
   type HealthProfile,
+  type HealthReport,
+  type HealthReportArgs,
+  type InjuredRow,
   type InjuryView,
 } from './queries';
 

@@ -11,11 +11,12 @@ import { Button } from '@/components/Button';
 import { DataTable } from '@/components/DataTable';
 import type { SortState } from '@/components/DataTable';
 import { EmptyState } from '@/components/EmptyState';
+import type { EmptyStateProps } from '@/components/EmptyState';
 import { formatNumber } from '@/components/format';
 import { Sheet } from '@/components/Sheet';
 import { useTracePanelStore } from '@/components/Trace';
 import { useIsMobile } from '@/styles/useMediaQuery';
-import { compareWorkerTies, WORKER_COLUMNS } from './workerColumns';
+import { compareWorkerTies, INJURED_WORKER_COLUMNS, WORKER_COLUMNS } from './workerColumns';
 import { NO_WORKER_FACETS, WorkersFilterBar } from './WorkersFilterBar';
 import {
   activeFilterCount,
@@ -58,6 +59,29 @@ export function workersCountText(total: number, freeAgents: number): string {
 /** The phone's filter button: "Filters", or "Filters (2)" while some are set. */
 export function filtersButtonText(activeCount: number): string {
   return activeCount === 0 ? 'Filters' : `Filters (${String(activeCount)})`;
+}
+
+/** What the empty list says: nobody hurt, nobody matching, or an empty world. */
+function emptyCopy(
+  activeCount: number,
+  injuredOnly: boolean,
+  clearFilters: () => void,
+): Pick<EmptyStateProps, 'title' | 'body' | 'action'> {
+  if (injuredOnly && activeCount === 1) {
+    return { title: 'Nobody is injured', body: 'Everyone in the world is fit to work.' };
+  }
+  if (activeCount > 0) {
+    return {
+      title: 'Nobody matches these filters',
+      body: 'Loosen a filter, or clear them all.',
+      action: (
+        <Button size="sm" onClick={clearFilters}>
+          Clear filters
+        </Button>
+      ),
+    };
+  }
+  return { title: 'Nobody to show', body: 'This world has no people in it.' };
 }
 
 /**
@@ -110,6 +134,11 @@ export function WorkersScreen() {
   const clearFilters = (): void => {
     changeFilters(NO_WORKERS_FILTERS);
   };
+  // The "Injured" quick filter is the availability filter set to injured (`?availability=injured`).
+  const injuredOnly = filters.availability === 'injured';
+  const toggleInjured = (): void => {
+    changeFilters({ ...filters, availability: injuredOnly ? null : 'injured' });
+  };
 
   // One tree for every state, so the heading RouteFocus focused on arrival stays mounted when the
   // query settles into an error: swapping in a second heading dropped focus to <body>.
@@ -138,6 +167,17 @@ export function WorkersScreen() {
         />
       ) : (
         <>
+          <div className={styles['quickFilters']}>
+            <Button
+              size="sm"
+              variant={injuredOnly ? 'primary' : 'secondary'}
+              iconStart="injured"
+              aria-pressed={injuredOnly}
+              onClick={toggleInjured}
+            >
+              Injured
+            </Button>
+          </div>
           {isMobile ? (
             <div className={styles['filterButton']}>
               <Button
@@ -186,7 +226,7 @@ export function WorkersScreen() {
           <DataTable
             className={styles['table']}
             rows={rows}
-            columns={WORKER_COLUMNS}
+            columns={injuredOnly ? INJURED_WORKER_COLUMNS : WORKER_COLUMNS}
             getRowId={rowId}
             compareTies={compareWorkerTies}
             getRowLabel={rowLabel}
@@ -203,17 +243,7 @@ export function WorkersScreen() {
             emptyState={
               <EmptyState
                 icon="user-search"
-                title={activeCount > 0 ? 'Nobody matches these filters' : 'Nobody to show'}
-                {...(activeCount > 0
-                  ? {
-                      body: 'Loosen a filter, or clear them all.',
-                      action: (
-                        <Button size="sm" onClick={clearFilters}>
-                          Clear filters
-                        </Button>
-                      ),
-                    }
-                  : { body: 'This world has no people in it.' })}
+                {...emptyCopy(activeCount, injuredOnly, clearFilters)}
               />
             }
           />

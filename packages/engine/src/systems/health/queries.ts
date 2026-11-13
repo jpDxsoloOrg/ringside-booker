@@ -12,7 +12,10 @@
  * came from a roll (fatigue recovery, an injury's time out, condition lost and the chance behind
  * it) are stored, and come back as references, or null once the trace is gone.
  *
- * Design: docs/design/health.md#the-health-profile.
+ * `health.report` (WRK6-06) answers "who is out right now?": every open injury in the world, or
+ * only one promotion's, with the name and employer a list needs. It is public for the same reason.
+ *
+ * Design: docs/design/health.md#the-health-profile and #who-is-out.
  */
 
 import { z } from 'zod';
@@ -25,12 +28,20 @@ import type { TraceRef } from '../../core/trace/store';
 import type { Traced } from '../../core/trace/types';
 import { injuryKindOf, type InjurySeverity } from '../../model/catalogs';
 import type { InjuryRecord, InjurySource } from '../../model/entities/injury';
-import { BODY_PARTS, type BodyPart, type Person } from '../../model/entities/person';
+import {
+  BODY_PARTS,
+  type BodyPart,
+  type Person,
+  type PersonRole,
+} from '../../model/entities/person';
 import { zId } from '../../model/primitives';
 import type { DeepReadonly } from '../../model/world';
-import { activeEmploymentsOf } from '../workers/helpers/employment';
+import { compareIds } from '../../model/table';
+import { activeEmploymentsOf, primaryEmploymentOf } from '../workers/helpers/employment';
 import { computeConditionCap } from './formulas/conditionCap';
 import { computeConditionRecovery } from './formulas/conditionRecovery';
+import { mayAcknowledge } from './commands';
+import { injuriesAwaitingNotice } from './gate';
 import { injuryConditionLossTraceRef, injuryRecordChanceTraceRef, injuryTraceRef } from './injure';
 import { medicalLevelOf, type MedicalLevel } from './medical';
 import { fatigueRecoveryTraceRef } from './phases';
@@ -127,9 +138,41 @@ export interface HealthProfile {
   history: InjuryView[];
 }
 
+/** One injured person in `health.report`: their current injury plus what a list shows of them. */
+export interface InjuredRow extends InjuryView {
+  personId: PersonId;
+  /** The ring name at the employer the report is for (else their main one), or their default. */
+  name: string;
+  /** The stored image reference, or null for none. */
+  imageRef: string | null;
+  /** Their main employer, or null for a free agent. */
+  employer: { promotionId: PromotionId; name: string } | null;
+  roles: PersonRole[];
+}
+
+/** `health.report`: who is out on `asOf`, soonest back first. */
+export interface HealthReport {
+  asOf: GameDate;
+  rows: InjuredRow[];
+  /**
+   * Every injury still waiting to be seen that the viewer may mark as seen, lowest id first,
+   * whatever the scope: their own workers' (listed or not, open or healed) and any whose worker no
+   * human employs any more. A screen that clears the own-injury stop sends all of these, so the stop
+   * never waits on an injury the list does not show. Empty for the computer and the omniscient
+   * viewer.
+   */
+  waitingForViewer: InjuryId[];
+}
+
+export interface HealthReportArgs {
+  /** Only people with a working contract at this promotion; everyone in the world when left out. */
+  promotionId?: PromotionId | undefined;
+}
+
 declare module '../../core/api/maps' {
   interface QueryMap {
     'health.profile': { args: { personId: PersonId }; result: HealthProfile | null };
+    'health.report': { args: HealthReportArgs; result: HealthReport };
   }
 }
 
@@ -249,4 +292,72 @@ export const healthProfileQuery: QueryDefinition<'health.profile'> = defineQuery
   },
 });
 
-export const healthQueries: readonly QueryDefinition[] = [healthProfileQuery];
+/** Lower-cased code-unit order, the same on every machine (as `workers.list` sorts names). */
+function compareNames(left: string, right: string): number {
+  const leftName = left.toLowerCase();
+  const rightName = right.toLowerCase();
+  return leftName < rightName ? -1 : leftName > rightName ? 1 : 0;
+}
+
+/** Soonest back first, then by name, then by id so the order never depends on storage. */
+function soonestBackFirst(left: InjuredRow, right: InjuredRow): number {
+  return (
+    compareDates(left.expectedReturn, right.expectedReturn) ||
+    compareNames(left.name, right.name) ||
+    compareIds(left.personId, right.personId)
+  );
+}
+
+export const healthReportQuery: QueryDefinition<'health.report'> = defineQuery('health.report', {
+  args: z.strictObject({ promotionId: zId('promotion').optional() }),
+  run: (ctx, args) => {
+    const own = new Set(viewerPromotionIds(ctx.read, ctx.viewer));
+    const rows: InjuredRow[] = [];
+    // The pointer on the person marks the open injury, so only the hurt are looked up.
+    for (const person of ctx.read.tables.people.values()) {
+      if (person.injury === null) {
+        continue;
+      }
+      const injury = ctx.read.tables.injuries.lookupOne('openByPerson', person.id);
+      if (injury === undefined) {
+        continue;
+      }
+      const employments = activeEmploymentsOf(ctx.read, person.id, ctx.date);
+      const atPromotion =
+        args.promotionId === undefined
+          ? undefined
+          : employments.find((employment) => employment.promotionId === args.promotionId);
+      if (args.promotionId !== undefined && atPromotion === undefined) {
+        continue;
+      }
+      const primary = primaryEmploymentOf(ctx.read, person.id, ctx.date);
+      const named = atPromotion ?? primary;
+      const viewerIsEmployer = employments.some((employment) => own.has(employment.promotionId));
+      rows.push({
+        ...injuryView(ctx, injury, viewerIsEmployer),
+        personId: person.id,
+        name: named?.ringName ?? person.defaultRingName,
+        imageRef: person.imageRef,
+        employer:
+          primary === null
+            ? null
+            : {
+                promotionId: primary.promotionId,
+                name: ctx.read.tables.promotions.get(primary.promotionId)?.name ?? '',
+              },
+        roles: [...person.roles],
+      });
+    }
+    rows.sort(soonestBackFirst);
+    const { viewer } = ctx;
+    const waitingForViewer =
+      viewer.kind === 'controller' && viewer.controller.kind === 'human'
+        ? injuriesAwaitingNotice(ctx.read)
+            .filter((injury) => mayAcknowledge(ctx.read, injury, viewer.controller))
+            .map((injury) => injury.id)
+        : [];
+    return { asOf: ctx.date, rows, waitingForViewer };
+  },
+});
+
+export const healthQueries: readonly QueryDefinition[] = [healthProfileQuery, healthReportQuery];

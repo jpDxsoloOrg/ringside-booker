@@ -535,3 +535,39 @@ them.
 | ECO1 (policies)              | wired (WRK6-07)          | `registerPolicyEffect` `health.medicalCare` (`policyEffects.ts`): the medical policy's preview lines ([medical care](#medical-care)).                                                                                                                                                                     |
 | WRK2 (roster)                | wired, no code needed    | The roster's availability column comes from `availabilityOf`, so it marks injured workers. The roster's Injuries tab and the own-injury gate's route belong to WRK6-06.                                                                                                                                   |
 | SOC1, WRK4, DAY7, MOD8, POL3 | wires from its own pack  | Not on `main` when WRK6-07 ran (no mail, snapshot-field, world-event-effect, hook or `defineFormula` seam). Each pack's integration ticket lists WRK6: injury mail, the health snapshot fields, the `health.injure` world-event effect, the recovery hook point, and the formula registry.                |
+
+## Who is out
+
+`health.report { promotionId? }` (`queries.ts`, WRK6-06) answers "who is out
+right now?": `{ asOf, rows, waitingForViewer }`.
+
+- `rows`: every open injury in the world, or only people with a working
+  contract at `promotionId` when given (free agents only appear world-wide).
+  Each row is an [`InjuryView`](#the-health-profile) plus `personId`, `name`
+  (the ring name at that promotion, else at their main employer, else their
+  own), `imageRef`, `employer` (`{ promotionId, name }` of the main employer,
+  or `null`) and `roles`. Sorted by `expectedReturn`, then name, then id.
+  Public like the profile; `pendingNotice` follows the same viewer rule.
+- `waitingForViewer`: the ids of every injury still waiting to be noticed that
+  the viewer may mark as seen (`mayAcknowledge` in `commands.ts`), whatever the
+  scope: their own workers' and any whose worker no human employs any more.
+  Empty for the computer and the omniscient viewer.
+
+**The Injuries tab** (`apps/web/src/screens/roster/injuries/`) is Your
+promotion > Roster > Injuries, registered with `registerRosterTab` at its
+reserved order 70 (`?tab=injuries`). It lists the player's promotion's rows,
+soonest back first: picture, name (opening the worker's Health tab), injury,
+body part, severity, since, back on, days left with a Why? for the time out,
+and whether they can work angles. On opening it runs
+`health.acknowledgeInjuries` once for every id in `waitingForViewer` and every
+row still `pendingNotice`, so the [own-injury gate](#own-injury-gate) is cleared
+even when the injury that waits is not on the list.
+
+**The day control's button.** The gate's `roster` hint reads "Roster" and goes
+to the Injuries tab (`apps/web/src/app/AppShell/day/dayControlState.ts`). The
+tab's registration tells the day control it exists
+(`setRosterInjuriesTabAvailable`); without it the button opens the injured
+worker's Health tab (`?tab=health`), or World > Workers with
+`?availability=injured` when the gate names nobody. Decisions in the inbox and a
+show night both outrank it. `health.stopOnOwnInjury` is on by default now that
+the button clears the stop in one tap.

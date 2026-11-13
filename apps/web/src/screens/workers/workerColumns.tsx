@@ -3,11 +3,17 @@ import type { WorkerRow } from '@ringside/engine';
 import { AvailabilityChip } from '@/components/AvailabilityChip';
 import { Badge } from '@/components/Badge';
 import type { ColumnDef } from '@/components/DataTable';
-import { formatNumber, formatPopularity, roundPopularity } from '@/components/format';
+import {
+  formatGameDate,
+  formatNumber,
+  formatPopularity,
+  roundPopularity,
+} from '@/components/format';
 import { ImageSlot } from '@/components/ImageSlot';
 import type { ImageSubject } from '@/components/ImageSlot';
 import { LazyWhyButton } from '@/components/Trace';
 import { WorkerLink } from '@/components/WorkerLink';
+import { BODY_PART_LABELS, daysLeftText } from './health/healthText';
 import { FREE_AGENT_LABEL, WORKER_ROLE_LABELS } from './workerLabels';
 import styles from './WorkersScreen.module.css';
 
@@ -163,6 +169,42 @@ export const WORKER_COLUMNS: readonly ColumnDef<WorkerRow>[] = [
     ),
     card: 'meta',
   },
+];
+
+/**
+ * The two columns the "Injured" quick filter adds (WRK6-06): what the injury is, and when they are
+ * back. On a phone card the injury joins the subtitle and the return date goes in the small print.
+ */
+export const INJURY_COLUMNS: readonly ColumnDef<WorkerRow>[] = [
+  {
+    id: 'injury',
+    header: 'Injury',
+    cell: (row) =>
+      row.injury === null ? (
+        <span className={styles['none']}>{NONE}</span>
+      ) : (
+        `${row.injury.label} · ${BODY_PART_LABELS[row.injury.bodyPart]}`
+      ),
+    filterValue: (row) => row.injury?.label ?? null,
+    card: 'subtitle',
+  },
+  {
+    id: 'backOn',
+    header: 'Back on',
+    cell: (row) =>
+      row.injury === null ? (
+        <span className={styles['none']}>{NONE}</span>
+      ) : (
+        <span className="tabular">{`${formatGameDate(row.injury.expectedReturn)} · ${daysLeftText(row.injury.daysRemaining)}`}</span>
+      ),
+    card: 'meta',
+  },
+];
+
+/** The list's columns with the injury ones added, for the "Injured" quick filter. */
+export const INJURED_WORKER_COLUMNS: readonly ColumnDef<WorkerRow>[] = [
+  ...WORKER_COLUMNS,
+  ...INJURY_COLUMNS,
 ];
 
 function lowerCaseOrder(left: string, right: string): number {

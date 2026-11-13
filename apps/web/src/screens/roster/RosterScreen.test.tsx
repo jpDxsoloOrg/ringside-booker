@@ -224,9 +224,12 @@ describe('RosterScreen', () => {
       'Referees',
       'Producers',
       'Others',
+      // Registered by WRK6-06 (no count badge).
+      'Injuries',
     ]);
     await waitFor(() => {
-      expect(tabs.reduce((total, tab) => total + tabCount(tab), 0)).toBe(ROSTER_SIZE);
+      const roleTabs = tabs.filter((tab) => !tab.textContent.startsWith('Injuries'));
+      expect(roleTabs.reduce((total, tab) => total + tabCount(tab), 0)).toBe(ROSTER_SIZE);
     });
     expect(tabs[0]).toHaveAttribute('aria-selected', 'true');
   });
@@ -373,7 +376,8 @@ describe('RosterScreen with a registered tab', () => {
       await screen.findByText('Test panel for Test Promotion A', {}, { timeout: LOAD_MS }),
     ).toBeInTheDocument();
     const tabs = within(screen.getByRole('tablist')).getAllByRole('tab');
-    expect(tabs).toHaveLength(7);
+    // Six role tabs, the app's own Injuries tab (also order 70, registered first), then this one.
+    expect(tabs).toHaveLength(8);
     expect(tabs.at(-1)).toHaveTextContent(/^Test injuries/);
     expect(tabs.at(-1)).toHaveAttribute('aria-selected', 'true');
     expect(tabCount(tabs.at(-1) ?? tabs[0] ?? document.body)).toBe(0);
