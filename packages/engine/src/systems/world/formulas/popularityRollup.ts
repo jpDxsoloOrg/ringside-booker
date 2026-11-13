@@ -151,6 +151,38 @@ export function popularityRollup(
   };
 }
 
+/** The world, one country and one continent of a roll-up: what a headline figure reads. */
+export interface PopularityRollupPart {
+  readonly world: Traced<number>;
+  readonly country: Traced<number>;
+  readonly continent: Traced<number>;
+  readonly regions: ReadonlyMap<RegionId, number>;
+}
+
+/**
+ * The world, `countryId`'s and `continentId`'s entries of {@link popularityRollup}, value and trace
+ * for value and trace, without working out every other country and continent (POL4-09: a
+ * promotion's headline Why? is re-recorded every time its popularity moves).
+ */
+export function popularityRollupPart(
+  regionalPop: RegionalPopularity,
+  geography: Geography,
+  part: { readonly countryId: CountryId; readonly continentId: ContinentId },
+  options: PopularityRollupOptions = {},
+): PopularityRollupPart {
+  const regions = regionValues(regionalPop, geography);
+  const aggregateOptions = {
+    valueLabel: options.valueLabel ?? DEFAULT_VALUE_LABEL,
+    unit: 'points',
+  } as const;
+  return {
+    world: geography.aggregateWorld(regions, aggregateOptions),
+    country: geography.aggregateCountry(part.countryId, regions, aggregateOptions),
+    continent: geography.aggregateContinent(part.continentId, regions, aggregateOptions),
+    regions,
+  };
+}
+
 /** One member of a group and its share of the group's population. */
 interface Share<Id> {
   readonly id: Id;

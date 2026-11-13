@@ -83,6 +83,18 @@ export interface Geography {
    * regions are in that country's own aggregate.
    */
   aggregateWorld(values: ReadonlyMap<RegionId, number>, options?: AggregateOptions): Traced<number>;
+  /** One country's entry of {@link Geography.aggregateByCountry}, without working out the rest. */
+  aggregateCountry(
+    countryId: CountryId,
+    values: ReadonlyMap<RegionId, number>,
+    options?: AggregateOptions,
+  ): Traced<number>;
+  /** One continent's entry of {@link Geography.aggregateByContinent}, without the rest. */
+  aggregateContinent(
+    continentId: ContinentId,
+    values: ReadonlyMap<RegionId, number>,
+    options?: AggregateOptions,
+  ): Traced<number>;
 }
 
 function compareIds(left: string, right: string): number {
@@ -304,6 +316,12 @@ export function createGeography(source: GeographySource): Geography {
         population: entry.population,
       }));
       return weightedMean(`${valueLabel} worldwide`, parts, options, 'No continents, so 0');
+    },
+    aggregateCountry(countryId, values, options = {}) {
+      return countryAggregate(country(countryId), values, options);
+    },
+    aggregateContinent(continentId, values, options = {}) {
+      return continentAggregate(continent(continentId), values, options, true);
     },
   };
 }
