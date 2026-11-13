@@ -257,3 +257,36 @@ export {
   cardDetailCutoff,
   pruneCardDetailPhase,
 } from './pruneCardDetail';
+// AIP4-06: Auto-fill for the player's own card and the Shows tab's cards.
+export {
+  aipCardCommands,
+  AUTO_FILL_COMMAND,
+  AUTO_FILL_REASON_CODES,
+  autoFillCardCommand,
+  CARD_FULL_MESSAGE,
+  NO_CATALOG_MESSAGE,
+  SHOW_NOT_FOUND_MESSAGE,
+  type AutoFillCardArgs,
+  type AutoFilledSlot,
+  type AutoFillOpenSlot,
+  type AutoFillReasonCode,
+  type AutoFillResult,
+} from './commands';
+export {
+  aipShowCardsQuery,
+  CANCELLATION_REASON_TEXT,
+  CARD_HIDDEN_TEXT,
+  DEFAULT_PAST_SHOWS,
+  DEFAULT_UPCOMING_SHOWS,
+  MAX_PAST_SHOWS,
+  MAX_UPCOMING_SHOWS,
+  SHOW_CARD_STATUS_LABELS,
+  type ShowCardPerson,
+  type ShowCardRow,
+  type ShowCards,
+  type ShowCardsArgs,
+  type ShowCardSegment,
+  type ShowCardSide,
+  type ShowCardSlot,
+  type ShowCardStatusLabel,
+} from './queries';
