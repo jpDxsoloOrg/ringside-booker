@@ -355,6 +355,10 @@ test.describe('rival cards and Auto-fill on a new game', () => {
       }
       await expect(aired).not.toContainText(NO_TIMES);
       await expectNoHorizontalScroll(page);
+      // From the top: a Why? scrolled under the sticky top bar reads as an obscured tap target.
+      await page.evaluate(() => {
+        window.scrollTo(0, 0);
+      });
       await expectNoSeriousA11yViolations(page);
       await matches.last().scrollIntoViewIfNeeded();
       await shot(page, 'shows-tab-results', testInfo.project.name);

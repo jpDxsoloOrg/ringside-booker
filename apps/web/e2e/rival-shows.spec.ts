@@ -109,6 +109,11 @@ test.describe('rival shows and Auto-fill', () => {
       await expect(next.getByText('Card is revealed when the show airs')).toBeVisible();
     }
     await expectNoHorizontalScroll(page);
+    // Back to the top first: a slot's Why? scrolled under the sticky top bar counts as an
+    // obscured tap target, which is the scroll position, not the layout.
+    await page.evaluate(() => {
+      window.scrollTo(0, 0);
+    });
     await expectNoSeriousA11yViolations(page);
 
     await seeResults.click();
