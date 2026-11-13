@@ -13,7 +13,7 @@ import type { PromotionId } from '../../core/ids';
 import type { Traced } from '../../core/trace';
 import type { GameWorldView } from '../../model/tables';
 import type { EngineTunables } from '../tunables';
-import { popularityRollup, type PopularityRollup } from '../world/formulas/popularityRollup';
+import { popularityRollupPart, type PopularityRollup } from '../world/formulas/popularityRollup';
 import { geographyOf } from '../world/geography';
 import { promotionReach } from './formulas/promotionReach';
 import { promotionSize, type PromotionSize } from './formulas/promotionSize';
@@ -45,9 +45,21 @@ export function reachOf(
   const region = geography.region(promotion.homeRegionId);
   const country = geography.countryOf(region.id);
   const continent = geography.continentOf(region.id);
-  const rollup = knownRollup ?? popularityRollup(promotion.regionalPop, geography);
-  const homeCountry = rollup.countries.get(country.id);
-  const homeContinent = rollup.continents.get(continent.id);
+  // Without a known roll-up, only the home country and continent are worked out (POL4-09).
+  const rollup =
+    knownRollup === undefined
+      ? popularityRollupPart(promotion.regionalPop, geography, {
+          countryId: country.id,
+          continentId: continent.id,
+        })
+      : {
+          world: knownRollup.world,
+          country: knownRollup.countries.get(country.id),
+          continent: knownRollup.continents.get(continent.id),
+          regions: knownRollup.regions,
+        };
+  const homeCountry = rollup.country;
+  const homeContinent = rollup.continent;
   if (homeCountry === undefined || homeContinent === undefined) {
     // The roll-up lists every country and continent on the map, so this cannot happen.
     throw new EntityNotFoundError('country', country.id);

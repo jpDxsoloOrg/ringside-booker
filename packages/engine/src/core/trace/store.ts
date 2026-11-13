@@ -34,6 +34,8 @@ import {
 import { assertJsonValue, formatPath } from '../json';
 import type { TunableReader } from '../tunables/resolver';
 import type { simTunables } from '../tunables/simTunables';
+import { fastPathsEnabled } from '../fastPaths';
+import { copyValidTraceContent } from './fastCopy';
 import { limitTrace } from './limits';
 import { traceNodeSchema, traceNumberSchema, traceUnitSchema, traceValueSchema } from './schema';
 import type { TraceNode, TraceUnit, Traced, TraceValue } from './types';
@@ -360,7 +362,11 @@ export class TraceStore {
           );
         }
         const key = refKey(ref);
-        const { trace, value } = checkRecordedTrace(key, traced);
+        const summaryOnly = options.summaryOnly === true;
+        const { trace, value } =
+          summaryOnly && fastPathsEnabled()
+            ? checkSummaryTrace(key, traced)
+            : checkRecordedTrace(key, traced);
         // Deleted first, so a re-recorded ref takes the position of its latest record.
         staged.delete(key);
         staged.set(key, {
@@ -368,7 +374,7 @@ export class TraceStore {
           date,
           trace,
           value,
-          summaryOnly: options.summaryOnly === true,
+          summaryOnly,
         });
       },
       demote: (ref) => {
@@ -564,6 +570,12 @@ function stepEffect(before: number, after: number): number {
  */
 function checkRecordedTrace(key: string, traced: Traced<TraceValue>): StagedTraceContent {
   const trace = limitTrace(traced.trace);
+  // The same copy in one walk when nothing is unusual (POL4-09); otherwise the full check below,
+  // which names the problem.
+  const fast = fastPathsEnabled() ? copyValidTraceContent(trace, traced.value) : null;
+  if (fast !== null) {
+    return fast;
+  }
   assertJsonValue(trace, `traces["${key}"].trace`);
   assertJsonValue(traced.value, `traces["${key}"].value`);
   const result = stagedTraceContentSchema.safeParse({ trace, value: traced.value });
@@ -577,6 +589,37 @@ function checkRecordedTrace(key: string, traced: Traced<TraceValue>): StagedTrac
     );
   }
   return result.data;
+}
+
+/**
+ * {@link checkRecordedTrace} for a result kept only as a summary (POL4-09). The summary reads the
+ * root and its direct steps only (label, unit, value and each step's effect), so only those are
+ * checked and staged: the trace is fitted into the size limits exactly as a full one is (so the
+ * same steps are summarised), then cut to its first two levels before the JSON and schema checks.
+ * The summary is identical to the one a full record would be demoted to, without validating
+ * every node of a tree that is never kept. A rival show records thousands of these a year.
+ */
+function checkSummaryTrace(key: string, traced: Traced<TraceValue>): StagedTraceContent {
+  const limited = limitTrace(traced.trace);
+  const trace: TraceNode = {
+    ...limited,
+    children: (limited.children ?? []).map(withoutChildren),
+  };
+  return checkRecordedTrace(key, { value: traced.value, trace });
+}
+
+/** A step on its own, its children dropped (a formula keeps an empty list, as the schema asks). */
+function withoutChildren(node: TraceNode): TraceNode {
+  if (node.children === undefined) {
+    return node;
+  }
+  if (node.kind === 'formula') {
+    return { ...node, children: [] };
+  }
+  // Rest destructuring is the typed way to drop a readonly key; the dropped value is not needed.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { children: dropped, ...rest } = node;
+  return rest;
 }
 
 /**

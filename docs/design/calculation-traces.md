@@ -389,6 +389,14 @@ show results (`shows.rivalSegmentScore`, `match.rivalResult`,
 public, and the size budget bounds them. The player's own results keep full
 traces as before.
 
+**Checked as a summary.** Since only the summary is kept, a summary-only
+record is fitted into the size limits like any other (so the same steps are
+summarised) and then only its root and direct steps are checked and staged,
+not every node of the tree (POL4-09,
+[fast paths](day-pipeline.md#fast-paths)). Every other record is checked and
+copied in one walk (`copyValidTraceContent`), falling back to the full JSON and
+schema check, which names the problem, for anything unusual.
+
 **Demoting on purpose.** `TraceStaging.demote(ref)` (a step's
 `ctx.demoteTrace(ref)`) replaces a ref's full trace with its summary when the
 step commits, exactly as the retention limits would, and does nothing to a ref

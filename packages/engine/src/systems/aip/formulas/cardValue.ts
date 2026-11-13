@@ -13,6 +13,7 @@
  * Design: docs/design/rival-desk.md#card-value.
  */
 
+import { InvalidArgumentError } from '../../../core/errors';
 import { constantOf, startCalc, type Traced } from '../../../core/trace';
 import type { AttributeKey, Attributes } from '../../../model/entities/person';
 import type { EngineTunables } from '../../tunables';
@@ -20,6 +21,7 @@ import { ATTRIBUTE_LABELS, formatNumber } from '../../world/people/labels';
 import {
   fanBaseOf,
   FOOTPRINT_TRACE_TOP_REGIONS,
+  type FanBase,
   type FootprintRegion,
   type FootprintRegionalPop,
 } from '../../workers/formulas/footprintPopularity';
@@ -314,4 +316,120 @@ export function cardValue(
   }
 
   return calc.clamp(CARD_VALUE_MIN, CARD_VALUE_MAX).done();
+}
+
+/** `-0` read as `0`, as every step of a traced calculation does. */
+function plain(value: number): number {
+  return value === 0 ? 0 : value;
+}
+
+/** {@link marketPopularity}'s number alone, from a fan base already worked out. */
+function marketPopularityNumber(workerPop: FootprintRegionalPop, fanBase: FanBase): number {
+  if (fanBase.members.length === 0) {
+    return 0;
+  }
+  let value = 0;
+  let totalWeight = 0;
+  let restWeighted = 0;
+  for (const [index, member] of fanBase.members.entries()) {
+    totalWeight += member.weight;
+    const popularity = workerPop[member.region.id] ?? 0;
+    if (index < FOOTPRINT_TRACE_TOP_REGIONS) {
+      value = plain(value + plain(member.weight * popularity));
+    } else {
+      restWeighted += member.weight * popularity;
+    }
+  }
+  if (fanBase.members.length > FOOTPRINT_TRACE_TOP_REGIONS) {
+    value = plain(value + plain(restWeighted));
+  }
+  return plain(value / plain(totalWeight));
+}
+
+/** {@link attributeBlend}'s number alone. */
+function attributeBlendNumber(attributes: Attributes, taste: TracedTaste): number {
+  let value = 0;
+  let totalTaste = 0;
+  for (const group of CARD_VALUE_GROUPS) {
+    const weight = taste.values[group.axis];
+    if (weight <= 0) {
+      continue;
+    }
+    let score = 0;
+    for (const attribute of group.attributes) {
+      score = plain(score + plain(attributes[attribute]));
+    }
+    if (group.attributes.length > 1) {
+      score = plain(score / group.attributes.length);
+    }
+    value = plain(value + plain(score * plain(weight)));
+    totalTaste += weight;
+  }
+  return totalTaste <= 0 ? value : plain(value / plain(totalTaste));
+}
+
+/** The promotion's fan base as card value counts it, for {@link cardValueNumber}'s `shared`. */
+export function cardValueFanBase(
+  inputs: Pick<CardValueInputs, 'promotionPop' | 'regions'>,
+  deps: { tunables: EngineTunables },
+): FanBase {
+  return fanBaseOf(
+    inputs.promotionPop,
+    inputs.regions,
+    deps.tunables.get('aip.cardValue.marketMinPop'),
+  );
+}
+
+/**
+ * {@link cardValue}'s number with no trace (POL4-09): the same steps in the same order, so the
+ * value is identical to the bit. A rival books every show from its whole roster's card values and
+ * never shows their Why?, which `cardValue` still builds when a screen asks. Pass the promotion's
+ * fan base (`cardValueFanBase`) when working out a whole roster, so it is found once.
+ */
+export function cardValueNumber(
+  inputs: CardValueInputs,
+  deps: { tunables: EngineTunables },
+  shared: { readonly fanBase?: FanBase } = {},
+): number {
+  const { tunables } = deps;
+  const fanBase = shared.fanBase ?? cardValueFanBase(inputs, deps);
+  const popularityWeight = tunables.get('aip.cardValue.popularityWeight');
+  const abilityWeight = tunables.get('aip.cardValue.abilityWeight');
+  const market = plain(
+    plain(marketPopularityNumber(inputs.workerPop, fanBase)) * plain(popularityWeight),
+  );
+  const ability = plain(
+    plain(attributeBlendNumber(inputs.attributes, inputs.taste)) * plain(abilityWeight),
+  );
+  let value = plain(plain(0 + market) + ability);
+  const totalWeight = popularityWeight + abilityWeight;
+  if (totalWeight > 0) {
+    value = plain(value / plain(totalWeight));
+  }
+  if (inputs.momentum !== null) {
+    value = plain(value + plain(inputs.momentum * tunables.get('aip.cardValue.momentumFactor')));
+  }
+  const declineAge = tunables.get('aip.cardValue.declineAge');
+  if (inputs.age > declineAge) {
+    const years = inputs.age - declineAge;
+    const factor = plain(
+      Math.max(
+        plain(1 - plain(years * tunables.get('aip.cardValue.declinePerYear'))),
+        plain(tunables.get('aip.cardValue.ageFloor')),
+      ),
+    );
+    value = plain(value * factor);
+  } else if (inputs.age < tunables.get('aip.cardValue.youthAge')) {
+    const share = plain(plain(inputs.taste.values.youthFocus) / TASTE_MAX);
+    value = plain(value + plain(share * plain(tunables.get('aip.cardValue.youthBonus'))));
+  }
+  if (!Number.isFinite(value)) {
+    throw new InvalidArgumentError(
+      'cardValueNumber',
+      'inputs',
+      value,
+      'inputs with a finite value',
+    );
+  }
+  return plain(Math.min(Math.max(value, CARD_VALUE_MIN), CARD_VALUE_MAX));
 }
