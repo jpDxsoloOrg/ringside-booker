@@ -16,12 +16,14 @@ import { createEngine } from '../../../src/core/api';
 import { simSystem } from '../../../src/core/api/builtins';
 import { contractsSystem } from '../../../src/systems/contracts';
 import { resetTestIds, TEST_PLAYER_ID, worldBuilder } from '../../support';
-import { PLAYER } from './release-world';
 import { SLOW_TESTS } from '../../support/slow';
 import { startDefaultGame } from '../calendar/default-game';
 import { contractsRuntime, runDays, setEndsOn } from './contract-world';
 
 const ROSTER = 12;
+
+/** The player of `startDefaultGame`. */
+const DEFAULT_GAME_PLAYER = { kind: 'human', playerId: 'local-player' } as const;
 
 /** The player's 12 workers, end dates spread over the first year; one rival worker likewise. */
 function playerWorld() {
@@ -146,7 +148,8 @@ describe.runIf(SLOW_TESTS)('the default world', () => {
         'contracts.autoRenewPlayer': autoRenewPlayer,
         'contracts.expiringSoon.stopSkip': false,
       })) {
-        expect(engine.command('tunables.setOverride', { key, value }, PLAYER).ok).toBe(true);
+        const set = engine.command('tunables.setOverride', { key, value }, DEFAULT_GAME_PLAYER);
+        expect(set.ok).toBe(true);
       }
       const activeNow = (): number => {
         const { world } = engine.exportState();

@@ -8,10 +8,11 @@ features need (expiry notices, the unhappy clock, release requests and how a
 contract ended).
 
 ECO4-01 built the lifecycle, the `endEmployment` door, the contract events,
-the `contractConcerns` table and the simple rival renewal. ECO4-02 (releases
-and expiry notices), ECO4-03 (unhappy workers and walk-outs), ECO4-04 (the
-live Contracts screen) and ECO4-05 fill in their sections below. Nothing on
-screen changes with ECO4-01.
+the `contractConcerns` table and the simple rival renewal. ECO4-02 added
+severance, releases, the contract queries, the "expiring soon" stop and a
+temporary automatic renewal of the player's contracts. ECO4-03 (unhappy
+workers and walk-outs), ECO4-04 (the live Contracts screen) and ECO4-05 fill
+in their sections below.
 
 Rival contracts are private: no query for the player shows a rival's terms,
 morale or concern rows, and the traces of rival renewals and rival severance
@@ -31,6 +32,15 @@ are stored as summaries only.
 | Trace kinds | `traceKinds.ts`                      | `contracts.severance` and `contracts.aiRenewal`                                                |
 | Phase       | `phases.ts`                          | `contracts.lifecycle` (daily, `contracts` group, order 10) and the `contracts.beforeShow` hook |
 | Concerns    | `model/entities/contract-concern.ts` | the `contractConcerns` table                                                                   |
+| Severance   | `formulas/severance.ts`              | `severance`: what ending a contract costs (ECO4-02)                                            |
+| Severance   | `severanceFor.ts`                    | `severanceFor`: the one place that gathers a contract's inputs for it                          |
+| Release     | `release.ts`                         | `releaseEmployment`: every release (the command, ECO9 budget cuts, SOC6 conduct releases)      |
+| Rules       | `rules.ts`                           | `releaseRefusals`: what the preview and the command refuse                                     |
+| Commands    | `commands.ts`                        | `contracts.release`, `contracts.acknowledgeExpiries`                                           |
+| Queries     | `queries.ts`                         | `contracts.releasePreview`, `.list`, `.detail`, `.counts`, `.changesSince`                     |
+| Notices     | `notices.ts`                         | the `contracts.expiryNotices` after-lifecycle hook                                             |
+| Gate        | `gates.ts`                           | `contracts.expiringSoon`                                                                       |
+| Stopgap     | `playerAutoRenewal.ts`               | `contracts.playerAutoRenewal`: the player's contracts renew by themselves until ECO5           |
 
 ## Lifecycle
 
@@ -89,9 +99,10 @@ date, { tunables, rng })` answers:
 
 A renewal writes only `endsOn`, records its trace at `contracts.aiRenewal` /
 `<employmentId>:<date>` (a summary for a computer-run promotion) and publishes
-`contract.renewed`. With no policy saying yes the contract expires. The
-player's contracts are never renewed automatically: until ECO5 ships they
-simply run out.
+`contract.renewed`. With no policy saying yes the contract expires. Until ECO5
+ships, the player's contracts renew by themselves through the temporary
+[`contracts.playerAutoRenewal`](#player-renewals) policy (order 50, before the
+rival rule's 100).
 
 ## End employment
 
@@ -122,7 +133,8 @@ call it. It:
 
 `withdrawn` is reachable only from `signed` (ECO4-02 uses it to call off a
 future deal); it publishes `contract.released` so listeners need one event for
-"this deal is off". It returns `{ severance, traceRef }`.
+"this deal is off". It returns `{ severance, traceRef, ledgerEntryId, ledgerTraceRef }` (the last
+two null when nothing was paid).
 
 ## Severance
 
@@ -130,8 +142,92 @@ When the severance handed to `endEmployment` rounds to more than 0 cents, its
 trace is recorded at `contracts.severance` / the employment (a summary for a
 computer-run promotion), and the money moves through `postMoney` with category
 `severance`, the negative amount, `refs.personId`, memo "Severance: <ring
-name>" and a trace whose value is that amount. Nothing else moves cash. How
-much severance a release costs is ECO4-02's.
+name>" and a trace whose value is that amount. Nothing else moves cash.
+
+### The formula
+
+`severance(inputs, { tunables })` (`formulas/severance.ts`, trace "Severance",
+unit money) is front-loaded: the first months still owed are paid in full,
+later months only in part, and there is a cap. Breaking a long deal costs more
+than breaking a short one, but never the whole remaining wage. Other games pay
+a flat amount and make iron-clad deals unreleasable; the curve is our answer
+to both. In order:
+
+1. **Monthly value**: the monthly wage for written, development and tour
+   deals; for a per-appearance deal, the fee ×
+   `contracts.severance.appearancesPerMonth`.
+2. **Months owed**: days left ÷ 30.4375 (the constant "Average month: 365.25 ÷
+   12 days"). An open-ended deal counts as
+   `contracts.severance.openEndedMonths` (branch "Open-ended contract").
+3. **Months paid** = min(owed, full) + max(0, min(owed, cap) − full) × tail
+   rate, with the lines "First 3 months in full", "Next 6.9 months at 35%" and,
+   past the cap, "Beyond 18 months: not paid".
+4. × the monthly value.
+5. × `contracts.severance.ironCladMultiplier` for an iron-clad contract.
+6. × a share the caller passes (a granted release request, ECO4-03), or else,
+   when morale ≤ `contracts.severance.mutualMorale`, × (1 −
+   `contracts.severance.mutualDiscount`) ("Glad to go (morale −62)").
+7. × `contracts.severance.unstartedFactor` for a signed deal that has not
+   started ("Deal hasn't started").
+8. Rounded down to whole cents, never below 0.
+
+Every tunable at 0 makes its own step pay nothing (all of them at 0 pay
+nothing at all).
+
+**Worked example.** A $8,000-a-month lower-card worker with 300 days left owes
+300 ÷ 30.4375 = 9.86 months. Months paid: 3 + 6.86 × 0.35 = 5.40. Severance:
+$8,000 × 5.3997 = **$43,197.53**. With 1,000 days left (32.9 months owed) it
+would be 3 + 15 × 0.35 = 8.25 months, $66,000, the most any $8,000 deal can
+cost; an iron-clad one doubles that.
+
+| Key                                       | Kind    | Default | Range    | Unit       | Meaning                                                    |
+| ----------------------------------------- | ------- | ------- | -------- | ---------- | ---------------------------------------------------------- |
+| `contracts.severance.fullMonths`          | integer | 3       | 0–60     | months     | Months still owed that are paid in full                    |
+| `contracts.severance.tailRate`            | number  | 0.35    | 0–1      | ratio      | Share paid for each owed month beyond the full months      |
+| `contracts.severance.capMonths`           | integer | 18      | 0–120    | months     | Owed months beyond this are not paid at all                |
+| `contracts.severance.openEndedMonths`     | integer | 6       | 0–60     | months     | Months treated as owed on an open-ended deal               |
+| `contracts.severance.appearancesPerMonth` | integer | 4       | 0–31     | count      | Monthly value of a per-appearance deal, in appearances     |
+| `contracts.severance.ironCladMultiplier`  | number  | 2       | 0–10     | multiplier | Severance on an iron-clad contract is multiplied by this   |
+| `contracts.severance.mutualMorale`        | integer | −50     | −100–100 | points     | At or below this morale the worker is glad to go           |
+| `contracts.severance.mutualDiscount`      | number  | 0.5     | 0–1      | ratio      | Share of the severance a worker who is glad to go gives up |
+| `contracts.severance.unstartedFactor`     | number  | 0.5     | 0–1      | ratio      | Share due when calling off a deal that hasn't started      |
+
+### Releasing a worker
+
+`severanceFor(read, employmentId, date, tunables, mode)` gathers a contract's
+inputs (`daysOwed` = days from `date` to `endsOn`, `started` = status is
+`active`) and calls the formula. It is the one place severance is worked out:
+the preview, the command, `releaseEmployment` and, from ECO4-03, a granted
+release request (`mode: 'grant'`, refused until ECO4-03 adds its share).
+
+`releaseEmployment(ctx, { employmentId, source, reasonKey, severanceFactor? })`
+(`release.ts`, exported from the engine) is the one function every release
+calls: the player's command, ECO9's budget cuts and SOC6's conduct releases. A
+`severanceFactor` scales the amount with its own line (`{ value: 0, label:
+'Fired for cause' }` pays nothing). An active contract becomes `released`
+(mutual when the worker is glad to go); a signed deal that has not started
+becomes `withdrawn`. It does not check who may release whom.
+
+- **`contracts.releasePreview { employmentId }`** → `{ kind: 'ok', mode:
+'release' | 'withdraw', severance (with its Why?), cashBefore, cashAfter,
+warnings }` or `{ kind: 'refused', reasons }`. Warnings: `holdsTitle` ("Holds
+  the <title>. Titles don't change hands on their own yet, so they keep it."
+  until CRTV1; ECO4-05 switches the wording), `ironClad`, `intoDebt` ("This
+  puts you $3,197.53 in debt."), `bookedSoon` ("Booked on <show>, <date>." for
+  the soonest scheduled or booked show from today, plus "and N more shows")
+  and `gladToGo`.
+- **`contracts.release { employmentId, expectedSeverance }`** refuses
+  `notYourWorker` (the issuer is not the human who runs the promotion),
+  `notReleasable` (not active or signed), `isOwner` ("<name> owns the
+  promotion…") and `severanceChanged` when `expectedSeverance` differs from a
+  fresh `severanceFor` (the day moved since the preview: "The amount changed to
+  $X; check it again."). It returns `{ severance, cashAfter, ledgerTraceRef }`.
+  The ledger gets one Severance row whose Why? holds the severance trace.
+
+The preview and the command share `releaseRefusals` (`rules.ts`), so they
+agree on what is refused and, through `severanceFor`, on the amount to the
+cent. Releasing your last referee or announcer is allowed; the booking checks
+complain on the next card.
 
 ## Simple renewals
 
@@ -159,12 +255,111 @@ ECO4-05 moves the level-playing-field read to AIP1's `aiShortcut` and swaps
 `titlesHeldBy` for CRTV1's once both are on main.
 
 Over three years of the default world the rule keeps every rival at 50 % to
-73 % of its starting active roster (the player's own run out completely, as
-intended until ECO5).
+73 % of its starting active roster. The player's own run out completely with
+`contracts.autoRenewPlayer` off; with it on (the default) the player keeps
+every contract (see [Player renewals](#player-renewals)).
 
 ## Expiring soon
 
-ECO4-02.
+ECO4-02. A long skip stops before one of your important contracts runs out, so
+you never learn about it after the fact.
+
+- **The notice.** The after-lifecycle hook `contracts.expiryNotices`
+  (`notices.ts`, order 10) runs after each day's ends and starts. For every
+  promotion a human runs, each `active` contract with an end date
+  within `contracts.expiringSoon.days` days, for a worker pushed at
+  `contracts.expiringSoon.minPush` or higher, gets `expiryNotice = { raisedOn:
+today, seenOn: null }` on its concern row, unless it already has one. A
+  notice whose contract is no longer active, or whose end date moved out of
+  the window (a renewal), is cleared the same way. With
+  `contracts.expiringSoon.stopSkip` off a new notice is written already seen,
+  so the screen still lists it and nothing stops. Rival contracts never get
+  notices; a world no human plays never raises one.
+- **The gate.** `contracts.expiringSoon` (`gates.ts`, "Contract expiring
+  soon") reads only the `unseenExpiry` index, skips notices whose contract is
+  no longer active and hits with "Contract expiring soon: <ring name> (ends
+  <date>)" (+ " and N more"), subject the employment, hint `contracts`, for the
+  soonest end date (ties by id).
+- **Seeing it.** `contracts.acknowledgeExpiries { employmentIds | 'all' }` sets
+  `seenOn` on the viewer's unseen notices; another promotion's contract is
+  refused (`notYourWorker`). Releasing the worker (`endEmployment` clears the
+  notice) or a renewal past the window also clears it.
+
+**Why the phase decides.** A gate's `check(view, date)` cannot read tunables,
+and it runs before every day of a skip, so it must stay a cheap indexed read.
+The hook makes the decision with the tunables in hand; the gate only counts
+what the hook wrote, the same pattern as the own-injury stop. The cost is a
+one-day lag: with `days` 30 the stop comes with 29 days left.
+
+`contracts.list { tab: 'expiring' }` is a wider, quieter view: every active
+contract ending within `contracts.expiring.windowDays` (60) days, soonest
+first, whatever the push.
+
+| Key                               | Kind    | Default   | Range | Unit   | Meaning                                                                               |
+| --------------------------------- | ------- | --------- | ----- | ------ | ------------------------------------------------------------------------------------- |
+| `contracts.expiring.windowDays`   | integer | 60        | 1–365 | days   | Contracts ending within this many days are listed as expiring                         |
+| `contracts.expiringSoon.days`     | integer | 30        | 0–365 | days   | Raise a notice when one of your contracts ends within this many days (0 = no notices) |
+| `contracts.expiringSoon.minPush`  | enum    | `midCard` | push  | choice | Notices only for workers at or above this push (`none` includes crew)                 |
+| `contracts.expiringSoon.stopSkip` | boolean | true      |       | flag   | A new expiry notice stops a skip until you mark it as seen                            |
+
+## Scoping
+
+What a viewer sees of contracts (D-07, the same rule as the worker profile's
+Career tab):
+
+- `contracts.list`, `contracts.counts` and `contracts.changesSince` cover only
+  the viewer's own promotions (`viewerPromotionIds`); a viewer with none (the
+  computer, the omniscient viewer) gets empty answers.
+- `contracts.detail { employmentId }` answers for any contract in the world.
+  For your own (and for the omniscient viewer): every term, shares, appearance
+  cap, leave, morale, the notice and the current `severance` with its Why?. For
+  a rival's: promotion, role, push, kind, dates, exclusivity and perks only.
+  `monthlyWage`, `perAppearanceFee`, `signingBonus`, `shares`, `morale` (and
+  the private extras) are left out, not zeroed, and `termsPrivate: true` is
+  set.
+- `contracts.releasePreview` refuses a rival's contract with only
+  `notYourWorker`, so a refusal tells nothing private.
+- Rival renewal and severance traces are stored as summaries only.
+
+`contracts.list { tab }` rows: `{ employmentId, personId, promotionId,
+ringName, role, push, brandId, status, kind, monthlyWage, perAppearanceFee,
+perks, exclusive, startsOn, endsOn, daysLeft, endedOn, endReason,
+severancePaid, severanceTraceRef, titles, notice, imageRef }`. Active = active
+and signed contracts (a signed row's `startsOn` is in the future); Expiring =
+see above; Ended = expired, released, quit and withdrawn, newest `endedOn`
+first, with how it ended (`endReason`; a granted request reads `quit`) and the
+severance paid, both from the concern row's `ending`.
+
+`contracts.counts` → `{ unseenExpiring, wantsToLeave }` for the nav badge.
+`contracts.changesSince { from, to }` → `{ started, expired, released, quit,
+requests, renewed }` for the Next Day summary, each `{ employmentId, personId,
+ringName, date, how? }`. All but `renewed` are read from the contracts and
+concern rows, so a long skip never loses lines to `sim.eventLogSize`;
+`renewed` (with `endsOn` and a plain-words `line`) comes from the recent-event
+log, because a renewal only moves an end date.
+
+## Player renewals
+
+**Temporary, until ECO5.** Contracts run out, and the player cannot renew one
+until ECO5's renewal talks, so a three-year game would empty the player's
+roster. While `contracts.autoRenewPlayer` is on (the default), the built-in
+renewal policy `contracts.playerAutoRenewal` (`playerAutoRenewal.ts`, order 50) renews a contract of a promotion the player runs on its end date, on the
+same terms, for `contracts.autoRenewPlayerDays` more days (a renewal only
+moves `endsOn`, so the last term's length is not known). It goes through the
+renewal registry like any renewal: a full Why? ("Automatic renewal", with the
+line "Renewed automatically on the same terms, until you can renew contracts
+yourself"), `contract.renewed` with source `player`, and a line in
+`contracts.changesSince`'s `renewed` list. It answers null for computer and
+closed promotions, open-ended contracts and when the tunable is off, so those
+contracts expire as before.
+
+ECO5-05 removes this policy or defaults `contracts.autoRenewPlayer` to off once
+the player can renew.
+
+| Key                             | Kind    | Default | Range  | Unit | Meaning                                                             |
+| ------------------------------- | ------- | ------- | ------ | ---- | ------------------------------------------------------------------- |
+| `contracts.autoRenewPlayer`     | boolean | true    |        | flag | Temporary: your contracts renew on the same terms when they run out |
+| `contracts.autoRenewPlayerDays` | integer | 365     | 1–3650 | days | Temporary: how long each automatic renewal adds                     |
 
 ## Unhappy workers
 

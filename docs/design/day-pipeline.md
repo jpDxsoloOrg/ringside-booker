@@ -78,9 +78,9 @@ The health system's `housekeeping` phases ([health.md](health.md)):
 The `contracts` group's phase (ECO4-01, see
 [contracts.md](contracts.md#lifecycle)):
 
-| Phase                 | Order | Cadence | What it does                                                                                                                                        |
-| --------------------- | ----- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `contracts.lifecycle` | 10    | daily   | Due contracts ask the renewal policies and otherwise expire; signed deals whose start date has come become active; then the `afterLifecycle` hooks. |
+| Phase                 | Order | Cadence | What it does                                                                                                                                                                   |
+| --------------------- | ----- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `contracts.lifecycle` | 10    | daily   | Due contracts ask the renewal policies and otherwise expire; signed deals whose start date has come become active; then the `afterLifecycle` hooks (ECO4-02's expiry notices). |
 
 The `money` group's phases so far (ECO1-03, see
 [finances.md](finances.md#payroll)):
@@ -386,14 +386,16 @@ registered ones:
 
 **The systems' gates.** Registered by the system bundles:
 
-| Gate                      | System | Hits when                                                              | Reason                                                               | Hint        |
-| ------------------------- | ------ | ---------------------------------------------------------------------- | -------------------------------------------------------------------- | ----------- |
-| `shows.tonight`           | shows  | The player has an open show today (EVT2-09)                            | "Tonight: Friday Fury", or "Your show 'Friday Fury' has no card yet" | `showNight` |
-| `health.ownWorkerInjured` | health | An injury to one of the player's workers waits to be noticed (WRK6-04) | "Big Joe was injured (Sprained ankle, out until Mar 14, 2031)"       | `roster`    |
+| Gate                      | System    | Hits when                                                                                                              | Reason                                                                  | Hint        |
+| ------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ----------- |
+| `shows.tonight`           | shows     | The player has an open show today (EVT2-09)                                                                            | "Tonight: Friday Fury", or "Your show 'Friday Fury' has no card yet"    | `showNight` |
+| `health.ownWorkerInjured` | health    | An injury to one of the player's workers waits to be noticed (WRK6-04)                                                 | "Big Joe was injured (Sprained ankle, out until Mar 14, 2031)"          | `roster`    |
+| `contracts.expiringSoon`  | contracts | One of the player's contracts ends soon and its notice is unseen (ECO4-02, [contracts.md](contracts.md#expiring-soon)) | "Contract expiring soon: Big Joe (ends Mar 14, 2031)" (+ " and 2 more") | `contracts` |
 
 The hints a gate can carry are the web shell's route keys: `showNight` (the
-show screen), `inbox`, `booking` and `roster` (the roster; WRK6-06 lands it on
-the Injuries tab or the worker's profile). A hint the shell does not know yet
+show screen), `inbox`, `booking`, `roster` (the roster; WRK6-06 lands it on
+the Injuries tab or the worker's profile) and `contracts` (the Contracts
+screen, ECO4-04). A hint the shell does not know yet
 still gets a button with the gate's own reason.
 
 The failure count is per advance and per step. Two different phases failing on
