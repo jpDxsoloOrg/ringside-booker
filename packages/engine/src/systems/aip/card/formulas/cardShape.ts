@@ -117,7 +117,7 @@ export function talkSlotsFor(
   calc.multiply(`Talking share for a ${inputs.importance} show`, share).round('round', 'Rounded');
 
   const endsOnMatch = inputs.importance !== 'house';
-  const room = Math.max(0, Math.ceil((endsOnMatch ? inputs.slots - 1 : inputs.slots) / 2));
+  const room = talkRoomFor(inputs.slots, inputs.importance);
   const reason = endsOnMatch
     ? `${NO_BACK_TO_BACK_REASON}, and the main event is a match`
     : NO_BACK_TO_BACK_REASON;
@@ -127,6 +127,15 @@ export function talkSlotsFor(
       constantOf('Room without back-to-back talking', room, reason),
     )
     .done();
+}
+
+/**
+ * The most talking segments `slots` main-card slots hold with no two in a row:
+ * `ceil((slots − 1) ÷ 2)` when the main event must be a match, `ceil(slots ÷ 2)` on a house show.
+ */
+export function talkRoomFor(slots: number, importance: EventImportance): number {
+  const endsOnMatch = importance !== 'house';
+  return Math.max(0, Math.ceil((endsOnMatch ? slots - 1 : slots) / 2));
 }
 
 /** `min(aip.titles.maxPerShow.<importance>, matchSlots)`: title matches the card may hold. */

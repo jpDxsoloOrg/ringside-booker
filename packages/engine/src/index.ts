@@ -2201,3 +2201,18 @@ export {
   type SkippedTitle,
   type TitlePicture,
 } from './systems/aip/index';
+
+// AIP4-03: filling the rest of the card: storyline segments, weighted match types, real teams, the
+// fallback chain and talking segments. See docs/design/rival-booking.md#filling-the-card.
+export {
+  buildTalkSegment,
+  fillCard,
+  findWorker,
+  matchTypeWeight,
+  type CardBookings,
+  type CardFill,
+  type FillCardArgs,
+  type OpenCardSlot,
+  type PlannedSegment,
+  type PlannedSegmentSource,
+} from './systems/aip/index';

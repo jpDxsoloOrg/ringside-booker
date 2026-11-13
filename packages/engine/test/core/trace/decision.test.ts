@@ -173,4 +173,3 @@ describe('startDecision', () => {
     expectSerialisable(result);
   });
 });
-

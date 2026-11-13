@@ -14,6 +14,7 @@ import type {
   EventInstanceId,
   PersonId,
   PromotionId,
+  StorylineId,
   TeamId,
   TitleId,
   TitleReignId,
@@ -24,6 +25,7 @@ import type { EventImportance } from '../../../model/entities/event-definition';
 import type { Gender, PersonRole } from '../../../model/entities/person';
 import type { TeamKind } from '../../../model/entities/team';
 import type { TitleDivision, TitleHolderCount } from '../../../model/entities/title';
+import type { SegmentDraft } from '../../booking/draft';
 import type { Availability } from '../../workers/helpers/availability';
 import type { TracedTaste } from '../formulas/defaultTaste';
 
@@ -164,5 +166,53 @@ export interface TitlePicture {
   /** In the order the titles were considered (prestige, highest first, then title ID). */
   readonly skipped: readonly SkippedTitle[];
   /** One decision per title, in the order considered, under "Title picture for <show>". */
+  readonly trace: TraceNode;
+}
+
+/** Where a planned segment came from. */
+export type PlannedSegmentSource = 'title' | 'storyline' | 'filler' | 'talk';
+
+/**
+ * A segment the card planner wants on tonight's card, not yet placed in a slot (AIP4-04 orders the
+ * card) and not yet written (AIP4-05). Plain JSON.
+ */
+export interface PlannedSegment {
+  /**
+   * Stable within one plan, for ordering: `title:<titleId>`, `storyline:<storylineId>`,
+   * `filler:<n>` or `talk:<n>`.
+   */
+  readonly key: string;
+  readonly kind: SegmentDraft['kind'];
+  /** EVT2's draft: no stipulations, finish, crew or planned outcome yet. */
+  readonly draft: SegmentDraft;
+  readonly source: PlannedSegmentSource;
+  /**
+   * The booker's notes, labelled with the matchup ("Haruto Ise vs Daichi Kuroe"); the value is the
+   * match or angle type's name.
+   */
+  readonly trace: Traced<string>;
+}
+
+/** A slot the planner could not fill, and why, in plain words. */
+export interface OpenCardSlot {
+  /** `filler:<n>` or `talk:<n>`. */
+  readonly key: string;
+  readonly kind: SegmentDraft['kind'];
+  readonly reason: string;
+}
+
+/** A storyline left off tonight's card, and why. */
+export interface SkippedStoryline {
+  readonly storylineId: StorylineId;
+  readonly reason: string;
+}
+
+/** Everything on tonight's card but the order: what `fillCard` returns. */
+export interface CardFill {
+  /** Title matches first, then storyline segments, filler matches and talking segments. */
+  readonly segments: readonly PlannedSegment[];
+  readonly open: readonly OpenCardSlot[];
+  readonly skippedStorylines: readonly SkippedStoryline[];
+  /** "Filling the card for <show>": the counts, open slots and skipped storylines. */
   readonly trace: TraceNode;
 }

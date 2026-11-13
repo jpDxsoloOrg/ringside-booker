@@ -5,8 +5,9 @@
  * `Rival booking`), the `aip.card` and `aip.autofill` streams (`streams.ts`), the card pool
  * (`pool.ts`: who a show may use today) and the card shape (`formulas/cardShape.ts`: talking slots,
  * the title match cap and whether the main event must be a match). AIP4-02 adds the title picture
- * (`titlePicture.ts`, `challengers.ts`, `titleHistory.ts`, `formulas/titleUrgency.ts`). Later AIP4
- * tickets add the picking, the talking segments and Auto-fill here.
+ * (`titlePicture.ts`, `challengers.ts`, `titleHistory.ts`, `formulas/titleUrgency.ts`). AIP4-03 fills
+ * the rest of the card (`fill.ts`, `storylineSegments.ts`, `talk.ts`, `fallback.ts`,
+ * `formulas/matchTypeWeight.ts`). Later AIP4 tickets order and write the card, and add Auto-fill.
  *
  * Design: docs/design/rival-booking.md.
  */
@@ -19,7 +20,16 @@ export {
   aipCardTunables,
   CARD_POOL_DOC_REF,
   CHALLENGERS_DOC_REF,
+  FALLBACK_DOC_REF,
+  FILLING_DOC_REF,
   importanceBonusKey,
+  MATCH_FAMILIES,
+  MATCH_TYPES_DOC_REF,
+  STORYLINES_DOC_REF,
+  TALKING_DOC_REF,
+  typeWeightKey,
+  type MatchFamily,
+  type TypeWeightKey,
   TITLE_PICTURE_DOC_REF,
   type ImportanceBonusKey,
   CARD_SHAPE_DOC_REF,
@@ -45,6 +55,7 @@ export {
   mainEventMustBeMatch,
   NEUTRAL_TALK_TASTE,
   NO_BACK_TO_BACK_REASON,
+  talkRoomFor,
   talkSlotsFor,
   titleMatchCapFor,
   type TalkSlotsInputs,
@@ -82,8 +93,72 @@ export {
   type TitlePictureArgs,
   type TitlePictureDeps,
 } from './titlePicture';
+export {
+  fewTeamsText,
+  freeWrestlersText,
+  MATCH_FAMILY_LABELS,
+  matchFamilyOf,
+  matchTypeWeight,
+  unusualTasteText,
+  type MatchTypeWeightInputs,
+} from './formulas/matchTypeWeight';
+export {
+  CardBook,
+  FALLBACK_LEVELS,
+  findWorker,
+  isFreeToWrestle,
+  levelText,
+  rankedText,
+  seatRulesFor,
+  seatWorker,
+  type CardBookings,
+  type FallbackLevel,
+  type Seat,
+  type SeatRules,
+} from './fallback';
+export { BookerNotes } from './notes';
+export { firstTypeOfFamily, matchSegment, matchupLabel, type MatchSegmentSpec } from './matchDraft';
+export {
+  buildTalkSegment,
+  INJURED_CAN_TALK,
+  NO_TALKER_REASON,
+  speakersLabel,
+  type TalkSegmentArgs,
+  type TalkSegmentDeps,
+} from './talk';
+export {
+  NO_ROOM_REASON,
+  NOBODY_FREE_REASON,
+  planStorylineSegment,
+  storylineNote,
+  storylinesForShow,
+  type CardRoom,
+  type StorylineDeps,
+  type StorylineOutcome,
+} from './storylineSegments';
+export {
+  ALL_WEIGHTS_ZERO,
+  bookMatchOfType,
+  FILLER_NOTE,
+  fillCard,
+  NOT_ENOUGH_WORKERS,
+  reserveText,
+  sidesOf,
+  stepDownText,
+  TALK_INSTEAD,
+  TALK_SLOT_NOTE,
+  titleMatchNote,
+  titleSegmentOf,
+  type FillCardArgs,
+  type FillCardDeps,
+} from './fill';
 export type {
   CardCandidate,
+  CardFill,
+  OpenCardSlot,
+  PlannedSegment,
+  PlannedSegmentSource,
+  SkippedStoryline,
   CardExclusion,
   CardPool,
   CardTeam,
