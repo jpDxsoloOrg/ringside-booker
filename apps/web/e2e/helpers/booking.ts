@@ -82,3 +82,72 @@ export async function skipDaysCancellingShows(
   }
   expect(left, 'every day of the skip ran').toBe(0);
 }
+
+/* ---------------------------------------------------------------- the booking screen */
+
+/** The reasons sheet Auto-fill opens: "Filled 6 slots", "Filled 1 slot", "Nothing was filled". */
+export function autoFillSheet(page: Page) {
+  return page.getByRole('dialog', { name: /^(Filled \d+ slots?|Nothing was filled)$/ });
+}
+
+/**
+ * Presses **Auto-fill empty slots** on the Booking screen's Auto-fill panel and waits for the
+ * reasons sheet, which it returns open. The caller closes it (its Done button).
+ */
+export async function autoFillCard(page: Page) {
+  const panel = page.getByRole('region', { name: 'Auto-fill' });
+  const fill = panel.getByRole('button', { name: 'Auto-fill empty slots' });
+  await expect(fill).toBeEnabled();
+  await fill.click();
+  const sheet = autoFillSheet(page);
+  await expect(sheet).toBeVisible();
+  return sheet;
+}
+
+/** The row menu buttons of the card's filled slots, in running order. */
+function slotMenus(page: Page) {
+  return page.getByRole('main').getByRole('button', { name: /^Actions for slot \d+$/ });
+}
+
+/**
+ * Picks side 1 as the winner of every match on the card, through each row's menu (Winner ▸ Side 1).
+ * Talking segments have no Winner item and are left alone. Returns how many winners it picked.
+ */
+export async function pickWinners(page: Page): Promise<number> {
+  let picked = 0;
+  const count = await slotMenus(page).count();
+  for (let index = 0; index < count; index += 1) {
+    const trigger = slotMenus(page).nth(index);
+    const name = (await trigger.getAttribute('aria-label')) ?? '';
+    await trigger.click();
+    const menu = page.getByRole('menu', { name });
+    await expect(menu).toBeVisible();
+    const winner = menu.getByRole('menuitem', { name: 'Winner' });
+    if ((await winner.count()) === 0) {
+      await page.keyboard.press('Escape');
+      await expect(menu).toBeHidden();
+      continue;
+    }
+    await winner.click();
+    const sideOne = page.getByRole('menuitem', { name: /^Side 1: / });
+    // The item waits for the match type's way of winning to load.
+    await expect(sideOne).toBeEnabled();
+    await sideOne.click();
+    await expect(menu).toBeHidden();
+    picked += 1;
+  }
+  return picked;
+}
+
+/**
+ * Picks a winner for every match (see {@link pickWinners}), then runs tonight's show with **Run
+ * the show** (EVT2-09: there is no Lock card): the side column's button on desktop, the sticky
+ * bar's on a phone. Waits for the show's results page, which opens once it has run.
+ */
+export async function pickWinnersAndRunShow(page: Page): Promise<void> {
+  await pickWinners(page);
+  const run = page.getByRole('main').getByRole('button', { name: 'Run the show' }).last();
+  await expect(run).toBeEnabled();
+  await run.click();
+  await expect(page).toHaveURL(/\/game\/event-history\/evi_/);
+}

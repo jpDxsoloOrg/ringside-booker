@@ -169,7 +169,7 @@ function CardBody({
           const source =
             slot.segment === null ? null : sourceOf(slot.segment.reasonTraceRef, traceOf);
           return (
-            <li key={rivalSlotKey(slot)}>
+            <li key={rivalSlotKey(slot)} data-segment-kind={slot.segment?.kind ?? 'open'}>
               <CardSlot
                 {...toRivalCardSlotProps(slot)}
                 headingLevel={slotHeadingLevel}
@@ -236,7 +236,7 @@ export function RivalShowCard({
               className={classNames(styles['chevron'], expanded && styles['chevronOpen'])}
             />
             <time className={styles['date']} dateTime={row.date}>
-              {formatGameDate(row.date, 'short')}
+              {formatGameDate(row.date, 'dayMonth')}
             </time>
             <span className={styles['name']}>{row.name}</span>
             <span className={styles['tags']}>
