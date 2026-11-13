@@ -129,6 +129,10 @@ export const rosterSystem = defineSystem({
 });
 ```
 
+`roster.release` above is a made-up example. The roster's real command is
+`roster.setPush` in `packages/engine/src/systems/roster/commands.ts`
+([roster.md](roster.md#set-push)), which follows the same three steps.
+
 Tests can declare their own entries the same way, merging into
 `'@ringside/engine'` (see `test/core/api/apiTestSystem.ts`).
 
@@ -289,9 +293,10 @@ entries (0 keeps none, though `seq` still counts) and is saved as the
 
 Commands other systems add:
 
-| Command               | Args                  | Does                                                                                                       |
-| --------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `calendar.cancelShow` | `{ eventInstanceId }` | Calls off a show the issuer controls and publishes `show.cancelled` ([calendar.md](calendar.md#lifecycle)) |
+| Command               | Args                      | Does                                                                                                                                      |
+| --------------------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `calendar.cancelShow` | `{ eventInstanceId }`     | Calls off a show the issuer controls and publishes `show.cancelled` ([calendar.md](calendar.md#lifecycle))                                |
+| `roster.setPush`      | `{ employmentIds, push }` | Moves one or many of the issuer's wrestlers to one card position, all or nothing, through the push door ([roster.md](roster.md#set-push)) |
 
 Queries other systems add:
 
