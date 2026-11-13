@@ -1,4 +1,4 @@
-import { act, screen, within } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 import * as storage from '@/storage';
@@ -81,19 +81,19 @@ describe('Main menu in the shell', () => {
 
   it('is disabled while days are advancing', async () => {
     const { client } = await enterGame();
-    const button = within(screen.getByTestId('sidebar')).getByRole('button', {
-      name: 'Main menu',
-    });
-    expect(button).toBeEnabled();
+    // Re-query each time: under load the shell can re-render and replace the button element.
+    const menuButton = () =>
+      within(screen.getByTestId('sidebar')).getByRole('button', { name: 'Main menu' });
+    await waitFor(() => expect(menuButton()).toBeEnabled());
 
     act(() => {
       client.status.getState().setAdvancing(true);
     });
-    expect(button).toBeDisabled();
+    await waitFor(() => expect(menuButton()).toBeDisabled());
 
     act(() => {
       client.status.getState().setAdvancing(false);
     });
-    expect(button).toBeEnabled();
+    await waitFor(() => expect(menuButton()).toBeEnabled());
   });
 });
