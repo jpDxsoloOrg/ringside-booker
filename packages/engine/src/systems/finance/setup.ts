@@ -20,7 +20,7 @@ function recordOpeningBalances(_tx: Tx<GameTables>, ctx: SetupContext): void {
     if (promotion.status === 'closed' || promotion.controller.kind !== 'human') {
       continue;
     }
-    recordCashTrace(ctx, promotion.id, { opening: true });
+    recordCashTrace(ctx, promotion.id);
     recorded += 1;
   }
   ctx.log(`Recorded the opening cash of ${String(recorded)} promotion(s)`);
