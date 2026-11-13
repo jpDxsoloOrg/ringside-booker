@@ -12,6 +12,7 @@ import { describe, expect, it } from 'vitest';
 const BROADCAST_STYLESHEETS = [
   'LiveBugButton/LiveBugButton.module.css',
   'LowerThird/LowerThird.module.css',
+  'InjuryBanner/InjuryBanner.module.css',
   'ScoreBug/ScoreBug.module.css',
   'Ticker/Ticker.module.css',
   'SegmentedMeter/SegmentedMeter.module.css',
