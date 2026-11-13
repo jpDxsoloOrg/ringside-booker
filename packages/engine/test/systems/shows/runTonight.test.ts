@@ -327,8 +327,9 @@ function tireEveryone(built: ValidateWorld): void {
 }
 
 describe('shows.runTonight determinism', () => {
-  it.each([
-    { going: 'nobody tired', prepare: (_built: ValidateWorld) => undefined },
+  const nobodyTired = (): void => undefined;
+  it.each<{ going: string; prepare: (built: ValidateWorld) => void }>([
+    { going: 'nobody tired', prepare: nobodyTired },
     { going: 'everyone tired and worn', prepare: tireEveryone },
   ])(
     'leaves the same world and events as running the show inside the day ($going)',
