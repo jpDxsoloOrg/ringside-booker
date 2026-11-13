@@ -63,10 +63,12 @@ function dateFact(show: CalendarShow): ReactNode {
 }
 
 function venueFact(show: CalendarShow | CalendarShowDetail): ReactNode {
+  // A generic local venue (EVT6) has no venue row, so it comes on the row by name.
+  const place = show.venue ?? show.genericVenue ?? null;
   const venueText =
-    show.venue === null
+    place === null
       ? 'Venue not chosen yet'
-      : `${show.venue.name} (holds ${formatNumber(show.venue.capacity)})`;
+      : `${place.name} (holds ${formatNumber(place.capacity)})`;
   const placementTrace = isDetail(show) ? show.placementTrace : null;
   if (placementTrace === null) return venueText;
   const trace = placementTraceInWords(placementTrace, show.venue?.name ?? null);

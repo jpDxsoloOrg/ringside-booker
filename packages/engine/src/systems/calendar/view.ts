@@ -33,6 +33,7 @@ import {
 import type { VenueKind } from '../../model/entities/venue';
 import type { GameWorldView } from '../../model/tables';
 import type { DeepReadonly } from '../../model/world';
+import { showVenueOf } from '../boxOffice/showVenue';
 import { geographyOf, type Geography } from '../world/geography';
 import { cancelRefusal } from './cancel';
 import { viewerControlsShow, type ShowOwnership } from './control';
@@ -65,6 +66,12 @@ export interface CalendarShow {
   region: { id: RegionId; name: string; countryName: string };
   /** Null while the venue is not chosen yet. */
   venue: { id: VenueId; name: string; capacity: number; kind: VenueKind } | null;
+  /**
+   * The generic local venue the show is held at ("Local hall, Northeast"), or null when it is at
+   * a real venue or none is chosen yet (EVT6-06). Optional so rows built by hand elsewhere stay
+   * valid; the calendar queries always fill it.
+   */
+  genericVenue?: { name: string; capacity: number } | null;
   /** How many segments are on the show's card. 0 for a projected show. */
   segmentCount: number;
   /** True when the viewer could cancel the show right now. */
@@ -169,6 +176,14 @@ export function calendarRowBuilder(
       : { id: venue.id, name: venue.name, capacity: venue.capacity, kind: venue.kind };
   }
 
+  function genericVenueOf(instance: DeepReadonly<EventInstance>): CalendarShow['genericVenue'] {
+    if (instance.genericVenue === null) {
+      return null;
+    }
+    const place = showVenueOf(read, instance);
+    return place?.kind === 'generic' ? { name: place.name, capacity: place.capacity } : null;
+  }
+
   function placeOf(
     source: RowSource,
   ): Pick<CalendarShow, 'promotion' | 'brand' | 'region' | 'venue'> {
@@ -208,6 +223,7 @@ export function calendarRowBuilder(
             : { reason: instance.cancellation.reason, on: instance.cancellation.on },
         region,
         venue,
+        genericVenue: genericVenueOf(instance),
         segmentCount: read.tables.segments.lookup('byEventInstance', instance.id).length,
         canCancel:
           isOwn &&
@@ -241,6 +257,7 @@ export function calendarRowBuilder(
         cancellation: null,
         region,
         venue,
+        genericVenue: null,
         segmentCount: 0,
         canCancel: false,
         score: null,
