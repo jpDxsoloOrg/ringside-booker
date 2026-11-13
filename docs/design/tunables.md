@@ -870,7 +870,7 @@ a short match; nothing here sets a length (D-10).
 | Key                                          | Kind    | Default                   | Range    | Unit        | Meaning                                                                                        |
 | -------------------------------------------- | ------- | ------------------------- | -------- | ----------- | ---------------------------------------------------------------------------------------------- |
 | `aip.winner.jitter`                          | number  | 0.1                       | 0–0.5    | ratio       | Largest random swing on each side's value, either way (0 = none)                               |
-| `aip.winner.drawChance`                      | number  | 0                         | 0–0.5    | probability | Chance a two-sided non-squash match is booked as a draw (0 = never)                            |
+| `aip.winner.drawChance`                      | number  | 0                         | 0–1      | probability | Chance a two-sided non-squash match is booked as a draw (0 = never)                            |
 | `aip.winner.squash.pushGap`                  | integer | 3                         | 1–5      | count       | Push bands between the sides before a match counts as a squash                                 |
 | `aip.winner.squash.chance`                   | number  | 0.92                      | 0–1      | probability | Chance the higher-pushed side wins a squash                                                    |
 | `aip.winner.protect.ace`                     | number  | 0.6                       | 0–1      | probability | Chance the booker protects its ace: the ace's side wins outright                               |

@@ -111,7 +111,6 @@ export const aipResultsTunables = defineTunables({
   'aip.winner.drawChance': {
     ...PROBABILITY,
     default: 0,
-    max: 0.5,
     description: 'Chance a two-sided non-squash match is booked as a draw (0 = never)',
   },
   'aip.winner.squash.pushGap': {
