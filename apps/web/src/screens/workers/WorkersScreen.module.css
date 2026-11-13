@@ -211,3 +211,11 @@
     min-block-size: var(--tap-target-min);
   }
 }
+
+/* The quick filters above the filter card (WRK6-06): one toggle per common question. */
+.quickFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}

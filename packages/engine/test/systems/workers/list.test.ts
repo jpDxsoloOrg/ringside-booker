@@ -643,6 +643,7 @@ describe('workers.list: injured people (WRK6-06)', () => {
       label: 'Test arm injury',
       bodyPart: 'arms',
       expectedReturn: list.rows[0]?.availability.until,
+      daysRemaining: 14,
     });
   });
 

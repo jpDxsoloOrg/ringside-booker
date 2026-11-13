@@ -12,7 +12,7 @@
 
 import { z } from 'zod';
 import { defineQuery, type QueryDefinition } from '../../../core/api/query';
-import type { GameDate } from '../../../core/date';
+import { diffDays, type GameDate } from '../../../core/date';
 import type { ContinentId, CountryId, PersonId, PromotionId, RegionId } from '../../../core/ids';
 import { injuryKindOf } from '../../../model/catalogs';
 import type { Alignment, Push } from '../../../model/entities/employment';
@@ -177,6 +177,8 @@ export interface WorkerRowInjury {
   bodyPart: BodyPart;
   /** The first day back. */
   expectedReturn: GameDate;
+  /** Days from today to the first day back. */
+  daysRemaining: number;
 }
 
 /** One person in the list. Plain JSON, numbers only. */
@@ -486,6 +488,7 @@ export function workerListOf(
                 label: injuryKindOf(read, person.injury.kindKey)?.label ?? person.injury.kindKey,
                 bodyPart: person.injury.bodyPart,
                 expectedReturn: person.injury.expectedReturn,
+                daysRemaining: Math.max(0, diffDays(today, person.injury.expectedReturn)),
               }
             : null,
       },
