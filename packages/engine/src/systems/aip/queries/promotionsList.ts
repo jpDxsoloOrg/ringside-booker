@@ -122,7 +122,7 @@ export const promotionsListQuery: QueryDefinition<'promotions.list'> = defineQue
             controlledBy: controlledByOf(viewer, promotion.controller),
             controllerName: controllerNameOf(read, promotion.controller),
             cash: redactForViewer(visibilityOf(read, viewer, promotion.id), promotion.cash, []),
-            size: companySizeOf(read, tunables, promotion.id),
+            size: companySizeOf(read, tunables, promotion.id, rollup),
           };
         });
     },

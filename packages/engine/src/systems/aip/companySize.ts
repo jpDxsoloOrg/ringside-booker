@@ -13,6 +13,7 @@ import type { PromotionId } from '../../core/ids';
 import type { GameWorldView } from '../../model/tables';
 import { PROMOTION_SIZE_LABELS } from '../finance/formulas/promotionSize';
 import { reachOf } from '../finance/reach';
+import type { PopularityRollup } from '../world/formulas/popularityRollup';
 import type { EngineTunables } from '../tunables';
 
 /** A promotion's size as the Promotions table shows it. */
@@ -28,11 +29,13 @@ export type CompanySizeSource = (
   read: GameWorldView,
   tunables: EngineTunables,
   promotionId: PromotionId,
+  /** The promotion's popularity roll-up when the caller already has it. */
+  rollup?: PopularityRollup,
 ) => CompanySize;
 
 /** ECO1's size: the band label read off reach. */
-export const eco1CompanySize: CompanySizeSource = (read, tunables, promotionId) => {
-  const { reach, size } = reachOf(read, promotionId, tunables);
+export const eco1CompanySize: CompanySizeSource = (read, tunables, promotionId, rollup) => {
+  const { reach, size } = reachOf(read, promotionId, tunables, rollup);
   return { label: PROMOTION_SIZE_LABELS[size.value], reach: reach.value };
 };
 
@@ -54,8 +57,9 @@ export function companySizeOf(
   read: GameWorldView,
   tunables: EngineTunables,
   promotionId: PromotionId,
+  rollup?: PopularityRollup,
 ): CompanySize | null {
-  return source === null ? null : source(read, tunables, promotionId);
+  return source === null ? null : source(read, tunables, promotionId, rollup);
 }
 
 setCompanySizeSource(eco1CompanySize);
