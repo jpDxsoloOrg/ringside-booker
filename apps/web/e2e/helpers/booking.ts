@@ -113,7 +113,7 @@ function slotMenus(page: Page) {
  * Picks side 1 as the winner of every match on the card, through each row's menu (Winner ▸ Side 1).
  * Talking segments have no Winner item and are left alone. Returns how many winners it picked.
  */
-export async function pickWinners(page: Page): Promise<number> {
+export async function pickWinners(page: Page, phone = false): Promise<number> {
   let picked = 0;
   const count = await slotMenus(page).count();
   for (let index = 0; index < count; index += 1) {
@@ -128,11 +128,13 @@ export async function pickWinners(page: Page): Promise<number> {
       await expect(menu).toBeHidden();
       continue;
     }
-    await winner.click();
     const sideOne = page.getByRole('menuitem', { name: /^Side 1: / });
+    if (phone) await winner.tap();
+    else await winner.click();
     // The item waits for the match type's way of winning to load.
     await expect(sideOne).toBeEnabled();
-    await sideOne.click();
+    if (phone) await sideOne.tap();
+    else await sideOne.click();
     await expect(menu).toBeHidden();
     picked += 1;
   }
@@ -144,8 +146,8 @@ export async function pickWinners(page: Page): Promise<number> {
  * the show** (EVT2-09: there is no Lock card): the side column's button on desktop, the sticky
  * bar's on a phone. Waits for the show's results page, which opens once it has run.
  */
-export async function pickWinnersAndRunShow(page: Page): Promise<void> {
-  await pickWinners(page);
+export async function pickWinnersAndRunShow(page: Page, phone = false): Promise<void> {
+  await pickWinners(page, phone);
   const run = page.getByRole('main').getByRole('button', { name: 'Run the show' }).last();
   await expect(run).toBeEnabled();
   await run.click();

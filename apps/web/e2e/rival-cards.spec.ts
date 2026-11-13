@@ -12,6 +12,8 @@
  * - Winners picked, Run the show (there is no Lock card), Next day: Tessen's 9 Jan card is under
  *   Recent shows, six slots from Opener to Main event, the main event a match, nobody in two
  *   matches, and its Why? (and the card's) open on readable lines.
+ * - With EVT3 (wired by AIP4-08): the aired card shows its score and links to its results page.
+ *   The other partners in the owner's script (AIP3, AIP5, AIP6, MTCH5/7/8) are not wired yet.
  *
  * On a phone the slots stack, the Auto-fill panel sits under the card, the reasons sheet fills the
  * screen and nothing scrolls sideways; axe passes on the Shows tab, an open card, the reasons sheet
@@ -212,7 +214,7 @@ test.describe('rival cards and Auto-fill on a new game', () => {
     });
 
     await test.step('winners picked, the show runs, and the day moves on', async () => {
-      await pickWinnersAndRunShow(page);
+      await pickWinnersAndRunShow(page, phone);
       await expect(page.getByRole('heading', { level: 1 })).toContainText(MY_SHOW);
       expect(await skipDaysOnce(page, 1, phone)).toBe(1);
       await expectNoHorizontalScroll(page);
@@ -267,6 +269,22 @@ test.describe('rival cards and Auto-fill on a new game', () => {
         .filter({ hasText: RIVAL_SHOW })
         .first();
       await expect(upcoming).toHaveAttribute('data-revealed', 'false');
+      await expectNoHorizontalScroll(page);
+    });
+
+    await test.step('With EVT3: the aired card has a score and links to its results', async () => {
+      const aired = showRow(page.getByRole('region', { name: 'Recent shows' }), RIVAL_SHOW);
+      await expect(aired.getByText(/^Completed · Score \d+$/)).toBeVisible();
+      await expect(aired.getByText(/^Show score \d+$/)).toBeVisible();
+      const firstMatchup = await aired
+        .locator('li[data-segment-kind] [data-part="side-name"]')
+        .first()
+        .textContent();
+      await aired.getByRole('link', { name: 'See results' }).click();
+      await expect(page).toHaveURL(/\/game\/event-history\/evi_/);
+      await expect(page.getByRole('heading', { level: 1 })).toContainText(RIVAL_SHOW);
+      await expect(page.getByRole('main')).toContainText(firstMatchup ?? '');
+      await expect(page.getByText(/wasn't booked in detail/)).toHaveCount(0);
       await expectNoHorizontalScroll(page);
     });
   });
