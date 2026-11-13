@@ -386,12 +386,17 @@ describe('TraceStore retention', () => {
     expect(traceStoreLimitsFrom(createEngineTunables())).toStrictEqual({
       retentionPerKind: 200,
       summaryLimit: 5000,
+      bytesPerKind: 500_000,
     });
     expect(
       traceStoreLimitsFrom(
-        createEngineTunables({ 'sim.traceRetentionPerKind': 0, 'sim.traceSummaryLimit': 0 }),
+        createEngineTunables({
+          'sim.traceRetentionPerKind': 0,
+          'sim.traceSummaryLimit': 0,
+          'sim.traceBytesPerKind': 0,
+        }),
       ),
-    ).toStrictEqual({ retentionPerKind: 0, summaryLimit: 0 });
+    ).toStrictEqual({ retentionPerKind: 0, summaryLimit: 0, bytesPerKind: 0 });
   });
 });
 
@@ -605,5 +610,101 @@ describe('traceNodeSchema', () => {
     expect(traceNodeSchema.safeParse({ ...base, extra: 1 }).success).toBe(false);
     expect(traceNodeSchema.safeParse({ ...base, value: Number.NaN }).success).toBe(false);
     expect(traceNodeSchema.safeParse({ ...base, unit: undefined }).success).toBe(false);
+  });
+});
+
+// POL4-06: rival results kept only as summaries, and a size budget per kind.
+describe('TraceStore summary-only results and the size budget', () => {
+  function sizeOf(store: TraceStore, kind: string): number {
+    return store
+      .listByKind(kind)
+      .filter(isFullTrace)
+      .reduce((sum, entry) => sum + JSON.stringify(entry).length, 0);
+  }
+
+  it('keeps a summary-only result as a marked summary, replacing any full trace of the ref', () => {
+    const store = new TraceStore(ROOMY);
+    recordAndCommit(store, [{ ref: ref('k', 'a'), traced: rating(5) }]);
+    expectFull(store.get(ref('k', 'a')));
+
+    const staging = store.stage();
+    staging.record(ref('k', 'a'), START_DATE, rating(6), { summaryOnly: true });
+    staging.commit();
+
+    const summary = expectSummary(store.get(ref('k', 'a')));
+    expect(summary).toMatchObject({ label: 'Match rating', value: 86, summaryOnly: true, seq: 2 });
+    expect(store.listByKind('k')).toHaveLength(1);
+    expect(sizeOf(store, 'k')).toBe(0);
+    expect(store.fullSizeOfKind('k')).toBe(0);
+  });
+
+  it('marks only summary-only results, not ones demoted for age, and keeps the mark through a save', () => {
+    const store = new TraceStore({ retentionPerKind: 1, summaryLimit: 10 });
+    recordAndCommit(store, [{ ref: ref('k', 'old'), traced: rating(1) }]);
+    recordAndCommit(store, [{ ref: ref('k', 'new'), traced: rating(2) }]);
+    const staging = store.stage();
+    staging.record(ref('k', 'rival'), START_DATE, rating(3), { summaryOnly: true });
+    staging.commit();
+
+    expect(expectSummary(store.get(ref('k', 'old'))).summaryOnly).toBeUndefined();
+    expectFull(store.get(ref('k', 'new')));
+    const loaded = TraceStore.fromState(JSON.parse(JSON.stringify(store.toState())), store.limits);
+    expect(expectSummary(loaded.get(ref('k', 'rival'))).summaryOnly).toBe(true);
+    expect(traceStoreStateSchema.safeParse(loaded.toState()).success).toBe(true);
+  });
+
+  it('demotes the oldest full traces of a kind once they pass the size budget', () => {
+    const one = new TraceStore(ROOMY);
+    recordAndCommit(one, [{ ref: ref('k', 'a'), traced: rating(1) }]);
+    const entrySize = one.fullSizeOfKind('k');
+    expect(entrySize).toBe(sizeOf(one, 'k'));
+
+    // Room for two and a half entries: the third commit demotes the first.
+    const store = new TraceStore({ ...ROOMY, bytesPerKind: Math.floor(entrySize * 2.5) });
+    for (const id of ['a', 'b', 'c']) {
+      recordAndCommit(store, [{ ref: ref('k', id), traced: rating(1) }]);
+      recordAndCommit(store, [{ ref: ref('other', id), traced: rating(1) }]);
+    }
+    expectSummary(store.get(ref('k', 'a')));
+    expectFull(store.get(ref('k', 'b')));
+    expectFull(store.get(ref('k', 'c')));
+    // The budget is per kind: the other kind keeps its own two.
+    expect(store.listByKind('other').filter(isFullTrace)).toHaveLength(2);
+    expect(store.fullSizeOfKind('k')).toBe(sizeOf(store, 'k'));
+    expect(store.fullSizeOfKind('k')).toBeLessThanOrEqual(Math.floor(entrySize * 2.5));
+  });
+
+  it('summarises everything with a budget of 0, and applies a lowered budget straight away', () => {
+    const zero = new TraceStore({ ...ROOMY, bytesPerKind: 0 });
+    recordAndCommit(zero, [{ ref: ref('k', 'a'), traced: rating(1) }]);
+    expectSummary(zero.get(ref('k', 'a')));
+
+    const store = new TraceStore(ROOMY);
+    recordAndCommit(store, [
+      { ref: ref('k', 'a'), traced: rating(1) },
+      { ref: ref('k', 'b'), traced: rating(2) },
+    ]);
+    store.setLimits({ ...ROOMY, bytesPerKind: store.fullSizeOfKind('k') - 1 });
+    expectSummary(store.get(ref('k', 'a')));
+    expectFull(store.get(ref('k', 'b')));
+  });
+
+  it('counts sizes the same after a save and load, so demotion stays deterministic', () => {
+    const limits: TraceStoreLimits = { ...ROOMY, bytesPerKind: 2_000 };
+    const live = new TraceStore(limits);
+    for (let index = 0; index < 6; index += 1) {
+      recordAndCommit(live, [{ ref: ref('k', `r${String(index)}`), traced: rating(index) }]);
+    }
+    const loaded = TraceStore.fromState(JSON.parse(JSON.stringify(live.toState())), limits);
+    expect(loaded.fullSizeOfKind('k')).toBe(live.fullSizeOfKind('k'));
+    for (const store of [live, loaded]) {
+      recordAndCommit(store, [{ ref: ref('k', 'next'), traced: rating(9) }]);
+    }
+    expect(loaded.toState()).toEqual(live.toState());
+  });
+
+  it('rejects a negative or fractional size budget', () => {
+    expect(() => new TraceStore({ ...ROOMY, bytesPerKind: -1 })).toThrow(InvalidArgumentError);
+    expect(() => new TraceStore({ ...ROOMY, bytesPerKind: 0.5 })).toThrow(InvalidArgumentError);
   });
 });

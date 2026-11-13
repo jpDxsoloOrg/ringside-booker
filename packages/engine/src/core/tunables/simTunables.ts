@@ -21,6 +21,17 @@ export const simTunables = defineTunables({
       'How many full calculation traces are kept for each kind of result (match rating, attendance, and so on). Older ones are summarised.',
     docRef: SIM_DOC,
   },
+  'sim.traceBytesPerKind': {
+    kind: 'integer',
+    default: 500_000,
+    min: 0,
+    max: 100_000_000,
+    unit: 'count',
+    category: SIM_CATEGORY,
+    description:
+      'How many characters of saved explanation each kind of result may keep in full. Past it, the oldest are summarised, so kinds with big breakdowns keep fewer of them.',
+    docRef: SIM_DOC,
+  },
   'sim.traceSummaryLimit': {
     kind: 'integer',
     default: 5000,
