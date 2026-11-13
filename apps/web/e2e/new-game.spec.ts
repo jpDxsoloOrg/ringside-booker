@@ -89,14 +89,13 @@ async function expectPromotionInTopBar(page: Page, name: string, phone: boolean)
     const crest = page.getByTestId('promotion-block');
     await expect(crest).toContainText(name);
     await expect(crest).not.toContainText('Sample');
-    // Popularity explains itself even before a system moves it (UI-19).
+    // Popularity explains itself even before a system moves it (UI-19). Since DAY2-02 the chip
+    // shows the headline figure, whose Why? is titled "<Promotion> popularity".
     await topBar
       .getByTestId('popularity-chip')
       .getByRole('button', { name: /^Why is / })
       .click();
-    await expect(page.getByRole('dialog')).toContainText(
-      'Starting popularity from the world you began in',
-    );
+    await expect(page.getByRole('dialog')).toContainText(`${name} popularity`);
     await page.keyboard.press('Escape');
   }
 }
