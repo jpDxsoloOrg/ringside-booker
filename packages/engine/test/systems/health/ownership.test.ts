@@ -35,8 +35,9 @@ describe('who writes injuries', () => {
   });
 
   it('only health.injure sets a current injury on a person', () => {
-    // An injury pointer is written as `injury: { kindKey, ... }`; nothing else builds one.
-    expect(filesMatching(/\binjury\s*:\s*\{/)).toEqual(['systems/health/injure.ts']);
+    // An injury pointer is written as `injury: { kindKey, ... }`; nothing else builds one. (Other
+    // objects may have a field called `injury`, such as the physical toll's per-worker result.)
+    expect(filesMatching(/\binjury\s*:\s*\{\s*kindKey\b/)).toEqual(['systems/health/injure.ts']);
   });
 
   it('only the return step closes an injury or clears the pointer of an existing person', () => {

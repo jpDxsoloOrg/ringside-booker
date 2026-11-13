@@ -101,7 +101,7 @@ The rival desk's phases ([rival-desk.md](rival-desk.md#jobs)), both daily:
 computer unit, `aip.pruneDecisionLog` (`periodic`, order 42) prunes the
 rival decision log, and `aip.pruneCardDetail` (`periodic`, order 43) keeps
 only a summary of rival card slots older than `history.keepDetailDays`. The
-match system's daily `match.prunePhysicalDetail` (`periodic`, order 44) does
+match system's daily `match.prunePhysicalDetail` (`periodic`, order 45) does
 the same for the physical toll traces of the player's matches
 ([physical-toll.md](physical-toll.md#stored-traces)).
 

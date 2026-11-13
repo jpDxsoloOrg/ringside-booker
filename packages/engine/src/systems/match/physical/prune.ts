@@ -3,7 +3,7 @@
  * `history.keepDetailDays` days after the show and then demoted to their summaries (the owner's
  * history rule, POL4-08). Rival shows only ever keep summaries, so there is nothing to demote there.
  *
- * Daily in `periodic` (order 44, after `aip.pruneCardDetail`): demotes the traces of the matches on
+ * Daily in `periodic` (order 45, after `aip.pruneCardDetail` and `health.pruneInjuryDetail`): demotes the traces of the matches on
  * the shows dated exactly `today - keepDetailDays`. On the 1st of each month a full sweep catches
  * shows a lowered setting or a failed day left behind.
  *
@@ -57,7 +57,7 @@ function demoteShows(ctx: PhaseContext, shows: Iterable<DeepReadonly<EventInstan
 export const prunePhysicalDetailPhase: PhaseDefinition = definePhase({
   id: PRUNE_PHYSICAL_DETAIL_PHASE_ID,
   group: 'periodic',
-  order: 44,
+  order: 45,
   cadence: { kind: 'daily' },
   run: (ctx) => {
     const cutoff = addDays(ctx.date, -ctx.tunables.get('history.keepDetailDays'));

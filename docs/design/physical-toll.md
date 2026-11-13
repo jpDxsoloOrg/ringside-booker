@@ -348,7 +348,7 @@ in the Match lab, which works the full trace out again. `match.fatigue` is
 `match.wear` is the wear load times the body part weights added up.
 
 The player's traces are kept in full for `history.keepDetailDays` (28) days:
-the daily `match.prunePhysicalDetail` (`periodic`, order 44) demotes those of
+the daily `match.prunePhysicalDetail` (`periodic`, order 45) demotes those of
 the shows dated 28 days ago to summaries, with a full sweep on the 1st of each
 month, like `aip.pruneCardDetail`. Rival shows keep only summaries from the
 start (POL4-06).

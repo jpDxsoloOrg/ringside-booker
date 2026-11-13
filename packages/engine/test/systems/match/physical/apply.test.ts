@@ -20,12 +20,14 @@ import {
   NO_INJURY_HANDLER_LOG,
   RIVAL_NO_INJURIES_LABEL,
   applyPhysicalToll,
+  clearInjuryHandler,
   fatigueTraceRef,
   injuryChanceTraceRef,
   injuryRollTraceRef,
   learningTraceRef,
   registerInjuryHandler,
   registerRiskModifier,
+  restoreBuiltInInjuryHandler,
   wearTraceRef,
   type InjuryRequest,
   type PhysicalTollResult,
@@ -45,6 +47,8 @@ afterEach(() => {
   for (const cleanup of cleanups.splice(0)) {
     cleanup();
   }
+  // Put back `health.injure` (WRK6-03's built-in handler) for later files in the same thread.
+  restoreBuiltInInjuryHandler();
 });
 
 interface Built {
@@ -320,6 +324,7 @@ describe('applyPhysicalToll', () => {
   });
 
   it('logs once and writes no injury when nobody handles injuries', () => {
+    clearInjuryHandler();
     const tunables = certainInjuries();
     const { world, person, singles, tag } = built();
     const run = applyInOrder(world, [singles, tag], tunables);
@@ -343,8 +348,9 @@ describe('applyPhysicalToll', () => {
     const tunables = certainInjuries();
     const { world, person, singles, tag } = built();
     const requests: InjuryRequest[] = [];
-    // WRK6-03 makes `health.injure` the built-in handler: on merge, clear it first
-    // (`clearInjuryHandler()`) and put it back after (`restoreBuiltInInjuryHandler()`).
+    // `health.injure` (WRK6-03) is the built-in handler: clear it so this test's handler can
+    // register; afterEach puts it back.
+    clearInjuryHandler();
     cleanups.push(
       registerInjuryHandler({
         id: 'test.injure',
