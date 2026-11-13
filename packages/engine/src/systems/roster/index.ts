@@ -1,0 +1,52 @@
+/**
+ * The roster system: the player's own people, one row per active contract, with every number
+ * already worked out by the workers system's helpers and formulas. The one formula it owns is the
+ * push gap (how far a worker sits from the push they expect) and its verdict.
+ *
+ * Design: docs/design/roster.md.
+ */
+
+import { defineSystem, type SystemBundle } from '../../core/api/system';
+import { rosterQueries } from './queries';
+
+export { computePushGap, PUSH_GAP_DOC_REF, type PushGapInputs } from './formulas/pushGap';
+export {
+  computePushVerdict,
+  PUSH_VERDICT_DOC_REF,
+  PUSH_VERDICTS,
+  type PushVerdict,
+} from './formulas/pushVerdict';
+export {
+  PUSH_ORDER_REASON,
+  pushIndexOf,
+  roleHasPush,
+  ROSTER_ROLE_GROUPS,
+  rosterRoleGroupOf,
+  type RosterRoleGroup,
+} from './roleGroups';
+export {
+  buildRosterRows,
+  type RosterDeps,
+  type RosterFilter,
+  type RosterPushGap,
+  type RosterRow,
+  type RosterRowAvailability,
+} from './rows';
+export {
+  ROSTER_NO_PROMOTION,
+  ROSTER_NOT_YOURS,
+  ROSTER_UNKNOWN_PROMOTION,
+  rosterQueries,
+  rosterRowsQuery,
+  rosterViewOf,
+  type RosterBrand,
+  type RosterPromotion,
+  type RosterRowsArgs,
+  type RosterView,
+} from './queries';
+export { rosterTunables } from './tunables';
+
+export const rosterSystem: SystemBundle = defineSystem({
+  id: 'roster',
+  queries: rosterQueries,
+});
