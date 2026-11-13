@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ChangeEvent, ReactElement } from 'react';
 import type { InspectReport } from '@ringside/engine';
 import { useOptionalEngineClient } from '@/app/engine/EngineProvider';
@@ -39,6 +39,15 @@ export function useImportSave(
   const inputRef = useRef<HTMLInputElement>(null);
   const inspect = useInspectSave();
   const [importing, setImporting] = useState(false);
+  // An import that settles after the screen unmounted is not reported and leaves its state alone:
+  // both would set state on an unmounted screen.
+  const mounted = useRef(false);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
 
   const handleChange = async (event: ChangeEvent<HTMLInputElement>): Promise<void> => {
     const input = event.currentTarget;
@@ -48,9 +57,10 @@ export function useImportSave(
     if (file === undefined) return;
     setImporting(true);
     try {
-      onResult(await runImport(file, inspect));
+      const result = await runImport(file, inspect);
+      if (mounted.current) onResult(result);
     } finally {
-      setImporting(false);
+      if (mounted.current) setImporting(false);
     }
   };
 
