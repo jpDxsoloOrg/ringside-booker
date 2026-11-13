@@ -12,6 +12,8 @@
 // The stream declarations are types only; the decision kinds register on import.
 import './streams';
 import './decisionKinds';
+// AIP5-04: the booked-card step registers on import.
+import './decideResults';
 
 export { TITLES_STREAM, WINNERS_STREAM } from './streams';
 export {
@@ -55,3 +57,41 @@ export {
   type PopularityHistorySource,
   type PopularityReading,
 } from './history';
+export {
+  bookedResultLabel,
+  decideResults,
+  DECIDE_RESULTS_STEP_ID,
+  DECIDE_RESULTS_STEP_ORDER,
+  type TitlePlanKind,
+} from './decideResults';
+export {
+  METHOD_LABEL,
+  METHOD_ROLL,
+  NO_CHANGE_METHODS_RULE,
+  ONLY_METHOD_NOTE,
+  pickRivalMethod,
+  TITLE_CHANGE_METHODS_RULE,
+  type RivalMethodArgs,
+  type RivalMethodDeps,
+} from './method';
+export {
+  BEST_VALUE_REASON,
+  CHAMPION_ABSENT_NOTE,
+  followsText,
+  NO_DRAWS_ON_TITLES_NOTE,
+  NO_METHOD_NOTE,
+  NOBODY_CAN_HOLD_NOTE,
+  ONLY_ONE_FIT_NOTE,
+  resultsSummaryText,
+  TITLE_CHANGE_SUMMARY_KEY,
+  TITLE_CROWN_SUMMARY_KEY,
+  TITLE_RETAIN_SUMMARY_KEY,
+  TITLE_VACANT_SUMMARY_KEY,
+  titleChangeText,
+  titleCrownText,
+  titleRetainText,
+  titleVacantText,
+  VACANT_TITLE_NOTE,
+  WINNERS_BOOKED_SUMMARY_KEY,
+  winnersBookedText,
+} from './texts';

@@ -29,6 +29,7 @@ import {
 } from '../card/bookShowJob';
 import { ROSTER_REVIEW_SUMMARY_KEY, rosterReviewSummaryText } from '../jobs/rosterReview';
 import { isRevealedTo } from '../reveal';
+import { resultsSummaryText } from '../results/texts';
 import { brandOrRefuse, promotionOrRefuse } from './shared';
 
 /** Entries one page holds when not told. */
@@ -101,7 +102,7 @@ export function decisionSummaryText(summary: TemplatedText): string {
     case SHOW_CANCELLED_SUMMARY_KEY:
       return showCancelledText(summary);
     default:
-      return needSummaryText(summary);
+      return resultsSummaryText(summary) ?? needSummaryText(summary);
   }
 }
 
