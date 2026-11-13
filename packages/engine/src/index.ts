@@ -675,7 +675,12 @@ export {
   WORKER_PROFILE_HIDDEN_FIELDS,
   workerProfileOf,
 } from './systems/workers/index';
-export { ATTRIBUTE_LABELS, GENDER_LABELS, STYLE_LABELS } from './systems/world/people/labels';
+export {
+  ATTRIBUTE_LABELS,
+  BODY_PART_LABELS,
+  GENDER_LABELS,
+  STYLE_LABELS,
+} from './systems/world/people/labels';
 // The workers list (WRK1-06): the `workers.list` rows, filters and sort keys, and the on-demand
 // "Why?" behind a row's numbers. See docs/design/workers.md#workers-list.
 export type {
@@ -693,6 +698,7 @@ export type {
   WorkerListSort,
   WorkerRow,
   WorkerRowAvailability,
+  WorkerRowInjury,
   WorkerRowEmployer,
   WorkerRowTopPopularity,
   WorkerSortDirection,
@@ -1190,6 +1196,7 @@ export type {
   LabRegion,
   LabWorkerRow,
   LabWorkerScope,
+  LabWorkerTraitFilter,
   LabWorkers,
   LabWorkersArgs,
   PreviewArgs,
@@ -1200,8 +1207,42 @@ export type {
   StarStats,
   Stats,
 } from './systems/match/index';
+// Preview extensions (MTCH4-05): `extensions` on the preview arguments, `extensions` and
+// `extensionSummaries` on the answers; the Match lab's `physical` toll preview.
+// See docs/design/match-rating.md#preview-extensions and physical-toll.md#match-lab.
+export type {
+  InjuryOutcome,
+  PhysicalPreviewArgs,
+  PhysicalPreviewPersonSummary,
+  PhysicalPreviewResult,
+  PhysicalPreviewSummary,
+  PhysicalPreviewWorker,
+  PreviewExtensionArgs,
+  PreviewExtensionResults,
+  PreviewExtensionSummaries,
+  WorkerInjuryResult,
+  WorkerPhysicalToll,
+} from './systems/match/index';
+export {
+  FATIGUE_OVERRIDE_RANGE_MESSAGE,
+  LAB_WHAT_IF_FATIGUE_LABEL,
+  PHYSICAL_PREVIEW_ID,
+} from './systems/match/index';
+// A run match's physical toll and the injuries it caused, for the results page (MTCH4-04/06).
+// See docs/design/physical-toll.md#matchphysicalforsegment and #matchsegmentinjuries.
+export type {
+  PhysicalForSegmentArgs,
+  PhysicalForSegmentResult,
+  PhysicalNumber,
+  PhysicalWorkerRow,
+  SegmentInjuriesArgs,
+  SegmentInjuriesResult,
+  SegmentInjuryView,
+} from './systems/match/index';
+export { learningGainText, weeksOutOf } from './systems/match/index';
 export {
   LAB_WORKER_SCOPES,
+  LAB_WORKER_TRAIT_FILTERS,
   LAB_WORKERS_DEFAULT_LIMIT,
   LAB_WORKERS_MAX_LIMIT,
   LAB_WORKERS_MAX_SEARCH,
@@ -2470,3 +2511,25 @@ export {
   type InjureResult,
   type InjuryDaysInputs,
 } from './systems/health/index';
+
+// The Health tab (WRK6-05): `health.profile`, a worker's fatigue, condition with the age cap and next
+// week's healing, medical care and injuries, and the acknowledge command the tab runs on view.
+// See docs/design/health.md#the-health-profile.
+export {
+  ACKNOWLEDGE_MAX_INJURIES,
+  computeConditionCap,
+  computeConditionRecovery,
+  computeFatigueRecovery,
+  computeOffscreenInjuryChance,
+  FATIGUE_BANDS,
+  fatigueBandOf,
+  HEALTH_PROFILE_HISTORY_LIMIT,
+  type BodyPartHealth,
+  type FatigueBand,
+  type HealthProfile,
+  type InjuryView,
+  type OffscreenInjuryChanceInputs,
+} from './systems/health/index';
+
+// Who is out (WRK6-06): `health.report`, every open injury in the world or one promotion's.
+export { type HealthReport, type HealthReportArgs, type InjuredRow } from './systems/health/index';

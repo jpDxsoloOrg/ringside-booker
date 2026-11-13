@@ -382,7 +382,7 @@ registered ones:
 | Gate                      | System | Hits when                                                              | Reason                                                               | Hint        |
 | ------------------------- | ------ | ---------------------------------------------------------------------- | -------------------------------------------------------------------- | ----------- |
 | `shows.tonight`           | shows  | The player has an open show today (EVT2-09)                            | "Tonight: Friday Fury", or "Your show 'Friday Fury' has no card yet" | `showNight` |
-| `health.ownWorkerInjured` | health | An injury to one of the player's workers waits to be noticed (WRK6-04) | "Big Joe was injured (Sprained ankle, out until 14 March 2031)"      | `roster`    |
+| `health.ownWorkerInjured` | health | An injury to one of the player's workers waits to be noticed (WRK6-04) | "Big Joe was injured (Sprained ankle, out until Mar 14, 2031)"       | `roster`    |
 
 The hints a gate can carry are the web shell's route keys: `showNight` (the
 show screen), `inbox`, `booking` and `roster` (the roster; WRK6-06 lands it on

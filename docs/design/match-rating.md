@@ -900,19 +900,50 @@ continentName }` sorted by continent, country and name; `importances` are
   reads "Rival shortcuts" after Run). The worker picker's "Your roster" stays
   the viewer's own.
 - **`match.labWorkers`** `{ scope: 'mine' | 'everyone', regionId, search?,
-limit?, promotionId? }` → `{ rows, total }`. `mine` is the promotion's
+limit?, promotionId?, trait? }` → `{ rows, total }`. `mine` is the promotion's
   active roster (index `byPromotionStatus`); `everyone` is everyone still in
   the business (not retired, dead or gone; someone on hiatus is listed as
   unavailable). Every role is listed, so managers and presenters can be picked
   for an angle; `style: 'nonWrestler'` flags them. A row is `{ personId, name,
-promotionShortName, style, roles, popularity, available, unavailableReason }`:
+promotionShortName, style, roles, popularity, safety, traits, available,
+unavailableReason }`:
   the ring name with the lab's promotion (else the default ring name), the main
   employer's short name, popularity in `regionId`, and WRK1's `availabilityOf`
   on today's date, its reason written with the day back ("On personal leave
   until 12 Mar"). Rows are sorted by popularity, then name; `search` matches
   the name case-insensitively (up to 40 characters) and `limit` (1–500, 300 by
-  default) caps the list, with `total` counting every match. A row never holds
-  development, vices, morale or contract terms.
+  default) caps the list, with `total` counting every match. `trait` (MTCH4-05:
+  `teacher`, `fastLearner`, `durable` or `injuryProne`) keeps only people with
+  that trait, for the picker's Trait filter. A row never holds development,
+  vices, morale or contract terms.
+
+### Preview extensions
+
+Another feature adds its own numbers to the lab's Run without a query of its
+own (MTCH4-05, `systems/match/previewExtensions.ts`), so a Run stays one
+round-trip. An extension registers `registerPreviewExtension({ id, args, run,
+summarise })` at module load and declares its argument, result and summary
+types on `PreviewExtensionMap`. A caller asks for it in the preview arguments'
+optional `extensions: { [id]: args }` (all four of `match.preview`,
+`match.previewBatch`, `match.simulate` and `match.simulateBatch` take it):
+each entry is checked with the extension's own schema, and an unknown id or a
+refused argument is an `invalidArgs` reason (the extension's own message, so a
+player-worded one reaches the screen). A single preview returns `extensions:
+{ [id]: run(...) }`; a batch runs each extension on every run and returns
+`extensionSummaries: { [id]: summarise(values) }`. Without `extensions` the
+answers are exactly as before.
+
+`run` gets a `PreviewExtensionContext`: the read view, tunables, the draft (the
+preview arguments), the promotion running the show, the simulated outcome
+(null for a plain preview), the run index, whether it is in a batch, and `rng(streamName)`, which is
+`detachedStream(meta.seed, streamName, String(previewSeed + runIndex))`. Same
+seed, same numbers; run 0 of a batch is the single preview. Like every preview,
+an extension never writes. The preview arguments also take an optional
+`crew: { producerId }` (MTCH4-05's Producer select, the field MTCH8's Crew
+section will own); only the physical toll reads it so far.
+
+The one extension so far is `physical` (MTCH4-05): see
+[physical-toll.md](physical-toll.md#match-lab).
 
 ### The Match lab screen
 

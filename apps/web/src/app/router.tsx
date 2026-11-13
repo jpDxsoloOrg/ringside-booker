@@ -22,6 +22,10 @@ import '@/screens/show-results/calendarHooks';
 import '@/screens/box-office/ShowCrowdSection';
 // The worker profile's Form tab (MTCH3-04); its panel loads with the tab.
 import '@/screens/workers/profile/tabs/recentFormTab';
+// The worker profile's Health tab (WRK6-05); its panel loads with the tab.
+import '@/screens/workers/health/registerHealthTab';
+// The roster's Injuries tab (WRK6-06), where the own-injury stop sends the player.
+import '@/screens/roster/injuries/registerInjuriesTab';
 // The promotion profile's Shows tab (AIP4-07); its panel loads with the tab.
 import '@/screens/promotions/profile/tabs/registerShowsTab';
 // The Fan base sheet's "This month" figure (DAY2-06, for EVT5).

@@ -1,0 +1,106 @@
+/*
+ * The physical toll table and its batch summary (MTCH4-05), on semantic tokens only. On a phone the
+ * DataTable draws cards; the "Physical" group spans the card's whole stat grid.
+ */
+.table {
+  min-inline-size: 0;
+}
+
+.name {
+  overflow-wrap: anywhere;
+}
+
+.whatIf {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.fatigueSelect {
+  min-inline-size: 8.5rem;
+}
+
+.meter {
+  min-inline-size: 6rem;
+}
+
+.wear,
+.learning,
+.thisRun {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+}
+
+.learning {
+  font-variant-numeric: tabular-nums;
+}
+
+.parts {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.part {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.part dt {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.part dd {
+  margin: 0;
+}
+
+/* The phone card's "Physical" stat takes the whole width of the card's stat grid. */
+.table :global(div:has(> dd[data-column-id='physical'])) {
+  grid-column: 1 / -1;
+}
+
+.group {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2) var(--space-3);
+  margin: var(--space-1) 0 0;
+  padding-block-start: var(--space-2);
+  border-block-start: 1px solid var(--color-border);
+}
+
+.groupItem {
+  display: grid;
+  align-content: start;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.groupItem dt {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.groupItem dd {
+  margin: 0;
+  min-inline-size: 0;
+}
+
+.summary {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.kpi {
+  max-inline-size: 28rem;
+}
+
+.summaryNote {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}

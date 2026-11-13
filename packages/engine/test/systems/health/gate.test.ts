@@ -82,8 +82,8 @@ function engineHurting(
     state: initialEngineState(world),
     systems: [simSystem, health, hurt],
   });
-  // The stop is off by default until the injury screens ship (WRK6-06); these tests turn it on.
-  for (const [key, value] of Object.entries({ 'health.stopOnOwnInjury': true, ...overrides })) {
+  // The stop is on by default (WRK6-06); a test can turn it off through `overrides`.
+  for (const [key, value] of Object.entries(overrides)) {
     const set = engine.command('tunables.setOverride', { key, value }, HUMAN);
     expect(set.ok).toBe(true);
   }

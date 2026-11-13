@@ -154,7 +154,7 @@ describe('boxOffice.pickOnShowNight', () => {
     const runtime = runtimeOn(built);
     const show = built.world.tables.eventInstances.require(built.shows.rivalAtArena);
     inStep(runtime, (ctx) => {
-      pickOnShowNightHook.run(ctx, { show, human: false });
+      pickOnShowNightHook.run(ctx, { show, human: false, beforeTheDay: false });
     });
     expect(venueOf(built, 'rivalAtArena')).toBe(built.venues.bigArena);
     expect(runtime.bus.recent({ types: ['show.venueChosen'] })).toEqual([]);

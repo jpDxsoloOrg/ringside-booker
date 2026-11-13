@@ -12,11 +12,13 @@
 
 import { z } from 'zod';
 import { defineQuery, type QueryDefinition } from '../../../core/api/query';
-import type { GameDate } from '../../../core/date';
+import { diffDays, type GameDate } from '../../../core/date';
 import type { ContinentId, CountryId, PersonId, PromotionId, RegionId } from '../../../core/ids';
+import { injuryKindOf } from '../../../model/catalogs';
 import type { Alignment, Push } from '../../../model/entities/employment';
 import {
   ATTRIBUTE_KEYS,
+  type BodyPart,
   GENDERS,
   PERSON_ROLES,
   PERSON_STATUSES,
@@ -168,6 +170,17 @@ export interface WorkerRowAvailability {
   until: GameDate | null;
 }
 
+/** The injury that keeps someone out, on an injured row (WRK6-06). */
+export interface WorkerRowInjury {
+  /** The catalog's name for it ("Torn ACL"), or the raw key when the catalog no longer has it. */
+  label: string;
+  bodyPart: BodyPart;
+  /** The first day back. */
+  expectedReturn: GameDate;
+  /** Days from today to the first day back. */
+  daysRemaining: number;
+}
+
 /** One person in the list. Plain JSON, numbers only. */
 export interface WorkerRow {
   personId: PersonId;
@@ -196,6 +209,8 @@ export interface WorkerRow {
   /** The alignment at the main employer; null for a free agent. */
   alignment: Alignment | null;
   availability: WorkerRowAvailability;
+  /** Set only while availability is `injured`; null otherwise. */
+  injury: WorkerRowInjury | null;
 }
 
 export interface WorkerListContinentFacet {
@@ -467,6 +482,15 @@ export function workerListOf(
           label: availability.reason,
           until: availability.until,
         },
+        injury:
+          availability.status === 'injured' && person.injury !== null
+            ? {
+                label: injuryKindOf(read, person.injury.kindKey)?.label ?? person.injury.kindKey,
+                bodyPart: person.injury.bodyPart,
+                expectedReturn: person.injury.expectedReturn,
+                daysRemaining: Math.max(0, diffDays(today, person.injury.expectedReturn)),
+              }
+            : null,
       },
     });
   }

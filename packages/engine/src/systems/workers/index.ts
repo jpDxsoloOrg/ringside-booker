@@ -171,6 +171,7 @@ export {
   type WorkerListSort,
   type WorkerRow,
   type WorkerRowAvailability,
+  type WorkerRowInjury,
   type WorkerRowEmployer,
   type WorkerRowTopPopularity,
   type WorkerSortDirection,

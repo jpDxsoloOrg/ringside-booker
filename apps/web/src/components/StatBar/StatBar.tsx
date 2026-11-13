@@ -28,6 +28,8 @@ export interface StatBarProps {
   readonly showValue?: boolean;
   /** Potential: draws a marker at this value. */
   readonly ceiling?: number;
+  /** What the marker is, as screen readers hear it: "potential" by default, "cap for age 41:" for condition. */
+  readonly ceilingLabel?: string;
   /**
    * The recent change. A gain tints the newest part of the bar; a loss shows the ground given up
    * as a faint segment past the end of the bar.
@@ -84,6 +86,7 @@ export function StatBar({
   hideLabel = false,
   showValue = true,
   ceiling,
+  ceilingLabel = 'potential',
   delta,
   tone = 'auto',
   lowBelow = DEFAULT_STAT_BAR_THRESHOLDS.lowBelow,
@@ -106,7 +109,7 @@ export function StatBar({
   const ariaValueText = [
     valueText,
     deltaText === undefined ? undefined : `change ${deltaText}`,
-    ceiling === undefined ? undefined : `potential ${formatNumber(ceiling)}`,
+    ceiling === undefined ? undefined : `${ceilingLabel} ${formatNumber(ceiling)}`,
   ]
     .filter((part) => part !== undefined)
     .join(', ');

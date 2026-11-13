@@ -42,6 +42,12 @@ describe('formatTraceNumber', () => {
     expect(formatTraceNumber(0.35, 'probability')).toBe('35%');
   });
 
+  it('shows a chance under 1% finely enough to see each step move it', () => {
+    expect(formatTraceNumber(0.3 / 365.25, 'probability')).toBe('0.082%');
+    expect(formatTraceNumber(0.5, 'percent')).toBe('0.5%');
+    expect(formatTraceNumber(0, 'probability')).toBe('0%');
+  });
+
   it('shows a ratio as a plain factor and a multiplier with its sign', () => {
     expect(formatTraceNumber(0.885, 'ratio')).toBe('0.885');
     expect(formatTraceNumber(1.06251, 'multiplier')).toBe('×1.063');
@@ -55,6 +61,13 @@ describe('formatTraceNumber', () => {
     expect(formatTraceNumber(70.29, 'points')).toBe(formatPopularity(70.29));
     expect(formatTraceNumber(71, 'points')).toBe('71');
     expect(formatTraceNumber(4, 'points/day')).toBe('4/day');
+  });
+
+  it('shows an attribute or a change to one with up to three decimals', () => {
+    expect(formatTraceNumber(0.042, 'attribute')).toBe('0.042');
+    expect(formatTraceNumber(0.03, 'attribute')).toBe('0.03');
+    expect(formatTraceNumber(72, 'attribute')).toBe('72');
+    expect(formatTraceDelta(0.0042, 'attribute')).toBe('+0.004');
   });
 
   it('shows kilograms with kg', () => {

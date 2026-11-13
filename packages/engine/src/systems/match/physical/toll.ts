@@ -299,6 +299,7 @@ export function computePhysicalToll(
               name: input.name,
               durationClass: spec.durationClass,
               fatigueGoingIn: input.fatigue,
+              fatigueWhatIf: spec.fatigueOverrides?.[input.personId] !== undefined,
               fatigueGain: gain,
               conditionAfterWear: after.after,
               style: input.style,

@@ -55,6 +55,7 @@ Definitions are declared with `defineTunables`. Every definition has:
 | `money`, `money/month` | Whole cents (`Cents`). Only allowed on `integer`    |
 | `count`                | A number of things                                  |
 | `kilograms`            | A body weight or a weight limit, in kilograms       |
+| `attribute`            | A worker attribute (0–100) or a change to one       |
 | `flag`                 | The unit of every `boolean` tunable, and only those |
 | `choice`               | The unit of every `enum` tunable, and only those    |
 | `stars`                | A star rating, 0–5 in quarter steps (a star cap)    |

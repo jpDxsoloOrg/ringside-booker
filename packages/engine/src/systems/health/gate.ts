@@ -23,23 +23,23 @@ export const OWN_WORKER_INJURED_GATE_ID = 'health.ownWorkerInjured';
 export const ROSTER_ACTION_HINT = 'roster';
 
 const MONTHS = [
-  'January',
-  'February',
-  'March',
-  'April',
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
   'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
 ] as const;
 
-/** "14 March 2031". */
+/** "Mar 14, 2031": the app's short date (`formatGameDate`), so the stop reads like the screens. */
 export function plainDate(date: GameDate): string {
-  return `${String(dayOfMonth(date))} ${MONTHS[month(date) - 1] ?? ''} ${String(year(date))}`;
+  return `${MONTHS[month(date) - 1] ?? ''} ${String(dayOfMonth(date))}, ${String(year(date))}`;
 }
 
 /** The name the worker is known by on `date`: their main employer's ring name, else their own. */
@@ -56,7 +56,7 @@ export function injuriesAwaitingNotice(read: GameWorldView): readonly DeepReadon
   return read.tables.injuries.lookup('awaitingNotice', 'pending');
 }
 
-/** "Big Joe was injured (Sprained ankle, out until 14 March 2031)", or "... and 2 others were injured". */
+/** "Big Joe was injured (Sprained ankle, out until Mar 14, 2031)", or "... and 2 others were injured". */
 export function ownInjuryReason(
   read: GameWorldView,
   waiting: readonly DeepReadonly<InjuryRecord>[],

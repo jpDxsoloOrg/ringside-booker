@@ -1,3 +1,4 @@
+import { isId } from '@ringside/engine';
 import type { GateHit } from '@ringside/engine';
 import { routes } from '../../routes';
 
@@ -59,6 +60,42 @@ export const GO_TO_SHOW_LABEL = 'Go to the show';
 /** The show night button's label in the phone top bar. */
 export const SHOW_TONIGHT_PHONE_LABEL = 'Tonight';
 
+/**
+ * The route hint for the own-injury stop (the engine's `ROSTER_ACTION_HINT`, WRK6-04): one of your
+ * workers was hurt, and the button goes where the injury is shown, which marks it as seen.
+ */
+export const ROSTER_HINT = 'roster';
+
+/** The label of the own-injury button. */
+export const ROSTER_LABEL = 'Roster';
+
+/** The `?tab=` of the roster's Injuries tab (WRK6-06). */
+export const INJURIES_TAB_ID = 'injuries';
+
+/**
+ * True once the roster's Injuries tab is registered (`registerInjuriesTab.ts` flips it). This file
+ * never imports the roster screen, so the button works whether or not that tab exists: without it
+ * the button opens the injured worker's Health tab instead.
+ */
+let rosterInjuriesTabAvailable = false;
+
+/** Tells the day control whether the roster has an Injuries tab to send the own-injury stop to. */
+export function setRosterInjuriesTabAvailable(available: boolean): void {
+  rosterInjuriesTabAvailable = available;
+}
+
+/**
+ * Where the own-injury button goes: the roster's Injuries tab when it exists, else the injured
+ * worker's Health tab, else (a gate with no person) everyone injured on the Workers list. Each of
+ * these marks the player's waiting injuries as seen when it opens, which clears the stop.
+ */
+export function injuryGateDestination(hit: GateHit): string {
+  if (rosterInjuriesTabAvailable) return `${routes.game.roster()}?tab=${INJURIES_TAB_ID}`;
+  const personId = hit.subject?.kind === 'person' ? hit.subject.id : null;
+  if (isId('person', personId)) return `${routes.game.worker(personId)}?tab=health`;
+  return `${routes.game.workers()}?availability=injured`;
+}
+
 /** The label of a gate whose hint no screen handles yet. */
 export const GENERIC_GATE_LABEL = 'Needs attention';
 
@@ -81,14 +118,19 @@ const GATE_ROUTES: Readonly<Record<string, GateRoute>> = {
         ? `${routes.game.booking()}?event=${encodeURIComponent(hit.subject.id)}`
         : routes.game.booking(),
   },
+  [ROSTER_HINT]: {
+    label: () => ROSTER_LABEL,
+    to: injuryGateDestination,
+  },
 };
 
 /**
  * Hints in the order they win when several gates hit at once. Unanswered decisions come before a
  * show: booking with a contract or discipline call still open means acting on stale information.
- * Hints not listed here keep the engine's registration order, after these.
+ * A new injury comes after both: the show screen shows who is hurt anyway. Hints not listed here
+ * keep the engine's registration order, after these.
  */
-const HINT_PRIORITY: readonly string[] = [INBOX_HINT, SHOW_NIGHT_HINT];
+const HINT_PRIORITY: readonly string[] = [INBOX_HINT, SHOW_NIGHT_HINT, ROSTER_HINT];
 
 function hintRank(hit: GateHit): number {
   const rank = hit.actionHint === undefined ? -1 : HINT_PRIORITY.indexOf(hit.actionHint);

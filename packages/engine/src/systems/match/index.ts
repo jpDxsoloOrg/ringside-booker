@@ -36,6 +36,8 @@ import './aftermath/tvReach';
 import './physical/streams';
 // Registers the physical toll applier with show night at module load (MTCH4-04).
 import './physical/showNight';
+// Registers the Match lab's `physical` preview extension at module load (MTCH4-05).
+import './physical/preview';
 import { prunePhysicalDetailPhase } from './physical/prune';
 import { physicalQueries } from './physical/queries';
 
@@ -277,11 +279,39 @@ export {
   type PreviewResult,
   type StarStats,
 } from './previewQueries';
+// The preview extension seam (MTCH4-05) and the Match lab's `physical` extension.
+export {
+  checkPreviewExtensions,
+  previewExtensionIds,
+  registerPreviewExtension,
+  type PreviewExtensionArgs,
+  type PreviewExtensionContext,
+  type PreviewExtensionDefinition,
+  type PreviewExtensionId,
+  type PreviewExtensionMap,
+  type PreviewExtensionResults,
+  type PreviewExtensionSummaries,
+} from './previewExtensions';
+export {
+  FATIGUE_OVERRIDE_RANGE_MESSAGE,
+  PHYSICAL_PREVIEW_ID,
+  PhysicalPreviewArgsSchema,
+  labSegmentSpec,
+  runPhysicalPreview,
+  summarisePhysicalPreview,
+  type PhysicalPreviewArgs,
+  type PhysicalPreviewPersonSummary,
+  type PhysicalPreviewResult,
+  type PhysicalPreviewSummary,
+  type PhysicalPreviewWorker,
+} from './physical/preview';
 export {
   LAB_WORKERS_DEFAULT_LIMIT,
   LAB_WORKERS_MAX_LIMIT,
   LAB_WORKERS_MAX_SEARCH,
   LAB_WORKER_SCOPES,
+  LAB_WORKER_TRAIT_FILTERS,
+  type LabWorkerTraitFilter,
   type LabDefaults,
   type LabImportance,
   type LabOptions,
@@ -669,6 +699,7 @@ export {
 // toll's trace refs. Design: docs/design/physical-toll.md#injury-chance.
 export {
   END_FATIGUE_LABEL,
+  LAB_WHAT_IF_FATIGUE_LABEL,
   FATIGUE_TRACE_KIND,
   INJURIES_OFF_LABEL,
   INJURY_CHANCE_DOC_REF,
@@ -715,6 +746,7 @@ export {
   collectRingLearning,
   computeRingLearning,
   computeRingLearningTotal,
+  learningGainText,
   isTaughtAttribute,
   learningTunables,
   mentorOnCard,
@@ -749,7 +781,10 @@ export {
   physicalForSegmentQuery,
   physicalTollApplier,
   prunePhysicalDetailPhase,
+  SEGMENT_INJURIES_NOT_FOUND,
+  segmentInjuriesQuery,
   segmentSpecFromWorld,
+  weeksOutOf,
   type AlreadyInjured,
   type PhysicalForSegmentArgs,
   type PhysicalForSegmentResult,
@@ -758,6 +793,9 @@ export {
   type PhysicalTollPolicy,
   type PhysicalTollResult,
   type PhysicalWorkerRow,
+  type SegmentInjuriesArgs,
+  type SegmentInjuriesResult,
+  type SegmentInjuryView,
   type WorkerInjuryResult,
   type WorkerPhysicalToll,
 } from './physical';

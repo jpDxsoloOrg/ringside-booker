@@ -18,6 +18,7 @@ import { zContentKey, zId } from '../../model/primitives';
 import type { GameWorldView } from '../../model/tables';
 import type { SegmentKind, SegmentRatingInput } from './rating/types';
 import { SLOT_ROLES, type SlotRole } from './slots';
+import { zPreviewExtensionArgs, type PreviewExtensionArgs } from './previewExtensions';
 
 /** The most people one side of a preview may hold. */
 export const PREVIEW_MAX_SIDE_SIZE = 6;
@@ -40,6 +41,16 @@ export interface PreviewArgs {
   promotionId?: PromotionId | undefined;
   /** Whole number, 0 to 2^31 − 1: the same seed always gives the same night. */
   previewSeed: number;
+  /**
+   * The segment's crew (MTCH4-05; MTCH8's Crew section fills the same field). Left out, no
+   * producer. Only the physical toll reads it so far.
+   */
+  crew?: { producerId: PersonId | null } | undefined;
+  /**
+   * Preview extensions to run alongside (MTCH4-05, `previewExtensions.ts`), each with its own
+   * arguments; an unknown id is refused. Left out, none run and the answer has no `extensions`.
+   */
+  extensions?: PreviewExtensionArgs | undefined;
 }
 
 const previewArgsShape = {
@@ -55,6 +66,8 @@ const previewArgsShape = {
   televised: z.boolean(),
   promotionId: zId('promotion').optional(),
   previewSeed: z.number().int().min(0).max(PREVIEW_SEED_MAX),
+  crew: z.strictObject({ producerId: zId('person').nullable() }).optional(),
+  extensions: zPreviewExtensionArgs.optional(),
 };
 
 /** Zod schema for {@link PreviewArgs} (strict: unknown keys are refused). */

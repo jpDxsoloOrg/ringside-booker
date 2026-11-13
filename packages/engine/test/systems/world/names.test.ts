@@ -429,6 +429,8 @@ describe('gender handling', () => {
   // The share sweeps (20,000 names each) run in the slow run only (support/slow.ts).
   it.runIf(SLOW_TESTS)(
     'names non-binary people from the neutral list 50% ±1% of the time, else male or female evenly',
+    // A large sample of generated names: give a loaded machine room.
+    { timeout: 120_000 },
     () => {
       const shares = listShares('nonBinary');
       expect(Math.abs(shares.neutral - 0.5)).toBeLessThanOrEqual(0.01);

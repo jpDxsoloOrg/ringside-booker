@@ -156,8 +156,14 @@
 
 /* ---------------------------------------------------------------- table */
 
-/* The scroll container the sticky header sticks to. Screens can cap or lift the height. */
+/*
+ * The scroll container the sticky header sticks to. Screens can cap or lift the height. Positioned,
+ * so screen-reader text absolutely placed inside a cell (a chip's reason, a badge's words) has the
+ * scroller as its containing block and clips with it, instead of widening the page when the table
+ * is wider than the screen (Workers at 150% UI scale).
+ */
 .scroller {
+  position: relative;
   max-block-size: 70vh;
   overflow: auto;
   /* Tabbing to a link in a cell scrolls it into view with room for its focus ring. */
@@ -526,6 +532,8 @@
  */
 .cardStat {
   display: grid;
+  /* One column no wider than the stat, so a long label wraps inside it at a large UI scale. */
+  grid-template-columns: minmax(0, 1fr);
   align-content: start;
   gap: 0;
   min-inline-size: 0;

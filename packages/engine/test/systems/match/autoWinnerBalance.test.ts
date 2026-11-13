@@ -198,7 +198,8 @@ describe('auto-winner balance on the default world', () => {
     expect(playOut(world, sample, 10, tunables)).toEqual(playOut(world, sample, 10, tunables));
   });
 
-  it.runIf(SLOW_TESTS)('prints the recorded numbers', () => {
+  // Thousands of seeded matches: give a loaded machine room (slow suite only).
+  it.runIf(SLOW_TESTS)('prints the recorded numbers', { timeout: 120_000 }, () => {
     const main = playOut(world, mainVsMid, runs, tunables);
     const mid = playOut(world, midVsMid, runs, tunables);
     console.info(

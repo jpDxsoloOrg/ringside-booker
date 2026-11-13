@@ -3,6 +3,11 @@
 // report's "What changed" (EVT3-09). The page itself is loaded by the router as its own chunk;
 // importing this file does not pull it in.
 export { listResultsSections, registerResultsSection } from './resultsSectionRegistry';
+export { listResultsCardBanners, registerResultsCardBanner } from './resultsCardBannerRegistry';
+export type {
+  ResultsCardBannerDefinition,
+  ResultsCardBannerProps,
+} from './resultsCardBannerRegistry';
 export type { ResultsSectionDefinition, ResultsSectionProps } from './resultsSectionRegistry';
 export {
   listShowReportLines,

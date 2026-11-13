@@ -409,6 +409,35 @@ describe('MatchLabScreen', { timeout: TEST_TIMEOUT_MS }, () => {
     expect(within(side2).getAllByRole('listitem')).toHaveLength(1);
   });
 
+  it("filters the picker by trait and shows each person's safety (MTCH4-05)", async () => {
+    const { user, transport } = renderLab();
+    await findSlotRole();
+    const { regionId } = useLabStore.getState().setup;
+    if (regionId === null) throw new Error('The lab has no region.');
+    const { result } = await transport.host.query('match.labWorkers', {
+      scope: 'mine',
+      regionId,
+      trait: 'durable',
+    });
+    if (!result.ok) throw new Error('The engine refused match.labWorkers.');
+    const durable = result.data.rows.map((row) => row.personId);
+
+    await user.click(screen.getByRole('button', { name: 'Add worker to Side 1' }));
+    const sheet = await screen.findByRole('dialog', { name: 'Add to Side 1' });
+    const grid = await within(sheet).findByRole('grid', {}, { timeout: LOAD_MS });
+    expect(within(grid).getByRole('columnheader', { name: /Safety/ })).toBeInTheDocument();
+    await choose(user, 'Trait', 'Durable');
+    await waitFor(
+      () => {
+        const ids = [...grid.querySelectorAll<HTMLElement>('tbody tr[data-row-id]')].map(
+          (row) => row.dataset['rowId'],
+        );
+        expect(ids).toEqual(durable);
+      },
+      { timeout: LOAD_MS },
+    );
+  });
+
   it('draws a registered panel under the result and refuses a second with its id', async () => {
     cleanups.push(
       registerLabPanel({

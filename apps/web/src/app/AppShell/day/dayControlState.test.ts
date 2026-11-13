@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import { parseId } from '@ringside/engine';
 import type { GateHit } from '@ringside/engine';
 import { routes } from '../../routes';
 import {
@@ -6,6 +7,8 @@ import {
   gateDestination,
   GENERIC_GATE_LABEL,
   leadingGate,
+  ROSTER_HINT,
+  setRosterInjuriesTabAvailable,
 } from './dayControlState';
 
 const showGate: GateHit = {
@@ -140,6 +143,59 @@ describe('gateDestination', () => {
     });
     expect(gateDestination({ gateId: 'a.b', reason: 'Elsewhere', actionHint: 'draftRoom' })).toBe(
       null,
+    );
+  });
+});
+
+describe('the own-injury stop (roster hint)', () => {
+  const injuryGate: GateHit = {
+    gateId: 'health.ownWorkerInjured',
+    reason: 'Big Joe was injured (Sprained ankle, out until Mar 14, 2031)',
+    subject: { kind: 'person', id: 'per_0000000007' },
+    actionHint: ROSTER_HINT,
+  };
+
+  afterEach(() => {
+    setRosterInjuriesTabAvailable(false);
+  });
+
+  it('reads Roster and opens the roster’s Injuries tab when it is registered', () => {
+    setRosterInjuriesTabAvailable(true);
+    expect(deriveDayControl([injuryGate], idle)).toEqual({
+      primary: {
+        kind: 'gate',
+        label: 'Roster',
+        phoneLabel: null,
+        reason: injuryGate.reason,
+        to: `${routes.game.roster()}?tab=injuries`,
+      },
+      skipEnabled: false,
+    });
+  });
+
+  it('opens the injured worker’s Health tab without the Injuries tab', () => {
+    expect(gateDestination(injuryGate)).toEqual({
+      label: 'Roster',
+      to: `${routes.game.worker(parseId('person', 'per_0000000007'))}?tab=health`,
+    });
+  });
+
+  it('falls back to everyone injured on the Workers list when the gate names nobody', () => {
+    const withoutSubject: GateHit = {
+      gateId: injuryGate.gateId,
+      reason: injuryGate.reason,
+      actionHint: ROSTER_HINT,
+    };
+    expect(gateDestination(withoutSubject)?.to).toBe(
+      `${routes.game.workers()}?availability=injured`,
+    );
+  });
+
+  it('waits behind decisions and a show night', () => {
+    expect(leadingGate([injuryGate, showGate])).toBe(showGate);
+    expect(leadingGate([injuryGate, contractDecision])).toBe(contractDecision);
+    expect(leadingGate([injuryGate, { gateId: 'x', reason: 'Other', actionHint: 'other' }])).toBe(
+      injuryGate,
     );
   });
 });

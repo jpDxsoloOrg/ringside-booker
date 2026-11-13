@@ -68,4 +68,13 @@ export const routesUnderTest: readonly RouteUnderTest[] = [
     heading: 'Promotion not found',
     needsWorld: true,
   },
+  // Workers' Injured quick filter and a worker's Health tab (WRK6). Without a world they show their
+  // no-world states; `smoke.spec.ts` also opens both in a game with an injured worker.
+  {
+    path: '/game/workers?availability=injured',
+    name: 'injured workers',
+    heading: 'Workers',
+    needsWorld: true,
+  },
+  { path: '/game/workers/per_0000000001?tab=health', name: 'health tab', needsWorld: true },
 ];

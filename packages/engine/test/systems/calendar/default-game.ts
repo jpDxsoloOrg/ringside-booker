@@ -18,6 +18,7 @@ import {
 // Importing the calendar registers its setup step; `createNewGame` alone does not know about it.
 import { occurrencesBetween } from '../../../src/systems/calendar';
 import { createNewGame } from '../../../src/systems/newgame';
+import type { SeasonPresetKey } from '../../../src/systems/newgame/season';
 
 const CONTENT_ROOT = fileURLToPath(new URL('../../../../../content/', import.meta.url));
 
@@ -46,17 +47,21 @@ export const FLAGSHIP_PROMOTION_KEY = 'pro-flagship';
 export interface DefaultGameOptions {
   readonly player?: Record<string, unknown>;
   readonly tunableOverrides?: Record<string, number>;
+  /** The world seed; the calendar tests' own seed when left out. */
+  readonly seed?: string;
+  /** The season preset; six months when left out (the web wizard's default is `12m`). */
+  readonly seasonPreset?: SeasonPresetKey;
 }
 
 /** Starts a game on the default world; plays the flagship promotion unless told otherwise. */
 export function startDefaultGame(options: DefaultGameOptions = {}): EngineState {
   const result = createNewGame(PACKS, {
     rootPackId: 'default-world',
-    seed: 'calendar-default-world',
+    seed: options.seed ?? 'calendar-default-world',
     playerId: 'local-player',
     playerName: 'Alex Booker',
     saveName: 'Calendar run',
-    seasonLength: { preset: '6m' },
+    seasonLength: { preset: options.seasonPreset ?? '6m' },
     player: options.player ?? { mode: 'existing', promotionKey: FLAGSHIP_PROMOTION_KEY },
     settings: {},
     ...(options.tunableOverrides === undefined

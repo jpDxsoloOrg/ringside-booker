@@ -8,8 +8,8 @@ reference system, the layout other systems copy (see
 
 WRK6-02 built fatigue recovery, the condition cap, condition recovery and
 medical care. WRK6-03 added [injuries](#injuries) and [returns](#returns).
-Injury risk (WRK6-04) and the Health tab on the profile (WRK6-05) add their
-sections here. How matches make people tired
+Injury risk (WRK6-04) and [the Health tab](#the-health-profile) on the profile
+(WRK6-05) add their sections here. How matches make people tired
 and wear their bodies is the match system's (MTCH4).
 
 | Piece        | Where              | What it does                                                                                         |
@@ -21,10 +21,12 @@ and wear their bodies is the match system's (MTCH4).
 | Talking days | `appearances.ts`   | `talkedWithoutWrestling`: who cut a promo and did not wrestle                                        |
 | Injuries     | `injure.ts`        | `injure` (`health.injure`): the one way anyone gets hurt                                             |
 | Returns      | `returns.ts`       | `healInjuries` (inside `health.recovery`) and `health.pruneInjuryDetail`                             |
+| Morning      | `morning.ts`       | the day's rest and healing, run early before a show the player runs ahead of its day                 |
+| Policy lines | `policyEffects.ts` | the medical policy's health lines in the Finances preview (ECO1)                                     |
 | Handler      | `injuryHandler.ts` | registers `health.injure` as MTCH4's injury handler                                                  |
 | Phases       | `phases.ts`        | `health.recovery` (daily), `health.conditionRecovery` and `health.pruneInjuryDetail` (Mondays)       |
 | Events       | `events.ts`        | `fatigue.cleared`, `injury.sustained`, `injury.healed`                                               |
-| Query        | `queries.ts`       | `health.fatigue`: fatigue and the trace behind it                                                    |
+| Query        | `queries.ts`       | `health.profile`: the worker profile's Health tab in one answer                                      |
 
 ## Fatigue recovery
 
@@ -87,6 +89,34 @@ and the player's when they press Run the show.
 promo today" beneath it, each opening onto its own small sum and the tunables
 it read), "Extra rest" (the roll) and the clamp. It is stored under
 `health.fatigueRecovery:<personId>`, replacing the person's previous one.
+
+### The player's show nights
+
+A rival's show runs inside its day, in the `shows` group, after the morning's
+housekeeping, so its workers rest from it the next morning. The player's show
+runs earlier: the day stops before it starts ("Tonight: <Show>") and the
+player presses Run the show (`shows.runTonight`) before any of the day's
+phases. Without help, that day's housekeeping would then rest the player's
+workers from the show they had just wrestled, and on a Monday heal its wear,
+while a rival's workers waited for the next morning.
+
+So a show run ahead of its day runs the day's morning first (WRK6-07,
+`morning.ts`): the before-a-show hook `health.morningBeforeShow` (order 0) sees
+`beforeTheDay` on its input, set only by `shows.runTonight`, and runs
+`runFatigueMorning` (returns, then fatigue recovery) and, on a Monday,
+`recoverConditions`, exactly as the phases would. `health.recovery` and
+`health.conditionRecovery` then skip the day: `morningRanEarly(read, date)` is
+true when a show dated that day has already completed, which only a show run
+ahead of its day can have done by the housekeeping. A second show of the
+player's the same day finds the morning done and skips it too. The rule is
+read from the world, so it holds across a save and load.
+
+Running the show by command or inside the day now leaves the same world, random
+streams and traces, tired workers or not (`runTonight.test.ts`), and a player's
+worker and a rival's with the same match rest on the same morning
+(`showNightRecovery.test.ts`). The one thing that still sees the player's show
+first is the day's [off-screen injury](#off-screen-injuries) roll, which runs
+after the morning and reads fatigue and condition as they are then.
 
 ## Condition cap
 
@@ -166,6 +196,13 @@ what it costs are the finance system's ([finances.md](finances.md#medical)).
 | `health.medical.injuryMultiplier.level1`   | number  | 1       | 0–3   | multiplier | Injury time out under medical care level 1                     |
 | `health.medical.injuryMultiplier.level2`   | number  | 0.9     | 0–3   | multiplier | Injury time out under medical care level 2                     |
 | `health.medical.injuryMultiplier.level3`   | number  | 0.8     | 0–3   | multiplier | Injury time out under medical care level 3 (the best)          |
+
+The Finances policy preview explains the level to the player (WRK6-07, through
+ECO1's `registerPolicyEffect`, `policyEffects.ts`): each level has two lines
+built from these tunables, "Injuries heal in ×0.8 of the time" and "Body
+condition recovers ×1.3 per week" ("the usual time" and "the usual rate" at
+×1), good news in green and bad in red, each with the tunable as its Why?. The
+lines carry no cost; what the policy costs is ECO1's.
 
 ## Injuries
 
@@ -380,7 +417,7 @@ the injury is written because a gate cannot read tunables.
 **The gate.** `health.ownWorkerInjured` ("Your worker was injured", `gate.ts`)
 reads the `awaitingNotice` index and stops the day while any injury waits:
 
-- one waiting: "Big Joe was injured (Sprained ankle, out until 14 March 2031)",
+- one waiting: "Big Joe was injured (Sprained ankle, out until Mar 14, 2031)",
   with the ring name from their main contract (or their own) and the injury's
   catalog label;
 - several: "Big Joe and 2 others were injured".
@@ -407,3 +444,207 @@ marking as seen.
 | Tunable                  | Kind    | Default | Unit | What it does                                        |
 | ------------------------ | ------- | ------- | ---- | --------------------------------------------------- |
 | `health.stopOnOwnInjury` | boolean | on      | flag | Stop the day when one of your own workers gets hurt |
+
+## The health profile
+
+`health.profile { personId }` (`queries.ts`, WRK6-05) is the worker profile's
+Health tab in one answer, or `null` for an unknown person:
+
+- `age`: whole years today, the age the condition cap is for. The tab prints
+  it beside each cap ("Cap for age 41") and in each bar's value text, so the
+  cap marker is never a line alone (WRK6-08).
+
+- `fatigue`: `{ value, band, traceRef }`. The band names a quarter of the
+  0–100 scale (`FATIGUE_BANDS`: Fresh 0–24, Tired 25–49, Weary 50–74, Spent
+  75–100). The bands are display constants, not tunables: nothing in the
+  simulation reads them. `traceRef` is the latest stored fatigue recovery, or
+  null.
+- `condition`: one row per body part, in `BODY_PARTS` order:
+  `{ part, value, cap, nextCheck, injured }`. `cap` is
+  [the condition cap](#condition-cap) and `nextCheck` is
+  [next week's healing](#condition-recovery), both worked out on read and
+  returned inline as `Traced` values: neither has a roll, and storing them
+  would cost six traces per person every week.
+- `medical`: `{ level, promotionId, promotionName }`, from `medicalLevelOf`.
+- `current`: the open injury, or null. `history`: closed injuries, newest
+  first, the last 50 (`HEALTH_PROFILE_HISTORY_LIMIT`); older rows stay in the
+  table.
+
+Each injury is an `InjuryView`: the catalog label (or the raw key when a modded
+catalog dropped the kind), body part, severity, `since`, `expectedReturn`,
+`returnedOn`, `daysOut` (to the actual return once back), `daysRemaining` (open
+only), whether they can work angles, the source and segment, the condition lost,
+and references to the stored time out, condition loss and chance traces, each
+null once the trace is gone. Past 28 days those traces are summaries
+([Returns](#returns)); the rows are kept.
+
+Health is public: injuries are world news and a promotion's medical level is
+public policy, so a rival's worker shows the same tab. The one viewer-dependent
+field is `pendingNotice`: true only while the injury waits to be noticed and
+one of the viewer's promotions employs the worker. The Health tab runs
+`health.acknowledgeInjuries` for each pending injury it shows, which clears the
+[own-injury gate](#own-injury-gate).
+
+The tab (`apps/web/src/screens/workers/health/`) is registered at order 50, after
+the built-in Career tab, and opens with `?tab=health`.
+
+## Show-night injuries
+
+An injury rolled in a match (MTCH4's in-match roll, see
+[physical-toll.md](physical-toll.md#the-injury-roll)) reaches this system
+through the built-in injury handler `health.injure` (`injuryHandler.ts`): an
+`injuries` row with `source: 'segment'` and the segment, the in-match chance
+as its "How it happened" Why?, and the worker's `injury` pointer set. From then
+on the worker is out like anyone hurt off screen: WRK1's `availabilityOf` says
+"Injured (…) until <date>", so the booking checks refuse them in a match (and
+let them talk only when they can work angles), the rival planner's card pool
+(`buildCardPool`) leaves them out, and they are back on their expected return
+day.
+
+`test/systems/health/showNightInjuries.long.test.ts` (slow suite) follows a
+year of the default world with every show carded and checks all of that every
+evening. Measured on the WRK6-07 branch, 365 days:
+
+| Injuries in a year | In a match | Off screen |
+| ------------------ | ---------- | ---------- |
+| The player's       | 11         | 15         |
+| Rivals'            | 0          | 101        |
+
+120 of them ended in the year, each on its expected return day, and no rival
+match in 1,866 had a worker out with an earlier injury. Rivals have no
+in-match injuries because the rival rule `ai.skipInMatchInjuries` is on by
+default; their injuries come off screen, at `health.offscreen.computerMultiplier`
+times the rate.
+
+The same year saves at 1.16 MB gzipped with no rival cards added and 1.59 MB
+with every show carded (budget 1.6 MB): WRK6-07 stores nothing new. A 365-day
+skip took 15.5 s wall (no rival cards added) and 20.1 s (every show carded) on
+a loaded dev machine, against 20.3 s and 20.6 s for the base branch in the same
+session: the early morning costs nothing on the skip path, which never runs a
+show ahead of its day.
+
+## Works with
+
+WRK6-07 wired health into the partner features that were on `main` (base
+`wave-s9-3`). The others wire WRK6 from their own packs; nothing in WRK6 needs
+them.
+
+| Partner                      | State                    | Seam                                                                                                                                                                                                                                                                                                      |
+| ---------------------------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| MTCH4 (physical toll)        | wired (WRK6-03, WRK6-07) | `registerInjuryHandler(healthInjuryHandler, { builtIn: true })`: a rolled in-match injury becomes a real one ([show-night injuries](#show-night-injuries)); MTCH4's fatigue and wear are rested from the next morning, for the player's shows too ([the player's show nights](#the-players-show-nights)). |
+| EVT2 / EVT3 (show night)     | wired (WRK6-07)          | `registerBeforeShowRuns` hook `health.morningBeforeShow`, on the new `beforeTheDay` input ([show-night.md](show-night.md#before-a-show-runs)).                                                                                                                                                            |
+| EVT2 (booking)               | wired, no code needed    | Injuries set and clear `person.injury`, which WRK1's `availabilityOf` reads: the picker's "Injured (…) until <date>", `personUnavailable` in a match and `injuredTalking` for someone who can still work angles ([booking.md](booking.md#validation)).                                                    |
+| AIP1 (rival rules)           | wired (WRK6-04)          | `offscreenShortcutOf` reads `ai.skipInMatchInjuries` for the worker's employer (`aiShortcutOn`), so `health.offscreen.computerMultiplier` applies to computer-run rosters only, and not with the level playing field on.                                                                                  |
+| AIP4 / AIP5 (rival cards)    | wired, no code needed    | `buildCardPool` reads `availabilityOf`, so an injured worker is left out of rival matches until their return day.                                                                                                                                                                                         |
+| ECO1 (policies)              | wired (WRK6-07)          | `registerPolicyEffect` `health.medicalCare` (`policyEffects.ts`): the medical policy's preview lines ([medical care](#medical-care)).                                                                                                                                                                     |
+| WRK2 (roster)                | wired, no code needed    | The roster's availability column comes from `availabilityOf`, so it marks injured workers. The roster's Injuries tab and the own-injury gate's route belong to WRK6-06.                                                                                                                                   |
+| SOC1, WRK4, DAY7, MOD8, POL3 | wires from its own pack  | Not on `main` when WRK6-07 ran (no mail, snapshot-field, world-event-effect, hook or `defineFormula` seam). Each pack's integration ticket lists WRK6: injury mail, the health snapshot fields, the `health.injure` world-event effect, the recovery hook point, and the formula registry.                |
+
+## Who is out
+
+`health.report { promotionId? }` (`queries.ts`, WRK6-06) answers "who is out
+right now?": `{ asOf, rows, waitingForViewer }`.
+
+- `rows`: every open injury in the world, or only people with a working
+  contract at `promotionId` when given (free agents only appear world-wide).
+  Each row is an [`InjuryView`](#the-health-profile) plus `personId`, `name`
+  (the ring name at that promotion, else at their main employer, else their
+  own), `imageRef`, `employer` (`{ promotionId, name }` of the main employer,
+  or `null`) and `roles`. Sorted by `expectedReturn`, then name, then id.
+  Public like the profile; `pendingNotice` follows the same viewer rule.
+- `waitingForViewer`: the ids of every injury still waiting to be noticed that
+  the viewer may mark as seen (`mayAcknowledge` in `commands.ts`), whatever the
+  scope: their own workers' and any whose worker no human employs any more.
+  Empty for the computer and the omniscient viewer.
+
+**The Injuries tab** (`apps/web/src/screens/roster/injuries/`) is Your
+promotion > Roster > Injuries, registered with `registerRosterTab` at its
+reserved order 70 (`?tab=injuries`). It lists the player's promotion's rows,
+soonest back first: picture, name (opening the worker's Health tab), injury,
+body part, severity, since, back on, days left with a Why? for the time out,
+and whether they can work angles. On opening it runs
+`health.acknowledgeInjuries` once for every id in `waitingForViewer` and every
+row still `pendingNotice`, so the [own-injury gate](#own-injury-gate) is cleared
+even when the injury that waits is not on the list.
+
+**The day control's button.** The gate's `roster` hint reads "Roster" and goes
+to the Injuries tab (`apps/web/src/app/AppShell/day/dayControlState.ts`). The
+tab's registration tells the day control it exists
+(`setRosterInjuriesTabAvailable`); without it the button opens the injured
+worker's Health tab (`?tab=health`), or World > Workers with
+`?availability=injured` when the gate names nobody. Decisions in the inbox and a
+show night both outrank it. `health.stopOnOwnInjury` is on by default now that
+the button clears the stop in one tap.
+
+## How to test
+
+WRK6-08 is the owner's test of the whole slice. The same script runs in
+Playwright as `apps/web/e2e/health-flow.spec.ts` on desktop, phone and iPhone
+WebKit, on a known seed: `HEALTH_E2E_SEED` in `apps/web/e2e/helpers/game.ts`,
+found by `packages/engine/test/support/findHealthSeed.ts` (run it again with
+`npx tsx packages/engine/test/support/findHealthSeed.ts` if the world or the
+injury rules change). On that seed the game starts on an Altura show night;
+the spec cancels each show night from the Calendar, and the 30-day skip stops
+for an Altura injury on day 4. The smoke sweep (`smoke.spec.ts`) also opens
+Workers > Injured and the Health tab on the injury save at 100% and 150% UI
+scale. The Why? wording is checked in
+`apps/web/src/components/Trace/healthWhy.test.ts`.
+
+Use https://jpdxsoloorg.github.io/ringside-booker/ after the deploy that
+includes this feature. Desktop browser first, then a phone (or a 390px-wide
+window; iPhone Safari if you have one).
+
+1. **Start a NEW game** (an older save still loads but has no injury catalog,
+   so nobody gets hurt in it). Choose the default world and **Altura Wrestling
+   Entertainment**, finish the wizard.
+   Expected: you land in the Office as usual.
+2. Go to **World > Workers** and press **Injured**.
+   Expected: "Nobody is injured" (a new world starts healthy).
+3. Open any wrestler and choose the **Health** tab.
+   Expected: six body-part bars (Head, Neck, Back, Arms, Torso, Legs) with a
+   cap marker and "Cap for age N" beside each, a Fatigue meter at 0, "Medical
+   care: Altura Wrestling Entertainment, level N" and "Fit to work". Press Why?
+   next to a part's cap: it explains the age cap (from age 30 the cap drops
+   each year) and, on Next week, next Monday's healing.
+4. Use **Skip days**, 30 days. A show night of yours stops the skip first: run
+   or cancel the show and skip again.
+   Expected: either the skip stops early with "<name> was injured (<injury>,
+   out until <date>)" and a **Roster** button, or it finishes the 30 days (no
+   Altura worker got hurt this time; skip another 30 to try for the stop).
+5. If the skip stopped: press **Roster**.
+   Expected: Roster > Injuries listing that worker, with a "New" badge. Opening
+   the screen marks the injury as seen, so the day button says Next Day again.
+6. Back to **World > Workers > Injured**.
+   Expected: at least one worker from anywhere in the world, with the injury,
+   body part and "Back on" date with the days left ("Back tomorrow" the day
+   before).
+7. Open one of them > **Health**.
+   Expected: an injury card (injury, body part, severity, since, back on, time
+   out, days left, condition lost, can work angles, how it happened) and the
+   profile's chip says Injured. Press Why? on **Time out**: the injury's day
+   range and the roll inside it, the severity (open it for the severity roll),
+   the durable or injury-prone line (or that neither applies) and the medical
+   care multiplier for their promotion. That body part's bar is lower than the
+   others and says "Injured". Why? on **How it happened** shows the off-screen
+   chance, each step to three decimals of a percent.
+8. Skip past that worker's return date.
+   Expected: the card is gone ("Fit to work"), the injury is in **Injury
+   history** with its dates and days out, and their chip reads Available.
+9. **Your promotion > Roster > Injuries**.
+   Expected: only Altura's injured workers, soonest back first, each with days
+   left and a Why?.
+10. With SOC1 (injury mail): not on `main` yet, so skip this step.
+11. **Business > Finances > Policies**, Medical.
+    Expected: the preview lists how fast injuries heal and condition recovers
+    at the chosen level. Lower it, wait for the next Altura injury, and its
+    Time out Why? shows the new multiplier.
+12. Open a rival worker's injury > How it happened > Why?.
+    Expected: a "Rival rule: no in-match injuries, so more off-screen ones"
+    line (not with the level playing field on).
+13. **Phone** (390px, iPhone Safari too): repeat steps 2, 3 and 7.
+    Expected: the Health tab bars stack full width, the injury card and the
+    Injured list fit as cards, and nothing scrolls sideways (also at 150% UI
+    scale in Settings).
+
+Sign-off: if every step matches, move the ticket from REVIEW to DONE;
+otherwise add a comment with the step number and a screenshot.

@@ -6,6 +6,7 @@ import {
   LIMITED_BY_POTENTIAL_LABEL,
   computeRingLearning,
   computeRingLearningTotal,
+  learningGainText,
   type RingLearningInputs,
 } from '../../../../src/systems/match';
 import { createEngineTunables } from '../../../../src/systems/tunables';
@@ -223,5 +224,15 @@ describe('computeRingLearningTotal', () => {
       nodes += 1;
     });
     expect(nodes).toBe(2);
+  });
+});
+
+describe('learningGainText', () => {
+  it('reads a gain to three decimals at most, so a real gain never shows as nothing', () => {
+    expect(learningGainText(0)).toBe('+0');
+    expect(learningGainText(0.09)).toBe('+0.09');
+    expect(learningGainText(0.0042)).toBe('+0.004');
+    expect(learningGainText(0.12345)).toBe('+0.123');
+    expect(learningGainText(0.0004)).toBe('less than +0.001');
   });
 });

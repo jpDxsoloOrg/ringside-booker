@@ -187,9 +187,9 @@ describe('injure', () => {
       returnedOn: null,
       source: 'world',
       segmentId: null,
-      // Apex is the player's promotion, but the stop on your own injuries is off by default until
-      // the injury screens ship (WRK6-06), so it counts as noticed on the day.
-      noticedOn: run.before.world.meta.currentDate,
+      // Apex is the player's promotion and the stop on your own injuries is on by default, so the
+      // injury waits for the player to see it.
+      noticedOn: null,
     });
     const days = numeric(fullTrace(run.engine, injuryTraceRef(injuryId)));
     expectTraceReplays(days);
@@ -224,7 +224,7 @@ describe('injure', () => {
     const run = await runInjure(built, (ctx) => injure(ctx, built.people[0]!, ARM_OPTIONS));
     const trace = fullTrace(run.engine, injuryTraceRef(okId(run.result))).trace;
     const labels = findTraceNodes(trace, 'roll').map((node) => node.label);
-    expect(labels).toEqual(['Test arm injury: 10–20 days', 'Can they work angles?']);
+    expect(labels).toEqual(['Test arm injury: 10–20 days', 'Can work angles']);
     expect(
       findTraceNodes(trace, 'roll').every((node) => node.roll.stream === INJURIES_STREAM),
     ).toBe(true);
