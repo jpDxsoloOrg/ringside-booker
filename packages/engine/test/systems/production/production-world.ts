@@ -100,7 +100,11 @@ export function productionWorld(options: ProductionWorldOptions = {}): Productio
         const network = context.insert(
           'networks',
           aNetwork(
-            { name: 'Channel 9', coverage: { regionIds: [north1] }, launchedOn: '2020-01-01' },
+            {
+              name: 'Channel 9',
+              coverage: { regionIds: [north1] },
+              launchedOn: parseGameDate('2020-01-01'),
+            },
             context.sequence,
           ),
         );

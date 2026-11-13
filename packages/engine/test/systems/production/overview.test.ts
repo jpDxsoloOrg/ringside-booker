@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { Engine } from '../../../src/core/api';
 import { assertSerialisable } from '../../../src/core/api/serialisable';
 import type { Viewer } from '../../../src/core/api/controller';
-import { addDays } from '../../../src/core/date';
+import { addDays, parseGameDate } from '../../../src/core/date';
 import { RegistryError } from '../../../src/core/errors';
 import type { PromotionId } from '../../../src/core/ids';
 import {
@@ -244,10 +244,18 @@ describe('upcomingShows', () => {
       .withPromotion({}, (promotion) =>
         promotion.withWeeklyShow({}, { name: 'Weekly', importance: 'minor' }),
       )
-      .withEventInstance({ name: 'Big Night', date: '2026-01-20', importance: 'major' })
-      .withEventInstance({ name: 'Booked Night', date: '2026-01-10', status: 'booked' })
-      .withEventInstance({ name: 'Done', date: '2026-01-06', status: 'completed' })
-      .withEventInstance({ name: 'Too late', date: '2026-02-02' })
+      .withEventInstance({
+        name: 'Big Night',
+        date: parseGameDate('2026-01-20'),
+        importance: 'major',
+      })
+      .withEventInstance({
+        name: 'Booked Night',
+        date: parseGameDate('2026-01-10'),
+        status: 'booked',
+      })
+      .withEventInstance({ name: 'Done', date: parseGameDate('2026-01-06'), status: 'completed' })
+      .withEventInstance({ name: 'Too late', date: parseGameDate('2026-02-02') })
       .build();
     const promotionId = ids.promotions.A;
     if (promotionId === undefined) {

@@ -7,6 +7,7 @@ import { assertSerialisable } from '../../../src/core/api/serialisable';
 import type { PromotionId } from '../../../src/core/ids';
 import type { TraceNode } from '../../../src/core/trace/types';
 import type { ProductionArea } from '../../../src/model/entities/promotion';
+import { cents } from '../../../src/core/money';
 import { LEDGER_ENTRY_TRACE_KIND } from '../../../src/systems/finance';
 import {
   COMPUTER,
@@ -210,7 +211,7 @@ describe('production.setLevel', () => {
   });
 
   it('refuses a fee above cash in hand, and lets cash go negative when feeNeedsCash is off', () => {
-    const built = productionWorld({ human: { cash: 2_000_000 } });
+    const built = productionWorld({ human: { cash: cents(2_000_000) } });
     const message = expectRefused(
       productionEngine(built.world),
       built.human,
@@ -272,7 +273,7 @@ describe('production.setLevel', () => {
   });
 
   it('shows the same refusals in the preview as the command gives', () => {
-    const built = productionWorld({ dealDays: 28, human: { cash: 100 } });
+    const built = productionWorld({ dealDays: 28, human: { cash: cents(100) } });
     const engine = productionEngine(built.world);
     for (const [area, level] of [
       ['camera', 0],
