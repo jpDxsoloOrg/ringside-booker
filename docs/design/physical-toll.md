@@ -247,6 +247,14 @@ null. WRK6 registers `health.injure`, whose catalog roll decides the real
 injury and may ignore the hint. With no handler nothing is written, and
 callers can still read who would have been hurt from the results.
 
+WRK6-03 registers `health.injure` on import as the **built-in** handler
+(`registerInjuryHandler(spec, { builtIn: true })`), so it is there whenever the
+health system loads. It rolls the kind among injuries on the hinted part when
+the catalog has one there, and returns null for someone already injured
+([health.md](health.md#injuries)). Tests that need the seam empty call
+`clearInjuryHandler()` and put the built-in back with
+`restoreBuiltInInjuryHandler()`.
+
 MTCH4 never touches morale: an injury inside a hot angle has no morale effect
 from this feature (D-09; WRK8 owns morale).
 

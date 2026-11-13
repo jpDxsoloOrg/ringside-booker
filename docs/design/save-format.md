@@ -182,7 +182,9 @@ so nothing that reads them changes:
 - each competitor's newest `max(match.popularity.streakLookback, 10)` run
   matches: the win-streak bonus and Recent form read exactly what they did;
 - each title's newest matches the rival booker reads for its last defence and
-  recent challengers (`recentTitleMatchIds`, `aip.titles.recentChallengers`).
+  recent challengers (`recentTitleMatchIds`, `aip.titles.recentChallengers`);
+- every match someone was injured in (WRK6-03): injury rows keep their
+  `segmentId`.
 
 They stay until nothing reads them; the results page of their show still shows
 only its summary.
@@ -190,7 +192,10 @@ only its summary.
 **Older saves.** The new fields are optional (`result.history`) or default to
 empty (`ledgerMonths`), so a save from before POL4-08 loads as it is (format v1
 is still unfrozen, so there is no migration step). Its first Monday rolls up
-everything older than the window, whatever its age.
+everything older than the window, whatever its age. The same goes for tables
+added since: `injuries` (WRK6-03) defaults to `[]`, so a save from before it
+loads with no injury history (`test/fixtures/saves/v1-tiny-before-injuries.json`
+proves it).
 
 ### What grows with days played, and what replaces it
 
@@ -205,7 +210,8 @@ everything older than the window, whatever its age.
 | `aiDecisions`           | every rival decision            | the decision log screen                                                                | `history.keepDetailDays` (unaired plans kept) | deleted                                                                                               |
 | `promotionSnapshots`    | every week, every promotion     | office charts                                                                          | weekly rows for recent weeks                  | one row per month (`office.weeklySnapshot`, DAY2-01): the monthly popularity points                   |
 | `titleReigns`           | every title change              | title history, lineage                                                                 | always                                        | kept in full: small, and players expect it                                                            |
-| traces                  | every explained number          | Why? panels                                                                            | per-kind limits (POL4-06)                     | summaries; rival card slots demoted at `history.keepDetailDays`                                       |
+| `injuries`              | every injury                    | a worker's injury history, availability (current row)                                  | always                                        | kept in full: small, and part of a worker's record; traces summarised (`health.pruneInjuryDetail`)    |
+| traces                  | every explained number          | Why? panels                                                                            | per-kind limits (POL4-06)                     | summaries; rival card slots and injuries demoted at `history.keepDetailDays`                          |
 | worker records          | not stored                      | nothing reads a career win/loss record yet                                             | n/a                                           | last worked date is `Employment.lastAppearanceOn`; a record would be a roll-up when a screen needs it |
 | `news`, `mail`          | nothing writes them yet         |                                                                                        |                                               | to be decided by the features that write them                                                         |
 

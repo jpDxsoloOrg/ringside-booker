@@ -212,28 +212,39 @@ In `systems/health/tunables.ts`, category `Health`: fatigue recovery, the
 healing cap for a worker's age, weekly condition recovery and medical care.
 Each key is explained in [health.md](health.md).
 
-| Key                                        | Kind    | Default | Range | Unit       | What it does                                                                      |
-| ------------------------------------------ | ------- | ------- | ----- | ---------- | --------------------------------------------------------------------------------- |
-| `health.fatigue.recoveryPerDay`            | number  | 4       | 0–100 | points/day | Fatigue an average worker sheds each day, before stamina, age and traits          |
-| `health.fatigue.recoveryBonusMax`          | integer | 1       | 0–10  | points/day | Largest random extra recovery per day; 0 turns the roll's effect off              |
-| `health.fatigue.staminaWeight`             | number  | 0.4     | 0–1   | ratio      | How much stamina speeds up or slows down recovery; 0 ignores stamina              |
-| `health.fatigue.ageFrom`                   | integer | 33      | 18–60 | years      | Age from which fatigue fades more slowly                                          |
-| `health.fatigue.agePenaltyPerYear`         | number  | 0.02    | 0–0.2 | ratio      | Recovery lost for each year past that age; 0 turns the age effect off             |
-| `health.fatigue.ageFactorMin`              | number  | 0.5     | 0–1   | multiplier | The least of the daily recovery age can leave                                     |
-| `health.fatigue.workhorseMultiplier`       | number  | 1.2     | 0–3   | multiplier | Recovery for a workhorse, as a multiple of everyone else                          |
-| `health.fatigue.coasterMultiplier`         | number  | 0.9     | 0–3   | multiplier | Recovery for a coaster, as a multiple of everyone else                            |
-| `health.fatigue.workedPromoRecovery`       | number  | 0.5     | 0–1   | multiplier | Recovery after a show spent talking (a promo or angle, no match); 1 rests fully   |
-| `health.condition.capAgeFrom`              | integer | 30      | 18–60 | years      | Age from which a body can no longer heal all the way back to 100                  |
-| `health.condition.capDropPerYear`          | number  | 1.5     | 0–10  | points     | How far the healing cap falls for each year past that age; 0 keeps it at 100      |
-| `health.condition.capFloor`                | number  | 55      | 0–100 | points     | The lowest the healing cap goes, however old the worker                           |
-| `health.condition.recoveryPerCheck`        | number  | 0.5     | 0–10  | points     | Condition a damaged body part gets back each week, before traits and medical care |
-| `health.condition.durableMultiplier`       | number  | 1.25    | 0–3   | multiplier | Healing for a durable worker, as a multiple of everyone else                      |
-| `health.condition.injuryProneMultiplier`   | number  | 0.75    | 0–3   | multiplier | Healing for an injury-prone worker, as a multiple of everyone else                |
-| `health.medical.recoveryMultiplier.level0` | number  | 0.8     | 0–3   | multiplier | Healing under medical care level 0 (none)                                         |
-| `health.medical.recoveryMultiplier.level1` | number  | 1       | 0–3   | multiplier | Healing under medical care level 1                                                |
-| `health.medical.recoveryMultiplier.level2` | number  | 1.15    | 0–3   | multiplier | Healing under medical care level 2                                                |
-| `health.medical.recoveryMultiplier.level3` | number  | 1.3     | 0–3   | multiplier | Healing under medical care level 3 (the best)                                     |
-| `health.medical.freeAgentLevel`            | integer | 1       | 0–3   | count      | The medical care level (0 to 3) a worker with no employer gets                    |
+| Key                                         | Kind    | Default | Range | Unit       | What it does                                                                      |
+| ------------------------------------------- | ------- | ------- | ----- | ---------- | --------------------------------------------------------------------------------- |
+| `health.fatigue.recoveryPerDay`             | number  | 4       | 0–100 | points/day | Fatigue an average worker sheds each day, before stamina, age and traits          |
+| `health.fatigue.recoveryBonusMax`           | integer | 1       | 0–10  | points/day | Largest random extra recovery per day; 0 turns the roll's effect off              |
+| `health.fatigue.staminaWeight`              | number  | 0.4     | 0–1   | ratio      | How much stamina speeds up or slows down recovery; 0 ignores stamina              |
+| `health.fatigue.ageFrom`                    | integer | 33      | 18–60 | years      | Age from which fatigue fades more slowly                                          |
+| `health.fatigue.agePenaltyPerYear`          | number  | 0.02    | 0–0.2 | ratio      | Recovery lost for each year past that age; 0 turns the age effect off             |
+| `health.fatigue.ageFactorMin`               | number  | 0.5     | 0–1   | multiplier | The least of the daily recovery age can leave                                     |
+| `health.fatigue.workhorseMultiplier`        | number  | 1.2     | 0–3   | multiplier | Recovery for a workhorse, as a multiple of everyone else                          |
+| `health.fatigue.coasterMultiplier`          | number  | 0.9     | 0–3   | multiplier | Recovery for a coaster, as a multiple of everyone else                            |
+| `health.fatigue.workedPromoRecovery`        | number  | 0.5     | 0–1   | multiplier | Recovery after a show spent talking (a promo or angle, no match); 1 rests fully   |
+| `health.condition.capAgeFrom`               | integer | 30      | 18–60 | years      | Age from which a body can no longer heal all the way back to 100                  |
+| `health.condition.capDropPerYear`           | number  | 1.5     | 0–10  | points     | How far the healing cap falls for each year past that age; 0 keeps it at 100      |
+| `health.condition.capFloor`                 | number  | 55      | 0–100 | points     | The lowest the healing cap goes, however old the worker                           |
+| `health.condition.recoveryPerCheck`         | number  | 0.5     | 0–10  | points     | Condition a damaged body part gets back each week, before traits and medical care |
+| `health.condition.durableMultiplier`        | number  | 1.25    | 0–3   | multiplier | Healing for a durable worker, as a multiple of everyone else                      |
+| `health.condition.injuryProneMultiplier`    | number  | 0.75    | 0–3   | multiplier | Healing for an injury-prone worker, as a multiple of everyone else                |
+| `health.medical.recoveryMultiplier.level0`  | number  | 0.8     | 0–3   | multiplier | Healing under medical care level 0 (none)                                         |
+| `health.medical.recoveryMultiplier.level1`  | number  | 1       | 0–3   | multiplier | Healing under medical care level 1                                                |
+| `health.medical.recoveryMultiplier.level2`  | number  | 1.15    | 0–3   | multiplier | Healing under medical care level 2                                                |
+| `health.medical.recoveryMultiplier.level3`  | number  | 1.3     | 0–3   | multiplier | Healing under medical care level 3 (the best)                                     |
+| `health.medical.freeAgentLevel`             | integer | 1       | 0–3   | count      | The medical care level (0 to 3) a worker with no employer gets                    |
+| `health.medical.injuryMultiplier.level0`    | number  | 1.2     | 0–3   | multiplier | Injury time out under medical care level 0 (none)                                 |
+| `health.medical.injuryMultiplier.level1`    | number  | 1       | 0–3   | multiplier | Injury time out under medical care level 1                                        |
+| `health.medical.injuryMultiplier.level2`    | number  | 0.9     | 0–3   | multiplier | Injury time out under medical care level 2                                        |
+| `health.medical.injuryMultiplier.level3`    | number  | 0.8     | 0–3   | multiplier | Injury time out under medical care level 3 (the best)                             |
+| `health.injury.severityMultiplier.minor`    | number  | 0.6     | 0–3   | multiplier | Time out for a minor injury, as a multiple of the rolled days                     |
+| `health.injury.severityMultiplier.moderate` | number  | 1       | 0–3   | multiplier | Time out for a moderate injury, as a multiple of the rolled days                  |
+| `health.injury.severityMultiplier.severe`   | number  | 1.8     | 0–3   | multiplier | Time out for a severe injury, as a multiple of the rolled days                    |
+| `health.injury.durableMultiplier`           | number  | 0.75    | 0–3   | multiplier | Time out for a durable worker, as a multiple of everyone else                     |
+| `health.injury.injuryProneMultiplier`       | number  | 1.35    | 0–3   | multiplier | Time out for an injury-prone worker, as a multiple of everyone else               |
+| `health.injury.maxDays`                     | integer | 540     | 1–730 | days       | The longest any injury keeps someone out                                          |
+| `health.injury.conditionLossPerWeek`        | number  | 1       | 0–10  | points     | Condition the hurt body part loses for each week out; 0 turns the loss off        |
 
 The foundation's `condition.fatigueRecoveryPerDay` and
 `condition.fatigueRecoveryBonusMax` are gone (WRK6-02). A save that still
