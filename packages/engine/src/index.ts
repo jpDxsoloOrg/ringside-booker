@@ -1570,6 +1570,15 @@ export {
 } from './systems/match/index';
 export { initialMomentum } from './systems/workers/index';
 
+// Momentum cools off each week (MTCH3-07): the pure drift formula and the reason key its door
+// changes carry. See docs/design/match-aftermath.md#momentum-drift.
+export type { MomentumDriftInputs } from './systems/match/index';
+export {
+  MOMENTUM_DRIFT_DOC_REF,
+  MOMENTUM_DRIFT_REASON_KEY,
+  momentumDrift,
+} from './systems/match/index';
+
 // Promotion popularity after shows (EVT5-01): show reach, region expectation and the popularity
 // change formulas. See docs/design/promotion-popularity.md.
 export * from './systems/promoPop/index';

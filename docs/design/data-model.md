@@ -1219,5 +1219,7 @@ Invariants: `aftermaths.showMismatch` (the row's show is its segment's) and
 `aftermaths.promotionMismatch` (its promotion runs that show).
 
 The weekly `match.pruneAftermaths` phase keeps each worker's newest
-`match.aftermath.keepPerPerson` rows. Saves list the table with a default of
+`match.aftermath.keepPerPerson` rows. The weekly momentum drift reads the
+newest row with a momentum to tell whether a worker wrestled that week
+([match-aftermath.md](match-aftermath.md#momentum-drift)). Saves list the table with a default of
 `[]`, so saves written before it existed load with it empty.
