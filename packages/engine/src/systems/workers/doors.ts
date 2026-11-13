@@ -25,7 +25,7 @@ import {
   type Traced,
   type TraceNode,
 } from '../../core/trace';
-import type { TraceRef } from '../../core/trace/store';
+import type { TraceRecordOptions, TraceRef } from '../../core/trace/store';
 import {
   ALIGNMENTS,
   EMPLOYMENT_ROLES,
@@ -93,6 +93,16 @@ export const DOOR_TRACE_KINDS = {
 } as const;
 
 export const DOORS_DOC_REF = 'workers.md#doors';
+
+/**
+ * How the worker popularity and momentum doors keep their trace: a computer-run promotion's
+ * changes keep only a summary (POL4-06), since rivals' shows change hundreds of workers a week and
+ * nobody opens their full Why?. The player's own changes, and a promotion's popularity (public, and
+ * only one trace per promotion), keep the full trace.
+ */
+function traceKeptFor(source: DoorSource): TraceRecordOptions {
+  return { summaryOnly: source === 'ai' };
+}
 const MOMENTUM_DOC_REF = 'workers.md#momentum-door';
 const MORALE_DOC_REF = 'workers.md#morale-door';
 
@@ -607,6 +617,12 @@ function withDeltaTrace(result: Traced<number>, delta: Traced<number>): Traced<n
   return traced(result.value, { ...result.trace, children: [start, asked, ...steps] });
 }
 
+/**
+ * How many changed regions (the most populous) show their full working in the door's trace; the
+ * rest show only the points they moved, which keeps a worker's trace small (POL4-06).
+ */
+export const DOOR_TRACE_DETAILED_REGIONS = 3;
+
 /** One region of a popularity preview: before, after and how the after-value is worked out. */
 export interface PopularityPreviewRegion extends RegionPopularityChange {
   /** The change asked for × the region's share, tapered, clamped, rounded (and dropped if tiny). */
@@ -695,10 +711,18 @@ export function previewPopularityChange(
       }
       return calc;
     };
-    total.add(
-      region.name,
-      dropped(`Change in ${region.name}`).subtract('Popularity before', regionBefore).done(),
-    );
+    // Only the regions that moved get a step (POL4-06): a worker known in sixty regions would
+    // otherwise store sixty "no change" lines on every match. The rest are counted in one note.
+    // The most populous regions show their working; the others show only the points they moved.
+    if (regionAfter !== regionBefore) {
+      const regionChange = dropped(`Change in ${region.name}`)
+        .subtract('Popularity before', regionBefore)
+        .done();
+      total.add(
+        region.name,
+        regionsChanged.length < DOOR_TRACE_DETAILED_REGIONS ? regionChange : regionChange.value,
+      );
+    }
     byRegion[region.id] = { before: regionBefore, after: regionAfter };
     regions.set(region.id, {
       before: regionBefore,
@@ -713,6 +737,10 @@ export function previewPopularityChange(
     } else {
       stored.set(region.id, regionAfter);
     }
+  }
+  const unchanged = requests.length - regionsChanged.length;
+  if (unchanged > 0) {
+    total.note(`And ${String(unchanged)} more ${unchanged === 1 ? 'region' : 'regions'} unchanged`);
   }
   // The cast names the key type `Object.fromEntries` widens to string.
   const after = Object.fromEntries(stored) as Record<RegionId, number>;
@@ -771,6 +799,7 @@ export function applyPopularityChange(
     args.delta === undefined || typeof args.delta === 'number'
       ? preview.total
       : withDeltaTrace(preview.total, args.delta),
+    args.subject.kind === 'person' ? traceKeptFor(args.source) : {},
   );
   ctx.publish('popularity.changed', {
     subjectKind: args.subject.kind,
@@ -914,7 +943,7 @@ export function applyMomentumChange(
   }
   ctx.tx.update('employments', employment.id, { momentum: result.value });
   const traceRef: TraceRef = { kind: DOOR_TRACE_KINDS.momentum, id: employment.id };
-  ctx.recordTrace(traceRef, ctx.date, result);
+  ctx.recordTrace(traceRef, ctx.date, result, traceKeptFor(args.source));
   ctx.publish('momentum.changed', {
     ...employmentChange(employment, args.source, args.reason),
     before,
