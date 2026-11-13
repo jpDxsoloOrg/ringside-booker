@@ -10,7 +10,7 @@
  *
  * WRK6 builds on it: injuries and returns (WRK6-03, `injure.ts`, `returns.ts`), off-screen injuries
  * and the own-injury gate (WRK6-04, `offscreen.ts`, `notice.ts`, `gate.ts`, `commands.ts`)
- * and the health profile (WRK6-05).
+ * and the health profile query, `health.profile` (WRK6-05).
  */
 
 // The stream and event declarations are types only. Importing them here brings them into every
@@ -134,7 +134,16 @@ export {
   type InjuryKindPickInputs,
 } from './formulas/injuryKindPick';
 export { HEALTH_TUNABLE_CATEGORY, healthTunables } from './tunables';
-export type { FatigueView } from './queries';
+export {
+  FATIGUE_BANDS,
+  fatigueBandOf,
+  HEALTH_PROFILE_HISTORY_LIMIT,
+  healthProfileQuery,
+  type BodyPartHealth,
+  type FatigueBand,
+  type HealthProfile,
+  type InjuryView,
+} from './queries';
 
 export const healthSystem: SystemBundle = defineSystem({
   id: 'health',

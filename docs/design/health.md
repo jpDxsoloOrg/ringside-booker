@@ -8,8 +8,8 @@ reference system, the layout other systems copy (see
 
 WRK6-02 built fatigue recovery, the condition cap, condition recovery and
 medical care. WRK6-03 added [injuries](#injuries) and [returns](#returns).
-Injury risk (WRK6-04) and the Health tab on the profile (WRK6-05) add their
-sections here. How matches make people tired
+Injury risk (WRK6-04) and [the Health tab](#the-health-profile) on the profile
+(WRK6-05) add their sections here. How matches make people tired
 and wear their bodies is the match system's (MTCH4).
 
 | Piece        | Where              | What it does                                                                                         |
@@ -24,7 +24,7 @@ and wear their bodies is the match system's (MTCH4).
 | Handler      | `injuryHandler.ts` | registers `health.injure` as MTCH4's injury handler                                                  |
 | Phases       | `phases.ts`        | `health.recovery` (daily), `health.conditionRecovery` and `health.pruneInjuryDetail` (Mondays)       |
 | Events       | `events.ts`        | `fatigue.cleared`, `injury.sustained`, `injury.healed`                                               |
-| Query        | `queries.ts`       | `health.fatigue`: fatigue and the trace behind it                                                    |
+| Query        | `queries.ts`       | `health.profile`: the worker profile's Health tab in one answer                                      |
 
 ## Fatigue recovery
 
@@ -407,3 +407,42 @@ marking as seen.
 | Tunable                  | Kind    | Default | Unit | What it does                                        |
 | ------------------------ | ------- | ------- | ---- | --------------------------------------------------- |
 | `health.stopOnOwnInjury` | boolean | on      | flag | Stop the day when one of your own workers gets hurt |
+
+## The health profile
+
+`health.profile { personId }` (`queries.ts`, WRK6-05) is the worker profile's
+Health tab in one answer, or `null` for an unknown person:
+
+- `fatigue`: `{ value, band, traceRef }`. The band names a quarter of the
+  0–100 scale (`FATIGUE_BANDS`: Fresh 0–24, Tired 25–49, Weary 50–74, Spent
+  75–100). The bands are display constants, not tunables: nothing in the
+  simulation reads them. `traceRef` is the latest stored fatigue recovery, or
+  null.
+- `condition`: one row per body part, in `BODY_PARTS` order:
+  `{ part, value, cap, nextCheck, injured }`. `cap` is
+  [the condition cap](#condition-cap) and `nextCheck` is
+  [next week's healing](#condition-recovery), both worked out on read and
+  returned inline as `Traced` values: neither has a roll, and storing them
+  would cost six traces per person every week.
+- `medical`: `{ level, promotionId, promotionName }`, from `medicalLevelOf`.
+- `current`: the open injury, or null. `history`: closed injuries, newest
+  first, the last 50 (`HEALTH_PROFILE_HISTORY_LIMIT`); older rows stay in the
+  table.
+
+Each injury is an `InjuryView`: the catalog label (or the raw key when a modded
+catalog dropped the kind), body part, severity, `since`, `expectedReturn`,
+`returnedOn`, `daysOut` (to the actual return once back), `daysRemaining` (open
+only), whether they can work angles, the source and segment, the condition lost,
+and references to the stored time out, condition loss and chance traces, each
+null once the trace is gone. Past 28 days those traces are summaries
+([Returns](#returns)); the rows are kept.
+
+Health is public: injuries are world news and a promotion's medical level is
+public policy, so a rival's worker shows the same tab. The one viewer-dependent
+field is `pendingNotice`: true only while the injury waits to be noticed and
+one of the viewer's promotions employs the worker. The Health tab runs
+`health.acknowledgeInjuries` for each pending injury it shows, which clears the
+[own-injury gate](#own-injury-gate).
+
+The tab (`apps/web/src/screens/workers/health/`) is registered at order 50, after
+the built-in Career tab, and opens with `?tab=health`.

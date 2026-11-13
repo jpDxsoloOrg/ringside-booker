@@ -1,7 +1,6 @@
 // The health phases, run through the engine. Design: docs/design/health.md
 import { describe, expect, it } from 'vitest';
 import {
-  assertSerialisable,
   createEngine,
   defineSystem,
   initialEngineState,
@@ -28,7 +27,6 @@ import {
   flatCondition,
   TEST_PLAYER_ID,
   TEST_START_DATE,
-  testId,
   worldBuilder,
   type DeepPartial,
 } from '../../support';
@@ -67,11 +65,11 @@ function engineOver(world: GameWorld, systems: readonly SystemBundle[] = default
 }
 
 function fatigueOf(engine: Engine, personId: PersonId): number {
-  const result = engine.query('health.fatigue', { personId }, OMNISCIENT);
+  const result = engine.query('health.profile', { personId }, OMNISCIENT);
   if (!result.ok || result.data === null) {
-    throw new Error(`health.fatigue failed for ${personId}: ${JSON.stringify(result)}`);
+    throw new Error(`health.profile failed for ${personId}: ${JSON.stringify(result)}`);
   }
-  return result.data.fatigue;
+  return result.data.fatigue.value;
 }
 
 function storedTrace(engine: Engine, personId: PersonId): StoredTraceEntry | null {
@@ -229,66 +227,6 @@ describe('health.recovery phase', () => {
     }
     await engine.advanceDays({ maxDays: 3 });
     expect(people.map((personId) => fatigueOf(engine, personId))).toEqual([...STARTING_FATIGUE]);
-  });
-});
-
-describe('health.fatigue query', () => {
-  it('returns null for a person who does not exist', () => {
-    const engine = engineOver(fatigueWorld().world);
-    const result = engine.query('health.fatigue', { personId: testId('person', 99) }, OMNISCIENT);
-    expect(result).toEqual({ ok: true, data: null });
-  });
-
-  it('refuses an ID that is not a person ID', () => {
-    const engine = engineOver(fatigueWorld().world);
-    const result = engine.queryRaw('health.fatigue', { personId: 'pro_0000000001' }, OMNISCIENT);
-    expect(result.ok).toBe(false);
-  });
-
-  it('returns the current fatigue with no trace before any recovery', () => {
-    const { world, people } = fatigueWorld();
-    const engine = engineOver(world);
-    const result = engine.query('health.fatigue', { personId: people[2] }, OMNISCIENT);
-    expect(result).toEqual({
-      ok: true,
-      data: { personId: people[2], fatigue: 40, traceRef: null },
-    });
-  });
-
-  it('returns the current fatigue and a trace ref that trace.get resolves', async () => {
-    const { world, people } = fatigueWorld();
-    const tired = people[2];
-    const engine = engineOver(world);
-    await engine.advanceDays({ maxDays: 1 });
-
-    const result = engine.query('health.fatigue', { personId: tired }, OMNISCIENT);
-    if (!result.ok || result.data === null) {
-      throw new Error('expected a fatigue view');
-    }
-    expect(result.data.fatigue).toBe(fatigueOf(engine, tired));
-    expect(result.data.traceRef).toEqual({ kind: 'health.fatigueRecovery', id: tired });
-    expect(() => {
-      assertSerialisable(result.data, 'health.fatigue');
-    }).not.toThrow();
-
-    if (result.data.traceRef === null) {
-      throw new Error('expected a trace ref');
-    }
-    const resolved = engine.query('trace.get', { ref: result.data.traceRef }, OMNISCIENT);
-    if (!resolved.ok) {
-      throw new Error(`trace.get failed: ${JSON.stringify(resolved.reasons)}`);
-    }
-    expect(resolved.data?.value).toBe(result.data.fatigue);
-  });
-
-  it('gives a rested person no trace ref', async () => {
-    const { world, people } = fatigueWorld();
-    const engine = engineOver(world);
-    await engine.advanceDays({ maxDays: 1 });
-    expect(engine.query('health.fatigue', { personId: people[0] }, OMNISCIENT)).toEqual({
-      ok: true,
-      data: { personId: people[0], fatigue: 0, traceRef: null },
-    });
   });
 });
 
