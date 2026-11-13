@@ -1,0 +1,82 @@
+/*
+ * Injury card (WRK6-05): office register. An office Panel with the injury's name and a bandage icon
+ * in the heading, the body part under it, and the severity and "New" badges on the right; then a
+ * list of label and value rows. Tokens only.
+ */
+.card {
+  min-inline-size: 0;
+}
+
+/* A healed injury reads as history: a dashed hairline and muted words. */
+.healed {
+  border-style: dashed;
+}
+
+.healed .rows dd {
+  color: var(--color-text-muted);
+}
+
+.heading {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.label {
+  overflow-wrap: anywhere;
+}
+
+.subtitle {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+}
+
+.worker {
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+}
+
+.workerButton {
+  padding-inline: 0;
+}
+
+.badges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Label and value side by side; the value column takes the rest and wraps, never truncates. */
+.rows {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(7rem, max-content) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-1) var(--space-4);
+}
+
+.row dt {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.row dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.how {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
