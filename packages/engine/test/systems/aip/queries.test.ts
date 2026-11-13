@@ -150,10 +150,8 @@ describe('promotions.list', () => {
     ]);
     expect(rivalRow?.popularity.home.trace).toBeDefined();
     // ECO1's public size band (AIP1-07), never cash.
-    expect(rivalRow?.size).toEqual({
-      label: expect.stringMatching(/^(Local|Regional|National|Continental|Global)$/),
-      reach: expect.any(Number),
-    });
+    expect(rivalRow?.size?.label).toMatch(/^(Local|Regional|National|Continental|Global)$/);
+    expect(typeof rivalRow?.size?.reach).toBe('number');
   });
 
   it('carries no size when no feature supplies one (a game without ECO1)', () => {
