@@ -541,6 +541,14 @@ review summaries, the ones `sim.traceRetentionPerKind` keeps (200 per kind,
 about four months of reviews for 11 rivals; older entries say "Full
 breakdown is only kept for recent results").
 
+**Speed** (AIP1-08, one machine shared with other jobs, two runs each). A
+headless `npm run sim -- --days 365 --strict --world <state>` on the default
+world, started with a founded promotion that has no shows so the show-day gate
+never stops it (12 computer rivals, 585 shows): 5.37 and 5.58 s before AIP1
+(`ac0ff16`, WRK2-01), 5.84 and 5.74 s with it, about 5% more, for 626
+decisions and no `aip.jobFailed`. The fixture world the plain `npm run sim`
+uses has no rivals: 0.48 to 0.56 s before, 0.52 to 0.59 s after.
+
 **Calibration** (default world, new game as Longleaf, default tunables):
 the top card values match the pushes (Tessen: Tatsuya Ueno 56.6, Hideki
 Yoshida 55.6, Gendo Arakawa 55.5; Altura: Calder Voss 66.9), Altura, Cielo
