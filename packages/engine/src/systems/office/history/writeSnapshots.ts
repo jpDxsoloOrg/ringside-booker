@@ -33,6 +33,7 @@ export function writePromotionSnapshots(
   date: GameDate,
   granularity: PromotionSnapshotGranularity,
   statuses: readonly PromotionStatus[],
+  tunables: EngineTunables,
 ): PromotionId[] {
   const read = tx.view;
   const promotions = read.tables.promotions
@@ -44,7 +45,7 @@ export function writePromotionSnapshots(
   const roller = createSnapshotRoller(read);
   const written: PromotionId[] = [];
   for (const promotion of promotions) {
-    const columns = buildPromotionSnapshot(read, promotion.id, date, roller);
+    const columns = buildPromotionSnapshot(read, promotion.id, date, roller, tunables);
     const existing = read.tables.promotionSnapshots.lookupOne(
       'byPromotionDate',
       promotionSnapshotKey(promotion.id, date),

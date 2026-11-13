@@ -17,6 +17,7 @@ import {
 } from '../../../src/systems/office';
 import { createPopularityRoller } from '../../../src/systems/world/formulas/popularityRollup';
 import { geographyOf } from '../../../src/systems/world/geography';
+import { createEngineTunables } from '../../../src/systems/tunables';
 import { setupSteps } from '../../../src/systems/newgame';
 import { miniWorldPacks } from '../../support/fixture-packs';
 import { testId } from '../../support/ids';
@@ -63,7 +64,7 @@ function rowsOf(state: EngineState, promotionId: PromotionId | undefined): Promo
 
 function writeBaseline(world: GameWorld, date: GameDate): void {
   const result = world.transact('baseline', (tx) =>
-    writePromotionSnapshots(tx, date, 'baseline', ['active']),
+    writePromotionSnapshots(tx, date, 'baseline', ['active'], createEngineTunables()),
   );
   if (!result.ok) {
     throw result.error;

@@ -79,6 +79,9 @@ describe('sim.status', () => {
             homeRegionId: HOME_REGION,
             homeRegion: 42,
             prestige: 61,
+            // No headline popularity trace is stored until the office system records one.
+            headline: null,
+            headlineLabel: null,
             traceRef: null,
           },
         },
