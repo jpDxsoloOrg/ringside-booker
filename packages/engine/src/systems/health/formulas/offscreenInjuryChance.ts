@@ -66,7 +66,7 @@ function traitKeyOf(
 }
 
 function rivalRuleOn(shortcut: Traced<boolean> | null): boolean {
-  return shortcut !== null && shortcut.value;
+  return shortcut?.value === true;
 }
 
 /** `1 + amount / 100 × weight`, the shape of both the fatigue and the body-part factor. */

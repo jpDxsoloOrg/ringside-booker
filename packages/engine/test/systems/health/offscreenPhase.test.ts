@@ -133,9 +133,8 @@ describe('health.offscreenInjuries', () => {
     await engine.advanceDays({ maxDays: 1 });
     const expected = new RngRegistry(world.meta.seed);
     const stream = expected.stream(OFFSCREEN_STREAM);
-    for (let draw = 0; draw < eligible.length; draw++) {
-      chance(stream, 0.5);
-    }
+    // One draw per eligible wrestler.
+    eligible.forEach(() => chance(stream, 0.5));
     expect(offscreenStreamOf(engine)).toEqual(expected.toState().streams[OFFSCREEN_STREAM]);
     expect(injuredIds(engine)).toEqual([]);
   });

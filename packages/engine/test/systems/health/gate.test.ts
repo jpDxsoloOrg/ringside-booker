@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { createEngine, defineSystem, initialEngineState, type Engine } from '../../../src/core/api';
 import { simSystem } from '../../../src/core/api/builtins';
 import { parseContentKey } from '../../../src/core/content-key';
+import type { Controller } from '../../../src/core/api/controller';
 import type { InjuryId, PersonId } from '../../../src/core/ids';
 import { definePhase } from '../../../src/core/pipeline/phase';
 import type { InjuryRecord } from '../../../src/model/entities/injury';
@@ -15,6 +16,7 @@ import {
   ROSTER_ACTION_HINT,
 } from '../../../src/systems/health';
 import { TEST_PLAYER_ID } from '../../support/builders/build-row';
+import { testId } from '../../support/ids';
 import { worldBuilder } from '../../support/world-builder';
 
 const OMNISCIENT = { kind: 'omniscient' } as const;
@@ -117,7 +119,7 @@ function pendingGates(engine: Engine) {
   return result.data.hits;
 }
 
-function acknowledge(engine: Engine, injuryIds: InjuryId[], issuedBy = HUMAN) {
+function acknowledge(engine: Engine, injuryIds: InjuryId[], issuedBy: Controller = HUMAN) {
   return engine.command('health.acknowledgeInjuries', { injuryIds }, issuedBy);
 }
 
@@ -212,7 +214,7 @@ describe('health.acknowledgeInjuries', () => {
         },
       ]);
     }
-    const unknown = acknowledge(engine, ['inj_zzzzzzzzzz' as InjuryId]);
+    const unknown = acknowledge(engine, [testId('injury', 999_999)]);
     expect(unknown.ok).toBe(false);
     if (!unknown.ok) {
       expect(unknown.reasons.map((reason) => reason.code)).toEqual(['unknownInjury']);
@@ -222,9 +224,7 @@ describe('health.acknowledgeInjuries', () => {
 
   it('refuses the computer', async () => {
     const { engine, mine } = await hurtBoth();
-    const refused = acknowledge(engine, [injuryOf(engine, mine[0]).id], {
-      kind: 'computer',
-    } as never);
+    const refused = acknowledge(engine, [injuryOf(engine, mine[0]).id], { kind: 'computer' });
     expect(refused.ok).toBe(false);
   });
 
