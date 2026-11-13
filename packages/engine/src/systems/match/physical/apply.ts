@@ -190,7 +190,7 @@ export function applyPhysicalToll(
 ): PhysicalTollResult | null {
   const { read, tunables } = ctx;
   const spec = segmentSpecFromWorld(read, segmentId, { tunables });
-  if (spec === null || spec.card === undefined || spec.card === null) {
+  if (spec?.card === undefined || spec.card === null) {
     return null;
   }
   const eventInstanceId = spec.card.eventInstanceId;

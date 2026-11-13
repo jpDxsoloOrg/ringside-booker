@@ -343,6 +343,8 @@ describe('applyPhysicalToll', () => {
     const tunables = certainInjuries();
     const { world, person, singles, tag } = built();
     const requests: InjuryRequest[] = [];
+    // WRK6-03 makes `health.injure` the built-in handler: on merge, clear it first
+    // (`clearInjuryHandler()`) and put it back after (`restoreBuiltInInjuryHandler()`).
     cleanups.push(
       registerInjuryHandler({
         id: 'test.injure',
