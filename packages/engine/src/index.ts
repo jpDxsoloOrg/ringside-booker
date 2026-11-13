@@ -1728,3 +1728,13 @@ export {
   type ShowEstimate,
   type ShowWorker,
 } from './systems/finance/index';
+
+export {
+  RECENT_FORM_DEFAULT_LIMIT,
+  RECENT_FORM_MAX_LIMIT,
+  RECENT_FORM_NOT_FOUND_MESSAGE,
+  type RecentFormArgs,
+  type RecentFormOpponent,
+  type RecentFormResult,
+  type RecentFormRow,
+} from './systems/match/index';

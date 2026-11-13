@@ -18,6 +18,8 @@ import { routePatterns, routes } from './routes';
 import { SettingsEffects } from './settings/SettingsEffects';
 // The results page's calendar section, action and chip badge, registered before any calendar draws.
 import '@/screens/show-results/calendarHooks';
+// The worker profile's Form tab (MTCH3-04); its panel loads with the tab.
+import '@/screens/workers/profile/tabs/recentFormTab';
 
 /**
  * Opt in to the React Router 7 behaviours now, so the upgrade later changes nothing and the

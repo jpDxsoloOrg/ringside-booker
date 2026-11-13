@@ -380,3 +380,40 @@ grouped by match in card order, with names, the show region's name, each
 region's before and after, momentum, and the trace refs while the traces are
 kept. Results are public: a row holds no morale and no contract terms, so
 every viewer gets the same answer.
+
+## Recent form
+
+`match.recentForm { personId, limit? }` (`aftermath/recentFormQuery.ts`,
+MTCH3-04) lists a worker's last `limit` run matches (1..10, 5 by default),
+newest first: `priorMatchesOf` with today's matches included. Each row has
+the show, date, promotion, the result from the worker's side, the opponents
+by name, the win method and the booked finish, and the changes from the
+worker's [stored aftermath](#stored-aftermaths): popularity in the show's
+region (after − before) and momentum (after − before). A change is null when
+the row was pruned or never written (a no contest writes none), and momentum
+is null without a contract or when the match started it. The trace refs are
+given only while the traces are kept. An unknown person is refused with
+`notFound`. Results are public, so every viewer gets the same answer.
+
+The worker profile shows it as the **Form** tab (order 55, wrestlers and
+occasional wrestlers only) with the `RecentForm` component: a strip of
+W / L / D / NC pills and a list with each match's changes and a Why? while
+the breakdown is kept.
+
+## The Match lab's Aftermath panel
+
+The lab's Aftermath panel (`screens/match-lab/aftermath/`, MTCH3-04) shows
+`match.simulate`'s `aftermath` for the night shown in full. It reads nothing
+else from the engine, so it never asks about morale and shows none. One panel
+per side carries the side's result; each worker shows popularity in the show's
+region before → after with the change and a Why?, then momentum before →
+after (or "No contract with <promotion>: momentum isn't tracked"). Below,
+a table lists the show region, the neighbours behind a "Neighbouring regions
+(n)" toggle (folded by default) and any reach rows. A neighbour's Why? is the
+door's trace with the spread line spelled out: the match's change, "Share for
+<region>" with its reason ("Neighbour of Northeast") and the taper and limits.
+A Region / Country / Continent choice switches the table to the
+population-weighted roll-ups, each with its own Why?; the choice is a viewer
+convenience kept in memory, never in the save. With nine or more competitors
+each worker's table opens on its own. When the setup changes after a Run the
+panel says the numbers are out of date.

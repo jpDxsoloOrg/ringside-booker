@@ -1,0 +1,50 @@
+/*
+ * RecentForm (MTCH3-04): the result pills and the per-match list. Tokens only. The strip wraps
+ * instead of scrolling sideways, so ten pills fit a 390px phone.
+ */
+
+.strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pill {
+  justify-content: center;
+  min-inline-size: 2.25rem;
+}
+
+.resultCell {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.resultWord {
+  font-size: var(--font-size-sm);
+}
+
+.change {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.unknown {
+  color: var(--color-text-muted);
+}
+
+@media (--bp-mobile) {
+  .resultWord {
+    display: none;
+  }
+
+  .change button {
+    min-block-size: var(--tap-target-min);
+    min-inline-size: var(--tap-target-min);
+  }
+}

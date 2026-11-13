@@ -36,6 +36,8 @@ export interface AftermathWorldOptions {
   readonly showRegion?: RegionId;
   /** Adds one worker with no contract, at index `popularity.length`, with this popularity. */
   readonly freeAgentPopularity?: number;
+  /** The world's date; the test start date (before the show) by default. */
+  readonly currentDate?: string;
 }
 
 export interface AftermathWorld {
@@ -55,7 +57,9 @@ function everywhere(value: number): Record<RegionId, number> {
  * momentum 0, one completed show in `showRegion` and the given run matches on it.
  */
 export function aftermathWorld(options: AftermathWorldOptions): AftermathWorld {
-  let builder = worldBuilder()
+  let builder = worldBuilder(
+    options.currentDate === undefined ? {} : { currentDate: options.currentDate },
+  )
     .withGeography('mini')
     .withCatalogs()
     .withPromotion({ controller: { kind: 'human', playerId: TEST_PLAYER_ID } }, (promotion) =>

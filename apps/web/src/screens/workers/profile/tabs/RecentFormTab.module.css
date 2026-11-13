@@ -1,0 +1,11 @@
+/* The worker profile's Form tab (MTCH3-04). Tokens only. */
+
+.notice {
+  color: var(--color-text-muted);
+}
+
+.formStack {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
