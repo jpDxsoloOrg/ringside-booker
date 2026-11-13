@@ -528,7 +528,10 @@ describe('bookMatchOfType', () => {
     expect(
       labels.some((label) => label.endsWith('Level 4: tired workers allowed as a last resort')),
     ).toBe(true);
-    expect(segment?.trace.trace.reason).toBe(stepDownText('Six-Person Tag', 'Singles'));
+    const root = segment?.trace.trace;
+    expect(root?.kind === 'decision' && root.reason).toBe(
+      stepDownText('Six-Person Tag', 'Singles'),
+    );
   });
 
   it('prefers the opposite alignment for the second side', () => {
