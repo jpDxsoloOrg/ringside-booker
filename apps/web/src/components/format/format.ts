@@ -242,5 +242,13 @@ function joinParts(parts: readonly Intl.DateTimeFormatPart[]): string {
  * `5 days ago`. `from` is usually the current game date.
  */
 export function formatDaysBetween(from: GameDate, to: GameDate): string {
-  return relativeDayFormat.format(diffDays(from, to), 'day');
+  return formatDaysAway(diffDays(from, to));
+}
+
+/**
+ * A number of days from today in words, for a screen that has the count but not the dates:
+ * `today`, `tomorrow`, `in 5 days`, `yesterday`, `5 days ago`.
+ */
+export function formatDaysAway(days: number): string {
+  return relativeDayFormat.format(days, 'day');
 }
