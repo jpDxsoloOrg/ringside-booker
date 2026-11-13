@@ -5,6 +5,8 @@ coverage/
 *.tsbuildinfo
 .vite/
 playwright-report/
+# Built by apps/web/e2e/fixtures/build-played-save.ts before every e2e run (about 360 kB).
+apps/web/e2e/fixtures/sample-played.rbsave
 test-results/
 *.log
 .env

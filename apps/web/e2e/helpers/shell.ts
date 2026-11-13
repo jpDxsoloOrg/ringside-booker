@@ -31,5 +31,8 @@ export async function navigateInApp(page: Page, path: string): Promise<void> {
     window.history.pushState(null, '', targetPath);
     window.dispatchEvent(new PopStateEvent('popstate'));
   }, path);
-  await expect(page).toHaveURL(new RegExp(`${path.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`));
+  // A screen may add its own query once it opens (Booking selects a show: `?event=`), so a
+  // query the path did not ask for is allowed after it.
+  const escaped = path.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  await expect(page).toHaveURL(new RegExp(`${escaped}${path.includes('?') ? '' : '(\\?.*)?'}$`));
 }

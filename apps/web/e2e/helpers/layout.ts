@@ -88,3 +88,62 @@ export async function expectNoHorizontalScroll(page: Page): Promise<void> {
       `${String(report.viewportWidth)}px viewport; ${culprit}`,
   ).toBeLessThanOrEqual(report.viewportWidth);
 }
+
+/** iOS Safari zooms the page in when a text field under this size takes focus. */
+export const IOS_NO_ZOOM_FONT_PX = 16;
+
+/**
+ * Fails when any visible text field (input, select, textarea or editable region) is under 16px.
+ * On a phone iOS Safari zooms in when such a field takes focus and keeps the zoom across screens,
+ * so the player has to pinch back out.
+ */
+export async function expectFormFieldsAtLeast16px(page: Page): Promise<void> {
+  const small = await page.evaluate((minimum) => {
+    const skipped = new Set(['checkbox', 'radio', 'range', 'file', 'color', 'hidden', 'button']);
+    const fields = Array.from(
+      document.querySelectorAll<HTMLElement>(
+        'input, select, textarea, [contenteditable=""], [contenteditable="true"]',
+      ),
+    );
+    return fields
+      .filter((field) => !(field instanceof HTMLInputElement && skipped.has(field.type)))
+      .filter((field) => field.getBoundingClientRect().width > 0)
+      .map((field) => ({
+        field: `${field.tagName.toLowerCase()}.${Array.from(field.classList).join('.')}`,
+        size: Number.parseFloat(window.getComputedStyle(field).fontSize),
+      }))
+      .filter((entry) => entry.size < minimum)
+      .map((entry) => `${entry.field} (${String(entry.size)}px)`);
+  }, IOS_NO_ZOOM_FONT_PX);
+  expect(small, 'Text fields under 16px make iOS Safari zoom in on focus').toEqual([]);
+}
+
+/**
+ * Fails when a stylesheet still holds a media query in range syntax (`width < 48rem`): iOS Safari
+ * before 16.4 ignores those rules, so the phone layout would never apply there. The build lowers
+ * them to min-width / max-width (postcss.config.js).
+ */
+export async function expectNoRangeMediaQueries(page: Page): Promise<void> {
+  const ranged = await page.evaluate(() => {
+    const found: string[] = [];
+    const visit = (rules: CSSRuleList): void => {
+      for (const rule of Array.from(rules)) {
+        if (rule instanceof CSSMediaRule) {
+          if (/(width|height)\s*[<>]/.test(rule.conditionText)) found.push(rule.conditionText);
+          visit(rule.cssRules);
+        } else if (rule instanceof CSSSupportsRule) {
+          visit(rule.cssRules);
+        }
+      }
+    };
+    for (const sheet of Array.from(document.styleSheets)) {
+      try {
+        visit(sheet.cssRules);
+      } catch {
+        // A cross-origin sheet (none ship today) cannot be read; it is not ours to check.
+      }
+    }
+    return [...new Set(found)];
+  });
+  expect(ranged, 'Range media queries are ignored by iOS Safari before 16.4').toEqual([]);
+}
