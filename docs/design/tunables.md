@@ -464,6 +464,32 @@ category `Aftermath`. See
 | `match.aftermath.keepPerPerson`   | integer | 10      | 1–100 | count | How many recent match aftermaths are kept for each worker                                              |
 | `match.popularity.tvSpill`        | number  | 0.3     | 0–1   | ratio | Share of the show's TV reach a match's popularity change gets in TV regions (MTCH3-05); 0 turns it off |
 
+### Physical toll tunables
+
+How much fatigue one worker gains in one match and how much body condition they
+lose (MTCH4-01), in `systems/match/physical/tunables.ts`, category
+`Physical toll`. Every key has a minimum of 0. The full table, with every
+style and body part default, is in
+[physical-toll.md](physical-toll.md#tunables).
+
+| Family                                | Kind   | Unit              | What it does                                                                        |
+| ------------------------------------- | ------ | ----------------- | ----------------------------------------------------------------------------------- |
+| `match.fatigue.base.<class>`          | number | points            | Fatigue a short (4), standard (7) or long (12) match costs one worker               |
+| `match.fatigue.minShare`              | number | ratio             | Smallest share of the workload in a crowded match (0.35)                            |
+| `match.fatigue.staminaRelief`         | number | ratio             | Fatigue eased per point of stamina above 50 (0.006)                                 |
+| `match.fatigue.style.<style>`         | number | multiplier        | How tiring each ring style finds a match                                            |
+| `match.fatigue.*Factor`               | number | multiplier        | Workhorse 1.15, coaster 0.85, house show 0.6, keep it safe 0.8                      |
+| `match.fatigue.repeatMatch`           | number | multiplier        | Fatigue and wear for each match after the first on the same card, compounding (1.5) |
+| `match.fatigue.maxPerSegment`         | number | points            | Most fatigue one match can add (40)                                                 |
+| `match.wear.base.<class>`             | number | points            | Wear a short (0.2), standard (0.35) or long (0.6) match costs one worker            |
+| `match.wear.selfStyle.<style>`        | number | multiplier        | How hard each ring style is on its own worker's body                                |
+| `match.wear.opponentStyle.<style>`    | number | multiplier        | How rough each ring style is on an opponent                                         |
+| `match.wear.safetyWeight` and min/max | number | ratio, multiplier | The opponents' safety factor (0.008 per point, kept within 0.6–1.4)                 |
+| `match.wear.*Factor`                  | number | multiplier        | Durable 0.7, injury prone 1.3, house show 0.6, keep it safe 0.5                     |
+| `match.wear.spread`                   | number | ratio             | How far the roughness roll moves wear either way (0.5; 0 means no randomness)       |
+| `match.wear.maxPerSegment`            | number | points            | Most wear one match can cost (5)                                                    |
+| `match.wear.part.<part>`              | number | multiplier        | Share of the wear each body part takes                                              |
+
 ## Shows tunables
 
 Show night's numbers (EVT3), in `systems/shows/tunables.ts`, category `Shows`.
