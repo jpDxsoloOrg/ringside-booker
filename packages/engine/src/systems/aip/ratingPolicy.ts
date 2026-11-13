@@ -78,6 +78,6 @@ export function rivalRatingPolicy(
 /** The feature id and label the rules screen shows for the rating's shortcuts. */
 const MATCH_RATINGS = { featureId: 'MTCH1', label: 'Match ratings' } as const;
 
-registerRatingPolicyProvider(rivalRatingPolicy, { id: RIVAL_RATING_POLICY_ID });
+registerRatingPolicyProvider(rivalRatingPolicy, { id: RIVAL_RATING_POLICY_ID, builtIn: true });
 registerAiShortcutConsumer({ key: 'ai.scoreBonus', ...MATCH_RATINGS });
 registerAiShortcutConsumer({ key: 'ai.simpleBookingInputs', ...MATCH_RATINGS });

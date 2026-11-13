@@ -53,6 +53,8 @@ interface RegisteredProvider {
 }
 
 let registered: RegisteredProvider | null = null;
+/** The provider registered on import with `builtIn` (the rival desk's), which a reset restores. */
+let builtIn: RegisteredProvider | null = null;
 
 /**
  * Registers the rating policy provider. There is at most one. Returns a function that removes it
@@ -62,7 +64,7 @@ let registered: RegisteredProvider | null = null;
  */
 export function registerRatingPolicyProvider(
   provider: RatingPolicyProvider,
-  options: { id?: string } = {},
+  options: { id?: string; builtIn?: boolean } = {},
 ): () => void {
   const id = options.id ?? (provider.name === '' ? 'anonymous provider' : provider.name);
   if (registered !== null) {
@@ -73,6 +75,9 @@ export function registerRatingPolicyProvider(
   }
   const entry: RegisteredProvider = { id, provide: provider };
   registered = entry;
+  if (options.builtIn === true) {
+    builtIn = entry;
+  }
   return () => {
     if (registered === entry) {
       registered = null;
@@ -91,7 +96,12 @@ export function ratingPolicyFor(
     : registered.provide(read, tunables, promotionId);
 }
 
-/** Removes the provider. For `resetMatchRegistriesForTests`. */
+/** Removes the provider, built-in or not. For tests of MTCH1's own seams. */
 export function clearRatingPolicyProvider(): void {
   registered = null;
+}
+
+/** Puts back the built-in provider, if one registered on import. For `resetMatchRegistriesForTests`. */
+export function restoreBuiltInRatingPolicyProvider(): void {
+  registered = builtIn;
 }

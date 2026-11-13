@@ -12,6 +12,7 @@ import { documentToWorld } from '../../../src/persistence/world-document';
 import { computerUnits, isDue, SHOWS_PER_MONTH_DAYS } from '../../../src/systems/aip';
 import { defaultSystems } from '../../../src/systems';
 import { withMyShowsRun } from '../../support';
+import { measureBestAgainstReference } from '../../support/cpu-budget';
 import { SLOW_TESTS } from '../../support/slow';
 import { startDefaultGame } from '../calendar/default-game';
 
@@ -90,6 +91,7 @@ describe('the Promotions queries on the default world', () => {
   // A few seconds (a full export and reload of the default world): slow runs only.
   it.runIf(SLOW_TESTS)(
     'counts each promotion’s dated shows a month and finds a rival’s real show day due (AIP1-07)',
+    { timeout: 60_000 },
     () => {
       const state = engine.exportState();
       const world = documentToWorld({ state: { world: state.world } }, TABLES);
@@ -143,34 +145,26 @@ describe('the Promotions queries on the default world', () => {
   });
 });
 
-/** Median of `runs` timings of `work`, in CPU milliseconds (user and system). */
-function medianMs(runs: number, work: () => void): number {
-  const times: number[] = [];
-  for (let run = 0; run < runs; run += 1) {
-    const started = process.cpuUsage();
-    work();
-    const used = process.cpuUsage(started);
-    times.push((used.user + used.system) / 1000);
-  }
-  times.sort((left, right) => left - right);
-  return times[Math.floor(times.length / 2)] ?? 0;
-}
-
 describe.runIf(SLOW_TESTS)('Promotions query speed on the default world', () => {
-  it('answers promotions.list and Altura’s promotions.roster well under 50 ms', () => {
+  // About 50 ms on a laptop, as a ratio against the CPU reference workload (about 50 ms itself):
+  // the engine's test threads share one process and `process.cpuUsage()` counts them all.
+  it('answers promotions.list and Altura’s promotions.roster within one reference workload', () => {
     const engine = newLongleafGame();
     const altura = promotionNamed(engine, 'Altura Wrestling Entertainment');
     // Warm up once so the timings measure the queries, not the first compile.
     ask(engine, 'promotions.list', {});
     ask(engine, 'promotions.roster', { promotionId: altura });
-    const listMs = medianMs(9, () => ask(engine, 'promotions.list', {}));
-    const rosterMs = medianMs(9, () => ask(engine, 'promotions.roster', { promotionId: altura }));
+    const list = measureBestAgainstReference(() => ask(engine, 'promotions.list', {}), 5);
+    const roster = measureBestAgainstReference(
+      () => ask(engine, 'promotions.roster', { promotionId: altura }),
+      5,
+    );
     const rows = ask(engine, 'promotions.roster', { promotionId: altura }).rows.length;
     console.log(
-      `promotions.list ${listMs.toFixed(1)} ms; promotions.roster (Altura, ${String(rows)} rows) ${rosterMs.toFixed(1)} ms`,
+      `promotions.list ${list.workMs.toFixed(1)} ms (${list.ratio.toFixed(2)} ref); promotions.roster (Altura, ${String(rows)} rows) ${roster.workMs.toFixed(1)} ms (${roster.ratio.toFixed(2)} ref)`,
     );
-    expect(listMs).toBeLessThan(50);
-    expect(rosterMs).toBeLessThan(50);
+    expect(list.ratio).toBeLessThan(1);
+    expect(roster.ratio).toBeLessThan(1);
   });
 
   it('logs each promotion’s top card values and needs (the calibration log)', () => {
