@@ -63,6 +63,8 @@ const EXPECTED_DEFAULTS: Readonly<Record<string, number | boolean>> = {
   'boxOffice.fit.sellOutAt': 1,
   'boxOffice.fit.emptyAt': 3,
   'boxOffice.pick.headroom': 1.1,
+  // Automatic venue picks (EVT6-03).
+  'boxOffice.rivalVenueLeadDays': 14,
 };
 
 describe('box office tunables', () => {
