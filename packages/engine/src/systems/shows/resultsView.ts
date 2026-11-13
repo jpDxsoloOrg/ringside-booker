@@ -31,7 +31,8 @@ import type {
   TitleId,
   VenueId,
 } from '../../core/ids';
-import type { TraceRef } from '../../core/trace/store';
+import { isFullTrace, type TraceRef } from '../../core/trace/store';
+import type { TraceNode } from '../../core/trace';
 import { angleTypeOf, finishOf, matchTypeOf, methodOf } from '../../model/catalogs';
 import type { EventImportance } from '../../model/entities/event-definition';
 import type { EventInstance, EventInstanceStatus } from '../../model/entities/event-instance';
@@ -57,6 +58,13 @@ import {
 import type { EngineTunables } from '../tunables';
 import { slotRoleInput } from './context';
 import { showStars } from './formulas/showStars';
+import {
+  segmentReasons,
+  showScoreBreakdown,
+  type BreakdownSegment,
+  type SegmentReasonView,
+  type ShowScoreBreakdownView,
+} from './report';
 import { matchResultTraceRef, titleOutcomeTraceRef, traceRefFromKey } from './traces';
 
 // ---------------------------------------------------------------------------------------------
@@ -120,6 +128,11 @@ export interface SegmentRatingView {
   expectation: number | null;
   /** The segment score's trace, or null when it is not kept. */
   traceRef: TraceRef | null;
+  /**
+   * The top two things that moved the score, from its trace ("Strong work rate", +8). Empty once
+   * the full trace is no longer kept.
+   */
+  reasons: SegmentReasonView[];
 }
 
 export interface SegmentResultView {
@@ -155,6 +168,11 @@ export interface ShowResultView {
   /** 0 to 5 in quarter steps. */
   stars: number;
   scoreTraceRef: TraceRef | null;
+  /**
+   * How each slot made up the score, read from the show score trace: null for a show scored
+   * off-screen and once the full trace is no longer kept.
+   */
+  breakdown: ShowScoreBreakdownView | null;
   attendance: number | null;
   /** Only for the viewer's own shows; null for a rival's, whatever is stored. */
   gate: Cents | null;
@@ -210,7 +228,7 @@ export interface ShowSummaryView {
 export interface ResultsViewDeps {
   readonly viewer: DeepReadonly<Viewer>;
   readonly tunables: EngineTunables;
-  readonly traces: Pick<TraceReader, 'has'>;
+  readonly traces: Pick<TraceReader, 'has' | 'get'>;
 }
 
 /** True when the viewer runs the show's promotion. */
@@ -225,6 +243,13 @@ export function isViewerShow(
 /** The ref when its trace is kept (full or summarised), else null. */
 function keptRef(traces: ResultsViewDeps['traces'], ref: TraceRef | null): TraceRef | null {
   return ref !== null && traces.has(ref) ? ref : null;
+}
+
+/** The full trace behind a ref, or null when it is not kept or only its summary is. */
+function fullTrace(traces: ResultsViewDeps['traces'], ref: TraceRef | null): TraceNode | null {
+  if (ref === null) return null;
+  const entry = traces.get(ref);
+  return entry !== undefined && isFullTrace(entry) ? entry.trace : null;
 }
 
 function keptRefFromKey(traces: ResultsViewDeps['traces'], key: string | null): TraceRef | null {
@@ -408,13 +433,16 @@ function ratingOf(deps: ResultsViewDeps, segment: DeepReadonly<Segment>): Segmen
   if (rating === null) {
     return null;
   }
+  const traceRef = keptRefFromKey(deps.traces, rating.traceId);
+  const trace = fullTrace(deps.traces, traceRef);
   return {
     score: rating.score,
     stars: rating.stars,
     workRate: rating.workRate,
     crowd: rating.crowd,
     expectation: rating.expectation,
-    traceRef: keptRefFromKey(deps.traces, rating.traceId),
+    traceRef,
+    reasons: trace === null ? [] : segmentReasons(trace),
   };
 }
 
@@ -468,16 +496,29 @@ function resultOf(
   instance: DeepReadonly<EventInstance>,
   deps: ResultsViewDeps,
   seesMoney: boolean,
+  segments: readonly SegmentResultView[],
+  offscreen: boolean,
 ): ShowResultView | null {
   const { result } = instance;
   if (result === null) {
     return null;
   }
+  const scoreTraceRef = keptRefFromKey(deps.traces, result.traceId);
+  const trace = offscreen ? null : fullTrace(deps.traces, scoreTraceRef);
+  // The slots that counted: the segments that were rated, in card order.
+  const rated: BreakdownSegment[] = segments
+    .filter((segment) => segment.rating !== null)
+    .map((segment) => ({
+      segmentId: segment.segmentId,
+      roleLabel: segment.roleLabel,
+      preShow: segment.preShow,
+    }));
   return {
     score: result.score,
     rawScore: result.rawScore,
     stars: starsOf(result.score, deps.tunables),
-    scoreTraceRef: keptRefFromKey(deps.traces, result.traceId),
+    scoreTraceRef,
+    breakdown: trace === null ? null : showScoreBreakdown(trace, rated),
     attendance: result.attendance,
     gate: seesMoney ? result.gate : null,
     viewers: result.viewers,
@@ -501,6 +542,9 @@ export function showResultsView(
   const cardVisible = instance.status === 'completed' || mine || deps.viewer.kind === 'omniscient';
   const people = showPeople(read, instance);
   const order = cardOrderOf(card);
+  const segments = cardVisible
+    ? card.map((segment) => segmentViewOf(read, deps, instance, people, segment, order))
+    : [];
   return {
     eventInstanceId: instance.id,
     name: instance.name,
@@ -520,10 +564,14 @@ export function showResultsView(
     venue: venue === undefined ? null : { id: venue.id, name: venue.name },
     mine,
     offscreen,
-    result: resultOf(instance, deps, mine || deps.viewer.kind === 'omniscient'),
-    segments: cardVisible
-      ? card.map((segment) => segmentViewOf(read, deps, instance, people, segment, order))
-      : [],
+    result: resultOf(
+      instance,
+      deps,
+      mine || deps.viewer.kind === 'omniscient',
+      segments,
+      offscreen,
+    ),
+    segments,
   };
 }
 

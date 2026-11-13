@@ -1521,6 +1521,20 @@ export {
   type TitleResultOutcome,
 } from './systems/shows/index';
 
+// The show report (EVT3-09): the show score breakdown and each segment's top reasons, both read
+// from the stored traces. See docs/design/show-night.md#show-report.
+export {
+  SEGMENT_REASON_BASELINE,
+  SEGMENT_REASON_LIMIT,
+  segmentReasons,
+  showScoreBreakdown,
+  type BreakdownSegment,
+  type SegmentReasonView,
+  type ShowScoreBreakdownView,
+  type ShowScoreRowKind,
+  type ShowScoreRowView,
+} from './systems/shows/index';
+
 // MTCH2 on show night (EVT3-07): the match outcome resolver the match bundle registers with show
 // night, and the match result trace behind the results page's winner Why?. See
 // docs/design/show-night.md#integration.
