@@ -349,7 +349,12 @@ for anyone the player does not employ, and are slimmed past
 **Measured.** On a 228-wrestler world of free agents over 365 days
 (`test/systems/health/offscreenRate.test.ts`), 66 off-screen injuries against
 an expected 68.4 (228 × 0.3; people already out do not roll, so a little
-under). On the default world a 30-day skip gives a handful world-wide.
+under). On the default world, where the rival rule doubles the rate for
+computer-run rosters, a 30-day skip gives 11 world-wide and a year 117 (seed of
+the default game, 2026-11). Measured with MTCH4-04's show-night toll merged, a
+365-day default-world save is 1.16 MB gzipped (1.59 MB with every show carded)
+and the skip takes about the same time as before: the off-screen rolls cost
+well under a second a year.
 
 | Tunable                                  | Kind   | Default | Range | Unit       | What it does                                                                |
 | ---------------------------------------- | ------ | ------- | ----- | ---------- | --------------------------------------------------------------------------- |
