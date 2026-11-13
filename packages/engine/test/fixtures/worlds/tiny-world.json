@@ -2712,6 +2712,28 @@
         }
       }
     ],
+    "popularityShowChanges": [
+      {
+        "id": "psc_0000000001",
+        "eventInstanceId": "evi_0000000001",
+        "promotionId": "pro_0000000001",
+        "date": "2026-04-09",
+        "score": 62,
+        "worldBefore": 0,
+        "worldAfter": 0.3,
+        "regions": {
+          "reg_0000000001": {
+            "source": "show",
+            "networkId": null,
+            "weight": 1,
+            "expectation": 10,
+            "before": 0,
+            "after": 1.2,
+            "capped": false
+          }
+        }
+      }
+    ],
     "promotions": [
       {
         "id": "pro_0000000001",
@@ -2722,6 +2744,10 @@
         "status": "active",
         "homeRegionId": "reg_0000000001",
         "regionalPop": {},
+        "popularityGains": {
+          "month": "2026-01",
+          "byRegion": {}
+        },
         "prestige": 50,
         "cash": 1000000000,
         "style": "mainstream",
@@ -2758,6 +2784,10 @@
         "status": "active",
         "homeRegionId": "reg_0000000001",
         "regionalPop": {},
+        "popularityGains": {
+          "month": "2026-01",
+          "byRegion": {}
+        },
         "prestige": 50,
         "cash": 250000000,
         "style": "technical",
