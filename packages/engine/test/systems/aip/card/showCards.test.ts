@@ -370,3 +370,45 @@ describe('aip.showCards', () => {
     }
   });
 });
+
+describe('aip.showDecisions', () => {
+  it("lists a rival show's decided matches in running order once it airs, and none for the player's", async () => {
+    const world = cardsWorld();
+    const before = world.engine.query(
+      'aip.showDecisions',
+      { eventInstanceId: world.shows.rival },
+      PLAYER,
+    );
+    expect(before).toMatchObject({ ok: false, reasons: [{ code: 'notRevealed' }] });
+
+    await world.engine.advanceDays({ maxDays: 1 });
+    const after = world.engine.query(
+      'aip.showDecisions',
+      { eventInstanceId: world.shows.rival },
+      PLAYER,
+    );
+    if (!after.ok) {
+      throw new Error(`aip.showDecisions failed: ${JSON.stringify(after.reasons)}`);
+    }
+    expectSerialisable(after.data);
+    const row = rowOf(cardsOf(world.engine, world.proB, PLAYER), world.shows.rival);
+    const onCard = row.slots.flatMap((slot) =>
+      slot.segment?.decision === null || slot.segment === null ? [] : [slot.segment.decision],
+    );
+    expect(after.data.decisions.length).toBeGreaterThan(0);
+    expect(after.data.decisions).toEqual(onCard);
+
+    const own = world.engine.query(
+      'aip.showDecisions',
+      { eventInstanceId: world.shows.own },
+      PLAYER,
+    );
+    expect(own).toEqual({ ok: true, data: { decisions: [] } });
+    const missing = world.engine.query(
+      'aip.showDecisions',
+      { eventInstanceId: 'evi_zzzzzzzzzz' as EventInstanceId },
+      PLAYER,
+    );
+    expect(missing).toMatchObject({ ok: false, reasons: [{ code: 'notFound' }] });
+  });
+});

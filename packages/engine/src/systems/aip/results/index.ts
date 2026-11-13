@@ -111,13 +111,17 @@ export {
 export {
   aipRecentTitleChangesQuery,
   aipSegmentDecisionQuery,
+  aipShowDecisionsQuery,
   DEFAULT_TITLE_CHANGES_LIMIT,
   MAX_TITLE_CHANGES_LIMIT,
   NO_DECISION_MESSAGE,
   NOT_REVEALED_MESSAGE,
   SEGMENT_NOT_FOUND,
+  SHOW_NOT_FOUND,
   type AipRecentTitleChanges,
   type AipRecentTitleChangesArgs,
+  type AipShowDecisions,
+  type AipShowDecisionsArgs,
   type AipSegmentDecisionArgs,
   type AipTitleChange,
 } from './queries';

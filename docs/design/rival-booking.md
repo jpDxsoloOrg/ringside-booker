@@ -1236,6 +1236,11 @@ reigns). Trace refs come back only while the store has them.
   viewer, sandbox games and the show's own controller always see it),
   `noDecision` "No computer booker decided this result" for a match no
   computer booker planned.
+- `aip.showDecisions { eventInstanceId }` (AIP5-05): the same view for every
+  match a computer booker decided on one show, pre-show first then the main
+  card; `notFound` / `notRevealed` as above, and `{ decisions: [] }` for a
+  show no computer booker decided (your own). The results page's "Booker's
+  calls" section reads it.
 - `aip.recentTitleChanges { promotionId, limit? }` (1–20, default 5): reigns
   won in a match on the promotion's titles, newest first, with the new and
   previous holders' names at the time, the show, the old reign's length and
