@@ -1263,6 +1263,9 @@ export type {
   ResolveMatchReasonCode,
   ResolveStreamName,
 } from './systems/match/index';
+// MTCH2-09: the auto-winner's match terms and upset note.
+export type { AutoWinnerStorylineHeat } from './systems/match/index';
+export { NO_STORYLINE_HEAT_NOTE, upsetNote } from './systems/match/index';
 export {
   MATCH_AUTO_WINNER_STREAM,
   RANDOM_WINNERS_MESSAGE,

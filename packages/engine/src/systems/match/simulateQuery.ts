@@ -27,7 +27,7 @@ import { INVALID_ARGS, refuseQuery } from '../../core/api/result';
 import type { ContentKey } from '../../core/content-key';
 import { detachedStream, type RngStream } from '../../core/rng/registry';
 import type { TraceNode } from '../../core/trace';
-import type { FinishCategory } from '../../model/catalogs';
+import { matchTypeOf, type FinishCategory } from '../../model/catalogs';
 import { MAX_SIDE } from '../../model/entities/participant';
 import type { MatchOutcome } from '../../model/entities/segment';
 import { zContentKey } from '../../model/primitives';
@@ -49,6 +49,7 @@ import {
 } from './previewQueries';
 import type { AutoWinnerSide } from './finishes/autoWinnerInputs';
 import type { SegmentRatingInput } from './rating/types';
+import { durationClassOf, type DurationClass } from './slots';
 import { geographyOf } from '../world/geography';
 import {
   computeSegmentAftermath,
@@ -196,6 +197,8 @@ interface PreparedSimulation {
   readonly input: SegmentRatingInput;
   readonly sides: readonly AutoWinnerSide[];
   readonly randomWinnersMode: boolean;
+  /** The lab's slot and match type as a duration class, for the auto-winner's stamina term. */
+  readonly durationClass: DurationClass;
 }
 
 /** The checks and inputs a simulation needs before its first roll. Refuses like `match.simulate`. */
@@ -221,7 +224,11 @@ function prepareSimulation(ctx: QueryContext, args: SimulateArgs): PreparedSimul
     sides: args.sides.map((personIds, side) => ({ side, personIds })),
   });
   const randomWinnersMode = args.winner === 'auto' && viewerRandomWinners(read, ctx.viewer);
-  return { input, sides, randomWinnersMode };
+  const durationClass = durationClassOf(
+    { role: args.slotRole, matchType: matchTypeOf(read, args.typeKey) ?? null },
+    { tunables: ctx.tunables },
+  ).value;
+  return { input, sides, randomWinnersMode, durationClass };
 }
 
 /** One simulated night, every roll on the detached streams keyed `key`. */
@@ -233,13 +240,14 @@ function simulateNight(
 ): Omit<SimulateResult, 'aftermath'> {
   const { read } = ctx;
   const { catalogs } = read.meta;
-  const { input, sides, randomWinnersMode } = prepared;
+  const { input, sides, randomWinnersMode, durationClass } = prepared;
   const resolved = resolveMatchOutcome(
     {
       matchTypeKey: args.typeKey,
       stipulationKeys: [],
       sides,
       regionName: read.tables.regions.get(args.regionId)?.name ?? args.regionId,
+      durationClass,
       plan: {
         winner: args.winner,
         finishKey: args.finishKey,

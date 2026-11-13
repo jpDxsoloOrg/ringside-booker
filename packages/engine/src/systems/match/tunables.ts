@@ -217,6 +217,18 @@ function alignmentEdge(defaultPoints: number, alignment: string) {
   );
 }
 
+/** How much stamina counts in a match of one length (MTCH2-09). */
+function staminaFactor(defaultFactor: number, length: string) {
+  return matchNumber(
+    defaultFactor,
+    { min: 0, max: 5, step: 0.05 },
+    'multiplier',
+    RESULTS_CATEGORY,
+    AUTO_WINNER_DOC,
+    `How much stamina counts toward the auto-winner in a ${length} match`,
+  );
+}
+
 export const matchTunables = defineTunables({
   'match.slot.weight.preShow': slotWeight(
     0.4,
@@ -591,6 +603,58 @@ export const matchTunables = defineTunables({
   'match.autoWinner.alignment.face': alignmentEdge(2, 'face'),
   'match.autoWinner.alignment.heel': alignmentEdge(0, 'heel'),
   'match.autoWinner.alignment.tweener': alignmentEdge(1, 'tweener'),
+  // MTCH2-09: how the match would actually go, and when a result counts as an upset.
+  'match.autoWinner.skillWeight': matchNumber(
+    0.5,
+    { min: 0, max: 3, step: 0.05 },
+    'multiplier',
+    RESULTS_CATEGORY,
+    AUTO_WINNER_DOC,
+    "Auto-winner points per point of a side's mean ring skill (ringwork, psychology, athleticism)",
+  ),
+  'match.autoWinner.staminaWeight': matchNumber(
+    0.2,
+    { min: 0, max: 3, step: 0.05 },
+    'multiplier',
+    RESULTS_CATEGORY,
+    AUTO_WINNER_DOC,
+    "Auto-winner points per point of a side's mean stamina, before the match length factor",
+  ),
+  'match.autoWinner.staminaFactor.short': staminaFactor(0.5, 'Short'),
+  'match.autoWinner.staminaFactor.standard': staminaFactor(1, 'Standard'),
+  'match.autoWinner.staminaFactor.long': staminaFactor(1.5, 'Long'),
+  'match.autoWinner.fatigueWeight': matchNumber(
+    0.2,
+    { min: 0, max: 3, step: 0.05 },
+    'multiplier',
+    RESULTS_CATEGORY,
+    AUTO_WINNER_DOC,
+    "Auto-winner points lost per point of a side's mean fatigue",
+  ),
+  'match.autoWinner.conditionWeight': matchNumber(
+    0.2,
+    { min: 0, max: 3, step: 0.05 },
+    'multiplier',
+    RESULTS_CATEGORY,
+    AUTO_WINNER_DOC,
+    "Auto-winner points lost per point of a side's mean body wear (100 minus body condition)",
+  ),
+  'match.autoWinner.heatWeight': matchNumber(
+    0.1,
+    { min: 0, max: 3, step: 0.05 },
+    'multiplier',
+    RESULTS_CATEGORY,
+    AUTO_WINNER_DOC,
+    'Auto-winner points per point of heat of a storyline the side is the crowd favourite in',
+  ),
+  'match.autoWinner.upsetNoteGap': matchNumber(
+    10,
+    { min: 0, max: 200, step: 0.5 },
+    'points',
+    RESULTS_CATEGORY,
+    AUTO_WINNER_DOC,
+    'How far behind on score a winner must have been for the result to be called an upset',
+  ),
   'match.autoWinner.randomness': matchNumber(
     5,
     { min: 0, max: 200, step: 0.5 },

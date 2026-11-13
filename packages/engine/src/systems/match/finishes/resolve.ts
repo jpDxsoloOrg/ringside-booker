@@ -46,6 +46,7 @@ import { autoWinner, type AutoWinnerMode } from './autoWinner';
 import type { AutoWinnerSide } from './autoWinnerInputs';
 import { chooseMethod } from './chooseMethod';
 import type { MatchResolution } from './resolution';
+import type { DurationClass } from '../slots';
 
 export const RESOLVING_A_MATCH_DOC_REF = 'match-finishes.md#resolving-a-match';
 
@@ -91,6 +92,8 @@ export interface ResolveMatchOutcomeInput {
   readonly sides: readonly AutoWinnerSide[];
   /** The show's region as the player reads it. */
   readonly regionName: string;
+  /** The match's duration class, for the auto-winner's stamina term (MTCH2-09). */
+  readonly durationClass: DurationClass;
   readonly plan: MatchPlan;
   readonly mode: AutoWinnerMode;
 }
@@ -301,6 +304,8 @@ function decideWinner(
             sideLabel: side.sideLabel,
             regionName: input.regionName,
             competitors: side.competitors,
+            durationClass: input.durationClass,
+            storylineHeat: side.storylineHeat,
           },
           { tunables: deps.tunables },
         ),
@@ -310,6 +315,10 @@ function decideWinner(
       })),
       randomness,
       mode: input.mode,
+      upsetNoteGap: traced(
+        deps.tunables.get('match.autoWinner.upsetNoteGap'),
+        tunableNode(deps.tunables, 'match.autoWinner.upsetNoteGap', 'Upset gap'),
+      ),
     },
     { rng: deps.rng('match.auto-winner') },
   );

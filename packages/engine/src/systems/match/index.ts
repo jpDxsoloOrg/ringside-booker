@@ -371,6 +371,18 @@ export {
   type AutoWinnerCompetitor,
   type AutoWinnerScoreInputs,
 } from './formulas/autoWinnerScore';
+// MTCH2-09: how the match would go (ring skill, stamina, fatigue, body wear, storyline heat).
+export {
+  AUTO_WINNER_CONDITION_LABEL,
+  AUTO_WINNER_FATIGUE_LABEL,
+  AUTO_WINNER_HEAT_LABEL,
+  AUTO_WINNER_SKILL_LABEL,
+  AUTO_WINNER_STAMINA_LABEL,
+  NO_STORYLINE_HEAT_NOTE,
+  ringSkillOf,
+  type AutoWinnerStorylineHeat,
+} from './formulas/autoWinnerScore';
+export { upsetNote } from './finishes/autoWinner';
 export {
   autoWinnerInputsOf,
   competitorSidesOf,
