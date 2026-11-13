@@ -1,5 +1,6 @@
 import { memo, useCallback, useId, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent, MouseEvent } from 'react';
+import { withStepUnits } from '@ringside/engine';
 import type { TraceNode } from '@ringside/engine';
 import { Button } from '../Button';
 import { Cluster } from '../layout';
@@ -206,10 +207,12 @@ function TreeItem({
  * closes it or steps out to the parent, Home and End jump, Enter and Space open or close.
  */
 export function TraceTree({
-  root,
+  root: givenRoot,
   renderEntityLink: renderEntityLinkProp,
   defaultShowAllChecks = false,
 }: TraceTreeProps) {
+  // Every step reads in its calculation's unit, so a money step shows dollars, not cents.
+  const root = useMemo(() => withStepUnits(givenRoot), [givenRoot]);
   const contextEntityLink = useEntityLinkRenderer();
   const renderEntityLink = renderEntityLinkProp ?? contextEntityLink;
   const idPrefix = useId();

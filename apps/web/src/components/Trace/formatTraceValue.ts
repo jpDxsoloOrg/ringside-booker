@@ -1,11 +1,12 @@
 /**
  * How trace values read in the "Why?" panel. Traces carry raw numbers plus a unit (see
  * docs/design/tunables.md#units); this turns them into text with the shared formatters, so a
- * number reads the same in a breakdown as it does on the screen that showed it.
+ * number reads the same in a breakdown as it does on the screen that showed it. The panel reads a
+ * trace through `withStepUnits` first, so every step of a money calculation arrives here as money.
  */
 import { cents } from '@ringside/engine';
 import type { TraceUnit, TraceValue } from '@ringside/engine';
-import { formatMoney, formatNumber, MINUS_SIGN } from '../format';
+import { formatMoney, formatNumber, formatPopularity, MINUS_SIGN } from '../format';
 
 /** Every unit a trace node can carry, plus `people` for headcounts such as attendance. */
 export type TraceDisplayUnit = TraceUnit | 'people';
@@ -30,18 +31,44 @@ function plural(value: number, singular: string, pluralForm: string): string {
   return `${decimal(value)} ${Math.abs(value) === 1 ? singular : pluralForm}`;
 }
 
-/** Money values are whole cents; a fraction that crept in through a multiplier is rounded. */
-function money(value: number): string {
-  return formatMoney(cents(Math.round(value)));
+/** Below this many cents ($1,000) an amount that is not whole dollars shows its cents. */
+const SHOW_CENTS_BELOW = 100_000;
+const CENTS_PER_DOLLAR = 100;
+
+/**
+ * Money values are whole cents; a fraction that crept in through a multiplier is rounded. Cents
+ * show only where they mean something: on a small amount that is not whole dollars (a $12.50
+ * ticket), never on a big one ($38,703,208, not $38,703,208.40).
+ */
+function money(value: number, exact = false): string {
+  const amount = cents(Math.round(value));
+  const showCents =
+    exact || (amount % CENTS_PER_DOLLAR !== 0 && Math.abs(amount) < SHOW_CENTS_BELOW);
+  return formatMoney(amount, { showCents });
+}
+
+/**
+ * Two values a step moved between, `before → after`. When they differ but read the same at the
+ * usual precision (a big amount rounded to the cent), money shows its cents so the change is seen.
+ */
+export function formatTraceChange(before: number, after: number, unit?: TraceDisplayUnit): string {
+  const beforeText = formatTraceNumber(before, unit);
+  const afterText = formatTraceNumber(after, unit);
+  if (beforeText !== afterText || before === after) return `${beforeText} → ${afterText}`;
+  if (unit === 'money') return `${money(before, true)} → ${money(after, true)}`;
+  if (unit === 'money/month') return `${money(before, true)}/month → ${money(after, true)}/month`;
+  return `${beforeText} → ${afterText}`;
 }
 
 /**
  * A number in its unit:
  *
- * - `money` from cents (`−$1,250`), `money/month` adds `/month`;
+ * - `money` from cents (`−$1,250`, `$12.50` for a small amount with cents), `money/month` adds
+ *   `/month`;
  * - `percent` on the 0–100 scale (`15.3` → `15.3%`), `probability` from 0–1 (`0.153` → `15.3%`);
  * - `ratio` as a plain factor (`0.885`), `multiplier` as `×1.15`, both with up to 3 decimals;
- * - `points` (`37.6`), `points/day` (`4/day`), `stars` (`3.75★`);
+ * - `points` as popularity reads everywhere (`components/format/popularity.ts`): one decimal at
+ *   most (`70.3`); `points/day` (`4/day`), `stars` (`3.75★`);
  * - `days`, `months` and `years` with their word, `count` grouped (`12,400`), `people` (`12,400 people`);
  * - `kilograms` as `95 kg`;
  * - anything else, or no unit, as the number with up to 2 decimals.
@@ -75,6 +102,7 @@ export function formatTraceNumber(value: number, unit?: TraceDisplayUnit): strin
     case 'kilograms':
       return `${decimal(value)} kg`;
     case 'points':
+      return formatPopularity(value);
     case 'count':
     case 'flag':
     case 'choice':
