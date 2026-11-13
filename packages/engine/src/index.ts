@@ -2297,3 +2297,27 @@ export {
   type WinnerReasonKey,
   type WinnerReasonNames,
 } from './systems/aip/index';
+
+// AIP5-03: whether a rival booker moves a title, and to whom, as traced pieces (reused by BRW6
+// and MP). See docs/design/rival-booking.md#title-changes.
+export {
+  challengerPool,
+  RETAIN_PLAN,
+  titleChange,
+  titleChangeChance,
+  titleReasonText,
+  type ChallengerPool,
+  type ChallengerPoolDeps,
+  type ChallengerPoolInputs,
+  type ChallengerPoolKind,
+  type ChallengerPoolSide,
+  type PopularityPoint,
+  type TitleChangeChanceDeps,
+  type TitleChangeChanceInputs,
+  type TitleChangeDeps,
+  type TitleChangeInputs,
+  type TitleChangeResult,
+  type TitleReasonKey,
+  type TitleReasonNames,
+  type TitleTasteSource,
+} from './systems/aip/index';

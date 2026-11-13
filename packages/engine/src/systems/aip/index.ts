@@ -484,3 +484,6 @@ export * from './results';
 // AIP5-02: who a rival booker puts over in a match (also reused by AIP5-03 and BRW6).
 export * from './formulas/rivalSideValue';
 export * from './formulas/matchWinner';
+export * from './formulas/titleChangeChance';
+export * from './formulas/challengerPool';
+export * from './formulas/titleChange';
