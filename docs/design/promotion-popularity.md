@@ -261,3 +261,81 @@ with `notFound`.
   "Neighbour of Texas", "TV: National Signal Network"), weight, expectation,
   before, after, change, whether it was capped, and `traceRef` (null once the
   full trace is no longer kept).
+
+## Integrations
+
+EVT5-04 connected EVT5 to the partner features that were on main when it
+started. A partner that was not there wires EVT5 from its own pack.
+
+| Partner                   | Status                                           | What it means                                                                                                                                                                                                                   |
+| ------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| MTCH3 worker popularity   | Seam on main; TV provider registered by MTCH3-05 | See [Worker TV reach](#worker-tv-reach).                                                                                                                                                                                        |
+| ECO1 reach and size       | Wired, no code needed                            | `reachOf` reads `regionalPop` on every query and caches nothing, so `finance.company` shows a show's change on the next read and the size label can move. Covered by `test/systems/promoPop/finance-reach.integration.test.ts`. |
+| ECO3 hype                 | Owed by ECO3's pack                              | `applyShowPopularity` still passes `hype: null`, so the expectation Why? says "Hype isn't tracked yet".                                                                                                                         |
+| ECO8 TV deals and airings | Owed by ECO8's pack                              | `dealsInForce` reads the world's existing deals by date and status.                                                                                                                                                             |
+| DAY2 Office and top bar   | Owed by DAY2's pack                              | No "Recent shows" lines in the popularity Why?, no "This month" column, no "Fans after your last show" panel.                                                                                                                   |
+| EVT6 attendance           | Owed by EVT6's pack                              | Must follow the [same-day rule](#same-day-ordering-for-attendance).                                                                                                                                                             |
+| ECO2 sponsorship          | Owed by ECO2's pack                              | `sponsorshipValue` should read current popularity; no EVT5 code expected.                                                                                                                                                       |
+
+### Worker TV reach
+
+MTCH3's reach seam (`registerPopularityReach` in
+`systems/match/aftermath/reach.ts`, see
+[match-aftermath.md](match-aftermath.md#regional-spread)) lets a televised
+show spread a worker's popularity change into the regions its TV deals cover.
+The provider has the id `tv` and order 10: for a segment's show it takes
+`reachInputsFor` then `showReach`, keeps only the `source: 'tv'` regions and
+scales each weight by `match.popularity.tvSpill` (0.3; 0 turns TV reach off
+for workers), with the reason "TV reach: <network>". Only one pack may
+register it, because a duplicate id throws. MTCH3-05 registers it from the
+match bundle; the `promoPop` bundle does not.
+
+### Same-day ordering for attendance
+
+`promoPop.applyAfterShow` reacts to `show.completed`, so a show's popularity
+has already moved by the time the settlement group runs that day. Anything
+that settles the same show (EVT6's `expectedAttendance` and
+`actualAttendance`) must read
+`popularityBeforeShow(read, eventInstanceId, regionId) ?? regionalPop[regionId]`,
+so tonight's crowd comes from the popularity before the show and the next show
+sees the new value.
+
+### The hype term
+
+When ECO3 lands, `applyShowPopularity` passes the show's hype multiplier (the
+show's `eventInstances.hype`, or the promotion's hype when the show has none)
+as `hype` to `regionExpectation`. Hype multiplies the whole expectation, so
+excited fans expect more and gains get harder (D-02). If hype makes good shows
+feel unrewarded, tune `promoPop.expect.*` or ECO3's multiplier range, not the
+formula shape.
+
+**Trace depth.** A region's change trace already reaches exactly
+`TRACE_MAX_DEPTH` (12 levels): a tunable inside the expectation, inside the
+margin. The hype factor sits at that same deepest level, so only its value
+fits. If ECO3 passes a hype trace with children, they are cut when the trace is
+stored (`limitTrace` adds an "N more steps not shown" note) rather than
+breaking the Why?. ECO3's own hype Why? is where the breakdown belongs; the
+popularity Why? shows the multiplier.
+
+### Balance check (EVT5-04)
+
+A headless 365-day run of the default world on default tunables (584 shows,
+every one with a change record) kept every promotion's home region well away
+from 0 and 100:
+
+| Promotion                       | Start | After a year |
+| ------------------------------- | ----- | ------------ |
+| Altura Wrestling Entertainment  | 75    | 71.61        |
+| Tessen Pro Wrestling            | 65    | 66.12        |
+| Cielo Alto Lucha Libre          | 65    | 66.94        |
+| Ashlar Pro Wrestling            | 42    | 52.72        |
+| Boreal Championship Wrestling   | 42    | 51.19        |
+| Blast Furnace Wrestling         | 42    | 46.83        |
+| Longleaf Championship Wrestling | 40    | 51.12        |
+| Eisenwerk Wrestling             | 40    | 44.53        |
+| Golden Poppy Wrestling          | 40    | 44.48        |
+| Hardpan Pro Wrestling           | 20    | 33.75        |
+| Hibari Pro Wrestling            | 18    | 28.66        |
+| Wattle Pro Wrestling            | 18    | 26.16        |
+
+No `promoPop.*` default needed changing.
