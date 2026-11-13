@@ -13,7 +13,7 @@
  * Design: docs/design/office.md#kpis-and-deltas.
  */
 
-import { CASH_TRACE_KIND } from '../../../core/api/builtins';
+import { currentCashTraceRef } from '../../../core/api/builtins';
 import type { QueryContext } from '../../../core/api/query';
 import { compareDates, type GameDate } from '../../../core/date';
 import type { PromotionId } from '../../../core/ids';
@@ -102,10 +102,6 @@ function requireMetric(key: string): OfficeMetric {
   return metric;
 }
 
-function storedRef(ctx: KpiContext, ref: TraceRef): TraceRef | null {
-  return ctx.traces.has(ref) ? ref : null;
-}
-
 function plural(count: number, one: string, many: string): string {
   return `${String(count)} ${count === 1 ? one : many}`;
 }
@@ -117,7 +113,7 @@ function cashKpi(ctx: KpiContext, promotionId: PromotionId): LiveKpi {
     value: promotion.cash,
     traced: null,
     trace: null,
-    traceRef: storedRef(ctx, { kind: CASH_TRACE_KIND, id: promotionId }),
+    traceRef: currentCashTraceRef(ctx.traces, promotion),
     goodWhen: 'up',
     footer: null,
   };

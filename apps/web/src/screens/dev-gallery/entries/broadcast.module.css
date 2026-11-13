@@ -21,6 +21,14 @@
   scroll-padding-inline: var(--space-6);
 }
 
+/*
+ * A bar that does not wrap, at its full width, so the stage's end padding scrolls in after it and
+ * the last control's focus ring is not cut off at the far edge.
+ */
+.barContent {
+  inline-size: max-content;
+}
+
 .row {
   display: flex;
   flex-wrap: wrap;

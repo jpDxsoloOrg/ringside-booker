@@ -1,0 +1,16 @@
+/* The Office's "Fans after your last show" panel (DAY2-06). */
+.fans {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+/* At least a tap target tall. */
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  justify-self: start;
+  min-block-size: var(--tap-target-min);
+  font-weight: var(--font-weight-semibold);
+}

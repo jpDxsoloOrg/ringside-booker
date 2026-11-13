@@ -160,6 +160,8 @@
 .scroller {
   max-block-size: 70vh;
   overflow: auto;
+  /* Tabbing to a link in a cell scrolls it into view with room for its focus ring. */
+  scroll-padding: var(--space-2);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface);

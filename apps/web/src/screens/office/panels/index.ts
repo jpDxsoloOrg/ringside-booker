@@ -6,3 +6,6 @@
  */
 import './worldClockPanel';
 import './worldOverviewPanel';
+import '../../calendar/officePanel';
+import '../../show-results/officePanel';
+import '../../promotion-popularity/officePanel';

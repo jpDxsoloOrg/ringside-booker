@@ -22,6 +22,8 @@ import '@/screens/show-results/calendarHooks';
 import '@/screens/box-office/ShowCrowdSection';
 // The worker profile's Form tab (MTCH3-04); its panel loads with the tab.
 import '@/screens/workers/profile/tabs/recentFormTab';
+// The Fan base sheet's "This month" figure (DAY2-06, for EVT5).
+import '@/screens/promotion-popularity/fanBaseColumn';
 
 /**
  * Opt in to the React Router 7 behaviours now, so the upgrade later changes nothing and the

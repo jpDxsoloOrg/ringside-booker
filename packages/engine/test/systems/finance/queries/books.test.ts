@@ -328,20 +328,65 @@ describe('sim.status cash Why?', () => {
     expect(labels).toContain('Opening balance');
   });
 
-  it('follows every posted row through the month', async () => {
-    const { engine } = await booksWorld(15);
+  it('hands out no cash Why? that no longer ends at the cash', async () => {
+    // A promotion run by the computer for a while (as the played e2e save is) never has its cash
+    // Why? rewritten, so the stored one is left behind by the cash.
+    const { engine, human } = await booksWorld(1);
+    const state = engine.exportState();
+    const stale = createEngine({
+      state: {
+        ...state,
+        world: {
+          ...state.world,
+          tables: {
+            ...state.world.tables,
+            promotions: state.world.tables.promotions.map((row) =>
+              row.id === human ? { ...row, cash: cents(row.cash - 1) } : row,
+            ),
+          },
+        },
+      },
+      systems: SYSTEMS_WITHOUT_SHOW_DAY_GATE,
+    });
+    expect(
+      data(engine.query('sim.status', {}, HUMAN_VIEWER)).promotion?.cashTraceRef,
+    ).not.toBeNull();
+    expect(data(stale.query('sim.status', {}, HUMAN_VIEWER)).promotion?.cashTraceRef).toBeNull();
+    expect(
+      data(stale.query('finance.overview', { promotionId: human }, HUMAN_VIEWER)).cashTraceRef,
+    ).toBeNull();
+  });
+
+  it('follows every posted row, from the opening balance to the cash now', async () => {
+    const { engine, human } = await booksWorld(45);
     const status = data(engine.query('sim.status', {}, HUMAN_VIEWER));
     const ref = status.promotion?.cashTraceRef;
     if (ref === null || ref === undefined) throw new Error('expected a cash trace');
     const stored = data(engine.query('trace.get', { ref }, HUMAN_VIEWER));
     if (stored === null || !isFullTrace(stored)) throw new Error('expected a full trace');
     expect(stored.trace.value).toBe(status.promotion?.cash);
+    // The start plus every step adds up to the cash.
+    let total = 0;
     const labels: string[] = [];
-    walkTrace(stored.trace, (node) => {
-      labels.push(node.label);
-    });
-    // 15 days from 20 January ends on 4 February: the month started on the 1st.
-    expect(yearMonthOf(addDays(status.date, -1))).toBe('2026-02');
-    expect(labels).toEqual(expect.arrayContaining(['Cash on 1 February 2026', 'Wages', 'Medical']));
+    for (const step of stored.trace.children ?? []) {
+      labels.push(step.label);
+      if (step.kind === 'add') total += step.operand;
+      else if (step.kind === 'subtract') total -= step.operand;
+      else if (typeof step.value === 'number') total += step.value;
+    }
+    expect(total).toBe(status.promotion?.cash);
+    // 45 days from 20 January ends on 5 March: January and February are one line each.
+    expect(yearMonthOf(addDays(status.date, -1))).toBe('2026-03');
+    expect(labels.slice(0, 3)).toEqual(['Opening balance', 'January 2026', 'February 2026']);
+    expect(labels).toEqual(expect.arrayContaining(['Wages', 'Medical']));
+    // The opening balance is the cash less every row since the game's first month.
+    const promotion = engine.exportState().world.tables.promotions.find((row) => row.id === human);
+    const sinceStart = engine
+      .exportState()
+      .world.tables.ledgerEntries.filter(
+        (row) => row.promotionId === human && row.date >= '2026-01',
+      )
+      .reduce((sum, row) => sum + row.amount, 0);
+    expect(stored.trace.children?.[0]?.value).toBe((promotion?.cash ?? 0) - sinceStart);
   });
 });

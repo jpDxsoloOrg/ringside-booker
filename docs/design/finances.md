@@ -437,13 +437,22 @@ Months are `YearMonth` strings (`YYYY-MM`, `zYearMonth`, `yearMonthOf`,
 `byPromotionMonth` index, so a month costs only its own rows.
 
 **The cash Why?** `recordCashTrace(ctx, promotionId)` (`cashTrace.ts`) records
-under `cashTraceRef(promotionId)` (kind `finance.cash`): "Cash on 1 <month>"
-(the cash less this month's rows), then one line per category with a non-zero
-total this month in ledger category order (`LEDGER_CATEGORY_LABELS`), ending
-at the cash now. `postMoney` rewrites it after every row it posts for a
-human-run promotion, and the new-game step `finance.openingBalance` (order 905) writes it for each of them, starting from "Opening balance", so the top
+under `cashTraceRef(promotionId)` (kind `finance.cash`) how the cash got from
+the start of the game to today: "Opening balance" (the cash less every row
+since the month the game started), then the net of each earlier month of this
+year ("January 2027"), with each earlier year folded into one line ("2026"),
+then one line per category with a non-zero total this month in ledger category
+order (`LEDGER_CATEGORY_LABELS`), ending at the cash now. Lines that come to
+zero are left out. It is one stored trace per promotion, rewritten in place, so
+it stays a few lines long however long the game runs. `postMoney` rewrites it
+after every row it posts for a human-run promotion, and the new-game step
+`finance.openingBalance` (order 905) writes it for each of them, so the top
 bar's cash has a Why? from day one. `sim.status` returns its ref as
-`promotion.cashTraceRef`. Rivals never get one: nobody can open it.
+`promotion.cashTraceRef` (and `finance.overview` and the Office cash card use
+the same ref) only while the stored trace ends at the cash
+(`currentCashTraceRef`): a promotion run by the computer never has it
+rewritten, and a Why? that does not add up to the figure it explains is worse
+than none. Rivals never get one: nobody can open it.
 
 **The policy queries** (`systems/finance/queries/policies.ts`), both behind
 `canSeeBooks`:

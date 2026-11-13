@@ -61,7 +61,7 @@ export {
 
 // ECO1-03: payroll, medical, the cash Why? and the books queries.
 export { canSeeBooks, NOT_YOUR_BOOKS } from './access';
-export { cashTrace, recordCashTrace, type CashTraceOptions } from './cashTrace';
+export { cashTrace, recordCashTrace } from './cashTrace';
 export {
   AVERAGE_DAYS_PER_YEAR,
   dailyWageAccrual,

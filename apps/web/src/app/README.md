@@ -331,8 +331,10 @@ EVT6-06 puts the box office's venue and forecast queries on two screens, without
 - **Calendar sheet line**: the show sheet's `boxOffice.crowd` section ("Crowd", order 5,
   `screens/box-office/ShowCrowdSection.tsx`, registered by the router) shows the expected range,
   its Why? and the fit for your own shows still to run. The venue itself stays in the sheet's facts
-  row, which also names a generic local venue from the row's `genericVenue`. The attendance of a
-  settled show comes with EVT6-05's `boxOffice.showCrowd`.
+  row, which also names a generic local venue from the row's `genericVenue`. For any show that
+  has run, the player's or a rival's, the section reads `boxOffice.showCrowd` instead (EVT6-07):
+  "4,210 came · 92% full at Harbor Arena" with the attendance Why?, or "Box office not settled
+  yet". A crowd is public; money never shows here.
 
 ## Finances
 
@@ -380,7 +382,11 @@ that is taken and returns a function that removes the panel again.
 | 90+   | News and social          |
 
 Registered so far: **World clock** (side, 10) and **World overview** (main, 20, seats with no
-promotion only), both in `screens/office/panels/`. A panel that wants the Fan base sheet calls the context's
+promotion only), both in `screens/office/panels/`; then, from their features' folders (DAY2-06),
+**Next show** (`calendar.nextShow`, main, 50, `screens/calendar/officePanel.tsx`), **Last show**
+(`shows.lastShow`, main, 55, `screens/show-results/officePanel.tsx`) and **Fans after your last
+show** (`promoPop.lastShow`, main, 60, `screens/promotion-popularity/officePanel.tsx`). The full
+list with owners is in docs/design/office.md#panels. The Cash card's footer links to Finances. A panel that wants the Fan base sheet calls the context's
 `openFanBase(promotionId)` (the world overview does, once per row) instead of drawing a sheet.
 
 ## The shell's look
@@ -476,8 +482,9 @@ and links to their results (see [Show results](#show-results)).
   with `registerFanBaseColumn({ id, label, render: (regionId, { promotionId }) => node })`
   (`status/fanBaseColumnRegistry.ts`, exported from `status/index.ts`); `render` returning null
   shows nothing on that row. The sheet hands the columns to `PopularityDrilldown` through its
-  `regionExtras` prop, so neither changes when a column arrives. EVT5-04's "This month" is the
-  expected first user.
+  `regionExtras` prop, so neither changes when a column arrives. Registered: EVT5's "This
+  month" (`evt5.thisMonth`, `screens/promotion-popularity/fanBaseColumn.tsx`, imported by the
+  router), "+1.2 (cap 3)" from `popularity.monthGains`.
 
 ## Rules
 

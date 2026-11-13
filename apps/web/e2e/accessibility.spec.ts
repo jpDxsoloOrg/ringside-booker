@@ -6,33 +6,23 @@
  *   ring at least 2px wide, with 3:1 contrast against the surface under it, that no clipping
  *   container cuts off.
  * - Reduced motion: from the device or from the in-game setting, the shell's ticker is a static
- *   list, the live bug's dot holds still, the meters fill without animating, and nothing on the
- *   page runs an animation or a transition at all.
+ *   list, the live bug's dot holds still, the nav links and top-bar buttons change colour without
+ *   a transition, and nothing on the page runs an animation or a transition at all. The segmented
+ *   meter (no longer in the shell since the live Office replaced the sample card's hype meter) is
+ *   checked in its gallery entry instead.
  * - axe: the reduced-motion layouts (the static ticker, the still bug) have no serious or critical
  *   violations either. The default layouts are scanned by the gallery, shell and smoke specs.
  */
-import { readdirSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import { expect, test } from './fixtures';
 import type { Locator, Page } from '@playwright/test';
 import { expectNoSeriousA11yViolations } from './helpers/a11y';
 import { inspectFocusRing, tabThroughAndCheckRings } from './helpers/focus';
+import { GALLERY_ENTRY_IDS } from './helpers/gallery';
 import { enterShell } from './helpers/shell';
-import { isPhone } from './helpers/viewport';
+import { isPhone, PROJECT_NAMES } from './helpers/viewport';
 
 const GALLERY_PATH = '/dev/gallery';
 
-/** The gallery's entry files. Each is named after its entry id (the registry test checks). */
-const GALLERY_ENTRIES_DIRECTORY = fileURLToPath(
-  new URL('../src/screens/dev-gallery/entries/', import.meta.url),
-);
-const GALLERY_ENTRY_SUFFIX = '.gallery.tsx';
-
-/** Every gallery entry id, read from disk so each entry gets its own test. */
-const GALLERY_ENTRY_IDS: readonly string[] = readdirSync(GALLERY_ENTRIES_DIRECTORY)
-  .filter((fileName) => fileName.endsWith(GALLERY_ENTRY_SUFFIX))
-  .map((fileName) => fileName.slice(0, -GALLERY_ENTRY_SUFFIX.length))
-  .sort();
 const ENTRY_PANEL = '#gallery-entry';
 
 /** Enough Tab stops for the busiest entry (the data table) without walking it all night. */
@@ -134,7 +124,41 @@ async function readMotion(page: Page): Promise<MotionSnapshot> {
   });
 }
 
-/** The shell's motion parts are all still: static ticker, still dot, instant meters, no motion. */
+/** The longest transition of every element the locator matches, in seconds. */
+async function longestTransitions(locator: Locator): Promise<readonly number[]> {
+  return locator.evaluateAll((elements) =>
+    elements.map((element) =>
+      Math.max(
+        ...getComputedStyle(element)
+          .transitionDuration.split(',')
+          .map((value) => parseFloat(value)),
+      ),
+    ),
+  );
+}
+
+/**
+ * The shell's parts that carry a transition: the nav links (the sidebar on desktop, the tab bar on
+ * a phone) and the Next day bug. The checks name them, so a check that finds nothing moving
+ * cannot pass just because they are gone. The ticker's Pause button transitions too, but a static
+ * ticker has no Pause button, which the ticker check already covers.
+ */
+function shellTransitionParts(
+  page: Page,
+): readonly { readonly name: string; readonly locator: Locator }[] {
+  return [
+    {
+      name: 'nav links',
+      locator: page.getByRole('navigation', { name: /^(Main|Primary)$/ }).getByRole('link'),
+    },
+    {
+      name: 'the Next day bug',
+      locator: page.getByRole('banner').getByRole('button', { name: /^Next day/ }),
+    },
+  ];
+}
+
+/** The shell's motion parts are all still: static ticker, still dot, instant transitions, no motion. */
 async function expectShellStill(page: Page): Promise<void> {
   const ticker = page.getByRole('region', { name: 'News ticker' });
   await expect(ticker).toHaveAttribute('data-motion', 'static');
@@ -147,12 +171,11 @@ async function expectShellStill(page: Page): Promise<void> {
   await expect(dot).toHaveAttribute('data-motion', 'static');
   expect(await dot.evaluate((element) => getComputedStyle(element).animationName)).toBe('none');
 
-  const meterTicks = page.getByRole('meter', { name: 'Card hype' }).locator('[data-part="tick"]');
-  const tickDurations = await meterTicks.evaluateAll((ticks) =>
-    ticks.map((tick) => getComputedStyle(tick).transitionDuration),
-  );
-  expect(tickDurations.length, 'the hype meter has ticks').toBeGreaterThan(0);
-  expect(new Set(tickDurations)).toEqual(new Set(['0s']));
+  for (const part of shellTransitionParts(page)) {
+    const durations = await longestTransitions(part.locator);
+    expect(durations.length, `the shell shows ${part.name}`).toBeGreaterThan(0);
+    expect(new Set(durations), `${part.name} change without a transition`).toEqual(new Set([0]));
+  }
 
   const motion = await readMotion(page);
   expect(motion.running, 'animations still playing').toEqual([]);
@@ -169,7 +192,14 @@ test.describe('focus rings', () => {
   for (const entryId of GALLERY_ENTRY_IDS) {
     test(`every Tab stop in the ${entryId} gallery entry shows a clear, unclipped ring`, async ({
       page,
-    }) => {
+    }, testInfo) => {
+      // WebKit answers each Tab stop slowly, and the busiest entries (the show results, with its
+      // report and box office) walk dozens of them, so it gets the slow budget. The checks are
+      // the same.
+      test.slow(
+        testInfo.project.name === PROJECT_NAMES.phoneWebkit,
+        'WebKit walks Tab stops slowly',
+      );
       const heading = await gotoEntryById(page, entryId);
       // A click on the heading starts the Tab order inside the entry, without focusing anything.
       await heading.click();
@@ -241,7 +271,7 @@ test.describe('focus rings', () => {
 });
 
 test.describe('reduced motion', () => {
-  test('the device setting stills the ticker, the live bug and the meters in the shell', async ({
+  test('the device setting stills the ticker, the live bug and the transitions in the shell', async ({
     page,
   }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -257,11 +287,43 @@ test.describe('reduced motion', () => {
     // With motion allowed, the crawl and the pulse really run, so the checks below can see them.
     const before = await readMotion(page);
     expect(before.running).toEqual(expect.arrayContaining([expect.stringContaining('crawl')]));
+    // Something on the page transitions too (the ticker's Pause button on every layout, and the
+    // nav links and the Next day bug on desktop), so the check that nothing does means something.
+    expect(before.transitions, 'elements that transition with motion allowed').not.toEqual([]);
 
     await page.evaluate(() => {
       document.documentElement.setAttribute('data-reduced-motion', 'on');
     });
     await expectShellStill(page);
+  });
+
+  test('the device setting and the in-game setting fill the segmented meter without a transition', async ({
+    page,
+  }) => {
+    const meterTicks = page
+      .locator(ENTRY_PANEL)
+      .getByRole('meter', { name: 'Fatigue' })
+      .locator('[data-part="tick"]');
+
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await gotoEntry(page, { id: 'segmented-meter', title: 'SegmentedMeter' });
+    const moving = await longestTransitions(meterTicks);
+    expect(moving.length, 'the meter has ticks').toBeGreaterThan(0);
+    expect(
+      moving.every((seconds) => seconds > 0),
+      'the ticks transition while motion is allowed',
+    ).toBe(true);
+
+    await page.evaluate(() => {
+      document.documentElement.setAttribute('data-reduced-motion', 'on');
+    });
+    expect(new Set(await longestTransitions(meterTicks)), 'in-game setting').toEqual(new Set([0]));
+
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await gotoEntry(page, { id: 'segmented-meter', title: 'SegmentedMeter' });
+    const still = await longestTransitions(meterTicks);
+    expect(still.length, 'the meter has ticks').toBeGreaterThan(0);
+    expect(new Set(still), 'device setting').toEqual(new Set([0]));
   });
 
   test('the reduced-motion layouts have no serious accessibility issues', async ({ page }) => {

@@ -89,14 +89,13 @@ async function expectPromotionInTopBar(page: Page, name: string, phone: boolean)
     const crest = page.getByTestId('promotion-block');
     await expect(crest).toContainText(name);
     await expect(crest).not.toContainText('Sample');
-    // Popularity explains itself even before a system moves it (UI-19).
+    // Popularity explains itself even before a system moves it (UI-19). Since DAY2-02 the chip
+    // shows the headline figure, whose Why? is titled "<Promotion> popularity".
     await topBar
       .getByTestId('popularity-chip')
       .getByRole('button', { name: /^Why is / })
       .click();
-    await expect(page.getByRole('dialog')).toContainText(
-      'Starting popularity from the world you began in',
-    );
+    await expect(page.getByRole('dialog')).toContainText(`${name} popularity`);
     await page.keyboard.press('Escape');
   }
 }
@@ -137,6 +136,16 @@ test.describe('new game', () => {
     await page.getByRole('button', { name: 'Start game' }).click();
 
     await expectPromotionInTopBar(page, EXISTING_PROMOTION, phone);
+
+    // The Office's partner panels (DAY2-06): the next show with a calendar link, and no results
+    // before the first show. Both fit the phone's single column without sideways scroll.
+    const nextShow = page.getByRole('region', { name: 'Next show' });
+    await expect(nextShow.getByRole('link', { name: 'Open calendar' })).toBeVisible();
+    await expect(nextShow.getByText(/main slots/u)).toBeVisible();
+    await expect(
+      page.getByRole('region', { name: 'Last show' }).getByText('No shows yet'),
+    ).toBeVisible();
+    await expectNoHorizontalScroll(page);
   });
 
   test('founds a promotion with a 3-month season and keeps the save after a reload', async ({
