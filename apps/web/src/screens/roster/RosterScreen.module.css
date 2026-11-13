@@ -1,0 +1,191 @@
+/*
+ * Your promotion > Roster, in the office register (docs/design/visual-identity.md), laid out like
+ * World > Workers: the heading and the roster's size, the brand selector, the role tabs and one
+ * table. Desktop is the primary layout. Below --bp-mobile the table becomes cards (DataTable does
+ * that), the tab strip scrolls inside itself (Tabs does that) and the brand selector spans the
+ * width, so nothing here can make the page scroll sideways.
+ */
+.screen {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-4);
+  min-inline-size: 0;
+}
+
+.heading {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-tight);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.count {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: var(--font-feature-tabular);
+}
+
+/* ---------------------------------------------------------------- brand and tabs */
+
+.brandBar {
+  display: flex;
+  min-inline-size: 0;
+}
+
+.brandBar > * {
+  inline-size: min(100%, 18rem);
+}
+
+/*
+ * Positioned, so the count's screen-reader text (absolutely placed) stays inside the strip's
+ * scrolling box: without it, a tab scrolled out of view would widen the page.
+ */
+.tabLabel {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* ---------------------------------------------------------------- cells */
+
+/*
+ * The ring name stays on one line and is cut with an ellipsis (WorkerLink's truncate), but never
+ * below the width of a usual name: the table scrolls inside its box before the names go.
+ */
+.name {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-inline-size: 8rem;
+  max-inline-size: 14rem;
+}
+
+.ends > span:first-child {
+  white-space: nowrap;
+}
+
+.explained {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.expects {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--space-2);
+  min-inline-size: 0;
+}
+
+.marker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+.markerWarning {
+  color: var(--color-warning);
+}
+
+.markerMuted {
+  color: var(--color-text-muted);
+}
+
+/* Every grade chip is as wide as the widest grade ("A+"), so the numbers beside them line up. */
+.grade {
+  justify-content: center;
+  min-inline-size: 2.5rem;
+}
+
+.ends {
+  display: inline-grid;
+  gap: 0;
+}
+
+.endsIn {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.none {
+  color: var(--color-text-muted);
+}
+
+@media (--bp-mobile) {
+  .heading {
+    font-size: var(--font-size-2xl);
+  }
+
+  .brandBar > * {
+    inline-size: 100%;
+  }
+
+  /*
+   * The whole card opens the profile: the name's link stretches over its card. The card's other
+   * controls (the Why? buttons, the availability chip) sit above that layer, each at least 44px
+   * tall, so they still get their own taps.
+   */
+  .table li[data-row-id] {
+    position: relative;
+  }
+
+  .name {
+    min-inline-size: 0;
+    max-inline-size: none;
+  }
+
+  .table li[data-row-id] .name a {
+    overflow: visible;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  .table li[data-row-id] .name a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .table li[data-row-id] button {
+    position: relative;
+    z-index: 1;
+    min-block-size: var(--tap-target-min);
+  }
+
+  /*
+   * A card's stats are a third of the card wide: a number or a push stays whole on its line, and
+   * its grade, marker and Why? button wrap below it instead of breaking the word.
+   */
+  .explained,
+  .expects {
+    flex-wrap: wrap;
+    gap: var(--space-1);
+  }
+
+  .explained > span,
+  .expects > span {
+    white-space: nowrap;
+  }
+
+  /* On a card the date and "in 45 days" share one line of the small print. */
+  .ends {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0 var(--space-1);
+  }
+}
