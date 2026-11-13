@@ -38,6 +38,7 @@ describe('parseRunnerArgs', () => {
       json: false,
       checkDeterminism: false,
       strict: false,
+      failOnEvents: ['aip.jobFailed'],
       trace: null,
     });
   });
@@ -68,8 +69,20 @@ describe('parseRunnerArgs', () => {
       json: true,
       checkDeterminism: true,
       strict: true,
+      failOnEvents: ['aip.jobFailed'],
       trace: { kind: 'condition.fatigueRecovery', id: 'per_0000000001' },
     });
+  });
+
+  it('replaces the default --strict event types with the repeated --fail-on-event', () => {
+    expect(
+      optionsFor(['--days', '1', '--fail-on-event', 'show.cancelled', '--fail-on-event', 'x.y'])
+        .failOnEvents,
+    ).toEqual(['show.cancelled', 'x.y']);
+  });
+
+  it('rejects a --fail-on-event that is not an event type', () => {
+    expect(codesFor(['--days', '1', '--fail-on-event', 'jobFailed'])).toEqual(['invalidEventType']);
   });
 
   it('reports a missing --days', () => {

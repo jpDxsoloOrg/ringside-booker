@@ -8,6 +8,7 @@
 
 import { defineSystem, type SystemBundle } from '../../core/api/system';
 import { rosterQueries } from './queries';
+import { rosterCommands } from './commands';
 
 export { computePushGap, PUSH_GAP_DOC_REF, type PushGapInputs } from './formulas/pushGap';
 export {
@@ -45,8 +46,51 @@ export {
   type RosterView,
 } from './queries';
 export { rosterTunables } from './tunables';
+export {
+  applySetPush,
+  doorSourceOf,
+  DUPLICATE_EMPLOYMENT_MESSAGE,
+  rosterCommands,
+  SET_PUSH_MAX_ROWS,
+  SET_PUSH_REASON_CODES,
+  SET_PUSH_REASON_KEY,
+  setPushCommand,
+  setPushRefusals,
+  type RosterSetPushArgs,
+  type SetPushDoor,
+  type SetPushReasonCode,
+} from './commands';
 
 export const rosterSystem: SystemBundle = defineSystem({
   id: 'roster',
   queries: rosterQueries,
+  commands: rosterCommands,
 });
+
+// roster.summary and roster.explain (WRK2-02).
+export { rosterSummaryQuery, type RosterSummaryArgs } from './queries';
+export {
+  ROSTER_PUSHES,
+  ROSTER_SHARED_BRAND_NAME,
+  ROSTER_TOP_COUNT,
+  summariseRoster,
+  type RosterBrandCount,
+  type RosterPush,
+  type RosterSummary,
+} from './summary';
+export {
+  ROSTER_EXPLAIN_METRICS,
+  rosterExplainQuery,
+  rosterExplanationOf,
+  type RosterExplainArgs,
+  type RosterExplainMetric,
+  type RosterExplanation,
+} from './explain';
+export {
+  rowExpectedPush,
+  rowInputs,
+  rowOverall,
+  rowPopularity,
+  rowPushGap,
+  type RosterRowInputs,
+} from './rowInputs';

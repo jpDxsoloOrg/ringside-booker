@@ -17,6 +17,8 @@ import { compareIds } from '../../model/table';
 import { zId } from '../../model/primitives';
 import { ROSTER_ROLE_GROUPS, type RosterRoleGroup } from './roleGroups';
 import { buildRosterRows, type RosterRow } from './rows';
+import { rosterExplainQuery } from './explain';
+import { summariseRoster, type RosterSummary } from './summary';
 
 export interface RosterRowsArgs {
   /** Left out: the first promotion the viewer runs. */
@@ -56,6 +58,7 @@ export const ROSTER_UNKNOWN_PROMOTION = 'That promotion does not exist.';
 declare module '../../core/api/maps' {
   interface QueryMap {
     'roster.rows': { args: RosterRowsArgs; result: RosterView };
+    'roster.summary': { args: RosterSummaryArgs; result: RosterSummary };
   }
 }
 
@@ -107,4 +110,28 @@ export const rosterRowsQuery: QueryDefinition<'roster.rows'> = defineQuery('rost
   run: rosterViewOf,
 });
 
-export const rosterQueries: readonly QueryDefinition[] = [rosterRowsQuery];
+export interface RosterSummaryArgs {
+  /** Left out: the first promotion the viewer runs. */
+  promotionId?: PromotionId | undefined;
+  /** Count only a brand's rows (or `'shared'`); `byBrand` always covers the whole roster. */
+  brandId?: BrandId | 'shared' | undefined;
+}
+
+/**
+ * `roster.summary`: one unfiltered `roster.rows` pass (the same scoping and refusals), counted.
+ * Design: docs/design/roster.md#roster-summary.
+ */
+export const rosterSummaryQuery: QueryDefinition<'roster.summary'> = defineQuery('roster.summary', {
+  args: z.strictObject({
+    promotionId: zId('promotion').optional(),
+    brandId: z.union([zId('brand'), z.literal('shared')]).optional(),
+  }),
+  run: (ctx, args) =>
+    summariseRoster(ctx.read, rosterViewOf(ctx, { promotionId: args.promotionId }), args.brandId),
+});
+
+export const rosterQueries: readonly QueryDefinition[] = [
+  rosterRowsQuery,
+  rosterSummaryQuery,
+  rosterExplainQuery,
+];
