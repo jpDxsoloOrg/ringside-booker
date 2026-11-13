@@ -9,8 +9,11 @@ import { Sparkline } from '../Sparkline';
 import type { SparklineTone } from '../Sparkline';
 import styles from './KpiCard.module.css';
 
-/** Colour of the big number. Most KPIs are plain text; gold for a record, cyan for a live figure. */
-export type KpiCardTone = 'neutral' | 'data' | 'prestige';
+/**
+ * Colour of the big number. Most KPIs are plain text; gold for a record, cyan for a live figure,
+ * rose for a figure in the red (pair it with a minus sign or words, never colour alone).
+ */
+export type KpiCardTone = 'neutral' | 'data' | 'prestige' | 'negative';
 
 /** The change shown in the card's delta chip. */
 export interface KpiCardDelta {

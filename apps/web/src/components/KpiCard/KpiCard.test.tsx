@@ -74,6 +74,11 @@ describe('KpiCard', () => {
     expect(screen.getByText('91')).toHaveClass('tone-prestige');
   });
 
+  it('draws a figure in the red in the negative tone', () => {
+    render(<KpiCard label="Cash" value="−$2,500" tone="negative" />);
+    expect(screen.getByText('−$2,500')).toHaveClass('tone-negative');
+  });
+
   it('leaves out the parts it is not given and writes no inline styles', () => {
     const { container } = render(<KpiCard label="Cash" value="$1.2M" />);
     expect(container.querySelector('.footer')).toBeNull();
