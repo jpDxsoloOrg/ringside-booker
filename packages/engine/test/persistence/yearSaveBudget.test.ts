@@ -54,7 +54,9 @@ async function measureYear(carded: boolean): Promise<{ gzipBytes: number; jsonBy
 
   const state = engine.exportState();
   const extras = { headerPromotionId: null, savedAt: '2026-11-08T12:00:00.000Z', label: 'Year' };
-  // CPU time, not wall time: a machine busy with other test workers does not slow it down.
+  // CPU time, not wall time, so a machine busy with other test workers does not fail it. It counts
+  // the garbage collector's and gzip's helper threads too, so it reads 1.3-2x the wall time
+  // (the save / load figures in the header are wall time).
   const saveStarted = process.cpuUsage();
   const doc = createSaveDocument(engineSaveState(state), { ...extras, engineVersion: '0.1.0' });
   const bytes = await encodeSave(doc);
