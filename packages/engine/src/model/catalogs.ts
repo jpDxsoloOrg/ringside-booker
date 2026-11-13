@@ -9,7 +9,7 @@
  * Each catalog is keyed by content key (`match.singles`, `angle.promo`, `method.pinfall`,
  * `finish.clean`) and holds the pack record with every default filled in. The object is partial: a world built without packs
  * (most test worlds, saves from before a catalog existed) has `catalogs: {}`, and a later feature
- * appends its own catalog (WRK6 adds `injuries`) without touching the ones here.
+ * appends its own catalog without touching the ones here (WRK6-01 added `injuries`).
  *
  * Phases, queries and commands read catalogs only through the readers below.
  *
@@ -18,7 +18,7 @@
 
 import { z } from 'zod';
 import { isContentKey, type ContentKey } from '../core/content-key';
-import { RingStyleSchema } from './entities/person';
+import { BodyPartSchema, RingStyleSchema } from './entities/person';
 import { MAX_SIDE } from './entities/participant';
 import { hasDuplicates, zName } from './entities/entity-refinements';
 import { zContentKey } from './primitives';
@@ -203,6 +203,64 @@ const contentKeyListSchema = z
   .refine((keys) => !hasDuplicates(keys), { message: 'Each key may appear only once' });
 
 // ---------------------------------------------------------------------------------------------
+// Injuries (WRK6-01): the kinds of injury a person can pick up. Design: docs/design/data-packs.md,
+// "Health".
+
+/** The content-key namespace of injury kinds: `injury.sprained-ankle`. */
+export const INJURY_KEY_PREFIX = 'injury';
+/** Longest injury label and description. */
+export const INJURY_LABEL_MAX_LENGTH = 60;
+export const INJURY_DESCRIPTION_MAX_LENGTH = 300;
+/** Shortest and longest time out, in days (two years at most). */
+export const INJURY_DAYS_MIN = 1;
+export const INJURY_DAYS_MAX = 730;
+/** Range of an injury kind's pick weight; must be above 0. */
+export const INJURY_WEIGHT_MAX = 100;
+/** Range of each severity weight; at least one must be above 0. */
+export const INJURY_SEVERITY_WEIGHT_MAX = 100;
+/** The severities an injury roll picks between (WRK6-03 owns their multipliers). */
+export const INJURY_SEVERITIES = ['minor', 'moderate', 'severe'] as const;
+export type InjurySeverity = (typeof INJURY_SEVERITIES)[number];
+
+export const injuryLabelSchema = zName(INJURY_LABEL_MAX_LENGTH);
+export const injuryDescriptionSchema = z.string().min(1).max(INJURY_DESCRIPTION_MAX_LENGTH);
+export const injuryDaysSchema = z.number().int().min(INJURY_DAYS_MIN).max(INJURY_DAYS_MAX);
+export const injuryWeightSchema = z.number().gt(0).max(INJURY_WEIGHT_MAX);
+export const injuryAnglesChanceSchema = z.number().min(0).max(1);
+
+const severityWeightSchema = z.number().min(0).max(INJURY_SEVERITY_WEIGHT_MAX);
+
+/** How often each severity is picked for this kind, relative to the others. Not all 0. */
+export const injurySeverityWeightsSchema = z
+  .strictObject({
+    minor: severityWeightSchema,
+    moderate: severityWeightSchema,
+    severe: severityWeightSchema,
+  })
+  .refine((weights) => weights.minor + weights.moderate + weights.severe > 0, {
+    message: 'minor, moderate and severe must not all be 0',
+  });
+
+/** The cross-field rule an injury kind obeys, shared by the pack record and the runtime entry. */
+export function refineInjuryKind(
+  kind: { readonly minDays: number; readonly maxDays: number },
+  context: z.RefinementCtx,
+): void {
+  if (kind.maxDays < kind.minDays) {
+    context.addIssue({
+      code: 'custom',
+      message: 'must be at least minDays',
+      path: ['maxDays'],
+    });
+  }
+}
+
+/** An injury content key: `injury.<name>`. */
+const injuryKeySchema = zContentKey.refine((key) => key.startsWith(`${INJURY_KEY_PREFIX}.`), {
+  message: `must be an injury content key starting with "${INJURY_KEY_PREFIX}."`,
+});
+
+// ---------------------------------------------------------------------------------------------
 // Runtime shapes
 
 /** A match type with every default filled in. */
@@ -284,11 +342,31 @@ export const FinishEntrySchema = z
 /** The runtime finish entry; the same schema under the name the other catalogs use. */
 export const FinishDefSchema = FinishEntrySchema;
 
+/** A kind of injury: where it is, how long it keeps someone out and how often it is picked. */
+export const InjuryKindSchema = z
+  .strictObject({
+    key: injuryKeySchema,
+    /** Player text, such as "Sprained ankle". */
+    label: injuryLabelSchema,
+    bodyPart: BodyPartSchema,
+    /** Shortest and longest time out, in days, before severity is applied. */
+    minDays: injuryDaysSchema,
+    maxDays: injuryDaysSchema,
+    /** How often this kind is picked relative to the others, above 0 and at most 100. */
+    weight: injuryWeightSchema,
+    /** Chance (0..1) the injured person can still appear in talking segments. */
+    canWorkAnglesChance: injuryAnglesChanceSchema,
+    severityWeights: injurySeverityWeightsSchema,
+    description: injuryDescriptionSchema.optional(),
+  })
+  .superRefine(refineInjuryKind);
+
 /** One catalog: its entries keyed by content key. */
 export const MatchTypeCatalogSchema = z.record(zContentKey, MatchTypeDefSchema);
 export const AngleTypeCatalogSchema = z.record(zContentKey, AngleTypeDefSchema);
 export const MethodCatalogSchema = z.record(zContentKey, MethodDefSchema);
 export const FinishCatalogSchema = z.record(zContentKey, FinishDefSchema);
+export const InjuryCatalogSchema = z.record(zContentKey, InjuryKindSchema);
 
 /**
  * The catalogs snapshotted into a world at new game, keyed by content key. Every catalog is
@@ -301,6 +379,8 @@ export const CatalogsSchema = z
     methods: MethodCatalogSchema,
     /** MTCH2. A save started before finishes existed has none. */
     finishes: FinishCatalogSchema,
+    /** WRK6-01. A save started before injuries existed has none. */
+    injuries: InjuryCatalogSchema,
   })
   .partial();
 
@@ -309,6 +389,7 @@ export type AngleTypeDef = z.infer<typeof AngleTypeDefSchema>;
 export type MethodDef = z.infer<typeof MethodDefSchema>;
 export type FinishEntry = z.infer<typeof FinishEntrySchema>;
 export type FinishDef = FinishEntry;
+export type InjuryKind = z.infer<typeof InjuryKindSchema>;
 export type Catalogs = z.infer<typeof CatalogsSchema>;
 export type CatalogName = keyof Catalogs;
 
@@ -365,11 +446,13 @@ type MatchTypeCatalog = z.output<typeof MatchTypeCatalogSchema>;
 type AngleTypeCatalog = z.output<typeof AngleTypeCatalogSchema>;
 type MethodCatalog = z.output<typeof MethodCatalogSchema>;
 type FinishCatalog = z.output<typeof FinishCatalogSchema>;
+type InjuryCatalog = z.output<typeof InjuryCatalogSchema>;
 
 const matchTypeCopies = new WeakMap<object, MatchTypeCatalog>();
 const angleTypeCopies = new WeakMap<object, AngleTypeCatalog>();
 const methodCopies = new WeakMap<object, MethodCatalog>();
 const finishCopies = new WeakMap<object, FinishCatalog>();
+const injuryCopies = new WeakMap<object, InjuryCatalog>();
 
 function matchTypeCatalog(read: CatalogReader): MatchTypeCatalog | undefined {
   return frozenCatalog(matchTypeCopies, MatchTypeCatalogSchema, read.meta.catalogs.matchTypes);
@@ -385,6 +468,17 @@ function methodCatalog(read: CatalogReader): MethodCatalog | undefined {
 
 function finishCatalog(read: CatalogReader): FinishCatalog | undefined {
   return frozenCatalog(finishCopies, FinishCatalogSchema, read.meta.catalogs.finishes);
+}
+
+function injuryCatalog(read: CatalogReader): InjuryCatalog | undefined {
+  return frozenCatalog(injuryCopies, InjuryCatalogSchema, read.meta.catalogs.injuries);
+}
+
+function compareText(left: string, right: string): number {
+  if (left === right) {
+    return 0;
+  }
+  return left < right ? -1 : 1;
 }
 
 function compareEntries(
@@ -480,6 +574,20 @@ export function finishesOf(read: CatalogReader): readonly FinishEntry[] {
 /** One finish by content key (`finish.clean`), or undefined. */
 export function finishOf(read: CatalogReader, key: ContentKey | string): FinishEntry | undefined {
   return entryOf(finishCatalog(read), key);
+}
+
+/** Every injury kind, by key. Empty without a catalog. Injury kinds are never hidden. */
+export function injuryCatalogOf(read: CatalogReader): readonly InjuryKind[] {
+  const catalog = injuryCatalog(read);
+  if (catalog === undefined) {
+    return [];
+  }
+  return Object.values(catalog).sort((left, right) => compareText(left.key, right.key));
+}
+
+/** One injury kind by content key (`injury.sprained-ankle`), or undefined. */
+export function injuryKindOf(read: CatalogReader, key: ContentKey | string): InjuryKind | undefined {
+  return entryOf(injuryCatalog(read), key);
 }
 
 /** True when the world holds a catalog of that name (even an empty one). */

@@ -9,7 +9,7 @@
   "dependsOn": [
     {
       "id": "base",
-      "version": "^0.1.0"
+      "version": "^0.2.0"
     }
   ],
   "startDate": "2027-01-04",

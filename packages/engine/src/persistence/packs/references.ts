@@ -25,6 +25,7 @@ import {
   methodReferences,
 } from './records/catalogs';
 import { continentReferences, countryReferences, regionReferences } from './records/geography';
+import { injuryKindReferences } from './records/health';
 import {
   bodyArchetypeReferences,
   bodyModifierReferences,
@@ -68,6 +69,7 @@ export const RECORD_REFERENCES = {
   bodyModifier: bodyModifierReferences,
   generationProfile: generationProfileReferences,
   traitIncidence: traitIncidenceReferences,
+  injuryKind: injuryKindReferences,
   person: personReferences,
   promotion: promotionReferences,
   brand: brandReferences,

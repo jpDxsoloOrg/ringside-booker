@@ -2394,3 +2394,23 @@ export {
   type SegmentTitlePlan,
   type TitlePlanKind,
 } from './systems/aip/index';
+
+// Injury catalog (WRK6-01): the injury kinds snapshotted into `WorldMeta.catalogs.injuries` at new
+// game, and the readers phases, queries and commands use. See docs/design/data-packs.md, "Health".
+export type { InjuryKind, InjurySeverity } from './model/catalogs';
+export {
+  INJURY_DAYS_MAX,
+  INJURY_DAYS_MIN,
+  INJURY_KEY_PREFIX,
+  INJURY_SEVERITIES,
+  InjuryCatalogSchema,
+  injuryCatalogOf,
+  InjuryKindSchema,
+  injuryKindOf,
+} from './model/catalogs';
+export {
+  INJURY_CONTENT_PREFIX,
+  injuryContentKey,
+  injuryKindRecord,
+  type InjuryKindRecord,
+} from './persistence/packs';

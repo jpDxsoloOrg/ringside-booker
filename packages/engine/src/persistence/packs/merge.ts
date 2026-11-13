@@ -22,6 +22,7 @@ import type { GameDate } from '../../core/date';
 import type { ContentPackRef } from '../../model/world-meta';
 import { angleTypeRecord, finishRecord, matchTypeRecord, methodRecord } from './records/catalogs';
 import { continentRecord, countryRecord, regionRecord } from './records/geography';
+import { injuryKindRecord } from './records/health';
 import {
   bodyArchetypeRecord,
   bodyModifierRecord,
@@ -90,6 +91,7 @@ const FULL_PARSERS: {
   bodyModifier: (value) => bodyModifierRecord.full.safeParse(value),
   generationProfile: (value) => generationProfileRecord.full.safeParse(value),
   traitIncidence: (value) => traitIncidenceRecord.full.safeParse(value),
+  injuryKind: (value) => injuryKindRecord.full.safeParse(value),
   person: (value) => personRecord.full.safeParse(value),
   promotion: (value) => promotionRecord.full.safeParse(value),
   brand: (value) => brandRecord.full.safeParse(value),
@@ -121,6 +123,7 @@ const ENTRY_PARSERS: Readonly<Record<RecordKind, (value: unknown) => ParseOutcom
   bodyModifier: (value) => bodyModifierRecord.entry.safeParse(value),
   generationProfile: (value) => generationProfileRecord.entry.safeParse(value),
   traitIncidence: (value) => traitIncidenceRecord.entry.safeParse(value),
+  injuryKind: (value) => injuryKindRecord.entry.safeParse(value),
   person: (value) => personRecord.entry.safeParse(value),
   promotion: (value) => promotionRecord.entry.safeParse(value),
   brand: (value) => brandRecord.entry.safeParse(value),
@@ -453,6 +456,7 @@ export function mergeRecords(packs: readonly RawPack[]): Result<MergedContent> {
     bodyModifier: finishKind('bodyModifier', working('bodyModifier'), issues),
     generationProfile: finishKind('generationProfile', working('generationProfile'), issues),
     traitIncidence: finishKind('traitIncidence', working('traitIncidence'), issues),
+    injuryKind: finishKind('injuryKind', working('injuryKind'), issues),
     person: finishKind('person', working('person'), issues),
     promotion: finishKind('promotion', working('promotion'), issues),
     brand: finishKind('brand', working('brand'), issues),
