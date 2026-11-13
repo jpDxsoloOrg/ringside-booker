@@ -326,10 +326,18 @@ null before season 1 exists) and the viewer's promotion at a glance:
 
 ```ts
 promotion: {
-  promotionId, name, cash,
+  promotionId, name, cash, cashTraceRef,
   popularity: { homeRegionId, homeRegion, prestige, traceRef },
 } | null
 ```
+
+`cashTraceRef` points at the stored trace explaining the cash (kind
+`finance.cash`, id the promotion: "Cash on 1 January + this month's income and
+costs by category = cash now"), or is null when none is stored. The core owns
+the kind string (`CASH_TRACE_KIND` in `core/api/builtins.ts`), so `sim.status`
+never imports the finance system; the finance system writes the trace from the
+new game's `finance.openingBalance` step and after every row it posts for a
+human-run promotion ([finances.md](finances.md#queries)).
 
 The promotion is the first one `viewerPromotionIds` returns, read straight
 from its row: `cash`, popularity in its home region (0 when it has none
