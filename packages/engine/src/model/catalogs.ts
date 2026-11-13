@@ -586,7 +586,10 @@ export function injuryCatalogOf(read: CatalogReader): readonly InjuryKind[] {
 }
 
 /** One injury kind by content key (`injury.sprained-ankle`), or undefined. */
-export function injuryKindOf(read: CatalogReader, key: ContentKey | string): InjuryKind | undefined {
+export function injuryKindOf(
+  read: CatalogReader,
+  key: ContentKey | string,
+): InjuryKind | undefined {
   return entryOf(injuryCatalog(read), key);
 }
 
