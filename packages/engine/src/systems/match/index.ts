@@ -32,6 +32,8 @@ import './finishes/showNight';
 // (MTCH3-05).
 import './aftermath/showNight';
 import './aftermath/tvReach';
+// Declares the physical toll's `match.wear` stream (MTCH4-01).
+import './physical/streams';
 
 export {
   DURATION_CLASSES,
@@ -371,6 +373,18 @@ export {
   type AutoWinnerCompetitor,
   type AutoWinnerScoreInputs,
 } from './formulas/autoWinnerScore';
+// MTCH2-09: how the match would go (ring skill, stamina, fatigue, body wear, storyline heat).
+export {
+  AUTO_WINNER_CONDITION_LABEL,
+  AUTO_WINNER_FATIGUE_LABEL,
+  AUTO_WINNER_HEAT_LABEL,
+  AUTO_WINNER_SKILL_LABEL,
+  AUTO_WINNER_STAMINA_LABEL,
+  NO_STORYLINE_HEAT_NOTE,
+  ringSkillOf,
+  type AutoWinnerStorylineHeat,
+} from './formulas/autoWinnerScore';
+export { upsetNote } from './finishes/autoWinner';
 export {
   autoWinnerInputsOf,
   competitorSidesOf,
@@ -602,3 +616,106 @@ export {
   tvReachReason,
   tvReachRegions,
 } from './aftermath/tvReach';
+
+// The physical toll (MTCH4-01): fatigue gain, condition wear, wear by part, the physical inputs and
+// the risk modifier seam. Design: docs/design/physical-toll.md.
+export {
+  CONDITION_WEAR_DOC_REF,
+  FATIGUE_GAIN_DOC_REF,
+  MAX_RISK_MODIFIER_ORDER,
+  ROUGHNESS_ROLL_LABEL,
+  WEAR_STREAM,
+  applyRepeatMatch,
+  collectPhysicalInputs,
+  collectRiskContributions,
+  computeConditionWear,
+  computeFatigueGain,
+  computeWearByPart,
+  earlierMatchesOnCard,
+  keepItSafeSource,
+  loadCarriersBySide,
+  physicalTunables,
+  registerRiskModifier,
+  repeatMatchFactor,
+  repeatMatchLabel,
+  riskModifierIds,
+  roughestOpponentOf,
+  type AppliedRiskContribution,
+  type ConditionWearInputs,
+  type FatigueGainInputs,
+  type PhysicalCardPosition,
+  type PhysicalOpponent,
+  type PhysicalParticipant,
+  type PhysicalSegmentSpec,
+  type PhysicalWorkerInputs,
+  type RiskContext,
+  type RiskContribution,
+  type RiskModifierSpec,
+} from './physical';
+
+// A match booked as Random is a coin flip; an auto-winner upset is noted (MTCH2-08).
+export {
+  COIN_FLIP_LABEL,
+  COIN_FLIP_REASON,
+  COIN_FLIP_RULE,
+  coinFlipDrawLabel,
+} from './finishes/autoWinner';
+// In-match injuries (MTCH4-02): the injury chance, the roll, the handler seam and the physical
+// toll's trace refs. Design: docs/design/physical-toll.md#injury-chance.
+export {
+  END_FATIGUE_LABEL,
+  FATIGUE_TRACE_KIND,
+  INJURIES_OFF_LABEL,
+  INJURY_CHANCE_DOC_REF,
+  INJURY_CHANCE_TRACE_KIND,
+  INJURY_DECISION_LABEL,
+  INJURY_ROLL_DOC_REF,
+  INJURY_ROLL_TRACE_KIND,
+  INJURY_STREAM,
+  LEARNING_TRACE_KIND,
+  RIVAL_NO_INJURIES_LABEL,
+  WEAR_TRACE_KIND,
+  computeInjuryChance,
+  conditionAfterWear,
+  fatigueTraceRef,
+  getInjuryHandler,
+  injuryChanceTraceRef,
+  injuryLimitLine,
+  injuryPolicyFor,
+  injuryRollTraceRef,
+  learningTraceRef,
+  leastSafeOpponentOf,
+  registerInjuryHandler,
+  riskiestOpponentOf,
+  rollSegmentInjuries,
+  wearTraceRef,
+  worstBodyPart,
+  type InjuryChanceInputs,
+  type InjuryHandler,
+  type InjuryOutcome,
+  type InjuryRequest,
+  type InjuryRollEntry,
+  type InjuryRollResult,
+  type RepeatMatchKey,
+} from './physical';
+
+// Ring learning (MTCH4-03). Design: docs/design/physical-toll.md#ring-learning.
+export {
+  IN_MATCH_LEARNING,
+  LIMITED_BY_POTENTIAL_LABEL,
+  PRODUCED_ATTRIBUTES,
+  RING_LEARNING_DOC_REF,
+  collectRingLearning,
+  computeRingLearning,
+  computeRingLearningTotal,
+  isTaughtAttribute,
+  learningTunables,
+  mentorOnCard,
+  type InMatchLearningAttribute,
+  type InMatchLearningEntry,
+  type LearningPeer,
+  type LearningProducer,
+  type MentorOnCard,
+  type RingLearningInputs,
+  type WorkerRingLearning,
+} from './physical';

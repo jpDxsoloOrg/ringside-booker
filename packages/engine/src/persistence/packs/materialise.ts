@@ -14,7 +14,7 @@
  *    entity schema and inserts it;
  * 5. creates season 1, stores `contentKeys` on the metadata, and runs `checkWorld`. The match and
  *    segment catalogs (match types, angle types, methods, finishes) are snapshotted into
- *    `meta.catalogs`.
+ *    `meta.catalogs`, and so is the injury catalog (WRK6-01).
  *
  * Any error rolls the whole transaction back and comes back as `PackIssue`s; no half-built World
  * ever escapes.
@@ -46,6 +46,7 @@ import type { Team } from '../../model/entities/team';
 import type { Title } from '../../model/entities/title';
 import type { TitleReign } from '../../model/entities/title-reign';
 import type { Venue } from '../../model/entities/venue';
+import type { Catalogs } from '../../model/catalogs';
 import { checkWorld } from '../../model/integrity';
 import type { RowOf } from '../../model/table-def';
 import { TABLES, type GameTables, type GameWorld } from '../../model/tables';
@@ -62,6 +63,7 @@ import { hasErrors, packError, packWarning, type PackIssue, type Result } from '
 import { parseRef, type PackRef, type RecordKind } from './keys';
 import type { MergedContent, MergedRecord, MergedRecords } from './merge';
 import { catalogsFromRecords } from './records/catalogs';
+import { injuryCatalogFromRecords } from './records/health';
 import type { ContractTermsRecord, TitleReignRecord } from './records/people';
 import { checkReferences, refKey } from './references';
 
@@ -179,6 +181,12 @@ class LoadAborted extends Error {
     super('World load aborted; see the collected pack issues');
     this.name = 'LoadAborted';
   }
+}
+
+/** The runtime catalogs to snapshot: the match and segment catalogs plus the injury catalog. */
+function catalogsWithInjuries(records: MergedRecords): Catalogs {
+  const injuries = injuryCatalogFromRecords(records);
+  return { ...catalogsFromRecords(records), ...(injuries === undefined ? {} : { injuries }) };
 }
 
 /** Fills in default settings and checks the result. A bad option is a caller bug, so it throws. */
@@ -851,7 +859,7 @@ export function materialiseWorld(
     players: [],
     contentPacks: content.packs.map((pack) => ({ ...pack })),
     contentKeys: {},
-    catalogs: catalogsFromRecords(content.records),
+    catalogs: catalogsWithInjuries(content.records),
     daysSimulated: 0,
   };
   const checkedMeta = WorldMetaSchema.safeParse(meta);

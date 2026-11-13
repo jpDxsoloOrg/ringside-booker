@@ -113,6 +113,8 @@ export const RECORD_KINDS = [
   'bodyModifier',
   'generationProfile',
   'traitIncidence',
+  // The injury catalog (WRK6-01): refers to nothing, never becomes an entity.
+  'injuryKind',
   'person',
   'promotion',
   'brand',

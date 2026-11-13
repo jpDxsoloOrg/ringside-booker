@@ -345,6 +345,16 @@ const VALID_RECORDS: Readonly<Record<RecordKind, Fixture>> = {
     autoWeight: 60,
     requiresTwoSides: false,
   },
+  injuryKind: {
+    key: 'sprained-ankle',
+    label: 'Sprained ankle',
+    bodyPart: 'legs',
+    minDays: 5,
+    maxDays: 28,
+    weight: 10,
+    canWorkAnglesChance: 0.8,
+    severityWeights: { minor: 60, moderate: 30, severe: 10 },
+  },
 };
 
 function isObject(value: unknown): value is Readonly<Record<string, unknown>> {

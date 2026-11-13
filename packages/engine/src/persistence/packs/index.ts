@@ -23,6 +23,7 @@ import {
   type MethodRecord,
   type FinishRecord,
 } from './records/catalogs';
+import { injuryKindRecord, type InjuryKindRecord } from './records/health';
 import {
   continentRecord,
   countryRecord,
@@ -94,6 +95,7 @@ export * from './resolve';
 export * from './semver';
 export * from './records/catalogs';
 export * from './records/generation';
+export * from './records/health';
 export * from './records/geography';
 export * from './records/names';
 export * from './records/organisations';
@@ -119,6 +121,7 @@ export const recordKinds = {
   bodyModifier: bodyModifierRecord,
   generationProfile: generationProfileRecord,
   traitIncidence: traitIncidenceRecord,
+  injuryKind: injuryKindRecord,
   person: personRecord,
   promotion: promotionRecord,
   brand: brandRecord,
@@ -152,6 +155,7 @@ export const recordSchemas = {
   bodyModifier: bodyModifierRecord.entry,
   generationProfile: generationProfileRecord.entry,
   traitIncidence: traitIncidenceRecord.entry,
+  injuryKind: injuryKindRecord.entry,
   person: personRecord.entry,
   promotion: promotionRecord.entry,
   brand: brandRecord.entry,
@@ -183,6 +187,7 @@ export interface PackRecords {
   bodyModifier: BodyModifierRecord;
   generationProfile: GenerationProfileRecord;
   traitIncidence: TraitIncidenceRecord;
+  injuryKind: InjuryKindRecord;
   person: PersonRecord;
   promotion: PromotionRecord;
   brand: BrandRecord;

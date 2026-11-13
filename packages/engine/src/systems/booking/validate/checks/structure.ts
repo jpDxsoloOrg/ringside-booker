@@ -7,7 +7,8 @@
  * - `unequalSides`: a type with `equalSides` has sides of different sizes (only when every side's
  *   size is allowed on its own; a wrong-sized side already says what is wrong).
  * - `speakerCount`: an angle's speakers are outside its type's `speakers` range.
- * - `noPlannedResult`: a match's `outcome` is null. Skipped on a show whose results Random winners
+ * - `noPlannedResult`: a match's `outcome` is null and it is not left to the night as Auto or
+ *   Random (`match.resultPlan`, MTCH2-08). Skipped on a show whose results Random winners
  *   decides (MTCH2's `randomWinnersActive`): there every result is decided on the night.
  * - `tooFewFilled`: fewer main-card slots are filled than `minFilledMainSlots`.
  * - `emptyMainEvent`: the last main-card slot is open, while `booking.requireMainEvent` is on.
@@ -109,11 +110,11 @@ function segmentIssues(input: BookingCheckInput): BookingIssueDraft[] {
         });
       }
     }
-    if (segment.outcome === null && !decidedOnTheNight) {
+    if (segment.outcome === null && segment.match.resultPlan === undefined && !decidedOnTheNight) {
       issues.push({
         code: 'noPlannedResult',
         severity: 'error',
-        message: `${place}: no result planned; pick a winner, a draw or a no contest`,
+        message: `${place}: no result planned; pick a winner, Auto, Random, a draw or a no contest`,
         ...where,
       });
     }

@@ -1,0 +1,257 @@
+[
+  {
+    "key": "concussion",
+    "label": "Concussion",
+    "bodyPart": "head",
+    "minDays": 7,
+    "maxDays": 35,
+    "weight": 10,
+    "canWorkAnglesChance": 0.3,
+    "severityWeights": {
+      "minor": 60,
+      "moderate": 30,
+      "severe": 10
+    },
+    "description": "A hard knock to the head. Needs rest before any contact."
+  },
+  {
+    "key": "facial-fracture",
+    "label": "Facial fracture",
+    "bodyPart": "head",
+    "minDays": 21,
+    "maxDays": 56,
+    "weight": 4,
+    "canWorkAnglesChance": 0.3,
+    "severityWeights": {
+      "minor": 55,
+      "moderate": 35,
+      "severe": 10
+    },
+    "description": "A broken cheekbone, nose or eye socket."
+  },
+  {
+    "key": "neck-stinger",
+    "label": "Neck stinger",
+    "bodyPart": "neck",
+    "minDays": 3,
+    "maxDays": 21,
+    "weight": 10,
+    "canWorkAnglesChance": 0.6,
+    "severityWeights": {
+      "minor": 70,
+      "moderate": 25,
+      "severe": 5
+    },
+    "description": "A pinched nerve that leaves the arm numb for a while."
+  },
+  {
+    "key": "herniated-disc",
+    "label": "Herniated disc in the neck",
+    "bodyPart": "neck",
+    "minDays": 60,
+    "maxDays": 240,
+    "weight": 2,
+    "canWorkAnglesChance": 0.4,
+    "severityWeights": {
+      "minor": 60,
+      "moderate": 30,
+      "severe": 10
+    },
+    "description": "A slipped disc that may need surgery."
+  },
+  {
+    "key": "lower-back-strain",
+    "label": "Lower back strain",
+    "bodyPart": "back",
+    "minDays": 7,
+    "maxDays": 42,
+    "weight": 10,
+    "canWorkAnglesChance": 0.7,
+    "severityWeights": {
+      "minor": 65,
+      "moderate": 28,
+      "severe": 7
+    },
+    "description": "Pulled muscles in the lower back."
+  },
+  {
+    "key": "back-spasms",
+    "label": "Back spasms",
+    "bodyPart": "back",
+    "minDays": 3,
+    "maxDays": 14,
+    "weight": 12,
+    "canWorkAnglesChance": 0.8,
+    "severityWeights": {
+      "minor": 70,
+      "moderate": 25,
+      "severe": 5
+    },
+    "description": "Muscles that lock up after a heavy bump."
+  },
+  {
+    "key": "separated-shoulder",
+    "label": "Separated shoulder",
+    "bodyPart": "arms",
+    "minDays": 28,
+    "maxDays": 90,
+    "weight": 6,
+    "canWorkAnglesChance": 0.7,
+    "severityWeights": {
+      "minor": 55,
+      "moderate": 35,
+      "severe": 10
+    },
+    "description": "The collarbone pulled away from the shoulder."
+  },
+  {
+    "key": "torn-biceps",
+    "label": "Torn biceps",
+    "bodyPart": "arms",
+    "minDays": 90,
+    "maxDays": 210,
+    "weight": 2,
+    "canWorkAnglesChance": 0.7,
+    "severityWeights": {
+      "minor": 60,
+      "moderate": 30,
+      "severe": 10
+    },
+    "description": "A biceps muscle torn from the bone; surgery and a long rehab."
+  },
+  {
+    "key": "dislocated-elbow",
+    "label": "Dislocated elbow",
+    "bodyPart": "arms",
+    "minDays": 21,
+    "maxDays": 70,
+    "weight": 4,
+    "canWorkAnglesChance": 0.7,
+    "severityWeights": {
+      "minor": 55,
+      "moderate": 35,
+      "severe": 10
+    },
+    "description": "An elbow knocked out of joint."
+  },
+  {
+    "key": "broken-hand",
+    "label": "Broken hand",
+    "bodyPart": "arms",
+    "minDays": 28,
+    "maxDays": 56,
+    "weight": 6,
+    "canWorkAnglesChance": 0.75,
+    "severityWeights": {
+      "minor": 60,
+      "moderate": 30,
+      "severe": 10
+    },
+    "description": "A cracked bone in the hand or wrist."
+  },
+  {
+    "key": "cracked-ribs",
+    "label": "Cracked ribs",
+    "bodyPart": "torso",
+    "minDays": 21,
+    "maxDays": 49,
+    "weight": 8,
+    "canWorkAnglesChance": 0.6,
+    "severityWeights": {
+      "minor": 60,
+      "moderate": 30,
+      "severe": 10
+    },
+    "description": "Ribs cracked by a fall or a hard strike. Breathing hurts."
+  },
+  {
+    "key": "abdominal-tear",
+    "label": "Abdominal tear",
+    "bodyPart": "torso",
+    "minDays": 42,
+    "maxDays": 120,
+    "weight": 3,
+    "canWorkAnglesChance": 0.6,
+    "severityWeights": {
+      "minor": 60,
+      "moderate": 30,
+      "severe": 10
+    },
+    "description": "A torn stomach muscle."
+  },
+  {
+    "key": "torn-knee-ligament",
+    "label": "Torn knee ligament",
+    "bodyPart": "legs",
+    "minDays": 150,
+    "maxDays": 330,
+    "weight": 1,
+    "canWorkAnglesChance": 0.7,
+    "severityWeights": {
+      "minor": 65,
+      "moderate": 25,
+      "severe": 10
+    },
+    "description": "A ruptured knee ligament. Surgery and most of a year out."
+  },
+  {
+    "key": "knee-sprain",
+    "label": "Knee sprain",
+    "bodyPart": "legs",
+    "minDays": 10,
+    "maxDays": 42,
+    "weight": 10,
+    "canWorkAnglesChance": 0.75,
+    "severityWeights": {
+      "minor": 60,
+      "moderate": 30,
+      "severe": 10
+    },
+    "description": "A twisted knee with stretched ligaments."
+  },
+  {
+    "key": "sprained-ankle",
+    "label": "Sprained ankle",
+    "bodyPart": "legs",
+    "minDays": 5,
+    "maxDays": 28,
+    "weight": 14,
+    "canWorkAnglesChance": 0.8,
+    "severityWeights": {
+      "minor": 65,
+      "moderate": 28,
+      "severe": 7
+    },
+    "description": "A rolled ankle from a bad landing."
+  },
+  {
+    "key": "hamstring-pull",
+    "label": "Hamstring pull",
+    "bodyPart": "legs",
+    "minDays": 10,
+    "maxDays": 35,
+    "weight": 10,
+    "canWorkAnglesChance": 0.75,
+    "severityWeights": {
+      "minor": 65,
+      "moderate": 28,
+      "severe": 7
+    },
+    "description": "A strained muscle at the back of the thigh."
+  },
+  {
+    "key": "broken-foot",
+    "label": "Broken foot",
+    "bodyPart": "legs",
+    "minDays": 35,
+    "maxDays": 70,
+    "weight": 4,
+    "canWorkAnglesChance": 0.7,
+    "severityWeights": {
+      "minor": 55,
+      "moderate": 35,
+      "severe": 10
+    },
+    "description": "A broken bone in the foot."
+  }
+]

@@ -36,6 +36,8 @@ export interface CardSlotViewProps {
 const RESULT_LABELS: Readonly<Record<Exclude<BookingResultView['kind'], 'win'>, string>> = {
   draw: 'Draw',
   noContest: 'No contest',
+  auto: 'Auto',
+  random: 'Random',
 };
 
 /** A team side's wrestlers by name ("Kai Moreno & Rex Hale"); null for a side of individuals. */

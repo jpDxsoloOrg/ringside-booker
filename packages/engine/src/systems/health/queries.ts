@@ -1,7 +1,7 @@
 /**
- * The condition system's queries.
+ * The health system's queries.
  *
- * `condition.fatigue` returns one person's fatigue with a link to the trace that explains it, ready
+ * `health.fatigue` returns one person's fatigue with a link to the trace that explains it, ready
  * for a "Why?" panel. Fatigue is not secret, so every viewer sees the same answer.
  */
 
@@ -12,7 +12,7 @@ import type { TraceRef } from '../../core/trace/store';
 import { zId } from '../../model/primitives';
 import { fatigueRecoveryTraceRef } from './phases';
 
-/** `condition.fatigue`: a person's current fatigue and the trace behind it. */
+/** `health.fatigue`: a person's current fatigue and the trace behind it. */
 export interface FatigueView {
   personId: PersonId;
   /** 0 to 100. */
@@ -23,11 +23,11 @@ export interface FatigueView {
 
 declare module '../../core/api/maps' {
   interface QueryMap {
-    'condition.fatigue': { args: { personId: PersonId }; result: FatigueView | null };
+    'health.fatigue': { args: { personId: PersonId }; result: FatigueView | null };
   }
 }
 
-export const fatigueQuery: QueryDefinition<'condition.fatigue'> = defineQuery('condition.fatigue', {
+export const fatigueQuery: QueryDefinition<'health.fatigue'> = defineQuery('health.fatigue', {
   args: z.strictObject({ personId: zId('person') }),
   run: (ctx, args) => {
     const person = ctx.read.tables.people.get(args.personId);
@@ -43,4 +43,4 @@ export const fatigueQuery: QueryDefinition<'condition.fatigue'> = defineQuery('c
   },
 });
 
-export const conditionQueries: readonly QueryDefinition[] = [fatigueQuery];
+export const healthQueries: readonly QueryDefinition[] = [fatigueQuery];

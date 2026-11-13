@@ -206,15 +206,39 @@ are listed in [names.md](names.md#tunables) and the people generator's
 `worldgen.people.*` tunables in
 [world-generation.md](world-generation.md#tunables).
 
-## Condition tunables
+## Health tunables
 
-The reference system's placeholders, in `systems/condition/tunables.ts`. See
-[the worked example](calculation-traces.md#worked-example).
+In `systems/health/tunables.ts`, category `Health`: fatigue recovery, the
+healing cap for a worker's age, weekly condition recovery and medical care.
+Each key is explained in [health.md](health.md).
 
-| Key                                 | Kind    | Default | Range | Unit       | What it does                                                         |
-| ----------------------------------- | ------- | ------- | ----- | ---------- | -------------------------------------------------------------------- |
-| `condition.fatigueRecoveryPerDay`   | number  | 4       | 0–100 | points/day | Fatigue every person sheds each day before any bonus                 |
-| `condition.fatigueRecoveryBonusMax` | integer | 1       | 0–10  | points/day | Largest random extra recovery per day; 0 turns the roll's effect off |
+| Key                                        | Kind    | Default | Range | Unit       | What it does                                                                      |
+| ------------------------------------------ | ------- | ------- | ----- | ---------- | --------------------------------------------------------------------------------- |
+| `health.fatigue.recoveryPerDay`            | number  | 4       | 0–100 | points/day | Fatigue an average worker sheds each day, before stamina, age and traits          |
+| `health.fatigue.recoveryBonusMax`          | integer | 1       | 0–10  | points/day | Largest random extra recovery per day; 0 turns the roll's effect off              |
+| `health.fatigue.staminaWeight`             | number  | 0.4     | 0–1   | ratio      | How much stamina speeds up or slows down recovery; 0 ignores stamina              |
+| `health.fatigue.ageFrom`                   | integer | 33      | 18–60 | years      | Age from which fatigue fades more slowly                                          |
+| `health.fatigue.agePenaltyPerYear`         | number  | 0.02    | 0–0.2 | ratio      | Recovery lost for each year past that age; 0 turns the age effect off             |
+| `health.fatigue.ageFactorMin`              | number  | 0.5     | 0–1   | multiplier | The least of the daily recovery age can leave                                     |
+| `health.fatigue.workhorseMultiplier`       | number  | 1.2     | 0–3   | multiplier | Recovery for a workhorse, as a multiple of everyone else                          |
+| `health.fatigue.coasterMultiplier`         | number  | 0.9     | 0–3   | multiplier | Recovery for a coaster, as a multiple of everyone else                            |
+| `health.fatigue.workedPromoRecovery`       | number  | 0.5     | 0–1   | multiplier | Recovery after a show spent talking (a promo or angle, no match); 1 rests fully   |
+| `health.condition.capAgeFrom`              | integer | 30      | 18–60 | years      | Age from which a body can no longer heal all the way back to 100                  |
+| `health.condition.capDropPerYear`          | number  | 1.5     | 0–10  | points     | How far the healing cap falls for each year past that age; 0 keeps it at 100      |
+| `health.condition.capFloor`                | number  | 55      | 0–100 | points     | The lowest the healing cap goes, however old the worker                           |
+| `health.condition.recoveryPerCheck`        | number  | 0.5     | 0–10  | points     | Condition a damaged body part gets back each week, before traits and medical care |
+| `health.condition.durableMultiplier`       | number  | 1.25    | 0–3   | multiplier | Healing for a durable worker, as a multiple of everyone else                      |
+| `health.condition.injuryProneMultiplier`   | number  | 0.75    | 0–3   | multiplier | Healing for an injury-prone worker, as a multiple of everyone else                |
+| `health.medical.recoveryMultiplier.level0` | number  | 0.8     | 0–3   | multiplier | Healing under medical care level 0 (none)                                         |
+| `health.medical.recoveryMultiplier.level1` | number  | 1       | 0–3   | multiplier | Healing under medical care level 1                                                |
+| `health.medical.recoveryMultiplier.level2` | number  | 1.15    | 0–3   | multiplier | Healing under medical care level 2                                                |
+| `health.medical.recoveryMultiplier.level3` | number  | 1.3     | 0–3   | multiplier | Healing under medical care level 3 (the best)                                     |
+| `health.medical.freeAgentLevel`            | integer | 1       | 0–3   | count      | The medical care level (0 to 3) a worker with no employer gets                    |
+
+The foundation's `condition.fatigueRecoveryPerDay` and
+`condition.fatigueRecoveryBonusMax` are gone (WRK6-02). A save that still
+overrides them loads with those overrides dropped and listed in
+`engine.loadIssues` as unknown keys.
 
 ## Workers tunables
 
@@ -405,21 +429,30 @@ See [match-finishes.md](match-finishes.md#finish-effects) for what each does.
 The auto-winner and Random winners (MTCH2-03) add to the same category. See
 [match-finishes.md](match-finishes.md#auto-winner).
 
-| Key                                  | Kind   | Default | Range  | Unit       | What it does                                                         |
-| ------------------------------------ | ------ | ------- | ------ | ---------- | -------------------------------------------------------------------- |
-| `match.autoWinner.popularityWeight`  | number | 0.6     | 0–3    | multiplier | Points per point of a side's mean popularity in the show's region    |
-| `match.autoWinner.momentumWeight`    | number | 0.15    | 0–1    | multiplier | Points per point of a side's mean momentum                           |
-| `match.autoWinner.push.mainEvent`    | number | 30      | 0–100  | points     | Points for a main eventer                                            |
-| `match.autoWinner.push.upperCard`    | number | 22      | 0–100  | points     | Points for an upper-card worker                                      |
-| `match.autoWinner.push.midCard`      | number | 14      | 0–100  | points     | Points for a mid-card worker                                         |
-| `match.autoWinner.push.lowerCard`    | number | 7       | 0–100  | points     | Points for a lower-card worker                                       |
-| `match.autoWinner.push.enhancement`  | number | 0       | 0–100  | points     | Points for enhancement talent                                        |
-| `match.autoWinner.push.none`         | number | 0       | 0–100  | points     | Points for someone with no push (or not employed here)               |
-| `match.autoWinner.alignment.face`    | number | 2       | −20–20 | points     | Points for a face                                                    |
-| `match.autoWinner.alignment.heel`    | number | 0       | −20–20 | points     | Points for a heel                                                    |
-| `match.autoWinner.alignment.tweener` | number | 1       | −20–20 | points     | Points for a tweener                                                 |
-| `match.autoWinner.randomness`        | number | 5       | 0–200  | points     | Most unpredictability per side; 0 = always the same winner           |
-| `match.randomWinners.randomness`     | number | 60      | 1–1000 | points     | Most unpredictability per side in Random winners mode; never below 1 |
+| Key                                       | Kind   | Default | Range  | Unit       | What it does                                                         |
+| ----------------------------------------- | ------ | ------- | ------ | ---------- | -------------------------------------------------------------------- |
+| `match.autoWinner.popularityWeight`       | number | 0.45    | 0–3    | multiplier | Points per point of a side's mean popularity in the show's region    |
+| `match.autoWinner.momentumWeight`         | number | 0.15    | 0–1    | multiplier | Points per point of a side's mean momentum                           |
+| `match.autoWinner.push.mainEvent`         | number | 24      | 0–100  | points     | Points for a main eventer                                            |
+| `match.autoWinner.push.upperCard`         | number | 22      | 0–100  | points     | Points for an upper-card worker                                      |
+| `match.autoWinner.push.midCard`           | number | 14      | 0–100  | points     | Points for a mid-card worker                                         |
+| `match.autoWinner.push.lowerCard`         | number | 7       | 0–100  | points     | Points for a lower-card worker                                       |
+| `match.autoWinner.push.enhancement`       | number | 0       | 0–100  | points     | Points for enhancement talent                                        |
+| `match.autoWinner.push.none`              | number | 0       | 0–100  | points     | Points for someone with no push (or not employed here)               |
+| `match.autoWinner.alignment.face`         | number | 2       | −20–20 | points     | Points for a face                                                    |
+| `match.autoWinner.alignment.heel`         | number | 0       | −20–20 | points     | Points for a heel                                                    |
+| `match.autoWinner.alignment.tweener`      | number | 1       | −20–20 | points     | Points for a tweener                                                 |
+| `match.autoWinner.skillWeight`            | number | 0.5     | 0–3    | multiplier | Points per point of a side's mean ring skill (MTCH2-09)              |
+| `match.autoWinner.staminaWeight`          | number | 0.5     | 0–3    | multiplier | Points per point of a side's mean stamina, before the length factor  |
+| `match.autoWinner.staminaFactor.short`    | number | 0.5     | 0–5    | multiplier | How much stamina counts in a Short match                             |
+| `match.autoWinner.staminaFactor.standard` | number | 1       | 0–5    | multiplier | How much stamina counts in a Standard match                          |
+| `match.autoWinner.staminaFactor.long`     | number | 1.5     | 0–5    | multiplier | How much stamina counts in a Long match                              |
+| `match.autoWinner.fatigueWeight`          | number | 0.2     | 0–3    | multiplier | Points lost per point of a side's mean fatigue                       |
+| `match.autoWinner.conditionWeight`        | number | 0.2     | 0–3    | multiplier | Points lost per point of mean body wear (100 minus condition)        |
+| `match.autoWinner.heatWeight`             | number | 0.1     | 0–3    | multiplier | Points per point of heat of a storyline the side is the face in      |
+| `match.autoWinner.upsetNoteGap`           | number | 25      | 0–200  | points     | How far behind a winner must have been to be called an upset         |
+| `match.autoWinner.randomness`             | number | 57.5    | 0–200  | points     | Most unpredictability per side; 0 = always the same winner           |
+| `match.randomWinners.randomness`          | number | 60      | 1–1000 | points     | Unused since MTCH2-08 (Random winners is a coin flip); never below 1 |
 
 ### Aftermath momentum tunables
 
@@ -463,6 +496,43 @@ category `Aftermath`. See
 | `match.popularity.neighbourSpill` | number  | 0.4     | 0–1   | ratio | Share of a match's popularity change each neighbour region gets                                        |
 | `match.aftermath.keepPerPerson`   | integer | 10      | 1–100 | count | How many recent match aftermaths are kept for each worker                                              |
 | `match.popularity.tvSpill`        | number  | 0.3     | 0–1   | ratio | Share of the show's TV reach a match's popularity change gets in TV regions (MTCH3-05); 0 turns it off |
+
+### Physical toll tunables
+
+How much fatigue one worker gains in one match and how much body condition they
+lose (MTCH4-01), and the in-match injury chance (MTCH4-02), in
+`systems/match/physical/tunables.ts`, category `Physical toll`. Every key has a minimum of 0. The full table, with every
+style and body part default, is in
+[physical-toll.md](physical-toll.md#tunables).
+
+| Family                                          | Kind    | Unit              | What it does                                                                          |
+| ----------------------------------------------- | ------- | ----------------- | ------------------------------------------------------------------------------------- |
+| `match.fatigue.base.<class>`                    | number  | points            | Fatigue a short (4), standard (7) or long (12) match costs one worker                 |
+| `match.fatigue.minShare`                        | number  | ratio             | Smallest share of the workload in a crowded match (0.35)                              |
+| `match.fatigue.staminaRelief`                   | number  | ratio             | Fatigue eased per point of stamina above 50 (0.006)                                   |
+| `match.fatigue.style.<style>`                   | number  | multiplier        | How tiring each ring style finds a match                                              |
+| `match.fatigue.*Factor`                         | number  | multiplier        | Workhorse 1.15, coaster 0.85, house show 0.6, keep it safe 0.8                        |
+| `match.fatigue.repeatMatch`                     | number  | multiplier        | Fatigue and wear for each match after the first on the same card, compounding (1.5)   |
+| `match.fatigue.maxPerSegment`                   | number  | points            | Most fatigue one match can add (40)                                                   |
+| `match.wear.base.<class>`                       | number  | points            | Wear a short (0.2), standard (0.35) or long (0.6) match costs one worker              |
+| `match.wear.selfStyle.<style>`                  | number  | multiplier        | How hard each ring style is on its own worker's body                                  |
+| `match.wear.opponentStyle.<style>`              | number  | multiplier        | How rough each ring style is on an opponent                                           |
+| `match.wear.safetyWeight` and min/max           | number  | ratio, multiplier | The opponents' safety factor (0.008 per point, kept within 0.6–1.4)                   |
+| `match.wear.*Factor`                            | number  | multiplier        | Durable 0.7, injury prone 1.3, house show 0.6, keep it safe 0.5                       |
+| `match.wear.spread`                             | number  | ratio             | How far the roughness roll moves wear either way (0.5; 0 means no randomness)         |
+| `match.wear.maxPerSegment`                      | number  | points            | Most wear one match can cost (5)                                                      |
+| `match.wear.part.<part>`                        | number  | multiplier        | Share of the wear each body part takes                                                |
+| `match.injury.enabled`                          | boolean | flag              | Workers can get hurt in a match (on)                                                  |
+| `match.injury.baseChance`                       | number  | probability       | Injury chance for a fresh worker in a standard match (0.003)                          |
+| `match.injury.per*Point*`                       | number  | probability       | Added per point of end-of-match fatigue and of the worst body part below 100 (0.0001) |
+| `match.injury.duration.<class>`                 | number  | multiplier        | Short 0.7, standard 1, long 1.3                                                       |
+| `match.injury.opponentSafetyWeight` and min/max | number  | ratio, multiplier | The least safe opponent's factor (0.012 per point, kept within 0.5–1.6)               |
+| `match.injury.selfStyle.<style>`                | number  | multiplier        | How much a worker's own style raises their injury chance                              |
+| `match.injury.opponentStyle.<style>`            | number  | multiplier        | How much an opponent's style raises the injury chance                                 |
+| `match.injury.*Factor`                          | number  | multiplier        | Injury prone 1.8, durable 0.5, keep it safe 0.5                                       |
+| `match.injury.repeatMatch`                      | number  | multiplier        | Injury chance for each match after the first on the same card, compounding (1.4)      |
+| `match.injury.maxChance`                        | number  | probability       | Highest injury chance one worker can have in one match (0.2)                          |
+| `match.injury.maxPerSegment`                    | integer | count             | Most workers injured in one segment (1; 0 means nobody)                               |
 
 ## Shows tunables
 

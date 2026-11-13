@@ -125,6 +125,23 @@ describe('challengerPool', () => {
     );
   });
 
+  it('explains each pool in words, with no scored options', () => {
+    const result = run(80, [side(1, 70)]);
+    expect(result.pool.trace.kind === 'decision' && result.pool.trace.considered).toEqual([]);
+    expect(notes(result)).toEqual([
+      'Strong challengers: popular enough to be a real threat (68 or more in our markets)',
+      'Valid challengers: popular enough to hold the title (50 or more in our markets)',
+    ]);
+  });
+
+  it('shows popularity to one decimal at most', () => {
+    const result = run(20, [side(1, 49.73), side(2, 29.73)], { 'aip.titles.valid.floor': 30.25 });
+    expect(result.pool.trace.kind === 'decision' && result.pool.trace.reason).toBe(
+      'Valid challengers: Side 1 (49.7 in our markets, needs 30.3)',
+    );
+    expect(notes(result)).toContain('Side 2 (29.7 in our markets, needs 30.3): not popular enough');
+  });
+
   it('records market popularity as a number, not its whole trace', () => {
     const heavy = {
       value: 70,

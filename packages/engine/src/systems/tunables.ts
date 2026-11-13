@@ -11,7 +11,7 @@
 import { simTunables } from '../core/tunables/simTunables';
 import { bookingTunables } from './booking/tunables';
 import { calendarTunables } from './calendar/tunables';
-import { conditionTunables } from './condition/tunables';
+import { healthTunables } from './health/tunables';
 import { matchTunables } from './match/tunables';
 import { aftermathTunables } from './match/aftermath/tunables';
 import { mergeTunables } from '../core/tunables/define';
@@ -36,10 +36,12 @@ import { aipTunables } from './aip/tunables';
 import { aipCardTunables } from './aip/card/tunables';
 import { aipResultsTunables } from './aip/results/tunables';
 import { historyTunables } from './history/tunables';
+import { physicalTunables } from './match/physical/tunables';
+import { learningTunables } from './match/physical/learningTunables';
 
 export const ALL_TUNABLES = mergeTunables(
   simTunables,
-  conditionTunables,
+  healthTunables,
   worldTunables,
   workersTunables,
   calendarTunables,
@@ -57,6 +59,8 @@ export const ALL_TUNABLES = mergeTunables(
   aipCardTunables,
   aipResultsTunables,
   historyTunables,
+  physicalTunables,
+  learningTunables,
 );
 
 /** Every tunable key the engine knows. */

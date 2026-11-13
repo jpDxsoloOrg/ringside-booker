@@ -145,7 +145,7 @@ describe('door ownership', () => {
       expect(isExempt('systems/world/people/generate.ts')).toBe(true);
       expect(isExempt('persistence/packs/materialise.ts')).toBe(true);
       expect(isExempt('systems/workers/helpers/employment.ts')).toBe(false);
-      expect(isExempt('systems/condition/phases.ts')).toBe(false);
+      expect(isExempt('systems/health/phases.ts')).toBe(false);
     });
   });
 });

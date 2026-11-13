@@ -30,6 +30,7 @@ import type {
   GenerationStyleRecord,
   TraitIncidenceRecord,
 } from './records/generation';
+import type { InjuryKindRecord } from './records/health';
 import type { CountryNameMixRecord, NameCultureRecord, RingNameWordsRecord } from './records/names';
 
 export interface ContentLibrary {
@@ -53,6 +54,8 @@ export interface ContentLibrary {
   readonly angleTypes: Readonly<Record<string, AngleTypeRecord>>;
   readonly methods: Readonly<Record<string, MethodRecord>>;
   readonly finishes: Readonly<Record<string, FinishRecord>>;
+  /** The injury catalog by pack key, for tools that list it (WRK6-01). */
+  readonly injuryKinds: Readonly<Record<string, InjuryKindRecord>>;
 }
 
 function deepFreeze<T>(value: T): T {
@@ -116,5 +119,6 @@ export function buildContentLibrary(content: MergedContent): ContentLibrary {
     angleTypes: byKey(records.angleType),
     methods: byKey(records.method),
     finishes: byKey(records.finish),
+    injuryKinds: byKey(records.injuryKind),
   });
 }

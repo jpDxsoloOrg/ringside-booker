@@ -1263,6 +1263,9 @@ export type {
   ResolveMatchReasonCode,
   ResolveStreamName,
 } from './systems/match/index';
+// MTCH2-09: the auto-winner's match terms and upset note.
+export type { AutoWinnerStorylineHeat } from './systems/match/index';
+export { NO_STORYLINE_HEAT_NOTE, upsetNote } from './systems/match/index';
 export {
   MATCH_AUTO_WINNER_STREAM,
   RANDOM_WINNERS_MESSAGE,
@@ -2394,3 +2397,34 @@ export {
   type SegmentTitlePlan,
   type TitlePlanKind,
 } from './systems/aip/index';
+
+// Injury catalog (WRK6-01): the injury kinds snapshotted into `WorldMeta.catalogs.injuries` at new
+// game, and the readers phases, queries and commands use. See docs/design/data-packs.md, "Health".
+export type { InjuryKind, InjurySeverity } from './model/catalogs';
+export {
+  INJURY_DAYS_MAX,
+  INJURY_DAYS_MIN,
+  INJURY_KEY_PREFIX,
+  INJURY_SEVERITIES,
+  InjuryCatalogSchema,
+  injuryCatalogOf,
+  InjuryKindSchema,
+  injuryKindOf,
+} from './model/catalogs';
+export {
+  INJURY_CONTENT_PREFIX,
+  injuryContentKey,
+  injuryKindRecord,
+  type InjuryKindRecord,
+} from './persistence/packs';
+
+// Auto and Random in a match's Result list (MTCH2-08): a result left to the night, stored as
+// `match.resultPlan`, and the coin-flip winner. See docs/design/match-finishes.md#auto-and-random.
+export {
+  PlannedResultSchema,
+  plannedResultOf,
+  withPlannedResult,
+  type PlannedResult,
+} from './systems/booking/draft';
+export { RESULT_PLANS, ResultPlanSchema, type ResultPlan } from './model/entities/segment';
+export { COIN_FLIP_LABEL } from './systems/match/index';

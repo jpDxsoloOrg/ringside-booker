@@ -38,12 +38,18 @@ function competitor(
     push: 'midCard',
     momentum: 0,
     alignment: 'face',
+    ringwork: 50,
+    psychology: 50,
+    athleticism: 50,
+    stamina: 50,
+    fatigue: 0,
+    bodyCondition: 100,
     ...overrides,
   };
 }
 
 function sideOf(side: number, competitors: readonly AutoWinnerCompetitor[]): AutoWinnerSide {
-  return { side, sideLabel: `Side ${String(side + 1)}`, competitors };
+  return { side, sideLabel: `Side ${String(side + 1)}`, competitors, storylineHeat: null };
 }
 
 const TWO_SIDES: readonly AutoWinnerSide[] = [
@@ -73,6 +79,7 @@ function resolve(
       stipulationKeys: [],
       sides: options.sides ?? TWO_SIDES,
       regionName: 'Great Lakes',
+      durationClass: 'standard',
       plan: { winner: 'auto', finishKey: null, methodKey: null, ...plan },
       mode: options.mode ?? 'standard',
     },
@@ -240,6 +247,7 @@ describe('resolveMatchOutcome', () => {
         stipulationKeys: [],
         sides: THREE_SIDES,
         regionName: 'Great Lakes',
+        durationClass: 'standard',
         plan: { winner: 'draw', finishKey: null, methodKey: null },
         mode: 'standard',
       },

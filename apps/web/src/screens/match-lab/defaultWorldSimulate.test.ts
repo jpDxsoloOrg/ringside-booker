@@ -218,6 +218,15 @@ describe('Simulate in the Match lab on a new default-world game', () => {
     expect(winner).toMatch(/\((main event|upper card|mid card|lower card|enhancement)\)/);
     expect(winner).toContain('Unpredictability, Side 1');
     expect(winner).toContain('match.autoWinner.randomness');
+    // MTCH2-09: how the match would go, each factor its own line with its setting.
+    for (const line of ['Ring skill', 'Stamina', 'Fatigue', 'Body wear', 'Storyline heat']) {
+      expect(winner).toContain(line);
+    }
+    for (const key of ['skillWeight', 'staminaWeight', 'fatigueWeight', 'conditionWeight']) {
+      expect(winner).toContain(`match.autoWinner.${key}`);
+    }
+    expect(winner).toContain('match.autoWinner.heatWeight');
+    expect(winner).toContain('Not the crowd favourite in a storyline here (counts as 0)');
     expect(winner).toContain('Finish decided on the night');
   });
 
@@ -379,7 +388,8 @@ describe('Simulate in a new game started with Random winners', () => {
     expect(result.randomWinnersMode).toBe(true);
     expect(result.resultTrace.children?.[0]?.label).toMatch(/^Random winners mode/);
     const winner = traceToText(result.resultTrace);
-    expect(winner).toContain('match.randomWinners.randomness');
+    // Random winners is a true coin flip (MTCH2-08): an equal chance, no scores.
+    expect(winner).toContain('Random: every side had an equal chance');
     expectReadableResult(result);
   });
 

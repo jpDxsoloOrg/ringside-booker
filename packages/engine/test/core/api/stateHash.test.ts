@@ -77,7 +77,7 @@ describe('worldHash', () => {
         entries: [
           {
             date: state.world.meta.currentDate,
-            stepId: 'condition.fatigueRecovery',
+            stepId: 'health.fatigueRecovery',
             error: { name: 'Error', message, stack },
           },
         ],

@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { EXIT_OK, runValidateWorld } from '@ringside/validate-world/run';
+import { BODY_PARTS } from '../../src/model/entities/person';
 import {
   ageInYears,
   geographyOf,
@@ -109,6 +110,26 @@ describe('the default world with its people', () => {
     expect(Object.keys(catalogs.matchTypes ?? {})).toHaveLength(9);
     expect(Object.keys(catalogs.angleTypes ?? {})).toHaveLength(6);
     expect(Object.keys(catalogs.methods ?? {})).toHaveLength(6);
+  });
+
+  it('snapshots every base injury kind into meta.catalogs.injuries, covering every body part', () => {
+    const { injuries } = loadedWorld().world.meta.catalogs;
+    const records: unknown = readJson(`${CONTENT_ROOT}base/injuries.json`);
+    if (!Array.isArray(records)) {
+      throw new Error('injuries.json is not an array');
+    }
+    const entries: unknown[] = records;
+    const shipped = entries
+      .map((record) =>
+        typeof record === 'object' && record !== null && 'key' in record
+          ? `injury.${String(record.key)}`
+          : '',
+      )
+      .sort();
+    expect(Object.keys(injuries ?? {})).toEqual(shipped);
+    expect(shipped.length).toBeGreaterThanOrEqual(16);
+    const parts = new Set(Object.values(injuries ?? {}).map((kind) => kind.bodyPart));
+    expect([...parts].sort()).toEqual([...BODY_PARTS].sort());
   });
 
   it('has wrestlers in every 5-year age bucket from 18-22 to 43-47', () => {

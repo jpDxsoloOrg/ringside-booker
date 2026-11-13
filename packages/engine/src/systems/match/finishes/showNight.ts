@@ -7,6 +7,9 @@
  * - The plan is the segment's `outcome` (a planned side with its method, a Draw, or nothing) plus
  *   its `match.finishKey`. A match with no plan gets an automatic winner and finish, so an
  *   unplanned match (a rival card, or a Random winners game) has a winner instead of a no contest.
+ * - A match booked as Auto or Random (`match.resultPlan`, MTCH2-08) has no planned outcome: Auto
+ *   is the auto-winner (`winner: 'auto'`, standard mode), Random is a coin flip (`coinFlip` mode),
+ *   each with the booked finish when there is one. Neither ever gives a draw.
  * - The mode is `randomWinners` when `randomWinnersActive` is true for the show's promotion and
  *   brand. A result booked anyway in Random winners mode is set aside and decided on the night,
  *   with a note in the trace: show night cannot refuse a card it is running.
@@ -26,8 +29,9 @@
 import type { Reason } from '../../../core/api/result';
 import type { ContentKey } from '../../../core/content-key';
 import { limitTrace, startDecision, type TraceNode, type Traced } from '../../../core/trace';
-import type { Catalogs } from '../../../model/catalogs';
-import type { MatchOutcome } from '../../../model/entities/segment';
+import { matchTypeOf, type Catalogs } from '../../../model/catalogs';
+import type { EventInstance } from '../../../model/entities/event-instance';
+import type { MatchOutcome, Segment } from '../../../model/entities/segment';
 import type { DeepReadonly } from '../../../model/world';
 import {
   plannedOrNoContest,
@@ -37,8 +41,11 @@ import {
   type MatchOutcomeResolution,
   type MatchOutcomeResolver,
 } from '../../shows/registries';
+import { slotRoleInput } from '../../shows/context';
+import { durationClassOf, slotRoleOf, type DurationClass } from '../slots';
 import { allowedFinishes } from './allowed';
 import { autoFinish } from './autoFinish';
+import type { AutoWinnerMode } from './autoWinner';
 import { autoWinnerInputsOf, type AutoWinnerSide } from './autoWinnerInputs';
 import { randomWinnersActive } from './randomWinners';
 import {
@@ -164,13 +171,36 @@ interface Attempt {
   readonly notes: readonly string[];
 }
 
-/** Every side with a competitor, as the auto-winner reads it. */
-function sidesOf(input: MatchOutcomeInput, deps: MatchOutcomeDeps): AutoWinnerSide[] {
+/** Every side with a competitor, as the auto-winner reads it, with the match's storylines. */
+function sidesOf(
+  input: MatchOutcomeInput,
+  deps: MatchOutcomeDeps,
+  segment: DeepReadonly<Segment>,
+): AutoWinnerSide[] {
   return autoWinnerInputsOf(deps.read, {
     promotionId: input.promotionId,
     regionId: input.regionId,
     sides: input.sides.map((side) => ({ side: side.side, personIds: side.personIds })),
+    storylineIds: segment.storylineIds,
   });
+}
+
+/**
+ * The match's duration class from its slot on the show (MTCH2-09). A segment whose show is missing
+ * reads as a Standard match.
+ */
+function durationClassOfSegment(
+  deps: MatchOutcomeDeps,
+  segment: DeepReadonly<Segment>,
+  show: DeepReadonly<EventInstance> | undefined,
+): DurationClass {
+  if (show === undefined || segment.kind !== 'match') {
+    return 'standard';
+  }
+  const slotDeps = { tunables: deps.tunables };
+  const role = slotRoleOf(slotRoleInput(segment, show.format), slotDeps).value;
+  const matchType = matchTypeOf(deps.read, segment.match.matchTypeKey) ?? null;
+  return durationClassOf({ role, matchType }, slotDeps).value;
 }
 
 /** Decides how a match on show night ends, with MTCH2's finishes, auto-winner and title rule. */
@@ -193,14 +223,24 @@ export function resolveOnShowNight(
   const base = {
     matchTypeKey: segment.match.matchTypeKey,
     stipulationKeys: [...segment.match.stipulationKeys],
-    sides: sidesOf(input, deps),
+    sides: sidesOf(input, deps, segment),
     regionName: read.tables.regions.get(input.regionId)?.name ?? input.regionId,
+    durationClass: durationClassOfSegment(deps, segment, show),
   };
 
-  const booked = input.plan !== null || input.plannedFinishKey !== null;
+  const { resultPlan } = segment.match;
+  const booked = input.plan !== null || input.plannedFinishKey !== null || resultPlan !== undefined;
   const attempts: Attempt[] = [];
+  let mode: AutoWinnerMode = randomWinners ? 'randomWinners' : 'standard';
   if (randomWinners) {
     attempts.push({ plan: AUTO_PLAN, notes: booked ? [RANDOM_WINNERS_SET_ASIDE_NOTE] : [] });
+  } else if (resultPlan !== undefined && input.plan === null) {
+    mode = resultPlan === 'random' ? 'coinFlip' : 'standard';
+    const plan: MatchPlan = { ...AUTO_PLAN, finishKey: input.plannedFinishKey };
+    attempts.push({ plan, notes: [] });
+    if (plan.finishKey !== null) {
+      attempts.push({ plan: AUTO_PLAN, notes: [] });
+    }
   } else if (input.plan?.kind === 'noContest' && input.plannedFinishKey === null) {
     return bookedNoContest(base, input, deps);
   } else {
@@ -214,7 +254,7 @@ export function resolveOnShowNight(
   const refusals: Reason[] = [];
   for (const [index, attempt] of attempts.entries()) {
     const resolved = resolveMatchOutcome(
-      { ...base, plan: attempt.plan, mode: randomWinners ? 'randomWinners' : 'standard' },
+      { ...base, plan: attempt.plan, mode },
       { catalogs, tunables: deps.tunables, rng: (name) => deps.rng(name) },
     );
     if (resolved.ok) {

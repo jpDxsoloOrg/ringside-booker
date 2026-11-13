@@ -12,6 +12,7 @@ import { championEligibility } from './championEligibility';
 import { employmentDates } from './employmentDates';
 import { freeAgents } from './freeAgents';
 import { geography } from './geography';
+import { injuryCatalog } from './injuryCatalog';
 import type { ContentRule } from './helpers';
 import { promotionStaffing } from './promotionStaffing';
 import { reignChronology } from './reignChronology';
@@ -40,6 +41,7 @@ export function contentRules(setup: RuleSetup): readonly ContentRule[] {
     createBlocklistRule(setup.blocklist),
     segmentKeys,
     segmentFinishes,
+    injuryCatalog,
   ];
 }
 

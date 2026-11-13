@@ -691,13 +691,15 @@ function patternedPerson(rosterIndex: number, startDate: GameDate): DeepPartial<
 /**
  * One computer-run promotion in the mini geography with `rosterSize` wrestlers under contract,
  * each with different attributes from a fixed arithmetic pattern (no randomness), and a weekly
- * Monday show, so a headless run schedules and runs a show every week. For performance and
- * save-size tests and the headless runner.
+ * Monday show, so a headless run schedules and runs a show every week. It carries the shipped
+ * base catalogs and `TEST_INJURY_CATALOG`, so the headless runner exercises injuries. For
+ * performance and save-size tests and the headless runner.
  */
 export function rosterWorld(rosterSize: number, meta: TestMetaOverrides = {}): BuiltWorld {
   return worldBuilder(meta)
     .withGeography('mini')
     .withCatalogs()
+    .withInjuryCatalog()
     .withPromotion({ name: 'Test Promotion A' }, (promotion) =>
       promotion
         .withRoster(rosterSize, {

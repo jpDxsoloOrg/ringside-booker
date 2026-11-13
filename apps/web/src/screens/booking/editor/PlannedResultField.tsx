@@ -1,19 +1,34 @@
-import type { MatchOutcome, MethodOption, SegmentDraft } from '@ringside/engine';
-import { isContentKey } from '@ringside/engine';
+import type { MethodOption, PlannedResult, SegmentDraft } from '@ringside/engine';
+import { isContentKey, plannedResultOf } from '@ringside/engine';
 import { RadioGroup } from '@/components/RadioGroup';
 import type { RadioOption } from '@/components/RadioGroup';
 import { Select } from '@/components/Select';
 import { defaultMethod, sideLabel } from './editorText';
 import styles from './SegmentEditor.module.css';
 
-/** The radio values: a side to win, a draw, a no contest, or nothing planned yet. */
-type ResultChoice = `side-${string}` | 'draw' | 'noContest' | 'none';
+/**
+ * The radio values: a side to win, Auto or Random (decided on the night, MTCH2-08), a draw, a no
+ * contest, or nothing planned yet.
+ */
+type ResultChoice = `side-${string}` | 'auto' | 'random' | 'draw' | 'noContest' | 'none';
 
-function choiceOf(outcome: MatchOutcome | null): ResultChoice {
-  if (outcome === null) return 'none';
-  if (outcome.kind === 'win') return `side-${String(outcome.winningSide)}`;
-  return outcome.kind;
+function choiceOf(result: PlannedResult): ResultChoice {
+  if (result === null) return 'none';
+  if (result === 'auto' || result === 'random') return result;
+  if (result.kind === 'win') return `side-${String(result.winningSide)}`;
+  return result.kind;
 }
+
+/** The Result list's names and one-line explanations for a result left to the night. */
+export const AUTO_RESULT_OPTION = {
+  label: 'Auto (the match decides)',
+  description:
+    'Decided on the night from who is in it: the favourite usually wins, but upsets happen.',
+} as const;
+export const RANDOM_RESULT_OPTION = {
+  label: 'Random (coin flip)',
+  description: 'Decided on the night by a coin flip: every side has the same chance.',
+} as const;
 
 /** A method's name in the list, flagged when it can't move a title that is on the line. */
 export function methodLabel(method: MethodOption, titlesOnTheLine: boolean): string {
@@ -35,14 +50,15 @@ export interface PlannedResultFieldProps {
    * field only says so.
    */
   readonly randomWinners?: boolean;
-  readonly onChange: (outcome: MatchOutcome | null) => void;
+  readonly onChange: (result: PlannedResult) => void;
 }
 
 /** What the Result field says on a Random winners show, in place of the winner choice. */
 export const RANDOM_WINNERS_RESULT_TEXT = 'Decided on the night (Random winners)';
 
 /**
- * Who wins and how: a winner (any side), a draw or a no contest, and for a win the method. A new
+ * Who wins and how: a winner (any side), Auto, Random, a draw or a no contest, and for a win the
+ * method. A new
  * win starts on the first method that can move a title. Talking segments have no result. On a
  * Random winners show the choice is replaced by "Decided on the night (Random winners)".
  */
@@ -66,12 +82,15 @@ export function PlannedResultField({
     );
   }
   const outcome = draft.outcome;
+  const result = plannedResultOf(draft);
   const titlesOnTheLine = draft.match.titleIds.length > 0;
   const options: RadioOption<ResultChoice>[] = [
     ...Array.from({ length: sideCount }, (_unused, side) => ({
       value: `side-${String(side)}` as const,
       label: sideNames[side] ?? sideLabel(side),
     })),
+    { value: 'auto', ...AUTO_RESULT_OPTION },
+    { value: 'random', ...RANDOM_RESULT_OPTION },
     { value: 'draw', label: 'Draw' },
     { value: 'noContest', label: 'No contest' },
   ];
@@ -80,6 +99,8 @@ export function PlannedResultField({
   const choose = (choice: ResultChoice): void => {
     if (choice === 'none') {
       onChange(null);
+    } else if (choice === 'auto' || choice === 'random') {
+      onChange(choice);
     } else if (choice === 'draw' || choice === 'noContest') {
       onChange({ kind: choice });
     } else {
@@ -94,12 +115,12 @@ export function PlannedResultField({
       <RadioGroup
         legend="Result"
         description={
-          outcome === null
+          result === null
             ? 'Nothing planned yet. Every match needs a result before the show can run.'
             : 'The plan for the night. Nothing is written until you save.'
         }
         options={options}
-        value={choiceOf(outcome)}
+        value={choiceOf(result)}
         onValueChange={choose}
         disabled={disabled}
       />

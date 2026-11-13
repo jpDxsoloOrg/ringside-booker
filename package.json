@@ -24,7 +24,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "build": "npm run build --workspaces --if-present",
-    "lint": "eslint . --max-warnings 0",
+    "lint": "NODE_OPTIONS=--max-old-space-size=6144 eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix",
     "blog:check": "npm run -w @ringside/blog-tools check --",
     "blog:publish": "npm run -w @ringside/blog-tools publish --",

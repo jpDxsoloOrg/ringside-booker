@@ -189,7 +189,7 @@ describe('RngRegistry snapshot and restore', () => {
 
 describe('stream names', () => {
   it('accepts well-formed names', () => {
-    for (const name of ['test.alpha', 'ids.per', 'condition.recovery', 'match.finish-roll']) {
+    for (const name of ['test.alpha', 'ids.per', 'health.recovery', 'match.finish-roll']) {
       expect(() => {
         assertStreamName(name);
       }).not.toThrow();

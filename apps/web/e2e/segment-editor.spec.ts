@@ -8,6 +8,7 @@
  *   being cut off.
  * - On a touch screen the picker's search box and the billing line are at least 16px, so Safari
  *   on iPhone doesn't zoom the page in when they take focus.
+ * - The Result list offers Auto and Random with their explanations on screen, and fits (MTCH2-08).
  */
 import type { Locator, Page } from '@playwright/test';
 import { expect, test } from './fixtures';
@@ -15,6 +16,9 @@ import { expectNoHorizontalScroll } from './helpers/layout';
 import { isPhone } from './helpers/viewport';
 
 const LONG_NAME = 'Maximilian Vandersteenhoven-Kaczmarczyk';
+
+/** Where the spec leaves viewport screenshots, when asked (`E2E_SHOTS=<folder>`). */
+const SHOTS_DIR = process.env['E2E_SHOTS'];
 
 /** Below this, Safari on iPhone zooms the page in when a text field takes focus. */
 const NO_ZOOM_FONT_PX = 16;
@@ -93,5 +97,23 @@ test.describe('segment editor', () => {
       const billing = editor.getByRole('textbox', { name: 'Billing line' });
       expect(await fontSizePx(billing)).toBeGreaterThanOrEqual(NO_ZOOM_FONT_PX);
     }
+  });
+
+  test('the Result list offers Auto and Random, each explained on screen', async ({ page }) => {
+    const editor = await openEditor(page, 'Singles with a result');
+    const auto = editor.getByRole('radio', { name: 'Auto (the match decides)' });
+    const random = editor.getByRole('radio', { name: 'Random (coin flip)' });
+    await expect(auto).toBeVisible();
+    await expect(editor.getByText('the favourite usually wins, but upsets happen')).toBeVisible();
+    await expect(editor.getByText('every side has the same chance')).toBeVisible();
+    await random.check();
+    await expect(random).toBeChecked();
+    // A result left to the night has no way of winning to pick.
+    await expect(editor.getByRole('combobox', { name: 'Method' })).toBeHidden();
+    await random.scrollIntoViewIfNeeded();
+    if (SHOTS_DIR !== undefined) {
+      await page.screenshot({ path: `${SHOTS_DIR}/result-list-${test.info().project.name}.png` });
+    }
+    await expectNoHorizontalScroll(page);
   });
 });

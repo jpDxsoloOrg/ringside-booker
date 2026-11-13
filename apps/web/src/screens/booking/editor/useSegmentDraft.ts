@@ -14,11 +14,13 @@ import type {
   MatchDraft,
   MatchOutcome,
   ParticipantDraft,
+  PlannedResult,
   PersonId,
   SegmentDraft,
   TeamId,
   TitleId,
 } from '@ringside/engine';
+import { withPlannedResult } from '@ringside/engine';
 import type { SegmentEditorKind } from './editorStore';
 
 /** How many sides the editor offers for the chosen type. */
@@ -215,14 +217,16 @@ export function setTitles(
   return { ...state, draft: { ...draft, match: { ...draft.match, titleIds: [...titleIds] } } };
 }
 
-/** The planned result, or null to decide it on the night. Only a match has one. */
-export function setResult(
-  state: SegmentDraftState,
-  outcome: MatchOutcome | null,
-): SegmentDraftState {
+/**
+ * The Result-list choice: a planned outcome, Auto or Random (decided on the night, MTCH2-08), or
+ * null for nothing picked yet. Only a match has one.
+ */
+export function setResult(state: SegmentDraftState, result: PlannedResult): SegmentDraftState {
   const { draft } = state;
   if (draft.kind !== 'match') return state;
-  return { ...state, draft: { ...draft, outcome: outcomeWithin(outcome, state.sideCount) } };
+  const within =
+    result === 'auto' || result === 'random' ? result : outcomeWithin(result, state.sideCount);
+  return { ...state, draft: withPlannedResult(draft, within) };
 }
 
 /** The billing line as typed; {@link draftForSave} trims it. */
@@ -329,7 +333,7 @@ export interface SegmentDraftControls {
   readonly addSide: (limits: SideLimits) => void;
   readonly removeSide: (side: number, limits: SideLimits) => void;
   readonly setTitles: (titleIds: readonly TitleId[]) => void;
-  readonly setResult: (outcome: MatchOutcome | null) => void;
+  readonly setResult: (result: PlannedResult) => void;
   readonly setLabel: (label: string) => void;
   readonly patch: (sectionId: string, partial: SegmentDraftPatch) => void;
   /**
@@ -374,8 +378,8 @@ export function useSegmentDraft(placeholder: SegmentDraftState): SegmentDraftCon
       setTitles: (titleIds) => {
         apply((current) => setTitles(current, titleIds));
       },
-      setResult: (outcome) => {
-        apply((current) => setResult(current, outcome));
+      setResult: (result) => {
+        apply((current) => setResult(current, result));
       },
       setLabel: (label) => {
         apply((current) => setLabel(current, label));

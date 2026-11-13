@@ -271,7 +271,8 @@ describe('BookingScreen', () => {
           reasons: [
             {
               code: 'cardNotRunnable',
-              message: 'Opener: no result planned; pick a winner, a draw or a no contest',
+              message:
+                'Opener: no result planned; pick a winner, Auto, Random, a draw or a no contest',
               subject: { kind: 'segment', id: opener },
             },
           ],
@@ -281,7 +282,7 @@ describe('BookingScreen', () => {
     await user.click(screen.getByRole('button', { name: 'Run the show' }));
     await user.click(
       await screen.findByRole('button', {
-        name: 'Opener: no result planned; pick a winner, a draw or a no contest',
+        name: 'Opener: no result planned; pick a winner, Auto, Random, a draw or a no contest',
       }),
     );
     await waitFor(() => {

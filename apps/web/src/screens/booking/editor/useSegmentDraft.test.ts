@@ -177,6 +177,17 @@ describe('the segment draft', () => {
     expect(setTitles(promo, [TITLE])).toBe(promo);
   });
 
+  it('leaves the result to the night as Auto or Random, and a side or a draw replaces it', () => {
+    const auto = setResult(singles(), 'auto').draft;
+    expect(auto.kind === 'match' ? auto.match.resultPlan : null).toBe('auto');
+    expect(outcomeOf(auto)).toBeNull();
+    const random = setResult(singles(), 'random').draft;
+    expect(random.kind === 'match' ? random.match.resultPlan : null).toBe('random');
+    const draw = setResult(setResult(singles(), 'auto'), { kind: 'draw' }).draft;
+    expect(outcomeOf(draw)).toEqual({ kind: 'draw' });
+    expect(draw.kind === 'match' ? draw.match.resultPlan : null).toBeUndefined();
+  });
+
   it('keeps the billing line to 80 characters and saves a blank one as none', () => {
     const state = setLabel(singles(), 'x'.repeat(90));
     expect(state.draft.label).toHaveLength(80);

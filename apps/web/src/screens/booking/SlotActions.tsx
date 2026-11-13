@@ -6,7 +6,7 @@ import type {
   ContentKey,
   FinishOption,
   MatchCatalog,
-  MatchOutcome,
+  PlannedResult,
   SegmentId,
 } from '@ringside/engine';
 import { isContentKey, parseContentKey } from '@ringside/engine';
@@ -17,6 +17,7 @@ import { DropdownMenu } from '@/components/DropdownMenu';
 import type { DropdownMenuAction, DropdownMenuEntry } from '@/components/DropdownMenu';
 import styles from './Booking.module.css';
 import { bookingSideText } from './cardSlotProps';
+import { AUTO_RESULT_OPTION, RANDOM_RESULT_OPTION } from './editor/PlannedResultField';
 
 /**
  * The way of winning the quick Winner menu plans: the match type's first method that can move a
@@ -56,14 +57,18 @@ export interface SlotActionsProps {
   /** True when Random winners decides the show's results: no Winner menu, nothing to plan. */
   readonly randomWinners?: boolean;
   readonly onEdit: (segmentId: SegmentId) => void;
-  readonly onSetResult: (segmentId: SegmentId, result: MatchOutcome) => void;
+  readonly onSetResult: (segmentId: SegmentId, result: WinnerMenuResult) => void;
   readonly onMove: (from: BookingSlotView, to: BookingSlotView) => void;
   /** Resolves once removed; rejects with the game's reason as the error's message. */
   readonly onRemove: (segment: BookingSegmentView) => Promise<void>;
 }
 
-function sameResult(left: MatchOutcome, segment: BookingSegmentView): boolean {
+/** A choice the Winner menu can plan: a side, Auto, Random, a draw or a no contest. */
+export type WinnerMenuResult = Exclude<PlannedResult, null>;
+
+function sameResult(left: WinnerMenuResult, segment: BookingSegmentView): boolean {
   const { result } = segment;
+  if (left === 'auto' || left === 'random') return result?.kind === left;
   if (result?.kind !== left.kind) return false;
   return left.kind !== 'win' || left.winningSide === result.winningSide;
 }
@@ -71,11 +76,15 @@ function sameResult(left: MatchOutcome, segment: BookingSegmentView): boolean {
 interface WinnerMenuInput {
   readonly segment: BookingSegmentView;
   readonly methodKey: ContentKey | null;
-  readonly onSetResult: (segmentId: SegmentId, result: MatchOutcome) => void;
+  readonly onSetResult: (segmentId: SegmentId, result: WinnerMenuResult) => void;
 }
 
 function winnerItems({ segment, methodKey, onSetResult }: WinnerMenuInput): DropdownMenuAction[] {
-  const choice = (id: string, label: string, result: MatchOutcome | null): DropdownMenuAction => ({
+  const choice = (
+    id: string,
+    label: string,
+    result: WinnerMenuResult | null,
+  ): DropdownMenuAction => ({
     kind: 'item',
     id,
     label,
@@ -93,6 +102,8 @@ function winnerItems({ segment, methodKey, onSetResult }: WinnerMenuInput): Drop
         methodKey === null ? null : { kind: 'win', winningSide: side.side, methodKey },
       ),
     ),
+    choice('auto', AUTO_RESULT_OPTION.label, 'auto'),
+    choice('random', RANDOM_RESULT_OPTION.label, 'random'),
     choice('draw', 'Draw', { kind: 'draw' }),
     choice('no-contest', 'No contest', { kind: 'noContest' }),
   ];

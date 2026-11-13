@@ -227,13 +227,34 @@ describe('titleChange', () => {
     );
   });
 
-  it('considers retain and each eligible challenger', () => {
-    const result = run(inputs({ pool: poolOf([side(1, 80), side(2, 10)]) }));
-    const considered =
-      result.plan.trace.kind === 'decision'
-        ? result.plan.trace.considered.map((entry) => entry.option)
-        : [];
-    expect(considered).toEqual(['retain', 'side:1', 'side:2']);
+  function consideredOf(result: TitleChangeResult): (string | boolean)[] {
+    return result.plan.trace.kind === 'decision'
+      ? result.plan.trace.considered.map((entry) => entry.option)
+      : [];
+  }
+
+  it('considers retain and each challenger a change could pick', () => {
+    const result = run(inputs({ pool: poolOf([side(1, 80), side(2, 60), side(3, 10)]) }));
+    expect(consideredOf(result)).toEqual(['retain', 'side:1']);
+    const valid = run(inputs({ pool: poolOf([side(1, 60), side(2, 55), side(3, 10)]) }));
+    expect(consideredOf(valid)).toEqual(['retain', 'side:1', 'side:2']);
+  });
+
+  it('leaves challengers nobody could crown out of the options when the pool is none', () => {
+    const result = run(inputs({ chance: inputOf('Chance', 100), pool: NONE }));
+    expect(consideredOf(result)).toEqual(['retain']);
+  });
+
+  it('considers every eligible side when an expiring contract forces a change', () => {
+    const result = run(
+      inputs({ championContractDaysLeft: 10, chance: inputOf('Chance', 0), pool: NONE }),
+      { 'aip.titles.expiringDays': 28 },
+    );
+    expect(consideredOf(result)).toEqual(['retain', 'side:1']);
+    const house = run(inputs({ importance: 'house', championContractDaysLeft: 10, pool: NONE }), {
+      'aip.titles.expiringDays': 28,
+    });
+    expect(consideredOf(house)).toEqual(['retain']);
   });
 
   it('gives the same trace for the same seed', () => {
