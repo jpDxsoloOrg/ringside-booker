@@ -99,3 +99,24 @@ export function unitCovers(
   }
   return brandId === null || !unit.excludedBrandIds.includes(brandId);
 }
+
+/**
+ * The unit for `promotionId` (or one of its brands) whether or not the computer runs it, for the
+ * queries that ask "what would a rival desk say about this roster" of any promotion, the player's
+ * included. A whole computer promotion leaves out its human-run brands, exactly as its turn does;
+ * any other promotion or brand covers everything it holds.
+ *
+ * @throws EntityNotFoundError when the promotion is not in the world.
+ */
+export function unitOf(
+  read: GameWorldView,
+  promotionId: PromotionId,
+  brandId: BrandId | null = null,
+): AiUnit {
+  const promotion = read.tables.promotions.require(promotionId);
+  const excludedBrandIds =
+    brandId === null && promotion.controller.kind === 'computer'
+      ? humanBrandIdsOf(read, promotionId)
+      : [];
+  return { promotionId, brandId, key: aiUnitKey(promotionId, brandId), excludedBrandIds };
+}
