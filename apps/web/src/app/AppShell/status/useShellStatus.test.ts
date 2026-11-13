@@ -65,7 +65,7 @@ describe('useShellStatus', () => {
   it('lists a gate that hits today', async () => {
     const { wrapper } = setup(fakeEngineState(), {
       gateDate: FAKE_START_DATE,
-      gateHit: { reason: 'Your show tonight has no card yet', actionHint: 'booking' },
+      gateHit: { reason: 'Tonight: Harbor Lights Showdown', actionHint: 'showNight' },
     });
     const { result } = renderHook(() => useShellStatus(), { wrapper });
 
@@ -74,8 +74,8 @@ describe('useShellStatus', () => {
     });
     expect(result.current.gates[0]).toEqual({
       gateId: FAKE_GATE_ID,
-      reason: 'Your show tonight has no card yet',
-      actionHint: 'booking',
+      reason: 'Tonight: Harbor Lights Showdown',
+      actionHint: 'showNight',
     });
   });
 

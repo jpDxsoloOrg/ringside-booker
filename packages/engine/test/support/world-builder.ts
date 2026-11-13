@@ -38,6 +38,7 @@ import type { EventInstance } from '../../src/model/entities/event-instance';
 import type { MatchOutcome } from '../../src/model/entities/segment';
 import type { Person } from '../../src/model/entities/person';
 import type { Promotion } from '../../src/model/entities/promotion';
+import type { PromotionSnapshot } from '../../src/model/entities/promotion-snapshot';
 import type { Title } from '../../src/model/entities/title';
 import type { RowOf } from '../../src/model/table-def';
 import { TABLES, type GameTables, type GameWorld } from '../../src/model/tables';
@@ -52,7 +53,7 @@ import {
   TEST_WORLD_SETTINGS,
   type DeepPartial,
 } from './builders/build-row';
-import { aBrand, anEmployment, aPromotion } from './builders/promotions';
+import { aBrand, anEmployment, aPromotion, aPromotionSnapshot } from './builders/promotions';
 import {
   aMatch,
   anEventDefinition,
@@ -183,6 +184,7 @@ function emptyIdLists(): IdLists {
     ledgerEntries: [],
     popularityShowChanges: [],
     aftermaths: [],
+    promotionSnapshots: [],
   };
 }
 
@@ -648,6 +650,31 @@ export class WorldBuilder {
       });
       for (const second of match.ringside ?? []) {
         add(second.person, second.side, 'ringside');
+      }
+    });
+    return this;
+  }
+
+  /**
+   * Adds promotion history rows (DAY2-01) for promotion `promotionKey`, one per entry in order.
+   * Each row is `aPromotionSnapshot` with the promotion filled in; ids follow the world's sequence.
+   */
+  withPromotionSnapshots(
+    promotionKey: PromotionLabel,
+    rows: readonly DeepPartial<PromotionSnapshot>[],
+  ): this {
+    this.steps.push((context) => {
+      const promotionId = context.ids.promotions[promotionKey];
+      if (promotionId === undefined) {
+        throw new Error(
+          `WorldBuilder: withPromotionSnapshots needs promotion ${promotionKey} added first`,
+        );
+      }
+      for (const row of rows) {
+        context.insert(
+          'promotionSnapshots',
+          aPromotionSnapshot({ ...row, promotionId }, context.sequence),
+        );
       }
     });
     return this;

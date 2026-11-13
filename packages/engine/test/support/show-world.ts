@@ -146,6 +146,7 @@ export function makeInstance(
     airDate: date('2026-01-05'),
     status: 'booked',
     venueId: null,
+    genericVenue: null,
     regionId: regionId(1),
     result: null,
     cancellation: null,

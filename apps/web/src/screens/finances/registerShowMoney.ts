@@ -6,6 +6,8 @@
 import { createElement } from 'react';
 import type { ShowResultsView } from '@ringside/engine';
 import { registerResultsSection } from '@/screens/show-results/resultsSectionRegistry';
+import { registerShowReportLine } from '@/screens/show-results/showReportLineRegistry';
+import { useShowMoneyReportLine } from './showMoneyReportLine';
 import { ShowMoneySection } from './ShowMoneySection';
 
 /** The section's id in the results registry. */
@@ -29,4 +31,11 @@ registerResultsSection({
   label: SHOW_MONEY_SECTION_LABEL,
   order: SHOW_MONEY_SECTION_ORDER,
   render: ({ view }) => (showsShowMoney(view) ? createElement(ShowMoneySection, { view }) : null),
+});
+
+// The show report's "Money" line (EVT3-09), in the section's place in the order.
+registerShowReportLine({
+  id: 'finance.showMoney',
+  order: SHOW_MONEY_SECTION_ORDER,
+  line: useShowMoneyReportLine,
 });

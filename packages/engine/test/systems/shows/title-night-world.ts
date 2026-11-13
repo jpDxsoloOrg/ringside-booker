@@ -8,7 +8,7 @@
  *   - `vacant`: a singles title nobody holds;
  *   - team `challengers` is roster 4 and 5;
  * - promotion B is run by the computer and has a roster of 2 and a title of its own, `rival`;
- * - `show`: A's show today, already locked, with 5 main-card slots and 1 pre-show slot and no card.
+ * - `show`: A's show today, which the player runs (`runNight`), with 5 main-card slots and 1 pre-show slot and no card.
  *
  * Tests write the card with `seed` and run `shows.runShows` once with `runNight`.
  */
@@ -29,7 +29,7 @@ import {
 } from '../../../src/systems/booking';
 import { runShowsPhase } from '../../../src/systems/shows';
 import { createEngineTunables } from '../../../src/systems/tunables';
-import { aTeam, anEventInstance, worldBuilder } from '../../support';
+import { aTeam, anEventInstance, runMyShows, worldBuilder } from '../../support';
 import type { StepReport } from '../../../src/core/pipeline/report';
 import { PLAYER_ONE } from '../calendar/lifecycle-world';
 
@@ -125,7 +125,6 @@ export function titleNightWorld(options: TitleNightOptions = {}): TitleNightWorl
               promotionId: promotionA,
               regionId,
               date: today,
-              status: 'booked',
               format: { slots: 5, preShowSlots: 1 },
             },
             context.sequence,
@@ -201,7 +200,10 @@ export interface NightRun {
   readonly report: StepReport;
 }
 
-/** Runs `shows.runShows` once on the world's current date, with the given tunable overrides. */
+/**
+ * Runs the night once on the world's current date, with the given tunable overrides: the player's
+ * shows as Run the show would (`runMyShows`), then `shows.runShows` for the rest, in one step.
+ */
 export function runNight(built: TitleNightWorld, overrides: TunableOverrides = {}): NightRun {
   const runtime = createRuntime({
     world: built.world,
@@ -211,7 +213,10 @@ export function runNight(built: TitleNightWorld, overrides: TunableOverrides = {
     runtime,
     runShowsPhase.id,
     { kind: 'phase', id: runShowsPhase.id },
-    runShowsPhase.run,
+    (ctx) => {
+      runMyShows(ctx);
+      runShowsPhase.run(ctx);
+    },
     { date: built.world.meta.currentDate },
   );
   if (report.status !== 'ok') {

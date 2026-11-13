@@ -16,7 +16,7 @@ const BookingView = lazy(async () => {
 
 /**
  * Booking at `/game/booking`: one of your shows at a time (`?event=` picks which), its card slot by
- * slot, the checklist and Lock card.
+ * slot, the checklist and, on show day, Run the show.
  */
 export function BookingScreen() {
   useDocumentTitle(SCREEN_TITLE);

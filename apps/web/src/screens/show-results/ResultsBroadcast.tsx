@@ -23,7 +23,11 @@ import { StarRating } from '@/components/StarRating';
 import { Explained } from '@/components/Trace';
 import { WorkerLink } from '@/components/WorkerLink';
 import { slotsText } from '@/screens/calendar/slotsText';
+import { MAIN_CARD_ANCHOR } from './builtinReportLines';
 import { useResultsSections } from './resultsSectionRegistry';
+import { ShowReport } from './ShowReport';
+import { resultsSectionAnchor, segmentCardAnchor } from './showReportLineRegistry';
+import { hasReport } from './showReportText';
 import {
   headerAccent,
   offscreenNote,
@@ -146,10 +150,12 @@ interface CardListProps {
   /** True when the reveal played, so each card fades in as it comes out. */
   readonly animated: boolean;
   readonly headingLevel: 2 | 3;
+  /** True on the page itself: each card and the main card get the ids the report links to. */
+  readonly anchors: boolean;
 }
 
 /** The card in running order: the pre-show under its own divider, then the main card. */
-function CardList({ segments, revealedCount, animated, headingLevel }: CardListProps) {
+function CardList({ segments, revealedCount, animated, headingLevel, anchors }: CardListProps) {
   const preShowHeadingId = useId();
   const mainHeadingId = useId();
   const SectionHeading = headingLevel === 2 ? 'h2' : 'h3';
@@ -168,6 +174,7 @@ function CardList({ segments, revealedCount, animated, headingLevel }: CardListP
             className={classNames(styles['cardItem'], animated && revealed && styles['fadeIn'])}
           >
             <SegmentResultCard
+              id={anchors ? segmentCardAnchor(segment.segmentId) : undefined}
               segment={segment}
               headingLevel={cardHeadingLevel}
               revealed={revealed}
@@ -191,7 +198,11 @@ function CardList({ segments, revealedCount, animated, headingLevel }: CardListP
         </section>
       )}
       {mainCard.length > 0 && (
-        <section className={styles['cardSection']} aria-labelledby={mainHeadingId}>
+        <section
+          className={styles['cardSection']}
+          aria-labelledby={mainHeadingId}
+          id={anchors ? MAIN_CARD_ANCHOR : undefined}
+        >
           <SectionHeading id={mainHeadingId} className={styles['sectionHeading']}>
             Main card
           </SectionHeading>
@@ -212,7 +223,13 @@ function ResultsSections({ view }: { readonly view: ShowResultsView }) {
         const content = section.render({ eventInstanceId: view.eventInstanceId, view });
         if (content === null || content === undefined || content === false) return null;
         return (
-          <Panel key={section.id} title={section.label} headingLevel={2} variant="broadcast">
+          <Panel
+            key={section.id}
+            id={resultsSectionAnchor(section.id)}
+            title={section.label}
+            headingLevel={2}
+            variant="broadcast"
+          >
             {content}
           </Panel>
         );
@@ -246,15 +263,21 @@ export interface CompletedResultsProps {
   readonly onRevealEnd?: () => void;
   /** False for the gallery: the show's name is an `h2` and nothing claims route focus. */
   readonly isPage?: boolean;
+  /** The score fans in the show's region expected (EVT5), for the report's headline. */
+  readonly expectation?: number | null;
 }
 
-/** A show that has run: the header, the score, the card (revealed or not) and the sections. */
+/**
+ * A show that has run: the header, the score, the show report (once the reveal is over), the card
+ * (revealed or not) and the sections.
+ */
 export function CompletedResults({
   view,
   result,
   revealRequested,
   onRevealEnd,
   isPage = true,
+  expectation = null,
 }: CompletedResultsProps) {
   const headerRef = useRef<HTMLDivElement>(null);
   const sequence = useRevealSequence({
@@ -297,12 +320,23 @@ export function CompletedResults({
         <p className={styles['note']}>Nothing was on this show&apos;s card.</p>
       )}
 
+      {/* The report waits for the reveal, so it never gives a result away early. */}
+      {!sequence.playing && hasReport(view) && (
+        <ShowReport
+          view={view}
+          result={result}
+          expectation={expectation}
+          headingLevel={isPage ? 2 : 3}
+        />
+      )}
+
       {view.segments.length > 0 && (
         <CardList
           segments={view.segments}
           revealedCount={sequence.revealedCount}
           animated={animated}
           headingLevel={isPage ? 2 : 3}
+          anchors={isPage}
         />
       )}
 

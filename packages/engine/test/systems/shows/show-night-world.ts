@@ -3,9 +3,9 @@
  *
  * - promotion A is run by `player-1` and has a roster of 12;
  * - promotion B is run by the computer and has a roster of 6;
- * - `human`: A's show today, locked (`booked`), with 1 pre-show slot and 5 main-card slots, all
- *   filled: five matches with planned results and one promo;
- * - `unlocked`: A's show today with a one-match card, still `scheduled`;
+ * - `human`: A's show today, with 1 pre-show slot and 5 main-card slots, all filled: five matches
+ *   with planned results and one promo. {@link showNightEngine}'s stand-in player runs it;
+ * - `unrun`: A's show today with a one-match card, which the player does not run;
  * - `cancelled`: A's show today, cancelled;
  * - `rivalBare`: B's show today with no card;
  * - `rivalCard`: B's show today with two matches and no planned results.
@@ -23,7 +23,7 @@ import type { EventInstance } from '../../../src/model/entities/event-instance';
 import type { GameWorld } from '../../../src/model/tables';
 import { matchSystem } from '../../../src/systems/match';
 import { showsSystem } from '../../../src/systems/shows';
-import { anEventInstance, worldBuilder } from '../../support';
+import { anEventInstance, withMyShowsRun, worldBuilder, type RunsShow } from '../../support';
 import type { DeepPartial } from '../../support/builders/build-row';
 import { PINFALL, promo, seed, singles, SUBMISSION } from '../booking/command-world';
 import { OMNISCIENT, PLAYER_ONE } from '../calendar/lifecycle-world';
@@ -41,7 +41,7 @@ export interface ShowNightOptions {
 export interface ShowNightWorld {
   readonly world: GameWorld;
   readonly human: EventInstanceId | null;
-  readonly unlocked: EventInstanceId | null;
+  readonly unrun: EventInstanceId | null;
   readonly cancelled: EventInstanceId | null;
   readonly rivalBare: readonly EventInstanceId[];
   readonly rivalCard: EventInstanceId;
@@ -62,14 +62,11 @@ function at<T>(values: readonly T[], index: number): T {
   return value;
 }
 
-function lock(world: GameWorld, eventInstanceId: EventInstanceId): void {
-  const result = world.transact('lock card', (tx) => {
-    tx.update('eventInstances', eventInstanceId, { status: 'booked' });
-  });
-  if (!result.ok) {
-    throw result.error;
-  }
-}
+/** The name of the player's show that the stand-in player leaves alone. */
+export const UNRUN_SHOW_NAME = 'Test Unrun Show';
+
+/** The stand-in player runs every show of theirs but `unrun`. */
+export const runsAllButUnrun: RunsShow = (show) => show.name !== UNRUN_SHOW_NAME;
 
 /** Builds the show night world. */
 export function showNightWorld(options: ShowNightOptions = {}): ShowNightWorld {
@@ -78,7 +75,7 @@ export function showNightWorld(options: ShowNightOptions = {}): ShowNightWorld {
   let shows:
     | {
         human: EventInstanceId | null;
-        unlocked: EventInstanceId | null;
+        unrun: EventInstanceId | null;
         cancelled: EventInstanceId | null;
         rivalBare: EventInstanceId[];
         rivalCard: EventInstanceId;
@@ -114,7 +111,7 @@ export function showNightWorld(options: ShowNightOptions = {}): ShowNightWorld {
         human: withHuman
           ? add({ name: 'Test Human Show', format: { slots: 5, preShowSlots: 1 } })
           : null,
-        unlocked: withHuman ? add({ name: 'Test Unlocked Show' }) : null,
+        unrun: withHuman ? add({ name: UNRUN_SHOW_NAME }) : null,
         cancelled: withHuman ? add({ name: 'Test Cancelled Show', status: 'cancelled' }) : null,
         rivalBare: Array.from({ length: bareCount }, (_, index) =>
           add({ name: `Test Rival Bare ${String(index + 1)}`, promotionId: promotionB }),
@@ -157,10 +154,9 @@ export function showNightWorld(options: ShowNightOptions = {}): ShowNightWorld {
         singles(person(9), person(10), { kind: 'win', winningSide: 0, methodKey: PINFALL }),
       ),
     );
-    lock(world, human);
   }
-  if (shows.unlocked !== null) {
-    seed(world, shows.unlocked, 0, singles(person(0), person(11)));
+  if (shows.unrun !== null) {
+    seed(world, shows.unrun, 0, singles(person(0), person(11)));
   }
   const rivalMatches = [
     seed(world, shows.rivalCard, 0, singles(at(rivals, 0), at(rivals, 1))),
@@ -169,11 +165,15 @@ export function showNightWorld(options: ShowNightOptions = {}): ShowNightWorld {
   return { world, ...shows, humanCard, rivalMatches, roster, rivals };
 }
 
-/** An engine that runs only show night (no calendar, so nothing closes the day's open shows). */
+/**
+ * An engine that runs only show night (no calendar, so nothing closes the day's open shows). The
+ * player's `human` show is run inside the day, as pressing Run the show would (`withMyShowsRun`);
+ * `unrun` is not.
+ */
 export function showNightEngine(world: GameWorld): Engine {
   return createEngine({
     state: initialEngineState(world),
-    systems: [simSystem, matchSystem, showsSystem],
+    systems: withMyShowsRun([simSystem, matchSystem, showsSystem], runsAllButUnrun),
   });
 }
 

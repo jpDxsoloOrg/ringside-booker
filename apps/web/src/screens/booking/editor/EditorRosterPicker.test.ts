@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { parseId } from '@ringside/engine';
-import type { AvailableTeamRow, PersonId } from '@ringside/engine';
+import type { AvailableTeamRow, AvailableWorkerRow, PersonId } from '@ringside/engine';
 import {
   GALLERY_EDITOR_CARD,
   GALLERY_SINGLES,
@@ -85,5 +85,32 @@ describe('EditorRosterPicker rows', () => {
     };
     expect(pickerTeam(team, roster, DRAFT, EDITED).bookedElsewhere).toBe(true);
     expect(pickerTeam(team, roster, DRAFT, OTHER).bookedElsewhere).toBe(false);
+  });
+
+  it('carries gender and push, for a person and for each team member', () => {
+    const woman: AvailableWorkerRow = { ...rowOn([]), gender: 'female', push: 'mainEvent' };
+    const picked = pickerPerson(woman, CONTEXT);
+    expect(picked.gender).toBe('female');
+    expect(picked.push).toBe('mainEvent');
+    const man: AvailableWorkerRow = {
+      ...rowOn([]),
+      personId: parseId('person', 'per_0000000999'),
+      gender: 'male',
+      push: 'lowerCard',
+    };
+    const roster = new Map<PersonId, AvailableWorkerRow>([
+      [woman.personId, woman],
+      [man.personId, man],
+    ]);
+    const team: AvailableTeamRow = {
+      teamId: parseId('team', 'tem_0000000001'),
+      name: 'Odd Couple',
+      kind: 'tag',
+      memberIds: [woman.personId, man.personId],
+      bookable: true,
+    };
+    const row = pickerTeam(team, roster, DRAFT);
+    expect(row.memberGenders).toEqual(['female', 'male']);
+    expect(row.memberPushes).toEqual(['mainEvent', 'lowerCard']);
   });
 });

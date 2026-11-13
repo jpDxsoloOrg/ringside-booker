@@ -17,6 +17,13 @@ const isCi = (process.env['CI'] ?? '') !== '';
  */
 const includeWebkit = process.env['E2E_WEBKIT'] === '1';
 
+/**
+ * A wrapper script that starts Playwright's WebKit with system libraries unpacked into a user
+ * folder, for machines where `npx playwright install-deps webkit` cannot run without root.
+ * docs/design/browsers.md has the recipe. Unset, Playwright starts its own WebKit build.
+ */
+const webkitExecutable = process.env['E2E_WEBKIT_EXECUTABLE'] ?? '';
+
 /** A 390px-wide phone, the narrowest layout every screen has to work at. */
 const phoneSettings: Partial<PlaywrightTestOptions> = {
   viewport: { width: 390, height: 844 },
@@ -42,7 +49,11 @@ const webkitProjects: ProjectList = [
     // Playwright tags belong to tests, not projects, so the WebKit tag is recorded as metadata
     // where reports and CI can still read it.
     metadata: { tag: '@webkit' },
-    use: { browserName: 'webkit', ...phoneSettings },
+    use: {
+      browserName: 'webkit',
+      ...phoneSettings,
+      ...(webkitExecutable === '' ? {} : { launchOptions: { executablePath: webkitExecutable } }),
+    },
   },
 ];
 

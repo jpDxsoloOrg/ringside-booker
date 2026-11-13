@@ -1,13 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import type { GateHit } from '@ringside/engine';
 import { routes } from '../../routes';
-import { deriveDayControl, GENERIC_GATE_LABEL, leadingGate } from './dayControlState';
+import {
+  deriveDayControl,
+  gateDestination,
+  GENERIC_GATE_LABEL,
+  leadingGate,
+} from './dayControlState';
 
 const showGate: GateHit = {
-  gateId: 'events.showNeedsBooking',
-  reason: "Your show 'Harbor Lights Showdown' on 2031-03-14 has no card yet",
+  gateId: 'shows.tonight',
+  reason: 'Tonight: Harbor Lights Showdown',
   subject: { kind: 'eventInstance', id: 'evi_harbor' },
-  actionHint: 'booking',
+  actionHint: 'showNight',
 };
 
 const contractDecision: GateHit = {
@@ -35,11 +40,12 @@ describe('deriveDayControl', () => {
     expect(state.primary).toEqual({ kind: 'next' });
   });
 
-  it('routes a show gate to booking, linking the event, and turns Skip off', () => {
+  it('routes a show night gate to the show, linking the event, and turns Skip off', () => {
     expect(deriveDayControl([showGate], idle)).toEqual({
       primary: {
         kind: 'gate',
-        label: 'Go to show',
+        label: 'Go to the show',
+        phoneLabel: 'Tonight',
         reason: showGate.reason,
         to: `${routes.game.booking()}?event=evi_harbor`,
       },
@@ -51,7 +57,7 @@ describe('deriveDayControl', () => {
     const withoutSubject: GateHit = {
       gateId: showGate.gateId,
       reason: showGate.reason,
-      actionHint: 'booking',
+      actionHint: 'showNight',
     };
     const state = deriveDayControl([withoutSubject], idle);
     expect(state.primary).toMatchObject({ kind: 'gate', to: routes.game.booking() });
@@ -63,6 +69,7 @@ describe('deriveDayControl', () => {
       primary: {
         kind: 'gate',
         label: '2 decisions waiting',
+        phoneLabel: '2 waiting',
         reason: contractDecision.reason,
         to: `${routes.game.inbox()}?filter=decisions`,
       },
@@ -83,7 +90,13 @@ describe('deriveDayControl', () => {
       actionHint: 'draftRoom',
     };
     expect(deriveDayControl([unknown], idle)).toEqual({
-      primary: { kind: 'gate', label: GENERIC_GATE_LABEL, reason: unknown.reason, to: null },
+      primary: {
+        kind: 'gate',
+        label: GENERIC_GATE_LABEL,
+        phoneLabel: null,
+        reason: unknown.reason,
+        to: null,
+      },
       skipEnabled: false,
     });
   });
@@ -116,5 +129,17 @@ describe('leadingGate', () => {
   it('ranks known hints ahead of unknown ones', () => {
     const unknown: GateHit = { gateId: 'a.first', reason: 'First', actionHint: 'elsewhere' };
     expect(leadingGate([unknown, showGate])).toBe(showGate);
+  });
+});
+
+describe('gateDestination', () => {
+  it('names Go to the show for a show night gate, and nothing for a gate no screen handles', () => {
+    expect(gateDestination(showGate)).toEqual({
+      label: 'Go to the show',
+      to: `${routes.game.booking()}?event=evi_harbor`,
+    });
+    expect(gateDestination({ gateId: 'a.b', reason: 'Elsewhere', actionHint: 'draftRoom' })).toBe(
+      null,
+    );
   });
 });

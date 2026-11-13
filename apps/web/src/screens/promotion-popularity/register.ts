@@ -5,6 +5,8 @@
  */
 import { createElement } from 'react';
 import { registerResultsSection } from '@/screens/show-results/resultsSectionRegistry';
+import { registerShowReportLine } from '@/screens/show-results/showReportLineRegistry';
+import { usePopularityReportLine } from './popularityReportLine';
 import { PopularitySection } from './PopularitySection';
 
 /** The section's id in the results registry. */
@@ -21,4 +23,11 @@ registerResultsSection({
   label: 'Popularity',
   order: POPULARITY_SECTION_ORDER,
   render: ({ eventInstanceId }) => createElement(PopularitySection, { eventInstanceId }),
+});
+
+// The show report's "Fans" line (EVT3-09), in the section's place in the order.
+registerShowReportLine({
+  id: 'evt5.fans',
+  order: POPULARITY_SECTION_ORDER,
+  line: usePopularityReportLine,
 });

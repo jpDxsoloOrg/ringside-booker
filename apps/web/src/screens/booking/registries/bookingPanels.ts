@@ -29,7 +29,7 @@ export interface BookingPanelDefinition {
   /** Draws the panel, or returns null to leave it out for this show. */
   readonly render: (context: BookingPanelContext) => ReactNode;
   /**
-   * One short line for the phone's sticky bar, above "N problems · Lock card" ("Forecast: 74, B").
+   * One short line for the phone's sticky bar, above "N problems · Run the show" ("Forecast: 74, B").
    * Tapping it opens the panel in a bottom sheet. Return null to say nothing for this show.
    */
   readonly phoneSummary?: (context: BookingPanelContext) => string | null;

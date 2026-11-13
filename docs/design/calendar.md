@@ -117,12 +117,13 @@ preferred venue was used (`preferredVenue`) or left open (`notChosen`).
 
 ## Lifecycle
 
-A show moves `scheduled` → `booked` → `completed`, or ends as `cancelled`.
+A show moves `scheduled` → `completed`, or ends as `cancelled`. (`booked` is no longer written:
+there is no lock since EVT2-09, and an old save's `booked` show counts as open.)
 
 | Status      | Meaning                                                |
 | ----------- | ------------------------------------------------------ |
 | `scheduled` | On the books with no finished card                     |
-| `booked`    | Its card is locked in and it is waiting for its day    |
+| `booked`    | Old saves only: a card locked before EVT2-09; open     |
 | `completed` | It ran. The row carries its `result`                   |
 | `cancelled` | It will not happen. The row carries its `cancellation` |
 
@@ -226,8 +227,8 @@ today's date, and `show.cancelled` is published. Three things it does not do:
 - **It never deletes the row.** The cancelled show keeps its place in the
   `byDefinitionAirDate` index, so the daily horizon skips that date for good
   and a cancelled show never comes back.
-- **It does not touch the show's segments.** What happens to a locked card
-  when its show is cancelled belongs to booking.
+- **It does not touch the show's segments.** What happens to a card when
+  its show is cancelled belongs to booking.
 - **It costs nothing and upsets nobody.** Cancelling has no price and no
   effect on anyone's morale here. If a later feature adds a reaction, it has
   to follow D-09.

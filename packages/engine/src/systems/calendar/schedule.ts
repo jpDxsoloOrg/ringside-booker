@@ -141,6 +141,7 @@ export function scheduleDefinitionWindow(
       airDate: occurrence,
       status: 'scheduled',
       venueId: placement.venueId,
+      genericVenue: null,
       regionId: placement.regionId,
       result: null,
       cancellation: null,

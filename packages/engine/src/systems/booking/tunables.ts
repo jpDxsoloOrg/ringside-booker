@@ -1,6 +1,6 @@
 /**
  * The booking system's balance numbers: the thresholds the booking checks (EVT2-04) hold a card
- * to before it can be locked.
+ * to before its show can run.
  *
  * Design notes: docs/design/booking.md#validation.
  */
@@ -41,7 +41,7 @@ export const bookingTunables = defineTunables({
     unit: 'ratio',
     category: BOOKING_CATEGORY,
     description:
-      'Share of main-card slots that must be filled before a card can be locked (0 = no minimum)',
+      'Share of main-card slots that must be filled before the show can run (0 = no minimum)',
     docRef: VALIDATION_DOC,
   },
   'booking.requireMainEvent': {
@@ -49,7 +49,7 @@ export const bookingTunables = defineTunables({
     default: true,
     unit: 'flag',
     category: BOOKING_CATEGORY,
-    description: 'A card can only be locked with its main event (the last main-card slot) filled',
+    description: 'A show can only run with its main event (the last main-card slot) filled',
     docRef: VALIDATION_DOC,
   },
 });

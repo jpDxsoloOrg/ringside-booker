@@ -110,7 +110,7 @@ function IssueList({ issues, title, severity, onShowSlot, headingLevel }: IssueL
 }
 
 /**
- * What stands between a card and Lock: the checklist lines from `booking.validate`, each passed,
+ * What stands between a card and Run the show: the checklist lines from `booking.validate`, each passed,
  * failed (a problem, red) or questioned (a warning, amber), always with an icon and words, then
  * every problem and warning with the slot it is about. A problem about a slot takes you to it.
  */

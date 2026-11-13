@@ -504,5 +504,38 @@
     "closedOn": null,
     "exclusivePromotionKey": null,
     "imageRef": null
+  },
+  {
+    "key": "altura-studio-one",
+    "regionKey": "us-florida",
+    "name": "Altura Studio One",
+    "capacity": 600,
+    "kind": "studio",
+    "openedOn": null,
+    "closedOn": null,
+    "exclusivePromotionKey": "pro-flagship",
+    "imageRef": null
+  },
+  {
+    "key": "longleaf-barn",
+    "regionKey": "us-southeast",
+    "name": "Longleaf Barn",
+    "capacity": 1500,
+    "kind": "hall",
+    "openedOn": null,
+    "closedOn": null,
+    "exclusivePromotionKey": "pro-us-southeast",
+    "imageRef": null
+  },
+  {
+    "key": "tessen-dojo-hall",
+    "regionKey": "jp-kanto",
+    "name": "Tessen Dojo Hall",
+    "capacity": 900,
+    "kind": "hall",
+    "openedOn": null,
+    "closedOn": null,
+    "exclusivePromotionKey": "pro-jp-major",
+    "imageRef": null
   }
 ]

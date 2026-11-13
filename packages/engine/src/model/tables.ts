@@ -21,6 +21,7 @@ import { participantsTable } from './entities/participant';
 import { peopleTable } from './entities/person';
 import { popularityShowChangesTable } from './entities/popularity-show-change';
 import { promotionsTable } from './entities/promotion';
+import { promotionSnapshotTable } from './entities/promotion-snapshot';
 import { relationshipsTable } from './entities/relationship';
 import { seasonsTable } from './entities/season';
 import { segmentsTable } from './entities/segment';
@@ -66,6 +67,8 @@ export const TABLES = {
   popularityShowChanges: popularityShowChangesTable,
   // MTCH3-03: what each match did to each competitor's popularity and momentum.
   aftermaths: aftermathsTable,
+  // DAY2-01: each promotion's weekly history.
+  promotionSnapshots: promotionSnapshotTable,
 } as const satisfies TableRegistry;
 
 export type GameTables = typeof TABLES;

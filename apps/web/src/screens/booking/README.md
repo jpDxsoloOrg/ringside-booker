@@ -1,6 +1,7 @@
 # Booking screen
 
-`/game/booking`: one of your shows at a time, its card slot by slot, the checklist and Lock card.
+`/game/booking`: one of your shows at a time, its card slot by slot, the checklist and, on the
+show's day, **Run the show**. It is also the show screen: Go to the show opens it (EVT2-09).
 On desktop the card sits beside a side column with the checklist; below `--bp-mobile` it is one
 column with a sticky bar at the bottom. The engine side is in
 [`docs/design/booking.md`](../../../../../docs/design/booking.md).
@@ -14,8 +15,8 @@ column with a sticky bar at the bottom. The engine side is in
 | `cardSlotProps.ts`              | `toCardSlotProps`: one slot of `booking.card` as `CardSlot` props; issue counts |
 | `SlotActions.tsx`               | A filled slot's menu (Edit, Winner ▸, Move up/down, Remove) and phone buttons   |
 | `ValidationChecklist.tsx`       | `booking.validate` as checklist lines, then every problem with its slot         |
-| `LockBar.tsx`                   | Lock card / Unlock card, "Fix N problems to lock", Clear card                   |
-| `calendarAction.tsx`            | "Book this show" / "Edit card" in the calendar's show sheet                     |
+| `ShowBar.tsx`                   | Run the show (show day), "Fix N problems to run the show", Clear card           |
+| `calendarAction.tsx`            | "Book this show" / "Edit card" / "Go to the show" in the calendar's show sheet  |
 | `bookingUrl.ts`                 | `bookingShowUrl(id)`: `/game/booking?event=<id>`                                |
 | `registries/bookingPanels.ts`   | `registerBookingPanel`: feature panels beside or under the card                 |
 | `sections/index.ts`             | The append-only list of feature files that register panels (and editor parts)   |
@@ -34,15 +35,16 @@ column with a sticky bar at the bottom. The engine side is in
 
 - `booking.shows` (limit 60) lists your shows to book. The screen opens on `?event=` when it names
   one of them, else on `nextToBookId`, else the first row, and writes that id back to the URL
-  with `replace`. A show that has run drops out of the list, so after Next Day the screen moves
-  on to the next show by itself.
+  with `replace`. A show that has run drops out of the list; after Run the show the screen opens
+  the results instead (and stops rewriting the URL while the results route loads).
 - `booking.card` draws the card; `booking.validate` the checklist, the per-slot problem markers
-  and whether Lock is on. Both refetch after every command and every simulated day.
+  and whether Run the show is on. Both refetch after every command and every simulated day.
 - `match.finishes` and `match.catalog` are read per match row for the Winner menu's way of
   winning: the type's first method that can move a title (`defaultWinMethodKey`).
 - Commands: `booking.moveSegment`, `booking.setResult`, `booking.removeSegment`,
-  `booking.clearCard`, `booking.lockCard`, `booking.unlockCard`. A refusal is shown as the engine
-  words it, in a dismissable notice (Remove and Clear show it inside their confirmation).
+  `booking.clearCard`, `shows.runTonight`. A refusal is shown as the engine words it, in a
+  dismissable notice (Remove and Clear show it inside their confirmation); a reason about one
+  segment is a button that jumps to its slot.
 
 Nothing on the screen is a time (D-10). The only derived values are the slot role, the size class
 ("Short", "Standard", "Long") and the minimum filled count, each with its Why?.
@@ -58,16 +60,21 @@ by the drag's own live region, or by the shell's announcer for a button.
 
 On a phone the drag handle is hidden and Move up / Move down are 44px buttons on each row.
 
-## Locking
+## Show night
 
-**Lock card** is disabled until `booking.validate` says `runnable`, with "Fix N problems to
-lock" under it. Locked, the status reads Booked, every editing control hides and **Unlock card**
-appears (only when the lock is the one thing stopping changes). **Clear card** asks first.
+There is no Lock card (EVT2-09): a card stays editable until its show has run. On the show's day
+Next Day stops with "Tonight: <Show>" and **Go to the show** (the day button, the advance banner,
+the calendar sheet) opens the show here. The status reads Tonight and **Run the show**
+(`shows.runTonight`) sits in the header (the sticky bar on a phone). It is disabled until
+`booking.validate` says `runnable`, with "Fix N problems to run the show" as its description;
+warnings never block. Once it has run, the results page opens with the reveal
+(`/game/event-history/<id>?reveal=1`). On any other day there is no run button; the checklist is
+guidance. **Clear card** asks first.
 
 ## Phone
 
-One column. The checklist folds into a sticky bar above the tab bar ("3 problems" and Lock
-card), the only sticky element on the screen; tapping the count opens the checklist in a bottom
+One column. The checklist folds into a sticky bar above the tab bar ("3 problems" and, on show
+day, Run the show), the only sticky element on the screen; tapping the count opens the checklist in a bottom
 sheet. Up to two registered `phoneSummary` lines sit above it; tapping one opens its panel in a
 bottom sheet.
 
@@ -130,6 +137,17 @@ until **Save**, which sends the whole draft in one `booking.addSegment` or
   for wrestlers, stamina, rounded. Screen readers hear "Popularity in <region> 54". Most popular
   sorts by popularity. Fatigue (WRK6) is not tracked yet; when it is, it is one more entry in
   `workerStats`, and nothing stands in for it until then.
+  The line starts with the worker's gender in the profile's words (`GENDER_LABELS`: "Woman ·
+  High flyer · …"), and a team row says "Women", "Men" or "Mixed". Gender and Push chips open
+  small menus (`genderAndPushFilters`): Gender is All, Men, Women or Non-binary, and a team
+  matches when every member does; Push takes one or more pushes in `PUSH_LABELS`' words, and a
+  team matches when any member does. They combine with the other filters, the list counts what
+  they hide, and the choice holds while the editor is open. They only narrow the list: any
+  gender or push mix can be booked (EVT2-11).
+- **Phones.** The picker's search box takes focus as it opens, so on a touch screen it and the
+  billing line are 16px: Safari on iPhone zooms the page in on a smaller text field and leaves it
+  zoomed (EVT2-10). Long names wrap on a phone rather than being cut off, and
+  `e2e/segment-editor.spec.ts` checks the editor and the open picker fit with no sideways scroll.
 - **Teams by name and wrestlers.** A team side says "Team: Running Axe" above its wrestlers; the
   Result choice, the card row's Winner menu (`bookingSideText`) read "Side 1: Running Axe (Kai
   Moreno & Rex Hale)", and the card row puts the wrestlers under the team's name
@@ -173,5 +191,6 @@ saves it with everything else. If a section needs a field the draft lacks, it wi
 ### The calendar
 
 `calendarAction.tsx` registers `booking.book` (order 10) with the calendar's
-`registerShowSheetAction`: "Book this show", or "Edit card" once something is booked, for your
-own scheduled or booked shows dated today or later. It never edits `ShowDetailSheet.tsx`.
+`registerShowSheetAction`: "Book this show", or "Edit card" once something is booked, or "Go to
+the show" on the show's day, for your own open shows dated today or later (`booked` only comes
+from a save made before the lock was removed). It never edits `ShowDetailSheet.tsx`.

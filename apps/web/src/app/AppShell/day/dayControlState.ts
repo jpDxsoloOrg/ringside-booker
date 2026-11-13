@@ -12,6 +12,11 @@ export type DayPrimaryAction =
   | {
       readonly kind: 'gate';
       readonly label: string;
+      /**
+       * A shorter label for the phone top bar, where the full one would be cut off, or null when
+       * the full one is short enough. The full label stays the button's accessible name.
+       */
+      readonly phoneLabel: string | null;
       /** The player-facing reason of the gate that decides the button. */
       readonly reason: string;
       /** Where the button goes, or null when no screen deals with this gate. */
@@ -34,14 +39,25 @@ export interface DeriveDayControlOptions {
 /** How one route hint turns into a button. `count` is how many waiting gates share the hint. */
 interface GateRoute {
   readonly label: (count: number) => string;
+  /** The phone top bar's label, when `label` is too long to fit beside the date (UI-30). */
+  readonly phoneLabel?: (count: number) => string;
   readonly to: (hit: GateHit) => string;
 }
 
 /** The route hint for the inbox. Its gates outrank every other kind. */
 export const INBOX_HINT = 'inbox';
 
-/** The route hint for booking a show. */
-export const BOOKING_HINT = 'booking';
+/**
+ * The route hint for show night (the engine's `SHOW_NIGHT_ACTION_HINT`): the day stops on a show
+ * of yours ("Tonight: <Show>") and the button goes to that show, where you run it (EVT2-09).
+ */
+export const SHOW_NIGHT_HINT = 'showNight';
+
+/** The label of the show night button. */
+export const GO_TO_SHOW_LABEL = 'Go to the show';
+
+/** The show night button's label in the phone top bar. */
+export const SHOW_TONIGHT_PHONE_LABEL = 'Tonight';
 
 /** The label of a gate whose hint no screen handles yet. */
 export const GENERIC_GATE_LABEL = 'Needs attention';
@@ -54,10 +70,12 @@ export const GENERIC_GATE_LABEL = 'Needs attention';
 const GATE_ROUTES: Readonly<Record<string, GateRoute>> = {
   [INBOX_HINT]: {
     label: (count) => `${String(count)} ${count === 1 ? 'decision' : 'decisions'} waiting`,
+    phoneLabel: (count) => `${String(count)} waiting`,
     to: () => `${routes.game.inbox()}?filter=decisions`,
   },
-  [BOOKING_HINT]: {
-    label: () => 'Go to show',
+  [SHOW_NIGHT_HINT]: {
+    label: () => GO_TO_SHOW_LABEL,
+    phoneLabel: () => SHOW_TONIGHT_PHONE_LABEL,
     to: (hit) =>
       hit.subject?.kind === 'eventInstance'
         ? `${routes.game.booking()}?event=${encodeURIComponent(hit.subject.id)}`
@@ -70,7 +88,7 @@ const GATE_ROUTES: Readonly<Record<string, GateRoute>> = {
  * show: booking with a contract or discipline call still open means acting on stale information.
  * Hints not listed here keep the engine's registration order, after these.
  */
-const HINT_PRIORITY: readonly string[] = [INBOX_HINT, BOOKING_HINT];
+const HINT_PRIORITY: readonly string[] = [INBOX_HINT, SHOW_NIGHT_HINT];
 
 function hintRank(hit: GateHit): number {
   const rank = hit.actionHint === undefined ? -1 : HINT_PRIORITY.indexOf(hit.actionHint);
@@ -89,6 +107,17 @@ export function leadingGate(gates: readonly GateHit[]): GateHit | undefined {
 function routeFor(hit: GateHit): GateRoute | undefined {
   if (hit.actionHint === undefined || !Object.hasOwn(GATE_ROUTES, hit.actionHint)) return undefined;
   return GATE_ROUTES[hit.actionHint];
+}
+
+/** Where a gate's button goes and what it says, or null when no screen deals with the gate. */
+export function gateDestination(
+  hit: GateHit,
+  gates: readonly GateHit[] = [hit],
+): { readonly label: string; readonly to: string } | null {
+  const route = routeFor(hit);
+  if (route === undefined) return null;
+  const sameHint = gates.filter((other) => other.actionHint === hit.actionHint).length;
+  return { label: route.label(Math.max(sameHint, 1)), to: route.to(hit) };
 }
 
 /**
@@ -111,7 +140,13 @@ export function deriveDayControl(
   const route = routeFor(leading);
   if (route === undefined) {
     return {
-      primary: { kind: 'gate', label: GENERIC_GATE_LABEL, reason: leading.reason, to: null },
+      primary: {
+        kind: 'gate',
+        label: GENERIC_GATE_LABEL,
+        phoneLabel: null,
+        reason: leading.reason,
+        to: null,
+      },
       skipEnabled: false,
     };
   }
@@ -120,6 +155,7 @@ export function deriveDayControl(
     primary: {
       kind: 'gate',
       label: route.label(sameHint),
+      phoneLabel: route.phoneLabel?.(sameHint) ?? null,
       reason: leading.reason,
       to: route.to(leading),
     },

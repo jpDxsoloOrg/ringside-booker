@@ -70,9 +70,62 @@
   background: var(--color-surface-hover);
 }
 
-.filter[aria-pressed='true'] {
+.filter[aria-pressed='true'],
+.filter[data-narrowed] {
   border-color: var(--color-data);
   color: var(--color-text);
+}
+
+/* ---- Gender and Push menus ---------------------------------------------------------------- */
+
+.menuList {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 12rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.menuLegend {
+  padding: 0;
+  margin-block-end: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: 2rem;
+  cursor: pointer;
+}
+
+.menuInput {
+  inline-size: 1.125rem;
+  block-size: 1.125rem;
+  margin: 0;
+  accent-color: var(--color-action);
+}
+
+.menuReset {
+  justify-self: start;
+  min-block-size: 2rem;
+  margin-block-start: var(--space-1);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-data);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.menuReset:disabled {
+  color: var(--color-text-subtle);
+  text-decoration: none;
+  cursor: default;
 }
 
 .status {
@@ -195,14 +248,33 @@
 @media (pointer: coarse) {
   .searchInput,
   .filter,
-  .row {
+  .row,
+  .menuItem,
+  .menuReset {
     min-block-size: var(--tap-target-min);
+  }
+
+  /*
+   * The search box takes focus when the picker opens. A phone browser (Safari on iPhone) zooms
+   * the whole page in on a text field smaller than 16px and leaves it zoomed, so the player had
+   * to pinch out to see the picker again (EVT2-10). At 16px it never zooms.
+   */
+  .searchInput {
+    font-size: var(--font-size-md);
   }
 }
 
 @media (--bp-mobile) {
   .searchInput,
-  .filter {
+  .filter,
+  .menuItem,
+  .menuReset {
     min-block-size: var(--tap-target-min);
+  }
+
+  /* A long name wraps onto a second line on a phone rather than being cut off. */
+  .rowName {
+    overflow-wrap: anywhere;
+    white-space: normal;
   }
 }

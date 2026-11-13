@@ -123,7 +123,7 @@ WLD-09 roster spec; promotions have no women's-division flag.
 
 ## Venues
 
-46 venues, each in a promotion's home region or a neighbouring one and sized
+49 venues, each in a promotion's home region or a neighbouring one and sized
 for the tier that uses it:
 
 | Kind                | Capacity      | Used by                                     |
@@ -134,8 +134,18 @@ for the tier that uses it:
 | `stadium`           | 35,000-70,000 | Altura's annual flagship show only          |
 
 Names follow three patterns: "<Region> Civic Hall", "<invented place> Arena"
-and "The <invented word> Room". No venue is exclusive to a promotion and none
-has a rent: venue costs belong to the economy (ECO).
+and "The <invented word> Room". None has a rent: venue costs belong to the
+economy (ECO).
+
+Three venues are exclusive to one promotion (EVT6-02), so exclusivity can be
+seen and tested. Nobody else can book them; see
+[box-office.md](box-office.md#venues).
+
+| Venue             | Kind     | Capacity | Region         | Exclusive to                  |
+| ----------------- | -------- | -------: | -------------- | ----------------------------- |
+| Altura Studio One | `studio` |      600 | `us-florida`   | Altura (`pro-flagship`)       |
+| Longleaf Barn     | `hall`   |    1,500 | `us-southeast` | Longleaf (`pro-us-southeast`) |
+| Tessen Dojo Hall  | `hall`   |      900 | `jp-kanto`     | Tessen (`pro-jp-major`)       |
 
 ## Networks
 

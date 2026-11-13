@@ -18,7 +18,7 @@ const NEXT_DATE_LONG = 'Saturday, April 11, 2026';
 const WEEK_LATER_LONG = 'Saturday, April 18, 2026';
 /** The sample world's next weekly show, which the player has not booked. */
 const SHOW_DATE_LONG = 'Thursday, April 16, 2026';
-const SHOW_REASON = "Your show 'Test Weekly' on 2026-04-16 has no card yet";
+const SHOW_REASON = "Your show 'Test Weekly' has no card yet";
 const SAMPLE_DATE_SHORT = 'Apr 10, 2026';
 
 /** UI scales the phone bar is checked at: the default, a step up and the largest. */
@@ -151,6 +151,8 @@ test.describe('day control', () => {
     // The show-day gate stops the skip before the player's show on Thursday the 16th.
     await expect(summary).toContainText(`Advanced 5 days to ${SHOW_DATE_LONG}`);
     await expect(summary).toContainText(SHOW_REASON);
+    await expect(summary.getByRole('link', { name: 'Go to the show' })).toBeVisible();
+    await expect(dayButton(page, 'Go to the show')).toBeVisible();
     await expect(dateChip).toContainText(SHOW_DATE_LONG);
     await expectNoSeriousA11yViolations(page);
   });

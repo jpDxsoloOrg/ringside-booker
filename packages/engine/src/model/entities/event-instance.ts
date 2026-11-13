@@ -15,6 +15,7 @@ import { defineTable } from '../table-def';
 import { zGameDate, zId, zNonNegativeCents, zNonNegativeInt, zStat } from '../primitives';
 import { isPresentIff, zName } from './entity-refinements';
 import { ShowFormatSchema, zEventImportance } from './event-definition';
+import { GenericVenueTierSchema, VENUE_CAPACITY_MAX } from './venue';
 
 export const EVENT_INSTANCE_STATUSES = ['scheduled', 'booked', 'completed', 'cancelled'] as const;
 export type EventInstanceStatus = (typeof EVENT_INSTANCE_STATUSES)[number];
@@ -55,6 +56,15 @@ export const EventResultSchema = z.strictObject({
   viewers: zNonNegativeInt.nullable(),
 });
 
+/**
+ * A generic local venue a show is held in (EVT6-02): its size and the capacity that size had when
+ * it was chosen, copied in so a later tunable change never rewrites a past show.
+ */
+export const GenericVenueSchema = z.strictObject({
+  tier: GenericVenueTierSchema,
+  capacity: z.number().int().min(1).max(VENUE_CAPACITY_MAX),
+});
+
 export const EventInstanceSchema = z
   .strictObject({
     id: zId('eventInstance'),
@@ -73,6 +83,11 @@ export const EventInstanceSchema = z
     airDate: zGameDate,
     status: z.enum(EVENT_INSTANCE_STATUSES),
     venueId: zId('venue').nullable(),
+    /**
+     * The generic local venue the show is held in, or null. Never set together with `venueId`;
+     * both null means the venue is not chosen yet. Defaults to null for saves made before EVT6-02.
+     */
+    genericVenue: GenericVenueSchema.nullable().default(null),
     regionId: zId('region'),
     /** Set exactly when the show is completed. */
     result: EventResultSchema.nullable(),
@@ -87,12 +102,17 @@ export const EventInstanceSchema = z
     message: 'result is set exactly when status is completed',
     path: ['result'],
   })
+  .refine((instance) => instance.venueId === null || instance.genericVenue === null, {
+    message: 'a show has a real venue or a generic venue, not both',
+    path: ['genericVenue'],
+  })
   .refine((instance) => isPresentIff(instance.cancellation, instance.status === 'cancelled'), {
     message: 'cancellation is set exactly when status is cancelled',
     path: ['cancellation'],
   });
 
 export type EventResult = z.infer<typeof EventResultSchema>;
+export type GenericVenue = z.infer<typeof GenericVenueSchema>;
 export type EventCancellation = z.infer<typeof EventCancellationSchema>;
 export type EventInstance = z.infer<typeof EventInstanceSchema>;
 

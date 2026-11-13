@@ -9,7 +9,7 @@ import { financeSystem, SHOW_COST_CATEGORIES, showWorkersOf } from '../../../src
 import { matchSystem } from '../../../src/systems/match';
 import { showsSystem } from '../../../src/systems/shows';
 import { createEngineTunables } from '../../../src/systems/tunables';
-import { TEST_PLAYER_ID } from '../../support';
+import { TEST_PLAYER_ID, withMyShowsRun } from '../../support';
 import { showNightWorld } from '../shows/show-night-world';
 
 const HUMAN_VIEWER: Viewer = {
@@ -37,7 +37,7 @@ async function showNight() {
   if (!fee.ok) throw fee.error;
   const engine = createEngine({
     state: initialEngineState(built.world),
-    systems: [simSystem, matchSystem, showsSystem, financeSystem],
+    systems: withMyShowsRun([simSystem, matchSystem, showsSystem, financeSystem]),
   });
   await engine.advanceDays({ maxDays: 1 });
   const { world } = engine.exportState();

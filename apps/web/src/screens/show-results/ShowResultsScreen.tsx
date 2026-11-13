@@ -132,9 +132,25 @@ interface CompletedPageProps {
   readonly result: ShowResultView;
 }
 
+/**
+ * The score fans in the show's own region expected, from EVT5's `popularity.showChange`, or null
+ * while it loads, when the show changed no popularity, or when the record is gone.
+ */
+function useShowExpectation(view: ShowResultsView): number | null {
+  const query = useEngineQuery('popularity.showChange', { eventInstanceId: view.eventInstanceId });
+  const data = query.data;
+  if (data?.status !== 'applied') return null;
+  for (const country of data.countries) {
+    const region = country.regions.find((entry) => entry.regionId === view.region.id);
+    if (region !== undefined) return region.expectation;
+  }
+  return null;
+}
+
 /** A finished show's page, with `?reveal=1` playing the reveal and taken out once it ends. */
 function CompletedPage({ view, result }: CompletedPageProps) {
   useDocumentTitle(`${view.name} results`);
+  const expectation = useShowExpectation(view);
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   const wantsReveal = searchParams.get(SHOW_RESULTS_PARAMS.reveal) === '1';
@@ -162,6 +178,7 @@ function CompletedPage({ view, result }: CompletedPageProps) {
       view={view}
       result={result}
       revealRequested={wantsReveal}
+      expectation={expectation}
       {...(wantsReveal ? { onRevealEnd: endReveal } : {})}
     />
   );
@@ -189,7 +206,8 @@ function LoadedShowResults({ eventInstanceId }: { readonly eventInstanceId: Even
 
 /**
  * One show's results at `/game/event-history/:eventInstanceId`, broadcast style: the lower third,
- * the final score with its Why?, then every segment in card order. Opened with `?reveal=1` (the
+ * the final score with its Why?, the show report (verdict, how it was scored, what changed), then
+ * every segment in card order. Opened with `?reveal=1` (the
  * Next Day summary's links) the segments come out one at a time, unless motion is reduced. Other
  * features add sections under the card with `registerResultsSection`.
  */

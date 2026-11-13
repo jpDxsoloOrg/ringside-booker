@@ -6,7 +6,8 @@
  * screen until AIP4. This system's phase runs in the `shows` group just before show night (order
  * 5) and, for every open show today with an empty card, fills each main-card slot with a singles
  * match between two of the promotion's active wrestlers (the show's brand first), with no planned
- * winner, so MTCH2's auto-winner decides. A human-run show is then locked so show night runs it.
+ * winner, so MTCH2's auto-winner decides. A human-run show is then run by `runMyShowsSystem`
+ * (`run-my-shows.ts`), standing in for the player pressing Run the show.
  * Who meets whom is a fixed shuffle of the roster per show, so a run is deterministic.
  */
 
@@ -17,7 +18,6 @@ import { defineSystem, type SystemBundle } from '../../src/core/api/system';
 import { promotionStatusKey } from '../../src/model/entities/employment';
 import { MatchDraftSchema, writeSegment, type MatchDraft } from '../../src/systems/booking';
 import { cardSegments } from '../../src/systems/booking/card';
-import { showControllerOf } from '../../src/systems/calendar/control';
 import { showsToRunToday } from '../../src/systems/shows';
 
 const SINGLES = parseContentKey('match.singles');
@@ -104,9 +104,6 @@ export const cardEveryShowSystem: SystemBundle = defineSystem({
               slot,
               draft: singles(left, right),
             });
-          }
-          if (showControllerOf(ctx.read, show).kind === 'human') {
-            ctx.tx.update('eventInstances', show.id, { status: 'booked' });
           }
         }
       },
