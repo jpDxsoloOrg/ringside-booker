@@ -640,3 +640,24 @@ export {
   type RiskContribution,
   type RiskModifierSpec,
 } from './physical';
+
+// Ring learning (MTCH4-03). Design: docs/design/physical-toll.md#ring-learning.
+export {
+  IN_MATCH_LEARNING,
+  LIMITED_BY_POTENTIAL_LABEL,
+  PRODUCED_ATTRIBUTES,
+  RING_LEARNING_DOC_REF,
+  collectRingLearning,
+  computeRingLearning,
+  computeRingLearningTotal,
+  isTaughtAttribute,
+  learningTunables,
+  mentorOnCard,
+  type InMatchLearningAttribute,
+  type InMatchLearningEntry,
+  type LearningPeer,
+  type LearningProducer,
+  type MentorOnCard,
+  type RingLearningInputs,
+  type WorkerRingLearning,
+} from './physical';

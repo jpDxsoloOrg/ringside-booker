@@ -48,3 +48,24 @@ export {
   type ConditionWearInputs,
 } from '../formulas/conditionWear';
 export { computeWearByPart } from '../formulas/wearByPart';
+
+// Ring learning (MTCH4-03). `learningRoom` (the hidden gate) stays inside the match system.
+export { learningTunables } from './learningTunables';
+export {
+  IN_MATCH_LEARNING,
+  PRODUCED_ATTRIBUTES,
+  isTaughtAttribute,
+  type InMatchLearningAttribute,
+  type InMatchLearningEntry,
+} from './learning';
+export { mentorOnCard, type MentorOnCard } from './mentor';
+export { collectRingLearning, type WorkerRingLearning } from './collectLearning';
+export {
+  LIMITED_BY_POTENTIAL_LABEL,
+  RING_LEARNING_DOC_REF,
+  computeRingLearning,
+  computeRingLearningTotal,
+  type LearningPeer,
+  type LearningProducer,
+  type RingLearningInputs,
+} from '../formulas/ringLearning';
