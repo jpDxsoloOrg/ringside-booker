@@ -235,10 +235,12 @@ Nothing else changes: no morale, momentum, prestige or cash, and no rolls.
 with their worldwide change, and `monthlyGainsOf(read, promotionId, date)` reads
 this month's tally.
 
-**Keeping the records.** On the 1st of each month the
-`promoPop.pruneShowChanges` phase (periodic group) deletes records of shows
-more than `promoPop.keepShowChangesDays` (365) days before that day. 0 keeps
-none past the 1st.
+**Keeping the records.** The weekly history roll-up (`history.rollUp`,
+POL4-08, see [save-format.md](save-format.md#history-retention)) deletes the
+records of shows older than `history.keepDetailDays` (28) days, after copying
+each show's worldwide before and after into the show's summary
+(`result.history.world`). `recentShowChanges` lists rolled-up shows from that
+summary, so the "Recent shows" lines of the popularity Why? read the same.
 
 ### `popularity.showChange`
 
@@ -248,9 +250,12 @@ included; nothing private (money, morale) is in it. An unknown show is refused
 with `notFound`.
 
 - `status`: `applied` (the record is there), `notCompleted` (the show has not
-  run), `pruned` (it ran before the last prune's cutoff and its record is gone)
-  or `notApplied` (it ran but nothing was stored, for example because its
+  run), `pruned` (its history was rolled up and its record is gone) or
+  `notApplied` (it ran but nothing was stored, for example because its
   promotion was not active). Only `applied` has a `summary` and `countries`.
+- `pruned`: for a `pruned` show, the worldwide `before`, `after` and `change`
+  its summary kept and the plain `note` ("Details are kept for the last 4
+  weeks."); null otherwise, and for a rolled-up show that kept no record.
 - `summary`: regions gained, lost, unchanged and capped, and the world's
   before, after and change, with the change's trace (the population-weighted
   mean of every region's change, untouched regions counting 0).

@@ -120,6 +120,9 @@ export function DecisionLogList({
           Load older
         </Button>
       )}
+      {log.nextBefore === null && log.entries.length > 0 && (
+        <p className={styles['kept']}>{log.keptNote}</p>
+      )}
     </div>
   );
 }

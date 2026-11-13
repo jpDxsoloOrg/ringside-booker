@@ -86,12 +86,13 @@ The `periodic` group's weekly phases so far, all on Mondays:
 | `match.momentumDrift`   | 30    | Momentum drifts for workers who did not wrestle that week ([match-aftermath.md](match-aftermath.md#momentum-drift)).                     |
 | `office.weeklySnapshot` | 34    | One promotion history row per active or dormant promotion, then old weeks thinned to one row per month ([office.md](office.md#history)). |
 | `match.pruneAftermaths` | 40    | Each worker keeps only their newest stored aftermaths ([match-aftermath.md](match-aftermath.md#stored-aftermaths)).                      |
+| `history.rollUp`        | 41    | History older than `history.keepDetailDays` becomes summaries and monthly totals ([save-format.md](save-format.md#history-retention)).   |
 
 The rival desk's phases ([rival-desk.md](rival-desk.md#jobs)), both daily:
 `aip.runTurns` (`aiTurns`, order 50) runs every due rival job for every
 computer unit, `aip.pruneDecisionLog` (`periodic`, order 42) prunes the
 rival decision log, and `aip.pruneCardDetail` (`periodic`, order 43) keeps
-only a summary of rival card slots older than `aip.card.keepDetailDays`.
+only a summary of rival card slots older than `history.keepDetailDays`.
 
 On a show day the rival job `aip.bookShow` (a `beforeShow` job, AIP4-05, see
 [rival-booking.md](rival-booking.md#show-day)) runs inside `aip.runTurns`, so

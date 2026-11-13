@@ -1,7 +1,7 @@
 /**
  * The rival decision log (AIP1-01): one row per thing a computer-run unit decided.
  *
- * Rows are added and never edited; rows older than `aip.decisionLogRetentionDays` are pruned
+ * Rows are added and never edited; rows older than `history.keepDetailDays` are pruned
  * (`appendOnly: 'pruneOnly'`, enforced by the transaction layer). A row is kept small on purpose,
  * because eleven rivals write to it all year: the summary is templated text (a content key and a
  * few short params, never a rendered sentence), the refs are capped ID lists, and the Why? sits

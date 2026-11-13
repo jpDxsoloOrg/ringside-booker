@@ -506,34 +506,33 @@ How one show moves a promotion's popularity in each region it reached (EVT5),
 in `systems/promoPop/tunables.ts`, category `Promotion popularity`. See
 [promotion-popularity.md](promotion-popularity.md). Every one is 0-means-0.
 
-| Key                                   | Kind    | Default | Range  | Unit       | What it does                                                                                 |
-| ------------------------------------- | ------- | ------- | ------ | ---------- | -------------------------------------------------------------------------------------------- |
-| `promoPop.neighbourReach`             | number  | 0.5     | 0–1    | ratio      | How much of a show a neighbouring region sees (0 = neighbours not reached)                   |
-| `promoPop.tvReach.tier0`              | number  | 0.1     | 0–1    | ratio      | How much of a show a region sees on a reach tier 0 network (0 = not reached that way)        |
-| `promoPop.tvReach.tier1`              | number  | 0.2     | 0–1    | ratio      | Same, reach tier 1                                                                           |
-| `promoPop.tvReach.tier2`              | number  | 0.3     | 0–1    | ratio      | Same, reach tier 2                                                                           |
-| `promoPop.tvReach.tier3`              | number  | 0.45    | 0–1    | ratio      | Same, reach tier 3                                                                           |
-| `promoPop.tvReach.tier4`              | number  | 0.6     | 0–1    | ratio      | Same, reach tier 4                                                                           |
-| `promoPop.expect.popularityWeight`    | number  | 0.6     | 0–2    | ratio      | Expected score per point of popularity in the region                                         |
-| `promoPop.expect.prestigeWeight`      | number  | 0.2     | 0–1    | ratio      | Expected score per point of prestige                                                         |
-| `promoPop.expect.importance.house`    | number  | 0.8     | 0–3    | multiplier | Event size factor on the popularity part of the expectation, house show                      |
-| `promoPop.expect.importance.minor`    | number  | 0.9     | 0–3    | multiplier | Same, minor show                                                                             |
-| `promoPop.expect.importance.regular`  | number  | 1       | 0–3    | multiplier | Same, regular show                                                                           |
-| `promoPop.expect.importance.major`    | number  | 1.15    | 0–3    | multiplier | Same, major show                                                                             |
-| `promoPop.expect.importance.flagship` | number  | 1.3     | 0–3    | multiplier | Same, flagship show                                                                          |
-| `promoPop.deadZone`                   | number  | 3       | 0–20   | points     | Score margin either way that changes nothing (0 = any margin counts)                         |
-| `promoPop.blowoutMargin`              | number  | 25      | 0–100  | points     | Score margin that earns the full gain or loss                                                |
-| `promoPop.maxGainPerShow`             | number  | 3       | 0–10   | points     | Most popularity one show can win in a region before shaping (0 = no gains)                   |
-| `promoPop.maxLossPerShow`             | number  | 2.5     | 0–10   | points     | Most popularity one show can lose in a region before shaping (0 = no losses)                 |
-| `promoPop.impact.house`               | number  | 0.4     | 0–3    | multiplier | How much a house show moves popularity (0 = nothing)                                         |
-| `promoPop.impact.minor`               | number  | 0.7     | 0–3    | multiplier | Same, minor show                                                                             |
-| `promoPop.impact.regular`             | number  | 1       | 0–3    | multiplier | Same, regular show                                                                           |
-| `promoPop.impact.major`               | number  | 1.3     | 0–3    | multiplier | Same, major show                                                                             |
-| `promoPop.impact.flagship`            | number  | 1.6     | 0–3    | multiplier | Same, flagship show                                                                          |
-| `promoPop.diminishingPower`           | number  | 1.5     | 0–5    | ratio      | How sharply gains shrink as popularity rises (0 = no diminishing)                            |
-| `promoPop.lossFullFrom`               | number  | 25      | 0–100  | points     | Popularity from which a bad show costs its full loss (0 = losses never scaled down)          |
-| `promoPop.monthlyGainCap`             | number  | 3       | 0–100  | points     | Most popularity shows can win in one region in one calendar month (0 = no gains at all)      |
-| `promoPop.keepShowChangesDays`        | integer | 365     | 0–3650 | days       | How long each show's popularity record is kept for the results page (0 = cleared on the 1st) |
+| Key                                   | Kind   | Default | Range | Unit       | What it does                                                                            |
+| ------------------------------------- | ------ | ------- | ----- | ---------- | --------------------------------------------------------------------------------------- |
+| `promoPop.neighbourReach`             | number | 0.5     | 0–1   | ratio      | How much of a show a neighbouring region sees (0 = neighbours not reached)              |
+| `promoPop.tvReach.tier0`              | number | 0.1     | 0–1   | ratio      | How much of a show a region sees on a reach tier 0 network (0 = not reached that way)   |
+| `promoPop.tvReach.tier1`              | number | 0.2     | 0–1   | ratio      | Same, reach tier 1                                                                      |
+| `promoPop.tvReach.tier2`              | number | 0.3     | 0–1   | ratio      | Same, reach tier 2                                                                      |
+| `promoPop.tvReach.tier3`              | number | 0.45    | 0–1   | ratio      | Same, reach tier 3                                                                      |
+| `promoPop.tvReach.tier4`              | number | 0.6     | 0–1   | ratio      | Same, reach tier 4                                                                      |
+| `promoPop.expect.popularityWeight`    | number | 0.6     | 0–2   | ratio      | Expected score per point of popularity in the region                                    |
+| `promoPop.expect.prestigeWeight`      | number | 0.2     | 0–1   | ratio      | Expected score per point of prestige                                                    |
+| `promoPop.expect.importance.house`    | number | 0.8     | 0–3   | multiplier | Event size factor on the popularity part of the expectation, house show                 |
+| `promoPop.expect.importance.minor`    | number | 0.9     | 0–3   | multiplier | Same, minor show                                                                        |
+| `promoPop.expect.importance.regular`  | number | 1       | 0–3   | multiplier | Same, regular show                                                                      |
+| `promoPop.expect.importance.major`    | number | 1.15    | 0–3   | multiplier | Same, major show                                                                        |
+| `promoPop.expect.importance.flagship` | number | 1.3     | 0–3   | multiplier | Same, flagship show                                                                     |
+| `promoPop.deadZone`                   | number | 3       | 0–20  | points     | Score margin either way that changes nothing (0 = any margin counts)                    |
+| `promoPop.blowoutMargin`              | number | 25      | 0–100 | points     | Score margin that earns the full gain or loss                                           |
+| `promoPop.maxGainPerShow`             | number | 3       | 0–10  | points     | Most popularity one show can win in a region before shaping (0 = no gains)              |
+| `promoPop.maxLossPerShow`             | number | 2.5     | 0–10  | points     | Most popularity one show can lose in a region before shaping (0 = no losses)            |
+| `promoPop.impact.house`               | number | 0.4     | 0–3   | multiplier | How much a house show moves popularity (0 = nothing)                                    |
+| `promoPop.impact.minor`               | number | 0.7     | 0–3   | multiplier | Same, minor show                                                                        |
+| `promoPop.impact.regular`             | number | 1       | 0–3   | multiplier | Same, regular show                                                                      |
+| `promoPop.impact.major`               | number | 1.3     | 0–3   | multiplier | Same, major show                                                                        |
+| `promoPop.impact.flagship`            | number | 1.6     | 0–3   | multiplier | Same, flagship show                                                                     |
+| `promoPop.diminishingPower`           | number | 1.5     | 0–5   | ratio      | How sharply gains shrink as popularity rises (0 = no diminishing)                       |
+| `promoPop.lossFullFrom`               | number | 25      | 0–100 | points     | Popularity from which a bad show costs its full loss (0 = losses never scaled down)     |
+| `promoPop.monthlyGainCap`             | number | 3       | 0–100 | points     | Most popularity shows can win in one region in one calendar month (0 = no gains at all) |
 
 ## Finance tunables
 
@@ -655,35 +654,34 @@ that style until its booker sets a taste (AIP2). The defaults are the table in
 `entertainmentFocus`, `athleticFocus`, `starFocus`, `talkShare`,
 `titleFocus`, `youthFocus`, `riskAppetite`).
 
-| Key                                    | Kind    | Default | Range  | Unit       | Meaning                                                                                                       |
-| -------------------------------------- | ------- | ------- | ------ | ---------- | ------------------------------------------------------------------------------------------------------------- |
-| `aip.decisionLogRetentionDays`         | integer | 365     | 0–3650 | days       | How long rival decisions stay in the log. 0 keeps none ([decision log](rival-desk.md#decision-log))           |
-| `aip.cardValue.marketMinPop`           | number  | 10      | 0–100  | points     | Popularity a promotion needs in a region for it to count as a market ([card value](rival-desk.md#card-value)) |
-| `aip.cardValue.popularityWeight`       | number  | 1       | 0–5    | ratio      | How much popularity in the promotion's markets counts toward card value                                       |
-| `aip.cardValue.abilityWeight`          | number  | 1       | 0–5    | ratio      | How much the taste-weighted ability blend counts toward card value                                            |
-| `aip.cardValue.momentumFactor`         | number  | 0.1     | 0–1    | ratio      | Card value added per point of momentum; 0 leaves momentum out                                                 |
-| `aip.cardValue.declineAge`             | number  | 36      | 18–60  | years      | Age after which card value starts to fall                                                                     |
-| `aip.cardValue.declinePerYear`         | number  | 0.04    | 0–0.2  | ratio      | Share of card value lost per year past the decline age; 0 turns the decline off                               |
-| `aip.cardValue.ageFloor`               | number  | 0.5     | 0–1    | multiplier | The least of their card value age can leave a veteran                                                         |
-| `aip.cardValue.youthAge`               | number  | 26      | 16–40  | years      | Workers younger than this get the youth bonus                                                                 |
-| `aip.cardValue.youthBonus`             | number  | 6       | 0–20   | points     | Card value a young worker gains at youth focus 100; 0 turns it off                                            |
-| `aip.needs.workersPerSlot`             | number  | 2       | 0–6    | ratio      | Wrestlers wanted per slot of the largest show ([needs](rival-desk.md#needs))                                  |
-| `aip.needs.defaultSlots`               | integer | 6       | 0–12   | count      | Slots counted for a unit with no active shows                                                                 |
-| `aip.needs.bandShare.mainEvent`        | number  | 0.12    | 0–1    | ratio      | Share of the wanted roster in the main event                                                                  |
-| `aip.needs.bandShare.upperCard`        | number  | 0.2     | 0–1    | ratio      | Same, upper card                                                                                              |
-| `aip.needs.bandShare.midCard`          | number  | 0.33    | 0–1    | ratio      | Same, mid card                                                                                                |
-| `aip.needs.bandShare.lowerCard`        | number  | 0.2     | 0–1    | ratio      | Same, lower card                                                                                              |
-| `aip.needs.bandShare.enhancement`      | number  | 0.15    | 0–1    | ratio      | Same, enhancement                                                                                             |
-| `aip.needs.maxAlignmentGap`            | integer | 3       | 0–20   | count      | Most faces over heels (or heels over faces) before it is a need                                               |
-| `aip.needs.alignmentSeverityPerWorker` | number  | 15      | 0–100  | points     | How pressing each worker past the allowed gap is                                                              |
-| `aip.needs.minPerGenderDivision`       | integer | 4       | 0–20   | count      | Fewest available wrestlers a division with a title wants; 0 never makes a need                                |
-| `aip.needs.contractEndingDays`         | integer | 60      | 0–365  | days       | How soon a champion's contract must end to be a need                                                          |
-| `aip.needs.championUnfitSeverity`      | number  | 80      | 0–100  | points     | How pressing a champion who cannot defend is                                                                  |
-| `aip.needs.championEndingSeverity`     | number  | 60      | 0–100  | points     | How pressing a champion whose contract is ending is                                                           |
-| `aip.needs.minReferees`                | integer | 2       | 0–10   | count      | Fewest referees wanted; 0 never makes a need                                                                  |
-| `aip.needs.minAnnouncers`              | integer | 1       | 0–10   | count      | Fewest announcers wanted; 0 never makes a need                                                                |
-| `aip.needs.minProducers`               | integer | 0       | 0–10   | count      | Fewest producers wanted; 0 never makes a need                                                                 |
-| `aip.needs.minSeverity`                | number  | 10      | 0–100  | points     | Needs less pressing than this are dropped                                                                     |
+| Key                                    | Kind    | Default | Range | Unit       | Meaning                                                                                                       |
+| -------------------------------------- | ------- | ------- | ----- | ---------- | ------------------------------------------------------------------------------------------------------------- |
+| `aip.cardValue.marketMinPop`           | number  | 10      | 0–100 | points     | Popularity a promotion needs in a region for it to count as a market ([card value](rival-desk.md#card-value)) |
+| `aip.cardValue.popularityWeight`       | number  | 1       | 0–5   | ratio      | How much popularity in the promotion's markets counts toward card value                                       |
+| `aip.cardValue.abilityWeight`          | number  | 1       | 0–5   | ratio      | How much the taste-weighted ability blend counts toward card value                                            |
+| `aip.cardValue.momentumFactor`         | number  | 0.1     | 0–1   | ratio      | Card value added per point of momentum; 0 leaves momentum out                                                 |
+| `aip.cardValue.declineAge`             | number  | 36      | 18–60 | years      | Age after which card value starts to fall                                                                     |
+| `aip.cardValue.declinePerYear`         | number  | 0.04    | 0–0.2 | ratio      | Share of card value lost per year past the decline age; 0 turns the decline off                               |
+| `aip.cardValue.ageFloor`               | number  | 0.5     | 0–1   | multiplier | The least of their card value age can leave a veteran                                                         |
+| `aip.cardValue.youthAge`               | number  | 26      | 16–40 | years      | Workers younger than this get the youth bonus                                                                 |
+| `aip.cardValue.youthBonus`             | number  | 6       | 0–20  | points     | Card value a young worker gains at youth focus 100; 0 turns it off                                            |
+| `aip.needs.workersPerSlot`             | number  | 2       | 0–6   | ratio      | Wrestlers wanted per slot of the largest show ([needs](rival-desk.md#needs))                                  |
+| `aip.needs.defaultSlots`               | integer | 6       | 0–12  | count      | Slots counted for a unit with no active shows                                                                 |
+| `aip.needs.bandShare.mainEvent`        | number  | 0.12    | 0–1   | ratio      | Share of the wanted roster in the main event                                                                  |
+| `aip.needs.bandShare.upperCard`        | number  | 0.2     | 0–1   | ratio      | Same, upper card                                                                                              |
+| `aip.needs.bandShare.midCard`          | number  | 0.33    | 0–1   | ratio      | Same, mid card                                                                                                |
+| `aip.needs.bandShare.lowerCard`        | number  | 0.2     | 0–1   | ratio      | Same, lower card                                                                                              |
+| `aip.needs.bandShare.enhancement`      | number  | 0.15    | 0–1   | ratio      | Same, enhancement                                                                                             |
+| `aip.needs.maxAlignmentGap`            | integer | 3       | 0–20  | count      | Most faces over heels (or heels over faces) before it is a need                                               |
+| `aip.needs.alignmentSeverityPerWorker` | number  | 15      | 0–100 | points     | How pressing each worker past the allowed gap is                                                              |
+| `aip.needs.minPerGenderDivision`       | integer | 4       | 0–20  | count      | Fewest available wrestlers a division with a title wants; 0 never makes a need                                |
+| `aip.needs.contractEndingDays`         | integer | 60      | 0–365 | days       | How soon a champion's contract must end to be a need                                                          |
+| `aip.needs.championUnfitSeverity`      | number  | 80      | 0–100 | points     | How pressing a champion who cannot defend is                                                                  |
+| `aip.needs.championEndingSeverity`     | number  | 60      | 0–100 | points     | How pressing a champion whose contract is ending is                                                           |
+| `aip.needs.minReferees`                | integer | 2       | 0–10  | count      | Fewest referees wanted; 0 never makes a need                                                                  |
+| `aip.needs.minAnnouncers`              | integer | 1       | 0–10  | count      | Fewest announcers wanted; 0 never makes a need                                                                |
+| `aip.needs.minProducers`               | integer | 0       | 0–10  | count      | Fewest producers wanted; 0 never makes a need                                                                 |
+| `aip.needs.minSeverity`                | number  | 10      | 0–100 | points     | Needs less pressing than this are dropped                                                                     |
 
 The Rival rules shortcuts (D-01, AIP1-02), in `systems/aip/shortcuts.ts`,
 category `Rival rules`, docRef [rival-desk.md#shortcuts](rival-desk.md#shortcuts).
@@ -821,7 +819,6 @@ matches only; none sets a length (D-10).
 | `aip.card.talkTasteSwing`             | number  | 0.5     | 0–1    | ratio       | How far the booker's taste for talking moves the share                                                                                                                 |
 | `aip.card.maxTalkShare`               | number  | 0.5     | 0–1    | ratio       | The largest share of main-card slots a rival gives to talking segments                                                                                                 |
 | `aip.card.fillPreShow`                | boolean | true    |        | flag        | Whether a rival fills its shows' pre-show slots                                                                                                                        |
-| `aip.card.keepDetailDays`             | integer | 28      | 0–3650 | days        | How many days a rival show's per-slot Why? is kept in full; after that only a summary is kept                                                                          |
 | `aip.titles.maxPerShow.house`         | integer | 1       | 0–12   | count       | Most title matches a rival books on a house show ([title matches](rival-booking.md#title-matches))                                                                     |
 | `aip.titles.maxPerShow.minor`         | integer | 1       | 0–12   | count       | Same, minor show                                                                                                                                                       |
 | `aip.titles.maxPerShow.regular`       | integer | 2       | 0–12   | count       | Same, regular weekly show                                                                                                                                              |
@@ -858,3 +855,13 @@ matches only; none sets a length (D-10).
 | `aip.card.order.prospectBoost`        | number  | 6       | 0–50   | points      | Card score added to a segment with one of the promotion's prospects in it                                                                                              |
 | `aip.card.order.talkFactor`           | number  | 0.8     | 0–2    | multiplier  | How much of its speakers' card value a talking segment scores                                                                                                          |
 | `aip.card.order.hotOpener`            | boolean | true    |        | flag        | Whether the second-best match opens the show ([ordering](rival-booking.md#ordering))                                                                                   |
+
+## History tunables
+
+POL4-08, see [save-format.md](save-format.md#history-retention). One knob for
+every history prune: the weekly roll-up, the rival decision log and the rival
+card Why? demotion.
+
+| Key                      | Kind    | Default | Range  | Unit | Meaning                                                                                                            |
+| ------------------------ | ------- | ------- | ------ | ---- | ------------------------------------------------------------------------------------------------------------------ |
+| `history.keepDetailDays` | integer | 28      | 0–3650 | days | How many days of shows, cards, money rows and rival decisions are kept in full; older ones as totals and summaries |

@@ -61,6 +61,8 @@ describe('DecisionLogList', () => {
       />,
     );
     expect(screen.queryByRole('button', { name: 'Load older' })).toBeNull();
+    // At the oldest entry the list says how long decisions are kept (POL4-08).
+    expect(screen.getByText('Decisions are kept for the last 4 weeks.')).toBeInTheDocument();
 
     rerender(
       <DecisionLogList
@@ -75,6 +77,7 @@ describe('DecisionLogList', () => {
       .setup({ delay: null })
       .click(screen.getByRole('button', { name: 'Load older' }));
     expect(onLoadOlder).toHaveBeenCalledOnce();
+    expect(screen.queryByText('Decisions are kept for the last 4 weeks.')).toBeNull();
   });
 
   it('says so when nothing has been decided, and counts hidden plans in words', () => {

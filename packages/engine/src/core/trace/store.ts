@@ -166,7 +166,7 @@ export interface TraceStaging {
   /**
    * Stages a demotion: at commit, the full trace `ref` has (if any) is replaced by its summary, as
    * the retention limits would do. For detail kept only for a while (rival card slots after
-   * `aip.card.keepDetailDays`). A ref recorded in the same staging is demoted after it is stored.
+   * `history.keepDetailDays`). A ref recorded in the same staging is demoted after it is stored.
    */
   demote(ref: TraceRef): void;
   /** Adds every staged trace to the store, then applies the retention limits. Closes the staging. */

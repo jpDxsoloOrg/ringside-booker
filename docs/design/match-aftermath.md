@@ -450,6 +450,15 @@ The weekly `match.pruneAftermaths` phase (periodic group, order 40, Mondays)
 keeps each worker's newest `match.aftermath.keepPerPerson` (10) rows: latest
 date first, then the later row of the same day.
 
+Right after it, `history.rollUp` (order 41, POL4-08) slims every row older
+than `history.keepDetailDays` (28) to the show region's change: Recent form
+reads only that, and the momentum drift reads only the date and momentum, so
+nothing moves. The match itself (its segment and participants) is kept while
+a stored row points at it, and so is each competitor's newest
+`max(match.popularity.streakLookback, 10)` run matches, so win streaks and
+Recent form read exactly what they read before. See
+[save-format.md](save-format.md#history-retention).
+
 `match.aftermath { segmentId } | { eventInstanceId }` returns the stored rows
 grouped by match in card order, with names, the show region's name, each
 region's before and after, momentum, and the trace refs while the traces are

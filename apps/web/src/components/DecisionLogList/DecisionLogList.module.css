@@ -127,3 +127,10 @@
     grid-row: 2;
   }
 }
+
+/* How long decisions are kept (POL4-08), under the last entry. */
+.kept {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
