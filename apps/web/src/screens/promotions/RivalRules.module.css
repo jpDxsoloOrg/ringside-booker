@@ -1,0 +1,73 @@
+/*
+ * The Rival rules chip (a small pill button) and the list it opens: one item per shortcut with its
+ * label and state on one line, then what it does, its setting key in muted mono and, while no
+ * feature acts on it yet, when it will take effect.
+ */
+.chip {
+  border-radius: var(--radius-pill);
+}
+
+.popover {
+  max-inline-size: min(26rem, calc(100vw - 2 * var(--space-4)));
+}
+
+.rules {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.level {
+  margin: 0;
+  font-weight: var(--font-weight-semibold);
+}
+
+.list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.itemHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.label {
+  font-weight: var(--font-weight-semibold);
+}
+
+.description,
+.pending {
+  font-size: var(--font-size-sm);
+}
+
+.pending {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.key {
+  color: var(--color-text-muted);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  overflow-wrap: anywhere;
+}
+
+.footer {
+  margin: 0;
+  padding-block-start: var(--space-2);
+  border-block-start: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}

@@ -1,0 +1,67 @@
+/*
+ * World > Promotions, in the office register: the heading with the Rival rules chip beside it,
+ * then the table. Below --bp-mobile the table is a list of cards (DataTable does that) and the
+ * name's link covers each card, so a tap anywhere opens the profile.
+ */
+.screen {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  min-inline-size: 0;
+}
+
+.heading {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-tight);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.count {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.champions {
+  padding: 0;
+  border: 0;
+  border-block-end: 1px dotted var(--color-text-muted);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: help;
+  white-space: nowrap;
+}
+
+@media (--bp-mobile) {
+  .heading {
+    font-size: var(--font-size-2xl);
+  }
+
+  .table li[data-row-id] {
+    position: relative;
+  }
+
+  .table li[data-row-id] a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .table li[data-row-id] button {
+    position: relative;
+    z-index: 1;
+    min-block-size: var(--tap-target-min);
+  }
+}
