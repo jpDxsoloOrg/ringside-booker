@@ -327,6 +327,16 @@
   overflow-wrap: anywhere;
 }
 
+.banners {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.banners:empty {
+  display: none;
+}
+
 .bannerTitle {
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);

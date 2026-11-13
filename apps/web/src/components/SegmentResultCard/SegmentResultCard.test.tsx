@@ -54,6 +54,16 @@ describe('SegmentResultCard', () => {
     expect(card.querySelector('[style]')).toBeNull();
   });
 
+  it("draws other features' banners once revealed, never on a hidden card", () => {
+    const banner = <p>Test banner</p>;
+    const { rerender } = render(
+      withEngine(<SegmentResultCard segment={singlesWin()} revealed={false} banners={banner} />),
+    );
+    expect(screen.queryByText('Test banner')).not.toBeInTheDocument();
+    rerender(withEngine(<SegmentResultCard segment={singlesWin()} banners={banner} />));
+    expect(within(screen.getByRole('article')).getByText('Test banner')).toBeInTheDocument();
+  });
+
   it('marks the winning side on the right of a singles win and gives the method', () => {
     const card = renderCard(singlesWin());
 

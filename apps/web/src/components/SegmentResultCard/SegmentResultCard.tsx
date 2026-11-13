@@ -41,6 +41,11 @@ export interface SegmentResultCardProps {
   readonly renderPersonLink?: (personId: PersonId, name: string) => ReactNode;
   /** Extra content under the card, such as a link to the segment's details. */
   readonly footer?: ReactNode;
+  /**
+   * Banners other features add under the title banner, such as an "Injured" banner (MTCH4-06).
+   * Drawn only once the card is revealed, so they never give a result away early.
+   */
+  readonly banners?: ReactNode;
   /** The card's element id, so a page can link to it (the show report's score table does). */
   readonly id?: string | undefined;
   readonly className?: string | undefined;
@@ -138,10 +143,11 @@ interface BodyProps {
   readonly segment: SegmentResultView;
   readonly interactive: boolean;
   readonly renderPersonLink: SegmentResultCardProps['renderPersonLink'];
+  readonly banners?: ReactNode;
 }
 
 /** Everything under the header. Drawn without links or buttons while the card is hidden. */
-function Body({ segment, interactive, renderPersonLink }: BodyProps) {
+function Body({ segment, interactive, renderPersonLink, banners }: BodyProps) {
   const winningSide = winningSideOf(segment);
   const line = resultLine(segment);
   const { rating } = segment;
@@ -244,6 +250,11 @@ function Body({ segment, interactive, renderPersonLink }: BodyProps) {
           interactive={interactive}
         />
       ))}
+      {interactive && banners !== undefined && banners !== null && (
+        <div className={styles['banners']} data-part="banners">
+          {banners}
+        </div>
+      )}
     </div>
   );
 }
@@ -262,6 +273,7 @@ export function SegmentResultCard({
   revealed = true,
   renderPersonLink,
   footer,
+  banners,
   id,
   className,
 }: SegmentResultCardProps) {
@@ -320,7 +332,7 @@ export function SegmentResultCard({
       </div>
 
       {revealed ? (
-        <Body segment={segment} interactive renderPersonLink={renderPersonLink} />
+        <Body segment={segment} interactive renderPersonLink={renderPersonLink} banners={banners} />
       ) : (
         // Both layers share one grid cell: the hidden card keeps the height, the placeholder
         // covers it. The hidden layer has no links or buttons and is out of the accessibility tree.
