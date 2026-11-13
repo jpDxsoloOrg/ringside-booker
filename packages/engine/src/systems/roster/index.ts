@@ -8,6 +8,7 @@
 
 import { defineSystem, type SystemBundle } from '../../core/api/system';
 import { rosterQueries } from './queries';
+import { rosterCommands } from './commands';
 
 export { computePushGap, PUSH_GAP_DOC_REF, type PushGapInputs } from './formulas/pushGap';
 export {
@@ -45,8 +46,23 @@ export {
   type RosterView,
 } from './queries';
 export { rosterTunables } from './tunables';
+export {
+  applySetPush,
+  doorSourceOf,
+  DUPLICATE_EMPLOYMENT_MESSAGE,
+  rosterCommands,
+  SET_PUSH_MAX_ROWS,
+  SET_PUSH_REASON_CODES,
+  SET_PUSH_REASON_KEY,
+  setPushCommand,
+  setPushRefusals,
+  type RosterSetPushArgs,
+  type SetPushDoor,
+  type SetPushReasonCode,
+} from './commands';
 
 export const rosterSystem: SystemBundle = defineSystem({
   id: 'roster',
   queries: rosterQueries,
+  commands: rosterCommands,
 });

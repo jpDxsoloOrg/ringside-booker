@@ -1921,3 +1921,17 @@ export {
   type RosterRowsArgs,
   type RosterView,
 } from './systems/roster/index';
+// The roster's push command (WRK2-03): `roster.setPush`, one or many rows, all or nothing. See
+// docs/design/roster.md#set-push.
+export {
+  applySetPush,
+  DUPLICATE_EMPLOYMENT_MESSAGE,
+  SET_PUSH_MAX_ROWS,
+  SET_PUSH_REASON_CODES,
+  SET_PUSH_REASON_KEY,
+  setPushCommand,
+  setPushRefusals,
+  type RosterSetPushArgs,
+  type SetPushDoor,
+  type SetPushReasonCode,
+} from './systems/roster/index';
