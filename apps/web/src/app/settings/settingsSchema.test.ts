@@ -9,6 +9,7 @@ const CUSTOM_SETTINGS: SettingsV1 = {
   reducedMotion: 'on',
   moneyStyle: 'full',
   openResultsAfterShow: false,
+  revealOneAtATime: false,
 };
 
 describe('parseSettings', () => {
@@ -60,6 +61,7 @@ describe('parseSettings', () => {
       reducedMotion: DEFAULT_SETTINGS.reducedMotion,
       moneyStyle: 'full',
       openResultsAfterShow: DEFAULT_SETTINGS.openResultsAfterShow,
+      revealOneAtATime: DEFAULT_SETTINGS.revealOneAtATime,
     });
   });
 
@@ -67,7 +69,15 @@ describe('parseSettings', () => {
     const parsed = parseSettings({ ...CUSTOM_SETTINGS, saveSlot: 'slot-1', debug: true });
     expect(parsed).toEqual(CUSTOM_SETTINGS);
     expect(Object.keys(parsed).sort()).toEqual(
-      ['moneyStyle', 'openResultsAfterShow', 'reducedMotion', 'theme', 'uiScale', 'version'].sort(),
+      [
+        'moneyStyle',
+        'openResultsAfterShow',
+        'reducedMotion',
+        'revealOneAtATime',
+        'theme',
+        'uiScale',
+        'version',
+      ].sort(),
     );
   });
 
@@ -106,5 +116,18 @@ describe('openResultsAfterShow (EVT3-09)', () => {
     const parsed = parseSettings({ openResultsAfterShow: 'yes', moneyStyle: 'full' });
     expect(parsed.openResultsAfterShow).toBe(true);
     expect(parsed.moneyStyle).toBe('full');
+  });
+});
+
+describe('revealOneAtATime (EVT3-10)', () => {
+  it('is on by default and kept when stored', () => {
+    expect(DEFAULT_SETTINGS.revealOneAtATime).toBe(true);
+    expect(parseSettings({ revealOneAtATime: false }).revealOneAtATime).toBe(false);
+  });
+
+  it('falls back to on for a value that is not true or false, keeping the other fields', () => {
+    const parsed = parseSettings({ revealOneAtATime: 1, openResultsAfterShow: false });
+    expect(parsed.revealOneAtATime).toBe(true);
+    expect(parsed.openResultsAfterShow).toBe(false);
   });
 });
