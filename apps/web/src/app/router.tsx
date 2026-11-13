@@ -119,6 +119,15 @@ export const gameDetailRoutes: RouteObject[] = [
       return { Component: ShowResultsScreen };
     },
   },
+  {
+    path: routePatterns.promotion,
+    // Its own chunk: the profile pulls in its tabs, the needs, the roster and the decision log.
+    lazy: async () => {
+      const { PromotionProfileScreen } =
+        await import('@/screens/promotions/profile/PromotionProfileScreen');
+      return { Component: PromotionProfileScreen };
+    },
+  },
 ];
 
 const gameRoute: RouteObject = {

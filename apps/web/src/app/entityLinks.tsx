@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import type { Location } from 'react-router-dom';
 import { isId } from '@ringside/engine';
-import type { PersonId } from '@ringside/engine';
+import type { PersonId, PromotionId } from '@ringside/engine';
 import { plainEntityLabel } from '@/components/Trace/rows/rowTypes';
 import type { EntityLinkRenderer } from '@/components/Trace/rows/rowTypes';
 import { useTracePanelStore } from '@/components/Trace/tracePanelStore';
@@ -84,13 +84,75 @@ export function PersonProfileLink({
   );
 }
 
+/** Navigation state a link to a promotion carries, so its back link returns to the list. */
+export interface PromotionLinkState {
+  /** The Promotions list URL the player came from, sort included. */
+  readonly promotionsListUrl: string;
+}
+
+/** The promotions list URL kept in a location's state, or null when there is none worth trusting. */
+export function promotionsListUrlFrom(state: unknown): string | null {
+  if (typeof state !== 'object' || state === null || !('promotionsListUrl' in state)) return null;
+  const { promotionsListUrl } = state;
+  if (typeof promotionsListUrl !== 'string') return null;
+  const listPath = routes.game.promotions();
+  const isList = promotionsListUrl === listPath || promotionsListUrl.startsWith(`${listPath}?`);
+  return isList ? promotionsListUrl : null;
+}
+
 /**
- * Entity names in the game: a person's name links to their profile; everything else stays plain
- * text until its own screen exists.
+ * The state for a link to a promotion's profile from `location`: the list's own URL (with its
+ * sort) when the link is on the Promotions list, else whatever list URL the page carried.
  */
-export const gameEntityLink: EntityLinkRenderer = (ref, label) =>
-  ref.kind === 'person' && isId('person', ref.id) ? (
-    <PersonProfileLink personId={ref.id}>{label}</PersonProfileLink>
-  ) : (
-    label
+export function promotionLinkState(location: Location): PromotionLinkState | undefined {
+  if (location.pathname === routes.game.promotions()) {
+    return { promotionsListUrl: `${location.pathname}${location.search}` };
+  }
+  const carried = promotionsListUrlFrom(location.state);
+  return carried === null ? undefined : { promotionsListUrl: carried };
+}
+
+export interface PromotionProfileLinkProps {
+  readonly promotionId: PromotionId;
+  readonly className?: string | undefined;
+  /** A tooltip, for a link whose text is cut short on screen. */
+  readonly title?: string | undefined;
+  readonly children: ReactNode;
+}
+
+/** A link to one promotion's profile. Like `PersonProfileLink`, it closes an open "Why?" panel. */
+export function PromotionProfileLink({
+  promotionId,
+  className,
+  title,
+  children,
+}: PromotionProfileLinkProps) {
+  const location = useLocation();
+  return (
+    <Link
+      to={routes.game.promotion(promotionId)}
+      state={promotionLinkState(location)}
+      className={className}
+      title={title}
+      onClick={() => {
+        useTracePanelStore.setState({ openPanelId: null });
+      }}
+    >
+      {children}
+    </Link>
   );
+}
+
+/**
+ * Entity names in the game: a person's name links to their profile and a promotion's to its
+ * profile; everything else stays plain text until its own screen exists.
+ */
+export const gameEntityLink: EntityLinkRenderer = (ref, label) => {
+  if (ref.kind === 'person' && isId('person', ref.id)) {
+    return <PersonProfileLink personId={ref.id}>{label}</PersonProfileLink>;
+  }
+  if (ref.kind === 'promotion' && isId('promotion', ref.id)) {
+    return <PromotionProfileLink promotionId={ref.id}>{label}</PromotionProfileLink>;
+  }
+  return label;
+};

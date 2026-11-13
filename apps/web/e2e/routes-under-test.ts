@@ -60,4 +60,12 @@ export const routesUnderTest: readonly RouteUnderTest[] = [
   // A detail page under Event history, not a nav item, so it stays out of gameRoutes. The sweep
   // has no world behind it, so this checks the page's no-world state.
   { path: '/game/event-history/evi_0000000001', name: 'show results', needsWorld: true },
+  // A promotion's profile, under Promotions: also a detail page, so also outside gameRoutes. With
+  // no world behind the sweep it shows its not-found page.
+  {
+    path: '/game/promotions/pro_0000000001',
+    name: 'promotion profile',
+    heading: 'Promotion not found',
+    needsWorld: true,
+  },
 ];
