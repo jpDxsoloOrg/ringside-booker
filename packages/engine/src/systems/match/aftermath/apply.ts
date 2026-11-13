@@ -18,6 +18,7 @@
  * Design: docs/design/match-aftermath.md#applying-an-aftermath.
  */
 
+import { fastPathsEnabled } from '../../../core/fastPaths';
 import type { PersonId, RegionId, SegmentId } from '../../../core/ids';
 import { refKey, type TraceRef } from '../../../core/trace/store';
 import type { Aftermath, AftermathRegion } from '../../../model/entities/aftermath';
@@ -73,7 +74,7 @@ export function applySegmentAftermath(step: DoorContext, segmentId: SegmentId): 
   const kept = { summaryOnly: source === 'ai' };
   // The door works each region out again as it writes; the preview and roll-ups are for screens.
   const aftermath = computeSegmentAftermath(read, { segmentId }, step.tunables, geographyOf(read), {
-    regionDetail: false,
+    regionDetail: !fastPathsEnabled(),
   });
   // The cast names the key type `Object.fromEntries` widens to string.
   const regionWeights = Object.fromEntries(

@@ -34,6 +34,7 @@ import {
 import { assertJsonValue, formatPath } from '../json';
 import type { TunableReader } from '../tunables/resolver';
 import type { simTunables } from '../tunables/simTunables';
+import { fastPathsEnabled } from '../fastPaths';
 import { copyValidTraceContent } from './fastCopy';
 import { limitTrace } from './limits';
 import { traceNodeSchema, traceNumberSchema, traceUnitSchema, traceValueSchema } from './schema';
@@ -362,9 +363,10 @@ export class TraceStore {
         }
         const key = refKey(ref);
         const summaryOnly = options.summaryOnly === true;
-        const { trace, value } = summaryOnly
-          ? checkSummaryTrace(key, traced)
-          : checkRecordedTrace(key, traced);
+        const { trace, value } =
+          summaryOnly && fastPathsEnabled()
+            ? checkSummaryTrace(key, traced)
+            : checkRecordedTrace(key, traced);
         // Deleted first, so a re-recorded ref takes the position of its latest record.
         staged.delete(key);
         staged.set(key, {
@@ -570,7 +572,7 @@ function checkRecordedTrace(key: string, traced: Traced<TraceValue>): StagedTrac
   const trace = limitTrace(traced.trace);
   // The same copy in one walk when nothing is unusual (POL4-09); otherwise the full check below,
   // which names the problem.
-  const fast = copyValidTraceContent(trace, traced.value);
+  const fast = fastPathsEnabled() ? copyValidTraceContent(trace, traced.value) : null;
   if (fast !== null) {
     return fast;
   }

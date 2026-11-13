@@ -16,6 +16,7 @@
  */
 
 import { InvalidArgumentError } from '../../../core/errors';
+import { fastPathsEnabled } from '../../../core/fastPaths';
 import type { ContinentId, CountryId, RegionId } from '../../../core/ids';
 import type { Traced, TraceNode } from '../../../core/trace';
 import type { Geography } from '../geography';
@@ -170,6 +171,16 @@ export function popularityRollupPart(
   part: { readonly countryId: CountryId; readonly continentId: ContinentId },
   options: PopularityRollupOptions = {},
 ): PopularityRollupPart {
+  if (!fastPathsEnabled()) {
+    const full = popularityRollup(regionalPop, geography, options);
+    const country = full.countries.get(part.countryId);
+    const continent = full.continents.get(part.continentId);
+    if (country === undefined || continent === undefined) {
+      // The roll-up lists every country and continent on the map, so this cannot happen.
+      throw new InvalidArgumentError('popularityRollupPart', 'part', part, 'a place on the map');
+    }
+    return { world: full.world, country, continent, regions: full.regions };
+  }
   const regions = regionValues(regionalPop, geography);
   const aggregateOptions = {
     valueLabel: options.valueLabel ?? DEFAULT_VALUE_LABEL,
