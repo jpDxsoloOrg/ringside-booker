@@ -3,12 +3,18 @@
  * costs to run and to buy, and how far marketing and back office let popularity grow.
  *
  * ECO7-01 lays the groundwork: the area tables (`areas.ts`), the tunables (`tunables.ts`) and the
- * pure traced formulas (`formulas/`). Nothing charges money or appears on screen yet: the queries,
- * commands and phases arrive in ECO7-02 and ECO7-03. Production never rolls, so there is no RNG
+ * pure traced formulas (`formulas/`). ECO7-02 adds the read and write sides: the change check and
+ * write door (`door.ts`), the `production.setLevel` command, the `production.overview` and
+ * `production.changePreview` queries and the effect seam (`effects.ts`). The monthly and per-show
+ * postings arrive in ECO7-03 and ECO7-05. Production never rolls, so there is no RNG
  * stream. EVT4 owns the show-quality ceiling (system `cardFlow`). See docs/design/production.md.
  */
 
 import { defineSystem, type SystemBundle } from '../../core/api/system';
+import './events';
+import './builtinEffects';
+import { setProductionLevelCommand } from './commands';
+import { productionChangePreviewQuery, productionOverviewQuery } from './queries';
 
 export {
   AREA_COST_KIND,
@@ -64,4 +70,49 @@ export {
   type PopularityDragInputs,
 } from './formulas/popularityDrag';
 
-export const productionSystem: SystemBundle = defineSystem({ id: 'production' });
+export type { ProductionChangeSource } from './events';
+export { activeBroadcastDeal, dealRunsOn } from './deals';
+export { upcomingShows, type ProductionUpcomingShow } from './upcoming';
+export {
+  CHANGE_LEVEL_DOC_REF,
+  changeProductionLevel,
+  checkLevelChange,
+  PRODUCTION_CHANGE_REASON_CODES,
+  type ChangeProductionLevelArgs,
+  type LevelChangeCheck,
+  type LevelChangeRequest,
+  type ProductionChangeReasonCode,
+} from './door';
+export {
+  clearProductionEffectsForTests,
+  listProductionEffects,
+  registerProductionEffect,
+  type ProductionEffect,
+  type ProductionEffectInput,
+  type ProductionEffectLine,
+} from './effects';
+export { POPULARITY_CEILING_EFFECT_ID, TV_CAMERA_MINIMUM_EFFECT_ID } from './builtinEffects';
+export {
+  NOT_YOUR_PROMOTION_MESSAGE,
+  productionCommands,
+  setProductionLevelCommand,
+  type SetProductionLevelArgs,
+  type SetProductionLevelResult,
+} from './commands';
+export {
+  productionChangePreviewQuery,
+  productionOverviewQuery,
+  productionQueries,
+  type ProductionChangePreview,
+  type ProductionChangePreviewArgs,
+  type ProductionOverview,
+  type ProductionPreviewRow,
+  type ProductionPreviewRowId,
+  type ProductionRow,
+} from './queries';
+
+export const productionSystem: SystemBundle = defineSystem({
+  id: 'production',
+  queries: [productionOverviewQuery, productionChangePreviewQuery],
+  commands: [setProductionLevelCommand],
+});
