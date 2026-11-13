@@ -52,9 +52,9 @@ const tunables = createEngineTunables();
 
 describe('medicalLevelOf', () => {
   it('takes the best policy of two active employers', () => {
-    const { world, person, low, high } = medicalWorld((a, b) => [
-      { promotionId: a, ...NON_EXCLUSIVE },
-      { promotionId: b, ...NON_EXCLUSIVE },
+    const { world, person, low, high } = medicalWorld((lowId, highId) => [
+      { promotionId: lowId, ...NON_EXCLUSIVE },
+      { promotionId: highId, ...NON_EXCLUSIVE },
     ]);
     expect(medicalLevelOf(world, person, TEST_START_DATE, tunables)).toEqual({
       level: 3,
@@ -64,7 +64,7 @@ describe('medicalLevelOf', () => {
   });
 
   it('uses the one employer it has', () => {
-    const { world, person, low } = medicalWorld((a) => [{ promotionId: a }]);
+    const { world, person, low } = medicalWorld((lowId) => [{ promotionId: lowId }]);
     expect(medicalLevelOf(world, person, TEST_START_DATE, tunables)).toEqual({
       level: 1,
       promotionId: low,
@@ -96,10 +96,10 @@ describe('medicalLevelOf', () => {
   });
 
   it('ignores an offered contract and an expired one', () => {
-    const { world, person, low } = medicalWorld((a, b) => [
-      { promotionId: a, ...NON_EXCLUSIVE },
+    const { world, person, low } = medicalWorld((lowId, highId) => [
+      { promotionId: lowId, ...NON_EXCLUSIVE },
       {
-        promotionId: b,
+        promotionId: highId,
         status: 'offered',
         offeredOn: TEST_START_DATE,
         startsOn: addDays(TEST_START_DATE, 30),
@@ -111,9 +111,9 @@ describe('medicalLevelOf', () => {
       promotionId: low,
     });
 
-    const expired = medicalWorld((_a, b) => [
+    const expired = medicalWorld((_lowId, highId) => [
       {
-        promotionId: b,
+        promotionId: highId,
         status: 'expired',
         offeredOn: addDays(TEST_START_DATE, -400),
         startsOn: addDays(TEST_START_DATE, -365),
@@ -128,7 +128,7 @@ describe('medicalLevelOf', () => {
   });
 
   it('ignores an active contract that has not started by the date', () => {
-    const { world, person } = medicalWorld((_a, b) => [{ promotionId: b }]);
+    const { world, person } = medicalWorld((_lowId, highId) => [{ promotionId: highId }]);
     expect(medicalLevelOf(world, person, addDays(TEST_START_DATE, -1), tunables)).toEqual({
       level: 1,
       promotionId: null,
