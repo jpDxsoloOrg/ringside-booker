@@ -209,7 +209,17 @@ export const contractsTunables = defineTunables({
     unit: 'flag',
     category: CONTRACTS_TUNABLE_CATEGORY,
     description:
-      'Temporary: your contracts renew on the same terms for the same length when they run out, until you can renew them yourself',
+      'Temporary: your contracts renew on the same terms when they run out, until you can renew them yourself',
+    docRef: PLAYER_RENEWAL_DOC,
+  },
+  'contracts.autoRenewPlayerDays': {
+    kind: 'integer',
+    default: 365,
+    min: 1,
+    max: 3650,
+    unit: 'days',
+    category: CONTRACTS_TUNABLE_CATEGORY,
+    description: 'Temporary: how long each automatic renewal of your contracts adds',
     docRef: PLAYER_RENEWAL_DOC,
   },
 });

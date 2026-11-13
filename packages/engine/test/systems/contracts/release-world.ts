@@ -2,8 +2,8 @@
  * The world and engine the ECO4-02 command, query and expiry tests share.
  *
  * "My Wrestling" (the player, $100,000 cash) has five workers:
- * - 0 `plain`: a $8,000-a-month lower-card deal with 300 days left, booked on "My Mainstage" in
- *   five days;
+ * - 0 `plain`: a $8,000-a-month lower-card deal with 300 days left, booked against `expiring` on
+ *   "My Mainstage" in five days;
  * - 1 `champion`: main event, iron-clad, morale −62, holds the "Test Heavyweight Title", 500 days left;
  * - 2 `expiring`: mid card, 40 days left;
  * - 3 `low`: enhancement, 35 days left (below the default notice push);
@@ -113,18 +113,19 @@ export function releaseWorld(options: { readonly cash?: number } = {}): ReleaseW
     .with('booking', (context) => {
       const eventInstanceId = required(context.ids.eventInstances[0], 'show');
       const segment = context.insert('segments', aMatch({ eventInstanceId }, context.sequence));
-      context.insert(
-        'participants',
-        aParticipant(
-          {
-            segmentId: segment.id,
-            personId: required(context.ids.people[0], 'plain person'),
-            side: 0,
-            role: 'competitor',
-          },
-          context.sequence,
-        ),
-      );
+      const booked = [
+        required(context.ids.people[0], 'plain person'),
+        required(context.ids.people[2], 'opponent'),
+      ];
+      booked.forEach((personId, side) => {
+        context.insert(
+          'participants',
+          aParticipant(
+            { segmentId: segment.id, personId, side, role: 'competitor' },
+            context.sequence,
+          ),
+        );
+      });
     })
     .build();
   const [plain, champion, expiring, low, owner, rivalWorker] = ids.employments;
