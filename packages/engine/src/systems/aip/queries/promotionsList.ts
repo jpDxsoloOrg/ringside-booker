@@ -4,8 +4,8 @@
  *
  * Everything on a row is public except the money: `cash` is exact for a promotion the viewer runs
  * (and in a sandbox game, or for the all-seeing viewer) and hidden for anyone else's. The home
- * country popularity carries its Why? inline. Company size comes with ECO1; until then the row
- * simply has no `size` field. Design: docs/design/rival-desk.md#promotions-queries.
+ * country popularity carries its Why? inline. `size` is ECO1's public company size (AIP1-07), null
+ * when no feature supplies one. Design: docs/design/rival-desk.md#promotions-queries.
  */
 
 import { z } from 'zod';
@@ -17,6 +17,7 @@ import type { Promotion, PromotionStatus } from '../../../model/entities/promoti
 import type { PromotionStyle } from '../../../model/entities/promotion-style';
 import { geographyOf } from '../../world/geography';
 import { popularityRollup } from '../../world/formulas/popularityRollup';
+import { companySizeOf, type CompanySize } from '../companySize';
 import { redactForViewer, visibilityOf, type Redacted } from '../visibility';
 import {
   championLinesOf,
@@ -69,6 +70,8 @@ export interface PromotionListRow {
   controllerName: string | null;
   /** Exact for your own promotion (or sandbox, or all-seeing), hidden for anyone else's. */
   cash: Redacted;
+  /** ECO1's company size (public, never cash), or null when no feature supplies one. */
+  size: CompanySize | null;
 }
 
 declare module '../../../core/api/maps' {
@@ -84,7 +87,7 @@ export const promotionsListQuery: QueryDefinition<'promotions.list'> = defineQue
   {
     args: noArgs,
     run: (ctx) => {
-      const { read, viewer, date } = ctx;
+      const { read, viewer, date, tunables } = ctx;
       const geography = geographyOf(read);
       return [...read.tables.promotions.values()]
         .sort(compareByName)
@@ -119,6 +122,7 @@ export const promotionsListQuery: QueryDefinition<'promotions.list'> = defineQue
             controlledBy: controlledByOf(viewer, promotion.controller),
             controllerName: controllerNameOf(read, promotion.controller),
             cash: redactForViewer(visibilityOf(read, viewer, promotion.id), promotion.cash, []),
+            size: companySizeOf(read, tunables, promotion.id),
           };
         });
     },

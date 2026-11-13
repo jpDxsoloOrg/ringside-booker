@@ -245,3 +245,11 @@ export {
   rivalRatingPolicy,
   rivalShortcutLine,
 } from './ratingPolicy';
+// AIP1-07: ECO1's company size on the Promotions list.
+export {
+  companySizeOf,
+  eco1CompanySize,
+  setCompanySizeSource,
+  type CompanySize,
+  type CompanySizeSource,
+} from './companySize';

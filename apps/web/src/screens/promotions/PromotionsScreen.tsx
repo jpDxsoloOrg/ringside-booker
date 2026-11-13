@@ -15,7 +15,7 @@ import { useTracePanelStore } from '@/components/Trace';
 import { useIsMobile } from '@/styles/useMediaQuery';
 import {
   comparePromotionTies,
-  PROMOTION_COLUMNS,
+  promotionColumnsFor,
   SORTABLE_PROMOTION_COLUMNS,
 } from './promotionColumns';
 import { promotionsSortFromSearch, searchWithPromotionsSort } from './promotionsListParams';
@@ -81,6 +81,7 @@ export function PromotionsScreen() {
 
   const failed = query.status === 'error';
   const rows = failed ? NO_ROWS : (query.data ?? NO_ROWS);
+  const columns = promotionColumnsFor(rows);
 
   // One tree for every state, so the heading focused on arrival stays mounted when the query
   // settles.
@@ -107,7 +108,7 @@ export function PromotionsScreen() {
         <DataTable
           className={styles['table']}
           rows={rows}
-          columns={PROMOTION_COLUMNS}
+          columns={columns}
           getRowId={rowId}
           compareTies={comparePromotionTies}
           getRowLabel={rowLabel}

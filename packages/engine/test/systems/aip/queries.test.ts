@@ -14,7 +14,7 @@ import { addDays, type GameDate } from '../../../src/core/date';
 import { cents } from '../../../src/core/money';
 import type { PromotionId } from '../../../src/core/ids';
 import type { GameWorld } from '../../../src/model/tables';
-import { isRevealedTo } from '../../../src/systems/aip';
+import { isRevealedTo, setCompanySizeSource } from '../../../src/systems/aip';
 import { defaultSystems } from '../../../src/systems';
 import { anAiDecision } from '../../support/builders/promotions';
 import { TEST_PLAYER_ID, TEST_START_DATE } from '../../support/builders/build-row';
@@ -149,7 +149,28 @@ describe('promotions.list', () => {
       ['B Title', 1],
     ]);
     expect(rivalRow?.popularity.home.trace).toBeDefined();
-    expect(rivalRow).not.toHaveProperty('size');
+    // ECO1's public size band (AIP1-07), never cash.
+    expect(rivalRow?.size).toEqual({
+      label: expect.stringMatching(/^(Local|Regional|National|Continental|Global)$/),
+      reach: expect.any(Number),
+    });
+  });
+
+  it('carries no size when no feature supplies one (a game without ECO1)', () => {
+    const restore = setCompanySizeSource(null);
+    try {
+      const rows = ask(queryWorld().engine, 'promotions.list', {});
+      expect(rows.every((row) => row.size === null)).toBe(true);
+    } finally {
+      restore();
+    }
+  });
+
+  it("reads the size off ECO1's finance.company", () => {
+    const { engine, rival } = queryWorld();
+    const row = ask(engine, 'promotions.list', {}).find((entry) => entry.promotionId === rival);
+    const company = ask(engine, 'finance.company', { promotionId: rival });
+    expect(row?.size).toEqual({ label: company.sizeLabel, reach: company.reach });
   });
 
   it('shows every cash figure to the all-seeing viewer and in a sandbox game', () => {

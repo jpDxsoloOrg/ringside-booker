@@ -2150,3 +2150,10 @@ export {
   rivalShortcutLine,
 } from './systems/aip/index';
 export type { LabRateAsOption } from './systems/match';
+export {
+  companySizeOf,
+  eco1CompanySize,
+  setCompanySizeSource,
+  type CompanySize,
+  type CompanySizeSource,
+} from './systems/aip/index';

@@ -126,6 +126,15 @@ export const PROMOTION_COLUMNS: readonly ColumnDef<PromotionListRow>[] = [
     card: 'stat',
   },
   {
+    id: 'size',
+    header: 'Company size',
+    cardLabel: 'Size',
+    // ECO1's public size band (AIP1-07); the column is dropped when no row has one.
+    cell: (row) => row.size?.label ?? 'Unknown',
+    sortValue: (row) => row.size?.reach ?? -1,
+    card: 'meta',
+  },
+  {
     id: 'champions',
     header: 'Champions',
     cell: (row) => <ChampionsCell row={row} />,
@@ -144,6 +153,17 @@ export const PROMOTION_COLUMNS: readonly ColumnDef<PromotionListRow>[] = [
     card: 'meta',
   },
 ];
+
+/** The columns without Company size, for a game with no feature that supplies it. */
+const PROMOTION_COLUMNS_WITHOUT_SIZE: readonly ColumnDef<PromotionListRow>[] =
+  PROMOTION_COLUMNS.filter((column) => column.id !== 'size');
+
+/** The columns to show: Company size only when some row has a size (ECO1, AIP1-07). */
+export function promotionColumnsFor(
+  rows: readonly PromotionListRow[],
+): readonly ColumnDef<PromotionListRow>[] {
+  return rows.some((row) => row.size !== null) ? PROMOTION_COLUMNS : PROMOTION_COLUMNS_WITHOUT_SIZE;
+}
 
 /** The sortable column ids, for reading the sort back from the URL. */
 export const SORTABLE_PROMOTION_COLUMNS: readonly string[] = PROMOTION_COLUMNS.filter(
