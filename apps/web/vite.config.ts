@@ -20,6 +20,14 @@ const engineSourceEntry = fileURLToPath(
  */
 const basePath = process.env['RB_BASE_PATH'] ?? '/';
 
+/**
+ * The browsers the shipped bundle supports (docs/design/browsers.md): iOS Safari 15.4 and later,
+ * which is every iPhone browser since they all run WebKit, plus Chrome, Edge and Firefox from the
+ * last two years or so. esbuild lowers JavaScript syntax and CSS it can rewrite for these targets;
+ * PostCSS lowers range media queries (postcss.config.js), which esbuild leaves alone.
+ */
+const browserTargets = ['es2022', 'safari15.4', 'ios15.4', 'chrome111', 'edge111', 'firefox115'];
+
 export default defineConfig(({ command }) => ({
   base: basePath,
   plugins: [react()],
@@ -48,7 +56,8 @@ export default defineConfig(({ command }) => ({
     format: 'es',
   },
   build: {
-    target: 'es2022',
+    target: browserTargets,
+    cssTarget: browserTargets,
     rollupOptions: {
       output: {
         /**

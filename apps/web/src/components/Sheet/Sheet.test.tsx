@@ -89,6 +89,26 @@ describe('Sheet', () => {
     expect(screen.getByRole('button', { name: 'First action' })).toHaveFocus();
   });
 
+  it('focuses a search box first with a mouse, but passes over it on a touch screen', async () => {
+    const user = userEvent.setup({ delay: null });
+    const content = (
+      <>
+        <input type="search" aria-label="Search" />
+        <button type="button">First action</button>
+      </>
+    );
+    const { unmount } = render(<SheetHarness>{content}</SheetHarness>);
+    await user.click(screen.getByRole('button', { name: 'Open sheet' }));
+    expect(screen.getByRole('searchbox', { name: 'Search' })).toHaveFocus();
+    unmount();
+
+    // On a touch screen the keyboard would cover the sheet, and iOS would zoom the page in.
+    setMatchMedia((query) => query === '(pointer: coarse)');
+    render(<SheetHarness>{content}</SheetHarness>);
+    await user.click(screen.getByRole('button', { name: 'Open sheet' }));
+    expect(screen.getByRole('button', { name: 'First action' })).toHaveFocus();
+  });
+
   it('focuses the footer when the content has nothing focusable', async () => {
     const user = userEvent.setup();
     render(

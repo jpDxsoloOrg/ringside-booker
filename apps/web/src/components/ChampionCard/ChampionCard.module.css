@@ -201,6 +201,8 @@
 
   .listItem {
     flex: none;
+    /* Safari before 16 has no container units: 85% of the window is close enough there. */
+    inline-size: min(85vw, 20rem);
     inline-size: min(85cqi, 20rem);
     scroll-snap-align: start;
   }

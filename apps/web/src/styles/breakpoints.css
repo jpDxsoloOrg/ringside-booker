@@ -8,7 +8,11 @@
  *
  * Media queries in rem resolve against the browser default font size, not the scaled root, so a
  * desktop player at 150% UI scale keeps the desktop layout.
+ *
+ * They use min-width / max-width, not range syntax (`width < 48rem`): Safari only reads ranges from
+ * iOS 16.4, and breakpoints.ts passes the same text to matchMedia, which no build step lowers.
+ * 47.999rem is the largest width below 48rem, so the phone layout ends exactly where it did.
  */
 
-@custom-media --bp-mobile (width < 48rem);
-@custom-media --bp-wide (width >= 90rem);
+@custom-media --bp-mobile (max-width: 47.999rem);
+@custom-media --bp-wide (min-width: 90rem);

@@ -19,6 +19,37 @@ export function firstFocusableIn(container: Element | null): HTMLElement | null 
   return null;
 }
 
+/** Fields that bring up the on-screen keyboard: text inputs, textareas and editable regions. */
+const TEXT_ENTRY_SELECTOR = [
+  'input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="button"])' +
+    ':not([type="submit"]):not([type="reset"]):not([type="file"]):not([type="color"])',
+  'textarea',
+  '[contenteditable=""]',
+  '[contenteditable="true"]',
+].join(', ');
+
+/** True on a touch screen, where focusing a text field pops up the keyboard. */
+function isTouchScreen(): boolean {
+  return typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
+}
+
+/**
+ * Where focus goes when an overlay opens: the first keyboard-focusable element in `container`,
+ * except that on a touch screen text fields are passed over. Focusing one there brings up the
+ * keyboard over half the sheet, and on iOS zooms the page in, before the player asked to type
+ * (UI-30). Null when nothing qualifies.
+ */
+export function firstOpenFocusIn(container: Element | null): HTMLElement | null {
+  if (container === null) return null;
+  const skipTextEntry = isTouchScreen();
+  for (const candidate of Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR))) {
+    if (candidate.closest('[hidden], [inert]') !== null) continue;
+    if (skipTextEntry && candidate.matches(TEXT_ENTRY_SELECTOR)) continue;
+    return candidate;
+  }
+  return null;
+}
+
 /**
  * Marks a short-lived container (a menu, say) whose controls can open an overlay but which closes
  * as the overlay opens. Its value is the id of the element that should get focus back instead of

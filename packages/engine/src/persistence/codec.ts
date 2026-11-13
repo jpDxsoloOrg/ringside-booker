@@ -2,8 +2,9 @@
  * The save codec: a save document to bytes and back.
  *
  * Encoding writes the document as canonical JSON (object keys sorted, no whitespace), encodes it as
- * UTF-8 and gzips it with the platform's `CompressionStream`. The same document always gives the
- * same bytes, whatever order its keys were created in, so two runs that reach the same state save
+ * UTF-8 and gzips it (gzip.ts: the platform's `CompressionStream`, or fflate on browsers without
+ * it, such as iOS Safari before 16.4). The same document always gives the same bytes in a given
+ * browser, whatever order its keys were created in, so two runs that reach the same state save
  * byte-identical files. An `.rbsave` file is exactly these bytes.
  *
  * Decoding accepts gzip (detected by its magic bytes `1f 8b`) or plain UTF-8 JSON starting with `{`,
@@ -11,12 +12,13 @@
  * failure. Anything over `MAX_SAVE_BYTES` once unpacked is refused, and decompression stops as soon
  * as it passes the limit.
  *
- * `CompressionStream`, `DecompressionStream`, `TextEncoder` and `TextDecoder` exist in browsers, Web
- * Workers and Node 20, so headless tools read and write the same files as the game.
+ * Gzip, `TextEncoder` and `TextDecoder` work in browsers, Web Workers and Node 20, so headless
+ * tools read and write the same files as the game.
  */
 
 import { assertJsonValue, isJsonArray, type JsonValue } from '../core/json';
 import { singleIssueFailure, type LoadResult } from './report';
+import { gunzip, gzip } from './gzip';
 import type { SaveDocument } from './save-document';
 
 /** The largest save accepted, measured as unpacked JSON: 128 MB. */
@@ -63,79 +65,13 @@ export function serialiseSaveDocument(doc: SaveDocument, indent?: number): strin
   return JSON.stringify(sortKeys(doc), null, indent);
 }
 
-/** Resolves to the error `write` and `close` failed with, or null when both succeeded. */
-async function writeAndClose(
-  writer: WritableStreamDefaultWriter<Uint8Array>,
-  input: Uint8Array,
-): Promise<{ readonly error: unknown } | null> {
-  try {
-    await writer.write(input);
-    await writer.close();
-    return null;
-  } catch (error: unknown) {
-    return { error };
-  }
-}
-
-function concatChunks(chunks: readonly Uint8Array[], totalLength: number): Uint8Array {
-  const joined = new Uint8Array(totalLength);
-  let offset = 0;
-  for (const chunk of chunks) {
-    joined.set(chunk, offset);
-    offset += chunk.length;
-  }
-  return joined;
-}
-
-/**
- * Pushes `input` through a compression or decompression stream and collects the output. Returns
- * null, after cancelling the stream, as soon as the output passes `maxOutputBytes`. Rejects with
- * the stream's error for damaged input.
- */
-async function transformBytes(
-  stream: CompressionStream | DecompressionStream,
-  input: Uint8Array,
-  maxOutputBytes: number,
-): Promise<Uint8Array | null> {
-  const writing = writeAndClose(stream.writable.getWriter(), input);
-  const reader = stream.readable.getReader();
-  const chunks: Uint8Array[] = [];
-  let totalLength = 0;
-  for (;;) {
-    const result = await reader.read();
-    if (result.done) {
-      break;
-    }
-    totalLength += result.value.length;
-    if (totalLength > maxOutputBytes) {
-      await reader.cancel('the output is over the size limit');
-      return null;
-    }
-    chunks.push(result.value);
-  }
-  const writeFailure = await writing;
-  if (writeFailure !== null) {
-    throw writeFailure.error;
-  }
-  return concatChunks(chunks, totalLength);
-}
-
 /**
  * Encodes a save document: canonical JSON, UTF-8, gzip. The same document always gives the same
  * bytes. Throws `NotSerialisableError` when the document is not plain JSON.
  */
 export async function encodeSave(doc: SaveDocument): Promise<Uint8Array> {
   const json = new TextEncoder().encode(serialiseSaveDocument(doc));
-  const compressed = await transformBytes(
-    new CompressionStream('gzip'),
-    json,
-    Number.POSITIVE_INFINITY,
-  );
-  if (compressed === null) {
-    // Unreachable with an infinite limit; keeps the result type honest.
-    throw new Error('encodeSave: compression produced no output');
-  }
-  return compressed;
+  return gzip(json);
 }
 
 function isGzip(bytes: Uint8Array): boolean {
@@ -182,7 +118,7 @@ export async function decodeSave(
   if (isGzip(bytes)) {
     let unpacked: Uint8Array | null;
     try {
-      unpacked = await transformBytes(new DecompressionStream('gzip'), bytes, maxBytes);
+      unpacked = await gunzip(bytes, maxBytes);
     } catch (error: unknown) {
       return singleIssueFailure(
         'decode',
