@@ -53,6 +53,11 @@ export interface ColumnDef<Row> {
    * column: the row's name always stays.
    */
   readonly hideable?: boolean;
+  /**
+   * Keeps the header for screen readers only, for a column whose cells say what they are, such as
+   * a row's actions menu. Off by default.
+   */
+  readonly headerHidden?: boolean;
 }
 
 /** The active sort, or `null` for the rows in the order they were given. */

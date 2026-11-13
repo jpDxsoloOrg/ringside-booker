@@ -2,6 +2,7 @@ import { memo, useMemo, useRef } from 'react';
 import type { AriaAttributes, KeyboardEvent, MouseEvent } from 'react';
 import { classNames } from '../classNames';
 import { Icon } from '../Icon';
+import { VisuallyHidden } from '../layout';
 import styles from './DataTable.module.css';
 import { RowCheckbox } from './RowCheckbox';
 import { useRowWindow } from './rowWindow';
@@ -44,7 +45,11 @@ function HeaderCell<Row>({ column, sortable, sort, onToggleSort }: HeaderCellPro
   if (!sortable || column.sortValue === undefined) {
     return (
       <th scope="col" className={className}>
-        {column.header}
+        {column.headerHidden === true ? (
+          <VisuallyHidden>{column.header}</VisuallyHidden>
+        ) : (
+          column.header
+        )}
       </th>
     );
   }
