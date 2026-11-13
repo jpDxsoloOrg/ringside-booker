@@ -28,7 +28,7 @@ export interface StatBarProps {
   readonly showValue?: boolean;
   /** Potential: draws a marker at this value. */
   readonly ceiling?: number;
-  /** What the marker is, as screen readers hear it: "potential" by default, "age cap" for condition. */
+  /** What the marker is, as screen readers hear it: "potential" by default, "cap for age 41:" for condition. */
   readonly ceilingLabel?: string;
   /**
    * The recent change. A gain tints the newest part of the bar; a loss shows the ground given up

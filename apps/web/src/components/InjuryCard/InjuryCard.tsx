@@ -4,6 +4,7 @@ import { Button } from '../Button';
 import { classNames } from '../classNames';
 import { formatGameDate } from '../format';
 import { Icon } from '../Icon';
+import { VisuallyHidden } from '../layout';
 import { Panel } from '../Panel';
 import type { PanelHeadingLevel } from '../Panel';
 import { Explained, WhyButton } from '../Trace';
@@ -75,8 +76,10 @@ function daysText(days: number): string {
   return days === 1 ? '1 day' : `${String(days)} days`;
 }
 
-function daysLeftText(days: number): string {
-  return days <= 0 ? 'Back today' : daysText(days);
+/** The Days left row: "23 days", "Back tomorrow" the day before, "Back today" on the day. */
+export function injuryDaysLeftText(days: number): string {
+  if (days <= 0) return 'Back today';
+  return days === 1 ? 'Back tomorrow' : daysText(days);
 }
 
 function WorkerName({
@@ -136,7 +139,7 @@ export function InjuryCard({
           <Badge tone={severity.tone}>{severity.label}</Badge>
           {injury.pendingNotice && (
             <Badge tone="action" variant="solid">
-              New
+              New<VisuallyHidden> injury, not seen yet</VisuallyHidden>
             </Badge>
           )}
         </span>
@@ -165,7 +168,7 @@ export function InjuryCard({
         {injury.daysRemaining !== null && !healed && (
           <div className={styles['row']}>
             <dt>Days left</dt>
-            <dd className="tabular">{daysLeftText(injury.daysRemaining)}</dd>
+            <dd className="tabular">{injuryDaysLeftText(injury.daysRemaining)}</dd>
           </div>
         )}
         <div className={styles['row']}>

@@ -10,11 +10,10 @@
  *
  * Each screen has no sideways scroll and no serious axe findings.
  */
-import { fileURLToPath } from 'node:url';
 import type { Locator, Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { expectNoSeriousA11yViolations } from './helpers/a11y';
-import { openRoster, startDefaultWorldGame } from './helpers/game';
+import { enterGameFromInjurySave, openRoster, startDefaultWorldGame } from './helpers/game';
 import { expectNoHorizontalScroll } from './helpers/layout';
 import { navigateInApp } from './helpers/shell';
 
@@ -23,24 +22,8 @@ const PROMOTION = 'Altura Wrestling Entertainment';
 /** A new game builds the default world in the worker; each flow runs in one test. */
 const FLOW_TIMEOUT_MS = 240_000;
 
-const INJURY_SAVE_PATH = fileURLToPath(new URL('./fixtures/sample-injury.rbsave', import.meta.url));
-const INJURY_SLOT_LABEL = 'Injury save (imported)';
-
 function dayButton(page: Page, name: string | RegExp): Locator {
   return page.getByTestId('day-control').getByRole('button', { name });
-}
-
-async function enterGameFromInjurySave(page: Page): Promise<void> {
-  await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1, name: 'Ringside Booker' })).toBeVisible();
-  await page.getByTestId('import-save-input').setInputFiles(INJURY_SAVE_PATH);
-  await expect(page.getByRole('heading', { level: 1, name: 'Saved games' })).toBeVisible();
-  await page
-    .getByRole('article', { name: INJURY_SLOT_LABEL, exact: true })
-    .getByRole('button', { name: `Load ${INJURY_SLOT_LABEL}` })
-    .click();
-  await expect(page).toHaveURL(/\/game\/office$/);
-  await expect(page.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeVisible();
 }
 
 test.describe('who is out', () => {
@@ -85,7 +68,7 @@ test.describe('who is out', () => {
     const list = page.getByRole('tabpanel');
     const healthLinks = list.locator('a[href*="?tab=health"]');
     await expect(healthLinks.first()).toBeVisible();
-    await expect(list.getByText(/days? left|Back today/).first()).toBeVisible();
+    await expect(list.getByText(/days left|Back today|Back tomorrow/).first()).toBeVisible();
     // Seen: the stop is gone.
     await expect(dayButton(page, 'Next day')).toBeVisible({ timeout: 15_000 });
     await expectNoHorizontalScroll(page);
@@ -102,7 +85,7 @@ test.describe('who is out', () => {
     await expect(
       page
         .getByRole('main')
-        .getByText(/ · (\d+ days? left|Back today)$/)
+        .getByText(/ · (\d+ days left|Back today|Back tomorrow)$/)
         .first(),
     ).toBeVisible();
     await expectNoHorizontalScroll(page);

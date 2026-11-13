@@ -47,7 +47,7 @@ export const DAYS_IN_A_YEAR = 365.25;
 const SCALE = 100;
 
 export const OFFSCREEN_NEITHER_TRAIT_BRANCH = 'Neither durable nor injury prone';
-export const RIVAL_RULE_BRANCH = 'Rival rule: no in-match injuries, so more off-screen ones (D-01)';
+export const RIVAL_RULE_BRANCH = 'Rival rule: no in-match injuries, so more off-screen ones';
 export const NO_RIVAL_RULE_NOTE = 'No rival rule in this game';
 export const RIVAL_RULE_OFF_BRANCH = 'Rival rule does not apply';
 

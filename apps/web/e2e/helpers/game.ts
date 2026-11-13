@@ -63,6 +63,31 @@ export async function enterGameFromPlayedSave(page: Page): Promise<void> {
   await expect(page.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeVisible();
 }
 
+/**
+ * The injury e2e save: a default-world game as Altura whose Next day hurts one of the player's
+ * own wrestlers, built by `fixtures/build-injury-save.ts` (which `npm run e2e` runs first).
+ */
+export const INJURY_SAVE_PATH = fileURLToPath(
+  new URL('../fixtures/sample-injury.rbsave', import.meta.url),
+);
+
+/** The slot label the imported injury save gets. */
+export const INJURY_SLOT_LABEL = 'Injury save (imported)';
+
+/** Imports the injury save from the title screen, loads it and waits for the office. */
+export async function enterGameFromInjurySave(page: Page): Promise<void> {
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1, name: 'Ringside Booker' })).toBeVisible();
+  await page.getByTestId('import-save-input').setInputFiles(INJURY_SAVE_PATH);
+  await expect(page.getByRole('heading', { level: 1, name: 'Saved games' })).toBeVisible();
+  await page
+    .getByRole('article', { name: INJURY_SLOT_LABEL, exact: true })
+    .getByRole('button', { name: `Load ${INJURY_SLOT_LABEL}` })
+    .click();
+  await expect(page).toHaveURL(/\/game\/office$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeVisible();
+}
+
 /* ---------------------------------------------------------------- the new-game wizard */
 
 /** A new-game wizard step's heading. */
@@ -181,6 +206,26 @@ export interface StartDefaultWorldGameOptions {
   readonly phone?: boolean;
   /** Game options to change from their defaults on the options step. */
   readonly settings?: StartDefaultWorldGameSettings;
+  /** The world seed, typed into the options step's Advanced Seed field. A random one otherwise. */
+  readonly seed?: string;
+}
+
+/**
+ * The seed the health e2e (`health-flow.spec.ts`) plays as Altura: its first 30-day skip stops
+ * for one of Altura's own injuries after two show nights, with three people hurt world-wide, and
+ * the worker is back within a few days. Found by `packages/engine/test/support/findHealthSeed.ts`;
+ * run it again for a new one if the world or the injury rules change.
+ */
+export const HEALTH_E2E_SEED = 'health-e2e-136';
+
+/** Opens the options step's Advanced section and types `seed` into its Seed field. */
+async function typeSeed(page: Page, seed: string): Promise<void> {
+  const field = page.getByRole('textbox', { name: 'Seed' });
+  if (!(await field.isVisible())) {
+    await page.getByRole('button', { name: 'Advanced' }).click();
+  }
+  await field.fill(seed);
+  await expect(field).toHaveValue(seed);
 }
 
 /** The new-game options `startDefaultWorldGame` can switch on, by their setting key. */
@@ -215,7 +260,7 @@ async function applyWizardSettings(
 /**
  * Starts a new game the way a player does, from a fresh profile: title → New game → the default
  * world → `promotion` (an existing one, by its full name) → the default options, apart from any
- * `options.settings` changes → Start game, then waits for the Dashboard with the promotion in the
+ * `options.settings` changes and the seed in `options.seed` → Start game, then waits for the Dashboard with the promotion in the
  * top bar. The world is built in the engine worker and saved into a slot, so Main menu and
  * Continue work afterwards.
  */
@@ -232,6 +277,7 @@ export async function startDefaultWorldGame(
   await next(page);
   await expect(stepHeading(page, 'Game options')).toBeVisible();
   if (options.settings !== undefined) await applyWizardSettings(page, options.settings);
+  if (options.seed !== undefined) await typeSeed(page, options.seed);
   await next(page);
   await expect(stepHeading(page, 'Review and start')).toBeVisible();
   await page.getByRole('textbox', { name: 'Your name' }).fill(options.playerName ?? 'Alex Booker');

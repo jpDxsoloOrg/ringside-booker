@@ -54,8 +54,14 @@ export function medicalLine(medical: HealthProfile['medical']): string {
     : `Medical care: ${medical.promotionName}, ${level}`;
 }
 
-function ConditionRow({ part }: { readonly part: BodyPartHealth }) {
+/** "Cap for age 41": the cap marker's words, beside its value, so the marker is never alone. */
+export function capForAgeText(age: number): string {
+  return `Cap for age ${String(age)}`;
+}
+
+function ConditionRow({ part, age }: { readonly part: BodyPartHealth; readonly age: number }) {
   const name = BODY_PART_LABELS[part.part];
+  const capText = capForAgeText(age);
   return (
     <li className={styles['conditionRow']}>
       <div className={styles['barLine']}>
@@ -63,7 +69,7 @@ function ConditionRow({ part }: { readonly part: BodyPartHealth }) {
           label={name}
           value={Math.round(part.value)}
           ceiling={part.cap.value}
-          ceilingLabel="age cap"
+          ceilingLabel={`${capText.toLowerCase()}:`}
           lowBelow={CONDITION_LOW_BELOW}
         />
         {part.injured && (
@@ -85,7 +91,7 @@ function ConditionRow({ part }: { readonly part: BodyPartHealth }) {
           </dd>
         </div>
         <div className={styles['fact']}>
-          <dt>Age cap</dt>
+          <dt>{capText}</dt>
           <dd>
             <Explained
               value={part.cap.value}
@@ -208,7 +214,7 @@ export function HealthPanel({ personId }: { readonly personId: PersonId }) {
       >
         <ul className={styles['conditionList']}>
           {profile.condition.map((part) => (
-            <ConditionRow key={part.part} part={part} />
+            <ConditionRow key={part.part} part={part} age={profile.age} />
           ))}
         </ul>
       </Panel>

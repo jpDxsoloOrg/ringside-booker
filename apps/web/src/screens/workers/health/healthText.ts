@@ -44,10 +44,10 @@ export const FATIGUE_BAND_LABELS: Readonly<Record<FatigueBand, string>> = {
 /** Off-screen, In a match. */
 export const INJURY_SOURCE_LABELS: Readonly<Record<InjurySource, string>> = INJURY_CARD_SOURCES;
 
-/** "1 day left", "23 days left", or "Back today" on the day itself. */
+/** "23 days left", "Back tomorrow" the day before, or "Back today" on the day itself. */
 export function daysLeftText(daysRemaining: number): string {
   if (daysRemaining <= 0) return 'Back today';
-  return daysRemaining === 1 ? '1 day left' : `${String(daysRemaining)} days left`;
+  return daysRemaining === 1 ? 'Back tomorrow' : `${String(daysRemaining)} days left`;
 }
 
 /** "1 day" or "23 days". */
@@ -55,7 +55,7 @@ export function daysText(days: number): string {
   return days === 1 ? '1 day' : `${String(days)} days`;
 }
 
-/** "Out until Mar 14, 2027 · 23 days left". */
+/** "Out until Mar 14, 2027 · 23 days left" (or "· Back tomorrow" / "· Back today"). */
 export function outUntilText(expectedReturn: GameDate, daysRemaining: number): string {
   return `Out until ${formatGameDate(expectedReturn)} · ${daysLeftText(daysRemaining)}`;
 }

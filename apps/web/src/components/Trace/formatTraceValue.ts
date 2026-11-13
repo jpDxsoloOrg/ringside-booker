@@ -23,6 +23,18 @@ const ATTRIBUTE_DECIMALS = 3;
 /** Decimals shown for percentages (`15.3%`). */
 const PERCENT_DECIMALS = 1;
 
+/**
+ * Decimals for a percentage under 1%: a daily chance such as an off-screen injury's (`0.082%`)
+ * would otherwise read `0.1%` at every step and hide what each step did.
+ */
+const SMALL_PERCENT_DECIMALS = 3;
+
+/** A value on the 0–100 scale as a percentage, finer under 1%. */
+function percent(value: number): string {
+  const decimals = Math.abs(value) < 1 ? SMALL_PERCENT_DECIMALS : PERCENT_DECIMALS;
+  return `${decimal(value, decimals)}%`;
+}
+
 /** Turns a 0–1 probability into the 0–100 scale it is read on. */
 const PERCENT_PER_PROBABILITY = 100;
 
@@ -68,7 +80,8 @@ export function formatTraceChange(before: number, after: number, unit?: TraceDis
  *
  * - `money` from cents (`−$1,250`, `$12.50` for a small amount with cents), `money/month` adds
  *   `/month`;
- * - `percent` on the 0–100 scale (`15.3` → `15.3%`), `probability` from 0–1 (`0.153` → `15.3%`);
+ * - `percent` on the 0–100 scale (`15.3` → `15.3%`), `probability` from 0–1 (`0.153` → `15.3%`),
+ *   with up to 3 decimals under 1% (`0.00082` → `0.082%`);
  * - `ratio` as a plain factor (`0.885`), `multiplier` as `×1.15`, both with up to 3 decimals;
  * - `points` as popularity reads everywhere (`components/format/popularity.ts`): one decimal at
  *   most (`70.3`); `points/day` (`4/day`), `stars` (`3.75★`);
@@ -85,9 +98,9 @@ export function formatTraceNumber(value: number, unit?: TraceDisplayUnit): strin
     case 'money/month':
       return `${money(value)}/month`;
     case 'percent':
-      return `${decimal(value, PERCENT_DECIMALS)}%`;
+      return percent(value);
     case 'probability':
-      return `${decimal(value * PERCENT_PER_PROBABILITY, PERCENT_DECIMALS)}%`;
+      return percent(value * PERCENT_PER_PROBABILITY);
     case 'ratio':
       return decimal(value, FACTOR_DECIMALS);
     case 'multiplier':
