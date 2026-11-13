@@ -54,6 +54,7 @@ const WORKER_STATS: readonly { style: RingStyle; popularity: number; stamina: nu
   { style: 'hardcore', popularity: 22, stamina: 64 },
   { style: 'allRounder', popularity: 40, stamina: 75 },
   { style: 'showman', popularity: 0, stamina: 55 },
+  { style: 'technician', popularity: 31, stamina: 60 },
 ];
 
 /** The region the gallery's show is in. */
@@ -92,6 +93,14 @@ const WORKERS: readonly Worker[] = [
     onCard: null,
   },
   { name: 'Sam Reed', ...AVAILABLE, canWorkAngles: true, brandName: null, onCard: 'Opener' },
+  // A long name, so the phone layout is checked against one (EVT2-10).
+  {
+    name: 'Maximilian Vandersteenhoven-Kaczmarczyk',
+    ...AVAILABLE,
+    canWorkAngles: true,
+    brandName: null,
+    onCard: null,
+  },
 ];
 
 /** Genders by index, with someone non-binary, so the picker's Gender filter has all three. */
@@ -103,6 +112,7 @@ const GENDERS_BY_INDEX = [
   'female',
   'male',
   'female',
+  'male',
   'nonBinary',
 ] as const;
 
@@ -124,7 +134,7 @@ export function galleryWorkerRows(kind: 'match' | 'angle'): AvailableWorkerRow[]
     roles: ['wrestler'],
     employmentRole: 'wrestler',
     push:
-      index === 2 ? 'mainEvent' : index < 2 ? 'upperCard' : index === 7 ? 'lowerCard' : 'midCard',
+      index === 2 ? 'mainEvent' : index < 2 ? 'upperCard' : index === 8 ? 'lowerCard' : 'midCard',
     alignment: index % 2 === 0 ? 'face' : 'heel',
     brandId: null,
     brandName: worker.brandName,
@@ -263,6 +273,18 @@ export const GALLERY_CATALOG: MatchCatalog = {
       shortName: 'Three-Way',
       order: 40,
       sides: { min: 3, max: 3 },
+      sideSize: SIMPLE,
+      equalSides: true,
+      durationShift: 0,
+      allowsTitles: true,
+      hidden: false,
+    },
+    {
+      key: parseContentKey('match.fatal-four-way'),
+      name: 'Four-Way',
+      shortName: 'Four-Way',
+      order: 50,
+      sides: { min: 4, max: 4 },
       sideSize: SIMPLE,
       equalSides: true,
       durationShift: 0,
