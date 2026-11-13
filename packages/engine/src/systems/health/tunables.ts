@@ -12,6 +12,7 @@ const FATIGUE_DOC = 'health.md#fatigue-recovery';
 const CAP_DOC = 'health.md#condition-cap';
 const CONDITION_DOC = 'health.md#condition-recovery';
 const MEDICAL_DOC = 'health.md#medical-care';
+const INJURY_DOC = 'health.md#injuries';
 
 /** A 0..3 multiplier in the Health category. */
 function multiplier(defaultValue: number, description: string, docRef: string) {
@@ -186,6 +187,72 @@ export const healthTunables = defineTunables({
   'health.medical.recoveryMultiplier.level3': multiplier(
     1.3,
     'Healing under medical care level 3 (the best)',
+    MEDICAL_DOC,
+  ),
+  'health.injury.severityMultiplier.minor': multiplier(
+    0.6,
+    'Time out for a minor injury, as a multiple of the rolled days',
+    INJURY_DOC,
+  ),
+  'health.injury.severityMultiplier.moderate': multiplier(
+    1,
+    'Time out for a moderate injury, as a multiple of the rolled days',
+    INJURY_DOC,
+  ),
+  'health.injury.severityMultiplier.severe': multiplier(
+    1.8,
+    'Time out for a severe injury, as a multiple of the rolled days',
+    INJURY_DOC,
+  ),
+  'health.injury.durableMultiplier': multiplier(
+    0.75,
+    'Time out for a durable worker, as a multiple of everyone else',
+    INJURY_DOC,
+  ),
+  'health.injury.injuryProneMultiplier': multiplier(
+    1.35,
+    'Time out for an injury-prone worker, as a multiple of everyone else',
+    INJURY_DOC,
+  ),
+  'health.injury.maxDays': {
+    kind: 'integer',
+    default: 540,
+    min: 1,
+    max: 730,
+    unit: 'days',
+    category: HEALTH_TUNABLE_CATEGORY,
+    description: 'The longest any injury keeps someone out',
+    docRef: INJURY_DOC,
+  },
+  'health.injury.conditionLossPerWeek': {
+    kind: 'number',
+    default: 1,
+    min: 0,
+    max: 10,
+    step: 0.1,
+    unit: 'points',
+    category: HEALTH_TUNABLE_CATEGORY,
+    description: 'Condition the hurt body part loses for each week out; 0 turns the loss off',
+    docRef: INJURY_DOC,
+  },
+  'health.medical.injuryMultiplier.level0': multiplier(
+    1.2,
+    'Injury time out under medical care level 0 (none)',
+    MEDICAL_DOC,
+  ),
+  'health.medical.injuryMultiplier.level1': multiplier(
+    1,
+    'Injury time out under medical care level 1',
+    MEDICAL_DOC,
+  ),
+  'health.medical.injuryMultiplier.level2': multiplier(
+    0.9,
+    'Injury time out under medical care level 2',
+    MEDICAL_DOC,
+  ),
+  'health.medical.injuryMultiplier.level3': multiplier(
+    0.8,
+    'Injury time out under medical care level 3 (the best)',
     MEDICAL_DOC,
   ),
   'health.medical.freeAgentLevel': {
