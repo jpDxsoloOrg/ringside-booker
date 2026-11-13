@@ -43,7 +43,7 @@ export type AcknowledgeReasonCode = (typeof ACKNOWLEDGE_REASON_CODES)[number];
  * ended, or they moved to a rival, while it waited) may be marked by any human, so a waiting injury
  * can never block the day for good.
  */
-function mayAcknowledge(
+export function mayAcknowledge(
   read: GameWorldView,
   injury: DeepReadonly<InjuryRecord>,
   issuedBy: DeepReadonly<Controller>,

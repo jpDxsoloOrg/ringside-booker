@@ -35,7 +35,7 @@ interface ReportWorld {
  * The player's promotion (two workers: one hurt, one healed), a rival run by a second human (one
  * hurt worker) and a hurt free agent.
  */
-function reportWorld(): ReportWorld {
+function reportWorld({ freeWaiting = false }: { freeWaiting?: boolean } = {}): ReportWorld {
   const { world, ids } = worldBuilder()
     .withGeography('mini')
     .withInjuryCatalog()
@@ -57,7 +57,10 @@ function reportWorld(): ReportWorld {
       returnedOn: addDays(TEST_START_DATE, -10),
     })
     .withInjury(2, { expectedReturn: addDays(TEST_START_DATE, 10), noticedOn: null })
-    .withInjury(3, { expectedReturn: addDays(TEST_START_DATE, 10) })
+    .withInjury(3, {
+      expectedReturn: addDays(TEST_START_DATE, 10),
+      ...(freeWaiting ? { noticedOn: null } : {}),
+    })
     .build();
   const [hurt, healed, theirs, free] = ids.people;
   const mine = ids.promotions.A;
@@ -176,6 +179,26 @@ describe('health.report', () => {
     expect(() => {
       assertSerialisable(report, 'health.report');
     }).not.toThrow();
+  });
+
+  it('lists the waiting injuries each human may mark, whatever the scope', () => {
+    const { engine, mine, hurt, theirs, free } = reportWorld({ freeWaiting: true });
+    const injuryOf = (personId: PersonId): string => {
+      const row = reportOf(engine).rows.find((entry) => entry.personId === personId);
+      if (row === undefined) {
+        throw new Error(`expected a row for ${personId}`);
+      }
+      return row.injuryId;
+    };
+    // Nobody employs the free agent, so either human may clear their injury: the stop never waits
+    // on an injury that no list shows as yours.
+    const forOwner = reportOf(engine, { promotionId: mine }, OWNER);
+    expect(forOwner.rows.map((row) => row.personId)).toEqual([hurt]);
+    expect([...forOwner.waitingForViewer].sort()).toEqual([injuryOf(hurt), injuryOf(free)].sort());
+    expect([...reportOf(engine, {}, RIVAL).waitingForViewer].sort()).toEqual(
+      [injuryOf(theirs), injuryOf(free)].sort(),
+    );
+    expect(reportOf(engine).waitingForViewer).toEqual([]);
   });
 
   it('refuses an id that is not a promotion', () => {

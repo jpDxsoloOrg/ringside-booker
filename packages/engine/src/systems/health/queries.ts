@@ -40,6 +40,8 @@ import { compareIds } from '../../model/table';
 import { activeEmploymentsOf, primaryEmploymentOf } from '../workers/helpers/employment';
 import { computeConditionCap } from './formulas/conditionCap';
 import { computeConditionRecovery } from './formulas/conditionRecovery';
+import { mayAcknowledge } from './commands';
+import { injuriesAwaitingNotice } from './gate';
 import { injuryConditionLossTraceRef, injuryRecordChanceTraceRef, injuryTraceRef } from './injure';
 import { medicalLevelOf, type MedicalLevel } from './medical';
 import { fatigueRecoveryTraceRef } from './phases';
@@ -152,6 +154,14 @@ export interface InjuredRow extends InjuryView {
 export interface HealthReport {
   asOf: GameDate;
   rows: InjuredRow[];
+  /**
+   * Every injury still waiting to be seen that the viewer may mark as seen, lowest id first,
+   * whatever the scope: their own workers' (listed or not, open or healed) and any whose worker no
+   * human employs any more. A screen that clears the own-injury stop sends all of these, so the stop
+   * never waits on an injury the list does not show. Empty for the computer and the omniscient
+   * viewer.
+   */
+  waitingForViewer: InjuryId[];
 }
 
 export interface HealthReportArgs {
@@ -339,7 +349,14 @@ export const healthReportQuery: QueryDefinition<'health.report'> = defineQuery('
       });
     }
     rows.sort(soonestBackFirst);
-    return { asOf: ctx.date, rows };
+    const { viewer } = ctx;
+    const waitingForViewer =
+      viewer.kind === 'controller' && viewer.controller.kind === 'human'
+        ? injuriesAwaitingNotice(ctx.read)
+            .filter((injury) => mayAcknowledge(ctx.read, injury, viewer.controller))
+            .map((injury) => injury.id)
+        : [];
+    return { asOf: ctx.date, rows, waitingForViewer };
   },
 });
 
