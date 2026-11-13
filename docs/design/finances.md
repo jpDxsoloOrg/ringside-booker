@@ -79,7 +79,7 @@ cost. The web app uses these and never its own wording.
 | `otherIncome`    | Other income       | income | Anything else                                   |
 | `subsidyIncome`  | Subsidies received | income | A territory supported by a parent (ECO9, ECO11) |
 | `wages`          | Wages              | cost   | Payroll (ECO1-03)                               |
-| `appearanceFees` | Appearance fees    | cost   | Per-appearance deals                            |
+| `appearanceFees` | Appearance fees    | cost   | Show costs (ECO1-04)                            |
 | `signingBonuses` | Signing bonuses    | cost   | Contracts                                       |
 | `severance`      | Severance          | cost   | Releases                                        |
 | `venueRent`      | Venue rent         | cost   | Show costs (ECO1-04)                            |
@@ -256,11 +256,146 @@ month. Level 0 costs nothing, so no row is posted.
 
 ## Show costs
 
-Filled by ECO1-04.
+Running a show costs money on the night (ECO1-04). When a show is completed
+(`show.completed`, from show night), the reaction `finance.postShowCosts`
+posts up to three rows for it through `postMoney`, for every promotion's
+shows, player and rival alike: **Appearance fees**, **Travel** and
+**Catering**, memo "<show name>: appearance fees" (travel, catering), each with
+the show in `refs.eventInstanceId` and a Why? that lists every worker and rate.
+A cost that comes to 0 posts nothing. Code: `systems/finance/showWorkers.ts`,
+`formulas/showCosts.ts`, `postShowCosts.ts`, `estimateShowCosts.ts`.
+
+**Who worked the show.** `showWorkersOf(read, instance, tunables)` takes every
+distinct person on the card: participants in every role and every segment's
+referee, producer and announcers (EVT3's `distinctWorkersOf`, the same list
+appearance counts use). **A worker is charged once per show**, however many
+segments they are in; travel is per worker, never per segment. Each worker is
+matched to their active contract with the show's promotion:
+
+- no contract there: a **guest**, who costs this promotion nothing;
+- the owner or booker (the payroll rule, `finance.payOwnerAndBooker`): not
+  charged;
+- everyone else is a paid worker.
+
+**A show with no card** (a rival show scored off-screen) is estimated from the
+roster: the first `format.slots × finance.show.offscreenWorkersPerSlot`
+(default 2) active wrestler contracts, top of the card first (`mainEvent`
+down to `none`), then by id. Its Why? says "Card not booked in detail:
+estimated from the roster".
+
+**The formulas**, money in cents:
+
+```
+appearance fees = Σ per-appearance fee over paid workers
+travel          = Σ over paid workers of travel rate(level)
+                  × importance multiplier × distance multiplier, to the cent
+catering        = catering rate(level) × importance multiplier, to the cent
+```
+
+The level is the promotion's travel or catering policy. **The travel perk:** a
+contract with `perks.travelCovered` is paid at the higher of the policy level
+and `finance.travel.coveredLevel` (default 3, Premium), and its line says
+"travel covered by contract"; the perk is honoured even at level 0. A worker
+whose rate is 0 is left out of the sum with one note ("2 workers pay their own
+way: None travel"). Nothing depends on segment length (D-10): costs follow
+headcount, importance and distance only.
+
+| Level   | Travel per paid worker | Catering per show |
+| ------- | ---------------------- | ----------------- |
+| None    | $0                     | $0                |
+| Basic   | $50                    | $250              |
+| Good    | $200                   | $800              |
+| Premium | $500                   | $2,500            |
+
+| Importance | Multiplier |     | Where the show is                         | Travel multiplier |
+| ---------- | ---------- | --- | ----------------------------------------- | ----------------- |
+| House      | 0.5        |     | The home region                           | 1 (no extra)      |
+| Minor      | 0.75       |     | The home country, outside the home region | 1.5               |
+| Regular    | 1          |     | Another country                           | 3                 |
+| Major      | 1.5        |     |                                           |                   |
+| Flagship   | 2.5        |     |                                           |                   |
+
+Distance compares the show's `regionId` with the promotion's `homeRegionId`
+and that region's country.
+
+**Worked example.** A regular show at home with Basic travel and Good catering.
+The card has 14 distinct people: 11 under contract, one of them on a $300
+per-appearance deal and one with the travel perk, plus the booker refereeing
+and two guests.
+
+```
+appearance fees = $300
+travel          = (10 × $50 + 1 × $500) × 1 × 1 = $1,000
+catering        = $800 × 1 = $800
+```
+
+Each Why? lists one line per worker (past 60, the rest fold into one "and N
+more workers" line), the rate tunables it read, notes for guests and the owner
+or booker, and the multipliers.
+
+**Once per show.** `postShowCosts(ctx, eventInstanceId)` requires a completed
+show and skips one that already has an appearance fees, travel or catering row
+for it, so a second call posts nothing. A closed promotion posts nothing.
+
+**Estimates.** `estimateShowCosts(read, promotionId, { importance, regionId,
+headcount }, tunables, levels?)` runs the same formula on a made-up card of
+`headcount` paid workers, each on the promotion's average per-appearance fee
+(over its active contracts). It is for planners that price a show that does not
+exist yet (EVT8's tour builder, AIP7's calendar fit) and for the policy
+preview; `levels` prices it at other policy levels.
+
+**Save size.** The rows' traces are kept lean: one line per paid worker, the
+rate tunables once each, and a few notes. Rival shows' rows use the rival trace
+kind, so they never push the player's out of `sim.traceRetentionPerKind`.
+
+| Tunable                                | Default                    | What it is                                                  |
+| -------------------------------------- | -------------------------- | ----------------------------------------------------------- |
+| `finance.travel.perWorker.level0..3`   | 0, 5,000, 20,000, 50,000   | Travel per paid worker per show, in cents                   |
+| `finance.catering.perShow.level0..3`   | 0, 25,000, 80,000, 250,000 | Catering per show, in cents                                 |
+| `finance.travel.domesticMultiplier`    | 1.5                        | Travel × this in the home country, outside the home region  |
+| `finance.travel.abroadMultiplier`      | 3                          | Travel × this in another country                            |
+| `finance.show.importance.<importance>` | 0.5, 0.75, 1, 1.5, 2.5     | Travel and catering × this, house to flagship               |
+| `finance.show.offscreenWorkersPerSlot` | 2                          | Workers per main-card slot on a show with no card           |
+| `finance.travel.coveredLevel`          | 3                          | The travel level a contract with the travel perk is paid at |
 
 ## Policies
 
-Filled by ECO1-04.
+Every promotion has three staff policies on `promotions.policies`, each at a
+level from 0 to 3 (ECO1-04). Code: `systems/finance/policies.ts`,
+`commands.ts`, `policyEffects.ts`, `queries/policies.ts`.
+
+| Level | Label   |
+| ----- | ------- |
+| 0     | None    |
+| 1     | Basic   |
+| 2     | Good    |
+| 3     | Premium |
+
+| Policy   | What it pays for (`POLICY_AREA_DESCRIPTIONS`)           | What it costs                                               |
+| -------- | ------------------------------------------------------- | ----------------------------------------------------------- |
+| Travel   | Travel: who pays for getting to shows                   | Per paid worker per show (see [Show costs](#show-costs))    |
+| Catering | Catering: food backstage on show nights                 | Per show (see [Show costs](#show-costs))                    |
+| Medical  | Medical: care for everyone under contract, paid monthly | Per person under contract a month (see [Medical](#medical)) |
+
+`POLICY_LEVEL_LABELS` is the one source of the level words; the medical row's
+`MEDICAL_LEVEL_LABELS` is the same array. The web app uses these and never its
+own wording.
+
+**Changing a policy.** The command `finance.setPolicy { promotionId, area,
+level }` is refused when the promotion does not exist (`notFound`), is closed
+(`promotionClosed`), is not run by the issuer (`notYourPromotion`, through
+`controlsPromotion` in `core/api/controller.ts`), or already has that level
+(`samePolicy`, "Medical is already Good"). It writes the level, publishes
+`finance.policyChanged { promotionId, area, from, to }` and returns `{ area,
+from, to }`. The next costs follow it: travel and catering from the next show,
+medical from the next 1st (level 0 posts no Medical row). `setPolicyIn(ctx,
+promotionId, area, level)` does the same write and event without the controller
+check, for the rival AI (AIP8).
+
+**ECO1 owns the money only.** A policy's other effects (injuries healing faster,
+morale) belong to the features that apply them, which describe them in the
+preview through `registerPolicyEffect` (see [Seams](#seams)). D-09 is
+untouched: nothing here changes morale.
 
 ## Queries
 
@@ -310,6 +445,30 @@ human-run promotion, and the new-game step `finance.openingBalance` (order 905) 
 bar's cash has a Why? from day one. `sim.status` returns its ref as
 `promotion.cashTraceRef`. Rivals never get one: nobody can open it.
 
+**The policy queries** (`systems/finance/queries/policies.ts`), both behind
+`canSeeBooks`:
+
+- `finance.policies { promotionId }` → `{ policies: { area, level, label,
+description, monthlyEstimate, monthlyEstimateTrace }[] }`, one per policy
+  in `POLICY_AREAS` order (catering, travel, medical).
+- `finance.policyPreview { promotionId, area }` → `{ area, current, levels }`,
+  four levels, each `{ level, label, monthlyCost, monthlyCostTrace, delta,
+effects }`. `delta` is the level's cost less today's level's cost (negative:
+  cheaper); `effects` are the lines registered policy effects give that level.
+
+Monthly estimates, each with a Why?:
+
+- **Medical**: `monthlyMedical` with the people under contract today.
+- **Travel and catering**: the sum over the promotion's shows in the next 30
+  days (`POLICY_PREVIEW_DAYS`, today included) of the show-cost formula at the
+  level. The shows are its scheduled or booked shows in that window if it has
+  any, otherwise the dates its active event definitions give (`occursOn`).
+  Each show is sized by the average paid workers of its last
+  `finance.preview.recentShows` (default 5) completed shows, or by
+  `format.slots × finance.show.offscreenWorkersPerSlot` before any has run.
+  Shows of the same importance and size are one line ("4 × Regular show, 12
+  workers"). Travel is assumed at home, with the note "Away shows cost more".
+
 **Save size.** One Wages row per paying promotion per day is about 3,300 rows a
 year in the default world (nine of its twelve promotions pay monthly wages),
 about 1.1 MB of save a year. The player's last 200 rows keep their full trace
@@ -325,3 +484,13 @@ a trace. Others are added by ECO1-02..05.
 
 - **Company size (ECO1-02).** A feature that scales with company size calls
   `reachOf` and reads `reach`, never `size`; the label is display only.
+- **Policy effects (ECO1-04).** `registerPolicyEffect({ id, area, order, lines:
+(read, promotionId, level, tunables) => PolicyEffectLine[] })` adds a
+  feature's non-money lines to the policy preview, where `PolicyEffectLine` is
+  `{ text, tone: 'positive' | 'negative' | 'neutral', trace? }`. Register once
+  when the module loads; a duplicate id throws. `listPolicyEffects(area)` lists
+  them by order, then id. WRK6 describes medical this way ("Injuries heal ×0.8
+  of the time") and SOC3 catering and travel ("+3 morale"); each feature applies
+  the effect in its own system, never through ECO1.
+- **Show estimates (ECO1-04).** A planner that needs a show's cost before it
+  is booked calls `estimateShowCosts`, never its own copy of the formula.

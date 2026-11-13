@@ -545,3 +545,27 @@ Wages and medical (ECO1-03), amounts in cents:
 | `finance.medical.perContract.level1` | integer | 15,000  | 0–10,000,000 | money/month | Same, policy level 1                                                |
 | `finance.medical.perContract.level2` | integer | 60,000  | 0–10,000,000 | money/month | Same, policy level 2                                                |
 | `finance.medical.perContract.level3` | integer | 150,000 | 0–10,000,000 | money/month | Same, policy level 3                                                |
+
+Show costs and the policy preview (ECO1-04), amounts in cents. See
+[finances.md](finances.md#show-costs):
+
+| Key                                    | Kind    | Default | Range        | Unit       | Meaning                                                                     |
+| -------------------------------------- | ------- | ------- | ------------ | ---------- | --------------------------------------------------------------------------- |
+| `finance.travel.perWorker.level0`      | integer | 0       | 0–10,000,000 | money      | Travel cost per paid worker per show at travel policy level 0               |
+| `finance.travel.perWorker.level1`      | integer | 5,000   | 0–10,000,000 | money      | Same, level 1                                                               |
+| `finance.travel.perWorker.level2`      | integer | 20,000  | 0–10,000,000 | money      | Same, level 2                                                               |
+| `finance.travel.perWorker.level3`      | integer | 50,000  | 0–10,000,000 | money      | Same, level 3                                                               |
+| `finance.catering.perShow.level0`      | integer | 0       | 0–10,000,000 | money      | Catering cost per show at catering policy level 0                           |
+| `finance.catering.perShow.level1`      | integer | 25,000  | 0–10,000,000 | money      | Same, level 1                                                               |
+| `finance.catering.perShow.level2`      | integer | 80,000  | 0–10,000,000 | money      | Same, level 2                                                               |
+| `finance.catering.perShow.level3`      | integer | 250,000 | 0–10,000,000 | money      | Same, level 3                                                               |
+| `finance.travel.domesticMultiplier`    | number  | 1.5     | 0–10         | multiplier | Travel × this for a show in the home country, outside the home region       |
+| `finance.travel.abroadMultiplier`      | number  | 3       | 0–10         | multiplier | Travel × this for a show in another country                                 |
+| `finance.show.importance.house`        | number  | 0.5     | 0–10         | multiplier | Travel and catering × this for a house show                                 |
+| `finance.show.importance.minor`        | number  | 0.75    | 0–10         | multiplier | Same, minor show                                                            |
+| `finance.show.importance.regular`      | number  | 1       | 0–10         | multiplier | Same, regular show                                                          |
+| `finance.show.importance.major`        | number  | 1.5     | 0–10         | multiplier | Same, major show                                                            |
+| `finance.show.importance.flagship`     | number  | 2.5     | 0–10         | multiplier | Same, flagship show                                                         |
+| `finance.show.offscreenWorkersPerSlot` | integer | 2       | 0–6          | count      | Workers counted per main-card slot when a show has no card booked in detail |
+| `finance.travel.coveredLevel`          | integer | 3       | 0–3          | count      | The travel level a contract with the travel perk is always paid at          |
+| `finance.preview.recentShows`          | integer | 5       | 1–20         | count      | Recent shows the policy preview averages to guess how many work a show      |

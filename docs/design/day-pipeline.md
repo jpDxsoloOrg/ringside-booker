@@ -181,6 +181,13 @@ failure is listed on that step's report under `reactionFailures` (subscriber
 id, the event's `seq` and the error). It also goes into the failure log as
 `reaction:<subscriberId>`. A failed reaction does not count as a failed step.
 
+The reactions to show night so far:
+
+| Reaction                  | Event            | What it does                                                                                                                          |
+| ------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `promoPop.applyAfterShow` | `show.completed` | Applies the show's popularity change ([promotion-popularity.md](promotion-popularity.md)).                                            |
+| `finance.postShowCosts`   | `show.completed` | Posts the show's appearance fees, travel and catering, player and rival alike, once per show ([finances.md](finances.md#show-costs)). |
+
 ### Reports
 
 `runStep` returns a `StepReport`; `runDay` returns a `DayReport` with one
