@@ -5,7 +5,8 @@ A promotion's fan base is its popularity in each region (`promotions.regionalPop
 score (see [show-night.md](show-night.md)), that score moves the promotion's
 popularity in every region that saw the show. This doc describes the three
 formulas that decide the change for one show, one promotion and one region
-(EVT5-01). Running them after every show and writing the result is EVT5-02.
+(EVT5-01), and how they run after every show and write the result
+([After every show](#after-every-show), EVT5-02).
 
 The formulas live in `packages/engine/src/systems/promoPop/formulas/`. They are
 pure: plain inputs in, a `Traced<number>` (or a list of them) out, no world
@@ -173,3 +174,90 @@ Popularity 20 at home and none next door, prestige 28, a minor show scoring 50.
   only the prestige part, **5.6**. Margin +44.4, the full 3. Minor × 0.7 = 2.1,
   reach × 0.5 = 1.05, and with popularity 0 nothing diminishes. Change
   **+1.05**: the company gains its first fans next door.
+
+## After every show
+
+The `promoPop` system (`systems/promoPop/index.ts`, EVT5-02) runs the formulas
+for real. Its reaction `promoPop.applyAfterShow` listens to `show.completed`,
+so it runs for player and rival shows alike, including rival shows scored off
+screen, right after show night and before the settlement group. Each reaction
+has its own transaction: if it fails, only that show's popularity is rolled
+back, the failure goes to the failure log and the day goes on.
+
+For one show (`applyShowPopularity`):
+
+1. **Skip** with a log line, writing nothing, when the show is not completed,
+   has no result, its promotion is not active, or it already has a record (so
+   `show.completed` arriving twice changes nothing twice).
+2. **Reach.** `reachInputsFor` reads the show's region, its neighbours and the
+   TV deals in force (`dealsInForce`): the promotion's active deals that have
+   started by the show's air date and not yet ended, on a network still on
+   air, bound to the show's definition or promotion-wide for a televised
+   definition. A taped show is reached from where it was taped and carried by
+   the deals in force on its air date. Both helpers are exported for ECO8 and
+   EVT6.
+3. **Each reached region, most populous first:** popularity before (0 when
+   none is stored), the [expectation](#region-expectation) (hype is null until
+   ECO3) and the [change](#show-popularity-change), with this month's gains
+   from `promotions.popularityGains` (empty when the stored month is another
+   one).
+4. **One door call.** Every non-zero change goes to WRK1's popularity door in
+   one call with `regionDeltas` ([workers.md](workers.md#popularity-door)), with
+   source `system` and reason `show.result` (the show's name for the player).
+   The door clamps, stores two decimals, records its trace and publishes
+   `popularity.changed`, exactly as for any other popularity change.
+5. **The month's tally.** Each region that went up adds what the door actually
+   stored (`after − before`) to `popularityGains.byRegion`; a new month starts
+   a new tally. Losses never touch it.
+6. **The record.** One `popularityShowChanges` row
+   ([data-model.md](data-model.md#popularity-show-changes-popularityshowchanges-psc_))
+   lists every reached region, changed or not, with its source, weight,
+   expectation, the values the door stored and whether the monthly cap cut the
+   gain, plus the worldwide figure before and after.
+7. **Why? traces.** One per reached region at
+   `{ kind, id: '<eventInstanceId>/<regionId>' }`: the region's change, with
+   its reach and expectation nested. `kind` is `promoPop.showChange` for a
+   human-run promotion and `promoPop.rivalShowChange` for a computer-run one,
+   because rival shows reach hundreds of regions a week and
+   `sim.traceRetentionPerKind` counts per kind: sharing one kind would push the
+   player's own Why? panels out within days. The stored record keeps the
+   numbers after the full trace has gone.
+8. **The event** `showPopularity.changed` (always, even when nothing moved):
+   ids, the worldwide figure before and after, and how many regions went up,
+   went down and had a gain cut by the cap.
+
+Nothing else changes: no morale, momentum, prestige or cash, and no rolls.
+
+**Same-day consumers.** Anything that settles the same show later that day
+(EVT6 attendance) must read the popularity before the show with
+`popularityBeforeShow(read, eventInstanceId, regionId)`, not `regionalPop`.
+`recentShowChanges(read, promotionId, limit)` lists a promotion's latest shows
+with their worldwide change, and `monthlyGainsOf(read, promotionId, date)` reads
+this month's tally.
+
+**Keeping the records.** On the 1st of each month the
+`promoPop.pruneShowChanges` phase (periodic group) deletes records of shows
+more than `promoPop.keepShowChangesDays` (365) days before that day. 0 keeps
+none past the 1st.
+
+### `popularity.showChange`
+
+`popularity.showChange { eventInstanceId }` answers what one show did. Promotion
+popularity is public, so every viewer gets the same answer, rival shows
+included; nothing private (money, morale) is in it. An unknown show is refused
+with `notFound`.
+
+- `status`: `applied` (the record is there), `notCompleted` (the show has not
+  run), `pruned` (it ran before the last prune's cutoff and its record is gone)
+  or `notApplied` (it ran but nothing was stored, for example because its
+  promotion was not active). Only `applied` has a `summary` and `countries`.
+- `summary`: regions gained, lost, unchanged and capped, and the world's
+  before, after and change, with the change's trace (the population-weighted
+  mean of every region's change, untouched regions counting 0).
+- `countries`: each country with a reached region, largest change first, with
+  its population-weighted change and trace (`aggregateByCountry`, untouched
+  regions counting 0), and its regions: the show region first, then the largest
+  change, then by name. Each region has its source and words ("Show region",
+  "Neighbour of Texas", "TV: National Signal Network"), weight, expectation,
+  before, after, change, whether it was capped, and `traceRef` (null once the
+  full trace is no longer kept).

@@ -34,6 +34,7 @@ const EXPECTED_DEFAULTS: Readonly<Record<string, number>> = {
   'promoPop.diminishingPower': 1.5,
   'promoPop.lossFullFrom': 25,
   'promoPop.monthlyGainCap': 3,
+  'promoPop.keepShowChangesDays': 365,
 };
 
 describe('promotion popularity tunables', () => {
@@ -59,7 +60,7 @@ describe('promotion popularity tunables', () => {
     expect(list.data.map((row) => row.key).sort()).toEqual(Object.keys(EXPECTED_DEFAULTS).sort());
     for (const row of list.data) {
       expect(row.docRef).toMatch(
-        /^promotion-popularity\.md#(show-reach|region-expectation|show-popularity-change|monthly-cap)$/,
+        /^promotion-popularity\.md#(show-reach|region-expectation|show-popularity-change|monthly-cap|after-every-show)$/,
       );
     }
     for (const def of Object.values(promoPopTunables)) {
