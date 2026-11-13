@@ -3,7 +3,8 @@
  * root. See `args.ts` for the options.
  *
  * Exit codes: 0 success, 1 a determinism mismatch (or, under `--strict`, a step failure, a past
- * show still open or a ledger that does not match the cash), 2 bad
+ * show still open, a ledger that does not match the cash or a promotion history over its
+ * retention), 2 bad
  * arguments or a world that cannot be read, 3 stopped by a gate.
  */
 
@@ -15,6 +16,7 @@ import {
   ledgerMismatches,
   loadStartState,
   openPastShows,
+  promotionHistoryProblems,
   runSimulation,
   type CompletedRun,
 } from './run';
@@ -156,6 +158,13 @@ export async function runCli(
     );
     io.stderr(
       `--strict: the ledger does not match the cash for ${String(mismatches.length)} promotion(s):\n${lines.join('\n')}\n`,
+    );
+    return EXIT_FAILED;
+  }
+  const historyProblems = promotionHistoryProblems(firstRun.finalState);
+  if (options.strict && historyProblems.length > 0) {
+    io.stderr(
+      `--strict: the promotion history keeps more rows than its retention allows:\n${historyProblems.map((problem) => `  ${problem}`).join('\n')}\n`,
     );
     return EXIT_FAILED;
   }
