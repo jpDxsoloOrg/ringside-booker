@@ -18,8 +18,9 @@ card shape, the tunables and the random streams. Nothing runs in the day loop
 yet. AIP4-02 adds the title picture and the challengers. AIP4-03 fills the
 rest of the card: storyline segments, filler matches, the fallback chain and
 talking segments. AIP4-04 scores and orders the card and adds `planCard`,
-the one entry point that plans a whole show. Later AIP4 tickets write the card
-and add Auto-fill.
+the one entry point that plans a whole show. AIP4-05 books the rivals' shows
+on show day. AIP4-06 adds Auto-fill for the player's own card and the Shows
+tab's card query.
 
 ## Card pool
 
@@ -615,7 +616,8 @@ hundreds of shows a year, so rival shows never keep it:
   headline reasons and its card score, a few hundred bytes. It is kept in full
   for `aip.card.keepDetailDays` (28) days after the show, then only its
   summary: `aip.pruneCardDetail` (group `periodic`, order 43, daily) demotes
-  the slots of the computer shows dated exactly that many days ago, with a full
+  the slots of the shows dated exactly that many days ago (the player's
+  auto-filled slots too, see [Auto-fill](#auto-fill)), with a full
   sweep on the 1st of each month for anything a lowered setting left behind.
   The per-kind limits (`sim.traceRetentionPerKind`, `sim.traceBytesPerKind`)
   still apply on top.
@@ -623,6 +625,119 @@ hundreds of shows a year, so rival shows never keep it:
 The save keeps about the last month in detail: the cards themselves (which
 shows ran, who was on them, the results) are public facts other features read
 and stay; trimming those is POL4-08's.
+
+## Auto-fill
+
+`aip.autoFillCard { eventInstanceId, keepFilledSlots? }` (`card/commands.ts`)
+lends the planner to the player for their own show. It only suggests: what it
+writes are ordinary segments the player can change, move or remove, and the
+player still runs the show from the show screen.
+
+Refused, in the booking commands' order, with these messages:
+
+| Code            | When                                                           | Message                                                             |
+| --------------- | -------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `showNotFound`  | No such show                                                   | That show no longer exists                                          |
+| `notYourShow`   | The issuer does not run the show (`controlsShow`)              | Only the person running (the brand or promotion) can book this show |
+| `showCompleted` | EVT2's `editBlockOf`                                           | This show has already run                                           |
+| `showCancelled` | EVT2's `editBlockOf`                                           | This show was cancelled                                             |
+| `showPast`      | EVT2's `editBlockOf`                                           | This show has already happened                                      |
+| `noCatalog`     | The save has no match types (from before MTCH1)                | This save has no match types to book from                           |
+| `cardFull`      | `keepFilledSlots` is not false and no slot it may fill is open | Every slot is already filled                                        |
+
+The slots it may fill are the main card's and, while `aip.card.fillPreShow` is
+on, the pre-show's.
+
+It runs `planCard` with the `aip.autofill` stream (never `aip.card`, so a
+press never changes what the rivals book): in keep-filled mode by default,
+or in fresh mode when `keepFilledSlots` is false. Fresh mode plans before
+anything is cleared, so a plan that cannot fill the card leaves it as it was;
+only a `card` plan clears the card (one `card.changed` with `cleared`). Each
+placement goes through EVT2's `writeSegment` with `outcome: null` and
+publishes one `card.changed` (`added`). A placement the writer would refuse
+is skipped and listed as open with the writer's message. Auto-fill:
+
+- **never sets a winner**, whatever MTCH2's Random winners says; the
+  booked-card steps (AIP5's winners) belong to the rival show-day job and
+  never run here;
+- **never cancels the show**: a `cancel` plan (a thin roster) returns
+  `{ filled: [], open: [], kept, message: "Only 4 wrestlers available, needs 5" }`
+  and changes nothing.
+
+Result:
+
+```ts
+{
+  filled: AutoFilledSlot[]; // running order
+  open: { displayNumber, preShow, reason }[];
+  kept: number;            // segments that were on the card and stayed
+  message: string | null;  // why nothing was filled
+}
+AutoFilledSlot = {
+  segmentId, preShow, displayNumber, roleLabel,
+  label,      // the matchup, "Ace vs Rookie"
+  headline,   // two or three short reasons
+  traceRef,   // { kind: 'aip.cardSlot', id: segmentId }
+}
+```
+
+Each written segment gets the same short Why? as a rival slot (`aip.cardSlot`:
+the slot, its headline reasons and card score, a few kilobytes), not the whole
+plan, and `aip.pruneCardDetail` demotes it to its summary once the show is
+`aip.card.keepDetailDays` old, so the player's slots follow the same "about
+the last month in detail" rule.
+
+## Show cards
+
+`aip.showCards { promotionId, past?, upcoming? }` (`card/queries.ts`): a
+promotion's shows with their cards, slot by slot, for the promotion profile's
+Shows tab. Rows come from `eventInstances` by promotion: `past` (1 to 30,
+default 10) shows dated before today, newest first, then `upcoming` (0 to 10,
+default 4) shows from today on, soonest first; ties by ID.
+
+```ts
+ShowCardRow = {
+  eventInstanceId, name, date, airDate, importance, brandName, status,
+  statusLabel,      // 'Coming up' | 'Booked' | 'Completed' | 'Not run' | 'Cancelled'
+  revealed,
+  hiddenText,       // 'Card is revealed when the show airs' | null
+  cancelledReason,  // the planner's reason once revealed, else EVT1's reason in words
+  planTraceRef,     // aip.cardPlan, when revealed and kept
+  score,            // EVT3's show score once run and revealed
+  slots: ShowCardSlot[],
+}
+ShowCardSlot = {
+  displayNumber, preShow, role, roleLabel, // MTCH1's slotRoleOf
+  segment: {
+    segmentId, kind, typeName,
+    label,          // the segment's label, else the matchup
+    sides: [{ name, teamId, isChampions, people: [{ personId, name, imageRef }] }],
+    titles: [{ titleId, name, imageRef }],
+    storylines: [{ storylineId, name }],
+    outcome: { kind, winningSide } | null,
+    reasonTraceRef, // aip.cardSlot, while kept
+  } | null,         // null: an open main-card slot
+}
+```
+
+Slots are in running order: the pre-show's only when filled, then every
+main-card slot, open ones included. A side's name is its team's when the whole
+side is one team, else the ring names joined with " & "; ring names come from
+the contract with the show's promotion, else the default ring name (EVT2's
+`showPeople`). `isChampions` marks a side that held one of the match's titles
+going into the show. Trace refs are given only while the store still holds
+them. A cancelled row has no slots.
+
+**Reveal rule.** A row's card is shown when `isRevealedTo(read, viewer,
+promotionId, airDate)` says so: the same function and the same date the
+decision log uses for the show's `card` decision, so a card and its log entry
+always reveal together. That is always for the promotion's own controller, a
+sandbox game and the all-seeing viewer (tools), and for anyone else once the
+air date has been simulated: a rival show booked and run today is hidden today
+and shown tomorrow. A hidden row keeps only what the calendar already shows
+(name, dates, status) and carries `hiddenText`, `slots: []`, no plan trace, no
+score and only EVT1's cancellation words ("Called off by the promotion"), so
+nothing about the card leaks. Nothing in either result is a length or a time.
 
 ## Random streams
 

@@ -293,10 +293,11 @@ entries (0 keeps none, though `seq` still counts) and is saved as the
 
 Commands other systems add:
 
-| Command               | Args                      | Does                                                                                                                                      |
-| --------------------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `calendar.cancelShow` | `{ eventInstanceId }`     | Calls off a show the issuer controls and publishes `show.cancelled` ([calendar.md](calendar.md#lifecycle))                                |
-| `roster.setPush`      | `{ employmentIds, push }` | Moves one or many of the issuer's wrestlers to one card position, all or nothing, through the push door ([roster.md](roster.md#set-push)) |
+| Command               | Args                                    | Does                                                                                                                                                                            |
+| --------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `calendar.cancelShow` | `{ eventInstanceId }`                   | Calls off a show the issuer controls and publishes `show.cancelled` ([calendar.md](calendar.md#lifecycle))                                                                      |
+| `roster.setPush`      | `{ employmentIds, push }`               | Moves one or many of the issuer's wrestlers to one card position, all or nothing, through the push door ([roster.md](roster.md#set-push))                                       |
+| `aip.autoFillCard`    | `{ eventInstanceId, keepFilledSlots? }` | Fills the open slots of the issuer's own card (or rebuilds it) with the rival booker; never plans a winner or cancels the show ([rival-booking.md](rival-booking.md#auto-fill)) |
 
 Queries other systems add:
 
@@ -321,6 +322,7 @@ Queries other systems add:
 | `match.recentForm`     | `{ personId, limit? }`                                                                           | A worker's last run matches, newest first, with the stored changes ([match-aftermath.md](match-aftermath.md#recent-form))                               |
 | `office.dashboard`     | `{}`                                                                                             | The clock and the viewer's KPI cards with deltas and trends, or a public world overview ([office.md](office.md#queries))                                |
 | `office.series`        | `{ subject, metric, from, to }`                                                                  | One promotion's history column; a rival's cash and morale are `hidden` ([office.md](office.md#queries))                                                 |
+| `aip.showCards`        | `{ promotionId, past?, upcoming? }`                                                              | A promotion's recent and upcoming shows with their cards; a rival's card is hidden until it airs ([rival-booking.md](rival-booking.md#show-cards))      |
 
 The calendar queries share one row, `CalendarShow`. `scope` is `mine` or
 `world`; a window may cover at most 366 days and is refused with
