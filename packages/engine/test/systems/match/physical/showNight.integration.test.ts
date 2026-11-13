@@ -178,12 +178,12 @@ describe('the physical toll on show night', () => {
     );
     expect(rematch?.fatigueAfter.value).toBe(fatigueOf(engine, twice));
 
-    // A rival show keeps summaries of fatigue and wear, and no learning.
+    // A rival show keeps a summary of fatigue only: no wear, no learning (MTCH4-06, save size).
     const rival = physicalFor(engine, built.rivalMatch);
     for (const worker of rival.workers) {
       expect(worker.fatigueAfter.traceRef).not.toBeNull();
       expect(worker.fatigueGain.value).toBeGreaterThan(0);
-      expect(worker.wearTotal.traceRef).not.toBeNull();
+      expect(worker.wearTotal).toEqual({ value: null, traceRef: null });
       expect(worker.learning).toEqual({ value: null, traceRef: null });
     }
   });

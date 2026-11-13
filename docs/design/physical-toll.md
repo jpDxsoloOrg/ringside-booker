@@ -332,13 +332,13 @@ MTCH4 never touches morale (D-09).
 Every match stores up to four traces per worker, so they are kept small
 (owner rules: save size and the 28-day history window):
 
-| Kind                 | Player's shows                    | Rival shows                              |
-| -------------------- | --------------------------------- | ---------------------------------------- |
-| `match.fatigue`      | Fatigue after the match, 4 levels | Summary                                  |
-| `match.wear`         | Condition lost in total, 3 levels | Summary                                  |
-| `match.learning`     | Learning in this match, 3 levels  | Not stored                               |
-| `match.injuryChance` | 3 levels                          | Summary, only when the chance is above 0 |
-| `match.injuryRoll`   | Injured workers only, 3 levels    | Summary, injured workers only            |
+| Kind                 | Player's shows                                        | Rival shows                              |
+| -------------------- | ----------------------------------------------------- | ---------------------------------------- |
+| `match.fatigue`      | Fatigue after the match, 4 levels                     | Summary                                  |
+| `match.wear`         | Condition lost in total, 3 levels                     | Not stored                               |
+| `match.learning`     | Learning in this match, 3 levels                      | Not stored                               |
+| `match.injuryChance` | 3 levels for a worker who was hurt, otherwise summary | Summary, only when the chance is above 0 |
+| `match.injuryRoll`   | Injured workers only, 3 levels                        | Summary, injured workers only            |
 
 "Levels" is how deep the stored tree goes (`compactTrace` and `leanTrace` in
 `core/trace/compact.ts`, `STORED_TRACE_DEPTH` in `apply.ts`): the lines the
@@ -367,13 +367,24 @@ from 1.15 to 1.18 MB gzipped (no rival cards) and from 1.45 to 1.59 MB with
 every show carded (budget 1.6 MB); about a third of the growth is
 `health.fatigueRecovery` traces.
 
+MTCH4-06 won some of that back: the injury chance of a worker who was not hurt
+is stored as a summary (the chance and its largest lines; the injury's own Why?
+keeps the full chance through `health.injure`), and a rival show no longer
+stores wear (no screen reads a rival's wear; its fatigue is what carries into
+the next match). The carded year went from 1.59 to 1.56 MB gzipped and the
+year with no rival cards from 1.18 to 1.16 MB. The rest of the carded save's
+growth is the per-kind limit on full traces (`sim.traceBytesPerKind`, 500 KB):
+about a dozen kinds sit at it, so any new kind adds up to 500 KB of JSON.
+Measured on the same save, a 400 KB limit would save about 100 KB gzipped and
+300 KB about 210 KB.
+
 ### match.physicalForSegment
 
 `match.physicalForSegment { segmentId }` (on the match system) gives, per
 competitor (by side, then id), `fatigueGain`, `fatigueAfter`, `wearTotal`,
 `learning`, `injuryChance` (each `{ value, traceRef }`) and `injured` (`{
 value, traceRef }`), read back from the stored traces: a value and its ref are
-null when the trace is gone or was never stored (a rival's learning). The
+null when the trace is gone or was never stored (a rival's wear or learning). The
 fatigue gain is the "Fatigue from this match" step of the fatigue trace, which
 a summary keeps too. `applied` is false until the match has run. Physical
 numbers are not secret, so every viewer gets the same answer; learning is a

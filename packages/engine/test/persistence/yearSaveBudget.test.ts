@@ -20,6 +20,8 @@
  *                   every show carded 13.01 / 1.37 MB, 0.44 / 0.98 s
  *   MTCH4-04 (every match tires, wears and teaches; lean physical traces): no rival cards
  *                   10.44 -> 10.96 / 1.15 -> 1.18 MB; every show carded 13.47 -> 14.99 / 1.45 -> 1.59 MB
+ *   MTCH4-06 (injury chance in full only when hurt, no rival wear; with WRK6-04): no rival cards
+ *                   10.53 / 1.16 MB, 0.58 / 0.81 s; every show carded 14.38 / 1.56 MB, 0.52 / 0.99 s
  * See docs/design/save-format.md#size-budget.
  *
  * The per-commit check in `npm test` is `saveBudget.test.ts` on the roster world.
