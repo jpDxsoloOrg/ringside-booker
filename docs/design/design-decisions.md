@@ -25,6 +25,14 @@ shows up on screen anyway.
 - Off-screen injuries and morale for rival rosters come from the daily world
   events instead, so rival wrestlers still get hurt and unhappy.
 
+**Note (2026-11-13, AIP1-02):** the shortcuts are the six `ai.*` tunables
+`ai.skipInMatchInjuries`, `ai.skipResultMorale`, `ai.scoreBonus` (3 points),
+`ai.simpleBookingInputs`, `ai.skipMediaRequests` and `ai.skipWorkerRequests`,
+in the `Rival rules` category. Every system reads them through `aiShortcut`,
+which reads them as off for a promotion a player runs and for everyone under
+the level playing field. See
+[rival-desk.md](rival-desk.md#shortcuts).
+
 ## D-02: Crowds react to expectation; popularity drives money; hype links them (2026-11-07)
 
 **Choice:** A segment's crowd reaction is judged against what the crowd expects
