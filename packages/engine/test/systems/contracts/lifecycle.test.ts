@@ -262,9 +262,9 @@ describe('contracts.lifecycle', () => {
     const built = lifecycleWorld();
     const [leaver] = built.employments;
     edit(built.world, (tx) => {
-      tx.update('employments', required(leaver, 'leaver'), { endsOn: built.today });
+      tx.update('employments', required(leaver, 'leaver'), { endsOn: addDays(built.today, 1) });
     });
-    const signed = addSignedDeal(built, built.rival, built.today);
+    const signed = addSignedDeal(built, built.rival, addDays(built.today, 1));
     const again = definePhase({
       id: 'test.lifecycleAgain',
       group: 'contracts',
@@ -273,7 +273,7 @@ describe('contracts.lifecycle', () => {
       run: runContractLifecycle,
     });
     const runtime = contractsRuntime(built.world, {}, [again]);
-    runDays(runtime, 1);
+    runDays(runtime, 2);
     expect(runtime.bus.recent({ types: ['contract.expired'] })).toHaveLength(1);
     expect(runtime.bus.recent({ types: ['contract.started'] })).toHaveLength(1);
     expect(built.world.tables.employments.require(signed).status).toBe('active');
