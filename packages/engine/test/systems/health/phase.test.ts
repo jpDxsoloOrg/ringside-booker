@@ -1,4 +1,4 @@
-// Daily fatigue recovery, run through the engine. Design: docs/design/calculation-traces.md#worked-example
+// The health phases, run through the engine. Design: docs/design/health.md
 import { describe, expect, it } from 'vitest';
 import {
   assertSerialisable,
@@ -80,7 +80,7 @@ function clearedEvents(engine: Engine): unknown[] {
   return result.data.map((event) => event.payload);
 }
 
-describe('health.fatigueRecovery phase', () => {
+describe('health.recovery phase', () => {
   it('lowers fatigue for one day: 0 stays 0, 2 clears, 40 drops by 4 or 5', async () => {
     const { world, people } = fatigueWorld();
     const [rested, nearlyRested, tired] = people;
@@ -146,7 +146,7 @@ describe('health.fatigueRecovery phase', () => {
       expect(kinds).toEqual([
         'input',
         'subtract',
-        'tunable',
+        'formula',
         'roll',
         'tunable',
         'subtract',
@@ -263,7 +263,7 @@ describe('health.fatigue query', () => {
   });
 });
 
-describe('health.fatigueRecovery failure isolation', () => {
+describe('health.recovery failure isolation', () => {
   const failingSystem = defineSystem({
     id: 'healthFailureTest',
     phases: [
