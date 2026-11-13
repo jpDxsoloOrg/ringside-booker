@@ -101,6 +101,7 @@ function FatigueGain({ worker }: CellProps) {
     <Explained
       label={`${worker.name}'s fatigue gain`}
       value={worker.fatigueGain.value}
+      unit="points"
       trace={worker.fatigueGain.trace}
     />
   );
@@ -125,6 +126,7 @@ function partWear(worker: PhysicalPreviewWorker, part: BodyPart): ReactNode {
     <Explained
       label={`${worker.name}'s ${BODY_PART_LABELS[part].toLowerCase()} wear`}
       value={wear.value}
+      unit="points"
       trace={wear.trace}
     />
   );
@@ -136,6 +138,7 @@ function Wear({ worker }: CellProps) {
       <Explained
         label={`${worker.name}'s condition lost`}
         value={worker.wearTotal.value}
+        unit="points"
         trace={worker.wearTotal.trace}
       />
       <Popover

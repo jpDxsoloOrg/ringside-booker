@@ -48,16 +48,13 @@ function NotKept() {
   return <span className={styles['notKept']}>{NOT_KEPT_TEXT}</span>;
 }
 
-function explained(number: PhysicalNumber, label: string, unit?: 'probability'): ReactNode {
+function explained(
+  number: PhysicalNumber,
+  label: string,
+  unit: 'probability' | 'points',
+): ReactNode {
   if (number.value === null) return <NotKept />;
-  return (
-    <Explained
-      value={number.value}
-      label={label}
-      traceRef={number.traceRef}
-      {...(unit === undefined ? {} : { unit })}
-    />
-  );
+  return <Explained value={number.value} label={label} traceRef={number.traceRef} unit={unit} />;
 }
 
 function FatigueFigure({ worker }: { readonly worker: PhysicalWorkerRow }) {
@@ -70,7 +67,7 @@ function FatigueFigure({ worker }: { readonly worker: PhysicalWorkerRow }) {
       </span>
       <span aria-hidden="true"> → </span>
       <VisuallyHidden> to </VisuallyHidden>
-      {explained(fatigueAfter, `${worker.name}'s fatigue after the match`)}
+      {explained(fatigueAfter, `${worker.name}'s fatigue after the match`, 'points')}
     </span>
   );
 }
@@ -116,7 +113,7 @@ function WorkerRow({ worker }: { readonly worker: PhysicalWorkerRow }) {
           <FatigueFigure worker={worker} />
         </Figure>
         <Figure label="Condition lost">
-          {explained(worker.wearTotal, `${worker.name}'s condition lost`)}
+          {explained(worker.wearTotal, `${worker.name}'s condition lost`, 'points')}
         </Figure>
         <Figure label="Learning">
           <LearningFigure worker={worker} />
