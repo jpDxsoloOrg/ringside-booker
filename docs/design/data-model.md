@@ -812,9 +812,18 @@ One dated show.
 | `airDate`           | `GameDate`                                                    | not before `date`; equal unless taped |
 | `status`            | `'scheduled' \| 'booked' \| 'completed' \| 'cancelled'`       |                                       |
 | `venueId`           | `VenueId \| null`                                             |                                       |
+| `genericVenue`      | `null \| GenericVenue` (below)                                | a local venue; never with `venueId`   |
 | `regionId`          | `RegionId`                                                    |                                       |
 | `result`            | `null \| EventResult` (below)                                 | set exactly when completed            |
 | `cancellation`      | `null \| { reason: 'notRun' \| 'byPromotion'; on: GameDate }` | set exactly when cancelled            |
+
+`GenericVenue` is `{ tier, capacity }`: one of the generic local venue sizes
+(`room`, `smallHall`, `hall`, `largeHall`, `smallArena`, `arena`,
+`largeArena`, `stadium`) and the capacity that size had when it was chosen,
+1–200,000, so a later tunable change never rewrites a past show (EVT6-02, see
+[box-office.md](box-office.md#generic-venues)). Both `venueId` and
+`genericVenue` null means the venue is not chosen yet. Saves made before
+EVT6-02 load with `genericVenue` null.
 
 Refs: `promotionId`, `eventDefinitionId`, `brandId`, `venueId`, `regionId`.
 Indexes: `byPromotion`, `byDate`, `byDefinition`, `byStatus` (so a phase can

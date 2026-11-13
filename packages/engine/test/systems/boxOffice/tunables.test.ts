@@ -52,6 +52,17 @@ const EXPECTED_DEFAULTS: Readonly<Record<string, number | boolean>> = {
   'boxOffice.merch.spread': 0.05,
   'boxOffice.gate.workerShareCap': 0.5,
   'boxOffice.merch.workerShareCap': 0.5,
+  'boxOffice.generic.room.capacity': 150,
+  'boxOffice.generic.smallHall.capacity': 500,
+  'boxOffice.generic.hall.capacity': 1200,
+  'boxOffice.generic.largeHall.capacity': 3000,
+  'boxOffice.generic.smallArena.capacity': 6000,
+  'boxOffice.generic.arena.capacity': 12000,
+  'boxOffice.generic.largeArena.capacity': 20000,
+  'boxOffice.generic.stadium.capacity': 45000,
+  'boxOffice.fit.sellOutAt': 1,
+  'boxOffice.fit.emptyAt': 3,
+  'boxOffice.pick.headroom': 1.1,
 };
 
 describe('box office tunables', () => {
@@ -78,6 +89,7 @@ describe('box office tunables', () => {
     for (const row of list.data) {
       expect(row.docRef).toMatch(
         /^box-office\.md#(forecast|recent-form|big-show-fatigue|ticket-price|venue-rent|live-merch|worker-shares)$/,
+        /^box-office\.md#(forecast|recent-form|big-show-fatigue|venues|generic-venues|pick)$/,
       );
     }
   });

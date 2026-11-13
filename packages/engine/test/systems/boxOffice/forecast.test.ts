@@ -73,6 +73,7 @@ function build(
           airDate: show.airDate ?? show.date ?? TODAY,
           status: show.status ?? 'scheduled',
           venueId: null,
+          genericVenue: null,
           regionId,
           result:
             show.result === undefined || show.result === null

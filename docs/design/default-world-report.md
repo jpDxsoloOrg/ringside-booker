@@ -1,7 +1,7 @@
 # World report: Ringside Booker World
 
 - **Start date:** 2027-01-04
-- **Packs:** base@0.1.0, default-world@0.1.0
+- **Packs:** base@0.1.2, default-world@0.1.0
 - **People:** 286
 - **Wrestlers:** 228
 - **Promotions:** 12

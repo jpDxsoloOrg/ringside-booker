@@ -20,6 +20,24 @@ export type VenueKind = z.infer<typeof VenueKindSchema>;
 /** The largest capacity a venue can have. */
 export const VENUE_CAPACITY_MAX = 200_000;
 
+/**
+ * The sizes of generic local venue a show can be held in when no real venue suits it (EVT6-02),
+ * smallest first by default. Their capacities are tunables; see
+ * `systems/boxOffice/genericVenues.ts` and docs/design/box-office.md#generic-venues.
+ */
+export const GENERIC_VENUE_TIERS = [
+  'room',
+  'smallHall',
+  'hall',
+  'largeHall',
+  'smallArena',
+  'arena',
+  'largeArena',
+  'stadium',
+] as const;
+export const GenericVenueTierSchema = z.enum(GENERIC_VENUE_TIERS);
+export type GenericVenueTier = z.infer<typeof GenericVenueTierSchema>;
+
 export const VenueSchema = z
   .strictObject({
     id: zId('venue'),

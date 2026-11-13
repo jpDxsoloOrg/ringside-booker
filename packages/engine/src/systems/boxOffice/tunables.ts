@@ -6,6 +6,7 @@
  */
 
 import { defineTunables } from '../../core/tunables/define';
+import { venueTunables } from './venueTunables';
 
 const BOX_OFFICE_CATEGORY = 'Box office';
 const FORECAST_DOC = 'box-office.md#forecast';
@@ -388,4 +389,5 @@ export const boxOfficeTunables = defineTunables({
     ...WORKER_SHARE_CAP,
     description: 'Most of the merch money worker shares can take',
   },
+  ...venueTunables,
 });

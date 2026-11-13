@@ -150,15 +150,105 @@ line is 1). If a band fails, tune the defaults, not the bands.
 
 ## Venues
 
-_Not built yet (EVT6-02)._
+Every show is held somewhere: a real venue from the `venues` table
+(`eventInstances.venueId`) or a [generic local venue](#generic-venues)
+(`eventInstances.genericVenue`), never both. Both null means the venue is not
+chosen yet. `showVenueOf(read, instance)` (`showVenue.ts`) turns either form
+into one `ShowVenue` (name, capacity, kind of building, region, image), so
+screens and formulas never need to know which it is.
+
+**Availability.** `venueAvailability(read, venue, { promotionId, date, eventInstanceId })`
+says whether a real venue can be booked for a show. The first rule that fails
+is the reason:
+
+| Code                       | Player text                                            | When                                                                            |
+| -------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| `boxOffice.venueClosed`    | "Closed on that date"                                  | The venue has not opened yet or has closed by the show's date (`isVenueOpenOn`) |
+| `boxOffice.venueExclusive` | "Exclusive to Tessen Pro Wrestling"                    | The venue is exclusive to another promotion                                     |
+| `boxOffice.venueTaken`     | "Tessen Pro Wrestling runs Iron Hour there that night" | Another promotion has a show there that day that is not cancelled               |
+
+A venue exclusive to the show's own promotion is available, and the
+promotion's own other shows never make a venue taken. The default world has
+three exclusive venues (Altura Studio One, Longleaf Barn and Tessen Dojo
+Hall; see [default-world.md](default-world.md#venues)).
+
+**A show moves to its venue's region.** `applyVenueChoice(ctx, eventInstanceId, choice, { auto, trace })`
+(`applyVenue.ts`) is the one write: a real venue sets `venueId`, clears
+`genericVenue` and sets the show's `regionId` to the venue's region; a generic
+size clears `venueId` and stores `{ tier, capacity }` with the capacity the
+size has today. It stores the pick's Why? under `boxOffice.venuePick` (id: the
+show) when one is given, and publishes
+`show.venueChosen { eventInstanceId, promotionId, venueId, genericTier, auto }`.
+
+**Fit.** `venueFit(expected, capacity, tunables)` (`venueFit.ts`) labels how
+well a venue suits the expected crowd:
+
+| Label             | When                                                  |
+| ----------------- | ----------------------------------------------------- |
+| "Likely sell-out" | expected ≥ capacity × `boxOffice.fit.sellOutAt` (1.0) |
+| "Will look empty" | capacity ≥ expected × `boxOffice.fit.emptyAt` (3)     |
+| "Good fit"        | anything in between                                   |
+
+A sell-out wins when both hold.
 
 ## Generic venues
 
-_Not built yet (EVT6-02)._
+Every region has a set of generic local venues, so a founded promotion or a
+tour stop with no real venue still has somewhere to run
+(`genericVenues.ts`). Each size has a capacity tunable,
+`boxOffice.generic.<size>.capacity` (1–200,000):
+
+| Size         | Player label        | Rents as  | Default capacity |
+| ------------ | ------------------- | --------- | ---------------: |
+| `room`       | "Local room"        | `hall`    |              150 |
+| `smallHall`  | "Local small hall"  | `hall`    |              500 |
+| `hall`       | "Local hall"        | `hall`    |            1,200 |
+| `largeHall`  | "Local large hall"  | `hall`    |            3,000 |
+| `smallArena` | "Local small arena" | `arena`   |            6,000 |
+| `arena`      | "Local arena"       | `arena`   |           12,000 |
+| `largeArena` | "Local large arena" | `arena`   |           20,000 |
+| `stadium`    | "Local stadium"     | `stadium` |           45,000 |
+
+A generic venue is named after its size and the show's region ("Local hall,
+Northeast") and shows the placeholder venue image. The sizes are ordered by
+their capacities each time they are read (`genericVenueSizes`), so an
+override that makes one size bigger than the next still picks the smallest
+that fits. The capacity is copied onto the show when it is chosen, so a later
+tunable change never rewrites a show.
 
 ## Pick
 
-_Not built yet (EVT6-02, EVT6-03)._
+`pickVenue(inputs, { tunables })` (`formulas/pickVenue.ts`) is the decision
+every later piece uses to give a show a venue: the automatic pick (EVT6-03),
+rival calendars (AIP7) and tours (EVT8). Its answer is a venue id or
+`generic:<size>`. `pickVenueFor(read, tunables, instance)` (`pickVenueFor.ts`)
+gathers its inputs: the expected crowd from [`forecastAttendance`](#forecast)
+in the show's region, the real venues in that region and in the rest of its
+country (through the `venues.byRegion` index and the geography), each with its
+[availability](#venues), the preferred venue from the show's definition, and
+the generic sizes.
+
+The rules, in order; the first that passes picks:
+
+1. **Preferred venue <name> is open and can be booked**: the preferred venue,
+   whatever its size.
+2. **Smallest venue in <region> that fits <expected> × headroom**: the
+   smallest available venue in the show's region whose capacity is at least
+   the expected crowd × `boxOffice.pick.headroom` (1.1, "Room left for a good
+   night when sizing a venue"), rounded up.
+3. **Smallest venue elsewhere in <country> that fits**: the same, in the rest
+   of the country.
+4. **Generic venue: smallest size that fits**, or, when even the biggest size
+   is too small, the biggest ("Bigger than any venue size: Local stadium").
+
+The pick never chooses a venue that is closed, exclusive to another promotion
+or used by another promotion that night. Every venue it looked at is listed in
+the Why? with its capacity and why it was or was not used ("Too small",
+"Exclusive to …"), and the expected crowd and the headroom are lines of their
+own. Ties go to the smaller venue, then the lower id. The pick has no rolls.
+
+A show that already has a venue keeps it; EVT6-03 runs the pick for shows that
+have none.
 
 ## Crowd roll
 

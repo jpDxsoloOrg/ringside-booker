@@ -6,7 +6,9 @@
  * (`computeExpectedAttendance` with its recent-form, big-show fatigue and hype lines) and
  * `forecastAttendance`, which gathers its inputs from the world. The bundle has no phases,
  * subscriptions, queries or commands yet; later tickets add venue picks, the show-day crowd roll and
- * the settlement. Design: docs/design/box-office.md.
+ * the settlement. EVT6-02 adds generic local venues, `showVenueOf`, `venueAvailability`, `venueFit`
+ * and the venue pick (`pickVenue`, `pickVenueFor`, `applyVenueChoice`). Design:
+ * docs/design/box-office.md.
  */
 
 // The stream and event declarations are types only. Importing them here brings them into every
@@ -72,3 +74,41 @@ export const boxOfficeSystem: SystemBundle = defineSystem({
   queries: [],
   commands: [],
 });
+
+// Venues (EVT6-02): generic local venues, where a show is held and the venue pick.
+export { applyVenueChoice, type ApplyVenueOptions } from './applyVenue';
+export {
+  PICK_VENUE_DOC_REF,
+  genericOptionKey,
+  genericTierOf,
+  isGenericOptionKey,
+  pickVenue,
+  type PickVenueInputs,
+  type VenueCandidate,
+  type VenueOptionKey,
+} from './formulas/pickVenue';
+export {
+  GENERIC_VENUE_IMAGE_REF,
+  GENERIC_VENUE_KINDS,
+  GENERIC_VENUE_TIERS,
+  genericCapacityKey,
+  genericVenueLabel,
+  genericVenueName,
+  genericVenueSizes,
+  type GenericVenue,
+  type GenericVenueSize,
+  type GenericVenueTier,
+} from './genericVenues';
+export { pickVenueFor } from './pickVenueFor';
+export {
+  VENUE_UNAVAILABLE_CODES,
+  showVenueOf,
+  venueAvailability,
+  type ShowVenue,
+  type VenueAvailability,
+  type VenueBooking,
+  type VenueUnavailableCode,
+} from './showVenue';
+export { VENUE_PICK_TRACE_KIND, venuePickTraceRef } from './traceKinds';
+export { VENUE_FITS, venueFit, venueFitLabel, type VenueFit } from './venueFit';
+export { venueTunables } from './venueTunables';
