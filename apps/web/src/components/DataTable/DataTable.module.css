@@ -519,8 +519,14 @@
   }
 }
 
+/*
+ * A stat is as tall as the tallest stat in its row. Its label and value keep to the top of it:
+ * left to stretch, a stat beside one that wraps would share the spare height between its label
+ * row and its value row and push its value down.
+ */
 .cardStat {
   display: grid;
+  align-content: start;
   gap: 0;
   min-inline-size: 0;
 }
