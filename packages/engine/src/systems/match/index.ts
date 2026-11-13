@@ -495,6 +495,7 @@ export {
 // docs/design/match-aftermath.md#momentum-drift.
 export { MOMENTUM_DRIFT_TUNABLES_DOC } from './aftermath/momentumTunables';
 export {
+  ACTIVE_DRIFT_LABEL,
   AT_REST_NOTE,
   DRIFT_OFF_NOTE,
   MOMENTUM_DRIFT_DOC_REF,
@@ -510,7 +511,9 @@ export {
   MOMENTUM_DRIFT_REASON_KEY,
   applyMomentumDrift,
   driftingEmployments,
+  lastMatchDates,
   momentumDriftPhase,
+  weeksIdleSince,
   type DriftingEmployment,
 } from './aftermath/drift';
 export {

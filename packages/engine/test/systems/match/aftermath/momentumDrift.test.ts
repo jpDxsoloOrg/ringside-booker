@@ -4,6 +4,7 @@ import { InvalidArgumentError } from '../../../../src/core/errors';
 import { inputOf } from '../../../../src/core/trace';
 import type { TunableOverrides } from '../../../../src/core/tunables/overrides';
 import {
+  ACTIVE_DRIFT_LABEL,
   AT_REST_NOTE,
   DRIFT_OFF_NOTE,
   MOMENTUM_DRIFT_DOC_REF,
@@ -78,11 +79,36 @@ describe('momentumDrift', () => {
     expect(path[12]).toBeLessThan(20);
   });
 
-  it('gives the same change for several weeks at once as for the weeks one by one', () => {
-    const path = weekByWeek(90, 4);
-    const atOnce = drift({ before: 90, weeksIdle: 4 });
-    expect(90 + atOnce.value).toBeCloseTo(path[3] ?? Number.NaN, 10);
-    expect(atOnce.trace.label).toBe('Cooling off: 40% of the way back to 0');
+  it('cools a worker who wrestled this week off at half the rate', () => {
+    const result = drift({ before: 100, weeksIdle: 0 });
+    expect(result.value).toBeCloseTo(-6, 10);
+    expect(result.trace.label).toBe('Cooling off: 6% of the way back to 0');
+    expect(
+      expectTraceContains(result, { kind: 'tunable', label: ACTIVE_DRIFT_LABEL }),
+    ).toMatchObject({ key: 'match.momentum.activeDriftShare' });
+  });
+
+  it('cools a worker who has not wrestled for a while at the full rate, and says why', () => {
+    const result = drift({ before: 100, weeksIdle: 3 });
+    expect(result.value).toBeCloseTo(-12, 10);
+    expectTraceContains(result, {
+      kind: 'note',
+      label: 'Last match over 3 weeks ago: cools off at the full rate',
+    });
+    expectTraceContains(drift({ before: 100 }), {
+      kind: 'note',
+      label: 'No match on record: cools off at the full rate',
+    });
+  });
+
+  it('lets a worker who wins once a week hold between +60 and +80', () => {
+    let momentum = 0;
+    for (let week = 0; week < 104; week += 1) {
+      momentum = Math.min(100, momentum + 5);
+      momentum += drift({ before: momentum, weeksIdle: 0 }).value;
+    }
+    expect(momentum).toBeGreaterThan(60);
+    expect(momentum).toBeLessThan(80);
   });
 
   it('changes nothing when drift is turned off', () => {
@@ -135,8 +161,8 @@ describe('momentumDrift', () => {
     expect(weekByWeek(100, 52).at(-1)).toBe(0);
   });
 
-  it('refuses a number of weeks that is not a whole number of 1 or more', () => {
-    for (const weeksIdle of [0, -1, 1.5, Number.NaN]) {
+  it('refuses a number of weeks that is not a whole number of 0 or more', () => {
+    for (const weeksIdle of [-1, 1.5, Number.NaN]) {
       expect(() =>
         momentumDrift({ before: 50, weeksIdle }, { tunables: createEngineTunables() }),
       ).toThrow(InvalidArgumentError);

@@ -1,6 +1,8 @@
 /**
  * The weekly momentum drift (MTCH3-07): every Monday, each open employment with a momentum moves
- * `match.momentum.weeklyDrift` of the way back to `match.momentum.driftTarget`, through WRK1's
+ * `match.momentum.weeklyDrift` of the way back to `match.momentum.driftTarget` (times
+ * `match.momentum.activeDriftShare` when its last match, from the stored aftermath rows, was in the
+ * past seven days), through WRK1's
  * momentum door (`applyMomentumChange`), so the limits, the door trace and the `momentum.changed`
  * event are the same as for every other change. One change per employment per week.
  *
@@ -16,6 +18,8 @@
  * Design: docs/design/match-aftermath.md#momentum-drift.
  */
 
+import { compareDates, diffDays, type GameDate } from '../../../core/date';
+import type { EmploymentId } from '../../../core/ids';
 import { definePhase, type PhaseDefinition } from '../../../core/pipeline/phase';
 import type { Employment } from '../../../model/entities/employment';
 import { ENDED_EMPLOYMENT_STATUSES } from '../../../model/entities/employment';
@@ -36,6 +40,39 @@ export interface DriftingEmployment {
   readonly employment: DeepReadonly<Employment>;
   /** True when a human runs it: its door trace keeps the full drift breakdown. */
   readonly human: boolean;
+}
+
+const DAYS_PER_WEEK = 7;
+
+/**
+ * The date of each employment's latest match that moved its momentum, from the stored aftermath
+ * rows. The weekly prune keeps each worker's newest rows, so the latest is always there.
+ */
+export function lastMatchDates(read: GameWorldView): Map<EmploymentId, GameDate> {
+  const latest = new Map<EmploymentId, GameDate>();
+  for (const row of read.tables.aftermaths.values()) {
+    if (row.momentum === null) {
+      continue;
+    }
+    const known = latest.get(row.momentum.employmentId);
+    if (known === undefined || compareDates(row.date, known) > 0) {
+      latest.set(row.momentum.employmentId, row.date);
+    }
+  }
+  return latest;
+}
+
+/**
+ * Whole weeks from `lastMatch` to `today`: 0 for a match in the past seven days (today included),
+ * undefined with no match on record.
+ */
+export function weeksIdleSince(
+  lastMatch: GameDate | undefined,
+  today: GameDate,
+): number | undefined {
+  return lastMatch === undefined
+    ? undefined
+    : Math.max(0, Math.floor(diffDays(lastMatch, today) / DAYS_PER_WEEK));
 }
 
 function isOpen(employment: DeepReadonly<Employment>): boolean {
@@ -70,21 +107,24 @@ export function applyMomentumDrift(step: DoorContext): number {
     return 0;
   }
   const target = tunables.get('match.momentum.driftTarget');
-  const share = driftShare(weekly);
+  const lastMatches = lastMatchDates(step.read);
   let changed = 0;
   for (const { employment, human } of driftingEmployments(step.read, target)) {
     const before = employment.momentum;
     if (before === null) {
       continue;
     }
-    const drift = momentumDrift({ before }, { tunables });
+    const weeksIdle = weeksIdleSince(lastMatches.get(employment.id), step.date);
+    const drift = momentumDrift(weeksIdle === undefined ? { before } : { before, weeksIdle }, {
+      tunables,
+    });
     const result = applyMomentumChange(step, {
       employmentId: employment.id,
       delta: human ? drift : drift.value,
       source: 'system',
       reason: {
         key: MOMENTUM_DRIFT_REASON_KEY,
-        label: momentumDriftLabel(before, target, share),
+        label: momentumDriftLabel(before, target, driftShare(tunables, weeksIdle)),
       },
     });
     if (result.changed) {

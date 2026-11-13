@@ -4,6 +4,7 @@
 import { describe, expect, it } from 'vitest';
 import { createEngine, initialEngineState, type Engine } from '../../../../src/core/api';
 import { simSystem } from '../../../../src/core/api/builtins';
+import { addDays, parseGameDate } from '../../../../src/core/date';
 import type { EmploymentId } from '../../../../src/core/ids';
 import { isFullTrace, type StoredTraceEntry } from '../../../../src/core/trace/store';
 import type { TraceNode } from '../../../../src/core/trace/types';
@@ -14,8 +15,11 @@ import {
   MOMENTUM_DRIFT_PHASE_ORDER,
   MOMENTUM_DRIFT_REASON_KEY,
   driftingEmployments,
+  lastMatchDates,
   matchSystem,
+  weeksIdleSince,
 } from '../../../../src/systems/match';
+import { anAftermath } from '../../../support/builders/aftermath';
 import { DOOR_TRACE_KINDS, workersSystem } from '../../../../src/systems/workers';
 import { worldBuilder } from '../../../support/world-builder';
 import { PLAYER_ONE } from '../../calendar/lifecycle-world';
@@ -93,6 +97,61 @@ function doorTrace(engine: Engine, id: EmploymentId): StoredTraceEntry | undefin
     (entry) => entry.ref.kind === DOOR_TRACE_KINDS.momentum && entry.ref.id === id,
   );
 }
+
+/**
+ * Two of the player's wrestlers at +100. Worker 0 beat worker 1 two days before Monday
+ * 2026-01-05; only worker 0's row carries a momentum (worker 1's aftermath had none), so only
+ * worker 0 counts as having wrestled this week.
+ */
+function activeWorld(): DriftWorld {
+  const monday = parseGameDate('2026-01-05');
+  const { world } = worldBuilder({ startDate: '2026-01-05' })
+    .withGeography('mini')
+    .withPromotion({ name: 'Test Promotion A', controller: PLAYER_ONE }, (promotion) =>
+      promotion.withRoster(2, { employment: () => ({ momentum: 100, morale: MORALE }) }),
+    )
+    .withEventInstance({ date: addDays(monday, -2), status: 'completed' })
+    .withCompletedMatch({ show: 0, slot: 0, sides: [[0], [1]], result: 0 })
+    .with('aftermaths', (context) => {
+      const { ids } = context;
+      const winner = at(ids.people, 0);
+      const employment = [...context.tx.view.tables.employments.values()].find(
+        (row) => row.personId === winner,
+      );
+      if (employment === undefined) {
+        throw new Error('no employment for the winner');
+      }
+      context.insert(
+        'aftermaths',
+        anAftermath(
+          {
+            segmentId: at(ids.segments, 0),
+            eventInstanceId: at(ids.eventInstances, 0),
+            promotionId: employment.promotionId,
+            personId: winner,
+            date: addDays(monday, -2),
+            showRegionId: at(ids.regions, 0),
+            momentum: { employmentId: employment.id, before: 95, after: 100 },
+          },
+          context.sequence,
+        ),
+      );
+    })
+    .build();
+  const employments = [...world.tables.employments.values()];
+  return { world, player: employments.map((row) => row.id), rival: [] };
+}
+
+describe('weeks since the last match', () => {
+  const today = parseGameDate('2026-01-12');
+  it('counts whole weeks, with this past week as 0', () => {
+    expect(weeksIdleSince(undefined, today)).toBeUndefined();
+    expect(weeksIdleSince(today, today)).toBe(0);
+    expect(weeksIdleSince(addDays(today, -6), today)).toBe(0);
+    expect(weeksIdleSince(addDays(today, -7), today)).toBe(1);
+    expect(weeksIdleSince(addDays(today, -20), today)).toBe(2);
+  });
+});
 
 describe('the momentum drift phase', () => {
   it('runs on Mondays in the periodic group', () => {
@@ -213,6 +272,24 @@ describe('the momentum drift phase', () => {
       [at(built.player, 0), true],
       [at(built.player, 1), true],
     ]);
+  });
+
+  it('cools a worker who wrestled this week off more slowly than one who did not', async () => {
+    const built = activeWorld();
+    expect([...lastMatchDates(built.world).keys()]).toEqual([at(built.player, 0)]);
+    const engine = engineOn(built.world);
+    await engine.advanceDays({ maxDays: 1 });
+    const tables = engine.exportState().world.tables;
+    expect(employmentIn(tables, at(built.player, 0)).momentum).toBeCloseTo(94, 10);
+    expect(employmentIn(tables, at(built.player, 1)).momentum).toBeCloseTo(88, 10);
+    const active = doorTrace(engine, at(built.player, 0));
+    if (active === undefined || !isFullTrace(active)) {
+      throw new Error('expected a full door trace');
+    }
+    expect(labelsOf(active.trace)).toContain('Cooling off: 6% of the way back to 0');
+    for (const row of tables.employments) {
+      expect(row.morale).toBe(MORALE);
+    }
   });
 
   it('is deterministic', async () => {

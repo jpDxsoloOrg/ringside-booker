@@ -6,8 +6,8 @@
  * Kept in its own file beside the popularity tunables so the two halves can change apart; both are
  * merged into `ALL_TUNABLES` in `systems/tunables.ts`.
  *
- * The weekly drift back toward a resting point (MTCH3-07) lives here too: `weeklyDrift` and
- * `driftTarget`, documented under docs/design/match-aftermath.md#momentum-drift.
+ * The weekly drift back toward a resting point (MTCH3-07) lives here too: `weeklyDrift`,
+ * `activeDriftShare` and `driftTarget`, documented under docs/design/match-aftermath.md#momentum-drift.
  *
  * Design: docs/design/match-aftermath.md#momentum-gain.
  */
@@ -95,6 +95,16 @@ export const momentumTunables = defineTunables({
       { min: 0, max: 1, step: 0.01 },
       'ratio',
       'Share of the way back to the resting point momentum moves each week (0 turns it off)',
+    ),
+    docRef: MOMENTUM_DRIFT_TUNABLES_DOC,
+  },
+  // MTCH3-07. At 0.5 a worker winning once a week holds about +78 (5 × 0.94 ÷ 0.06).
+  'match.momentum.activeDriftShare': {
+    ...momentumNumber(
+      0.5,
+      { min: 0, max: 1, step: 0.05 },
+      'ratio',
+      'Share of the weekly cooling off a worker who wrestled that week still gets',
     ),
     docRef: MOMENTUM_DRIFT_TUNABLES_DOC,
   },
