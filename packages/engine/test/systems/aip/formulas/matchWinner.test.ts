@@ -1,6 +1,6 @@
 // Who a rival booker puts over. Design: docs/design/rival-booking.md#winners
 import { describe, expect, it } from 'vitest';
-import type { PersonId } from '../../../../src/core/ids';
+import { parseId, type PersonId } from '../../../../src/core/ids';
 import { RngRegistry } from '../../../../src/core/rng/registry';
 import { findTraceNodes, inputOf, TRACE_MAX_NODES, walkTrace } from '../../../../src/core/trace';
 import {
@@ -18,6 +18,10 @@ import type { TunableOverrides } from '../../../../src/core/tunables/overrides';
 import { createEngineTunables } from '../../../../src/systems/tunables';
 import { expectSerialisable } from '../../../support/trace';
 
+function personId(serial: number): PersonId {
+  return parseId('person', `per_${String(serial).padStart(10, '0')}`);
+}
+
 /** Every rule off except the one a test turns on. */
 const QUIET: TunableOverrides = {
   'aip.winner.jitter': 0,
@@ -27,15 +31,19 @@ const QUIET: TunableOverrides = {
   'aip.winner.squash.chance': 0,
 };
 
-function side(n: number, value: number, extra: Partial<MatchWinnerSide> = {}): MatchWinnerSide {
+function side(
+  sideNumber: number,
+  value: number,
+  extra: Partial<MatchWinnerSide> = {},
+): MatchWinnerSide {
   return {
-    side: n,
-    label: `Side ${String(n)}`,
-    values: inputOf(`Side ${String(n)} value`, value),
+    side: sideNumber,
+    label: `Side ${String(sideNumber)}`,
+    values: inputOf(`Side ${String(sideNumber)} value`, value),
     pushIndex: 3,
     featured: null,
     featuredName: null,
-    lowestPersonId: `per_${String(n)}` as PersonId,
+    lowestPersonId: personId(sideNumber),
     ...extra,
   };
 }
@@ -245,8 +253,8 @@ describe('matchWinner', () => {
     const result = run(
       inputs({
         sides: [
-          side(0, 50, { lowestPersonId: 'per_z' as PersonId }),
-          side(1, 50, { lowestPersonId: 'per_a' as PersonId }),
+          side(0, 50, { lowestPersonId: personId(9) }),
+          side(1, 50, { lowestPersonId: personId(1) }),
         ],
       }),
     );
@@ -264,10 +272,10 @@ describe('matchWinner', () => {
     const seeds = 2000;
     for (let seed = 0; seed < seeds; seed += 1) {
       const rng = new RngRegistry(`j${String(seed)}`).stream(WINNERS_STREAM);
-      const sides = [0, 1].map((n) =>
-        side(n, 0, {
+      const sides = [0, 1].map((number) =>
+        side(number, 0, {
           values: rivalSideValue(
-            { label: `Side ${String(n)}`, cardValues: [inputOf('Card value', 50)] },
+            { label: `Side ${String(number)}`, cardValues: [inputOf('Card value', 50)] },
             { tunables, rng },
           ),
         }),
@@ -299,12 +307,12 @@ describe('matchWinner', () => {
   it('keeps a 20-side match within the trace budget', () => {
     const tunables = createEngineTunables({ 'aip.winner.jitter': 0.1 });
     const rng = new RngRegistry('royal').stream(WINNERS_STREAM);
-    const sides = Array.from({ length: 20 }, (_, n) =>
-      side(n, 0, {
+    const sides = Array.from({ length: 20 }, (_, number) =>
+      side(number, 0, {
         values: rivalSideValue(
           {
-            label: `Side ${String(n)}`,
-            cardValues: [inputOf('a', 40 + n), inputOf('b', 50), inputOf('c', 60)],
+            label: `Side ${String(number)}`,
+            cardValues: [inputOf('a', 40 + number), inputOf('b', 50), inputOf('c', 60)],
           },
           { tunables, rng },
         ),
