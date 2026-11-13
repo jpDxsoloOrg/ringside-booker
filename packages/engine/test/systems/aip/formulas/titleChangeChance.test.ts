@@ -1,6 +1,6 @@
 // How likely a rival booker is to move a title. Design: docs/design/rival-booking.md#title-changes
 import { describe, expect, it } from 'vitest';
-import type { GameDate } from '../../../../src/core/date';
+import { makeGameDate } from '../../../../src/core/date';
 import { findTraceNodes, inputOf } from '../../../../src/core/trace';
 import type { TunableOverrides } from '../../../../src/core/tunables/overrides';
 import { EVENT_IMPORTANCES } from '../../../../src/model/entities/event-definition';
@@ -51,7 +51,7 @@ function notes(result: ReturnType<typeof titleChangeChance>): string[] {
 
 function weekly(values: readonly number[]): PopularityPoint[] {
   return values.map((value, index) => ({
-    date: `2026-01-${String(index + 1).padStart(2, '0')}` as GameDate,
+    date: makeGameDate(2026, 1, index + 1),
     value,
   }));
 }

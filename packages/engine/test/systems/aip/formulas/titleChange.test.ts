@@ -230,7 +230,7 @@ describe('titleChange', () => {
     const result = run(inputs({ pool: poolOf([side(1, 80), side(2, 10)]) }));
     const considered =
       result.plan.trace.kind === 'decision'
-        ? result.plan.trace.considered.map((c) => c.option)
+        ? result.plan.trace.considered.map((entry) => entry.option)
         : [];
     expect(considered).toEqual(['retain', 'side:1', 'side:2']);
   });
