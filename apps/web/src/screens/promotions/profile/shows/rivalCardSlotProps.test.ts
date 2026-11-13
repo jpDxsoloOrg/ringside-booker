@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { parseId } from '@ringside/engine';
 import type { ShowCardSegment, ShowCardSlot } from '@ringside/engine';
-import { CHAMPIONS_LABEL, rivalSlotKey, toRivalCardSlotProps } from './rivalCardSlotProps';
+import {
+  CHAMPIONS_LABEL,
+  rivalResultSides,
+  rivalSlotKey,
+  toRivalCardSlotProps,
+} from './rivalCardSlotProps';
 
 const ACE = parseId('person', 'per_0000000001');
 const ROOKIE = parseId('person', 'per_0000000002');
@@ -109,6 +114,42 @@ describe('toRivalCardSlotProps', () => {
     expect(toRivalCardSlotProps(drawn)).not.toHaveProperty('winnerIndex');
     const none = slot({ segment: segment({ outcome: { kind: 'noContest', winningSide: null } }) });
     expect(toRivalCardSlotProps(none)).toMatchObject({ resultLabel: 'No contest' });
+  });
+
+  it("leaves the draw to AIP5's result line when the booker's call is there, keeping the winner", () => {
+    const segmentId = parseId('segment', 'seg_0000000001');
+    const decision = {
+      segmentId,
+      eventInstanceId: parseId('eventInstance', 'evi_0000000001'),
+      winner: {
+        kind: 'draw' as const,
+        sideLabel: null,
+        personIds: [],
+        methodName: null,
+        finishName: null,
+      },
+      reasonText: 'Draw',
+      winnerTraceRef: null,
+      titles: [],
+    };
+    const drawn = slot({
+      segment: segment({ outcome: { kind: 'draw', winningSide: null }, decision }),
+    });
+    expect(toRivalCardSlotProps(drawn)).not.toHaveProperty('resultLabel');
+    const won = slot({
+      segment: segment({
+        outcome: { kind: 'win', winningSide: 0 },
+        decision: { ...decision, winner: { ...decision.winner, kind: 'win' } },
+      }),
+    });
+    expect(toRivalCardSlotProps(won).winnerIndex).toBe(0);
+  });
+
+  it('names the sides for the result line', () => {
+    expect(rivalResultSides(segment())).toEqual([
+      { name: 'Ace', people: [{ personId: ACE, name: 'Ace' }] },
+      { name: 'Rookie', people: [{ personId: ROOKIE, name: 'Rookie' }] },
+    ]);
   });
 
   it('leaves an open slot with no chips and no sides', () => {
