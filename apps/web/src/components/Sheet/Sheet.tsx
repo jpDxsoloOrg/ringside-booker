@@ -5,7 +5,7 @@ import { IconButton } from '../Button';
 import { classNames } from '../classNames';
 import styles from './Sheet.module.css';
 import { useBodyScrollLock } from './useBodyScrollLock';
-import { firstFocusableIn, useOverlayFocus } from './useOverlayFocus';
+import { firstOpenFocusIn, useOverlayFocus } from './useOverlayFocus';
 
 export type SheetSide = 'right' | 'left' | 'bottom';
 export type SheetSize = 'sm' | 'md' | 'lg';
@@ -46,8 +46,8 @@ export interface SheetProps {
 /** The first control in the body, then the footer, else the title. Never the Close button. */
 function sheetInitialFocus(content: HTMLElement): HTMLElement | null {
   return (
-    firstFocusableIn(content.querySelector('[data-sheet-body]')) ??
-    firstFocusableIn(content.querySelector('[data-sheet-footer]')) ??
+    firstOpenFocusIn(content.querySelector('[data-sheet-body]')) ??
+    firstOpenFocusIn(content.querySelector('[data-sheet-footer]')) ??
     content.querySelector<HTMLElement>('[data-sheet-title]')
   );
 }
