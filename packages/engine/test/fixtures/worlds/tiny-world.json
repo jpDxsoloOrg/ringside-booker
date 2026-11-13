@@ -1460,6 +1460,7 @@
         "airDate": "2026-04-09",
         "status": "completed",
         "venueId": "ven_0000000001",
+        "genericVenue": null,
         "regionId": "reg_0000000001",
         "result": {
           "score": 62,

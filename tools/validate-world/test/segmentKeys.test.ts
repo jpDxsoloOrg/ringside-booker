@@ -109,6 +109,7 @@ function addShow(
       airDate: world.meta.startDate,
       status: 'completed',
       venueId: null,
+      genericVenue: null,
       regionId: region.id,
       result: {
         score: 50,

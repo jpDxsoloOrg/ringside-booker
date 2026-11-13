@@ -150,6 +150,7 @@ export function anEventInstance(
     airDate: date,
     status: 'scheduled',
     venueId: null,
+    genericVenue: null,
     regionId: testId('region'),
     result: overrides.status === 'completed' ? DEFAULT_EVENT_RESULT : null,
     cancellation: overrides.status === 'cancelled' ? { reason: 'byPromotion', on: date } : null,
