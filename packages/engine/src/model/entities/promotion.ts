@@ -10,7 +10,7 @@ import { z } from 'zod';
 import type { PromotionId } from '../../core/ids';
 import { ControllerSchema, CONTROLLER_PLAYER_REF } from '../controller';
 import type { IntegrityIssue } from '../integrity';
-import { zCents, zGameDate, zId, zImageRef, zStat } from '../primitives';
+import { zCents, zGameDate, zId, zImageRef, zStat, zYearMonth } from '../primitives';
 import { defineTable } from '../table-def';
 import { tableOf } from '../world';
 import { PromotionStyleSchema } from './promotion-style';
@@ -69,6 +69,21 @@ const zRegionalPop = z.record(
   z.number().gt(0, 'Zero popularity is left out of the record, not stored').max(100),
 );
 
+/**
+ * What a promotion's shows have gained it in each region this calendar month (EVT5-02), so the
+ * monthly gain cap can hold across shows. Sparse like `regionalPop`: a region with no gain is left
+ * out. When `month` is not the current month, the whole tally counts as empty.
+ */
+export const PopularityGainsSchema = z.strictObject({
+  month: zYearMonth,
+  byRegion: z.record(
+    zId('region'),
+    z.number().gt(0, 'A region with no gain is left out of the record, not stored').max(100),
+  ),
+});
+
+export type PopularityGains = z.infer<typeof PopularityGainsSchema>;
+
 export const PromotionSchema = z
   .strictObject({
     id: zId('promotion'),
@@ -80,6 +95,8 @@ export const PromotionSchema = z
     status: PromotionStatusSchema,
     homeRegionId: zId('region'),
     regionalPop: zRegionalPop,
+    /** Popularity gained from shows per region this calendar month (EVT5-02). */
+    popularityGains: PopularityGainsSchema,
     prestige: zStat,
     /** May be negative: a promotion can be in debt. */
     cash: zCents,
@@ -150,6 +167,7 @@ export const promotionsTable = defineTable({
   refs: [
     { path: 'homeRegionId', target: 'region', nullable: false },
     { path: 'regionalPop{}', target: 'region', nullable: false },
+    { path: 'popularityGains.byRegion{}', target: 'region', nullable: false },
     { path: 'ownerPersonId', target: 'person', nullable: true },
     { path: 'bookerPersonId', target: 'person', nullable: true },
     { path: 'parentPromotionId', target: 'promotion', nullable: true },

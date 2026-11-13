@@ -8,7 +8,7 @@
 
 import { z } from 'zod';
 import { isContentKey, type ContentKey } from '../core/content-key';
-import { isGameDate, type GameDate } from '../core/date';
+import { isGameDate, isYearMonth, type GameDate, type YearMonth } from '../core/date';
 import { ENTITY_KINDS, isId, type EntityKind, type IdOf } from '../core/ids';
 import { isCents, type Cents } from '../core/money';
 
@@ -23,6 +23,11 @@ export function zId<K extends EntityKind>(kind: K): z.ZodCustom<IdOf<K>, IdOf<K>
     message: `Expected a ${kind} ID (${ENTITY_KINDS[kind]}_ followed by 10 base32 characters)`,
   });
 }
+
+/** A calendar month in `YYYY-MM` form (`yearMonthOf(date)`). */
+export const zYearMonth = z.custom<YearMonth>(isYearMonth, {
+  message: 'Expected a month in the form YYYY-MM',
+});
 
 /** A game date in `YYYY-MM-DD` form, years 1900-2999. */
 export const zGameDate = z.custom<GameDate>(isGameDate, {

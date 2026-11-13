@@ -309,6 +309,27 @@ export function endOfMonth(date: GameDate): GameDate {
   });
 }
 
+/** A calendar month as `YYYY-MM`, such as `2026-03`. Compares in month order as a string. */
+export type YearMonth = Brand<string, 'YearMonth'>;
+
+/** The `YYYY-MM` form of a {@link YearMonth}: a four-digit year and a month from 01 to 12. */
+export const YEAR_MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
+
+/** True when `value` is a `YYYY-MM` month. */
+export function isYearMonth(value: unknown): value is YearMonth {
+  return typeof value === 'string' && YEAR_MONTH_PATTERN.test(value);
+}
+
+/** The month `date` falls in, as `YYYY-MM`. */
+export function yearMonthOf(date: GameDate): YearMonth {
+  const parts = partsOf(date);
+  const text = `${String(parts.year).padStart(4, '0')}-${String(parts.month).padStart(2, '0')}`;
+  if (!isYearMonth(text)) {
+    throw new InvalidDateError(date, 'its month could not be written as YYYY-MM');
+  }
+  return text;
+}
+
 /** True when `date` is the last day of its month. */
 export function isLastDayOfMonth(date: GameDate): boolean {
   const parts = partsOf(date);
