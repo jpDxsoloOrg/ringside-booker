@@ -475,7 +475,12 @@ describe.runIf(SLOW_TESTS)('aip.decideResults over a year', () => {
   });
 
   it('never books a draw with the draw chance at 0, and does with it at 1', async () => {
-    const never = await play(resultsWorld({ shows: weekly(52, 'regular', 'none') }), 365);
+    // Keep the whole year in detail: the weekly history roll-up (POL4-08) would delete the
+    // segments of shows older than 28 days, and this counts every match of the year.
+    const never = await play(
+      resultsWorld({ shows: weekly(52, 'regular', 'none') }, { 'history.keepDetailDays': 400 }),
+      365,
+    );
     const neverTables = tablesOf(never);
     const outcomes = neverTables.segments.flatMap((segment) =>
       segment.kind === 'match' && segment.outcome !== null ? [segment.outcome.kind] : [],
