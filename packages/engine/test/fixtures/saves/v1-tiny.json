@@ -9,7 +9,7 @@
     "label": "Test save",
     "promotionName": "Test Promotion A",
     "promotionShortName": "TPA",
-    "schemaFingerprint": "1044c515436a871d1b5e73b7dda1fbc1",
+    "schemaFingerprint": "f40a5564100f15ce36a3bd44b784dad8",
     "startDate": "2026-01-05",
     "worldName": "Test Tiny World"
   },
@@ -2735,6 +2735,28 @@
             "weightKg": 100
           }
         ],
+        "popularityShowChanges": [
+          {
+            "date": "2026-04-09",
+            "eventInstanceId": "evi_0000000001",
+            "id": "psc_0000000001",
+            "promotionId": "pro_0000000001",
+            "regions": {
+              "reg_0000000001": {
+                "after": 1.2,
+                "before": 0,
+                "capped": false,
+                "expectation": 10,
+                "networkId": null,
+                "source": "show",
+                "weight": 1
+              }
+            },
+            "score": 62,
+            "worldAfter": 0.3,
+            "worldBefore": 0
+          }
+        ],
         "promotions": [
           {
             "bookerPersonId": null,
@@ -2755,6 +2777,10 @@
               "catering": 1,
               "medical": 1,
               "travel": 1
+            },
+            "popularityGains": {
+              "byRegion": {},
+              "month": "2026-01"
             },
             "prestige": 50,
             "production": {
@@ -2790,6 +2816,10 @@
               "catering": 1,
               "medical": 1,
               "travel": 1
+            },
+            "popularityGains": {
+              "byRegion": {},
+              "month": "2026-01"
             },
             "prestige": 50,
             "production": {

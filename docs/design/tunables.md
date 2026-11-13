@@ -483,33 +483,34 @@ How one show moves a promotion's popularity in each region it reached (EVT5),
 in `systems/promoPop/tunables.ts`, category `Promotion popularity`. See
 [promotion-popularity.md](promotion-popularity.md). Every one is 0-means-0.
 
-| Key                                   | Kind   | Default | Range | Unit       | What it does                                                                            |
-| ------------------------------------- | ------ | ------- | ----- | ---------- | --------------------------------------------------------------------------------------- |
-| `promoPop.neighbourReach`             | number | 0.5     | 0–1   | ratio      | How much of a show a neighbouring region sees (0 = neighbours not reached)              |
-| `promoPop.tvReach.tier0`              | number | 0.1     | 0–1   | ratio      | How much of a show a region sees on a reach tier 0 network (0 = not reached that way)   |
-| `promoPop.tvReach.tier1`              | number | 0.2     | 0–1   | ratio      | Same, reach tier 1                                                                      |
-| `promoPop.tvReach.tier2`              | number | 0.3     | 0–1   | ratio      | Same, reach tier 2                                                                      |
-| `promoPop.tvReach.tier3`              | number | 0.45    | 0–1   | ratio      | Same, reach tier 3                                                                      |
-| `promoPop.tvReach.tier4`              | number | 0.6     | 0–1   | ratio      | Same, reach tier 4                                                                      |
-| `promoPop.expect.popularityWeight`    | number | 0.6     | 0–2   | ratio      | Expected score per point of popularity in the region                                    |
-| `promoPop.expect.prestigeWeight`      | number | 0.2     | 0–1   | ratio      | Expected score per point of prestige                                                    |
-| `promoPop.expect.importance.house`    | number | 0.8     | 0–3   | multiplier | Event size factor on the popularity part of the expectation, house show                 |
-| `promoPop.expect.importance.minor`    | number | 0.9     | 0–3   | multiplier | Same, minor show                                                                        |
-| `promoPop.expect.importance.regular`  | number | 1       | 0–3   | multiplier | Same, regular show                                                                      |
-| `promoPop.expect.importance.major`    | number | 1.15    | 0–3   | multiplier | Same, major show                                                                        |
-| `promoPop.expect.importance.flagship` | number | 1.3     | 0–3   | multiplier | Same, flagship show                                                                     |
-| `promoPop.deadZone`                   | number | 3       | 0–20  | points     | Score margin either way that changes nothing (0 = any margin counts)                    |
-| `promoPop.blowoutMargin`              | number | 25      | 0–100 | points     | Score margin that earns the full gain or loss                                           |
-| `promoPop.maxGainPerShow`             | number | 3       | 0–10  | points     | Most popularity one show can win in a region before shaping (0 = no gains)              |
-| `promoPop.maxLossPerShow`             | number | 2.5     | 0–10  | points     | Most popularity one show can lose in a region before shaping (0 = no losses)            |
-| `promoPop.impact.house`               | number | 0.4     | 0–3   | multiplier | How much a house show moves popularity (0 = nothing)                                    |
-| `promoPop.impact.minor`               | number | 0.7     | 0–3   | multiplier | Same, minor show                                                                        |
-| `promoPop.impact.regular`             | number | 1       | 0–3   | multiplier | Same, regular show                                                                      |
-| `promoPop.impact.major`               | number | 1.3     | 0–3   | multiplier | Same, major show                                                                        |
-| `promoPop.impact.flagship`            | number | 1.6     | 0–3   | multiplier | Same, flagship show                                                                     |
-| `promoPop.diminishingPower`           | number | 1.5     | 0–5   | ratio      | How sharply gains shrink as popularity rises (0 = no diminishing)                       |
-| `promoPop.lossFullFrom`               | number | 25      | 0–100 | points     | Popularity from which a bad show costs its full loss (0 = losses never scaled down)     |
-| `promoPop.monthlyGainCap`             | number | 3       | 0–100 | points     | Most popularity shows can win in one region in one calendar month (0 = no gains at all) |
+| Key                                   | Kind    | Default | Range  | Unit       | What it does                                                                                 |
+| ------------------------------------- | ------- | ------- | ------ | ---------- | -------------------------------------------------------------------------------------------- |
+| `promoPop.neighbourReach`             | number  | 0.5     | 0–1    | ratio      | How much of a show a neighbouring region sees (0 = neighbours not reached)                   |
+| `promoPop.tvReach.tier0`              | number  | 0.1     | 0–1    | ratio      | How much of a show a region sees on a reach tier 0 network (0 = not reached that way)        |
+| `promoPop.tvReach.tier1`              | number  | 0.2     | 0–1    | ratio      | Same, reach tier 1                                                                           |
+| `promoPop.tvReach.tier2`              | number  | 0.3     | 0–1    | ratio      | Same, reach tier 2                                                                           |
+| `promoPop.tvReach.tier3`              | number  | 0.45    | 0–1    | ratio      | Same, reach tier 3                                                                           |
+| `promoPop.tvReach.tier4`              | number  | 0.6     | 0–1    | ratio      | Same, reach tier 4                                                                           |
+| `promoPop.expect.popularityWeight`    | number  | 0.6     | 0–2    | ratio      | Expected score per point of popularity in the region                                         |
+| `promoPop.expect.prestigeWeight`      | number  | 0.2     | 0–1    | ratio      | Expected score per point of prestige                                                         |
+| `promoPop.expect.importance.house`    | number  | 0.8     | 0–3    | multiplier | Event size factor on the popularity part of the expectation, house show                      |
+| `promoPop.expect.importance.minor`    | number  | 0.9     | 0–3    | multiplier | Same, minor show                                                                             |
+| `promoPop.expect.importance.regular`  | number  | 1       | 0–3    | multiplier | Same, regular show                                                                           |
+| `promoPop.expect.importance.major`    | number  | 1.15    | 0–3    | multiplier | Same, major show                                                                             |
+| `promoPop.expect.importance.flagship` | number  | 1.3     | 0–3    | multiplier | Same, flagship show                                                                          |
+| `promoPop.deadZone`                   | number  | 3       | 0–20   | points     | Score margin either way that changes nothing (0 = any margin counts)                         |
+| `promoPop.blowoutMargin`              | number  | 25      | 0–100  | points     | Score margin that earns the full gain or loss                                                |
+| `promoPop.maxGainPerShow`             | number  | 3       | 0–10   | points     | Most popularity one show can win in a region before shaping (0 = no gains)                   |
+| `promoPop.maxLossPerShow`             | number  | 2.5     | 0–10   | points     | Most popularity one show can lose in a region before shaping (0 = no losses)                 |
+| `promoPop.impact.house`               | number  | 0.4     | 0–3    | multiplier | How much a house show moves popularity (0 = nothing)                                         |
+| `promoPop.impact.minor`               | number  | 0.7     | 0–3    | multiplier | Same, minor show                                                                             |
+| `promoPop.impact.regular`             | number  | 1       | 0–3    | multiplier | Same, regular show                                                                           |
+| `promoPop.impact.major`               | number  | 1.3     | 0–3    | multiplier | Same, major show                                                                             |
+| `promoPop.impact.flagship`            | number  | 1.6     | 0–3    | multiplier | Same, flagship show                                                                          |
+| `promoPop.diminishingPower`           | number  | 1.5     | 0–5    | ratio      | How sharply gains shrink as popularity rises (0 = no diminishing)                            |
+| `promoPop.lossFullFrom`               | number  | 25      | 0–100  | points     | Popularity from which a bad show costs its full loss (0 = losses never scaled down)          |
+| `promoPop.monthlyGainCap`             | number  | 3       | 0–100  | points     | Most popularity shows can win in one region in one calendar month (0 = no gains at all)      |
+| `promoPop.keepShowChangesDays`        | integer | 365     | 0–3650 | days       | How long each show's popularity record is kept for the results page (0 = cleared on the 1st) |
 
 ## Finance tunables
 

@@ -181,6 +181,7 @@ function emptyIdLists(): IdLists {
     mail: [],
     news: [],
     ledgerEntries: [],
+    popularityShowChanges: [],
   };
 }
 

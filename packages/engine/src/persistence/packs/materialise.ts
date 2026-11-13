@@ -28,7 +28,7 @@
  */
 
 import type { z } from 'zod';
-import { addDays, compareDates, type GameDate } from '../../core/date';
+import { addDays, compareDates, yearMonthOf, type GameDate } from '../../core/date';
 import { InvalidArgumentError } from '../../core/errors';
 import type { ContinentId, CountryId, EntityKind, IdOf, RegionId, VenueId } from '../../core/ids';
 import { fromWhole } from '../../core/money';
@@ -258,6 +258,8 @@ interface TransformContext {
   readonly records: MergedRecords;
   /** Regions that list a region as a neighbour without it listing them back, by region key. */
   readonly backNeighbours: ReadonlyMap<string, readonly string[]>;
+  /** The world's first day: a promotion's monthly popularity tally starts in its month. */
+  readonly startDate: GameDate;
 }
 
 function contractTerms(terms: ContractTermsRecord): Employment['terms'] {
@@ -318,7 +320,7 @@ function toRegion(
 function toPromotion(
   record: PackRecords['promotion'],
   id: IdOf<'promotion'>,
-  { resolve }: TransformContext,
+  { resolve, startDate }: TransformContext,
 ): Promotion {
   return {
     id,
@@ -329,6 +331,7 @@ function toPromotion(
     status: record.status,
     homeRegionId: resolve.id('region', record.homeRegionKey),
     regionalPop: resolve.regionalPop(record.regionalPop),
+    popularityGains: { month: yearMonthOf(startDate), byRegion: {} },
     prestige: record.prestige,
     cash: fromWhole(record.cash),
     style: record.style,
@@ -873,6 +876,7 @@ export function materialiseWorld(
       resolve: new KeyResolver(keyToId),
       records: content.records,
       backNeighbours: missingBackNeighbours(content.records),
+      startDate: opts.startDate,
     };
     writeEntities({ tx, transform, keyToId, issues });
     if (hasErrors(issues)) {

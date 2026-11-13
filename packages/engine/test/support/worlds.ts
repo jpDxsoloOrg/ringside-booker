@@ -20,6 +20,7 @@ import {
 import type { ParticipantRole } from '../../src/model/entities/participant';
 import { aDeal, aNetwork } from './builders/media';
 import { aLedgerEntry } from './builders/ledger';
+import { aPopularityShowChange } from './builders/popularity';
 import { aMail, aNews } from './builders/inbox';
 import { aVenue } from './builders/geography';
 import { aRelationship, aStable, aTeam } from './builders/promotions';
@@ -425,6 +426,33 @@ function addTinyHistory(context: BuildContext): void {
   for (const entry of ledger) {
     context.insert('ledgerEntries', aLedgerEntry(entry, sequence));
   }
+
+  // What the show did to A's popularity: its own region and its TV deal's network.
+  context.insert(
+    'popularityShowChanges',
+    aPopularityShowChange(
+      {
+        eventInstanceId: show.id,
+        promotionId: promotionA,
+        date: TINY_WORLD_SHOW_DATE,
+        score: 62,
+        worldBefore: 0,
+        worldAfter: 0.3,
+        regions: {
+          [show.regionId]: {
+            source: 'show',
+            networkId: null,
+            weight: 1,
+            expectation: 10,
+            before: 0,
+            after: 1.2,
+            capped: false,
+          },
+        },
+      },
+      sequence,
+    ),
+  );
 }
 
 type DeepPartialLedger = Parameters<typeof aLedgerEntry>[0];
@@ -443,6 +471,7 @@ type DeepPartialLedger = Parameters<typeof aLedgerEntry>[0];
  *   angle and the title match (both matches with outcomes and ratings; the title match's planned
  *   finish is `finish.clean`), pre-show slot 0 is a match; and their 8 participants;
  * - 1 venue, 2 relationships, 2 mail (one with an open decision), 2 news and 5 ledger entries;
+ * - 1 per-show popularity record for last Thursday's show;
  * - the shipped base catalogs on its metadata (`TEST_CATALOGS`), so every segment key resolves.
  */
 export function tinyWorld(): BuiltWorld {

@@ -742,3 +742,9 @@ The finance system's events ([finances.md](finances.md#postmoney)):
 | ----------------------- | ------------------------------------------------------------ | --------------------------------------------------------- |
 | `finance.moneyPosted`   | `promotionId`, `ledgerEntryId`, `category`, `amount`, `date` | `postMoney` writes a row for a human-controlled promotion |
 | `finance.policyChanged` | `promotionId`, `area`, `from`, `to`                          | A promotion changes a spending policy (ECO1-04)           |
+
+The promotion popularity system's events ([promotion-popularity.md](promotion-popularity.md#after-every-show)):
+
+| Event                    | Payload                                                                                                        | Published when                                  |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| `showPopularity.changed` | `eventInstanceId`, `promotionId`, `worldBefore`, `worldAfter`, `regionsGained`, `regionsLost`, `regionsCapped` | A completed show's popularity change is applied |

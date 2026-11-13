@@ -14,6 +14,7 @@
  * - relationship: friends, affinity 0. The pair is put in canonical order for you.
  */
 
+import { yearMonthOf } from '../../../src/core/date';
 import { cents } from '../../../src/core/money';
 import { BrandSchema, type Brand } from '../../../src/model/entities/brand';
 import { EmploymentSchema, type Employment } from '../../../src/model/entities/employment';
@@ -52,6 +53,7 @@ export function aPromotion(
     status: 'active',
     homeRegionId: testId('region'),
     regionalPop: {},
+    popularityGains: { month: yearMonthOf(TEST_START_DATE), byRegion: {} },
     prestige: 50,
     cash: DEFAULT_PROMOTION_CASH,
     style: 'mainstream',
