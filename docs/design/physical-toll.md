@@ -443,6 +443,28 @@ where it has room and one card per worker on a phone or in a column narrower
 than 60rem (the lab's result column): the name, the injury chance, and the rest
 under "Physical". No minutes, potential or ceilings appear on it.
 
+## Results page
+
+A show's results page (MTCH4-06, `apps/web/src/screens/match-physical/`) has
+two MTCH4 parts, both public (rival shows too):
+
+- **Physical toll** section (after "Popularity & momentum"): per match, each
+  competitor's fatigue (`+gain → after`), condition lost, learning and injury
+  chance, every number with its Why? while the game keeps it, and an "Injured"
+  badge with the roll's Why?. What a rival show does not store reads "Not
+  kept".
+- **Injured banner** (`InjuryBanner`, broadcast kit) on the hurt worker's match
+  card, through the results page's card banner slot
+  (`registerResultsCardBanner`; `SegmentResultCard`'s `banners`, drawn only
+  once the card is revealed): "Injured", the name, the injury and body part,
+  "Out about N weeks" with the injury's Why? and the match's injury chance with
+  its Why?.
+
+Learning reads the same everywhere (`learningGainText`): "+0.06", "+0.004" (up
+to three decimals, since a match teaches hundredths of a point), "+0", or "less
+than +0.001". Learning traces are in the `attribute` unit, which the Why? panel
+reads to three decimals.
+
 ## Tunables
 
 All in `systems/match/physical/tunables.ts`, category `Physical toll`. Every
@@ -642,11 +664,12 @@ Every key has a minimum of 0, so 0 means 0.
 Which partner features MTCH4 is wired to (MTCH4-04), and the one call an
 unwired partner's pack makes:
 
-| Partner                     | State                   | How                                                                                                                                                                                                                     |
-| --------------------------- | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| EVT3 (show night)           | wired (MTCH4-04)        | The match bundle registers `registerSegmentResultApplier(physicalTollApplier)` at module load (`physical/showNight.ts`).                                                                                                |
-| AIP1 (rival rules)          | wired (MTCH4-04)        | The injury chance reads `skipInMatchInjuries` from the rating policy (`injuryPolicyFor`); the rival desk lists MTCH4 as the consumer of "No in-match injuries", and the Level playing field removes the line.           |
-| WRK6 (injuries)             | wires from its own pack | `registerInjuryHandler({ id: 'health.injure', apply: (ctx, request) => ... })`, calling `health.injure` and returning its injury trace ref (WRK6-07). Until then injuries are rolled, traced and logged, never applied. |
-| SOC2 (mentorships)          | wires from its own pack | Nothing to call: the mentor line reads `relationships` rows with the `mentorship` bond, so seeded mentorships show "Mentor on the card" as soon as SOC2 creates them.                                                   |
-| MTCH7 (stipulations, notes) | wires from its own pack | `registerRiskModifier({ id, order, contribute })` for each stipulation and booking note: fatigue, wear and injury multipliers, an added injury chance, or keep-it-safe, each with its own labelled line.                |
-| WRK4 (growth)               | wires from its own pack | Read potential and ceilings through the same helper as `learningRoom` (`physical/learningRoom.ts`), so an attribute WRK4 calls capped is "closed" here.                                                                 |
+| Partner                     | State                   | How                                                                                                                                                                                                                                                               |
+| --------------------------- | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| EVT3 (show night)           | wired (MTCH4-04)        | The match bundle registers `registerSegmentResultApplier(physicalTollApplier)` at module load (`physical/showNight.ts`).                                                                                                                                          |
+| EVT3 (results page)         | wired (MTCH4-06)        | `apps/web/src/screens/match-physical/register.ts`: the "Physical toll" section (`registerResultsSection`, order 40) from `match.physicalForSegment`, and the "Injured" banner on a hurt worker's card (`registerResultsCardBanner`) from `match.segmentInjuries`. |
+| AIP1 (rival rules)          | wired (MTCH4-04)        | The injury chance reads `skipInMatchInjuries` from the rating policy (`injuryPolicyFor`); the rival desk lists MTCH4 as the consumer of "No in-match injuries", and the Level playing field removes the line.                                                     |
+| WRK6 (injuries)             | wired (WRK6-03)         | `health.injure` registers itself as the built-in injury handler (`systems/health/injuryHandler.ts`); an injured worker becomes an `injuries` row with its own Why?.                                                                                               |
+| SOC2 (mentorships)          | wires from its own pack | Nothing to call: the mentor line reads `relationships` rows with the `mentorship` bond, so seeded mentorships show "Mentor on the card" as soon as SOC2 creates them.                                                                                             |
+| MTCH7 (stipulations, notes) | wires from its own pack | `registerRiskModifier({ id, order, contribute })` for each stipulation and booking note: fatigue, wear and injury multipliers, an added injury chance, or keep-it-safe, each with its own labelled line.                                                          |
+| WRK4 (growth)               | wires from its own pack | Read potential and ceilings through the same helper as `learningRoom` (`physical/learningRoom.ts`), so an attribute WRK4 calls capped is "closed" here.                                                                                                           |
