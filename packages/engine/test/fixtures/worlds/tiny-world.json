@@ -1533,7 +1533,8 @@
           "traceId": null,
           "attendance": 2800,
           "gate": 8400000,
-          "viewers": 150000
+          "viewers": 150000,
+          "ceiling": null
         },
         "cancellation": null
       }

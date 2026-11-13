@@ -2533,3 +2533,23 @@ export {
 
 // Who is out (WRK6-06): `health.report`, every open injury in the world or one promotion's.
 export { type HealthReport, type HealthReportArgs, type InjuredRow } from './systems/health/index';
+
+// EVT4-02: the production ceiling (a `cap` show score modifier for every show) and the bonus slot
+// (one extra main slot for big productions), the `production.ceiling` query and the scheduler's
+// format-adjuster seam. See docs/design/card-flow.md.
+export {
+  BONUS_SLOT_TRACE_KIND,
+  CEILING_AREAS,
+  PRODUCTION_CEILING_STEP_LABELS,
+  bonusSlotFor,
+  cardFlowSystem,
+  productionCeiling,
+  productionCeilingOf,
+  type CeilingArea,
+  type CeilingLevels,
+  type ProductionCeilingView,
+} from './systems/cardFlow/index';
+export {
+  registerScheduledFormatAdjuster,
+  type ScheduledFormatAdjuster,
+} from './systems/calendar/index';

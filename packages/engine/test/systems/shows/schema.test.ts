@@ -26,6 +26,7 @@ const SHOW_RESULT = {
   attendance: null,
   gate: null,
   viewers: null,
+  ceiling: null,
 };
 
 describe('segment rating', () => {

@@ -39,6 +39,7 @@ const COMPLETED_RESULT = {
   attendance: 900,
   gate: ZERO_CENTS,
   viewers: null,
+  ceiling: null,
 };
 
 function worldWithInstance(

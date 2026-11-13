@@ -118,15 +118,19 @@ describe('show score modifier registry', () => {
     const world = {} as GameWorldView;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- unread stand-in
     const show = {} as DeepReadonly<EventInstance>;
+    // Only this test's modifier: the built-in ones (EVT4-02's production ceiling) read the world.
+    const modifiers = listShowScoreModifiers().filter((modifier) =>
+      registered.includes(modifier.id),
+    );
     const extras: Record<string, JsonValue> = {};
-    for (const modifier of listShowScoreModifiers()) {
+    for (const modifier of modifiers) {
       if (modifier.gather !== undefined) {
         extras[modifier.id] = modifier.gather(world, show);
       }
     }
     const result = showScore(inputs(extras), {
       tunables: createEngineTunables(),
-      modifiers: listShowScoreModifiers(),
+      modifiers,
     });
     expectTraceReplays(result.score);
     expect(

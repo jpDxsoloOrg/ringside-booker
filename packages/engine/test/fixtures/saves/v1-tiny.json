@@ -9,7 +9,7 @@
     "label": "Test save",
     "promotionName": "Test Promotion A",
     "promotionShortName": "TPA",
-    "schemaFingerprint": "9dab7ef7c6ab2135da25a27ff3e08a2d",
+    "schemaFingerprint": "a1a4e71cca6bb1e566ebcfee07e5c61d",
     "startDate": "2026-01-05",
     "worldName": "Test Tiny World"
   },
@@ -1551,6 +1551,7 @@
             "regionId": "reg_0000000001",
             "result": {
               "attendance": 2800,
+              "ceiling": null,
               "gate": 8400000,
               "rawScore": 62,
               "score": 62,

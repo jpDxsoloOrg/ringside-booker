@@ -118,6 +118,7 @@ function addShow(
         attendance: 100,
         gate: cents(100_000),
         viewers: 0,
+        ceiling: null,
       },
       cancellation: null,
     });
