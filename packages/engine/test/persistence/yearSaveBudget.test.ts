@@ -18,6 +18,8 @@
  *                   every show carded 17.98 / 1.94 MB, 0.59 / 0.77 s
  *   after POL4-08 (history past 28 days rolled up): no rival cards 10.03 / 1.06 MB, 0.40 / 0.74 s;
  *                   every show carded 13.01 / 1.37 MB, 0.44 / 0.98 s
+ *   MTCH4-04 (every match tires, wears and teaches; lean physical traces): no rival cards
+ *                   10.44 -> 10.96 / 1.15 -> 1.18 MB; every show carded 13.47 -> 14.99 / 1.45 -> 1.59 MB
  * See docs/design/save-format.md#size-budget.
  *
  * The per-commit check in `npm test` is `saveBudget.test.ts` on the roster world.
