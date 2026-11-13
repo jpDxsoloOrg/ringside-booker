@@ -2,7 +2,8 @@ import { render, screen, within } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
-import type { PersonId, PhysicalForSegmentResult, PhysicalWorkerRow } from '@ringside/engine';
+import { parseId } from '@ringside/engine';
+import type { PhysicalForSegmentResult, PhysicalWorkerRow } from '@ringside/engine';
 import { EngineProvider } from '@/app/engine/EngineProvider';
 import { routerFutureFlags } from '@/app/router';
 import { singlesWin } from '@/screens/dev-gallery/fixtures/segmentResults';
@@ -21,7 +22,7 @@ const ref = (kind: string) => ({ kind, id: 'seg_aaaaaaaaaa:per_aaaaaaaaaa' });
 
 function row(overrides: Partial<PhysicalWorkerRow>): PhysicalWorkerRow {
   return {
-    personId: 'per_aaaaaaaaaa' as PersonId,
+    personId: parseId('person', 'per_aaaaaaaaaa'),
     name: 'Test Worker',
     side: 0,
     fatigueGain: { value: 8.4, traceRef: ref('match.fatigue') },
