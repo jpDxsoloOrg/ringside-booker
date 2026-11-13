@@ -17,6 +17,9 @@
  * 4. **Money.** Ledger rows dated before the window are added into their promotion's monthly
  *    totals (`ledgerMonths`) by category and deleted, so month totals, charts, the cash Why? and
  *    the year's profit and loss come out the same.
+ * 5. **Aftermaths.** The stored aftermath rows before the window (each worker's newest few, kept
+ *    by `match.pruneAftermaths`) keep only the show region's popularity change, which Recent form
+ *    reads; the spread to other regions goes.
  *
  * Nothing current changes: popularity, momentum, money, records, contracts and reigns are read,
  * never written. Every pass runs in ID order, so a roll-up is deterministic.
@@ -54,6 +57,8 @@ export interface RollUpCounts {
   participants: number;
   showChanges: number;
   ledgerRows: number;
+  /** Aftermath rows slimmed to the show's region. */
+  aftermaths: number;
 }
 
 function isBefore(date: GameDate, from: GameDate): boolean {
@@ -220,14 +225,43 @@ function rollUpLedger(ctx: PhaseContext, from: GameDate): number {
   return rolled.length;
 }
 
-/** Runs the four steps for `today`; returns what each did. */
+/**
+ * Step 5: slims the aftermath rows before `from` to the show's own region. The rows themselves
+ * stay (the weekly momentum drift and Recent form read them); only the spread to other regions,
+ * which only a results page past the window would list, goes.
+ */
+function slimAftermaths(ctx: PhaseContext, from: GameDate): number {
+  let count = 0;
+  for (const row of ctx.read.tables.aftermaths.values()) {
+    if (!isBefore(row.date, from)) {
+      continue;
+    }
+    const regions = Object.keys(row.popularity.byRegion);
+    if (regions.length === 0 || (regions.length === 1 && regions[0] === row.showRegionId)) {
+      continue;
+    }
+    const shown = row.popularity.byRegion[row.showRegionId];
+    ctx.tx.update('aftermaths', row.id, (previous) => ({
+      ...previous,
+      popularity: {
+        ...previous.popularity,
+        byRegion: shown === undefined ? {} : { [previous.showRegionId]: { ...shown } },
+      },
+    }));
+    count += 1;
+  }
+  return count;
+}
+
+/** Runs the five steps for `today`; returns what each did. */
 export function rollUpHistory(ctx: PhaseContext): RollUpCounts {
   const from = detailKeptFrom(ctx.date, ctx.tunables.get('history.keepDetailDays'));
   const shows = summariseShows(ctx, from);
   const cards = pruneCards(ctx, from);
   const showChanges = pruneShowChanges(ctx, from);
   const ledgerRows = rollUpLedger(ctx, from);
-  return { shows, ...cards, showChanges, ledgerRows };
+  const aftermaths = slimAftermaths(ctx, from);
+  return { shows, ...cards, showChanges, ledgerRows, aftermaths };
 }
 
 export const historyRollUpPhase: PhaseDefinition = definePhase({
@@ -237,9 +271,12 @@ export const historyRollUpPhase: PhaseDefinition = definePhase({
   cadence: { kind: 'weekly', weekday: 'mon' },
   run: (ctx) => {
     const counts = rollUpHistory(ctx);
-    if (counts.shows + counts.segments + counts.showChanges + counts.ledgerRows > 0) {
+    if (
+      counts.shows + counts.segments + counts.showChanges + counts.ledgerRows + counts.aftermaths >
+      0
+    ) {
       ctx.log(
-        `history: summarised ${String(counts.shows)} show(s); removed ${String(counts.segments)} segment(s), ${String(counts.participants)} participant(s), ${String(counts.showChanges)} popularity record(s); rolled ${String(counts.ledgerRows)} ledger row(s) into monthly totals`,
+        `history: summarised ${String(counts.shows)} show(s); removed ${String(counts.segments)} segment(s), ${String(counts.participants)} participant(s), ${String(counts.showChanges)} popularity record(s); rolled ${String(counts.ledgerRows)} ledger row(s) into monthly totals; slimmed ${String(counts.aftermaths)} aftermath(s)`,
       );
     }
   },

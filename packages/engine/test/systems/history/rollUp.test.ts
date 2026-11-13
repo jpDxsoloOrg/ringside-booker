@@ -84,7 +84,22 @@ describe('history.rollUp', () => {
     expect(rolled.employments).toEqual(kept.employments);
     expect(rolled.titles).toEqual(kept.titles);
     expect(rolled.titleReigns).toEqual(kept.titleReigns);
-    expect(rolled.aftermaths).toEqual(kept.aftermaths);
+    // Aftermaths before the window keep only the show region's change, which Recent form reads.
+    const showRegionOnly = (rows: SerializedTables['aftermaths']) =>
+      rows.map((row) => {
+        const shown = row.popularity.byRegion[row.showRegionId];
+        return {
+          ...row,
+          popularity: {
+            ...row.popularity,
+            byRegion: shown === undefined ? {} : { [row.showRegionId]: shown },
+          },
+        };
+      });
+    expect(showRegionOnly(rolled.aftermaths)).toEqual(showRegionOnly(kept.aftermaths));
+    expect(JSON.stringify(rolled.aftermaths).length).toBeLessThan(
+      JSON.stringify(kept.aftermaths).length,
+    );
     expect(rolled.storylines).toEqual(kept.storylines);
     const withoutHistory = (rows: SerializedTables['eventInstances']) =>
       rows.map((row) =>
