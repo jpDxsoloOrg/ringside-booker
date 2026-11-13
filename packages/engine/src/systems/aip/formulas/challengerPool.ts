@@ -26,6 +26,7 @@
 
 import type { Reason } from '../../../core/api/result';
 import { startCalc, startDecision, type Traced } from '../../../core/trace';
+import { formatPopularity } from '../../office/formulas/headlinePopularity';
 import { formatNumber } from '../../world/people/labels';
 import type { EngineTunables } from '../../tunables';
 import { TITLE_CHANGES_DOC_REF } from '../results/tunables';
@@ -86,13 +87,23 @@ export function contractRuleText(label: string, minDays: number): string {
   return `${label}'s contract runs at least ${formatNumber(minDays)} more days`;
 }
 
-/** "Vance Troy (71 in our markets, needs 62)". */
+/** "Vance Troy (29.7 in our markets, needs 24)": popularity to one decimal, as elsewhere. */
 export function popularityText(label: string, popularity: number, needs: number): string {
-  return `${label} (${formatNumber(popularity)} in our markets, needs ${formatNumber(needs)})`;
+  return `${label} (${formatPopularity(popularity)} in our markets, needs ${formatPopularity(needs)})`;
 }
 
 export function noChallengerText(validNeeds: number): string {
-  return `No challenger is popular enough (needs ${formatNumber(validNeeds)} in our markets)`;
+  return `No challenger is popular enough (needs ${formatPopularity(validNeeds)} in our markets)`;
+}
+
+/** What a strong pool means, in words: "Strong challengers: popular enough to be a real threat (...)". */
+export function strongPoolText(strongNeeds: number): string {
+  return `Strong challengers: popular enough to be a real threat (${formatPopularity(strongNeeds)} or more in our markets)`;
+}
+
+/** What a valid pool means, in words. */
+export function validPoolText(validNeeds: number): string {
+  return `Valid challengers: popular enough to hold the title (${formatPopularity(validNeeds)} or more in our markets)`;
 }
 
 function needsOf(
@@ -160,9 +171,10 @@ export function challengerPool(
     }
   }
 
-  decision.consider('strong', result.strong.length, 'Strong challengers');
-  decision.consider('valid', result.valid.length, 'Valid challengers');
-  decision.consider('none', 0, 'Nobody popular enough');
+  // The pools are explained in words, not weighed as scored options: a count of challengers read
+  // like a code ("Strong, score 0") in the Why?.
+  decision.note(strongPoolText(strong.value));
+  decision.note(validPoolText(valid.value));
   const pool =
     result.strong.length > 0
       ? decision.choose('strong', `Strong challengers: ${strongText.join(', ')}`)
