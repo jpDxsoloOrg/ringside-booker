@@ -248,7 +248,93 @@ the Why? with its capacity and why it was or was not used ("Too small",
 own. Ties go to the smaller venue, then the lower id. The pick has no rolls.
 
 A show that already has a venue keeps it; EVT6-03 runs the pick for shows that
-have none.
+have none ([automatic picks](#automatic-picks)).
+
+## Automatic picks
+
+There is no Lock card (EVT2-09), so the game gives shows their venues at two
+moments (`phases.ts`):
+
+- **`boxOffice.assignVenues`** (daily, `housekeeping` order 64) looks at the
+  open (`scheduled` or `booked`) shows without a venue dated from today
+  through today + `boxOffice.rivalVenueLeadDays` (14, 0–90 days), through the
+  `eventInstances.byDate` index, date by date and by id within a date.
+  - A show the computer runs (its brand's controller when the brand has one,
+    else its promotion's) gets the pick, so the world calendar shows where
+    rival shows are held two weeks ahead.
+  - A show a human runs keeps "Not chosen yet" until **the day before**: the
+    phase picks for the player's shows dated tomorrow, and today's as a safety
+    net. The day runs before the clock moves on, so on show day the booking
+    screen already shows a venue and its forecast, and the player can still
+    change it. Later shows are never touched.
+- **`boxOffice.pickOnShowNight`**, a
+  [before-a-show-runs hook](show-night.md#before-a-show-runs) (order 10), picks
+  for any show that reaches its first segment without a venue, the player's or
+  a rival's. No show runs without a venue, so the settlement always has a
+  capacity.
+
+Both run `pickVenueFor` and store it with `applyVenueChoice(..., { auto: true })`,
+which publishes `show.venueChosen { auto: true }`. A pick that cannot be made
+(bad data) is logged and skipped, never thrown, so it never stops the day or the
+show. The pick's Why? (`boxOffice.venuePick`) is stored for the player's shows
+only; rival picks store none, so a year of rival calendars adds nothing to the
+trace store. Picks are deterministic and the phase is idempotent: a show that
+has a venue is skipped.
+
+## Venue commands and queries
+
+`api.ts` declares the shapes. A `VenueChoice` is
+`{ kind: 'venue', venueId }` or `{ kind: 'generic', tier }` (`VenueChoiceSchema`).
+A `VenueSummary` is a [`ShowVenue`](#venues) with its `regionName`,
+`countryName` and the `choice` that names it.
+
+**Commands** (`commands.ts`, in the `booking.` area but owned by this bundle):
+
+| Command             | Args                          | What it does                                                                           |
+| ------------------- | ----------------------------- | -------------------------------------------------------------------------------------- |
+| `booking.setVenue`  | `{ eventInstanceId, choice }` | Stores the booker's choice (`auto: false`) with a one-rule Why? "Chosen by the booker" |
+| `booking.autoVenue` | `{ eventInstanceId }`         | "Pick for me": runs `pickVenueFor` and stores it with `auto: true` and the pick's Why? |
+
+Both return `{ eventInstanceId, venue: VenueSummary }`. They are refused, in
+this order, with nothing changed:
+
+| Code                        | Player text                                               | When                                                            |
+| --------------------------- | --------------------------------------------------------- | --------------------------------------------------------------- |
+| `invalidArgs`               | "That show no longer exists", "That venue does not exist" | Unknown show or venue; an unknown generic size fails the schema |
+| `boxOffice.notYourShow`     | "Only the person running this show can choose its venue"  | The issuer does not run the show (`controlsShow`)               |
+| `boxOffice.showNotEditable` | "This show can't change venue any more"                   | The show is completed, cancelled or dated before today          |
+| `boxOffice.venueClosed` …   | The [availability](#venues) message, subject the venue    | `booking.setVenue` with a real venue that cannot be booked      |
+
+The show dated today can still change venue until it has run. Choosing a venue
+in another region moves the show there (D-03, touring): EVT5 reads the show's
+region for popularity reach.
+
+**Queries** (`queries.ts`):
+
+- `boxOffice.forecast { eventInstanceId, choice? }` → `ShowForecast`:
+  `current` (the show's venue or null), `suggested` (the pick preview while
+  `current` is null), `shown` (`choice ?? current ?? suggested`), and the
+  forecast at the shown venue's region: `demand` (the uncapped expected crowd,
+  the trace's value), `expected`, `low` and `high` capped at the venue's
+  `capacity`, `cappedByCapacity` (the top of the range does not fit), `fit` and
+  `fitLabel`, the forecast's `trace` inline (queries cannot store traces) and
+  the `pickTrace` behind `suggested`. A `choice` previews and writes nothing.
+- `boxOffice.venues { eventInstanceId, scope: 'country' | 'world' }` →
+  `{ current, suggested, options }`. Real venues in the show's country (`scope:
+'country'`) or everywhere (`'world'`), plus the current and preferred venues
+  wherever they are, then every generic size in the show's region. Each
+  `VenueOption` has its `choice`, names, `group` (`region`, `country`, `abroad`
+  or `generic`), capacity, building kind, image, expected crowd and range
+  forecast in the venue's own region and capped at its capacity, fit,
+  `preferred`, `current` and `disabled` (the availability code and message, or
+  null). Sorted by group, then capacity, then id. Each region is forecast once.
+- `boxOffice.showVenue { eventInstanceId }` → `{ venue: VenueSummary | null }`
+  for any show and any viewer: where a show is held is not secret.
+
+The forecast and the venue list are for the viewer's own shows
+(`viewerControlsShow`); anything else is refused with `boxOffice.notYourShow`,
+"Only your own shows have a crowd forecast". The omniscient viewer (tools and
+tests) reads every show.
 
 ## Crowd roll
 

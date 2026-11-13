@@ -1,7 +1,8 @@
 /**
  * The box office's venue numbers (EVT6-02): the capacity of each generic local venue size, the
- * thresholds of the venue fit labels and the headroom the venue pick leaves. Spread into
- * `boxOfficeTunables`. Design: docs/design/box-office.md#venues, #generic-venues and #pick.
+ * thresholds of the venue fit labels, the headroom the venue pick leaves and how far ahead rival
+ * shows get a venue (EVT6-03). Spread into `boxOfficeTunables`. Design:
+ * docs/design/box-office.md#venues, #generic-venues and #pick.
  */
 
 import { defineTunables } from '../../core/tunables/define';
@@ -92,6 +93,16 @@ export const venueTunables = defineTunables({
     unit: 'multiplier',
     category: BOX_OFFICE_CATEGORY,
     description: 'Room left for a good night when sizing a venue',
+    docRef: PICK_DOC,
+  },
+  'boxOffice.rivalVenueLeadDays': {
+    kind: 'integer',
+    default: 14,
+    min: 0,
+    max: 90,
+    unit: 'days',
+    category: BOX_OFFICE_CATEGORY,
+    description: 'How far ahead rival shows are given a venue',
     docRef: PICK_DOC,
   },
 });

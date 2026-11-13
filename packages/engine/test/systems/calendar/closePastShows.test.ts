@@ -65,8 +65,16 @@ describe('calendar.closePastShows', () => {
     const engine = engineOver(built);
     const before = engine.exportState();
     const after = await advance(engine, 1);
+    // Tomorrow's show gets its venue the day before (EVT6-03's boxOffice.assignVenues); that is
+    // not the close-past-shows rule, so the venue fields are left out of the comparison.
+    const withoutVenue = (state: typeof before, id: (typeof built.shows)['completed']) => ({
+      ...showIn(state, id),
+      venueId: null,
+      genericVenue: null,
+      regionId: null,
+    });
     for (const id of Object.values(built.shows)) {
-      expect(showIn(after, id)).toEqual(showIn(before, id));
+      expect(withoutVenue(after, id)).toEqual(withoutVenue(before, id));
     }
     expect(showIn(after, built.shows.completed).status).toBe('completed');
     expect(showIn(after, built.shows.cancelled).cancellation).toEqual({

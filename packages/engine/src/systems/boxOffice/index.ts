@@ -4,10 +4,10 @@
  *
  * EVT6-01 lays the ground: the tunables, the random streams, the crowd forecast formula
  * (`computeExpectedAttendance` with its recent-form, big-show fatigue and hype lines) and
- * `forecastAttendance`, which gathers its inputs from the world. The bundle has no phases,
- * subscriptions, queries or commands yet; later tickets add venue picks, the show-day crowd roll and
- * the settlement. EVT6-02 adds generic local venues, `showVenueOf`, `venueAvailability`, `venueFit`
- * and the venue pick (`pickVenue`, `pickVenueFor`, `applyVenueChoice`). Design:
+ * `forecastAttendance`, which gathers its inputs from the world. EVT6-02 adds generic local venues, `showVenueOf`, `venueAvailability`, `venueFit`
+ * and the venue pick (`pickVenue`, `pickVenueFor`, `applyVenueChoice`). EVT6-03 adds the venue
+ * commands, the automatic picks (a daily phase and a before-a-show-runs hook) and the forecast
+ * and venue queries. Design:
  * docs/design/box-office.md.
  */
 
@@ -16,6 +16,9 @@
 import './events';
 import './streams';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
+import { boxOfficeCommands } from './commands';
+import { boxOfficePhases } from './phases';
+import { boxOfficeQueries } from './queries';
 
 export { BIG_SHOW_IMPORTANCES, bigShowsBefore, isBigShow, type BigShowsBefore } from './bigShows';
 export {
@@ -69,10 +72,10 @@ export {
 
 export const boxOfficeSystem: SystemBundle = defineSystem({
   id: 'boxOffice',
-  phases: [],
+  phases: boxOfficePhases,
   subscriptions: [],
-  queries: [],
-  commands: [],
+  queries: boxOfficeQueries,
+  commands: boxOfficeCommands,
 });
 
 // Venues (EVT6-02): generic local venues, where a show is held and the venue pick.
@@ -112,3 +115,38 @@ export {
 export { VENUE_PICK_TRACE_KIND, venuePickTraceRef } from './traceKinds';
 export { VENUE_FITS, venueFit, venueFitLabel, type VenueFit } from './venueFit';
 export { venueTunables } from './venueTunables';
+
+// Venue commands, automatic picks and the forecast and venue queries (EVT6-03).
+export {
+  VENUE_OPTION_GROUPS,
+  VENUE_SCOPES,
+  VenueChoiceSchema,
+  type SetVenueResult,
+  type ShowForecast,
+  type ShowVenueOptions,
+  type VenueChoice,
+  type VenueOption,
+  type VenueOptionGroup,
+  type VenueScope,
+  type VenueSummary,
+} from './api';
+export {
+  SHOW_NOT_EDITABLE_MESSAGE,
+  VENUE_COMMAND_REASON_CODES,
+  autoVenueCommand,
+  setVenueCommand,
+  type VenueCommandReasonCode,
+} from './commands';
+export {
+  ASSIGN_VENUES_PHASE_ID,
+  PICK_ON_SHOW_NIGHT_HOOK_ID,
+  assignVenuesPhase,
+  pickOnShowNightHook,
+} from './phases';
+export {
+  NOT_YOUR_SHOW_FORECAST_MESSAGE,
+  forecastQuery,
+  showVenueQuery,
+  venuesQuery,
+} from './queries';
+export { autoPickVenue, choiceOfKey, optionKeyOf } from './venueChoice';
