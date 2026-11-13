@@ -227,7 +227,7 @@ describe('titleChange', () => {
     );
   });
 
-  function consideredOf(result: TitleChangeResult): string[] {
+  function consideredOf(result: TitleChangeResult): (string | boolean)[] {
     return result.plan.trace.kind === 'decision'
       ? result.plan.trace.considered.map((entry) => entry.option)
       : [];
