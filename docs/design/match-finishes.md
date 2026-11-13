@@ -273,8 +273,7 @@ person id order.
   whose lowest competitor id sorts first.
 
 It never produces a draw, and a side with nobody competing is never passed in.
-The decision is labelled "Winner decided automatically", or "Random winners
-mode, winner decided on the night" in Random winners mode, and the randomness
+The decision is labelled "Winner decided automatically", and the randomness
 (a tunable read) is its first child. When the winner's score (before the roll)
 is below the best score, the decision notes the upset in words: "Upset: Side 2
 had a lower score than Side 1" (`upsetNote`).
@@ -286,9 +285,15 @@ drew" on the same `match.auto-winner` stream, so each side has an equal chance.
 The highest draw wins ("Highest draw wins"), with the same tie-break. The
 decision is labelled "Random: every side had an equal chance".
 
-The randomness is `match.autoWinner.randomness` (5 by default; 0 makes the
-auto-winner fully deterministic) or, in Random winners mode,
-`match.randomWinners.randomness` (60, at least 1). The rolls draw on the
+**Random winners mode uses the coin flip too** (MTCH2-08): once Auto's own
+randomness grew (MTCH2-09), the game-wide setting's larger randomness was
+barely more random than Auto, so the setting now gives every side a true equal
+chance through the same `coinFlip` path. Its decision is labelled "Random
+winners mode, winner decided on the night", with "Random: every side had an
+equal chance" as a note. `match.randomWinners.randomness` is no longer read.
+
+The randomness is `match.autoWinner.randomness` (0 makes the auto-winner fully
+deterministic). The rolls draw on the
 `match.auto-winner` stream (`MATCH_AUTO_WINNER_STREAM`); stream names are
 lowercase, so it is not `match.autoWinner`.
 
@@ -379,8 +384,9 @@ stored in `WorldMeta.settings.extra`, so a save from before it reads false.
 The wizard's Options step shows it from the registry with no web change.
 
 With it on, you still book every match on your shows, but not who wins: each
-result is decided on the night through the auto-winner with the larger
-`match.randomWinners.randomness`, and the trace starts "Random winners mode".
+result is decided on the night by a coin flip (the auto-winner's `coinFlip`
+path: every side has an equal chance), and the trace starts "Random winners
+mode".
 The rule is strict: a planned winner, Draw, finish or method on your shows is
 refused (`randomWinners`), not silently ignored, so the booking screen can say
 why.
@@ -435,8 +441,7 @@ null), the winners' names, the "Match result" decision as `resultTrace`, and
 
 `randomWinnersMode` is true when the winner is Auto and Random winners applies
 to the viewer's first promotion (`randomWinnersActive` with no brand). Then
-the auto-winner uses `match.randomWinners.randomness` and the winner decision
-is labelled "Random winners mode, winner decided on the night". The lab is a
+the auto-winner is a coin flip and the winner decision is labelled "Random winners mode, winner decided on the night". The lab is a
 sandbox, so a booked side or Draw is still honoured in a Random winners game
 (standard mode); only the booking screen refuses it.
 

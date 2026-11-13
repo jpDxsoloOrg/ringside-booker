@@ -11,9 +11,9 @@
  *    `finishOutcomeMismatch`.
  * 3. In Random winners mode a planned side, Draw, finish or method is refused (`randomWinners`).
  * 4. For a win, the planned side (`unknownSide` when the match has no such side, or nobody competes
- *    on it), else `autoWinner` with `match.autoWinner.randomness` (standard) or
- *    `match.randomWinners.randomness` (Random winners), or a coin flip (`coinFlip`, a match booked
- *    as Random: no scores, no randomness tunable).
+ *    on it), else `autoWinner` with `match.autoWinner.randomness` (standard), or a coin flip
+ *    (`coinFlip`, a match booked as Random, and `randomWinners`, the game-wide setting: no scores,
+ *    no randomness tunable).
  * 5. The finish: the planned one, else `autoFinish` over the allowed finishes of that outcome kind
  *    (and, with a planned method, only those that list it), with the winner's alignment.
  *    `noFinishAvailable` when there are none.
@@ -267,10 +267,9 @@ const COIN_FLIP_NO_RANDOMNESS = traced(0, {
   value: null,
 });
 
-/** The unpredictability tunable for the auto-winner's mode. */
-function randomnessOf(mode: AutoWinnerMode, deps: ResolveMatchOutcomeDeps): Traced<number> {
-  const randomnessKey =
-    mode === 'randomWinners' ? 'match.randomWinners.randomness' : 'match.autoWinner.randomness';
+/** The auto-winner's unpredictability tunable. */
+function randomnessOf(deps: ResolveMatchOutcomeDeps): Traced<number> {
+  const randomnessKey = 'match.autoWinner.randomness';
   return traced(
     deps.tunables.get(randomnessKey),
     tunableNode(deps.tunables, randomnessKey, 'Unpredictability'),
@@ -302,8 +301,9 @@ function decideWinner(
       'sides',
     );
   }
-  const coinFlip = input.mode === 'coinFlip';
-  const randomness = coinFlip ? COIN_FLIP_NO_RANDOMNESS : randomnessOf(input.mode, deps);
+  // Random winners is a coin flip too (MTCH2-08): no scores, no randomness tunable.
+  const coinFlip = input.mode === 'coinFlip' || input.mode === 'randomWinners';
+  const randomness = coinFlip ? COIN_FLIP_NO_RANDOMNESS : randomnessOf(deps);
   const winner = autoWinner(
     {
       sides: contenders.map((side) => ({

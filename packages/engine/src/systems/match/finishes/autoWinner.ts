@@ -6,11 +6,10 @@
  * goes to the side whose lowest person id sorts first. It never produces a draw.
  *
  * In Random winners mode the decision is labelled "Random winners mode, winner decided on the
- * night", so the Why? panel's first line says so; the caller passes the larger
- * `match.randomWinners.randomness`.
+ * night", so the Why? panel's first line says so.
  *
- * In `coinFlip` mode (MTCH2-08, a match booked as Random) the scores and the randomness are
- * ignored: every side scores 0 and draws one roll between 0 and 1, so each has an equal chance.
+ * In `coinFlip` mode (MTCH2-08, a match booked as Random) and in Random winners mode (the
+ * game-wide setting, a true equal chance since MTCH2-08) the scores and the randomness are ignored: every side scores 0 and draws one roll between 0 and 1, so each has an equal chance.
  * The highest draw wins, with the same tie-break.
  *
  * When the side with the highest score loses to the roll, the decision notes the upset in words.
@@ -76,14 +75,11 @@ export function autoWinner(
   if (first === undefined) {
     throw new InvalidArgumentError('autoWinner', 'sides', 0, 'at least one side');
   }
-  if (inputs.mode === 'coinFlip') {
-    return coinFlipWinner(inputs.sides, first, deps);
+  if (inputs.mode === 'coinFlip' || inputs.mode === 'randomWinners') {
+    return coinFlipWinner(inputs.sides, first, inputs.mode, deps);
   }
   const randomness = inputs.randomness.value;
-  const decision = startDecision<string>(
-    inputs.mode === 'randomWinners' ? RANDOM_WINNERS_LABEL : AUTO_WINNER_LABEL,
-    { docRef: AUTO_WINNER_DOC_REF },
-  );
+  const decision = startDecision<string>(AUTO_WINNER_LABEL, { docRef: AUTO_WINNER_DOC_REF });
   if (randomness <= 0) {
     decision.note(NO_UNPREDICTABILITY_NOTE);
   }
@@ -165,13 +161,23 @@ export function upsetNote(
     : `Upset: ${winner.label} had a lower score than ${favourite.label}`;
 }
 
-/** Every side draws once between 0 and 1; the highest draw wins, ties to the lowest person id. */
+/**
+ * Every side draws once between 0 and 1; the highest draw wins, ties to the lowest person id. Random
+ * winners mode is the same coin flip, labelled as that mode with the equal-chance line as a note.
+ */
 function coinFlipWinner(
   sides: readonly AutoWinnerSideScore[],
   first: AutoWinnerSideScore,
+  mode: 'coinFlip' | 'randomWinners',
   deps: { readonly rng: RngStream },
 ): Traced<number> {
-  const decision = startDecision<string>(COIN_FLIP_LABEL, { docRef: AUTO_WINNER_DOC_REF });
+  const decision = startDecision<string>(
+    mode === 'randomWinners' ? RANDOM_WINNERS_LABEL : COIN_FLIP_LABEL,
+    { docRef: AUTO_WINNER_DOC_REF },
+  );
+  if (mode === 'randomWinners') {
+    decision.note(COIN_FLIP_LABEL);
+  }
   let best = first;
   let bestDraw = Number.NEGATIVE_INFINITY;
   let tied = false;

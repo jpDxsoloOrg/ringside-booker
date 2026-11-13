@@ -20,6 +20,7 @@ import {
   AUTO_WINNER_LABEL,
   COIN_FLIP_LABEL,
   MATCH_AUTO_WINNER_STREAM,
+  RANDOM_WINNERS_LABEL,
   RANDOM_WINNERS_SET_ASIDE_NOTE,
   autoWinner,
   coinFlipDrawLabel,
@@ -366,7 +367,9 @@ describe('show night with Auto and Random', () => {
     expect(segmentAfter(built, segmentId).outcome?.kind).toBe('win');
     const texts = textsIn(resultTrace(night, segmentId));
     expect(texts).toContain(RANDOM_WINNERS_SET_ASIDE_NOTE);
-    expect(texts).not.toContain(COIN_FLIP_LABEL);
+    // The game-wide setting is a true coin flip as well, under its own label.
+    expect(texts).toContain(RANDOM_WINNERS_LABEL);
+    expect(texts).toContain(COIN_FLIP_LABEL);
   });
 
   it('changes a title only on a finish that allows it', () => {
@@ -394,10 +397,12 @@ describe('the auto-winner modes over many runs', () => {
   const randomness = createEngineTunables().get('match.autoWinner.randomness');
 
   it('gives every side an equal chance on a coin flip, whatever the scores', () => {
-    const shares = winShares([side(0, 10, personId(1)), side(1, 90, personId(2))], 'coinFlip', 0);
-    for (const share of shares) {
-      expect(share).toBeGreaterThan(0.45);
-      expect(share).toBeLessThan(0.55);
+    for (const mode of ['coinFlip', 'randomWinners'] as const) {
+      const shares = winShares([side(0, 10, personId(1)), side(1, 90, personId(2))], mode, 60);
+      for (const share of shares) {
+        expect(share).toBeGreaterThan(0.45);
+        expect(share).toBeLessThan(0.55);
+      }
     }
     const three = winShares(
       [side(0, 5, personId(1)), side(1, 50, personId(2)), side(2, 95, personId(3))],
