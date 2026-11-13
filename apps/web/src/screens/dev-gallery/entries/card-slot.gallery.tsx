@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { IconButton } from '@/components/Button';
 import { CardSlot, CardSlotDragHandle } from '@/components/CardSlot';
 import { Stack } from '@/components/layout';
+import { RivalResultLine } from '@/screens/promotions/profile/shows/RivalResultLine';
 import type { GalleryEntry } from '../galleryEntry';
 import { BROADCAST_SIDES } from '../broadcastFixtures';
+import { galleryResultTraceOf, galleryRetainedResult } from '../fixtures/rivalResults';
 import styles from './entries.module.css';
 import broadcast from './broadcast.module.css';
 
@@ -161,6 +163,36 @@ function CardSlotDemo() {
             addPromoLabel="Add talking segment"
           />
         </li>
+        <li>
+          <CardSlot
+            slotRole="main-event"
+            slotNumber={10}
+            roleLabel="Rival result"
+            headingLevel={3}
+            chips={[
+              { id: 'type', kind: 'match-type', label: 'Singles' },
+              { id: 'title', kind: 'title', label: 'Coastal Heavyweight Title' },
+            ]}
+            sides={galleryRetainedResult.sides.map((side, index) => ({
+              name: side.name,
+              ...(index === 0 ? { label: 'Champions' } : {}),
+              members: side.people.map((person) => ({
+                kind: 'person' as const,
+                id: person.personId,
+                name: person.name,
+              })),
+            }))}
+            winner="a"
+            result={
+              <RivalResultLine
+                view={galleryRetainedResult.view}
+                sides={galleryRetainedResult.sides}
+                matchLabel={galleryRetainedResult.matchLabel}
+                traceOf={galleryResultTraceOf}
+              />
+            }
+          />
+        </li>
       </ol>
     </Stack>
   );
@@ -171,6 +203,6 @@ export const galleryEntry: GalleryEntry = {
   title: 'CardSlot',
   group: 'Broadcast',
   notes:
-    'A card: empty pre-show, a booked opener with a winner, a tag title match, an empty slot, a promo and the main event, then a triple threat with a warning, a four-way with two problems, a draw and an open slot with "Add talking segment". On a phone the sides stack.',
+    'A card: empty pre-show, a booked opener with a winner, a tag title match, an empty slot, a promo and the main event, then a triple threat with a warning, a four-way with two problems, a draw, an open slot with "Add talking segment" and a rival result (the optional `result` area: a rival booker’s result line with its Why? and a Retained badge, inside the card under the matchup). On a phone the sides stack.',
   render: () => <CardSlotDemo />,
 };

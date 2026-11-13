@@ -32,6 +32,7 @@ function segment(overrides: Partial<ShowCardSegment> = {}): ShowCardSegment {
     storylines: [{ storylineId: parseId('storyline', 'sty_0000000001'), name: 'Ace and Rookie' }],
     outcome: null,
     reasonTraceRef: null,
+    decision: null,
     ...overrides,
   };
 }
