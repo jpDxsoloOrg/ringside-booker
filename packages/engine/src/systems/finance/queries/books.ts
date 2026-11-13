@@ -36,7 +36,7 @@ import { zId, zYearMonth } from '../../../model/primitives';
 import { canSeeBooks } from '../access';
 import { LEDGER_CATEGORY_LABELS, ledgerCategoryKind, type LedgerCategoryKind } from '../categories';
 import {
-  monthBreakdown,
+  monthBreakdownOf,
   monthRows,
   monthTotalsOf,
   type MonthBreakdown,
@@ -44,6 +44,8 @@ import {
 } from '../months';
 import { payrollFiguresOf } from '../phases';
 import { currentCashTraceRef } from '../../../core/api/builtins';
+import type { DeepReadonly } from '../../../model/world';
+import { detailKeptNote } from '../../history/note';
 
 export type { MonthTotals } from '../months';
 
@@ -114,6 +116,23 @@ export interface FinanceLedgerPage {
   rows: FinanceLedgerRow[];
   /** Pass as `before` for the next page; null when this page is the last. */
   nextCursor: LedgerEntryId | null;
+  /**
+   * Set once older rows have been rolled up into monthly totals (POL4-08): rows dated on or before
+   * `through` are no longer listed one by one, only in the month totals. `note` says so in plain
+   * words. Null while every row is still kept.
+   */
+  rolledUp: { through: GameDate; note: string } | null;
+}
+
+/** The last day whose rows were rolled up for the promotion, or null when none were. */
+function rolledUpThrough(promotion: DeepReadonly<Promotion>): GameDate | null {
+  let through: GameDate | null = null;
+  for (const month of promotion.ledgerMonths) {
+    if (through === null || compareDates(month.through, through) > 0) {
+      through = month.through;
+    }
+  }
+  return through;
 }
 
 export interface FinanceMonthlyArgs {
@@ -172,7 +191,7 @@ function recentMonths(ctx: QueryContext, promotion: Promotion, count: number): F
   let closingCash: number = promotion.cash;
   for (let back = 0; back < count; back += 1) {
     const month = addYearMonths(current, -back);
-    const breakdown = monthBreakdown(month, monthRows(ctx.read, promotion.id, month));
+    const breakdown = monthBreakdownOf(ctx.read, promotion.id, month);
     months.push({ ...breakdown, closingCash });
     closingCash -= breakdown.net;
   }
@@ -233,6 +252,16 @@ export const financeMonthlyQuery: QueryDefinition<'finance.monthly'> = defineQue
     },
   },
 );
+
+function rolledUpOf(ctx: QueryContext, promotion: Promotion): FinanceLedgerPage['rolledUp'] {
+  const through = rolledUpThrough(promotion);
+  return through === null
+    ? null
+    : {
+        through,
+        note: `${detailKeptNote(ctx.tunables)} Older money is shown as monthly totals.`,
+      };
+}
 
 /** Newest first: later date first, then the larger id. */
 function newestFirst(left: LedgerEntry, right: LedgerEntry): number {
@@ -298,6 +327,7 @@ export const financeLedgerQuery: QueryDefinition<'finance.ledger'> = defineQuery
         traceRef: storedRef(ctx, row.traceRef === null ? null : { ...row.traceRef }),
       })),
       nextCursor: matching.length > limit && last !== undefined ? last.id : null,
+      rolledUp: rolledUpOf(ctx, promotion),
     };
   },
 });

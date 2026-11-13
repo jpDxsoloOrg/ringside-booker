@@ -1,10 +1,12 @@
 /**
  * The money ledger: one row per movement of a promotion's cash.
  *
- * The ledger is append-only. A mistake is corrected by a new entry, never by editing or deleting an
- * old one, so the history always reconciles. Amounts are signed by category: income categories are
+ * The ledger is append-only. A mistake is corrected by a new entry, never by editing an old one,
+ * so the history always reconciles. Amounts are signed by category: income categories are
  * positive and cost categories negative, so the sum of a promotion's entries over a period is its
- * cash change over that period. Zero-amount entries are refused; they would only add noise.
+ * cash change over that period. Zero-amount entries are refused; they would only add noise. Rows
+ * older than `history.keepDetailDays` are rolled up into the promotion's monthly totals
+ * (`ledgerMonths`) and then deleted (POL4-08), so rows plus roll-ups still reconcile with cash.
  *
  * Only `postMoney` (`systems/finance/post.ts`) writes rows during play, and it moves the
  * promotion's cash in the same transaction, so the entries always sum to the change in cash. Each
@@ -26,7 +28,7 @@
 import { z } from 'zod';
 import type { Cents } from '../../core/money';
 import { TraceRefSchema } from '../../core/trace/store';
-import { zCents, zGameDate, zId } from '../primitives';
+import { zCents, zGameDate, zId, zPositiveInt, zYearMonth } from '../primitives';
 import { defineTable } from '../table-def';
 
 export const LEDGER_INCOME_CATEGORIES = [
@@ -142,6 +144,24 @@ export const LedgerEntrySchema = z
 
 export type LedgerEntry = z.infer<typeof LedgerEntrySchema>;
 
+/**
+ * One month of a promotion's ledger rolled up into totals (POL4-08): the rows dated before the
+ * history cutoff are added here by category and deleted, so charts, month totals and the year's
+ * profit and loss still add up. A month may be part rolled up and part still in rows; readers add
+ * the two (`monthBreakdownOf` in `systems/finance/months.ts`).
+ */
+export const LedgerMonthSchema = z.strictObject({
+  month: zYearMonth,
+  /** The rolled-up amount per category; a category with nothing rolled up is left out. */
+  byCategory: z.partialRecord(LedgerCategorySchema, zCents),
+  /** How many rows went into it. */
+  rows: zPositiveInt,
+  /** The last day whose rows are in it. */
+  through: zGameDate,
+});
+
+export type LedgerMonth = z.infer<typeof LedgerMonthSchema>;
+
 /** The `byPromotionMonth` index key for a promotion and a `YYYY-MM` month. */
 export function ledgerMonthKey(promotionId: string, yearMonth: string): string {
   return `${promotionId}|${yearMonth}`;
@@ -165,5 +185,7 @@ export const ledgerEntriesTable = defineTable({
       key: (entry) => ledgerMonthKey(entry.promotionId, entry.date.slice(0, 7)),
     },
   ],
-  appendOnly: true,
+  // Rows are never edited; the history roll-up (POL4-08) deletes rows past the detail window once
+  // their amounts are in the promotion's `ledgerMonths`.
+  appendOnly: 'pruneOnly',
 });

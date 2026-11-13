@@ -229,9 +229,15 @@ describe('finance.ledger', () => {
     const all = data(
       engine.query('finance.ledger', { promotionId: human, limit: 500 }, HUMAN_VIEWER),
     );
-    // Three older rows, ten Wages rows and February's medical is not due yet.
-    expect(all.rows).toHaveLength(13);
+    // The 10 January row, ten Wages rows, and February's medical is not due yet. December's two
+    // rows are older than the history window (POL4-08): Monday 26 January rolled them into
+    // December's totals, which `finance.monthly` still reports.
+    expect(all.rows).toHaveLength(11);
     expect(all.nextCursor).toBeNull();
+    expect(all.rolledUp).toEqual({
+      through: DECEMBER_SHOW,
+      note: 'Details are kept for the last 4 weeks. Older money is shown as monthly totals.',
+    });
     const dates = all.rows.map((row) => row.date);
     expect([...dates].sort().reverse()).toEqual(dates);
     expect(all.rows[0]).toMatchObject({
@@ -379,14 +385,22 @@ describe('sim.status cash Why?', () => {
     expect(yearMonthOf(addDays(status.date, -1))).toBe('2026-03');
     expect(labels.slice(0, 3)).toEqual(['Opening balance', 'January 2026', 'February 2026']);
     expect(labels).toEqual(expect.arrayContaining(['Wages', 'Medical']));
-    // The opening balance is the cash less every row since the game's first month.
+    // The opening balance is the cash less every row since the game's first month, counting the
+    // rows the history roll-up (POL4-08) already turned into monthly totals.
     const promotion = engine.exportState().world.tables.promotions.find((row) => row.id === human);
-    const sinceStart = engine
-      .exportState()
-      .world.tables.ledgerEntries.filter(
-        (row) => row.promotionId === human && row.date >= '2026-01',
-      )
-      .reduce((sum, row) => sum + row.amount, 0);
+    const rolledUp = (promotion?.ledgerMonths ?? [])
+      .filter((month) => month.month >= '2026-01')
+      .flatMap((month) => Object.values(month.byCategory))
+      .reduce((sum, amount) => sum + amount, 0);
+    expect(rolledUp).not.toBe(0);
+    const sinceStart =
+      rolledUp +
+      engine
+        .exportState()
+        .world.tables.ledgerEntries.filter(
+          (row) => row.promotionId === human && row.date >= '2026-01',
+        )
+        .reduce((sum, row) => sum + row.amount, 0);
     expect(stored.trace.children?.[0]?.value).toBe((promotion?.cash ?? 0) - sinceStart);
   });
 });

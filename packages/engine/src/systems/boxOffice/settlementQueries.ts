@@ -126,11 +126,19 @@ export function seesShowMoney(
   );
 }
 
-/** The show's box office ledger rows added up by category. A line that posted nothing is 0. */
+/**
+ * The show's box office ledger rows added up by category. A line that posted nothing is 0. Once
+ * the show's history is rolled up (POL4-08) its rows are gone and the totals its summary kept are
+ * returned instead.
+ */
 export function boxOfficeRowsOf(
   read: GameWorldView,
-  show: DeepReadonly<Pick<EventInstance, 'id' | 'promotionId' | 'date'>>,
+  show: DeepReadonly<Pick<EventInstance, 'id' | 'promotionId' | 'date' | 'result'>>,
 ): Record<BoxOfficeCategory, number> {
+  const kept = show.result?.history?.boxOffice;
+  if (kept !== undefined) {
+    return { tickets: kept.tickets, venueRent: kept.venueRent, liveMerch: kept.liveMerch };
+  }
   const totals: Record<BoxOfficeCategory, number> = { tickets: 0, venueRent: 0, liveMerch: 0 };
   const rows = read.tables.ledgerEntries.lookup(
     'byPromotionMonth',

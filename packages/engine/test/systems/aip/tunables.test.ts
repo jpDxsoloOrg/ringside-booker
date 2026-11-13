@@ -13,19 +13,17 @@ describe('the aip system', () => {
     expect(ids.indexOf('aip')).toBeGreaterThan(ids.indexOf('workers'));
   });
 
-  it('lists the decision log retention under the Rival desk category', () => {
+  it('keeps the decision log for the history window (POL4-08), listed under History', () => {
     const engine = createEngine({
       state: initialEngineState(worldBuilder().build().world),
       systems: defaultSystems,
     });
-    const list = engine.query('tunables.list', { category: 'Rival desk' }, OMNISCIENT);
+    const list = engine.query('tunables.list', { category: 'History' }, OMNISCIENT);
     if (!list.ok) {
       expect.fail(JSON.stringify(list.reasons));
     }
-    expect(list.data.map((row) => [row.key, row.default, row.docRef])).toContainEqual([
-      'aip.decisionLogRetentionDays',
-      365,
-      'rival-desk.md#decision-log',
+    expect(list.data.map((row) => [row.key, row.default, row.docRef])).toEqual([
+      ['history.keepDetailDays', 28, 'save-format.md#history-retention'],
     ]);
   });
 });

@@ -12,8 +12,10 @@ import {
   ledgerMonthKey,
   type LedgerCategory,
   type LedgerEntry,
+  type LedgerMonth,
 } from '../../model/entities/ledger-entry';
 import type { GameWorldView } from '../../model/tables';
+import type { DeepReadonly } from '../../model/world';
 
 /** A month's money in and out. `costs` is negative (or 0); `net` is `income + costs`. */
 export interface MonthTotals {
@@ -63,11 +65,59 @@ export function monthRows(
   return read.tables.ledgerEntries.lookup('byPromotionMonth', ledgerMonthKey(promotionId, month));
 }
 
-/** The totals of `rows`, which all belong to `month`. */
-export function monthBreakdown(month: YearMonth, rows: readonly LedgerEntry[]): MonthBreakdown {
+/**
+ * The promotion's rolled-up totals for `month` (POL4-08), or undefined when none of the month's
+ * rows has been rolled up yet.
+ */
+export function rolledUpMonth(
+  read: GameWorldView,
+  promotionId: PromotionId,
+  month: YearMonth,
+): DeepReadonly<LedgerMonth> | undefined {
+  return read.tables.promotions.get(promotionId)?.ledgerMonths.find((row) => row.month === month);
+}
+
+/**
+ * A promotion's whole month: the rows still kept plus whatever of the month was rolled up into
+ * totals (POL4-08). Every month total, chart and cash Why? reads this, so they add up the same
+ * after the roll-up as before it.
+ */
+export function monthBreakdownOf(
+  read: GameWorldView,
+  promotionId: PromotionId,
+  month: YearMonth,
+): MonthBreakdown {
+  return monthBreakdown(
+    month,
+    monthRows(read, promotionId, month),
+    rolledUpMonth(read, promotionId, month),
+  );
+}
+
+/**
+ * The totals of `rows`, which all belong to `month`, plus the month's rolled-up totals when given.
+ * A rolled-up amount counts as income or cost by its sign, exactly as its rows did.
+ */
+export function monthBreakdown(
+  month: YearMonth,
+  rows: readonly LedgerEntry[],
+  rolledUp?: DeepReadonly<LedgerMonth>,
+): MonthBreakdown {
   const sums = new Map<LedgerCategory, number>();
   let income = 0;
   let costs = 0;
+  for (const category of LEDGER_CATEGORIES) {
+    const amount = rolledUp?.byCategory[category];
+    if (amount === undefined) {
+      continue;
+    }
+    sums.set(category, amount);
+    if (amount > 0) {
+      income += amount;
+    } else {
+      costs += amount;
+    }
+  }
   for (const row of rows) {
     sums.set(row.category, (sums.get(row.category) ?? 0) + row.amount);
     if (row.amount > 0) {

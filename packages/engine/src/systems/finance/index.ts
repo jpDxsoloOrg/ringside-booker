@@ -78,7 +78,13 @@ export {
   PAYROLL_TRACE_LINES_MAX,
   type MonthlyPayrollInputs,
 } from './formulas/monthlyPayroll';
-export { firstOfMonthLabel, type MonthBreakdown, type MonthTotals } from './months';
+export {
+  firstOfMonthLabel,
+  monthBreakdownOf,
+  rolledUpMonth,
+  type MonthBreakdown,
+  type MonthTotals,
+} from './months';
 export { medicalHeadcount, payrollLinesOf, type PayrollLine, type PayrollReason } from './payroll';
 export {
   MONTHLY_MEDICAL_PHASE_ID,

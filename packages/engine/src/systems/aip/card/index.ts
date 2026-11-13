@@ -79,7 +79,12 @@ export {
   titleUrgency,
   type TitleUrgencyInputs,
 } from './formulas/titleUrgency';
-export { lastDefenceOf, recentChallengersOf, type LastDefence } from './titleHistory';
+export {
+  lastDefenceOf,
+  recentChallengersOf,
+  recentTitleMatchIds,
+  type LastDefence,
+} from './titleHistory';
 export {
   contenderText,
   NO_FRESH_CHALLENGER,

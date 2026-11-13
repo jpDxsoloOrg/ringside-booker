@@ -99,6 +99,7 @@ function sampleShow(): ShowResultsView {
       viewers: null,
     },
     segments,
+    history: null,
   };
 }
 

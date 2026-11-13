@@ -343,6 +343,7 @@ function toPromotion(
     color: record.color,
     // Who runs a promotion is a new-game choice (WLD-10); every promotion starts computer-run.
     controller: { kind: 'computer' },
+    ledgerMonths: [],
   };
 }
 

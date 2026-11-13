@@ -12,7 +12,7 @@ import { z } from 'zod';
 import { compareDates, type GameDate } from '../../core/date';
 import type { EventDefinitionId } from '../../core/ids';
 import { defineTable } from '../table-def';
-import { zGameDate, zId, zNonNegativeCents, zNonNegativeInt, zStat } from '../primitives';
+import { zCents, zGameDate, zId, zNonNegativeCents, zNonNegativeInt, zStat } from '../primitives';
 import { isPresentIff, zName } from './entity-refinements';
 import { ShowFormatSchema, zEventImportance } from './event-definition';
 import { GenericVenueTierSchema, VENUE_CAPACITY_MAX } from './venue';
@@ -31,6 +31,39 @@ export type CancellationReason = (typeof CANCELLATION_REASONS)[number];
 export const EventCancellationSchema = z.strictObject({
   reason: z.enum(CANCELLATION_REASONS),
   on: zGameDate,
+});
+
+/**
+ * The main event of a show whose card has been rolled up (POL4-08), in the words the show's
+ * summary line used: the match or angle type's name, each side's label and the winning side's
+ * label (null for an angle, a draw or a no contest).
+ */
+export const ShowHistoryMainEventSchema = z.strictObject({
+  typeName: z.string().min(1).max(120),
+  sides: z.array(z.string().min(1).max(400)).max(30),
+  winnerSide: z.string().min(1).max(400).nullable(),
+});
+
+/**
+ * What a completed show keeps once its card detail is older than `history.keepDetailDays`
+ * (POL4-08): the card's segments and participants (bar the matches the roll-up keeps for title
+ * history and recent form), its ledger rows and its popularity record are gone, and this summary
+ * stands in for them. Absent while the detail is kept, and on every show of a save made before
+ * POL4-08 until its first roll-up. See docs/design/save-format.md#history-retention.
+ */
+export const ShowHistorySchema = z.strictObject({
+  /** How many segments the card had. */
+  segments: zNonNegativeInt,
+  /** The main event slot's segment, or null when it was empty. */
+  mainEvent: ShowHistoryMainEventSchema.nullable(),
+  /** The show's box office ledger rows added up (tickets and merch in, venue rent out). */
+  boxOffice: z.strictObject({
+    tickets: zNonNegativeCents,
+    venueRent: zCents,
+    liveMerch: zNonNegativeCents,
+  }),
+  /** The promotion's worldwide popularity just before and after the show, when it was recorded. */
+  world: z.strictObject({ before: zStat, after: zStat }).nullable(),
 });
 
 /**
@@ -64,6 +97,11 @@ export const EventResultSchema = z.strictObject({
    * settles the show. The ledger holds what the company kept, so the shares are this less that.
    */
   merch: zNonNegativeCents.optional(),
+  /**
+   * The summary kept once the show's card detail is rolled up (POL4-08); absent while the detail
+   * is kept.
+   */
+  history: ShowHistorySchema.optional(),
 });
 
 /**
@@ -122,6 +160,8 @@ export const EventInstanceSchema = z
   });
 
 export type EventResult = z.infer<typeof EventResultSchema>;
+export type ShowHistory = z.infer<typeof ShowHistorySchema>;
+export type ShowHistoryMainEvent = z.infer<typeof ShowHistoryMainEventSchema>;
 export type GenericVenue = z.infer<typeof GenericVenueSchema>;
 export type EventCancellation = z.infer<typeof EventCancellationSchema>;
 export type EventInstance = z.infer<typeof EventInstanceSchema>;

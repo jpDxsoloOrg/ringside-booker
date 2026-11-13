@@ -262,6 +262,7 @@ function buildShow(plan: ShowPlan): BuiltShow {
         },
       },
       countries,
+      pruned: null,
     },
     traces,
   };

@@ -50,7 +50,7 @@ export const pruneCardDetailPhase: PhaseDefinition = definePhase({
   order: 43,
   cadence: { kind: 'daily' },
   run: (ctx) => {
-    const cutoff = cardDetailCutoff(ctx.date, ctx.tunables.get('aip.card.keepDetailDays'));
+    const cutoff = cardDetailCutoff(ctx.date, ctx.tunables.get('history.keepDetailDays'));
     const shows =
       dayOfMonth(ctx.date) === 1
         ? ctx.read.tables.eventInstances
