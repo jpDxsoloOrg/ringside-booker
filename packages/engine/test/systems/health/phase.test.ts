@@ -8,6 +8,7 @@ import {
   type Engine,
   type SystemBundle,
 } from '../../../src/core/api';
+import { parseContentKey } from '../../../src/core/content-key';
 import { addDays, addYears } from '../../../src/core/date';
 import type { PersonId } from '../../../src/core/ids';
 import { definePhase } from '../../../src/core/pipeline/phase';
@@ -463,7 +464,7 @@ describe('health.conditionRecovery phase', () => {
         condition: { legs: 40, arms: 80 },
         person: {
           injury: {
-            kindKey: 'injury.sprained-ankle',
+            kindKey: parseContentKey('injury.sprained-ankle'),
             bodyPart: 'legs',
             since: TEST_START_DATE,
             expectedReturn: addDays(TEST_START_DATE, 60),
