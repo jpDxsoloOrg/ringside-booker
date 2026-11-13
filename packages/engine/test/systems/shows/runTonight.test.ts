@@ -314,51 +314,66 @@ const oldPathSystem: SystemBundle = defineSystem({
   ],
 });
 
-describe('shows.runTonight determinism', () => {
-  it('leaves the same world and events as running the show inside the day', async () => {
-    const commandPath = validateWorld();
-    bookRunnable(commandPath);
-    const phasePath = validateWorld();
-    bookRunnable(phasePath);
-    // Nobody is tired going in, so the show sees the same world whether it runs before the day or
-    // inside it.
-    for (const built of [commandPath, phasePath]) {
-      expect([...built.world.tables.people.values()].every((person) => person.fatigue === 0)).toBe(
-        true,
-      );
+/** Everyone starts the show day this tired and this worn, so the day's morning has work to do. */
+function tireEveryone(built: ValidateWorld): void {
+  change(built, (tx) => {
+    for (const person of built.world.tables.people.values()) {
+      tx.update('people', person.id, {
+        fatigue: 30,
+        condition: { ...person.condition, torso: 60, legs: 55 },
+      });
     }
-
-    // The show tires its workers (MTCH4-04). Run by command, it runs before the day's housekeeping,
-    // so that day's fatigue recovery would see them tired; run inside the day it runs after it. The
-    // health system is left out on both paths so the comparison is about running the show only.
-    const withoutHealth = defaultSystems.filter((system) => system.id !== 'health');
-    const viaCommand = engineOver(commandPath, withoutHealth);
-    expect(run(viaCommand, commandPath.show).ok).toBe(true);
-    expect((await viaCommand.advanceDays({ maxDays: 1 })).daysAdvanced).toBe(1);
-
-    const viaPhase = engineOver(phasePath, [
-      ...withoutHealth.map((system) => (system.id === 'shows' ? { ...system, gates: [] } : system)),
-      oldPathSystem,
-    ]);
-    expect((await viaPhase.advanceDays({ maxDays: 1 })).daysAdvanced).toBe(1);
-
-    expect(statusOf(viaCommand, commandPath.show)).toBe('completed');
-    const commandState = viaCommand.exportState();
-    const phaseState = viaPhase.exportState();
-    expect(commandState.world).toEqual(phaseState.world);
-    expect(commandState.rng).toEqual(phaseState.rng);
-    // Traces match too, apart from their store-wide sequence number.
-    const withoutSeq = (state: typeof commandState) =>
-      state.traces.full
-        .map(({ ref, date, trace, value }) => ({
-          key: `${ref.kind}:${ref.id}`,
-          date,
-          trace,
-          value,
-        }))
-        .sort((left, right) => (left.key < right.key ? -1 : left.key > right.key ? 1 : 0));
-    expect(withoutSeq(commandState).length).toBeGreaterThan(0);
-    expect(withoutSeq(commandState)).toEqual(withoutSeq(phaseState));
-    expect(showEvents(viaCommand)).toEqual(showEvents(viaPhase));
   });
+}
+
+describe('shows.runTonight determinism', () => {
+  it.each([
+    { going: 'nobody tired', prepare: (_built: ValidateWorld) => undefined },
+    { going: 'everyone tired and worn', prepare: tireEveryone },
+  ])(
+    'leaves the same world and events as running the show inside the day ($going)',
+    async ({ prepare }) => {
+      const commandPath = validateWorld();
+      bookRunnable(commandPath);
+      prepare(commandPath);
+      const phasePath = validateWorld();
+      bookRunnable(phasePath);
+      prepare(phasePath);
+
+      // The show tires its workers (MTCH4-04). Run by command it runs before the day's phases, so
+      // the health system runs the day's morning first (WRK6-07: rest, and on this Monday body
+      // condition too) and the day's housekeeping skips it: the show sees the same rested workers
+      // on both paths, and they rest from it the next morning.
+      const viaCommand = engineOver(commandPath);
+      expect(run(viaCommand, commandPath.show).ok).toBe(true);
+      expect((await viaCommand.advanceDays({ maxDays: 1 })).daysAdvanced).toBe(1);
+
+      const viaPhase = engineOver(phasePath, [
+        ...defaultSystems.map((system) =>
+          system.id === 'shows' ? { ...system, gates: [] } : system,
+        ),
+        oldPathSystem,
+      ]);
+      expect((await viaPhase.advanceDays({ maxDays: 1 })).daysAdvanced).toBe(1);
+
+      expect(statusOf(viaCommand, commandPath.show)).toBe('completed');
+      const commandState = viaCommand.exportState();
+      const phaseState = viaPhase.exportState();
+      expect(commandState.world).toEqual(phaseState.world);
+      expect(commandState.rng).toEqual(phaseState.rng);
+      // Traces match too, apart from their store-wide sequence number.
+      const withoutSeq = (state: typeof commandState) =>
+        state.traces.full
+          .map(({ ref, date, trace, value }) => ({
+            key: `${ref.kind}:${ref.id}`,
+            date,
+            trace,
+            value,
+          }))
+          .sort((left, right) => (left.key < right.key ? -1 : left.key > right.key ? 1 : 0));
+      expect(withoutSeq(commandState).length).toBeGreaterThan(0);
+      expect(withoutSeq(commandState)).toEqual(withoutSeq(phaseState));
+      expect(showEvents(viaCommand)).toEqual(showEvents(viaPhase));
+    },
+  );
 });

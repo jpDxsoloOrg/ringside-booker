@@ -165,7 +165,8 @@ export const runTonightCommand = defineCommand('shows.runTonight', {
   },
   apply: (ctx, args) => {
     const show = ctx.read.tables.eventInstances.require(args.eventInstanceId);
-    runShowNow(ctx, show, true);
+    // Run the show comes before the day's phases (the gate stopped the day before it started).
+    runShowNow(ctx, show, true, { beforeTheDay: true });
     ctx.log(`Ran ${show.name} (${show.id}) from the show screen`);
     return { eventInstanceId: show.id };
   },
