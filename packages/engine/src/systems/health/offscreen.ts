@@ -117,7 +117,8 @@ export function rollOffscreenInjuries(ctx: PhaseContext): PersonId[] {
   for (const person of candidates) {
     const inputs = chanceInputsOf(person, employerRuleOf(ctx, rules, person.id));
     const traced = fast ? null : computeOffscreenInjuryChance(inputs, { tunables: ctx.tunables });
-    const probability = traced?.value ?? offscreenInjuryChanceValue(inputs, { tunables: ctx.tunables });
+    const probability =
+      traced?.value ?? offscreenInjuryChanceValue(inputs, { tunables: ctx.tunables });
     if (!chance(stream, probability)) {
       continue;
     }
@@ -142,7 +143,9 @@ export function rollOffscreenInjuries(ctx: PhaseContext): PersonId[] {
       return { injured: injure(scoped, person.id, { source: 'world', chanceTrace }), pending };
     });
     if (!result.ok) {
-      ctx.log(`health.offscreenInjuries: hurting ${person.id} failed and was undone: ${result.error.message}`);
+      ctx.log(
+        `health.offscreenInjuries: hurting ${person.id} failed and was undone: ${result.error.message}`,
+      );
       continue;
     }
     for (const deliver of result.value.pending) {

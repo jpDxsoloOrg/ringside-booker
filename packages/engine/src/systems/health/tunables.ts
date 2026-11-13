@@ -297,7 +297,8 @@ export const healthTunables = defineTunables({
     step: 0.05,
     unit: 'ratio',
     category: HEALTH_TUNABLE_CATEGORY,
-    description: 'How much more likely a fully tired wrestler is to get hurt off-screen (0.5 = 50% more)',
+    description:
+      'How much more likely a fully tired wrestler is to get hurt off-screen (0.5 = 50% more)',
     docRef: OFFSCREEN_DOC,
   },
   'health.offscreen.conditionWeight': {

@@ -35,7 +35,9 @@ export function employerControllersOf(
 
 /** True when a human runs one of the person's employers (or the brand they work for) on `date`. */
 export function worksForAHuman(read: GameWorldView, personId: PersonId, date: GameDate): boolean {
-  return employerControllersOf(read, personId, date).some((controller) => controller.kind === 'human');
+  return employerControllersOf(read, personId, date).some(
+    (controller) => controller.kind === 'human',
+  );
 }
 
 /** True when `controller` runs one of the person's employers (or their brand) on `date`. */

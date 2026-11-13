@@ -130,7 +130,13 @@ export function computeOffscreenInjuryChance(
   wear.multiply('Turned around', -1).add('Out of 100', SCALE);
   calc.multiply(
     partLabel,
-    scaledFactor(partLabel, wear.done(), 'health.offscreen.conditionWeight', 'Body weight', tunables),
+    scaledFactor(
+      partLabel,
+      wear.done(),
+      'health.offscreen.conditionWeight',
+      'Body weight',
+      tunables,
+    ),
   );
 
   const shortcut = inputs.computerShortcut;

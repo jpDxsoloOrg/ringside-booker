@@ -67,7 +67,10 @@ function mixedWorld(risky = false): MixedWorld {
         aPerson({ ...person, roles: ['referee'], style: 'nonWrestler' }, context.sequence),
       );
     })
-    .withInjury(6, { since: addDays(TEST_START_DATE, -3), expectedReturn: addDays(TEST_START_DATE, 60) })
+    .withInjury(6, {
+      since: addDays(TEST_START_DATE, -3),
+      expectedReturn: addDays(TEST_START_DATE, 60),
+    })
     .build();
   const people = ids.people;
   const freeAgent = people[3];
@@ -165,18 +168,27 @@ describe('health.offscreenInjuries', () => {
     await engine.advanceDays({ maxDays: 30 });
     const row = engine
       .exportState()
-      .world.tables.injuries.find((entry) => entry.personId === freeAgent && entry.source === 'world');
+      .world.tables.injuries.find(
+        (entry) => entry.personId === freeAgent && entry.source === 'world',
+      );
     if (row === undefined) {
       throw new Error('expected the free agent to be hurt within 30 days');
     }
     // Nobody the player employs: noticed on the day, and only a summary of the Why? is kept.
     expect(row.noticedOn).toBe(row.since);
-    const stored = engine.query('trace.get', { ref: injuryRecordChanceTraceRef(row.id) }, OMNISCIENT);
+    const stored = engine.query(
+      'trace.get',
+      { ref: injuryRecordChanceTraceRef(row.id) },
+      OMNISCIENT,
+    );
     if (!stored.ok || stored.data === null) {
       throw new Error('expected the chance to be stored');
     }
     expect(isFullTrace(stored.data)).toBe(false);
-    expect(stored.data).toMatchObject({ label: 'Off-screen injury chance today', summaryOnly: true });
+    expect(stored.data).toMatchObject({
+      label: 'Off-screen injury chance today',
+      summaryOnly: true,
+    });
   });
 
   it('hurts nobody with the rate at 0', async () => {

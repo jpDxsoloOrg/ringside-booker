@@ -1,11 +1,6 @@
 // The own-injury gate and the command that clears it. Design: docs/design/health.md#own-injury-gate
 import { describe, expect, it } from 'vitest';
-import {
-  createEngine,
-  defineSystem,
-  initialEngineState,
-  type Engine,
-} from '../../../src/core/api';
+import { createEngine, defineSystem, initialEngineState, type Engine } from '../../../src/core/api';
 import { simSystem } from '../../../src/core/api/builtins';
 import { parseContentKey } from '../../../src/core/content-key';
 import type { InjuryId, PersonId } from '../../../src/core/ids';
@@ -227,7 +222,9 @@ describe('health.acknowledgeInjuries', () => {
 
   it('refuses the computer', async () => {
     const { engine, mine } = await hurtBoth();
-    const refused = acknowledge(engine, [injuryOf(engine, mine[0]).id], { kind: 'computer' } as never);
+    const refused = acknowledge(engine, [injuryOf(engine, mine[0]).id], {
+      kind: 'computer',
+    } as never);
     expect(refused.ok).toBe(false);
   });
 
@@ -236,7 +233,11 @@ describe('health.acknowledgeInjuries', () => {
     const own = injuryOf(engine, mine[0]).id;
     const first = acknowledge(engine, [own, own]);
     expect(first.ok).toBe(true);
-    const events = engine.query('sim.recentEvents', { limit: 10, types: ['injury.noticed'] }, OMNISCIENT);
+    const events = engine.query(
+      'sim.recentEvents',
+      { limit: 10, types: ['injury.noticed'] },
+      OMNISCIENT,
+    );
     expect(events.ok && events.data.map((event) => event.payload)).toEqual([{ injuryIds: [own] }]);
     const before = engine.exportState().world;
     const repeat = acknowledge(engine, [own]);

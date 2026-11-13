@@ -67,7 +67,12 @@ describe('computeOffscreenInjuryChance', () => {
   it('gives 0 when the rate is 0, whatever else is true', () => {
     expect(
       chanceOf(
-        { fatigue: 100, worstCondition: 0, traits: ['injuryProne'], computerShortcut: shortcut(true) },
+        {
+          fatigue: 100,
+          worstCondition: 0,
+          traits: ['injuryProne'],
+          computerShortcut: shortcut(true),
+        },
         { 'health.offscreen.injuriesPerYear': 0 },
       ).value,
     ).toBe(0);
@@ -103,7 +108,12 @@ describe('computeOffscreenInjuryChance', () => {
 
   it('never goes above 1', () => {
     const result = chanceOf(
-      { fatigue: 100, worstCondition: 0, traits: ['injuryProne'], computerShortcut: shortcut(true) },
+      {
+        fatigue: 100,
+        worstCondition: 0,
+        traits: ['injuryProne'],
+        computerShortcut: shortcut(true),
+      },
       {
         'health.offscreen.injuriesPerYear': 5,
         'health.offscreen.injuryProneMultiplier': 3,
@@ -118,10 +128,13 @@ describe('computeOffscreenInjuryChance', () => {
 
   it('follows the tunables at their ends', () => {
     expect(
-      chanceOf({ fatigue: 100, worstCondition: 0 }, {
-        'health.offscreen.fatigueWeight': 0,
-        'health.offscreen.conditionWeight': 0,
-      }).value,
+      chanceOf(
+        { fatigue: 100, worstCondition: 0 },
+        {
+          'health.offscreen.fatigueWeight': 0,
+          'health.offscreen.conditionWeight': 0,
+        },
+      ).value,
     ).toBeCloseTo(BASE, 12);
     expect(
       chanceOf({ traits: ['durable'] }, { 'health.offscreen.durableMultiplier': 0 }).value,
@@ -143,7 +156,12 @@ describe('computeOffscreenInjuryChance', () => {
       for (let condition = 0; condition <= 100; condition += 9) {
         for (const traits of traitSets) {
           for (const rule of [null, shortcut(true), shortcut(false)]) {
-            const given = inputs({ fatigue, worstCondition: condition, traits, computerShortcut: rule });
+            const given = inputs({
+              fatigue,
+              worstCondition: condition,
+              traits,
+              computerShortcut: rule,
+            });
             expect(offscreenInjuryChanceValue(given, { tunables })).toBe(
               computeOffscreenInjuryChance(given, { tunables }).value,
             );
