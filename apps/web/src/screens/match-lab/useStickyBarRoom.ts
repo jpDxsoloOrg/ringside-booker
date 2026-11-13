@@ -18,9 +18,9 @@ export const STICKY_BAR_ROOM_PROPERTY = '--lab-run-bar-room';
 export function useStickyBarRoom(ref: RefObject<HTMLElement | null>): void {
   useEffect(() => {
     const bar = ref.current;
-    const host = bar?.parentElement;
-    if (bar === null || bar === undefined || host === null || host === undefined) return undefined;
-    if (typeof window === 'undefined') return undefined;
+    if (bar === null || typeof window === 'undefined') return undefined;
+    const host = bar.parentElement;
+    if (host === null) return undefined;
 
     const update = (): void => {
       const style = window.getComputedStyle(bar);
