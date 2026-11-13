@@ -264,6 +264,7 @@ describe('the physical toll on show night', () => {
       expect(injury.weeksOut).toBe(weeksOutOf(TODAY, injury.expectedReturn));
       expect(injury.weeksOut).toBeGreaterThanOrEqual(1);
       expect(injury.kindLabel).not.toMatch(/^injury\./u);
+      expect(injury.chance).toBeGreaterThan(0);
       expect(injury.chanceTraceRef).toEqual(
         injuryChanceTraceRef(injury.segmentId, injury.personId),
       );

@@ -396,7 +396,7 @@ gain only, never potential or a ceiling.
 lists every worker hurt in a match on the show, from WRK6's `injuries` rows with
 `source: 'segment'`, in card order (pre-show first, then by slot, then person
 id): `{ injuryId, segmentId, personId, name, bodyPart, kindLabel,
-expectedReturn, weeksOut, chanceTraceRef, injuryTraceRef }`. `weeksOut` is
+expectedReturn, weeksOut, chance, chanceTraceRef, injuryTraceRef }`. `weeksOut` is
 `ceil((expectedReturn − show date) / 7)`, never below 1 (`weeksOutOf`). The
 rows are kept for good; each ref is null once the store no longer has its
 trace. An injury on a rival's show is public news, so every viewer gets the

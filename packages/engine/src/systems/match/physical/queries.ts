@@ -193,7 +193,9 @@ export interface SegmentInjuryView {
   readonly expectedReturn: GameDate;
   /** `ceil((expectedReturn - show date) / 7)`, at least 1. */
   readonly weeksOut: number;
-  /** The match's injury chance for them (`match.injuryChance`), while the store keeps it. */
+  /** The match's injury chance for them, 0..1, while the store keeps it. */
+  readonly chance: number | null;
+  /** Its Why? (`match.injuryChance`), while the store keeps it. */
   readonly chanceTraceRef: TraceRef | null;
   /** How long they are out (`health.injury`), while the store keeps it. */
   readonly injuryTraceRef: TraceRef | null;
@@ -263,7 +265,7 @@ export const segmentInjuriesQuery: QueryDefinition<'match.segmentInjuries'> = de
           if (row === undefined) {
             continue;
           }
-          const chanceRef = injuryChanceTraceRef(segment.id, personId);
+          const chance = numberOf(traces, injuryChanceTraceRef(segment.id, personId));
           const outcomeRef = injuryTraceRef(row.id);
           injuries.push({
             injuryId: row.id,
@@ -274,7 +276,8 @@ export const segmentInjuriesQuery: QueryDefinition<'match.segmentInjuries'> = de
             kindLabel: injuryKindOf(read, row.kindKey)?.label ?? row.kindKey,
             expectedReturn: row.expectedReturn,
             weeksOut: weeksOutOf(instance.date, row.expectedReturn),
-            chanceTraceRef: traces.has(chanceRef) ? chanceRef : null,
+            chance: chance.value,
+            chanceTraceRef: chance.traceRef,
             injuryTraceRef: traces.has(outcomeRef) ? outcomeRef : null,
           });
         }
