@@ -148,6 +148,11 @@ export type CardPlan =
       readonly counts: PlanCounts;
       /** The plan as a booker's notes, for the short Why? a booked show keeps. */
       readonly notes: readonly string[];
+      /**
+       * Each pool candidate's card value, by employment ID (values only), for the booked-card
+       * steps: AIP5's results read them instead of working them out again.
+       */
+      readonly cardValues?: Readonly<Record<string, number>>;
     }
   | {
       readonly kind: 'cancel';
@@ -615,5 +620,9 @@ export function planCard(read: GameWorldView, args: PlanCardArgs, deps: PlanCard
     'card',
     `${String(placements.length)} segments planned, ${String(open.length)} slots left open`,
   );
-  return { kind: 'card', placements, open, planTrace, counts, notes };
+  const cardValues: Record<string, number> = {};
+  for (const candidate of pool.candidates) {
+    cardValues[candidate.employmentId] = candidate.cardValue.value;
+  }
+  return { kind: 'card', placements, open, planTrace, counts, notes, cardValues };
 }

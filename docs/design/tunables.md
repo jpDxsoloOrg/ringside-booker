@@ -876,8 +876,8 @@ a short match; nothing here sets a length (D-10).
 | `aip.winner.finale.minAgeDays`               | integer | 56                        | 7–365    | days        | Without a finale flag, a storyline this old counts as reaching its finale                      |
 | `aip.winner.method.nonTitleWeight`           | number  | 0.15                      | 0–5      | multiplier  | Weight of methods that can't change titles (count-out, disqualification) when picking a method |
 | `aip.titles.band1.maxDays` … `band6.maxDays` | integer | 14, 45, 90, 150, 240, 365 | 1–3650   | days        | Longest reign in each band; the days must increase                                             |
-| `aip.titles.band1.chance` … `band6.chance`   | number  | 0, 4, 12, 22, 34, 48      | 0–100    | percent     | Base chance a title changes hands while the reign is in that band                              |
-| `aip.titles.bandBeyond.chance`               | number  | 60                        | 0–100    | percent     | Base chance once the reign is longer than the last band                                        |
+| `aip.titles.band1.chance` … `band6.chance`   | number  | 0, 2, 6, 12, 18, 26       | 0–100    | percent     | Base chance a title changes hands while the reign is in that band                              |
+| `aip.titles.bandBeyond.chance`               | number  | 34                        | 0–100    | percent     | Base chance once the reign is longer than the last band                                        |
 | `aip.titles.prestigePivot`                   | number  | 60                        | 0–100    | points      | Prestige at which a title neither gains nor loses change chance                                |
 | `aip.titles.changePrestigeWeight`            | number  | 0.25                      | 0–2      | multiplier  | Titles below the pivot change more often, above it less                                        |
 | `aip.titles.tempoWeight`                     | number  | 0.3                       | 0–2      | multiplier  | How much the booker's title taste moves the chance                                             |
@@ -907,3 +907,8 @@ card Why? demotion.
 | Key                      | Kind    | Default | Range  | Unit | Meaning                                                                                                            |
 | ------------------------ | ------- | ------- | ------ | ---- | ------------------------------------------------------------------------------------------------------------------ |
 | `history.keepDetailDays` | integer | 28      | 0–3650 | days | How many days of shows, cards, money rows and rival decisions are kept in full; older ones as totals and summaries |
+
+| `aip.titles.valid.gap` | number | 50 | 0–100 | points | How far below the title's prestige a valid challenger's market popularity may be |
+| `aip.titles.valid.floor` | number | 12 | 0–100 | points | Least market popularity a valid challenger needs, however low the prestige |
+| `aip.titles.strong.gap` | number | 35 | 0–100 | points | How far below the title's prestige a strong challenger's market popularity may be |
+| `aip.titles.strong.floor` | number | 25 | 0–100 | points | Least market popularity a strong challenger needs, however low the prestige |

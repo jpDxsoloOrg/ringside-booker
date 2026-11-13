@@ -8,6 +8,7 @@ import {
   type ChallengerPoolSide,
 } from '../../../../src/systems/aip';
 import { createEngineTunables } from '../../../../src/systems/tunables';
+import { WORKED_TITLE_TUNABLES } from './workedTunables';
 import { expectSerialisable, expectTraceReplays } from '../../../support/trace';
 
 function side(
@@ -32,7 +33,7 @@ function run(
 ): ChallengerPool {
   const result = challengerPool(
     { titleName: 'World Title', prestige, sides },
-    { tunables: createEngineTunables(tuned) },
+    { tunables: createEngineTunables({ ...WORKED_TITLE_TUNABLES, ...tuned }) },
   );
   expectSerialisable(result.pool);
   return result;

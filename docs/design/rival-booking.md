@@ -982,9 +982,11 @@ on show night ([Title outcomes](show-night.md#title-outcomes)). AIP5 never
 touches reigns.
 
 - **Reign bands.** The base chance by reign length:
-  `aip.titles.band<n>.maxDays` / `.chance` for n = 1 to 6, (14, 0), (45, 4),
-  (90, 12), (150, 22), (240, 34), (365, 48), and
-  `aip.titles.bandBeyond.chance` 60 past the last band. The days must
+  `aip.titles.band<n>.maxDays` / `.chance` for n = 1 to 6, (14, 0), (45, 2),
+  (90, 6), (150, 12), (240, 18), (365, 26), and
+  `aip.titles.bandBeyond.chance` 34 past the last band (lowered by AIP5-04's
+  [two-year title check](#two-year-title-check): rival titles are defended
+  about every other week, so these are per-defence chances). The days must
   increase: `reignBandsOf(tunables)` falls back to the default bands and
   reports the problem when they do not.
 - **Terms on top:** prestige against `aip.titles.prestigePivot` times
@@ -1035,16 +1037,16 @@ The bands as they ship:
 | Band   | Reign up to (days) | Base chance |
 | ------ | ------------------ | ----------- |
 | 1      | 14                 | 0%          |
-| 2      | 45                 | 4%          |
-| 3      | 90                 | 12%         |
-| 4      | 150                | 22%         |
-| 5      | 240                | 34%         |
-| 6      | 365                | 48%         |
-| beyond | longer             | 60%         |
+| 2      | 45                 | 2%          |
+| 3      | 90                 | 6%          |
+| 4      | 150                | 12%         |
+| 5      | 240                | 18%         |
+| 6      | 365                | 26%         |
+| beyond | longer             | 34%         |
 
 With the defaults (pivot 60, prestige weight 0.25, tempo weight 0.3), a
 312-day reign on a 74-prestige title, taste 65, at a major show while
-popularity fell 3 weeks: 48 − 3.5 + 4.5 + 6 + 10 = 65%.
+popularity fell 3 weeks: 26 − 3.5 + 4.5 + 6 + 10 = 43%.
 
 ### Challenger pool
 
@@ -1055,8 +1057,11 @@ validNeeds  = max(prestige − aip.titles.valid.gap,  aip.titles.valid.floor)
 strongNeeds = max(prestige − aip.titles.strong.gap, aip.titles.strong.floor)
 ```
 
-At prestige 80 a valid challenger needs 50 and a strong one 68; at prestige 20
-the floors hold (40 and 62). Per side, in side order:
+At prestige 80 a valid challenger needs 30 and a strong one 45; at prestige 40
+the floors hold (12 and 25). Popularity in a rival's own markets runs well below
+its titles' prestige on the default world (12-22 for small promotions, 20-55 for
+the big ones), so the gaps are wide and the floors low; AIP5-04 set them from
+the [two-year title check](#two-year-title-check). Per side, in side order:
 
 1. "<side> is eligible": no WRK1 title eligibility or availability reason; each
    failing reason is noted in WRK1's words.
@@ -1086,7 +1091,7 @@ and `side:<n>` for every eligible challenger. Rules in order:
 4. **The roll.** "Time for a change?" at the chance (0% draws nothing and notes
    "Chance is 0%"). A hit with a valid or strong challenger changes the title; a
    hit with pool `none` retains ("Ready for a change, but no challenger is
-   popular enough (needs 50 in our markets)"); a miss retains.
+   popular enough (needs 30 in our markets)"); a miss retains.
 
 A change picks from the strong list, else the valid list, weighted by each
 side's value (`rivalSideValue`, at least 1 so every fit challenger keeps a
@@ -1130,3 +1135,139 @@ own registries, never through the planner's ordering or validation code.
 | ECO11 (territories)           | wires from its own pack | No development assignments on `main`; no `registerCardPoolSource` seam was added.                                                                                                                                                                                                   |
 | MP3 / MP5 (multiplayer)       | wires from its own pack | No server package or auto-ready on `main`. A promotion whose controller turns `computer` is booked by `aip.bookShow` with no extra code.                                                                                                                                            |
 | POL4 (performance budgets)    | wires from its own pack | POL4-06/07 (save size budget, slow-suite split) are on `main`, but there is no long-skip benchmark with a per-day budget to add `aip.bookShow` to.                                                                                                                                  |
+
+## How a rival show's results are decided
+
+AIP5-04 puts the winner and title formulas to work. `aip.decideResults`
+(`results/decideResults.ts`) is a booked-card step (order 10): it runs inside
+`aip.bookShow` right after the card is written and before `validateCard`, in a
+savepoint of its own (a throw is logged and the card still books, winnerless).
+
+**Order of work, per show:**
+
+1. `isComputerBooked(read, instance)`; anything else is left alone. The
+   player's shows, a brand handed back to "You" and Auto-fill never get a winner
+   from here.
+2. The show's shared inputs once (`rivalShowContextOf`: promotion, regions,
+   taste, featured wrestlers), with the card values the planner already worked
+   out that morning (`CardPlan.cardValues`, values only).
+3. Every match on the card, pre-show first then by slot, whose `outcome` is
+   still null (a kept, already planned result is logged and kept):
+   - each side's value (`rivalSideValue`, one jitter roll per side);
+   - **no title:** `matchWinner`, draws allowed only when one of the match's
+     allowed finishes is a draw;
+   - **the lead title (highest prestige, then id) with its champion in the
+     match:** `titleChangeChance`, `challengerPool`, `titleChange`. `retain`
+     puts the champions over, `side:<n>` the new champions. Never a draw;
+   - **a vacant lead title, or a champion who isn't in the match:**
+     `matchWinner` over the sides that can hold it ("Vacant title: the booker
+     crowns the best fit" / "The champion isn't in this match"); one fit side
+     wins outright; with none, the best-valued side wins by a method that can't
+     move a title ("Nobody here can hold the title, so it can't change hands");
+   - **the same title already on the line on another of the promotion's shows
+     tonight** (a card decided earlier the same day): the best side wins by a
+     method that can't move the title ("Also on the line at <show> tonight, so
+     this match can't move it"). Both cards are decided before either runs, so
+     otherwise the old champion could win it back on the later show;
+   - other titles on the match follow the lead title ("Follows the <title>
+     decision");
+   - the method (`pickRivalMethod`, `results/method.ts`): the catalog's methods
+     in `order`, without hidden ones and, with MTCH2's finishes in the save,
+     only those an allowed win finish of the match lists. A planned change
+     keeps only title-changing methods (whose finish lets titles change), a
+     forced no-change only methods that can't; otherwise title-changing methods
+     weigh 1 and the rest `aip.winner.method.nonTitleWeight`. No method at all
+     is a content problem: logged, and the match is booked as a no contest.
+4. `setPlannedOutcome(tx, segmentId, { kind: 'win', winningSide, methodKey } |
+{ kind: 'draw' })` through EVT2's card writer.
+
+**What is written:** the planned outcome only. Nothing here touches reigns,
+titles, morale, momentum or popularity: EVT3 runs the match as booked and its
+`shows.titleOutcome` applier opens and closes reigns
+([Title outcomes](show-night.md#title-outcomes)); WRK8 and MTCH3 react to the
+result as they do to any other. A wrestler losing as booked is never made
+angry or unhappy by this step.
+
+**Traces** (compact: card values as numbers, cut a few levels down with the
+store's "N more steps not shown" note, about 4 KB each on the default world):
+
+- `aip.winner` by segment id: "Booked result: <matchup>", whose children are
+  "Who wins" (or the title decision's one-line headline plus "Who wins") and
+  "How the match is won"; the chosen option is `side:<n>`, `draw` or
+  `noContest`;
+- `aip.title` by `<segmentId>|<titleId>`: the full "Title decision: <title>"
+  (chance, challenger pool, rules, rolls), or the follow note for a second
+  title.
+
+Both are full traces, demoted to summaries by `aip.pruneCardDetail` after the
+detail window (about four weeks).
+
+**Decisions,** all revealed on the show's `airDate`, like the card's:
+
+- one `winner` per show: `aip.decision.winners-booked` {show, matches},
+  "<show>: winners booked for 5 matches";
+- one `title` per lead title, pointing at its `aip.title` trace:
+  `aip.decision.title-retain` "<champion> to retain the <title> (<reason>)",
+  `aip.decision.title-change` "<challenger> to win the <title> from
+  <champion> (<reason>)", `aip.decision.title-crown` "<challenger> to win the
+  vacant <title> (<reason>)" or `aip.decision.title-vacant` "The <title>
+  stays vacant (<reason>)". Extra params `segment`, `plan`, `chance` and
+  `reignDays` feed the read side.
+
+**Random streams.** The show's own `aip.winners` and `aip.titles` streams,
+`detachedStream(seed, name, eventInstanceId)`: the same seed and show always
+draw the same numbers, a change to one rival card never moves another show's
+results, and title rolls never move match rolls.
+
+### Reading the results
+
+`segmentDecisionView(read, traces, segmentId)` (`results/view.ts`) is the one
+read helper: the winner (`win` / `draw` / `noContest`, the side's names, method
+and MTCH2 finish names), the reason (the winner trace's reason while it is kept
+in full, else "The booker's full reasons are no longer kept"), and per title
+the plan (`retain`, `change`, `crown`, `follow`), reason, chance, reign days,
+trace ref and what happened (`pending`, `retained`, `newChampion`, from EVT3's
+reigns). Trace refs come back only while the store has them.
+
+- `aip.segmentDecision { segmentId }`: `notFound` for an unknown segment,
+  `notRevealed` "A rival's results are revealed when the show airs" while
+  `isRevealedTo(read, viewer, promotionId, airDate)` is false (the omniscient
+  viewer, sandbox games and the show's own controller always see it),
+  `noDecision` "No computer booker decided this result" for a match no
+  computer booker planned.
+- `aip.recentTitleChanges { promotionId, limit? }` (1–20, default 5): reigns
+  won in a match on the promotion's titles, newest first, with the new and
+  previous holders' names at the time, the show, the old reign's length and
+  the rival booker's reason and trace when it planned the change. Title
+  changes are public, so there is no reveal check.
+
+AIP4's `aip.showCards` gains its `decision` field once AIP4-06 and this ticket
+are on one branch (not on AIP5-04's base).
+
+### Two-year title check
+
+`test/systems/aip/results/titleRate.long.test.ts` (`RB_SLOW_TESTS=1`): a new
+default-world game with the player on Longleaf, 730 days. It checks every
+planned title change on the morning of the show: no rival matches without a
+planned result, every new champion on a computer show eligible
+(`isEligibleForTitle`), available (`availabilityOf`) and under contract for
+at least `aip.titles.challengerMinContractDays`, no change on a house show and
+no rival draws. Measured 2026-11-13 with the defaults above:
+
+| Measure                                      | Value                      |
+| -------------------------------------------- | -------------------------- |
+| Rival titles                                 | 26                         |
+| New reigns on computer shows                 | 50                         |
+| Title changes per title per year             | 0.96                       |
+| Mean length of reigns that ended (any start) | 254 days (band 60–400)     |
+| Mean length of reigns begun and ended in it  | 221 days                   |
+| Titles defended 4+ times that changed hands  | 25 of 26 (96%, needs 60%)  |
+| Rival draws                                  | 0 of 4,295 planned matches |
+| `aip.decideResults` time                     | about 0.7 ms a rival show  |
+
+With AIP5-01's first defaults the same run gave 0.40 changes per title per
+year and only 13 of 26 defended titles changed hands: rival titles are
+defended about every other week, so the bands were too high per defence, and
+almost every hit found "No challenger good enough" because popularity in a
+rival's own markets sits far below its titles' prestige. The bands and the
+challenger thresholds were lowered to the values in the tables above.

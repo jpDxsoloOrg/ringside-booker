@@ -282,6 +282,14 @@ MTCH1's `RatingPolicy`, never here.
 
 ## Title outcomes
 
+**Rival results arrive planned.** Since AIP5-04 every match on a computer-run
+card reaches show night with a planned result (`segment.outcome`) from the
+rival booker's `aip.decideResults` step, so `shows.runShows` runs it as booked
+like a player's planned result, and a planned title change happens here,
+through this applier, not in the booker. Only a rival match the step could not
+plan (a content problem, logged) is left to the automatic winner. See
+[rival-booking.md](rival-booking.md#how-a-rival-shows-results-are-decided).
+
 `systems/shows/titles.ts` (EVT3-04). A title match ends one of three ways for
 each title on the line: the title changes hands (`title.changed`), the
 champion keeps it (`title.defended`), or nothing happens (a no contest). A draw

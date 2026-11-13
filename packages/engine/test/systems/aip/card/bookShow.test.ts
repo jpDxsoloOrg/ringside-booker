@@ -254,10 +254,10 @@ describe('aip.bookShow', () => {
       // Nobody twice: every person is in at most one match.
       const people = matchPeople(read, id).flat();
       expect(new Set(people).size).toBe(people.length);
-      // Matches carry no planned winner.
+      // AIP5-04's booked-card step plans every match's result.
       for (const segment of segments) {
         if (segment.kind === 'match') {
-          expect(segment.outcome).toBeNull();
+          expect(segment.outcome).not.toBeNull();
         }
       }
     }
@@ -412,7 +412,8 @@ describe('aip.bookShow', () => {
     expect(() => registerBookedCardStep({ id: 'Bad', order: 0, run: () => undefined })).toThrow(
       RegistryError,
     );
-    expect(bookedCardSteps().map((step) => step.id)).toEqual(['test.once']);
+    // AIP5-04's `aip.decideResults` (order 10) is always registered.
+    expect(bookedCardSteps().map((step) => step.id)).toEqual(['test.once', 'aip.decideResults']);
   });
 
   it('keeps a short plan trace and a short trace per written slot, and a hidden card decision', () => {
