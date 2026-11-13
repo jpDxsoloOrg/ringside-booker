@@ -32,6 +32,11 @@ export const UNHURT_TEXT = 'OK';
 /** The phone card's heading over everything but the name and the injury chance. */
 export const PHYSICAL_CARD_HEADING = 'Physical';
 
+/** The what-if Select's name: it says it is a what-if, not the worker's real fatigue. */
+export function fatigueWhatIfLabel(name: string): string {
+  return `${name}'s fatigue going in (what-if)`;
+}
+
 /** "As now (n)" and the what-if levels. */
 export function fatigueOptions(fatigueNow: number): readonly SelectOption[] {
   return [
@@ -78,7 +83,7 @@ function FatigueGoingIn({ worker, onFatigueChange, disabled }: CellProps & Colum
   }
   return (
     <Select
-      label={`${worker.name}'s fatigue going in`}
+      label={fatigueWhatIfLabel(worker.name)}
       hideLabel
       className={styles['fatigueSelect'] ?? ''}
       options={fatigueOptions(worker.fatigueNow)}
@@ -268,6 +273,7 @@ function tableColumns({ onFatigueChange, disabled }: ColumnOptions) {
       header: 'Wear',
       cell: (worker) => <Wear worker={worker} />,
       sortValue: (worker) => worker.wearTotal.value,
+      numeric: true,
       card: 'stat',
     },
     {
@@ -275,6 +281,7 @@ function tableColumns({ onFatigueChange, disabled }: ColumnOptions) {
       header: 'Learning',
       cell: (worker) => <Learning worker={worker} />,
       sortValue: (worker) => worker.learning.value,
+      numeric: true,
       card: 'stat',
     },
     {

@@ -7,6 +7,7 @@ export {
   PhysicalTollTable,
   UNHURT_TEXT,
   fatigueOptions,
+  fatigueWhatIfLabel,
   injuryRunText,
   learningText,
 } from './PhysicalTollTable';
