@@ -162,7 +162,12 @@ test.describe('injuries and recovery', () => {
       await expect(availabilityChip(page)).toHaveAttribute('data-status', 'injured');
       const card = page.getByRole('main').locator('section').filter({ hasText: 'Time out' });
       await expect(card).toBeVisible();
-      const left = (await card.getByText(/^(\d+ days|Back tomorrow)$/).textContent()) ?? '';
+      const left =
+        (await card
+          .getByRole('term')
+          .filter({ hasText: 'Days left' })
+          .locator('xpath=following-sibling::dd')
+          .textContent()) ?? '';
       daysLeft = left === 'Back tomorrow' ? 1 : Number(/\d+/.exec(left)?.[0] ?? '0');
       expect(daysLeft, 'days left on the card').toBeGreaterThan(0);
 
