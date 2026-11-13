@@ -1,12 +1,16 @@
 import { useCallback, useState } from 'react';
+import type { ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import type { OfficeDashboard, PromotionId } from '@ringside/engine';
 import { RouteHeading } from '@/app/a11y/RouteHeading';
 import { FanBaseSheet } from '@/app/AppShell/status/FanBaseSheet';
 import { useDocumentTitle } from '@/app/a11y/useDocumentTitle';
 import { useEngineQuery } from '@/app/engine/useEngineQuery';
+import { routes } from '@/app/routes';
 import type { EngineQueryError } from '@/app/engine/queryCache';
 import { Button } from '@/components/Button';
 import { EmptyState } from '@/components/EmptyState';
+import { Icon } from '@/components/Icon';
 import { KpiCardGrid } from '@/components/KpiCard';
 import { useIsMobile } from '@/styles/useMediaQuery';
 import { OfficeKpiCard } from './OfficeKpiCard';
@@ -24,6 +28,9 @@ const SCREEN_TITLE = 'Dashboard';
 
 /** The KPI whose card opens the Fan base sheet. */
 const POPULARITY_KPI = 'popularity.headline';
+
+/** The KPI whose card links to Finances (ECO1, DAY2-06). */
+const CASH_KPI = 'cash';
 
 /** Whose Fan base sheet is open: the seat's own promotion (no id) or a named one. */
 interface FanBaseTarget {
@@ -59,6 +66,29 @@ function KpiSkeleton() {
       ))}
     </div>
   );
+}
+
+/**
+ * The control in a KPI card's footer: the Popularity card opens the Fan base sheet (DAY2-05), the
+ * Cash card links to Finances, where ECO1 explains every row of the books (DAY2-06).
+ */
+function kpiFooterAction(key: string, openFanBase: () => void): ReactNode {
+  if (key === POPULARITY_KPI) {
+    return (
+      <Button variant="ghost" size="sm" iconStart="map" onClick={openFanBase}>
+        Fan base
+      </Button>
+    );
+  }
+  if (key === CASH_KPI) {
+    return (
+      <Link className={styles['footerLink']} to={routes.game.finances()}>
+        <Icon name="finance" size="sm" decorative />
+        Finances
+      </Link>
+    );
+  }
+  return null;
 }
 
 interface PanelListProps {
@@ -153,28 +183,18 @@ export function OfficeScreen() {
       {header}
       {dashboard.kpis.length > 0 && (
         <KpiCardGrid label="Key numbers">
-          {dashboard.kpis.map((kpi) => (
-            <OfficeKpiCard
-              key={kpi.key}
-              kpi={kpi}
-              {...(kpi.key === POPULARITY_KPI
-                ? {
-                    footerAction: (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        iconStart="map"
-                        onClick={() => {
-                          setFanBase({});
-                        }}
-                      >
-                        Fan base
-                      </Button>
-                    ),
-                  }
-                : {})}
-            />
-          ))}
+          {dashboard.kpis.map((kpi) => {
+            const footerAction = kpiFooterAction(kpi.key, () => {
+              setFanBase({});
+            });
+            return (
+              <OfficeKpiCard
+                key={kpi.key}
+                kpi={kpi}
+                {...(footerAction === null ? {} : { footerAction })}
+              />
+            );
+          })}
         </KpiCardGrid>
       )}
       {isPhone ? (

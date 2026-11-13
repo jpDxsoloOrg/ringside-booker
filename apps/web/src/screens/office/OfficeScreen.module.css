@@ -73,6 +73,15 @@
   max-inline-size: 28rem;
 }
 
+/* A link in a KPI card's footer (the Cash card's "Finances"): at least a tap target tall. */
+.footerLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-block-size: var(--tap-target-min);
+  font-weight: var(--font-weight-semibold);
+}
+
 /* Card-shaped placeholders while the first answer loads: no numbers, nothing invented. */
 .skeletonGrid {
   display: grid;

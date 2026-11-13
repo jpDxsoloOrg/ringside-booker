@@ -1,0 +1,27 @@
+/* The Office's Next show panel (DAY2-06): the crowd line and the links under the lower third. */
+.crowd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: var(--font-feature-tabular);
+  overflow-wrap: anywhere;
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  min-inline-size: 0;
+}
+
+/* Each link is at least a tap target tall. */
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-block-size: var(--tap-target-min);
+  font-weight: var(--font-weight-semibold);
+}
