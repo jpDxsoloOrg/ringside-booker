@@ -190,6 +190,7 @@ export {
 export {
   promotionProfileQuery,
   SHOWS_PER_MONTH_DAYS,
+  datedShowsAhead,
   showDatesAhead,
   type PromotionProfile,
   type PromotionProfileArgs,

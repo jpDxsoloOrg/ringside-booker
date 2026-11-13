@@ -6,6 +6,10 @@ import { createEngine, type Engine, type Viewer } from '../../../src/core/api';
 import type { QueryArgs, QueryData, QueryName } from '../../../src/core/api/maps';
 import type { PromotionId } from '../../../src/core/ids';
 import { assertTraceReplays } from '../../../src/core/trace';
+import { addDays } from '../../../src/core/date';
+import { TABLES } from '../../../src/model/tables';
+import { documentToWorld } from '../../../src/persistence/world-document';
+import { computerUnits, isDue, SHOWS_PER_MONTH_DAYS } from '../../../src/systems/aip';
 import { defaultSystems } from '../../../src/systems';
 import { withMyShowsRun } from '../../support';
 import { SLOW_TESTS } from '../../support/slow';
@@ -82,6 +86,43 @@ describe('the Promotions queries on the default world', () => {
       expect(needs.unitName).toBe(row.name);
     }
   });
+
+  // A few seconds (a full export and reload of the default world): slow runs only.
+  it.runIf(SLOW_TESTS)(
+    'counts each promotion’s dated shows a month and finds a rival’s real show day due (AIP1-07)',
+    () => {
+      const state = engine.exportState();
+      const world = documentToWorld({ state: { world: state.world } }, TABLES);
+      const today = state.world.meta.currentDate;
+      const shows = state.world.tables.eventInstances.filter(
+        (show) => show.status === 'scheduled' && show.date >= today,
+      );
+      for (const row of ask(engine, 'promotions.list', {})) {
+        const horizonEnd = addDays(today, SHOWS_PER_MONTH_DAYS - 1);
+        const stored = shows.filter(
+          (show) => show.promotionId === row.promotionId && show.date <= horizonEnd,
+        ).length;
+        const profile = ask(engine, 'promotions.profile', { promotionId: row.promotionId });
+        expect(profile.kpis.showsPerMonth, row.name).toBe(stored);
+      }
+      // A rival's first stored show: its beforeShow jobs are due that day and not the day before.
+      const rivalShow = shows
+        .filter((show) => show.promotionId !== promotionNamed(engine, LONGLEAF))
+        .sort((left, right) => (left.date < right.date ? -1 : left.date > right.date ? 1 : 0))[0];
+      if (rivalShow === undefined) return expect.fail('no rival show is scheduled');
+      const unit = computerUnits(world).find(
+        (candidate) =>
+          candidate.promotionId === rivalShow.promotionId && candidate.brandId === null,
+      );
+      if (unit === undefined) return expect.fail('the rival has no promotion unit');
+      expect(isDue('beforeShow', unit, rivalShow.date, world)).toBe(true);
+      const dayBefore = addDays(rivalShow.date, -1);
+      const showsDayBefore = shows.filter(
+        (show) => show.promotionId === rivalShow.promotionId && show.date === dayBefore,
+      );
+      expect(isDue('beforeShow', unit, dayBefore, world)).toBe(showsDayBefore.length > 0);
+    },
+  );
 
   it('records one weekly roster review per rival over a 7-day skip', async () => {
     const skipped = newLongleafGame();

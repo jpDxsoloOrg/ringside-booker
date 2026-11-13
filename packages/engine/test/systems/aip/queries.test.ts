@@ -188,6 +188,14 @@ describe('promotions.list', () => {
 });
 
 describe('promotions.profile', () => {
+  it("counts the promotion's dated shows in the next 28 days once the calendar stores them", async () => {
+    const { engine, own } = queryWorld();
+    const advanced = await engine.advanceDays({ maxDays: 1 });
+    expect(advanced.daysAdvanced).toBe(1);
+    // The weekly Monday show: four dated shows in any 28 days.
+    expect(ask(engine, 'promotions.profile', { promotionId: own }).kpis.showsPerMonth).toBe(4);
+  });
+
   it('gives header, KPIs, popularity, shows, titles and the rules, with cash hidden for a rival', () => {
     const { engine, own, rival } = queryWorld();
     const profile = ask(engine, 'promotions.profile', { promotionId: rival });
@@ -213,8 +221,9 @@ describe('promotions.profile', () => {
     expect(mine.hidden).toEqual([]);
     expect(mine.rules.inForce).toBe(false);
     expect(mine.rules.shortcuts.every((shortcut) => !shortcut.on)).toBe(true);
-    // A weekly show on Mondays: four show dates in the next 28 days.
-    expect(mine.kpis.showsPerMonth).toBe(4);
+    // A weekly show on Mondays, but this built world has no dated shows yet: the calendar stores
+    // them from the first day on (AIP1-07 counts dated shows; see the test below).
+    expect(mine.kpis.showsPerMonth).toBe(0);
     expect(mine.shows).toHaveLength(1);
     expect(mine.shows[0]?.recurrenceLabel).toContain('Monday');
     expect(mine.header.brands.map((brand) => brand.controlledBy)).toEqual(['you']);
