@@ -16,10 +16,25 @@ function historyWorld() {
     .withGeography('mini')
     .withPromotion({ prestige: 50 })
     .withPromotionSnapshots('A', [
-      { date: '2025-12-31', granularity: 'month', prestige: 40, extra: { 'test.hype': 1 } },
-      { date: '2026-02-16', granularity: 'week', prestige: 44 },
-      { date: '2026-02-23', granularity: 'week', prestige: 45, extra: { 'test.hype': 3 } },
-      { date: '2026-03-02', granularity: 'week', prestige: 46, extra: { 'test.hype': 0 } },
+      {
+        date: parseGameDate('2025-12-31'),
+        granularity: 'month',
+        prestige: 40,
+        extra: { 'test.hype': 1 },
+      },
+      { date: parseGameDate('2026-02-16'), granularity: 'week', prestige: 44 },
+      {
+        date: parseGameDate('2026-02-23'),
+        granularity: 'week',
+        prestige: 45,
+        extra: { 'test.hype': 3 },
+      },
+      {
+        date: parseGameDate('2026-03-02'),
+        granularity: 'week',
+        prestige: 46,
+        extra: { 'test.hype': 0 },
+      },
     ])
     .build();
   const promotionId = ids.promotions.A;
