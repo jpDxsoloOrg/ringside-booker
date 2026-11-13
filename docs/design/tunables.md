@@ -730,3 +730,12 @@ The crowd forecast (EVT6-01), in `systems/boxOffice/tunables.ts`, category
 | `office.delta.lookbackDays`       | integer | 7             | 1–90                                                  | days   | How far back a KPI delta compares                                                                                             |
 | `office.popularity.headlineScope` | enum    | `homeCountry` | `homeRegion`, `homeCountry`, `homeContinent`, `world` | choice | Which D-03 roll-up the Office and the top bar show as the promotion's popularity ([office.md](office.md#headline-popularity)) |
 | `office.morale.namedInWhy`        | integer | 3             | 0–10                                                  | count  | Lowest-morale people named in the average morale's Why? ([office.md](office.md#kpis-and-deltas))                              |
+
+## Roster tunables
+
+The roster's one number (WRK2), in `systems/roster/tunables.ts`, category
+`Roster`, docRef [roster.md](roster.md#push-verdict).
+
+| Key                       | Kind    | Default | Range | Unit  | Meaning                                                                                                                                    |
+| ------------------------- | ------- | ------- | ----- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `roster.expectsMoreSteps` | integer | 1       | 1–4   | count | Card positions below the push they expect before the roster marks a worker as expecting more (and above it, as pushed beyond expectations) |
