@@ -1,0 +1,162 @@
+/*
+ * The results page's "Popularity & momentum" section (MTCH3-05). Tokens only. On desktop each
+ * worker is one row: name, then popularity, then momentum. Below --bp-mobile the figures stack
+ * under the name, every match after the third starts folded behind its toggle, and each control
+ * keeps the 44px tap target.
+ */
+
+.section {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.lead {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.segment {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.segmentHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.segmentHeading {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.resultLine {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  overflow-wrap: anywhere;
+}
+
+.foldToggle {
+  display: none;
+}
+
+.workers {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.worker {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1.2fr) minmax(0, 1.5fr) minmax(0, 1.2fr);
+  align-items: center;
+  gap: var(--space-1) var(--space-4);
+  min-inline-size: 0;
+  padding-block-start: var(--space-2);
+  border-block-start: 1px solid var(--color-border);
+}
+
+.worker > .note {
+  grid-column: 1 / -1;
+}
+
+.who {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  min-inline-size: 0;
+}
+
+.name {
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.profileLink {
+  font-size: var(--font-size-sm);
+}
+
+.figure {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.figureLabel {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.figureValues {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  min-inline-size: 0;
+}
+
+.note {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.skeleton {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.skeletonRow {
+  display: block;
+  block-size: 4rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-hover);
+}
+
+@media (--bp-mobile) {
+  .segment {
+    padding: var(--space-2);
+  }
+
+  .worker {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .foldToggle {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: var(--tap-target-min);
+    min-inline-size: var(--tap-target-min);
+    padding-inline: var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--color-text);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .profileLink {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: var(--tap-target-min);
+  }
+
+  .segment[data-folded='true'] .workers,
+  .segment[data-folded='true'] .resultLine {
+    display: none;
+  }
+}

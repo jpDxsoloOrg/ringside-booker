@@ -252,9 +252,10 @@ A feature registers its section from its own folder and adds one import line to
 `screens/show-results/ShowResultsScreen.tsx`, so the section loads with the page's own chunk
 (UI-21). Registered so far:
 
-| Order | Id                | Label      | Registered in                              |
-| ----- | ----------------- | ---------- | ------------------------------------------ |
-| 25    | `evt5.popularity` | Popularity | `screens/promotion-popularity/register.ts` |
+| Order | Id                | Label                 | Registered in                              |
+| ----- | ----------------- | --------------------- | ------------------------------------------ |
+| 25    | `evt5.popularity` | Popularity            | `screens/promotion-popularity/register.ts` |
+| 30    | `mtch3.aftermath` | Popularity & momentum | `screens/match-aftermath/register.ts`      |
 
 ## The shell's look
 
