@@ -47,7 +47,8 @@ function onUnpaidLeave(employment: Pick<Employment, 'leave'>, date: GameDate): b
   return leave !== null && !leave.paid && compareDates(leave.until, date) >= 0;
 }
 
-function isOwnerOrBooker(
+/** True when the person runs the promotion: its owner or booker, or on a booker's contract. */
+export function isOwnerOrBooker(
   employment: Pick<Employment, 'personId' | 'role'>,
   promotion: Pick<Promotion, 'ownerPersonId' | 'bookerPersonId'>,
 ): boolean {

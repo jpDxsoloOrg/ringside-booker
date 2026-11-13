@@ -12,6 +12,7 @@ export type {
 } from './maps';
 export {
   controllerViewer,
+  controlsPromotion,
   OMNISCIENT_VIEWER,
   viewerPromotionIds,
   ViewerSchema,

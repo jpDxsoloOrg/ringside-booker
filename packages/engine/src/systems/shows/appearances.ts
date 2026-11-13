@@ -11,13 +11,21 @@ import type { PersonId } from '../../core/ids';
 import type { PhaseContext } from '../../core/pipeline/context';
 import { definePhase, type PhaseDefinition } from '../../core/pipeline/phase';
 import { compareIds } from '../../model/table';
+import type { Segment } from '../../model/entities/segment';
 import type { GameWorldView } from '../../model/tables';
+import type { DeepReadonly } from '../../model/world';
 import type { ShowContext } from './context';
 
-/** Everyone who worked the card, by id: participants in every role and every segment's crew. */
-export function showWorkers(read: GameWorldView, show: ShowContext): PersonId[] {
+/**
+ * Everyone who worked `segments`, by id and once each: participants in every role and every
+ * segment's crew. Finance (ECO1-04) reads it too, to charge a show's costs per distinct worker.
+ */
+export function distinctWorkersOf(
+  read: GameWorldView,
+  segments: readonly Pick<DeepReadonly<Segment>, 'id' | 'crew'>[],
+): PersonId[] {
   const people = new Set<PersonId>();
-  for (const { segment } of show.segments) {
+  for (const segment of segments) {
     for (const participant of read.tables.participants.lookup('bySegment', segment.id)) {
       people.add(participant.personId);
     }
@@ -33,6 +41,14 @@ export function showWorkers(read: GameWorldView, show: ShowContext): PersonId[] 
     }
   }
   return [...people].sort(compareIds);
+}
+
+/** Everyone who worked the card, by id: participants in every role and every segment's crew. */
+export function showWorkers(read: GameWorldView, show: ShowContext): PersonId[] {
+  return distinctWorkersOf(
+    read,
+    show.segments.map((entry) => entry.segment),
+  );
 }
 
 /**

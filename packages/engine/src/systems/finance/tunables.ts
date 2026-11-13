@@ -67,6 +67,70 @@ function medicalPerContract(level: number, defaultCents: number) {
   } as const;
 }
 
+// ---------------------------------------------------------------------------------------------
+// ECO1-04: show costs and policies. See docs/design/finances.md#show-costs and #policies.
+// ---------------------------------------------------------------------------------------------
+
+const SHOW_COSTS_DOC = 'finances.md#show-costs';
+const POLICIES_DOC = 'finances.md#policies';
+
+/** The most one show-cost rate may be: $100,000. */
+const SHOW_COST_RATE_MAX = 10_000_000;
+
+function travelPerWorker(level: number, defaultCents: number) {
+  return {
+    kind: 'integer',
+    default: defaultCents,
+    min: 0,
+    max: SHOW_COST_RATE_MAX,
+    unit: 'money',
+    category: FINANCE_TUNABLE_CATEGORY,
+    description: `Travel cost per paid worker per show at travel policy level ${String(level)}`,
+    docRef: SHOW_COSTS_DOC,
+  } as const;
+}
+
+function cateringPerShow(level: number, defaultCents: number) {
+  return {
+    kind: 'integer',
+    default: defaultCents,
+    min: 0,
+    max: SHOW_COST_RATE_MAX,
+    unit: 'money',
+    category: FINANCE_TUNABLE_CATEGORY,
+    description: `Catering cost per show at catering policy level ${String(level)}`,
+    docRef: SHOW_COSTS_DOC,
+  } as const;
+}
+
+function travelDistance(defaultValue: number, where: string) {
+  return {
+    kind: 'number',
+    default: defaultValue,
+    min: 0,
+    max: 10,
+    step: 0.1,
+    unit: 'multiplier',
+    category: FINANCE_TUNABLE_CATEGORY,
+    description: `Travel costs are multiplied by this for a show ${where}`,
+    docRef: SHOW_COSTS_DOC,
+  } as const;
+}
+
+function importanceMultiplier(defaultValue: number, importance: string) {
+  return {
+    kind: 'number',
+    default: defaultValue,
+    min: 0,
+    max: 10,
+    step: 0.05,
+    unit: 'multiplier',
+    category: FINANCE_TUNABLE_CATEGORY,
+    description: `Travel and catering are multiplied by this for a ${importance} show`,
+    docRef: SHOW_COSTS_DOC,
+  } as const;
+}
+
 export const financeTunables = defineTunables({
   // Reach and size (ECO1-02).
   'finance.reach.weight.homeRegion': reachWeight(1, 'home region'),
@@ -101,4 +165,53 @@ export const financeTunables = defineTunables({
   'finance.medical.perContract.level1': medicalPerContract(1, 15_000),
   'finance.medical.perContract.level2': medicalPerContract(2, 60_000),
   'finance.medical.perContract.level3': medicalPerContract(3, 150_000),
+  // ECO1-04: show costs and policies.
+  'finance.travel.perWorker.level0': travelPerWorker(0, 0),
+  'finance.travel.perWorker.level1': travelPerWorker(1, 5_000),
+  'finance.travel.perWorker.level2': travelPerWorker(2, 20_000),
+  'finance.travel.perWorker.level3': travelPerWorker(3, 50_000),
+  'finance.catering.perShow.level0': cateringPerShow(0, 0),
+  'finance.catering.perShow.level1': cateringPerShow(1, 25_000),
+  'finance.catering.perShow.level2': cateringPerShow(2, 80_000),
+  'finance.catering.perShow.level3': cateringPerShow(3, 250_000),
+  'finance.travel.domesticMultiplier': travelDistance(
+    1.5,
+    'in the home country but outside the home region',
+  ),
+  'finance.travel.abroadMultiplier': travelDistance(3, 'in another country'),
+  'finance.show.importance.house': importanceMultiplier(0.5, 'house'),
+  'finance.show.importance.minor': importanceMultiplier(0.75, 'minor'),
+  'finance.show.importance.regular': importanceMultiplier(1, 'regular'),
+  'finance.show.importance.major': importanceMultiplier(1.5, 'major'),
+  'finance.show.importance.flagship': importanceMultiplier(2.5, 'flagship'),
+  'finance.show.offscreenWorkersPerSlot': {
+    kind: 'integer',
+    default: 2,
+    min: 0,
+    max: 6,
+    unit: 'count',
+    category: FINANCE_TUNABLE_CATEGORY,
+    description: 'Workers counted per main-card slot when a show has no card booked in detail',
+    docRef: SHOW_COSTS_DOC,
+  },
+  'finance.travel.coveredLevel': {
+    kind: 'integer',
+    default: 3,
+    min: 0,
+    max: 3,
+    unit: 'count',
+    category: FINANCE_TUNABLE_CATEGORY,
+    description: 'The travel level a contract with the travel perk is always paid at',
+    docRef: SHOW_COSTS_DOC,
+  },
+  'finance.preview.recentShows': {
+    kind: 'integer',
+    default: 5,
+    min: 1,
+    max: 20,
+    unit: 'count',
+    category: FINANCE_TUNABLE_CATEGORY,
+    description: 'How many recent shows the policy preview averages to guess how many work a show',
+    docRef: POLICIES_DOC,
+  },
 });

@@ -150,7 +150,7 @@ export const DEFAULT_LEDGER_LIMIT = 100;
 export const MAX_LEDGER_LIMIT = 500;
 
 /** The promotion, once the viewer is allowed to read its books. Refuses the query otherwise. */
-function booksOf(ctx: QueryContext, promotionId: PromotionId): Promotion {
+export function booksOf(ctx: QueryContext, promotionId: PromotionId): Promotion {
   const promotion = ctx.read.tables.promotions.get(promotionId);
   if (promotion === undefined) {
     return refuseQuery({ code: 'notFound', message: 'No such promotion', field: 'promotionId' });
