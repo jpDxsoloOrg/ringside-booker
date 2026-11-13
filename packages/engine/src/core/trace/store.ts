@@ -34,6 +34,7 @@ import {
 import { assertJsonValue, formatPath } from '../json';
 import type { TunableReader } from '../tunables/resolver';
 import type { simTunables } from '../tunables/simTunables';
+import { copyValidTraceContent } from './fastCopy';
 import { limitTrace } from './limits';
 import { traceNodeSchema, traceNumberSchema, traceUnitSchema, traceValueSchema } from './schema';
 import type { TraceNode, TraceUnit, Traced, TraceValue } from './types';
@@ -567,6 +568,12 @@ function stepEffect(before: number, after: number): number {
  */
 function checkRecordedTrace(key: string, traced: Traced<TraceValue>): StagedTraceContent {
   const trace = limitTrace(traced.trace);
+  // The same copy in one walk when nothing is unusual (POL4-09); otherwise the full check below,
+  // which names the problem.
+  const fast = copyValidTraceContent(trace, traced.value);
+  if (fast !== null) {
+    return fast;
+  }
   assertJsonValue(trace, `traces["${key}"].trace`);
   assertJsonValue(traced.value, `traces["${key}"].value`);
   const result = stagedTraceContentSchema.safeParse({ trace, value: traced.value });
