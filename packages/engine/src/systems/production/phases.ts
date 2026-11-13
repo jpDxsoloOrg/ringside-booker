@@ -18,7 +18,7 @@
  */
 
 import { yearMonthOf } from '../../core/date';
-import type { PromotionId, RegionId } from '../../core/ids';
+import { isId, type PromotionId, type RegionId } from '../../core/ids';
 import type { StepContext } from '../../core/pipeline/context';
 import { definePhase, type PhaseDefinition } from '../../core/pipeline/phase';
 import { startCalc } from '../../core/trace/calc';
@@ -157,9 +157,9 @@ export const popularityDragPhase: PhaseDefinition = definePhase({
         },
         { tunables: ctx.tunables },
       );
-      const over = Object.entries(promotion.regionalPop)
-        .filter(([, popularity]) => popularity > ceiling.value)
-        .map(([regionId]) => regionId as RegionId)
+      const over = Object.keys(promotion.regionalPop)
+        .filter((key): key is RegionId => isId('region', key))
+        .filter((regionId) => (promotion.regionalPop[regionId] ?? 0) > ceiling.value)
         .sort(compareIds);
       if (over.length === 0) {
         continue;

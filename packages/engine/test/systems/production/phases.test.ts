@@ -113,13 +113,10 @@ const CATEGORY_ORDER: readonly string[] = ['production', 'marketing', 'backOffic
 
 /** The promotion's rows by date, then Production, Marketing, Back office (ids are not ordered). */
 function rowsOf(world: GameWorld, promotionId: PromotionId): LedgerEntry[] {
-  return world.tables.ledgerEntries
-    .lookup('byPromotion', promotionId)
-    .sort(
-      (left, right) =>
-        left.date.localeCompare(right.date) ||
-        CATEGORY_ORDER.indexOf(left.category) - CATEGORY_ORDER.indexOf(right.category),
-    );
+  const order = (row: LedgerEntry): number => CATEGORY_ORDER.indexOf(row.category);
+  return [...world.tables.ledgerEntries.lookup('byPromotion', promotionId)].sort(
+    (left, right) => left.date.localeCompare(right.date) || order(left) - order(right),
+  );
 }
 
 function labelsOf(runtime: SimRuntime, ref: TraceRef): string[] {
@@ -303,9 +300,9 @@ describe('the popularity drag', () => {
       reasonKey: POPULARITY_DRAG_REASON_KEY,
     });
 
-    const regionName = built.world.tables.regions.require(
-      built.regions[0] ?? ('' as RegionId),
-    ).name;
+    const [firstRegion] = built.regions;
+    if (firstRegion === undefined) throw new Error('no region');
+    const regionName = built.world.tables.regions.require(firstRegion).name;
     const labels = labelsOf(runtime, {
       kind: DOOR_TRACE_KINDS.promotionPopularity,
       id: built.human,
