@@ -23,7 +23,7 @@ describe('StatusStrip', () => {
     expect(status).toHaveTextContent('$1.2M');
     expect(status).toHaveTextContent('+$48.5K');
     expect(status).toHaveTextContent('/wk');
-    expect(status).toHaveTextContent('82%');
+    expect(status).toHaveTextContent('Popularity82');
     expect(within(status).queryByText('Sample')).toBeNull();
   });
 

@@ -1,7 +1,7 @@
 import type { Cents } from '@ringside/engine';
 import { Badge } from '@/components/Badge';
 import { DeltaChip } from '@/components/DeltaChip';
-import { formatGameDate, formatPercent, useMoneyFormatter } from '@/components/format';
+import { formatGameDate, formatPopularity, useMoneyFormatter } from '@/components/format';
 import { Icon } from '@/components/Icon';
 import type { ShellStatus } from './shellPreview';
 import styles from './StatusStrip.module.css';
@@ -13,8 +13,6 @@ export interface StatusStripProps {
   /** Marks the figures as a sample, on screen and for screen readers. */
   readonly sample?: boolean;
 }
-
-const POPULARITY_SCALE = 100;
 
 /** "Week 11 · Season 2", or just the week before the first season. */
 function weekAndSeason(status: ShellStatus): string {
@@ -92,9 +90,7 @@ export function StatusStrip({ status, compact, sample = false }: StatusStripProp
           <div className={styles['item']} data-status="popularity">
             <dt className={styles['label']}>Popularity</dt>
             <dd className={styles['value']}>
-              <span className={styles['popularity']}>
-                {formatPercent(status.popularity / POPULARITY_SCALE)}
-              </span>
+              <span className={styles['popularity']}>{formatPopularity(status.popularity)}</span>
             </dd>
           </div>
         )}

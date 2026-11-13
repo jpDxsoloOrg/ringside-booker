@@ -8,7 +8,7 @@ import { Button } from '@/components/Button';
 import { DataTable } from '@/components/DataTable';
 import type { ColumnDef } from '@/components/DataTable';
 import { EmptyState } from '@/components/EmptyState';
-import { formatNumber } from '@/components/format';
+import { formatNumber, formatPopularity } from '@/components/format';
 import { Icon } from '@/components/Icon';
 import { Sheet } from '@/components/Sheet';
 import { Tab, TabList, TabPanel, Tabs } from '@/components/Tabs';
@@ -67,7 +67,7 @@ const PICKER_COLUMNS: readonly ColumnDef<PickerRow>[] = [
     id: 'popularity',
     header: 'Popularity',
     cardLabel: 'Pop.',
-    cell: (row) => formatNumber(row.popularity),
+    cell: (row) => formatPopularity(row.popularity),
     sortValue: (row) => row.popularity,
     numeric: true,
     card: 'stat',

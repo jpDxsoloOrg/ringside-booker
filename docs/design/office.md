@@ -395,7 +395,8 @@ registered panel's own query; nothing is invented and nothing says "coming soon"
   alone before the first season, "World overview" for a seat that runs none).
 - **Key numbers**: one `OfficeKpiCard` per `OfficeKpi`, in the engine's order. The number is
   formatted by unit (money in the viewer's money style, so the Cash card always reads like the top
-  bar's cash chip; points to one decimal; counts whole), with its Why? when the KPI has a `trace`
+  bar's cash chip; points with the shared popularity formatter, one decimal at most, so the
+  Popularity card reads exactly like the top bar's chip and its Why?; counts whole), with its Why? when the KPI has a `trace`
   or a `traceRef`. Once a week-old row exists the card has a delta chip ("−$333.9K vs last week")
   with its own Why? ("Change in cash since Mon 1 Feb", naming both dates), drawn through
   `KpiCard`'s `delta.why`. With two or more points the card draws the trend as a sparkline ("last 8

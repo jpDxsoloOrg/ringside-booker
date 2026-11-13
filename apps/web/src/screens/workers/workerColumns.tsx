@@ -3,7 +3,7 @@ import type { WorkerRow } from '@ringside/engine';
 import { AvailabilityChip } from '@/components/AvailabilityChip';
 import { Badge } from '@/components/Badge';
 import type { ColumnDef } from '@/components/DataTable';
-import { formatNumber } from '@/components/format';
+import { formatNumber, formatPopularity, roundPopularity } from '@/components/format';
 import { ImageSlot } from '@/components/ImageSlot';
 import type { ImageSubject } from '@/components/ImageSlot';
 import { LazyWhyButton } from '@/components/Trace';
@@ -65,13 +65,13 @@ function OverallCell({ row }: { readonly row: WorkerRow }) {
 function PopularityCell({ row }: { readonly row: WorkerRow }) {
   const top = row.topPopularity;
   if (top === null) return <span className={styles['none']}>{NONE}</span>;
-  const rounded = Math.round(top.value);
+  const shown = roundPopularity(top.value);
   return (
     <span className={styles['explained']}>
-      <span className="tabular">{`${formatNumber(rounded)} · ${top.countryName}`}</span>
+      <span className="tabular">{`${formatPopularity(shown)} · ${top.countryName}`}</span>
       <LazyWhyButton
         label={`${row.ringName} popularity in ${top.countryName}`}
-        value={rounded}
+        value={shown}
         queryName="workers.explain"
         args={{ personId: row.personId, metric: 'topPopularity' }}
       />
