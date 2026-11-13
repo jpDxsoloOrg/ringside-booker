@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { ROSTER_ROLE_GROUPS } from '@ringside/engine';
+import { PUSH_LABELS, ROSTER_ROLE_GROUPS } from '@ringside/engine';
 import type {
   PromotionId,
   RosterRoleGroup,
@@ -12,11 +12,13 @@ import type {
 } from '@ringside/engine';
 import { RouteHeading } from '@/app/a11y/RouteHeading';
 import { useDocumentTitle } from '@/app/a11y/useDocumentTitle';
+import { useEngineStatus } from '@/app/engine/EngineProvider';
 import { useEngineQuery } from '@/app/engine/useEngineQuery';
 import { workerLinkState } from '@/app/entityLinks';
 import { routes } from '@/app/routes';
 import { useSessionStore } from '@/app/session/sessionStore';
 import { CountBadge } from '@/components/Badge';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { DataTable } from '@/components/DataTable';
 import { EmptyState } from '@/components/EmptyState';
 import { formatNumber } from '@/components/format';
@@ -25,7 +27,8 @@ import type { SelectOption } from '@/components/Select';
 import { Tab, TabList, TabPanel, Tabs } from '@/components/Tabs';
 import { useTracePanelStore } from '@/components/Trace';
 import { useIsMobile } from '@/styles/useMediaQuery';
-import { emptyGroupText, roleGroupLabel } from './labels';
+import { emptyGroupText, pushLabel, roleGroupLabel } from './labels';
+import { RosterBulkBar } from './RosterBulkBar';
 import { columnsFor, compareRosterTies, initialSortFor } from './rosterColumns';
 import {
   ALL_BRANDS,
@@ -45,10 +48,21 @@ import {
   useRosterTabs,
 } from './rosterTabRegistry';
 import type { RosterTabContext, RosterTabDefinition } from './rosterTabRegistry';
+import { RosterRowActionsContext } from './rosterRowActions';
+import type { RosterRowActionContext } from './rosterRowActions';
+import { SetPushSheet } from './SetPushSheet';
+import type { CardPush } from './SetPushSheet';
+import { ENGINE_UNREACHABLE_TEXT, useSetPush } from './useSetPush';
 import styles from './RosterScreen.module.css';
+import pushStyles from './SetPush.module.css';
 
 const TITLE = 'Roster';
 const NO_ROWS: readonly RosterRow[] = [];
+const NO_IDS: readonly string[] = [];
+const NO_MESSAGES: readonly string[] = [];
+
+/** How many "Ring name: Mid card → Main event" lines the bulk confirm lists before "and 3 more". */
+export const CONFIRM_LIST_MAX = 10;
 
 /** What the screen says when the engine cannot answer at all (no world loaded). */
 export const NO_GAME_TEXT = 'Start or load a game to see your roster.';
@@ -117,33 +131,111 @@ interface RosterTableProps {
   readonly loading: boolean;
   readonly promotionName: string;
   readonly onActivate: ((row: RosterRow) => void) | undefined;
+  /** The ticked rows, held by the screen; `null` for a group that can't be ticked (crew). */
+  readonly checking: {
+    readonly checkedRowIds: readonly string[];
+    readonly onChange: (rowIds: readonly string[]) => void;
+  } | null;
+  /** The bulk bar: above the table on desktop, after the cards (sticking to the bottom) on a phone. */
+  readonly bulkBar: ReactNode;
+  readonly isMobile: boolean;
 }
 
 /**
- * One role group's table. WRK2-05 turns on `selectable` here (with `checkedRowIds` held by the
- * screen) for its bulk push change, and adds its row menu as the last column in `columnsFor`.
+ * One role group's table. Wrestlers can be ticked for a bulk push change (crew have no push), and
+ * their last column is the row menu (`columnsFor`).
  */
-function RosterTable({ group, rows, loading, promotionName, onActivate }: RosterTableProps) {
+function RosterTable({
+  group,
+  rows,
+  loading,
+  promotionName,
+  onActivate,
+  checking,
+  bulkBar,
+  isMobile,
+}: RosterTableProps) {
   return (
-    <DataTable
-      className={styles['table']}
-      rows={rows}
-      columns={columnsFor(group)}
-      getRowId={rowId}
-      getRowLabel={rowLabel}
-      compareTies={compareRosterTies}
-      caption={`${roleGroupLabel(group)} at ${promotionName}`}
-      initialSort={initialSortFor(group)}
-      filterable
-      filterLabel="Find a worker"
-      columnPicker
-      // Eleven columns: the tighter rows let them fit beside the sidebar on a laptop.
-      density="compact"
-      loading={loading}
-      {...(onActivate === undefined ? {} : { onActivate })}
-      emptyState={<EmptyState icon="roster" title={emptyGroupText(group)} />}
-    />
+    <div className={pushStyles['tableStack']}>
+      {!isMobile && bulkBar}
+      <DataTable
+        className={styles['table']}
+        rows={rows}
+        columns={columnsFor(group)}
+        getRowId={rowId}
+        getRowLabel={rowLabel}
+        compareTies={compareRosterTies}
+        caption={`${roleGroupLabel(group)} at ${promotionName}`}
+        initialSort={initialSortFor(group)}
+        filterable
+        filterLabel="Find a worker"
+        columnPicker
+        // Eleven columns: the tighter rows let them fit beside the sidebar on a laptop.
+        density="compact"
+        loading={loading}
+        {...(onActivate === undefined ? {} : { onActivate })}
+        {...(checking === null
+          ? {}
+          : {
+              selectable: true,
+              checkedRowIds: checking.checkedRowIds,
+              onCheckedRowIdsChange: checking.onChange,
+              // The bulk bar shows the count and Clear; the toolbar would say it twice.
+              checkedSummary: false,
+            })}
+        emptyState={<EmptyState icon="roster" title={emptyGroupText(group)} />}
+      />
+      {isMobile && bulkBar}
+    </div>
   );
+}
+
+/** "Test Name 3: Lower card → Main event", one line of the bulk confirm. */
+export function pushChangeLine(row: RosterRow, push: CardPush): string {
+  return `${row.ringName}: ${pushLabel(row.push)} → ${PUSH_LABELS[push]}`;
+}
+
+/** The bulk confirm's body: who moves from where, up to ten names, then how many more. */
+function BulkConfirmBody({
+  rows,
+  push,
+}: {
+  readonly rows: readonly RosterRow[];
+  readonly push: CardPush;
+}) {
+  const moving = rows.filter((row) => row.push !== push);
+  const staying = rows.length - moving.length;
+  const listed = moving.slice(0, CONFIRM_LIST_MAX);
+  const more = moving.length - listed.length;
+  return (
+    <>
+      <ul className={pushStyles['changes']}>
+        {listed.map((row) => (
+          <li key={row.employmentId}>{pushChangeLine(row, push)}</li>
+        ))}
+      </ul>
+      {more > 0 && <p className={pushStyles['more']}>{`and ${formatNumber(more)} more`}</p>}
+      {staying > 0 && (
+        <p className={pushStyles['more']}>
+          {staying === 1
+            ? '1 is already there and stays.'
+            : `${formatNumber(staying)} are already there and stay.`}
+        </p>
+      )}
+    </>
+  );
+}
+
+/** The push change being made: who it is for, and whether it came from the ticked rows. */
+interface PushTarget {
+  readonly rows: readonly RosterRow[];
+  readonly fromSelection: boolean;
+}
+
+/** The ticked rows, tied to the tab and brand they were ticked on: changing either clears them. */
+interface Checked {
+  readonly key: string;
+  readonly ids: readonly string[];
 }
 
 /**
@@ -200,6 +292,81 @@ export function RosterScreen() {
   };
   const rowsQuery = useEngineQuery('roster.rows', rowsArgs, { enabled: selectedGroup !== null });
   const rows = (rowsQuery.status === 'success' ? rowsQuery.data?.rows : undefined) ?? NO_ROWS;
+
+  const advancing = useEngineStatus((state) => state.advancing);
+  const { setPush, pending } = useSetPush();
+
+  // Ticked wrestlers, cleared when the tab or the brand changes, so coming back starts clean.
+  const selectionKey = `${selectedTab}|${brand ?? ALL_BRANDS}`;
+  const [checked, setChecked] = useState<Checked>({ key: selectionKey, ids: NO_IDS });
+  if (checked.key !== selectionKey) setChecked({ key: selectionKey, ids: NO_IDS });
+  const checkedIds = checked.key === selectionKey ? checked.ids : NO_IDS;
+  const changeChecked = useCallback(
+    (ids: readonly string[]): void => {
+      setChecked({ key: selectionKey, ids });
+    },
+    [selectionKey],
+  );
+  const clearChecked = useCallback((): void => {
+    setChecked({ key: selectionKey, ids: NO_IDS });
+  }, [selectionKey]);
+  // Ticked rows still on the roster, in the table's data order.
+  const checkedRows = useMemo(() => {
+    const ids = new Set(checkedIds);
+    return rows.filter((row) => ids.has(row.employmentId));
+  }, [rows, checkedIds]);
+
+  // The sheet keeps its last target while it closes, so its title doesn't change on the way out.
+  const [target, setTarget] = useState<PushTarget | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [messages, setMessages] = useState<readonly string[]>(NO_MESSAGES);
+  const [confirmPush, setConfirmPush] = useState<CardPush | null>(null);
+
+  const openSheet = useCallback((next: PushTarget): void => {
+    setTarget(next);
+    setMessages(NO_MESSAGES);
+    setSheetOpen(true);
+  }, []);
+  const openSetPush = useCallback(
+    (row: RosterRow): void => {
+      openSheet({ rows: [row], fromSelection: false });
+    },
+    [openSheet],
+  );
+  const rowActionContext = useMemo<RosterRowActionContext>(
+    () => ({ advancing, openSetPush }),
+    [advancing, openSetPush],
+  );
+
+  const finishChange = (fromSelection: boolean): void => {
+    setSheetOpen(false);
+    if (fromSelection) clearChecked();
+  };
+
+  // One wrestler: straight away, since a push is one click to undo. Several: ask first.
+  const applyPush = async (push: CardPush): Promise<void> => {
+    if (target === null) return;
+    if (target.rows.length > 1) {
+      setConfirmPush(push);
+      return;
+    }
+    setMessages(NO_MESSAGES);
+    try {
+      const outcome = await setPush(target.rows, push);
+      if (outcome.ok) finishChange(target.fromSelection);
+      else setMessages(outcome.messages);
+    } catch {
+      setMessages([ENGINE_UNREACHABLE_TEXT]);
+    }
+  };
+
+  const confirmBulk = async (): Promise<void> => {
+    if (target === null || confirmPush === null) return;
+    const outcome = await setPush(target.rows, confirmPush);
+    // Thrown, so the dialog stays open and shows the engine's words.
+    if (!outcome.ok) throw new Error(outcome.messages.join(' '));
+    finishChange(target.fromSelection);
+  };
 
   // Replace, so Back leaves the roster instead of stepping back through every tab.
   const changeTab = useCallback(
@@ -298,6 +465,25 @@ export function RosterScreen() {
                   // On a phone the name is the way in: its link covers the whole card (see the
                   // CSS), so the card is not a button with a link and more buttons inside it.
                   onActivate={isMobile ? undefined : openProfile}
+                  checking={
+                    tab.id === 'wrestlers'
+                      ? { checkedRowIds: checkedIds, onChange: changeChecked }
+                      : null
+                  }
+                  bulkBar={
+                    tab.id === 'wrestlers' && (
+                      <RosterBulkBar
+                        count={checkedRows.length}
+                        advancing={advancing}
+                        placement={isMobile ? 'phone' : 'inline'}
+                        onSetPush={() => {
+                          openSheet({ rows: checkedRows, fromSelection: true });
+                        }}
+                        onClear={clearChecked}
+                      />
+                    )
+                  }
+                  isMobile={isMobile}
                 />
               ) : (
                 context !== null && tab.definition.render(context)
@@ -321,7 +507,40 @@ export function RosterScreen() {
           </p>
         )}
       </div>
-      {body}
+      <RosterRowActionsContext.Provider value={rowActionContext}>
+        {body}
+      </RosterRowActionsContext.Provider>
+      <SetPushSheet
+        open={sheetOpen}
+        rows={target?.rows ?? NO_ROWS}
+        onClose={() => {
+          setSheetOpen(false);
+        }}
+        onApply={(push) => {
+          void applyPush(push);
+        }}
+        pending={pending}
+        messages={messages}
+        advancing={advancing}
+      />
+      <ConfirmDialog
+        open={confirmPush !== null}
+        onClose={() => {
+          setConfirmPush(null);
+        }}
+        onConfirm={confirmBulk}
+        title={
+          confirmPush === null || target === null
+            ? ''
+            : `Set ${formatNumber(target.rows.length)} wrestlers to ${PUSH_LABELS[confirmPush]}?`
+        }
+        body={
+          confirmPush === null || target === null ? null : (
+            <BulkConfirmBody rows={target.rows} push={confirmPush} />
+          )
+        }
+        confirmLabel="Set push"
+      />
     </div>
   );
 }

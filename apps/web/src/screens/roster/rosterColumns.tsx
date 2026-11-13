@@ -1,8 +1,10 @@
+import { useContext } from 'react';
 import { PUSH_LEVELS } from '@ringside/engine';
 import type { RosterRoleGroup, RosterRow } from '@ringside/engine';
 import { AlignmentChip } from '@/components/AlignmentChip';
 import { AVAILABILITY_LABELS, AvailabilityChip } from '@/components/AvailabilityChip';
 import { Badge } from '@/components/Badge';
+import { IconButton } from '@/components/Button';
 import type { ColumnDef, SortState } from '@/components/DataTable';
 import {
   formatDaysAway,
@@ -11,6 +13,8 @@ import {
   formatPopularity,
   roundPopularity,
 } from '@/components/format';
+import { DropdownMenu } from '@/components/DropdownMenu';
+import type { DropdownMenuAction } from '@/components/DropdownMenu';
 import { ImageSlot } from '@/components/ImageSlot';
 import type { ImageSubject } from '@/components/ImageSlot';
 import { VisuallyHidden } from '@/components/layout';
@@ -18,6 +22,8 @@ import { Explained, LazyWhyButton } from '@/components/Trace';
 import { WorkerLink } from '@/components/WorkerLink';
 import { NO_VALUE, pushLabel } from './labels';
 import { PushGapMarker } from './PushGapMarker';
+import { RosterRowActionsContext, WAIT_FOR_DAY_TEXT } from './rosterRowActions';
+import type { RosterRowAction } from './rosterRowActions';
 import styles from './RosterScreen.module.css';
 
 /** What the Momentum cell shows before a worker's first appearance under the contract. */
@@ -252,6 +258,65 @@ const CONTRACT_ENDS: ColumnDef<RosterRow> = {
   card: 'meta',
 };
 
+/** The label of the Set push item, the bulk bar's button and the phone bar's button. */
+export const SET_PUSH_LABEL = 'Set push…';
+
+/** "Set push…", or, while days are advancing, the same with the reason it can't be used. */
+export function setPushItemLabel(advancing: boolean): string {
+  return advancing ? `${SET_PUSH_LABEL} (${WAIT_FOR_DAY_TEXT.toLowerCase()})` : SET_PUSH_LABEL;
+}
+
+/** "Set push…" for a wrestler; crew and managers have no place on the card. */
+const setPushAction: RosterRowAction = (row, context) =>
+  row.group === 'wrestlers'
+    ? {
+        kind: 'item',
+        id: 'setPush',
+        label: setPushItemLabel(context.advancing),
+        icon: 'roster',
+        disabled: context.advancing,
+        onSelect: () => {
+          context.openSetPush(row);
+        },
+      }
+    : null;
+
+/**
+ * The items of a roster row's menu, in order. Later features (CRTV7 turns, CRTV6 brand moves,
+ * ECO4 releases) append theirs here; a row whose list comes out empty shows no menu.
+ */
+export const rosterRowActions: RosterRowAction[] = [setPushAction];
+
+function RowActionsCell({ row }: { readonly row: RosterRow }) {
+  const context = useContext(RosterRowActionsContext);
+  if (context === null) return null;
+  const items = rosterRowActions
+    .map((action) => action(row, context))
+    .filter((item): item is DropdownMenuAction => item !== null);
+  if (items.length === 0) return null;
+  return (
+    <DropdownMenu
+      trigger={<IconButton icon="more" size="sm" label={`Actions for ${row.ringName}`} />}
+      items={items}
+    />
+  );
+}
+
+/**
+ * The row menu, desktop only: a phone card is one button, so a menu inside it would nest one
+ * control in another. Phones tick cards and use the bottom bar instead.
+ */
+const ACTIONS: ColumnDef<RosterRow> = {
+  id: 'actions',
+  header: 'Actions',
+  headerHidden: true,
+  cell: (row) => <RowActionsCell row={row} />,
+  width: 'xs',
+  align: 'end',
+  hideable: false,
+  card: 'hidden',
+};
+
 /**
  * The wrestlers' columns. On a phone card the stats are Push, Expects, Overall, Popularity,
  * Momentum and Morale (six, the card's most), with availability and the contract's end below.
@@ -268,16 +333,20 @@ const WRESTLER_COLUMNS: readonly ColumnDef<RosterRow>[] = [
   MORALE,
   AVAILABILITY,
   CONTRACT_ENDS,
+  ACTIONS,
 ];
 
-/** Managers and crew have no card position, so no Push or Expects. */
+/**
+ * Managers and crew have no card position, so no Push or Expects, and no row menu yet: its only
+ * item is Set push. The first crew action (a release, a brand move) brings `ACTIONS` back here.
+ */
 const CREW_COLUMNS: readonly ColumnDef<RosterRow>[] = WRESTLER_COLUMNS.filter(
-  (column) => column !== PUSH && column !== EXPECTS,
+  (column) => column !== PUSH && column !== EXPECTS && column !== ACTIONS,
 );
 
 /**
  * The columns of one roster section, the same array on every call (the DataTable README asks for
- * stable columns). WRK2-05 adds its row-menu column here, at the end of both lists.
+ * stable columns). The wrestlers' list ends with the row menu.
  */
 export function columnsFor(group: RosterRoleGroup): readonly ColumnDef<RosterRow>[] {
   return group === 'wrestlers' ? WRESTLER_COLUMNS : CREW_COLUMNS;
