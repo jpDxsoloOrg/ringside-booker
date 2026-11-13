@@ -84,6 +84,10 @@ describe('gallery registry', () => {
         'worker-profile-header',
         'champion-card',
         'stat-table',
+        'rival-rules-chip',
+        'needs-list',
+        'decision-log-list',
+        'promotion-header',
       ]),
     );
   });
