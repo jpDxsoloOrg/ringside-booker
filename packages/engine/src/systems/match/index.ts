@@ -310,6 +310,8 @@ export {
   LAB_WORKERS_MAX_LIMIT,
   LAB_WORKERS_MAX_SEARCH,
   LAB_WORKER_SCOPES,
+  LAB_WORKER_TRAIT_FILTERS,
+  type LabWorkerTraitFilter,
   type LabDefaults,
   type LabImportance,
   type LabOptions,

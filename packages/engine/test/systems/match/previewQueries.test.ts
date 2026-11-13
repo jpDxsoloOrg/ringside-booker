@@ -479,6 +479,34 @@ describe('match.labOptions', () => {
 });
 
 describe('match.labWorkers', () => {
+  it('filters by trait and gives safety and traits (MTCH4-05)', () => {
+    const lab = labWorld((world, roster) => {
+      updatePerson(world, at(roster, 3), (person) => ({
+        ...person,
+        traits: ['teacher'],
+        attributes: { ...person.attributes, safety: 12 },
+      }));
+    });
+    const result = lab.engine.query(
+      'match.labWorkers',
+      { scope: 'mine', regionId: at(lab.regions, 0), trait: 'teacher' },
+      PLAYER,
+    );
+    if (!result.ok) {
+      throw new Error(JSON.stringify(result.reasons));
+    }
+    expect(result.data.rows).toEqual([
+      expect.objectContaining({ personId: at(lab.roster, 3), safety: 12, traits: ['teacher'] }),
+    ]);
+    const refused = lab.engine.query(
+      'match.labWorkers',
+      // @ts-expect-error -- not a trait the picker filters by
+      { scope: 'mine', regionId: at(lab.regions, 0), trait: 'partier' },
+      PLAYER,
+    );
+    expect(refused.ok).toBe(false);
+  });
+
   it('lists only the promotion’s active roster for mine, nothing hidden', () => {
     const lab = labWorld();
     const result = lab.engine.query(
@@ -499,7 +527,9 @@ describe('match.labWorkers', () => {
         'popularity',
         'promotionShortName',
         'roles',
+        'safety',
         'style',
+        'traits',
         'unavailableReason',
       ]);
     }

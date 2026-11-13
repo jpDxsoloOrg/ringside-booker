@@ -1190,6 +1190,7 @@ export type {
   LabRegion,
   LabWorkerRow,
   LabWorkerScope,
+  LabWorkerTraitFilter,
   LabWorkers,
   LabWorkersArgs,
   PreviewArgs,
@@ -1223,6 +1224,7 @@ export {
 } from './systems/match/index';
 export {
   LAB_WORKER_SCOPES,
+  LAB_WORKER_TRAIT_FILTERS,
   LAB_WORKERS_DEFAULT_LIMIT,
   LAB_WORKERS_MAX_LIMIT,
   LAB_WORKERS_MAX_SEARCH,
