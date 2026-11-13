@@ -1,0 +1,155 @@
+// The Promotions queries and the weekly roster review on the shipped default world (AIP1-05):
+// a new game as Longleaf Championship Wrestling against the 11 computer rivals.
+// Design: docs/design/rival-desk.md#promotions-queries
+import { beforeAll, describe, expect, it } from 'vitest';
+import { createEngine, type Engine, type Viewer } from '../../../src/core/api';
+import type { QueryArgs, QueryData, QueryName } from '../../../src/core/api/maps';
+import type { PromotionId } from '../../../src/core/ids';
+import { assertTraceReplays } from '../../../src/core/trace';
+import { defaultSystems } from '../../../src/systems';
+import { withMyShowsRun } from '../../support';
+import { SLOW_TESTS } from '../../support/slow';
+import { startDefaultGame } from '../calendar/default-game';
+
+const PLAYER: Viewer = {
+  kind: 'controller',
+  controller: { kind: 'human', playerId: 'local-player' },
+};
+const LONGLEAF = 'Longleaf Championship Wrestling';
+
+function newLongleafGame(): Engine {
+  const state = startDefaultGame({
+    player: { mode: 'existing', promotionKey: 'pro-us-southeast' },
+  });
+  return createEngine({ state, systems: withMyShowsRun([...defaultSystems]) });
+}
+
+function ask<N extends QueryName>(engine: Engine, name: N, args: QueryArgs<N>): QueryData<N> {
+  const result = engine.query(name, args, PLAYER);
+  if (!result.ok) {
+    return expect.fail(`${name} refused: ${JSON.stringify(result.reasons)}`);
+  }
+  return result.data;
+}
+
+function promotionNamed(engine: Engine, name: string): PromotionId {
+  const row = ask(engine, 'promotions.list', {}).find((candidate) => candidate.name === name);
+  if (row === undefined) {
+    return expect.fail(`no promotion called ${name}`);
+  }
+  return row.promotionId;
+}
+
+describe('the Promotions queries on the default world', () => {
+  let engine: Engine;
+  beforeAll(() => {
+    engine = newLongleafGame();
+  });
+
+  it('lists the 12 promotions, Longleaf yours and the rest the computer’s, rival cash hidden', () => {
+    const rows = ask(engine, 'promotions.list', {});
+    expect(rows).toHaveLength(12);
+    for (const row of rows) {
+      if (row.name === LONGLEAF) {
+        expect(row.controlledBy).toBe('you');
+        expect(row.cash.kind).toBe('exact');
+      } else {
+        expect(row.controlledBy).toBe('computer');
+        expect(row.cash.kind).toBe('hidden');
+      }
+    }
+  });
+
+  it('values every Tessen wrestler 0-100 with a Why? that replays', () => {
+    const tessen = promotionNamed(engine, 'Tessen Pro Wrestling');
+    const roster = ask(engine, 'promotions.roster', { promotionId: tessen });
+    const wrestlers = roster.rows.filter((row) => row.role === 'wrestler');
+    expect(wrestlers.length).toBeGreaterThan(10);
+    for (const row of wrestlers) {
+      const value = row.cardValue;
+      if (value === null) {
+        return expect.fail(`${row.ringName} has no card value`);
+      }
+      expect(value.value).toBeGreaterThanOrEqual(0);
+      expect(value.value).toBeLessThanOrEqual(100);
+      assertTraceReplays(value);
+    }
+  });
+
+  it('works out needs for all 12 promotions', () => {
+    for (const row of ask(engine, 'promotions.list', {})) {
+      const needs = ask(engine, 'aip.needs', { promotionId: row.promotionId });
+      expect(needs.unitName).toBe(row.name);
+    }
+  });
+
+  it('records one weekly roster review per rival over a 7-day skip', async () => {
+    const skipped = newLongleafGame();
+    const advanced = await skipped.advanceDays({ maxDays: 7 });
+    expect(advanced.failures).toEqual([]);
+    for (const row of ask(skipped, 'promotions.list', {})) {
+      const log = ask(skipped, 'aip.decisionLog', { promotionId: row.promotionId });
+      const reviews = log.entries.filter((entry) => entry.kind === 'rosterReview');
+      if (row.name === LONGLEAF) {
+        expect(reviews).toEqual([]);
+        continue;
+      }
+      expect(reviews, row.name).toHaveLength(1);
+      expect(reviews[0]?.text).toMatch(/^Weekly roster review: /);
+      expect(reviews[0]?.traceRef).not.toBeNull();
+      expect(log.hiddenCount).toBe(0);
+    }
+  });
+});
+
+/** Median of `runs` timings of `work`, in CPU milliseconds (user and system). */
+function medianMs(runs: number, work: () => void): number {
+  const times: number[] = [];
+  for (let run = 0; run < runs; run += 1) {
+    const started = process.cpuUsage();
+    work();
+    const used = process.cpuUsage(started);
+    times.push((used.user + used.system) / 1000);
+  }
+  times.sort((left, right) => left - right);
+  return times[Math.floor(times.length / 2)] ?? 0;
+}
+
+describe.runIf(SLOW_TESTS)('Promotions query speed on the default world', () => {
+  it('answers promotions.list and Altura’s promotions.roster well under 50 ms', () => {
+    const engine = newLongleafGame();
+    const altura = promotionNamed(engine, 'Altura Wrestling Entertainment');
+    // Warm up once so the timings measure the queries, not the first compile.
+    ask(engine, 'promotions.list', {});
+    ask(engine, 'promotions.roster', { promotionId: altura });
+    const listMs = medianMs(9, () => ask(engine, 'promotions.list', {}));
+    const rosterMs = medianMs(9, () => ask(engine, 'promotions.roster', { promotionId: altura }));
+    const rows = ask(engine, 'promotions.roster', { promotionId: altura }).rows.length;
+    console.log(
+      `promotions.list ${listMs.toFixed(1)} ms; promotions.roster (Altura, ${String(rows)} rows) ${rosterMs.toFixed(1)} ms`,
+    );
+    expect(listMs).toBeLessThan(50);
+    expect(rosterMs).toBeLessThan(50);
+  });
+
+  it('logs each promotion’s top card values and needs (the calibration log)', () => {
+    const engine = newLongleafGame();
+    const lines: string[] = [];
+    for (const row of ask(engine, 'promotions.list', {})) {
+      const roster = ask(engine, 'promotions.roster', { promotionId: row.promotionId });
+      const top = roster.rows
+        .filter((entry) => entry.role === 'wrestler')
+        .sort((left, right) => (right.cardValue?.value ?? 0) - (left.cardValue?.value ?? 0))
+        .slice(0, 3)
+        .map((entry) => `${entry.ringName} ${(entry.cardValue?.value ?? 0).toFixed(1)}`);
+      const needs = ask(engine, 'aip.needs', { promotionId: row.promotionId }).needs.map(
+        (need) => `${need.text} (${need.severity.value.toFixed(0)})`,
+      );
+      lines.push(
+        `${row.name} [${roster.taste.label}]\n  top: ${top.join(', ')}\n  needs: ${needs.join('; ') || 'none'}`,
+      );
+    }
+    console.log(lines.join('\n'));
+    expect(lines).toHaveLength(12);
+  });
+});
