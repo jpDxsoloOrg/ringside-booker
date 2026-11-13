@@ -1126,8 +1126,9 @@ history yet" and adds nothing. AIP5-06 registers DAY2's promotion snapshots as
 (`granularity: 'week'`) dated on or before the show, newest
 `aip.titles.hotShot.weeks + 1`, valued at `popularity.headline` (the figure
 the Office leads with). Rows thinned to one a month and a new game's baseline
-row are not weekly readings and are skipped, so a new game reads "Only 0
-weekly readings so far".
+row are not weekly readings and are skipped, so a new game reads "No
+popularity history yet" too; with some readings but fewer than the term
+compares, it reads "Only 2 weekly readings so far, needs 4".
 
 **Results tunables.** Category `Rival booking`, in `results/tunables.ts`; the
 table is in [tunables.md](tunables.md#rival-results-tunables).

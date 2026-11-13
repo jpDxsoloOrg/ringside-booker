@@ -95,8 +95,14 @@ export function hotShotText(weeks: number): string {
   return `Popularity fell ${formatNumber(weeks)} weeks running (hot-shot)`;
 }
 
-export function fewReadingsText(count: number): string {
-  return `Only ${formatNumber(count)} weekly readings so far`;
+/**
+ * The hot-shot line before there are enough readings to compare: "No popularity history yet" with
+ * none (a new game), else "Only 1 weekly reading so far, needs 4".
+ */
+export function fewReadingsText(count: number, needed: number): string {
+  if (count === 0) return NO_POPULARITY_HISTORY_NOTE;
+  const readings = count === 1 ? 'reading' : 'readings';
+  return `Only ${formatNumber(count)} weekly ${readings} so far, needs ${formatNumber(needed)}`;
 }
 
 function addReignBand(calc: Calc, inputs: TitleChangeChanceInputs, tunables: EngineTunables): void {
@@ -168,7 +174,7 @@ function addHotShot(calc: Calc, inputs: TitleChangeChanceInputs, tunables: Engin
   const weeks = calc.tunable(tunables, 'aip.titles.hotShot.weeks', 'Weeks of falling popularity');
   const readings = [...inputs.popularityHistory].sort(compareDates);
   if (readings.length < weeks + 1) {
-    calc.note(fewReadingsText(readings.length));
+    calc.note(fewReadingsText(readings.length, weeks + 1));
     return;
   }
   const recent = readings.slice(readings.length - (weeks + 1));

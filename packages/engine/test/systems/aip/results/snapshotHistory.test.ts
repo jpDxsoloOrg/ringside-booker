@@ -7,7 +7,7 @@ import { findTraceNodes, inputOf } from '../../../../src/core/trace';
 import type { PromotionSnapshot } from '../../../../src/model/entities/promotion-snapshot';
 import type { GameWorld } from '../../../../src/model/tables';
 import {
-  fewReadingsText,
+  NO_POPULARITY_HISTORY_NOTE,
   hotShotText,
   popularityHistoryOf,
   titleChangeChance,
@@ -112,14 +112,14 @@ describe('the office.snapshots popularity history', () => {
     );
   });
 
-  it('reads "Only 0 weekly readings so far" in a brand-new game', () => {
+  it('reads "No popularity history yet" in a brand-new game', () => {
     const { world, promotionId } = snapshotWorld([
       { date: TEST_START_DATE, granularity: 'baseline', popularity: { headline: 40 } },
     ]);
     const result = hotShotChance(world, promotionId);
     expect(hotShotAdded(result)).toBe(0);
     expect(findTraceNodes(result.trace, 'note').map((node) => node.label)).toContain(
-      fewReadingsText(0),
+      NO_POPULARITY_HISTORY_NOTE,
     );
   });
 });

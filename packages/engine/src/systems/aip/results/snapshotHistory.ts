@@ -5,7 +5,7 @@
  * newest `weeks` of them, oldest first. The value is the headline popularity roll-up DAY2 stores
  * for the promotion's own markets, the figure its Office leads with. Rows thinned to one a month,
  * and the baseline row of a new game, are not weekly readings and are left out, so a brand-new
- * game has none ("Only 0 weekly readings so far"). See
+ * game has none and reads "No popularity history yet". See
  * docs/design/rival-booking.md#popularity-history.
  */
 
