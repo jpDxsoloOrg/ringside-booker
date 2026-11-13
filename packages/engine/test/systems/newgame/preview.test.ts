@@ -131,7 +131,12 @@ describe('previewWorld', () => {
         group: 'difficulty',
       }),
     );
-    const keys = preview().settings.map((setting) => setting.key);
+    // Systems register their own settings when their module loads (the match system adds
+    // randomWinners). Whether one is loaded depends on which test files shared this worker, so
+    // only the built-ins and the one registered here are checked, in order.
+    const keys = preview()
+      .settings.map((setting) => setting.key)
+      .filter((key) => key !== 'randomWinners');
     expect(keys).toEqual([
       'agingEnabled',
       'sandbox',
