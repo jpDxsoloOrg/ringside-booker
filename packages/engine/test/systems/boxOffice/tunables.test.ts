@@ -88,8 +88,7 @@ describe('box office tunables', () => {
     expect(list.data.map((row) => row.key).sort()).toEqual(Object.keys(EXPECTED_DEFAULTS).sort());
     for (const row of list.data) {
       expect(row.docRef).toMatch(
-        /^box-office\.md#(forecast|recent-form|big-show-fatigue|ticket-price|venue-rent|live-merch|worker-shares)$/,
-        /^box-office\.md#(forecast|recent-form|big-show-fatigue|venues|generic-venues|pick)$/,
+        /^box-office\.md#(forecast|recent-form|big-show-fatigue|ticket-price|venue-rent|live-merch|worker-shares|venues|generic-venues|pick)$/,
       );
     }
   });

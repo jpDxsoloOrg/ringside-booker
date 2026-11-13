@@ -9,7 +9,7 @@
     "label": "Test save",
     "promotionName": "Test Promotion A",
     "promotionShortName": "TPA",
-    "schemaFingerprint": "5843ebc9e33b381d2bb5ca0513e3f649",
+    "schemaFingerprint": "21e936a973e9b582bca0739cd162c99d",
     "startDate": "2026-01-05",
     "worldName": "Test Tiny World"
   },
@@ -1478,6 +1478,7 @@
               "preShowSlots": 1,
               "slots": 6
             },
+            "genericVenue": null,
             "id": "evi_0000000001",
             "importance": "regular",
             "name": "Test Weekly",
