@@ -31,7 +31,7 @@ describe('health words', () => {
     expect(daysText(1)).toBe('1 day');
     expect(daysText(23)).toBe('23 days');
     expect(daysLeftText(0)).toBe('Back today');
-    expect(daysLeftText(1)).toBe('1 day left');
+    expect(daysLeftText(1)).toBe('Back tomorrow');
     expect(daysLeftText(23)).toBe('23 days left');
     expect(yesNo(true)).toBe('Yes');
     expect(yesNo(false)).toBe('No');

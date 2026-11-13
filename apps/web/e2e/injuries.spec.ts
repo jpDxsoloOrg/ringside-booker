@@ -85,7 +85,7 @@ test.describe('who is out', () => {
     const list = page.getByRole('tabpanel');
     const healthLinks = list.locator('a[href*="?tab=health"]');
     await expect(healthLinks.first()).toBeVisible();
-    await expect(list.getByText(/days? left|Back today/).first()).toBeVisible();
+    await expect(list.getByText(/days left|Back today|Back tomorrow/).first()).toBeVisible();
     // Seen: the stop is gone.
     await expect(dayButton(page, 'Next day')).toBeVisible({ timeout: 15_000 });
     await expectNoHorizontalScroll(page);
@@ -102,7 +102,7 @@ test.describe('who is out', () => {
     await expect(
       page
         .getByRole('main')
-        .getByText(/ · (\d+ days? left|Back today)$/)
+        .getByText(/ · (\d+ days left|Back today|Back tomorrow)$/)
         .first(),
     ).toBeVisible();
     await expectNoHorizontalScroll(page);

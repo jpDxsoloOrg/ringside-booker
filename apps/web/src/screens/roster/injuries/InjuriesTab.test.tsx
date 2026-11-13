@@ -131,7 +131,7 @@ describe('InjuriesList', () => {
     expect(
       screen.getByRole('button', { name: 'Why is Marlo Quint out for 14 days?' }),
     ).toBeInTheDocument();
-    expect(screen.getByText('New')).toBeInTheDocument();
+    expect(screen.getByText(/^New/)).toHaveTextContent('New injury, not seen yet');
   });
 
   it('leaves the Why? out once the breakdown is gone', () => {

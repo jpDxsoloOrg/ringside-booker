@@ -24,6 +24,7 @@ import type { ColumnDef } from '@/components/DataTable';
 import { EmptyState } from '@/components/EmptyState';
 import { formatGameDate } from '@/components/format';
 import { ImageSlot } from '@/components/ImageSlot';
+import { VisuallyHidden } from '@/components/layout';
 import { useTracePanelStore, WhyButton } from '@/components/Trace';
 import {
   BODY_PART_LABELS,
@@ -63,7 +64,7 @@ function NameCell({ row }: { readonly row: InjuredRow }) {
       <HealthLink row={row} />
       {row.pendingNotice && (
         <Badge tone="action" variant="solid">
-          New
+          New<VisuallyHidden> injury, not seen yet</VisuallyHidden>
         </Badge>
       )}
     </span>

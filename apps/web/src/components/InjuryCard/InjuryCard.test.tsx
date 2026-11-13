@@ -7,7 +7,7 @@ import { parseGameDate, parseId } from '@ringside/engine';
 import { EngineProvider } from '@/app/engine/EngineProvider';
 import { createInProcessTransport } from '@/app/engine/transport';
 import { fakeEngineFactory } from '@/test/fakeEngine';
-import { InjuryCard } from './InjuryCard';
+import { InjuryCard, injuryDaysLeftText } from './InjuryCard';
 import type { InjuryCardInjury } from './InjuryCard';
 
 const INJURY_ID = parseId('injury', 'inj_0000000001');
@@ -54,7 +54,7 @@ describe('InjuryCard', () => {
     expect(within(region).getByRole('heading', { name: 'Sprained ankle' })).toBeInTheDocument();
     expect(within(region).getByText('Legs')).toBeInTheDocument();
     expect(within(region).getByText('Minor')).toBeInTheDocument();
-    expect(within(region).queryByText('New')).not.toBeInTheDocument();
+    expect(within(region).queryByText(/^New/)).not.toBeInTheDocument();
     const rows = Object.fromEntries(
       within(region)
         .getAllByRole('term')
@@ -92,7 +92,16 @@ describe('InjuryCard', () => {
     render(<InjuryCard injury={{ ...OPEN, severity: 'severe', pendingNotice: true }} />);
     const region = card();
     expect(within(region).getByText('Severe')).toBeInTheDocument();
-    expect(within(region).getByText('New')).toBeInTheDocument();
+    // The badge says "New" on screen and what is new to a screen reader.
+    expect(within(region).getByText(/^New/)).toHaveTextContent('New injury, not seen yet');
+  });
+
+  it('says Back tomorrow the day before the return and Back today on the day', () => {
+    expect(injuryDaysLeftText(2)).toBe('2 days');
+    expect(injuryDaysLeftText(1)).toBe('Back tomorrow');
+    expect(injuryDaysLeftText(0)).toBe('Back today');
+    render(<InjuryCard injury={{ ...OPEN, daysRemaining: 1 }} />);
+    expect(within(card()).getByText('Back tomorrow')).toBeInTheDocument();
   });
 
   it('reads a healed injury as history: back on the day they returned, no days left', () => {

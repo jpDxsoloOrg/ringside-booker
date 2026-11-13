@@ -83,8 +83,10 @@ describe('the Health tab', () => {
       'Legs',
     ]);
     for (const bar of bars) {
-      expect(bar.getAttribute('aria-valuetext')).toMatch(/age cap \d+/);
+      expect(bar.getAttribute('aria-valuetext')).toMatch(/cap for age \d+: \d+/);
     }
+    // The marker's words are on screen too, beside each part's cap value.
+    expect(within(condition).getAllByText(/^Cap for age \d+$/)).toHaveLength(6);
     expect(
       within(condition).getByRole('button', { name: /^Why is Legs: age cap \d+\?$/ }),
     ).toBeVisible();

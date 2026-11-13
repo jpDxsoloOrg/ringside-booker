@@ -122,6 +122,8 @@ export interface BodyPartHealth {
 /** `health.profile`: everything the Health tab shows about one person. */
 export interface HealthProfile {
   personId: PersonId;
+  /** Their age in whole years today: the age the condition cap is for. */
+  age: number;
   fatigue: {
     /** 0 to 100. */
     value: number;
@@ -279,6 +281,7 @@ export const healthProfileQuery: QueryDefinition<'health.profile'> = defineQuery
       .slice(0, HEALTH_PROFILE_HISTORY_LIMIT);
     return {
       personId: person.id,
+      age: ageInYears(person.birthDate, ctx.date),
       fatigue: {
         value: person.fatigue,
         band: fatigueBandOf(person.fatigue),

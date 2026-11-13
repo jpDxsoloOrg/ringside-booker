@@ -51,7 +51,7 @@ test.describe('the Health tab', () => {
     await expect(bars).toHaveCount(BODY_PARTS.length);
     for (const [index, part] of BODY_PARTS.entries()) {
       await expect(bars.nth(index)).toHaveAccessibleName(part);
-      await expect(bars.nth(index)).toHaveAttribute('aria-valuetext', /age cap \d+/);
+      await expect(bars.nth(index)).toHaveAttribute('aria-valuetext', /cap for age \d+: \d+/);
     }
     await expect(page.getByRole('meter', { name: 'Fatigue' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Fit to work' })).toBeVisible();
