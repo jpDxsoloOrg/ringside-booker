@@ -206,7 +206,9 @@ describe('the Match lab on a new default-world game', () => {
     expect(score).toMatch(/Work rate × [\d.]+/);
     expect(score).toMatch(/Crowd × [\d.]+/);
     expect(score).toContain('Midcard (standard)');
-    expect(score).toContain('Score bonus');
+    // The rival desk's rating policy (AIP1-07): the player's promotion gets no rival bonus, and says why.
+    expect(score).toContain('Same rules for every promotion +0');
+    expect(score).toContain('Run by a player, not the computer');
 
     const crowd = traceToText(result.crowd.trace);
     expect(crowd).toContain('Delivered');
