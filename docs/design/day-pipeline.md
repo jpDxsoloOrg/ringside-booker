@@ -79,6 +79,14 @@ The `money` group's phases so far (ECO1-03, see
 Both post through `postMoney`, visit promotions in id order, post nothing for
 a zero amount and draw no random numbers (only the ledger rows' ids).
 
+The `periodic` group's weekly phases so far, all on Mondays:
+
+| Phase                   | Order | What it does                                                                                                                             |
+| ----------------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `match.momentumDrift`   | 30    | Momentum drifts for workers who did not wrestle that week ([match-aftermath.md](match-aftermath.md#momentum-drift)).                     |
+| `office.weeklySnapshot` | 34    | One promotion history row per active or dormant promotion, then old weeks thinned to one row per month ([office.md](office.md#history)). |
+| `match.pruneAftermaths` | 40    | Each worker keeps only their newest stored aftermaths ([match-aftermath.md](match-aftermath.md#stored-aftermaths)).                      |
+
 ### Registering a phase
 
 A system describes its phase and registers it once, when the engine is built:

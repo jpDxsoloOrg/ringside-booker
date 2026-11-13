@@ -10,6 +10,7 @@ import { readFile } from 'node:fs/promises';
 import {
   compareDates,
   createEngine,
+  createEngineTunables,
   defaultSystems,
   engineStateParts,
   initialEngineState,
@@ -32,6 +33,7 @@ import {
   daysPerSecond,
   FIRST_FAILURES_LIMIT,
   sortedCounts,
+  type PromotionHistorySummary,
   type RunSummary,
 } from './summary';
 
@@ -298,6 +300,7 @@ export async function runSimulation(
       eventsByType: sortedCounts(eventCounts),
       worldHash: worldHash(finalState),
       loadIssues: engine.loadIssues.map((issue) => issue.message),
+      promotionHistory: promotionHistorySummary(finalState),
     },
     failures,
     advanceCalls,
@@ -368,4 +371,61 @@ export function ledgerMismatches(start: EngineState, end: EngineState): LedgerMi
     }
   }
   return mismatches.sort((left, right) => (left.promotionId < right.promotionId ? -1 : 1));
+}
+
+/** Rows per promotion in the promotion history table. */
+function historyRowsByPromotion(
+  state: EngineState,
+): Map<string, EngineState['world']['tables']['promotionSnapshots']> {
+  const byPromotion = new Map<string, EngineState['world']['tables']['promotionSnapshots']>();
+  for (const row of state.world.tables.promotionSnapshots) {
+    const rows = byPromotion.get(row.promotionId);
+    if (rows === undefined) {
+      byPromotion.set(row.promotionId, [row]);
+    } else {
+      rows.push(row);
+    }
+  }
+  return byPromotion;
+}
+
+/** The size of the promotion history at the end of a run, for the summary. */
+export function promotionHistorySummary(state: EngineState): PromotionHistorySummary {
+  const byPromotion = historyRowsByPromotion(state);
+  return {
+    promotions: state.world.tables.promotions.length,
+    rows: state.world.tables.promotionSnapshots.length,
+    mostPerPromotion: Math.max(0, ...[...byPromotion.values()].map((rows) => rows.length)),
+  };
+}
+
+/**
+ * What is wrong with the promotion history's retention, one line per promotion; empty after a
+ * clean run. Each promotion may hold at most one baseline row, at most
+ * `office.history.fullDetailWeeks` + 1 weekly rows (the thinning keeps every Monday from the
+ * cutoff on) and at most one month row per calendar month. `--strict` fails when it is not empty.
+ */
+export function promotionHistoryProblems(state: EngineState): string[] {
+  const tunables = createEngineTunables(state.tunableOverrides);
+  const maxWeeks = tunables.get('office.history.fullDetailWeeks') + 1;
+  const problems: string[] = [];
+  for (const [promotionId, rows] of [...historyRowsByPromotion(state)].sort(([left], [right]) =>
+    left < right ? -1 : left > right ? 1 : 0,
+  )) {
+    const weeks = rows.filter((row) => row.granularity === 'week').length;
+    const baselines = rows.filter((row) => row.granularity === 'baseline').length;
+    const months = rows
+      .filter((row) => row.granularity === 'month')
+      .map((row) => row.date.slice(0, 7));
+    if (weeks > maxWeeks) {
+      problems.push(`${promotionId}: ${String(weeks)} weekly rows, more than ${String(maxWeeks)}`);
+    }
+    if (baselines > 1) {
+      problems.push(`${promotionId}: ${String(baselines)} baseline rows`);
+    }
+    if (new Set(months).size !== months.length) {
+      problems.push(`${promotionId}: more than one month row for a calendar month`);
+    }
+  }
+  return problems;
 }

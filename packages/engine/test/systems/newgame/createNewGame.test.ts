@@ -517,6 +517,7 @@ describe('createNewGame: setup steps', () => {
       { id: 'wld.storeSettings', order: 800 },
       { id: 'calendar.scheduleOpening', order: 810 },
       { id: 'finance.openingBalance', order: 905 },
+      { id: 'office.baselineSnapshot', order: 990 },
     ]);
   });
 
@@ -586,6 +587,7 @@ describe('createNewGame: setup steps', () => {
       'wld.storeSettings',
       'calendar.scheduleOpening',
       'finance.openingBalance',
+      'office.baselineSnapshot',
     ]);
     newGame(baseInput({ settings: { equalStart: true } }));
     expect(seen).toEqual(['before equal start', '650', 'after re-roll']);

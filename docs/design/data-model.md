@@ -1223,3 +1223,32 @@ The weekly `match.pruneAftermaths` phase keeps each worker's newest
 newest row with a momentum to tell whether a worker wrestled that week
 ([match-aftermath.md](match-aftermath.md#momentum-drift)). Saves list the table with a default of
 `[]`, so saves written before it existed load with it empty.
+
+## Promotion history
+
+### Promotion snapshots (`promotionSnapshots`, `psh_`)
+
+One promotion's state on one day (DAY2-01): a row every Monday for every open
+promotion, a `baseline` row on the day a new game starts, and one `month` row
+per calendar month once weeks are older than
+`office.history.fullDetailWeeks`. Rows are facts: no trace or random draw is
+stored with them. See [office.md](office.md#history).
+
+| Field           | Type                                                | Notes                                                               |
+| --------------- | --------------------------------------------------- | ------------------------------------------------------------------- |
+| `id`            | `PromotionSnapshotId`                               |                                                                     |
+| `promotionId`   | `PromotionId`                                       |                                                                     |
+| `date`          | `GameDate`                                          | a Monday, or the start date for a baseline                          |
+| `granularity`   | `'week' \| 'month' \| 'baseline'`                   | `PROMOTION_SNAPSHOT_GRANULARITIES`                                  |
+| `cash`          | `Cents`                                             | may be negative                                                     |
+| `prestige`      | 0..100                                              |                                                                     |
+| `popularity`    | `{ headline, world, homeRegionValue, byContinent }` | 0..100 each; `byContinent` is sparse and leaves out continents at 0 |
+| `rosterSize`    | integer ≥ 0                                         | active contracts that have started                                  |
+| `averageMorale` | -100..100 or null                                   | unrounded mean; null when nobody is under contract                  |
+| `extra`         | `Record<SnapshotFieldKey, number>`                  | registered fields; an absent key means "not recorded that week"     |
+
+`SnapshotFieldKey` matches `/^[a-z][a-zA-Z0-9]*(\.[a-z][a-zA-Z0-9]*)*$/`.
+Refs: `promotionId` and `popularity.byContinent{}`. Indexes: `byPromotion`,
+unique `byPromotionDate` (key `<promotionId>|<date>`, helper
+`promotionSnapshotKey`) and `byDate`. Saves list the table with a default of
+`[]`, so saves written before it existed load with it empty.

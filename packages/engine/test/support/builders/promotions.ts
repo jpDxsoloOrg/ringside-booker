@@ -12,6 +12,8 @@
  * - team `Test Team 001`: an active tag team of people 1 and 2, experience 50;
  * - stable `Test Stable 001`: an active stable of people 1 to 3 with no leader;
  * - relationship: friends, affinity 0. The pair is put in canonical order for you.
+ * - promotion snapshot (DAY2-01): a `week` row for `pro_0000000001` on `TEST_START_DATE` with the
+ *   default promotion's cash and prestige, no popularity, an empty roster and no extra fields.
  */
 
 import { yearMonthOf } from '../../../src/core/date';
@@ -19,6 +21,10 @@ import { cents } from '../../../src/core/money';
 import { BrandSchema, type Brand } from '../../../src/model/entities/brand';
 import { EmploymentSchema, type Employment } from '../../../src/model/entities/employment';
 import { PromotionSchema, type Promotion } from '../../../src/model/entities/promotion';
+import {
+  PromotionSnapshotSchema,
+  type PromotionSnapshot,
+} from '../../../src/model/entities/promotion-snapshot';
 import { RelationshipSchema, type Relationship } from '../../../src/model/entities/relationship';
 import { StableSchema, type Stable } from '../../../src/model/entities/stable';
 import { TeamSchema, type Team } from '../../../src/model/entities/team';
@@ -186,4 +192,23 @@ export function aRelationship(
     personAId,
     personBId,
   });
+}
+
+export function aPromotionSnapshot(
+  overrides: DeepPartial<PromotionSnapshot> = {},
+  sequence: TestIdSequence = TestIds,
+): PromotionSnapshot {
+  const defaults: PromotionSnapshot = {
+    id: overrides.id ?? sequence.id('promotionSnapshot'),
+    promotionId: testId('promotion'),
+    date: TEST_START_DATE,
+    granularity: 'week',
+    cash: DEFAULT_PROMOTION_CASH,
+    prestige: 50,
+    popularity: { headline: 0, world: 0, homeRegionValue: 0, byContinent: {} },
+    rosterSize: 0,
+    averageMorale: null,
+    extra: {},
+  };
+  return buildRow(PromotionSnapshotSchema, 'aPromotionSnapshot', defaults, overrides);
 }

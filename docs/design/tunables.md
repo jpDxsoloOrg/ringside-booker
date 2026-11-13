@@ -622,3 +622,15 @@ The crowd forecast (EVT6-01), in `systems/boxOffice/tunables.ts`, category
 | `boxOffice.fatigue.perExtraShow`       | number  | 0.2     | 0–1       | ratio      | Crowd lost for each other big show beyond the free ones (0 = no fatigue)                            |
 | `boxOffice.fatigue.floor`              | number  | 0.25    | 0–1       | multiplier | The least of the crowd fatigue can leave                                                            |
 | `boxOffice.crowd.spread`               | number  | 0.1     | 0–0.5     | ratio      | How far the real crowd can land from the forecast, either way; also the width of the forecast range |
+
+## Office tunables
+
+The Office's numbers (DAY2), in `systems/office/tunables.ts`, category
+`Office`, each with a docRef into [office.md](office.md#history). DAY2-02 and
+DAY2-03 add their own keys to the same file.
+
+| Key                              | Kind    | Default | Range | Unit  | Meaning                                                                          |
+| -------------------------------- | ------- | ------- | ----- | ----- | -------------------------------------------------------------------------------- |
+| `office.history.fullDetailWeeks` | integer | 52      | 4–520 | count | Weeks kept at full weekly detail before older weeks are thinned to one per month |
+| `office.trend.weeks`             | integer | 8       | 2–52  | count | Weeks shown in a KPI sparkline                                                   |
+| `office.delta.lookbackDays`      | integer | 7       | 1–90  | days  | How far back a KPI delta compares                                                |
