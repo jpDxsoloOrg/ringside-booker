@@ -2533,3 +2533,70 @@ export {
 
 // Who is out (WRK6-06): `health.report`, every open injury in the world or one promotion's.
 export { type HealthReport, type HealthReportArgs, type InjuredRow } from './systems/health/index';
+
+// Contracts (ECO4-01): the daily lifecycle, the `endEmployment` door every contract ending goes
+// through, renewal policies (with the simple rival renewal stopgap) and the `contractConcerns`
+// table. See docs/design/contracts.md.
+export {
+  CONTRACT_ENDINGS,
+  ContractConcernSchema,
+  contractConcernsTable,
+  ContractEndingHowSchema,
+  isEmptyConcern,
+  OPEN_REQUEST_KEY,
+  RELEASE_REQUEST_STATUSES,
+  UNSEEN_EXPIRY_KEY,
+  type ContractConcern,
+  type ContractEnding,
+  type ContractEndingHow,
+  type ExpiryNotice,
+  type ReleaseRequest,
+  type ReleaseRequestStatus,
+  type UnhappyClock,
+} from './model/entities/contract-concern';
+export {
+  AI_RENEWAL_RULES,
+  AI_RENEWAL_STREAM,
+  afterLifecycleHooks,
+  aiRenewalDecision,
+  clearRenewalPoliciesForTests,
+  computeRenewalDays,
+  CONTRACT_LIFECYCLE_PHASE_ID,
+  CONTRACT_TRACE_KINDS,
+  contractLifecyclePhase,
+  CONTRACTS_BEFORE_SHOW_HOOK_ID,
+  CONTRACTS_TUNABLE_CATEGORY,
+  contractsBeforeShowHook,
+  contractsPhases,
+  contractsSystem,
+  contractsTunables,
+  END_DATE_REASON_KEY,
+  END_EMPLOYMENT_DOC_REF,
+  endEmployment,
+  EXCLUSIVE_DEAL_REASON_KEY,
+  isPushAtOrAbove,
+  registerAfterLifecycle,
+  registerRenewalPolicy,
+  renewalPolicies,
+  renewalTraceRef,
+  runContractLifecycle,
+  SEVERANCE_DOC_REF,
+  severanceTraceRef,
+  SIMPLE_RENEWALS_DOC_REF,
+  SIMPLE_RIVAL_RENEWAL_POLICY_ID,
+  simpleRivalRenewalPolicy,
+  titlesHeldBy,
+  type AfterLifecycleHook,
+  type AiRenewalChoice,
+  type AiRenewalInputs,
+  type AiRenewalResult,
+  type ContractQuitHow,
+  type EndEmploymentArgs,
+  type EndEmploymentResult,
+  type EndEmploymentTo,
+  type RenewalAnswer,
+  type RenewalDeps,
+  type RenewalPolicy,
+} from './systems/contracts/index';
+export type { ContractConcernId } from './core/ids';
+export type { PostMoneyContext } from './systems/finance/post';

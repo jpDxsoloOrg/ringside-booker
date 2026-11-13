@@ -38,6 +38,7 @@ import { aipResultsTunables } from './aip/results/tunables';
 import { historyTunables } from './history/tunables';
 import { physicalTunables } from './match/physical/tunables';
 import { learningTunables } from './match/physical/learningTunables';
+import { contractsTunables } from './contracts/tunables';
 
 export const ALL_TUNABLES = mergeTunables(
   simTunables,
@@ -61,6 +62,7 @@ export const ALL_TUNABLES = mergeTunables(
   historyTunables,
   physicalTunables,
   learningTunables,
+  contractsTunables,
 );
 
 /** Every tunable key the engine knows. */
