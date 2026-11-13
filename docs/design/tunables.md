@@ -597,11 +597,13 @@ Show costs and the policy preview (ECO1-04), amounts in cents. See
 ## Office tunables
 
 The Office's numbers (DAY2), in `systems/office/tunables.ts`, category
-`Office`, each with a docRef into [office.md](office.md#history). DAY2-02 and
-DAY2-03 add their own keys to the same file.
+`Office`, each with a docRef into [office.md](office.md#history) (DAY2-02's
+headline scope points at `office.md#headline-popularity`). DAY2-03 adds its own
+keys to the same file.
 
-| Key                              | Kind    | Default | Range | Unit  | Meaning                                                                          |
-| -------------------------------- | ------- | ------- | ----- | ----- | -------------------------------------------------------------------------------- |
-| `office.history.fullDetailWeeks` | integer | 52      | 4–520 | count | Weeks kept at full weekly detail before older weeks are thinned to one per month |
-| `office.trend.weeks`             | integer | 8       | 2–52  | count | Weeks shown in a KPI sparkline                                                   |
-| `office.delta.lookbackDays`      | integer | 7       | 1–90  | days  | How far back a KPI delta compares                                                |
+| Key                               | Kind    | Default       | Range                                                 | Unit   | Meaning                                                                                                                       |
+| --------------------------------- | ------- | ------------- | ----------------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| `office.history.fullDetailWeeks`  | integer | 52            | 4–520                                                 | count  | Weeks kept at full weekly detail before older weeks are thinned to one per month                                              |
+| `office.trend.weeks`              | integer | 8             | 2–52                                                  | count  | Weeks shown in a KPI sparkline                                                                                                |
+| `office.delta.lookbackDays`       | integer | 7             | 1–90                                                  | days   | How far back a KPI delta compares                                                                                             |
+| `office.popularity.headlineScope` | enum    | `homeCountry` | `homeRegion`, `homeCountry`, `homeContinent`, `world` | choice | Which D-03 roll-up the Office and the top bar show as the promotion's popularity ([office.md](office.md#headline-popularity)) |
