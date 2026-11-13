@@ -532,6 +532,8 @@
  */
 .cardStat {
   display: grid;
+  /* One column no wider than the stat, so a long label wraps inside it at a large UI scale. */
+  grid-template-columns: minmax(0, 1fr);
   align-content: start;
   gap: 0;
   min-inline-size: 0;

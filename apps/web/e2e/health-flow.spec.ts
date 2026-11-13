@@ -180,6 +180,8 @@ test.describe('injuries and recovery', () => {
       await card.getByRole('button', { name: /^Why is Time out \d+ days?\?$/ }).click();
       const why = page.getByRole('dialog', { name: 'Time out' });
       await expect(why).toBeVisible();
+      // Settled on screen (it slides in), not half off the edge.
+      await expect(why).toBeInViewport({ ratio: 0.95 });
       await expect(why).toContainText('days');
       await expect(why).toContainText(/(Minor|Moderate|Severe) injury/);
       await expect(why).toContainText('Medical care');

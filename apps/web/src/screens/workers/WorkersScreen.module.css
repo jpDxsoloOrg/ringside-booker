@@ -146,8 +146,10 @@
   vertical-align: middle;
 }
 
+/* Wraps, so a phone card's narrow stat at a large UI scale puts the Why? under the number. */
 .explained {
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
   min-inline-size: 0;
