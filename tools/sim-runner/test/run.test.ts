@@ -12,7 +12,9 @@ import {
   registerAiJob,
 } from '@ringside/engine';
 import type { TunableSetting } from '../src/args';
+import { aMatch, anEventInstance, aParticipant } from '@ringside/engine/testing/fixtures';
 import {
+  doubleBookedRivalShows,
   fixtureState,
   ledgerMismatches,
   openPastShows,
@@ -174,6 +176,52 @@ describe('runSimulation on the roster fixture', () => {
     expect(boxOffice.settledShows).toBeGreaterThan(0);
     expect(boxOffice.unsettledShows).toBe(0);
     expect(boxOffice.totalAttendance).toBeGreaterThan(0);
+  });
+
+  it('reports a computer-run show with someone in two matches', () => {
+    const start = fixtureState(20, '1');
+    const { tables } = start.world;
+    const [promotion] = tables.promotions;
+    const [first, second, third] = tables.people;
+    if (
+      promotion === undefined ||
+      first === undefined ||
+      second === undefined ||
+      third === undefined
+    ) {
+      throw new Error('the fixture has no promotion or people');
+    }
+    const show = anEventInstance({ promotionId: promotion.id });
+    const opener = aMatch({ eventInstanceId: show.id, slot: 0 });
+    const mainEvent = aMatch({ eventInstanceId: show.id, slot: 1 });
+    const participants = [
+      aParticipant({ segmentId: opener.id, personId: first.id, side: 0 }),
+      aParticipant({ segmentId: opener.id, personId: second.id, side: 1 }),
+      aParticipant({ segmentId: mainEvent.id, personId: first.id, side: 0 }),
+      aParticipant({ segmentId: mainEvent.id, personId: third.id, side: 1 }),
+    ];
+    const withCard = (kind: 'human' | 'computer') => ({
+      ...start,
+      world: {
+        ...start.world,
+        tables: {
+          ...tables,
+          promotions: [
+            {
+              ...promotion,
+              controller: kind === 'human' ? { kind, playerId: 'cli' } : { kind },
+            },
+            ...tables.promotions.slice(1),
+          ],
+          eventInstances: [...tables.eventInstances, show],
+          segments: [...tables.segments, opener, mainEvent],
+          participants: [...tables.participants, ...participants],
+        },
+      },
+    });
+    expect(doubleBookedRivalShows(withCard('computer'))).toEqual([`${show.id}: ${first.id}`]);
+    // The player may book whoever they like; the check is about the rival booker.
+    expect(doubleBookedRivalShows(withCard('human'))).toEqual([]);
   });
 
   it('reports a promotion history over its retention', async () => {

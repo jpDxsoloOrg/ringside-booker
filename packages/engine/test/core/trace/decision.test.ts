@@ -154,4 +154,22 @@ describe('startDecision', () => {
     expectTraceContains(result, { kind: 'note', label: /more steps not shown$/ });
     expectSerialisable(result);
   });
+
+  it('nests a non-numeric decision under a label with include', () => {
+    const challenger = startDecision<string>('Challenger for the Test Title')
+      .consider('Haruto Ise', 71)
+      .choose('Haruto Ise', 'Best card value');
+    const weight = startCalc('Weight of Singles', 100).done();
+    const result = startDecision<string>('Haruto Ise vs Daichi Kuroe')
+      .include('Who challenges', challenger)
+      .include('Match type weight', weight.trace)
+      .choose('Singles', 'Rolled');
+
+    const nested = expectTraceContains(result, { kind: 'decision', label: 'Who challenges' });
+    expect(nested).toMatchObject({ chosen: 'Haruto Ise', considered: [{ option: 'Haruto Ise' }] });
+    expectTraceContains(result, { kind: 'formula', label: 'Match type weight' });
+    // The included traces are copied, not changed.
+    expect(challenger.trace.label).toBe('Challenger for the Test Title');
+    expectSerialisable(result);
+  });
 });

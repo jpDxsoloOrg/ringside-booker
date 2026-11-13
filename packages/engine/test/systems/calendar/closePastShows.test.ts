@@ -108,11 +108,13 @@ describe('calendar.closePastShows', () => {
 
   it('publishes one show.cancelled per closed show, in id order', async () => {
     const built = lifecycleWorldWith((addShow, { promotionB }) => {
-      // Inserted so that id order differs from status order: booked, scheduled, booked.
+      // Inserted so that id order differs from status order: booked, booked, scheduled. B's show
+      // is already booked, so the rival booker (`aip.bookShow`, which books only scheduled shows)
+      // leaves it to the close rule.
       const closed = [
         addShow({ date: TODAY, status: 'booked' }),
-        addShow({ date: TODAY, promotionId: promotionB }),
-        addShow({ date: TODAY, status: 'booked' }),
+        addShow({ date: TODAY, promotionId: promotionB, status: 'booked' }),
+        addShow({ date: TODAY }),
       ];
       addShow({ date: TODAY, status: 'completed' });
       return closed;

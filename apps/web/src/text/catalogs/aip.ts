@@ -2,9 +2,10 @@ import { registerTextCatalog } from '../renderTemplatedText';
 import type { TextCatalog, TextParams } from '../renderTemplatedText';
 
 /**
- * The rival desk's sentences (docs/design/rival-desk.md#needs and #roster-review): the weekly
- * roster review's summary and every roster need. The engine's `needSummaryText` and
- * `rosterReviewSummaryText` say the same words for the Why? panel; keep the two in step.
+ * The rival desk's sentences (docs/design/rival-desk.md#needs and #roster-review, and
+ * docs/design/rival-booking.md#show-day): the weekly roster review's summary, every roster need and
+ * the card decisions. The engine's `needSummaryText`, `rosterReviewSummaryText`, `cardBookedText`
+ * and `showCancelledText` say the same words for the Why? panel; keep them in step.
  * Importing this module registers it.
  */
 
@@ -20,8 +21,19 @@ function rosterReview(params: TextParams): string {
   return `Weekly roster review: ${String(count)} ${count === 1 ? 'need' : 'needs'}, most pressing: ${String(top)}`;
 }
 
+function plural(params: TextParams, name: string, one: string, many: string): string {
+  const count = Number(params[name] ?? 0);
+  return `${String(count)} ${count === 1 ? one : many}`;
+}
+
+function cardBooked(params: TextParams): string {
+  return `Booked ${text(params, 'show')}: ${plural(params, 'matches', 'match', 'matches')}, ${plural(params, 'talking', 'talking segment', 'talking segments')}, ${plural(params, 'titles', 'title match', 'title matches')}`;
+}
+
 export const AIP_TEXT_CATALOG: TextCatalog = {
   'aip.decision.roster-review': rosterReview,
+  'aip.decision.card-booked': cardBooked,
+  'aip.decision.show-cancelled': 'Cancelled {show}: {reason}',
   'aip.need.depth': (params) =>
     `Thin at ${text(params, 'band').toLowerCase()}: ${text(params, 'have')} of ${text(params, 'target')}`,
   'aip.need.alignment.heels': 'Short on heels',

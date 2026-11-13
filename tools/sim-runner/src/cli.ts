@@ -13,6 +13,7 @@ import { fileURLToPath } from 'node:url';
 import type { SystemBundle } from '@ringside/engine';
 import { parseRunnerArgs, USAGE, type ArgumentError, type RunnerOptions } from './args';
 import {
+  doubleBookedRivalShows,
   ledgerMismatches,
   loadStartState,
   openPastShows,
@@ -156,6 +157,13 @@ export async function runCli(
   if (options.strict && unrun.length > 0) {
     io.stderr(
       `--strict: ${String(unrun.length)} show(s) dated before ${firstRun.summary.endDate} are still open: ${unrun.slice(0, 5).join(', ')}\n`,
+    );
+    return EXIT_FAILED;
+  }
+  const doubleBooked = doubleBookedRivalShows(firstRun.finalState);
+  if (options.strict && doubleBooked.length > 0) {
+    io.stderr(
+      `--strict: ${String(doubleBooked.length)} computer-run show booking(s) put someone in two matches: ${doubleBooked.slice(0, 5).join(', ')}\n`,
     );
     return EXIT_FAILED;
   }
