@@ -4,6 +4,8 @@
  * - `aip.segmentDecision { segmentId }`: the winner, method and reasons a computer booker planned
  *   for one match, hidden from other controllers until the show airs (the same reveal rule as the
  *   card, `isRevealedTo`);
+ * - `aip.showDecisions { eventInstanceId }`: the same view for every match on one show, in running
+ *   order (empty when no computer booker decided any), for the results page's "Booker's calls";
  * - `aip.recentTitleChanges { promotionId, limit }`: a promotion's latest title changes, newest
  *   first, with the booker's reason when a rival booker planned the change. Title changes are
  *   public, so there is no reveal check beyond the reign existing.
@@ -21,11 +23,13 @@ import type { TitleReign } from '../../../model/entities/title-reign';
 import { zId } from '../../../model/primitives';
 import { compareIds } from '../../../model/table';
 import type { DeepReadonly } from '../../../model/world';
+import { cardSegments } from '../../booking/card';
 import { promotionOrRefuse } from '../queries/shared';
 import { isRevealedTo } from '../reveal';
 import { segmentDecisionView, titleDecisionOf, type SegmentDecisionView } from './view';
 
 export const SEGMENT_NOT_FOUND = 'That match no longer exists.';
+export const SHOW_NOT_FOUND = 'That show no longer exists.';
 export const NOT_REVEALED_MESSAGE = "A rival's results are revealed when the show airs";
 export const NO_DECISION_MESSAGE = 'No computer booker decided this result';
 export const DEFAULT_TITLE_CHANGES_LIMIT = 5;
@@ -33,6 +37,15 @@ export const MAX_TITLE_CHANGES_LIMIT = 20;
 
 export interface AipSegmentDecisionArgs {
   segmentId: SegmentId;
+}
+
+export interface AipShowDecisionsArgs {
+  eventInstanceId: EventInstanceId;
+}
+
+export interface AipShowDecisions {
+  /** One per match a computer booker decided, pre-show first, then the main card. */
+  decisions: SegmentDecisionView[];
 }
 
 export interface AipRecentTitleChangesArgs {
@@ -66,6 +79,7 @@ export interface AipRecentTitleChanges {
 declare module '../../../core/api/maps' {
   interface QueryMap {
     'aip.segmentDecision': { args: AipSegmentDecisionArgs; result: SegmentDecisionView };
+    'aip.showDecisions': { args: AipShowDecisionsArgs; result: AipShowDecisions };
     'aip.recentTitleChanges': { args: AipRecentTitleChangesArgs; result: AipRecentTitleChanges };
   }
 }
@@ -90,6 +104,28 @@ export const aipSegmentDecisionQuery: QueryDefinition<'aip.segmentDecision'> = d
         return refuseQuery({ code: 'noDecision', message: NO_DECISION_MESSAGE });
       }
       return view;
+    },
+  },
+);
+
+export const aipShowDecisionsQuery: QueryDefinition<'aip.showDecisions'> = defineQuery(
+  'aip.showDecisions',
+  {
+    args: z.strictObject({ eventInstanceId: zId('eventInstance') }),
+    run: (ctx, args) => {
+      const { read } = ctx;
+      const instance = read.tables.eventInstances.get(args.eventInstanceId);
+      if (instance === undefined) {
+        return refuseQuery({ code: 'notFound', message: SHOW_NOT_FOUND, field: 'eventInstanceId' });
+      }
+      if (!isRevealedTo(read, ctx.viewer, instance.promotionId, instance.airDate)) {
+        return refuseQuery({ code: 'notRevealed', message: NOT_REVEALED_MESSAGE });
+      }
+      const decisions = cardSegments(read, instance.id).flatMap((segment) => {
+        const view = segmentDecisionView(read, ctx.traces, segment.id);
+        return view === null ? [] : [view];
+      });
+      return { decisions };
     },
   },
 );

@@ -129,8 +129,9 @@ export function notExpiringRuleText(expiringDays: number): string {
   return `Champion's contract ends within ${formatNumber(expiringDays)} days`;
 }
 
-export function overdueRuleText(reignDays: number): string {
-  return `Overdue: ${formatNumber(reignDays)} days is a long reign`;
+/** "Overdue reign: 410 days, overdue from 400": reads as a check whether or not it passed. */
+export function overdueRuleText(reignDays: number, overdueDays: number): string {
+  return `Overdue reign: ${formatNumber(reignDays)} days, overdue from ${formatNumber(overdueDays)}`;
 }
 
 export function readyNoChallengerText(validNeeds: number): string {
@@ -257,7 +258,7 @@ function overdueRule(
   deps: TitleChangeDeps,
 ): Choice | null {
   const overdueDays = decision.tunable(deps.tunables, 'aip.titles.overdueDays');
-  const why = overdueRuleText(inputs.reignDays);
+  const why = overdueRuleText(inputs.reignDays, overdueDays);
   if (inputs.reignDays < overdueDays) {
     decision.rule(why, false);
     return null;

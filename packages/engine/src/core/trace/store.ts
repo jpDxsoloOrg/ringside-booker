@@ -34,6 +34,8 @@ import {
 import { assertJsonValue, formatPath } from '../json';
 import type { TunableReader } from '../tunables/resolver';
 import type { simTunables } from '../tunables/simTunables';
+import { fastPathsEnabled } from '../fastPaths';
+import { copyValidTraceContent } from './fastCopy';
 import { limitTrace } from './limits';
 import { traceNodeSchema, traceNumberSchema, traceUnitSchema, traceValueSchema } from './schema';
 import type { TraceNode, TraceUnit, Traced, TraceValue } from './types';
@@ -119,17 +121,31 @@ export interface TraceStoreLimits {
    * Left out, a kind is limited by count only. 0 summarises everything at once.
    */
   readonly bytesPerKind?: number;
+  /**
+   * Limits for particular kinds, replacing `retentionPerKind` and `bytesPerKind` for them: a kind
+   * whose detail is kept for a number of days (rival results, AIP5-06) needs room for those days
+   * whatever the default per-kind limits are.
+   */
+  readonly perKind?: Readonly<Record<string, TraceKindLimits>>;
+}
+
+/** One kind's own limits (`TraceStoreLimits.perKind`). */
+export interface TraceKindLimits {
+  readonly retentionPerKind: number;
+  readonly bytesPerKind: number;
 }
 
 /** Reads the store limits from the engine tunables. */
 export function traceStoreLimitsFrom(
   tunables: Pick<TunableReader<typeof simTunables>, 'get'>,
+  perKind?: Readonly<Record<string, TraceKindLimits>>,
 ): TraceStoreLimits {
-  return {
+  const limits = {
     retentionPerKind: tunables.get('sim.traceRetentionPerKind'),
     summaryLimit: tunables.get('sim.traceSummaryLimit'),
     bytesPerKind: tunables.get('sim.traceBytesPerKind'),
   };
+  return perKind === undefined ? limits : { ...limits, perKind };
 }
 
 /** The trace store part of a save. Both arrays are sorted by `seq`, oldest first. */
@@ -196,6 +212,8 @@ export class TraceStore {
   #summaryLimit: number;
   /** Null when kinds are limited by count only. */
   #bytesPerKind: number | null;
+  /** Kinds with limits of their own. */
+  #perKind: ReadonlyMap<string, TraceKindLimits> = new Map();
   /** The last sequence number handed out. Saved. */
   #seq = 0;
   /**
@@ -218,6 +236,7 @@ export class TraceStore {
     this.#retentionPerKind = checked.retentionPerKind;
     this.#summaryLimit = checked.summaryLimit;
     this.#bytesPerKind = checked.bytesPerKind ?? null;
+    this.#perKind = new Map(Object.entries(checked.perKind ?? {}));
   }
 
   /**
@@ -248,8 +267,14 @@ export class TraceStore {
 
   /** The limits this store enforces. */
   get limits(): TraceStoreLimits {
-    const limits = { retentionPerKind: this.#retentionPerKind, summaryLimit: this.#summaryLimit };
-    return this.#bytesPerKind === null ? limits : { ...limits, bytesPerKind: this.#bytesPerKind };
+    const limits: TraceStoreLimits = {
+      retentionPerKind: this.#retentionPerKind,
+      summaryLimit: this.#summaryLimit,
+      ...(this.#bytesPerKind === null ? {} : { bytesPerKind: this.#bytesPerKind }),
+    };
+    return this.#perKind.size === 0
+      ? limits
+      : { ...limits, perKind: Object.fromEntries(this.#perKind) };
   }
 
   /** The JSON length of one kind's full traces together, as the size budget counts it. */
@@ -263,6 +288,7 @@ export class TraceStore {
     this.#retentionPerKind = checked.retentionPerKind;
     this.#summaryLimit = checked.summaryLimit;
     this.#bytesPerKind = checked.bytesPerKind ?? null;
+    this.#perKind = new Map(Object.entries(checked.perKind ?? {}));
     this.#enforceLimits(this.#fullByKind.keys());
   }
 
@@ -336,7 +362,11 @@ export class TraceStore {
           );
         }
         const key = refKey(ref);
-        const { trace, value } = checkRecordedTrace(key, traced);
+        const summaryOnly = options.summaryOnly === true;
+        const { trace, value } =
+          summaryOnly && fastPathsEnabled()
+            ? checkSummaryTrace(key, traced)
+            : checkRecordedTrace(key, traced);
         // Deleted first, so a re-recorded ref takes the position of its latest record.
         staged.delete(key);
         staged.set(key, {
@@ -344,7 +374,7 @@ export class TraceStore {
           date,
           trace,
           value,
-          summaryOnly: options.summaryOnly === true,
+          summaryOnly,
         });
       },
       demote: (ref) => {
@@ -455,9 +485,11 @@ export class TraceStore {
       if (byKey === undefined) {
         continue;
       }
-      const budget = this.#bytesPerKind ?? Number.POSITIVE_INFINITY;
+      const own = this.#perKind.get(kind);
+      const retention = own?.retentionPerKind ?? this.#retentionPerKind;
+      const budget = own?.bytesPerKind ?? this.#bytesPerKind ?? Number.POSITIVE_INFINITY;
       for (const [key, entry] of byKey) {
-        if (byKey.size <= this.#retentionPerKind && this.fullSizeOfKind(kind) <= budget) {
+        if (byKey.size <= retention && this.fullSizeOfKind(kind) <= budget) {
           break;
         }
         this.#deleteFull(key, kind);
@@ -538,6 +570,12 @@ function stepEffect(before: number, after: number): number {
  */
 function checkRecordedTrace(key: string, traced: Traced<TraceValue>): StagedTraceContent {
   const trace = limitTrace(traced.trace);
+  // The same copy in one walk when nothing is unusual (POL4-09); otherwise the full check below,
+  // which names the problem.
+  const fast = fastPathsEnabled() ? copyValidTraceContent(trace, traced.value) : null;
+  if (fast !== null) {
+    return fast;
+  }
   assertJsonValue(trace, `traces["${key}"].trace`);
   assertJsonValue(traced.value, `traces["${key}"].value`);
   const result = stagedTraceContentSchema.safeParse({ trace, value: traced.value });
@@ -551,6 +589,37 @@ function checkRecordedTrace(key: string, traced: Traced<TraceValue>): StagedTrac
     );
   }
   return result.data;
+}
+
+/**
+ * {@link checkRecordedTrace} for a result kept only as a summary (POL4-09). The summary reads the
+ * root and its direct steps only (label, unit, value and each step's effect), so only those are
+ * checked and staged: the trace is fitted into the size limits exactly as a full one is (so the
+ * same steps are summarised), then cut to its first two levels before the JSON and schema checks.
+ * The summary is identical to the one a full record would be demoted to, without validating
+ * every node of a tree that is never kept. A rival show records thousands of these a year.
+ */
+function checkSummaryTrace(key: string, traced: Traced<TraceValue>): StagedTraceContent {
+  const limited = limitTrace(traced.trace);
+  const trace: TraceNode = {
+    ...limited,
+    children: (limited.children ?? []).map(withoutChildren),
+  };
+  return checkRecordedTrace(key, { value: traced.value, trace });
+}
+
+/** A step on its own, its children dropped (a formula keeps an empty list, as the schema asks). */
+function withoutChildren(node: TraceNode): TraceNode {
+  if (node.children === undefined) {
+    return node;
+  }
+  if (node.kind === 'formula') {
+    return { ...node, children: [] };
+  }
+  // Rest destructuring is the typed way to drop a readonly key; the dropped value is not needed.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { children: dropped, ...rest } = node;
+  return rest;
 }
 
 /**
@@ -620,10 +689,27 @@ function checkLimits(functionName: string, limits: TraceStoreLimits): TraceStore
       );
     }
   }
-  const checked = { retentionPerKind: limits.retentionPerKind, summaryLimit: limits.summaryLimit };
-  return limits.bytesPerKind === undefined
-    ? checked
-    : { ...checked, bytesPerKind: limits.bytesPerKind };
+  const perKind: Record<string, TraceKindLimits> = {};
+  for (const [kind, own] of Object.entries(limits.perKind ?? {})) {
+    for (const name of ['retentionPerKind', 'bytesPerKind'] as const) {
+      const value = own[name];
+      if (!Number.isSafeInteger(value) || value < 0) {
+        throw new InvalidArgumentError(
+          functionName,
+          `limits.perKind.${kind}.${name}`,
+          value,
+          'a whole number of 0 or more',
+        );
+      }
+    }
+    perKind[kind] = { retentionPerKind: own.retentionPerKind, bytesPerKind: own.bytesPerKind };
+  }
+  return {
+    retentionPerKind: limits.retentionPerKind,
+    summaryLimit: limits.summaryLimit,
+    ...(limits.bytesPerKind === undefined ? {} : { bytesPerKind: limits.bytesPerKind }),
+    ...(Object.keys(perKind).length === 0 ? {} : { perKind }),
+  };
 }
 
 function checkRef(ref: TraceRef): void {

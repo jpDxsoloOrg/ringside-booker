@@ -18,6 +18,7 @@
  * Design: docs/design/match-aftermath.md#applying-an-aftermath.
  */
 
+import { fastPathsEnabled } from '../../../core/fastPaths';
 import type { PersonId, RegionId, SegmentId } from '../../../core/ids';
 import { refKey, type TraceRef } from '../../../core/trace/store';
 import type { Aftermath, AftermathRegion } from '../../../model/entities/aftermath';
@@ -71,7 +72,10 @@ export function applySegmentAftermath(step: DoorContext, segmentId: SegmentId): 
   const source: DoorSource = showControllerOf(read, instance).kind === 'human' ? 'player' : 'ai';
   // A rival show's gains keep only a summary (POL4-06); the rows below keep the numbers.
   const kept = { summaryOnly: source === 'ai' };
-  const aftermath = computeSegmentAftermath(read, { segmentId }, step.tunables, geographyOf(read));
+  // The door works each region out again as it writes; the preview and roll-ups are for screens.
+  const aftermath = computeSegmentAftermath(read, { segmentId }, step.tunables, geographyOf(read), {
+    regionDetail: !fastPathsEnabled(),
+  });
   // The cast names the key type `Object.fromEntries` widens to string.
   const regionWeights = Object.fromEntries(
     aftermath.weights.map((line) => [line.regionId, line.weight]),

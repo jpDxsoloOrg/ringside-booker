@@ -19,7 +19,7 @@ import type { GameWorldView } from '../../model/tables';
 import type { EngineTunables } from '../tunables';
 import {
   createPopularityRoller,
-  popularityRollup,
+  popularityRollupPart,
   type PopularityRoller,
 } from '../world/formulas/popularityRollup';
 import { geographyOf, type Geography } from '../world/geography';
@@ -65,19 +65,16 @@ export function headlinePopularityOf(
   const region = geography.region(promotion.homeRegionId);
   const country = geography.countryOf(region.id);
   const continent = geography.continentOf(region.id);
-  const rollup = popularityRollup(promotion.regionalPop, geography);
-  const countryRollup = rollup.countries.get(country.id);
-  const continentRollup = rollup.continents.get(continent.id);
-  if (countryRollup === undefined || continentRollup === undefined) {
-    // The roll-up lists every country and continent on the map, so this cannot happen.
-    throw new EntityNotFoundError('country', country.id);
-  }
+  const rollup = popularityRollupPart(promotion.regionalPop, geography, {
+    countryId: country.id,
+    continentId: continent.id,
+  });
   return headlinePopularity(
     {
       promotionName: promotion.name,
       homeRegion: { id: region.id, name: region.name, value: rollup.regions.get(region.id) ?? 0 },
-      homeCountry: { id: country.id, name: country.name, rollup: countryRollup },
-      homeContinent: { id: continent.id, name: continent.name, rollup: continentRollup },
+      homeCountry: { id: country.id, name: country.name, rollup: rollup.country },
+      homeContinent: { id: continent.id, name: continent.name, rollup: rollup.continent },
       world: rollup.world,
       sectionLines: popularityTraceSectionLines(read, promotionId, date),
     },

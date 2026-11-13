@@ -1,0 +1,65 @@
+/*
+ * Recent title changes: one row per change, the belt on the left and the words beside it. The
+ * rows wrap their text at any width, so a phone shows the same rows narrower.
+ */
+.list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-inline-size: 0;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.text {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.headline,
+.detail,
+.when {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.headline {
+  font-weight: var(--font-weight-semibold);
+}
+
+.detail,
+.when,
+.muted {
+  color: var(--color-text-muted);
+}
+
+.when {
+  font-size: var(--font-size-sm);
+}
+
+/* A one-line link: lifted to a 44px tap box on touch screens without taking room (UI-30). */
+@media (pointer: coarse) {
+  .showLink {
+    display: inline-block;
+    padding-block: var(--tap-pad-block);
+    margin-block: calc(-1 * var(--tap-pad-block));
+  }
+}
+
+.reason {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}

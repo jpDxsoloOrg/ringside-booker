@@ -2,6 +2,7 @@ import type { ShowCardSegment, ShowCardSide, ShowCardSlot } from '@ringside/engi
 import type { CardSlotChip, CardSlotSide } from '@/components/CardSlot';
 import { CARD_SLOT_ROLES } from '@/screens/booking/cardSlotProps';
 import type { CardSlotViewProps } from '@/screens/booking/cardSlotProps';
+import type { RivalResultSide } from './RivalResultLine';
 
 /** The tag over a side that held one of the match's titles going into the show. */
 export const CHAMPIONS_LABEL = 'Champions';
@@ -48,10 +49,20 @@ function sideOf(side: ShowCardSide): CardSlotSide {
   };
 }
 
+/** A segment's sides as `RivalResultLine` names them. */
+export function rivalResultSides(segment: ShowCardSegment): RivalResultSide[] {
+  return segment.sides.map((side) => ({
+    name: side.name,
+    people: side.people.map((person) => ({ personId: person.personId, name: person.name })),
+  }));
+}
+
 /**
  * One slot of `aip.showCards` as `CardSlot` draws it: role and number, chips for the match or
  * talking segment type, each title and each storyline, the sides (with "Champions" over the title
- * holders) and the result when there is one. An open slot has no chips and no sides.
+ * holders) and the result when there is one. An open slot has no chips and no sides. When AIP5's
+ * `decision` is there, its result line (drawn by `RivalShowCard`) says "Draw" or "No contest", so
+ * the slot's own result label is left off.
  */
 export function toRivalCardSlotProps(slot: ShowCardSlot): CardSlotViewProps {
   const base = {
@@ -72,6 +83,7 @@ export function toRivalCardSlotProps(slot: ShowCardSlot): CardSlotViewProps {
       ? { ...base, chips, sides }
       : { ...base, chips, sides, winnerIndex: index };
   }
+  if (segment.decision !== null) return { ...base, chips, sides };
   return { ...base, chips, sides, resultLabel: RESULT_LABELS[outcome.kind] };
 }
 

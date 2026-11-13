@@ -5,7 +5,8 @@
  * revealed when the show airs"; a cancelled show onto the reason. Everything shown comes from
  * `aip.showCards`: the web never works out a role, a title or a reason. Nothing here is a length
  * or a time. Once the show has run, the card opens on its score with the score's Why? and a link
- * to the full results (AIP4-08, EVT3). Design: docs/design/rival-booking.md#show-cards.
+ * to the full results (AIP4-08, EVT3). A computer-booked match that has run carries AIP5's result
+ * line inside its slot: winner, method, reason and title badges, each with a Why? (AIP5-05). Design: docs/design/rival-booking.md#show-cards.
  */
 import { useId, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -20,7 +21,8 @@ import { IMPORTANCE_LABELS } from '@/components/ShowChip/importance';
 import { traceSourceOf, WhyButton } from '@/components/Trace';
 import { routes } from '@/app/routes';
 import type { Tone } from '@/components/tone';
-import { rivalSlotKey, toRivalCardSlotProps } from './rivalCardSlotProps';
+import { rivalResultSides, rivalSlotKey, toRivalCardSlotProps } from './rivalCardSlotProps';
+import { RivalResultLine } from './RivalResultLine';
 import styles from './RivalShowCard.module.css';
 
 /** What a cancelled show's status reads. */
@@ -174,6 +176,18 @@ function CardBody({
                 {...toRivalCardSlotProps(slot)}
                 headingLevel={slotHeadingLevel}
                 emptyTitle="Open slot"
+                {...(slot.segment !== null && slot.segment.decision !== null
+                  ? {
+                      result: (
+                        <RivalResultLine
+                          view={slot.segment.decision}
+                          sides={rivalResultSides(slot.segment)}
+                          matchLabel={slot.segment.label}
+                          traceOf={traceOf}
+                        />
+                      ),
+                    }
+                  : {})}
                 {...(slot.segment !== null && source !== null
                   ? {
                       actions: (

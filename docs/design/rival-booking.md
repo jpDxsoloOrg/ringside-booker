@@ -37,17 +37,17 @@ One contract per person, the lowest ID.
 
 **Per person** (`CardCandidate`):
 
-| Field           | Rule                                                                                                                            |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `cardValue`     | The rival desk's traced card value at the promotion ([card value](rival-desk.md#card-value)), with the contract's taste         |
-| `availability`  | WRK1's `availabilityOf` on the show's date ([workers.md](workers.md#availability))                                              |
-| `canWrestle`    | Available, holds a wrestling role and is under contract as a wrestler                                                           |
-| `canTalk`       | Available, or out but still able to do talking segments (`canWorkAngles`)                                                       |
-| `restedEnough`  | Fatigue at or below `aip.card.maxFatigue`                                                                                       |
-| `contractBlock` | `appearanceCap` when this year's appearances have reached the cap; `noHouseShows` on a house show for a contract with that perk |
-| `teamIds`       | The pool's teams the person is in                                                                                               |
-| `championOf`    | The pool's titles the person holds now (their open reign)                                                                       |
-| `talkValue`     | The mean of mic and charisma, traced                                                                                            |
+| Field           | Rule                                                                                                                                                                                                                                                                                                                    |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cardValue`     | The rival desk's card value at the promotion ([card value](rival-desk.md#card-value)), with the contract's taste. Worked out without its trace (`cardValueNumber`, same number to the bit; [fast paths](day-pipeline.md#fast-paths)): the trace is a single input line, and a Why? builds the full one with `cardValue` |
+| `availability`  | WRK1's `availabilityOf` on the show's date ([workers.md](workers.md#availability))                                                                                                                                                                                                                                      |
+| `canWrestle`    | Available, holds a wrestling role and is under contract as a wrestler                                                                                                                                                                                                                                                   |
+| `canTalk`       | Available, or out but still able to do talking segments (`canWorkAngles`)                                                                                                                                                                                                                                               |
+| `restedEnough`  | Fatigue at or below `aip.card.maxFatigue`                                                                                                                                                                                                                                                                               |
+| `contractBlock` | `appearanceCap` when this year's appearances have reached the cap; `noHouseShows` on a house show for a contract with that perk                                                                                                                                                                                         |
+| `teamIds`       | The pool's teams the person is in                                                                                                                                                                                                                                                                                       |
+| `championOf`    | The pool's titles the person holds now (their open reign)                                                                                                                                                                                                                                                               |
+| `talkValue`     | The mean of mic and charisma, traced                                                                                                                                                                                                                                                                                    |
 
 Someone who can neither wrestle nor talk is not a candidate. Tired and
 contract-blocked people stay in the pool as a last resort, with their flags
@@ -726,6 +726,7 @@ ShowCardSlot = {
     storylines: [{ storylineId, name }],
     outcome: { kind, winningSide } | null,
     reasonTraceRef, // aip.cardSlot, while kept
+    decision,       // AIP5's SegmentDecisionView for a computer-decided match, else null
   } | null,         // null: an open main-card slot
 }
 ```
@@ -826,8 +827,9 @@ their keys to the same file.
 
 ## Winners
 
-AIP4 writes every rival match with no planned winner. AIP5 has the rival
-booker decide its own results the way a person would: protect the ace, let a
+AIP4 writes every rival match without a result; AIP5's booked-card step
+(`aip.decideResults`) then plans one, so no rival match runs winnerless. AIP5
+has the rival booker decide its own results the way a person would: protect the ace, let a
 prospect go over, squash an enhancement worker, pay off a feud. Each winner
 gets a Why? that reads like a booker's reasoning. Code:
 `packages/engine/src/systems/aip/results/`, inside the `aip` bundle (no new
@@ -841,7 +843,14 @@ formulas and the step that writes them come with AIP5-02 to AIP5-04.
 kind, so a busy rival schedule never pushes the player's own breakdowns
 (`segment.rating` and the rest) out of the store. Like the card's slot traces,
 both are kept in full for `history.keepDetailDays` (28) days after the show
-and then demoted to a summary by `aip.pruneCardDetail`.
+and then demoted to a summary by `aip.pruneCardDetail`. So those 28 days fit on
+a busy world, both kinds have trace store limits of their own (AIP5-06):
+`aip.results.fullTraces` (600) full traces and `aip.results.fullTraceChars`
+(1,500,000 characters) each, instead of `sim.traceRetentionPerKind` (200) and
+`sim.traceBytesPerKind` (500,000), registered through
+`registerTraceKindLimits` ([calculation-traces.md](calculation-traces.md#per-kind-retention)).
+The default world books about 140 rival matches in 28 days, about 0.5 MB of
+winner traces.
 
 **Decision kinds.** `winner` (chip "Winners") and `title` (chip "Titles"),
 registered in `results/decisionKinds.ts` with the rival desk's registry
@@ -859,7 +868,8 @@ Two streams, declared in `results/streams.ts`:
 
 - `aip.winners`: per segment, in this order: the jitter on each side (in side
   order), the draw roll, the finale roll, the protection roll, the squash roll,
-  then the method roll. A roll a segment does not need is not drawn, and a rule
+  then the method roll (with MTCH2's finishes in the save: the finish roll,
+  then the method roll among that finish's methods). A roll a segment does not need is not drawn, and a rule
   that decides the winner stops every later rule from drawing, so changing a
   late rule's tunable never shifts an earlier roll.
 - `aip.titles`: per title on the segment (highest prestige first), the change
@@ -1111,10 +1121,31 @@ match rolls.
 pluggable source, `registerPopularityHistorySource({ id, read })`
 (`results/history.ts`, at most one; a second throws). With none registered,
 `popularityHistoryOf` returns null and the decision notes "No popularity
-history yet" and adds nothing. AIP5-06 registers DAY2's promotion snapshots.
+history yet" and adds nothing. AIP5-06 registers DAY2's promotion snapshots as
+`office.snapshots` (`results/snapshotHistory.ts`): the promotion's weekly rows
+(`granularity: 'week'`) dated on or before the show, newest
+`aip.titles.hotShot.weeks + 1`, valued at `popularity.headline` (the figure
+the Office leads with). Rows thinned to one a month and a new game's baseline
+row are not weekly readings and are skipped, so a new game reads "No
+popularity history yet" too; with some readings but fewer than the term
+compares, it reads "Only 2 weekly readings so far, needs 4".
 
 **Results tunables.** Category `Rival booking`, in `results/tunables.ts`; the
 table is in [tunables.md](tunables.md#rival-results-tunables).
+
+### Integration (AIP5-06)
+
+AIP5-06 wired rival results to the partners on `main` when it ran (MTCH2,
+DAY2, AIP4; AIP2, AIP3 and BRW6 were not):
+
+| Partner                   | Status                  | What it adds                                                                                                                                                                                                                |
+| ------------------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| MTCH2 (finishes)          | wired (AIP5-06)         | Every rival result plans a finish with its method (`pickRivalFinish`); a planned change always gets a finish and method that let titles move. Random winners never reaches computer shows (`randomWinnersActive` is false). |
+| DAY2 (weekly snapshots)   | wired (AIP5-06)         | `office.snapshots` is the hot-shot term's popularity history.                                                                                                                                                               |
+| AIP4 (rival cards)        | wired (AIP5-04/05)      | Rival matches always have a planned result; Auto-fill on your own show never sets one (guard test).                                                                                                                         |
+| AIP2 (bookers' taste)     | wires from its own pack | Not on `main`: the title taste is the style default ("Title taste (style default)").                                                                                                                                        |
+| AIP3 (ace and prospects)  | wires from its own pack | Not on `main`: no aces or prospects are named, so protection never applies ("An ace or prospect to protect" under "Did not apply").                                                                                         |
+| BRW6 (computer-GM brands) | wires from its own pack | Not on `main`; a brand whose controller is `computer` already goes through `isComputerBooked`.                                                                                                                              |
 
 ## Integration
 
@@ -1127,14 +1158,14 @@ own registries, never through the planner's ordering or validation code.
 | ----------------------------- | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | EVT3 (show night)             | wired (AIP4-08)         | Cards booked by `aip.bookShow` run through `shows.runShows`: every segment is rated and the show is not scored off-screen (that stays for a computer show with no segments). `aip.showCards` rows carry `scoreTraceRef`; the Shows tab shows the score, its Why? and "See results". |
 | AIP3 (push review, featured)  | wires from its own pack | `aiProfiles.featured` exists but nothing names aces or prospects yet (no `aip.pushReview`), so the card score says "No ace or prospects named yet".                                                                                                                                 |
-| AIP5 (winners, title changes) | wires from its own pack | Not on `main`; plugs in through `registerBookedCardStep`.                                                                                                                                                                                                                           |
+| AIP5 (winners, title changes) | wired (AIP5-04)         | `aip.decideResults` plugs in through `registerBookedCardStep`: every rival match gets a planned result, so the "planned without winners" fallback is gone for rival shows. Auto-fill on your own show still never picks a winner (guard test in AIP5-05).                           |
 | AIP6 (creative upkeep)        | wires from its own pack | No `aip.creativeUpkeep` on `main`. Storyline segments already carry `storylineIds` from `fillCard`.                                                                                                                                                                                 |
 | MTCH7 (stipulations)          | wires from its own pack | No `stipulations.json` catalog on `main`; `aip.card.stipulationChance` is left for MTCH7-07.                                                                                                                                                                                        |
 | MTCH8 (crew)                  | wires from its own pack | No `suggestCrew` on `main`; rival segments keep `crew` empty.                                                                                                                                                                                                                       |
 | MTCH5 (angle beats)           | wires from its own pack | No beat catalog or `angleTemplatesFor` on `main`; `buildTalkSegment` keeps its default beat.                                                                                                                                                                                        |
 | ECO11 (territories)           | wires from its own pack | No development assignments on `main`; no `registerCardPoolSource` seam was added.                                                                                                                                                                                                   |
 | MP3 / MP5 (multiplayer)       | wires from its own pack | No server package or auto-ready on `main`. A promotion whose controller turns `computer` is booked by `aip.bookShow` with no extra code.                                                                                                                                            |
-| POL4 (performance budgets)    | wires from its own pack | POL4-06/07 (save size budget, slow-suite split) are on `main`, but there is no long-skip benchmark with a per-day budget to add `aip.bookShow` to.                                                                                                                                  |
+| POL4 (performance budgets)    | wired (POL4-09)         | Card values in the pool are worked out without traces, and rival show nights take the engine's [fast paths](day-pipeline.md#fast-paths); a year of the default world skips in about 9 s (was about 22 s).                                                                           |
 
 ## How a rival show's results are decided
 
@@ -1171,7 +1202,17 @@ savepoint of its own (a throw is logged and the card still books, winnerless).
      otherwise the old champion could win it back on the later show;
    - other titles on the match follow the lead title ("Follows the <title>
      decision");
-   - the method (`pickRivalMethod`, `results/method.ts`): the catalog's methods
+   - the finish and method. With MTCH2's finishes in the save (AIP5-06),
+     `pickRivalFinish` (`results/finish.ts`): the match's allowed finishes
+     (`allowedFinishes`) of the planned outcome kind; a planned change keeps
+     only finishes where `titleCanChange({ finish, method })` holds for at
+     least one of their methods, and the method is picked among those; a
+     forced no-change keeps only finishes and methods that cannot move the
+     title; then MTCH2's `autoFinish` (heels cheat more) and `chooseMethod` on
+     `aip.winners`. A draw gets a draw finish and no method. The finish is
+     written with the result, so show night runs exactly that finish and
+     MTCH2's title rule never undoes a planned change. Without finishes, the
+     method alone (`pickRivalMethod`, `results/method.ts`): the catalog's methods
      in `order`, without hidden ones and, with MTCH2's finishes in the save,
      only those an allowed win finish of the match lists. A planned change
      keeps only title-changing methods (whose finish lets titles change), a
@@ -1179,7 +1220,9 @@ savepoint of its own (a throw is logged and the card still books, winnerless).
      weigh 1 and the rest `aip.winner.method.nonTitleWeight`. No method at all
      is a content problem: logged, and the match is booked as a no contest.
 4. `setPlannedOutcome(tx, segmentId, { kind: 'win', winningSide, methodKey } |
-{ kind: 'draw' })` through EVT2's card writer.
+{ kind: 'draw' }, finishKey)` through EVT2's card writer (the finish argument
+   is checked against the result: same outcome kind, and for a win it lists the
+   method).
 
 **What is written:** the planned outcome only. Nothing here touches reigns,
 titles, morale, momentum or popularity: EVT3 runs the match as booked and its
@@ -1192,15 +1235,22 @@ angry or unhappy by this step.
 store's "N more steps not shown" note, about 4 KB each on the default world):
 
 - `aip.winner` by segment id: "Booked result: <matchup>", whose children are
-  "Who wins" (or the title decision's one-line headline plus "Who wins") and
-  "How the match is won"; the chosen option is `side:<n>`, `draw` or
-  `noContest`;
+  "Who wins" (or the title decision's one-line headline plus "Who wins"),
+  "How the match ends" (MTCH2's finish: its options and roll, not each weight
+  worked out) and "How the match is won"; the stored value is `side:<n>`,
+  `draw` or `noContest`;
 - `aip.title` by `<segmentId>|<titleId>`: the full "Title decision: <title>"
   (chance, challenger pool, rules, rolls), or the follow note for a second
   title.
 
 Both are full traces, demoted to summaries by `aip.pruneCardDetail` after the
-detail window (about four weeks).
+detail window (about four weeks). Since AIP5-06 they are stored lean (a
+`docRef` an ancestor already gives is dropped, a roll keeps its record but not
+the steps under it) and every decision's options read as words: `side:<n>` as
+the side's names ("Kai Moreno", "The Twins (side 2)" when two sides share
+names), a method key as its name. The trace's value stays the plan code, so
+code still reads `side:<n>`. The web's Trace wording reads codes in traces saved
+before that the same way ("Side 2", "Count out").
 
 **Decisions,** all revealed on the show's `airDate`, like the card's:
 
@@ -1235,14 +1285,21 @@ reigns). Trace refs come back only while the store has them.
   viewer, sandbox games and the show's own controller always see it),
   `noDecision` "No computer booker decided this result" for a match no
   computer booker planned.
+- `aip.showDecisions { eventInstanceId }` (AIP5-05): the same view for every
+  match a computer booker decided on one show, pre-show first then the main
+  card; `notFound` / `notRevealed` as above, and `{ decisions: [] }` for a
+  show no computer booker decided (your own). The results page's "Booker's
+  calls" section reads it.
 - `aip.recentTitleChanges { promotionId, limit? }` (1–20, default 5): reigns
   won in a match on the promotion's titles, newest first, with the new and
   previous holders' names at the time, the show, the old reign's length and
   the rival booker's reason and trace when it planned the change. Title
   changes are public, so there is no reveal check.
 
-AIP4's `aip.showCards` gains its `decision` field once AIP4-06 and this ticket
-are on one branch (not on AIP5-04's base).
+Each revealed match on AIP4's `aip.showCards` carries the same view as its
+`decision` (AIP5-05): `segmentDecisionView` for the segment, null for angles,
+human-booked matches and matches decided before AIP5. Hidden rows have no
+slots, so planned results never show before the show airs.
 
 ### Two-year title check
 
@@ -1252,18 +1309,23 @@ planned title change on the morning of the show: no rival matches without a
 planned result, every new champion on a computer show eligible
 (`isEligibleForTitle`), available (`availabilityOf`) and under contract for
 at least `aip.titles.challengerMinContractDays`, no change on a house show and
-no rival draws. Measured 2026-11-13 with the defaults above:
+no rival draws. With MTCH2 (AIP5-06) it also checks that every planned change
+has a finish and a method that let the title move and happened on the night,
+and that no planned retention produced a new champion. Measured 2026-11-13 with
+the defaults above (AIP5-06 figures, with planned finishes and the hot-shot
+term reading DAY2's snapshots):
 
 | Measure                                      | Value                      |
 | -------------------------------------------- | -------------------------- |
 | Rival titles                                 | 26                         |
-| New reigns on computer shows                 | 50                         |
-| Title changes per title per year             | 0.96                       |
-| Mean length of reigns that ended (any start) | 254 days (band 60–400)     |
-| Mean length of reigns begun and ended in it  | 221 days                   |
+| New reigns on computer shows                 | 51                         |
+| Title changes per title per year             | 0.98                       |
+| Mean length of reigns that ended (any start) | 236 days (band 60–400)     |
+| Mean length of reigns begun and ended in it  | 184 days                   |
 | Titles defended 4+ times that changed hands  | 25 of 26 (96%, needs 60%)  |
-| Rival draws                                  | 0 of 4,295 planned matches |
-| `aip.decideResults` time                     | about 0.7 ms a rival show  |
+| Rival draws                                  | 0 of 4,287 planned matches |
+| Planned changes / planned retentions         | 51 / 868, none undone      |
+| `aip.decideResults` time                     | about 1 ms a rival show    |
 
 With AIP5-01's first defaults the same run gave 0.40 changes per title per
 year and only 13 of 26 defended titles changed hands: rival titles are

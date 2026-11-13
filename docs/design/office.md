@@ -113,8 +113,9 @@ registerPromotionSnapshotField({
 
 Keep each field a single number. Anything structured, such as a per-region
 map, belongs in its owning feature's own table. Features expected to register
-fields: SOC3 (morale trend), ECO3 (hype), ECO2 (prestige), AIP5 (hot shots),
-DAY4 (rankings) and POL2 (balance charts).
+fields: SOC3 (morale trend), ECO3 (hype), ECO2 (prestige), DAY4 (rankings)
+and POL2 (balance charts). AIP5's hot shots read the built-in popularity
+column instead.
 
 ### Tunables
 
@@ -388,7 +389,15 @@ everything. Refusals, in this order:
 | `rangeTooLong`     | More than 1,000 points                 | "That is more than 1000 records; pick a shorter stretch"       |
 
 Later users: ECO2's prestige sparkline, ECO3's hype history, SOC3's morale
-trend, AIP5's hot-shot history, DAY4's rankings and POL2's balance charts.
+trend, DAY4's rankings and POL2's balance charts.
+
+**AIP5 reads the table (AIP5-06).** A rival booker's hot-shot term (move a
+title sooner while the promotion keeps losing fans) reads the promotion's
+weekly rows straight from `promotionSnapshots` (`granularity: 'week'`, dated on
+or before the show, newest `aip.titles.hotShot.weeks + 1`), valued at
+`popularity.headline`; monthly and baseline rows are skipped. It needs no
+field of its own. See
+[rival-booking.md](rival-booking.md#title-changes).
 
 ## Screen
 
@@ -476,8 +485,9 @@ with [`registerPromotionSnapshotField`](#the-registry) go in the row's `extra`
 map. None is registered yet: no partner on main when DAY2-06 started tracks a
 weekly number of its own. Owed by their own packs: ECO3's `hype.promotion`
 (Hype, points, public, KPI order 60, good when up), SOC3's morale trend (only
-if it tracks more than the built-in `averageMorale`), AIP5's hot shots, DAY4's
-rankings and POL2's balance charts. ECO2's prestige needs no field: the
+if it tracks more than the built-in `averageMorale`), DAY4's rankings and
+POL2's balance charts. AIP5's hot shots need no field: they read the built-in
+`popularity.headline` column (AIP5-06). ECO2's prestige needs no field: the
 built-in `prestige` column already records it.
 
 ## Fan base

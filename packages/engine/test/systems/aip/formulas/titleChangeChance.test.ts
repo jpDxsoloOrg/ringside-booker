@@ -121,7 +121,7 @@ describe('titleChangeChance', () => {
     it('notes too few readings and adds 0', () => {
       const result = run(inputs({ popularityHistory: weekly([50, 48, 46]) }), BAND_ONLY);
       expect(result.value).toBe(22);
-      expect(notes(result)).toContain('Only 3 weekly readings so far');
+      expect(notes(result)).toContain('Only 3 weekly readings so far, needs 4');
     });
 
     it('adds the bonus when the last 3 readings each fell, whatever order they come in', () => {

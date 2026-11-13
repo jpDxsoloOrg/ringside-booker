@@ -16,6 +16,7 @@ import { Panel } from '@/components/Panel';
 import { PopularityDrilldown } from '@/components/PopularityDrilldown';
 import { WhyButton } from '@/components/Trace';
 import { CompanySizeKpi } from '@/screens/finances/kpis';
+import { RecentTitleChangesPanel } from '../overview/RecentTitleChangesPanel';
 import type { PromotionTabContext } from '../promotionTabs';
 import styles from '../PromotionProfile.module.css';
 
@@ -105,8 +106,8 @@ function RulesPanel({ rules }: { readonly rules: PromotionProfile['rules'] }) {
 /**
  * The profile's first tab: the key numbers (popularity at home and worldwide with their Why?,
  * prestige, roster, champions, shows a month, company size and cash, which is "Private" for a
- * rival), what the roster is short of, the Rival rules as they apply here and the popularity
- * drill-down.
+ * rival), what the roster is short of, the Rival rules as they apply here, the recent title
+ * changes and the popularity drill-down.
  */
 export function OverviewTab({ profile, promotionId }: PromotionTabContext) {
   const formatMoney = useMoneyFormatter();
@@ -166,6 +167,8 @@ export function OverviewTab({ profile, promotionId }: PromotionTabContext) {
         <NeedsPanel promotionId={promotionId} />
         <RulesPanel rules={profile.rules} />
       </div>
+      {/* AIP5-05: who won which title lately and why. */}
+      <RecentTitleChangesPanel promotionId={promotionId} />
       <Panel title="Popularity by place" headingLevel={2}>
         <PopularityDrilldown rollup={profile.popularity} subjectName={header.name} />
       </Panel>

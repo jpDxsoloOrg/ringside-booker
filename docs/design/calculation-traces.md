@@ -351,6 +351,24 @@ does not change the length, so a loaded store counts exactly what the live one
 did and demotes the same entries. A budget of 0 summarises everything at once,
 like a retention of 0.
 
+### Kinds with limits of their own
+
+A kind whose full detail is meant to last a number of days, whatever the world's
+size, can set its own count and size limits instead of the two `sim.*` ones
+(AIP5-06). `TraceStoreLimits.perKind` maps a kind to `{ retentionPerKind,
+bytesPerKind }`; the store applies them exactly like the shared limits, just
+with that kind's numbers. Systems register them with
+`registerTraceKindLimits({ id, kinds, limits: (tunables) => ... })`
+(`systems/traceKindLimits.ts`), reading their own tunables, and the engine
+builds its limits with `engineTraceStoreLimits(tunables)` when it creates or
+loads a store and after a tunable changes. A kind may be registered once.
+
+Rival results use it: `aip.winner` and `aip.title` each keep up to
+`aip.results.fullTraces` (600) full traces and `aip.results.fullTraceChars`
+(1,500,000) characters, so the owner's 28 days of detail (`history.keepDetailDays`,
+enforced by `aip.pruneCardDetail`) fit on the default world, where 28 days of
+rival winners are about 140 traces and 0.5 MB.
+
 ### Summary-only results (rivals)
 
 A result recorded with `record(ref, date, traced, { summaryOnly: true })` is
@@ -370,6 +388,14 @@ show results (`shows.rivalSegmentScore`, `match.rivalResult`,
 `promoPop.rivalShowChange`, `boxOffice.rivalAttendance`) stay full: they are
 public, and the size budget bounds them. The player's own results keep full
 traces as before.
+
+**Checked as a summary.** Since only the summary is kept, a summary-only
+record is fitted into the size limits like any other (so the same steps are
+summarised) and then only its root and direct steps are checked and staged,
+not every node of the tree (POL4-09,
+[fast paths](day-pipeline.md#fast-paths)). Every other record is checked and
+copied in one walk (`copyValidTraceContent`), falling back to the full JSON and
+schema check, which names the problem, for anything unusual.
 
 **Demoting on purpose.** `TraceStaging.demote(ref)` (a step's
 `ctx.demoteTrace(ref)`) replaces a ref's full trace with its summary when the

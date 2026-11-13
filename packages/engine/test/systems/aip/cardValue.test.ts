@@ -13,7 +13,12 @@ import {
   type CardValueInputs,
   type Taste,
 } from '../../../src/systems/aip';
-import { NO_TASTE_NOTE, NO_WEIGHTS_NOTE } from '../../../src/systems/aip/formulas/cardValue';
+import {
+  cardValueFanBase,
+  cardValueNumber,
+  NO_TASTE_NOTE,
+  NO_WEIGHTS_NOTE,
+} from '../../../src/systems/aip/formulas/cardValue';
 import { createEngineTunables } from '../../../src/systems/tunables';
 import { testId } from '../../support/ids';
 import { expectSerialisable, expectTraceContains, expectTraceReplays } from '../../support/trace';
@@ -211,5 +216,71 @@ describe('cardValue', () => {
       expect(line.operand).toBeGreaterThanOrEqual(0);
     }
     expect(findTraceNodes(blend, 'subtract')).toEqual([]);
+  });
+});
+
+describe('cardValueNumber', () => {
+  /** A small fixed-seed generator, so the sweep is the same on every run. */
+  function generator(seed: number): () => number {
+    let state = seed;
+    return () => {
+      state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+      return state / 4294967296;
+    };
+  }
+
+  it('gives exactly the traced value, to the bit, across a sweep of workers and tunables', () => {
+    const next = generator(7);
+    const pick = (low: number, high: number) => low + next() * (high - low);
+    const whole = (low: number, high: number) => Math.floor(pick(low, high + 1));
+    const many = testRegions(9);
+    const popOf = (zeroChance: number) =>
+      Object.fromEntries(
+        many.flatMap((region) =>
+          next() < zeroChance ? [] : [[region.id, Math.round(pick(0.5, 100) * 10) / 10]],
+        ),
+      );
+    for (let index = 0; index < 400; index += 1) {
+      const overrides: TunableOverrides = {
+        'aip.cardValue.marketMinPop': whole(0, 60),
+        'aip.cardValue.popularityWeight': index % 17 === 0 ? 0 : pick(0, 3),
+        'aip.cardValue.abilityWeight': index % 23 === 0 ? 0 : pick(0, 3),
+        'aip.cardValue.momentumFactor': pick(0, 1),
+        'aip.cardValue.declineAge': whole(18, 60),
+        'aip.cardValue.declinePerYear': pick(0, 0.2),
+        'aip.cardValue.ageFloor': pick(0, 1),
+        'aip.cardValue.youthAge': whole(16, 40),
+        'aip.cardValue.youthBonus': pick(0, 20),
+      };
+      const taste: Taste = {
+        wrestlingFocus: index % 5 === 0 ? 0 : whole(0, 100),
+        entertainmentFocus: whole(0, 100),
+        athleticFocus: index % 7 === 0 ? 0 : whole(0, 100),
+        starFocus: whole(0, 100),
+        talkShare: whole(0, 100),
+        titleFocus: whole(0, 100),
+        youthFocus: whole(0, 100),
+        riskAppetite: whole(0, 100),
+      };
+      const deps = { tunables: createEngineTunables(overrides) };
+      const inputs = inputsOf({
+        workerPop: popOf(0.3),
+        promotionPop: index % 11 === 0 ? {} : popOf(0.5),
+        regions: many,
+        attributes: attributesOf(whole(1, 100), {
+          mic: whole(1, 100),
+          stamina: whole(1, 100),
+          presence: whole(1, 100),
+        }),
+        momentum: index % 3 === 0 ? null : whole(-100, 100),
+        age: whole(16, 60),
+        taste: index % 2 === 0 ? storedTaste(taste) : defaultTaste({ style: 'hardHitting' }, deps),
+      });
+      const traced = cardValue(inputs, deps).value;
+      expect(cardValueNumber(inputs, deps)).toBe(traced);
+      expect(cardValueNumber(inputs, deps, { fanBase: cardValueFanBase(inputs, deps) })).toBe(
+        traced,
+      );
+    }
   });
 });

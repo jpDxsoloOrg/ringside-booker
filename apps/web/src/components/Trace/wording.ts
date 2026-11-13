@@ -249,22 +249,51 @@ export function branchLine(node: BranchNode): TraceLine {
 
 /** An option the engine names with a code: one word, or several run together in camelCase. */
 const CHOICE_CODE_PATTERN = /^[a-z][a-z0-9]*(?:[A-Z][a-z0-9]*)*$/;
+/** A side of a match by its index, as rival results name it: `side:0` is the first side. */
+const SIDE_CODE_PATTERN = /^side:(\d+)$/;
+/** A content key: a catalog's prefix, a dot and a lower-case slug (`method.count-out`). */
+const CONTENT_KEY_PATTERN = /^[a-z][a-zA-Z]*\.([a-z0-9]+(?:-[a-z0-9]+)*)$/;
+
+/** "count-out" → "Count out". */
+function slugWords(slug: string): string {
+  const words = slug.replace(/-/g, ' ');
+  return `${words.charAt(0).toUpperCase()}${words.slice(1)}`;
+}
 
 /**
  * A decision's option as the player reads it. The engine names options with the same codes the
  * data uses (`mainEvent`, `lightHeavyweight`); they read as words here ("Main event", "Light
- * heavyweight"). Text that is not a code (a name, a sentence) is left as it is.
+ * heavyweight"). A content key reads as its slug ("method.count-out" → "Count out") and a side
+ * code as the side's number ("side:0" → "Side 1"); the engine words both itself these days, so
+ * this is for explanations saved before it did. Text that is not a code (a name, a sentence) is
+ * left as it is.
  */
 export function choiceText(option: string | boolean): string {
   if (typeof option === 'boolean') return option ? 'yes' : 'no';
+  const side = SIDE_CODE_PATTERN.exec(option);
+  if (side !== null) return `Side ${String(Number(side[1]) + 1)}`;
+  const contentKey = CONTENT_KEY_PATTERN.exec(option);
+  if (contentKey?.[1] !== undefined) return slugWords(contentKey[1]);
   if (!CHOICE_CODE_PATTERN.test(option)) return option;
   const words = option.replace(/[A-Z]/g, (letter) => ` ${letter.toLowerCase()}`);
   return `${words.charAt(0).toUpperCase()}${words.slice(1)}`;
 }
 
+/**
+ * One of a decision's options in words. A side code the decision weighed with the side's names as
+ * its reason reads as those names ("Kai Moreno", not "Side 1").
+ */
+function optionText(node: DecisionNode, option: string | boolean): string {
+  if (typeof option === 'string' && SIDE_CODE_PATTERN.test(option)) {
+    const named = node.considered.find((entry) => entry.option === option)?.reason;
+    if (named !== undefined) return named;
+  }
+  return choiceText(option);
+}
+
 /** A trace's own value as the headline shows it: a decision's choice in words, a number in its unit. */
 export function traceValueText(node: TraceNode): string {
-  if (node.kind === 'decision') return choiceText(node.chosen);
+  if (node.kind === 'decision') return optionText(node, node.chosen);
   return formatTraceValue(node.value, node.unit);
 }
 
@@ -272,10 +301,13 @@ export function decisionLine(node: DecisionNode): TraceLine {
   const chosen = node.considered.filter((option) => option.option === node.chosen);
   const others = node.considered.filter((option) => option.option !== node.chosen);
   const describe = (prefix: string, option: DecisionNode['considered'][number]): string => {
-    const base = `${prefix}: ${choiceText(option.option)}, score ${formatTraceNumber(option.score)}`;
-    return option.reason === undefined ? base : `${base}${TEXT_SEPARATOR}${option.reason}`;
+    const words = optionText(node, option.option);
+    const base = `${prefix}: ${words}, score ${formatTraceNumber(option.score)}`;
+    return option.reason === undefined || option.reason === words
+      ? base
+      : `${base}${TEXT_SEPARATOR}${option.reason}`;
   };
-  return line(`${node.label}: ${choiceText(node.chosen)}`, {
+  return line(`${node.label}: ${optionText(node, node.chosen)}`, {
     details: [node.reason],
     items: [
       ...chosen.map((option) => describe('Chosen', option)),
