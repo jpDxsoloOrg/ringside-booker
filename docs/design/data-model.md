@@ -12,7 +12,9 @@ Code: `packages/engine/src/model/`.
 - **Tables.** Each table is a `Map<Id, Entity>` built from a `TableDef`: the
   table name, the entity kind, the zod schema of a row, the reference fields,
   the secondary indexes, the cross-row invariants, and an `appendOnly` flag for
-  tables that only ever grow (the ledger). The production registry is
+  tables whose rows are never edited: `true` for tables that only ever grow
+  (the ledger), `'pruneOnly'` for logs whose old rows are deleted but never
+  updated (the rival decision log). The production registry is
   `TABLES` in `model/tables.ts`; each key equals its table's name, and no two
   tables share a kind.
 - **Metadata.** `WorldMeta` (`model/world-meta.ts`) holds what is not a row:
@@ -58,6 +60,7 @@ ones. A row's `id` field always equals the key it is stored under.
 | `participant`     | `ptc`  | `news`         | `nws`  |
 | `storyline`       | `sty`  | `ledgerEntry`  | `led`  |
 | `team`            | `tem`  | `season`       | `sea`  |
+| `aiProfile`       | `aip`  | `aiDecision`   | `aid`  |
 
 The source of truth is `ENTITY_KINDS` in `packages/engine/src/core/ids.ts`.
 
@@ -1156,9 +1159,12 @@ change the enum. The player-facing labels and who posts each category are in
 |                 | `buyout`         |
 |                 | `subsidy`        |
 
-**Append-only:** the ledger table is `appendOnly`, so transactions refuse to
-update or delete its rows. Money has to reconcile, and an edited history can't
-be audited. A mistake is fixed with a new, correcting entry. The
+**Append-only:** the ledger table is `appendOnly: true`, so transactions refuse
+to update or delete its rows. Money has to reconcile, and an edited history
+can't be audited. A mistake is fixed with a new, correcting entry. A log that
+must never be edited but may be pruned uses `appendOnly: 'pruneOnly'` instead:
+`update` throws `AppendOnlyError`, `delete` is allowed (the rival decision log,
+[below](#rival-desk)). The
 `byPromotionMonth` index (key `<promotionId>|YYYY-MM`) serves monthly reports.
 
 Volume: one entry per worker per day would grow saves fast. The economy posts
@@ -1263,3 +1269,53 @@ Refs: `promotionId` and `popularity.byContinent{}`. Indexes: `byPromotion`,
 unique `byPromotionDate` (key `<promotionId>|<date>`, helper
 `promotionSnapshotKey`) and `byDate`. Saves list the table with a default of
 `[]`, so saves written before it existed load with it empty.
+
+## Rival desk
+
+The rival desk's two tables (AIP1-01). See [rival-desk.md](rival-desk.md).
+Saves list both with a default of `[]`, so saves written before they existed
+load with them empty.
+
+### Rival profiles (`aiProfiles`, `aip_`)
+
+One row per computer-run unit: a computer promotion as a whole, or a computer
+brand inside a human promotion ([units](rival-desk.md#units)).
+
+| Field         | Type                                                       | Notes                                                                                       |
+| ------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `id`          | `AiProfileId`                                              |                                                                                             |
+| `promotionId` | `PromotionId`                                              |                                                                                             |
+| `brandId`     | `BrandId` or null                                          | null for a whole promotion                                                                  |
+| `taste`       | eight 0..100 axes or null                                  | null until AIP2; axes in `TASTE_AXES`                                                       |
+| `featured`    | `{ ace, prospects, nextReviewOn, lastReviewedOn }` or null | null until AIP3; `ace` and each prospect are `{ employmentId, since }`, at most 2 prospects |
+| `createdOn`   | `GameDate`                                                 |                                                                                             |
+| `lastTurnOn`  | `GameDate` or null                                         | null before the unit's first turn                                                           |
+
+Refs: `promotionId`, `brandId`, `featured.ace.employmentId` and
+`featured.prospects[].employmentId`. Indexes: `byPromotion` and unique
+`byUnit` (key `aiUnitKey(promotionId, brandId)` =
+`<promotionId>|<brandId ?? '-'>`). Invariants: `brandBelongsToPromotion` and
+`featuredEmploymentsBelongToUnit`.
+
+### Rival decisions (`aiDecisions`, `aid_`)
+
+The decision log: `appendOnly: 'pruneOnly'`, so rows are added and pruned,
+never edited ([decision log](rival-desk.md#decision-log)).
+
+| Field         | Type                                                                    | Notes                                                 |
+| ------------- | ----------------------------------------------------------------------- | ----------------------------------------------------- |
+| `id`          | `AiDecisionId`                                                          |                                                       |
+| `promotionId` | `PromotionId`                                                           |                                                       |
+| `brandId`     | `BrandId` or null                                                       | null for a whole-promotion unit                       |
+| `date`        | `GameDate`                                                              | the day it was decided                                |
+| `kind`        | string                                                                  | lower camelCase, at most 40 characters; open, no enum |
+| `summary`     | `TemplatedText`                                                         | content key plus short params                         |
+| `refs`        | `{ personIds, employmentIds, titleIds, promotionIds, eventInstanceId }` | lists default to `[]`, at most 12 IDs each            |
+| `traceRef`    | `TraceRef` or null                                                      | a summary-only trace                                  |
+| `revealOn`    | `GameDate`                                                              | other controllers see the row from this day           |
+| `importance`  | 0..3                                                                    | 0 routine, 3 headline                                 |
+
+Refs: `promotionId`, `brandId` and every ID in `refs`. Indexes:
+`byPromotion`, `byPromotionDate` (key `<promotionId>|<date>`, helper
+`aiDecisionDateKey`) and `byRevealOn`. Rows older than
+`aip.decisionLogRetentionDays` are pruned once revealed.

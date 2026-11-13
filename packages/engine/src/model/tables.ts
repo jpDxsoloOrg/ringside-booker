@@ -7,6 +7,8 @@
  */
 
 import { aftermathsTable } from './entities/aftermath';
+import { aiDecisionsTable } from './entities/ai-decision';
+import { aiProfilesTable } from './entities/ai-profile';
 import { brandsTable } from './entities/brand';
 import { dealsTable } from './entities/deal';
 import { employmentsTable } from './entities/employment';
@@ -69,6 +71,9 @@ export const TABLES = {
   aftermaths: aftermathsTable,
   // DAY2-01: each promotion's weekly history.
   promotionSnapshots: promotionSnapshotTable,
+  // AIP1-01: the rival desk's profiles and decision log.
+  aiProfiles: aiProfilesTable,
+  aiDecisions: aiDecisionsTable,
 } as const satisfies TableRegistry;
 
 export type GameTables = typeof TABLES;

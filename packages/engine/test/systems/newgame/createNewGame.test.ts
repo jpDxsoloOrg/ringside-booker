@@ -516,6 +516,7 @@ describe('createNewGame: setup steps', () => {
       { id: 'wld.rerollPotential', order: 700 },
       { id: 'wld.storeSettings', order: 800 },
       { id: 'calendar.scheduleOpening', order: 810 },
+      { id: 'aip.createProfiles', order: 895 },
       { id: 'finance.openingBalance', order: 905 },
       { id: 'office.baselineSnapshot', order: 990 },
     ]);
@@ -586,6 +587,7 @@ describe('createNewGame: setup steps', () => {
       'test.after',
       'wld.storeSettings',
       'calendar.scheduleOpening',
+      'aip.createProfiles',
       'finance.openingBalance',
       'office.baselineSnapshot',
     ]);

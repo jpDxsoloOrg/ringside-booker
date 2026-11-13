@@ -339,7 +339,7 @@ class TxCore<R extends TableRegistry> {
     id: E['id'],
     change: RowPatch<E> | RowUpdater<E>,
   ): E {
-    if (table.def.appendOnly === true) {
+    if (table.def.appendOnly === true || table.def.appendOnly === 'pruneOnly') {
       throw new AppendOnlyError(table.name, 'update', id);
     }
     const previous = table.require(id);

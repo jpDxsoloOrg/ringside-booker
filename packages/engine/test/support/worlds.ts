@@ -26,7 +26,7 @@ import { anAftermath } from './builders/aftermath';
 import { aMail, aNews } from './builders/inbox';
 import { aVenue } from './builders/geography';
 import { testId } from './ids';
-import { aRelationship, aStable, aTeam } from './builders/promotions';
+import { anAiDecision, anAiProfile, aRelationship, aStable, aTeam } from './builders/promotions';
 import {
   aMatch,
   anAngle,
@@ -520,6 +520,54 @@ function tinySnapshot(
   };
 }
 
+/**
+ * Promotion B's rival desk (AIP1-01): its profile, a roster review it made last Thursday (already
+ * revealed) and a plan for next Thursday's card that stays hidden until that day.
+ */
+function addTinyRivalDesk(context: BuildContext): void {
+  const { sequence, ids } = context;
+  const promotionB = required(ids.promotions.B, 'promotion B');
+  const personB = required(ids.people[8], 'person 8');
+  const employmentB = required(ids.employments[8], 'employment 8');
+  context.insert(
+    'aiProfiles',
+    anAiProfile({ promotionId: promotionB, createdOn: TINY_WORLD_START }, sequence),
+  );
+  context.insert(
+    'aiDecisions',
+    anAiDecision(
+      {
+        promotionId: promotionB,
+        date: TINY_WORLD_SHOW_DATE,
+        kind: 'rosterReview',
+        summary: {
+          key: parseContentKey('aip.decision.roster-review'),
+          params: { name: 'Test Promotion B' },
+        },
+        refs: { personIds: [personB], employmentIds: [employmentB] },
+        revealOn: TINY_WORLD_SHOW_DATE,
+        importance: 1,
+      },
+      sequence,
+    ),
+  );
+  context.insert(
+    'aiDecisions',
+    anAiDecision(
+      {
+        promotionId: promotionB,
+        date: TINY_WORLD_TODAY,
+        kind: 'card',
+        summary: { key: parseContentKey('aip.decision.card'), params: {} },
+        refs: { personIds: [personB], employmentIds: [employmentB] },
+        revealOn: addDays(TINY_WORLD_SHOW_DATE, 7),
+        importance: 2,
+      },
+      sequence,
+    ),
+  );
+}
+
 const TINY_WORLD_SNAPSHOTS: readonly DeepPartial<PromotionSnapshot>[] = [
   tinySnapshot('2026-03-23', 1_003_000_000, 10, 2),
   tinySnapshot('2026-03-30', 1_001_500_000, 10.5, 1.5),
@@ -544,6 +592,8 @@ const TINY_WORLD_SNAPSHOTS: readonly DeepPartial<PromotionSnapshot>[] = [
  * - 2 aftermath rows for the title match: people[0] won, people[1] lost;
  * - 3 weekly history rows for promotion A (the Mondays 2026-03-23, 03-30 and 04-06), with cash,
  *   popularity and morale moving a little each week, so the Office has a trend to draw;
+ * - promotion B's rival desk profile and 2 rival decisions: one already revealed, one revealed
+ *   next Thursday;
  * - the shipped base catalogs on its metadata (`TEST_CATALOGS`), so every segment key resolves.
  */
 export function tinyWorld(): BuiltWorld {
@@ -593,6 +643,7 @@ export function tinyWorld(): BuiltWorld {
     )
     .with('history', addTinyHistory)
     .withPromotionSnapshots('A', TINY_WORLD_SNAPSHOTS)
+    .with('rival desk', addTinyRivalDesk)
     .build();
 }
 

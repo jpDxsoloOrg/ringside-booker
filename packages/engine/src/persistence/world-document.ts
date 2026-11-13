@@ -108,6 +108,8 @@ function serialiseTables(tables: SerialisableWorld['tables']): SerializedTables 
     popularityShowChanges: [...tables.popularityShowChanges.values()],
     aftermaths: [...tables.aftermaths.values()],
     promotionSnapshots: [...tables.promotionSnapshots.values()],
+    aiProfiles: [...tables.aiProfiles.values()],
+    aiDecisions: [...tables.aiDecisions.values()],
   };
 }
 

@@ -13,11 +13,18 @@
  * - stable `Test Stable 001`: an active stable of people 1 to 3 with no leader;
  * - relationship: friends, affinity 0. The pair is put in canonical order for you.
  * - promotion snapshot (DAY2-01): a `week` row for `pro_0000000001` on `TEST_START_DATE` with the
- *   default promotion's cash and prestige, no popularity, an empty roster and no extra fields.
+ *   default promotion's cash and prestige, no popularity, an empty roster and no extra fields;
+ * - rival desk profile (AIP1-01): the whole of `pro_0000000001` (no brand), created on
+ *   `TEST_START_DATE`, with no taste, no featured workers and no turn yet;
+ * - rival decision (AIP1-01): a routine (importance 0) `rosterReview` by `pro_0000000001` on
+ *   `TEST_START_DATE`, revealed the same day, with no refs and no trace.
  */
 
 import { yearMonthOf } from '../../../src/core/date';
+import { parseContentKey } from '../../../src/core/content-key';
 import { cents } from '../../../src/core/money';
+import { AiDecisionSchema, type AiDecision } from '../../../src/model/entities/ai-decision';
+import { AiProfileSchema, type AiProfile } from '../../../src/model/entities/ai-profile';
 import { BrandSchema, type Brand } from '../../../src/model/entities/brand';
 import { EmploymentSchema, type Employment } from '../../../src/model/entities/employment';
 import { PromotionSchema, type Promotion } from '../../../src/model/entities/promotion';
@@ -211,4 +218,49 @@ export function aPromotionSnapshot(
     extra: {},
   };
   return buildRow(PromotionSnapshotSchema, 'aPromotionSnapshot', defaults, overrides);
+}
+
+export function anAiProfile(
+  overrides: DeepPartial<AiProfile> = {},
+  sequence: TestIdSequence = TestIds,
+): AiProfile {
+  const defaults: AiProfile = {
+    id: overrides.id ?? sequence.id('aiProfile'),
+    promotionId: testId('promotion'),
+    brandId: null,
+    taste: null,
+    featured: null,
+    createdOn: TEST_START_DATE,
+    lastTurnOn: null,
+  };
+  return buildRow(AiProfileSchema, 'anAiProfile', defaults, overrides);
+}
+
+/** The summary key the default decision uses. */
+export const DEFAULT_AI_DECISION_SUMMARY_KEY = parseContentKey('aip.decision.roster-review');
+
+export function anAiDecision(
+  overrides: DeepPartial<AiDecision> = {},
+  sequence: TestIdSequence = TestIds,
+): AiDecision {
+  const date = overrides.date ?? TEST_START_DATE;
+  const defaults: AiDecision = {
+    id: overrides.id ?? sequence.id('aiDecision'),
+    promotionId: testId('promotion'),
+    brandId: null,
+    date,
+    kind: 'rosterReview',
+    summary: { key: DEFAULT_AI_DECISION_SUMMARY_KEY, params: {} },
+    refs: {
+      personIds: [],
+      employmentIds: [],
+      titleIds: [],
+      promotionIds: [],
+      eventInstanceId: null,
+    },
+    traceRef: null,
+    revealOn: overrides.revealOn ?? date,
+    importance: 0,
+  };
+  return buildRow(AiDecisionSchema, 'anAiDecision', defaults, overrides);
 }

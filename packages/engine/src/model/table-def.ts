@@ -79,8 +79,12 @@ export interface TableDef<
   readonly indexes: readonly IndexSpec<E>[];
   /** Cross-row rules run by `checkWorld`. */
   readonly invariants?: readonly Invariant[];
-  /** Rows are only ever inserted (the ledger, for example). Enforced by transactions. */
-  readonly appendOnly?: boolean;
+  /**
+   * Rows are never edited, enforced by transactions. `true`: rows are only ever inserted (the
+   * ledger). `'pruneOnly'`: rows are inserted and may be deleted (pruned after a retention period)
+   * but never updated (the rival decision log).
+   */
+  readonly appendOnly?: boolean | 'pruneOnly';
 }
 
 /** Every table of a world, keyed by table name. Each key must equal its definition's `name`. */
