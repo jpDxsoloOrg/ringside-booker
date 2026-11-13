@@ -20,6 +20,8 @@ import './setup';
 import './decisionKinds';
 // AIP1-05: the weekly roster review registers itself as a job on import.
 import './jobs/rosterReview';
+// AIP1-07: the rating policy provider (MTCH1's door) registers itself on import.
+import './ratingPolicy';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
 import { aipPhases } from './phases';
 
@@ -234,3 +236,12 @@ export const aipSystem: SystemBundle = defineSystem({
     aipDecisionLogQuery,
   ],
 });
+// AIP1-07: the rating policy provider behind MTCH1's policy door.
+export {
+  FULL_RULES_POLICY_LABEL,
+  NO_RIVAL_BONUS_LINE,
+  RIVAL_POLICY_LABEL,
+  RIVAL_RATING_POLICY_ID,
+  rivalRatingPolicy,
+  rivalShortcutLine,
+} from './ratingPolicy';

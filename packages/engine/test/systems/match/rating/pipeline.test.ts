@@ -1,6 +1,6 @@
 // The rating seams (MTCH1-05): rating modifiers on every stage, their order, the rival shortcut,
 // the policy door and swapping a rater. Design: docs/design/match-rating.md#pipeline-and-seams
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { RegistryError } from '../../../../src/core/errors';
 import { constantOf, findTraceNodes } from '../../../../src/core/trace';
 import {
@@ -31,6 +31,15 @@ import {
 } from './fixtures';
 
 const BUMP = 'Test bump';
+
+// The rival desk registers its policy provider on import (AIP1-07); these are tests of MTCH1's own
+// seams, so the file (including the bases some describe blocks rate while collecting) and every
+// test start from the bare registries.
+resetMatchRegistriesForTests();
+
+beforeEach(() => {
+  resetMatchRegistriesForTests();
+});
 
 afterEach(() => {
   resetMatchRegistriesForTests();
