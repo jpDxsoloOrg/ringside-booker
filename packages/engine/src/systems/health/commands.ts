@@ -3,8 +3,9 @@
  *
  * `health.acknowledgeInjuries` marks the player's workers' new injuries as seen, so the own-injury
  * gate (`health.ownWorkerInjured`) lets the day move again. The screens that show an injury (the
- * roster's injuries tab, a worker's health profile) run it when they open. Ids already seen are
- * skipped without a reason, so a screen can send everything it shows. Design:
+ * roster's injuries tab, a worker's health profile) run it when they open. The player's own ids
+ * already seen are skipped without a reason, so a screen can send everything it shows; another
+ * promotion's workers' injuries are refused (`notYourWorker`). Design:
  * docs/design/health.md#own-injury-gate.
  */
 
@@ -12,7 +13,8 @@ import { z } from 'zod';
 import { defineCommand } from '../../core/api/command';
 import { sameController, type Controller } from '../../core/api/controller';
 import type { Reason } from '../../core/api/result';
-import type { InjuryId, PersonId } from '../../core/ids';
+import type { InjuryId } from '../../core/ids';
+import type { InjuryRecord } from '../../model/entities/injury';
 import { zId } from '../../model/primitives';
 import type { GameWorldView } from '../../model/tables';
 import type { DeepReadonly } from '../../model/world';
@@ -36,22 +38,26 @@ export const ACKNOWLEDGE_REASON_CODES = ['unknownInjury', 'notYourWorker'] as co
 export type AcknowledgeReasonCode = (typeof ACKNOWLEDGE_REASON_CODES)[number];
 
 /**
- * True when `issuedBy` may mark this worker's injury as seen: a human who runs one of their
- * employers (or their brand). When no human employs them any more (their contract ended while the
- * injury waited), any human may, so a waiting injury can never block the day for good.
+ * True when `issuedBy` may mark this injury as seen: a human who runs one of the worker's employers
+ * (or their brand). An injury still waiting whose worker no human employs any more (their contract
+ * ended, or they moved to a rival, while it waited) may be marked by any human, so a waiting injury
+ * can never block the day for good.
  */
 function mayAcknowledge(
   read: GameWorldView,
-  personId: PersonId,
+  injury: DeepReadonly<InjuryRecord>,
   issuedBy: DeepReadonly<Controller>,
 ): boolean {
   if (issuedBy.kind !== 'human') {
     return false;
   }
-  const humans = employerControllersOf(read, personId, read.meta.currentDate).filter(
+  const humans = employerControllersOf(read, injury.personId, read.meta.currentDate).filter(
     (controller) => controller.kind === 'human',
   );
-  return humans.length === 0 || humans.some((controller) => sameController(controller, issuedBy));
+  if (humans.some((controller) => sameController(controller, issuedBy))) {
+    return true;
+  }
+  return injury.noticedOn === null && humans.length === 0;
 }
 
 /** The injuries that are waiting and will be marked, in the order given, without repeats. */
@@ -85,7 +91,7 @@ export const acknowledgeInjuriesCommand = defineCommand('health.acknowledgeInjur
         });
         continue;
       }
-      if (injury.noticedOn !== null || mayAcknowledge(read, injury.personId, issuedBy)) {
+      if (mayAcknowledge(read, injury, issuedBy)) {
         continue;
       }
       reasons.push({

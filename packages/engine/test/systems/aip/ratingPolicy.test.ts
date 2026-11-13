@@ -118,6 +118,9 @@ describe('the rival rating policy', () => {
     expect(aiShortcutConsumers('ai.simpleBookingInputs')).toEqual([
       { key: 'ai.simpleBookingInputs', ...consumer },
     ]);
-    expect(aiShortcutConsumers('ai.skipInMatchInjuries')).toEqual([]);
+    // WRK6's off-screen injuries act on the in-match injury shortcut (WRK6-04).
+    expect(aiShortcutConsumers('ai.skipInMatchInjuries')).toEqual([
+      { key: 'ai.skipInMatchInjuries', featureId: 'WRK6', label: 'Off-screen injuries' },
+    ]);
   });
 });
