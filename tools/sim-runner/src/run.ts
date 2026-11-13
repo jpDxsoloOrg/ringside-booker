@@ -33,6 +33,7 @@ import {
   daysPerSecond,
   FIRST_FAILURES_LIMIT,
   sortedCounts,
+  type BoxOfficeSummary,
   type PromotionHistorySummary,
   type RunSummary,
 } from './summary';
@@ -301,6 +302,7 @@ export async function runSimulation(
       worldHash: worldHash(finalState),
       loadIssues: engine.loadIssues.map((issue) => issue.message),
       promotionHistory: promotionHistorySummary(finalState),
+      boxOffice: boxOfficeSummary(finalState),
     },
     failures,
     advanceCalls,
@@ -387,6 +389,29 @@ function historyRowsByPromotion(
     }
   }
   return byPromotion;
+}
+
+/**
+ * The shows the box office settled (EVT6-05). Every show completed by the end of a run ran on a day
+ * that has been simulated, and a show is settled on its own date, so a completed show without an
+ * attendance means a settlement failed.
+ */
+export function boxOfficeSummary(state: EngineState): BoxOfficeSummary {
+  let settledShows = 0;
+  let unsettledShows = 0;
+  let totalAttendance = 0;
+  for (const instance of state.world.tables.eventInstances) {
+    if (instance.status !== 'completed' || instance.result === null) {
+      continue;
+    }
+    if (instance.result.attendance === null) {
+      unsettledShows += 1;
+    } else {
+      settledShows += 1;
+      totalAttendance += instance.result.attendance;
+    }
+  }
+  return { settledShows, unsettledShows, totalAttendance };
 }
 
 /** The size of the promotion history at the end of a run, for the summary. */

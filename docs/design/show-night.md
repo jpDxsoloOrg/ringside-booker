@@ -525,9 +525,10 @@ Nothing new is stored, so the save is unchanged.
 | 15    | Appearances        | built in, everyone on the card once                         |
 | 25    | Fans (EVT5)        | `popularity.showChange`: regions gained and lost, the most  |
 | 30    | Popularity (MTCH3) | `match.aftermath`: workers up, down and the same            |
+| 35    | Box office (EVT6)  | `boxOffice.showCrowd`: the crowd and % full; your gate too  |
 | 60    | Money (ECO1)       | `finance.ledger` for the show: the net, your own shows only |
 
-Still to come, each as its own line: the gate (EVT6), TV, PPV and streaming
+Still to come, each as its own line: TV, PPV and streaming
 income (ECO8), injuries (MTCH4, WRK6), morale (WRK8).
 
 **Each segment card** shows its reasons in a line under the numbers ("Top
@@ -671,7 +672,8 @@ aftermath 30, MTCH4's physical toll 40 and MTCH6's chemistry 50 as they land.
 The title applier and MTCH3's aftermath (MTCH3-05) run today.
 
 **Results sections.** EVT5's "Popularity" (25), then MTCH3's "Popularity &
-momentum" (30, MTCH3-05), then ECO1's "Show money" (60, ECO1-06, the player's
+momentum" (30, MTCH3-05), then EVT6's "Box office" (35, EVT6-05; a rival's
+show shows its crowd only), then ECO1's "Show money" (60, ECO1-06, the player's
 own shows only).
 
 **Random winners and booking.** Show night decides every match on a Random

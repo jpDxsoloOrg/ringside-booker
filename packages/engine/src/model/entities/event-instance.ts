@@ -54,6 +54,16 @@ export const EventResultSchema = z.strictObject({
   gate: zNonNegativeCents.nullable(),
   /** TV or stream viewers, or null for a show that did not air or until ECO8 computes it. */
   viewers: zNonNegativeInt.nullable(),
+  /**
+   * The price of one ticket, in cents (EVT6-05). Absent until the box office settles the show. The
+   * gate is this times the attendance; it is kept for a show nobody came to.
+   */
+  ticketPrice: zNonNegativeCents.optional(),
+  /**
+   * Live merch sales before the workers' shares, in cents (EVT6-05). Absent until the box office
+   * settles the show. The ledger holds what the company kept, so the shares are this less that.
+   */
+  merch: zNonNegativeCents.optional(),
 });
 
 /**

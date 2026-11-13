@@ -1,0 +1,40 @@
+/* The results page's "Box office" section: KPI cards, a private note for rivals, a skeleton. */
+.boxOffice {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+/* One column on a phone: five money cards 2-up leave the Net on its own, half-width. Two classes
+   so this wins over the grid's own two-column rule whatever order the styles load in. */
+@media (--bp-mobile) {
+  .boxOffice .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.private,
+.notKept {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.skeleton {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--space-3);
+}
+
+.skeletonCard {
+  display: block;
+  block-size: 6rem;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-hover);
+}
+
+@media (--bp-mobile) {
+  .skeleton {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
