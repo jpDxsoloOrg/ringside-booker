@@ -242,8 +242,8 @@ describe('health.profile with a current injury', () => {
       durationTraceRef: { kind: 'health.injury', id: current.injuryId },
       conditionLossTraceRef: { kind: 'health.injuryConditionLoss', id: current.injuryId },
       chanceTraceRef: { kind: 'health.injuryChance', id: current.injuryId },
-      // The stop on own injuries is off by default, so the injury was noticed on the day.
-      pendingNotice: false,
+      // The stop on own injuries is on by default, so the player has not seen it yet.
+      pendingNotice: true,
     });
     for (const ref of [current.durationTraceRef, current.conditionLossTraceRef]) {
       if (ref === null) {
