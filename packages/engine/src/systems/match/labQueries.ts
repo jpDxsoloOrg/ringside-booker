@@ -19,7 +19,7 @@ import type { PersonId, PromotionId, RegionId } from '../../core/ids';
 import { matchTypesOf } from '../../model/catalogs';
 import { EVENT_IMPORTANCES, type EventImportance } from '../../model/entities/event-definition';
 import { promotionStatusKey, type Employment } from '../../model/entities/employment';
-import type { Person, PersonRole, RingStyle } from '../../model/entities/person';
+import type { Person, PersonRole, RingStyle, TraitKey } from '../../model/entities/person';
 import type { PromotionStyle } from '../../model/entities/promotion-style';
 import { zId } from '../../model/primitives';
 import { compareIds } from '../../model/table';
@@ -114,7 +114,18 @@ export interface LabWorkersArgs {
   limit?: number | undefined;
   /** The promotion the lab books for; left out, the viewer's first. Needed by the all-seeing viewer. */
   promotionId?: PromotionId | undefined;
+  /** Only people with this trait (MTCH4-05: find teachers, fast learners, durable or injury-prone workers). */
+  trait?: LabWorkerTraitFilter | undefined;
 }
+
+/** The traits the picker can filter by: the ones the physical toll and ring learning read. */
+export const LAB_WORKER_TRAIT_FILTERS = [
+  'teacher',
+  'fastLearner',
+  'durable',
+  'injuryProne',
+] as const;
+export type LabWorkerTraitFilter = (typeof LAB_WORKER_TRAIT_FILTERS)[number];
 
 /** One person in the picker. Nothing hidden: no development, vices, morale or contract terms. */
 export interface LabWorkerRow {
@@ -128,6 +139,10 @@ export interface LabWorkerRow {
   roles: PersonRole[];
   /** Popularity in the asked region, 0 to 100 (0 when unknown there). */
   popularity: number;
+  /** The safety attribute (MTCH4-05), so the lab can find careless workers. */
+  safety: number;
+  /** Every trait, as a public profile shows them (MTCH4-05). */
+  traits: TraitKey[];
   available: boolean;
   /** Why not, with the day back ("Injured (back injury) until 31 Jan"); null when available. */
   unavailableReason: string | null;
@@ -242,6 +257,7 @@ const labWorkersArgs = z.strictObject({
   search: z.string().max(LAB_WORKERS_MAX_SEARCH).optional(),
   limit: z.number().int().min(1).max(LAB_WORKERS_MAX_LIMIT).optional(),
   promotionId: zId('promotion').optional(),
+  trait: z.enum(LAB_WORKER_TRAIT_FILTERS).optional(),
 });
 
 /** Still in the business: not retired, dead or gone. Someone on hiatus is listed, unavailable. */
@@ -319,6 +335,9 @@ export const labWorkersQuery: QueryDefinition<'match.labWorkers'> = defineQuery(
         ) {
           continue;
         }
+        if (args.trait !== undefined && !person.traits.includes(args.trait)) {
+          continue;
+        }
         const primary = primaryEmploymentOf(read, person.id, ctx.date);
         const availability = availabilityOf(person, contract ?? primary, ctx.date);
         const available = availability.status === 'available';
@@ -329,6 +348,8 @@ export const labWorkersQuery: QueryDefinition<'match.labWorkers'> = defineQuery(
           style: person.style,
           roles: [...person.roles],
           popularity: person.regionalPop[args.regionId] ?? 0,
+          safety: person.attributes.safety,
+          traits: [...person.traits],
           available,
           unavailableReason: available ? null : availabilityText(availability, ctx.date),
         });

@@ -55,6 +55,7 @@ export {
 export { computeWearByPart } from '../formulas/wearByPart';
 export {
   END_FATIGUE_LABEL,
+  LAB_WHAT_IF_FATIGUE_LABEL,
   INJURIES_OFF_LABEL,
   INJURY_CHANCE_DOC_REF,
   RIVAL_NO_INJURIES_LABEL,

@@ -675,7 +675,12 @@ export {
   WORKER_PROFILE_HIDDEN_FIELDS,
   workerProfileOf,
 } from './systems/workers/index';
-export { ATTRIBUTE_LABELS, GENDER_LABELS, STYLE_LABELS } from './systems/world/people/labels';
+export {
+  ATTRIBUTE_LABELS,
+  BODY_PART_LABELS,
+  GENDER_LABELS,
+  STYLE_LABELS,
+} from './systems/world/people/labels';
 // The workers list (WRK1-06): the `workers.list` rows, filters and sort keys, and the on-demand
 // "Why?" behind a row's numbers. See docs/design/workers.md#workers-list.
 export type {
@@ -1190,6 +1195,7 @@ export type {
   LabRegion,
   LabWorkerRow,
   LabWorkerScope,
+  LabWorkerTraitFilter,
   LabWorkers,
   LabWorkersArgs,
   PreviewArgs,
@@ -1200,8 +1206,30 @@ export type {
   StarStats,
   Stats,
 } from './systems/match/index';
+// Preview extensions (MTCH4-05): `extensions` on the preview arguments, `extensions` and
+// `extensionSummaries` on the answers; the Match lab's `physical` toll preview.
+// See docs/design/match-rating.md#preview-extensions and physical-toll.md#match-lab.
+export type {
+  InjuryOutcome,
+  PhysicalPreviewArgs,
+  PhysicalPreviewPersonSummary,
+  PhysicalPreviewResult,
+  PhysicalPreviewSummary,
+  PhysicalPreviewWorker,
+  PreviewExtensionArgs,
+  PreviewExtensionResults,
+  PreviewExtensionSummaries,
+  WorkerInjuryResult,
+  WorkerPhysicalToll,
+} from './systems/match/index';
+export {
+  FATIGUE_OVERRIDE_RANGE_MESSAGE,
+  LAB_WHAT_IF_FATIGUE_LABEL,
+  PHYSICAL_PREVIEW_ID,
+} from './systems/match/index';
 export {
   LAB_WORKER_SCOPES,
+  LAB_WORKER_TRAIT_FILTERS,
   LAB_WORKERS_DEFAULT_LIMIT,
   LAB_WORKERS_MAX_LIMIT,
   LAB_WORKERS_MAX_SEARCH,

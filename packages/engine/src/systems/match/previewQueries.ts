@@ -4,6 +4,8 @@
  * - `match.preview`: one night, every number with its trace inline.
  * - `match.previewBatch`: up to 500 nights, summarised (no traces).
  *
+ * Both run the preview extensions asked for in `extensions` (MTCH4-05, `previewExtensions.ts`).
+ *
  * A preview never writes, never stores a trace (a query has no recorder, so traces travel inline,
  * already bounded by the trace size limits) and never draws from the world's RNG: every roll comes
  * from `detachedStream(meta.seed, 'match.preview', String(seed))`, a stream no registry knows
@@ -25,6 +27,13 @@ import {
   type PreviewArgs,
   type PreviewBatchArgs,
 } from './previewArgs';
+import {
+  checkPreviewExtensions,
+  extensionTally,
+  runPreviewExtensions,
+  type PreviewExtensionResults,
+  type PreviewExtensionSummaries,
+} from './previewExtensions';
 import { rateSegment } from './rating/rateSegment';
 import type { SegmentRatingInput, SegmentRatingResult } from './rating/types';
 import {
@@ -41,6 +50,8 @@ import { MATCH_PREVIEW_STREAM } from './streams';
 /** `match.preview`: the rated segment, every trace inline, and the seed it rolled with. */
 export type PreviewResult = SegmentRatingResult & {
   readonly previewSeed: number;
+  /** Each asked-for preview extension's result (MTCH4-05); absent when none was asked for. */
+  readonly extensions?: PreviewExtensionResults;
 };
 
 /** The star line of a batch: the usual statistics plus how many runs landed on each quarter. */
@@ -62,6 +73,8 @@ export interface PreviewBatchResult {
   expectation: number;
   /** 20 bins of 5 points: 0–5 ... 95–100, the last one closed. */
   histogram: HistogramBin[];
+  /** Each asked-for preview extension's summary over every run (MTCH4-05); absent when none. */
+  extensionSummaries?: PreviewExtensionSummaries;
 }
 
 /** `match.preview` refusal codes besides those of `rateSegment` and `invalidArgs`. */
@@ -120,10 +133,20 @@ export function rateWithKey(
  */
 export const previewQuery: QueryDefinition<'match.preview'> = defineQuery('match.preview', {
   args: PreviewArgsSchema,
-  run: (ctx, args) => ({
-    ...rateWithKey(ctx, previewInput(ctx, args), args.previewSeed),
-    previewSeed: args.previewSeed,
-  }),
+  run: (ctx, args) => {
+    const input = previewInput(ctx, args);
+    const checked = checkPreviewExtensions(args.extensions);
+    const rated = rateWithKey(ctx, input, args.previewSeed);
+    if (args.extensions === undefined) {
+      return { ...rated, previewSeed: args.previewSeed };
+    }
+    const extensions = runPreviewExtensions(
+      checked,
+      { query: ctx, draft: args, promotionId: input.promotionId, batch: false },
+      { key: args.previewSeed, outcome: null },
+    );
+    return { ...rated, previewSeed: args.previewSeed, extensions };
+  },
 });
 
 /**
@@ -183,11 +206,22 @@ export const previewBatchQuery: QueryDefinition<'match.previewBatch'> = defineQu
     args: PreviewBatchArgsSchema,
     run: (ctx, args) => {
       const input = previewInput(ctx, args);
+      const checked = checkPreviewExtensions(args.extensions);
       const tally = ratingTally();
+      const extensions = extensionTally(checked, {
+        query: ctx,
+        draft: args,
+        promotionId: input.promotionId,
+        batch: true,
+      });
       for (let run = 0; run < args.runs; run += 1) {
-        tally.add(rateWithKey(ctx, input, args.previewSeed + run));
+        const key = args.previewSeed + run;
+        tally.add(rateWithKey(ctx, input, key));
+        extensions.add({ key, runIndex: run, outcome: null });
       }
-      return tally.summary();
+      return args.extensions === undefined
+        ? tally.summary()
+        : { ...tally.summary(), extensionSummaries: extensions.summaries() };
     },
   },
 );

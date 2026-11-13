@@ -379,6 +379,47 @@ a summary keeps too. `applied` is false until the match has run. Physical
 numbers are not secret, so every viewer gets the same answer; learning is a
 gain only, never potential or a ceiling.
 
+## Match lab
+
+After Simulate, the Match lab's **Physical** panel (MTCH4-05,
+`apps/web/src/screens/match-lab/physical/`) shows what the drafted match does to
+each competitor's body, and Run x100 counts how often it hurts someone. It is
+the `physical` preview extension (`physical/preview.ts`, see
+[match-rating.md](match-rating.md#preview-extensions)): `computePhysicalToll` on
+a spec built from the lab draft, with `match.wear` and `match.injury` on
+detached streams keyed by the run's seed. Nothing is written and the world RNG
+never moves; the same seed gives the same toll.
+
+The draft as the toll reads it: everyone on a side is a competitor, the
+entrance order is the order they were added, the duration class comes from the
+chosen slot role and match type (`durationClassOf`), the draft is on no card
+(everyone is on their first match of the night), the producer is the lab's
+optional Producer, and the injury rules are those of the promotion running the
+show (the viewer's own unless "Rate as" picks a rival, whose rules then show
+"Rival rules: no in-match injuries"). A worker already hurt keeps the load but
+is not rolled again ("Already injured").
+
+- **Arguments** `extensions.physical: { fatigueOverrides?: { [personId]: 0..100 } }`:
+  the "Fatigue going in" what-if per worker. Outside 0..100 is refused with
+  "Fatigue going in must be a whole number from 0 to 100". The injury chance
+  trace then starts from "Fatigue going in (lab what-if)". Choosing a what-if
+  plays the same nights again (same seed), so only the what-if changes.
+- **Result** `{ durationClass, maxInjuriesPerSegment, workers }`: each worker is
+  the `WorkerPhysicalToll` plus `fatigueNow` (stored fatigue, for "As now (n)"),
+  `fatigueWhatIf` and `wearTotal` (the show-night "Condition lost in this match"
+  trace: the wear load times the part weights added up).
+- **Batch summary** `{ runs, injuredSegments, injuriesPer100, byPerson }`:
+  `injuriesPer100` counts every worker hurt per 100 runs (0.1), `byPerson` gives
+  each worker's injuries and average fatigue gain, wear (0.1) and learning
+  (0.01), side by side in roll order. A batch uses the toll's summary-only fast
+  paths, which give the same values. A 100-run batch of a singles match takes
+  about 100 ms in Node (60 ms without the extension), 500 runs about 0.4 s.
+
+The panel's `PhysicalTollTable` (`components/PhysicalTollTable/`) is a table
+where it has room and one card per worker on a phone or in a column narrower
+than 60rem (the lab's result column): the name, the injury chance, and the rest
+under "Physical". No minutes, potential or ceilings appear on it.
+
 ## Tunables
 
 All in `systems/match/physical/tunables.ts`, category `Physical toll`. Every

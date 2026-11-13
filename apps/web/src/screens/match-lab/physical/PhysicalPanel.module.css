@@ -1,0 +1,46 @@
+/* The Match lab's Physical panel (MTCH4-05). */
+.panel {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.producer {
+  display: grid;
+  gap: var(--space-1);
+  max-inline-size: 22rem;
+}
+
+.producerSelect {
+  min-inline-size: 0;
+}
+
+.hint {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.context,
+.stale {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.many {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.heading {
+  margin: 0;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+}

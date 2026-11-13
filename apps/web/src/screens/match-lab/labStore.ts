@@ -9,6 +9,7 @@ import type {
   PlannedWinner,
   PreviewArgs,
   PreviewBatchResult,
+  PreviewExtensionArgs,
   PreviewResult,
   PromotionId,
   RegionId,
@@ -55,6 +56,17 @@ export interface LabResultPlan {
   readonly winner: PlannedWinner;
   readonly finishKey: ContentKey | null;
 }
+
+/**
+ * The segment's crew. MTCH4-05's Physical panel sets the producer until MTCH8's Crew section
+ * takes over the same field.
+ */
+export interface LabCrew {
+  readonly producerId: PersonId | null;
+}
+
+/** A lab with no producer. */
+export const NO_CREW: LabCrew = { producerId: null };
 
 /** The plan a fresh lab, or a new match type, starts with. */
 export const AUTO_RESULT_PLAN: LabResultPlan = { winner: 'auto', finishKey: null };
@@ -105,6 +117,13 @@ export interface LabState {
   readonly lastRun: LabRun | null;
   /** The result a match's Run plays out. */
   readonly result: LabResultPlan;
+  /** The segment's crew (the producer). */
+  readonly crew: LabCrew;
+  /**
+   * The Physical panel's "Fatigue going in" what-ifs (MTCH4-05), 0 to 100 by person: a preview
+   * only, never the world.
+   */
+  readonly fatigueOverrides: Readonly<Partial<Record<PersonId, number>>>;
   /** True while a Run is on its way. */
   readonly pending: boolean;
   /** The engine's reasons for refusing the last request, in player words. */
@@ -126,6 +145,10 @@ export interface LabState {
   readonly clearAll: () => void;
   readonly setWinner: (winner: PlannedWinner) => void;
   readonly setFinish: (finishKey: ContentKey | null) => void;
+  /** Sets the producer, or none. */
+  readonly setProducer: (producerId: PersonId | null) => void;
+  /** Sets one worker's fatigue what-if, or clears it with null ("As now"). */
+  readonly setFatigueOverride: (personId: PersonId, fatigue: number | null) => void;
   /** Sets Runs, kept whole and within 1 to {@link LAB_MAX_RUNS}. */
   readonly setRuns: (runs: number) => void;
   readonly startRequest: () => number;
@@ -153,6 +176,8 @@ const EMPTY_LAB = {
   runs: LAB_DEFAULT_RUNS,
   lastRun: null,
   result: AUTO_RESULT_PLAN,
+  crew: NO_CREW,
+  fatigueOverrides: {},
   pending: false,
   refusal: [],
 } as const satisfies Partial<LabState>;
@@ -185,10 +210,11 @@ export function sideOf(sides: readonly (readonly PersonId[])[], personId: Person
  * missing: a type, a region, a promotion, or someone on every side.
  */
 export function previewArgsOf(
-  state: Pick<LabState, 'setup' | 'sides'>,
+  state: Pick<LabState, 'setup' | 'sides'> & Partial<Pick<LabState, 'crew'>>,
   previewSeed: number,
 ): PreviewArgs | null {
   const { setup, sides } = state;
+  const producerId = state.crew?.producerId ?? null;
   if (setup.typeKey === null || setup.regionId === null || setup.promotionId === null) return null;
   if (sides.length === 0 || sides.some((side) => side.length === 0)) return null;
   return {
@@ -201,6 +227,24 @@ export function previewArgsOf(
     televised: setup.televised,
     promotionId: setup.promotionId,
     previewSeed,
+    ...(producerId === null ? {} : { crew: { producerId } }),
+  };
+}
+
+/**
+ * The preview extensions a match's Run asks for (MTCH4-05): the Physical panel's toll, with the
+ * what-ifs of the people on a side.
+ */
+export function labExtensionsOf(
+  state: Pick<LabState, 'sides' | 'fatigueOverrides'>,
+): PreviewExtensionArgs {
+  const fatigueOverrides: Record<PersonId, number> = {};
+  for (const personId of state.sides.flat()) {
+    const fatigue = state.fatigueOverrides[personId];
+    if (fatigue !== undefined) fatigueOverrides[personId] = fatigue;
+  }
+  return {
+    physical: Object.keys(fatigueOverrides).length === 0 ? {} : { fatigueOverrides },
   };
 }
 
@@ -249,6 +293,7 @@ export function sameSegment(left: PreviewArgs, right: PreviewArgs): boolean {
     left.regionId === right.regionId &&
     left.televised === right.televised &&
     left.promotionId === right.promotionId &&
+    (left.crew?.producerId ?? null) === (right.crew?.producerId ?? null) &&
     left.sides.length === right.sides.length &&
     left.sides.every(
       (side, index) =>
@@ -264,7 +309,7 @@ export function sameSegment(left: PreviewArgs, right: PreviewArgs): boolean {
  * and the seed are not part of it.
  */
 export function isOutOfDate(
-  state: Pick<LabState, 'setup' | 'sides' | 'result'>,
+  state: Pick<LabState, 'setup' | 'sides' | 'result'> & Partial<Pick<LabState, 'crew'>>,
   shown: Pick<LabRun, 'args' | 'plan'> | null,
 ): boolean {
   if (shown === null) return false;
@@ -378,6 +423,21 @@ export const useLabStore = create<LabState>()((set, get) => ({
   },
   setFinish: (finishKey) => {
     set((state) => ({ result: { ...state.result, finishKey } }));
+  },
+  setProducer: (producerId) => {
+    set({ crew: { producerId } });
+  },
+  setFatigueOverride: (personId, fatigue) => {
+    set((state) => {
+      const next: Partial<Record<PersonId, number>> = {};
+      // Keeps the what-ifs of the people still on a side; anyone else's is dropped.
+      for (const id of state.sides.flat()) {
+        const value = state.fatigueOverrides[id];
+        if (id !== personId && value !== undefined) next[id] = value;
+      }
+      if (fatigue !== null) next[personId] = fatigue;
+      return { fatigueOverrides: next };
+    });
   },
   setRuns: (runs) => {
     set({ runs: clampRuns(runs) });
