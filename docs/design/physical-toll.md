@@ -618,7 +618,7 @@ Every key has a minimum of 0, so 0 means 0.
 
 | Key                                 | Default | Range  | Unit       | What it does                                                    |
 | ----------------------------------- | ------- | ------ | ---------- | --------------------------------------------------------------- |
-| `match.learning.base`               | 0.03    | 0–1    | points     | Ring skill one match teaches per attribute before anything else |
+| `match.learning.base`               | 0.03    | 0–1    | attribute  | Ring skill one match teaches per attribute before anything else |
 | `match.learning.duration.short`     | 0.6     | 0–3    | multiplier | How much a short match teaches against a standard one           |
 | `match.learning.duration.standard`  | 1       | 0–3    | multiplier | A standard match                                                |
 | `match.learning.duration.long`      | 1.4     | 0–3    | multiplier | A long match                                                    |
@@ -635,7 +635,7 @@ Every key has a minimum of 0, so 0 means 0.
 | `match.learning.roomFactor.closed`  | 0       | 0–3    | multiplier | Learning for a worker at their limit                            |
 | `match.learning.slowingBand`        | 5       | 0–50   | points     | How close to their limit a worker is before learning slows      |
 | `match.learning.lowPotential`       | 200     | 0–1000 | points     | Below this hidden score (−1000..1000), learning slows           |
-| `match.learning.maxPerSegment`      | 0.2     | 0–5    | points     | Most one match can teach per attribute                          |
+| `match.learning.maxPerSegment`      | 0.2     | 0–5    | attribute  | Most one match can teach per attribute                          |
 
 ## Integration
 
