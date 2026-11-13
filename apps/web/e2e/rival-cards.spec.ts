@@ -17,6 +17,8 @@
  *   card shows its winner (or Draw), method and reason with a Why?, title matches a Retained or
  *   New champion badge; the decision log filters by Winners and Titles; the Overview has Recent
  *   title changes. The other partners (AIP3, AIP6, MTCH5/7/8) are not wired yet.
+ * - With MTCH2 (AIP5-06): each rival result names its finish next to the method, and its Why?
+ *   shows how the match ends, in words (names, never codes like side:0).
  *
  * On a phone the slots stack, the Auto-fill panel sits under the card, the reasons sheet fills the
  * screen and nothing scrolls sideways; axe passes on the Shows tab, an open card, the reasons sheet
@@ -42,6 +44,9 @@ const ROLES = ['Opener', 'Midcard', 'Midcard', 'Midcard', 'Semi-main', 'Main eve
 /** A show's disclosure button: any button in its header that is not a Why?. */
 const SHOW_TOGGLE = /^(?!Why)/;
 const NO_TIMES = /minute/i;
+/** MTCH2's finishes, as a rival result line names them. */
+const FINISH_NAMES =
+  /Clean finish|Flash finish|Cheating finish|Outside interference|Count-out|Disqualification|Controversial finish|Double count-out|Stalemate|No contest/;
 /** The smallest touch target, 2.75rem at the default 16px root size. */
 const TAP_TARGET_MIN_PX = 44;
 /** Where the spec leaves viewport screenshots, when asked (`E2E_SHOTS=<folder>`). */
@@ -380,6 +385,28 @@ test.describe('rival cards and Auto-fill on a new game', () => {
       await panel.locator('[data-trace-path]').last().scrollIntoViewIfNeeded();
       await expectNoSeriousA11yViolations(page);
       await closeWhy(page, panel, why);
+    });
+
+    await test.step('With MTCH2: rival matches show a finish next to the method', async () => {
+      const aired = showRow(page.getByRole('region', { name: 'Recent shows' }), RIVAL_SHOW);
+      const matches = aired.locator('li[data-segment-kind="match"]');
+      const count = await matches.count();
+      expect(count).toBeGreaterThan(0);
+      for (let index = 0; index < count; index += 1) {
+        const details = matches
+          .nth(index)
+          .locator('[data-part="rival-result"] [data-part="details"]');
+        await expect(details).toContainText(FINISH_NAMES);
+      }
+      const why = matches.first().getByRole('button', { name: /^Why this result\? / });
+      const panel = await openWhy(page, why, /^Why this result\? /);
+      await expect(panel).toContainText('How the match ends');
+      // Plain words for every choice: the winners' names and the method's name, never a code.
+      await expect(panel).not.toContainText(/side:\d|method\.|finish\./);
+      await panel.locator('[data-trace-path]').last().scrollIntoViewIfNeeded();
+      await expectNoSeriousA11yViolations(page);
+      await closeWhy(page, panel, why);
+      await expectNoHorizontalScroll(page);
     });
 
     await test.step('With AIP5: the decision log filters by Winners and Titles', async () => {
