@@ -19,6 +19,7 @@ import type {
 import { traceToText } from '@/components/Trace/traceToText';
 import { DEFAULT_WORLD_VIEWER as VIEWER, startDefaultWorldGame } from '@/test/defaultWorld';
 import { RUNNING_TIME_WORDS } from '@/test/runningTimeWords';
+import { regionWhyTrace } from './aftermath/aftermathText';
 import { finishesArgsOf } from './result/FinishSelect';
 import { methodLineText, outcomeHeadline } from './result/resultText';
 
@@ -397,5 +398,31 @@ describe('Simulate in a new game started with Random winners', () => {
     expect(result.winningSide).toBe(0);
     expect(result.randomWinnersMode).toBe(false);
     expectReadableResult(result);
+  });
+});
+
+describe('the Aftermath panel on a new default-world game (MTCH3-04)', () => {
+  it('reads every Why? the panel offers in the player’s words, with the spill line', () => {
+    const result = lab.simulate(lab.args('Singles', singles));
+    const { aftermath } = result;
+    expect(aftermath.workers).toHaveLength(2);
+    let neighbours = 0;
+    for (const worker of aftermath.workers) {
+      for (const row of worker.popularity.regions) {
+        const text = traceToText(regionWhyTrace(row));
+        expectReadable(`Popularity in ${row.name}`, text);
+        if (row.source === 'neighbour') {
+          neighbours += 1;
+          expect(text).toContain(`Neighbour of ${aftermath.showRegionName}`);
+        }
+      }
+      for (const row of [...worker.popularity.countries, ...worker.popularity.continents]) {
+        expectReadable(`Popularity in ${row.name}`, traceToText(row.trace));
+      }
+      if ('trace' in worker.momentum) {
+        expectReadable(`${worker.name}'s momentum`, traceToText(worker.momentum.trace));
+      }
+    }
+    expect(neighbours).toBeGreaterThan(0);
   });
 });

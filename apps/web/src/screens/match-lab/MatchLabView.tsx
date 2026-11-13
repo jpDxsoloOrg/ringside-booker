@@ -21,6 +21,8 @@ import { SidesBuilder } from './SidesBuilder';
 import { useLabRunner } from './useLabRunner';
 import { WorkerLinesTable } from './WorkerLinesTable';
 import { WorkerPickerSheet } from './WorkerPickerSheet';
+// The Aftermath panel (MTCH3-04), registered with the lab's chunk.
+import './aftermath/register';
 
 /** The empty state when no game answers: the enter-shell helper, or a world that went away. */
 export const NO_GAME_TITLE = 'Load or start a game to use the Match lab';
