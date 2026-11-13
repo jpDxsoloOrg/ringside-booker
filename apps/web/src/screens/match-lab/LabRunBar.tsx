@@ -8,7 +8,7 @@ import type { LabState } from './labStore';
 import type { LabRunner } from './useLabRunner';
 import { runsText } from './labText';
 import styles from './MatchLab.module.css';
-import { useStickyBarScrollPadding } from './useStickyBarScrollPadding';
+import { useStickyBarRoom } from './useStickyBarRoom';
 
 /** Why Run can't go yet, in player words, or null when it can. */
 export function runBlocker(state: Pick<LabState, 'setup' | 'sides'>): string | null {
@@ -47,8 +47,8 @@ export interface LabRunBarProps {
  * segment is rated. Every Run rolls on a fresh seed, so pressing it again gives another night.
  *
  * Under the sides on desktop; on phones it sticks to the bottom of the screen, above the tab bar,
- * so it stays in reach while the line-up is built, and the page's bottom scroll padding grows to
- * match so a focused control never hides under it.
+ * so it stays in reach while the line-up is built. The lab's other controls keep that much room
+ * below them when scrolled to, so a focused control never hides under it (useStickyBarRoom).
  */
 export function LabRunBar({ runner }: LabRunBarProps) {
   const setup = useLabStore((state) => state.setup);
@@ -61,7 +61,7 @@ export function LabRunBar({ runner }: LabRunBarProps) {
   const runsId = useId();
   const finishCatalogMessage = useFinishCatalogMessage(setup);
   const barRef = useRef<HTMLDivElement>(null);
-  useStickyBarScrollPadding(barRef);
+  useStickyBarRoom(barRef);
 
   const blocker = runBlocker({ setup, sides });
   const described = blocker === null ? {} : { 'aria-describedby': reasonId };
