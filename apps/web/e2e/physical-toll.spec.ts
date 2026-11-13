@@ -28,13 +28,10 @@ const PLAYER = 'Altura Wrestling Entertainment';
 const SHOTS_DIR = process.env['E2E_SHOTS'];
 
 /**
- * Checks the page fits and has no serious a11y issues, from the top of the page: lower down, the
- * lab's sticky Run bar sits over whatever scrolled under it, which axe counts as a covered target.
+ * Checks the page fits and has no serious a11y issues wherever the page is scrolled to: on a phone
+ * the lab's sticky Run bar may be over a control, and axe still finds every target big enough.
  */
 async function expectFitsAndAccessible(page: Page): Promise<void> {
-  await page.evaluate(() => {
-    window.scrollTo(0, 0);
-  });
   await expectNoHorizontalScroll(page);
   await expectNoSeriousA11yViolations(page);
 }
@@ -81,9 +78,14 @@ async function chooseSlotRole(page: Page, role: string): Promise<void> {
   await page.getByRole('option', { name: role, exact: true }).click();
 }
 
-/** Presses Run and waits until the panel shows the new run. */
+/**
+ * Presses Run. The Run bar is always in view (on a phone it sticks to the bottom), so pressing it
+ * never scrolls the page: the controls the player was looking at stay where they were.
+ */
 async function run(page: Page): Promise<void> {
+  const scrollBefore = await page.evaluate(() => window.scrollY);
   await page.getByRole('button', { name: 'Run', exact: true }).click();
+  expect(await page.evaluate(() => window.scrollY)).toBe(scrollBefore);
 }
 
 /** The number in a Why? button's name: "Why is Vance's fatigue gain 8.4?" gives 8.4. */
