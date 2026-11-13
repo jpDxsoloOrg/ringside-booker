@@ -811,6 +811,11 @@ describe('applyPopularityChange', () => {
       worldBefore,
       worldAfter,
       regionsChanged: [NORTH_1, NORTH_2, SOUTH_1],
+      byRegion: {
+        [NORTH_1]: { before: 20, after: 28 },
+        [NORTH_2]: { before: 0, after: 2 },
+        [SOUTH_1]: { before: 10, after: 14 },
+      },
     });
     expect(worldAfter).toBeGreaterThan(worldBefore);
     expect(payloads(run.events)).toEqual([
@@ -1104,6 +1109,155 @@ describe('applyPopularityChange', () => {
       }),
     );
     expect(promotion.failure).toContain('an existing promotion');
+  });
+});
+
+describe('applyPopularityChange with regionDeltas', () => {
+  it('moves each region by its own delta, most populous first, with one trace and one event', async () => {
+    const before = { [NORTH_1]: 20, [SOUTH_1]: 10 };
+    const built = doorWorld({ promotion: { regionalPop: before } });
+    const run = await runDoors(built, (ctx) =>
+      applyPopularityChange(ctx, {
+        subject: { kind: 'promotion', id: built.promotionId },
+        regionDeltas: { [SOUTH_1]: -2.5, [NORTH_2]: 0.75, [NORTH_1]: 1.234 },
+        source: 'system',
+        reason: { key: 'show.result', label: 'Test Weekly' },
+      }),
+    );
+
+    // Each delta lands at weight 1; the stored value is rounded to two decimals.
+    const after = { [NORTH_1]: 21.23, [NORTH_2]: 0.75, [SOUTH_1]: 7.5 };
+    expect(run.failure).toBeNull();
+    expect(run.promotion.regionalPop).toEqual(after);
+    expect(run.result).toMatchObject({
+      changed: true,
+      before,
+      after,
+      worldBefore: worldFigure(built.world, before),
+      worldAfter: worldFigure(built.world, after),
+      regionsChanged: [NORTH_1, NORTH_2, SOUTH_1],
+      byRegion: {
+        [NORTH_1]: { before: 20, after: 21.23 },
+        [NORTH_2]: { before: 0, after: 0.75 },
+        [SOUTH_1]: { before: 10, after: 7.5 },
+      },
+    });
+    expect(payloads(run.events)).toEqual([
+      {
+        type: 'popularity.changed',
+        subjectKind: 'promotion',
+        subjectId: built.promotionId,
+        worldBefore: worldFigure(built.world, before),
+        worldAfter: worldFigure(built.world, after),
+        regionsChanged: 3,
+        source: 'system',
+        reasonKey: 'show.result',
+      },
+    ]);
+    const stored = requireTrace(run, { kind: 'promotions.popularity', id: built.promotionId });
+    expectTraceReplays(numeric(stored));
+    expect(stored.trace.label).toBe('Popularity change: Test Weekly');
+    const lines = (stored.trace.children ?? []).flatMap((node) =>
+      node.kind === 'add' ? [node.label] : [],
+    );
+    expect(lines).toEqual(['Test Region North 1', 'Test Region North 2', 'Test Region South 1']);
+  });
+
+  it('keeps a traced delta inside its own region of the trace', async () => {
+    const built = doorWorld({ promotion: { regionalPop: { [NORTH_1]: 20 } } });
+    const run = await runDoors(built, (ctx) =>
+      applyPopularityChange(ctx, {
+        subject: { kind: 'promotion', id: built.promotionId },
+        regionDeltas: { [NORTH_1]: inputOf('Beat expectations', 2, undefined, 'points') },
+        source: 'system',
+        reason: REASON,
+      }),
+    );
+    expect(run.promotion.regionalPop).toEqual({ [NORTH_1]: 22 });
+    const stored = requireTrace(run, { kind: 'promotions.popularity', id: built.promotionId });
+    expectTraceReplays(numeric(stored));
+    expectTraceContains(stored, { kind: 'input', label: 'Beat expectations' });
+  });
+
+  it('removes a region driven to 0 from the map', async () => {
+    const built = doorWorld({ promotion: { regionalPop: { [NORTH_1]: 1.5, [NORTH_2]: 30 } } });
+    const run = await runDoors(built, (ctx) =>
+      applyPopularityChange(ctx, {
+        subject: { kind: 'promotion', id: built.promotionId },
+        regionDeltas: { [NORTH_1]: -4, [NORTH_2]: -1 },
+        source: 'system',
+        reason: REASON,
+      }),
+    );
+    expect(run.promotion.regionalPop).toEqual({ [NORTH_2]: 29 });
+    expect(Object.keys(run.promotion.regionalPop)).toEqual([NORTH_2]);
+    expect(run.result?.byRegion[NORTH_1]).toEqual({ before: 1.5, after: 0 });
+  });
+
+  it('throws for an unknown region and rolls back everything the step did', async () => {
+    const built = doorWorld({ promotion: { regionalPop: { [NORTH_1]: 20 } } });
+    const run = await runDoors(built, (ctx) => {
+      applyPopularityChange(ctx, {
+        subject: { kind: 'promotion', id: built.promotionId },
+        regionDeltas: { [NORTH_1]: 2 },
+        source: 'system',
+        reason: REASON,
+      });
+      return applyPopularityChange(ctx, {
+        subject: { kind: 'promotion', id: built.promotionId },
+        regionDeltas: { [NORTH_1]: 1, [testId('region', 99)]: 1 },
+        source: 'system',
+        reason: REASON,
+      });
+    });
+    expect(run.failure).toContain('the ID of a region on the map');
+    expect(run.promotion.regionalPop).toEqual({ [NORTH_1]: 20 });
+    expect(run.events).toEqual([]);
+    expect(run.trace({ kind: 'promotions.popularity', id: built.promotionId })).toBeNull();
+  });
+
+  it('refuses regionDeltas together with regionWeights or delta', async () => {
+    const built = doorWorld({ promotion: { regionalPop: { [NORTH_1]: 20 } } });
+    const mixed = {
+      subject: { kind: 'promotion', id: built.promotionId } as const,
+      regionDeltas: { [NORTH_1]: 1 },
+      regionWeights: { [NORTH_1]: 1 },
+      delta: 1,
+      source: 'system' as const,
+      reason: REASON,
+    };
+    let thrown: unknown;
+    const run = await runDoors(built, (ctx) => {
+      try {
+        // @ts-expect-error: the types refuse the mix; this checks the guard a plain JS caller hits.
+        return applyPopularityChange(ctx, mixed);
+      } catch (error) {
+        thrown = error;
+        throw error;
+      }
+    });
+    expect(thrown).toBeInstanceOf(InvalidArgumentError);
+    expect(run.failure).toContain('either regionDeltas, or regionWeights with delta, never both');
+    expect(run.promotion.regionalPop).toEqual({ [NORTH_1]: 20 });
+  });
+
+  it('changes nothing, records nothing and publishes nothing for deltas of 0', async () => {
+    const built = doorWorld({ promotion: { regionalPop: { [NORTH_1]: 20 } } });
+    const run = await runDoors(built, (ctx) =>
+      applyPopularityChange(ctx, {
+        subject: { kind: 'promotion', id: built.promotionId },
+        regionDeltas: { [NORTH_1]: 0, [NORTH_2]: 0 },
+        source: 'system',
+        reason: REASON,
+      }),
+    );
+    expect(run.result).toMatchObject({
+      changed: false,
+      traceRef: null,
+      regionsChanged: [],
+      byRegion: { [NORTH_1]: { before: 20, after: 20 }, [NORTH_2]: { before: 0, after: 0 } },
+    });
+    expect(run.events).toEqual([]);
   });
 });
 

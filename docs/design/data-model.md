@@ -177,7 +177,9 @@ const result = world.transact('contracts.expire', (tx) => {
   copying thousands of rows before every step, and rollbacks are rare.
 - **Write rules.** `insert` needs a valid ID of the table's kind that is not
   taken (`DuplicateIdError`). `create` mints the ID from the world's ID
-  factory and inserts the row. `update` takes a partial patch or an updater
+  factory and inserts the row. `mintId` mints an ID without inserting, for a
+  row whose fields name its own ID (a ledger row's `traceRef`); insert it
+  with `insert`. `update` takes a partial patch or an updater
   function and may not change the ID. Append-only tables (the ledger) refuse
   `update` and `delete` (`AppendOnlyError`). A unique index clash throws
   `UniqueIndexError` and the whole transaction rolls back like any other
@@ -436,6 +438,7 @@ its own.
 | `status`            | `'active' \| 'dormant' \| 'closed'` |                                               | WLD                |
 | `homeRegionId`      | `RegionId`                          | ref → region                                  |                    |
 | `regionalPop`       | `Record<RegionId, number>`          | sparse, each > 0 and ≤ 100; keys ref → region | WRK                |
+| `popularityGains`   | `{ month: YearMonth; byRegion }`    | `byRegion` sparse like `regionalPop`          | EVT5               |
 | `prestige`          | number                              | 0–100                                         | WLD                |
 | `cash`              | `Cents`                             | may be negative (debt)                        | ECO                |
 | `style`             | `PromotionStyle`                    | see below                                     | WLD                |
@@ -458,6 +461,16 @@ Styles (`promotion-style.ts`, importable on its own): `mainstream`,
 Owner and booker are `PersonId`, not `EmploymentId`: an owner need not be on
 the payroll. If a booker must also be employed, that is a query for the
 systems that care.
+
+`popularityGains` is what the promotion's shows have gained it in each region
+in one calendar month (`month` is `YYYY-MM`, `yearMonthOf(date)`), so
+[the monthly gain cap](promotion-popularity.md#monthly-cap) holds across
+shows. `byRegion` is sparse: each value is > 0 and ≤ 100, a region with no
+gain is left out, and its keys ref → region. When `month` is not the current
+month the whole tally counts as empty; the next show starts a new one. Every
+new promotion (pack loading, founding, builders) starts with
+`{ month: <month of the start date>, byRegion: {} }`. Only the promotion
+popularity system writes it (EVT5-02).
 
 Index: `byStatus`.
 
@@ -1091,8 +1104,16 @@ the text catalogs behind the keys, belong to the systems that send them.
 ### The ledger
 
 Every movement of a promotion's cash is one `LedgerEntry`: a date, a category,
-a signed amount in cents, an optional memo (up to 120 characters) and optional
-references to the event, person or deal it came from.
+a signed amount in cents, an optional memo (up to 120 characters), optional
+references to the event, person or deal it came from, and `traceRef`: where
+the row's Why? trace is stored. `traceRef` is null only for rows written before
+the finance system (test fixtures).
+
+**Only `postMoney` writes rows and moves cash.** During play, the finance
+system's `postMoney` ([finances.md](finances.md#postmoney)) is the one way a
+promotion's cash changes: it appends the row and moves the cash in the same
+transaction. A test fails if any other code writes `promotions.cash`, apart from
+a new world's opening balances.
 
 **Sign convention:** income is positive and costs are negative, and the
 category decides which (`LEDGER_CATEGORY_SIGN`). The schema refuses an amount
@@ -1100,20 +1121,29 @@ with the wrong sign, and refuses zero. That makes "the sum of a promotion's
 entries over a period equals its cash change over that period" a check the
 economy can test.
 
-| Income (+)    | Costs (−)        |
-| ------------- | ---------------- |
-| `tickets`     | `wages`          |
-| `liveMerch`   | `appearanceFees` |
-| `merch`       | `signingBonuses` |
-| `broadcast`   | `severance`      |
-| `ppv`         | `venueRent`      |
-| `streaming`   | `production`     |
-| `sponsorship` | `travel`         |
-| `otherIncome` | `marketing`      |
-|               | `backOffice`     |
-|               | `medical`        |
-|               | `catering`       |
-|               | `otherCost`      |
+The set is complete for the whole economy epic (ECO1-01 added `subsidyIncome`,
+`charity`, `networkUpkeep`, `buyout` and `subsidy`), so later features never
+change the enum. The player-facing labels and who posts each category are in
+[finances.md](finances.md#categories).
+
+| Income (+)      | Costs (−)        |
+| --------------- | ---------------- |
+| `tickets`       | `wages`          |
+| `liveMerch`     | `appearanceFees` |
+| `merch`         | `signingBonuses` |
+| `broadcast`     | `severance`      |
+| `ppv`           | `venueRent`      |
+| `streaming`     | `production`     |
+| `sponsorship`   | `travel`         |
+| `otherIncome`   | `marketing`      |
+| `subsidyIncome` | `backOffice`     |
+|                 | `medical`        |
+|                 | `catering`       |
+|                 | `otherCost`      |
+|                 | `charity`        |
+|                 | `networkUpkeep`  |
+|                 | `buyout`         |
+|                 | `subsidy`        |
 
 **Append-only:** the ledger table is `appendOnly`, so transactions refuse to
 update or delete its rows. Money has to reconcile, and an edited history can't
@@ -1123,3 +1153,73 @@ be audited. A mistake is fixed with a new, correcting entry. The
 Volume: one entry per worker per day would grow saves fast. The economy posts
 one wages entry per promotion per day (or per pay period), and may later fold
 old months into summary rows.
+
+### Popularity show changes (`popularityShowChanges`, `psc_`)
+
+What one completed show did to its promotion's popularity, region by region
+(EVT5-02). The promotion popularity system writes one row right after
+`show.completed` ([promotion-popularity.md](promotion-popularity.md#after-every-show)),
+so a results page can list every region the show reached months later, after
+the full Why? traces have been thinned out.
+
+| Field             | Type                                     | Range / rule                            |
+| ----------------- | ---------------------------------------- | --------------------------------------- |
+| `id`              | `PopularityShowChangeId`                 |                                         |
+| `eventInstanceId` | `EventInstanceId`                        | ref → eventInstance; one per show       |
+| `promotionId`     | `PromotionId`                            | ref → promotion                         |
+| `date`            | `GameDate`                               | the day the show ran                    |
+| `score`           | number                                   | 0–100, the show's score                 |
+| `worldBefore`     | number                                   | 0–100, worldwide before the show        |
+| `worldAfter`      | number                                   | 0–100, worldwide after it               |
+| `regions`         | `Record<RegionId, PopularityShowRegion>` | every reached region; keys ref → region |
+
+Each `PopularityShowRegion` is `{ source, networkId, weight, expectation,
+before, after, capped }`: how the region saw the show (`show`, `neighbour` or
+`tv`), the network of a `tv` route (set exactly when `source` is `tv`), how much
+of the show it saw (above 0, at most 1), the score fans there expected, the
+stored popularity before and after (0 when none is stored), and whether the
+monthly gain cap made the gain smaller. Regions where nothing changed are listed
+too, so the page can say "about what fans expected".
+
+A `{}` marker must end a reference path, so `regions{}.networkId` is checked by
+the `networksExist` invariant instead of `refs`.
+
+Indexes: `byEventInstance` (unique), `byPromotion`. Rows dated more than
+`promoPop.keepShowChangesDays` (365) before the 1st of a month are deleted that
+day, which bounds the table at roughly a year of shows.
+
+## Match aftermaths
+
+### Aftermaths (`aftermaths`, `aft_`)
+
+What one run match did to one competitor's popularity and momentum (MTCH3-03).
+Show night's aftermath applier writes one row per competitor per match, with
+the values the doors actually wrote, so results pages and Recent form agree
+with profiles even after the full trace is gone. See
+[match-aftermath.md](match-aftermath.md#stored-aftermaths).
+
+| Field             | Type                                                       | Notes                                                                    |
+| ----------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `id`              | `AftermathId`                                              |                                                                          |
+| `segmentId`       | `SegmentId`                                                | the match                                                                |
+| `eventInstanceId` | `EventInstanceId`                                          | the match's show                                                         |
+| `promotionId`     | `PromotionId`                                              | the show's promotion                                                     |
+| `personId`        | `PersonId`                                                 | the competitor                                                           |
+| `date`            | `GameDate`                                                 | the show's date                                                          |
+| `outcome`         | `'win' \| 'loss' \| 'draw'`                                | a no contest stores nothing                                              |
+| `showRegionId`    | `RegionId`                                                 |                                                                          |
+| `popularity`      | `{ delta, byRegion: Record<RegionId, { before, after }> }` | `delta` before the spread and taper; `byRegion` only the regions reached |
+| `momentum`        | `{ employmentId, before, after } \| null`                  | null without a contract; `before` null when this match started it        |
+| `traceIds`        | `{ popularity, momentum }`                                 | `refKey`s of the `match.popularityGain` / `match.momentumGain` traces    |
+
+Refs: `segmentId`, `eventInstanceId`, `promotionId`, `personId`,
+`showRegionId`, `popularity.byRegion{}` and `momentum.employmentId`. Indexes:
+`bySegment`, `byPerson`, `byEventInstance` and unique `bySegmentPerson`.
+Invariants: `aftermaths.showMismatch` (the row's show is its segment's) and
+`aftermaths.promotionMismatch` (its promotion runs that show).
+
+The weekly `match.pruneAftermaths` phase keeps each worker's newest
+`match.aftermath.keepPerPerson` rows. The weekly momentum drift reads the
+newest row with a momentum to tell whether a worker wrestled that week
+([match-aftermath.md](match-aftermath.md#momentum-drift)). Saves list the table with a default of
+`[]`, so saves written before it existed load with it empty.

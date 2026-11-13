@@ -215,6 +215,7 @@ export function makeLedgerEntry(serial: number, overrides: Partial<LedgerEntry> 
     amount: cents(125_000),
     memo: null,
     refs: { eventInstanceId: null, personId: null, dealId: null },
+    traceRef: null,
     ...overrides,
   };
 }

@@ -1,0 +1,151 @@
+/*
+ * The Match lab's Aftermath panel (MTCH3-04). Tokens only. On desktop the sides sit side by side
+ * as far as the result column allows; below --bp-mobile they stack, each worker becomes its own
+ * card, the level toggle wraps and every control keeps the 44px tap target.
+ */
+
+.aftermath {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.lead {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.stale {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.levels {
+  min-inline-size: 0;
+}
+
+.sides {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.side {
+  min-inline-size: 0;
+}
+
+.workers {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.worker {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.worker + .worker {
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--color-border);
+}
+
+.workerName {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.resultLine {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  min-inline-size: 0;
+}
+
+.lineLabel {
+  min-inline-size: 6.5rem;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.region {
+  font-weight: var(--font-weight-semibold);
+}
+
+.figures {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-variant-numeric: tabular-nums;
+}
+
+.change {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.note {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.places {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+  min-inline-size: 0;
+}
+
+.places > * {
+  inline-size: 100%;
+}
+
+.places > button {
+  inline-size: auto;
+}
+
+@media (--bp-mobile) {
+  .sides {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Each worker is its own card inside the side's panel. */
+  .worker {
+    padding: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-raised);
+  }
+
+  .worker + .worker {
+    padding-block-start: var(--space-3);
+    border-block-start: 1px solid var(--color-border);
+  }
+
+  .lineLabel {
+    min-inline-size: 100%;
+  }
+
+  .change button,
+  .places button {
+    min-block-size: var(--tap-target-min);
+    min-inline-size: var(--tap-target-min);
+  }
+}

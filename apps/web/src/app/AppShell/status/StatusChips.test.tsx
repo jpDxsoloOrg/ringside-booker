@@ -1,7 +1,10 @@
 import { act, render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { cents, parseGameDate, parseId, startCalc } from '@ringside/engine';
+import { cashTraceRef, cents, parseGameDate, parseId, startCalc } from '@ringside/engine';
 import type { SimStatus } from '@ringside/engine';
+import { EngineProvider } from '@/app/engine/EngineProvider';
+import { createInProcessTransport } from '@/app/engine/transport';
+import { fakeEngineFactory, fakeEngineState } from '@/test/fakeEngine';
 import { registerStatusChip } from './statusChipRegistry';
 import { StatusChip, StatusChips } from './StatusChips';
 
@@ -13,6 +16,7 @@ const STATUS: SimStatus = {
     name: 'Harbor City Wrestling',
     shortName: 'HCW',
     cash: cents(-250_000),
+    cashTraceRef: null,
     popularity: {
       homeRegionId: parseId('region', 'reg_00000000ab'),
       homeRegion: 64,
@@ -48,6 +52,36 @@ describe('StatusChips', () => {
     render(<StatusChips status={STATUS} placement="bar" />);
     const money = screen.getByText(/^−\$2[.,]5/);
     expect(money.className).toMatch(/negative/);
+  });
+
+  it.each(['bar', 'sheet'] as const)(
+    'gives the cash a Why? in the %s when the engine keeps a breakdown of it',
+    (placement) => {
+      const promotion = STATUS.promotion;
+      if (promotion === null) throw new Error('The sample status has a promotion');
+      // A reference is fetched from the engine, so the chip needs one around it.
+      const transport = createInProcessTransport(fakeEngineFactory(), { progressIntervalMs: 0 });
+      transport.host.installEngine(fakeEngineState());
+      render(
+        <EngineProvider createTransport={() => transport}>
+          <StatusChips
+            status={{
+              ...STATUS,
+              promotion: { ...promotion, cashTraceRef: cashTraceRef(promotion.promotionId) },
+            }}
+            placement={placement}
+          />
+        </EngineProvider>,
+      );
+      expect(
+        within(screen.getByTestId('cash-chip')).getByRole('button', { name: /^Why is Cash /u }),
+      ).toBeInTheDocument();
+    },
+  );
+
+  it('shows the cash without a Why? while there is no breakdown of it', () => {
+    render(<StatusChips status={STATUS} placement="bar" />);
+    expect(within(screen.getByTestId('cash-chip')).queryByRole('button')).toBeNull();
   });
 
   it('leaves out the season before season 1 and the promotion chips without a promotion', () => {

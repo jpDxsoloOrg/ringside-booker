@@ -73,6 +73,8 @@ describe('sim.status', () => {
           promotionId: testId('promotion', 1),
           name: 'Test Promotion A',
           cash: 123_456,
+          // No cash trace is stored until the new-game step or a posted row writes one.
+          cashTraceRef: null,
           popularity: {
             homeRegionId: HOME_REGION,
             homeRegion: 42,

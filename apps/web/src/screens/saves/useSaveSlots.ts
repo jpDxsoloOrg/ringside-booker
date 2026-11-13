@@ -42,12 +42,15 @@ export function useSaveSlots(): SaveSlots {
   const [state, setState] = useState<SlotListState>({ status: 'loading' });
   // A list read that finishes after a newer one started is dropped.
   const requestRef = useRef(0);
+  // So is one that finishes after the screen unmounted: setting state then would still make React
+  // read `window.event`, which throws once a test's jsdom window has been torn down.
+  const mountedRef = useRef(false);
 
   const refresh = useCallback(async (): Promise<void> => {
     requestRef.current += 1;
     const request = requestRef.current;
     const listed = await storage.listSlots();
-    if (request !== requestRef.current) return;
+    if (!mountedRef.current || request !== requestRef.current) return;
     setState(
       listed.ok
         ? { status: 'ready', slots: listed.value }
@@ -56,7 +59,11 @@ export function useSaveSlots(): SaveSlots {
   }, [storage]);
 
   useEffect(() => {
+    mountedRef.current = true;
     void refresh();
+    return () => {
+      mountedRef.current = false;
+    };
   }, [refresh]);
 
   const deleteSlot = useCallback(

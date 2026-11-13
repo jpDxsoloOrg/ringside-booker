@@ -100,6 +100,7 @@ export {
   applyMoraleChange,
   applyPopularityChange,
   DOOR_TRACE_KINDS,
+  initialMomentum,
   DOORS_DOC_REF,
   ROLE_CHANGED_REASON_KEY,
   SET_ROLE_PROBLEM_CODES,
@@ -116,10 +117,22 @@ export {
   type DoorSource,
   type PopularityDoorResult,
   type PopularitySubject,
+  type RegionDeltasPopularityChangeArgs,
+  type RegionPopularityChange,
+  type WeightedPopularityChangeArgs,
   type SetAlignmentArgs,
   type SetPushArgs,
   type SetRoleArgs,
   type SetRoleProblemCode,
+} from './doors';
+// The doors' math with no writes, for previews (MTCH3-03).
+export {
+  previewMomentumChange,
+  previewPopularityChange,
+  type MomentumPreview,
+  type PopularityPreview,
+  type PopularityPreviewRegion,
+  type PreviewPopularityChangeArgs,
 } from './doors';
 export {
   POPULARITY_DOC_REF,

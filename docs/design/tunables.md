@@ -420,6 +420,49 @@ The auto-winner and Random winners (MTCH2-03) add to the same category. See
 | `match.autoWinner.randomness`        | number | 5       | 0–200  | points     | Most unpredictability per side; 0 = always the same winner           |
 | `match.randomWinners.randomness`     | number | 60      | 1–1000 | points     | Most unpredictability per side in Random winners mode; never below 1 |
 
+### Aftermath momentum tunables
+
+How much one match result moves a competitor's momentum (MTCH3-02), in
+`systems/match/aftermath/momentumTunables.ts`, category `Aftermath`. See
+[match-aftermath.md](match-aftermath.md#momentum-gain) for what each does.
+
+| Key                                       | Kind   | Default | Range | Unit   | What it does                                             |
+| ----------------------------------------- | ------ | ------- | ----- | ------ | -------------------------------------------------------- |
+| `match.momentum.winBase`                  | number | 5       | 0–50  | points | Momentum a win is worth                                  |
+| `match.momentum.winGapPerPoint`           | number | 0.2     | 0–2   | ratio  | Extra momentum per point the beaten opponent was hotter  |
+| `match.momentum.winMax`                   | number | 15      | 0–50  | points | Most momentum one win can give                           |
+| `match.momentum.lossBase`                 | number | 5       | 0–50  | points | Momentum a loss costs                                    |
+| `match.momentum.lossGapPerPoint`          | number | 0.2     | 0–2   | ratio  | Extra momentum lost per point the winner was colder      |
+| `match.momentum.lossMax`                  | number | 15      | 0–50  | points | Most momentum one loss can cost                          |
+| `match.momentum.draw`                     | number | 2       | 0–50  | points | Momentum a draw costs                                    |
+| `match.momentum.multiSideWinPerExtraSide` | number | 1       | 0–10  | points | Extra momentum for winning, per side beyond two          |
+| `match.momentum.multiSideLossShare`       | number | 0.35    | 0–1   | ratio  | Smallest share of a loss kept in a match with many sides |
+| `match.momentum.greatMatchFrom`           | number | 85      | 0–100 | points | Segment score from which a match counts as great         |
+| `match.momentum.greatMatchBonus`          | number | 2       | 0–20  | points | Momentum everyone in a great match gains                 |
+| `match.momentum.maxPerSegment`            | number | 15      | 0–50  | points | Most momentum one match can give or take                 |
+
+The weekly drift back toward a resting point (MTCH3-07) is in the same file
+and category. See [match-aftermath.md](match-aftermath.md#momentum-drift).
+
+| Key                               | Kind   | Default | Range    | Unit   | What it does                                                                         |
+| --------------------------------- | ------ | ------- | -------- | ------ | ------------------------------------------------------------------------------------ |
+| `match.momentum.weeklyDrift`      | number | 0.12    | 0–1      | ratio  | Share of the way back to the resting point momentum moves each week (0 turns it off) |
+| `match.momentum.activeDriftShare` | number | 0.5     | 0–1      | ratio  | Share of the weekly cooling off a worker who wrestled that week still gets           |
+| `match.momentum.driftTarget`      | number | 0       | −100–100 | points | The momentum everyone drifts back toward each week                                   |
+
+### Aftermath spread and storage tunables
+
+Where a match's popularity change spreads and how many stored aftermaths each
+worker keeps (MTCH3-03), appended to `systems/match/aftermath/tunables.ts`,
+category `Aftermath`. See
+[match-aftermath.md](match-aftermath.md#regional-spread).
+
+| Key                               | Kind    | Default | Range | Unit  | What it does                                                                                           |
+| --------------------------------- | ------- | ------- | ----- | ----- | ------------------------------------------------------------------------------------------------------ |
+| `match.popularity.neighbourSpill` | number  | 0.4     | 0–1   | ratio | Share of a match's popularity change each neighbour region gets                                        |
+| `match.aftermath.keepPerPerson`   | integer | 10      | 1–100 | count | How many recent match aftermaths are kept for each worker                                              |
+| `match.popularity.tvSpill`        | number  | 0.3     | 0–1   | ratio | Share of the show's TV reach a match's popularity change gets in TV regions (MTCH3-05); 0 turns it off |
+
 ## Shows tunables
 
 Show night's numbers (EVT3), in `systems/shows/tunables.ts`, category `Shows`.
@@ -455,3 +498,98 @@ The thresholds a card is held to before it can be locked (EVT2-04), in
 | `booking.maxMatchesPerPersonPerShow` | integer | 3       | 1–4   | count | Most matches one person may wrestle on one show (each match past the first is a warning) |
 | `booking.minFilledMainShare`         | number  | 0.5     | 0–1   | ratio | Share of main-card slots that must be filled to lock (0 = no minimum)                    |
 | `booking.requireMainEvent`           | boolean | true    |       | flag  | The last main-card slot must be filled to lock                                           |
+
+## Promotion popularity tunables
+
+How one show moves a promotion's popularity in each region it reached (EVT5),
+in `systems/promoPop/tunables.ts`, category `Promotion popularity`. See
+[promotion-popularity.md](promotion-popularity.md). Every one is 0-means-0.
+
+| Key                                   | Kind    | Default | Range  | Unit       | What it does                                                                                 |
+| ------------------------------------- | ------- | ------- | ------ | ---------- | -------------------------------------------------------------------------------------------- |
+| `promoPop.neighbourReach`             | number  | 0.5     | 0–1    | ratio      | How much of a show a neighbouring region sees (0 = neighbours not reached)                   |
+| `promoPop.tvReach.tier0`              | number  | 0.1     | 0–1    | ratio      | How much of a show a region sees on a reach tier 0 network (0 = not reached that way)        |
+| `promoPop.tvReach.tier1`              | number  | 0.2     | 0–1    | ratio      | Same, reach tier 1                                                                           |
+| `promoPop.tvReach.tier2`              | number  | 0.3     | 0–1    | ratio      | Same, reach tier 2                                                                           |
+| `promoPop.tvReach.tier3`              | number  | 0.45    | 0–1    | ratio      | Same, reach tier 3                                                                           |
+| `promoPop.tvReach.tier4`              | number  | 0.6     | 0–1    | ratio      | Same, reach tier 4                                                                           |
+| `promoPop.expect.popularityWeight`    | number  | 0.6     | 0–2    | ratio      | Expected score per point of popularity in the region                                         |
+| `promoPop.expect.prestigeWeight`      | number  | 0.2     | 0–1    | ratio      | Expected score per point of prestige                                                         |
+| `promoPop.expect.importance.house`    | number  | 0.8     | 0–3    | multiplier | Event size factor on the popularity part of the expectation, house show                      |
+| `promoPop.expect.importance.minor`    | number  | 0.9     | 0–3    | multiplier | Same, minor show                                                                             |
+| `promoPop.expect.importance.regular`  | number  | 1       | 0–3    | multiplier | Same, regular show                                                                           |
+| `promoPop.expect.importance.major`    | number  | 1.15    | 0–3    | multiplier | Same, major show                                                                             |
+| `promoPop.expect.importance.flagship` | number  | 1.3     | 0–3    | multiplier | Same, flagship show                                                                          |
+| `promoPop.deadZone`                   | number  | 3       | 0–20   | points     | Score margin either way that changes nothing (0 = any margin counts)                         |
+| `promoPop.blowoutMargin`              | number  | 25      | 0–100  | points     | Score margin that earns the full gain or loss                                                |
+| `promoPop.maxGainPerShow`             | number  | 3       | 0–10   | points     | Most popularity one show can win in a region before shaping (0 = no gains)                   |
+| `promoPop.maxLossPerShow`             | number  | 2.5     | 0–10   | points     | Most popularity one show can lose in a region before shaping (0 = no losses)                 |
+| `promoPop.impact.house`               | number  | 0.4     | 0–3    | multiplier | How much a house show moves popularity (0 = nothing)                                         |
+| `promoPop.impact.minor`               | number  | 0.7     | 0–3    | multiplier | Same, minor show                                                                             |
+| `promoPop.impact.regular`             | number  | 1       | 0–3    | multiplier | Same, regular show                                                                           |
+| `promoPop.impact.major`               | number  | 1.3     | 0–3    | multiplier | Same, major show                                                                             |
+| `promoPop.impact.flagship`            | number  | 1.6     | 0–3    | multiplier | Same, flagship show                                                                          |
+| `promoPop.diminishingPower`           | number  | 1.5     | 0–5    | ratio      | How sharply gains shrink as popularity rises (0 = no diminishing)                            |
+| `promoPop.lossFullFrom`               | number  | 25      | 0–100  | points     | Popularity from which a bad show costs its full loss (0 = losses never scaled down)          |
+| `promoPop.monthlyGainCap`             | number  | 3       | 0–100  | points     | Most popularity shows can win in one region in one calendar month (0 = no gains at all)      |
+| `promoPop.keepShowChangesDays`        | integer | 365     | 0–3650 | days       | How long each show's popularity record is kept for the results page (0 = cleared on the 1st) |
+
+## Finance tunables
+
+The economy's numbers (ECO1), in `systems/finance/tunables.ts`, category
+`Finances`, each with a docRef into [finances.md](finances.md). The set starts
+empty: ECO1-02 adds reach and size, ECO1-03 wages and medical, and ECO1-04 show
+costs and importance, each in its own block.
+
+### Reach and size tunables
+
+How big a company is (ECO1-02). See
+[finances.md](finances.md#reach-and-size). Every weight is 0-means-0.
+
+| Key                                  | Kind   | Default | Range | Unit   | What it does                                                                               |
+| ------------------------------------ | ------ | ------- | ----- | ------ | ------------------------------------------------------------------------------------------ |
+| `finance.reach.weight.homeRegion`    | number | 1       | 0–10  | ratio  | How much popularity in the home region counts towards reach; 0 = this level does not count |
+| `finance.reach.weight.homeCountry`   | number | 3       | 0–10  | ratio  | Same, home country                                                                         |
+| `finance.reach.weight.homeContinent` | number | 2       | 0–10  | ratio  | Same, home continent                                                                       |
+| `finance.reach.weight.world`         | number | 2       | 0–10  | ratio  | Same, whole world                                                                          |
+| `finance.size.regionalAt`            | number | 6       | 0–100 | points | Reach at which a company counts as Regional                                                |
+| `finance.size.nationalAt`            | number | 25      | 0–100 | points | Reach at which a company counts as National                                                |
+| `finance.size.continentalAt`         | number | 45      | 0–100 | points | Reach at which a company counts as Continental                                             |
+| `finance.size.globalAt`              | number | 70      | 0–100 | points | Reach at which a company counts as Global                                                  |
+
+Wages and medical (ECO1-03), amounts in cents:
+
+| Key                                  | Kind    | Default | Range        | Unit        | Meaning                                                             |
+| ------------------------------------ | ------- | ------- | ------------ | ----------- | ------------------------------------------------------------------- |
+| `finance.payOwnerAndBooker`          | boolean | false   |              | flag        | Pay the owner's and booker's contracts a wage too                   |
+| `finance.wages.multiplier`           | number  | 1       | 0–5          | multiplier  | Every monthly wage is multiplied by this (0 = nobody is paid)       |
+| `finance.medical.perContract.level0` | integer | 0       | 0–10,000,000 | money/month | Medical cost per person under contract each month at policy level 0 |
+| `finance.medical.perContract.level1` | integer | 15,000  | 0–10,000,000 | money/month | Same, policy level 1                                                |
+| `finance.medical.perContract.level2` | integer | 60,000  | 0–10,000,000 | money/month | Same, policy level 2                                                |
+| `finance.medical.perContract.level3` | integer | 150,000 | 0–10,000,000 | money/month | Same, policy level 3                                                |
+
+### Show costs and policy tunables
+
+Show costs and the policy preview (ECO1-04), amounts in cents. See
+[finances.md](finances.md#show-costs):
+
+| Key                                    | Kind    | Default | Range        | Unit       | Meaning                                                                     |
+| -------------------------------------- | ------- | ------- | ------------ | ---------- | --------------------------------------------------------------------------- |
+| `finance.travel.perWorker.level0`      | integer | 0       | 0–10,000,000 | money      | Travel cost per paid worker per show at travel policy level 0               |
+| `finance.travel.perWorker.level1`      | integer | 5,000   | 0–10,000,000 | money      | Same, level 1                                                               |
+| `finance.travel.perWorker.level2`      | integer | 20,000  | 0–10,000,000 | money      | Same, level 2                                                               |
+| `finance.travel.perWorker.level3`      | integer | 50,000  | 0–10,000,000 | money      | Same, level 3                                                               |
+| `finance.catering.perShow.level0`      | integer | 0       | 0–10,000,000 | money      | Catering cost per show at catering policy level 0                           |
+| `finance.catering.perShow.level1`      | integer | 25,000  | 0–10,000,000 | money      | Same, level 1                                                               |
+| `finance.catering.perShow.level2`      | integer | 80,000  | 0–10,000,000 | money      | Same, level 2                                                               |
+| `finance.catering.perShow.level3`      | integer | 250,000 | 0–10,000,000 | money      | Same, level 3                                                               |
+| `finance.travel.domesticMultiplier`    | number  | 1.5     | 0–10         | multiplier | Travel × this for a show in the home country, outside the home region       |
+| `finance.travel.abroadMultiplier`      | number  | 3       | 0–10         | multiplier | Travel × this for a show in another country                                 |
+| `finance.show.importance.house`        | number  | 0.5     | 0–10         | multiplier | Travel and catering × this for a house show                                 |
+| `finance.show.importance.minor`        | number  | 0.75    | 0–10         | multiplier | Same, minor show                                                            |
+| `finance.show.importance.regular`      | number  | 1       | 0–10         | multiplier | Same, regular show                                                          |
+| `finance.show.importance.major`        | number  | 1.5     | 0–10         | multiplier | Same, major show                                                            |
+| `finance.show.importance.flagship`     | number  | 2.5     | 0–10         | multiplier | Same, flagship show                                                         |
+| `finance.show.offscreenWorkersPerSlot` | integer | 2       | 0–6          | count      | Workers counted per main-card slot when a show has no card booked in detail |
+| `finance.travel.coveredLevel`          | integer | 3       | 0–3          | count      | The travel level a contract with the travel perk is always paid at          |
+| `finance.preview.recentShows`          | integer | 5       | 1–20         | count      | Recent shows the policy preview averages to guess how many work a show      |

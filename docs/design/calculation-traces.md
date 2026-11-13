@@ -63,6 +63,7 @@ the "Why?" panel can show the current name and link to the profile.
 | `constant`                              | A fixed number that is deliberately not tunable, with its `reason`         | "Percent scale" = 100, because percentages are stored as 0 to 100 |
 | `tunable`                               | A balance number: `key`, `value`, `defaultValue` and `overridden`          | "Rest recovery per day" = 0 (default 12, overridden)              |
 | `add`, `subtract`, `multiply`, `divide` | One arithmetic step: `operand`, `before`, `after` and an optional `reason` | "Hometown crowd" +5: 48 → 53                                      |
+| `power`                                 | Raises the running value to `operand` (the exponent), same fields as above | "Diminishing returns" raised to the power 1.5: 0.25 → 0.125       |
 | `min`                                   | A ceiling, `Math.min(before, limit)`, with `applied`                       | "Production ceiling" 45: 52 → 45 (applied)                        |
 | `max`                                   | A floor, `Math.max(before, limit)`, with `applied`                         | "No negative crowd" 0: 12 → 12 (not applied)                      |
 | `clamp`                                 | A range, `min`..`max` both included, with `applied`                        | "Kept between 0 and 100": 104 → 100                               |
@@ -103,6 +104,10 @@ return calc
   `Traced<number>`. A traced amount is embedded as the step's children, so a
   sub-formula shows up as a collapsible step. `divide` throws on 0, and any
   step that would produce `NaN` or an infinite number throws.
+- **Power.** `power(label, exponent, reason?)` raises the running value to
+  `exponent` (a number or a `Traced<number>`), for curves such as diminishing
+  returns. It throws for a negative value with a fractional exponent, which has
+  no real result.
 - **Limits.** `min(label, limit)` is a ceiling and `max(label, limit)` is a
   floor, named after the maths functions they apply. `clamp(min, max, label?)`
   keeps the value in a range.

@@ -169,18 +169,19 @@ each step gets its own transaction, RNG snapshot, event staging and report.
 Unlike a day, the first failing step stops new game, and the result is the
 reasons plus that step's report, never a world.
 
-| Order | Step                           | Owner | Runs when                  | What it does                                                                                                                           |
-| ----- | ------------------------------ | ----- | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| 100   | `wld.applyTunableOverrides`    | WLD   | always                     | Applies `tunableOverrides`; every later step reads them, and they are saved with the game.                                             |
-| 200   | `wld.foundPromotion`           | WLD   | `player.mode` is `found`   | Founds your promotion (below).                                                                                                         |
-| 300   | `wld.assignControllers`        | WLD   | always                     | Controllers, players and world name (above).                                                                                           |
-| 400   | `wld.contractExpiryFixup`      | WLD   | always                     | A running contract ending on or before the start date gets a new end date 30–180 days after it (stream `newgame.contracts`).           |
-| 500   | `wld.randomiseContractLengths` | WLD   | `randomiseContractLengths` | Every running contract with an end date ends `startDate + 30–720` days (stream `newgame.contract-lengths`).                            |
-| 600   | `wld.equalStart`               | WLD   | `equalStart`               | Every promotion: cash 1,000,000, prestige 50, popularity 35 in every region of its home country and none elsewhere; all deals removed. |
-| 700   | `wld.rerollPotential`          | WLD   | `rerollPotential`          | WLD-07's `reseedPotential` for everyone (stream `newgame.potential`).                                                                  |
-| 800   | `wld.storeSettings`            | WLD   | always                     | Stores every setting and the season length in `WorldMeta.settings`.                                                                    |
-| 810   | `calendar.scheduleOpening`     | EVT   | always                     | Schedules every show from the start date through start + `calendar.scheduleHorizonDays` (see [calendar.md](calendar.md#horizon)).      |
-| 900+  | pricing, production, networks  | ECO   | ECO's own settings         | Expected here, after the equal start reset, so the reset never throws their work away.                                                 |
+| Order | Step                           | Owner | Runs when                  | What it does                                                                                                                                                |
+| ----- | ------------------------------ | ----- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 100   | `wld.applyTunableOverrides`    | WLD   | always                     | Applies `tunableOverrides`; every later step reads them, and they are saved with the game.                                                                  |
+| 200   | `wld.foundPromotion`           | WLD   | `player.mode` is `found`   | Founds your promotion (below).                                                                                                                              |
+| 300   | `wld.assignControllers`        | WLD   | always                     | Controllers, players and world name (above).                                                                                                                |
+| 400   | `wld.contractExpiryFixup`      | WLD   | always                     | A running contract ending on or before the start date gets a new end date 30–180 days after it (stream `newgame.contracts`).                                |
+| 500   | `wld.randomiseContractLengths` | WLD   | `randomiseContractLengths` | Every running contract with an end date ends `startDate + 30–720` days (stream `newgame.contract-lengths`).                                                 |
+| 600   | `wld.equalStart`               | WLD   | `equalStart`               | Every promotion: cash 1,000,000, prestige 50, popularity 35 in every region of its home country and none elsewhere; all deals removed.                      |
+| 700   | `wld.rerollPotential`          | WLD   | `rerollPotential`          | WLD-07's `reseedPotential` for everyone (stream `newgame.potential`).                                                                                       |
+| 800   | `wld.storeSettings`            | WLD   | always                     | Stores every setting and the season length in `WorldMeta.settings`.                                                                                         |
+| 810   | `calendar.scheduleOpening`     | EVT   | always                     | Schedules every show from the start date through start + `calendar.scheduleHorizonDays` (see [calendar.md](calendar.md#horizon)).                           |
+| 900+  | pricing, production, networks  | ECO   | ECO's own settings         | Expected here, after the equal start reset, so the reset never throws their work away.                                                                      |
+| 905   | `finance.openingBalance`       | ECO   | always                     | Records the cash Why? ("Opening balance") of every human-run promotion, so the top bar explains its cash from day one ([finances.md](finances.md#queries)). |
 
 After the last step, `createNewGame` publishes `world.created`
 (`{ startDate, seasonLengthDays, promotionId, playerId }`) from the

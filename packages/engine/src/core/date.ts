@@ -376,3 +376,42 @@ export function ageInYears(birth: GameDate, today: GameDate): number {
     (todayParts.month === birthParts.month && todayParts.day >= birthParts.day);
   return todayParts.year - birthParts.year - (hadBirthdayThisYear ? 0 : 1);
 }
+
+// ---------------------------------------------------------------------------------------------
+// Year-months
+// ---------------------------------------------------------------------------------------------
+
+/** A calendar month as `YYYY-MM`, the first seven characters of a GameDate. */
+export type YearMonth = Brand<string, 'YearMonth'>;
+
+/** The shape of a year-month: four digits, a dash and a month from 01 to 12. */
+export const YEAR_MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
+
+/** True when `value` is a `YYYY-MM` string for a month in years 1900-2999. */
+export function isYearMonth(value: unknown): value is YearMonth {
+  if (typeof value !== 'string' || !YEAR_MONTH_PATTERN.test(value)) {
+    return false;
+  }
+  const yearNumber = Number(value.slice(0, 4));
+  return yearNumber >= MIN_GAME_YEAR && yearNumber <= MAX_GAME_YEAR;
+}
+
+/** The month `date` falls in: `yearMonthOf('2028-02-29')` is `'2028-02'`. */
+export function yearMonthOf(date: GameDate): YearMonth {
+  const text = date.slice(0, 7);
+  if (!isYearMonth(text)) {
+    throw new InvalidDateError(date, 'yearMonthOf: not a game date');
+  }
+  return text;
+}
+
+/** `month` moved by a whole number of months (negative moves back): `'2027-12'` + 1 is `'2028-01'`. */
+export function addYearMonths(month: YearMonth, months: number): YearMonth {
+  assertWholeNumber('addYearMonths', 'months', months);
+  return yearMonthOf(addMonths(firstDayOfYearMonth(month), months));
+}
+
+/** The first day of a year-month. */
+export function firstDayOfYearMonth(month: YearMonth): GameDate {
+  return formatParts({ year: Number(month.slice(0, 4)), month: Number(month.slice(5, 7)), day: 1 });
+}

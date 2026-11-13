@@ -13,6 +13,7 @@ import { bookingTunables } from './booking/tunables';
 import { calendarTunables } from './calendar/tunables';
 import { conditionTunables } from './condition/tunables';
 import { matchTunables } from './match/tunables';
+import { aftermathTunables } from './match/aftermath/tunables';
 import { mergeTunables } from '../core/tunables/define';
 import type { TunableOverrides } from '../core/tunables/overrides';
 import {
@@ -21,9 +22,13 @@ import {
   type LoadedTunables,
   type TunableReader,
 } from '../core/tunables/resolver';
+import { promoPopTunables } from './promoPop/tunables';
 import { showsTunables } from './shows/tunables';
 import { workersTunables } from './workers/tunables';
 import { worldTunables } from './world/tunables';
+import { momentumTunables } from './match/aftermath/momentumTunables';
+
+import { financeTunables } from './finance/tunables';
 
 export const ALL_TUNABLES = mergeTunables(
   simTunables,
@@ -34,6 +39,10 @@ export const ALL_TUNABLES = mergeTunables(
   matchTunables,
   bookingTunables,
   showsTunables,
+  aftermathTunables,
+  momentumTunables,
+  promoPopTunables,
+  financeTunables,
 );
 
 /** Every tunable key the engine knows. */

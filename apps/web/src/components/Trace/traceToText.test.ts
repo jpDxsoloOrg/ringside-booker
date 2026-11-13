@@ -66,6 +66,33 @@ describe('traceToText', () => {
   });
 });
 
+describe('traceToText power steps', () => {
+  it('words a power step as "raised to the power" with its label', () => {
+    const trace: TraceNode = {
+      kind: 'formula',
+      label: 'Diminishing returns',
+      value: 0.125,
+      unit: 'ratio',
+      children: [
+        { kind: 'input', label: 'Share of fans still to win', value: 0.25 },
+        {
+          kind: 'power',
+          label: 'Popularity curve',
+          value: 0.125,
+          operand: 1.5,
+          before: 0.25,
+          after: 0.125,
+        },
+      ],
+    };
+    expect(traceToText(trace).split('\n')).toEqual([
+      'Diminishing returns: 0.125',
+      '  Share of fans still to win: 0.25',
+      '  raised to the power 1.5 (Popularity curve) · 0.25 → 0.13',
+    ]);
+  });
+});
+
 describe('summaryToText', () => {
   it('writes a summarised result with the notice and its top contributors', () => {
     expect(summaryToText(summarisedAttendance)).toMatchInlineSnapshot(`

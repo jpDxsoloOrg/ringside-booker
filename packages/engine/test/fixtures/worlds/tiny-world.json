@@ -643,6 +643,64 @@
     "daysSimulated": 95
   },
   "tables": {
+    "aftermaths": [
+      {
+        "id": "aft_0000000001",
+        "segmentId": "seg_0000000003",
+        "eventInstanceId": "evi_0000000001",
+        "promotionId": "pro_0000000001",
+        "personId": "per_0000000001",
+        "date": "2026-04-09",
+        "outcome": "win",
+        "showRegionId": "reg_0000000001",
+        "popularity": {
+          "delta": 1.5,
+          "byRegion": {
+            "reg_0000000001": {
+              "before": 50,
+              "after": 51.5
+            }
+          }
+        },
+        "momentum": {
+          "employmentId": "emp_0000000001",
+          "before": 10,
+          "after": 15
+        },
+        "traceIds": {
+          "popularity": "match.popularityGain:seg_0000000003/per_0000000001",
+          "momentum": "match.momentumGain:seg_0000000003/per_0000000001"
+        }
+      },
+      {
+        "id": "aft_0000000002",
+        "segmentId": "seg_0000000003",
+        "eventInstanceId": "evi_0000000001",
+        "promotionId": "pro_0000000001",
+        "personId": "per_0000000002",
+        "date": "2026-04-09",
+        "outcome": "loss",
+        "showRegionId": "reg_0000000001",
+        "popularity": {
+          "delta": -0.5,
+          "byRegion": {
+            "reg_0000000001": {
+              "before": 45,
+              "after": 44.5
+            }
+          }
+        },
+        "momentum": {
+          "employmentId": "emp_0000000002",
+          "before": 5,
+          "after": 0
+        },
+        "traceIds": {
+          "popularity": "match.popularityGain:seg_0000000003/per_0000000002",
+          "momentum": "match.momentumGain:seg_0000000003/per_0000000002"
+        }
+      }
+    ],
     "brands": [
       {
         "id": "brd_0000000001",
@@ -1426,7 +1484,8 @@
           "eventInstanceId": "evi_0000000001",
           "personId": null,
           "dealId": null
-        }
+        },
+        "traceRef": null
       },
       {
         "id": "led_0000000002",
@@ -1439,7 +1498,8 @@
           "eventInstanceId": "evi_0000000001",
           "personId": null,
           "dealId": "dea_0000000001"
-        }
+        },
+        "traceRef": null
       },
       {
         "id": "led_0000000003",
@@ -1452,7 +1512,8 @@
           "eventInstanceId": "evi_0000000001",
           "personId": null,
           "dealId": null
-        }
+        },
+        "traceRef": null
       },
       {
         "id": "led_0000000004",
@@ -1465,7 +1526,8 @@
           "eventInstanceId": null,
           "personId": null,
           "dealId": null
-        }
+        },
+        "traceRef": null
       },
       {
         "id": "led_0000000005",
@@ -1478,7 +1540,8 @@
           "eventInstanceId": null,
           "personId": null,
           "dealId": null
-        }
+        },
+        "traceRef": null
       }
     ],
     "mail": [
@@ -2707,6 +2770,28 @@
         }
       }
     ],
+    "popularityShowChanges": [
+      {
+        "id": "psc_0000000001",
+        "eventInstanceId": "evi_0000000001",
+        "promotionId": "pro_0000000001",
+        "date": "2026-04-09",
+        "score": 62,
+        "worldBefore": 0,
+        "worldAfter": 0.3,
+        "regions": {
+          "reg_0000000001": {
+            "source": "show",
+            "networkId": null,
+            "weight": 1,
+            "expectation": 10,
+            "before": 0,
+            "after": 1.2,
+            "capped": false
+          }
+        }
+      }
+    ],
     "promotions": [
       {
         "id": "pro_0000000001",
@@ -2717,6 +2802,10 @@
         "status": "active",
         "homeRegionId": "reg_0000000001",
         "regionalPop": {},
+        "popularityGains": {
+          "month": "2026-01",
+          "byRegion": {}
+        },
         "prestige": 50,
         "cash": 1000000000,
         "style": "mainstream",
@@ -2753,6 +2842,10 @@
         "status": "active",
         "homeRegionId": "reg_0000000001",
         "regionalPop": {},
+        "popularityGains": {
+          "month": "2026-01",
+          "byRegion": {}
+        },
         "prestige": 50,
         "cash": 250000000,
         "style": "technical",

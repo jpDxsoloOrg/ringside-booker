@@ -68,6 +68,17 @@ registered first.
 of the show. Groups are 100 apart so a later system can slot in without
 anything else being renumbered.
 
+The `money` group's phases so far (ECO1-03, see
+[finances.md](finances.md#payroll)):
+
+| Phase                    | Order | Cadence             | What it does                                                                                     |
+| ------------------------ | ----- | ------------------- | ------------------------------------------------------------------------------------------------ |
+| `finance.payroll`        | 10    | daily               | One Wages row per open promotion with anyone to pay: monthly payroll × 12 ÷ 365.25, to the cent. |
+| `finance.monthlyMedical` | 20    | monthly, on the 1st | One Medical row per open promotion: people under contract × the cost of its medical policy.      |
+
+Both post through `postMoney`, visit promotions in id order, post nothing for
+a zero amount and draw no random numbers (only the ledger rows' ids).
+
 ### Registering a phase
 
 A system describes its phase and registers it once, when the engine is built:
@@ -169,6 +180,13 @@ nothing else. The step that published the event keeps its writes, and the
 failure is listed on that step's report under `reactionFailures` (subscriber
 id, the event's `seq` and the error). It also goes into the failure log as
 `reaction:<subscriberId>`. A failed reaction does not count as a failed step.
+
+The reactions to show night so far:
+
+| Reaction                  | Event            | What it does                                                                                                                          |
+| ------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `promoPop.applyAfterShow` | `show.completed` | Applies the show's popularity change ([promotion-popularity.md](promotion-popularity.md)).                                            |
+| `finance.postShowCosts`   | `show.completed` | Posts the show's appearance fees, travel and catering, player and rival alike, once per show ([finances.md](finances.md#show-costs)). |
 
 ### Reports
 
@@ -724,3 +742,16 @@ The shows system's events ([show-night.md](show-night.md#events)):
 | `show.completed`    | `eventInstanceId`, `promotionId`, `brandId`, `date`, `importance`, `score`, `rawScore`, `offscreen`, `segmentCount`                                                                    | A show is run, on screen or off it        |
 | `title.changed`     | `titleId`, `promotionId`, `fromReignId`, `toReignId`, `segmentId`, `eventInstanceId`, `newHolderIds`, `previousHolderIds`                                                              | A title changes hands in a segment        |
 | `title.defended`    | `titleId`, `promotionId`, `reignId`, `segmentId`, `eventInstanceId`, `defences`                                                                                                        | A champion keeps their title in a segment |
+
+The finance system's events ([finances.md](finances.md#postmoney)):
+
+| Event                   | Payload                                                      | Published when                                            |
+| ----------------------- | ------------------------------------------------------------ | --------------------------------------------------------- |
+| `finance.moneyPosted`   | `promotionId`, `ledgerEntryId`, `category`, `amount`, `date` | `postMoney` writes a row for a human-controlled promotion |
+| `finance.policyChanged` | `promotionId`, `area`, `from`, `to`                          | A promotion changes a spending policy (ECO1-04)           |
+
+The promotion popularity system's events ([promotion-popularity.md](promotion-popularity.md#after-every-show)):
+
+| Event                    | Payload                                                                                                        | Published when                                  |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| `showPopularity.changed` | `eventInstanceId`, `promotionId`, `worldBefore`, `worldAfter`, `regionsGained`, `regionsLost`, `regionsCapped` | A completed show's popularity change is applied |

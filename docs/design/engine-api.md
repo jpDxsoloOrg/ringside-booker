@@ -312,6 +312,8 @@ Queries other systems add:
 | `shows.results`        | `{ eventInstanceId }`                                                                            | One show's results page: score, every segment's result and title outcomes ([show-night.md](show-night.md#results-queries))                              |
 | `shows.lastCompleted`  | `{ scope? }`                                                                                     | The latest completed show as one `ShowSummaryView` line, or null ([show-night.md](show-night.md#results-queries))                                       |
 | `shows.completedSince` | `{ from, to, scope, limit? }`                                                                    | The shows completed with `from <= date < to`, newest first ([show-night.md](show-night.md#results-queries))                                             |
+| `match.aftermath`      | `{ segmentId }` or `{ eventInstanceId }`                                                         | Stored aftermath rows by match in card order ([match-aftermath.md](match-aftermath.md#stored-aftermaths))                                               |
+| `match.recentForm`     | `{ personId, limit? }`                                                                           | A worker's last run matches, newest first, with the stored changes ([match-aftermath.md](match-aftermath.md#recent-form))                               |
 
 The calendar queries share one row, `CalendarShow`. `scope` is `mine` or
 `world`; a window may cover at most 366 days and is refused with
@@ -326,10 +328,18 @@ null before season 1 exists) and the viewer's promotion at a glance:
 
 ```ts
 promotion: {
-  promotionId, name, cash,
+  promotionId, name, cash, cashTraceRef,
   popularity: { homeRegionId, homeRegion, prestige, traceRef },
 } | null
 ```
+
+`cashTraceRef` points at the stored trace explaining the cash (kind
+`finance.cash`, id the promotion: "Cash on 1 January + this month's income and
+costs by category = cash now"), or is null when none is stored. The core owns
+the kind string (`CASH_TRACE_KIND` in `core/api/builtins.ts`), so `sim.status`
+never imports the finance system; the finance system writes the trace from the
+new game's `finance.openingBalance` step and after every row it posts for a
+human-run promotion ([finances.md](finances.md#queries)).
 
 The promotion is the first one `viewerPromotionIds` returns, read straight
 from its row: `cash`, popularity in its home region (0 when it has none

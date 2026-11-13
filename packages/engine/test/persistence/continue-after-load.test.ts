@@ -73,6 +73,7 @@ function runDay(world: GameWorld, entropy: PositionEntropy): void {
       amount: cents(-100 * (1 + (entropy.nextUint32() % 1000))),
       memo: null,
       refs: { eventInstanceId: null, personId: null, dealId: null },
+      traceRef: null,
     });
     tx.setMeta({ currentDate: addDays(currentDate, 1), daysSimulated: daysSimulated + 1 });
   });

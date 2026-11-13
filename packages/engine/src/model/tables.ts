@@ -6,6 +6,7 @@
  * (FND-10) rather than at compile time, so the schema tickets can land in any order.
  */
 
+import { aftermathsTable } from './entities/aftermath';
 import { brandsTable } from './entities/brand';
 import { dealsTable } from './entities/deal';
 import { employmentsTable } from './entities/employment';
@@ -18,6 +19,7 @@ import { networksTable } from './entities/network';
 import { newsTable } from './entities/news';
 import { participantsTable } from './entities/participant';
 import { peopleTable } from './entities/person';
+import { popularityShowChangesTable } from './entities/popularity-show-change';
 import { promotionsTable } from './entities/promotion';
 import { relationshipsTable } from './entities/relationship';
 import { seasonsTable } from './entities/season';
@@ -60,6 +62,10 @@ export const TABLES = {
   mail: mailTable,
   news: newsTable,
   ledgerEntries: ledgerEntriesTable,
+  // EVT5-02: what each show did to its promotion's popularity.
+  popularityShowChanges: popularityShowChangesTable,
+  // MTCH3-03: what each match did to each competitor's popularity and momentum.
+  aftermaths: aftermathsTable,
 } as const satisfies TableRegistry;
 
 export type GameTables = typeof TABLES;

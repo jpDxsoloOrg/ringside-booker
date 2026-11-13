@@ -23,6 +23,13 @@ import { NO_CATALOG_BODY, NO_GAME_TITLE } from './MatchLabView';
 /** The lazily loaded lab and the engine's first answers can take a moment under load. */
 const LOAD_MS = 10_000;
 
+/**
+ * A backstop above LOAD_MS for a heavily loaded machine only: at vitest's default 5 s a test timed
+ * out before its own LOAD_MS wait could. These tests go through the app shell and the lazy route on
+ * purpose (LabSimulate.test renders the view on its own); each takes well under a second alone.
+ */
+const TEST_TIMEOUT_MS = 15_000;
+
 interface RenderOptions {
   /** The world to load; the tiny world (with catalogs) by default. Null fakes a seat, no world. */
   readonly state?: EngineState | null;
@@ -45,7 +52,8 @@ function renderLab({ state = fakeEngineState() }: RenderOptions = {}) {
       <RouterProvider router={router} future={routerProviderFutureFlags} />
     </EngineProvider>,
   );
-  return { transport, router, user: userEvent.setup() };
+  // No pause between simulated keys and clicks: nothing here depends on typing speed.
+  return { transport, router, user: userEvent.setup({ delay: null }) };
 }
 
 /** The lab's slot role select, once the lab has loaded. */
@@ -137,7 +145,7 @@ afterEach(() => {
   });
 });
 
-describe('MatchLabScreen', () => {
+describe('MatchLabScreen', { timeout: TEST_TIMEOUT_MS }, () => {
   it('opens on a midcard singles with a Standard duration chip, live in the sidebar', async () => {
     const { user } = renderLab();
     expect(screen.getByRole('heading', { level: 1, name: 'Match lab' })).toBeInTheDocument();

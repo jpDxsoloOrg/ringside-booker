@@ -2,7 +2,7 @@
  * Builder for ledger entries.
  *
  * Default entry: 1,000 of ticket income for `pro_0000000001` on `TEST_START_DATE`, with no memo
- * and no references. Give a cost category without an amount and the default amount is -1,000, so
+ * no references and no trace ref. Give a cost category without an amount and the default amount is -1,000, so
  * the sign always matches the category.
  */
 
@@ -31,6 +31,7 @@ export function aLedgerEntry(
     amount: cents(LEDGER_CATEGORY_SIGN[category] * DEFAULT_LEDGER_AMOUNT),
     memo: null,
     refs: { eventInstanceId: null, personId: null, dealId: null },
+    traceRef: null,
   };
   return buildRow(LedgerEntrySchema, 'aLedgerEntry', defaults, overrides);
 }

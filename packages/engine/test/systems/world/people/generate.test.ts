@@ -2,7 +2,7 @@
 // Design: docs/design/world-generation.md#generating-people
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 import {
   ageInYears,
   ATTRIBUTE_KEYS,
@@ -39,6 +39,7 @@ import {
   type TraceNode,
 } from '@ringside/engine';
 import { birthdayAt, rollDebut } from '../../../../src/systems/world/people/dates';
+import { measureBestAgainstReference } from '../../../support/cpu-budget';
 import { testId } from '../../../support/ids';
 import { expectSerialisable, expectTraceReplays } from '../../../support/trace';
 
@@ -87,12 +88,14 @@ interface RunOptions {
   readonly hooks?: PersonSeedHooks;
 }
 
+type SpecFor = GenerateSpec | ((index: number) => GenerateSpec);
+
 /** Generates `count` people from one fresh RNG and name registry, so a run is repeatable. */
-function generateMany(
+function* generatePeople(
   count: number,
-  spec: GenerateSpec | ((index: number) => GenerateSpec),
+  spec: SpecFor,
   options: RunOptions = {},
-): Traced<GeneratedPerson>[] {
+): Generator<Traced<GeneratedPerson>> {
   const library = options.library ?? BASE_LIBRARY;
   const tunables = createEngineTunables(options.tunables ?? {});
   const registry = new RngRegistry(options.seed ?? 'people');
@@ -103,15 +106,46 @@ function generateMany(
     tunables,
     ...(options.hooks === undefined ? {} : { hooks: options.hooks }),
   });
-  const results: Traced<GeneratedPerson>[] = [];
   for (let index = 0; index < count; index++) {
-    results.push(
-      generator.generate(typeof spec === 'function' ? spec(index) : spec, {
-        personId: testId('person', index + 1),
-        worldDate: options.worldDate ?? WORLD_DATE,
-        rng: (name) => registry.stream(name),
-      }),
-    );
+    yield generator.generate(typeof spec === 'function' ? spec(index) : spec, {
+      personId: testId('person', index + 1),
+      worldDate: options.worldDate ?? WORLD_DATE,
+      rng: (name) => registry.stream(name),
+    });
+  }
+}
+
+/** {@link generatePeople} in one go, for the tests that need a few people. */
+function generateMany(
+  count: number,
+  spec: SpecFor,
+  options: RunOptions = {},
+): Traced<GeneratedPerson>[] {
+  return [...generatePeople(count, spec, options)];
+}
+
+/** People generated between turns of the event loop in {@link sampleMany}. */
+const SAMPLE_CHUNK = 250;
+
+/**
+ * The same people as {@link generateMany}, for the sampling tests that need thousands: it gives
+ * the event loop a turn every {@link SAMPLE_CHUNK} people. Generating thousands in one go blocked
+ * the test worker for over a minute on a loaded machine, so the worker could not read vitest's
+ * answer to its own progress report, and the run failed with `Timeout calling "onTaskUpdate"`.
+ */
+async function sampleMany(
+  count: number,
+  spec: SpecFor,
+  options: RunOptions = {},
+): Promise<Traced<GeneratedPerson>[]> {
+  const results: Traced<GeneratedPerson>[] = [];
+  for (const result of generatePeople(count, spec, options)) {
+    results.push(result);
+    if (results.length % SAMPLE_CHUNK === 0) {
+      await new Promise<void>((resolve) => {
+        setImmediate(resolve);
+      });
+    }
   }
   return results;
 }
@@ -238,11 +272,18 @@ function variationRolls(result: Traced<GeneratedPerson>): (string | number | boo
 const ESTABLISHED_WRESTLER: GenerateSpec = { role: 'wrestler', careerStage: 'established' };
 const NO_STANDOUTS: TunableOverrides = { 'worldgen.people.standoutChance': 0 };
 
-/** Sampling tests generate thousands of people; give them room on a busy machine. */
-vi.setConfig({ testTimeout: 60_000 });
+/**
+ * Sampling tests and their beforeAll samples generate thousands of people; give them room on a busy
+ * machine. They take up to 7 s alone and have taken 30 s at load average 45. Since they became
+ * async (see sampleMany) the limits apply to them, so they sit well above that.
+ */
+vi.setConfig({ testTimeout: 120_000, hookTimeout: 120_000 });
 
 /** 5,000 wrestlers of every stage from the shipped data, shared by the sampling tests. */
-const WRESTLERS = generateMany(5_000, { role: 'wrestler' }, { seed: 'wrestlers' });
+let WRESTLERS: readonly Traced<GeneratedPerson>[] = [];
+beforeAll(async () => {
+  WRESTLERS = await sampleMany(5_000, { role: 'wrestler' }, { seed: 'wrestlers' });
+});
 
 // ---------------------------------------------------------------------------------------------
 
@@ -338,8 +379,8 @@ describe('generatePerson', () => {
     }
   });
 
-  it('keeps every attribute and body part a whole number from 0 to 100', () => {
-    for (const result of generateMany(1_000, (index) => ({
+  it('keeps every attribute and body part a whole number from 0 to 100', async () => {
+    for (const result of await sampleMany(1_000, (index) => ({
       role: PERSON_ROLES[index % 7] ?? 'wrestler',
     }))) {
       const { person } = result.value;
@@ -424,9 +465,9 @@ describe('generatePerson', () => {
     }
   });
 
-  it('never debuts before 17 or after the world date', () => {
+  it('never debuts before 17 or after the world date', async () => {
     const worldDate = parseGameDate('2028-02-29');
-    for (const result of generateMany(1_000, { role: 'wrestler' }, { worldDate })) {
+    for (const result of await sampleMany(1_000, { role: 'wrestler' }, { worldDate })) {
       const { person } = result.value;
       const debutDate = person.debutDate;
       expect(debutDate).not.toBeNull();
@@ -467,9 +508,12 @@ describe('generatePerson', () => {
 });
 
 describe('attribute distributions', () => {
-  const established = generateMany(5_000, ESTABLISHED_WRESTLER, {
-    library: neutralLibrary(),
-    seed: 'established',
+  let established: readonly Traced<GeneratedPerson>[] = [];
+  beforeAll(async () => {
+    established = await sampleMany(5_000, ESTABLISHED_WRESTLER, {
+      library: neutralLibrary(),
+      seed: 'established',
+    });
   });
   const profile = profileFor('wrestler', 'established');
 
@@ -483,19 +527,23 @@ describe('attribute distributions', () => {
     }
   });
 
-  it('makes rookies at least 15 points worse at psychology than veterans', () => {
-    const psychologyOf = (stage: CareerStage): number =>
+  it('makes rookies at least 15 points worse at psychology than veterans', async () => {
+    const psychologyOf = async (stage: CareerStage): Promise<number> =>
       mean(
-        generateMany(
-          1_000,
-          { role: 'wrestler', careerStage: stage },
-          { seed: `psych-${stage}` },
+        (
+          await sampleMany(
+            1_000,
+            { role: 'wrestler', careerStage: stage },
+            { seed: `psych-${stage}` },
+          )
         ).map((result) => result.value.person.attributes.psychology),
       );
-    expect(psychologyOf('veteran') - psychologyOf('rookie')).toBeGreaterThanOrEqual(15);
+    expect((await psychologyOf('veteran')) - (await psychologyOf('rookie'))).toBeGreaterThanOrEqual(
+      15,
+    );
   });
 
-  it('correlates attributes through talent: 0.6 × 0.6 gives 0.36, 0 gives 0', () => {
+  it('correlates attributes through talent: 0.6 × 0.6 gives 0.36, 0 gives 0', async () => {
     const attributesWith = (
       talentWeight: number,
     ): Record<AttributeKey, packs.AttributeDistribution> => {
@@ -505,12 +553,12 @@ describe('attribute distributions', () => {
       }
       return attributes;
     };
-    const run = (talentWeight: number): number => {
+    const run = async (talentWeight: number): Promise<number> => {
       const library = libraryWithEstablishedWrestler(
         neutralLibrary(),
         attributesWith(talentWeight),
       );
-      const people = generateMany(5_000, ESTABLISHED_WRESTLER, {
+      const people = await sampleMany(5_000, ESTABLISHED_WRESTLER, {
         library,
         tunables: NO_STANDOUTS,
         seed: `correlation-${String(talentWeight)}`,
@@ -520,12 +568,12 @@ describe('attribute distributions', () => {
         people.map((result) => result.value.person.attributes.psychology),
       );
     };
-    expect(Math.abs(run(0.6) - 0.36)).toBeLessThanOrEqual(0.05);
-    expect(Math.abs(run(0))).toBeLessThanOrEqual(0.05);
+    expect(Math.abs((await run(0.6)) - 0.36)).toBeLessThanOrEqual(0.05);
+    expect(Math.abs(await run(0))).toBeLessThanOrEqual(0.05);
   });
 
-  it('puts a hand-picked star of talent 2.5 at least 1.5 sd above the profile mean', () => {
-    const stars = generateMany(
+  it('puts a hand-picked star of talent 2.5 at least 1.5 sd above the profile mean', async () => {
+    const stars = await sampleMany(
       5_000,
       { ...ESTABLISHED_WRESTLER, talent: 2.5 },
       {
@@ -543,30 +591,32 @@ describe('attribute distributions', () => {
     expect(stars.every((result) => result.value.talent === 2.5)).toBe(true);
   });
 
-  it('gives natural standouts at about the tunable rate, and none to non-wrestlers', () => {
-    const standouts = (role: PersonRole, count: number, chance: number): number =>
-      generateMany(
-        count,
-        { role },
-        {
-          tunables: { 'worldgen.people.standoutChance': chance },
-          seed: `standouts-${role}`,
-        },
+  it('gives natural standouts at about the tunable rate, and none to non-wrestlers', async () => {
+    const standouts = async (role: PersonRole, count: number, chance: number): Promise<number> =>
+      (
+        await sampleMany(
+          count,
+          { role },
+          {
+            tunables: { 'worldgen.people.standoutChance': chance },
+            seed: `standouts-${role}`,
+          },
+        )
       ).filter((result) =>
         findTraceNodes(result.trace, 'add').some((node) => node.label === 'Natural standout'),
       ).length;
-    const wrestlerStandouts = standouts('wrestler', 2_000, 0.2);
+    const wrestlerStandouts = await standouts('wrestler', 2_000, 0.2);
     expect(wrestlerStandouts).toBeGreaterThan(330);
     expect(wrestlerStandouts).toBeLessThan(470);
-    expect(standouts('referee', 300, 1)).toBe(0);
+    expect(await standouts('referee', 300, 1)).toBe(0);
   });
 });
 
 describe('bodies', () => {
-  const wrestlers = WRESTLERS;
-
   it('never pairs a style with an archetype whose weight for it is 0', () => {
-    for (const result of wrestlers) {
+    // Filled in beforeAll, so an empty sample cannot pass these loops unseen.
+    expect(WRESTLERS).toHaveLength(5_000);
+    for (const result of WRESTLERS) {
       const archetype = archetypeOf(result);
       expect(archetype.styleWeights[result.value.person.style], archetype.key).toBeGreaterThan(0);
       expect(result.value.person.build).toBe(archetype.build);
@@ -574,7 +624,9 @@ describe('bodies', () => {
   });
 
   it('keeps height and weight inside the archetype ranges, scaled for women', () => {
-    for (const result of wrestlers) {
+    // Filled in beforeAll, so an empty sample cannot pass these loops unseen.
+    expect(WRESTLERS).toHaveLength(5_000);
+    for (const result of WRESTLERS) {
       const { person } = result.value;
       const archetype = archetypeOf(result);
       const scale =
@@ -596,9 +648,9 @@ describe('bodies', () => {
 
   it('gives wrestlers over 130 kg less stamina than wrestlers under 90 kg', () => {
     const staminaOf = (keep: (weightKg: number) => boolean): number[] =>
-      wrestlers
-        .filter((result) => keep(result.value.person.weightKg))
-        .map((result) => result.value.person.attributes.stamina);
+      WRESTLERS.filter((result) => keep(result.value.person.weightKg)).map(
+        (result) => result.value.person.attributes.stamina,
+      );
     const heavy = staminaOf((weightKg) => weightKg > 130);
     const light = staminaOf((weightKg) => weightKg < 90);
     expect(heavy.length).toBeGreaterThan(50);
@@ -618,23 +670,25 @@ describe('bodies', () => {
     expect(conditionOf('rookie')).toBeGreaterThan(conditionOf('legend') + 15);
   });
 
-  it('boosts the styles that suit the home region', () => {
+  it('boosts the styles that suit the home region', async () => {
     const highFlyingRegion = GEOGRAPHY.regions.find(
       (region) => region.preferredStyle === 'highFlying',
     );
     if (highFlyingRegion === undefined) {
       throw new Error('The base map has no high-flying region');
     }
-    const shareOfFlyers = (boost: number): number =>
-      generateMany(
-        1_500,
-        { role: 'wrestler', regionId: highFlyingRegion.id },
-        {
-          tunables: { 'worldgen.people.homeStyleBoost': boost },
-          seed: 'home-style',
-        },
+    const shareOfFlyers = async (boost: number): Promise<number> =>
+      (
+        await sampleMany(
+          1_500,
+          { role: 'wrestler', regionId: highFlyingRegion.id },
+          {
+            tunables: { 'worldgen.people.homeStyleBoost': boost },
+            seed: 'home-style',
+          },
+        )
       ).filter((result) => result.value.person.style === 'highFlyer').length / 1_500;
-    expect(shareOfFlyers(3)).toBeGreaterThan(shareOfFlyers(1) * 1.8);
+    expect(await shareOfFlyers(3)).toBeGreaterThan((await shareOfFlyers(1)) * 1.8);
   });
 });
 
@@ -803,20 +857,30 @@ describe('traces and seeds', () => {
   });
 });
 
+/**
+ * The most reference workloads (see support/cpu-budget.ts) 1,000 people may cost: the old 2 s bound
+ * over the reference's 50 ms on a laptop. They cost 10 to 20, alone or under load, so a generator
+ * twice as slow fails, and accidental quadratic work (which costs seconds) fails by far.
+ */
+const GENERATE_REFERENCE_BUDGET = 40;
+
 describe('speed', () => {
-  it('generates 1,000 people well inside the budget', () => {
+  // A wall-clock bound failed on a busy machine, so the CPU time is compared with a reference
+  // workload measured in the same process. The cheapest of three runs is kept: about one run in
+  // eight pays for a major garbage collection that costs three times the work.
+  it('generates 1,000 people well inside the budget', { timeout: 30_000 }, () => {
     const roles = (index: number): GenerateSpec => ({
       role: PERSON_ROLES[index % 7] ?? 'wrestler',
     });
     generateMany(200, roles, { seed: 'speed-warm-up' });
-    // eslint-disable-next-line no-restricted-properties -- a speed test has to read the real clock
-    const start = performance.now();
-    generateMany(1_000, roles, { seed: 'speed' });
-    // eslint-disable-next-line no-restricted-properties -- a speed test has to read the real clock
-    const elapsed = performance.now() - start;
-    console.info(`Generated 1,000 people in ${elapsed.toFixed(0)} ms`);
-    // The target is 200 ms on a laptop; the bound is loose so a busy CI machine passes, while
-    // accidental quadratic work (which costs seconds) still fails.
-    expect(elapsed).toBeLessThan(2_000);
+    let generated = 0;
+    const timing = measureBestAgainstReference(() => {
+      generated = generateMany(1_000, roles, { seed: 'speed' }).length;
+    }, 3);
+    expect(generated).toBe(1_000);
+    expect(
+      timing.ratio,
+      `${timing.workMs.toFixed(0)} ms of CPU time against ${timing.referenceMs.toFixed(1)} ms for the reference`,
+    ).toBeLessThan(GENERATE_REFERENCE_BUDGET);
   });
 });

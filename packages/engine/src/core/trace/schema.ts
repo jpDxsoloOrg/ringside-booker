@@ -34,6 +34,7 @@ const ARITHMETIC_KIND_NAMES = {
   subtract: 'subtract',
   multiply: 'multiply',
   divide: 'divide',
+  power: 'power',
 } as const satisfies Record<ArithmeticKind, ArithmeticKind>;
 const ARITHMETIC_KINDS = Object.values(ARITHMETIC_KIND_NAMES);
 

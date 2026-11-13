@@ -750,6 +750,7 @@ function duplicatingParticipants(tx: Tx<GameTables>): Tx<GameTables> {
       return inner.view;
     },
     insert: (table, row) => inner.insert(table, row),
+    mintId: (table) => inner.mintId(table),
     create: (table, fields) => {
       const row = inner.create(table, fields);
       if (table === 'participants') {

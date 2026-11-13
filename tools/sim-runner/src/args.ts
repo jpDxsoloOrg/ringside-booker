@@ -42,7 +42,8 @@ events by type and a world hash.
   --tunable <key=value>   override a tunable for this run (repeatable)
   --json                  print the summary as JSON
   --check-determinism     run twice from the same start and fail if the runs differ
-  --strict                fail when any step fails
+  --strict                fail when any step fails, a past show is still open, or a
+                          promotion's cash change is not the sum of its new ledger rows
   --trace <kind:id>       print one stored trace at the end, for example
                           condition.fatigueRecovery:per_...
   -h, --help              show this help

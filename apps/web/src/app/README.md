@@ -110,6 +110,9 @@ registerProfileTab({
 the tab again, throws for an id that is taken, and every open profile re-renders when the list
 changes. `render` only runs while its tab is selected, so a tab can run its own queries.
 
+Registered so far: **Form** (order 55, MTCH3-04), `screens/workers/profile/tabs/recentFormTab.tsx`,
+imported once by the router like the results page's calendar hooks; its panel loads with the tab.
+
 ### Names in "Why?" panels
 
 `AppShell` provides `gameEntityLink` through `EntityLinkContext` (`entityLinks.tsx`), so inside the
@@ -244,6 +247,26 @@ them in display order. Sections are drawn in `order`, then by id, each as a broa
 headed by its `label`, only once the reveal has finished; one whose `render` returns null is left
 out. `view` is the page's `shows.results` answer. Expected users: MTCH3 (popularity and
 momentum), EVT4 (card flow), ECO (show money), CRTV and BRW3.
+
+A feature registers its section from its own folder and adds one import line to
+`screens/show-results/ShowResultsScreen.tsx`, so the section loads with the page's own chunk
+(UI-21). Registered so far:
+
+| Order | Id                | Label                 | Registered in                              |
+| ----- | ----------------- | --------------------- | ------------------------------------------ |
+| 25    | `evt5.popularity` | Popularity            | `screens/promotion-popularity/register.ts` |
+| 30    | `mtch3.aftermath` | Popularity & momentum | `screens/match-aftermath/register.ts`      |
+
+## Finances
+
+Business > Finances is live. `/game/finances` (`screens/finances/`, link with
+`routes.game.finances({ tab, month, category })`) shows the seat's books in four tabs: Overview
+(KPI cards and this month by category), Monthly (twelve months by category), Ledger (every row,
+a page of 100 at a time, filtered by month and category) and Policies (Travel, Catering and Medical
+levels, changed with `finance.setPolicy`). The tab and the Ledger's filters are in the URL. Other
+features add tabs and KPI cards with `registerFinanceTab` and `registerFinanceKpi`;
+`screens/finances/README.md` has the slots. The top bar's cash chip has a Why? from
+`sim.status.promotion.cashTraceRef`, the same breakdown the Overview's Cash card opens.
 
 ## The shell's look
 

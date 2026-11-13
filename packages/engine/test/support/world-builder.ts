@@ -35,6 +35,7 @@ import type { Brand } from '../../src/model/entities/brand';
 import type { Employment } from '../../src/model/entities/employment';
 import type { EventDefinition } from '../../src/model/entities/event-definition';
 import type { EventInstance } from '../../src/model/entities/event-instance';
+import type { MatchOutcome } from '../../src/model/entities/segment';
 import type { Person } from '../../src/model/entities/person';
 import type { Promotion } from '../../src/model/entities/promotion';
 import type { Title } from '../../src/model/entities/title';
@@ -53,8 +54,11 @@ import {
 } from './builders/build-row';
 import { aBrand, anEmployment, aPromotion } from './builders/promotions';
 import {
+  aMatch,
   anEventDefinition,
+  DEFAULT_METHOD_KEY,
   anEventInstance,
+  aParticipant,
   aSeason,
   aTitle,
   aTitleReign,
@@ -177,6 +181,8 @@ function emptyIdLists(): IdLists {
     mail: [],
     news: [],
     ledgerEntries: [],
+    popularityShowChanges: [],
+    aftermaths: [],
   };
 }
 
@@ -477,6 +483,45 @@ const GEOGRAPHY_PRESETS: Readonly<Record<GeographyPreset, BuildStep>> = {
   mini: addMiniGeography,
 };
 
+/**
+ * A match that has been run, for `withCompletedMatch`. People are indexes into `ids.people`;
+ * the show is an index into `ids.eventInstances`.
+ */
+export interface CompletedMatch {
+  readonly show: number;
+  /** The competitors of each side, side 0 first. */
+  readonly sides: readonly (readonly number[])[];
+  /** The winning side, `draw`, `noContest`, or null for a match with no result. */
+  readonly result: number | 'draw' | 'noContest' | null;
+  /** The slot in its section; the next free one when left out. */
+  readonly slot?: number;
+  readonly preShow?: boolean;
+  /** Managers and seconds at ringside, by person index and side. */
+  readonly ringside?: readonly { readonly person: number; readonly side: number }[];
+  /** The segment score of its rating. Defaults to 60. */
+  readonly score?: number;
+  /** False leaves the segment unrated, as a match the show has not run yet. Defaults to true. */
+  readonly run?: boolean;
+}
+
+function completedOutcome(result: CompletedMatch['result']): MatchOutcome | null {
+  if (result === null) {
+    return null;
+  }
+  if (result === 'draw' || result === 'noContest') {
+    return { kind: result };
+  }
+  return { kind: 'win', winningSide: result, methodKey: DEFAULT_METHOD_KEY };
+}
+
+function requireIndexed<T>(list: readonly T[], index: number, what: string): T {
+  const value = list[index];
+  if (value === undefined) {
+    throw new Error(`WorldBuilder: withCompletedMatch has no ${what} at index ${String(index)}`);
+  }
+  return value;
+}
+
 export class WorldBuilder {
   private readonly steps: BuildStep[] = [];
   private seasonCount = 1;
@@ -547,6 +592,63 @@ export class WorldBuilder {
           context.sequence,
         ),
       );
+    });
+    return this;
+  }
+
+  /**
+   * Adds a match with its result to show `match.show` (added with `withEventInstance` first),
+   * rated as if show night had run it. Its id is the next `ids.segments` entry.
+   */
+  withCompletedMatch(match: CompletedMatch): this {
+    this.steps.push((context) => {
+      const eventInstanceId = requireIndexed(context.ids.eventInstances, match.show, 'show');
+      const score = match.score ?? 60;
+      const segment = context.insert(
+        'segments',
+        aMatch(
+          {
+            eventInstanceId,
+            preShow: match.preShow ?? false,
+            ...(match.slot === undefined ? {} : { slot: match.slot }),
+            outcome: completedOutcome(match.result),
+            rating:
+              match.run === false
+                ? null
+                : {
+                    score,
+                    stars: 2.5,
+                    workRate: score,
+                    crowd: score,
+                    expectation: 50,
+                    traceId: null,
+                  },
+          },
+          context.sequence,
+        ),
+      );
+      const add = (person: number, side: number, role: 'competitor' | 'ringside') => {
+        context.insert(
+          'participants',
+          aParticipant(
+            {
+              segmentId: segment.id,
+              personId: requireIndexed(context.ids.people, person, 'person'),
+              side,
+              role,
+            },
+            context.sequence,
+          ),
+        );
+      };
+      match.sides.forEach((people, side) => {
+        for (const person of people) {
+          add(person, side, 'competitor');
+        }
+      });
+      for (const second of match.ringside ?? []) {
+        add(second.person, second.side, 'ringside');
+      }
     });
     return this;
   }

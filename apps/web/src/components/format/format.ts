@@ -8,7 +8,7 @@
  * Negative numbers use the true minus sign (U+2212), which is the width of a plus sign, so signed
  * columns line up.
  */
-import { dayOfMonth, diffDays, month, year } from '@ringside/engine';
+import { cents, dayOfMonth, diffDays, month, year } from '@ringside/engine';
 import type { Cents, GameDate } from '@ringside/engine';
 
 const LOCALE = 'en-US';
@@ -105,15 +105,47 @@ export function formatMoney(amount: Cents, options: FormatMoneyOptions = {}): st
   return `${sign}${CURRENCY_SYMBOL}${body}`;
 }
 
+export interface FormatSignedMoneyOptions extends FormatMoneyOptions {
+  /** Put a plus sign before income and other positive amounts: `+$1,200`. Off by default. */
+  readonly showPlus?: boolean;
+}
+
+/**
+ * Money with its sign, for ledgers and changes: `−$30,357` for a cost, `$1,200` (or `+$1,200`
+ * with `showPlus`) for income. An amount that rounds to zero reads `$0`, with no sign.
+ */
+export function formatSignedMoney(amount: Cents, options: FormatSignedMoneyOptions = {}): string {
+  const { showPlus = false, ...moneyOptions } = options;
+  const formatted = formatMoney(amount, moneyOptions);
+  const roundsToZero = formatted === formatMoney(cents(0), moneyOptions);
+  if (amount > 0 && showPlus && !roundsToZero) return `+${formatted}`;
+  return formatted;
+}
+
+/**
+ * How a signed amount is read out: the sign as a word, so a screen reader says "minus $30,357"
+ * rather than skipping the minus sign. Takes the text `formatSignedMoney` (or `formatMoney`) wrote.
+ */
+export function spokenSignedMoney(formatted: string): string {
+  if (formatted.startsWith(MINUS_SIGN)) return `minus ${formatted.slice(MINUS_SIGN.length)}`;
+  if (formatted.startsWith('+')) return `plus ${formatted.slice(1)}`;
+  return formatted;
+}
+
 export interface FormatNumberOptions {
   /** Most decimal places to show. 0 by default. */
   readonly maximumFractionDigits?: number;
+  /** Fewest decimal places to show, padding with zeros (`0.10`). 0 by default. */
+  readonly minimumFractionDigits?: number;
 }
 
 /** A grouped number (`12,345`), with a true minus sign for negatives. */
 export function formatNumber(value: number, options: FormatNumberOptions = {}): string {
-  const { maximumFractionDigits = 0 } = options;
-  const formatted = new Intl.NumberFormat(LOCALE, { maximumFractionDigits }).format(value);
+  const { maximumFractionDigits = 0, minimumFractionDigits = 0 } = options;
+  const formatted = new Intl.NumberFormat(LOCALE, {
+    minimumFractionDigits,
+    maximumFractionDigits: Math.max(minimumFractionDigits, maximumFractionDigits),
+  }).format(value);
   return withTrueMinus(formatted);
 }
 

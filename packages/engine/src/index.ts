@@ -35,6 +35,7 @@ export type {
   TitleId,
   TitleReignId,
   VenueId,
+  AftermathId,
 } from './core/ids';
 /** The nominal-type helper, exported as `Branded` because `Brand` is the brand entity. */
 export type { Brand as Branded } from './core/brand';
@@ -49,10 +50,11 @@ export {
   parseId,
 } from './core/ids';
 
-export type { GameDate, Weekday, WeekdayOrdinal } from './core/date';
+export type { GameDate, Weekday, WeekdayOrdinal, YearMonth } from './core/date';
 export {
   addDays,
   addMonths,
+  addYearMonths,
   addYears,
   ageInYears,
   compareDates,
@@ -60,6 +62,7 @@ export {
   daysInMonth,
   diffDays,
   endOfMonth,
+  firstDayOfYearMonth,
   fromEpochDay,
   isAfter,
   isBefore,
@@ -67,6 +70,7 @@ export {
   isLastDayOfMonth,
   isLeapYear,
   isWeekday,
+  isYearMonth,
   makeGameDate,
   MAX_GAME_YEAR,
   MIN_GAME_YEAR,
@@ -77,6 +81,8 @@ export {
   toEpochDay,
   weekday,
   year,
+  YEAR_MONTH_PATTERN,
+  yearMonthOf,
 } from './core/date';
 
 export * from './core/calendar';
@@ -1532,3 +1538,212 @@ export {
   RIVAL_MATCH_RESULT_TRACE_KIND,
   matchResultTraceRef,
 } from './systems/shows/index';
+export {
+  popularityGain,
+  type PopularityFinish,
+  type PopularityGainInputs,
+  type PopularityOpponent,
+  type PopularityOutcome,
+} from './systems/match/index';
+
+// Momentum from a match result and a worker's earlier matches (MTCH3-02): the pure momentum
+// formula, the prior-match history behind win streaks and Recent form, and the door's starting
+// momentum so the aftermath's "before" matches the door's. See
+// docs/design/match-aftermath.md#momentum-gain and #prior-matches.
+export type {
+  MatchPosition,
+  MatchResultForSide,
+  MomentumGainInputs,
+  MomentumOpponent,
+  PriorMatch,
+  WinStreak,
+} from './systems/match/index';
+export {
+  MOMENTUM_GAIN_DOC_REF,
+  NO_CONTEST_MOMENTUM_NOTE,
+  NO_CONTRACT_MOMENTUM_REASON,
+  momentumGain,
+  noContractMomentum,
+  priorMatchesOf,
+  resultOf,
+  winStreakBefore,
+} from './systems/match/index';
+export { initialMomentum } from './systems/workers/index';
+
+// Momentum cools off each week (MTCH3-07): the pure drift formula and the reason key its door
+// changes carry. See docs/design/match-aftermath.md#momentum-drift.
+export type { MomentumDriftInputs } from './systems/match/index';
+export {
+  MOMENTUM_DRIFT_DOC_REF,
+  MOMENTUM_DRIFT_REASON_KEY,
+  momentumDrift,
+} from './systems/match/index';
+
+// Promotion popularity after shows (EVT5-01): show reach, region expectation and the popularity
+// change formulas. See docs/design/promotion-popularity.md.
+export * from './systems/promoPop/index';
+
+// The finance system (ECO1-01): `postMoney`, the only way cash moves during play, the player-facing
+// ledger category labels, the finance trace kinds and events. See docs/design/finances.md.
+export {
+  CASH_TRACE_KIND,
+  FINANCE_TRACE_KINDS,
+  FINANCE_TUNABLE_CATEGORY,
+  LEDGER_CATEGORY_LABELS,
+  LEDGER_ENTRY_TRACE_KIND,
+  POST_MONEY_MEMO_MAX,
+  RIVAL_LEDGER_ENTRY_TRACE_KIND,
+  cashTraceRef,
+  financeSystem,
+  financeTunables,
+  ledgerCategoryKind,
+  ledgerEntryTraceRef,
+  postMoney,
+  type LedgerCategoryKind,
+  type PostMoneyInput,
+} from './systems/finance/index';
+
+// Promotion reach and size (ECO1-02): the one answer to "how big is this company?". Formulas read
+// reach, never the size label. See docs/design/finances.md#reach-and-size.
+export {
+  PROMOTION_SIZE_LABELS,
+  PROMOTION_SIZES,
+  promotionReach,
+  promotionSize,
+  reachOf,
+  type CompanyNextSize,
+  type CompanyView,
+  type PromotionReach,
+  type PromotionReachInputs,
+  type PromotionSize,
+} from './systems/finance/index';
+
+// Payroll, medical, the cash Why? and the books queries (ECO1-03). See docs/design/finances.md.
+export {
+  canSeeBooks,
+  DEFAULT_LEDGER_LIMIT,
+  DEFAULT_MONTHLY_MONTHS,
+  MAX_LEDGER_LIMIT,
+  MAX_MONTHLY_MONTHS,
+  MEDICAL_LEVEL_LABELS,
+  MONTH_END_CASH_MONTHS,
+  NOT_YOUR_BOOKS,
+  payrollLinesOf,
+  type FinanceLedgerArgs,
+  type FinanceLedgerPage,
+  type FinanceLedgerRow,
+  type FinanceMonth,
+  type FinanceMonthly,
+  type FinanceMonthlyArgs,
+  type FinanceOverview,
+  type MedicalLevel,
+  type MonthTotals,
+  type PayrollLine,
+  type PayrollReason,
+} from './systems/finance/index';
+
+// The aftermath engine (MTCH3-03): where a match's popularity change spreads (show region,
+// neighbours, registered reach), the aftermath of one match for the lab and show night, the applier
+// MTCH3-05 registers, the `aftermaths` table and `match.aftermath`. See
+// docs/design/match-aftermath.md#regional-spread.
+export {
+  AFTERMATH_OUTCOMES,
+  AftermathSchema,
+  aftermathsTable,
+  type Aftermath,
+  type AftermathOutcome,
+  type AftermathRegion,
+} from './model/entities/aftermath';
+export {
+  AFTERMATH_DOC_REF,
+  AFTERMATH_NOT_FOUND_MESSAGES,
+  AFTERMATH_TRACE_KINDS,
+  SHOW_REGION_REASON,
+  aftermathsToPrune,
+  applySegmentAftermath,
+  computeSegmentAftermath,
+  hasMomentum,
+  listPopularityReach,
+  momentumGainTraceRef,
+  popularityGainTraceRef,
+  pruneAftermathsPhase,
+  registerPopularityReach,
+  resetPopularityReachForTests,
+  segmentRegionWeights,
+  type AftermathInput,
+  type AftermathMomentum,
+  type AftermathNoMomentum,
+  type AftermathPopularity,
+  type AftermathQueryArgs,
+  type AftermathRegionRow,
+  type AftermathRegionView,
+  type AftermathResult,
+  type AftermathRollupRow,
+  type AftermathSegmentView,
+  type AftermathWorker,
+  type AftermathWorkerView,
+  type AppliedAftermath,
+  type PopularityReachProvider,
+  type ReachContext,
+  type ReachRegion,
+  type RegionWeightLine,
+  type SegmentAftermath,
+  type SegmentRegionWeights,
+  type SimulatedAftermathInput,
+} from './systems/match/index';
+export {
+  previewMomentumChange,
+  previewPopularityChange,
+  type MomentumPreview,
+  type PopularityPreview,
+  type PopularityPreviewRegion,
+} from './systems/workers/index';
+
+// Show costs, the staff policies, `finance.setPolicy` and the policy previews (ECO1-04). See
+// docs/design/finances.md#show-costs and #policies.
+export {
+  AWAY_SHOWS_NOTE,
+  ESTIMATED_CARD_NOTE,
+  estimateShowCosts,
+  isPolicyLevel,
+  listPolicyEffects,
+  POLICY_AREA_DESCRIPTIONS,
+  POLICY_AREA_LABELS,
+  POLICY_LEVEL_LABELS,
+  POLICY_LEVELS,
+  POLICY_PREVIEW_DAYS,
+  postShowCosts,
+  registerPolicyEffect,
+  SET_POLICY_REASON_CODES,
+  setPolicyIn,
+  SHOW_COST_CATEGORIES,
+  showCosts,
+  showCostsOf,
+  showWorkersOf,
+  type FinancePolicies,
+  type FinancePolicyPreview,
+  type PolicyEffect,
+  type PolicyEffectLine,
+  type PolicyEffectTone,
+  type PolicyLevel,
+  type PolicyLevelPreview,
+  type PolicyView,
+  type SetPolicyArgs,
+  type SetPolicyReasonCode,
+  type SetPolicyResult,
+  type ShowCostCategory,
+  type ShowCosts,
+  type ShowDistance,
+  type ShowEstimate,
+  type ShowWorker,
+} from './systems/finance/index';
+
+export {
+  RECENT_FORM_DEFAULT_LIMIT,
+  RECENT_FORM_MAX_LIMIT,
+  RECENT_FORM_NOT_FOUND_MESSAGE,
+  type RecentFormArgs,
+  type RecentFormOpponent,
+  type RecentFormResult,
+  type RecentFormRow,
+} from './systems/match/index';

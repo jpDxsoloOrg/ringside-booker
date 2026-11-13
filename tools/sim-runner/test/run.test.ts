@@ -2,10 +2,18 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { addDays, defaultSystems, defineSystem, diffDays } from '@ringside/engine';
+import {
+  addDays,
+  cents,
+  defaultSystems,
+  defineSystem,
+  diffDays,
+  MAX_ADVANCE_DAYS,
+} from '@ringside/engine';
 import type { TunableSetting } from '../src/args';
 import {
   fixtureState,
+  ledgerMismatches,
   openPastShows,
   readStateFile,
   runSimulation,
@@ -69,6 +77,25 @@ const failingSystem = defineSystem({
   ],
 });
 
+/** A phase that moves cash without a ledger row, as a bug that skipped `postMoney` would. */
+const cashLeakSystem = defineSystem({
+  id: 'testRunner',
+  phases: [
+    {
+      id: 'testRunner.cashLeak',
+      group: 'money',
+      order: 90,
+      cadence: { kind: 'daily' },
+      run: (ctx) => {
+        const [first] = ctx.read.tables.promotions.values();
+        if (first !== undefined) {
+          ctx.tx.update('promotions', first.id, { cash: cents(first.cash - 100) });
+        }
+      },
+    },
+  ],
+});
+
 async function completedRun(
   people: number,
   seed: string,
@@ -119,6 +146,17 @@ describe('runSimulation on the roster fixture', () => {
     expect(openPastShows(run.finalState)).toEqual([]);
   });
 
+  it('pays wages every day, and the ledger matches the cash at the end', async () => {
+    const start = fixtureState(20, '1');
+    const outcome = await runSimulation(start, { days: 40, tunables: [], trace: null });
+    if (outcome.kind !== 'completed') throw new Error('the run did not complete');
+    const wages = outcome.finalState.world.tables.ledgerEntries.filter(
+      (row) => row.category === 'wages',
+    );
+    expect(wages).toHaveLength(40);
+    expect(ledgerMismatches(start, outcome.finalState)).toEqual([]);
+  });
+
   it('gives the same world hash for two runs with the same seed', async () => {
     const first = await completedRun(20, '7', 30);
     const second = await completedRun(20, '7', 30);
@@ -133,7 +171,20 @@ describe('runSimulation on the roster fixture', () => {
   });
 
   it('splits a 4000-day run into two advanceDays calls', async () => {
-    const run = await completedRun(20, '1', 4000);
+    // The split is the runner's loop around the engine's real MAX_ADVANCE_DAYS cap, not anything a
+    // system does, so this runs the core day loop with no systems: about 40 ms rather than the 2 s
+    // that 4000 days of the default systems take (which hit the 5 s timeout under load).
+    const outcome = await runSimulation(fixtureState(20, '1'), {
+      days: 4000,
+      tunables: [],
+      trace: null,
+      systems: [],
+    });
+    if (outcome.kind !== 'completed') throw new Error('the run did not complete');
+    const run = outcome;
+    // 4000 days is more than one call's cap and no more than two.
+    expect(MAX_ADVANCE_DAYS).toBeLessThan(4000);
+    expect(2 * MAX_ADVANCE_DAYS).toBeGreaterThanOrEqual(4000);
     expect(run.advanceCalls).toBe(2);
     expect(run.summary.daysAdvanced).toBe(4000);
     expect(run.summary.endDate).toBe(addDays(run.summary.startDate, 4000));
@@ -277,6 +328,17 @@ describe('runCli', () => {
     const code = await runCli(['--days', '10', '--people', '5', '--strict'], io, { systems });
     expect(code).toBe(EXIT_FAILED);
     expect(io.err()).toMatch(/--strict: 1 show\(s\) dated before 2026-01-15 are still open: evi_/);
+  });
+
+  it('exits 1 under --strict when cash moves without a ledger row, naming the promotion', async () => {
+    const io = captureIo();
+    const code = await runCli(['--days', '3', '--people', '5', '--strict'], io, {
+      systems: [...defaultSystems, cashLeakSystem],
+    });
+    expect(code).toBe(EXIT_FAILED);
+    expect(io.err()).toMatch(
+      /--strict: the ledger does not match the cash for 1 promotion\(s\):\n {2}pro_\w+: cash moved -?\d+ but its ledger rows add up to -?\d+ \(difference -300 cents\)/,
+    );
   });
 
   it('exits 1 under --strict when a step fails', async () => {

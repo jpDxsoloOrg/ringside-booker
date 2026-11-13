@@ -214,6 +214,7 @@ function failingOnUpdate(tx: Tx<GameTables>, failAt: number): Tx<GameTables> {
       return inner.view;
     },
     insert: (table, row) => inner.insert(table, row),
+    mintId: (table) => inner.mintId(table),
     create: (table, fields) => inner.create(table, fields),
     update: (table, id, change) => {
       updates += 1;

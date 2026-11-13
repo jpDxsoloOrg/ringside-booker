@@ -79,8 +79,11 @@ export interface TunableNode extends TraceNodeBase {
   readonly overridden: boolean;
 }
 
-/** The four arithmetic step kinds. */
-export type ArithmeticKind = 'add' | 'subtract' | 'multiply' | 'divide';
+/**
+ * The arithmetic step kinds. `power` raises the running value to the operand: `after = before **
+ * operand`.
+ */
+export type ArithmeticKind = 'add' | 'subtract' | 'multiply' | 'divide' | 'power';
 
 /** One arithmetic step: `after = before (op) operand`. `value` equals `after`. */
 export interface ArithmeticNode extends TraceNodeBase {
@@ -215,6 +218,7 @@ export const TRACE_NODE_KINDS: readonly TraceNodeKind[] = [
   'subtract',
   'multiply',
   'divide',
+  'power',
   'min',
   'max',
   'clamp',

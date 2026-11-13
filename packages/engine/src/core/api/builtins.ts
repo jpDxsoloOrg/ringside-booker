@@ -48,6 +48,12 @@ export interface ClockView {
   dayNumber: number;
 }
 
+/**
+ * The trace kind that explains a promotion's cash balance (id: the promotion id). The finance
+ * system writes it; the core owns the string so `sim.status` never imports a system.
+ */
+export const CASH_TRACE_KIND = 'finance.cash';
+
 /** The viewer's promotion at a glance, read straight from its row. */
 export interface PromotionStatus {
   promotionId: PromotionId;
@@ -55,6 +61,11 @@ export interface PromotionStatus {
   /** Two to eight uppercase letters or digits, for the crest monogram and tight spaces. */
   shortName: string;
   cash: Cents;
+  /**
+   * The stored trace explaining the cash ("Cash on 1 January + this month's income and costs by
+   * category = cash now"), or null before the finance system has recorded one.
+   */
+  cashTraceRef: TraceRef | null;
   popularity: {
     homeRegionId: RegionId;
     /** Popularity in the home region, 0-100 (0 when the region has none). */
@@ -175,6 +186,8 @@ const simStatus = defineQuery('sim.status', {
       promotion === undefined ? undefined : ctx.read.tables.regions.get(promotion.homeRegionId);
     const homePopularity =
       promotion === undefined ? 0 : (promotion.regionalPop[promotion.homeRegionId] ?? 0);
+    const cashRef: TraceRef | null =
+      promotion === undefined ? null : { kind: CASH_TRACE_KIND, id: promotion.id };
     return {
       date: ctx.date,
       season: season === undefined ? null : { number: season.number, endDate: season.endDate },
@@ -186,6 +199,7 @@ const simStatus = defineQuery('sim.status', {
               name: promotion.name,
               shortName: promotion.shortName,
               cash: promotion.cash,
+              cashTraceRef: cashRef !== null && ctx.traces.has(cashRef) ? cashRef : null,
               popularity: {
                 homeRegionId: promotion.homeRegionId,
                 homeRegion: homePopularity,

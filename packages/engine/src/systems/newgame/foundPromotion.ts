@@ -9,7 +9,7 @@
  * See docs/design/new-game.md#founding-a-promotion.
  */
 
-import type { Weekday } from '../../core/date';
+import { yearMonthOf, type Weekday } from '../../core/date';
 import type { PromotionId, RegionId } from '../../core/ids';
 import { cents } from '../../core/money';
 import type { PhaseContext } from '../../core/pipeline/context';
@@ -81,6 +81,7 @@ export function foundPromotion(ctx: PhaseContext, spec: FoundPromotionSpec): Pro
     status: 'active',
     homeRegionId: spec.homeRegionId,
     regionalPop,
+    popularityGains: { month: yearMonthOf(date), byRegion: {} },
     prestige: values.prestige,
     cash: cents(values.cash),
     style: spec.style,

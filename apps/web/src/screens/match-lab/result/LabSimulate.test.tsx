@@ -7,13 +7,15 @@ import type { EngineState, LabWorkerRow } from '@ringside/engine';
 import { EngineProvider } from '@/app/engine/EngineProvider';
 import { createInProcessTransport } from '@/app/engine/transport';
 import type { InProcessTransport } from '@/app/engine/transport';
-import { buildAppRoutes, routerFutureFlags, routerProviderFutureFlags } from '@/app/router';
+import { LiveAnnouncer } from '@/app/a11y/LiveAnnouncer';
+import { routerFutureFlags, routerProviderFutureFlags } from '@/app/router';
 import { routes } from '@/app/routes';
 import { useSessionStore } from '@/app/session/sessionStore';
 import { useTracePanelStore } from '@/components/Trace';
 import { fakeEngineFactory, fakeEngineState } from '@/test/fakeEngine';
 import { OUT_OF_DATE_TEXT } from '../LabResult';
 import { useLabStore } from '../labStore';
+import { MatchLabView } from '../MatchLabView';
 import { MatchResultBlock } from './MatchResultBlock';
 import { AUTO_FINISH_LABEL, FINISH_RESET_MESSAGE } from './resultText';
 import {
@@ -24,23 +26,33 @@ import {
   winSimulation,
 } from './simulationFixtures';
 
-/** The lazily loaded lab and the engine's first answers can take a moment under load. */
+/** The engine's first answers can take a moment under load. */
 const LOAD_MS = 10_000;
 
+/** A backstop for a heavily loaded machine only; each test takes well under a second alone. */
+const TEST_TIMEOUT_MS = 15_000;
+
+/**
+ * The lab view on its own, without the app shell or the lazily loaded route and view chunks (as the
+ * segment editor tests do); MatchLabScreen.test covers the route.
+ */
 function renderLab(state: EngineState = fakeEngineState()) {
   const transport = createInProcessTransport(fakeEngineFactory(), { progressIntervalMs: 0 });
   const install = transport.host.installEngine(state);
   useSessionStore.getState().setLoaded({ saveSlotId: null, seat: install.seat });
-  const router = createMemoryRouter(buildAppRoutes({ includeDevRoutes: false }), {
+  const router = createMemoryRouter([{ path: '*', element: <MatchLabView /> }], {
     initialEntries: [routes.game.matchLab()],
     future: routerFutureFlags,
   });
   render(
     <EngineProvider createTransport={() => transport}>
-      <RouterProvider router={router} future={routerProviderFutureFlags} />
+      <LiveAnnouncer>
+        <RouterProvider router={router} future={routerProviderFutureFlags} />
+      </LiveAnnouncer>
     </EngineProvider>,
   );
-  return { transport, user: userEvent.setup() };
+  // No pause between simulated keys and clicks: nothing here depends on typing speed.
+  return { transport, user: userEvent.setup({ delay: null }) };
 }
 
 /** Puts one roster member on each of the first `count` sides, adding sides as needed. */
@@ -95,19 +107,23 @@ beforeEach(() => {
   useTracePanelStore.setState({ openPanelId: null });
 });
 
-describe('the Match lab Winner and finish group and Run', () => {
+describe('the Match lab Winner and finish group and Run', { timeout: TEST_TIMEOUT_MS }, () => {
   it('narrows the finishes to the two draw finishes when Draw is chosen', async () => {
     const { user } = renderLab();
     await findFinish();
     expect(await finishOptions(user)).toContain('Clean finish');
     await user.click(screen.getByRole('radio', { name: 'Draw' }));
-    await waitFor(async () => {
-      expect(await finishOptions(user)).toEqual([
-        AUTO_FINISH_LABEL,
-        'Double count-out (no title change)',
-        'Stalemate (no title change)',
-      ]);
-    });
+    // The narrowed list is the engine's next match.finishes answer; the old list shows until then.
+    await waitFor(
+      async () => {
+        expect(await finishOptions(user)).toEqual([
+          AUTO_FINISH_LABEL,
+          'Double count-out (no title change)',
+          'Stalemate (no title change)',
+        ]);
+      },
+      { timeout: LOAD_MS },
+    );
   });
 
   it('resets a disqualification to Auto when the match turns three-sided, and says so', async () => {

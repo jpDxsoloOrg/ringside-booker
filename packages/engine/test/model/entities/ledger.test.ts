@@ -27,7 +27,7 @@ describe('ledger categories', () => {
     for (const category of LEDGER_COST_CATEGORIES) {
       expect(LEDGER_CATEGORY_SIGN[category]).toBe(-1);
     }
-    expect(LEDGER_CATEGORIES).toHaveLength(20);
+    expect(LEDGER_CATEGORIES).toHaveLength(25);
   });
 });
 

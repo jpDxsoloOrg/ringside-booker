@@ -59,6 +59,7 @@ import {
   TEST_WORLD_SETTINGS,
 } from './index';
 import { serialiseWorld } from './serialise';
+import { measureBestAgainstReference } from './cpu-budget';
 
 const builderCases: readonly (readonly [string, () => unknown, z.ZodType])[] = [
   ['aPerson', () => aPerson(), PersonSchema],
@@ -91,12 +92,6 @@ const builderCases: readonly (readonly [string, () => unknown, z.ZodType])[] = [
 function rowCounts(world: GameWorld): Record<string, number> {
   const tables: Readonly<Record<string, { readonly size: number }>> = world.tables;
   return Object.fromEntries(Object.entries(tables).map(([name, table]) => [name, table.size]));
-}
-
-function elapsedMs(run: () => void): number {
-  const started = process.hrtime.bigint();
-  run();
-  return Number(process.hrtime.bigint() - started) / 1_000_000;
 }
 
 describe('entity builders', () => {
@@ -296,6 +291,8 @@ describe('canned worlds', () => {
       mail: 2,
       news: 2,
       ledgerEntries: 5,
+      popularityShowChanges: 1,
+      aftermaths: 2,
     });
     expect(world.tables.promotions.require(ids.promotions.A!).controller).toEqual({
       kind: 'human',
@@ -343,12 +340,19 @@ describe('canned worlds', () => {
     expect(first.world.tables.employments.size).toBe(12);
   });
 
-  it('rosterWorld(300) is valid and builds in under 500 ms', () => {
+  // A wall-clock bound of 500 ms failed under load (a cold first build alone took 340 ms), so the
+  // CPU time is compared with a reference workload measured in the same process (see
+  // cpu-budget.ts), the cheapest of three builds. The budget is the old 500 ms over the
+  // reference's 50 ms on a laptop; a warm build costs about one reference.
+  it('rosterWorld(300) is valid and builds in under 10 reference workloads of CPU time', () => {
     let built: ReturnType<typeof rosterWorld> | undefined;
-    const elapsed = elapsedMs(() => {
+    const timing = measureBestAgainstReference(() => {
       built = rosterWorld(300);
-    });
-    expect(elapsed).toBeLessThan(500);
+    }, 3);
+    expect(
+      timing.ratio,
+      `${timing.workMs.toFixed(0)} ms of CPU time against ${timing.referenceMs.toFixed(1)} ms for the reference`,
+    ).toBeLessThan(10);
     expect(built?.world.tables.people.size).toBe(300);
     expectValidWorld(built!.world);
   });

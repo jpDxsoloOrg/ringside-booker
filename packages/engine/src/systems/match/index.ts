@@ -16,6 +16,10 @@
 
 import { defineSystem, type SystemBundle } from '../../core/api/system';
 import { matchQueries } from './queries';
+import { aftermathQueries } from './aftermath/queries';
+import { recentFormQueries } from './aftermath/recentFormQuery';
+import { pruneAftermathsPhase } from './aftermath/prune';
+import { momentumDriftPhase } from './aftermath/drift';
 // Registers the built-in `match` and `angle` raters at module load.
 import './rating/builtins';
 // Registers the Random winners new-game setting at module load (MTCH2-03).
@@ -24,6 +28,10 @@ import './settings';
 import './finishes/bookingCheck';
 // Registers MTCH2's match outcome resolver with show night at module load (EVT3-07).
 import './finishes/showNight';
+// Registers the aftermath applier with show night and the TV reach provider at module load
+// (MTCH3-05).
+import './aftermath/showNight';
+import './aftermath/tvReach';
 
 export {
   DURATION_CLASSES,
@@ -436,7 +444,160 @@ export {
   type SimulatedFinish,
 } from './simulateQuery';
 
+// Aftermath: what one match result is worth in popularity (MTCH3-01).
+// Design: docs/design/match-aftermath.md#popularity-gain.
+export { aftermathTunables } from './aftermath/tunables';
+export {
+  CLASSIC_MATCH_LABEL,
+  NO_CONTEST_LABEL,
+  NO_CONTEST_REASON,
+  NO_FINISH_LABEL,
+  NO_MOMENTUM_LABEL,
+  NO_OPPONENTS_NOTE,
+  NO_SCORE_LABEL,
+  PER_MATCH_LIMIT_LABEL,
+  POPULARITY_GAIN_DOC_REF,
+  POPULARITY_GAIN_LABEL,
+  PRE_SHOW_LABEL,
+  WIN_FLOOR_LABEL,
+  popularityGain,
+  type PopularityFinish,
+  type PopularityGainInputs,
+  type PopularityOpponent,
+  type PopularityOutcome,
+} from './aftermath/formulas/popularityGain';
+
 export const matchSystem: SystemBundle = defineSystem({
   id: 'match',
-  queries: matchQueries,
+  // MTCH3-03: the weekly prune of stored aftermaths. MTCH3-07: the weekly momentum drift.
+  phases: [momentumDriftPhase, pruneAftermathsPhase],
+  queries: [...matchQueries, ...aftermathQueries, ...recentFormQueries],
 });
+
+// Momentum from a match result and a worker's earlier matches (MTCH3-02). Design:
+// docs/design/match-aftermath.md#momentum-gain and #prior-matches.
+export {
+  AFTERMATH_TUNABLES_CATEGORY,
+  MOMENTUM_GAIN_TUNABLES_DOC,
+  momentumTunables,
+} from './aftermath/momentumTunables';
+export {
+  MOMENTUM_GAIN_DOC_REF,
+  MOMENTUM_GAIN_LABEL,
+  NO_CONTEST_MOMENTUM_NOTE,
+  NO_CONTRACT_MOMENTUM_REASON,
+  momentumGain,
+  noContractMomentum,
+  type MomentumGainInputs,
+  type MomentumOpponent,
+} from './aftermath/formulas/momentumGain';
+// Momentum drift back toward a resting point each week (MTCH3-07). Design:
+// docs/design/match-aftermath.md#momentum-drift.
+export { MOMENTUM_DRIFT_TUNABLES_DOC } from './aftermath/momentumTunables';
+export {
+  ACTIVE_DRIFT_LABEL,
+  AT_REST_NOTE,
+  DRIFT_OFF_NOTE,
+  MOMENTUM_DRIFT_DOC_REF,
+  SETTLE_WITHIN,
+  driftShare,
+  momentumDrift,
+  momentumDriftLabel,
+  type MomentumDriftInputs,
+} from './aftermath/formulas/momentumDrift';
+export {
+  MOMENTUM_DRIFT_PHASE_ID,
+  MOMENTUM_DRIFT_PHASE_ORDER,
+  MOMENTUM_DRIFT_REASON_KEY,
+  applyMomentumDrift,
+  driftingEmployments,
+  lastMatchDates,
+  momentumDriftPhase,
+  weeksIdleSince,
+  type DriftingEmployment,
+} from './aftermath/drift';
+export {
+  priorMatchesOf,
+  resultOf,
+  winStreakBefore,
+  type MatchPosition,
+  type MatchResultForSide,
+  type PriorMatch,
+  type WinStreak,
+} from './aftermath/history';
+
+// The aftermath engine (MTCH3-03): regional spread, the reach seam, the aftermath of one match
+// (Simulate and show night), the applier, the stored rows' prune phase and `match.aftermath`.
+// Design: docs/design/match-aftermath.md#regional-spread onwards.
+export {
+  listPopularityReach,
+  registerPopularityReach,
+  resetPopularityReachForTests,
+  type PopularityReachProvider,
+  type ReachContext,
+  type ReachRegion,
+} from './aftermath/reach';
+export {
+  SHOW_REGION_REASON,
+  segmentRegionWeights,
+  type RegionWeightLine,
+  type RegionWeightSource,
+  type SegmentRegionWeights,
+} from './aftermath/regionWeights';
+export {
+  AFTERMATH_DOC_REF,
+  computeSegmentAftermath,
+  hasMomentum,
+  listNames,
+  type AftermathInput,
+  type AftermathMomentum,
+  type AftermathNoMomentum,
+  type AftermathPopularity,
+  type AftermathRegionRow,
+  type AftermathRollupRow,
+  type AftermathWorker,
+  type SegmentAftermath,
+  type SimulatedAftermathInput,
+} from './aftermath/computeSegmentAftermath';
+export {
+  AFTERMATH_TRACE_KINDS,
+  applySegmentAftermath,
+  momentumGainTraceRef,
+  popularityGainTraceRef,
+  type AppliedAftermath,
+} from './aftermath/apply';
+export { aftermathsToPrune, pruneAftermathsPhase } from './aftermath/prune';
+export {
+  AFTERMATH_NOT_FOUND_MESSAGES,
+  type AftermathQueryArgs,
+  type AftermathRegionView,
+  type AftermathResult,
+  type AftermathSegmentView,
+  type AftermathWorkerView,
+} from './aftermath/queries';
+
+// Recent form (MTCH3-04). Design: docs/design/match-aftermath.md#recent-form.
+export {
+  RECENT_FORM_DEFAULT_LIMIT,
+  RECENT_FORM_MAX_LIMIT,
+  RECENT_FORM_NOT_FOUND_MESSAGE,
+  type RecentFormArgs,
+  type RecentFormOpponent,
+  type RecentFormResult,
+  type RecentFormRow,
+} from './aftermath/recentFormQuery';
+
+// MTCH3 wired into its partners (MTCH3-05): show night's aftermath applier and TV reach for worker
+// popularity. Design: docs/design/match-aftermath.md#integrations.
+export {
+  AFTERMATH_APPLIER_ID,
+  AFTERMATH_APPLIER_ORDER,
+  aftermathApplier,
+  applyAftermathOnShowNight,
+} from './aftermath/showNight';
+export {
+  TV_REACH_PROVIDER_ID,
+  TV_REACH_PROVIDER_ORDER,
+  tvReachReason,
+  tvReachRegions,
+} from './aftermath/tvReach';

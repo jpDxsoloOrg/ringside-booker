@@ -6,11 +6,26 @@
  * positive and cost categories negative, so the sum of a promotion's entries over a period is its
  * cash change over that period. Zero-amount entries are refused; they would only add noise.
  *
+ * Only `postMoney` (`systems/finance/post.ts`) writes rows during play, and it moves the
+ * promotion's cash in the same transaction, so the entries always sum to the change in cash. Each
+ * row carries the `traceRef` of its Why? trace; it is null only for rows written before the finance
+ * system existed (test fixtures).
+ *
+ * The category set is complete for the whole economy epic, so later features never change the enum.
+ * The categories added with the finance system and who posts them:
+ *
+ * - `charity`: charity shows and donations (ECO2).
+ * - `networkUpkeep`: running a streaming network (ECO10).
+ * - `buyout`: buying out a contract or a rival promotion (ECO9).
+ * - `subsidy`: money a parent promotion pays to support a territory (ECO9, ECO11).
+ * - `subsidyIncome`: the same money received by the territory (ECO9, ECO11).
+ *
  * Roll-ups and finance reports belong to the economy systems.
  */
 
 import { z } from 'zod';
 import type { Cents } from '../../core/money';
+import { TraceRefSchema } from '../../core/trace/store';
 import { zCents, zGameDate, zId } from '../primitives';
 import { defineTable } from '../table-def';
 
@@ -23,6 +38,7 @@ export const LEDGER_INCOME_CATEGORIES = [
   'streaming',
   'sponsorship',
   'otherIncome',
+  'subsidyIncome',
 ] as const;
 
 export const LEDGER_COST_CATEGORIES = [
@@ -38,6 +54,10 @@ export const LEDGER_COST_CATEGORIES = [
   'medical',
   'catering',
   'otherCost',
+  'charity',
+  'networkUpkeep',
+  'buyout',
+  'subsidy',
 ] as const;
 
 export const LEDGER_CATEGORIES = [...LEDGER_INCOME_CATEGORIES, ...LEDGER_COST_CATEGORIES] as const;
@@ -55,6 +75,7 @@ export const LEDGER_CATEGORY_SIGN: Readonly<Record<LedgerCategory, 1 | -1>> = Ob
   streaming: 1,
   sponsorship: 1,
   otherIncome: 1,
+  subsidyIncome: 1,
   wages: -1,
   appearanceFees: -1,
   signingBonuses: -1,
@@ -67,6 +88,10 @@ export const LEDGER_CATEGORY_SIGN: Readonly<Record<LedgerCategory, 1 | -1>> = Ob
   medical: -1,
   catering: -1,
   otherCost: -1,
+  charity: -1,
+  networkUpkeep: -1,
+  buyout: -1,
+  subsidy: -1,
 });
 
 /** True when `amount` is non-zero and has the sign its category requires. */
@@ -92,6 +117,11 @@ export const LedgerEntrySchema = z
     amount: zCents,
     memo: z.string().min(1).max(120).nullable(),
     refs: LedgerRefsSchema,
+    /**
+     * Where the row's Why? trace is stored. Every row `postMoney` writes has one; null only for
+     * rows written before the finance system (test fixtures).
+     */
+    traceRef: TraceRefSchema.nullable(),
   })
   .superRefine((entry, context) => {
     if (entry.amount === 0) {

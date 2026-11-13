@@ -1,0 +1,334 @@
+/*
+ * Business > Finances, in the office register (docs/design/visual-identity.md): KPI cards,
+ * hairline tables and panels. Desktop is the primary layout. Below --bp-mobile the KPIs go 2-up
+ * (KpiCardGrid), the monthly table becomes one card per month and the ledger rows become cards
+ * (DataTable), so nothing here can make the page scroll sideways.
+ */
+.screen {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.intro {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.heading {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-tight);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.lead,
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.tabs {
+  min-inline-size: 0;
+}
+
+.panel {
+  min-inline-size: 0;
+  padding-block-start: var(--space-4);
+}
+
+.tabBody {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+/* ---- Money --------------------------------------------------------------------------------- */
+
+.money {
+  white-space: nowrap;
+}
+
+.money.negative {
+  color: var(--color-negative);
+}
+
+.money.positive {
+  color: var(--color-positive);
+}
+
+/* ---- Overview ------------------------------------------------------------------------------ */
+
+/* A registered card's wrapper takes no box of its own, so the card is the grid item. */
+.kpiSlot {
+  display: contents;
+}
+
+.kpiFooterLine {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+}
+
+.reach {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.categoryList {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.categoryLine,
+.categoryTotal {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-block: var(--space-1);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.categoryTotal {
+  border-block-end: none;
+  border-block-start: 1px solid var(--color-border-strong);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* ---- Monthly ------------------------------------------------------------------------------- */
+
+/* The table scrolls inside itself when twelve months do not fit, never the page. */
+.tableScroller {
+  max-inline-size: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface-raised);
+}
+
+.monthlyTable {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.caption {
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-text-muted);
+  text-align: start;
+}
+
+.monthlyTable th,
+.monthlyTable td {
+  padding: var(--space-2) var(--space-3);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.monthlyTable thead th {
+  border-block-end: 2px solid var(--color-border-strong);
+  font-family: var(--font-family-display);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.rowHeader {
+  position: sticky;
+  inset-inline-start: 0;
+  background: var(--color-surface-raised);
+  font-weight: var(--font-weight-regular);
+  text-align: start;
+  white-space: nowrap;
+}
+
+.numberCell {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.currentMonth {
+  color: var(--color-data);
+}
+
+.groupRow th {
+  padding-block-start: var(--space-3);
+  color: var(--color-text-muted);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.08em;
+  text-align: start;
+  text-transform: uppercase;
+}
+
+.totalRow th,
+.totalRow td {
+  font-weight: var(--font-weight-semibold);
+}
+
+.totalRow:first-child th,
+.totalRow:first-child td {
+  border-block-start: 2px solid var(--color-border-strong);
+}
+
+.amountLink {
+  text-decoration: none;
+}
+
+.amountLink:hover,
+.amountLink:focus-visible {
+  text-decoration: underline;
+}
+
+.monthCards {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.monthCard {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface-raised);
+}
+
+.monthCardTitle {
+  margin: 0;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+}
+
+.monthFigures {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2) var(--space-3);
+  margin: 0;
+}
+
+.monthFigures dt {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+}
+
+.monthFigures dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.monthDetails summary {
+  min-block-size: var(--tap-target-min);
+  padding-block: var(--space-2);
+  cursor: pointer;
+}
+
+/* ---- Ledger -------------------------------------------------------------------------------- */
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface-raised);
+}
+
+.filters > * {
+  min-inline-size: 12rem;
+}
+
+.categoryCell {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.rowLinks {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+}
+
+.ledgerFooter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+/* ---- Policies ------------------------------------------------------------------------------ */
+
+.policyOption {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.policyCost {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.effect {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.effectTone {
+  font-weight: var(--font-weight-semibold);
+}
+
+.effect-positive .effectTone {
+  color: var(--color-positive);
+}
+
+.effect-negative .effectTone {
+  color: var(--color-negative);
+}
+
+.refusal {
+  margin: var(--space-2) 0 0;
+  color: var(--color-negative);
+  font-size: var(--font-size-sm);
+}
+
+@media (--bp-mobile) {
+  .heading {
+    font-size: var(--font-size-2xl);
+  }
+
+  .filters {
+    padding: var(--space-3);
+  }
+
+  .filters > * {
+    flex: 1 1 100%;
+    min-inline-size: 0;
+  }
+}
+
+/* The "vs now" note reads at the size of the cost beside it. */
+.policyCost .muted {
+  font-size: inherit;
+}

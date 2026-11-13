@@ -79,9 +79,46 @@ export interface CpuBudgetResult {
  * machine that gets busier or quieter during the run moves both.
  */
 export function measureAgainstReference(run: () => void): CpuBudgetResult {
+  return measureBestAgainstReference(run, 1);
+}
+
+/**
+ * Like {@link measureAgainstReference}, but runs the work `rounds` times and keeps the cheapest.
+ * For work that allocates a lot: now and then one run pays for a major garbage collection that
+ * costs two or three times the work itself, and the reference does not pay for it alike. The
+ * cheapest of a few runs drops that spike, while a real slowdown makes every run slower.
+ */
+export function measureBestAgainstReference(run: () => void, rounds: number): CpuBudgetResult {
   referenceWorkload();
   const before = referenceCpuMs();
-  const workMs = cpuMs(run);
+  let workMs = Number.POSITIVE_INFINITY;
+  for (let round = 0; round < rounds; round++) workMs = Math.min(workMs, cpuMs(run));
+  const after = referenceCpuMs();
+  const referenceMs = (before + after) / 2;
+  return { workMs, referenceMs, ratio: workMs / referenceMs };
+}
+
+/** CPU time (user and system) in ms that the async `run` takes in this process. */
+export async function cpuMsAsync(run: () => Promise<void>): Promise<number> {
+  const started = process.cpuUsage();
+  await run();
+  const used = process.cpuUsage(started);
+  return (used.user + used.system) / 1000;
+}
+
+/**
+ * {@link measureBestAgainstReference} for async work, such as encoding a save. Vitest runs one
+ * test at a time in a worker, so the process CPU time while `run` is awaited is the work's own
+ * (including the thread pool's, which gzip uses).
+ */
+export async function measureBestAgainstReferenceAsync(
+  run: () => Promise<void>,
+  rounds: number,
+): Promise<CpuBudgetResult> {
+  referenceWorkload();
+  const before = referenceCpuMs();
+  let workMs = Number.POSITIVE_INFINITY;
+  for (let round = 0; round < rounds; round++) workMs = Math.min(workMs, await cpuMsAsync(run));
   const after = referenceCpuMs();
   const referenceMs = (before + after) / 2;
   return { workMs, referenceMs, ratio: workMs / referenceMs };

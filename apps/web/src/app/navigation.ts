@@ -3,6 +3,7 @@ import type { ComponentType } from 'react';
 import type { IconName } from '@/components/Icon';
 import { BookingScreen } from '@/screens/booking';
 import { CalendarScreen } from '@/screens/calendar/CalendarScreen';
+import { FinancesScreen } from '@/screens/finances/FinancesScreen';
 import { MatchLabScreen } from '@/screens/match-lab/MatchLabScreen';
 import { OfficeScreen } from '@/screens/office/OfficeScreen';
 import { WorkersScreen } from '@/screens/workers/WorkersScreen';
@@ -224,7 +225,8 @@ export const navigationSections: readonly NavSection[] = [
         label: 'Finances',
         icon: 'finance',
         to: routes.game.finances(),
-        status: 'placeholder',
+        status: 'live',
+        screen: FinancesScreen,
       },
       {
         id: 'contracts',

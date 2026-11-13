@@ -56,3 +56,16 @@ export function viewerPromotionIds(read: GameWorldView, viewer: Viewer): Promoti
     )
     .map((promotion) => promotion.id);
 }
+
+/**
+ * True when `controller` runs promotion `promotionId`: a human controller whose promotions
+ * ({@link viewerPromotionIds}) include it. A computer controller runs no promotion through
+ * commands.
+ */
+export function controlsPromotion(
+  read: GameWorldView,
+  promotionId: PromotionId,
+  controller: Controller,
+): boolean {
+  return viewerPromotionIds(read, controllerViewer(controller)).includes(promotionId);
+}

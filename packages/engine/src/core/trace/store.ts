@@ -391,6 +391,7 @@ function effectOf(node: TraceNode): number | null {
     case 'subtract':
     case 'multiply':
     case 'divide':
+    case 'power':
       return stepEffect(node.before, node.after);
     case 'min':
     case 'max':
@@ -539,7 +540,8 @@ const gameDateSchema = z.custom<GameDate>(isGameDate, {
   error: 'must be a game date in the form YYYY-MM-DD',
 });
 
-const traceRefSchema: z.ZodType<TraceRef> = z.strictObject({
+/** A stored trace's ref: a kind matching {@link TRACE_REF_KIND_PATTERN} and a non-empty id. */
+export const TraceRefSchema: z.ZodType<TraceRef> = z.strictObject({
   kind: z
     .string()
     .regex(TRACE_REF_KIND_PATTERN, { error: 'must be a trace kind such as "segment.rating"' }),
@@ -549,7 +551,7 @@ const traceRefSchema: z.ZodType<TraceRef> = z.strictObject({
 const seqSchema = z.number().int().min(1);
 
 const storedTraceSchema = z.strictObject({
-  ref: traceRefSchema,
+  ref: TraceRefSchema,
   date: gameDateSchema,
   seq: seqSchema,
   trace: traceNodeSchema,
@@ -557,7 +559,7 @@ const storedTraceSchema = z.strictObject({
 });
 
 const traceSummarySchema = z.strictObject({
-  ref: traceRefSchema,
+  ref: TraceRefSchema,
   date: gameDateSchema,
   seq: seqSchema,
   label: z.string(),

@@ -9,7 +9,7 @@
     "label": "Test save",
     "promotionName": "Test Promotion A",
     "promotionShortName": "TPA",
-    "schemaFingerprint": "bf09b01cde773858c8ca3e3b1c00eeb2",
+    "schemaFingerprint": "af7288fce7b4de309ae695e16b8e5e22",
     "startDate": "2026-01-05",
     "worldName": "Test Tiny World"
   },
@@ -666,6 +666,64 @@
         "worldName": "Test Tiny World"
       },
       "tables": {
+        "aftermaths": [
+          {
+            "date": "2026-04-09",
+            "eventInstanceId": "evi_0000000001",
+            "id": "aft_0000000001",
+            "momentum": {
+              "after": 15,
+              "before": 10,
+              "employmentId": "emp_0000000001"
+            },
+            "outcome": "win",
+            "personId": "per_0000000001",
+            "popularity": {
+              "byRegion": {
+                "reg_0000000001": {
+                  "after": 51.5,
+                  "before": 50
+                }
+              },
+              "delta": 1.5
+            },
+            "promotionId": "pro_0000000001",
+            "segmentId": "seg_0000000003",
+            "showRegionId": "reg_0000000001",
+            "traceIds": {
+              "momentum": "match.momentumGain:seg_0000000003/per_0000000001",
+              "popularity": "match.popularityGain:seg_0000000003/per_0000000001"
+            }
+          },
+          {
+            "date": "2026-04-09",
+            "eventInstanceId": "evi_0000000001",
+            "id": "aft_0000000002",
+            "momentum": {
+              "after": 0,
+              "before": 5,
+              "employmentId": "emp_0000000002"
+            },
+            "outcome": "loss",
+            "personId": "per_0000000002",
+            "popularity": {
+              "byRegion": {
+                "reg_0000000001": {
+                  "after": 44.5,
+                  "before": 45
+                }
+              },
+              "delta": -0.5
+            },
+            "promotionId": "pro_0000000001",
+            "segmentId": "seg_0000000003",
+            "showRegionId": "reg_0000000001",
+            "traceIds": {
+              "momentum": "match.momentumGain:seg_0000000003/per_0000000002",
+              "popularity": "match.popularityGain:seg_0000000003/per_0000000002"
+            }
+          }
+        ],
         "brands": [
           {
             "active": true,
@@ -1449,7 +1507,8 @@
               "dealId": null,
               "eventInstanceId": "evi_0000000001",
               "personId": null
-            }
+            },
+            "traceRef": null
           },
           {
             "amount": 100000,
@@ -1462,7 +1521,8 @@
               "dealId": "dea_0000000001",
               "eventInstanceId": "evi_0000000001",
               "personId": null
-            }
+            },
+            "traceRef": null
           },
           {
             "amount": -1500000,
@@ -1475,7 +1535,8 @@
               "dealId": null,
               "eventInstanceId": "evi_0000000001",
               "personId": null
-            }
+            },
+            "traceRef": null
           },
           {
             "amount": -4000000,
@@ -1488,7 +1549,8 @@
               "dealId": null,
               "eventInstanceId": null,
               "personId": null
-            }
+            },
+            "traceRef": null
           },
           {
             "amount": -4000000,
@@ -1501,7 +1563,8 @@
               "dealId": null,
               "eventInstanceId": null,
               "personId": null
-            }
+            },
+            "traceRef": null
           }
         ],
         "mail": [
@@ -2730,6 +2793,28 @@
             "weightKg": 100
           }
         ],
+        "popularityShowChanges": [
+          {
+            "date": "2026-04-09",
+            "eventInstanceId": "evi_0000000001",
+            "id": "psc_0000000001",
+            "promotionId": "pro_0000000001",
+            "regions": {
+              "reg_0000000001": {
+                "after": 1.2,
+                "before": 0,
+                "capped": false,
+                "expectation": 10,
+                "networkId": null,
+                "source": "show",
+                "weight": 1
+              }
+            },
+            "score": 62,
+            "worldAfter": 0.3,
+            "worldBefore": 0
+          }
+        ],
         "promotions": [
           {
             "bookerPersonId": null,
@@ -2750,6 +2835,10 @@
               "catering": 1,
               "medical": 1,
               "travel": 1
+            },
+            "popularityGains": {
+              "byRegion": {},
+              "month": "2026-01"
             },
             "prestige": 50,
             "production": {
@@ -2785,6 +2874,10 @@
               "catering": 1,
               "medical": 1,
               "travel": 1
+            },
+            "popularityGains": {
+              "byRegion": {},
+              "month": "2026-01"
             },
             "prestige": 50,
             "production": {
