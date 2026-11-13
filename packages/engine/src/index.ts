@@ -1934,3 +1934,23 @@ export {
   type Taste,
   type TasteAxis,
 } from './systems/aip/index';
+// Rival desk taste, card value and roster needs (AIP1-04).
+export {
+  cardValue,
+  defaultTaste,
+  needSummaryText,
+  rosterNeeds,
+  rosterReviewDecision,
+  slotsDemanded,
+  storedTaste,
+  tasteOf,
+  type CardValueInputs,
+  type DefaultTasteInputs,
+  type Need,
+  type NeedKind,
+  type NeedRefs,
+  type NeedsChampion,
+  type NeedsInputs,
+  type NeedsWrestler,
+  type TracedTaste,
+} from './systems/aip/index';
