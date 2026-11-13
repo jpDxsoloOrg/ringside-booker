@@ -181,7 +181,7 @@ describe('postShowCosts', () => {
     const travelAt = (showRegion: number) => {
       const built = showCostWorld({ showRegion });
       post(bareRuntime(built.world), built.show);
-      return amountsOf(showRows(built.world, built.show)).travel;
+      return amountsOf(showRows(built.world, built.show))['travel'];
     };
     expect(travelAt(0)).toBe(-65_000);
     expect(travelAt(1)).toBe(-97_500);
