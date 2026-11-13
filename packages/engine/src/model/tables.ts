@@ -14,6 +14,7 @@ import { dealsTable } from './entities/deal';
 import { employmentsTable } from './entities/employment';
 import { eventDefinitionsTable } from './entities/event-definition';
 import { eventInstancesTable } from './entities/event-instance';
+import { contractConcernsTable } from './entities/contract-concern';
 import { continentsTable, countriesTable, regionsTable } from './entities/geography';
 import { injuriesTable } from './entities/injury';
 import { ledgerEntriesTable } from './entities/ledger-entry';
@@ -77,6 +78,8 @@ export const TABLES = {
   aiDecisions: aiDecisionsTable,
   // WRK6-03: every injury a person has had.
   injuries: injuriesTable,
+  // ECO4-01: per-contract notices, the unhappy clock, release requests and how a contract ended.
+  contractConcerns: contractConcernsTable,
 } as const satisfies TableRegistry;
 
 export type GameTables = typeof TABLES;

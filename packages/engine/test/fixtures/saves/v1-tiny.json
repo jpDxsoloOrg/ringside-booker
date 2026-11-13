@@ -9,7 +9,7 @@
     "label": "Test save",
     "promotionName": "Test Promotion A",
     "promotionShortName": "TPA",
-    "schemaFingerprint": "a1a4e71cca6bb1e566ebcfee07e5c61d",
+    "schemaFingerprint": "e8e608c31e886d3f85e802c2e12b85a4",
     "startDate": "2026-01-05",
     "worldName": "Test Tiny World"
   },
@@ -805,6 +805,21 @@
             "code": "TCA",
             "id": "ctn_0000000001",
             "name": "Test Continent"
+          }
+        ],
+        "contractConcerns": [
+          {
+            "employmentId": "emp_0000000006",
+            "ending": null,
+            "expiryNotice": {
+              "raisedOn": "2026-04-10",
+              "seenOn": "2026-04-10"
+            },
+            "id": "ccn_0000000001",
+            "personId": "per_0000000006",
+            "promotionId": "pro_0000000001",
+            "request": null,
+            "unhappy": null
           }
         ],
         "countries": [

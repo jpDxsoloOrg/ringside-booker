@@ -1053,3 +1053,17 @@ listed with EVT4's work.
 | `production.popularityDrag.minPerDay`             | number  | 0.05        | 0–10             | points/day  | Least popularity lost each day while above the ceiling (0 = no floor)    |
 | `production.tvDealMinCamera`                      | integer | 1           | 0–10             | points      | Lowest camera level allowed while the promotion has a TV deal            |
 | `production.feeNeedsCash`                         | boolean | true        |                  | flag        | An upgrade fee must be covered by cash in hand                           |
+
+## Contracts tunables
+
+ECO4-01, see [contracts.md](contracts.md#simple-renewals). The simple rival
+renewal, a D-01 stopgap until the rival labour market (ECO6).
+
+| Key                              | Kind    | Default     | Range  | Unit        | Meaning                                                                                                                 |
+| -------------------------------- | ------- | ----------- | ------ | ----------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `ai.contracts.simpleRenewals`    | boolean | true        |        | flag        | Rival promotions renew contracts by a simple rule until the rival labour market exists; off under a level playing field |
+| `contracts.ai.keepPushAtOrAbove` | enum    | `upperCard` | push   | choice      | A rival always renews workers pushed at this card position or higher                                                    |
+| `contracts.ai.keepChampions`     | boolean | true        |        | flag        | A rival always renews a worker who holds one of its titles                                                              |
+| `contracts.ai.renewChance`       | number  | 0.6         | 0–1    | probability | Chance a rival renews any other worker whose contract runs out                                                          |
+| `contracts.ai.renewMinDays`      | integer | 365         | 1–3650 | days        | Shortest new contract a rival renewal gives                                                                             |
+| `contracts.ai.renewMaxDays`      | integer | 1095        | 1–3650 | days        | Longest new contract a rival renewal gives (if below the shortest, the two swap)                                        |
