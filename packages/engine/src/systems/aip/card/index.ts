@@ -252,3 +252,8 @@ export {
   type BookedCardStepSpec,
   type ShowBookingContext,
 } from './bookedCardSteps';
+export {
+  AIP_PRUNE_CARD_DETAIL_PHASE_ID,
+  cardDetailCutoff,
+  pruneCardDetailPhase,
+} from './pruneCardDetail';

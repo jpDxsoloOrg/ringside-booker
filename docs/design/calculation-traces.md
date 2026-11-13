@@ -364,12 +364,21 @@ promotions' results that nobody opens in full:
 | `postMoney` (finance)       | `finance.rivalEntry`                         | Every ledger row of a rival    |
 | The match aftermath (MTCH3) | `match.popularityGain`, `match.momentumGain` | Matches on a computer-run show |
 | The worker doors (WRK1)     | `workers.popularity`, `workers.momentum`     | Changes with source `ai`       |
+| The rival booker (AIP4-05)  | `aip.cardPlan`                               | Every rival show it books      |
 
 A promotion's own popularity door trace (`promotions.popularity`) and rival
 show results (`shows.rivalSegmentScore`, `match.rivalResult`,
 `promoPop.rivalShowChange`, `boxOffice.rivalAttendance`) stay full: they are
 public, and the size budget bounds them. The player's own results keep full
 traces as before.
+
+**Demoting on purpose.** `TraceStaging.demote(ref)` (a step's
+`ctx.demoteTrace(ref)`) replaces a ref's full trace with its summary when the
+step commits, exactly as the retention limits would, and does nothing to a ref
+with no full trace or when the step is rolled back. It is for detail kept only
+for a while: the rival booker's per-slot traces (`aip.cardSlot`) go to their
+summaries `aip.card.keepDetailDays` days after the show
+([rival-booking.md](rival-booking.md#show-day)).
 
 The Why? panel tells the two kinds of summary apart: an aged-out one says
 "Full breakdown is only kept for recent results", a summary-only one says

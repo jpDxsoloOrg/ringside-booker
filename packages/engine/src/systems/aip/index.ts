@@ -452,8 +452,11 @@ export {
   type PlanOpenSlot,
 } from './card';
 export {
+  AIP_PRUNE_CARD_DETAIL_PHASE_ID,
   BOOK_SHOW_JOB_ID,
   bookShowSavepointLabel,
+  cardDetailCutoff,
+  pruneCardDetailPhase,
   bookedCardSteps,
   CARD_BOOKED_SUMMARY_KEY,
   CARD_DECISION_KIND,

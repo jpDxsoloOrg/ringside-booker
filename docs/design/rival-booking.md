@@ -612,9 +612,17 @@ hundreds of shows a year, so rival shows never keep it:
   happened when it was written (skipped placements, removed segments), stored
   summary-only. The card decision points at it;
 - `aip.cardSlot` (by segment ID): "Slot <n> · <role>" with the segment's
-  headline reasons and its card score, a few hundred bytes. Full traces of a
-  kind are capped by `sim.traceRetentionPerKind` and `sim.traceBytesPerKind`
-  like any other; older ones are kept as summaries.
+  headline reasons and its card score, a few hundred bytes. It is kept in full
+  for `aip.card.keepDetailDays` (28) days after the show, then only its
+  summary: `aip.pruneCardDetail` (group `periodic`, order 43, daily) demotes
+  the slots of the computer shows dated exactly that many days ago, with a full
+  sweep on the 1st of each month for anything a lowered setting left behind.
+  The per-kind limits (`sim.traceRetentionPerKind`, `sim.traceBytesPerKind`)
+  still apply on top.
+
+The save keeps about the last month in detail: the cards themselves (which
+shows ran, who was on them, the results) are public facts other features read
+and stay; trimming those is POL4-08's.
 
 ## Random streams
 
@@ -641,6 +649,7 @@ their keys to the same file.
 | `aip.card.talkTasteSwing`                 | 0.5                     | How far the booker's taste moves the talking share                           |
 | `aip.card.maxTalkShare`                   | 0.5                     | The largest talking share                                                    |
 | `aip.card.fillPreShow`                    | true                    | Whether the pre-show slots are filled                                        |
+| `aip.card.keepDetailDays`                 | 28                      | Days a rival show's per-slot Why? is kept in full, then only a summary       |
 | `aip.titles.maxPerShow.<importance>`      | 1, 1, 2, 4, 6           | Most title matches on house, minor, regular, major and flagship shows        |
 | `aip.titles.defenceIntervalDays`          | 28                      | Usual gap between defences at middling title taste                           |
 | `aip.titles.tempoSwing`                   | 0.5                     | How far title taste moves the usual gap                                      |

@@ -10,6 +10,7 @@ import type { EventInstance } from '../../../../src/model/entities/event-instanc
 import type { GameWorldView } from '../../../../src/model/tables';
 import type { DeepReadonly } from '../../../../src/model/world';
 import {
+  AIP_PRUNE_CARD_DETAIL_PHASE_ID,
   AIP_RUN_TURNS_PHASE_ID,
   BOOK_SHOW_JOB_ID,
   bookedCardSteps,
@@ -19,6 +20,7 @@ import {
   CARD_SLOT_TRACE_KIND,
   cardBookedText,
   NO_PLANNED_RESULT_CODE,
+  pruneCardDetailPhase,
   registerBookedCardStep,
   runTurnsPhase,
   SHOW_CANCELLED_SUMMARY_KEY,
@@ -447,6 +449,41 @@ describe('aip.bookShow', () => {
     expect(cardBookedText(required(decision, 'decision').summary)).toMatch(
       /^Booked Rival B Weekly: \d+ match(es)?, \d+ talking segments?, \d+ title match(es)?$/,
     );
+  });
+
+  it('keeps each slot in full for aip.card.keepDetailDays, then only its summary', () => {
+    const built = showWorld();
+    const runtime = runtimeOf(built);
+    bookTheDay(runtime);
+    const keep = tunables.get('aip.card.keepDetailDays');
+    const prune = (date: GameDate): void => {
+      const report = runStep(
+        runtime,
+        AIP_PRUNE_CARD_DETAIL_PHASE_ID,
+        { kind: 'phase', id: AIP_PRUNE_CARD_DETAIL_PHASE_ID },
+        pruneCardDetailPhase.run,
+        { date },
+      );
+      expect(report.status, report.error?.message).toBe('ok');
+    };
+    const slots = cardSegments(runtime.world, built.shows.b).map((segment) => ({
+      kind: CARD_SLOT_TRACE_KIND,
+      id: segment.id,
+    }));
+    expect(slots).toHaveLength(SLOTS);
+    prune(addDays(SHOW_DAY, keep - 1));
+    for (const slot of slots) {
+      const entry = runtime.traces.get(slot);
+      expect(entry !== undefined && isFullTrace(entry)).toBe(true);
+    }
+    prune(addDays(SHOW_DAY, keep));
+    for (const slot of slots) {
+      const entry = runtime.traces.get(slot);
+      expect(entry, slot.id).toBeDefined();
+      expect(entry !== undefined && isFullTrace(entry)).toBe(false);
+    }
+    // The card itself stays: who was on the show is a public fact.
+    expect(cardSegments(runtime.world, built.shows.b)).toHaveLength(SLOTS);
   });
 
   it('is registered as a beforeShow job', async () => {

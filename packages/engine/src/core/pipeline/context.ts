@@ -37,6 +37,8 @@ export interface StepContext<R extends TableRegistry = GameTables> {
   readonly publish: EventStaging['publish'];
   /** Stages a calculation trace. Stored only if the step commits. */
   readonly recordTrace: TraceStaging['record'];
+  /** Stages a full trace's demotion to its summary. Applied only if the step commits. */
+  readonly demoteTrace: TraceStaging['demote'];
   /** Adds a line to the step's report. Kept even when the step fails, to help find out why. */
   readonly log: (message: string) => void;
 }

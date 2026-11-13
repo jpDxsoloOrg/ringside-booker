@@ -89,8 +89,9 @@ The `periodic` group's weekly phases so far, all on Mondays:
 
 The rival desk's phases ([rival-desk.md](rival-desk.md#jobs)), both daily:
 `aip.runTurns` (`aiTurns`, order 50) runs every due rival job for every
-computer unit, and `aip.pruneDecisionLog` (`periodic`, order 42) prunes the
-rival decision log.
+computer unit, `aip.pruneDecisionLog` (`periodic`, order 42) prunes the
+rival decision log, and `aip.pruneCardDetail` (`periodic`, order 43) keeps
+only a summary of rival card slots older than `aip.card.keepDetailDays`.
 
 On a show day the rival job `aip.bookShow` (a `beforeShow` job, AIP4-05, see
 [rival-booking.md](rival-booking.md#show-day)) runs inside `aip.runTurns`, so

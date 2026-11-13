@@ -292,6 +292,32 @@ describe('TraceStore retention', () => {
     expectFull(store.get(ref('k', 'c')));
   });
 
+  it('demotes a full trace to its summary on commit, and never on discard', () => {
+    const store = new TraceStore(ROOMY);
+    recordAndCommit(store, [
+      { ref: ref('k', 'a'), traced: rating(5) },
+      { ref: ref('k', 'b'), traced: rating(6) },
+    ]);
+    const before = expectFull(store.get(ref('k', 'a')));
+    const discarded = store.stage();
+    discarded.demote(ref('k', 'a'));
+    discarded.discard();
+    expectFull(store.get(ref('k', 'a')));
+
+    const staging = store.stage();
+    staging.demote(ref('k', 'a'));
+    // A ref with no trace, or one already summarised, is left alone.
+    staging.demote(ref('k', 'missing'));
+    expectFull(store.get(ref('k', 'a')));
+    staging.commit();
+    const summary = expectSummary(store.get(ref('k', 'a')));
+    expect(summary).toMatchObject({ seq: before.seq, label: 'Match rating', value: 84 });
+    expect(summary.summaryOnly).toBeUndefined();
+    expectFull(store.get(ref('k', 'b')));
+    expect(store.has(ref('k', 'missing'))).toBe(false);
+    expect(() => { staging.demote(ref('k', 'b')); }).toThrow(TraceStoreMisuseError);
+  });
+
   it('summarises immediately with retention 0', () => {
     const store = new TraceStore({ retentionPerKind: 0, summaryLimit: 10 });
     recordAndCommit(store, [{ ref: ref('k', 'a'), traced: rating(5) }]);
