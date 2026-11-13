@@ -1,0 +1,44 @@
+/*
+ * Booker's calls: one row per decided match. Desktop: the slot on the left in a fixed column, the
+ * result line beside it. Below --bp-mobile the slot sits above the line.
+ */
+.list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-inline-size: 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+  min-inline-size: 0;
+  padding-block-end: var(--space-3);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.row:last-child {
+  padding-block-end: 0;
+  border-block-end: 0;
+}
+
+.slot {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+@media (--bp-mobile) {
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
