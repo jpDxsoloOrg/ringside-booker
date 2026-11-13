@@ -352,12 +352,19 @@ passes is not a refusal: the answer has `rows: []`.
   (`{ value, countryId, countryName }`, or `null` for someone unknown
   everywhere), `worldPopularity`, `employer` (`{ promotionId, name, shortName }`
   or `null`), `push`, `alignment` (both `null` for a free agent) and
-  `availability` (`{ status, label, until }`).
+  `availability` (`{ status, label, until }`), and `injury`
+  (`{ label, bodyPart, expectedReturn, daysRemaining }` while the availability
+  is `injured`, else `null`; WRK6-06).
 - `total`: how many people the world holds, before any filter.
 - `freeAgents`: how many of those have no employer, before any filter.
 - `facets`: the promotions that employ someone, and the continents and countries
   someone is based in, each sorted by name. They are worked out before the
   filters, so a filter control never loses the option it is set to.
+
+The screen's **Injured** quick filter (WRK6-06) is a toggle beside the filters
+that sets `availability` to `injured` (`?availability=injured`, so it can be
+linked to) and adds an Injury and a Back on column; on a phone the injury joins
+the card's subtitle and the return date its small print.
 
 The list shows the top country's popularity, not the world figure. A local hero
 at 70 in one country would read as 3 worldwide, which hides exactly what a scout
