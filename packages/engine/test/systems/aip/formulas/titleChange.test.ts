@@ -147,7 +147,7 @@ describe('titleChange', () => {
     expect(result.plan.value).toBe('side:1');
     expect(result.reasonKey).toBe('overdue');
     expect(rollLabels(result)).toEqual([]);
-    expect(reasonOf(result)).toContain('Overdue: 400 days is a long reign');
+    expect(reasonOf(result)).toContain('Overdue reign: 400 days, overdue from 400');
   });
 
   it('changes at chance 100 with a strong pool', () => {
