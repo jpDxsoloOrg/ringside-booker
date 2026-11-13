@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import type { GameDate, SimStatus } from '@ringside/engine';
 import { classNames } from '@/components/classNames';
 import { formatGameDate, formatNumber, useMoneyFormatter } from '@/components/format';
-import { Explained } from '@/components/Trace';
+import { Explained, WhyButton } from '@/components/Trace';
 import { orderStatusChips, useRegisteredStatusChips } from './statusChipRegistry';
 import type {
   StatusChipContext,
@@ -107,8 +107,18 @@ function CashChip({ promotion, placement }: PromotionChipProps) {
   const negative = promotion.cash < 0;
   return (
     <StatusChip label="Cash" placement={placement} testId="cash-chip">
-      <span className={classNames(styles['money'], negative && styles['negative'])}>
-        {formatMoney(promotion.cash)}
+      <span className={styles['cashLine']}>
+        <span className={classNames(styles['money'], negative && styles['negative'])}>
+          {formatMoney(promotion.cash)}
+        </span>
+        {promotion.cashTraceRef !== null && (
+          <WhyButton
+            label="Cash"
+            value={promotion.cash}
+            unit="money"
+            source={{ traceRef: promotion.cashTraceRef }}
+          />
+        )}
       </span>
     </StatusChip>
   );
