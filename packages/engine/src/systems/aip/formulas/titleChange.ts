@@ -32,6 +32,7 @@ import { constantOf, startDecision, type Decision, type Traced } from '../../../
 import type { RngStream } from '../../../core/rng/registry';
 import { rollChance, rollWeighted } from '../../../core/rng/rolls';
 import type { EventImportance } from '../../../model/entities/event-definition';
+import { formatPopularity } from '../../office/formulas/headlinePopularity';
 import { formatNumber } from '../../world/people/labels';
 import type { EngineTunables } from '../../tunables';
 import { TITLE_CHANGES_DOC_REF } from '../results/tunables';
@@ -135,7 +136,7 @@ export function overdueRuleText(reignDays: number, overdueDays: number): string 
 }
 
 export function readyNoChallengerText(validNeeds: number): string {
-  return `Ready for a change, but no challenger is popular enough (needs ${formatNumber(validNeeds)} in our markets)`;
+  return `Ready for a change, but no challenger is popular enough (needs ${formatPopularity(validNeeds)} in our markets)`;
 }
 
 interface Choice {
@@ -186,6 +187,21 @@ function pickChallenger(
   );
   decision.roll(roll.roll);
   return roll.value;
+}
+
+/**
+ * The sides the decision weighs against the champion: the ones a change could pick tonight. That
+ * is the popular list, or every eligible side when an expiring contract forces a change with
+ * nobody popular (and a house show isn't keeping titles put). A side that could never take the
+ * title tonight is left out, so the Why? doesn't list it as "Also considered" with a score.
+ */
+function contenders(inputs: TitleChangeInputs, tunables: EngineTunables): readonly number[] {
+  const popular = popularCandidates(inputs.pool);
+  if (popular.length > 0) return popular;
+  const houseRetains = inputs.importance === 'house' && tunables.get('aip.titles.houseShowsRetain');
+  const daysLeft = inputs.championContractDaysLeft;
+  const expiring = daysLeft !== null && daysLeft <= tunables.get('aip.titles.expiringDays');
+  return expiring && !houseRetains ? inputs.pool.eligible : [];
 }
 
 /** Strong, else valid: the list a change picks from (empty when nobody is valid). */
@@ -307,7 +323,7 @@ export function titleChange(inputs: TitleChangeInputs, deps: TitleChangeDeps): T
   });
   const championValue = inputs.sideValues.get(inputs.championSide);
   decision.consider(RETAIN_PLAN, championValue?.value ?? 0, `${inputs.championLabel} keeps it`);
-  for (const side of inputs.pool.eligible) {
+  for (const side of contenders(inputs, deps.tunables)) {
     decision.consider(winPlanKey(side), valueOf(inputs, side).value, labelOf(inputs, side));
   }
   decision.include('Challengers', inputs.pool.pool);
