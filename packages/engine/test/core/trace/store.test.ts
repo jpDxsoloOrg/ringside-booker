@@ -315,7 +315,9 @@ describe('TraceStore retention', () => {
     expect(summary.summaryOnly).toBeUndefined();
     expectFull(store.get(ref('k', 'b')));
     expect(store.has(ref('k', 'missing'))).toBe(false);
-    expect(() => { staging.demote(ref('k', 'b')); }).toThrow(TraceStoreMisuseError);
+    expect(() => {
+      staging.demote(ref('k', 'b'));
+    }).toThrow(TraceStoreMisuseError);
   });
 
   it('summarises immediately with retention 0', () => {
