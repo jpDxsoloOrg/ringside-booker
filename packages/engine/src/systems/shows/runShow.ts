@@ -7,7 +7,7 @@
 
 import type { PhaseContext } from '../../core/pipeline/context';
 import type { SegmentId } from '../../core/ids';
-import { refKey } from '../../core/trace';
+import { refKey, startCalc, type Traced } from '../../core/trace';
 import type { JsonValue } from '../../core/json';
 import type { EventInstance } from '../../model/entities/event-instance';
 import type { DeepReadonly } from '../../model/world';
@@ -16,10 +16,15 @@ import { countAppearances } from './appearances';
 import { runBeforeShowRunsHooks } from './beforeRun';
 import { hasCard } from '../booking/card';
 import { showContextOf, slotRoleInput, type ShowContext, type ShowSegment } from './context';
-import { offscreenShowScore } from './formulas/offscreenShowScore';
+import { OFFSCREEN_SHOW_SCORE_DOC_REF, offscreenShowScore } from './formulas/offscreenShowScore';
 import { showScore, type ShowScoreInputs, type ShowSlotInput } from './formulas/showScore';
 import { runSegment } from './runSegment';
-import { listShowScoreModifiers } from './showScoreModifiers';
+import {
+  applyCapModifiers,
+  listShowScoreModifiers,
+  scoreBeforeCapLabel,
+  showScoreCeilingOf,
+} from './showScoreModifiers';
 import { SHOWS_OFFSCREEN_STREAM } from './streams';
 import { showScoreTraceRef } from './traces';
 
@@ -104,6 +109,7 @@ export function runShowCard(ctx: PhaseContext, instance: DeepReadonly<EventInsta
     { ...inputs, extras },
     { tunables: ctx.tunables, modifiers },
   );
+  const ceiling = showScoreCeilingOf(modifiers, extras, { tunables: ctx.tunables });
 
   const ref = showScoreTraceRef(instance.id);
   ctx.recordTrace(ref, ctx.date, score);
@@ -116,6 +122,7 @@ export function runShowCard(ctx: PhaseContext, instance: DeepReadonly<EventInsta
       attendance: null,
       gate: null,
       viewers: null,
+      ceiling,
     },
   });
   ctx.publish('show.completed', {
@@ -132,13 +139,49 @@ export function runShowCard(ctx: PhaseContext, instance: DeepReadonly<EventInsta
 }
 
 /**
+ * Holds an off-screen score to the `cap` modifiers (EVT4-02's production ceiling), the same caps a
+ * carded show gets. With no cap registered the score is returned as it is. Otherwise the off-screen
+ * trace becomes the first line ("Score before any cap") of a trace with the same label, so the
+ * Why? reads the same as before plus the cap lines.
+ */
+function capOffscreenScore(
+  ctx: PhaseContext,
+  instance: DeepReadonly<EventInstance>,
+  raw: Traced<number>,
+): { score: Traced<number>; ceiling: number | null } {
+  const caps = listShowScoreModifiers().filter((modifier) => modifier.stage === 'cap');
+  if (caps.length === 0) {
+    return { score: raw, ceiling: null };
+  }
+  const calc = startCalc(
+    raw.trace.label,
+    { value: raw.value, trace: { ...raw.trace, label: scoreBeforeCapLabel(raw.value) } },
+    { unit: 'points', docRef: OFFSCREEN_SHOW_SCORE_DOC_REF },
+  );
+  const { ceiling } = applyCapModifiers(
+    calc,
+    {
+      showName: instance.name,
+      importance: instance.importance,
+      format: { slots: instance.format.slots, preShowSlots: instance.format.preShowSlots },
+      slots: [],
+      extras: {},
+    },
+    ctx.read,
+    instance,
+    { tunables: ctx.tunables, modifiers: caps },
+  );
+  return { score: calc.done(), ceiling };
+}
+
+/**
  * Scores a computer-controlled show that has no card, from its promotion's prestige and
  * popularity in the show's region, its size and one roll on `shows.offscreen`, and completes it.
  * No segment is run, no applier runs and no `segment.completed` is published.
  */
 export function runOffscreenShow(ctx: PhaseContext, instance: DeepReadonly<EventInstance>): void {
   const promotion = ctx.read.tables.promotions.require(instance.promotionId);
-  const score = offscreenShowScore(
+  const raw = offscreenShowScore(
     {
       showName: instance.name,
       importance: instance.importance,
@@ -148,17 +191,19 @@ export function runOffscreenShow(ctx: PhaseContext, instance: DeepReadonly<Event
     },
     { tunables: ctx.tunables, rng: ctx.rng(SHOWS_OFFSCREEN_STREAM) },
   );
+  const { score, ceiling } = capOffscreenScore(ctx, instance, raw);
   const ref = showScoreTraceRef(instance.id);
   ctx.recordTrace(ref, ctx.date, score);
   ctx.tx.update('eventInstances', instance.id, {
     status: 'completed',
     result: {
       score: score.value,
-      rawScore: score.value,
+      rawScore: raw.value,
       traceId: refKey(ref),
       attendance: null,
       gate: null,
       viewers: null,
+      ceiling,
     },
   });
   ctx.publish('show.completed', {
@@ -168,7 +213,7 @@ export function runOffscreenShow(ctx: PhaseContext, instance: DeepReadonly<Event
     date: instance.date,
     importance: instance.importance,
     score: score.value,
-    rawScore: score.value,
+    rawScore: raw.value,
     offscreen: true,
     segmentCount: 0,
   });

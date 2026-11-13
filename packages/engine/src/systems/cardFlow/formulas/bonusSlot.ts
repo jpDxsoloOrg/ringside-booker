@@ -15,11 +15,7 @@ import {
 import type { GameWorldView } from '../../../model/tables';
 import type { EngineTunables } from '../../tunables';
 import { formatNumber } from '../../world/people/labels';
-import {
-  ceilingLevelsOf,
-  productionCeilingOf,
-  productionCeilingValue,
-} from './productionCeiling';
+import { ceilingLevelsOf, productionCeilingOf, productionCeilingValue } from './productionCeiling';
 
 export const BONUS_SLOT_DOC_REF = 'docs/design/card-flow.md#bonus-slot';
 
@@ -49,7 +45,8 @@ const IMPORTANCE_NAMES: Readonly<Record<EventImportance, string>> = {
   flagship: 'flagship show',
 };
 
-function isAtLeast(importance: EventImportance, smallest: EventImportance): boolean {
+/** True when `importance` is `smallest` or bigger, in `EVENT_IMPORTANCES` order. */
+export function importanceAtLeast(importance: EventImportance, smallest: EventImportance): boolean {
   return EVENT_IMPORTANCES.indexOf(importance) >= EVENT_IMPORTANCES.indexOf(smallest);
 }
 
@@ -64,7 +61,7 @@ export function qualifiesForBonusSlot(
   tunables: EngineTunables,
 ): boolean {
   return (
-    isAtLeast(importance, tunables.get('production.bonusSlotMinImportance')) &&
+    importanceAtLeast(importance, tunables.get('production.bonusSlotMinImportance')) &&
     ceiling >= tunables.get('production.bonusSlotThreshold') &&
     baseSlots < SHOW_SLOTS_MAX
   );
@@ -104,7 +101,7 @@ export function bonusSlotFor(
     'production.bonusSlotMinImportance',
     'Smallest show that can get it',
   );
-  const bigEnough = isAtLeast(inputs.importance, smallest);
+  const bigEnough = importanceAtLeast(inputs.importance, smallest);
   const importanceRule = `A ${IMPORTANCE_NAMES[inputs.importance]} is a ${IMPORTANCE_NAMES[smallest]} or bigger`;
   decision.rule(importanceRule, bigEnough);
   if (!bigEnough) {
@@ -139,4 +136,38 @@ export function bonusSlotFor(
     slots: inputs.baseSlots + 1,
     decision: decision.choose('bonusSlot', 'Production is big enough for one extra main slot'),
   };
+}
+
+/**
+ * The production half of the rule, for a promotion rather than a show (the `production.ceiling`
+ * query): does this ceiling reach `production.bonusSlotThreshold`? The trace attaches the ceiling
+ * and notes which shows the slot is for.
+ */
+export function bonusSlotProductionCheck(
+  ceiling: Traced<number>,
+  tunables: EngineTunables,
+): Traced<boolean> {
+  const decision = startDecision<boolean>('Bonus slot', { docRef: BONUS_SLOT_DOC_REF });
+  decision.include('Production ceiling', ceiling);
+  const threshold = decision.tunable(
+    tunables,
+    'production.bonusSlotThreshold',
+    'Ceiling needed for the extra slot',
+  );
+  const smallest = decision.tunable(
+    tunables,
+    'production.bonusSlotMinImportance',
+    'Smallest show that can get it',
+  );
+  const qualifies = ceiling.value >= threshold;
+  decision.rule(
+    `Production ceiling ${formatNumber(ceiling.value)} reaches ${formatNumber(threshold)}`,
+    qualifies,
+  );
+  return decision.choose(
+    qualifies,
+    qualifies
+      ? `Every ${IMPORTANCE_NAMES[smallest]} or bigger gets one extra main slot, up to ${formatNumber(SHOW_SLOTS_MAX)}`
+      : `The production ceiling is below ${formatNumber(threshold)}`,
+  );
 }
