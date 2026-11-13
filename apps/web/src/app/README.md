@@ -118,8 +118,76 @@ imported once by the router like the results page's calendar hooks; its panel lo
 `AppShell` provides `gameEntityLink` through `EntityLinkContext` (`entityLinks.tsx`), so inside the
 game a person named in any "Why?" breakdown links to their profile, and following the link closes
 the panel. Outside the shell (the component gallery, the title and new-game screens) there is no
-provider and names stay plain text. Other entity kinds stay plain until their screens exist; they
-get their links by extending `gameEntityLink`.
+provider and names stay plain text. Promotions link to their profiles too (`PromotionProfileLink`,
+AIP1-06). Other entity kinds stay plain until their screens exist; they get their links by
+extending `gameEntityLink`.
+
+## Promotions
+
+World > Promotions (`screens/promotions/PromotionsScreen.tsx`) lists every promotion from
+`promotions.list`: crest, name (a `PromotionLink`), style, home, popularity in the home country
+with its Why?, prestige, roster, champions and who runs it. Popularity at home sorts it by default;
+the sort is in the URL (`?sort=prestige&dir=asc`) and travels to the profile's back link. A
+rival's money is never shown. The **Rival rules** chip beside the heading (`RivalRulesChip.tsx`,
+from `aip.rules`) reads "Rival rules: 6 on" or "Level playing field" and opens every shortcut in a
+popover (a bottom sheet on a phone).
+
+The profile lives at `/game/promotions/:promotionId` (`routePatterns.promotion`, built with
+`routes.game.promotion(id, { tab })`), loaded as its own chunk:
+`screens/promotions/profile/PromotionProfileScreen.tsx` with `PromotionHeader`. It reads
+`promotions.profile`; an unknown promotion or a world-less seat shows "Promotion not found".
+Built-in tabs: **Overview** (key numbers with Why?, cash "Private" for a rival, the `NeedsList`
+from `aip.needs`, the Rival rules as they apply here, the popularity drill-down), **Roster**
+(`promotions.roster`: taste strip, card value with Why?, a brand select when it has brands) and
+**Decision log** (`DecisionLogList` from `aip.decisionLog`; hidden on your own promotion unless the
+computer runs one of its brands). Templated engine text (needs, decisions) is rendered through
+`text/renderTemplatedText.ts`; the rival desk's strings are in `text/catalogs/aip.ts`.
+
+### Adding a promotion tab
+
+```ts
+registerPromotionTab({
+  id: 'front-office', // also the ?tab= value
+  label: 'Front office',
+  order: 30,
+  render: ({ profile, promotionId, isOwn, viewerPromotionId }) => <FrontOffice id={promotionId} />,
+  visible: ({ isOwn }) => !isOwn, // optional
+});
+```
+
+`registerPromotionTab` (`screens/promotions/profile/promotionTabs.ts`) follows the worker
+profile's rules: it returns an unregister function, throws for a taken id, and open profiles
+re-render. Orders: the built-ins own 10 (Overview), 20 (Roster) and 90 (Decision log); the rival
+desk's later screens use **30 to 80** (Front office 30, Shows 40, the rest of AIP between); every
+other feature (ECO, BRW, ...) uses **100 and up**. Write the slot you take in your feature's docs.
+
+## The roster
+
+Your promotion > Roster (`/game/roster`, `screens/roster/RosterScreen.tsx`) is live since WRK2:
+everyone under contract in role tabs with counts (Wrestlers, Managers, Announcers, Referees,
+Producers, Others), a Brand selector when the promotion has brands, Why? on Expects, Overall and
+Popularity (`roster.explain`), and Set push from the row menu or the ticked rows. The tab and the
+brand live in the URL (`?tab=`, `?brand=`). Design: `docs/design/roster.md#screen`.
+
+### Adding a roster tab
+
+Like the profile's tabs, the roster's tab strip is an extension point. The six role tabs take
+orders 10 to 60; another feature adds its tab from its own files:
+
+```ts
+registerRosterTab({
+  id: 'injuries', // also the ?tab= value; never a role group's id
+  label: 'Injuries',
+  order: 70, // reserved: 70 WRK6 Injuries, 80 ECO11 In development
+  render: ({ promotionId, brandId, summary }) => <InjuriesTab promotionId={promotionId} />,
+  count: ({ summary }) => summary.unavailableByStatus.injured ?? 0, // optional badge
+});
+```
+
+`registerRosterTab` (`screens/roster/rosterTabRegistry.ts`) returns a function that removes the
+tab, throws for a taken id, and the open roster re-renders when the list changes. Row menu items
+append to `rosterRowActions` in `screens/roster/rosterColumns.tsx`. The roster's Office panel,
+"Top of your roster" (side, order 30), lives in `screens/roster/officePanel.tsx`.
 
 ## The calendar
 

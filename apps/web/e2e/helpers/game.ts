@@ -1,6 +1,9 @@
 import { fileURLToPath } from 'node:url';
 import { expect } from '@playwright/test';
-import type { Page } from '@playwright/test';
+import type { Locator, Page, TestInfo } from '@playwright/test';
+import { expectNoSeriousA11yViolations } from './a11y';
+import { expectNoHorizontalScroll } from './layout';
+import { isPhone } from './viewport';
 
 /**
  * The e2e sample save: the engine's golden save (`v1-tiny.json`) encoded with `encodeSave` by
@@ -58,4 +61,170 @@ export async function enterGameFromPlayedSave(page: Page): Promise<void> {
     .click();
   await expect(page).toHaveURL(/\/game\/office$/);
   await expect(page.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeVisible();
+}
+
+/* ---------------------------------------------------------------- the new-game wizard */
+
+/** A new-game wizard step's heading. */
+export function stepHeading(page: Page, name: string): Locator {
+  return page.getByRole('heading', { level: 2, name });
+}
+
+/**
+ * Every step passes axe. On a phone, the page also fits and the Back/Next bar is on screen above
+ * the bottom edge.
+ */
+export async function expectPhoneStepLayout(page: Page, phone: boolean): Promise<void> {
+  await expectNoSeriousA11yViolations(page);
+  if (!phone) return;
+  await expectNoHorizontalScroll(page);
+  const bar = page.getByTestId('wizard-actions');
+  await expect(bar).toBeInViewport();
+  const box = await bar.boundingBox();
+  const viewport = page.viewportSize();
+  expect(box).not.toBeNull();
+  expect(viewport).not.toBeNull();
+  if (box !== null && viewport !== null) {
+    expect(box.y + box.height, 'the action bar ends on screen').toBeLessThanOrEqual(
+      viewport.height + 1,
+    );
+  }
+  await expect(page.getByTestId('wizard-progress')).toBeVisible();
+}
+
+/** Opens the wizard from the title screen and waits for the world step with the world chosen. */
+export async function openWizard(page: Page, phone: boolean): Promise<void> {
+  await page.goto('/');
+  await page.getByRole('link', { name: 'New game' }).click();
+  await expect(page).toHaveURL(/\/new$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'New game' })).toBeVisible();
+  await expect(stepHeading(page, 'Choose a world')).toBeVisible();
+  // The only bundled world is chosen by itself once its preview has loaded.
+  await expect(page.getByRole('radio', { name: /Ringside Booker World/ })).toBeChecked();
+  await expect(page.getByText('People', { exact: true })).toBeVisible();
+  if (phone) await expect(page.getByText('Step 1 of 4 · World')).toBeVisible();
+  await expectPhoneStepLayout(page, phone);
+}
+
+/** The wizard's Next button. */
+export async function next(page: Page): Promise<void> {
+  await page.getByRole('button', { name: 'Next' }).click();
+}
+
+/** Picks an option from one of the wizard's selects. */
+export async function choose(page: Page, label: string, option: string): Promise<void> {
+  await page.getByRole('combobox', { name: label }).click();
+  await page.getByRole('option', { name: option, exact: true }).click();
+}
+
+/** The promotion name in the top bar: in the bar on desktop, in its status sheet on a phone. */
+export async function expectPromotionInTopBar(
+  page: Page,
+  name: string,
+  phone: boolean,
+): Promise<void> {
+  await expect(page).toHaveURL(/\/game\/office$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeVisible();
+  const topBar = page.getByRole('banner');
+  if (phone) {
+    await topBar.getByTestId('status-date').click();
+    await expect(page.getByRole('dialog').getByTestId('promotion-chip')).toHaveText(
+      new RegExp(name),
+    );
+    await page.keyboard.press('Escape');
+  } else {
+    await expect(topBar.getByTestId('promotion-chip')).toHaveText(new RegExp(name));
+    // The sidebar crest follows the save, not the sample promotion (UI-18).
+    const crest = page.getByTestId('promotion-block');
+    await expect(crest).toContainText(name);
+    await expect(crest).not.toContainText('Sample');
+    // Popularity explains itself even before a system moves it (UI-19). Since DAY2-02 the chip
+    // shows the headline figure, whose Why? is titled "<Promotion> popularity".
+    await topBar
+      .getByTestId('popularity-chip')
+      .getByRole('button', { name: /^Why is / })
+      .click();
+    await expect(page.getByRole('dialog')).toContainText(`${name} popularity`);
+    await page.keyboard.press('Escape');
+  }
+}
+
+/**
+ * Picks an existing promotion on the wizard's promotion step: its grid row on desktop (the detail
+ * pane then shows "About <name>"), its card and the detail sheet's "Choose this promotion" on a
+ * phone.
+ */
+export async function chooseExistingPromotion(
+  page: Page,
+  name: string,
+  phone: boolean,
+): Promise<void> {
+  if (phone) {
+    await page.getByRole('button', { name: new RegExp(`^${name}`) }).click();
+    const sheet = page.getByRole('dialog', { name });
+    await expect(sheet.getByText('Best-known wrestlers')).toBeVisible();
+    await sheet.getByRole('button', { name: 'Choose this promotion' }).click();
+    await expect(sheet).toBeHidden();
+  } else {
+    await page
+      .getByRole('grid')
+      .getByRole('row', { name: new RegExp(name) })
+      .click();
+    await expect(page.getByRole('heading', { name: `About ${name}` })).toBeVisible();
+  }
+}
+
+export interface StartDefaultWorldGameOptions {
+  /** The name typed on the Review step. "Alex Booker" by default. */
+  readonly playerName?: string;
+  /** Use the phone layout's controls. Worked out from the viewport's width when left out. */
+  readonly phone?: boolean;
+}
+
+/** The width under which the app uses its phone layout (`--bp-mobile`, 48rem). */
+const PHONE_MAX_WIDTH = 768;
+
+/**
+ * Starts a new game the way a player does, from a fresh profile: title → New game → the default
+ * world → `promotion` (an existing one, by its full name) → the default options → Start game, then
+ * waits for the Dashboard with the promotion in the top bar. The world is built in the engine
+ * worker and saved into a slot, so Main menu and Continue work afterwards.
+ */
+export async function startDefaultWorldGame(
+  page: Page,
+  promotion: string,
+  options: StartDefaultWorldGameOptions = {},
+): Promise<void> {
+  const phone = options.phone ?? (page.viewportSize()?.width ?? PHONE_MAX_WIDTH) < PHONE_MAX_WIDTH;
+  await openWizard(page, phone);
+  await next(page);
+  await expect(stepHeading(page, 'Choose your promotion')).toBeVisible();
+  await chooseExistingPromotion(page, promotion, phone);
+  await next(page);
+  await expect(stepHeading(page, 'Game options')).toBeVisible();
+  await next(page);
+  await expect(stepHeading(page, 'Review and start')).toBeVisible();
+  await page.getByRole('textbox', { name: 'Your name' }).fill(options.playerName ?? 'Alex Booker');
+  await page.getByRole('button', { name: 'Start game' }).click();
+  await expectPromotionInTopBar(page, promotion, phone);
+}
+
+/**
+ * Opens Your promotion > Roster from the shell: the sidebar link on desktop, the bottom bar's
+ * second slot on a phone. Waits for the Roster heading.
+ */
+export async function openRoster(page: Page, testInfo: TestInfo): Promise<void> {
+  if (isPhone(testInfo)) {
+    await page
+      .getByRole('navigation', { name: 'Primary' })
+      .getByRole('link', { name: 'Roster' })
+      .click();
+  } else {
+    await page
+      .getByRole('navigation', { name: 'Main' })
+      .getByRole('link', { name: 'Roster', exact: true })
+      .click();
+  }
+  await expect(page).toHaveURL(/\/game\/roster(\?.*)?$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Roster' })).toBeVisible();
 }

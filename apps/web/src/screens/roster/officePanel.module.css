@@ -1,0 +1,96 @@
+/*
+ * The Office's "Top of your roster" panel (WRK2-06), in the narrow side column: one row per
+ * wrestler with the portrait, the name and push, and the two numbers. Every row wraps rather than
+ * widening the column, so nothing here can make the page scroll sideways.
+ */
+.body {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.list {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-inline-size: 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  padding-block: var(--space-2);
+  border-block-end: 1px solid var(--color-border);
+  min-inline-size: 0;
+}
+
+.row:last-child {
+  border-block-end: none;
+}
+
+.who {
+  display: grid;
+  min-inline-size: 0;
+  font-weight: var(--font-weight-semibold);
+}
+
+.push {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-regular);
+}
+
+/* The numbers sit under the name, beside each other, and wrap when the column is narrow. */
+.stats {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  margin: 0;
+  font-size: var(--font-size-sm);
+  min-inline-size: 0;
+}
+
+.stat {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.stat dt {
+  color: var(--color-text-muted);
+}
+
+.value {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0;
+  font-variant-numeric: var(--font-feature-tabular);
+}
+
+.empty {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+/* At least a tap target tall. */
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  justify-self: start;
+  min-block-size: var(--tap-target-min);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* The portrait beside both lines: the name and push, then the numbers. */
+.row > :first-child {
+  grid-row: span 2;
+  align-self: start;
+}

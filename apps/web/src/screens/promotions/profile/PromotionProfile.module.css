@@ -1,0 +1,248 @@
+/*
+ * The promotion profile, in the office register like the worker profile: a header card (large
+ * crest, name, facts), the tab strip, then the selected tab. Desktop first; below --bp-mobile the
+ * header and the panels stack in one column, the KPI cards go two to a row (KpiCardGrid) and the
+ * tab strip scrolls inside itself (Tabs), so the page never scrolls sideways.
+ */
+.screen {
+  display: grid;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  justify-self: start;
+  min-block-size: var(--tap-target-min);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+}
+
+.backLink:hover,
+.backLink:focus-visible {
+  color: var(--color-data);
+  text-decoration: underline;
+}
+
+.heading {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-tight);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-4) var(--space-5);
+  min-inline-size: 0;
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.identity {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.shortName {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.facts {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--space-3) var(--space-5);
+  margin: 0;
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--color-border);
+}
+
+.fact {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.fact dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.factLabel {
+  color: var(--color-text-muted);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.tab {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+  padding-block-start: var(--space-4);
+}
+
+/* Overview: needs and rival rules side by side while there is room. */
+.columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.ruleList {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ruleItem {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.ruleState {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.taste {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.tasteAxes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tasteAxis {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.nameCell {
+  display: block;
+  min-inline-size: 0;
+  max-inline-size: 16rem;
+}
+
+.none {
+  color: var(--color-text-muted);
+}
+
+/* Skeleton blocks while the profile loads. */
+.skeleton {
+  display: block;
+  border-radius: var(--radius-control);
+  background: var(--color-surface-raised);
+}
+
+.skeletonHeader {
+  block-size: 10rem;
+}
+
+.skeletonTabs {
+  block-size: 2.75rem;
+}
+
+@media (--bp-mobile) {
+  .heading {
+    font-size: var(--font-size-2xl);
+  }
+
+  .header {
+    grid-template-columns: minmax(0, 1fr);
+    padding: var(--space-4);
+  }
+
+  .facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* One axis per row, each a full tap target tall, so the Why? buttons do not crowd. */
+  .tasteAxes {
+    gap: var(--space-1);
+  }
+
+  .tasteAxis {
+    min-block-size: var(--tap-target-min);
+  }
+
+  .nameCell {
+    max-inline-size: none;
+  }
+
+  .rosterTable li[data-row-id] {
+    position: relative;
+  }
+
+  .rosterTable li[data-row-id] .nameCell a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .rosterTable li[data-row-id] button {
+    position: relative;
+    z-index: 1;
+    min-block-size: var(--tap-target-min);
+  }
+}

@@ -7,6 +7,7 @@ import { FinancesScreen } from '@/screens/finances/FinancesScreen';
 import { MatchLabScreen } from '@/screens/match-lab/MatchLabScreen';
 import { OfficeScreen } from '@/screens/office/OfficeScreen';
 import { RosterScreen } from '@/screens/roster/RosterScreen';
+import { PromotionsScreen } from '@/screens/promotions/PromotionsScreen';
 import { WorkersScreen } from '@/screens/workers/WorkersScreen';
 import { routes } from './routes';
 
@@ -122,7 +123,8 @@ export const navigationSections: readonly NavSection[] = [
         label: 'Promotions',
         icon: 'building',
         to: routes.game.promotions(),
-        status: 'placeholder',
+        status: 'live',
+        screen: PromotionsScreen,
       },
       {
         id: 'event-history',

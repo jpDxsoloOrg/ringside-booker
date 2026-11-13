@@ -1,0 +1,126 @@
+/*
+ * A rival desk's decision log: a row of pill chips (it scrolls sideways inside itself on a phone,
+ * never the page), the hidden-plans line, then a row per decision: date, kind chip, the decision
+ * in words and its Why?. On a phone each row stacks the words under the date and chip.
+ */
+.decisionLog {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.decisionLog > * {
+  max-inline-size: 100%;
+}
+
+.chips {
+  display: flex;
+  gap: var(--space-2);
+  justify-self: stretch;
+  min-inline-size: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+}
+
+.chip {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  min-block-size: 2rem;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.chip:hover {
+  background: var(--color-surface-hover);
+}
+
+.chip[aria-pressed='true'] {
+  border-color: var(--color-data);
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+}
+
+.hidden {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.entries {
+  display: grid;
+  justify-self: stretch;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-inline-size: 0;
+}
+
+.entry {
+  display: grid;
+  grid-template-columns: 7rem auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  min-inline-size: 0;
+  padding-block: var(--space-2);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.entry:last-child {
+  border-block-end: 0;
+}
+
+.date {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: var(--font-feature-tabular);
+}
+
+.summary {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.why {
+  justify-self: end;
+}
+
+.noWhy {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+@media (pointer: coarse) {
+  .chip {
+    min-block-size: var(--tap-target-min);
+  }
+}
+
+@media (--bp-mobile) {
+  .chip {
+    min-block-size: var(--tap-target-min);
+    scroll-snap-align: start;
+  }
+
+  .chips {
+    scroll-snap-type: x proximity;
+  }
+
+  .entry {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .summary {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}

@@ -7,6 +7,7 @@ import { AppShell } from './AppShell/AppShell';
 import {
   EntityLinkContext,
   gameEntityLink,
+  promotionLinkState,
   useEntityLinkRenderer,
   workerLinkState,
 } from './entityLinks';
@@ -51,7 +52,7 @@ describe('entity names inside a Why? breakdown', () => {
     expect(screen.queryByRole('link')).toBeNull();
   });
 
-  it('link a person to their profile under the game provider, and nothing else', () => {
+  it('link a person and a promotion to their profiles under the game provider', () => {
     render(
       <MemoryRouter future={memoryRouterFlags}>
         <EntityLinkContext.Provider value={gameEntityLink}>
@@ -61,10 +62,11 @@ describe('entity names inside a Why? breakdown', () => {
     );
 
     const links = screen.getAllByRole('link');
-    expect(links).toHaveLength(1);
+    expect(links).toHaveLength(2);
     expect(links[0]).toHaveTextContent('Test Worker 001');
     expect(links[0]).toHaveAttribute('href', `${routes.game.workers()}/${PERSON_ID}`);
-    expect(screen.getByText(/Test Promotion A/)).toBeInTheDocument();
+    expect(links[1]).toHaveTextContent('Test Promotion A');
+    expect(links[1]).toHaveAttribute('href', `${routes.game.promotions()}/${PROMOTION_ID}`);
   });
 
   it('use a renderer passed as a prop over the provider', () => {
@@ -84,6 +86,11 @@ describe('entity names inside a Why? breakdown', () => {
 describe('gameEntityLink', () => {
   it('keeps a person ref that is not a person id as plain text', () => {
     expect(gameEntityLink({ kind: 'person', id: 'nobody' }, 'Nobody')).toBe('Nobody');
+  });
+
+  it('keeps a promotion ref that is not a promotion id, and other kinds, as plain text', () => {
+    expect(gameEntityLink({ kind: 'promotion', id: 'nowhere' }, 'Nowhere')).toBe('Nowhere');
+    expect(gameEntityLink({ kind: 'title', id: 'tit_0000000001' }, 'A title')).toBe('A title');
   });
 });
 
@@ -137,5 +144,30 @@ describe('workerLinkState', () => {
 
   it('is nothing anywhere else', () => {
     expect(workerLinkState(location(routes.game.roster(), '', null))).toBeUndefined();
+  });
+});
+
+describe('promotionLinkState', () => {
+  const location = (pathname: string, search: string, state: unknown) => ({
+    pathname,
+    search,
+    state,
+    hash: '',
+    key: 'test',
+  });
+
+  it('is the list URL with its sort on the Promotions list', () => {
+    expect(promotionLinkState(location(routes.game.promotions(), '?sort=prestige', null))).toEqual({
+      promotionsListUrl: `${routes.game.promotions()}?sort=prestige`,
+    });
+  });
+
+  it('carries the list URL on from a profile, and trusts only a Promotions URL', () => {
+    const carried = { promotionsListUrl: `${routes.game.promotions()}?sort=name` };
+    const profile = `${routes.game.promotions()}/${PROMOTION_ID}`;
+    expect(promotionLinkState(location(profile, '', carried))).toEqual(carried);
+    expect(
+      promotionLinkState(location(profile, '', { promotionsListUrl: 'https://example.com' })),
+    ).toBeUndefined();
   });
 });

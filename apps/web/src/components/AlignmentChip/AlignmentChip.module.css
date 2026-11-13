@@ -27,8 +27,13 @@
   font-size: var(--font-size-xs);
 }
 
+/*
+ * Soft: the colour as text on the chip's own surface fill, not a see-through one. The heel red
+ * passes AA on the canvas and the surfaces but not on the hover step that hovered, current and
+ * ticked table rows take, so the chip carries the surface it was checked on with it.
+ */
 .soft {
-  background: transparent;
+  background: var(--color-surface);
 }
 
 .soft.alignment-face {

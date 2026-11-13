@@ -1,0 +1,70 @@
+/*
+ * A roster's needs: the line with the wrestlers the largest show calls for, then one row per need
+ * (words, severity bar, severity with Why?). On a phone each row stacks: the words on top, the bar
+ * and the number under them.
+ */
+.needsList {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.demanded {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.demandedLabel {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.rows {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-inline-size: 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(6rem, 10rem) auto;
+  align-items: center;
+  gap: var(--space-3);
+  min-inline-size: 0;
+  padding-block: var(--space-2);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.row:last-child {
+  border-block-end: 0;
+}
+
+.summary {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.bar {
+  min-inline-size: 0;
+}
+
+.severity {
+  justify-self: end;
+}
+
+@media (--bp-mobile) {
+  .row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .summary {
+    grid-column: 1 / -1;
+  }
+}

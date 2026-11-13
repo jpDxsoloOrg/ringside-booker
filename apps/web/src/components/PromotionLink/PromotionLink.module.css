@@ -1,0 +1,36 @@
+/* A promotion name that links to its profile: the data colour, underlined only when pointed at or focused. */
+.promotionLink {
+  color: var(--color-data);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.promotionLink:hover,
+.promotionLink:focus-visible {
+  text-decoration: underline;
+}
+
+/*
+ * One line, cut with an ellipsis. A block, so the cut happens at the edge of whatever holds the
+ * link; the holder needs a width of its own (min-inline-size: 0 inside a grid or flex row).
+ */
+.truncate {
+  display: block;
+  max-inline-size: 100%;
+  overflow: hidden;
+  overflow-wrap: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+ * Touch screens: a finger-sized hit area. The padding grows the tap box to 44px and the matching
+ * negative margin gives the room back, so lists and table cards keep their spacing (UI-30).
+ */
+@media (pointer: coarse) {
+  .promotionLink {
+    padding-block: var(--tap-pad-block);
+    margin-block: calc(-1 * var(--tap-pad-block));
+  }
+}

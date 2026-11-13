@@ -271,3 +271,42 @@ Ticks clear when the tab or the brand changes. While days are advancing the
 Set push… entries are disabled and say "Wait for the day to finish". Later
 row actions (turns, brand moves, releases) append to `rosterRowActions` in
 `rosterColumns.tsx`; WRK8's reaction preview goes in the sheet's `extra` slot.
+
+## Screen
+
+Your promotion > Roster (`apps/web/src/screens/roster/`), desktop first. The
+heading carries the roster's size ("55 under contract at Altura Wrestling
+Entertainment"), then the Brand selector (only for a promotion with brands:
+"All brands", each brand by priority with its size, then "Shared"), the six
+role tabs with their counts from `roster.summary`, and one sortable table from
+`roster.rows`. The tabs always add up to the size line; a brand narrows every
+tab to that brand's people.
+
+![The roster on desktop: the Wrestlers tab sorted by push](screenshots/roster-desktop.png)
+
+The Wrestlers columns, and which numbers explain themselves:
+
+| Column        | Kind                      | Why?                                                               |
+| ------------- | ------------------------- | ------------------------------------------------------------------ |
+| Alignment     | Stored fact               | None                                                               |
+| Push          | Stored fact               | None (set by the player)                                           |
+| Expects       | Derived (push gap)        | `roster.explain` `pushGap`, with the expected push folded in       |
+| Overall       | Derived (role rating)     | `roster.explain` `overall`, attribute lines and `workers.rating.*` |
+| Popularity    | Derived (fan roll-up)     | `roster.explain` `popularity`, region by region                    |
+| Momentum      | Stored by its door        | The stored trace when there is one; "–" before a first appearance  |
+| Morale        | Stored by its door        | The stored trace when there is one                                 |
+| Availability  | Stored status with reason | None; the reason is in the chip's words                            |
+| Contract ends | Stored date               | None                                                               |
+
+On a phone the table becomes cards (six stats each), the tab strip scrolls
+sideways inside itself, the Brand selector spans the width, ticking a card
+shows a bar stuck above the tab bar, and Set push opens as a bottom sheet.
+
+![The roster on a phone: wrestlers as cards](screenshots/roster-phone.png)
+
+The Office shows **Top of your roster** (side column, order 30): the five
+`topByPopularity` wrestlers with push, popularity (with its Why?) and
+momentum, each linking to the profile, and "View roster". The e2e
+`apps/web/e2e/roster.spec.ts` covers the counts, the brand filter, the three
+Why? panels, single and bulk Set push, persistence through Main menu and
+Continue, and the layout on desktop, phone and phone WebKit.
