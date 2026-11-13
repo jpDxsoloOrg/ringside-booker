@@ -441,6 +441,15 @@ How much one match result moves a competitor's momentum (MTCH3-02), in
 | `match.momentum.greatMatchBonus`          | number | 2       | 0–20  | points | Momentum everyone in a great match gains                 |
 | `match.momentum.maxPerSegment`            | number | 15      | 0–50  | points | Most momentum one match can give or take                 |
 
+The weekly drift back toward a resting point (MTCH3-07) is in the same file
+and category. See [match-aftermath.md](match-aftermath.md#momentum-drift).
+
+| Key                               | Kind   | Default | Range    | Unit   | What it does                                                                         |
+| --------------------------------- | ------ | ------- | -------- | ------ | ------------------------------------------------------------------------------------ |
+| `match.momentum.weeklyDrift`      | number | 0.12    | 0–1      | ratio  | Share of the way back to the resting point momentum moves each week (0 turns it off) |
+| `match.momentum.activeDriftShare` | number | 0.5     | 0–1      | ratio  | Share of the weekly cooling off a worker who wrestled that week still gets           |
+| `match.momentum.driftTarget`      | number | 0       | −100–100 | points | The momentum everyone drifts back toward each week                                   |
+
 ### Aftermath spread and storage tunables
 
 Where a match's popularity change spreads and how many stored aftermaths each

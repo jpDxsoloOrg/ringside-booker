@@ -217,9 +217,82 @@ momentum with the show's promotion:
   change at all.** There is no employment to write it to; the aftermath shows
   a note instead of a number.
 
-What the formula does not do: decay toward 0 between shows is WRK5's; the
+What the formula does not do: cooling off between shows is the weekly
+[momentum drift](#momentum-drift) (until WRK5 takes it over); the
 −100..100 range and starting an empty momentum are WRK1's door; morale is never
 read or written here.
+
+## Momentum drift
+
+Momentum is how hot someone is right now, so it has to cool off. Every
+Monday the `match.momentumDrift` phase (periodic group, order 30, before the
+aftermath prune) moves every open employment's momentum part of the way back
+to a resting point (MTCH3-07). It is the minimum WRK5 (popularity and
+momentum over time) can later replace or extend, keeping these tunables.
+
+`momentumDrift({ before, weeksIdle? }, { tunables })` in
+`aftermath/formulas/momentumDrift.ts` is pure and traced:
+
+```
+share  = weeklyDrift                      no match in the past week
+       = weeklyDrift × activeDriftShare   wrestled in the past week (weeksIdle 0)
+change = (driftTarget − momentum) × share
+         then the whole distance when less than half a point would be left
+```
+
+- **Plain words.** The result's label, which is also the door's reason line,
+  reads "Cooling off: 12% of the way back to 0" (or "Warming back up" from
+  below the target). A worker who wrestled that week gets the line
+  "Wrestled this week: cools off more slowly"; one who did not gets "Last
+  match over 3 weeks ago: cools off at the full rate" or "No match on record".
+- **Never past the target.** The change points at the target and is at most
+  the distance to it. Within half a point (`SETTLE_WITHIN`, a constant, not a
+  balance number) momentum settles exactly on the target, so an idle worker
+  stops changing instead of creeping forever.
+- **Busy workers cool off more slowly.** `weeksIdle` is the whole weeks since
+  the worker's last match for the promotion, read from the newest stored
+  aftermath row with a momentum (the prune always keeps it). One weekly rate
+  cannot meet both goals on the default schedule, where even the top stars
+  wrestle about once a week: at 12% a weekly winner settles near +40. At
+  half the rate a win a week (+5) holds about +78 (5 × 0.94 ÷ 0.06), while an
+  idle +100 still falls under +20 in 13 weeks (0.88¹³ ≈ 0.19).
+- **Turning it off.** `weeklyDrift` 0 changes nothing; `activeDriftShare` 0
+  stops drift for anyone who wrestled that week; `activeDriftShare` 1 drifts
+  everyone at the same rate.
+
+The phase applies the change through WRK1's `applyMomentumChange`, one change
+per employment per week, with reason key `momentum.drift`, source `system`,
+so the −100..100 limit, the `workers.momentum` door trace and the
+`momentum.changed` event are the same as for every other change. Empty
+momentum (no appearance yet) stays empty, and momentum at the target is
+skipped.
+
+**Lean traces.** A human-run promotion's workers hand the door the full drift
+breakdown, so their momentum Why? shows every step. Rivals' workers hand it
+the plain number with the same line, which is all a trace summary keeps
+anyway. Rivals are applied first, so within the door's trace kind the
+player's workers are the newest and keep their full traces
+(`sim.traceRetentionPerKind`). The door keeps one trace per employment (the
+latest change), so drift adds no trace rows over time.
+
+**Morale.** Drift never reads or writes morale. Cooling off is not held
+against anyone, whether they were resting, losing or booked to lose in a hot
+angle.
+
+**Balance.** On the default world with every show given a card (auto
+winners, `test/support/card-every-show.ts`), over the 193 active wrestlers
+after 365 days:
+
+| Momentum           | p10   | p50   | p90   | At ±100 | Busiest winners |
+| ------------------ | ----- | ----- | ----- | ------- | --------------- |
+| Without drift      | −100  | +18.5 | +100  | 40%     | +100            |
+| With drift (today) | −28.5 | −0.7  | +31.5 | 0%      | +65 to +81      |
+
+`driftBalance.test.ts` checks this for 13 weeks in `npm test`; set
+`RB_BALANCE_DAYS=365` for the year. The save grows by about 0.16 MB in that
+carded year (32.17 → 32.33 MB of state). The headless default-world year is
+unchanged at 8.91 MB: no show there has a card, so no momentum is ever
+started and nothing drifts.
 
 ## Prior matches
 
@@ -430,7 +503,7 @@ Partners that land later wire MTCH3 from their own packs.
 | EVT3 (show night)                    | wired (MTCH3-05)        | The match bundle registers `match.aftermath` (`aftermath/showNight.ts`) with `registerSegmentResultApplier` at order 30: after EVT3-04's title outcome (10), before MTCH4 (40) and MTCH6 (50). Every match a real show runs, player and rival cards alike, moves its competitors' popularity and momentum by exactly what its `aftermaths` rows store; a worker in two matches gets both, in card order. Off-screen shows have no segments and write nothing. A throw rolls back the whole day's shows, as for every applier.                                    |
 | EVT3 (results page)                  | wired (MTCH3-05)        | `registerResultsSection({ id: 'mtch3.aftermath', label: 'Popularity & momentum', order: 30 })` (`apps/web/src/screens/match-aftermath/`) reads `match.aftermath { eventInstanceId }`: one card per match, each competitor's show-region popularity and momentum before → after with the change and a Why? while the breakdown is kept, and an "Open in profile" link. Phones fold every match after the third behind its own toggle. It reuses the Match lab Aftermath panel's words (`aftermathText.ts`).                                                       |
 | EVT5 (TV reach)                      | wired (MTCH3-05)        | The match bundle registers the `match.tvReach` reach provider (`aftermath/tvReach.ts`, order 10). For a show it takes EVT5's `reachInputsFor` → `showReach` and keeps only the TV regions, each at EVT5's TV weight for the network's tier × `match.popularity.tvSpill` (0.3; 0 turns it off), reason "TV reach: <network>". A Match lab match with Televised on uses the promotion's deals in force on the lab's date; Televised off, or no deal in force, reaches no TV region. The neighbours keep MTCH3's own `neighbourSpill`, and the largest weight wins. |
-| WRK5 (drift, decay, momentum labels) | wires from its own pack | Momentum labels in the Aftermath panel and on Recent form rows, and the headless bounds check. Until WRK5's decay lands nothing pulls momentum back toward 0, so a busy worker's momentum runs to the ±100 limits within months.                                                                                                                                                                                                                                                                                                                                 |
+| WRK5 (drift, decay, momentum labels) | wires from its own pack | Momentum labels in the Aftermath panel and on Recent form rows, and the headless bounds check. Until WRK5 lands, MTCH3-07's weekly [momentum drift](#momentum-drift) pulls momentum back toward 0; WRK5 can replace or extend it and keep its tunables.                                                                                                                                                                                                                                                                                                          |
 | MTCH5 (angles)                       | wires from its own pack | Angle aftermath through `registerAftermathForKind('angle', fn)`; the applier still skips angles.                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | ECO2 (star merch)                    | wires from its own pack | `merchStar` reads the popularity show night now moves; ECO2 adds the test.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | DAY5 (awards)                        | wires from its own pack | The Breakout Star headless check.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
