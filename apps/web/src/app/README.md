@@ -265,8 +265,8 @@ function useGateReportLine({ view }: ResultsSectionProps): ShowReportLineContent
 Lines are drawn with the built-in ones (new champions 10, title defences 11, appearances 15) in
 `order`, then by id. A line returns null while its data loads or when it has nothing to say; there
 are no placeholders. Register it next to the feature's results section (the same file the page
-already imports). Registered so far: `evt5.fans` (25), `mtch3.popularity` (30) and
-`finance.showMoney` (60).
+already imports). Registered so far: `evt5.fans` (25), `mtch3.popularity` (30),
+`boxOffice.crowd` (35) and `finance.showMoney` (60).
 
 ### Adding a results section
 
