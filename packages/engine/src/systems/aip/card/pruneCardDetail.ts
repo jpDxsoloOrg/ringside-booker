@@ -4,8 +4,9 @@
  * The save keeps roughly the last month in detail and the current numbers. A rival card's plan
  * trace (`aip.cardPlan`) is summary-only from the start; each written segment's short Why?
  * (`aip.cardSlot`) is kept in full for `aip.card.keepDetailDays` days after the show and then
- * demoted to its summary, and so are AIP5's winner and title decisions (`aip.winner`, `aip.title`). The cards themselves (who was on which show, the results) are public
- * facts other features read and are not touched here.
+ * demoted to its summary, and so are AIP5's winner and title decisions (`aip.winner`,
+ * `aip.title`). The cards themselves (who was on which show, the results) are public facts other
+ * features read and are not touched here.
  *
  * Daily in `periodic` (order 43, after `aip.pruneDecisionLog`): demotes the slots of the computer
  * shows dated exactly `today - keepDetailDays`, read through the `byDate` index. On the 1st of each
