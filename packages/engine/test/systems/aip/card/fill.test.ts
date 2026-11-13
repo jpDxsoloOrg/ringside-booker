@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { parseContentKey } from '../../../../src/core/content-key';
 import { addDays } from '../../../../src/core/date';
-import type { PersonId, StorylineId } from '../../../../src/core/ids';
+import type { PersonId } from '../../../../src/core/ids';
 import { RngRegistry } from '../../../../src/core/rng/registry';
 import { traceNodeSchema, type TraceNode } from '../../../../src/core/trace';
 import { matchTypesOf } from '../../../../src/model/catalogs';
@@ -421,7 +421,10 @@ describe('fillCard', () => {
         },
       ],
     });
-    const storylineId = built.ids.storylines[0] as StorylineId;
+    const [storylineId] = built.ids.storylines;
+    if (storylineId === undefined) {
+      throw new Error('no storyline');
+    }
     const match = plan(built, {
       tunables: createEngineTunables({ 'aip.card.storylineMatchChance': 1 }),
     }).fill.segments.find((segment) => segment.source === 'storyline');
