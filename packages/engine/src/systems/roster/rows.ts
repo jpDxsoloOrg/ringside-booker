@@ -28,21 +28,17 @@ import type { GameWorldView } from '../../model/tables';
 import type { EngineTunables } from '../tunables';
 import { geographyOf } from '../world/geography';
 import { DOOR_TRACE_KINDS } from '../workers/doors';
-import { expectedPush } from '../workers/formulas/expectedPush';
 import { footprintPopularityValue } from '../workers/formulas/footprintPopularity';
 import { gradeOf, type Grade } from '../workers/formulas/grade';
-import { overallOf } from '../workers/formulas/roleRating';
-import { ageOn } from '../workers/helpers/age';
-import { availabilityOf, type AvailabilityStatus } from '../workers/helpers/availability';
-import { computePushGap } from './formulas/pushGap';
-import { computePushVerdict, type PushVerdict } from './formulas/pushVerdict';
+import type { AvailabilityStatus } from '../workers/helpers/availability';
+import type { PushVerdict } from './formulas/pushVerdict';
 import {
   pushIndexOf,
   ROSTER_ROLE_GROUPS,
-  roleHasPush,
   rosterRoleGroupOf,
   type RosterRoleGroup,
 } from './roleGroups';
+import { oneDecimal, rowInputs, rowOverall, rowPushGap } from './rowInputs';
 
 /** Which rows to keep. Both are optional; a row must pass every one that is set. */
 export interface RosterFilter {
@@ -104,10 +100,6 @@ export interface RosterDeps {
   traces: Pick<TraceReader, 'has'>;
 }
 
-function oneDecimal(value: number): number {
-  return Math.round(value * 10) / 10;
-}
-
 function storedRef(traces: Pick<TraceReader, 'has'>, ref: TraceRef): TraceRef | null {
   return traces.has(ref) ? ref : null;
 }
@@ -145,7 +137,7 @@ export function buildRosterRows(
   deps: RosterDeps,
   filter: RosterFilter = {},
 ): RosterRow[] {
-  const promotion = read.tables.promotions.require(promotionId);
+  read.tables.promotions.require(promotionId);
   const regions = geographyOf(read).regions;
   const formulaDeps = { tunables: deps.tunables };
   const rows: RosterRow[] = [];
@@ -157,29 +149,12 @@ export function buildRosterRows(
     if (!passesFilter(employment, filter)) {
       continue;
     }
-    const person = read.tables.people.require(employment.personId);
+    const inputs = rowInputs(read, employment, date, regions);
+    const { person, availability } = inputs;
     const brand = employment.brandId === null ? null : read.tables.brands.get(employment.brandId);
-    const rating = overallOf(person, employment.role, formulaDeps).value;
+    const rating = rowOverall(inputs, formulaDeps).value;
+    const push = rowPushGap(inputs, formulaDeps);
 
-    let expected: Push | null = null;
-    let pushGap: RosterPushGap | null = null;
-    if (roleHasPush(employment.role)) {
-      const expectedTraced = expectedPush(
-        {
-          employmentRole: employment.role,
-          workerPop: person.regionalPop,
-          promotionPop: promotion.regionalPop,
-          promotionName: promotion.name,
-          regions,
-        },
-        formulaDeps,
-      );
-      const gap = computePushGap({ push: employment.push, expected: expectedTraced }, formulaDeps);
-      expected = expectedTraced.value;
-      pushGap = { steps: gap.value, verdict: computePushVerdict(gap, formulaDeps).value };
-    }
-
-    const availability = availabilityOf(person, employment, date);
     rows.push({
       employmentId: employment.id,
       personId: person.id,
@@ -191,23 +166,13 @@ export function buildRosterRows(
       ringName: employment.ringName,
       imageRef: person.imageRef,
       gender: person.gender,
-      age: ageOn(person, date),
+      age: inputs.age,
       alignment: employment.alignment,
       push: employment.push,
-      expectedPush: expected,
-      pushGap,
+      expectedPush: push?.expected.value ?? null,
+      pushGap: push === null ? null : { steps: push.gap.value, verdict: push.verdict.value },
       overall: { value: oneDecimal(rating), grade: gradeOf(rating).grade },
-      popularity: oneDecimal(
-        footprintPopularityValue(
-          {
-            subjectPop: person.regionalPop,
-            promotionPop: promotion.regionalPop,
-            promotionName: promotion.name,
-            regions,
-          },
-          formulaDeps,
-        ),
-      ),
+      popularity: oneDecimal(footprintPopularityValue(inputs.popularity, formulaDeps)),
       momentum: {
         value: employment.momentum,
         traceRef: storedRef(deps.traces, {
