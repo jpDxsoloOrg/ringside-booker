@@ -8,6 +8,9 @@ import { loadDefaultWorld } from '../workers/default-world';
 describe('the popularity ceiling in the default world', () => {
   const world = loadDefaultWorld();
   const tunables = createEngineTunables();
+  const regionNames = new Map<string, string>(
+    world.tables.regions.values().map((region) => [region.id, region.name]),
+  );
 
   it('starts no active promotion above its ceiling in any region', () => {
     const over: string[] = [];
@@ -23,7 +26,7 @@ describe('the popularity ceiling in the default world', () => {
         { tunables },
       );
       for (const [regionId, popularity] of Object.entries(promotion.regionalPop)) {
-        const regionName = world.tables.regions.get(regionId)?.name ?? regionId;
+        const regionName = regionNames.get(regionId) ?? regionId;
         const drag = popularityDrag({ regionName, popularity, ceiling }, { tunables });
         if (popularity > ceiling.value || drag.value > 0) {
           over.push(
