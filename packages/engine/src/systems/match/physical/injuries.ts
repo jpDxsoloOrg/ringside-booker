@@ -178,7 +178,10 @@ export interface InjuryHandler {
   /** `system.camelName`, like a phase id, for example `health.injure`. */
   readonly id: string;
   /** Runs in the phase context the segment result applier runs in. */
-  readonly apply: (ctx: PhaseContext, request: InjuryRequest) => { injuryTraceRef: TraceRef | null };
+  readonly apply: (
+    ctx: PhaseContext,
+    request: InjuryRequest,
+  ) => { injuryTraceRef: TraceRef | null };
 }
 
 let handler: InjuryHandler | null = null;
