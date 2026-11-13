@@ -7,6 +7,7 @@ import { createEngine, initialEngineState, type Engine } from '../../../../src/c
 import { simSystem } from '../../../../src/core/api/builtins';
 import { parseContentKey } from '../../../../src/core/content-key';
 import { parseGameDate } from '../../../../src/core/date';
+import { parseId } from '../../../../src/core/ids';
 import type { EventInstanceId, PersonId, SegmentId } from '../../../../src/core/ids';
 import { refKey } from '../../../../src/core/trace/store';
 import type { EventInstance } from '../../../../src/model/entities/event-instance';
@@ -253,7 +254,7 @@ describe('the physical toll on show night', () => {
       rows.filter(
         (row) =>
           row.source === 'segment' &&
-          [built.opener, built.rematch].includes(row.segmentId ?? ('' as SegmentId)),
+          (row.segmentId === built.opener || row.segmentId === built.rematch),
       ).length,
     );
     // The opener comes first: card order.
@@ -273,7 +274,7 @@ describe('the physical toll on show night', () => {
 
     const missing = engine.query(
       'match.segmentInjuries',
-      { eventInstanceId: 'evi_zzzzzzzzzz' as EventInstanceId },
+      { eventInstanceId: parseId('eventInstance', 'evi_zzzzzzzzzz') },
       OMNISCIENT,
     );
     expect(missing.ok ? null : missing.reasons[0]?.message).toBe(SEGMENT_INJURIES_NOT_FOUND);
