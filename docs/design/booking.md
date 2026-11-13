@@ -625,7 +625,10 @@ contest) and a billing line. Each person in the picker reads "High flyer · Pop 
 in visible text: the ring style for a wrestler (a manager or presenter in a talking segment
 shows their role instead), popularity in the show's region and, for wrestlers, stamina. Screen
 readers hear "Popularity in Greater Lakes 54", and a line under the filters says which region
-Pop means. A Most popular chip sorts the people by that popularity. A picked team is never
+Pop means. A Most popular chip sorts the people by that popularity. The line starts with the
+worker's gender in words ("Woman · High flyer · …"), and Gender and Push chips narrow the list
+(a team matches Gender when every member does, Push when any member does, and says "Mixed"
+when its members differ); they never stop the player booking any mix. A picked team is never
 only its name: the editor's side says "Team: Running Axe" over its wrestlers, and the planned
 result, the card row on the board (the wrestlers under the team's name) and its Winner menu read
 "Running Axe (Kai Moreno & Rex Hale)". Show results already list every wrestler on a side by

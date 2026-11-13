@@ -130,6 +130,17 @@ until **Save**, which sends the whole draft in one `booking.addSegment` or
   for wrestlers, stamina, rounded. Screen readers hear "Popularity in <region> 54". Most popular
   sorts by popularity. Fatigue (WRK6) is not tracked yet; when it is, it is one more entry in
   `workerStats`, and nothing stands in for it until then.
+  The line starts with the worker's gender in the profile's words (`GENDER_LABELS`: "Woman ·
+  High flyer · …"), and a team row says "Women", "Men" or "Mixed". Gender and Push chips open
+  small menus (`genderAndPushFilters`): Gender is All, Men, Women or Non-binary, and a team
+  matches when every member does; Push takes one or more pushes in `PUSH_LABELS`' words, and a
+  team matches when any member does. They combine with the other filters, the list counts what
+  they hide, and the choice holds while the editor is open. They only narrow the list: any
+  gender or push mix can be booked (EVT2-11).
+- **Phones.** The picker's search box takes focus as it opens, so on a touch screen it and the
+  billing line are 16px: Safari on iPhone zooms the page in on a smaller text field and leaves it
+  zoomed (EVT2-10). Long names wrap on a phone rather than being cut off, and
+  `e2e/segment-editor.spec.ts` checks the editor and the open picker fit with no sideways scroll.
 - **Teams by name and wrestlers.** A team side says "Team: Running Axe" above its wrestlers; the
   Result choice, the card row's Winner menu (`bookingSideText`) read "Side 1: Running Axe (Kai
   Moreno & Rex Hale)", and the card row puts the wrestlers under the team's name
