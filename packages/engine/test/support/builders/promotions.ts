@@ -9,6 +9,8 @@
  * - brand `Test Brand 001`, ...: the flagship (priority 0), active, run by its promotion;
  * - employment: an active, exclusive, open-ended written contract for a midcard face wrestler,
  *   offered and started on `TEST_START_DATE`, 5,000 a month, no shares or perks;
+ * - contract concern (ECO4-01): for `emp_0000000001` of `per_0000000001` at `pro_0000000001`, with
+ *   only an `ending` (expired on its end date, no severance) so the row is not empty;
  * - team `Test Team 001`: an active tag team of people 1 and 2, experience 50;
  * - stable `Test Stable 001`: an active stable of people 1 to 3 with no leader;
  * - relationship: friends, affinity 0. The pair is put in canonical order for you.
@@ -26,6 +28,10 @@ import { cents } from '../../../src/core/money';
 import { AiDecisionSchema, type AiDecision } from '../../../src/model/entities/ai-decision';
 import { AiProfileSchema, type AiProfile } from '../../../src/model/entities/ai-profile';
 import { BrandSchema, type Brand } from '../../../src/model/entities/brand';
+import {
+  ContractConcernSchema,
+  type ContractConcern,
+} from '../../../src/model/entities/contract-concern';
 import { EmploymentSchema, type Employment } from '../../../src/model/entities/employment';
 import { PromotionSchema, type Promotion } from '../../../src/model/entities/promotion';
 import {
@@ -144,6 +150,23 @@ export function anEmployment(
     leave: null,
   };
   return buildRow(EmploymentSchema, 'anEmployment', defaults, overrides);
+}
+
+export function aContractConcern(
+  overrides: DeepPartial<ContractConcern> = {},
+  sequence: TestIdSequence = TestIds,
+): ContractConcern {
+  const defaults: ContractConcern = {
+    id: overrides.id ?? sequence.id('contractConcern'),
+    employmentId: testId('employment'),
+    personId: testId('person'),
+    promotionId: testId('promotion'),
+    expiryNotice: null,
+    unhappy: null,
+    request: null,
+    ending: { how: 'expired', severance: cents(0), traceRef: null },
+  };
+  return buildRow(ContractConcernSchema, 'aContractConcern', defaults, overrides);
 }
 
 export function aTeam(overrides: DeepPartial<Team> = {}, sequence: TestIdSequence = TestIds): Team {

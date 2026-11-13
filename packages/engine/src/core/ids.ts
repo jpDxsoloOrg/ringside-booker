@@ -47,6 +47,7 @@ export const ENTITY_KINDS = {
   aiProfile: 'aip',
   aiDecision: 'aid',
   injury: 'inj',
+  contractConcern: 'ccn',
 } as const;
 
 export type EntityKind = keyof typeof ENTITY_KINDS;
@@ -85,6 +86,7 @@ export type PromotionSnapshotId = IdOf<'promotionSnapshot'>;
 export type AiProfileId = IdOf<'aiProfile'>;
 export type AiDecisionId = IdOf<'aiDecision'>;
 export type InjuryId = IdOf<'injury'>;
+export type ContractConcernId = IdOf<'contractConcern'>;
 
 /** Lowercase Crockford base32: digits and letters without i, l, o and u. Index = 5-bit value. */
 export const ID_BODY_ALPHABET = '0123456789abcdefghjkmnpqrstvwxyz';

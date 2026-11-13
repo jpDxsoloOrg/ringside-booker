@@ -93,7 +93,7 @@ describe('the production table registry', () => {
   it('registers every entity kind exactly once', () => {
     const kindsInRegistry = TABLE_DEFS.map((def) => def.kind).sort();
     expect(kindsInRegistry).toEqual([...ENTITY_KIND_LIST].sort());
-    expect(TABLE_DEFS).toHaveLength(30);
+    expect(TABLE_DEFS).toHaveLength(31);
   });
 
   it('registers the season table', () => {

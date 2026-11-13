@@ -784,6 +784,21 @@
         "code": "TCA"
       }
     ],
+    "contractConcerns": [
+      {
+        "id": "ccn_0000000001",
+        "employmentId": "emp_0000000006",
+        "personId": "per_0000000006",
+        "promotionId": "pro_0000000001",
+        "expiryNotice": {
+          "raisedOn": "2026-04-10",
+          "seenOn": "2026-04-10"
+        },
+        "unhappy": null,
+        "request": null,
+        "ending": null
+      }
+    ],
     "countries": [
       {
         "id": "cty_0000000001",
