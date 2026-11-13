@@ -364,7 +364,6 @@ promotions' results that nobody opens in full:
 | `postMoney` (finance)       | `finance.rivalEntry`                         | Every ledger row of a rival    |
 | The match aftermath (MTCH3) | `match.popularityGain`, `match.momentumGain` | Matches on a computer-run show |
 | The worker doors (WRK1)     | `workers.popularity`, `workers.momentum`     | Changes with source `ai`       |
-| The rival booker (AIP4-05)  | `aip.cardPlan`                               | Every rival show it books      |
 
 A promotion's own popularity door trace (`promotions.popularity`) and rival
 show results (`shows.rivalSegmentScore`, `match.rivalResult`,

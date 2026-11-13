@@ -102,6 +102,8 @@ export {
   decideTitlePicture,
   DEFEND_REASON,
   dueText,
+  notDueText,
+  titleDueText,
   MATCH_TYPE_LABEL,
   NO_CHALLENGER_REASON,
   NO_DEFENCE_YET_NOTE,

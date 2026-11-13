@@ -29,7 +29,6 @@ import type { Gender } from '../../../model/entities/person';
 import { compareIds } from '../../../model/table';
 import type { GameWorldView } from '../../../model/tables';
 import type { EngineTunables } from '../../tunables';
-import { formatNumber } from '../../world/people/labels';
 import {
   CardBook,
   isFreeToWrestle,
@@ -184,7 +183,8 @@ function freeTeams(
 function teamsText(teams: readonly CardTeam[]): string {
   return teams
     .map(
-      (team, index) => `#${String(index + 1)} ${team.name} (${formatNumber(team.meanCardValue)})`,
+      (team, index) =>
+        `#${String(index + 1)} ${team.name} (${String(Math.round(team.meanCardValue))})`,
     )
     .join(', ');
 }

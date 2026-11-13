@@ -1,9 +1,9 @@
 /**
  * `aip.pruneCardDetail`: rival show detail is kept in full only for a while (AIP4-05).
  *
- * The save keeps roughly the last month in detail and the current numbers. A rival card's plan
- * trace (`aip.cardPlan`) is summary-only from the start; each written segment's short Why?
- * (`aip.cardSlot`) is kept in full for `history.keepDetailDays` days after the show and then
+ * The save keeps roughly the last month in detail and the current numbers. A rival card's short
+ * plan Why? (`aip.cardPlan`, the booker's notes, AIP4-09) and each written segment's short Why?
+ * (`aip.cardSlot`) are kept in full for `history.keepDetailDays` days after the show and then
  * demoted to its summary, and so are AIP5's winner and title decisions (`aip.winner`,
  * `aip.title`). The cards themselves are not touched here: the weekly `history.rollUp`
  * (POL4-08) summarises them on the same window.
@@ -23,14 +23,18 @@ import type { PhaseContext } from '../../../core/pipeline/context';
 import type { EventInstance } from '../../../model/entities/event-instance';
 import type { DeepReadonly } from '../../../model/world';
 import { titleTraceRef, winnerTraceRef } from '../results/traces';
-import { CARD_SLOT_TRACE_KIND } from './bookShowJob';
+import { CARD_PLAN_TRACE_KIND, CARD_SLOT_TRACE_KIND } from './bookShowJob';
 
 export const AIP_PRUNE_CARD_DETAIL_PHASE_ID = 'aip.pruneCardDetail';
 
-/** Demotes the slot traces of the shows among `shows`; returns how many shows had segments. */
+/**
+ * Demotes the plan and slot traces of the shows among `shows`; returns how many shows had
+ * segments.
+ */
 function demoteSlots(ctx: PhaseContext, shows: Iterable<DeepReadonly<EventInstance>>): number {
   let count = 0;
   for (const show of shows) {
+    ctx.demoteTrace({ kind: CARD_PLAN_TRACE_KIND, id: show.id });
     const segments = ctx.read.tables.segments.lookup('byEventInstance', show.id);
     for (const segment of segments) {
       ctx.demoteTrace({ kind: CARD_SLOT_TRACE_KIND, id: segment.id });

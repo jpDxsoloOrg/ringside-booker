@@ -44,7 +44,7 @@ export function pairedForTonightText(names: readonly string[]): string {
 
 /** "#1 Haruto Ise, card value 71". */
 export function contenderText(rank: number, name: string, value: number): string {
-  return `#${String(rank)} ${name}, card value ${formatNumber(value)}`;
+  return `#${String(rank)} ${name}, card value ${String(Math.round(value))}`;
 }
 
 export interface ChallengerArgs {

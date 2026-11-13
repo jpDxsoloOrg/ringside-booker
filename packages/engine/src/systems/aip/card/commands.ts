@@ -75,7 +75,7 @@ export interface AutoFilledSlot {
   roleLabel: string;
   /** The matchup ("Ace vs Rookie") or the talking segment's speakers. */
   label: string;
-  /** Two or three short reasons ("Title due: 34 days since the last defence"). */
+  /** Two or three short reasons ("Tessen Heavyweight Championship: due, 34 days since the last defence"). */
   headline: string[];
   /** The slot's Why? (`aip.cardSlot`). */
   traceRef: TraceRef;

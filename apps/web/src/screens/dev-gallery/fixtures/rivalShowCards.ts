@@ -27,8 +27,13 @@ export const galleryCardTrace: TraceNode = {
   considered: [],
   docRef: DOC,
   children: [
-    { kind: 'note', label: 'Title due: 34 days since the last defence', value: null },
-    { kind: 'note', label: 'The top two wrestlers on the roster by card value', value: null },
+    { kind: 'note', label: 'Strongest match closes the show', value: null },
+    {
+      kind: 'note',
+      label: 'Rival Heavyweight Championship: due, 34 days since the last defence',
+      value: null,
+    },
+    { kind: 'note', label: 'Challenger: #1 Dante Rivers, card value 71', value: null },
     { kind: 'input', label: 'Card score', value: 78 },
   ],
 };
@@ -277,9 +282,8 @@ export const galleryAutoFillResult: AutoFillResult = {
       roleLabel: 'Main event',
       label: 'Big Joe Sato vs Dante Rivers',
       headline: [
-        'Title due: 34 days since the last defence',
-        'The top two wrestlers on the roster by card value',
-        'Card score 78',
+        'Strongest match closes the show',
+        'Rival Heavyweight Championship: due, 34 days since the last defence',
       ],
       traceRef: { kind: 'aip.cardSlot', id: 'seg_0000000103' },
     },

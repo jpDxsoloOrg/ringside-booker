@@ -29,7 +29,6 @@ import type { RngStream } from '../../../core/rng/registry';
 import type { Alignment } from '../../../model/entities/employment';
 import type { Gender } from '../../../model/entities/person';
 import type { EngineTunables } from '../../tunables';
-import { formatNumber } from '../../world/people/labels';
 import type { BookerNotes } from './notes';
 import type { CardCandidate, CardPool } from './types';
 
@@ -129,7 +128,7 @@ export function rankedText(candidates: readonly CardCandidate[]): string {
   return candidates
     .map(
       (candidate, index) =>
-        `#${String(index + 1)} ${candidate.ringName} (${formatNumber(candidate.cardValue.value)})`,
+        `#${String(index + 1)} ${candidate.ringName} (${String(Math.round(candidate.cardValue.value))})`,
     )
     .join(', ');
 }

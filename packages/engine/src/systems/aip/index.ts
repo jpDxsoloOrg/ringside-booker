@@ -308,6 +308,8 @@ export {
   decideTitlePicture,
   DEFEND_REASON,
   dueText,
+  notDueText,
+  titleDueText,
   importanceBonusKey,
   lastDefenceOf,
   MATCH_TYPE_LABEL,

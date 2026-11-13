@@ -494,11 +494,14 @@ GM's.
 
 The result is plain JSON:
 
-- `{ kind: 'card', placements, open, planTrace, counts }`. Each placement has
-  its slot (0-based, as stored), `preShow`, the draft, its source, its card
-  score, a `headline` of two or three short reasons for lists ("Strongest
-  match closes the show", "Title due: 34 days since the last defence", "Ace
-  Haruto Ise") and a `slotTrace`: the decision "Slot <n> · <role>" (role from
+- `{ kind: 'card', placements, open, planTrace, counts, notes }`. Each
+  placement has its slot (0-based, as stored), `preShow`, the draft, its
+  source, its card score, a `headline` of two or three short reasons for
+  lists ("Strongest match closes the show", "Tessen Heavyweight Championship:
+  due, 34 days since the last defence", "Ace Haruto Ise"), `notes` (the
+  booker's other notes on it: "Challenger: #1 Haruto Ise, card value 71",
+  "Established team: <team>"; card values are whole numbers) and a
+  `slotTrace`: the decision "Slot <n> · <role>" (role from
   MTCH1's `slotRoleOf`) that includes the slot role, the segment's own
   decision (title picture or fill notes), its card score and the rule that
   placed it. That is the Why? the Shows tab and the Auto-fill reasons sheet
@@ -609,18 +612,25 @@ and the engine's `decisionSummaryText` say the same words.
 **Traces.** A whole plan is 70 to 330 KB of JSON, and eleven rivals book
 hundreds of shows a year, so rival shows never keep it:
 
-- `aip.cardPlan` (by event instance ID): "Booking <show>", the plan and what
-  happened when it was written (skipped placements, removed segments), stored
-  summary-only. The card decision points at it;
+- `aip.cardPlan` (by event instance ID): "Booking <show>", the plan's `notes`
+  as a booker writes them (wrestlers fit to work, up to six workers left out
+  and why, the talking share, whether the main event must be a match, one line
+  per title looked at: "<title>: due, 41 days since the last defence" or why
+  it is not on the line, slots left open), then what happened when it was
+  written (skipped placements, removed segments). Under 4 KB. The card
+  decision points at it. Until AIP4-09 it was summary-only, which left the
+  Why? with nothing to read;
 - `aip.cardSlot` (by segment ID): "Slot <n> · <role>" with the segment's
-  headline reasons and its card score, a few hundred bytes. It is kept in full
-  for `history.keepDetailDays` (28) days after the show, then only its
-  summary: `aip.pruneCardDetail` (group `periodic`, order 43, daily) demotes
-  the slots of the shows dated exactly that many days ago (the player's
-  auto-filled slots too, see [Auto-fill](#auto-fill)), with a full
-  sweep on the 1st of each month for anything a lowered setting left behind.
-  The per-kind limits (`sim.traceRetentionPerKind`, `sim.traceBytesPerKind`)
-  still apply on top.
+  headline reasons, its other notes (challenger, established teams) and its
+  card score, a few hundred bytes.
+
+Both are kept in full for `history.keepDetailDays` (28) days after the show,
+then only their summaries: `aip.pruneCardDetail` (group `periodic`, order 43,
+daily) demotes the plan and the slots of the shows dated exactly that many
+days ago (the player's auto-filled slots too, see [Auto-fill](#auto-fill)),
+with a full sweep on the 1st of each month for anything a lowered setting left
+behind. The per-kind limits (`sim.traceRetentionPerKind`,
+`sim.traceBytesPerKind`) still apply on top.
 
 The save keeps about the last month in detail: the cards themselves (which
 shows ran, who was on them, the results) are public facts other features read

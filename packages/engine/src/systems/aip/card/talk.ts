@@ -25,7 +25,6 @@ import { angleTypesOf, type AngleTypeDef } from '../../../model/catalogs';
 import type { StorylineSide } from '../../../model/entities/storyline';
 import type { GameWorldView } from '../../../model/tables';
 import type { EngineTunables } from '../../tunables';
-import { formatNumber } from '../../world/people/labels';
 import { emptyCrew, type ParticipantDraft } from '../../booking/draft';
 import type { CardBookings } from './fallback';
 import { BookerNotes } from './notes';
@@ -64,7 +63,7 @@ function talkerText(candidates: readonly CardCandidate[]): string {
   return candidates
     .map(
       (candidate, index) =>
-        `#${String(index + 1)} ${candidate.ringName} (talking ${formatNumber(candidate.talkValue.value)})`,
+        `#${String(index + 1)} ${candidate.ringName} (talking ${String(Math.round(candidate.talkValue.value))})`,
     )
     .join(', ');
 }

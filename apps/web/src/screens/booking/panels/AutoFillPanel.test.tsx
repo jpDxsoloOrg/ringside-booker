@@ -188,7 +188,7 @@ describe('the reasons sheet', () => {
         displayNumber: 6,
         roleLabel: 'Main event',
         label: 'Ace vs Rookie',
-        headline: ['Title due: 34 days since the last defence', 'Card score 71'],
+        headline: ['Rival Title: due, 34 days since the last defence', 'Card score 71'],
         traceRef: { kind: 'aip.cardSlot', id: 'seg_0000000001' },
       },
     ],

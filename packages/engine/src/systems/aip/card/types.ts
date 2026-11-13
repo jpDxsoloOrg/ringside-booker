@@ -151,6 +151,8 @@ export interface PlannedTitleMatch {
   readonly sides: readonly PlannedSide[];
   /** The title's decision: why it is defended, the challenger pick and the match type. */
   readonly trace: Traced<string>;
+  /** The picked challenger as the booker notes it ("#1 Haruto Ise, card value 71"), or null. */
+  readonly challenger: string | null;
 }
 
 /** A title left off tonight's card, and why, in plain words. */

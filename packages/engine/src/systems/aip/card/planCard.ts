@@ -51,13 +51,18 @@ import {
   talkSlotsFor,
   titleMatchCapFor,
 } from './formulas/cardShape';
-import { daysSinceText } from './formulas/titleUrgency';
 import { orderCard, slotKeyOf, type FixedSegment } from './order';
 import { buildCardPool } from './pool';
 import { lastDefenceOf } from './titleHistory';
-import { decideTitlePicture, VACANT_RULE } from './titlePicture';
+import { decideTitlePicture, titleDueText, VACANT_RULE } from './titlePicture';
 import { PLAN_CARD_DOC_REF } from './tunables';
-import type { CardPool, PlannedSegment, PlannedSegmentSource } from './types';
+import type {
+  CardPool,
+  PlannedSegment,
+  PlannedSegmentSource,
+  PlannedTitleMatch,
+  TitlePicture,
+} from './types';
 
 export const NOTHING_LEFT_REASON = 'Nothing left to book for this slot';
 
@@ -106,8 +111,16 @@ export interface PlannedPlacement {
   /** "Slot <n> · <role>": the role, the segment's own decision, its card score and the rule. */
   readonly slotTrace: Traced<string>;
   readonly cardScore: number;
-  /** Two or three short reasons for lists ("Title due: 34 days since the last defence"). */
+  /**
+   * Two or three short reasons for lists ("Tessen Heavyweight Championship: due, 34 days since
+   * the last defence").
+   */
   readonly headline: readonly string[];
+  /**
+   * The booker's notes beyond the headline, for the short Why? a written segment keeps: the
+   * challenger's rank and card value, the established teams used ("Established team: <name>").
+   */
+  readonly notes: readonly string[];
 }
 
 /** A slot the plan leaves empty, and why. */
@@ -133,8 +146,15 @@ export type CardPlan =
       /** "Card plan: <show>": the shape, the title picture, the fill, exclusions and the order. */
       readonly planTrace: Traced<string>;
       readonly counts: PlanCounts;
+      /** The plan as a booker's notes, for the short Why? a booked show keeps. */
+      readonly notes: readonly string[];
     }
-  | { readonly kind: 'cancel'; readonly reason: string; readonly planTrace: Traced<string> };
+  | {
+      readonly kind: 'cancel';
+      readonly reason: string;
+      readonly planTrace: Traced<string>;
+      readonly notes: readonly string[];
+    };
 
 /** What is already on the card, in keep-filled mode. */
 interface OnCard {
@@ -289,7 +309,7 @@ function headlineOf(
     } else {
       const last = lastDefenceOf(read, title, today);
       const days = last.date === null ? 0 : Math.max(0, diffDays(last.date, today));
-      lines.push(`Title due: ${daysSinceText(days)}`);
+      lines.push(titleDueText(title.name, days));
     }
   } else if (scored.storyline !== null) {
     lines.push(storylineHeatText(scored.storyline.name, scored.storyline.heat));
@@ -303,6 +323,95 @@ function headlineOf(
     lines.push(featuredText(star.kind, star.name));
   }
   return lines;
+}
+
+/** How many left-out workers the plan's notes name before "and N more". */
+const LEFT_OUT_NOTE_LIMIT = 6;
+
+/** "Challenger: #1 Haruto Ise, card value 71" (or "Top contenders: …" for a vacant title). */
+export function challengerNoteText(challenger: string, vacant: boolean): string {
+  return `${vacant ? 'Top contenders' : 'Challenger'}: ${challenger}`;
+}
+
+/** "Established team: Lowland Machine". */
+export function establishedTeamText(teamName: string): string {
+  return `Established team: ${teamName}`;
+}
+
+/** The booker's notes for one placed segment beyond its headline. */
+function segmentNotesOf(
+  read: GameWorldView,
+  pool: CardPool,
+  segment: PlannedSegment,
+  planned: readonly PlannedTitleMatch[],
+): string[] {
+  const lines: string[] = [];
+  const [titleId] = titleIdsOf(segment.draft);
+  const titleMatch = planned.find((entry) => entry.titleId === titleId);
+  if (segment.source === 'title' && titleMatch?.challenger != null) {
+    const title = pool.titles.find((entry) => entry.titleId === titleId);
+    lines.push(challengerNoteText(titleMatch.challenger, title?.reignId === null));
+  }
+  const teamIds = [
+    ...new Set(
+      segment.draft.participants.flatMap((participant) =>
+        participant.teamId === null ? [] : [participant.teamId],
+      ),
+    ),
+  ];
+  for (const teamId of teamIds) {
+    const name =
+      pool.teams.find((team) => team.teamId === teamId)?.name ??
+      read.tables.teams.get(teamId)?.name;
+    if (name !== undefined) {
+      lines.push(establishedTeamText(name));
+    }
+  }
+  return lines;
+}
+
+function lowerFirst(text: string): string {
+  return text.length === 0 ? text : `${text.charAt(0).toLowerCase()}${text.slice(1)}`;
+}
+
+function plural(count: number, one: string, many: string): string {
+  return `${String(count)} ${count === 1 ? one : many}`;
+}
+
+/** The plan's opening notes: who is fit to work and who was left out. */
+function rosterNotesOf(pool: CardPool, minWorkers: number): string[] {
+  const lines = [
+    `${plural(pool.availableWrestlers, 'wrestler', 'wrestlers')} fit to work, ${String(minWorkers)} needed`,
+  ];
+  for (const exclusion of pool.excluded.slice(0, LEFT_OUT_NOTE_LIMIT)) {
+    lines.push(`Left out: ${exclusion.ringName}, ${lowerFirst(exclusion.reason)}`);
+  }
+  const more = pool.excluded.length - LEFT_OUT_NOTE_LIMIT;
+  if (more > 0) {
+    lines.push(`${plural(more, 'more worker', 'more workers')} left out`);
+  }
+  return lines;
+}
+
+/** One line per title the booker looked at: on the line and why, or why not. */
+function titleNotesOf(
+  read: GameWorldView,
+  pool: CardPool,
+  picture: TitlePicture,
+  today: GameDate,
+): string[] {
+  return pool.titles.flatMap((title) => {
+    if (picture.planned.some((entry) => entry.titleId === title.titleId)) {
+      if (title.reignId === null) {
+        return [`${title.name}: ${lowerFirst(VACANT_RULE)}`];
+      }
+      const last = lastDefenceOf(read, title, today);
+      const days = last.date === null ? 0 : Math.max(0, diffDays(last.date, today));
+      return [titleDueText(title.name, days)];
+    }
+    const skipped = picture.skipped.find((entry) => entry.titleId === title.titleId);
+    return skipped === undefined ? [] : [`${title.name}: ${lowerFirst(skipped.reason)}`];
+  });
 }
 
 /** The whole plan for one show. See the module comment for the steps. */
@@ -324,9 +433,15 @@ export function planCard(read: GameWorldView, args: PlanCardArgs, deps: PlanCard
   for (const exclusion of pool.excluded) {
     plan.note(`${exclusion.ringName}: ${exclusion.reason}`);
   }
+  const notes = rosterNotesOf(pool, minWorkers);
   if (!enough) {
     const reason = cancelReason(pool.availableWrestlers, minWorkers);
-    return { kind: 'cancel', reason, planTrace: plan.choose('cancel', reason) };
+    return {
+      kind: 'cancel',
+      reason,
+      planTrace: plan.choose('cancel', reason),
+      notes: [...notes, `Show cancelled: ${lowerFirst(reason)}`],
+    };
   }
 
   // 2. The shape.
@@ -387,6 +502,13 @@ export function planCard(read: GameWorldView, args: PlanCardArgs, deps: PlanCard
     fillDeps,
   );
   plan.include('Title picture', picture.trace);
+  notes.push(
+    `${plural(talkTotal.value, 'talking segment', 'talking segments')} in ${plural(slots, 'slot', 'slots')}: the booker's talking share for a ${pool.importance} show`,
+  );
+  if (endsOnMatch.value) {
+    notes.push('The main event must be a match');
+  }
+  notes.push(...titleNotesOf(read, titlePool, picture, today));
 
   // 4. Storylines, filler matches and talking segments.
   const fill = fillCard(
@@ -453,6 +575,7 @@ export function planCard(read: GameWorldView, args: PlanCardArgs, deps: PlanCard
         slotTrace,
         cardScore: entry.score.value,
         headline: headlineOf(read, pool, segment, entry, placement.rule, today),
+        notes: segmentNotesOf(read, pool, segment, picture.planned),
       },
     ];
   });
@@ -476,10 +599,9 @@ export function planCard(read: GameWorldView, args: PlanCardArgs, deps: PlanCard
     }
   }
   for (const slot of open) {
-    plan.rule(
-      `${slot.preShow ? 'Pre-show slot' : 'Slot'} ${String(slot.slot + 1)} left open: ${slot.reason}`,
-      false,
-    );
+    const line = `${slot.preShow ? 'Pre-show slot' : 'Slot'} ${String(slot.slot + 1)} left open: ${slot.reason}`;
+    plan.rule(line, false);
+    notes.push(line);
   }
 
   const drafts = placements.map((placement) => placement.draft);
@@ -493,5 +615,5 @@ export function planCard(read: GameWorldView, args: PlanCardArgs, deps: PlanCard
     'card',
     `${String(placements.length)} segments planned, ${String(open.length)} slots left open`,
   );
-  return { kind: 'card', placements, open, planTrace, counts };
+  return { kind: 'card', placements, open, planTrace, counts, notes };
 }
