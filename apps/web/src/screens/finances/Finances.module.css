@@ -275,6 +275,16 @@
   }
 }
 
+/*
+ * On a phone card the Why? keeps its 44px target but takes only a line's height, so its icon
+ * lines up with the amount beside it instead of hanging below it.
+ */
+@media (--bp-mobile) {
+  li .ledgerWhy {
+    margin-block: calc(-1 * var(--tap-pad-block));
+  }
+}
+
 .ledgerFooter {
   display: flex;
   flex-wrap: wrap;
