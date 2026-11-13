@@ -198,3 +198,55 @@ controller viewer does not run its promotion (the same rule as
 [viewer scoping](#viewer-scoping)), or when the metric does not apply: a role
 with no card position has no expected push or push gap. The all-seeing viewer
 may explain any active contract.
+
+## Set push
+
+`roster.setPush { employmentIds, push }` is the one roster edit: it moves one
+worker, or a whole selection, to one card position. The single-row menu and the
+bulk action both send it; the single-row menu sends one ID. It returns
+`{ changed, unchanged }`, both in ascending ID order.
+
+| Argument        | Rule                                                                                     |
+| --------------- | ---------------------------------------------------------------------------------------- |
+| `employmentIds` | 1 to 300 employment IDs (300: the largest roster the DataTable is built for), no repeats |
+| `push`          | A card position, or `none`                                                               |
+
+A malformed or repeated ID, an empty list or more than 300 is `invalidArgs` on
+`employmentIds`, before any row is read.
+
+**All or nothing.** Every row is checked before anything changes. Any refused
+row refuses the whole call: no row changes and no event is published. The
+answer has one reason per offending row, in ascending ID order, each with
+`field: 'employmentIds[<index>]'` (the row's place in the arguments) and
+`subject: { kind: 'employment', id }`. Each row reports the first rule it fails:
+
+| Code                 | When                                                                      | What the player reads                                                                  |
+| -------------------- | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `employmentNotFound` | No such contract                                                          | That contract no longer exists. Refresh the roster and try again.                      |
+| `notAllowed`         | The issuer does not run the contract's promotion                          | Test Name 3 works for Test Promotion B. You can only change pushes on your own roster. |
+| `contractNotActive`  | The contract is not `active` (an offer, signed but not started, or ended) | Test Name 3's contract isn't active (it is expired), so their push can't change.       |
+| `pushNotForRole`     | A crew member or manager given a card position                            | Test Name 3 is a referee. Only wrestlers have a place on the card.                     |
+| `pushNotForRole`     | A wrestler given `none`                                                   | Pick a card position for Test Name 3, from Main event to Enhancement.                  |
+
+Who runs a promotion is `sameController` on the promotion's `controller`: the
+same human, or the computer for a computer-run promotion. The AI uses this same
+command for its own rosters (D-01, D-07). Brand controllers (D-06 brand wars)
+are not consulted yet; a push is the promotion's call.
+
+**Applying.** Rows go in ascending ID order. A row already at `push` is
+`unchanged` and publishes nothing. Every other row goes through the workers
+system's [push door](workers.md#doors) with the source `'player'` for a human
+and `'ai'` for the computer and the reason key `roster.setPush`; the door
+records the `workers.push` trace and publishes `employment.pushChanged`. All
+rows change in the command's one transaction, so a failure part way undoes the
+rows already changed. `applySetPush(ctx, args, issuedBy, door)` does the work
+and takes the door as an argument so a test can make it fail.
+
+**No direct morale effect.** The command writes the push and nothing else: no
+morale, momentum, popularity or money. How a worker feels about being moved is
+for the features that listen to `employment.pushChanged` (WRK8), so the story
+shield for a wrestler losing as part of an angle lives in one place. While WRK8
+is not built, a push change moves nothing but the push.
+
+Like every command it is refused with `busy` while days are advancing, and
+every attempt (applied, refused or failed) is in the [command log](engine-api.md#the-command-log).
