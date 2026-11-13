@@ -1,12 +1,13 @@
 import { render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { addDays } from '@ringside/engine';
+import { addDays, parseId } from '@ringside/engine';
+import { createInProcessTransport } from '@/app/engine/transport';
 import { useSessionStore } from '@/app/session/sessionStore';
 import { ShowDetailSheet } from '@/screens/calendar/ShowDetailSheet';
-import { galleryRivalShow } from '@/screens/dev-gallery/fixtures/calendar';
-import { BOOKING_WORLD_START } from '@/test/fakeEngine';
+import { galleryRivalShow, galleryShow } from '@/screens/dev-gallery/fixtures/calendar';
+import { BOOKING_WORLD_START, fakeEngineFactory, fakeEngineState } from '@/test/fakeEngine';
 import { renderWithEngine, venueTestWorld } from '@/test/venueWorld';
-import { CROWD_SECTION, forecastShowId } from './ShowCrowdSection';
+import { CROWD_SECTION, attendanceText, forecastShowId, ranShowId } from './ShowCrowdSection';
 
 const LOAD_MS = 10_000;
 const TODAY = addDays(BOOKING_WORLD_START, 1);
@@ -72,5 +73,41 @@ describe('the calendar show sheet’s Crowd section', () => {
     );
     expect(screen.getByText('Local hall, Test Region (holds 1,200)')).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Crowd' })).toBeNull();
+  });
+
+  it('counts the crowd of any show that has run, and nothing else', () => {
+    const ran = galleryRivalShow(0, { status: 'completed' });
+    expect(ranShowId(ran)).toBe(ran.eventInstanceId);
+    expect(ranShowId(galleryShow({ status: 'completed' }))).not.toBeNull();
+    expect(ranShowId(galleryShow({ status: 'scheduled' }))).toBeNull();
+    expect(ranShowId(galleryShow({ status: 'cancelled' }))).toBeNull();
+    expect(attendanceText(4_210, 92, 'Harbor Arena')).toBe('4,210 came · 92% full at Harbor Arena');
+    expect(attendanceText(80, null, 'Harbor Arena')).toBe('80 came at Harbor Arena');
+  });
+
+  it('shows how many came to a settled show, from the real engine', async () => {
+    const transport = createInProcessTransport(fakeEngineFactory(), { progressIntervalMs: 0 });
+    const install = transport.host.installEngine(fakeEngineState());
+    useSessionStore.getState().setLoaded({ saveSlotId: null, seat: install.seat });
+    const show = galleryShow({
+      eventInstanceId: parseId('eventInstance', 'evi_0000000001'),
+      status: 'completed',
+      name: 'Test Weekly',
+    });
+    renderWithEngine(
+      transport,
+      <ShowDetailSheet
+        open
+        onClose={() => undefined}
+        show={show}
+        today={addDays(show.date, 1)}
+        showPromotion={false}
+      />,
+    );
+    expect(screen.getByRole('heading', { name: 'Crowd' })).toBeInTheDocument();
+    expect(
+      await screen.findByText(/^2,800 came( · \d+% full)? at /, {}, { timeout: LOAD_MS }),
+    ).toBeVisible();
+    expect(document.body.textContent).not.toMatch(/\$/u);
   });
 });
