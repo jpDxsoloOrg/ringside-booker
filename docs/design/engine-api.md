@@ -313,6 +313,7 @@ Queries other systems add:
 | `shows.lastCompleted`  | `{ scope? }`                                                                                     | The latest completed show as one `ShowSummaryView` line, or null ([show-night.md](show-night.md#results-queries))                                       |
 | `shows.completedSince` | `{ from, to, scope, limit? }`                                                                    | The shows completed with `from <= date < to`, newest first ([show-night.md](show-night.md#results-queries))                                             |
 | `match.aftermath`      | `{ segmentId }` or `{ eventInstanceId }`                                                         | Stored aftermath rows by match in card order ([match-aftermath.md](match-aftermath.md#stored-aftermaths))                                               |
+| `match.recentForm`     | `{ personId, limit? }`                                                                           | A worker's last run matches, newest first, with the stored changes ([match-aftermath.md](match-aftermath.md#recent-form))                               |
 
 The calendar queries share one row, `CalendarShow`. `scope` is `mine` or
 `world`; a window may cover at most 366 days and is refused with

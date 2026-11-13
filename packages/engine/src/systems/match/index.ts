@@ -17,6 +17,7 @@
 import { defineSystem, type SystemBundle } from '../../core/api/system';
 import { matchQueries } from './queries';
 import { aftermathQueries } from './aftermath/queries';
+import { recentFormQueries } from './aftermath/recentFormQuery';
 import { pruneAftermathsPhase } from './aftermath/prune';
 // Registers the built-in `match` and `angle` raters at module load.
 import './rating/builtins';
@@ -465,7 +466,7 @@ export const matchSystem: SystemBundle = defineSystem({
   id: 'match',
   // MTCH3-03: the weekly prune of stored aftermaths.
   phases: [pruneAftermathsPhase],
-  queries: [...matchQueries, ...aftermathQueries],
+  queries: [...matchQueries, ...aftermathQueries, ...recentFormQueries],
 });
 
 // Momentum from a match result and a worker's earlier matches (MTCH3-02). Design:
@@ -544,3 +545,14 @@ export {
   type AftermathSegmentView,
   type AftermathWorkerView,
 } from './aftermath/queries';
+
+// Recent form (MTCH3-04). Design: docs/design/match-aftermath.md#recent-form.
+export {
+  RECENT_FORM_DEFAULT_LIMIT,
+  RECENT_FORM_MAX_LIMIT,
+  RECENT_FORM_NOT_FOUND_MESSAGE,
+  type RecentFormArgs,
+  type RecentFormOpponent,
+  type RecentFormResult,
+  type RecentFormRow,
+} from './aftermath/recentFormQuery';

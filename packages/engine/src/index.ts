@@ -1689,3 +1689,12 @@ export {
   type PopularityPreview,
   type PopularityPreviewRegion,
 } from './systems/workers/index';
+export {
+  RECENT_FORM_DEFAULT_LIMIT,
+  RECENT_FORM_MAX_LIMIT,
+  RECENT_FORM_NOT_FOUND_MESSAGE,
+  type RecentFormArgs,
+  type RecentFormOpponent,
+  type RecentFormResult,
+  type RecentFormRow,
+} from './systems/match/index';
