@@ -90,7 +90,37 @@ a set of simulation parts.
 
 Traces are bounded by the trace store, so a long game doesn't grow its save
 with every number ever explained (see
-[calculation-traces.md](calculation-traces.md)).
+[calculation-traces.md](calculation-traces.md)): each kind keeps at most 200
+full traces **and** at most `sim.traceBytesPerKind` (500,000) characters of
+them, rivals' worker changes, match gains and ledger rows keep only summaries,
+and at most 5,000 summaries are kept in all.
+
+## Size budget
+
+A year of play must stay small enough to save, load and export quickly
+(POL4-06). The budget: a 365-day default-world game with **every show carded**
+(what rival shows look like once AIP4 books them) saves under **10 MB on
+disk**, and saving and loading each take under a second on a desktop.
+
+`test/persistence/yearSaveBudget.test.ts` checks it. It simulates a year twice
+(about a minute), so it only runs with `RB_SLOW_TESTS=1`, and prints a size
+report by table and by trace kind (`test/support/save-size.ts`). The
+per-commit check, `saveBudget.test.ts`, runs three carded months of the roster
+world and checks every trace kind stays within its budget and rivals' ledger
+rows are summaries.
+
+Measured 2026-11 on a desktop, 365 days of the default world:
+
+| Setup             | Before: JSON / on disk | Save / load   | After: JSON / on disk | Save / load   |
+| ----------------- | ---------------------- | ------------- | --------------------- | ------------- |
+| No rival cards    | 12.66 MB / 1.20 MB     | 0.45 / 0.52 s | 9.35 MB / 0.93 MB     | 0.43 / 0.48 s |
+| Every show carded | 34.58 MB / 3.04 MB     | 1.20 / 1.32 s | 17.26 MB / 1.83 MB    | 0.77 / 0.71 s |
+
+"On disk" is the gzipped bytes in IndexedDB and in an `.rbsave` file. "Save"
+is building the document and encoding it; "load" is the whole staged
+`loadSave`. With every show carded the rest is mostly tables (segments,
+participants, aftermaths and the ledger, about 8 MB) and the full traces each
+kind keeps (about 7 MB).
 
 ## Bytes: the codec
 
@@ -102,9 +132,17 @@ refuse `NaN` and `Infinity`; the check guards documents built by code that
 skipped validation, and names the first bad path (`save.state.rng.position is
 not serialisable: it is NaN`).
 
-The JSON is UTF-8 encoded and gzipped with `CompressionStream`. That exists in
-browsers, Web Workers and Node 20, so headless tools read and write exactly the
-files the game does.
+The JSON is UTF-8 encoded and gzipped with `CompressionStream`, or with fflate
+where the browser has no `CompressionStream` (iOS Safari before 16.4). That
+exists in browsers, Web Workers and Node 20, so headless tools read and write
+exactly the files the game does. Saves in IndexedDB are these same gzipped
+bytes, so a slot, an autosave, a backup and an exported file are identical.
+Gzip shrinks a save about ten times.
+
+There is no separate version marker for compression: gzip's own first two
+bytes (`1f 8b`) are the marker. Decoding reads gzip or plain JSON, so an
+uncompressed save (a debug export, or one written before saves were
+compressed) still loads.
 
 An **`.rbsave` file is this gzipped document**, nothing more. Decoding also
 accepts plain UTF-8 JSON starting with `{` (with an optional BOM), which is how

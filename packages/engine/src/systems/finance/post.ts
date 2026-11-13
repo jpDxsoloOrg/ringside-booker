@@ -138,7 +138,9 @@ export function postMoney(ctx: StepContext, input: PostMoneyInput): LedgerEntry 
   // (6) The row's Why?.
   const trace =
     input.trace ?? inputOf(`Amount posted: ${memo}`, amount, { kind: 'ledgerEntry', id }, 'money');
-  ctx.recordTrace(traceRef, date, trace);
+  // A computer-run promotion's rows keep only a summary (POL4-06): their money is private, and
+  // eleven rival payrolls a day would otherwise fill the save with Wages breakdowns.
+  ctx.recordTrace(traceRef, date, trace, { summaryOnly: promotion.controller.kind !== 'human' });
 
   // (7) The event and the top bar's cash Why?, for human-controlled promotions only (see
   // docs/design/finances.md#postmoney).

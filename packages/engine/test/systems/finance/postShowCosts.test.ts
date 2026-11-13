@@ -201,7 +201,10 @@ describe('postShowCosts', () => {
       throw new Error('no travel row');
     }
     expect(travel.traceRef?.kind).toBe(RIVAL_LEDGER_ENTRY_TRACE_KIND);
-    expect(labelsOf(storedTrace(runtime, travel))).toContain(ESTIMATED_CARD_NOTE);
+    // A rival's row keeps only a summary (POL4-06); the estimate's note is covered by the formula
+    // tests in formulas/showCosts.test.ts.
+    const stored = travel.traceRef === null ? undefined : runtime.traces.get(travel.traceRef);
+    expect(stored).toMatchObject({ value: -30_000, summaryOnly: true });
   });
 
   it('refuses a show that has not been completed', () => {

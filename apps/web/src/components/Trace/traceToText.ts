@@ -14,6 +14,14 @@ const INDENT = '  ';
 /** The notice shown in place of a breakdown that has been summarised. */
 export const SUMMARISED_NOTICE = 'Full breakdown is only kept for recent results';
 
+/** The notice for a result that was only ever kept as a summary: another promotion's. */
+export const SUMMARY_ONLY_NOTICE = "Only a summary is kept for other promotions' results";
+
+/** Which notice a summary shows: why its full breakdown is not there. */
+export function summaryNotice(summary: TraceSummary): string {
+  return summary.summaryOnly === true ? SUMMARY_ONLY_NOTICE : SUMMARISED_NOTICE;
+}
+
 /** The big line at the top of the panel: what the number is and its value. */
 export function traceHeadline(root: TraceNode): string {
   return `${root.label}: ${traceValueText(root)}`;
@@ -68,7 +76,7 @@ export function summaryDateText(summary: TraceSummary): string {
 
 /** A summarised result as text: headline, the notice, the date and what moved it most. */
 export function summaryToText(summary: TraceSummary): string {
-  const lines = [summaryHeadline(summary), `${INDENT}${SUMMARISED_NOTICE}`];
+  const lines = [summaryHeadline(summary), `${INDENT}${summaryNotice(summary)}`];
   lines.push(`${INDENT}${summaryDateText(summary)}`);
   for (const contributor of summary.topContributors) {
     lines.push(`${INDENT}${contributorText(contributor, summary.unit)}`);

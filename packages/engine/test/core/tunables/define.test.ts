@@ -223,6 +223,7 @@ describe('defineTunables', () => {
       'sim.eventLogSize',
       'sim.maxEventCascadeDepth',
       'sim.stopSkipAfterConsecutiveFailures',
+      'sim.traceBytesPerKind',
       'sim.traceRetentionPerKind',
       'sim.traceSummaryLimit',
     ]);

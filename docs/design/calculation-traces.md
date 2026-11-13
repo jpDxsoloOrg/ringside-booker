@@ -333,6 +333,55 @@ When a kind goes over its limit, its oldest full traces are demoted to
 summaries. A retention of 0 keeps no full traces for any kind: every result is
 summarised as soon as it is committed.
 
+### Size budget per kind
+
+Counting alone lets a kind with big trees fill the save: 200 popularity door
+traces of a worker known in sixty regions were 4 MB on their own. So each kind
+is also held to `sim.traceBytesPerKind` (500,000) characters of JSON across its
+full traces (POL4-06). After a commit, the oldest full traces of a kind are
+demoted while the kind is over **either** its count or its size budget, so a
+kind of small traces keeps its 200 and a kind of big ones keeps fewer.
+
+Sizes are `JSON.stringify(entry).length` of each stored entry, counted when it
+is stored and again when a save is loaded. They are never saved: key order
+does not change the length, so a loaded store counts exactly what the live one
+did and demotes the same entries. A budget of 0 summarises everything at once,
+like a retention of 0.
+
+### Summary-only results (rivals)
+
+A result recorded with `record(ref, date, traced, { summaryOnly: true })` is
+stored as a summary straight away, marked `summaryOnly: true`, and replaces any
+full trace the ref had. It still uses up a `seq` and counts against
+`sim.traceSummaryLimit` like any summary. Systems use it for computer-run
+promotions' results that nobody opens in full:
+
+| Recorded by                 | Kinds                                        | When                           |
+| --------------------------- | -------------------------------------------- | ------------------------------ |
+| `postMoney` (finance)       | `finance.rivalEntry`                         | Every ledger row of a rival    |
+| The match aftermath (MTCH3) | `match.popularityGain`, `match.momentumGain` | Matches on a computer-run show |
+| The worker doors (WRK1)     | `workers.popularity`, `workers.momentum`     | Changes with source `ai`       |
+
+A promotion's own popularity door trace (`promotions.popularity`) and rival
+show results (`shows.rivalSegmentScore`, `match.rivalResult`,
+`promoPop.rivalShowChange`, `boxOffice.rivalAttendance`) stay full: they are
+public, and the size budget bounds them. The player's own results keep full
+traces as before.
+
+The Why? panel tells the two kinds of summary apart: an aged-out one says
+"Full breakdown is only kept for recent results", a summary-only one says
+"Only a summary is kept for other promotions' results". Both show the value,
+the date and what moved it most.
+
+### Lean popularity door traces
+
+The popularity door's trace (`workers.popularity`, `promotions.popularity`)
+has a step only for the regions whose stored value changed this call; the
+rest are counted in one note, "And N more regions unchanged". The three most
+populous changed regions (`DOOR_TRACE_DETAILED_REGIONS`) show their working
+(share, taper, clamp and rounding); the others show only the points they
+moved. The trace still replays to the points moved in total.
+
 ### Summaries
 
 A summary keeps what a history screen needs to say what a number was and why:
@@ -344,6 +393,7 @@ A summary keeps what a history screen needs to say what a number was and why:
 | `label`, `value`  | The root's label and the result, such as "Match rating" 76 |
 | `unit`            | The root's unit, when it has one                           |
 | `topContributors` | The three steps that moved the value most, largest first   |
+| `summaryOnly`     | `true` when no full trace was ever kept (see below)        |
 
 A contributor is a direct step of the root with its label and its effect,
 `after - before`. Arithmetic steps always count; a limit (`min`, `max`,
@@ -419,6 +469,7 @@ save made with higher limits is trimmed the same way a commit would trim it.
 | Tunable                     | Default | Controls                                        |
 | --------------------------- | ------- | ----------------------------------------------- |
 | `sim.traceRetentionPerKind` | 200     | Full traces kept per kind before summarising    |
+| `sim.traceBytesPerKind`     | 500000  | JSON characters of full traces kept per kind    |
 | `sim.traceSummaryLimit`     | 5000    | Summaries kept across all kinds before dropping |
 
 Both are expected to be tuned once real formulas exist and save sizes can be

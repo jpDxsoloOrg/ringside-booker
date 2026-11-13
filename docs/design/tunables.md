@@ -193,6 +193,7 @@ The simulation core's own tunables, in `core/tunables/simTunables.ts`:
 | -------------------------------------- | ------- | ------- | -------- | ----- | ------------------------------------------------------------------------- |
 | `sim.traceRetentionPerKind`            | integer | 200     | 0–5000   | count | Full calculation traces kept per kind of result before summarising        |
 | `sim.traceSummaryLimit`                | integer | 5000    | 0–100000 | count | Trace summaries kept as history                                           |
+| `sim.traceBytesPerKind`                | integer | 500000  | 0–1e8    | count | Characters of full traces kept per kind of result before summarising      |
 | `sim.eventLogSize`                     | integer | 500     | 0–10000  | count | Recent domain events kept in the save                                     |
 | `sim.maxEventCascadeDepth`             | integer | 8       | 1–32     | count | How deep a chain of events can go before the rest is stopped              |
 | `sim.stopSkipAfterConsecutiveFailures` | integer | 3       | 1–365    | days  | A multi-day skip stops after the same phase fails this many days in a row |

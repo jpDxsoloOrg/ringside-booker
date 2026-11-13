@@ -295,3 +295,29 @@ describe('applySegmentAftermath: special cases', () => {
     expect(near.after - near.before).toBeCloseTo(winner.popularity.delta * 0.7, 2);
   });
 });
+
+// POL4-06: a rival's show keeps only summaries of its gains and door changes; the player's keep all.
+describe('applySegmentAftermath: how much of the Why? is kept', () => {
+  function keptOf(rival: boolean): { recorded: number; summaryOnly: number } {
+    const built = aftermathWorld({
+      popularity: [30, 60],
+      matches: [{ slot: 0, sides: [[0], [1]], result: 0 }],
+      rival,
+    });
+    const run = applyInOrder(built.world, [built.segment(0)]);
+    expect(run.results[0]?.personIds).toHaveLength(2);
+    const winner = rowFor(built.world, built.segment(0), built.person(0));
+    expect(run.traces.has(winner.traceIds.popularity)).toBe(true);
+    return { recorded: run.traces.size, summaryOnly: run.summaryOnly.size };
+  }
+
+  it("keeps the player's full traces", () => {
+    expect(keptOf(false)).toMatchObject({ summaryOnly: 0 });
+  });
+
+  it("keeps only summaries of a rival's gains, popularity and momentum changes", () => {
+    const kept = keptOf(true);
+    expect(kept.recorded).toBeGreaterThan(0);
+    expect(kept.summaryOnly).toBe(kept.recorded);
+  });
+});

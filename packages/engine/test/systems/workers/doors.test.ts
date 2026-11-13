@@ -25,6 +25,7 @@ import {
   workersSystem,
   type DoorReason,
 } from '../../../src/systems/workers';
+import { DOOR_TRACE_DETAILED_REGIONS } from '../../../src/systems/workers/doors';
 import { geographyOf } from '../../../src/systems/world/geography';
 import { createPopularityRoller } from '../../../src/systems/world/formulas/popularityRollup';
 import { TEST_PLAYER_ID, type DeepPartial } from '../../support/builders/build-row';
@@ -1025,7 +1026,8 @@ describe('applyPopularityChange', () => {
     expect(run.result?.regionsChanged).toEqual([NORTH_1]);
     const stored = requireTrace(run, { kind: 'promotions.popularity', id: built.promotionId });
     expectTraceContains(stored, { kind: 'note', label: /A weight of 4 is outside 0 to 1/ });
-    expectTraceContains(stored, { kind: 'note', label: /A weight of -1 is outside 0 to 1/ });
+    // The region held at a weight of 0 did not move, so the trace only counts it (POL4-06).
+    expectTraceContains(stored, { kind: 'note', label: 'And 1 more region unchanged' });
   });
 
   it("nests the caller's working for the delta once in the trace", async () => {
@@ -1349,5 +1351,77 @@ describe('two changes on one day', () => {
     ]);
     const stored = requireTrace(run, { kind: 'workers.morale', id: built.employmentId });
     expect(stored.value).toBe(12);
+  });
+});
+
+// POL4-06: lean popularity door traces, and rivals' worker changes kept only as summaries.
+describe('popularity and momentum door traces stay small', () => {
+  const ALL_FOUR = { [NORTH_1]: 1, [NORTH_2]: 1, [SOUTH_1]: 1, [SOUTH_2]: 1 };
+
+  it('lists only the regions that moved, and counts the rest in one note', async () => {
+    const built = doorWorld({ person: { regionalPop: { [NORTH_1]: 100, [SOUTH_1]: 20 } } });
+    const run = await runDoors(built, (ctx) =>
+      applyPopularityChange(ctx, {
+        subject: { kind: 'person', id: built.personId },
+        // North 1 is already at the top, so only South 1 moves.
+        regionWeights: { [NORTH_1]: 1, [SOUTH_1]: 1 },
+        delta: 2,
+        source: 'player',
+        reason: REASON,
+      }),
+    );
+    const stored = requireTrace(run, { kind: 'workers.popularity', id: built.personId });
+    const labels = (stored.trace.children ?? []).map((node) => node.label);
+    expect(labels).toContain('Test Region South 1');
+    expect(labels).not.toContain('Test Region North 1');
+    expectTraceContains(stored, { kind: 'note', label: 'And 1 more region unchanged' });
+    expectTraceReplays(numeric(stored));
+  });
+
+  it(`shows the working of the ${String(DOOR_TRACE_DETAILED_REGIONS)} most populous changed regions and only the points of the rest`, async () => {
+    const built = doorWorld();
+    const run = await runDoors(built, (ctx) =>
+      applyPopularityChange(ctx, {
+        subject: { kind: 'person', id: built.personId },
+        regionWeights: ALL_FOUR,
+        delta: 2,
+        source: 'player',
+        reason: REASON,
+      }),
+    );
+    expect(run.result?.regionsChanged).toHaveLength(4);
+    const stored = requireTrace(run, { kind: 'workers.popularity', id: built.personId });
+    const regionSteps = (stored.trace.children ?? []).filter((node) => node.kind === 'add');
+    expect(regionSteps).toHaveLength(4);
+    const withWorking = regionSteps.filter((node) => (node.children ?? []).length > 0);
+    expect(withWorking).toHaveLength(DOOR_TRACE_DETAILED_REGIONS);
+    expect(regionSteps.slice(0, DOOR_TRACE_DETAILED_REGIONS)).toEqual(withWorking);
+    expectTraceReplays(numeric(stored));
+  });
+
+  it("keeps only a summary of a rival's worker popularity and momentum changes", async () => {
+    const built = doorWorld({ employment: { momentum: 0 } });
+    const run = await runDoors(built, (ctx) => {
+      applyPopularityChange(ctx, {
+        subject: { kind: 'person', id: built.personId },
+        regionWeights: ALL_FOUR,
+        delta: 2,
+        source: 'ai',
+        reason: REASON,
+      });
+      applyMomentumChange(ctx, {
+        employmentId: built.employmentId,
+        delta: 5,
+        source: 'ai',
+        reason: REASON,
+      });
+    });
+    for (const ref of [
+      { kind: 'workers.popularity', id: built.personId },
+      { kind: 'workers.momentum', id: built.employmentId },
+    ]) {
+      const stored = run.engine.query('trace.get', { ref }, OMNISCIENT);
+      expect(stored.ok && stored.data).toMatchObject({ summaryOnly: true });
+    }
   });
 });

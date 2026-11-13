@@ -69,6 +69,8 @@ export function applySegmentAftermath(step: DoorContext, segmentId: SegmentId): 
   }
   const instance = read.tables.eventInstances.require(segment.eventInstanceId);
   const source: DoorSource = showControllerOf(read, instance).kind === 'human' ? 'player' : 'ai';
+  // A rival show's gains keep only a summary (POL4-06); the rows below keep the numbers.
+  const kept = { summaryOnly: source === 'ai' };
   const aftermath = computeSegmentAftermath(read, { segmentId }, step.tunables, geographyOf(read));
   // The cast names the key type `Object.fromEntries` widens to string.
   const regionWeights = Object.fromEntries(
@@ -85,7 +87,7 @@ export function applySegmentAftermath(step: DoorContext, segmentId: SegmentId): 
       label: `${instance.name}: ${worker.resultLine}`,
     };
     const popularityRef = popularityGainTraceRef(segmentId, worker.personId);
-    step.recordTrace(popularityRef, step.date, worker.popularity.delta);
+    step.recordTrace(popularityRef, step.date, worker.popularity.delta, kept);
     const popularity = applyPopularityChange(step, {
       subject: { kind: 'person', id: worker.personId },
       regionWeights,
@@ -108,7 +110,7 @@ export function applySegmentAftermath(step: DoorContext, segmentId: SegmentId): 
     let momentumTraceId: string | null = null;
     if (hasMomentum(worker.momentum)) {
       const momentumRef = momentumGainTraceRef(segmentId, worker.personId);
-      step.recordTrace(momentumRef, step.date, worker.momentum.delta);
+      step.recordTrace(momentumRef, step.date, worker.momentum.delta, kept);
       const door = applyMomentumChange(step, {
         employmentId: worker.momentum.employmentId,
         delta: worker.momentum.delta,

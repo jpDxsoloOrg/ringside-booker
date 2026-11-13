@@ -13,7 +13,14 @@ export { useTracePanelStore } from './tracePanelStore';
 export type { TracePanelState } from './tracePanelStore';
 export { traceSourceOf } from './traceSource';
 export type { TraceQueryName, TraceSource } from './traceSource';
-export { SUMMARISED_NOTICE, summaryToText, traceHeadline, traceToText } from './traceToText';
+export {
+  SUMMARISED_NOTICE,
+  SUMMARY_ONLY_NOTICE,
+  summaryNotice,
+  summaryToText,
+  traceHeadline,
+  traceToText,
+} from './traceToText';
 export { DEFAULT_OPEN_DEPTH, TraceTree } from './TraceTree';
 export type { TraceTreeProps } from './TraceTree';
 export { WhyButton, whyButtonLabel } from './WhyButton';
