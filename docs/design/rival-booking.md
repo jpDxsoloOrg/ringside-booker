@@ -1081,12 +1081,21 @@ the [two-year title check](#two-year-title-check). Per side, in side order:
    is valid too). Market popularity is recorded as a number, not its trace.
 
 `eligible` lists the sides passing 1 and 2. The pool is `strong` when any side
-is strong, else `valid`, else `none`.
+is strong, else `valid`, else `none`. The Why? explains the two lists in words
+("Strong challengers: popular enough to be a real threat (45 or more in our
+markets)", "Valid challengers: popular enough to hold the title (30 or more in
+our markets)") rather than as scored options, and shows popularity to one
+decimal at most ("Vance Troy (29.7 in our markets, needs 24)"), as other
+popularity figures do (AIP5-08).
 
 ### Rule order
 
 `titleChange` is one decision, "Title decision: <title>", considering `retain`
-and `side:<n>` for every eligible challenger. Rules in order:
+and `side:<n>` for every challenger a change could pick tonight: the strong
+list, else the valid list, else (when an expiring contract forces a change and
+a house show isn't keeping titles put) every eligible side. A side that could
+never take the title tonight is not listed under "Also considered" (AIP5-08).
+Rules in order:
 
 1. **House show.** On a house show with `aip.titles.houseShowsRetain` on, the
    champion retains ("House show: titles stay put"). With it off, house shows go
