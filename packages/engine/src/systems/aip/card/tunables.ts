@@ -21,6 +21,9 @@ export const MATCH_TYPES_DOC_REF = 'rival-booking.md#match-types';
 export const FALLBACK_DOC_REF = 'rival-booking.md#fallback-chain';
 export const TALKING_DOC_REF = 'rival-booking.md#talking-segments';
 export const STORYLINES_DOC_REF = 'rival-booking.md#storylines';
+export const CARD_SCORE_DOC_REF = 'rival-booking.md#card-score';
+export const ORDERING_DOC_REF = 'rival-booking.md#ordering';
+export const PLAN_CARD_DOC_REF = 'rival-booking.md#planning-a-card';
 
 /** The shapes of match the card planner weighs against each other (`formulas/matchTypeWeight.ts`). */
 export const MATCH_FAMILIES = ['oneOnOne', 'tag', 'trios', 'multiWay', 'other'] as const;
@@ -410,5 +413,69 @@ export const aipCardTunables = defineTunables({
     category: RIVAL_BOOKING_CATEGORY,
     description: 'Chance a talking segment gets a second speaker',
     docRef: TALKING_DOC_REF,
+  },
+
+  // Ordering the card (AIP4-04).
+  'aip.card.order.titleWeight': {
+    kind: 'number',
+    default: 0.3,
+    min: 0,
+    max: 2,
+    step: 0.05,
+    unit: 'points',
+    category: RIVAL_BOOKING_CATEGORY,
+    description: "Card score a title on the line adds per point of the title's prestige",
+    docRef: CARD_SCORE_DOC_REF,
+  },
+  'aip.card.order.heatWeight': {
+    kind: 'number',
+    default: 0.2,
+    min: 0,
+    max: 2,
+    step: 0.05,
+    unit: 'points',
+    category: RIVAL_BOOKING_CATEGORY,
+    description:
+      "Card score a storyline adds per point of the story's heat (the hottest one counts)",
+    docRef: CARD_SCORE_DOC_REF,
+  },
+  'aip.card.order.aceBoost': {
+    kind: 'number',
+    default: 12,
+    min: 0,
+    max: 50,
+    unit: 'points',
+    category: RIVAL_BOOKING_CATEGORY,
+    description: "Card score added to a segment with the promotion's ace in it",
+    docRef: CARD_SCORE_DOC_REF,
+  },
+  'aip.card.order.prospectBoost': {
+    kind: 'number',
+    default: 6,
+    min: 0,
+    max: 50,
+    unit: 'points',
+    category: RIVAL_BOOKING_CATEGORY,
+    description: "Card score added to a segment with one of the promotion's prospects in it",
+    docRef: CARD_SCORE_DOC_REF,
+  },
+  'aip.card.order.talkFactor': {
+    kind: 'number',
+    default: 0.8,
+    min: 0,
+    max: 2,
+    step: 0.05,
+    unit: 'multiplier',
+    category: RIVAL_BOOKING_CATEGORY,
+    description: "How much of its speakers' card value a talking segment scores",
+    docRef: CARD_SCORE_DOC_REF,
+  },
+  'aip.card.order.hotOpener': {
+    kind: 'boolean',
+    default: true,
+    unit: 'flag',
+    category: RIVAL_BOOKING_CATEGORY,
+    description: 'Whether the second-best match opens the show',
+    docRef: ORDERING_DOC_REF,
   },
 });

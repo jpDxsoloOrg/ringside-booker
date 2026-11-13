@@ -7,7 +7,9 @@
  * the title match cap and whether the main event must be a match). AIP4-02 adds the title picture
  * (`titlePicture.ts`, `challengers.ts`, `titleHistory.ts`, `formulas/titleUrgency.ts`). AIP4-03 fills
  * the rest of the card (`fill.ts`, `storylineSegments.ts`, `talk.ts`, `fallback.ts`,
- * `formulas/matchTypeWeight.ts`). Later AIP4 tickets order and write the card, and add Auto-fill.
+ * `formulas/matchTypeWeight.ts`). AIP4-04 scores and orders the card (`formulas/cardScore.ts`,
+ * `order.ts`) and adds `planCard` (`planCard.ts`), the one entry point that plans a whole show.
+ * Later AIP4 tickets write the card and add Auto-fill.
  *
  * Design: docs/design/rival-booking.md.
  */
@@ -32,7 +34,10 @@ export {
   type TypeWeightKey,
   TITLE_PICTURE_DOC_REF,
   type ImportanceBonusKey,
+  CARD_SCORE_DOC_REF,
   CARD_SHAPE_DOC_REF,
+  ORDERING_DOC_REF,
+  PLAN_CARD_DOC_REF,
   RIVAL_BOOKING_CATEGORY,
   talkShareKey,
   TITLE_CAP_DOC_REF,
@@ -150,12 +155,56 @@ export {
   sidesOf,
   stepDownText,
   TALK_INSTEAD,
+  STORY_ON_CARD,
   TALK_SLOT_NOTE,
   titleMatchNote,
   titleSegmentOf,
   type FillCardArgs,
   type FillCardDeps,
 } from './fill';
+export {
+  cardScore,
+  cardScoreLabel,
+  featuredText,
+  NO_FEATURED_NOTE,
+  NOBODY_IN_IT_NOTE,
+  storylineHeatText,
+  type CardScoreInputs,
+  type FeaturedKind,
+} from './formulas/cardScore';
+export {
+  ASCENDING_RULE,
+  CANNOT_SPACE_NOTE,
+  HOT_OPENER_RULE,
+  MAIN_EVENT_ANY_RULE,
+  MAIN_EVENT_FIXED_NOTE,
+  MAIN_EVENT_MATCH_RULE,
+  NO_MATCH_TO_CLOSE,
+  NO_ROOM_ON_CARD,
+  OPENER_GIVES_WAY,
+  orderCard,
+  PRE_SHOW_RULE,
+  slotKeyOf,
+  SPACED_RULE,
+  type CardOrder,
+  type CardPlacement,
+  type FixedSegment,
+  type OrderCardOptions,
+} from './order';
+export {
+  cancelReason,
+  cardPlanLabel,
+  NOTHING_LEFT_REASON,
+  planCard,
+  slotTraceLabel,
+  type CardPlan,
+  type PlanCardArgs,
+  type PlanCardDeps,
+  type PlanCardMode,
+  type PlanCounts,
+  type PlannedPlacement,
+  type PlanOpenSlot,
+} from './planCard';
 export type {
   CardCandidate,
   CardFill,

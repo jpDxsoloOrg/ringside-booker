@@ -2216,3 +2216,16 @@ export {
   type PlannedSegment,
   type PlannedSegmentSource,
 } from './systems/aip/index';
+
+// AIP4-04: card scores, the running order and planCard, the read-only entry point that plans a
+// whole show. See docs/design/rival-booking.md#planning-a-card.
+export {
+  cardScore,
+  orderCard,
+  planCard,
+  type CardPlan,
+  type PlanCardArgs,
+  type PlanCardMode,
+  type PlannedPlacement,
+  type PlanOpenSlot,
+} from './systems/aip/index';

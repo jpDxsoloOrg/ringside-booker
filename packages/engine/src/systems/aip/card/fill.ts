@@ -20,7 +20,7 @@
  * Design: docs/design/rival-booking.md#filling-the-card.
  */
 
-import type { PersonId } from '../../../core/ids';
+import type { PersonId, StorylineId } from '../../../core/ids';
 import { rollWeighted } from '../../../core/rng/rolls';
 import type { RngStream } from '../../../core/rng/registry';
 import { startDecision, type Traced, type TraceNode } from '../../../core/trace';
@@ -62,6 +62,7 @@ export const ALL_WEIGHTS_ZERO = 'Every match type weighs 0 tonight: a one-on-one
 export const TALK_INSTEAD = 'No match could be filled: a talking segment instead';
 export const FILLER_NOTE = 'Filler match: an open match slot';
 export const TALK_SLOT_NOTE = 'Talking slot';
+export const STORY_ON_CARD = "Already on tonight's card";
 
 /** Where each family steps down to when its places cannot be filled. */
 const STEP_DOWN: Readonly<Record<MatchFamily, MatchFamily | null>> = {
@@ -101,6 +102,8 @@ export interface FillCardArgs {
   readonly talkRoom?: number;
   /** People already on the card before the planner starts (the player's own picks). */
   readonly alreadyBooked?: CardBookings;
+  /** Storylines that already have a segment on the card (keep-filled mode); they get no other. */
+  readonly storylinesOnCard?: ReadonlySet<StorylineId>;
 }
 
 export interface FillCardDeps {
@@ -430,6 +433,11 @@ export function fillCard(pool: CardPool, args: FillCardArgs, deps: FillCardDeps)
 
   // 2. Storylines.
   for (const storyline of storylinesForShow(read, pool, tunables)) {
+    if (args.storylinesOnCard?.has(storyline.id) === true) {
+      skippedStorylines.push({ storylineId: storyline.id, reason: STORY_ON_CARD });
+      summary.rule(`${storyline.name}: ${STORY_ON_CARD}`, false);
+      continue;
+    }
     const outcome = planStorylineSegment(pool, storyline, { book, room }, deps);
     if ('segment' in outcome) {
       segments.push(outcome.segment);
