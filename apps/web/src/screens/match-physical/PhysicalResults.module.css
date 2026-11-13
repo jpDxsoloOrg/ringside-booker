@@ -1,0 +1,114 @@
+/*
+ * The results page's "Physical toll" section (MTCH4-06). Tokens only. On desktop each worker is one
+ * row, the name then four figures; below --bp-mobile the figures sit two by two under the name.
+ */
+.section {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.lead {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.segment {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.segmentHeading {
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.workers {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.worker {
+  display: grid;
+  grid-template-columns: minmax(10rem, 14rem) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  min-inline-size: 0;
+  padding-block-start: var(--space-2);
+  border-block-start: 1px solid var(--color-border);
+}
+
+.worker:first-child {
+  padding-block-start: 0;
+  border-block-start: 0;
+}
+
+.who {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.name {
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.figures {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2) var(--space-3);
+  margin: 0;
+}
+
+.figure {
+  display: grid;
+  align-content: start;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.figure dt {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.figure dd {
+  margin: 0;
+  min-inline-size: 0;
+}
+
+.values {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.notKept {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+@media (--bp-mobile) {
+  .worker {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .figures {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
