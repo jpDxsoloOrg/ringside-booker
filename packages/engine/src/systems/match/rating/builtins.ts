@@ -7,7 +7,7 @@
 import { registerFinishModifiers } from '../finishes/modifiers';
 import { angleRater } from './angleRater';
 import { matchRater } from './matchRater';
-import { clearRatingPolicyProvider } from './policy';
+import { restoreBuiltInRatingPolicyProvider } from './policy';
 import { clearRatingRegistries, registerSegmentRater } from './registry';
 
 function registerBuiltInRaters(): void {
@@ -20,10 +20,12 @@ registerBuiltInRaters();
 
 /**
  * Restores the match registries to the built-ins: the two raters, the finish effect
- * modifiers and no policy provider. Tests that register extras call it in `afterEach`.
+ * modifiers and the built-in policy provider (the rival desk's, AIP1-07, when it is imported). Tests run in
+ * one shared module graph, so a reset must leave the registries as an import left them. Tests that
+ * need no provider at all also call `clearRatingPolicyProvider()`.
  */
 export function resetMatchRegistriesForTests(): void {
   clearRatingRegistries();
-  clearRatingPolicyProvider();
+  restoreBuiltInRatingPolicyProvider();
   registerBuiltInRaters();
 }

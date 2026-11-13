@@ -736,7 +736,12 @@ There is at most one provider; a second throws, naming the first. With none,
 every promotion gets `NEUTRAL_RATING_POLICY`: a score bonus of 0 ("Same rules
 for every promotion"), both flags false, label "Full rules". MTCH1 itself never
 looks at who controls a promotion. AIP1 registers the provider that reads its
-own tunables.
+own tunables (`systems/aip/ratingPolicy.ts`, AIP1-07; see
+[rival-desk.md#shortcuts](rival-desk.md#shortcuts)): a rival gets "Rival
+shortcut: Score bonus +3" as its policy line, the player's promotion and
+every promotion under the Level playing field get "Full rules". The provider
+registers on import, so tests of MTCH1's own seams call
+`resetMatchRegistriesForTests()` first.
 
 - `scoreBonus` is added to the segment score as one line, titled with the
   policy's first line ("Same rules for every promotion +0").
@@ -821,7 +826,7 @@ effect in its own system folder, so MTCH1's files only gain registrations.
 | Partner                 | Registers                                                                                                              | Stage and order                                                                            | State                                                                                                                                                     |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | WRK1 (workers)          | Nothing in the pipeline: `availabilityOf` for warnings and `match.labWorkers`, `WorkerLink` for lab names              | (warnings, lab)                                                                            | Wired (MTCH1-08). The lab picker keeps `match.labWorkers` for both tabs: `workers.list` has no popularity in a chosen region, no name search and no limit |
-| AIP1 (rival shortcuts)  | The rating policy provider (`registerRatingPolicyProvider`) reading `aiShortcut` for the score bonus and simple inputs | Policy door; the bonus is a `score` line                                                   | Not on main; AIP1 wires it from its own pack, with the lab's "Rate as" select (until then every promotion gets "Same rules for every promotion")          |
+| AIP1 (rival shortcuts)  | The rating policy provider (`registerRatingPolicyProvider`) reading `aiShortcut` for the score bonus and simple inputs | Policy door; the bonus is a `score` line                                                   | Wired (AIP1-07): `systems/aip/ratingPolicy.ts`, "Rival shortcuts" or "Full rules"; the lab's "Rate as" select rates as any active promotion               |
 | CRTV7 (gimmicks)        | Gimmick fit and manager modifiers (`registerRatingModifier`)                                                           | Gimmick on `performance` and `crowd`, manager on `talk` and `crowd`; `RATING_ORDER.normal` | Not on main; CRTV7 wires it from its own pack                                                                                                             |
 | SOC3 (backstage morale) | The morale multiplier, `detail: false` so rivals get it too                                                            | `workRate`, `RATING_ORDER.late` (before compression)                                       | Not on main; SOC3 wires it from its own pack                                                                                                              |
 | MOD8 (script hooks)     | Hook point `match.segmentScore` (honoured field `score`, 0..100, no cancel), applied in `runStage('score', ...)`       | `score`, after the modifiers, before the final round                                       | Not on main; MOD8 wires it from its own pack                                                                                                              |
@@ -884,6 +889,12 @@ continentName }` sorted by continent, country and name; `importances` are
   House show, Minor, Regular, Major and Flagship. The defaults are a televised
   Regular midcard match in the promotion's home region (else the first region)
   with the first visible match type that takes two sides of one (Singles).
+  `rateAs` (AIP1-07) lists `{ id, name, yours }` for the viewer's promotion
+  first, then every other active one by name: the lab's "Rate as" select,
+  shown when there is more than one, sends the pick as the preview's
+  `promotionId`, so a rival is rated by its Rival rules (the Rules badge
+  reads "Rival shortcuts" after Run). The worker picker's "Your roster" stays
+  the viewer's own.
 - **`match.labWorkers`** `{ scope: 'mine' | 'everyone', regionId, search?,
 limit?, promotionId? }` → `{ rows, total }`. `mine` is the promotion's
   active roster (index `byPromotionStatus`); `everyone` is everyone still in

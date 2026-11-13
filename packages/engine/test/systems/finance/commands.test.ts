@@ -72,13 +72,23 @@ describe('finance.setPolicy', () => {
     ]);
   });
 
-  it("refuses a rival's promotion, whoever asks for it", () => {
+  it("refuses a rival's promotion to the player, and the player's to anyone else", () => {
     const built = showCostWorld();
     const engine = engineOver(built.world);
-    for (const issuedBy of [PLAYER, OTHER_PLAYER, COMPUTER]) {
+    for (const issuedBy of [PLAYER, OTHER_PLAYER]) {
       expectRefused(engine, built.rival, 'travel', 3, issuedBy, 'notYourPromotion');
     }
-    expectRefused(engine, built.human, 'travel', 3, OTHER_PLAYER, 'notYourPromotion');
+    for (const issuedBy of [OTHER_PLAYER, COMPUTER]) {
+      expectRefused(engine, built.human, 'travel', 3, issuedBy, 'notYourPromotion');
+    }
+  });
+
+  it('lets the computer set the policies of a promotion it runs (AIP1-07: one controller rule)', () => {
+    const built = showCostWorld();
+    const engine = engineOver(built.world);
+    const result = setPolicy(engine, built.rival, 'travel', 3, COMPUTER);
+    expect(result).toMatchObject({ ok: true, data: { area: 'travel', to: 3 } });
+    expect(policiesOf(engine, built.rival)?.travel).toBe(3);
   });
 
   it('refuses the level the policy already has', () => {

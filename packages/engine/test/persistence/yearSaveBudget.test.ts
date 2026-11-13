@@ -28,6 +28,7 @@ import { createSaveDocument } from '../../src/persistence/world-document';
 import { defaultSystems } from '../../src/systems';
 import { withMyShowsRun } from '../support';
 import { cardEveryShowSystem } from '../support/card-every-show';
+import { cpuMsAsync, referenceCpuMs } from '../support/cpu-budget';
 import { formatSaveSizeReport, saveSizeReport } from '../support/save-size';
 import { startDefaultGame } from '../systems/calendar/default-game';
 
@@ -35,16 +36,14 @@ const SLOW = process.env['RB_SLOW_TESTS'] === '1';
 const DAYS = Number(process.env['RB_SAVE_DAYS'] ?? '365');
 /** The on-disk (gzipped) budget for a year with every show carded. */
 const MAX_GZIP_BYTES = 10 * 1_000_000;
-/** Saving and loading each take under a second on a desktop; doubled for a loaded machine. */
-const MAX_SAVE_OR_LOAD_MS = 2_000;
+/**
+ * Saving and loading each take under a second on a desktop (about 20 runs of the CPU reference
+ * workload); this allows double. A ratio, not milliseconds: the engine's test threads share one
+ * process and `process.cpuUsage()` counts them all, so only a ratio against the reference holds.
+ */
+const MAX_SAVE_OR_LOAD_REFERENCES = 40;
 /** Generous: a busy machine runs the default world several times slower. */
 const TIMEOUT_MS = 120_000 + DAYS * 3_000;
-
-/** CPU milliseconds (user and system) since `started`. */
-function cpuMsSince(started: NodeJS.CpuUsage): number {
-  const used = process.cpuUsage(started);
-  return (used.user + used.system) / 1000;
-}
 
 async function measureYear(carded: boolean): Promise<{ gzipBytes: number; jsonBytes: number }> {
   const systems = carded ? [...defaultSystems, cardEveryShowSystem] : [...defaultSystems];
@@ -57,22 +56,25 @@ async function measureYear(carded: boolean): Promise<{ gzipBytes: number; jsonBy
   // CPU time, not wall time, so a machine busy with other test workers does not fail it. It counts
   // the garbage collector's and gzip's helper threads too, so it reads 1.3-2x the wall time
   // (the save / load figures in the header are wall time).
-  const saveStarted = process.cpuUsage();
+  const before = referenceCpuMs();
   const doc = createSaveDocument(engineSaveState(state), { ...extras, engineVersion: '0.1.0' });
-  const bytes = await encodeSave(doc);
-  const saveMs = cpuMsSince(saveStarted);
-
-  const loadStarted = process.cpuUsage();
-  const loaded = await loadSave(bytes, TABLES, engineLoadOptions());
-  const loadMs = cpuMsSince(loadStarted);
-  expect(loaded.ok).toBe(true);
+  let bytes: Uint8Array = new Uint8Array();
+  const saveMs = await cpuMsAsync(async () => {
+    bytes = await encodeSave(doc);
+  });
+  let loadedOk = false;
+  const loadMs = await cpuMsAsync(async () => {
+    loadedOk = (await loadSave(bytes, TABLES, engineLoadOptions())).ok;
+  });
+  const referenceMs = (before + referenceCpuMs()) / 2;
+  expect(loadedOk).toBe(true);
 
   const report = await saveSizeReport(doc);
   console.log(
-    `${String(DAYS)} days, ${carded ? 'every show carded' : 'no rival cards'}: save ${saveMs.toFixed(0)} ms, load ${loadMs.toFixed(0)} ms\n${formatSaveSizeReport(report)}`,
+    `${String(DAYS)} days, ${carded ? 'every show carded' : 'no rival cards'}: save ${saveMs.toFixed(0)} ms, load ${loadMs.toFixed(0)} ms (reference ${referenceMs.toFixed(0)} ms)\n${formatSaveSizeReport(report)}`,
   );
-  expect(saveMs).toBeLessThan(MAX_SAVE_OR_LOAD_MS);
-  expect(loadMs).toBeLessThan(MAX_SAVE_OR_LOAD_MS);
+  expect(saveMs / referenceMs).toBeLessThan(MAX_SAVE_OR_LOAD_REFERENCES);
+  expect(loadMs / referenceMs).toBeLessThan(MAX_SAVE_OR_LOAD_REFERENCES);
   return report;
 }
 

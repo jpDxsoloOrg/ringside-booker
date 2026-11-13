@@ -114,13 +114,16 @@ describe('aip.rules', () => {
 
   it('lists the features registered as consumers of each shortcut', () => {
     const engine = rulesEngine();
-    expect(shortcut(rules(engine), 'ai.scoreBonus').consumers).toEqual([]);
+    // MTCH1 is on main: the rival desk's rating policy registers it for the bonus (AIP1-07).
+    expect(shortcut(rules(engine), 'ai.scoreBonus').consumers).toEqual(['Match ratings']);
+    expect(shortcut(rules(engine), 'ai.simpleBookingInputs').consumers).toEqual(['Match ratings']);
+    expect(shortcut(rules(engine), 'ai.skipInMatchInjuries').consumers).toEqual([]);
     cleanups.push(
       registerAiShortcutConsumer({ key: 'ai.scoreBonus', featureId: 'TEST1', label: 'Ratings' }),
       registerAiShortcutConsumer({ key: 'ai.scoreBonus', featureId: 'TEST2', label: 'Lab' }),
     );
     const view = rules(engine);
-    expect(shortcut(view, 'ai.scoreBonus').consumers).toEqual(['Ratings', 'Lab']);
+    expect(shortcut(view, 'ai.scoreBonus').consumers).toEqual(['Match ratings', 'Ratings', 'Lab']);
     expect(shortcut(view, 'ai.skipResultMorale').consumers).toEqual([]);
     expect(shortcut(view, 'ai.scoreBonus').consumer).toBe('Match ratings (MTCH1)');
   });

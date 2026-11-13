@@ -158,7 +158,8 @@ function Lab({ options, catalog, regionId, today }: LabProps) {
         <WorkerPickerSheet
           side={pickerSide}
           regionId={setup.regionId ?? regionId}
-          promotionId={setup.promotionId}
+          // "Your roster" stays yours when the segment is rated as a rival (AIP1-07).
+          promotionId={options.promotion?.id ?? setup.promotionId}
           onClose={() => {
             setPickerSide(null);
           }}

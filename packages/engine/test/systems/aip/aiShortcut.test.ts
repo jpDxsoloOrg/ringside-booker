@@ -220,7 +220,9 @@ describe('registerAiShortcutConsumer', () => {
         label: 'Test ratings',
       }),
     );
+    // MTCH1 (wired by the rival desk's rating policy, AIP1-07) registered first, on import.
     expect(aiShortcutConsumers('ai.scoreBonus')).toEqual([
+      { key: 'ai.scoreBonus', featureId: 'MTCH1', label: 'Match ratings' },
       { key: 'ai.scoreBonus', featureId: 'TEST1', label: 'Test ratings' },
     ]);
     expect(() =>

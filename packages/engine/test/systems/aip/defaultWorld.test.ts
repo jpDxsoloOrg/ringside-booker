@@ -6,8 +6,13 @@ import { createEngine, type Engine, type Viewer } from '../../../src/core/api';
 import type { QueryArgs, QueryData, QueryName } from '../../../src/core/api/maps';
 import type { PromotionId } from '../../../src/core/ids';
 import { assertTraceReplays } from '../../../src/core/trace';
+import { addDays } from '../../../src/core/date';
+import { TABLES } from '../../../src/model/tables';
+import { documentToWorld } from '../../../src/persistence/world-document';
+import { computerUnits, isDue, SHOWS_PER_MONTH_DAYS } from '../../../src/systems/aip';
 import { defaultSystems } from '../../../src/systems';
 import { withMyShowsRun } from '../../support';
+import { measureBestAgainstReference } from '../../support/cpu-budget';
 import { SLOW_TESTS } from '../../support/slow';
 import { startDefaultGame } from '../calendar/default-game';
 
@@ -83,6 +88,44 @@ describe('the Promotions queries on the default world', () => {
     }
   });
 
+  // A few seconds (a full export and reload of the default world): slow runs only.
+  it.runIf(SLOW_TESTS)(
+    'counts each promotion’s dated shows a month and finds a rival’s real show day due (AIP1-07)',
+    { timeout: 60_000 },
+    () => {
+      const state = engine.exportState();
+      const world = documentToWorld({ state: { world: state.world } }, TABLES);
+      const today = state.world.meta.currentDate;
+      const shows = state.world.tables.eventInstances.filter(
+        (show) => show.status === 'scheduled' && show.date >= today,
+      );
+      for (const row of ask(engine, 'promotions.list', {})) {
+        const horizonEnd = addDays(today, SHOWS_PER_MONTH_DAYS - 1);
+        const stored = shows.filter(
+          (show) => show.promotionId === row.promotionId && show.date <= horizonEnd,
+        ).length;
+        const profile = ask(engine, 'promotions.profile', { promotionId: row.promotionId });
+        expect(profile.kpis.showsPerMonth, row.name).toBe(stored);
+      }
+      // A rival's first stored show: its beforeShow jobs are due that day and not the day before.
+      const rivalShow = shows
+        .filter((show) => show.promotionId !== promotionNamed(engine, LONGLEAF))
+        .sort((left, right) => (left.date < right.date ? -1 : left.date > right.date ? 1 : 0))[0];
+      if (rivalShow === undefined) return expect.fail('no rival show is scheduled');
+      const unit = computerUnits(world).find(
+        (candidate) =>
+          candidate.promotionId === rivalShow.promotionId && candidate.brandId === null,
+      );
+      if (unit === undefined) return expect.fail('the rival has no promotion unit');
+      expect(isDue('beforeShow', unit, rivalShow.date, world)).toBe(true);
+      const dayBefore = addDays(rivalShow.date, -1);
+      const showsDayBefore = shows.filter(
+        (show) => show.promotionId === rivalShow.promotionId && show.date === dayBefore,
+      );
+      expect(isDue('beforeShow', unit, dayBefore, world)).toBe(showsDayBefore.length > 0);
+    },
+  );
+
   it('records one weekly roster review per rival over a 7-day skip', async () => {
     const skipped = newLongleafGame();
     const advanced = await skipped.advanceDays({ maxDays: 7 });
@@ -102,34 +145,26 @@ describe('the Promotions queries on the default world', () => {
   });
 });
 
-/** Median of `runs` timings of `work`, in CPU milliseconds (user and system). */
-function medianMs(runs: number, work: () => void): number {
-  const times: number[] = [];
-  for (let run = 0; run < runs; run += 1) {
-    const started = process.cpuUsage();
-    work();
-    const used = process.cpuUsage(started);
-    times.push((used.user + used.system) / 1000);
-  }
-  times.sort((left, right) => left - right);
-  return times[Math.floor(times.length / 2)] ?? 0;
-}
-
 describe.runIf(SLOW_TESTS)('Promotions query speed on the default world', () => {
-  it('answers promotions.list and Altura’s promotions.roster well under 50 ms', () => {
+  // About 50 ms on a laptop, as a ratio against the CPU reference workload (about 50 ms itself):
+  // the engine's test threads share one process and `process.cpuUsage()` counts them all.
+  it('answers promotions.list and Altura’s promotions.roster within one reference workload', () => {
     const engine = newLongleafGame();
     const altura = promotionNamed(engine, 'Altura Wrestling Entertainment');
     // Warm up once so the timings measure the queries, not the first compile.
     ask(engine, 'promotions.list', {});
     ask(engine, 'promotions.roster', { promotionId: altura });
-    const listMs = medianMs(9, () => ask(engine, 'promotions.list', {}));
-    const rosterMs = medianMs(9, () => ask(engine, 'promotions.roster', { promotionId: altura }));
+    const list = measureBestAgainstReference(() => ask(engine, 'promotions.list', {}), 5);
+    const roster = measureBestAgainstReference(
+      () => ask(engine, 'promotions.roster', { promotionId: altura }),
+      5,
+    );
     const rows = ask(engine, 'promotions.roster', { promotionId: altura }).rows.length;
     console.log(
-      `promotions.list ${listMs.toFixed(1)} ms; promotions.roster (Altura, ${String(rows)} rows) ${rosterMs.toFixed(1)} ms`,
+      `promotions.list ${list.workMs.toFixed(1)} ms (${list.ratio.toFixed(2)} ref); promotions.roster (Altura, ${String(rows)} rows) ${roster.workMs.toFixed(1)} ms (${roster.ratio.toFixed(2)} ref)`,
     );
-    expect(listMs).toBeLessThan(50);
-    expect(rosterMs).toBeLessThan(50);
+    expect(list.ratio).toBeLessThan(1);
+    expect(roster.ratio).toBeLessThan(1);
   });
 
   it('logs each promotion’s top card values and needs (the calibration log)', () => {

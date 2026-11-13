@@ -4,8 +4,9 @@
  *
  * Public except the money, as `promotions.list`: `cash` is redacted for a viewer who does not run
  * the promotion, and `hidden` names what was left out so the screen can say so. Popularity carries
- * its Why? inline. `showsPerMonth` counts the show dates of the promotion's definitions in the next
- * 28 days (AIP1-07 switches it to dated shows once the calendar stores them). Design:
+ * its Why? inline. `showsPerMonth` counts the promotion's dated shows (EVT1's `eventInstances`, not
+ * cancelled) in the next 28 days, one-offs included; a day past the calendar's scheduling horizon
+ * falls back to the definitions' recurrence (AIP1-07). Design:
  * docs/design/rival-desk.md#promotions-queries.
  */
 
@@ -160,6 +161,34 @@ export function showDatesAhead(
   return count;
 }
 
+/**
+ * The promotion's shows over the next {@link SHOWS_PER_MONTH_DAYS} days from `from`: the stored
+ * shows that are not cancelled, and for a day the calendar has not scheduled yet (past tomorrow
+ * plus `horizonDays`) the show dates of its definitions.
+ */
+export function datedShowsAhead(
+  read: GameWorldView,
+  promotionId: PromotionId,
+  definitions: readonly DeepReadonly<EventDefinition>[],
+  from: GameDate,
+  horizonDays: number,
+): number {
+  let count = 0;
+  for (let offset = 0; offset < SHOWS_PER_MONTH_DAYS; offset += 1) {
+    const date = addDays(from, offset);
+    if (offset <= horizonDays + 1) {
+      count += read.tables.eventInstances
+        .lookup('byDate', date)
+        .filter((show) => show.promotionId === promotionId && show.status !== 'cancelled').length;
+    } else {
+      count += definitions.filter(
+        (definition) => runsOn(definition, date) && occursOn(definition.recurrence, date),
+      ).length;
+    }
+  }
+  return count;
+}
+
 function brandsOf(
   read: GameWorldView,
   promotionId: PromotionId,
@@ -224,7 +253,13 @@ export const promotionProfileQuery: QueryDefinition<'promotions.profile'> = defi
           prestige: promotion.prestige,
           ...rosterCountsOf(read, unit, date),
           championCount: champions.filter((line) => line.holderNames.length > 0).length,
-          showsPerMonth: showDatesAhead(definitions, date),
+          showsPerMonth: datedShowsAhead(
+            read,
+            promotion.id,
+            definitions,
+            date,
+            tunables.get('calendar.scheduleHorizonDays'),
+          ),
           cash: redactForViewer(visibility, promotion.cash, []),
         },
         popularity: popularityRollupView(rollup, geography),

@@ -1,6 +1,7 @@
 // The rating seams (MTCH1-05): rating modifiers on every stage, their order, the rival shortcut,
 // the policy door and swapping a rater. Design: docs/design/match-rating.md#pipeline-and-seams
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { clearRatingPolicyProvider } from '../../../../src/systems/match/rating/policy';
 import { RegistryError } from '../../../../src/core/errors';
 import { constantOf, findTraceNodes } from '../../../../src/core/trace';
 import {
@@ -32,6 +33,21 @@ import {
 
 const BUMP = 'Test bump';
 
+// The rival desk registers its policy provider on import (AIP1-07); these are tests of MTCH1's own
+// seams, so the file (including the bases some describe blocks rate while collecting) and every
+// test start from the bare registries.
+function bareRegistries(): void {
+  resetMatchRegistriesForTests();
+  clearRatingPolicyProvider();
+}
+
+bareRegistries();
+
+beforeEach(() => {
+  bareRegistries();
+});
+
+// Leave the registries as an import left them (with the rival desk's provider) for later files.
 afterEach(() => {
   resetMatchRegistriesForTests();
 });
@@ -242,7 +258,7 @@ describe('modifier order and registration', () => {
       },
       { replace: true },
     );
-    resetMatchRegistriesForTests();
+    bareRegistries();
     // The finish effect modifiers (MTCH2-02) are built-ins; the extra is gone.
     expect(ratingModifiersFor('crowd').map((modifier) => modifier.id)).toEqual([
       'match.finishCrowd',
@@ -312,7 +328,7 @@ describe('the policy door (D-01)', () => {
   it("raises the score by exactly the provider's score bonus", () => {
     const { world, mainEvent, promo } = tinyRating();
     for (const segment of [mainEvent, promo]) {
-      resetMatchRegistriesForTests();
+      bareRegistries();
       const input = inputOf(world, segment.id);
       const base = rate(world, input);
       registerRatingPolicyProvider(

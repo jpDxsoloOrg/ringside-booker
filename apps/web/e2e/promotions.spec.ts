@@ -3,34 +3,13 @@
  * rival): the list with who runs each, then the rival's profile through its three tabs. Every
  * step has to fit a 390px phone with no sideways scroll and pass the accessibility scan.
  */
-import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { expectNoSeriousA11yViolations } from './helpers/a11y';
-import { enterGameFromSampleSave } from './helpers/game';
+import { enterGameFromSampleSave, openPromotions } from './helpers/game';
 import { expectNoHorizontalScroll } from './helpers/layout';
 import { isPhone } from './helpers/viewport';
 
 const RIVAL = 'Test Promotion B';
-
-/** Opens World > Promotions from the sidebar, or from the More sheet on a phone. */
-async function openPromotions(page: Page, phone: boolean): Promise<void> {
-  if (phone) {
-    await page
-      .getByRole('navigation', { name: 'Primary' })
-      .getByRole('button', { name: 'More' })
-      .click();
-    await page
-      .getByRole('dialog', { name: 'Menu' })
-      .getByRole('link', { name: 'Promotions', exact: true })
-      .click();
-  } else {
-    await page
-      .getByRole('navigation', { name: 'Main' })
-      .getByRole('link', { name: 'Promotions', exact: true })
-      .click();
-  }
-  await expect(page.getByRole('heading', { level: 1, name: 'Promotions' })).toBeVisible();
-}
 
 test.describe('World > Promotions', () => {
   test('lists the promotions and walks a rival’s profile', async ({ page }, testInfo) => {
@@ -84,5 +63,26 @@ test.describe('World > Promotions', () => {
     await page.getByRole('link', { name: RIVAL }).click();
     await page.getByRole('link', { name: 'Back to Promotions' }).click();
     await expect(page).toHaveURL(/\/game\/promotions\?sort=name&dir=asc$/);
+  });
+
+  // AIP1-07: ECO1's public Company size, a column on desktop and card meta ("Size") on a phone.
+  test('shows each promotion’s Company size', async ({ page }, testInfo) => {
+    const phone = isPhone(testInfo);
+    await enterGameFromSampleSave(page);
+    await openPromotions(page, phone);
+
+    const sizes = 'Local|Regional|National|Continental|Global';
+    if (phone) {
+      await expect(page.getByText(new RegExp(`^Size (${sizes})$`)).first()).toBeVisible();
+    } else {
+      await expect(page.getByRole('columnheader', { name: /Company size/ })).toBeVisible();
+      await expect(page.getByText(new RegExp(`^(${sizes})$`)).first()).toBeVisible();
+    }
+    await expectNoHorizontalScroll(page);
+    await expectNoSeriousA11yViolations(page);
+
+    await page.getByRole('link', { name: RIVAL }).click();
+    await expect(page.getByRole('group', { name: 'Company size' })).toBeVisible();
+    await expectNoHorizontalScroll(page);
   });
 });

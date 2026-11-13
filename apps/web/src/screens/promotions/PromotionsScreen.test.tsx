@@ -2,6 +2,7 @@ import { render, screen, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { setCompanySizeSource } from '@ringside/engine';
 import type { EngineState } from '@ringside/engine';
 import { EngineProvider } from '@/app/engine/EngineProvider';
 import { createInProcessTransport } from '@/app/engine/transport';
@@ -66,6 +67,31 @@ describe('PromotionsScreen', () => {
     expect(within(rowB).getByText('Computer')).toBeInTheDocument();
     expect(within(table).queryByText(/\$/)).toBeNull();
     expect(screen.getByText(/2 promotions · 1 run by the computer/)).toBeInTheDocument();
+  });
+
+  it('shows each promotion’s Company size from ECO1, and no column without it', async () => {
+    renderPromotions();
+    const table = await findTable();
+    expect(within(table).getByRole('columnheader', { name: /Company size/ })).toBeInTheDocument();
+    const rowB = (await within(table).findByRole('link', { name: 'Test Promotion B' })).closest(
+      'tr',
+    );
+    if (rowB === null) throw new Error('Promotion B is not in a table row.');
+    expect(
+      within(rowB).getByText(/^(Local|Regional|National|Continental|Global)$/),
+    ).toBeInTheDocument();
+  });
+
+  it('drops the Company size column when no feature supplies a size', async () => {
+    const restore = setCompanySizeSource(null);
+    try {
+      renderPromotions();
+      const table = await findTable();
+      await within(table).findByRole('link', { name: 'Test Promotion B' });
+      expect(within(table).queryByRole('columnheader', { name: /Company size/ })).toBeNull();
+    } finally {
+      restore();
+    }
   });
 
   it('opens the Why? of a home popularity', async () => {

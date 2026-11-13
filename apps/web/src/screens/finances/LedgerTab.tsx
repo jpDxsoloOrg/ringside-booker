@@ -123,6 +123,7 @@ const LEDGER_COLUMNS: readonly ColumnDef<FinanceLedgerRow>[] = [
           value={row.amount}
           unit="money"
           source={{ traceRef: row.traceRef }}
+          className={styles['ledgerWhy'] ?? ''}
         />
       ),
   },
