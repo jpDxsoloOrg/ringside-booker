@@ -22,6 +22,8 @@ import './decisionKinds';
 import './jobs/rosterReview';
 // AIP4-05: the show-day booker registers itself (and the `card` decision kind) on import.
 import './card/bookShowJob';
+// AIP5-01: the rival results' decision kinds register on import.
+import './results';
 // AIP1-07: the rating policy provider (MTCH1's door) registers itself on import.
 import './ratingPolicy';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
@@ -135,6 +137,7 @@ export {
   CARD_VALUE_MAX,
   CARD_VALUE_MIN,
   cardValue,
+  marketPopularity,
   NO_MOMENTUM_LABEL,
   noFansNote,
   PRIME_AGE_NOTE,
@@ -475,3 +478,5 @@ export {
   type BookedCardStepSpec,
   type ShowBookingContext,
 } from './card';
+// AIP5-01: rival results groundwork (tunables, streams, trace and decision kinds, guard, inputs).
+export * from './results';

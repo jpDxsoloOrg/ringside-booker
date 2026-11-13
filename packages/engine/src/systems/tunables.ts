@@ -34,6 +34,7 @@ import { officeTunables } from './office/tunables';
 import { rosterTunables } from './roster/tunables';
 import { aipTunables } from './aip/tunables';
 import { aipCardTunables } from './aip/card/tunables';
+import { aipResultsTunables } from './aip/results/tunables';
 
 export const ALL_TUNABLES = mergeTunables(
   simTunables,
@@ -53,6 +54,7 @@ export const ALL_TUNABLES = mergeTunables(
   rosterTunables,
   aipTunables,
   aipCardTunables,
+  aipResultsTunables,
 );
 
 /** Every tunable key the engine knows. */

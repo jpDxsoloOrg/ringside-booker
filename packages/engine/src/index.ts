@@ -2247,3 +2247,31 @@ export {
   type BookedCardStepSpec,
   type ShowBookingContext,
 } from './systems/aip/index';
+
+// AIP5-01: rival results groundwork: tunables, streams, trace and decision kinds, the
+// computer-only guard and the input gatherer. See docs/design/rival-booking.md#winners.
+export {
+  aipResultsTunables,
+  isComputerBooked,
+  marketPopularity,
+  NO_POPULARITY_HISTORY_NOTE,
+  popularityHistoryOf,
+  registerPopularityHistorySource,
+  rivalSegmentInputsOf,
+  TITLE_DECISION_KIND,
+  TITLE_TRACE_KIND,
+  titleTraceRef,
+  TITLES_STREAM,
+  WINNER_DECISION_KIND,
+  WINNER_TRACE_KIND,
+  winnerTraceRef,
+  WINNERS_STREAM,
+  type PopularityHistorySource,
+  type PopularityReading,
+  type RivalChallengerSide,
+  type RivalOpenReign,
+  type RivalSegmentInputs,
+  type RivalSide,
+  type RivalStorylineContext,
+  type RivalTitleContext,
+} from './systems/aip/index';
