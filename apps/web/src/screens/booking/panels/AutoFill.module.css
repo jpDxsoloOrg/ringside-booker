@@ -1,0 +1,116 @@
+/*
+ * The booking screen's Auto-fill panel and its reasons sheet (AIP4-07). The panel sits in the
+ * narrow side column on desktop and under the card on a phone, so it is one column of blocks; its
+ * buttons fill the width so each is a full tap target.
+ */
+.panel {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.help,
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.actions {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.error {
+  margin: 0;
+  color: var(--color-negative);
+  font-size: var(--font-size-sm);
+}
+
+.reasons {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.message {
+  margin: 0;
+  padding: var(--space-3);
+  border-inline-start: 3px solid var(--color-warning);
+  background: var(--color-surface-sunken);
+}
+
+.filled {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.filledRow {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  padding-block-end: var(--space-3);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.filledHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.place {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.matchup {
+  margin: 0;
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.headline {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding-inline-start: var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.openSection {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.subheading {
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+}
+
+.openList {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.openList > li {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.closing {
+  margin: 0;
+  font-weight: var(--font-weight-semibold);
+}

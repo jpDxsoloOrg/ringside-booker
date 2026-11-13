@@ -7,8 +7,11 @@
  * demoted to its summary. The cards themselves (who was on which show, the results) are public
  * facts other features read and are not touched here.
  *
- * Daily in `periodic` (order 43, after `aip.pruneDecisionLog`): demotes the slots of the computer
- * shows dated exactly `today - keepDetailDays`, read through the `byDate` index. On the 1st of each
+ * The player's own slots that Auto-fill wrote (AIP4-06) carry the same short Why? and go the same
+ * way, so every show is swept, not only the computer's; a show without such traces costs nothing.
+ *
+ * Daily in `periodic` (order 43, after `aip.pruneDecisionLog`): demotes the slots of the shows
+ * dated exactly `today - keepDetailDays`, read through the `byDate` index. On the 1st of each
  * month a full sweep catches shows a lowered setting or a failed day left behind. See
  * docs/design/rival-booking.md#show-day.
  */
@@ -18,18 +21,14 @@ import { definePhase, type PhaseDefinition } from '../../../core/pipeline/phase'
 import type { PhaseContext } from '../../../core/pipeline/context';
 import type { EventInstance } from '../../../model/entities/event-instance';
 import type { DeepReadonly } from '../../../model/world';
-import { showControllerOf } from '../../calendar/control';
 import { CARD_SLOT_TRACE_KIND } from './bookShowJob';
 
 export const AIP_PRUNE_CARD_DETAIL_PHASE_ID = 'aip.pruneCardDetail';
 
-/** Demotes the slot traces of the computer shows among `shows`; returns how many shows. */
+/** Demotes the slot traces of the shows among `shows`; returns how many shows had segments. */
 function demoteSlots(ctx: PhaseContext, shows: Iterable<DeepReadonly<EventInstance>>): number {
   let count = 0;
   for (const show of shows) {
-    if (showControllerOf(ctx.read, show).kind !== 'computer') {
-      continue;
-    }
     const segments = ctx.read.tables.segments.lookup('byEventInstance', show.id);
     for (const segment of segments) {
       ctx.demoteTrace({ kind: CARD_SLOT_TRACE_KIND, id: segment.id });
@@ -59,7 +58,7 @@ export const pruneCardDetailPhase: PhaseDefinition = definePhase({
         : ctx.read.tables.eventInstances.lookup('byDate', cutoff);
     const pruned = demoteSlots(ctx, shows);
     if (pruned > 0) {
-      ctx.log(`Kept only a summary of ${String(pruned)} rival card(s) from ${cutoff} or before`);
+      ctx.log(`Kept only a summary of ${String(pruned)} booked card(s) from ${cutoff} or before`);
     }
   },
 });

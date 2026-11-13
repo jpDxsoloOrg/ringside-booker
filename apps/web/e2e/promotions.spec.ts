@@ -1,6 +1,6 @@
 /**
  * World > Promotions in a real game (the sample save: the player's promotion and one computer-run
- * rival): the list with who runs each, then the rival's profile through its three tabs. Every
+ * rival): the list with who runs each, then the rival's profile through its four tabs. Every
  * step has to fit a 390px phone with no sideways scroll and pass the accessibility scan.
  */
 import { expect, test } from './fixtures';
@@ -42,6 +42,14 @@ test.describe('World > Promotions', () => {
     await expect(panel.getByText(/aip\.cardValue\./).first()).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(panel).toBeHidden();
+    await expectNoHorizontalScroll(page);
+    await expectNoSeriousA11yViolations(page);
+
+    // AIP4-07: the Shows tab. The sample rival has no shows yet, so both lists say so.
+    await page.getByRole('tab', { name: 'Shows' }).click();
+    await expect(page).toHaveURL(/\?tab=shows$/);
+    await expect(page.getByRole('region', { name: 'Recent shows' })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Coming up' })).toBeVisible();
     await expectNoHorizontalScroll(page);
     await expectNoSeriousA11yViolations(page);
 

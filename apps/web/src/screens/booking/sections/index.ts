@@ -4,10 +4,11 @@
  * reorder. The booking folder's `index.ts` imports this file once, so everything registered here
  * is in place before the screen draws.
  *
- * Wired: MTCH2's Finish section (EVT2-07).
+ * Wired: MTCH2's Finish section (EVT2-07), EVT6's venue and crowd, AIP4's auto-fill.
  *
- * Expected: EVT4's forecast, EVT6's venue and crowd, CRTV8's tournament matches, AIP4's auto-fill.
+ * Expected: EVT4's forecast, CRTV8's tournament matches.
  */
 import '@/screens/show-results/bookingPanel';
 import './BookingFinishSection';
 import '../venue/register';
+import '../panels/register';

@@ -1,0 +1,211 @@
+/**
+ * One show on a promotion's Shows tab (AIP4-07): a disclosure whose header gives the date, the
+ * show's name, its importance, brand and status, and which opens onto the card, slot by slot,
+ * each filled slot with the booker's Why?. A card the viewer may not see yet opens onto "Card is
+ * revealed when the show airs"; a cancelled show onto the reason. Everything shown comes from
+ * `aip.showCards`: the web never works out a role, a title or a reason. Nothing here is a length
+ * or a time. Design: docs/design/rival-booking.md#show-cards.
+ */
+import { useId, useState } from 'react';
+import type { ShowCardRow, ShowCardSlot, TraceNode, TraceRef } from '@ringside/engine';
+import { Badge } from '@/components/Badge';
+import { CardSlot } from '@/components/CardSlot';
+import { classNames } from '@/components/classNames';
+import { EmptyState } from '@/components/EmptyState';
+import { formatGameDate, formatNumber } from '@/components/format';
+import { Icon } from '@/components/Icon';
+import { IMPORTANCE_LABELS } from '@/components/ShowChip/importance';
+import { traceSourceOf, WhyButton } from '@/components/Trace';
+import type { Tone } from '@/components/tone';
+import { rivalSlotKey, toRivalCardSlotProps } from './rivalCardSlotProps';
+import styles from './RivalShowCard.module.css';
+
+/** What a cancelled show's status reads. */
+export const SHOW_CANCELLED_TEXT = 'Show cancelled';
+
+/** The header's status words: "Completed · Score 62", "Booked", "Show cancelled". */
+export function showStatusText(row: Pick<ShowCardRow, 'statusLabel' | 'score'>): string {
+  if (row.statusLabel === 'Cancelled') return SHOW_CANCELLED_TEXT;
+  if (row.statusLabel === 'Completed' && row.score !== null) {
+    return `Completed · Score ${formatNumber(row.score)}`;
+  }
+  return row.statusLabel;
+}
+
+const STATUS_TONES: Readonly<Record<ShowCardRow['statusLabel'], Tone>> = {
+  'Coming up': 'neutral',
+  Booked: 'data',
+  Completed: 'positive',
+  'Not run': 'neutral',
+  Cancelled: 'negative',
+};
+
+/** The name of a slot's Why? button: "Why this segment? Slot 3, Midcard". */
+export function slotWhyLabel(slot: Pick<ShowCardSlot, 'displayNumber' | 'roleLabel'>): string {
+  return `Why this segment? Slot ${String(slot.displayNumber)}, ${slot.roleLabel}`;
+}
+
+/** The name of the card's Why? button: "Why this card? Rival Weekly, Jan 6". */
+export function cardWhyLabel(row: Pick<ShowCardRow, 'name' | 'date'>): string {
+  return `Why this card? ${row.name}, ${formatGameDate(row.date, 'short')}`;
+}
+
+export interface RivalShowCardProps {
+  readonly row: ShowCardRow;
+  /** Open at first. Closed by default. */
+  readonly defaultExpanded?: boolean;
+  /**
+   * Hands a breakdown over inline instead of fetching the stored one by reference; the gallery
+   * uses it, having no engine. Return null to fetch.
+   */
+  readonly traceOf?: (ref: TraceRef) => TraceNode | null;
+  /** The level of the show's heading. 3 by default; the slots sit one level below. */
+  readonly headingLevel?: 3 | 4;
+  readonly className?: string;
+}
+
+function sourceOf(ref: TraceRef | null, traceOf: RivalShowCardProps['traceOf']) {
+  return traceSourceOf(ref === null ? null : traceOf?.(ref), ref);
+}
+
+function CardBody({
+  row,
+  traceOf,
+  slotHeadingLevel,
+}: {
+  readonly row: ShowCardRow;
+  readonly traceOf: RivalShowCardProps['traceOf'];
+  readonly slotHeadingLevel: 4;
+}) {
+  if (!row.revealed) {
+    return (
+      <EmptyState
+        icon="calendar"
+        size="inline"
+        headingLevel={slotHeadingLevel}
+        title={row.hiddenText ?? 'Card is revealed when the show airs'}
+      />
+    );
+  }
+  if (row.statusLabel === 'Cancelled') {
+    return (
+      <div className={styles['cancelled']}>
+        <p className={styles['cancelledTitle']}>{SHOW_CANCELLED_TEXT}</p>
+        {row.cancelledReason !== null && (
+          <p className={styles['cancelledReason']}>{row.cancelledReason}</p>
+        )}
+      </div>
+    );
+  }
+  if (row.slots.length === 0) {
+    return (
+      <EmptyState
+        icon="calendar"
+        size="inline"
+        headingLevel={slotHeadingLevel}
+        title="Nothing is on this card"
+      />
+    );
+  }
+  return (
+    <ol className={styles['slots']} aria-label={`${row.name} card`}>
+      {row.slots.map((slot) => {
+        const source =
+          slot.segment === null ? null : sourceOf(slot.segment.reasonTraceRef, traceOf);
+        return (
+          <li key={rivalSlotKey(slot)}>
+            <CardSlot
+              {...toRivalCardSlotProps(slot)}
+              headingLevel={slotHeadingLevel}
+              emptyTitle="Open slot"
+              {...(slot.segment !== null && source !== null
+                ? {
+                    actions: (
+                      <WhyButton
+                        label={`slot ${String(slot.displayNumber)}`}
+                        value={slot.segment.label}
+                        buttonLabel={slotWhyLabel(slot)}
+                        panelTitle={`Why this segment? ${slot.segment.label}`}
+                        source={source}
+                      />
+                    ),
+                  }
+                : {})}
+            />
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+/**
+ * A show as a disclosure: the header button (44px tall) opens and closes its card. A "Why this
+ * card?" button sits beside it while the plan's breakdown is kept. On a phone the header wraps to
+ * two lines, date and status first, then the name.
+ */
+export function RivalShowCard({
+  row,
+  defaultExpanded = false,
+  traceOf,
+  headingLevel = 3,
+  className,
+}: RivalShowCardProps) {
+  const [expanded, setExpanded] = useState(defaultExpanded);
+  const bodyId = useId();
+  const Heading = headingLevel === 3 ? 'h3' : 'h4';
+  const planSource = sourceOf(row.planTraceRef, traceOf);
+  const statusText = showStatusText(row);
+  return (
+    <article
+      className={classNames(styles['show'], className)}
+      data-status={row.status}
+      data-revealed={row.revealed}
+    >
+      <div className={styles['header']}>
+        <Heading className={styles['heading']}>
+          <button
+            type="button"
+            className={styles['toggle']}
+            aria-expanded={expanded}
+            aria-controls={bodyId}
+            onClick={() => {
+              setExpanded((open) => !open);
+            }}
+          >
+            <Icon
+              name="chevron-down"
+              decorative
+              className={classNames(styles['chevron'], expanded && styles['chevronOpen'])}
+            />
+            <time className={styles['date']} dateTime={row.date}>
+              {formatGameDate(row.date, 'short')}
+            </time>
+            <span className={styles['name']}>{row.name}</span>
+            <span className={styles['tags']}>
+              <Badge tone="neutral">{IMPORTANCE_LABELS[row.importance]}</Badge>
+              {row.brandName !== null && <span className={styles['brand']}>{row.brandName}</span>}
+            </span>
+            <Badge tone={STATUS_TONES[row.statusLabel]} className={styles['status']}>
+              {statusText}
+            </Badge>
+          </button>
+        </Heading>
+        {planSource !== null && (
+          <span className={styles['why']}>
+            <WhyButton
+              label={row.name}
+              value={statusText}
+              buttonLabel={cardWhyLabel(row)}
+              panelTitle={`Why this card? ${row.name}`}
+              source={planSource}
+            />
+          </span>
+        )}
+      </div>
+      <div id={bodyId} className={styles['body']} hidden={!expanded}>
+        {expanded && <CardBody row={row} traceOf={traceOf} slotHeadingLevel={4} />}
+      </div>
+    </article>
+  );
+}

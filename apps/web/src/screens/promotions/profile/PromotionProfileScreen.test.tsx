@@ -112,7 +112,7 @@ describe('PromotionProfileScreen', () => {
     const { router, user } = renderProfile(`${routes.game.promotion(rival)}?tab=nonsense`);
 
     await findHeading('Test Promotion B');
-    expect(tabNames()).toEqual(['Overview', 'Roster', 'Decision log']);
+    expect(tabNames()).toEqual(['Overview', 'Roster', 'Shows', 'Decision log']);
     expect(screen.getByRole('tab', { name: 'Overview' })).toHaveAttribute('aria-selected', 'true');
 
     await user.click(screen.getByRole('tab', { name: 'Roster' }));
@@ -162,7 +162,7 @@ describe('PromotionProfileScreen', () => {
     });
     cleanups.push(unregister);
     expect(await screen.findByRole('tab', { name: 'Front office' })).toBeInTheDocument();
-    expect(tabNames()).toEqual(['Overview', 'Roster', 'Front office', 'Decision log']);
+    expect(tabNames()).toEqual(['Overview', 'Roster', 'Front office', 'Shows', 'Decision log']);
 
     act(() => {
       unregister();

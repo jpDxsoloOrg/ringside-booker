@@ -80,6 +80,7 @@ import { aipNeedsQuery } from './queries/needs';
 import { promotionProfileQuery } from './queries/promotionProfile';
 import { promotionRosterQuery } from './queries/promotionRoster';
 import { promotionsListQuery } from './queries/promotionsList';
+import { aipCardCommands, aipShowCardsQuery } from './card';
 
 // Rival rules shortcuts and viewer redaction (AIP1-02).
 export {
@@ -237,7 +238,9 @@ export const aipSystem: SystemBundle = defineSystem({
     promotionRosterQuery,
     aipNeedsQuery,
     aipDecisionLogQuery,
+    aipShowCardsQuery,
   ],
+  commands: [...aipCardCommands],
 });
 // AIP1-07: the rating policy provider behind MTCH1's policy door.
 export {
@@ -474,4 +477,34 @@ export {
   type BookedCardStep,
   type BookedCardStepSpec,
   type ShowBookingContext,
+} from './card';
+// AIP4-06: Auto-fill (`aip.autoFillCard`) and the Shows tab's cards (`aip.showCards`).
+export {
+  aipCardCommands,
+  aipShowCardsQuery,
+  AUTO_FILL_COMMAND,
+  AUTO_FILL_REASON_CODES,
+  autoFillCardCommand,
+  CANCELLATION_REASON_TEXT,
+  CARD_FULL_MESSAGE,
+  CARD_HIDDEN_TEXT,
+  DEFAULT_PAST_SHOWS,
+  DEFAULT_UPCOMING_SHOWS,
+  MAX_PAST_SHOWS,
+  MAX_UPCOMING_SHOWS,
+  NO_CATALOG_MESSAGE,
+  SHOW_CARD_STATUS_LABELS,
+  type AutoFillCardArgs,
+  type AutoFilledSlot,
+  type AutoFillOpenSlot,
+  type AutoFillReasonCode,
+  type AutoFillResult,
+  type ShowCardPerson,
+  type ShowCardRow,
+  type ShowCards,
+  type ShowCardsArgs,
+  type ShowCardSegment,
+  type ShowCardSide,
+  type ShowCardSlot,
+  type ShowCardStatusLabel,
 } from './card';

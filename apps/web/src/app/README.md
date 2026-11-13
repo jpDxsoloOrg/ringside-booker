@@ -142,6 +142,9 @@ from `aip.needs`, the Rival rules as they apply here, the popularity drill-down)
 **Decision log** (`DecisionLogList` from `aip.decisionLog`; hidden on your own promotion unless the
 computer runs one of its brands). Templated engine text (needs, decisions) is rendered through
 `text/renderTemplatedText.ts`; the rival desk's strings are in `text/catalogs/aip.ts`.
+**Shows** (order 40, AIP4-07, `?tab=shows`, shown where the Decision log is) lists the recent
+and coming shows from `aip.showCards`; each opens onto its card with a Why? per slot, and a rival's
+card stays "Card is revealed when the show airs" until it airs.
 
 ### Adding a promotion tab
 

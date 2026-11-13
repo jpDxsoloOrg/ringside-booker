@@ -1,0 +1,154 @@
+/*
+ * A show on the Shows tab: a header row (the disclosure button and the card's Why?) over the card.
+ * Desktop: one line, date, name, importance and brand, then the status at the end. Below
+ * --bp-mobile the button wraps to two lines (date and status, then the name and its tags) and the
+ * slots stack full width, their sides one above the other (CardSlot's own phone layout).
+ */
+.show {
+  display: grid;
+  min-inline-size: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  padding-inline-end: var(--space-2);
+}
+
+.heading {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  margin: 0;
+  font: inherit;
+}
+
+.toggle {
+  display: grid;
+  grid-template-areas: 'chevron date name tags status';
+  grid-template-columns: auto 6.5rem minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  inline-size: 100%;
+  min-block-size: var(--tap-target-min);
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-card);
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.toggle:hover {
+  background: var(--color-surface-hover);
+}
+
+.chevron {
+  grid-area: chevron;
+  color: var(--color-text-muted);
+  transform: rotate(-90deg);
+  transition: transform var(--motion-fast) var(--easing-standard);
+}
+
+.chevronOpen {
+  transform: none;
+}
+
+.date {
+  grid-area: date;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.name {
+  grid-area: name;
+  min-inline-size: 0;
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.tags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  grid-area: tags;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.brand {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.status {
+  grid-area: status;
+  justify-self: end;
+}
+
+.why {
+  flex: 0 0 auto;
+}
+
+.body {
+  min-inline-size: 0;
+  padding: 0 var(--space-3) var(--space-3);
+}
+
+.body[hidden] {
+  display: none;
+}
+
+.slots {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-inline-size: 0;
+}
+
+.slots > li {
+  min-inline-size: 0;
+}
+
+.cancelled {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border-inline-start: 3px solid var(--color-negative);
+  background: var(--color-surface-sunken);
+}
+
+.cancelledTitle {
+  margin: 0;
+  font-weight: var(--font-weight-semibold);
+}
+
+.cancelledReason {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+@media (--bp-mobile) {
+  .toggle {
+    grid-template-areas:
+      'chevron date status'
+      'chevron name name'
+      'chevron tags tags';
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: var(--space-1) var(--space-2);
+  }
+
+  .body {
+    padding-inline: var(--space-2);
+  }
+}

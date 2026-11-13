@@ -22,6 +22,11 @@ export interface WhyButtonProps {
   readonly panelTitle?: string;
   /** Draws the names of entities that inputs point at. The `EntityLinkContext`'s by default. */
   readonly renderEntityLink?: EntityLinkRenderer;
+  /**
+   * The button's accessible name when the breakdown explains a choice rather than a number
+   * ("Why this segment? Slot 3, Midcard"). `Why is <label> <value>?` by default.
+   */
+  readonly buttonLabel?: string;
   /** `sm` by default, to sit beside a number. */
   readonly size?: ButtonSize;
   readonly className?: string;
@@ -44,6 +49,7 @@ export function WhyButton({
   source,
   panelTitle,
   renderEntityLink,
+  buttonLabel,
   size = 'sm',
   className,
 }: WhyButtonProps) {
@@ -57,7 +63,7 @@ export function WhyButton({
       <IconButton
         icon="help"
         size={size}
-        label={whyButtonLabel(label, formatTraceValue(value, unit))}
+        label={buttonLabel ?? whyButtonLabel(label, formatTraceValue(value, unit))}
         aria-haspopup="dialog"
         {...(className === undefined ? {} : { className })}
         onClick={() => {

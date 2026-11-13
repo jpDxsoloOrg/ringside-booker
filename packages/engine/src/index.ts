@@ -2247,3 +2247,26 @@ export {
   type BookedCardStepSpec,
   type ShowBookingContext,
 } from './systems/aip/index';
+
+// AIP4-06: Auto-fill for the player's own card (`aip.autoFillCard`) and a promotion's shows with
+// their cards (`aip.showCards`, rival cards revealed when they air). See
+// docs/design/rival-booking.md#auto-fill and #show-cards.
+export {
+  AUTO_FILL_REASON_CODES,
+  CARD_FULL_MESSAGE,
+  CARD_HIDDEN_TEXT,
+  SHOW_CARD_STATUS_LABELS,
+  type AutoFillCardArgs,
+  type AutoFilledSlot,
+  type AutoFillOpenSlot,
+  type AutoFillReasonCode,
+  type AutoFillResult,
+  type ShowCardPerson,
+  type ShowCardRow,
+  type ShowCards,
+  type ShowCardsArgs,
+  type ShowCardSegment,
+  type ShowCardSide,
+  type ShowCardSlot,
+  type ShowCardStatusLabel,
+} from './systems/aip/index';
