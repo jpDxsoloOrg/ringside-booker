@@ -151,8 +151,9 @@ identity factor 1, each recorded as a constant with its reason.
 ### Next
 
 - [Momentum gain](#momentum-gain) and [Prior matches](#prior-matches) (MTCH3-02, below): momentum changes and the win streak count fed into `priorWinStreak`.
-- MTCH3-03: spreading this region's change to neighbours and TV reach; the
-  neighbouring region's Why? reads "this match's change × spill × taper".
+- [Regional spread](#regional-spread) (MTCH3-03): spreading this region's
+  change to neighbours and TV reach; the neighbouring region's Why? reads
+  "this match's change × spill × taper".
 - MTCH3-04: the Match lab's Aftermath tab shows these lines.
 
 ## Momentum gain
@@ -270,3 +271,112 @@ The lookup reads the person's participant rows through the `byPerson` index,
 so it grows with a career, not with the whole history. It is called once per
 competitor per segment and capped by `limit`; if it ever shows up as slow, the
 applier can keep a per-show memo rather than adding an index.
+
+## Regional spread
+
+`popularityGain` gives one number for the show's region. The popularity door
+spreads it (D-03): each region gets `delta × weight`, tapered above the
+worker's charisma anchor, kept within 0..100 and rounded to hundredths.
+`segmentRegionWeights(read, ctx, tunables)` in `aftermath/regionWeights.ts`
+decides the weights:
+
+| Region                      | Weight                                  | Line                       |
+| --------------------------- | --------------------------------------- | -------------------------- |
+| The show's region           | 1                                       | "Show region"              |
+| Each of its neighbours      | `match.popularity.neighbourSpill` (0.4) | "Neighbour of North Coast" |
+| Each region a provider adds | the provider's weight                   | the provider's reason      |
+
+**Largest weight wins, never the sum.** A region reached twice (a neighbour
+that also gets TV coverage) takes the larger weight. The TV audience next door
+is the same crowd, not a second one, so summing would pay one match twice.
+Weights are kept within 0..1 (a provider weight outside it is clamped and a
+note says so), a weight of 0 is dropped, and a spill of 0 drops the
+neighbours.
+
+**The reach seam.** `registerPopularityReach({ id, order, regionsFor })` in
+`aftermath/reach.ts` adds regions beyond the neighbours. `regionsFor(read,
+ctx)` gets the promotion, the show (null in the lab), the region, whether it is
+televised, its size and the date, and returns `{ regionId, weight, reason }`
+lines such as "TV reach: Coastline Sports". Providers run by `order`, then id;
+a duplicate id throws. EVT5 registers TV coverage; until then only the show
+region and its neighbours move.
+
+Countries and continents are never weighted: their figures are the
+population-weighted roll-ups of the regions, worked out on read.
+
+## The aftermath of one match
+
+`computeSegmentAftermath(read, input, tunables, geography)` in
+`aftermath/computeSegmentAftermath.ts` works out what one match does to every
+competitor, writing nothing. `input` is a stored segment (`{ segmentId }`,
+show night) or a simulated match (sides, outcome, finish, score, size,
+region, televised, pre-show, promotion and date: the Match lab).
+
+For each competitor it reads, from the world as it stands:
+
+- popularity in the show's region (0 when none is stored);
+- the opponents MTCH3-01 measures against (everyone beaten for a win, the
+  winners for a loss, everyone else for a draw) and, for momentum, every
+  competitor on another side with whether they won;
+- the win streak going in (`winStreakBefore` with
+  `match.popularity.streakLookback`);
+- momentum with the show's promotion: the stored value, the door's starting
+  value when it is empty, or no momentum at all without an active contract.
+
+It then calls `popularityGain` and `momentumGain`, and previews both doors
+(`previewPopularityChange`, `previewMomentumChange` in
+`systems/workers/doors.ts`, the doors' own math with no writes) over the
+region weights. The answer is plain JSON: the weight lines, and per worker the
+popularity delta, a row per reached region (before, after, change and the
+door's trace), a row per country and continent that holds a changed region
+(roll-up before and after; the Why? reads "after roll-up − before roll-up")
+and the momentum before, after and trace, or `{ none: 'noContract' }`.
+
+**Everyone is worked out from the values before the match.** In a tag match
+one partner's gain must not change the other partner's comparison, and a
+winner's gain must not change the loser's. Show night calls it once per
+match, so the next match on the card sees this one's changes.
+
+`match.simulate` returns it as `aftermath`, computed from the simulated
+result: still no writes and no world RNG. `match.simulateBatch` leaves it out.
+
+## Applying an aftermath
+
+`applySegmentAftermath(step, segmentId)` in `aftermath/apply.ts` is show
+night's applier (MTCH3-05 registers it with `registerSegmentResultApplier`).
+It runs after the segment's result and rating are written and reads the step's
+transaction, so a worker in two matches on one card gets the second change on
+top of the first.
+
+For each competitor it records the `match.popularityGain` trace (id
+`<segmentId>/<personId>`), calls `applyPopularityChange` with the region
+weights and the delta, then, with a contract, records `match.momentumGain` and
+calls `applyMomentumChange`. The reason key is `match.win`, `match.loss` or
+`match.draw`; the label is "<Show name>: Beat Kara Voss". The source is
+`player` on a human-run show, `ai` otherwise. Changes go through the doors
+only, so the taper, limits, door traces and `popularity.changed` /
+`momentum.changed` events are the same as for every other change.
+
+A no contest, an angle and anyone not competing (ringside, interferers,
+speakers, subjects) write nothing. **It never touches morale** (D-09): it does
+not call the morale door, so losing a booked match, in a hot angle or not,
+never upsets anyone through the aftermath.
+
+## Stored aftermaths
+
+Each applied competitor gets one `aftermaths` row (see
+[data-model.md](data-model.md#aftermaths-aftermaths-aft_)) with the before
+and after values the doors actually wrote, so results pages and Recent form
+show exactly what moved even after the full trace has left the recent-traces
+store (`sim.traceRetentionPerKind`): they then say "Full breakdown is only
+kept for recent results" and still show the numbers.
+
+The weekly `match.pruneAftermaths` phase (periodic group, order 40, Mondays)
+keeps each worker's newest `match.aftermath.keepPerPerson` (10) rows: latest
+date first, then the later row of the same day.
+
+`match.aftermath { segmentId } | { eventInstanceId }` returns the stored rows
+grouped by match in card order, with names, the show region's name, each
+region's before and after, momentum, and the trace refs while the traces are
+kept. Results are public: a row holds no morale and no contract terms, so
+every viewer gets the same answer.

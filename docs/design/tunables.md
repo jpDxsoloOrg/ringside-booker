@@ -517,3 +517,15 @@ The economy's numbers (ECO1), in `systems/finance/tunables.ts`, category
 `Finances`, each with a docRef into [finances.md](finances.md). The set starts
 empty: ECO1-02 adds reach and size, ECO1-03 wages and medical, and ECO1-04 show
 costs and importance, each in its own block.
+
+### Aftermath spread and storage tunables
+
+Where a match's popularity change spreads and how many stored aftermaths each
+worker keeps (MTCH3-03), appended to `systems/match/aftermath/tunables.ts`,
+category `Aftermath`. See
+[match-aftermath.md](match-aftermath.md#regional-spread).
+
+| Key                               | Kind    | Default | Range | Unit  | What it does                                                    |
+| --------------------------------- | ------- | ------- | ----- | ----- | --------------------------------------------------------------- |
+| `match.popularity.neighbourSpill` | number  | 0.4     | 0–1   | ratio | Share of a match's popularity change each neighbour region gets |
+| `match.aftermath.keepPerPerson`   | integer | 10      | 1–100 | count | How many recent match aftermaths are kept for each worker       |
