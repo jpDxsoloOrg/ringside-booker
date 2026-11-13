@@ -203,12 +203,12 @@ test.describe('rival shows and Auto-fill', () => {
         expect(box?.width ?? 0).toBeGreaterThanOrEqual(TAP_TARGET_MIN_PX);
       }
     }
-    // Each title badge sits on the same line as its Why?.
+    // Each title badge sits on the same line as its Why? (a title whose breakdown is gone has none).
     for (const row of await entry.locator('li[data-actual]').all()) {
+      const whyButton = row.getByRole('button', { name: /^Why (Retained|New champion)\? / });
+      if ((await whyButton.count()) === 0) continue;
       const badge = await row.getByText(/^(Retained|New champion)$/).boundingBox();
-      const why = await row
-        .getByRole('button', { name: /^Why (Retained|New champion)\? / })
-        .boundingBox();
+      const why = await whyButton.boundingBox();
       const badgeMiddle = (badge?.y ?? 0) + (badge?.height ?? 0) / 2;
       expect(badgeMiddle).toBeGreaterThan(why?.y ?? 0);
       expect(badgeMiddle).toBeLessThan((why?.y ?? 0) + (why?.height ?? 0));
