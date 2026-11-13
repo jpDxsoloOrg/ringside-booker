@@ -354,7 +354,7 @@ describe('runCli', () => {
       io,
     );
     expect(code).toBe(EXIT_OK);
-    expect(io.out()).toMatch(/rolled \d in 0\.\.1 \(stream condition\.recovery\)/);
+    expect(io.out()).toMatch(/rolled \d in 0\.\.1 \(stream health\.recovery\)/);
   });
 
   it('exits 2 for bad arguments and for an unreadable world file', async () => {
