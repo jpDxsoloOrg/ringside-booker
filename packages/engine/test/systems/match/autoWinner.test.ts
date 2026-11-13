@@ -14,10 +14,11 @@ import {
   autoWinnerInputsOf,
   competitorSidesOf,
   unpredictabilityLabel,
+  upsetNote,
   type AutoWinnerMode,
   type AutoWinnerSideScore,
 } from '../../../src/systems/match';
-import { personId } from '../../support/show-world';
+import { makeStoryline, personId } from '../../support/show-world';
 import { expectRollRecorded, expectSerialisable } from '../../support/trace';
 import { tinyWorld } from '../../support/worlds';
 import { personAt, setMomentum, updatePerson } from './rating/fixtures';
@@ -35,13 +36,16 @@ function side(index: number, score: number, lowest: PersonId): AutoWinnerSideSco
 
 function decide(
   sides: readonly AutoWinnerSideScore[],
-  options: { randomness?: number; seed?: string; mode?: AutoWinnerMode } = {},
+  options: { randomness?: number; seed?: string; mode?: AutoWinnerMode; upsetGap?: number } = {},
 ): Traced<number> {
   const result = autoWinner(
     {
       sides,
       randomness: inputOf('Unpredictability', options.randomness ?? 0),
       mode: options.mode ?? 'standard',
+      ...(options.upsetGap === undefined
+        ? {}
+        : { upsetNoteGap: inputOf('Upset gap', options.upsetGap) }),
     },
     { rng: stream(options.seed ?? 'auto-winner') },
   );
@@ -116,6 +120,49 @@ describe('autoWinner', () => {
   it('refuses no sides', () => {
     expect(() => decide([])).toThrow();
   });
+
+  // MTCH2-09: upsets stay possible and are called out above the gap.
+  it('calls a win from more than the gap behind an upset, and nothing else', () => {
+    const sides = [side(0, 70, personId(1)), side(1, 30, personId(2))];
+    const notesOf = (result: Traced<number>) =>
+      findTraceNodes(result.trace, 'note').map((node) => node.label);
+    let upsets = 0;
+    let favourites = 0;
+    for (let index = 0; index < 400; index += 1) {
+      const result = decide(sides, {
+        randomness: 60,
+        upsetGap: 25,
+        seed: `upset-${String(index)}`,
+      });
+      if (result.value === 1) {
+        upsets += 1;
+        expect(notesOf(result)).toContain(upsetNote('Side 2', 40));
+      } else {
+        favourites += 1;
+        expect(notesOf(result).some((label) => label.startsWith('Upset'))).toBe(false);
+      }
+    }
+    // The underdog keeps a real chance; the favourite still wins most.
+    expect(upsets).toBeGreaterThan(20);
+    expect(favourites).toBeGreaterThan(upsets);
+  });
+
+  it('does not call a win from within the gap an upset', () => {
+    const sides = [side(0, 50, personId(1)), side(1, 40, personId(2))];
+    for (let index = 0; index < 100; index += 1) {
+      const result = decide(sides, {
+        randomness: 60,
+        upsetGap: 25,
+        seed: `close-${String(index)}`,
+      });
+      const notes = findTraceNodes(result.trace, 'note').map((node) => node.label);
+      expect(notes.some((label) => label.startsWith('Upset'))).toBe(false);
+    }
+  });
+
+  it('says the upset in plain words', () => {
+    expect(upsetNote('Side 2', 31.25)).toBe('Upset: Side 2 won from 31.3 points behind');
+  });
 });
 
 describe('autoWinnerInputsOf', () => {
@@ -146,6 +193,11 @@ describe('autoWinnerInputsOf', () => {
     const contract = world.tables.employments
       .lookup('byPerson', first)
       .find((employment) => employment.status === 'active');
+    const firstPerson = world.tables.people.get(first);
+    if (firstPerson === undefined) {
+      throw new Error('the first person is missing');
+    }
+    const conditions = Object.values(firstPerson.condition);
     expect(sides[0]?.competitors[0]).toEqual({
       personId: first,
       name: contract?.ringName,
@@ -153,7 +205,14 @@ describe('autoWinnerInputsOf', () => {
       push: contract?.push,
       momentum: 12,
       alignment: contract?.alignment,
+      ringwork: firstPerson.attributes.ringwork,
+      psychology: firstPerson.attributes.psychology,
+      athleticism: firstPerson.attributes.athleticism,
+      stamina: firstPerson.attributes.stamina,
+      fatigue: firstPerson.fatigue,
+      bodyCondition: conditions.reduce((sum, value) => sum + value, 0) / conditions.length,
     });
+    expect(sides.map((entry) => entry.storylineHeat)).toEqual([null, null]);
     expect(sides[1]?.competitors[0]).toMatchObject({ popularityInRegion: 0, momentum: null });
 
     // The same people seen from the other promotion: not employed there.
@@ -163,14 +222,69 @@ describe('autoWinnerInputsOf', () => {
       sides: [{ side: 0, personIds: [first] }],
     });
     const person = world.tables.people.get(first);
-    expect(elsewhere[0]?.competitors[0]).toEqual({
+    // Another promotion's worker keeps their attributes, but no push, momentum or alignment.
+    expect(elsewhere[0]?.competitors[0]).toMatchObject({
       personId: first,
       name: person?.defaultRingName,
       popularityInRegion: 64,
       push: 'none',
       momentum: null,
       alignment: null,
+      ringwork: person?.attributes.ringwork,
+      stamina: person?.attributes.stamina,
     });
+  });
+
+  it("reads fatigue and body condition as they stand, and the side's storyline heat", () => {
+    const { world, ids } = tinyWorld();
+    const { A: promotionA } = ids.promotions;
+    const [regionId] = ids.regions;
+    if (promotionA === undefined || regionId === undefined) {
+      throw new Error('tinyWorld needs a promotion and a region');
+    }
+    const first = personAt(ids.people, 0);
+    const second = personAt(ids.people, 1);
+    const third = personAt(ids.people, 2);
+    updatePerson(world, first, (person) => ({
+      ...person,
+      fatigue: 35,
+      condition: { head: 80, neck: 80, back: 80, arms: 80, torso: 80, legs: 80 },
+    }));
+    const storyline = (serial: number, heat: number, status: 'active' | 'ended') =>
+      makeStoryline(serial, {
+        promotionId: promotionA,
+        heat,
+        status,
+        endedOn: status === 'ended' ? world.meta.currentDate : null,
+        startedOn: world.meta.currentDate,
+        members: [
+          { personId: first, side: 'face' },
+          { personId: second, side: 'heel' },
+          { personId: third, side: 'face' },
+        ],
+      });
+    const linked = [
+      storyline(1, 30, 'active'),
+      storyline(2, 70, 'active'),
+      storyline(3, 95, 'ended'),
+    ];
+    for (const entry of linked) {
+      world.tables.storylines._put(entry);
+    }
+    const sides = autoWinnerInputsOf(world, {
+      promotionId: promotionA,
+      regionId,
+      sides: [
+        { side: 0, personIds: [first] },
+        { side: 1, personIds: [second] },
+      ],
+      storylineIds: linked.map((entry) => entry.id),
+    });
+    expect(sides[0]?.competitors[0]).toMatchObject({ fatigue: 35, bodyCondition: 80 });
+    // The hottest active storyline the side is the face in; the ended one does not count.
+    expect(sides[0]?.storylineHeat).toEqual({ storylineName: 'Storyline 2', heat: 70 });
+    // The heel side is not the crowd favourite.
+    expect(sides[1]?.storylineHeat).toBeNull();
   });
 
   it('lists competitors in ascending id order', () => {

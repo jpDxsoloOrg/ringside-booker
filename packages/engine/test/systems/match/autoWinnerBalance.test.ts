@@ -12,7 +12,7 @@ import { RngRegistry } from '../../../src/core/rng/registry';
 import { findTraceNodes, traced } from '../../../src/core/trace';
 import { tunableNode } from '../../../src/core/trace/tunable-node';
 import type { Promotion } from '../../../src/model/entities/promotion';
-import type { GameWorld } from '../../../src/model/world';
+import type { GameWorld } from '../../../src/model/tables';
 import {
   loadWorldFromPacks,
   packManifestSchema,
