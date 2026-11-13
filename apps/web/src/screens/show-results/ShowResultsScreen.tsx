@@ -20,6 +20,7 @@ import styles from './ShowResults.module.css';
 import '@/screens/promotion-popularity/register';
 import '@/screens/match-aftermath/register';
 import '@/screens/finances/registerShowMoney';
+import '@/screens/box-office/register';
 
 const SCREEN_TITLE = 'Show results';
 const NOT_FOUND_TITLE = 'Show not found';
