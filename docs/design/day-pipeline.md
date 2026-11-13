@@ -90,6 +90,14 @@ The `money` group's phases so far (ECO1-03, see
 | `finance.payroll`        | 10    | daily               | One Wages row per open promotion with anyone to pay: monthly payroll × 12 ÷ 365.25, to the cent. |
 | `finance.monthlyMedical` | 20    | monthly, on the 1st | One Medical row per open promotion: people under contract × the cost of its medical policy.      |
 
+The production system adds `production.monthlyOverhead` (`money`, order 35,
+monthly on the 1st): one Production, Marketing and Back office row per active
+promotion for the month ahead, at that morning's levels
+([production.md](production.md#monthly-overhead)). Its daily
+`production.popularityDrag` (`growth`, order 90) pulls popularity above a
+promotion's popularity ceiling down towards it through the popularity door
+([production.md](production.md#popularity-drag)).
+
 Both post through `postMoney`, visit promotions in id order, post nothing for
 a zero amount and draw no random numbers (only the ledger rows' ids).
 
