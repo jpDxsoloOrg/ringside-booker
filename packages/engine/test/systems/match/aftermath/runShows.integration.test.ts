@@ -24,7 +24,12 @@ import {
   unregisterSegmentResultApplier,
 } from '../../../../src/systems/shows';
 import { workersSystem } from '../../../../src/systems/workers';
-import { anEventInstance, worldBuilder } from '../../../support';
+import {
+  anEventInstance,
+  RUN_MY_SHOWS_PHASE_ID,
+  withMyShowsRun,
+  worldBuilder,
+} from '../../../support';
 import type { DeepPartial } from '../../../support/builders/build-row';
 import type { EventInstance } from '../../../../src/model/entities/event-instance';
 import { seed } from '../../booking/command-world';
@@ -173,20 +178,13 @@ function integrationWorld(): IntegrationWorld {
     0,
     match('match.singles', [[at(rivals, 0)], [at(rivals, 1)]], null),
   );
-  const showId = shows.show;
-  const locked = world.transact('lock card', (tx) => {
-    tx.update('eventInstances', showId, { status: 'booked' });
-  });
-  if (!locked.ok) {
-    throw locked.error;
-  }
   return { world, ...shows, singles, noContest, tag, rivalMatch, roster, rivals };
 }
 
 function engineOn(world: GameWorld): Engine {
   return createEngine({
     state: initialEngineState(world),
-    systems: [simSystem, workersSystem, matchSystem, showsSystem],
+    systems: withMyShowsRun([simSystem, workersSystem, matchSystem, showsSystem]),
   });
 }
 
@@ -362,7 +360,10 @@ describe('the aftermath applier on show night', () => {
     });
     const built = integrationWorld();
     const { tables, failures } = await runNight(built);
-    expect(failures.map((failure) => failure.stepId)).toEqual(['shows.runShows']);
+    expect(failures.map((failure) => failure.stepId)).toEqual([
+      RUN_MY_SHOWS_PHASE_ID,
+      'shows.runShows',
+    ]);
     expect(tables.aftermaths).toEqual([]);
     for (const personId of built.roster) {
       expect(personIn(tables, personId).regionalPop).toEqual(everywhere(40));

@@ -188,7 +188,8 @@ describe('the card-wide checks', () => {
       state: initialEngineState(built.world),
       systems: defaultSystems,
     });
-    expect(engine.command('booking.lockCard', { eventInstanceId: built.show }, PLAYER_ONE).ok).toBe(
+    // A warning never blocks running the show (EVT2-09).
+    expect(engine.command('shows.runTonight', { eventInstanceId: built.show }, PLAYER_ONE).ok).toBe(
       true,
     );
   });

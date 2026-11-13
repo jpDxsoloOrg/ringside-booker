@@ -8,7 +8,7 @@ import type { PersonId } from '../../../src/core/ids';
 import type { GameWorld } from '../../../src/model/tables';
 import { matchSystem } from '../../../src/systems/match';
 import { resetAppearancesPhase, showsSystem } from '../../../src/systems/shows';
-import { expectValidWorld } from '../../support';
+import { expectValidWorld, withMyShowsRun } from '../../support';
 import { seed } from '../booking/command-world';
 import {
   TODAY,
@@ -32,7 +32,7 @@ function contractOf(world: GameWorld, personId: PersonId) {
 function nightEngine(world: GameWorld): Engine {
   return createEngine({
     state: initialEngineState(world),
-    systems: [simSystem, matchSystem, showsSystem],
+    systems: withMyShowsRun([simSystem, matchSystem, showsSystem]),
   });
 }
 

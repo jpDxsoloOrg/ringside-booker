@@ -5,7 +5,7 @@
  * a card and whether it can still change (`control.ts`, on top of the calendar's one definition of
  * who runs a show), the segment draft an editor fills in (`draft.ts`), the readers that list a card
  * in running order (`card.ts`) and the card writer (`writer.ts`), the one way segments are written.
- * Commands, queries and gates come with the next EVT2 tickets. Nothing here is random, so the
+ * Commands and queries come with the next EVT2 tickets. Nothing here is random, so the
  * system has no random stream. See docs/design/booking.md.
  */
 
@@ -14,7 +14,6 @@
 import './events';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
 import { bookingCommands } from './commands';
-import { bookingGates } from './gates';
 import { bookingQueries } from './queries';
 
 export { cardSegments, hasCard } from './card';
@@ -74,8 +73,8 @@ export {
 } from './commands';
 export { CARD_CHANGES, type CardChange } from './events';
 
-// The booking screen's reads and the show-day gate (EVT2-03).
-export { bookingGates, SHOW_NEEDS_BOOKING_GATE_ID, showNeedsBookingGate } from './gates';
+// The booking screen's reads (EVT2-03). The show-day gate is the shows system's `shows.tonight`
+// since EVT2-09.
 export {
   availableWorkersQuery,
   BOOKING_UNAVAILABLE_REASON,
@@ -113,8 +112,8 @@ export {
   type CardViewDeps,
 } from './view';
 
-// The booking checks, Lock and Unlock (EVT2-04).
-export { lockCardCommand, MAX_LOCK_REASONS, unlockCardCommand } from './commands';
+// The booking checks (EVT2-04). Lock and Unlock are gone (EVT2-09): `shows.runTonight` runs them.
+export { runnerName } from './commands';
 export {
   MIN_FILLED_MAIN_SLOTS_DOC_REF,
   minFilledMainSlots,
@@ -149,5 +148,4 @@ export const bookingSystem: SystemBundle = defineSystem({
   id: 'booking',
   queries: bookingQueries,
   commands: [...bookingCommands],
-  gates: bookingGates,
 });

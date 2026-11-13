@@ -186,7 +186,7 @@ describe('the match.finish booking check', () => {
 });
 
 describe('Random winners on the booking checks', () => {
-  it('locks a card with no planned results', () => {
+  it('runs a card with no planned results', () => {
     const built = validateWorld({ randomWinners: true });
     book(built, 0, match([[who(built, 6)], [who(built, 7)]], { outcome: null }));
     book(built, 2, angle([who(built, 5)]));
@@ -197,8 +197,8 @@ describe('Random winners on the booking checks', () => {
 
     const engine = engineOver(built.world);
     expect(
-      engine.command('booking.lockCard', { eventInstanceId: built.show }, PLAYER_ONE),
-    ).toMatchObject({ ok: true, data: { status: 'booked' } });
+      engine.command('shows.runTonight', { eventInstanceId: built.show }, PLAYER_ONE),
+    ).toMatchObject({ ok: true, data: { eventInstanceId: built.show } });
   });
 
   it('refuses a planned result or finish left on a Random winners show', () => {

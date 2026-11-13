@@ -1,15 +1,17 @@
 /**
  * Engine system lists for tests that are about something other than the gates.
  *
- * The show-day gate (`booking.showNeedsBooking`) stops every skip on the day of a show a human
- * runs until its card is locked. Tests of the calendar's phases or of the day controls advance
- * through those days on purpose, so they run the real systems with that gate taken out. The gate
- * itself is covered by `test/systems/booking/gate.test.ts`.
+ * The show-day gate (`shows.tonight`, EVT2-09) stops every skip on the day of an open show a human
+ * runs, until the player runs it with `shows.runTonight`. Tests of the calendar's phases or of the
+ * day controls advance through those days on purpose, so they run the real systems with that gate
+ * taken out; the player's shows then stay unrun and the calendar closes them as Not run. Tests
+ * that need the player's shows to run use `advanceRunningMyShows` (`support/run-my-shows.ts`). The
+ * gate itself is covered by `test/systems/shows/tonightGate.test.ts`.
  */
 
 import type { SystemBundle } from '../../src/core/api/system';
 import { defaultSystems } from '../../src/systems';
-import { SHOW_NEEDS_BOOKING_GATE_ID } from '../../src/systems/booking/gates';
+import { SHOWS_TONIGHT_GATE_ID } from '../../src/systems/shows/tonight';
 
 /** `systems` with the gates named in `gateIds` removed from every bundle. */
 export function systemsWithoutGates(
@@ -26,7 +28,7 @@ export function systemsWithoutGates(
 /** The default systems without the show-day gate. */
 export const SYSTEMS_WITHOUT_SHOW_DAY_GATE: readonly SystemBundle[] = systemsWithoutGates(
   defaultSystems,
-  [SHOW_NEEDS_BOOKING_GATE_ID],
+  [SHOWS_TONIGHT_GATE_ID],
 );
 
 /**
@@ -40,3 +42,12 @@ export const SYSTEMS_WITHOUT_SHOW_NIGHT: readonly SystemBundle[] =
       ? { ...system, phases: system.phases.filter((phase) => phase.id !== 'shows.runShows') }
       : system,
   );
+
+export {
+  RUN_MY_SHOWS_PHASE_ID,
+  runMyShows,
+  runMyShowsSystem,
+  runMyShowsSystemFor,
+  withMyShowsRun,
+  type RunsShow,
+} from './run-my-shows';

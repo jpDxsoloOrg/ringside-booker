@@ -117,6 +117,7 @@ export function commandWorld(options: { readonly randomWinners?: boolean } = {})
         shared: add({ brandId: only(sharedBrand, 'shared brand') }),
         rival: add({ brandId: only(rivalBrand, 'rival brand') }),
         computer: add({ promotionId: promotionB }),
+        // `booked`: a show an old save locked before EVT2-09 removed the lock. It is open.
         locked: add({ status: 'booked' }),
         completed: add({ date: parseGameDate(START), status: 'completed' }),
         cancelled: add({ status: 'cancelled' }),

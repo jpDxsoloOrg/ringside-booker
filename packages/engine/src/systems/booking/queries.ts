@@ -82,9 +82,8 @@ export interface BookingShowRow {
   /** Segments booked on the pre-show. */
   filledPreShow: number;
   preShowSlots: number;
-  /** True on the show's day while its card is not locked: Next Day stops for it. */
+  /** True on the show's day while it has not run: Next Day stops for it ("Tonight"). */
   needsBooking: boolean;
-  locked: boolean;
 }
 
 /** `booking.shows`. */
@@ -225,8 +224,7 @@ function showRowOf(ctx: QueryContext, instance: DeepReadonly<EventInstance>): Bo
     slots: instance.format.slots,
     filledPreShow,
     preShowSlots: instance.format.preShowSlots,
-    needsBooking: instance.date === ctx.date && instance.status === 'scheduled',
-    locked: instance.status === 'booked',
+    needsBooking: instance.date === ctx.date,
   };
 }
 

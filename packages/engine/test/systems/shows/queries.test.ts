@@ -26,7 +26,7 @@ import {
   showsSystem,
   type SegmentResultView,
 } from '../../../src/systems/shows';
-import { aTeam, anEventInstance, worldBuilder } from '../../support';
+import { aTeam, anEventInstance, withMyShowsRun, worldBuilder } from '../../support';
 import { expectSerialisable } from '../../support/trace';
 import { promo, seed, singles } from '../booking/command-world';
 import { OMNISCIENT, PLAYER_ONE } from '../calendar/lifecycle-world';
@@ -183,7 +183,8 @@ function resultsWorld(): ResultsWorld {
   return { world, ...shows, card, roster };
 }
 
-const SYSTEMS = [simSystem, matchSystem, showsSystem];
+// The player runs their shows as Run the show would (EVT2-09).
+const SYSTEMS = withMyShowsRun([simSystem, matchSystem, showsSystem]);
 
 /** Runs today and tomorrow, so the world stands on the day after tomorrow. */
 async function playedEngine(): Promise<{ engine: Engine; built: ResultsWorld }> {
