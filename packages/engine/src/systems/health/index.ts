@@ -8,13 +8,16 @@
  * systems copy its layout. See docs/design/health.md and
  * docs/design/calculation-traces.md#worked-example.
  *
- * WRK6 builds on it: injuries (WRK6-03), injury risk (WRK6-04) and the health profile (WRK6-05).
+ * WRK6 builds on it: injuries and returns (WRK6-03, `injure.ts`, `returns.ts`), injury risk (WRK6-04)
+ * and the health profile (WRK6-05).
  */
 
 // The stream and event declarations are types only. Importing them here brings them into every
 // program that imports this system, including programs that only see the emitted .d.ts files.
 import './events';
 import './streams';
+// Registers `health.injure` as MTCH4's injury handler.
+import './injuryHandler';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
 import { healthPhases } from './phases';
 import { healthQueries } from './queries';
@@ -46,7 +49,51 @@ export {
   fatigueRecoveryPhase,
   fatigueRecoveryTraceRef,
 } from './phases';
-export { RECOVERY_STREAM } from './streams';
+export { INJURIES_STREAM, RECOVERY_STREAM } from './streams';
+export {
+  anglesNote,
+  injure,
+  INJURY_CHANCE_TRACE_KIND,
+  INJURY_CONDITION_LOSS_TRACE_KIND,
+  INJURY_TRACE_KIND,
+  INJURY_TRACE_KINDS,
+  injuryConditionLossTraceRef,
+  injuryRecordChanceTraceRef,
+  injuryTraceRef,
+  type InjureOptions,
+  type InjureRefusal,
+  type InjureResult,
+} from './injure';
+export { HEALTH_INJURY_HANDLER_ID, healthInjuryHandler } from './injuryHandler';
+export {
+  healInjuries,
+  PRUNE_INJURY_DETAIL_PHASE_ID,
+  pruneInjuryDetail,
+  pruneInjuryDetailPhase,
+} from './returns';
+export {
+  decideInjurySeverity,
+  INJURY_DOC_REF,
+  SEVERITY_SET_BY_MATCH,
+  severityLabel,
+  type InjurySeverityInputs,
+} from './formulas/injurySeverity';
+export {
+  AT_LEAST_A_DAY,
+  catalogRangeLabel,
+  computeInjuryDays,
+  NEITHER_TRAIT_BRANCH,
+  type InjuryDaysInputs,
+} from './formulas/injuryOutcome';
+export {
+  computeInjuryConditionLoss,
+  type InjuryConditionLossInputs,
+} from './formulas/injuryConditionLoss';
+export {
+  NO_INJURY_KINDS,
+  pickInjuryKind,
+  type InjuryKindPickInputs,
+} from './formulas/injuryKindPick';
 export { HEALTH_TUNABLE_CATEGORY, healthTunables } from './tunables';
 export type { FatigueView } from './queries';
 

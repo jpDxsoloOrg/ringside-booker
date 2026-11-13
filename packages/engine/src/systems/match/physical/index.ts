@@ -65,10 +65,12 @@ export {
 export {
   INJURY_DECISION_LABEL,
   INJURY_ROLL_DOC_REF,
+  clearInjuryHandler,
   getInjuryHandler,
   injuryLimitLine,
   injuryPolicyFor,
   registerInjuryHandler,
+  restoreBuiltInInjuryHandler,
   rollSegmentInjuries,
   type InjuryHandler,
   type InjuryOutcome,
