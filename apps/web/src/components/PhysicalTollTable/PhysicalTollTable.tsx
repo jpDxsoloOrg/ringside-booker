@@ -16,6 +16,7 @@ import type { SelectOption } from '../Select';
 import { Explained, WhyButton } from '../Trace';
 import { WorkerLink } from '../WorkerLink';
 import styles from './PhysicalTollTable.module.css';
+import { useNarrowerThan } from './useNarrowerThan';
 
 /** The what-if fatigue levels the Select offers besides "As now". */
 export const FATIGUE_WHAT_IF_LEVELS: readonly number[] = [0, 25, 50, 75, 100];
@@ -132,7 +133,7 @@ function Wear({ worker }: CellProps) {
       <Popover
         title={`${worker.name}: wear by body part`}
         trigger={
-          <Button size="sm" variant="ghost" aria-label={`${worker.name}'s wear by body part`}>
+          <Button size="sm" variant="ghost" aria-label={`By part: ${worker.name}'s wear`}>
             By part
           </Button>
         }
@@ -222,15 +223,7 @@ function tableColumns({ onFatigueChange, disabled }: ColumnOptions) {
       cell: (worker) => <WorkerName worker={worker} />,
       sortValue: (worker) => worker.name,
       card: 'title',
-      width: 'lg',
-    },
-    {
-      id: 'side',
-      header: 'Side',
-      cell: (worker) => sideText(worker.side),
-      sortValue: (worker) => worker.side,
-      card: 'subtitle',
-      width: 'xs',
+      width: 'md',
     },
     {
       id: 'safety',
@@ -295,6 +288,7 @@ function tableColumns({ onFatigueChange, disabled }: ColumnOptions) {
       cell: (worker) => <ThisRun worker={worker} />,
       sortValue: (worker) => injuryRunText(worker),
       card: 'meta',
+      width: 'md',
     },
   ];
   return columns;
@@ -367,11 +361,15 @@ function rowId(worker: PhysicalPreviewWorker): string {
   return worker.personId;
 }
 
+/** Below this width the table's columns don't fit, so each worker becomes a card (60rem). */
+export const TABLE_MIN_WIDTH_PX = 960;
+
 /**
  * What one match does to each competitor's body (MTCH4-05): fatigue going in (a what-if Select in
  * the Match lab), fatigue gain, fatigue after, wear (with each body part in a popover), ring
  * learning and the injury chance, every number with its Why?, and whether this run's roll hurt
- * them. Built on `DataTable`: a table on desktop; on a phone, one card per worker with the name as
+ * them. Built on `DataTable`: a table where it has room; on a phone, or in a column narrower than
+ * {@link TABLE_MIN_WIDTH_PX} (the Match lab's result column), one card per worker with the name as
  * the title, the injury chance as the stat and everything else under a "Physical" heading.
  *
  * Never shows a length in minutes, a potential or a ceiling: the engine's traces carry none.
@@ -384,21 +382,26 @@ export function PhysicalTollTable({
   className,
 }: PhysicalTollTableProps) {
   const isMobile = useIsMobile();
+  const [containerRef, narrow] = useNarrowerThan(TABLE_MIN_WIDTH_PX);
+  const cards = isMobile || narrow;
   const columns = useMemo(
     () =>
-      isMobile
+      cards
         ? cardColumns({ onFatigueChange, disabled })
         : tableColumns({ onFatigueChange, disabled }),
-    [disabled, isMobile, onFatigueChange],
+    [cards, disabled, onFatigueChange],
   );
   return (
-    <DataTable
-      rows={workers}
-      columns={columns}
-      getRowId={rowId}
-      caption={caption}
-      density="compact"
-      className={classNames(styles['table'], className)}
-    />
+    <div ref={containerRef} className={classNames(styles['table'], className)}>
+      <DataTable
+        rows={workers}
+        columns={columns}
+        getRowId={rowId}
+        caption={caption}
+        density="compact"
+        sortable={false}
+        layout={cards ? 'cards' : 'table'}
+      />
+    </div>
   );
 }

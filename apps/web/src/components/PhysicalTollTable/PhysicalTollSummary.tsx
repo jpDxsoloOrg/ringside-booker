@@ -7,6 +7,7 @@ import { KpiCard } from '../KpiCard';
 import { WorkerLink } from '../WorkerLink';
 import { learningText } from './PhysicalTollTable';
 import styles from './PhysicalTollTable.module.css';
+import { useNarrowerThan } from './useNarrowerThan';
 
 /** The empty state before a batch. */
 export const RUN_MANY_EMPTY_TITLE = 'Run x100 to see how often this match hurts someone';
@@ -85,7 +86,11 @@ export interface PhysicalTollSummaryProps {
  * averages are worked out over the batch's runs, which the visible text says; each run's own Why?
  * is on the run shown in full.
  */
+/** Below this width the averages table becomes one card per worker (40rem). */
+export const SUMMARY_TABLE_MIN_WIDTH_PX = 640;
+
 export function PhysicalTollSummary({ summary }: PhysicalTollSummaryProps) {
+  const [containerRef, narrow] = useNarrowerThan(SUMMARY_TABLE_MIN_WIDTH_PX);
   if (summary === null) {
     return (
       <EmptyState
@@ -98,23 +103,27 @@ export function PhysicalTollSummary({ summary }: PhysicalTollSummaryProps) {
   }
   const runsText = `${formatNumber(summary.runs)} ${summary.runs === 1 ? 'run' : 'runs'}`;
   return (
-    <div className={styles['summary']}>
+    <div ref={containerRef} className={styles['summary']}>
       <KpiCard
         label={INJURIES_PER_100_LABEL}
         value={formatNumber(summary.injuriesPer100, { maximumFractionDigits: 1 })}
         tone={summary.injuredSegments > 0 ? 'negative' : 'neutral'}
         icon="injured"
         footer={injuriesLine(summary)}
-        why={`${formatNumber(summary.injuredSegments)} of ${runsText} hurt someone. Every worker hurt counts once.`}
         className={styles['kpi']}
       />
-      <p className={styles['summaryNote']}>Averages over the {runsText}, worker by worker.</p>
+      <p className={styles['summaryNote']}>
+        {formatNumber(summary.injuredSegments)} of {runsText} hurt someone; every worker hurt counts
+        once. The averages below are over the {runsText}, worker by worker.
+      </p>
       <DataTable
         rows={summary.byPerson}
         columns={SUMMARY_COLUMNS}
         getRowId={personId}
         caption={`Each worker over ${runsText}`}
         density="compact"
+        sortable={false}
+        {...(narrow ? { layout: 'cards' as const } : {})}
       />
     </div>
   );

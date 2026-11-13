@@ -65,11 +65,14 @@ async function findPanel(): Promise<HTMLElement> {
   return screen.findByRole('region', { name: PHYSICAL_PANEL_TITLE }, { timeout: LOAD_MS });
 }
 
-async function runAndWait(user: UserEvent, panel: HTMLElement, rows: number): Promise<void> {
+/** Runs, then waits for a fatigue gain Why? per competitor (a table row or a card each). */
+async function runAndWait(user: UserEvent, panel: HTMLElement, workers: number): Promise<void> {
   await user.click(screen.getByRole('button', { name: 'Run' }));
   await waitFor(
     () => {
-      expect(within(panel).getAllByRole('row').length).toBeGreaterThan(rows);
+      expect(
+        within(panel).getAllByRole('button', { name: /^Why is .*'s fatigue gain / }),
+      ).toHaveLength(workers);
     },
     { timeout: LOAD_MS },
   );
@@ -97,7 +100,7 @@ describe('the Match lab Physical panel', { timeout: TEST_TIMEOUT_MS }, () => {
     const panel = await findPanel();
     expect(within(panel).getByText(PHYSICAL_EMPTY_BODY)).toBeInTheDocument();
     const rows = await fillSides(transport);
-    await runAndWait(user, panel, 1);
+    await runAndWait(user, panel, 2);
 
     for (const row of rows) {
       expect(within(panel).getByRole('link', { name: row.name })).toBeInTheDocument();
@@ -115,7 +118,7 @@ describe('the Match lab Physical panel', { timeout: TEST_TIMEOUT_MS }, () => {
     const panel = await findPanel();
     const [first] = await fillSides(transport);
     if (first === undefined) throw new Error('Nobody to put on a side.');
-    await runAndWait(user, panel, 1);
+    await runAndWait(user, panel, 2);
 
     await user.click(
       within(panel).getByRole('button', {
@@ -133,7 +136,7 @@ describe('the Match lab Physical panel', { timeout: TEST_TIMEOUT_MS }, () => {
     const panel = await findPanel();
     const [first] = await fillSides(transport);
     if (first === undefined) throw new Error('Nobody to put on a side.');
-    await runAndWait(user, panel, 1);
+    await runAndWait(user, panel, 2);
     const seed = useLabStore.getState().lastRun?.args.previewSeed;
 
     await choose(user, `${first.name}'s fatigue going in`, '100');
