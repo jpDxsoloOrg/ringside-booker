@@ -2476,6 +2476,7 @@ export {
 // See docs/design/health.md#the-health-profile.
 export {
   ACKNOWLEDGE_MAX_INJURIES,
+  computeOffscreenInjuryChance,
   FATIGUE_BANDS,
   fatigueBandOf,
   HEALTH_PROFILE_HISTORY_LIMIT,
@@ -2483,4 +2484,5 @@ export {
   type FatigueBand,
   type HealthProfile,
   type InjuryView,
+  type OffscreenInjuryChanceInputs,
 } from './systems/health/index';
