@@ -26,8 +26,9 @@
 import type { Reason } from '../../../core/api/result';
 import type { ContentKey } from '../../../core/content-key';
 import { limitTrace, startDecision, type TraceNode, type Traced } from '../../../core/trace';
-import type { Catalogs } from '../../../model/catalogs';
-import type { MatchOutcome } from '../../../model/entities/segment';
+import { matchTypeOf, type Catalogs } from '../../../model/catalogs';
+import type { EventInstance } from '../../../model/entities/event-instance';
+import type { MatchOutcome, Segment } from '../../../model/entities/segment';
 import type { DeepReadonly } from '../../../model/world';
 import {
   plannedOrNoContest,
@@ -37,6 +38,8 @@ import {
   type MatchOutcomeResolution,
   type MatchOutcomeResolver,
 } from '../../shows/registries';
+import { slotRoleInput } from '../../shows/context';
+import { durationClassOf, slotRoleOf, type DurationClass } from '../slots';
 import { allowedFinishes } from './allowed';
 import { autoFinish } from './autoFinish';
 import { autoWinnerInputsOf, type AutoWinnerSide } from './autoWinnerInputs';
@@ -164,13 +167,36 @@ interface Attempt {
   readonly notes: readonly string[];
 }
 
-/** Every side with a competitor, as the auto-winner reads it. */
-function sidesOf(input: MatchOutcomeInput, deps: MatchOutcomeDeps): AutoWinnerSide[] {
+/** Every side with a competitor, as the auto-winner reads it, with the match's storylines. */
+function sidesOf(
+  input: MatchOutcomeInput,
+  deps: MatchOutcomeDeps,
+  segment: DeepReadonly<Segment>,
+): AutoWinnerSide[] {
   return autoWinnerInputsOf(deps.read, {
     promotionId: input.promotionId,
     regionId: input.regionId,
     sides: input.sides.map((side) => ({ side: side.side, personIds: side.personIds })),
+    storylineIds: segment.storylineIds,
   });
+}
+
+/**
+ * The match's duration class from its slot on the show (MTCH2-09). A segment whose show is missing
+ * reads as a Standard match.
+ */
+function durationClassOfSegment(
+  deps: MatchOutcomeDeps,
+  segment: DeepReadonly<Segment>,
+  show: DeepReadonly<EventInstance> | undefined,
+): DurationClass {
+  if (show === undefined || segment.kind !== 'match') {
+    return 'standard';
+  }
+  const slotDeps = { tunables: deps.tunables };
+  const role = slotRoleOf(slotRoleInput(segment, show.format), slotDeps).value;
+  const matchType = matchTypeOf(deps.read, segment.match.matchTypeKey) ?? null;
+  return durationClassOf({ role, matchType }, slotDeps).value;
 }
 
 /** Decides how a match on show night ends, with MTCH2's finishes, auto-winner and title rule. */
@@ -193,8 +219,9 @@ export function resolveOnShowNight(
   const base = {
     matchTypeKey: segment.match.matchTypeKey,
     stipulationKeys: [...segment.match.stipulationKeys],
-    sides: sidesOf(input, deps),
+    sides: sidesOf(input, deps, segment),
     regionName: read.tables.regions.get(input.regionId)?.name ?? input.regionId,
+    durationClass: durationClassOfSegment(deps, segment, show),
   };
 
   const booked = input.plan !== null || input.plannedFinishKey !== null;

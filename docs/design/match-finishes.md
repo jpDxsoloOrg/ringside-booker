@@ -244,24 +244,57 @@ score = match.autoWinner.popularityWeight × mean(popularity in the show's regio
       + mean(match.autoWinner.push.<push>)
       + match.autoWinner.momentumWeight × mean(momentum ?? 0)
       + mean(match.autoWinner.alignment.<alignment>)
+      + match.autoWinner.skillWeight × mean(ring skill)
+      + match.autoWinner.staminaWeight
+          × match.autoWinner.staminaFactor.<duration class> × mean(stamina)
+      − match.autoWinner.fatigueWeight × mean(fatigue)
+      − match.autoWinner.conditionWeight × mean(wear)
+      + match.autoWinner.heatWeight × the side's storyline heat
 ```
 
 Each term is one labelled step of the trace: "Popularity in <region>", "Push",
-"Momentum" and "Alignment". A null momentum counts 0 with the note "No momentum
-yet (counts as 0)"; a null alignment (not employed by the promotion) counts 0
-with the note "Not employed here". Nothing is clamped.
+"Momentum", "Alignment", "Ring skill", "Stamina", "Fatigue", "Body wear" and
+"Storyline heat". A null momentum counts 0 with the note "No momentum yet
+(counts as 0)"; a null alignment (not employed by the promotion) counts 0 with
+the note "Not employed here". Nothing is clamped.
+
+The last five terms (MTCH2-09) are how the match would actually go, not only
+who the booker would pick:
+
+- **Ring skill** is each competitor's mean of `ringwork`, `psychology` and
+  `athleticism` (each competitor's line names the three).
+- **Stamina** is scaled by the match's duration class (MTCH1's slot role and
+  the match type's shift): `match.autoWinner.staminaFactor.short` (0.5),
+  `.standard` (1) and `.long` (1.5), so a Long match favours the side with more
+  stamina.
+- **Fatigue** (0–100) and **body wear** (100 minus the mean of the person's
+  body condition over every body part) are read from the person as they stand.
+  WRK6 (the health system) and MTCH4 (fatigue gain and wear from matches) are
+  what move them; until those land on main, fatigue is 0 and condition is what
+  the world started with, so these lines are small but real.
+- **Storyline heat** is the heat (0–100) of the hottest **active** storyline
+  linked to the match (`segment.storylineIds`) in which one of the side's
+  competitors is on the face side: the side the crowd is behind. A side with
+  none counts 0 with the note "Not the crowd favourite in a storyline here
+  (counts as 0)". The Match lab links no storyline, so its heat is always 0.
+  CRTV4 (linking segments to storylines from booking) makes this common on your
+  shows; rival storyline segments already carry the link.
+
+Setting any weight to 0 removes that factor's effect; the line stays in the
+trace with the 0 weight.
 
 The inputs come from the world through `autoWinnerInputsOf(read, { promotionId,
-regionId, sides })` (`systems/match/finishes/autoWinnerInputs.ts`): popularity
-is `person.regionalPop[regionId]` (0 when absent), and push, momentum and
-alignment come from the person's **active** employment with the promotion
+regionId, sides, storylineIds })` (`systems/match/finishes/autoWinnerInputs.ts`):
+popularity is `person.regionalPop[regionId]` (0 when absent), and push, momentum
+and alignment come from the person's **active** employment with the promotion
 running the show. Free agents and other promotions' workers (the lab's
-"Everyone" picker) get push `none`, momentum null and alignment null. Only
+"Everyone" picker) get push `none`, momentum null and alignment null, but keep
+their attributes, fatigue and condition. Only
 competitors count; `competitorSidesOf(participants)` drops ringside people and
 interferers, who never win. Sides come out in side order and competitors in
 person id order.
 
-`autoWinner({ sides, randomness, mode }, { rng })`
+`autoWinner({ sides, randomness, mode, upsetNoteGap }, { rng })`
 (`systems/match/finishes/autoWinner.ts`) then picks the side:
 
 - each side's total is its score plus, when the randomness is above 0, one
@@ -272,16 +305,41 @@ person id order.
 - on an exact tie, the rule "Tie broken by lowest person id" picks the side
   whose lowest competitor id sorts first.
 
+- when the winner's score before the rolls was more than
+  `match.autoWinner.upsetNoteGap` (25) behind the best other side's, the
+  decision gets the note "Upset: Side N won from X points behind", and the gap
+  setting is listed after the randomness, so the Why? calls the upset out.
+
 It never produces a draw, and a side with nobody competing is never passed in.
 The decision is labelled "Winner decided automatically", or "Random winners
 mode, winner decided on the night" in Random winners mode, and the randomness
 (a tunable read) is its first child.
 
-The randomness is `match.autoWinner.randomness` (5 by default; 0 makes the
-auto-winner fully deterministic) or, in Random winners mode,
+The randomness is `match.autoWinner.randomness` (57.5 by default since
+MTCH2-09; 0 makes the auto-winner fully deterministic) or, in Random winners mode,
 `match.randomWinners.randomness` (60, at least 1). The rolls draw on the
 `match.auto-winner` stream (`MATCH_AUTO_WINNER_STREAM`); stream names are
 lowercase, so it is not `match.autoWinner`.
+
+### Balance
+
+MTCH2-09 set the defaults with a seeded batch over the shipped default world
+(`test/systems/match/autoWinnerBalance.test.ts`; run it with `RB_SLOW_TESTS=1`
+to print the numbers). Every promotion's active singles pairs are played out
+as Auto matches in a Standard slot in the promotion's home region, 200 times
+each on a stream seeded by the pair:
+
+| Pairs                    | Pairs | Matches | Higher-scored side won | Called upsets |
+| ------------------------ | ----- | ------- | ---------------------- | ------------- |
+| Main eventer v midcarder | 160   | 32,000  | 76.5%                  | 6,149         |
+| Midcarder v midcarder    | 226   | 45,200  | 58.0%                  | 287           |
+
+The targets were 70–80% and 55–60%. Hitting both needed the main eventer's
+lead to shrink relative to the spread between midcarders, so the batch also
+lowered `match.autoWinner.popularityWeight` (0.6 to 0.45) and
+`match.autoWinner.push.mainEvent` (30 to 24), and raised the randomness from 5
+to 57.5. The default fast test run plays each pair 20 times and checks the
+same bands.
 
 ## Resolving a match
 
@@ -292,7 +350,9 @@ draws only on the streams `deps.rng(name)` hands it (`match.auto-winner` and
 `match.finish`).
 
 The input is the match type, its stipulations, the sides (as
-`autoWinnerInputsOf` returns them), the region's name, the mode (`standard`
+`autoWinnerInputsOf` returns them), the region's name, the match's duration
+class (show night works it out from the segment's slot and match type, the
+Match lab from its slot role), the mode (`standard`
 or `randomWinners`) and the plan: `winner` (`'auto'`, `{ side }` with the
 stored 0-based side, or `'draw'`), `finishKey` (null for Auto) and `methodKey`
 (null to let the finish decide). The steps:

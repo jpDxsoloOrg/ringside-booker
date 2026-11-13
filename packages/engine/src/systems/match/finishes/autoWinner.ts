@@ -9,6 +9,10 @@
  * night", so the Why? panel's first line says so; the caller passes the larger
  * `match.randomWinners.randomness`.
  *
+ * Upsets (MTCH2-09): when the winner's score before the unpredictability was more than
+ * `match.autoWinner.upsetNoteGap` behind the best other side's, the decision carries an "Upset"
+ * note, so the Why? calls it out.
+ *
  * Design: docs/design/match-finishes.md#auto-winner.
  */
 
@@ -51,6 +55,22 @@ export interface AutoWinnerInputs {
   /** The most unpredictability added to each side, in points; 0 for none. */
   readonly randomness: Traced<number>;
   readonly mode: AutoWinnerMode;
+  /**
+   * MTCH2-09: how far behind on score a winner must have been to be called an upset; no upset note
+   * when absent.
+   */
+  readonly upsetNoteGap?: Traced<number>;
+}
+
+/** "Upset: Side 2 won from 14.5 points behind". */
+export function upsetNote(sideLabel: string, gap: number): string {
+  return `Upset: ${sideLabel} won from ${String(Math.round(gap * 10) / 10)} points behind`;
+}
+
+/** How far the winner's score was behind the best other side's; 0 or less when it was not. */
+function upsetGapOf(sides: readonly AutoWinnerSideScore[], winner: AutoWinnerSideScore): number {
+  const others = sides.filter((side) => side !== winner).map((side) => side.score.value);
+  return others.length === 0 ? 0 : Math.max(...others) - winner.score.value;
 }
 
 /**
@@ -109,11 +129,21 @@ export function autoWinner(
   if (tied) {
     decision.rule(TIE_BREAK_RULE, true);
   }
+  const upsetGap = upsetGapOf(inputs.sides, best);
+  const gapSetting = inputs.upsetNoteGap;
+  const upsetTrace =
+    gapSetting !== undefined && upsetGap > gapSetting.value ? gapSetting.trace : null;
+  if (upsetTrace !== null) {
+    decision.note(upsetNote(best.label, upsetGap));
+  }
   const chosen = decision.choose(best.label, tied ? TIE_BREAK_REASON : HIGHEST_SCORE_REASON);
   // The randomness (a tunable read) leads the story, so the Why? shows where the spread came from.
+  // An upset adds the gap setting it was measured against.
+  const leading =
+    upsetTrace === null ? [inputs.randomness.trace] : [inputs.randomness.trace, upsetTrace];
   const trace = limitTrace({
     ...chosen.trace,
-    children: [inputs.randomness.trace, ...(chosen.trace.children ?? [])],
+    children: [...leading, ...(chosen.trace.children ?? [])],
   });
   return { value: best.side, trace };
 }
