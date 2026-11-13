@@ -2275,3 +2275,25 @@ export {
   type RivalStorylineContext,
   type RivalTitleContext,
 } from './systems/aip/index';
+
+// AIP5-02: who a rival booker puts over in a match, as a traced decision (reused by BRW6).
+// See docs/design/rival-booking.md#winners.
+export {
+  DRAW_PLAN,
+  matchWinner,
+  NO_GUT_FEELING_NOTE,
+  parseWinnerPlan,
+  rivalSideValue,
+  winnerReasonText,
+  winPlanKey,
+  type MatchWinnerDeps,
+  type MatchWinnerInputs,
+  type MatchWinnerResult,
+  type MatchWinnerSide,
+  type MatchWinnerStoryline,
+  type RivalSideValueDeps,
+  type RivalSideValueInputs,
+  type WinnerPlan,
+  type WinnerReasonKey,
+  type WinnerReasonNames,
+} from './systems/aip/index';
