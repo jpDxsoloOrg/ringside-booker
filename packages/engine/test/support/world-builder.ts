@@ -38,6 +38,7 @@ import type { EventInstance } from '../../src/model/entities/event-instance';
 import type { MatchOutcome } from '../../src/model/entities/segment';
 import type { Person } from '../../src/model/entities/person';
 import type { Promotion } from '../../src/model/entities/promotion';
+import type { InjuryRecord } from '../../src/model/entities/injury';
 import type { PromotionSnapshot } from '../../src/model/entities/promotion-snapshot';
 import type { Title } from '../../src/model/entities/title';
 import type { RowOf } from '../../src/model/table-def';
@@ -65,6 +66,7 @@ import {
   aTitleReign,
 } from './builders/creative';
 import { aContinent, aCountry, aRegion } from './builders/geography';
+import { anInjury } from './builders/injury';
 import { aPerson, DEFAULT_PERSON_AGE } from './builders/people';
 import { TEST_CATALOGS } from './catalogs';
 import { TEST_INJURY_CATALOG } from './injuries';
@@ -188,6 +190,7 @@ function emptyIdLists(): IdLists {
     promotionSnapshots: [],
     aiProfiles: [],
     aiDecisions: [],
+    injuries: [],
   };
 }
 
@@ -688,6 +691,38 @@ export class WorldBuilder {
           'promotionSnapshots',
           aPromotionSnapshot({ ...row, promotionId }, context.sequence),
         );
+      }
+    });
+    return this;
+  }
+
+  /**
+   * Adds an injury row (WRK6-03) for the person at `personIndex` (in the order people were added),
+   * as `health.injure` would leave it: `anInjury` with the person filled in and, for a current
+   * injury (`returnedOn` null, the default), the matching `person.injury` pointer set too.
+   */
+  withInjury(personIndex: number, overrides: DeepPartial<InjuryRecord> = {}): this {
+    this.steps.push((context) => {
+      const personId = context.ids.people[personIndex];
+      if (personId === undefined) {
+        throw new Error(
+          `WorldBuilder: withInjury has no person at index ${String(personIndex)}; add people first`,
+        );
+      }
+      const row = context.insert(
+        'injuries',
+        anInjury({ ...overrides, personId }, context.sequence),
+      );
+      if (row.returnedOn === null) {
+        context.tx.update('people', personId, {
+          injury: {
+            kindKey: row.kindKey,
+            bodyPart: row.bodyPart,
+            since: row.since,
+            expectedReturn: row.expectedReturn,
+            canWorkAngles: row.canWorkAngles,
+          },
+        });
       }
     });
     return this;

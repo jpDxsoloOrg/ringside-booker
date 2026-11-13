@@ -110,6 +110,7 @@ function serialiseTables(tables: SerialisableWorld['tables']): SerializedTables 
     promotionSnapshots: [...tables.promotionSnapshots.values()],
     aiProfiles: [...tables.aiProfiles.values()],
     aiDecisions: [...tables.aiDecisions.values()],
+    injuries: [...tables.injuries.values()],
   };
 }
 

@@ -9,7 +9,7 @@
     "label": "Test save",
     "promotionName": "Test Promotion A",
     "promotionShortName": "TPA",
-    "schemaFingerprint": "2959249470727203b4644ae2916e07b9",
+    "schemaFingerprint": "4ab6f86ea9b52caae799985e0002fce0",
     "startDate": "2026-01-05",
     "worldName": "Test Tiny World"
   },
@@ -1559,6 +1559,23 @@
             },
             "status": "completed",
             "venueId": "ven_0000000001"
+          }
+        ],
+        "injuries": [
+          {
+            "bodyPart": "arms",
+            "canWorkAngles": false,
+            "conditionLoss": 2,
+            "expectedReturn": "2026-01-15",
+            "id": "inj_0000000001",
+            "kindKey": "injury.test-arm",
+            "noticedOn": "2026-01-05",
+            "personId": "per_0000000005",
+            "returnedOn": "2026-01-15",
+            "segmentId": null,
+            "severity": "moderate",
+            "since": "2026-01-05",
+            "source": "world"
           }
         ],
         "ledgerEntries": [

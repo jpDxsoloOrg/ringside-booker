@@ -70,10 +70,10 @@ anything else being renumbered.
 
 The health system's `housekeeping` phases ([health.md](health.md)):
 
-| Phase                      | Order | Cadence         | What it does                                                                                                      |
-| -------------------------- | ----- | --------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `health.recovery`          | 10    | daily           | Fatigue fades for everyone above 0 (stamina, age and traits count; less after a talking-only show day yesterday). |
-| `health.conditionRecovery` | 12    | weekly, Mondays | Damaged body parts heal a little, up to the cap for the worker's age; no rolls, no traces.                        |
+| Phase                      | Order | Cadence         | What it does                                                                                                                                                          |
+| -------------------------- | ----- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `health.recovery`          | 10    | daily           | Injuries due back today end (`injury.healed`); then fatigue fades for everyone above 0 (stamina, age and traits count; less after a talking-only show day yesterday). |
+| `health.conditionRecovery` | 12    | weekly, Mondays | Damaged body parts heal a little, up to the cap for the worker's age; no rolls, no traces.                                                                            |
 
 The `money` group's phases so far (ECO1-03, see
 [finances.md](finances.md#payroll)):
@@ -88,12 +88,13 @@ a zero amount and draw no random numbers (only the ledger rows' ids).
 
 The `periodic` group's weekly phases so far, all on Mondays:
 
-| Phase                   | Order | What it does                                                                                                                             |
-| ----------------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `match.momentumDrift`   | 30    | Momentum drifts for workers who did not wrestle that week ([match-aftermath.md](match-aftermath.md#momentum-drift)).                     |
-| `office.weeklySnapshot` | 34    | One promotion history row per active or dormant promotion, then old weeks thinned to one row per month ([office.md](office.md#history)). |
-| `match.pruneAftermaths` | 40    | Each worker keeps only their newest stored aftermaths ([match-aftermath.md](match-aftermath.md#stored-aftermaths)).                      |
-| `history.rollUp`        | 41    | History older than `history.keepDetailDays` becomes summaries and monthly totals ([save-format.md](save-format.md#history-retention)).   |
+| Phase                      | Order | What it does                                                                                                                             |
+| -------------------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `match.momentumDrift`      | 30    | Momentum drifts for workers who did not wrestle that week ([match-aftermath.md](match-aftermath.md#momentum-drift)).                     |
+| `office.weeklySnapshot`    | 34    | One promotion history row per active or dormant promotion, then old weeks thinned to one row per month ([office.md](office.md#history)). |
+| `match.pruneAftermaths`    | 40    | Each worker keeps only their newest stored aftermaths ([match-aftermath.md](match-aftermath.md#stored-aftermaths)).                      |
+| `history.rollUp`           | 41    | History older than `history.keepDetailDays` becomes summaries and monthly totals ([save-format.md](save-format.md#history-retention)).   |
+| `health.pruneInjuryDetail` | 44    | The traces of injuries older than `history.keepDetailDays` become summaries; the rows stay ([health.md](health.md#returns)).             |
 
 The rival desk's phases ([rival-desk.md](rival-desk.md#jobs)), both daily:
 `aip.runTurns` (`aiTurns`, order 50) runs every due rival job for every
@@ -805,6 +806,14 @@ also carries `source` (`player`, `ai` or `system`) and `reasonKey`:
 | `popularity.changed`          | `subjectKind`, `subjectId`, `worldBefore`, `worldAfter`, `regionsChanged` | A person's or promotion's popularity changes in a region      |
 | `momentum.changed`            | `employmentId`, `personId`, `promotionId`, `before`, `after`              | A worker's momentum changes (`before` is null the first time) |
 | `morale.changed`              | `employmentId`, `personId`, `promotionId`, `before`, `after`              | A worker's morale changes                                     |
+
+The health system's events ([health.md](health.md#injuries)):
+
+| Event              | Payload                                                                                            | Published when                                              |
+| ------------------ | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `fatigue.cleared`  | `personId`                                                                                         | A person's fatigue reaches 0                                |
+| `injury.sustained` | `personId`, `injuryId`, `kindKey`, `bodyPart`, `severity`, `expectedReturn`, `source`, `segmentId` | `health.injure` hurts someone (`segmentId` null off screen) |
+| `injury.healed`    | `personId`, `injuryId`, `kindKey`, `daysOut`                                                       | `health.recovery` brings someone back on their return date  |
 
 The booking system's events ([booking.md](booking.md#commands)):
 

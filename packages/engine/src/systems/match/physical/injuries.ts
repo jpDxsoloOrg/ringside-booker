@@ -185,13 +185,19 @@ export interface InjuryHandler {
 }
 
 let handler: InjuryHandler | null = null;
+/** The handler registered on import with `builtIn` (WRK6's `health.injure`), which a reset restores. */
+let builtInHandler: InjuryHandler | null = null;
 
 /**
  * Registers the injury handler. There is at most one. Returns a function that removes it again.
+ * `options.builtIn` marks the one the engine registers on import, so tests can put it back.
  *
  * @throws RegistryError for a malformed id, or when a handler is already registered (naming both).
  */
-export function registerInjuryHandler(spec: InjuryHandler): () => void {
+export function registerInjuryHandler(
+  spec: InjuryHandler,
+  options: { builtIn?: boolean } = {},
+): () => void {
   if (!PHASE_ID_PATTERN.test(spec.id)) {
     throw new RegistryError(
       `Injury handler "${spec.id}": the id must look like "system.camelName", for example "health.injure"`,
@@ -206,6 +212,9 @@ export function registerInjuryHandler(spec: InjuryHandler): () => void {
   }
   const stored: InjuryHandler = { ...spec };
   handler = stored;
+  if (options.builtIn === true) {
+    builtInHandler = stored;
+  }
   return () => {
     if (handler === stored) {
       handler = null;
@@ -216,4 +225,14 @@ export function registerInjuryHandler(spec: InjuryHandler): () => void {
 /** The registered injury handler, or null when no feature applies injuries. */
 export function getInjuryHandler(): InjuryHandler | null {
   return handler;
+}
+
+/** Removes the injury handler, built-in or not. For tests of MTCH4's own seam. */
+export function clearInjuryHandler(): void {
+  handler = null;
+}
+
+/** Puts back the built-in injury handler (WRK6's `health.injure`), if one registered on import. */
+export function restoreBuiltInInjuryHandler(): void {
+  handler = builtInHandler;
 }

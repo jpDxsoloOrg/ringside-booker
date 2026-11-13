@@ -594,6 +594,8 @@ const TINY_WORLD_SNAPSHOTS: readonly DeepPartial<PromotionSnapshot>[] = [
  *   popularity and morale moving a little each week, so the Office has a trend to draw;
  * - promotion B's rival desk profile and 2 rival decisions: one already revealed, one revealed
  *   next Thursday;
+ * - 1 past injury (WRK6-03): people[4] hurt their arm off screen on the start date and back ten
+ *   days later, so nobody is injured today;
  * - the shipped base catalogs on its metadata (`TEST_CATALOGS`), so every segment key resolves.
  */
 export function tinyWorld(): BuiltWorld {
@@ -644,6 +646,11 @@ export function tinyWorld(): BuiltWorld {
     .with('history', addTinyHistory)
     .withPromotionSnapshots('A', TINY_WORLD_SNAPSHOTS)
     .with('rival desk', addTinyRivalDesk)
+    .withInjury(4, {
+      since: TINY_WORLD_START,
+      expectedReturn: addDays(TINY_WORLD_START, 10),
+      returnedOn: addDays(TINY_WORLD_START, 10),
+    })
     .build();
 }
 

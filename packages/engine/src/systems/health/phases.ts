@@ -1,6 +1,7 @@
 /**
- * The health system's day phases: everyone sheds some fatigue each day (`health.recovery`), and
- * damaged body parts heal a little each week up to a cap for their age (`health.conditionRecovery`).
+ * The health system's day phases: injuries end on their return date and everyone sheds some fatigue
+ * each day (`health.recovery`), damaged body parts heal a little each week up to a cap for their age
+ * (`health.conditionRecovery`), and old injury traces become summaries (`health.pruneInjuryDetail`).
  * Design: docs/design/health.md.
  */
 
@@ -15,6 +16,7 @@ import { computeConditionCap } from './formulas/conditionCap';
 import { computeConditionRecovery } from './formulas/conditionRecovery';
 import { computeFatigueRecovery, FATIGUE_MIN } from './formulas/fatigueRecovery';
 import { medicalLevelOf } from './medical';
+import { healInjuries, pruneInjuryDetailPhase } from './returns';
 import { RECOVERY_STREAM } from './streams';
 
 /** The trace kind every fatigue recovery result is stored under. */
@@ -26,7 +28,8 @@ export function fatigueRecoveryTraceRef(personId: PersonId): TraceRef {
 }
 
 /**
- * Daily fatigue recovery. People are visited in ascending ID order. Someone already at 0 fatigue is
+ * Daily: first, injuries whose return date has come are closed (`healInjuries`, no rolls); then
+ * fatigue recovery. People are visited in ascending ID order. Someone already at 0 fatigue is
  * skipped and draws nothing, because no roll could change their result; everyone else draws
  * exactly once, so the stream stays aligned however the numbers are tuned.
  */
@@ -36,6 +39,7 @@ export const fatigueRecoveryPhase: PhaseDefinition = definePhase({
   order: 10,
   cadence: { kind: 'daily' },
   run: (ctx) => {
+    healInjuries(ctx);
     // Fetched on first use, so a day with nobody to recover leaves the stream untouched and does
     // not look at yesterday's shows.
     let recoveryStream: RngStream | undefined;
@@ -125,4 +129,5 @@ export const conditionRecoveryPhase: PhaseDefinition = definePhase({
 export const healthPhases: readonly PhaseDefinition[] = [
   fatigueRecoveryPhase,
   conditionRecoveryPhase,
+  pruneInjuryDetailPhase,
 ];

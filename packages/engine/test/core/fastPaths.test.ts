@@ -22,6 +22,7 @@ const WORLD_EFFECT_TABLES = [
   'aftermaths',
   'popularityShowChanges',
   'aiDecisions',
+  'injuries',
 ] as const;
 
 async function run(start: () => EngineState, days: number, fast: boolean): Promise<EngineState> {
