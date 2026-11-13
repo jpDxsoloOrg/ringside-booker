@@ -19,6 +19,7 @@ import './events';
 import './streams';
 // Registers `health.injure` as MTCH4's injury handler.
 import './injuryHandler';
+import './policyEffects';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
 import { healthCommands } from './commands';
 import { ownWorkerInjuredGate } from './gate';
@@ -104,6 +105,15 @@ export {
   type InjureResult,
 } from './injure';
 export { HEALTH_INJURY_HANDLER_ID, healthInjuryHandler } from './injuryHandler';
+export {
+  CONDITION_RECOVERY_CADENCE,
+  MORNING_BEFORE_SHOW_HOOK_ID,
+  morningBeforeShowHook,
+  morningRanEarly,
+  recoverConditions,
+  runFatigueMorning,
+} from './morning';
+export { MEDICAL_POLICY_EFFECT_ID, medicalPolicyEffect, medicalPolicyLines } from './policyEffects';
 export {
   healInjuries,
   PRUNE_INJURY_DETAIL_PHASE_ID,

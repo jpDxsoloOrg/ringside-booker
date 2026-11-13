@@ -178,14 +178,16 @@ export function runOffscreenShow(ctx: PhaseContext, instance: DeepReadonly<Event
  * Runs one show now: the before-a-show-runs hooks first, then its card, or, for a computer show
  * with no card, its off-screen score. The one path both the shows phase (every show a computer
  * runs) and `shows.runTonight` (the player's show) take, so a show gives the same result whichever
- * of them runs it.
+ * of them runs it. `beforeTheDay` is true only from `shows.runTonight`, which runs the show before
+ * its day's phases (see `BeforeShowRunsInput.beforeTheDay`).
  */
 export function runShowNow(
   ctx: PhaseContext,
   instance: DeepReadonly<EventInstance>,
   human: boolean,
+  { beforeTheDay = false }: { beforeTheDay?: boolean } = {},
 ): void {
-  runBeforeShowRunsHooks(ctx, { show: instance, human });
+  runBeforeShowRunsHooks(ctx, { show: instance, human, beforeTheDay });
   // Re-read: a hook may have changed the show (EVT6-03 picks a venue for a show without one).
   const show = ctx.read.tables.eventInstances.require(instance.id);
   if (!human && !hasCard(ctx.read, show.id)) {

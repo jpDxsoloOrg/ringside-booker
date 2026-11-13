@@ -25,6 +25,13 @@ export interface BeforeShowRunsInput {
   readonly show: DeepReadonly<EventInstance>;
   /** True when a human runs the show (it runs from `shows.runTonight`). */
   readonly human: boolean;
+  /**
+   * True when the show runs before its day's phases: the player pressed Run the show
+   * (`shows.runTonight`), so nothing of the day, not even its housekeeping, has run yet. False for
+   * a show the shows phase runs inside the day. WRK6-07: the health system runs the day's morning
+   * first (`health.morningBeforeShow`).
+   */
+  readonly beforeTheDay: boolean;
 }
 
 /** A hook that runs just before a show runs. */

@@ -78,10 +78,12 @@ function only<T>(value: T | undefined, what: string): T {
 export interface ValidateWorldOptions {
   /** Turns on MTCH2's Random winners new-game setting. */
   readonly randomWinners?: boolean;
+  /** Puts the test injury catalog on the world, so in-match injuries become real ones (WRK6-07). */
+  readonly injuryCatalog?: boolean;
 }
 
 export function validateWorld(options: ValidateWorldOptions = {}): ValidateWorld {
-  const { world, ids } = worldBuilder({
+  const builder = worldBuilder({
     ...(options.randomWinners === undefined
       ? {}
       : { settings: { extra: { randomWinners: options.randomWinners } } }),
@@ -158,8 +160,11 @@ export function validateWorld(options: ValidateWorldOptions = {}): ValidateWorld
       add('Test Monday Show', '2026-01-05', only(brandOne, 'brand one'));
       add('Test Rival Show', '2026-01-06', only(brandTwo, 'brand two'));
       add('Test Sunday Show', '2026-01-04', only(brandOne, 'brand one'));
-    })
-    .build();
+    });
+  if (options.injuryCatalog === true) {
+    builder.withInjuryCatalog();
+  }
+  const { world, ids } = builder.build();
   const [show, rival, past] = ids.eventInstances;
   const [heavyweight, tag, women] = ids.titles;
   return {

@@ -25,13 +25,14 @@ describe('registerPolicyEffect', () => {
     registerPolicyEffect(effect('test.first'));
     registerPolicyEffect(effect('test.alsoFirst'));
     registerPolicyEffect(effect('test.travel', { area: 'travel' }));
-    expect(listPolicyEffects('medical').map((entry) => entry.id)).toEqual([
-      'test.alsoFirst',
-      'test.first',
-      'test.second',
-    ]);
-    expect(listPolicyEffects('travel').map((entry) => entry.id)).toEqual(['test.travel']);
-    expect(listPolicyEffects('catering')).toEqual([]);
+    // Only this test's effects: features register their own (WRK6's medical lines).
+    const testIds = (area: Parameters<typeof listPolicyEffects>[0]) =>
+      listPolicyEffects(area)
+        .map((entry) => entry.id)
+        .filter((id) => IDS.includes(id));
+    expect(testIds('medical')).toEqual(['test.alsoFirst', 'test.first', 'test.second']);
+    expect(testIds('travel')).toEqual(['test.travel']);
+    expect(testIds('catering')).toEqual([]);
   });
 
   it('refuses a duplicate id, a malformed id and an order that is not a number', () => {
