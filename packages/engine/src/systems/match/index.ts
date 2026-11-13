@@ -280,6 +280,7 @@ export {
   type LabImportance,
   type LabOptions,
   type LabPromotion,
+  type LabRateAsOption,
   type LabRegion,
   type LabWorkerRow,
   type LabWorkerScope,

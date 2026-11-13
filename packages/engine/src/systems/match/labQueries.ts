@@ -41,6 +41,14 @@ export interface LabPromotion {
   homeRegionId: RegionId;
 }
 
+/** A promotion the lab can rate a segment as (the "Rate as" select, AIP1-07). */
+export interface LabRateAsOption {
+  id: PromotionId;
+  name: string;
+  /** True for a promotion the viewer runs. */
+  yours: boolean;
+}
+
 /** A region the show can be in. */
 export interface LabRegion {
   id: RegionId;
@@ -78,6 +86,11 @@ export interface LabOptions {
   /** House show to Flagship. */
   importances: LabImportance[];
   defaults: LabDefaults;
+  /**
+   * The promotions a segment can be rated as: the viewer's first, then every other active one by
+   * name. Rating as a rival shows the rules that promotion plays by (Rival rules, AIP1-07).
+   */
+  rateAs: LabRateAsOption[];
 }
 
 /** Who the picker lists. */
@@ -175,6 +188,19 @@ function defaultTypeKey(read: GameWorldView): ContentKey | null {
   return twoOfOne?.key ?? null;
 }
 
+/** The "Rate as" options: the viewer's promotion first, then the other active ones by name. */
+function rateAsOptionsOf(read: GameWorldView, mine: PromotionId | null): LabRateAsOption[] {
+  return read.tables.promotions
+    .values()
+    .filter((row) => row.id === mine || row.status === 'active')
+    .map((row) => ({ id: row.id, name: row.name, yours: row.id === mine }))
+    .sort(
+      (left, right) =>
+        Number(right.yours) - Number(left.yours) ||
+        left.name.localeCompare(right.name, 'en', { numeric: true }),
+    );
+}
+
 export const labOptionsQuery: QueryDefinition<'match.labOptions'> = defineQuery(
   'match.labOptions',
   {
@@ -204,6 +230,7 @@ export const labOptionsQuery: QueryDefinition<'match.labOptions'> = defineQuery(
           kind: 'match',
           typeKey: defaultTypeKey(read),
         },
+        rateAs: rateAsOptionsOf(read, promotion?.id ?? null),
       };
     },
   },
