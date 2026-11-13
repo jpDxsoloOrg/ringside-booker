@@ -176,7 +176,9 @@ export function calendarRowBuilder(
       : { id: venue.id, name: venue.name, capacity: venue.capacity, kind: venue.kind };
   }
 
-  function genericVenueOf(instance: DeepReadonly<EventInstance>): CalendarShow['genericVenue'] {
+  function genericVenueOf(
+    instance: DeepReadonly<EventInstance>,
+  ): { name: string; capacity: number } | null {
     if (instance.genericVenue === null) {
       return null;
     }

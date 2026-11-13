@@ -18,6 +18,8 @@ import { routePatterns, routes } from './routes';
 import { SettingsEffects } from './settings/SettingsEffects';
 // The results page's calendar section, action and chip badge, registered before any calendar draws.
 import '@/screens/show-results/calendarHooks';
+// The calendar show sheet's Crowd section (EVT6-06).
+import '@/screens/box-office/ShowCrowdSection';
 // The worker profile's Form tab (MTCH3-04); its panel loads with the tab.
 import '@/screens/workers/profile/tabs/recentFormTab';
 

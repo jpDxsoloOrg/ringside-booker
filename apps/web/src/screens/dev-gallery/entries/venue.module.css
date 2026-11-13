@@ -1,0 +1,7 @@
+/* The venue gallery entries (EVT6-06): the panel framed as it sits in the booking side column. */
+.panelFrame {
+  max-inline-size: 24rem;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
