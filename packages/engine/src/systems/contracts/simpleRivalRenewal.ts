@@ -27,8 +27,7 @@ export const simpleRivalRenewalPolicy: RenewalPolicy = {
   decide: (read, employment, date, deps) => {
     const promotion = read.tables.promotions.get(employment.promotionId);
     if (
-      promotion === undefined ||
-      promotion.controller.kind !== 'computer' ||
+      promotion?.controller.kind !== 'computer' ||
       promotion.status === 'closed' ||
       employment.endsOn === null ||
       !deps.tunables.get('ai.contracts.simpleRenewals') ||
