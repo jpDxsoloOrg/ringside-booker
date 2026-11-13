@@ -89,6 +89,19 @@ html.scroll-locked {
   overflow: hidden;
 }
 
+/*
+ * Touch screens: text fields at 16px or more. iOS Safari zooms the page in when a smaller field
+ * takes focus and leaves it zoomed, so the player has to pinch back out (UI-30). The selector
+ * outranks a component's own size on purpose; desktop keeps the designed sizes.
+ */
+@media (pointer: coarse) {
+  input:not([type='checkbox'], [type='radio'], [type='range'], [type='file'], [type='color']),
+  textarea,
+  select {
+    font-size: max(1rem, 16px) !important;
+  }
+}
+
 :focus-visible {
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;
