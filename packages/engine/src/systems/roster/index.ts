@@ -50,3 +50,31 @@ export const rosterSystem: SystemBundle = defineSystem({
   id: 'roster',
   queries: rosterQueries,
 });
+
+// roster.summary and roster.explain (WRK2-02).
+export { rosterSummaryQuery, type RosterSummaryArgs } from './queries';
+export {
+  ROSTER_PUSHES,
+  ROSTER_SHARED_BRAND_NAME,
+  ROSTER_TOP_COUNT,
+  summariseRoster,
+  type RosterBrandCount,
+  type RosterPush,
+  type RosterSummary,
+} from './summary';
+export {
+  ROSTER_EXPLAIN_METRICS,
+  rosterExplainQuery,
+  rosterExplanationOf,
+  type RosterExplainArgs,
+  type RosterExplainMetric,
+  type RosterExplanation,
+} from './explain';
+export {
+  rowExpectedPush,
+  rowInputs,
+  rowOverall,
+  rowPopularity,
+  rowPushGap,
+  type RosterRowInputs,
+} from './rowInputs';

@@ -8,7 +8,13 @@ import { createEngine, initialEngineState, type Engine } from '../../../src/core
 import { simSystem } from '../../../src/core/api/builtins';
 import type { PromotionId } from '../../../src/core/ids';
 import type { GameWorldView } from '../../../src/model/tables';
-import { rosterSystem, type RosterRoleGroup, type RosterView } from '../../../src/systems/roster';
+import {
+  ROSTER_EXPLAIN_METRICS,
+  rosterSystem,
+  type RosterExplainMetric,
+  type RosterRoleGroup,
+  type RosterView,
+} from '../../../src/systems/roster';
 import { createEngineTunables } from '../../../src/systems/tunables';
 import {
   availabilityOf,
@@ -136,5 +142,52 @@ describe('roster.rows on the default world as Altura', () => {
     const wrestlers = view.rows.filter((row) => row.group === 'wrestlers');
     expect(wrestlers.every((row) => row.pushGap?.verdict === 'asExpected')).toBe(true);
     expect(wrestlers.every((row) => row.pushGap?.steps === 0)).toBe(true);
+  });
+});
+
+describe('roster.summary and roster.explain on the default world as Altura (WRK2-02)', () => {
+  const { engine } = alturaWorld();
+  const view: RosterView = rosterOf(engine, {}, PLAYER);
+
+  it('counts 55 contracts: 44 wrestlers, Mainstage 23, Overclock 21, Shared 11', () => {
+    const result = engine.query('roster.summary', {}, PLAYER);
+    if (!result.ok) throw new Error('roster.summary was refused');
+    const summary = result.data;
+    expect(summary.total).toBe(55);
+    expect(summary.byGroup).toEqual({
+      wrestlers: 44,
+      managers: 2,
+      announcers: 3,
+      referees: 4,
+      producers: 2,
+      others: 0,
+    });
+    expect(summary.byBrand.map((brand) => [brand.name, brand.total])).toEqual([
+      ['Altura Mainstage', 23],
+      ['Altura Overclock', 21],
+      ['Shared', 11],
+    ]);
+    expect(summary.expectsMore).toBe(0);
+    expect(summary.topByPopularity).toHaveLength(5);
+  });
+
+  it('explains every derived number with the value the row shows', () => {
+    for (const row of view.rows) {
+      const cells: Record<RosterExplainMetric, number | string | null> = {
+        expectedPush: row.expectedPush,
+        pushGap: row.pushGap?.steps ?? null,
+        overall: row.overall.value,
+        popularity: row.popularity,
+      };
+      for (const metric of ROSTER_EXPLAIN_METRICS) {
+        const result = engine.query(
+          'roster.explain',
+          { employmentId: row.employmentId, metric },
+          PLAYER,
+        );
+        if (!result.ok) throw new Error('roster.explain was refused');
+        expect(result.data?.value ?? null).toBe(cells[metric]);
+      }
+    }
   });
 });
