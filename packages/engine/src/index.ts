@@ -2517,6 +2517,9 @@ export {
 // See docs/design/health.md#the-health-profile.
 export {
   ACKNOWLEDGE_MAX_INJURIES,
+  computeConditionCap,
+  computeConditionRecovery,
+  computeFatigueRecovery,
   computeOffscreenInjuryChance,
   FATIGUE_BANDS,
   fatigueBandOf,
