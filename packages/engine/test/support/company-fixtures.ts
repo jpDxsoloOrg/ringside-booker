@@ -7,7 +7,7 @@
  */
 
 import { z } from 'zod';
-import { parseGameDate, type GameDate } from '../../src/core/date';
+import { parseGameDate, yearMonthOf, type GameDate } from '../../src/core/date';
 import { parseId, type EntityKind, type IdOf } from '../../src/core/ids';
 import { cents } from '../../src/core/money';
 import { brandsTable, type Brand } from '../../src/model/entities/brand';
@@ -77,6 +77,7 @@ export function makePromotion(serial: number, overrides: Partial<Promotion> = {}
     status: 'active',
     homeRegionId: testId('region', 1),
     regionalPop: { [testId('region', 1)]: 42.5 },
+    popularityGains: { month: yearMonthOf(date('2026-01-01')), byRegion: {} },
     prestige: 50,
     cash: cents(-12_500),
     style: 'mainstream',

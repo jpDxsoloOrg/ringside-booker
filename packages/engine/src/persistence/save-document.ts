@@ -109,6 +109,7 @@ const SerializedTablesSchema = z.strictObject({
   mail: z.array(TABLES.mail.schema),
   news: z.array(TABLES.news.schema),
   ledgerEntries: z.array(TABLES.ledgerEntries.schema),
+  popularityShowChanges: z.array(TABLES.popularityShowChanges.schema),
   // MTCH3-03. Defaults to empty so saves written before the table existed still load.
   aftermaths: z.array(TABLES.aftermaths.schema).default([]),
 });

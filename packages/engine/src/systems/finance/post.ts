@@ -4,7 +4,8 @@
  * Every money feature (wages, show costs, box office, fines, buyouts) calls it. It appends one
  * ledger row and moves the promotion's cash by the same amount in the caller's transaction, so the
  * sum of a promotion's rows always equals the change in its cash. It also records the row's Why?
- * trace and publishes `finance.moneyPosted`. If anything is wrong it throws before writing, and
+ * trace and publishes `finance.moneyPosted` (and, for a human-controlled promotion, rewrites the
+ * cash Why?, `cashTrace.ts`). If anything is wrong it throws before writing, and
  * the error rolls the caller's step back. A test (`cash-seam.test.ts`) keeps any other code from
  * writing `promotions.cash`, apart from the opening balances of a new world.
  *
@@ -29,6 +30,7 @@ import {
   type LedgerEntry,
   type LedgerRefs,
 } from '../../model/entities/ledger-entry';
+import { recordCashTrace } from './cashTrace';
 import { ledgerEntryTraceRef } from './traces';
 
 /** The longest memo a ledger row can carry, after trimming. */
@@ -138,8 +140,10 @@ export function postMoney(ctx: StepContext, input: PostMoneyInput): LedgerEntry 
     input.trace ?? inputOf(`Amount posted: ${memo}`, amount, { kind: 'ledgerEntry', id }, 'money');
   ctx.recordTrace(traceRef, date, trace);
 
-  // (7) The event, for human-controlled promotions only (see docs/design/finances.md#postmoney).
+  // (7) The event and the top bar's cash Why?, for human-controlled promotions only (see
+  // docs/design/finances.md#postmoney).
   if (promotion.controller.kind === 'human') {
+    recordCashTrace(ctx, promotionId);
     ctx.publish('finance.moneyPosted', {
       promotionId,
       ledgerEntryId: id,

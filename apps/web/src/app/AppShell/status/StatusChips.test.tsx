@@ -13,6 +13,7 @@ const STATUS: SimStatus = {
     name: 'Harbor City Wrestling',
     shortName: 'HCW',
     cash: cents(-250_000),
+    cashTraceRef: null,
     popularity: {
       homeRegionId: parseId('region', 'reg_00000000ab'),
       homeRegion: 64,

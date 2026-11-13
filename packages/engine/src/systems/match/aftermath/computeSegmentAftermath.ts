@@ -473,7 +473,7 @@ export function computeSegmentAftermath(
       { regionWeights, delta, label: resultLine },
     );
     const regions = spread.lines.map((line): AftermathRegionRow => {
-      const region = preview.byRegion.get(line.regionId);
+      const region = preview.regions.get(line.regionId);
       const before = region?.before ?? 0;
       const after = region?.after ?? before;
       return {

@@ -13,6 +13,7 @@ const REACH_DOC = 'promotion-popularity.md#show-reach';
 const EXPECTATION_DOC = 'promotion-popularity.md#region-expectation';
 const CHANGE_DOC = 'promotion-popularity.md#show-popularity-change';
 const CAP_DOC = 'promotion-popularity.md#monthly-cap';
+const RECORD_DOC = 'promotion-popularity.md#after-every-show';
 
 export const promoPopTunables = defineTunables({
   'promoPop.neighbourReach': {
@@ -307,5 +308,16 @@ export const promoPopTunables = defineTunables({
     description:
       'Most popularity shows can win in one region in one calendar month (0 = no gains at all)',
     docRef: CAP_DOC,
+  },
+  'promoPop.keepShowChangesDays': {
+    kind: 'integer',
+    default: 365,
+    min: 0,
+    max: 3650,
+    unit: 'days',
+    category: CATEGORY,
+    description:
+      "How long each show's popularity change by region is kept for the results page (0 = cleared on the 1st of every month)",
+    docRef: RECORD_DOC,
   },
 });

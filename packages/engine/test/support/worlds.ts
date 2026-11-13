@@ -20,6 +20,7 @@ import {
 import type { ParticipantRole } from '../../src/model/entities/participant';
 import { aDeal, aNetwork } from './builders/media';
 import { aLedgerEntry } from './builders/ledger';
+import { aPopularityShowChange } from './builders/popularity';
 import { anAftermath } from './builders/aftermath';
 import { aMail, aNews } from './builders/inbox';
 import { aVenue } from './builders/geography';
@@ -34,7 +35,12 @@ import {
   aTitleReign,
 } from './builders/creative';
 import { TEST_PLAYER_ID, TEST_START_DATE, type DeepPartial } from './builders/build-row';
-import { worldBuilder, type BuildContext, type BuiltWorld } from './world-builder';
+import {
+  worldBuilder,
+  type BuildContext,
+  type BuiltWorld,
+  type TestMetaOverrides,
+} from './world-builder';
 
 /** A world with metadata and nothing else. */
 export function emptyWorld(): BuiltWorld {
@@ -422,6 +428,33 @@ function addTinyHistory(context: BuildContext): void {
     context.insert('ledgerEntries', aLedgerEntry(entry, sequence));
   }
 
+  // What the show did to A's popularity: its own region and its TV deal's network.
+  context.insert(
+    'popularityShowChanges',
+    aPopularityShowChange(
+      {
+        eventInstanceId: show.id,
+        promotionId: promotionA,
+        date: TINY_WORLD_SHOW_DATE,
+        score: 62,
+        worldBefore: 0,
+        worldAfter: 0.3,
+        regions: {
+          [show.regionId]: {
+            source: 'show',
+            networkId: null,
+            weight: 1,
+            expectation: 10,
+            before: 0,
+            after: 1.2,
+            capped: false,
+          },
+        },
+      },
+      sequence,
+    ),
+  );
+
   // The title match's aftermath (MTCH3-03): the champion gained, the challenger lost a little.
   const aftermathOf = (
     index: number,
@@ -476,6 +509,7 @@ type DeepPartialLedger = Parameters<typeof aLedgerEntry>[0];
  *   angle and the title match (both matches with outcomes and ratings; the title match's planned
  *   finish is `finish.clean`), pre-show slot 0 is a match; and their 8 participants;
  * - 1 venue, 2 relationships, 2 mail (one with an open decision), 2 news and 5 ledger entries;
+ * - 1 per-show popularity record for last Thursday's show;
  * - 2 aftermath rows for the title match: people[0] won, people[1] lost;
  * - the shipped base catalogs on its metadata (`TEST_CATALOGS`), so every segment key resolves.
  */
@@ -575,8 +609,8 @@ function patternedPerson(rosterIndex: number, startDate: GameDate): DeepPartial<
  * Monday show, so a headless run schedules and runs a show every week. For performance and
  * save-size tests and the headless runner.
  */
-export function rosterWorld(rosterSize: number): BuiltWorld {
-  return worldBuilder()
+export function rosterWorld(rosterSize: number, meta: TestMetaOverrides = {}): BuiltWorld {
+  return worldBuilder(meta)
     .withGeography('mini')
     .withCatalogs()
     .withPromotion({ name: 'Test Promotion A' }, (promotion) =>

@@ -2,7 +2,8 @@
  * Entry point of the headless runner: `npm run sim -- --days <n> [options]` from the repository
  * root. See `args.ts` for the options.
  *
- * Exit codes: 0 success, 1 a determinism mismatch (or a step failure under `--strict`), 2 bad
+ * Exit codes: 0 success, 1 a determinism mismatch (or, under `--strict`, a step failure, a past
+ * show still open or a ledger that does not match the cash), 2 bad
  * arguments or a world that cannot be read, 3 stopped by a gate.
  */
 
@@ -10,7 +11,13 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { SystemBundle } from '@ringside/engine';
 import { parseRunnerArgs, USAGE, type ArgumentError, type RunnerOptions } from './args';
-import { loadStartState, openPastShows, runSimulation, type CompletedRun } from './run';
+import {
+  ledgerMismatches,
+  loadStartState,
+  openPastShows,
+  runSimulation,
+  type CompletedRun,
+} from './run';
 import {
   compareRuns,
   formatDeterminismText,
@@ -138,6 +145,17 @@ export async function runCli(
   if (options.strict && unrun.length > 0) {
     io.stderr(
       `--strict: ${String(unrun.length)} show(s) dated before ${firstRun.summary.endDate} are still open: ${unrun.slice(0, 5).join(', ')}\n`,
+    );
+    return EXIT_FAILED;
+  }
+  const mismatches = ledgerMismatches(start.state, firstRun.finalState);
+  if (options.strict && mismatches.length > 0) {
+    const lines = mismatches.map(
+      (mismatch) =>
+        `  ${mismatch.promotionId}: cash moved ${String(mismatch.cashChange)} but its ledger rows add up to ${String(mismatch.ledgerSum)} (difference ${String(mismatch.difference)} cents)`,
+    );
+    io.stderr(
+      `--strict: the ledger does not match the cash for ${String(mismatches.length)} promotion(s):\n${lines.join('\n')}\n`,
     );
     return EXIT_FAILED;
   }

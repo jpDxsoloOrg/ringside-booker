@@ -50,10 +50,11 @@ export {
   parseId,
 } from './core/ids';
 
-export type { GameDate, Weekday, WeekdayOrdinal } from './core/date';
+export type { GameDate, Weekday, WeekdayOrdinal, YearMonth } from './core/date';
 export {
   addDays,
   addMonths,
+  addYearMonths,
   addYears,
   ageInYears,
   compareDates,
@@ -61,6 +62,7 @@ export {
   daysInMonth,
   diffDays,
   endOfMonth,
+  firstDayOfYearMonth,
   fromEpochDay,
   isAfter,
   isBefore,
@@ -68,6 +70,7 @@ export {
   isLastDayOfMonth,
   isLeapYear,
   isWeekday,
+  isYearMonth,
   makeGameDate,
   MAX_GAME_YEAR,
   MIN_GAME_YEAR,
@@ -78,6 +81,8 @@ export {
   toEpochDay,
   weekday,
   year,
+  YEAR_MONTH_PATTERN,
+  yearMonthOf,
 } from './core/date';
 
 export * from './core/calendar';
@@ -1587,6 +1592,45 @@ export {
   postMoney,
   type LedgerCategoryKind,
   type PostMoneyInput,
+} from './systems/finance/index';
+
+// Promotion reach and size (ECO1-02): the one answer to "how big is this company?". Formulas read
+// reach, never the size label. See docs/design/finances.md#reach-and-size.
+export {
+  PROMOTION_SIZE_LABELS,
+  PROMOTION_SIZES,
+  promotionReach,
+  promotionSize,
+  reachOf,
+  type CompanyNextSize,
+  type CompanyView,
+  type PromotionReach,
+  type PromotionReachInputs,
+  type PromotionSize,
+} from './systems/finance/index';
+
+// Payroll, medical, the cash Why? and the books queries (ECO1-03). See docs/design/finances.md.
+export {
+  canSeeBooks,
+  DEFAULT_LEDGER_LIMIT,
+  DEFAULT_MONTHLY_MONTHS,
+  MAX_LEDGER_LIMIT,
+  MAX_MONTHLY_MONTHS,
+  MEDICAL_LEVEL_LABELS,
+  MONTH_END_CASH_MONTHS,
+  NOT_YOUR_BOOKS,
+  payrollLinesOf,
+  type FinanceLedgerArgs,
+  type FinanceLedgerPage,
+  type FinanceLedgerRow,
+  type FinanceMonth,
+  type FinanceMonthly,
+  type FinanceMonthlyArgs,
+  type FinanceOverview,
+  type MedicalLevel,
+  type MonthTotals,
+  type PayrollLine,
+  type PayrollReason,
 } from './systems/finance/index';
 
 // The aftermath engine (MTCH3-03): where a match's popularity change spreads (show region,

@@ -30,8 +30,8 @@ describe('door previews', () => {
     );
     const momentum = previewMomentumChange(world, tunables, built.employment(0), 5);
     expect(JSON.stringify(world.tables.people.values())).toBe(before);
-    expect(popularity.byRegion.get(NORTH_2)).toMatchObject({ before: 30, after: 34 });
-    expect(popularity.byRegion.get(NORTH_1)).toMatchObject({ before: 30, after: 31.6 });
+    expect(popularity.byRegion[NORTH_2]).toEqual({ before: 30, after: 34 });
+    expect(popularity.regions.get(NORTH_1)).toMatchObject({ before: 30, after: 31.6 });
     expect(momentum).toMatchObject({ before: 0, after: 5 });
 
     // The applier hands the doors this match's own delta (4 and 5 for this win).
