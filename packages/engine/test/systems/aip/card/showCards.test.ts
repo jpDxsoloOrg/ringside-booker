@@ -8,7 +8,7 @@ import {
   type Viewer,
 } from '../../../../src/core/api';
 import { parseGameDate } from '../../../../src/core/date';
-import type { EventInstanceId, PromotionId } from '../../../../src/core/ids';
+import { parseId, type EventInstanceId, type PromotionId } from '../../../../src/core/ids';
 import { runStep } from '../../../../src/core/pipeline/runStep';
 import { createRuntime } from '../../../../src/core/pipeline/runtime';
 import type { EventInstance } from '../../../../src/model/entities/event-instance';
@@ -406,7 +406,7 @@ describe('aip.showDecisions', () => {
     expect(own).toEqual({ ok: true, data: { decisions: [] } });
     const missing = world.engine.query(
       'aip.showDecisions',
-      { eventInstanceId: 'evi_zzzzzzzzzz' as EventInstanceId },
+      { eventInstanceId: parseId('eventInstance', 'evi_0000000999') },
       PLAYER,
     );
     expect(missing).toMatchObject({ ok: false, reasons: [{ code: 'notFound' }] });
