@@ -185,6 +185,8 @@ function emptyIdLists(): IdLists {
     popularityShowChanges: [],
     aftermaths: [],
     promotionSnapshots: [],
+    aiProfiles: [],
+    aiDecisions: [],
   };
 }
 

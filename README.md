@@ -37,19 +37,22 @@ workspace, and `npm run typecheck` builds the TypeScript project references.
 
 Run these from the repository root.
 
-| Script                 | What it does                                                           |
-| ---------------------- | ---------------------------------------------------------------------- |
-| `npm run dev`          | Starts the web app's Vite dev server at http://localhost:5173/         |
-| `npm test`             | Runs every Vitest project once (engine, web, tools)                    |
-| `npm run test:watch`   | Runs Vitest in watch mode                                              |
-| `npm run typecheck`    | `tsc -b` over all project references; declarations go to `dist/`       |
-| `npm run format`       | Formats the repository with Prettier                                   |
-| `npm run format:check` | Checks formatting without writing anything                             |
-| `npm run build`        | Runs the `build` script of every workspace that has one                |
-| `npm run lint`         | Runs ESLint over the repository and fails on any warning               |
-| `npm run lint:fix`     | Runs ESLint and applies the fixes it can make                          |
-| `npm run verify`       | Format check, lint, typecheck and tests, stopping at a failure         |
-| `npm run sim -- ...`   | Runs the simulation headless (see [Headless runner](#headless-runner)) |
+| Script                 | What it does                                                                                  |
+| ---------------------- | --------------------------------------------------------------------------------------------- |
+| `npm run dev`          | Starts the web app's Vite dev server at http://localhost:5173/                                |
+| `npm test`             | Runs every Vitest project once (engine, web, tools), without the slow suites                  |
+| `npm run test:slow`    | `npm test` with the slow suites too (`RB_SLOW_TESTS=1`)                                       |
+| `npm run test:tz`      | Runs the engine's calendar tests in two far-apart time zones                                  |
+| `npm run test:watch`   | Runs Vitest in watch mode                                                                     |
+| `npm run typecheck`    | `tsc -b` over all project references; declarations go to `dist/`                              |
+| `npm run format`       | Formats the repository with Prettier                                                          |
+| `npm run format:check` | Checks formatting without writing anything                                                    |
+| `npm run build`        | Runs the `build` script of every workspace that has one                                       |
+| `npm run lint`         | Runs ESLint over the repository and fails on any warning                                      |
+| `npm run lint:fix`     | Runs ESLint and applies the fixes it can make                                                 |
+| `npm run verify`       | Format check, lint, typecheck and tests, stopping at a failure                                |
+| `npm run verify:full`  | The end-of-sprint run: everything, slow suites included (see [End of sprint](#end-of-sprint)) |
+| `npm run sim -- ...`   | Runs the simulation headless (see [Headless runner](#headless-runner))                        |
 
 Each workspace also has its own `test` and `typecheck` scripts, for example
 `npm test -w @ringside/engine`.
@@ -154,27 +157,23 @@ table is the starting point for the performance work.
 
 ## CI
 
-Every pull request and every push to `main` runs the `check` job in
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml). It runs, in order:
+Every pull request and every push to `main` runs two jobs side by side in
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml), so the checks finish in about 5 minutes:
 
-1. `npm ci`
-2. `npm audit --omit=dev --audit-level=high` (reports only; it never fails the job)
-3. `npm run format:check`
-4. `npm run lint`
-5. `npm run typecheck`
-6. `npm test -- --coverage` (the coverage report is kept as a build artifact for 7 days)
-7. `npm run sim -- --days 60 --check-determinism --strict` and a timed one-year run (see
-   [Headless runner](#headless-runner))
-8. `npm run build`
+- `check`: `npm ci`, `npm audit --omit=dev --audit-level=high` (reports only; it never fails the
+  job), `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm run blog:check`,
+  `npm run sim -- --days 60 --check-determinism --strict` (see [Headless runner](#headless-runner)),
+  `npm run validate:world -- --strict` and `npm run build`.
+- `test`: `npm ci` and `npm test`, without coverage. Run `npm test -- --coverage` locally when you
+  want the report.
 
-A PR merges only when `check` is green.
+A PR merges only when both are green. Each job stops after 15 minutes.
 
-Once `check` passes, the `e2e` job installs the Playwright browsers (cached per Playwright
-version) and runs the end-to-end suite on the `desktop`, `phone` and `phone-webkit` projects,
-for pull requests and pushes to `main` alike. When the job fails, the Playwright report and test output are uploaded
-as the `playwright-report` artifact.
+The end-to-end suite runs only on demand (`workflow_dispatch` from the Actions tab), after both
+jobs pass, on the `desktop`, `phone` and `phone-webkit` projects. When it fails, the Playwright
+report and test output are uploaded as the `playwright-report` artifact.
 
-To run the same sequence locally before pushing:
+To run the pull request checks locally before pushing:
 
 ```sh
 npm run verify
@@ -182,6 +181,36 @@ npm run verify
 
 That is `npm run format:check && npm run lint && npm run typecheck && npm test`, and it stops at
 the first step that fails.
+
+### Slow suites
+
+Fast CI matters more than test count (owner decision, 2026-11-13), so the expensive checks stay
+out of `npm test` and pull requests: the statistical sweeps over thousands of generated people
+and names, the default-world balance harnesses (momentum drift, the Match lab tuning pass), the
+CPU-budget speed guards and the 5,000-person real-name sample. They are marked with
+`it.runIf(SLOW_TESTS)` or `describe.runIf(SLOW_TESTS)` (engine:
+[`packages/engine/test/support/slow.ts`](packages/engine/test/support/slow.ts); web and tools read
+`process.env['RB_SLOW_TESTS']` the same way) and run when `RB_SLOW_TESTS=1`:
+
+```sh
+npm run test:slow
+```
+
+Save compatibility, determinism and the core formulas stay in the default run. A new heavy test
+(a year-long sim, a sweep over thousands of draws, a speed budget) goes behind the flag.
+
+### End of sprint
+
+At the end of each sprint, before the sprint is closed, run everything once:
+
+```sh
+npm run verify:full
+```
+
+It runs the format check, lint, typecheck, `npm run test:slow`, `npm run test:tz` (the calendar
+tests in two far-apart time zones), the 60-day determinism sim, the 365-day strict sim, the world
+validator, the blog check and the build, stopping at the first failure. The Playwright suite runs
+at the same point (see [Running end-to-end tests](#running-end-to-end-tests)).
 
 The lint config ([`eslint.config.js`](eslint.config.js)) is where the engine rules below are
 enforced: no `any` anywhere, and inside `packages/engine` no `Math.random` (including through
@@ -192,7 +221,8 @@ checks that each of those rules still fires, so a dependency update can't switch
 
 ## Contributing
 
-Run `npm run verify` before opening a PR; CI runs the same checks plus the build.
+Run `npm run verify` before opening a PR; CI runs the same checks plus the build. At the end of
+each sprint run `npm run verify:full` (see [End of sprint](#end-of-sprint)).
 
 ### Dependency updates
 

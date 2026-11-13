@@ -701,6 +701,71 @@
         }
       }
     ],
+    "aiDecisions": [
+      {
+        "id": "aid_0000000001",
+        "promotionId": "pro_0000000002",
+        "brandId": null,
+        "date": "2026-04-09",
+        "kind": "rosterReview",
+        "summary": {
+          "key": "aip.decision.roster-review",
+          "params": {
+            "name": "Test Promotion B"
+          }
+        },
+        "refs": {
+          "personIds": [
+            "per_0000000009"
+          ],
+          "employmentIds": [
+            "emp_0000000009"
+          ],
+          "titleIds": [],
+          "promotionIds": [],
+          "eventInstanceId": null
+        },
+        "traceRef": null,
+        "revealOn": "2026-04-09",
+        "importance": 1
+      },
+      {
+        "id": "aid_0000000002",
+        "promotionId": "pro_0000000002",
+        "brandId": null,
+        "date": "2026-04-10",
+        "kind": "card",
+        "summary": {
+          "key": "aip.decision.card",
+          "params": {}
+        },
+        "refs": {
+          "personIds": [
+            "per_0000000009"
+          ],
+          "employmentIds": [
+            "emp_0000000009"
+          ],
+          "titleIds": [],
+          "promotionIds": [],
+          "eventInstanceId": null
+        },
+        "traceRef": null,
+        "revealOn": "2026-04-16",
+        "importance": 2
+      }
+    ],
+    "aiProfiles": [
+      {
+        "id": "aip_0000000001",
+        "promotionId": "pro_0000000002",
+        "brandId": null,
+        "taste": null,
+        "featured": null,
+        "createdOn": "2026-01-05",
+        "lastTurnOn": null
+      }
+    ],
     "brands": [
       {
         "id": "brd_0000000001",

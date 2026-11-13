@@ -31,6 +31,8 @@ import { momentumTunables } from './match/aftermath/momentumTunables';
 import { financeTunables } from './finance/tunables';
 import { boxOfficeTunables } from './boxOffice/tunables';
 import { officeTunables } from './office/tunables';
+import { rosterTunables } from './roster/tunables';
+import { aipTunables } from './aip/tunables';
 
 export const ALL_TUNABLES = mergeTunables(
   simTunables,
@@ -47,6 +49,8 @@ export const ALL_TUNABLES = mergeTunables(
   financeTunables,
   boxOfficeTunables,
   officeTunables,
+  rosterTunables,
+  aipTunables,
 );
 
 /** Every tunable key the engine knows. */

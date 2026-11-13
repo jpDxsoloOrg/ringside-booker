@@ -37,6 +37,8 @@ export type {
   VenueId,
   AftermathId,
   PromotionSnapshotId,
+  AiProfileId,
+  AiDecisionId,
 } from './core/ids';
 /** The nominal-type helper, exported as `Branded` because `Brand` is the brand entity. */
 export type { Brand as Branded } from './core/brand';
@@ -1890,3 +1892,76 @@ export {
   type WorldOverview,
   type WorldOverviewPromotion,
 } from './systems/office/index';
+// The roster (WRK2-01): the `roster.rows` query, its rows and the push gap. See
+// docs/design/roster.md.
+export {
+  buildRosterRows,
+  computePushGap,
+  computePushVerdict,
+  PUSH_GAP_DOC_REF,
+  PUSH_VERDICT_DOC_REF,
+  PUSH_VERDICTS,
+  pushIndexOf,
+  roleHasPush,
+  ROSTER_NO_PROMOTION,
+  ROSTER_NOT_YOURS,
+  ROSTER_ROLE_GROUPS,
+  ROSTER_UNKNOWN_PROMOTION,
+  rosterRoleGroupOf,
+  rosterRowsQuery,
+  rosterSystem,
+  rosterTunables,
+  type PushGapInputs,
+  type PushVerdict,
+  type RosterBrand,
+  type RosterFilter,
+  type RosterPromotion,
+  type RosterPushGap,
+  type RosterRoleGroup,
+  type RosterRow,
+  type RosterRowAvailability,
+  type RosterRowsArgs,
+  type RosterView,
+} from './systems/roster/index';
+
+// The rival desk (AIP1-01): the `aiProfiles` and `aiDecisions` tables, which promotions and brands
+// the computer runs, and the new-game profile step. See docs/design/rival-desk.md.
+export {
+  AI_DECISION_KIND_PATTERN,
+  AI_DECISION_MAX_REFS,
+  AiDecisionKindSchema,
+  AiDecisionRefsSchema,
+  AiDecisionSchema,
+  aiDecisionDateKey,
+  aiDecisionsTable,
+  type AiDecision,
+  type AiDecisionRefs,
+} from './model/entities/ai-decision';
+export {
+  AiProfileSchema,
+  aiProfilesTable,
+  aiUnitKey,
+  FeaturedSchema,
+  FeaturedSlotSchema,
+  type AiProfile,
+  type Featured,
+  type FeaturedSlot,
+} from './model/entities/ai-profile';
+export {
+  AIP_CREATE_PROFILES_STEP,
+  aipSystem,
+  computerUnits,
+  decisionLogPruneThrough,
+  ensureProfile,
+  isDecisionExpired,
+  profileOf,
+  pruneDecisionLog,
+  TASTE_AXES,
+  TASTE_AXIS_LABELS,
+  TasteSchema,
+  unitControllerOf,
+  unitCovers,
+  type AiUnit,
+  type Taste,
+  type TasteAxis,
+} from './systems/aip/index';

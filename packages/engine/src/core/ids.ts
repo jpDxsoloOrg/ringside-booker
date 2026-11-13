@@ -44,6 +44,8 @@ export const ENTITY_KINDS = {
   popularityShowChange: 'psc',
   aftermath: 'aft',
   promotionSnapshot: 'psh',
+  aiProfile: 'aip',
+  aiDecision: 'aid',
 } as const;
 
 export type EntityKind = keyof typeof ENTITY_KINDS;
@@ -79,6 +81,8 @@ export type SeasonId = IdOf<'season'>;
 export type PopularityShowChangeId = IdOf<'popularityShowChange'>;
 export type AftermathId = IdOf<'aftermath'>;
 export type PromotionSnapshotId = IdOf<'promotionSnapshot'>;
+export type AiProfileId = IdOf<'aiProfile'>;
+export type AiDecisionId = IdOf<'aiDecision'>;
 
 /** Lowercase Crockford base32: digits and letters without i, l, o and u. Index = 5-bit value. */
 export const ID_BODY_ALPHABET = '0123456789abcdefghjkmnpqrstvwxyz';

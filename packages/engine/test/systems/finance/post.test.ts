@@ -321,14 +321,18 @@ describe('postMoney', () => {
     if (mineTrace === undefined || !isFullTrace(mineTrace)) {
       throw new Error("the player's row should have a full trace");
     }
-    if (theirTrace === undefined || !isFullTrace(theirTrace)) {
-      throw new Error("the rival's row should have a full trace");
+    // A rival's row keeps only a summary of its Why? (POL4-06).
+    if (theirTrace === undefined || isFullTrace(theirTrace)) {
+      throw new Error("the rival's row should keep only a summary");
     }
     expect(mineTrace.value).toBe(-32_000);
     expect(mineTrace.trace.label).toBe('Wages for the week');
     // An untraced caller still gets a one-line Why? naming the memo.
-    expect(theirTrace.value).toBe(-700);
-    expect(theirTrace.trace).toMatchObject({ kind: 'input', label: 'Amount posted: Bus' });
+    expect(theirTrace).toMatchObject({
+      value: -700,
+      label: 'Amount posted: Bus',
+      summaryOnly: true,
+    });
   });
 
   it("publishes finance.moneyPosted once per row of the player's promotion, and not for rivals", () => {

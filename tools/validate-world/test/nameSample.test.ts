@@ -2,6 +2,9 @@
  * The shipped name lists and ring name words (WLD-05) never produce a real name: a 5,000-person
  * sample of generated legal names and ring names passes the real-name blocklist check.
  *
+ * It generates thousands of people, so it runs only in the slow run (`RB_SLOW_TESTS=1`, set by
+ * `npm run verify:full` at the end of each sprint), not in a pull request's `npm test`.
+ *
  * The sample is fixed (seeded), so a failure always reproduces. When it fails, rename or drop the
  * list entry that formed the real name, and add the real name to the blocklist if it is missing.
  */
@@ -21,10 +24,11 @@ import { readPacks } from '../src/readPacks';
 import { REPO_ROOT } from './helpers';
 
 const SAMPLE_SIZE = 5000;
+const SLOW_TESTS = process.env['RB_SLOW_TESTS'] === '1';
 
 const GENDERS: readonly Gender[] = ['male', 'female', 'male', 'female', 'nonBinary'];
 
-describe('the shipped name lists', () => {
+describe.runIf(SLOW_TESTS)('the shipped name lists', () => {
   it(`produce no blocked names in a ${String(SAMPLE_SIZE)}-person sample`, async () => {
     const read = await readPacks([join(REPO_ROOT, 'content/base')]);
     expect(read.issues).toEqual([]);

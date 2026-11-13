@@ -186,3 +186,10 @@ describe('traceToText step units', () => {
     ]);
   });
 });
+
+describe('summaryToText for a result kept only as a summary', () => {
+  it("names why: it was another promotion's result", () => {
+    const text = summaryToText({ ...summarisedAttendance, summaryOnly: true });
+    expect(text.split('\n')[1]).toBe("  Only a summary is kept for other promotions' results");
+  });
+});

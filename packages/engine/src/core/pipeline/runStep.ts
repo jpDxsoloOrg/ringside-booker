@@ -66,8 +66,8 @@ function runUnit<R extends TableRegistry>(
   const eventStaging = runtime.bus.stage(source, date);
   const traceStaging = runtime.traces.stage();
   const recordedRefs = new Set<string>();
-  const recordTrace: TraceStaging['record'] = (ref, traceDate, traced) => {
-    traceStaging.record(ref, traceDate, traced);
+  const recordTrace: TraceStaging['record'] = (ref, traceDate, traced, options) => {
+    traceStaging.record(ref, traceDate, traced, options);
     recordedRefs.add(refKey(ref));
   };
 

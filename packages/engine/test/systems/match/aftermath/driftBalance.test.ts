@@ -1,8 +1,9 @@
 // Momentum drift balance on the default world (MTCH3-07): with every show given a card
 // (`cardEveryShowSystem`, MTCH3-05's measurement setup), momentum no longer bunches at ±100.
 //
-// `npm test` runs 13 weeks to stay fast. The full year the ticket reports is opt-in:
-//   RB_BALANCE_DAYS=365 npx vitest run --root ../.. --project engine test/systems/match/aftermath/driftBalance
+// A balance harness: it runs only in the slow run (`RB_SLOW_TESTS=1`, `npm run verify:full`; see
+// support/slow.ts), over 13 weeks. The full year the ticket reports is opt-in:
+//   RB_SLOW_TESTS=1 RB_BALANCE_DAYS=365 npx vitest run --project engine test/systems/match/aftermath/driftBalance
 // Measured 2026-11 over the 193 active wrestlers after 365 days: without drift p10 −100, p50 +18.5,
 // p90 +100 (40% at ±100); with drift p10 −28.5, p50 −0.7, p90 +31.5 (none at ±100), and the
 // busiest winners (a win a week) between +65 and +81.
@@ -13,13 +14,14 @@ import { defaultSystems } from '../../../../src/systems';
 import { quantileOfSorted } from '../../../../src/systems/match';
 import { withMyShowsRun } from '../../../support';
 import { cardEveryShowSystem } from '../../../support/card-every-show';
+import { SLOW_TESTS } from '../../../support/slow';
 import { startDefaultGame } from '../../calendar/default-game';
 
 const DAYS = Number(process.env['RB_BALANCE_DAYS'] ?? '91');
 /** Generous: a busy machine runs the default world several times slower. */
 const TIMEOUT_MS = 120_000 + DAYS * 2_000;
 
-describe('momentum drift on the default world with every show carded', () => {
+describe.runIf(SLOW_TESTS)('momentum drift on the default world with every show carded', () => {
   it(
     `keeps fewer than 10% of wrestlers at ±100 after ${String(DAYS)} days`,
     { timeout: TIMEOUT_MS },

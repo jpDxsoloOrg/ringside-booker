@@ -60,6 +60,7 @@ import {
 } from './index';
 import { serialiseWorld } from './serialise';
 import { measureBestAgainstReference } from './cpu-budget';
+import { SLOW_TESTS } from './slow';
 
 const builderCases: readonly (readonly [string, () => unknown, z.ZodType])[] = [
   ['aPerson', () => aPerson(), PersonSchema],
@@ -294,6 +295,8 @@ describe('canned worlds', () => {
       popularityShowChanges: 1,
       aftermaths: 2,
       promotionSnapshots: 3,
+      aiProfiles: 1,
+      aiDecisions: 2,
     });
     expect(world.tables.promotions.require(ids.promotions.A!).controller).toEqual({
       kind: 'human',
@@ -345,18 +348,22 @@ describe('canned worlds', () => {
   // CPU time is compared with a reference workload measured in the same process (see
   // cpu-budget.ts), the cheapest of three builds. The budget is the old 500 ms over the
   // reference's 50 ms on a laptop; a warm build costs about one reference.
-  it('rosterWorld(300) is valid and builds in under 10 reference workloads of CPU time', () => {
-    let built: ReturnType<typeof rosterWorld> | undefined;
-    const timing = measureBestAgainstReference(() => {
-      built = rosterWorld(300);
-    }, 3);
-    expect(
-      timing.ratio,
-      `${timing.workMs.toFixed(0)} ms of CPU time against ${timing.referenceMs.toFixed(1)} ms for the reference`,
-    ).toBeLessThan(10);
-    expect(built?.world.tables.people.size).toBe(300);
-    expectValidWorld(built!.world);
-  });
+  // A speed guard: the slow run only (support/slow.ts).
+  it.runIf(SLOW_TESTS)(
+    'rosterWorld(300) is valid and builds in under 10 reference workloads of CPU time',
+    () => {
+      let built: ReturnType<typeof rosterWorld> | undefined;
+      const timing = measureBestAgainstReference(() => {
+        built = rosterWorld(300);
+      }, 3);
+      expect(
+        timing.ratio,
+        `${timing.workMs.toFixed(0)} ms of CPU time against ${timing.referenceMs.toFixed(1)} ms for the reference`,
+      ).toBeLessThan(10);
+      expect(built?.world.tables.people.size).toBe(300);
+      expectValidWorld(built!.world);
+    },
+  );
 
   it('uses only placeholder names (the shipped catalogs on its metadata aside)', () => {
     const names: string[] = [];

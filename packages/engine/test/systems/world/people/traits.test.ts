@@ -19,6 +19,7 @@ import {
   type TraitKey,
 } from '@ringside/engine';
 import { TraitsSchema } from '../../../../src/model/entities/person';
+import { SLOW_TESTS } from '../../../support/slow';
 import { expectSerialisable } from '../../../support/trace';
 import { BASE_LIBRARY, personAged, WORLD_DATE } from './base-world';
 
@@ -91,23 +92,27 @@ describe('the base trait table', () => {
 
 describe('seedTraits', () => {
   for (const role of ['wrestler', 'referee'] as const satisfies readonly PersonRole[]) {
-    it(`matches each unpaired trait's chance within 1 point over 20,000 ${role}s`, () => {
-      const person = personAged(40, {
-        roles: [role],
-        style: role === 'wrestler' ? 'allRounder' : 'nonWrestler',
-      });
-      const { counts } = rollTraits(person, PEOPLE, { seed: `incidence-${role}` });
-      for (const record of traitRecordsOf(BASE_LIBRARY)) {
-        if (IN_A_PAIR.has(record.traitKey)) {
-          continue;
+    // The incidence sweeps (20,000 rolls each) run in the slow run only (support/slow.ts).
+    it.runIf(SLOW_TESTS)(
+      `matches each unpaired trait's chance within 1 point over 20,000 ${role}s`,
+      () => {
+        const person = personAged(40, {
+          roles: [role],
+          style: role === 'wrestler' ? 'allRounder' : 'nonWrestler',
+        });
+        const { counts } = rollTraits(person, PEOPLE, { seed: `incidence-${role}` });
+        for (const record of traitRecordsOf(BASE_LIBRARY)) {
+          if (IN_A_PAIR.has(record.traitKey)) {
+            continue;
+          }
+          const incidence = (counts.get(record.traitKey) ?? 0) / PEOPLE;
+          expect(
+            Math.abs(incidence - traitChance(record, role)),
+            `${record.traitKey}: ${String(incidence)}`,
+          ).toBeLessThanOrEqual(0.01);
         }
-        const incidence = (counts.get(record.traitKey) ?? 0) / PEOPLE;
-        expect(
-          Math.abs(incidence - traitChance(record, role)),
-          `${record.traitKey}: ${String(incidence)}`,
-        ).toBeLessThanOrEqual(0.01);
-      }
-    });
+      },
+    );
   }
 
   it('never gives both sides of an exclusive pair, even when every trait is certain', () => {
@@ -242,7 +247,7 @@ describe('seedVices', () => {
     return totals;
   }
 
-  it('matches the configured chances within half a point', () => {
+  it.runIf(SLOW_TESTS)('matches the configured chances within half a point', () => {
     const totals = rollVices(
       personAged(30),
       PEOPLE,
@@ -253,7 +258,7 @@ describe('seedVices', () => {
     expect(Math.abs(totals.substances / PEOPLE - 0.02)).toBeLessThanOrEqual(0.005);
   });
 
-  it('scales with experience: 20 years in doubles the chance by default', () => {
+  it.runIf(SLOW_TESTS)('scales with experience: 20 years in doubles the chance by default', () => {
     const veteran = personAged(40, { debutDate: addYears(WORLD_DATE, -20) });
     const totals = rollVices(veteran, PEOPLE, {}, 'veteran-vices');
     expect(Math.abs(totals.alcohol / PEOPLE - 0.06)).toBeLessThanOrEqual(0.005);

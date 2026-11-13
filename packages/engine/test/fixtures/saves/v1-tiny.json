@@ -9,7 +9,7 @@
     "label": "Test save",
     "promotionName": "Test Promotion A",
     "promotionShortName": "TPA",
-    "schemaFingerprint": "90fc2af025e234143021820bac4e6f68",
+    "schemaFingerprint": "954ec9feb03acf24b272e89364c6fabc",
     "startDate": "2026-01-05",
     "worldName": "Test Tiny World"
   },
@@ -722,6 +722,71 @@
               "momentum": "match.momentumGain:seg_0000000003/per_0000000002",
               "popularity": "match.popularityGain:seg_0000000003/per_0000000002"
             }
+          }
+        ],
+        "aiDecisions": [
+          {
+            "brandId": null,
+            "date": "2026-04-09",
+            "id": "aid_0000000001",
+            "importance": 1,
+            "kind": "rosterReview",
+            "promotionId": "pro_0000000002",
+            "refs": {
+              "employmentIds": [
+                "emp_0000000009"
+              ],
+              "eventInstanceId": null,
+              "personIds": [
+                "per_0000000009"
+              ],
+              "promotionIds": [],
+              "titleIds": []
+            },
+            "revealOn": "2026-04-09",
+            "summary": {
+              "key": "aip.decision.roster-review",
+              "params": {
+                "name": "Test Promotion B"
+              }
+            },
+            "traceRef": null
+          },
+          {
+            "brandId": null,
+            "date": "2026-04-10",
+            "id": "aid_0000000002",
+            "importance": 2,
+            "kind": "card",
+            "promotionId": "pro_0000000002",
+            "refs": {
+              "employmentIds": [
+                "emp_0000000009"
+              ],
+              "eventInstanceId": null,
+              "personIds": [
+                "per_0000000009"
+              ],
+              "promotionIds": [],
+              "titleIds": []
+            },
+            "revealOn": "2026-04-16",
+            "summary": {
+              "key": "aip.decision.card",
+              "params": {}
+            },
+            "traceRef": null
+          }
+        ],
+        "aiProfiles": [
+          {
+            "brandId": null,
+            "createdOn": "2026-01-05",
+            "featured": null,
+            "id": "aip_0000000001",
+            "lastTurnOn": null,
+            "promotionId": "pro_0000000002",
+            "taste": null
           }
         ],
         "brands": [

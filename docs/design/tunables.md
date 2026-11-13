@@ -193,6 +193,7 @@ The simulation core's own tunables, in `core/tunables/simTunables.ts`:
 | -------------------------------------- | ------- | ------- | -------- | ----- | ------------------------------------------------------------------------- |
 | `sim.traceRetentionPerKind`            | integer | 200     | 0–5000   | count | Full calculation traces kept per kind of result before summarising        |
 | `sim.traceSummaryLimit`                | integer | 5000    | 0–100000 | count | Trace summaries kept as history                                           |
+| `sim.traceBytesPerKind`                | integer | 500000  | 0–1e8    | count | Characters of full traces kept per kind of result before summarising      |
 | `sim.eventLogSize`                     | integer | 500     | 0–10000  | count | Recent domain events kept in the save                                     |
 | `sim.maxEventCascadeDepth`             | integer | 8       | 1–32     | count | How deep a chain of events can go before the rest is stopped              |
 | `sim.stopSkipAfterConsecutiveFailures` | integer | 3       | 1–365    | days  | A multi-day skip stops after the same phase fails this many days in a row |
@@ -637,6 +638,15 @@ at `office.md#kpis-and-deltas`).
 | `office.trend.weeks`             | integer | 8       | 2–52  | count | Weeks shown in a KPI sparkline                                                   |
 | `office.delta.lookbackDays`      | integer | 7       | 1–90  | days  | How far back a KPI delta compares                                                |
 
+## Rival desk tunables
+
+The rival desk's numbers (AIP), in `systems/aip/tunables.ts`, category
+`Rival desk`, each with a docRef into [rival-desk.md](rival-desk.md).
+
+| Key                            | Kind    | Default | Range  | Unit | Meaning                                                                                             |
+| ------------------------------ | ------- | ------- | ------ | ---- | --------------------------------------------------------------------------------------------------- |
+| `aip.decisionLogRetentionDays` | integer | 365     | 0–3650 | days | How long rival decisions stay in the log. 0 keeps none ([decision log](rival-desk.md#decision-log)) |
+
 | Key                                    | Kind    | Default | Range        | Unit       | Meaning                                                                                             |
 | -------------------------------------- | ------- | ------- | ------------ | ---------- | --------------------------------------------------------------------------------------------------- |
 | `boxOffice.draw.atFullPopularity`      | integer | 30,000  | 0–200,000    | count      | Crowd a show draws at popularity 100, before the other lines                                        |
@@ -729,3 +739,12 @@ The crowd forecast (EVT6-01), in `systems/boxOffice/tunables.ts`, category
 | `office.delta.lookbackDays`       | integer | 7             | 1–90                                                  | days   | How far back a KPI delta compares                                                                                             |
 | `office.popularity.headlineScope` | enum    | `homeCountry` | `homeRegion`, `homeCountry`, `homeContinent`, `world` | choice | Which D-03 roll-up the Office and the top bar show as the promotion's popularity ([office.md](office.md#headline-popularity)) |
 | `office.morale.namedInWhy`        | integer | 3             | 0–10                                                  | count  | Lowest-morale people named in the average morale's Why? ([office.md](office.md#kpis-and-deltas))                              |
+
+## Roster tunables
+
+The roster's one number (WRK2), in `systems/roster/tunables.ts`, category
+`Roster`, docRef [roster.md](roster.md#push-verdict).
+
+| Key                       | Kind    | Default | Range | Unit  | Meaning                                                                                                                                    |
+| ------------------------- | ------- | ------- | ----- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `roster.expectsMoreSteps` | integer | 1       | 1–4   | count | Card positions below the push they expect before the roster marks a worker as expecting more (and above it, as pushed beyond expectations) |

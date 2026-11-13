@@ -34,6 +34,8 @@ import { RUNNING_TIME_WORDS } from '@/test/runningTimeWords';
 
 /** Runs at the top of the lab's slider. */
 const BATCH_RUNS = 100;
+/** The tuning pass is a balance harness: it runs only with `RB_SLOW_TESTS=1` (`npm run verify:full`). */
+const SLOW_TESTS = process.env['RB_SLOW_TESTS'] === '1';
 const AUDIT_TIMEOUT_MS = 60_000;
 
 /** What a number or a name that failed to format leaves behind. */
@@ -300,7 +302,7 @@ describe('the Match lab on a new default-world game', () => {
  * The first tuning pass (docs/design/match-rating.md). The numbers move when the default world or
  * the tunables do; the checks are the ones the design asks for, not exact values.
  */
-describe('the first tuning pass with Runs at 100', () => {
+describe.runIf(SLOW_TESTS)('the first tuning pass with Runs at 100', () => {
   it('puts two average midcarders in a standard singles at about 2.5 to 3.25 stars', () => {
     // Altura's midcarders by push, most popular first; the two in the middle are the average pair.
     const list = ask(engine.query('workers.list', {}, VIEWER), 'workers.list');

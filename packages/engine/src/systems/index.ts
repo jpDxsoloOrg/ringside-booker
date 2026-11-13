@@ -20,6 +20,8 @@ import { financeSystem } from './finance';
 import { promoPopSystem } from './promoPop';
 import { boxOfficeSystem } from './boxOffice';
 import { officeSystem } from './office';
+import { rosterSystem } from './roster';
+import { aipSystem } from './aip';
 
 export { calendarSystem, conditionSystem, matchSystem, workersSystem };
 export { bookingSystem };
@@ -28,6 +30,8 @@ export { financeSystem };
 export { promoPopSystem };
 export { boxOfficeSystem };
 export { officeSystem };
+export { rosterSystem };
+export { aipSystem };
 
 export const defaultSystems: readonly SystemBundle[] = Object.freeze([
   simSystem,
@@ -41,4 +45,6 @@ export const defaultSystems: readonly SystemBundle[] = Object.freeze([
   promoPopSystem,
   boxOfficeSystem,
   officeSystem,
+  rosterSystem,
+  aipSystem,
 ]);

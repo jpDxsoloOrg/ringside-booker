@@ -66,7 +66,14 @@ describe('finance phases', () => {
     const [rival] = rowsOf(built.world, built.rival, 'wages');
     expect(human?.traceRef?.kind).toBe(LEDGER_ENTRY_TRACE_KIND);
     expect(rival?.traceRef?.kind).toBe(RIVAL_LEDGER_ENTRY_TRACE_KIND);
-    for (const row of [human, rival]) {
+    // A rival's row keeps only a summary of its Why? (POL4-06).
+    const rivalStored = runtime.traces.get(rival?.traceRef ?? { kind: 'x', id: 'x' });
+    if (rivalStored === undefined || isFullTrace(rivalStored)) {
+      throw new Error("expected only a summary of the rival's row");
+    }
+    expect(rivalStored.summaryOnly).toBe(true);
+    expect(rivalStored.value).toBe(rival?.amount);
+    for (const row of [human]) {
       const stored =
         row?.traceRef === null
           ? undefined

@@ -33,3 +33,5 @@ Game and technical design for Ringside Booker. Each game system gets its own doc
 | [finances.md](finances.md)                         | The economy: `postMoney` (the only way cash moves), ledger categories, payroll, show costs, policies and the finance queries  |
 | [box-office.md](box-office.md)                     | Box office: the crowd forecast, recent form and big-show fatigue; later venues, the crowd roll and the gate                   |
 | [office.md](office.md)                             | The Office: weekly promotion history, the new-game baseline, thinning old weeks and the snapshot field registry               |
+| [roster.md](roster.md)                             | The roster: the `roster.rows` query, its row fields, the push gap and verdict, and who may read which roster                  |
+| [rival-desk.md](rival-desk.md)                     | The rival desk: which promotions and brands the computer runs, their profiles and the decision log                            |

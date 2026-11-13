@@ -26,6 +26,7 @@ import { TEST_PLAYER_ID, TEST_START_DATE } from '../../support/builders/build-ro
 import { worldBuilder } from '../../support';
 import { expectSerialisable } from '../../support/trace';
 import { measureAgainstReference } from '../../support/cpu-budget';
+import { SLOW_TESTS } from '../../support/slow';
 import { updatePerson } from './rating/fixtures';
 
 const PLAYER: Viewer = {
@@ -404,12 +405,13 @@ describe('a 30-person battle royal', () => {
     }
   });
 
-  // Performance guard, skipped on CI where shared runners vary. A fixed number of milliseconds
+  // Performance guard, run only in the slow run (support/slow.ts) and never on CI, where shared
+  // runners vary. A fixed number of milliseconds
   // failed on a busy machine: under load the same batch costs two or three times the CPU time. So
   // the batch is timed against a reference workload run in the same process just before and after
   // it (see support/cpu-budget.ts), which a busy machine slows by the same factor. The batch costs
   // 23 to 31 reference runs, alone or under load; the budget of 50 fails a batch 1.8 times slower.
-  it.skipIf(process.env['CI'] !== undefined)(
+  it.runIf(SLOW_TESTS && process.env['CI'] === undefined)(
     "runs a 500-run batch in under 50 times the reference workload's CPU time",
     { retry: 1, timeout: 30_000 },
     () => {

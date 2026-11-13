@@ -38,6 +38,8 @@ export interface AftermathWorldOptions {
   readonly freeAgentPopularity?: number;
   /** The world's date; the test start date (before the show) by default. */
   readonly currentDate?: string;
+  /** Runs the promotion by the computer instead of the player (a rival's show). */
+  readonly rival?: boolean;
 }
 
 export interface AftermathWorld {
@@ -62,14 +64,21 @@ export function aftermathWorld(options: AftermathWorldOptions): AftermathWorld {
   )
     .withGeography('mini')
     .withCatalogs()
-    .withPromotion({ controller: { kind: 'human', playerId: TEST_PLAYER_ID } }, (promotion) =>
-      promotion.withRoster(options.popularity.length, {
-        person: (index) => ({
-          attributes: { charisma: 90 },
-          regionalPop: everywhere(options.popularity[index] ?? 0),
+    .withPromotion(
+      {
+        controller:
+          options.rival === true
+            ? { kind: 'computer' }
+            : { kind: 'human', playerId: TEST_PLAYER_ID },
+      },
+      (promotion) =>
+        promotion.withRoster(options.popularity.length, {
+          person: (index) => ({
+            attributes: { charisma: 90 },
+            regionalPop: everywhere(options.popularity[index] ?? 0),
+          }),
+          employment: () => ({ momentum: 0 }),
         }),
-        employment: () => ({ momentum: 0 }),
-      }),
     );
   const freeAgent = options.freeAgentPopularity;
   if (freeAgent !== undefined) {
@@ -119,6 +128,8 @@ export interface ApplyRun {
   readonly events: readonly PublishedEvent[];
   /** Recorded traces by `refKey`. */
   readonly traces: ReadonlyMap<string, Traced<TraceValue>>;
+  /** The `refKey`s recorded with `summaryOnly` (POL4-06). */
+  readonly summaryOnly: ReadonlySet<string>;
 }
 
 /** Applies the segments' aftermaths in order inside one transaction, as show night would. */
@@ -129,6 +140,7 @@ export function applyInOrder(
 ): ApplyRun {
   const events: PublishedEvent[] = [];
   const traces = new Map<string, Traced<TraceValue>>();
+  const summaryOnly = new Set<string>();
   const results: AppliedAftermath[] = [];
   const outcome = world.transact('apply aftermaths', (tx) => {
     const step: DoorContext = {
@@ -139,8 +151,13 @@ export function applyInOrder(
       publish: (type, payload) => {
         events.push({ type, payload });
       },
-      recordTrace: (ref, _date, traced) => {
+      recordTrace: (ref, _date, traced, options) => {
         traces.set(refKey(ref), traced);
+        if (options?.summaryOnly === true) {
+          summaryOnly.add(refKey(ref));
+        } else {
+          summaryOnly.delete(refKey(ref));
+        }
       },
     };
     for (const segmentId of segmentIds) {
@@ -150,5 +167,5 @@ export function applyInOrder(
   if (!outcome.ok) {
     throw outcome.error;
   }
-  return { results, events, traces };
+  return { results, events, traces, summaryOnly };
 }
