@@ -10,6 +10,10 @@ types and win methods it reads are the runtime catalogs described in
 Nothing here is stored. Every value is derived from the card when it is asked
 for, so moving a segment can never leave a stale role or class behind.
 
+What a match costs the people in it (fatigue gain, condition wear and the risk
+modifier seam) starts from the same duration class; see
+[physical-toll.md](physical-toll.md).
+
 ## D-10 in short
 
 [D-10](design-decisions.md#d-10-cards-are-built-from-segment-slots-not-minutes-2026-11-07)

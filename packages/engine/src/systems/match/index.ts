@@ -32,6 +32,8 @@ import './finishes/showNight';
 // (MTCH3-05).
 import './aftermath/showNight';
 import './aftermath/tvReach';
+// Declares the physical toll's `match.wear` stream (MTCH4-01).
+import './physical/streams';
 
 export {
   DURATION_CLASSES,
@@ -602,3 +604,39 @@ export {
   tvReachReason,
   tvReachRegions,
 } from './aftermath/tvReach';
+
+// The physical toll (MTCH4-01): fatigue gain, condition wear, wear by part, the physical inputs and
+// the risk modifier seam. Design: docs/design/physical-toll.md.
+export {
+  CONDITION_WEAR_DOC_REF,
+  FATIGUE_GAIN_DOC_REF,
+  MAX_RISK_MODIFIER_ORDER,
+  ROUGHNESS_ROLL_LABEL,
+  WEAR_STREAM,
+  applyRepeatMatch,
+  collectPhysicalInputs,
+  collectRiskContributions,
+  computeConditionWear,
+  computeFatigueGain,
+  computeWearByPart,
+  earlierMatchesOnCard,
+  keepItSafeSource,
+  loadCarriersBySide,
+  physicalTunables,
+  registerRiskModifier,
+  repeatMatchFactor,
+  repeatMatchLabel,
+  riskModifierIds,
+  roughestOpponentOf,
+  type AppliedRiskContribution,
+  type ConditionWearInputs,
+  type FatigueGainInputs,
+  type PhysicalCardPosition,
+  type PhysicalOpponent,
+  type PhysicalParticipant,
+  type PhysicalSegmentSpec,
+  type PhysicalWorkerInputs,
+  type RiskContext,
+  type RiskContribution,
+  type RiskModifierSpec,
+} from './physical';
