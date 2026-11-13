@@ -8,6 +8,7 @@ import {
   type Engine,
   type SystemBundle,
 } from '../../../src/core/api';
+import { addDays, addYears } from '../../../src/core/date';
 import type { PersonId } from '../../../src/core/ids';
 import { definePhase } from '../../../src/core/pipeline/phase';
 import { intBetween } from '../../../src/core/rng/odds';
@@ -15,10 +16,21 @@ import { RngRegistry } from '../../../src/core/rng/registry';
 import { replayTrace } from '../../../src/core/trace/replay';
 import { isFullTrace, type StoredTraceEntry } from '../../../src/core/trace/store';
 import { defaultSystems } from '../../../src/systems';
-import { fatigueRecoveryTraceRef } from '../../../src/systems/health';
+import { fatigueRecoveryTraceRef, talkedWithoutWrestling } from '../../../src/systems/health';
 import { RECOVERY_STREAM } from '../../../src/systems/health/streams';
+import type { BodyCondition, Person } from '../../../src/model/entities/person';
 import type { GameWorld } from '../../../src/model/tables';
-import { aPerson, TEST_PLAYER_ID, testId, worldBuilder } from '../../support';
+import {
+  anAngle,
+  aParticipant,
+  aPerson,
+  flatCondition,
+  TEST_PLAYER_ID,
+  TEST_START_DATE,
+  testId,
+  worldBuilder,
+  type DeepPartial,
+} from '../../support';
 import { expectSerialisable } from '../../support/trace';
 
 const OMNISCIENT = { kind: 'omniscient' } as const;
@@ -305,5 +317,230 @@ describe('health.recovery failure isolation', () => {
     await withFailure.advanceDays({ maxDays: 1 });
     await withoutFailure.advanceDays({ maxDays: 1 });
     expect(withFailure.exportState().world).toEqual(withoutFailure.exportState().world);
+  });
+});
+
+// ---------------------------------------------------------------------------------------------
+// Talking-only show days (owner rule, Sprint 4: promos cost no stamina but cost rest)
+
+describe('health.recovery after a talking-only show day', () => {
+  /**
+   * Yesterday (the start date, a Monday) promotion A ran a show: person 0 cut a promo, person 1 cut
+   * a promo and wrestled person 2. Everyone starts today at fatigue 40.
+   */
+  function promoWorld() {
+    return worldBuilder({ currentDate: addDays(TEST_START_DATE, 1) })
+      .withGeography('mini')
+      .withCatalogs()
+      .withPromotion({}, (promotion) =>
+        promotion.withRoster(4, { person: () => ({ fatigue: 40 }) }),
+      )
+      .withEventInstance({ status: 'completed', date: TEST_START_DATE })
+      .withCompletedMatch({ show: 0, sides: [[1], [2]], result: 0 })
+      .with('a promo by people 0 and 1', (context) => {
+        const [show] = context.ids.eventInstances;
+        const [talker, wrestler] = context.ids.people;
+        if (show === undefined || talker === undefined || wrestler === undefined) {
+          throw new Error('the promo world needs a show and two people');
+        }
+        const angle = context.insert(
+          'segments',
+          anAngle({ eventInstanceId: show }, context.sequence),
+        );
+        for (const personId of [talker, wrestler]) {
+          context.insert(
+            'participants',
+            aParticipant(
+              { segmentId: angle.id, personId, role: 'speaker', side: 0 },
+              context.sequence,
+            ),
+          );
+        }
+      })
+      .build();
+  }
+
+  it('finds the people who talked and did not wrestle on a show day', () => {
+    const { world, ids } = promoWorld();
+    expect([...talkedWithoutWrestling(world, TEST_START_DATE)]).toEqual([ids.people[0]]);
+    expect(talkedWithoutWrestling(world, addDays(TEST_START_DATE, 1)).size).toBe(0);
+  });
+
+  it('halves the next morning\'s daily recovery for the talker only, and says so', async () => {
+    const { world, ids } = promoWorld();
+    const engine = engineOver(world);
+    const result = await engine.advanceDays({ maxDays: 1 });
+    expect(result.failures).toEqual([]);
+
+    const [talker, both, wrestler, rested] = ids.people;
+    if (talker === undefined || both === undefined || wrestler === undefined) {
+      throw new Error('expected four people');
+    }
+    expect([37, 38]).toContain(fatigueOf(engine, talker));
+    for (const personId of [both, wrestler, rested]) {
+      if (personId !== undefined) {
+        expect([35, 36]).toContain(fatigueOf(engine, personId));
+      }
+    }
+    const labels = (personId: PersonId): string[] => {
+      const entry = storedTrace(engine, personId);
+      if (entry === null || !isFullTrace(entry)) {
+        throw new Error(`expected a full trace for ${personId}`);
+      }
+      const found: string[] = [];
+      const visit = (node: typeof entry.trace): void => {
+        found.push(node.label);
+        for (const child of node.children ?? []) {
+          visit(child);
+        }
+      };
+      visit(entry.trace);
+      return found;
+    };
+    expect(labels(talker)).toContain('Worked a promo today');
+    expect(labels(both)).not.toContain('Worked a promo today');
+    expect(labels(wrestler)).not.toContain('Worked a promo today');
+  });
+});
+
+// ---------------------------------------------------------------------------------------------
+// Weekly condition recovery
+
+describe('health.conditionRecovery phase', () => {
+  interface Patient {
+    readonly age: number;
+    readonly condition: Partial<BodyCondition>;
+    readonly person?: DeepPartial<Person>;
+  }
+
+  /** People employed by promotion A (medical level 1), built with the given ages and condition. */
+  function patientWorld(patients: readonly Patient[], medical: 0 | 1 | 2 | 3 = 1) {
+    return worldBuilder()
+      .withGeography('mini')
+      .withPromotion({ policies: { medical } }, (promotion) =>
+        promotion.withRoster(patients.length, {
+          person: (index) => {
+            const patient = patients[index];
+            if (patient === undefined) {
+              throw new Error(`no patient ${String(index)}`);
+            }
+            return {
+              birthDate: addYears(TEST_START_DATE, -patient.age),
+              condition: { ...flatCondition(100), ...patient.condition },
+              ...patient.person,
+            };
+          },
+        }),
+      )
+      .build();
+  }
+
+  function conditionOf(engine: Engine, personId: PersonId | undefined): BodyCondition {
+    const person = engine
+      .exportState()
+      .world.tables.people.find((row) => row.id === personId);
+    if (person === undefined) {
+      throw new Error(`no person ${String(personId)}`);
+    }
+    return person.condition;
+  }
+
+  it('heals a damaged part by half a point on a Monday, and leaves healthy parts alone', async () => {
+    const { world, ids } = patientWorld([{ age: 25, condition: { legs: 80 } }]);
+    const engine = engineOver(world);
+    const result = await engine.advanceDays({ maxDays: 1 });
+    expect(result.failures).toEqual([]);
+    expect(conditionOf(engine, ids.people[0])).toEqual({ ...flatCondition(100), legs: 80.5 });
+  });
+
+  it('heals on Mondays only', async () => {
+    const { world, ids } = patientWorld([{ age: 25, condition: { legs: 80 } }]);
+    const engine = engineOver(world);
+    await engine.advanceDays({ maxDays: 7 });
+    expect(conditionOf(engine, ids.people[0]).legs).toBe(80.5);
+    await engine.advanceDays({ maxDays: 1 });
+    expect(conditionOf(engine, ids.people[0]).legs).toBe(81);
+  });
+
+  it('does not heal an injured part, but heals the others', async () => {
+    const { world, ids } = patientWorld([
+      {
+        age: 25,
+        condition: { legs: 40, arms: 80 },
+        person: {
+          injury: {
+            kindKey: 'injury.sprained-ankle',
+            bodyPart: 'legs',
+            since: TEST_START_DATE,
+            expectedReturn: addDays(TEST_START_DATE, 60),
+            canWorkAngles: true,
+          },
+        },
+      },
+    ]);
+    const engine = engineOver(world);
+    await engine.advanceDays({ maxDays: 1 });
+    expect(conditionOf(engine, ids.people[0])).toMatchObject({ legs: 40, arms: 80.5 });
+  });
+
+  it('stops a 55-year-old at their cap of 62.5 and never lowers a part above it', async () => {
+    const { world, ids } = patientWorld([
+      { age: 55, condition: { legs: 62.2 } },
+      { age: 55, condition: { legs: 70 } },
+    ]);
+    const engine = engineOver(world);
+    await engine.advanceDays({ maxDays: 1 });
+    expect(conditionOf(engine, ids.people[0]).legs).toBe(62.5);
+    expect(conditionOf(engine, ids.people[1]).legs).toBe(70);
+    await engine.advanceDays({ maxDays: 7 });
+    expect(conditionOf(engine, ids.people[0]).legs).toBe(62.5);
+    expect(conditionOf(engine, ids.people[1]).legs).toBe(70);
+  });
+
+  it('leaves retired people as they are', async () => {
+    const { world, ids } = worldBuilder()
+      .withGeography('mini')
+      .with('a retired wrestler', (context) => {
+        context.insert(
+          'people',
+          aPerson({ status: 'retired', condition: { legs: 50 } }, context.sequence),
+        );
+      })
+      .build();
+    const engine = engineOver(world);
+    await engine.advanceDays({ maxDays: 1 });
+    expect(conditionOf(engine, ids.people[0]).legs).toBe(50);
+  });
+
+  it('draws nothing and stores no traces', async () => {
+    const { world } = patientWorld([{ age: 25, condition: { legs: 80 } }]);
+    const engine = engineOver(world);
+    await engine.advanceDays({ maxDays: 1 });
+    expect(engine.exportState().rng.streams).not.toHaveProperty(RECOVERY_STREAM);
+    expect(JSON.stringify(engine.exportState().traces)).not.toContain('Condition after a week');
+  });
+
+  it('over 20 weeks heals about half a point a week: faster at medical level 3, slower at 0, and to the cap at 50', async () => {
+    const patients: Patient[] = [
+      { age: 25, condition: { legs: 80 } },
+      { age: 25, condition: { legs: 95 } },
+      { age: 50, condition: { legs: 64 } },
+      { age: 50, condition: { legs: 90 } },
+    ];
+    const weeks = 20;
+    const after = async (medical: 0 | 1 | 3) => {
+      const { world, ids } = patientWorld(patients, medical);
+      const engine = engineOver(world);
+      const result = await engine.advanceDays({ maxDays: weeks * 7 });
+      expect(result.failures).toEqual([]);
+      return ids.people.map((personId) => conditionOf(engine, personId).legs);
+    };
+    const standard = await after(1);
+    expect(standard[0]).toBeCloseTo(80 + 0.5 * weeks, 10);
+    expect(standard[1]).toBe(100);
+    expect(standard[2]).toBe(70);
+    expect(standard[3]).toBe(90);
+    expect((await after(3))[0]).toBeCloseTo(80 + 0.65 * weeks, 10);
+    expect((await after(0))[0]).toBeCloseTo(80 + 0.4 * weeks, 10);
   });
 });
