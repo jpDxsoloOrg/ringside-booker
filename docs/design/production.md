@@ -8,8 +8,10 @@ ceiling** the promotion's regional popularity cannot stay above.
 
 Code: `packages/engine/src/systems/production/` (system id `production`).
 ECO7-01 ships the area tables, the tunables and the pure traced formulas.
-Nothing charges money yet: ECO7-03 posts the monthly overhead, ECO7-05 posts
-the per-show costs, and ECO7-04 puts it on screen. Production never rolls, so
+ECO7-02 adds changing a level (the upgrade fee is the first production money
+posted), the screen and dialog queries and the effect seam. ECO7-03 posts the
+monthly overhead, ECO7-05 posts the per-show costs, and ECO7-04 puts it on
+screen. Production never rolls, so
 the system has no RNG stream.
 
 All money is in whole cents. Every tunable is 0-means-0: a price of 0 makes
@@ -116,8 +118,8 @@ Camera 2 → 4: curve at 4 is 0.064, curve at 2 is 0.008; camera's fee for 0 →
 | `production.upgradeFee.backOffice` | integer | 15,000,000 | 0–10,000,000,000 | money | Same, back office ($150,000)                   |
 | `production.feeNeedsCash`          | boolean | true       |                  | flag  | An upgrade fee must be covered by cash in hand |
 
-`production.feeNeedsCash` is read by the command that buys an upgrade
-(ECO7-02), not by the formula.
+`production.feeNeedsCash` is read by the change check (see
+[Changing a level](#changing-a-level)), not by the formula.
 
 ## Popularity ceiling
 
@@ -192,10 +194,114 @@ down; the curve keeps low levels cheap.
 
 ## TV camera minimum
 
-While a promotion has an active TV deal, its camera level may not go below
-`production.tvDealMinCamera`: a network will not air a show nobody filmed. The
-production commands (ECO7-02) enforce it; this ticket only defines the number.
+While a promotion has an active broadcast deal, its camera level may not go
+below `production.tvDealMinCamera`: a network will not air a show nobody
+filmed. The change check enforces it for everyone, the player's command and the
+rival desk alike (AIP8 keeps its own `aip.production.cameraFloorWithTv` as a
+target, never below this one).
+
+`activeBroadcastDeal(read, promotionId, date)` finds the deal: a `deals` row of
+the promotion with status `active` that runs on the date (`startsOn` ≤ date <
+`endsOn`, since `endsOn` is the first day the deal no longer runs), lowest id
+first. Any network kind counts: TV, pay-per-view and streaming all need
+cameras. Deal fees are not read. Raising camera is never refused for a deal,
+and a camera already below the minimum may stay there.
+
+The refusal names the network and the deal's last day: "You have an active TV
+deal with Channel 9 until Sun 1 Feb: camera can't go below level 1". The
+overview's camera row has `minLevel` 1 and the line "TV deal with Channel 9:
+camera stays at 1 or higher" for the promotion's own management only; whether
+a rival has a deal is ECO8's to show.
 
 | Key                          | Kind    | Default | Range | Unit   | Meaning                                              |
 | ---------------------------- | ------- | ------- | ----- | ------ | ---------------------------------------------------- |
 | `production.tvDealMinCamera` | integer | 1       | 0–10  | points | Lowest camera level allowed while there is a TV deal |
+
+## Changing a level
+
+`checkLevelChange(read, { promotionId, area, level }, tunables, date)` works
+out the upgrade fee and every reason the change is not allowed. Both
+`production.setLevel` (its `validate`) and `production.changePreview` use it,
+so the change dialog never promises a change the command refuses.
+
+| Code                          | When                                                                | Message                                                         |
+| ----------------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `production.promotionClosed`  | the promotion is not `active`                                       | "Hardpan has closed"                                            |
+| `production.outOfRange`       | the level is outside 0–10                                           | "Camera levels run from 0 to 10"                                |
+| `production.sameLevel`        | the level is the current one                                        | "Camera is already at level 4"                                  |
+| `production.tvDealCamera`     | camera below `production.tvDealMinCamera` while a deal runs         | "You have an active TV deal with … until …: camera can't go …"  |
+| `production.cannotAfford`     | `production.feeNeedsCash` is true and the fee is more than the cash | "The fee is $28,000 and you have $20,000"                       |
+| `production.notYourPromotion` | (command and preview only) the issuer or viewer does not run it     | "Only the promotion's own management can change its production" |
+
+`changeProductionLevel(ctx, { promotionId, area, level, source })` is the only
+code that writes `promotions.production`. It re-runs the check and throws on
+any reason, so a buggy caller's step rolls back. A fee above 0 is posted
+through `postMoney` under the `production` category ("Camera upgrade: level 2
+to 4"), with a Why? that nests the fee's own trace; lowering posts nothing.
+Then it writes the level and publishes `production.levelChanged` (`{
+promotionId, area, from, to, fee, source: 'command' | 'ai' }`). The rival desk
+(AIP8) calls the door with `source: 'ai'`, so everyone pays the same fee by the
+same rule (D-01).
+
+`production.setLevel { promotionId, area, level }` is refused unless the issuer
+runs the promotion (`controlsPromotion`, the rule every command uses: the
+player for their own, the computer for a computer-run one), then by the check.
+It returns `{ area, from, to, fee }`.
+
+EVT4's show-quality ceiling reads the stored levels: the `production.ceiling`
+query reflects a change at once, and the daily `cardFlow.refreshBonusSlots`
+phase gives or takes the bonus slot on unbooked future shows the next day.
+
+## Coming shows
+
+`upcomingShows(read, promotionId, from, days)` lists the shows a promotion is
+expected to run from `from` for `days` days (`production.forecastDays`, 28): its
+scheduled and booked shows in the window when it has any, otherwise every
+active event definition whose recurrence falls on a day of the window. Dates
+ascending; an `eventInstanceId` of null marks a date read off a definition.
+Hardpan's weekly minor Friday gives 4 shows in 28 days from a Monday.
+
+| Key                       | Kind    | Default | Range | Unit | Meaning                                           |
+| ------------------------- | ------- | ------- | ----- | ---- | ------------------------------------------------- |
+| `production.forecastDays` | integer | 28      | 1–90  | days | How many days ahead the coming shows are added up |
+
+## Screens
+
+`production.overview { promotionId }` gives one row per area (level, label,
+`costKind`, `cost` with its Why? and `costBasis`, effect lines and `minLevel`)
+and the header: the popularity ceiling, how many regions sit above it, the
+monthly overhead by ledger category, the per-show cost of the coming shows and
+the TV deal. A per-show row is priced at the importance of the next coming
+show, with `costBasis` "per Hardpan Friday (minor)" ("per regular show" when
+nothing is coming); a monthly row's basis is "a month".
+
+Levels are public, and so is the popularity ceiling, which follows from them.
+For a promotion the viewer does not run, `mine` is false and every cost, the
+totals, `typicalImportance` and the TV deal are null, and lines registered as
+`ownOnly` are left out. The all-seeing viewer sees everything.
+
+`production.changePreview { promotionId, area, level }` (own promotions only)
+gives the fee and its Why?, the reasons and `canApply`, and one row per number
+the change moves, before and after: `areaCost` (the area at the same basis as
+the overview), then `upcomingShows` for a per-show area or `monthlyOverhead`
+for a monthly one, then `popularityCeiling` for marketing and back office, then
+one row per registered effect for the area (skipped when either side has no
+number). A level out of range gives no rows. Traces are returned inline and
+never recorded.
+
+## Effects
+
+`registerProductionEffect({ id, order, areas, ownOnly?, describe })` lets other
+features say what a level does without editing ECO7's files: EVT4 the
+show-quality ceiling, MTCH5 the angle writing band, ECO2 merch, ECO3 hype, ECO8
+viewers. `describe(read, { promotionId, levels, date, tunables })` returns a
+line `{ id, label, value, unit, text, trace }` or null. The overview shows the
+lines on each listed area's row (stored levels); the change dialog calls it
+with the current and the proposed levels. Register once, when the registering
+system's `index.ts` is imported; a duplicate id throws. `ownOnly` lines name
+something private and are never shown to a rival.
+
+ECO7's own two: `production.popularityCeiling` (marketing, back office;
+"Popularity above 30 slowly falls back"; the dialog shows it as the fixed
+`popularityCeiling` row) and `production.tvCameraMinimum` (camera, `ownOnly`,
+only while a deal runs).

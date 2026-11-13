@@ -20,6 +20,7 @@ const UPGRADE_DOC = 'production.md#upgrade-fee';
 const CEILING_DOC = 'production.md#popularity-ceiling';
 const DRAG_DOC = 'production.md#popularity-drag';
 const TV_DOC = 'production.md#tv-camera-minimum';
+const COMING_SHOWS_DOC = 'production.md#coming-shows';
 
 /** The most any production price may be: $100,000,000. */
 const PRICE_MAX = 10_000_000_000;
@@ -176,5 +177,15 @@ export const productionTunables = defineTunables({
     category: PRODUCTION_TUNABLE_CATEGORY,
     description: 'An upgrade fee must be covered by cash in hand',
     docRef: UPGRADE_DOC,
+  },
+  'production.forecastDays': {
+    kind: 'integer',
+    default: 28,
+    min: 1,
+    max: 90,
+    unit: 'days',
+    category: PRODUCTION_TUNABLE_CATEGORY,
+    description: 'How many days ahead the production screen adds up the coming shows',
+    docRef: COMING_SHOWS_DOC,
   },
 });

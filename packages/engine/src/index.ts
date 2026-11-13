@@ -2704,3 +2704,32 @@ export {
   type SeveranceInputs,
   type SeveranceMode,
 } from './systems/contracts/index';
+// Changing production (ECO7-02): the change check and write door, the `production.setLevel`
+// command, the overview and change-preview queries and the production effect seam. See
+// docs/design/production.md#changing-a-level.
+export {
+  activeBroadcastDeal,
+  changeProductionLevel,
+  checkLevelChange,
+  listProductionEffects,
+  NOT_YOUR_PROMOTION_MESSAGE as PRODUCTION_NOT_YOUR_PROMOTION_MESSAGE,
+  POPULARITY_CEILING_EFFECT_ID,
+  PRODUCTION_CHANGE_REASON_CODES,
+  registerProductionEffect,
+  TV_CAMERA_MINIMUM_EFFECT_ID,
+  upcomingShows as productionUpcomingShows,
+  type ChangeProductionLevelArgs,
+  type LevelChangeCheck,
+  type ProductionChangePreview,
+  type ProductionChangeReasonCode,
+  type ProductionChangeSource,
+  type ProductionEffect,
+  type ProductionEffectInput,
+  type ProductionEffectLine,
+  type ProductionOverview,
+  type ProductionPreviewRow,
+  type ProductionPreviewRowId,
+  type ProductionRow,
+  type ProductionUpcomingShow,
+  type SetProductionLevelResult,
+} from './systems/production/index';
