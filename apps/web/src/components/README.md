@@ -191,6 +191,8 @@ one with `<Explained value={...} label="Attendance" unit="people" trace={...} />
   beside it. It looks like `WhyButton` and shares the one open panel, but it asks the engine only
   when it is opened, shows the loading state meanwhile, and reuses the cached answer after that.
   `queryName` takes any query whose answer is `{ value, trace }` (`TraceQueryName`).
+  A query may also answer null (`roster.explain` for a contract that has just ended); the panel
+  then says "There is no breakdown for this number any more." instead of an error.
 
 ## DataTable
 

@@ -15,8 +15,11 @@ export function traceSourceOf(
 
 /**
  * The engine queries that answer with a trace built on demand (`{ value, trace }`), such as
- * `workers.explain`. A `LazyWhyButton` can ask any of them.
+ * `workers.explain`. A `LazyWhyButton` can ask any of them. A query may also answer null when the
+ * number has no breakdown (`roster.explain` for a contract that has ended); the panel says so.
  */
 export type TraceQueryName = {
-  [Name in QueryName]: QueryData<Name> extends { readonly trace: TraceNode } ? Name : never;
+  [Name in QueryName]: NonNullable<QueryData<Name>> extends { readonly trace: TraceNode }
+    ? Name
+    : never;
 }[QueryName];

@@ -7,7 +7,7 @@ export { plainEntityLabel } from './rows/rowTypes';
 export type { EntityLinkRenderer, TraceRowProps } from './rows/rowTypes';
 export { LazyWhyButton } from './LazyWhyButton';
 export type { LazyWhyButtonProps } from './LazyWhyButton';
-export { TracePanel, TraceQueryPanel, TraceSummaryView } from './TracePanel';
+export { NO_BREAKDOWN_TEXT, TracePanel, TraceQueryPanel, TraceSummaryView } from './TracePanel';
 export type { TracePanelProps, TraceQueryPanelProps } from './TracePanel';
 export { useTracePanelStore } from './tracePanelStore';
 export type { TracePanelState } from './tracePanelStore';
