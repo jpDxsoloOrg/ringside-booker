@@ -800,3 +800,29 @@ The roster's one number (WRK2), in `systems/roster/tunables.ts`, category
 | Key                       | Kind    | Default | Range | Unit  | Meaning                                                                                                                                    |
 | ------------------------- | ------- | ------- | ----- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | `roster.expectsMoreSteps` | integer | 1       | 1–4   | count | Card positions below the push they expect before the roster marks a worker as expecting more (and above it, as pushed beyond expectations) |
+
+## Rival booking tunables
+
+The card planner's numbers (AIP4), in `systems/aip/card/tunables.ts`,
+category `Rival booking`, each with a docRef into
+[rival-booking.md](rival-booking.md). They count slots, people and title
+matches only; none sets a length (D-10).
+
+| Key                              | Kind    | Default | Range | Unit   | Meaning                                                                                                        |
+| -------------------------------- | ------- | ------- | ----- | ------ | -------------------------------------------------------------------------------------------------------------- |
+| `aip.card.maxFatigue`            | number  | 75      | 0–100 | points | Fatigue above which a rival only books a worker as a last resort ([card pool](rival-booking.md#card-pool))     |
+| `aip.card.minWorkers`            | integer | 5       | 0–30  | count  | A rival cancels a show with fewer wrestlers fit to work than this (0 never)                                    |
+| `aip.card.mixedGender`           | boolean | false   |       | flag   | Whether a rival may book men and women against each other outside title matches                                |
+| `aip.card.talkShare.house`       | number  | 0       | 0–1   | ratio  | Share of main-card slots given to talking segments on a house show ([card shape](rival-booking.md#card-shape)) |
+| `aip.card.talkShare.minor`       | number  | 0.15    | 0–1   | ratio  | Same, minor show                                                                                               |
+| `aip.card.talkShare.regular`     | number  | 0.3     | 0–1   | ratio  | Same, regular weekly show                                                                                      |
+| `aip.card.talkShare.major`       | number  | 0.2     | 0–1   | ratio  | Same, major show                                                                                               |
+| `aip.card.talkShare.flagship`    | number  | 0.15    | 0–1   | ratio  | Same, flagship show                                                                                            |
+| `aip.card.talkTasteSwing`        | number  | 0.5     | 0–1   | ratio  | How far the booker's taste for talking moves the share                                                         |
+| `aip.card.maxTalkShare`          | number  | 0.5     | 0–1   | ratio  | The largest share of main-card slots a rival gives to talking segments                                         |
+| `aip.card.fillPreShow`           | boolean | true    |       | flag   | Whether a rival fills its shows' pre-show slots                                                                |
+| `aip.titles.maxPerShow.house`    | integer | 1       | 0–12  | count  | Most title matches a rival books on a house show ([title matches](rival-booking.md#title-matches))             |
+| `aip.titles.maxPerShow.minor`    | integer | 1       | 0–12  | count  | Same, minor show                                                                                               |
+| `aip.titles.maxPerShow.regular`  | integer | 2       | 0–12  | count  | Same, regular weekly show                                                                                      |
+| `aip.titles.maxPerShow.major`    | integer | 4       | 0–12  | count  | Same, major show                                                                                               |
+| `aip.titles.maxPerShow.flagship` | integer | 6       | 0–12  | count  | Same, flagship show                                                                                            |
