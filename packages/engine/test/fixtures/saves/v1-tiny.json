@@ -9,7 +9,7 @@
     "label": "Test save",
     "promotionName": "Test Promotion A",
     "promotionShortName": "TPA",
-    "schemaFingerprint": "9d0ba720b75f8693aaf74bbda8fbff2a",
+    "schemaFingerprint": "5843ebc9e33b381d2bb5ca0513e3f649",
     "startDate": "2026-01-05",
     "worldName": "Test Tiny World"
   },
@@ -2828,7 +2828,7 @@
                 "ctn_0000000001": 5
               },
               "headline": 10,
-              "homeRegion": 14,
+              "homeRegionValue": 14,
               "world": 5
             },
             "prestige": 50,
@@ -2847,7 +2847,7 @@
                 "ctn_0000000001": 5.25
               },
               "headline": 10.5,
-              "homeRegion": 14.5,
+              "homeRegionValue": 14.5,
               "world": 5.25
             },
             "prestige": 50,
@@ -2866,7 +2866,7 @@
                 "ctn_0000000001": 5.625
               },
               "headline": 11.25,
-              "homeRegion": 15.25,
+              "homeRegionValue": 15.25,
               "world": 5.625
             },
             "prestige": 50,

@@ -512,7 +512,7 @@ function tinySnapshot(
     popularity: {
       headline: popularity,
       world: popularity / 2,
-      homeRegion: popularity + 4,
+      homeRegionValue: popularity + 4,
       byContinent: { [testId('continent')]: popularity / 2 },
     },
     rosterSize: 8,

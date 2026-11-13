@@ -47,7 +47,7 @@ function popularityValue(value: number): number {
  * - `cash`, `prestige`: the promotion row.
  * - `popularity.world` and `byContinent`: one `rollValues` call over `regionalPop`; continents at 0
  *   are left out.
- * - `popularity.homeRegion`: the stored value in the home region, 0 when none is stored.
+ * - `popularity.homeRegionValue`: the stored value in the home region, 0 when none is stored.
  * - `popularity.headline`: the home country's roll-up (DAY2-02 will swap in its own headline).
  * - `rosterSize`: active contracts that have started by `date`; `averageMorale` is their mean
  *   morale, or null when there are none.
@@ -85,7 +85,7 @@ export function buildPromotionSnapshot(
     popularity: {
       headline: popularityValue(rolled.countries[homeCountry.id] ?? 0),
       world: popularityValue(rolled.world),
-      homeRegion: promotion.regionalPop[promotion.homeRegionId] ?? 0,
+      homeRegionValue: promotion.regionalPop[promotion.homeRegionId] ?? 0,
       byContinent,
     },
     rosterSize: contracts.length,

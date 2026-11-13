@@ -141,7 +141,7 @@ describe('office.weeklySnapshot', () => {
       extra: {},
     });
     expect(row.popularity.world).toBe(rolled.world);
-    expect(row.popularity.homeRegion).toBe(40);
+    expect(row.popularity.homeRegionValue).toBe(40);
     expect(row.popularity.headline).toBe(rolled.countries[homeCountry.id]);
     expect(row.popularity.byContinent).toEqual({ [testId('continent')]: rolled.world });
     expect(row.popularity.world).toBeGreaterThan(0);
@@ -155,7 +155,7 @@ describe('office.weeklySnapshot', () => {
     expect(row).toMatchObject({
       rosterSize: 0,
       averageMorale: null,
-      popularity: { headline: 0, world: 0, homeRegion: 0, byContinent: {} },
+      popularity: { headline: 0, world: 0, homeRegionValue: 0, byContinent: {} },
     });
   });
 

@@ -2803,7 +2803,7 @@
         "popularity": {
           "headline": 10,
           "world": 5,
-          "homeRegion": 14,
+          "homeRegionValue": 14,
           "byContinent": {
             "ctn_0000000001": 5
           }
@@ -2822,7 +2822,7 @@
         "popularity": {
           "headline": 10.5,
           "world": 5.25,
-          "homeRegion": 14.5,
+          "homeRegionValue": 14.5,
           "byContinent": {
             "ctn_0000000001": 5.25
           }
@@ -2841,7 +2841,7 @@
         "popularity": {
           "headline": 11.25,
           "world": 5.625,
-          "homeRegion": 15.25,
+          "homeRegionValue": 15.25,
           "byContinent": {
             "ctn_0000000001": 5.625
           }

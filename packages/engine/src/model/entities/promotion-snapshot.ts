@@ -41,7 +41,7 @@ export const PromotionSnapshotPopularitySchema = z.strictObject({
   /** The population-weighted world roll-up. */
   world: zStat,
   /** The stored value in the promotion's home region (0 when none is stored). */
-  homeRegion: zStat,
+  homeRegionValue: zStat,
   /** Every continent's roll-up. Sparse: a continent at 0 is left out. */
   byContinent: z.record(zId('continent'), zStat.gt(0)),
 });

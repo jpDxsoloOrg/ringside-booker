@@ -19,17 +19,17 @@ which keeps the trace store free of hundreds of weekly entries a year.
 
 ### Columns
 
-| Column                   | What it holds                                                                              |
-| ------------------------ | ------------------------------------------------------------------------------------------ |
-| `cash`                   | The promotion's cash at the end of the day, in cents                                       |
-| `prestige`               | The promotion's prestige                                                                   |
-| `popularity.world`       | The population-weighted world roll-up of `regionalPop` (D-03, WRK1's roller)               |
-| `popularity.byContinent` | Every continent's roll-up; sparse, a continent at 0 is left out                            |
-| `popularity.homeRegion`  | The stored value in the home region, 0 when none is stored                                 |
-| `popularity.headline`    | The figure the Office leads with: the home country's roll-up until DAY2-02 defines its own |
-| `rosterSize`             | People with an active contract that has started (`startsOn` on or before the day)          |
-| `averageMorale`          | The mean morale of those contracts, unrounded; null when nobody is under contract          |
-| `extra`                  | Registered fields, one number each (see [the registry](#the-registry))                     |
+| Column                       | What it holds                                                                              |
+| ---------------------------- | ------------------------------------------------------------------------------------------ |
+| `cash`                       | The promotion's cash at the end of the day, in cents                                       |
+| `prestige`                   | The promotion's prestige                                                                   |
+| `popularity.world`           | The population-weighted world roll-up of `regionalPop` (D-03, WRK1's roller)               |
+| `popularity.byContinent`     | Every continent's roll-up; sparse, a continent at 0 is left out                            |
+| `popularity.homeRegionValue` | The stored value in the home region, 0 when none is stored                                 |
+| `popularity.headline`        | The figure the Office leads with: the home country's roll-up until DAY2-02 defines its own |
+| `rosterSize`                 | People with an active contract that has started (`startsOn` on or before the day)          |
+| `averageMorale`              | The mean morale of those contracts, unrounded; null when nobody is under contract          |
+| `extra`                      | Registered fields, one number each (see [the registry](#the-registry))                     |
 
 Roll-ups are kept inside 0..100. One roller is built per run and shared by
 every promotion.

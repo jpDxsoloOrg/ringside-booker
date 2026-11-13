@@ -205,7 +205,7 @@ export function aPromotionSnapshot(
     granularity: 'week',
     cash: DEFAULT_PROMOTION_CASH,
     prestige: 50,
-    popularity: { headline: 0, world: 0, homeRegion: 0, byContinent: {} },
+    popularity: { headline: 0, world: 0, homeRegionValue: 0, byContinent: {} },
     rosterSize: 0,
     averageMorale: null,
     extra: {},
