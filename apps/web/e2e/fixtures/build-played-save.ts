@@ -6,8 +6,8 @@
  *
  * Headless runs have nobody to book the player's shows, so for the weeks of play the player's
  * promotion is handed to the computer booker, which books and runs its shows like any rival's.
- * The promotion goes back to the player before the save is written, so the save loads as the
- * player's own game with three weeks of booked and run shows behind it.
+ * The promotion goes back to the player for the last day, so the save loads as the player's own
+ * game with three weeks of booked and run shows behind it, and a cash Why? that ends at the cash.
  *
  * Run with `npx tsx e2e/fixtures/build-played-save.ts` from `apps/web`.
  */
@@ -110,8 +110,8 @@ async function buildPlayedSave(): Promise<void> {
     systems: defaultSystems,
     host: { now: () => performance.now() },
   });
-  const advanced = await engine.advanceDays({ maxDays: PLAYED_DAYS });
-  if (advanced.daysAdvanced !== PLAYED_DAYS || advanced.failures.length > 0) {
+  const advanced = await engine.advanceDays({ maxDays: PLAYED_DAYS - 1 });
+  if (advanced.daysAdvanced !== PLAYED_DAYS - 1 || advanced.failures.length > 0) {
     throw new Error(
       `The played weeks stopped early: ${JSON.stringify(advanced.stoppedBy)}, ` +
         `${String(advanced.failures.length)} failed steps`,
@@ -135,9 +135,25 @@ async function buildPlayedSave(): Promise<void> {
       },
     },
   };
+
+  // The last day is the player's own: the computer never rewrites the cash Why?, and a stale one
+  // is not shown, so a day of the player's own money brings it up to date.
+  const playerEngine = createEngine({
+    state: handedBack,
+    systems: defaultSystems,
+    host: { now: () => performance.now() },
+  });
+  const lastDay = await playerEngine.advanceDays({ maxDays: 1 });
+  if (lastDay.daysAdvanced !== 1 || lastDay.failures.length > 0) {
+    throw new Error(
+      `The player's day stopped early: ${JSON.stringify(lastDay.stoppedBy)}, ` +
+        `${String(lastDay.failures.length)} failed steps`,
+    );
+  }
+  const final = playerEngine.exportState();
   const headerPromotionId = [...owned.promotions][0] ?? null;
 
-  const doc = createSaveDocument(engineSaveState(handedBack), {
+  const doc = createSaveDocument(engineSaveState(final), {
     headerPromotionId,
     savedAt: SAVED_AT,
     label: PLAYED_SAVE_LABEL,
@@ -148,7 +164,7 @@ async function buildPlayedSave(): Promise<void> {
   writeFileSync(PLAYED_SAVE_PATH, bytes);
   process.stdout.write(
     `Wrote ${PLAYED_SAVE_PATH} (${String(bytes.byteLength)} bytes, ` +
-      `${played.world.meta.currentDate})\n`,
+      `${final.world.meta.currentDate})\n`,
   );
 }
 
