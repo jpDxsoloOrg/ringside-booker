@@ -375,13 +375,13 @@ describe('the structure checks', () => {
     expect(said(result.errors)).toEqual([
       {
         code: 'noPlannedResult',
-        message: 'Slot 2: no result planned; pick a winner, a draw or a no contest',
+        message: 'Slot 2: no result planned; pick a winner, Auto, Random, a draw or a no contest',
       },
     ]);
     expect(result.checklist.find((line) => line.id === 'results')).toMatchObject({
       passed: false,
       severity: 'error',
-      detail: 'Slot 2: no result planned; pick a winner, a draw or a no contest',
+      detail: 'Slot 2: no result planned; pick a winner, Auto, Random, a draw or a no contest',
     });
   });
 

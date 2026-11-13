@@ -24,7 +24,7 @@ const PARTLY_FILLED_ISSUES = issuesBySlot(
     galleryIssue(
       'results',
       'error',
-      'Slot 3: no result planned; pick a winner, a draw or a no contest',
+      'Slot 3: no result planned; pick a winner, Auto, Random, a draw or a no contest',
       2,
     ),
     galleryIssue('mainEvent', 'error', 'The main event (Slot 6) is empty', 5),

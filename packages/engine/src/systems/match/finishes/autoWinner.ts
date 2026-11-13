@@ -9,6 +9,12 @@
  * night", so the Why? panel's first line says so; the caller passes the larger
  * `match.randomWinners.randomness`.
  *
+ * In `coinFlip` mode (MTCH2-08, a match booked as Random) the scores and the randomness are
+ * ignored: every side scores 0 and draws one roll between 0 and 1, so each has an equal chance.
+ * The highest draw wins, with the same tie-break.
+ *
+ * When the side with the highest score loses to the roll, the decision notes the upset in words.
+ *
  * Design: docs/design/match-finishes.md#auto-winner.
  */
 
@@ -27,8 +33,11 @@ export const TIE_BREAK_RULE = 'Tie broken by lowest person id';
 export const HIGHEST_SCORE_REASON = 'Highest score';
 export const TIE_BREAK_REASON = 'Tied for the highest score; lowest person id';
 
-/** How the winner is decided: the standard auto-winner, or Random winners mode. */
-export type AutoWinnerMode = 'standard' | 'randomWinners';
+/**
+ * How the winner is decided: the standard auto-winner, Random winners mode, or a coin flip (a
+ * match booked as Random, MTCH2-08).
+ */
+export type AutoWinnerMode = 'standard' | 'randomWinners' | 'coinFlip';
 
 /** "Unpredictability, Side 1". */
 export function unpredictabilityLabel(sideLabel: string): string {
@@ -66,6 +75,9 @@ export function autoWinner(
   const [first] = inputs.sides;
   if (first === undefined) {
     throw new InvalidArgumentError('autoWinner', 'sides', 0, 'at least one side');
+  }
+  if (inputs.mode === 'coinFlip') {
+    return coinFlipWinner(inputs.sides, first, deps);
   }
   const randomness = inputs.randomness.value;
   const decision = startDecision<string>(
@@ -109,6 +121,10 @@ export function autoWinner(
   if (tied) {
     decision.rule(TIE_BREAK_RULE, true);
   }
+  const upset = upsetNote(inputs.sides, best);
+  if (upset !== null) {
+    decision.note(upset);
+  }
   const chosen = decision.choose(best.label, tied ? TIE_BREAK_REASON : HIGHEST_SCORE_REASON);
   // The randomness (a tunable read) leads the story, so the Why? shows where the spread came from.
   const trace = limitTrace({
@@ -116,4 +132,72 @@ export function autoWinner(
     children: [inputs.randomness.trace, ...(chosen.trace.children ?? [])],
   });
   return { value: best.side, trace };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Coin flip and upsets (MTCH2-08)
+
+export const COIN_FLIP_LABEL = 'Random: every side had an equal chance';
+export const COIN_FLIP_RULE = 'Highest draw wins';
+export const COIN_FLIP_REASON = 'Highest draw';
+
+/** "Side 1 drew". */
+export function coinFlipDrawLabel(sideLabel: string): string {
+  return `${sideLabel} drew`;
+}
+
+/**
+ * "Upset: Side 2 had a lower score than Side 1" when the winner's score (before the roll) is below
+ * the best score; null when the favourite (or a side tied with it) won.
+ */
+export function upsetNote(
+  sides: readonly AutoWinnerSideScore[],
+  winner: AutoWinnerSideScore,
+): string | null {
+  let favourite = winner;
+  for (const side of sides) {
+    if (side.score.value > favourite.score.value) {
+      favourite = side;
+    }
+  }
+  return favourite === winner
+    ? null
+    : `Upset: ${winner.label} had a lower score than ${favourite.label}`;
+}
+
+/** Every side draws once between 0 and 1; the highest draw wins, ties to the lowest person id. */
+function coinFlipWinner(
+  sides: readonly AutoWinnerSideScore[],
+  first: AutoWinnerSideScore,
+  deps: { readonly rng: RngStream },
+): Traced<number> {
+  const decision = startDecision<string>(COIN_FLIP_LABEL, { docRef: AUTO_WINNER_DOC_REF });
+  let best = first;
+  let bestDraw = Number.NEGATIVE_INFINITY;
+  let tied = false;
+  for (const side of sides) {
+    const label = coinFlipDrawLabel(side.label);
+    const rolled = rollFloat(deps.rng, 0, 1, label);
+    const draw = startCalc(label, 0, { docRef: AUTO_WINNER_DOC_REF })
+      .roll(rolled.roll)
+      .add('Coin flip', rolled.value)
+      .done();
+    decision.consider(side.label, draw);
+    if (draw.value > bestDraw) {
+      best = side;
+      bestDraw = draw.value;
+      tied = false;
+    } else if (draw.value === bestDraw) {
+      tied = true;
+      if (side.lowestPersonId < best.lowestPersonId) {
+        best = side;
+      }
+    }
+  }
+  decision.rule(COIN_FLIP_RULE, true);
+  if (tied) {
+    decision.rule(TIE_BREAK_RULE, true);
+  }
+  const chosen = decision.choose(best.label, tied ? TIE_BREAK_REASON : COIN_FLIP_REASON);
+  return { value: best.side, trace: limitTrace(chosen.trace) };
 }

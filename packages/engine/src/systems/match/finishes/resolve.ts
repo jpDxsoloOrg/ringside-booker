@@ -12,7 +12,8 @@
  * 3. In Random winners mode a planned side, Draw, finish or method is refused (`randomWinners`).
  * 4. For a win, the planned side (`unknownSide` when the match has no such side, or nobody competes
  *    on it), else `autoWinner` with `match.autoWinner.randomness` (standard) or
- *    `match.randomWinners.randomness` (Random winners).
+ *    `match.randomWinners.randomness` (Random winners), or a coin flip (`coinFlip`, a match booked
+ *    as Random: no scores, no randomness tunable).
  * 5. The finish: the planned one, else `autoFinish` over the allowed finishes of that outcome kind
  *    (and, with a planned method, only those that list it), with the winner's alignment.
  *    `noFinishAvailable` when there are none.
@@ -258,6 +259,24 @@ function noWinnerTrace(because: string): Traced<string> {
     .choose(NO_WINNER_OPTION, because);
 }
 
+/** A coin flip (MTCH2-08) reads no score and no randomness tunable: every side scores 0. */
+const COIN_FLIP_SCORE = traced(0, { kind: 'note', label: 'Coin flip: no score', value: null });
+const COIN_FLIP_NO_RANDOMNESS = traced(0, {
+  kind: 'note',
+  label: 'Coin flip: no unpredictability',
+  value: null,
+});
+
+/** The unpredictability tunable for the auto-winner's mode. */
+function randomnessOf(mode: AutoWinnerMode, deps: ResolveMatchOutcomeDeps): Traced<number> {
+  const randomnessKey =
+    mode === 'randomWinners' ? 'match.randomWinners.randomness' : 'match.autoWinner.randomness';
+  return traced(
+    deps.tunables.get(randomnessKey),
+    tunableNode(deps.tunables, randomnessKey, 'Unpredictability'),
+  );
+}
+
 /** Step 4 for a win: the winning side and its trace, or a refusal. */
 function decideWinner(
   input: ResolveMatchOutcomeInput,
@@ -283,27 +302,23 @@ function decideWinner(
       'sides',
     );
   }
-  const randomnessKey =
-    input.mode === 'randomWinners'
-      ? 'match.randomWinners.randomness'
-      : 'match.autoWinner.randomness';
-  const randomness = traced(
-    deps.tunables.get(randomnessKey),
-    tunableNode(deps.tunables, randomnessKey, 'Unpredictability'),
-  );
+  const coinFlip = input.mode === 'coinFlip';
+  const randomness = coinFlip ? COIN_FLIP_NO_RANDOMNESS : randomnessOf(input.mode, deps);
   const winner = autoWinner(
     {
       sides: contenders.map((side) => ({
         side: side.side,
         label: side.sideLabel,
-        score: autoWinnerScore(
-          {
-            sideLabel: side.sideLabel,
-            regionName: input.regionName,
-            competitors: side.competitors,
-          },
-          { tunables: deps.tunables },
-        ),
+        score: coinFlip
+          ? COIN_FLIP_SCORE
+          : autoWinnerScore(
+              {
+                sideLabel: side.sideLabel,
+                regionName: input.regionName,
+                competitors: side.competitors,
+              },
+              { tunables: deps.tunables },
+            ),
         lowestPersonId: side.competitors
           .map((competitor) => competitor.personId)
           .reduce((lowest, id) => (id < lowest ? id : lowest)),

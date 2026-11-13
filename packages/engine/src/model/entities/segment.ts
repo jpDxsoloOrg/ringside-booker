@@ -81,6 +81,14 @@ const segmentBaseShape = {
   rating: SegmentRatingSchema.nullable(),
 };
 
+/**
+ * A result the booker leaves to the night (MTCH2-08): `auto` lets the match decide from who is in
+ * it (the auto-winner), `random` is a coin flip with an equal chance for every side.
+ */
+export const RESULT_PLANS = ['auto', 'random'] as const;
+export const ResultPlanSchema = z.enum(RESULT_PLANS);
+export type ResultPlan = z.infer<typeof ResultPlanSchema>;
+
 /** What kind of match it is. Content keys point at data-pack catalogs owned by MTCH and WLD. */
 export const MatchDetailsSchema = z.strictObject({
   matchTypeKey: zContentKey,
@@ -89,6 +97,13 @@ export const MatchDetailsSchema = z.strictObject({
   titleIds: uniqueArray(zId('title'), 'titleIds'),
   /** The planned finish, or null to let the match decide. */
   finishKey: zContentKey.nullable(),
+  /**
+   * Set when the booker left the result to the night as Auto or Random (MTCH2-08); absent when the
+   * segment's `outcome` is the plan (or nothing is planned yet). While the show has not run, a match
+   * with a `resultPlan` has a null `outcome`; once it is completed `outcome` is the result and
+   * `resultPlan` stays as the record of how it was decided.
+   */
+  resultPlan: ResultPlanSchema.optional(),
 });
 
 export const MatchOutcomeSchema = z.discriminatedUnion('kind', [
@@ -259,6 +274,18 @@ function checkMatchSides(view: WorldView): IntegrityIssue[] {
       });
     }
     const outcome = segment.outcome;
+    if (outcome !== null && segment.match.resultPlan !== undefined) {
+      const instance = tableOf(view, eventInstancesTable).get(segment.eventInstanceId);
+      if (instance !== undefined && instance.status !== 'completed') {
+        issues.push({
+          code: 'segments.resultPlanWithOutcome',
+          table: TABLE,
+          id: segment.id,
+          path: 'match.resultPlan',
+          message: `segments ${segment.id}: planned as ${segment.match.resultPlan} but also has a planned outcome`,
+        });
+      }
+    }
     if (outcome?.kind === 'win' && !competitorSides.has(outcome.winningSide)) {
       issues.push({
         code: 'segments.winningSideWithoutCompetitor',

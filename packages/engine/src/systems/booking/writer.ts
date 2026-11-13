@@ -28,6 +28,7 @@ import {
   type AngleBeat,
   type AngleSegment,
   type MatchOutcome,
+  type ResultPlan,
   type MatchSegment,
   type Segment,
 } from '../../model/entities/segment';
@@ -61,6 +62,7 @@ export const STRUCTURAL_PROBLEM_CODES = [
   'slotOutsideFormat',
   'slotTaken',
   'notAMatch',
+  'resultPlanWithOutcome',
 ] as const;
 export type StructuralProblemCode = (typeof STRUCTURAL_PROBLEM_CODES)[number];
 
@@ -302,6 +304,13 @@ function matchProblems(
     });
   }
   problems.push(...outcomeProblems(read, draft.outcome, competitorSides, existing));
+  if (draft.match.resultPlan !== undefined && draft.outcome !== null) {
+    problems.push({
+      code: 'resultPlanWithOutcome',
+      message: 'A match is either planned or left to the night (Auto or Random), not both',
+      field: 'match.resultPlan',
+    });
+  }
   for (const titleId of draft.match.titleIds) {
     const title = read.tables.titles.get(titleId);
     if (title === undefined) {
@@ -447,6 +456,7 @@ function segmentFields(
         stipulationKeys: [...draft.match.stipulationKeys],
         titleIds: [...draft.match.titleIds],
         finishKey: draft.match.finishKey,
+        ...(draft.match.resultPlan === undefined ? {} : { resultPlan: draft.match.resultPlan }),
       },
       outcome: draft.outcome === null ? null : { ...draft.outcome },
     };
@@ -580,17 +590,22 @@ export function clearCard(tx: Tx<GameTables>, eventInstanceId: EventInstanceId):
 
 /**
  * True when a planned result can end with the planned finish (MTCH2): the same outcome kind, and
- * for a win one of the finish's methods. A result decided on the night fits any finish.
+ * for a win one of the finish's methods. Nothing planned yet fits any finish. Auto and Random
+ * (MTCH2-08) always give a winner, by any of the finish's methods, so they fit only a finish
+ * somebody wins.
  */
 function outcomeFitsFinish(
   read: GameWorldView,
   finishKey: string,
-  outcome: DeepReadonly<MatchOutcome> | null,
+  outcome: DeepReadonly<MatchOutcome> | ResultPlan | null,
 ): boolean {
   if (outcome === null) {
     return true;
   }
   const finish = finishOf(read, finishKey);
+  if (outcome === 'auto' || outcome === 'random') {
+    return finish?.outcomeKind === 'win';
+  }
   if (finish?.outcomeKind !== outcome.kind) {
     return false;
   }
@@ -601,7 +616,8 @@ function outcomeFitsFinish(
 }
 
 /**
- * Sets a match's planned result, or clears it with null (decided on the night). The winning side
+ * Sets a match's planned result, leaves it to the night as Auto or Random (MTCH2-08: `outcome` is
+ * then null and `match.resultPlan` says which), or clears it with null. The winning side
  * must have a competitor and the method must be one the game offers. A planned finish the new
  * result cannot end with (a draw on a Disqualification, a pinfall on a Count-out) goes back to
  * Auto (`finishKey: null`), so the card never holds a finish that contradicts its result.
@@ -617,7 +633,7 @@ function outcomeFitsFinish(
 export function setPlannedOutcome(
   tx: Tx<GameTables>,
   segmentId: SegmentId,
-  outcome: DeepReadonly<MatchOutcome> | null,
+  outcome: DeepReadonly<MatchOutcome> | ResultPlan | null,
   finishKey?: ContentKey | null,
 ): void {
   atomically(tx, 'booking.setPlannedOutcome', (inner) => {
@@ -631,11 +647,14 @@ export function setPlannedOutcome(
     const competitorSides = competitorSidesOf(
       read.tables.participants.lookup('bySegment', segmentId),
     );
-    const problems = outcomeProblems(read, outcome, competitorSides, segment);
+    const resultPlan = outcome === 'auto' || outcome === 'random' ? outcome : undefined;
+    const plannedOutcome: MatchOutcome | null =
+      outcome === null || outcome === 'auto' || outcome === 'random' ? null : { ...outcome };
+    const problems = outcomeProblems(read, plannedOutcome, competitorSides, segment);
     if (problems.length > 0) {
       throw new CardWriteError('setPlannedOutcome', problems);
     }
-    const planned: MatchOutcome | null = outcome === null ? null : { ...outcome };
+    const planned = resultPlan ?? plannedOutcome;
     if (
       finishKey !== undefined &&
       finishKey !== null &&
@@ -651,11 +670,18 @@ export function setPlannedOutcome(
     const current = finishKey === undefined ? segment.match.finishKey : finishKey;
     const keptFinish =
       current !== null && outcomeFitsFinish(read, current, planned) ? current : null;
-    inner.update('segments', segmentId, (previous) =>
-      previous.kind === 'match'
-        ? { ...previous, match: { ...previous.match, finishKey: keptFinish }, outcome: planned }
-        : previous,
-    );
+    inner.update('segments', segmentId, (previous) => {
+      if (previous.kind !== 'match') {
+        return previous;
+      }
+      const match = { ...previous.match, finishKey: keptFinish };
+      delete match.resultPlan;
+      return {
+        ...previous,
+        match: resultPlan === undefined ? match : { ...match, resultPlan },
+        outcome: plannedOutcome,
+      };
+    });
   });
 }
 

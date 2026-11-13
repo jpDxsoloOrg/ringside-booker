@@ -2394,3 +2394,12 @@ export {
   type SegmentTitlePlan,
   type TitlePlanKind,
 } from './systems/aip/index';
+// Auto and Random in a match's Result list (MTCH2-08): a result left to the night, stored as
+// `match.resultPlan`, and the coin-flip winner. See docs/design/match-finishes.md#auto-and-random.
+export {
+  PlannedResultSchema,
+  plannedResultOf,
+  withPlannedResult,
+  type PlannedResult,
+} from './systems/booking/draft';
+export { RESULT_PLANS, ResultPlanSchema, type ResultPlan } from './model/entities/segment';
