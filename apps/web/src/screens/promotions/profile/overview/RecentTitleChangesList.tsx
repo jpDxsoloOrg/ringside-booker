@@ -28,7 +28,7 @@ export function titleChangeHeadline(change: Pick<AipTitleChange, 'newHolderNames
   return `${winners === '' ? 'New champions' : winners} won the ${change.titleName}`;
 }
 
-/** "beat Big Joe Sato · ended a 212-day reign", "won the vacant title", or null. */
+/** "Beat Big Joe Sato · ended a 212-day reign", "Beat Big Joe Sato", or "Won the vacant title". */
 export function titleChangeDetail(
   change: Pick<AipTitleChange, 'previousHolderNames' | 'previousReignDays'>,
 ): string {

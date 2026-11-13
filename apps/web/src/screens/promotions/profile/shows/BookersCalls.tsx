@@ -13,6 +13,7 @@ import type { RivalResultSide } from './RivalResultLine';
 import styles from './BookersCalls.module.css';
 
 export const NO_BOOKERS_CALLS_TEXT = "The booker's calls are not kept for this show";
+export const BOOKERS_CALLS_ERROR_TEXT = "The booker's calls could not be looked up";
 
 /**
  * Whether the section draws: a show someone else ran that has been played out with its card
@@ -86,6 +87,12 @@ export function BookersCalls({ view }: { readonly view: ShowResultsView }) {
   const calls = useEngineQuery('aip.showDecisions', { eventInstanceId: view.eventInstanceId });
   if (calls.status === 'loading') {
     return <p className={styles['muted']}>Looking up the booker’s calls…</p>;
+  }
+  if (calls.status === 'error') {
+    // Not "not kept": the calls may well be there, the lookup failed.
+    return (
+      <EmptyState icon="warning" size="inline" headingLevel={3} title={BOOKERS_CALLS_ERROR_TEXT} />
+    );
   }
   return <BookersCallsList view={view} decisions={calls.data?.decisions ?? []} />;
 }

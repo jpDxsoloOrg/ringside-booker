@@ -1,11 +1,12 @@
 // AIP5-05: the results page's Booker's calls section, on a rival's show and never on your own.
 import { screen, within } from '@testing-library/react';
 import { beforeAll, describe, expect, it } from 'vitest';
+import { parseId } from '@ringside/engine';
 import type { ShowResultsView } from '@ringside/engine';
 import { listResultsSections } from '@/screens/show-results/resultsSectionRegistry';
 import { LOAD_MS, loadShowCardsWorld, renderWithShowCards } from '@/test/showCardsWorld';
 import type { LoadedShowCards } from '@/test/showCardsWorld';
-import { showsBookersCalls } from './BookersCalls';
+import { BOOKERS_CALLS_ERROR_TEXT, BookersCalls, showsBookersCalls } from './BookersCalls';
 import { BOOKERS_CALLS_SECTION_ID } from './registerBookersCalls';
 
 let loaded: LoadedShowCards;
@@ -59,5 +60,13 @@ describe("Booker's calls", () => {
     expect(
       section().render({ eventInstanceId: loaded.rivalShow, view: { ...rivalView, mine: true } }),
     ).toBeNull();
+  });
+
+  it('says the lookup failed, not that the calls are gone, when the query fails', async () => {
+    const missing = parseId('eventInstance', 'evi_zzzzzzzzzz');
+    renderWithShowCards(loaded, <BookersCalls view={{ ...rivalView, eventInstanceId: missing }} />);
+    expect(
+      await screen.findByText(BOOKERS_CALLS_ERROR_TEXT, undefined, { timeout: LOAD_MS }),
+    ).toBeInTheDocument();
   });
 });

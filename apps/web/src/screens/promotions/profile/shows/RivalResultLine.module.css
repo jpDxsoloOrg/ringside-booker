@@ -1,8 +1,8 @@
 /*
  * A rival match's result line. Desktop: one wrapping row, the outcome ("A def. B") in full weight,
  * then the method, finish and reason muted, then the Why?; a row per title under it, the badge
- * and its Why? kept together. Below --bp-mobile the outcome takes the whole first line, so the
- * method and reason wrap onto their own line beside the Why?.
+ * and its Why? kept together. Below --bp-mobile the outcome takes the whole first line, and the
+ * method and reason share the next one with the Why?, wrapping inside it.
  */
 .line {
   display: grid;
@@ -93,5 +93,11 @@
 @media (--bp-mobile) {
   .outcome {
     flex-basis: 100%;
+  }
+
+  /* The method and reason share their line with the Why?, wrapping inside it, so the Why? never
+     drops onto a line of its own. */
+  .details {
+    flex: 1 1 0;
   }
 }

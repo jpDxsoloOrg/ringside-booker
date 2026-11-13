@@ -13,7 +13,7 @@ import {
   galleryWinResult,
 } from '@/screens/dev-gallery/fixtures/rivalResults';
 import type { GalleryResult } from '@/screens/dev-gallery/fixtures/rivalResults';
-import { RivalResultLine } from './RivalResultLine';
+import { RivalResultLine, resultWhyLabel, titleWhyLabel } from './RivalResultLine';
 
 afterEach(() => {
   act(() => {
@@ -107,5 +107,27 @@ describe('RivalResultLine', () => {
       within(line).getByRole('link', { name: 'Maximilian Featherstonehaugh-Abernathy' }),
     ).toBeInTheDocument();
     expect(line.textContent).not.toContain(' ');
+  });
+
+  it('lists three titles in order, the result’s Why? first, then each badge’s own', () => {
+    const { line } = renderLine(galleryLongNamesResult);
+    const rows = line.querySelectorAll('li[data-actual]');
+    expect(Array.from(rows, (row) => row.getAttribute('data-actual'))).toEqual([
+      'retained',
+      'newChampion',
+      'retained',
+    ]);
+    // Tab order: the winner call, then the titles top to bottom; a title whose breakdown is gone
+    // keeps its badge and reason as plain text, with no Why?.
+    expect(
+      within(line)
+        .getAllByRole('button')
+        .map((button) => button.getAttribute('aria-label') ?? button.textContent),
+    ).toEqual([
+      resultWhyLabel(galleryLongNamesResult.matchLabel),
+      titleWhyLabel('Undisputed Trans-Pacific Openweight Heavyweight Championship', 'Retained'),
+      titleWhyLabel('Coastal Tag Team Titles', 'New champion'),
+    ]);
+    expect(rows[2]).toHaveTextContent('No challenger good enough');
   });
 });

@@ -255,7 +255,21 @@ export const gallerySummarisedResult = example(
     }),
 );
 
-/** Long team and wrestler names, to check the wrapping at 390px. */
+/** A title on a long-names match: its own id, name and trace, so three can share one line. */
+function longTitle(
+  segmentId: SegmentDecisionView['segmentId'],
+  index: number,
+  overrides: Partial<SegmentDecisionTitle>,
+): SegmentDecisionTitle {
+  const titleId = parseId('title', `tit_000000009${String(index)}`);
+  return title(segmentId, {
+    titleId,
+    traceRef: { kind: 'aip.title', id: `${segmentId}|${titleId}` },
+    ...overrides,
+  });
+}
+
+/** Long team and wrestler names with three titles on the line, to check the wrapping at 390px. */
 export const galleryLongNamesResult = example(
   [
     galleryTeam(
@@ -267,11 +281,31 @@ export const galleryLongNamesResult = example(
     gallerySide('Maximilian Featherstonehaugh-Abernathy'),
   ],
   0,
-  (winners) =>
-    view(winners, {
+  (winners) => {
+    const base = view(winners, {
       reasonText: 'Storyline finale',
       winner: { methodName: 'Disqualification', finishName: 'Interference finish' },
-    }),
+    });
+    return {
+      ...base,
+      titles: [
+        longTitle(base.segmentId, 1, {
+          titleName: 'Undisputed Trans-Pacific Openweight Heavyweight Championship',
+        }),
+        longTitle(base.segmentId, 2, {
+          titleName: 'Coastal Tag Team Titles',
+          plan: 'change',
+          reasonText: 'Time for a change: The Magnificent Brotherhood of the Eternal Steel Cage',
+          actual: 'newChampion',
+        }),
+        longTitle(base.segmentId, 3, {
+          titleName: 'Coastal Television Title',
+          reasonText: 'No challenger good enough',
+          traceRef: null,
+        }),
+      ],
+    };
+  },
 );
 
 /** Three recent title changes for the Overview panel, newest first. */

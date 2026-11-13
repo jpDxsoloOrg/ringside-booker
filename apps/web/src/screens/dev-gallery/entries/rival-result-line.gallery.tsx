@@ -19,7 +19,7 @@ const EXAMPLES: readonly { readonly title: string; readonly result: GalleryResul
   { title: 'A title retained', result: galleryRetainedResult },
   { title: 'A new champion', result: galleryNewChampionResult },
   { title: 'Full reasons no longer kept (no Why?)', result: gallerySummarisedResult },
-  { title: 'Long names', result: galleryLongNamesResult },
+  { title: 'Long names, three titles on the line', result: galleryLongNamesResult },
 ];
 
 function RivalResultLineDemo() {
