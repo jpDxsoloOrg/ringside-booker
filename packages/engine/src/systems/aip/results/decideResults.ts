@@ -96,7 +96,13 @@ import {
   VACANT_TITLE_NOTE,
   WINNERS_BOOKED_SUMMARY_KEY,
 } from './texts';
-import { titleTraceRef, winnerTraceRef } from './traces';
+import {
+  compactTrace,
+  TITLE_TRACE_DEPTH,
+  titleTraceRef,
+  WINNER_TRACE_DEPTH,
+  winnerTraceRef,
+} from './traces';
 import { WINNERS_DOC_REF } from './tunables';
 
 export const DECIDE_RESULTS_STEP_ID = 'aip.decideResults';
@@ -340,7 +346,7 @@ function championInMatch(
       championLabel,
       winnerLabel: sideLabel(inputs, side),
       winnerIds: sideOf(inputs, side)?.personIds ?? [],
-      trace: decided.plan,
+      trace: compactTrace(decided.plan, TITLE_TRACE_DEPTH),
     },
   };
 }
@@ -414,9 +420,19 @@ function noChampionHere(
       championLabel,
       winnerLabel: sideLabel(inputs, side),
       winnerIds: sideOf(inputs, side)?.personIds ?? [],
-      trace: decision.choose(option, reason),
+      trace: compactTrace(decision.choose(option, reason), TITLE_TRACE_DEPTH),
     },
   };
+}
+
+/**
+ * The title decision as one line in the winner's Why?: what was decided and why. The full decision
+ * is the title's own `aip.title` trace, so it is not stored twice.
+ */
+function titleHeadline(plan: TitlePlan): Traced<string> {
+  return startDecision<string>(titleDecisionLabel(plan.title.name), {
+    docRef: WINNERS_DOC_REF,
+  }).choose(plan.trace.value, plan.reason);
 }
 
 /** Decides one match: winner, title and method, as one combined trace. */
@@ -460,14 +476,15 @@ function decideSegment(work: SegmentWork): SegmentPlan {
       openReign: lead.openReign,
     });
     combined.note(NO_DRAWS_ON_TITLES_NOTE);
-    combined.include(titleDecisionLabel(lead.name), decided.title.trace);
+    combined.include(titleDecisionLabel(lead.name), titleHeadline(decided.title));
     winningSide = decided.side;
     titlePlan = decided.title;
     titleChanges = decided.title.kind === 'change';
     because = decided.title.reason;
   } else {
     const decided = noChampionHere(work, lead);
-    combined.include(titleDecisionLabel(lead.name), decided.title.trace);
+    combined.include(titleDecisionLabel(lead.name), titleHeadline(decided.title));
+    combined.include('Who wins', decided.winnerTrace);
     winningSide = decided.side;
     titlePlan = decided.title;
     titleChanges = decided.title.kind === 'change' || decided.title.kind === 'crown';
@@ -491,7 +508,7 @@ function decideSegment(work: SegmentWork): SegmentPlan {
       combined.note(NO_METHOD_NOTE);
       return {
         outcome: { kind: 'noContest' },
-        trace: combined.choose('noContest', NO_CONTEST_REASON),
+        trace: compactTrace(combined.choose('noContest', NO_CONTEST_REASON), WINNER_TRACE_DEPTH),
         title: titlePlan,
       };
     }
@@ -499,7 +516,11 @@ function decideSegment(work: SegmentWork): SegmentPlan {
     outcome = { kind: 'win', winningSide, methodKey: method.value };
     option = winPlanKey(winningSide);
   }
-  return { outcome, trace: combined.choose(option, because), title: titlePlan };
+  return {
+    outcome,
+    trace: compactTrace(combined.choose(option, because), WINNER_TRACE_DEPTH),
+    title: titlePlan,
+  };
 }
 
 /** "Kai Moreno vs Vance Troy". */
