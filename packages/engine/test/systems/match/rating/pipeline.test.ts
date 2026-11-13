@@ -1,6 +1,6 @@
 // The rating seams (MTCH1-05): rating modifiers on every stage, their order, the rival shortcut,
 // the policy door and swapping a rater. Design: docs/design/match-rating.md#pipeline-and-seams
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { RegistryError } from '../../../../src/core/errors';
 import { constantOf, findTraceNodes } from '../../../../src/core/trace';
 import {
@@ -20,6 +20,7 @@ import {
   type RatingPolicy,
   type RatingStage,
 } from '../../../../src/systems/match';
+import { RIVAL_RATING_POLICY_ID, rivalRatingPolicy } from '../../../../src/systems/aip';
 import { expectTraceReplays } from '../../../support/trace';
 import {
   DEFAULT_TUNABLES,
@@ -43,6 +44,13 @@ beforeEach(() => {
 
 afterEach(() => {
   resetMatchRegistriesForTests();
+});
+
+// Test files share module state (`isolate: false`), so hand the rival desk its provider back for
+// the files that run after this one in the same thread.
+afterAll(() => {
+  resetMatchRegistriesForTests();
+  registerRatingPolicyProvider(rivalRatingPolicy, { id: RIVAL_RATING_POLICY_ID });
 });
 
 /** A modifier that adds `amount` on `stage`, labelled `label`. */
