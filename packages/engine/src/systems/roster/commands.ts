@@ -12,7 +12,7 @@
 
 import { z } from 'zod';
 import { defineCommand, type CommandContext } from '../../core/api/command';
-import type { Controller } from '../../core/api/controller';
+import { controlsPromotion, type Controller } from '../../core/api/controller';
 import type { Reason } from '../../core/api/result';
 import type { EmploymentId } from '../../core/ids';
 import {
@@ -25,7 +25,6 @@ import { zId } from '../../model/primitives';
 import { compareIds } from '../../model/table';
 import type { GameWorldView } from '../../model/tables';
 import type { DeepReadonly } from '../../model/world';
-import { sameController } from '../calendar/control';
 import { setPush, type DoorContext, type DoorReason, type DoorSource } from '../workers/doors';
 import { roleHasPush } from './roleGroups';
 
@@ -123,7 +122,8 @@ function rowRefusal(
   const name = employment.ringName;
   const promotion = read.tables.promotions.get(employment.promotionId);
   // Brand controllers (D-06 brand wars) are not consulted yet: a push is the promotion's call.
-  if (promotion === undefined || !sameController(promotion.controller, issuedBy)) {
+  // `controlsPromotion` is the one controller rule: the computer may act on its own rosters.
+  if (promotion === undefined || !controlsPromotion(read, promotion.id, issuedBy)) {
     const employer = promotion?.name ?? 'another promotion';
     return {
       code: 'notAllowed',

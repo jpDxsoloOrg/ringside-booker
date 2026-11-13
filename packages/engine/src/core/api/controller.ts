@@ -16,6 +16,7 @@ import { z } from 'zod';
 import type { PromotionId } from '../ids';
 import { ControllerSchema, type Controller } from '../../model/controller';
 import type { GameWorldView } from '../../model/tables';
+import type { DeepReadonly } from '../../model/world';
 
 export { ControllerSchema, type Controller };
 
@@ -57,15 +58,32 @@ export function viewerPromotionIds(read: GameWorldView, viewer: Viewer): Promoti
     .map((promotion) => promotion.id);
 }
 
+/** True when both are the computer, or both are the same human player. */
+export function sameController(
+  left: DeepReadonly<Controller>,
+  right: DeepReadonly<Controller>,
+): boolean {
+  if (left.kind === 'human' && right.kind === 'human') {
+    return left.playerId === right.playerId;
+  }
+  return left.kind === 'computer' && right.kind === 'computer';
+}
+
 /**
- * True when `controller` runs promotion `promotionId`: a human controller whose promotions
- * ({@link viewerPromotionIds}) include it. A computer controller runs no promotion through
- * commands.
+ * True when `controller` runs promotion `promotionId` and so may issue commands for it: the same
+ * human as the promotion's `controller`, or the computer for a computer-run promotion. This is the
+ * one rule every command uses (AIP1-07): the rival desk acts on its own promotions through the
+ * same commands a player uses (D-01, D-07), and never on a player's. False for a promotion that
+ * is not in the world.
+ *
+ * Queries scope by {@link viewerPromotionIds} instead, which stays human-only: a computer seat
+ * reads no screens.
  */
 export function controlsPromotion(
   read: GameWorldView,
   promotionId: PromotionId,
-  controller: Controller,
+  controller: DeepReadonly<Controller>,
 ): boolean {
-  return viewerPromotionIds(read, controllerViewer(controller)).includes(promotionId);
+  const promotion = read.tables.promotions.get(promotionId);
+  return promotion !== undefined && sameController(promotion.controller, controller);
 }

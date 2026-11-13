@@ -1,12 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import {
+  controlsPromotion,
   createEngine,
   initialEngineState,
   viewerPromotionIds,
   type Viewer,
 } from '../../../src/core/api';
 import type { Controller } from '../../../src/model/controller';
+import { sameController } from '../../../src/systems/calendar/control';
 import { worldBuilder, type BuiltWorld } from '../../support/world-builder';
+import { testId } from '../../support/ids';
 import { tinyWorld } from '../../support/worlds';
 import { engineFor, testSystems } from './apiTestSystem';
 
@@ -154,6 +157,34 @@ describe('viewers', () => {
     expect(viewerPromotionIds(world, { kind: 'controller', controller: P2 })).toEqual([]);
     expect(viewerPromotionIds(world, { kind: 'controller', controller: COMPUTER })).toEqual([]);
     expect(viewerPromotionIds(world, { kind: 'omniscient' })).toEqual([]);
+  });
+});
+
+describe('who may issue commands for a promotion (AIP1-07: one rule)', () => {
+  it('lets the same human run their promotion and the computer run its own', () => {
+    const { world, ids } = twoPlayerWorld();
+    const promotionA = ids.promotions.A!;
+    const promotionB = ids.promotions.B!;
+    expect(controlsPromotion(world, promotionA, P1)).toBe(true);
+    expect(controlsPromotion(world, promotionA, P2)).toBe(false);
+    expect(controlsPromotion(world, promotionA, COMPUTER)).toBe(false);
+    expect(controlsPromotion(world, promotionB, COMPUTER)).toBe(true);
+    expect(controlsPromotion(world, promotionB, P1)).toBe(false);
+  });
+
+  it("agrees with the calendar's sameController on every pair", () => {
+    const { world, ids } = twoPlayerWorld();
+    for (const promotionId of [ids.promotions.A!, ids.promotions.B!]) {
+      const owner = world.tables.promotions.require(promotionId).controller;
+      for (const issuer of [P1, P2, COMPUTER]) {
+        expect(controlsPromotion(world, promotionId, issuer)).toBe(sameController(owner, issuer));
+      }
+    }
+  });
+
+  it('is false for a promotion that is not in the world', () => {
+    const { world } = twoPlayerWorld();
+    expect(controlsPromotion(world, testId('promotion', 999), COMPUTER)).toBe(false);
   });
 });
 
