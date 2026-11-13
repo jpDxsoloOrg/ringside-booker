@@ -377,6 +377,18 @@ registered ones:
 | `sim.stopDate`        | The date about to be simulated is the `stopAtDate` the player picked                                             | "Reached the date you asked to stop at"                                             |
 | `sim.repeatedFailure` | The same step failed on each of the last `sim.stopSkipAfterConsecutiveFailures` days (default 3) of this advance | Names the step and its last error message, so the player can put it in a bug report |
 
+**The systems' gates.** Registered by the system bundles:
+
+| Gate                      | System | Hits when                                                              | Reason                                                               | Hint        |
+| ------------------------- | ------ | ---------------------------------------------------------------------- | -------------------------------------------------------------------- | ----------- |
+| `shows.tonight`           | shows  | The player has an open show today (EVT2-09)                            | "Tonight: Friday Fury", or "Your show 'Friday Fury' has no card yet" | `showNight` |
+| `health.ownWorkerInjured` | health | An injury to one of the player's workers waits to be noticed (WRK6-04) | "Big Joe was injured (Sprained ankle, out until 14 March 2031)"      | `roster`    |
+
+The hints a gate can carry are the web shell's route keys: `showNight` (the
+show screen), `inbox`, `booking` and `roster` (the roster; WRK6-06 lands it on
+the Injuries tab or the worker's profile). A hint the shell does not know yet
+still gets a button with the gate's own reason.
+
 The failure count is per advance and per step. Two different phases failing on
 alternate days, or one phase failing every other day, never trips it; a phase
 that fails every day stops a ten-year skip after three days instead of running

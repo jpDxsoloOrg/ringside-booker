@@ -354,7 +354,9 @@ describe('runCli', () => {
       io,
     );
     expect(code).toBe(EXIT_OK);
-    expect(io.out()).toMatch(/rolled \d in 0\.\.1 \(stream health\.recovery\)/);
+    // A free agent's recovery is kept as a summary only (WRK6-04): its biggest steps, as a tree.
+    expect(io.out()).toMatch(/Fatigue after a day of rest: \d+ points\n {4}Daily recovery: /);
+    expect(io.out()).toContain('Extra rest');
   });
 
   it('exits 2 for bad arguments and for an unreadable world file', async () => {

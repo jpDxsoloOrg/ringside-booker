@@ -118,8 +118,10 @@ describe('the rival rating policy', () => {
     expect(aiShortcutConsumers('ai.simpleBookingInputs')).toEqual([
       { key: 'ai.simpleBookingInputs', ...consumer },
     ]);
+    // MTCH4 reads it on show night (MTCH4-04); WRK6's off-screen injuries too (WRK6-04).
     expect(aiShortcutConsumers('ai.skipInMatchInjuries')).toEqual([
       { key: 'ai.skipInMatchInjuries', featureId: 'MTCH4', label: 'Match injuries' },
+      { key: 'ai.skipInMatchInjuries', featureId: 'WRK6', label: 'Off-screen injuries' },
     ]);
   });
 });

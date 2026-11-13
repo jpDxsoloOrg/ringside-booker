@@ -13,6 +13,8 @@ const CAP_DOC = 'health.md#condition-cap';
 const CONDITION_DOC = 'health.md#condition-recovery';
 const MEDICAL_DOC = 'health.md#medical-care';
 const INJURY_DOC = 'health.md#injuries';
+const OFFSCREEN_DOC = 'health.md#off-screen-injuries';
+const GATE_DOC = 'health.md#own-injury-gate';
 
 /** A 0..3 multiplier in the Health category. */
 function multiplier(defaultValue: number, description: string, docRef: string) {
@@ -264,5 +266,72 @@ export const healthTunables = defineTunables({
     category: HEALTH_TUNABLE_CATEGORY,
     description: 'The medical care level (0 to 3) a worker with no employer gets',
     docRef: MEDICAL_DOC,
+  },
+  'health.offscreen.injuriesPerYear': {
+    kind: 'number',
+    default: 0.3,
+    min: 0,
+    max: 5,
+    step: 0.05,
+    unit: 'count',
+    category: HEALTH_TUNABLE_CATEGORY,
+    description:
+      'Off-screen injuries an average wrestler has in a year (training, travel, house shows); 0 turns them off',
+    docRef: OFFSCREEN_DOC,
+  },
+  'health.offscreen.durableMultiplier': multiplier(
+    0.6,
+    'Off-screen injury chance for a durable wrestler, as a multiple of everyone else',
+    OFFSCREEN_DOC,
+  ),
+  'health.offscreen.injuryProneMultiplier': multiplier(
+    1.6,
+    'Off-screen injury chance for an injury-prone wrestler, as a multiple of everyone else',
+    OFFSCREEN_DOC,
+  ),
+  'health.offscreen.fatigueWeight': {
+    kind: 'number',
+    default: 0.5,
+    min: 0,
+    max: 2,
+    step: 0.05,
+    unit: 'ratio',
+    category: HEALTH_TUNABLE_CATEGORY,
+    description:
+      'How much more likely a fully tired wrestler is to get hurt off-screen (0.5 = 50% more)',
+    docRef: OFFSCREEN_DOC,
+  },
+  'health.offscreen.conditionWeight': {
+    kind: 'number',
+    default: 0.5,
+    min: 0,
+    max: 2,
+    step: 0.05,
+    unit: 'ratio',
+    category: HEALTH_TUNABLE_CATEGORY,
+    description:
+      'How much more likely a wrestler with a worn-out body part (condition 0) is to get hurt off-screen',
+    docRef: OFFSCREEN_DOC,
+  },
+  'health.offscreen.computerMultiplier': {
+    kind: 'number',
+    default: 2,
+    min: 0,
+    max: 10,
+    step: 0.1,
+    unit: 'multiplier',
+    category: HEALTH_TUNABLE_CATEGORY,
+    description:
+      'Off-screen injury chance for rival wrestlers while the rival rule skips in-match injuries',
+    docRef: OFFSCREEN_DOC,
+  },
+  'health.stopOnOwnInjury': {
+    kind: 'boolean',
+    // Off until the injury screens can clear the stop (WRK6-05/06); WRK6-06 turns it on.
+    default: false,
+    unit: 'flag',
+    category: HEALTH_TUNABLE_CATEGORY,
+    description: 'Stop the day when one of your own workers gets hurt, so you see it straight away',
+    docRef: GATE_DOC,
   },
 });

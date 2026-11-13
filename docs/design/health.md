@@ -58,6 +58,11 @@ recovers 80% as fast as a 30-year-old, and anyone 58 or older half as fast.
 | `health.fatigue.coasterMultiplier`   | number  | 0.9     | 0–3   | multiplier | Recovery for a coaster, as a multiple of everyone else                          |
 | `health.fatigue.workedPromoRecovery` | number  | 0.5     | 0–1   | multiplier | Recovery after a show spent talking (a promo or angle, no match); 1 rests fully |
 
+**Whose Why? is kept.** Only the player's own workers (people a human's
+promotion or brand employs that day) keep the full recovery trace. Everyone
+else's is stored as a summary from the start (`summaryOnly`), because a long
+skip would otherwise keep a full trace for every tired rival worker every day.
+
 **The roll is always drawn**, even when `recoveryBonusMax` is 0, so every call
 takes exactly one draw from `health.recovery` and tuning never shifts the
 stream. Someone already at 0 fatigue is skipped and draws nothing.
@@ -218,12 +223,15 @@ more than it has. The loss is permanent apart from the slow, age-capped
 [condition recovery](#condition-recovery), which skips the injured part until
 they return.
 
-**What it writes.** One `injuries` row (`noticedOn` is the day itself until
-WRK6-04's own-injury gate decides it), the `person.injury` pointer
+**What it writes.** One `injuries` row (`noticedOn` is null for the player's
+own workers while `health.stopOnOwnInjury` is on, so the
+[own-injury gate](#own-injury-gate) stops the day; the day itself for everyone
+else), the `person.injury` pointer
 (`expectedReturn = today + days`), the lower condition, three traces under the
 injury id (`health.injury` for the days out, `health.injuryConditionLoss`, and
 `health.injuryChance` when the caller passed the chance that led to it), and
-the `injury.sustained` event.
+the `injury.sustained` event. The traces are full for the player's own workers
+and summaries from the start for everyone else, to keep saves small.
 
 **The contract for callers.**
 
@@ -282,3 +290,120 @@ owner's history rule instead: `health.pruneInjuryDetail` (`periodic`, order
 `history.keepDetailDays` to summaries, so the Why? says "Full breakdown is only
 kept for recent results". The per-kind trace limit (`sim.traceRetentionPerKind`)
 can summarise them sooner on a busy world.
+
+## Off-screen injuries
+
+Wrestlers get hurt away from the shows too: in training, travelling, in a
+house-show bump nobody booked. Every day, first in the `worldEvents` group,
+`health.offscreenInjuries` (`offscreen.ts`) gives every eligible wrestler in the
+world a small chance of an injury. Free agents and the player's own workers
+roll too, so the world keeps moving before any show runs. This is also how
+rival wrestlers still get hurt while the rival rule skips their in-match
+injuries ([D-01](design-decisions.md#d-01-rival-promotions-use-simplified-rules-2026-11-07), [rival-desk.md](rival-desk.md#shortcuts)).
+
+**Who rolls.** `isOffscreenEligible(person, date)`: status `active`, the role
+`wrestler` or `occasionalWrestler`, a debut on or before the day, and not
+already injured. People are visited in id order (the `byStatus` index for
+`active`).
+
+**The chance** (`formulas/offscreenInjuryChance.ts`,
+`computeOffscreenInjuryChance`), a probability for today:
+
+```
+chance = clamp(perYear / 365.25 × trait × fatigue × body × rival, 0, 1)
+perYear = health.offscreen.injuriesPerYear
+trait   = durableMultiplier for a durable wrestler, injuryProneMultiplier for an
+          injury-prone one, else 1 ("Neither durable nor injury prone")
+fatigue = 1 + fatigue / 100 × fatigueWeight                       ("Fatigue")
+body    = 1 + (100 − worst part's condition) / 100 × conditionWeight
+                                         ("Worst body part: Legs 42")
+rival   = computerMultiplier while the rival rule applies to their employer,
+          else 1
+```
+
+365.25 is fixed ("Days in a year"). The rival rule comes from AIP1's
+`aiShortcutOn(read, tunables, promotionId, 'ai.skipInMatchInjuries', brandId)`
+through `offscreenShortcutOf` (`rivalShortcut.ts`), for the worker's main
+employer and brand: computer-run, the level playing field off and the shortcut
+on. The Why? then reads "Rival rule: no in-match injuries, so more off-screen
+ones (D-01)" with the shortcut's own decision under it; a free agent's reads
+"No rival rule in this game", and a worker the rule does not cover reads "Rival
+rule does not apply". WRK6 is listed as a consumer of the shortcut on the Rival
+rules screen.
+
+**The roll.** Each eligible wrestler draws exactly once from
+`health.offscreen`, whatever the tunables say, so tuning never shifts the
+stream. On a hit the phase calls [`injure`](#injuries) with `source: 'world'`
+and the chance as `chanceTrace` (stored as `health.injuryChance`), inside a
+savepoint of its own so one bad catalog entry cannot undo the day's other
+injuries. A world with no injury catalog logs one line and rolls nothing.
+
+**Cost.** With the fast paths on (`core/fastPaths.ts`) the chance is worked out
+without its trace (`offscreenInjuryChanceValue`, the same steps in the same
+order) and the Why? is built only for the people who get hurt; the fast-path
+equivalence test checks the two agree. The employer's rival rule is worked out
+once per employer per day. Traces are stored only for injuries, as summaries
+for anyone the player does not employ, and are slimmed past
+`history.keepDetailDays` by `health.pruneInjuryDetail` like every injury trace.
+
+**Measured.** On a 228-wrestler world of free agents over 365 days
+(`test/systems/health/offscreenRate.test.ts`), 66 off-screen injuries against
+an expected 68.4 (228 × 0.3; people already out do not roll, so a little
+under). On the default world, where the rival rule doubles the rate for
+computer-run rosters, a 30-day skip gives 11 world-wide and a year 117 (seed of
+the default game, 2026-11). Measured with MTCH4-04's show-night toll merged, a
+365-day default-world save is 1.16 MB gzipped (1.59 MB with every show carded)
+and the skip takes about the same time as before: the off-screen rolls cost
+well under a second a year.
+
+| Tunable                                  | Kind   | Default | Range | Unit       | What it does                                                                |
+| ---------------------------------------- | ------ | ------- | ----- | ---------- | --------------------------------------------------------------------------- |
+| `health.offscreen.injuriesPerYear`       | number | 0.3     | 0–5   | count      | Off-screen injuries an average wrestler has in a year; 0 turns them off     |
+| `health.offscreen.durableMultiplier`     | number | 0.6     | 0–3   | multiplier | The chance for a durable wrestler, as a multiple of everyone else           |
+| `health.offscreen.injuryProneMultiplier` | number | 1.6     | 0–3   | multiplier | The chance for an injury-prone wrestler, as a multiple of everyone else     |
+| `health.offscreen.fatigueWeight`         | number | 0.5     | 0–2   | ratio      | How much more likely a fully tired wrestler is to get hurt (0.5 = 50% more) |
+| `health.offscreen.conditionWeight`       | number | 0.5     | 0–2   | ratio      | How much more likely a wrestler with a worn-out body part (condition 0) is  |
+| `health.offscreen.computerMultiplier`    | number | 2       | 0–10  | multiplier | The chance for rival wrestlers while the rival rule skips in-match injuries |
+
+## Own-injury gate
+
+When one of the player's own workers gets hurt, on a show or off it, the game
+stops so they see it straight away instead of finding out weeks later.
+
+**The notice rule.** When `injure` writes an injury, `noticedOn` is left null
+when `health.stopOnOwnInjury` is on and a human runs one of the person's
+employers that day (the brand's own controller when the brand has one, else
+the promotion's: `needsNotice` / `worksForAHuman` in `notice.ts`). Every other
+injury (rivals, free agents) is noticed on the day. The rule is decided when
+the injury is written because a gate cannot read tunables.
+
+**The gate.** `health.ownWorkerInjured` ("Your worker was injured", `gate.ts`)
+reads the `awaitingNotice` index and stops the day while any injury waits:
+
+- one waiting: "Big Joe was injured (Sprained ankle, out until 14 March 2031)",
+  with the ring name from their main contract (or their own) and the injury's
+  catalog label;
+- several: "Big Joe and 2 others were injured".
+
+The injury with the lowest id leads; `subject` is that person and `actionHint`
+is `roster`. It works alongside show night: on a show day both gates hit and the
+day control picks the leading one.
+
+**Marking it seen.** `health.acknowledgeInjuries { injuryIds }` (1 to 50 ids,
+`commands.ts`) sets `noticedOn` to today on each waiting one and publishes
+`injury.noticed { injuryIds }`. The screens that show an injury (the roster's
+Injuries tab and the health profile, WRK6-05/06) run it when they open. It
+refuses an unknown id (`unknownInjury`) and another promotion's worker's
+injury (`notYourWorker`). The player's own injuries already seen are skipped
+without a reason and nothing is written, so a screen can send everything it
+shows. An injury still waiting whose worker no human employs any more (their
+contract ended while it waited) can be marked by the player, so a waiting
+injury never blocks the day for good.
+
+**Turning it off.** Set `health.stopOnOwnInjury` to off: new injuries are then
+noticed on the day and never stop a skip. Injuries already waiting still need
+marking as seen.
+
+| Tunable                  | Kind    | Default | Unit | What it does                                        |
+| ------------------------ | ------- | ------- | ---- | --------------------------------------------------- |
+| `health.stopOnOwnInjury` | boolean | on      | flag | Stop the day when one of your own workers gets hurt |
