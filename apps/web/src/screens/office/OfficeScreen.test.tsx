@@ -1,70 +1,241 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it } from 'vitest';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
+import { createMemoryRouter, RouterProvider } from 'react-router-dom';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { EngineState } from '@ringside/engine';
+import { LiveAnnouncer } from '@/app/a11y/LiveAnnouncer';
+import { StatusChips } from '@/app/AppShell/status/StatusChips';
+import { EngineProvider } from '@/app/engine/EngineProvider';
+import { createInProcessTransport } from '@/app/engine/transport';
+import type { InProcessTransport } from '@/app/engine/transport';
+import { routerFutureFlags, routerProviderFutureFlags } from '@/app/router';
+import { routes } from '@/app/routes';
+import { useSessionStore } from '@/app/session/sessionStore';
+import { fakeEngineFactory, fakeEngineState } from '@/test/fakeEngine';
 import { OfficeScreen } from './OfficeScreen';
-import {
-  sampleCard,
-  sampleChampionships,
-  sampleKpis,
-  sampleRosterLeaders,
-} from './sampleDashboard';
+import { PANEL_ERROR_TITLE } from './panels/OfficePanelFrame';
+import { registerOfficePanel } from './panels/officePanelRegistry';
 
-function renderOffice(): void {
+/** The engine's first answer can take a moment under load. */
+const LOAD_MS = 10_000;
+
+/**
+ * Days simulated before the Office opens. The tiny world starts on Friday 10 April 2026, so this
+ * crosses three Mondays (13, 20 and 27 April), leaving three weekly rows, and today is Tuesday 28.
+ */
+const DAYS_PLAYED = 18;
+
+const KPI_LABELS = ['Cash', 'Popularity', 'Prestige', 'Roster', 'Average morale'] as const;
+
+/** Hands every promotion and brand to the computer, so the local seat runs none. */
+function withoutHumanPromotion(state: EngineState): EngineState {
+  const { tables } = state.world;
+  return {
+    ...state,
+    world: {
+      ...state.world,
+      tables: {
+        ...tables,
+        promotions: tables.promotions.map((promotion) => ({
+          ...promotion,
+          controller: { kind: 'computer' as const },
+        })),
+        brands: tables.brands.map((brand) =>
+          brand.controller === null
+            ? brand
+            : { ...brand, controller: { kind: 'computer' as const } },
+        ),
+      },
+    },
+  };
+}
+
+interface RenderOptions {
+  readonly daysPlayed?: number;
+  readonly noPromotion?: boolean;
+}
+
+async function renderOffice(options: RenderOptions = {}): Promise<InProcessTransport> {
+  const transport = createInProcessTransport(fakeEngineFactory(), { progressIntervalMs: 0 });
+  const state = fakeEngineState();
+  const install = transport.host.installEngine(
+    options.noPromotion === true ? withoutHumanPromotion(state) : state,
+  );
+  if (options.daysPlayed !== undefined) {
+    await transport.host.advanceDays({ maxDays: options.daysPlayed }, () => undefined);
+  }
+  useSessionStore.getState().setLoaded({ saveSlotId: null, seat: install.seat });
+
+  const router = createMemoryRouter(
+    [
+      {
+        path: routes.game.office(),
+        element: (
+          <LiveAnnouncer>
+            <OfficeScreen />
+          </LiveAnnouncer>
+        ),
+      },
+    ],
+    { initialEntries: [routes.game.office()], future: routerFutureFlags },
+  );
   render(
-    <MemoryRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
-      <OfficeScreen />
-    </MemoryRouter>,
+    <EngineProvider createTransport={() => transport}>
+      <RouterProvider router={router} future={routerProviderFutureFlags} />
+    </EngineProvider>,
+  );
+  return transport;
+}
+
+async function findKeyNumbers(): Promise<HTMLElement> {
+  return screen.findByRole('group', { name: 'Key numbers' }, { timeout: LOAD_MS });
+}
+
+/** The ids of the panels drawn in a column, top to bottom. */
+function panelIdsIn(column: 'main' | 'side'): (string | null)[] {
+  const element = document.querySelector(`[data-office-column="${column}"]`);
+  if (element === null) return [];
+  return Array.from(element.querySelectorAll('[data-office-panel]')).map((panel) =>
+    panel.getAttribute('data-office-panel'),
   );
 }
 
-describe('OfficeScreen (placeholder dashboard)', () => {
-  it('is titled Dashboard and says plainly that it shows sample data', async () => {
-    renderOffice();
+const removers: (() => void)[] = [];
+
+afterEach(() => {
+  act(() => {
+    for (const remove of removers.splice(0)) remove();
+  });
+  vi.restoreAllMocks();
+});
+
+describe('OfficeScreen', () => {
+  it('is titled Dashboard and shows no sample data', async () => {
+    await renderOffice();
 
     expect(screen.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeInTheDocument();
-    expect(screen.getByText('Placeholder')).toBeInTheDocument();
-    expect(screen.getByRole('note')).toHaveTextContent(
-      'Every name and number on this page is invented',
-    );
+    await findKeyNumbers();
+    expect(screen.queryByText(/sample data/iu)).toBeNull();
+    expect(screen.queryByText('Placeholder')).toBeNull();
     await waitFor(() => {
       expect(document.title).toBe('Dashboard · Ringside Booker');
     });
   });
 
-  it('shows a KPI card for every sample number', () => {
-    renderOffice();
+  it('shows the five key numbers, with the cash the top bar shows', async () => {
+    const transport = await renderOffice({ daysPlayed: DAYS_PLAYED });
 
-    const grid = screen.getByRole('group', { name: 'Key numbers' });
-    for (const kpi of sampleKpis) {
-      expect(
-        within(grid).getByRole('group', { name: new RegExp(kpi.label, 'i') }),
-      ).toBeInTheDocument();
+    const grid = await findKeyNumbers();
+    for (const label of KPI_LABELS) {
+      expect(within(grid).getByRole('group', { name: label })).toBeInTheDocument();
     }
-  });
 
-  it('shows the upcoming card with every slot, including the open one', () => {
-    renderOffice();
-
-    expect(
-      screen.getByRole('heading', { level: 2, name: 'Longleaf Saturday Night' }),
-    ).toBeInTheDocument();
-    const card = screen.getByRole('list', { name: 'Card' });
-    expect(card.querySelectorAll(':scope > li')).toHaveLength(sampleCard.length);
-    expect(within(card).getByText('Open slot')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Manage card' })).toHaveAttribute(
-      'href',
-      '/game/booking',
+    const status = await transport.host.query('sim.status', {});
+    if (!status.result.ok) throw new Error('sim.status was refused');
+    render(
+      <EngineProvider createTransport={() => transport}>
+        <StatusChips status={status.result.data} placement="bar" />
+      </EngineProvider>,
     );
+    const chipMoney = within(screen.getByTestId('cash-chip')).getByText(/\$/u).textContent;
+    expect(chipMoney).not.toBe('');
+    const cashCard = within(grid).getByRole('group', { name: 'Cash' });
+    expect(within(cashCard).getByText(chipMoney)).toBeInTheDocument();
   });
 
-  it('shows the champions, the last show and the roster leaders', () => {
-    renderOffice();
+  it('opens the change since last week in the Why? panel, naming both dates', async () => {
+    await renderOffice({ daysPlayed: DAYS_PLAYED });
+    const user = userEvent.setup({ delay: null });
 
-    const champions = screen.getByRole('region', { name: 'Champions' });
-    expect(within(champions).getAllByRole('article')).toHaveLength(sampleChampionships.length);
-    expect(screen.getByRole('group', { name: 'Last show' })).toBeInTheDocument();
-    const table = screen.getByRole('grid', { name: 'Roster leaders' });
-    // One header row plus a row per leader.
-    expect(within(table).getAllByRole('row')).toHaveLength(sampleRosterLeaders.length + 1);
+    const grid = await findKeyNumbers();
+    const cashCard = within(grid).getByRole('group', { name: 'Cash' });
+    expect(within(cashCard).getByText('vs last week')).toBeInTheDocument();
+    expect(within(cashCard).getByRole('img', { name: /^Cash, last 8 weeks/u })).toBeInTheDocument();
+    await user.click(within(cashCard).getByRole('button', { name: /^Why is change in cash/u }));
+
+    const panel = await screen.findByRole('dialog', { name: /Change in cash since/u });
+    expect(panel).toHaveTextContent('Tue 28 Apr');
+    expect(panel).toHaveTextContent('Mon 20 Apr');
+  });
+
+  it('draws a registered panel in its column and order, and drops it once removed', async () => {
+    removers.push(
+      registerOfficePanel({
+        id: 'test.later',
+        order: 40,
+        column: 'main',
+        render: () => <p>Later panel</p>,
+      }),
+      registerOfficePanel({
+        id: 'test.earlier',
+        order: 30,
+        column: 'main',
+        render: () => <p>Earlier panel</p>,
+      }),
+      registerOfficePanel({ id: 'test.nothing', order: 35, column: 'main', render: () => null }),
+    );
+    const removeSide = registerOfficePanel({
+      id: 'test.side',
+      order: 5,
+      column: 'side',
+      render: () => <p>Side panel</p>,
+    });
+    removers.push(removeSide);
+    await renderOffice();
+
+    await screen.findByText('Side panel', undefined, { timeout: LOAD_MS });
+    expect(panelIdsIn('main')).toEqual(['test.earlier', 'test.later']);
+    expect(panelIdsIn('side')).toEqual(['test.side', 'day2.worldClock']);
+
+    act(() => {
+      removeSide();
+    });
+    await waitFor(() => {
+      expect(screen.queryByText('Side panel')).toBeNull();
+    });
+    expect(panelIdsIn('side')).toEqual(['day2.worldClock']);
+  });
+
+  it('shows a broken panel as one that could not load, and keeps the key numbers', async () => {
+    const logged = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    function Broken(): never {
+      throw new Error('The test panel broke on purpose');
+    }
+    removers.push(
+      registerOfficePanel({
+        id: 'test.broken',
+        order: 30,
+        column: 'main',
+        render: () => <Broken />,
+      }),
+    );
+    await renderOffice();
+
+    const grid = await findKeyNumbers();
+    expect(await screen.findByText(PANEL_ERROR_TITLE)).toBeInTheDocument();
+    expect(screen.getByText('test.broken')).toBeInTheDocument();
+    expect(within(grid).getByRole('group', { name: 'Cash' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'World clock' })).toBeInTheDocument();
+    const ownLogs = logged.mock.calls.filter(
+      ([message]) => typeof message === 'string' && message.includes('"test.broken"'),
+    );
+    expect(ownLogs).toHaveLength(1);
+  });
+
+  it('shows a seat with no promotion the world overview and no key numbers', async () => {
+    await renderOffice({ noPromotion: true });
+
+    const table = await screen.findByRole(
+      'grid',
+      { name: 'Promotions in the world' },
+      { timeout: LOAD_MS },
+    );
+    expect(screen.getByText('World overview')).toBeInTheDocument();
+    expect(screen.queryByRole('group', { name: 'Key numbers' })).toBeNull();
+    expect(within(table).getAllByRole('row').length).toBeGreaterThan(1);
+    expect(screen.getByText(/ under contract · /u)).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'World clock' })).toHaveTextContent(
+      'Friday, April 10, 2026',
+    );
   });
 });

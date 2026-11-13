@@ -314,6 +314,8 @@ Queries other systems add:
 | `shows.completedSince` | `{ from, to, scope, limit? }`                                                                    | The shows completed with `from <= date < to`, newest first ([show-night.md](show-night.md#results-queries))                                             |
 | `match.aftermath`      | `{ segmentId }` or `{ eventInstanceId }`                                                         | Stored aftermath rows by match in card order ([match-aftermath.md](match-aftermath.md#stored-aftermaths))                                               |
 | `match.recentForm`     | `{ personId, limit? }`                                                                           | A worker's last run matches, newest first, with the stored changes ([match-aftermath.md](match-aftermath.md#recent-form))                               |
+| `office.dashboard`     | `{}`                                                                                             | The clock and the viewer's KPI cards with deltas and trends, or a public world overview ([office.md](office.md#queries))                                |
+| `office.series`        | `{ subject, metric, from, to }`                                                                  | One promotion's history column; a rival's cash and morale are `hidden` ([office.md](office.md#queries))                                                 |
 
 The calendar queries share one row, `CalendarShow`. `scope` is `mine` or
 `world`; a window may cover at most 366 days and is refused with

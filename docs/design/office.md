@@ -2,9 +2,9 @@
 
 The Office is the promotion's front page: cash, prestige, popularity, roster
 and morale, with how each has moved. DAY2 builds it in steps. This doc starts
-with the history behind it (DAY2-01); the headline figure, the deltas and
-sparklines (DAY2-02, DAY2-03) and the screen itself (DAY2-04) add their own
-sections.
+with the history behind it (DAY2-01); the headline figure (DAY2-02), the
+KPIs, deltas and sparklines with their queries (DAY2-03) and the screen itself
+(DAY2-04) add their own sections.
 
 Code: `packages/engine/src/systems/office/`.
 
@@ -124,6 +124,8 @@ DAY4 (rankings) and POL2 (balance charts).
 | `office.trend.weeks`             | 8       | 2–52  | Weeks shown in a KPI sparkline (read by DAY2-03)                           |
 | `office.delta.lookbackDays`      | 7       | 1–90  | How far back a KPI delta compares (read by DAY2-03)                        |
 
+DAY2-03 adds `office.morale.namedInWhy` (see [KPIs and deltas](#kpis-and-deltas)).
+
 ## Headline popularity
 
 A promotion's popularity is stored per region and rolled up by population to
@@ -229,3 +231,192 @@ it stands then; EVT5's show change publishes `popularity.changed`, so a
 "Recent shows" section is current after every show. The function
 `registerPopularityTraceSection` returns removes the section (for tests).
 EVT5-04's "Recent shows" lines are expected to be the first user.
+
+## KPIs and deltas
+
+DAY2-03 turns the history into the Office's cards. Code:
+`dashboard/kpis.ts` (assembly), `formulas/kpiDelta.ts`, `formulas/rosterSize.ts`,
+`formulas/averageMorale.ts` and `history/compare.ts`.
+
+### The cards
+
+| Key                   | Card           | Live value                                                 | Why?                                                    | Footer                   |
+| --------------------- | -------------- | ---------------------------------------------------------- | ------------------------------------------------------- | ------------------------ |
+| `cash`                | Cash           | The promotion row's cash (equals `sim.status`)             | ECO1's stored `finance.cash` trace (`traceRef`)         | none                     |
+| `popularity.headline` | Popularity     | The stored headline Why?'s value (equals `sim.status`)     | DAY2-02's stored `office.popularity` trace (`traceRef`) | "In <country>"           |
+| `prestige`            | Prestige       | The promotion row's prestige                               | None until ECO2 moves prestige                          | none                     |
+| `rosterSize`          | Roster         | Active contracts that have started (the snapshot's rule)   | `rosterSize`, inline                                    | "44 wrestlers · 11 crew" |
+| `averageMorale`       | Average morale | The mean morale of those contracts; null ("–") with nobody | `averageMorale`, inline                                 | none                     |
+
+Then every [registered field](#the-registry) with `kpi` set, by `kpi.order`
+(then key). Its extract is re-run live: a traced extract gives the card its
+inline Why?, a plain number gives none. Owner-only fields are shown: the
+dashboard only builds cards for the viewer's own promotion. A popularity
+figure with no stored Why? yet (a world made before DAY2-02, until its first
+Monday) is built on the read and shown inline instead.
+
+Inline traces (`trace`) are used for numbers worked out on the read (deltas,
+roster, morale); stored refs (`traceRef`) only where a system already records
+one. Nothing new is kept in the trace store, and every Why? is current. On the
+default world Altura's dashboard is about 7 kB of JSON (target: under 30 kB,
+since the screen refetches it after every simulated day).
+
+- **Roster size**: one line per role with anyone in it ("Wrestlers 44"),
+  added up.
+- **Average morale**: each role group as one line ("Wrestlers: 44 contracts,
+  average 12.0", adding that group's total), divided by the number of
+  contracts, then notes naming the `office.morale.namedInWhy` lowest ("Low
+  morale: <ring name> -6.0"; lowest first, then by name). Nobody under
+  contract gives 0 with the note "Nobody is under contract"; the card shows
+  "–".
+
+| Key                        | Default | Range | Meaning                                                 |
+| -------------------------- | ------- | ----- | ------------------------------------------------------- |
+| `office.morale.namedInWhy` | 3       | 0–10  | Lowest-morale people named in the average morale's Why? |
+
+### The delta rule
+
+"Last week" is a lookback rule, not a calendar rule, so it still works after a
+long skip or a mid-week start. A card compares with the **latest row dated on
+or before `today − office.delta.lookbackDays`** (`previousSnapshot`). Every
+card uses the same row. With no such row, or a row that lacks the metric (a
+field registered later, no morale to average), the card has `delta: null`:
+never a fake 0.
+
+`kpiDelta` works out `delta = current − previous`, unrounded (screens round).
+Its Why?: "Change in <label> since <date>", starting from "This week
+(<today>)" (or the live value's own nested Why?), minus "Last week (<date>)",
+with dates such as "Mon 11 Jan". Notes make an odd comparison visible:
+
+- a row older than the lookback plus 6 days: "The last record before that is
+  from <date>, <n> days ago" (and the line reads "Last record (<date>)");
+- a monthly row: "Older weeks are kept as one record a month, so this compares
+  with a monthly record";
+- the baseline row: "This compares with the day the game began".
+
+### Trends
+
+A card's `trend` is its rows dated after `today − 7 × office.trend.weeks` and
+before today, oldest first, then the live value dated today, so a sparkline
+always ends at "now". A row without the metric is skipped, not drawn as 0. A
+null live value (no morale) adds no last point.
+
+## World clock
+
+`office.dashboard`'s `clock` (`dashboard/clock.ts`): `date`, `weekday` and
+`dayNumber` as `clock.get`; `season` (`number`, `startDate`, `endDate`,
+`week`, 1 for the season's first seven days, and `daysLeft`, 0 on its last
+day) or null before the first season; and `nextSnapshotOn`, the next Monday on
+or after today (`nextOccurrence` of the weekly phase's cadence), since today's
+row is taken when today is simulated. Dates only: the game has no time of day.
+
+## Queries
+
+### `office.dashboard`
+
+Args `{}`. Result:
+
+```ts
+{
+  date, clock,
+  promotion: { promotionId, name, shortName, logoRef, color } | null,
+  kpis: OfficeKpi[],
+  worldOverview: WorldOverview | null,
+}
+
+OfficeKpi = {
+  key, label, unit, value: number | null,
+  trace: TraceNode | null, traceRef: TraceRef | null,
+  goodWhen: 'up' | 'down',
+  delta: { value, trace, previousDate, previousValue } | null,
+  trend: { dates, values },
+  footer: string | null,
+}
+```
+
+`promotion` is the viewer's first promotion (`viewerPromotionIds`). KPIs come
+only with a promotion; the world overview only without one. It never refuses:
+the omniscient viewer, a computer seat and a human who runs nothing get the
+overview.
+
+`WorldOverview` (`dashboard/worldOverview.ts`) holds public facts only, no
+cash and no morale of anyone:
+
+- `promotions`: every active promotion's `promotionId`, `name`, `shortName`,
+  `logoRef`, `color`, `homeCountryName`, `headline`
+  (`headlinePopularityValue`), `prestige`, `rosterSize` and `status`; most
+  popular first, then by prestige, then by id;
+- `freeAgents`: active people with the wrestler role and no active contract;
+- `totals`: `{ promotions, wrestlersUnderContract }`.
+
+### `office.series`
+
+Args `{ subject: { kind: 'promotion', id }, metric, from, to }`. Result
+`{ metric: { key, label, unit }, points: { date, value, granularity }[] }` in
+date order; rows without the metric are left out. `metric` is a built-in
+column or a registered field key:
+
+| Metric                       | Visibility |
+| ---------------------------- | ---------- |
+| `cash`                       | owner      |
+| `averageMorale`              | owner      |
+| `prestige`                   | public     |
+| `popularity.headline`        | public     |
+| `popularity.world`           | public     |
+| `popularity.homeRegionValue` | public     |
+| `rosterSize`                 | public     |
+| a registered field           | its own    |
+
+Anyone may read a promotion's public columns. Only the human who runs a
+promotion may read its owner-only columns (D-07: rival finances and morale
+are hidden, as WRK1 hides rival morale); the omniscient viewer reads
+everything. Refusals, in this order:
+
+| Code               | When                                   | Message                                                        |
+| ------------------ | -------------------------------------- | -------------------------------------------------------------- |
+| `unknownMetric`    | Neither a built-in column nor a field  | "The Office keeps no history of that"                          |
+| `unknownPromotion` | No such promotion                      | "There is no such promotion"                                   |
+| `badRange`         | `from` is after `to`                   | "The start date is after the end date"                         |
+| `hidden`           | An owner-only column of someone else's | "Only <promotion> knows its own <cash / morale / field label>" |
+| `rangeTooLong`     | More than 1,000 points                 | "That is more than 1000 records; pick a shorter stretch"       |
+
+Later users: ECO2's prestige sparkline, ECO3's hype history, SOC3's morale
+trend, AIP5's hot-shot history, DAY4's rankings and POL2's balance charts.
+
+## Screen
+
+DAY2-04 turns `/game/office` (nav label "Dashboard") into the live Office. Code:
+`apps/web/src/screens/office/`. Every number on it comes from `office.dashboard` or from a
+registered panel's own query; nothing is invented and nothing says "coming soon".
+
+![The Office on desktop](screenshots/office-desktop.png)
+
+- **Heading**: "Dashboard", with "<promotion> · Week <n> of Season <s>" under it (the promotion
+  alone before the first season, "World overview" for a seat that runs none).
+- **Key numbers**: one `OfficeKpiCard` per `OfficeKpi`, in the engine's order. The number is
+  formatted by unit (money in the viewer's money style, so the Cash card always reads like the top
+  bar's cash chip; points to one decimal; counts whole), with its Why? when the KPI has a `trace`
+  or a `traceRef`. Once a week-old row exists the card has a delta chip ("−$333.9K vs last week")
+  with its own Why? ("Change in cash since Mon 1 Feb", naming both dates), drawn through
+  `KpiCard`'s `delta.why`. With two or more points the card draws the trend as a sparkline ("last 8
+  weeks"). A null value shows "–" with no Why?.
+- **Panels**: below the cards, a wide main column and a narrower side column of panels registered
+  with `registerOfficePanel` (see `apps/web/src/app/README.md#the-office`). Each sits in an
+  `OfficePanelFrame`, so a panel that throws shows "This panel couldn't load" (its id under
+  Details) and the rest of the Office keeps working; a panel with nothing to show takes no room.
+  DAY2's own panels: the **world clock** (side, order 10: the long date, "Day 41 of your game",
+  "Season 1 · week 6 · 141 days left" or "No season running", "Next weekly report: Monday 15
+  February") and the **world overview** (main, order 20, only for a seat with no promotion: every
+  promotion's logo, name, home country, popularity, prestige and roster, with "12 promotions · 228
+  wrestlers under contract · 35 free agents" above).
+- **Loading and refusals**: card-shaped placeholders without numbers while the first answer
+  loads; the engine's reason in an empty state when it refuses (a shell with no game loaded reads
+  "No game is loaded"). The query keeps its last answer while a new day is simulated, so the cards
+  never flash empty after Next Day.
+
+![The Office on a phone](screenshots/office-phone.png)
+
+On a phone (below `--bp-mobile`) the cards go 2-up, each sparkline takes its own full-width row
+under the number and chip, the delta's Why? drops under its chip rather than squeezing it, and the
+panels become one column in `order` across both columns. Every Why? is a 44px target and opens
+the breakdown as a bottom sheet. At 360px, 390px and at 150% UI scale nothing scrolls sideways.

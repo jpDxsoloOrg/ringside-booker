@@ -1,0 +1,32 @@
+/* DAY2's own Office panels: the world clock and the world overview. Office register: calm. */
+.clock {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.clockDate {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-snug);
+  overflow-wrap: break-word;
+}
+
+.clockLines {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: var(--font-feature-tabular);
+  list-style: none;
+}
+
+.totals {
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: var(--font-feature-tabular);
+  overflow-wrap: break-word;
+}

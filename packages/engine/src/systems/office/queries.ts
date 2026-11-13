@@ -7,22 +7,34 @@
  * stored trace when there is one (the same entry `sim.status` reads), otherwise it is built on the
  * read; the drill-down is always built on the read, so nothing new is kept in the trace store.
  *
- * Design: docs/design/office.md#headline-popularity.
+ * DAY2-03 adds `office.dashboard` (the Office's KPI cards with deltas and sparklines, its world
+ * clock, and a public world overview for a seat that runs no promotion) and `office.series` (one
+ * history column of one promotion; owner-only columns of rivals are refused).
+ *
+ * Design: docs/design/office.md#headline-popularity and #queries.
  */
 
 import { z } from 'zod';
 import { viewerPromotionIds } from '../../core/api/controller';
-import { defineQuery, type QueryDefinition } from '../../core/api/query';
+import { compareDates, type GameDate } from '../../core/date';
+import { defineQuery, type QueryContext, type QueryDefinition } from '../../core/api/query';
 import { refuseQuery } from '../../core/api/result';
 import type { PromotionId } from '../../core/ids';
 import { isFullTrace, type TraceRef } from '../../core/trace/store';
-import { zId } from '../../model/primitives';
+import type { PromotionSnapshotGranularity } from '../../model/entities/promotion-snapshot';
+import { zGameDate, zId } from '../../model/primitives';
 import {
   popularityRollup,
   popularityRollupView,
   type PopularityRollupView,
 } from '../world/formulas/popularityRollup';
 import { geographyOf } from '../world/geography';
+import { officeClock, type OfficeClock } from './dashboard/clock';
+import { buildKpis, type OfficeKpi } from './dashboard/kpis';
+import { worldOverview, type WorldOverview } from './dashboard/worldOverview';
+import { promotionHistory } from './history/compare';
+import { officeMetric } from './history/metrics';
+import type { SnapshotFieldUnit } from './history/snapshotFields';
 import { headlinePopularityOf } from './popularity';
 import { popularityTraceRef } from './traces';
 import type { HeadlineScope } from './tunables';
@@ -53,6 +65,8 @@ export interface FanBaseView {
 declare module '../../core/api/maps' {
   interface QueryMap {
     'office.fanBase': { args: { promotionId?: PromotionId }; result: FanBaseView };
+    'office.dashboard': { args: Record<string, never>; result: OfficeDashboard };
+    'office.series': { args: OfficeSeriesArgs; result: OfficeSeries };
   }
 }
 
@@ -99,4 +113,160 @@ export const fanBaseQuery: QueryDefinition<'office.fanBase'> = defineQuery('offi
   },
 });
 
-export const officeQueries: readonly QueryDefinition[] = [fanBaseQuery];
+// ---------------------------------------------------------------------------------------------
+// office.dashboard and office.series (DAY2-03). Design: docs/design/office.md#queries.
+
+/** The reason code for a metric key that is neither a built-in column nor a registered field. */
+export const UNKNOWN_METRIC = 'unknownMetric';
+/** The reason code for a series whose `from` is after its `to`. */
+export const BAD_RANGE = 'badRange';
+/** The reason code for a series with more than {@link MAX_SERIES_POINTS} points. */
+export const RANGE_TOO_LONG = 'rangeTooLong';
+/** The reason code for a rival's owner-only column (cash, morale). */
+export const HIDDEN = 'hidden';
+/** The most points one `office.series` call returns. */
+export const MAX_SERIES_POINTS = 1000;
+
+/** `office.dashboard`: the Office's front page. */
+export interface OfficeDashboard {
+  date: GameDate;
+  clock: OfficeClock;
+  /** The viewer's first promotion, or null for a seat that runs none. */
+  promotion: {
+    promotionId: PromotionId;
+    name: string;
+    shortName: string;
+    logoRef: string | null;
+    color: string;
+  } | null;
+  /** The KPI cards of `promotion`; empty when there is none. */
+  kpis: OfficeKpi[];
+  /** Every promotion's public facts, only for a seat that runs no promotion. */
+  worldOverview: WorldOverview | null;
+}
+
+/** `office.series` arguments. */
+export interface OfficeSeriesArgs {
+  subject: { kind: 'promotion'; id: PromotionId };
+  /** A built-in column (`cash`, `prestige`, `popularity.headline`, ...) or a registered field key. */
+  metric: string;
+  from: GameDate;
+  to: GameDate;
+}
+
+/** `office.series`: one history column of one promotion over a date range. */
+export interface OfficeSeries {
+  metric: { key: string; label: string; unit: SnapshotFieldUnit };
+  /** In date order; rows without the metric are left out. */
+  points: { date: GameDate; value: number; granularity: PromotionSnapshotGranularity }[];
+}
+
+const noArgs: z.ZodType<Record<string, never>> = z.strictObject({});
+
+export const dashboardQuery: QueryDefinition<'office.dashboard'> = defineQuery('office.dashboard', {
+  args: noArgs,
+  run: (ctx) => {
+    const promotionId = viewerPromotionIds(ctx.read, ctx.viewer)[0];
+    const promotion =
+      promotionId === undefined ? undefined : ctx.read.tables.promotions.get(promotionId);
+    const clock = officeClock(ctx.read, ctx.date);
+    if (promotion === undefined) {
+      return {
+        date: ctx.date,
+        clock,
+        promotion: null,
+        kpis: [],
+        worldOverview: worldOverview(ctx.read, ctx.tunables, ctx.date),
+      };
+    }
+    return {
+      date: ctx.date,
+      clock,
+      promotion: {
+        promotionId: promotion.id,
+        name: promotion.name,
+        shortName: promotion.shortName,
+        logoRef: promotion.logoRef,
+        color: promotion.color,
+      },
+      kpis: buildKpis(ctx, promotion.id),
+      worldOverview: null,
+    };
+  },
+});
+
+/** True when `viewer` may read `promotionId`'s owner-only columns. */
+function seesPrivateColumns(
+  ctx: Pick<QueryContext, 'read' | 'viewer'>,
+  promotionId: PromotionId,
+): boolean {
+  return (
+    ctx.viewer.kind === 'omniscient' ||
+    viewerPromotionIds(ctx.read, ctx.viewer).includes(promotionId)
+  );
+}
+
+export const seriesQuery: QueryDefinition<'office.series'> = defineQuery('office.series', {
+  args: z.strictObject({
+    subject: z.strictObject({ kind: z.literal('promotion'), id: zId('promotion') }),
+    metric: z.string(),
+    from: zGameDate,
+    to: zGameDate,
+  }),
+  run: (ctx, args) => {
+    const metric = officeMetric(args.metric);
+    if (metric === undefined) {
+      return refuseQuery({
+        code: UNKNOWN_METRIC,
+        message: 'The Office keeps no history of that',
+        field: 'metric',
+      });
+    }
+    const promotion = ctx.read.tables.promotions.get(args.subject.id);
+    if (promotion === undefined) {
+      return refuseQuery({
+        code: UNKNOWN_PROMOTION,
+        message: 'There is no such promotion',
+        field: 'subject',
+      });
+    }
+    if (compareDates(args.from, args.to) > 0) {
+      return refuseQuery({
+        code: BAD_RANGE,
+        message: 'The start date is after the end date',
+        field: 'from',
+      });
+    }
+    if (metric.visibility === 'owner' && !seesPrivateColumns(ctx, promotion.id)) {
+      return refuseQuery({
+        code: HIDDEN,
+        message: `Only ${promotion.name} knows its own ${metric.privateNoun}`,
+        field: 'metric',
+      });
+    }
+    const points: OfficeSeries['points'] = [];
+    for (const row of promotionHistory(ctx.read, promotion.id)) {
+      if (compareDates(row.date, args.from) < 0 || compareDates(row.date, args.to) > 0) {
+        continue;
+      }
+      const value = metric.fromRow(row);
+      if (value !== null) {
+        points.push({ date: row.date, value, granularity: row.granularity });
+      }
+    }
+    if (points.length > MAX_SERIES_POINTS) {
+      return refuseQuery({
+        code: RANGE_TOO_LONG,
+        message: `That is more than ${String(MAX_SERIES_POINTS)} records; pick a shorter stretch`,
+        field: 'from',
+      });
+    }
+    return { metric: { key: metric.key, label: metric.label, unit: metric.unit }, points };
+  },
+});
+
+export const officeQueries: readonly QueryDefinition[] = [
+  fanBaseQuery,
+  dashboardQuery,
+  seriesQuery,
+];

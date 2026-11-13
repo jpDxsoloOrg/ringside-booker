@@ -25,6 +25,8 @@ export interface KpiCardDelta {
   readonly suffix?: ReactNode;
   /** `up` by default; `down` for numbers that are better lower, such as payroll. */
   readonly goodWhen?: DeltaGoodWhen;
+  /** Slot for a Why? chip that explains the change, drawn right after the delta chip. */
+  readonly why?: ReactNode;
 }
 
 /** The recent series drawn as a sparkline next to the number. */
@@ -97,13 +99,16 @@ export function KpiCard({
           {unit !== undefined && <span className={styles['unit']}>{unit}</span>}
         </span>
         {delta !== undefined && (
-          <DeltaChip
-            value={delta.value}
-            {...(delta.display === undefined ? {} : { display: delta.display })}
-            {...(delta.suffix === undefined ? {} : { suffix: delta.suffix })}
-            {...(delta.goodWhen === undefined ? {} : { goodWhen: delta.goodWhen })}
-            className={styles['delta']}
-          />
+          <span className={styles['deltaGroup']}>
+            <DeltaChip
+              value={delta.value}
+              {...(delta.display === undefined ? {} : { display: delta.display })}
+              {...(delta.suffix === undefined ? {} : { suffix: delta.suffix })}
+              {...(delta.goodWhen === undefined ? {} : { goodWhen: delta.goodWhen })}
+              className={styles['delta']}
+            />
+            {delta.why !== undefined && <span className={styles['deltaWhy']}>{delta.why}</span>}
+          </span>
         )}
         {trend !== undefined && (
           <Sparkline

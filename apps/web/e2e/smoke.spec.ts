@@ -51,6 +51,11 @@ test.describe('settings', () => {
 
     await enterShell(page);
     expect(await uiScaleOnPage(page)).toBe('1.5');
+    // The faked seat has no world, so the Office gives the engine's reason calmly, not a crash.
+    await expect(
+      page.getByRole('heading', { level: 2, name: "The Office can't be shown" }),
+    ).toBeVisible();
+    await expect(page.getByText('No game is loaded')).toBeVisible();
     // The top bar's end draws once the engine answers, after the dashboard. Wait for the day
     // button so the whole bar is measured, not the moment before it fills in.
     await expect(page.getByTestId('next-day')).toBeVisible();

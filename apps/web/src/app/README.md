@@ -310,6 +310,43 @@ features add tabs and KPI cards with `registerFinanceTab` and `registerFinanceKp
 `screens/finances/README.md` has the slots. The top bar's cash chip has a Why? from
 `sim.status.promotion.cashTraceRef`, the same breakdown the Overview's Cash card opens.
 
+## The Office
+
+`/game/office` (`screens/office/`) shows the seat's key numbers from `office.dashboard`, then
+panels other features add without editing the screen (docs/design/office.md#screen). A seat that
+runs no promotion gets the world overview instead of key numbers.
+
+### Adding an Office panel
+
+```ts
+registerOfficePanel({
+  id: 'evt1.nextShow', // unique, prefixed with the feature
+  order: 50, // lowest first; ties in registration order
+  column: 'main', // 'main' (wide) or 'side' (narrow); one column on a phone, still by order
+  requiresPromotion: true, // the default: left out for a seat that runs no promotion
+  render: ({ promotionId, dashboard, isPhone }) => <NextShowPanel />, // null leaves it out
+});
+```
+
+Register from your feature's own `officePanel.tsx` and append one import line to
+`screens/office/panels/index.ts` (append only), which `OfficeScreen.tsx` imports once, so the
+panel registers whenever the Office loads, lazy routes included. A panel reads its own feature's
+query (hooks go in the component `render` returns, not in `render` itself) and never imports
+another panel. Each panel is wrapped in `OfficePanelFrame`: a panel that throws shows "This panel
+couldn't load" and the rest of the Office keeps working. `registerOfficePanel` throws for an id
+that is taken and returns a function that removes the panel again.
+
+| Order | Band                     |
+| ----- | ------------------------ |
+| 10–29 | The Office itself (DAY2) |
+| 30–49 | Roster and people        |
+| 50–69 | Shows                    |
+| 70–89 | Business                 |
+| 90+   | News and social          |
+
+Registered so far: **World clock** (side, 10) and **World overview** (main, 20, seats with no
+promotion only), both in `screens/office/panels/`.
+
 ## The shell's look
 
 The shell follows `docs/design/visual-identity.md` and the mockups in `docs/design/mockups/`.

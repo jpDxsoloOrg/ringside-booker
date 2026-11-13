@@ -1856,3 +1856,37 @@ export {
   type OfficeRoller,
   type PopularityTraceSectionSpec,
 } from './systems/office/index';
+
+// The Office's numbers (DAY2-03): KPI cards with deltas and sparklines, the world clock, the world
+// overview for a seat with no promotion, and the `office.dashboard` and `office.series` queries.
+// See docs/design/office.md#kpis-and-deltas and #queries.
+export {
+  averageMorale,
+  BAD_RANGE,
+  buildKpis,
+  BUILT_IN_OFFICE_METRICS,
+  dashboardQuery,
+  HIDDEN,
+  kpiDelta,
+  MAX_SERIES_POINTS,
+  officeClock,
+  officeMetric,
+  previousSnapshot,
+  RANGE_TOO_LONG,
+  rosterSize,
+  seriesQuery,
+  trendSeries,
+  UNKNOWN_METRIC,
+  worldOverview,
+  type OfficeClock,
+  type OfficeClockSeason,
+  type OfficeDashboard,
+  type OfficeKpi,
+  type OfficeKpiDelta,
+  type OfficeMetric,
+  type OfficeSeries,
+  type OfficeSeriesArgs,
+  type TrendSeries,
+  type WorldOverview,
+  type WorldOverviewPromotion,
+} from './systems/office/index';

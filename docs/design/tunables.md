@@ -628,8 +628,8 @@ in whole cents.
 
 The Office's numbers (DAY2), in `systems/office/tunables.ts`, category
 `Office`, each with a docRef into [office.md](office.md#history) (DAY2-02's
-headline scope points at `office.md#headline-popularity`). DAY2-03 adds its own
-keys to the same file.
+headline scope points at `office.md#headline-popularity`, DAY2-03's morale key
+at `office.md#kpis-and-deltas`).
 
 | Key                              | Kind    | Default | Range | Unit  | Meaning                                                                          |
 | -------------------------------- | ------- | ------- | ----- | ----- | -------------------------------------------------------------------------------- |
@@ -720,6 +720,7 @@ The crowd forecast (EVT6-01), in `systems/boxOffice/tunables.ts`, category
 | `boxOffice.fit.sellOutAt`               | number  | 1       | 0.5–1.5   | ratio      | Expected crowd, as a share of capacity, at which a venue is a likely sell-out ([venues](box-office.md#venues)) |
 | `boxOffice.fit.emptyAt`                 | number  | 3       | 1–10      | multiplier | Capacity, as a multiple of the expected crowd, at which a venue will look empty                                |
 | `boxOffice.pick.headroom`               | number  | 1.1     | 1–3       | multiplier | Room left for a good night when sizing a venue ([pick](box-office.md#pick))                                    |
+| `boxOffice.rivalVenueLeadDays`          | integer | 14      | 0–90      | days       | How far ahead rival shows are given a venue ([automatic picks](box-office.md#automatic-picks))                 |
 
 | Key                               | Kind    | Default       | Range                                                 | Unit   | Meaning                                                                                                                       |
 | --------------------------------- | ------- | ------------- | ----------------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------- |
@@ -727,3 +728,4 @@ The crowd forecast (EVT6-01), in `systems/boxOffice/tunables.ts`, category
 | `office.trend.weeks`              | integer | 8             | 2–52                                                  | count  | Weeks shown in a KPI sparkline                                                                                                |
 | `office.delta.lookbackDays`       | integer | 7             | 1–90                                                  | days   | How far back a KPI delta compares                                                                                             |
 | `office.popularity.headlineScope` | enum    | `homeCountry` | `homeRegion`, `homeCountry`, `homeContinent`, `world` | choice | Which D-03 roll-up the Office and the top bar show as the promotion's popularity ([office.md](office.md#headline-popularity)) |
+| `office.morale.namedInWhy`        | integer | 3             | 0–10                                                  | count  | Lowest-morale people named in the average morale's Why? ([office.md](office.md#kpis-and-deltas))                              |

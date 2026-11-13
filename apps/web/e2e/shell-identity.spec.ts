@@ -9,6 +9,7 @@ import { expect, test } from './fixtures';
 import type { Locator, Page } from '@playwright/test';
 import { expectNoSeriousA11yViolations } from './helpers/a11y';
 import { expectNoHorizontalScroll } from './helpers/layout';
+import { enterGameFromSampleSave } from './helpers/game';
 import { enterShell } from './helpers/shell';
 import { isPhone } from './helpers/viewport';
 
@@ -129,18 +130,24 @@ test.describe('shell identity', () => {
     expect(contentBottom).toBeLessThanOrEqual(Math.ceil(tickerTop));
   });
 
-  test('the office is a placeholder dashboard marked as sample data', async ({
-    page,
-  }, testInfo) => {
-    await settleOffice(page);
+  test("the office shows the seat's real figures", async ({ page }, testInfo) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await enterGameFromSampleSave(page);
+    await page.evaluate(async () => {
+      await document.fonts.ready;
+    });
 
     await expect(page.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeVisible();
-    await expect(page.getByRole('note')).toContainText('Sample data.');
-    await expect(page.getByRole('group', { name: 'Key numbers' })).toBeVisible();
+    const keyNumbers = page.getByRole('group', { name: 'Key numbers' });
+    await expect(keyNumbers).toBeVisible();
+    await expect(keyNumbers.getByRole('group', { name: 'Cash', exact: true })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'World clock' })).toBeVisible();
+    await expect(page.getByText('Sample data.')).toHaveCount(0);
     await expect(
       page.getByRole('heading', { level: 2, name: 'Longleaf Saturday Night' }),
-    ).toBeVisible();
-    await expect(page.getByRole('region', { name: 'Champions', exact: true })).toBeVisible();
+    ).toHaveCount(0);
+    // No panel may be in its error state: a broken panel would log a console error anyway.
+    await expect(page.locator('[data-panel-state="error"]')).toHaveCount(0);
     await expectNoHorizontalScroll(page);
     await expectNoSeriousA11yViolations(page);
 
