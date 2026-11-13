@@ -124,11 +124,17 @@ const PART_WEIGHT_DEFAULTS: Readonly<Record<BodyPart, number>> = {
   legs: 1,
 };
 
+/** "a brawler", "an all-rounder": the style's name with its article, for a description. */
+function aStyle(style: RingStyle): string {
+  const word = STYLE_LABELS[style].toLowerCase();
+  return `${/^[aeiou]/u.test(word) ? 'an' : 'a'} ${word}`;
+}
+
 function fatigueStyle(style: RingStyle) {
   return factor(
     FATIGUE_STYLE_DEFAULTS[style],
     FATIGUE_DOC,
-    `How tiring a ${STYLE_LABELS[style].toLowerCase()} finds a match`,
+    `How tiring ${aStyle(style)} finds a match`,
   );
 }
 
@@ -136,7 +142,7 @@ function wearSelfStyle(style: RingStyle) {
   return factor(
     WEAR_SELF_STYLE_DEFAULTS[style],
     WEAR_DOC,
-    `How hard a ${STYLE_LABELS[style].toLowerCase()}'s own style is on their body`,
+    `How hard ${aStyle(style)}'s own style is on their body`,
   );
 }
 
@@ -144,7 +150,7 @@ function wearOpponentStyle(style: RingStyle) {
   return factor(
     WEAR_OPPONENT_STYLE_DEFAULTS[style],
     WEAR_DOC,
-    `How rough a ${STYLE_LABELS[style].toLowerCase()} opponent is`,
+    `How rough ${aStyle(style)} opponent is`,
   );
 }
 
@@ -186,7 +192,7 @@ function injurySelfStyle(style: RingStyle) {
   return factor(
     INJURY_SELF_STYLE_DEFAULTS[style],
     INJURY_DOC,
-    `How much a ${STYLE_LABELS[style].toLowerCase()}'s own style raises their injury chance`,
+    `How much ${aStyle(style)}'s own style raises their injury chance`,
   );
 }
 
@@ -194,7 +200,7 @@ function injuryOpponentStyle(style: RingStyle) {
   return factor(
     INJURY_OPPONENT_STYLE_DEFAULTS[style],
     INJURY_DOC,
-    `How much a ${STYLE_LABELS[style].toLowerCase()} opponent raises the injury chance`,
+    `How much ${aStyle(style)} opponent raises the injury chance`,
   );
 }
 
