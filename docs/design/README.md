@@ -30,3 +30,4 @@ Game and technical design for Ringside Booker. Each game system gets its own doc
 | [promotion-popularity.md](promotion-popularity.md) | Promotion popularity after shows: show reach, what each region's fans expected and how one show moves popularity              |
 | ----------------------------------------------     | ----------------------------------------------------------------------------------------------------------------------------- |
 | [finances.md](finances.md)                         | The economy: `postMoney` (the only way cash moves), ledger categories, payroll, show costs, policies and the finance queries  |
+| [office.md](office.md)                             | The Office: weekly promotion history, the new-game baseline, thinning old weeks and the snapshot field registry               |

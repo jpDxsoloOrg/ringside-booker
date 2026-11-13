@@ -182,6 +182,7 @@ reasons plus that step's report, never a world.
 | 810   | `calendar.scheduleOpening`     | EVT   | always                     | Schedules every show from the start date through start + `calendar.scheduleHorizonDays` (see [calendar.md](calendar.md#horizon)).                           |
 | 900+  | pricing, production, networks  | ECO   | ECO's own settings         | Expected here, after the equal start reset, so the reset never throws their work away.                                                                      |
 | 905   | `finance.openingBalance`       | ECO   | always                     | Records the cash Why? ("Opening balance") of every human-run promotion, so the top bar explains its cash from day one ([finances.md](finances.md#queries)). |
+| 990   | `office.baselineSnapshot`      | DAY   | always                     | A `baseline` history row dated the start date for every active promotion, so week one has a comparison ([office.md](office.md#history)).                    |
 
 After the last step, `createNewGame` publishes `world.created`
 (`{ startDate, seasonLengthDays, promotionId, playerId }`) from the
