@@ -17,6 +17,9 @@ const DEFAULT_DECIMALS = 2;
 /** Decimals shown for factors (ratios and multipliers), which are often finer: `×0.885`. */
 export const FACTOR_DECIMALS = 3;
 
+/** Decimals shown for a worker attribute and its changes: learning gains are hundredths (`0.042`). */
+const ATTRIBUTE_DECIMALS = 3;
+
 /** Decimals shown for percentages (`15.3%`). */
 const PERCENT_DECIMALS = 1;
 
@@ -71,6 +74,8 @@ export function formatTraceChange(before: number, after: number, unit?: TraceDis
  *   most (`70.3`); `points/day` (`4/day`), `stars` (`3.75★`);
  * - `days`, `months` and `years` with their word, `count` grouped (`12,400`), `people` (`12,400 people`);
  * - `kilograms` as `95 kg`;
+ * - `attribute` (a worker attribute or a change to one) with up to 3 decimals (`0.042`), since a
+ *   match teaches hundredths of a point;
  * - anything else, or no unit, as the number with up to 2 decimals.
  */
 export function formatTraceNumber(value: number, unit?: TraceDisplayUnit): string {
@@ -101,6 +106,8 @@ export function formatTraceNumber(value: number, unit?: TraceDisplayUnit): strin
       return plural(value, 'person', 'people');
     case 'kilograms':
       return `${decimal(value)} kg`;
+    case 'attribute':
+      return decimal(value, ATTRIBUTE_DECIMALS);
     case 'points':
       return formatPopularity(value);
     case 'count':

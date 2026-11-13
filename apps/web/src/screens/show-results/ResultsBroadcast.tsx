@@ -1,6 +1,7 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import type { MouseEvent, ReactNode } from 'react';
 import type {
+  EventInstanceId,
   PersonId,
   SegmentResultView,
   ShowResultsView,
@@ -24,6 +25,7 @@ import { WorkerLink } from '@/components/WorkerLink';
 import { slotsText } from '@/screens/calendar/slotsText';
 import { MAIN_CARD_ANCHOR } from './builtinReportLines';
 import { RevealBar } from './RevealBar';
+import { ResultsCardBanners } from './resultsCardBannerRegistry';
 import { useResultsSections } from './resultsSectionRegistry';
 import { ShowReport } from './ShowReport';
 import { resultsSectionAnchor, segmentCardAnchor } from './showReportLineRegistry';
@@ -147,6 +149,7 @@ function scoreStats(result: ShowResultView, scoreRevealed: boolean): ScoreBugSta
 }
 
 interface CardListProps {
+  readonly eventInstanceId: EventInstanceId;
   readonly segments: readonly SegmentResultView[];
   readonly revealedCount: number;
   /** True when the reveal played, so each card fades in as it comes out. */
@@ -168,6 +171,7 @@ function keepFocus(event: MouseEvent<HTMLButtonElement>): void {
 
 /** The card in running order: the pre-show under its own divider, then the main card. */
 function CardList({
+  eventInstanceId,
   segments,
   revealedCount,
   animated,
@@ -199,6 +203,7 @@ function CardList({
               headingLevel={cardHeadingLevel}
               revealed={revealed}
               renderPersonLink={renderPersonLink}
+              banners={<ResultsCardBanners eventInstanceId={eventInstanceId} segment={segment} />}
             />
             {/* A pointer shortcut for Next segment, which stays the way in for keyboards and
                 screen readers; so this one is out of the tab order and the accessibility tree. */}
@@ -414,6 +419,7 @@ export function CompletedResults({
 
       {view.segments.length > 0 && (
         <CardList
+          eventInstanceId={view.eventInstanceId}
           segments={view.segments}
           revealedCount={sequence.revealedCount}
           animated={animated}

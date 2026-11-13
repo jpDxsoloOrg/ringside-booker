@@ -13,6 +13,8 @@
  * - `ratio` and `multiplier` are plain factors (1 means "unchanged").
  * - `money` and `money/month` are whole cents, so they are only allowed on `integer` tunables.
  * - `kilograms` is a body weight or a weight limit.
+ * - `attribute` is a worker attribute on its 0–100 scale, or a change to one (ring learning's
+ *   gains are hundredths of a point, so it reads to three decimals).
  * - `stars` is a star rating, 0–5 in quarter steps (a star cap, for example).
  * - `flag` is the unit of every `boolean` tunable and `choice` the unit of every `enum` tunable.
  */
@@ -29,6 +31,7 @@ export type TunableUnit =
   | 'money/month'
   | 'count'
   | 'kilograms'
+  | 'attribute'
   | 'stars'
   | 'probability'
   | 'flag'
@@ -48,6 +51,7 @@ export const TUNABLE_UNITS: readonly TunableUnit[] = [
   'money/month',
   'count',
   'kilograms',
+  'attribute',
   'probability',
   'flag',
   'choice',

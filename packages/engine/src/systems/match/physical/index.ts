@@ -111,6 +111,7 @@ export {
   RING_LEARNING_DOC_REF,
   computeRingLearning,
   computeRingLearningTotal,
+  learningGainText,
   type LearningPeer,
   type LearningProducer,
   type RingLearningInputs,
@@ -147,10 +148,16 @@ export {
 export { PRUNE_PHYSICAL_DETAIL_PHASE_ID, prunePhysicalDetailPhase } from './prune';
 export {
   PHYSICAL_FOR_SEGMENT_NOT_FOUND,
+  SEGMENT_INJURIES_NOT_FOUND,
   physicalForSegmentQuery,
   physicalQueries,
+  segmentInjuriesQuery,
+  weeksOutOf,
   type PhysicalForSegmentArgs,
   type PhysicalForSegmentResult,
   type PhysicalNumber,
   type PhysicalWorkerRow,
+  type SegmentInjuriesArgs,
+  type SegmentInjuriesResult,
+  type SegmentInjuryView,
 } from './queries';

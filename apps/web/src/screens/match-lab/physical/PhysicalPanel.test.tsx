@@ -12,7 +12,11 @@ import { LiveAnnouncer } from '@/app/a11y/LiveAnnouncer';
 import { routerFutureFlags, routerProviderFutureFlags } from '@/app/router';
 import { routes } from '@/app/routes';
 import { useSessionStore } from '@/app/session/sessionStore';
-import { INJURIES_PER_100_LABEL, RUN_MANY_EMPTY_TITLE } from '@/components/PhysicalTollTable';
+import {
+  fatigueWhatIfLabel,
+  INJURIES_PER_100_LABEL,
+  RUN_MANY_EMPTY_TITLE,
+} from '@/components/PhysicalTollTable';
 import { useTracePanelStore } from '@/components/Trace';
 import { fakeEngineFactory, fakeEngineState } from '@/test/fakeEngine';
 import { useLabStore } from '../labStore';
@@ -139,7 +143,7 @@ describe('the Match lab Physical panel', { timeout: TEST_TIMEOUT_MS }, () => {
     await runAndWait(user, panel, 2);
     const seed = useLabStore.getState().lastRun?.args.previewSeed;
 
-    await choose(user, `${first.name}'s fatigue going in`, '100');
+    await choose(user, fatigueWhatIfLabel(first.name), '100');
     await waitFor(
       () => {
         const worker = useLabStore
@@ -156,7 +160,7 @@ describe('the Match lab Physical panel', { timeout: TEST_TIMEOUT_MS }, () => {
     expect(simulated).toHaveLength(2);
     expect(JSON.stringify(simulated[1]?.[1])).toContain('"fatigueOverrides"');
     expect(
-      screen.getByRole('combobox', { name: `${first.name}'s fatigue going in` }),
+      screen.getByRole('combobox', { name: fatigueWhatIfLabel(first.name) }),
     ).toHaveTextContent('100');
   });
 

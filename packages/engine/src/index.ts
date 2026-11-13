@@ -1227,6 +1227,18 @@ export {
   LAB_WHAT_IF_FATIGUE_LABEL,
   PHYSICAL_PREVIEW_ID,
 } from './systems/match/index';
+// A run match's physical toll and the injuries it caused, for the results page (MTCH4-04/06).
+// See docs/design/physical-toll.md#matchphysicalforsegment and #matchsegmentinjuries.
+export type {
+  PhysicalForSegmentArgs,
+  PhysicalForSegmentResult,
+  PhysicalNumber,
+  PhysicalWorkerRow,
+  SegmentInjuriesArgs,
+  SegmentInjuriesResult,
+  SegmentInjuryView,
+} from './systems/match/index';
+export { learningGainText, weeksOutOf } from './systems/match/index';
 export {
   LAB_WORKER_SCOPES,
   LAB_WORKER_TRAIT_FILTERS,

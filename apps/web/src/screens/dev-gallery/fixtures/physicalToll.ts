@@ -63,6 +63,7 @@ function wearByPart(load: number): Record<BodyPart, Traced<number>> {
 
 function learning(name: string, value: number, limited: boolean): Traced<number> {
   const calc = startCalc(`Learning in this match for ${name}`, value * 2, {
+    unit: 'attribute',
     startLabel: 'Long duration class',
   });
   if (limited) {

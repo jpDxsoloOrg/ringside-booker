@@ -13,9 +13,10 @@
  * Traces, under `<segmentId>:<personId>` (`traceRefs.ts`): `match.fatigue`, `match.wear`,
  * `match.learning`, `match.injuryChance`, and `match.injuryRoll` for an injured worker only.
  * The player's own shows keep them, cut to a few levels (`STORED_TRACE_DEPTH`), until
- * `match.prunePhysicalDetail` demotes them after `history.keepDetailDays`; a rival show keeps only
- * summaries of fatigue and wear (and of an injury chance above 0, and an injury), so a year of rival
- * cards stays small (docs/design/physical-toll.md#stored-traces).
+ * `match.prunePhysicalDetail` demotes them after `history.keepDetailDays`, except the injury
+ * chance of a worker who was not hurt, which is a summary from the start; a rival show keeps only
+ * a summary of fatigue (and of an injury chance above 0, and an injury), so a year of rival cards
+ * stays small (docs/design/physical-toll.md#stored-traces).
  *
  * Design: docs/design/physical-toll.md#show-night.
  */
@@ -65,6 +66,7 @@ const SCALE_TOP = 100;
  * Every match stores four of these per worker for 28 days, so each keeps the lines its Why? reads
  * first and leaves the deeper working to the formulas' docs and the Match lab, which works the full
  * trace out again. The fatigue trace wraps the gain one level down, so it keeps one level more.
+ * The injury chance is kept in full only for a worker who was hurt (see `applyPhysicalToll`).
  */
 export const STORED_TRACE_DEPTH = {
   fatigue: 4,
@@ -238,21 +240,32 @@ export function applyPhysicalToll(
       fatigueAfterTrace(worker),
       STORED_TRACE_DEPTH.fatigue,
     );
-    record(
-      wearTraceRef(segmentId, personId),
-      conditionLostTrace(worker, tunables),
-      STORED_TRACE_DEPTH.wear,
-    );
-    // Rivals: no learning trace, and an injury chance only when it is not 0 (by default rival
-    // rules skip in-match injuries, so it always is).
+    // Rivals: fatigue only (what a rival show's workers carry into their next match), no wear
+    // or learning, and an injury chance only when it is not 0 (by default rival rules skip
+    // in-match injuries, so it always is).
     if (humanShow) {
+      record(
+        wearTraceRef(segmentId, personId),
+        conditionLostTrace(worker, tunables),
+        STORED_TRACE_DEPTH.wear,
+      );
       record(learningTraceRef(segmentId, personId), worker.learning, STORED_TRACE_DEPTH.learning);
     }
-    if (humanShow || worker.injuryChance.value > 0) {
+    // The injury chance in full only when the worker was hurt; otherwise (and on a rival show)
+    // its summary: the chance and its largest lines. It was the largest physical trace in a year's
+    // save, and every worker on every match of the player's shows has one (MTCH4-06).
+    if (humanShow && worker.injury.injured) {
       record(
         injuryChanceTraceRef(segmentId, personId),
         worker.injuryChance,
         STORED_TRACE_DEPTH.injuryChance,
+      );
+    } else if (humanShow || worker.injuryChance.value > 0) {
+      ctx.recordTrace(
+        injuryChanceTraceRef(segmentId, personId),
+        ctx.date,
+        compactTrace(worker.injuryChance, SUMMARY_DEPTH),
+        { summaryOnly: true },
       );
     }
     if (!worker.injury.injured || worker.injury.bodyPartHint === null) {

@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import type { ReactNode } from 'react';
 import type { BodyPart, PersonId, PhysicalPreviewWorker } from '@ringside/engine';
-import { BODY_PART_LABELS, BODY_PARTS } from '@ringside/engine';
+import { BODY_PART_LABELS, BODY_PARTS, learningGainText } from '@ringside/engine';
 import { useIsMobile } from '@/styles/useMediaQuery';
 import { Badge } from '../Badge';
 import { Button } from '../Button';
@@ -32,6 +32,11 @@ export const UNHURT_TEXT = 'OK';
 /** The phone card's heading over everything but the name and the injury chance. */
 export const PHYSICAL_CARD_HEADING = 'Physical';
 
+/** The what-if Select's name: it says it is a what-if, not the worker's real fatigue. */
+export function fatigueWhatIfLabel(name: string): string {
+  return `${name}'s fatigue going in (what-if)`;
+}
+
 /** "As now (n)" and the what-if levels. */
 export function fatigueOptions(fatigueNow: number): readonly SelectOption[] {
   return [
@@ -40,9 +45,12 @@ export function fatigueOptions(fatigueNow: number): readonly SelectOption[] {
   ];
 }
 
-/** Learning reads as a gain: "+0.08". */
+/**
+ * Learning reads as a gain, the engine's way everywhere: "+0.08", "+0.004", "+0", or "less than
+ * +0.001" (a match teaches hundredths of a point, so two decimals would read "+0.00").
+ */
 export function learningText(value: number): string {
-  return `+${formatNumber(value, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return learningGainText(value);
 }
 
 export interface PhysicalTollTableProps {
@@ -75,7 +83,7 @@ function FatigueGoingIn({ worker, onFatigueChange, disabled }: CellProps & Colum
   }
   return (
     <Select
-      label={`${worker.name}'s fatigue going in`}
+      label={fatigueWhatIfLabel(worker.name)}
       hideLabel
       className={styles['fatigueSelect'] ?? ''}
       options={fatigueOptions(worker.fatigueNow)}
@@ -93,6 +101,7 @@ function FatigueGain({ worker }: CellProps) {
     <Explained
       label={`${worker.name}'s fatigue gain`}
       value={worker.fatigueGain.value}
+      unit="points"
       trace={worker.fatigueGain.trace}
     />
   );
@@ -117,6 +126,7 @@ function partWear(worker: PhysicalPreviewWorker, part: BodyPart): ReactNode {
     <Explained
       label={`${worker.name}'s ${BODY_PART_LABELS[part].toLowerCase()} wear`}
       value={wear.value}
+      unit="points"
       trace={wear.trace}
     />
   );
@@ -128,6 +138,7 @@ function Wear({ worker }: CellProps) {
       <Explained
         label={`${worker.name}'s condition lost`}
         value={worker.wearTotal.value}
+        unit="points"
         trace={worker.wearTotal.trace}
       />
       <Popover
@@ -265,6 +276,7 @@ function tableColumns({ onFatigueChange, disabled }: ColumnOptions) {
       header: 'Wear',
       cell: (worker) => <Wear worker={worker} />,
       sortValue: (worker) => worker.wearTotal.value,
+      numeric: true,
       card: 'stat',
     },
     {
@@ -272,6 +284,7 @@ function tableColumns({ onFatigueChange, disabled }: ColumnOptions) {
       header: 'Learning',
       cell: (worker) => <Learning worker={worker} />,
       sortValue: (worker) => worker.learning.value,
+      numeric: true,
       card: 'stat',
     },
     {

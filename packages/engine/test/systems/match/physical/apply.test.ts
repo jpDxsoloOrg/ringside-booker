@@ -283,7 +283,7 @@ describe('applyPhysicalToll', () => {
     expect(run.traces.size).toBe(0);
   });
 
-  it('stores the four traces per worker in full on the player show, the roll only when hurt', () => {
+  it('stores fatigue, wear and learning in full on the player show, the roll only when hurt', () => {
     const { world, person, singles } = built();
     const run = applyInOrder(world, [singles]);
     const worker = workerOf(run.results[0], person(0));
@@ -291,11 +291,11 @@ describe('applyPhysicalToll', () => {
       fatigueTraceRef(singles, person(0)),
       wearTraceRef(singles, person(0)),
       learningTraceRef(singles, person(0)),
-      injuryChanceTraceRef(singles, person(0)),
     ]) {
       expect(run.traces.has(refKey(ref)), ref.kind).toBe(true);
       expect(run.summaryOnly.has(refKey(ref))).toBe(false);
     }
+    expect(run.traces.has(refKey(injuryChanceTraceRef(singles, person(0))))).toBe(true);
     expect(run.traces.get(refKey(fatigueTraceRef(singles, person(0))))?.value).toBe(
       worker.fatigueAfter,
     );
@@ -305,14 +305,37 @@ describe('applyPhysicalToll', () => {
     expect(run.traces.has(refKey(injuryRollTraceRef(singles, person(0))))).toBe(false);
   });
 
-  it('keeps only summaries on a rival show, without learning or a 0 injury chance', () => {
+  it("keeps a player's injury chance in full only for a worker who was hurt", () => {
+    const { world, person, singles } = built();
+    const run = applyInOrder(world, [singles]);
+    const ref = refKey(injuryChanceTraceRef(singles, person(0)));
+    expect(workerOf(run.results[0], person(0)).injury.injured).toBe(false);
+    expect(run.summaryOnly.has(ref)).toBe(true);
+    expect(run.traces.get(ref)?.value).toBe(workerOf(run.results[0], person(0)).injuryChance.value);
+
+    const hurt = built();
+    const hurtRun = applyInOrder(hurt.world, [hurt.singles], certainInjuries());
+    const hurtRef = refKey(injuryChanceTraceRef(hurt.singles, hurt.person(0)));
+    expect(workerOf(hurtRun.results[0], hurt.person(0)).injury.injured).toBe(true);
+    expect(hurtRun.summaryOnly.has(hurtRef)).toBe(false);
+    const labels = (hurtRun.traces.get(hurtRef)?.trace.children ?? []).map((child) => child.label);
+    expect(labels).toEqual(
+      expect.arrayContaining([
+        'Fatigue by the end of the match',
+        expect.stringMatching(/^Worst body part: /u),
+        expect.stringMatching(/ duration class$/u),
+        expect.stringMatching(/^Least safe opponent: .+, safety \d+/u),
+      ]),
+    );
+  });
+
+  it('keeps only a fatigue summary on a rival show: no wear, learning or 0 injury chance', () => {
     const { world, person, singles } = built({ rival: true });
     const run = applyInOrder(world, [singles]);
     const worker = workerOf(run.results[0], person(0));
-    const kept = [fatigueTraceRef(singles, person(0)), wearTraceRef(singles, person(0))];
-    for (const ref of kept) {
-      expect(run.summaryOnly.has(refKey(ref)), ref.kind).toBe(true);
-    }
+    const fatigueRef = fatigueTraceRef(singles, person(0));
+    expect(run.summaryOnly.has(refKey(fatigueRef))).toBe(true);
+    expect(run.traces.has(refKey(wearTraceRef(singles, person(0))))).toBe(false);
     expect(run.traces.has(refKey(learningTraceRef(singles, person(0))))).toBe(false);
     expect(run.traces.has(refKey(injuryChanceTraceRef(singles, person(0))))).toBe(false);
     // Rival rules (AIP1's `ai.skipInMatchInjuries`, on by default) make the chance 0, but the
