@@ -308,3 +308,143 @@ parts; the defaults not listed in a row are 1.
 | `match.injury.repeatMatch` | 1.4 | 0–3 | multiplier | Injury chance for each match after the first on the same card, compounding |
 | `match.injury.maxChance` | 0.2 | 0–1 | probability | Highest injury chance one worker can have in one match |
 | `match.injury.maxPerSegment` | 1 | 0–10 | count | Most workers injured in one segment; 0 means nobody is ever hurt |
+
+## Ring learning
+
+Matches also teach (MTCH4-03). Every competitor picks up a little ring skill
+each time they work: more in a long match, more next to someone better or a
+`teacher`, more when a skilled producer lays the match out, and more again
+when their mentor is on the same show. The gains are small on purpose
+(hundredths of a point per match); the long career arc of growth and decline
+belongs to WRK4. Talking segments teach nothing here.
+
+The code: the attribute list in `physical/learning.ts`, the hidden gate in
+`physical/learningRoom.ts`, the mentor lookup in `physical/mentor.ts`, the
+per-segment collector `collectRingLearning` in `physical/collectLearning.ts`
+and the formula in `formulas/ringLearning.ts`. MTCH4's show-night applier
+writes the gains after each match; nothing here writes to the world.
+
+### What a match teaches
+
+`IN_MATCH_LEARNING` is a constant rule, not a tunable:
+
+| Attribute    | Taught | Why                                                               |
+| ------------ | ------ | ----------------------------------------------------------------- |
+| `ringwork`   | yes    | Craft: learned by doing and from the people you work with         |
+| `psychology` | yes    | Craft, as ring work                                               |
+| `safety`     | yes    | Craft, as ring work                                               |
+| `stamina`    | no     | Conditioning: comes only from doing the work; nobody can teach it |
+
+Crew attributes (`officiating`, `producing`, `broadcasting`) are learned on the
+job in other roles and `mic` in talking segments; WRK4 and MTCH5 own those and
+can call the same formula with their own list (`taught` is an input).
+
+### The maths
+
+For one worker and one attribute, in attribute points:
+
+```text
+learning = base
+         × duration.<class>                              "Long duration class"
+         × taughtFactor           (taught; someone else in the match is better
+                                   by at least teachGap)  "Learned from a better worker: <name>"
+         × min(1 + teacherBonus × teachers, maxTeacherFactor)
+                                  (taught; other competitors or the producer
+                                   hold `teacher`)        "Worked with a teacher: <names>"
+         × producerFactor         (ring work and psychology; the producer's
+                                   producing ≥ producerMinSkill)  "Produced by <name>"
+         × fastLearnerFactor or slowLearnerFactor        "Fast learner" / "Slow learner"
+         × (1 + mentorBonus)      (the mentor is on the card)     "Mentor on the card: <name>"
+         × room factor            (1 when open; slowing or closed) "Limited by potential"
+clamped to 0..maxPerSegment
+```
+
+An untaught attribute (stamina) skips the better-worker and teacher steps and
+records the line "Learned by doing" instead. The better worker is the best one
+in the match, on either side. A teacher helps the others, not themselves: a
+teacher alone in a match gets no teacher line. A producer who also wrestles in
+the match counts once, as a competitor.
+
+`computeRingLearningTotal` adds the attributes into one "Learning in this
+match" number with one line per attribute ("Ring work +0.06") that opens to
+that attribute's own Why?.
+
+With the defaults, a standard match against an equal opponent teaches 0.03 per
+attribute; a young wrestler in a long match next to a much better teacher, laid
+out by a skilled producer, learns `0.03 × 1.4 × 2 × 1.5 × 1.2 ≈ 0.15` ring
+work.
+
+### Mentor on the card
+
+`mentorOnCard(read, personId, cardPersonIds)` reads the foundation
+`relationships` table: a row for the pair (stored in either order) with the
+`mentorship` bond and `mentorId` set to the other person, who must be on the
+card. On a show the card is everyone on it in any role, the producer included;
+in the Match lab it is everyone in the lab segment. With two mentors on the
+card, the lowest id wins. Until the social system creates relationship rows
+the default world has none, so the mentor line never appears.
+
+### The hidden gate
+
+`learningRoom(person, attribute, tunables)` reads the hidden development fields
+(the potential number and the attribute's ceiling, see
+[data-model.md](data-model.md)) and returns only a label:
+
+- `closed` when potential is below 0 or the attribute is at or above its
+  ceiling;
+- `slowing` when the attribute is within `match.learning.slowingBand` of its
+  ceiling or potential is below `match.learning.lowPotential`;
+- `open` otherwise. An attribute without a ceiling is gated on potential only.
+
+Only the label enters the formula. Player text never shows potential or a
+ceiling: when the room is not open the Why? reads the fixed line "Limited by
+potential" and nothing more. `potential` and `ceilings` never become trace
+inputs, constants or notes, and `slowingBand` and `lowPotential` are never read
+inside a trace. A leak test builds traces in every room for people with
+distinctive hidden numbers and fails if a label mentions potential or a ceiling
+(other than the fixed line) or the numbers appear anywhere in the trace.
+`learningRoom` is not exported from the engine's public index.
+
+The room factor is the last step before the clamp and nothing adds learning
+after it, so no bonus can get past the gate (a growth floor that bypassed the
+potential gate was a known bug in the genre).
+
+**Overshoot.** An attribute can pass its ceiling by at most one match's gain,
+because the applier does not clamp to the ceiling: a clamp would let the player
+work the ceiling out from the arithmetic. The next match is then `closed`.
+
+### With WRK4's growth
+
+WRK4's daily growth and this per-match learning add up: the applier adds a
+match's learning to the attribute after the match, and WRK4's growth moves the
+attribute on its own schedule. Both read the same gate: WRK4 treats a value at
+or above the ceiling as no growth, so the one-match overshoot never compounds.
+When WRK4 lands, its growth-headroom reading of potential and ceilings and
+`learningRoom` should agree on when an attribute is capped (WRK4 can call
+`learningRoom` or share its rule).
+
+### Ring learning tunables
+
+All in `systems/match/physical/learningTunables.ts`, category `Physical toll`.
+Every key has a minimum of 0, so 0 means 0.
+
+| Key                                 | Default | Range  | Unit       | What it does                                                    |
+| ----------------------------------- | ------- | ------ | ---------- | --------------------------------------------------------------- |
+| `match.learning.base`               | 0.03    | 0–1    | points     | Ring skill one match teaches per attribute before anything else |
+| `match.learning.duration.short`     | 0.6     | 0–3    | multiplier | How much a short match teaches against a standard one           |
+| `match.learning.duration.standard`  | 1       | 0–3    | multiplier | A standard match                                                |
+| `match.learning.duration.long`      | 1.4     | 0–3    | multiplier | A long match                                                    |
+| `match.learning.teachGap`           | 5       | 0–50   | points     | How much better someone must be to teach the worker             |
+| `match.learning.taughtFactor`       | 2       | 0–3    | multiplier | Learning next to someone better                                 |
+| `match.learning.teacherBonus`       | 0.5     | 0–2    | ratio      | Extra learning per teacher in the match                         |
+| `match.learning.maxTeacherFactor`   | 2       | 0–3    | multiplier | Most teachers can multiply learning by                          |
+| `match.learning.producerMinSkill`   | 60      | 0–100  | points     | Producing skill a producer needs to help                        |
+| `match.learning.producerFactor`     | 1.2     | 0–3    | multiplier | Learning under a skilled producer (ring work and psychology)    |
+| `match.learning.fastLearnerFactor`  | 1.5     | 0–3    | multiplier | Learning for a fast learner                                     |
+| `match.learning.slowLearnerFactor`  | 0.6     | 0–3    | multiplier | Learning for a slow learner                                     |
+| `match.learning.mentorBonus`        | 0.25    | 0–2    | ratio      | Extra learning when the worker's mentor is on the same show     |
+| `match.learning.roomFactor.slowing` | 0.4     | 0–3    | multiplier | Learning for a worker near their limit                          |
+| `match.learning.roomFactor.closed`  | 0       | 0–3    | multiplier | Learning for a worker at their limit                            |
+| `match.learning.slowingBand`        | 5       | 0–50   | points     | How close to their limit a worker is before learning slows      |
+| `match.learning.lowPotential`       | 200     | 0–1000 | points     | Below this hidden score (−1000..1000), learning slows           |
+| `match.learning.maxPerSegment`      | 0.2     | 0–5    | points     | Most one match can teach per attribute                          |
