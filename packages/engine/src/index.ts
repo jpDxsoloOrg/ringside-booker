@@ -2533,3 +2533,30 @@ export {
 
 // Who is out (WRK6-06): `health.report`, every open injury in the world or one promotion's.
 export { type HealthReport, type HealthReportArgs, type InjuredRow } from './systems/health/index';
+
+// Production (ECO7-01): the area tables, tunables and pure traced formulas for running costs,
+// upgrade fees and the popularity ceiling. See docs/design/production.md.
+export {
+  AREA_COST_KIND,
+  AREA_LABELS as PRODUCTION_AREA_LABELS,
+  AREA_LEDGER_CATEGORY,
+  areaCost,
+  costCurveAt,
+  MONTHLY_AREAS,
+  PER_SHOW_AREAS,
+  popularityCeiling,
+  popularityDrag,
+  PRODUCTION_CATEGORY_LABELS,
+  PRODUCTION_LEDGER_CATEGORIES,
+  PRODUCTION_TUNABLE_CATEGORY,
+  productionMonthlyCost,
+  productionShowCost,
+  productionSystem,
+  productionTunables,
+  upcomingShowCost,
+  upgradeFee,
+  type AreaCostKind,
+  type ProductionLedgerCategory,
+  type ProductionMonthlyCost,
+  type UpcomingShow,
+} from './systems/production/index';
