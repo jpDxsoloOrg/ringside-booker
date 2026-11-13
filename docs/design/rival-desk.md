@@ -459,3 +459,104 @@ and never the figure.
 **Limit.** `trace.get` serves any stored trace by its ref. Redaction here
 covers query results and AIP traces built with `privateInputOf`; hardening
 `trace.get` per viewer belongs to the multiplayer work (D-07).
+
+## Roster review
+
+`aip.rosterReview` (`jobs/rosterReview.ts`, AIP1-05) is the rival desk's
+first job: `weekly`, so each computer unit reviews on its own weekday. It
+builds the unit's needs inputs (`needsInputsFor`), runs `rosterNeeds` and
+records one `rosterReview` decision:
+
+- `summary`: `aip.decision.roster-review` with `count` and, when there is a
+  need, `top` (the most pressing need in plain words). Rendered:
+  "Weekly roster review: 3 needs, most pressing: Short on heels" or "Weekly
+  roster review: no pressing needs" (`rosterReviewSummaryText`).
+- `refs`: the person and title IDs the needs name (champions), 12 of each at
+  most.
+- `traced`: `rosterReviewDecision(needs)`, stored summary-only under
+  `aip.rosterReview`; `revealOn` today; `importance` 0.
+
+It writes nothing else: no pushes, no hiring. When a later feature acts on a
+need (AIP3 pushes), it changes pushes through `roster.setPush`'s
+`applySetPush` with source `'ai'`, never around it.
+
+**Inputs** (`inputs.ts`, read-only, rows in ID order):
+
+- `unitRoster(read, unit, date)` is the one roster rule: the promotion's
+  `active` contracts that have started, only the unit's brand for a brand
+  unit, and without `excludedBrandIds` for a promotion unit. AIP3, AIP4,
+  AIP6 and AIP8 use it too.
+- `cardValueInputsFor(read, tunables, employment, date, shared?)`: the
+  worker's attributes and regional popularity, the promotion's popularity,
+  the regions, `employment.momentum`, `ageOn` and `tasteOf` (a computer GM
+  brand's own taste for its contracts, else the promotion's). `shared`
+  passes the regions and taste in when valuing a whole roster.
+- `needsInputsFor(read, tunables, unit, date)`: the largest `format.slots`
+  of the unit's event definitions running on the date (else null), its
+  wrestlers (available when WRK1's `availabilityOf` says so), the male and
+  female divisions of its titles in use, the holders of those titles (a
+  holder with no contract at the promotion makes `employed` false, so for a
+  team any one partner leaving counts; the first holder who cannot work
+  gives `unfitReason`; the earliest contract end gives `contractEndsOn`) and
+  its referees, announcers and producers.
+- `unitOf(read, promotionId, brandId?)` is the unit for any promotion or
+  brand, the player's included, for "what would a rival desk say about you".
+
+**Text keys** for the web catalog (AIP1-06): `aip.decision.roster-review`
+(`count`, `top`), `aip.need.depth`, `aip.need.alignment.heels`,
+`aip.need.alignment.faces`, `aip.need.gender`, `aip.need.champion-unfit`,
+`aip.need.champion-ending`, `aip.need.champion-gone` and `aip.need.crew`
+(params in [Needs](#needs)).
+
+**Cost.** Eleven rivals write 52 reviews a year each. The 365-day
+default-world save grows from 9.35 MB to 9.58 MB JSON (0.93 to 0.95 MB
+gzipped): 574 decision rows (252 KB, about 440 bytes each) and 54 KB of
+review summaries, the ones `sim.traceRetentionPerKind` keeps (200 per kind,
+about four months of reviews for 11 rivals; older entries say "Full
+breakdown is only kept for recent results").
+
+**Calibration** (default world, new game as Longleaf, default tunables):
+the top card values match the pushes (Tessen: Tatsuya Ueno 56.6, Hideki
+Yoshida 55.6, Gendo Arakawa 55.5; Altura: Calder Voss 66.9), Altura, Cielo
+Alto and Tessen have no pressing needs, and the smaller promotions are short
+of a second referee and thin at main event and enhancement (severity 33 to
+50). `RB_SLOW_TESTS=1` on `test/systems/aip/defaultWorld.test.ts` prints the
+full log.
+
+## Promotions queries
+
+The Promotions screens (AIP1-06) read five queries in `queries/`. Every
+derived number carries its Why? inline (card values, needs, popularity);
+the decision log points at stored traces. Each applies the viewer rules in
+[Visibility](#visibility): a rival's cash never leaves the engine exactly for
+a `public` viewer, and contract terms, morale and hidden development never
+appear in any of them.
+
+| Query                | Args                                                     | What it returns                                                                                                                                                                                                                                                                                                                                                       |
+| -------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `promotions.list`    | none                                                     | One row per promotion (every status), by name: name, short name, logo, colour, style, status, home region and country, popularity (home country with its trace, world), prestige, `rosterCount` (wrestlers), `crewCount` (everyone but wrestlers and managers), `brandCount`, champions, `controlledBy` (`you`, `computer`, `otherPlayer`), `controllerName`, `cash`. |
+| `promotions.profile` | `promotionId`                                            | Header (with brands and who runs each), KPIs (home and world popularity with traces, prestige, counts, `showsPerMonth`, `cash`), the popularity drill-down (`popularityRollupView`), shows running today, titles and holders, the Rival rules as they apply to it (`inForce`, `levelPlayingField`, each shortcut's `on`, `value`, trace), `hasProfile`, `hidden`.     |
+| `promotions.roster`  | `promotionId`, `brandId?`                                | The taste it values by (label, source, eight axes with traces) and every active contract: ring name, image, gender, role, push, alignment, brand, availability, overall, card value with trace (wrestlers and managers; crew null), `isChampion`, `endsOn`. By role, card position, then card value.                                                                  |
+| `aip.needs`          | `promotionId`, `brandId?`                                | `unitName`, `slotsDemanded` with trace, the needs (key, kind, summary, `text`, severity with trace, refs) and `computedOn`. Live, for any promotion.                                                                                                                                                                                                                  |
+| `aip.decisionLog`    | `promotionId`, `brandId?`, `limit?`, `before?`, `kinds?` | Visible entries newest first (date, kind, chip, summary, `text`, refs, `traceRef` while the trace is kept, importance), the filter chips (`kinds`, registered kinds with a visible row), `hiddenCount` and `nextBefore` for the next page.                                                                                                                            |
+
+`showsPerMonth` counts the show dates of the promotion's event definitions
+in the next 28 days (`occursOn`); AIP1-07 switches it to dated shows once the
+calendar stores them. Company size waits for ECO1: until then the list has
+no `size` field rather than an error. An unknown promotion, or a brand of
+another promotion, is refused with `notFound`.
+
+`aip.decisionLog`'s `brandId`: left out, every row of the promotion; null,
+only the whole-promotion rows; a brand, only that brand's. `limit` is 1 to
+200 (default 50); `before` is the last entry of the previous page (a pruned
+one is refused with `notFound`).
+
+**The reveal rule.** `isRevealedTo(read, viewer, promotionId, revealOn)`
+(`reveal.ts`) is the only place that decides whether a viewer sees a plan:
+true for the all-seeing viewer, in a sandbox game and for the promotion's
+own controller, else once `revealOn` is before the current date. The reveal
+day itself has to be simulated first, so a show airing on `revealOn` has
+aired: on that day the plan is still hidden, the next day it shows. Hidden
+rows are counted in `hiddenCount` ("2 plans hidden until they air") and
+never described. AIP4's `aip.showCards` and AIP5's `aip.segmentDecision`
+call the same function.

@@ -72,8 +72,11 @@ describe('registerAiJob', () => {
   it('lists jobs by id and refuses a duplicate id, naming both', () => {
     testJob({ id: 'test.zeta', cadence: 'daily', run: () => undefined });
     testJob({ id: 'test.alpha', cadence: 'weekly', run: () => undefined });
-    expect(aiJobs().map((job) => job.id)).toEqual(['test.alpha', 'test.zeta']);
-    expect(aiJobs()[0]?.units).toBe('all');
+    // The real jobs (the weekly roster review, AIP1-05) are registered too, so the test ones are
+    // read out of the full list.
+    const testJobs = aiJobs().filter((job) => job.id.startsWith('test.'));
+    expect(testJobs.map((job) => job.id)).toEqual(['test.alpha', 'test.zeta']);
+    expect(testJobs[0]?.units).toBe('all');
     expect(() => {
       registerAiJob({ id: 'test.zeta', cadence: 'monthly', run: () => undefined });
     }).toThrow(/"test\.zeta" \(monthly\) is already registered as "test\.zeta" \(daily\)/);
@@ -118,12 +121,13 @@ describe('aip.runTurns', () => {
     expect(profileOf(built.world, built.proA, null)).toBeNull();
     const turns = built.runtime.bus.recent({ types: ['aip.turnTaken'] });
     expect(turns).toHaveLength(9);
-    expect(turns.at(-1)?.payload).toEqual({
+    expect(turns.at(-1)?.payload).toMatchObject({
       promotionId: built.proC,
       brandId: null,
       date: lastDay,
-      jobIds: ['test.daily'],
     });
+    // The weekly roster review (AIP1-05) may fall on the same day; the test job is always there.
+    expect(turns.at(-1)?.payload.jobIds).toContain('test.daily');
   });
 
   it('runs a job limited to brands only for the computer GM brand', () => {
