@@ -127,3 +127,74 @@ terms; the contract's end date is the only term shown. Morale is in the row
 because the roster is always the viewer's own, and a rival's roster cannot be
 read through this query (rivals' workers are on the [workers list](workers.md#workers-list),
 which leaves morale out).
+
+## Roster summary
+
+`roster.summary` takes `{ promotionId?, brandId? }` and answers the counts the
+roster screen's tabs and brand selector show; later features reuse it (the
+Office's "Top of your roster" panel, AI planning, brand balance). It is built
+from one unfiltered `roster.rows` pass (`rosterViewOf`), so it has the same
+[viewer scoping](#viewer-scoping) and the same refusal texts, and its counts can
+never disagree with the rows.
+
+| Field                 | What it holds                                                                                                             |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `promotion`           | The same as `roster.rows`; `null` when the roster cannot be shown                                                         |
+| `unavailableReason`   | The same reason `roster.rows` gives, or `null`                                                                            |
+| `total`               | Rows counted                                                                                                              |
+| `byGroup`             | Rows per group; every group is present, 0 when empty, so a screen never guesses                                           |
+| `byBrand`             | `{ brandId, name, priority, total, wrestlers }` per brand, over the whole roster                                          |
+| `byPush`              | Rows per card position (main event to enhancement); every position is present, 0 when empty                               |
+| `unavailable`         | Rows whose availability is not `available`                                                                                |
+| `unavailableByStatus` | Those rows per availability status (only the statuses that occur)                                                         |
+| `expectsMore`         | Rows whose [verdict](#push-verdict) is `expectsMore`                                                                      |
+| `topByPopularity`     | Up to `ROSTER_TOP_COUNT` (5) wrestlers' rows: popularity among the promotion's fans, highest first, then overall, then ID |
+
+`byBrand` lists the promotion's active brands by priority (an empty brand
+included, with 0), then any inactive brand a contract still points at, then a
+final "Shared" entry (`brandId: null`, `priority: null`) when any contract is on
+no brand. On a fresh default world as Altura that is Mainstage 23, Overclock 21
+and Shared 11, out of 55.
+
+With a `brandId` (a brand's ID or `'shared'`), every count except `byBrand`
+covers only that brand's rows, so the tab counts follow the brand selector,
+while `byBrand` still counts the whole roster so the selector shows every
+brand's size. `topByPopularity` follows the filter too.
+
+`ROSTER_TOP_COUNT` is the size of the Office roster panel: a display size, not a
+balance number, so it is a constant and not a tunable.
+
+## Roster explain
+
+`roster.explain` takes `{ employmentId, metric }` with `metric` one of
+`expectedPush`, `pushGap`, `overall` or `popularity`, and answers the Why?
+behind that cell of the row: `{ employmentId, metric, label, value, unit, trace
+}`, or `null`.
+
+The rule: **derived-on-read values are explained by recomputation, stored values
+by `traceRef`.** Overall, expected push, the push gap and popularity are never
+stored, so their Why? is rebuilt when it is asked for. `buildRosterRows` and
+`roster.explain` both start from one helper, `rowInputs(read, employment,
+date)`, and run the same formulas on what it returns (`rowOverall`,
+`rowExpectedPush`, `rowPushGap`, `rowPopularity`), so a cell and its Why? cannot
+drift apart. The formulas are pure and roll no dice, which is what makes the
+rebuilt trace exact. Momentum and morale are stored by the
+[doors](workers.md#doors), so a row already carries their `traceRef`.
+
+| Metric         | Label                                  | Value                        | Trace                                                                                   |
+| -------------- | -------------------------------------- | ---------------------------- | --------------------------------------------------------------------------------------- |
+| `expectedPush` | "Expects: Mid card" (the push's label) | The push, as the row has it  | [Expected push](workers.md#expected-push), with the popularity among the fans inside it |
+| `pushGap`      | "Push gap"                             | The gap in card positions    | The [verdict](#push-verdict), which holds the gap's calculation and names the tunable   |
+| `overall`      | "Overall as wrestler" (the role)       | The rating, to 1 decimal     | The [role rating](workers.md#role-ratings) for the contracted role                      |
+| `popularity`   | "Popularity in Altura's regions"       | The popularity, to 1 decimal | [Footprint popularity](workers.md#footprint-popularity) among the promotion's fans      |
+
+The push gap's Why? is the verdict's decision because the cell shows both the
+number and the "expects more" marker: the gap's own calculation names no
+tunable, and `roster.expectsMoreSteps` appears only in the verdict wrapped
+around it. Every trace goes through `limitTrace` before it is returned.
+
+The answer is `null` when the employment does not exist or is not active, when a
+controller viewer does not run its promotion (the same rule as
+[viewer scoping](#viewer-scoping)), or when the metric does not apply: a role
+with no card position has no expected push or push gap. The all-seeing viewer
+may explain any active contract.
