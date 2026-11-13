@@ -88,4 +88,29 @@ describe('RadioGroup', () => {
 
     for (const radio of screen.getAllByRole('radio')) expect(radio).toBeDisabled();
   });
+
+  it('shows an unavailable option, reachable and described, but never picks it', async () => {
+    const user = userEvent.setup({ delay: null });
+    const handleChange = vi.fn();
+    render(
+      <RadioGroup
+        legend="Pace"
+        options={[
+          { value: 'slow', label: 'Slow' },
+          { value: 'fast', label: 'Fast', description: 'Not in this save', unavailable: true },
+        ]}
+        value="slow"
+        onValueChange={handleChange}
+      />,
+    );
+
+    const fast = screen.getByRole('radio', { name: 'Fast' });
+    expect(fast).toHaveAttribute('aria-disabled', 'true');
+    expect(fast).toHaveAccessibleDescription('Not in this save');
+    expect(fast).toBeEnabled();
+    await user.click(screen.getByText('Fast'));
+    expect(handleChange).not.toHaveBeenCalled();
+    expect(screen.getByRole('radio', { name: 'Slow' })).toBeChecked();
+    expect(fast).not.toBeChecked();
+  });
 });
