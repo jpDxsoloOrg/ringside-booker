@@ -28,6 +28,11 @@ import { expectSerialisable } from '../../support/trace';
 import { DEFAULT_DAILY_WAGE } from '../finance/payroll-world';
 import { contractsRuntime, runDays, runThrough } from './contract-world';
 
+/**
+ * The player's contracts renew automatically by default until ECO5 (`contracts.autoRenewPlayer`,
+ * ECO4-02); these tests are about contracts running out, so they turn that off.
+ */
+const NO_PLAYER_AUTO_RENEWAL = { 'contracts.autoRenewPlayer': false } as const;
 interface LifecycleWorld {
   readonly world: GameWorld;
   readonly human: PromotionId;
@@ -149,7 +154,7 @@ describe('contracts.lifecycle', () => {
     edit(built.world, (tx) => {
       tx.update('employments', required(leaver, 'leaver'), { endsOn });
     });
-    const runtime = contractsRuntime(built.world);
+    const runtime = contractsRuntime(built.world, NO_PLAYER_AUTO_RENEWAL);
 
     runDays(runtime, 1);
     expect(built.world.tables.employments.require(required(leaver, 'leaver')).status).toBe(
@@ -242,7 +247,7 @@ describe('contracts.lifecycle', () => {
         }),
       );
     });
-    const runtime = contractsRuntime(built.world);
+    const runtime = contractsRuntime(built.world, NO_PLAYER_AUTO_RENEWAL);
     runThrough(runtime, endsOn);
 
     expect(
@@ -272,7 +277,7 @@ describe('contracts.lifecycle', () => {
       cadence: { kind: 'daily' },
       run: runContractLifecycle,
     });
-    const runtime = contractsRuntime(built.world, {}, [again]);
+    const runtime = contractsRuntime(built.world, NO_PLAYER_AUTO_RENEWAL, [again]);
     runDays(runtime, 2);
     expect(runtime.bus.recent({ types: ['contract.expired'] })).toHaveLength(1);
     expect(runtime.bus.recent({ types: ['contract.started'] })).toHaveLength(1);
@@ -358,7 +363,8 @@ describe('endEmployment', () => {
           mutual: true,
           severance: inputOf('Severance owed', 123_456.4, undefined, 'money'),
         });
-        expect(result).toEqual({ severance: 123_456, traceRef: severanceTraceRef(target) });
+        expect(result).toMatchObject({ severance: 123_456, traceRef: severanceTraceRef(target) });
+        expect(result.ledgerEntryId).not.toBeNull();
       },
     });
     // Contracts only: no payroll, so the cash moves by the severance alone.

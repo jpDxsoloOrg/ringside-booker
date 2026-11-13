@@ -26,7 +26,7 @@
 
 import { isAfter } from '../../core/date';
 import { InvalidArgumentError } from '../../core/errors';
-import type { EmploymentId } from '../../core/ids';
+import type { EmploymentId, LedgerEntryId } from '../../core/ids';
 import { cents, type Cents } from '../../core/money';
 import { startCalc } from '../../core/trace/calc';
 import type { Traced } from '../../core/trace/types';
@@ -75,6 +75,10 @@ export interface EndEmploymentResult {
   readonly severance: number;
   /** Where the severance trace is stored, or null when nothing was paid. */
   readonly traceRef: TraceRef | null;
+  /** The severance's ledger row, or null when nothing was paid (ECO4-02). */
+  readonly ledgerEntryId: LedgerEntryId | null;
+  /** Where that ledger row's Why? is stored, or null when nothing was paid (ECO4-02). */
+  readonly ledgerTraceRef: TraceRef | null;
 }
 
 function endingHow(args: EndEmploymentArgs): ContractEndingHow {
@@ -161,6 +165,8 @@ export function endEmployment(ctx: DoorContext, args: EndEmploymentArgs): EndEmp
 
   // (5) Severance, before the concern row so the row can name the trace.
   let traceRef: TraceRef | null = null;
+  let ledgerEntryId: LedgerEntryId | null = null;
+  let ledgerTraceRef: TraceRef | null = null;
   if (severance !== null) {
     traceRef = severanceTraceRef(employment.id);
     const promotion = ctx.read.tables.promotions.get(employment.promotionId);
@@ -173,7 +179,7 @@ export function endEmployment(ctx: DoorContext, args: EndEmploymentArgs): EndEmp
     })
       .subtract(`Severance for ${employment.ringName}`, severance)
       .done();
-    postMoney(ctx, {
+    const row = postMoney(ctx, {
       promotionId: employment.promotionId,
       category: 'severance',
       amount: cents(cost.value),
@@ -181,6 +187,8 @@ export function endEmployment(ctx: DoorContext, args: EndEmploymentArgs): EndEmp
       refs: { personId: employment.personId },
       trace: cost,
     });
+    ledgerEntryId = row.id;
+    ledgerTraceRef = row.traceRef;
   }
 
   // (4) The concern row: only how it ended is left.
@@ -233,7 +241,7 @@ export function endEmployment(ctx: DoorContext, args: EndEmploymentArgs): EndEmp
       });
       break;
   }
-  return { severance: severanceCents, traceRef };
+  return { severance: severanceCents, traceRef, ledgerEntryId, ledgerTraceRef };
 }
 
 function describeMoves(status: EmploymentStatus): string {

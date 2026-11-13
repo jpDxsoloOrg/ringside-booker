@@ -16,10 +16,15 @@
 // program that imports this system, including programs that only see the emitted .d.ts files.
 import './events';
 import './streams';
-// Registers the built-in renewal policy.
+// Registers the built-in renewal policies and the expiry-notice hook.
 import './simpleRivalRenewal';
+import './playerAutoRenewal';
+import './notices';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
+import { contractsCommands } from './commands';
+import { expiringSoonGate } from './gates';
 import { contractsPhases } from './phases';
+import { contractsQueries } from './queries';
 
 export type { ContractQuitHow } from './events';
 export { AI_RENEWAL_STREAM } from './streams';
@@ -69,10 +74,77 @@ export {
   contractsPhases,
 } from './phases';
 
+// ECO4-02: severance, releases, contract queries and the "expiring soon" stop.
+export {
+  DAYS_PER_MONTH,
+  severance,
+  SEVERANCE_FORMULA_DOC_REF,
+  type SeveranceDeps,
+  type SeveranceInputs,
+} from './formulas/severance';
+export { severanceFor, type SeveranceMode } from './severanceFor';
+export {
+  RELEASE_REASON_KEY,
+  releaseEmployment,
+  releaseSeverance,
+  type ReleaseEmploymentArgs,
+  type ReleaseEmploymentResult,
+} from './release';
+export { RELEASE_REASON_CODES, releaseRefusals, type ReleaseReasonCode } from './rules';
+export {
+  ACKNOWLEDGE_MAX_EXPIRIES,
+  acknowledgeExpiriesCommand,
+  contractsCommands,
+  releaseCommand,
+  type ReleaseResult,
+} from './commands';
+export {
+  CONTRACTS_ACTION_HINT,
+  EXPIRING_SOON_GATE_ID,
+  expiringSoonGate,
+  expiringSoonReason,
+  unseenExpiringContracts,
+} from './gates';
+export {
+  EXPIRY_NOTICES_HOOK_ID,
+  expiryNoticesHook,
+  humanPromotionIds,
+  raiseExpiryNotices,
+} from './notices';
+export {
+  PLAYER_AUTO_RENEWAL_NOTE,
+  PLAYER_AUTO_RENEWAL_POLICY_ID,
+  PLAYER_RENEWALS_DOC_REF,
+  playerAutoRenewalPolicy,
+} from './playerAutoRenewal';
+export {
+  CONTRACT_PERK_KEYS,
+  changesSinceQuery,
+  contractsQueries,
+  countsQuery,
+  detailQuery,
+  listQuery,
+  releasePreviewQuery,
+  type ContractChange,
+  type ContractChanges,
+  type ContractCounts,
+  type ContractDetail,
+  type ContractEndReason,
+  type ContractPerkKey,
+  type ContractRow,
+  type ContractsTab,
+  type HeldTitle,
+  type OwnContractDetail,
+  type PrivateContractDetail,
+  type ReleasePreview,
+  type ReleaseWarning,
+  type ReleaseWarningCode,
+} from './queries';
+
 export const contractsSystem: SystemBundle = defineSystem({
   id: 'contracts',
   phases: contractsPhases,
-  gates: [],
-  queries: [],
-  commands: [],
+  gates: [expiringSoonGate],
+  queries: contractsQueries,
+  commands: contractsCommands,
 });

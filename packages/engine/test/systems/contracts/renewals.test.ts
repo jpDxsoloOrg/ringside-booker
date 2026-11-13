@@ -191,9 +191,9 @@ describe('the simple rival renewal', () => {
     );
   });
 
-  it("never renews the player's contracts", () => {
+  it("never renews the player's contracts (with the player's automatic renewal off)", () => {
     const built = renewalWorld();
-    run(built, { 'contracts.ai.renewChance': 1 });
+    run(built, { 'contracts.ai.renewChance': 1, 'contracts.autoRenewPlayer': false });
     expect(statusOf(built, built.mine)).toBe('expired');
   });
 
