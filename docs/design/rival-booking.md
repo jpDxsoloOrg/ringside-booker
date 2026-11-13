@@ -674,3 +674,133 @@ their keys to the same file.
 | `aip.card.order.prospectBoost`            | 6                       | Card score added with a prospect in a segment                                |
 | `aip.card.order.talkFactor`               | 0.8                     | Share of its speakers' card value a talking segment scores                   |
 | `aip.card.order.hotOpener`                | true                    | Whether the second-best match opens the show                                 |
+
+## Winners
+
+AIP4 writes every rival match with no planned winner. AIP5 has the rival
+booker decide its own results the way a person would: protect the ace, let a
+prospect go over, squash an enhancement worker, pay off a feud. Each winner
+gets a Why? that reads like a booker's reasoning. Code:
+`packages/engine/src/systems/aip/results/`, inside the `aip` bundle (no new
+system). AIP5-01 lays the groundwork described here; the winner and title
+formulas and the step that writes them come with AIP5-02 to AIP5-04.
+
+**Kept apart from the player's Why?** The winner decision's trace kind is
+`aip.winner` (by segment ID) and a title decision's `aip.title` (by
+`<segmentId>|<titleId>`), both helpers in `results/traces.ts`
+(`winnerTraceRef`, `titleTraceRef`). `sim.traceRetentionPerKind` counts per
+kind, so a busy rival schedule never pushes the player's own breakdowns
+(`segment.rating` and the rest) out of the store. Like the card's slot traces,
+both are kept in full for `aip.card.keepDetailDays` (28) days after the show
+and then demoted to a summary by `aip.pruneCardDetail`.
+
+**Decision kinds.** `winner` (chip "Winners") and `title` (chip "Titles"),
+registered in `results/decisionKinds.ts` with the rival desk's registry
+([rival-desk.md](rival-desk.md#decision-log)). `aiDecisions.kind` is an open
+key, so there is no save change.
+
+**Favoured twice.** AIP3 may add a featured boost inside card value, and the
+winner rule protects a prospect on top of that. That is intended (a booker both
+rates and protects a prospect), but balance tuning should look at both
+together.
+
+### Order of rolls
+
+Two streams, declared in `results/streams.ts`:
+
+- `aip.winners`: per segment, in this order: the jitter on each side (in side
+  order), the draw roll, the squash roll, the protection roll, the finale roll,
+  then the method roll. A roll a segment does not need is not drawn.
+- `aip.titles`: per title on the segment (highest prestige first), the change
+  roll, then the challenger pick.
+
+Shows are booked in event instance ID order and their segments are worked
+through in running order (pre-show first, then by slot), so a change to one
+segment never shifts another show's rolls, and nothing the rivals roll shifts
+the card planner's `aip.card` stream.
+
+### Inputs
+
+`rivalSegmentInputsOf(read, tunables, segmentId, date)` (`results/inputs.ts`)
+turns one planned rival match into plain inputs. It reads only, sorts every
+list by ID and returns plain JSON, so two calls on the same world agree. It
+returns null for an angle, a missing segment and a match with fewer than two
+competitor sides.
+
+- **Show:** `importance`, `promotionId`, `brandId`, `regionId`, and the
+  booker's title tempo `titleTaste`: AIP1's `titleFocus` taste axis (no ninth
+  axis), labelled "Booker's title taste" when AIP2 stored a taste, else "Title
+  taste (style default)".
+- **Sides,** by side number: `label` (ring names joined with " & "),
+  `personIds`, `cardValues` (AIP1's `cardValue` for each competitor, through
+  the same `cardValueInputsFor` the roster tab uses), `pushIndex` (the side's
+  top push: main event 5, upper card 4, midcard 3, lower card 2, enhancement 1,
+  none 0), `alignment` (the majority, else tweener) and `featured` (`ace`,
+  `prospect` or null from the unit's `aiProfiles.featured`; a side with both
+  counts as prospect).
+- **Storylines:** each of the segment's storylines that is active in this
+  promotion: `ageDays` since it started, `finaleFlag` (true when the storyline
+  names this segment as its finale, false when it names another, null when it
+  names none or the save has no finale field yet), and the sides holding its
+  face and heel members.
+- **Titles,** by prestige then ID: the open reign (`reignId`, `wonOn`,
+  `reignDays`, holders), `championSide` (the side holding every champion, else
+  null), `championContractDaysLeft` (the fewest `diffDays(date, endsOn)` over
+  the champions' contracts; null when every one is open-ended) and
+  `challengerSides`, every other side with its `marketPopularity` (the mean
+  of each competitor's popularity in the promotion's own markets, card value's
+  first step, `marketPopularity` in `formulas/cardValue.ts`), its
+  `contractDaysLeft` and its `eligibility`: every reason from WRK1's
+  `isEligibleForTitle` (weight limits are inclusive ranges) plus the
+  `availabilityOf` status of anyone who cannot work. Codes are kept; messages
+  are the player's text.
+
+Nothing here reads or names a duration (D-10).
+
+### Hook
+
+AIP5's step plugs into the booked-card steps
+([show day](#show-day)) with `registerBookedCardStep`. Its first check is
+`isComputerBooked(read, instance)` (`results/guard.ts`): EVT1's
+`showControllerOf(...).kind === 'computer'`, which follows the brand's own
+controller before the promotion's. A show the player runs, or a computer GM
+brand handed back to "You" between planning and running, is never touched.
+The player's Auto-fill writes through EVT2's card writer and runs no booked-card
+step, so it never decides results.
+
+## Title changes
+
+A rival booker moves a title when a reign has run long, the champion is on the
+way out or the promotion needs a jolt, and keeps it on house shows. AIP5-01
+defines the numbers; the chance and its Why? come with AIP5-03.
+
+- **Reign bands.** The base chance by reign length:
+  `aip.titles.band<n>.maxDays` / `.chance` for n = 1 to 6, (14, 0), (45, 4),
+  (90, 12), (150, 22), (240, 34), (365, 48), and
+  `aip.titles.bandBeyond.chance` 60 past the last band. The days must
+  increase: `reignBandsOf(tunables)` falls back to the default bands and
+  reports the problem when they do not.
+- **Terms on top:** prestige against `aip.titles.prestigePivot` times
+  `aip.titles.changePrestigeWeight` (titles below the pivot change more often;
+  not AIP4's `aip.titles.prestigeWeight`, which sets defence urgency), the
+  booker's title taste times `aip.titles.tempoWeight`, the show's
+  `aip.titles.importance.<importance>`, and `aip.titles.hotShot.bonus` while
+  `aip.titles.hotShot.weeks` weekly popularity readings each fall. Capped at
+  `aip.titles.maxChance`.
+- **Rules:** `aip.titles.houseShowsRetain` keeps titles on house shows; a reign
+  past `aip.titles.overdueDays` is overdue; a champion whose contract ends
+  within `aip.titles.expiringDays` drops the title; a challenger needs
+  `aip.titles.challengerMinContractDays` left.
+- **Challengers,** by the side's market popularity against the champion's: a
+  valid challenger is within `aip.titles.valid.gap` or at least
+  `aip.titles.valid.floor`; a strong one within `aip.titles.strong.gap` or at
+  least `aip.titles.strong.floor`.
+
+**Popularity history.** The hot-shot term reads weekly readings through one
+pluggable source, `registerPopularityHistorySource({ id, read })`
+(`results/history.ts`, at most one; a second throws). With none registered,
+`popularityHistoryOf` returns null and the decision notes "No popularity
+history yet" and adds nothing. AIP5-06 registers DAY2's promotion snapshots.
+
+**Results tunables.** Category `Rival booking`, in `results/tunables.ts`; the
+table is in [tunables.md](tunables.md#rival-results-tunables).
