@@ -22,6 +22,7 @@ import {
   type ShowCards,
 } from '../../../../src/systems/aip';
 import { createEngineTunables } from '../../../../src/systems/tunables';
+import { showScoreTraceRef } from '../../../../src/systems/shows';
 import { anEventInstance, worldBuilder } from '../../../support';
 import type { DeepPartial } from '../../../support/builders/build-row';
 import { SYSTEMS_WITHOUT_SHOW_DAY_GATE } from '../../../support/systems';
@@ -176,6 +177,7 @@ function expectHidden(row: ShowCardRow): void {
     hiddenText: CARD_HIDDEN_TEXT,
     planTraceRef: null,
     score: null,
+    scoreTraceRef: null,
     slots: [],
   });
 }
@@ -209,6 +211,13 @@ describe('aip.showCards', () => {
       planTraceRef: { kind: CARD_PLAN_TRACE_KIND, id: world.shows.rival },
     });
     expect(after.score).not.toBeNull();
+    // EVT3 ran the booked card: its score has a Why?, and every segment was rated.
+    expect(after.scoreTraceRef).toEqual(showScoreTraceRef(world.shows.rival));
+    const rated = world.engine
+      .exportState()
+      .world.tables.segments.filter((segment) => segment.eventInstanceId === world.shows.rival);
+    expect(rated.length).toBeGreaterThan(0);
+    expect(rated.filter((segment) => segment.rating === null)).toEqual([]);
     const main = after.slots.filter((slot) => !slot.preShow);
     expect(main).toHaveLength(SLOTS);
     for (const slot of main) {

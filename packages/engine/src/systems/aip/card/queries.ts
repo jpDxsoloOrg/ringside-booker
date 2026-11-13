@@ -43,6 +43,7 @@ import type { DeepReadonly } from '../../../model/world';
 import { cardSegments } from '../../booking/card';
 import { showPeople, type ShowPeople } from '../../booking/view';
 import { SLOT_ROLE_LABELS, slotRoleOf, type SlotRole } from '../../match/slots';
+import { showScoreTraceRef } from '../../shows/traces';
 import type { EngineTunables } from '../../tunables';
 import { promotionOrRefuse } from '../queries/shared';
 import { isRevealedTo } from '../reveal';
@@ -144,6 +145,8 @@ export interface ShowCardRow {
   planTraceRef: TraceRef | null;
   /** EVT3's show score once the show has run (and is revealed). */
   score: number | null;
+  /** The show score's Why? (`shows.score`), with `score`, while the trace is kept. */
+  scoreTraceRef: TraceRef | null;
   /** Running order: filled pre-show slots, then every main-card slot. Empty when hidden. */
   slots: ShowCardSlot[];
 }
@@ -358,6 +361,8 @@ function rowOf(
     cancelledReason: cancelledReasonOf(read, show, revealed),
     planTraceRef: revealed ? kept(traces, { kind: CARD_PLAN_TRACE_KIND, id: show.id }) : null,
     score: revealed ? (show.result?.score ?? null) : null,
+    scoreTraceRef:
+      revealed && show.result !== null ? kept(traces, showScoreTraceRef(show.id)) : null,
     slots: revealed && show.status !== 'cancelled' ? slotsOf(read, traces, tunables, show) : [],
   };
 }
