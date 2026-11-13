@@ -638,6 +638,15 @@ at `office.md#kpis-and-deltas`).
 | `office.trend.weeks`             | integer | 8       | 2–52  | count | Weeks shown in a KPI sparkline                                                   |
 | `office.delta.lookbackDays`      | integer | 7       | 1–90  | days  | How far back a KPI delta compares                                                |
 
+## Rival desk tunables
+
+The rival desk's numbers (AIP), in `systems/aip/tunables.ts`, category
+`Rival desk`, each with a docRef into [rival-desk.md](rival-desk.md).
+
+| Key                            | Kind    | Default | Range  | Unit | Meaning                                                                                             |
+| ------------------------------ | ------- | ------- | ------ | ---- | --------------------------------------------------------------------------------------------------- |
+| `aip.decisionLogRetentionDays` | integer | 365     | 0–3650 | days | How long rival decisions stay in the log. 0 keeps none ([decision log](rival-desk.md#decision-log)) |
+
 | Key                                    | Kind    | Default | Range        | Unit       | Meaning                                                                                             |
 | -------------------------------------- | ------- | ------- | ------------ | ---------- | --------------------------------------------------------------------------------------------------- |
 | `boxOffice.draw.atFullPopularity`      | integer | 30,000  | 0–200,000    | count      | Crowd a show draws at popularity 100, before the other lines                                        |
