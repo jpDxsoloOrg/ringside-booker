@@ -10,8 +10,8 @@
  *    match closes the show"); on a house show the highest-scoring segment of any kind;
  * 2. with `aip.card.order.hotOpener` and at least three matches on the main card, the
  *    second-highest match opens the show ("Second-best match opens the show");
- * 3. the rest fill the other main-card slots from the top, in ascending score towards the main
- *    event;
+ * 3. the rest fill the other main-card slots in ascending score towards the main event; on a
+ *    short card they take the open slots nearest the main event, so empty slots fall early;
  * 4. no two talking segments in a row: when rule 3 puts two together, talking segments move to the
  *    nearest slots that keep them apart and the matches close up around them, each move a line.
  *    The card shape (`talkSlotsFor`) leaves room for that; if the opener is needed it gives up its
@@ -281,9 +281,12 @@ export function orderCard(
     );
   }
 
-  // Rule 3: the rest, from the top, in ascending score.
-  const restSlotsOf = (): number[] =>
-    openMain.filter((slot) => !placed.has(slot)).slice(0, remaining.size);
+  // Rule 3: the rest, in ascending score towards the main event. On a short card they take the
+  // open slots nearest the main event, so the slots left empty fall early on the card.
+  const restSlotsOf = (): number[] => {
+    const free = openMain.filter((slot) => !placed.has(slot));
+    return remaining.size === 0 ? [] : free.slice(Math.max(0, free.length - remaining.size));
+  };
   let rest = [...remaining].sort((left, right) => byScoreDesc(right, left));
   let restSlots = restSlotsOf();
 

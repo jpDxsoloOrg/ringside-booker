@@ -217,6 +217,22 @@ describe('orderCard', () => {
     expect(card.get('main:1')).toBe('t10');
   });
 
+  it('leaves the empty slots of a short card early, never just before the main event', () => {
+    const off = createEngineTunables({ 'aip.card.order.hotOpener': false });
+    expect(
+      mainCard(order({ codes: ['m50', 'm80', 'm60'], slots: 6, tunables: off }).card, 6),
+    ).toEqual(['-', '-', '-', 'm50', 'm60', 'm80']);
+    // With the hot opener the gap falls just after the opener.
+    expect(mainCard(order({ codes: ['m50', 'm80', 'm60', 'm70'], slots: 6 }).card, 6)).toEqual([
+      'm70',
+      '-',
+      '-',
+      'm50',
+      'm60',
+      'm80',
+    ]);
+  });
+
   it('never fills more slots than the card has', () => {
     const { result } = order({ codes: ['m10', 'm20', 'm30', 'm40', 't5'], slots: 3 });
     expect(result.placements).toHaveLength(3);

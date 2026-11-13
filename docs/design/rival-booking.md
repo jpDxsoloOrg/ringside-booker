@@ -443,7 +443,9 @@ Rules, in order, each a line in the order trace:
    slot 1. Opening hot is common booking craft and pairs with EVT4's opener
    check; the flag turns it off.
 3. **Builds towards the main event.** The rest fill the remaining main-card
-   slots from the top, in ascending score.
+   slots in ascending score. On a short card they take the open slots nearest
+   the main event, so the slots left empty fall early on the card, never just
+   before the main event.
 4. **No two talking segments in a row.** When rule 3 puts two together, the
    talking segments move to the nearest slots that keep them apart, keeping
    their order, and the matches close up around them; each move is a line
