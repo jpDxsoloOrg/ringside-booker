@@ -19,9 +19,9 @@ describe('GRADE_BANDS', () => {
   });
 
   it('is not controlled by any tunable', () => {
-    expect(Object.keys(ALL_TUNABLES).filter((key) => key.toLowerCase().includes('grade'))).toEqual(
-      [],
-    );
+    // The word "grade" in a key ("worker.grade", "minGrade"), not the letters inside "upgradeFee".
+    const gradeWord = /(?:^|\.)grade|Grade/;
+    expect(Object.keys(ALL_TUNABLES).filter((key) => gradeWord.test(key))).toEqual([]);
   });
 });
 
