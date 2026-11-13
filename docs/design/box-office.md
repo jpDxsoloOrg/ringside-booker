@@ -131,8 +131,9 @@ it takes 20%, and fatigue never takes more than 75% (floor 0.25).
 
 ECO3 tracks a show's hype. Until it is on main, `hypeLineFor`
 (`hype.ts`) returns a constant 1 with the reason "Hype is not tracked yet", so
-the line is still in the Why?. EVT6-07 swaps in ECO3's hype multiplier inside
-that one function, without touching the formula.
+the line is still in the Why?. ECO3 was not on main when EVT6-07 wired the
+partners, so ECO3's pack swaps in its hype multiplier inside that one function,
+without touching the formula (see [Integrations](#integrations)).
 
 ## Calibration
 
@@ -644,3 +645,34 @@ show report's What changed panel has a **Box office** line (35): "Crowd 4,210
 
 **Headless.** The sim-runner's summary counts the settled shows and their
 total attendance; `--strict` fails when a completed show was never settled.
+
+## Integrations
+
+EVT6-07 connected the box office to the partner features that were on main
+when it started. A partner that was not there wires EVT6 from its own pack.
+
+| Partner                   | Status              | What it does with EVT6                                                                                                                                                                                                       |
+| ------------------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| EVT5 promotion popularity | Wired               | No code: the forecast reads `regionalPop` (with the [same-day rule](#same-day-rule)) on every call, so a strong show raises the next show's "Popularity in <region>" line and expected crowd and a weak one lowers both.     |
+| DAY2 Office               | Not wired here      | The Office has no "Last show" panel yet; DAY2-06 adds it with its EVT6 attendance line from `boxOffice.showCrowd`.                                                                                                           |
+| ECO3 hype                 | Owed by ECO3's pack | Replace the body of `hypeLineFor` (`hype.ts`) with ECO3's `hypeMultiplier`; settlement (group 600) runs before ECO3's `hype.daily` (700), so forecast and settlement read the same hype on show day.                         |
+| EVT4 production ceiling   | Owed by EVT4's pack | Merch reads `result.score`; EVT4 must keep that the capped score (with `rawScore` beside it) and add a test with a ceiling below the raw score.                                                                              |
+| EVT9 tapings              | Owed by EVT9's pack | An optional `tapingCrowd` input on `ExpectedAttendanceInputs`, applied once as "Taping crowd" after big-show fatigue and before hype, passed by both the forecast and the settlement.                                        |
+| EVT8 one-offs and tours   | Owed by EVT8's pack | `VenueFitBadge` and the expected crowd in its editors (a `boxOffice.venuesFor` variant that needs no stored show, if needed); `pickVenueFor` for tour stops created without a venue; `venueAvailability` for a stop's venue. |
+| EVT7 event history        | Owed by EVT7's pack | `attendance` from `result.attendance` on `history.shows` rows and a sortable Attendance column (an em dash before settlement); money stays out of history.                                                                   |
+| BRW5 brand war            | Owed by BRW5's pack | Its attendance category reads `show.settled` (`attendance`, `capacity`, `promotionId`, `eventInstanceId`); anything else it needs is added to the payload append-only.                                                       |
+
+**The calendar's Crowd section** (EVT6-07) also shows how many came to any
+show that has run, the player's or a rival's, from `boxOffice.showCrowd`:
+"4,210 came · 92% full at Harbor Arena" with the attendance Why?, or "Box
+office not settled yet". Crowds are public, so a rival's show shows its crowd
+too; money never shows there.
+
+**The attendance Why?, in order, with every partner present:** Popularity in
+the region (EVT5), the popularity curve, crowd at full popularity, walk-up
+crowd, marketing, show size, recent form, big-show fatigue, taping crowd
+(EVT9, only on a taping night), hype (ECO3; 1 with "Hype is not tracked yet"
+until then). Each multiplier is applied once: hype is never folded into
+popularity, and taping fatigue (tonight's tapings) is separate from big-show
+fatigue (big shows in the last four weeks). Today the line order is the same
+without the taping line.
