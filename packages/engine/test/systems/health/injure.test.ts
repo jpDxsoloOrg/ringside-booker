@@ -25,12 +25,15 @@ import {
   type InjureResult,
 } from '../../../src/systems/health';
 import { aPerson } from '../../support/builders/people';
+import { TEST_PLAYER_ID } from '../../support/builders/build-row';
 import { testId } from '../../support/ids';
 import { TEST_INJURY_CATALOG } from '../../support/injuries';
 import { expectSerialisable, expectTraceReplays } from '../../support/trace';
 import { worldBuilder } from '../../support/world-builder';
 
 const OMNISCIENT = { kind: 'omniscient' } as const;
+// The player's promotion: its workers keep a full Why? for their injuries (WRK6-04).
+const HUMAN = { kind: 'human', playerId: TEST_PLAYER_ID } as const;
 const TEST_PHASE_ID = 'injureTest.run';
 const ARM = parseContentKey('injury.test-arm');
 const EVENT_TYPES = ['injury.sustained', 'injury.healed', 'morale.changed'];
@@ -47,7 +50,9 @@ interface InjureWorld {
 function injureWorld(options: { catalog?: boolean } = {}): InjureWorld {
   let builder = worldBuilder()
     .withGeography('mini')
-    .withPromotion({ name: 'Apex Wrestling' }, (promotion) => promotion.withRoster(2))
+    .withPromotion({ name: 'Apex Wrestling', controller: HUMAN }, (promotion) =>
+      promotion.withRoster(2),
+    )
     .with('a free agent, a retired and a deceased person', (context) => {
       context.insert('people', aPerson({}, context.sequence));
       context.insert('people', aPerson({ status: 'retired' }, context.sequence));
@@ -182,7 +187,8 @@ describe('injure', () => {
       returnedOn: null,
       source: 'world',
       segmentId: null,
-      noticedOn: row.since,
+      // Apex is the player's promotion, so the injury waits to be noticed (WRK6-04).
+      noticedOn: null,
     });
     const days = numeric(fullTrace(run.engine, injuryTraceRef(injuryId)));
     expectTraceReplays(days);
@@ -236,16 +242,35 @@ describe('injure', () => {
 
   it('rolls the kind and severity when the caller names neither', async () => {
     const built = injureWorld();
-    const run = await runInjure(built, (ctx) => injure(ctx, built.people[2]!, { source: 'world' }));
+    const run = await runInjure(built, (ctx) => injure(ctx, built.people[0]!, { source: 'world' }));
     const injuryId = okId(run.result);
     const row = run.after.world.tables.injuries.find((entry) => entry.id === injuryId);
     expect(TEST_INJURY_CATALOG.map((kind) => kind.key)).toContain(row?.kindKey);
     const trace = fullTrace(run.engine, injuryTraceRef(injuryId)).trace;
     expect(findTraceNodes(trace, 'roll').map((node) => node.label)).toContain('Severity roll');
-    // A free agent gets the free-agent level, with no promotion named.
-    expect(findTraceNodes(trace, 'multiply').map((node) => node.label)).toContain(
-      'No employer: standard care',
+  });
+
+  it('keeps only a summary for anyone the player does not employ, noticed on the day', async () => {
+    const built = injureWorld();
+    const chanceTrace = constantOf('Injury chance', 0.25, 'Set by the test');
+    const run = await runInjure(built, (ctx) =>
+      injure(ctx, built.people[2]!, { source: 'world', chanceTrace }),
     );
+    const injuryId = okId(run.result);
+    const row = run.after.world.tables.injuries.find((entry) => entry.id === injuryId);
+    expect(row?.noticedOn).toBe(row?.since);
+    for (const ref of [
+      injuryTraceRef(injuryId),
+      injuryConditionLossTraceRef(injuryId),
+      injuryRecordChanceTraceRef(injuryId),
+    ]) {
+      const stored = run.engine.query('trace.get', { ref }, OMNISCIENT);
+      if (!stored.ok || stored.data === null) {
+        throw new Error(`expected a trace at ${ref.kind}`);
+      }
+      expect(isFullTrace(stored.data), ref.kind).toBe(false);
+      expect(stored.data).toMatchObject({ summaryOnly: true });
+    }
   });
 
   it('keeps to the body part hint when the catalog has a kind there', async () => {

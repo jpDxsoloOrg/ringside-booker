@@ -48,11 +48,12 @@ interface FatigueWorld {
 function fatigueWorld(): FatigueWorld {
   const { world, ids } = worldBuilder()
     .withGeography('mini')
-    .with('three people with different fatigue', (context) => {
-      for (const fatigue of STARTING_FATIGUE) {
-        context.insert('people', aPerson({ fatigue }, context.sequence));
-      }
-    })
+    // The player's roster: only their workers keep a full Why? for fatigue recovery (WRK6-04).
+    .withPromotion({ controller: { kind: 'human', playerId: TEST_PLAYER_ID } }, (promotion) =>
+      promotion.withRoster(STARTING_FATIGUE.length, {
+        person: (index) => ({ fatigue: STARTING_FATIGUE[index] ?? 0 }),
+      }),
+    )
     .build();
   const [rested, nearlyRested, tired] = ids.people;
   if (rested === undefined || nearlyRested === undefined || tired === undefined) {
@@ -167,6 +168,25 @@ describe('health.recovery phase', () => {
       ]);
       expectSerialisable(entry);
     }
+  });
+
+  it('keeps only a summary for someone the player does not employ', async () => {
+    const { world, ids } = worldBuilder()
+      .withGeography('mini')
+      .with('a tired free agent', (context) => {
+        context.insert('people', aPerson({ fatigue: 40 }, context.sequence));
+      })
+      .build();
+    const [freeAgent] = ids.people;
+    if (freeAgent === undefined) {
+      throw new Error('expected a free agent');
+    }
+    const engine = engineOver(world);
+    await engine.advanceDays({ maxDays: 1 });
+    const entry = storedTrace(engine, freeAgent);
+    expect(entry).not.toBeNull();
+    expect(entry !== null && isFullTrace(entry)).toBe(false);
+    expect(entry).toMatchObject({ summaryOnly: true, value: fatigueOf(engine, freeAgent) });
   });
 
   it('gives identical results for the same seed', async () => {
@@ -329,7 +349,7 @@ describe('health.recovery after a talking-only show day', () => {
     return worldBuilder({ currentDate: addDays(TEST_START_DATE, 1) })
       .withGeography('mini')
       .withCatalogs()
-      .withPromotion({}, (promotion) =>
+      .withPromotion({ controller: { kind: 'human', playerId: TEST_PLAYER_ID } }, (promotion) =>
         promotion.withRoster(4, { person: () => ({ fatigue: 40 }) }),
       )
       .withEventInstance({ status: 'completed', date: TEST_START_DATE })

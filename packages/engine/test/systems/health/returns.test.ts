@@ -20,8 +20,9 @@ import {
   injure,
   injuryConditionLossTraceRef,
   injuryTraceRef,
+  RECOVERY_STREAM,
 } from '../../../src/systems/health';
-import { TEST_START_DATE } from '../../support/builders/build-row';
+import { TEST_PLAYER_ID, TEST_START_DATE } from '../../support/builders/build-row';
 import { worldBuilder } from '../../support/world-builder';
 
 const OMNISCIENT = { kind: 'omniscient' } as const;
@@ -125,10 +126,11 @@ describe('injury returns', () => {
   it('draws nothing from the recovery stream for a return', async () => {
     const built = hurtWorld();
     const engine = engineOver(built.world);
-    const before = engine.exportState().rng;
+    const before = engine.exportState().rng.streams[RECOVERY_STREAM];
     await engine.advanceDays({ maxDays: 4 });
-    // Nobody is tired, so the only draws a day could take are an injury's, and returns take none.
-    expect(engine.exportState().rng).toEqual(before);
+    // Nobody is tired, so recovery draws nothing, and returns take no draws of their own. (The
+    // off-screen injury check draws from its own stream every day.)
+    expect(engine.exportState().rng.streams[RECOVERY_STREAM]).toEqual(before);
   });
 });
 
@@ -205,7 +207,10 @@ describe('health.pruneInjuryDetail', () => {
   it('slims injury traces past the detail window to summaries and keeps the rows', async () => {
     const { world, ids } = worldBuilder()
       .withGeography('mini')
-      .withPromotion({}, (promotion) => promotion.withRoster(1))
+      // The player's worker, so the injury keeps a full Why? until it is past the window.
+      .withPromotion({ controller: { kind: 'human', playerId: TEST_PLAYER_ID } }, (promotion) =>
+        promotion.withRoster(1),
+      )
       .withInjuryCatalog()
       .build();
     const [personId] = ids.people;
@@ -232,6 +237,13 @@ describe('health.pruneInjuryDetail', () => {
       ],
     });
     const engine = engineOver(world, [hurtOnce]);
+    // Let the days run on past the own-injury gate.
+    const off = engine.command(
+      'tunables.setOverride',
+      { key: 'health.stopOnOwnInjury', value: false },
+      { kind: 'human', playerId: TEST_PLAYER_ID },
+    );
+    expect(off.ok).toBe(true);
     await engine.advanceDays({ maxDays: 1 });
     const [row] = engine.exportState().world.tables.injuries;
     if (row === undefined) {

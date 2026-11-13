@@ -40,7 +40,11 @@ describe('who writes injuries', () => {
   });
 
   it('only the return step closes an injury or clears the pointer of an existing person', () => {
-    expect(filesMatching(/\.update\(\s*['"`]injuries['"`]/)).toEqual(['systems/health/returns.ts']);
+    // The acknowledge command (WRK6-04) only sets `noticedOn`; returns close injuries.
+    expect(filesMatching(/\.update\(\s*['"`]injuries['"`]/)).toEqual([
+      'systems/health/commands.ts',
+      'systems/health/returns.ts',
+    ]);
     // New people start uninjured; after that only a return clears the pointer.
     expect(filesMatching(/\binjury\s*:\s*null\b/)).toEqual([
       'persistence/packs/materialise.ts',
