@@ -61,7 +61,10 @@ Code: `packages/engine/src/persistence/` (`save-document.ts`,
   written before the field existed loads with `catalogs: {}` (it has no match
   types until a new game is started). Finishes (MTCH2) are an optional
   `catalogs.finishes` entry: a save started before them loads without one and
-  has no finishes until a new game is started.
+  has no finishes until a new game is started. The injury catalog (WRK6-01) is
+  the optional `catalogs.injuries` entry, the injury kinds keyed by content key
+  (`injury.sprained-ankle`); a save started before it loads without one and
+  has no injury kinds until a new game is started.
 - **The simulation parts** (`rng`, `tunableOverrides`, `traces`, `events`,
   `failureLog`, `commandLog`) are named slots. The engine state that owns
   them supplies their schemas when it saves and loads. A slot without a

@@ -21,9 +21,10 @@ Code: `packages/engine/src/model/`.
   the world name, start and current date, the seed, the players, the content
   packs the world was built from (with the IDs minted for their records), the
   content catalogs snapshotted from those packs at new game (`catalogs`: match
-  types, angle types and win methods keyed by content key; `{}` for a world
-  built without packs; see
-  [data-packs.md](data-packs.md#match-and-segment-catalogs)), the number of
+  types, angle types and win methods keyed by content key, and `injuries`,
+  the injury kinds a person's `injury.kindKey` names (WRK6-01, see
+  [data-packs.md](data-packs.md#health)); `{}` for a world built without packs;
+  see [data-packs.md](data-packs.md#match-and-segment-catalogs)), the number of
   days simulated, and the settings chosen at new game. The settings
   include the level-playing-field flag (D-01) and the season length in days
   (D-08). There is no "the player's promotion" field: who runs a promotion or a

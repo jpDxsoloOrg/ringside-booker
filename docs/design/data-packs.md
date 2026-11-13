@@ -666,6 +666,66 @@ segment's match type, win method and angle type resolves, and that the finish
 catalog passes `checkFinishCatalog`. Its `segment-finishes` rule checks every
 stored match's planned finish.
 
+### Health
+
+The kinds of injury a person can pick up (WRK6-01). The base pack ships them
+in `content/base/injuries.json` (`"injuryKind": "injuries.json"` in its
+manifest). An injury kind refers to no other kind and never becomes an entity.
+
+**`injuryKind`**
+
+| Field                 | Type                          | Rules                                                                                    |
+| --------------------- | ----------------------------- | ---------------------------------------------------------------------------------------- |
+| `key`                 | key                           | Becomes `injury.<key>`                                                                   |
+| `label`               | string                        | 1-60 characters, shown to the player ("Sprained ankle")                                  |
+| `bodyPart`            | body part                     | One of `head`, `neck`, `back`, `arms`, `torso`, `legs` (an engine list, not a reference) |
+| `minDays`             | integer                       | 1-730, the shortest time out in days                                                     |
+| `maxDays`             | integer                       | At least `minDays`, at most 730                                                          |
+| `weight`              | number                        | Above 0, at most 100: how often this kind is picked relative to the others               |
+| `canWorkAnglesChance` | number                        | 0-1, the chance the injured person can still appear in talking segments                  |
+| `severityWeights`     | `{ minor, moderate, severe }` | Each 0-100, not all 0: how often each severity is picked for this kind                   |
+| `description?`        | string                        | Up to 300 characters, for modders and tools                                              |
+
+Heavier injuries in the base catalog get a lower `weight` and severity
+weights tilted towards `minor`; the severity multipliers themselves are
+tunables, not pack data (WRK6-03). A cross-field problem names the field and
+entry: `injuries.json[3].maxDays: must be at least minDays`. `$override:
+"patch"` and `$remove` work as for every other kind, so an add-on can make a
+catalog harsher, add kinds or drop one, and the merged result is what lands in
+the world.
+
+```json
+{
+  "key": "sprained-ankle",
+  "label": "Sprained ankle",
+  "bodyPart": "legs",
+  "minDays": 5,
+  "maxDays": 28,
+  "weight": 14,
+  "canWorkAnglesChance": 0.8,
+  "severityWeights": { "minor": 65, "moderate": 28, "severe": 7 },
+  "description": "A rolled ankle from a bad landing."
+}
+```
+
+**Content keys.** A person's `injury.kindKey` holds the content key: pack key
+`sprained-ankle` is `injury.sprained-ankle` (`injuryContentKey` and
+`INJURY_CONTENT_PREFIX` in `records/health.ts`).
+
+**Snapshot.** Like the match catalogs, the merged injury kinds are copied into
+`meta.catalogs.injuries` at new game, keyed by content key in key order, so a
+save keeps the catalog its game was started with; a mod enabled mid-game
+changes only the next new game. The running game reads it only through
+`injuryCatalogOf` (every kind, sorted by key) and `injuryKindOf` (one kind, or
+undefined) in `model/catalogs.ts`. A world with no injury pack has no
+`injuries` catalog, and the readers return nothing. The content library lists
+the kinds by pack key (`injuryKinds`) for tools.
+
+`validate:world`'s `injury-catalog` rule warns when a body part has no injury
+kind, and reports two kinds sharing a label (ignoring case) or a person whose
+`injury.kindKey` is not in the catalog. The `blocklist` rule checks every
+label.
+
 ## A worked example
 
 The smallest useful world: one continent, one country, one region, one
@@ -909,8 +969,8 @@ player's own choices.
   load order. `contentKeys` maps record kind → key → minted ID for every record
   that became an entity, so later systems, saves and mods can find a pack
   record's entity by key.
-- **Catalogs.** The match types, angle types and methods are copied into
-  `meta.catalogs`, keyed by content key with defaults filled in, so the save
+- **Catalogs.** The match types, angle types, methods, finishes and injury
+  kinds are copied into `meta.catalogs`, keyed by content key with defaults filled in, so the save
   carries the catalogs its game was started with (see
   [Match and segment catalogs](#match-and-segment-catalogs)). The content
   library lists them too, by pack key, for tools.
