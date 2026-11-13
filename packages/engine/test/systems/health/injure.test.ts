@@ -224,7 +224,7 @@ describe('injure', () => {
     const run = await runInjure(built, (ctx) => injure(ctx, built.people[0]!, ARM_OPTIONS));
     const trace = fullTrace(run.engine, injuryTraceRef(okId(run.result))).trace;
     const labels = findTraceNodes(trace, 'roll').map((node) => node.label);
-    expect(labels).toEqual(['Test arm injury: 10–20 days', 'Can they work angles?']);
+    expect(labels).toEqual(['Test arm injury: 10–20 days', 'Can work angles']);
     expect(
       findTraceNodes(trace, 'roll').every((node) => node.roll.stream === INJURIES_STREAM),
     ).toBe(true);

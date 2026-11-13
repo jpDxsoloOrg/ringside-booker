@@ -112,7 +112,7 @@ function withAnglesRoll(
     ...root,
     children: [
       ...root.children,
-      { kind: 'roll', label: 'Can they work angles?', value: roll.result, roll: { ...roll } },
+      { kind: 'roll', label: 'Can work angles', value: roll.result, roll: { ...roll } },
       { kind: 'note', label: anglesNote(canWorkAngles), value: null },
     ],
   };
@@ -229,7 +229,7 @@ export function injure(
     },
     { tunables: ctx.tunables, rng: stream },
   );
-  const angles = rollChance(stream, kind.canWorkAnglesChance, 'Can they work angles?');
+  const angles = rollChance(stream, kind.canWorkAnglesChance, 'Can work angles');
   const outcome = withAnglesRoll(days, angles.roll, angles.value);
   const loss = computeInjuryConditionLoss(
     { daysOut: days, currentCondition: person.condition[kind.bodyPart] },

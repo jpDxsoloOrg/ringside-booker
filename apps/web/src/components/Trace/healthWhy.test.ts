@@ -23,8 +23,12 @@ import { describeTraceNode } from './wording';
 const AGE = 41;
 const PROMOTION = 'Apex Wrestling';
 
-/** A tunable key or a code where words belong: `health.fatigue.x`, `injuryProne`, `legs`. */
-const RAW_KEY = /\bhealth\.[a-z]|\b[a-z]+[A-Z][a-zA-Z]*\b|^(head|neck|back|arms|torso|legs)\b/;
+/**
+ * A tunable key or a code where words belong (`health.fatigue.x`, `injuryProne`, `legs`), a design
+ * decision's id (`(D-01)`), or a question label run into a colon (`angles?:`).
+ */
+const RAW_KEY =
+  /\bhealth\.[a-z]|\b[a-z]+[A-Z][a-zA-Z]*\b|^(head|neck|back|arms|torso|legs)\b|\(D-\d+\)|\?:/;
 
 function nodes(root: TraceNode): TraceNode[] {
   return [root, ...(root.children ?? []).flatMap(nodes)];
@@ -48,6 +52,7 @@ interface HealthTraces {
   readonly timeOut: TraceNode;
   readonly conditionLost: TraceNode;
   readonly offscreenChance: TraceNode;
+  readonly rivalOffscreenChance: TraceNode;
 }
 
 function healthTraces(tunables: EngineTunables): HealthTraces {
@@ -94,7 +99,22 @@ function healthTraces(tunables: EngineTunables): HealthTraces {
     },
     { tunables },
   );
+  const rival = computeOffscreenInjuryChance(
+    {
+      fatigue: 0,
+      worstCondition: 100,
+      worstPart: 'head',
+      traits: ['durable'],
+      computerShortcut: {
+        value: true,
+        trace: { kind: 'input', label: 'Rival rules: no in-match injuries', value: true },
+      },
+      promotionName: PROMOTION,
+    },
+    { tunables },
+  );
   return {
+    rivalOffscreenChance: rival.trace,
     fatigueRecovery: fatigue.trace,
     ageCap: cap.trace,
     nextRecovery: next.trace,
@@ -133,6 +153,9 @@ describe('the Health Why? panels, in words', () => {
     expect(traceToText(traces.offscreenChance)).toMatch(/Legs/);
     // A daily chance is far under 1%: each step still shows how it moved it.
     expect(traceToText(traces.offscreenChance)).toContain('0.3 → 0.082%');
+    expect(traceToText(traces.rivalOffscreenChance)).toContain(
+      'Rival rule: no in-match injuries, so more off-screen ones',
+    );
   });
 });
 
