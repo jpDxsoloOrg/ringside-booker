@@ -467,28 +467,39 @@ category `Aftermath`. See
 ### Physical toll tunables
 
 How much fatigue one worker gains in one match and how much body condition they
-lose (MTCH4-01), in `systems/match/physical/tunables.ts`, category
-`Physical toll`. Every key has a minimum of 0. The full table, with every
+lose (MTCH4-01), and the in-match injury chance (MTCH4-02), in
+`systems/match/physical/tunables.ts`, category `Physical toll`. Every key has a minimum of 0. The full table, with every
 style and body part default, is in
 [physical-toll.md](physical-toll.md#tunables).
 
-| Family                                | Kind   | Unit              | What it does                                                                        |
-| ------------------------------------- | ------ | ----------------- | ----------------------------------------------------------------------------------- |
-| `match.fatigue.base.<class>`          | number | points            | Fatigue a short (4), standard (7) or long (12) match costs one worker               |
-| `match.fatigue.minShare`              | number | ratio             | Smallest share of the workload in a crowded match (0.35)                            |
-| `match.fatigue.staminaRelief`         | number | ratio             | Fatigue eased per point of stamina above 50 (0.006)                                 |
-| `match.fatigue.style.<style>`         | number | multiplier        | How tiring each ring style finds a match                                            |
-| `match.fatigue.*Factor`               | number | multiplier        | Workhorse 1.15, coaster 0.85, house show 0.6, keep it safe 0.8                      |
-| `match.fatigue.repeatMatch`           | number | multiplier        | Fatigue and wear for each match after the first on the same card, compounding (1.5) |
-| `match.fatigue.maxPerSegment`         | number | points            | Most fatigue one match can add (40)                                                 |
-| `match.wear.base.<class>`             | number | points            | Wear a short (0.2), standard (0.35) or long (0.6) match costs one worker            |
-| `match.wear.selfStyle.<style>`        | number | multiplier        | How hard each ring style is on its own worker's body                                |
-| `match.wear.opponentStyle.<style>`    | number | multiplier        | How rough each ring style is on an opponent                                         |
-| `match.wear.safetyWeight` and min/max | number | ratio, multiplier | The opponents' safety factor (0.008 per point, kept within 0.6–1.4)                 |
-| `match.wear.*Factor`                  | number | multiplier        | Durable 0.7, injury prone 1.3, house show 0.6, keep it safe 0.5                     |
-| `match.wear.spread`                   | number | ratio             | How far the roughness roll moves wear either way (0.5; 0 means no randomness)       |
-| `match.wear.maxPerSegment`            | number | points            | Most wear one match can cost (5)                                                    |
-| `match.wear.part.<part>`              | number | multiplier        | Share of the wear each body part takes                                              |
+| Family                                          | Kind    | Unit              | What it does                                                                          |
+| ----------------------------------------------- | ------- | ----------------- | ------------------------------------------------------------------------------------- |
+| `match.fatigue.base.<class>`                    | number  | points            | Fatigue a short (4), standard (7) or long (12) match costs one worker                 |
+| `match.fatigue.minShare`                        | number  | ratio             | Smallest share of the workload in a crowded match (0.35)                              |
+| `match.fatigue.staminaRelief`                   | number  | ratio             | Fatigue eased per point of stamina above 50 (0.006)                                   |
+| `match.fatigue.style.<style>`                   | number  | multiplier        | How tiring each ring style finds a match                                              |
+| `match.fatigue.*Factor`                         | number  | multiplier        | Workhorse 1.15, coaster 0.85, house show 0.6, keep it safe 0.8                        |
+| `match.fatigue.repeatMatch`                     | number  | multiplier        | Fatigue and wear for each match after the first on the same card, compounding (1.5)   |
+| `match.fatigue.maxPerSegment`                   | number  | points            | Most fatigue one match can add (40)                                                   |
+| `match.wear.base.<class>`                       | number  | points            | Wear a short (0.2), standard (0.35) or long (0.6) match costs one worker              |
+| `match.wear.selfStyle.<style>`                  | number  | multiplier        | How hard each ring style is on its own worker's body                                  |
+| `match.wear.opponentStyle.<style>`              | number  | multiplier        | How rough each ring style is on an opponent                                           |
+| `match.wear.safetyWeight` and min/max           | number  | ratio, multiplier | The opponents' safety factor (0.008 per point, kept within 0.6–1.4)                   |
+| `match.wear.*Factor`                            | number  | multiplier        | Durable 0.7, injury prone 1.3, house show 0.6, keep it safe 0.5                       |
+| `match.wear.spread`                             | number  | ratio             | How far the roughness roll moves wear either way (0.5; 0 means no randomness)         |
+| `match.wear.maxPerSegment`                      | number  | points            | Most wear one match can cost (5)                                                      |
+| `match.wear.part.<part>`                        | number  | multiplier        | Share of the wear each body part takes                                                |
+| `match.injury.enabled`                          | boolean | flag              | Workers can get hurt in a match (on)                                                  |
+| `match.injury.baseChance`                       | number  | probability       | Injury chance for a fresh worker in a standard match (0.003)                          |
+| `match.injury.per*Point*`                       | number  | probability       | Added per point of end-of-match fatigue and of the worst body part below 100 (0.0001) |
+| `match.injury.duration.<class>`                 | number  | multiplier        | Short 0.7, standard 1, long 1.3                                                       |
+| `match.injury.opponentSafetyWeight` and min/max | number  | ratio, multiplier | The least safe opponent's factor (0.012 per point, kept within 0.5–1.6)               |
+| `match.injury.selfStyle.<style>`                | number  | multiplier        | How much a worker's own style raises their injury chance                              |
+| `match.injury.opponentStyle.<style>`            | number  | multiplier        | How much an opponent's style raises the injury chance                                 |
+| `match.injury.*Factor`                          | number  | multiplier        | Injury prone 1.8, durable 0.5, keep it safe 0.5                                       |
+| `match.injury.repeatMatch`                      | number  | multiplier        | Injury chance for each match after the first on the same card, compounding (1.4)      |
+| `match.injury.maxChance`                        | number  | probability       | Highest injury chance one worker can have in one match (0.2)                          |
+| `match.injury.maxPerSegment`                    | integer | count             | Most workers injured in one segment (1; 0 means nobody)                               |
 
 ## Shows tunables
 
