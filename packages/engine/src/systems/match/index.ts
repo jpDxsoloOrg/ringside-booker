@@ -602,3 +602,11 @@ export {
   tvReachReason,
   tvReachRegions,
 } from './aftermath/tvReach';
+// A match booked as Random is a coin flip; an auto-winner upset is noted (MTCH2-08).
+export {
+  COIN_FLIP_LABEL,
+  COIN_FLIP_REASON,
+  COIN_FLIP_RULE,
+  coinFlipDrawLabel,
+  upsetNote,
+} from './finishes/autoWinner';

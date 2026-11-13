@@ -110,11 +110,7 @@ function segmentIssues(input: BookingCheckInput): BookingIssueDraft[] {
         });
       }
     }
-    if (
-      segment.outcome === null &&
-      segment.match.resultPlan === undefined &&
-      !decidedOnTheNight
-    ) {
+    if (segment.outcome === null && segment.match.resultPlan === undefined && !decidedOnTheNight) {
       issues.push({
         code: 'noPlannedResult',
         severity: 'error',

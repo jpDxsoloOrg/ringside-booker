@@ -202,8 +202,7 @@ export function resolveOnShowNight(
   };
 
   const { resultPlan } = segment.match;
-  const booked =
-    input.plan !== null || input.plannedFinishKey !== null || resultPlan !== undefined;
+  const booked = input.plan !== null || input.plannedFinishKey !== null || resultPlan !== undefined;
   const attempts: Attempt[] = [];
   let mode: AutoWinnerMode = randomWinners ? 'randomWinners' : 'standard';
   if (randomWinners) {

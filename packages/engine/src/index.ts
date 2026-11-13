@@ -2403,3 +2403,4 @@ export {
   type PlannedResult,
 } from './systems/booking/draft';
 export { RESULT_PLANS, ResultPlanSchema, type ResultPlan } from './model/entities/segment';
+export { COIN_FLIP_LABEL, upsetNote } from './systems/match/index';
