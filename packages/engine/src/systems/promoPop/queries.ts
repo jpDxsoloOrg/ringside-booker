@@ -11,7 +11,7 @@
 import { z } from 'zod';
 import { defineQuery, type QueryContext, type QueryDefinition } from '../../core/api/query';
 import { refuseQuery } from '../../core/api/result';
-import { compareDates, type GameDate } from '../../core/date';
+import { compareDates, yearMonthOf, type GameDate, type YearMonth } from '../../core/date';
 import {
   parseId,
   type CountryId,
@@ -32,7 +32,7 @@ import { compareIds } from '../../model/table';
 import type { DeepReadonly } from '../../model/world';
 import { geographyOf } from '../world/geography';
 import { reachLabel, type ReachRoute } from './formulas/labels';
-import { showChangeOf } from './helpers';
+import { monthlyGainsOf, showChangeOf } from './helpers';
 import { lastPruneCutoff } from './phases';
 import { showChangeTraceRef } from './traces';
 
@@ -101,11 +101,32 @@ export interface ShowPopularityChangeView {
   countries: ShowChangeCountryView[];
 }
 
+/**
+ * `popularity.monthGains`: what a promotion's shows have won it in each region this calendar month,
+ * against the monthly cap (the Fan base sheet's "This month" figure, DAY2-06).
+ */
+export interface PopularityMonthGainsView {
+  promotionId: PromotionId;
+  /** The month the gains are for: today's. */
+  month: YearMonth;
+  /** `promoPop.monthlyGainCap`: the most shows can win in one region in one month. */
+  cap: number;
+  /** Points won so far this month, by region; a region with no gain is left out. */
+  byRegion: Record<RegionId, number>;
+}
+
+/** What the player reads when a promotion id is unknown. */
+export const MONTH_GAINS_UNKNOWN_PROMOTION_MESSAGE = "That promotion doesn't exist.";
+
 declare module '../../core/api/maps' {
   interface QueryMap {
     'popularity.showChange': {
       args: { eventInstanceId: EventInstanceId };
       result: ShowPopularityChangeView;
+    };
+    'popularity.monthGains': {
+      args: { promotionId: PromotionId };
+      result: PopularityMonthGainsView;
     };
   }
 }
@@ -278,4 +299,33 @@ export const showChangeQuery: QueryDefinition<'popularity.showChange'> = defineQ
   },
 );
 
-export const promoPopQueries: readonly QueryDefinition[] = [showChangeQuery];
+/** `popularity.monthGains`. Popularity is public, so any viewer may ask about any promotion. */
+export const monthGainsQuery: QueryDefinition<'popularity.monthGains'> = defineQuery(
+  'popularity.monthGains',
+  {
+    args: z.strictObject({ promotionId: zId('promotion') }),
+    run: (ctx, args) => {
+      if (ctx.read.tables.promotions.get(args.promotionId) === undefined) {
+        return refuseQuery({
+          code: 'notFound',
+          message: MONTH_GAINS_UNKNOWN_PROMOTION_MESSAGE,
+          field: 'promotionId',
+        });
+      }
+      const byRegion: Record<RegionId, number> = {};
+      for (const [regionId, gain] of Object.entries(
+        monthlyGainsOf(ctx.read, args.promotionId, ctx.date),
+      )) {
+        if (gain > 0) byRegion[parseId('region', regionId)] = gain;
+      }
+      return {
+        promotionId: args.promotionId,
+        month: yearMonthOf(ctx.date),
+        cap: ctx.tunables.get('promoPop.monthlyGainCap'),
+        byRegion,
+      };
+    },
+  },
+);
+
+export const promoPopQueries: readonly QueryDefinition[] = [showChangeQuery, monthGainsQuery];
