@@ -184,7 +184,9 @@ describe('OfficeScreen', () => {
     await renderOffice();
 
     await screen.findByText('Side panel', undefined, { timeout: LOAD_MS });
-    expect(panelIdsIn('main')).toEqual(['test.earlier', 'test.later']);
+    // Partner panels (DAY2-06) sit after these, from order 50 on.
+    expect(panelIdsIn('main').slice(0, 2)).toEqual(['test.earlier', 'test.later']);
+    expect(panelIdsIn('main')).not.toContain('test.nothing');
     expect(panelIdsIn('side')).toEqual(['test.side', 'day2.worldClock']);
 
     act(() => {
@@ -280,5 +282,26 @@ describe('OfficeScreen', () => {
     );
     expect(sheet).toHaveTextContent('Shown as popularity in its home country');
     expect(screen.getAllByRole('dialog')).toHaveLength(1);
+  });
+
+  it('draws the partner panels through the registry, in the order office.md lists (DAY2-06)', async () => {
+    await renderOffice();
+
+    await screen.findByRole('region', { name: 'Next show' }, { timeout: LOAD_MS });
+    await screen.findByRole('region', { name: 'Last show' }, { timeout: LOAD_MS });
+    const main = panelIdsIn('main');
+    expect(main.indexOf('calendar.nextShow')).toBeLessThan(main.indexOf('shows.lastShow'));
+    expect(main.indexOf('shows.lastShow')).toBeLessThan(main.indexOf('promoPop.lastShow'));
+  });
+
+  it('links the Cash card to Finances (DAY2-06)', async () => {
+    await renderOffice();
+
+    const grid = await findKeyNumbers();
+    const cashCard = within(grid).getByRole('group', { name: 'Cash' });
+    expect(within(cashCard).getByRole('link', { name: 'Finances' })).toHaveAttribute(
+      'href',
+      routes.game.finances(),
+    );
   });
 });

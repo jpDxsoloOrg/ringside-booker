@@ -482,20 +482,21 @@ cancelled without any other feature. The features below work with it. Each one
 connects through a door listed here and never by editing the calendar's own
 files, and each one does its wiring in its own code when it is built.
 
-**Wired today: none.** None of these features is in the game yet, so every
-calendar slot is empty and every "until then" below is what the player sees.
+**Wired by the calendar's partners as they land.** The Office row is wired
+(DAY2-06); for the others, "until then" is what the player sees while that
+feature is not in the game.
 
-| Feature         | Door it uses                                                                                      | Until then                                                          |
-| --------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| Booking         | Sheet action `booking.book`; `controlsShow` for its gates; sets `booked` and back to `scheduled`  | A show cannot be given a card; a past one reads "Not run (no card)" |
-| Schedule editor | Toolbar item `calendar.newShow`; `scheduleDefinitionWindow` after every create, change and retire | Only the shows in the world data exist                              |
-| Rival calendars | `scheduleDefinitionWindow` when a rival adds a show; `calendar.range` and `calendar.projected`    | Rivals run only the shows they start with                           |
-| Skip days       | A skip target `calendar.nextShow`, from `calendar.nextShow { scope: 'mine' }`                     | Skip days has no "Until next show"                                  |
-| Office          | An office panel `calendar.nextShow`, from `calendar.nextShow` and `calendar.range`                | The Office has no Next show panel                                   |
-| Brands          | `calendar.range { brandId }`; future `scheduled` shows follow a definition that changes brand     | A show's brand tag is the one its definition started with           |
-| Hype            | Chip badge and sheet section `eco.hype`                                                           | Chips and sheets say nothing about hype                             |
-| TV deals        | The `show.cancelled` event; sheet section `eco.airing`                                            | The sheet does not say where a show airs                            |
-| Drafts          | Day markers `brw.draft`; a chip badge on the show a draft airs on                                 | No draft day is marked                                              |
+| Feature         | Door it uses                                                                                      | Until then                                                                                                                                                                               |
+| --------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Booking         | Sheet action `booking.book`; `controlsShow` for its gates; sets `booked` and back to `scheduled`  | A show cannot be given a card; a past one reads "Not run (no card)"                                                                                                                      |
+| Schedule editor | Toolbar item `calendar.newShow`; `scheduleDefinitionWindow` after every create, change and retire | Only the shows in the world data exist                                                                                                                                                   |
+| Rival calendars | `scheduleDefinitionWindow` when a rival adds a show; `calendar.range` and `calendar.projected`    | Rivals run only the shows they start with                                                                                                                                                |
+| Skip days       | A skip target `calendar.nextShow`, from `calendar.nextShow { scope: 'mine' }`                     | Skip days has no "Until next show"                                                                                                                                                       |
+| Office          | The office panel `calendar.nextShow` (order 50, main), from `calendar.nextShow { scope: 'mine' }` | Wired (DAY2-06): `screens/calendar/officePanel.tsx` shows the next show with its countdown, importance, brand, slots, venue, EVT6's expected crowd and links to the calendar and Booking |
+| Brands          | `calendar.range { brandId }`; future `scheduled` shows follow a definition that changes brand     | A show's brand tag is the one its definition started with                                                                                                                                |
+| Hype            | Chip badge and sheet section `eco.hype`                                                           | Chips and sheets say nothing about hype                                                                                                                                                  |
+| TV deals        | The `show.cancelled` event; sheet section `eco.airing`                                            | The sheet does not say where a show airs                                                                                                                                                 |
+| Drafts          | Day markers `brw.draft`; a chip badge on the show a draft airs on                                 | No draft day is marked                                                                                                                                                                   |
 
 The slots (sheet action, sheet section, chip badge, day markers, toolbar item)
 are described in `apps/web/src/screens/calendar/README.md`, which also lists

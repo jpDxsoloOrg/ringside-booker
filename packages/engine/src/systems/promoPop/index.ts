@@ -14,6 +14,7 @@
 import './events';
 import { defineSubscription, defineSystem, type SystemBundle } from '../../core/api/system';
 import { applyShowPopularity } from './apply';
+import './officeSections';
 import { promoPopPhases } from './phases';
 import { promoPopQueries } from './queries';
 
@@ -59,16 +60,26 @@ export {
   pruneShowChangesPhase,
 } from './phases';
 export {
+  MONTH_GAINS_UNKNOWN_PROMOTION_MESSAGE,
   SHOW_CHANGE_NOT_FOUND_MESSAGE,
   SHOW_CHANGE_STATUSES,
+  monthGainsQuery,
   promoPopQueries,
   showChangeQuery,
+  type PopularityMonthGainsView,
   type ShowChangeCountryView,
   type ShowChangeRegionView,
   type ShowChangeStatus,
   type ShowChangeSummaryView,
   type ShowPopularityChangeView,
 } from './queries';
+export {
+  RECENT_SHOWS_IN_WHY,
+  RECENT_SHOWS_SECTION_ID,
+  RECENT_SHOWS_SECTION_ORDER,
+  recentShowLines,
+  signedPopularity,
+} from './officeSections';
 export { dealsInForce, reachInputsFor, type ReachShow } from './reach';
 export {
   PROMO_POP_TRACE_KINDS,

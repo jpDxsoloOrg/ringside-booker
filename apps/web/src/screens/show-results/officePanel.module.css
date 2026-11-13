@@ -1,0 +1,71 @@
+/* The Office's Last show panel (DAY2-06). Office register: calm, everything wraps at 360px. */
+.lastShow {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.heading {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.showName {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-snug);
+  overflow-wrap: anywhere;
+}
+
+.date {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.score {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+}
+
+.scoreValue {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-weight: var(--font-weight-bold);
+}
+
+.facts {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  font-size: var(--font-size-sm);
+  font-variant-numeric: var(--font-feature-tabular);
+  list-style: none;
+}
+
+.fact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.negative {
+  color: var(--color-negative);
+}
+
+/* At least a tap target tall. */
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  justify-self: start;
+  min-block-size: var(--tap-target-min);
+  font-weight: var(--font-weight-semibold);
+}
