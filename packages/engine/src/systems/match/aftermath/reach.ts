@@ -3,8 +3,8 @@
  * the show's own region and its neighbours.
  *
  * A reach provider says which other regions saw the match and how much of the change each gets,
- * with a reason the player reads ("TV reach: Coastline Sports"). EVT5 registers one for TV
- * coverage; without any provider only the show region and its neighbours move. Providers are
+ * with a reason the player reads ("TV reach: Coastline Sports"). MTCH3-05 registers one for TV
+ * coverage (`tvReach.ts`); without any provider only the show region and its neighbours move. Providers are
  * module-level, like the rating and show night registries: a system registers at module load and
  * tests reset what they added.
  *
@@ -17,6 +17,7 @@ import type { EventInstanceId, PromotionId, RegionId } from '../../../core/ids';
 import { PHASE_ID_PATTERN } from '../../../core/pipeline/phase';
 import type { EventImportance } from '../../../model/entities/event-definition';
 import type { GameWorldView } from '../../../model/tables';
+import type { EngineTunables } from '../../tunables';
 
 /** The match a provider is asked about. */
 export interface ReachContext {
@@ -45,7 +46,11 @@ export interface PopularityReachProvider {
   /** Lower runs first; equal orders run by id. */
   readonly order: number;
   /** The regions this match reaches. Must read only; never writes. */
-  readonly regionsFor: (read: GameWorldView, ctx: ReachContext) => readonly ReachRegion[];
+  readonly regionsFor: (
+    read: GameWorldView,
+    ctx: ReachContext,
+    tunables: EngineTunables,
+  ) => readonly ReachRegion[];
 }
 
 const providers = new Map<string, PopularityReachProvider>();

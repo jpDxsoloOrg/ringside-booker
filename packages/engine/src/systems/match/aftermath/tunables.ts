@@ -199,6 +199,19 @@ export const aftermathTunables = defineTunables({
     description: "Share of a match's popularity change each neighbouring region gets",
     docRef: 'match-aftermath.md#regional-spread',
   },
+  // MTCH3-05: how much of EVT5's TV reach a match's popularity change gets.
+  'match.popularity.tvSpill': {
+    kind: 'number',
+    default: 0.3,
+    min: 0,
+    max: 1,
+    step: 0.05,
+    unit: 'ratio',
+    category: AFTERMATH_CATEGORY,
+    description:
+      "Share of the show's TV reach a match's popularity change gets in TV regions (0 turns it off)",
+    docRef: 'match-aftermath.md#integrations',
+  },
   'match.aftermath.keepPerPerson': {
     kind: 'integer',
     default: 10,
