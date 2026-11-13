@@ -322,3 +322,50 @@ export function openPastShows(state: EngineState): string[] {
     .map((show) => show.id)
     .sort();
 }
+
+/** A promotion whose cash moved by a different amount than its new ledger rows add up to. */
+export interface LedgerMismatch {
+  readonly promotionId: string;
+  /** Cash at the end less cash at the start, in cents. */
+  readonly cashChange: number;
+  /** The sum of the ledger rows written during the run, in cents. */
+  readonly ledgerSum: number;
+  /** `cashChange - ledgerSum`. */
+  readonly difference: number;
+}
+
+/**
+ * The promotions whose cash change over the run is not the sum of the ledger rows the run wrote
+ * (rows in `end` that `start` does not have). During play cash only moves through `postMoney`,
+ * which writes a row for every move, so after a clean run this is empty; `--strict` fails when it
+ * is not. Promotions that did not exist at the start are left out: their opening cash is not a
+ * movement.
+ */
+export function ledgerMismatches(start: EngineState, end: EngineState): LedgerMismatch[] {
+  const startCash = new Map(start.world.tables.promotions.map((row) => [row.id, row.cash]));
+  const startRows = new Set(start.world.tables.ledgerEntries.map((row) => row.id));
+  const ledgerSums = new Map<string, number>();
+  for (const row of end.world.tables.ledgerEntries) {
+    if (!startRows.has(row.id)) {
+      ledgerSums.set(row.promotionId, (ledgerSums.get(row.promotionId) ?? 0) + row.amount);
+    }
+  }
+  const mismatches: LedgerMismatch[] = [];
+  for (const promotion of end.world.tables.promotions) {
+    const before = startCash.get(promotion.id);
+    if (before === undefined) {
+      continue;
+    }
+    const cashChange = promotion.cash - before;
+    const ledgerSum = ledgerSums.get(promotion.id) ?? 0;
+    if (cashChange !== ledgerSum) {
+      mismatches.push({
+        promotionId: promotion.id,
+        cashChange,
+        ledgerSum,
+        difference: cashChange - ledgerSum,
+      });
+    }
+  }
+  return mismatches.sort((left, right) => (left.promotionId < right.promotionId ? -1 : 1));
+}
