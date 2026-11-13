@@ -12,7 +12,7 @@
     "test:watch": "vitest",
     "typecheck": "tsc -b",
     "lint": "eslint . --max-warnings 0",
-    "pree2e": "tsx e2e/fixtures/build-sample-save.ts && tsx e2e/fixtures/build-played-save.ts",
+    "pree2e": "tsx e2e/fixtures/build-sample-save.ts && tsx e2e/fixtures/build-played-save.ts && tsx e2e/fixtures/build-injury-save.ts",
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
     "e2e:install": "playwright install --with-deps chromium webkit"
