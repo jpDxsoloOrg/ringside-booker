@@ -22,6 +22,7 @@ import { ensureProfile, profileOf } from './profiles';
 import { createJobContext } from './jobs/context';
 import { pruneDecisionLog, pruneDecisionLogOn } from './jobs/pruneDecisionLog';
 import { aiJobs, jobRunsFor } from './jobs/registry';
+import { pruneCardDetailPhase } from './card/pruneCardDetail';
 import { isDue, unitShowsOn } from './jobs/spread';
 import { computerUnits, type AiUnit } from './units';
 
@@ -130,4 +131,8 @@ export const pruneDecisionLogPhase: PhaseDefinition = definePhase({
   },
 });
 
-export const aipPhases: readonly PhaseDefinition[] = [runTurnsPhase, pruneDecisionLogPhase];
+export const aipPhases: readonly PhaseDefinition[] = [
+  runTurnsPhase,
+  pruneDecisionLogPhase,
+  pruneCardDetailPhase,
+];

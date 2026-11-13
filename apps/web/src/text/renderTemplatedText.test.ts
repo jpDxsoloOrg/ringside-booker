@@ -70,6 +70,22 @@ describe('the aip catalog', () => {
       date: '2026-05-01',
     }),
     templated('aip.need.crew', { role: 'referees', have: 1, target: 2 }),
+    templated('aip.decision.card-booked', {
+      show: 'Monday Night Brawl',
+      matches: 5,
+      talking: 2,
+      titles: 1,
+    }),
+    templated('aip.decision.card-booked', {
+      show: 'House Show',
+      matches: 1,
+      talking: 1,
+      titles: 0,
+    }),
+    templated('aip.decision.show-cancelled', {
+      show: 'Thin Weekly',
+      reason: 'Only 3 wrestlers available, needs 5',
+    }),
   ];
 
   it('has a string for every rival desk key', () => {

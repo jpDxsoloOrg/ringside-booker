@@ -21,6 +21,12 @@ import { compareIds } from '../../../model/table';
 import type { DeepReadonly } from '../../../model/world';
 import { decisionKindOf, decisionKinds } from '../decisionKinds';
 import { needSummaryText } from '../formulas/needs';
+import {
+  CARD_BOOKED_SUMMARY_KEY,
+  cardBookedText,
+  SHOW_CANCELLED_SUMMARY_KEY,
+  showCancelledText,
+} from '../card/bookShowJob';
 import { ROSTER_REVIEW_SUMMARY_KEY, rosterReviewSummaryText } from '../jobs/rosterReview';
 import { isRevealedTo } from '../reveal';
 import { brandOrRefuse, promotionOrRefuse } from './shared';
@@ -82,11 +88,21 @@ declare module '../../../core/api/maps' {
   }
 }
 
-/** A decision's summary in plain English: the review's own sentence, a need's, else the key. */
+/**
+ * A decision's summary in plain English: the review's or the card's own sentence, a need's, else
+ * the key.
+ */
 export function decisionSummaryText(summary: TemplatedText): string {
-  return summary.key === ROSTER_REVIEW_SUMMARY_KEY
-    ? rosterReviewSummaryText(summary)
-    : needSummaryText(summary);
+  switch (summary.key) {
+    case ROSTER_REVIEW_SUMMARY_KEY:
+      return rosterReviewSummaryText(summary);
+    case CARD_BOOKED_SUMMARY_KEY:
+      return cardBookedText(summary);
+    case SHOW_CANCELLED_SUMMARY_KEY:
+      return showCancelledText(summary);
+    default:
+      return needSummaryText(summary);
+  }
 }
 
 /** Newest first: date, then ID, both descending. */

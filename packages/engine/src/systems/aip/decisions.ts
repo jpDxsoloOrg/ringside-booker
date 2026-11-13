@@ -43,6 +43,11 @@ export interface RecordDecisionSpec {
   readonly traced?: Traced<TraceValue>;
   /** The trace's ref kind. Left out: `aip.<kind>`. */
   readonly traceKind?: string;
+  /**
+   * A trace the caller has already recorded, for the row to point at instead of storing `traced`
+   * (the card decision points at the show's `aip.cardPlan` trace). Give one or the other.
+   */
+  readonly traceRef?: TraceRef;
   /** When other controllers may see the row. Left out: today. */
   readonly revealOn?: GameDate;
   /** 0 (routine) to 3 (headline). Left out: 0. */
@@ -132,7 +137,15 @@ export function writeAiDecision(
   const date = ctx.date;
   const revealOn = spec.revealOn ?? date;
 
-  let traceRef: TraceRef | null = null;
+  if (spec.traced !== undefined && spec.traceRef !== undefined) {
+    throw new InvalidArgumentError(
+      'writeAiDecision',
+      'traceRef',
+      spec.traceRef,
+      'left out when `traced` is given',
+    );
+  }
+  let traceRef: TraceRef | null = spec.traceRef ?? null;
   if (spec.traced !== undefined) {
     // The unit's decisions so far today number this one; rows rolled back with a job don't count.
     const sequence = tx.view.tables.aiDecisions

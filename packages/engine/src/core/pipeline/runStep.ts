@@ -82,6 +82,9 @@ function runUnit<R extends TableRegistry>(
       tunables: runtime.tunables,
       publish: eventStaging.publish,
       recordTrace,
+      demoteTrace: (ref) => {
+        traceStaging.demote(ref);
+      },
       log,
     }),
   );

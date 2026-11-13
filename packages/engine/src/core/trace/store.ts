@@ -163,6 +163,12 @@ export interface TraceStaging {
     traced: Traced<TraceValue>,
     options?: TraceRecordOptions,
   ): void;
+  /**
+   * Stages a demotion: at commit, the full trace `ref` has (if any) is replaced by its summary, as
+   * the retention limits would do. For detail kept only for a while (rival card slots after
+   * `aip.card.keepDetailDays`). A ref recorded in the same staging is demoted after it is stored.
+   */
+  demote(ref: TraceRef): void;
   /** Adds every staged trace to the store, then applies the retention limits. Closes the staging. */
   commit(): void;
   /** Drops every staged trace without using up any sequence numbers. Closes the staging. */
@@ -306,6 +312,7 @@ export class TraceStore {
   /** Opens a staging for one step or command. */
   stage(): TraceStaging {
     let staged = new Map<string, StagedTrace>();
+    let demotions = new Map<string, TraceRef>();
     let closedBy: 'commit' | 'discard' | null = null;
 
     const assertOpen = (action: string): void => {
@@ -340,17 +347,26 @@ export class TraceStore {
           summaryOnly: options.summaryOnly === true,
         });
       },
+      demote: (ref) => {
+        assertOpen('demote a trace');
+        checkRef(ref);
+        demotions.set(refKey(ref), { kind: ref.kind, id: ref.id });
+      },
       commit: () => {
         assertOpen('commit');
         closedBy = 'commit';
         const entries = [...staged.values()];
+        const demoted = [...demotions.values()];
         staged = new Map();
+        demotions = new Map();
         this.#commit(entries);
+        this.#demote(demoted);
       },
       discard: () => {
         assertOpen('discard');
         closedBy = 'discard';
         staged = new Map();
+        demotions = new Map();
       },
     };
   }
@@ -413,6 +429,23 @@ export class TraceStore {
       touchedKinds.add(entry.ref.kind);
     }
     this.#enforceLimits(touchedKinds);
+  }
+
+  /** Replaces each ref's full trace, if it has one, with its summary; then applies the limits. */
+  #demote(refs: readonly TraceRef[]): void {
+    if (refs.length === 0) {
+      return;
+    }
+    for (const ref of refs) {
+      const key = refKey(ref);
+      const entry = this.#fullByKind.get(ref.kind)?.get(key);
+      if (entry === undefined) {
+        continue;
+      }
+      this.#deleteFull(key, ref.kind);
+      this.#addSummary(key, summariseTrace(entry));
+    }
+    this.#enforceLimits(new Set(refs.map((ref) => ref.kind)));
   }
 
   /** Demotes the oldest full traces of each kind beyond retention, then drops the oldest summaries. */

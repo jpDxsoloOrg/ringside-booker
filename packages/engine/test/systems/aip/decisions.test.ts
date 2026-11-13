@@ -173,18 +173,28 @@ describe('recordDecision', () => {
         expect(() =>
           writeAiDecision(ctx.tx, ctx, unit, { kind: KIND, summary: SUMMARY, importance: 4 }),
         ).toThrow(InvalidArgumentError);
+        // A trace to store and an existing one to point at: one or the other.
+        expect(() =>
+          writeAiDecision(ctx.tx, ctx, unit, {
+            kind: KIND,
+            summary: SUMMARY,
+            traced: untraced('x', 'Test'),
+            traceRef: { kind: 'test.trace', id: 'one' },
+          }),
+        ).toThrow(InvalidArgumentError);
         writeAiDecision(ctx.tx, ctx, unit, {
           kind: KIND,
           summary: SUMMARY,
           revealOn: addDays(RUNNER_START, 3),
+          traceRef: { kind: 'test.trace', id: 'one' },
         });
       },
       { date: RUNNER_START },
     );
     expect(report.status).toBe('ok');
-    expect(built.world.tables.aiDecisions.values().map((row) => row.revealOn)).toEqual([
-      addDays(RUNNER_START, 3),
-    ]);
+    expect(
+      built.world.tables.aiDecisions.values().map((row) => [row.revealOn, row.traceRef]),
+    ).toEqual([[addDays(RUNNER_START, 3), { kind: 'test.trace', id: 'one' }]]);
   });
 });
 

@@ -2157,3 +2157,93 @@ export {
   type CompanySize,
   type CompanySizeSource,
 } from './systems/aip/index';
+
+// AIP4-01: the card planner's groundwork: the `Rival booking` tunables, the `aip.card` and
+// `aip.autofill` streams, the card pool and the card-shape formulas. See
+// docs/design/rival-booking.md.
+export {
+  aipCardTunables,
+  appearanceCapReason,
+  AUTOFILL_STREAM,
+  buildCardPool,
+  CARD_EMPLOYMENT_ROLES,
+  CARD_PLAN_STREAM,
+  MAIN_EVENT_RULE,
+  mainEventMustBeMatch,
+  NO_BACK_TO_BACK_REASON,
+  NO_HOUSE_SHOWS_REASON,
+  RIVAL_BOOKING_CATEGORY,
+  talkSlotsFor,
+  talkValueOf,
+  tiredReason,
+  titleMatchCapFor,
+  type CardCandidate,
+  type CardExclusion,
+  type CardPool,
+  type CardPoolArgs,
+  type CardPoolShow,
+  type CardTeam,
+  type CardTitle,
+  type ContractBlock,
+  type TalkSlotsInputs,
+  type TitleMatchCapInputs,
+} from './systems/aip/index';
+
+// AIP4-02: the title picture: which titles a rival defends tonight, who challenges and in what
+// match type. See docs/design/rival-booking.md#title-picture.
+export {
+  decideTitlePicture,
+  pickChallengers,
+  titleUrgency,
+  type ChallengerPick,
+  type PlannedSide,
+  type PlannedTitleMatch,
+  type SkippedTitle,
+  type TitlePicture,
+} from './systems/aip/index';
+
+// AIP4-03: filling the rest of the card: storyline segments, weighted match types, real teams, the
+// fallback chain and talking segments. See docs/design/rival-booking.md#filling-the-card.
+export {
+  buildTalkSegment,
+  fillCard,
+  findWorker,
+  matchTypeWeight,
+  type CardBookings,
+  type CardFill,
+  type FillCardArgs,
+  type OpenCardSlot,
+  type PlannedSegment,
+  type PlannedSegmentSource,
+} from './systems/aip/index';
+
+// AIP4-04: card scores, the running order and planCard, the read-only entry point that plans a
+// whole show. See docs/design/rival-booking.md#planning-a-card.
+export {
+  cardScore,
+  orderCard,
+  planCard,
+  type CardPlan,
+  type PlanCardArgs,
+  type PlanCardMode,
+  type PlannedPlacement,
+  type PlanOpenSlot,
+} from './systems/aip/index';
+
+// AIP4-05: rivals book their shows on show day (`aip.bookShow`), the booked-card steps later
+// features plug into, and the card decision's summary texts. See
+// docs/design/rival-booking.md#show-day.
+export {
+  BOOK_SHOW_JOB_ID,
+  CARD_BOOKED_SUMMARY_KEY,
+  CARD_DECISION_KIND,
+  CARD_PLAN_TRACE_KIND,
+  CARD_SLOT_TRACE_KIND,
+  cardBookedText,
+  registerBookedCardStep,
+  SHOW_CANCELLED_SUMMARY_KEY,
+  showCancelledText,
+  type BookedCardInput,
+  type BookedCardStepSpec,
+  type ShowBookingContext,
+} from './systems/aip/index';

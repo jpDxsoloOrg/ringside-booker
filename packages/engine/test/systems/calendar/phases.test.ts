@@ -8,6 +8,7 @@ import {
 } from '../../../src/core/api';
 import { addDays, compareDates, parseGameDate } from '../../../src/core/date';
 import { defaultSystems } from '../../../src/systems';
+import { AIP_RUN_TURNS_PHASE_ID } from '../../../src/systems/aip';
 import { SYSTEMS_WITHOUT_SHOW_DAY_GATE, worldBuilder } from '../../support';
 import { expectedShowKeys, startDefaultGame, storedShowKeys } from './default-game';
 
@@ -15,9 +16,17 @@ const OMNISCIENT = { kind: 'omniscient' } as const;
 const HORIZON_DAYS = 90;
 
 // The show-day gate would stop every day with the player's unbooked show; these tests are about
-// the calendar, so they run without it. booking/gate.test.ts covers the gate.
+// the calendar, so they run without it. booking/gate.test.ts covers the gate. They also leave out
+// the rival turns: booking and running eleven rivals' cards every show day triples the time of a
+// month on the default world and has nothing to do with the horizon (aip/card covers it).
+const CALENDAR_SYSTEMS = SYSTEMS_WITHOUT_SHOW_DAY_GATE.map((system) =>
+  system.phases.some((phase) => phase.id === AIP_RUN_TURNS_PHASE_ID)
+    ? { ...system, phases: system.phases.filter((phase) => phase.id !== AIP_RUN_TURNS_PHASE_ID) }
+    : system,
+);
+
 function engineOver(state: EngineState): Engine {
-  return createEngine({ state, systems: SYSTEMS_WITHOUT_SHOW_DAY_GATE });
+  return createEngine({ state, systems: CALENDAR_SYSTEMS });
 }
 
 async function advance(engine: Engine, days: number): Promise<EngineState> {

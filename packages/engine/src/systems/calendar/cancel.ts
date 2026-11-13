@@ -8,7 +8,7 @@
  */
 
 import { isBefore, type GameDate } from '../../core/date';
-import type { PhaseContext } from '../../core/pipeline/context';
+import type { StepContext } from '../../core/pipeline/context';
 import type { Controller } from '../../model/controller';
 import type { CancellationReason, EventInstance } from '../../model/entities/event-instance';
 import type { GameWorldView } from '../../model/tables';
@@ -57,12 +57,15 @@ export function cancelRefusal(
   return null;
 }
 
+/** What cancelling needs from the step it runs in (a phase, a command or a rival job). */
+export type CancelShowContext = Pick<StepContext, 'tx' | 'date' | 'publish'>;
+
 /**
  * Marks `show` cancelled today for `reason` and publishes `show.cancelled`. The show's segments
- * are left as they are.
+ * are left as they are. `calendar.cancelShow` and the rival booker (`aip.bookShow`) both call it.
  */
 export function cancelShow(
-  ctx: PhaseContext,
+  ctx: CancelShowContext,
   show: DeepReadonly<Pick<EventInstance, 'id' | 'promotionId' | 'date'>>,
   reason: CancellationReason,
 ): void {

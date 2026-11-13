@@ -20,7 +20,7 @@ import { calendarCommands } from './commands';
 import { calendarPhases } from './phases';
 import { calendarQueries } from './queries';
 
-export { cancelRefusal, cancelShow, type CancellableShow } from './cancel';
+export { cancelRefusal, cancelShow, type CancellableShow, type CancelShowContext } from './cancel';
 export { CANCEL_SHOW_REASON_CODES, cancelShowCommand, type CancelShowReasonCode } from './commands';
 export {
   controlsShow,

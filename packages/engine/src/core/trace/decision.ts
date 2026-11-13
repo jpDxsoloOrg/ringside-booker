@@ -39,6 +39,11 @@ export interface Decision<T extends string | boolean> {
   roll(record: RollRecord): Decision<T>;
   /** Records a line of text. */
   note(text: string): Decision<T>;
+  /**
+   * Nests another trace, numeric or not (a sub-decision, a calculation), as a child under `label`.
+   * Use it for a choice made inside this one, such as a challenger pick inside a match's decision.
+   */
+  include(label: string, traced: Traced<string | number | boolean> | TraceNode): Decision<T>;
   /** Reads a tunable, records it as a child and returns its value. */
   tunable<Defs extends TunableDefinitions, Key extends keyof Defs & string>(
     reader: TunableReader<Defs>,
@@ -98,6 +103,12 @@ class DecisionBuilder<T extends string | boolean> implements Decision<T> {
 
   note(text: string): Decision<T> {
     this.#record({ kind: 'note', label: text, value: null });
+    return this;
+  }
+
+  include(label: string, traced: Traced<string | number | boolean> | TraceNode): Decision<T> {
+    const node = 'trace' in traced ? traced.trace : traced;
+    this.#record({ ...node, label });
     return this;
   }
 
