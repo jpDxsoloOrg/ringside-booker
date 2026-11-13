@@ -259,7 +259,8 @@ describe('decideTitlePicture', () => {
     const [overdue, fresh] = [titleAt(built, 0), titleAt(built, 1)];
     expect(picture.planned.map((match) => match.titleId)).toEqual([overdue]);
     const match = picture.planned[0];
-    expect(match?.matchTypeKey).toBe('match.singles');
+    // A one-on-one type that allows titles, rolled with the match type weights (AIP4-03).
+    expect(['match.singles', 'match.endurance', 'match.sprint']).toContain(match?.matchTypeKey);
     expect(match?.sides[0]).toEqual({
       personIds: [personAt(built, 0)],
       teamId: null,
@@ -502,11 +503,23 @@ describe('decideTitlePicture', () => {
     expect(seen.size).toBeGreaterThan(1);
   });
 
-  it('records the weighted roll and the considered contenders', () => {
+  it('records the weighted rolls and the considered contenders', () => {
     const { picture } = plan({ roster: 6, titles: [{ holder: 0 }] });
     const rolls = findTraceNodes(picture.trace, 'roll');
-    expect(rolls).toHaveLength(1);
-    expect(rolls[0]?.roll.stream).toBe(CARD_PLAN_STREAM);
+    // The challenger, then the match type.
+    expect(rolls.map((node) => node.label)).toEqual([
+      'Challenger for the Test Title 001',
+      'Match type for the Test Title 001',
+    ]);
+    expect(rolls.every((node) => node.roll.stream === CARD_PLAN_STREAM)).toBe(true);
+    const matchType = findTraceNodes(picture.trace, 'decision').find(
+      (node) => node.label === 'Match type',
+    );
+    expect(matchType?.considered.map((option) => option.option)).toEqual([
+      'Singles',
+      'Endurance Match',
+      'Sprint',
+    ]);
     const decisions = findTraceNodes(picture.trace, 'decision');
     const challenger = decisions.find((node) => node.label.startsWith('Challenger for the'));
     expect(challenger?.considered).toHaveLength(3);

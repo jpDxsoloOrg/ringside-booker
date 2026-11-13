@@ -15,7 +15,9 @@
  * 4. the cap: the card holds at most `cap` title matches.
  *
  * Wanted titles are booked vacant first, then by urgency (highest first), then prestige. Each one
- * then needs a match type and challengers; a title without them is skipped, never forced.
+ * then needs a match type and challengers; a title without them is skipped, never forced. The
+ * match type is rolled with the filler matches' weights (`formulas/matchTypeWeight.ts`) among the
+ * types that can hold the title, after the challengers are picked.
  *
  * Design: docs/design/rival-booking.md#title-picture.
  */
@@ -23,6 +25,7 @@
 import { diffDays, type GameDate } from '../../../core/date';
 import type { PersonId } from '../../../core/ids';
 import type { RngStream } from '../../../core/rng/registry';
+import { rollWeighted } from '../../../core/rng/rolls';
 import {
   limitTrace,
   startDecision,
@@ -38,6 +41,7 @@ import { formatNumber } from '../../world/people/labels';
 import type { TracedTaste } from '../formulas/defaultTaste';
 import { openReignOf } from '../inputs';
 import { pickChallengers } from './challengers';
+import { matchFamilyOf, matchTypeWeight } from './formulas/matchTypeWeight';
 import { titleUrgency } from './formulas/titleUrgency';
 import { lastDefenceOf } from './titleHistory';
 import { TITLE_PICTURE_DOC_REF } from './tunables';
@@ -97,40 +101,98 @@ interface Wanted {
   readonly vacant: boolean;
 }
 
-/** The first non-hidden match type that allows titles, two sides and the holder count per side. */
-function matchTypeFor(
-  read: GameWorldView,
-  title: CardTitle,
-): { type: MatchTypeDef; trace: TraceNode } | null {
-  const fitting = matchTypesOf(read).filter(
+/**
+ * The non-hidden match types that can hold `title`: they allow titles, two sides with equal sides
+ * of the title's holder count. Display order.
+ */
+function titleTypesOf(read: GameWorldView, title: CardTitle): MatchTypeDef[] {
+  return matchTypesOf(read).filter(
     (type) =>
       type.allowsTitles &&
+      type.equalSides &&
       type.sides.min <= 2 &&
       type.sides.max >= 2 &&
       type.sideSize.min <= title.holderCount &&
       type.sideSize.max >= title.holderCount,
   );
+}
+
+/**
+ * The title match's type: a roll weighted by `matchTypeWeight` among the fitting types (the same
+ * weights as a filler match). With every weight at 0, the first by display order.
+ */
+function matchTypeFor(
+  pool: CardPool,
+  title: CardTitle,
+  fitting: readonly MatchTypeDef[],
+  free: number,
+  deps: TitlePictureDeps,
+): { type: MatchTypeDef; trace: TraceNode } | null {
   const [first] = fitting;
   if (first === undefined) {
     return null;
   }
   const decision = startDecision<string>(MATCH_TYPE_LABEL, { docRef: TITLE_PICTURE_DOC_REF });
+  const kind = title.holderCount === 3 ? 'trio' : 'tag';
+  const teams = pool.teams.filter(
+    (team) => team.kind === kind && team.memberIds.length === title.holderCount,
+  ).length;
+  const risk: Traced<number> = {
+    value: pool.taste.values.riskAppetite,
+    trace: pool.taste.traces.riskAppetite,
+  };
   const options = new Map<string, string>();
+  const weighted: { type: MatchTypeDef; weight: number }[] = [];
   for (const type of fitting) {
     // Two types may share a name; the key keeps the options apart.
     const option = [...options.values()].includes(type.name)
       ? `${type.name} (${type.key})`
       : type.name;
     options.set(type.key, option);
-    decision.consider(option, -type.order, `Display order ${String(type.order)}`);
+    const weight = matchTypeWeight(
+      {
+        typeName: type.name,
+        family: matchFamilyOf(type),
+        peopleNeeded: 2 * title.holderCount,
+        freeWrestlers: free,
+        freeTeams: teams,
+        riskAppetite: risk,
+      },
+      deps,
+    );
+    decision.consider(option, weight);
+    if (weight.value > 0) {
+      weighted.push({ type, weight: weight.value });
+    }
   }
-  const reason =
-    fitting.length === 1
-      ? 'The only match type that fits the title'
-      : `The first of ${String(fitting.length)} match types that fit the title`;
+  const optionOf = (type: MatchTypeDef): string => options.get(type.key) ?? type.name;
+  if (weighted.length === 0) {
+    return {
+      type: first,
+      trace: decision.choose(optionOf(first), 'Every type weighs 0: the first that fits the title')
+        .trace,
+    };
+  }
+  const [only] = weighted;
+  if (weighted.length === 1 && only !== undefined) {
+    return {
+      type: only.type,
+      trace: decision.choose(optionOf(only.type), 'The only match type that fits the title').trace,
+    };
+  }
+  const roll = rollWeighted(
+    deps.rng,
+    weighted.map((entry) => ({ item: entry.type, weight: entry.weight })),
+    `Match type for the ${title.name}`,
+    (type) => type.name,
+  );
+  decision.roll(roll.roll);
   return {
-    type: first,
-    trace: decision.choose(options.get(first.key) ?? first.name, reason).trace,
+    type: roll.value,
+    trace: decision.choose(
+      optionOf(roll.value),
+      `Picked from ${String(weighted.length)} match types by a roll weighted by match type weight`,
+    ).trace,
   };
 }
 
@@ -266,8 +328,8 @@ export function decideTitlePicture(
       skip(title, decision, capText(planned.length, cap));
       continue;
     }
-    const matchType = matchTypeFor(read, title);
-    if (matchType === null) {
+    const fitting = titleTypesOf(read, title);
+    if (fitting.length === 0) {
       skip(title, decision, NO_MATCH_TYPE_REASON);
       continue;
     }
@@ -293,6 +355,12 @@ export function decideTitlePicture(
             },
           ];
     const sides = [...champions, ...pick.value.sides.map((side) => ({ ...side }))];
+    const free = Math.max(0, pool.availableWrestlers - booked.size);
+    const matchType = matchTypeFor(pool, title, fitting, free, deps);
+    if (matchType === null) {
+      skip(title, decision, NO_MATCH_TYPE_REASON);
+      continue;
+    }
     for (const side of sides) {
       for (const personId of side.personIds) {
         booked.add(personId);
