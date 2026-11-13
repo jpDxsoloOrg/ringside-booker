@@ -893,9 +893,16 @@ Shared fields:
 
 `kind: 'match'` adds:
 
-- `match`: `{ matchTypeKey; stipulationKeys[]; titleIds: TitleId[]; finishKey | null }`.
+- `match`: `{ matchTypeKey; stipulationKeys[]; titleIds: TitleId[]; finishKey | null; resultPlan? }`.
   `finishKey` is the planned finish (`finish.clean`); `null` means "decided on
   the night". See [match-finishes.md](match-finishes.md).
+  `resultPlan` (MTCH2-08) is `'auto'` or `'random'` when the booker left the
+  result to the night from the Result list, and absent otherwise. It lives
+  beside `outcome` rather than in the outcome union, so `outcome` keeps meaning
+  "the result" once the show is completed: while the show has not run a match
+  with a `resultPlan` has `outcome: null`; on show night the result is written
+  to `outcome` and `resultPlan` stays as the record of how it was decided. Old
+  saves have no `resultPlan` and load unchanged.
 - `outcome`, the outcome union. While the show is `scheduled` or `booked` it is
   the booker's planned result; once the show is `completed` it is the result
   that happened (written by EVT3). One field, so there is one source of truth.
@@ -1036,6 +1043,7 @@ the rest at write time):
 | `segments.slotOutsideFormat`                           | a main-card slot is below `format.slots`, and a pre-show slot below `format.preShowSlots` |
 | `segments.tooManyMainCard` / `segments.tooManyPreShow` | a section holds no more segments than `format.slots` / `format.preShowSlots`              |
 | `segments.winningSideWithoutCompetitor`                | a match's `outcome.winningSide` has a `competitor` participant                            |
+| `segments.resultPlanWithOutcome`                       | a match on a show that has not run has no `outcome` when it has a `match.resultPlan`      |
 | `segments.titleFromOtherPromotion`                     | a match's `titleIds` belong to the instance's promotion                                   |
 | `segments.resultBeforeCompletion`                      | `rating` is set only once the instance is `completed`; `outcome` may hold a plan earlier  |
 | `segments.tooFewSides`                                 | a match has competitors on at least two distinct sides                                    |

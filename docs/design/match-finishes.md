@@ -275,7 +275,16 @@ person id order.
 It never produces a draw, and a side with nobody competing is never passed in.
 The decision is labelled "Winner decided automatically", or "Random winners
 mode, winner decided on the night" in Random winners mode, and the randomness
-(a tunable read) is its first child.
+(a tunable read) is its first child. When the winner's score (before the roll)
+is below the best score, the decision notes the upset in words: "Upset: Side 2
+had a lower score than Side 1" (`upsetNote`).
+
+A third mode, `coinFlip` (a match booked as Random, see
+[Auto and Random](#auto-and-random)), ignores the scores and the randomness:
+every side scores 0 and draws one `rollFloat(rng, 0, 1)` labelled "Side N
+drew" on the same `match.auto-winner` stream, so each side has an equal chance.
+The highest draw wins ("Highest draw wins"), with the same tie-break. The
+decision is labelled "Random: every side had an equal chance".
 
 The randomness is `match.autoWinner.randomness` (5 by default; 0 makes the
 auto-winner fully deterministic) or, in Random winners mode,
@@ -292,8 +301,8 @@ draws only on the streams `deps.rng(name)` hands it (`match.auto-winner` and
 `match.finish`).
 
 The input is the match type, its stipulations, the sides (as
-`autoWinnerInputsOf` returns them), the region's name, the mode (`standard`
-or `randomWinners`) and the plan: `winner` (`'auto'`, `{ side }` with the
+`autoWinnerInputsOf` returns them), the region's name, the mode (`standard`,
+`randomWinners` or `coinFlip`) and the plan: `winner` (`'auto'`, `{ side }` with the
 stored 0-based side, or `'draw'`), `finishKey` (null for Auto) and `methodKey`
 (null to let the finish decide). The steps:
 
@@ -330,6 +339,37 @@ won", or the auto-winner), the finish decision ("Finish" for a booked one, or
 "Finish decided on the night") and the method decision, so one Why? shows the
 whole reasoning. Nothing is written to the world: morale, momentum and
 popularity belong to EVT3, WRK8 and MTCH3.
+
+## Auto and Random
+
+Per match, the booker can leave the result to the night (MTCH2-08) from the
+segment editor's Result list or the card row's Winner ▸ menu, next to the
+sides, Draw and No contest:
+
+- **Auto (the match decides)**: the [auto-winner](#auto-winner) in `standard`
+  mode, from who is in the match, with `match.autoWinner.randomness`, so the
+  favourite usually wins but upsets happen. The Match lab's Winner: Auto is
+  the same thing, under the same name.
+- **Random (coin flip)**: the auto-winner in `coinFlip` mode, an equal chance
+  for every side whoever is in it.
+
+The choice is stored as `match.resultPlan` (`'auto'` or `'random'`) with
+`outcome: null` (see [data-model.md](data-model.md)); `noPlannedResult` counts
+it as a result, so the card can run on show day. On show night
+`match.resolveOutcome` turns Auto into the plan `winner: 'auto'` and Random
+into the same plan in `coinFlip` mode, each with the booked finish when there
+is one (and without it if that finish is refused). Neither ever gives a draw,
+so a booked finish must be one somebody wins (booking.md, Finishes). A title
+changes hands only if the finish and method allow it (the
+[title rule](#title-changes)), as for a planned result. The result line's Why?
+on the results page opens the match result, whose "Who won" child is the
+auto-winner (with the upset note) or the coin flip.
+
+This is not the game-wide [Random winners](#random-winners) setting: that one
+decides every result on your shows on the night and refuses per-match choices,
+Auto and Random included. Both run through the one `autoWinner` with a mode, so
+tuning one never drifts from the other. Rival shows never use `resultPlan`;
+their bookers plan their own results.
 
 ## Random winners
 

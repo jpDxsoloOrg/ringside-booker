@@ -54,7 +54,9 @@ The booker decides who wins. The plan is stored in the match's `outcome`, the
 same field the show writes its result to:
 
 - while the show is `scheduled` or `booked`, `outcome` is the **planned
-  result**, or `null` when the match is decided on the night;
+  result**, or `null` when nothing is planned yet or the match is left to the
+  night as **Auto** or **Random** (`match.resultPlan`, MTCH2-08, see
+  [match-finishes.md](match-finishes.md#auto-and-random));
 - once the show is `completed`, it is the result that happened (EVT3 writes it).
 
 One field keeps one source of truth for the show night, MTCH2's planned finish,
@@ -177,14 +179,14 @@ Every card change a person makes is one of six commands (EVT2-02, D-07), so it
 names the controller that issued it and lands in the command log. The code is
 `booking/commands.ts`.
 
-| Command                 | Arguments                                                | Returns           |
-| ----------------------- | -------------------------------------------------------- | ----------------- |
-| `booking.addSegment`    | `eventInstanceId`, `preShow`, `slot`, `draft`            | `{ segmentId }`   |
-| `booking.updateSegment` | `segmentId`, `draft` (the whole draft)                   | `{ segmentId }`   |
-| `booking.removeSegment` | `segmentId`                                              | `null`            |
-| `booking.moveSegment`   | `segmentId`, `toPreShow`, `toSlot`                       | `{ swappedWith }` |
-| `booking.setResult`     | `segmentId`, `result` (win, draw, no contest, or `null`) | `null`            |
-| `booking.clearCard`     | `eventInstanceId`                                        | `{ removed }`     |
+| Command                 | Arguments                                                                      | Returns           |
+| ----------------------- | ------------------------------------------------------------------------------ | ----------------- |
+| `booking.addSegment`    | `eventInstanceId`, `preShow`, `slot`, `draft`                                  | `{ segmentId }`   |
+| `booking.updateSegment` | `segmentId`, `draft` (the whole draft)                                         | `{ segmentId }`   |
+| `booking.removeSegment` | `segmentId`                                                                    | `null`            |
+| `booking.moveSegment`   | `segmentId`, `toPreShow`, `toSlot`                                             | `{ swappedWith }` |
+| `booking.setResult`     | `segmentId`, `result` (win, draw, no contest, `'auto'`, `'random'`, or `null`) | `null`            |
+| `booking.clearCard`     | `eventInstanceId`                                                              | `{ removed }`     |
 
 Slots are 0-based here, as stored. `updateSegment` takes the whole draft on
 purpose: the editor sections other features add (finish, beats, stipulations,
@@ -443,25 +445,25 @@ day by day, stored injuries never change.
 
 ### Error codes
 
-| Code                 | Check               | Rule                                                                                                            | Message                                                                    |
-| -------------------- | ------------------- | --------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `personUnavailable`  | `booking.people`    | not `available` on the show's date; someone who only talks (an angle, ringside) is fine if they can work angles | "Kai Moreno can't wrestle: Injured (leg injury) until 12 Feb"              |
-| `notOnRoster`        | `booking.people`    | no active contract with the show's promotion any more                                                           | "Kai Moreno is no longer on the Apex Wrestling roster"                     |
-| `notAWrestler`       | `booking.people`    | a match competitor without `wrestler` or `occasionalWrestler` among their roles                                 | "Sam Reed isn't a wrestler, so can't compete in a match"                   |
-| `alreadyOnCard`      | `booking.cardWide`  | a competitor in more matches than `booking.maxMatchesPerPersonPerShow`                                          | "Kai Moreno is already in 3 matches on this card (Opener, Slot 2, Slot 4)" |
-| `tooManyAppearances` | `booking.cardWide`  | in more segments of any kind, in any role, than `booking.maxAppearancesPerShow`                                 | "Kai Moreno is in 5 segments on this card; the most is 4"                  |
-| `sideCount`          | `booking.structure` | competitor sides outside the match type's `sides`                                                               | "Slot 2: Two sides in a Three-Way match; it takes 3"                       |
-| `sideSize`           | `booking.structure` | a side outside the type's `sideSize`                                                                            | "Slot 2: Side 2 has 1 wrestler; Tag Team takes 2 a side"                   |
-| `unequalSides`       | `booking.structure` | uneven sides in an `equalSides` type (only when every side's size is allowed)                                   | "Slot 2: the sides are uneven (2 against 1); … takes equal sides"          |
-| `speakerCount`       | `booking.structure` | an angle's `speaker` participants outside the angle type's `speakers`                                           | "Slot 2: One speaker in a Confrontation; it takes 2 to 8"                  |
-| `noPlannedResult`    | `booking.structure` | a match's `outcome` is null (skipped on a Random winners show, see [Integration](#integration))                 | "Opener: no result planned; pick a winner, Auto, Random, a draw or a no contest"         |
-| `tooFewFilled`       | `booking.structure` | filled main-card slots below `minFilledMainSlots`                                                               | "Main card: 2 of 6 slots filled (needs 3)"                                 |
-| `emptyMainEvent`     | `booking.structure` | the last main-card slot is open, while `booking.requireMainEvent` is on                                         | "The main event (Slot 6) is empty"                                         |
-| `titleNotAllowed`    | `booking.titles`    | a title on a match type with `allowsTitles: false`                                                              | "Slot 2: titles can't be on the line in a Battle Royal"                    |
-| `titleTwiceOnCard`   | `booking.titles`    | the title is on the line in an earlier match of the card                                                        | "The Crown Title is already on the line in Slot 2"                         |
-| `titleRetired`       | `booking.titles`    | the title was retired after it was booked                                                                       | "The Crown Title has been retired"                                         |
-| `championMissing`    | `booking.titles`    | a holder of the title's open reign is not a competitor; a vacant title has no holders to check                  | "The champion Rhea Cortez isn't in this match"                             |
-| `titleSideSize`      | `booking.titles`    | a competitor side without exactly the title's `holderCount` people                                              | "The Altura Tag Team Championship needs 2 wrestlers on each side"          |
+| Code                 | Check               | Rule                                                                                                                         | Message                                                                          |
+| -------------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `personUnavailable`  | `booking.people`    | not `available` on the show's date; someone who only talks (an angle, ringside) is fine if they can work angles              | "Kai Moreno can't wrestle: Injured (leg injury) until 12 Feb"                    |
+| `notOnRoster`        | `booking.people`    | no active contract with the show's promotion any more                                                                        | "Kai Moreno is no longer on the Apex Wrestling roster"                           |
+| `notAWrestler`       | `booking.people`    | a match competitor without `wrestler` or `occasionalWrestler` among their roles                                              | "Sam Reed isn't a wrestler, so can't compete in a match"                         |
+| `alreadyOnCard`      | `booking.cardWide`  | a competitor in more matches than `booking.maxMatchesPerPersonPerShow`                                                       | "Kai Moreno is already in 3 matches on this card (Opener, Slot 2, Slot 4)"       |
+| `tooManyAppearances` | `booking.cardWide`  | in more segments of any kind, in any role, than `booking.maxAppearancesPerShow`                                              | "Kai Moreno is in 5 segments on this card; the most is 4"                        |
+| `sideCount`          | `booking.structure` | competitor sides outside the match type's `sides`                                                                            | "Slot 2: Two sides in a Three-Way match; it takes 3"                             |
+| `sideSize`           | `booking.structure` | a side outside the type's `sideSize`                                                                                         | "Slot 2: Side 2 has 1 wrestler; Tag Team takes 2 a side"                         |
+| `unequalSides`       | `booking.structure` | uneven sides in an `equalSides` type (only when every side's size is allowed)                                                | "Slot 2: the sides are uneven (2 against 1); … takes equal sides"                |
+| `speakerCount`       | `booking.structure` | an angle's `speaker` participants outside the angle type's `speakers`                                                        | "Slot 2: One speaker in a Confrontation; it takes 2 to 8"                        |
+| `noPlannedResult`    | `booking.structure` | a match's `outcome` is null and it is not Auto or Random (skipped on a Random winners show, see [Integration](#integration)) | "Opener: no result planned; pick a winner, Auto, Random, a draw or a no contest" |
+| `tooFewFilled`       | `booking.structure` | filled main-card slots below `minFilledMainSlots`                                                                            | "Main card: 2 of 6 slots filled (needs 3)"                                       |
+| `emptyMainEvent`     | `booking.structure` | the last main-card slot is open, while `booking.requireMainEvent` is on                                                      | "The main event (Slot 6) is empty"                                               |
+| `titleNotAllowed`    | `booking.titles`    | a title on a match type with `allowsTitles: false`                                                                           | "Slot 2: titles can't be on the line in a Battle Royal"                          |
+| `titleTwiceOnCard`   | `booking.titles`    | the title is on the line in an earlier match of the card                                                                     | "The Crown Title is already on the line in Slot 2"                               |
+| `titleRetired`       | `booking.titles`    | the title was retired after it was booked                                                                                    | "The Crown Title has been retired"                                               |
+| `championMissing`    | `booking.titles`    | a holder of the title's open reign is not a competitor; a vacant title has no holders to check                               | "The champion Rhea Cortez isn't in this match"                                   |
+| `titleSideSize`      | `booking.titles`    | a competitor side without exactly the title's `holderCount` people                                                           | "The Altura Tag Team Championship needs 2 wrestlers on each side"                |
 
 "Opener", "Semi-main" and "Main event" name a slot with that role; any other
 slot is named by number ("Slot 3", "Pre-show slot 1").
@@ -674,6 +676,21 @@ the section says so.
 planned finish only while the new result fits it; otherwise the finish goes
 back to Auto, so a card never holds a finish that contradicts its result.
 
+**Auto and Random (MTCH2-08).** The editor's Result list offers, after the
+sides and before Draw and No contest, "Auto (the match decides)" and "Random
+(coin flip)", each with a one-line explanation under it; the card row's
+Winner ▸ menu has the same two entries, and the row shows "Auto" or "Random"
+where a planned winner would be (`BookingResultView.kind` is `auto` or
+`random`). Both are stored as `match.resultPlan` with `outcome: null`
+(`withPlannedResult` / `plannedResultOf` turn a Result-list choice into the
+draft and back); a draft with both is refused as `resultPlanWithOutcome`.
+`noPlannedResult` counts either as a result, so the show runs on show day. Both
+always give a winner, so a booked finish must be one somebody wins: the Finish
+section lists only win finishes for them (a draw finish goes back to Auto with
+its "doesn't fit" reason), `setPlannedOutcome` sends a finish nobody wins back
+to Auto, and the `match.finish` check reports one left on the card as
+`finishOutcomeMismatch` ("…, but Random always gives a winner").
+
 **`match.finish` check** (order 200, checklist line "Finishes fit their
 matches"); only matches with a booked finish are checked:
 
@@ -687,7 +704,7 @@ matches"); only matches with a booked finish are checked:
 **Random winners.** When `randomWinnersActive` is true for the show (the
 setting is on and a human runs the show), nothing is planned:
 `booking.addSegment` and `booking.updateSegment` refuse a draft with a result
-or a finish, and `booking.setResult` anything but null, with `randomWinners`
+(Auto and Random included) or a finish, and `booking.setResult` anything but null, with `randomWinners`
 ("Results on your shows are decided on the night (Random winners)."); the
 `noPlannedResult` error is skipped, so the show runs with no results; the
 `match.finish` check turns any planned result or finish left on the card into a
