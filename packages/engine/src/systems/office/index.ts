@@ -11,7 +11,11 @@
  * `office.popularity.headlineScope` (`popularity.ts`), its stored Why? that `sim.status` reads
  * (`traces.ts`), kept current by the setup step, the weekly phase and the two subscriptions below,
  * the trace sections seam (`popularityTraceSections.ts`) and the `office.fanBase` query.
- * See docs/design/office.md.
+ *
+ * DAY2-03 turns the rows into the Office's numbers: the KPI cards with their deltas and sparklines
+ * (`dashboard/kpis.ts`, formulas `kpiDelta`, `rosterSize`, `averageMorale`), the world clock, the
+ * world overview for a seat with no promotion, and the `office.dashboard` and `office.series`
+ * queries. See docs/design/office.md.
  */
 
 // The event declarations are types only. Importing them here brings them into every program that
@@ -77,6 +81,63 @@ export {
   weeklySnapshotPhase,
 } from './phases';
 export { OFFICE_BASELINE_SNAPSHOT_STEP } from './setup';
+export {
+  BAD_RANGE,
+  dashboardQuery,
+  HIDDEN,
+  MAX_SERIES_POINTS,
+  RANGE_TOO_LONG,
+  seriesQuery,
+  UNKNOWN_METRIC,
+  UNKNOWN_PROMOTION,
+  type OfficeDashboard,
+  type OfficeSeries,
+  type OfficeSeriesArgs,
+} from './queries';
+export {
+  KPI_DELTA_DOC_REF,
+  kpiDelta,
+  STALE_GRACE_DAYS,
+  type KpiDeltaInputs,
+} from './formulas/kpiDelta';
+export {
+  ROLE_PLURAL_LABELS,
+  ROSTER_SIZE_DOC_REF,
+  rosterSize,
+  type RosterSizeInputs,
+} from './formulas/rosterSize';
+export {
+  AVERAGE_MORALE_DOC_REF,
+  averageMorale,
+  type AverageMoraleInputs,
+  type MoraleContract,
+} from './formulas/averageMorale';
+export {
+  previousSnapshot,
+  promotionHistory,
+  trendSeries,
+  type TrendSeries,
+} from './history/compare';
+export {
+  BUILT_IN_OFFICE_METRICS,
+  fieldMetric,
+  officeMetric,
+  type OfficeMetric,
+} from './history/metrics';
+export {
+  buildKpis,
+  startedContracts,
+  type KpiContext,
+  type OfficeKpi,
+  type OfficeKpiDelta,
+} from './dashboard/kpis';
+export { officeClock, type OfficeClock, type OfficeClockSeason } from './dashboard/clock';
+export {
+  worldOverview,
+  type WorldOverview,
+  type WorldOverviewPromotion,
+} from './dashboard/worldOverview';
+export { officeDateText } from './dashboard/dateText';
 
 /** The subscription that re-records a promotion's popularity Why? when its popularity changes. */
 export const POPULARITY_CHANGED_SUBSCRIPTION_ID = 'office.popularityChanged';
