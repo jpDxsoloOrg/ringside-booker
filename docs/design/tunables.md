@@ -720,6 +720,7 @@ The crowd forecast (EVT6-01), in `systems/boxOffice/tunables.ts`, category
 | `boxOffice.fit.sellOutAt`               | number  | 1       | 0.5–1.5   | ratio      | Expected crowd, as a share of capacity, at which a venue is a likely sell-out ([venues](box-office.md#venues)) |
 | `boxOffice.fit.emptyAt`                 | number  | 3       | 1–10      | multiplier | Capacity, as a multiple of the expected crowd, at which a venue will look empty                                |
 | `boxOffice.pick.headroom`               | number  | 1.1     | 1–3       | multiplier | Room left for a good night when sizing a venue ([pick](box-office.md#pick))                                    |
+| `boxOffice.rivalVenueLeadDays`          | integer | 14      | 0–90      | days       | How far ahead rival shows are given a venue ([automatic picks](box-office.md#automatic-picks))                 |
 
 | Key                               | Kind    | Default       | Range                                                 | Unit   | Meaning                                                                                                                       |
 | --------------------------------- | ------- | ------------- | ----------------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------- |
