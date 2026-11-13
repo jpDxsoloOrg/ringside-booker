@@ -14,14 +14,12 @@ import type { PersonId, RegionId, PromotionId, SimulateResult } from '@ringside/
 import { DURATION_CLASS_LABELS } from '@ringside/engine';
 import { useEngineQuery } from '@/app/engine/useEngineQuery';
 import { Badge } from '@/components/Badge';
-import { Button } from '@/components/Button';
 import { EmptyState } from '@/components/EmptyState';
 import { PhysicalTollSummary, PhysicalTollTable } from '@/components/PhysicalTollTable';
 import { Select } from '@/components/Select';
 import type { SelectOption } from '@/components/Select';
-import { OUT_OF_DATE_TEXT } from '../LabResult';
 import type { LabPanelContext } from '../labPanelRegistry';
-import { isOutOfDate, LAB_MAX_RUNS, useLabStore } from '../labStore';
+import { isOutOfDate, useLabStore } from '../labStore';
 import { useLabRunner } from '../useLabRunner';
 import styles from './PhysicalPanel.module.css';
 
@@ -33,8 +31,8 @@ export const NO_PRODUCER_LABEL = 'No producer';
 export const PHYSICAL_EMPTY_BODY =
   "Run the match to see what it costs each worker's body: fatigue, wear, learning and the chance of an injury.";
 
-/** "Run x100": the batch button in the empty Run x100 block. */
-export const RUN_MANY_LABEL = `Run x${String(LAB_MAX_RUNS)}`;
+/** Said over the table when the setup changed after the run it shows. */
+export const PHYSICAL_STALE_TEXT = 'These numbers are from the last run, before the setup changed.';
 
 /** The note under the table: a preview never changes anyone. */
 export const PREVIEW_NOTE =
@@ -91,7 +89,6 @@ export function PhysicalPanel({ simulation, batch }: PhysicalPanelProps) {
   const setup = useLabStore((state) => state.setup);
   const pending = useLabStore((state) => state.pending);
   const setFatigueOverride = useLabStore((state) => state.setFatigueOverride);
-  const setRuns = useLabStore((state) => state.setRuns);
   const stale = useLabStore((state) =>
     isOutOfDate(
       { setup: state.setup, sides: state.sides, result: state.result, crew: state.crew },
@@ -141,10 +138,7 @@ export function PhysicalPanel({ simulation, batch }: PhysicalPanelProps) {
           </p>
           {stale && (
             <p className={styles['stale']} role="status">
-              <Badge tone="prestige" variant="solid">
-                {OUT_OF_DATE_TEXT}
-              </Badge>
-              <span>The setup changed since this run.</span>
+              {PHYSICAL_STALE_TEXT}
             </p>
           )}
           <PhysicalTollTable
@@ -159,21 +153,7 @@ export function PhysicalPanel({ simulation, batch }: PhysicalPanelProps) {
         <h3 id={manyHeadingId} className={styles['heading']}>
           Over many runs
         </h3>
-        <PhysicalTollSummary
-          summary={summary}
-          emptyAction={
-            <Button
-              variant="secondary"
-              disabled={pending}
-              onClick={() => {
-                setRuns(LAB_MAX_RUNS);
-                void runner.run({ simulate: true });
-              }}
-            >
-              {RUN_MANY_LABEL}
-            </Button>
-          }
-        />
+        <PhysicalTollSummary summary={summary} />
       </section>
     </div>
   );

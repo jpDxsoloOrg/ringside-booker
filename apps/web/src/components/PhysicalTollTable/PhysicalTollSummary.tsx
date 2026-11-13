@@ -1,6 +1,4 @@
-import type { ReactElement } from 'react';
 import type { PhysicalPreviewPersonSummary, PhysicalPreviewSummary } from '@ringside/engine';
-import type { ButtonProps } from '../Button';
 import { DataTable } from '../DataTable';
 import type { ColumnDef } from '../DataTable';
 import { EmptyState } from '../EmptyState';
@@ -79,8 +77,6 @@ function personId(person: PhysicalPreviewPersonSummary): string {
 export interface PhysicalTollSummaryProps {
   /** The batch's physical summary, or null before a batch. */
   readonly summary: PhysicalPreviewSummary | null;
-  /** Shown in the empty state, such as a "Run x100" button. */
-  readonly emptyAction?: ReactElement<ButtonProps>;
 }
 
 /**
@@ -89,15 +85,14 @@ export interface PhysicalTollSummaryProps {
  * averages are worked out over the batch's runs, which the visible text says; each run's own Why?
  * is on the run shown in full.
  */
-export function PhysicalTollSummary({ summary, emptyAction }: PhysicalTollSummaryProps) {
+export function PhysicalTollSummary({ summary }: PhysicalTollSummaryProps) {
   if (summary === null) {
     return (
       <EmptyState
         icon="lab"
         headingLevel={3}
         title={RUN_MANY_EMPTY_TITLE}
-        body="Every run rolls the wear and the injuries again, so many runs show how risky the match is."
-        {...(emptyAction === undefined ? {} : { action: emptyAction })}
+        body="Set Runs to 100 and press Run. Every run rolls the wear and the injuries again, so many runs show how risky the match is."
       />
     );
   }

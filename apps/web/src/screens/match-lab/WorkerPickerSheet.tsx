@@ -1,6 +1,17 @@
 import { useId, useMemo, useState } from 'react';
-import type { LabWorkerRow, LabWorkerScope, PromotionId, RegionId } from '@ringside/engine';
-import { LAB_WORKERS_MAX_SEARCH, STYLE_LABELS } from '@ringside/engine';
+import type {
+  LabWorkerRow,
+  LabWorkerScope,
+  LabWorkerTraitFilter,
+  PromotionId,
+  RegionId,
+} from '@ringside/engine';
+import {
+  LAB_WORKER_TRAIT_FILTERS,
+  LAB_WORKERS_MAX_SEARCH,
+  STYLE_LABELS,
+  TRAIT_LABELS,
+} from '@ringside/engine';
 import { useAnnounce } from '@/app/a11y/LiveAnnouncer';
 import { useEngineQuery } from '@/app/engine/useEngineQuery';
 import { Badge } from '@/components/Badge';
@@ -10,6 +21,8 @@ import type { ColumnDef } from '@/components/DataTable';
 import { EmptyState } from '@/components/EmptyState';
 import { formatNumber, formatPopularity } from '@/components/format';
 import { Icon } from '@/components/Icon';
+import { Select } from '@/components/Select';
+import type { SelectOption } from '@/components/Select';
 import { Sheet } from '@/components/Sheet';
 import { Tab, TabList, TabPanel, Tabs } from '@/components/Tabs';
 import { LAB_MAX_SIDE_SIZE, sideOf, useLabStore } from './labStore';
@@ -25,6 +38,19 @@ interface PickerRow extends LabWorkerRow {
 
 function isScope(value: string): value is LabWorkerScope {
   return value === 'mine' || value === 'everyone';
+}
+
+/** The trait filter's "no filter" value. */
+export const ANY_TRAIT = 'any';
+
+/** The picker's trait filter (MTCH4-05): find teachers, fast learners, durable or injury-prone workers. */
+export const TRAIT_FILTER_OPTIONS: readonly SelectOption[] = [
+  { value: ANY_TRAIT, label: 'Any trait' },
+  ...LAB_WORKER_TRAIT_FILTERS.map((trait) => ({ value: trait, label: TRAIT_LABELS[trait] })),
+];
+
+function traitFilterOf(value: string): LabWorkerTraitFilter | null {
+  return LAB_WORKER_TRAIT_FILTERS.find((trait) => trait === value) ?? null;
 }
 
 function AvailabilityCell({ row }: { readonly row: PickerRow }) {
@@ -64,6 +90,15 @@ const PICKER_COLUMNS: readonly ColumnDef<PickerRow>[] = [
     width: 'md',
   },
   {
+    id: 'safety',
+    header: 'Safety',
+    cell: (row) => formatNumber(row.safety),
+    sortValue: (row) => row.safety,
+    numeric: true,
+    card: 'stat',
+    width: 'xs',
+  },
+  {
     id: 'popularity',
     header: 'Popularity',
     cardLabel: 'Pop.',
@@ -94,6 +129,8 @@ export interface WorkerPickerSheetProps {
   readonly regionId: RegionId;
   readonly promotionId: PromotionId | null;
   readonly onClose: () => void;
+  /** The trait filter the sheet opens with (MTCH4-05); any trait when left out. */
+  readonly traitFilter?: LabWorkerTraitFilter | null;
 }
 
 /**
@@ -107,6 +144,7 @@ export function WorkerPickerSheet({
   regionId,
   promotionId,
   onClose,
+  traitFilter = null,
 }: WorkerPickerSheetProps) {
   const open = side !== null;
   // The sheet keeps its last side while it slides away, so its title doesn't jump.
@@ -115,6 +153,7 @@ export function WorkerPickerSheet({
 
   const [scope, setScope] = useState<LabWorkerScope>(promotionId === null ? 'everyone' : 'mine');
   const [search, setSearch] = useState('');
+  const [trait, setTrait] = useState<LabWorkerTraitFilter | null>(traitFilter);
   const searchId = useId();
   const announce = useAnnounce();
   const sides = useLabStore((state) => state.sides);
@@ -128,6 +167,7 @@ export function WorkerPickerSheet({
       regionId,
       ...(trimmed === '' ? {} : { search: trimmed }),
       ...(promotionId === null ? {} : { promotionId }),
+      ...(trait === null ? {} : { trait }),
     },
     { enabled: open },
   );
@@ -184,6 +224,15 @@ export function WorkerPickerSheet({
           />
         </div>
       </div>
+      <Select
+        label="Trait"
+        options={TRAIT_FILTER_OPTIONS}
+        value={trait ?? ANY_TRAIT}
+        onValueChange={(value) => {
+          setTrait(traitFilterOf(value));
+        }}
+        className={styles['pickerTrait'] ?? ''}
+      />
       {full && (
         <p className={styles['pickerNote']} role="status">
           {sideLabel(shownSide)} is full: remove someone to add another.
@@ -194,15 +243,22 @@ export function WorkerPickerSheet({
         columns={PICKER_COLUMNS}
         getRowId={rowId}
         caption={`People to add to ${sideLabel(shownSide)}`}
-        sortable={false}
         density="compact"
         loading={list.status === 'loading'}
         onActivate={pick}
         emptyState={
           <EmptyState
             icon="user-search"
-            title={trimmed === '' ? 'Nobody to list' : 'Nobody by that name'}
-            {...(trimmed === '' ? {} : { body: 'Try another name, or look at Everyone.' })}
+            title={
+              trimmed !== ''
+                ? 'Nobody by that name'
+                : trait !== null
+                  ? `Nobody here is ${TRAIT_LABELS[trait].toLowerCase()}`
+                  : 'Nobody to list'
+            }
+            {...(trimmed === '' && trait === null
+              ? {}
+              : { body: 'Try another name or trait, or look at Everyone.' })}
           />
         }
       />

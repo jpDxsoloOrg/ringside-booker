@@ -638,6 +638,10 @@
   max-inline-size: 24rem;
 }
 
+.pickerTrait {
+  max-inline-size: 16rem;
+}
+
 .pickerSearchLabel {
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
