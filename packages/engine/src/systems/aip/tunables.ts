@@ -4,6 +4,9 @@
  */
 
 import { defineTunables } from '../../core/tunables/define';
+import { cardValueTunables } from './cardValueTunables';
+import { needsTunables } from './needsTunables';
+import { styleTasteTunables } from './tasteTunables';
 
 const AIP_CATEGORY = 'Rival desk';
 
@@ -18,4 +21,7 @@ export const aipTunables = defineTunables({
     description: 'How long rival decisions stay in the log. 0 keeps none.',
     docRef: 'rival-desk.md#decision-log',
   },
+  ...styleTasteTunables(),
+  ...cardValueTunables,
+  ...needsTunables,
 });
