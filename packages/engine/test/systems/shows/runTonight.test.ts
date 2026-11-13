@@ -337,9 +337,7 @@ describe('shows.runTonight determinism', () => {
     expect((await viaCommand.advanceDays({ maxDays: 1 })).daysAdvanced).toBe(1);
 
     const viaPhase = engineOver(phasePath, [
-      ...withoutHealth.map((system) =>
-        system.id === 'shows' ? { ...system, gates: [] } : system,
-      ),
+      ...withoutHealth.map((system) => (system.id === 'shows' ? { ...system, gates: [] } : system)),
       oldPathSystem,
     ]);
     expect((await viaPhase.advanceDays({ maxDays: 1 })).daysAdvanced).toBe(1);

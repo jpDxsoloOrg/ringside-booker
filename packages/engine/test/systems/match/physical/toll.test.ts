@@ -59,13 +59,11 @@ function built(people: readonly DeepPartial<Person>[] = []) {
     kind: 'match',
     durationClass: 'standard',
     sides: sides.map((side) =>
-      side.map(
-        ({ index, entranceOrder }): PhysicalParticipant => ({
-          personId: person(index),
-          role: 'competitor',
-          entranceOrder: entranceOrder ?? null,
-        }),
-      ),
+      side.map(({ index, entranceOrder }): PhysicalParticipant => ({
+        personId: person(index),
+        role: 'competitor',
+        entranceOrder: entranceOrder ?? null,
+      })),
     ),
     crew: { producerId: null },
     keepItSafe: false,
@@ -153,9 +151,7 @@ describe('computePhysicalToll', () => {
     );
     const firstRoll = (worker: (typeof toll.workers)[number]) =>
       findTraceNodes(worker.wearLoad.trace, 'roll')[0]?.roll;
-    expect(firstRoll(toll.workers[0] ?? never())).toEqual(
-      firstRoll(alone.workers[0] ?? never()),
-    );
+    expect(firstRoll(toll.workers[0] ?? never())).toEqual(firstRoll(alone.workers[0] ?? never()));
   });
 
   it('works the injury chance out from fatigue and condition after this match', () => {
