@@ -3,7 +3,13 @@ import { userEvent } from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { initialEngineState, parseContentKey, parseGameDate, parseId } from '@ringside/engine';
+import {
+  initialEngineState,
+  parseContentKey,
+  parseGameDate,
+  parseId,
+  withPlannedResult,
+} from '@ringside/engine';
 import type {
   CommandName,
   EventInstanceId,
@@ -93,6 +99,17 @@ describe('the Finish section rules', () => {
       sideCount: 2,
       outcomeKind: 'draw',
     });
+  });
+
+  it('offers only finishes somebody wins on a match left to Auto or Random', () => {
+    for (const plan of ['auto', 'random'] as const) {
+      const draft = withPlannedResult(singlesDraft(null), plan);
+      expect(finishesArgsForDraft(draft)).toEqual({
+        matchTypeKey: SINGLES,
+        sideCount: 2,
+        outcomeKind: 'win',
+      });
+    }
   });
 
   it('switches a planned win to a way of winning the finish ends with, keeping one it allows', () => {
