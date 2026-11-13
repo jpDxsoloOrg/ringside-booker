@@ -1,0 +1,56 @@
+/*
+ * The frame around each Office panel. It draws nothing itself (the panel brings its own card)
+ * until the panel breaks, when it shows a calm note in the panel's place.
+ */
+.frame {
+  min-inline-size: 0;
+}
+
+/* A panel whose component drew nothing leaves no gap behind. */
+.frame:empty {
+  display: none;
+}
+
+.error {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.errorTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+}
+
+.errorIcon {
+  flex: none;
+  color: var(--color-warning);
+}
+
+.errorBody {
+  margin: 0;
+}
+
+.details {
+  min-inline-size: 0;
+}
+
+/* The summary is the only control here: at least a tap target tall. */
+.summary {
+  display: flex;
+  align-items: center;
+  min-block-size: var(--tap-target-min);
+  cursor: pointer;
+}
+
+.detailText {
+  overflow-wrap: anywhere;
+}
