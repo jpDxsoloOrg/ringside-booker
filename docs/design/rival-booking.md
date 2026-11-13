@@ -15,8 +15,8 @@ Code: `packages/engine/src/systems/aip/card/`, inside the rival desk's `aip`
 bundle ([rival-desk.md](rival-desk.md)); there is no second system. AIP4-01
 lays the groundwork described here, all pure and read-only: the card pool, the
 card shape, the tunables and the random streams. Nothing runs in the day loop
-yet. Later AIP4 tickets add the picking, title matches, talking segments and
-Auto-fill.
+yet. AIP4-02 adds the title picture and the challengers. Later AIP4 tickets
+add the picking, talking segments and Auto-fill.
 
 ## Card pool
 
@@ -130,6 +130,116 @@ title match cap = min(aip.titles.maxPerShow.<importance>, matchSlots)
 `mainEventMustBeMatch(importance)` is a traced yes or no: house shows may end
 on anything; every other show ends on a match.
 
+## Title picture
+
+`decideTitlePicture(pool, { today, taste, cap, alreadyBooked? }, { read, tunables, rng })`
+(`card/titlePicture.ts`) answers "which titles are on the line tonight, who
+challenges, and in what match". It reads the world and writes nothing; it
+returns `{ planned, skipped, trace }` for the card planner (AIP4-04).
+
+Titles are considered in prestige order (highest first, then title ID), never
+shuffled. Each title gets one decision, labelled with its name, and its rules
+run in this order:
+
+1. **"Vacant: crown a new champion".** A vacant title is always wanted.
+2. **"Champion available tonight".** Every holder is in the card pool, can
+   wrestle, is rested enough and has no contract block. Otherwise the title is
+   skipped with the pool's reason: "Champion Haruto Ise can't defend tonight:
+   Injured (leg injury) until 12 Feb".
+3. **Urgency.** The title is due when its urgency reaches
+   `aip.titles.dueThreshold`: "Due: urgency 1.6 ≥ 1", or "Not due: urgency
+   0.4 < 1" and skipped.
+4. **The cap.** The card holds at most `titleMatchCapFor` title matches:
+   "Card already has 2 title matches (limit 2)".
+
+Wanted titles are booked vacant first, then by urgency (highest first), then
+prestige, so on a busy night the most overdue titles get the slots. A champion
+already booked in an earlier title match tonight is not booked again. Each
+title then needs a match type and challengers; a title without them is skipped
+("No eligible challenger tonight"), never forced into an invalid match.
+
+### Urgency
+
+`titleUrgency({ titleName, prestige, daysSinceDefence, importance, titleFocus })`
+(`card/formulas/titleUrgency.ts`), in points:
+
+```
+interval = aip.titles.defenceIntervalDays × (1 + aip.titles.tempoSwing × (50 − titleFocus) ÷ 50),
+           at least 1 day
+overdue  = daysSinceDefence ÷ interval
+urgency  = overdue + prestige ÷ 100 × aip.titles.prestigeWeight
+                   + aip.titles.importanceBonus.<importance>
+```
+
+`titleFocus` is the booker's taste axis (`tasteOf`). At the default swing of
+0.5, taste 100 halves the usual gap (a title every two weeks) and taste 0 makes
+it half as long again. Prestige adds a little: a 100-prestige title is due a
+little sooner than a 0-prestige one. The importance bonus is how big shows put
+several titles on the line: a major show adds 1 and the flagship 2, enough to
+make every title with a fit champion due.
+
+**Days since the last defence** (`card/titleHistory.ts`, `lastDefenceOf`): the
+date of the latest completed show with a match for the title (`segments` index
+`byTitle`), else the open reign's `wonOn`. Until show night completes title
+matches (EVT3), every reign counts from the day it was won and the trace says
+so: "No completed defence yet: counting from the reign's start". That makes
+long reigns look ever more due, which is honest.
+
+The trace reads "Usual gap between defences", "Booker's title taste (<n>)",
+"<d> days since the last defence", "Prestige" and "A <importance> show".
+
+### Match type
+
+A title match uses the first non-hidden match type, by display order, that
+allows titles, two sides and the title's holder count per side (singles for a
+singles title, tag team for a tag title, trios for a trios title). The choice
+is a decision in the title's trace. When AIP4-03 adds match-type weights, the
+choice will follow them.
+
+## Challengers
+
+`pickChallengers(pool, title, { alreadyBooked }, { read, tunables, rng })`
+(`card/challengers.ts`) returns one challenging side for a defence, two for a
+vacant title, or null.
+
+Rules, in order, for each candidate in the card pool (each failure is a rule
+line in the trace):
+
+1. fit tonight: can wrestle, rested enough, no contract block;
+2. not on tonight's card already;
+3. not a holder of this title;
+4. not a holder of another title, while `aip.titles.excludeOtherChampions` is
+   on (champions defend their own titles);
+5. eligible for the title: WRK1's `isEligibleForTitle`, with its reason text
+   ("Too heavy for the Cruiserweight Title (limit 100 kg, weighs 120 kg)").
+   Gender and weight limits are checked as inclusive ranges, never as exact
+   matches;
+6. not one of the title's last `aip.titles.recentChallengers` challengers.
+
+**Why recent challengers rest.** A rival that books the same challenger week
+after week looks broken, so the last few challengers sit out. When resting them
+leaves nobody, the rule is lifted with the line "No fresh challenger: a rematch
+is allowed". Recent challengers are the competitors of the title's latest
+completed matches who did not hold it going in (`recentChallengersOf`).
+
+**Singles titles.** The survivors are ranked by card value; the top
+`aip.titles.challengerPool` are considered with their card-value traces ("#1
+Haruto Ise, card value 71") and one is picked by a weighted roll on the
+`aip.card` stream (weight = card value, at least 1). The roll is in the trace.
+The same seed always gives the same pick.
+
+**Team titles** (two or three holders). Challengers are the pool's teams of
+the matching kind (tag for two, trios for three) whose members all pass the
+rules, ranked by mean card value, picked the same way. When no team is free,
+the best eligible worker outside any team is paired with the workers closest
+to them in card value: "No established team free: A & B paired for tonight".
+The champions' side is the open reign's holders, with the reign's team.
+
+**Vacant titles.** The two best contenders (people or teams) by the same rules
+meet, with no roll: "Vacant title: the two best eligible contenders meet".
+
+Who wins is not decided here; AIP5 owns winners and title changes.
+
 ## Random streams
 
 Declared in `card/streams.ts`:
@@ -146,13 +256,21 @@ Category `Rival booking`, in `card/tunables.ts`; the table is in
 [tunables.md](tunables.md#rival-booking-tunables). Later AIP4 tickets append
 their keys to the same file.
 
-| Key                                  | Default                 | What it does                                                          |
-| ------------------------------------ | ----------------------- | --------------------------------------------------------------------- |
-| `aip.card.maxFatigue`                | 75                      | Fatigue above which a worker is only a last resort                    |
-| `aip.card.minWorkers`                | 5                       | Fewer wrestlers fit to work than this cancels the show (0 never)      |
-| `aip.card.mixedGender`               | false                   | Whether a non-title match may mix men and women                       |
-| `aip.card.talkShare.<importance>`    | 0, 0.15, 0.3, 0.2, 0.15 | Talking share on house, minor, regular, major and flagship shows      |
-| `aip.card.talkTasteSwing`            | 0.5                     | How far the booker's taste moves the talking share                    |
-| `aip.card.maxTalkShare`              | 0.5                     | The largest talking share                                             |
-| `aip.card.fillPreShow`               | true                    | Whether the pre-show slots are filled                                 |
-| `aip.titles.maxPerShow.<importance>` | 1, 1, 2, 4, 6           | Most title matches on house, minor, regular, major and flagship shows |
+| Key                                       | Default                 | What it does                                                          |
+| ----------------------------------------- | ----------------------- | --------------------------------------------------------------------- |
+| `aip.card.maxFatigue`                     | 75                      | Fatigue above which a worker is only a last resort                    |
+| `aip.card.minWorkers`                     | 5                       | Fewer wrestlers fit to work than this cancels the show (0 never)      |
+| `aip.card.mixedGender`                    | false                   | Whether a non-title match may mix men and women                       |
+| `aip.card.talkShare.<importance>`         | 0, 0.15, 0.3, 0.2, 0.15 | Talking share on house, minor, regular, major and flagship shows      |
+| `aip.card.talkTasteSwing`                 | 0.5                     | How far the booker's taste moves the talking share                    |
+| `aip.card.maxTalkShare`                   | 0.5                     | The largest talking share                                             |
+| `aip.card.fillPreShow`                    | true                    | Whether the pre-show slots are filled                                 |
+| `aip.titles.maxPerShow.<importance>`      | 1, 1, 2, 4, 6           | Most title matches on house, minor, regular, major and flagship shows |
+| `aip.titles.defenceIntervalDays`          | 28                      | Usual gap between defences at middling title taste                    |
+| `aip.titles.tempoSwing`                   | 0.5                     | How far title taste moves the usual gap                               |
+| `aip.titles.prestigeWeight`               | 0.5                     | Urgency per 100 prestige                                              |
+| `aip.titles.importanceBonus.<importance>` | 0, 0, 0, 1, 2           | Urgency added on house, minor, regular, major and flagship shows      |
+| `aip.titles.dueThreshold`                 | 1                       | Urgency at which a title is due                                       |
+| `aip.titles.recentChallengers`            | 2                       | Latest challengers who rest before challenging again                  |
+| `aip.titles.challengerPool`               | 3                       | Best contenders the challenger is picked from                         |
+| `aip.titles.excludeOtherChampions`        | true                    | Whether champions are kept out of other title pictures                |

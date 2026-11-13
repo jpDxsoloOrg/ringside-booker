@@ -6,6 +6,7 @@
  * talking segments, Auto-fill) read only this, so they never walk the world tables themselves.
  */
 
+import type { ContentKey } from '../../../core/content-key';
 import type { GameDate } from '../../../core/date';
 import type {
   BrandId,
@@ -17,7 +18,7 @@ import type {
   TitleId,
   TitleReignId,
 } from '../../../core/ids';
-import type { Traced } from '../../../core/trace';
+import type { Traced, TraceNode } from '../../../core/trace';
 import type { Alignment, Push } from '../../../model/entities/employment';
 import type { EventImportance } from '../../../model/entities/event-definition';
 import type { Gender, PersonRole } from '../../../model/entities/person';
@@ -122,4 +123,46 @@ export interface CardPool {
    * contract-blocked (still in `candidates`, as a last resort).
    */
   readonly excluded: readonly CardExclusion[];
+}
+
+/** One side of a planned title match. */
+export interface PlannedSide {
+  /** Everyone on the side, in order (a team's own order). */
+  readonly personIds: readonly PersonId[];
+  /** The team the side represents, or null for a singles side or a pairing made for tonight. */
+  readonly teamId: TeamId | null;
+  /** True for the champions' side. */
+  readonly isChampions: boolean;
+}
+
+/** Who challenges for a title tonight: one side for a defence, two for a vacant title. */
+export interface ChallengerPick {
+  readonly sides: readonly PlannedSide[];
+}
+
+/** A title match the card planner wants on tonight's card. Plain JSON. */
+export interface PlannedTitleMatch {
+  readonly titleId: TitleId;
+  /** A non-hidden match type that allows titles, two sides and the title's holder count per side. */
+  readonly matchTypeKey: ContentKey;
+  /** The champions first (when the title has any), then the challengers. */
+  readonly sides: readonly PlannedSide[];
+  /** The title's decision: why it is defended, the challenger pick and the match type. */
+  readonly trace: Traced<string>;
+}
+
+/** A title left off tonight's card, and why, in plain words. */
+export interface SkippedTitle {
+  readonly titleId: TitleId;
+  readonly reason: string;
+}
+
+/** Which titles are on the line tonight. */
+export interface TitlePicture {
+  /** In booking order: vacant titles first, then by urgency, highest first, then prestige. */
+  readonly planned: readonly PlannedTitleMatch[];
+  /** In the order the titles were considered (prestige, highest first, then title ID). */
+  readonly skipped: readonly SkippedTitle[];
+  /** One decision per title, in the order considered, under "Title picture for <show>". */
+  readonly trace: TraceNode;
 }

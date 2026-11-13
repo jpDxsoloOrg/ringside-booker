@@ -2188,3 +2188,16 @@ export {
   type TalkSlotsInputs,
   type TitleMatchCapInputs,
 } from './systems/aip/index';
+
+// AIP4-02: the title picture: which titles a rival defends tonight, who challenges and in what
+// match type. See docs/design/rival-booking.md#title-picture.
+export {
+  decideTitlePicture,
+  pickChallengers,
+  titleUrgency,
+  type ChallengerPick,
+  type PlannedSide,
+  type PlannedTitleMatch,
+  type SkippedTitle,
+  type TitlePicture,
+} from './systems/aip/index';
