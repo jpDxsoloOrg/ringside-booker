@@ -36,6 +36,7 @@ export type {
   TitleReignId,
   VenueId,
   AftermathId,
+  PromotionSnapshotId,
 } from './core/ids';
 /** The nominal-type helper, exported as `Branded` because `Brand` is the brand entity. */
 export type { Brand as Branded } from './core/brand';
@@ -1747,3 +1748,46 @@ export {
   type RecentFormResult,
   type RecentFormRow,
 } from './systems/match/index';
+
+// Promotion history (DAY2-01): the `promotionSnapshots` table, the weekly Monday rows, the
+// new-game baseline, the thinning of old weeks and the registry other features use to add a
+// number to every row. See docs/design/office.md#history.
+export {
+  PROMOTION_SNAPSHOT_GRANULARITIES,
+  PromotionSnapshotGranularitySchema,
+  PromotionSnapshotPopularitySchema,
+  PromotionSnapshotSchema,
+  promotionSnapshotKey,
+  promotionSnapshotTable,
+  SNAPSHOT_FIELD_KEY_PATTERN,
+  SnapshotFieldKeySchema,
+  type PromotionSnapshot,
+  type PromotionSnapshotGranularity,
+  type PromotionSnapshotPopularity,
+  type SnapshotFieldKey,
+} from './model/entities/promotion-snapshot';
+export {
+  BUILT_IN_SNAPSHOT_COLUMNS,
+  buildPromotionSnapshot,
+  compactPromotionSnapshots,
+  createSnapshotRoller,
+  fullDetailCutoff,
+  OFFICE_BASELINE_SNAPSHOT_STEP,
+  officeSystem,
+  officeTunables,
+  planCompaction,
+  promotionSnapshotFields,
+  registerPromotionSnapshotField,
+  WEEKLY_SNAPSHOT_PHASE_ID,
+  WEEKLY_SNAPSHOT_PHASE_ORDER,
+  weeklySnapshotPhase,
+  writePromotionSnapshots,
+  type CompactionPlan,
+  type CompactionRow,
+  type PromotionSnapshotColumns,
+  type PromotionSnapshotFieldSpec,
+  type SnapshotFieldKpi,
+  type SnapshotFieldUnit,
+  type SnapshotFieldVisibility,
+  type SnapshotRoller,
+} from './systems/office/index';
