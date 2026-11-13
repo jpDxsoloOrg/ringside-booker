@@ -39,6 +39,32 @@ export { BOX_OFFICE_CROWD_STREAM, BOX_OFFICE_MERCH_STREAM } from './streams';
 export { BOX_OFFICE_TRACE_KINDS } from './traceKinds';
 export { boxOfficeTunables } from './tunables';
 
+// Show-day formulas (EVT6-04): the crowd roll, ticket price, venue rent, live merch, worker shares
+// and the net they add up to. Pure; EVT6-05's settlement wires them in.
+export {
+  ACTUAL_ATTENDANCE_DOC_REF,
+  computeActualAttendance,
+  type ActualAttendanceInputs,
+} from './formulas/actualAttendance';
+export {
+  BOX_OFFICE_NET_DOC_REF,
+  computeBoxOfficeNet,
+  type BoxOfficeNetInputs,
+} from './formulas/boxOfficeNet';
+export { LIVE_MERCH_DOC_REF, computeLiveMerch, type LiveMerchInputs } from './formulas/liveMerch';
+export {
+  TICKET_PRICE_DOC_REF,
+  computeTicketPrice,
+  type TicketPriceInputs,
+} from './formulas/ticketPrice';
+export { VENUE_RENT_DOC_REF, computeVenueRent, type VenueRentInputs } from './formulas/venueRent';
+export {
+  WORKER_SHARE_DOC_REF,
+  computeWorkerShare,
+  type WorkerShareInputs,
+  type WorkerShareSource,
+} from './formulas/workerShare';
+
 export const boxOfficeSystem: SystemBundle = defineSystem({
   id: 'boxOffice',
   phases: [],
