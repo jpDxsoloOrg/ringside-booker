@@ -5,6 +5,7 @@ import { AlignmentChip } from '@/components/AlignmentChip';
 import { AvailabilityChip } from '@/components/AvailabilityChip';
 import { formatNumber } from '@/components/format';
 import { ImageSlot } from '@/components/ImageSlot';
+import { PromotionLink } from '@/components/PromotionLink';
 import type { ImageSubject } from '@/components/ImageSlot';
 import { ExplainedText } from './ExplainedText';
 import styles from './WorkerProfile.module.css';
@@ -84,7 +85,16 @@ export function WorkerProfileHeader({ header, heading = 'page' }: WorkerProfileH
         </div>
         <div className={styles['fact']}>
           <dt className={styles['factLabel']}>Employer</dt>
-          <dd>{header.employer === null ? 'Free agent' : header.employer.name}</dd>
+          <dd>
+            {header.employer === null ? (
+              'Free agent'
+            ) : (
+              <PromotionLink
+                promotionId={header.employer.promotionId}
+                name={header.employer.name}
+              />
+            )}
+          </dd>
         </div>
         {header.push !== null && (
           <div className={styles['fact']}>

@@ -1,4 +1,4 @@
-import type { EventInstanceId, PersonId } from '@ringside/engine';
+import type { EventInstanceId, PersonId, PromotionId } from '@ringside/engine';
 
 /**
  * Every URL in the app, built here and nowhere else. Screens, links and tests call these builders
@@ -143,6 +143,13 @@ export const routes = {
       const path = `${gameScreenPath('eventHistory')}/${encodeURIComponent(eventInstanceId)}`;
       return options.reveal === true ? `${path}?${SHOW_RESULTS_PARAMS.reveal}=1` : path;
     },
+    /** One promotion's profile, optionally on a tab: `/game/promotions/pro_…?tab=roster`. */
+    promotion: (promotionId: PromotionId, options: { readonly tab?: string } = {}): string => {
+      const path = `${gameScreenPath('promotions')}/${encodeURIComponent(promotionId)}`;
+      return options.tab === undefined
+        ? path
+        : `${path}?${PROMOTION_PARAMS.tab}=${encodeURIComponent(options.tab)}`;
+    },
   },
   dev: {
     /** The component gallery: in every build, linked from no navigation. */
@@ -164,6 +171,8 @@ export const routePatterns = {
   worker: `${gameScreenPath('workers')}/:personId`,
   /** One show's results; `routes.game.showResults(eventInstanceId)` builds the URL. */
   showResults: `${gameScreenPath('eventHistory')}/:eventInstanceId`,
+  /** One promotion's profile; `routes.game.promotion(promotionId)` builds the URL. */
+  promotion: `${gameScreenPath('promotions')}/:promotionId`,
 } as const;
 
 /** The name of the worker profile route's parameter. */
@@ -171,3 +180,9 @@ export const WORKER_ROUTE_PARAM = 'personId';
 
 /** The name of the results page route's parameter. */
 export const SHOW_RESULTS_ROUTE_PARAM = 'eventInstanceId';
+
+/** The name of the promotion profile route's parameter. */
+export const PROMOTION_ROUTE_PARAM = 'promotionId';
+
+/** The names of the promotion profile's search parameters. */
+export const PROMOTION_PARAMS = { tab: 'tab' } as const;
