@@ -165,9 +165,10 @@ test.describe('rival cards and Auto-fill on a new game', () => {
 
       await sheet.getByRole('button', { name: 'Done' }).click();
       await expect(sheet).toBeHidden();
+      // Focus goes back to the panel: Rebook, now that Auto-fill is off on a full card.
       await expect(
         page.getByRole('region', { name: 'Auto-fill' }).getByRole('button', {
-          name: 'Auto-fill empty slots',
+          name: 'Rebook whole card',
         }),
       ).toBeFocused();
 
@@ -223,7 +224,7 @@ test.describe('rival cards and Auto-fill on a new game', () => {
       await expect(aired).toHaveAttribute('data-revealed', 'true');
       await expand(aired);
       const card = aired.getByRole('list', { name: `${RIVAL_SHOW} card` });
-      const slots = card.getByRole('listitem');
+      const slots = card.locator(':scope > li');
       await expect(slots).toHaveCount(ROLES.length);
       for (const [index, role] of ROLES.entries()) {
         await expect(
