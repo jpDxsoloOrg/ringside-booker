@@ -72,13 +72,14 @@ describe('ledger entry schema', () => {
 });
 
 describe('ledger table', () => {
-  it('is append-only in the production registry', () => {
-    // Transactions refuse update and delete on append-only tables with AppendOnlyError.
-    expect(ledgerEntriesTable.appendOnly).toBe(true);
-    expect(TABLES.ledgerEntries.appendOnly).toBe(true);
+  it('is prune-only in the production registry', () => {
+    // Rows are never edited; the history roll-up (POL4-08) deletes old rows once they are in the
+    // promotion's monthly totals.
+    expect(ledgerEntriesTable.appendOnly).toBe('pruneOnly');
+    expect(TABLES.ledgerEntries.appendOnly).toBe('pruneOnly');
   });
 
-  it('refuses tx.update and tx.delete on a ledger row and leaves the row as it was', () => {
+  it('refuses tx.update on a ledger row and leaves the row as it was', () => {
     const world = emptyGeoMediaWorld();
     const entry = makeLedgerEntry(1);
     world.tables.ledgerEntries._put(entry);
@@ -86,18 +87,24 @@ describe('ledger table', () => {
     const updated = world.transact('edit-ledger', (tx) => {
       tx.update('ledgerEntries', entry.id, { amount: cents(1) });
     });
-    const deleted = world.transact('remove-ledger', (tx) => {
-      tx.delete('ledgerEntries', entry.id);
-    });
 
-    for (const result of [updated, deleted]) {
-      expect(result.ok).toBe(false);
-      if (!result.ok) {
-        expect(result.error).toBeInstanceOf(AppendOnlyError);
-      }
+    expect(updated.ok).toBe(false);
+    if (!updated.ok) {
+      expect(updated.error).toBeInstanceOf(AppendOnlyError);
     }
     expect(world.tables.ledgerEntries.get(entry.id)).toEqual(entry);
     expect(world.tables.ledgerEntries.size).toBe(1);
+  });
+
+  it('lets the roll-up delete a ledger row', () => {
+    const world = emptyGeoMediaWorld();
+    const entry = makeLedgerEntry(1);
+    world.tables.ledgerEntries._put(entry);
+    const deleted = world.transact('roll-up', (tx) => {
+      tx.delete('ledgerEntries', entry.id);
+    });
+    expect(deleted.ok).toBe(true);
+    expect(world.tables.ledgerEntries.size).toBe(0);
   });
 
   it("byPromotionMonth returns one promotion's entries for 2026-03 only", () => {

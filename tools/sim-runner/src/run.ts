@@ -381,18 +381,35 @@ export interface LedgerMismatch {
 
 /**
  * The promotions whose cash change over the run is not the sum of the ledger rows the run wrote
- * (rows in `end` that `start` does not have). During play cash only moves through `postMoney`,
+ * (the change in rows plus rolled-up monthly totals between `start` and `end`). During play cash only moves through `postMoney`,
  * which writes a row for every move, so after a clean run this is empty; `--strict` fails when it
  * is not. Promotions that did not exist at the start are left out: their opening cash is not a
  * movement.
  */
 export function ledgerMismatches(start: EngineState, end: EngineState): LedgerMismatch[] {
   const startCash = new Map(start.world.tables.promotions.map((row) => [row.id, row.cash]));
-  const startRows = new Set(start.world.tables.ledgerEntries.map((row) => row.id));
   const ledgerSums = new Map<string, number>();
+  const add = (promotionId: string, amount: number): void => {
+    ledgerSums.set(promotionId, (ledgerSums.get(promotionId) ?? 0) + amount);
+  };
+  // Rows the history roll-up (POL4-08) turned into monthly totals count through the totals: the
+  // run's movement is (end rows + end totals) less (start rows + start totals).
   for (const row of end.world.tables.ledgerEntries) {
-    if (!startRows.has(row.id)) {
-      ledgerSums.set(row.promotionId, (ledgerSums.get(row.promotionId) ?? 0) + row.amount);
+    add(row.promotionId, row.amount);
+  }
+  for (const row of start.world.tables.ledgerEntries) {
+    add(row.promotionId, 0 - row.amount);
+  }
+  for (const [state, sign] of [
+    [end, 1],
+    [start, -1],
+  ] as const) {
+    for (const promotion of state.world.tables.promotions) {
+      for (const month of promotion.ledgerMonths) {
+        for (const amount of Object.values(month.byCategory)) {
+          add(promotion.id, sign * amount);
+        }
+      }
     }
   }
   const mismatches: LedgerMismatch[] = [];

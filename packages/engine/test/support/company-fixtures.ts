@@ -97,6 +97,7 @@ export function makePromotion(serial: number, overrides: Partial<Promotion> = {}
     policies: { catering: 1, travel: 2, medical: 3 },
     color: '#1a2b3c',
     controller: { kind: 'computer' },
+    ledgerMonths: [],
     ...overrides,
   };
 }

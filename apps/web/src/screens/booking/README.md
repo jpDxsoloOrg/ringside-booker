@@ -106,6 +106,10 @@ completed show with `canEdit: false`, so the board is read-only by itself.
 show's venue, capacity, expected crowd with its Why? and fit, Change venue and Pick for me. See
 `app/README.md#venue-and-crowd`.
 
+`aip.autoFill` (side, order 50, "Auto-fill", `panels/register.tsx`, AIP4-07): Auto-fill empty
+slots, Rebook whole card behind a confirmation, and the reasons sheet. It never picks a winner.
+See `docs/design/rival-booking.md#auto-fill`.
+
 ### The segment editor (EVT2-06)
 
 The card never imports the editor. Its add actions call

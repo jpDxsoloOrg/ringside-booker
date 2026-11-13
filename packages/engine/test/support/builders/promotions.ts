@@ -86,6 +86,7 @@ export function aPromotion(
     policies: { catering: 1, travel: 1, medical: 1 },
     color: '#336699',
     controller: { kind: 'computer' },
+    ledgerMonths: [],
   };
   return buildRow(PromotionSchema, 'aPromotion', defaults, overrides);
 }

@@ -437,6 +437,20 @@ describe('Explained and WhyButton', () => {
     });
     expect(useTracePanelStore.getState().openPanelId).not.toBe(firstPanelId);
   });
+
+  it('takes a name of its own when it explains a choice rather than a number', () => {
+    render(
+      <WhyButton
+        label="slot 3"
+        value="Ace vs Rookie"
+        buttonLabel="Why this segment? Slot 3, Midcard"
+        source={{ trace: matchRatingTrace }}
+      />,
+    );
+    expect(
+      screen.getByRole('button', { name: 'Why this segment? Slot 3, Midcard' }),
+    ).toBeInTheDocument();
+  });
 });
 
 describe('traces fetched by reference', () => {

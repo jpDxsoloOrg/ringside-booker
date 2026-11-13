@@ -1,5 +1,5 @@
 /**
- * Prunes the rival decision log: deletes every row past `aip.decisionLogRetentionDays`.
+ * Prunes the rival decision log: deletes every row past `history.keepDetailDays`.
  *
  * The log is `appendOnly: 'pruneOnly'`, so this delete is the only change a row ever sees. The
  * daily phase `aip.pruneDecisionLog` (`phases.ts`) runs `pruneDecisionLogOn`, which reads only

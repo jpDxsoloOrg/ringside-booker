@@ -3,12 +3,16 @@
  *
  * The save keeps roughly the last month in detail and the current numbers. A rival card's plan
  * trace (`aip.cardPlan`) is summary-only from the start; each written segment's short Why?
- * (`aip.cardSlot`) is kept in full for `aip.card.keepDetailDays` days after the show and then
- * demoted to its summary. The cards themselves (who was on which show, the results) are public
- * facts other features read and are not touched here.
+ * (`aip.cardSlot`) is kept in full for `history.keepDetailDays` days after the show and then
+ * demoted to its summary, and so are AIP5's winner and title decisions (`aip.winner`,
+ * `aip.title`). The cards themselves are not touched here: the weekly `history.rollUp`
+ * (POL4-08) summarises them on the same window.
  *
- * Daily in `periodic` (order 43, after `aip.pruneDecisionLog`): demotes the slots of the computer
- * shows dated exactly `today - keepDetailDays`, read through the `byDate` index. On the 1st of each
+ * The player's own slots that Auto-fill wrote (AIP4-06) carry the same short Why? and go the same
+ * way, so every show is swept, not only the computer's; a show without such traces costs nothing.
+ *
+ * Daily in `periodic` (order 43, after `aip.pruneDecisionLog`): demotes the slots of the shows
+ * dated exactly `today - keepDetailDays`, read through the `byDate` index. On the 1st of each
  * month a full sweep catches shows a lowered setting or a failed day left behind. See
  * docs/design/rival-booking.md#show-day.
  */
@@ -18,21 +22,25 @@ import { definePhase, type PhaseDefinition } from '../../../core/pipeline/phase'
 import type { PhaseContext } from '../../../core/pipeline/context';
 import type { EventInstance } from '../../../model/entities/event-instance';
 import type { DeepReadonly } from '../../../model/world';
-import { showControllerOf } from '../../calendar/control';
+import { titleTraceRef, winnerTraceRef } from '../results/traces';
 import { CARD_SLOT_TRACE_KIND } from './bookShowJob';
 
 export const AIP_PRUNE_CARD_DETAIL_PHASE_ID = 'aip.pruneCardDetail';
 
-/** Demotes the slot traces of the computer shows among `shows`; returns how many shows. */
+/** Demotes the slot traces of the shows among `shows`; returns how many shows had segments. */
 function demoteSlots(ctx: PhaseContext, shows: Iterable<DeepReadonly<EventInstance>>): number {
   let count = 0;
   for (const show of shows) {
-    if (showControllerOf(ctx.read, show).kind !== 'computer') {
-      continue;
-    }
     const segments = ctx.read.tables.segments.lookup('byEventInstance', show.id);
     for (const segment of segments) {
       ctx.demoteTrace({ kind: CARD_SLOT_TRACE_KIND, id: segment.id });
+      // AIP5: the winner and title decisions follow the same rule.
+      if (segment.kind === 'match') {
+        ctx.demoteTrace(winnerTraceRef(segment.id));
+        for (const titleId of segment.match.titleIds) {
+          ctx.demoteTrace(titleTraceRef(segment.id, titleId));
+        }
+      }
     }
     count += segments.length > 0 ? 1 : 0;
   }
@@ -50,7 +58,7 @@ export const pruneCardDetailPhase: PhaseDefinition = definePhase({
   order: 43,
   cadence: { kind: 'daily' },
   run: (ctx) => {
-    const cutoff = cardDetailCutoff(ctx.date, ctx.tunables.get('aip.card.keepDetailDays'));
+    const cutoff = cardDetailCutoff(ctx.date, ctx.tunables.get('history.keepDetailDays'));
     const shows =
       dayOfMonth(ctx.date) === 1
         ? ctx.read.tables.eventInstances
@@ -59,7 +67,7 @@ export const pruneCardDetailPhase: PhaseDefinition = definePhase({
         : ctx.read.tables.eventInstances.lookup('byDate', cutoff);
     const pruned = demoteSlots(ctx, shows);
     if (pruned > 0) {
-      ctx.log(`Kept only a summary of ${String(pruned)} rival card(s) from ${cutoff} or before`);
+      ctx.log(`Kept only a summary of ${String(pruned)} booked card(s) from ${cutoff} or before`);
     }
   },
 });

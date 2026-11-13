@@ -72,7 +72,10 @@ export interface CalendarShow {
    * valid; the calendar queries always fill it.
    */
   genericVenue?: { name: string; capacity: number } | null;
-  /** How many segments are on the show's card. 0 for a projected show. */
+  /**
+   * How many segments are on the show's card. 0 for a projected show. For a show older than the
+   * detail window, how many it had (POL4-08).
+   */
   segmentCount: number;
   /** True when the viewer could cancel the show right now. */
   canCancel: boolean;
@@ -226,7 +229,10 @@ export function calendarRowBuilder(
         region,
         venue,
         genericVenue: genericVenueOf(instance),
-        segmentCount: read.tables.segments.lookup('byEventInstance', instance.id).length,
+        // A rolled-up show (POL4-08) keeps only its card's size.
+        segmentCount:
+          instance.result?.history?.segments ??
+          read.tables.segments.lookup('byEventInstance', instance.id).length,
         canCancel:
           isOwn &&
           viewer.kind === 'controller' &&

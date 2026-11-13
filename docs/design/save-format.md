@@ -116,11 +116,103 @@ Measured 2026-11 on a desktop, 365 days of the default world:
 | No rival cards    | 12.66 MB / 1.20 MB     | 0.45 / 0.52 s | 9.35 MB / 0.93 MB     | 0.43 / 0.48 s |
 | Every show carded | 34.58 MB / 3.04 MB     | 1.20 / 1.32 s | 17.26 MB / 1.83 MB    | 0.77 / 0.71 s |
 
+Once rivals booked real cards (AIP4-05) the tables grew with every show in the
+world again. The history roll-up (POL4-08, [below](#history-retention)) keeps
+only the last four weeks of them in detail. Measured 2026-11, 365 days of the
+default world, on a busy desktop:
+
+| Setup             | AIP4-05: JSON / on disk | Save / load   | POL4-08: JSON / on disk | Save / load   | Tables (JSON)  |
+| ----------------- | ----------------------- | ------------- | ----------------------- | ------------- | -------------- |
+| No rival cards    | 14.37 MB / 1.54 MB      | 0.50 / 0.83 s | 10.03 MB / 1.06 MB      | 0.40 / 0.74 s | 7.63 → 3.30 MB |
+| Every show carded | 17.98 MB / 1.94 MB      | 0.59 / 0.77 s | 13.01 MB / 1.37 MB      | 0.44 / 0.98 s | 8.83 → 3.86 MB |
+
+The year's simulation takes as long as before (26.8 s against 26.6 s with no
+rival cards, 36.5 s against 38.3 s carded): the roll-up neither costs nor saves
+time, since the long-skip time is spent running the rivals' cards, not reading
+the tables. What is left is mostly the full traces each kind keeps (about 7.6
+MB carded) and the stored aftermaths (each worker's newest 10, about 1.2 MB).
+The year test also checks a carded year stays under 1.6 MB on disk.
+
 "On disk" is the gzipped bytes in IndexedDB and in an `.rbsave` file. "Save"
 is building the document and encoding it; "load" is the whole staged
-`loadSave`. With every show carded the rest is mostly tables (segments,
-participants, aftermaths and the ledger, about 8 MB) and the full traces each
-kind keeps (about 7 MB).
+`loadSave`. Before POL4-08, with every show carded the rest was mostly tables
+(segments, participants, aftermaths and the ledger, about 8 MB) and the full
+traces each kind keeps (about 7 MB).
+
+## History retention
+
+A year of play used to keep every card, participant, ledger row and per-show
+popularity record in the world, for every promotion. The owner's rule
+(POL4-08): keep about **the last month in detail and the current numbers**,
+for the player's promotion as much as the rivals'. Older history is rolled
+into totals and summaries, never into nothing, and no current number
+(popularity, momentum, money, records, contracts, reigns) moves.
+
+**The knob.** `history.keepDetailDays` (default 28, 0–3650) is the one window.
+It also sets how long the rival decision log keeps rows (`aip.pruneDecisionLog`)
+and when rival card slot traces drop to summaries (`aip.pruneCardDetail`); it
+replaced `aip.card.keepDetailDays`, `aip.decisionLogRetentionDays` and
+`promoPop.keepShowChangesDays`, whose monthly prune folded into the roll-up.
+
+**The roll-up.** `history.rollUp` (`systems/history/rollUp.ts`; `periodic`
+group, order 41, Mondays, just after `match.pruneAftermaths`) runs five passes
+in ID order, so it is deterministic. With the window counted back from that
+Monday, everything dated before it is rolled up:
+
+1. each completed show without a summary gets one on its result
+   (`result.history`: card size, main event in words, box office totals,
+   worldwide popularity before and after);
+2. the segments and participants of summarised and cancelled shows are
+   deleted, except the matches still read (below);
+3. the per-region popularity records (`popularityShowChanges`) are deleted;
+4. ledger rows are added into the promotion's `ledgerMonths` (one entry per
+   month: totals per category, the row count and the last day covered) and
+   deleted. The ledger is `appendOnly: 'pruneOnly'`: rows are never edited,
+   and rows plus monthly totals still sum to the change in cash;
+5. stored aftermaths keep only the show region's change.
+
+**Matches kept past the window** (`segmentsToKeep`, `systems/history/keep.ts`),
+so nothing that reads them changes:
+
+- the match a title reign was won or lost in: title lineage stays complete;
+- every match a stored aftermath row points at (each worker's newest 10);
+- each competitor's newest `max(match.popularity.streakLookback, 10)` run
+  matches: the win-streak bonus and Recent form read exactly what they did;
+- each title's newest matches the rival booker reads for its last defence and
+  recent challengers (`recentTitleMatchIds`, `aip.titles.recentChallengers`).
+
+They stay until nothing reads them; the results page of their show still shows
+only its summary.
+
+**Older saves.** The new fields are optional (`result.history`) or default to
+empty (`ledgerMonths`), so a save from before POL4-08 loads as it is (format v1
+is still unfrozen, so there is no migration step). Its first Monday rolls up
+everything older than the window, whatever its age.
+
+### What grows with days played, and what replaces it
+
+| Table or part           | Grows with                      | Read by                                                                                | Detail kept                                   | Past the window                                                                                       |
+| ----------------------- | ------------------------------- | -------------------------------------------------------------------------------------- | --------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `eventInstances`        | every show                      | calendar, results lists, show summaries, box office                                    | always (the summary row)                      | kept; `result.history` holds card size, main event, box office totals, worldwide popularity           |
+| `segments`              | every card                      | results page, Recent form, win streaks, rival title history, reign lineage, aftermaths | `history.keepDetailDays`                      | deleted, bar the matches kept above; the calendar reads `history.segments` for the card size          |
+| `participants`          | every segment                   | the same, through their segment                                                        | with their segment                            | deleted with their segment                                                                            |
+| `ledgerEntries`         | every day, every promotion      | finance overview, monthly, ledger, cash Why?, show money, box office settlement        | `history.keepDetailDays`                      | `Promotion.ledgerMonths` totals per category; a show's box office totals on its summary               |
+| `popularityShowChanges` | every show                      | `popularity.showChange`, "Recent shows" Why? lines, same-day box office                | `history.keepDetailDays`                      | deleted; worldwide before and after on the summary; the query answers `pruned` with it                |
+| `aftermaths`            | every competitor of every match | results page, Recent form, momentum drift                                              | each worker's newest 10 (`keepPerPerson`)     | the same rows, slimmed to the show region's change                                                    |
+| `aiDecisions`           | every rival decision            | the decision log screen                                                                | `history.keepDetailDays` (unaired plans kept) | deleted                                                                                               |
+| `promotionSnapshots`    | every week, every promotion     | office charts                                                                          | weekly rows for recent weeks                  | one row per month (`office.weeklySnapshot`, DAY2-01): the monthly popularity points                   |
+| `titleReigns`           | every title change              | title history, lineage                                                                 | always                                        | kept in full: small, and players expect it                                                            |
+| traces                  | every explained number          | Why? panels                                                                            | per-kind limits (POL4-06)                     | summaries; rival card slots demoted at `history.keepDetailDays`                                       |
+| worker records          | not stored                      | nothing reads a career win/loss record yet                                             | n/a                                           | last worked date is `Employment.lastAppearanceOn`; a record would be a roll-up when a screen needs it |
+| `news`, `mail`          | nothing writes them yet         |                                                                                        |                                               | to be decided by the features that write them                                                         |
+
+Screens past the window show the summary with a plain note, "Details are kept
+for the last 4 weeks." (`detailKeptNote`, `systems/history/note.ts`): the
+results page (card size, main event, new champions), its Popularity section
+(the worldwide change), Show money (pointing at the month's totals) and the
+Finances ledger (older money as monthly totals). `finance.monthly`, the
+overview and the cash Why? read rows plus totals (`monthBreakdownOf`), so
+their figures do not change.
 
 ## Bytes: the codec
 

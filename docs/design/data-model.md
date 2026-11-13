@@ -452,6 +452,11 @@ its own.
 | `policies`          | `{ catering, travel, medical }`     | each 0, 1, 2 or 3                             | ECO / SOC          |
 | `color`             | string                              | `#rrggbb`, used by placeholder logos          | UI                 |
 | `controller`        | `Controller`                        | who runs it                                   | WLD-10             |
+| `ledgerMonths`      | `LedgerMonth[]`, default `[]`       | ledger months rolled up into totals           | POL4-08            |
+
+`LedgerMonth` is `{ month, byCategory, rows, through }`: the ledger rows of
+one month that the history roll-up turned into totals per category, how many
+rows went in and the last day they cover ([save-format.md](save-format.md#history-retention)).
 
 Production areas: `stage`, `camera`, `editing`, `pyro`, `music`, `writing`,
 `marketing`, `backOffice`. The 0–10 range is deliberately wide so the economy
@@ -844,16 +849,26 @@ its promotion called off (`byPromotion`). See [calendar.md](calendar.md).
 the last three stay null until that feature lands, and crowd size is never the
 same number as crowd reaction (D-02):
 
-| Field         | Type            | Written by                                                                |
-| ------------- | --------------- | ------------------------------------------------------------------------- |
-| `score`       | 0–100           | EVT3: the final show score                                                |
-| `rawScore`    | 0–100           | EVT3: the score before any `cap`-stage modifier; equals `score` if none   |
-| `traceId`     | string or null  | EVT3: the ref key of the show score's trace                               |
-| `attendance`  | int ≥ 0 or null | EVT6-05: people in the building, set when the box office settles          |
-| `gate`        | `Cents` or null | EVT6-05: ticket revenue before workers' shares                            |
-| `viewers`     | int ≥ 0 or null | ECO8; null for a show that did not air                                    |
-| `ticketPrice` | `Cents`, absent | EVT6-05: one ticket's price; absent until the box office settles the show |
-| `merch`       | `Cents`, absent | EVT6-05: live merch sales before workers' shares; absent until settled    |
+| Field         | Type                  | Written by                                                                |
+| ------------- | --------------------- | ------------------------------------------------------------------------- |
+| `score`       | 0–100                 | EVT3: the final show score                                                |
+| `rawScore`    | 0–100                 | EVT3: the score before any `cap`-stage modifier; equals `score` if none   |
+| `traceId`     | string or null        | EVT3: the ref key of the show score's trace                               |
+| `attendance`  | int ≥ 0 or null       | EVT6-05: people in the building, set when the box office settles          |
+| `gate`        | `Cents` or null       | EVT6-05: ticket revenue before workers' shares                            |
+| `viewers`     | int ≥ 0 or null       | ECO8; null for a show that did not air                                    |
+| `ticketPrice` | `Cents`, absent       | EVT6-05: one ticket's price; absent until the box office settles the show |
+| `merch`       | `Cents`, absent       | EVT6-05: live merch sales before workers' shares; absent until settled    |
+| `history`     | `ShowHistory`, absent | POL4-08: the summary kept once the card is rolled up (below)              |
+
+`ShowHistory` (POL4-08) is what a completed show keeps once it is older than
+`history.keepDetailDays` and its card detail is rolled up: `segments` (how
+many the card had), `mainEvent` (`{ typeName, sides, winnerSide }` in words,
+or null), `boxOffice` (`{ tickets, venueRent, liveMerch }`, the show's box
+office ledger rows added up) and `world` (`{ before, after }`, its worldwide
+popularity record, or null). Absent while the detail is kept and in saves made
+before POL4-08 until their first roll-up. See
+[save-format.md](save-format.md#history-retention).
 
 See [show-night.md](show-night.md).
 
@@ -1159,12 +1174,13 @@ change the enum. The player-facing labels and who posts each category are in
 |                 | `buyout`         |
 |                 | `subsidy`        |
 
-**Append-only:** the ledger table is `appendOnly: true`, so transactions refuse
-to update or delete its rows. Money has to reconcile, and an edited history
-can't be audited. A mistake is fixed with a new, correcting entry. A log that
-must never be edited but may be pruned uses `appendOnly: 'pruneOnly'` instead:
-`update` throws `AppendOnlyError`, `delete` is allowed (the rival decision log,
-[below](#rival-desk)). The
+**Append-only:** the ledger table is `appendOnly: 'pruneOnly'`, so transactions
+refuse to update its rows. Money has to reconcile, and an edited history can't
+be audited. A mistake is fixed with a new, correcting entry. `delete` is
+allowed only for the history roll-up (POL4-08), which first adds the rows into
+the promotion's monthly totals (`ledgerMonths`), so rows plus totals still
+reconcile with cash ([save-format.md](save-format.md#history-retention)). The
+rival decision log is `pruneOnly` too ([below](#rival-desk)). The
 `byPromotionMonth` index (key `<promotionId>|YYYY-MM`) serves monthly reports.
 
 Volume: one entry per worker per day would grow saves fast. The economy posts
@@ -1201,9 +1217,10 @@ too, so the page can say "about what fans expected".
 A `{}` marker must end a reference path, so `regions{}.networkId` is checked by
 the `networksExist` invariant instead of `refs`.
 
-Indexes: `byEventInstance` (unique), `byPromotion`. Rows dated more than
-`promoPop.keepShowChangesDays` (365) before the 1st of a month are deleted that
-day, which bounds the table at roughly a year of shows.
+Indexes: `byEventInstance` (unique), `byPromotion`. Rows of shows older than
+`history.keepDetailDays` (28) are deleted by the weekly history roll-up, once
+the show's summary holds its worldwide before and after
+([save-format.md](save-format.md#history-retention)).
 
 ## Match aftermaths
 
@@ -1236,7 +1253,9 @@ Invariants: `aftermaths.showMismatch` (the row's show is its segment's) and
 `aftermaths.promotionMismatch` (its promotion runs that show).
 
 The weekly `match.pruneAftermaths` phase keeps each worker's newest
-`match.aftermath.keepPerPerson` rows. The weekly momentum drift reads the
+`match.aftermath.keepPerPerson` rows, and the history roll-up slims rows older
+than `history.keepDetailDays` to the show region's change. The weekly momentum
+drift reads the
 newest row with a momentum to tell whether a worker wrestled that week
 ([match-aftermath.md](match-aftermath.md#momentum-drift)). Saves list the table with a default of
 `[]`, so saves written before it existed load with it empty.
@@ -1318,4 +1337,4 @@ never edited ([decision log](rival-desk.md#decision-log)).
 Refs: `promotionId`, `brandId` and every ID in `refs`. Indexes:
 `byPromotion`, `byPromotionDate` (key `<promotionId>|<date>`, helper
 `aiDecisionDateKey`) and `byRevealOn`. Rows older than
-`aip.decisionLogRetentionDays` are pruned once revealed.
+`history.keepDetailDays` are pruned once revealed.

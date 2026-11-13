@@ -9,7 +9,7 @@
  */
 
 import { compareDates, type GameDate } from '../../../core/date';
-import type { PersonId, TitleId } from '../../../core/ids';
+import type { PersonId, SegmentId, TitleId } from '../../../core/ids';
 import type { Segment } from '../../../model/entities/segment';
 import { compareIds } from '../../../model/table';
 import type { GameWorldView } from '../../../model/tables';
@@ -81,8 +81,35 @@ export function recentChallengersOf(
   titleId: TitleId,
   count: number,
 ): PersonId[] {
+  return walkRecentChallengers(read, titleId, count).challengers;
+}
+
+/**
+ * The title matches `recentChallengersOf` and `lastDefenceOf` read for `count` challengers, newest
+ * first: the newest completed title match always, then each one the challenger walk visits. The
+ * history roll-up (POL4-08) keeps these, so rolling up old cards never changes who a rival rests.
+ */
+export function recentTitleMatchIds(
+  read: GameWorldView,
+  titleId: TitleId,
+  count: number,
+): SegmentId[] {
+  const { visited } = walkRecentChallengers(read, titleId, count);
+  if (visited.length > 0) {
+    return visited;
+  }
+  const [latest] = completedTitleMatches(read, titleId, null);
+  return latest === undefined ? [] : [latest.segment.id];
+}
+
+function walkRecentChallengers(
+  read: GameWorldView,
+  titleId: TitleId,
+  count: number,
+): { challengers: PersonId[]; visited: SegmentId[] } {
+  const visited: SegmentId[] = [];
   if (count <= 0) {
-    return [];
+    return { challengers: [], visited };
   }
   const reigns = read.tables.titleReigns.lookup('byTitle', titleId);
   const holdersOn = (date: GameDate): Set<string> =>
@@ -97,6 +124,7 @@ export function recentChallengersOf(
     );
   const challengers: PersonId[] = [];
   for (const { segment, date } of completedTitleMatches(read, titleId, null)) {
+    visited.push(segment.id);
     const holders = holdersOn(date);
     const competitors = read.tables.participants
       .lookup('bySegment', segment.id)
@@ -107,9 +135,9 @@ export function recentChallengersOf(
         challengers.push(row.personId);
       }
       if (challengers.length >= count) {
-        return challengers;
+        return { challengers, visited };
       }
     }
   }
-  return challengers;
+  return { challengers, visited };
 }

@@ -228,7 +228,7 @@ function datesLeft(built: RunnerWorld): GameDate[] {
 describe('pruning the decision log', () => {
   it('keeps rows inside the window, day by day through the indexes', () => {
     withTestKind();
-    const built = runnerWorld(undefined, { 'aip.decisionLogRetentionDays': 5 });
+    const built = runnerWorld(undefined, { 'history.keepDetailDays': 5 });
     for (let offset = 0; offset < 10; offset++) {
       seedDecision(built, addDays(RUNNER_START, offset));
     }
@@ -268,7 +268,7 @@ describe('pruning the decision log', () => {
 
   it('the monthly sweep catches rows a lowered retention left behind', () => {
     withTestKind();
-    const built = runnerWorld(undefined, { 'aip.decisionLogRetentionDays': 3 });
+    const built = runnerWorld(undefined, { 'history.keepDetailDays': 3 });
     const from = makeGameDate(2026, 1, 20);
     seedDecision(built, from);
     seedDecision(built, addDays(from, 1));

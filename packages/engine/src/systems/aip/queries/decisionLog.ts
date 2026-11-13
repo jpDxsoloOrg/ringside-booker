@@ -30,6 +30,7 @@ import {
 import { ROSTER_REVIEW_SUMMARY_KEY, rosterReviewSummaryText } from '../jobs/rosterReview';
 import { isRevealedTo } from '../reveal';
 import { brandOrRefuse, promotionOrRefuse } from './shared';
+import { keepDetailPeriodText } from '../../history/note';
 
 /** Entries one page holds when not told. */
 export const DEFAULT_DECISION_LOG_LIMIT = 50;
@@ -80,6 +81,11 @@ export interface AipDecisionLog {
   hiddenCount: number;
   /** Pass as `before` for the next page; null on the last page. */
   nextBefore: AiDecisionId | null;
+  /**
+   * How long decisions are kept, in plain words, for the end of the list: "Decisions are kept for
+   * the last 4 weeks." (`history.keepDetailDays`, POL4-08).
+   */
+  keptNote: string;
 }
 
 declare module '../../../core/api/maps' {
@@ -184,6 +190,9 @@ export const aipDecisionLogQuery: QueryDefinition<'aip.decisionLog'> = defineQue
         kinds,
         hiddenCount,
         nextBefore: page.length > limit && last !== undefined ? last.decisionId : null,
+        keptNote: `Decisions are kept for the last ${keepDetailPeriodText(
+          ctx.tunables.get('history.keepDetailDays'),
+        )}.`,
       };
     },
   },

@@ -2247,3 +2247,119 @@ export {
   type BookedCardStepSpec,
   type ShowBookingContext,
 } from './systems/aip/index';
+
+// AIP4-06: Auto-fill for the player's own card (`aip.autoFillCard`) and a promotion's shows with
+// their cards (`aip.showCards`, rival cards revealed when they air). See
+// docs/design/rival-booking.md#auto-fill and #show-cards.
+export {
+  AUTO_FILL_REASON_CODES,
+  CARD_FULL_MESSAGE,
+  CARD_HIDDEN_TEXT,
+  SHOW_CARD_STATUS_LABELS,
+  type AutoFillCardArgs,
+  type AutoFilledSlot,
+  type AutoFillOpenSlot,
+  type AutoFillReasonCode,
+  type AutoFillResult,
+  type ShowCardPerson,
+  type ShowCardRow,
+  type ShowCards,
+  type ShowCardsArgs,
+  type ShowCardSegment,
+  type ShowCardSide,
+  type ShowCardSlot,
+  type ShowCardStatusLabel,
+} from './systems/aip/index';
+
+// AIP5-01: rival results groundwork: tunables, streams, trace and decision kinds, the
+// computer-only guard and the input gatherer. See docs/design/rival-booking.md#winners.
+export {
+  aipResultsTunables,
+  isComputerBooked,
+  marketPopularity,
+  NO_POPULARITY_HISTORY_NOTE,
+  popularityHistoryOf,
+  registerPopularityHistorySource,
+  rivalSegmentInputsOf,
+  TITLE_DECISION_KIND,
+  TITLE_TRACE_KIND,
+  titleTraceRef,
+  TITLES_STREAM,
+  WINNER_DECISION_KIND,
+  WINNER_TRACE_KIND,
+  winnerTraceRef,
+  WINNERS_STREAM,
+  type PopularityHistorySource,
+  type PopularityReading,
+  type RivalChallengerSide,
+  type RivalOpenReign,
+  type RivalSegmentInputs,
+  type RivalSide,
+  type RivalStorylineContext,
+  type RivalTitleContext,
+} from './systems/aip/index';
+
+// AIP5-02: who a rival booker puts over in a match, as a traced decision (reused by BRW6).
+// See docs/design/rival-booking.md#winners.
+export {
+  DRAW_PLAN,
+  matchWinner,
+  NO_GUT_FEELING_NOTE,
+  parseWinnerPlan,
+  rivalSideValue,
+  winnerReasonText,
+  winPlanKey,
+  type MatchWinnerDeps,
+  type MatchWinnerInputs,
+  type MatchWinnerResult,
+  type MatchWinnerSide,
+  type MatchWinnerStoryline,
+  type RivalSideValueDeps,
+  type RivalSideValueInputs,
+  type WinnerPlan,
+  type WinnerReasonKey,
+  type WinnerReasonNames,
+} from './systems/aip/index';
+
+// AIP5-03: whether a rival booker moves a title, and to whom, as traced pieces (reused by BRW6
+// and MP). See docs/design/rival-booking.md#title-changes.
+export {
+  challengerPool,
+  RETAIN_PLAN,
+  titleChange,
+  titleChangeChance,
+  titleReasonText,
+  type ChallengerPool,
+  type ChallengerPoolDeps,
+  type ChallengerPoolInputs,
+  type ChallengerPoolKind,
+  type ChallengerPoolSide,
+  type PopularityPoint,
+  type TitleChangeChanceDeps,
+  type TitleChangeChanceInputs,
+  type TitleChangeDeps,
+  type TitleChangeInputs,
+  type TitleChangeResult,
+  type TitleReasonKey,
+  type TitleReasonNames,
+  type TitleTasteSource,
+} from './systems/aip/index';
+// POL4-08: rolling history. The last `history.keepDetailDays` days are kept in detail; older shows
+// keep a summary (`EventResult.history`), older money monthly totals (`Promotion.ledgerMonths`).
+// See docs/design/save-format.md#history-retention.
+export {
+  detailKeptFrom,
+  detailKeptNote,
+  detailKeptNoteFor,
+  HISTORY_ROLL_UP_PHASE_ID,
+  historySystem,
+  keepDetailPeriodText,
+  rollUpHistory,
+  segmentsToKeep,
+  type RollUpCounts,
+} from './systems/history/index';
+export { mainEventSummaryOf, type ShowHistoryView } from './systems/shows/index';
+export type { ShowChangePrunedView } from './systems/promoPop/index';
+export { monthBreakdownOf, rolledUpMonth } from './systems/finance/index';
+export type { ShowHistory, ShowHistoryMainEvent } from './model/entities/event-instance';
+export type { LedgerMonth } from './model/entities/ledger-entry';

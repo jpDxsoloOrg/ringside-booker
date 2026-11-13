@@ -22,6 +22,8 @@ import './decisionKinds';
 import './jobs/rosterReview';
 // AIP4-05: the show-day booker registers itself (and the `card` decision kind) on import.
 import './card/bookShowJob';
+// AIP5-01: the rival results' decision kinds register on import.
+import './results';
 // AIP1-07: the rating policy provider (MTCH1's door) registers itself on import.
 import './ratingPolicy';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
@@ -80,6 +82,7 @@ import { aipNeedsQuery } from './queries/needs';
 import { promotionProfileQuery } from './queries/promotionProfile';
 import { promotionRosterQuery } from './queries/promotionRoster';
 import { promotionsListQuery } from './queries/promotionsList';
+import { aipCardCommands, aipShowCardsQuery } from './card';
 
 // Rival rules shortcuts and viewer redaction (AIP1-02).
 export {
@@ -135,6 +138,7 @@ export {
   CARD_VALUE_MAX,
   CARD_VALUE_MIN,
   cardValue,
+  marketPopularity,
   NO_MOMENTUM_LABEL,
   noFansNote,
   PRIME_AGE_NOTE,
@@ -237,7 +241,9 @@ export const aipSystem: SystemBundle = defineSystem({
     promotionRosterQuery,
     aipNeedsQuery,
     aipDecisionLogQuery,
+    aipShowCardsQuery,
   ],
+  commands: [...aipCardCommands],
 });
 // AIP1-07: the rating policy provider behind MTCH1's policy door.
 export {
@@ -475,3 +481,42 @@ export {
   type BookedCardStepSpec,
   type ShowBookingContext,
 } from './card';
+// AIP4-06: Auto-fill (`aip.autoFillCard`) and the Shows tab's cards (`aip.showCards`).
+export {
+  aipCardCommands,
+  aipShowCardsQuery,
+  AUTO_FILL_COMMAND,
+  AUTO_FILL_REASON_CODES,
+  autoFillCardCommand,
+  CANCELLATION_REASON_TEXT,
+  CARD_FULL_MESSAGE,
+  CARD_HIDDEN_TEXT,
+  DEFAULT_PAST_SHOWS,
+  DEFAULT_UPCOMING_SHOWS,
+  MAX_PAST_SHOWS,
+  MAX_UPCOMING_SHOWS,
+  NO_CATALOG_MESSAGE,
+  SHOW_CARD_STATUS_LABELS,
+  type AutoFillCardArgs,
+  type AutoFilledSlot,
+  type AutoFillOpenSlot,
+  type AutoFillReasonCode,
+  type AutoFillResult,
+  type ShowCardPerson,
+  type ShowCardRow,
+  type ShowCards,
+  type ShowCardsArgs,
+  type ShowCardSegment,
+  type ShowCardSide,
+  type ShowCardSlot,
+  type ShowCardStatusLabel,
+} from './card';
+// AIP5-01: rival results groundwork (tunables, streams, trace and decision kinds, guard, inputs).
+export * from './results';
+
+// AIP5-02: who a rival booker puts over in a match (also reused by AIP5-03 and BRW6).
+export * from './formulas/rivalSideValue';
+export * from './formulas/matchWinner';
+export * from './formulas/titleChangeChance';
+export * from './formulas/challengerPool';
+export * from './formulas/titleChange';

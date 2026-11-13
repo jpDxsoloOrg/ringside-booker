@@ -7,8 +7,10 @@ import {
   monthlyGainsOf,
   popularityBeforeShow,
   recentShowChanges,
+  promoPopSystem,
   type ShowPopularityChangeView,
 } from '../../../src/systems/promoPop';
+import { historySystem } from '../../../src/systems/history';
 import { anEventDefinition } from '../../support/builders/creative';
 import { aDeal, aNetwork } from '../../support/builders/media';
 import { aPopularityShowChange } from '../../support/builders/popularity';
@@ -200,33 +202,42 @@ describe('popularity.showChange: shows without a record', () => {
   });
 });
 
-describe('promoPop.pruneShowChanges', () => {
-  it('deletes records older than keepShowChangesDays on the 1st and keeps the rest', async () => {
+describe('show records and the history roll-up (POL4-08)', () => {
+  it('drops records older than history.keepDetailDays and keeps the worldwide figure', async () => {
     const shows: EventInstanceId[] = [];
     const builder = baseWorld().with('shows', (context) => {
       for (const date of ['2026-01-06', '2026-01-28']) {
         shows.push(completedShow(context, { score: 60, date }));
       }
     });
-    // On 1 February a 10-day window keeps shows from 22 January on.
+    // On Monday 26 January a 10-day window keeps shows from 16 January on.
     const run = await runShows(builder, {
       days: 28,
-      overrides: { 'promoPop.keepShowChangesDays': 10 },
+      overrides: { 'history.keepDetailDays': 10 },
+      systems: [promoPopSystem, historySystem],
     });
     const [old, recent] = shows;
     if (old === undefined || recent === undefined) {
       expect.fail('two shows expected');
     }
     expect(run.tables.popularityShowChanges.map((row) => row.eventInstanceId)).toEqual([recent]);
-    expect(showChange(run, old)).toMatchObject({ status: 'pruned', summary: null, countries: [] });
-    expect(showChange(run, recent).status).toBe('applied');
+    const pruned = showChange(run, old);
+    expect(pruned).toMatchObject({ status: 'pruned', summary: null, countries: [] });
+    expect(pruned.pruned?.note).toBe('Details are kept for the last 10 days.');
+    expect(pruned.pruned?.change).toBe(
+      (pruned.pruned?.after ?? Number.NaN) - (pruned.pruned?.before ?? Number.NaN),
+    );
+    expect(showChange(run, recent)).toMatchObject({ status: 'applied', pruned: null });
+    expect(run.tables.eventInstances.find((row) => row.id === old)?.result?.history?.world).toEqual(
+      { before: pruned.pruned?.before, after: pruned.pruned?.after },
+    );
   });
 
-  it('keeps everything inside the default year', async () => {
+  it('keeps everything inside the default four weeks', async () => {
     const builder = baseWorld().with('show', (context) => {
       completedShow(context, { score: 60, date: '2026-01-06' });
     });
-    const run = await runShows(builder, { days: 28 });
+    const run = await runShows(builder, { days: 28, systems: [promoPopSystem, historySystem] });
     expect(run.tables.popularityShowChanges).toHaveLength(1);
   });
 });

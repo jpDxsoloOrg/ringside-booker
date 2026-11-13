@@ -110,7 +110,10 @@ function PopularityChangeListDemo() {
             eventInstanceId={showChangeWithStatus('notCompleted').eventInstanceId}
           />
         </Example>
-        <Example title="Too old" caption="The show's record was cleared a year after it ran.">
+        <Example
+          title="Too old"
+          caption="Four weeks after the show, only its worldwide change is kept."
+        >
           <PopularitySection eventInstanceId={showChangeWithStatus('pruned').eventInstanceId} />
         </Example>
         <Example

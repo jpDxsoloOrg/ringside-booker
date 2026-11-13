@@ -1,0 +1,25 @@
+/* The Shows tab: "Recent shows" then "Coming up", each a list of shows that open onto their cards. */
+.section {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.heading {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+}
+
+.list {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-inline-size: 0;
+}
+
+.list > li {
+  min-inline-size: 0;
+}

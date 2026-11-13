@@ -15,7 +15,6 @@ import './events';
 import { defineSubscription, defineSystem, type SystemBundle } from '../../core/api/system';
 import { applyShowPopularity } from './apply';
 import './officeSections';
-import { promoPopPhases } from './phases';
 import { promoPopQueries } from './queries';
 
 export { importanceLabel, reachLabel, type ReachRoute, type ReachSource } from './formulas/labels';
@@ -54,12 +53,6 @@ export {
   type RecentShowChange,
 } from './helpers';
 export {
-  keepShowChangesFrom,
-  lastPruneCutoff,
-  promoPopPhases,
-  pruneShowChangesPhase,
-} from './phases';
-export {
   MONTH_GAINS_UNKNOWN_PROMOTION_MESSAGE,
   SHOW_CHANGE_NOT_FOUND_MESSAGE,
   SHOW_CHANGE_STATUSES,
@@ -70,6 +63,7 @@ export {
   type ShowChangeCountryView,
   type ShowChangeRegionView,
   type ShowChangeStatus,
+  type ShowChangePrunedView,
   type ShowChangeSummaryView,
   type ShowPopularityChangeView,
 } from './queries';
@@ -103,6 +97,5 @@ export const promoPopSystem: SystemBundle = defineSystem({
       },
     }),
   ],
-  phases: promoPopPhases,
   queries: promoPopQueries,
 });

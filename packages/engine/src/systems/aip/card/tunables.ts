@@ -171,17 +171,6 @@ export const aipCardTunables = defineTunables({
     description: "Whether a rival fills its shows' pre-show slots",
     docRef: CARD_SHAPE_DOC_REF,
   },
-  'aip.card.keepDetailDays': {
-    kind: 'integer',
-    default: 28,
-    min: 0,
-    max: 3650,
-    unit: 'days',
-    category: RIVAL_BOOKING_CATEGORY,
-    description:
-      "How many days a rival show's per-slot Why? is kept in full; after that only a summary is kept",
-    docRef: SHOW_DAY_DOC_REF,
-  },
 
   // How many title matches a card may hold.
   'aip.titles.maxPerShow.house': {

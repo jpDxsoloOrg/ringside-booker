@@ -102,6 +102,7 @@ export function foundPromotion(ctx: PhaseContext, spec: FoundPromotionSpec): Pro
     color: spec.color,
     // The human controller is assigned by `wld.assignControllers`.
     controller: { kind: 'computer' },
+    ledgerMonths: [],
   });
   ctx.log(`Founded ${spec.name} (${spec.shortName}) as ${promotion.id}, size ${spec.size}`);
 

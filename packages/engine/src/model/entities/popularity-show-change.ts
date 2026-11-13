@@ -4,9 +4,10 @@
  *
  * One row per show, written by the promotion popularity system right after `show.completed`. It
  * lists every region the show reached, including the ones where nothing changed, so a results page
- * can still say "about what fans expected" there months later, after the full Why? traces have been
- * thinned out. `before` and `after` are what the popularity door actually stored. Rows older than
- * `promoPop.keepShowChangesDays` are pruned on the 1st of each month.
+ * can still say "about what fans expected" there weeks later, after the full Why? traces have been
+ * thinned out. `before` and `after` are what the popularity door actually stored. Rows of shows
+ * older than `history.keepDetailDays` are deleted by the weekly history roll-up (POL4-08), which
+ * keeps the worldwide before and after on the show's summary.
  *
  * Design: docs/design/promotion-popularity.md and docs/design/data-model.md.
  */

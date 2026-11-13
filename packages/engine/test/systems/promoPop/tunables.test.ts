@@ -34,7 +34,6 @@ const EXPECTED_DEFAULTS: Readonly<Record<string, number>> = {
   'promoPop.diminishingPower': 1.5,
   'promoPop.lossFullFrom': 25,
   'promoPop.monthlyGainCap': 3,
-  'promoPop.keepShowChangesDays': 365,
 };
 
 describe('promotion popularity tunables', () => {

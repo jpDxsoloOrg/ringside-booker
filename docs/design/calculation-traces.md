@@ -377,8 +377,9 @@ traces as before.
 step commits, exactly as the retention limits would, and does nothing to a ref
 with no full trace or when the step is rolled back. It is for detail kept only
 for a while: the rival booker's per-slot traces (`aip.cardSlot`) go to their
-summaries `aip.card.keepDetailDays` days after the show
-([rival-booking.md](rival-booking.md#show-day)).
+summaries `history.keepDetailDays` days after the show
+([rival-booking.md](rival-booking.md#show-day)). The tables a trace explains
+are rolled up on the same window ([save-format.md](save-format.md#history-retention)).
 
 The Why? panel tells the two kinds of summary apart: an aged-out one says
 "Full breakdown is only kept for recent results", a summary-only one says

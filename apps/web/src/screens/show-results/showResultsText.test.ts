@@ -10,7 +10,9 @@ import {
 import { RUNNING_TIME_WORDS } from '@/test/runningTimeWords';
 import {
   headerAccent,
+  historyMainEventText,
   offscreenNote,
+  segmentCountText,
   revealAnnouncement,
   scoreAnnouncement,
 } from './showResultsText';
@@ -59,5 +61,26 @@ describe('the results notes', () => {
     expect(offscreenNote('Test Promotion B')).toBe(
       "Test Promotion B's card for this show wasn't booked in detail.",
     );
+  });
+});
+
+describe('the summary of an older show (POL4-08)', () => {
+  it('says how big the card was', () => {
+    expect(segmentCountText(0)).toBe('No segments');
+    expect(segmentCountText(1)).toBe('1 segment');
+    expect(segmentCountText(7)).toBe('7 segments');
+  });
+
+  it('puts the main event in one line', () => {
+    expect(
+      historyMainEventText({ typeName: 'Singles', sides: ['Kai', 'Rex'], winnerSide: 'Kai' }),
+    ).toBe('Singles: Kai beat Rex');
+    expect(
+      historyMainEventText({ typeName: 'Singles', sides: ['Kai', 'Rex'], winnerSide: null }),
+    ).toBe('Singles: Kai vs Rex');
+    expect(historyMainEventText({ typeName: 'Promo', sides: ['Kai'], winnerSide: null })).toBe(
+      'Promo: Kai',
+    );
+    expect(historyMainEventText({ typeName: 'Promo', sides: [], winnerSide: null })).toBe('Promo');
   });
 });

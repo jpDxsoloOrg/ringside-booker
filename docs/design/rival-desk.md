@@ -87,8 +87,8 @@ transaction layer refuses every update (`AppendOnlyError`) but allows a
 delete, which is how old rows are pruned. Unlike the ledger, nothing has to
 reconcile, so old decisions can go.
 
-**Retention.** `aip.decisionLogRetentionDays` (default 365, 0 keeps none) is
-the window. `pruneDecisionLog(tx, today, days)` deletes a row once its date is
+**Retention.** `history.keepDetailDays` (default 28, 0 keeps none; POL4-08,
+see [save-format.md](save-format.md#history-retention)) is the window. `pruneDecisionLog(tx, today, days)` deletes a row once its date is
 on or before `today - days` and it has been revealed; a plan that has not
 aired yet stays whatever its age. The daily phase `aip.pruneDecisionLog` runs
 it (see [Jobs](#jobs)).
@@ -286,6 +286,13 @@ kind and `decisionKindOf(kind)` looks one up. The rival desk registers
 `rosterReview` ("Roster review") and the card booker `card` ("Card"); later
 features register theirs (`push`, `title`, `businessReview`, ...) from their
 own modules.
+
+| Kind           | Chip          | Registered by                                      |
+| -------------- | ------------- | -------------------------------------------------- |
+| `rosterReview` | Roster review | `decisionKinds.ts` (AIP1-05)                       |
+| `card`         | Card          | `card/bookShowJob.ts` (AIP4-05)                    |
+| `winner`       | Winners       | `results/decisionKinds.ts` (AIP5-01, used by AIP5) |
+| `title`        | Titles        | `results/decisionKinds.ts` (AIP5-01, used by AIP5) |
 
 **Pruning.** `aip.pruneDecisionLog` (group `periodic`, order 42, daily)
 deletes expired rows in ID order with the `pruneOnly` delete

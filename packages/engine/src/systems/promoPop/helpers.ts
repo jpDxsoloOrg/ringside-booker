@@ -43,27 +43,42 @@ export interface RecentShowChange {
   worldChange: number;
 }
 
-/** The promotion's newest show records (by date, then id), at most `limit` of them. */
+/**
+ * The promotion's newest show records (by date, then id), at most `limit` of them. A show whose
+ * record was rolled up (POL4-08) counts with the worldwide change its summary kept.
+ */
 export function recentShowChanges(
   read: GameWorldView,
   promotionId: PromotionId,
   limit: number,
 ): RecentShowChange[] {
-  return read.tables.popularityShowChanges
+  const changes: RecentShowChange[] = read.tables.popularityShowChanges
     .lookup('byPromotion', promotionId)
-    .slice()
-    .sort(
-      (left, right) =>
-        compareDates(right.date, left.date) ||
-        compareIds(right.eventInstanceId, left.eventInstanceId),
-    )
-    .slice(0, Math.max(0, limit))
     .map((row) => ({
       eventInstanceId: row.eventInstanceId,
       date: row.date,
       showName: read.tables.eventInstances.get(row.eventInstanceId)?.name ?? row.eventInstanceId,
       worldChange: row.worldAfter - row.worldBefore,
     }));
+  const recorded = new Set(changes.map((change) => change.eventInstanceId));
+  for (const instance of read.tables.eventInstances.lookup('byPromotion', promotionId)) {
+    const world = instance.result?.history?.world ?? null;
+    if (world !== null && !recorded.has(instance.id)) {
+      changes.push({
+        eventInstanceId: instance.id,
+        date: instance.date,
+        showName: instance.name,
+        worldChange: world.after - world.before,
+      });
+    }
+  }
+  return changes
+    .sort(
+      (left, right) =>
+        compareDates(right.date, left.date) ||
+        compareIds(right.eventInstanceId, left.eventInstanceId),
+    )
+    .slice(0, Math.max(0, limit));
 }
 
 /**

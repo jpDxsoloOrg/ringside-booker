@@ -91,6 +91,8 @@ describe('LedgerTab', () => {
   it('loads older rows a page at a time with the cursor', async () => {
     const { user, argsOf } = await renderFinances(LEDGER_URL, {
       daysPlayed: LEDGER_PAGE_SIZE + 5,
+      // Keep every row in detail, so there is more than one page.
+      keepDetailDays: 3650,
     });
     const rows = await findRows();
     expect(rows).toHaveLength(LEDGER_PAGE_SIZE);
@@ -109,5 +111,18 @@ describe('LedgerTab', () => {
     expect(lastLedgerArgs(argsOf)).toMatchObject({
       before: rows.at(-1)?.getAttribute('data-row-id'),
     });
+  });
+
+  it('says older money is kept as monthly totals once rows are rolled up', async () => {
+    await renderFinances(LEDGER_URL, { daysPlayed: 70 });
+    expect(
+      await screen.findByText(
+        'Details are kept for the last 4 weeks. Older money is shown as monthly totals.',
+        {},
+        { timeout: LOAD_MS },
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Load older' })).toBeNull();
+    expect(document.body.textContent).not.toMatch(/undefined|NaN/);
   });
 });

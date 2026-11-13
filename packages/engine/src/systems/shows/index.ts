@@ -140,8 +140,10 @@ export {
   type ResultsScope,
 } from './queries';
 export {
+  mainEventSummaryOf,
   showResultsView,
   showSummaryView,
+  type ShowHistoryView,
   type ResultsViewDeps,
   type SegmentMemberView,
   type SegmentOutcomeView,
