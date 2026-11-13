@@ -46,6 +46,7 @@ export {
   SHOW_SCORE_DOC_REF,
   SHOW_SCORE_MAX,
   SHOW_SCORE_MIN,
+  SHOW_SCORE_TRACE_LABELS,
   showScore,
   type ShowScoreDeps,
   type ShowScoreInputs,
@@ -152,6 +153,17 @@ export {
   type ShowSummaryView,
   type TitleResultOutcome,
 } from './resultsView';
+export {
+  SEGMENT_REASON_BASELINE,
+  SEGMENT_REASON_LIMIT,
+  segmentReasons,
+  showScoreBreakdown,
+  type BreakdownSegment,
+  type SegmentReasonView,
+  type ShowScoreBreakdownView,
+  type ShowScoreRowKind,
+  type ShowScoreRowView,
+} from './report';
 
 // The built-in title outcome applier (order 10), registered once at module load.
 registerSegmentResultApplier(titleOutcomeApplier);

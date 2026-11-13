@@ -108,6 +108,28 @@ describe('ShowResultsScreen', () => {
     expect(screen.queryByRole('button', { name: 'Show all' })).toBeNull();
   });
 
+  it('opens with the show report: verdict, best and worst segment, and what changed', async () => {
+    renderResults();
+    await findHeading();
+    const report = screen.getByRole('region', { name: 'Show report' });
+    expect(within(report).getByText(/^A \w+ show: 62, /)).toBeInTheDocument();
+    expect(
+      within(report).getByRole('list', { name: 'Best and worst segment' }),
+    ).toBeInTheDocument();
+    const changed = within(report).getByRole('region', { name: 'What changed' });
+    expect(within(changed).getByText('Title defence')).toBeInTheDocument();
+    expect(within(changed).getByText(/people appeared$/)).toBeInTheDocument();
+    // The report comes before the card.
+    const firstCard = cards()[0];
+    expect(firstCard).toBeDefined();
+    if (firstCard !== undefined) {
+      expect(
+        report.compareDocumentPosition(firstCard) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+      expect(firstCard.id).toMatch(/^segment-seg_/);
+    }
+  });
+
   it('marks the title match as retained and links names to profiles', async () => {
     renderResults();
     await findHeading();
@@ -126,6 +148,8 @@ describe('ShowResultsScreen', () => {
     const scoreBug = screen.getByRole('group', { name: 'Final score' });
     expect(within(scoreBug).queryByText('62')).toBeNull();
     expect(screen.queryByRole('region', { name: 'Test section' })).toBeNull();
+    // The report would give the results away, so it waits for the reveal.
+    expect(screen.queryByRole('region', { name: 'Show report' })).toBeNull();
 
     await user.click(screen.getByRole('button', { name: 'Next segment' }));
     expect(screen.getAllByText(/^Coming up:/)).toHaveLength(3);
@@ -134,6 +158,7 @@ describe('ShowResultsScreen', () => {
     expect(screen.queryByText(/^Coming up:/)).toBeNull();
     expect(within(scoreBug).getByText('62')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Show all' })).toBeNull();
+    expect(screen.getByRole('region', { name: 'Show report' })).toBeInTheDocument();
     // The reveal is over: a reload must not play it again.
     await waitFor(() => {
       expect(router.state.location.search).toBe('');

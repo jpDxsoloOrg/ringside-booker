@@ -8,6 +8,7 @@ const CUSTOM_SETTINGS: SettingsV1 = {
   uiScale: 1.25,
   reducedMotion: 'on',
   moneyStyle: 'full',
+  openResultsAfterShow: false,
 };
 
 describe('parseSettings', () => {
@@ -58,6 +59,7 @@ describe('parseSettings', () => {
       uiScale: 1.1,
       reducedMotion: DEFAULT_SETTINGS.reducedMotion,
       moneyStyle: 'full',
+      openResultsAfterShow: DEFAULT_SETTINGS.openResultsAfterShow,
     });
   });
 
@@ -65,7 +67,7 @@ describe('parseSettings', () => {
     const parsed = parseSettings({ ...CUSTOM_SETTINGS, saveSlot: 'slot-1', debug: true });
     expect(parsed).toEqual(CUSTOM_SETTINGS);
     expect(Object.keys(parsed).sort()).toEqual(
-      ['moneyStyle', 'reducedMotion', 'theme', 'uiScale', 'version'].sort(),
+      ['moneyStyle', 'openResultsAfterShow', 'reducedMotion', 'theme', 'uiScale', 'version'].sort(),
     );
   });
 
@@ -91,5 +93,18 @@ describe('snapUiScale', () => {
   it('rounds float noise away', () => {
     expect(snapUiScale(1 + 0.05 + 0.05 + 0.05)).toBe(1.15);
     expect(snapUiScale(1.249999)).toBe(1.25);
+  });
+});
+
+describe('openResultsAfterShow (EVT3-09)', () => {
+  it('is on by default and kept when stored', () => {
+    expect(DEFAULT_SETTINGS.openResultsAfterShow).toBe(true);
+    expect(parseSettings({ openResultsAfterShow: false }).openResultsAfterShow).toBe(false);
+  });
+
+  it('falls back to on for a value that is not true or false, keeping the other fields', () => {
+    const parsed = parseSettings({ openResultsAfterShow: 'yes', moneyStyle: 'full' });
+    expect(parsed.openResultsAfterShow).toBe(true);
+    expect(parsed.moneyStyle).toBe('full');
   });
 });

@@ -51,6 +51,7 @@ const settingFieldSchemas = {
   uiScale: uiScaleSchema,
   reducedMotion: z.enum(REDUCED_MOTION_PREFERENCES),
   moneyStyle: z.enum(MONEY_STYLES),
+  openResultsAfterShow: z.boolean(),
 } as const;
 
 export const settingsV1Schema = z.object({
@@ -69,6 +70,7 @@ export const DEFAULT_SETTINGS: SettingsV1 = {
   uiScale: UI_SCALE_DEFAULT,
   reducedMotion: 'system',
   moneyStyle: 'compact',
+  openResultsAfterShow: true,
 };
 
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
@@ -87,12 +89,16 @@ function mergeValidFields(
   const uiScale = settingFieldSchemas.uiScale.safeParse(candidate['uiScale']);
   const reducedMotion = settingFieldSchemas.reducedMotion.safeParse(candidate['reducedMotion']);
   const moneyStyle = settingFieldSchemas.moneyStyle.safeParse(candidate['moneyStyle']);
+  const openResults = settingFieldSchemas.openResultsAfterShow.safeParse(
+    candidate['openResultsAfterShow'],
+  );
   return {
     version: SETTINGS_VERSION,
     theme: theme.success ? theme.data : base.theme,
     uiScale: uiScale.success ? uiScale.data : base.uiScale,
     reducedMotion: reducedMotion.success ? reducedMotion.data : base.reducedMotion,
     moneyStyle: moneyStyle.success ? moneyStyle.data : base.moneyStyle,
+    openResultsAfterShow: openResults.success ? openResults.data : base.openResultsAfterShow,
   };
 }
 

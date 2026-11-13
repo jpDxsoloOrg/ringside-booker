@@ -5,6 +5,8 @@
  */
 import { createElement } from 'react';
 import { registerResultsSection } from '@/screens/show-results/resultsSectionRegistry';
+import { registerShowReportLine } from '@/screens/show-results/showReportLineRegistry';
+import { useAftermathReportLine } from './aftermathReportLine';
 import { AftermathSection } from './AftermathSection';
 
 /** The section's id in the results registry. */
@@ -20,4 +22,11 @@ registerResultsSection({
   label: AFTERMATH_SECTION_LABEL,
   order: AFTERMATH_SECTION_ORDER,
   render: ({ eventInstanceId, view }) => createElement(AftermathSection, { eventInstanceId, view }),
+});
+
+// The show report's "Popularity" line (EVT3-09), in the section's place in the order.
+registerShowReportLine({
+  id: 'mtch3.popularity',
+  order: AFTERMATH_SECTION_ORDER,
+  line: useAftermathReportLine,
 });

@@ -396,6 +396,83 @@ outcomes or ratings, since a match's `outcome` is still the booker's plan. An
 off-screen show (a completed computer show with no card) has
 `offscreen: true` and no segments.
 
+## Show report
+
+EVT3-09 (owner testing, Sprint 4: "I couldn't see why things scored the way
+they did, what I gained or lost, or how the show did overall"). The top of the
+results page is a **show report** that answers those at a glance; every Why?
+stays for the detail. It appears once the reveal is over, so it never gives a
+result away early.
+
+**Engine: read from the traces, no second formula.** `shows.results` carries
+two more fields, both built in `systems/shows/report.ts` from the traces show
+night stored:
+
+- `result.breakdown` (`showScoreBreakdown`): the show score trace as rows.
+  One `segment` row per rated slot (pre-show first, then the main card) with
+  its score, slot weight, counted weight (after the pre-show factor) and
+  `points`, its share of the show score (`score × weight ÷ total weight`); one
+  `emptySlot` row per empty main-card slot (the penalty, negative); then one
+  `adjustment` row per later step that moved the score (card flow, the
+  production cap, the 0..100 clamp, rounding), with the step's own label. The
+  rows add up to the score. `preShowFactor` is set when a pre-show slot
+  counted, and `totalWeight` is the divisor. The n-th slot row is matched to
+  the n-th rated segment of the card when their roles agree, else its
+  `segmentId` is null. The labels the reader matches on are named once in
+  `SHOW_SCORE_TRACE_LABELS` beside the formula. Null for an off-screen show,
+  once the full trace is summarised or evicted, and for a trace cut by the
+  size limits.
+- `rating.reasons` on each segment (`segmentReasons`): the top two things that
+  moved its score, largest first. Each weighted part (`work rate` or `talk`,
+  and the `crowd`) counts by how far it sits from the middle of the scale,
+  `(part − 50) × share`, and the house-rules bonus by itself; together they
+  are how far the score sits from 50 before rounding. Worded "Strong work
+  rate", "Weak talking", "Hot crowd", "Quiet crowd"; reasons under half a
+  point are left out. Empty once the full trace is gone.
+
+Nothing new is stored, so the save is unchanged.
+
+**The page** (`screens/show-results/ShowReport.tsx`):
+
+- **Headline**: the stars drawn and a verdict in words from them (poor under
+  1.25 stars, weak, solid from 2.25, great from 3.25, outstanding from 4.25),
+  "A solid show: 64, 2.5 stars", plus "3 points above what fans expected"
+  when EVT5's `popularity.showChange` gives the show region's expectation.
+  Then the best and worst segment by stars (then score), each linking to its
+  card.
+- **How it was scored**: a table, one row per breakdown row, with the slot
+  and who was in it (linking to the segment card), stars, score, weight
+  (`×0.4 → ×0` on the pre-show) and share; the pre-show factor has its own
+  row; the last row is the show score. The score's Why? sits beside the
+  heading. On a phone the table becomes cards.
+- **What changed**: one line each, linking to its section lower on the page.
+  Built in: new champions, title defences and appearances. Features add theirs
+  with `registerShowReportLine` (see `apps/web/src/app/README.md`); a feature
+  that is not on main has no line, never a placeholder.
+
+| Order | Line               | From                                                        |
+| ----- | ------------------ | ----------------------------------------------------------- |
+| 10    | New champion(s)    | built in, the segments' title outcomes                      |
+| 11    | Title defence(s)   | built in                                                    |
+| 15    | Appearances        | built in, everyone on the card once                         |
+| 25    | Fans (EVT5)        | `popularity.showChange`: regions gained and lost, the most  |
+| 30    | Popularity (MTCH3) | `match.aftermath`: workers up, down and the same            |
+| 60    | Money (ECO1)       | `finance.ledger` for the show: the net, your own shows only |
+
+Still to come, each as its own line: the gate (EVT6), TV, PPV and streaming
+income (ECO8), injuries (MTCH4, WRK6), morale (WRK8).
+
+**Each segment card** shows its reasons in a line under the numbers ("Top
+reasons: Strong work rate (+8), quiet crowd (−5)").
+
+**Getting there.** The setting "After a show, open its results" (Settings >
+Show nights, on by default, stored in the browser with the other settings):
+when a Next Day or a skip runs one of your shows, the game goes straight to
+that show's results with the reveal; several shows on one skip open the
+first, and the day summary links the rest. Off, the summary only links. Once
+EVT2-09 lands, your shows run from the show screen and always open their
+results, so the setting only matters for shows run some other way.
+
 ## Seams
 
 ### Show score modifiers

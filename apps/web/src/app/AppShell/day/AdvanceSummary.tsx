@@ -20,6 +20,7 @@ import {
 import type { AdvanceReport } from './DayAdvanceProvider';
 import { useOptionalDayAdvance } from './DayAdvanceProvider';
 import styles from './DayControl.module.css';
+import { useOpenResultsAfterShow } from './useOpenResultsAfterShow';
 
 /** What else, besides the report itself, can earn the banner. */
 export interface BannerExtras {
@@ -65,6 +66,7 @@ function AdvancedReportBanner({ report, onDismiss }: ReportBannerProps<AdvancedR
     },
     { keepPreviousData: false },
   );
+  useOpenResultsAfterShow(report, completed.data);
   const results = completed.data ?? [];
   if (!reportNeedsBanner(report, { hasResults: results.length > 0 })) return null;
   return <AdvanceSummaryBanner report={report} onDismiss={onDismiss} results={results} />;
