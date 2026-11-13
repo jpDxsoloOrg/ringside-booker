@@ -19,11 +19,15 @@ import {
   MatchDetailsSchema,
   MatchOutcomeSchema,
   MatchSegmentSchema,
+  ResultPlanSchema,
   SegmentCrewSchema,
+  type MatchOutcome,
+  type ResultPlan,
   type SegmentCrew,
 } from '../../model/entities/segment';
 import { zId } from '../../model/primitives';
 import type { GameWorldView } from '../../model/tables';
+import type { DeepReadonly } from '../../model/world';
 
 /** The crew a draft gets when it does not name one. */
 export function emptyCrew(): SegmentCrew {
@@ -84,6 +88,37 @@ export type AngleDraft = z.output<typeof AngleDraftSchema>;
 export type SegmentDraft = z.output<typeof SegmentDraftSchema>;
 /** A draft as a caller may write it, before the defaults are filled in. */
 export type SegmentDraftInput = z.input<typeof SegmentDraftSchema>;
+
+/**
+ * What the booker picked in a match's Result list (MTCH2-08): a planned outcome (a side, a Draw or
+ * a No contest), Auto or Random (decided on the night), or null when nothing is picked yet.
+ */
+export const PlannedResultSchema = z.union([MatchOutcomeSchema, ResultPlanSchema]).nullable();
+export type PlannedResult = MatchOutcome | ResultPlan | null;
+
+/** The Result-list choice a match draft (or a match segment) holds. */
+export function plannedResultOf(match: {
+  readonly outcome: DeepReadonly<MatchOutcome> | null;
+  readonly match: { readonly resultPlan?: ResultPlan | undefined };
+}): PlannedResult {
+  if (match.outcome !== null) {
+    return { ...match.outcome };
+  }
+  return match.match.resultPlan ?? null;
+}
+
+/**
+ * The match draft with `result` as its Result-list choice: Auto and Random set
+ * `match.resultPlan` with no outcome; anything else sets the outcome and drops `resultPlan`.
+ */
+export function withPlannedResult(draft: MatchDraft, result: PlannedResult): MatchDraft {
+  const match = { ...draft.match };
+  delete match.resultPlan;
+  if (result === 'auto' || result === 'random') {
+    return { ...draft, match: { ...match, resultPlan: result }, outcome: null };
+  }
+  return { ...draft, match, outcome: result === null ? null : { ...result } };
+}
 
 /**
  * The draft of a segment already on a card: the editor's starting point. Participants come in

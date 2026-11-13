@@ -652,3 +652,11 @@ export {
   type RiskContribution,
   type RiskModifierSpec,
 } from './physical';
+
+// A match booked as Random is a coin flip; an auto-winner upset is noted (MTCH2-08).
+export {
+  COIN_FLIP_LABEL,
+  COIN_FLIP_REASON,
+  COIN_FLIP_RULE,
+  coinFlipDrawLabel,
+} from './finishes/autoWinner';

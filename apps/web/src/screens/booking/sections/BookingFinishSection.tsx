@@ -7,7 +7,8 @@
  * Picking a finish keeps the planned way of winning when the finish ends with it and otherwise
  * switches to the finish's first way (one that can move a title when a title is on the line).
  * When a later change leaves the finish out (another type, a draw, a way of winning the finish
- * does not end with), it goes back to Auto and says so. On a Random winners show it only says
+ * does not end with, or a finish nobody wins on a match left to Auto or Random), it goes back to
+ * Auto and says so. On a Random winners show it only says
  * "Decided on the night". Design: docs/design/booking.md#integration.
  */
 import { useEffect, useState } from 'react';
@@ -48,16 +49,23 @@ export function builtSideCount(draft: MatchDraft): number {
   ).size;
 }
 
+/** The outcome kind a draft's result asks for: Auto and Random always give a winner (MTCH2-08). */
+function outcomeKindOf(draft: MatchDraft): FinishesArgs['outcomeKind'] | null {
+  if (draft.outcome !== null) return draft.outcome.kind;
+  return draft.match.resultPlan === undefined ? null : 'win';
+}
+
 /** `match.finishes` for a match draft: its type, built sides, stipulations and result kind. */
 export function finishesArgsForDraft(draft: MatchDraft): FinishesArgs {
   const sideCount = builtSideCount(draft);
+  const outcomeKind = outcomeKindOf(draft);
   return {
     matchTypeKey: draft.match.matchTypeKey,
     ...(sideCount >= 2 ? { sideCount } : {}),
     ...(draft.match.stipulationKeys.length > 0
       ? { stipulationKeys: [...draft.match.stipulationKeys] }
       : {}),
-    ...(draft.outcome === null ? {} : { outcomeKind: draft.outcome.kind }),
+    ...(outcomeKind === null || outcomeKind === undefined ? {} : { outcomeKind }),
   };
 }
 

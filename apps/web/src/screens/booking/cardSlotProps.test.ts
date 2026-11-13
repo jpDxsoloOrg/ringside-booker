@@ -148,6 +148,16 @@ describe('toCardSlotProps', () => {
     ).toBe('No contest');
     expect(toCardSlotProps(slot(0, 'midcard', segment(draw))).winnerIndex).toBeUndefined();
   });
+
+  it('shows Auto or Random where a planned winner would be', () => {
+    const auto = { kind: 'auto' as const, winningSide: null, methodKey: null, methodName: null };
+    const props = toCardSlotProps(slot(0, 'midcard', segment(auto)));
+    expect(props.resultLabel).toBe('Auto');
+    expect(props.winnerIndex).toBeUndefined();
+    expect(
+      toCardSlotProps(slot(0, 'midcard', segment({ ...auto, kind: 'random' }))).resultLabel,
+    ).toBe('Random');
+  });
 });
 
 describe('issuesBySlot', () => {

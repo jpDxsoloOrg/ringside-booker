@@ -452,7 +452,7 @@ The auto-winner and Random winners (MTCH2-03) add to the same category. See
 | `match.autoWinner.heatWeight`             | number | 0.1     | 0–3    | multiplier | Points per point of heat of a storyline the side is the face in      |
 | `match.autoWinner.upsetNoteGap`           | number | 25      | 0–200  | points     | How far behind a winner must have been to be called an upset         |
 | `match.autoWinner.randomness`             | number | 57.5    | 0–200  | points     | Most unpredictability per side; 0 = always the same winner           |
-| `match.randomWinners.randomness`          | number | 60      | 1–1000 | points     | Most unpredictability per side in Random winners mode; never below 1 |
+| `match.randomWinners.randomness`          | number | 60      | 1–1000 | points     | Unused since MTCH2-08 (Random winners is a coin flip); never below 1 |
 
 ### Aftermath momentum tunables
 

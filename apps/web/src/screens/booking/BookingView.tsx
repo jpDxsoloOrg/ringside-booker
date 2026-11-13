@@ -11,7 +11,6 @@ import type {
   BookingValidation,
   CommandResult,
   EventInstanceId,
-  MatchOutcome,
   Reason,
   SegmentId,
 } from '@ringside/engine';
@@ -41,7 +40,7 @@ import { useSegmentEditor } from './editor/editorStore';
 import { fixProblemsText, RunShowButton, ShowBar } from './ShowBar';
 import { useBookingPanels } from './registries/bookingPanels';
 import type { BookingPanelContext, BookingPanelDefinition } from './registries/bookingPanels';
-import { SlotActions } from './SlotActions';
+import { SlotActions, type WinnerMenuResult } from './SlotActions';
 import { ValidationChecklist } from './ValidationChecklist';
 
 /** Enough rows for every show inside the calendar's horizon, so `?event=` finds far-off shows. */
@@ -428,7 +427,7 @@ function ShowBooking({ rows, row, onSelect, onRan }: ShowBookingProps) {
     })();
   };
 
-  const handleSetResult = (segmentId: SegmentId, result: MatchOutcome): void => {
+  const handleSetResult = (segmentId: SegmentId, result: WinnerMenuResult): void => {
     void (async () => {
       settle(await setResult.run({ segmentId, result }), 'Result planned');
     })();

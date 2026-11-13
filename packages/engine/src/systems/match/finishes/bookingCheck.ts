@@ -5,11 +5,13 @@
  *
  * Errors (they block Lock):
  *
- * - `randomWinners`: a planned result or finish on a Random winners show.
+ * - `randomWinners`: a planned result (Auto and Random included) or finish on a Random winners
+ *   show.
  * - `finishNotAllowed`: the finish is no longer in the game, or is not allowed for the match's type,
  *   side count and stipulations (`allowedFinishes`), such as after the type changed.
  * - `finishOutcomeMismatch`: the planned result is not the finish's outcome kind (a draw on a
- *   Disqualification).
+ *   Disqualification), or the match is Auto or Random (always a winner, MTCH2-08) on a finish
+ *   nobody wins.
  * - `methodNotInFinish`: a planned win by a method the finish does not end with.
  *
  * Warning (never blocks):
@@ -25,7 +27,7 @@
  */
 
 import { finishOf, methodOf, type FinishOutcomeKind } from '../../../model/catalogs';
-import type { Segment } from '../../../model/entities/segment';
+import type { ResultPlan, Segment } from '../../../model/entities/segment';
 import type { DeepReadonly } from '../../../model/world';
 import { registerBookingCheck } from '../../booking/validate/registry';
 import { at, competitorSides, placeOf } from '../../booking/validate/checks/shared';
@@ -58,6 +60,11 @@ const OUTCOME_WORDS: Readonly<Record<FinishOutcomeKind, string>> = {
   noContest: 'a no contest',
 };
 
+const RESULT_PLAN_WORDS: Readonly<Record<ResultPlan, string>> = {
+  auto: 'Auto',
+  random: 'Random',
+};
+
 type MatchSegmentView = Extract<DeepReadonly<Segment>, { kind: 'match' }>;
 
 /** "a Disqualification finish", "an Outside interference finish". */
@@ -72,7 +79,7 @@ function randomWinnersIssues(
 ): BookingIssueDraft[] {
   const place = placeOf(input, segment);
   const issues: BookingIssueDraft[] = [];
-  if (segment.outcome !== null) {
+  if (segment.outcome !== null || segment.match.resultPlan !== undefined) {
     issues.push({
       code: CODES.randomWinners,
       severity: 'error',
@@ -166,6 +173,16 @@ function finishIssues(input: BookingCheckInput, segment: MatchSegmentView): Book
     });
   }
   const { outcome } = segment;
+  const { resultPlan } = segment.match;
+  if (resultPlan !== undefined && finish.outcomeKind !== 'win') {
+    issues.push({
+      code: CODES.finishOutcomeMismatch,
+      severity: 'error',
+      message: `${place}: ${aFinish(finish.name)} ends in ${OUTCOME_WORDS[finish.outcomeKind]}, but ${RESULT_PLAN_WORDS[resultPlan]} always gives a winner`,
+      ...where,
+    });
+    return issues;
+  }
   if (outcome === null) {
     return issues;
   }

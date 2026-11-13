@@ -7,6 +7,9 @@
  * - The plan is the segment's `outcome` (a planned side with its method, a Draw, or nothing) plus
  *   its `match.finishKey`. A match with no plan gets an automatic winner and finish, so an
  *   unplanned match (a rival card, or a Random winners game) has a winner instead of a no contest.
+ * - A match booked as Auto or Random (`match.resultPlan`, MTCH2-08) has no planned outcome: Auto
+ *   is the auto-winner (`winner: 'auto'`, standard mode), Random is a coin flip (`coinFlip` mode),
+ *   each with the booked finish when there is one. Neither ever gives a draw.
  * - The mode is `randomWinners` when `randomWinnersActive` is true for the show's promotion and
  *   brand. A result booked anyway in Random winners mode is set aside and decided on the night,
  *   with a note in the trace: show night cannot refuse a card it is running.
@@ -42,6 +45,7 @@ import { slotRoleInput } from '../../shows/context';
 import { durationClassOf, slotRoleOf, type DurationClass } from '../slots';
 import { allowedFinishes } from './allowed';
 import { autoFinish } from './autoFinish';
+import type { AutoWinnerMode } from './autoWinner';
 import { autoWinnerInputsOf, type AutoWinnerSide } from './autoWinnerInputs';
 import { randomWinnersActive } from './randomWinners';
 import {
@@ -224,10 +228,19 @@ export function resolveOnShowNight(
     durationClass: durationClassOfSegment(deps, segment, show),
   };
 
-  const booked = input.plan !== null || input.plannedFinishKey !== null;
+  const { resultPlan } = segment.match;
+  const booked = input.plan !== null || input.plannedFinishKey !== null || resultPlan !== undefined;
   const attempts: Attempt[] = [];
+  let mode: AutoWinnerMode = randomWinners ? 'randomWinners' : 'standard';
   if (randomWinners) {
     attempts.push({ plan: AUTO_PLAN, notes: booked ? [RANDOM_WINNERS_SET_ASIDE_NOTE] : [] });
+  } else if (resultPlan !== undefined && input.plan === null) {
+    mode = resultPlan === 'random' ? 'coinFlip' : 'standard';
+    const plan: MatchPlan = { ...AUTO_PLAN, finishKey: input.plannedFinishKey };
+    attempts.push({ plan, notes: [] });
+    if (plan.finishKey !== null) {
+      attempts.push({ plan: AUTO_PLAN, notes: [] });
+    }
   } else if (input.plan?.kind === 'noContest' && input.plannedFinishKey === null) {
     return bookedNoContest(base, input, deps);
   } else {
@@ -241,7 +254,7 @@ export function resolveOnShowNight(
   const refusals: Reason[] = [];
   for (const [index, attempt] of attempts.entries()) {
     const resolved = resolveMatchOutcome(
-      { ...base, plan: attempt.plan, mode: randomWinners ? 'randomWinners' : 'standard' },
+      { ...base, plan: attempt.plan, mode },
       { catalogs, tunables: deps.tunables, rng: (name) => deps.rng(name) },
     );
     if (resolved.ok) {

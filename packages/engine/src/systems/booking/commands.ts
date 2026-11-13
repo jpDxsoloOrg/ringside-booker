@@ -30,7 +30,7 @@ import { stableStringify } from '../../core/hash';
 import type { EventInstanceId, SegmentId } from '../../core/ids';
 import type { Controller } from '../../model/controller';
 import type { EventInstance } from '../../model/entities/event-instance';
-import { MatchOutcomeSchema, type MatchOutcome, type Segment } from '../../model/entities/segment';
+import type { MatchOutcome, ResultPlan, Segment } from '../../model/entities/segment';
 import { zId } from '../../model/primitives';
 import type { GameWorldView } from '../../model/tables';
 import type { DeepReadonly } from '../../model/world';
@@ -38,7 +38,15 @@ import { controlsShow } from '../calendar/control';
 import { RANDOM_WINNERS_MESSAGE } from '../match/finishes/resolve';
 import { randomWinnersActive } from '../match/finishes/randomWinners';
 import { editBlockOf } from './control';
-import { draftFromSegment, SegmentDraftSchema, type SegmentDraft } from './draft';
+import {
+  draftFromSegment,
+  plannedResultOf,
+  PlannedResultSchema,
+  SegmentDraftSchema,
+  withPlannedResult,
+  type PlannedResult,
+  type SegmentDraft,
+} from './draft';
 import type { CardChange } from './events';
 import {
   clearCard,
@@ -77,7 +85,8 @@ export interface MoveSegmentArgs {
 /** `booking.setResult`: a match's planned result, or null to decide it on the night. */
 export interface SetResultArgs {
   segmentId: SegmentId;
-  result: MatchOutcome | null;
+  /** A planned outcome, Auto or Random (decided on the night), or null to clear it. */
+  result: PlannedResult;
 }
 
 declare module '../../core/api/maps' {
@@ -183,7 +192,7 @@ function randomWinnersRefusals(
   read: GameWorldView,
   show: Show,
   plan: {
-    readonly outcome: DeepReadonly<MatchOutcome> | null;
+    readonly outcome: DeepReadonly<MatchOutcome> | ResultPlan | null;
     readonly finishKey: ContentKey | null;
   },
 ): Reason[] {
@@ -211,7 +220,7 @@ function draftRandomWinnersRefusals(
 ): Reason[] {
   return draft.kind === 'match'
     ? randomWinnersRefusals(read, show, {
-        outcome: draft.outcome,
+        outcome: draft.outcome ?? draft.match.resultPlan ?? null,
         finishKey: draft.match.finishKey,
       })
     : [];
@@ -359,13 +368,13 @@ export const moveSegmentCommand = defineCommand('booking.moveSegment', {
 });
 
 /**
- * Sets a match's planned result from the card row's quick winner menu, or clears it with null so
- * it is decided on the night. The segment editor sends the result inside its draft instead. A
- * planned finish the new result no longer fits goes back to Auto (see `setPlannedOutcome`). On a
- * Random winners show only null is accepted.
+ * Sets a match's planned result from the card row's quick winner menu: a side, a draw, a no
+ * contest, Auto or Random (MTCH2-08: decided on the night), or null to clear it. The segment
+ * editor sends the result inside its draft instead. A planned finish the new result no longer fits
+ * goes back to Auto (see `setPlannedOutcome`). On a Random winners show only null is accepted.
  */
 export const setResultCommand = defineCommand('booking.setResult', {
-  args: z.strictObject({ ...segmentIdArgs, result: MatchOutcomeSchema.nullable() }),
+  args: z.strictObject({ ...segmentIdArgs, result: PlannedResultSchema }),
   validate: (read, args, issuedBy) =>
     checkSegment(read, args.segmentId, issuedBy, (segment, show) => {
       if (segment.kind !== 'match') {
@@ -385,7 +394,7 @@ export const setResultCommand = defineCommand('booking.setResult', {
         ...onlyCodes(
           structuralProblems(read, {
             instance: show,
-            draft: { ...draft, outcome: args.result },
+            draft: withPlannedResult(draft, args.result),
             target: { preShow: segment.preShow, slot: segment.slot, segmentId: segment.id },
           }),
           ['winnerWithoutCompetitor', 'unknownMethod'],
@@ -395,7 +404,7 @@ export const setResultCommand = defineCommand('booking.setResult', {
     }),
   apply: (ctx, args) => {
     const { segment, show } = segmentAndShow(ctx, args.segmentId);
-    const current = segment.kind === 'match' ? segment.outcome : null;
+    const current = segment.kind === 'match' ? plannedResultOf(segment) : null;
     if (stableStringify(current) === stableStringify(args.result)) {
       return null;
     }

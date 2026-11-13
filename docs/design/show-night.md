@@ -649,6 +649,13 @@ only from its own named streams. At most one resolver may be registered (a
 second throws a `RegistryError`). MTCH2 registers its `resolveMatchOutcome`
 here (EVT3-07) instead of editing the phase.
 
+MTCH2's resolver reads the segment's `match.resultPlan` too (MTCH2-08): a
+match booked as **Auto** runs the auto-winner in `standard` mode and one booked
+as **Random** in `coinFlip` mode (an equal chance per side), each with the
+booked finish when there is one; in a Random winners game both are set aside
+like any other plan. Neither gives a draw. See
+[match-finishes.md](match-finishes.md#auto-and-random).
+
 The resolver's decision is also stored on its own, under `match.result` (or
 `match.rivalResult` on a computer show) with the segment id, and the results
 page's result line opens it as the winner Why? (`resultTraceRef` on the
