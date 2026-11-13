@@ -22,7 +22,8 @@
 
 import { isAfter, type GameDate } from '../../../core/date';
 import type { PersonId, TitleId } from '../../../core/ids';
-import { constantOf, startCalc, type Traced } from '../../../core/trace';
+import { fastPathsEnabled } from '../../../core/fastPaths';
+import { constantOf, inputOf, startCalc, type Traced } from '../../../core/trace';
 import { promotionStatusKey, type Employment } from '../../../model/entities/employment';
 import type { EventInstance } from '../../../model/entities/event-instance';
 import { WRESTLING_ROLES, type Person, type PersonRole } from '../../../model/entities/person';
@@ -34,7 +35,13 @@ import type { EngineTunables } from '../../tunables';
 import { geographyOf } from '../../world/geography';
 import { ATTRIBUTE_LABELS, formatNumber } from '../../world/people/labels';
 import { availabilityOf } from '../../workers/helpers/availability';
-import { cardValue } from '../formulas/cardValue';
+import type { FanBase, FootprintRegionalPop } from '../../workers/formulas/footprintPopularity';
+import {
+  cardValue,
+  cardValueFanBase,
+  cardValueNumber,
+  type CardValueInputs,
+} from '../formulas/cardValue';
 import type { TracedTaste } from '../formulas/defaultTaste';
 import { cardValueInputsFor, deciderBrandOf, holderNamesOf, openReignOf } from '../inputs';
 import { tasteOf } from '../taste';
@@ -219,6 +226,27 @@ export function buildCardPool(read: GameWorldView, args: CardPoolArgs): CardPool
     return taste;
   };
 
+  // A planner reads only the numbers, so on the fast path a card value is worked out without its
+  // trace (POL4-09); a Why? that shows one builds it with `cardValue`. The fan base is the
+  // promotion's, the same for everyone on its roster, so it is found once.
+  const fanBases = new Map<FootprintRegionalPop, FanBase>();
+  const cardValueOf = (inputs: CardValueInputs, personId: PersonId): Traced<number> => {
+    if (!fastPathsEnabled()) {
+      return cardValue(inputs, { tunables });
+    }
+    let fanBase = fanBases.get(inputs.promotionPop);
+    if (fanBase === undefined) {
+      fanBase = cardValueFanBase(inputs, { tunables });
+      fanBases.set(inputs.promotionPop, fanBase);
+    }
+    return inputOf(
+      `Card value at ${inputs.promotionName}`,
+      cardValueNumber(inputs, { tunables }, { fanBase }),
+      { kind: 'person', id: personId },
+      'points',
+    );
+  };
+
   const titles = titlesFor(read, instance, date);
   const championships = new Map<PersonId, TitleId[]>();
   for (const title of titles) {
@@ -268,12 +296,12 @@ export function buildCardPool(read: GameWorldView, args: CardPoolArgs): CardPool
       alignment: employment.alignment,
       push: employment.push,
       roles: [...person.roles],
-      cardValue: cardValue(
+      cardValue: cardValueOf(
         cardValueInputsFor(read, tunables, employment, date, {
           regions,
           taste: tasteFor(employment),
         }),
-        { tunables },
+        person.id,
       ),
       availability: { ...availability },
       fatigue: person.fatigue,
