@@ -226,6 +226,48 @@ show sheet has a "Result" section and a "Results" button and completed chips a s
 (`screens/show-results/calendarHooks.tsx`, registered by the router); Booking shows "This show has
 run" for a completed show (`bookingPanel.tsx`, through Booking's feature list).
 
+### The show report
+
+Once the reveal is over, the page opens with a show report (EVT3-09, `ShowReport.tsx`, gallery
+`/dev/gallery#show-report`): the verdict, score and stars with the best and worst segment, "How it
+was scored" (the engine's `result.breakdown`, one row per slot) and "What changed". Each segment
+card's id is `segmentCardAnchor(segmentId)` and each section's panel id is
+`resultsSectionAnchor(sectionId)`, so report lines link down the page. The setting "After a show,
+open its results" (`openResultsAfterShow`, `app/AppShell/day/useOpenResultsAfterShow.ts`) sends a
+Next Day that ran one of your shows to its results with the reveal. See
+`docs/design/show-night.md#show-report`.
+
+### Adding a show report line
+
+A feature adds a one-line summary to "What changed" without editing the page:
+
+```ts
+import { registerShowReportLine, resultsSectionAnchor } from '@/screens/show-results';
+
+registerShowReportLine({
+  id: 'evt6.gate', // feature-prefixed, unique
+  order: 40,
+  // Called as a hook, so it may use useEngineQuery; return null to leave the line out.
+  line: useGateReportLine,
+});
+
+function useGateReportLine({ view }: ResultsSectionProps): ShowReportLineContent | null {
+  // ...
+  return {
+    label: 'Gate',
+    text: '$48,300',
+    tone: 'positive',
+    targetId: resultsSectionAnchor('evt6.gate'),
+  };
+}
+```
+
+Lines are drawn with the built-in ones (new champions 10, title defences 11, appearances 15) in
+`order`, then by id. A line returns null while its data loads or when it has nothing to say; there
+are no placeholders. Register it next to the feature's results section (the same file the page
+already imports). Registered so far: `evt5.fans` (25), `mtch3.popularity` (30) and
+`finance.showMoney` (60).
+
 ### Adding a results section
 
 Another feature adds a titled panel under the card, without editing the page:
