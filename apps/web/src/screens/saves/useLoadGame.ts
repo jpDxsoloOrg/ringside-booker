@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOptionalEngineClient } from '@/app/engine/EngineProvider';
 import { routes } from '@/app/routes';
@@ -46,6 +46,15 @@ export function useLoadGame(): LoadGame {
   const client = useOptionalEngineClient();
   const navigate = useNavigate();
   const [pending, setPending] = useState<PendingLoad | null>(null);
+  // A load that succeeds navigates away, so this hook's screen has often unmounted by the time the
+  // load settles; its pending state is then left alone.
+  const mounted = useRef(false);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
 
   const loadSlot = useCallback(
     async (slotId: string, which: LoadSlotWhich = 'latest'): Promise<LoadSaveFailure | null> => {
@@ -65,7 +74,7 @@ export function useLoadGame(): LoadGame {
       } catch (error: unknown) {
         return engineUnavailable(`The game engine did not answer: ${errorMessage(error)}`);
       } finally {
-        setPending(null);
+        if (mounted.current) setPending(null);
       }
     },
     [client, navigate],
