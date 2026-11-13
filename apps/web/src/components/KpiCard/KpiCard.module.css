@@ -84,10 +84,14 @@
   color: var(--color-negative);
 }
 
-/* The delta chip and its own Why?, kept together so the button never strays from its chip. */
+/*
+ * The delta chip and its own Why?, kept together. The chip keeps its whole text while it fits the
+ * card (only then does its note shorten), and the Why? drops under it rather than squeezing it.
+ */
 .deltaGroup {
   display: inline-flex;
-  flex: none;
+  flex-wrap: wrap;
+  flex: 0 1 auto;
   align-items: center;
   gap: var(--space-1);
   max-inline-size: 100%;
@@ -95,8 +99,8 @@
 }
 
 .delta {
-  flex: 0 1 auto;
-  min-inline-size: 0;
+  flex: none;
+  max-inline-size: 100%;
 }
 
 .deltaWhy {
