@@ -44,7 +44,7 @@ import type { RowOf } from '../../src/model/table-def';
 import { TABLES, type GameTables, type GameWorld } from '../../src/model/tables';
 import type { AnyId, TableKey, Tx } from '../../src/model/tx';
 import { createWorld, type DeepReadonly } from '../../src/model/world';
-import type { Catalogs } from '../../src/model/catalogs';
+import type { Catalogs, InjuryKind } from '../../src/model/catalogs';
 import { WorldMetaSchema, type WorldMeta } from '../../src/model/world-meta';
 import {
   buildRow,
@@ -67,6 +67,7 @@ import {
 import { aContinent, aCountry, aRegion } from './builders/geography';
 import { aPerson, DEFAULT_PERSON_AGE } from './builders/people';
 import { TEST_CATALOGS } from './catalogs';
+import { TEST_INJURY_CATALOG } from './injuries';
 import { TestIdSequence } from './ids';
 import { testWriteValidation } from './write-validation';
 
@@ -530,6 +531,7 @@ export class WorldBuilder {
   private readonly steps: BuildStep[] = [];
   private seasonCount = 1;
   private catalogs: Catalogs | null = null;
+  private injuries: readonly InjuryKind[] | null = null;
 
   constructor(private readonly metaOverrides: TestMetaOverrides = {}) {}
 
@@ -567,6 +569,15 @@ export class WorldBuilder {
    */
   withCatalogs(catalogs: Catalogs = TEST_CATALOGS): this {
     this.catalogs = catalogs;
+    return this;
+  }
+
+  /**
+   * Puts an injury catalog on the world's metadata (`meta.catalogs.injuries`, keyed by content
+   * key), alongside any `withCatalogs` ones. The default is `TEST_INJURY_CATALOG`.
+   */
+  withInjuryCatalog(entries: readonly InjuryKind[] = TEST_INJURY_CATALOG): this {
+    this.injuries = entries;
     return this;
   }
 
@@ -694,10 +705,23 @@ export class WorldBuilder {
     return this;
   }
 
+  private metaCatalogs(base: Catalogs): Catalogs {
+    const catalogs = this.catalogs ?? base;
+    if (this.injuries === null) {
+      return catalogs;
+    }
+    const injuries = Object.fromEntries(
+      [...this.injuries]
+        .sort((left, right) => (left.key < right.key ? -1 : left.key > right.key ? 1 : 0))
+        .map((kind) => [kind.key, kind]),
+    );
+    return { ...catalogs, injuries };
+  }
+
   /** Builds a new world. Every call returns an identical, independent world. */
   build(): BuiltWorld {
     const baseMeta = aWorldMeta(this.metaOverrides);
-    const meta = this.catalogs === null ? baseMeta : { ...baseMeta, catalogs: this.catalogs };
+    const meta = { ...baseMeta, catalogs: this.metaCatalogs(baseMeta.catalogs) };
     const sequence = new TestIdSequence();
     const world = createWorld(TABLES, meta, {
       idFactory: sequence,

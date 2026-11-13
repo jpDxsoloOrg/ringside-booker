@@ -18,6 +18,7 @@ export * from './builders/ledger';
 export * from './builders/popularity';
 export * from './builders/aftermath';
 export * from './catalogs';
+export * from './injuries';
 export { resetTestIds, testId, TestIds, TestIdSequence } from './ids';
 export { setTestWriteValidation, testWriteValidation } from './write-validation';
 export * from './world-builder';
