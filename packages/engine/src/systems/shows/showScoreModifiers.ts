@@ -154,9 +154,10 @@ export function scoreBeforeCapLabel(score: number): string {
 /**
  * Runs the `cap` modifiers on a score computed outside `showScore`'s modifier loop (EVT3-03's
  * off-screen score), so every promotion's shows obey the same caps with the same labels (EVT4-02).
- * Gathers the caps' extras for `show`, applies them in order and keeps the result within 0..100,
- * without rounding (a ceiling such as 43.5 is stored as it is). Returns the ceiling the score was
- * held to, or null when no cap has a `limit`. `deps.modifiers` defaults to every registered one.
+ * Gathers the caps' extras for `show`, applies them in order and keeps the result within 0..100
+ * (a clamp step only when a cap left it outside), without rounding: a ceiling such as 43.5 is
+ * stored as it is. Returns the ceiling the score was held to, or null when no cap has a `limit`.
+ * `deps.modifiers` defaults to every registered one.
  */
 export function applyCapModifiers(
   calc: Calc,
@@ -173,7 +174,7 @@ export function applyCapModifiers(
   for (const modifier of caps) {
     modifier.apply(calc, withExtras, extras[modifier.id], { tunables: deps.tunables });
   }
-  if (caps.length > 0) {
+  if (calc.current < 0 || calc.current > 100) {
     calc.clamp(0, 100);
   }
   return { ceiling: showScoreCeilingOf(caps, extras, { tunables: deps.tunables }) };

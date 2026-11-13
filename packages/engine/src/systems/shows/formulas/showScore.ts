@@ -203,8 +203,11 @@ export function showScore(inputs: ShowScoreInputs, deps: ShowScoreDeps): ShowSco
   if (deps.modifiers.some((modifier) => modifier.stage === 'cap')) {
     calc.note(scoreBeforeCapLabel(rawScore));
     applyStage(calc, 'cap', inputs, deps);
-    // Not rounded again (EVT4-02): rounding a 43.5 ceiling up would store a score above it.
-    calc.clamp(SHOW_SCORE_MIN, SHOW_SCORE_MAX);
+    // Not rounded again (EVT4-02): rounding a 43.5 ceiling up would store a score above it. Kept
+    // within 0..100 only when a cap left it outside, so the Why? ends with the cap's own lines.
+    if (calc.current < SHOW_SCORE_MIN || calc.current > SHOW_SCORE_MAX) {
+      calc.clamp(SHOW_SCORE_MIN, SHOW_SCORE_MAX);
+    }
   }
   return { score: calc.done(), rawScore };
 }
