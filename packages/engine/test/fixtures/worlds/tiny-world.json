@@ -2792,6 +2792,65 @@
         }
       }
     ],
+    "promotionSnapshots": [
+      {
+        "id": "psh_0000000001",
+        "promotionId": "pro_0000000001",
+        "date": "2026-03-23",
+        "granularity": "week",
+        "cash": 1003000000,
+        "prestige": 50,
+        "popularity": {
+          "headline": 10,
+          "world": 5,
+          "homeRegion": 14,
+          "byContinent": {
+            "ctn_0000000001": 5
+          }
+        },
+        "rosterSize": 8,
+        "averageMorale": 2,
+        "extra": {}
+      },
+      {
+        "id": "psh_0000000002",
+        "promotionId": "pro_0000000001",
+        "date": "2026-03-30",
+        "granularity": "week",
+        "cash": 1001500000,
+        "prestige": 50,
+        "popularity": {
+          "headline": 10.5,
+          "world": 5.25,
+          "homeRegion": 14.5,
+          "byContinent": {
+            "ctn_0000000001": 5.25
+          }
+        },
+        "rosterSize": 8,
+        "averageMorale": 1.5,
+        "extra": {}
+      },
+      {
+        "id": "psh_0000000003",
+        "promotionId": "pro_0000000001",
+        "date": "2026-04-06",
+        "granularity": "week",
+        "cash": 1000000000,
+        "prestige": 50,
+        "popularity": {
+          "headline": 11.25,
+          "world": 5.625,
+          "homeRegion": 15.25,
+          "byContinent": {
+            "ctn_0000000001": 5.625
+          }
+        },
+        "rosterSize": 8,
+        "averageMorale": 3,
+        "extra": {}
+      }
+    ],
     "promotions": [
       {
         "id": "pro_0000000001",

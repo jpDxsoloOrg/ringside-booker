@@ -9,7 +9,7 @@
     "label": "Test save",
     "promotionName": "Test Promotion A",
     "promotionShortName": "TPA",
-    "schemaFingerprint": "af7288fce7b4de309ae695e16b8e5e22",
+    "schemaFingerprint": "9d0ba720b75f8693aaf74bbda8fbff2a",
     "startDate": "2026-01-05",
     "worldName": "Test Tiny World"
   },
@@ -2813,6 +2813,65 @@
             "score": 62,
             "worldAfter": 0.3,
             "worldBefore": 0
+          }
+        ],
+        "promotionSnapshots": [
+          {
+            "averageMorale": 2,
+            "cash": 1003000000,
+            "date": "2026-03-23",
+            "extra": {},
+            "granularity": "week",
+            "id": "psh_0000000001",
+            "popularity": {
+              "byContinent": {
+                "ctn_0000000001": 5
+              },
+              "headline": 10,
+              "homeRegion": 14,
+              "world": 5
+            },
+            "prestige": 50,
+            "promotionId": "pro_0000000001",
+            "rosterSize": 8
+          },
+          {
+            "averageMorale": 1.5,
+            "cash": 1001500000,
+            "date": "2026-03-30",
+            "extra": {},
+            "granularity": "week",
+            "id": "psh_0000000002",
+            "popularity": {
+              "byContinent": {
+                "ctn_0000000001": 5.25
+              },
+              "headline": 10.5,
+              "homeRegion": 14.5,
+              "world": 5.25
+            },
+            "prestige": 50,
+            "promotionId": "pro_0000000001",
+            "rosterSize": 8
+          },
+          {
+            "averageMorale": 3,
+            "cash": 1000000000,
+            "date": "2026-04-06",
+            "extra": {},
+            "granularity": "week",
+            "id": "psh_0000000003",
+            "popularity": {
+              "byContinent": {
+                "ctn_0000000001": 5.625
+              },
+              "headline": 11.25,
+              "homeRegion": 15.25,
+              "world": 5.625
+            },
+            "prestige": 50,
+            "promotionId": "pro_0000000001",
+            "rosterSize": 8
           }
         ],
         "promotions": [

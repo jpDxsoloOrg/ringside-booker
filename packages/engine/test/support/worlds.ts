@@ -18,12 +18,14 @@ import {
   type Person,
 } from '../../src/model/entities/person';
 import type { ParticipantRole } from '../../src/model/entities/participant';
+import type { PromotionSnapshot } from '../../src/model/entities/promotion-snapshot';
 import { aDeal, aNetwork } from './builders/media';
 import { aLedgerEntry } from './builders/ledger';
 import { aPopularityShowChange } from './builders/popularity';
 import { anAftermath } from './builders/aftermath';
 import { aMail, aNews } from './builders/inbox';
 import { aVenue } from './builders/geography';
+import { testId } from './ids';
 import { aRelationship, aStable, aTeam } from './builders/promotions';
 import {
   aMatch,
@@ -495,6 +497,35 @@ function addTinyHistory(context: BuildContext): void {
 
 type DeepPartialLedger = Parameters<typeof aLedgerEntry>[0];
 
+/** Promotion A's weekly history (DAY2-01): three Mondays, each a little different. */
+function tinySnapshot(
+  date: string,
+  cash: number,
+  popularity: number,
+  averageMorale: number,
+): DeepPartial<PromotionSnapshot> {
+  return {
+    date: parseGameDate(date),
+    granularity: 'week',
+    cash: cents(cash),
+    prestige: 50,
+    popularity: {
+      headline: popularity,
+      world: popularity / 2,
+      homeRegion: popularity + 4,
+      byContinent: { [testId('continent')]: popularity / 2 },
+    },
+    rosterSize: 8,
+    averageMorale,
+  };
+}
+
+const TINY_WORLD_SNAPSHOTS: readonly DeepPartial<PromotionSnapshot>[] = [
+  tinySnapshot('2026-03-23', 1_003_000_000, 10, 2),
+  tinySnapshot('2026-03-30', 1_001_500_000, 10.5, 1.5),
+  tinySnapshot('2026-04-06', 1_000_000_000, 11.25, 3),
+];
+
 /**
  * A small world that uses every table, for tests that need a bit of everything:
  *
@@ -511,6 +542,8 @@ type DeepPartialLedger = Parameters<typeof aLedgerEntry>[0];
  * - 1 venue, 2 relationships, 2 mail (one with an open decision), 2 news and 5 ledger entries;
  * - 1 per-show popularity record for last Thursday's show;
  * - 2 aftermath rows for the title match: people[0] won, people[1] lost;
+ * - 3 weekly history rows for promotion A (the Mondays 2026-03-23, 03-30 and 04-06), with cash,
+ *   popularity and morale moving a little each week, so the Office has a trend to draw;
  * - the shipped base catalogs on its metadata (`TEST_CATALOGS`), so every segment key resolves.
  */
 export function tinyWorld(): BuiltWorld {
@@ -559,6 +592,7 @@ export function tinyWorld(): BuiltWorld {
       (promotion) => promotion.withRoster(8),
     )
     .with('history', addTinyHistory)
+    .withPromotionSnapshots('A', TINY_WORLD_SNAPSHOTS)
     .build();
 }
 

@@ -112,6 +112,8 @@ const SerializedTablesSchema = z.strictObject({
   popularityShowChanges: z.array(TABLES.popularityShowChanges.schema),
   // MTCH3-03. Defaults to empty so saves written before the table existed still load.
   aftermaths: z.array(TABLES.aftermaths.schema).default([]),
+  // DAY2-01. Defaults to empty so saves written before the table existed still load.
+  promotionSnapshots: z.array(TABLES.promotionSnapshots.schema).default([]),
 });
 
 /**
