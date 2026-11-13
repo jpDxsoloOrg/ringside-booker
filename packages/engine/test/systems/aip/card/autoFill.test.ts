@@ -46,7 +46,9 @@ function only<T>(value: T | undefined, what: string): T {
 function fillWorld(rosterSize = 14, catalogs = true): FillWorld {
   let shows: Record<ShowName, EventInstanceId> | undefined;
   const alternating = {
-    employment: (index: number) => ({ alignment: index % 2 === 0 ? 'face' : 'heel' }),
+    employment: (index: number) => ({
+      alignment: index % 2 === 0 ? ('face' as const) : ('heel' as const),
+    }),
   } as const;
   const builder = worldBuilder({
     startDate: START,

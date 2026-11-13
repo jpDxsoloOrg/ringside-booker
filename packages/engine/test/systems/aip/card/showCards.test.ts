@@ -67,7 +67,9 @@ function only<T>(value: T | undefined, what: string): T {
 function cardsWorld(options: { readonly sandbox?: boolean } = {}): CardsWorld {
   let shows: CardsWorld['shows'] | undefined;
   const alternating = {
-    employment: (index: number) => ({ alignment: index % 2 === 0 ? 'face' : 'heel' }),
+    employment: (index: number) => ({
+      alignment: index % 2 === 0 ? ('face' as const) : ('heel' as const),
+    }),
   } as const;
   const built = worldBuilder({
     startDate: START,
@@ -102,14 +104,26 @@ function cardsWorld(options: { readonly sandbox?: boolean } = {}): CardsWorld {
           ),
         ).id;
       shows = {
-        own: add({ promotionId: context.ids.promotions.A, date: NEXT_WEEK, name: 'Own Weekly' }),
-        rival: add({ promotionId: context.ids.promotions.B, date: TODAY, name: 'Rival Weekly' }),
+        own: add({
+          promotionId: only(context.ids.promotions.A, 'A'),
+          date: NEXT_WEEK,
+          name: 'Own Weekly',
+        }),
+        rival: add({
+          promotionId: only(context.ids.promotions.B, 'B'),
+          date: TODAY,
+          name: 'Rival Weekly',
+        }),
         rivalNext: add({
-          promotionId: context.ids.promotions.B,
+          promotionId: only(context.ids.promotions.B, 'B'),
           date: NEXT_WEEK,
           name: 'Rival Next',
         }),
-        thin: add({ promotionId: context.ids.promotions.C, date: TODAY, name: 'Thin Weekly' }),
+        thin: add({
+          promotionId: only(context.ids.promotions.C, 'C'),
+          date: TODAY,
+          name: 'Thin Weekly',
+        }),
       };
     })
     .build();
