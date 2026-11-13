@@ -14,7 +14,7 @@ import type { StepContext } from '../../core/pipeline/context';
 import { definePhase, type PhaseDefinition } from '../../core/pipeline/phase';
 import { startCalc } from '../../core/trace/calc';
 import type { Traced } from '../../core/trace/types';
-import type { LedgerCategory } from '../../model/entities/ledger-entry';
+import type { LedgerCategory, LedgerRefs } from '../../model/entities/ledger-entry';
 import type { Promotion } from '../../model/entities/promotion';
 import type { GameWorldView } from '../../model/tables';
 import type { EngineTunables } from '../tunables';
@@ -33,19 +33,20 @@ function openPromotions(ctx: StepContext): readonly Promotion[] {
 }
 
 /** A cost as the signed amount the ledger stores: the trace's last step is "Cost". */
-function asCost(label: string, cost: Traced<number>): Traced<number> {
+export function asCost(label: string, cost: Traced<number>): Traced<number> {
   return startCalc(label, cost, { unit: 'money' })
     .multiply('Cost', -1, 'Money paid out comes off the cash')
     .done();
 }
 
-/** Posts `cost` as a cost row, or logs one line when it is 0. */
-function postCost(
+/** Posts `cost` as a cost row (with `refs`, if given), or logs one line when it is 0. */
+export function postCost(
   ctx: StepContext,
   promotionId: PromotionId,
   category: LedgerCategory,
   memo: string,
   cost: Traced<number>,
+  refs?: Partial<LedgerRefs>,
 ): void {
   if (cost.value === 0) {
     ctx.log(`${promotionId}: ${memo} comes to 0, nothing posted`);
@@ -53,7 +54,14 @@ function postCost(
   }
   const trace = asCost(memo, cost);
   const amount: Cents = cents(trace.value);
-  postMoney(ctx, { promotionId, category, amount, memo, trace });
+  postMoney(ctx, {
+    promotionId,
+    category,
+    amount,
+    memo,
+    trace,
+    ...(refs === undefined ? {} : { refs }),
+  });
 }
 
 /** A promotion's payroll on one day: who is on it, the monthly total and the day's wages. */

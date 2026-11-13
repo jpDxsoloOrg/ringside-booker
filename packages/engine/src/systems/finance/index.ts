@@ -13,10 +13,13 @@
 // imports this system, including programs that only see the emitted .d.ts files.
 import './events';
 import './setup';
-import { defineSystem, type SystemBundle } from '../../core/api/system';
+import { defineSubscription, defineSystem, type SystemBundle } from '../../core/api/system';
 import { companyQuery } from './queries/company';
 import { financePhases } from './phases';
 import { financeBookQueries } from './queries/books';
+import { financeCommands } from './commands';
+import { POST_SHOW_COSTS_SUBSCRIPTION_ID, postShowCosts } from './postShowCosts';
+import { financePolicyQueries } from './queries/policies';
 
 export { LEDGER_CATEGORY_LABELS, ledgerCategoryKind, type LedgerCategoryKind } from './categories';
 export { postMoney, POST_MONEY_MEMO_MAX, type PostMoneyInput } from './post';
@@ -101,10 +104,91 @@ export {
 } from './queries/books';
 export { FINANCE_OPENING_BALANCE_STEP } from './setup';
 
+// ECO1-04: show costs, the staff policies, setPolicy and the policy previews.
+export {
+  financeCommands,
+  SET_POLICY_REASON_CODES,
+  setPolicyCommand,
+  setPolicyIn,
+  type SetPolicyArgs,
+  type SetPolicyReasonCode,
+  type SetPolicyResult,
+} from './commands';
+export {
+  averageAppearanceFee,
+  estimateShowCosts,
+  type ShowEstimate,
+  type ShowEstimateLevels,
+} from './estimateShowCosts';
+export {
+  CATERING_RATE_KEYS,
+  ESTIMATED_CARD_NOTE,
+  IMPORTANCE_MULTIPLIER_KEYS,
+  SHOW_COST_TRACE_LINES_MAX,
+  SHOW_DISTANCES,
+  showCosts,
+  TRAVEL_RATE_KEYS,
+  type ShowCosts,
+  type ShowCostsInputs,
+  type ShowCostWorker,
+  type ShowDistance,
+} from './formulas/showCosts';
+export {
+  isPolicyLevel,
+  POLICY_AREA_DESCRIPTIONS,
+  POLICY_AREA_LABELS,
+  POLICY_LEVEL_LABELS,
+  POLICY_LEVELS,
+  type PolicyLevel,
+} from './policies';
+export {
+  listPolicyEffects,
+  policyEffectLines,
+  registerPolicyEffect,
+  resetPolicyEffectsForTests,
+  unregisterPolicyEffect,
+  type PolicyEffect,
+  type PolicyEffectLine,
+  type PolicyEffectTone,
+} from './policyEffects';
+export {
+  POST_SHOW_COSTS_SUBSCRIPTION_ID,
+  postShowCosts,
+  SHOW_COST_CATEGORIES,
+  showCostsOf,
+  showDistanceOf,
+  type ShowCostCategory,
+} from './postShowCosts';
+export {
+  AWAY_SHOWS_NOTE,
+  financePoliciesQuery,
+  financePolicyPreviewQuery,
+  POLICY_PREVIEW_DAYS,
+  type FinancePolicies,
+  type FinancePolicyPreview,
+  type PolicyLevelPreview,
+  type PolicyView,
+} from './queries/policies';
+export {
+  showWorkersOf,
+  type ShowWorker,
+  type ShowWorkerExclusion,
+  type ShowWorkers,
+} from './showWorkers';
+
 export const financeSystem: SystemBundle = defineSystem({
   id: 'finance',
   phases: [...financePhases],
-  subscriptions: [],
-  queries: [companyQuery, ...financeBookQueries],
-  commands: [],
+  subscriptions: [
+    // ECO1-04: every completed show, player and rival, pays its appearance fees, travel and catering.
+    defineSubscription({
+      id: POST_SHOW_COSTS_SUBSCRIPTION_ID,
+      type: 'show.completed',
+      handler: (event, ctx) => {
+        postShowCosts(ctx, event.payload.eventInstanceId);
+      },
+    }),
+  ],
+  queries: [companyQuery, ...financeBookQueries, ...financePolicyQueries],
+  commands: [...financeCommands],
 });
