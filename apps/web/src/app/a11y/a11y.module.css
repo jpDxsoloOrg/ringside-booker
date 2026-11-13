@@ -1,4 +1,8 @@
-/* Off screen until focused, then pinned to the top-left corner above everything else. */
+/*
+ * Off screen until focused, then pinned to the top-left corner above everything else. While it is
+ * off screen it is also clipped away: it sits just above the viewport, so a scrolled page captured
+ * whole (or an over-scroll) would otherwise show it floating over the content (AIP4-08).
+ */
 .skipLink {
   position: fixed;
   inset-block-start: calc(var(--safe-top) + var(--space-2));
@@ -11,11 +15,13 @@
   font-weight: var(--font-weight-semibold);
   text-decoration: none;
   transform: translateY(calc(-100% - var(--space-4) - var(--safe-top)));
+  clip-path: inset(50%);
 }
 
 .skipLink:focus,
 .skipLink:focus-visible {
   transform: none;
+  clip-path: none;
 }
 
 .liveRegion {
