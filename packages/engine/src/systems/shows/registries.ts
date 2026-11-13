@@ -3,7 +3,8 @@
  * is decided, without editing the shows phase (docs/design/show-night.md#seams).
  *
  * - Segment result appliers run, in order, after a segment is rated and its result written. EVT3-04
- *   settles titles through one; MTCH3 (popularity) and MTCH4 (fatigue) add theirs later.
+ *   settles titles through one (order 10); MTCH3-05 adds the aftermath (popularity and momentum,
+ *   order 30, `systems/match/aftermath/showNight.ts`); MTCH4 (fatigue) adds its own later.
  * - The match outcome resolver decides how a match ends before it is rated. At most one may be
  *   registered; the match bundle registers MTCH2's `match.resolveOutcome` here at module load
  *   (EVT3-07, `systems/match/finishes/showNight.ts`). Without it the built-in `plannedOrNoContest`

@@ -27,6 +27,10 @@ import './settings';
 import './finishes/bookingCheck';
 // Registers MTCH2's match outcome resolver with show night at module load (EVT3-07).
 import './finishes/showNight';
+// Registers the aftermath applier with show night and the TV reach provider at module load
+// (MTCH3-05).
+import './aftermath/showNight';
+import './aftermath/tvReach';
 
 export {
   DURATION_CLASSES,
@@ -556,3 +560,18 @@ export {
   type RecentFormResult,
   type RecentFormRow,
 } from './aftermath/recentFormQuery';
+
+// MTCH3 wired into its partners (MTCH3-05): show night's aftermath applier and TV reach for worker
+// popularity. Design: docs/design/match-aftermath.md#integrations.
+export {
+  AFTERMATH_APPLIER_ID,
+  AFTERMATH_APPLIER_ORDER,
+  aftermathApplier,
+  applyAftermathOnShowNight,
+} from './aftermath/showNight';
+export {
+  TV_REACH_PROVIDER_ID,
+  TV_REACH_PROVIDER_ORDER,
+  tvReachReason,
+  tvReachRegions,
+} from './aftermath/tvReach';

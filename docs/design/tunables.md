@@ -448,10 +448,11 @@ worker keeps (MTCH3-03), appended to `systems/match/aftermath/tunables.ts`,
 category `Aftermath`. See
 [match-aftermath.md](match-aftermath.md#regional-spread).
 
-| Key                               | Kind    | Default | Range | Unit  | What it does                                                    |
-| --------------------------------- | ------- | ------- | ----- | ----- | --------------------------------------------------------------- |
-| `match.popularity.neighbourSpill` | number  | 0.4     | 0–1   | ratio | Share of a match's popularity change each neighbour region gets |
-| `match.aftermath.keepPerPerson`   | integer | 10      | 1–100 | count | How many recent match aftermaths are kept for each worker       |
+| Key                               | Kind    | Default | Range | Unit  | What it does                                                                                           |
+| --------------------------------- | ------- | ------- | ----- | ----- | ------------------------------------------------------------------------------------------------------ |
+| `match.popularity.neighbourSpill` | number  | 0.4     | 0–1   | ratio | Share of a match's popularity change each neighbour region gets                                        |
+| `match.aftermath.keepPerPerson`   | integer | 10      | 1–100 | count | How many recent match aftermaths are kept for each worker                                              |
+| `match.popularity.tvSpill`        | number  | 0.3     | 0–1   | ratio | Share of the show's TV reach a match's popularity change gets in TV regions (MTCH3-05); 0 turns it off |
 
 ## Shows tunables
 

@@ -89,7 +89,7 @@ export function segmentRegionWeights(
     });
   }
   for (const provider of listPopularityReach()) {
-    for (const reached of provider.regionsFor(read, ctx)) {
+    for (const reached of provider.regionsFor(read, ctx, tunables)) {
       if (!regions.has(reached.regionId)) {
         notes.push(`${reached.reason}: ${reached.regionId} is not a region on the map, left out`);
         continue;

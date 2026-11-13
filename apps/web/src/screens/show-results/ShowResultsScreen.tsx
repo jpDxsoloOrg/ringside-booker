@@ -18,6 +18,7 @@ import { CompletedResults, ResultsHeader } from './ResultsBroadcast';
 import styles from './ShowResults.module.css';
 // Results sections other features add, loaded with this page's chunk (UI-21). One line each.
 import '@/screens/promotion-popularity/register';
+import '@/screens/match-aftermath/register';
 
 const SCREEN_TITLE = 'Show results';
 const NOT_FOUND_TITLE = 'Show not found';

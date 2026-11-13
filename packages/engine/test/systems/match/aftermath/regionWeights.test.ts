@@ -115,11 +115,11 @@ describe('the reach seam', () => {
     provide('test.second', [], 5);
     provide('test.bravo', [], 1);
     provide('test.alpha', [], 1);
-    expect(listPopularityReach().map((provider) => provider.id)).toEqual([
-      'test.alpha',
-      'test.bravo',
-      'test.second',
-    ]);
+    // The match bundle's own TV reach provider (MTCH3-05) is registered too; only the test's count.
+    const testIds = listPopularityReach()
+      .map((provider) => provider.id)
+      .filter((id) => id.startsWith('test.'));
+    expect(testIds).toEqual(['test.alpha', 'test.bravo', 'test.second']);
   });
 
   it('refuses a duplicate or malformed id', () => {

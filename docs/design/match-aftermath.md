@@ -295,11 +295,12 @@ neighbours.
 
 **The reach seam.** `registerPopularityReach({ id, order, regionsFor })` in
 `aftermath/reach.ts` adds regions beyond the neighbours. `regionsFor(read,
-ctx)` gets the promotion, the show (null in the lab), the region, whether it is
-televised, its size and the date, and returns `{ regionId, weight, reason }`
-lines such as "TV reach: Coastline Sports". Providers run by `order`, then id;
-a duplicate id throws. EVT5 registers TV coverage; until then only the show
-region and its neighbours move.
+ctx, tunables)` gets the promotion, the show (null in the lab), the region,
+whether it is televised, its size and the date, plus the tunables, and returns
+`{ regionId, weight, reason }` lines such as "TV reach: Coastline Sports".
+Providers run by `order`, then id; a duplicate id throws. MTCH3-05 registers
+TV coverage (`match.tvReach`, see [Integrations](#integrations)); without a
+provider only the show region and its neighbours move.
 
 Countries and continents are never weighted: their figures are the
 population-weighted roll-ups of the regions, worked out on read.
@@ -344,6 +345,7 @@ result: still no writes and no world RNG. `match.simulateBatch` leaves it out.
 
 `applySegmentAftermath(step, segmentId)` in `aftermath/apply.ts` is show
 night's applier (MTCH3-05 registers it with `registerSegmentResultApplier`).
+MTCH3-05 registers it at order 30 (see [Integrations](#integrations)).
 It runs after the segment's result and rating are written and reads the step's
 transaction, so a worker in two matches on one card gets the second change on
 top of the first.
@@ -417,3 +419,31 @@ population-weighted roll-ups, each with its own Why?; the choice is a viewer
 convenience kept in memory, never in the save. With nine or more competitors
 each worker's table opens on its own. When the setup changes after a Run the
 panel says the numbers are out of date.
+
+## Integrations
+
+MTCH3-05 wires MTCH3 into the partners that were on `main` when it ran.
+Partners that land later wire MTCH3 from their own packs.
+
+| Partner                              | Status                  | How it is wired                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ------------------------------------ | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| EVT3 (show night)                    | wired (MTCH3-05)        | The match bundle registers `match.aftermath` (`aftermath/showNight.ts`) with `registerSegmentResultApplier` at order 30: after EVT3-04's title outcome (10), before MTCH4 (40) and MTCH6 (50). Every match a real show runs, player and rival cards alike, moves its competitors' popularity and momentum by exactly what its `aftermaths` rows store; a worker in two matches gets both, in card order. Off-screen shows have no segments and write nothing. A throw rolls back the whole day's shows, as for every applier.                                    |
+| EVT3 (results page)                  | wired (MTCH3-05)        | `registerResultsSection({ id: 'mtch3.aftermath', label: 'Popularity & momentum', order: 30 })` (`apps/web/src/screens/match-aftermath/`) reads `match.aftermath { eventInstanceId }`: one card per match, each competitor's show-region popularity and momentum before → after with the change and a Why? while the breakdown is kept, and an "Open in profile" link. Phones fold every match after the third behind its own toggle. It reuses the Match lab Aftermath panel's words (`aftermathText.ts`).                                                       |
+| EVT5 (TV reach)                      | wired (MTCH3-05)        | The match bundle registers the `match.tvReach` reach provider (`aftermath/tvReach.ts`, order 10). For a show it takes EVT5's `reachInputsFor` → `showReach` and keeps only the TV regions, each at EVT5's TV weight for the network's tier × `match.popularity.tvSpill` (0.3; 0 turns it off), reason "TV reach: <network>". A Match lab match with Televised on uses the promotion's deals in force on the lab's date; Televised off, or no deal in force, reaches no TV region. The neighbours keep MTCH3's own `neighbourSpill`, and the largest weight wins. |
+| WRK5 (drift, decay, momentum labels) | wires from its own pack | Momentum labels in the Aftermath panel and on Recent form rows, and the headless bounds check. Until WRK5's decay lands nothing pulls momentum back toward 0, so a busy worker's momentum runs to the ±100 limits within months.                                                                                                                                                                                                                                                                                                                                 |
+| MTCH5 (angles)                       | wires from its own pack | Angle aftermath through `registerAftermathForKind('angle', fn)`; the applier still skips angles.                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| ECO2 (star merch)                    | wires from its own pack | `merchStar` reads the popularity show night now moves; ECO2 adds the test.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| DAY5 (awards)                        | wires from its own pack | The Breakout Star headless check.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+
+**Morale.** None of this reads or writes morale (D-09). Losing a booked
+match, in a hot angle or not, changes popularity and momentum only.
+
+**Save size.** Today no show in a headless run has a card (the rivals' shows
+are scored off screen until AIP4), so a 365-day default-world run writes no
+aftermath and its save is unchanged (8.9 MB). With every show given a card,
+the aftermath adds about 8 MB over a year (25 MB → 34 MB), and stops growing
+after a few months: the stored rows are pruned to 10 per worker, and each
+trace kind keeps `sim.traceRetentionPerKind` full traces. The largest part is
+WRK1's per-person popularity door trace (one per worker, one line per region
+the worker is known in), then the `match.popularityGain` traces and the
+stored rows. See the MTCH3-05 progress log for the figures.
