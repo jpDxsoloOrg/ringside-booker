@@ -14,9 +14,11 @@ off-screen score and show stars formulas and the show score modifier seam. The s
 ## Phase
 
 `systems/shows/phases.ts`. One phase, `shows.runShows` (group `shows`, order
-10, daily), resolves **every show dated today**, the player's and the
-rivals', so a show's results, and later its attendance and money, all share
-its date. It is skipped on a day with no open show (`hasShowsToday`).
+10, daily), resolves **every show dated today that the computer runs**, so a
+show's results, and later its attendance and money, all share its date. The
+player's own shows run from the show screen instead
+([The player's shows](#the-players-shows)). It is skipped on a day with no
+open show (`hasShowsToday`).
 
 ### Which shows run
 
@@ -27,14 +29,17 @@ an episode taped the same night. Then, for each show:
 
 - `cancelled` and `completed` shows are never touched.
 - A show a **human** runs (its brand's controller when the brand has one, else
-  its promotion's, through the calendar's `showControllerOf`) runs only once
-  its card is locked (`booked`). A `scheduled` one is logged and left alone;
-  the show-day gate normally stops the clock before that can happen, and the
-  calendar's `calendar.closePastShows` (settlement, order 90) marks it Not
-  run at the end of the day.
-- A show the **computer** runs plays its card when it has one, whether it is
-  `scheduled` or `booked`, and is scored [off-screen](#off-screen-score) when
-  it has none.
+  its promotion's, through the calendar's `showControllerOf`) is never run
+  here (EVT2-09): it is logged and left alone. The show-day gate stops the
+  clock on its day and the player runs it with `shows.runTonight`; in a game
+  built without that gate, the calendar's `calendar.closePastShows`
+  (settlement, order 90) marks it Not run at the end of the day.
+- A show the **computer** runs plays its card when it has one, and is scored
+  [off-screen](#off-screen-score) when it has none.
+
+Every show, the phase's and the player's, runs through one function,
+`runShowNow` (`runShow.ts`): the [before-a-show-runs hooks](#before-a-show-runs),
+then the card (or the off-screen score).
 
 ### Running a card
 
@@ -118,6 +123,69 @@ back table writes but not staged events, traces or random draws.
 
 Running the phase a second time on the same date changes nothing: every show
 it ran is `completed`.
+
+## The player's shows
+
+`systems/shows/tonight.ts` (EVT2-09). There is no Lock card: a card stays
+editable until its show has run. Show night for the player is an event they
+start, not something Next Day does in the background.
+
+**The gate.** `shows.tonight` (label "Show night") stops Next Day and every
+skip before a day with an open show a human runs. It reads the day's shows
+through the `byDate` index, keeps the open ones (`scheduled`, or `booked` from
+a save made before EVT2-09) whose `showControllerOf` is human, and names the
+first by air date, then id: the order the phase uses. The hit is
+`{ reason, subject: { kind: 'eventInstance', id }, actionHint: 'showNight' }`,
+with reason "Tonight: <Show>", or "Your show '<Show>' has no card yet" when
+nothing is booked. A cancelled or completed show never stops the clock, and
+computer-run shows never do, so headless runs of a world without a human
+promotion are unaffected. With two of the player's shows on one day, running
+the first makes the gate name the second. The web shell maps the `showNight`
+hint to **Go to the show** (`/game/booking?event=<id>`).
+
+**The command.** `shows.runTonight { eventInstanceId }` → `{ eventInstanceId }`.
+Its `validate` refuses, in this order, with the first that applies:
+
+| Code              | When                                   | Player message                                                           |
+| ----------------- | -------------------------------------- | ------------------------------------------------------------------------ |
+| `showNotFound`    | no such show                           | "That show no longer exists"                                             |
+| `notYourShow`     | the issuer does not run the show       | "Only the person running {brand or promotion} can run this show"         |
+| `showCompleted`   | it has run                             | "This show has already run"                                              |
+| `showCancelled`   | it was cancelled                       | "This show was cancelled"                                                |
+| `notTonight`      | it is not dated today                  | "This show has already happened" / "This show is on {date}, not tonight" |
+| `cardNotRunnable` | `validateCard` finds errors (up to 10) | each error's own message, with its segment as the subject                |
+
+Warnings never block (D-09: booking someone to lose is never a warning at
+all). Then `apply` calls `runShowNow(ctx, show, true)`: the same per-segment
+work, appliers (titles at 10, the aftermath at 30), traces,
+`segment.completed` and `show.completed` as the phase, so finance's show costs
+and promotion popularity react the same way. Commands are refused with `busy`
+while days are advancing.
+
+**When it runs.** The gate stops a skip before its day is simulated, so the
+player's show runs at the start of its day, before that day's phases
+(fatigue recovery, the rivals' shows, settlement). Given the same save and
+seed it gives exactly the result running it inside the day did, when nothing
+earlier in the day changed the world it reads (`runTonight.test.ts` checks the
+whole world, random state, traces and events against the old phase path).
+The day's own phases then see the show completed, as before.
+
+**Running it segment by segment** is EVT10 (live show night): it adds a
+"Run next segment" command beside this one on the same screen, and this
+command stays "Run the whole show".
+
+### Before a show runs
+
+`registerBeforeShowRuns({ id, order, run(ctx, { show, human }) })`
+(`beforeRun.ts`) registers a hook that runs once, inside the show's own step,
+just before its first segment, for every show `runShowNow` runs (the player's
+from `shows.runTonight`, everyone else's from the phase). `runShowNow` reads
+the show again afterwards, so a hook's writes are what the show runs with.
+Hooks run by `order`, then id; a throw rolls the show back with it, so a hook
+logs and skips bad data. This is where EVT6-03 picks a venue for a show that
+has none ("pick a venue when the show runs"), the job a `card.locked` listener
+would have done. An event published in the same step is no substitute: it is
+delivered only after the show has run.
 
 ## Show score
 
@@ -533,7 +601,7 @@ own shows only).
 winners show on the night; a result booked anyway is set aside with a note
 ("Random winners: the booked result was set aside and decided on the night").
 Booking refuses a planned result or finish on such a show and skips the
-`noPlannedResult` check, so the card locks with nothing planned (EVT2-07, see
+`noPlannedResult` check, so the show runs with nothing planned (EVT2-07, see
 [booking.md](booking.md#integration)); the set-aside note only covers results
 written before Random winners was on.
 

@@ -457,7 +457,7 @@ streams:
 - **Random winners.** Mode `randomWinners` when `randomWinnersActive(read,
 { promotionId, brandId })` is true. A result booked anyway is set aside and
   decided on the night, with the note "Random winners: the booked result was
-  set aside and decided on the night"; show night cannot refuse a locked card.
+  set aside and decided on the night"; show night cannot refuse a card it is running.
 - **Booked no contest.** Kept, with a no-contest finish picked by `autoFinish`
   (the plan shape has no no-contest winner).
 - **A refused plan** (a finish the match no longer allows, a finish that does

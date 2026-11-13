@@ -143,7 +143,7 @@ Tests can declare their own entries the same way, merging into
 3. **`validate(read, args, issuedBy, env)`** returns every reason the command
    is not allowed right now. Any reason rejects the command before a
    transaction is opened. `env.tunables` is the save's tunable reader, for a
-   rule built on a tunable (`booking.lockCard` runs the booking checks here).
+   rule built on a tunable (`shows.runTonight` runs the booking checks here).
 4. **`apply(ctx, args, issuedBy)`** runs as one pipeline step through
    `runStep`, with the event source `{ kind: 'command', id: name }` and the
    step id `command:<name>`. It gets a `CommandContext`: a normal step context
