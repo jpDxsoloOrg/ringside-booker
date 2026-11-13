@@ -59,6 +59,8 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  /* Safari before 16.4 has no lh unit; the same height from the line height. */
+  block-size: calc(var(--line-height-tight) * 1em);
   block-size: 1lh;
   overflow: hidden;
   line-height: var(--line-height-tight);

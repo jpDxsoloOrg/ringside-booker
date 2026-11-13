@@ -43,6 +43,7 @@
   "devDependencies": {
     "@axe-core/playwright": "4.14.0",
     "@csstools/postcss-global-data": "4.0.0",
+    "@csstools/postcss-media-minmax": "3.0.8",
     "@playwright/test": "1.65.0",
     "@testing-library/dom": "10.4.2",
     "@testing-library/jest-dom": "6.10.0",

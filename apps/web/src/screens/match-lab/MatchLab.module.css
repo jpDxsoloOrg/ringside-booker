@@ -342,6 +342,15 @@
   }
 }
 
+/* Safari before 16 has no container queries; on a phone the result column is always narrow. */
+@supports not (container-type: inline-size) {
+  @media (--bp-mobile) {
+    .scoreBug > dl {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+}
+
 /* "Last of 50 runs, in full": above the night shown when Runs was above 1. */
 .lastRunNote {
   color: var(--color-text-muted);
