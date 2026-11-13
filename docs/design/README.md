@@ -37,3 +37,4 @@ Game and technical design for Ringside Booker. Each game system gets its own doc
 | [roster.md](roster.md)                             | The roster: the `roster.rows` query, its row fields, the push gap and verdict, and who may read which roster                  |
 | [rival-desk.md](rival-desk.md)                     | The rival desk: which promotions and brands the computer runs, their profiles and the decision log                            |
 | [rival-booking.md](rival-booking.md)               | The card planner: who a rival show may use (the card pool), the card shape and the rival booking tunables                     |
+| [contracts.md](contracts.md)                       | Contracts over time: the daily lifecycle, the `endEmployment` door, severance, renewal policies and the simple rival renewal  |

@@ -75,6 +75,13 @@ The health system's `housekeeping` phases ([health.md](health.md)):
 | `health.recovery`          | 10    | daily           | Injuries due back today end (`injury.healed`); then fatigue fades for everyone above 0 (stamina, age and traits count; less after a talking-only show day yesterday). |
 | `health.conditionRecovery` | 12    | weekly, Mondays | Damaged body parts heal a little, up to the cap for the worker's age; no rolls, no traces.                                                                            |
 
+The `contracts` group's phase (ECO4-01, see
+[contracts.md](contracts.md#lifecycle)):
+
+| Phase                 | Order | Cadence | What it does                                                                                                                                        |
+| --------------------- | ----- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `contracts.lifecycle` | 10    | daily   | Due contracts ask the renewal policies and otherwise expire; signed deals whose start date has come become active; then the `afterLifecycle` hooks. |
+
 The `money` group's phases so far (ECO1-03, see
 [finances.md](finances.md#payroll)):
 
@@ -853,6 +860,17 @@ The finance system's events ([finances.md](finances.md#postmoney)):
 | ----------------------- | ------------------------------------------------------------ | --------------------------------------------------------- |
 | `finance.moneyPosted`   | `promotionId`, `ledgerEntryId`, `category`, `amount`, `date` | `postMoney` writes a row for a human-controlled promotion |
 | `finance.policyChanged` | `promotionId`, `area`, `from`, `to`                          | A promotion changes a spending policy (ECO1-04)           |
+
+The contracts system's events ([contracts.md](contracts.md#end-employment)),
+money in cents:
+
+| Event               | Payload                                                                         | Published when                                                   |
+| ------------------- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `contract.started`  | `employmentId`, `personId`, `promotionId`                                       | A signed contract reaches its start date                         |
+| `contract.expired`  | `employmentId`, `personId`, `promotionId`, `reasonKey`                          | An active contract runs out (`contracts.endDate`)                |
+| `contract.released` | `employmentId`, `personId`, `promotionId`, `severance`, `source`, `mutual`      | A promotion releases a worker, or withdraws a signed future deal |
+| `contract.quit`     | `employmentId`, `personId`, `promotionId`, `how`, `severance`                   | A worker leaves: granted release, walk-out or exclusive deal     |
+| `contract.renewed`  | `employmentId`, `personId`, `promotionId`, `previousEndsOn`, `endsOn`, `source` | A renewal policy moves a contract's end date later               |
 
 The rival desk's events ([rival-desk.md](rival-desk.md#jobs)):
 

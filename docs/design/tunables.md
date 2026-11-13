@@ -996,3 +996,17 @@ card Why? demotion.
 | `aip.titles.valid.floor` | number | 12 | 0–100 | points | Least market popularity a valid challenger needs, however low the prestige |
 | `aip.titles.strong.gap` | number | 35 | 0–100 | points | How far below the title's prestige a strong challenger's market popularity may be |
 | `aip.titles.strong.floor` | number | 25 | 0–100 | points | Least market popularity a strong challenger needs, however low the prestige |
+
+## Contracts tunables
+
+ECO4-01, see [contracts.md](contracts.md#simple-renewals). The simple rival
+renewal, a D-01 stopgap until the rival labour market (ECO6).
+
+| Key                              | Kind    | Default     | Range  | Unit        | Meaning                                                                                                                 |
+| -------------------------------- | ------- | ----------- | ------ | ----------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `ai.contracts.simpleRenewals`    | boolean | true        |        | flag        | Rival promotions renew contracts by a simple rule until the rival labour market exists; off under a level playing field |
+| `contracts.ai.keepPushAtOrAbove` | enum    | `upperCard` | push   | choice      | A rival always renews workers pushed at this card position or higher                                                    |
+| `contracts.ai.keepChampions`     | boolean | true        |        | flag        | A rival always renews a worker who holds one of its titles                                                              |
+| `contracts.ai.renewChance`       | number  | 0.6         | 0–1    | probability | Chance a rival renews any other worker whose contract runs out                                                          |
+| `contracts.ai.renewMinDays`      | integer | 365         | 1–3650 | days        | Shortest new contract a rival renewal gives                                                                             |
+| `contracts.ai.renewMaxDays`      | integer | 1095        | 1–3650 | days        | Longest new contract a rival renewal gives (if below the shortest, the two swap)                                        |
