@@ -2,8 +2,8 @@
 
 What a match costs the people who work it: the fatigue they pick up and the
 body condition they lose (MTCH4). This page covers the two "load" formulas for
-one worker in one match and the risk modifier seam (MTCH4-01). The injury
-chance (MTCH4-02), the show-night applier that writes the results (MTCH4-03)
+one worker in one match and the risk modifier seam (MTCH4-01), and the
+in-match injury chance and roll (MTCH4-02). The show-night applier that writes the results (MTCH4-03)
 and the Match lab's Why? panels (MTCH4-05) build on it. Recovery belongs to
 the health system (WRK6), not here.
 
@@ -140,6 +140,121 @@ finite number, a negative multiplier, an injury chance outside 0..1) throws a
 `RegistryError` naming the modifier. With nothing registered there are no
 contribution lines in the traces.
 
+## Injury chance
+
+`computeInjuryChance(inputs, { tunables })` in
+`packages/engine/src/systems/match/formulas/injuryChance.ts` is the
+probability (0..1) that one worker is hurt in one match. It reads the worker
+**by the end of the match**: fatigue going in plus this match's fatigue gain,
+and body condition after this match's wear. A long, hard match is riskier at
+the end of it, and because the chance is built from those results, the roll
+can only come after them.
+
+1. Start at `match.injury.baseChance` (0.003).
+2. Add **Fatigue by the end of the match** × `match.injury.perFatiguePoint`,
+   where the fatigue is `min(100, fatigue going in + this match's gain)`.
+3. Add (100 − the worst body part after this match's wear) ×
+   `match.injury.perConditionPointLost`, labelled "Worst body part: Back 80".
+   Ties go to the first part in `BODY_PARTS` order.
+4. × `match.injury.duration.<class>` ("Long duration class"; short 0.7,
+   standard 1, long 1.3).
+5. × the least safe opponent's factor, labelled "Least safe opponent: <name>,
+   safety <n>" (lowest safety, ties by id):
+   `clamp(1 + (50 − safety) × opponentSafetyWeight, min, max)` with
+   `minSafetyFactor` 0.5 and `maxSafetyFactor` 1.6. Wear uses the opponents'
+   average safety; the injury chance uses the single least safe one, because
+   one careless worker is enough to hurt someone.
+6. × `match.injury.selfStyle.<own style>` (high flyer and hardcore 1.4).
+7. × the riskiest opponent's `match.injury.opponentStyle.<style>` (highest
+   factor, ties by id; hardcore 1.3, brawler and striker 1.2, powerhouse 1.15).
+   With no opponents steps 5 and 7 are a "No opponents" note.
+8. × `injuryProneFactor` (1.8) for an injury-prone worker, ×
+   `durableFactor` (0.5) for a durable one.
+9. \+ each risk contribution's `injuryAdd`, then × each `injuryMultiplier`,
+   one line per contribution labelled by its `source`.
+10. × `match.injury.repeatMatch` (1.4) once for each earlier match the worker
+    works on the same card, compounding (owner rule: double-booking is
+    allowed and raises the risk in each extra match). The line reads "Second
+    match tonight ×1.4". Talking segments carry no load, so they never reach
+    this formula and never count as an earlier match.
+11. × `keepItSafeFactor` (0.5) when keep-it-safe applies (the booker or a
+    contribution; the line names which).
+12. Keep it between 0 and `match.injury.maxChance` (0.2).
+13. The switches: × 0 with the branch "In-match injuries switched off" when
+    `match.injury.enabled` is off, and × 0 with the branch "Rival rules: no
+    in-match injuries" when the promotion's rating policy has
+    `skipInMatchInjuries` ([D-01][d-01]). `injuryPolicyFor(read, tunables, id)`
+    asks the one rating policy provider (AIP1's, from `ai.skipInMatchInjuries`)
+    and returns the flag with a trace of the policy, which sits under that
+    line. There is no promotion-kind branch anywhere: with no provider every
+    promotion rolls like yours.
+
+[d-01]: design-decisions.md#d-01-rival-promotions-use-simplified-rules-2026-11-07
+
+Every key has a minimum of 0, so with the base and both per-point terms at 0
+the chance is exactly 0.
+
+Rough numbers with the defaults, so the Match lab's Run x100 owner test is not
+a coin flip (the 0.3% and the 2–3% rows are checked by tests):
+
+| Worker                                                                      | Chance |
+| --------------------------------------------------------------------------- | ------ |
+| Fresh all-rounder, standard match, ordinary opponent                        | 0.3%   |
+| Fresh all-rounder, long match                                               | 0.4%   |
+| Fresh high flyer against a hardcore opponent with safety 30                 | 0.7%   |
+| Exhausted (fatigue 100 by the end), worst part 90, long, opponent safety 20 | 2.5%   |
+| The same, opponent safety 0                                                 | 2.9%   |
+| The same as the 2.5% worker, in their second match tonight                  | 3.5%   |
+
+A long main event between two exhausted workers with careless opponents
+injures someone in about 5 runs of 100.
+
+## The injury roll
+
+`rollSegmentInjuries(entries, { tunables, rng })` in
+`packages/engine/src/systems/match/physical/injuries.ts` decides who, if
+anyone, is hurt in one segment. Each entry is a worker with their chance, side,
+entrance order and condition after wear.
+
+- **It runs last.** Fatigue gain, wear and every risk contribution are worked
+  out first and are part of the chance, so every line on the Why? panel took
+  part in the roll. (A risk added after the roll would have no effect; a test
+  registers a stand-in "major spot" modifier for one worker and checks the
+  rolled odds include it.)
+- **Fixed order:** side, then entrance order (workers without one after those
+  with one), then person id.
+- **One draw per worker** from the `match.injury` stream
+  (`rollChance(rng, chance, 'Injury roll: <name>')`), even when the chance is
+  0 or the segment's limit is already reached, so the stream stays aligned
+  however things are tuned.
+- **Per-segment limit:** at most `match.injury.maxPerSegment` (1) workers are
+  hurt in one segment; 0 means nobody ever is. A later hit is not dropped: its
+  trace carries the rule line "Already 1 injured in this segment (most per
+  segment: 1)" and the result says `hit: true, injured: false`.
+- Each result's `decision` is an "Injured in this match?" decision with the
+  chance as a considered option, the roll, and the limit line when it applied.
+  An injured worker also gets a `bodyPartHint`: the part with the lowest
+  condition after this segment's wear (ties in `BODY_PARTS` order).
+
+**Health belongs to WRK6.** MTCH4 rolls and hands each injury to the one
+registered handler: `registerInjuryHandler({ id, apply(ctx, request) })`, where
+`request` is `{ personId, segmentId, eventInstanceId, date, bodyPartHint,
+chanceTrace }` and `ctx` is the phase context the segment result applier runs
+in. The handler returns `{ injuryTraceRef }`. There is exactly one handler at a
+time (a second registration throws a `RegistryError` naming both ids); the
+call returns an unregister function and `getInjuryHandler()` returns it or
+null. WRK6 registers `health.injure`, whose catalog roll decides the real
+injury and may ignore the hint. With no handler nothing is written, and
+callers can still read who would have been hurt from the results.
+
+MTCH4 never touches morale: an injury inside a hot angle has no morale effect
+from this feature (D-09; WRK8 owns morale).
+
+The traces are stored under refs from `physical/traceRefs.ts`, all keyed
+`<segmentId>:<personId>`: `match.fatigue`, `match.wear`, `match.learning`,
+`match.injuryChance` and `match.injuryRoll` (the show-night applier, MTCH4-04,
+stores them).
+
 ## Tunables
 
 All in `systems/match/physical/tunables.ts`, category `Physical toll`. Every
@@ -177,3 +292,19 @@ key has a minimum of 0, so 0 means 0.
 
 `<style>` is each of the ten ring styles and `<part>` each of the six body
 parts; the defaults not listed in a row are 1.
+| `match.injury.enabled` | true | on/off | flag | Workers can get hurt in a match; off, nobody is ever injured in one |
+| `match.injury.baseChance` | 0.003 | 0–0.2 | probability | Injury chance for a fresh worker in a standard match before anything moves it |
+| `match.injury.perFatiguePoint` | 0.0001 | 0–0.01 | probability | Added per point of fatigue by the end of the match |
+| `match.injury.perConditionPointLost` | 0.0001 | 0–0.01 | probability | Added per point the worst body part is below 100 |
+| `match.injury.duration.<class>` | 1 | 0–3 | multiplier | Injury chance by duration class: short 0.7, standard 1, long 1.3 |
+| `match.injury.opponentSafetyWeight` | 0.012 | 0–0.05 | ratio | Added per point the least safe opponent is below 50 safety (taken off above) |
+| `match.injury.minSafetyFactor` | 0.5 | 0–3 | multiplier | Least a safe opponent can bring the chance to |
+| `match.injury.maxSafetyFactor` | 1.6 | 0–3 | multiplier | Most a careless opponent can bring the chance to |
+| `match.injury.selfStyle.<style>` | 1 | 0–3 | multiplier | How much a worker's own style raises their chance: high flyer and hardcore 1.4 |
+| `match.injury.opponentStyle.<style>` | 1 | 0–3 | multiplier | How much an opponent's style raises it: hardcore 1.3, brawler and striker 1.2, powerhouse 1.15 |
+| `match.injury.injuryProneFactor` | 1.8 | 0–3 | multiplier | Injury chance for an injury-prone worker |
+| `match.injury.durableFactor` | 0.5 | 0–3 | multiplier | Injury chance for a durable worker |
+| `match.injury.keepItSafeFactor` | 0.5 | 0–3 | multiplier | Injury chance when told to keep it safe |
+| `match.injury.repeatMatch` | 1.4 | 0–3 | multiplier | Injury chance for each match after the first on the same card, compounding |
+| `match.injury.maxChance` | 0.2 | 0–1 | probability | Highest injury chance one worker can have in one match |
+| `match.injury.maxPerSegment` | 1 | 0–10 | count | Most workers injured in one segment; 0 means nobody is ever hurt |
