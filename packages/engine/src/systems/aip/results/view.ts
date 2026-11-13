@@ -1,7 +1,7 @@
 /**
  * The read side of a rival's results (AIP5-04): what the booker planned for one segment and why,
- * and what happened once the show ran. Shared by `aip.segmentDecision` and (once AIP4-06's
- * `aip.showCards` is merged) the rival show cards, so both say the same thing.
+ * and what happened once the show ran. Shared by `aip.segmentDecision` and the `decision` on
+ * each `aip.showCards` match, so both say the same thing.
  *
  * Nothing here checks who is looking: callers apply the reveal rule (`isRevealedTo`) first.
  * Reasons come from the stored decision rows (title decisions keep their reason in the row) and

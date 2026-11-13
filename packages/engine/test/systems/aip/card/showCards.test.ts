@@ -228,6 +228,30 @@ describe('aip.showCards', () => {
     }
   });
 
+  it("carries AIP5's result and reasons on a revealed rival card, and none on the player's", async () => {
+    const world = cardsWorld();
+    await world.engine.advanceDays({ maxDays: 1 });
+    const row = rowOf(cardsOf(world.engine, world.proB, PLAYER), world.shows.rival);
+    const segments = row.slots.flatMap((slot) => (slot.segment === null ? [] : [slot.segment]));
+    const matches = segments.filter((segment) => segment.kind === 'match');
+    expect(matches.length).toBeGreaterThan(0);
+    for (const match of matches) {
+      const decision = only(match.decision ?? undefined, `decision of ${match.segmentId}`);
+      expect(decision.segmentId).toBe(match.segmentId);
+      expect(decision.eventInstanceId).toBe(world.shows.rival);
+      expect(decision.reasonText.length).toBeGreaterThan(0);
+      expect(['win', 'draw', 'noContest']).toContain(decision.winner.kind);
+      expect(decision.titles.every((title) => title.actual !== 'pending')).toBe(true);
+    }
+    for (const angle of segments.filter((segment) => segment.kind === 'angle')) {
+      expect(angle.decision).toBeNull();
+    }
+    const own = rowOf(cardsOf(world.engine, world.proA, PLAYER), world.shows.own);
+    for (const slot of own.slots) {
+      expect(slot.segment?.decision ?? null).toBeNull();
+    }
+  });
+
   it("always shows the player's own card, open slots included and an empty pre-show left out", () => {
     const world = cardsWorld();
     const row = rowOf(cardsOf(world.engine, world.proA, PLAYER), world.shows.own);

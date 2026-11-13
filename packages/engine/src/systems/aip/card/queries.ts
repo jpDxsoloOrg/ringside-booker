@@ -47,6 +47,7 @@ import { showScoreTraceRef } from '../../shows/traces';
 import type { EngineTunables } from '../../tunables';
 import { promotionOrRefuse } from '../queries/shared';
 import { isRevealedTo } from '../reveal';
+import { segmentDecisionView, type SegmentDecisionView } from '../results/view';
 import {
   CARD_DECISION_KIND,
   CARD_PLAN_TRACE_KIND,
@@ -114,6 +115,12 @@ export interface ShowCardSegment {
   outcome: { kind: 'win' | 'draw' | 'noContest'; winningSide: number | null } | null;
   /** The booker's short Why? for the slot, while it is kept. */
   reasonTraceRef: TraceRef | null;
+  /**
+   * AIP5's winner, method and title calls with their reasons, for a match a computer booker
+   * decided; null for angles, human-booked matches and ones decided before AIP5. Only on revealed
+   * rows, so planned results never show before the show airs.
+   */
+  decision: SegmentDecisionView | null;
 }
 
 export interface ShowCardSlot {
@@ -304,6 +311,7 @@ function segmentOf(
           }
         : null,
     reasonTraceRef: kept(traces, { kind: CARD_SLOT_TRACE_KIND, id: segment.id }),
+    decision: isMatch ? segmentDecisionView(read, traces, segment.id) : null,
   };
 }
 

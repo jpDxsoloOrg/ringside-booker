@@ -726,6 +726,7 @@ ShowCardSlot = {
     storylines: [{ storylineId, name }],
     outcome: { kind, winningSide } | null,
     reasonTraceRef, // aip.cardSlot, while kept
+    decision,       // AIP5's SegmentDecisionView for a computer-decided match, else null
   } | null,         // null: an open main-card slot
 }
 ```
@@ -1241,8 +1242,10 @@ reigns). Trace refs come back only while the store has them.
   the rival booker's reason and trace when it planned the change. Title
   changes are public, so there is no reveal check.
 
-AIP4's `aip.showCards` gains its `decision` field once AIP4-06 and this ticket
-are on one branch (not on AIP5-04's base).
+Each revealed match on AIP4's `aip.showCards` carries the same view as its
+`decision` (AIP5-05): `segmentDecisionView` for the segment, null for angles,
+human-booked matches and matches decided before AIP5. Hidden rows have no
+slots, so planned results never show before the show airs.
 
 ### Two-year title check
 
