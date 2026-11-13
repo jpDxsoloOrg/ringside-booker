@@ -3,6 +3,7 @@
  * in the same words the panel shows. Checks that changed nothing are included, since a report
  * should hold everything.
  */
+import { withStepUnits } from '@ringside/engine';
 import type { TraceNode, TraceSummary } from '@ringside/engine';
 import { formatGameDate } from '../format';
 import { formatTraceDelta, formatTraceValue } from './formatTraceValue';
@@ -38,7 +39,8 @@ function appendNode(lines: string[], node: TraceNode, level: number): void {
 }
 
 /** The whole trace as text: the headline, then every row indented under its parent. */
-export function traceToText(root: TraceNode): string {
+export function traceToText(givenRoot: TraceNode): string {
+  const root = withStepUnits(givenRoot);
   const lines = [traceHeadline(root)];
   for (const node of traceTopLevelNodes(root)) {
     appendNode(lines, node, 1);

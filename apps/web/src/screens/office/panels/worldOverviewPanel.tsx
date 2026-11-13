@@ -3,7 +3,7 @@ import type { PromotionId, WorldOverview, WorldOverviewPromotion } from '@ringsi
 import { Button } from '@/components/Button';
 import { DataTable } from '@/components/DataTable';
 import type { ColumnDef } from '@/components/DataTable';
-import { formatNumber } from '@/components/format';
+import { formatNumber, formatPopularity } from '@/components/format';
 import { ImageSlot } from '@/components/ImageSlot';
 import { Panel } from '@/components/Panel';
 import styles from './officePanels.module.css';
@@ -20,9 +20,9 @@ export function worldTotalsLine(overview: WorldOverview): string {
   ].join(' · ');
 }
 
-/** Popularity as the Office shows it: one decimal. */
+/** Popularity as every screen shows it. */
 function popularityText(value: number): string {
-  return formatNumber(value, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  return formatPopularity(value);
 }
 
 const baseColumns: readonly ColumnDef<WorldOverviewPromotion>[] = [

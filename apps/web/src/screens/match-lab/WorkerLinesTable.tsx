@@ -117,6 +117,7 @@ function columnsFor(kind: SegmentKind): readonly ColumnDef<WorkerLine>[] {
         <Explained
           label={`${line.name}'s popularity`}
           value={line.popularity.value}
+          unit="points"
           trace={line.popularity.trace}
         />
       ),

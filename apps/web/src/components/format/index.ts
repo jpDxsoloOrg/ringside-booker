@@ -20,3 +20,9 @@ export type {
 } from './format';
 export { useMoneyFormatter } from './useMoneyFormatter';
 export type { MoneyFormatter } from './useMoneyFormatter';
+export {
+  formatPopularity,
+  formatPopularityChange,
+  POPULARITY_DECIMALS,
+  roundPopularity,
+} from './popularity';

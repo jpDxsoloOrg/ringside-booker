@@ -5,7 +5,7 @@ import { Badge } from '@/components/Badge';
 import { Button } from '@/components/Button';
 import { DataTable } from '@/components/DataTable';
 import type { ColumnDef } from '@/components/DataTable';
-import { formatNumber, useMoneyFormatter } from '@/components/format';
+import { formatNumber, formatPopularity, useMoneyFormatter } from '@/components/format';
 import type { MoneyFormatter } from '@/components/format';
 import { ImageSlot } from '@/components/ImageSlot';
 import { Panel } from '@/components/Panel';
@@ -114,7 +114,7 @@ function promotionColumns(formatMoney: MoneyFormatter): ColumnDef<PreviewPromoti
       id: 'popularity',
       header: 'Home popularity',
       cardLabel: 'Popularity',
-      cell: (row) => formatNumber(row.homeCountryPopularity, { maximumFractionDigits: 1 }),
+      cell: (row) => formatPopularity(row.homeCountryPopularity),
       sortValue: (row) => row.homeCountryPopularity,
       numeric: true,
       card: 'stat',
@@ -194,9 +194,7 @@ function PromotionDetails({ promotion, preview }: PromotionDetailsProps) {
                   <span className={styles['workerMeta']}>
                     {codeLabel(worker.style)} · age {formatNumber(worker.age)}
                     {worker.popularitySummary.bestCountry !== null &&
-                      ` · ${formatNumber(worker.popularitySummary.bestCountryPopularity, {
-                        maximumFractionDigits: 1,
-                      })} in ${worker.popularitySummary.bestCountry.name}`}
+                      ` · ${formatPopularity(worker.popularitySummary.bestCountryPopularity)} in ${worker.popularitySummary.bestCountry.name}`}
                   </span>
                 </span>
               </li>

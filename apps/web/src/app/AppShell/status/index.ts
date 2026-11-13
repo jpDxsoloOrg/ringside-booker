@@ -8,7 +8,6 @@ export {
   fanBaseScopeText,
   fanBaseTitle,
   fanBaseTrend,
-  formatFanBasePopularity,
 } from './FanBaseSheet';
 export type {
   FanBaseBodyProps,

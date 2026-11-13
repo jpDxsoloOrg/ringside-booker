@@ -21,7 +21,12 @@ import type {
   TraceNode,
   TunableNode,
 } from '@ringside/engine';
-import { formatTraceDelta, formatTraceNumber, formatTraceValue } from './formatTraceValue';
+import {
+  formatTraceChange,
+  formatTraceDelta,
+  formatTraceNumber,
+  formatTraceValue,
+} from './formatTraceValue';
 
 /** Which way a step moved the running value. Shown with a sign or word too, never colour alone. */
 export type TraceTone = 'positive' | 'negative' | 'neutral';
@@ -73,7 +78,14 @@ function toneOf(before: number, after: number): TraceTone {
 }
 
 function beforeAfter(node: { readonly before: number; readonly after: number } & TraceNode) {
-  return `${formatTraceNumber(node.before, node.unit)} → ${formatTraceNumber(node.after, node.unit)}`;
+  return formatTraceChange(node.before, node.after, node.unit);
+}
+
+/** An arithmetic step's change; a step that changes the unit shows `before` in its own unit. */
+function arithmeticBeforeAfter(node: ArithmeticNode): string {
+  if (node.beforeUnit === undefined) return beforeAfter(node);
+  const before = formatTraceNumber(node.before, node.beforeUnit);
+  return `${before} → ${formatTraceNumber(node.after, node.unit)}`;
 }
 
 export function formulaLine(node: FormulaNode): TraceLine {
@@ -110,9 +122,13 @@ export function tunableLine(node: TunableNode): TraceLine {
   return line(text, { details: ['Game setting', node.key] });
 }
 
-/** Multiplying and dividing factors and exponents are plain numbers, whatever the running value's unit. */
-function factor(operand: number): string {
-  return formatTraceNumber(operand, 'ratio');
+/**
+ * Multiplying and dividing factors and exponents are plain numbers, whatever the running value's
+ * unit, except on the step that turns the value into its calculation's unit, whose factor can
+ * name a unit of its own (`×$15 Spent per fan`).
+ */
+function factor(operand: number, operandUnit?: ArithmeticNode['operandUnit']): string {
+  return formatTraceNumber(operand, operandUnit ?? 'ratio');
 }
 
 function arithmeticSentence(node: ArithmeticNode): string {
@@ -122,18 +138,20 @@ function arithmeticSentence(node: ArithmeticNode): string {
     case 'subtract':
       return `${formatTraceDelta(-node.operand, node.unit)} ${node.label}`;
     case 'multiply':
-      return `×${factor(node.operand)} ${node.label}`;
+      return `×${factor(node.operand, node.operandUnit)} ${node.label}`;
     case 'divide':
-      return `÷${factor(node.operand)} ${node.label}`;
+      return `÷${factor(node.operand, node.operandUnit)} ${node.label}`;
     case 'power':
       return `raised to the power ${factor(node.operand)} (${node.label})`;
   }
 }
 
 export function arithmeticLine(node: ArithmeticNode): TraceLine {
-  const details = [beforeAfter(node)];
+  const details = [arithmeticBeforeAfter(node)];
   if (node.reason !== undefined) details.push(node.reason);
-  return line(arithmeticSentence(node), { details, tone: toneOf(node.before, node.after) });
+  // A step that changes the unit compares two different things, so it is neither up nor down.
+  const tone = node.beforeUnit === undefined ? toneOf(node.before, node.after) : 'neutral';
+  return line(arithmeticSentence(node), { details, tone });
 }
 
 function appliedLimitSentence(node: LimitNode | ClampNode): string {

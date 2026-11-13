@@ -11,10 +11,10 @@ import type {
 } from '@ringside/engine';
 import { Button } from '../Button';
 import { classNames } from '../classNames';
-import { formatNumber } from '../format';
+import { formatNumber, formatPopularity } from '../format';
 import { Icon } from '../Icon';
 import { StatBar } from '../StatBar';
-import { Explained, formatTraceValue } from '../Trace';
+import { Explained } from '../Trace';
 import type { EntityLinkRenderer } from '../Trace';
 import styles from './PopularityDrilldown.module.css';
 
@@ -115,9 +115,7 @@ function PlaceRow({
       <StatBar className={styles['bar']} label={label} value={value} hideLabel showValue={false} />
       <span className={styles['value']}>
         {trace === undefined ? (
-          <span className={classNames(styles['stored'], 'tabular')}>
-            {formatTraceValue(value, POPULARITY_UNIT)}
-          </span>
+          <span className={classNames(styles['stored'], 'tabular')}>{formatPopularity(value)}</span>
         ) : (
           <Explained
             value={value}

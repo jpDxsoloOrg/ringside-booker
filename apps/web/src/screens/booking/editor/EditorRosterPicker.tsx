@@ -11,6 +11,7 @@ import type {
   TeamId,
 } from '@ringside/engine';
 import { useEngineQuery } from '@/app/engine/useEngineQuery';
+import { roundPopularity } from '@/components/format';
 import { RosterPicker } from '@/components/RosterPicker';
 import type {
   RosterPickerMode,
@@ -54,7 +55,7 @@ export function workerStats(row: AvailableWorkerRow, regionName: string): Roster
       key: 'popularity',
       short: 'Pop',
       label: `Popularity in ${regionName}`,
-      value: Math.round(row.popularity),
+      value: roundPopularity(row.popularity),
     },
     ...(row.employmentRole === 'wrestler'
       ? [{ key: 'stamina', short: 'Stamina', label: 'Stamina', value: Math.round(row.stamina) }]

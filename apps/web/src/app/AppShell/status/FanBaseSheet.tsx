@@ -12,7 +12,7 @@ import { useEngineQuery } from '@/app/engine/useEngineQuery';
 import type { EngineQueryError } from '@/app/engine/queryCache';
 import { gameEntityLink } from '@/app/entityLinks';
 import { DeltaChip } from '@/components/DeltaChip';
-import { formatNumber, formatSigned } from '@/components/format';
+import { formatPopularity, formatPopularityChange, roundPopularity } from '@/components/format';
 import { PopularityDrilldown } from '@/components/PopularityDrilldown';
 import { Sheet } from '@/components/Sheet';
 import { Sparkline } from '@/components/Sparkline';
@@ -36,19 +36,6 @@ const DAYS_PER_WEEK = 7;
 
 /** The metric the trend reads from `office.series`. */
 const HEADLINE_METRIC = 'popularity.headline';
-
-/**
- * Popularity as the Office shows it: one decimal (`70.3`). The Office's Popularity card and the
- * world overview use the same rule, so the three never disagree on screen.
- */
-export function formatFanBasePopularity(value: number): string {
-  return formatNumber(value, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-}
-
-/** The value as shown, so the Why? button's name reads the same number as the screen. */
-function roundedPopularity(value: number): number {
-  return Math.round(value * 10) / 10;
-}
 
 /** "Fan base · Altura Wrestling". */
 export function fanBaseTitle(name: string | undefined): string {
@@ -118,10 +105,7 @@ export function FanBaseTrendBlock({ trend, weeks }: FanBaseTrendBlockProps) {
         {trend.delta !== null && (
           <DeltaChip
             value={trend.delta}
-            display={formatSigned(trend.delta, {
-              minimumFractionDigits: 1,
-              maximumFractionDigits: 1,
-            })}
+            display={formatPopularityChange(trend.delta)}
             suffix={FAN_BASE_DELTA_SUFFIX}
           />
         )}
@@ -130,7 +114,7 @@ export function FanBaseTrendBlock({ trend, weeks }: FanBaseTrendBlockProps) {
         className={styles['sparkline']}
         values={trend.values}
         label={`Popularity, ${period}`}
-        formatValue={formatFanBasePopularity}
+        formatValue={formatPopularity}
       />
     </section>
   );
@@ -204,11 +188,11 @@ export function FanBaseBody({ fanBase, own, trend, renderEntityLink }: FanBaseBo
       <div className={styles['headline']}>
         <span className={styles['headlineLabel']}>Popularity</span>
         <span className={styles['headlineValue']}>
-          <span className="tabular">{formatFanBasePopularity(headline.value)}</span>
+          <span className="tabular">{formatPopularity(headline.value)}</span>
           {source !== null && (
             <WhyButton
               label={headline.label}
-              value={roundedPopularity(headline.value)}
+              value={roundPopularity(headline.value)}
               unit="points"
               source={source}
               renderEntityLink={renderEntityLink ?? gameEntityLink}

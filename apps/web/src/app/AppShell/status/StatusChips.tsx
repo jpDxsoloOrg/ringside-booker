@@ -158,6 +158,7 @@ function PopularityChip({ promotion, placement, openFanBase }: PopularityChipPro
     <Explained
       value={popularity.headline ?? popularity.homeRegion}
       label={popularity.headlineLabel ?? 'Popularity in your home region'}
+      unit="points"
       traceRef={popularity.traceRef}
       trace={popularity.traceRef === null ? popularity.trace : null}
     />

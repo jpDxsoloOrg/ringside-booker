@@ -9,16 +9,12 @@ import { createInProcessTransport } from '@/app/engine/transport';
 import type { InProcessTransport } from '@/app/engine/transport';
 import { routerFutureFlags } from '@/app/router';
 import { useSessionStore } from '@/app/session/sessionStore';
+import { formatPopularity } from '@/components/format';
 import { useTracePanelStore } from '@/components/Trace';
 import { fakeEngineFactory, fakeEngineState } from '@/test/fakeEngine';
 import { registerFanBaseColumn } from './fanBaseColumnRegistry';
 import { StatusChips } from './StatusChips';
-import {
-  FanBaseSheet,
-  FanBaseTrendBlock,
-  fanBaseTrend,
-  formatFanBasePopularity,
-} from './FanBaseSheet';
+import { FanBaseSheet, FanBaseTrendBlock, fanBaseTrend } from './FanBaseSheet';
 
 /** The engine's first answer can take a moment under load. */
 const LOAD_MS = 10_000;
@@ -124,7 +120,7 @@ describe('FanBaseSheet', () => {
     const { fanBase } = await renderSheet();
     const sheet = await findSheet(fanBase.name);
 
-    expect(sheet).toHaveTextContent(formatFanBasePopularity(fanBase.headline.value));
+    expect(sheet).toHaveTextContent(formatPopularity(fanBase.headline.value));
     expect(sheet).toHaveTextContent(
       `Shown as popularity in your home country (${fanBase.home.countryName})`,
     );

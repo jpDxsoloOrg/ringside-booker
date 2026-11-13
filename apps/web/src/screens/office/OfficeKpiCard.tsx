@@ -4,6 +4,8 @@ import type { OfficeKpi } from '@ringside/engine';
 import {
   formatGameDate,
   formatNumber,
+  formatPopularity,
+  formatPopularityChange,
   formatSigned,
   formatSignedMoney,
   useMoneyFormatter,
@@ -34,7 +36,11 @@ const KPI_ICONS: Readonly<Record<string, IconName>> = {
   averageMorale: 'office',
 };
 
-/** Decimals for each unit: points and percentages to one place, counts whole, ratios to two. */
+/**
+ * Decimals for each unit: percentages to one place, counts whole, ratios to two. Points
+ * (popularity, morale) go through the shared popularity formatter instead, so the card reads
+ * exactly as the top bar and the Why? panel do.
+ */
 function numberOptions(unit: OfficeKpi['unit']): FormatNumberOptions {
   switch (unit) {
     case 'points':
@@ -48,14 +54,16 @@ function numberOptions(unit: OfficeKpi['unit']): FormatNumberOptions {
   }
 }
 
-/** A number that is not money, in its unit: `69.0`, `44`, `12.5%`. */
+/** A number that is not money, in its unit: `69.3`, `44`, `12.5%`. */
 function formatPlain(value: number, unit: OfficeKpi['unit']): string {
+  if (unit === 'points') return formatPopularity(value);
   const text = formatNumber(value, numberOptions(unit));
   return unit === 'percent' ? `${text}%` : text;
 }
 
 /** A change that is not money, with its sign: `+0.8`, `−2`, `0`. */
 function formatPlainChange(value: number, unit: OfficeKpi['unit']): string {
+  if (unit === 'points') return formatPopularityChange(value);
   const text = formatSigned(value, numberOptions(unit));
   return unit === 'percent' && text !== '0' ? `${text}%` : text;
 }
