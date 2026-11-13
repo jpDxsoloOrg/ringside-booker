@@ -39,6 +39,7 @@ import {
   type TraceNode,
 } from '@ringside/engine';
 import { birthdayAt, rollDebut } from '../../../../src/systems/world/people/dates';
+import { measureBestAgainstReference } from '../../../support/cpu-budget';
 import { testId } from '../../../support/ids';
 import { expectSerialisable, expectTraceReplays } from '../../../support/trace';
 
@@ -803,20 +804,30 @@ describe('traces and seeds', () => {
   });
 });
 
+/**
+ * The most reference workloads (see support/cpu-budget.ts) 1,000 people may cost: the old 2 s bound
+ * over the reference's 50 ms on a laptop. They cost 10 to 20, alone or under load, so a generator
+ * twice as slow fails, and accidental quadratic work (which costs seconds) fails by far.
+ */
+const GENERATE_REFERENCE_BUDGET = 40;
+
 describe('speed', () => {
-  it('generates 1,000 people well inside the budget', () => {
+  // A wall-clock bound failed on a busy machine, so the CPU time is compared with a reference
+  // workload measured in the same process. The cheapest of three runs is kept: about one run in
+  // eight pays for a major garbage collection that costs three times the work.
+  it('generates 1,000 people well inside the budget', { timeout: 30_000 }, () => {
     const roles = (index: number): GenerateSpec => ({
       role: PERSON_ROLES[index % 7] ?? 'wrestler',
     });
     generateMany(200, roles, { seed: 'speed-warm-up' });
-    // eslint-disable-next-line no-restricted-properties -- a speed test has to read the real clock
-    const start = performance.now();
-    generateMany(1_000, roles, { seed: 'speed' });
-    // eslint-disable-next-line no-restricted-properties -- a speed test has to read the real clock
-    const elapsed = performance.now() - start;
-    console.info(`Generated 1,000 people in ${elapsed.toFixed(0)} ms`);
-    // The target is 200 ms on a laptop; the bound is loose so a busy CI machine passes, while
-    // accidental quadratic work (which costs seconds) still fails.
-    expect(elapsed).toBeLessThan(2_000);
+    let generated = 0;
+    const timing = measureBestAgainstReference(() => {
+      generated = generateMany(1_000, roles, { seed: 'speed' }).length;
+    }, 3);
+    expect(generated).toBe(1_000);
+    expect(
+      timing.ratio,
+      `${timing.workMs.toFixed(0)} ms of CPU time against ${timing.referenceMs.toFixed(1)} ms for the reference`,
+    ).toBeLessThan(GENERATE_REFERENCE_BUDGET);
   });
 });
