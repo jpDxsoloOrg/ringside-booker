@@ -56,8 +56,11 @@ jobs:
         env:
           BLOG_BANNED_TERMS: ${{ secrets.BLOG_BANNED_TERMS }}
 
-      - name: Test with coverage
-        run: npm test -- --coverage
+      # No coverage on every run: it roughly doubled the test step on the runner, and the owner
+      # wants fast CI over exhaustive measurement (2026-11-13). Run `npm test -- --coverage`
+      # locally when you want the report.
+      - name: Test
+        run: npm test
 
       # Runs the roster fixture 60 days twice from the same start and fails if the two runs end in
       # different worlds (exit 1) or any step fails (--strict). Then times a year on the 300-person
@@ -76,15 +79,6 @@ jobs:
 
       - name: Build
         run: npm run build
-
-      - name: Upload coverage report
-        if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v7
-        with:
-          name: coverage
-          path: coverage/
-          retention-days: 7
-          if-no-files-found: ignore
 
   e2e:
     name: e2e
