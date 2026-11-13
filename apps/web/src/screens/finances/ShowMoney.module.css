@@ -1,0 +1,76 @@
+/* The results page's "Show money" section: one line per ledger row, then the net and a link. */
+.showMoney {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.rows {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+  padding-block: var(--space-2);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.what {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.label {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 600;
+}
+
+.memo {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  overflow-wrap: anywhere;
+}
+
+.amount {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-inline-start: auto;
+}
+
+.net {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin: 0;
+  font-weight: 600;
+}
+
+.ledgerLink {
+  justify-self: start;
+}
+
+/* Quiet blocks in the section's shape while it loads. */
+.skeleton {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.skeletonRow {
+  display: block;
+  block-size: 2.25rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-hover);
+}
