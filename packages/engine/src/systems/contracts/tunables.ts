@@ -197,7 +197,8 @@ export const contractsTunables = defineTunables({
   },
   'contracts.expiringSoon.stopSkip': {
     kind: 'boolean',
-    default: true,
+    // Off until the Contracts screen can clear the stop (ECO4-04 turns it on).
+    default: false,
     unit: 'flag',
     category: CONTRACTS_TUNABLE_CATEGORY,
     description: 'A new expiry notice stops a skip until you mark it as seen',

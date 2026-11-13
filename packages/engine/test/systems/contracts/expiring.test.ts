@@ -169,7 +169,12 @@ describe('contracts.expiringSoon', () => {
       cadence: { kind: 'daily' },
       run: runContractLifecycle,
     });
-    const runtime = contractsRuntime(built.world, {}, [again], false);
+    const runtime = contractsRuntime(
+      built.world,
+      { 'contracts.expiringSoon.stopSkip': true },
+      [again],
+      false,
+    );
     runDays(runtime, 12);
     const notices = built.world.tables.contractConcerns
       .values()
