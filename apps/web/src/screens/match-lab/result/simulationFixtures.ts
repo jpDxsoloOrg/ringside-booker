@@ -4,7 +4,7 @@
  * from the engine; these only need the shape.
  */
 import type { ContentKey, FinishOption, SimulateResult, Traced, TraceNode } from '@ringside/engine';
-import { parseContentKey } from '@ringside/engine';
+import { parseContentKey, parseId } from '@ringside/engine';
 
 /** A plain input line, so a Why? has something to show. */
 function input(label: string, value: number): Traced<number> {
@@ -72,6 +72,22 @@ function preview(): SimulateResult['preview'] {
   };
 }
 
+/**
+ * An aftermath with no workers: the result block does not show it (MTCH3-04 adds the Aftermath
+ * tab), so the fixtures only need its shape.
+ */
+function noAftermath(): SimulateResult['aftermath'] {
+  return {
+    segmentId: null,
+    eventInstanceId: null,
+    showRegionId: parseId('region', 'reg_0000000001'),
+    showRegionName: 'Coastline',
+    weights: [],
+    notes: [],
+    workers: [],
+  };
+}
+
 /** Side 1 wins by pinfall after a clean finish. */
 export function winSimulation(names: readonly string[] = ['Rex Harlan']): SimulateResult {
   return {
@@ -89,6 +105,7 @@ export function winSimulation(names: readonly string[] = ['Rex Harlan']): Simula
     winnerNames: [...names],
     resultTrace: resultTrace('Side 1 wins', 'Clean, Pinfall', 'Winner decided automatically'),
     randomWinnersMode: false,
+    aftermath: noAftermath(),
   };
 }
 

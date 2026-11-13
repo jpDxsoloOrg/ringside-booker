@@ -35,6 +35,7 @@ export type {
   TitleId,
   TitleReignId,
   VenueId,
+  AftermathId,
 } from './core/ids';
 /** The nominal-type helper, exported as `Branded` because `Brand` is the brand entity. */
 export type { Brand as Branded } from './core/brand';
@@ -1631,3 +1632,60 @@ export {
   type PayrollLine,
   type PayrollReason,
 } from './systems/finance/index';
+
+// The aftermath engine (MTCH3-03): where a match's popularity change spreads (show region,
+// neighbours, registered reach), the aftermath of one match for the lab and show night, the applier
+// MTCH3-05 registers, the `aftermaths` table and `match.aftermath`. See
+// docs/design/match-aftermath.md#regional-spread.
+export {
+  AFTERMATH_OUTCOMES,
+  AftermathSchema,
+  aftermathsTable,
+  type Aftermath,
+  type AftermathOutcome,
+  type AftermathRegion,
+} from './model/entities/aftermath';
+export {
+  AFTERMATH_DOC_REF,
+  AFTERMATH_NOT_FOUND_MESSAGES,
+  AFTERMATH_TRACE_KINDS,
+  SHOW_REGION_REASON,
+  aftermathsToPrune,
+  applySegmentAftermath,
+  computeSegmentAftermath,
+  hasMomentum,
+  listPopularityReach,
+  momentumGainTraceRef,
+  popularityGainTraceRef,
+  pruneAftermathsPhase,
+  registerPopularityReach,
+  resetPopularityReachForTests,
+  segmentRegionWeights,
+  type AftermathInput,
+  type AftermathMomentum,
+  type AftermathNoMomentum,
+  type AftermathPopularity,
+  type AftermathQueryArgs,
+  type AftermathRegionRow,
+  type AftermathRegionView,
+  type AftermathResult,
+  type AftermathRollupRow,
+  type AftermathSegmentView,
+  type AftermathWorker,
+  type AftermathWorkerView,
+  type AppliedAftermath,
+  type PopularityReachProvider,
+  type ReachContext,
+  type ReachRegion,
+  type RegionWeightLine,
+  type SegmentAftermath,
+  type SegmentRegionWeights,
+  type SimulatedAftermathInput,
+} from './systems/match/index';
+export {
+  previewMomentumChange,
+  previewPopularityChange,
+  type MomentumPreview,
+  type PopularityPreview,
+  type PopularityPreviewRegion,
+} from './systems/workers/index';

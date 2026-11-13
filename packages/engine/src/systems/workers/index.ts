@@ -125,6 +125,15 @@ export {
   type SetRoleArgs,
   type SetRoleProblemCode,
 } from './doors';
+// The doors' math with no writes, for previews (MTCH3-03).
+export {
+  previewMomentumChange,
+  previewPopularityChange,
+  type MomentumPreview,
+  type PopularityPreview,
+  type PopularityPreviewRegion,
+  type PreviewPopularityChangeArgs,
+} from './doors';
 export {
   POPULARITY_DOC_REF,
   popularityAnchor,

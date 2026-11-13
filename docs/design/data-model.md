@@ -1187,3 +1187,37 @@ the `networksExist` invariant instead of `refs`.
 Indexes: `byEventInstance` (unique), `byPromotion`. Rows dated more than
 `promoPop.keepShowChangesDays` (365) before the 1st of a month are deleted that
 day, which bounds the table at roughly a year of shows.
+
+## Match aftermaths
+
+### Aftermaths (`aftermaths`, `aft_`)
+
+What one run match did to one competitor's popularity and momentum (MTCH3-03).
+Show night's aftermath applier writes one row per competitor per match, with
+the values the doors actually wrote, so results pages and Recent form agree
+with profiles even after the full trace is gone. See
+[match-aftermath.md](match-aftermath.md#stored-aftermaths).
+
+| Field             | Type                                                       | Notes                                                                    |
+| ----------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `id`              | `AftermathId`                                              |                                                                          |
+| `segmentId`       | `SegmentId`                                                | the match                                                                |
+| `eventInstanceId` | `EventInstanceId`                                          | the match's show                                                         |
+| `promotionId`     | `PromotionId`                                              | the show's promotion                                                     |
+| `personId`        | `PersonId`                                                 | the competitor                                                           |
+| `date`            | `GameDate`                                                 | the show's date                                                          |
+| `outcome`         | `'win' \| 'loss' \| 'draw'`                                | a no contest stores nothing                                              |
+| `showRegionId`    | `RegionId`                                                 |                                                                          |
+| `popularity`      | `{ delta, byRegion: Record<RegionId, { before, after }> }` | `delta` before the spread and taper; `byRegion` only the regions reached |
+| `momentum`        | `{ employmentId, before, after } \| null`                  | null without a contract; `before` null when this match started it        |
+| `traceIds`        | `{ popularity, momentum }`                                 | `refKey`s of the `match.popularityGain` / `match.momentumGain` traces    |
+
+Refs: `segmentId`, `eventInstanceId`, `promotionId`, `personId`,
+`showRegionId`, `popularity.byRegion{}` and `momentum.employmentId`. Indexes:
+`bySegment`, `byPerson`, `byEventInstance` and unique `bySegmentPerson`.
+Invariants: `aftermaths.showMismatch` (the row's show is its segment's) and
+`aftermaths.promotionMismatch` (its promotion runs that show).
+
+The weekly `match.pruneAftermaths` phase keeps each worker's newest
+`match.aftermath.keepPerPerson` rows. Saves list the table with a default of
+`[]`, so saves written before it existed load with it empty.

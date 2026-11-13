@@ -9,7 +9,7 @@
     "label": "Test save",
     "promotionName": "Test Promotion A",
     "promotionShortName": "TPA",
-    "schemaFingerprint": "f40a5564100f15ce36a3bd44b784dad8",
+    "schemaFingerprint": "af7288fce7b4de309ae695e16b8e5e22",
     "startDate": "2026-01-05",
     "worldName": "Test Tiny World"
   },
@@ -666,6 +666,64 @@
         "worldName": "Test Tiny World"
       },
       "tables": {
+        "aftermaths": [
+          {
+            "date": "2026-04-09",
+            "eventInstanceId": "evi_0000000001",
+            "id": "aft_0000000001",
+            "momentum": {
+              "after": 15,
+              "before": 10,
+              "employmentId": "emp_0000000001"
+            },
+            "outcome": "win",
+            "personId": "per_0000000001",
+            "popularity": {
+              "byRegion": {
+                "reg_0000000001": {
+                  "after": 51.5,
+                  "before": 50
+                }
+              },
+              "delta": 1.5
+            },
+            "promotionId": "pro_0000000001",
+            "segmentId": "seg_0000000003",
+            "showRegionId": "reg_0000000001",
+            "traceIds": {
+              "momentum": "match.momentumGain:seg_0000000003/per_0000000001",
+              "popularity": "match.popularityGain:seg_0000000003/per_0000000001"
+            }
+          },
+          {
+            "date": "2026-04-09",
+            "eventInstanceId": "evi_0000000001",
+            "id": "aft_0000000002",
+            "momentum": {
+              "after": 0,
+              "before": 5,
+              "employmentId": "emp_0000000002"
+            },
+            "outcome": "loss",
+            "personId": "per_0000000002",
+            "popularity": {
+              "byRegion": {
+                "reg_0000000001": {
+                  "after": 44.5,
+                  "before": 45
+                }
+              },
+              "delta": -0.5
+            },
+            "promotionId": "pro_0000000001",
+            "segmentId": "seg_0000000003",
+            "showRegionId": "reg_0000000001",
+            "traceIds": {
+              "momentum": "match.momentumGain:seg_0000000003/per_0000000002",
+              "popularity": "match.popularityGain:seg_0000000003/per_0000000002"
+            }
+          }
+        ],
         "brands": [
           {
             "active": true,

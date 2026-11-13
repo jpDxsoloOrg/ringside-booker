@@ -545,3 +545,15 @@ Wages and medical (ECO1-03), amounts in cents:
 | `finance.medical.perContract.level1` | integer | 15,000  | 0–10,000,000 | money/month | Same, policy level 1                                                |
 | `finance.medical.perContract.level2` | integer | 60,000  | 0–10,000,000 | money/month | Same, policy level 2                                                |
 | `finance.medical.perContract.level3` | integer | 150,000 | 0–10,000,000 | money/month | Same, policy level 3                                                |
+
+### Aftermath spread and storage tunables
+
+Where a match's popularity change spreads and how many stored aftermaths each
+worker keeps (MTCH3-03), appended to `systems/match/aftermath/tunables.ts`,
+category `Aftermath`. See
+[match-aftermath.md](match-aftermath.md#regional-spread).
+
+| Key                               | Kind    | Default | Range | Unit  | What it does                                                    |
+| --------------------------------- | ------- | ------- | ----- | ----- | --------------------------------------------------------------- |
+| `match.popularity.neighbourSpill` | number  | 0.4     | 0–1   | ratio | Share of a match's popularity change each neighbour region gets |
+| `match.aftermath.keepPerPerson`   | integer | 10      | 1–100 | count | How many recent match aftermaths are kept for each worker       |

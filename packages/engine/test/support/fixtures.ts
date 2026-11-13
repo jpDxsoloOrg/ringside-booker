@@ -16,6 +16,7 @@ export * from './builders/media';
 export * from './builders/inbox';
 export * from './builders/ledger';
 export * from './builders/popularity';
+export * from './builders/aftermath';
 export * from './catalogs';
 export { resetTestIds, testId, TestIds, TestIdSequence } from './ids';
 export { setTestWriteValidation, testWriteValidation } from './write-validation';

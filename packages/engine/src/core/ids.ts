@@ -42,6 +42,7 @@ export const ENTITY_KINDS = {
   ledgerEntry: 'led',
   season: 'sea',
   popularityShowChange: 'psc',
+  aftermath: 'aft',
 } as const;
 
 export type EntityKind = keyof typeof ENTITY_KINDS;
@@ -75,6 +76,7 @@ export type NewsId = IdOf<'news'>;
 export type LedgerEntryId = IdOf<'ledgerEntry'>;
 export type SeasonId = IdOf<'season'>;
 export type PopularityShowChangeId = IdOf<'popularityShowChange'>;
+export type AftermathId = IdOf<'aftermath'>;
 
 /** Lowercase Crockford base32: digits and letters without i, l, o and u. Index = 5-bit value. */
 export const ID_BODY_ALPHABET = '0123456789abcdefghjkmnpqrstvwxyz';

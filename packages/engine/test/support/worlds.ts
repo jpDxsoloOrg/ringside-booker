@@ -21,6 +21,7 @@ import type { ParticipantRole } from '../../src/model/entities/participant';
 import { aDeal, aNetwork } from './builders/media';
 import { aLedgerEntry } from './builders/ledger';
 import { aPopularityShowChange } from './builders/popularity';
+import { anAftermath } from './builders/aftermath';
 import { aMail, aNews } from './builders/inbox';
 import { aVenue } from './builders/geography';
 import { aRelationship, aStable, aTeam } from './builders/promotions';
@@ -453,6 +454,43 @@ function addTinyHistory(context: BuildContext): void {
       sequence,
     ),
   );
+
+  // The title match's aftermath (MTCH3-03): the champion gained, the challenger lost a little.
+  const aftermathOf = (
+    index: number,
+    outcome: 'win' | 'loss',
+    popularity: readonly [number, number],
+    momentum: readonly [number, number],
+  ) => {
+    const personId = person(index);
+    const employmentId = required(ids.employments[index], `employment ${String(index)}`);
+    context.insert(
+      'aftermaths',
+      anAftermath(
+        {
+          segmentId: mainEvent.id,
+          eventInstanceId: show.id,
+          promotionId: promotionA,
+          personId,
+          date: TINY_WORLD_SHOW_DATE,
+          outcome,
+          showRegionId: show.regionId,
+          popularity: {
+            delta: popularity[1] - popularity[0],
+            byRegion: { [show.regionId]: { before: popularity[0], after: popularity[1] } },
+          },
+          momentum: { employmentId, before: momentum[0], after: momentum[1] },
+          traceIds: {
+            popularity: `match.popularityGain:${mainEvent.id}/${personId}`,
+            momentum: `match.momentumGain:${mainEvent.id}/${personId}`,
+          },
+        },
+        sequence,
+      ),
+    );
+  };
+  aftermathOf(0, 'win', [50, 51.5], [10, 15]);
+  aftermathOf(1, 'loss', [45, 44.5], [5, 0]);
 }
 
 type DeepPartialLedger = Parameters<typeof aLedgerEntry>[0];
@@ -472,6 +510,7 @@ type DeepPartialLedger = Parameters<typeof aLedgerEntry>[0];
  *   finish is `finish.clean`), pre-show slot 0 is a match; and their 8 participants;
  * - 1 venue, 2 relationships, 2 mail (one with an open decision), 2 news and 5 ledger entries;
  * - 1 per-show popularity record for last Thursday's show;
+ * - 2 aftermath rows for the title match: people[0] won, people[1] lost;
  * - the shipped base catalogs on its metadata (`TEST_CATALOGS`), so every segment key resolves.
  */
 export function tinyWorld(): BuiltWorld {

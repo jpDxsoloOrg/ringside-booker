@@ -182,6 +182,7 @@ function emptyIdLists(): IdLists {
     news: [],
     ledgerEntries: [],
     popularityShowChanges: [],
+    aftermaths: [],
   };
 }
 
