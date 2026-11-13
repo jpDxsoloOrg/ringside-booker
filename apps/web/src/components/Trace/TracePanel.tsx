@@ -211,6 +211,9 @@ function hasTrace(answer: unknown): answer is { readonly trace: TraceNode } {
   return typeof answer === 'object' && answer !== null && 'trace' in answer;
 }
 
+/** What a lazy panel says when its query answers null: the number has no breakdown now. */
+export const NO_BREAKDOWN_TEXT = 'There is no breakdown for this number any more.';
+
 export interface TraceQueryPanelProps<Name extends TraceQueryName> extends Omit<
   TracePanelProps,
   'source'
@@ -239,6 +242,8 @@ export function TraceQueryPanel<Name extends TraceQueryName>({
   let getCopyText: (() => string) | null = null;
   if (query.status === 'loading') {
     body = <TraceLoading />;
+  } else if (query.status === 'success' && answer === null) {
+    body = <p className={styles['noBreakdown']}>{NO_BREAKDOWN_TEXT}</p>;
   } else if (query.status === 'error' || !hasTrace(answer)) {
     body = (
       <p className={styles['error']} role="alert">
