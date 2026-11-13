@@ -709,8 +709,10 @@ together.
 Two streams, declared in `results/streams.ts`:
 
 - `aip.winners`: per segment, in this order: the jitter on each side (in side
-  order), the draw roll, the squash roll, the protection roll, the finale roll,
-  then the method roll. A roll a segment does not need is not drawn.
+  order), the draw roll, the finale roll, the protection roll, the squash roll,
+  then the method roll. A roll a segment does not need is not drawn, and a rule
+  that decides the winner stops every later rule from drawing, so changing a
+  late rule's tunable never shifts an earlier roll.
 - `aip.titles`: per title on the segment (highest prestige first), the change
   roll, then the challenger pick.
 
@@ -718,6 +720,58 @@ Shows are booked in event instance ID order and their segments are worked
 through in running order (pre-show first, then by slot), so a change to one
 segment never shifts another show's rolls, and nothing the rivals roll shifts
 the card planner's `aip.card` stream.
+
+### Who wins
+
+`matchWinner(inputs, { tunables, rng })` (`aip/formulas/matchWinner.ts`) is
+one pure decision: no world, transaction or clock access, so AIP5-03 reuses it
+for vacant titles and BRW6 for computer-GM brands. It returns the plan key
+(`side:<n>` or `draw`, read back with `parseWinnerPlan`) and a `reasonKey`;
+`winnerReasonText` turns the key into a short label ("Protected prospect",
+"Squash", "Storyline finale", "Higher value", "Even on value", "Draw").
+
+**Side value.** `rivalSideValue` gives each side the mean of its wrestlers'
+card values, times `1 + jitter`, where the jitter is a float roll between
+`-aip.winner.jitter` and `+aip.winner.jitter` ("Booker's gut feeling,
+<side>"). At 0 nothing is drawn and the trace says "No gut feeling (0)". The
+mean (not the sum) lets a handicap side or a team compare fairly with a single
+wrestler; there is no clamp. Each card value is recorded as its number only,
+not its whole card value tree, so a stored Why? stays small.
+
+The decision first lists every side with its value, then runs these rules in
+order. Each is recorded whether it applied or not, and the first that decides
+ends the decision:
+
+1. **Draw.** Only with exactly two sides and a match type that can end in a
+   draw. `aip.winner.drawChance` (default 0: "Draws are off (0)", no roll);
+   a hit books a draw.
+2. **Storyline finale.** The first storyline (by name, then ID) at its finale
+   with both a face side and a heel side in the match. The caller decides the
+   finale: the storyline's finale segment when it names one, else
+   `ageDays >= aip.winner.finale.minAgeDays`. A roll on
+   `aip.winner.finale.faceChance` gives the faces their win, a miss gives the
+   heels the last word. Otherwise the rule is recorded as not applying, with
+   why ("No storyline on this match", "<name> is 23 days old; finales start
+   at 56").
+3. **Protection.** Exactly one side holds the ace or a prospect: a roll on
+   `aip.winner.protect.ace` or `aip.winner.protect.prospect` puts that side
+   over. Featured wrestlers on two sides cancel out; a chance of 0 draws no
+   roll.
+4. **Squash.** The gap between the highest and lowest `pushIndex` is at least
+   `aip.winner.squash.pushGap` and one side alone has the top push: a roll on
+   `aip.winner.squash.chance` puts it over. A chance of 0 draws no roll.
+5. **Value.** The highest side value wins. An exact tie goes to the side whose
+   lowest person ID sorts first. This rule never books a draw.
+
+Losing a match here never touches morale: AIP5 writes none, and rival result
+morale stays off by default (`ai.skipResultMorale`).
+
+**Worked example.** Kai Moreno (a prospect, card value 58.5, midcard) faces
+Vance Troy (card value 45.2, lower card). Jitter rolls +5% and +4%: 61.4 and
+47.0. Draws are off (0). No storyline on this match. Kai is the only featured
+wrestler, so the booker rolls on 0.75 and the roll hits: "Protecting the
+prospect Kai Moreno". The squash and value rules are not reached and draw
+nothing.
 
 ### Inputs
 
