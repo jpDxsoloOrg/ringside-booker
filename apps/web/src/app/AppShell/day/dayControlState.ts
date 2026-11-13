@@ -57,7 +57,7 @@ export const SHOW_NIGHT_HINT = 'showNight';
 export const GO_TO_SHOW_LABEL = 'Go to the show';
 
 /** The show night button's label in the phone top bar. */
-export const SHOW_TONIGHT_PHONE_LABEL = 'Show tonight';
+export const SHOW_TONIGHT_PHONE_LABEL = 'Tonight';
 
 /** The label of a gate whose hint no screen handles yet. */
 export const GENERIC_GATE_LABEL = 'Needs attention';

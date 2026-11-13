@@ -77,9 +77,10 @@
  * A narrow container (the top bar on a phone at a large UI scale; rem grows with the scale): the
  * label is hidden from sight but stays the accessible name, so only the dot and the icon show,
  * and the bug never shrinks below them. Above this width the bar has room for them and some of
- * the label at any scale, since everything in it is sized in rem.
+ * the label at any scale, since everything in it is sized in rem. 20rem, not more: a 360px phone's
+ * top bar is 20.5rem inside its padding, and it keeps the label there (UI-30).
  */
-@container (width < 21rem) {
+@container (width < 20rem) {
   .shrinkable,
   .shrinkable .content {
     min-inline-size: auto;

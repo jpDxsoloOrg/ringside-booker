@@ -45,7 +45,7 @@ describe('deriveDayControl', () => {
       primary: {
         kind: 'gate',
         label: 'Go to the show',
-        phoneLabel: 'Show tonight',
+        phoneLabel: 'Tonight',
         reason: showGate.reason,
         to: `${routes.game.booking()}?event=evi_harbor`,
       },

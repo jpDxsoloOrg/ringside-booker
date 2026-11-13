@@ -445,8 +445,8 @@ describe('DayControl on a phone, with a show tonight', () => {
       },
     });
 
-    const button = await waitFor(() => dayButton('Show tonight: Go to the show'));
-    expect(button).toHaveTextContent('Show tonight');
+    const button = await waitFor(() => dayButton('Tonight: Go to the show'));
+    expect(button).toHaveTextContent('Tonight');
     expect(button).not.toHaveTextContent('Go to the show');
     await user.click(button);
 

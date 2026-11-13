@@ -93,10 +93,10 @@
 
 /*
  * A narrow top bar (a phone at a large UI scale): the day button is down to its dot and icon,
- * which it never shrinks below (LiveBugButton's .shrinkable, same 21rem width), so the date takes
+ * which it never shrinks below (LiveBugButton's .shrinkable, same 20rem width), so the date takes
  * all of the squeeze.
  */
-@container (width < 21rem) {
+@container (width < 20rem) {
   .dayControl {
     flex: none;
   }
