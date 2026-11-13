@@ -3,7 +3,7 @@
  *
  * A rival booker moves a title sooner while its promotion keeps losing fans. That needs weekly
  * popularity readings, which DAY2's promotion snapshots keep; this file only lets one source plug
- * in (AIP5-06 registers DAY2's). With no source, `popularityHistoryOf` returns null and the title
+ * in (AIP5-06 registers DAY2's, in `snapshotHistory.ts`). With no source, `popularityHistoryOf` returns null and the title
  * decision notes "No popularity history yet" and adds nothing. See
  * docs/design/rival-booking.md#title-changes.
  */

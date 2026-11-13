@@ -78,7 +78,11 @@ export {
 } from './phases';
 import { aipRulesQuery } from './queries/rules';
 import { aipDecisionLogQuery } from './queries/decisionLog';
-import { aipRecentTitleChangesQuery, aipSegmentDecisionQuery } from './results/queries';
+import {
+  aipRecentTitleChangesQuery,
+  aipSegmentDecisionQuery,
+  aipShowDecisionsQuery,
+} from './results/queries';
 import { aipNeedsQuery } from './queries/needs';
 import { promotionProfileQuery } from './queries/promotionProfile';
 import { promotionRosterQuery } from './queries/promotionRoster';
@@ -245,6 +249,7 @@ export const aipSystem: SystemBundle = defineSystem({
     aipShowCardsQuery,
     // AIP5-04: a rival's planned results and its recent title changes.
     aipSegmentDecisionQuery,
+    aipShowDecisionsQuery,
     aipRecentTitleChangesQuery,
   ],
   commands: [...aipCardCommands],

@@ -231,8 +231,10 @@ change hands on this finish".
 
 ## Auto winner
 
-When nobody booked a winner (rival matches until AIP5 books their results, and
-every match on your shows in [Random winners](#random-winners) mode), the
+When nobody booked a winner (every match on your shows in
+[Random winners](#random-winners) mode, or a rival match whose card was written
+before AIP5 booked results; rival bookers plan their own winner and finish
+since AIP5-06), the
 winner is decided automatically (MTCH2-03). Each side gets a score
 (`autoWinnerScore`, `systems/match/formulas/autoWinnerScore.ts`), with means
 over the side's competitors:
@@ -430,7 +432,7 @@ doors they use are already open:
 | EVT2 (booking)       | wired (EVT2-07)         | The booking editor's Finish section reads `match.finishes` (with `outcomeKind`) through the lab's `FinishSelectView`; the `match.finish` booking check uses `allowedFinishes` and `titleCanChange`; `randomWinnersActive` refuses planned results (`randomWinners`), and `booking.card`'s `randomWinners` gives the editor "Decided on the night (Random winners)". See [booking.md](booking.md#integration). |
 | EVT3 (show night)    | wired (EVT3-07)         | `match.resolveOutcome` registered with show night's `registerMatchOutcomeResolver` (`finishes/showNight.ts`); see [Show night](#show-night) below.                                                                                                                                                                                                                                                            |
 | MTCH7 (stipulations) | wires from its own pack | `registerFinishFilter` with the stipulation keys in `ctx.stipulationKeys`; the lab's list, `match.finishes`, Simulate and `resolveMatchOutcome` all follow the filter.                                                                                                                                                                                                                                        |
-| AIP5 (rival winners) | wires from its own pack | `autoFinish` over `allowedFinishes` for the outcome it picked, keeping to `allowsTitleChange` finishes when it plans a title change.                                                                                                                                                                                                                                                                          |
+| AIP5 (rival winners) | wired (AIP5-06)         | `pickRivalFinish` plans a finish with every rival result: `autoFinish` over `allowedFinishes` of the planned outcome kind, narrowed by `titleCanChange` for a planned change or a forced retention, then `chooseMethod` among the methods left. The finish is written with the result, so show night runs it as booked. See [rival-booking.md](rival-booking.md#how-a-rival-shows-results-are-decided).       |
 
 Until EVT3-07 no real result used a finish, so every finish, auto-winner
 and Random winners path is exercised through the Match lab's Run. Its

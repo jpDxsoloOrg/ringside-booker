@@ -21,9 +21,58 @@ describe('choiceText', () => {
     },
   );
 
+  it.each([
+    ['side:0', 'Side 1'],
+    ['side:2', 'Side 3'],
+    ['method.knockout', 'Knockout'],
+    ['method.count-out', 'Count out'],
+    ['finish.double-count-out', 'Double count out'],
+  ])('reads the saved code %s as "%s", never as the code', (code, words) => {
+    expect(choiceText(code)).toBe(words);
+  });
+
   it('reads yes and no for a yes/no decision', () => {
     expect(choiceText(true)).toBe('yes');
     expect(choiceText(false)).toBe('no');
+  });
+});
+
+describe('a rival result saved with plan codes (AIP5-06)', () => {
+  const booked: TraceNode = {
+    kind: 'decision',
+    label: 'Who wins: Kai Moreno vs Rex Hale',
+    value: 'side:1',
+    chosen: 'side:1',
+    reason: 'Higher value',
+    considered: [
+      { option: 'side:0', score: 51.8, reason: 'Kai Moreno' },
+      { option: 'side:1', score: 64.2, reason: 'Rex Hale' },
+    ],
+  };
+
+  it("names the chosen side by its wrestlers' names, in the headline and the row", () => {
+    expect(traceValueText(booked)).toBe('Rex Hale');
+    const words = describeTraceNode(booked);
+    expect(words.text).toBe('Who wins: Kai Moreno vs Rex Hale: Rex Hale');
+    expect(words.items).toEqual([
+      'Chosen: Rex Hale, score 64.2',
+      'Also considered: Kai Moreno, score 51.8',
+    ]);
+  });
+
+  it('falls back to the side number, and reads a method key as its name', () => {
+    const headline: TraceNode = { ...booked, considered: [] };
+    expect(traceValueText(headline)).toBe('Side 2');
+    const method: TraceNode = {
+      kind: 'decision',
+      label: 'How the match is won',
+      value: 'method.knockout',
+      chosen: 'method.knockout',
+      reason: 'Knockout',
+      considered: [{ option: 'method.knockout', score: 1, reason: 'Knockout' }],
+    };
+    expect(describeTraceNode(method).text).toBe('How the match is won: Knockout');
+    expect(describeTraceNode(method).items).toEqual(['Chosen: Knockout, score 1']);
   });
 });
 

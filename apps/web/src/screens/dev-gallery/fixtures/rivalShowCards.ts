@@ -5,8 +5,10 @@
  * promotions, people and reasons are made up. The Why? buttons get `galleryCardTrace` inline.
  */
 import { parseGameDate, parseId } from '@ringside/engine';
+import { galleryResultTraceOf } from './rivalResults';
 import type {
   AutoFillResult,
+  SegmentDecisionView,
   ShowCardRow,
   ShowCardSegment,
   ShowCardSide,
@@ -38,8 +40,11 @@ export const galleryCardTrace: TraceNode = {
   ],
 };
 
-/** Every gallery Why? opens the same short breakdown, whatever it points at. */
-export const galleryTraceOf: (ref: TraceRef) => TraceNode = () => galleryCardTrace;
+/** A slot's Why? opens the card breakdown; AIP5's result Why?s open their own (AIP5-05). */
+export const galleryTraceOf = (ref: TraceRef): TraceNode =>
+  ref.kind === 'aip.winner' || ref.kind === 'aip.title'
+    ? galleryResultTraceOf(ref)
+    : galleryCardTrace;
 
 let personCount = 0;
 
@@ -85,6 +90,7 @@ function segment(
     storylines: [],
     outcome: null,
     reasonTraceRef: { kind: 'aip.cardSlot', id: segmentId },
+    decision: null,
     ...extra,
   };
 }
@@ -105,7 +111,7 @@ const TITLE = {
 };
 const STORY = { storylineId: parseId('storyline', 'sty_0000000001'), name: 'The Long Road Back' };
 
-const airedSlots: ShowCardSlot[] = [
+const plainAiredSlots: ShowCardSlot[] = [
   slot(
     1,
     'opener',
@@ -171,6 +177,52 @@ const airedSlots: ShowCardSlot[] = [
     }),
   ),
 ];
+
+/** The booker's calls on the aired card: method, finish and reason by slot (AIP5-05). */
+const AIRED_CALLS: Readonly<
+  Record<number, { method: string | null; finish: string | null; reason: string }>
+> = {
+  1: { method: 'Pinfall', finish: 'Clean finish', reason: 'Higher value' },
+  2: { method: 'Submission', finish: 'Cheating finish', reason: 'Protected prospect' },
+  4: { method: 'Pinfall', finish: 'Clean finish', reason: 'Squash' },
+  5: { method: null, finish: null, reason: 'Draw' },
+  6: { method: 'Pinfall', finish: 'Clean finish', reason: 'Champion retains' },
+};
+
+function decided(filled: ShowCardSegment, displayNumber: number): ShowCardSegment {
+  const call = AIRED_CALLS[displayNumber];
+  if (call === undefined || filled.kind !== 'match' || filled.outcome === null) return filled;
+  const { outcome } = filled;
+  const won = outcome.winningSide === null ? undefined : filled.sides[outcome.winningSide];
+  const decision: SegmentDecisionView = {
+    segmentId: filled.segmentId,
+    eventInstanceId: parseId('eventInstance', 'evi_0000000001'),
+    winner: {
+      kind: outcome.kind,
+      sideLabel: won?.name ?? null,
+      personIds: won?.people.map((each) => each.personId) ?? [],
+      methodName: call.method,
+      finishName: call.finish,
+    },
+    reasonText: call.reason,
+    winnerTraceRef: { kind: 'aip.winner', id: filled.segmentId },
+    titles: filled.titles.map((onTheLine) => ({
+      titleId: onTheLine.titleId,
+      titleName: onTheLine.name,
+      plan: 'retain',
+      reasonText: 'Champion retains',
+      chance: 15.5,
+      reignDays: 34,
+      traceRef: { kind: 'aip.title', id: `${filled.segmentId}|${onTheLine.titleId}` },
+      actual: 'retained',
+    })),
+  };
+  return { ...filled, decision };
+}
+
+const airedSlots: ShowCardSlot[] = plainAiredSlots.map((each) =>
+  each.segment === null ? each : { ...each, segment: decided(each.segment, each.displayNumber) },
+);
 
 const BASE: Omit<ShowCardRow, 'eventInstanceId' | 'name' | 'date' | 'airDate'> = {
   importance: 'regular',

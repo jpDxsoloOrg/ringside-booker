@@ -144,7 +144,8 @@ export const FACES_WIN_ROLL = 'Faces win the finale?';
 export const FACES_WIN_REASON = 'Storyline finale: the faces get their win';
 export const HEELS_WIN_REASON = 'Storyline finale: the heels have the last word';
 export const BOTH_FEATURED_RULE = 'Featured workers on both sides: no protection';
-export const NO_FEATURED_RULE = 'No ace or prospect in this match';
+/** A rule that did not apply reads "Did not apply: An ace or prospect to protect". */
+export const NO_FEATURED_RULE = 'An ace or prospect to protect';
 export const PROTECTION_OFF_NOTE = 'Protection is off (0)';
 export const SQUASH_ROLL = 'Squash?';
 export const SQUASHES_OFF_NOTE = 'Squashes are off (0)';

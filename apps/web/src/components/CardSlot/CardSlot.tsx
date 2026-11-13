@@ -93,6 +93,11 @@ export interface CardSlotProps {
   readonly winnerIndex?: number;
   /** A result that has no winner, such as "Draw" or "No contest", shown under the matchup. */
   readonly resultLabel?: string;
+  /**
+   * Anything about how the segment turned out, drawn inside the card under the matchup at full
+   * width, such as a rival booker's result line with its Why? buttons. Nothing when left out.
+   */
+  readonly result?: ReactNode;
   /** The booking problems on this slot, as an icon and words in the header. Hidden at 0 and 0. */
   readonly issues?: CardSlotIssues;
   /** Drawn right after the role tag, such as a Why? button for the role and a duration chip. */
@@ -192,6 +197,7 @@ export function CardSlot({
   winner,
   winnerIndex,
   resultLabel,
+  result,
   issues,
   roleAside,
   winnerLabel = 'Winner',
@@ -317,6 +323,11 @@ export function CardSlot({
             <p className={styles['result']} data-part="result">
               {resultLabel}
             </p>
+          )}
+          {result !== undefined && result !== null && (
+            <div className={styles['resultArea']} data-part="result-area">
+              {result}
+            </div>
           )}
         </>
       )}

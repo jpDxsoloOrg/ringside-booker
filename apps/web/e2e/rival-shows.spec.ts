@@ -35,7 +35,7 @@ const SHOTS_DIR = process.env['E2E_SHOTS'];
 
 async function shot(page: Page, name: string, projectName: string): Promise<void> {
   if (SHOTS_DIR === undefined) return;
-  await page.screenshot({ path: `${SHOTS_DIR}/${name}-${projectName}.png`, fullPage: true });
+  await page.screenshot({ path: `${SHOTS_DIR}/${name}-${projectName}.png` });
 }
 
 /** Opens the first computer-run promotion's profile from the Promotions list. */
@@ -109,6 +109,11 @@ test.describe('rival shows and Auto-fill', () => {
       await expect(next.getByText('Card is revealed when the show airs')).toBeVisible();
     }
     await expectNoHorizontalScroll(page);
+    // Back to the top first: a slot's Why? scrolled under the sticky top bar counts as an
+    // obscured tap target, which is the scroll position, not the layout.
+    await page.evaluate(() => {
+      window.scrollTo(0, 0);
+    });
     await expectNoSeriousA11yViolations(page);
 
     await seeResults.click();
@@ -177,6 +182,44 @@ test.describe('rival shows and Auto-fill', () => {
       .first()
       .click();
     await expect(page.getByRole('dialog', { name: /^Why this segment\? / })).toBeVisible();
+  });
+
+  test('the gallery’s rival result line fits, its badges beside their Why?', async ({
+    page,
+  }, testInfo) => {
+    const phone = isPhone(testInfo);
+    await page.goto('/dev/gallery#rival-result-line');
+    await expect(
+      page.getByRole('heading', { level: 2, name: 'Rival result line', exact: true }),
+    ).toBeVisible();
+    const entry = page.locator('#gallery-entry');
+    await expectNoHorizontalScroll(page);
+    const buttons = entry.getByRole('button', { name: /^Why / });
+    expect(await buttons.count()).toBeGreaterThan(0);
+    if (phone) {
+      for (const button of await buttons.all()) {
+        const box = await button.boundingBox();
+        expect(box?.height ?? 0).toBeGreaterThanOrEqual(TAP_TARGET_MIN_PX);
+        expect(box?.width ?? 0).toBeGreaterThanOrEqual(TAP_TARGET_MIN_PX);
+      }
+    }
+    // Each title badge sits on the same line as its Why?.
+    for (const row of await entry.locator('li[data-actual]').all()) {
+      const badge = await row.getByText(/^(Retained|New champion)$/).boundingBox();
+      const why = await row
+        .getByRole('button', { name: /^Why (Retained|New champion)\? / })
+        .boundingBox();
+      const badgeMiddle = (badge?.y ?? 0) + (badge?.height ?? 0) / 2;
+      expect(badgeMiddle).toBeGreaterThan(why?.y ?? 0);
+      expect(badgeMiddle).toBeLessThan((why?.y ?? 0) + (why?.height ?? 0));
+    }
+    await entry.locator('section').filter({ hasText: 'Long names' }).scrollIntoViewIfNeeded();
+    await shot(page, 'rival-result-line-gallery', testInfo.project.name);
+    await entry
+      .getByRole('button', { name: /^Why New champion\? / })
+      .first()
+      .click();
+    await expect(page.getByRole('dialog', { name: /^Why New champion\? / })).toBeVisible();
   });
 
   test('the reasons sheet fills a phone’s screen', async ({ page }, testInfo) => {

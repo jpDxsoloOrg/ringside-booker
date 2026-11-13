@@ -33,7 +33,7 @@ import { parseContentKey } from '../../../core/content-key';
 import { InvariantError } from '../../../core/errors';
 import type { PersonId, SegmentId, TitleId } from '../../../core/ids';
 import { detachedStream, type RngStream } from '../../../core/rng/registry';
-import { startDecision, type Traced } from '../../../core/trace';
+import { startDecision, type Decision, type Traced } from '../../../core/trace';
 import type { EventInstance } from '../../../model/entities/event-instance';
 import type { MatchOutcome, Segment } from '../../../model/entities/segment';
 import { compareIds } from '../../../model/table';
@@ -79,7 +79,15 @@ import {
   type RivalStorylineContext,
   type RivalTitleContext,
 } from './inputs';
-import { pickRivalMethod } from './method';
+import {
+  FINISH_LABEL,
+  hasFinishes,
+  leanFinishTrace,
+  NO_CHANGE_FINISH_RULE,
+  pickRivalFinish,
+  TITLE_CHANGE_FINISH_RULE,
+} from './finish';
+import { METHOD_LABEL, pickRivalMethod } from './method';
 import { TITLES_STREAM, WINNERS_STREAM } from './streams';
 import {
   alsoOnTheLineText,
@@ -100,7 +108,10 @@ import {
 } from './texts';
 import {
   compactTrace,
+  leanTrace,
+  optionWords,
   TITLE_TRACE_DEPTH,
+  wordedOptions,
   titleTraceRef,
   WINNER_TRACE_DEPTH,
   winnerTraceRef,
@@ -135,6 +146,8 @@ function showStreams(read: GameWorldView, instanceId: string): ShowStreams {
 /** What one segment's decision came to. */
 interface SegmentPlan {
   readonly outcome: MatchOutcome;
+  /** MTCH2's finish, planned with the result; null in a save without finishes. */
+  readonly finishKey: ContentKey | null;
   /** The `aip.winner` trace. */
   readonly trace: Traced<string>;
   /** The lead title's decision (null on a match with no title). */
@@ -161,6 +174,17 @@ interface SegmentWork {
   readonly label: string;
   readonly values: ReadonlyMap<number, Traced<number>>;
   readonly streams: ShowStreams;
+  /** Plain words for the plan codes the formulas choose (`side:1`, method keys). */
+  readonly words: ReadonlyMap<string, string>;
+}
+
+/** A decision's trace as it is stored: cut to `depth` levels, lean, its options in words. */
+function storedTrace<T extends string>(
+  work: Pick<SegmentWork, 'words'>,
+  traced: Traced<T>,
+  depth: number,
+): Traced<T> {
+  return wordedOptions(leanTrace(compactTrace(traced, depth)), work.words);
 }
 
 function nameOf(read: GameWorldView, inputs: RivalSegmentInputs, personId: PersonId): string {
@@ -315,7 +339,8 @@ function championInMatch(
       titleTasteSource:
         inputs.titleTaste.trace.label === STORED_TITLE_TASTE_LABEL ? 'booker' : 'styleDefault',
       importance: inputs.importance,
-      popularityHistory: popularityHistoryOf(ctx.read, inputs.promotionId, inputs.date, weeks),
+      // The term compares each of the last `weeks` readings with the one before it.
+      popularityHistory: popularityHistoryOf(ctx.read, inputs.promotionId, inputs.date, weeks + 1),
     },
     { tunables: ctx.tunables },
   );
@@ -348,7 +373,7 @@ function championInMatch(
       championLabel,
       winnerLabel: sideLabel(inputs, side),
       winnerIds: sideOf(inputs, side)?.personIds ?? [],
-      trace: compactTrace(decided.plan, TITLE_TRACE_DEPTH),
+      trace: storedTrace(work, decided.plan, TITLE_TRACE_DEPTH),
     },
   };
 }
@@ -419,7 +444,7 @@ function titleElsewhere(
       championLabel: holderLabel(work, title),
       winnerLabel: sideLabel(inputs, side),
       winnerIds: sideOf(inputs, side)?.personIds ?? [],
-      trace: compactTrace(decision.choose(RETAIN_PLAN, reason), TITLE_TRACE_DEPTH),
+      trace: storedTrace(work, decision.choose(RETAIN_PLAN, reason), TITLE_TRACE_DEPTH),
     },
   };
 }
@@ -488,7 +513,7 @@ function noChampionHere(
       championLabel,
       winnerLabel: sideLabel(inputs, side),
       winnerIds: sideOf(inputs, side)?.personIds ?? [],
-      trace: compactTrace(decision.choose(option, reason), TITLE_TRACE_DEPTH),
+      trace: storedTrace(work, decision.choose(option, reason), TITLE_TRACE_DEPTH),
     },
   };
 }
@@ -572,7 +597,39 @@ function decideSegment(work: SegmentWork): SegmentPlan {
 
   let outcome: MatchOutcome;
   let option: string;
-  if (winningSide === null) {
+  let finishKey: ContentKey | null = null;
+  if (hasFinishes(ctx.read)) {
+    if (titleChanges) {
+      combined.rule(TITLE_CHANGE_FINISH_RULE, true);
+    } else if (forceNoChange) {
+      combined.rule(NO_CHANGE_FINISH_RULE, true);
+    }
+    const finish = pickRivalFinish(
+      ctx.read,
+      {
+        ...matchArgs,
+        outcomeKind: winningSide === null ? 'draw' : 'win',
+        winnerAlignment:
+          winningSide === null ? null : (sideOf(inputs, winningSide)?.alignment ?? null),
+        titleChange: titleChanges,
+        forceNoChange,
+      },
+      { tunables: ctx.tunables, rng: work.streams.winners },
+    );
+    if (finish === null || (winningSide !== null && finish.methodKey === null)) {
+      return noContest(work, combined, titlePlan);
+    }
+    combined.include(FINISH_LABEL, leanFinishTrace(finish.finish));
+    finishKey = finish.finishKey;
+    if (winningSide === null || finish.methodKey === null) {
+      outcome = { kind: 'draw' };
+      option = DRAW_PLAN;
+    } else {
+      combined.include(METHOD_LABEL, finish.method.trace);
+      outcome = { kind: 'win', winningSide, methodKey: finish.methodKey };
+      option = winPlanKey(winningSide);
+    }
+  } else if (winningSide === null) {
     outcome = { kind: 'draw' };
     option = DRAW_PLAN;
   } else {
@@ -582,21 +639,32 @@ function decideSegment(work: SegmentWork): SegmentPlan {
       { tunables: ctx.tunables, rng: work.streams.winners },
     );
     if (method === null) {
-      ctx.log(`${work.label} (${work.segment.id}): ${NO_METHOD_NOTE}`);
-      combined.note(NO_METHOD_NOTE);
-      return {
-        outcome: { kind: 'noContest' },
-        trace: compactTrace(combined.choose('noContest', NO_CONTEST_REASON), WINNER_TRACE_DEPTH),
-        title: titlePlan,
-      };
+      return noContest(work, combined, titlePlan);
     }
-    combined.include('How the match is won', method);
+    combined.include(METHOD_LABEL, method);
     outcome = { kind: 'win', winningSide, methodKey: method.value };
     option = winPlanKey(winningSide);
   }
   return {
     outcome,
-    trace: compactTrace(combined.choose(option, because), WINNER_TRACE_DEPTH),
+    finishKey,
+    trace: storedTrace(work, combined.choose(option, because), WINNER_TRACE_DEPTH),
+    title: titlePlan,
+  };
+}
+
+/** No finish or method fits the match: a content problem, logged and booked as a no contest. */
+function noContest(
+  work: SegmentWork,
+  combined: Decision<string>,
+  titlePlan: TitlePlan | null,
+): SegmentPlan {
+  work.ctx.log(`${work.label} (${work.segment.id}): ${NO_METHOD_NOTE}`);
+  combined.note(NO_METHOD_NOTE);
+  return {
+    outcome: { kind: 'noContest' },
+    finishKey: null,
+    trace: storedTrace(work, combined.choose('noContest', NO_CONTEST_REASON), WINNER_TRACE_DEPTH),
     title: titlePlan,
   };
 }
@@ -696,8 +764,12 @@ export function decideResults(ctx: ShowBookingContext, input: BookedCardInput): 
         ),
       );
     }
-    const plan = decideSegment({ ctx, segment, inputs, label, values, streams });
-    setPlannedOutcome(ctx.tx, segment.id, plan.outcome);
+    const words = optionWords(
+      ctx.read,
+      inputs.sides.map((side) => ({ side: side.side, label: side.label })),
+    );
+    const plan = decideSegment({ ctx, segment, inputs, label, values, streams, words });
+    setPlannedOutcome(ctx.tx, segment.id, plan.outcome, plan.finishKey);
     ctx.recordTrace(winnerTraceRef(segment.id), ctx.date, plan.trace);
     decided += 1;
 
@@ -709,7 +781,7 @@ export function decideResults(ctx: ShowBookingContext, input: BookedCardInput): 
         ctx.recordTrace(
           titleTraceRef(segment.id, other.titleId),
           ctx.date,
-          followTrace(other.name, lead.title.name, plan.outcome),
+          wordedOptions(followTrace(other.name, lead.title.name, plan.outcome), words),
         );
       }
       writeAiDecision(ctx.tx, ctx, ctx.unit, {

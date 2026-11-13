@@ -702,6 +702,47 @@ describe('TraceStore summary-only results and the size budget', () => {
     expect(store.fullSizeOfKind('k')).toBeLessThanOrEqual(Math.floor(entrySize * 2.5));
   });
 
+  it('holds a kind with limits of its own to those instead (AIP5-06)', () => {
+    const one = new TraceStore(ROOMY);
+    recordAndCommit(one, [
+      { ref: ref('k', 'a'), traced: rating(1) },
+      { ref: ref('wide', 'a'), traced: rating(1) },
+    ]);
+    const entrySize = one.fullSizeOfKind('k');
+    const wideSize = one.fullSizeOfKind('wide');
+    const limits: TraceStoreLimits = {
+      retentionPerKind: 1,
+      summaryLimit: 10,
+      bytesPerKind: entrySize,
+      perKind: { wide: { retentionPerKind: 3, bytesPerKind: wideSize * 3 } },
+    };
+    const store = new TraceStore(limits);
+    expect(store.limits).toStrictEqual(limits);
+    for (const id of ['a', 'b', 'c', 'd']) {
+      recordAndCommit(store, [
+        { ref: ref('k', id), traced: rating(1) },
+        { ref: ref('wide', id), traced: rating(1) },
+      ]);
+    }
+    expect(store.listByKind('k').filter(isFullTrace)).toHaveLength(1);
+    expect(
+      store
+        .listByKind('wide')
+        .filter(isFullTrace)
+        .map((entry) => entry.ref.id),
+    ).toEqual(['d', 'c', 'b']);
+    // Lowering the kind's own limit applies straight away, and a bad one is refused.
+    store.setLimits({ ...limits, perKind: { wide: { retentionPerKind: 1, bytesPerKind: 0 } } });
+    expect(store.listByKind('wide').filter(isFullTrace)).toEqual([]);
+    expect(
+      () =>
+        new TraceStore({ ...ROOMY, perKind: { wide: { retentionPerKind: -1, bytesPerKind: 0 } } }),
+    ).toThrow(InvalidArgumentError);
+    expect(traceStoreLimitsFrom(createEngineTunables(), limits.perKind).perKind).toEqual(
+      limits.perKind,
+    );
+  });
+
   it('summarises everything with a budget of 0, and applies a lowered budget straight away', () => {
     const zero = new TraceStore({ ...ROOMY, bytesPerKind: 0 });
     recordAndCommit(zero, [{ ref: ref('k', 'a'), traced: rating(1) }]);

@@ -211,6 +211,31 @@ describe('CardSlot', () => {
     expect(slot.querySelector('[data-winner="true"]')).toBeNull();
   });
 
+  it('draws a result area inside the card under the matchup, and nothing without one', () => {
+    const { rerender } = render(
+      <CardSlot
+        slotRole="opener"
+        sideA={SIDE_A}
+        sideB={SIDE_B}
+        winner="a"
+        result={<p>Marlo Quint def. Otto Krell & Bastian Volk</p>}
+      />,
+    );
+    const slot = screen.getByRole('article', { name: 'Opener' });
+    const area = slot.querySelector('[data-part="result-area"]');
+    expect(area).not.toBeNull();
+    expect(area).toHaveTextContent('Marlo Quint def. Otto Krell & Bastian Volk');
+    // After the matchup, inside the article.
+    const matchup = slot.querySelector('[data-sides]');
+    if (matchup === null || area === null) throw new Error('The slot lost its matchup.');
+    expect(matchup.compareDocumentPosition(area)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+
+    rerender(<CardSlot slotRole="opener" sideA={SIDE_A} sideB={SIDE_B} winner="a" />);
+    expect(
+      screen.getByRole('article', { name: 'Opener' }).querySelector('[data-part="result-area"]'),
+    ).toBeNull();
+  });
+
   it('marks its problems with an icon and words', () => {
     const { rerender } = render(
       <CardSlot slotRole="opener" sideA={SIDE_A} issues={{ errors: 2, warnings: 1 }} />,

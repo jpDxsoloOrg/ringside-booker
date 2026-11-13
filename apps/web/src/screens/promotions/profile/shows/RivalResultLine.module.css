@@ -1,0 +1,97 @@
+/*
+ * A rival match's result line. Desktop: one wrapping row, the outcome ("A def. B") in full weight,
+ * then the method, finish and reason muted, then the Why?; a row per title under it, the badge
+ * and its Why? kept together. Below --bp-mobile the outcome takes the whole first line, so the
+ * method and reason wrap onto their own line beside the Why?.
+ */
+.line {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  min-inline-size: 0;
+  margin: 0;
+}
+
+.outcome {
+  min-inline-size: 0;
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.outcomeWord {
+  color: var(--color-prestige);
+  font-family: var(--font-family-display);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.name {
+  overflow-wrap: anywhere;
+}
+
+.details {
+  min-inline-size: 0;
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.titles {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-inline-size: 0;
+}
+
+.title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  min-inline-size: 0;
+}
+
+/* The badge and its Why? never part. */
+.badgeGroup {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-1);
+  white-space: nowrap;
+}
+
+.titleText {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-2);
+  min-inline-size: 0;
+}
+
+.titleName {
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.titleReason {
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.compact {
+  font-size: var(--font-size-sm);
+}
+
+@media (--bp-mobile) {
+  .outcome {
+    flex-basis: 100%;
+  }
+}

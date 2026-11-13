@@ -28,6 +28,8 @@ const DEFAULTS: Readonly<Record<string, number | boolean>> = {
   'aip.winner.finale.faceChance': 0.7,
   'aip.winner.finale.minAgeDays': 56,
   'aip.winner.method.nonTitleWeight': 0.15,
+  'aip.results.fullTraces': 600,
+  'aip.results.fullTraceChars': 1_500_000,
   'aip.titles.band1.maxDays': 14,
   'aip.titles.band1.chance': 0,
   'aip.titles.band2.maxDays': 45,
@@ -79,7 +81,7 @@ describe('the rival results tunables', () => {
     for (const [key, def] of Object.entries(aipResultsTunables)) {
       expect(keys).toContain(key);
       expect(def.docRef).toBe(
-        key.startsWith('aip.winner.')
+        key.startsWith('aip.winner.') || key.startsWith('aip.results.')
           ? 'rival-booking.md#winners'
           : 'rival-booking.md#title-changes',
       );

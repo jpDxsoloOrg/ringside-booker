@@ -351,6 +351,24 @@ does not change the length, so a loaded store counts exactly what the live one
 did and demotes the same entries. A budget of 0 summarises everything at once,
 like a retention of 0.
 
+### Kinds with limits of their own
+
+A kind whose full detail is meant to last a number of days, whatever the world's
+size, can set its own count and size limits instead of the two `sim.*` ones
+(AIP5-06). `TraceStoreLimits.perKind` maps a kind to `{ retentionPerKind,
+bytesPerKind }`; the store applies them exactly like the shared limits, just
+with that kind's numbers. Systems register them with
+`registerTraceKindLimits({ id, kinds, limits: (tunables) => ... })`
+(`systems/traceKindLimits.ts`), reading their own tunables, and the engine
+builds its limits with `engineTraceStoreLimits(tunables)` when it creates or
+loads a store and after a tunable changes. A kind may be registered once.
+
+Rival results use it: `aip.winner` and `aip.title` each keep up to
+`aip.results.fullTraces` (600) full traces and `aip.results.fullTraceChars`
+(1,500,000) characters, so the owner's 28 days of detail (`history.keepDetailDays`,
+enforced by `aip.pruneCardDetail`) fit on the default world, where 28 days of
+rival winners are about 140 traces and 0.5 MB.
+
 ### Summary-only results (rivals)
 
 A result recorded with `record(ref, date, traced, { summaryOnly: true })` is

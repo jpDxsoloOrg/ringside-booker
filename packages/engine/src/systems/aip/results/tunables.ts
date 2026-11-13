@@ -162,7 +162,29 @@ export const aipResultsTunables = defineTunables({
     unit: 'multiplier',
     category: RIVAL_BOOKING_CATEGORY,
     description:
-      "Weight of methods that can't change titles (count-out, disqualification) when picking a method",
+      "Weight of methods that can't change titles (count-out, disqualification) when picking a method, in a save without finishes",
+    docRef: WINNERS_DOC_REF,
+  },
+  'aip.results.fullTraces': {
+    kind: 'integer',
+    default: 600,
+    min: 0,
+    max: 20_000,
+    unit: 'count',
+    category: RIVAL_BOOKING_CATEGORY,
+    description:
+      'Full explanations kept for rival winners, and apart for rival title decisions, before the oldest are summarised (the detail window usually ends them first)',
+    docRef: WINNERS_DOC_REF,
+  },
+  'aip.results.fullTraceChars': {
+    kind: 'integer',
+    default: 1_500_000,
+    min: 0,
+    max: 100_000_000,
+    unit: 'count',
+    category: RIVAL_BOOKING_CATEGORY,
+    description:
+      'Characters of full explanation kept for rival winners, and apart for rival title decisions, before the oldest are summarised',
     docRef: WINNERS_DOC_REF,
   },
 

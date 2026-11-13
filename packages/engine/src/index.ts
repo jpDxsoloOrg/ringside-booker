@@ -2383,6 +2383,8 @@ export {
   type AipRecentTitleChanges,
   type AipRecentTitleChangesArgs,
   type AipSegmentDecisionArgs,
+  type AipShowDecisions,
+  type AipShowDecisionsArgs,
   type AipTitleChange,
   type RivalMethodArgs,
   type SegmentDecisionTitle,

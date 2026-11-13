@@ -295,8 +295,9 @@ describe('TracePanel rows', () => {
 
   it('lists the chosen option first, then the others with their scores', () => {
     renderPanel(everyKindTrace);
-    const options = within(treeItemByText('Title decision: Retain')).getAllByRole('listitem');
-    expect(options.map((option) => option.textContent)).toEqual([
+    const options =
+      treeItemByText('Title decision: Retain').querySelectorAll('[data-part="option"]');
+    expect(Array.from(options, (option) => option.textContent)).toEqual([
       'Chosen: Retain, score 62',
       'Also considered: Change, score 48',
     ]);

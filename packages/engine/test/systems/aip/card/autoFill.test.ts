@@ -1,5 +1,5 @@
 // Auto-fill on the player's own card (AIP4-06). Design: docs/design/rival-booking.md#auto-fill
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { createEngine, initialEngineState, type Engine } from '../../../../src/core/api';
 import { parseGameDate } from '../../../../src/core/date';
 import type { EventInstanceId, PersonId, SegmentId } from '../../../../src/core/ids';
@@ -9,6 +9,10 @@ import {
   CARD_FULL_MESSAGE,
   CARD_SLOT_TRACE_KIND,
   NO_CATALOG_MESSAGE,
+  TITLE_DECISION_KIND,
+  WINNER_DECISION_KIND,
+  registerBookedCardStep,
+  winnerTraceRef,
   type AutoFillResult,
 } from '../../../../src/systems/aip';
 import { anEventInstance, worldBuilder } from '../../../support';
@@ -125,6 +129,13 @@ function segmentsOn(engine: Engine, eventInstanceId: EventInstanceId) {
     .exportState()
     .world.tables.segments.filter((segment) => segment.eventInstanceId === eventInstanceId);
 }
+
+const cleanups: (() => void)[] = [];
+afterEach(() => {
+  while (cleanups.length > 0) {
+    cleanups.pop()?.();
+  }
+});
 
 describe('aip.autoFillCard', () => {
   it('fills only the open slots, keeps what is there and plans no winner', () => {
@@ -369,5 +380,41 @@ describe('aip.autoFillCard', () => {
       },
       { name: 'aip.autoFillCard', issuedBy: PLAYER_ONE, outcome: 'applied', reasonCodes: [] },
     ]);
+  });
+
+  it("runs no booked-card step on the player's show: no aip.decideResults, no winners", () => {
+    const built = fillWorld();
+    const ran: string[] = [];
+    cleanups.push(
+      registerBookedCardStep({
+        id: 'test.autoFillSpy',
+        order: 0,
+        run: (_ctx, input) => {
+          ran.push(input.instance.id);
+        },
+      }),
+    );
+    const engine = engineFor(built.world);
+    const result = applied(
+      engine.command('aip.autoFillCard', { eventInstanceId: built.shows.open }, PLAYER_ONE),
+    );
+    expect(result.filled.length).toBeGreaterThan(0);
+    expect(ran).toEqual([]);
+    const state = engine.exportState();
+    const matches = segmentsOn(engine, built.shows.open).filter(
+      (segment) => segment.kind === 'match',
+    );
+    expect(matches.length).toBeGreaterThan(0);
+    for (const segment of matches) {
+      expect(segment.outcome).toBeNull();
+      const trace = engine.query('trace.get', { ref: winnerTraceRef(segment.id) }, OMNISCIENT);
+      expect(trace.ok && trace.data === null).toBe(true);
+    }
+    const resultDecisions = state.world.tables.aiDecisions.filter(
+      (row) =>
+        (row.kind === WINNER_DECISION_KIND || row.kind === TITLE_DECISION_KIND) &&
+        row.refs.eventInstanceId === built.shows.open,
+    );
+    expect(resultDecisions).toEqual([]);
   });
 });
