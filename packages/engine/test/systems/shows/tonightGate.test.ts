@@ -50,6 +50,7 @@ function setStatus(world: GameWorld, id: EventInstanceId, status: 'booked' | 'co
               attendance: null,
               gate: null,
               viewers: null,
+              ceiling: null,
             },
           },
     );

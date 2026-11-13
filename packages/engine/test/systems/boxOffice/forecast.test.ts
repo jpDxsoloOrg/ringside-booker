@@ -23,7 +23,15 @@ function completedOn(date: string, score: number): DeepPartial<EventInstance> {
   return {
     ...on(date),
     status: 'completed',
-    result: { score, rawScore: score, traceId: null, attendance: null, gate: null, viewers: null },
+    result: {
+      score,
+      rawScore: score,
+      traceId: null,
+      attendance: null,
+      gate: null,
+      viewers: null,
+      ceiling: null,
+    },
   };
 }
 
@@ -85,6 +93,7 @@ function build(
                   attendance: null,
                   gate: null,
                   viewers: null,
+                  ceiling: null,
                 },
           cancellation: null,
         });
