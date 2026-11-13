@@ -1238,7 +1238,7 @@ export type {
   SegmentInjuriesResult,
   SegmentInjuryView,
 } from './systems/match/index';
-export { weeksOutOf } from './systems/match/index';
+export { learningGainText, weeksOutOf } from './systems/match/index';
 export {
   LAB_WORKER_SCOPES,
   LAB_WORKER_TRAIT_FILTERS,

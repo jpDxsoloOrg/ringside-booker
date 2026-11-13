@@ -15,7 +15,7 @@
 import { startCalc, traced, type Calc, type Traced } from '../../../core/trace';
 import { tunableNode } from '../../../core/trace/tunable-node';
 import { ATTRIBUTE_KEYS, type AttributeKey, type TraitKey } from '../../../model/entities/person';
-import { ATTRIBUTE_LABELS, formatNumber } from '../../world/people/labels';
+import { ATTRIBUTE_LABELS } from '../../world/people/labels';
 import type { EngineTunables } from '../../tunables';
 import { PRODUCED_ATTRIBUTES, isTaughtAttribute } from '../physical/learning';
 import type { LearningRoom } from '../physical/learningRoom';
@@ -153,7 +153,7 @@ export function computeRingLearning(
       tunables.get('match.learning.base'),
       tunableNode(tunables, 'match.learning.base', 'Learning in one match'),
     ),
-    { unit: 'points', docRef: RING_LEARNING_DOC_REF },
+    { unit: 'attribute', docRef: RING_LEARNING_DOC_REF },
   );
 
   calc.multiply(
@@ -207,6 +207,23 @@ export function computeRingLearning(
     .done();
 }
 
+/** Thousandths: the finest step a learning gain is read to. */
+const LEARNING_GAIN_SCALE = 1000;
+
+/**
+ * A learning gain as the game says it everywhere (the Match lab, the results page and the Why?
+ * line): "+0.06" or "+0.004" (up to three decimals, since a match teaches hundredths of a point),
+ * "+0" for none, and "less than +0.001" for a gain too small to show. Rounding it to two decimals
+ * made most real gains read "+0.00".
+ */
+export function learningGainText(value: number): string {
+  if (value <= 0) {
+    return '+0';
+  }
+  const rounded = Math.round(value * LEARNING_GAIN_SCALE) / LEARNING_GAIN_SCALE;
+  return rounded === 0 ? 'less than +0.001' : `+${String(rounded)}`;
+}
+
 /**
  * "Learning in this match": each attribute's learning added up, one line per attribute ("Ring work
  * +0.06") that opens to that attribute's own Why?.
@@ -215,14 +232,14 @@ export function computeRingLearningTotal(
   perAttribute: Readonly<Partial<Record<AttributeKey, Traced<number>>>>,
 ): Traced<number> {
   const calc = startCalc('Learning in this match', 0, {
-    unit: 'points',
+    unit: 'attribute',
     docRef: RING_LEARNING_DOC_REF,
     startLabel: 'Nothing yet',
   });
   for (const attribute of ATTRIBUTE_KEYS) {
     const learning = perAttribute[attribute];
     if (learning !== undefined) {
-      calc.add(`${ATTRIBUTE_LABELS[attribute]} +${formatNumber(learning.value)}`, learning);
+      calc.add(`${ATTRIBUTE_LABELS[attribute]} ${learningGainText(learning.value)}`, learning);
     }
   }
   return calc.done();

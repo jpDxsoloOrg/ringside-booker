@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import type { ReactNode } from 'react';
 import type { BodyPart, PersonId, PhysicalPreviewWorker } from '@ringside/engine';
-import { BODY_PART_LABELS, BODY_PARTS } from '@ringside/engine';
+import { BODY_PART_LABELS, BODY_PARTS, learningGainText } from '@ringside/engine';
 import { useIsMobile } from '@/styles/useMediaQuery';
 import { Badge } from '../Badge';
 import { Button } from '../Button';
@@ -40,9 +40,12 @@ export function fatigueOptions(fatigueNow: number): readonly SelectOption[] {
   ];
 }
 
-/** Learning reads as a gain: "+0.08". */
+/**
+ * Learning reads as a gain, the engine's way everywhere: "+0.08", "+0.004", "+0", or "less than
+ * +0.001" (a match teaches hundredths of a point, so two decimals would read "+0.00").
+ */
 export function learningText(value: number): string {
-  return `+${formatNumber(value, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return learningGainText(value);
 }
 
 export interface PhysicalTollTableProps {

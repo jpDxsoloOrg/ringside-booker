@@ -20,7 +20,7 @@ import { DURATION_CLASS_LABELS, type DurationClass } from '../slots';
 const PHYSICAL_CATEGORY = 'Physical toll';
 const LEARNING_DOC = 'physical-toll.md#ring-learning';
 
-type LearningUnit = 'points' | 'ratio' | 'multiplier';
+type LearningUnit = 'points' | 'attribute' | 'ratio' | 'multiplier';
 
 function learningNumber(
   defaultValue: number,
@@ -55,7 +55,7 @@ export const learningTunables = defineTunables({
   'match.learning.base': learningNumber(
     0.03,
     { max: 1, step: 0.005 },
-    'points',
+    'attribute',
     'Ring skill one match teaches per attribute before anything moves it',
   ),
   'match.learning.duration.short': durationFactor('short', 0.6),
@@ -107,7 +107,7 @@ export const learningTunables = defineTunables({
   'match.learning.maxPerSegment': learningNumber(
     0.2,
     { max: 5, step: 0.01 },
-    'points',
+    'attribute',
     'Most one match can teach per attribute',
   ),
 });

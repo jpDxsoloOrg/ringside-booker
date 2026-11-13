@@ -111,6 +111,7 @@ export {
   RING_LEARNING_DOC_REF,
   computeRingLearning,
   computeRingLearningTotal,
+  learningGainText,
   type LearningPeer,
   type LearningProducer,
   type RingLearningInputs,

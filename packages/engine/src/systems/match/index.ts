@@ -746,6 +746,7 @@ export {
   collectRingLearning,
   computeRingLearning,
   computeRingLearningTotal,
+  learningGainText,
   isTaughtAttribute,
   learningTunables,
   mentorOnCard,

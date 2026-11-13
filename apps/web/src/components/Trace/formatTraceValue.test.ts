@@ -57,6 +57,13 @@ describe('formatTraceNumber', () => {
     expect(formatTraceNumber(4, 'points/day')).toBe('4/day');
   });
 
+  it('shows an attribute or a change to one with up to three decimals', () => {
+    expect(formatTraceNumber(0.042, 'attribute')).toBe('0.042');
+    expect(formatTraceNumber(0.03, 'attribute')).toBe('0.03');
+    expect(formatTraceNumber(72, 'attribute')).toBe('72');
+    expect(formatTraceDelta(0.0042, 'attribute')).toBe('+0.004');
+  });
+
   it('shows kilograms with kg', () => {
     expect(formatTraceNumber(93, 'kilograms')).toBe('93 kg');
     expect(formatTraceNumber(92.5, 'kilograms')).toBe('92.5 kg');
