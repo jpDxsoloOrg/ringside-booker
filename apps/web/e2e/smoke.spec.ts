@@ -1,10 +1,14 @@
 import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { expectNoSeriousA11yViolations } from './helpers/a11y';
+import { enterGameFromInjurySave } from './helpers/game';
 import { expectNoHorizontalScroll } from './helpers/layout';
 import { enterShell, navigateInApp } from './helpers/shell';
 import { isPhone } from './helpers/viewport';
 import { routesUnderTest } from './routes-under-test';
+
+/** Loading the injury save and running a day of the default world. */
+const HEALTH_SMOKE_TIMEOUT_MS = 120_000;
 
 test.describe('smoke', () => {
   for (const route of routesUnderTest) {
@@ -22,6 +26,48 @@ test.describe('smoke', () => {
       if (route.heading !== undefined) {
         await expect(page.locator('h1')).toHaveText(route.heading);
       }
+      await expectNoHorizontalScroll(page);
+      await expectNoSeriousA11yViolations(page);
+    });
+  }
+});
+
+/** The UI scales the health screens are checked at. */
+const HEALTH_UI_SCALES = ['1', '1.5'] as const;
+
+/**
+ * The health screens with a world behind them (WRK6-08): the injury save's next day hurts one of
+ * the player's own, so Workers > Injured has a row and that worker's Health tab has an injury
+ * card. Each has one h1, no sideways scroll and no serious axe findings, at 100% and 150%.
+ */
+test.describe('health screens in a game', () => {
+  for (const scale of HEALTH_UI_SCALES) {
+    test(`Workers > Injured and the Health tab fit at ${String(Number(scale) * 100)}% UI scale`, async ({
+      page,
+    }) => {
+      test.setTimeout(HEALTH_SMOKE_TIMEOUT_MS);
+      await page.goto('/settings');
+      await page.getByRole('slider', { name: 'UI scale' }).fill(scale);
+      await expect.poll(() => uiScaleOnPage(page)).toBe(scale);
+      await enterGameFromInjurySave(page);
+      await page.getByTestId('day-control').getByRole('button', { name: 'Next day' }).click();
+      await expect(
+        page.getByTestId('day-control').getByRole('button', { name: 'Roster' }),
+      ).toBeVisible({ timeout: 30_000 });
+
+      await navigateInApp(page, '/game/workers?availability=injured');
+      await expect(page.locator('h1')).toHaveCount(1);
+      await expect(page.locator('h1')).toHaveText('Workers');
+      const healthLink = page.getByRole('main').locator('a[href^="/game/workers/per_"]').first();
+      await expect(healthLink).toBeVisible();
+      await expectNoHorizontalScroll(page);
+      await expectNoSeriousA11yViolations(page);
+
+      const href = (await healthLink.getAttribute('href')) ?? '';
+      await navigateInApp(page, `${href.split('?')[0] ?? href}?tab=health`);
+      await expect(page.getByRole('region', { name: 'Condition' })).toBeVisible();
+      await expect(page.getByText('Time out', { exact: true })).toBeVisible();
+      await expect(page.locator('h1')).toHaveCount(1);
       await expectNoHorizontalScroll(page);
       await expectNoSeriousA11yViolations(page);
     });
