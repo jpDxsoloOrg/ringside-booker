@@ -2,7 +2,14 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { addDays, cents, defaultSystems, defineSystem, diffDays } from '@ringside/engine';
+import {
+  addDays,
+  cents,
+  defaultSystems,
+  defineSystem,
+  diffDays,
+  MAX_ADVANCE_DAYS,
+} from '@ringside/engine';
 import type { TunableSetting } from '../src/args';
 import {
   fixtureState,
@@ -164,7 +171,20 @@ describe('runSimulation on the roster fixture', () => {
   });
 
   it('splits a 4000-day run into two advanceDays calls', async () => {
-    const run = await completedRun(20, '1', 4000);
+    // The split is the runner's loop around the engine's real MAX_ADVANCE_DAYS cap, not anything a
+    // system does, so this runs the core day loop with no systems: about 40 ms rather than the 2 s
+    // that 4000 days of the default systems take (which hit the 5 s timeout under load).
+    const outcome = await runSimulation(fixtureState(20, '1'), {
+      days: 4000,
+      tunables: [],
+      trace: null,
+      systems: [],
+    });
+    if (outcome.kind !== 'completed') throw new Error('the run did not complete');
+    const run = outcome;
+    // 4000 days is more than one call's cap and no more than two.
+    expect(MAX_ADVANCE_DAYS).toBeLessThan(4000);
+    expect(2 * MAX_ADVANCE_DAYS).toBeGreaterThanOrEqual(4000);
     expect(run.advanceCalls).toBe(2);
     expect(run.summary.daysAdvanced).toBe(4000);
     expect(run.summary.endDate).toBe(addDays(run.summary.startDate, 4000));
