@@ -179,16 +179,45 @@ export interface StartDefaultWorldGameOptions {
   readonly playerName?: string;
   /** Use the phone layout's controls. Worked out from the viewport's width when left out. */
   readonly phone?: boolean;
+  /** Game options to change from their defaults on the options step. */
+  readonly settings?: StartDefaultWorldGameSettings;
 }
+
+/** The new-game options `startDefaultWorldGame` can switch on, by their setting key. */
+export interface StartDefaultWorldGameSettings {
+  /** Switches "Level playing field" on (AIP1-08): every Rival rules shortcut is off. */
+  readonly levelPlayingField?: boolean;
+}
+
+/** The wizard switch for each setting `startDefaultWorldGame` can change. */
+const SETTING_SWITCHES: readonly {
+  readonly key: keyof StartDefaultWorldGameSettings;
+  readonly label: string;
+}[] = [{ key: 'levelPlayingField', label: 'Level playing field' }];
 
 /** The width under which the app uses its phone layout (`--bp-mobile`, 48rem). */
 const PHONE_MAX_WIDTH = 768;
 
+/** Sets each given switch on the Game options step to the value asked for. */
+async function applyWizardSettings(
+  page: Page,
+  settings: StartDefaultWorldGameSettings,
+): Promise<void> {
+  for (const { key, label } of SETTING_SWITCHES) {
+    const wanted = settings[key];
+    if (wanted === undefined) continue;
+    const toggle = page.getByRole('switch', { name: label, exact: true });
+    await toggle.setChecked(wanted);
+    await expect(toggle).toBeChecked({ checked: wanted });
+  }
+}
+
 /**
  * Starts a new game the way a player does, from a fresh profile: title → New game → the default
- * world → `promotion` (an existing one, by its full name) → the default options → Start game, then
- * waits for the Dashboard with the promotion in the top bar. The world is built in the engine
- * worker and saved into a slot, so Main menu and Continue work afterwards.
+ * world → `promotion` (an existing one, by its full name) → the default options, apart from any
+ * `options.settings` changes → Start game, then waits for the Dashboard with the promotion in the
+ * top bar. The world is built in the engine worker and saved into a slot, so Main menu and
+ * Continue work afterwards.
  */
 export async function startDefaultWorldGame(
   page: Page,
@@ -202,6 +231,7 @@ export async function startDefaultWorldGame(
   await chooseExistingPromotion(page, promotion, phone);
   await next(page);
   await expect(stepHeading(page, 'Game options')).toBeVisible();
+  if (options.settings !== undefined) await applyWizardSettings(page, options.settings);
   await next(page);
   await expect(stepHeading(page, 'Review and start')).toBeVisible();
   await page.getByRole('textbox', { name: 'Your name' }).fill(options.playerName ?? 'Alex Booker');
@@ -227,4 +257,28 @@ export async function openRoster(page: Page, testInfo: TestInfo): Promise<void> 
   }
   await expect(page).toHaveURL(/\/game\/roster(\?.*)?$/);
   await expect(page.getByRole('heading', { level: 1, name: 'Roster' })).toBeVisible();
+}
+
+/**
+ * Opens World > Promotions from the shell: the sidebar link on desktop, the More sheet on a phone.
+ * Waits for the Promotions heading.
+ */
+export async function openPromotions(page: Page, phone: boolean): Promise<void> {
+  if (phone) {
+    await page
+      .getByRole('navigation', { name: 'Primary' })
+      .getByRole('button', { name: 'More' })
+      .click();
+    await page
+      .getByRole('dialog', { name: 'Menu' })
+      .getByRole('link', { name: 'Promotions', exact: true })
+      .click();
+  } else {
+    await page
+      .getByRole('navigation', { name: 'Main' })
+      .getByRole('link', { name: 'Promotions', exact: true })
+      .click();
+  }
+  await expect(page).toHaveURL(/\/game\/promotions(\?.*)?$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Promotions' })).toBeVisible();
 }
