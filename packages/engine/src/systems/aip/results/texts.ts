@@ -27,6 +27,14 @@ export const NO_METHOD_NOTE = 'No way of winning fits this match, so it is booke
 export const BEST_VALUE_REASON = 'Highest value on the night';
 export const NO_CONTEST_REASON = 'No contest';
 
+/**
+ * "Also on the line at Friday Fights tonight, so this match can't move it": the same title on two
+ * of a promotion's shows on one day.
+ */
+export function alsoOnTheLineText(showName: string): string {
+  return `Also on the line at ${showName} tonight, so this match can't move it`;
+}
+
 /** "Follows the World Title decision": a second title on the same match. */
 export function followsText(leadTitle: string): string {
   return `Follows the ${leadTitle} decision`;

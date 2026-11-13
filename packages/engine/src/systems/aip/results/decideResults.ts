@@ -31,7 +31,7 @@
 import type { ContentKey } from '../../../core/content-key';
 import { parseContentKey } from '../../../core/content-key';
 import { InvariantError } from '../../../core/errors';
-import type { PersonId, SegmentId } from '../../../core/ids';
+import type { PersonId, SegmentId, TitleId } from '../../../core/ids';
 import { detachedStream, type RngStream } from '../../../core/rng/registry';
 import { startDecision, type Traced } from '../../../core/trace';
 import type { EventInstance } from '../../../model/entities/event-instance';
@@ -81,6 +81,7 @@ import {
 import { pickRivalMethod } from './method';
 import { TITLES_STREAM, WINNERS_STREAM } from './streams';
 import {
+  alsoOnTheLineText,
   BEST_VALUE_REASON,
   CHAMPION_ABSENT_NOTE,
   followsText,
@@ -356,6 +357,72 @@ function parseSide(plan: string): number {
   return parsed.kind === 'win' ? parsed.side : 0;
 }
 
+/**
+ * The show already planned today that puts the same title on the line, if any. Its card was
+ * decided first (shows go in ID order), and nobody knows which match runs first, so this match
+ * must not be able to move the title at all.
+ */
+function titleBookedElsewhere(work: SegmentWork, titleId: TitleId): string | null {
+  const { read } = work.ctx;
+  const here = work.segment.eventInstanceId;
+  for (const show of read.tables.eventInstances.lookup('byDate', work.inputs.date)) {
+    if (show.id === here || show.promotionId !== work.inputs.promotionId) {
+      continue;
+    }
+    if (show.status === 'cancelled' || show.status === 'completed') {
+      continue;
+    }
+    const onTheLine = cardSegments(read, show.id).some(
+      (segment) =>
+        segment.kind === 'match' &&
+        segment.outcome !== null &&
+        segment.match.titleIds.includes(titleId),
+    );
+    if (onTheLine) {
+      return show.name;
+    }
+  }
+  return null;
+}
+
+/** The title is also on the line on another show tonight: the best side wins, the title can't move. */
+function titleElsewhere(
+  work: SegmentWork,
+  title: RivalTitleContext,
+  showName: string,
+): { side: number; winnerTrace: Traced<string>; title: TitlePlan } {
+  const { inputs } = work;
+  const reason = alsoOnTheLineText(showName);
+  const result = matchWinner(
+    {
+      segmentLabel: work.label,
+      sides: winnerSides(work),
+      storylines: storylinesOf(work),
+      allowDraw: false,
+    },
+    { tunables: work.ctx.tunables, rng: work.streams.winners },
+  );
+  const side = parseSide(result.plan.value);
+  const decision = startDecision<string>(titleDecisionLabel(title.name), {
+    docRef: WINNERS_DOC_REF,
+  });
+  decision.note(reason);
+  return {
+    side,
+    winnerTrace: result.plan,
+    title: {
+      title,
+      kind: title.openReign === null ? 'vacant' : 'retain',
+      reason,
+      chance: null,
+      championLabel: holderLabel(work, title),
+      winnerLabel: sideLabel(inputs, side),
+      winnerIds: sideOf(inputs, side)?.personIds ?? [],
+      trace: compactTrace(decision.choose(RETAIN_PLAN, reason), TITLE_TRACE_DEPTH),
+    },
+  };
+}
+
 /** A vacant lead title, or a champion who isn't here: the sides that can hold it fight it out. */
 function noChampionHere(
   work: SegmentWork,
@@ -455,7 +522,17 @@ function decideSegment(work: SegmentWork): SegmentPlan {
   let titleChanges = false;
   let forceNoChange = false;
 
-  if (lead === undefined) {
+  const elsewhere = lead === undefined ? null : titleBookedElsewhere(work, lead.titleId);
+  if (lead !== undefined && elsewhere !== null) {
+    const decided = titleElsewhere(work, lead, elsewhere);
+    combined.note(NO_DRAWS_ON_TITLES_NOTE);
+    combined.include(titleDecisionLabel(lead.name), titleHeadline(decided.title));
+    combined.include('Who wins', decided.winnerTrace);
+    winningSide = decided.side;
+    titlePlan = decided.title;
+    forceNoChange = true;
+    because = decided.title.reason;
+  } else if (lead === undefined) {
     const result = matchWinner(
       {
         segmentLabel: work.label,

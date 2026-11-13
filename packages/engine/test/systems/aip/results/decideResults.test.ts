@@ -358,6 +358,43 @@ describe('aip.decideResults', () => {
     }
   });
 
+  it('lets only the first of two shows that night move a title both put on the line', async () => {
+    const world = resultsWorld({
+      shows: [
+        { date: SHOW_DAY, importance: 'regular', match: 'champion' },
+        { date: SHOW_DAY, importance: 'regular', match: 'champion' },
+      ],
+      championDaysLeft: 10,
+    });
+    const engine = await play(world, 3);
+    const state = engine.exportState();
+    const { tables } = state.world;
+    const [first, second] = world.matches.map((segmentId) =>
+      required(
+        tables.segments.find(
+          (segment): segment is MatchSegment =>
+            segment.id === segmentId && segment.kind === 'match',
+        ),
+        'match',
+      ),
+    );
+    const methods = state.world.meta.catalogs.methods ?? {};
+    const methodOfMatch = (match: MatchSegment | undefined) =>
+      match?.outcome?.kind === 'win' ? methods[match.outcome.methodKey] : undefined;
+    // The first show moves the title; the second can only be won in a way that can't move it.
+    expect(methodOfMatch(first)?.changesTitles).toBe(true);
+    expect(methodOfMatch(second)?.changesTitles ?? false).toBe(false);
+    const reigns = tables.titleReigns.filter((row) => row.titleId === world.titleId);
+    expect(reigns).toHaveLength(2);
+    expect(reigns.find((row) => row.lostOn === null)?.holderIds).toEqual([world.challenger]);
+    const titleTrace = state.traces.full.find(
+      (entry) =>
+        entry.ref.kind === TITLE_TRACE_KIND &&
+        entry.ref.id === `${String(second?.id)}|${world.titleId}`,
+    );
+    expect(JSON.stringify(titleTrace?.trace)).toContain('Also on the line at Rival Show 1 tonight');
+  });
+
   it('hides a rival result from other players until the show airs', async () => {
     const airDate = addDays(SHOW_DAY, 7);
     const world = resultsWorld({
