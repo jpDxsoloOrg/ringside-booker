@@ -569,6 +569,22 @@ morale, momentum or popularity, so nothing here tunes them.
 | `shows.stars.zeroAt`                  | number  | 35      | 0–80   | points     | Show score that earns zero stars                                        |
 | `shows.stars.pointsPerStar`           | number  | 12      | 0–30   | points     | Show score points per star (0 = any score above zero-stars earns 5)     |
 
+## Production tunables
+
+EVT4-02's production ceiling and bonus slot, in `systems/cardFlow/tunables.ts`,
+category `Production`. See [card-flow.md](card-flow.md). ECO7 owns the
+production levels and their costs, not these formulas.
+
+| Key                                 | Kind   | Default | Range | Unit   | What it does                                                               |
+| ----------------------------------- | ------ | ------- | ----- | ------ | -------------------------------------------------------------------------- |
+| `production.ceilingBase`            | number | 40      | 0–100 | points | Ceiling with every area at level 0                                         |
+| `production.ceilingWeight.stage`    | number | 1.5     | 0–10  | points | Ceiling points each stage level adds                                       |
+| `production.ceilingWeight.camera`   | number | 2       | 0–10  | points | Ceiling points each camera level adds                                      |
+| `production.ceilingWeight.editing`  | number | 1.5     | 0–10  | points | Ceiling points each editing level adds                                     |
+| `production.ceilingWeight.pyro`     | number | 1       | 0–10  | points | Ceiling points each pyro level adds                                        |
+| `production.bonusSlotThreshold`     | number | 90      | 0–100 | points | Ceiling a promotion needs for its shows to get one extra main slot         |
+| `production.bonusSlotMinImportance` | enum   | regular |       | choice | The smallest show (house, minor, regular, major, flagship) that can get it |
+
 ## Booking tunables
 
 The thresholds a card is held to before it can be locked (EVT2-04), in

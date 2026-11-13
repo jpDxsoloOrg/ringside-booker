@@ -212,7 +212,7 @@ Then:
     weighted mean = Σ contribution_i / Σ counted weight_i      (0 when Σ is 0)
     penalty       = shows.emptySlotPenalty × empty main-card slots
     raw score     = round(clamp(weighted mean − penalty + adjust lines, 0, 100))
-    score         = round(clamp(raw score + cap lines, 0, 100))
+    score         = raw score + cap lines (kept within 0..100, not rounded)
 
 The Why? panel reads like a producer's notes: one line per filled slot in card
 order (pre-show first, then the main card), each labelled like
@@ -220,8 +220,11 @@ order (pre-show first, then the main card), each labelled like
 "Empty main-card slots (N)" line with every empty slot listed under it (no line
 when nothing is empty), then the modifiers' lines. When no slot counts (nothing
 filled, or every counted weight 0) the mean is 0 and the trace says "No slot
-counts toward the score". Without `cap` modifiers the second clamp and round
-are left out and `score` equals the raw score.
+counts toward the score". Without `cap` modifiers `score` equals the raw score.
+After the caps the score is not rounded again (EVT4-02), so a production
+ceiling of 43.5 is stored as 43.5 rather than rounded above it, and it gets a
+0..100 clamp line only when a cap left it outside that range, so the Why? ends
+with the cap's own lines.
 
 **Why slot weights and not "best segments".** The reference game's
 aggregation (notes 02 §1) blends a show's best segments whatever their place
@@ -588,8 +591,8 @@ registerShowScoreModifier({
 
 - **Stages.** `adjust` modifiers run after the empty-slot penalty and before
   the raw score is kept within 0..100 and rounded, so their lines are part of
-  `rawScore`. `cap` modifiers run after that, then the score is kept and
-  rounded again. EVT4's production ceiling is a `cap` modifier (a
+  `rawScore`. `cap` modifiers run after that, then the score is kept within
+  0..100 (not rounded). EVT4's production ceiling is a `cap` modifier (a
   `calc.min(...)` line), so the result keeps the raw score the card earned
   next to the score it was held to.
 - **Order.** By stage (`adjust` first), then `order`, then id. A duplicate or

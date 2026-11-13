@@ -39,7 +39,7 @@ declare module '../../core/api/maps' {
     'production.ceiling': {
       args: {
         promotionId: PromotionId;
-        levels?: { [Area in CeilingArea]?: number | undefined } | undefined;
+        levels?: Partial<Record<CeilingArea, number | undefined>> | undefined;
       };
       result: ProductionCeilingView;
     };

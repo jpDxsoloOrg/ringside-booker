@@ -861,6 +861,12 @@ same number as crowd reaction (D-02):
 | `ticketPrice` | `Cents`, absent       | EVT6-05: one ticket's price; absent until the box office settles the show |
 | `merch`       | `Cents`, absent       | EVT6-05: live merch sales before workers' shares; absent until settled    |
 | `history`     | `ShowHistory`, absent | POL4-08: the summary kept once the card is rolled up (below)              |
+| `ceiling`     | 0–100 or null         | EVT4-02: the production ceiling the score was held to; null in old saves  |
+
+Whenever `ceiling` is set, `score ≤ rawScore` and `score ≤ ceiling`: the card
+earned `rawScore`, the promotion's production let it keep at most `ceiling`
+(see [card-flow.md](card-flow.md#production-ceiling)). `ceiling` defaults to
+null, so saves made before EVT4-02 still load.
 
 `ShowHistory` (POL4-08) is what a completed show keeps once it is older than
 `history.keepDetailDays` and its card detail is rolled up: `segments` (how

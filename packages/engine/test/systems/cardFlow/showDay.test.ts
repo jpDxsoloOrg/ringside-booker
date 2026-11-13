@@ -169,10 +169,12 @@ describe('the production ceiling on show night', () => {
     const completed = state.world.tables.eventInstances.filter((row) => row.result !== null);
     expect(completed.length).toBeGreaterThan(3);
     for (const show of completed) {
-      const result = show.result;
-      if (result === null || result.ceiling === null) continue;
-      expect(result.score).toBeLessThanOrEqual(result.rawScore);
-      expect(result.score).toBeLessThanOrEqual(result.ceiling);
+      const ceiling = show.result?.ceiling;
+      if (show.result === null || ceiling === null || ceiling === undefined) {
+        throw new Error(`${show.name} ran without a ceiling`);
+      }
+      expect(show.result.score).toBeLessThanOrEqual(show.result.rawScore);
+      expect(show.result.score).toBeLessThanOrEqual(ceiling);
     }
   });
 });
