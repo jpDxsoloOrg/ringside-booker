@@ -209,7 +209,7 @@ describe('health.pruneInjuryDetail', () => {
       .withInjuryCatalog()
       .build();
     const [personId] = ids.people;
-    let hurtOn: GameDate | null = null;
+    let hurt = false;
     const hurtOnce = defineSystem({
       id: 'hurtOnce',
       phases: [
@@ -219,8 +219,8 @@ describe('health.pruneInjuryDetail', () => {
           order: 50,
           cadence: { kind: 'daily' },
           run: (ctx) => {
-            if (hurtOn === null && personId !== undefined) {
-              hurtOn = ctx.date;
+            if (!hurt && personId !== undefined) {
+              hurt = true;
               injure(ctx, personId, {
                 source: 'world',
                 kindKey: parseContentKey('injury.test-arm'),
@@ -234,7 +234,7 @@ describe('health.pruneInjuryDetail', () => {
     const engine = engineOver(world, [hurtOnce]);
     await engine.advanceDays({ maxDays: 1 });
     const [row] = engine.exportState().world.tables.injuries;
-    if (row === undefined || hurtOn === null) {
+    if (row === undefined) {
       throw new Error('expected an injury');
     }
     expect(storedKind(engine, injuryTraceRef(row.id))).toBe('full');

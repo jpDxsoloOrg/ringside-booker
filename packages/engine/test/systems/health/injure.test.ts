@@ -151,7 +151,7 @@ function numeric(stored: StoredTrace): Traced<number> {
 }
 
 function okId(result: InjureResult | undefined) {
-  if (result === undefined || !result.ok) {
+  if (!result?.ok) {
     throw new Error(`expected an injury, got ${JSON.stringify(result)}`);
   }
   return result.injuryId;

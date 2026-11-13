@@ -1561,7 +1561,23 @@
             "venueId": "ven_0000000001"
           }
         ],
-        "injuries": [],
+        "injuries": [
+          {
+            "bodyPart": "arms",
+            "canWorkAngles": false,
+            "conditionLoss": 2,
+            "expectedReturn": "2026-01-15",
+            "id": "inj_0000000001",
+            "kindKey": "injury.test-arm",
+            "noticedOn": "2026-01-05",
+            "personId": "per_0000000005",
+            "returnedOn": "2026-01-15",
+            "segmentId": null,
+            "severity": "moderate",
+            "since": "2026-01-05",
+            "source": "world"
+          }
+        ],
         "ledgerEntries": [
           {
             "amount": 8400000,

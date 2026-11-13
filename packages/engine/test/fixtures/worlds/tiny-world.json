@@ -1538,7 +1538,23 @@
         "cancellation": null
       }
     ],
-    "injuries": [],
+    "injuries": [
+      {
+        "id": "inj_0000000001",
+        "personId": "per_0000000005",
+        "kindKey": "injury.test-arm",
+        "bodyPart": "arms",
+        "severity": "moderate",
+        "since": "2026-01-05",
+        "expectedReturn": "2026-01-15",
+        "returnedOn": "2026-01-15",
+        "source": "world",
+        "segmentId": null,
+        "canWorkAngles": false,
+        "conditionLoss": 2,
+        "noticedOn": "2026-01-05"
+      }
+    ],
     "ledgerEntries": [
       {
         "id": "led_0000000001",
