@@ -1,6 +1,6 @@
 // The in-match injury roll and the handler seam (MTCH4-02).
 // Design: docs/design/physical-toll.md#the-injury-roll
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { RegistryError } from '../../../../src/core/errors';
 import type { PersonId } from '../../../../src/core/ids';
 import { chance as drawChance } from '../../../../src/core/rng/odds';
@@ -10,6 +10,7 @@ import type { TunableOverrides } from '../../../../src/core/tunables/overrides';
 import type { BodyCondition } from '../../../../src/model/entities/person';
 import {
   INJURY_STREAM,
+  clearInjuryHandler,
   collectPhysicalInputs,
   collectRiskContributions,
   computeInjuryChance,
@@ -21,6 +22,7 @@ import {
   learningTraceRef,
   registerInjuryHandler,
   registerRiskModifier,
+  restoreBuiltInInjuryHandler,
   rollSegmentInjuries,
   wearTraceRef,
   type InjuryRollEntry,
@@ -286,6 +288,15 @@ describe('injuryPolicyFor', () => {
 });
 
 describe('registerInjuryHandler', () => {
+  // WRK6-03's health.injure registers itself on import as the built-in handler; these tests need
+  // the seam empty and put the built-in back afterwards.
+  beforeEach(() => {
+    clearInjuryHandler();
+  });
+  afterEach(() => {
+    restoreBuiltInInjuryHandler();
+  });
+
   it('holds exactly one handler and refuses a second, naming both', () => {
     expect(getInjuryHandler()).toBeNull();
     const unregister = registerInjuryHandler({
@@ -308,6 +319,14 @@ describe('registerInjuryHandler', () => {
     expect(() =>
       registerInjuryHandler({ id: 'Not An Id', apply: () => ({ injuryTraceRef: null }) }),
     ).toThrow(RegistryError);
+    expect(getInjuryHandler()).toBeNull();
+  });
+
+  it('puts back the built-in handler after a clear', async () => {
+    const { HEALTH_INJURY_HANDLER_ID } = await import('../../../../src/systems/health');
+    restoreBuiltInInjuryHandler();
+    expect(getInjuryHandler()?.id).toBe(HEALTH_INJURY_HANDLER_ID);
+    clearInjuryHandler();
     expect(getInjuryHandler()).toBeNull();
   });
 });

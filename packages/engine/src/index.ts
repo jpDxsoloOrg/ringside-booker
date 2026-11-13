@@ -39,6 +39,7 @@ export type {
   PromotionSnapshotId,
   AiProfileId,
   AiDecisionId,
+  InjuryId,
 } from './core/ids';
 /** The nominal-type helper, exported as `Branded` because `Brand` is the brand entity. */
 export type { Brand as Branded } from './core/brand';
@@ -2428,3 +2429,44 @@ export {
 } from './systems/booking/draft';
 export { RESULT_PLANS, ResultPlanSchema, type ResultPlan } from './model/entities/segment';
 export { COIN_FLIP_LABEL } from './systems/match/index';
+
+// Injuries (WRK6-03): the `injuries` history table, `health.injure` (the one way anyone gets hurt),
+// its traced formulas and the daily return step. See docs/design/health.md#injuries.
+export {
+  INJURY_SOURCES,
+  InjuryRecordSchema,
+  InjurySeveritySchema,
+  InjurySourceSchema,
+  injuriesTable,
+  type InjuryRecord,
+  type InjurySource,
+} from './model/entities/injury';
+export {
+  AT_LEAST_A_DAY,
+  anglesNote,
+  catalogRangeLabel,
+  computeInjuryConditionLoss,
+  computeInjuryDays,
+  decideInjurySeverity,
+  healInjuries,
+  healthInjuryHandler,
+  injure,
+  INJURIES_STREAM,
+  INJURY_CHANCE_TRACE_KIND,
+  INJURY_CONDITION_LOSS_TRACE_KIND,
+  INJURY_TRACE_KIND,
+  INJURY_TRACE_KINDS,
+  injuryConditionLossTraceRef,
+  injuryRecordChanceTraceRef,
+  injuryTraceRef,
+  medicalCareLabel,
+  NEITHER_TRAIT_BRANCH,
+  NO_INJURY_KINDS,
+  pickInjuryKind,
+  SEVERITY_SET_BY_MATCH,
+  severityLabel,
+  type InjureOptions,
+  type InjureRefusal,
+  type InjureResult,
+  type InjuryDaysInputs,
+} from './systems/health/index';

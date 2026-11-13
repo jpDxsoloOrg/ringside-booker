@@ -15,6 +15,7 @@ import { employmentsTable } from './entities/employment';
 import { eventDefinitionsTable } from './entities/event-definition';
 import { eventInstancesTable } from './entities/event-instance';
 import { continentsTable, countriesTable, regionsTable } from './entities/geography';
+import { injuriesTable } from './entities/injury';
 import { ledgerEntriesTable } from './entities/ledger-entry';
 import { mailTable } from './entities/mail';
 import { networksTable } from './entities/network';
@@ -74,6 +75,8 @@ export const TABLES = {
   // AIP1-01: the rival desk's profiles and decision log.
   aiProfiles: aiProfilesTable,
   aiDecisions: aiDecisionsTable,
+  // WRK6-03: every injury a person has had.
+  injuries: injuriesTable,
 } as const satisfies TableRegistry;
 
 export type GameTables = typeof TABLES;

@@ -70,10 +70,10 @@ anything else being renumbered.
 
 The health system's `housekeeping` phases ([health.md](health.md)):
 
-| Phase                      | Order | Cadence         | What it does                                                                                                      |
-| -------------------------- | ----- | --------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `health.recovery`          | 10    | daily           | Fatigue fades for everyone above 0 (stamina, age and traits count; less after a talking-only show day yesterday). |
-| `health.conditionRecovery` | 12    | weekly, Mondays | Damaged body parts heal a little, up to the cap for the worker's age; no rolls, no traces.                        |
+| Phase                      | Order | Cadence         | What it does                                                                                                                                                          |
+| -------------------------- | ----- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `health.recovery`          | 10    | daily           | Injuries due back today end (`injury.healed`); then fatigue fades for everyone above 0 (stamina, age and traits count; less after a talking-only show day yesterday). |
+| `health.conditionRecovery` | 12    | weekly, Mondays | Damaged body parts heal a little, up to the cap for the worker's age; no rolls, no traces.                                                                            |
 
 The `money` group's phases so far (ECO1-03, see
 [finances.md](finances.md#payroll)):
@@ -88,18 +88,22 @@ a zero amount and draw no random numbers (only the ledger rows' ids).
 
 The `periodic` group's weekly phases so far, all on Mondays:
 
-| Phase                   | Order | What it does                                                                                                                             |
-| ----------------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `match.momentumDrift`   | 30    | Momentum drifts for workers who did not wrestle that week ([match-aftermath.md](match-aftermath.md#momentum-drift)).                     |
-| `office.weeklySnapshot` | 34    | One promotion history row per active or dormant promotion, then old weeks thinned to one row per month ([office.md](office.md#history)). |
-| `match.pruneAftermaths` | 40    | Each worker keeps only their newest stored aftermaths ([match-aftermath.md](match-aftermath.md#stored-aftermaths)).                      |
-| `history.rollUp`        | 41    | History older than `history.keepDetailDays` becomes summaries and monthly totals ([save-format.md](save-format.md#history-retention)).   |
+| Phase                      | Order | What it does                                                                                                                             |
+| -------------------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `match.momentumDrift`      | 30    | Momentum drifts for workers who did not wrestle that week ([match-aftermath.md](match-aftermath.md#momentum-drift)).                     |
+| `office.weeklySnapshot`    | 34    | One promotion history row per active or dormant promotion, then old weeks thinned to one row per month ([office.md](office.md#history)). |
+| `match.pruneAftermaths`    | 40    | Each worker keeps only their newest stored aftermaths ([match-aftermath.md](match-aftermath.md#stored-aftermaths)).                      |
+| `history.rollUp`           | 41    | History older than `history.keepDetailDays` becomes summaries and monthly totals ([save-format.md](save-format.md#history-retention)).   |
+| `health.pruneInjuryDetail` | 44    | The traces of injuries older than `history.keepDetailDays` become summaries; the rows stay ([health.md](health.md#returns)).             |
 
 The rival desk's phases ([rival-desk.md](rival-desk.md#jobs)), both daily:
 `aip.runTurns` (`aiTurns`, order 50) runs every due rival job for every
 computer unit, `aip.pruneDecisionLog` (`periodic`, order 42) prunes the
 rival decision log, and `aip.pruneCardDetail` (`periodic`, order 43) keeps
-only a summary of rival card slots older than `history.keepDetailDays`.
+only a summary of rival card slots older than `history.keepDetailDays`. The
+match system's daily `match.prunePhysicalDetail` (`periodic`, order 45) does
+the same for the physical toll traces of the player's matches
+([physical-toll.md](physical-toll.md#stored-traces)).
 
 On a show day the rival job `aip.bookShow` (a `beforeShow` job, AIP4-05, see
 [rival-booking.md](rival-booking.md#show-day)) runs inside `aip.runTurns`, so
@@ -373,6 +377,18 @@ registered ones:
 | `sim.stopDate`        | The date about to be simulated is the `stopAtDate` the player picked                                             | "Reached the date you asked to stop at"                                             |
 | `sim.repeatedFailure` | The same step failed on each of the last `sim.stopSkipAfterConsecutiveFailures` days (default 3) of this advance | Names the step and its last error message, so the player can put it in a bug report |
 
+**The systems' gates.** Registered by the system bundles:
+
+| Gate                      | System | Hits when                                                              | Reason                                                               | Hint        |
+| ------------------------- | ------ | ---------------------------------------------------------------------- | -------------------------------------------------------------------- | ----------- |
+| `shows.tonight`           | shows  | The player has an open show today (EVT2-09)                            | "Tonight: Friday Fury", or "Your show 'Friday Fury' has no card yet" | `showNight` |
+| `health.ownWorkerInjured` | health | An injury to one of the player's workers waits to be noticed (WRK6-04) | "Big Joe was injured (Sprained ankle, out until 14 March 2031)"      | `roster`    |
+
+The hints a gate can carry are the web shell's route keys: `showNight` (the
+show screen), `inbox`, `booking` and `roster` (the roster; WRK6-06 lands it on
+the Injuries tab or the worker's profile). A hint the shell does not know yet
+still gets a button with the gate's own reason.
+
 The failure count is per advance and per step. Two different phases failing on
 alternate days, or one phase failing every other day, never trips it; a phase
 that fails every day stops a ten-year skip after three days instead of running
@@ -447,13 +463,15 @@ that work **only where the result is identical**: the same world, the same
 stored traces, the same RNG and the same save, byte for byte. Code:
 `packages/engine/src/core/fastPaths.ts`.
 
-| Fast path                       | Where                                                | What it skips                                                                                                                                                                      |
-| ------------------------------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Aftermath without region detail | `applySegmentAftermath` (show night's MTCH3 applier) | The per-region preview and the country and continent roll-ups of each competitor's change. The applier stores none of them; the popularity door works the regions out as it writes |
-| Summary-only record check       | `TraceStaging.record` with `summaryOnly`             | Validating every node of a tree that is kept only as a summary: the tree is fitted into the size limits as before, then only its root and direct steps are checked                 |
-| One-walk record check           | `TraceStaging.record`                                | `assertJsonValue` plus the load schema's zod parse: `copyValidTraceContent` builds the same copy in one walk, or returns null and the full check runs (and throws) as before       |
-| Headline and reach roll-ups     | `headlinePopularityOf` (office), `reachOf` (finance) | Rolling up every country and continent to read the home country, the home continent and the world (`popularityRollupPart`)                                                         |
-| Card values without traces      | `buildCardPool` (rival booker)                       | The card value trace of every worker for every show: `cardValueNumber` does the same steps in the same order. A Why? that shows a card value builds it with `cardValue`            |
+| Fast path                       | Where                                                                | What it skips                                                                                                                                                                      |
+| ------------------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Aftermath without region detail | `applySegmentAftermath` (show night's MTCH3 applier)                 | The per-region preview and the country and continent roll-ups of each competitor's change. The applier stores none of them; the popularity door works the regions out as it writes |
+| Summary-only record check       | `TraceStaging.record` with `summaryOnly`                             | Validating every node of a tree that is kept only as a summary: the tree is fitted into the size limits as before, then only its root and direct steps are checked                 |
+| One-walk record check           | `TraceStaging.record`                                                | `assertJsonValue` plus the load schema's zod parse: `copyValidTraceContent` builds the same copy in one walk, or returns null and the full check runs (and throws) as before       |
+| Headline and reach roll-ups     | `headlinePopularityOf` (office), `reachOf` (finance)                 | Rolling up every country and continent to read the home country, the home continent and the world (`popularityRollupPart`)                                                         |
+| Card values without traces      | `buildCardPool` (rival booker)                                       | The card value trace of every worker for every show: `cardValueNumber` does the same steps in the same order. A Why? that shows a card value builds it with `cardValue`            |
+| Rival wear by body part         | `computePhysicalToll` (MTCH4's applier) on a rival show              | Each body part's wear trace: the same `load × weight` as plain numbers; the show stores only summaries                                                                             |
+| Rival-rules injury chance       | `computePhysicalToll` on a rival show under `ai.skipInMatchInjuries` | The injury chance formula: the policy makes it 0, given with its rival-rules line; the roll is still drawn                                                                         |
 
 **Proof.** `setFastPaths(false)` turns them all off, so the engine takes the
 full path everywhere. `test/core/fastPaths.test.ts` runs a month of the roster
@@ -805,6 +823,14 @@ also carries `source` (`player`, `ai` or `system`) and `reasonKey`:
 | `popularity.changed`          | `subjectKind`, `subjectId`, `worldBefore`, `worldAfter`, `regionsChanged` | A person's or promotion's popularity changes in a region      |
 | `momentum.changed`            | `employmentId`, `personId`, `promotionId`, `before`, `after`              | A worker's momentum changes (`before` is null the first time) |
 | `morale.changed`              | `employmentId`, `personId`, `promotionId`, `before`, `after`              | A worker's morale changes                                     |
+
+The health system's events ([health.md](health.md#injuries)):
+
+| Event              | Payload                                                                                            | Published when                                              |
+| ------------------ | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `fatigue.cleared`  | `personId`                                                                                         | A person's fatigue reaches 0                                |
+| `injury.sustained` | `personId`, `injuryId`, `kindKey`, `bodyPart`, `severity`, `expectedReturn`, `source`, `segmentId` | `health.injure` hurts someone (`segmentId` null off screen) |
+| `injury.healed`    | `personId`, `injuryId`, `kindKey`, `daysOut`                                                       | `health.recovery` brings someone back on their return date  |
 
 The booking system's events ([booking.md](booking.md#commands)):
 

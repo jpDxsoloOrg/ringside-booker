@@ -10,7 +10,9 @@
  *   (`match.popularity.streakLookback`) or Recent form can list, whichever is more: so a streak
  *   and the Form tab read exactly what they read before the roll-up;
  * - each title's newest matches the rival booker reads for its last defence and its recent
- *   challengers (`aip.titles.recentChallengers`).
+ *   challengers (`aip.titles.recentChallengers`);
+ * - a segment someone was injured in (WRK6-03): injury rows are part of a worker's record and keep
+ *   their `segmentId`.
  *
  * The set only depends on the world, so a roll-up is deterministic.
  */
@@ -45,6 +47,11 @@ export function segmentsToKeep(
   }
   for (const row of read.tables.aftermaths.values()) {
     keep.add(row.segmentId);
+  }
+  for (const injury of read.tables.injuries.values()) {
+    if (injury.segmentId !== null) {
+      keep.add(injury.segmentId);
+    }
   }
 
   const competitors = new Set<PersonId>();

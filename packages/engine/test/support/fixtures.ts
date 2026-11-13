@@ -17,6 +17,7 @@ export * from './builders/inbox';
 export * from './builders/ledger';
 export * from './builders/popularity';
 export * from './builders/aftermath';
+export * from './builders/injury';
 export * from './catalogs';
 export * from './injuries';
 export { resetTestIds, testId, TestIds, TestIdSequence } from './ids';

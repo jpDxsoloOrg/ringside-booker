@@ -320,22 +320,24 @@ describe('shows.runTonight determinism', () => {
     bookRunnable(commandPath);
     const phasePath = validateWorld();
     bookRunnable(phasePath);
-    // Nobody is tired, so the day's fatigue recovery (before the shows group) draws nothing on
-    // either path and the show sees the same world whether it runs before the day or inside it.
+    // Nobody is tired going in, so the show sees the same world whether it runs before the day or
+    // inside it.
     for (const built of [commandPath, phasePath]) {
       expect([...built.world.tables.people.values()].every((person) => person.fatigue === 0)).toBe(
         true,
       );
     }
 
-    const viaCommand = engineOver(commandPath);
+    // The show tires its workers (MTCH4-04). Run by command, it runs before the day's housekeeping,
+    // so that day's fatigue recovery would see them tired; run inside the day it runs after it. The
+    // health system is left out on both paths so the comparison is about running the show only.
+    const withoutHealth = defaultSystems.filter((system) => system.id !== 'health');
+    const viaCommand = engineOver(commandPath, withoutHealth);
     expect(run(viaCommand, commandPath.show).ok).toBe(true);
     expect((await viaCommand.advanceDays({ maxDays: 1 })).daysAdvanced).toBe(1);
 
     const viaPhase = engineOver(phasePath, [
-      ...defaultSystems.map((system) =>
-        system.id === 'shows' ? { ...system, gates: [] } : system,
-      ),
+      ...withoutHealth.map((system) => (system.id === 'shows' ? { ...system, gates: [] } : system)),
       oldPathSystem,
     ]);
     expect((await viaPhase.advanceDays({ maxDays: 1 })).daysAdvanced).toBe(1);

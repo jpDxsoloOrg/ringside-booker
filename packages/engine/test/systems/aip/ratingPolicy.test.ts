@@ -112,12 +112,20 @@ describe('the rival rating policy', () => {
     expect(policy.lines[0]).toBe(NO_RIVAL_BONUS_LINE);
   });
 
-  it('registers MTCH1 as the consumer of the score bonus and simpler booking only', () => {
+  it('registers MTCH1 for the score bonus and simpler booking, MTCH4 for injuries', () => {
     const consumer = { featureId: 'MTCH1', label: 'Match ratings' };
     expect(aiShortcutConsumers('ai.scoreBonus')).toEqual([{ key: 'ai.scoreBonus', ...consumer }]);
     expect(aiShortcutConsumers('ai.simpleBookingInputs')).toEqual([
       { key: 'ai.simpleBookingInputs', ...consumer },
     ]);
-    expect(aiShortcutConsumers('ai.skipInMatchInjuries')).toEqual([]);
+    // MTCH4 reads it on show night (MTCH4-04); WRK6's off-screen injuries too (WRK6-04).
+    // Registration order follows module load order, which shared test threads change: sort.
+    const injuryConsumers = [...aiShortcutConsumers('ai.skipInMatchInjuries')].sort((left, right) =>
+      left.featureId.localeCompare(right.featureId),
+    );
+    expect(injuryConsumers).toEqual([
+      { key: 'ai.skipInMatchInjuries', featureId: 'MTCH4', label: 'Match injuries' },
+      { key: 'ai.skipInMatchInjuries', featureId: 'WRK6', label: 'Off-screen injuries' },
+    ]);
   });
 });

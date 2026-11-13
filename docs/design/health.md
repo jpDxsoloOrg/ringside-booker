@@ -7,20 +7,24 @@ reference system, the layout other systems copy (see
 [the worked example](calculation-traces.md#worked-example)).
 
 WRK6-02 built fatigue recovery, the condition cap, condition recovery and
-medical care. Injuries (WRK6-03), injury risk (WRK6-04) and the Health tab on
-the profile (WRK6-05) add their sections here. How matches make people tired
+medical care. WRK6-03 added [injuries](#injuries) and [returns](#returns).
+Injury risk (WRK6-04) and the Health tab on the profile (WRK6-05) add their
+sections here. How matches make people tired
 and wear their bodies is the match system's (MTCH4).
 
-| Piece        | Where            | What it does                                                                |
-| ------------ | ---------------- | --------------------------------------------------------------------------- |
-| Tunables     | `tunables.ts`    | Every `health.*` balance number, category `Health`                          |
-| Stream       | `streams.ts`     | `health.recovery`: the extra rest roll                                      |
-| Formulas     | `formulas/`      | `computeFatigueRecovery`, `computeConditionCap`, `computeConditionRecovery` |
-| Medical care | `medical.ts`     | `medicalLevelOf`: the care level a person gets today                        |
-| Talking days | `appearances.ts` | `talkedWithoutWrestling`: who cut a promo and did not wrestle               |
-| Phases       | `phases.ts`      | `health.recovery` (daily) and `health.conditionRecovery` (Mondays)          |
-| Event        | `events.ts`      | `fatigue.cleared { personId }`                                              |
-| Query        | `queries.ts`     | `health.fatigue`: fatigue and the trace behind it                           |
+| Piece        | Where              | What it does                                                                                         |
+| ------------ | ------------------ | ---------------------------------------------------------------------------------------------------- |
+| Tunables     | `tunables.ts`      | Every `health.*` balance number, category `Health`                                                   |
+| Streams      | `streams.ts`       | `health.recovery`: the extra rest roll; `health.injuries`: injury rolls                              |
+| Formulas     | `formulas/`        | `computeFatigueRecovery`, `computeConditionCap`, `computeConditionRecovery`, and the injury formulas |
+| Medical care | `medical.ts`       | `medicalLevelOf`: the care level a person gets today                                                 |
+| Talking days | `appearances.ts`   | `talkedWithoutWrestling`: who cut a promo and did not wrestle                                        |
+| Injuries     | `injure.ts`        | `injure` (`health.injure`): the one way anyone gets hurt                                             |
+| Returns      | `returns.ts`       | `healInjuries` (inside `health.recovery`) and `health.pruneInjuryDetail`                             |
+| Handler      | `injuryHandler.ts` | registers `health.injure` as MTCH4's injury handler                                                  |
+| Phases       | `phases.ts`        | `health.recovery` (daily), `health.conditionRecovery` and `health.pruneInjuryDetail` (Mondays)       |
+| Events       | `events.ts`        | `fatigue.cleared`, `injury.sustained`, `injury.healed`                                               |
+| Query        | `queries.ts`       | `health.fatigue`: fatigue and the trace behind it                                                    |
 
 ## Fatigue recovery
 
@@ -53,6 +57,11 @@ recovers 80% as fast as a 30-year-old, and anyone 58 or older half as fast.
 | `health.fatigue.workhorseMultiplier` | number  | 1.2     | 0–3   | multiplier | Recovery for a workhorse, as a multiple of everyone else                        |
 | `health.fatigue.coasterMultiplier`   | number  | 0.9     | 0–3   | multiplier | Recovery for a coaster, as a multiple of everyone else                          |
 | `health.fatigue.workedPromoRecovery` | number  | 0.5     | 0–1   | multiplier | Recovery after a show spent talking (a promo or angle, no match); 1 rests fully |
+
+**Whose Why? is kept.** Only the player's own workers (people a human's
+promotion or brand employs that day) keep the full recovery trace. Everyone
+else's is stored as a summary from the start (`summaryOnly`), because a long
+skip would otherwise keep a full trace for every tired rival worker every day.
 
 **The roll is always drawn**, even when `recoveryBonusMax` is 0, so every call
 takes exactly one draw from `health.recovery` and tuning never shifts the
@@ -141,8 +150,9 @@ traces and publishes nothing: the formula has no roll, so the health profile
 the person's **active** employments that have started by `date` (ties go to
 the lower promotion id), or `health.medical.freeAgentLevel` with
 `promotionId: null` when nobody employs them. Offered, signed, ended and
-future contracts do not count. Condition recovery uses it here; injury healing
-(WRK6-03) and injury risk (WRK6-04) use the same helper. The policy itself and
+future contracts do not count. Condition recovery uses it here; an injury's time out
+([injuries](#injuries), read on the day of the injury) and injury risk
+(WRK6-04) use the same helper. The policy itself and
 what it costs are the finance system's ([finances.md](finances.md#medical)).
 
 | Tunable                                    | Kind    | Default | Range | Unit       | What it does                                                   |
@@ -152,3 +162,248 @@ what it costs are the finance system's ([finances.md](finances.md#medical)).
 | `health.medical.recoveryMultiplier.level2` | number  | 1.15    | 0–3   | multiplier | Healing under medical care level 2                             |
 | `health.medical.recoveryMultiplier.level3` | number  | 1.3     | 0–3   | multiplier | Healing under medical care level 3 (the best)                  |
 | `health.medical.freeAgentLevel`            | integer | 1       | 0–3   | count      | The medical care level (0 to 3) a worker with no employer gets |
+| `health.medical.injuryMultiplier.level0`   | number  | 1.2     | 0–3   | multiplier | Injury time out under medical care level 0 (none)              |
+| `health.medical.injuryMultiplier.level1`   | number  | 1       | 0–3   | multiplier | Injury time out under medical care level 1                     |
+| `health.medical.injuryMultiplier.level2`   | number  | 0.9     | 0–3   | multiplier | Injury time out under medical care level 2                     |
+| `health.medical.injuryMultiplier.level3`   | number  | 0.8     | 0–3   | multiplier | Injury time out under medical care level 3 (the best)          |
+
+## Injuries
+
+`injure(ctx, personId, options)` in `injure.ts` (the docs call it
+`health.injure`) is the one way anyone gets hurt. MTCH4's in-match roll, DAY7's
+world events and WRK6-04's off-screen injuries all call it; it is the only code
+that inserts into the [`injuries` table](data-model.md#injuries-injuries-inj_)
+or sets `person.injury`, and `test/systems/health/ownership.test.ts` fails if
+anything else does. An injury never changes morale or causes anger: it is not
+a result, so the story shield (D-09) is not involved.
+
+**One current injury.** A person has at most one current injury: the row with
+`returnedOn` null, mirrored on `person.injury` for everything that reads it
+(availability, booking warnings, condition recovery). A second `injure` on
+someone already hurt is refused with `alreadyInjured`; injuries never stack or
+get "aggravated". Past injuries stay in the table as the worker's record.
+
+**The outcome.** Every roll draws from `health.injuries`, in this order: the
+kind (only when the caller named none), the severity (only when the caller did
+not set one), the days out, and whether they can still work angles.
+
+1. **Kind** (`formulas/injuryKindPick.ts`, `pickInjuryKind`): a decision that
+   considers every catalog kind (sorted by key) with its `weight` and rolls
+   one. With a body part hint (MTCH4's worst-worn part), only kinds on that part
+   are considered, or every kind when the catalog has none there. An empty
+   catalog picks nothing: the injury is refused with `noCatalog` and a line in
+   the day's log.
+2. **Severity** (`formulas/injurySeverity.ts`, `decideInjurySeverity`): minor,
+   moderate or severe, rolled from the kind's `severityWeights`. A severity the
+   caller sets is a rule, "Set by the match", and draws nothing.
+3. **Days out** (`formulas/injuryOutcome.ts`, `computeInjuryDays`):
+
+```
+days = clamp(ceil(roll × severity × trait × medical), 1, maxDays)
+roll     = a whole number in the kind's catalog range, both ends included
+severity = severityMultiplier.minor / .moderate / .severe
+trait    = durableMultiplier for a durable worker, injuryProneMultiplier for an
+           injury-prone one, else 1 ("Neither durable nor injury prone")
+medical  = medical.injuryMultiplier.level0..level3 for the care the person gets
+           that day (medical care)
+```
+
+The Why? reads like this: "Sprained ankle: 7–21 days" with the roll, the
+severity line with its decision under it, the trait line, "Medical care:
+Apex Wrestling (level 2)" (or "No employer: standard care"), rounded up,
+"At least a day" (fixed: an injury always costs at least a day) and the
+`maxDays` cap. A multiplier tuned to 0 still costs a day. 4. **Angles**: `rollChance(kind.canWorkAnglesChance)`, added to the end of
+the days-out trace with a note ("Can still work angles while out" or
+"Cannot work angles while out").
+
+**Condition loss** (`formulas/injuryConditionLoss.ts`,
+`computeInjuryConditionLoss`): the hurt part loses
+`days out / 7 × conditionLossPerWeek` points (7 is fixed: days per week), never
+more than it has. The loss is permanent apart from the slow, age-capped
+[condition recovery](#condition-recovery), which skips the injured part until
+they return.
+
+**What it writes.** One `injuries` row (`noticedOn` is null for the player's
+own workers while `health.stopOnOwnInjury` is on, so the
+[own-injury gate](#own-injury-gate) stops the day; the day itself for everyone
+else), the `person.injury` pointer
+(`expectedReturn = today + days`), the lower condition, three traces under the
+injury id (`health.injury` for the days out, `health.injuryConditionLoss`, and
+`health.injuryChance` when the caller passed the chance that led to it), and
+the `injury.sustained` event. The traces are full for the player's own workers
+and summaries from the start for everyone else, to keep saves small.
+
+**The contract for callers.**
+
+| Option        | Required              | What it does                                                               |
+| ------------- | --------------------- | -------------------------------------------------------------------------- |
+| `source`      | yes                   | `world` (off screen, DAY7, WRK6-04) or `segment` (on a show, MTCH4)        |
+| `segmentId`   | exactly for `segment` | the segment they were hurt in; anything else throws `InvalidArgumentError` |
+| `kindKey`     | no                    | the kind; an unknown key is refused with `unknownKind`                     |
+| `severity`    | no                    | a severity the caller already knows                                        |
+| `bodyPart`    | no                    | narrows the kind roll to that part when the catalog has a kind there       |
+| `chanceTrace` | no                    | the chance that led to the injury, stored as `health.injuryChance`         |
+
+It returns `{ ok: true, injuryId }`, or `{ ok: false, reason }` with
+`alreadyInjured`, `notInjurable` (retired, deceased or unknown person),
+`unknownKind` or `noCatalog`. A refusal writes nothing and draws nothing. A
+world from before WRK6-01 has no catalog, so it has no injuries until a new
+game.
+
+**MTCH4's handler.** `injuryHandler.ts` registers `health.injure` as MTCH4's
+built-in injury handler ([physical-toll.md](physical-toll.md#the-injury-roll))
+when the health system loads. For each worker the match roll injures it calls
+`injure` with `source: 'segment'`, the segment, the body part hint and the
+injury chance, and returns the `health.injury` trace ref (null when the worker
+was already injured). Tests of MTCH4's seam clear it with
+`clearInjuryHandler()` and put it back with `restoreBuiltInInjuryHandler()`.
+
+| Tunable                                     | Kind    | Default | Range | Unit       | What it does                                                               |
+| ------------------------------------------- | ------- | ------- | ----- | ---------- | -------------------------------------------------------------------------- |
+| `health.injury.severityMultiplier.minor`    | number  | 0.6     | 0–3   | multiplier | Time out for a minor injury, as a multiple of the rolled days              |
+| `health.injury.severityMultiplier.moderate` | number  | 1       | 0–3   | multiplier | Time out for a moderate injury, as a multiple of the rolled days           |
+| `health.injury.severityMultiplier.severe`   | number  | 1.8     | 0–3   | multiplier | Time out for a severe injury, as a multiple of the rolled days             |
+| `health.injury.durableMultiplier`           | number  | 0.75    | 0–3   | multiplier | Time out for a durable worker, as a multiple of everyone else              |
+| `health.injury.injuryProneMultiplier`       | number  | 1.35    | 0–3   | multiplier | Time out for an injury-prone worker, as a multiple of everyone else        |
+| `health.injury.maxDays`                     | integer | 540     | 1–730 | days       | The longest any injury keeps someone out                                   |
+| `health.injury.conditionLossPerWeek`        | number  | 1       | 0–10  | points     | Condition the hurt body part loses for each week out; 0 turns the loss off |
+
+The medical level is read on the day of the injury: a better medical policy
+later (ECO1) speeds up future injuries and condition healing, not an injury
+already dated.
+
+## Returns
+
+Every morning, before fatigue recovery, `health.recovery` closes each current
+injury whose `expectedReturn` is today or earlier (`healInjuries`,
+`returns.ts`), in injury id order: the row gets `returnedOn = today`, the
+person's `injury` pointer is cleared and `injury.healed { personId, injuryId,
+kindKey, daysOut }` is published. A person is back on exactly their
+`expectedReturn`, not the day before. It draws no random numbers, so the
+recovery stream stays aligned, and it only looks at people with a pointer.
+
+The rows stay for good: they are small and part of a worker's record, and the
+history roll-up keeps any segment an injury row points at
+([save-format.md](save-format.md#history-retention)). Their traces follow the
+owner's history rule instead: `health.pruneInjuryDetail` (`periodic`, order
+44, Mondays) slims the traces of every injury that started before
+`history.keepDetailDays` to summaries, so the Why? says "Full breakdown is only
+kept for recent results". The per-kind trace limit (`sim.traceRetentionPerKind`)
+can summarise them sooner on a busy world.
+
+## Off-screen injuries
+
+Wrestlers get hurt away from the shows too: in training, travelling, in a
+house-show bump nobody booked. Every day, first in the `worldEvents` group,
+`health.offscreenInjuries` (`offscreen.ts`) gives every eligible wrestler in the
+world a small chance of an injury. Free agents and the player's own workers
+roll too, so the world keeps moving before any show runs. This is also how
+rival wrestlers still get hurt while the rival rule skips their in-match
+injuries ([D-01](design-decisions.md#d-01-rival-promotions-use-simplified-rules-2026-11-07), [rival-desk.md](rival-desk.md#shortcuts)).
+
+**Who rolls.** `isOffscreenEligible(person, date)`: status `active`, the role
+`wrestler` or `occasionalWrestler`, a debut on or before the day, and not
+already injured. People are visited in id order (the `byStatus` index for
+`active`).
+
+**The chance** (`formulas/offscreenInjuryChance.ts`,
+`computeOffscreenInjuryChance`), a probability for today:
+
+```
+chance = clamp(perYear / 365.25 × trait × fatigue × body × rival, 0, 1)
+perYear = health.offscreen.injuriesPerYear
+trait   = durableMultiplier for a durable wrestler, injuryProneMultiplier for an
+          injury-prone one, else 1 ("Neither durable nor injury prone")
+fatigue = 1 + fatigue / 100 × fatigueWeight                       ("Fatigue")
+body    = 1 + (100 − worst part's condition) / 100 × conditionWeight
+                                         ("Worst body part: Legs 42")
+rival   = computerMultiplier while the rival rule applies to their employer,
+          else 1
+```
+
+365.25 is fixed ("Days in a year"). The rival rule comes from AIP1's
+`aiShortcutOn(read, tunables, promotionId, 'ai.skipInMatchInjuries', brandId)`
+through `offscreenShortcutOf` (`rivalShortcut.ts`), for the worker's main
+employer and brand: computer-run, the level playing field off and the shortcut
+on. The Why? then reads "Rival rule: no in-match injuries, so more off-screen
+ones (D-01)" with the shortcut's own decision under it; a free agent's reads
+"No rival rule in this game", and a worker the rule does not cover reads "Rival
+rule does not apply". WRK6 is listed as a consumer of the shortcut on the Rival
+rules screen.
+
+**The roll.** Each eligible wrestler draws exactly once from
+`health.offscreen`, whatever the tunables say, so tuning never shifts the
+stream. On a hit the phase calls [`injure`](#injuries) with `source: 'world'`
+and the chance as `chanceTrace` (stored as `health.injuryChance`), inside a
+savepoint of its own so one bad catalog entry cannot undo the day's other
+injuries. A world with no injury catalog logs one line and rolls nothing.
+
+**Cost.** With the fast paths on (`core/fastPaths.ts`) the chance is worked out
+without its trace (`offscreenInjuryChanceValue`, the same steps in the same
+order) and the Why? is built only for the people who get hurt; the fast-path
+equivalence test checks the two agree. The employer's rival rule is worked out
+once per employer per day. Traces are stored only for injuries, as summaries
+for anyone the player does not employ, and are slimmed past
+`history.keepDetailDays` by `health.pruneInjuryDetail` like every injury trace.
+
+**Measured.** On a 228-wrestler world of free agents over 365 days
+(`test/systems/health/offscreenRate.test.ts`), 66 off-screen injuries against
+an expected 68.4 (228 × 0.3; people already out do not roll, so a little
+under). On the default world, where the rival rule doubles the rate for
+computer-run rosters, a 30-day skip gives 11 world-wide and a year 117 (seed of
+the default game, 2026-11). Measured with MTCH4-04's show-night toll merged, a
+365-day default-world save is 1.16 MB gzipped (1.59 MB with every show carded)
+and the skip takes about the same time as before: the off-screen rolls cost
+well under a second a year.
+
+| Tunable                                  | Kind   | Default | Range | Unit       | What it does                                                                |
+| ---------------------------------------- | ------ | ------- | ----- | ---------- | --------------------------------------------------------------------------- |
+| `health.offscreen.injuriesPerYear`       | number | 0.3     | 0–5   | count      | Off-screen injuries an average wrestler has in a year; 0 turns them off     |
+| `health.offscreen.durableMultiplier`     | number | 0.6     | 0–3   | multiplier | The chance for a durable wrestler, as a multiple of everyone else           |
+| `health.offscreen.injuryProneMultiplier` | number | 1.6     | 0–3   | multiplier | The chance for an injury-prone wrestler, as a multiple of everyone else     |
+| `health.offscreen.fatigueWeight`         | number | 0.5     | 0–2   | ratio      | How much more likely a fully tired wrestler is to get hurt (0.5 = 50% more) |
+| `health.offscreen.conditionWeight`       | number | 0.5     | 0–2   | ratio      | How much more likely a wrestler with a worn-out body part (condition 0) is  |
+| `health.offscreen.computerMultiplier`    | number | 2       | 0–10  | multiplier | The chance for rival wrestlers while the rival rule skips in-match injuries |
+
+## Own-injury gate
+
+When one of the player's own workers gets hurt, on a show or off it, the game
+stops so they see it straight away instead of finding out weeks later.
+
+**The notice rule.** When `injure` writes an injury, `noticedOn` is left null
+when `health.stopOnOwnInjury` is on and a human runs one of the person's
+employers that day (the brand's own controller when the brand has one, else
+the promotion's: `needsNotice` / `worksForAHuman` in `notice.ts`). Every other
+injury (rivals, free agents) is noticed on the day. The rule is decided when
+the injury is written because a gate cannot read tunables.
+
+**The gate.** `health.ownWorkerInjured` ("Your worker was injured", `gate.ts`)
+reads the `awaitingNotice` index and stops the day while any injury waits:
+
+- one waiting: "Big Joe was injured (Sprained ankle, out until 14 March 2031)",
+  with the ring name from their main contract (or their own) and the injury's
+  catalog label;
+- several: "Big Joe and 2 others were injured".
+
+The injury with the lowest id leads; `subject` is that person and `actionHint`
+is `roster`. It works alongside show night: on a show day both gates hit and the
+day control picks the leading one.
+
+**Marking it seen.** `health.acknowledgeInjuries { injuryIds }` (1 to 50 ids,
+`commands.ts`) sets `noticedOn` to today on each waiting one and publishes
+`injury.noticed { injuryIds }`. The screens that show an injury (the roster's
+Injuries tab and the health profile, WRK6-05/06) run it when they open. It
+refuses an unknown id (`unknownInjury`) and another promotion's worker's
+injury (`notYourWorker`). The player's own injuries already seen are skipped
+without a reason and nothing is written, so a screen can send everything it
+shows. An injury still waiting whose worker no human employs any more (their
+contract ended while it waited) can be marked by the player, so a waiting
+injury never blocks the day for good.
+
+**Turning it off.** Set `health.stopOnOwnInjury` to off: new injuries are then
+noticed on the day and never stop a skip. Injuries already waiting still need
+marking as seen.
+
+| Tunable                  | Kind    | Default | Unit | What it does                                        |
+| ------------------------ | ------- | ------- | ---- | --------------------------------------------------- |
+| `health.stopOnOwnInjury` | boolean | on      | flag | Stop the day when one of your own workers gets hurt |

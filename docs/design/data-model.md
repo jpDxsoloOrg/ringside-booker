@@ -241,37 +241,37 @@ and each field below names the epic that owns its meaning.
 
 ### Fields
 
-| Field             | Type                           | Range / rule                                                                                                                  | Meaning owned by |
-| ----------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- | ---------------- |
-| `id`              | `PersonId`                     | `per_` ID                                                                                                                     | FND              |
-| `givenName`       | string                         | 1–40 characters                                                                                                               | FND              |
-| `familyName`      | string                         | 0–40 characters (empty for people known by one name)                                                                          | FND              |
-| `defaultRingName` | string                         | 1–60 characters; used when no employment sets another ring name                                                               | FND              |
-| `gender`          | `Gender`                       | `male`, `female`, `nonBinary`                                                                                                 | FND              |
-| `birthDate`       | `GameDate`                     |                                                                                                                               | WRK (aging)      |
-| `debutDate`       | `GameDate \| null`             | null = not yet debuted; otherwise at least 14 years after `birthDate`                                                         | WRK (experience) |
-| `birthRegionId`   | `RegionId`                     | must exist in `regions`                                                                                                       | WLD              |
-| `basedInRegionId` | `RegionId`                     | must exist in `regions`; where they live now                                                                                  | WLD, ECO         |
-| `imageRef`        | `ImageRef`                     | relative asset path, `placeholder:<kind>` or null                                                                             | UI               |
-| `masked`          | boolean                        |                                                                                                                               | CRTV             |
-| `tags`            | string[]                       | at most 10, each 1–24 characters; free labels such as `generated`                                                             | tools            |
-| `roles`           | `PersonRole[]`                 | non-empty, unique; see roles below                                                                                            | FND              |
-| `status`          | `PersonStatus`                 | `active`, `semiRetired`, `hiatus`, `retired`, `deceased`, `outOfBusiness`                                                     | WRK, DAY         |
-| `career`          | `{ canOwn, canBook }`          | booleans: can own a promotion, can be a promotion's booker                                                                    | AIP, ECO         |
-| `motivation`      | `Motivation`                   | `money`, `legacy`, `power`, `enjoyment`, `thrill`                                                                             | ECO, SOC         |
-| `heightCm`        | integer                        | 140–230                                                                                                                       | WRK              |
-| `weightKg`        | integer                        | 40–250                                                                                                                        | WRK              |
-| `build`           | `Build`                        | `slim`, `lean`, `average`, `athletic`, `muscular`, `stocky`, `heavy`, `superHeavy`                                            | MTCH             |
-| `style`           | `RingStyle`                    | `allRounder`, `technician`, `brawler`, `highFlyer`, `powerhouse`, `hardcore`, `striker`, `grappler`, `showman`, `nonWrestler` | MTCH             |
-| `attributes`      | `Record<AttributeKey, number>` | every key required, each 0–100                                                                                                | WRK, MTCH        |
-| `condition`       | `Record<BodyPart, number>`     | `head`, `neck`, `back`, `arms`, `torso`, `legs`; each 0–100, 100 = perfect health                                             | WRK              |
-| `fatigue`         | number                         | 0–100                                                                                                                         | WRK              |
-| `injury`          | `Injury \| null`               | `{ kindKey, bodyPart, since, expectedReturn, canWorkAngles }`; `expectedReturn >= since`                                      | WRK              |
-| `restrictions`    | `Restriction[]`                | at most 4; `{ kind: 'rehab' \| 'personalLeave', until }`                                                                      | WRK              |
-| `development`     | `{ potential, ceilings }`      | `potential` integer −1000..1000; `ceilings` per attribute, optional, each 0–100                                               | WRK              |
-| `regionalPop`     | `Record<RegionId, number>`     | sparse; each 0–100; an explicit 0 is refused; keys must exist in `regions`                                                    | WRK              |
-| `traits`          | `TraitKey[]`                   | unique, at most 8, from the closed list; no exclusive pair together                                                           | see traits       |
-| `vices`           | `{ alcohol, substances }`      | each `none`, `hidden`, `known`, `recovering`                                                                                  | WRK, SOC         |
+| Field             | Type                           | Range / rule                                                                                                                                       | Meaning owned by |
+| ----------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| `id`              | `PersonId`                     | `per_` ID                                                                                                                                          | FND              |
+| `givenName`       | string                         | 1–40 characters                                                                                                                                    | FND              |
+| `familyName`      | string                         | 0–40 characters (empty for people known by one name)                                                                                               | FND              |
+| `defaultRingName` | string                         | 1–60 characters; used when no employment sets another ring name                                                                                    | FND              |
+| `gender`          | `Gender`                       | `male`, `female`, `nonBinary`                                                                                                                      | FND              |
+| `birthDate`       | `GameDate`                     |                                                                                                                                                    | WRK (aging)      |
+| `debutDate`       | `GameDate \| null`             | null = not yet debuted; otherwise at least 14 years after `birthDate`                                                                              | WRK (experience) |
+| `birthRegionId`   | `RegionId`                     | must exist in `regions`                                                                                                                            | WLD              |
+| `basedInRegionId` | `RegionId`                     | must exist in `regions`; where they live now                                                                                                       | WLD, ECO         |
+| `imageRef`        | `ImageRef`                     | relative asset path, `placeholder:<kind>` or null                                                                                                  | UI               |
+| `masked`          | boolean                        |                                                                                                                                                    | CRTV             |
+| `tags`            | string[]                       | at most 10, each 1–24 characters; free labels such as `generated`                                                                                  | tools            |
+| `roles`           | `PersonRole[]`                 | non-empty, unique; see roles below                                                                                                                 | FND              |
+| `status`          | `PersonStatus`                 | `active`, `semiRetired`, `hiatus`, `retired`, `deceased`, `outOfBusiness`                                                                          | WRK, DAY         |
+| `career`          | `{ canOwn, canBook }`          | booleans: can own a promotion, can be a promotion's booker                                                                                         | AIP, ECO         |
+| `motivation`      | `Motivation`                   | `money`, `legacy`, `power`, `enjoyment`, `thrill`                                                                                                  | ECO, SOC         |
+| `heightCm`        | integer                        | 140–230                                                                                                                                            | WRK              |
+| `weightKg`        | integer                        | 40–250                                                                                                                                             | WRK              |
+| `build`           | `Build`                        | `slim`, `lean`, `average`, `athletic`, `muscular`, `stocky`, `heavy`, `superHeavy`                                                                 | MTCH             |
+| `style`           | `RingStyle`                    | `allRounder`, `technician`, `brawler`, `highFlyer`, `powerhouse`, `hardcore`, `striker`, `grappler`, `showman`, `nonWrestler`                      | MTCH             |
+| `attributes`      | `Record<AttributeKey, number>` | every key required, each 0–100                                                                                                                     | WRK, MTCH        |
+| `condition`       | `Record<BodyPart, number>`     | `head`, `neck`, `back`, `arms`, `torso`, `legs`; each 0–100, 100 = perfect health                                                                  | WRK              |
+| `fatigue`         | number                         | 0–100                                                                                                                                              | WRK              |
+| `injury`          | `Injury \| null`               | `{ kindKey, bodyPart, since, expectedReturn, canWorkAngles }`; `expectedReturn >= since`; the current row of [`injuries`](#injuries-injuries-inj_) | WRK              |
+| `restrictions`    | `Restriction[]`                | at most 4; `{ kind: 'rehab' \| 'personalLeave', until }`                                                                                           | WRK              |
+| `development`     | `{ potential, ceilings }`      | `potential` integer −1000..1000; `ceilings` per attribute, optional, each 0–100                                                                    | WRK              |
+| `regionalPop`     | `Record<RegionId, number>`     | sparse; each 0–100; an explicit 0 is refused; keys must exist in `regions`                                                                         | WRK              |
+| `traits`          | `TraitKey[]`                   | unique, at most 8, from the closed list; no exclusive pair together                                                                                | see traits       |
+| `vices`           | `{ alcohol, substances }`      | each `none`, `hidden`, `known`, `recovering`                                                                                                       | WRK, SOC         |
 
 Rules across fields:
 
@@ -1347,3 +1347,38 @@ Refs: `promotionId`, `brandId` and every ID in `refs`. Indexes:
 `byPromotion`, `byPromotionDate` (key `<promotionId>|<date>`, helper
 `aiDecisionDateKey`) and `byRevealOn`. Rows older than
 `history.keepDetailDays` are pruned once revealed.
+
+## Injuries
+
+### Injuries (`injuries`, `inj_`)
+
+Every injury a person has had, one row each (WRK6-03). `returnedOn` null marks
+the current one, which `person.injury` mirrors. Only `health.injure` inserts
+rows or sets the pointer, and only the daily return step closes them
+([health.md](health.md#injuries)). Rows are kept for good as the worker's
+record; their traces become summaries past `history.keepDetailDays`.
+
+| Field            | Type                                | Notes                                                                     |
+| ---------------- | ----------------------------------- | ------------------------------------------------------------------------- |
+| `id`             | `InjuryId`                          |                                                                           |
+| `personId`       | `PersonId`                          |                                                                           |
+| `kindKey`        | `ContentKey`                        | the injury catalog entry, such as `injury.torn-acl`                       |
+| `bodyPart`       | `BodyPart`                          | the kind's part                                                           |
+| `severity`       | `'minor' \| 'moderate' \| 'severe'` | `InjurySeveritySchema`                                                    |
+| `since`          | `GameDate`                          | the day they were hurt                                                    |
+| `expectedReturn` | `GameDate`                          | `>= since`                                                                |
+| `returnedOn`     | `GameDate` or null                  | null while current; `>= since`                                            |
+| `source`         | `'world' \| 'segment'`              | `INJURY_SOURCES`                                                          |
+| `segmentId`      | `SegmentId` or null                 | set exactly when `source` is `segment`                                    |
+| `canWorkAngles`  | boolean                             | can still appear in talking segments while out                            |
+| `conditionLoss`  | number                              | 0..100, the condition the hurt part lost                                  |
+| `noticedOn`      | `GameDate` or null                  | when the promotion found out (WRK6-04's own-injury gate); null until then |
+
+Refs: `personId` and `segmentId` (the history roll-up keeps a segment an
+injury points at). Indexes: `byPerson`, unique `openByPerson` (key
+`personId` while `returnedOn` is null, so at most one current injury per
+person) and `awaitingNotice` (key `pending` while `noticedOn` is null).
+Invariant `injuries.openInjuryMatchesPerson`: every open row has a matching
+`person.injury` (same `kindKey`, `bodyPart` and `expectedReturn`). The converse
+is not checked, so a save from before the table, where a person may have an
+injury and no row, still loads. Saves list the table with a default of `[]`.
