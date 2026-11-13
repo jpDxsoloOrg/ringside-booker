@@ -533,3 +533,14 @@ How big a company is (ECO1-02). See
 | `finance.size.nationalAt`            | number | 25      | 0–100 | points | Reach at which a company counts as National                                                |
 | `finance.size.continentalAt`         | number | 45      | 0–100 | points | Reach at which a company counts as Continental                                             |
 | `finance.size.globalAt`              | number | 70      | 0–100 | points | Reach at which a company counts as Global                                                  |
+
+Wages and medical (ECO1-03), amounts in cents:
+
+| Key                                  | Kind    | Default | Range        | Unit        | Meaning                                                             |
+| ------------------------------------ | ------- | ------- | ------------ | ----------- | ------------------------------------------------------------------- |
+| `finance.payOwnerAndBooker`          | boolean | false   |              | flag        | Pay the owner's and booker's contracts a wage too                   |
+| `finance.wages.multiplier`           | number  | 1       | 0–5          | multiplier  | Every monthly wage is multiplied by this (0 = nobody is paid)       |
+| `finance.medical.perContract.level0` | integer | 0       | 0–10,000,000 | money/month | Medical cost per person under contract each month at policy level 0 |
+| `finance.medical.perContract.level1` | integer | 15,000  | 0–10,000,000 | money/month | Same, policy level 1                                                |
+| `finance.medical.perContract.level2` | integer | 60,000  | 0–10,000,000 | money/month | Same, policy level 2                                                |
+| `finance.medical.perContract.level3` | integer | 150,000 | 0–10,000,000 | money/month | Same, policy level 3                                                |

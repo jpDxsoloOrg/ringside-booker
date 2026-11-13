@@ -6,6 +6,7 @@
  * its trace's ref in `traceRef`. See docs/design/finances.md#postmoney.
  */
 
+import { CASH_TRACE_KIND } from '../../core/api/builtins';
 import type { PromotionId } from '../../core/ids';
 import type { TraceRef } from '../../core/trace/store';
 import type { LedgerEntry } from '../../model/entities/ledger-entry';
@@ -14,8 +15,11 @@ import type { LedgerEntry } from '../../model/entities/ledger-entry';
 export const LEDGER_ENTRY_TRACE_KIND = 'finance.entry';
 /** A ledger row of a computer-controlled promotion. Id: the ledger entry id. */
 export const RIVAL_LEDGER_ENTRY_TRACE_KIND = 'finance.rivalEntry';
-/** A promotion's cash balance explained (written from ECO1-03). Id: the promotion id. */
-export const CASH_TRACE_KIND = 'finance.cash';
+/**
+ * A promotion's cash balance explained (`cashTrace.ts`). Id: the promotion id. The core owns the
+ * string, because `sim.status` reads it without importing this system.
+ */
+export { CASH_TRACE_KIND };
 
 /** Every trace kind the finance system stores. */
 export const FINANCE_TRACE_KINDS = [

@@ -68,6 +68,17 @@ registered first.
 of the show. Groups are 100 apart so a later system can slot in without
 anything else being renumbered.
 
+The `money` group's phases so far (ECO1-03, see
+[finances.md](finances.md#payroll)):
+
+| Phase                    | Order | Cadence             | What it does                                                                                     |
+| ------------------------ | ----- | ------------------- | ------------------------------------------------------------------------------------------------ |
+| `finance.payroll`        | 10    | daily               | One Wages row per open promotion with anyone to pay: monthly payroll × 12 ÷ 365.25, to the cent. |
+| `finance.monthlyMedical` | 20    | monthly, on the 1st | One Medical row per open promotion: people under contract × the cost of its medical policy.      |
+
+Both post through `postMoney`, visit promotions in id order, post nothing for
+a zero amount and draw no random numbers (only the ledger rows' ids).
+
 ### Registering a phase
 
 A system describes its phase and registers it once, when the engine is built:
