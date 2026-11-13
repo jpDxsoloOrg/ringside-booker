@@ -4,6 +4,7 @@
  */
 import { parseGameDate, parseId } from '@ringside/engine';
 import type {
+  SegmentReasonView,
   SegmentMemberView,
   SegmentResultView,
   SegmentSideView,
@@ -73,7 +74,29 @@ function rating(score: number, stars: number, segmentId: string, workRate: numbe
     crowd: Math.min(100, score + 4),
     expectation: Math.max(0, score - 6),
     traceRef: segmentScoreRef(segmentId),
+    reasons: reasonsFor(score, workRate),
   };
+}
+
+/** Made-up top reasons that read like the engine's: the work rate (or talk) and the crowd. */
+function reasonsFor(score: number, workRate: number | null): SegmentReasonView[] {
+  const pull = score - 50;
+  const performance = {
+    label:
+      workRate === null
+        ? pull >= 0
+          ? 'Strong talking'
+          : 'Weak talking'
+        : pull >= 0
+          ? 'Strong work rate'
+          : 'Weak work rate',
+    effect: Math.round(pull * 0.55),
+  };
+  const crowd = {
+    label: pull >= 0 ? 'Hot crowd' : 'Quiet crowd',
+    effect: Math.round(pull * 0.4),
+  };
+  return [performance, crowd].filter((reason) => reason.effect !== 0);
 }
 
 const BASE: Pick<SegmentResultView, 'preShow' | 'label' | 'titles' | 'storylines'> = {

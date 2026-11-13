@@ -51,6 +51,7 @@ export function aftermathShow(): ShowResultsView {
       rawScore: 68,
       stars: 2.75,
       scoreTraceRef: null,
+      breakdown: null,
       attendance: null,
       gate: null,
       viewers: null,

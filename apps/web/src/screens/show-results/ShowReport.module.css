@@ -1,0 +1,246 @@
+/*
+ * The show report at the top of a results page. Desktop first: the headline across the top, then
+ * "How it was scored" beside "What changed". On a phone the two stack and the table becomes cards.
+ */
+.report {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--color-border);
+  border-inline-start: 4px solid var(--color-prestige);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.heading {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ---- Headline -------------------------------------------------------------------------------- */
+
+.headline {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.verdictRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+}
+
+.verdict {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  overflow-wrap: anywhere;
+}
+
+.highlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.highlight {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.highlightKind {
+  color: var(--color-text-muted);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.highlight[data-kind='best'] .highlightKind {
+  color: var(--color-positive);
+}
+
+.highlight[data-kind='worst'] .highlightKind {
+  color: var(--color-negative);
+}
+
+/* ---- Two parts ------------------------------------------------------------------------------- */
+
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-5);
+}
+
+@media (--bp-mobile) {
+  .report {
+    padding: var(--space-3);
+  }
+
+  .columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.part {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.partHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.partHeading {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.note {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* ---- How it was scored ----------------------------------------------------------------------- */
+
+.scoreTable {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.rowLabel {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.rowLabel[data-kind='total'] {
+  font-weight: var(--font-weight-bold);
+}
+
+.rowNote {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.stars {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* The stars are drawn and said; on the table the drawing is enough to read at a glance. */
+.starsText {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.points[data-tone='positive'] {
+  color: var(--color-positive);
+}
+
+.points[data-tone='negative'] {
+  color: var(--color-negative);
+}
+
+.total {
+  color: var(--color-prestige);
+  font-size: var(--font-size-lg);
+}
+
+/* ---- What changed ---------------------------------------------------------------------------- */
+
+.whatChanged {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.lines {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.line {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  padding-block-end: var(--space-2);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.line:last-child {
+  padding-block-end: 0;
+  border-block-end: 0;
+}
+
+.lineLabel {
+  color: var(--color-text-muted);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.lineText {
+  overflow-wrap: anywhere;
+}
+
+.lineText[data-tone='positive'] {
+  color: var(--color-positive);
+}
+
+.lineText[data-tone='negative'] {
+  color: var(--color-negative);
+}
+
+/* Shown only when every line had nothing to say (the list renders empty). */
+.noChanges {
+  display: none;
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.lines:empty {
+  display: none;
+}
+
+.lines:empty + .noChanges {
+  display: block;
+}
+
+.jump {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-strong);
+  text-underline-offset: 0.2em;
+}
+
+.jump:hover {
+  text-decoration-color: currentcolor;
+}
