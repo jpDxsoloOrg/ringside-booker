@@ -65,11 +65,14 @@ async function skipDays(
   untilInjury: boolean,
 ): Promise<boolean> {
   const roster = dayButton(page, 'Roster');
-  const show = dayButton(page, 'Go to the show');
+  // "Go to the show" on desktop; the phone bar reads "Tonight" and names it "Tonight: Go to the show".
+  const show = dayButton(page, /Go to the show$/);
   let left = days;
   for (let stops = 0; ; stops += 1) {
     expect(stops, 'the skip keeps stopping').toBeLessThan(MAX_STOPS);
-    await expect(dayButton(page, /^(Next day|Go to the show|Roster)$/)).toBeVisible();
+    await expect(dayButton(page, /^(Next day|(Tonight: )?Go to the show|Roster)$/)).toBeVisible({
+      timeout: 15_000,
+    });
     if (await roster.isVisible()) {
       if (untilInjury) return true;
       await roster.click();
@@ -122,7 +125,10 @@ test.describe('injuries and recovery', () => {
       await expect(page.locator('h1')).toHaveText('Workers');
       await page.getByRole('button', { name: 'Injured', exact: true }).click();
       await expect(page).toHaveURL(/\?availability=injured$/);
-      await expect(page.getByText('Nobody is injured', { exact: true })).toBeVisible();
+      // The list waits for the engine, which is busy with the new world's first queries.
+      await expect(page.getByText('Nobody is injured', { exact: true })).toBeVisible({
+        timeout: 15_000,
+      });
       await expectNoHorizontalScroll(page);
     });
 
