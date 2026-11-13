@@ -13,7 +13,7 @@ import type { PromotionId } from '../../core/ids';
 import type { Traced } from '../../core/trace';
 import type { GameWorldView } from '../../model/tables';
 import type { EngineTunables } from '../tunables';
-import { popularityRollup } from '../world/formulas/popularityRollup';
+import { popularityRollup, type PopularityRollup } from '../world/formulas/popularityRollup';
 import { geographyOf } from '../world/geography';
 import { promotionReach } from './formulas/promotionReach';
 import { promotionSize, type PromotionSize } from './formulas/promotionSize';
@@ -34,6 +34,8 @@ export function reachOf(
   read: GameWorldView,
   promotionId: PromotionId,
   tunables: EngineTunables,
+  /** The promotion's roll-up when the caller already has it (AIP1-07's list), so it runs once. */
+  knownRollup?: PopularityRollup,
 ): PromotionReach {
   const promotion = read.tables.promotions.get(promotionId);
   if (promotion === undefined) {
@@ -43,7 +45,7 @@ export function reachOf(
   const region = geography.region(promotion.homeRegionId);
   const country = geography.countryOf(region.id);
   const continent = geography.continentOf(region.id);
-  const rollup = popularityRollup(promotion.regionalPop, geography);
+  const rollup = knownRollup ?? popularityRollup(promotion.regionalPop, geography);
   const homeCountry = rollup.countries.get(country.id);
   const homeContinent = rollup.continents.get(continent.id);
   if (homeCountry === undefined || homeContinent === undefined) {

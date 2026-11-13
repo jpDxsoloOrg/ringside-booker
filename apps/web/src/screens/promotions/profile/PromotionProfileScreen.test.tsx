@@ -82,6 +82,10 @@ describe('PromotionProfileScreen', () => {
 
     const cash = screen.getByRole('group', { name: 'Cash' });
     expect(cash).toHaveTextContent('Private');
+    // ECO1's company size is public, so a rival's shows (AIP1-07).
+    expect(
+      await screen.findByRole('group', { name: 'Company size' }, { timeout: LOAD_MS }),
+    ).toHaveTextContent(/Local|Regional|National|Continental|Global/);
     expect(
       screen.getByRole('button', { name: /^Why is Worldwide popularity/ }),
     ).toBeInTheDocument();

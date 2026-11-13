@@ -119,6 +119,7 @@ export function LabSetupPanel({ options, catalog, rulesLabel }: LabSetupPanelPro
   const setImportance = useLabStore((state) => state.setImportance);
   const setRegion = useLabStore((state) => state.setRegion);
   const setTelevised = useLabStore((state) => state.setTelevised);
+  const setPromotion = useLabStore((state) => state.setPromotion);
   const isMobile = useIsMobile();
 
   const typeOptions: readonly SelectOption[] =
@@ -129,6 +130,13 @@ export function LabSetupPanel({ options, catalog, rulesLabel }: LabSetupPanelPro
     value: importance.key,
     label: importance.label,
   }));
+  const rateAsOptions: readonly SelectOption[] = options.rateAs.map((option) => ({
+    value: option.id,
+    label: option.yours ? `${option.name} (yours)` : option.name,
+  }));
+  const ratingAsRival = options.rateAs.some(
+    (option) => option.id === setup.promotionId && !option.yours,
+  );
   const regionOptions: readonly SelectOption[] = options.regions.map((region) => ({
     value: region.id,
     label: region.name,
@@ -207,6 +215,24 @@ export function LabSetupPanel({ options, catalog, rulesLabel }: LabSetupPanelPro
             setTelevised(televised);
           }}
         />
+        {rateAsOptions.length > 1 && (
+          <div className={styles['slotField']}>
+            <Select
+              label="Rate as"
+              options={rateAsOptions}
+              value={setup.promotionId ?? ''}
+              onValueChange={(value) => {
+                const option = options.rateAs.find((candidate) => candidate.id === value);
+                if (option !== undefined) setPromotion(option.id);
+              }}
+            />
+            <p className={styles['chipsNote']}>
+              {ratingAsRival
+                ? 'Rated by the rules this rival plays by. Run to see them.'
+                : 'Pick a rival to see the rules its shows are rated by.'}
+            </p>
+          </div>
+        )}
         <p className={styles['rules']}>
           <span className={styles['rulesLabel']}>Rules</span>
           <Badge tone="neutral">{rulesLabel ?? DEFAULT_RULES_LABEL}</Badge>

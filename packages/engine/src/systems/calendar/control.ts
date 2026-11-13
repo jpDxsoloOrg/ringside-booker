@@ -10,7 +10,7 @@
  * Design notes: docs/design/calendar.md#who-controls-a-show.
  */
 
-import type { Viewer } from '../../core/api/controller';
+import { sameController, type Viewer } from '../../core/api/controller';
 import { EntityNotFoundError } from '../../core/errors';
 import type { Controller } from '../../model/controller';
 import type { EventInstance } from '../../model/entities/event-instance';
@@ -40,16 +40,8 @@ export function showControllerOf(read: GameWorldView, show: ShowOwnership): Cont
   return promotion.controller;
 }
 
-/** True when both are the computer, or both are the same human player. */
-export function sameController(
-  left: DeepReadonly<Controller>,
-  right: DeepReadonly<Controller>,
-): boolean {
-  if (left.kind === 'human' && right.kind === 'human') {
-    return left.playerId === right.playerId;
-  }
-  return left.kind === 'computer' && right.kind === 'computer';
-}
+/** The one controller rule (`core/api/controller.ts`), re-exported where calendar callers look. */
+export { sameController };
 
 /** True when `controller` is the one that runs `show`. */
 export function controlsShow(

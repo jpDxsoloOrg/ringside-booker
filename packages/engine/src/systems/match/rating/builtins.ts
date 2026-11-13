@@ -20,7 +20,8 @@ registerBuiltInRaters();
 
 /**
  * Restores the match registries to the built-ins: the two raters, the finish effect
- * modifiers and no policy provider. Tests that register extras call it in `afterEach`.
+ * modifiers and no policy provider (not even the rival desk's, AIP1-07). Tests that register extras
+ * call it in `afterEach`.
  */
 export function resetMatchRegistriesForTests(): void {
   clearRatingRegistries();

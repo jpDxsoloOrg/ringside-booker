@@ -228,9 +228,11 @@ answer has one reason per offending row, in ascending ID order, each with
 | `pushNotForRole`     | A crew member or manager given a card position                            | Test Name 3 is a referee. Only wrestlers have a place on the card.                     |
 | `pushNotForRole`     | A wrestler given `none`                                                   | Pick a card position for Test Name 3, from Main event to Enhancement.                  |
 
-Who runs a promotion is `sameController` on the promotion's `controller`: the
-same human, or the computer for a computer-run promotion. The AI uses this same
-command for its own rosters (D-01, D-07). Brand controllers (D-06 brand wars)
+Who runs a promotion is `controlsPromotion` (`core/api/controller.ts`), which
+is `sameController` on the promotion's `controller`: the same human, or the
+computer for a computer-run promotion. It is the one controller rule every
+command uses (AIP1-07; `finance.setPolicy` too). The AI uses this same command
+for its own rosters (D-01, D-07). Brand controllers (D-06 brand wars)
 are not consulted yet; a push is the promotion's call.
 
 **Applying.** Rows go in ascending ID order. A row already at `push` is

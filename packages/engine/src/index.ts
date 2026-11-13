@@ -2138,3 +2138,22 @@ export {
   type PromotionRosterTasteAxis,
   type RosterUnit,
 } from './systems/aip/index';
+
+// AIP1-07: the rival desk wired into partners on main: the rating policy provider behind MTCH1's
+// door (registers itself on import) and the Match lab's "Rate as" options.
+export {
+  FULL_RULES_POLICY_LABEL,
+  NO_RIVAL_BONUS_LINE,
+  RIVAL_POLICY_LABEL,
+  RIVAL_RATING_POLICY_ID,
+  rivalRatingPolicy,
+  rivalShortcutLine,
+} from './systems/aip/index';
+export type { LabRateAsOption } from './systems/match';
+export {
+  companySizeOf,
+  eco1CompanySize,
+  setCompanySizeSource,
+  type CompanySize,
+  type CompanySizeSource,
+} from './systems/aip/index';

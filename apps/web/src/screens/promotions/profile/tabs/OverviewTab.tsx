@@ -15,6 +15,7 @@ import { NeedsList } from '@/components/NeedsList';
 import { Panel } from '@/components/Panel';
 import { PopularityDrilldown } from '@/components/PopularityDrilldown';
 import { WhyButton } from '@/components/Trace';
+import { CompanySizeKpi } from '@/screens/finances/kpis';
 import type { PromotionTabContext } from '../promotionTabs';
 import styles from '../PromotionProfile.module.css';
 
@@ -103,8 +104,9 @@ function RulesPanel({ rules }: { readonly rules: PromotionProfile['rules'] }) {
 
 /**
  * The profile's first tab: the key numbers (popularity at home and worldwide with their Why?,
- * prestige, roster, champions, shows a month and cash, which is "Private" for a rival), what the
- * roster is short of, the Rival rules as they apply here and the popularity drill-down.
+ * prestige, roster, champions, shows a month, company size and cash, which is "Private" for a
+ * rival), what the roster is short of, the Rival rules as they apply here and the popularity
+ * drill-down.
  */
 export function OverviewTab({ profile, promotionId }: PromotionTabContext) {
   const formatMoney = useMoneyFormatter();
@@ -151,6 +153,8 @@ export function OverviewTab({ profile, promotionId }: PromotionTabContext) {
           value={formatNumber(kpis.showsPerMonth)}
           footer="Next four weeks"
         />
+        {/* ECO1's public size band with its Why? (AIP1-07), the same card as the Finances screen. */}
+        <CompanySizeKpi promotionId={promotionId} />
         <KpiCard
           label="Cash"
           value={cashText(kpis.cash, formatMoney)}

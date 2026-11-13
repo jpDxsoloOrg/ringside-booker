@@ -219,6 +219,25 @@ describe('MatchLabScreen', { timeout: TEST_TIMEOUT_MS }, () => {
     expect(await screen.findByRole('dialog', { name: 'Score' })).toBeInTheDocument();
   });
 
+  it('rates as a rival with "Rate as": the rival shortcuts show in the rules and the Score Why?', async () => {
+    const { transport, user } = renderLab();
+    await findSlotRole();
+    await fillSides(transport, 2);
+    expect(screen.getByText('Pick a rival to see the rules its shows are rated by.')).toBeVisible();
+
+    await choose(user, 'Rate as', 'Test Promotion B');
+    expect(
+      screen.getByText('Rated by the rules this rival plays by. Run to see them.'),
+    ).toBeVisible();
+    await runOnce(user);
+    // The setup's Rules badge (and the result's policy line) name the rival's rules.
+    expect((await screen.findAllByText('Rival shortcuts'))[0]).toBeVisible();
+
+    await user.click(within(scoreBug()).getByRole('button', { name: /^Why is Score / }));
+    const why = await screen.findByRole('dialog', { name: 'Score' });
+    expect(within(why).getAllByText(/Rival shortcut: Score bonus/).length).toBeGreaterThan(0);
+  });
+
   it("links each worker's name, on the chips and in the result, to their profile", async () => {
     const { transport, router, user } = renderLab();
     await findSlotRole();

@@ -85,4 +85,25 @@ test.describe('World > Promotions', () => {
     await page.getByRole('link', { name: 'Back to Promotions' }).click();
     await expect(page).toHaveURL(/\/game\/promotions\?sort=name&dir=asc$/);
   });
+
+  // AIP1-07: ECO1's public Company size, a column on desktop and card meta ("Size") on a phone.
+  test('shows each promotion’s Company size', async ({ page }, testInfo) => {
+    const phone = isPhone(testInfo);
+    await enterGameFromSampleSave(page);
+    await openPromotions(page, phone);
+
+    const sizes = 'Local|Regional|National|Continental|Global';
+    if (phone) {
+      await expect(page.getByText(new RegExp(`^Size (${sizes})$`)).first()).toBeVisible();
+    } else {
+      await expect(page.getByRole('columnheader', { name: /Company size/ })).toBeVisible();
+      await expect(page.getByText(new RegExp(`^(${sizes})$`)).first()).toBeVisible();
+    }
+    await expectNoHorizontalScroll(page);
+    await expectNoSeriousA11yViolations(page);
+
+    await page.getByRole('link', { name: RIVAL }).click();
+    await expect(page.getByRole('group', { name: 'Company size' })).toBeVisible();
+    await expectNoHorizontalScroll(page);
+  });
 });

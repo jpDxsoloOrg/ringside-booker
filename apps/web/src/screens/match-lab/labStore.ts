@@ -117,6 +117,8 @@ export interface LabState {
   readonly setImportance: (importance: EventImportance) => void;
   readonly setRegion: (regionId: RegionId) => void;
   readonly setTelevised: (televised: boolean) => void;
+  /** The promotion the segment is rated as (the "Rate as" select). */
+  readonly setPromotion: (promotionId: PromotionId) => void;
   readonly addPerson: (side: number, row: LabWorkerRow) => boolean;
   readonly removePerson: (side: number, personId: PersonId) => void;
   readonly addSide: () => void;
@@ -333,6 +335,9 @@ export const useLabStore = create<LabState>()((set, get) => ({
   },
   setTelevised: (televised) => {
     set((state) => ({ setup: { ...state.setup, televised } }));
+  },
+  setPromotion: (promotionId) => {
+    set((state) => ({ setup: { ...state.setup, promotionId } }));
   },
   addPerson: (side, row) => {
     const { sides, people } = get();
