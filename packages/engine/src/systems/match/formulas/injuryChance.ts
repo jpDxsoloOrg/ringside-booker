@@ -44,6 +44,8 @@ export const INJURY_CHANCE_DOC_REF = 'physical-toll.md#injury-chance';
 export const INJURIES_OFF_LABEL = 'In-match injuries switched off';
 /** The line the rating policy's `skipInMatchInjuries` adds (D-01). */
 export const RIVAL_NO_INJURIES_LABEL = 'Rival rules: no in-match injuries';
+/** The start line of the fatigue term when the Match lab set fatigue going in (MTCH4-05). */
+export const LAB_WHAT_IF_FATIGUE_LABEL = 'Fatigue going in (lab what-if)';
 /** The label of the end-of-match fatigue input. */
 export const END_FATIGUE_LABEL = 'Fatigue by the end of the match';
 
@@ -53,6 +55,8 @@ export interface InjuryChanceInputs {
   durationClass: DurationClass;
   /** Fatigue going in (the stored value, or the lab override). */
   fatigueGoingIn: number;
+  /** True when `fatigueGoingIn` is the Match lab's what-if, so the trace says so. */
+  fatigueWhatIf?: boolean;
   /** This match's fatigue gain (`computeFatigueGain`). */
   fatigueGain: Traced<number> | number;
   /** Body condition after this match's wear (`conditionAfterWear`). */
@@ -175,7 +179,10 @@ function checkInputs(inputs: InjuryChanceInputs): void {
 function fatigueTerm(inputs: InjuryChanceInputs, tunables: EngineTunables): Traced<number> {
   const endFatigue = startCalc(END_FATIGUE_LABEL, inputs.fatigueGoingIn, {
     unit: 'points',
-    startLabel: `${inputs.name}'s fatigue going in`,
+    startLabel:
+      inputs.fatigueWhatIf === true
+        ? LAB_WHAT_IF_FATIGUE_LABEL
+        : `${inputs.name}'s fatigue going in`,
   })
     .add('Fatigue from this match', inputs.fatigueGain)
     .min(

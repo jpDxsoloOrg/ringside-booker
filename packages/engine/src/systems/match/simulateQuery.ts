@@ -50,6 +50,14 @@ import {
 import type { AutoWinnerSide } from './finishes/autoWinnerInputs';
 import type { SegmentRatingInput } from './rating/types';
 import { durationClassOf, type DurationClass } from './slots';
+import {
+  checkPreviewExtensions,
+  extensionTally,
+  runPreviewExtensions,
+  type CheckedExtensions,
+  type ExtensionRunBase,
+  type PreviewExtensionResults,
+} from './previewExtensions';
 import { geographyOf } from '../world/geography';
 import {
   computeSegmentAftermath,
@@ -151,6 +159,8 @@ export interface SimulateResult {
    * from the world as it stands with nothing written.
    */
   aftermath: SegmentAftermath;
+  /** Each asked-for preview extension's result (MTCH4-05); absent when none was asked for. */
+  extensions?: PreviewExtensionResults;
 }
 
 /** `match.resultMode`: how the viewer's results are decided. */
@@ -199,6 +209,8 @@ interface PreparedSimulation {
   readonly randomWinnersMode: boolean;
   /** The lab's slot and match type as a duration class, for the auto-winner's stamina term. */
   readonly durationClass: DurationClass;
+  /** The preview extensions asked for, checked (MTCH4-05). */
+  readonly extensions: CheckedExtensions;
 }
 
 /** The checks and inputs a simulation needs before its first roll. Refuses like `match.simulate`. */
@@ -228,7 +240,18 @@ function prepareSimulation(ctx: QueryContext, args: SimulateArgs): PreparedSimul
     { role: args.slotRole, matchType: matchTypeOf(read, args.typeKey) ?? null },
     { tunables: ctx.tunables },
   ).value;
-  return { input, sides, randomWinnersMode, durationClass };
+  const extensions = checkPreviewExtensions(args.extensions);
+  return { input, sides, randomWinnersMode, durationClass, extensions };
+}
+
+/** What every run of a simulation's extensions shares. */
+function extensionBase(
+  ctx: QueryContext,
+  args: SimulateArgs,
+  prepared: PreparedSimulation,
+  batch: boolean,
+): ExtensionRunBase {
+  return { query: ctx, draft: args, promotionId: prepared.input.promotionId, batch };
 }
 
 /** One simulated night, every roll on the detached streams keyed `key`. */
@@ -310,7 +333,16 @@ export const simulateQuery: QueryDefinition<'match.simulate'> = defineQuery('mat
   run: (ctx, args) => {
     const prepared = prepareSimulation(ctx, args);
     const night = simulateNight(ctx, args, prepared, args.previewSeed);
-    return { ...night, aftermath: simulatedAftermath(ctx, args, prepared, night) };
+    const result = { ...night, aftermath: simulatedAftermath(ctx, args, prepared, night) };
+    if (args.extensions === undefined) {
+      return result;
+    }
+    const extensions = runPreviewExtensions(
+      prepared.extensions,
+      extensionBase(ctx, args, prepared, false),
+      { key: args.previewSeed, outcome: night.outcome },
+    );
+    return { ...result, extensions };
   },
 });
 
@@ -355,13 +387,19 @@ export const simulateBatchQuery: QueryDefinition<'match.simulateBatch'> = define
     run: (ctx, args) => {
       const prepared = prepareSimulation(ctx, args);
       const tally = ratingTally();
+      const extensions = extensionTally(
+        prepared.extensions,
+        extensionBase(ctx, args, prepared, true),
+      );
       const wins = new Map<number, number>();
       const finishes = new Map<ContentKey, FinishCount>();
       let draws = 0;
       let noContests = 0;
       for (let run = 0; run < args.runs; run += 1) {
-        const night = simulateNight(ctx, args, prepared, args.previewSeed + run);
+        const key = args.previewSeed + run;
+        const night = simulateNight(ctx, args, prepared, key);
         tally.add(night.preview);
+        extensions.add({ key, runIndex: run, outcome: night.outcome });
         if (night.outcome.kind === 'draw') {
           draws += 1;
         } else if (night.outcome.kind === 'noContest') {
@@ -397,6 +435,7 @@ export const simulateBatchQuery: QueryDefinition<'match.simulateBatch'> = define
             (left.name < right.name ? -1 : left.name > right.name ? 1 : 0),
         ),
         randomWinnersMode: prepared.randomWinnersMode,
+        ...(args.extensions === undefined ? {} : { extensionSummaries: extensions.summaries() }),
       };
     },
   },
