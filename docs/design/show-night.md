@@ -541,6 +541,15 @@ first, and the day summary links the rest. Off, the summary only links. Once
 EVT2-09 lands, your shows run from the show screen and always open their
 results, so the setting only matters for shows run some other way.
 
+**The reveal.** Opened from those links, the results page waits for the
+player: the cards start as "Coming up" placeholders, and each tap of Next
+segment (or of the next placeholder) reveals one, the main event last; the
+tap after that shows the score and the show report. Show all reveals
+everything at once. Nothing comes out on a timer (EVT3-10, after owner
+testing found the timed reveal slow). The setting "Reveal results one segment
+at a time" (Settings > Show nights, on by default) turned off opens results
+fully revealed, and so does reduced motion.
+
 ## Seams
 
 ### Show score modifiers
