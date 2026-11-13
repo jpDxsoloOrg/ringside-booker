@@ -137,7 +137,7 @@ describe('runSimulation on the roster fixture', () => {
     expect(summary.endDate).toBe(addDays(summary.startDate, 30));
     expect(summary.stoppedBy).toEqual({ kind: 'completed' });
     expect(summary.failuresByStep).toEqual({});
-    expect(summary.eventsByType['condition.fatigueCleared']).toBeGreaterThan(0);
+    expect(summary.eventsByType['fatigue.cleared']).toBeGreaterThan(0);
     expect(summary.eventsByType['day.started']).toBe(30);
     expect(summary.worldHash).toMatch(/^[0-9a-f]{16}$/);
     expect(run.advanceCalls).toBe(1);
@@ -277,9 +277,9 @@ describe('runSimulation on the roster fixture', () => {
 
   it('applies --tunable overrides through the tunables command', async () => {
     const run = await completedRun(20, '1', 1, [
-      { key: 'condition.fatigueRecoveryPerDay', value: 0 },
+      { key: 'health.fatigue.recoveryPerDay', value: 0 },
     ]);
-    expect(run.finalState.tunableOverrides).toEqual({ 'condition.fatigueRecoveryPerDay': 0 });
+    expect(run.finalState.tunableOverrides).toEqual({ 'health.fatigue.recoveryPerDay': 0 });
     expect(run.finalState.commandLog.entries).toHaveLength(1);
   });
 
@@ -350,11 +350,11 @@ describe('runCli', () => {
   it('prints a stored trace as a tree', async () => {
     const io = captureIo();
     const code = await runCli(
-      ['--days', '1', '--people', '3', '--trace', 'condition.fatigueRecovery:per_0000000002'],
+      ['--days', '1', '--people', '3', '--trace', 'health.fatigueRecovery:per_0000000002'],
       io,
     );
     expect(code).toBe(EXIT_OK);
-    expect(io.out()).toMatch(/rolled \d in 0\.\.1 \(stream condition\.recovery\)/);
+    expect(io.out()).toMatch(/rolled \d in 0\.\.1 \(stream health\.recovery\)/);
   });
 
   it('exits 2 for bad arguments and for an unreadable world file', async () => {

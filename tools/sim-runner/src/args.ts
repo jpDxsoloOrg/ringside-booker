@@ -58,7 +58,7 @@ events by type and a world hash.
                           default list, ${DEFAULT_FAIL_ON_EVENTS.join(', ')} (a rival job
                           that threw and was rolled back)
   --trace <kind:id>       print one stored trace at the end, for example
-                          condition.fatigueRecovery:per_...
+                          health.fatigueRecovery:per_...
   -h, --help              show this help
 
 Exit codes: 0 success, 1 determinism mismatch, or with --strict a step failure or
@@ -313,7 +313,7 @@ export function parseRunnerArgs(argv: readonly string[]): ParsedArgs {
     if (trace === null) {
       errors.push({
         code: 'invalidTrace',
-        message: `--trace must look like kind:id, such as condition.fatigueRecovery:per_..., not "${values.trace}"`,
+        message: `--trace must look like kind:id, such as health.fatigueRecovery:per_..., not "${values.trace}"`,
       });
     }
   }

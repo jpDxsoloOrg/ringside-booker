@@ -106,10 +106,10 @@ npm run sim -- --days 365 --json
 npm run sim -- --days 60 --check-determinism
 
 # Change a tunable for this run only
-npm run sim -- --days 365 --tunable condition.fatigueRecoveryPerDay=0
+npm run sim -- --days 365 --tunable health.fatigue.recoveryPerDay=0
 
 # Print one stored calculation trace as a tree once the run ends
-npm run sim -- --days 30 --people 20 --trace condition.fatigueRecovery:per_0000000002
+npm run sim -- --days 30 --people 20 --trace health.fatigueRecovery:per_0000000002
 
 # Start from a saved engine state (the JSON engine.exportState() returns)
 npm run sim -- --days 90 --world path/to/state.json

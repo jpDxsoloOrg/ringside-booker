@@ -12,15 +12,15 @@
  *
  * @example
  * ```ts
- * // packages/engine/src/systems/condition/streams.ts
+ * // packages/engine/src/systems/health/streams.ts
  * declare module '../../core/rng/streams' {
  *   interface StreamNames {
- *     'condition.recovery': true;
+ *     'health.recovery': true;
  *   }
  * }
  *
- * // Elsewhere in the condition system:
- * const recoveryRng = rng.stream('condition.recovery');
+ * // Elsewhere in the health system:
+ * const recoveryRng = rng.stream('health.recovery');
  * ```
  */
 // An empty interface is the point: it is the target that systems merge their names into.
@@ -35,7 +35,7 @@ export type StreamName = keyof StreamNames | `ids.${string}`;
 
 /**
  * The runtime shape of a stream name: a lowercase system segment, then one or more dot-separated
- * lowercase segments (`condition.recovery`, `ids.per`, `match.finish-roll`).
+ * lowercase segments (`health.recovery`, `ids.per`, `match.finish-roll`).
  */
 export const STREAM_NAME_PATTERN = /^[a-z][a-z0-9]*(\.[a-z0-9-]+)+$/;
 
@@ -53,7 +53,7 @@ export function assertStreamName(name: string): asserts name is StreamName {
   if (!isStreamName(name)) {
     throw new Error(
       `Invalid RNG stream name ${JSON.stringify(name)}: expected lowercase dot-separated ` +
-        `segments such as "condition.recovery" (pattern ${STREAM_NAME_PATTERN.source}).`,
+        `segments such as "health.recovery" (pattern ${STREAM_NAME_PATTERN.source}).`,
     );
   }
 }

@@ -21,7 +21,7 @@ differently, even though none of that code changed. A balance tweak in one
 system would make it impossible to compare two runs of another.
 
 Named streams fix that. Each system draws from its own streams
-(`condition.recovery`, `ids.per`, ...), and each stream has its own state.
+(`health.recovery`, `ids.per`, ...), and each stream has its own state.
 Drawing 500 numbers from one stream never changes what another stream produces.
 A change to injuries can only move injury results.
 
@@ -50,7 +50,7 @@ A stream gives you two things:
 Game code never reads these directly. The odds helpers below sit on top of
 them and state the odds of every decision exactly.
 
-Streams are created lazily. The first `rng.stream('condition.recovery')` call
+Streams are created lazily. The first `rng.stream('health.recovery')` call
 derives the stream from the seed; later calls return the same object. A stream
 object holds only its own state, never the registry or the world, so it can be
 passed straight into a pure formula function.
@@ -63,15 +63,15 @@ entity ID prefix, such as `ids.per` or `ids.pro`). A system declares its names
 next to its own code:
 
 ```ts
-// packages/engine/src/systems/condition/streams.ts
+// packages/engine/src/systems/health/streams.ts
 declare module '../../core/rng/streams' {
   interface StreamNames {
-    'condition.recovery': true;
+    'health.recovery': true;
   }
 }
 ```
 
-After that, `rng.stream('condition.recovery')` type-checks and a typo doesn't.
+After that, `rng.stream('health.recovery')` type-checks and a typo doesn't.
 
 Names follow `^[a-z][a-z0-9]*(\.[a-z0-9-]+)+$`: a lowercase system segment and
 at least one more dot-separated segment. The registry checks this at runtime
@@ -90,7 +90,7 @@ The RNG part of a save looks like this (the words are made up):
   "version": 1,
   "seed": "my-new-game",
   "streams": {
-    "condition.recovery": [1892409465, 677112609, 1486160498, 259642175],
+    "health.recovery": [1892409465, 677112609, 1486160498, 259642175],
     "ids.per": [3021911417, 1844257009, 993215788, 2741190853]
   }
 }
@@ -215,7 +215,7 @@ forms: `rollChance`, `rollInt`, `rollOneIn`, `rollFloat`, `rollNormal`,
 
 ```json
 {
-  "stream": "condition.injury",
+  "stream": "health.injury",
   "kind": "chance",
   "label": "Injury check",
   "odds": 0.25,

@@ -68,6 +68,13 @@ registered first.
 of the show. Groups are 100 apart so a later system can slot in without
 anything else being renumbered.
 
+The health system's `housekeeping` phases ([health.md](health.md)):
+
+| Phase                      | Order | Cadence         | What it does                                                                                                      |
+| -------------------------- | ----- | --------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `health.recovery`          | 10    | daily           | Fatigue fades for everyone above 0 (stamina, age and traits count; less after a talking-only show day yesterday). |
+| `health.conditionRecovery` | 12    | weekly, Mondays | Damaged body parts heal a little, up to the cap for the worker's age; no rolls, no traces.                        |
+
 The `money` group's phases so far (ECO1-03, see
 [finances.md](finances.md#payroll)):
 
