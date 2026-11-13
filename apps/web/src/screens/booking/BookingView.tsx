@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { isId } from '@ringside/engine';
@@ -38,7 +38,7 @@ import type { MoveSource } from './CardBoard';
 import { issuesBySlot } from './cardSlotProps';
 import { SegmentEditorSheet } from './editor/SegmentEditorSheet';
 import { useSegmentEditor } from './editor/editorStore';
-import { canUnlock, fixProblemsText, LockBar, LockButton } from './LockBar';
+import { fixProblemsText, RunShowButton, ShowBar } from './ShowBar';
 import { useBookingPanels } from './registries/bookingPanels';
 import type { BookingPanelContext, BookingPanelDefinition } from './registries/bookingPanels';
 import { SlotActions } from './SlotActions';
@@ -116,21 +116,56 @@ function reasonsOf<T>(result: CommandResult<T>): readonly Reason[] {
   return result.reasons.length > 0 ? result.reasons : [{ code: 'unknown', message: NO_REASON }];
 }
 
+/** Where a segment sits on the card, or null when it is not on it. */
+export function slotOfSegment(
+  sections: readonly BookingSectionView[],
+  segmentId: string,
+): { readonly preShow: boolean; readonly slot: number } | null {
+  for (const section of sections) {
+    const found = section.slots.find((slot) => slot.segment?.segmentId === segmentId);
+    if (found !== undefined) return { preShow: found.preShow, slot: found.slot };
+  }
+  return null;
+}
+
 interface NoticeProps {
   readonly reasons: readonly Reason[];
   readonly onDismiss: () => void;
+  /** The card's sections, so a reason about a segment can jump to its slot. */
+  readonly sections?: readonly BookingSectionView[];
+  readonly onShowSlot?: (preShow: boolean, slot: number) => void;
 }
 
 /** A refusal, in the engine's own words, until it is dismissed or the next change succeeds. */
-function RefusalNotice({ reasons, onDismiss }: NoticeProps) {
+function RefusalNotice({ reasons, onDismiss, sections = [], onShowSlot }: NoticeProps) {
   return (
     <div className={styles['notice']} role="alert">
       <div className={styles['noticeBody']}>
         <p className={styles['noticeTitle']}>That change didn't go through</p>
         <ul className={styles['noticeList']}>
-          {reasons.map((reason, index) => (
-            <li key={`${reason.code}-${String(index)}`}>{reason.message}</li>
-          ))}
+          {reasons.map((reason, index) => {
+            const at =
+              reason.subject?.kind === 'segment'
+                ? slotOfSegment(sections, reason.subject.id)
+                : null;
+            return (
+              <li key={`${reason.code}-${String(index)}`}>
+                {at === null || onShowSlot === undefined ? (
+                  reason.message
+                ) : (
+                  <button
+                    type="button"
+                    className={styles['noticeJump']}
+                    onClick={() => {
+                      onShowSlot(at.preShow, at.slot);
+                    }}
+                  >
+                    {reason.message}
+                  </button>
+                )}
+              </li>
+            );
+          })}
         </ul>
       </div>
       <IconButton icon="close" label="Dismiss" variant="ghost" size="sm" onClick={onDismiss} />
@@ -172,7 +207,7 @@ function ShowHeader({ rows, row, card, onSelect, actions }: ShowHeaderProps) {
     value: show.eventInstanceId,
     label: showOptionLabel(show),
   }));
-  const booked = card?.locked ?? row.status === 'booked';
+  const tonight = card?.runsTonight ?? row.needsBooking;
   return (
     <header className={styles['showHeader']}>
       <div className={styles['showPicker']}>
@@ -208,7 +243,7 @@ function ShowHeader({ rows, row, card, onSelect, actions }: ShowHeaderProps) {
             </li>
           )}
           <li>
-            <Badge tone={booked ? 'positive' : 'data'}>{booked ? 'Booked' : 'Scheduled'}</Badge>
+            <Badge tone={tonight ? 'positive' : 'data'}>{tonight ? 'Tonight' : 'Scheduled'}</Badge>
           </li>
         </ul>
         <h2 className={styles['showName']}>{row.name}</h2>
@@ -231,11 +266,10 @@ interface PhoneBarProps {
   readonly busy: boolean;
   readonly onOpenChecklist: () => void;
   readonly onOpenPanel: (panelId: string) => void;
-  readonly onLock: () => void;
-  readonly onUnlock: () => void;
+  readonly onRun: () => void;
 }
 
-/** The phone's one sticky element: feature summaries, then "3 problems · Lock card". */
+/** The phone's one sticky element: feature summaries, then "3 problems · Run the show". */
 function PhoneBar({
   card,
   validation,
@@ -243,16 +277,10 @@ function PhoneBar({
   busy,
   onOpenChecklist,
   onOpenPanel,
-  onLock,
-  onUnlock,
+  onRun,
 }: PhoneBarProps) {
   const errors = validation?.errors.length ?? 0;
-  const label = card.locked
-    ? 'Card locked'
-    : validation === null
-      ? 'Checking…'
-      : problemsText(errors);
-  const showLock = card.locked ? canUnlock(card) : card.canEdit;
+  const label = validation === null ? 'Checking…' : problemsText(errors);
   return (
     <div className={styles['phoneBar']}>
       {summaries.map(({ panel, text }) => (
@@ -271,20 +299,12 @@ function PhoneBar({
         <button
           type="button"
           className={styles['phoneProblems']}
-          data-state={card.locked ? 'locked' : errors > 0 ? 'error' : 'ok'}
+          data-state={errors > 0 ? 'error' : 'ok'}
           onClick={onOpenChecklist}
         >
           {label}
         </button>
-        {showLock && (
-          <LockButton
-            card={card}
-            validation={validation}
-            busy={busy}
-            onLock={onLock}
-            onUnlock={onUnlock}
-          />
-        )}
+        <RunShowButton card={card} validation={validation} busy={busy} onRun={onRun} />
       </div>
     </div>
   );
@@ -294,10 +314,16 @@ interface ShowBookingProps {
   readonly rows: readonly BookingShowRow[];
   readonly row: BookingShowRow;
   readonly onSelect: (eventInstanceId: EventInstanceId) => void;
+  /** The show has run: open its results. */
+  readonly onRan: (eventInstanceId: EventInstanceId) => void;
 }
 
-/** One show: its header, the card, the checklist, Lock, and the panels other features add. */
-function ShowBooking({ rows, row, onSelect }: ShowBookingProps) {
+/**
+ * One show: its header, the card, the checklist, Run the show on its day, and the panels other
+ * features add. This is also the show screen: the day stops on a show of yours ("Tonight") and
+ * Go to the show opens it here (EVT2-09).
+ */
+function ShowBooking({ rows, row, onSelect, onRan }: ShowBookingProps) {
   const eventInstanceId = row.eventInstanceId;
   const isMobile = useIsMobile();
   const announce = useAnnounce();
@@ -310,8 +336,7 @@ function ShowBooking({ rows, row, onSelect }: ShowBookingProps) {
   const setResult = useEngineCommand('booking.setResult');
   const removeSegment = useEngineCommand('booking.removeSegment');
   const clearCard = useEngineCommand('booking.clearCard');
-  const lockCard = useEngineCommand('booking.lockCard');
-  const unlockCard = useEngineCommand('booking.unlockCard');
+  const runTonight = useEngineCommand('shows.runTonight');
 
   const [pendingMove, setPendingMove] = useState<PendingMove | null>(null);
   const [refusal, setRefusal] = useState<readonly Reason[] | null>(null);
@@ -421,15 +446,10 @@ function ShowBooking({ rows, row, onSelect }: ShowBookingProps) {
     settle(result, 'Card cleared');
   };
 
-  const handleLock = (): void => {
+  const handleRun = (): void => {
     void (async () => {
-      settle(await lockCard.run({ eventInstanceId }), 'Card locked');
-    })();
-  };
-
-  const handleUnlock = (): void => {
-    void (async () => {
-      settle(await unlockCard.run({ eventInstanceId }), 'Card unlocked');
+      const result = await runTonight.run({ eventInstanceId });
+      if (settle(result, `${row.name} is over`) && result.ok) onRan(result.data.eventInstanceId);
     })();
   };
 
@@ -447,16 +467,15 @@ function ShowBooking({ rows, row, onSelect }: ShowBookingProps) {
     )
     .slice(0, PHONE_SUMMARY_LINES);
   const openPanel = panels.find((panel) => panel.id === openPanelId) ?? null;
-  const lockBusy = lockCard.pending || unlockCard.pending;
+  const runBusy = runTonight.pending;
 
-  const lockBar = (
-    <LockBar
+  const showBar = (
+    <ShowBar
       card={card}
       validation={validation}
-      busy={lockBusy}
-      hideLock={isMobile}
-      onLock={handleLock}
-      onUnlock={handleUnlock}
+      busy={runBusy}
+      hideRun={isMobile}
+      onRun={handleRun}
       onClear={handleClear}
     />
   );
@@ -473,7 +492,7 @@ function ShowBooking({ rows, row, onSelect }: ShowBookingProps) {
               openNew({ eventInstanceId, preShow: slot.preShow, slot: slot.slot, kind });
             },
           }
-        : card.editBlock === null || card.locked
+        : card.editBlock === null
           ? {}
           : { emptyHint: card.editBlock.message })}
       renderActions={(slot, section) =>
@@ -497,10 +516,12 @@ function ShowBooking({ rows, row, onSelect }: ShowBookingProps) {
 
   return (
     <div className={styles['booking']} data-layout={isMobile ? 'phone' : 'desktop'}>
-      <ShowHeader rows={rows} row={row} card={card} onSelect={onSelect} actions={lockBar} />
+      <ShowHeader rows={rows} row={row} card={card} onSelect={onSelect} actions={showBar} />
       {refusal !== null && (
         <RefusalNotice
           reasons={refusal}
+          sections={card.sections}
+          onShowSlot={showSlot}
           onDismiss={() => {
             setRefusal(null);
           }}
@@ -537,24 +558,23 @@ function ShowBooking({ rows, row, onSelect }: ShowBookingProps) {
             card={card}
             validation={validation}
             summaries={summaries}
-            busy={lockBusy}
+            busy={runBusy}
             onOpenChecklist={() => {
               setChecklistOpen(true);
             }}
             onOpenPanel={setOpenPanelId}
-            onLock={handleLock}
-            onUnlock={handleUnlock}
+            onRun={handleRun}
           />
           <Sheet
             open={checklistOpen}
             onClose={() => {
               setChecklistOpen(false);
             }}
-            title={card.locked ? 'Card locked' : problemsText(validation?.errors.length ?? 0)}
+            title={problemsText(validation?.errors.length ?? 0)}
             side="bottom"
           >
-            {!card.locked && validation !== null && validation.errors.length > 0 && (
-              <p className={styles['lockHint']}>{fixProblemsText(validation.errors.length)}</p>
+            {card.runsTonight && validation !== null && validation.errors.length > 0 && (
+              <p className={styles['runHint']}>{fixProblemsText(validation.errors.length)}</p>
             )}
             <ValidationChecklist validation={validation} onShowSlot={showSlot} headingLevel={3} />
           </Sheet>
@@ -604,9 +624,22 @@ export function BookingView() {
     [searchParams, setSearchParams],
   );
 
+  // Once a show has run we are on our way to its results: the show list drops it, and the URL must
+  // not be pointed at the next show meanwhile (the results route loads lazily).
+  const leaving = useRef(false);
+  const openResults = useCallback(
+    (eventInstanceId: EventInstanceId) => {
+      leaving.current = true;
+      // The results page plays the segments in one at a time, as after Next Day.
+      navigate(routes.game.showResults(eventInstanceId, { reveal: true }));
+    },
+    [navigate],
+  );
+
   // Write the show actually shown back to the URL, so a reload or a shared link lands on it.
   const loaded = shows.status === 'success';
   useEffect(() => {
+    if (leaving.current) return;
     if (loaded && selectedId !== null && param !== selectedId) select(selectedId);
   }, [loaded, param, select, selectedId]);
 
@@ -666,6 +699,12 @@ export function BookingView() {
     );
   }
   return (
-    <ShowBooking key={selected.eventInstanceId} rows={rows} row={selected} onSelect={select} />
+    <ShowBooking
+      key={selected.eventInstanceId}
+      rows={rows}
+      row={selected}
+      onSelect={select}
+      onRan={openResults}
+    />
   );
 }

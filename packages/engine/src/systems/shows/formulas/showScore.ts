@@ -21,6 +21,23 @@ import { sortShowScoreModifiers, type ShowScoreModifier } from '../showScoreModi
 
 export const SHOW_SCORE_DOC_REF = 'docs/design/show-night.md#show-score';
 
+/**
+ * The words of the show score's trace that a reader matches on (`showScoreBreakdown`), named once
+ * so the formula and the reader cannot drift apart.
+ */
+export const SHOW_SCORE_TRACE_LABELS = {
+  /** The step that scales a slot's score by how much it counts. */
+  counts: 'Counts',
+  /** Ends the start label of each slot's line: "Main event score". */
+  slotScoreSuffix: ' score',
+  /** The step on a pre-show slot's weight. */
+  preShowFactor: 'Pre-show factor',
+  /** The step that turns the weighted sum into a mean. */
+  divide: 'Divided by the total weight',
+  /** Starts the label of the empty-slot penalty: "Empty main-card slots (2)". */
+  emptySlotsPrefix: 'Empty main-card slots',
+} as const;
+
 /** The ends of the show score scale. Fixed, like every other 0..100 score in the game. */
 export const SHOW_SCORE_MIN = 0;
 export const SHOW_SCORE_MAX = 100;
@@ -94,8 +111,8 @@ function countedWeight(entry: ShowSlotInput, tunables: EngineTunables): Traced<n
   const calc = startCalc(`${entry.roleLabel} counts`, entry.weight, { unit: 'multiplier' });
   if (entry.preShow) {
     calc.multiply(
-      'Pre-show factor',
-      calc.tunable(tunables, 'shows.score.preShowFactor', 'Pre-show factor'),
+      SHOW_SCORE_TRACE_LABELS.preShowFactor,
+      calc.tunable(tunables, 'shows.score.preShowFactor', SHOW_SCORE_TRACE_LABELS.preShowFactor),
     );
   }
   return calc.done();
@@ -145,9 +162,9 @@ export function showScore(inputs: ShowScoreInputs, deps: ShowScoreDeps): ShowSco
     const line = `${entry.roleLabel}: ${formatNumber(score)} × ${formatNumber(counts.value)}`;
     const contribution = startCalc(line, score, {
       unit: 'points',
-      startLabel: `${entry.roleLabel} score`,
+      startLabel: `${entry.roleLabel}${SHOW_SCORE_TRACE_LABELS.slotScoreSuffix}`,
     })
-      .multiply('Counts', counts)
+      .multiply(SHOW_SCORE_TRACE_LABELS.counts, counts)
       .done();
     calc.add(line, contribution);
     totalWeight.add(entry.roleLabel, counts.value);
@@ -155,14 +172,15 @@ export function showScore(inputs: ShowScoreInputs, deps: ShowScoreDeps): ShowSco
 
   const weightTotal = totalWeight.done();
   if (weightTotal.value > 0) {
-    calc.divide('Divided by the total weight', weightTotal);
+    calc.divide(SHOW_SCORE_TRACE_LABELS.divide, weightTotal);
   } else {
     // Every counted weight is 0, so every line above added exactly 0: the mean is 0.
     calc.note('No slot counts toward the score');
   }
 
   if (emptySlots.length > 0) {
-    const penalty = startCalc(`Empty main-card slots (${String(emptySlots.length)})`, 0, {
+    const emptyLabel = `${SHOW_SCORE_TRACE_LABELS.emptySlotsPrefix} (${String(emptySlots.length)})`;
+    const penalty = startCalc(emptyLabel, 0, {
       unit: 'points',
       startLabel: 'No penalty',
     });
@@ -170,7 +188,7 @@ export function showScore(inputs: ShowScoreInputs, deps: ShowScoreDeps): ShowSco
     for (const entry of emptySlots) {
       penalty.add(`${slotName(entry)} (${entry.roleLabel}) is empty`, perSlot);
     }
-    calc.subtract(`Empty main-card slots (${String(emptySlots.length)})`, penalty.done());
+    calc.subtract(emptyLabel, penalty.done());
   }
 
   applyStage(calc, 'adjust', inputs, deps);

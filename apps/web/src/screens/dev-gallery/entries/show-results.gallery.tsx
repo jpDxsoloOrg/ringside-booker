@@ -8,6 +8,7 @@ import { Button } from '@/components/Button';
 import { Stack } from '@/components/layout';
 import { CompletedResults } from '@/screens/show-results/ResultsBroadcast';
 import type { GalleryEntry } from '../galleryEntry';
+import { galleryBreakdown } from '../fixtures/showReport';
 import { createTraceFixtureTransport } from '../fixtures/traceEngine';
 import {
   drawResult,
@@ -30,11 +31,14 @@ const SHOW_SCORE_REF: TraceRef = { kind: 'shows.showScore', id: 'evi_0000000901'
 const SHOW_SCORE_TRACE: TraceNode = {
   kind: 'formula',
   label: 'Show score',
-  value: 68,
+  value: 59,
   children: [
-    { kind: 'input', label: 'Main event: 74 × 1.75', value: 129.5 },
-    { kind: 'input', label: 'Opener: 66 × 1', value: 66 },
-    { kind: 'input', label: 'Divided by the total weight', value: 4.75 },
+    { kind: 'input', label: 'Opener: 64 × 1', value: 64 },
+    { kind: 'input', label: 'Midcard: 58 × 1', value: 58 },
+    { kind: 'input', label: 'Semi-main: 41 × 1.25', value: 51.25 },
+    { kind: 'input', label: 'Main event: 84 × 1.75', value: 147 },
+    { kind: 'input', label: 'Divided by the total weight', value: 5 },
+    { kind: 'input', label: 'Empty main-card slots (1)', value: 5 },
   ],
 };
 
@@ -46,7 +50,7 @@ function showTraces(): StoredTrace[] {
       date: parseGameDate('2031-03-14'),
       seq: 100,
       trace: SHOW_SCORE_TRACE,
-      value: 68,
+      value: 59,
     },
   ];
 }
@@ -57,6 +61,14 @@ function createShowTraceTransport(): EngineTransport {
 
 /** A major show: a pre-show promo and four main-card segments (slot 3 empty), title retained. */
 function sampleShow(): ShowResultsView {
+  const segments = [
+    promoSegment(),
+    singlesWin(),
+    drawResult(),
+    noContestResult(),
+    tripleThreatRetained(),
+  ];
+  const { breakdown, score } = galleryBreakdown(segments, ['Slot 3 (Midcard) is empty']);
   return {
     eventInstanceId: parseId('eventInstance', 'evi_0000000901'),
     name: 'Harbor Lights Showdown',
@@ -77,21 +89,16 @@ function sampleShow(): ShowResultsView {
     mine: true,
     offscreen: false,
     result: {
-      score: 68,
-      rawScore: 68,
-      stars: 2.75,
+      score,
+      rawScore: score,
+      stars: 2.25,
       scoreTraceRef: SHOW_SCORE_REF,
+      breakdown,
       attendance: null,
       gate: null,
       viewers: null,
     },
-    segments: [
-      promoSegment(),
-      singlesWin(),
-      drawResult(),
-      noContestResult(),
-      tripleThreatRetained(),
-    ],
+    segments,
   };
 }
 
@@ -112,6 +119,7 @@ function offscreenShow(): ShowResultsView {
       rawScore: 52,
       stars: 1.5,
       scoreTraceRef: null,
+      breakdown: null,
       attendance: null,
       gate: null,
       viewers: null,
@@ -219,6 +227,6 @@ export const galleryEntry: GalleryEntry = {
   title: 'Show results',
   group: 'Broadcast',
   notes:
-    "The results page's parts (EVT3-06) with a made-up show: the lower third, the Final score bug with the score's Why?, the pre-show and main card as SegmentResultCards, the reveal with Next segment and Show all (press Play the reveal again; under reduced motion it shows everything at once), a rival show scored off-screen, and the Next Day summary's See results links. On the real page the show's name is the h1; here it is an h2.",
+    "The results page's parts (EVT3-06) with a made-up show: the lower third, the Final score bug with the score's Why?, the pre-show and main card as SegmentResultCards, the show report once the reveal is over (EVT3-09: verdict, How it was scored, What changed), the reveal with Next segment and Show all (press Play the reveal again; under reduced motion it shows everything at once), a rival show scored off-screen, and the Next Day summary's See results links. On the real page the show's name is the h1; here it is an h2.",
   render: () => <ShowResultsDemo />,
 };

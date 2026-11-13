@@ -14,7 +14,13 @@ import {
   tripleThreatRetained,
 } from '@/screens/dev-gallery/fixtures/segmentResults';
 import { SegmentResultCard } from './SegmentResultCard';
-import { listText, resultLine, resultWhyValue, segmentResultAccent } from './segmentResultText';
+import {
+  listText,
+  reasonsLine,
+  resultLine,
+  resultWhyValue,
+  segmentResultAccent,
+} from './segmentResultText';
 
 function withEngine(children: ReactNode) {
   return (
@@ -218,5 +224,41 @@ describe('segment result text', () => {
 
   it('has no result line for a match that has not run', () => {
     expect(resultLine({ ...singlesWin(), outcome: null })).toBeNull();
+  });
+});
+
+describe('the top reasons (EVT3-09)', () => {
+  it('shows the top two rating reasons in words under the numbers', () => {
+    const base = singlesWin();
+    const rating = base.rating;
+    if (rating === null) throw new Error('Fixture has no rating');
+    const segment: SegmentResultView = {
+      ...base,
+      rating: {
+        ...rating,
+        reasons: [
+          { label: 'Strong work rate', effect: 8.4 },
+          { label: 'Hot crowd', effect: 5 },
+        ],
+      },
+    };
+    const card = renderCard(segment);
+    expect(within(card).getByText('Top reasons')).toBeInTheDocument();
+    expect(
+      within(card).getByText(/Strong work rate \(\+8\), hot crowd \(\+5\)/),
+    ).toBeInTheDocument();
+  });
+
+  it('leaves the line out when the reasons are no longer kept', () => {
+    const base = singlesWin();
+    const rating = base.rating;
+    if (rating === null) throw new Error('Fixture has no rating');
+    const card = renderCard({ ...base, rating: { ...rating, reasons: [] } });
+    expect(within(card).queryByText('Top reasons')).toBeNull();
+  });
+
+  it('writes negative effects with a true minus', () => {
+    expect(reasonsLine([{ label: 'Quiet crowd', effect: -5.2 }])).toBe('Quiet crowd (−5)');
+    expect(reasonsLine([])).toBeNull();
   });
 });

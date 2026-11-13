@@ -107,6 +107,7 @@ function serialiseTables(tables: SerialisableWorld['tables']): SerializedTables 
     ledgerEntries: [...tables.ledgerEntries.values()],
     popularityShowChanges: [...tables.popularityShowChanges.values()],
     aftermaths: [...tables.aftermaths.values()],
+    promotionSnapshots: [...tables.promotionSnapshots.values()],
   };
 }
 

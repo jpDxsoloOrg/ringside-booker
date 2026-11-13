@@ -7,8 +7,7 @@
  * 1. does the show (or segment) exist (`showNotFound`, `segmentNotFound`);
  * 2. does the issuer run the show, by the calendar's one rule (`notYourShow`): the brand's
  *    controller when the brand has one, else the promotion's;
- * 3. can the card still change (`editBlockOf`: `showCompleted`, `showCancelled`, `showPast`,
- *    `cardLocked`);
+ * 3. can the card still change (`editBlockOf`: `showCompleted`, `showCancelled`, `showPast`);
  * 4. is the change itself sound (`structuralProblems`, the writer's own rules), and, on a show
  *    where Random winners decides the results (MTCH2's `randomWinnersActive`), does it plan none
  *    (`randomWinners`): no planned result and no planned finish.
@@ -17,8 +16,8 @@
  * one `card.changed`. A command that would change nothing (the same draft, a move onto its own
  * slot, the same result, clearing an empty card) succeeds and publishes nothing.
  *
- * `booking.lockCard` and `booking.unlockCard` (EVT2-04) move a show between `scheduled` and
- * `booked`. Lock is refused with `cardNotRunnable` while `validateCard` finds any error.
+ * There is no Lock (EVT2-09): a card stays editable until its show runs. The show runs from the
+ * show screen through `shows.runTonight`, which is refused while `validateCard` finds any error.
  *
  * Design notes: docs/design/booking.md#commands.
  */
@@ -38,8 +37,6 @@ import type { DeepReadonly } from '../../model/world';
 import { controlsShow } from '../calendar/control';
 import { RANDOM_WINNERS_MESSAGE } from '../match/finishes/resolve';
 import { randomWinnersActive } from '../match/finishes/randomWinners';
-import type { BookingIssue } from './validate/types';
-import { validateCard } from './validate/validateCard';
 import { editBlockOf } from './control';
 import { draftFromSegment, SegmentDraftSchema, type SegmentDraft } from './draft';
 import type { CardChange } from './events';
@@ -97,14 +94,6 @@ declare module '../../core/api/maps' {
       args: { eventInstanceId: EventInstanceId };
       result: { removed: number };
     };
-    'booking.lockCard': {
-      args: { eventInstanceId: EventInstanceId };
-      result: { status: 'booked' };
-    };
-    'booking.unlockCard': {
-      args: { eventInstanceId: EventInstanceId };
-      result: { status: 'scheduled' };
-    };
   }
 }
 
@@ -113,8 +102,6 @@ export const BOOKING_COMMAND_REASON_CODES = [
   'showNotFound',
   'segmentNotFound',
   'notYourShow',
-  'cardNotRunnable',
-  'cardNotLocked',
   'randomWinners',
 ] as const;
 export type BookingCommandReasonCode = (typeof BOOKING_COMMAND_REASON_CODES)[number];
@@ -133,7 +120,7 @@ function segmentNotFound(): Reason {
 }
 
 /** The name of whoever runs the show: its brand when the brand has its own controller. */
-function runnerName(read: GameWorldView, show: Show): string {
+export function runnerName(read: GameWorldView, show: Show): string {
   const brand = show.brandId === null ? undefined : read.tables.brands.get(show.brandId);
   if (brand !== undefined && brand.controller !== null) {
     return brand.name;
@@ -432,95 +419,6 @@ export const clearCardCommand = defineCommand('booking.clearCard', {
   },
 });
 
-// ---------------------------------------------------------------------------------------------
-// Lock and unlock (EVT2-04)
-
-/** The most `cardNotRunnable` reasons a refused lock lists; the checklist has the rest. */
-export const MAX_LOCK_REASONS = 10;
-
-function notRunnable(show: Show, issue: BookingIssue): Reason {
-  return {
-    code: 'cardNotRunnable',
-    message: issue.message,
-    subject:
-      issue.segmentId === undefined
-        ? { kind: 'eventInstance', id: show.id }
-        : { kind: 'segment', id: issue.segmentId },
-  };
-}
-
-/**
- * Locks a card so the show can run: the show becomes `booked`, which clears the show-day gate.
- * Refused while the card has any booking error; warnings never block.
- */
-export const lockCardCommand = defineCommand('booking.lockCard', {
-  args: z.strictObject({ eventInstanceId: zId('eventInstance') }),
-  validate: (read, args, issuedBy, env) => {
-    const show = read.tables.eventInstances.get(args.eventInstanceId);
-    if (show === undefined) {
-      return [showNotFound()];
-    }
-    const refused = showRefusals(read, show, issuedBy).map((reason) =>
-      reason.code === 'cardLocked' ? { ...reason, message: 'This card is already locked' } : reason,
-    );
-    if (refused.length > 0) {
-      return refused;
-    }
-    const validation = validateCard(read, show.id, {
-      tunables: env.tunables,
-      today: read.meta.currentDate,
-    });
-    return validation.errors.slice(0, MAX_LOCK_REASONS).map((issue) => notRunnable(show, issue));
-  },
-  apply: (ctx, args) => {
-    const show = ctx.read.tables.eventInstances.require(args.eventInstanceId);
-    ctx.tx.update('eventInstances', show.id, { status: 'booked' });
-    ctx.publish('card.locked', {
-      eventInstanceId: show.id,
-      promotionId: show.promotionId,
-      brandId: show.brandId,
-    });
-    return { status: 'booked' } as const;
-  },
-});
-
-/** Unlocks a locked card so it can change again; the show goes back to `scheduled`. */
-export const unlockCardCommand = defineCommand('booking.unlockCard', {
-  args: z.strictObject({ eventInstanceId: zId('eventInstance') }),
-  validate: (read, args, issuedBy) => {
-    const show = read.tables.eventInstances.get(args.eventInstanceId);
-    if (show === undefined) {
-      return [showNotFound()];
-    }
-    const refused = showRefusals(read, show, issuedBy).filter(
-      (reason) => reason.code !== 'cardLocked',
-    );
-    if (refused.length > 0) {
-      return refused;
-    }
-    if (show.status !== 'booked') {
-      return [
-        {
-          code: 'cardNotLocked',
-          message: "This card isn't locked",
-          subject: { kind: 'eventInstance', id: show.id },
-        },
-      ];
-    }
-    return [];
-  },
-  apply: (ctx, args) => {
-    const show = ctx.read.tables.eventInstances.require(args.eventInstanceId);
-    ctx.tx.update('eventInstances', show.id, { status: 'scheduled' });
-    ctx.publish('card.unlocked', {
-      eventInstanceId: show.id,
-      promotionId: show.promotionId,
-      brandId: show.brandId,
-    });
-    return { status: 'scheduled' } as const;
-  },
-});
-
 export const bookingCommands = [
   addSegmentCommand,
   updateSegmentCommand,
@@ -528,6 +426,4 @@ export const bookingCommands = [
   moveSegmentCommand,
   setResultCommand,
   clearCardCommand,
-  lockCardCommand,
-  unlockCardCommand,
 ] as const;

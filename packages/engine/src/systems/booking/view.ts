@@ -253,8 +253,11 @@ export interface BookingCard {
   canEdit: boolean;
   /** Why the card cannot change (whoever asks), or null. */
   editBlock: Reason | null;
-  /** True when the card is locked (the show is `booked`). */
-  locked: boolean;
+  /**
+   * True on the show's day while it has not run and the viewer runs it: the show screen offers
+   * Run the show (`shows.runTonight`). There is no lock (EVT2-09).
+   */
+  runsTonight: boolean;
   /**
    * True when Random winners decides this show's results (MTCH2's `randomWinnersActive`): nothing
    * is planned, and the editor says "Decided on the night (Random winners)".
@@ -518,6 +521,7 @@ export function buildCardView(
   sections.push(sectionOf(false, instance.format.slots));
 
   const editBlock = editBlockOf(read, instance, today);
+  const canEdit = editBlock === null && viewerControlsShow(read, instance, deps.viewer);
   const brand = instance.brandId === null ? undefined : read.tables.brands.get(instance.brandId);
   return {
     show: {
@@ -534,9 +538,9 @@ export function buildCardView(
       daysUntil: diffDays(today, instance.date),
       format: { slots: instance.format.slots, preShowSlots: instance.format.preShowSlots },
     },
-    canEdit: editBlock === null && viewerControlsShow(read, instance, deps.viewer),
+    canEdit,
     editBlock,
-    locked: instance.status === 'booked',
+    runsTonight: canEdit && instance.date === today,
     randomWinners: randomWinnersActive(read, {
       promotionId: instance.promotionId,
       brandId: instance.brandId,

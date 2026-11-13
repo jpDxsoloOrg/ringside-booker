@@ -33,6 +33,18 @@ export interface RunSummary {
   worldHash: string;
   /** Tunable overrides in the starting state that were dropped because they no longer fit. */
   loadIssues: string[];
+  /** The promotion history table at the end of the run (DAY2-01). */
+  promotionHistory: PromotionHistorySummary;
+}
+
+/** How big the promotion history (`promotionSnapshots`) is at the end of a run. */
+export interface PromotionHistorySummary {
+  /** Promotions in the world, closed ones included. */
+  promotions: number;
+  /** History rows in the table. */
+  rows: number;
+  /** The most rows any one promotion has. */
+  mostPerPromotion: number;
 }
 
 /** The outcome of `--check-determinism`. */
@@ -213,6 +225,15 @@ export function formatSummaryText(summary: RunSummary, style: TextStyle): string
     );
   }
   lines.push('', heading('Events by type'), ...countRows(summary.eventsByType));
+  const history = summary.promotionHistory;
+  lines.push(
+    '',
+    heading('Promotion history'),
+    ...alignedRows([
+      ['Rows', `${String(history.rows)} for ${String(history.promotions)} promotion(s)`],
+      ['Most for one promotion', String(history.mostPerPromotion)],
+    ]),
+  );
   if (summary.loadIssues.length > 0) {
     lines.push('', heading('Load issues'));
     lines.push(...summary.loadIssues.map((issue) => paint(style, ANSI_YELLOW, `  ${issue}`)));

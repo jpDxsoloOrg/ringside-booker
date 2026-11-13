@@ -15,6 +15,7 @@ import {
   fixtureState,
   ledgerMismatches,
   openPastShows,
+  promotionHistoryProblems,
   readStateFile,
   runSimulation,
   type CompletedRun,
@@ -157,6 +158,26 @@ describe('runSimulation on the roster fixture', () => {
     expect(ledgerMismatches(start, outcome.finalState)).toEqual([]);
   });
 
+  it('writes the weekly promotion history and keeps it within its retention', async () => {
+    const run = await completedRun(20, '1', 60);
+    const { promotionHistory } = run.summary;
+    // Every open promotion gets a row each Monday: 60 days hold 8 or 9 Mondays.
+    expect(promotionHistory.rows).toBeGreaterThanOrEqual(8 * promotionHistory.promotions);
+    expect(promotionHistory.mostPerPromotion).toBeLessThanOrEqual(52 + 1);
+    expect(promotionHistoryProblems(run.finalState)).toEqual([]);
+  });
+
+  it('reports a promotion history over its retention', async () => {
+    const run = await completedRun(20, '1', 60);
+    const tooShort = {
+      ...run.finalState,
+      tunableOverrides: { 'office.history.fullDetailWeeks': 4 },
+    };
+    expect(promotionHistoryProblems(tooShort)).toEqual([
+      expect.stringMatching(/weekly rows, more than 5$/),
+    ]);
+  });
+
   it('gives the same world hash for two runs with the same seed', async () => {
     const first = await completedRun(20, '7', 30);
     const second = await completedRun(20, '7', 30);
@@ -244,6 +265,7 @@ describe('runCli', () => {
         'failuresByStep',
         'firstFailures',
         'loadIssues',
+        'promotionHistory',
         'startDate',
         'stoppedBy',
         'wallMs',

@@ -77,14 +77,15 @@ itself; `booking/control.ts` adds only the booking rules on top:
 - `editBlockOf(read, show, today)`: why the card cannot change, or `null`. The
   first rule that fails is returned:
 
-| Code            | When                          | Message                          |
-| --------------- | ----------------------------- | -------------------------------- |
-| `showCompleted` | the show has run              | "This show has already run"      |
-| `showCancelled` | the show was cancelled        | "This show was cancelled"        |
-| `showPast`      | its date is before today      | "This show has already happened" |
-| `cardLocked`    | the card is locked (`booked`) | "Unlock the card to change it"   |
+| Code            | When                     | Message                          |
+| --------------- | ------------------------ | -------------------------------- |
+| `showCompleted` | the show has run         | "This show has already run"      |
+| `showCancelled` | the show was cancelled   | "This show was cancelled"        |
+| `showPast`      | its date is before today | "This show has already happened" |
 
-Today's show stays editable until the day runs.
+There is no lock (EVT2-09): a card stays editable until its show has run, today's show included.
+A `booked` show, which only a save made before EVT2-09 can hold for a player's show, is as open as
+a `scheduled` one.
 
 ## The card writer
 
@@ -210,8 +211,7 @@ publishes one `card.changed { eventInstanceId, promotionId, brandId, segmentId,
 change }`, where `change` is `added`, `updated`, `removed`, `moved`, `result`
 or `cleared` (`segmentId` is null for `cleared`). A command that changes
 nothing succeeds and publishes nothing: the same draft again, a move onto its
-own slot, the result it already has, or clearing an empty card. `card.locked`
-and `card.unlocked` are declared for EVT2-04's lock commands. Commands are
+own slot, the result it already has, or clearing an empty card. Commands are
 refused with `busy` while days are advancing.
 
 ### Refusals
@@ -227,7 +227,6 @@ The UI shows these messages as they are and never re-words them.
 | `showCompleted`           | the show has run                                          | "This show has already run"                                        |
 | `showCancelled`           | the show was cancelled                                    | "This show was cancelled"                                          |
 | `showPast`                | its date is before today                                  | "This show has already happened"                                   |
-| `cardLocked`              | the card is locked (`booked`)                             | "Unlock the card to change it"                                     |
 | `slotOutsideFormat`       | add or move to a slot the format does not have            | "Slot 7 doesn't exist on this show"                                |
 | `slotTaken`               | add to a filled slot                                      | "Slot 3 already has a segment"                                     |
 | `notAMatch`               | `setResult` on an angle                                   | "Only a match has a result to plan"                                |
@@ -243,13 +242,15 @@ controller, otherwise the promotion.
 
 How a card meets the calendar's show lifecycle ([calendar.md](calendar.md#lifecycle)):
 
-- **A locked card runs on its day.** The show night's `shows.runShows` phase
-  ([show-night.md](show-night.md#phase)) runs every `booked` show dated today,
+- **A card runs when its booker runs the show.** On the show's day the day
+  stops (`shows.tonight`) and the player runs it from the show screen with
+  `shows.runTonight` ([show-night.md](show-night.md#the-players-shows)), which
   rates its segments and marks it completed, so the calendar's
-  `calendar.closePastShows` never sees it. That close rule still closes `booked`
-  shows as well as `scheduled` ones at the end of their day, with reason
-  `notRun`, so a locked show the shows phase did not run (a game built without
-  show night, as some tests are) is marked Not run and keeps its segments.
+  `calendar.closePastShows` never sees it. The shows phase never runs a show a
+  human runs. The close rule still closes an open show at the end of its day,
+  with reason `notRun`, so a show of the player's nobody ran (only possible in a
+  game built without the gate, as some tests are) is marked Not run and keeps
+  its segments.
 - **A cancelled show keeps its card.** `calendar.cancelShow` on a show with a
   card deletes nothing: the segments stay as read-only history, and every
   booking command is refused with `showCancelled`. The booking show list and
@@ -274,8 +275,8 @@ shows; the omniscient viewer runs none, so it gets an empty list.
 `{ limit?: 1..60 }` (default 20) →
 `{ rows, nextToBookId, available, unavailableReason }`.
 
-The viewer's shows dated today or later with status `scheduled` or `booked`,
-by date, then id. They are read through the `byStatus` index (at most the
+The viewer's open shows dated today or later (status `scheduled`, or `booked`
+from an old save), by date, then id. They are read through the `byStatus` index (at most the
 calendar's horizon) and kept when the viewer runs them, which covers both a
 promotion the player runs and a brand they run inside someone else's
 promotion, and leaves out a brand the computer runs inside theirs.
@@ -285,14 +286,13 @@ promotion, and leaves out a brand the computer runs inside theirs.
 | `eventInstanceId`, `name`      | the show                                          |
 | `date`, `importance`           | as stored                                         |
 | `brandName`                    | the show's brand, or null                         |
-| `status`                       | `scheduled` or `booked`                           |
+| `status`                       | `scheduled` (or `booked` from an old save)        |
 | `filledMain` / `slots`         | segments booked on the main card / its slot count |
 | `filledPreShow`/`preShowSlots` | the same for the pre-show                         |
-| `needsBooking`                 | today's show, still `scheduled`: Next Day stops   |
-| `locked`                       | the card is locked (`booked`)                     |
+| `needsBooking`                 | today's show, not yet run: Next Day stops         |
 
-`nextToBookId` is the first `scheduled` show (from the whole list, not only
-the rows the limit keeps). `available` is false on a save that cannot book
+`nextToBookId` is the first open show (from the whole list, not only the rows
+the limit keeps). `available` is false on a save that cannot book
 shows: one with no `eventInstances` at all (from before EVT1) or no match
 types in `meta.catalogs` (from before MTCH1). `unavailableReason` then says
 "This save was made before shows could be booked. Start a new game to book
@@ -305,8 +305,8 @@ shows."
 - `show`: id, name, date, air date, importance, promotion, brand id and name,
   status, `isToday`, `daysUntil` (0 on the day) and `format`.
 - `canEdit`: the viewer runs the show and `editBlockOf` finds nothing.
-  `editBlock` is that reason (whoever asks) and `locked` is `status ===
-'booked'`.
+  `editBlock` is that reason (whoever asks). `runsTonight` is `canEdit` on the
+  show's day: the show screen offers Run the show (`shows.runTonight`).
 - `sections`: the pre-show first when the format has one, then the main card.
   Every slot of the format is listed, filled or open.
 - `titleOptions`: the promotion's active titles by prestige (highest first),
@@ -398,39 +398,32 @@ longer `reason` is kept for the tooltip.
 The injury date is WRK1's first day back, with the year added when it falls in
 another year.
 
-## Gate
+## Show day
 
-`booking.showNeedsBooking` (`booking/gates.ts`, label "Show needs booking")
-stops Next Day and every skip on the day of a show a human player runs until
-its card is locked. For the day being checked it reads that day's shows
-through the `byDate` index, keeps the `scheduled` ones whose
-`showControllerOf` is human (a brand's own controller counts, as everywhere),
-and reports the lowest id. A cancelled show never stops the clock, card or not; `booking.shows` leaves cancelled shows out too. With two of the player's shows on one day, locking
-the first makes the gate name the second.
+The show-day gate moved to the shows system with EVT2-09: `shows.tonight`
+stops Next Day and every skip on the day of any open show the player runs,
+with "Tonight: <Show>" (or "Your show '<Show>' has no card yet"), and the show
+runs only when they press Run the show (`shows.runTonight`). See
+[show-night.md](show-night.md#the-players-shows). It replaced EVT2-03's
+`booking.showNeedsBooking`, which stopped the day until the card was locked.
 
-The hit is `{ reason, subject: { kind: 'eventInstance', id }, actionHint:
-'booking' }`. The web shell maps the `booking` hint to its "Go to show" button
-(`/game/booking?event=<id>`). The reason is:
-
-- "Your show '<name>' on <date> has no card yet" when nothing is booked;
-- "Your card for '<name>' on <date> isn't locked yet" once something is.
-
-Locking the card (status `booked`, EVT2-04) clears it. Computer-run shows never
-stop the clock, so headless runs of a world without a human promotion are
-unaffected. Tests about something else that must run through the player's show
-days (the calendar's phases, the web shell's skips) use the default systems
-without this gate (`SYSTEMS_WITHOUT_SHOW_DAY_GATE` and `systemsWithoutGates`
-in the engine's test support, and the web test engine's `showDayGate` option).
+Tests about something else that must run through the player's show days (the
+calendar's phases, the web shell's skips) use the default systems without this
+gate (`SYSTEMS_WITHOUT_SHOW_DAY_GATE` and `systemsWithoutGates` in the
+engine's test support, and the web test engine's `showDayGate` option); their
+shows of the player's then stay unrun and close as Not run. Tests that need
+those shows run use `withMyShowsRun`, a stand-in player that runs them inside
+the day through the same `runShowNow`.
 
 ## Validation
 
 A card is runnable only when it makes sense. `validateCard(read,
 eventInstanceId, { tunables, today? })` (`booking/validate/validateCard.ts`,
 exported from the engine for the rival booker and the results page) is the one
-answer the booking screen (`booking.validate`), `booking.lockCard` and AIP4's
+answer the booking screen (`booking.validate`), `shows.runTonight` and AIP4's
 rival booker share. It returns `{ errors, warnings, runnable, checklist }`:
 
-- **Errors** are availability and structure problems. Any error blocks Lock.
+- **Errors** are availability and structure problems. Any error blocks Run the show.
 - **Warnings** are brand, contract, title-division and working-twice questions. They are shown
   in amber and never block: the owner may want a cruiserweight to challenge
   upward as a story, or a worker from the other brand for one night. (The
@@ -484,7 +477,7 @@ slot is named by number ("Slot 3", "Pre-show slot 1").
 | `titleDivision`   | `booking.warnings` | WRK1's `isEligibleForTitle` gender or weight reasons, for each competitor not holding it | "Kai Moreno: The Women's Title is a women's title"                                             |
 | `injuredTalking`  | `booking.warnings` | an injured worker who can still work angles, booked to talk                              | "Tia Cruz is injured: can talk but not wrestle"                                                |
 | `workingTwice`    | `booking.cardWide` | a competitor in a second or later match, within `booking.maxMatchesPerPersonPerShow`     | "Kai Moreno is also in the Opener: working twice tires them more and raises their injury risk" |
-| `checkFailed`     | the failing check  | a registered check threw                                                                 | "A booking check (<id>) failed; the card can still be locked"                                  |
+| `checkFailed`     | the failing check  | a registered check threw                                                                 | "A booking check (<id>) failed; the show can still run"                                        |
 
 The first three are given once per person, on the first segment they are in.
 `workingTwice` is given on each later match, naming the earlier ones ("is also
@@ -493,7 +486,7 @@ in the Opener and Slot 2: working three times …").
 **Booking someone more than once.** A person may be booked in several segments
 of one card. Talking segments (angles, a match role that only talks or stands at
 ringside) never warn: promos cost no stamina. Each extra match a competitor
-works gets the `workingTwice` warning, which never blocks Lock. Past
+works gets the `workingTwice` warning, which never blocks Run the show. Past
 `booking.maxMatchesPerPersonPerShow` matches (`alreadyOnCard`) or
 `booking.maxAppearancesPerShow` segments (`tooManyAppearances`) it is an error,
 so a card can't be absurd. The costs themselves are not validation's: extra
@@ -501,7 +494,7 @@ stamina loss and injury chance for working twice are MTCH4-01 and MTCH4-02, and
 promos letting someone recover less than a night off is WRK6-02. The same
 person twice in one segment is still refused by the writer (`duplicatePerson`).
 `appearancesThisYear` is counted by the show night (EVT3) after each show;
-appearances on other locked cards that have not run yet are not counted. A
+appearances on other cards that have not run yet are not counted. A
 later feature can refine that with a check of its own.
 
 ### Thresholds
@@ -576,29 +569,28 @@ Validation never touches morale. Booking someone to lose never produces a
 morale warning: result morale, and the story shield for losses inside a hot
 storyline, are WRK8's, applied after the show.
 
-## Lock and Unlock
+## Running the show
 
-| Command              | Arguments         | Returns                   | Publishes       |
-| -------------------- | ----------------- | ------------------------- | --------------- |
-| `booking.lockCard`   | `eventInstanceId` | `{ status: 'booked' }`    | `card.locked`   |
-| `booking.unlockCard` | `eventInstanceId` | `{ status: 'scheduled' }` | `card.unlocked` |
+There is no Lock card (EVT2-09, an owner decision: locking was an extra click
+with no meaning). `booking.lockCard`, `booking.unlockCard`, the `cardLocked`
+edit block, the `cardNotLocked` refusal and the `card.locked` /
+`card.unlocked` events are gone. Two parts of the old behaviour stay:
 
-**Lock** checks the show like every booking command (`showNotFound`,
-`notYourShow`, `showCompleted`, `showCancelled`, `showPast`; an already locked
-card is refused with `cardLocked`, "This card is already locked"), then runs
-`validateCard` with the save's tunables (a command's `validate` receives them
-as `env.tunables`). Any error refuses it with up to 10 `cardNotRunnable`
-reasons, one per error, each with the error's message and the segment as its
-subject (the show for a card-wide error). The screen's checklist has the full
-list. Otherwise the show becomes `booked`, which clears the show-day gate, and
-`card.locked { eventInstanceId, promotionId, brandId }` is published.
-`booking.validate` and Lock always agree: they run the same function.
+- **The day still stops on every show of the player's** (`shows.tonight`,
+  above), and the show only runs when they run it.
+- **The card is checked before it runs.** `shows.runTonight { eventInstanceId }`
+  runs `validateCard` with the save's tunables; any error refuses it with up to
+  10 `cardNotRunnable` reasons (`MAX_RUN_REASONS`), one per error, each with
+  the error's message and the segment as its subject (the show for a card-wide
+  error). Warnings never block. `booking.validate` and Run the show always
+  agree: they run the same function.
 
-**Unlock** takes a `booked` show back to `scheduled` so its card can change
-again, and publishes `card.unlocked`. It is refused with `notYourShow`,
-`showCompleted`, `showCancelled` or `showPast` as above, and with
-`cardNotLocked` ("This card isn't locked") for a card that is not locked.
-Unlocking puts the gate back on the show's day.
+The command and its other refusals are in
+[show-night.md](show-night.md#the-players-shows). The `booked` status is no
+longer written for anyone's show; an old save's `booked` show of the player's
+is open (editable, gated and runnable). A feature that has to act just before
+a show runs (EVT6-03's venue pick) registers a before-a-show-runs hook
+(`registerBeforeShowRuns`) instead of listening for a lock.
 
 ### `booking.validate`
 
@@ -610,10 +602,10 @@ gets `notYourShow`, an unknown id `showNotFound`.
 
 `/game/booking` (EVT2-05, `apps/web/src/screens/booking/`, see its README) reads `booking.shows`,
 `booking.card` and `booking.validate` and issues the commands above. It opens on `?event=`
-(the gate's "Go to show" and the calendar's "Book this show" link there) or `nextToBookId`,
+(the gate's "Go to the show" and the calendar's "Book this show" link there) or `nextToBookId`,
 shows every slot of the format by role with the role's and size's Why?, reorders by drag,
-keyboard and Move up / Move down with swap semantics, and turns Lock card on only when the card
-is runnable. Refusals are shown as the engine words them. Other features add panels with
+keyboard and Move up / Move down with swap semantics, and on the show's day offers Run the show,
+on only when the card is runnable; after it runs, the results page opens with the reveal. Refusals are shown as the engine words them. Other features add panels with
 `registerBookingPanel`; the segment editor (EVT2-06) opens from the `useSegmentEditor` store.
 
 ### The segment editor
@@ -625,7 +617,10 @@ contest) and a billing line. Each person in the picker reads "High flyer · Pop 
 in visible text: the ring style for a wrestler (a manager or presenter in a talking segment
 shows their role instead), popularity in the show's region and, for wrestlers, stamina. Screen
 readers hear "Popularity in Greater Lakes 54", and a line under the filters says which region
-Pop means. A Most popular chip sorts the people by that popularity. A picked team is never
+Pop means. A Most popular chip sorts the people by that popularity. The line starts with the
+worker's gender in words ("Woman · High flyer · …"), and Gender and Push chips narrow the list
+(a team matches Gender when every member does, Push when any member does, and says "Mixed"
+when its members differ); they never stop the player booking any mix. A picked team is never
 only its name: the editor's side says "Team: Running Axe" over its wrestlers, and the planned
 result, the card row on the board (the wrestlers under the team's name) and its Winner menu read
 "Running Axe (Kai Moreno & Rex Hale)". Show results already list every wrestler on a side by
@@ -694,7 +689,7 @@ setting is on and a human runs the show), nothing is planned:
 `booking.addSegment` and `booking.updateSegment` refuse a draft with a result
 or a finish, and `booking.setResult` anything but null, with `randomWinners`
 ("Results on your shows are decided on the night (Random winners)."); the
-`noPlannedResult` error is skipped, so the card locks with no results; the
+`noPlannedResult` error is skipped, so the show runs with no results; the
 `match.finish` check turns any planned result or finish left on the card into a
 `randomWinners` error. `booking.card` carries `randomWinners`, so the editor
 replaces the Result choice with "Decided on the night (Random winners)", the

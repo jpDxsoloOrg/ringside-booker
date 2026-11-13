@@ -1,6 +1,13 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent, ReactNode } from 'react';
-import type { Alignment, AvailabilityStatus, PersonId, TeamId } from '@ringside/engine';
+import type {
+  Alignment,
+  AvailabilityStatus,
+  Gender,
+  PersonId,
+  Push,
+  TeamId,
+} from '@ringside/engine';
 import { AlignmentChip } from '../AlignmentChip';
 import { AVAILABILITY_TONES } from '../AvailabilityChip';
 import { Badge } from '../Badge';
@@ -12,6 +19,17 @@ import type { IconName } from '../Icon';
 import { ImageSlot } from '../ImageSlot';
 import { VisuallyHidden } from '../layout';
 import { Sheet } from '../Sheet';
+import { GenderFilterMenu, PushFilterMenu } from './FilterMenus';
+import {
+  allPushes,
+  genderLabel,
+  personMatchesGender,
+  personMatchesPush,
+  teamGenderLabel,
+  teamMatchesGender,
+  teamMatchesPush,
+} from './rosterFilters';
+import type { GenderChoice } from './rosterFilters';
 import styles from './RosterPicker.module.css';
 
 /** How long the search box waits after the last key before it searches. */
@@ -42,6 +60,10 @@ export interface RosterPickerPerson {
   readonly imageRef: string | null;
   /** "Main event", "Mid card"; null to leave it out. */
   readonly pushLabel: string | null;
+  /** Their push, for the Push filter. Left out, only "every push" shows them. */
+  readonly push?: Push;
+  /** Their gender: shown in words first on the stats line, and used by the Gender filter. */
+  readonly gender?: Gender;
   readonly alignment: Alignment | null;
   readonly availability: {
     readonly status: AvailabilityStatus;
@@ -74,6 +96,10 @@ export interface RosterPickerTeam {
   readonly teamId: TeamId;
   readonly name: string;
   readonly memberNames: readonly string[];
+  /** Each member's gender: the row says "Women", or "Mixed" when they differ. */
+  readonly memberGenders?: readonly Gender[];
+  /** Each member's push: the team passes the Push filter when any member does. */
+  readonly memberPushes?: readonly Push[];
   readonly selectable: boolean;
   /** True when every member could be booked; defaults to `selectable`. */
   readonly bookable?: boolean;
@@ -116,7 +142,15 @@ export interface RosterPickerProps {
   readonly sortStat?: { readonly key: string; readonly label: string };
   /** A line under the filters saying what the stats mean: "Pop: popularity in Greater Lakes". */
   readonly statsNote?: string;
+  /**
+   * Offer the Gender and Push filters, which open small menus. They only narrow the list: picking
+   * anyone is still up to the player. Off by default.
+   */
+  readonly genderAndPushFilters?: boolean;
 }
+
+/** Every push, so a picker without the Push filter narrows nothing. */
+const ALL_PUSHES: ReadonlySet<Push> = allPushes();
 
 function isBookable(row: { readonly selectable: boolean; readonly bookable?: boolean }): boolean {
   return row.bookable ?? row.selectable;
@@ -182,11 +216,16 @@ function statValue(person: RosterPickerPerson, key: string): number {
   return person.stats?.find((stat) => stat.key === key)?.value ?? Number.NEGATIVE_INFINITY;
 }
 
-/** "High flyer · Pop 54 · Stamina 72", with each stat's full name for screen readers. */
+/**
+ * "Woman · High flyer · Pop 54 · Stamina 72", with each stat's full name for screen readers.
+ */
 function statsLine(person: RosterPickerPerson) {
   const stats = person.stats ?? [];
-  if (person.typeLabel === undefined && stats.length === 0) return null;
+  if (person.gender === undefined && person.typeLabel === undefined && stats.length === 0) {
+    return null;
+  }
   const parts: { readonly key: string; readonly node: ReactNode }[] = [
+    ...(person.gender === undefined ? [] : [{ key: 'gender', node: genderLabel(person.gender) }]),
     ...(person.typeLabel === undefined ? [] : [{ key: 'type', node: person.typeLabel }]),
     ...stats.map((stat) => ({
       key: stat.key,
@@ -246,6 +285,7 @@ function personContent(person: RosterPickerPerson) {
 }
 
 function teamContent(team: RosterPickerTeam) {
+  const genders = team.memberGenders === undefined ? null : teamGenderLabel(team.memberGenders);
   return (
     <>
       <span className={styles['teamIcon']} aria-hidden="true">
@@ -253,6 +293,7 @@ function teamContent(team: RosterPickerTeam) {
       </span>
       <span className={styles['rowText']}>
         <span className={styles['rowName']}>{team.name}</span>
+        {genders !== null && <span className={styles['rowStats']}>{genders}</span>}
         <span className={styles['rowChips']}>
           <span className={styles['push']}>{team.memberNames.join(' & ')}</span>
           {team.otherBrand && <span className={styles['note']}>Other brand</span>}
@@ -290,6 +331,7 @@ export function RosterPicker({
   bookedFilter = false,
   sortStat,
   statsNote,
+  genderAndPushFilters = false,
 }: RosterPickerProps) {
   const [text, setText] = useState('');
   const [bookableOnly, setBookableOnly] = useState(true);
@@ -297,6 +339,9 @@ export function RosterPicker({
   const [hideBooked, setHideBooked] = useState(bookedFilter);
   const [sorted, setSorted] = useState(false);
   const [mode, setMode] = useState<RosterPickerMode>(initialMode);
+  // Gender and Push keep their choice between openings, for as long as the picker is mounted.
+  const [gender, setGender] = useState<GenderChoice>('all');
+  const [pushes, setPushes] = useState<ReadonlySet<Push>>(allPushes);
   const [active, setActive] = useState(0);
   const searchId = useId();
   const listId = useId();
@@ -332,12 +377,16 @@ export function RosterPicker({
   const showingTeams = mode === 'teams' && teams !== undefined;
   const hidingBooked = bookedFilter && hideBooked;
   const sortKey = sorted && sortStat !== undefined ? sortStat.key : null;
+  const genderChoice: GenderChoice = genderAndPushFilters ? gender : 'all';
+  const pushChoice: ReadonlySet<Push> = genderAndPushFilters ? pushes : ALL_PUSHES;
   const rows = useMemo<readonly PickerRow[]>(() => {
     if (showingTeams) {
       return teams
         .filter((team) => !bookableOnly || isBookable(team))
         .filter((team) => !thisBrand || !team.otherBrand)
         .filter((team) => !hidingBooked || !isBookedElsewhere(team))
+        .filter((team) => teamMatchesGender(team.memberGenders, genderChoice))
+        .filter((team) => teamMatchesPush(team.memberPushes, pushChoice))
         .map((team) => ({
           key: team.teamId,
           selectable: team.selectable,
@@ -352,7 +401,9 @@ export function RosterPicker({
     const listed = people
       .filter((person) => !bookableOnly || isBookable(person))
       .filter((person) => !thisBrand || !person.otherBrand)
-      .filter((person) => !hidingBooked || !isBookedElsewhere(person));
+      .filter((person) => !hidingBooked || !isBookedElsewhere(person))
+      .filter((person) => personMatchesGender(person.gender, genderChoice))
+      .filter((person) => personMatchesPush(person.push, pushChoice));
     // A stable sort, so equal stats keep the screen's order.
     const ordered =
       sortKey === null
@@ -370,10 +421,12 @@ export function RosterPicker({
     }));
   }, [
     bookableOnly,
+    genderChoice,
     hidingBooked,
     onPickPerson,
     onPickTeam,
     people,
+    pushChoice,
     showingTeams,
     sortKey,
     teams,
@@ -426,6 +479,14 @@ export function RosterPicker({
     ? candidates.filter((row) => isBookedElsewhere(row) && (!bookableOnly || isBookable(row)))
         .length
     : 0;
+  // Rows that pass every other filter but not Gender or Push, so they never count twice.
+  const passingOthers = (showingTeams ? teams : people).filter(
+    (row) =>
+      (!thisBrand || !row.otherBrand) &&
+      (!bookableOnly || isBookable(row)) &&
+      (!hidingBooked || !isBookedElsewhere(row)),
+  ).length;
+  const hiddenByChoice = passingOthers - rows.length;
 
   return (
     <Sheet
@@ -510,6 +571,24 @@ export function RosterPicker({
               {sortStat.label}
             </FilterChip>
           )}
+          {genderAndPushFilters && (
+            <>
+              <GenderFilterMenu
+                value={gender}
+                onChange={(value) => {
+                  setGender(value);
+                  setActive(0);
+                }}
+              />
+              <PushFilterMenu
+                value={pushes}
+                onChange={(value) => {
+                  setPushes(value);
+                  setActive(0);
+                }}
+              />
+            </>
+          )}
           {teams !== undefined && (
             <FilterChip
               pressed={showingTeams}
@@ -539,11 +618,13 @@ export function RosterPicker({
             icon="user-search"
             title={trimmed === '' ? `No ${listLabel.toLowerCase()} to list` : 'Nobody by that name'}
             body={
-              hidden > 0
-                ? 'Turn off Bookable only to see everyone, with why they can’t be booked.'
-                : hiddenBooked > 0
-                  ? 'Everyone left is already on this card. Turn off Hide booked to see them.'
-                  : 'Try another name.'
+              hiddenByChoice > 0
+                ? 'Change the Gender or Push filter to see more.'
+                : hidden > 0
+                  ? 'Turn off Bookable only to see everyone, with why they can’t be booked.'
+                  : hiddenBooked > 0
+                    ? 'Everyone left is already on this card. Turn off Hide booked to see them.'
+                    : 'Try another name.'
             }
           />
         ) : (
@@ -590,6 +671,11 @@ export function RosterPicker({
         {hidden > 0 && rows.length > 0 && (
           <p className={styles['status']}>
             {`${String(hidden)} ${hidden === 1 ? 'more is' : 'more are'} hidden because they can’t be booked. Turn off Bookable only to see why.`}
+          </p>
+        )}
+        {hiddenByChoice > 0 && rows.length > 0 && (
+          <p className={styles['status']}>
+            {`${String(hiddenByChoice)} more ${hiddenByChoice === 1 ? 'is' : 'are'} hidden by the Gender or Push filter.`}
           </p>
         )}
         {hiddenBooked > 0 && rows.length > 0 && (

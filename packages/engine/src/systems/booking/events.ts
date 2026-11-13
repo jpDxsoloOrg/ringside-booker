@@ -3,8 +3,9 @@
  *
  * The booking commands (EVT2-02) publish `card.changed` once for every command that changes a
  * card. The card writer itself publishes nothing: the rival booker (AIP4) writes cards from its own
- * phase and announces them its own way. `card.locked` and `card.unlocked` are declared here for the
- * lock commands of EVT2-04. Payloads carry ids and primitives only.
+ * phase and announces them its own way. There is no lock (EVT2-09), so no `card.locked`: a feature
+ * that must act just before a show runs registers a hook with the shows system
+ * (`registerBeforeShowRuns`). Payloads carry ids and primitives only.
  *
  * Design notes: docs/design/booking.md#commands.
  */
@@ -27,18 +28,6 @@ declare module '../../core/events/types' {
       brandId: BrandId | null;
       segmentId: SegmentId | null;
       change: CardChange;
-    };
-    /** A show's card was locked: the show is `booked` and its card can no longer change. */
-    'card.locked': {
-      eventInstanceId: EventInstanceId;
-      promotionId: PromotionId;
-      brandId: BrandId | null;
-    };
-    /** A show's locked card was unlocked so it can be changed again. */
-    'card.unlocked': {
-      eventInstanceId: EventInstanceId;
-      promotionId: PromotionId;
-      brandId: BrandId | null;
     };
   }
 }

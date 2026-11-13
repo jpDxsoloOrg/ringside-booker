@@ -13,6 +13,8 @@ import type { EventInstance } from '../../model/entities/event-instance';
 import type { DeepReadonly } from '../../model/world';
 import { SLOT_ROLE_LABELS, slotRoleOf, slotWeightOf } from '../match/slots';
 import { countAppearances } from './appearances';
+import { runBeforeShowRunsHooks } from './beforeRun';
+import { hasCard } from '../booking/card';
 import { showContextOf, slotRoleInput, type ShowContext, type ShowSegment } from './context';
 import { offscreenShowScore } from './formulas/offscreenShowScore';
 import { showScore, type ShowScoreInputs, type ShowSlotInput } from './formulas/showScore';
@@ -170,4 +172,25 @@ export function runOffscreenShow(ctx: PhaseContext, instance: DeepReadonly<Event
     offscreen: true,
     segmentCount: 0,
   });
+}
+
+/**
+ * Runs one show now: the before-a-show-runs hooks first, then its card, or, for a computer show
+ * with no card, its off-screen score. The one path both the shows phase (every show a computer
+ * runs) and `shows.runTonight` (the player's show) take, so a show gives the same result whichever
+ * of them runs it.
+ */
+export function runShowNow(
+  ctx: PhaseContext,
+  instance: DeepReadonly<EventInstance>,
+  human: boolean,
+): void {
+  runBeforeShowRunsHooks(ctx, { show: instance, human });
+  // Re-read: a hook may have changed the show (EVT6-03 picks a venue for a show without one).
+  const show = ctx.read.tables.eventInstances.require(instance.id);
+  if (!human && !hasCard(ctx.read, show.id)) {
+    runOffscreenShow(ctx, show);
+  } else {
+    runShowCard(ctx, show);
+  }
 }

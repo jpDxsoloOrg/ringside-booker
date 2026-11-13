@@ -82,15 +82,14 @@ export interface BookingShowRow {
   /** Segments booked on the pre-show. */
   filledPreShow: number;
   preShowSlots: number;
-  /** True on the show's day while its card is not locked: Next Day stops for it. */
+  /** True on the show's day while it has not run: Next Day stops for it ("Tonight"). */
   needsBooking: boolean;
-  locked: boolean;
 }
 
 /** `booking.shows`. */
 export interface BookingShowsView {
   rows: BookingShowRow[];
-  /** The first show still waiting for a locked card, or null. */
+  /** The first open show (the next to book or run), or null. */
   nextToBookId: EventInstanceId | null;
   /** False on a save that cannot book shows (no shows or no match types at all). */
   available: boolean;
@@ -225,8 +224,7 @@ function showRowOf(ctx: QueryContext, instance: DeepReadonly<EventInstance>): Bo
     slots: instance.format.slots,
     filledPreShow,
     preShowSlots: instance.format.preShowSlots,
-    needsBooking: instance.date === ctx.date && instance.status === 'scheduled',
-    locked: instance.status === 'booked',
+    needsBooking: instance.date === ctx.date,
   };
 }
 
@@ -252,7 +250,8 @@ export const showsQuery: QueryDefinition<'booking.shows'> = defineQuery('booking
     shows.sort(
       (left, right) => compareDates(left.date, right.date) || compareIds(left.id, right.id),
     );
-    const nextToBook = shows.find((instance) => instance.status === 'scheduled');
+    // There is no lock (EVT2-09): the next show to book is simply the next open one.
+    const [nextToBook] = shows;
     return {
       rows: shows
         .slice(0, args.limit ?? DEFAULT_BOOKING_SHOWS)
@@ -398,7 +397,7 @@ export const availableWorkersQuery: QueryDefinition<'booking.availableWorkers'> 
   },
 );
 
-/** Everything wrong with a card: the same answer `booking.lockCard` enforces. */
+/** Everything wrong with a card: the same answer `shows.runTonight` enforces. */
 export const validateQuery: QueryDefinition<'booking.validate'> = defineQuery('booking.validate', {
   args: z.strictObject({ eventInstanceId: zId('eventInstance') }),
   run: (ctx, args) => {

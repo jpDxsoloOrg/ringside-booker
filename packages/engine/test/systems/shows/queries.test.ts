@@ -26,7 +26,7 @@ import {
   showsSystem,
   type SegmentResultView,
 } from '../../../src/systems/shows';
-import { aTeam, anEventInstance, worldBuilder } from '../../support';
+import { aTeam, anEventInstance, withMyShowsRun, worldBuilder } from '../../support';
 import { expectSerialisable } from '../../support/trace';
 import { promo, seed, singles } from '../booking/command-world';
 import { OMNISCIENT, PLAYER_ONE } from '../calendar/lifecycle-world';
@@ -183,7 +183,8 @@ function resultsWorld(): ResultsWorld {
   return { world, ...shows, card, roster };
 }
 
-const SYSTEMS = [simSystem, matchSystem, showsSystem];
+// The player runs their shows as Run the show would (EVT2-09).
+const SYSTEMS = withMyShowsRun([simSystem, matchSystem, showsSystem]);
 
 /** Runs today and tomorrow, so the world stands on the day after tomorrow. */
 async function playedEngine(): Promise<{ engine: Engine; built: ResultsWorld }> {
@@ -342,6 +343,50 @@ describe('shows.results', () => {
     expect(main.rating?.traceRef).toBeNull();
     expect(main.titles[0]?.outcomeTraceRef).toBeNull();
     expect(evicted.result?.scoreTraceRef).toBeNull();
+  });
+
+  it('breaks the score down from its trace, slot by slot, adding up to the score', async () => {
+    const { engine, built } = await playedEngine();
+    const view = results(engine, built.human);
+    const breakdown = view.result?.breakdown;
+    if (breakdown === null || breakdown === undefined) throw new Error('No breakdown');
+    const sum = breakdown.rows.reduce((total, row) => total + row.points, 0);
+    expect(sum).toBeCloseTo(view.result?.score ?? -1, 9);
+
+    const rated = view.segments.filter((entry) => entry.rating !== null);
+    const rows = breakdown.rows.filter((row) => row.kind === 'segment');
+    expect(rows.map((row) => row.segmentId)).toEqual(rated.map((entry) => entry.segmentId));
+    expect(rows.map((row) => row.score)).toEqual(rated.map((entry) => entry.rating?.score));
+    // The pre-show promo counts at the pre-show factor.
+    expect(rows[0]).toMatchObject({ preShow: true, segmentId: built.card.promo });
+    expect(breakdown.preShowFactor).not.toBeNull();
+  });
+
+  it('gives each rated segment its top two reasons, and none once the trace is summarised', async () => {
+    const { engine, built } = await playedEngine();
+    const main = segment(results(engine, built.human).segments, built.card.main);
+    const reasons = main.rating?.reasons ?? [];
+    expect(reasons.length).toBeGreaterThan(0);
+    expect(reasons.length).toBeLessThanOrEqual(2);
+    for (const reason of reasons) {
+      expect(reason.label).not.toBe('');
+      expect(Math.abs(reason.effect)).toBeGreaterThanOrEqual(0.5);
+    }
+
+    const done = engine.command(
+      'tunables.setOverride',
+      { key: 'sim.traceRetentionPerKind', value: 0 },
+      PLAYER_ONE,
+    );
+    expect(done.ok).toBe(true);
+    const summarised = results(engine, built.human);
+    expect(segment(summarised.segments, built.card.main).rating?.reasons).toEqual([]);
+    expect(summarised.result?.breakdown).toBeNull();
+  });
+
+  it('has no breakdown for a show scored off-screen', async () => {
+    const { engine, built } = await playedEngine();
+    expect(results(engine, built.rivalBare).result?.breakdown).toBeNull();
   });
 
   it('shows the gate only to the promotion that ran the show', async () => {

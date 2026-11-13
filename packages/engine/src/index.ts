@@ -36,6 +36,7 @@ export type {
   TitleReignId,
   VenueId,
   AftermathId,
+  PromotionSnapshotId,
 } from './core/ids';
 /** The nominal-type helper, exported as `Branded` because `Brand` is the brand entity. */
 export type { Brand as Branded } from './core/brand';
@@ -1351,8 +1352,8 @@ export type {
 export { BOOKING_COMMAND_REASON_CODES, CARD_CHANGES } from './systems/booking/index';
 
 // The booking screen's reads (EVT2-03): the shows to book, a card with its derived slot roles, the
-// workers who can go on it with their availability chips, and the show-day gate. See
-// docs/design/booking.md#queries and #gate.
+// workers who can go on it with their availability chips. See docs/design/booking.md#queries. The
+// show-day gate is the shows system's `shows.tonight` (EVT2-09, below).
 export type {
   AvailabilityView,
   AvailableTeamRow,
@@ -1379,12 +1380,11 @@ export {
   DEFAULT_BOOKING_SHOWS,
   MAX_BOOKING_SHOWS,
   MAX_WORKER_SEARCH,
-  SHOW_NEEDS_BOOKING_GATE_ID,
   slotLabel,
   WORKER_PICK_KINDS,
 } from './systems/booking/index';
 
-// The booking checks (EVT2-04): `validateCard`, the one answer the booking screen, `booking.lockCard`
+// The booking checks (EVT2-04): `validateCard`, the one answer the booking screen, `shows.runTonight`
 // and the rival booker (AIP4) share, the check registry other features plug their rules into, and
 // the minimum-filled formula. See docs/design/booking.md#validation.
 export type {
@@ -1400,7 +1400,6 @@ export type {
 } from './systems/booking/index';
 export {
   CHECK_FAILED_CODE,
-  MAX_LOCK_REASONS,
   minFilledMainSlots,
   registerBookingCheck,
   registeredBookingChecks,
@@ -1519,6 +1518,20 @@ export {
   type ShowResultsView,
   type ShowSummaryView,
   type TitleResultOutcome,
+} from './systems/shows/index';
+
+// The show report (EVT3-09): the show score breakdown and each segment's top reasons, both read
+// from the stored traces. See docs/design/show-night.md#show-report.
+export {
+  SEGMENT_REASON_BASELINE,
+  SEGMENT_REASON_LIMIT,
+  segmentReasons,
+  showScoreBreakdown,
+  type BreakdownSegment,
+  type SegmentReasonView,
+  type ShowScoreBreakdownView,
+  type ShowScoreRowKind,
+  type ShowScoreRowView,
 } from './systems/shows/index';
 
 // MTCH2 on show night (EVT3-07): the match outcome resolver the match bundle registers with show
@@ -1747,3 +1760,66 @@ export {
   type RecentFormResult,
   type RecentFormRow,
 } from './systems/match/index';
+
+export * from './systems/boxOffice/index';
+// Promotion history (DAY2-01): the `promotionSnapshots` table, the weekly Monday rows, the
+// new-game baseline, the thinning of old weeks and the registry other features use to add a
+// number to every row. See docs/design/office.md#history.
+export {
+  PROMOTION_SNAPSHOT_GRANULARITIES,
+  PromotionSnapshotGranularitySchema,
+  PromotionSnapshotPopularitySchema,
+  PromotionSnapshotSchema,
+  promotionSnapshotKey,
+  promotionSnapshotTable,
+  SNAPSHOT_FIELD_KEY_PATTERN,
+  SnapshotFieldKeySchema,
+  type PromotionSnapshot,
+  type PromotionSnapshotGranularity,
+  type PromotionSnapshotPopularity,
+  type SnapshotFieldKey,
+} from './model/entities/promotion-snapshot';
+export {
+  BUILT_IN_SNAPSHOT_COLUMNS,
+  buildPromotionSnapshot,
+  compactPromotionSnapshots,
+  createSnapshotRoller,
+  fullDetailCutoff,
+  OFFICE_BASELINE_SNAPSHOT_STEP,
+  officeSystem,
+  officeTunables,
+  planCompaction,
+  promotionSnapshotFields,
+  registerPromotionSnapshotField,
+  WEEKLY_SNAPSHOT_PHASE_ID,
+  WEEKLY_SNAPSHOT_PHASE_ORDER,
+  weeklySnapshotPhase,
+  writePromotionSnapshots,
+  type CompactionPlan,
+  type CompactionRow,
+  type PromotionSnapshotColumns,
+  type PromotionSnapshotFieldSpec,
+  type SnapshotFieldKpi,
+  type SnapshotFieldUnit,
+  type SnapshotFieldVisibility,
+  type SnapshotRoller,
+} from './systems/office/index';
+// The player's show night (EVT2-09): no Lock card. The `shows.tonight` gate stops the day on every
+// open show of theirs; `shows.runTonight` runs it from the show screen through the same code the
+// shows phase uses; before-a-show-runs hooks let a feature act just before any show runs (EVT6-03's
+// venue). See docs/design/show-night.md#the-players-shows.
+export type {
+  BeforeShowRunsHook,
+  BeforeShowRunsInput,
+  RunTonightReasonCode,
+} from './systems/shows/index';
+export {
+  listBeforeShowRuns,
+  MAX_RUN_REASONS,
+  myShowsOn,
+  registerBeforeShowRuns,
+  RUN_TONIGHT_REASON_CODES,
+  SHOW_NIGHT_ACTION_HINT,
+  SHOWS_TONIGHT_GATE_ID,
+  unregisterBeforeShowRuns,
+} from './systems/shows/index';

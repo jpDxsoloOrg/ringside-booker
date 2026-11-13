@@ -9,7 +9,7 @@
  *   unplanned match (a rival card, or a Random winners game) has a winner instead of a no contest.
  * - The mode is `randomWinners` when `randomWinnersActive` is true for the show's promotion and
  *   brand. A result booked anyway in Random winners mode is set aside and decided on the night,
- *   with a note in the trace: show night cannot refuse a locked card.
+ *   with a note in the trace: show night cannot refuse a card it is running.
  * - A planned no contest without a finish keeps the no contest and picks one of the no-contest
  *   finishes the match allows (`autoFinish`), since `resolveMatchOutcome` plans only wins and draws.
  * - A plan `resolveMatchOutcome` refuses (a finish the match no longer allows, say) is tried again

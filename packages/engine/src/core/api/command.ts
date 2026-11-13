@@ -51,7 +51,7 @@ export interface CommandContext extends PhaseContext {
 
 /**
  * What `validate` may read besides the world: the save's tunables, so a rule built on a tunable
- * (the booking checks behind `booking.lockCard`) refuses before a transaction opens. The engine
+ * (the booking checks behind `shows.runTonight`) refuses before a transaction opens. The engine
  * always passes it; a direct call that leaves it out gets the default tunables.
  */
 export interface CommandValidateEnv {

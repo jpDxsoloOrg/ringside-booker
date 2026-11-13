@@ -9,8 +9,9 @@
  *   player-facing reason, subject and route hint;
  * - a phase that throws on a chosen date, so a step failure shows up in the advance result.
  *
- * The real show-day gate (`booking.showNeedsBooking`) is taken out unless a test asks for it:
- * player-1's unbooked weekly show would otherwise stop every skip that crosses it.
+ * The real show-day gate (`shows.tonight`, EVT2-09) is taken out unless a test asks for it:
+ * player-1's weekly show would otherwise stop every skip that crosses it. Without it the show is
+ * never run (only Run the show runs it) and the calendar closes it as Not run.
  *
  * `showChanges` hands `popularity.showChange` canned answers by show id (the gallery's fixtures in
  * `screens/dev-gallery/fixtures/popularityShowChange.ts`: a big televised show, a small untelevised
@@ -29,7 +30,7 @@ import {
   defineQuery,
   defineSystem,
   initialEngineState,
-  SHOW_NEEDS_BOOKING_GATE_ID,
+  SHOWS_TONIGHT_GATE_ID,
   showChangeQuery,
 } from '@ringside/engine';
 import type {
@@ -248,7 +249,7 @@ export function fakeEngineFactory(options: FakeEngineOptions = {}): EngineFactor
     const gated =
       options.showDayGate === true
         ? engineOptions.systems
-        : systemsWithoutGates(engineOptions.systems, [SHOW_NEEDS_BOOKING_GATE_ID]);
+        : systemsWithoutGates(engineOptions.systems, [SHOWS_TONIGHT_GATE_ID]);
     const systems = withShowChanges(gated, options.showChanges);
     return createEngine({ ...engineOptions, systems: [...systems, fakeSystem(options)] });
   };
