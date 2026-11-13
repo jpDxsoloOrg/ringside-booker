@@ -231,6 +231,10 @@ with its `on…Change`).
   toolbar shows the count with "Clear selection". This is separate from the current row
   (`selectedRowId` / `onSelect`), which the arrow keys move and Enter opens. On a card the
   checkbox sits in the corner as the card's sibling, so the card stays one clean button.
+  A screen with a bulk-action bar of its own (the roster's) passes `checkedSummary={false}` so the
+  count and "Clear selection" are not shown twice.
+- **Hidden header** (`headerHidden` on a column): the header is read by screen readers but not
+  shown, for a column whose cells say what they are, such as a row's actions menu.
 - **Hidden columns** (`columnPicker`, `defaultHiddenColumnIds`): a "Columns" popover lists every
   column whose `hideable` is not false. The `title` column cannot be hidden. Hidden columns leave
   the cards too.

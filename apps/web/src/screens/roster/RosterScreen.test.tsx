@@ -13,6 +13,7 @@ import {
   testId,
   worldBuilder,
 } from '@ringside/engine/testing';
+import { LiveAnnouncer } from '@/app/a11y/LiveAnnouncer';
 import { EngineProvider } from '@/app/engine/EngineProvider';
 import { createInProcessTransport } from '@/app/engine/transport';
 import { routerFutureFlags, routerProviderFutureFlags } from '@/app/router';
@@ -144,9 +145,11 @@ function renderRoster(path: string = routes.game.roster(), options: RenderOption
     { initialEntries: [path], future: routerFutureFlags },
   );
   render(
-    <EngineProvider createTransport={() => transport}>
-      <RouterProvider router={router} future={routerProviderFutureFlags} />
-    </EngineProvider>,
+    <LiveAnnouncer>
+      <EngineProvider createTransport={() => transport}>
+        <RouterProvider router={router} future={routerProviderFutureFlags} />
+      </EngineProvider>
+    </LiveAnnouncer>,
   );
   /** The engine's own rows for the whole roster, to check the screen against. */
   const engineRows = async (): Promise<readonly RosterRow[]> => {

@@ -36,3 +36,8 @@
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
 }
+
+/* A tab's count sits a little apart from its label. */
+.tabCount {
+  margin-inline-start: var(--space-2);
+}

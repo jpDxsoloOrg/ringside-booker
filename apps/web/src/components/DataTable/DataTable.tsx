@@ -74,6 +74,11 @@ export interface DataTableProps<Row extends DataTableRowData> {
   readonly defaultCheckedRowIds?: readonly string[];
   /** Called with the checked row ids, in the order of `rows`. */
   readonly onCheckedRowIdsChange?: (rowIds: readonly string[]) => void;
+  /**
+   * Shows the checked count and "Clear selection" in the toolbar while rows are checked. True by
+   * default; false when the screen shows a bulk-action bar of its own with the count in it.
+   */
+  readonly checkedSummary?: boolean;
 
   /** Shows a "Columns" button for hiding and showing columns (see `ColumnDef.hideable`). */
   readonly columnPicker?: boolean;
@@ -146,6 +151,7 @@ export function DataTable<Row extends DataTableRowData>({
   checkedRowIds,
   defaultCheckedRowIds,
   onCheckedRowIdsChange,
+  checkedSummary = true,
   columnPicker = false,
   hiddenColumnIds,
   defaultHiddenColumnIds,
@@ -301,9 +307,10 @@ export function DataTable<Row extends DataTableRowData>({
 
   const showToolbar = filterable || columnPicker || selectable;
   // Checked ids can outlive their rows (a worker leaves while ticked); only count rows still here.
-  const checkedCount = selectable
-    ? activeCheckedIds.filter((rowId) => rowsById.has(rowId)).length
-    : null;
+  const checkedCount =
+    selectable && checkedSummary
+      ? activeCheckedIds.filter((rowId) => rowsById.has(rowId)).length
+      : null;
 
   const viewProps = {
     rows: displayRows,
