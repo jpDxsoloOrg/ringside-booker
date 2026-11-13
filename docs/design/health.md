@@ -21,6 +21,8 @@ and wear their bodies is the match system's (MTCH4).
 | Talking days | `appearances.ts`   | `talkedWithoutWrestling`: who cut a promo and did not wrestle                                        |
 | Injuries     | `injure.ts`        | `injure` (`health.injure`): the one way anyone gets hurt                                             |
 | Returns      | `returns.ts`       | `healInjuries` (inside `health.recovery`) and `health.pruneInjuryDetail`                             |
+| Morning      | `morning.ts`       | the day's rest and healing, run early before a show the player runs ahead of its day                 |
+| Policy lines | `policyEffects.ts` | the medical policy's health lines in the Finances preview (ECO1)                                     |
 | Handler      | `injuryHandler.ts` | registers `health.injure` as MTCH4's injury handler                                                  |
 | Phases       | `phases.ts`        | `health.recovery` (daily), `health.conditionRecovery` and `health.pruneInjuryDetail` (Mondays)       |
 | Events       | `events.ts`        | `fatigue.cleared`, `injury.sustained`, `injury.healed`                                               |
@@ -87,6 +89,34 @@ and the player's when they press Run the show.
 promo today" beneath it, each opening onto its own small sum and the tunables
 it read), "Extra rest" (the roll) and the clamp. It is stored under
 `health.fatigueRecovery:<personId>`, replacing the person's previous one.
+
+### The player's show nights
+
+A rival's show runs inside its day, in the `shows` group, after the morning's
+housekeeping, so its workers rest from it the next morning. The player's show
+runs earlier: the day stops before it starts ("Tonight: <Show>") and the
+player presses Run the show (`shows.runTonight`) before any of the day's
+phases. Without help, that day's housekeeping would then rest the player's
+workers from the show they had just wrestled, and on a Monday heal its wear,
+while a rival's workers waited for the next morning.
+
+So a show run ahead of its day runs the day's morning first (WRK6-07,
+`morning.ts`): the before-a-show hook `health.morningBeforeShow` (order 0) sees
+`beforeTheDay` on its input, set only by `shows.runTonight`, and runs
+`runFatigueMorning` (returns, then fatigue recovery) and, on a Monday,
+`recoverConditions`, exactly as the phases would. `health.recovery` and
+`health.conditionRecovery` then skip the day: `morningRanEarly(read, date)` is
+true when a show dated that day has already completed, which only a show run
+ahead of its day can have done by the housekeeping. A second show of the
+player's the same day finds the morning done and skips it too. The rule is
+read from the world, so it holds across a save and load.
+
+Running the show by command or inside the day now leaves the same world, random
+streams and traces, tired workers or not (`runTonight.test.ts`), and a player's
+worker and a rival's with the same match rest on the same morning
+(`showNightRecovery.test.ts`). The one thing that still sees the player's show
+first is the day's [off-screen injury](#off-screen-injuries) roll, which runs
+after the morning and reads fatigue and condition as they are then.
 
 ## Condition cap
 
@@ -166,6 +196,13 @@ what it costs are the finance system's ([finances.md](finances.md#medical)).
 | `health.medical.injuryMultiplier.level1`   | number  | 1       | 0–3   | multiplier | Injury time out under medical care level 1                     |
 | `health.medical.injuryMultiplier.level2`   | number  | 0.9     | 0–3   | multiplier | Injury time out under medical care level 2                     |
 | `health.medical.injuryMultiplier.level3`   | number  | 0.8     | 0–3   | multiplier | Injury time out under medical care level 3 (the best)          |
+
+The Finances policy preview explains the level to the player (WRK6-07, through
+ECO1's `registerPolicyEffect`, `policyEffects.ts`): each level has two lines
+built from these tunables, "Injuries heal in ×0.8 of the time" and "Body
+condition recovers ×1.3 per week" ("the usual time" and "the usual rate" at
+×1), good news in green and bad in red, each with the tunable as its Why?. The
+lines carry no cost; what the policy costs is ECO1's.
 
 ## Injuries
 
@@ -446,3 +483,55 @@ one of the viewer's promotions employs the worker. The Health tab runs
 
 The tab (`apps/web/src/screens/workers/health/`) is registered at order 50, after
 the built-in Career tab, and opens with `?tab=health`.
+
+## Show-night injuries
+
+An injury rolled in a match (MTCH4's in-match roll, see
+[physical-toll.md](physical-toll.md#the-injury-roll)) reaches this system
+through the built-in injury handler `health.injure` (`injuryHandler.ts`): an
+`injuries` row with `source: 'segment'` and the segment, the in-match chance
+as its "How it happened" Why?, and the worker's `injury` pointer set. From then
+on the worker is out like anyone hurt off screen: WRK1's `availabilityOf` says
+"Injured (…) until <date>", so the booking checks refuse them in a match (and
+let them talk only when they can work angles), the rival planner's card pool
+(`buildCardPool`) leaves them out, and they are back on their expected return
+day.
+
+`test/systems/health/showNightInjuries.long.test.ts` (slow suite) follows a
+year of the default world with every show carded and checks all of that every
+evening. Measured on the WRK6-07 branch, 365 days:
+
+| Injuries in a year | In a match | Off screen |
+| ------------------ | ---------- | ---------- |
+| The player's       | 11         | 15         |
+| Rivals'            | 0          | 101        |
+
+120 of them ended in the year, each on its expected return day, and no rival
+match in 1,866 had a worker out with an earlier injury. Rivals have no
+in-match injuries because the rival rule `ai.skipInMatchInjuries` is on by
+default; their injuries come off screen, at `health.offscreen.computerMultiplier`
+times the rate.
+
+The same year saves at 1.16 MB gzipped with no rival cards added and 1.59 MB
+with every show carded (budget 1.6 MB): WRK6-07 stores nothing new. A 365-day
+skip took 15.5 s wall (no rival cards added) and 20.1 s (every show carded) on
+a loaded dev machine, against 20.3 s and 20.6 s for the base branch in the same
+session: the early morning costs nothing on the skip path, which never runs a
+show ahead of its day.
+
+## Works with
+
+WRK6-07 wired health into the partner features that were on `main` (base
+`wave-s9-3`). The others wire WRK6 from their own packs; nothing in WRK6 needs
+them.
+
+| Partner                      | State                    | Seam                                                                                                                                                                                                                                                                                                      |
+| ---------------------------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| MTCH4 (physical toll)        | wired (WRK6-03, WRK6-07) | `registerInjuryHandler(healthInjuryHandler, { builtIn: true })`: a rolled in-match injury becomes a real one ([show-night injuries](#show-night-injuries)); MTCH4's fatigue and wear are rested from the next morning, for the player's shows too ([the player's show nights](#the-players-show-nights)). |
+| EVT2 / EVT3 (show night)     | wired (WRK6-07)          | `registerBeforeShowRuns` hook `health.morningBeforeShow`, on the new `beforeTheDay` input ([show-night.md](show-night.md#before-a-show-runs)).                                                                                                                                                            |
+| EVT2 (booking)               | wired, no code needed    | Injuries set and clear `person.injury`, which WRK1's `availabilityOf` reads: the picker's "Injured (…) until <date>", `personUnavailable` in a match and `injuredTalking` for someone who can still work angles ([booking.md](booking.md#validation)).                                                    |
+| AIP1 (rival rules)           | wired (WRK6-04)          | `offscreenShortcutOf` reads `ai.skipInMatchInjuries` for the worker's employer (`aiShortcutOn`), so `health.offscreen.computerMultiplier` applies to computer-run rosters only, and not with the level playing field on.                                                                                  |
+| AIP4 / AIP5 (rival cards)    | wired, no code needed    | `buildCardPool` reads `availabilityOf`, so an injured worker is left out of rival matches until their return day.                                                                                                                                                                                         |
+| ECO1 (policies)              | wired (WRK6-07)          | `registerPolicyEffect` `health.medicalCare` (`policyEffects.ts`): the medical policy's preview lines ([medical care](#medical-care)).                                                                                                                                                                     |
+| WRK2 (roster)                | wired, no code needed    | The roster's availability column comes from `availabilityOf`, so it marks injured workers. The roster's Injuries tab and the own-injury gate's route belong to WRK6-06.                                                                                                                                   |
+| SOC1, WRK4, DAY7, MOD8, POL3 | wires from its own pack  | Not on `main` when WRK6-07 ran (no mail, snapshot-field, world-event-effect, hook or `defineFormula` seam). Each pack's integration ticket lists WRK6: injury mail, the health snapshot fields, the `health.injure` world-event effect, the recovery hook point, and the formula registry.                |

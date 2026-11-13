@@ -176,7 +176,7 @@ command stays "Run the whole show".
 
 ### Before a show runs
 
-`registerBeforeShowRuns({ id, order, run(ctx, { show, human }) })`
+`registerBeforeShowRuns({ id, order, run(ctx, { show, human, beforeTheDay }) })`
 (`beforeRun.ts`) registers a hook that runs once, inside the show's own step,
 just before its first segment, for every show `runShowNow` runs (the player's
 from `shows.runTonight`, everyone else's from the phase). `runShowNow` reads
@@ -186,6 +186,13 @@ logs and skips bad data. This is where EVT6-03 picks a venue for a show that
 has none ("pick a venue when the show runs"), the job a `card.locked` listener
 would have done. An event published in the same step is no substitute: it is
 delivered only after the show has run.
+
+`beforeTheDay` is true only for a show `shows.runTonight` runs: the day stopped
+before it started, so none of the day's phases, housekeeping included, has run
+yet. The health system uses it to run the day's morning (rest and healing)
+before the player's show, so the player's workers rest from it the next
+morning as a rival's do (WRK6-07,
+[health.md](health.md#the-players-show-nights)).
 
 ## Show score
 
