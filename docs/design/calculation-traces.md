@@ -249,6 +249,9 @@ const result = startDecision<'retain' | 'change'>('Title decision')
 - `rule(text, passed)` records a rule that was checked, as a `branch` node.
 - `roll(record)`, `note(text)` and `tunable(reader, key, label?)` work as in
   the calculation builder.
+- `include(label, traced)` nests another trace, numeric or not, as a child
+  shown under `label`: a choice made inside this one (a challenger pick inside
+  a match's decision) or a calculation that is not an option's score.
 - `choose(option, because)` returns the `Traced<T>`. When any options were
   considered, the chosen one must be among them.
 
