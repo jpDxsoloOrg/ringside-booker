@@ -299,6 +299,35 @@ A feature registers its section from its own folder and adds one import line to
 | 25    | `evt5.popularity` | Popularity            | `screens/promotion-popularity/register.ts` |
 | 30    | `mtch3.aftermath` | Popularity & momentum | `screens/match-aftermath/register.ts`      |
 
+## Venue and crowd
+
+EVT6-06 puts the box office's venue and forecast queries on two screens, without editing either:
+
+- **Booking panel** `boxOffice.venueCrowd` ("Venue and crowd", side, order 20), registered from
+  `screens/booking/venue/register.tsx` through Booking's feature list. It reads
+  `boxOffice.forecast` (refetched on every world revision, so it follows card and venue changes)
+  and shows the venue's picture, name, region, kind and capacity, the expected range with the
+  forecast's Why?, a "Capped by capacity" note when the venue is too small for the top of the
+  range, and a `VenueFitBadge`. While the show has no venue (the game picks the player's venue the
+  day before the show), it says "Not chosen yet: suggested <venue>" with the pick's Why? ("Why
+  this venue?") and offers **Pick for me** (`booking.autoVenue`). A show that can no longer change
+  (`booking.card`'s `canEdit` is false) is read-only; a rival's show reads "Crowd forecasts are only
+  available for your own shows". No phone summary: on a phone the panel sits in the page.
+- **Change venue** opens `VenuePickerSheet` ("Choose a venue"; a full-height bottom sheet on a
+  phone), which reads `boxOffice.venues` only while open. Venues are grouped "In <region>",
+  "Elsewhere in <country>", "Abroad" (behind "Show venues in other countries", `scope: 'world'`)
+  and "Local venues (generic)", each with its expected range, fit and Preferred / Current badges.
+  Closed, exclusive and taken venues stay in the list as unavailable `RadioGroup` options: still
+  reachable by keyboard, `aria-disabled`, the reason in their description. Picking a row only
+  selects it, so moving through the list with the arrow keys sends nothing; **Use this venue**
+  sends `booking.setVenue` and the sheet's **Pick for me** `booking.autoVenue`. A refusal shows in
+  the sheet, which stays open; success closes it.
+- **Calendar sheet line**: the show sheet's `boxOffice.crowd` section ("Crowd", order 5,
+  `screens/box-office/ShowCrowdSection.tsx`, registered by the router) shows the expected range,
+  its Why? and the fit for your own shows still to run. The venue itself stays in the sheet's facts
+  row, which also names a generic local venue from the row's `genericVenue`. The attendance of a
+  settled show comes with EVT6-05's `boxOffice.showCrowd`.
+
 ## Finances
 
 Business > Finances is live. `/game/finances` (`screens/finances/`, link with

@@ -79,17 +79,19 @@ feature, such as `booking.open`.
 - `shows.results` (sheet action, order 20), `shows.result` (sheet section, order 10, "Result")
   and `shows.score` (chip badge, order 20): the results page's button, the score with its Why?
   and stars, and the score on a completed chip, from `screens/show-results/calendarHooks.tsx`.
+- `boxOffice.crowd` (sheet section, order 5, "Crowd"): the expected crowd with its Why? and fit
+  for your own upcoming shows, from `screens/box-office/ShowCrowdSection.tsx` (EVT6-06).
 
 When another feature registers, add its id here. The ids the planned features will use are in
 [`docs/design/calendar.md`](../../../../../docs/design/calendar.md#integration).
 
-| Slot          | Registered ids                  |
-| ------------- | ------------------------------- |
-| Sheet action  | `booking.book`, `shows.results` |
-| Sheet section | `shows.result`                  |
-| Chip badge    | `shows.score`                   |
-| Day markers   | None                            |
-| Toolbar item  | None                            |
+| Slot          | Registered ids                    |
+| ------------- | --------------------------------- |
+| Sheet action  | `booking.book`, `shows.results`   |
+| Sheet section | `boxOffice.crowd`, `shows.result` |
+| Chip badge    | `shows.score`                     |
+| Day markers   | None                              |
+| Toolbar item  | None                              |
 
 What each `render` is given:
 
