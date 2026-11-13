@@ -232,7 +232,12 @@ trace is re-recorded (the four moments above), so a section reads the world as
 it stands then; EVT5's show change publishes `popularity.changed`, so a
 "Recent shows" section is current after every show. The function
 `registerPopularityTraceSection` returns removes the section (for tests).
-EVT5-04's "Recent shows" lines are expected to be the first user.
+
+Registered sections:
+
+| Id                     | Order | Owner | Lines                                                                                                                                                            |
+| ---------------------- | ----- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `promoPop.recentShows` | 10    | EVT5  | "Recent shows: Big Night on Tue 6 Jan, worldwide +0.8", the newest three shows dated on or before the Why?'s day (DAY2-06, `systems/promoPop/officeSections.ts`) |
 
 ## KPIs and deltas
 
@@ -242,13 +247,13 @@ DAY2-03 turns the history into the Office's cards. Code:
 
 ### The cards
 
-| Key                   | Card           | Live value                                                 | Why?                                                    | Footer                   |
-| --------------------- | -------------- | ---------------------------------------------------------- | ------------------------------------------------------- | ------------------------ |
-| `cash`                | Cash           | The promotion row's cash (equals `sim.status`)             | ECO1's stored `finance.cash` trace (`traceRef`)         | none                     |
-| `popularity.headline` | Popularity     | The stored headline Why?'s value (equals `sim.status`)     | DAY2-02's stored `office.popularity` trace (`traceRef`) | "In <country>"           |
-| `prestige`            | Prestige       | The promotion row's prestige                               | None until ECO2 moves prestige                          | none                     |
-| `rosterSize`          | Roster         | Active contracts that have started (the snapshot's rule)   | `rosterSize`, inline                                    | "44 wrestlers · 11 crew" |
-| `averageMorale`       | Average morale | The mean morale of those contracts; null ("–") with nobody | `averageMorale`, inline                                 | none                     |
+| Key                   | Card           | Live value                                                 | Why?                                                    | Footer                      |
+| --------------------- | -------------- | ---------------------------------------------------------- | ------------------------------------------------------- | --------------------------- |
+| `cash`                | Cash           | The promotion row's cash (equals `sim.status`)             | ECO1's stored `finance.cash` trace (`traceRef`)         | A "Finances" link (DAY2-06) |
+| `popularity.headline` | Popularity     | The stored headline Why?'s value (equals `sim.status`)     | DAY2-02's stored `office.popularity` trace (`traceRef`) | "In <country>"              |
+| `prestige`            | Prestige       | The promotion row's prestige                               | None until ECO2 moves prestige                          | none                        |
+| `rosterSize`          | Roster         | Active contracts that have started (the snapshot's rule)   | `rosterSize`, inline                                    | "44 wrestlers · 11 crew"    |
+| `averageMorale`       | Average morale | The mean morale of those contracts; null ("–") with nobody | `averageMorale`, inline                                 | none                        |
 
 Then every [registered field](#the-registry) with `kpi` set, by `kpi.order`
 (then key). Its extract is re-run live: a traced extract gives the card its
@@ -423,6 +428,57 @@ under the number and chip, the delta's Why? drops under its chip rather than squ
 panels become one column in `order` across both columns. Every Why? is a 44px target and opens
 the breakdown as a bottom sheet. At 360px, 390px and at 150% UI scale nothing scrolls sideways.
 
+## Panels
+
+Every panel on the Office comes through `registerOfficePanel` and one import
+line in `apps/web/src/screens/office/panels/index.ts`; `OfficeScreen.tsx` draws
+none itself. Each lives in its owning feature's folder. Order bands: 10–29 the
+Office itself, 30–49 roster and people, 50–69 shows, 70–89 business, 90 and up
+news and social. On a phone both columns become one, in order. A panel whose
+component draws nothing leaves no gap.
+
+| Order | Column | Id                   | Panel                     | Owner | Code                                           | What it shows                                                                                                                                                                                                                                                                                                                                                             |
+| ----- | ------ | -------------------- | ------------------------- | ----- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 10    | side   | `day2.worldClock`    | World clock               | DAY2  | `screens/office/panels/worldClockPanel.tsx`    | Today's date, the day of the game, the season and the next weekly report                                                                                                                                                                                                                                                                                                  |
+| 20    | main   | `day2.worldOverview` | Promotions                | DAY2  | `screens/office/panels/worldOverviewPanel.tsx` | Every promotion's public facts, only for a seat that runs none                                                                                                                                                                                                                                                                                                            |
+| 50    | main   | `calendar.nextShow`  | Next show                 | EVT1  | `screens/calendar/officePanel.tsx`             | `calendar.nextShow { scope: 'mine' }` as a lower third: "In 6 days", date, importance, brand, "6 main slots + 1 pre-show", the venue or "Venue not chosen yet", EVT6's expected crowd with its Why? and fit, "Open calendar" and the Booking link ("Book this show", "Edit card" or "Go to the show"). "No shows on the calendar" with a calendar link when there is none |
+| 55    | main   | `shows.lastShow`     | Last show                 | EVT3  | `screens/show-results/officePanel.tsx`         | `shows.lastCompleted { scope: 'mine' }`: name, date, score with its Why? and stars, the main event and its winner, title changes, EVT6's crowd with its Why? (`boxOffice.showCrowd`), the box office net with its Why? (`boxOffice.showMoney`, own shows) and "Full results". "No shows yet" before the first                                                             |
+| 60    | main   | `promoPop.lastShow`  | Fans after your last show | EVT5  | `screens/promotion-popularity/officePanel.tsx` | `PopularityChangeList` for the last show (three regions on a phone before "Show all") and a link to its results. Draws nothing before the first show or when the show changed no one's popularity, since the Last show panel already says so                                                                                                                              |
+
+The Cash card's "Finances" link (ECO1) is a KPI footer, not a panel; the card
+and the top bar's cash chip open the same stored `finance.cash` Why?.
+
+DAY2-06 wired the partners on main when it started: EVT1, EVT3, EVT5, ECO1 and
+EVT6's crowd lines. Panels owed by partners not yet in the game, each wired
+from its own pack in this place:
+
+| Order | Column | Id                 | Panel                        | Owner |
+| ----- | ------ | ------------------ | ---------------------------- | ----- |
+| 5     | main   | chosen by POL5     | Getting started checklist    | POL5  |
+| 15    | main   | chosen by DAY8     | Owner goals and job security | DAY8  |
+| 30    | side   | `roster.top`       | Top of your roster           | WRK2  |
+| 31    | side   | chosen by SOC1     | Decisions waiting            | SOC1  |
+| 35    | side   | `titles.champions` | Champions                    | CRTV1 |
+| 40    | side   | chosen by DAY6     | Retiring soon                | DAY6  |
+| 70    | side   | chosen by ECO2     | Public image                 | ECO2  |
+| 72    | side   | chosen by ECO3     | Hype                         | ECO3  |
+| 80    | main   | chosen by DAY4     | War report                   | DAY4  |
+| 90    | main   | chosen by DAY1     | Top stories                  | DAY1  |
+| 92    | main   | chosen by SOC7     | Buzz                         | SOC7  |
+
+## History fields
+
+Every weekly `promotionSnapshots` row stores the built-in columns: `cash`,
+`prestige`, `popularity` (the headline) with its `popularity.*` levels,
+`rosterSize` and `averageMorale` (see [Columns](#columns)). Fields registered
+with [`registerPromotionSnapshotField`](#the-registry) go in the row's `extra`
+map. None is registered yet: no partner on main when DAY2-06 started tracks a
+weekly number of its own. Owed by their own packs: ECO3's `hype.promotion`
+(Hype, points, public, KPI order 60, good when up), SOC3's morale trend (only
+if it tracks more than the built-in `averageMorale`), AIP5's hot shots, DAY4's
+rankings and POL2's balance charts. ECO2's prestige needs no field: the
+built-in `prestige` column already records it.
+
 ## Fan base
 
 DAY2-05 makes the top bar's popularity explain itself. Code:
@@ -469,6 +525,10 @@ registerFanBaseColumn({
 ```
 
 The sheet passes the columns to `PopularityDrilldown`'s `regionExtras`, so the
-figures sit after each region's population and wrap on a phone. EVT5-04's
-"This month" gains are the expected first user, with its "Recent shows" lines
-in the Why? through [trace sections](#trace-sections).
+figures sit after each region's population and wrap on a phone.
+
+Registered columns:
+
+| Id               | Label      | Owner | Figure                                                                                                                                                                                                        |
+| ---------------- | ---------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `evt5.thisMonth` | This month | EVT5  | "+1.2 (cap 3)": what shows won in the region this month against `promoPop.monthlyGainCap`, "cap reached" at the cap, from `popularity.monthGains` (DAY2-06, `screens/promotion-popularity/fanBaseColumn.tsx`) |
