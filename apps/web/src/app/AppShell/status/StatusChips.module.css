@@ -108,6 +108,12 @@
   color: var(--color-data);
 }
 
+.cashLine {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
 /* Negative cash: rose, with the minus sign the formatter writes, never colour alone. */
 .money.negative {
   color: var(--color-negative);

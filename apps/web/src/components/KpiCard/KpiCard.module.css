@@ -80,6 +80,10 @@
   color: var(--color-prestige);
 }
 
+.tone-negative {
+  color: var(--color-negative);
+}
+
 .delta {
   flex: none;
 }

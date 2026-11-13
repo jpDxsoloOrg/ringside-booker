@@ -8,7 +8,9 @@ import {
   formatPercent,
   formatShortGameDateParts,
   formatSigned,
+  formatSignedMoney,
   MINUS_SIGN,
+  spokenSignedMoney,
 } from './format';
 
 /** Whole dollars as cents, so the tests read in dollars. */
@@ -203,5 +205,34 @@ describe('formatDaysBetween', () => {
     ['2032-03-10', 'in 366 days'],
   ])('describes %s as %s', (target, expected) => {
     expect(formatDaysBetween(today, parseGameDate(target))).toBe(expected);
+  });
+});
+
+describe('formatSignedMoney', () => {
+  it('writes costs with a true minus sign and income bare', () => {
+    expect(formatSignedMoney(cents(-3_035_729))).toBe(`${MINUS_SIGN}$30,357`);
+    expect(formatSignedMoney(dollars(1_200))).toBe('$1,200');
+  });
+
+  it('adds a plus sign to income when asked, but never to zero', () => {
+    expect(formatSignedMoney(dollars(1_200), { showPlus: true })).toBe('+$1,200');
+    expect(formatSignedMoney(cents(0), { showPlus: true })).toBe('$0');
+    expect(formatSignedMoney(cents(40), { showPlus: true })).toBe('$0');
+    expect(formatSignedMoney(cents(-40), { showPlus: true })).toBe('$0');
+  });
+
+  it('follows the money style and cents options', () => {
+    expect(formatSignedMoney(dollars(-1_234_567), { style: 'compact' })).toBe(`${MINUS_SIGN}$1.2M`);
+    expect(formatSignedMoney(cents(-3_035_729), { showCents: true })).toBe(
+      `${MINUS_SIGN}$30,357.29`,
+    );
+  });
+});
+
+describe('spokenSignedMoney', () => {
+  it('reads the sign as a word', () => {
+    expect(spokenSignedMoney(formatSignedMoney(cents(-3_035_729)))).toBe('minus $30,357');
+    expect(spokenSignedMoney(formatSignedMoney(dollars(5), { showPlus: true }))).toBe('plus $5');
+    expect(spokenSignedMoney('$5')).toBe('$5');
   });
 });

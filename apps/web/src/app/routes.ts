@@ -63,6 +63,19 @@ export const CALENDAR_PARAMS = { month: 'month', scope: 'scope', show: 'show' } 
 /** The names of the results page's search parameters. */
 export const SHOW_RESULTS_PARAMS = { reveal: 'reveal' } as const;
 
+/** What a link into Finances can ask for: the tab, and for the Ledger its month and category. */
+export interface FinancesLinkOptions {
+  /** `overview` (the default), `monthly`, `ledger`, `policies`, or a tab another feature added. */
+  readonly tab?: string;
+  /** The Ledger's month filter, as `YYYY-MM`. */
+  readonly month?: string;
+  /** The Ledger's category filter: a ledger category key such as `wages`. */
+  readonly category?: string;
+}
+
+/** The names of the Finances screen's search parameters. */
+export const FINANCES_PARAMS = { tab: 'tab', month: 'month', category: 'category' } as const;
+
 /** Path builders for every route. */
 export const routes = {
   /** The title screen. */
@@ -99,7 +112,18 @@ export const routes = {
     teams: (): string => gameScreenPath('teams'),
     tournaments: (): string => gameScreenPath('tournaments'),
     brands: (): string => gameScreenPath('brands'),
-    finances: (): string => gameScreenPath('finances'),
+    /**
+     * Business > Finances, optionally on a tab and, for the Ledger, a month and category:
+     * `/game/finances?tab=ledger&month=2027-01&category=wages`. With no options it is the bare path.
+     */
+    finances: (options: FinancesLinkOptions = {}): string => {
+      const search = new URLSearchParams();
+      if (options.tab !== undefined) search.set(FINANCES_PARAMS.tab, options.tab);
+      if (options.month !== undefined) search.set(FINANCES_PARAMS.month, options.month);
+      if (options.category !== undefined) search.set(FINANCES_PARAMS.category, options.category);
+      const query = search.toString();
+      return query === '' ? gameScreenPath('finances') : `${gameScreenPath('finances')}?${query}`;
+    },
     contracts: (): string => gameScreenPath('contracts'),
     networks: (): string => gameScreenPath('networks'),
     production: (): string => gameScreenPath('production'),

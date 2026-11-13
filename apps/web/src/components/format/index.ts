@@ -6,11 +6,14 @@ export {
   formatPercent,
   formatShortGameDateParts,
   formatSigned,
+  formatSignedMoney,
   MINUS_SIGN,
+  spokenSignedMoney,
 } from './format';
 export type {
   FormatMoneyOptions,
   FormatNumberOptions,
+  FormatSignedMoneyOptions,
   GameDateStyle,
   MoneyStyle,
   ShortGameDateParts,

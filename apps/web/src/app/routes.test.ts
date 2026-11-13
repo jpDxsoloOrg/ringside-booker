@@ -3,6 +3,7 @@ import { matchPath } from 'react-router-dom';
 import { parseId } from '@ringside/engine';
 import {
   CALENDAR_PARAMS,
+  FINANCES_PARAMS,
   routePatterns,
   routes,
   SHOW_RESULTS_PARAMS,
@@ -65,5 +66,29 @@ describe('routes.game.showResults', () => {
     expect(matchPath(routePatterns.showResults, routes.game.showResults(show))?.params).toEqual({
       [SHOW_RESULTS_ROUTE_PARAM]: show,
     });
+  });
+});
+
+describe('routes.game.finances', () => {
+  it('is the bare path with no options', () => {
+    expect(routes.game.finances()).toBe('/game/finances');
+    expect(routes.game.finances({})).toBe('/game/finances');
+  });
+
+  it('links to a tab, and to the Ledger on a month and category', () => {
+    expect(routes.game.finances({ tab: 'policies' })).toBe('/game/finances?tab=policies');
+    expect(routes.game.finances({ tab: 'ledger', month: '2027-01', category: 'wages' })).toBe(
+      '/game/finances?tab=ledger&month=2027-01&category=wages',
+    );
+  });
+
+  it('uses the parameter names the screen reads', () => {
+    const url = new URL(
+      routes.game.finances({ tab: 'ledger', month: '2027-02', category: 'travel' }),
+      'https://example.test',
+    );
+    expect(url.searchParams.get(FINANCES_PARAMS.tab)).toBe('ledger');
+    expect(url.searchParams.get(FINANCES_PARAMS.month)).toBe('2027-02');
+    expect(url.searchParams.get(FINANCES_PARAMS.category)).toBe('travel');
   });
 });
