@@ -450,6 +450,10 @@ marking as seen.
 `health.profile { personId }` (`queries.ts`, WRK6-05) is the worker profile's
 Health tab in one answer, or `null` for an unknown person:
 
+- `age`: whole years today, the age the condition cap is for. The tab prints
+  it beside each cap ("Cap for age 41") and in each bar's value text, so the
+  cap marker is never a line alone (WRK6-08).
+
 - `fatigue`: `{ value, band, traceRef }`. The band names a quarter of the
   0–100 scale (`FATIGUE_BANDS`: Fresh 0–24, Tired 25–49, Weary 50–74, Spent
   75–100). The bands are display constants, not tunables: nothing in the
@@ -571,3 +575,76 @@ worker's Health tab (`?tab=health`), or World > Workers with
 `?availability=injured` when the gate names nobody. Decisions in the inbox and a
 show night both outrank it. `health.stopOnOwnInjury` is on by default now that
 the button clears the stop in one tap.
+
+## How to test
+
+WRK6-08 is the owner's test of the whole slice. The same script runs in
+Playwright as `apps/web/e2e/health-flow.spec.ts` on desktop, phone and iPhone
+WebKit, on a known seed: `HEALTH_E2E_SEED` in `apps/web/e2e/helpers/game.ts`,
+found by `packages/engine/test/support/findHealthSeed.ts` (run it again with
+`npx tsx packages/engine/test/support/findHealthSeed.ts` if the world or the
+injury rules change). On that seed the game starts on an Altura show night;
+the spec cancels each show night from the Calendar, and the 30-day skip stops
+for an Altura injury on day 4. The smoke sweep (`smoke.spec.ts`) also opens
+Workers > Injured and the Health tab on the injury save at 100% and 150% UI
+scale. The Why? wording is checked in
+`apps/web/src/components/Trace/healthWhy.test.ts`.
+
+Use https://jpdxsoloorg.github.io/ringside-booker/ after the deploy that
+includes this feature. Desktop browser first, then a phone (or a 390px-wide
+window; iPhone Safari if you have one).
+
+1. **Start a NEW game** (an older save still loads but has no injury catalog,
+   so nobody gets hurt in it). Choose the default world and **Altura Wrestling
+   Entertainment**, finish the wizard.
+   Expected: you land in the Office as usual.
+2. Go to **World > Workers** and press **Injured**.
+   Expected: "Nobody is injured" (a new world starts healthy).
+3. Open any wrestler and choose the **Health** tab.
+   Expected: six body-part bars (Head, Neck, Back, Arms, Torso, Legs) with a
+   cap marker and "Cap for age N" beside each, a Fatigue meter at 0, "Medical
+   care: Altura Wrestling Entertainment, level N" and "Fit to work". Press Why?
+   next to a part's cap: it explains the age cap (from age 30 the cap drops
+   each year) and, on Next week, next Monday's healing.
+4. Use **Skip days**, 30 days. A show night of yours stops the skip first: run
+   or cancel the show and skip again.
+   Expected: either the skip stops early with "<name> was injured (<injury>,
+   out until <date>)" and a **Roster** button, or it finishes the 30 days (no
+   Altura worker got hurt this time; skip another 30 to try for the stop).
+5. If the skip stopped: press **Roster**.
+   Expected: Roster > Injuries listing that worker, with a "New" badge. Opening
+   the screen marks the injury as seen, so the day button says Next Day again.
+6. Back to **World > Workers > Injured**.
+   Expected: at least one worker from anywhere in the world, with the injury,
+   body part and "Back on" date with the days left ("Back tomorrow" the day
+   before).
+7. Open one of them > **Health**.
+   Expected: an injury card (injury, body part, severity, since, back on, time
+   out, days left, condition lost, can work angles, how it happened) and the
+   profile's chip says Injured. Press Why? on **Time out**: the injury's day
+   range and the roll inside it, the severity (open it for the severity roll),
+   the durable or injury-prone line (or that neither applies) and the medical
+   care multiplier for their promotion. That body part's bar is lower than the
+   others and says "Injured". Why? on **How it happened** shows the off-screen
+   chance, each step to three decimals of a percent.
+8. Skip past that worker's return date.
+   Expected: the card is gone ("Fit to work"), the injury is in **Injury
+   history** with its dates and days out, and their chip reads Available.
+9. **Your promotion > Roster > Injuries**.
+   Expected: only Altura's injured workers, soonest back first, each with days
+   left and a Why?.
+10. With SOC1 (injury mail): not on `main` yet, so skip this step.
+11. **Business > Finances > Policies**, Medical.
+    Expected: the preview lists how fast injuries heal and condition recovers
+    at the chosen level. Lower it, wait for the next Altura injury, and its
+    Time out Why? shows the new multiplier.
+12. Open a rival worker's injury > How it happened > Why?.
+    Expected: a "Rival rule: no in-match injuries, so more off-screen ones"
+    line (not with the level playing field on).
+13. **Phone** (390px, iPhone Safari too): repeat steps 2, 3 and 7.
+    Expected: the Health tab bars stack full width, the injury card and the
+    Injured list fit as cards, and nothing scrolls sideways (also at 150% UI
+    scale in Settings).
+
+Sign-off: if every step matches, move the ticket from REVIEW to DONE;
+otherwise add a comment with the step number and a screenshot.
