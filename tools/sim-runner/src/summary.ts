@@ -35,6 +35,18 @@ export interface RunSummary {
   loadIssues: string[];
   /** The promotion history table at the end of the run (DAY2-01). */
   promotionHistory: PromotionHistorySummary;
+  /** The shows the box office settled by the end of the run (EVT6-05). */
+  boxOffice: BoxOfficeSummary;
+}
+
+/** What the box office settled over the run: every completed show should be settled. */
+export interface BoxOfficeSummary {
+  /** Completed shows with a crowd. */
+  settledShows: number;
+  /** Completed shows the box office never settled; 0 after a clean run. */
+  unsettledShows: number;
+  /** People at the settled shows, added up. */
+  totalAttendance: number;
 }
 
 /** How big the promotion history (`promotionSnapshots`) is at the end of a run. */
@@ -232,6 +244,16 @@ export function formatSummaryText(summary: RunSummary, style: TextStyle): string
     ...alignedRows([
       ['Rows', `${String(history.rows)} for ${String(history.promotions)} promotion(s)`],
       ['Most for one promotion', String(history.mostPerPromotion)],
+    ]),
+  );
+  const boxOffice = summary.boxOffice;
+  lines.push(
+    '',
+    heading('Box office'),
+    ...alignedRows([
+      ['Shows settled', String(boxOffice.settledShows)],
+      ['Shows not settled', String(boxOffice.unsettledShows)],
+      ['Total attendance', boxOffice.totalAttendance.toLocaleString('en-GB')],
     ]),
   );
   if (summary.loadIssues.length > 0) {

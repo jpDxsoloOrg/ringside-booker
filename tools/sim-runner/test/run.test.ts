@@ -167,6 +167,14 @@ describe('runSimulation on the roster fixture', () => {
     expect(promotionHistoryProblems(run.finalState)).toEqual([]);
   });
 
+  it('settles every completed show and counts its crowd', async () => {
+    const run = await completedRun(20, '1', 60);
+    const { boxOffice } = run.summary;
+    expect(boxOffice.settledShows).toBeGreaterThan(0);
+    expect(boxOffice.unsettledShows).toBe(0);
+    expect(boxOffice.totalAttendance).toBeGreaterThan(0);
+  });
+
   it('reports a promotion history over its retention', async () => {
     const run = await completedRun(20, '1', 60);
     const tooShort = {
@@ -258,6 +266,7 @@ describe('runCli', () => {
     // Every RunSummary field and nothing else when neither --check-determinism nor --trace is set.
     expect(Object.keys(report ?? {}).sort()).toEqual(
       [
+        'boxOffice',
         'daysAdvanced',
         'daysPerSecond',
         'endDate',
