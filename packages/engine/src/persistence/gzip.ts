@@ -105,18 +105,19 @@ export async function gzip(
 function gunzipFallback(input: Uint8Array, maxOutputBytes: number): Uint8Array | null {
   const chunks: Uint8Array[] = [];
   let totalLength = 0;
-  let finished = false;
+  // An object, so the check after the loop sees what the callback wrote.
+  const progress = { finished: false };
   const unpacker = new Gunzip((chunk, final) => {
     totalLength += chunk.length;
     chunks.push(chunk);
-    if (final) finished = true;
+    if (final) progress.finished = true;
   });
   for (let start = 0; start < input.length; start += FALLBACK_SLICE_BYTES) {
     const end = Math.min(start + FALLBACK_SLICE_BYTES, input.length);
     unpacker.push(input.subarray(start, end), end === input.length);
     if (totalLength > maxOutputBytes) return null;
   }
-  if (!finished) {
+  if (!progress.finished) {
     throw new Error('unexpected end of file');
   }
   return concatChunks(chunks, totalLength);
