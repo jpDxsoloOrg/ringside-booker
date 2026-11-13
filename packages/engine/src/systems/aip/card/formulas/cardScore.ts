@@ -20,7 +20,6 @@
 import { inputOf, startCalc, type Traced } from '../../../../core/trace';
 import type { SegmentDraft } from '../../../booking/draft';
 import type { EngineTunables } from '../../../tunables';
-import { formatNumber } from '../../../world/people/labels';
 import { CARD_SCORE_DOC_REF } from '../tunables';
 
 export type FeaturedKind = 'ace' | 'prospect';
@@ -51,7 +50,15 @@ export function cardScoreLabel(label: string): string {
 
 /** "Storyline 'Ise vs Kuroe' heat 64". */
 export function storylineHeatText(name: string, heat: number): string {
-  return `Storyline '${name}' heat ${formatNumber(heat)}`;
+  return `Storyline '${name}' heat ${String(Math.round(heat))}`;
+}
+
+/**
+ * "Card score 71": a segment's card score as a short reason for a list, in whole points (the
+ * Why? keeps the exact value).
+ */
+export function cardScoreText(score: number): string {
+  return `Card score ${String(Math.round(score))}`;
 }
 
 /** "Ace Haruto Ise" or "Prospect Daichi Kuroe". */

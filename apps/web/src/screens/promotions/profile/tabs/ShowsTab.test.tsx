@@ -1,9 +1,11 @@
 import { act, render, screen, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
-import { CARD_HIDDEN_TEXT } from '@ringside/engine';
+import { CARD_HIDDEN_TEXT, parseId } from '@ringside/engine';
 import type { PromotionId } from '@ringside/engine';
 import { EngineProvider } from '@/app/engine/EngineProvider';
+import { routes } from '@/app/routes';
 import { createInProcessTransport } from '@/app/engine/transport';
 import type { InProcessTransport } from '@/app/engine/transport';
 import { useSessionStore } from '@/app/session/sessionStore';
@@ -46,9 +48,11 @@ afterEach(() => {
 
 function renderTab(promotionId: PromotionId) {
   render(
-    <EngineProvider createTransport={() => loaded.transport}>
-      <ShowsTab promotionId={promotionId} />
-    </EngineProvider>,
+    <MemoryRouter>
+      <EngineProvider createTransport={() => loaded.transport}>
+        <ShowsTab promotionId={promotionId} />
+      </EngineProvider>
+    </MemoryRouter>,
   );
   return userEvent.setup({ delay: null });
 }
@@ -113,6 +117,21 @@ describe('the Shows tab', () => {
     },
   );
 
+  it("opens a show that has run on its score, the score's Why? and a link to the results", async () => {
+    const user = renderTab(loaded.promotions.rival);
+    const show = await findShow('Rival Weekly');
+    await user.click(within(show).getByRole('button', { name: toggleName('Rival Weekly') }));
+    expect(within(show).getByText(/^Show score/)).toHaveTextContent(/^Show score \d+$/);
+    const link = within(show).getByRole('link', { name: 'See results' });
+    const showId = (link.getAttribute('href') ?? '').split('/').pop() ?? '';
+    expect(showId).toMatch(/^evi_/);
+    expect(link).toHaveAttribute('href', routes.game.showResults(parseId('eventInstance', showId)));
+    await user.click(within(show).getByRole('button', { name: /^Why this score\? Rival Weekly/ }));
+    expect(
+      await screen.findByRole('dialog', { name: /^Why this score\? / }, { timeout: LOAD_MS }),
+    ).toBeInTheDocument();
+  });
+
   it('keeps a card that has not aired hidden', async () => {
     const user = renderTab(loaded.promotions.rival);
     const show = await findShow('Rival Next');
@@ -120,6 +139,7 @@ describe('the Shows tab', () => {
     expect(within(show).getByText(CARD_HIDDEN_TEXT)).toBeInTheDocument();
     expect(within(show).queryByRole('article')).toBeNull();
     expect(within(show).queryByRole('button', { name: /^Why this card/ })).toBeNull();
+    expect(within(show).queryByRole('link', { name: 'See results' })).toBeNull();
   });
 
   it('says why a cancelled show did not happen', async () => {

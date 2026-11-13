@@ -4,9 +4,11 @@
  * each filled slot with the booker's Why?. A card the viewer may not see yet opens onto "Card is
  * revealed when the show airs"; a cancelled show onto the reason. Everything shown comes from
  * `aip.showCards`: the web never works out a role, a title or a reason. Nothing here is a length
- * or a time. Design: docs/design/rival-booking.md#show-cards.
+ * or a time. Once the show has run, the card opens on its score with the score's Why? and a link
+ * to the full results (AIP4-08, EVT3). Design: docs/design/rival-booking.md#show-cards.
  */
 import { useId, useState } from 'react';
+import { Link } from 'react-router-dom';
 import type { ShowCardRow, ShowCardSlot, TraceNode, TraceRef } from '@ringside/engine';
 import { Badge } from '@/components/Badge';
 import { CardSlot } from '@/components/CardSlot';
@@ -16,6 +18,7 @@ import { formatGameDate, formatNumber } from '@/components/format';
 import { Icon } from '@/components/Icon';
 import { IMPORTANCE_LABELS } from '@/components/ShowChip/importance';
 import { traceSourceOf, WhyButton } from '@/components/Trace';
+import { routes } from '@/app/routes';
 import type { Tone } from '@/components/tone';
 import { rivalSlotKey, toRivalCardSlotProps } from './rivalCardSlotProps';
 import styles from './RivalShowCard.module.css';
@@ -39,6 +42,17 @@ const STATUS_TONES: Readonly<Record<ShowCardRow['statusLabel'], Tone>> = {
   'Not run': 'neutral',
   Cancelled: 'negative',
 };
+
+/** What a show that ran reads when none of its card is kept (old shows keep only a summary). */
+export const DETAILS_KEPT_TEXT = 'Details are kept for the last 4 weeks.';
+
+/** The link from a completed show's card to its results page. */
+export const SEE_RESULTS_TEXT = 'See results';
+
+/** The name of the score's Why? button: "Why this score? Rival Weekly, Jan 6". */
+export function scoreWhyLabel(row: Pick<ShowCardRow, 'name' | 'date'>): string {
+  return `Why this score? ${row.name}, ${formatGameDate(row.date, 'short')}`;
+}
 
 /** The name of a slot's Why? button: "Why this segment? Slot 3, Midcard". */
 export function slotWhyLabel(slot: Pick<ShowCardSlot, 'displayNumber' | 'roleLabel'>): string {
@@ -66,6 +80,42 @@ export interface RivalShowCardProps {
 
 function sourceOf(ref: TraceRef | null, traceOf: RivalShowCardProps['traceOf']) {
   return traceSourceOf(ref === null ? null : traceOf?.(ref), ref);
+}
+
+/**
+ * A completed show's score with its Why? and the link to its results page. Nothing for a show
+ * that has not run (or whose score the viewer may not see yet).
+ */
+function ShowResultLine({
+  row,
+  traceOf,
+}: {
+  readonly row: ShowCardRow;
+  readonly traceOf: RivalShowCardProps['traceOf'];
+}) {
+  if (row.statusLabel !== 'Completed' || row.score === null) return null;
+  const scoreText = formatNumber(row.score);
+  const source = sourceOf(row.scoreTraceRef, traceOf);
+  return (
+    <div className={styles['result']}>
+      <p className={styles['score']}>
+        Show score <span className={styles['scoreValue']}>{scoreText}</span>
+      </p>
+      {source !== null && (
+        <WhyButton
+          label="Show score"
+          value={scoreText}
+          buttonLabel={scoreWhyLabel(row)}
+          panelTitle={`Why this score? ${row.name}`}
+          source={source}
+        />
+      )}
+      <Link className={styles['resultsLink']} to={routes.game.showResults(row.eventInstanceId)}>
+        {SEE_RESULTS_TEXT}
+        <Icon name="chevron-right" size="sm" decorative />
+      </Link>
+    </div>
+  );
 }
 
 function CardBody({
@@ -97,45 +147,52 @@ function CardBody({
       </div>
     );
   }
+  const result = <ShowResultLine row={row} traceOf={traceOf} />;
   if (row.slots.length === 0) {
     return (
-      <EmptyState
-        icon="calendar"
-        size="inline"
-        headingLevel={slotHeadingLevel}
-        title="Nothing is on this card"
-      />
+      <>
+        {result}
+        <EmptyState
+          icon="calendar"
+          size="inline"
+          headingLevel={slotHeadingLevel}
+          title={row.statusLabel === 'Completed' ? DETAILS_KEPT_TEXT : 'Nothing is on this card'}
+        />
+      </>
     );
   }
   return (
-    <ol className={styles['slots']} aria-label={`${row.name} card`}>
-      {row.slots.map((slot) => {
-        const source =
-          slot.segment === null ? null : sourceOf(slot.segment.reasonTraceRef, traceOf);
-        return (
-          <li key={rivalSlotKey(slot)}>
-            <CardSlot
-              {...toRivalCardSlotProps(slot)}
-              headingLevel={slotHeadingLevel}
-              emptyTitle="Open slot"
-              {...(slot.segment !== null && source !== null
-                ? {
-                    actions: (
-                      <WhyButton
-                        label={`slot ${String(slot.displayNumber)}`}
-                        value={slot.segment.label}
-                        buttonLabel={slotWhyLabel(slot)}
-                        panelTitle={`Why this segment? ${slot.segment.label}`}
-                        source={source}
-                      />
-                    ),
-                  }
-                : {})}
-            />
-          </li>
-        );
-      })}
-    </ol>
+    <>
+      {result}
+      <ol className={styles['slots']} aria-label={`${row.name} card`}>
+        {row.slots.map((slot) => {
+          const source =
+            slot.segment === null ? null : sourceOf(slot.segment.reasonTraceRef, traceOf);
+          return (
+            <li key={rivalSlotKey(slot)} data-segment-kind={slot.segment?.kind ?? 'open'}>
+              <CardSlot
+                {...toRivalCardSlotProps(slot)}
+                headingLevel={slotHeadingLevel}
+                emptyTitle="Open slot"
+                {...(slot.segment !== null && source !== null
+                  ? {
+                      actions: (
+                        <WhyButton
+                          label={`slot ${String(slot.displayNumber)}`}
+                          value={slot.segment.label}
+                          buttonLabel={slotWhyLabel(slot)}
+                          panelTitle={`Why this segment? ${slot.segment.label}`}
+                          source={source}
+                        />
+                      ),
+                    }
+                  : {})}
+              />
+            </li>
+          );
+        })}
+      </ol>
+    </>
   );
 }
 
@@ -179,7 +236,7 @@ export function RivalShowCard({
               className={classNames(styles['chevron'], expanded && styles['chevronOpen'])}
             />
             <time className={styles['date']} dateTime={row.date}>
-              {formatGameDate(row.date, 'short')}
+              {formatGameDate(row.date, 'dayMonth')}
             </time>
             <span className={styles['name']}>{row.name}</span>
             <span className={styles['tags']}>

@@ -254,10 +254,10 @@ describe('aip.bookShow', () => {
       // Nobody twice: every person is in at most one match.
       const people = matchPeople(read, id).flat();
       expect(new Set(people).size).toBe(people.length);
-      // Matches carry no planned winner.
+      // AIP5-04's booked-card step plans every match's result.
       for (const segment of segments) {
         if (segment.kind === 'match') {
-          expect(segment.outcome).toBeNull();
+          expect(segment.outcome).not.toBeNull();
         }
       }
     }
@@ -412,10 +412,11 @@ describe('aip.bookShow', () => {
     expect(() => registerBookedCardStep({ id: 'Bad', order: 0, run: () => undefined })).toThrow(
       RegistryError,
     );
-    expect(bookedCardSteps().map((step) => step.id)).toEqual(['test.once']);
+    // AIP5-04's `aip.decideResults` (order 10) is always registered.
+    expect(bookedCardSteps().map((step) => step.id)).toEqual(['test.once', 'aip.decideResults']);
   });
 
-  it('keeps a plan trace and a short trace per written slot, and a hidden card decision', () => {
+  it('keeps a short plan trace and a short trace per written slot, and a hidden card decision', () => {
     const built = showWorld();
     const runtime = runtimeOf(built);
     bookTheDay(runtime);
@@ -423,7 +424,14 @@ describe('aip.bookShow', () => {
     for (const id of [built.shows.b, built.shows.c, built.shows.thin]) {
       const plan = runtime.traces.get({ kind: CARD_PLAN_TRACE_KIND, id });
       expect(plan, id).toBeDefined();
-      expect(plan !== undefined && isFullTrace(plan)).toBe(false);
+      expect(plan !== undefined && isFullTrace(plan), id).toBe(true);
+      if (plan !== undefined && isFullTrace(plan)) {
+        // The booker's notes, not the whole plan tree (AIP4-09).
+        expect(plan.trace.label).toMatch(/^Booking /);
+        expect(plan.trace.children?.every((child) => child.kind === 'note')).toBe(true);
+        expect(plan.trace.children?.[0]?.label).toMatch(/^\d+ wrestlers? fit to work, \d+ needed$/);
+        expect(JSON.stringify(plan.trace).length).toBeLessThan(4_000);
+      }
     }
     for (const segment of cardSegments(read, built.shows.b)) {
       const slot = runtime.traces.get({ kind: CARD_SLOT_TRACE_KIND, id: segment.id });

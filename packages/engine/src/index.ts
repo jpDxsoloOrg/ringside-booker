@@ -2363,3 +2363,32 @@ export type { ShowChangePrunedView } from './systems/promoPop/index';
 export { monthBreakdownOf, rolledUpMonth } from './systems/finance/index';
 export type { ShowHistory, ShowHistoryMainEvent } from './model/entities/event-instance';
 export type { LedgerMonth } from './model/entities/ledger-entry';
+
+// AIP5-04: rival results go live: the booked-card step, the method roll, the read view and the
+// two queries. See docs/design/rival-booking.md#how-a-rival-shows-results-are-decided.
+export {
+  decideResults,
+  DECIDE_RESULTS_STEP_ID,
+  NO_DECISION_MESSAGE,
+  NOT_REVEALED_MESSAGE,
+  pickRivalMethod,
+  REASON_NOT_KEPT,
+  resultsSummaryText,
+  segmentDecisionView,
+  TITLE_CHANGE_SUMMARY_KEY,
+  TITLE_CROWN_SUMMARY_KEY,
+  TITLE_RETAIN_SUMMARY_KEY,
+  TITLE_VACANT_SUMMARY_KEY,
+  WINNERS_BOOKED_SUMMARY_KEY,
+  type AipRecentTitleChanges,
+  type AipRecentTitleChangesArgs,
+  type AipSegmentDecisionArgs,
+  type AipTitleChange,
+  type RivalMethodArgs,
+  type SegmentDecisionTitle,
+  type SegmentDecisionView,
+  type SegmentDecisionWinner,
+  type SegmentTitleActual,
+  type SegmentTitlePlan,
+  type TitlePlanKind,
+} from './systems/aip/index';

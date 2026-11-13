@@ -20,6 +20,7 @@ import {
   HOT_OPENER_RULE,
   planCard,
   storedTaste,
+  titleDueText,
   type CardPlan,
   type PlanCardMode,
   type PlannedPlacement,
@@ -260,6 +261,10 @@ function expectSound(built: BuiltWorld, result: CardPlan, mode: PlanCardMode): v
     expectCalcsReplay(placement.slotTrace.trace);
     expect(placement.headline.length).toBeGreaterThanOrEqual(2);
     expect(placement.headline.length).toBeLessThanOrEqual(3);
+    // Player-facing reasons: card scores and heat in whole points (AIP4-08).
+    for (const line of placement.headline) {
+      expect(line).not.toMatch(/(Card score|heat) \d+\.\d/);
+    }
     const problems = structuralProblems(built.world, {
       instance,
       draft: placement.draft,
@@ -422,6 +427,29 @@ describe('planCard', () => {
     expect(cardOf(plan(built, { mode: 'fresh' }))).toHaveLength(6);
   });
 
+  it("writes the booker's notes: the title, its challenger, the shape and the roster", () => {
+    const result = plan(regular);
+    expect(result.kind).toBe('card');
+    if (result.kind !== 'card') {
+      return;
+    }
+    const titleMatch = result.placements.find((placement) => placement.source === 'title');
+    expect(titleMatch?.headline).toContain(titleDueText('Test Title', 90));
+    expect(titleMatch?.headline).toContain('Test Title: due, 90 days since the last defence');
+    expect(titleMatch?.notes[0]).toMatch(/^Challenger: #\d+ .+, card value \d+$/);
+    for (const placement of result.placements) {
+      for (const line of [...placement.headline, ...placement.notes]) {
+        expect(line, 'whole numbers only').not.toMatch(/\d\.\d/);
+      }
+    }
+    expect(result.notes[0]).toBe('18 wrestlers fit to work, 5 needed');
+    expect(result.notes).toContain('The main event must be a match');
+    expect(result.notes).toContain('Test Title: due, 90 days since the last defence');
+    expect(result.notes.some((line) => /^\d+ talking segments? in 6 slots: /.test(line))).toBe(
+      true,
+    );
+  });
+
   it('cancels a show with too few wrestlers, saying why', () => {
     const built = planWorld({
       roster: 6,
@@ -434,6 +462,9 @@ describe('planCard', () => {
       expect(result.reason).toBe('Only 4 wrestlers available, needs 5');
       const lines = (result.planTrace.trace.children ?? []).map((node) => node.label);
       expect(lines.some((line) => line.includes('Tired (fatigue 95'))).toBe(true);
+      expect(result.notes[0]).toBe('4 wrestlers fit to work, 5 needed');
+      expect(result.notes.filter((line) => line.startsWith('Left out: '))).toHaveLength(2);
+      expect(result.notes.at(-1)).toBe('Show cancelled: only 4 wrestlers available, needs 5');
     }
   });
 

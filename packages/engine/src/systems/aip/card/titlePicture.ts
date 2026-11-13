@@ -42,7 +42,7 @@ import type { TracedTaste } from '../formulas/defaultTaste';
 import { openReignOf } from '../inputs';
 import { pickChallengers } from './challengers';
 import { familyPlaceOf, matchFamilyOf, matchTypeWeight } from './formulas/matchTypeWeight';
-import { titleUrgency } from './formulas/titleUrgency';
+import { daysSinceText, titleUrgency } from './formulas/titleUrgency';
 import { lastDefenceOf } from './titleHistory';
 import { TITLE_PICTURE_DOC_REF } from './tunables';
 import type {
@@ -61,6 +61,16 @@ export const NO_MATCH_TYPE_REASON = 'No match type can hold this title';
 export const NO_DEFENCE_YET_NOTE = "No completed defence yet: counting from the reign's start";
 export const DEFEND_REASON = 'On the line tonight';
 export const MATCH_TYPE_LABEL = 'Match type';
+
+/** A title left off because it is not due: "Not due: 12 days since the last defence". */
+export function notDueText(days: number): string {
+  return `Not due: ${daysSinceText(days)}`;
+}
+
+/** "Tessen Heavyweight Championship: due, 41 days since the last defence". */
+export function titleDueText(titleName: string, days: number): string {
+  return `${titleName}: due, ${daysSinceText(days)}`;
+}
 
 /** "Due: urgency 1.6 ≥ 1" or "Not due: urgency 0.4 < 1". */
 export function dueText(urgency: number, threshold: number): string {
@@ -297,7 +307,7 @@ export function decideTitlePicture(
     const due = urgency.value >= threshold;
     decision.rule(dueText(urgency.value, threshold), due);
     if (!due) {
-      skip(title, decision, dueText(urgency.value, threshold));
+      skip(title, decision, notDueText(days));
       continue;
     }
     wanted.push({ title, decision, urgency: urgency.value, vacant: false });
@@ -372,7 +382,14 @@ export function decideTitlePicture(
     const reason = title.reignId === null ? VACANT_RULE : DEFEND_REASON;
     const trace = withChildren(decision.choose('defend', reason), [pick.trace, matchType.trace]);
     results.set(title.titleId, trace);
-    planned.push({ titleId: title.titleId, matchTypeKey: matchType.type.key, sides, trace });
+    const challenger = typeof pick.trace.value === 'string' ? pick.trace.value : null;
+    planned.push({
+      titleId: title.titleId,
+      matchTypeKey: matchType.type.key,
+      sides,
+      trace,
+      challenger,
+    });
   }
 
   const children = titles.flatMap((title) => {

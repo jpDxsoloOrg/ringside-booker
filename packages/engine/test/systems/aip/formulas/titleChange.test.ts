@@ -14,6 +14,7 @@ import {
   type TitleChangeResult,
 } from '../../../../src/systems/aip';
 import { createEngineTunables } from '../../../../src/systems/tunables';
+import { WORKED_TITLE_TUNABLES } from './workedTunables';
 import { expectSerialisable } from '../../../support/trace';
 
 function side(
@@ -38,7 +39,7 @@ function poolOf(
 ): ChallengerPool {
   return challengerPool(
     { titleName: 'World Title', prestige: 80, sides },
-    { tunables: createEngineTunables(tuned) },
+    { tunables: createEngineTunables({ ...WORKED_TITLE_TUNABLES, ...tuned }) },
   );
 }
 
@@ -77,7 +78,7 @@ function run(
   seed: string | number = 'title-seed',
 ): TitleChangeResult {
   const result = titleChange(changeInputs, {
-    tunables: createEngineTunables(tuned),
+    tunables: createEngineTunables({ ...WORKED_TITLE_TUNABLES, ...tuned }),
     rng: new RngRegistry(String(seed)).stream(TITLES_STREAM),
   });
   expectSerialisable(result.plan);
@@ -157,7 +158,7 @@ describe('titleChange', () => {
   });
 
   it('never changes at chance 0 over 10,000 seeds, and draws nothing', () => {
-    const tunables = createEngineTunables();
+    const tunables = createEngineTunables(WORKED_TITLE_TUNABLES);
     const zero = inputs({ chance: inputOf('Chance', 0) });
     for (let seed = 0; seed < 10_000; seed += 1) {
       const result = titleChange(zero, {
@@ -194,7 +195,7 @@ describe('titleChange', () => {
       side(2, 80),
       side(3, 99, { eligibility: [{ code: 'tooHeavy', message: 'Too heavy' }] }),
     ]);
-    const tunables = createEngineTunables();
+    const tunables = createEngineTunables(WORKED_TITLE_TUNABLES);
     const counts = new Map<string, number>();
     for (let seed = 0; seed < 2_000; seed += 1) {
       const result = titleChange(

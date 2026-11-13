@@ -161,8 +161,14 @@ function SideView({ side, sideKey, isWinner, winnerLabel }: SideViewProps) {
             )}
           </span>
         )}
-        <span className={styles['sideName']}>{side.name}</span>
-        {side.detail !== undefined && <span className={styles['sideDetail']}>{side.detail}</span>}
+        <span className={styles['sideName']} data-part="side-name">
+          {side.name}
+        </span>
+        {side.detail !== undefined && (
+          <span className={styles['sideDetail']} data-part="side-detail">
+            {side.detail}
+          </span>
+        )}
       </span>
     </div>
   );

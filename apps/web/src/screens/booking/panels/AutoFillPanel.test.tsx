@@ -110,6 +110,10 @@ describe('the Auto-fill panel', () => {
     );
     expect(segments).toHaveLength(whys.length);
     expect(segments.every((segment) => segment.result === null)).toBe(true);
+
+    // Closing the sheet hands focus back to the panel's first button that can be pressed.
+    await user.click(within(sheet).getByRole('button', { name: 'Done' }));
+    expect(screen.getByRole('button', { name: 'Auto-fill empty slots' })).toHaveFocus();
   });
 
   it('asks before rebooking the whole card', async () => {
@@ -188,7 +192,7 @@ describe('the reasons sheet', () => {
         displayNumber: 6,
         roleLabel: 'Main event',
         label: 'Ace vs Rookie',
-        headline: ['Title due: 34 days since the last defence', 'Card score 71'],
+        headline: ['Rival Title: due, 34 days since the last defence', 'Card score 71'],
         traceRef: { kind: 'aip.cardSlot', id: 'seg_0000000001' },
       },
     ],

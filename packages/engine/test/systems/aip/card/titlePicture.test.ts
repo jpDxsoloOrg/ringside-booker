@@ -267,7 +267,9 @@ describe('decideTitlePicture', () => {
       isChampions: true,
     });
     expect(match?.sides).toHaveLength(2);
-    expect(picture.skipped).toEqual([{ titleId: fresh, reason: 'Not due: urgency 0.36 < 1' }]);
+    expect(picture.skipped).toEqual([
+      { titleId: fresh, reason: 'Not due: 3 days since the last defence' },
+    ]);
     const labels = labelsOf(match?.trace.trace ?? picture.trace);
     expect(labels).toContain(NO_DEFENCE_YET_NOTE);
     expect(labels).toContain('40 days since the last defence');

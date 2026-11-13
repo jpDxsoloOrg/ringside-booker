@@ -43,6 +43,7 @@ import type { DeepReadonly } from '../../../model/world';
 import { cardSegments } from '../../booking/card';
 import { showPeople, type ShowPeople } from '../../booking/view';
 import { SLOT_ROLE_LABELS, slotRoleOf, type SlotRole } from '../../match/slots';
+import { showScoreTraceRef } from '../../shows/traces';
 import type { EngineTunables } from '../../tunables';
 import { promotionOrRefuse } from '../queries/shared';
 import { isRevealedTo } from '../reveal';
@@ -144,7 +145,12 @@ export interface ShowCardRow {
   planTraceRef: TraceRef | null;
   /** EVT3's show score once the show has run (and is revealed). */
   score: number | null;
-  /** Running order: filled pre-show slots, then every main-card slot. Empty when hidden. */
+  /** The show score's Why? (`shows.score`), with `score`, while the trace is kept. */
+  scoreTraceRef: TraceRef | null;
+  /**
+   * Running order: filled pre-show slots, then every main-card slot. Empty when hidden, and for a
+   * completed show with no segments kept.
+   */
   slots: ShowCardSlot[];
 }
 
@@ -307,8 +313,13 @@ function slotsOf(
   tunables: EngineTunables,
   show: Show,
 ): ShowCardSlot[] {
-  const people = showPeople(read, show);
   const segments = cardSegments(read, show.id);
+  // A show that ran with nothing kept on its card (scored off-screen, or its segments trimmed
+  // once old) has no slots to list: a row of open slots would read as an unbooked card.
+  if (show.status === 'completed' && segments.length === 0) {
+    return [];
+  }
+  const people = showPeople(read, show);
   const slot = (preShow: boolean, index: number, segment: DeepReadonly<Segment> | undefined) => {
     const role = slotRoleOf(
       { slot: index + 1, slots: show.format.slots, preShow },
@@ -358,6 +369,8 @@ function rowOf(
     cancelledReason: cancelledReasonOf(read, show, revealed),
     planTraceRef: revealed ? kept(traces, { kind: CARD_PLAN_TRACE_KIND, id: show.id }) : null,
     score: revealed ? (show.result?.score ?? null) : null,
+    scoreTraceRef:
+      revealed && show.result !== null ? kept(traces, showScoreTraceRef(show.id)) : null,
     slots: revealed && show.status !== 'cancelled' ? slotsOf(read, traces, tunables, show) : [],
   };
 }

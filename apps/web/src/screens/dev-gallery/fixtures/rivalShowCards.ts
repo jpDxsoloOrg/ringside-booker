@@ -27,8 +27,13 @@ export const galleryCardTrace: TraceNode = {
   considered: [],
   docRef: DOC,
   children: [
-    { kind: 'note', label: 'Title due: 34 days since the last defence', value: null },
-    { kind: 'note', label: 'The top two wrestlers on the roster by card value', value: null },
+    { kind: 'note', label: 'Strongest match closes the show', value: null },
+    {
+      kind: 'note',
+      label: 'Rival Heavyweight Championship: due, 34 days since the last defence',
+      value: null,
+    },
+    { kind: 'note', label: 'Challenger: #1 Dante Rivers, card value 71', value: null },
     { kind: 'input', label: 'Card score', value: 78 },
   ],
 };
@@ -177,6 +182,7 @@ const BASE: Omit<ShowCardRow, 'eventInstanceId' | 'name' | 'date' | 'airDate'> =
   cancelledReason: null,
   planTraceRef: { kind: 'aip.cardPlan', id: 'evi_0000000001' },
   score: 72,
+  scoreTraceRef: { kind: 'shows.showScore', id: 'evi_0000000001' },
   slots: [],
 };
 
@@ -204,6 +210,7 @@ export const galleryHiddenShow: ShowCardRow = {
   hiddenText: 'Card is revealed when the show airs',
   planTraceRef: null,
   score: null,
+  scoreTraceRef: null,
 };
 
 /** A rival's show the booker called off. */
@@ -219,6 +226,7 @@ export const galleryCancelledShow: ShowCardRow = {
   statusLabel: 'Cancelled',
   cancelledReason: 'Only 3 wrestlers available, needs 5',
   score: null,
+  scoreTraceRef: null,
 };
 
 /** A booked card the viewer may see (their own), with one slot still open. */
@@ -231,6 +239,7 @@ export const galleryOpenSlotShow: ShowCardRow = {
   status: 'booked',
   statusLabel: 'Booked',
   score: null,
+  scoreTraceRef: null,
   slots: [
     slot(1, 'opener', 'Opener', segment('Singles', [side('Kai Moreno'), side('Jet Lacroix')])),
     slot(2, 'midcard', 'Midcard', null),
@@ -273,9 +282,8 @@ export const galleryAutoFillResult: AutoFillResult = {
       roleLabel: 'Main event',
       label: 'Big Joe Sato vs Dante Rivers',
       headline: [
-        'Title due: 34 days since the last defence',
-        'The top two wrestlers on the roster by card value',
-        'Card score 78',
+        'Strongest match closes the show',
+        'Rival Heavyweight Championship: due, 34 days since the last defence',
       ],
       traceRef: { kind: 'aip.cardSlot', id: 'seg_0000000103' },
     },

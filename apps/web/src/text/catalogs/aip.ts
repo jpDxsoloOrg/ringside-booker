@@ -5,7 +5,7 @@ import type { TextCatalog, TextParams } from '../renderTemplatedText';
  * The rival desk's sentences (docs/design/rival-desk.md#needs and #roster-review, and
  * docs/design/rival-booking.md#show-day): the weekly roster review's summary, every roster need and
  * the card decisions. The engine's `needSummaryText`, `rosterReviewSummaryText`, `cardBookedText`
- * and `showCancelledText` say the same words for the Why? panel; keep them in step.
+ * `showCancelledText` and AIP5's `resultsSummaryText` say the same words for the Why? panel; keep them in step.
  * Importing this module registers it.
  */
 
@@ -30,10 +30,19 @@ function cardBooked(params: TextParams): string {
   return `Booked ${text(params, 'show')}: ${plural(params, 'matches', 'match', 'matches')}, ${plural(params, 'talking', 'talking segment', 'talking segments')}, ${plural(params, 'titles', 'title match', 'title matches')}`;
 }
 
+function winnersBooked(params: TextParams): string {
+  return `${text(params, 'show')}: winners booked for ${plural(params, 'matches', 'match', 'matches')}`;
+}
+
 export const AIP_TEXT_CATALOG: TextCatalog = {
   'aip.decision.roster-review': rosterReview,
   'aip.decision.card-booked': cardBooked,
   'aip.decision.show-cancelled': 'Cancelled {show}: {reason}',
+  'aip.decision.winners-booked': winnersBooked,
+  'aip.decision.title-retain': '{champion} to retain the {title} ({reason})',
+  'aip.decision.title-change': '{challenger} to win the {title} from {champion} ({reason})',
+  'aip.decision.title-crown': '{challenger} to win the vacant {title} ({reason})',
+  'aip.decision.title-vacant': 'The {title} stays vacant ({reason})',
   'aip.need.depth': (params) =>
     `Thin at ${text(params, 'band').toLowerCase()}: ${text(params, 'have')} of ${text(params, 'target')}`,
   'aip.need.alignment.heels': 'Short on heels',

@@ -125,12 +125,15 @@ function bufferedContext(
   };
 }
 
-/** The short Why? kept for a written segment: its slot, headline reasons and card score. */
+/**
+ * The short Why? kept for a written segment: its slot, headline reasons, the booker's other notes
+ * (challenger, established teams) and the card score.
+ */
 export function slotSummaryTrace(placement: PlannedPlacement): Traced<string> {
   const decision = startDecision<string>(slotTraceLabel(placement.slot, roleOf(placement)), {
     docRef: SHOW_DAY_DOC_REF,
   });
-  for (const line of placement.headline) {
+  for (const line of [...placement.headline, ...placement.notes]) {
     decision.note(line);
   }
   decision.include('Card score', inputOf('Card score', placement.cardScore));
@@ -332,7 +335,12 @@ function countsOf(ctx: ShowBookingContext, instanceId: EventInstance['id']): Car
   };
 }
 
-/** The show's plan trace: the plan, then what happened when it was written. */
+/**
+ * The show's short plan Why?: the plan as the booker's notes (roster, talking share, every title
+ * looked at, workers left out, open slots), then what happened when it was written. The full plan
+ * tree is far too big to keep for every rival show, so only these lines are stored, in full for
+ * `history.keepDetailDays` and then as a summary (`aip.pruneCardDetail`).
+ */
 function showTrace(
   instance: DeepReadonly<EventInstance>,
   plan: CardPlan,
@@ -343,8 +351,7 @@ function showTrace(
   const decision = startDecision<string>(`Booking ${instance.name}`, {
     docRef: SHOW_DAY_DOC_REF,
   });
-  decision.include('Card plan', plan.planTrace);
-  for (const line of notes) {
+  for (const line of [...plan.notes, ...notes]) {
     decision.note(line);
   }
   return decision.choose(outcome, because);
@@ -362,7 +369,7 @@ export function runBookShow(job: AiJobContext): void {
       const instance = tx.view.tables.eventInstances.require(show.id);
       const booked = bookOneShow(ctx, instance);
       const planRef: TraceRef = { kind: CARD_PLAN_TRACE_KIND, id: instance.id };
-      ctx.recordTrace(planRef, ctx.date, booked.planTrace, { summaryOnly: true });
+      ctx.recordTrace(planRef, ctx.date, booked.planTrace);
       let summary: TemplatedText;
       if (booked.outcome.kind === 'booked') {
         tx.update('eventInstances', instance.id, { status: 'booked' });

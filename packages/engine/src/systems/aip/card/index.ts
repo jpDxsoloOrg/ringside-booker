@@ -102,6 +102,8 @@ export {
   decideTitlePicture,
   DEFEND_REASON,
   dueText,
+  notDueText,
+  titleDueText,
   MATCH_TYPE_LABEL,
   NO_CHALLENGER_REASON,
   NO_DEFENCE_YET_NOTE,
@@ -181,6 +183,7 @@ export {
   NO_FEATURED_NOTE,
   NOBODY_IN_IT_NOTE,
   storylineHeatText,
+  cardScoreText,
   type CardScoreInputs,
   type FeaturedKind,
 } from './formulas/cardScore';
