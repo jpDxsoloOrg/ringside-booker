@@ -160,7 +160,6 @@ describe('match.aftermath', () => {
           group: 'housekeeping',
           order: 10,
           cadence: { kind: 'daily' },
-          condition: (read) => read.tables.aftermaths.size === 0,
           run: (ctx) => {
             applySegmentAftermath(ctx, built.segment(1));
             applySegmentAftermath(ctx, built.segment(0));

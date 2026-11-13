@@ -98,7 +98,7 @@ describe('aftermaths table', () => {
     const { world } = tinyWorld();
     const row = firstRow(world);
     const result = world.transact('duplicate', (tx) => {
-      tx.create('aftermaths', { ...row, id: undefined } as never);
+      tx.insert('aftermaths', { ...row, id: tx.mintId('aftermaths') });
     });
     expect(result.ok).toBe(false);
   });
@@ -124,7 +124,7 @@ describe('aftermaths table', () => {
       issue.path,
     ]);
     expect(paths).toEqual(
-      expect.arrayContaining<unknown>([
+      expect.arrayContaining([
         ['ref.dangling', `popularity.byRegion{${missingRegion}}`],
         ['ref.dangling', 'momentum.employmentId'],
       ]),

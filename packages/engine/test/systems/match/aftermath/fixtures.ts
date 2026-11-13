@@ -47,7 +47,7 @@ export interface AftermathWorld {
 }
 
 function everywhere(value: number): Record<RegionId, number> {
-  return Object.fromEntries(REGIONS.map((region) => [region, value])) as Record<RegionId, number>;
+  return Object.fromEntries(REGIONS.map((region) => [region, value]));
 }
 
 /**
