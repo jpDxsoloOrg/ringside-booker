@@ -12,6 +12,11 @@
 .list {
   --tabs-fade-size: 2rem;
 
+  /*
+   * Positioned, so anything absolutely placed inside a tab (a count's screen-reader text, say) has
+   * the strip as its containing block and scrolls and clips with it instead of widening the page.
+   */
+  position: relative;
   display: flex;
   gap: var(--space-1);
   min-inline-size: 0;

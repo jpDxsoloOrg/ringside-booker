@@ -212,3 +212,19 @@ describe('EmptyState styles', () => {
     expect(declaration(rules, '.iconTile', 'color')).toBe('var(--color-data)');
   });
 });
+
+describe('Counts inside scrolling tab strips', () => {
+  // A count's screen-reader text is absolutely placed. If neither the badge nor the strip is
+  // positioned, it is laid out against a box outside the strip, and a tab scrolled out of view
+  // widens the page on a phone (it reached 793px on a 390px roster). The e2e gallery spec checks
+  // the real layout at phone width; these pin the two rules that keep it inside.
+  it('positions the count badge, so its hidden label stays inside it', () => {
+    expect(declaration(readRules('./Badge/Badge.module.css'), '.count', 'position')).toBe(
+      'relative',
+    );
+  });
+
+  it('positions the tab strip, so whatever a tab holds scrolls and clips with it', () => {
+    expect(declaration(readRules('./Tabs/Tabs.module.css'), '.list', 'position')).toBe('relative');
+  });
+});

@@ -96,7 +96,13 @@
 }
 
 /* Counts are short and centred, with a minimum width so a single digit still looks round. */
+/*
+ * Positioned, so the screen-reader label (VisuallyHidden, absolutely placed) is laid out inside the
+ * badge. Unpositioned, it was placed against the nearest positioned ancestor, which can sit outside
+ * a scrolling box such as the tab strip: a count in a tab scrolled out of view widened the page.
+ */
 .count {
+  position: relative;
   justify-content: center;
   min-inline-size: 1.5rem;
   padding-inline: var(--space-1);
