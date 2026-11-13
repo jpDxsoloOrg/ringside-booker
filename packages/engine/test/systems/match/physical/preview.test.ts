@@ -124,7 +124,7 @@ describe('the physical preview extension', () => {
     expect(first.durationClass).toBe('long');
     for (const worker of first.workers) {
       expect(worker.fatigueGain.value).toBeGreaterThan(0);
-      expect(worker.wearTotal).toBeGreaterThan(0);
+      expect(worker.wearTotal.value).toBeGreaterThan(0);
       expect(worker.fatigueWhatIf).toBe(false);
       expect(worker.fatigueBefore).toBe(worker.fatigueNow);
     }
@@ -137,7 +137,7 @@ describe('the physical preview extension', () => {
     const rolls = new Set<string>();
     for (let seed = 0; seed < 20; seed += 1) {
       const physical = physicalOf(lab, singles(lab, { previewSeed: seed }));
-      wears.add(JSON.stringify(physical.workers.map((worker) => worker.wearTotal)));
+      wears.add(JSON.stringify(physical.workers.map((worker) => worker.wearTotal.value)));
       rolls.add(JSON.stringify(physical.workers.map((worker) => worker.injury.roll.trace)));
     }
     expect(wears.size).toBeGreaterThan(1);
@@ -260,7 +260,7 @@ describe('the physical preview extension', () => {
     const single = physicalOf(lab, singles(lab));
     expect(
       one.data.extensionSummaries?.physical?.byPerson.map((entry) => entry.meanWearTotal),
-    ).toEqual(single.workers.map((worker) => Math.round(worker.wearTotal * 10) / 10));
+    ).toEqual(single.workers.map((worker) => Math.round(worker.wearTotal.value * 10) / 10));
   });
 
   it('gives a main event more fatigue gain than the same draft as an opener', () => {

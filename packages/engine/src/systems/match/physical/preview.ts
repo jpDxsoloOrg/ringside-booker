@@ -25,9 +25,10 @@ import { INVALID_ARGS, refuseQuery } from '../../../core/api/result';
 import type { PersonId } from '../../../core/ids';
 import { matchTypeOf } from '../../../model/catalogs';
 import { zId } from '../../../model/primitives';
-import { BODY_PARTS } from '../../../model/entities/person';
+import type { Traced } from '../../../core/trace';
 import { registerPreviewExtension, type PreviewExtensionContext } from '../previewExtensions';
 import { durationClassOf, type DurationClass } from '../slots';
+import { conditionLostTrace } from './apply';
 import { injuryPolicyFor } from './injuries';
 import type { PhysicalParticipant, PhysicalSegmentSpec } from './inputs';
 import { INJURY_STREAM, WEAR_STREAM } from './streams';
@@ -66,8 +67,8 @@ export interface PhysicalPreviewWorker extends WorkerPhysicalToll {
   readonly fatigueNow: number;
   /** True when `fatigueBefore` is the lab's what-if. */
   readonly fatigueWhatIf: boolean;
-  /** Condition lost in total: every body part's wear added up. */
-  readonly wearTotal: number;
+  /** "Condition lost in this match": the wear load times the body part weights added up. */
+  readonly wearTotal: Traced<number>;
 }
 
 /** `extensions.physical` of a single preview. */
@@ -121,11 +122,6 @@ function roundTo(value: number, places: number): number {
   const scale = 10 ** places;
   const rounded = Math.round(value * scale) / scale;
   return rounded === 0 ? 0 : rounded;
-}
-
-/** Every body part's wear added up. */
-function wearTotalOf(worker: WorkerPhysicalToll): number {
-  return BODY_PARTS.reduce((total, part) => total + worker.wearByPart[part].value, 0);
 }
 
 /** The draft as the physical toll reads it. Refuses a producer the world does not have. */
@@ -195,7 +191,7 @@ export function runPhysicalPreview(
       ...worker,
       fatigueNow: read.tables.people.require(worker.personId).fatigue,
       fatigueWhatIf: args.fatigueOverrides?.[worker.personId] !== undefined,
-      wearTotal: wearTotalOf(worker),
+      wearTotal: conditionLostTrace(worker, tunables),
     })),
   };
 }
@@ -236,7 +232,7 @@ export function summarisePhysicalPreview(
       }
       entry.runs += 1;
       entry.fatigueGain += worker.fatigueGain.value;
-      entry.wear += worker.wearTotal;
+      entry.wear += worker.wearTotal.value;
       entry.learning += worker.learning.value;
       if (worker.injury.injured) {
         entry.injuries += 1;
