@@ -1997,3 +1997,34 @@ export {
   type SetPushDoor,
   type SetPushReasonCode,
 } from './systems/roster/index';
+// Rival rules (AIP1-02): the `ai.*` shortcut tunables read through `aiShortcut` (D-01), the
+// `aip.rules` query and the viewer redaction helpers. MTCH1-08 detects AIP1 by the `aiShortcut`
+// export.
+export {
+  AI_SHORTCUT_KEYS,
+  AI_SHORTCUT_RULES,
+  AI_SHORTCUTS,
+  aiShortcut,
+  aiShortcutConsumers,
+  aiShortcutOn,
+  aiShortcutsFor,
+  CASH_DISPLAY_BANDS,
+  CASH_DISPLAY_BANDS_REASON,
+  canSeePrivate,
+  isAiShortcutFlag,
+  privateInputOf,
+  redactForViewer,
+  registerAiShortcutConsumer,
+  visibilityOf,
+  type AipRulesView,
+  type AiShortcutConsumer,
+  type AiShortcutFlagKey,
+  type AiShortcutInfo,
+  type AiShortcutKey,
+  type AiShortcutRuleView,
+  type AiShortcutSet,
+  type AiShortcutValue,
+  type Band,
+  type Redacted,
+  type Visibility,
+} from './systems/aip/index';

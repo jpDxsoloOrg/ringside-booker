@@ -109,7 +109,57 @@ helper `aiDecisionDateKey`) and `byRevealOn`.
 
 ## Shortcuts
 
-Later (AIP1-03): when a rival may skip work it doesn't need to do.
+D-01: computer-run promotions take shortcuts the player does not get, so the
+world sim stays cheap. Each shortcut is its own `ai.*` tunable (category
+`Rival rules`, in `systems/aip/shortcuts.ts`) that defaults on.
+
+| Key                      | Default | What it does when it applies                                                                   | Acted on by          |
+| ------------------------ | ------- | ---------------------------------------------------------------------------------------------- | -------------------- |
+| `ai.skipInMatchInjuries` | on      | Rivals' matches cause no in-match injuries; their injuries come from daily world events        | MTCH4, WRK6          |
+| `ai.skipResultMorale`    | on      | Rival workers' morale does not move with match results; small off-screen morale events instead | WRK8                 |
+| `ai.scoreBonus`          | 3       | Points added to every rival segment score (0 to 20)                                            | MTCH1 (RatingPolicy) |
+| `ai.simpleBookingInputs` | on      | Rival bookings skip production notes and match plans                                           | MTCH1                |
+| `ai.skipMediaRequests`   | on      | Rivals receive no media requests                                                               | SOC1                 |
+| `ai.skipWorkerRequests`  | on      | Rival workers make no requests of their bosses                                                 | SOC5                 |
+
+**The two rules.** `aiShortcut(read, tunables, promotionId, key, brandId?)`
+(`aiShortcut.ts`) is the only code that combines a unit's controller, the
+level playing field and an `ai.*` key. A shortcut applies only when:
+
+1. **Run by the computer**: `unitControllerOf(read, promotionId, brandId)` is
+   the computer. A computer GM brand inside the player's promotion gets the
+   shortcuts; a brand with no controller of its own follows its promotion, so
+   the player's own brands never do.
+2. **Level playing field is off**: the new-game setting
+   `meta.settings.levelPlayingField` turns every shortcut off for everyone.
+
+Then the tunable decides. A flag key returns `Traced<boolean>`: a decision
+"Rival shortcut: <label>" with both rules, the tunable read, and the reason
+("Rival rules apply", "Run by a player, not the computer", "The level playing
+field is on" or "This shortcut is turned off"). `ai.scoreBonus` returns
+`Traced<number>`: a calculation "Rival score bonus" from 0 that adds the
+tunable only when both rules pass, else notes why; an override of 0 means 0.
+`aiShortcutOn` is the flag-only form (`Traced<boolean>`), and
+`aiShortcutsFor` returns all six for one unit. Flags are booleans: read
+`.value`, never `.value !== 0`.
+
+**No `isAI` branches.** A feature that acts on a shortcut (MTCH1, MTCH4, WRK6,
+WRK8, SOC1, SOC5, ECO6) calls `aiShortcut` and never looks at a controller
+itself, and puts the returned trace in its Why?, so a rival show's trace
+shows the shortcuts it used.
+
+**Consumers.** A feature that acts on a shortcut calls
+`registerAiShortcutConsumer({ key, featureId, label })` when its module
+loads (the same feature twice for one key throws). Until one does, the rules
+screen says "Takes effect when <feature> is in the game", using
+`AI_SHORTCUTS[key].consumer`, instead of hiding the key.
+
+**`aip.rules`** (no arguments, the same for every viewer) feeds the "Rival
+rules" chip: `levelPlayingField`, `appliesTo: 'computer'` and, per shortcut
+in the order above, its `label`, `description`, `offText`, `consumer`,
+`kind` (`flag` or `points`), `value`, `defaultValue`, `overridden`,
+`inForce` (on, or above 0, and the level playing field is off) and the
+registered `consumers`.
 
 ## Jobs
 
@@ -133,5 +183,39 @@ Later (AIP1-05).
 
 ## Visibility
 
-Later (AIP1-06): what the player sees of each rival and when. See the decision
-log's `revealOn` above.
+What a viewer may see of a promotion's private numbers, such as its cash.
+The helpers are in `systems/aip/visibility.ts`; every AIP query uses them.
+What the player sees of each rival's decisions, and when, comes with the
+Promotions screens (AIP1-06); see the decision log's `revealOn` above.
+
+`visibilityOf(read, viewer, promotionId)` is one of:
+
+| Visibility   | When                                                             | Private figures |
+| ------------ | ---------------------------------------------------------------- | --------------- |
+| `omniscient` | the all-seeing viewer (`OMNISCIENT_VIEWER`) of tools and tests   | exact           |
+| `own`        | the viewer runs the promotion (`viewerPromotionIds` includes it) | exact           |
+| `sandbox`    | the world's sandbox setting is on                                | exact           |
+| `public`     | anyone else                                                      | banded          |
+
+`canSeePrivate(visibility)` is true for all but `public`.
+
+**Banding.** `redactForViewer(visibility, value, bands)` returns
+`{ kind: 'exact', value }` when the viewer may see private figures, else
+`{ kind: 'band', label }` (the last band whose `min` the value reaches), else
+`{ kind: 'hidden' }` when no bands are given. It never returns an exact value
+to a `public` viewer. `CASH_DISPLAY_BANDS` labels a rival's money (in cents):
+Struggling (below 50,000), Getting by (50,000), Comfortable (250,000),
+Wealthy (1,000,000) and Very wealthy (5,000,000). They are display labels,
+fixed rather than tunable ("Display bands for a rival's money"), and not
+AIP8's runway-based `CASH_BANDS` that rival formulas read as their cash
+input.
+
+**Traces.** `privateInputOf(label, value, visibility, bands)` is the trace
+input for a formula that reads a private number (ECO6): the figure for a
+viewer who may see it, else the band label with the band's lower edge as a
+fixed constant, else "Hidden". AIP7 and AIP8 pass only a runway band label
+and never the figure.
+
+**Limit.** `trace.get` serves any stored trace by its ref. Redaction here
+covers query results and AIP traces built with `privateInputOf`; hardening
+`trace.get` per viewer belongs to the multiplayer work (D-07).

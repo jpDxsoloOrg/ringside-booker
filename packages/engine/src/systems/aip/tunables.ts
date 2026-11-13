@@ -4,10 +4,13 @@
  */
 
 import { defineTunables } from '../../core/tunables/define';
+import { aiShortcutTunables } from './shortcuts';
 
 const AIP_CATEGORY = 'Rival desk';
 
 export const aipTunables = defineTunables({
+  // The `ai.*` Rival rules shortcuts (AIP1-02), category `Rival rules`; see shortcuts.ts.
+  ...aiShortcutTunables,
   'aip.decisionLogRetentionDays': {
     kind: 'integer',
     default: 365,

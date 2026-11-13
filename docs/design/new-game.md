@@ -94,16 +94,16 @@ interface NewGameSettingDef {
 
 Built-in settings:
 
-| Key                        | Kind    | Default | Group      | Stored in                                 | What it does                                                                             |
-| -------------------------- | ------- | ------- | ---------- | ----------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `agingEnabled`             | boolean | true    | world      | `settings.agingEnabled`                   | People age and skills follow age curves (read by the WRK epic).                          |
-| `sandbox`                  | boolean | false   | world      | `settings.sandbox`                        | You may edit the world freely.                                                           |
-| `generationLevel`          | enum    | `low`   | world      | `settings.generationLevel`                | How much new content appears over time (`off`, `low`, `medium`, `high`).                 |
-| `levelPlayingField`        | boolean | false   | difficulty | `settings.levelPlayingField`              | Rival promotions follow exactly the same rules as yours: no simulation shortcuts (D-01). |
-| `equalStart`               | boolean | false   | difficulty | `settings.extra.equalStart`               | A one-time reset of cash, prestige and popularity (step 600).                            |
-| `randomiseContractLengths` | boolean | false   | advanced   | `settings.extra.randomiseContractLengths` | New random end dates for running contracts (step 500).                                   |
-| `rerollPotential`          | boolean | false   | advanced   | `settings.extra.rerollPotential`          | Fresh potential rolls for everyone (step 700).                                           |
-| `randomWinners`            | boolean | false   | difficulty | `settings.extra.randomWinners`            | Every result on your shows is decided on the night (MTCH2-03, registered by `match`).    |
+| Key                        | Kind    | Default | Group      | Stored in                                 | What it does                                                                                                                             |
+| -------------------------- | ------- | ------- | ---------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `agingEnabled`             | boolean | true    | world      | `settings.agingEnabled`                   | People age and skills follow age curves (read by the WRK epic).                                                                          |
+| `sandbox`                  | boolean | false   | world      | `settings.sandbox`                        | You may edit the world freely.                                                                                                           |
+| `generationLevel`          | enum    | `low`   | world      | `settings.generationLevel`                | How much new content appears over time (`off`, `low`, `medium`, `high`).                                                                 |
+| `levelPlayingField`        | boolean | false   | difficulty | `settings.levelPlayingField`              | Rival promotions follow exactly the same rules as yours: every Rival rules shortcut is off (D-01, [shortcuts](rival-desk.md#shortcuts)). |
+| `equalStart`               | boolean | false   | difficulty | `settings.extra.equalStart`               | A one-time reset of cash, prestige and popularity (step 600).                                                                            |
+| `randomiseContractLengths` | boolean | false   | advanced   | `settings.extra.randomiseContractLengths` | New random end dates for running contracts (step 500).                                                                                   |
+| `rerollPotential`          | boolean | false   | advanced   | `settings.extra.rerollPotential`          | Fresh potential rolls for everyone (step 700).                                                                                           |
+| `randomWinners`            | boolean | false   | difficulty | `settings.extra.randomWinners`            | Every result on your shows is decided on the night (MTCH2-03, registered by `match`).                                                    |
 
 The four settings `WorldMeta.settings` names have typed fields; every other
 registered setting is stored by key in `WorldMeta.settings.extra`. Systems

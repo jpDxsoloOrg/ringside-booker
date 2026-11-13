@@ -349,7 +349,7 @@ export const BUILT_IN_SETTINGS: readonly NewGameSettingDef[] = [
     default: false,
     label: 'Level playing field',
     description:
-      'Rival promotions follow exactly the same rules as yours: no simulation shortcuts.',
+      'Rival promotions follow exactly the same rules as yours: every Rival rules shortcut is off.',
     group: 'difficulty',
   },
   {

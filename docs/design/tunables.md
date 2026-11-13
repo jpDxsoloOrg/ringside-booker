@@ -647,6 +647,20 @@ The rival desk's numbers (AIP), in `systems/aip/tunables.ts`, category
 | ------------------------------ | ------- | ------- | ------ | ---- | --------------------------------------------------------------------------------------------------- |
 | `aip.decisionLogRetentionDays` | integer | 365     | 0–3650 | days | How long rival decisions stay in the log. 0 keeps none ([decision log](rival-desk.md#decision-log)) |
 
+The Rival rules shortcuts (D-01, AIP1-02), in `systems/aip/shortcuts.ts`,
+category `Rival rules`, docRef [rival-desk.md#shortcuts](rival-desk.md#shortcuts).
+Systems read them only through `aiShortcut`, which reads each as off (false or 0) for a promotion a player runs and for every promotion under the level
+playing field.
+
+| Key                      | Kind    | Default | Range           | Unit   | Meaning                                                                                        |
+| ------------------------ | ------- | ------- | --------------- | ------ | ---------------------------------------------------------------------------------------------- |
+| `ai.skipInMatchInjuries` | boolean | true    |                 | flag   | Rivals' matches cause no in-match injuries; their injuries come from daily world events        |
+| `ai.skipResultMorale`    | boolean | true    |                 | flag   | Rival workers' morale does not move with match results; small off-screen morale events instead |
+| `ai.scoreBonus`          | number  | 3       | 0–20 (step 0.5) | points | Points added to every rival segment score                                                      |
+| `ai.simpleBookingInputs` | boolean | true    |                 | flag   | Rival bookings skip production notes and match plans                                           |
+| `ai.skipMediaRequests`   | boolean | true    |                 | flag   | Rivals receive no media requests                                                               |
+| `ai.skipWorkerRequests`  | boolean | true    |                 | flag   | Rival workers make no requests of their bosses                                                 |
+
 | Key                                    | Kind    | Default | Range        | Unit       | Meaning                                                                                             |
 | -------------------------------------- | ------- | ------- | ------------ | ---------- | --------------------------------------------------------------------------------------------------- |
 | `boxOffice.draw.atFullPopularity`      | integer | 30,000  | 0–200,000    | count      | Crowd a show draws at popularity 100, before the other lines                                        |
