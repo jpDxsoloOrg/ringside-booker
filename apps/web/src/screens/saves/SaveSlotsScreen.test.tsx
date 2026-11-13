@@ -1,6 +1,6 @@
 import { act, screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CURRENT_FORMAT_VERSION, ENGINE_VERSION } from '@ringside/engine';
 import { ANNOUNCE_DELAY_MS } from '@/app/a11y/LiveAnnouncer';
 import { routes } from '@/app/routes';
@@ -15,8 +15,13 @@ import {
   truncatedGoldenSave,
 } from '@/test/goldenSave';
 import { renderApp, storeRealSlot } from '@/test/renderApp';
+import type { RenderedApp } from '@/test/renderApp';
 import { resetSaveDb } from '@/test/saves';
 import * as storage from '@/storage';
+// The new-game wizard is a lazily loaded route. Loading its module here, while the file is
+// collected, means the New game test's navigation does not wait for the chunk to be transformed,
+// which took over a second on a loaded machine; the route still goes through its `lazy()`.
+import '@/screens/new-game/NewGameScreen';
 
 const QUOTA_MESSAGE = 'The browser has no room left for saves. Delete or export old saves.';
 
@@ -37,8 +42,35 @@ function saveFile(bytes: Uint8Array, name = 'league.rbsave'): File {
   return new File([new Uint8Array(bytes)], name, { type: 'application/x-ringside-save' });
 }
 
+/** The engine loads started since the app was last rendered. */
+let engineLoads: Promise<unknown>[] = [];
+
+/** Records every save load the app asks the engine host for. */
+function trackEngineLoads(rendered: RenderedApp): RenderedApp {
+  engineLoads = [];
+  const { host } = rendered.transport;
+  const load = host.loadFromSlot.bind(host);
+  vi.spyOn(host, 'loadFromSlot').mockImplementation((slotId, which) => {
+    const loading = load(slotId, which);
+    engineLoads.push(loading);
+    return loading;
+  });
+  return rendered;
+}
+
+/**
+ * Waits for the engine loads started so far to finish. A load decodes and checks a whole save,
+ * which can take over a second on a loaded machine; after it, a `findBy*` only waits for React to
+ * draw the outcome, well inside its default limit.
+ */
+async function engineLoadsSettled(): Promise<void> {
+  await act(async () => {
+    await Promise.allSettled(engineLoads);
+  });
+}
+
 async function openSlots(fake: FakeStorage) {
-  const rendered = renderApp(routes.load(), fake);
+  const rendered = trackEngineLoads(renderApp(routes.load(), fake));
   await screen.findByRole('heading', { level: 1, name: 'Saved games' });
   return rendered;
 }
@@ -53,6 +85,10 @@ async function politeAnnouncement(): Promise<string> {
   const regions = document.querySelectorAll('[aria-live="polite"]');
   return regions[regions.length - 1]?.textContent ?? '';
 }
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 beforeEach(async () => {
   await resetSaveDb();
@@ -228,6 +264,8 @@ describe('SaveSlotsScreen load', () => {
         name: 'Load Real league',
       }),
     );
+    await engineLoadsSettled();
+    expect(engineLoads).toHaveLength(1);
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Dashboard' })).toBeInTheDocument();
     expect(router.state.location.pathname).toBe(routes.game.office());
@@ -250,6 +288,7 @@ describe('SaveSlotsScreen load', () => {
         name: 'Load Old tunables',
       }),
     );
+    await engineLoadsSettled();
 
     const notice = await screen.findByRole('region', { name: 'About this save' });
     expect(notice).toHaveTextContent('There is no tunable called "retired.tunable"');
@@ -270,6 +309,7 @@ describe('SaveSlotsScreen load', () => {
         name: 'Load Future league',
       }),
     );
+    await engineLoadsSettled();
 
     const sheet = await screen.findByRole('dialog', { name: "Couldn't load Future league" });
     expect(sheet).toHaveTextContent('Checking the save version');
@@ -297,6 +337,7 @@ describe('SaveSlotsScreen load', () => {
         name: 'Load Noisy league',
       }),
     );
+    await engineLoadsSettled();
 
     const sheet = await screen.findByRole('dialog', { name: "Couldn't load Noisy league" });
     expect(within(sheet).getAllByRole('listitem')).toHaveLength(20);
@@ -310,6 +351,7 @@ describe('SaveSlotsScreen load', () => {
     const card = await screen.findByRole('article', { name: 'Broken league' });
 
     await user.click(within(card).getByRole('button', { name: 'Load Broken league' }));
+    await engineLoadsSettled();
     const sheet = await screen.findByRole('dialog', { name: "Couldn't load Broken league" });
     expect(sheet).toHaveTextContent('(decode)');
     await user.click(within(sheet).getByRole('button', { name: 'Close' }));
@@ -352,6 +394,7 @@ describe('SaveSlotsScreen load', () => {
     expect(useSessionStore.getState().worldLoaded).toBe(false);
 
     await user.click(within(confirm).getByRole('button', { name: 'Load backup' }));
+    await engineLoadsSettled();
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Dashboard' })).toBeInTheDocument();
     expect(router.state.location.pathname).toBe(routes.game.office());
@@ -386,6 +429,7 @@ describe('SaveSlotsScreen load', () => {
 
     // The slot has no backup-1 blob, so the load stops at storage and the error report opens.
     await user.click(within(confirm).getByRole('button', { name: 'Load backup' }));
+    await engineLoadsSettled();
 
     expect(
       await screen.findByRole('dialog', { name: "Couldn't load Missing backup" }),
@@ -405,12 +449,15 @@ describe('TitleScreen Continue', () => {
       label: 'Newer league',
       savedAt: '2026-11-07T10:00:00.000Z',
     });
-    const { router } = renderApp(routes.title(), createFakeStorage([older, newer]));
+    const { router } = trackEngineLoads(
+      renderApp(routes.title(), createFakeStorage([older, newer])),
+    );
     const user = userEvent.setup();
 
     const continueButton = await screen.findByRole('button', { name: /^Continue/ });
     expect(continueButton).toHaveTextContent('Newer league · Test Promotion A · Apr 10, 2026');
     await user.click(continueButton);
+    await engineLoadsSettled();
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Dashboard' })).toBeInTheDocument();
     expect(router.state.location.pathname).toBe(routes.game.office());
@@ -429,6 +476,7 @@ describe('SaveSlotsScreen: a save made with an older build', () => {
         name: 'Load Old league',
       }),
     );
+    await engineLoadsSettled();
     const sheet = await screen.findByRole('dialog', { name: 'Made with an older build' });
     return { fake, user, sheet, ...rendered };
   }
@@ -495,6 +543,7 @@ describe('SaveSlotsScreen: a save made with an older build', () => {
         name: 'Load Buggy league',
       }),
     );
+    await engineLoadsSettled();
 
     const sheet = await screen.findByRole('dialog', { name: "Couldn't load Buggy league" });
     expect(sheet).toHaveTextContent('(validate)');

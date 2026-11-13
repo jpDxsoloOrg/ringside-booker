@@ -16,13 +16,19 @@ import { NO_CATALOG_BODY } from './MatchLabView';
 /** Loading a save and the lazily loaded lab can take a moment under load. */
 const LOAD_MS = 10_000;
 
+/**
+ * A backstop for a heavily loaded machine only (the whole flow takes under a second alone): at
+ * vitest's default 5 s the test timed out before its own LOAD_MS waits could.
+ */
+const TEST_TIMEOUT_MS = 20_000;
+
 beforeEach(async () => {
   await resetSaveDb();
   useSessionStore.getState().clear();
   useLabStore.getState().reset();
 });
 
-describe('the Match lab on a save from before match types', () => {
+describe('the Match lab on a save from before match types', { timeout: TEST_TIMEOUT_MS }, () => {
   it('loads the save and says to start a new game', async () => {
     // The golden save with its catalogs taken out: what a save from before them stored.
     const slot = await storeRealSlot(
@@ -32,7 +38,7 @@ describe('the Match lab on a save from before match types', () => {
       },
     );
     const { router } = renderApp(routes.load(), createFakeStorage([slot]));
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
 
     await user.click(
       within(
