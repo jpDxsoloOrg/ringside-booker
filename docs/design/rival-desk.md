@@ -143,6 +143,32 @@ tunable only when both rules pass, else notes why; an override of 0 means 0.
 `aiShortcutsFor` returns all six for one unit. Flags are booleans: read
 `.value`, never `.value !== 0`.
 
+**Wired on main (AIP1-07).** MTCH1 is the only partner on main that acts on a
+shortcut. `ratingPolicy.ts` registers the one rating policy provider behind
+MTCH1's [policy door](match-rating.md#the-policy-door-d-01): it reads
+`ai.scoreBonus`, `ai.simpleBookingInputs` and `ai.skipInMatchInjuries`
+through `aiShortcut`, names the policy "Rival shortcuts" when any applies
+(else "Full rules", with MTCH1's neutral line "Same rules for every
+promotion"), and titles the score's policy line "Rival shortcut: Score bonus
++3" (or "No rival score bonus +0" when only the flags apply), with the
+"Rival score bonus" calculation and its "Rival shortcut" line under it. It
+registers MTCH1 ("Match ratings") as the consumer of `ai.scoreBonus` and
+`ai.simpleBookingInputs`. The Match lab's "Rate as" select rates a segment
+as any active promotion, so a player can see the rival rules at work.
+`ai.skipInMatchInjuries` (MTCH4, WRK6), `ai.skipResultMorale` (WRK8),
+`ai.skipMediaRequests` (SOC1) and `ai.skipWorkerRequests` (SOC5) have no
+consumer on main yet; each of those features wires AIP1 from its own pack.
+
+**What the bonus does to rival scores.** A rival show with no card is scored
+off screen ([show night](show-night.md#off-screen-score)) and never goes
+through a segment rating, so in the default game (no rival cards until AIP4)
+the bonus changes nothing. With every show carded (the test system
+`cardEveryShowSystem`), measured over 365 days of the default world in
+2026-11 (`test/systems/aip/rivalScoreFairness.test.ts`, slow run): before
+AIP1-07, and with the Level playing field, the 463 rival shows averaged 47.30
+(segments 49.55); with the default Rival rules they average 50.30 (segments
+52.55), exactly +3; the player's shows stay at 52.93 either way.
+
 **No `isAI` branches.** A feature that acts on a shortcut (MTCH1, MTCH4, WRK6,
 WRK8, SOC1, SOC5, ECO6) calls `aiShortcut` and never looks at a controller
 itself, and puts the returned trace in its Why?, so a rival show's trace
@@ -532,19 +558,25 @@ the decision log points at stored traces. Each applies the viewer rules in
 a `public` viewer, and contract terms, morale and hidden development never
 appear in any of them.
 
-| Query                | Args                                                     | What it returns                                                                                                                                                                                                                                                                                                                                                       |
-| -------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `promotions.list`    | none                                                     | One row per promotion (every status), by name: name, short name, logo, colour, style, status, home region and country, popularity (home country with its trace, world), prestige, `rosterCount` (wrestlers), `crewCount` (everyone but wrestlers and managers), `brandCount`, champions, `controlledBy` (`you`, `computer`, `otherPlayer`), `controllerName`, `cash`. |
-| `promotions.profile` | `promotionId`                                            | Header (with brands and who runs each), KPIs (home and world popularity with traces, prestige, counts, `showsPerMonth`, `cash`), the popularity drill-down (`popularityRollupView`), shows running today, titles and holders, the Rival rules as they apply to it (`inForce`, `levelPlayingField`, each shortcut's `on`, `value`, trace), `hasProfile`, `hidden`.     |
-| `promotions.roster`  | `promotionId`, `brandId?`                                | The taste it values by (label, source, eight axes with traces) and every active contract: ring name, image, gender, role, push, alignment, brand, availability, overall, card value with trace (wrestlers and managers; crew null), `isChampion`, `endsOn`. By role, card position, then card value.                                                                  |
-| `aip.needs`          | `promotionId`, `brandId?`                                | `unitName`, `slotsDemanded` with trace, the needs (key, kind, summary, `text`, severity with trace, refs) and `computedOn`. Live, for any promotion.                                                                                                                                                                                                                  |
-| `aip.decisionLog`    | `promotionId`, `brandId?`, `limit?`, `before?`, `kinds?` | Visible entries newest first (date, kind, chip, summary, `text`, refs, `traceRef` while the trace is kept, importance), the filter chips (`kinds`, registered kinds with a visible row), `hiddenCount` and `nextBefore` for the next page.                                                                                                                            |
+| Query                | Args                                                     | What it returns                                                                                                                                                                                                                                                                                                                                                               |
+| -------------------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `promotions.list`    | none                                                     | One row per promotion (every status), by name: name, short name, logo, colour, style, status, home region and country, popularity (home country with its trace, world), prestige, `rosterCount` (wrestlers), `crewCount` (everyone but wrestlers and managers), `brandCount`, champions, `controlledBy` (`you`, `computer`, `otherPlayer`), `controllerName`, `cash`, `size`. |
+| `promotions.profile` | `promotionId`                                            | Header (with brands and who runs each), KPIs (home and world popularity with traces, prestige, counts, `showsPerMonth`, `cash`), the popularity drill-down (`popularityRollupView`), shows running today, titles and holders, the Rival rules as they apply to it (`inForce`, `levelPlayingField`, each shortcut's `on`, `value`, trace), `hasProfile`, `hidden`.             |
+| `promotions.roster`  | `promotionId`, `brandId?`                                | The taste it values by (label, source, eight axes with traces) and every active contract: ring name, image, gender, role, push, alignment, brand, availability, overall, card value with trace (wrestlers and managers; crew null), `isChampion`, `endsOn`. By role, card position, then card value.                                                                          |
+| `aip.needs`          | `promotionId`, `brandId?`                                | `unitName`, `slotsDemanded` with trace, the needs (key, kind, summary, `text`, severity with trace, refs) and `computedOn`. Live, for any promotion.                                                                                                                                                                                                                          |
+| `aip.decisionLog`    | `promotionId`, `brandId?`, `limit?`, `before?`, `kinds?` | Visible entries newest first (date, kind, chip, summary, `text`, refs, `traceRef` while the trace is kept, importance), the filter chips (`kinds`, registered kinds with a visible row), `hiddenCount` and `nextBefore` for the next page.                                                                                                                                    |
 
-`showsPerMonth` counts the show dates of the promotion's event definitions
-in the next 28 days (`occursOn`); AIP1-07 switches it to dated shows once the
-calendar stores them. Company size waits for ECO1: until then the list has
-no `size` field rather than an error. An unknown promotion, or a brand of
-another promotion, is refused with `notFound`.
+`showsPerMonth` counts the promotion's dated shows (`eventInstances` that are
+not cancelled, one-offs included) in the next 28 days; a day past the
+calendar's scheduling horizon (`calendar.scheduleHorizonDays`, after
+tomorrow) falls back to the definitions' show dates (`occursOn`). Each
+`promotions.list` row carries `size: { label, reach } | null`, ECO1's public
+company size (`reachOf`, never cash), through the source in `companySize.ts`;
+it is null when no feature supplies one, and the browser's "Company size"
+column (card meta on a phone) appears only when some row has a size. The
+profile's Overview shows the same Company size card as the Finances screen,
+with its Why?. An unknown promotion, or a brand of another promotion, is
+refused with `notFound`.
 
 `aip.decisionLog`'s `brandId`: left out, every row of the promotion; null,
 only the whole-promotion rows; a brand, only that brand's. `limit` is 1 to

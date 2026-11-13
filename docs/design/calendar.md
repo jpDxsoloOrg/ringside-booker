@@ -196,7 +196,10 @@ shows with it, and a promotion-wide show always stays with the promotion.
 The omniscient viewer sees every show and runs none, so
 `viewerControlsShow` is always false for it. Two computer controllers count
 as the same controller: the computer is one seat, however many promotions it
-runs.
+runs. `sameController` lives in `core/api/controller.ts` (the calendar
+re-exports it), where `controlsPromotion` uses it for every command's "is
+this your promotion?" check, so the computer may act on its own promotions
+through commands and never on a player's (AIP1-07).
 
 Nothing else reads a brand's or a promotion's `controller` to decide who may
 act on a show.

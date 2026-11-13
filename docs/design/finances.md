@@ -384,7 +384,9 @@ own wording.
 **Changing a policy.** The command `finance.setPolicy { promotionId, area,
 level }` is refused when the promotion does not exist (`notFound`), is closed
 (`promotionClosed`), is not run by the issuer (`notYourPromotion`, through
-`controlsPromotion` in `core/api/controller.ts`), or already has that level
+`controlsPromotion` in `core/api/controller.ts`: the same human, or the
+computer for a computer-run promotion, the one controller rule every command
+uses since AIP1-07), or already has that level
 (`samePolicy`, "Medical is already Good"). It writes the level, publishes
 `finance.policyChanged { promotionId, area, from, to }` and returns `{ area,
 from, to }`. The next costs follow it: travel and catering from the next show,
