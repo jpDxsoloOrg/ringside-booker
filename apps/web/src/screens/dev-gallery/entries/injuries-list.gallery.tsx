@@ -51,11 +51,11 @@ function InjuriesListDemo() {
       <Stack gap={5}>
         <section className={styles['example']}>
           <h3 className={styles['subheading']}>Three out, one not seen yet</h3>
-          <InjuriesList rows={rows} layout="table" />
+          <InjuriesList rows={rows} />
         </section>
         <section className={styles['example']}>
           <h3 className={styles['subheading']}>Nobody hurt</h3>
-          <InjuriesList rows={[]} layout="table" />
+          <InjuriesList rows={[]} />
         </section>
         <section className={styles['example']}>
           <h3 className={styles['subheading']}>Phone width (390px)</h3>

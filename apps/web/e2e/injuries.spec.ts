@@ -52,18 +52,18 @@ test.describe('who is out', () => {
 
     await navigateInApp(page, '/game/workers');
     await expect(page.locator('h1')).toHaveText('Workers');
-    const injured = page.getByRole('button', { name: 'Injured' });
+    const injured = page.getByRole('button', { name: 'Injured', exact: true });
     await injured.click();
     await expect(page).toHaveURL(/\?availability=injured$/);
     await expect(injured).toHaveAttribute('aria-pressed', 'true');
-    await expect(page.getByRole('heading', { name: 'Nobody is injured' })).toBeVisible();
+    await expect(page.getByText('Nobody is injured', { exact: true })).toBeVisible();
     await expectNoHorizontalScroll(page);
     await expectNoSeriousA11yViolations(page);
 
     await openRoster(page, testInfo);
     await page.getByRole('tab', { name: /^Injuries/ }).click();
     await expect(page).toHaveURL(/\?tab=injuries$/);
-    await expect(page.getByRole('heading', { name: 'Nobody is injured' })).toBeVisible();
+    await expect(page.getByText('Nobody is injured', { exact: true })).toBeVisible();
     await expectNoHorizontalScroll(page);
     await expectNoSeriousA11yViolations(page);
   });
@@ -94,7 +94,7 @@ test.describe('who is out', () => {
     const name = (await healthLinks.first().textContent()) ?? '';
     await navigateInApp(page, '/game/workers?availability=injured');
     await expect(page.locator('h1')).toHaveText('Workers');
-    await expect(page.getByRole('button', { name: 'Injured' })).toHaveAttribute(
+    await expect(page.getByRole('button', { name: 'Injured', exact: true })).toHaveAttribute(
       'aria-pressed',
       'true',
     );

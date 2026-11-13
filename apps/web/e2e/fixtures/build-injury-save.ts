@@ -43,6 +43,8 @@ const HUMAN: Controller = { kind: 'human', playerId: PLAYER_ID };
 const INJURIES_PER_YEAR = 5;
 /** Give up after this many days without an own injury (a broken engine, not bad luck). */
 const MAX_DAYS = 60;
+/** The own-injury gate's route hint (the engine's `ROSTER_ACTION_HINT`). */
+const ROSTER_HINT = 'roster';
 const SAVED_AT = '2026-01-01T00:00:00.000Z';
 
 function readJson(path: string): unknown {
@@ -88,14 +90,20 @@ function engineOver(state: EngineState) {
   return createEngine({ state, systems: defaultSystems, host: { now: () => performance.now() } });
 }
 
-/** True when the player's next day hurts one of their own and stops on it. */
+/**
+ * True when the player's next day hurts one of their own and the day then stops on that alone:
+ * no show night or decision of theirs outranks the "Roster" button.
+ */
 async function nextDayHurtsOwn(state: EngineState): Promise<boolean> {
   const engine = engineOver(state);
   const day = await engine.advanceDays({ maxDays: 1 });
   if (day.failures.length > 0) {
     throw new Error(`A day failed: ${JSON.stringify(day.failures)}`);
   }
-  return engine.exportState().world.tables.injuries.some((injury) => injury.noticedOn === null);
+  if (day.daysAdvanced !== 1) return false;
+  const gates = engine.query('sim.pendingGates', {}, { kind: 'controller', controller: HUMAN });
+  if (!gates.ok || gates.data.hits.length === 0) return false;
+  return gates.data.hits.every((hit) => hit.actionHint === ROSTER_HINT);
 }
 
 async function buildInjurySave(): Promise<void> {
