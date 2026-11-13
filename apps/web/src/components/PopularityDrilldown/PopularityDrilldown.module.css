@@ -127,6 +127,15 @@
   white-space: nowrap;
 }
 
+/* Registered fan base columns (DAY2-05): small figures after the population, wrapping on phones. */
+.extras {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
 .bar {
   grid-area: bar;
 }

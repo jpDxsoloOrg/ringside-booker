@@ -1,8 +1,11 @@
+import { useState } from 'react';
 import type { ReactNode } from 'react';
 import type { GameDate, SimStatus } from '@ringside/engine';
+import { Button, IconButton } from '@/components/Button';
 import { classNames } from '@/components/classNames';
 import { formatGameDate, formatNumber, useMoneyFormatter } from '@/components/format';
 import { Explained, WhyButton } from '@/components/Trace';
+import { FanBaseSheet } from './FanBaseSheet';
 import { orderStatusChips, useRegisteredStatusChips } from './statusChipRegistry';
 import type {
   StatusChipContext,
@@ -24,6 +27,8 @@ export interface StatusChipProps {
   readonly placement: StatusChipPlacement;
   /** A line under the value, such as the season under the date. */
   readonly secondary?: ReactNode;
+  /** A control under everything else, such as the phone sheet's full-width Fan base button. */
+  readonly action?: ReactNode;
   readonly className?: string;
   readonly testId?: string;
   readonly children: ReactNode;
@@ -37,6 +42,7 @@ export function StatusChip({
   label,
   placement,
   secondary,
+  action,
   className,
   testId,
   children,
@@ -49,6 +55,7 @@ export function StatusChip({
       <span className={styles['chipLabel']}>{label}</span>
       <span className={styles['chipValue']}>{children}</span>
       {secondary !== undefined && <span className={styles['chipSecondary']}>{secondary}</span>}
+      {action !== undefined && <span className={styles['chipAction']}>{action}</span>}
     </div>
   );
 }
@@ -124,23 +131,76 @@ function CashChip({ promotion, placement }: PromotionChipProps) {
   );
 }
 
-function PopularityChip({ promotion, placement }: PromotionChipProps) {
+interface PopularityChipProps extends PromotionChipProps {
+  /** Opens the top bar's Fan base sheet; left out, the chip opens a sheet of its own. */
+  readonly openFanBase: (() => void) | undefined;
+}
+
+/** The label of the bar's Fan base button. */
+export const OPEN_FAN_BASE_LABEL = 'Open fan base';
+
+/**
+ * The headline popularity (DAY2-02) with its stored Why? and a Fan base button that opens the
+ * drill-down sheet; prestige under it. A world with no headline yet (made before DAY2, until its
+ * first Monday) keeps today's home-region value and the Why? built on the spot, with no button.
+ */
+function PopularityChip({ promotion, placement, openFanBase }: PopularityChipProps) {
   const { popularity } = promotion;
+  const [ownSheetOpen, setOwnSheetOpen] = useState(false);
+  const hasHeadline = popularity.headline !== null;
+  const open =
+    openFanBase ??
+    (() => {
+      setOwnSheetOpen(true);
+    });
+
+  const value = (
+    <Explained
+      value={popularity.headline ?? popularity.homeRegion}
+      label={popularity.headlineLabel ?? 'Popularity in your home region'}
+      traceRef={popularity.traceRef}
+      trace={popularity.traceRef === null ? popularity.trace : null}
+    />
+  );
+
   return (
     <StatusChip
       label="Popularity"
       placement={placement}
       testId="popularity-chip"
       secondary={`Prestige ${formatNumber(popularity.prestige)}`}
+      {...(hasHeadline && placement === 'sheet'
+        ? {
+            action: (
+              <Button
+                variant="secondary"
+                size="sm"
+                iconStart="map"
+                className={styles['fanBaseButton']}
+                onClick={open}
+              >
+                Fan base
+              </Button>
+            ),
+          }
+        : {})}
     >
-      {/* The headline popularity and its stored Why? (DAY2-02); a world without one yet keeps
-          the home-region value and the Why? built on the spot. */}
-      <Explained
-        value={popularity.headline ?? popularity.homeRegion}
-        label={popularity.headlineLabel ?? 'Popularity in your home region'}
-        traceRef={popularity.traceRef}
-        trace={popularity.traceRef === null ? popularity.trace : null}
-      />
+      {hasHeadline && placement === 'bar' ? (
+        <span className={styles['popularityLine']}>
+          {value}
+          <IconButton icon="map" size="sm" label={OPEN_FAN_BASE_LABEL} onClick={open} />
+        </span>
+      ) : (
+        value
+      )}
+      {hasHeadline && openFanBase === undefined && (
+        <FanBaseSheet
+          open={ownSheetOpen}
+          onClose={() => {
+            setOwnSheetOpen(false);
+          }}
+        />
+      )}
     </StatusChip>
   );
 }
@@ -166,9 +226,13 @@ export const BUILT_IN_STATUS_CHIPS: readonly StatusChipDefinition[] = [
   {
     id: 'shell.popularity',
     order: 20,
-    render: ({ status, placement }: StatusChipContext) =>
+    render: ({ status, placement, openFanBase }: StatusChipContext) =>
       status.promotion === null ? null : (
-        <PopularityChip promotion={status.promotion} placement={placement} />
+        <PopularityChip
+          promotion={status.promotion}
+          placement={placement}
+          openFanBase={openFanBase}
+        />
       ),
   },
 ];
@@ -179,6 +243,11 @@ export interface StatusChipsProps {
   readonly placement: StatusChipPlacement;
   /** Shown beside the date, such as the autosave's "Saving…". */
   readonly dateTrailing?: ReactNode;
+  /**
+   * Opens the one Fan base sheet the top bar keeps. Left out (tests, the gallery), the popularity
+   * chip opens a sheet of its own.
+   */
+  readonly onOpenFanBase?: () => void;
 }
 
 /**
@@ -186,10 +255,14 @@ export interface StatusChipsProps {
  * (each with its Why? when the engine has a breakdown), then any chips other systems registered
  * through `registerStatusChip`. Chips with nothing to show (no promotion) are left out.
  */
-export function StatusChips({ status, placement, dateTrailing }: StatusChipsProps) {
+export function StatusChips({ status, placement, dateTrailing, onOpenFanBase }: StatusChipsProps) {
   const registered = useRegisteredStatusChips();
   const chips = orderStatusChips([...BUILT_IN_STATUS_CHIPS, ...registered]);
-  const context: StatusChipContext = { status, placement };
+  const context: StatusChipContext = {
+    status,
+    placement,
+    ...(onOpenFanBase === undefined ? {} : { openFanBase: onOpenFanBase }),
+  };
 
   return (
     <div

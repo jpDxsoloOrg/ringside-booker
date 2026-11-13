@@ -374,7 +374,8 @@ that is taken and returns a function that removes the panel again.
 | 90+   | News and social          |
 
 Registered so far: **World clock** (side, 10) and **World overview** (main, 20, seats with no
-promotion only), both in `screens/office/panels/`.
+promotion only), both in `screens/office/panels/`. A panel that wants the Fan base sheet calls the context's
+`openFanBase(promotionId)` (the world overview does, once per row) instead of drawing a sheet.
 
 ## The shell's look
 
@@ -455,6 +456,22 @@ and links to their results (see [Show results](#show-results)).
 - **Status chips** come from `status/StatusChips.tsx`. Another system adds one with
   `registerStatusChip({ id, order, render })` (`status/statusChipRegistry.ts`) instead of editing
   the shell. Profile tabs work the same way: see [Adding a profile tab](#adding-a-profile-tab).
+- **The popularity chip** shows the headline popularity (`sim.status.promotion.popularity.headline`,
+  docs/design/office.md#headline-popularity) with its stored Why?, prestige under it, and a map
+  button ("Open fan base") that opens the **Fan base sheet** (`status/FanBaseSheet.tsx`). In the
+  phone's status sheet the button is a full-width "Fan base" row; the top bar keeps the one sheet,
+  opens it while the status sheet is still there and then closes the status sheet, so sheets never
+  stack and focus goes back to the date button (`data-return-focus-to`). A world with no headline
+  yet (made before DAY2, until its first Monday) keeps the home-region value with the Why? built on
+  the spot and no button. The sheet asks `office.fanBase`, `office.series` and `tunables.list` only
+  while open; the Office's Popularity card and the world overview rows open the same sheet (one
+  per screen, state in the screen). See docs/design/office.md#fan-base.
+- **Fan base columns.** Another feature adds a figure to every region row of the Fan base sheet
+  with `registerFanBaseColumn({ id, label, render: (regionId, { promotionId }) => node })`
+  (`status/fanBaseColumnRegistry.ts`, exported from `status/index.ts`); `render` returning null
+  shows nothing on that row. The sheet hands the columns to `PopularityDrilldown` through its
+  `regionExtras` prop, so neither changes when a column arrives. EVT5-04's "This month" is the
+  expected first user.
 
 ## Rules
 
