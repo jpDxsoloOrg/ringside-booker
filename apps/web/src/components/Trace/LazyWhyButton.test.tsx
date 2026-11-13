@@ -3,13 +3,14 @@ import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { parseId } from '@ringside/engine';
-import type { PersonId } from '@ringside/engine';
+import type { EmploymentId, PersonId } from '@ringside/engine';
 import { tinyWorld } from '@ringside/engine/testing';
 import { EngineProvider } from '@/app/engine/EngineProvider';
 import { createInProcessTransport } from '@/app/engine/transport';
 import { attendanceTrace } from '@/screens/dev-gallery/fixtures/traces';
 import { fakeEngineFactory, fakeEngineState } from '@/test/fakeEngine';
 import { LazyWhyButton } from './LazyWhyButton';
+import { NO_BREAKDOWN_TEXT } from './TracePanel';
 import { useTracePanelStore } from './tracePanelStore';
 import { WhyButton } from './WhyButton';
 
@@ -33,7 +34,14 @@ function engineWrapper() {
   function EngineWrapper({ children }: { children: ReactNode }) {
     return <EngineProvider createTransport={() => transport}>{children}</EngineProvider>;
   }
-  return { Wrapper: EngineWrapper, asked };
+  /** The first contract on the seat's roster. */
+  const firstContract = async (): Promise<EmploymentId> => {
+    const answer = await runQuery('roster.rows', {});
+    const row = answer.result.ok ? answer.result.data.rows[0] : undefined;
+    if (row === undefined) throw new Error('The tiny world has no roster.');
+    return row.employmentId;
+  };
+  return { Wrapper: EngineWrapper, asked, firstContract };
 }
 
 afterEach(() => {
@@ -90,6 +98,47 @@ describe('LazyWhyButton', () => {
     await user.click(screen.getByRole('button', { name: 'Why is Overall 50?' }));
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent('The breakdown could not be loaded. No such worker');
+  });
+
+  it('explains a roster number, built on demand', async () => {
+    const user = userEvent.setup({ delay: null });
+    const { Wrapper, asked, firstContract } = engineWrapper();
+    const employmentId = await firstContract();
+    asked.length = 0;
+    render(
+      <Wrapper>
+        <LazyWhyButton
+          label="Popularity"
+          value={12}
+          queryName="roster.explain"
+          args={{ employmentId, metric: 'popularity' }}
+        />
+      </Wrapper>,
+    );
+    expect(asked).toEqual([]);
+    await user.click(screen.getByRole('button', { name: 'Why is Popularity 12?' }));
+    const dialog = screen.getByRole('dialog', { name: 'Popularity' });
+    expect(await within(dialog).findByRole('tree')).toBeInTheDocument();
+    expect(asked).toEqual(['roster.explain']);
+  });
+
+  it('says there is no breakdown when the query answers null', async () => {
+    const user = userEvent.setup({ delay: null });
+    const { Wrapper } = engineWrapper();
+    render(
+      <Wrapper>
+        <LazyWhyButton
+          label="Expects"
+          value="Mid card"
+          queryName="roster.explain"
+          args={{ employmentId: parseId('employment', 'emp_zzzzzzzzzz'), metric: 'pushGap' }}
+        />
+      </Wrapper>,
+    );
+    await user.click(screen.getByRole('button', { name: 'Why is Expects Mid card?' }));
+    const dialog = screen.getByRole('dialog', { name: 'Expects' });
+    expect(await within(dialog).findByText(NO_BREAKDOWN_TEXT)).toBeInTheDocument();
+    expect(within(dialog).queryByRole('alert')).toBeNull();
   });
 
   it('shares the one open panel with WhyButton', async () => {

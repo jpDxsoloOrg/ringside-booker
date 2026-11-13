@@ -250,3 +250,24 @@ is not built, a push change moves nothing but the push.
 
 Like every command it is refused with `busy` while days are advancing, and
 every attempt (applied, refused or failed) is in the [command log](engine-api.md#the-command-log).
+
+### On the Roster screen
+
+The screen sends `roster.setPush` two ways (`apps/web/src/screens/roster/`):
+
+- **One wrestler**, from the row's menu (desktop): Set push… opens a side sheet
+  with the five card positions, their current push picked and "Current" and
+  "Expects" beside the matching options. Apply sends the change straight away,
+  since a push is one click to undo; a refusal shows inside the sheet.
+- **Several**, by ticking rows on the Wrestlers tab (crew have no push, so
+  their tabs have no checkboxes): a bar above the table, or a sticky bar above
+  the tab bar on a phone, opens the same sheet with how many are already at
+  each position. Apply asks first ("Set 3 wrestlers to Lower card?", listing
+  up to ten moves), then sends one command for all of them; a refusal keeps
+  the dialog open with the engine's words and changes no row. One ticked card
+  on a phone goes straight through, like the row menu.
+
+Ticks clear when the tab or the brand changes. While days are advancing the
+Set push… entries are disabled and say "Wait for the day to finish". Later
+row actions (turns, brand moves, releases) append to `rosterRowActions` in
+`rosterColumns.tsx`; WRK8's reaction preview goes in the sheet's `extra` slot.

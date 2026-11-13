@@ -18,6 +18,8 @@ import './events';
 import './streams';
 import './setup';
 import './decisionKinds';
+// AIP1-05: the weekly roster review registers itself as a job on import.
+import './jobs/rosterReview';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
 import { aipPhases } from './phases';
 
@@ -69,6 +71,11 @@ export {
   runTurnsPhase,
 } from './phases';
 import { aipRulesQuery } from './queries/rules';
+import { aipDecisionLogQuery } from './queries/decisionLog';
+import { aipNeedsQuery } from './queries/needs';
+import { promotionProfileQuery } from './queries/promotionProfile';
+import { promotionRosterQuery } from './queries/promotionRoster';
+import { promotionsListQuery } from './queries/promotionsList';
 
 // Rival rules shortcuts and viewer redaction (AIP1-02).
 export {
@@ -149,8 +156,81 @@ export {
   type NeedsWrestler,
 } from './formulas/needs';
 
+// AIP1-05: the roster rule and formula inputs, the reveal rule, the weekly roster review and the
+// Promotions queries.
+export {
+  cardValueInputsFor,
+  deciderBrandOf,
+  employmentAt,
+  holderNamesOf,
+  needsInputsFor,
+  openReignOf,
+  unitNameOf,
+  unitRoster,
+  unitTitles,
+  type CardValueShared,
+  type RosterUnit,
+} from './inputs';
+export { unitOf } from './units';
+export { isRevealedTo } from './reveal';
+export {
+  ROSTER_REVIEW_JOB_ID,
+  ROSTER_REVIEW_SUMMARY_KEY,
+  rosterReviewSummary,
+  rosterReviewSummaryText,
+  runRosterReview,
+} from './jobs/rosterReview';
+export {
+  promotionsListQuery,
+  type PromotionChampion,
+  type PromotionListRow,
+} from './queries/promotionsList';
+export {
+  promotionProfileQuery,
+  SHOWS_PER_MONTH_DAYS,
+  showDatesAhead,
+  type PromotionProfile,
+  type PromotionProfileArgs,
+  type PromotionProfileBrand,
+  type PromotionProfileShortcut,
+  type PromotionProfileShow,
+} from './queries/promotionProfile';
+export {
+  promotionRosterQuery,
+  type PromotionRoster,
+  type PromotionRosterArgs,
+  type PromotionRosterRow,
+  type PromotionRosterTasteAxis,
+} from './queries/promotionRoster';
+export { aipNeedsQuery, type AipNeeds, type AipNeedsArgs, type AipNeedView } from './queries/needs';
+export {
+  aipDecisionLogQuery,
+  DECISION_NOT_FOUND,
+  decisionSummaryText,
+  DEFAULT_DECISION_LOG_LIMIT,
+  MAX_DECISION_LOG_LIMIT,
+  type AipDecisionLog,
+  type AipDecisionLogArgs,
+  type AipDecisionLogEntry,
+  type AipDecisionLogKind,
+} from './queries/decisionLog';
+export {
+  BRAND_NOT_FOUND,
+  PROMOTION_NOT_FOUND,
+  type ChampionLine,
+  type ControlledBy,
+  type PlaceRef,
+} from './queries/shared';
+
 export const aipSystem: SystemBundle = defineSystem({
   id: 'aip',
   phases: aipPhases,
-  queries: [aipRulesQuery],
+  queries: [
+    aipRulesQuery,
+    promotionsListQuery,
+    promotionProfileQuery,
+    promotionRosterQuery,
+    aipNeedsQuery,
+    aipDecisionLogQuery,
+  ],
 });

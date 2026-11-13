@@ -1,6 +1,7 @@
 import { cents, parseGameDate } from '@ringside/engine';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
+  formatDaysAway,
   formatDaysBetween,
   formatGameDate,
   formatMoney,
@@ -205,6 +206,17 @@ describe('formatDaysBetween', () => {
     ['2032-03-10', 'in 366 days'],
   ])('describes %s as %s', (target, expected) => {
     expect(formatDaysBetween(today, parseGameDate(target))).toBe(expected);
+  });
+});
+
+describe('formatDaysAway', () => {
+  it.each([
+    [0, 'today'],
+    [1, 'tomorrow'],
+    [45, 'in 45 days'],
+    [-3, '3 days ago'],
+  ])('describes %i days as %s', (days, expected) => {
+    expect(formatDaysAway(days)).toBe(expected);
   });
 });
 

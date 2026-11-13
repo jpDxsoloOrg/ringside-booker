@@ -1,0 +1,109 @@
+/*
+ * The roster's push change: the bulk bar over the table (a sticky bottom bar on a phone), the Set
+ * push sheet's body and the confirm's list of changes.
+ */
+
+/* ---------------------------------------------------------------- bulk bar */
+
+/* The bulk bar and the table. On a phone the bar comes last and sticks while the cards scroll. */
+.tableStack {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.bulkBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+  min-inline-size: 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface-raised);
+}
+
+.bulkCount {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-3);
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  font-variant-numeric: var(--font-feature-tabular);
+}
+
+.bulkWait {
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-regular);
+}
+
+.bulkActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+@media (--bp-mobile) {
+  /*
+   * The phone bar rides above the tab bar (and the ticker, when it runs) while the cards scroll
+   * under it, so Set push… stays in reach however far down the ticked cards are. It sits above the
+   * cards' own controls (z-index 1).
+   */
+  .bulkBarPhone {
+    position: sticky;
+    inset-block-end: var(--shell-bottom-chrome, var(--safe-bottom));
+    z-index: 2;
+    flex-wrap: nowrap;
+    padding: var(--space-2);
+    box-shadow: var(--shadow-2);
+  }
+
+  .bulkBarPhone .bulkActions {
+    flex-wrap: nowrap;
+  }
+
+  .bulkBarPhone button {
+    min-block-size: var(--tap-target-min);
+  }
+}
+
+/* ---------------------------------------------------------------- sheet and confirm */
+
+.sheetBody {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.note {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.refusal {
+  display: grid;
+  gap: var(--space-1);
+  color: var(--color-negative);
+  font-size: var(--font-size-sm);
+}
+
+.refusal > p {
+  margin: 0;
+}
+
+.changes {
+  display: grid;
+  gap: var(--space-1);
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--font-size-sm);
+}
+
+.more {
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}

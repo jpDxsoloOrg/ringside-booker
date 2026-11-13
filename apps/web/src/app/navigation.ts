@@ -6,6 +6,7 @@ import { CalendarScreen } from '@/screens/calendar/CalendarScreen';
 import { FinancesScreen } from '@/screens/finances/FinancesScreen';
 import { MatchLabScreen } from '@/screens/match-lab/MatchLabScreen';
 import { OfficeScreen } from '@/screens/office/OfficeScreen';
+import { RosterScreen } from '@/screens/roster/RosterScreen';
 import { WorkersScreen } from '@/screens/workers/WorkersScreen';
 import { routes } from './routes';
 
@@ -143,7 +144,8 @@ export const navigationSections: readonly NavSection[] = [
         icon: 'roster',
         to: routes.game.roster(),
         mobilePrimary: 2,
-        status: 'placeholder',
+        status: 'live',
+        screen: RosterScreen,
       },
       {
         id: 'booking',

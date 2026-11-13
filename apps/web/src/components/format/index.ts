@@ -1,4 +1,5 @@
 export {
+  formatDaysAway,
   formatDaysBetween,
   formatGameDate,
   formatMoney,

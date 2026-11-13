@@ -1,20 +1,31 @@
 import { useId } from 'react';
+import { CountBadge } from '@/components/Badge';
 import { Stack } from '@/components/layout';
 import { Tab, TabList, TabPanel, Tabs } from '@/components/Tabs';
 import type { TabsActivation } from '@/components/Tabs';
 import styles from './InteractiveDemos.module.css';
 
-/** Eight tabs: more than a 390px phone strip can show, so the strip has to scroll. */
-const DEMO_TABS = [
+interface DemoTab {
+  readonly value: string;
+  readonly label: string;
+  /** A count beside the label, as the roster's tabs show. */
+  readonly count?: number;
+}
+
+/**
+ * Eight tabs: more than a 390px phone strip can show, so the strip has to scroll. Some carry a
+ * count, so the gallery spec can check a count in a scrolled-away tab never widens the page.
+ */
+const DEMO_TABS: readonly DemoTab[] = [
   { value: 'overview', label: 'Overview' },
-  { value: 'roster', label: 'Roster' },
-  { value: 'titles', label: 'Titles' },
+  { value: 'roster', label: 'Roster', count: 55 },
+  { value: 'titles', label: 'Titles', count: 4 },
   { value: 'storylines', label: 'Storylines' },
   { value: 'schedule', label: 'Schedule' },
   { value: 'finances', label: 'Finances' },
-  { value: 'contracts', label: 'Contracts' },
-  { value: 'history', label: 'History' },
-] as const;
+  { value: 'contracts', label: 'Contracts', count: 12 },
+  { value: 'history', label: 'History', count: 0 },
+];
 
 interface TabsExampleProps {
   readonly activation: TabsActivation;
@@ -35,6 +46,16 @@ function TabsExample({ activation, heading, description }: TabsExampleProps) {
           {DEMO_TABS.map((tab) => (
             <Tab key={tab.value} value={tab.value}>
               {tab.label}
+              {tab.count !== undefined && (
+                <CountBadge
+                  count={tab.count}
+                  showZero
+                  tone="neutral"
+                  variant="soft"
+                  label={`(${String(tab.count)})`}
+                  className={styles['tabCount']}
+                />
+              )}
             </Tab>
           ))}
         </TabList>

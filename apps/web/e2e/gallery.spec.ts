@@ -480,6 +480,21 @@ test.describe('component gallery', () => {
     await expectNoHorizontalScroll(page);
   });
 
+  test('a count in a tab scrolled out of view never widens a 360px page', async ({
+    page,
+  }, testInfo) => {
+    test.skip(!isPhone(testInfo), 'Only a phone strip scrolls.');
+    await page.setViewportSize({ width: 360, height: 780 });
+    await gotoEntry(page, 'tabs', 'Tabs');
+
+    // History sits past the strip's right edge, with its count's screen-reader text inside it.
+    const strip = page.locator(`${ENTRY_PANEL} [role="tablist"]`).first();
+    const lastTab = strip.getByRole('tab', { name: 'History (0)' });
+    await expect(lastTab).toBeAttached();
+    await expect(lastTab).not.toBeInViewport();
+    await expectNoHorizontalScroll(page);
+  });
+
   test('manual tabs move focus with the arrows and select on Enter', async ({ page }) => {
     await gotoEntry(page, 'tabs', 'Tabs');
     const strip = page.locator('[data-tabs-demo="manual"] [role="tablist"]');

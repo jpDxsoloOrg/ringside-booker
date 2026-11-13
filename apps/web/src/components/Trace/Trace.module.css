@@ -204,6 +204,11 @@
   color: var(--color-negative);
 }
 
+.noBreakdown {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
 .summaryDate {
   margin: 0;
   font-size: var(--font-size-sm);
