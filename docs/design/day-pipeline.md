@@ -431,6 +431,53 @@ days:
   never throws; it shows up in `failures` and, if it keeps failing, in the
   `sim.repeatedFailure` gate.
 
+### Fast paths
+
+A long skip spends most of its time on rival show nights, and most of that on
+work only the player sees: traces a Why? might open, region previews and
+roll-ups of every country on the map. The fast paths (POL4-09) skip or shorten
+that work **only where the result is identical**: the same world, the same
+stored traces, the same RNG and the same save, byte for byte. Code:
+`packages/engine/src/core/fastPaths.ts`.
+
+| Fast path                       | Where                                                | What it skips                                                                                                                                                                      |
+| ------------------------------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Aftermath without region detail | `applySegmentAftermath` (show night's MTCH3 applier) | The per-region preview and the country and continent roll-ups of each competitor's change. The applier stores none of them; the popularity door works the regions out as it writes |
+| Summary-only record check       | `TraceStaging.record` with `summaryOnly`             | Validating every node of a tree that is kept only as a summary: the tree is fitted into the size limits as before, then only its root and direct steps are checked                 |
+| One-walk record check           | `TraceStaging.record`                                | `assertJsonValue` plus the load schema's zod parse: `copyValidTraceContent` builds the same copy in one walk, or returns null and the full check runs (and throws) as before       |
+| Headline and reach roll-ups     | `headlinePopularityOf` (office), `reachOf` (finance) | Rolling up every country and continent to read the home country, the home continent and the world (`popularityRollupPart`)                                                         |
+| Card values without traces      | `buildCardPool` (rival booker)                       | The card value trace of every worker for every show: `cardValueNumber` does the same steps in the same order. A Why? that shows a card value builds it with `cardValue`            |
+
+**Proof.** `setFastPaths(false)` turns them all off, so the engine takes the
+full path everywhere. `test/core/fastPaths.test.ts` runs a month of the roster
+fixture (every show a rival card) both ways in `npm test` and compares the
+tables that carry world effects (popularity, momentum, injuries and fatigue on
+`people` and `employments`, titles and reigns, results, money, aftermaths,
+decisions), the trace store, the RNG and the world hash; with
+`RB_SLOW_TESTS=1` it does the same for 120 days of the default world.
+`fastCopy.test.ts` holds the one-walk check to the schema, and the
+`cardValue` sweep holds `cardValueNumber` to the traced value to the bit. A
+new fast path must read `fastPathsEnabled()` and keep both tests passing; if
+it cannot keep the world identical it does not belong here.
+
+**Measured** (365 days, default world, `withMyShowsRun`, dev machine under
+other load, wall / CPU, 2026-11):
+
+| Setup                  | Before POL4-09 (AIP5) | After POL4-09   |
+| ---------------------- | --------------------- | --------------- |
+| No rival cards added   | 22.0 s / 31.6 s       | 9.0 s / 13.8 s  |
+| Every show carded      | 28.6 s / 40.1 s       | 11.5 s / 16.9 s |
+| Roster fixture (`sim`) | 2.4 s                 | 1.2 s           |
+
+Where a year went before (CPU profile, no rival cards added, about 25 s
+sampled): show night 11.1 s, of which the aftermath applier 9.1 s (the
+roll-ups alone 5.4 s); recording traces 4.7 s (3.5 s validating them);
+reactions to `popularity.changed` 2.5 s (the office's headline Why?, a full
+roll-up each time); rival planning and booking 2.0 s; garbage collection
+4.6 s. On the roster fixture planning was most of the run, about 12 ms a
+show, two thirds of it card value traces. Save sizes did not change (1.15 MB
+and 1.46 MB on disk).
+
 ## Calendar
 
 Code: `packages/engine/src/core/calendar/`. Tests:

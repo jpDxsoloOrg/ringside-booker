@@ -37,17 +37,17 @@ One contract per person, the lowest ID.
 
 **Per person** (`CardCandidate`):
 
-| Field           | Rule                                                                                                                            |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `cardValue`     | The rival desk's traced card value at the promotion ([card value](rival-desk.md#card-value)), with the contract's taste         |
-| `availability`  | WRK1's `availabilityOf` on the show's date ([workers.md](workers.md#availability))                                              |
-| `canWrestle`    | Available, holds a wrestling role and is under contract as a wrestler                                                           |
-| `canTalk`       | Available, or out but still able to do talking segments (`canWorkAngles`)                                                       |
-| `restedEnough`  | Fatigue at or below `aip.card.maxFatigue`                                                                                       |
-| `contractBlock` | `appearanceCap` when this year's appearances have reached the cap; `noHouseShows` on a house show for a contract with that perk |
-| `teamIds`       | The pool's teams the person is in                                                                                               |
-| `championOf`    | The pool's titles the person holds now (their open reign)                                                                       |
-| `talkValue`     | The mean of mic and charisma, traced                                                                                            |
+| Field           | Rule                                                                                                                                                                                                                                                                                                                    |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cardValue`     | The rival desk's card value at the promotion ([card value](rival-desk.md#card-value)), with the contract's taste. Worked out without its trace (`cardValueNumber`, same number to the bit; [fast paths](day-pipeline.md#fast-paths)): the trace is a single input line, and a Why? builds the full one with `cardValue` |
+| `availability`  | WRK1's `availabilityOf` on the show's date ([workers.md](workers.md#availability))                                                                                                                                                                                                                                      |
+| `canWrestle`    | Available, holds a wrestling role and is under contract as a wrestler                                                                                                                                                                                                                                                   |
+| `canTalk`       | Available, or out but still able to do talking segments (`canWorkAngles`)                                                                                                                                                                                                                                               |
+| `restedEnough`  | Fatigue at or below `aip.card.maxFatigue`                                                                                                                                                                                                                                                                               |
+| `contractBlock` | `appearanceCap` when this year's appearances have reached the cap; `noHouseShows` on a house show for a contract with that perk                                                                                                                                                                                         |
+| `teamIds`       | The pool's teams the person is in                                                                                                                                                                                                                                                                                       |
+| `championOf`    | The pool's titles the person holds now (their open reign)                                                                                                                                                                                                                                                               |
+| `talkValue`     | The mean of mic and charisma, traced                                                                                                                                                                                                                                                                                    |
 
 Someone who can neither wrestle nor talk is not a candidate. Tired and
 contract-blocked people stay in the pool as a last resort, with their flags
@@ -1164,7 +1164,7 @@ own registries, never through the planner's ordering or validation code.
 | MTCH5 (angle beats)           | wires from its own pack | No beat catalog or `angleTemplatesFor` on `main`; `buildTalkSegment` keeps its default beat.                                                                                                                                                                                        |
 | ECO11 (territories)           | wires from its own pack | No development assignments on `main`; no `registerCardPoolSource` seam was added.                                                                                                                                                                                                   |
 | MP3 / MP5 (multiplayer)       | wires from its own pack | No server package or auto-ready on `main`. A promotion whose controller turns `computer` is booked by `aip.bookShow` with no extra code.                                                                                                                                            |
-| POL4 (performance budgets)    | wires from its own pack | POL4-06/07 (save size budget, slow-suite split) are on `main`, but there is no long-skip benchmark with a per-day budget to add `aip.bookShow` to.                                                                                                                                  |
+| POL4 (performance budgets)    | wired (POL4-09)         | Card values in the pool are worked out without traces, and rival show nights take the engine's [fast paths](day-pipeline.md#fast-paths); a year of the default world skips in about 9 s (was about 22 s).                                                                           |
 
 ## How a rival show's results are decided
 
