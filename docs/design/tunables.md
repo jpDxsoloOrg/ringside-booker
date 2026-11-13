@@ -405,21 +405,21 @@ See [match-finishes.md](match-finishes.md#finish-effects) for what each does.
 The auto-winner and Random winners (MTCH2-03) add to the same category. See
 [match-finishes.md](match-finishes.md#auto-winner).
 
-| Key                                  | Kind   | Default | Range  | Unit       | What it does                                                        |
-| ------------------------------------ | ------ | ------- | ------ | ---------- | ------------------------------------------------------------------- |
-| `match.autoWinner.popularityWeight`  | number | 0.6     | 0–3    | multiplier | Points per point of a side's mean popularity in the show's region   |
-| `match.autoWinner.momentumWeight`    | number | 0.15    | 0–1    | multiplier | Points per point of a side's mean momentum                          |
-| `match.autoWinner.push.mainEvent`    | number | 30      | 0–100  | points     | Points for a main eventer                                           |
-| `match.autoWinner.push.upperCard`    | number | 22      | 0–100  | points     | Points for an upper-card worker                                     |
-| `match.autoWinner.push.midCard`      | number | 14      | 0–100  | points     | Points for a mid-card worker                                        |
-| `match.autoWinner.push.lowerCard`    | number | 7       | 0–100  | points     | Points for a lower-card worker                                      |
-| `match.autoWinner.push.enhancement`  | number | 0       | 0–100  | points     | Points for enhancement talent                                       |
-| `match.autoWinner.push.none`         | number | 0       | 0–100  | points     | Points for someone with no push (or not employed here)              |
-| `match.autoWinner.alignment.face`    | number | 2       | −20–20 | points     | Points for a face                                                   |
-| `match.autoWinner.alignment.heel`    | number | 0       | −20–20 | points     | Points for a heel                                                   |
-| `match.autoWinner.alignment.tweener` | number | 1       | −20–20 | points     | Points for a tweener                                                |
-| `match.autoWinner.randomness`        | number | 5       | 0–200  | points     | Most unpredictability per side; 0 = always the same winner          |
-| `match.randomWinners.randomness`     | number | 60      | 1–1000 | points     | Unused since MTCH2-08: Random winners is a coin flip; never below 1 |
+| Key                                  | Kind   | Default | Range  | Unit       | What it does                                                         |
+| ------------------------------------ | ------ | ------- | ------ | ---------- | -------------------------------------------------------------------- |
+| `match.autoWinner.popularityWeight`  | number | 0.6     | 0–3    | multiplier | Points per point of a side's mean popularity in the show's region    |
+| `match.autoWinner.momentumWeight`    | number | 0.15    | 0–1    | multiplier | Points per point of a side's mean momentum                           |
+| `match.autoWinner.push.mainEvent`    | number | 30      | 0–100  | points     | Points for a main eventer                                            |
+| `match.autoWinner.push.upperCard`    | number | 22      | 0–100  | points     | Points for an upper-card worker                                      |
+| `match.autoWinner.push.midCard`      | number | 14      | 0–100  | points     | Points for a mid-card worker                                         |
+| `match.autoWinner.push.lowerCard`    | number | 7       | 0–100  | points     | Points for a lower-card worker                                       |
+| `match.autoWinner.push.enhancement`  | number | 0       | 0–100  | points     | Points for enhancement talent                                        |
+| `match.autoWinner.push.none`         | number | 0       | 0–100  | points     | Points for someone with no push (or not employed here)               |
+| `match.autoWinner.alignment.face`    | number | 2       | −20–20 | points     | Points for a face                                                    |
+| `match.autoWinner.alignment.heel`    | number | 0       | −20–20 | points     | Points for a heel                                                    |
+| `match.autoWinner.alignment.tweener` | number | 1       | −20–20 | points     | Points for a tweener                                                 |
+| `match.autoWinner.randomness`        | number | 5       | 0–200  | points     | Most unpredictability per side; 0 = always the same winner           |
+| `match.randomWinners.randomness`     | number | 60      | 1–1000 | points     | Unused since MTCH2-08 (Random winners is a coin flip); never below 1 |
 
 ### Aftermath momentum tunables
 
