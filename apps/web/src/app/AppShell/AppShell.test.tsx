@@ -2,6 +2,9 @@ import { act, render, screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { EngineProvider } from '@/app/engine/EngineProvider';
+import { createInProcessTransport } from '@/app/engine/transport';
+import { fakeEngineFactory } from '@/test/fakeEngine';
 import { BP_MOBILE_QUERY } from '@/styles/breakpoints';
 import { setMatchMedia } from '@/test/matchMedia';
 import { LiveAnnouncer, useAnnounce } from '../a11y/LiveAnnouncer';
@@ -17,7 +20,12 @@ function renderApp(path: string): AppRouter {
     initialEntries: [path],
     future: routerFutureFlags,
   });
-  render(<RouterProvider router={router} future={routerProviderFutureFlags} />);
+  render(
+    // The Office reads the engine; with no world installed it says so instead of crashing.
+    <EngineProvider createTransport={() => createInProcessTransport(fakeEngineFactory())}>
+      <RouterProvider router={router} future={routerProviderFutureFlags} />
+    </EngineProvider>,
+  );
   return router;
 }
 

@@ -84,7 +84,26 @@
   color: var(--color-negative);
 }
 
+/*
+ * The delta chip and its own Why?, kept together. The chip keeps its whole text while it fits the
+ * card (only then does its note shorten), and the Why? drops under it rather than squeezing it.
+ */
+.deltaGroup {
+  display: inline-flex;
+  flex-wrap: wrap;
+  flex: 0 1 auto;
+  align-items: center;
+  gap: var(--space-1);
+  max-inline-size: 100%;
+  min-inline-size: 0;
+}
+
 .delta {
+  flex: none;
+  max-inline-size: 100%;
+}
+
+.deltaWhy {
   flex: none;
 }
 
@@ -139,5 +158,11 @@
 
   .value {
     font-size: var(--font-size-2xl);
+  }
+
+  /* A narrow 2-up card: the line takes its own row at full width, under the number and chip. */
+  .sparkline {
+    flex-basis: 100%;
+    max-inline-size: none;
   }
 }

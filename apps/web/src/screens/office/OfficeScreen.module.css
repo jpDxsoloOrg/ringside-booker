@@ -1,7 +1,7 @@
 /*
- * The placeholder office dashboard (docs/design/mockups/): a KPI row, then the "Up next" card in
- * the broadcast register beside the champions column, then the roster leaders. Phones stack it
- * all in one column; the kits handle their own phone layouts (2-up KPIs, swipe row, cards).
+ * The Office (docs/design/office.md#screen): the heading, the KPI row across the top, then a wide
+ * main column and a narrower side column of registered panels. Below --bp-mobile the KPI cards go
+ * 2-up (KpiCardGrid's own rule) and the panels become one column, ordered across both.
  */
 .screen {
   display: grid;
@@ -10,14 +10,6 @@
 }
 
 .header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-
-.headingGroup {
   display: grid;
   gap: var(--space-1);
   min-inline-size: 0;
@@ -34,104 +26,85 @@
 .subtitle {
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
+  overflow-wrap: break-word;
 }
 
-/* The placeholder notice: gold outline, so it reads as information and not an error. */
-.sampleNote {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--color-prestige);
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
+.loading {
+  color: var(--color-text-muted);
   font-size: var(--font-size-sm);
 }
 
-.sampleNoteIcon {
-  flex: none;
-  color: var(--color-prestige);
-}
-
 /*
- * The main column and the champions column share a row while there is room; when there is not,
- * the champions drop below at full width and their list spreads into a grid.
+ * The main column and the side column share a row while there is room; when there is not, the
+ * side column drops below at full width. A column with nothing in it takes no room.
  */
 .columns {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
   gap: var(--space-6);
+  min-inline-size: 0;
 }
 
-.mainColumn {
+.mainColumn,
+.sideColumn,
+.singleColumn {
   display: grid;
-  flex: 999 1 34rem;
   gap: var(--space-6);
   min-inline-size: 0;
 }
 
+.mainColumn {
+  flex: 999 1 34rem;
+}
+
 .sideColumn {
   flex: 1 1 20rem;
-  min-inline-size: 0;
 }
 
-.slots {
+.mainColumn:empty,
+.sideColumn:empty,
+.singleColumn:empty {
+  display: none;
+}
+
+/* With no main panels yet, the side column keeps its narrow width rather than spanning the page. */
+.mainColumn:empty + .sideColumn {
+  max-inline-size: 28rem;
+}
+
+/* Card-shaped placeholders while the first answer loads: no numbers, nothing invented. */
+.skeletonGrid {
   display: grid;
-  gap: var(--space-2);
-  margin: var(--space-4) 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.upNextFooter {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
   gap: var(--space-3);
 }
 
-.projection {
-  color: var(--color-text-muted);
-  font-family: var(--font-family-display);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+.skeletonCard {
+  display: grid;
+  gap: var(--space-3);
+  min-block-size: 7rem;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
 }
 
-.projectionValue {
-  color: var(--color-data);
-  font-variant-numeric: tabular-nums;
+.skeletonLine,
+.skeletonValue {
+  display: block;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-sunken);
 }
 
-/* "Manage card": the primary show action, skewed like the other broadcast actions. */
-.manageCard {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-block-size: var(--tap-target-min);
-  padding: var(--space-2) var(--space-5);
-  border: 1px solid var(--color-action-bright);
-  background: var(--color-action);
-  color: var(--color-action-contrast);
-  font-family: var(--font-family-display);
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-extrabold);
-  letter-spacing: 0.06em;
-  text-decoration: none;
-  text-transform: uppercase;
-  transition:
-    background-color var(--motion-fast) var(--easing-standard),
-    box-shadow var(--motion-fast) var(--easing-standard);
+.skeletonLine {
+  inline-size: 60%;
+  block-size: 0.75rem;
 }
 
-@media (hover: hover) {
-  .manageCard:hover {
-    background: var(--color-action-bright);
-    box-shadow: var(--glow-action);
-  }
+.skeletonValue {
+  inline-size: 40%;
+  block-size: 2rem;
 }
 
 @media (--bp-mobile) {
@@ -143,8 +116,12 @@
     font-size: var(--font-size-2xl);
   }
 
-  .manageCard {
-    justify-content: center;
-    inline-size: 100%;
+  .singleColumn {
+    gap: var(--space-5);
+  }
+
+  .skeletonGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2);
   }
 }

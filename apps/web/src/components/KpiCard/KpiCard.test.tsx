@@ -39,6 +39,32 @@ describe('KpiCard', () => {
     expect(chip).toHaveAttribute('data-tone', 'positive');
   });
 
+  it("draws the delta's own Why? right after the chip, inside the card", () => {
+    render(
+      <KpiCard
+        label="Popularity"
+        value="69.0"
+        delta={{
+          value: 0.8,
+          display: '+0.8',
+          suffix: 'vs last week',
+          why: <button type="button">Why? change in popularity</button>,
+        }}
+        why={<button type="button">Why? popularity</button>}
+      />,
+    );
+    const card = screen.getByRole('group', { name: 'Popularity' });
+    const chip = within(card).getByText('+0.8').parentElement;
+    const deltaWhy = within(card).getByRole('button', { name: 'Why? change in popularity' });
+    expect(chip?.nextElementSibling).toContainElement(deltaWhy);
+    // The reading order is number, change, the change's Why?, then the footer's Why?.
+    const buttons = within(card).getAllByRole('button');
+    expect(buttons.map((button) => button.textContent)).toEqual([
+      'Why? change in popularity',
+      'Why? popularity',
+    ]);
+  });
+
   it('names its sparkline after the card and the period', () => {
     render(
       <KpiCard

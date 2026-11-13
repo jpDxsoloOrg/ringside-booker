@@ -382,3 +382,41 @@ everything. Refusals, in this order:
 
 Later users: ECO2's prestige sparkline, ECO3's hype history, SOC3's morale
 trend, AIP5's hot-shot history, DAY4's rankings and POL2's balance charts.
+
+## Screen
+
+DAY2-04 turns `/game/office` (nav label "Dashboard") into the live Office. Code:
+`apps/web/src/screens/office/`. Every number on it comes from `office.dashboard` or from a
+registered panel's own query; nothing is invented and nothing says "coming soon".
+
+![The Office on desktop](screenshots/office-desktop.png)
+
+- **Heading**: "Dashboard", with "<promotion> · Week <n> of Season <s>" under it (the promotion
+  alone before the first season, "World overview" for a seat that runs none).
+- **Key numbers**: one `OfficeKpiCard` per `OfficeKpi`, in the engine's order. The number is
+  formatted by unit (money in the viewer's money style, so the Cash card always reads like the top
+  bar's cash chip; points to one decimal; counts whole), with its Why? when the KPI has a `trace`
+  or a `traceRef`. Once a week-old row exists the card has a delta chip ("−$333.9K vs last week")
+  with its own Why? ("Change in cash since Mon 1 Feb", naming both dates), drawn through
+  `KpiCard`'s `delta.why`. With two or more points the card draws the trend as a sparkline ("last 8
+  weeks"). A null value shows "–" with no Why?.
+- **Panels**: below the cards, a wide main column and a narrower side column of panels registered
+  with `registerOfficePanel` (see `apps/web/src/app/README.md#the-office`). Each sits in an
+  `OfficePanelFrame`, so a panel that throws shows "This panel couldn't load" (its id under
+  Details) and the rest of the Office keeps working; a panel with nothing to show takes no room.
+  DAY2's own panels: the **world clock** (side, order 10: the long date, "Day 41 of your game",
+  "Season 1 · week 6 · 141 days left" or "No season running", "Next weekly report: Monday 15
+  February") and the **world overview** (main, order 20, only for a seat with no promotion: every
+  promotion's logo, name, home country, popularity, prestige and roster, with "12 promotions · 228
+  wrestlers under contract · 35 free agents" above).
+- **Loading and refusals**: card-shaped placeholders without numbers while the first answer
+  loads; the engine's reason in an empty state when it refuses (a shell with no game loaded reads
+  "No game is loaded"). The query keeps its last answer while a new day is simulated, so the cards
+  never flash empty after Next Day.
+
+![The Office on a phone](screenshots/office-phone.png)
+
+On a phone (below `--bp-mobile`) the cards go 2-up, each sparkline takes its own full-width row
+under the number and chip, the delta's Why? drops under its chip rather than squeezing it, and the
+panels become one column in `order` across both columns. Every Why? is a 44px target and opens
+the breakdown as a bottom sheet. At 360px, 390px and at 150% UI scale nothing scrolls sideways.
