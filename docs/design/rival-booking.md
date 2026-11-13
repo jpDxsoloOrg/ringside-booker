@@ -15,8 +15,10 @@ Code: `packages/engine/src/systems/aip/card/`, inside the rival desk's `aip`
 bundle ([rival-desk.md](rival-desk.md)); there is no second system. AIP4-01
 lays the groundwork described here, all pure and read-only: the card pool, the
 card shape, the tunables and the random streams. Nothing runs in the day loop
-yet. AIP4-02 adds the title picture and the challengers. Later AIP4 tickets
-add the picking, talking segments and Auto-fill.
+yet. AIP4-02 adds the title picture and the challengers. AIP4-03 fills the
+rest of the card: storyline segments, filler matches, the fallback chain and
+talking segments. Later AIP4 tickets order and write the card, and add
+Auto-fill.
 
 ## Card pool
 
@@ -190,11 +192,14 @@ The trace reads "Usual gap between defences", "Booker's title taste (<n>)",
 
 ### Match type
 
-A title match uses the first non-hidden match type, by display order, that
-allows titles, two sides and the title's holder count per side (singles for a
-singles title, tag team for a tag title, trios for a trios title). The choice
-is a decision in the title's trace. When AIP4-03 adds match-type weights, the
-choice will follow them.
+A title match is rolled among the non-hidden match types that allow titles,
+have two equal sides and take the title's holder count per side (for a singles
+title: singles, endurance and sprint; a handicap match never holds a title).
+The weights are the filler matches' [match type weights](#match-types), with
+the people the match needs, the wrestlers still free and the free teams of the
+title's size. The roll comes after the challengers are picked and is a
+decision in the title's trace; when every weight is 0 the first type by
+display order is used.
 
 ## Challengers
 
@@ -240,6 +245,148 @@ meet, with no roll: "Vacant title: the two best eligible contenders meet".
 
 Who wins is not decided here; AIP5 owns winners and title changes.
 
+## Filling the card
+
+`fillCard(pool, { titles, matchSlots, talkSlots, talkRoom?, alreadyBooked? },
+{ read, tunables, rng })` (`card/fill.ts`) returns every segment a show gets
+tonight, in no order yet: AIP4-04 places them in slots and AIP4-05 writes them.
+It books, in this order:
+
+1. the title matches already decided by the [title picture](#title-picture),
+   as they are;
+2. [storyline segments](#storylines), each taking a match or a talking slot;
+3. a filler match for every match slot left. Its type is rolled with the
+   [match type weights](#match-types), then every place is filled through the
+   [fallback chain](#fallback-chain);
+4. a [talking segment](#talking-segments) for every talking slot.
+
+Each planned segment (`PlannedSegment`) has a stable `key` (`title:<id>`,
+`storyline:<id>`, `filler:<n>`, `talk:<n>`), its `source`, EVT2's draft (no
+stipulations, finish, crew or planned result yet; MTCH7, MTCH8 and AIP5 add
+those) and a decision labelled with the matchup ("Haruto Ise vs Daichi
+Kuroe"), whose value is the match or angle type and whose lines read like a
+booker's notes: where the slot came from, the type roll, each place's ranked
+candidates with card values and every fallback level tried. Slots nobody can
+fill come back in `open` with the reason; storylines left out come back in
+`skippedStorylines`.
+
+**What is never broken.** Nobody is in two matches on one card, nobody is over
+`booking.maxAppearancesPerShow`, nobody unavailable wrestles, and contract
+blocks (appearance cap used up, no house shows) are never relaxed. Every draft
+passes EVT2's `structuralProblems`.
+
+## Match types
+
+`matchTypeWeight` (`card/formulas/matchTypeWeight.ts`) weighs one match type
+for one slot. A type's family comes from its shape: two sides of one is
+one-on-one, two of two tag, two of three trios, a fixed three or more sides of
+one multi-way, anything else (a handicap match, a battle royal) other.
+
+```
+base        = aip.card.typeWeight.<family>
+poolFactor  = clamp(freeWrestlers ÷ (peopleNeeded × aip.card.poolComfort), 0, 1)
+              when freeWrestlers ≥ peopleNeeded, else 0
+tasteFactor = 1 for one-on-one, else 0.5 + riskAppetite ÷ 100
+teamFactor  = aip.card.noTeamFactor for tag and trios with fewer than two
+              free teams of that size, else 1
+weight      = base × poolFactor × tasteFactor × teamFactor
+```
+
+With exactly enough free wrestlers at the default comfort of 2 a type keeps
+half its weight; the trace says "Only 3 free wrestlers, needs 4" when it is
+short. A booker with a taste for risk books more unusual matches ("Booker's
+taste for unusual matches (70)"), but never moves one-on-one. A match needs
+the fewest sides its type allows, each of the smallest size (a handicap match
+puts one more on the last side).
+
+The filler roll leaves out types at weight 0 and types that would leave fewer
+than two free wrestlers for each match slot still to book ("Three-Way needs 3,
+leaving too few for the 2 matches still to book"), so a seven-person roster
+never gets a battle royal while other matches wait. When every type is left
+out, the slot falls back to a one-on-one type with the note "Every match type
+weighs 0 tonight: a one-on-one match".
+
+The weight is per type, so a family with several types (singles, endurance
+and sprint are all one-on-one) is picked that much more often than its base
+weight alone suggests.
+
+## Fallback chain
+
+`findWorker(pool, seat, rules, level)` (`card/fallback.ts`) lists who may take
+one place at one level, best card value first. The planner tries levels 1 to
+4 and stops at the first that finds anyone; each level tried is a rule line.
+The pick among the hits is a roll weighted by card value (at least 1), so the
+strongest free workers go first and the card stacks naturally.
+
+Never relaxed: the worker can wrestle tonight, has no contract block, is not
+in a match on this card or already in this one, is under
+`booking.maxAppearancesPerShow`, and is the match's gender unless
+`aip.card.mixedGender` is on (the first place sets the gender).
+
+1. Rested (fatigue at most `aip.card.maxFatigue`), the opposite alignment to
+   the other side where one is set (two-sided matches), outside any team (in a
+   one-on-one match), among the top `aip.card.pickWindow` free workers.
+2. Any alignment, team members too, still among the top `aip.card.pickWindow`.
+3. Anyone free on the roster.
+4. Tired workers too (still available), as a last resort.
+
+The window is taken after the never-relaxed rules, never before, so nobody
+fit is lost below a window full of people who can't work tonight.
+
+**Teams.** A side of two or three takes a free team of that size first: the
+pool's teams whose members are all free, rested and of one gender, ranked by
+mean card value, a weighted roll among the top `aip.card.pickWindow`. Only
+when no team fits are workers paired for tonight, place by place ("Side 1: no
+free team, pairing workers for tonight").
+
+**Stepping down.** When a place can't be filled at any level, the match steps
+down and starts again: trios to tag to one-on-one, multi-way and every other
+shape to one-on-one ("Could not fill Six-Person Tag: stepping down to Tag
+Team"). When even a one-on-one fails, the slot becomes a talking segment if
+the card has room for one more (no two talking segments in a row:
+`talkRoomFor`), else it stays open: "Not enough free workers".
+
+## Talking segments
+
+`buildTalkSegment(pool, { key, storylineId?, alreadyBooked }, deps)`
+(`card/talk.ts`) returns one planned angle, or null when nobody can talk. MTCH5
+will replace its single default beat through this function.
+
+- Speakers can talk tonight (available, or out but still able to do talking
+  segments: "Injured, but can talk") and have no contract block. Fatigue does
+  not matter: talking costs no stamina.
+- Level 1 takes people not on the card yet; level 2 also takes people already
+  wrestling tonight, within `booking.maxAppearancesPerShow`.
+- The first speaker is rolled among the top `aip.card.pickWindow` by talking
+  ability (the mean of mic and charisma), weighted by it. A second joins with
+  `aip.card.secondSpeakerChance`.
+- The kind of angle is a plain roll among the non-hidden angle types whose
+  speaker range holds the speakers.
+
+## Storylines
+
+`storylinesForShow` and `planStorylineSegment` (`card/storylineSegments.ts`)
+give the promotion's stories their place before the filler.
+
+- Which: active storylines of the promotion whose brand is none or the show's,
+  with heat at least `aip.card.storylineMinHeat`, hottest first (then ID), at
+  most `aip.card.maxStorylineSegments`.
+- What: when a face and a heel of the story can both wrestle tonight (free,
+  rested, no contract block, the same gender unless mixed matches are on), a
+  roll of `aip.card.storylineMatchChance` decides a match: one on one, or a
+  tag match when each side has two free members (with their team when they
+  are one). Otherwise a talking segment with the story's free members who can
+  talk, face side first, cut to the angle type's most speakers.
+- Room: a match takes a match slot and a talking segment a talking slot. When
+  the one wanted is full the other is tried; with neither the story is
+  skipped: "No room on the card tonight" (or "Nobody in the story is free
+  tonight").
+
+Every draft carries `storylineIds: [storylineId]`, so the story shield (D-09)
+and storyline heat apply to rival cards too. AIP6 and CRTV4 own storylines'
+life cycles and heat; until AIP6 rivals rarely have storylines, so this step
+is often empty.
+
 ## Random streams
 
 Declared in `card/streams.ts`:
@@ -274,3 +421,11 @@ their keys to the same file.
 | `aip.titles.recentChallengers`            | 2                       | Latest challengers who rest before challenging again                  |
 | `aip.titles.challengerPool`               | 3                       | Best contenders the challenger is picked from                         |
 | `aip.titles.excludeOtherChampions`        | true                    | Whether champions are kept out of other title pictures                |
+| `aip.card.maxStorylineSegments`           | 2                       | Most storyline segments on one show                                   |
+| `aip.card.storylineMinHeat`               | 0                       | Heat a storyline needs for a segment (0: every active one)            |
+| `aip.card.storylineMatchChance`           | 0.5                     | Chance a storyline gets a match rather than a talking segment         |
+| `aip.card.typeWeight.<family>`            | 100, 35, 10, 6, 2       | Base weight of one-on-one, tag, multi-way, trios and other types      |
+| `aip.card.poolComfort`                    | 2                       | Times the people a match needs before its type gets full weight       |
+| `aip.card.noTeamFactor`                   | 0.25                    | Weight left to tag and trios types with fewer than two free teams     |
+| `aip.card.pickWindow`                     | 5                       | Best free workers each place is chosen from                           |
+| `aip.card.secondSpeakerChance`            | 0.5                     | Chance a talking segment gets a second speaker                        |
