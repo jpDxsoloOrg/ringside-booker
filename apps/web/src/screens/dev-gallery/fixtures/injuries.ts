@@ -3,6 +3,7 @@
  * Why? buttons, worked out with the engine's own formulas so the panels read as they do in a game.
  */
 import {
+  addDays,
   computeInjuryConditionLoss,
   computeInjuryDays,
   computeOffscreenInjuryChance,
@@ -17,10 +18,13 @@ import {
   parseId,
   RngRegistry,
 } from '@ringside/engine';
-import type { InjuryId, StoredTrace, TraceRef } from '@ringside/engine';
+import type { InjuryId, InjurySeverity, StoredTrace, TraceRef } from '@ringside/engine';
 import type { InjuryCardInjury } from '@/components/InjuryCard';
 
 const STORED_DATE = parseGameDate('2027-02-19');
+
+/** "Today" in the gallery is three days after the injuries. */
+const DAYS_SINCE_HURT = 3;
 
 const MINOR_ID = parseId('injury', 'inj_0000000101');
 const SEVERE_ID = parseId('injury', 'inj_0000000102');
@@ -35,16 +39,41 @@ function stored(
 }
 
 /** The days-out, condition-loss and chance traces for one injury, as the engine stores them. */
-function tracesFor(injuryId: InjuryId, seed: string, seqFrom: number): StoredTrace[] {
+interface FixtureKind {
+  readonly label: string;
+  readonly severity: InjurySeverity;
+  readonly minDays: number;
+  readonly maxDays: number;
+}
+
+const SPRAINED_ANKLE: FixtureKind = {
+  label: 'Sprained ankle',
+  severity: 'minor',
+  minDays: 7,
+  maxDays: 21,
+};
+const TORN_ACL: FixtureKind = {
+  label: 'Torn anterior cruciate ligament',
+  severity: 'severe',
+  minDays: 180,
+  maxDays: 270,
+};
+
+function tracesFor(
+  injuryId: InjuryId,
+  kind: FixtureKind,
+  seed: string,
+  seqFrom: number,
+): StoredTrace[] {
   const tunables = createEngineTunables();
   const rng = new RngRegistry(seed).stream(INJURIES_STREAM);
   const severity = decideInjurySeverity(
-    { weights: { minor: 50, moderate: 30, severe: 20 } },
+    { weights: { minor: 50, moderate: 30, severe: 20 }, forced: kind.severity },
     { rng },
   );
   const days = computeInjuryDays(
     {
-      kind: { label: 'Sprained ankle', minDays: 7, maxDays: 21 },
+      kind,
       severity,
       traits: [],
       medicalLevel: 2,
@@ -73,7 +102,10 @@ function tracesFor(injuryId: InjuryId, seed: string, seqFrom: number): StoredTra
 
 /** Every stored trace the gallery's injury cards can open. */
 export function injuryCardTraces(): StoredTrace[] {
-  return [...tracesFor(MINOR_ID, 'gallery-minor', 1), ...tracesFor(SEVERE_ID, 'gallery-severe', 4)];
+  return [
+    ...tracesFor(MINOR_ID, SPRAINED_ANKLE, 'gallery-minor', 1),
+    ...tracesFor(SEVERE_ID, TORN_ACL, 'gallery-severe', 4),
+  ];
 }
 
 function valueOf(traces: readonly StoredTrace[], ref: TraceRef): number {
@@ -86,14 +118,14 @@ export function minorInjury(): InjuryCardInjury {
   const traces = injuryCardTraces();
   const daysOut = valueOf(traces, injuryTraceRef(MINOR_ID));
   return {
-    label: 'Sprained ankle',
+    label: SPRAINED_ANKLE.label,
     bodyPart: 'legs',
-    severity: 'minor',
+    severity: SPRAINED_ANKLE.severity,
     since: STORED_DATE,
-    expectedReturn: parseGameDate('2027-03-05'),
+    expectedReturn: addDays(STORED_DATE, daysOut),
     returnedOn: null,
     daysOut,
-    daysRemaining: 9,
+    daysRemaining: daysOut - DAYS_SINCE_HURT,
     canWorkAngles: true,
     source: 'segment',
     conditionLoss: valueOf(traces, injuryConditionLossTraceRef(MINOR_ID)),
@@ -107,15 +139,16 @@ export function minorInjury(): InjuryCardInjury {
 /** A severe injury off screen the player has not seen yet. */
 export function severeNewInjury(): InjuryCardInjury {
   const traces = injuryCardTraces();
+  const daysOut = valueOf(traces, injuryTraceRef(SEVERE_ID));
   return {
-    label: 'Torn anterior cruciate ligament',
+    label: TORN_ACL.label,
     bodyPart: 'legs',
-    severity: 'severe',
+    severity: TORN_ACL.severity,
     since: STORED_DATE,
-    expectedReturn: parseGameDate('2027-09-14'),
+    expectedReturn: addDays(STORED_DATE, daysOut),
     returnedOn: null,
-    daysOut: valueOf(traces, injuryTraceRef(SEVERE_ID)),
-    daysRemaining: 207,
+    daysOut,
+    daysRemaining: daysOut - DAYS_SINCE_HURT,
     canWorkAngles: false,
     source: 'world',
     conditionLoss: valueOf(traces, injuryConditionLossTraceRef(SEVERE_ID)),
