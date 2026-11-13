@@ -739,6 +739,27 @@ and shown tomorrow. A hidden row keeps only what the calendar already shows
 score and only EVT1's cancellation words ("Called off by the promotion"), so
 nothing about the card leaks. Nothing in either result is a length or a time.
 
+### Screens (AIP4-07)
+
+- **Promotions > (a promotion) > Shows** (`?tab=shows`, order 40, registered
+  by `screens/promotions/profile/tabs/registerShowsTab.tsx`; shown where the
+  Decision log is): "Recent shows" then "Coming up", each show a
+  `RivalShowCard` disclosure (date, name, importance, brand, status with the
+  score once run). Opened, a revealed card is one `CardSlot` per slot through
+  `toRivalCardSlotProps`, with a "Why this segment?" button on each filled slot
+  while `reasonTraceRef` is kept and a "Why this card?" beside the header while
+  `planTraceRef` is. Hidden rows open onto `hiddenText`; cancelled rows onto
+  "Show cancelled" and `cancelledReason`.
+- **Booking > Auto-fill** (side panel `aip.autoFill`, order 50,
+  `screens/booking/panels/`): "Auto-fill empty slots" (`keepFilledSlots:
+true`) and "Rebook whole card" behind a confirmation (`false`), off with the
+  engine's reason when the card cannot change or every slot is taken. A press
+  opens the reasons sheet: each filled slot with its headline and Why?, the
+  slots left open and why, the planner's message, and "Pick a winner for each
+  match before you run the show."
+- **Decision log**: `card` decisions get the "Card" chip from
+  `registerDecisionKind`; no web change.
+
 ## Random streams
 
 Declared in `card/streams.ts`:
