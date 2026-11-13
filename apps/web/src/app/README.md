@@ -245,6 +245,14 @@ headed by its `label`, only once the reveal has finished; one whose `render` ret
 out. `view` is the page's `shows.results` answer. Expected users: MTCH3 (popularity and
 momentum), EVT4 (card flow), ECO (show money), CRTV and BRW3.
 
+A feature registers its section from its own folder and adds one import line to
+`screens/show-results/ShowResultsScreen.tsx`, so the section loads with the page's own chunk
+(UI-21). Registered so far:
+
+| Order | Id                | Label      | Registered in                              |
+| ----- | ----------------- | ---------- | ------------------------------------------ |
+| 25    | `evt5.popularity` | Popularity | `screens/promotion-popularity/register.ts` |
+
 ## The shell's look
 
 The shell follows `docs/design/visual-identity.md` and the mockups in `docs/design/mockups/`.
