@@ -95,3 +95,27 @@ export {
   WINNERS_BOOKED_SUMMARY_KEY,
   winnersBookedText,
 } from './texts';
+export {
+  REASON_NOT_KEPT,
+  segmentDecisionView,
+  showDecisionsOf,
+  titleDecisionOf,
+  type SegmentDecisionTitle,
+  type SegmentDecisionView,
+  type SegmentDecisionWinner,
+  type SegmentTitleActual,
+  type SegmentTitlePlan,
+} from './view';
+export {
+  aipRecentTitleChangesQuery,
+  aipSegmentDecisionQuery,
+  DEFAULT_TITLE_CHANGES_LIMIT,
+  MAX_TITLE_CHANGES_LIMIT,
+  NO_DECISION_MESSAGE,
+  NOT_REVEALED_MESSAGE,
+  SEGMENT_NOT_FOUND,
+  type AipRecentTitleChanges,
+  type AipRecentTitleChangesArgs,
+  type AipSegmentDecisionArgs,
+  type AipTitleChange,
+} from './queries';

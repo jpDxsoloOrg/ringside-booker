@@ -86,6 +86,31 @@ describe('the aip catalog', () => {
       show: 'Thin Weekly',
       reason: 'Only 3 wrestlers available, needs 5',
     }),
+    templated('aip.decision.winners-booked', { show: 'Monday Night Brawl', matches: 5 }),
+    templated('aip.decision.winners-booked', { show: 'House Show', matches: 1 }),
+    templated('aip.decision.title-retain', {
+      champion: 'Kai Moreno',
+      title: 'World Title',
+      reason: 'Champion retains',
+      plan: 'retain',
+      chance: 12.5,
+    }),
+    templated('aip.decision.title-change', {
+      challenger: 'Vance Troy',
+      title: 'World Title',
+      champion: 'Kai Moreno',
+      reason: 'Contract ending',
+      plan: 'change',
+    }),
+    templated('aip.decision.title-crown', {
+      challenger: 'Vance Troy',
+      title: 'Tag Titles',
+      reason: 'Vacant title: the booker crowns the best fit',
+    }),
+    templated('aip.decision.title-vacant', {
+      title: 'Tag Titles',
+      reason: "Nobody here can hold the title, so it can't change hands",
+    }),
   ];
 
   it('has a string for every rival desk key', () => {
