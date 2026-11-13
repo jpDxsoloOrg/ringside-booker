@@ -4,6 +4,7 @@
 import { describe, expect, it } from 'vitest';
 import { createEngine, initialEngineState, type Engine, type Viewer } from '../../../src/core/api';
 import { parseContentKey } from '../../../src/core/content-key';
+import { CardWriteError } from '../../../src/core/errors';
 import type { SegmentId } from '../../../src/core/ids';
 import type { MatchOutcome } from '../../../src/model/entities/segment';
 import type { GameWorld } from '../../../src/model/tables';
@@ -351,6 +352,36 @@ describe('a planned finish and the quick result menu', () => {
     plan(null);
     expect(finishKeyOf(built.world, segmentId)).toBe('finish.disqualification');
     plan({ kind: 'win', winningSide: 0, methodKey: PINFALL });
+    expect(finishKeyOf(built.world, segmentId)).toBeNull();
+    expect(finishIssues(built)).toEqual([]);
+  });
+});
+
+describe('setPlannedOutcome with a finish (AIP5-06)', () => {
+  it('sets the finish with the result, and refuses one the result cannot end with', () => {
+    const built = validateWorld();
+    const segmentId = book(built, 0, match([[who(built, 6)], [who(built, 7)]]));
+    const plan = (outcome: MatchOutcome, finishKey: string | null): void => {
+      const result = built.world.transact('test plan', (tx) => {
+        setPlannedOutcome(
+          tx,
+          segmentId,
+          outcome,
+          finishKey === null ? null : parseContentKey(finishKey),
+        );
+      });
+      if (!result.ok) throw result.error;
+    };
+
+    plan(DQ_WIN_FOR_SIDE_2, 'finish.disqualification');
+    expect(finishKeyOf(built.world, segmentId)).toBe('finish.disqualification');
+    plan({ kind: 'win', winningSide: 0, methodKey: PINFALL }, 'finish.clean');
+    expect(finishKeyOf(built.world, segmentId)).toBe('finish.clean');
+    expect(() => {
+      plan({ kind: 'win', winningSide: 0, methodKey: PINFALL }, 'finish.disqualification');
+    }).toThrow(CardWriteError);
+    expect(finishKeyOf(built.world, segmentId)).toBe('finish.clean');
+    plan({ kind: 'win', winningSide: 0, methodKey: PINFALL }, null);
     expect(finishKeyOf(built.world, segmentId)).toBeNull();
     expect(finishIssues(built)).toEqual([]);
   });

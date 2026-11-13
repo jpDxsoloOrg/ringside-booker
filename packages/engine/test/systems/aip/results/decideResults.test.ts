@@ -12,7 +12,9 @@ import type {
   TitleId,
 } from '../../../../src/core/ids';
 import type { EngineState } from '../../../../src/core/api';
+import type { Catalogs, FinishEntry } from '../../../../src/model/catalogs';
 import type { MatchSegment } from '../../../../src/model/entities/segment';
+import type { GameWorld } from '../../../../src/model/tables';
 import type { SerializedWorld } from '../../../../src/persistence/save-document';
 import {
   REIGN_BAND_NUMBERS,
@@ -25,6 +27,8 @@ import {
   winPlanKey,
   WINNERS_BOOKED_SUMMARY_KEY,
 } from '../../../../src/systems/aip';
+import { randomWinnersActive } from '../../../../src/systems/match';
+import { getSetting } from '../../../../src/systems/newgame';
 import { aMatch, anEventInstance, aParticipant } from '../../../support/builders/creative';
 import { TEST_PLAYER_ID, TEST_START_DATE } from '../../../support/builders/build-row';
 import { SYSTEMS_WITHOUT_SHOW_DAY_GATE } from '../../../support/systems';
@@ -61,10 +65,14 @@ interface WorldOptions {
   readonly championDaysLeft?: number;
   /** Puts the challenger over the title's weight limit. */
   readonly heavyChallenger?: boolean;
+  /** MTCH2's Random winners new-game setting. */
+  readonly randomWinners?: boolean;
 }
 
 interface ResultsWorld {
   readonly state: EngineState;
+  /** The built world, for reads before the engine starts. */
+  readonly world: GameWorld;
   readonly human: PromotionId;
   readonly rival: PromotionId;
   readonly titleId: TitleId;
@@ -99,7 +107,11 @@ function resultsWorld(options: WorldOptions, overrides: Record<string, number> =
   } = {};
   const championEnds =
     options.championDaysLeft === undefined ? null : addDays(SHOW_DAY, options.championDaysLeft);
-  const built = worldBuilder()
+  const built = worldBuilder(
+    options.randomWinners === undefined
+      ? {}
+      : { settings: { extra: { randomWinners: options.randomWinners } } },
+  )
     .withGeography('mini')
     .withCatalogs()
     .withPromotion({ controller: HUMAN }, (promotion) => promotion.withRoster(HUMAN_ROSTER))
@@ -197,6 +209,7 @@ function resultsWorld(options: WorldOptions, overrides: Record<string, number> =
   const state = initialEngineState(built.world);
   return {
     state: { ...state, tunableOverrides: overrides },
+    world: built.world,
     human: required(built.ids.promotions.A, 'A'),
     rival: required(built.ids.promotions.B, 'B'),
     titleId: required(built.ids.titles[0], 'title'),
@@ -257,6 +270,31 @@ function sideOf(tables: Tables, segmentId: SegmentId, personId: PersonId): numbe
   ).side;
 }
 
+/** The ring names on one side of a match, joined as the result line joins them. */
+function sideNames(tables: Tables, segmentId: SegmentId, side: number): string {
+  const ids = new Set(
+    tables.participants
+      .filter((row) => row.segmentId === segmentId && row.side === side)
+      .map((row) => row.personId),
+  );
+  return tables.employments
+    .filter((row) => ids.has(row.personId))
+    .map((row) => row.ringName)
+    .join(' & ');
+}
+
+/** The match's planned finish exists, ends with its outcome and lists its method. */
+function expectFinishFits(catalogs: Catalogs, match: MatchSegment): FinishEntry {
+  const finishKey = required(match.match.finishKey ?? undefined, `finish of ${match.id}`);
+  const finish = required(catalogs.finishes?.[finishKey], `finish ${finishKey}`);
+  expect(finish.outcomeKind).toBe(match.outcome?.kind);
+  if (match.outcome?.kind === 'win') {
+    const { methodKey } = match.outcome;
+    expect(finish.methods.map((entry) => entry.methodKey)).toContain(methodKey);
+  }
+  return finish;
+}
+
 describe('aip.decideResults', () => {
   it('plans every rival match, runs it as booked and leaves the human show alone', async () => {
     const world = resultsWorld({ shows: weekly(1, 'regular', 'none') });
@@ -285,6 +323,13 @@ describe('aip.decideResults', () => {
         expect(trace.value).toBe(winPlanKey(match.outcome.winningSide));
       }
       expect(JSON.stringify(trace.trace).length).toBeLessThan(8_000);
+      // MTCH2: the finish was planned with the result and show night kept it (AIP5-06).
+      expectFinishFits(state.world.meta.catalogs, match);
+      // The Why? names the winners, not a plan code.
+      expect(JSON.stringify(trace.trace)).not.toMatch(/side:\d|"method\./);
+      if (trace.trace.kind === 'decision' && match.outcome?.kind === 'win') {
+        expect(trace.trace.chosen).toBe(sideNames(tables, match.id, match.outcome.winningSide));
+      }
     }
     // Angles have no winner trace.
     for (const segment of tables.segments) {
@@ -325,6 +370,20 @@ describe('aip.decideResults', () => {
     );
     expect(reign?.holderIds).toEqual([world.challenger]);
     expect(reign?.wonInSegmentId).toBe(segmentId);
+    // A planned change uses a finish and a method that both let the title move.
+    const state = engine.exportState();
+    const match = required(
+      tables.segments.find(
+        (segment): segment is MatchSegment => segment.id === segmentId && segment.kind === 'match',
+      ),
+      'title match',
+    );
+    expect(expectFinishFits(state.world.meta.catalogs, match).allowsTitleChange).toBe(true);
+    if (match.outcome?.kind === 'win') {
+      expect(state.world.meta.catalogs.methods?.[match.outcome.methodKey]?.changesTitles).toBe(
+        true,
+      );
+    }
 
     const decision = tables.aiDecisions.find(
       (row) => row.kind === TITLE_DECISION_KIND && row.refs.titleIds.includes(world.titleId),
@@ -384,6 +443,10 @@ describe('aip.decideResults', () => {
     // The first show moves the title; the second can only be won in a way that can't move it.
     expect(methodOfMatch(first)?.changesTitles).toBe(true);
     expect(methodOfMatch(second)?.changesTitles ?? false).toBe(false);
+    // Its finish is one that can end that way (a count-out or a disqualification).
+    const catalogs = state.world.meta.catalogs;
+    expect(expectFinishFits(catalogs, required(first, 'first')).allowsTitleChange).toBe(true);
+    expectFinishFits(catalogs, required(second, 'second'));
     const reigns = tables.titleReigns.filter((row) => row.titleId === world.titleId);
     expect(reigns).toHaveLength(2);
     expect(reigns.find((row) => row.lostOn === null)?.holderIds).toEqual([world.challenger]);
@@ -393,6 +456,36 @@ describe('aip.decideResults', () => {
         entry.ref.id === `${String(second?.id)}|${world.titleId}`,
     );
     expect(JSON.stringify(titleTrace?.trace)).toContain('Also on the line at Rival Show 1 tonight');
+  });
+
+  it('books rival results itself with Random winners on: the setting is for your shows', async () => {
+    const world = resultsWorld({ shows: weekly(1, 'regular', 'none'), randomWinners: true });
+    expect(getSetting(world.world, 'randomWinners')).toBe(true);
+    expect(randomWinnersActive(world.world, { promotionId: world.rival, brandId: null })).toBe(
+      false,
+    );
+    expect(randomWinnersActive(world.world, { promotionId: world.human, brandId: null })).toBe(
+      true,
+    );
+    const engine = await play(world, 3);
+    const state = engine.exportState();
+    const showId = required(world.shows[0], 'show');
+    const winnerTraces = new Map(
+      state.traces.full
+        .filter((entry) => entry.ref.kind === WINNER_TRACE_KIND)
+        .map((entry) => [entry.ref.id, entry]),
+    );
+    const matches = matchesOn(state.world.tables, showId);
+    expect(matches.length).toBeGreaterThan(0);
+    for (const match of matches) {
+      // The booker's plan ran as booked: its stored winner is the one that won.
+      const trace = required(winnerTraces.get(match.id), `winner trace of ${match.id}`);
+      expect(match.outcome?.kind).toBe('win');
+      if (match.outcome?.kind === 'win') {
+        expect(trace.value).toBe(winPlanKey(match.outcome.winningSide));
+      }
+      expectFinishFits(state.world.meta.catalogs, match);
+    }
   });
 
   it('hides a rival result from other players until the show airs', async () => {
