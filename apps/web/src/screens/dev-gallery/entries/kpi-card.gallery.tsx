@@ -38,7 +38,11 @@ function KpiCardDemo() {
               label="Avg show score"
               value="74"
               icon="star"
-              delta={{ value: 3, suffix: 'vs last month' }}
+              delta={{
+                value: 3,
+                suffix: 'vs last month',
+                why: <WhyChip about="the change in avg show score" />,
+              }}
               footer="Regional benchmark 68"
               why={<WhyChip about="Avg show score" />}
             />
@@ -105,6 +109,6 @@ export const galleryEntry: GalleryEntry = {
   title: 'KpiCard',
   group: 'Office',
   notes:
-    'Label, big tabular number, delta chip and an optional sparkline. KpiCardGrid fits as many as the row allows on desktop and goes 2-up on a phone. Payroll shows "better lower": a fall in the positive colour.',
+    'Label, big tabular number, delta chip and an optional sparkline. KpiCardGrid fits as many as the row allows on desktop and goes 2-up on a phone. Payroll shows "better lower": a fall in the positive colour. The first card has a Why? for its change as well (delta.why).',
   render: () => <KpiCardDemo />,
 };
