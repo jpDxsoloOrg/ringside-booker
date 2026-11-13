@@ -173,13 +173,15 @@ export function squashReasonText(label: string, gap: number): string {
 
 type Choice = Omit<MatchWinnerResult, 'plan'> & { option: string; because: string };
 
-function byStorylineOrder(a: MatchWinnerStoryline, b: MatchWinnerStoryline): number {
-  if (a.name !== b.name) {
-    return a.name < b.name ? -1 : 1;
-  }
-  const idA = a.storylineId ?? '';
-  const idB = b.storylineId ?? '';
-  return idA < idB ? -1 : idA > idB ? 1 : 0;
+function compareText(left: string, right: string): number {
+  return left < right ? -1 : left > right ? 1 : 0;
+}
+
+function byStorylineOrder(left: MatchWinnerStoryline, right: MatchWinnerStoryline): number {
+  return (
+    compareText(left.name, right.name) ||
+    compareText(left.storylineId ?? '', right.storylineId ?? '')
+  );
 }
 
 function drawRule(
@@ -333,8 +335,8 @@ function valueRule(decision: Decision<string>, inputs: MatchWinnerInputs): Choic
     };
   }
   decision.rule(TIE_BREAK_RULE, true);
-  const [winner] = [...leaders].sort((a, b) =>
-    a.lowestPersonId < b.lowestPersonId ? -1 : a.lowestPersonId > b.lowestPersonId ? 1 : 0,
+  const [winner] = [...leaders].sort((left, right) =>
+    compareText(left.lowestPersonId, right.lowestPersonId),
   );
   if (winner === undefined) {
     throw new InvalidArgumentError('matchWinner', 'sides', 0, 'at least two sides');
