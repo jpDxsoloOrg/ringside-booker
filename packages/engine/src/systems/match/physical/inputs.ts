@@ -16,19 +16,24 @@
  * first match of the night costs the normal amount and each later one costs more.
  */
 
-import type { EventInstanceId, PersonId, PromotionId } from '../../../core/ids';
+import type { EventInstanceId, PersonId, PromotionId, SegmentId } from '../../../core/ids';
+import { matchTypeOf } from '../../../model/catalogs';
 import type { EventImportance } from '../../../model/entities/event-definition';
 import { promotionStatusKey } from '../../../model/entities/employment';
 import type { ParticipantRole } from '../../../model/entities/participant';
 import type { BodyCondition, RingStyle, TraitKey } from '../../../model/entities/person';
 import type { SegmentKind } from '../../../model/entities/segment';
 import type { GameWorldView } from '../../../model/tables';
-import type { DurationClass } from '../slots';
+import { slotRoleInput } from '../../shows/context';
+import type { EngineTunables } from '../../tunables';
+import { durationClassOf, slotRoleOf, type DurationClass } from '../slots';
 
 /** One person in a segment, by role. */
 export interface PhysicalParticipant {
   readonly personId: PersonId;
   readonly role: ParticipantRole;
+  /** The stored entrance order, which sets the roll order within a side; unset rolls last. */
+  readonly entranceOrder?: number | null;
 }
 
 /** Where a segment sits on a card: enough to count each worker's earlier matches that night. */
@@ -223,4 +228,49 @@ export function collectPhysicalInputs(
     }
   });
   return workers;
+}
+
+/**
+ * The `PhysicalSegmentSpec` of a stored match segment (MTCH4-04): its people side by side (with
+ * their entrance order), the show's importance, the duration class from its slot and match type
+ * (MTCH1's `slotRoleOf` and `durationClassOf`), its producer and where it sits on the card.
+ * Nothing on a stored segment asks for keep-it-safe; a risk contribution can still switch it on.
+ *
+ * A talking segment (an angle) gets no physical toll and returns null, as does a segment the world
+ * does not have.
+ */
+export function segmentSpecFromWorld(
+  read: GameWorldView,
+  segmentId: SegmentId,
+  deps: { tunables: EngineTunables },
+): PhysicalSegmentSpec | null {
+  const segment = read.tables.segments.get(segmentId);
+  if (segment?.kind !== 'match') {
+    return null;
+  }
+  const instance = read.tables.eventInstances.require(segment.eventInstanceId);
+  const slotDeps = { tunables: deps.tunables };
+  const role = slotRoleOf(slotRoleInput(segment, instance.format), slotDeps).value;
+  const matchType = matchTypeOf(read, segment.match.matchTypeKey) ?? null;
+  const sides: PhysicalParticipant[][] = [];
+  for (const participant of read.tables.participants.lookup('bySegment', segmentId)) {
+    while (sides.length <= participant.side) {
+      sides.push([]);
+    }
+    sides[participant.side]?.push({
+      personId: participant.personId,
+      role: participant.role,
+      entranceOrder: participant.entranceOrder,
+    });
+  }
+  return {
+    promotionId: instance.promotionId,
+    importance: instance.importance,
+    kind: 'match',
+    durationClass: durationClassOf({ role, matchType }, slotDeps).value,
+    sides,
+    crew: { producerId: segment.crew.producerId },
+    keepItSafe: false,
+    card: { eventInstanceId: instance.id, preShow: segment.preShow, slot: segment.slot },
+  };
 }
