@@ -17,8 +17,9 @@ lays the groundwork described here, all pure and read-only: the card pool, the
 card shape, the tunables and the random streams. Nothing runs in the day loop
 yet. AIP4-02 adds the title picture and the challengers. AIP4-03 fills the
 rest of the card: storyline segments, filler matches, the fallback chain and
-talking segments. Later AIP4 tickets order and write the card, and add
-Auto-fill.
+talking segments. AIP4-04 scores and orders the card and adds `planCard`,
+the one entry point that plans a whole show. Later AIP4 tickets write the card
+and add Auto-fill.
 
 ## Card pool
 
@@ -400,6 +401,130 @@ and storyline heat apply to rival cards too. AIP6 and CRTV4 own storylines'
 life cycles and heat; until AIP6 rivals rarely have storylines, so this step
 is often empty.
 
+## Card score
+
+`cardScore` (`card/formulas/cardScore.ts`) gives every planned segment one
+traced score, in points, and the [order](#ordering) places segments by it. One
+score and one ordering: the main event the Why? names is the main event on the
+card.
+
+```
+base     = mean(participants' card values)          a line per person
+         × aip.card.order.talkFactor                talking segments only
+titles   = Σ prestige × aip.card.order.titleWeight  a line per title
+heat     = max heat × aip.card.order.heatWeight     the hottest storyline only
+featured = aip.card.order.aceBoost with the ace in it, or
+           aip.card.order.prospectBoost with a prospect in it (the larger
+           counts, never both)
+score    = base + titles + heat + featured
+```
+
+Card values are AIP1's at the show's promotion. A segment with nobody in it
+scores 0 with the note "Nobody in it yet: it scores 0". The trace is titled
+"Card score: <matchup>" and reads "Haruto Ise", "The World Title is on the
+line", "Storyline 'Ise vs Kuroe' heat 64", "Ace Haruto Ise". The ace and
+prospects are AIP3's featured workers on the unit's profile; before the rival
+desk names any the line reads "No ace or prospects named yet" and adds 0.
+
+The score is a ranking, not a 0-100 stat, so it is never clamped: a title
+match between two stars may score above 100. A weight of 0 means the part adds 0.
+
+## Ordering
+
+`orderCard(segments, scores, { slots, preShowSlots, mainEventMustBeMatch,
+fixed }, { tunables })` (`card/order.ts`) gives each planned segment a slot.
+Rules, in order, each a line in the order trace:
+
+1. **Strongest match closes the show.** The main event slot (the last
+   main-card slot) gets the highest-scoring match. On a house show it gets the
+   highest-scoring segment of any kind.
+2. **Second-best match opens the show.** With `aip.card.order.hotOpener` and
+   at least three matches on the main card, the second-highest match takes
+   slot 1. Opening hot is common booking craft and pairs with EVT4's opener
+   check; the flag turns it off.
+3. **Builds towards the main event.** The rest fill the remaining main-card
+   slots from the top, in ascending score.
+4. **No two talking segments in a row.** When rule 3 puts two together, the
+   talking segments move to the nearest slots that keep them apart, keeping
+   their order, and the matches close up around them; each move is a line
+   ("Moved so no two talking segments are in a row: <segment> from Slot 2 to
+   Slot 4"). The [card shape](#talking-slots) always leaves room for this. If
+   the only way needs slot 1, the hot opener gives way ("The second-best match
+   gives up the opener: the talking segments need the room"). If segments
+   already on the card make it impossible, the order is kept with a note.
+5. **Lowest-scoring matches go on the pre-show.** While `aip.card.fillPreShow`
+   is on, the pre-show slots take the lowest-scoring matches, the lowest
+   first. Talking segments never go to the pre-show.
+
+The main card is filled before the pre-show: the best matches and every
+talking segment go to the main card, and only the matches left over go to the
+pre-show. Segments that find no slot come back in `unplaced`.
+
+A rule is checked over the running order, so a slot left empty between two
+segments does not keep them apart. Fixed segments (see
+[keep-filled mode](#keep-filled-mode)) never move; planned segments only take
+open slots.
+
+## Planning a card
+
+`planCard(read, { instance, today, mode, taste? }, { tunables, rng })`
+(`card/planCard.ts`) is the single read-only entry point the rival shows, the
+player's Auto-fill (AIP4-06) and computer-GM brands (BRW6) call. It never
+writes and draws only from the stream passed in. It runs:
+
+1. the [card pool](#card-pool);
+2. **the cancel rule**: with fewer wrestlers fit to work
+   (`availableWrestlers`) than `aip.card.minWorkers` the plan is
+   `{ kind: 'cancel', reason: "Only 4 wrestlers available, needs 5" }`, with
+   the pool's exclusions ("Taro: Tired (fatigue 82, limit 75)") in the trace.
+   0 never cancels;
+3. the [card shape](#card-shape): talking slots, the title match cap and the
+   main event rule;
+4. the [title picture](#title-picture), under the cap;
+5. [filling the card](#filling-the-card): storyline segments, filler matches
+   (main-card and, while `aip.card.fillPreShow` is on, pre-show ones) and
+   talking segments;
+6. a [card score](#card-score) per segment and the [order](#ordering).
+
+`taste` defaults to `tasteOf` for the show's deciding unit; BRW6 passes the
+GM's.
+
+The result is plain JSON:
+
+- `{ kind: 'card', placements, open, planTrace, counts }`. Each placement has
+  its slot (0-based, as stored), `preShow`, the draft, its source, its card
+  score, a `headline` of two or three short reasons for lists ("Strongest
+  match closes the show", "Title due: 34 days since the last defence", "Ace
+  Haruto Ise") and a `slotTrace`: the decision "Slot <n> · <role>" (role from
+  MTCH1's `slotRoleOf`) that includes the slot role, the segment's own
+  decision (title picture or fill notes), its card score and the rule that
+  placed it. That is the Why? the Shows tab and the Auto-fill reasons sheet
+  open. `open` lists the slots left empty with the reason, and `counts` the
+  matches, talking segments, title matches and storyline segments;
+- `{ kind: 'cancel', reason, planTrace }`.
+
+`planTrace` is the decision "Card plan: <show>" with the shape, the title
+picture, the fill summary (storylines considered and skipped), the exclusions
+and the running order.
+
+### Keep-filled mode
+
+With `mode: 'keepFilled'` the segments already on the card (EVT2's
+`cardSegments`) stay exactly where they are and only the open slots are
+planned:
+
+- people already on the card count as booked (a wrestler in a kept match is in
+  no other match);
+- kept title matches count towards the cap, and their titles are not picked
+  again;
+- kept talking segments on the main card count towards the talking share and
+  the room for talking;
+- storylines with a kept segment get no second one ("Already on tonight's
+  card").
+
+`mode: 'fresh'` plans the whole card as if it were empty; whoever writes the
+plan clears the card first.
+
 ## Random streams
 
 Declared in `card/streams.ts`:
@@ -443,3 +568,9 @@ their keys to the same file.
 | `aip.card.noTeamFactor`                   | 0.25                    | Weight left to tag and trios types with fewer than two free teams            |
 | `aip.card.pickWindow`                     | 5                       | Best free workers each place is chosen from                                  |
 | `aip.card.secondSpeakerChance`            | 0.5                     | Chance a talking segment gets a second speaker                               |
+| `aip.card.order.titleWeight`              | 0.3                     | Card score per prestige point of a title on the line                         |
+| `aip.card.order.heatWeight`               | 0.2                     | Card score per heat point of the hottest storyline                           |
+| `aip.card.order.aceBoost`                 | 12                      | Card score added with the ace in a segment                                   |
+| `aip.card.order.prospectBoost`            | 6                       | Card score added with a prospect in a segment                                |
+| `aip.card.order.talkFactor`               | 0.8                     | Share of its speakers' card value a talking segment scores                   |
+| `aip.card.order.hotOpener`                | true                    | Whether the second-best match opens the show                                 |
