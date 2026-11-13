@@ -34,6 +34,7 @@ import { pickInjuryKind } from './formulas/injuryKindPick';
 import { computeInjuryDays } from './formulas/injuryOutcome';
 import { decideInjurySeverity } from './formulas/injurySeverity';
 import { medicalLevelOf } from './medical';
+import { worksForAHuman } from './notice';
 import { INJURIES_STREAM } from './streams';
 
 /** The trace kind of an injury's time out (its Why?). */
@@ -168,7 +169,10 @@ function chooseKind(
 /**
  * Hurts `personId`: rolls the injury (kind, severity, days out, whether they can work angles) on
  * `health.injuries`, stores the injury row and the person's `injury` pointer, takes condition off
- * the hurt part, records the traces under the injury id and publishes `injury.sustained`.
+ * the hurt part, records the traces under the injury id and publishes `injury.sustained`. An injury
+ * to a worker a human employs waits to be noticed (`noticedOn` null, `needsNotice`) while
+ * `health.stopOnOwnInjury` is on; every other injury is noticed on the day, and its traces are
+ * kept as summaries only.
  *
  * Refuses (changing nothing and drawing nothing) a person who is retired, deceased or missing
  * (`notInjurable`), someone already injured (`alreadyInjured`: injuries never stack), an unknown
@@ -233,6 +237,9 @@ export function injure(
   );
 
   const expectedReturn = addDays(ctx.date, days.value);
+  // The rule `needsNotice` spells out; also decides how much of the Why? is kept.
+  const ownWorker = worksForAHuman(ctx.read, personId, ctx.date);
+  const keep = { summaryOnly: !ownWorker };
   const row = ctx.tx.create('injuries', {
     personId,
     kindKey: kind.key,
@@ -245,8 +252,8 @@ export function injure(
     segmentId: options.segmentId ?? null,
     canWorkAngles: angles.value,
     conditionLoss: loss.value,
-    // WRK6-04's own-injury gate decides when the promotion notices; until then, on the day.
-    noticedOn: ctx.date,
+    // The player's own workers wait to be noticed, so the own-injury gate stops the day once.
+    noticedOn: ownWorker && ctx.tunables.get('health.stopOnOwnInjury') ? null : ctx.date,
   });
   ctx.tx.update('people', personId, {
     injury: {
@@ -261,10 +268,11 @@ export function injure(
       [kind.bodyPart]: person.condition[kind.bodyPart] - loss.value,
     },
   });
-  ctx.recordTrace(injuryTraceRef(row.id), ctx.date, outcome);
-  ctx.recordTrace(injuryConditionLossTraceRef(row.id), ctx.date, loss);
+  // Full Why? only for the player's own workers; everyone else's is a summary (save size).
+  ctx.recordTrace(injuryTraceRef(row.id), ctx.date, outcome, keep);
+  ctx.recordTrace(injuryConditionLossTraceRef(row.id), ctx.date, loss, keep);
   if (options.chanceTrace !== undefined) {
-    ctx.recordTrace(injuryRecordChanceTraceRef(row.id), ctx.date, options.chanceTrace);
+    ctx.recordTrace(injuryRecordChanceTraceRef(row.id), ctx.date, options.chanceTrace, keep);
   }
   ctx.publish('injury.sustained', {
     personId,

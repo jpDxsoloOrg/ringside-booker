@@ -16,6 +16,8 @@ import { computeConditionCap } from './formulas/conditionCap';
 import { computeConditionRecovery } from './formulas/conditionRecovery';
 import { computeFatigueRecovery, FATIGUE_MIN } from './formulas/fatigueRecovery';
 import { medicalLevelOf } from './medical';
+import { worksForAHuman } from './notice';
+import { offscreenInjuriesPhase } from './offscreen';
 import { healInjuries, pruneInjuryDetailPhase } from './returns';
 import { RECOVERY_STREAM } from './streams';
 
@@ -29,7 +31,8 @@ export function fatigueRecoveryTraceRef(personId: PersonId): TraceRef {
 
 /**
  * Daily: first, injuries whose return date has come are closed (`healInjuries`, no rolls); then
- * fatigue recovery. People are visited in ascending ID order. Someone already at 0 fatigue is
+ * fatigue recovery. Only the player's own workers keep a full Why? for their recovery; everyone
+ * else's is stored as a summary from the start, to keep saves small. People are visited in ascending ID order. Someone already at 0 fatigue is
  * skipped and draws nothing, because no roll could change their result; everyone else draws
  * exactly once, so the stream stays aligned however the numbers are tuned.
  */
@@ -63,7 +66,10 @@ export const fatigueRecoveryPhase: PhaseDefinition = definePhase({
         { tunables: ctx.tunables, rng: recoveryStream },
       );
       ctx.tx.update('people', person.id, { fatigue: recovered.value });
-      ctx.recordTrace(fatigueRecoveryTraceRef(person.id), ctx.date, recovered);
+      // Full Why? only for the player's own workers; everyone else keeps a summary (save size).
+      ctx.recordTrace(fatigueRecoveryTraceRef(person.id), ctx.date, recovered, {
+        summaryOnly: !worksForAHuman(ctx.read, person.id, ctx.date),
+      });
       if (recovered.value === FATIGUE_MIN) {
         ctx.publish('fatigue.cleared', { personId: person.id });
       }
@@ -128,6 +134,7 @@ export const conditionRecoveryPhase: PhaseDefinition = definePhase({
 
 export const healthPhases: readonly PhaseDefinition[] = [
   fatigueRecoveryPhase,
+  offscreenInjuriesPhase,
   conditionRecoveryPhase,
   pruneInjuryDetailPhase,
 ];

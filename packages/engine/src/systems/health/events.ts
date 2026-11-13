@@ -31,6 +31,8 @@ declare module '../../core/events/types' {
       kindKey: ContentKey;
       daysOut: number;
     };
+    /** The player saw their workers' new injuries (`health.acknowledgeInjuries`, WRK6-04). */
+    'injury.noticed': { injuryIds: InjuryId[] };
   }
 }
 

@@ -7,10 +7,15 @@
  * taken out; the player's shows then stay unrun and the calendar closes them as Not run. Tests
  * that need the player's shows to run use `advanceRunningMyShows` (`support/run-my-shows.ts`). The
  * gate itself is covered by `test/systems/shows/tonightGate.test.ts`.
+ *
+ * The own-injury gate (`health.ownWorkerInjured`, WRK6-04) stops a skip when one of the player's
+ * workers gets hurt off-screen, which can happen on any day of a long run; it is taken out with the
+ * show-day gate. It is covered by `test/systems/health/gate.test.ts`.
  */
 
 import type { SystemBundle } from '../../src/core/api/system';
 import { defaultSystems } from '../../src/systems';
+import { OWN_WORKER_INJURED_GATE_ID } from '../../src/systems/health/gate';
 import { SHOWS_TONIGHT_GATE_ID } from '../../src/systems/shows/tonight';
 
 /** `systems` with the gates named in `gateIds` removed from every bundle. */
@@ -25,10 +30,10 @@ export function systemsWithoutGates(
   );
 }
 
-/** The default systems without the show-day gate. */
+/** The default systems without the show-day gate and the own-injury gate. */
 export const SYSTEMS_WITHOUT_SHOW_DAY_GATE: readonly SystemBundle[] = systemsWithoutGates(
   defaultSystems,
-  [SHOWS_TONIGHT_GATE_ID],
+  [SHOWS_TONIGHT_GATE_ID, OWN_WORKER_INJURED_GATE_ID],
 );
 
 /**
