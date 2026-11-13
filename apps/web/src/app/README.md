@@ -331,8 +331,10 @@ EVT6-06 puts the box office's venue and forecast queries on two screens, without
 - **Calendar sheet line**: the show sheet's `boxOffice.crowd` section ("Crowd", order 5,
   `screens/box-office/ShowCrowdSection.tsx`, registered by the router) shows the expected range,
   its Why? and the fit for your own shows still to run. The venue itself stays in the sheet's facts
-  row, which also names a generic local venue from the row's `genericVenue`. The attendance of a
-  settled show comes with EVT6-05's `boxOffice.showCrowd`.
+  row, which also names a generic local venue from the row's `genericVenue`. For any show that
+  has run, the player's or a rival's, the section reads `boxOffice.showCrowd` instead (EVT6-07):
+  "4,210 came · 92% full at Harbor Arena" with the attendance Why?, or "Box office not settled
+  yet". A crowd is public; money never shows here.
 
 ## Finances
 

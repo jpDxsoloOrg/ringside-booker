@@ -80,7 +80,8 @@ feature, such as `booking.open`.
   and `shows.score` (chip badge, order 20): the results page's button, the score with its Why?
   and stars, and the score on a completed chip, from `screens/show-results/calendarHooks.tsx`.
 - `boxOffice.crowd` (sheet section, order 5, "Crowd"): the expected crowd with its Why? and fit
-  for your own upcoming shows, from `screens/box-office/ShowCrowdSection.tsx` (EVT6-06).
+  for your own upcoming shows, from `screens/box-office/ShowCrowdSection.tsx` (EVT6-06); for any
+  show that has run, yours or a rival's, how many came, from `boxOffice.showCrowd` (EVT6-07).
 
 When another feature registers, add its id here. The ids the planned features will use are in
 [`docs/design/calendar.md`](../../../../../docs/design/calendar.md#integration).
