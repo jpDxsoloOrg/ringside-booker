@@ -138,6 +138,36 @@
   color: var(--color-text-muted);
 }
 
+/* A completed show's score, its Why? and the link to the results page, above the slots. */
+.result {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  min-inline-size: 0;
+  margin-block-end: var(--space-2);
+}
+
+.score {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.scoreValue {
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.resultsLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-block-size: var(--tap-target-min);
+  margin-inline-start: auto;
+  font-weight: var(--font-weight-semibold);
+}
+
 @media (--bp-mobile) {
   .toggle {
     grid-template-areas:

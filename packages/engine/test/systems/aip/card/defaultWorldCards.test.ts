@@ -1,5 +1,6 @@
 // Rival cards on the shipped default world (AIP4-05): four weeks of show days, every computer show
-// booked with a valid card or cancelled with a reason. Design: docs/design/rival-booking.md#show-day
+// booked with a valid card and run through show night with every segment rated (AIP4-08), or
+// cancelled with a reason. Design: docs/design/rival-booking.md#show-day
 //
 // A new default-world game takes a few seconds and four weeks of it a few more, so this runs with
 // `RB_SLOW_TESTS=1`.
@@ -111,6 +112,15 @@ describe.runIf(SLOW_TESTS)('rival cards on the default world', () => {
         expect(['completed', 'cancelled'], `${show.name} ${show.date}`).toContain(show.status);
         if (show.status === 'completed') {
           expect(checkedIds.has(show.id), `${show.name} ${show.date} was booked`).toBe(true);
+          // EVT3 ran the card itself (AIP4-08): every segment is rated, none scored off-screen.
+          const card = after.tables.segments.filter(
+            (segment) => segment.eventInstanceId === show.id,
+          );
+          expect(card.length, `${show.name} ${show.date} has a card`).toBeGreaterThan(0);
+          expect(
+            card.filter((segment) => segment.rating === null).map((segment) => segment.id),
+            `${show.name} ${show.date} segments rated`,
+          ).toEqual([]);
         } else {
           expect(show.cancellation?.reason).toBe('byPromotion');
           const reason = decisions.get(show.id)?.summary.params['reason'];

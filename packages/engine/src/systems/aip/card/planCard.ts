@@ -33,7 +33,6 @@ import type { SegmentDraft } from '../../booking/draft';
 import { SLOT_ROLE_LABELS, slotRoleOf } from '../../match/slots';
 import { slotRoleInput } from '../../shows/context';
 import type { EngineTunables } from '../../tunables';
-import { formatNumber } from '../../world/people/labels';
 import type { TracedTaste } from '../formulas/defaultTaste';
 import { deciderBrandOf } from '../inputs';
 import { profileOf } from '../profiles';
@@ -42,6 +41,7 @@ import { fillCard } from './fill';
 import {
   cardScore,
   storylineHeatText,
+  cardScoreText,
   featuredText,
   type FeaturedKind,
 } from './formulas/cardScore';
@@ -294,7 +294,7 @@ function headlineOf(
   } else if (scored.storyline !== null) {
     lines.push(storylineHeatText(scored.storyline.name, scored.storyline.heat));
   } else {
-    lines.push(`Card score ${formatNumber(scored.score.value)}`);
+    lines.push(cardScoreText(scored.score.value));
   }
   const [star] = [...scored.featured].sort((left, right) =>
     left.kind === right.kind ? 0 : left.kind === 'ace' ? -1 : 1,

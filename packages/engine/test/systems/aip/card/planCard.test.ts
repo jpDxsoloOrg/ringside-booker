@@ -260,6 +260,10 @@ function expectSound(built: BuiltWorld, result: CardPlan, mode: PlanCardMode): v
     expectCalcsReplay(placement.slotTrace.trace);
     expect(placement.headline.length).toBeGreaterThanOrEqual(2);
     expect(placement.headline.length).toBeLessThanOrEqual(3);
+    // Player-facing reasons: card scores and heat in whole points (AIP4-08).
+    for (const line of placement.headline) {
+      expect(line).not.toMatch(/(Card score|heat) \d+\.\d/);
+    }
     const problems = structuralProblems(built.world, {
       instance,
       draft: placement.draft,
