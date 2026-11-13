@@ -1,0 +1,13 @@
+/* The calendar show sheet's Crowd line (EVT6-06): the range, its Why? and the fit, wrapping. */
+.line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  overflow-wrap: anywhere;
+}
+
+.muted {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}

@@ -128,6 +128,7 @@ describe('calendar.range', () => {
         countryName: 'Test Country South',
       },
       venue: { id: built.rivalVenue, name: 'Test Rival Arena', capacity: 12_000, kind: 'arena' },
+      genericVenue: null,
       segmentCount: 0,
       canCancel: false,
       score: null,
@@ -519,6 +520,7 @@ describe('calendar.projected', () => {
         countryName: 'Test Country North',
       },
       venue: null,
+      genericVenue: null,
       segmentCount: 0,
       canCancel: false,
       score: null,
@@ -737,6 +739,30 @@ describe('calendar.show', () => {
     );
     expect(movedRegion?.region.id).toBe(built.rivalRegion);
     expect(movedRegion?.placementTrace).toBeNull();
+  });
+
+  it('names a generic local venue with its capacity (EVT6-06)', () => {
+    const built = calendarWorldWith((context, { weekly }) => {
+      const show = storedShowId(context, weekly, SECOND_MONDAY);
+      context.tx.update('eventInstances', show, {
+        venueId: null,
+        genericVenue: { tier: 'hall', capacity: 1_200 },
+      });
+      return show;
+    });
+    const engine = engineOver(built);
+    const detail = ask(engine, 'calendar.show', { eventInstanceId: built.kept }, AS_PLAYER_ONE);
+    expect(detail?.venue).toBeNull();
+    expect(detail?.genericVenue).toEqual({
+      name: 'Local hall, Test Region North 1',
+      capacity: 1_200,
+    });
+
+    const { shows } = ask(engine, 'calendar.range', { ...SIX_WEEKS, scope: 'world' }, OMNISCIENT);
+    const row = shows.find((candidate) => candidate.eventInstanceId === built.kept);
+    expect(row?.genericVenue).toEqual(detail?.genericVenue);
+    const others = shows.filter((candidate) => candidate.eventInstanceId !== built.kept);
+    expect(others.every((other) => other.genericVenue === null)).toBe(true);
   });
 
   it('has no trace, recurrence or televised flag for a one-off', () => {

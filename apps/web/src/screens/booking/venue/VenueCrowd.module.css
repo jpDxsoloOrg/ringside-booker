@@ -1,0 +1,150 @@
+/*
+ * The booking screen's "Venue and crowd" panel and its "Choose a venue" sheet (EVT6-06). The panel
+ * sits in the narrow side column on desktop and in the single column on a phone, so it is one
+ * column of blocks that never needs more width than it is given.
+ */
+.panel {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.venue {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.facts {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.kicker {
+  color: var(--color-prestige);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  font-weight: var(--font-weight-bold);
+  overflow-wrap: anywhere;
+}
+
+.muted {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  overflow-wrap: anywhere;
+}
+
+.crowd {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+  min-inline-size: 0;
+}
+
+.range {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-2);
+}
+
+.rangeLabel {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.figure {
+  color: var(--color-data);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+.note {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.fit {
+  max-inline-size: 100%;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.error {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-negative);
+  border-inline-start-width: 4px;
+  background: var(--color-surface-raised);
+  font-size: var(--font-size-sm);
+  overflow-wrap: anywhere;
+}
+
+/* The sheet. */
+.picker {
+  display: grid;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+
+.abroad {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.optionName {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  overflow-wrap: anywhere;
+}
+
+.optionLines {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.optionCrowd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  color: var(--color-text);
+}
+
+.optionReason {
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+}
+
+.sheetFooter {
+  display: grid;
+  gap: var(--space-2);
+  inline-size: 100%;
+}
+
+/* A phone: the venue's picture above its facts, everything in one column. */
+@media (--bp-mobile) {
+  .venue {
+    flex-direction: column;
+  }
+}

@@ -102,6 +102,10 @@ Registered so far: `shows.ranBanner` (side, order 5, `screens/show-results/booki
 "This show has run" and "See results" on a completed show. `booking.card` already answers a
 completed show with `canEdit: false`, so the board is read-only by itself.
 
+`boxOffice.venueCrowd` (side, order 20, "Venue and crowd", `venue/register.tsx`, EVT6-06): the
+show's venue, capacity, expected crowd with its Why? and fit, Change venue and Pick for me. See
+`app/README.md#venue-and-crowd`.
+
 ### The segment editor (EVT2-06)
 
 The card never imports the editor. Its add actions call

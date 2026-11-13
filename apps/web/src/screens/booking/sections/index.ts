@@ -10,3 +10,4 @@
  */
 import '@/screens/show-results/bookingPanel';
 import './BookingFinishSection';
+import '../venue/register';

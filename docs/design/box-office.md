@@ -191,6 +191,15 @@ well a venue suits the expected crowd:
 
 A sell-out wins when both hold.
 
+`expected` here is the uncapped demand (the forecast's value), so a venue too small
+for the crowd reads "Likely sell-out" rather than "Good fit". The screens show the
+label as a `VenueFitBadge` (EVT6-06): "Likely sell-out" in the positive colour with a
+ticket icon, "Good fit" in the data colour with a check, "Will look empty" in the
+negative colour with a warning sign, so colour is never the only signal. The badge
+only draws the engine's answer; it never works the fit out itself. It appears on the
+booking screen's "Venue and crowd" panel, on each row of the "Choose a venue" sheet
+and on the calendar show sheet's Crowd line (see `apps/web/src/app/README.md`).
+
 ## Generic venues
 
 Every region has a set of generic local venues, so a founded promotion or a
