@@ -635,7 +635,7 @@ describe('the check registry', () => {
     expect(result.checklist).toHaveLength(8);
   });
 
-  it('turns a throwing check into one warning so the card can still be locked', () => {
+  it('turns a throwing check into one warning so the show can still run', () => {
     const built = validateWorld();
     bookRunnable(built);
     removals.push(
@@ -654,7 +654,7 @@ describe('the check registry', () => {
         checkId: 'test.broken',
         code: CHECK_FAILED_CODE,
         severity: 'warning',
-        message: 'A booking check (test.broken) failed; the card can still be locked',
+        message: 'A booking check (test.broken) failed; the show can still run',
       },
     ]);
     expect(result.checklist.at(-1)).toMatchObject({ id: 'test.broken', severity: 'warning' });

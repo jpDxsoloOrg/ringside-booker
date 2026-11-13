@@ -89,7 +89,7 @@ export interface BookingShowRow {
 /** `booking.shows`. */
 export interface BookingShowsView {
   rows: BookingShowRow[];
-  /** The first show still waiting for a locked card, or null. */
+  /** The first open show (the next to book or run), or null. */
   nextToBookId: EventInstanceId | null;
   /** False on a save that cannot book shows (no shows or no match types at all). */
   available: boolean;
@@ -250,7 +250,8 @@ export const showsQuery: QueryDefinition<'booking.shows'> = defineQuery('booking
     shows.sort(
       (left, right) => compareDates(left.date, right.date) || compareIds(left.id, right.id),
     );
-    const nextToBook = shows.find((instance) => instance.status === 'scheduled');
+    // There is no lock (EVT2-09): the next show to book is simply the next open one.
+    const [nextToBook] = shows;
     return {
       rows: shows
         .slice(0, args.limit ?? DEFAULT_BOOKING_SHOWS)
@@ -396,7 +397,7 @@ export const availableWorkersQuery: QueryDefinition<'booking.availableWorkers'> 
   },
 );
 
-/** Everything wrong with a card: the same answer `booking.lockCard` enforces. */
+/** Everything wrong with a card: the same answer `shows.runTonight` enforces. */
 export const validateQuery: QueryDefinition<'booking.validate'> = defineQuery('booking.validate', {
   args: z.strictObject({ eventInstanceId: zId('eventInstance') }),
   run: (ctx, args) => {

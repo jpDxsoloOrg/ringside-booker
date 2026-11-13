@@ -48,11 +48,11 @@ export interface ChecklistItem {
   trace?: TraceNode;
 }
 
-/** `booking.validate`: everything wrong with a card, and whether it can be locked. */
+/** `booking.validate`: everything wrong with a card, and whether its show can run. */
 export interface BookingValidation {
   errors: BookingIssue[];
   warnings: BookingIssue[];
-  /** True when there are no errors: the card can be locked. */
+  /** True when there are no errors: the show can run (`shows.runTonight`). */
   runnable: boolean;
   checklist: ChecklistItem[];
 }
