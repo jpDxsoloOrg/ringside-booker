@@ -1,0 +1,245 @@
+/*
+ * Business > Networks, in the office register (docs/design/visual-identity.md), laid out like
+ * Contracts: the heading and lead, the tab strip, one table per tab. Desktop is the primary
+ * layout. Below --bp-mobile the tables become cards (DataTable does that), the tab strip scrolls
+ * inside itself (Tabs does that), sheets come up from the bottom (Sheet does that) and the forms
+ * stack, so nothing here makes the page scroll sideways.
+ */
+.screen {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.intro {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.heading {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-tight);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.lead {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.panel {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-5);
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.strong {
+  font-weight: var(--font-weight-semibold);
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.wrap {
+  overflow-wrap: anywhere;
+}
+
+.negative {
+  color: var(--color-negative);
+}
+
+/* The deal's name opens its sheet: it reads as text with a link's underline on hover. */
+.rowButton {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: var(--font-weight-semibold);
+  text-align: start;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.rowButton:hover {
+  text-decoration: underline;
+}
+
+@media (pointer: coarse) {
+  .rowButton {
+    padding-block: var(--tap-pad-block);
+    margin-block: calc(-1 * var(--tap-pad-block));
+  }
+}
+
+.offer {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+/* Sheets. */
+.sheetBody {
+  display: grid;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+
+.section {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.sectionHeading {
+  margin: 0;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.terms {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 11rem), 1fr));
+  gap: var(--space-3) var(--space-4);
+  margin: 0;
+}
+
+.terms div {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.terms dt {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.terms dd {
+  margin: 0;
+  font-variant-numeric: var(--font-feature-tabular);
+}
+
+/* A deal that loses money says so plainly, in the negative colour with a rule on its edge. */
+.lossNote,
+.tradeOff,
+.refusal {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-inline-start: 3px solid var(--color-negative);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-raised);
+}
+
+.tradeOff {
+  border-inline-start-color: var(--color-warning);
+}
+
+.refusal p {
+  margin: 0;
+}
+
+.reasons {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding-inline-start: var(--space-5);
+}
+
+.airingStatus {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.sheetActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2) var(--space-3);
+}
+
+.proposeForm {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  align-items: start;
+  gap: var(--space-4);
+}
+
+.proposeForm > :nth-child(n + 3) {
+  grid-column: 1 / -1;
+}
+
+.preview {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.verdictLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Renewal: the current terms next to the network's terms today. */
+.compare {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: var(--font-feature-tabular);
+}
+
+.compare th,
+.compare td {
+  padding: var(--space-2) var(--space-2);
+  border-block-end: 1px solid var(--color-border);
+  text-align: start;
+  vertical-align: middle;
+}
+
+.compare thead th {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.compareNew {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+}
+
+.visuallyHidden {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* "Oct 4, 2027 · in 269 days": may wrap at the dot on a narrow desktop window. */
+.ends {
+  display: inline-block;
+  min-inline-size: 8rem;
+}

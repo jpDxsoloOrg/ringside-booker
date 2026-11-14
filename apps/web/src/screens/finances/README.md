@@ -70,6 +70,7 @@ registering module from `FinancesView.tsx` (one line) so it loads with the scree
 | KPI  | 35    | Monthly overhead (ECO7) |
 | KPI  | 40    | Company size            |
 | KPI  | 45    | Financial health (ECO9) |
+| KPI  | 50    | TV income (ECO8)        |
 
 The ECO2/ECO3/ECO8/ECO9 rows are reservations; those features say which slot they took.
 

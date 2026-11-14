@@ -6,6 +6,8 @@ import { Tab, TabList, TabPanel, Tabs } from '@/components/Tabs';
 import './builtins';
 // ECO7's Monthly overhead card (order 35).
 import '@/screens/production/financeKpi';
+// ECO8's TV income card (order 50).
+import '@/screens/networks/finances/BroadcastIncomeKpi';
 import { DEFAULT_FINANCE_TAB_ID } from './financeParams';
 import { useFinanceTabs } from './financeRegistry';
 import type { FinanceTabProps } from './financeRegistry';

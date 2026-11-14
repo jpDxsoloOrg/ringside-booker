@@ -1,0 +1,38 @@
+/*
+ * The Networks screen's badges: a deal's health and a network's verdict. The colours come from
+ * the badge's own roles; this file lays the badge, its reason and its Why? out in a row.
+ */
+.health,
+.verdict {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  max-inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.chip {
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: help;
+}
+
+.reason {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  overflow-wrap: anywhere;
+}
+
+/* Touch screens: a finger-sized hit area that takes no extra room (see tokens.css). */
+@media (pointer: coarse) {
+  .chip {
+    padding-block: var(--tap-pad-block);
+    margin-block: calc(-1 * var(--tap-pad-block));
+  }
+}
