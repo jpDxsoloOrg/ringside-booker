@@ -112,7 +112,8 @@ test.describe('contracts', () => {
       const sheet = page.getByRole('dialog', { name: released, exact: true });
       await expect(sheet).toBeVisible();
       await expect(sheet.getByRole('region', { name: 'Terms' })).toBeVisible();
-      await expect(sheet.getByText(/Renews automatically for a year/)).toBeVisible();
+      // Renew (ECO5-06) sits in the footer; outside the renewal window it says when talks open.
+      await expect(sheet.getByRole('button', { name: 'Renew', exact: true })).toBeVisible();
       await expect(sheet).toBeInViewport({ ratio: 0.5 });
       await expectNoHorizontalScroll(page);
       await shot(page, 'contracts-sheet', testInfo);

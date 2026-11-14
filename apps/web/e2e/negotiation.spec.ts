@@ -50,7 +50,7 @@ async function nextDay(page: Page): Promise<void> {
     await expect(button).toBeVisible({ timeout: 20_000 });
     // A phone shows a short label and keeps the full one in the accessible name.
     const name = (await button.getAttribute('aria-label')) ?? (await button.textContent()) ?? '';
-    if (/Go to the show/.test(name)) {
+    if (name.includes('Go to the show')) {
       await cancelTonightsShow(page);
       continue;
     }
@@ -185,7 +185,7 @@ test.describe('contract negotiation', () => {
         if (await contracts.isVisible()) {
           await contracts.click();
           await expect(page).toHaveURL(/\/game\/contracts\?tab=(offers|expiring)/);
-          if (/negotiation=neg_/.test(page.url())) {
+          if (page.url().includes('negotiation=neg_')) {
             stopped = true;
           } else {
             const banner = page.getByRole('region', { name: 'New expiry notices' });
