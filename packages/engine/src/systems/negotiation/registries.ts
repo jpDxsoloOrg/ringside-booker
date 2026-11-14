@@ -126,6 +126,11 @@ export interface OfferKindSpec {
     date: GameDate,
     tunables: EngineTunables,
   ) => Reason[];
+  /**
+   * True when `available` depends only on the promotion and the date, never on the person, so a
+   * list of many workers asks it once (ECO5-02's `contracts.freeAgents`). Left out: false.
+   */
+  readonly samePerWorker?: boolean;
   /** Scales the worker's asking terms for this kind (ECO5-02). Left out: 1. */
   readonly askMultiplier?: (
     read: GameWorldView,

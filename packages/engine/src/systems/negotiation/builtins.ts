@@ -19,6 +19,7 @@ registerOfferKind({
   key: 'written',
   label: 'Written contract',
   order: WRITTEN_OFFER_KIND_ORDER,
+  samePerWorker: true,
   available: (read, promotionId, _personId, _date, tunables) =>
     writtenContractShortfall(read, promotionId, tunables),
 });
@@ -27,6 +28,7 @@ registerOfferKind({
   key: 'perAppearance',
   label: 'Per-appearance deal',
   order: PER_APPEARANCE_OFFER_KIND_ORDER,
+  samePerWorker: true,
   available: () => [],
 });
 

@@ -143,6 +143,8 @@ export interface AskingContext {
   readonly homeCountryId: string | null;
   /** Why this promotion may not offer exclusive deals, else empty. */
   readonly exclusiveReasons: Reason[];
+  /** The answers of offer kinds marked `samePerWorker`, asked once per context. */
+  readonly kindReasons: Map<ContractKind, Reason[]>;
 }
 
 /** Reads the promotion's side of every ask once. */
@@ -164,6 +166,7 @@ export function askingContext(
     roller: createPopularityRoller(geography),
     homeCountryId: countryIdOf(geography, promotion.homeRegionId),
     exclusiveReasons: exclusiveContractShortfall(read, promotionId, tunables),
+    kindReasons: new Map(),
   };
 }
 
@@ -218,13 +221,13 @@ function allowedKindsFor(
   renewing: Row | null,
 ): AllowedKind[] {
   const kinds = listOfferKinds().map((spec) => {
-    const reasons = spec.available(
-      context.read,
-      context.promotion.id,
-      personId,
-      context.date,
-      context.tunables,
-    );
+    const known = spec.samePerWorker === true ? context.kindReasons.get(spec.key) : undefined;
+    const reasons =
+      known ??
+      spec.available(context.read, context.promotion.id, personId, context.date, context.tunables);
+    if (spec.samePerWorker === true) {
+      context.kindReasons.set(spec.key, reasons);
+    }
     return { kind: spec.key, label: spec.label, allowed: reasons.length === 0, reasons };
   });
   const writtenAllowed = kinds.some((entry) => entry.kind === 'written' && entry.allowed);
