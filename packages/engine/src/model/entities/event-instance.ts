@@ -212,5 +212,7 @@ export const eventInstancesTable = defineTable({
           : definitionAirDateKey(instance.eventDefinitionId, instance.airDate),
       unique: true,
     },
+    /** The shows that air on a day, taped or live (ECO8-01: what a deal airs today). */
+    { name: 'byAirDate', key: (instance) => instance.airDate },
   ],
 });

@@ -3732,3 +3732,58 @@ export {
   angleBeatLimitText,
   angleWarningsCheck,
 } from './systems/match/angles/bookingChecks';
+// Broadcast (ECO8-01): the `broadcast` system bundle, the `airings` table, the deal lifecycle
+// fields and the rule for which deal airs which show. See docs/design/broadcast.md.
+export type { AiringId } from './core/ids';
+export {
+  AIRING_MISS_REASONS,
+  AIRING_QUALITY_SOURCES,
+  AIRING_SHOW_NAME_MAX,
+  AIRING_STATUSES,
+  AiringMissReasonSchema,
+  AiringQualitySchema,
+  AiringQualitySourceSchema,
+  AiringSchema,
+  AiringStatusSchema,
+  airingsTable,
+} from './model/entities/airing';
+export type {
+  Airing,
+  AiringMissReason,
+  AiringQuality,
+  AiringQualitySource,
+  AiringStatus,
+} from './model/entities/airing';
+export { DEAL_END_REASONS, DealEndReasonSchema, ENDED_DEAL_STATUSES } from './model/entities/deal';
+export type { DealEndReason } from './model/entities/deal';
+export {
+  AIRING_KIND_LABELS,
+  AIRING_KINDS,
+  AIRING_TRACE_KIND,
+  AIRTIME_COST_CATEGORY,
+  airingKindOf,
+  airingsDueOn,
+  airingTraceRef,
+  BROADCAST_DOC,
+  BROADCAST_ELIGIBLE_IMPORTANCE,
+  BROADCAST_HEALTH_STREAM,
+  BROADCAST_TRACE_KINDS,
+  BROADCAST_TUNABLE_CATEGORY,
+  BROADCAST_VIEWERS_STREAM,
+  broadcastSystem,
+  broadcastTunables,
+  DEAL_HEALTH_TRACE_KIND,
+  DEAL_RISKS,
+  dealCoversShow,
+  dealHealthTraceRef,
+  dealInForce,
+  dealsAiringShow,
+  hasActiveBroadcastDeal,
+  incomeCategoryFor,
+  isHumanControlled,
+  networkOnAir,
+  networksCovering,
+  promotionMarketRegionIds,
+  RIVAL_AIRING_TRACE_KIND,
+} from './systems/broadcast/index';
+export type { AiringKind, BroadcastShow, DealRisk, DueAiring } from './systems/broadcast/index';

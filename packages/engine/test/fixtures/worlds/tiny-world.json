@@ -46,10 +46,7 @@
             "beat.parking-lot-attack",
             "beat.arrival"
           ],
-          "settings": [
-            "ring",
-            "backstage"
-          ],
+          "settings": ["ring", "backstage"],
           "hidden": false,
           "description": "An ambush in the ring, backstage or in the car park. Few words, lots of impact."
         },
@@ -76,10 +73,7 @@
             "beat.backstage-confrontation",
             "beat.office-meeting"
           ],
-          "settings": [
-            "ring",
-            "backstage"
-          ],
+          "settings": ["ring", "backstage"],
           "hidden": false,
           "description": "Rivals come face to face. Words are traded and it may not stay peaceful."
         },
@@ -107,10 +101,7 @@
             "beat.celebration",
             "beat.office-meeting"
           ],
-          "settings": [
-            "ring",
-            "backstage"
-          ],
+          "settings": ["ring", "backstage"],
           "hidden": false,
           "description": "A table, a contract and two people who do not like each other. It rarely ends with just a signature."
         },
@@ -136,11 +127,7 @@
             "beat.medical-update",
             "beat.arrival"
           ],
-          "settings": [
-            "ring",
-            "backstage",
-            "video"
-          ],
+          "settings": ["ring", "backstage", "video"],
           "hidden": false,
           "description": "A backstage or ringside interviewer asks the questions and the talent answers."
         },
@@ -168,11 +155,7 @@
             "beat.arrival",
             "beat.office-meeting"
           ],
-          "settings": [
-            "ring",
-            "backstage",
-            "video"
-          ],
+          "settings": ["ring", "backstage", "video"],
           "hidden": false,
           "description": "Someone takes the microphone and talks to the crowd, an opponent or the camera."
         },
@@ -191,12 +174,8 @@
             "charisma": 0.4,
             "presence": 0.3
           },
-          "beatKeys": [
-            "beat.video-package"
-          ],
-          "settings": [
-            "video"
-          ],
+          "beatKeys": ["beat.video-package"],
+          "settings": ["video"],
           "hidden": false,
           "description": "A pre-recorded piece that builds a rivalry or introduces someone new."
         }
@@ -241,10 +220,7 @@
           "durationShift": 1,
           "workRateFactor": 1,
           "crowdFactor": 1,
-          "styleAffinity": [
-            "technician",
-            "grappler"
-          ],
+          "styleAffinity": ["technician", "grappler"],
           "allowsTitles": true,
           "hidden": false,
           "description": "A long one-on-one contest that rewards conditioning and patient mat work."
@@ -328,10 +304,7 @@
           "durationShift": -1,
           "workRateFactor": 1,
           "crowdFactor": 1,
-          "styleAffinity": [
-            "highFlyer",
-            "striker"
-          ],
+          "styleAffinity": ["highFlyer", "striker"],
           "allowsTitles": true,
           "hidden": false,
           "description": "A short, fast one-on-one bout with no time to settle in."
@@ -719,35 +692,23 @@
           "groups": [
             {
               "label": "Announcer",
-              "stats": [
-                "mic",
-                "presence",
-                "broadcasting"
-              ],
+              "stats": ["mic", "presence", "broadcasting"],
               "weight": 1,
               "minPeople": 1,
               "maxPeople": 2,
               "optional": false,
               "managerCanStandIn": true,
-              "roles": [
-                "interviewer",
-                "authority"
-              ]
+              "roles": ["interviewer", "authority"]
             },
             {
               "label": "Subjects",
-              "stats": [
-                "popularity"
-              ],
+              "stats": ["popularity"],
               "weight": 0.5,
               "minPeople": 1,
               "maxPeople": 6,
               "optional": true,
               "managerCanStandIn": false,
-              "roles": [
-                "wrestler",
-                "manager"
-              ]
+              "roles": ["wrestler", "manager"]
             }
           ],
           "physical": false,
@@ -761,29 +722,19 @@
           "groups": [
             {
               "label": "Arrivals",
-              "stats": [
-                "presence",
-                "charisma",
-                "popularity"
-              ],
+              "stats": ["presence", "charisma", "popularity"],
               "weight": 1,
               "minPeople": 1,
               "maxPeople": 4,
               "optional": false,
               "managerCanStandIn": false,
-              "roles": [
-                "wrestler",
-                "manager"
-              ]
+              "roles": ["wrestler", "manager"]
             }
           ],
           "physical": false,
           "repetitionGroup": "spectacle",
           "weight": 0.6,
-          "settings": [
-            "backstage",
-            "video"
-          ]
+          "settings": ["backstage", "video"]
         },
         "beat.attack": {
           "key": "beat.attack",
@@ -792,11 +743,7 @@
           "groups": [
             {
               "label": "Attackers",
-              "stats": [
-                "presence",
-                "athleticism",
-                "popularity"
-              ],
+              "stats": ["presence", "athleticism", "popularity"],
               "weight": 1,
               "minPeople": 1,
               "maxPeople": 4,
@@ -805,11 +752,7 @@
             },
             {
               "label": "Targets",
-              "stats": [
-                "charisma",
-                "presence",
-                "popularity"
-              ],
+              "stats": ["charisma", "presence", "popularity"],
               "weight": 1,
               "minPeople": 1,
               "maxPeople": 4,
@@ -828,47 +771,29 @@
           "groups": [
             {
               "label": "Side A",
-              "stats": [
-                "mic",
-                "charisma",
-                "presence"
-              ],
+              "stats": ["mic", "charisma", "presence"],
               "weight": 1,
               "minPeople": 1,
               "maxPeople": 4,
               "optional": false,
               "managerCanStandIn": true,
-              "roles": [
-                "wrestler",
-                "manager",
-                "authority"
-              ]
+              "roles": ["wrestler", "manager", "authority"]
             },
             {
               "label": "Side B",
-              "stats": [
-                "mic",
-                "charisma",
-                "presence"
-              ],
+              "stats": ["mic", "charisma", "presence"],
               "weight": 1,
               "minPeople": 1,
               "maxPeople": 4,
               "optional": false,
               "managerCanStandIn": true,
-              "roles": [
-                "wrestler",
-                "manager",
-                "authority"
-              ]
+              "roles": ["wrestler", "manager", "authority"]
             }
           ],
           "physical": false,
           "repetitionGroup": "faceoff",
           "weight": 1,
-          "settings": [
-            "backstage"
-          ]
+          "settings": ["backstage"]
         },
         "beat.backstage-skit": {
           "key": "beat.backstage-skit",
@@ -877,10 +802,7 @@
           "groups": [
             {
               "label": "Cast",
-              "stats": [
-                "charisma",
-                "mic"
-              ],
+              "stats": ["charisma", "mic"],
               "weight": 1,
               "minPeople": 1,
               "maxPeople": 4,
@@ -889,10 +811,7 @@
             },
             {
               "label": "Foil",
-              "stats": [
-                "charisma",
-                "mic"
-              ],
+              "stats": ["charisma", "mic"],
               "weight": 1,
               "minPeople": 1,
               "maxPeople": 3,
@@ -903,10 +822,7 @@
           "physical": false,
           "repetitionGroup": "skit",
           "weight": 0.9,
-          "settings": [
-            "backstage",
-            "video"
-          ]
+          "settings": ["backstage", "video"]
         },
         "beat.brawl": {
           "key": "beat.brawl",
@@ -915,12 +831,7 @@
           "groups": [
             {
               "label": "Brawlers",
-              "stats": [
-                "presence",
-                "athleticism",
-                "ringwork",
-                "popularity"
-              ],
+              "stats": ["presence", "athleticism", "ringwork", "popularity"],
               "weight": 1,
               "minPeople": 2,
               "maxPeople": 6,
@@ -939,10 +850,7 @@
           "groups": [
             {
               "label": "Celebrants",
-              "stats": [
-                "popularity",
-                "charisma"
-              ],
+              "stats": ["popularity", "charisma"],
               "weight": 1,
               "minPeople": 1,
               "maxPeople": 6,
@@ -953,10 +861,7 @@
           "physical": false,
           "repetitionGroup": "ceremony",
           "weight": 0.8,
-          "settings": [
-            "ring",
-            "backstage"
-          ]
+          "settings": ["ring", "backstage"]
         },
         "beat.contract-signing": {
           "key": "beat.contract-signing",
@@ -965,11 +870,7 @@
           "groups": [
             {
               "label": "Signers",
-              "stats": [
-                "presence",
-                "mic",
-                "popularity"
-              ],
+              "stats": ["presence", "mic", "popularity"],
               "weight": 1,
               "minPeople": 1,
               "maxPeople": 4,
@@ -978,11 +879,7 @@
             },
             {
               "label": "Witnesses",
-              "stats": [
-                "presence",
-                "mic",
-                "broadcasting"
-              ],
+              "stats": ["presence", "mic", "broadcasting"],
               "weight": 0.5,
               "minPeople": 1,
               "maxPeople": 3,
@@ -1001,11 +898,7 @@
           "groups": [
             {
               "label": "Performers",
-              "stats": [
-                "presence",
-                "charisma",
-                "popularity"
-              ],
+              "stats": ["presence", "charisma", "popularity"],
               "weight": 1,
               "minPeople": 1,
               "maxPeople": 4,
@@ -1016,10 +909,7 @@
           "physical": false,
           "repetitionGroup": "spectacle",
           "weight": 0.7,
-          "settings": [
-            "ring",
-            "video"
-          ]
+          "settings": ["ring", "video"]
         },
         "beat.interview": {
           "key": "beat.interview",
@@ -1028,35 +918,23 @@
           "groups": [
             {
               "label": "Guest",
-              "stats": [
-                "mic",
-                "charisma"
-              ],
+              "stats": ["mic", "charisma"],
               "weight": 3,
               "minPeople": 1,
               "maxPeople": 3,
               "optional": false,
               "managerCanStandIn": true,
-              "roles": [
-                "wrestler",
-                "manager"
-              ]
+              "roles": ["wrestler", "manager"]
             },
             {
               "label": "Host",
-              "stats": [
-                "broadcasting",
-                "mic",
-                "presence"
-              ],
+              "stats": ["broadcasting", "mic", "presence"],
               "weight": 1,
               "minPeople": 1,
               "maxPeople": 1,
               "optional": true,
               "managerCanStandIn": false,
-              "roles": [
-                "interviewer"
-              ]
+              "roles": ["interviewer"]
             }
           ],
           "physical": false,
@@ -1070,43 +948,29 @@
           "groups": [
             {
               "label": "Guest",
-              "stats": [
-                "mic",
-                "charisma"
-              ],
+              "stats": ["mic", "charisma"],
               "weight": 3,
               "minPeople": 1,
               "maxPeople": 3,
               "optional": false,
               "managerCanStandIn": true,
-              "roles": [
-                "wrestler",
-                "manager"
-              ]
+              "roles": ["wrestler", "manager"]
             },
             {
               "label": "Interviewer",
-              "stats": [
-                "broadcasting",
-                "mic"
-              ],
+              "stats": ["broadcasting", "mic"],
               "weight": 1,
               "minPeople": 1,
               "maxPeople": 1,
               "optional": true,
               "managerCanStandIn": false,
-              "roles": [
-                "interviewer"
-              ]
+              "roles": ["interviewer"]
             }
           ],
           "physical": false,
           "repetitionGroup": "talk",
           "weight": 0.9,
-          "settings": [
-            "backstage",
-            "video"
-          ]
+          "settings": ["backstage", "video"]
         },
         "beat.medical-update": {
           "key": "beat.medical-update",
@@ -1115,44 +979,29 @@
           "groups": [
             {
               "label": "Reporter",
-              "stats": [
-                "broadcasting",
-                "mic",
-                "presence"
-              ],
+              "stats": ["broadcasting", "mic", "presence"],
               "weight": 1,
               "minPeople": 1,
               "maxPeople": 1,
               "optional": false,
               "managerCanStandIn": false,
-              "roles": [
-                "interviewer",
-                "authority"
-              ]
+              "roles": ["interviewer", "authority"]
             },
             {
               "label": "Patient",
-              "stats": [
-                "charisma",
-                "popularity"
-              ],
+              "stats": ["charisma", "popularity"],
               "weight": 1,
               "minPeople": 1,
               "maxPeople": 2,
               "optional": true,
               "managerCanStandIn": false,
-              "roles": [
-                "wrestler"
-              ]
+              "roles": ["wrestler"]
             }
           ],
           "physical": false,
           "repetitionGroup": "announcement",
           "weight": 0.7,
-          "settings": [
-            "backstage",
-            "video"
-          ]
+          "settings": ["backstage", "video"]
         },
         "beat.office-meeting": {
           "key": "beat.office-meeting",
@@ -1161,42 +1010,29 @@
           "groups": [
             {
               "label": "Authority",
-              "stats": [
-                "mic",
-                "presence"
-              ],
+              "stats": ["mic", "presence"],
               "weight": 1,
               "minPeople": 1,
               "maxPeople": 2,
               "optional": false,
               "managerCanStandIn": true,
-              "roles": [
-                "authority"
-              ]
+              "roles": ["authority"]
             },
             {
               "label": "Visitors",
-              "stats": [
-                "mic",
-                "charisma"
-              ],
+              "stats": ["mic", "charisma"],
               "weight": 1,
               "minPeople": 1,
               "maxPeople": 4,
               "optional": true,
               "managerCanStandIn": true,
-              "roles": [
-                "wrestler",
-                "manager"
-              ]
+              "roles": ["wrestler", "manager"]
             }
           ],
           "physical": false,
           "repetitionGroup": "skit",
           "weight": 1,
-          "settings": [
-            "backstage"
-          ]
+          "settings": ["backstage"]
         },
         "beat.parking-lot-attack": {
           "key": "beat.parking-lot-attack",
@@ -1205,44 +1041,29 @@
           "groups": [
             {
               "label": "Attackers",
-              "stats": [
-                "presence",
-                "athleticism"
-              ],
+              "stats": ["presence", "athleticism"],
               "weight": 1,
               "minPeople": 1,
               "maxPeople": 4,
               "optional": false,
               "managerCanStandIn": false,
-              "roles": [
-                "wrestler",
-                "manager"
-              ]
+              "roles": ["wrestler", "manager"]
             },
             {
               "label": "Targets",
-              "stats": [
-                "charisma",
-                "presence"
-              ],
+              "stats": ["charisma", "presence"],
               "weight": 1,
               "minPeople": 1,
               "maxPeople": 4,
               "optional": false,
               "managerCanStandIn": false,
-              "roles": [
-                "wrestler",
-                "manager"
-              ]
+              "roles": ["wrestler", "manager"]
             }
           ],
           "physical": true,
           "repetitionGroup": "violence",
           "weight": 1,
-          "settings": [
-            "backstage",
-            "video"
-          ]
+          "settings": ["backstage", "video"]
         },
         "beat.promo": {
           "key": "beat.promo",
@@ -1251,10 +1072,7 @@
           "groups": [
             {
               "label": "Speaker",
-              "stats": [
-                "mic",
-                "charisma"
-              ],
+              "stats": ["mic", "charisma"],
               "weight": 1,
               "minPeople": 1,
               "maxPeople": 4,
@@ -1273,11 +1091,7 @@
           "groups": [
             {
               "label": "Combatants",
-              "stats": [
-                "presence",
-                "athleticism",
-                "popularity"
-              ],
+              "stats": ["presence", "athleticism", "popularity"],
               "weight": 1,
               "minPeople": 2,
               "maxPeople": 6,
@@ -1296,10 +1110,7 @@
           "groups": [
             {
               "label": "Side A",
-              "stats": [
-                "presence",
-                "popularity"
-              ],
+              "stats": ["presence", "popularity"],
               "weight": 1,
               "minPeople": 1,
               "maxPeople": 4,
@@ -1308,10 +1119,7 @@
             },
             {
               "label": "Side B",
-              "stats": [
-                "presence",
-                "popularity"
-              ],
+              "stats": ["presence", "popularity"],
               "weight": 1,
               "minPeople": 1,
               "maxPeople": 4,
@@ -1330,11 +1138,7 @@
           "groups": [
             {
               "label": "Featured",
-              "stats": [
-                "charisma",
-                "presence",
-                "popularity"
-              ],
+              "stats": ["charisma", "presence", "popularity"],
               "weight": 1,
               "minPeople": 1,
               "maxPeople": 6,
@@ -1345,9 +1149,7 @@
           "physical": false,
           "repetitionGroup": "video",
           "weight": 0.7,
-          "settings": [
-            "video"
-          ]
+          "settings": ["video"]
         },
         "beat.war-of-words": {
           "key": "beat.war-of-words",
@@ -1356,10 +1158,7 @@
           "groups": [
             {
               "label": "Side A",
-              "stats": [
-                "mic",
-                "charisma"
-              ],
+              "stats": ["mic", "charisma"],
               "weight": 1,
               "minPeople": 1,
               "maxPeople": 4,
@@ -1368,10 +1167,7 @@
             },
             {
               "label": "Side B",
-              "stats": [
-                "mic",
-                "charisma"
-              ],
+              "stats": ["mic", "charisma"],
               "weight": 1,
               "minPeople": 1,
               "maxPeople": 4,
@@ -1698,12 +1494,8 @@
           }
         },
         "refs": {
-          "personIds": [
-            "per_0000000009"
-          ],
-          "employmentIds": [
-            "emp_0000000009"
-          ],
+          "personIds": ["per_0000000009"],
+          "employmentIds": ["emp_0000000009"],
           "titleIds": [],
           "promotionIds": [],
           "eventInstanceId": null
@@ -1723,12 +1515,8 @@
           "params": {}
         },
         "refs": {
-          "personIds": [
-            "per_0000000009"
-          ],
-          "employmentIds": [
-            "emp_0000000009"
-          ],
+          "personIds": ["per_0000000009"],
+          "employmentIds": ["emp_0000000009"],
           "titleIds": [],
           "promotionIds": [],
           "eventInstanceId": null
@@ -2560,9 +2348,7 @@
         "importance": "regular",
         "recurrence": {
           "kind": "weekly",
-          "weekdays": [
-            3
-          ]
+          "weekdays": [3]
         },
         "format": {
           "slots": 6,
@@ -2744,9 +2530,7 @@
           "params": {}
         },
         "refs": {
-          "personIds": [
-            "per_0000000008"
-          ],
+          "personIds": ["per_0000000008"],
           "promotionIds": [],
           "eventInstanceId": null,
           "employmentId": null
@@ -2936,9 +2720,7 @@
         "reachTier": 2,
         "coverage": {
           "continentIds": [],
-          "countryIds": [
-            "cty_0000000001"
-          ],
+          "countryIds": ["cty_0000000001"],
           "regionIds": []
         },
         "ownerPromotionId": null,
@@ -2963,10 +2745,7 @@
         },
         "refs": {
           "personIds": [],
-          "promotionIds": [
-            "pro_0000000001",
-            "pro_0000000002"
-          ],
+          "promotionIds": ["pro_0000000001", "pro_0000000002"],
           "eventInstanceId": null,
           "employmentId": null
         },
@@ -2986,10 +2765,7 @@
           "params": {}
         },
         "refs": {
-          "personIds": [
-            "per_0000000001",
-            "per_0000000002"
-          ],
+          "personIds": ["per_0000000001", "per_0000000002"],
           "promotionIds": [],
           "eventInstanceId": "evi_0000000001",
           "employmentId": null
@@ -3094,9 +2870,7 @@
         "imageRef": null,
         "masked": false,
         "tags": [],
-        "roles": [
-          "wrestler"
-        ],
+        "roles": ["wrestler"],
         "status": "active",
         "career": {
           "canOwn": false,
@@ -3156,9 +2930,7 @@
         "imageRef": null,
         "masked": false,
         "tags": [],
-        "roles": [
-          "wrestler"
-        ],
+        "roles": ["wrestler"],
         "status": "active",
         "career": {
           "canOwn": false,
@@ -3218,9 +2990,7 @@
         "imageRef": null,
         "masked": false,
         "tags": [],
-        "roles": [
-          "wrestler"
-        ],
+        "roles": ["wrestler"],
         "status": "active",
         "career": {
           "canOwn": false,
@@ -3280,9 +3050,7 @@
         "imageRef": null,
         "masked": false,
         "tags": [],
-        "roles": [
-          "wrestler"
-        ],
+        "roles": ["wrestler"],
         "status": "active",
         "career": {
           "canOwn": false,
@@ -3342,9 +3110,7 @@
         "imageRef": null,
         "masked": false,
         "tags": [],
-        "roles": [
-          "wrestler"
-        ],
+        "roles": ["wrestler"],
         "status": "active",
         "career": {
           "canOwn": false,
@@ -3404,9 +3170,7 @@
         "imageRef": null,
         "masked": false,
         "tags": [],
-        "roles": [
-          "wrestler"
-        ],
+        "roles": ["wrestler"],
         "status": "active",
         "career": {
           "canOwn": false,
@@ -3466,9 +3230,7 @@
         "imageRef": null,
         "masked": false,
         "tags": [],
-        "roles": [
-          "wrestler"
-        ],
+        "roles": ["wrestler"],
         "status": "active",
         "career": {
           "canOwn": false,
@@ -3528,9 +3290,7 @@
         "imageRef": null,
         "masked": false,
         "tags": [],
-        "roles": [
-          "wrestler"
-        ],
+        "roles": ["wrestler"],
         "status": "active",
         "career": {
           "canOwn": false,
@@ -3590,9 +3350,7 @@
         "imageRef": null,
         "masked": false,
         "tags": [],
-        "roles": [
-          "wrestler"
-        ],
+        "roles": ["wrestler"],
         "status": "active",
         "career": {
           "canOwn": false,
@@ -3652,9 +3410,7 @@
         "imageRef": null,
         "masked": false,
         "tags": [],
-        "roles": [
-          "wrestler"
-        ],
+        "roles": ["wrestler"],
         "status": "active",
         "career": {
           "canOwn": false,
@@ -3714,9 +3470,7 @@
         "imageRef": null,
         "masked": false,
         "tags": [],
-        "roles": [
-          "wrestler"
-        ],
+        "roles": ["wrestler"],
         "status": "active",
         "career": {
           "canOwn": false,
@@ -3776,9 +3530,7 @@
         "imageRef": null,
         "masked": false,
         "tags": [],
-        "roles": [
-          "wrestler"
-        ],
+        "roles": ["wrestler"],
         "status": "active",
         "career": {
           "canOwn": false,
@@ -3838,9 +3590,7 @@
         "imageRef": null,
         "masked": false,
         "tags": [],
-        "roles": [
-          "wrestler"
-        ],
+        "roles": ["wrestler"],
         "status": "active",
         "career": {
           "canOwn": false,
@@ -3900,9 +3650,7 @@
         "imageRef": null,
         "masked": false,
         "tags": [],
-        "roles": [
-          "wrestler"
-        ],
+        "roles": ["wrestler"],
         "status": "active",
         "career": {
           "canOwn": false,
@@ -3962,9 +3710,7 @@
         "imageRef": null,
         "masked": false,
         "tags": [],
-        "roles": [
-          "wrestler"
-        ],
+        "roles": ["wrestler"],
         "status": "active",
         "career": {
           "canOwn": false,
@@ -4024,9 +3770,7 @@
         "imageRef": null,
         "masked": false,
         "tags": [],
-        "roles": [
-          "wrestler"
-        ],
+        "roles": ["wrestler"],
         "status": "active",
         "career": {
           "canOwn": false,
@@ -4086,9 +3830,7 @@
         "imageRef": null,
         "masked": false,
         "tags": [],
-        "roles": [
-          "wrestler"
-        ],
+        "roles": ["wrestler"],
         "status": "active",
         "career": {
           "canOwn": false,
@@ -4308,9 +4050,7 @@
         "population": 1800000,
         "wrestlingInterest": 60,
         "preferredStyle": null,
-        "neighbourRegionIds": [
-          "reg_0000000002"
-        ]
+        "neighbourRegionIds": ["reg_0000000002"]
       },
       {
         "id": "reg_0000000002",
@@ -4319,10 +4059,7 @@
         "population": 1200000,
         "wrestlingInterest": 50,
         "preferredStyle": null,
-        "neighbourRegionIds": [
-          "reg_0000000001",
-          "reg_0000000003"
-        ]
+        "neighbourRegionIds": ["reg_0000000001", "reg_0000000003"]
       },
       {
         "id": "reg_0000000003",
@@ -4331,10 +4068,7 @@
         "population": 1100000,
         "wrestlingInterest": 55,
         "preferredStyle": null,
-        "neighbourRegionIds": [
-          "reg_0000000002",
-          "reg_0000000004"
-        ]
+        "neighbourRegionIds": ["reg_0000000002", "reg_0000000004"]
       },
       {
         "id": "reg_0000000004",
@@ -4343,9 +4077,7 @@
         "population": 900000,
         "wrestlingInterest": 40,
         "preferredStyle": null,
-        "neighbourRegionIds": [
-          "reg_0000000003"
-        ]
+        "neighbourRegionIds": ["reg_0000000003"]
       }
     ],
     "relationships": [
@@ -4354,9 +4086,7 @@
         "personAId": "per_0000000001",
         "personBId": "per_0000000002",
         "affinity": -40,
-        "bonds": [
-          "rivals"
-        ],
+        "bonds": ["rivals"],
         "mentorId": null,
         "since": "2026-01-05",
         "lastChangedOn": "2026-01-05"
@@ -4366,9 +4096,7 @@
         "personAId": "per_0000000003",
         "personBId": "per_0000000004",
         "affinity": 60,
-        "bonds": [
-          "friends"
-        ],
+        "bonds": ["friends"],
         "mentorId": null,
         "since": "2026-01-05",
         "lastChangedOn": "2026-01-05"
@@ -4430,9 +4158,7 @@
         "slot": 1,
         "preShow": false,
         "label": null,
-        "storylineIds": [
-          "sty_0000000001"
-        ],
+        "storylineIds": ["sty_0000000001"],
         "crew": {
           "refereeId": null,
           "producerId": null,
@@ -4452,16 +4178,11 @@
           "beats": [
             {
               "beatKey": "beat.promo",
-              "personIds": [
-                "per_0000000001"
-              ]
+              "personIds": ["per_0000000001"]
             },
             {
               "beatKey": "beat.war-of-words",
-              "personIds": [
-                "per_0000000002",
-                "per_0000000001"
-              ]
+              "personIds": ["per_0000000002", "per_0000000001"]
             }
           ]
         }
@@ -4472,9 +4193,7 @@
         "slot": 2,
         "preShow": false,
         "label": "Title match",
-        "storylineIds": [
-          "sty_0000000001"
-        ],
+        "storylineIds": ["sty_0000000001"],
         "crew": {
           "refereeId": null,
           "producerId": null,
@@ -4492,9 +4211,7 @@
         "match": {
           "matchTypeKey": "match.singles",
           "stipulationKeys": [],
-          "titleIds": [
-            "tit_0000000001"
-          ],
+          "titleIds": ["tit_0000000001"],
           "finishKey": "finish.clean"
         },
         "outcome": {
@@ -4542,11 +4259,7 @@
         "id": "stb_0000000001",
         "promotionId": "pro_0000000001",
         "name": "Test Stable A",
-        "memberIds": [
-          "per_0000000001",
-          "per_0000000007",
-          "per_0000000008"
-        ],
+        "memberIds": ["per_0000000001", "per_0000000007", "per_0000000008"],
         "leaderId": "per_0000000001",
         "status": "active",
         "formedOn": "2026-01-05",
@@ -4593,10 +4306,7 @@
         "id": "tem_0000000001",
         "kind": "tag",
         "name": "Test Tag Team A",
-        "memberIds": [
-          "per_0000000003",
-          "per_0000000004"
-        ],
+        "memberIds": ["per_0000000003", "per_0000000004"],
         "experience": 70,
         "status": "active",
         "formedOn": "2025-06-19",
@@ -4607,9 +4317,7 @@
       {
         "id": "trn_0000000001",
         "titleId": "tit_0000000001",
-        "holderIds": [
-          "per_0000000001"
-        ],
+        "holderIds": ["per_0000000001"],
         "teamId": null,
         "wonOn": "2026-01-05",
         "lostOn": null,
@@ -4617,17 +4325,12 @@
         "endedInSegmentId": null,
         "endReason": null,
         "defences": 1,
-        "holderNamesAtTime": [
-          "Test Person 001"
-        ]
+        "holderNamesAtTime": ["Test Person 001"]
       },
       {
         "id": "trn_0000000002",
         "titleId": "tit_0000000002",
-        "holderIds": [
-          "per_0000000003",
-          "per_0000000004"
-        ],
+        "holderIds": ["per_0000000003", "per_0000000004"],
         "teamId": "tem_0000000001",
         "wonOn": "2026-01-05",
         "lostOn": null,
@@ -4635,17 +4338,12 @@
         "endedInSegmentId": null,
         "endReason": null,
         "defences": 0,
-        "holderNamesAtTime": [
-          "Test Person 003",
-          "Test Person 004"
-        ]
+        "holderNamesAtTime": ["Test Person 003", "Test Person 004"]
       },
       {
         "id": "trn_0000000003",
         "titleId": "tit_0000000001",
-        "holderIds": [
-          "per_0000000002"
-        ],
+        "holderIds": ["per_0000000002"],
         "teamId": null,
         "wonOn": "2025-01-05",
         "lostOn": "2026-01-05",
@@ -4653,17 +4351,12 @@
         "endedInSegmentId": null,
         "endReason": "lost",
         "defences": 3,
-        "holderNamesAtTime": [
-          "Test Person 002"
-        ]
+        "holderNamesAtTime": ["Test Person 002"]
       },
       {
         "id": "trn_0000000004",
         "titleId": "tit_0000000002",
-        "holderIds": [
-          "per_0000000005",
-          "per_0000000006"
-        ],
+        "holderIds": ["per_0000000005", "per_0000000006"],
         "teamId": null,
         "wonOn": "2025-01-05",
         "lostOn": "2026-01-05",
@@ -4671,10 +4364,7 @@
         "endedInSegmentId": null,
         "endReason": "vacated",
         "defences": 0,
-        "holderNamesAtTime": [
-          "Test Person 005",
-          "Test Person 006"
-        ]
+        "holderNamesAtTime": ["Test Person 005", "Test Person 006"]
       }
     ],
     "titles": [
