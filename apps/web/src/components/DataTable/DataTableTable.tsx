@@ -170,6 +170,9 @@ function revealFocusedControl(event: FocusEvent<HTMLDivElement>): void {
   const scroller = event.currentTarget;
   const control = event.target;
   if (!(control instanceof HTMLElement) || control.tagName === 'TABLE') return;
+  // React sends focus up its own tree, so a cell's menu or sheet (portalled elsewhere in the page)
+  // lands here too: only controls really inside the scroller are its business.
+  if (!scroller.contains(control)) return;
   const area = scroller.getBoundingClientRect();
   const box = control.getBoundingClientRect();
 
