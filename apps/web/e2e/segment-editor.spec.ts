@@ -9,6 +9,8 @@
  * - On a touch screen the picker's search box and the billing line are at least 16px, so Safari
  *   on iPhone doesn't zoom the page in when they take focus.
  * - The Result list offers Auto and Random with their explanations on screen, and fits (MTCH2-08).
+ * - A backstage interview shows Where, Guest and Host with each speaker's part and fits, and the
+ *   Host picker opens on interviewers only (MTCH5-08).
  */
 import type { Locator, Page } from '@playwright/test';
 import { expect, test } from './fixtures';
@@ -114,6 +116,26 @@ test.describe('segment editor', () => {
     if (SHOTS_DIR !== undefined) {
       await page.screenshot({ path: `${SHOTS_DIR}/result-list-${test.info().project.name}.png` });
     }
+    await expectNoHorizontalScroll(page);
+  });
+
+  test('a backstage interview names each part and where, and fits (MTCH5-08)', async ({ page }) => {
+    const editor = await openEditor(page, 'Backstage interview');
+    await expect(editor.getByRole('radio', { name: 'Backstage' })).toBeChecked();
+    await expect(editor.getByRole('heading', { name: 'Guest' })).toBeVisible();
+    await expect(editor.getByRole('heading', { name: 'Host' })).toBeVisible();
+    await expect(editor.getByText('Manager for Kai Moreno')).toBeVisible();
+    await expectNoHorizontalScroll(page);
+
+    await editor.getByRole('button', { name: 'Remove Lena Park from the speakers' }).click();
+    await editor.getByRole('button', { name: 'Add speaker' }).nth(1).click();
+    const picker = page.getByRole('dialog', { name: 'Add a speaker' });
+    await expect(picker.getByRole('button', { name: 'Suits Host' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await expect(picker.getByRole('option', { name: /Lena Park/ })).toBeVisible();
+    await expect(picker.getByRole('option', { name: /Rex Hale/ })).toHaveCount(0);
     await expectNoHorizontalScroll(page);
   });
 });
