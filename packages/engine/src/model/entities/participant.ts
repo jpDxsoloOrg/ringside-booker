@@ -12,7 +12,7 @@
 import { z } from 'zod';
 import { defineTable } from '../table-def';
 import { zId, zPositiveInt } from '../primitives';
-import { DEFAULT_TALK_ROLE, TALK_ROLES, type TalkRole } from './angle-setting';
+import { TALK_ROLES, type TalkRole } from './angle-setting';
 
 /**
  * Sides are numbered from 0 up to `MAX_SIDE` (up to 30 sides). A singles match uses sides 0 and 1;
@@ -62,15 +62,16 @@ export const ParticipantSchema = z.strictObject({
 export type Participant = z.infer<typeof ParticipantSchema>;
 
 /**
- * The part a person plays in a talking segment: their stored `talkRole`, or `wrestler` for a
- * speaker who names none (saves from before MTCH5-08). Null for a role that does not talk
- * (competitors, ringside, interferers and subjects).
+ * The part a person plays in a talking segment as stored: their `talkRole`, or null for a speaker
+ * who names none (saves from before MTCH5-08: readers then use the part they were hired for, a
+ * wrestler by default) and for a role that does not talk (competitors, ringside, interferers and
+ * subjects).
  */
-export function talkRoleOf(participant: {
+export function storedTalkRoleOf(participant: {
   readonly role: ParticipantRole;
   readonly talkRole?: TalkRole | undefined;
 }): TalkRole | null {
-  return participant.role === 'speaker' ? (participant.talkRole ?? DEFAULT_TALK_ROLE) : null;
+  return participant.role === 'speaker' ? (participant.talkRole ?? null) : null;
 }
 
 export const participantsTable = defineTable({

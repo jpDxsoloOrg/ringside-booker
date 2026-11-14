@@ -8,7 +8,7 @@
 
 import type { GameDate } from '../../../core/date';
 import type { PersonId, PromotionId } from '../../../core/ids';
-import { hasBeatCatalog, type Catalogs } from '../../../model/catalogs';
+import { beatOf, hasBeatCatalog, type Catalogs } from '../../../model/catalogs';
 import { promotionStatusKey, type Employment } from '../../../model/entities/employment';
 import type { Person } from '../../../model/entities/person';
 import type { GameWorldView } from '../../../model/tables';
@@ -17,6 +17,8 @@ import type { EngineTunables } from '../../tunables';
 import { availabilityOf, type AvailabilityStatus } from '../../workers/helpers/availability';
 import { defaultBeatsOf } from '../angles/angleRater';
 import { angleBeatWarnings } from '../angles/angleWarnings';
+import { talkRoleForEmployment } from '../angles/settings';
+import { talkWarnings, type TalkPart } from '../angles/talkWarnings';
 import { availabilityText } from '../availabilityText';
 import type { DurationClass } from '../slots';
 import type { SegmentRatingInput, SegmentWarning, SegmentWarningCode } from './types';
@@ -291,7 +293,28 @@ function beatWarnings(
     return [];
   }
   const beats = input.angle?.beats ?? defaultBeatsOf(angleType, input.sides, read);
-  return angleBeatWarnings(input, beats, {
+  const nameOfId = (personId: PersonId): string => {
+    const person = read.tables.people.get(personId);
+    return person === undefined ? personId : nameOf(person);
+  };
+  const parts = new Map<PersonId, TalkPart>();
+  for (const personId of beats.flatMap((beat) => [...beat.groupOne, ...beat.groupTwo])) {
+    const given = input.angle?.parts?.[personId];
+    const hiredAs = contractOf(personId)?.role;
+    parts.set(
+      personId,
+      given ?? { talkRole: hiredAs === undefined ? 'wrestler' : talkRoleForEmployment(hiredAs) },
+    );
+  }
+  const talk: SegmentWarning[] = talkWarnings({
+    angleType,
+    setting: input.angle?.setting ?? 'ring',
+    beats,
+    parts,
+    beatOf: (beatKey) => beatOf(read, beatKey),
+    nameOf: nameOfId,
+  }).map((warning) => ({ ...warning, severity: 'warning' }));
+  const beatOnes = angleBeatWarnings(input, beats, {
     read,
     date,
     tunables: options.tunables,
@@ -305,6 +328,7 @@ function beatWarnings(
       return person === undefined ? null : availabilityOf(person, contractOf(personId), date);
     },
   });
+  return [...beatOnes, ...talk];
 }
 
 const SEVERITY_RANK: Readonly<Record<SegmentWarning['severity'], number>> = {

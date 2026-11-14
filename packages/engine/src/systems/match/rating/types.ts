@@ -10,6 +10,7 @@
  */
 
 import type { AngleSetting } from '../../../model/entities/angle-setting';
+import { TALK_WARNING_CODES, type TalkPart } from '../angles/talkWarnings';
 import type { ContentKey } from '../../../core/content-key';
 import type { GameDate } from '../../../core/date';
 import type { PersonId, PromotionId, RegionId } from '../../../core/ids';
@@ -86,6 +87,11 @@ export interface SegmentAngleInput {
   readonly viewerPromotionIds?: readonly PromotionId[] | null;
   /** MTCH5-08: where the angle happens. Left out: in the ring. */
   readonly setting?: AngleSetting;
+  /**
+   * MTCH5-08: the part each person plays, for the role warnings. Left out: read from the role
+   * each person was hired in (a presenter or announcer interviews, a manager manages).
+   */
+  readonly parts?: Readonly<Record<PersonId, TalkPart>>;
 }
 
 /** A booking problem, for the lab and EVT2's booking validation. `message` is player text. */
@@ -121,6 +127,8 @@ export const SEGMENT_WARNING_CODES = [
   'angle.injuredInPhysicalBeat',
   'angle.cannotWorkAngles',
   'angle.unavailable',
+  // MTCH5-08: talk roles and settings (warnings only).
+  ...TALK_WARNING_CODES,
 ] as const;
 export type SegmentWarningCode = (typeof SEGMENT_WARNING_CODES)[number];
 

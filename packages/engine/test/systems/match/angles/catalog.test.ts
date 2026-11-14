@@ -121,19 +121,25 @@ describe('the shipped beat catalog', () => {
     expect(loadIssues(readBasePack())).toEqual([]);
   });
 
-  it('has the 13 beats and 8 templates', () => {
+  it('has the 19 beats and 11 templates', () => {
     const records = baseRecords();
-    expect(records.beat.size).toBe(13);
-    expect(records.angleTemplate.size).toBe(8);
+    expect(records.beat.size).toBe(19);
+    expect(records.angleTemplate.size).toBe(11);
     expect(beatsOf(CATALOG_READER).map((beat) => beat.key)).toEqual([
       'beat.announcement',
+      'beat.arrival',
       'beat.attack',
+      'beat.backstage-confrontation',
       'beat.backstage-skit',
       'beat.brawl',
       'beat.celebration',
       'beat.contract-signing',
       'beat.entrance',
       'beat.interview',
+      'beat.locker-room-interview',
+      'beat.medical-update',
+      'beat.office-meeting',
+      'beat.parking-lot-attack',
       'beat.promo',
       'beat.pull-apart',
       'beat.staredown',
@@ -142,9 +148,12 @@ describe('the shipped beat catalog', () => {
     ]);
     expect(angleTemplatesOf(CATALOG_READER).map((entry) => entry.key)).toEqual([
       'template.ambush',
+      'template.backstage-interview',
       'template.backstage-plot',
       'template.feud-opener',
       'template.hype-video',
+      'template.office-summons',
+      'template.parking-lot-ambush',
       'template.sit-down-interview',
       'template.solo-promo',
       'template.title-contract',
@@ -313,8 +322,11 @@ describe('fitTemplate', () => {
       angleTemplatesFor(CATALOG_READER, { maxBeats: 1 }).map((fit) => fit.template.key),
     ).toEqual([
       'template.ambush',
+      'template.backstage-interview',
       'template.backstage-plot',
       'template.hype-video',
+      'template.office-summons',
+      'template.parking-lot-ambush',
       'template.sit-down-interview',
       'template.solo-promo',
       'template.title-contract',
@@ -324,7 +336,7 @@ describe('fitTemplate', () => {
       angleTemplatesFor(CATALOG_READER, { purpose: 'buildFeud', maxBeats: 8 }).map(
         (fit) => fit.template.key,
       ),
-    ).toEqual(['template.ambush', 'template.backstage-plot']);
+    ).toEqual(['template.ambush', 'template.backstage-plot', 'template.parking-lot-ambush']);
   });
 });
 
@@ -342,10 +354,10 @@ describe('match.catalog beats and templates', () => {
     return result.data;
   }
 
-  it('returns 13 beats, 8 templates and a beat list on every angle type', () => {
+  it('returns 19 beats, 11 templates and a beat list on every angle type', () => {
     const catalog = catalogOf(TEST_CATALOGS);
-    expect(catalog.beats).toHaveLength(13);
-    expect(catalog.angleTemplates).toHaveLength(8);
+    expect(catalog.beats).toHaveLength(19);
+    expect(catalog.angleTemplates).toHaveLength(11);
     for (const angleType of catalog.angleTypes) {
       expect(angleType.beatKeys.length, angleType.key).toBeGreaterThan(0);
     }
