@@ -271,10 +271,11 @@ describe('ContractsScreen', () => {
         { name: 'contracts.acknowledgeExpiries', args: { employmentIds: 'all' } },
       ]);
     });
-    // The automatic renewal stopgap is off by default since ECO5-05.
-    expect(screen.getByText(/^Renewals arrive with contract negotiation\./u)).not.toHaveTextContent(
-      'Renews automatically',
-    );
+    // The automatic renewal stopgap is off by default since ECO5-05, and Renew is registered
+    // (ECO5-06): the tab points the player at it.
+    expect(
+      screen.getByText(/^Contracts end on their date unless you renew them\./u),
+    ).not.toHaveTextContent('Renews automatically');
   });
 
   it('sets two overrides for Restless and clears both for Normal', async () => {

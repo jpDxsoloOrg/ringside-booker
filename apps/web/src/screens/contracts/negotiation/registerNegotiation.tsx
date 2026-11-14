@@ -1,7 +1,7 @@
 /**
  * Contract negotiation on Business › Contracts (ECO5-06): the Free agents (order 40) and Offers
- * (order 50, with a count of counter-offers waiting) tabs, and Renew on your contracts (their
- * sheet and every Expiring row). Imported once by the router, like the other features'
+ * (order 50, with a count of counter-offers waiting) tabs, Renew on your contracts (their sheet
+ * and every Expiring row), and the worker profile's Offer contract / Renew contract action. Imported once by the router, like the other features'
  * registrations; each tab's panel loads with the tab.
  */
 import { lazy, Suspense } from 'react';
@@ -12,6 +12,8 @@ import { registerContractsTab } from '../contractsTabs';
 import type { ContractsTabContext } from '../contractsTabs';
 import { registerContractRowAction } from '../rowActions';
 import { CounteredOffersBadge } from '../offers/OffersTab';
+import { registerProfileAction } from '@/screens/workers/profile/profileActions';
+import { ProfileContractAction } from './ProfileContractAction';
 import { isRenewable, RenewAction } from './RenewAction';
 
 const FreeAgentsTab = lazy(async () => {
@@ -67,4 +69,12 @@ registerContractRowAction({
   visible: (row) => isRenewable(row, useSessionStore.getState().seat?.promotionId ?? null),
   render: RenewAction,
   onExpiringRows: true,
+});
+
+export const CONTRACT_PROFILE_ACTION_ID = 'contract';
+
+registerProfileAction({
+  id: CONTRACT_PROFILE_ACTION_ID,
+  order: 10,
+  render: (context) => <ProfileContractAction context={context} />,
 });
