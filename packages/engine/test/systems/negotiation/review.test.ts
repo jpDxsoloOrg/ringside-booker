@@ -626,3 +626,41 @@ describe('the counter-offer stop', () => {
     expect((await engine.advanceDays({ maxDays: 5 })).daysAdvanced).toBe(5);
   });
 });
+
+describe('pruning closed talks', () => {
+  it('deletes old closed talks past their cooldown, keeping unsigned offers without their rounds', async () => {
+    const setup = negotiationWorld();
+    const { engine } = reviewEngine(setup, {
+      'contracts.history.closedKeepDays': 5,
+      'contracts.renewal.windowDays': 365,
+    });
+    const ask = askOf(engine, setup.human, setup.veteran);
+    const walked = makeOffer(engine, setup.human, setup.veteran, offerAt(ask, 0.4));
+    const renewalAsk = done(
+      engine.query(
+        'contracts.askingTerms',
+        { promotionId: setup.human, personId: setup.person(setup.mine), renewalOf: setup.mine },
+        PLAYER_VIEW,
+      ),
+    );
+    const renewal = done(
+      engine.command(
+        'contracts.offerRenewal',
+        { employmentId: setup.mine, offer: offerAt(renewalAsk, 1) },
+        PLAYER,
+      ),
+    ).negotiationId;
+    await advance(engine, 3);
+    expect(negotiationOf(engine, walked).status).toBe('walkedAway');
+    expect(negotiationOf(engine, renewal).status).toBe('signed');
+    // Past the keep window: the signed renewal is deleted; the walk-away stays for its cooldown.
+    await advance(engine, 10);
+    const rows = () => engine.exportState().world.tables.negotiations;
+    expect(rows().some((row) => row.id === renewal)).toBe(false);
+    expect(negotiationOf(engine, walked).history.length).toBeGreaterThan(0);
+    // After the cooldown: the unsigned offer stays (it explains its employment), without rounds.
+    await advance(engine, 25);
+    expect(negotiationOf(engine, walked)).toMatchObject({ status: 'walkedAway', history: [] });
+    expect(integrityIssues(engine)).toEqual([]);
+  });
+});
