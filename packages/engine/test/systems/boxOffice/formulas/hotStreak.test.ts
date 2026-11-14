@@ -18,7 +18,9 @@ describe('computeHotStreak', () => {
   it('is 1 with no recent shows, and says how a streak starts', () => {
     const result = computeHotStreak({ scores: [] }, { tunables: DEFAULTS });
     expect(result.value).toBe(1);
-    expect(findTraceNodes(result.trace, 'note').map((node) => node.label)).toContain('No hot streak: a show scoring 60 or better starts one');
+    expect(findTraceNodes(result.trace, 'note').map((node) => node.label)).toContain(
+      'No hot streak: a show scoring 60 or better starts one',
+    );
     expect(result.trace.docRef).toBe('box-office.md#hot-streak');
   });
 

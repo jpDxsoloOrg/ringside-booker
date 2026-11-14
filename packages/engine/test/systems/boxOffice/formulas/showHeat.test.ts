@@ -22,7 +22,9 @@ describe('computeShowHeat', () => {
   it('is 1 with no linked storylines, with a note saying so', () => {
     const result = heat([]);
     expect(result.value).toBe(1);
-    expect(findTraceNodes(result.trace, 'note').map((node) => node.label)).toContain('No storylines linked on the card');
+    expect(findTraceNodes(result.trace, 'note').map((node) => node.label)).toContain(
+      'No storylines linked on the card',
+    );
   });
 
   it('adds nothing at or below heat 40 and 15% at heat 100', () => {
