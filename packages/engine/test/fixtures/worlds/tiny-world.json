@@ -2952,54 +2952,66 @@
       {
         "id": "nws_0000000001",
         "date": "2026-01-05",
-        "kind": "business",
+        "kind": "season",
         "headline": {
-          "key": "news.test-headline",
-          "params": {}
+          "key": "news.season-start.headline",
+          "params": {
+            "seasonNumber": 1
+          }
         },
         "body": {
-          "key": "news.test-body",
-          "params": {}
+          "key": "news.season-start.body",
+          "params": {
+            "seasonNumber": 1,
+            "startDate": "2026-01-05",
+            "endDate": "2026-04-05",
+            "worldName": "Test Tiny World"
+          }
         },
         "refs": {
           "personIds": [],
-          "promotionIds": [
-            "pro_0000000001",
-            "pro_0000000002"
-          ],
+          "promotionIds": [],
           "eventInstanceId": null,
           "employmentId": null
         },
-        "importance": 1,
+        "importance": 3,
         "expiresOn": null,
-        "buzz": 0,
-        "dedupeKey": null
+        "buzz": 66,
+        "dedupeKey": "season-start:1"
       },
       {
         "id": "nws_0000000002",
         "date": "2026-04-09",
-        "kind": "result",
+        "kind": "milestone",
         "headline": {
-          "key": "news.test-headline",
-          "params": {}
+          "key": "news.career-anniversary.headline",
+          "params": {
+            "personId": "per_0000000001",
+            "years": 10
+          }
         },
         "body": {
-          "key": "news.test-body",
-          "params": {}
+          "key": "news.career-anniversary.body",
+          "params": {
+            "personId": "per_0000000001",
+            "years": 10,
+            "onDate": "2026-01-05"
+          }
         },
         "refs": {
           "personIds": [
-            "per_0000000001",
-            "per_0000000002"
+            "per_0000000001"
           ],
-          "promotionIds": [],
-          "eventInstanceId": "evi_0000000001",
+          "promotionIds": [
+            "pro_0000000001"
+          ],
+          "eventInstanceId": null,
           "employmentId": null
         },
         "importance": 2,
         "expiresOn": "2026-05-09",
         "buzz": 47,
-        "dedupeKey": "result:evi_0000000001"
+        "dedupeKey": "career:per_0000000001:10"
       }
     ],
     "participants": [

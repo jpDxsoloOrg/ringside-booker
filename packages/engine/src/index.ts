@@ -3842,3 +3842,30 @@ export {
   RIVAL_AIRING_TRACE_KIND,
 } from './systems/broadcast/index';
 export type { AiringKind, BroadcastShow, DealRisk, DueAiring } from './systems/broadcast/index';
+// DAY1-02: stories from foundation data (expiry, the season-one story, weekly milestones).
+export {
+  CAREER_ANNIVERSARY_TOPIC,
+  CAREER_MAJOR_YEARS,
+  compareMilestones,
+  EXPIRE_NEWS_PHASE_ID,
+  expireNewsPhase,
+  MILESTONES_PHASE_ID,
+  milestoneSources,
+  milestonesPhase,
+  NEWS_OPENING_STORY_STEP,
+  newsPhases,
+  PROMOTION_ANNIVERSARY_TOPIC,
+  PROMOTION_MAJOR_YEARS,
+  REIGN_MILESTONE_DAYS,
+  REIGN_MILESTONE_TOPIC,
+  REIGN_RECORD_TOPIC,
+  registerMilestoneSource,
+  SEASON_START_TOPIC,
+  seasonStartDedupeKey,
+} from './systems/news';
+export type {
+  MilestoneCandidate,
+  MilestoneDeps,
+  MilestoneSource,
+  MilestoneWindow,
+} from './systems/news';

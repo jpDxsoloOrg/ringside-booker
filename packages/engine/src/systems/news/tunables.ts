@@ -1,6 +1,6 @@
 /**
  * The news system's balance numbers: how much buzz a story starts with and how long it stays on
- * the feed (DAY1-01).
+ * the feed (DAY1-01), and how many milestone stories the weekly job posts (DAY1-02).
  *
  * Every number here is 0-means-0: a kind base of 0 gives that kind no starting buzz, 0 importance
  * points make importance count for nothing, a popularity maximum of 0 makes the people in a story
@@ -13,6 +13,7 @@ import { defineTunables } from '../../core/tunables/define';
 const CATEGORY = 'News';
 const BUZZ_DOC = 'news.md#buzz';
 const EXPIRY_DOC = 'news.md#expiry';
+const MILESTONES_DOC = 'news.md#milestones';
 
 export const newsTunables = defineTunables({
   'news.buzz.kindBase.result': {
@@ -258,5 +259,70 @@ export const newsTunables = defineTunables({
     description:
       'Days from posting until an importance 2 story drops off the feed (0 = never shown after the day it was posted)',
     docRef: EXPIRY_DOC,
+  },
+  'news.milestones.maxPerWeek': {
+    kind: 'integer',
+    default: 8,
+    min: 0,
+    max: 50,
+    unit: 'count',
+    category: CATEGORY,
+    description: 'Most milestone stories posted each Monday (0 = no milestone stories)',
+    docRef: MILESTONES_DOC,
+  },
+  'news.milestones.majorTitlePrestige': {
+    kind: 'number',
+    default: 80,
+    min: 0,
+    max: 100,
+    step: 1,
+    unit: 'points',
+    category: CATEGORY,
+    description:
+      'Title prestige from which a reign milestone is one level more important (0 = every title)',
+    docRef: MILESTONES_DOC,
+  },
+  'news.milestones.recordMinReigns': {
+    kind: 'integer',
+    default: 3,
+    min: 0,
+    max: 50,
+    unit: 'count',
+    category: CATEGORY,
+    description:
+      'Finished reigns a title needs before passing its longest one makes a story (0 = any title with a finished reign)',
+    docRef: MILESTONES_DOC,
+  },
+  'news.milestones.careerYearStep': {
+    kind: 'integer',
+    default: 5,
+    min: 1,
+    max: 50,
+    unit: 'years',
+    category: CATEGORY,
+    description: 'Career anniversaries make a story every this many years in the business',
+    docRef: MILESTONES_DOC,
+  },
+  'news.milestones.careerMinYears': {
+    kind: 'integer',
+    default: 10,
+    min: 0,
+    max: 60,
+    unit: 'years',
+    category: CATEGORY,
+    description:
+      'Fewest years in the business for a career anniversary story (0 = from the first step)',
+    docRef: MILESTONES_DOC,
+  },
+  'news.milestones.promotionYearStep': {
+    kind: 'integer',
+    default: 5,
+    min: 1,
+    max: 50,
+    unit: 'years',
+    category: CATEGORY,
+    description:
+      'Promotion anniversaries make a story on the first one and then every this many years',
+    docRef: MILESTONES_DOC,
   },
 });

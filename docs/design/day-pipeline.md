@@ -75,6 +75,11 @@ The health system's `housekeeping` phases ([health.md](health.md)):
 | `health.recovery`          | 10    | daily           | Injuries due back today end (`injury.healed`); then fatigue fades for everyone above 0 (stamina, age and traits count; less after a talking-only show day yesterday). |
 | `health.conditionRecovery` | 12    | weekly, Mondays | Damaged body parts heal a little, up to the cap for the worker's age; no rolls, no traces.                                                                            |
 
+The news system's daily `news.expire` (`housekeeping`, order 24, DAY1-02)
+deletes every story whose `expiresOn` is on or before the day, walking the
+`byExpiresOn` index keys from the oldest up; front-page stories never expire
+([news.md](news.md#expiry)).
+
 The `contracts` group's phases (ECO4-01, ECO4-03 and ECO5-05, see
 [contracts.md](contracts.md#lifecycle),
 [contracts.md](contracts.md#unhappy-workers) and
@@ -115,14 +120,15 @@ a zero amount and draw no random numbers (only the ledger rows' ids).
 
 The `periodic` group's weekly phases so far, all on Mondays:
 
-| Phase                      | Order | What it does                                                                                                                             |
-| -------------------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `match.momentumDrift`      | 30    | Momentum drifts for workers who did not wrestle that week ([match-aftermath.md](match-aftermath.md#momentum-drift)).                     |
-| `office.weeklySnapshot`    | 34    | One promotion history row per active or dormant promotion, then old weeks thinned to one row per month ([office.md](office.md#history)). |
-| `match.pruneAftermaths`    | 40    | Each worker keeps only their newest stored aftermaths ([match-aftermath.md](match-aftermath.md#stored-aftermaths)).                      |
-| `history.rollUp`           | 41    | History older than `history.keepDetailDays` becomes summaries and monthly totals ([save-format.md](save-format.md#history-retention)).   |
-| `health.pruneInjuryDetail` | 44    | The traces of injuries older than `history.keepDetailDays` become summaries; the rows stay ([health.md](health.md#returns)).             |
-| `storylines.pruneDetail`   | 46    | Traces of storylines ended over `history.keepDetailDays` ago become summaries ([storylines.md](storylines.md#heat-decay)).               |
+| Phase                      | Order | What it does                                                                                                                                                                                 |
+| -------------------------- | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `news.milestones`          | 12    | Up to `news.milestones.maxPerWeek` milestone stories from the week's reign marks, reign records, career and promotion anniversaries and later season starts ([news.md](news.md#milestones)). |
+| `match.momentumDrift`      | 30    | Momentum drifts for workers who did not wrestle that week ([match-aftermath.md](match-aftermath.md#momentum-drift)).                                                                         |
+| `office.weeklySnapshot`    | 34    | One promotion history row per active or dormant promotion, then old weeks thinned to one row per month ([office.md](office.md#history)).                                                     |
+| `match.pruneAftermaths`    | 40    | Each worker keeps only their newest stored aftermaths ([match-aftermath.md](match-aftermath.md#stored-aftermaths)).                                                                          |
+| `history.rollUp`           | 41    | History older than `history.keepDetailDays` becomes summaries and monthly totals ([save-format.md](save-format.md#history-retention)).                                                       |
+| `health.pruneInjuryDetail` | 44    | The traces of injuries older than `history.keepDetailDays` become summaries; the rows stay ([health.md](health.md#returns)).                                                                 |
+| `storylines.pruneDetail`   | 46    | Traces of storylines ended over `history.keepDetailDays` ago become summaries ([storylines.md](storylines.md#heat-decay)).                                                                   |
 
 The `growth` group's storyline phase:
 

@@ -176,6 +176,17 @@ describe('plain indexes', () => {
     const table = newWidgets();
     expect(() => table.lookupOne('byOwner', ownerId(1))).toThrow(UnknownIndexError);
   });
+
+  it('lists the keys an index holds rows under, sorted, without emptied ones (DAY1-02)', () => {
+    const table = newWidgets();
+    table._put(makeWidget(1, ownerId(3)));
+    table._put(makeWidget(2, ownerId(1)));
+    table._put(makeWidget(3, ownerId(3)));
+    expect(table.indexKeys('byOwner')).toEqual([ownerId(1), ownerId(3)]);
+    table._delete(widgetId(2));
+    expect(table.indexKeys('byOwner')).toEqual([ownerId(3)]);
+    expect(() => table.indexKeys('missing')).toThrow(UnknownIndexError);
+  });
 });
 
 describe('unique indexes', () => {

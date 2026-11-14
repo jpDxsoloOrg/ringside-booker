@@ -37,6 +37,11 @@ export interface ReadonlyTable<E extends EntityRow = EntityRow> {
   lookup(indexName: string, key: string): readonly E[];
   /** The row filed under `key` in the named unique index, if any. Throws for a non-unique index. */
   lookupOne(indexName: string, key: string): E | undefined;
+  /**
+   * Every key the named index holds at least one row under, in ascending code-unit order. Lets a
+   * caller walk a date index from the oldest key up to a date without scanning the table.
+   */
+  indexKeys(indexName: string): readonly string[];
 }
 
 /** Plain UTF-16 code-unit order, the canonical order for IDs. */
@@ -171,6 +176,10 @@ export class MutableTable<E extends EntityRow> implements ReadonlyTable<E> {
     }
     const [onlyId] = state.buckets.get(key) ?? [];
     return onlyId === undefined ? undefined : this.require(onlyId);
+  }
+
+  indexKeys(indexName: string): readonly string[] {
+    return [...this.indexState(indexName).buckets.keys()].sort(compareIds);
   }
 
   /** Inserts `row`, or replaces the row with the same ID, and re-files it in every index. */

@@ -1345,3 +1345,17 @@ deal health numbers under the same `Broadcast` category.
 | Key                                      | Kind    | Default | Range | Unit   | Meaning                                                                                                                                                                        |
 | ---------------------------------------- | ------- | ------- | ----- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `broadcast.networks.minPopularityToList` | integer | 1       | 0–100 | points | Popularity a promotion needs in a region before the networks covering it are listed ([networks](broadcast.md#which-networks-a-promotion-can-deal-with)); 0 lists every network |
+
+DAY1-02, see [news.md](news.md#milestones). Category News. The weekly
+milestone stories: how many go out each Monday and which anniversaries count.
+The reign day marks (100, 200 and 300 days) and the 25-year steps up in
+importance are documented constants, not tunables.
+
+| Key                                  | Kind    | Default | Range | Unit   | Meaning                                                                                       |
+| ------------------------------------ | ------- | ------- | ----- | ------ | --------------------------------------------------------------------------------------------- |
+| `news.milestones.maxPerWeek`         | integer | 8       | 0–50  | count  | Most milestone stories posted each Monday (0 = no milestone stories)                          |
+| `news.milestones.majorTitlePrestige` | number  | 80      | 0–100 | points | Title prestige from which a reign milestone is one level more important (0 = every title)     |
+| `news.milestones.recordMinReigns`    | integer | 3       | 0–50  | count  | Finished reigns a title needs before passing its longest one makes a story (0 = any finished) |
+| `news.milestones.careerYearStep`     | integer | 5       | 1–50  | years  | Career anniversaries make a story every this many years in the business                       |
+| `news.milestones.careerMinYears`     | integer | 10      | 0–60  | years  | Fewest years in the business for a career anniversary story (0 = from the first step)         |
+| `news.milestones.promotionYearStep`  | integer | 5       | 1–50  | years  | Promotion anniversaries make a story on the first one and then every this many years          |

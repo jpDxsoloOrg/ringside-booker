@@ -17,26 +17,26 @@ import { aPerson, testId, worldBuilder } from '../../support';
 
 describe('registerNewsTopic', () => {
   it('owns the headline and body keys and lists its params', () => {
-    const remove = registerNewsTopic('reign-milestone', { params: ['title', 'days'] });
+    const remove = registerNewsTopic('test-reign-mark', { params: ['title', 'days'] });
     try {
-      expect(newsTopic('reign-milestone')).toEqual({
-        topic: 'reign-milestone',
-        headlineKey: 'news.reign-milestone.headline',
-        bodyKey: 'news.reign-milestone.body',
+      expect(newsTopic('test-reign-mark')).toEqual({
+        topic: 'test-reign-mark',
+        headlineKey: 'news.test-reign-mark.headline',
+        bodyKey: 'news.test-reign-mark.body',
         params: ['days', 'title'],
       });
-      expect(newsTopics().map((topic) => topic.topic)).toContain('reign-milestone');
+      expect(newsTopics().map((topic) => topic.topic)).toContain('test-reign-mark');
       // The same params again is harmless; other params are a clash.
       expect(() =>
-        registerNewsTopic('reign-milestone', { params: ['days', 'title'] }),
+        registerNewsTopic('test-reign-mark', { params: ['days', 'title'] }),
       ).not.toThrow();
-      expect(() => registerNewsTopic('reign-milestone', { params: ['days'] })).toThrow(
+      expect(() => registerNewsTopic('test-reign-mark', { params: ['days'] })).toThrow(
         RegistryError,
       );
     } finally {
       remove();
     }
-    expect(newsTopic('reign-milestone')).toBeUndefined();
+    expect(newsTopic('test-reign-mark')).toBeUndefined();
   });
 
   it('refuses a camelCase topic, a bad param name and a param listed twice', () => {

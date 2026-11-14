@@ -184,6 +184,7 @@ reasons plus that step's report, never a world.
 | 895   | `aip.createProfiles`           | AIP   | always                     | Gives every computer-run promotion or brand its rival desk profile, so the human promotion gets none ([rival-desk.md](rival-desk.md#profiles)).             |
 | 900+  | pricing, production, networks  | ECO   | ECO's own settings         | Expected here, after the equal start reset, so the reset never throws their work away.                                                                      |
 | 905   | `finance.openingBalance`       | ECO   | always                     | Records the cash Why? ("Opening balance") of every human-run promotion, so the top bar explains its cash from day one ([finances.md](finances.md#queries)). |
+| 950   | `news.openingStory`            | DAY   | always                     | Posts the "Season one begins" front-page story for the active season, dated the start date ([news.md](news.md#opening-story)).                              |
 | 990   | `office.baselineSnapshot`      | DAY   | always                     | A `baseline` history row dated the start date for every active promotion, so week one has a comparison ([office.md](office.md#history)).                    |
 
 After the last step, `createNewGame` publishes `world.created`
@@ -191,7 +192,8 @@ After the last step, `createNewGame` publishes `world.created`
 `wld.worldCreated` step, checks the finished world with `checkWorld`, and
 builds the `EngineState`: `initialEngineState(world)` with the RNG state as
 the setup left it, the tunable overrides, and the event log holding the
-opening schedule's `calendar.horizonExtended` followed by `world.created`. `createEngine({ state, systems })` accepts it as
+opening schedule's `calendar.horizonExtended`, the opening story's
+`news.posted` and then `world.created`. `createEngine({ state, systems })` accepts it as
 it is. No system is subscribed yet when new game runs, so `world.created` is
 a record in the event log rather than something a reaction handles; a system
 that needs to change the world at new game registers a setup step instead.

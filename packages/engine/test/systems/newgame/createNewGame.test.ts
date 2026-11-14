@@ -101,15 +101,16 @@ describe('createNewGame: determinism and the engine state', () => {
     expect(engine.exportState().world).toEqual(state.world);
   });
 
-  it('records the opening schedule and then world.created as the first events', () => {
+  it('records the opening schedule, the opening story and then world.created as the first events', () => {
     const { state, summary } = newGame(baseInput());
     expect(state.events.recent.map((event) => event.type)).toEqual([
       'calendar.horizonExtended',
+      'news.posted',
       'world.created',
     ]);
-    expect(state.events.recent[1]).toMatchObject({
+    expect(state.events.recent[2]).toMatchObject({
       type: 'world.created',
-      seq: 2,
+      seq: 3,
       date: PACK_START,
       payload: {
         startDate: PACK_START,
@@ -527,6 +528,7 @@ describe('createNewGame: setup steps', () => {
       { id: 'storylines.seedStarters', order: 880 },
       { id: 'aip.createProfiles', order: 895 },
       { id: 'finance.openingBalance', order: 905 },
+      { id: 'news.openingStory', order: 950 },
       { id: 'office.baselineSnapshot', order: 990 },
     ]);
   });
@@ -535,7 +537,7 @@ describe('createNewGame: setup steps', () => {
     cleanups.push(
       registerSetupStep({
         id: 'test.alwaysFails',
-        order: 950,
+        order: 951,
         run: () => {
           throw new Error('broken on purpose');
         },
@@ -599,6 +601,7 @@ describe('createNewGame: setup steps', () => {
       'storylines.seedStarters',
       'aip.createProfiles',
       'finance.openingBalance',
+      'news.openingStory',
       'office.baselineSnapshot',
     ]);
     newGame(baseInput({ settings: { equalStart: true } }));
