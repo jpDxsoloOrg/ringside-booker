@@ -17,6 +17,7 @@ import type { EventImportance } from '../../../model/entities/event-definition';
 import type { SegmentKind } from '../../../model/entities/segment';
 import type { MatchResolution } from '../finishes/resolution';
 import type { PerformanceAxis } from '../formulas/workerPerformance';
+import type { AngleRatingDetail } from '../angles/rateAngle';
 import type { DurationClass, SlotPosition, SlotRole } from '../slots';
 
 export type { SegmentKind } from '../../../model/entities/segment';
@@ -55,6 +56,33 @@ export interface SegmentRatingInput {
    * no finish effect.
    */
   readonly resolution?: MatchResolution | null;
+  /**
+   * A talking segment's beats and what the beat rater (MTCH5-03) reads with them. Left out, the
+   * angle type's default beat with every speaker, split into groups by side.
+   */
+  readonly angle?: SegmentAngleInput;
+}
+
+/** One beat of a talking segment, its people already split into the catalog beat's groups. */
+export interface SegmentAngleBeat {
+  readonly beatKey: ContentKey;
+  readonly groupOne: readonly PersonId[];
+  readonly groupTwo: readonly PersonId[];
+}
+
+/** The beat rater's extra inputs (MTCH5-03). */
+export interface SegmentAngleInput {
+  /** The beats in order, 1..8. */
+  readonly beats: readonly SegmentAngleBeat[];
+  /** The beat keys of the talking segments earlier on the card, in card order. */
+  readonly earlierBeatKeysOnCard?: readonly ContentKey[];
+  /** A manager who talks for a person instead of their contract's manager; null for none. */
+  readonly managerOverrides?: Readonly<Record<PersonId, PersonId | null>>;
+  /**
+   * Whose morale and momentum count: people under contract with one of these promotions. Null
+   * means everyone (a show being run). Left out: everyone in a live rating, nobody in a preview.
+   */
+  readonly viewerPromotionIds?: readonly PromotionId[] | null;
 }
 
 /** A booking problem, for the lab and EVT2's booking validation. `message` is player text. */
@@ -65,6 +93,8 @@ export interface SegmentWarning {
   readonly personId?: PersonId;
   /** The stored side the warning is about, when it is about one. */
   readonly side?: number;
+  /** The 0-based beat the warning is about, for a talking segment's beat warnings. */
+  readonly beatIndex?: number;
 }
 
 /** Every code `segmentWarnings` can return. */
@@ -78,6 +108,16 @@ export const SEGMENT_WARNING_CODES = [
   'unavailable',
   'nonWrestler',
   'speakerCount',
+  // MTCH5-03: talking segments built from beats.
+  'angle.tooManyBeats',
+  'angle.beatNotAllowed',
+  'angle.unknownBeat',
+  'angle.emptyGroup',
+  'angle.groupTooBig',
+  'angle.sidesConflict',
+  'angle.injuredInPhysicalBeat',
+  'angle.cannotWorkAngles',
+  'angle.unavailable',
 ] as const;
 export type SegmentWarningCode = (typeof SEGMENT_WARNING_CODES)[number];
 
@@ -142,6 +182,8 @@ export interface SegmentRatingResult {
   readonly workers: readonly WorkerLine[];
   readonly warnings: readonly SegmentWarning[];
   readonly policy: RatingPolicySummary;
+  /** A talking segment rated by beats (MTCH5-03): each beat and the angle's numbers. */
+  readonly angle?: AngleRatingDetail;
 }
 
 /** The stages a rating modifier can join, in the order a match runs them. */

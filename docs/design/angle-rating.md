@@ -297,3 +297,215 @@ keys.
 the preview seed, so a preview never moves a world stream. The same inputs and
 preview seed always give the same value and trace; another seed moves only the
 noise lines.
+
+## Beat limits
+
+MTCH5-03. The slot's duration class (MTCH1's `durationClassOf`, D-10) caps how
+many beats an angle may have; angle types never shift the class. Code:
+`beatLimitOf` and `beatLimitMessage` in
+`packages/engine/src/systems/match/angles/beatLimit.ts`.
+
+| Duration class | Tunable                         | Default | Message                        |
+| -------------- | ------------------------------- | ------- | ------------------------------ |
+| Short          | `match.angle.maxBeats.short`    | 2       | "Short slot: up to 2 beats"    |
+| Standard       | `match.angle.maxBeats.standard` | 4       | "Standard slot: up to 4 beats" |
+| Long           | `match.angle.maxBeats.long`     | 6       | "Long slot: up to 6 beats"     |
+
+- The tunables run from 1 to `MAX_ANGLE_BEATS` (8, the schema's limit), so a
+  limit never lets an angle hold more than booking can store. At 1 the message
+  says "up to 1 beat".
+- With MTCH1's defaults the pre-show is short, the opener, midcard and
+  semi-main are standard and the main event is long.
+- `match.previewAngle` refuses an angle over the limit with the message
+  (`tooManyBeats`, field `beats`), and `segmentWarnings` reports it as
+  `angle.tooManyBeats`.
+- A **stored** angle over its limit (the tunable was lowered after booking) is
+  never refused: the rater rates its first N beats and lists the rest as not
+  counted, with the note "Only the first 2 beats count in a short slot".
+
+Example: three beats on the pre-show are refused with "Short slot: up to 2
+beats"; the same three beats in the main event are fine.
+
+## Angle score
+
+MTCH5-03. One whole score, 0 to 100, for the angle: `angleScore` (and
+`angleScoreParts`, which also returns delivered and the crowd) in
+`packages/engine/src/systems/match/angles/formulas/angleScore.ts`.
+
+```text
+effective weight = beat weight × (closingBeatWeight for the last beat, else 1)
+repetition       = repeatFactor ^ earlierInAngle × cardRepeatFactor ^ earlierOnCard
+delivered        = Σ(effective weight × beat score × repetition) / Σ effective weight
+crowd            = crowdScore(performance = delivered, entertainment, star power, expected)
+blended          = delivered × (1 − crowdBlend) + crowd × crowdBlend
+banded           = clamp(blended, writing × floorPerLevel,
+                         max(floor, ceilingAtZero + writing × ceilingPerLevel))
+score            = round(softCompression(banded + policy bonus))
+```
+
+- **Delivered** ("Beats delivered") is the weighted mean of the beats. Each
+  beat counts with its catalog weight; the closing beat counts
+  `match.angle.closingBeatWeight` (1.25) times more. A notes-01-style length
+  weighting is not used: beats have no length (D-10).
+- **Repetition**: a beat keeps `match.angle.repeatFactor` (0.85) of its score
+  for each earlier beat of its repetition group in the angle ("Second talk
+  beat in this angle ×0.85"), and `match.angle.cardRepeatFactor` (0.93) for
+  each one earlier on the card ("2 talk beats earlier on the card ×0.86").
+  Earlier on the card means the talking segments before this one: pre-show
+  before the main card, lower slot first. The lab passes none unless it is
+  given the card.
+- **Crowd**: MTCH1's `crowdScore` with delivered as the performance, the
+  side-aggregated entertainment axis of everyone in the angle, MTCH1's star
+  power over everyone in the angle and MTCH1's `crowdExpectation` (star power
+  and mean momentum over everyone, the slot role, importance and TV), exactly
+  the inputs the simple rater passed. The crowd goes through the `crowd`
+  rating stage, so it is soft-compressed as for a match.
+- **Blend**: `match.angle.crowdBlend` (0.35) of the score comes from the crowd;
+  at 0 the beats alone decide it, at 1 the crowd alone.
+- **Writing band**: the promotion's writing team (`production.writing`, 0 to 10) sets a floor (`writingFloorPerLevel` 3 per level) and a ceiling
+  (`writingCeilingAtZero` 75 plus `writingCeilingPerLevel` 2.5 per level).
+  Weak writing caps a great talker; strong writing saves a weak one. The clamp
+  reads "Writing team (level 7): floor 21, ceiling 92.5". A ceiling below the
+  floor (tunables set that way) is raised to the floor, with a note. If
+  playtests say the floor is too generous, `writingFloorPerLevel` is the knob.
+- The rating policy's score bonus (D-01; 0 under the full rules) is added
+  after the band, then MTCH1's soft compression and a round to a whole number.
+
+The score's trace shows each beat's line (its weight, the closing-beat and
+repetition lines), delivered against expected inside the crowd, the writing
+band and the compression. Delivered and the crowd have their own full traces;
+the score shows them two levels deep so it stays inside the trace depth
+limit.
+
+Worked example, a confrontation in the main event of a promotion with writing
+7: staredown 64 (weight 0.8), war of words 72 (weight 1.1), brawl 70 (weight
+1, the closing beat, so 1.25):
+
+```text
+delivered = (0.8 × 64 + 1.1 × 72 + 1.25 × 70) / (0.8 + 1.1 + 1.25)
+          = (51.2 + 79.2 + 87.5) / 3.15 = 69.17
+crowd     = 66 (say)
+blended   = 69.17 × 0.65 + 66 × 0.35 = 44.96 + 23.10 = 68.06
+band      = floor 21, ceiling 92.5: 68.06 stays
+score     = 68 (below the compression knee at 85)
+```
+
+## Stars for angles
+
+An angle has no work rate. Its stars are MTCH1's `starRating` with
+**delivered** in the work-rate input (the line reads "Talk") and the crowd in
+the crowd input, capped by `match.stars.cap.angle` (4):
+
+```text
+base  = delivered × performanceShare (0.7) + crowd × 0.3
+stars = clamp((base − zeroAt 15) / pointsPerStar 15, 0, 4), nearest quarter
+```
+
+In the worked example: base = 69.17 × 0.7 + 66 × 0.3 = 68.22, (68.22 − 15) / 15
+= 3.55, so 3.5 stars.
+
+## The beat rater
+
+MTCH5-03: `beatAngleRater` in
+`packages/engine/src/systems/match/angles/angleRater.ts`, registered in
+`rating/builtins.ts` with `registerSegmentRater('angle', beatAngleRater,
+{ replace: true })`, so it **replaces** the simple speaker rater for every
+promotion (a registry reset puts it back too). `rateAngle`
+(`angles/rateAngle.ts`) does the rating from plain inputs; the rater gathers
+them, for a show and for a preview alike, so both take one path.
+
+What it reads:
+
+- The beats. A stored segment's beats come from the stored-segment adapter
+  (`ratingInputFromSegment`): each beat's people split into the catalog beat's
+  groups by the speakers' participant sides (`beatGroupsOf`), and the beat keys
+  of the talking segments earlier on the card. A preview passes the beats it
+  built. MTCH1's `match.preview` passes none: the rater then rates the angle
+  type's default beat with every speaker, split by side.
+- Each person: attributes, popularity in the show's region (D-03), and their
+  contract with the promotion running the show (ring name, morale, momentum,
+  `managerPersonId`). A manager's mic, charisma and morale come from the
+  manager's own row and contract.
+- The show (region, importance, televised), the promotion's writing team, the
+  slot role, and the rating policy.
+
+Rules:
+
+- **Every promotion** rates angles with beats. Rival shortcuts (D-01) reach it
+  only through MTCH1's rating policy (the score bonus line) and rating
+  modifiers (the `performance`, `talk`, `expectation`, `crowd`, `score` and
+  `stars` stages run as for a match). There is no branch on who controls the
+  promotion.
+- **Draw order** on `match.angle` is fixed: beat by beat, group by group,
+  person by person, then the beat's own roll; the crowd's roll comes last.
+  Show night rolls a talking segment on `match.angle`
+  (`shows/runSegment.ts`), matches stay on `match.rating`.
+- **Viewer scoping**: on show night everyone's morale and momentum count. In a
+  preview only people under contract with one of the viewer's promotions
+  count; everyone else is treated as neutral with the note "Not your worker:
+  morale and momentum treated as neutral". MTCH1's `match.preview` names no
+  viewer promotions, so every worker is neutral there.
+- **Never fails a show**: a beat the catalog does not have is left out with
+  the note "Beat beat.x is not in the beat catalog: not counted"; a stored
+  angle over its limit rates its first beats; a save started before beats
+  existed (`hasBeatCatalog` false) is rated by MTCH1's simple rater with the
+  note "This save has no beat catalog: rated as a simple talking segment".
+- **Trace size**: the score, stars and delivered go through `limitTrace`; the
+  score's trace is about 50 nodes for a two-beat angle, so the stored segment
+  score stays small (rival shows store summaries only).
+- The rated segment's `talk` is delivered; each worker line's `talk` is the
+  mean of their values in the beats that counted. The result's `angle` holds
+  delivered, every beat (`BeatResult`: each person's chosen stat, its label,
+  value with trace and `viaManager`) and the beat limit.
+
+Worked example: a war of words between A (side 0) and B (side 1), closed by a
+promo from A, on a rival's weekly show. The war of words splits by side (A in
+side A, B in side B), each person is scored on their best of mic and
+charisma, the beats score, delivered is their weighted mean with the promo
+×1.25, and the rival's policy adds its score bonus line, if any, after the
+writing band.
+
+## Warnings
+
+MTCH5-03 adds `angle.*` codes to MTCH1's `segmentWarnings`, same shape, with
+`beatIndex` (0-based) on the beat ones. They need the slot's duration class
+and the tunables, which `rateSegment` passes.
+
+| Code                          | Severity | Example                                                                          |
+| ----------------------------- | -------- | -------------------------------------------------------------------------------- |
+| `angle.tooManyBeats`          | error    | "Short slot: up to 2 beats"                                                      |
+| `angle.unknownBeat`           | error    | "Beat 2: there is no beat beat.x"                                                |
+| `angle.beatNotAllowed`        | error    | "Brawl is not part of a Promo"                                                   |
+| `angle.emptyGroup`            | error    | "War of words needs someone on side B"                                           |
+| `angle.groupTooBig`           | error    | "Staredown takes at most 4 people on side B"                                     |
+| `angle.sidesConflict`         | error    | "X and Y are together in beat 1 but opposed in beat 3; booking can't store that" |
+| `angle.injuredInPhysicalBeat` | warning  | "X is hurt: the brawl in beat 2 is physical"                                     |
+| `angle.cannotWorkAngles`      | error    | "X: Injured (arm injury) until 1 May"                                            |
+| `angle.unavailable`           | error    | "X: On personal leave until 12 Mar"                                              |
+
+`angle.cannotWorkAngles` and `angle.unavailable` replace MTCH1's `injured`,
+`inactive` and `unavailable` codes for a talking segment on a save with a
+beat catalog. The side conflict comes from `assignAngleSides`.
+
+## Previewing an angle
+
+`match.previewAngle` (`angles/queries.ts`). Arguments (strict): the lab setup
+(`importance`, `regionId`, `televised`, and `slotRole` or `slot: { slot,
+slots, preShow }`, `promotionId?`), `angleTypeKey`, `beats` (1 to 8 of
+`{ beatKey, groupOne, groupTwo }`), `managerOverrides?` (person to manager, or
+null for none), `earlierBeatKeysOnCard?` (at most 64) and `previewSeed`.
+
+- Refusals: `noBeatCatalog` ("This save was started before beats existed.
+  Start a new game to build angles from beats."), `tooManyBeats`,
+  `unknownBeat`, `beatNotAllowed`, `emptyGroup` (a required group with
+  nobody), `notAManager` (an override that is not a person with the manager
+  role), `unknownPerson`, plus `rateSegment`'s and `invalidArgs`.
+- The answer: score, stars, delivered, expected, crowd and star power, each
+  beat with its people, their chosen stat labels and values, the beat limit
+  `{ max, message }`, the warnings and the policy. Every number carries its
+  trace inline.
+- The participant sides come from `assignAngleSides`; when no sides fit,
+  everyone goes on one side and the `angle.sidesConflict` warning explains.
+- Rolls come from `detachedStream(meta.seed, 'match.angle',
+String(previewSeed))`: the same arguments and seed give the same answer, and
+  the world, its RNG, traces and event log never move.
