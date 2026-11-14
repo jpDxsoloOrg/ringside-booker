@@ -139,6 +139,11 @@ export function ratingsBonusShare(
   return calc.done();
 }
 
+/** What a network's audience is counted in: "buys" on pay-per-view, else "viewers". */
+export function audienceNoun(kind: NetworkKind): string {
+  return kind === 'ppv' ? 'buys' : 'viewers';
+}
+
 /** What a ratings bonus is paid on: the fee, or the per-buy money on pay-per-view. */
 export function bonusBaseLabel(kind: NetworkKind): string {
   return kind === 'ppv' ? 'Paid for the buys tonight' : 'Fee per show';

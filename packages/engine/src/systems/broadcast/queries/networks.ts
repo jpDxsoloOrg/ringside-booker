@@ -26,6 +26,7 @@ import type { GameWorldView } from '../../../model/tables';
 import type { EngineTunables, NumberTunableKey } from '../../tunables';
 import type { AudienceImportance } from '../formulas/audience';
 import { BROADCAST_ELIGIBLE_IMPORTANCE, networksCovering } from '../coverage';
+import { renewalValuation } from '../health';
 import type { DealRefusal, DealVerdictValue } from '../formulas/dealVerdict';
 import {
   coveredPopulation,
@@ -394,8 +395,9 @@ export const valuationQuery: QueryDefinition<'broadcast.valuation'> = defineQuer
           });
         }
       }
+      const renewing = args.dealId === undefined ? undefined : read.tables.deals.get(args.dealId);
       if (args.dealId !== undefined) {
-        if (read.tables.deals.get(args.dealId)?.promotionId !== args.promotionId) {
+        if (renewing?.promotionId !== args.promotionId) {
           return refuseQuery({
             code: UNKNOWN_DEAL,
             message: 'There is no such deal of yours',
@@ -403,15 +405,18 @@ export const valuationQuery: QueryDefinition<'broadcast.valuation'> = defineQuer
           });
         }
       }
-      return dealValuation(read, ctx.tunables, {
+      const request = {
         promotionId: args.promotionId,
         networkId: args.networkId,
         eventDefinitionId: args.eventDefinitionId,
         timeslot: args.timeslot,
         live: args.live,
         months: args.months,
-        excludeDealId: args.dealId ?? null,
-      });
+      };
+      // A renewal: the network's offer today, with its uplift when the deal is Exceeding (ECO8-10).
+      return renewing === undefined
+        ? dealValuation(read, ctx.tunables, request)
+        : renewalValuation(read, ctx.tunables, renewing, request);
     },
   },
 );

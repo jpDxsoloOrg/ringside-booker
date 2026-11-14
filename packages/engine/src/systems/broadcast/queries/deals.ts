@@ -35,6 +35,7 @@ import { benchmarkFor } from '../audienceInputs';
 import { exitFeeFor } from '../commands/cancelDeal';
 import { DEAL_NOT_ACTIVE } from '../commands/shared';
 import type { DealRisk } from '../events';
+import { audienceNoun, dealTargets, type DealTargets } from '../formulas/ratingsBonus';
 import { airingsNewestFirst, dealHealthOf, upcomingMissedAirings } from '../health';
 import { dealHealthTraceRef } from '../traces';
 import { dealShowName, promotionWideImportance } from '../valuation';
@@ -78,6 +79,11 @@ export interface DealRow {
   } | null;
   /** What the network expects a show in this slot to draw today, with its Why?; null for a house show. */
   expectedViewers: Traced<number> | null;
+  /**
+   * The lines the deal is judged by, in viewers (ECO8-10): stay safe, may cancel, ratings bonus,
+   * each with its Why?; null once ended or for a house show.
+   */
+  targets: DealTargets | null;
   /** The newest airings (up to the health window), oldest first for a Sparkline. */
   recent: DealRecentAiring[];
   /** How the network sees the deal today; null once it has ended. */
@@ -154,6 +160,7 @@ function dealRow(
   const running = deal.status === 'active';
   const health = running ? dealHealthOf(read, tunables, deal, network, today) : null;
   const healthRef = dealHealthTraceRef(deal.id);
+  const expected = running ? expectedOf(read, tunables, deal, network) : null;
   return {
     dealId: deal.id,
     networkId: network.id,
@@ -180,7 +187,15 @@ function dealRow(
             expectedViewers: last.expectedViewers,
             traceRef: last.traceRef,
           },
-    expectedViewers: running ? expectedOf(read, tunables, deal, network) : null,
+    expectedViewers: expected,
+    targets:
+      expected === null
+        ? null
+        : dealTargets(
+            expected,
+            { networkName: network.name, noun: audienceNoun(network.kind) },
+            { tunables },
+          ),
     recent: airings
       .slice(0, tunables.get('broadcast.health.window'))
       .reverse()
