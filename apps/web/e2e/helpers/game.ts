@@ -258,13 +258,21 @@ async function typeSeed(page: Page, seed: string): Promise<void> {
 export interface StartDefaultWorldGameSettings {
   /** Switches "Level playing field" on (AIP1-08): every Rival rules shortcut is off. */
   readonly levelPlayingField?: boolean;
+  /**
+   * Switches "Sandbox" on (CRTV4-05): the player may edit the world freely, which also shows a
+   * storyline's Set heat test aid.
+   */
+  readonly sandbox?: boolean;
 }
 
 /** The wizard switch for each setting `startDefaultWorldGame` can change. */
 const SETTING_SWITCHES: readonly {
   readonly key: keyof StartDefaultWorldGameSettings;
   readonly label: string;
-}[] = [{ key: 'levelPlayingField', label: 'Level playing field' }];
+}[] = [
+  { key: 'levelPlayingField', label: 'Level playing field' },
+  { key: 'sandbox', label: 'Sandbox' },
+];
 
 /** The width under which the app uses its phone layout (`--bp-mobile`, 48rem). */
 const PHONE_MAX_WIDTH = 768;
