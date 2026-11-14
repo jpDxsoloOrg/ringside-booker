@@ -86,7 +86,9 @@ function durationClassAt(
   segment: DeepReadonly<Segment>,
 ): DurationClass | null {
   const role = roleOf(input, segment);
-  return role === null ? null : angleDurationClass(role, settingOf(segment), input.tunables);
+  return role === null
+    ? null
+    : angleDurationClass(role, settingOf(segment), input.tunables, segment.bookedLength ?? null);
 }
 
 function lowerFirst(text: string): string {

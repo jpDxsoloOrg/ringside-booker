@@ -110,6 +110,7 @@ export {
   type BookingShowView,
   type BookingSideView,
   type BookingSlotView,
+  type BookingTimeView,
   type BookingTitleOption,
   type BookingTitleView,
   type CardViewDeps,

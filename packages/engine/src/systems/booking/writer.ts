@@ -465,6 +465,7 @@ function segmentFields(
     storylineIds: [...draft.storylineIds],
     crew: { ...draft.crew, announcerIds: [...draft.crew.announcerIds] },
     rating: null,
+    ...(draft.bookedLength === undefined ? {} : { bookedLength: draft.bookedLength }),
   };
   if (draft.kind === 'match') {
     return {

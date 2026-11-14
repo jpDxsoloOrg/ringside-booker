@@ -42,6 +42,7 @@ import { fixProblemsText, isShowUnderWay, RunShowButton, ShowBar } from './ShowB
 import { useBookingPanels } from './registries/bookingPanels';
 import type { BookingPanelContext, BookingPanelDefinition } from './registries/bookingPanels';
 import { SlotActions, type WinnerMenuResult } from './SlotActions';
+import { TimeUsedBar } from './TimeUsedBar';
 import { ValidationChecklist } from './ValidationChecklist';
 
 /** Enough rows for every show inside the calendar's horizon, so `?event=` finds far-off shows. */
@@ -551,6 +552,7 @@ function ShowBooking({ rows, row, onSelect, onRan }: ShowBookingProps) {
       )}
       <div className={styles['columns']}>
         <div className={styles['mainColumn']}>
+          <TimeUsedBar time={card.time} />
           {board}
           {isMobile &&
             sidePanels.map((panel) => (

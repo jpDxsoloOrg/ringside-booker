@@ -34,6 +34,7 @@ import type { EventInstance, EventInstanceStatus } from '../../model/entities/ev
 import type { ParticipantRole } from '../../model/entities/participant';
 import { settingOf, type Segment, type SegmentKind } from '../../model/entities/segment';
 import { settingDurationShifter } from '../match/angles/settings';
+import { showTimeOf, timeUnitsOf } from '../match/showTime';
 import { talkLineOf, talkRoleWithFallback } from '../match/angles/talkLine';
 import type { AngleSetting, TalkRole } from '../../model/entities/angle-setting';
 import type { ImageRef } from '../../model/primitives';
@@ -219,6 +220,17 @@ export interface BookingSlotView {
   roleLabel: string;
   durationClass: DurationClass;
   durationLabel: string;
+  /**
+   * EVT4-08: the time a segment in this slot gets when the booker sets none (the role's usual
+   * Short, Standard or Long, before a match type shifts it).
+   */
+  usualLength: DurationClass;
+  /** EVT4-08: the time the booker set for the segment here, or null for the usual. */
+  bookedLength: DurationClass | null;
+  /** EVT4-08: true for the main event, which always stays long. */
+  lengthLocked: boolean;
+  /** EVT4-08: show time the segment here takes (0 for an open slot). */
+  timeUnits: number;
   weight: number;
   roleTrace: TraceNode;
   durationTrace: TraceNode;
@@ -286,6 +298,20 @@ export interface BookingCard {
   sections: BookingSectionView[];
   /** The promotion's active titles, by prestige, for the editor's titles field. */
   titleOptions: BookingTitleOption[];
+  /** EVT4-08: the time the card uses against the show's time, for the Time used bar. */
+  time: BookingTimeView;
+}
+
+/** EVT4-08: "Time used: 14 of 16", with the Why? of each number. */
+export interface BookingTimeView {
+  used: number;
+  budget: number;
+  /** How far over the budget the card is; 0 when it fits. */
+  over: number;
+  /** True when the booker set any segment longer than usual (then over the budget blocks). */
+  lengthened: boolean;
+  usedTrace: TraceNode;
+  budgetTrace: TraceNode;
 }
 
 export interface CardViewDeps {
@@ -476,8 +502,12 @@ function slotViewOf(
     segment?.kind === 'angle'
       ? settingDurationShifter(settingOf(segment), deps.tunables)
       : matchType;
-  const duration = durationClassOf({ role: role.value, matchType: shifter }, slotDeps);
+  const duration = durationClassOf(
+    { role: role.value, matchType: shifter, booked: segment?.bookedLength ?? null },
+    slotDeps,
+  );
   const weight = slotWeightOf({ role: role.value }, slotDeps);
+  const usualLength = durationClassOf({ role: role.value, matchType: null }, slotDeps).value;
   return {
     slot,
     displayNumber: slot + 1,
@@ -486,6 +516,10 @@ function slotViewOf(
     roleLabel: SLOT_ROLE_LABELS[role.value],
     durationClass: duration.value,
     durationLabel: DURATION_CLASS_LABELS[duration.value],
+    usualLength,
+    bookedLength: segment?.bookedLength ?? null,
+    lengthLocked: role.value === 'mainEvent',
+    timeUnits: segment === undefined ? 0 : timeUnitsOf(duration.value, deps.tunables),
     weight: weight.value,
     roleTrace: role.trace,
     durationTrace: duration.trace,
@@ -587,5 +621,22 @@ export function buildCardView(
     }),
     sections,
     titleOptions: titleOptionsOf(read, instance, people),
+    time: timeViewOf(read, instance, deps.tunables),
+  };
+}
+
+function timeViewOf(
+  read: GameWorldView,
+  instance: DeepReadonly<EventInstance>,
+  tunables: EngineTunables,
+): BookingTimeView {
+  const time = showTimeOf(read, instance, tunables);
+  return {
+    used: time.used.value,
+    budget: time.budget.value,
+    over: time.over,
+    lengthened: time.lengthened,
+    usedTrace: time.used.trace,
+    budgetTrace: time.budget.trace,
   };
 }

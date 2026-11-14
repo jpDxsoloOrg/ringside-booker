@@ -142,6 +142,7 @@ export const sampleLabResult: PreviewResult = {
   slot: {
     role: 'mainEvent',
     durationClass: 'long',
+    bookedSteps: 0,
     weight: 1.75,
     roleTrace: {
       value: 'mainEvent',

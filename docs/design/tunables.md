@@ -336,6 +336,20 @@ The slot numbers of D-10, in `systems/match/tunables.ts`, category
 | `match.slot.durationClass.semiMain` | enum    | standard | short/standard/long | choice     | Duration class of the semi-main before its match type shifts it      |
 | `match.slot.semiMainFromSlots`      | integer | 4        | 3–12                | count      | Smallest main card that has a semi-main                              |
 
+EVT4-08's show time, category `Match: show time`. See
+[match-rating.md](match-rating.md#show-time).
+
+| Key                         | Kind    | Default | Range | Unit  | What it does                                            |
+| --------------------------- | ------- | ------- | ----- | ----- | ------------------------------------------------------- |
+| `match.time.units.short`    | integer | 1       | 0–10  | count | Show time a short segment takes                         |
+| `match.time.units.standard` | integer | 2       | 0–10  | count | Show time a standard segment takes                      |
+| `match.time.units.long`     | integer | 3       | 0–10  | count | Show time a long segment takes                          |
+| `match.time.room.house`     | integer | 0       | 0–30  | count | A house show's extra time beyond its card's usual time  |
+| `match.time.room.minor`     | integer | 1       | 0–30  | count | A minor show's extra time beyond its card's usual time  |
+| `match.time.room.regular`   | integer | 1       | 0–30  | count | A weekly show's extra time beyond its card's usual time |
+| `match.time.room.major`     | integer | 3       | 0–30  | count | A major show's extra time beyond its card's usual time  |
+| `match.time.room.flagship`  | integer | 6       | 0–30  | count | A flagship show's extra time beyond its usual time      |
+
 These are the first `enum` tunables in the engine. A table of keys a formula
 reads as numbers is typed `NumberTunableKey` (from `systems/tunables.ts`)
 rather than `TunableKey`, which also covers enum and boolean keys.
@@ -367,6 +381,7 @@ side decays, `Match: work rate` for the work rate checks. See
 | `match.workRate.staminaNeed.long`          | number | 65      | 0–100 | points     | Stamina a long singles match asks of each worker            |
 | `match.workRate.sharedLoadExponent`        | number | 0.5     | 0–2   | ratio      | How much bigger matches share the load; 0 means no sharing  |
 | `match.workRate.staminaPenaltyPerPoint`    | number | 0.4     | 0–2   | ratio      | Performance lost per point of stamina short                 |
+| `match.workRate.lengthenedFatigueShare`    | number | 0.25    | 0–2   | ratio      | Stamina short per point of fatigue, per step booked longer  |
 | `match.workRate.psychologyNeed.short`      | number | 20      | 0–100 | points     | Psychology the leader of a short match needs                |
 | `match.workRate.psychologyNeed.standard`   | number | 45      | 0–100 | points     | Psychology the leader of a standard match needs             |
 | `match.workRate.psychologyNeed.long`       | number | 70      | 0–100 | points     | Psychology the leader of a long match needs                 |
@@ -402,6 +417,7 @@ and `Match: talking segments` for the simple talk score. See
 | `match.expectation.importance.major`      | number | 4       | −30–30 | points | Expectation change at a major event                           |
 | `match.expectation.importance.flagship`   | number | 8       | −30–30 | points | Expectation change at a flagship event                        |
 | `match.expectation.televised`             | number | 2       | −30–30 | points | Expectation change when the show is on TV                     |
+| `match.expectation.lengthStep`            | number | 4       | −30–30 | points | Expectation change per step a segment is booked longer        |
 | `match.crowd.performanceWeight`           | number | 0.55    | 0–1    | ratio  | Weight of work rate (or talk) in what was delivered           |
 | `match.crowd.entertainmentWeight`         | number | 0.25    | 0–1    | ratio  | Weight of entertainment in what was delivered                 |
 | `match.crowd.starWeight`                  | number | 0.2     | 0–1    | ratio  | Weight of star power in what was delivered                    |

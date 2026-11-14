@@ -12,6 +12,7 @@ import type {
   AngleDraft,
   AngleSetting,
   ContentKey,
+  DurationClass,
   MatchDraft,
   MatchOutcome,
   ParticipantDraft,
@@ -341,6 +342,23 @@ export function setResult(state: SegmentDraftState, result: PlannedResult): Segm
   return { ...state, draft: withPlannedResult(draft, within) };
 }
 
+/**
+ * EVT4-08: the time the booker sets for the segment. The slot's usual time (or null) clears it, so
+ * a segment left at its usual time stores nothing and keeps following its slot.
+ */
+export function setBookedLength(
+  state: SegmentDraftState,
+  length: DurationClass | null,
+  usual: DurationClass,
+): SegmentDraftState {
+  const { draft } = state;
+  const next = length === null || length === usual ? undefined : length;
+  if (draft.bookedLength === next) return state;
+  const rest = { ...draft };
+  delete rest.bookedLength;
+  return { ...state, draft: next === undefined ? rest : { ...rest, bookedLength: next } };
+}
+
 /** The billing line as typed; {@link draftForSave} trims it. */
 export function setLabel(state: SegmentDraftState, label: string): SegmentDraftState {
   return { ...state, draft: { ...state.draft, label: label.slice(0, LABEL_MAX_LENGTH) } };
@@ -471,6 +489,7 @@ export interface SegmentDraftControls {
   readonly setTitles: (titleIds: readonly TitleId[]) => void;
   readonly setResult: (result: PlannedResult) => void;
   readonly setLabel: (label: string) => void;
+  readonly setBookedLength: (length: DurationClass | null, usual: DurationClass) => void;
   readonly patch: (sectionId: string, partial: SegmentDraftPatch) => void;
   /**
    * Starts a new session on `state`, which also becomes the unchanged base. Called when the
@@ -525,6 +544,9 @@ export function useSegmentDraft(placeholder: SegmentDraftState): SegmentDraftCon
       },
       setLabel: (label) => {
         apply((current) => setLabel(current, label));
+      },
+      setBookedLength: (length, usual) => {
+        apply((current) => setBookedLength(current, length, usual));
       },
       patch: (sectionId, partial) => {
         apply((current) => patchDraft(current, sectionId, partial));
