@@ -158,8 +158,13 @@ then open the new one.
 champion retired.
 
 EVT3's show-night title change (`systems/shows/titles.ts`) landed before this
-system and still writes its reigns itself; CRTV1-06 points it at these two
-functions.
+system; since CRTV1-06 it closes the old reign (`lost`) and opens the new one
+with these two functions and counts a defence with `addDefence(ctx, reignId)`,
+the third writer in `reigns.ts`. A source-scan test in
+`test/systems/titles/reigns.test.ts` fails if any other file creates, updates
+or deletes `titleReigns` rows. Code that only reads the champion goes through
+`currentReign` / `currentHolders` (booking checks, the finish check, the
+booking view and AI inputs since CRTV1-06).
 
 ## Tiers
 
@@ -432,5 +437,7 @@ reaction would be WRK8's.
 | ------------------------ | ------- | ----- | ---- | ------------------------------------------------------------------------------------------ |
 | `titles.orphanGraceDays` | 7       | 0–365 | days | Days a champion may be without a contract with the title's promotion (or its parent) first |
 
-The release preview's `holdsTitle` warning says so: "Holds the <title>. If
-they leave, the title is vacated after 7 days."
+The release preview's `holdsTitle` warning says so: "Rook Halvorsen holds the
+Altura World Championship. It will be vacated after 7 days unless they
+re-sign." Releasing, expiry and walk-outs never vacate a title themselves; this
+phase is the only path (CRTV1-06).
