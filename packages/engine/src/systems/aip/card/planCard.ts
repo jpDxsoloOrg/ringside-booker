@@ -55,6 +55,7 @@ import { orderCard, slotKeyOf, type FixedSegment } from './order';
 import { buildCardPool } from './pool';
 import { lastDefenceOf } from './titleHistory';
 import { decideTitlePicture, titleDueText, VACANT_RULE } from './titlePicture';
+import { templatedAngle } from './templates';
 import { PLAN_CARD_DOC_REF } from './tunables';
 import type {
   CardPool,
@@ -553,6 +554,11 @@ export function planCard(read: GameWorldView, args: PlanCardArgs, deps: PlanCard
   plan.include('Running order', order.trace);
 
   const bySegment = new Map(fill.segments.map((segment) => [segment.key, segment]));
+  // MTCH5-06: a talking segment is built from an angle template once its slot is known.
+  const titleMatchOnCard = [
+    ...fill.segments.map((segment) => segment.draft),
+    ...cardSegments(read, pool.instanceId),
+  ].some((segment) => segment.kind === 'match' && segment.match.titleIds.length > 0);
   const placements: PlannedPlacement[] = order.placements.flatMap((placement) => {
     const segment = bySegment.get(placement.segmentKey);
     const entry = scored.get(placement.segmentKey);
@@ -560,27 +566,44 @@ export function planCard(read: GameWorldView, args: PlanCardArgs, deps: PlanCard
       return [];
     }
     const role = slotRoleOf(slotRoleInput(placement, instance.format), { tunables });
+    const templated = templatedAngle(
+      {
+        read,
+        tunables,
+        pool,
+        today,
+        segmentKey: segment.key,
+        role: role.value,
+        titleMatchOnCard,
+      },
+      segment.draft,
+    );
     const label = segment.trace.trace.label;
-    const slotTrace = startDecision<string>(
+    const decision = startDecision<string>(
       slotTraceLabel(placement.slot, SLOT_ROLE_LABELS[role.value]),
       { docRef: PLAN_CARD_DOC_REF },
     )
       .include('Slot role', role)
-      .include('Why this segment', segment.trace)
+      .include('Why this segment', segment.trace);
+    if (templated !== null) {
+      decision.include(templated.label, templated.trace);
+    }
+    const slotTrace = decision
       .include('Card score', entry.score)
       .rule(placement.rule, true)
       .choose(label, placement.rule);
+    const segmentNotes = segmentNotesOf(read, pool, segment, picture.planned);
     return [
       {
         slot: placement.slot,
         preShow: placement.preShow,
         key: segment.key,
-        draft: segment.draft,
+        draft: templated?.draft ?? segment.draft,
         source: segment.source,
         slotTrace,
         cardScore: entry.score.value,
         headline: headlineOf(read, pool, segment, entry, placement.rule, today),
-        notes: segmentNotesOf(read, pool, segment, picture.planned),
+        notes: templated === null ? segmentNotes : [...segmentNotes, templated.label],
       },
     ];
   });
