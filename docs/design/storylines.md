@@ -195,9 +195,94 @@ later (that is AIP6).
 
 ## Commands
 
-CRTV3-03. Creating, editing and ending storylines. Creating one more than
-`storylines.activeSoftLimit` (6) active storylines shows a warning; 0 never
-warns. `storylines.memberOptions` lists the people who may join.
+CRTV3-03. The booker writes their own stories with six commands. Every one is
+checked against the controller that issued it (D-07, `controlsPromotion`): a
+rival's storyline can't be changed from the player's seat, and the computer's
+rival desk uses the same commands on its own promotions. Each command checks
+everything before it writes, applies in one transaction and returns plain JSON.
+`storylines.memberOptions` lists the people who may join.
+
+| Command                   | Args                                                 | Returns                                   | Event                                              |
+| ------------------------- | ---------------------------------------------------- | ----------------------------------------- | -------------------------------------------------- |
+| `storylines.create`       | `{ promotionId, name, summary?, brandId?, members }` | `{ storylineId, warnings }`               | `storyline.started` (`source: 'player'`)           |
+| `storylines.edit`         | `{ storylineId, name?, summary?, brandId? }`         | `null`                                    | none: a rename doesn't change the story            |
+| `storylines.addMember`    | `{ storylineId, personId, side }`                    | `null`                                    | `storyline.membersChanged { added: [personId] }`   |
+| `storylines.removeMember` | `{ storylineId, personId }`                          | `null`                                    | `storyline.membersChanged { removed: [personId] }` |
+| `storylines.setSide`      | `{ storylineId, personId, side }`                    | `null`                                    | `storyline.membersChanged { sideChanged: [...] }`  |
+| `storylines.end`          | `{ storylineId }`                                    | `{ linkedSegments, minSegments, payoff }` | `storyline.ended`                                  |
+
+`storylines.create` goes through `startStoryline` (starting heat, its trace and
+the event, as for starters). The name and summary are stored trimmed; `brandId`
+left out or null means the whole promotion. `storylines.edit` needs at least one
+of name, summary and brand. `addMember` appends the person; `setSide` changes
+the side in place (member order kept) and is a no-op with no event when the
+side is the same; `removeMember` takes only the person out (heat,
+`lastProgressOn` and linked segments stay).
+
+A side in a storyline is the story's, not the worker's: no storyline command
+changes a worker's morale, momentum or alignment on their employment (D-09).
+Turning a worker is CRTV7's `characters.turn`.
+
+### Refusals
+
+The checks live in `systems/storylines/validation.ts`. Reasons are written for
+the player, name their subject and, when a form field is at fault, the field.
+
+| Code                             | When                                                                                         | Field                                   |
+| -------------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------- |
+| `storylines.notFound`            | No such storyline                                                                            | `storylineId`                           |
+| `storylines.notYours`            | The issuer doesn't run the storyline's promotion ("That storyline belongs to Bravo.")        | `promotionId` on create                 |
+| `storylines.ended`               | The storyline has ended ("X has ended; ended storylines can't be changed.")                  |                                         |
+| `storylines.promotionNotFound`   | `storylines.create` names a promotion that isn't in the world                                | `promotionId`                           |
+| `storylines.nameLength`          | The name is empty or over 80 characters after trimming                                       | `name`                                  |
+| `storylines.nameTaken`           | Another **active** storyline of the promotion has that name (ignoring case)                  | `name`                                  |
+| `storylines.summaryLength`       | The summary is over 500 characters after trimming                                            | `summary`                               |
+| `storylines.brandNotInPromotion` | The brand belongs to another promotion, or no longer runs                                    | `brandId`                               |
+| `storylines.noMembers`           | `storylines.create` with nobody                                                              | `members`                               |
+| `storylines.tooManyMembers`      | More than 12 people                                                                          | `members`, or `personId` on `addMember` |
+| `storylines.duplicateMember`     | Someone listed twice (on the second mention)                                                 | `members[i].personId`                   |
+| `storylines.memberNotEmployed`   | Someone without an active contract with the promotion ("X doesn't work for Altura")          | `members[i].personId`, or `personId`    |
+| `storylines.alreadyMember`       | `addMember` for someone already in it                                                        | `personId`                              |
+| `storylines.notMember`           | `removeMember` or `setSide` for someone not in it                                            | `personId`                              |
+| `storylines.lastMember`          | `removeMember` of the only person ("A storyline needs at least one person. End it instead.") | `personId`                              |
+| `invalidArgs`                    | `storylines.edit` with nothing to change                                                     | `storylineId`                           |
+
+The storyline checks stop at the first of `notFound`, `notYours` and `ended`.
+Someone who leaves the promotion later stays listed (`stillEmployed: false` on
+the row); taking them out is the booker's choice, or AIP6's for a rival.
+
+### Warnings
+
+`storylines.create` returns warnings in `data.warnings` (`Reason[]`); they never
+block, and the screen shows them after the storyline is created:
+
+- `storylines.manyActive`: the promotion already has at least
+  `storylines.activeSoftLimit` (6) active storylines ("You already run 6
+  storylines; it gets hard to keep them all hot."); 0 never warns.
+- `storylines.oneSided`: nobody is a face or nobody is a heel ("No one on the
+  other side yet.").
+
+### Ending
+
+`endStoryline(ctx, storylineId)` in `lifecycle.ts` is the one place a storyline
+ends, for `storylines.end` and for AIP6's rival storylines. It sets
+`status: 'ended'` and `endedOn` to today, keeps members, heat and links, and
+publishes `storyline.ended { storylineId, promotionId, linkedSegments }`. It
+returns `{ linkedSegments, minSegments, payoff }`, `payoff` being `tooFew` below
+`storylines.payoff.minSegments` linked segments, else `notAvailable` until CRTV4
+pays storylines off (it subscribes to `storyline.ended`).
+
+`storylines.endPreview { storylineId }` gives the confirm dialog the same
+outcome with a sentence: "Ending now pays nothing: needs 4 linked segments, has
+0." or "No payoff yet: payoffs arrive with storyline booking." It is for the
+viewer's own active storylines only (`storylines.notYours`, `storylines.ended`
+otherwise; the omniscient viewer runs nothing).
+
+### No delete
+
+There is deliberately no delete command. Segments keep `storylineIds` pointing
+at their storylines, and a show's history should still say which story a match
+belonged to. Ended storylines stay, read-only.
 
 ## Payoff threshold
 
