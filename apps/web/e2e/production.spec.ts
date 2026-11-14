@@ -1,7 +1,7 @@
 /**
- * Business > Production in a real game (the sample save): the header cards, the eight areas in
- * their two groups, and raising Camera through the change dialog, which shows the fee and the
- * numbers it moves and changes the level when confirmed. Every step fits a 390px phone with no
+ * Business > Production in a real game (the sample save): the header cards (the show-quality
+ * ceiling first), the eight areas in their two groups, and raising Camera through the change
+ * dialog, which shows the fee and the numbers it moves and changes the level when confirmed. Every step fits a 390px phone with no
  * sideways scroll (at 150% UI scale too) and passes the accessibility scan.
  */
 import { expect, test } from './fixtures';
@@ -45,6 +45,13 @@ test.describe('Business > Production', () => {
     const header = page.getByRole('group', { name: 'Production at a glance' });
     await expect(header.getByRole('group', { name: 'Popularity ceiling' })).toBeVisible();
     await expect(header.getByRole('group', { name: 'Monthly overhead' })).toBeVisible();
+    // EVT4's show-quality ceiling sits first, with its Why? and the bonus-slot line (ECO7-05).
+    const ceilingCard = header.getByRole('group', { name: 'Show quality ceiling' });
+    await expect(ceilingCard).toBeVisible();
+    await expect(ceilingCard.getByText(/^Bonus slot on regular shows and bigger: /)).toBeVisible();
+    await expect(
+      ceilingCard.getByRole('button', { name: /^Why is Show quality ceiling/ }),
+    ).toBeVisible();
     for (const group of ['On every show', 'Every month']) {
       await expect(
         page.getByRole('region', { name: group }).getByRole('heading', { level: 3 }),

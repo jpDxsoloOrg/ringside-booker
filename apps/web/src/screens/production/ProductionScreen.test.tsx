@@ -2,6 +2,7 @@ import { act, render, screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { addDays } from '@ringside/engine';
 import type {
   CommandName,
   ProductionChangePreview,
@@ -17,7 +18,12 @@ import { routes } from '@/app/routes';
 import { useSessionStore } from '@/app/session/sessionStore';
 import { KpiCard } from '@/components/KpiCard';
 import { useTracePanelStore } from '@/components/Trace';
-import { fakeEngineFactory, fakeEngineState } from '@/test/fakeEngine';
+import {
+  BOOKING_WORLD_START,
+  bookingFakeState,
+  fakeEngineFactory,
+  fakeEngineState,
+} from '@/test/fakeEngine';
 import { LOAD_MS, renderFinances } from '@/test/financesScreen';
 import { NO_EFFECT_TEXT } from './ProductionAreaRow';
 import { LOWERING_IS_FREE_TEXT } from './ProductionChangeDialog';
@@ -28,6 +34,12 @@ import {
   resetProductionHeaderRegistryForTests,
 } from './productionHeaderRegistry';
 import { ProductionScreen } from './ProductionScreen';
+import {
+  bonusSlotLineText,
+  SHOW_QUALITY_CEILING_HEADER_ID,
+  SHOW_QUALITY_CEILING_HEADER_ORDER,
+  SHOW_QUALITY_CEILING_LABEL,
+} from './ShowQualityCeilingCard';
 import { ProductionOverviewView } from './ProductionView';
 
 beforeEach(() => {
@@ -288,6 +300,93 @@ describe('ProductionScreen', () => {
   });
 });
 
+describe('the show quality ceiling card (EVT4)', () => {
+  it('sits first in the header with its Why? and the bonus-slot line from production.ceiling', async () => {
+    const rendered = renderProduction();
+    const { result } = await rendered.transport.host.query('production.ceiling', {
+      promotionId: rendered.promotionId,
+    });
+    if (!result.ok) throw new Error('production.ceiling refused');
+    const { ceiling, bonusSlot } = result.data;
+    const header = await screen.findByRole(
+      'group',
+      { name: 'Production at a glance' },
+      { timeout: LOAD_MS },
+    );
+    const card = await within(header).findByRole(
+      'group',
+      { name: SHOW_QUALITY_CEILING_LABEL },
+      { timeout: LOAD_MS },
+    );
+    expect(within(header).getAllByRole('group')[0]).toBe(card);
+    expect(
+      within(card).getByRole('button', { name: /^Why is Show quality ceiling/u }),
+    ).toBeInTheDocument();
+    expect(
+      within(card).getByText(
+        bonusSlotLineText(
+          bonusSlot.qualifies,
+          bonusSlot.threshold,
+          ceiling,
+          bonusSlot.minImportance,
+        ),
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('words the bonus-slot line for both sides of the threshold', () => {
+    expect(bonusSlotLineText(true, 90, 92.5, 'regular')).toBe(
+      'Bonus slot on regular shows and bigger: unlocked',
+    );
+    expect(bonusSlotLineText(false, 90, 47, 'regular')).toBe(
+      'Bonus slot on regular shows and bigger: at 90, yours 47',
+    );
+    expect(bonusSlotLineText(false, 90, 47, 'flagship')).toBe(
+      'Bonus slot on flagship shows: at 90, yours 47',
+    );
+  });
+});
+
+describe('the show production estimate', () => {
+  it("counts the calendar's stored shows in the next 4 weeks", async () => {
+    // The booking world a day in, so the calendar has stored the player's Thursday shows.
+    const transport = createInProcessTransport(fakeEngineFactory(), { progressIntervalMs: 0 });
+    const install = transport.host.installEngine(bookingFakeState().state);
+    const promotionId = install.seat.promotionId;
+    if (promotionId === null) throw new Error('The booking world seats the player');
+    await transport.host.advanceDays({ maxDays: 1 }, () => undefined);
+    useSessionStore.getState().setLoaded({ saveSlotId: null, seat: install.seat });
+    const today = addDays(BOOKING_WORLD_START, 1);
+    const answer = await transport.host.query('production.overview', { promotionId });
+    if (!answer.result.ok) throw new Error('production.overview refused');
+    const days = answer.result.data.upcomingShows?.days ?? 28;
+    const stored = await transport.host.query('calendar.range', {
+      from: today,
+      to: addDays(today, days - 1),
+      scope: 'mine',
+      promotionId,
+    });
+    if (!stored.result.ok) throw new Error('calendar.range refused');
+    const coming = stored.result.data.shows.filter(
+      (show) => show.status === 'scheduled' || show.status === 'booked',
+    );
+    expect(coming.length).toBeGreaterThan(0);
+    expect(answer.result.data.upcomingShows?.count).toBe(coming.length);
+
+    render(
+      <EngineProvider createTransport={() => transport}>
+        <ProductionOverviewView overview={answer.result.data} />
+      </EngineProvider>,
+    );
+    // Let the cards that ask the engine themselves finish loading.
+    await screen.findByRole('group', { name: SHOW_QUALITY_CEILING_LABEL }, { timeout: LOAD_MS });
+    const card = screen.getByRole('group', { name: 'Show production, next 4 weeks' });
+    expect(
+      within(card).getByText(new RegExp(`^${String(coming.length)} shows?,`, 'u')),
+    ).toBeInTheDocument();
+  });
+});
+
 describe('ProductionOverviewView for a rival', () => {
   it('shows levels and effect lines with no buttons and no costs', async () => {
     const transport = createInProcessTransport(fakeEngineFactory(), { progressIntervalMs: 0 });
@@ -325,8 +424,9 @@ describe('ProductionOverviewView for a rival', () => {
 });
 
 describe('the production header registry', () => {
-  it('holds ECO7 cards at 20, 30 and 40 and refuses a taken id', () => {
+  it('holds the show-quality ceiling at 10, ECO7 cards at 20, 30 and 40, and refuses a taken id', () => {
     expect(listProductionHeaderItems().map((item) => [item.id, item.order])).toEqual([
+      [SHOW_QUALITY_CEILING_HEADER_ID, SHOW_QUALITY_CEILING_HEADER_ORDER],
       ['production.popularityCeiling', PRODUCTION_HEADER_ORDERS.popularityCeiling],
       ['production.monthlyOverhead', PRODUCTION_HEADER_ORDERS.monthlyOverhead],
       ['production.upcomingShows', PRODUCTION_HEADER_ORDERS.upcomingShows],
@@ -342,11 +442,11 @@ describe('the production header registry', () => {
 
   it('draws an added card in its place and takes it out on the test reset', async () => {
     registerProductionHeaderItem({
-      id: 'cardFlow.showCeiling',
-      order: 10,
-      render: () => <KpiCard label="Show quality ceiling" value="47" />,
+      id: 'test.firstCard',
+      order: 5,
+      render: () => <KpiCard label="Test first card" value="47" />,
     });
-    expect(listProductionHeaderItems()[0]?.id).toBe('cardFlow.showCeiling');
+    expect(listProductionHeaderItems()[0]?.id).toBe('test.firstCard');
     renderProduction();
     const header = await screen.findByRole(
       'group',
@@ -356,7 +456,7 @@ describe('the production header registry', () => {
     const cards = within(header)
       .getAllByRole('group')
       .map((card) => card.textContent);
-    expect(cards[0]).toMatch(/^Show quality ceiling/u);
+    expect(cards[0]).toMatch(/^Test first card/u);
     expect(
       await within(header).findByText(
         /^Last charged |^Charged on the 1st/u,
@@ -367,8 +467,8 @@ describe('the production header registry', () => {
     act(() => {
       resetProductionHeaderRegistryForTests();
     });
-    expect(listProductionHeaderItems()).toHaveLength(3);
-    expect(within(header).queryByText('Show quality ceiling')).toBeNull();
+    expect(listProductionHeaderItems()).toHaveLength(4);
+    expect(within(header).queryByText('Test first card')).toBeNull();
   });
 });
 

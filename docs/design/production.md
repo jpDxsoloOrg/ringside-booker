@@ -10,8 +10,8 @@ Code: `packages/engine/src/systems/production/` (system id `production`).
 ECO7-01 ships the area tables, the tunables and the pure traced formulas.
 ECO7-02 adds changing a level (the upgrade fee is the first production money
 posted), the screen and dialog queries and the effect seam. ECO7-03 posts the
-monthly overhead, ECO7-05 posts the per-show costs, and ECO7-04 puts it on
-screen. Production never rolls, so
+monthly overhead, ECO7-05 posts the per-show costs (and a temporary rival
+budget until AIP8), and ECO7-04 puts it on screen. Production never rolls, so
 the system has no RNG stream.
 
 All money is in whole cents. Every tunable is 0-means-0: a price of 0 makes
@@ -224,6 +224,65 @@ about $200,000 per regular show, against $40M cash and TV fees of over $1M per
 Mainstage; Hardpan spends $4,700 a month plus $710 per Friday against $85,000.
 If payroll leaves local promotions bleeding, tune `production.monthlyCost.*`
 down; the curve keeps low levels cheap.
+
+### Posting per-show costs
+
+ECO7-05: the reaction `production.showCosts` on `show.completed` charges every
+completed show, the player's and every rival's (on screen or off it, D-01), at
+the promotion's levels when the show completes: one ledger row, category
+Production, memo "Show production: Hardpan Friday", `refs.eventInstanceId` set
+to the show, with the show's cost as its Why? (one line per area, then "Cost").
+A rival's row keeps only a summary, like every rival ledger row (POL4-06). A
+show whose four areas are all at 0 posts nothing, a cancelled show never
+completes so it costs nothing, and a show already charged is skipped, so a show
+the player runs before the day is never charged twice. The results page's
+Show money section and the Finances ledger pick the row up from the ledger;
+there is no second Production line.
+
+## Rival production budget
+
+**Temporary (ECO7-05), until AIP8's rival production desk.** Without it,
+computer-run promotions keep the levels the world started them with, and the
+monthly overhead plus per-show costs push the small ones into debt within a
+year. Phase `production.rivalBudget` (`money`, order 33, monthly on the 1st,
+before the overhead) looks at each active computer-run promotion's cash against
+a month of its production costs (the overhead plus the per-show cost of its
+shows in the next `production.forecastDays`):
+
+- **Short of cash** (less than `lowerBelowMonths` months): it lowers one level
+  at a time until the cash covers that many months or nothing more can go.
+  First the cuts that hurt nothing: music and writing (no effect yet), and
+  room a ceiling has to spare (the show-quality ceiling above its best show in
+  the last `lookbackDays` plus `headroom`, the popularity ceiling above its
+  best region plus `headroom`), biggest saving first. Cuts that lower a
+  ceiling it is using wait until the cash covers less than
+  `deepCutBelowMonths` months; then the least harm per dollar saved goes
+  first.
+- **Plenty of cash** (at least `raiseAboveMonths` months of the cost after the
+  change, plus the fee): it raises one level a month, only where a ceiling is
+  holding it back, the most relief per dollar first. Music and writing are
+  never raised.
+
+Every change goes through `changeProductionLevel` with source `'ai'`: rivals
+pay the same upgrade fee (a hidden rival ledger row), and the TV-deal camera
+minimum holds for them too. The player's promotions are never touched. It is
+a decision rule, not a Rival rules shortcut, so the Level playing field
+setting does not turn it off. A months tunable at 0 turns that half off. AIP8
+deletes the phase and these keys when its business review sets levels.
+
+On the default world over 365 days (player's shows run by the test helper),
+no rival ends more than about $10,000 in debt: Golden Poppy ends at +$15,000
+(−$746,000 without the budget), Tessen +$2.8M (−$57,000), Blast Furnace
++$186,000 (−$134,000), Hibari +$9,000 (−$43,000), Hardpan −$8,000 (−$64,000),
+Wattle −$6,000 (−$2,500; it loses popularity once marketing goes).
+
+| Key                                         | Kind    | Default | Range | Unit   | Meaning                                                             |
+| ------------------------------------------- | ------- | ------- | ----- | ------ | ------------------------------------------------------------------- |
+| `production.rivalBudget.lowerBelowMonths`   | number  | 12      | 0–60  | months | Cash below this many months of production costs: cut (0 = never)    |
+| `production.rivalBudget.deepCutBelowMonths` | number  | 6       | 0–60  | months | Below this, also cut levels that lower a ceiling in use (0 = never) |
+| `production.rivalBudget.raiseAboveMonths`   | number  | 24      | 0–120 | months | Cash covering this many months after a raise: raise (0 = never)     |
+| `production.rivalBudget.headroom`           | number  | 5       | 0–100 | points | Room kept between the best recent show or region and its ceiling    |
+| `production.rivalBudget.lookbackDays`       | integer | 28      | 1–365 | days   | How far back the best show is looked for                            |
 
 ## TV camera minimum
 
