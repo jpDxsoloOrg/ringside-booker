@@ -57,10 +57,9 @@ function wordsOf(trace: TraceNode): string[] {
     words.push(node.label);
     if (node.kind === 'decision') {
       words.push(node.reason, ...node.considered.map((option) => option.reason ?? ''));
-    }
-    if (node.kind === 'arithmetic' || 'reason' in node) {
-      const reason = (node as { reason?: unknown }).reason;
-      if (typeof reason === 'string') words.push(reason);
+    } else if ('reason' in node && typeof node.reason === 'string') {
+      // An arithmetic step's reason, or a constant's.
+      words.push(node.reason);
     }
   });
   return words.filter((word) => word !== '');
