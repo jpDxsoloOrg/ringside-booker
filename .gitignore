@@ -11,6 +11,8 @@ apps/web/e2e/fixtures/sample-played.rbsave
 apps/web/e2e/fixtures/sample-injury.rbsave
 # Built by apps/web/e2e/fixtures/build-contracts-save.ts before every e2e run (ECO4-06).
 apps/web/e2e/fixtures/sample-contracts.rbsave
+# Built by apps/web/e2e/fixtures/build-news-save.ts before every e2e run (DAY1-05).
+apps/web/e2e/fixtures/sample-news.rbsave
 test-results/
 *.log
 .env
