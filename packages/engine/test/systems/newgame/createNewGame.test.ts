@@ -439,6 +439,8 @@ describe('createNewGame: settings', () => {
       rerollPotential: false,
       // Registered by the match system (MTCH2-03).
       randomWinners: false,
+      // Registered by the shows system (EVT10-01).
+      showNight: 'live',
     });
     expect(getSetting(state.world, 'equalStart')).toBe(true);
     expect(getSetting(state.world, 'generationLevel')).toBe('low');
@@ -661,6 +663,7 @@ describe('createNewGame: summary', () => {
       randomiseContractLengths: false,
       rerollPotential: false,
       randomWinners: false,
+      showNight: 'live',
     });
     expect(weekday(summary.startDate)).toBe(weekday(PACK_START));
   });
