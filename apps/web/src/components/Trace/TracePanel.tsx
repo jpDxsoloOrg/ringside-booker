@@ -195,6 +195,7 @@ function TraceRefPanel({ title, traceRef, open, onClose, renderEntityLink }: Tra
       title={title}
       side="right"
       size="md"
+      layer="explain"
       className={PANEL_CLASS}
       footer={getCopyText === null ? undefined : <CopyTextButton getText={getCopyText} />}
     >
@@ -265,6 +266,7 @@ export function TraceQueryPanel<Name extends TraceQueryName>({
       title={title}
       side="right"
       size="md"
+      layer="explain"
       className={PANEL_CLASS}
       footer={getCopyText === null ? undefined : <CopyTextButton getText={getCopyText} />}
     >
@@ -298,6 +300,7 @@ export function TracePanel({ title, source, open, onClose, renderEntityLink }: T
       title={title}
       side="right"
       size="md"
+      layer="explain"
       className={PANEL_CLASS}
       footer={<CopyTextButton getText={() => traceToText(source.trace)} />}
     >

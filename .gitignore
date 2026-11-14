@@ -9,6 +9,8 @@ playwright-report/
 apps/web/e2e/fixtures/sample-played.rbsave
 # Built by apps/web/e2e/fixtures/build-injury-save.ts before every e2e run (WRK6-06).
 apps/web/e2e/fixtures/sample-injury.rbsave
+# Built by apps/web/e2e/fixtures/build-contracts-save.ts before every e2e run (ECO4-06).
+apps/web/e2e/fixtures/sample-contracts.rbsave
 test-results/
 *.log
 .env

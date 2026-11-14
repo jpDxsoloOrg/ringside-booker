@@ -18,8 +18,6 @@ export const WALKOUTS_DOC_REF = 'contracts.md#walk-outs';
 export interface WalkoutChanceInputs {
   /** The worker's morale today, −100 to 100. */
   readonly morale: number;
-  /** `contracts.quit.threshold`. */
-  readonly threshold: number;
   readonly ironClad: boolean;
   /** The hot storyline that shields them (`hotStorylineFor`), or null. */
   readonly hotStoryline: { readonly name: string; readonly heat: number } | null;
@@ -31,6 +29,11 @@ export interface WalkoutChanceDeps {
 
 /** The branch text of an iron-clad contract. */
 export const IRON_CLAD_NEVER_WALKS = 'Iron-clad contract: never walks out';
+
+/** "+5", "-60". */
+function signed(value: number): string {
+  return value > 0 ? `+${String(value)}` : String(value);
+}
 
 /** The daily walk-out chance, 0 to 1, with its Why?. */
 export function walkoutChance(
@@ -56,9 +59,13 @@ export function walkoutChance(
     return calc.done();
   }
   calc.add('Daily chance', calc.tunable(tunables, 'contracts.walkout.chancePerDay'));
-  const below = Math.max(0, inputs.threshold - inputs.morale);
+  const threshold = calc.tunable(tunables, 'contracts.quit.threshold');
+  const below = Math.max(0, threshold - inputs.morale);
   const perPoint = calc.tunable(tunables, 'contracts.walkout.extraPerPoint');
-  calc.add(`${String(below)} morale points below the threshold`, below * perPoint);
+  calc.add(
+    `Morale ${signed(inputs.morale)}: ${String(below)} ${below === 1 ? 'point' : 'points'} below ${signed(threshold)}`,
+    below * perPoint,
+  );
   calc.min('Daily cap', calc.tunable(tunables, 'contracts.walkout.maxPerDay'));
   calc.clamp(0, 1);
   return calc.done();

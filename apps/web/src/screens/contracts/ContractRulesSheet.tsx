@@ -8,7 +8,9 @@ import { Select } from '@/components/Select';
 import type { SelectOption } from '@/components/Select';
 import { Sheet } from '@/components/Sheet';
 import { Switch } from '@/components/Switch';
+import { autoRenewText } from './ContractDetailView';
 import {
+  AUTO_RENEW_KEY,
   CUSTOM_PATIENCE,
   EXPIRING_MIN_PUSH_KEY,
   EXPIRING_STOP_KEY,
@@ -37,7 +39,8 @@ export interface ContractRulesSheetProps {
 
 /**
  * The owner's contract rules, saved with this game: how patient unhappy workers are, whether a
- * contract about to end stops a skip, and from which push it warns. Each change goes through
+ * contract about to end stops a skip, from which push it warns, and (while the stopgap exists)
+ * whether the player's contracts renew by themselves. Each change goes through
  * `tunables.setOverride` / `tunables.clearOverride` straight away.
  */
 export function ContractRulesSheet({ open, onClose, rules }: ContractRulesSheetProps) {
@@ -124,6 +127,20 @@ export function ContractRulesSheet({ open, onClose, rules }: ContractRulesSheetP
             })();
           }}
         />
+        {rules.rows.some((row) => row.key === AUTO_RENEW_KEY) && (
+          // The stopgap until contract talks (ECO5-05 retires the rule; the switch goes with it).
+          <Switch
+            label="Renew my contracts automatically"
+            description={`${autoRenewText(rules.autoRenewDays)} Off: a contract ends on its end date and the worker leaves.`}
+            checked={rules.autoRenew}
+            disabled={busy}
+            onCheckedChange={(checked) => {
+              void (async () => {
+                report([await setOverride.run({ key: AUTO_RENEW_KEY, value: checked })]);
+              })();
+            }}
+          />
+        )}
         {error !== null && (
           <p role="alert" className={styles['error']}>
             {error}

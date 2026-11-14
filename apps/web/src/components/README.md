@@ -278,7 +278,9 @@ tokens. Screens import our wrappers, never `@radix-ui/*` directly, so the props 
   are counted, so a `ConfirmDialog` opened from inside a `Sheet` keeps the page locked when it
   closes.
 - Stacking uses the `--z-sheet`, `--z-overlay` and `--z-popover` tokens, so a confirm opens above
-  a sheet and a menu or select opened inside either sits above both.
+  a sheet and a menu or select opened inside either sits above both. A Why? panel is a `Sheet`
+  with `layer="explain"` (`--z-explain`), so one opened from inside a confirm dialog comes out on
+  top of it.
 - Animate a Radix part only in its open state (`[data-state='open']`). Radix keeps a closing part
   mounted until an animation running on it ends, so an animation that also matched the closed
   state would leave it on screen.
