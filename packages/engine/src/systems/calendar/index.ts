@@ -17,9 +17,17 @@ import './events';
 import './setup';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
 import { calendarCommands } from './commands';
+import { showCancelledNewsSubscription } from './news';
 import { calendarPhases } from './phases';
 import { calendarQueries } from './queries';
 
+export {
+  NEWSWORTHY_CANCELLED_IMPORTANCES,
+  SHOW_CANCELLED_NEWS_SUBSCRIPTION_ID,
+  SHOW_CANCELLED_TOPIC,
+  showCancelledDedupeKey,
+  showCancelledNewsSubscription,
+} from './news';
 export { cancelRefusal, cancelShow, type CancellableShow, type CancelShowContext } from './cancel';
 export { CANCEL_SHOW_REASON_CODES, cancelShowCommand, type CancelShowReasonCode } from './commands';
 export {
@@ -82,4 +90,6 @@ export const calendarSystem: SystemBundle = defineSystem({
   phases: calendarPhases,
   queries: calendarQueries,
   commands: calendarCommands,
+  // DAY1-06: a rival's big show called off is news.
+  subscriptions: [showCancelledNewsSubscription],
 });

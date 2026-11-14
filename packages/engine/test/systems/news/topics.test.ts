@@ -42,11 +42,13 @@ describe('registerNewsTopic', () => {
   it('refuses a camelCase topic, a bad param name and a param listed twice', () => {
     expect(() => registerNewsTopic('reignMilestone', { params: [] })).toThrow(RegistryError);
     expect(() => registerNewsTopic('', { params: [] })).toThrow(RegistryError);
-    expect(() => registerNewsTopic('title-change', { params: ['Title'] })).toThrow(RegistryError);
-    expect(() => registerNewsTopic('title-change', { params: ['title', 'title'] })).toThrow(
+    expect(() => registerNewsTopic('test-bad-params', { params: ['Title'] })).toThrow(
       RegistryError,
     );
-    expect(newsTopic('title-change')).toBeUndefined();
+    expect(() => registerNewsTopic('test-bad-params', { params: ['title', 'title'] })).toThrow(
+      RegistryError,
+    );
+    expect(newsTopic('test-bad-params')).toBeUndefined();
   });
 });
 

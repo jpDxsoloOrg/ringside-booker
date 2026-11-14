@@ -46,6 +46,21 @@ describe('the news text catalog', () => {
     );
   });
 
+  it('covers the topics the partners on main post (DAY1-06)', () => {
+    expect(topics.map((topic) => topic.topic)).toEqual(
+      expect.arrayContaining([
+        'show-result',
+        'title-change',
+        'show-cancelled',
+        'signing',
+        'release',
+        'departure',
+        'walked-out',
+        'release-refused',
+      ]),
+    );
+  });
+
   it.each(topics.map((topic) => [topic.topic, topic] as const))(
     'has a headline and a body for %s, using only its declared params',
     (_name, topic) => {

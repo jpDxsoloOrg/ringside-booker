@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import type { To } from 'react-router-dom';
 import type { NewsItemView, NewsNames, TraceNode } from '@ringside/engine';
-import { useEntityLinkRenderer } from '@/app/entityLinks';
+import { useNewsEntityLink } from './newsEntityLink';
 import { ChamferPanel } from '@/components/ChamferPanel';
 import { classNames } from '@/components/classNames';
 import { formatGameDate } from '@/components/format';
@@ -40,7 +40,7 @@ export function NewsHeroCard({
   size = 'small',
   buzzTrace,
 }: NewsHeroCardProps) {
-  const renderEntityLink = useEntityLinkRenderer();
+  const renderEntityLink = useNewsEntityLink();
   const subject = newsSubjectOf(item, names);
   const headline = templatedTextToString(item.headline, { names });
   return (
