@@ -255,20 +255,113 @@ tunables, not the formulas.
 
 ## Contract value
 
-How the worker weighs an offer against their asking terms. Filled by ECO5-03.
+One monthly figure for everything an offer holds (`formulas/contractValue.ts`,
+`contractValue`), so a worker can weigh it against their own ask and against
+other offers. Only terms the game actually honours add value: a clause nobody
+enforces is worth nothing, and the Why? says so ("Creative control: not
+enforced by the game yet, adds nothing"). In order:
+
+| Step            | Rule                                                                                                                                                                                                        |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Monthly wage    | the offer's wage                                                                                                                                                                                            |
+| Appearance fees | + the fee × `contracts.value.appearancesPerMonth` (4), at most the appearance cap ÷ 12 when the offer caps appearances                                                                                      |
+| Signing bonus   | + the bonus ÷ the contract's months ("Signing bonus spread over 24 months")                                                                                                                                 |
+| Perks           | × (1 + each honoured perk's premium): iron-clad `contracts.value.perk.ironClad` 0.20, travel covered `…travelCovered` 0.03, no house shows `…noHouseShows` 0.05, creative control `…creativeControl` 0.10   |
+| Revenue shares  | × (1 + each paid share in percent × `contracts.value.sharePerPercent` 0.02)                                                                                                                                 |
+| Card position   | × (1 − `contracts.value.pushBelowPerStep` 0.10) for each step below the [expected push](workers.md#expected-push), × (1 + `contracts.value.pushAbovePerStep` 0.03) for each step above; crew are not pushed |
+| Length          | × (1 − `contracts.value.lengthMismatchPerMonth` 0.005 × months away from the preferred length), at least `contracts.value.lengthFitMin` 0.85                                                                |
+| Rounded         | to whole cents                                                                                                                                                                                              |
+
+The value of the **ask** is the same formula over the ask itself (its money and
+perks, at the push they expect and the length they prefer), so submitting the
+ask unchanged is worth exactly 1.0 of it. The perk premiums are small on
+purpose: a perk never makes a low offer attractive.
 
 ## Reaction
 
-How the worker answers an offer: `accept`, `counter`, `reject`, `walkAway` or
-`refuse`; recorded at `contracts.reaction` / `<negotiationId>:<round>`.
-Filled by ECO5-03.
+How the worker answers an offer (`formulas/offerReaction.ts`, a decision):
+`accept`, `counter`, `reject`, `walkAway` or `refuse`; recorded at
+`contracts.reaction` / `<negotiationId>:<round>` by the commands (ECO5-04).
+The first rule that matches decides:
+
+| Rule                                                                                                | Reaction                                               |
+| --------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| A refusal, or a role they will not take                                                             | `refuse` ("Won't sign")                                |
+| The offer matches their last counter-offer (or betters only its money)                              | `accept` ("Matches their counter-offer")               |
+| Offer value ÷ ask value ≥ `contracts.react.acceptRatio` (0.95)                                      | `accept` ("Likely to accept")                          |
+| ≥ `contracts.react.counterRatio` (0.55) and patience left                                           | `counter` ("Will counter")                             |
+| ≥ `contracts.react.walkAwayRatio` (0.45) and more patience than `contracts.patience.rejectCost` (1) | `reject` ("Will reject")                               |
+| Otherwise                                                                                           | `walkAway`: "Out of patience" or "Far below their ask" |
+
+Refusals, in order: an unhappy renewal (`ask.refusal`, "Won't renew while
+unhappy here"); talks that are blocked ([eligibility](#eligibility)); a worker
+still cooling off after walking away from this promotion ("Walked away from
+talks with you; will talk again on May 3, 2026", from `cooldownUntil` on a
+closed negotiation, which eligibility does not check); and a role
+(`roles.ts`, `roleMismatch`): a wrestler with a wrestler rating of
+`contracts.react.refuseCrewRoleRating` (50) or more offered any other job
+("Wants to wrestle"), or anyone offered a role they do not hold, an occasional
+wrestler counting as a wrestler ("Has never worked as a referee"). The booker's
+job is not a role people hold, so anyone may be offered it.
+
+Patience is the negotiation's (or the worker's [starting patience](#patience)
+before talks open). Each offer that does not please them uses up some: a
+counter one, a rejection `contracts.patience.rejectCost`, a walk-away or
+refusal all of it (`patienceLeft`). So `contracts.patience.base` 0 turns every
+non-acceptance into a walk-away, and `counterRatio` equal to `acceptRatio`
+removes the counter band.
+
+**One evaluation** (`evaluate.ts`, `evaluateOffer`): the ask for the offer's
+own kind and exclusivity, both contract values, the ratio, the reaction and the
+patience left. The preview, the offer commands (ECO5-04) and the review
+(ECO5-05) all call it, so the meter on the Negotiation Sheet always shows what
+the worker does next (barring a changed ask or patience).
+
+**Preview** `contracts.offerPreview { promotionId, personId, offer,
+negotiationId?, renewalOf? }` → `{ offerValue, askValue, ratio, reaction, band,
+label, patienceLeft, startPatience, reactionTrace, valueTrace, askValueTrace,
+notes }`. It never rolls: a counter shows "They will meet you part of the way".
+`notes` carries the plain reasons (a refusal, a kind or exclusive deal you may
+not offer, a perk or share that adds nothing). Only the viewer's own
+promotions, and only their own open talks with that worker; nothing about a
+rival's offer leaves the engine.
+
+Worked example: a worker asks $40,000 a month with a one-month signing bonus
+on a 24-month deal, so the ask is worth $40,000 + $40,000 ÷ 24 = $41,666.67 a
+month. Offer $24,000 with the same bonus: $24,000 + $1,666.67 = $25,666.67,
+**0.616** of the ask → **Will counter**. At 50% of the wage the offer is worth
+0.52 (Will reject); at 40%, 0.424 (Will walk away).
 
 ## Counter
 
-The worker's counter-offer, its concessions rolled on `contracts.counter`;
-recorded at `contracts.counter` / `<negotiationId>:<round>`. It stays open for
-`contracts.counter.expiryDays` (7) and, with `contracts.counter.stopSkip` on,
-stops a skip while it waits for the player. Filled by ECO5-03.
+The worker's counter-offer (`counter.ts`, `counterTermsFor`), recorded at
+`contracts.counter` / `<negotiationId>:<round>`. They meet you part of the way,
+a little less each round (`formulas/counterWage.ts`):
+
+- concession = (`contracts.counter.concession` 0.30 + a roll from 0 to
+  `contracts.counter.concessionSpread` 0.15 on `contracts.counter`) ×
+  max(0, 1 − `contracts.counter.roundDecay` 0.25 × (round − 1)): 30–45% in the
+  first round, half that in the third, nothing from the fifth;
+- the monthly wage, the fee per appearance and the signing bonus each become
+  ask − (ask − offer) × concession, rounded to $100 ($10 for a fee), never above
+  the ask and never below the offer. One roll moves all three, so the counter
+  hangs together ("Meets you 38% of the way");
+- every perk they ask for that the offer leaves out is added (they only ask for
+  [honoured perks](#enforced-terms));
+- a card position below the one they expect is raised to it;
+- a length more than `contracts.counter.lengthTolerance` (12) months off the
+  one they prefer becomes the one they prefer;
+- everything else (kind, exclusivity, brand, role, start, shares, cap) stays as
+  offered.
+
+Example: the $24,000 offer above, first round, a roll of 0.08: they meet you
+38% of the way, $40,000 − $16,000 × 0.38 = $33,920 → **$33,900** a month.
+
+The counter stays open for `contracts.counter.expiryDays` (7). Paying exactly
+what they countered (or more money on the same terms) is accepted. The
+`contracts.counter.stopSkip` gate (a skip stopping while a counter waits for
+the player) is not built yet: whoever adds it must default it off until the
+Negotiation Sheet (ECO5-06) can answer a counter from the day bar.
 
 ## Review
 
@@ -340,6 +433,19 @@ term is only words on paper (`isTermEnforced`). Terms: `perk.ironClad`,
 | -------------------- | ------------------------------------------------------------------------------ |
 | `perk.travelCovered` | ECO1's show costs                                                              |
 | `perk.ironClad`      | ECO4's severance (doubled) and walk-outs (an iron-clad worker never walks out) |
+| `share.gateBp`       | EVT6's box office pays the share at every show (`boxOffice/enforcedTerms.ts`)  |
+| `share.merchBp`      | EVT6's box office pays the share of the live merch                             |
+
+Only honoured terms add [contract value](#contract-value), and workers only ask
+for honoured perks. Each feature registers its own term through
+`registerEnforcedTerm`, never by editing this system. Not honoured yet, so they
+add nothing:
+
+| Term                   | Waits for                                                                                                    |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `perk.noHouseShows`    | a house-show booking check that holds (EVT2's card check only warns the player today; rival cards honour it) |
+| `perk.creativeControl` | CRTV (creative control)                                                                                      |
+| `share.broadcastBp`    | ECO2 (TV money)                                                                                              |
 
 ## Ask and patience modifiers
 

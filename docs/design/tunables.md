@@ -1107,70 +1107,91 @@ long and how early an offer may run, and the reach a promotion needs for
 written and exclusive contracts (read against ECO1's
 [reach](finances.md#reach-and-size)). ECO5-02 adds market value, the asking
 terms, patience and the renewal morale lines
-([negotiation.md#market-value](negotiation.md#market-value)). Money is in
+([negotiation.md#market-value](negotiation.md#market-value)). ECO5-03 adds
+contract value, the worker's reaction and counter-offers
+([negotiation.md#contract-value](negotiation.md#contract-value)). Money is in
 whole cents (shown here in dollars); 0 means 0.
 
-| Key                                        | Kind    | Default  | Range          | Unit        | Meaning                                                                                  |
-| ------------------------------------------ | ------- | -------- | -------------- | ----------- | ---------------------------------------------------------------------------------------- |
-| `contracts.review.delayDays`               | integer | 2        | 0–30           | days        | Days a worker takes to decide once an offer is good enough (0 = the same day)            |
-| `contracts.walkAway.cooldownDays`          | integer | 30       | 0–365          | days        | Days a worker who walked away refuses to talk to that promotion again (0 = no wait)      |
-| `contracts.counter.expiryDays`             | integer | 7        | 1–60           | days        | Days a worker's counter-offer stays open before it lapses                                |
-| `contracts.counter.stopSkip`               | boolean | true     |                | flag        | Skips stop when a worker's counter-offer is waiting for you                              |
-| `contracts.offer.maxLengthMonths`          | integer | 60       | 1–120          | months      | Longest contract an offer may run                                                        |
-| `contracts.offer.approachWindowDays`       | integer | 30       | 0–365          | days        | How close to the end of an exclusive deal elsewhere a worker will talk to you            |
-| `contracts.renewal.windowDays`             | integer | 180      | 0–730          | days        | How early before a contract ends a renewal can be offered                                |
-| `contracts.kind.writtenMinReach`           | integer | 35       | 0–100          | points      | Reach a promotion needs to offer written contracts (0 = anyone)                          |
-| `contracts.kind.exclusiveMinReach`         | integer | 35       | 0–100          | points      | Reach a promotion needs to offer exclusive contracts (0 = anyone)                        |
-| `contracts.history.closedKeepDays`         | integer | 365      | 0–3650         | days        | Days a closed negotiation is kept, past its cooldown, before it is cleared away          |
-| `contracts.value.breadthWeight`            | number  | 0.3      | 0–1            | ratio       | How much world-wide popularity counts against the best country in market value           |
-| `contracts.value.popScale`                 | integer | $300,000 | $0–$10,000,000 | money/month | Monthly value of a worker with 100 popularity everywhere (before the curve)              |
-| `contracts.value.popExponent`              | number  | 2        | 0–6            | multiplier  | How steeply market value rises with popularity (1 = a straight line)                     |
-| `contracts.value.skillScale`               | integer | $15,000  | $0–$10,000,000 | money/month | Monthly value of a worker rated 100 in their role (before the curve)                     |
-| `contracts.value.skillExponent`            | number  | 2        | 0–6            | multiplier  | How steeply market value rises with skill (1 = a straight line)                          |
-| `contracts.value.merchShare`               | number  | 0.25     | 0–1            | ratio       | Share of a star's monthly merchandise sales added to their market value                  |
-| `contracts.value.floor`                    | integer | $1,000   | $0–$1,000,000  | money/month | Base monthly value every worker has                                                      |
-| `contracts.value.roleFactor.wrestler`      | number  | 1        | 0–5            | multiplier  | Market value of a wrestler                                                               |
-| `contracts.value.roleFactor.booker`        | number  | 0.8      | 0–5            | multiplier  | Market value of a booker                                                                 |
-| `contracts.value.roleFactor.manager`       | number  | 0.6      | 0–5            | multiplier  | Market value of a manager                                                                |
-| `contracts.value.roleFactor.presenter`     | number  | 0.6      | 0–5            | multiplier  | Market value of a presenter                                                              |
-| `contracts.value.roleFactor.announcer`     | number  | 0.5      | 0–5            | multiplier  | Market value of an announcer                                                             |
-| `contracts.value.roleFactor.producer`      | number  | 0.5      | 0–5            | multiplier  | Market value of a producer                                                               |
-| `contracts.value.roleFactor.referee`       | number  | 0.35     | 0–5            | multiplier  | Market value of a referee                                                                |
-| `contracts.ask.reachFloor`                 | number  | 0.25     | 0–1            | ratio       | Share of their value a worker asks from a promotion nobody has heard of (reach 0)        |
-| `contracts.ask.prestigeDiscount`           | number  | 0.15     | 0–1            | ratio       | How much less a worker asks to join a promotion with a public image of 100               |
-| `contracts.ask.legacyPrestigeMultiplier`   | number  | 2        | 0–5            | multiplier  | How much more the public image discount counts for a worker who cares about their legacy |
-| `contracts.ask.egotistPremium`             | number  | 0.1      | 0–2            | ratio       | Extra an egotist asks for                                                                |
-| `contracts.ask.moneyPremium`               | number  | 0.1      | 0–2            | ratio       | Extra a worker who is in it for the money asks for                                       |
-| `contracts.ask.starPresence`               | integer | 80       | 0–100          | attribute   | Charisma or presence from which a worker knows they are a star and asks more             |
-| `contracts.ask.starPremium`                | number  | 0.1      | 0–2            | ratio       | Extra a worker with star presence asks for                                               |
-| `contracts.ask.selflessDiscount`           | number  | 0.05     | 0–1            | ratio       | How much less a selfless worker asks for                                                 |
-| `contracts.ask.premiumCap`                 | number  | 0.3      | 0–2            | ratio       | Most the ego premiums can add together (0 = no ego premiums)                             |
-| `contracts.ask.exclusivePremium`           | number  | 0.1      | 0–2            | ratio       | Extra a worker asks for an exclusive contract                                            |
-| `contracts.ask.underContractPremium`       | number  | 0.1      | 0–2            | ratio       | Extra a worker asks while they still have a contract elsewhere                           |
-| `contracts.ask.loyalRenewalDiscount`       | number  | 0.1      | 0–1            | ratio       | How much less a loyal worker asks to stay                                                |
-| `contracts.ask.cap.wrestler`               | integer | $400,000 | $0–$10,000,000 | money/month | Most a wrestler asks for a month                                                         |
-| `contracts.ask.cap.booker`                 | integer | $80,000  | $0–$10,000,000 | money/month | Most a booker asks for a month                                                           |
-| `contracts.ask.cap.manager`                | integer | $60,000  | $0–$10,000,000 | money/month | Most a manager asks for a month                                                          |
-| `contracts.ask.cap.presenter`              | integer | $60,000  | $0–$10,000,000 | money/month | Most a presenter asks for a month                                                        |
-| `contracts.ask.cap.announcer`              | integer | $60,000  | $0–$10,000,000 | money/month | Most an announcer asks for a month                                                       |
-| `contracts.ask.cap.producer`               | integer | $40,000  | $0–$10,000,000 | money/month | Most a producer asks for a month                                                         |
-| `contracts.ask.cap.referee`                | integer | $20,000  | $0–$10,000,000 | money/month | Most a referee asks for a month                                                          |
-| `contracts.ask.perAppearanceShare`         | number  | 0.3      | 0–2            | ratio       | Share of a worker's monthly ask they want for each appearance on a per-appearance deal   |
-| `contracts.ask.minFee`                     | integer | $50      | $0–$1,000,000  | money       | Least a worker asks for an appearance                                                    |
-| `contracts.ask.maxFee`                     | integer | $20,000  | $0–$1,000,000  | money       | Most a worker asks for an appearance                                                     |
-| `contracts.ask.signingBonusMonths`         | number  | 1        | 0–12           | months      | Signing bonus a worker asks for a written contract, in months of their wage              |
-| `contracts.ask.noHouseShowsAge`            | integer | 45       | 0–100          | years       | Age from which a worker asks not to work house shows (when the game honours it)          |
-| `contracts.ask.veteranAge`                 | integer | 45       | 0–100          | years       | Age from which a popular veteran asks for a cap on appearances                           |
-| `contracts.ask.veteranPeakPop`             | integer | 80       | 0–100          | points      | Popularity (best country) from which a veteran asks for a cap on appearances             |
-| `contracts.ask.veteranAppearanceCap`       | integer | 24       | 0–365          | count       | Most appearances a year a popular veteran agrees to (0 = no cap asked)                   |
-| `contracts.ask.lengthMonths`               | integer | 24       | 1–120          | months      | Contract length most workers prefer                                                      |
-| `contracts.ask.lengthMonths.journeyman`    | integer | 12       | 1–120          | months      | Contract length a journeyman prefers                                                     |
-| `contracts.ask.lengthMonths.loyal`         | integer | 36       | 1–120          | months      | Contract length a loyal worker prefers                                                   |
-| `contracts.renewal.unhappyMorale`          | integer | -20      | -100–100       | points      | Below this morale a worker asks more to stay (and has less patience)                     |
-| `contracts.renewal.unhappyPremiumPerPoint` | number  | 0.01     | 0–0.1          | ratio       | Extra a worker asks to stay for each morale point below the unhappy line                 |
-| `contracts.renewal.refuseMorale`           | integer | -60      | -100–100       | points      | At or below this morale a worker will not renew at all                                   |
-| `contracts.patience.base`                  | integer | 3        | 0–10           | count       | Offers a worker sits through that do not please them                                     |
-| `contracts.patience.egotist`               | integer | 1        | 0–10           | count       | Patience an egotist lacks                                                                |
-| `contracts.patience.professional`          | integer | 1        | 0–10           | count       | Extra patience a professional has                                                        |
-| `contracts.patience.unhappyPenalty`        | integer | 1        | 0–10           | count       | Patience an unhappy worker lacks when renewing                                           |
-| `contracts.patience.max`                   | integer | 5        | 0–10           | count       | Most patience any worker starts with                                                     |
+| Key                                        | Kind    | Default  | Range          | Unit        | Meaning                                                                                   |
+| ------------------------------------------ | ------- | -------- | -------------- | ----------- | ----------------------------------------------------------------------------------------- |
+| `contracts.review.delayDays`               | integer | 2        | 0–30           | days        | Days a worker takes to decide once an offer is good enough (0 = the same day)             |
+| `contracts.walkAway.cooldownDays`          | integer | 30       | 0–365          | days        | Days a worker who walked away refuses to talk to that promotion again (0 = no wait)       |
+| `contracts.counter.expiryDays`             | integer | 7        | 1–60           | days        | Days a worker's counter-offer stays open before it lapses                                 |
+| `contracts.counter.stopSkip`               | boolean | true     |                | flag        | Skips stop when a worker's counter-offer is waiting for you                               |
+| `contracts.offer.maxLengthMonths`          | integer | 60       | 1–120          | months      | Longest contract an offer may run                                                         |
+| `contracts.offer.approachWindowDays`       | integer | 30       | 0–365          | days        | How close to the end of an exclusive deal elsewhere a worker will talk to you             |
+| `contracts.renewal.windowDays`             | integer | 180      | 0–730          | days        | How early before a contract ends a renewal can be offered                                 |
+| `contracts.kind.writtenMinReach`           | integer | 35       | 0–100          | points      | Reach a promotion needs to offer written contracts (0 = anyone)                           |
+| `contracts.kind.exclusiveMinReach`         | integer | 35       | 0–100          | points      | Reach a promotion needs to offer exclusive contracts (0 = anyone)                         |
+| `contracts.history.closedKeepDays`         | integer | 365      | 0–3650         | days        | Days a closed negotiation is kept, past its cooldown, before it is cleared away           |
+| `contracts.value.breadthWeight`            | number  | 0.3      | 0–1            | ratio       | How much world-wide popularity counts against the best country in market value            |
+| `contracts.value.popScale`                 | integer | $300,000 | $0–$10,000,000 | money/month | Monthly value of a worker with 100 popularity everywhere (before the curve)               |
+| `contracts.value.popExponent`              | number  | 2        | 0–6            | multiplier  | How steeply market value rises with popularity (1 = a straight line)                      |
+| `contracts.value.skillScale`               | integer | $15,000  | $0–$10,000,000 | money/month | Monthly value of a worker rated 100 in their role (before the curve)                      |
+| `contracts.value.skillExponent`            | number  | 2        | 0–6            | multiplier  | How steeply market value rises with skill (1 = a straight line)                           |
+| `contracts.value.merchShare`               | number  | 0.25     | 0–1            | ratio       | Share of a star's monthly merchandise sales added to their market value                   |
+| `contracts.value.floor`                    | integer | $1,000   | $0–$1,000,000  | money/month | Base monthly value every worker has                                                       |
+| `contracts.value.roleFactor.wrestler`      | number  | 1        | 0–5            | multiplier  | Market value of a wrestler                                                                |
+| `contracts.value.roleFactor.booker`        | number  | 0.8      | 0–5            | multiplier  | Market value of a booker                                                                  |
+| `contracts.value.roleFactor.manager`       | number  | 0.6      | 0–5            | multiplier  | Market value of a manager                                                                 |
+| `contracts.value.roleFactor.presenter`     | number  | 0.6      | 0–5            | multiplier  | Market value of a presenter                                                               |
+| `contracts.value.roleFactor.announcer`     | number  | 0.5      | 0–5            | multiplier  | Market value of an announcer                                                              |
+| `contracts.value.roleFactor.producer`      | number  | 0.5      | 0–5            | multiplier  | Market value of a producer                                                                |
+| `contracts.value.roleFactor.referee`       | number  | 0.35     | 0–5            | multiplier  | Market value of a referee                                                                 |
+| `contracts.ask.reachFloor`                 | number  | 0.25     | 0–1            | ratio       | Share of their value a worker asks from a promotion nobody has heard of (reach 0)         |
+| `contracts.ask.prestigeDiscount`           | number  | 0.15     | 0–1            | ratio       | How much less a worker asks to join a promotion with a public image of 100                |
+| `contracts.ask.legacyPrestigeMultiplier`   | number  | 2        | 0–5            | multiplier  | How much more the public image discount counts for a worker who cares about their legacy  |
+| `contracts.ask.egotistPremium`             | number  | 0.1      | 0–2            | ratio       | Extra an egotist asks for                                                                 |
+| `contracts.ask.moneyPremium`               | number  | 0.1      | 0–2            | ratio       | Extra a worker who is in it for the money asks for                                        |
+| `contracts.ask.starPresence`               | integer | 80       | 0–100          | attribute   | Charisma or presence from which a worker knows they are a star and asks more              |
+| `contracts.ask.starPremium`                | number  | 0.1      | 0–2            | ratio       | Extra a worker with star presence asks for                                                |
+| `contracts.ask.selflessDiscount`           | number  | 0.05     | 0–1            | ratio       | How much less a selfless worker asks for                                                  |
+| `contracts.ask.premiumCap`                 | number  | 0.3      | 0–2            | ratio       | Most the ego premiums can add together (0 = no ego premiums)                              |
+| `contracts.ask.exclusivePremium`           | number  | 0.1      | 0–2            | ratio       | Extra a worker asks for an exclusive contract                                             |
+| `contracts.ask.underContractPremium`       | number  | 0.1      | 0–2            | ratio       | Extra a worker asks while they still have a contract elsewhere                            |
+| `contracts.ask.loyalRenewalDiscount`       | number  | 0.1      | 0–1            | ratio       | How much less a loyal worker asks to stay                                                 |
+| `contracts.ask.cap.wrestler`               | integer | $400,000 | $0–$10,000,000 | money/month | Most a wrestler asks for a month                                                          |
+| `contracts.ask.cap.booker`                 | integer | $80,000  | $0–$10,000,000 | money/month | Most a booker asks for a month                                                            |
+| `contracts.ask.cap.manager`                | integer | $60,000  | $0–$10,000,000 | money/month | Most a manager asks for a month                                                           |
+| `contracts.ask.cap.presenter`              | integer | $60,000  | $0–$10,000,000 | money/month | Most a presenter asks for a month                                                         |
+| `contracts.ask.cap.announcer`              | integer | $60,000  | $0–$10,000,000 | money/month | Most an announcer asks for a month                                                        |
+| `contracts.ask.cap.producer`               | integer | $40,000  | $0–$10,000,000 | money/month | Most a producer asks for a month                                                          |
+| `contracts.ask.cap.referee`                | integer | $20,000  | $0–$10,000,000 | money/month | Most a referee asks for a month                                                           |
+| `contracts.ask.perAppearanceShare`         | number  | 0.3      | 0–2            | ratio       | Share of a worker's monthly ask they want for each appearance on a per-appearance deal    |
+| `contracts.ask.minFee`                     | integer | $50      | $0–$1,000,000  | money       | Least a worker asks for an appearance                                                     |
+| `contracts.ask.maxFee`                     | integer | $20,000  | $0–$1,000,000  | money       | Most a worker asks for an appearance                                                      |
+| `contracts.ask.signingBonusMonths`         | number  | 1        | 0–12           | months      | Signing bonus a worker asks for a written contract, in months of their wage               |
+| `contracts.ask.noHouseShowsAge`            | integer | 45       | 0–100          | years       | Age from which a worker asks not to work house shows (when the game honours it)           |
+| `contracts.ask.veteranAge`                 | integer | 45       | 0–100          | years       | Age from which a popular veteran asks for a cap on appearances                            |
+| `contracts.ask.veteranPeakPop`             | integer | 80       | 0–100          | points      | Popularity (best country) from which a veteran asks for a cap on appearances              |
+| `contracts.ask.veteranAppearanceCap`       | integer | 24       | 0–365          | count       | Most appearances a year a popular veteran agrees to (0 = no cap asked)                    |
+| `contracts.ask.lengthMonths`               | integer | 24       | 1–120          | months      | Contract length most workers prefer                                                       |
+| `contracts.ask.lengthMonths.journeyman`    | integer | 12       | 1–120          | months      | Contract length a journeyman prefers                                                      |
+| `contracts.ask.lengthMonths.loyal`         | integer | 36       | 1–120          | months      | Contract length a loyal worker prefers                                                    |
+| `contracts.renewal.unhappyMorale`          | integer | -20      | -100–100       | points      | Below this morale a worker asks more to stay (and has less patience)                      |
+| `contracts.renewal.unhappyPremiumPerPoint` | number  | 0.01     | 0–0.1          | ratio       | Extra a worker asks to stay for each morale point below the unhappy line                  |
+| `contracts.renewal.refuseMorale`           | integer | -60      | -100–100       | points      | At or below this morale a worker will not renew at all                                    |
+| `contracts.patience.base`                  | integer | 3        | 0–10           | count       | Offers a worker sits through that do not please them                                      |
+| `contracts.patience.egotist`               | integer | 1        | 0–10           | count       | Patience an egotist lacks                                                                 |
+| `contracts.patience.professional`          | integer | 1        | 0–10           | count       | Extra patience a professional has                                                         |
+| `contracts.patience.unhappyPenalty`        | integer | 1        | 0–10           | count       | Patience an unhappy worker lacks when renewing                                            |
+| `contracts.patience.max`                   | integer | 5        | 0–10           | count       | Most patience any worker starts with                                                      |
+| `contracts.value.appearancesPerMonth`      | number  | 4        | 0–31           | count       | Appearances a month a per-appearance fee is counted for in contract value                 |
+| `contracts.value.perk.ironClad`            | number  | 0.2      | 0–2            | ratio       | What an iron-clad contract adds to contract value (only once the game honours it)         |
+| `contracts.value.perk.travelCovered`       | number  | 0.03     | 0–2            | ratio       | What covered travel adds to contract value (only once the game honours it)                |
+| `contracts.value.perk.noHouseShows`        | number  | 0.05     | 0–2            | ratio       | What a no-house-shows clause adds to contract value (only once the game honours it)       |
+| `contracts.value.perk.creativeControl`     | number  | 0.1      | 0–2            | ratio       | What creative control adds to contract value (only once the game honours it)              |
+| `contracts.value.sharePerPercent`          | number  | 0.02     | 0–1            | ratio       | What each percent of a revenue share the game pays adds to contract value                 |
+| `contracts.value.pushBelowPerStep`         | number  | 0.1      | 0–1            | ratio       | Contract value lost for each step below the card position a worker expects                |
+| `contracts.value.pushAbovePerStep`         | number  | 0.03     | 0–1            | ratio       | Contract value gained for each step above the card position a worker expects              |
+| `contracts.value.lengthFitMin`             | number  | 0.85     | 0–1            | multiplier  | Least a contract of the wrong length counts for (1 = length never matters)                |
+| `contracts.value.lengthMismatchPerMonth`   | number  | 0.005    | 0–0.1          | ratio       | Contract value lost for each month away from the length a worker prefers                  |
+| `contracts.react.acceptRatio`              | number  | 0.95     | 0–2            | ratio       | Share of their ask an offer must be worth for the worker to accept it                     |
+| `contracts.react.counterRatio`             | number  | 0.55     | 0–2            | ratio       | Share of their ask an offer must be worth for the worker to counter it (else they reject) |
+| `contracts.react.walkAwayRatio`            | number  | 0.45     | 0–2            | ratio       | Below this share of their ask the worker walks away instead of rejecting                  |
+| `contracts.react.refuseCrewRoleRating`     | integer | 50       | 0–100          | points      | Wrestler rating from which a wrestler refuses a job outside the ring                      |
+| `contracts.patience.rejectCost`            | integer | 1        | 0–10           | count       | Patience a rejected offer costs; with no more than this left they walk away               |
+| `contracts.counter.concession`             | number  | 0.3      | 0–1            | ratio       | Share of the gap to their ask a worker gives up in a first counter-offer                  |
+| `contracts.counter.concessionSpread`       | number  | 0.15     | 0–1            | ratio       | Most a counter-offer may give up on top of the usual share, rolled each time              |
+| `contracts.counter.roundDecay`             | number  | 0.25     | 0–1            | ratio       | How much less a worker gives up with each later round (1 = only the first round)          |
+| `contracts.counter.lengthTolerance`        | integer | 12       | 0–120          | months      | Months off their preferred length a counter-offer lets stand                              |
