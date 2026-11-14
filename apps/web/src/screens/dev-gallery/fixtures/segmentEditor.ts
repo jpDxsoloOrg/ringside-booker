@@ -718,6 +718,8 @@ export const GALLERY_EDITOR_CARD: BookingCard = {
     isToday: false,
     daysUntil: 3,
     format: { slots: 6, preShowSlots: 1 },
+    regionId: parseId('region', 'reg_0000000101'),
+    televised: true,
   },
   canEdit: true,
   editBlock: null,

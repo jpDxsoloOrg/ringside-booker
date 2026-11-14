@@ -142,22 +142,23 @@ describe('match.angleWarnings', () => {
 
   it('refuses someone in a beat who is not booked on the segment and cannot appear', () => {
     const built = validateWorld();
-    const card = bookRunnable(built);
+    bookRunnable(built);
     // Roster 4 is injured and may not work angles; written into the beat but not as a speaker.
-    change(built, (tx) => {
-      const segment = tx.view.tables.segments.require(card.promo);
-      if (segment.kind !== 'angle') {
-        throw new Error('expected the promo');
-      }
-      tx.update('segments', card.promo, {
+    book(
+      built,
+      3,
+      AngleDraftSchema.parse({
+        kind: 'angle',
+        label: null,
         angle: {
-          ...segment.angle,
+          angleTypeKey: parseContentKey('angle.promo'),
           beats: [
-            { beatKey: parseContentKey('beat.promo'), personIds: [who(built, 5), who(built, 4)] },
+            { beatKey: parseContentKey('beat.promo'), personIds: [who(built, 1), who(built, 4)] },
           ],
         },
-      });
-    });
+        participants: [speaker(who(built, 1))],
+      }),
+    );
     const errors = validate(built).errors.filter(
       (issue) => issue.checkId === ANGLE_WARNINGS_CHECK_ID,
     );
