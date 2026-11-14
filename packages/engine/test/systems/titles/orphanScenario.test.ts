@@ -133,6 +133,10 @@ describe('a default-world champion whose contract ends', () => {
           `^${reign.holderNamesAtTime[0] ?? ''} has had no contract with .*Altura.* since ${reignDateText(leftOn)} \\(${String(GRACE_DAYS)} days\\)$`,
         ),
       );
+      expect(trace.trace.children?.find((node) => node.kind === 'input')).toMatchObject({
+        value: `No contract for ${String(GRACE_DAYS)} days`,
+        ref: { kind: 'person', id: championId },
+      });
       expect(trace.trace.children?.find((node) => node.kind === 'tunable')).toMatchObject({
         key: 'titles.orphanGraceDays',
         value: GRACE_DAYS,
