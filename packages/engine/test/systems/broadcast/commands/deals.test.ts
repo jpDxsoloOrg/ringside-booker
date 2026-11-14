@@ -3,7 +3,11 @@
 import { describe, expect, it } from 'vitest';
 import { OMNISCIENT_VIEWER, type Engine } from '../../../../src/core/api';
 import { addDays, addMonths } from '../../../../src/core/date';
-import { NOT_YOUR_PROMOTION, type ProposeDealArgs } from '../../../../src/systems/broadcast';
+import {
+  NOT_YOUR_PROMOTION,
+  type BroadcastValuationArgs,
+  type ProposeDealArgs,
+} from '../../../../src/systems/broadcast';
 import { createEngineTunables } from '../../../../src/systems/tunables';
 import {
   addAirings,
@@ -37,7 +41,7 @@ function codes(result: { ok: boolean; reasons?: readonly { code: string }[] }): 
   return result.ok ? [] : (result.reasons ?? []).map((reason) => reason.code);
 }
 
-function preview(engine: Engine, args: ProposeDealArgs) {
+function preview(engine: Engine, args: BroadcastValuationArgs) {
   const result = engine.query('broadcast.valuation', args, YOU);
   if (!result.ok) throw new Error(JSON.stringify(result.reasons));
   return result.data;
@@ -144,10 +148,10 @@ describe('broadcast.renegotiate', () => {
     const built = dealWorld();
     const engine = engineFor(built.world);
     const oldEnd = dealOf(engine, built.yourDeal).endsOn;
-    const valuation = preview(
-      engine,
-      proposal(built, { eventDefinitionId: built.yourShow, months: 12, dealId: built.yourDeal }),
-    );
+    const valuation = preview(engine, {
+      ...proposal(built, { eventDefinitionId: built.yourShow, months: 12 }),
+      dealId: built.yourDeal,
+    });
     const result = engine.command(
       'broadcast.renegotiate',
       { dealId: built.yourDeal, months: 12 },
