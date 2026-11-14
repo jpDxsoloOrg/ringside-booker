@@ -285,12 +285,22 @@ function expectSound(built: BuiltWorld, result: CardPlan, mode: PlanCardMode): v
 }
 
 /** The main card's kinds, kept segments included, slot 0 first (null when empty). */
+/** MTCH5-08: a backstage or pre-taped talking segment may sit next to one in the ring. */
+function spacingKindOf(segment: {
+  readonly kind: 'match' | 'angle';
+  readonly angle?: { readonly setting?: string | undefined };
+}): string {
+  return segment.kind === 'angle' && (segment.angle?.setting ?? 'ring') !== 'ring'
+    ? 'offRingAngle'
+    : segment.kind;
+}
+
 function mainCardOf(built: BuiltWorld, result: CardPlan, mode: PlanCardMode): (string | null)[] {
   const instance = tonightOf(built);
   const card: (string | null)[] = Array.from({ length: instance.format.slots }, () => null);
   for (const segment of cardSegments(built.world, instance.id)) {
     if (!segment.preShow) {
-      card[segment.slot] = segment.kind;
+      card[segment.slot] = spacingKindOf(segment);
     }
   }
   if (result.kind === 'card') {
@@ -299,7 +309,7 @@ function mainCardOf(built: BuiltWorld, result: CardPlan, mode: PlanCardMode): (s
     }
     for (const placement of result.placements) {
       if (!placement.preShow) {
-        card[placement.slot] = placement.draft.kind;
+        card[placement.slot] = spacingKindOf(placement.draft);
       }
     }
   }

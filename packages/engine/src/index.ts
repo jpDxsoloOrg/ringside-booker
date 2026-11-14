@@ -3552,3 +3552,58 @@ export {
   withNotesAtTop,
   writingBandLabel,
 } from './systems/match/index';
+
+// MTCH5-08: talk roles (wrestler, manager for a client, interviewer, authority figure) and
+// settings (ring, backstage, pre-taped) for talking segments. See
+// docs/design/angle-rating.md#talk-roles and #settings.
+export {
+  ANGLE_SETTING_LABELS,
+  ANGLE_SETTINGS,
+  DEFAULT_ANGLE_SETTING,
+  DEFAULT_TALK_ROLE,
+  isOffCrowdSetting,
+  TALK_ROLE_LABELS,
+  TALK_ROLES,
+} from './model/entities/angle-setting';
+export type { AngleSetting, TalkRole } from './model/entities/angle-setting';
+export { storedTalkRoleOf } from './model/entities/participant';
+export { AngleSettingSchema, settingOf } from './model/entities/segment';
+export {
+  allowsSetting,
+  defaultSettingOf,
+  groupAllowsRole,
+  rolesPhrase,
+  rolesText,
+  settingCrowdShareKey,
+  settingDurationShifter,
+  settingDurationShiftKey,
+  settingLabel,
+  settingNote,
+  settingsOfAngleType,
+  talkRoleForEmployment,
+} from './systems/match/angles/settings';
+export {
+  beatSettingMessage,
+  clientMissingMessage,
+  settingNotAllowedMessage,
+  settingPhrase,
+  TALK_WARNING_CODES,
+  talkWarnings,
+  wrongRoleMessage,
+} from './systems/match/angles/talkWarnings';
+export type {
+  TalkCheckBeat,
+  TalkCheckInput,
+  TalkPart,
+  TalkWarning,
+  TalkWarningCode,
+} from './systems/match/angles/talkWarnings';
+export { talkLine, talkLineOf, talkRoleWithFallback } from './systems/match/angles/talkLine';
+export type { TalkLinePerson } from './systems/match/angles/talkLine';
+export { angleDurationClass } from './systems/match/angles/rateAngle';
+export {
+  TALK_CHECK_ID,
+  TALK_CHECK_LABEL,
+  talkCheck,
+} from './systems/booking/validate/checks/talk';
+export { SETTING_STREAM } from './systems/aip/card/streams';

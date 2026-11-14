@@ -12,11 +12,19 @@ declare module '../../../core/rng/streams' {
   interface StreamNames {
     'aip.card': true;
     'aip.autofill': true;
+    'aip.card.setting': true;
   }
 }
 
 /** The stream rival show planning draws from. */
 export const CARD_PLAN_STREAM = 'aip.card';
+
+/**
+ * MTCH5-08: whether a planned talking segment happens backstage. A detached stream per show and
+ * segment key (`detachedStream(seed, 'aip.card.setting', '<instanceId>/<key>')`), so the roll never
+ * moves any other pick on `aip.card` or `aip.autofill`.
+ */
+export const SETTING_STREAM = 'aip.card.setting';
 
 /** The stream the player's Auto-fill draws from. */
 export const AUTOFILL_STREAM = 'aip.autofill';

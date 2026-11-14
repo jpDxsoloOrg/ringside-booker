@@ -32,6 +32,6 @@ for (const check of BUILT_IN_BOOKING_CHECKS) {
   registerBookingCheck(check);
 }
 
-// MTCH5-08: talk roles and settings, after the built-in checks (order 200).
+// MTCH5-08: talk roles and settings, after the feature checks (order 260).
 export { TALK_CHECK_ID, TALK_CHECK_LABEL, talkCheck } from './talk';
 registerBookingCheck(talkCheck);

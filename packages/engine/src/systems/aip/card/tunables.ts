@@ -415,6 +415,18 @@ export const aipCardTunables = defineTunables({
     description: 'Chance a talking segment gets a second speaker',
     docRef: TALKING_DOC_REF,
   },
+  'aip.card.backstageChance': {
+    kind: 'number',
+    default: 0.25,
+    min: 0,
+    max: 1,
+    step: 0.05,
+    unit: 'probability',
+    category: RIVAL_BOOKING_CATEGORY,
+    description:
+      'Chance a talking segment happens backstage, when its kind of angle can (MTCH5-08)',
+    docRef: TALKING_DOC_REF,
+  },
 
   // Ordering the card (AIP4-04).
   'aip.card.order.titleWeight': {
@@ -477,6 +489,15 @@ export const aipCardTunables = defineTunables({
     unit: 'flag',
     category: RIVAL_BOOKING_CATEGORY,
     description: 'Whether the second-best match opens the show',
+    docRef: ORDERING_DOC_REF,
+  },
+  'aip.card.order.backstageBreaksTalk': {
+    kind: 'boolean',
+    default: true,
+    unit: 'flag',
+    category: RIVAL_BOOKING_CATEGORY,
+    description:
+      'Whether a backstage or pre-taped talking segment may sit next to one in the ring without counting as two in a row (MTCH5-08)',
     docRef: ORDERING_DOC_REF,
   },
 });

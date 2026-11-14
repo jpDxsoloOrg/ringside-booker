@@ -22,7 +22,7 @@ import type { BookingCheck, BookingCheckInput, BookingIssueDraft } from '../type
 import { at, nameOf, participantsOf, rosterFor } from './shared';
 
 export const TALK_CHECK_ID = 'booking.talk';
-export const TALK_CHECK_ORDER = 200;
+export const TALK_CHECK_ORDER = 260;
 export const TALK_CHECK_LABEL = 'Talking segments: who plays which part, and where';
 
 function talkIssues(input: BookingCheckInput): BookingIssueDraft[] {
