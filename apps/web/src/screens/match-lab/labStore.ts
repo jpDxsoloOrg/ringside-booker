@@ -7,6 +7,7 @@ import type {
   LabWorkerRow,
   PersonId,
   PlannedWinner,
+  PreviewAngleArgs,
   PreviewArgs,
   PreviewBatchResult,
   PreviewExtensionArgs,
@@ -21,6 +22,7 @@ import type {
 } from '@ringside/engine';
 import { PREVIEW_MAX_SIDE_SIZE, PREVIEW_SEED_MAX } from '@ringside/engine';
 import { useSessionStore } from '@/app/session/sessionStore';
+import type { BeatDraft } from '@/components/BeatEditor';
 
 /** The most sides the lab builds: the most a preview takes. */
 export const LAB_MAX_SIDES = 30;
@@ -67,6 +69,36 @@ export interface LabCrew {
 
 /** A lab with no producer. */
 export const NO_CREW: LabCrew = { producerId: null };
+
+/**
+ * Angle mode's draft (MTCH5-05): the angle type, its beats with the people in each group and the
+ * manager what-ifs. Kept for the session only, never saved to the world.
+ */
+export interface LabAngleDraft {
+  /** Null until Angle mode is first opened. */
+  readonly angleTypeKey: ContentKey | null;
+  readonly beats: readonly BeatDraft[];
+  /**
+   * Who talks for a person instead of their contract's manager: a manager's id, or null for "No
+   * manager". Someone left out keeps their contract's manager.
+   */
+  readonly managerOverrides: Readonly<Record<PersonId, PersonId | null>>;
+  /** What the pickers knew about each person placed or chosen as a manager. */
+  readonly people: Readonly<Record<PersonId, LabWorkerRow>>;
+}
+
+/** An empty draft: Angle mode fills it with the first type's default beat when it opens. */
+export const EMPTY_ANGLE_DRAFT: LabAngleDraft = {
+  angleTypeKey: null,
+  beats: [],
+  managerOverrides: {},
+  people: {},
+};
+
+/** The angle Run on screen: the arguments `match.previewAngle` was asked with. */
+export interface LabAngleRun {
+  readonly args: PreviewAngleArgs;
+}
 
 /** The plan a fresh lab, or a new match type, starts with. */
 export const AUTO_RESULT_PLAN: LabResultPlan = { winner: 'auto', finishKey: null };
@@ -128,6 +160,10 @@ export interface LabState {
   readonly pending: boolean;
   /** The engine's reasons for refusing the last request, in player words. */
   readonly refusal: readonly string[];
+  /** Angle mode's draft (MTCH5-05). */
+  readonly angle: LabAngleDraft;
+  /** The angle Run asked for last, or null before the first. */
+  readonly angleRun: LabAngleRun | null;
 
   readonly seed: (options: LabOptions, sideCount: number) => void;
   readonly setKind: (kind: SegmentKind, typeKey: ContentKey | null, sideCount: number) => void;
@@ -154,6 +190,10 @@ export interface LabState {
   readonly startRequest: () => number;
   readonly finishRun: (ticket: number, run: LabRun) => void;
   readonly failRequest: (ticket: number, reasons: readonly string[]) => void;
+  /** Changes Angle mode's draft; the fields left out stay. */
+  readonly setAngle: (change: Partial<LabAngleDraft>) => void;
+  /** Asks for an angle Run with these arguments. */
+  readonly runAngle: (args: PreviewAngleArgs) => void;
   /** Back to an empty, unseeded lab: the world changed. */
   readonly reset: () => void;
 }
@@ -180,6 +220,8 @@ const EMPTY_LAB = {
   fatigueOverrides: {},
   pending: false,
   refusal: [],
+  angle: EMPTY_ANGLE_DRAFT,
+  angleRun: null,
 } as const satisfies Partial<LabState>;
 
 /** Counts requests, so an answer that arrives after a reset (or a newer request) is dropped. */
@@ -454,6 +496,12 @@ export const useLabStore = create<LabState>()((set, get) => ({
   failRequest: (ticket, reasons) => {
     if (ticket !== requestTicket) return;
     set({ pending: false, refusal: reasons });
+  },
+  setAngle: (change) => {
+    set((state) => ({ angle: { ...state.angle, ...change } }));
+  },
+  runAngle: (args) => {
+    set({ angleRun: { args } });
   },
   reset: () => {
     requestTicket += 1;

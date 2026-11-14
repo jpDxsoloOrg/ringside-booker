@@ -37,8 +37,18 @@ function useFinishCatalogMessage(setup: LabState['setup']): string | null {
   return reason?.message ?? null;
 }
 
+/** Angle mode's Run (MTCH5-05): one night on a fresh seed, with its own reason to wait. */
+export interface LabAngleRunControls {
+  /** Why Run can't go yet, or null. */
+  readonly blocker: string | null;
+  readonly pending: boolean;
+  readonly onRun: () => void;
+}
+
 export interface LabRunBarProps {
   readonly runner: LabRunner;
+  /** Angle mode's Run; left out, the bar runs the match or talking segment. */
+  readonly angle?: LabAngleRunControls;
 }
 
 /**
@@ -50,7 +60,7 @@ export interface LabRunBarProps {
  * so it stays in reach while the line-up is built. The lab's other controls keep that much room
  * below them when scrolled to, so a focused control never hides under it (useStickyBarRoom).
  */
-export function LabRunBar({ runner }: LabRunBarProps) {
+export function LabRunBar({ runner, angle }: LabRunBarProps) {
   const setup = useLabStore((state) => state.setup);
   const sides = useLabStore((state) => state.sides);
   const runs = useLabStore((state) => state.runs);
@@ -63,7 +73,9 @@ export function LabRunBar({ runner }: LabRunBarProps) {
   const barRef = useRef<HTMLDivElement>(null);
   useStickyBarRoom(barRef);
 
-  const blocker = runBlocker({ setup, sides });
+  // Angle mode has no Runs slider (Run x100 stays Match-only) and shows its refusals by the beats.
+  const blocker = angle === undefined ? runBlocker({ setup, sides }) : angle.blocker;
+  const busy = angle === undefined ? pending : angle.pending;
   const described = blocker === null ? {} : { 'aria-describedby': reasonId };
   // A save from before finishes rates a match without a result; the Winner and finish group says why.
   const simulate = setup.kind === 'match' && finishCatalogMessage === null;
@@ -75,36 +87,42 @@ export function LabRunBar({ runner }: LabRunBarProps) {
           variant="primary"
           iconStart="play"
           className={styles['runButton']}
-          loading={pending}
-          disabled={blocker !== null || pending}
+          loading={busy}
+          disabled={blocker !== null || busy}
           {...described}
           onClick={() => {
-            void runner.run({ simulate });
+            if (angle === undefined) {
+              void runner.run({ simulate });
+            } else {
+              angle.onRun();
+            }
           }}
         >
           Run
         </Button>
-        <div className={styles['runsField']}>
-          <label htmlFor={runsId} className={styles['runsLabel']}>
-            Runs
-          </label>
-          <input
-            id={runsId}
-            type="range"
-            className={styles['runsSlider']}
-            min={1}
-            max={LAB_MAX_RUNS}
-            step={1}
-            value={runs}
-            aria-valuetext={runsText(runs)}
-            onChange={(event) => {
-              setRuns(event.currentTarget.valueAsNumber);
-            }}
-          />
-          <output htmlFor={runsId} className={styles['runsValue']} aria-hidden="true">
-            {runs}
-          </output>
-        </div>
+        {angle === undefined && (
+          <div className={styles['runsField']}>
+            <label htmlFor={runsId} className={styles['runsLabel']}>
+              Runs
+            </label>
+            <input
+              id={runsId}
+              type="range"
+              className={styles['runsSlider']}
+              min={1}
+              max={LAB_MAX_RUNS}
+              step={1}
+              value={runs}
+              aria-valuetext={runsText(runs)}
+              onChange={(event) => {
+                setRuns(event.currentTarget.valueAsNumber);
+              }}
+            />
+            <output htmlFor={runsId} className={styles['runsValue']} aria-hidden="true">
+              {runs}
+            </output>
+          </div>
+        )}
       </div>
       {blocker !== null && (
         <p id={reasonId} className={styles['runReason']}>
@@ -112,7 +130,7 @@ export function LabRunBar({ runner }: LabRunBarProps) {
           {blocker}
         </p>
       )}
-      {refusal.length > 0 && (
+      {angle === undefined && refusal.length > 0 && (
         <div className={styles['refusal']} role="alert">
           {refusal.map((message) => (
             <p key={message}>{message}</p>

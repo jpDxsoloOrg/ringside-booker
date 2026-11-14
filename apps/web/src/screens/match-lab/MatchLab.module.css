@@ -722,3 +722,10 @@
     min-block-size: var(--tap-target-min);
   }
 }
+
+/* ---- Mode (MTCH5-05) -------------------------------------------------------------------- */
+
+/* Match | Angle, above the setup: the rest of the lab follows the mode. */
+.modeBar {
+  margin-block-end: var(--space-4);
+}
