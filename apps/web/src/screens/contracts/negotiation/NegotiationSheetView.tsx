@@ -257,7 +257,10 @@ export function NegotiationSheetView(props: NegotiationSheetViewProps) {
           <div className={styles['signed']}>
             <p>{`Contract: ${signed.contract}`}</p>
             <p>
-              <Link to={signed.profileHref} state={workerLinkState(location)}>{`Open ${signed.ringName}'s profile`}</Link>
+              <Link
+                to={signed.profileHref}
+                state={workerLinkState(location)}
+              >{`Open ${signed.ringName}'s profile`}</Link>
             </p>
           </div>
         )}

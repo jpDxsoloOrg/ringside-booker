@@ -42,6 +42,8 @@ export const POPULARITY_LIMIT = 100;
 /** Free agents' "Situation": `free` leaves out the workers whose deals elsewhere end soon. */
 export const SITUATION_PARAM = 'situation';
 export const FREE_AGENTS_ONLY = 'free';
+/** Offers' "Closed talks" switch: `closed=1`. */
+export const CLOSED_PARAM = 'closed';
 
 /** Every parameter a Contracts list reads, dropped when the tab changes. */
 export const LIST_PARAMS: readonly string[] = [
@@ -50,6 +52,7 @@ export const LIST_PARAMS: readonly string[] = [
   PUSH_PARAM,
   POP_MIN_PARAM,
   SITUATION_PARAM,
+  CLOSED_PARAM,
   WORKERS_PARAMS.role,
   WORKERS_PARAMS.gender,
   WORKERS_PARAMS.style,
@@ -179,7 +182,17 @@ const FREE_AGENT_PARAMS: Readonly<Record<keyof FreeAgentFilters, string>> = {
   countryId: WORKERS_PARAMS.countryId,
 };
 
-const FREE_AGENT_KEYS = Object.keys(FREE_AGENT_PARAMS) as readonly (keyof FreeAgentFilters)[];
+const FREE_AGENT_KEYS: readonly (keyof FreeAgentFilters)[] = [
+  'role',
+  'gender',
+  'push',
+  'style',
+  'ageMin',
+  'ageMax',
+  'popMin',
+  'continentId',
+  'countryId',
+];
 
 export function freeAgentFiltersFromSearch(search: URLSearchParams): FreeAgentFilters {
   const continent = search.get(FREE_AGENT_PARAMS.continentId);
@@ -250,9 +263,7 @@ export function freeAgentPlaces(rows: readonly FreeAgentRow[]): {
     left.name.localeCompare(right.name);
   return {
     continents: [...continents].map(([continentId, name]) => ({ continentId, name })).sort(byName),
-    countries: [...countries]
-      .map(([countryId, place]) => ({ countryId, ...place }))
-      .sort(byName),
+    countries: [...countries].map(([countryId, place]) => ({ countryId, ...place })).sort(byName),
   };
 }
 

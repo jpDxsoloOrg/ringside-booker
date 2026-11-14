@@ -186,9 +186,7 @@ function RenewProfileAction({
       <DisabledAction label="Renew contract" reason={renewalWindowText(rules.renewalWindowDays)} />
     );
   }
-  return (
-<ActionButton label="Renew contract" target={{ kind: 'renewal', employmentId }} />
-  );
+  return <ActionButton label="Renew contract" target={{ kind: 'renewal', employmentId }} />;
 }
 
 function OfferAction({
@@ -207,7 +205,5 @@ function OfferAction({
     const reason = eligibility.reasons[0]?.message;
     return reason === undefined ? null : <DisabledAction label="Offer contract" reason={reason} />;
   }
-  return (
-    <ActionButton label="Offer contract" target={{ kind: 'signing', personId }} />
-  );
+  return <ActionButton label="Offer contract" target={{ kind: 'signing', personId }} />;
 }

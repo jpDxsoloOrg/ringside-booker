@@ -231,9 +231,19 @@ export function contractColumns(
       card: 'meta',
     },
   ];
+  const popularity: ColumnDef<ContractRow> = {
+    id: 'popularity',
+    header: 'Popularity',
+    cell: (row) => <span className="tabular">{formatNumber(Math.round(row.popularity))}</span>,
+    sortValue: (row) => row.popularity,
+    filterValue: () => null,
+    numeric: true,
+    card: 'hidden',
+  };
   if (tab === 'ended') {
     return [
       ...shared,
+      popularity,
       {
         id: 'endedOn',
         header: 'Ended',
@@ -303,6 +313,16 @@ export function contractColumns(
       : [];
   return [
     ...shared,
+    popularity,
+    {
+      id: 'morale',
+      header: 'Morale',
+      cell: (row) => <span className="tabular">{formatNumber(row.morale)}</span>,
+      sortValue: (row) => row.morale,
+      filterValue: () => null,
+      numeric: true,
+      card: 'hidden',
+    },
     {
       id: 'wage',
       header: 'Wage',
@@ -348,14 +368,16 @@ export function contractColumns(
   ];
 }
 
-/** Active by name, Expiring soonest first, Ended newest first (the engine's own orders). */
+const INITIAL_SORTS: Readonly<Record<ContractsTab, SortState>> = {
+  active: { columnId: 'ringName', direction: 'asc' },
+  expiring: { columnId: 'endsOn', direction: 'asc' },
+  ended: { columnId: 'endedOn', direction: 'desc' },
+};
+
+/**
+ * Active by name, Expiring soonest first, Ended newest first (the engine's own orders). The same
+ * object each time, so it can be a hook's dependency.
+ */
 export function initialContractSort(tab: ContractsTab): SortState {
-  switch (tab) {
-    case 'active':
-      return { columnId: 'ringName', direction: 'asc' };
-    case 'expiring':
-      return { columnId: 'endsOn', direction: 'asc' };
-    case 'ended':
-      return { columnId: 'endedOn', direction: 'desc' };
-  }
+  return INITIAL_SORTS[tab];
 }

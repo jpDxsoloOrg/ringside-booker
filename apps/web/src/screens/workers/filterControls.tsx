@@ -27,7 +27,10 @@ import styles from './WorkersScreen.module.css';
 /** The option every select starts on: no filter. Radix Select has no empty value. */
 export const ANY = 'any';
 
-export function withAny(anyLabel: string, options: readonly SelectOption[]): readonly SelectOption[] {
+export function withAny(
+  anyLabel: string,
+  options: readonly SelectOption[],
+): readonly SelectOption[] {
   return [{ value: ANY, label: anyLabel }, ...options];
 }
 
@@ -209,7 +212,13 @@ export function FilterBarFrame({
     <div className={classNames(styles['filters'], styles[`filters-${layout}`])}>
       {children}
       <div className={styles['clear']}>
-        <Button size="sm" variant="ghost" iconStart="close" disabled={clearDisabled} onClick={onClear}>
+        <Button
+          size="sm"
+          variant="ghost"
+          iconStart="close"
+          disabled={clearDisabled}
+          onClick={onClear}
+        >
           Clear filters
         </Button>
       </div>
