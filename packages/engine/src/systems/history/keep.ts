@@ -13,7 +13,8 @@
  *   challengers (`aip.titles.recentChallengers`);
  * - a segment someone was injured in (WRK6-03): injury rows are part of a worker's record and keep
  *   their `segmentId`;
- * - a storyline's finale segment (`finaleSegmentId`, CRTV3-01): the storyline keeps pointing at it.
+ * - a storyline's finale segment (`finaleSegmentId`, CRTV3-01) and the segments in its progress
+ *   log (`progress[].segmentId`, CRTV4): the storyline keeps pointing at them.
  *
  * The set only depends on the world, so a roll-up is deterministic.
  */
@@ -57,6 +58,9 @@ export function segmentsToKeep(
   for (const storyline of read.tables.storylines.values()) {
     if (storyline.finaleSegmentId !== null) {
       keep.add(storyline.finaleSegmentId);
+    }
+    for (const entry of storyline.progress) {
+      keep.add(entry.segmentId);
     }
   }
 

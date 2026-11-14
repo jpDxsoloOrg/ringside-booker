@@ -228,6 +228,8 @@ export function makeStoryline(serial: number, overrides: Partial<Storyline> = {}
     summary: 'Two rivals who cannot stand each other.',
     lastProgressOn: null,
     finaleSegmentId: null,
+    progress: [],
+    payoff: null,
     ...overrides,
   };
 }

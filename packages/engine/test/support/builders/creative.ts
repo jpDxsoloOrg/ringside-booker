@@ -251,6 +251,8 @@ export function aStoryline(
     summary: '',
     lastProgressOn: null,
     finaleSegmentId: null,
+    progress: [],
+    payoff: null,
   };
   return buildRow(StorylineSchema, 'aStoryline', defaults, overrides);
 }
