@@ -213,7 +213,7 @@ describe('StorylineEditorSection', { timeout: TEST_TIMEOUT_MS }, () => {
       { timeout: LOAD_MS },
     );
     const chip = within(suggested).getByRole('button', {
-      name: /^Link Test Ashfall Rivalry, 2 here/,
+      name: /^Link Test Ashfall Rivalry\s?, 2 here/,
     });
     expect(within(suggested).queryByRole('button', { name: /Harbour/ })).toBeNull();
     const before = linkQueries(querySpy);

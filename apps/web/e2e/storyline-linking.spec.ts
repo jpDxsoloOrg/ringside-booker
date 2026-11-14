@@ -122,7 +122,7 @@ test('a match links to a storyline from Booking and shows its Story and Finale c
   const section = editor.getByRole('region', { name: 'Storyline' });
   const suggestion = section
     .getByRole('list', { name: 'Suggested storylines' })
-    .getByRole('button', { name: new RegExp(`^Link ${escapeRegExp(starter.name)}, 2 here`) });
+    .getByRole('button', { name: new RegExp(`^Link ${escapeRegExp(starter.name)}\\s?, 2 here`) });
   await suggestion.scrollIntoViewIfNeeded();
   await suggestion.click();
 

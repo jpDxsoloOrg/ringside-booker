@@ -11,6 +11,7 @@ import { IconButton } from '../Button';
 import { classNames } from '../classNames';
 import { EmptyState } from '../EmptyState';
 import { formatNumber } from '../format';
+import { VisuallyHidden } from '../layout';
 import { SegmentedMeter } from '../SegmentedMeter';
 import { Select } from '../Select';
 import { Switch } from '../Switch';
@@ -209,21 +210,21 @@ export function StorylineLinkPicker({
                   type="button"
                   className={styles['chip']}
                   disabled={addDisabled}
-                  aria-label={`Link ${suggestion.name}, ${hereText(
-                    suggestion.membersHere.length,
-                  )}, heat ${formatNumber(Math.round(suggestion.heat))}`}
                   onClick={() => {
                     onLink(suggestion.storylineId);
                   }}
                 >
+                  {/* Named by its visible text, with "Link" and commas for screen readers. */}
+                  <VisuallyHidden>Link </VisuallyHidden>
                   <span className={styles['chipName']}>{suggestion.name}</span>
-                  <span className={styles['chipFact']} aria-hidden="true">
+                  <VisuallyHidden>, </VisuallyHidden>
+                  <span className={styles['chipFact']}>
                     {hereText(suggestion.membersHere.length)}
                   </span>
+                  <VisuallyHidden>, </VisuallyHidden>
                   <span
                     className={styles['chipFact']}
                     data-hot={suggestion.heat >= hotFrom ? '' : undefined}
-                    aria-hidden="true"
                   >
                     {`heat ${formatNumber(Math.round(suggestion.heat))}`}
                   </span>

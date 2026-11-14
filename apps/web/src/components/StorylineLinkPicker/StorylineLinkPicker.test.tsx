@@ -58,7 +58,9 @@ describe('StorylineLinkPicker', () => {
     const { onLink, user } = renderPicker();
     const chips = screen.getByRole('list', { name: 'Suggested storylines' });
     await user.click(
-      within(chips).getByRole('button', { name: /^Link Gallery Ashfall Rivalry, 2 here, heat 54/ }),
+      within(chips).getByRole('button', {
+        name: /^Link Gallery Ashfall Rivalry\s?, 2 here\s?, heat 54$/,
+      }),
     );
     expect(onLink).toHaveBeenCalledWith(galleryAshfall.storylineId);
   });
