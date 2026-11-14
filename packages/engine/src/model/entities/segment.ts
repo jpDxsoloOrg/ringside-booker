@@ -18,6 +18,7 @@ import { defineTable } from '../table-def';
 import { tableOf, type DeepReadonly, type WorldView } from '../world';
 import { hasDuplicates, zName } from './entity-refinements';
 import { eventInstancesTable } from './event-instance';
+import { ANGLE_SETTINGS, DEFAULT_ANGLE_SETTING, type AngleSetting } from './angle-setting';
 import { MAX_SIDE, participantsTable } from './participant';
 import { titlesTable } from './title';
 
@@ -123,9 +124,16 @@ export const AngleBeatSchema = z.strictObject({
   personIds: uniqueArray(zId('person'), 'personIds'),
 });
 
+export const AngleSettingSchema = z.enum(ANGLE_SETTINGS);
+
 export const AngleDetailsSchema = z.strictObject({
   angleTypeKey: zContentKey,
   beats: z.array(AngleBeatSchema).min(MIN_ANGLE_BEATS).max(MAX_ANGLE_BEATS),
+  /**
+   * MTCH5-08: where it happens: in the ring, backstage or pre-taped. Absent = `ring` (saves from
+   * before MTCH5-08 and every angle booked in the ring).
+   */
+  setting: AngleSettingSchema.optional(),
 });
 
 /**
@@ -173,6 +181,19 @@ export function isAngle<S extends { readonly kind: SegmentKind }>(
   segment: S,
 ): segment is Extract<S, { readonly kind: 'angle' }> {
   return segment.kind === 'angle';
+}
+
+/**
+ * Where a segment happens (MTCH5-08): an angle's stored setting, `ring` when it names none, and
+ * always `ring` for a match.
+ */
+export function settingOf(segment: {
+  readonly kind: SegmentKind;
+  readonly angle?: { readonly setting?: AngleSetting | undefined } | undefined;
+}): AngleSetting {
+  return segment.kind === 'angle'
+    ? (segment.angle?.setting ?? DEFAULT_ANGLE_SETTING)
+    : DEFAULT_ANGLE_SETTING;
 }
 
 /** The key of the unique `bySlot` index: one segment per instance, section and slot. */
