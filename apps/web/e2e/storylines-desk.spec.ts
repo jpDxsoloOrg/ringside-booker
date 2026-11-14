@@ -152,9 +152,15 @@ async function pickByAlignment(
   const name = await optionName(option);
   await option.click();
   await expect(
-    sheet.getByRole('radiogroup', { name: `Side for ${name}` }).getByRole('radio', { name: side }),
+    sheet.getByRole('group', { name: `Side for ${name}` }).getByRole('radio', { name: side }),
   ).toBeChecked();
   return name;
+}
+
+/** Taps a menu item on a phone, clicks it on desktop. */
+async function pressItem(item: Locator, phone: boolean): Promise<void> {
+  if (phone) await item.tap();
+  else await item.click();
 }
 
 /** Opens a member's "Actions for <name>" menu on the storyline page. */
@@ -321,8 +327,10 @@ test('the Storylines desk: starters, a new storyline, cooling, members and the e
     const why = await openHeatWhy(page, card);
     await expect(why).toContainText('Heat after cooling');
     await expect(why).toContainText(/Days since progress: 13 days/);
-    await expect(why).toContainText('Inside the grace period of 7 days');
+    await expect(why).toContainText('Past the grace period of 7 days');
     await expect(why).toContainText('storylines.heat.decayGraceDays');
+    await expect(why).toContainText('Above the cooling floor of 10');
+    await expect(why).toContainText('storylines.heat.decayFloor');
     await expect(why).toContainText('Daily cooling');
     await expect(why).toContainText('storylines.heat.decayPerDay');
     await expect(why).toContainText('Cooling for 6 days so far');
@@ -354,7 +362,7 @@ test('the Storylines desk: starters, a new storyline, cooling, members and the e
     neutral = await optionName(option);
     await option.click();
     await add
-      .getByRole('radiogroup', { name: `Side for ${neutral}` })
+      .getByRole('group', { name: `Side for ${neutral}` })
       .getByRole('radio', { name: 'Neutral' })
       .check();
     await expectNoHorizontalScroll(page);
@@ -365,8 +373,9 @@ test('the Storylines desk: starters, a new storyline, cooling, members and the e
     await expect(neutralRow.getByText('Neutral', { exact: true }).last()).toBeVisible();
 
     await memberMenu(page, face);
-    await page.getByRole('menuitem', { name: 'Change side' }).click();
-    await page.getByRole('menuitem', { name: 'Heel', exact: true }).click();
+    // A phone taps: a mouse click's pointer moves can close the submenu on the way to its item.
+    await pressItem(page.getByRole('menuitem', { name: 'Change side' }), phone);
+    await pressItem(page.getByRole('menuitem', { name: 'Heel', exact: true }), phone);
     await expect(page.getByRole('region', { name: 'Heels' })).toContainText(face);
     await expect(page.getByRole('region', { name: 'Faces' })).toContainText('No one yet');
 
