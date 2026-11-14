@@ -13,7 +13,7 @@ import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { DeltaChip } from '@/components/DeltaChip';
 import { Icon } from '@/components/Icon';
 import { LevelStepper } from '@/components/LevelStepper';
-import { formatNumber, useMoneyFormatter } from '@/components/format';
+import { formatMoney, formatNumber, useMoneyFormatter } from '@/components/format';
 import { Explained, formatTraceNumber } from '@/components/Trace';
 import { displayUnitOf, isMoneyUnit, queryErrorText } from './productionText';
 import styles from './ProductionScreen.module.css';
@@ -31,11 +31,11 @@ export function confirmLabelFor(
   from: number,
   to: number,
   fee: number | null,
-  formatMoney: (amount: number) => string,
+  money: (amount: number) => string,
 ): string {
   if (to < from) return `Lower to ${formatNumber(to)}`;
   if (to === from) return `Keep level ${formatNumber(from)}`;
-  if (fee !== null && fee > 0) return `Pay ${formatMoney(fee)} and raise`;
+  if (fee !== null && fee > 0) return `Pay ${money(fee)} and raise`;
   return `Raise to ${formatNumber(to)}`;
 }
 
@@ -75,12 +75,16 @@ export function PreviewRows({ rows }: PreviewRowsProps) {
                 trace={row.trace}
                 {...(unit === undefined ? {} : { unit })}
               />
-              <DeltaChip
-                value={row.after - row.before}
-                display={changeText(row)}
-                goodWhen={isMoneyUnit(row.unit) ? 'down' : 'up'}
-                variant="plain"
-              />
+              {row.after === row.before ? (
+                <span className={styles['muted']}>No change</span>
+              ) : (
+                <DeltaChip
+                  value={row.after - row.before}
+                  display={changeText(row)}
+                  goodWhen={isMoneyUnit(row.unit) ? 'down' : 'up'}
+                  variant="plain"
+                />
+              )}
             </dd>
           </div>
         );
@@ -153,8 +157,8 @@ export function ProductionChangeDialogView({
   failure = null,
   onLevelChange,
 }: ProductionChangeDialogViewProps) {
-  const formatMoney = useMoneyFormatter();
   const current = preview !== null && preview.to === to && !loading ? preview : null;
+  // The payment in full ("Pay $28,000 and raise"), whatever the money style: it is a price.
   const money = (amount: number): string => formatMoney(cents(amount));
   return (
     <ConfirmDialog
@@ -244,7 +248,7 @@ export function ProductionChangeDialog({
   const preview = useEngineQuery('production.changePreview', { promotionId, area, level: to });
   const setLevel = useEngineCommand('production.setLevel');
   const announce = useAnnounce();
-  const formatMoney = useMoneyFormatter();
+  const formatAmount = useMoneyFormatter();
   const loading = preview.status === 'loading' || preview.isStale;
   const failure = preview.status === 'error' ? queryErrorText(preview.error) : null;
 
@@ -256,7 +260,7 @@ export function ProductionChangeDialog({
     const { fee } = result.data;
     announce(
       fee > 0
-        ? `${label} raised to level ${formatNumber(to)} for ${formatMoney(cents(fee))}`
+        ? `${label} raised to level ${formatNumber(to)} for ${formatAmount(cents(fee))}`
         : `${label} set to level ${formatNumber(to)}`,
     );
   };
