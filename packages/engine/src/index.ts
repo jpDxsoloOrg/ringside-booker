@@ -880,7 +880,13 @@ export {
   MessageRefsSchema,
 } from './model/entities/mail';
 export type { News, NewsImportance, NewsKind } from './model/entities/news';
-export { NEWS_KINDS, NewsKindSchema, NewsSchema } from './model/entities/news';
+export {
+  NEWS_DEDUPE_KEY_MAX,
+  NEWS_KIND_LABELS,
+  NEWS_KINDS,
+  NewsKindSchema,
+  NewsSchema,
+} from './model/entities/news';
 export type { LedgerCategory, LedgerEntry, LedgerRefs } from './model/entities/ledger-entry';
 export {
   hasLedgerSign,
@@ -1870,6 +1876,25 @@ export {
   SHOWS_TONIGHT_GATE_ID,
   unregisterBeforeShowRuns,
 } from './systems/shows/index';
+// Live show night (EVT10-01): run the player's show one segment at a time (`shows.runNextSegment`,
+// `shows.runRestOfShow`, `shows.finishShow`), the Show night setting (`shows.setShowNight`) and the
+// show screen's `shows.liveState`. See docs/design/show-night.md#live-show-night.
+export type {
+  LiveScoreView,
+  LiveShowReasonCode,
+  LiveShowStage,
+  LiveShowStateView,
+  ShowNightMode,
+} from './systems/shows/index';
+export {
+  FINISH_TONIGHT_FIRST,
+  LIVE_SHOW_REASON_CODES,
+  SCORE_SO_FAR_LABEL,
+  SHOW_NIGHT_MODES,
+  SHOW_NIGHT_SETTING,
+} from './systems/shows/index';
+export type { LiveShowRun } from './model/entities/event-instance';
+export { LiveShowRunSchema } from './model/entities/event-instance';
 
 // Headline popularity (DAY2-02): the one roll-up level the Office and the top bar lead with, its
 // stored Why? (`office.popularity`), the trace sections seam other features add lines through and
@@ -3219,8 +3244,10 @@ export {
   AngleTemplateDefSchema,
   angleTemplateOf,
   angleTemplatesOf,
+  BEAT_REPETITION_GROUP_LABELS,
   BEAT_REPETITION_GROUPS,
   BeatDefSchema,
+  beatRepetitionGroupLabel,
   beatOf,
   beatsOf,
   CAST_TOKENS,
@@ -3732,6 +3759,34 @@ export {
   angleBeatLimitText,
   angleWarningsCheck,
 } from './systems/match/angles/bookingChecks';
+// DAY1-01: the news posting core (postNews, buzz, topics, news.posted).
+export {
+  BUZZ_KIND_BASE_KEYS,
+  BUZZ_MAX,
+  BUZZ_MIN,
+  BUZZ_SCORE_DOC_REF,
+  FRONT_PAGE_KEPT_REASON,
+  NEWS_BUZZ_TRACE_KIND,
+  NEWS_PARAM_PATTERN,
+  buzzScore,
+  buzzSubjectsOf,
+  displayNameOf,
+  newsSystem,
+  newsTopic,
+  newsTopicKeys,
+  newsTopics,
+  postNews,
+  registerNewsTopic,
+} from './systems/news';
+export type {
+  BuzzScoreInputs,
+  BuzzSubject,
+  BuzzSubjects,
+  NewsParams,
+  NewsTopic,
+  NewsTopicSpec,
+  PostNewsInput,
+} from './systems/news';
 // Broadcast (ECO8-01): the `broadcast` system bundle, the `airings` table, the deal lifecycle
 // fields and the rule for which deal airs which show. See docs/design/broadcast.md.
 export type { AiringId } from './core/ids';

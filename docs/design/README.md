@@ -44,3 +44,4 @@ Game and technical design for Ringside Booker. Each game system gets its own doc
 | [negotiation.md](negotiation.md)                   | Negotiation: offers, counter-offers and review; the `negotiations` table, offer kinds and enforced terms                      |
 | [titles.md](titles.md)                             | Titles: who holds a belt (the open reign), the holder check, the only reign writers, starting prestige, days held and tiers   |
 | [storylines.md](storylines.md)                     | Storylines: progress and finale fields, the desk's read queries, viewer rules and `storylineContextFor`                       |
+| [news.md](news.md)                                 | The news wire: `postNews` (the one way a story is written), dedupe, buzz, expiry, topics and what news may never say          |

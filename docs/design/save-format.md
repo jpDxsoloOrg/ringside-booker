@@ -65,6 +65,11 @@ Code: `packages/engine/src/persistence/` (`save-document.ts`,
   the optional `catalogs.injuries` entry, the injury kinds keyed by content key
   (`injury.sprained-ankle`); a save started before it loads without one and
   has no injury kinds until a new game is started.
+- **A show part-way through** (EVT10-01) is saved as it stands: its row keeps
+  status `scheduled` and carries `liveRun: { ranSegmentIds }`, and the
+  segments it lists keep their ratings. Loading carries on from the next
+  segment ([show-night.md](show-night.md#live-show-night)). The field is
+  optional, so older saves load without it.
 - **The simulation parts** (`rng`, `tunableOverrides`, `traces`, `events`,
   `failureLog`, `commandLog`) are named slots. The engine state that owns
   them supplies their schemas when it saves and loads. A slot without a

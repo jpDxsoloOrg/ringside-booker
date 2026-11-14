@@ -27,6 +27,7 @@ import {
   type TraceNode,
 } from '../../../../core/trace';
 import type { EngineTunables } from '../../../tunables';
+import { beatRepetitionGroupLabel } from '../../../../model/catalogs';
 import { formatNumber } from '../../../world/people/labels';
 import { crowdScore } from '../../formulas/crowdScore';
 import { signedNumber } from '../../formulas/shared';
@@ -129,14 +130,14 @@ function plural(count: number, one: string, many: string): string {
   return count === 1 ? one : many;
 }
 
-/** "Second talk beat in this angle ×0.85". */
+/** "Second talk beat in this angle ×0.85"; `group` is the repetition group's code. */
 export function repeatInAngleLine(group: string, earlier: number, factor: number): string {
-  return `${ordinal(earlier + 1)} ${group} beat in this angle ×${formatNumber(factor)}`;
+  return `${ordinal(earlier + 1)} ${beatRepetitionGroupLabel(group)} beat in this angle ×${formatNumber(factor)}`;
 }
 
-/** "2 talk beats earlier on the card ×0.86". */
+/** "2 talk beats earlier on the card ×0.86"; `group` is the repetition group's code. */
 export function repeatOnCardLine(group: string, earlier: number, factor: number): string {
-  return `${String(earlier)} ${group} ${plural(earlier, 'beat', 'beats')} earlier on the card ×${formatNumber(factor)}`;
+  return `${String(earlier)} ${beatRepetitionGroupLabel(group)} ${plural(earlier, 'beat', 'beats')} earlier on the card ×${formatNumber(factor)}`;
 }
 
 /** "Writing team (level 7): floor 21, ceiling 92.5". */
@@ -195,7 +196,7 @@ function beatTerm(
     calc.multiply(
       repeatInAngleLine(beat.repetitionGroup, beat.earlierInAngle, applied),
       applied,
-      `${formatNumber(factor)} for each earlier ${beat.repetitionGroup} beat in this angle`,
+      `${formatNumber(factor)} for each earlier ${beatRepetitionGroupLabel(beat.repetitionGroup)} beat in this angle`,
     );
   }
   if (beat.earlierOnCard > 0) {
@@ -204,7 +205,7 @@ function beatTerm(
     calc.multiply(
       repeatOnCardLine(beat.repetitionGroup, beat.earlierOnCard, applied),
       applied,
-      `${formatNumber(factor)} for each ${beat.repetitionGroup} beat earlier on the card`,
+      `${formatNumber(factor)} for each ${beatRepetitionGroupLabel(beat.repetitionGroup)} beat earlier on the card`,
     );
   }
   calc.multiply('Beat weight', beat.weight, 'Set by the beat');

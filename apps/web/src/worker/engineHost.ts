@@ -314,6 +314,8 @@ export function createEngineHost(
   let running: RunningEngine | null = null;
   let revision = 0;
   let advanceAbort: AbortController | null = null;
+  /** The last save queued: saves run one at a time, so a later snapshot is always written later. */
+  let saveQueue: Promise<unknown> = Promise.resolve();
 
   function checked<T>(value: T, path: string): T {
     if (debugChecks) assertSerialisable(value, path);
@@ -460,8 +462,29 @@ export function createEngineHost(
   /**
    * Encodes the running game under `label` and hands it to `write`. Problems come back as data:
    * no game loaded, a slot that is gone, a game that would not encode or a storage refusal.
+   *
+   * Saves queue behind each other. The shell saves in the background after the player's changes
+   * (SAVE-01) while a manual save or an advance's autosave may also start; encoding is async, so
+   * without the queue an older snapshot could finish last and overwrite a newer autosave.
    */
-  async function writeSave(
+  function writeSave(
+    label: string | storage.StorageResult<string>,
+    write: (encoded: EncodedSave) => Promise<storage.StorageResult<SlotRecord>>,
+  ): Promise<SaveSlotResult> {
+    const previous = saveQueue;
+    const queued = (async (): Promise<SaveSlotResult> => {
+      try {
+        await previous;
+      } catch {
+        // The save before failed on its own; this one still runs.
+      }
+      return writeSaveNow(label, write);
+    })();
+    saveQueue = queued;
+    return queued;
+  }
+
+  async function writeSaveNow(
     label: string | storage.StorageResult<string>,
     write: (encoded: EncodedSave) => Promise<storage.StorageResult<SlotRecord>>,
   ): Promise<SaveSlotResult> {

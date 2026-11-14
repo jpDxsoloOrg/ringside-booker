@@ -145,6 +145,12 @@ registry. A preview must never call `rng.stream()`; the preview tests check
 that the whole engine state, the RNG included, is byte-identical after a
 500-run batch. MTCH6 reuses the helper for pair chemistry.
 
+Show night uses the same helper for **segment streams** (EVT10-01): every
+segment of every show rolls on `detachedStream(seed, name, "showNight/<segmentId>")`
+for each stream it asks for, so a segment gives the same result whether the
+player runs it alone, with the rest of the show, or after other draws in
+between ([show-night.md](show-night.md#segment-streams)).
+
 ## Odds helpers
 
 Code: `packages/engine/src/core/rng/odds.ts`.

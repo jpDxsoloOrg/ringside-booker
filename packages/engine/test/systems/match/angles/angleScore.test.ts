@@ -120,6 +120,9 @@ describe('angleScore', () => {
       label: repeatInAngleLine('talk', 1, 0.85),
     });
     expect(repeatInAngleLine('talk', 1, 0.85)).toBe('Second talk beat in this angle ×0.85');
+    // MTCH5-09: the group reads by its name, never its code.
+    expect(repeatInAngleLine('faceoff', 1, 0.85)).toBe('Second face-off beat in this angle ×0.85');
+    expect(repeatOnCardLine('violence', 2, 0.86)).toBe('2 violent beats earlier on the card ×0.86');
 
     const off = scoreOf(talks, { ...BEATS_ONLY, 'match.angle.repeatFactor': 1 });
     expect(off.delivered.value).toBeCloseTo(60, 10);

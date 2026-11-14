@@ -29,6 +29,7 @@ import { contractsSystem } from './contracts';
 import { negotiationSystem } from './negotiation';
 import { titlesSystem } from './titles';
 import { storylinesSystem } from './storylines';
+import { newsSystem } from './news';
 import { broadcastSystem } from './broadcast';
 
 export { calendarSystem, healthSystem, matchSystem, workersSystem };
@@ -47,6 +48,7 @@ export { contractsSystem };
 export { negotiationSystem };
 export { titlesSystem };
 export { storylinesSystem };
+export { newsSystem };
 export { broadcastSystem };
 
 export const defaultSystems: readonly SystemBundle[] = Object.freeze([
@@ -70,5 +72,6 @@ export const defaultSystems: readonly SystemBundle[] = Object.freeze([
   contractsSystem,
   negotiationSystem,
   storylinesSystem,
+  newsSystem,
   broadcastSystem,
 ]);

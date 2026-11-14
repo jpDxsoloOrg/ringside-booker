@@ -132,11 +132,11 @@ describe('previewWorld', () => {
       }),
     );
     // Systems register their own settings when their module loads (the match system adds
-    // randomWinners). Whether one is loaded depends on which test files shared this worker, so
+    // randomWinners, the shows system showNight). Whether one is loaded depends on which test files shared this worker, so
     // only the built-ins and the one registered here are checked, in order.
     const keys = preview()
       .settings.map((setting) => setting.key)
-      .filter((key) => key !== 'randomWinners');
+      .filter((key) => key !== 'randomWinners' && key !== 'showNight');
     expect(keys).toEqual([
       'agingEnabled',
       'sandbox',

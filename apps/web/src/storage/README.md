@@ -55,7 +55,10 @@ the slot keeps its previous `current` and backups.
 
 `shouldAutosave` decides when to autosave: after every completed player show,
 once 7 or more in-game days have passed, when the game month changes (with
-`monthlyBackup`), and when the page is hidden (best effort). The constants
+`monthlyBackup`), and when the page is hidden (best effort). Between advances
+the shell also saves the autosave about 750 ms after each change the player
+makes (SAVE-01, `app/AppShell/day/useSaveAfterCommands.ts`), because a save can't
+finish as the page closes: the worker and IndexedDB go with it. The constants
 (`AUTOSAVE_EVERY_DAYS`, `BACKUP_COUNT`, `MAX_IMPORT_BYTES`, ...) live in
 `constants.ts`.
 

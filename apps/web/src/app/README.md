@@ -661,7 +661,10 @@ and links to their results (see [Show results](#show-results)).
 - **One controller** (`day/DayAdvanceProvider.tsx`) runs every advance: the overlay reads its
   progress, `AdvanceSummary` shows the result under the top bar and the live region announces it.
   After each advance that moved a day it asks `shouldAutosave` and, when told to, calls the host's
-  `autosave`.
+  `autosave`. It also saves about 750 ms after each command the engine accepts
+  (`day/useSaveAfterCommands.ts`, SAVE-01): in the background, never during an advance, load or
+  command, and at once when the page is hidden, so a refresh or a closed tab keeps booking work.
+  The top bar's `data-unsaved-changes` is `true` until that save is written (e2e waits on it).
 - **Status chips** come from `status/StatusChips.tsx`. Another system adds one with
   `registerStatusChip({ id, order, render })` (`status/statusChipRegistry.ts`) instead of editing
   the shell. Profile tabs work the same way: see [Adding a profile tab](#adding-a-profile-tab).

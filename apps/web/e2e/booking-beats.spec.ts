@@ -9,6 +9,9 @@
  * have no pre-show) stops at 2 beats ("Short slot: up to 2 beats") and keeps them in order through
  * a reload, and a 5-beat main event angle moved up into a standard
  * slot shows the limit error in the checklist until it moves back.
+ *
+ * SAVE-01: the reload comes straight after booking, with no Main menu first; the game saves itself
+ * shortly after each change, so the beats are still there.
  */
 import type { Locator, Page } from '@playwright/test';
 import { expect, test } from './fixtures';
@@ -207,18 +210,12 @@ test('the beat limit follows the slot: 2 backstage in the opener, an error when 
   await editor.getByRole('button', { name: 'Save' }).click();
   await expect(editor).toBeHidden();
 
-  // Main menu saves and leaves; after a reload, Continue brings the game back with the beats in order.
-  if (phone) {
-    await page
-      .getByRole('navigation', { name: 'Primary' })
-      .getByRole('button', { name: 'More' })
-      .click();
-    await page.getByRole('dialog', { name: 'Menu' }).getByTestId('main-menu').click();
-  } else {
-    await page.getByTestId('main-menu').click();
-  }
-  await expect(page.getByRole('heading', { level: 1, name: 'Ringside Booker' })).toBeVisible();
+  // The game saves itself shortly after the change (SAVE-01): a plain reload, with no Main menu
+  // first, keeps the beats, and Continue brings the game back with them in order.
+  await expect(page.getByTestId('top-bar-status')).toHaveAttribute('data-unsaved-changes', 'false');
   await page.reload();
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1, name: 'Ringside Booker' })).toBeVisible();
   await page.getByRole('button', { name: /^Continue/ }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeVisible();
   await navigateInApp(page, '/game/booking');

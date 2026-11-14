@@ -45,6 +45,7 @@ import { negotiationTunables } from './negotiation/tunables';
 import { titlesTunables } from './titles/tunables';
 import { storylinesTunables } from './storylines/tunables';
 import { angleTunables } from './match/angles/tunables';
+import { newsTunables } from './news/tunables';
 import { broadcastTunables } from './broadcast/tunables';
 
 export const ALL_TUNABLES = mergeTunables(
@@ -76,6 +77,7 @@ export const ALL_TUNABLES = mergeTunables(
   titlesTunables,
   storylinesTunables,
   angleTunables,
+  newsTunables,
   broadcastTunables,
 );
 
