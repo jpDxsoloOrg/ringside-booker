@@ -1,0 +1,25 @@
+/*
+ * The Office's "Champions" panel (CRTV1-06), in the narrow side column: the champion cards, then
+ * the link to the Titles screen. Nothing here sets a width, so the column never scrolls sideways;
+ * on a phone the cards are a swipe row that scrolls inside itself.
+ */
+.body {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.empty {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+/* At least a tap target tall. */
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  justify-self: start;
+  min-block-size: var(--tap-target-min);
+  font-weight: var(--font-weight-semibold);
+}

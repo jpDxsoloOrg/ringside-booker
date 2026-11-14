@@ -573,7 +573,10 @@ Registered so far: **World clock** (side, 10) and **World overview** (main, 20, 
 promotion only), both in `screens/office/panels/`; then, from their features' folders (DAY2-06),
 **Next show** (`calendar.nextShow`, main, 50, `screens/calendar/officePanel.tsx`), **Last show**
 (`shows.lastShow`, main, 55, `screens/show-results/officePanel.tsx`) and **Fans after your last
-show** (`promoPop.lastShow`, main, 60, `screens/promotion-popularity/officePanel.tsx`). The full
+show** (`promoPop.lastShow`, main, 60, `screens/promotion-popularity/officePanel.tsx`), and
+**Champions** (`titles.champions`, side, 35, `screens/titles/officePanel.tsx`, CRTV1-06: the
+own active titles from `titles.list` as `TitleCard`s in a `ChampionCardList`, swipe row on a
+phone, then "All titles"). The full
 list with owners is in docs/design/office.md#panels. The Cash card's footer links to Finances. A panel that wants the Fan base sheet calls the context's
 `openFanBase(promotionId)` (the world overview does, once per row) instead of drawing a sheet.
 
