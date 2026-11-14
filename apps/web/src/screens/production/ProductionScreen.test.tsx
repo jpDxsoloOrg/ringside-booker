@@ -285,6 +285,19 @@ describe('ProductionScreen', () => {
     ).toBeInTheDocument();
   });
 
+  it('puts focus back on the pressed − or + when the dialog closes', async () => {
+    const rendered = renderProduction();
+    const camera = await findArea('Camera');
+    const raise = within(camera).getByRole('button', { name: 'Raise Camera' });
+    await rendered.user.click(raise);
+    const dialog = await screen.findByRole('alertdialog');
+    await rendered.user.click(within(dialog).getByRole('button', { name: 'Cancel' }));
+    await waitFor(() => {
+      expect(screen.queryByRole('alertdialog')).toBeNull();
+    });
+    expect(within(camera).getByRole('button', { name: 'Raise Camera' })).toHaveFocus();
+  });
+
   it('shows a refusal in place and holds the confirm back', async () => {
     const message = 'You have an active TV deal with Channel 9: camera stays at 3 or higher';
     const rendered = renderProduction({ refuseWith: message });
