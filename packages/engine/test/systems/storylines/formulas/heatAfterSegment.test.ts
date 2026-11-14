@@ -130,9 +130,9 @@ describe('heatAfterSegment', () => {
   });
 
   it('maxStep 0: heat never moves from shows', () => {
-    expect(
-      step({ heatBefore: 50, segmentScore: 80 }, { 'storylines.heat.maxStep': 0 }).value,
-    ).toBe(50);
+    expect(step({ heatBefore: 50, segmentScore: 80 }, { 'storylines.heat.maxStep': 0 }).value).toBe(
+      50,
+    );
   });
 
   it('repeatFactor 0: a second segment that night changes nothing', () => {
