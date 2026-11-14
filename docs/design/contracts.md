@@ -289,7 +289,9 @@ today, seenOn: null }` on its concern row, unless it already has one. A
 - **Seeing it.** `contracts.acknowledgeExpiries { employmentIds | 'all' }` sets
   `seenOn` on the viewer's unseen notices; another promotion's contract is
   refused (`notYourWorker`). Releasing the worker (`endEmployment` clears the
-  notice) or a renewal past the window also clears it.
+  notice) or a renewal past the window also clears it. The day bar's
+  **Contracts** button opens the Contracts screen's Expiring tab (ECO4-04),
+  where **Got it** (one row) and **Mark all seen** run it.
 
 **Why the phase decides.** A gate's `check(view, date)` cannot read tunables,
 and it runs before every day of a skip, so it must stay a cheap indexed read.
@@ -401,8 +403,9 @@ means the first unhappy day) and the worker has no request yet:
 status: 'open', stopsSkip }` and `contract.releaseRequested`. `stopsSkip`
   copies `contracts.releaseRequest.stopSkip`, so the gate
   `contracts.releaseRequested` ("Big Joe wants to leave", + " and 2 others",
-  hint `contracts`) needs no tunable. **The stop is off by default until
-  ECO4-04's Contracts screen can answer a request**; ECO4-04 turns it on.
+  hint `contracts`) needs no tunable. The stop is on by default: the day
+  bar's **Contracts** button opens the request on the Contracts screen
+  (ECO4-04), where Grant or Refuse clears it.
 - a rival answers at once by its [keep rule](#rival-rules).
 
 **Answering.** `contracts.answerPreview { employmentId }` shows both outcomes:

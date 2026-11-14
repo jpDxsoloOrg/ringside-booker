@@ -174,12 +174,8 @@ export function contractsEngine(
     state: initialEngineState(world),
     systems: [simSystem, financeSystem, contractsSystem],
   });
-  // The expiring-soon stop is off by default until the Contracts screen can clear it (ECO4-04);
-  // these tests turn it on unless they say otherwise.
-  for (const [key, value] of Object.entries({
-    'contracts.expiringSoon.stopSkip': true,
-    ...overrides,
-  })) {
+  // Both player stops are on by default (ECO4-04); a test turns one off through `overrides`.
+  for (const [key, value] of Object.entries(overrides)) {
     const set = engine.command('tunables.setOverride', { key, value }, PLAYER);
     if (!set.ok) {
       throw new Error(`could not set ${key}: ${JSON.stringify(set.reasons)}`);
