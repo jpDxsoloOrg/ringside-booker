@@ -1302,3 +1302,36 @@ rolls. MTCH5-03 added the beat limits per slot and the angle score's keys
 | `match.angle.momentumPerPoint`                | number  | 0.12    | 0–1   | points     | Momentum per point of angle score above or below the pivot, for someone in every beat            |
 | `match.angle.popularityPivot`                 | number  | 60      | 0–100 | points     | Angle score above which the people in it gain popularity; never a loss                           |
 | `match.angle.popularityPerPoint`              | number  | 0.05    | 0–1   | points     | Popularity in the show region per point above the pivot, for someone in every beat               |
+
+## News tunables
+
+DAY1-01, see [news.md](news.md#buzz). Category News. How much buzz a story
+starts with, how much importance and the popularity of the people and
+promotions in it add, and how long stories stay on the feed
+([expiry](news.md#expiry)). Importance 3 never expires: a design rule, not a
+tunable.
+
+| Key                              | Kind    | Default | Range  | Unit   | Meaning                                                                                   |
+| -------------------------------- | ------- | ------- | ------ | ------ | ----------------------------------------------------------------------------------------- |
+| `news.buzz.kindBase.result`      | number  | 20      | 0–100  | points | Buzz every result story starts with (0 = none)                                            |
+| `news.buzz.kindBase.titleChange` | number  | 35      | 0–100  | points | Buzz every title change story starts with                                                 |
+| `news.buzz.kindBase.signing`     | number  | 20      | 0–100  | points | Buzz every signing story starts with                                                      |
+| `news.buzz.kindBase.release`     | number  | 15      | 0–100  | points | Buzz every release story starts with                                                      |
+| `news.buzz.kindBase.injury`      | number  | 15      | 0–100  | points | Buzz every injury story starts with                                                       |
+| `news.buzz.kindBase.retirement`  | number  | 30      | 0–100  | points | Buzz every retirement story starts with                                                   |
+| `news.buzz.kindBase.rumour`      | number  | 5       | 0–100  | points | Buzz every rumour story starts with                                                       |
+| `news.buzz.kindBase.business`    | number  | 15      | 0–100  | points | Buzz every business story starts with                                                     |
+| `news.buzz.kindBase.milestone`   | number  | 10      | 0–100  | points | Buzz every milestone story starts with                                                    |
+| `news.buzz.kindBase.backstage`   | number  | 10      | 0–100  | points | Buzz every backstage story starts with                                                    |
+| `news.buzz.kindBase.personal`    | number  | 10      | 0–100  | points | Buzz every personal story starts with                                                     |
+| `news.buzz.kindBase.season`      | number  | 30      | 0–100  | points | Buzz every season story starts with                                                       |
+| `news.buzz.kindBase.award`       | number  | 30      | 0–100  | points | Buzz every award story starts with                                                        |
+| `news.buzz.kindBase.rivalry`     | number  | 20      | 0–100  | points | Buzz every rivalry story starts with                                                      |
+| `news.buzz.importancePoints`     | number  | 12      | 0–40   | points | Buzz added per level of importance (0 = importance adds nothing)                          |
+| `news.buzz.popularityMax`        | number  | 40      | 0–100  | points | Most buzz the best-known subject can add (0 = popularity adds nothing)                    |
+| `news.buzz.popularitySoftCap`    | number  | 30      | 0–100  | points | Popularity at which a subject adds half the most buzz (0 = any popularity adds it all)    |
+| `news.buzz.extraSubjectShare`    | number  | 0.25    | 0–1    | ratio  | Share each subject after the best known adds (0 = only the best known counts)             |
+| `news.buzz.maxSubjects`          | integer | 3       | 1–10   | count  | Most people and promotions in a story whose popularity counts                             |
+| `news.expiry.importance0Days`    | integer | 14      | 0–3650 | days   | Days from posting until a filler story drops off the feed (0 = never shown after its day) |
+| `news.expiry.importance1Days`    | integer | 60      | 0–3650 | days   | Days from posting until an importance 1 story drops off the feed                          |
+| `news.expiry.importance2Days`    | integer | 180     | 0–3650 | days   | Days from posting until an importance 2 story drops off the feed                          |

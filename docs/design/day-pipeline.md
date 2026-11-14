@@ -973,3 +973,9 @@ The promotion popularity system's events ([promotion-popularity.md](promotion-po
 | Event                    | Payload                                                                                                        | Published when                                  |
 | ------------------------ | -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
 | `showPopularity.changed` | `eventInstanceId`, `promotionId`, `worldBefore`, `worldAfter`, `regionsGained`, `regionsLost`, `regionsCapped` | A completed show's popularity change is applied |
+
+The news system's events ([news.md](news.md#posting), DAY1-01):
+
+| Event         | Payload                                | Published when                                                            |
+| ------------- | -------------------------------------- | ------------------------------------------------------------------------- |
+| `news.posted` | `newsId`, `kind`, `importance`, `buzz` | `postNews` writes a story (a dedupe hit posts nothing and publishes none) |
