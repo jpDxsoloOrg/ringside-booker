@@ -2,7 +2,8 @@
  * Talking segments: who talks tonight and in what kind of angle.
  *
  * `buildTalkSegment(pool, { key, storylineId?, alreadyBooked }, deps)` returns one planned angle,
- * or null when nobody can talk. MTCH5 will replace its single default beat through this function.
+ * or null when nobody can talk. Its draft names no beats: once the running order has put it in a
+ * slot, `planCard` builds its beats from an angle template (MTCH5-06, `templates.ts`).
  *
  * - Speakers are people who can talk tonight (available, or out but able to do talking segments:
  *   "Injured, but can talk") and have no contract block. Fatigue does not matter: talking costs
