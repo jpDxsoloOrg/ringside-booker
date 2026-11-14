@@ -3439,3 +3439,47 @@ export {
   type StorylineEndPreview,
   type StorylineMemberArgs,
 } from './systems/storylines/index';
+// Storyline links on segments (CRTV4-01): the progress and payoff fields, `membersInSegment`,
+// `storylines.linkOptions`, `storylines.linkSegment`, `storylines.setFinale`, the
+// `storylines.links` booking check and booking's segment hooks. See
+// docs/design/storylines.md#linking.
+export {
+  MAX_STORYLINE_PROGRESS,
+  StorylinePayoffMemberSchema,
+  StorylinePayoffSchema,
+  StorylineProgressSchema,
+  type StorylinePayoffMember,
+  type StorylinePayoffRecord,
+  type StorylineProgress,
+} from './model/entities/storyline';
+export {
+  clearSegmentHooksForTests,
+  registeredSegmentHooks,
+  registerSegmentHook,
+  type SegmentHook,
+} from './systems/booking/index';
+export {
+  CLEAR_FINALE_HOOK_ID,
+  clearFinaleHook,
+  linkableStorylines,
+  linkSegmentCommand,
+  membersInSegment,
+  segmentWasPlayed,
+  setFinaleCommand,
+  STORYLINE_LINK_REASONS,
+  STORYLINE_LINK_WARNINGS,
+  STORYLINE_LINKS_CHECK_ID,
+  storylineFitsShow,
+  storylineLinksBookingCheck,
+  storylinesCardCommands,
+  storylinesCardQueries,
+  storylinesLinkOptionsQuery,
+  storylinesWithFinale,
+  type StorylineFinaleElsewhere,
+  type StorylineLinkedRow,
+  type StorylineLinkOptions,
+  type StorylineLinkSegmentArgs,
+  type StorylineOtherRow,
+  type StorylineSetFinaleArgs,
+  type StorylineSuggestionRow,
+} from './systems/storylines/index';

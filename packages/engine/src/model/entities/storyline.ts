@@ -130,10 +130,10 @@ export const StorylineSchema = z
   })
   .refine(
     (storyline) =>
-      storyline.progress.every(
-        (entry, index) =>
-          index === 0 || compareDates(storyline.progress[index - 1]!.date, entry.date) <= 0,
-      ),
+      storyline.progress.every((entry, index) => {
+        const previous = storyline.progress[index - 1];
+        return previous === undefined || compareDates(previous.date, entry.date) <= 0;
+      }),
     { message: 'progress dates must not go backwards', path: ['progress'] },
   );
 

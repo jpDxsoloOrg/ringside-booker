@@ -143,6 +143,13 @@ export type {
   ChecklistItem,
 } from './validate/types';
 export { validateCard, type ValidateCardDeps } from './validate/validateCard';
+// Segment hooks (CRTV4-01): other systems keep their rows right when a segment goes or changes.
+export {
+  clearSegmentHooksForTests,
+  registeredSegmentHooks,
+  registerSegmentHook,
+  type SegmentHook,
+} from './hooks';
 
 export const bookingSystem: SystemBundle = defineSystem({
   id: 'booking',

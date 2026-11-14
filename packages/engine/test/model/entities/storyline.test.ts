@@ -154,7 +154,9 @@ describe('storyline progress and payoff (CRTV4-01)', () => {
   });
 
   it('fills both fields in for a row written before them', () => {
-    const { progress: _progress, payoff: _payoff, ...older } = makeStoryline(1);
+    const older: Record<string, unknown> = { ...makeStoryline(1) };
+    delete older['progress'];
+    delete older['payoff'];
     const parsed = StorylineSchema.parse(older);
     expect(parsed.progress).toEqual([]);
     expect(parsed.payoff).toBeNull();
