@@ -469,6 +469,8 @@ export async function skipDays(page: Page, what: number | SkipDaysChoice): Promi
   await expect(sheet).toBeHidden();
   await waitForAdvanceToEnd(page, startDate, before);
   return isoDaysBetween(startDate, await gameDate(page));
+}
+
 /**
  * Opens Business > Networks from the shell (ECO8): the sidebar link on desktop, the More sheet on
  * a phone. With `tab` (a tab id such as `eco.available`), switches to that tab. Waits for the
