@@ -78,10 +78,11 @@ export async function clearNewsStop(page: Page): Promise<boolean> {
   await expect(page).toHaveURL(/\/game\/news\?story=/);
   const story = page.getByRole('dialog');
   await expect(story).toBeVisible();
-  await expect(openNews).toBeHidden(ADVANCE_TIMEOUT);
+  // The story sheet is modal, so the day bar is read once it closes.
   await story.getByRole('button', { name: 'Close' }).click();
   await expect(story).toBeHidden();
   await waitForDayBarSettled(page);
+  await expect(openNews).toBeHidden(ADVANCE_TIMEOUT);
   return true;
 }
 

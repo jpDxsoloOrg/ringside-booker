@@ -2,7 +2,7 @@
  * News alerts stop long skips, and the stop is always cleared from where it sends the player
  * (DAY1-05), on desktop, phone and phone-webkit. The news save (`fixtures/build-news-save.ts`) has
  * three of the player's wrestlers reaching ten years in the ring over the next three weeks and no
- * more shows. The player turns on "My roster" in the News alerts sheet; then each 30-day skip stops
+ * more shows (the champion's 100 days with the title lands in the second week too). The player turns on "My roster" in the News alerts sheet; then each 30-day skip stops
  * on "Open news" with the "News: …" reason, the button opens the story and clears the alert, and
  * Next day comes back. After the third stop a skip runs its full length.
  *
@@ -129,11 +129,13 @@ test.describe('news alerts', () => {
         await dayButton(page, 'Open news').click();
         // The screen clears the alert and drops `alert=1`, keeping the story open.
         await expect(page).toHaveURL(/\/game\/news\?story=nws_[a-z0-9]+$/);
-        const story = page.getByRole('dialog', { name: /marks 10 years in the ring/ });
+        // A career anniversary, or a reign milestone of the player's champion the same week.
+        const story = page.getByRole('dialog', { name: /(years in the ring|days holding)/ });
         await expect(story).toBeVisible();
-        await expectDayButton(page, 'Next day');
+        // The story sheet is modal; once it closes the day bar is back in reach.
         await story.getByRole('button', { name: 'Close' }).click();
         await expect(story).toBeHidden();
+        await expectDayButton(page, 'Next day');
       });
     }
 
