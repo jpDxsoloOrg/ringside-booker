@@ -18,6 +18,7 @@ import type { Locator, Page } from '@playwright/test';
 import { expectNoSeriousA11yViolations } from './helpers/a11y';
 import { inspectFocusRing, tabThroughAndCheckRings } from './helpers/focus';
 import { GALLERY_ENTRY_IDS } from './helpers/gallery';
+import { enterGameFromSampleSave } from './helpers/game';
 import { enterShell } from './helpers/shell';
 import { isPhone, PROJECT_NAMES } from './helpers/viewport';
 
@@ -275,7 +276,8 @@ test.describe('reduced motion', () => {
     page,
   }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
-    await enterShell(page);
+    // The in-game crawl is the real news (DAY1-04): the sample save has two stories.
+    await enterGameFromSampleSave(page);
     await expectShellStill(page);
   });
 
@@ -283,7 +285,7 @@ test.describe('reduced motion', () => {
     page,
   }) => {
     await page.emulateMedia({ reducedMotion: 'no-preference' });
-    await enterShell(page);
+    await enterGameFromSampleSave(page);
     // With motion allowed, the crawl and the pulse really run, so the checks below can see them.
     const before = await readMotion(page);
     expect(before.running).toEqual(expect.arrayContaining([expect.stringContaining('crawl')]));

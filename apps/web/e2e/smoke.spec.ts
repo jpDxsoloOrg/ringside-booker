@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { expectNoSeriousA11yViolations } from './helpers/a11y';
-import { enterGameFromInjurySave } from './helpers/game';
+import { enterGameFromInjurySave, enterGameFromSampleSave } from './helpers/game';
 import { expectNoHorizontalScroll } from './helpers/layout';
 import { enterShell, navigateInApp } from './helpers/shell';
 import { isPhone } from './helpers/viewport';
@@ -115,10 +115,11 @@ test.describe('settings', () => {
     await page.goto('/settings');
     await page.getByRole('slider', { name: 'UI scale' }).fill('1.5');
     await expect.poll(() => uiScaleOnPage(page)).toBe('1.5');
-    await enterShell(page);
+    // The crawl is the real news (DAY1-04): the sample save's two stories.
+    await enterGameFromSampleSave(page);
     const ticker = page.getByRole('region', { name: 'News ticker' });
     await expect(ticker).toHaveAttribute('data-motion', 'crawl');
-    await expect(page.getByTestId('next-day')).toBeVisible();
+    await expect(page.getByTestId('day-control')).toBeVisible();
     await expectNoHorizontalScroll(page);
 
     const fit = await ticker.evaluate((strip) => {
@@ -157,8 +158,9 @@ test.describe('settings', () => {
       await page.goto('/settings');
       await page.getByRole('slider', { name: 'UI scale' }).fill(scale);
       await expect.poll(() => uiScaleOnPage(page)).toBe(scale);
-      await enterShell(page);
-      await expect(page.getByTestId('next-day')).toBeVisible();
+      // The crawl is the real news (DAY1-04): the sample save's two stories.
+      await enterGameFromSampleSave(page);
+      await expect(page.getByTestId('day-control')).toBeVisible();
 
       // One headline at a time, wrapped to fit, with buttons to step through the rest (UI-34).
       const ticker = page.getByRole('region', { name: 'News ticker' });
