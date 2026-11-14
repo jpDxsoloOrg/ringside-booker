@@ -223,6 +223,12 @@ describe('createNewGame: founding a promotion', () => {
     expect(state.world.tables.titleReigns.filter((row) => row.titleId === titles[0]?.id)).toEqual(
       [],
     );
+    // CRTV1-01: the starter belt's prestige has a Why? naming the new-game tunable.
+    const prestigeTrace = state.traces.full.find(
+      (entry) => entry.ref.kind === 'titles.prestige' && entry.ref.id === titles[0]?.id,
+    );
+    expect(prestigeTrace?.value).toBe(20);
+    expect(JSON.stringify(prestigeTrace?.trace)).toContain('"key":"newgame.found.titlePrestige"');
     const shows = state.world.tables.eventDefinitions.filter(
       (row) => row.promotionId === summary.promotion.id,
     );
