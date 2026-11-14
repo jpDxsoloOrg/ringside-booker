@@ -172,6 +172,8 @@ function SkipDaysForm({ open, onClose, today, onStart, targets }: SkipDaysFormPr
   const [stopDateText, setStopDateText] = useState('');
   const [lengthTouched, setLengthTouched] = useState(false);
   const [alertsOpen, setAlertsOpen] = useState(false);
+  // The alerts sheet reads the engine, so it mounts the first time it is asked for.
+  const [alertsWanted, setAlertsWanted] = useState(false);
   const lengthId = useId();
   const lengthErrorId = useId();
   const stopDateId = useId();
@@ -323,6 +325,7 @@ function SkipDaysForm({ open, onClose, today, onStart, targets }: SkipDaysFormPr
               className={styles['linkButton']}
               aria-haspopup="dialog"
               onClick={() => {
+                setAlertsWanted(true);
                 setAlertsOpen(true);
               }}
             >
@@ -362,12 +365,14 @@ function SkipDaysForm({ open, onClose, today, onStart, targets }: SkipDaysFormPr
           </div>
         )}
       </form>
-      <NewsAlertSheet
-        open={alertsOpen}
-        onClose={() => {
-          setAlertsOpen(false);
-        }}
-      />
+      {alertsWanted && (
+        <NewsAlertSheet
+          open={alertsOpen}
+          onClose={() => {
+            setAlertsOpen(false);
+          }}
+        />
+      )}
     </Sheet>
   );
 }
