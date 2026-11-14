@@ -477,7 +477,22 @@ at `contracts.aiRelease` / the employment. Refused rival workers face the same
 walk-out rolls, so rival rosters move too. Rival clocks, requests and morale
 are never shown to the player.
 
-ECO4-05 adds the rest of the rival rules.
+**Decision log (ECO4-05).** Each answer is also one rival decision, kind
+`release` (chip "Releases"), written through AIP1's `writeAiDecision` (its
+non-job API) from `systems/contracts/decisionLog.ts`: "Let <name> go at their
+request (<reason>)" (importance 0) or "Refused to let <name> go (<reason>)"
+(importance 1), refs the person, the contract and any titles held, and its
+Why? is the stored `contracts.aiRelease` trace. Rival requests stay private:
+a grant is revealed the next day like any rival decision (the worker leaves
+anyway), a refusal only when the contract ends (a year on for an open-ended
+one). The rival and the all-seeing viewer see both at once. Keys
+`contracts.decision.release-granted` / `-refused` are in the web's
+`contracts` text catalog and the engine's `releaseDecisionText`.
+
+The renewal side of the rival rules reads AIP1's `aiShortcut` (see
+[Simple renewals](#simple-renewals)). Rival rosters still shrink: over three
+years each rival keeps 50 % to 73 % of its starting roster, since nothing
+hires for rivals until ECO6.
 
 ## Concerns
 

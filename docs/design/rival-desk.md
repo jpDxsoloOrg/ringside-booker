@@ -288,12 +288,13 @@ kind and `decisionKindOf(kind)` looks one up. The rival desk registers
 features register theirs (`push`, `title`, `businessReview`, ...) from their
 own modules.
 
-| Kind           | Chip          | Registered by                                      |
-| -------------- | ------------- | -------------------------------------------------- |
-| `rosterReview` | Roster review | `decisionKinds.ts` (AIP1-05)                       |
-| `card`         | Card          | `card/bookShowJob.ts` (AIP4-05)                    |
-| `winner`       | Winners       | `results/decisionKinds.ts` (AIP5-01, used by AIP5) |
-| `title`        | Titles        | `results/decisionKinds.ts` (AIP5-01, used by AIP5) |
+| Kind           | Chip          | Registered by                                                                                                                     |
+| -------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `rosterReview` | Roster review | `decisionKinds.ts` (AIP1-05)                                                                                                      |
+| `card`         | Card          | `card/bookShowJob.ts` (AIP4-05)                                                                                                   |
+| `winner`       | Winners       | `results/decisionKinds.ts` (AIP5-01, used by AIP5)                                                                                |
+| `title`        | Titles        | `results/decisionKinds.ts` (AIP5-01, used by AIP5)                                                                                |
+| `release`      | Releases      | `systems/contracts/decisionLog.ts` (ECO4-05): a rival's answer to a release request, see [contracts.md](contracts.md#rival-rules) |
 
 **Pruning.** `aip.pruneDecisionLog` (group `periodic`, order 42, daily)
 deletes expired rows in ID order with the `pruneOnly` delete

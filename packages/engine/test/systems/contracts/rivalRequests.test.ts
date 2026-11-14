@@ -2,7 +2,8 @@
 // Design: docs/design/contracts.md#rival-rules
 import { describe, expect, it } from 'vitest';
 import { definePhase } from '../../../src/core/pipeline/phase';
-import { aiReleaseTraceRef } from '../../../src/systems/contracts';
+import { aiReleaseTraceRef, RELEASE_DECISION_KIND } from '../../../src/systems/contracts';
+import { decisionKindOf, decisionSummaryText } from '../../../src/systems/aip';
 import { applyMoraleChange } from '../../../src/systems/workers';
 import { resetTestIds, rosterWorld } from '../../support';
 import { contractsRuntime, runDays } from './contract-world';
@@ -69,6 +70,53 @@ describe('rival release requests', () => {
 
     // Rival requests never reach the player.
     expect(run.events.filter((event) => event.type === 'contract.releaseRequested')).toEqual([]);
+  });
+
+  it("logs each answer in the rival's Decision log, pointing at the answer's Why? (ECO4-05)", async () => {
+    const built = unhappyWorld();
+    const run = unhappyEngine(built.world, AT_ONCE);
+    for (const id of [built.rivalChampion, built.rivalLower]) {
+      run.setMorale(id, -60);
+    }
+    await run.advance(1);
+    // The test engine runs the contracts system only, so read the rows and AIP1's text directly.
+    const rows = run.engine
+      .exportState()
+      .world.tables.aiDecisions.filter((row) => row.kind === RELEASE_DECISION_KIND);
+    const entries = rows.map((row) => ({
+      ...row,
+      chip: decisionKindOf(row.kind)?.chip,
+      text: decisionSummaryText(row.summary),
+    }));
+    expect(rows.every((row) => row.promotionId === built.rival && row.brandId === null)).toBe(true);
+    const champion = employmentOf(run.engine, built.rivalChampion);
+    const lower = employmentOf(run.engine, built.rivalLower);
+    expect(entries.map((entry) => [entry.kind, entry.chip, entry.text, entry.importance])).toEqual(
+      expect.arrayContaining([
+        [
+          'release',
+          'Releases',
+          `Refused to let ${champion.ringName} go (Champions are always kept)`,
+          1,
+        ],
+        [
+          'release',
+          'Releases',
+          `Let ${lower.ringName} go at their request (Lets unhappy workers go)`,
+          0,
+        ],
+      ]),
+    );
+    expect(entries).toHaveLength(2);
+    const refused = entries.find((entry) => entry.importance === 1);
+    expect(refused?.traceRef).toEqual(aiReleaseTraceRef(built.rivalChampion));
+    expect(refused?.refs.personIds).toEqual([champion.personId]);
+    expect(refused?.refs.titleIds).toHaveLength(1);
+    // Rival requests stay private: a refusal shows to others only when the contract ends.
+    expect(refused?.revealOn).toBe(champion.endsOn);
+    expect(entries.find((entry) => entry.importance === 0)?.revealOn).toBe(
+      entries.find((entry) => entry.importance === 0)?.date,
+    );
   });
 
   it('grants a champion when champions are not kept by rule', async () => {

@@ -39,7 +39,11 @@ export {
   type RenewalDeps,
   type RenewalPolicy,
 } from './renewals';
-export { SIMPLE_RIVAL_RENEWAL_POLICY_ID, simpleRivalRenewalPolicy } from './simpleRivalRenewal';
+export {
+  SIMPLE_RENEWALS_SHORTCUT_KEY,
+  SIMPLE_RIVAL_RENEWAL_POLICY_ID,
+  simpleRivalRenewalPolicy,
+} from './simpleRivalRenewal';
 export {
   AI_RENEWAL_RULES,
   aiRenewalDecision,
@@ -204,3 +208,14 @@ export const contractsSystem: SystemBundle = defineSystem({
   queries: contractsQueries,
   commands: contractsCommands,
 });
+export {
+  RELEASE_DECISION_CHIP,
+  RELEASE_DECISION_KIND,
+  RELEASE_GRANTED_SUMMARY_KEY,
+  RELEASE_REFUSED_SUMMARY_KEY,
+  OPEN_ENDED_REFUSAL_HIDDEN_DAYS,
+  releaseDecisionEntry,
+  releaseDecisionRevealOn,
+  releaseDecisionText,
+  type ReleaseDecisionEntry,
+} from './decisionLog';

@@ -2805,3 +2805,15 @@ export {
   type CashRunwayView,
   type RecentMoney,
 } from './systems/production/index';
+// Contracts wired to the partners on main (ECO4-05): a rival's answer to a release request in its
+// Decision log (AIP1), and the renewal shortcut key. See docs/design/contracts.md#rival-rules.
+export {
+  RELEASE_DECISION_CHIP,
+  RELEASE_DECISION_KIND,
+  RELEASE_GRANTED_SUMMARY_KEY,
+  RELEASE_REFUSED_SUMMARY_KEY,
+  releaseDecisionEntry,
+  releaseDecisionText,
+  SIMPLE_RENEWALS_SHORTCUT_KEY,
+  type ReleaseDecisionEntry,
+} from './systems/contracts/index';
