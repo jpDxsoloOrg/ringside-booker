@@ -15,6 +15,11 @@ export interface ShellStatus {
   readonly gates: readonly GateHit[];
   /** True until both queries have answered once. */
   readonly loading: boolean;
+  /**
+   * True while either answer on screen is from before the world last moved (after a day, a
+   * skip or a command) and the new one is still on its way.
+   */
+  readonly refreshing: boolean;
 }
 
 const NO_GATES: readonly GateHit[] = [];
@@ -31,5 +36,6 @@ export function useShellStatus(): ShellStatus {
     status: statusQuery.data,
     gates: gatesQuery.data?.hits ?? NO_GATES,
     loading: statusQuery.status === 'loading' || gatesQuery.status === 'loading',
+    refreshing: statusQuery.isStale || gatesQuery.isStale,
   };
 }
