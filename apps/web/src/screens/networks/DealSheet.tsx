@@ -159,7 +159,7 @@ export function DealSheet({ promotionId, dealId, onClose }: DealSheetProps) {
       <Sheet open={open} onClose={close} title={title} size="lg" footer={footer}>
         {body}
       </Sheet>
-      {own !== null && own.status === 'active' && (
+      {own !== null && (
         <CancelDealDialog
           open={cancelOpen}
           dealId={own.dealId}
