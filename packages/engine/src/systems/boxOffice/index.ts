@@ -62,11 +62,13 @@ export {
 export {
   SHOW_HEAT_DOC_REF,
   computeShowHeat,
+  hottestCardStoryline,
   storylineHeatLabel,
   type CardStorylineHeat,
   type ShowHeatInputs,
 } from './formulas/showHeat';
 export { storylineHeatsOnCard } from './showHeat';
+export { crowdAddedText, forecastCrowdLines } from './forecastLines';
 export { BOX_OFFICE_CROWD_STREAM, BOX_OFFICE_MERCH_STREAM } from './streams';
 export { BOX_OFFICE_TRACE_KINDS } from './traceKinds';
 export { boxOfficeTunables } from './tunables';
@@ -148,6 +150,8 @@ export {
   VENUE_OPTION_GROUPS,
   VENUE_SCOPES,
   VenueChoiceSchema,
+  type ForecastCrowdLine,
+  type ForecastCrowdLineKey,
   type SetVenueResult,
   type ShowForecast,
   type ShowVenueOptions,

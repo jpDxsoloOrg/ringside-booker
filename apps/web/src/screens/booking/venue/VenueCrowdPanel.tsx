@@ -4,6 +4,9 @@
  * the show has no venue it shows the one the game would book the day before the show, with the
  * pick's Why?, and offers Pick for me. Change venue opens the picker sheet.
  *
+ * Under the range it spells out the hot streak and show heat lines (EVT6-11) in words, so what a
+ * run of good shows or a hot storyline does to the crowd is visible without opening the Why?.
+ *
  * It reads `boxOffice.forecast`, which refetches on every world revision, so it follows changes
  * to the card and to the venue. Design: docs/design/box-office.md#venue-commands-and-queries.
  */
@@ -95,6 +98,20 @@ export function VenueCrowdView({
           </p>
         )}
         <VenueFitBadge fit={forecast.fit} className={styles['fit']} />
+        {forecast.crowdLines.length > 0 && (
+          <dl className={styles['crowdLines']} aria-label="What moves the crowd">
+            {forecast.crowdLines.map((line) => (
+              <div
+                key={line.key}
+                className={styles['crowdLine']}
+                data-boost={line.multiplier > 1 ? 'up' : 'none'}
+              >
+                <dt className={styles['crowdLineLabel']}>{line.label}</dt>
+                <dd className={styles['crowdLineText']}>{line.text}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
       </div>
       {notChosen && canChange && <p className={styles['note']}>{AUTO_PICK_NOTE}</p>}
       {canChange && (

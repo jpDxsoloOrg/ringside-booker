@@ -3,7 +3,11 @@
 import { describe, expect, it } from 'vitest';
 import { addDays } from '../../../src/core/date';
 import { findTraceNodes } from '../../../src/core/trace';
-import { forecastAttendance, storylineHeatsOnCard } from '../../../src/systems/boxOffice';
+import {
+  forecastAttendance,
+  forecastCrowdLines,
+  storylineHeatsOnCard,
+} from '../../../src/systems/boxOffice';
 import { createEngineTunables } from '../../../src/systems/tunables';
 import { TEST_START_DATE } from '../../support';
 import { storylineWorld } from '../storylines/storyline-world';
@@ -82,6 +86,9 @@ describe('forecastAttendance with show heat', () => {
     const labels = findTraceNodes(two.expected.trace, 'formula').map((node) => node.label);
     expect(labels).toContain('Show heat');
     expect(JSON.stringify(two.expected.trace)).toContain('Test Hot Feud: heat 85, finale tonight');
+    expect(forecastCrowdLines(two, DEFAULTS)[1]?.text).toBe(
+      'Test Hot Feud: heat 85, finale tonight: +16.9% crowd',
+    );
   });
 
   it('gives the same crowd at settlement as on booking day once tonight has moved the heat', () => {

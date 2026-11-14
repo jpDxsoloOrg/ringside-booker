@@ -81,6 +81,39 @@
   max-inline-size: 100%;
 }
 
+/* The hot streak and show heat lines (EVT6-11): a label over its words, one block each. */
+.crowdLines {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  min-inline-size: 0;
+}
+
+.crowdLine {
+  display: grid;
+  gap: 0;
+  min-inline-size: 0;
+}
+
+.crowdLineLabel {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.crowdLineText {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  overflow-wrap: anywhere;
+}
+
+.crowdLine[data-boost='up'] .crowdLineText {
+  color: var(--color-positive);
+  font-weight: var(--font-weight-semibold);
+}
+
 .actions {
   display: flex;
   flex-wrap: wrap;

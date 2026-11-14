@@ -5,7 +5,7 @@ import type { EventInstanceId, RegionId } from '../../../src/core/ids';
 import { findTraceNodes, walkTrace } from '../../../src/core/trace';
 import type { EventInstance } from '../../../src/model/entities/event-instance';
 import type { GameWorld } from '../../../src/model/tables';
-import { forecastAttendance } from '../../../src/systems/boxOffice';
+import { forecastAttendance, forecastCrowdLines } from '../../../src/systems/boxOffice';
 import { createEngineTunables } from '../../../src/systems/tunables';
 import { worldBuilder, type DeepPartial } from '../../support';
 import { aPopularityShowChange } from '../../support/builders/popularity';
@@ -240,5 +240,42 @@ describe('forecastAttendance', () => {
       }
     });
     expect(formulas).toBe(1);
+  });
+
+  it('spells out the hot streak and show heat in words for the booking panel', () => {
+    const run = ['2026-05-01', '2026-05-08', '2026-05-15'].map((date) => completedOn(date, 75));
+    const going = build(run, {});
+    const lines = forecastCrowdLines(
+      forecastAttendance(going.world, DEFAULTS, going.show),
+      DEFAULTS,
+    );
+    expect(lines).toEqual([
+      {
+        key: 'hotStreak',
+        label: 'Hot streak',
+        text: '3 good shows in a row: +7.5% crowd',
+        multiplier: 1.075,
+      },
+      {
+        key: 'showHeat',
+        label: 'Show heat',
+        text: 'No storylines linked on the card',
+        multiplier: 1,
+      },
+    ]);
+
+    const broken = build([...run, completedOn('2026-05-22', 40)], {});
+    const [streak] = forecastCrowdLines(
+      forecastAttendance(broken.world, DEFAULTS, broken.show),
+      DEFAULTS,
+    );
+    expect(streak?.text).toBe('Streak broken 1 show ago, fading: +2.5% crowd');
+
+    const quiet = build([], {});
+    const [none] = forecastCrowdLines(
+      forecastAttendance(quiet.world, DEFAULTS, quiet.show),
+      DEFAULTS,
+    );
+    expect(none?.text).toBe('No hot streak: a show scoring 60 or better starts one');
   });
 });

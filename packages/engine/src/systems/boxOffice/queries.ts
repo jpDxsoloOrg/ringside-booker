@@ -39,6 +39,7 @@ import {
   type VenueSummary,
 } from './api';
 import { forecastAttendance, type AttendanceForecast } from './forecast';
+import { forecastCrowdLines } from './forecastLines';
 import { genericOptionKey, type VenueOptionKey } from './formulas/pickVenue';
 import { GENERIC_VENUE_TIERS, genericVenueSizes } from './genericVenues';
 import { pickVenueFor } from './pickVenueFor';
@@ -190,6 +191,7 @@ export const forecastQuery: QueryDefinition<'boxOffice.forecast'> = defineQuery(
         capacity: shown.capacity,
         ...cappedAt(forecast, shown.capacity, ctx.tunables),
         trace: forecast.expected.trace,
+        crowdLines: forecastCrowdLines(forecast, ctx.tunables),
         pickTrace: suggestion.pick?.trace ?? null,
       };
     },

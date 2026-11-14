@@ -73,6 +73,28 @@ function storylineBonus(storyline: CardStorylineHeat, tunables: EngineTunables):
   return calc.done();
 }
 
+/** The storylines with their bonuses, the biggest first (ties by name). */
+function rankStorylines(
+  storylines: readonly CardStorylineHeat[],
+  tunables: EngineTunables,
+): { readonly storyline: CardStorylineHeat; readonly bonus: Traced<number> }[] {
+  return storylines
+    .map((storyline) => ({ storyline, bonus: storylineBonus(storyline, tunables) }))
+    .sort(
+      (left, right) =>
+        right.bonus.value - left.bonus.value ||
+        left.storyline.name.localeCompare(right.storyline.name),
+    );
+}
+
+/** The storyline that adds the most to the crowd, the one the show heat counts in full. */
+export function hottestCardStoryline(
+  storylines: readonly CardStorylineHeat[],
+  tunables: EngineTunables,
+): CardStorylineHeat | null {
+  return rankStorylines(storylines, tunables)[0]?.storyline ?? null;
+}
+
 /** The show-heat multiplier on the crowd, 1..1 + cap. Deterministic: no rolls. */
 export function computeShowHeat(
   inputs: ShowHeatInputs,
@@ -88,13 +110,7 @@ export function computeShowHeat(
     calc.note('No storylines linked on the card');
     return calc.done();
   }
-  const ranked = inputs.storylines
-    .map((storyline) => ({ storyline, bonus: storylineBonus(storyline, tunables) }))
-    .sort(
-      (left, right) =>
-        right.bonus.value - left.bonus.value ||
-        left.storyline.name.localeCompare(right.storyline.name),
-    );
+  const ranked = rankStorylines(inputs.storylines, tunables);
   const total = startCalc(
     'Heat bonus',
     constantOf('Nothing yet', 0, 'Built up storyline by storyline'),
