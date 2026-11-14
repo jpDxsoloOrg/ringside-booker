@@ -16,6 +16,10 @@ import type { PhaseContext } from '../../src/core/pipeline/context';
 import { definePhase } from '../../src/core/pipeline/phase';
 import type { EventInstance } from '../../src/model/entities/event-instance';
 import type { DeepReadonly } from '../../src/model/world';
+import {
+  EXPIRING_SOON_GATE_ID,
+  RELEASE_REQUESTED_GATE_ID,
+} from '../../src/systems/contracts/gates';
 import { OWN_WORKER_INJURED_GATE_ID } from '../../src/systems/health/gate';
 import { runShowNow } from '../../src/systems/shows/runShow';
 import { myShowsOn, SHOWS_TONIGHT_GATE_ID } from '../../src/systems/shows/tonight';
@@ -61,13 +65,22 @@ export function runMyShowsSystemFor(runs: RunsShow = EVERY_SHOW): SystemBundle {
 /** The stand-in player who runs every show of theirs. */
 export const runMyShowsSystem: SystemBundle = runMyShowsSystemFor();
 
-/** The gates a stand-in player always gets past: show night and their own workers' injuries. */
-const PLAYER_GATE_IDS: readonly string[] = [SHOWS_TONIGHT_GATE_ID, OWN_WORKER_INJURED_GATE_ID];
+/**
+ * The gates a stand-in player always gets past: show night, their own workers' injuries and the
+ * two contract stops (ECO4-04 turned them on; an unanswered release request is refused by the
+ * system after its answer-by date, as with the stop off).
+ */
+const PLAYER_GATE_IDS: readonly string[] = [
+  SHOWS_TONIGHT_GATE_ID,
+  OWN_WORKER_INJURED_GATE_ID,
+  EXPIRING_SOON_GATE_ID,
+  RELEASE_REQUESTED_GATE_ID,
+];
 
 /**
  * `systems` with the show-day gate (and the own-injury gate, WRK6-04) taken out and the player's
  * shows (those `runs` picks) run inside the day: a game whose player presses Run the show on every
- * show day and reads every injury notice.
+ * show day and reads every injury and contract notice.
  */
 export function withMyShowsRun(
   systems: readonly SystemBundle[],
