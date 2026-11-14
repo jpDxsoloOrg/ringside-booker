@@ -18,6 +18,8 @@ import { routePatterns, routes } from './routes';
 import { SettingsEffects } from './settings/SettingsEffects';
 // The results page's calendar section, action and chip badge, registered before any calendar draws.
 import '@/screens/show-results/calendarHooks';
+// The calendar show sheet's Go live button on show night (EVT10-02).
+import '@/screens/show-night/calendarAction';
 // The calendar show sheet's Crowd section (EVT6-06).
 import '@/screens/box-office/ShowCrowdSection';
 // The worker profile's Form tab (MTCH3-04); its panel loads with the tab.
@@ -127,6 +129,15 @@ export const gameDetailRoutes: RouteObject[] = [
     lazy: async () => {
       const { ShowResultsScreen } = await import('@/screens/show-results/ShowResultsScreen');
       return { Component: ShowResultsScreen };
+    },
+  },
+  {
+    path: routePatterns.showNight,
+    // Its own chunk: the live show night screen, its report and the sections other features add
+    // (EVT10-02). It sits under no navigation item.
+    lazy: async () => {
+      const { ShowNightScreen } = await import('@/screens/show-night/ShowNightScreen');
+      return { Component: ShowNightScreen };
     },
   },
   {

@@ -1311,37 +1311,85 @@ promotions in it add, and how long stories stay on the feed
 ([expiry](news.md#expiry)). Importance 3 never expires: a design rule, not a
 tunable.
 
-| Key                              | Kind    | Default | Range  | Unit   | Meaning                                                                                   |
-| -------------------------------- | ------- | ------- | ------ | ------ | ----------------------------------------------------------------------------------------- |
-| `news.buzz.kindBase.result`      | number  | 20      | 0–100  | points | Buzz every result story starts with (0 = none)                                            |
-| `news.buzz.kindBase.titleChange` | number  | 35      | 0–100  | points | Buzz every title change story starts with                                                 |
-| `news.buzz.kindBase.signing`     | number  | 20      | 0–100  | points | Buzz every signing story starts with                                                      |
-| `news.buzz.kindBase.release`     | number  | 15      | 0–100  | points | Buzz every release story starts with                                                      |
-| `news.buzz.kindBase.injury`      | number  | 15      | 0–100  | points | Buzz every injury story starts with                                                       |
-| `news.buzz.kindBase.retirement`  | number  | 30      | 0–100  | points | Buzz every retirement story starts with                                                   |
-| `news.buzz.kindBase.rumour`      | number  | 5       | 0–100  | points | Buzz every rumour story starts with                                                       |
-| `news.buzz.kindBase.business`    | number  | 15      | 0–100  | points | Buzz every business story starts with                                                     |
-| `news.buzz.kindBase.milestone`   | number  | 10      | 0–100  | points | Buzz every milestone story starts with                                                    |
-| `news.buzz.kindBase.backstage`   | number  | 10      | 0–100  | points | Buzz every backstage story starts with                                                    |
-| `news.buzz.kindBase.personal`    | number  | 10      | 0–100  | points | Buzz every personal story starts with                                                     |
-| `news.buzz.kindBase.season`      | number  | 30      | 0–100  | points | Buzz every season story starts with                                                       |
-| `news.buzz.kindBase.award`       | number  | 30      | 0–100  | points | Buzz every award story starts with                                                        |
-| `news.buzz.kindBase.rivalry`     | number  | 20      | 0–100  | points | Buzz every rivalry story starts with                                                      |
-| `news.buzz.importancePoints`     | number  | 12      | 0–40   | points | Buzz added per level of importance (0 = importance adds nothing)                          |
-| `news.buzz.popularityMax`        | number  | 40      | 0–100  | points | Most buzz the best-known subject can add (0 = popularity adds nothing)                    |
-| `news.buzz.popularitySoftCap`    | number  | 30      | 0–100  | points | Popularity at which a subject adds half the most buzz (0 = any popularity adds it all)    |
-| `news.buzz.extraSubjectShare`    | number  | 0.25    | 0–1    | ratio  | Share each subject after the best known adds (0 = only the best known counts)             |
-| `news.buzz.maxSubjects`          | integer | 3       | 1–10   | count  | Most people and promotions in a story whose popularity counts                             |
-| `news.expiry.importance0Days`    | integer | 14      | 0–3650 | days   | Days from posting until a filler story drops off the feed (0 = never shown after its day) |
-| `news.expiry.importance1Days`    | integer | 60      | 0–3650 | days   | Days from posting until an importance 1 story drops off the feed                          |
-| `news.expiry.importance2Days`    | integer | 180     | 0–3650 | days   | Days from posting until an importance 2 story drops off the feed                          |
+| Key                              | Kind    | Default | Range  | Unit   | Meaning                                                                                        |
+| -------------------------------- | ------- | ------- | ------ | ------ | ---------------------------------------------------------------------------------------------- |
+| `news.buzz.kindBase.result`      | number  | 20      | 0–100  | points | Buzz every result story starts with (0 = none)                                                 |
+| `news.buzz.kindBase.titleChange` | number  | 35      | 0–100  | points | Buzz every title change story starts with                                                      |
+| `news.buzz.kindBase.signing`     | number  | 20      | 0–100  | points | Buzz every signing story starts with                                                           |
+| `news.buzz.kindBase.release`     | number  | 15      | 0–100  | points | Buzz every release story starts with                                                           |
+| `news.buzz.kindBase.injury`      | number  | 15      | 0–100  | points | Buzz every injury story starts with                                                            |
+| `news.buzz.kindBase.retirement`  | number  | 30      | 0–100  | points | Buzz every retirement story starts with                                                        |
+| `news.buzz.kindBase.rumour`      | number  | 5       | 0–100  | points | Buzz every rumour story starts with                                                            |
+| `news.buzz.kindBase.business`    | number  | 15      | 0–100  | points | Buzz every business story starts with                                                          |
+| `news.buzz.kindBase.milestone`   | number  | 10      | 0–100  | points | Buzz every milestone story starts with                                                         |
+| `news.buzz.kindBase.backstage`   | number  | 10      | 0–100  | points | Buzz every backstage story starts with                                                         |
+| `news.buzz.kindBase.personal`    | number  | 10      | 0–100  | points | Buzz every personal story starts with                                                          |
+| `news.buzz.kindBase.season`      | number  | 30      | 0–100  | points | Buzz every season story starts with                                                            |
+| `news.buzz.kindBase.award`       | number  | 30      | 0–100  | points | Buzz every award story starts with                                                             |
+| `news.buzz.kindBase.rivalry`     | number  | 20      | 0–100  | points | Buzz every rivalry story starts with                                                           |
+| `news.buzz.importancePoints`     | number  | 12      | 0–40   | points | Buzz added per level of importance (0 = importance adds nothing)                               |
+| `news.buzz.popularityMax`        | number  | 40      | 0–100  | points | Most buzz the best-known subject can add (0 = popularity adds nothing)                         |
+| `news.buzz.popularitySoftCap`    | number  | 30      | 0–100  | points | Popularity at which a subject adds half the most buzz (0 = any popularity adds it all)         |
+| `news.buzz.extraSubjectShare`    | number  | 0.25    | 0–1    | ratio  | Share each subject after the best known adds (0 = only the best known counts)                  |
+| `news.buzz.maxSubjects`          | integer | 3       | 1–10   | count  | Most people and promotions in a story whose popularity counts                                  |
+| `news.buzz.fullTraces`           | integer | 60      | 0–1000 | count  | Newest stories whose buzz Why? is kept in full; older ones keep a summary (0 = summaries only) |
+| `news.expiry.importance0Days`    | integer | 14      | 0–3650 | days   | Days from posting until a filler story drops off the feed (0 = never shown after its day)      |
+| `news.expiry.importance1Days`    | integer | 60      | 0–3650 | days   | Days from posting until an importance 1 story drops off the feed                               |
+| `news.expiry.importance2Days`    | integer | 180     | 0–3650 | days   | Days from posting until an importance 2 story drops off the feed                               |
 
 ## Broadcast tunables
 
 ECO8-01, see [broadcast.md](broadcast.md). Which networks are listed for a
-promotion. ECO8-02..05 add the audience, benchmark, valuation, settlement and
-deal health numbers under the same `Broadcast` category.
+promotion. ECO8-02 adds the audience formula's factors and the benchmark's
+typical promotion; ECO8-03..05 add the valuation, settlement and deal health
+numbers under the same `Broadcast` category.
 
-| Key                                      | Kind    | Default | Range | Unit   | Meaning                                                                                                                                                                        |
-| ---------------------------------------- | ------- | ------- | ----- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `broadcast.networks.minPopularityToList` | integer | 1       | 0–100 | points | Popularity a promotion needs in a region before the networks covering it are listed ([networks](broadcast.md#which-networks-a-promotion-can-deal-with)); 0 lists every network |
+| Key                                      | Kind    | Default | Range       | Unit       | Meaning                                                                                                                                                                        |
+| ---------------------------------------- | ------- | ------- | ----------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `broadcast.networks.minPopularityToList` | integer | 1       | 0–100       | points     | Popularity a promotion needs in a region before the networks covering it are listed ([networks](broadcast.md#which-networks-a-promotion-can-deal-with)); 0 lists every network |
+| `broadcast.audience.baseShare`           | number  | 0.012   | 0–1         | ratio      | Share of the people who care about wrestling a fully popular promotion draws on a top network ([audience](broadcast.md#audience)); 0 means 0                                   |
+| `broadcast.audience.popularityPower`     | number  | 1.5     | 0.5–4       | ratio      | How sharply popularity turns into viewers: popularity out of 100 raised to this power; 1 is a straight line                                                                    |
+| `broadcast.audience.tier0`               | number  | 0.3     | 0–1         | ratio      | Share of the audience a tier-0 (local) network reaches; 0 means 0                                                                                                              |
+| `broadcast.audience.tier1`               | number  | 0.4     | 0–1         | ratio      | Share a tier-1 (regional) network reaches; 0 means 0                                                                                                                           |
+| `broadcast.audience.tier2`               | number  | 0.55    | 0–1         | ratio      | Share a tier-2 network reaches; 0 means 0                                                                                                                                      |
+| `broadcast.audience.tier3`               | number  | 0.75    | 0–1         | ratio      | Share a tier-3 network reaches; 0 means 0                                                                                                                                      |
+| `broadcast.audience.tier4`               | number  | 1       | 0–1         | ratio      | Share a tier-4 (top) network reaches; 0 means 0                                                                                                                                |
+| `broadcast.audience.kind.tv`             | number  | 1       | 0–1         | ratio      | Share of the audience a TV channel turns into viewers; 0 means 0                                                                                                               |
+| `broadcast.audience.kind.ppv`            | number  | 0.05    | 0–1         | ratio      | Share that buys a pay-per-view (buyers, not viewers); 0 means 0                                                                                                                |
+| `broadcast.audience.kind.streaming`      | number  | 0.25    | 0–1         | ratio      | Share a streaming service turns into viewers; 0 means 0                                                                                                                        |
+| `broadcast.audience.timeslot.daytime`    | number  | 0.35    | 0–1         | ratio      | Share watching in the daytime; 0 means 0                                                                                                                                       |
+| `broadcast.audience.timeslot.evening`    | number  | 0.7     | 0–1         | ratio      | Share watching in the evening; 0 means 0                                                                                                                                       |
+| `broadcast.audience.timeslot.primeTime`  | number  | 1       | 0–1         | ratio      | Share watching in prime time (pay-per-view always uses it); 0 means 0                                                                                                          |
+| `broadcast.audience.timeslot.lateNight`  | number  | 0.25    | 0–1         | ratio      | Share watching late at night; 0 means 0                                                                                                                                        |
+| `broadcast.audience.importance.minor`    | number  | 0.6     | 0–3         | ratio      | Viewers a minor show draws against a regular one; 0 means 0                                                                                                                    |
+| `broadcast.audience.importance.regular`  | number  | 1       | 0–3         | ratio      | Viewers a regular show draws; 0 means 0                                                                                                                                        |
+| `broadcast.audience.importance.major`    | number  | 1.4     | 0–3         | ratio      | Viewers a major show draws against a regular one; 0 means 0                                                                                                                    |
+| `broadcast.audience.importance.flagship` | number  | 1.8     | 0–3         | ratio      | Viewers a flagship show draws against a regular one; 0 means 0                                                                                                                 |
+| `broadcast.audience.marketingPerLevel`   | number  | 0.04    | 0–0.2       | ratio      | Viewers added by each marketing level, as a share of the audience; 0 means marketing adds nobody                                                                               |
+| `broadcast.audience.liveBonus`           | number  | 1.05    | 1–2         | multiplier | Viewers a live show draws against a taped one; 1 means live draws no more                                                                                                      |
+| `broadcast.audience.neutralQuality`      | number  | 50      | 0–100       | points     | Show score that neither adds nor loses viewers                                                                                                                                 |
+| `broadcast.audience.qualityPerPoint`     | number  | 0.006   | 0–0.05      | ratio      | Viewers gained or lost per show score point from the neutral score; 0 means quality changes nothing                                                                            |
+| `broadcast.airing.viewerSwing`           | number  | 0.05    | 0–0.5       | ratio      | How far an airing's viewers swing either way from night to night; 0 means no swing                                                                                             |
+| `broadcast.benchmark.popularity.tier0`   | number  | 10      | 0–100       | points     | Popularity of the typical promotion a tier-0 network expects, in every region ([benchmark](broadcast.md#benchmark)); 0 means it expects nobody                                 |
+| `broadcast.benchmark.popularity.tier1`   | number  | 15      | 0–100       | points     | The same for a tier-1 network                                                                                                                                                  |
+| `broadcast.benchmark.popularity.tier2`   | number  | 16      | 0–100       | points     | The same for a tier-2 network                                                                                                                                                  |
+| `broadcast.benchmark.popularity.tier3`   | number  | 48      | 0–100       | points     | The same for a tier-3 network                                                                                                                                                  |
+| `broadcast.benchmark.popularity.tier4`   | number  | 58      | 0–100       | points     | The same for a tier-4 network                                                                                                                                                  |
+| `broadcast.benchmark.marketingLevel`     | integer | 5       | 0–10        | count      | Marketing level of the typical promotion a network expects                                                                                                                     |
+| `broadcast.value.tvPerThousand`          | integer | 40000   | 0–100000000 | money      | What a TV channel pays per thousand viewers it values, in cents ([valuation](broadcast.md#valuation)); 0 means 0                                                               |
+| `broadcast.value.streamingPerThousand`   | integer | 25000   | 0–100000000 | money      | The same for a streaming service; 0 means 0                                                                                                                                    |
+| `broadcast.value.ppvPerThousandBuys`     | integer | 180000  | 0–100000000 | money      | What a pay-per-view provider pays per thousand buys, in cents; 0 means 0                                                                                                       |
+| `broadcast.value.tvBonusShare`           | number  | 0.1     | 0–1         | ratio      | Part of the TV rate paid per thousand actual viewers instead of as the flat fee                                                                                                |
+| `broadcast.value.liveFeeBonus`           | number  | 1.1     | 1–3         | multiplier | What a network pays more for a live show; 1 means no more                                                                                                                      |
+| `broadcast.value.valuedViewersCap`       | number  | 5       | 0–10        | ratio      | Most viewers a network pays the flat fee for, as a share of what it expects                                                                                                    |
+| `broadcast.value.airtimePerMillion`      | integer | 15000   | 0–100000000 | money      | Airtime per million people covered, per reach tier step, in cents; 0 means no airtime cost                                                                                     |
+| `broadcast.value.streamingAirtimeFactor` | number  | 0.1     | 0–1         | ratio      | Share of the airtime cost a streaming service charges                                                                                                                          |
+| `broadcast.deal.minBenchmarkRatio`       | number  | 0.85    | 0–5         | ratio      | Share of what a network expects a promotion must draw before it signs; 0 means any audience                                                                                    |
+| `broadcast.deal.minViewers.tv`           | integer | 1000    | 0–1000000   | count      | Fewest projected viewers a TV channel takes; 0 means no floor                                                                                                                  |
+| `broadcast.deal.minViewers.ppv`          | integer | 300     | 0–1000000   | count      | Fewest projected buys a pay-per-view provider takes                                                                                                                            |
+| `broadcast.deal.minViewers.streaming`    | integer | 300     | 0–1000000   | count      | Fewest projected viewers a streaming service takes                                                                                                                             |
+| `broadcast.deal.cameraPerTier`           | integer | 1       | 0–10        | count      | Camera level a network needs per step of its reach tier; 0 means any camera                                                                                                    |
+| `broadcast.deal.primeTimeMinReach`       | number  | 25      | 0–100       | points     | Reach a promotion needs for prime time on TV or streaming; 0 means anyone                                                                                                      |
+| `broadcast.deal.minMonths`               | integer | 6       | 1–120       | months     | Shortest deal a network signs                                                                                                                                                  |
+| `broadcast.deal.maxMonths`               | integer | 48      | 1–120       | months     | Longest deal a network signs                                                                                                                                                   |
+| `broadcast.deal.defaultMonths`           | integer | 24      | 1–120       | months     | Deal length offered when none is picked                                                                                                                                        |

@@ -37,7 +37,8 @@ import type { MoveSource } from './CardBoard';
 import { issuesBySlot } from './cardSlotProps';
 import { SegmentEditorSheet } from './editor/SegmentEditorSheet';
 import { useSegmentEditor } from './editor/editorStore';
-import { fixProblemsText, RunShowButton, ShowBar } from './ShowBar';
+import { useShowNightRoute } from '@/screens/show-night/useShowNightMode';
+import { fixProblemsText, isShowUnderWay, RunShowButton, ShowBar } from './ShowBar';
 import { useBookingPanels } from './registries/bookingPanels';
 import type { BookingPanelContext, BookingPanelDefinition } from './registries/bookingPanels';
 import { SlotActions, type WinnerMenuResult } from './SlotActions';
@@ -263,6 +264,7 @@ interface PhoneBarProps {
   readonly validation: BookingValidation | null;
   readonly summaries: readonly { readonly panel: BookingPanelDefinition; readonly text: string }[];
   readonly busy: boolean;
+  readonly goesLive: boolean;
   readonly onOpenChecklist: () => void;
   readonly onOpenPanel: (panelId: string) => void;
   readonly onRun: () => void;
@@ -274,6 +276,7 @@ function PhoneBar({
   validation,
   summaries,
   busy,
+  goesLive,
   onOpenChecklist,
   onOpenPanel,
   onRun,
@@ -303,7 +306,13 @@ function PhoneBar({
         >
           {label}
         </button>
-        <RunShowButton card={card} validation={validation} busy={busy} onRun={onRun} />
+        <RunShowButton
+          card={card}
+          validation={validation}
+          busy={busy}
+          goesLive={goesLive}
+          onRun={onRun}
+        />
       </div>
     </div>
   );
@@ -336,6 +345,7 @@ function ShowBooking({ rows, row, onSelect, onRan }: ShowBookingProps) {
   const removeSegment = useEngineCommand('booking.removeSegment');
   const clearCard = useEngineCommand('booking.clearCard');
   const runTonight = useEngineCommand('shows.runTonight');
+  const navigate = useNavigate();
 
   const [pendingMove, setPendingMove] = useState<PendingMove | null>(null);
   const [refusal, setRefusal] = useState<readonly Reason[] | null>(null);
@@ -352,6 +362,9 @@ function ShowBooking({ rows, row, onSelect, onRan }: ShowBookingProps) {
 
   const card = cardQuery.data ?? null;
   const validation = validationQuery.data ?? null;
+  // On show night, whether Run the show goes live (EVT10-02): asked only on the show's day.
+  const tonight = card !== null && (card.runsTonight || isShowUnderWay(card));
+  const showNight = useShowNightRoute(tonight ? eventInstanceId : null);
 
   const showSlot = useCallback((preShow: boolean, slot: number) => {
     setChecklistOpen(false);
@@ -446,6 +459,10 @@ function ShowBooking({ rows, row, onSelect, onRan }: ShowBookingProps) {
   };
 
   const handleRun = (): void => {
+    if (showNight.goesLive || isShowUnderWay(card)) {
+      navigate(routes.game.showNight(eventInstanceId));
+      return;
+    }
     void (async () => {
       const result = await runTonight.run({ eventInstanceId });
       if (settle(result, `${row.name} is over`) && result.ok) onRan(result.data.eventInstanceId);
@@ -473,6 +490,7 @@ function ShowBooking({ rows, row, onSelect, onRan }: ShowBookingProps) {
       card={card}
       validation={validation}
       busy={runBusy}
+      goesLive={showNight.goesLive}
       hideRun={isMobile}
       onRun={handleRun}
       onClear={handleClear}
@@ -558,6 +576,7 @@ function ShowBooking({ rows, row, onSelect, onRan }: ShowBookingProps) {
             validation={validation}
             summaries={summaries}
             busy={runBusy}
+            goesLive={showNight.goesLive}
             onOpenChecklist={() => {
               setChecklistOpen(true);
             }}

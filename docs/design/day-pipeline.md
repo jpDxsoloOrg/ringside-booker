@@ -75,6 +75,11 @@ The health system's `housekeeping` phases ([health.md](health.md)):
 | `health.recovery`          | 10    | daily           | Injuries due back today end (`injury.healed`); then fatigue fades for everyone above 0 (stamina, age and traits count; less after a talking-only show day yesterday). |
 | `health.conditionRecovery` | 12    | weekly, Mondays | Damaged body parts heal a little, up to the cap for the worker's age; no rolls, no traces.                                                                            |
 
+The news system's daily `news.expire` (`housekeeping`, order 24, DAY1-02)
+deletes every story whose `expiresOn` is on or before the day, walking the
+`byExpiresOn` index keys from the oldest up; front-page stories never expire
+([news.md](news.md#expiry)).
+
 The `contracts` group's phases (ECO4-01, ECO4-03 and ECO5-05, see
 [contracts.md](contracts.md#lifecycle),
 [contracts.md](contracts.md#unhappy-workers) and
@@ -115,14 +120,15 @@ a zero amount and draw no random numbers (only the ledger rows' ids).
 
 The `periodic` group's weekly phases so far, all on Mondays:
 
-| Phase                      | Order | What it does                                                                                                                             |
-| -------------------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `match.momentumDrift`      | 30    | Momentum drifts for workers who did not wrestle that week ([match-aftermath.md](match-aftermath.md#momentum-drift)).                     |
-| `office.weeklySnapshot`    | 34    | One promotion history row per active or dormant promotion, then old weeks thinned to one row per month ([office.md](office.md#history)). |
-| `match.pruneAftermaths`    | 40    | Each worker keeps only their newest stored aftermaths ([match-aftermath.md](match-aftermath.md#stored-aftermaths)).                      |
-| `history.rollUp`           | 41    | History older than `history.keepDetailDays` becomes summaries and monthly totals ([save-format.md](save-format.md#history-retention)).   |
-| `health.pruneInjuryDetail` | 44    | The traces of injuries older than `history.keepDetailDays` become summaries; the rows stay ([health.md](health.md#returns)).             |
-| `storylines.pruneDetail`   | 46    | Traces of storylines ended over `history.keepDetailDays` ago become summaries ([storylines.md](storylines.md#heat-decay)).               |
+| Phase                      | Order | What it does                                                                                                                                                                                 |
+| -------------------------- | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `news.milestones`          | 12    | Up to `news.milestones.maxPerWeek` milestone stories from the week's reign marks, reign records, career and promotion anniversaries and later season starts ([news.md](news.md#milestones)). |
+| `match.momentumDrift`      | 30    | Momentum drifts for workers who did not wrestle that week ([match-aftermath.md](match-aftermath.md#momentum-drift)).                                                                         |
+| `office.weeklySnapshot`    | 34    | One promotion history row per active or dormant promotion, then old weeks thinned to one row per month ([office.md](office.md#history)).                                                     |
+| `match.pruneAftermaths`    | 40    | Each worker keeps only their newest stored aftermaths ([match-aftermath.md](match-aftermath.md#stored-aftermaths)).                                                                          |
+| `history.rollUp`           | 41    | History older than `history.keepDetailDays` becomes summaries and monthly totals ([save-format.md](save-format.md#history-retention)).                                                       |
+| `health.pruneInjuryDetail` | 44    | The traces of injuries older than `history.keepDetailDays` become summaries; the rows stay ([health.md](health.md#returns)).                                                                 |
+| `storylines.pruneDetail`   | 46    | Traces of storylines ended over `history.keepDetailDays` ago become summaries ([storylines.md](storylines.md#heat-decay)).                                                                   |
 
 The `growth` group's storyline phase:
 
@@ -414,18 +420,19 @@ registered ones:
 
 **The systems' gates.** Registered by the system bundles:
 
-| Gate                         | System      | Hits when                                                                                                                                                                                                                                          | Reason                                                                  | Hint        |
-| ---------------------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ----------- |
-| `shows.tonight`              | shows       | The player has an open show today (EVT2-09); while it is under way the reason is "Finish tonight's show first: Friday Fury" (EVT10-01)                                                                                                             | "Tonight: Friday Fury", or "Your show 'Friday Fury' has no card yet"    | `showNight` |
-| `health.ownWorkerInjured`    | health      | An injury to one of the player's workers waits to be noticed (WRK6-04)                                                                                                                                                                             | "Big Joe was injured (Sprained ankle, out until Mar 14, 2031)"          | `roster`    |
-| `contracts.expiringSoon`     | contracts   | One of the player's contracts ends soon and its notice is unseen (ECO4-02, [contracts.md](contracts.md#expiring-soon))                                                                                                                             | "Contract expiring soon: Big Joe (ends Mar 14, 2031)" (+ " and 2 more") | `contracts` |
-| `contracts.releaseRequested` | contracts   | One of the player's workers has an open release request that stops the skip (ECO4-03, [contracts.md](contracts.md#unhappy-workers))                                                                                                                | "Big Joe wants to leave" (+ " and 2 others")                            | `contracts` |
-| `contracts.counterWaiting`   | negotiation | A worker's counter-offer to a player's promotion waits for an answer and `contracts.counter.stopSkip` was on when it was made (ECO5-05; on by default since ECO5-06, subject the negotiation, [negotiation.md](negotiation.md#counter-offer-stop)) | "Counter-offer from Big Joe is waiting for your answer"                 | `contracts` |
+| Gate                         | System      | Hits when                                                                                                                                                                                                                                          | Reason                                                                                                | Hint        |
+| ---------------------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ----------- |
+| `shows.tonight`              | shows       | The player has an open show today (EVT2-09); while it is under way the reason is "Finish tonight's show first: Friday Fury" (EVT10-01)                                                                                                             | "Tonight: Friday Fury", or "Your show 'Friday Fury' has no card yet"                                  | `showNight` |
+| `health.ownWorkerInjured`    | health      | An injury to one of the player's workers waits to be noticed (WRK6-04)                                                                                                                                                                             | "Big Joe was injured (Sprained ankle, out until Mar 14, 2031)"                                        | `roster`    |
+| `contracts.expiringSoon`     | contracts   | One of the player's contracts ends soon and its notice is unseen (ECO4-02, [contracts.md](contracts.md#expiring-soon))                                                                                                                             | "Contract expiring soon: Big Joe (ends Mar 14, 2031)" (+ " and 2 more")                               | `contracts` |
+| `contracts.releaseRequested` | contracts   | One of the player's workers has an open release request that stops the skip (ECO4-03, [contracts.md](contracts.md#unhappy-workers))                                                                                                                | "Big Joe wants to leave" (+ " and 2 others")                                                          | `contracts` |
+| `contracts.counterWaiting`   | negotiation | A worker's counter-offer to a player's promotion waits for an answer and `contracts.counter.stopSkip` was on when it was made (ECO5-05; on by default since ECO5-06, subject the negotiation, [negotiation.md](negotiation.md#counter-offer-stop)) | "Counter-offer from Big Joe is waiting for your answer"                                               | `contracts` |
+| `news.alert`                 | news        | A player has a pending news alert whose story still exists and their `news.alerts.<playerId>.stopSkip` is on (off by default until the News screen can clear it; DAY1-03, [news.md](news.md#alerts))                                               | "News: Title change – Big Joe and Fast Eddie" (+ " and 2 more"), or "News: a front-page season story" | `news`      |
 
 The hints a gate can carry are the web shell's route keys: `showNight` (the
 show screen), `inbox`, `booking`, `roster` (the roster; WRK6-06 lands it on
 the Injuries tab or the worker's profile) and `contracts` (the Contracts
-screen, ECO4-04). A hint the shell does not know yet
+screen, ECO4-04) and `news` (the News screen, DAY1-04/05). A hint the shell does not know yet
 still gets a button with the gate's own reason.
 
 The failure count is per advance and per step. Two different phases failing on
@@ -992,3 +999,8 @@ publishes the same `broadcast.dealSigned`):
 | `broadcast.dealRenegotiated` | `dealId`, `promotionId`                                                                             | a deal's terms were renegotiated                      |
 | `broadcast.dealEnded`        | `dealId`, `promotionId`, `networkId`, `reason` (`DEAL_END_REASONS`)                                 | a deal expired or was cancelled                       |
 | `broadcast.dealWarned`       | `dealId`, `promotionId`, `risk` (`DEAL_RISKS`)                                                      | the network warned the promotion a deal is at risk    |
+
+| Event              | Payload                                | Published when                                                                                     |
+| ------------------ | -------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `news.posted`      | `newsId`, `kind`, `importance`, `buzz` | `postNews` writes a story (a dedupe hit posts nothing and publishes none)                          |
+| `news.alertRaised` | `playerId`, `newsId`, `ruleId`         | `news.matchAlerts` makes a new story a player's pending alert (DAY1-03, [news.md](news.md#alerts)) |

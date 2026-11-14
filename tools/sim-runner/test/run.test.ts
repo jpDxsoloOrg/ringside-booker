@@ -184,6 +184,15 @@ describe('runSimulation on the roster fixture', () => {
     expect(boxOffice.totalAttendance).toBeGreaterThan(0);
   });
 
+  it('counts the stories posted and expired, and the news table at both ends', async () => {
+    const run = await completedRun(20, '1', 60);
+    const { news } = run.summary;
+    expect(news.posted).toBe(run.summary.eventsByType['news.posted'] ?? 0);
+    expect(news.rowsAtEnd).toBe(run.finalState.world.tables.news.length);
+    expect(news.rowsAtStart + news.posted - news.expired).toBe(news.rowsAtEnd);
+    expect(news.expired).toBeGreaterThanOrEqual(0);
+  });
+
   it('reports a computer-run show with someone in two matches', () => {
     const start = fixtureState(20, '1');
     const { tables } = start.world;
@@ -329,6 +338,7 @@ describe('runCli', () => {
         'failuresByStep',
         'firstFailures',
         'loadIssues',
+        'news',
         'promotionHistory',
         'startDate',
         'stoppedBy',

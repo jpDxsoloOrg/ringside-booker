@@ -5,6 +5,7 @@ import {
   RELEASE_REQUESTED_GATE_ID,
 } from '@ringside/engine';
 import type { GateHit } from '@ringside/engine';
+import type { ShowNightRoute } from '@/screens/show-night/useShowNightMode';
 import { routes } from '../../routes';
 
 /** What the day control's main button does. */
@@ -40,6 +41,12 @@ export interface DayControlState {
 export interface DeriveDayControlOptions {
   /** True while an advance runs, whoever started it. */
   readonly advancing: boolean;
+  /**
+   * How tonight's show is run (EVT10-02), from `useShowNightRoute`: when it goes live the show
+   * night button reads "Go live" (or "Back to the show" part-way through) and opens the show night
+   * screen; otherwise it is "Go to the show" into Booking. Left out, the show goes to Booking.
+   */
+  readonly showNight?: ShowNightRoute;
 }
 
 /** How one route hint turns into a button. `count` is how many waiting gates share the hint. */
@@ -55,7 +62,8 @@ export const INBOX_HINT = 'inbox';
 
 /**
  * The route hint for show night (the engine's `SHOW_NIGHT_ACTION_HINT`): the day stops on a show
- * of yours ("Tonight: <Show>") and the button goes to that show, where you run it (EVT2-09).
+ * of yours ("Tonight: <Show>") and the button goes to that show, where you run it (EVT2-09): the
+ * show night screen when it goes live (EVT10-02), else Booking.
  */
 export const SHOW_NIGHT_HINT = 'showNight';
 
@@ -64,6 +72,24 @@ export const GO_TO_SHOW_LABEL = 'Go to the show';
 
 /** The show night button's label in the phone top bar. */
 export const SHOW_TONIGHT_PHONE_LABEL = 'Tonight';
+
+/** The show night button's label when the show goes live (EVT10-02). */
+export const GO_LIVE_LABEL = 'Go live';
+
+/** The show night button's label while the show is part-way through (EVT10-02). */
+export const BACK_TO_SHOW_LABEL = 'Back to the show';
+
+/** Show night when the show goes live: the show night screen for the gate's show. */
+function liveShowRoute(underWay: boolean): GateRoute {
+  return {
+    label: () => (underWay ? BACK_TO_SHOW_LABEL : GO_LIVE_LABEL),
+    ...(underWay ? { phoneLabel: () => SHOW_TONIGHT_PHONE_LABEL } : {}),
+    to: (hit) =>
+      hit.subject?.kind === 'eventInstance' && isId('eventInstance', hit.subject.id)
+        ? routes.game.showNight(hit.subject.id)
+        : routes.game.booking(),
+  };
+}
 
 /**
  * The route hint for the own-injury stop (the engine's `ROSTER_ACTION_HINT`, WRK6-04): one of your
@@ -191,8 +217,11 @@ export function leadingGate(gates: readonly GateHit[]): GateHit | undefined {
   return leading;
 }
 
-function routeFor(hit: GateHit): GateRoute | undefined {
+function routeFor(hit: GateHit, showNight?: ShowNightRoute): GateRoute | undefined {
   if (hit.actionHint === undefined || !Object.hasOwn(GATE_ROUTES, hit.actionHint)) return undefined;
+  if (hit.actionHint === SHOW_NIGHT_HINT && showNight?.goesLive === true) {
+    return liveShowRoute(showNight.underWay);
+  }
   return GATE_ROUTES[hit.actionHint];
 }
 
@@ -200,8 +229,9 @@ function routeFor(hit: GateHit): GateRoute | undefined {
 export function gateDestination(
   hit: GateHit,
   gates: readonly GateHit[] = [hit],
+  showNight?: ShowNightRoute,
 ): { readonly label: string; readonly to: string } | null {
-  const route = routeFor(hit);
+  const route = routeFor(hit, showNight);
   if (route === undefined) return null;
   const sameHint = gates.filter((other) => other.actionHint === hit.actionHint).length;
   return { label: route.label(Math.max(sameHint, 1)), to: route.to(hit) };
@@ -218,13 +248,13 @@ export function gateDestination(
  */
 export function deriveDayControl(
   gates: readonly GateHit[],
-  { advancing }: DeriveDayControlOptions,
+  { advancing, showNight }: DeriveDayControlOptions,
 ): DayControlState {
   if (advancing) return { primary: { kind: 'busy' }, skipEnabled: false };
   const leading = leadingGate(gates);
   if (leading === undefined) return { primary: { kind: 'next' }, skipEnabled: true };
 
-  const route = routeFor(leading);
+  const route = routeFor(leading, showNight);
   if (route === undefined) {
     return {
       primary: {

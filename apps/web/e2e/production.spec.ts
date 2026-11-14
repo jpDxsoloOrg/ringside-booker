@@ -15,7 +15,14 @@
 import { expect, test } from './fixtures';
 import type { Locator, Page, TestInfo } from '@playwright/test';
 import { expectNoSeriousA11yViolations } from './helpers/a11y';
-import { autoFillCard, cancelTonightsShow, pickWinnersAndRunShow } from './helpers/booking';
+import {
+  autoFillCard,
+  cancelTonightsShow,
+  dayBarButtons,
+  openBookingForTonight,
+  pickWinnersAndRunShow,
+  SHOW_STOP,
+} from './helpers/booking';
 import { enterGameFromSampleSave, startDefaultWorldGame } from './helpers/game';
 import { expectNoHorizontalScroll } from './helpers/layout';
 import { isPhone } from './helpers/viewport';
@@ -213,7 +220,7 @@ async function skipToDateThroughShows(
     timeZone: 'UTC',
   });
   const summary = page.getByRole('region', { name: 'Last advance' });
-  const show = dayButton(page, /Go to the show$/);
+  const show = dayButton(page, SHOW_STOP);
   const roster = dayButton(page, 'Roster');
   for (let stops = 0; stops < 12; stops += 1) {
     await skipToDate(page, date, phone);
@@ -226,8 +233,7 @@ async function skipToDateThroughShows(
       continue;
     }
     if (runFirstShow && !ran) {
-      await show.click();
-      await expect(page).toHaveURL(/\/game\/booking/);
+      await openBookingForTonight(page);
       const sheet = await autoFillCard(page);
       await sheet.getByRole('button', { name: 'Done' }).click();
       await expect(sheet).toBeHidden();
@@ -422,10 +428,8 @@ test.describe('Production in a new Altura game', () => {
     });
 
     await test.step('after a day the header counts the regions above the ceiling', async () => {
-      await dayButton(page, /^(Next day|(Tonight: )?Go to the show)$/)
-        .first()
-        .waitFor();
-      if (await dayButton(page, /Go to the show$/).isVisible()) await cancelTonightsShow(page);
+      await dayButton(page, dayBarButtons()).first().waitFor();
+      if (await dayButton(page, SHOW_STOP).isVisible()) await cancelTonightsShow(page);
       await dayButton(page, 'Next day').click();
       await openProduction(page, phone);
       await expect(headerCard(page, 'Popularity ceiling')).toContainText(/\d+ regions? above it/);

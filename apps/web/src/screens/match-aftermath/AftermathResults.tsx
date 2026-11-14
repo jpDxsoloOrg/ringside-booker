@@ -228,6 +228,32 @@ function SegmentCard({
   );
 }
 
+export interface AftermathWorkerListProps {
+  /** One match's aftermath, from `match.aftermath { segmentId }`. */
+  readonly segment: AftermathSegmentView;
+  /** The show's promotion, for "momentum with <promotion>". */
+  readonly promotionName: string;
+}
+
+/**
+ * One match's competitors with their popularity and momentum, with no heading of its own: the show
+ * night screen's report after each segment (EVT10-02) puts it under its own.
+ */
+export function AftermathWorkerList({ segment, promotionName }: AftermathWorkerListProps) {
+  return (
+    <ul className={styles['workers']}>
+      {segment.workers.map((worker) => (
+        <WorkerRow
+          key={worker.aftermathId}
+          worker={worker}
+          regionName={segment.showRegionName}
+          promotionName={promotionName}
+        />
+      ))}
+    </ul>
+  );
+}
+
 export interface AftermathResultsProps {
   /** `match.aftermath { eventInstanceId }` for the show. */
   readonly data: AftermathResult;

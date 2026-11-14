@@ -36,7 +36,7 @@
 import type { Locator, Page, TestInfo } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { expectNoSeriousA11yViolations } from './helpers/a11y';
-import { skipDaysOnce, waitForDayBarSettled } from './helpers/booking';
+import { dayBarButtons, skipDaysOnce, waitForDayBarSettled } from './helpers/booking';
 import {
   addIsoDays,
   clearDayStop,
@@ -348,7 +348,7 @@ test.describe('contracts', () => {
       await shot(page, 'contracts-expiring', testInfo);
       await banner.getByRole('button', { name: 'Mark all seen' }).click();
       await expect(contracts).toBeHidden({ timeout: 15_000 });
-      await expect(dayButton(page, /^(Next day|(Tonight: )?Go to the show|Roster)$/)).toBeVisible();
+      await expect(dayButton(page, dayBarButtons('Roster'))).toBeVisible();
     });
 
     await test.step('The soonest contract runs out: Expired, and a lower payroll', async () => {

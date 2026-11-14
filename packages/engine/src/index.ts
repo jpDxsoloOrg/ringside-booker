@@ -3842,3 +3842,121 @@ export {
   RIVAL_AIRING_TRACE_KIND,
 } from './systems/broadcast/index';
 export type { AiringKind, BroadcastShow, DealRisk, DueAiring } from './systems/broadcast/index';
+// DAY1-02: stories from foundation data (expiry, the season-one story, weekly milestones).
+export {
+  CAREER_ANNIVERSARY_TOPIC,
+  CAREER_MAJOR_YEARS,
+  compareMilestones,
+  EXPIRE_NEWS_PHASE_ID,
+  expireNewsPhase,
+  MILESTONES_PHASE_ID,
+  milestoneSources,
+  milestonesPhase,
+  NEWS_OPENING_STORY_STEP,
+  newsPhases,
+  PROMOTION_ANNIVERSARY_TOPIC,
+  PROMOTION_MAJOR_YEARS,
+  REIGN_MILESTONE_DAYS,
+  REIGN_MILESTONE_TOPIC,
+  REIGN_RECORD_TOPIC,
+  registerMilestoneSource,
+  SEASON_START_TOPIC,
+  seasonStartDedupeKey,
+} from './systems/news';
+export type {
+  MilestoneCandidate,
+  MilestoneDeps,
+  MilestoneSource,
+  MilestoneWindow,
+} from './systems/news';
+
+// Broadcast audience (ECO8-02): one audience formula for valuation, the network benchmark and
+// airings, and the audience helper other features call. See docs/design/broadcast.md#audience.
+export {
+  AUDIENCE_TRACE_COUNTRY_LINES,
+  audience,
+  audienceInputsFor,
+  benchmarkFor,
+  benchmarkInputsFor,
+  broadcastHypeFor,
+  formatViewers,
+  networkBenchmark,
+  projectedAudience,
+  regionAudience,
+} from './systems/broadcast/index';
+export type {
+  AudienceImportance,
+  AudienceInputs,
+  AudienceQuality,
+  AudienceRequest,
+  BenchmarkRegionInput,
+  BenchmarkRequest,
+  NetworkBenchmarkInputs,
+  RegionAudienceInput,
+  RegionAudienceInputs,
+} from './systems/broadcast/index';
+// DAY1-03: news queries (feed, front page, one story), the front-page rule and skip alerts.
+export {
+  BUILT_IN_NEWS_ALERT_RULES,
+  NEWS_ACTION_HINT,
+  NEWS_ALERT_GATE_ID,
+  NEWS_ALERT_STOP_SKIP_DEFAULT,
+  NEWS_FEED_DEFAULT_LIMIT,
+  NEWS_FEED_MAX_LIMIT,
+  NEWS_ITEM_NOT_FOUND,
+  NEWS_TICKER_DEFAULT_COUNT,
+  NEWS_TICKER_MAX_COUNT,
+  NO_LONGER_IN_RECORDS,
+  defineNewsAlertRule,
+  isFrontPage,
+  newsAlertReason,
+  newsAlertRules,
+  registerNewsAlertRule,
+} from './systems/news';
+export type {
+  NewsAlertRule,
+  NewsAlertRuleContext,
+  NewsAlertRulesView,
+  NewsAlertRuleView,
+  NewsFeed,
+  NewsFeedArgs,
+  NewsItemResult,
+  NewsItemView,
+  NewsNames,
+  NewsTop,
+  NewsTopArgs,
+} from './systems/news';
+
+// Broadcast valuation (ECO8-03): what a network would pay for a show and whether it would sign,
+// and the networks, valuation and public deals queries. See docs/design/broadcast.md#valuation.
+export {
+  ALL_MAJOR_SHOWS,
+  ALL_TELEVISED_SHOWS,
+  BEST_OFFER_MAX_VALUATIONS,
+  coverageLabel,
+  DEAL_REFUSAL_CODES,
+  dealIsLive,
+  dealShowName,
+  dealTerms,
+  dealValuation,
+  dealVerdict,
+  valuationContext,
+} from './systems/broadcast/index';
+export type {
+  BroadcastValuationArgs,
+  DealCheckInputs,
+  DealRefusal,
+  DealRefusalCode,
+  DealTermsInputs,
+  DealTermsResult,
+  DealValuation,
+  DealValuationRequest,
+  DealValuationTerms,
+  DealVerdict,
+  DealVerdictValue,
+  NetworkBestOffer,
+  NetworkCarriedDeal,
+  NetworkRow,
+  PublicDealRow,
+  ValuationContext,
+} from './systems/broadcast/index';

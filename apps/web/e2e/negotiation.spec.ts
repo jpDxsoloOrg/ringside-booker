@@ -29,7 +29,12 @@
 import type { Locator, Page, TestInfo } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { expectNoSeriousA11yViolations } from './helpers/a11y';
-import { cancelTonightsShow, waitForDayBarSettled } from './helpers/booking';
+import {
+  cancelTonightsShow,
+  dayBarButtons,
+  SHOW_STOP,
+  waitForDayBarSettled,
+} from './helpers/booking';
 import {
   addIsoDays,
   clearInjuryStop,
@@ -104,11 +109,11 @@ async function dollarsIn(field: Locator): Promise<number> {
  */
 async function nextDay(page: Page): Promise<void> {
   for (let tries = 0; tries < 6; tries += 1) {
-    const button = dayButton(page, /^(Next day|(Tonight: )?Go to the show|Contracts|Roster)$/);
+    const button = dayButton(page, dayBarButtons('Contracts', 'Roster'));
     await expect(button).toBeVisible({ timeout: 20_000 });
     // A phone shows a short label and keeps the full one in the accessible name.
     const name = (await button.getAttribute('aria-label')) ?? (await button.textContent()) ?? '';
-    if (name.includes('Go to the show')) {
+    if (SHOW_STOP.test(name)) {
       await cancelTonightsShow(page);
       continue;
     }

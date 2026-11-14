@@ -3,6 +3,23 @@ import type { Page } from '@playwright/test';
 import { closeWithEscape } from './overlays';
 import { navigateInApp } from './shell';
 
+/**
+ * The show-day stop's button (EVT10-02): "Go live" (or "Back to the show" part-way through) under
+ * the Live setting, the default; "Go to the show" under Auto. On a phone the short label is
+ * "Tonight" and the accessible name "Tonight: <label>", which still ends with the label.
+ */
+export const SHOW_STOP_LABELS = '(?:Go to the show|Go live|Back to the show)';
+
+/** Matches the show-day stop's button by its accessible name. */
+export const SHOW_STOP = new RegExp(`${SHOW_STOP_LABELS}$`);
+
+/** Matches the day bar's button when it is Next day, the show-day stop, or one of `others`. */
+export function dayBarButtons(...others: readonly string[]): RegExp {
+  return new RegExp(
+    `^(Next day|(Tonight: )?${SHOW_STOP_LABELS}${others.map((other) => `|${other}`).join('')})$`,
+  );
+}
+
 /** The summary banner a finished advance leaves under the top bar. */
 function lastAdvance(page: Page) {
   return page.getByRole('region', { name: 'Last advance' });
@@ -195,14 +212,62 @@ export async function pickWinners(page: Page, phone = false): Promise<number> {
 }
 
 /**
- * Picks a winner for every match (see {@link pickWinners}), then runs tonight's show with **Run
- * the show** (EVT2-09: there is no Lock card): the side column's button on desktop, the sticky
- * bar's on a phone. Waits for the show's results page, which opens once it has run.
+ * From the show night screen (EVT10-02), runs whatever is left with **Sim the rest of the show**
+ * and opens the results from the Show's over panel.
+ */
+export async function simRestOfShow(page: Page): Promise<void> {
+  await expect(page).toHaveURL(/\/game\/show-night\/evi_/);
+  const sim = page.getByRole('button', { name: 'Sim the rest of the show' });
+  await expect(sim).toBeEnabled();
+  await sim.click();
+  await page.getByRole('button', { name: 'See the results' }).click();
+  await expect(page).toHaveURL(/\/game\/event-history\/evi_/);
+}
+
+/**
+ * Picks a winner for every match (see {@link pickWinners}), then runs tonight's show (EVT2-09:
+ * there is no Lock card) from the side column's button on desktop, the sticky bar's on a phone:
+ * **Go live** and then Sim the rest on show night under the Live setting (EVT10-02), **Run the
+ * show** under Auto. Waits for the show's results page.
  */
 export async function pickWinnersAndRunShow(page: Page, phone = false): Promise<void> {
   await pickWinners(page, phone);
-  const run = page.getByRole('main').getByRole('button', { name: 'Run the show' }).last();
+  const run = page
+    .getByRole('main')
+    .getByRole('button', { name: /^(Run the show|Go live)$/ })
+    .last();
   await expect(run).toBeEnabled();
+  const live = (await run.textContent())?.includes('Go live') === true;
   await run.click();
+  if (live) {
+    await simRestOfShow(page);
+    return;
+  }
   await expect(page).toHaveURL(/\/game\/event-history\/evi_/);
+}
+
+/**
+ * Follows the Last advance banner's link to tonight's show and lands on its card in Booking: under
+ * the Live setting the link is "Go live" and show night sends a show with no card (or one with
+ * problems) on to Booking with "Book the card" (or "Fix the card"); under Auto, "Go to the show".
+ */
+export async function openTonightsCardFromSummary(page: Page): Promise<void> {
+  const summary = page.getByRole('region', { name: 'Last advance' });
+  await summary.getByRole('link', { name: /^(Go to the show|Go live)$/ }).click();
+  await onToTonightsCard(page);
+}
+
+/** As {@link openTonightsCardFromSummary}, from the day bar's show-day button. */
+export async function openBookingForTonight(page: Page): Promise<void> {
+  await page.getByTestId('day-control').getByRole('button', { name: SHOW_STOP }).click();
+  await onToTonightsCard(page);
+}
+
+/** From wherever a show-night way in landed (show night or Booking), on to the card in Booking. */
+async function onToTonightsCard(page: Page): Promise<void> {
+  await expect(page).toHaveURL(/\/game\/(booking|show-night)/);
+  if (page.url().includes('/game/show-night/')) {
+    await page.getByRole('button', { name: /^(Book the card|Fix the card)$/ }).click();
+  }
+  await expect(page).toHaveURL(/\/game\/booking/);
 }

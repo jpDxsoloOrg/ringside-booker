@@ -69,7 +69,10 @@ the calendar sheet) opens the show here. The status reads Tonight and **Run the 
 (`shows.runTonight`) sits in the header (the sticky bar on a phone). It is disabled until
 `booking.validate` says `runnable`, with "Fix N problems to run the show" as its description;
 warnings never block. Once it has run, the results page opens with the reveal
-(`/game/event-history/<id>?reveal=1`). On any other day there is no run button; the checklist is
+(`/game/event-history/<id>?reveal=1`). Under the Live setting (the default, EVT10-02) the button reads **Go
+live** and opens show night (`/game/show-night/<id>`) instead, where the show runs a segment at
+a time; once the show is under way the card is locked (`showLive`) and the button reads **Back to
+the show**. On any other day there is no run button; the checklist is
 guidance. **Clear card** asks first.
 
 ## Phone

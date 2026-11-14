@@ -1,6 +1,7 @@
 /**
  * The news system's balance numbers: how much buzz a story starts with and how long it stays on
- * the feed (DAY1-01).
+ * the feed (DAY1-01), how many milestone stories the weekly job posts (DAY1-02), and which stories
+ * make the front page and in what order (DAY1-03).
  *
  * Every number here is 0-means-0: a kind base of 0 gives that kind no starting buzz, 0 importance
  * points make importance count for nothing, a popularity maximum of 0 makes the people in a story
@@ -13,6 +14,8 @@ import { defineTunables } from '../../core/tunables/define';
 const CATEGORY = 'News';
 const BUZZ_DOC = 'news.md#buzz';
 const EXPIRY_DOC = 'news.md#expiry';
+const MILESTONES_DOC = 'news.md#milestones';
+const FRONT_PAGE_DOC = 'news.md#front-page';
 
 export const newsTunables = defineTunables({
   'news.buzz.kindBase.result': {
@@ -226,6 +229,17 @@ export const newsTunables = defineTunables({
     description: 'Most people and promotions in a story whose popularity counts towards its buzz',
     docRef: BUZZ_DOC,
   },
+  'news.buzz.fullTraces': {
+    kind: 'integer',
+    default: 60,
+    min: 0,
+    max: 1000,
+    unit: 'count',
+    category: CATEGORY,
+    description:
+      'Newest stories whose buzz Why? is kept in full; older ones keep a summary (0 = summaries only)',
+    docRef: BUZZ_DOC,
+  },
   'news.expiry.importance0Days': {
     kind: 'integer',
     default: 14,
@@ -258,5 +272,114 @@ export const newsTunables = defineTunables({
     description:
       'Days from posting until an importance 2 story drops off the feed (0 = never shown after the day it was posted)',
     docRef: EXPIRY_DOC,
+  },
+  'news.milestones.maxPerWeek': {
+    kind: 'integer',
+    default: 8,
+    min: 0,
+    max: 50,
+    unit: 'count',
+    category: CATEGORY,
+    description: 'Most milestone stories posted each Monday (0 = no milestone stories)',
+    docRef: MILESTONES_DOC,
+  },
+  'news.milestones.majorTitlePrestige': {
+    kind: 'number',
+    default: 80,
+    min: 0,
+    max: 100,
+    step: 1,
+    unit: 'points',
+    category: CATEGORY,
+    description:
+      'Title prestige from which a reign milestone is one level more important (0 = every title)',
+    docRef: MILESTONES_DOC,
+  },
+  'news.milestones.recordMinReigns': {
+    kind: 'integer',
+    default: 3,
+    min: 0,
+    max: 50,
+    unit: 'count',
+    category: CATEGORY,
+    description:
+      'Finished reigns a title needs before passing its longest one makes a story (0 = any title with a finished reign)',
+    docRef: MILESTONES_DOC,
+  },
+  'news.milestones.careerYearStep': {
+    kind: 'integer',
+    default: 5,
+    min: 1,
+    max: 50,
+    unit: 'years',
+    category: CATEGORY,
+    description: 'Career anniversaries make a story every this many years in the business',
+    docRef: MILESTONES_DOC,
+  },
+  'news.milestones.careerMinYears': {
+    kind: 'integer',
+    default: 10,
+    min: 0,
+    max: 60,
+    unit: 'years',
+    category: CATEGORY,
+    description:
+      'Fewest years in the business for a career anniversary story (0 = from the first step)',
+    docRef: MILESTONES_DOC,
+  },
+  'news.milestones.promotionYearStep': {
+    kind: 'integer',
+    default: 5,
+    min: 1,
+    max: 50,
+    unit: 'years',
+    category: CATEGORY,
+    description:
+      'Promotion anniversaries make a story on the first one and then every this many years',
+    docRef: MILESTONES_DOC,
+  },
+  'news.frontPage.minBuzz': {
+    kind: 'number',
+    default: 65,
+    min: 0,
+    max: 100,
+    step: 1,
+    unit: 'points',
+    category: CATEGORY,
+    description:
+      'Buzz from which a story is front page, whatever its importance (0 = every story is front page)',
+    docRef: FRONT_PAGE_DOC,
+  },
+  'news.frontPage.agePenaltyPerDay': {
+    kind: 'number',
+    default: 4,
+    min: 0,
+    max: 50,
+    step: 0.5,
+    unit: 'points',
+    category: CATEGORY,
+    description:
+      'Buzz a story loses per day of age when the front page and ticker are ranked (0 = age does not matter)',
+    docRef: FRONT_PAGE_DOC,
+  },
+  'news.frontPage.windowDays': {
+    kind: 'integer',
+    default: 7,
+    min: 1,
+    max: 90,
+    unit: 'days',
+    category: CATEGORY,
+    description: 'Days of stories, today included, that compete for the front page and ticker',
+    docRef: FRONT_PAGE_DOC,
+  },
+  'news.frontPage.heroCount': {
+    kind: 'integer',
+    default: 3,
+    min: 1,
+    max: 5,
+    unit: 'count',
+    category: CATEGORY,
+    description: 'Front-page stories shown large at the top of the News screen',
+    docRef: FRONT_PAGE_DOC,
   },
 });

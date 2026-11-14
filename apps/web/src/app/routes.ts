@@ -66,6 +66,9 @@ export interface CalendarLinkOptions {
 /** The names of the calendar's search parameters. */
 export const CALENDAR_PARAMS = { month: 'month', scope: 'scope', show: 'show' } as const;
 
+/** The path segment of the live show night screen (EVT10-02): `/game/show-night/:eventInstanceId`. */
+export const SHOW_NIGHT_SEGMENT = 'show-night';
+
 /** The names of the results page's search parameters. */
 export const SHOW_RESULTS_PARAMS = { reveal: 'reveal' } as const;
 
@@ -155,6 +158,12 @@ export const routes = {
       const path = `${gameScreenPath('eventHistory')}/${encodeURIComponent(eventInstanceId)}`;
       return options.reveal === true ? `${path}?${SHOW_RESULTS_PARAMS.reveal}=1` : path;
     },
+    /**
+     * The live show night screen for one of your shows (EVT10-02): run it a segment at a time with
+     * a report after each, or sim the rest. Not a navigation item.
+     */
+    showNight: (eventInstanceId: EventInstanceId): string =>
+      `${GAME_ROOT}/${SHOW_NIGHT_SEGMENT}/${encodeURIComponent(eventInstanceId)}`,
     /** One promotion's profile, optionally on a tab: `/game/promotions/pro_…?tab=roster`. */
     promotion: (promotionId: PromotionId, options: { readonly tab?: string } = {}): string => {
       const path = `${gameScreenPath('promotions')}/${encodeURIComponent(promotionId)}`;
@@ -183,6 +192,8 @@ export const routePatterns = {
   worker: `${gameScreenPath('workers')}/:personId`,
   /** One show's results; `routes.game.showResults(eventInstanceId)` builds the URL. */
   showResults: `${gameScreenPath('eventHistory')}/:eventInstanceId`,
+  /** The live show night screen; `routes.game.showNight(eventInstanceId)` builds the URL. */
+  showNight: `${GAME_ROOT}/${SHOW_NIGHT_SEGMENT}/:eventInstanceId`,
   /** One promotion's profile; `routes.game.promotion(promotionId)` builds the URL. */
   promotion: `${gameScreenPath('promotions')}/:promotionId`,
   /** One title's page; `routes.game.title(titleId)` builds the URL. */
@@ -193,6 +204,9 @@ export const routePatterns = {
 
 /** The name of the worker profile route's parameter. */
 export const WORKER_ROUTE_PARAM = 'personId';
+
+/** The name of the show night route's parameter. */
+export const SHOW_NIGHT_ROUTE_PARAM = 'eventInstanceId';
 
 /** The name of the results page route's parameter. */
 export const SHOW_RESULTS_ROUTE_PARAM = 'eventInstanceId';
