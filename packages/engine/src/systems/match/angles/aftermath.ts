@@ -208,13 +208,7 @@ export function computeAngleAftermath(
       if (employment !== undefined) {
         const before = momentumOf(read, tunables, employment, name);
         const momentumDelta = angleMomentumGain(gainInputs, { tunables });
-        const door = previewMomentumChange(
-          read,
-          tunables,
-          employment.id,
-          momentumDelta,
-          shareText,
-        );
+        const door = previewMomentumChange(read, tunables, employment.id, momentumDelta, shareText);
         momentum = {
           employmentId: employment.id,
           before: before.value,

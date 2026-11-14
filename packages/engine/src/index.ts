@@ -3699,7 +3699,10 @@ export {
   IN_NO_BEAT_TEXT,
   angleMomentumGain,
 } from './systems/match/angles/formulas/angleMomentumGain';
-export type { AngleGainDeps, AngleGainInputs } from './systems/match/angles/formulas/angleMomentumGain';
+export type {
+  AngleGainDeps,
+  AngleGainInputs,
+} from './systems/match/angles/formulas/angleMomentumGain';
 export {
   ANGLE_POPULARITY_GAIN_LABEL,
   NEVER_A_LOSS_LABEL,

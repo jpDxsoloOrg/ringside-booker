@@ -247,7 +247,7 @@ export const angleTunables = defineTunables({
     0.12,
     1,
     0.01,
-    "Momentum per point of angle score above or below the pivot, for someone in every beat",
+    'Momentum per point of angle score above or below the pivot, for someone in every beat',
   ),
   'match.angle.popularityPivot': aftermathPoints(
     60,

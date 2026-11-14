@@ -67,10 +67,7 @@ describe('angleMomentumGain', () => {
   });
 
   it('scales by share: one beat of four is a quarter', () => {
-    expect(run(angleMomentumGain, angle({ beatsIn: 1, totalBeats: 4 })).value).toBeCloseTo(
-      0.9,
-      10,
-    );
+    expect(run(angleMomentumGain, angle({ beatsIn: 1, totalBeats: 4 })).value).toBeCloseTo(0.9, 10);
   });
 
   it('gives nothing to someone in no beat (share 0)', () => {

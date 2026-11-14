@@ -146,10 +146,8 @@ function scoreOf(tables: SerializedTables, segmentId: SegmentId): number {
 const TUNABLES = createEngineTunables();
 
 function momentumFor(score: number, beatsIn: number, totalBeats: number): number {
-  return angleMomentumGain(
-    { personName: 'x', score, beatsIn, totalBeats },
-    { tunables: TUNABLES },
-  ).value;
+  return angleMomentumGain({ personName: 'x', score, beatsIn, totalBeats }, { tunables: TUNABLES })
+    .value;
 }
 
 describe('an angle on show night', () => {
@@ -182,9 +180,7 @@ describe('an angle on show night', () => {
     const before = built.world.tables.employments.values().map((row) => [row.id, row.morale]);
     const engine = engineOn(built.world);
     await engine.advanceDays({ maxDays: 1 });
-    const after = engine
-      .exportState()
-      .world.tables.employments.map((row) => [row.id, row.morale]);
+    const after = engine.exportState().world.tables.employments.map((row) => [row.id, row.morale]);
     expect(after).toEqual([...before]);
   });
 });
