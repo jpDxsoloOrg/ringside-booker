@@ -741,7 +741,21 @@ export const changesSinceQuery = defineQuery('contracts.changesSince', {
         }
       }
     }
+    // A request answered by Grant (or followed by a walk-out) is gone from its concern row, so
+    // requests also come from the recent-event log (ECO4-03).
+    const requested = new Set(
+      changes.requests.map((change) => `${change.employmentId}:${change.date}`),
+    );
     for (const event of ctx.events.recent()) {
+      if (event.type === 'contract.releaseRequested' && inRange(event.date, from, to)) {
+        const employment = ctx.read.tables.employments.get(event.payload.employmentId);
+        const key = `${event.payload.employmentId}:${event.date}`;
+        if (employment !== undefined && own.has(event.payload.promotionId) && !requested.has(key)) {
+          requested.add(key);
+          changes.requests.push(changeOf(employment, event.date));
+        }
+        continue;
+      }
       if (event.type !== 'contract.renewed' || !inRange(event.date, from, to)) {
         continue;
       }
