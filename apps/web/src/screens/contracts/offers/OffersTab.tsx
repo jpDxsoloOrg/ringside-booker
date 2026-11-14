@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import type { OfferRow, PromotionId } from '@ringside/engine';
 import { useEngineQuery } from '@/app/engine/useEngineQuery';
-import { Badge, CountBadge } from '@/components/Badge';
+import { Badge } from '@/components/Badge';
 import { DataTable } from '@/components/DataTable';
 import type { ColumnDef } from '@/components/DataTable';
 import { EmptyState } from '@/components/EmptyState';
@@ -9,11 +9,11 @@ import { formatNumber } from '@/components/format';
 import { ImageSlot } from '@/components/ImageSlot';
 import { Switch } from '@/components/Switch';
 import { WhyButton } from '@/components/Trace';
-import { useSessionStore } from '@/app/session/sessionStore';
 import { useIsMobile } from '@/styles/useMediaQuery';
 import type { NegotiationTarget } from '../contractsParams';
 import { offerDueText, offerStatusText, offerSummaryText } from '../negotiation/negotiationText';
 import { useContractMoney } from '../useContractMoney';
+import type { ContractMoney } from '../useContractMoney';
 import styles from '../ContractsScreen.module.css';
 
 const NO_ROWS: readonly OfferRow[] = [];
@@ -21,6 +21,20 @@ const NO_ROWS: readonly OfferRow[] = [];
 export interface OffersTabProps {
   readonly promotionId: PromotionId;
   readonly openNegotiation: (target: NegotiationTarget) => void;
+}
+
+/**
+ * What the Offers tab says is on the table: their counter while it waits for your answer
+ * ("Their counter: $34,200 a month, 24 months"), otherwise your offer.
+ */
+export function onTheTableText(
+  row: Pick<OfferRow, 'status' | 'offerSummary' | 'counterSummary'>,
+  money: ContractMoney,
+): string {
+  if (row.status === 'countered' && row.counterSummary !== null) {
+    return `Their counter: ${offerSummaryText({ ...row.counterSummary, terms: row.counterSummary }, money)}`;
+  }
+  return offerSummaryText({ ...row.offerSummary, terms: row.offerSummary }, money);
 }
 
 /** "Open offers" / "Closed offers": the empty state of each list. */
@@ -130,7 +144,7 @@ export function OffersTab({ promotionId, openNegotiation }: OffersTabProps) {
       {
         id: 'terms',
         header: 'On the table',
-        cell: (row) => offerSummaryText({ ...row.offerSummary, terms: row.offerSummary }, money),
+        cell: (row) => onTheTableText(row, money),
         filterValue: () => null,
         card: 'stat',
       },
@@ -171,21 +185,4 @@ export function OffersTab({ promotionId, openNegotiation }: OffersTabProps) {
       />
     </div>
   );
-}
-
-/** The Offers tab's badge: how many counter-offers wait for your answer. */
-export function CounteredOffersBadge() {
-  const promotionId = useSessionStore((state) => state.seat?.promotionId ?? null);
-  if (promotionId === null) return null;
-  return <CounteredCount promotionId={promotionId} />;
-}
-
-function CounteredCount({ promotionId }: { readonly promotionId: PromotionId }) {
-  const query = useEngineQuery(
-    'contracts.offers',
-    { promotionId, status: 'open' },
-    { keepPreviousData: true },
-  );
-  const countered = (query.data ?? NO_ROWS).filter((row) => row.status === 'countered').length;
-  return <CountBadge count={countered} label={`${String(countered)} countered`} tone="action" />;
 }

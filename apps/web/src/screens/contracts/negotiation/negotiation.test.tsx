@@ -4,8 +4,11 @@ import type { PersonId } from '@ringside/engine';
 import { tinyWorld } from '@ringside/engine/testing';
 import { routes } from '@/app/routes';
 import { useSessionStore } from '@/app/session/sessionStore';
+import { useSettingsStore } from '@/app/settings/settingsStore';
+import { formatMoney } from '@/components/format';
 import { useTracePanelStore } from '@/components/Trace';
 import { LOAD_MS, renderContracts } from '@/test/contractsScreen';
+import { resetSettingsForTest } from '@/test/settings';
 import { aContractRow } from '../contractFixtures';
 import { renewalWindowText } from './RenewAction';
 
@@ -24,6 +27,7 @@ function tinyWorldRingName(personId: PersonId): string {
 
 beforeEach(() => {
   useSessionStore.getState().clear();
+  resetSettingsForTest();
 });
 
 afterEach(() => {
@@ -93,6 +97,38 @@ describe('Contracts › Free agents and the Negotiation Sheet', () => {
     );
   }, 30_000);
 
+  it("shows their counter on the Offers tab, in the player's money style", async () => {
+    const counter = [...tinyWorld().world.tables.negotiations.values()].find(
+      (negotiation) => negotiation.status === 'countered',
+    )?.lastCounter;
+    if (counter === null || counter === undefined)
+      throw new Error('The tiny world lost its counter.');
+    const { monthlyWage, signingBonus } = counter.terms;
+    act(() => {
+      useSettingsStore.getState().update({ moneyStyle: 'compact' });
+    });
+    renderContracts(`${CONTRACTS}?tab=offers`);
+    const table = await screen.findByRole('grid', { name: 'Open offers' }, { timeout: LOAD_MS });
+    const row = await within(table).findByRole(
+      'row',
+      { name: new RegExp(tinyWorldRingName(freeAgent()), 'u') },
+      { timeout: LOAD_MS },
+    );
+    const line = (style: 'compact' | 'full'): string =>
+      `Their counter: ${formatMoney(monthlyWage, { style })} a month, ` +
+      `${formatMoney(signingBonus, { style })} to sign`;
+    expect(within(row).getByText(/^Countered: answer by /u)).toBeInTheDocument();
+    expect(
+      within(row).getByText(new RegExp(`^${escaped(line('compact'))}`, 'u')),
+    ).toBeInTheDocument();
+    act(() => {
+      useSettingsStore.getState().update({ moneyStyle: 'full' });
+    });
+    expect(
+      await within(row).findByText(new RegExp(`^${escaped(line('full'))}`, 'u')),
+    ).toBeInTheDocument();
+  }, 30_000);
+
   it("shows a refused offer's field reason under that field", async () => {
     const rendered = renderContracts(`${CONTRACTS}?tab=free-agents&person=${freeAgent()}`, {
       cannedCommands: {
@@ -145,3 +181,7 @@ describe('Contracts › Free agents and the Negotiation Sheet', () => {
     expect(within(row).getByText(renewalWindowText(180))).toBeInTheDocument();
   }, 30_000);
 });
+
+function escaped(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
+}
