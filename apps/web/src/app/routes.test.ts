@@ -9,6 +9,7 @@ import {
   SHOW_RESULTS_PARAMS,
   SHOW_RESULTS_ROUTE_PARAM,
   TITLE_ROUTE_PARAM,
+  STORYLINE_ROUTE_PARAM,
 } from './routes';
 
 describe('routes.game.calendarAt', () => {
@@ -102,5 +103,18 @@ describe('routes.game.finances', () => {
     expect(url.searchParams.get(FINANCES_PARAMS.tab)).toBe('ledger');
     expect(url.searchParams.get(FINANCES_PARAMS.month)).toBe('2027-02');
     expect(url.searchParams.get(FINANCES_PARAMS.category)).toBe('travel');
+  });
+});
+
+describe('routes.game.storyline', () => {
+  const storylineId = parseId('storyline', 'sty_0000000001');
+
+  it('sits under Storylines and matches the registered pattern', () => {
+    const path = routes.game.storyline(storylineId);
+    expect(path).toBe(`/game/storylines/${storylineId}`);
+    expect(path.startsWith(`${routes.game.storylines()}/`)).toBe(true);
+    expect(matchPath(routePatterns.storyline, path)?.params[STORYLINE_ROUTE_PARAM]).toBe(
+      storylineId,
+    );
   });
 });
