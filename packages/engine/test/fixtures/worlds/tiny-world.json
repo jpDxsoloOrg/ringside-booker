@@ -1497,6 +1497,47 @@
         "appearancesThisYear": 0,
         "lastAppearanceOn": null,
         "leave": null
+      },
+      {
+        "id": "emp_000000000h",
+        "personId": "per_000000000h",
+        "promotionId": "pro_0000000001",
+        "brandId": null,
+        "managerPersonId": null,
+        "status": "offered",
+        "offeredOn": "2026-04-08",
+        "startsOn": "2026-04-17",
+        "endsOn": "2027-04-17",
+        "endedOn": null,
+        "role": "wrestler",
+        "ringName": "Test Person 017",
+        "gimmickKey": null,
+        "alignment": "face",
+        "push": "midCard",
+        "terms": {
+          "kind": "written",
+          "exclusive": true,
+          "monthlyWage": 500000,
+          "perAppearanceFee": 0,
+          "signingBonus": 0,
+          "shares": {
+            "gateBp": 0,
+            "merchBp": 0,
+            "broadcastBp": 0
+          },
+          "appearanceCap": null,
+          "perks": {
+            "creativeControl": false,
+            "noHouseShows": false,
+            "ironClad": false,
+            "travelCovered": false
+          }
+        },
+        "morale": 0,
+        "momentum": null,
+        "appearancesThisYear": 0,
+        "lastAppearanceOn": null,
+        "leave": null
       }
     ],
     "eventDefinitions": [
@@ -1721,6 +1762,158 @@
           "chosenKey": null,
           "expiresOn": "2026-04-17"
         }
+      }
+    ],
+    "negotiations": [
+      {
+        "id": "neg_0000000001",
+        "kind": "signing",
+        "personId": "per_000000000h",
+        "promotionId": "pro_0000000001",
+        "employmentId": "emp_000000000h",
+        "status": "countered",
+        "round": 1,
+        "startPatience": 6,
+        "patience": 4,
+        "offer": {
+          "terms": {
+            "kind": "written",
+            "exclusive": true,
+            "monthlyWage": 500000,
+            "perAppearanceFee": 0,
+            "signingBonus": 0,
+            "shares": {
+              "gateBp": 0,
+              "merchBp": 0,
+              "broadcastBp": 0
+            },
+            "appearanceCap": null,
+            "perks": {
+              "creativeControl": false,
+              "noHouseShows": false,
+              "ironClad": false,
+              "travelCovered": false
+            }
+          },
+          "startsOn": "2026-04-17",
+          "lengthMonths": 12,
+          "brand": {
+            "kind": "shared"
+          },
+          "role": "wrestler",
+          "push": "midCard",
+          "extra": {}
+        },
+        "lastCounter": {
+          "terms": {
+            "kind": "written",
+            "exclusive": true,
+            "monthlyWage": 650000,
+            "perAppearanceFee": 0,
+            "signingBonus": 200000,
+            "shares": {
+              "gateBp": 0,
+              "merchBp": 0,
+              "broadcastBp": 0
+            },
+            "appearanceCap": null,
+            "perks": {
+              "creativeControl": false,
+              "noHouseShows": false,
+              "ironClad": false,
+              "travelCovered": false
+            }
+          },
+          "startsOn": "2026-04-17",
+          "lengthMonths": 12,
+          "brand": {
+            "kind": "shared"
+          },
+          "role": "wrestler",
+          "push": "midCard",
+          "extra": {}
+        },
+        "history": [
+          {
+            "round": 1,
+            "date": "2026-04-08",
+            "by": "promotion",
+            "offer": {
+              "terms": {
+                "kind": "written",
+                "exclusive": true,
+                "monthlyWage": 500000,
+                "perAppearanceFee": 0,
+                "signingBonus": 0,
+                "shares": {
+                  "gateBp": 0,
+                  "merchBp": 0,
+                  "broadcastBp": 0
+                },
+                "appearanceCap": null,
+                "perks": {
+                  "creativeControl": false,
+                  "noHouseShows": false,
+                  "ironClad": false,
+                  "travelCovered": false
+                }
+              },
+              "startsOn": "2026-04-17",
+              "lengthMonths": 12,
+              "brand": {
+                "kind": "shared"
+              },
+              "role": "wrestler",
+              "push": "midCard",
+              "extra": {}
+            },
+            "reaction": "counter"
+          },
+          {
+            "round": 1,
+            "date": "2026-04-08",
+            "by": "worker",
+            "offer": {
+              "terms": {
+                "kind": "written",
+                "exclusive": true,
+                "monthlyWage": 650000,
+                "perAppearanceFee": 0,
+                "signingBonus": 200000,
+                "shares": {
+                  "gateBp": 0,
+                  "merchBp": 0,
+                  "broadcastBp": 0
+                },
+                "appearanceCap": null,
+                "perks": {
+                  "creativeControl": false,
+                  "noHouseShows": false,
+                  "ironClad": false,
+                  "travelCovered": false
+                }
+              },
+              "startsOn": "2026-04-17",
+              "lengthMonths": 12,
+              "brand": {
+                "kind": "shared"
+              },
+              "role": "wrestler",
+              "push": "midCard",
+              "extra": {}
+            },
+            "reaction": null
+          }
+        ],
+        "openedOn": "2026-04-08",
+        "submittedOn": "2026-04-08",
+        "counterExpiresOn": "2026-04-15",
+        "reviewOn": null,
+        "closedOn": null,
+        "outcome": null,
+        "cooldownUntil": null,
+        "reactionTraceId": "neg_0000000001:1",
+        "reviewTraceId": null
       }
     ],
     "networks": [
@@ -2811,6 +3004,68 @@
         "givenName": "Test",
         "familyName": "Person 016",
         "defaultRingName": "Test Person 016",
+        "gender": "male",
+        "birthDate": "1998-01-05",
+        "debutDate": "2016-01-05",
+        "birthRegionId": "reg_0000000001",
+        "basedInRegionId": "reg_0000000001",
+        "imageRef": null,
+        "masked": false,
+        "tags": [],
+        "roles": [
+          "wrestler"
+        ],
+        "status": "active",
+        "career": {
+          "canOwn": false,
+          "canBook": false
+        },
+        "motivation": "money",
+        "heightCm": 183,
+        "weightKg": 100,
+        "build": "athletic",
+        "style": "allRounder",
+        "attributes": {
+          "ringwork": 50,
+          "psychology": 50,
+          "stamina": 50,
+          "safety": 50,
+          "athleticism": 50,
+          "mic": 50,
+          "charisma": 50,
+          "presence": 50,
+          "officiating": 50,
+          "broadcasting": 50,
+          "producing": 50,
+          "booking": 50
+        },
+        "condition": {
+          "head": 100,
+          "neck": 100,
+          "back": 100,
+          "arms": 100,
+          "torso": 100,
+          "legs": 100
+        },
+        "fatigue": 0,
+        "injury": null,
+        "restrictions": [],
+        "development": {
+          "potential": 0,
+          "ceilings": {}
+        },
+        "regionalPop": {},
+        "traits": [],
+        "vices": {
+          "alcohol": "none",
+          "substances": "none"
+        }
+      },
+      {
+        "id": "per_000000000h",
+        "givenName": "Test",
+        "familyName": "Person 017",
+        "defaultRingName": "Test Person 017",
         "gender": "male",
         "birthDate": "1998-01-05",
         "debutDate": "2016-01-05",

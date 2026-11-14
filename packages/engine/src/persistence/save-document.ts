@@ -121,6 +121,8 @@ const SerializedTablesSchema = z.strictObject({
   injuries: z.array(TABLES.injuries.schema).default([]),
   // ECO4-01. Defaults to empty so saves written before the table existed still load.
   contractConcerns: z.array(TABLES.contractConcerns.schema).default([]),
+  // ECO5-01. Defaults to empty so saves written before the table existed still load.
+  negotiations: z.array(TABLES.negotiations.schema).default([]),
 });
 
 /**

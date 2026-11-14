@@ -31,8 +31,8 @@ function linearCongruentialEntropy(seed: number): IdEntropy {
 const neverExists = (): boolean => false;
 
 describe('ENTITY_KINDS', () => {
-  it('has 31 kinds', () => {
-    expect(ENTITY_KIND_LIST).toHaveLength(31);
+  it('has 32 kinds', () => {
+    expect(ENTITY_KIND_LIST).toHaveLength(32);
   });
 
   it('gives every kind a unique three letter prefix', () => {

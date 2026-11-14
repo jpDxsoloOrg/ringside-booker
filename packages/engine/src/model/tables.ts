@@ -19,6 +19,7 @@ import { continentsTable, countriesTable, regionsTable } from './entities/geogra
 import { injuriesTable } from './entities/injury';
 import { ledgerEntriesTable } from './entities/ledger-entry';
 import { mailTable } from './entities/mail';
+import { negotiationsTable } from './entities/negotiation';
 import { networksTable } from './entities/network';
 import { newsTable } from './entities/news';
 import { participantsTable } from './entities/participant';
@@ -80,6 +81,8 @@ export const TABLES = {
   injuries: injuriesTable,
   // ECO4-01: per-contract notices, the unhappy clock, release requests and how a contract ended.
   contractConcerns: contractConcernsTable,
+  // ECO5-01: contract negotiations, one row per worker and promotion conversation.
+  negotiations: negotiationsTable,
 } as const satisfies TableRegistry;
 
 export type GameTables = typeof TABLES;
