@@ -2,7 +2,13 @@
  * The words of a `SegmentResultCard`, kept apart from the component so they can be tested on their
  * own. Nothing here is a time: a segment has a duration class word, never minutes (D-10).
  */
-import type { SegmentReasonView, SegmentResultView, SegmentTitleView } from '@ringside/engine';
+import { ANGLE_SETTING_LABELS } from '@ringside/engine';
+import type {
+  AngleSetting,
+  SegmentReasonView,
+  SegmentResultView,
+  SegmentTitleView,
+} from '@ringside/engine';
 import { formatSigned } from '../format';
 
 /** The colour bar down the card's edge, the same three as `CardSlot`'s. */
@@ -29,12 +35,16 @@ export function listText(items: readonly string[]): string {
 
 /**
  * The result in one line: "Kai Moreno def. Vance Troy · Pinfall", "Draw", "No contest", or a
- * talking segment's type ("Promo"). Null for a match with no result yet.
+ * talking segment's talk line ("Backstage: Lena Park interviews Kai Moreno") or its type ("Promo").
+ * Null for a match with no result yet.
  */
 export function resultLine(
-  segment: Pick<SegmentResultView, 'kind' | 'typeName' | 'outcome' | 'sides'>,
+  segment: Pick<SegmentResultView, 'kind' | 'typeName' | 'outcome' | 'sides'> & {
+    readonly talkLine?: string | null;
+  },
 ): string | null {
-  if (segment.kind === 'angle') return segment.typeName;
+  // MTCH5-08: who did what and where, "Backstage: Lena Park interviews Kai Moreno".
+  if (segment.kind === 'angle') return segment.talkLine ?? segment.typeName;
   const { outcome } = segment;
   if (outcome === null) return null;
   if (outcome.kind === 'draw') return 'Draw';
@@ -123,4 +133,14 @@ export function reasonsLine(reasons: readonly SegmentReasonView[]): string | nul
       return `${label} (${reasonEffectText(reason.effect)})`;
     })
     .join(', ');
+}
+
+/** "Interview", or "Interview · Backstage" away from the ring (MTCH5-08). */
+export function typeChipText(
+  segment: Pick<SegmentResultView, 'typeName'> & { readonly setting?: AngleSetting },
+): string {
+  const setting = segment.setting ?? 'ring';
+  return setting === 'ring'
+    ? segment.typeName
+    : `${segment.typeName} · ${ANGLE_SETTING_LABELS[setting]}`;
 }
