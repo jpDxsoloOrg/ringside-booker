@@ -42,7 +42,10 @@ import type {
 } from '../../model/entities/event-instance';
 import { detailKeptNote } from '../history/note';
 import type { Participant, ParticipantRole } from '../../model/entities/participant';
-import type { Segment, SegmentKind } from '../../model/entities/segment';
+import { settingOf, type Segment, type SegmentKind } from '../../model/entities/segment';
+import { settingDurationShifter } from '../match/angles/settings';
+import { talkLineOf } from '../match/angles/talkLine';
+import type { AngleSetting } from '../../model/entities/angle-setting';
 import type { TitleReign } from '../../model/entities/title-reign';
 import type { ImageRef } from '../../model/primitives';
 import { compareIds } from '../../model/table';
@@ -164,6 +167,10 @@ export interface SegmentResultView {
   /** Null before the show has run, or when the segment could not be rated. */
   rating: SegmentRatingView | null;
   storylines: { id: StorylineId; name: string }[];
+  /** MTCH5-08: where it happened; always `ring` for a match. */
+  setting: AngleSetting;
+  /** MTCH5-08: who did what and where (see `talkLine`); null for a match or a ring talk of wrestlers. */
+  talkLine: string | null;
 }
 
 export interface ShowResultView {
@@ -482,7 +489,13 @@ function segmentViewOf(
   const typeName = isMatch
     ? (matchType?.name ?? typeKey)
     : (angleTypeOf(read, typeKey)?.name ?? typeKey);
-  const durationClass = durationClassOf({ role, matchType }, slotDeps).value;
+  const durationClass = durationClassOf(
+    {
+      role,
+      matchType: isMatch ? matchType : settingDurationShifter(settingOf(segment), deps.tunables),
+    },
+    slotDeps,
+  ).value;
   const run = instance.status === 'completed';
   return {
     segmentId: segment.id,
@@ -505,6 +518,8 @@ function segmentViewOf(
       const storyline = read.tables.storylines.get(id);
       return storyline === undefined ? [] : [{ id, name: storyline.name }];
     }),
+    setting: settingOf(segment),
+    talkLine: talkLineOf(read, segment, people),
   };
 }
 

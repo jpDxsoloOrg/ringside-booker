@@ -144,6 +144,7 @@
         "optional": false
       }
     ],
+    "setting": "video",
     "description": "A video that builds someone up before they arrive."
   },
   {
@@ -165,6 +166,73 @@
         "optional": true
       }
     ],
+    "setting": "backstage",
     "description": "A scene backstage that sets up trouble, and words to follow."
+  },
+  {
+    "key": "backstage-interview",
+    "name": "Backstage Interview",
+    "angleTypeKey": "interview",
+    "purpose": "promo",
+    "beats": [
+      {
+        "beatKey": "arrival",
+        "groupOne": "a",
+        "groupTwo": null,
+        "optional": true
+      },
+      {
+        "beatKey": "locker-room-interview",
+        "groupOne": "a",
+        "groupTwo": "host",
+        "optional": false
+      }
+    ],
+    "setting": "backstage",
+    "description": "An interviewer catches someone in the locker room for a few words, away from the crowd."
+  },
+  {
+    "key": "parking-lot-ambush",
+    "name": "Car Park Ambush",
+    "angleTypeKey": "attack",
+    "purpose": "buildFeud",
+    "beats": [
+      {
+        "beatKey": "arrival",
+        "groupOne": "b",
+        "groupTwo": null,
+        "optional": true
+      },
+      {
+        "beatKey": "parking-lot-attack",
+        "groupOne": "a",
+        "groupTwo": "b",
+        "optional": false
+      }
+    ],
+    "setting": "backstage",
+    "description": "One side waits in the car park and jumps the other as they arrive."
+  },
+  {
+    "key": "office-summons",
+    "name": "Office Summons",
+    "angleTypeKey": "confrontation",
+    "purpose": "titleChallenge",
+    "beats": [
+      {
+        "beatKey": "office-meeting",
+        "groupOne": "host",
+        "groupTwo": "ab",
+        "optional": false
+      },
+      {
+        "beatKey": "backstage-confrontation",
+        "groupOne": "a",
+        "groupTwo": "b",
+        "optional": true
+      }
+    ],
+    "setting": "backstage",
+    "description": "The boss calls both sides in and makes the match. They don't leave quietly."
   }
 ]

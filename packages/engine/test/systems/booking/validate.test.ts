@@ -593,6 +593,8 @@ describe('the check registry', () => {
       { id: 'match.finish', order: 200 },
       // CRTV4-01's storyline links check, registered when the storylines system loads.
       { id: 'storylines.links', order: 250 },
+      // MTCH5-08's talk roles and settings check.
+      { id: 'booking.talk', order: 260 },
     ]);
   });
 
@@ -690,6 +692,7 @@ describe('the check registry', () => {
       'test.alpha',
       'test.zeta',
       'storylines.links',
+      'booking.talk',
     ]);
   });
 });

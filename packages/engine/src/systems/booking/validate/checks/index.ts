@@ -11,6 +11,7 @@ import { cardWideCheck } from './cardWide';
 import { peopleCheck } from './people';
 import { structureCheck } from './structure';
 import { titlesCheck } from './titles';
+import { talkCheck } from './talk';
 import { warningsCheck } from './warnings';
 
 export { CARD_WIDE_CHECK_ID } from './cardWide';
@@ -30,3 +31,7 @@ export const BUILT_IN_BOOKING_CHECKS: readonly BookingCheck[] = [
 for (const check of BUILT_IN_BOOKING_CHECKS) {
   registerBookingCheck(check);
 }
+
+// MTCH5-08: talk roles and settings, after the feature checks (order 260).
+export { TALK_CHECK_ID, TALK_CHECK_LABEL, talkCheck } from './talk';
+registerBookingCheck(talkCheck);

@@ -13,7 +13,7 @@ describe('the card planner tunables', () => {
   const entries = Object.entries(aipCardTunables);
 
   it('are merged into the engine set under Rival booking, docRef rival-booking.md', () => {
-    expect(entries).toHaveLength(47);
+    expect(entries).toHaveLength(49);
     for (const [key, def] of entries) {
       expect(ALL_TUNABLES).toHaveProperty([key]);
       expect(def.category).toBe(RIVAL_BOOKING_CATEGORY);
@@ -34,6 +34,9 @@ describe('the card planner tunables', () => {
     expect(aipCardTunables['aip.card.order.prospectBoost'].default).toBe(6);
     expect(aipCardTunables['aip.card.order.talkFactor'].default).toBe(0.8);
     expect(aipCardTunables['aip.card.order.hotOpener'].default).toBe(true);
+    // MTCH5-08: backstage talking segments.
+    expect(aipCardTunables['aip.card.backstageChance'].default).toBe(0.25);
+    expect(aipCardTunables['aip.card.order.backstageBreaksTalk'].default).toBe(true);
   });
 
   it('never mention minutes or length', () => {

@@ -948,12 +948,14 @@ matches only; none sets a length (D-10).
 | `aip.card.noTeamFactor`               | number  | 0.25    | 0–1    | multiplier  | Weight left to a tag or trios type when fewer than two teams are free                                                                                                  |
 | `aip.card.pickWindow`                 | integer | 5       | 1–20   | count       | Best free workers each place on the card is chosen from ([fallback chain](rival-booking.md#fallback-chain))                                                            |
 | `aip.card.secondSpeakerChance`        | number  | 0.5     | 0–1    | probability | Chance a talking segment gets a second speaker ([talking segments](rival-booking.md#talking-segments))                                                                 |
+| `aip.card.backstageChance`            | number  | 0.25    | 0–1    | probability | Chance a talking segment happens backstage when its kind of angle can (MTCH5-08, [talking segments](rival-booking.md#talking-segments))                                |
 | `aip.card.order.titleWeight`          | number  | 0.3     | 0–2    | points      | Card score a title on the line adds per prestige point ([card score](rival-booking.md#card-score))                                                                     |
 | `aip.card.order.heatWeight`           | number  | 0.2     | 0–2    | points      | Card score a storyline adds per heat point (the hottest one counts)                                                                                                    |
 | `aip.card.order.aceBoost`             | number  | 12      | 0–50   | points      | Card score added to a segment with the promotion's ace in it                                                                                                           |
 | `aip.card.order.prospectBoost`        | number  | 6       | 0–50   | points      | Card score added to a segment with one of the promotion's prospects in it                                                                                              |
 | `aip.card.order.talkFactor`           | number  | 0.8     | 0–2    | multiplier  | How much of its speakers' card value a talking segment scores                                                                                                          |
 | `aip.card.order.hotOpener`            | boolean | true    |        | flag        | Whether the second-best match opens the show ([ordering](rival-booking.md#ordering))                                                                                   |
+| `aip.card.order.backstageBreaksTalk`  | boolean | true    |        | flag        | Whether a backstage or pre-taped talking segment may sit next to one in the ring (MTCH5-08, [ordering](rival-booking.md#ordering))                                     |
 
 ## Rival results tunables
 
@@ -1273,22 +1275,26 @@ rolls. MTCH5-03 added the beat limits per slot and the angle score's keys
 (closing beat, repetition, crowd blend and the writing band, see
 [angle-rating.md](angle-rating.md#angle-score)).
 
-| Key                                  | Kind    | Default | Range | Unit       | Meaning                                                                                         |
-| ------------------------------------ | ------- | ------- | ----- | ---------- | ----------------------------------------------------------------------------------------------- |
-| `match.angle.managerShare`           | number  | 0.85    | 0–1   | ratio      | Share of a manager's mic or charisma that counts when they talk for their worker; 0 never helps |
-| `match.angle.popularityStatShare`    | number  | 0.9     | 0–1   | ratio      | Share of popularity in the show region that counts when a beat scores popularity                |
-| `match.angle.moralePenaltyMax`       | number  | 0.15    | 0–0.5 | ratio      | Share of every stat lost at the lowest morale (none at morale 0 or above)                       |
-| `match.angle.momentumPenaltyMax`     | number  | 0.1     | 0–0.5 | ratio      | Share of every stat lost at the lowest momentum (none at momentum 0 or above)                   |
-| `match.angle.momentumBonusMax`       | number  | 0.05    | 0–0.5 | ratio      | Share added to every stat at the highest momentum (none at momentum 0 or below)                 |
-| `match.angle.statNoise`              | integer | 3       | 0–10  | points     | Most a person's beat value can move either way on the night; 0 turns the roll off               |
-| `match.angle.beatNoise`              | integer | 5       | 0–15  | points     | Most a beat's score can move either way on the night; 0 turns the roll off                      |
-| `match.angle.maxBeats.short`         | integer | 2       | 1–8   | count      | Most beats an angle may have in a short slot (see [beat limits](angle-rating.md#beat-limits))   |
-| `match.angle.maxBeats.standard`      | integer | 4       | 1–8   | count      | Most beats an angle may have in a standard slot                                                 |
-| `match.angle.maxBeats.long`          | integer | 6       | 1–8   | count      | Most beats an angle may have in a long slot                                                     |
-| `match.angle.closingBeatWeight`      | number  | 1.25    | 1–3   | multiplier | How much more the angle's last beat counts than its catalog weight; 1 treats it like any other  |
-| `match.angle.repeatFactor`           | number  | 0.85    | 0–1   | multiplier | Share of its score a beat keeps per earlier beat of the same kind in the angle; 1 turns it off  |
-| `match.angle.cardRepeatFactor`       | number  | 0.93    | 0–1   | multiplier | Share of its score a beat keeps per beat of the same kind earlier on the card; 1 turns it off   |
-| `match.angle.crowdBlend`             | number  | 0.35    | 0–1   | ratio      | Share of the angle score that comes from the crowd's reaction; 0 rates the beats alone          |
-| `match.angle.writingFloorPerLevel`   | number  | 3       | 0–10  | points     | Lowest angle score per level of the writing team                                                |
-| `match.angle.writingCeilingAtZero`   | number  | 75      | 0–100 | points     | Highest angle score with no writing team at all                                                 |
-| `match.angle.writingCeilingPerLevel` | number  | 2.5     | 0–10  | points     | How much each level of the writing team raises the highest angle score                          |
+| Key                                           | Kind    | Default | Range | Unit       | Meaning                                                                                          |
+| --------------------------------------------- | ------- | ------- | ----- | ---------- | ------------------------------------------------------------------------------------------------ |
+| `match.angle.managerShare`                    | number  | 0.85    | 0–1   | ratio      | Share of a manager's mic or charisma that counts when they talk for their worker; 0 never helps  |
+| `match.angle.popularityStatShare`             | number  | 0.9     | 0–1   | ratio      | Share of popularity in the show region that counts when a beat scores popularity                 |
+| `match.angle.moralePenaltyMax`                | number  | 0.15    | 0–0.5 | ratio      | Share of every stat lost at the lowest morale (none at morale 0 or above)                        |
+| `match.angle.momentumPenaltyMax`              | number  | 0.1     | 0–0.5 | ratio      | Share of every stat lost at the lowest momentum (none at momentum 0 or above)                    |
+| `match.angle.momentumBonusMax`                | number  | 0.05    | 0–0.5 | ratio      | Share added to every stat at the highest momentum (none at momentum 0 or below)                  |
+| `match.angle.statNoise`                       | integer | 3       | 0–10  | points     | Most a person's beat value can move either way on the night; 0 turns the roll off                |
+| `match.angle.beatNoise`                       | integer | 5       | 0–15  | points     | Most a beat's score can move either way on the night; 0 turns the roll off                       |
+| `match.angle.maxBeats.short`                  | integer | 2       | 1–8   | count      | Most beats an angle may have in a short slot (see [beat limits](angle-rating.md#beat-limits))    |
+| `match.angle.maxBeats.standard`               | integer | 4       | 1–8   | count      | Most beats an angle may have in a standard slot                                                  |
+| `match.angle.maxBeats.long`                   | integer | 6       | 1–8   | count      | Most beats an angle may have in a long slot                                                      |
+| `match.angle.closingBeatWeight`               | number  | 1.25    | 1–3   | multiplier | How much more the angle's last beat counts than its catalog weight; 1 treats it like any other   |
+| `match.angle.repeatFactor`                    | number  | 0.85    | 0–1   | multiplier | Share of its score a beat keeps per earlier beat of the same kind in the angle; 1 turns it off   |
+| `match.angle.cardRepeatFactor`                | number  | 0.93    | 0–1   | multiplier | Share of its score a beat keeps per beat of the same kind earlier on the card; 1 turns it off    |
+| `match.angle.crowdBlend`                      | number  | 0.35    | 0–1   | ratio      | Share of the angle score that comes from the crowd's reaction; 0 rates the beats alone           |
+| `match.angle.writingFloorPerLevel`            | number  | 3       | 0–10  | points     | Lowest angle score per level of the writing team                                                 |
+| `match.angle.writingCeilingAtZero`            | number  | 75      | 0–100 | points     | Highest angle score with no writing team at all                                                  |
+| `match.angle.writingCeilingPerLevel`          | number  | 2.5     | 0–10  | points     | How much each level of the writing team raises the highest angle score                           |
+| `match.angle.setting.backstage.crowdShare`    | number  | 0.4     | 0–1   | ratio      | Backstage: share of the usual crowd blend the crowd keeps ([settings](angle-rating.md#settings)) |
+| `match.angle.setting.video.crowdShare`        | number  | 0.3     | 0–1   | ratio      | Pre-taped: share of the usual crowd blend the crowd keeps                                        |
+| `match.angle.setting.backstage.durationShift` | integer | −1      | −1–1  | count      | Steps a backstage segment moves its slot's duration class                                        |
+| `match.angle.setting.video.durationShift`     | integer | 0       | −1–1  | count      | Steps a pre-taped segment moves its slot's duration class                                        |

@@ -322,3 +322,23 @@
     white-space: normal;
   }
 }
+
+/* ---- Talking segments: parts (MTCH5-08) ---------------------------------------------------- */
+
+.part {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  min-inline-size: 0;
+}
+
+.partSelect {
+  min-inline-size: 10rem;
+  max-inline-size: 100%;
+}
+
+.groupRoles {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}

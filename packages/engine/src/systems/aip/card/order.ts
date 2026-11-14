@@ -13,7 +13,9 @@
  * 3. the rest fill the other main-card slots in ascending score towards the main event; on a
  *    short card they take the open slots nearest the main event, so empty slots fall early;
  * 4. no two talking segments in a row: when rule 3 puts two together, talking segments move to the
- *    nearest slots that keep them apart and the matches close up around them, each move a line.
+ *    nearest slots that keep them apart (MTCH5-08: with `aip.card.order.backstageBreaksTalk` a
+ *    backstage or pre-taped one doesn't count: it sits between segments like a match) and the
+ *    matches close up around them, each move a line.
  *    The card shape (`talkSlotsFor`) leaves room for that; if the opener is needed it gives up its
  *    place, and if fixed slots make it impossible the order is kept with a note;
  * 5. the pre-show slots (while `aip.card.fillPreShow`) take the lowest-scoring matches; talking
@@ -27,6 +29,7 @@
 
 import { startDecision, type Traced, type TraceNode } from '../../../core/trace';
 import type { SegmentDraft } from '../../booking/draft';
+import { DEFAULT_ANGLE_SETTING } from '../../../model/entities/angle-setting';
 import type { EngineTunables } from '../../tunables';
 import { formatNumber } from '../../world/people/labels';
 import { ORDERING_DOC_REF } from './tunables';
@@ -198,6 +201,15 @@ export function orderCard(
   const decision = startDecision<string>(options.label ?? 'Card order', {
     docRef: ORDERING_DOC_REF,
   });
+  // MTCH5-08: what rule 4 spaces out. A talking segment away from the ring counts as a match there.
+  const backstageBreaks = decision.tunable(tunables, 'aip.card.order.backstageBreaksTalk');
+  const spaceKind = (entry: Ranked): SegmentDraft['kind'] => {
+    const { draft } = entry.segment;
+    return draft.kind === 'angle' &&
+      (!backstageBreaks || (draft.angle.setting ?? DEFAULT_ANGLE_SETTING) === DEFAULT_ANGLE_SETTING)
+      ? 'angle'
+      : 'match';
+  };
   const ranked: Ranked[] = segments.map((segment, index) => ({
     segment,
     score: scores.get(segment.key)?.value ?? 0,
@@ -302,16 +314,13 @@ export function orderCard(
       .sort((left, right) => left - right)
       .map((slot) => {
         const fixed = options.fixed.get(slotKeyOf(false, slot));
-        const kind = fixed?.kind ?? placed.get(slot)?.entry.segment.kind ?? null;
+        const placedEntry = placed.get(slot)?.entry;
+        const kind = fixed?.kind ?? (placedEntry === undefined ? null : spaceKind(placedEntry));
         return { slot, kind };
       });
   };
-  const restTalks = rest.filter((entry) => entry.segment.kind === 'angle').length;
-  let kinds = spacedKinds(
-    cellsFor(),
-    rest.map((entry) => entry.segment.kind),
-    restTalks,
-  );
+  const restTalks = rest.filter((entry) => spaceKind(entry) === 'angle').length;
+  let kinds = spacedKinds(cellsFor(), rest.map(spaceKind), restTalks);
   if (kinds === null && opener !== undefined) {
     placed.delete(openerSlot);
     remaining.add(opener);
@@ -319,11 +328,7 @@ export function orderCard(
     opener = undefined;
     rest = [...remaining].sort((left, right) => byScoreDesc(right, left));
     restSlots = restSlotsOf();
-    kinds = spacedKinds(
-      cellsFor(),
-      rest.map((entry) => entry.segment.kind),
-      restTalks,
-    );
+    kinds = spacedKinds(cellsFor(), rest.map(spaceKind), restTalks);
   }
 
   if (kinds === null) {
@@ -343,8 +348,8 @@ export function orderCard(
         naturalSlot.set(entry, slot);
       }
     }
-    const restTalkQueue = rest.filter((entry) => entry.segment.kind === 'angle');
-    const restMatchQueue = rest.filter((entry) => entry.segment.kind === 'match');
+    const restTalkQueue = rest.filter((entry) => spaceKind(entry) === 'angle');
+    const restMatchQueue = rest.filter((entry) => spaceKind(entry) === 'match');
     for (const [index, cell] of cells.entries()) {
       if (cell.kind !== null) {
         continue;
@@ -353,7 +358,7 @@ export function orderCard(
       if (entry === undefined) {
         continue;
       }
-      const moved = entry.segment.kind === 'angle' && naturalSlot.get(entry) !== cell.slot;
+      const moved = spaceKind(entry) === 'angle' && naturalSlot.get(entry) !== cell.slot;
       placed.set(cell.slot, { entry, rule: moved ? SPACED_RULE : ASCENDING_RULE });
       const from = naturalSlot.get(entry);
       if (moved && from !== undefined) {

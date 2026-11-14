@@ -1,10 +1,14 @@
+import { rolesText } from '@ringside/engine';
 import type {
   AngleTypeOption,
   AvailableWorkerRow,
+  BeatGroupOption,
   BookingCard,
   MatchTypeOption,
+  ParticipantDraft,
   PersonId,
   SegmentDraft,
+  TalkRole,
 } from '@ringside/engine';
 import { Button, IconButton } from '@/components/Button';
 import { ImageSlot } from '@/components/ImageSlot';
@@ -13,6 +17,8 @@ import { WorkerLink } from '@/components/WorkerLink';
 import { sideLabel } from './editorText';
 import styles from './SegmentEditor.module.css';
 import type { PickerTarget } from './EditorRosterPicker';
+import { PartField } from './TalkFields';
+import type { ClientOption } from './TalkFields';
 import { cardNameOf } from './useRoster';
 import { peopleOnSide } from './useSegmentDraft';
 import type { SideLimits } from './useSegmentDraft';
@@ -54,6 +60,33 @@ export interface SideBuilderProps {
   readonly onRemovePerson: (personId: PersonId, name: string) => void;
   readonly onAddSide: () => void;
   readonly onRemoveSide: (side: number) => void;
+  /** MTCH5-08: a talking segment's parts. Left out, speakers have no part to choose. */
+  readonly talk?: SideTalk;
+}
+
+/** MTCH5-08: what the sides of a talking segment need to show and change each speaker's part. */
+export interface SideTalk {
+  /** The beat group each side fills (by stored side), or null without a beat catalog. */
+  readonly groups: readonly (BeatGroupOption | null)[];
+  /** True when each side is a group of its own ("Guest", "Host"). */
+  readonly sidesAreGroups: boolean;
+  readonly onSetPart: (
+    personId: PersonId,
+    talkRole: TalkRole,
+    forPersonId: PersonId | null,
+  ) => void;
+  readonly onAddManager: (side: number, managerId: PersonId, clientId: PersonId) => void;
+}
+
+/** The part and "Add their manager" for one speaker. */
+interface PersonTalk {
+  readonly participant: ParticipantDraft;
+  readonly clients: readonly ClientOption[];
+  readonly group: BeatGroupOption | null;
+  /** Their contract's manager when not in the segment yet and the segment has room. */
+  readonly manager: { readonly personId: PersonId; readonly name: string } | null;
+  readonly onSetPart: SideTalk['onSetPart'];
+  readonly onAddManager: () => void;
 }
 
 interface PersonRowProps {
@@ -64,6 +97,7 @@ interface PersonRowProps {
   readonly fallbackName: string;
   readonly disabled: boolean;
   readonly onRemove: () => void;
+  readonly talk?: PersonTalk | undefined;
 }
 
 /** One person on a side: picture, name linked to their profile, availability, Remove. */
@@ -75,6 +109,7 @@ function PersonRow({
   fallbackName,
   disabled,
   onRemove,
+  talk,
 }: PersonRowProps) {
   const name = row?.ringName ?? fallbackName;
   const where = kind === 'match' ? sideLabel(side) : 'the speakers';
@@ -104,6 +139,32 @@ function PersonRow({
         </span>
         {row !== undefined && !row.bookable && (
           <span className={styles['personReason']}>{row.availability.reason}</span>
+        )}
+        {talk !== undefined && (
+          <PartField
+            name={name}
+            talkRole={talk.participant.talkRole ?? row?.talkRole ?? 'wrestler'}
+            forPersonId={talk.participant.forPersonId ?? null}
+            clients={talk.clients}
+            group={talk.group}
+            disabled={disabled}
+            onChange={(talkRole, forPersonId) => {
+              talk.onSetPart(personId, talkRole, forPersonId);
+            }}
+          />
+        )}
+        {talk?.manager != null && (
+          <span>
+            <Button
+              size="sm"
+              variant="ghost"
+              iconStart="add"
+              disabled={disabled}
+              onClick={talk.onAddManager}
+            >
+              {`Add their manager, ${talk.manager.name}`}
+            </Button>
+          </span>
         )}
       </span>
       <IconButton
@@ -138,6 +199,7 @@ export function SideBuilder({
   onRemovePerson,
   onAddSide,
   onRemoveSide,
+  talk,
 }: SideBuilderProps) {
   const isMatch = draft.kind === 'match';
   const speakers = draft.participants.filter((person) => person.role === 'speaker').length;
@@ -145,6 +207,37 @@ export function SideBuilder({
   const angleHint =
     !isMatch && angleType !== undefined ? speakerHint(speakers, angleType.speakers) : null;
   const sides = Array.from({ length: sideCount }, (_unused, side) => side);
+  const nameOf = (personId: PersonId): string =>
+    roster.get(personId)?.ringName ?? cardNameOf(card, personId) ?? 'Someone off the roster';
+  /** MTCH5-08: one speaker's part, the others they can manage and their manager to add. */
+  const talkOf = (
+    participant: ParticipantDraft,
+    side: number,
+    group: BeatGroupOption | null,
+  ): PersonTalk | undefined => {
+    if (talk === undefined || participant.role !== 'speaker') return undefined;
+    const managerId = roster.get(participant.personId)?.managerPersonId ?? null;
+    const managerRow = managerId === null ? undefined : roster.get(managerId);
+    const managerFree =
+      managerRow !== undefined &&
+      managerRow.bookable &&
+      !speakersFull &&
+      !draft.participants.some((person) => person.personId === managerRow.personId);
+    return {
+      participant,
+      clients: draft.participants
+        .filter((person) => person.personId !== participant.personId)
+        .map((person) => ({ personId: person.personId, name: nameOf(person.personId) })),
+      group,
+      manager: managerFree ? { personId: managerRow.personId, name: managerRow.ringName } : null,
+      onSetPart: talk.onSetPart,
+      onAddManager: () => {
+        if (managerRow !== undefined) {
+          talk.onAddManager(side, managerRow.personId, participant.personId);
+        }
+      },
+    };
+  };
 
   return (
     <fieldset className={styles['field']} data-invalid={invalid ? '' : undefined}>
@@ -153,13 +246,17 @@ export function SideBuilder({
       <ol className={styles['sides']}>
         {sides.map((side) => {
           const people = peopleOnSide(draft, side);
+          const group = talk?.groups[side] ?? null;
           const heading = isMatch
             ? sideLabel(side)
-            : sideCount > 1
-              ? side === 0
-                ? 'Speakers'
-                : 'Facing them'
-              : 'Speakers';
+            : talk?.sidesAreGroups === true && group !== null
+              ? group.label
+              : sideCount > 1
+                ? side === 0
+                  ? 'Speakers'
+                  : 'Facing them'
+                : 'Speakers';
+          const groupRoles = !isMatch && group !== null ? rolesText(group.roles) : '';
           const hint =
             isMatch && matchType !== undefined ? sideHint(people.length, matchType.sideSize) : null;
           const full = isMatch
@@ -171,6 +268,7 @@ export function SideBuilder({
             <li key={`side-${String(side)}`} className={styles['side']}>
               <div className={styles['sideHead']}>
                 <h4 className={styles['sideTitle']}>{heading}</h4>
+                {groupRoles !== '' && <span className={styles['groupRoles']}>{groupRoles}</span>}
                 {teamName !== null && <span className={styles['teamName']}>Team: {teamName}</span>}
                 {hint !== null && <span className={styles['hint']}>{hint}</span>}
                 {sideCount > limits.min && (
@@ -195,6 +293,7 @@ export function SideBuilder({
                     const row = roster.get(person.personId);
                     const fallbackName =
                       cardNameOf(card, person.personId) ?? 'Someone off the roster';
+                    const personTalk = talk === undefined ? undefined : talkOf(person, side, group);
                     return (
                       <PersonRow
                         key={person.personId}
@@ -207,6 +306,7 @@ export function SideBuilder({
                         onRemove={() => {
                           onRemovePerson(person.personId, row?.ringName ?? fallbackName);
                         }}
+                        talk={personTalk}
                       />
                     );
                   })}
@@ -255,7 +355,11 @@ export function SideBuilder({
           onClick={onAddSide}
           className={styles['addSide']}
         >
-          {isMatch ? 'Add side' : 'Add a side facing them'}
+          {isMatch
+            ? 'Add side'
+            : talk?.sidesAreGroups === true && talk.groups[1] != null
+              ? `Add ${talk.groups[1].label}`
+              : 'Add a side facing them'}
         </Button>
       )}
     </fieldset>

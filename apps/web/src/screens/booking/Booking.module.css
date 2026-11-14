@@ -487,3 +487,11 @@
     color: var(--color-positive);
   }
 }
+
+/* MTCH5-08: who did what and where in a talking segment. */
+.talkLine {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  overflow-wrap: anywhere;
+}

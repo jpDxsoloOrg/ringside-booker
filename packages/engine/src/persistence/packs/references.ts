@@ -300,6 +300,21 @@ function checkBeatKeys(records: MergedRecords, issues: PackIssue[]): void {
   for (const [key, merged] of records.angleTemplate) {
     const angleType = records.angleType.get(parseRef(merged.record.angleTypeKey).key);
     const allowed = allowedBeats(angleType?.record.beatKeys);
+    const typeSettings = angleType?.record.settings;
+    const templateSetting = merged.record.setting ?? 'ring';
+    if (typeSettings !== undefined && !typeSettings.includes(templateSetting)) {
+      issues.push(
+        packError({
+          code: 'setting-not-allowed',
+          packId: merged.sourcePackId,
+          file: merged.file,
+          kind: 'angleTemplate',
+          recordKey: key,
+          path: ['angleTemplate', key, 'setting'],
+          message: `angle type ${angleType?.record.key ?? ''} cannot happen ${templateSetting === 'ring' ? 'in the ring' : templateSetting}`,
+        }),
+      );
+    }
     merged.record.beats.forEach((templateBeat, index) => {
       const beatKey = parseRef(templateBeat.beatKey).key;
       const beat = records.beat.get(beatKey);
@@ -313,6 +328,18 @@ function checkBeatKeys(records: MergedRecords, issues: PackIssue[]): void {
         kind: 'angleTemplate' as const,
         recordKey: key,
       };
+      const setting = merged.record.setting ?? 'ring';
+      const beatSettings = beat.record.settings;
+      if (beatSettings !== undefined && !beatSettings.includes(setting)) {
+        issues.push(
+          packError({
+            ...at,
+            code: 'setting-not-allowed',
+            path: ['angleTemplate', key, 'beats', index, 'beatKey'],
+            message: `beat ${beatKey} cannot happen ${setting === 'ring' ? 'in the ring' : setting}`,
+          }),
+        );
+      }
       if (allowed !== null && !allowed.has(beatKey)) {
         issues.push(
           packError({

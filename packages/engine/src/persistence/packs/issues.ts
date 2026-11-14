@@ -53,6 +53,8 @@ export const PACK_ISSUE_CODES = [
   'missing-start-date',
   /** A loaded record does not make a valid entity, or the finished world fails `checkWorld`. */
   'entity-schema',
+  /** An angle template happens somewhere its angle type or one of its beats does not allow (MTCH5-08). */
+  'setting-not-allowed',
 ] as const;
 
 export type PackIssueCode = (typeof PACK_ISSUE_CODES)[number];

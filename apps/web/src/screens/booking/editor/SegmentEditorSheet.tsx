@@ -1,5 +1,5 @@
 import { useId, useState } from 'react';
-import { parseContentKey } from '@ringside/engine';
+import { ANGLE_SETTING_LABELS, parseContentKey } from '@ringside/engine';
 import type {
   AvailableTeamRow,
   AvailableWorkerRow,
@@ -27,12 +27,15 @@ import type { PickerTarget } from './EditorRosterPicker';
 import {
   methodOptions,
   segmentEditorTitle,
+  sideGroupOf,
   sideLabel,
   sideLimitsOf,
+  sidesAreGroups,
   slotOfRequest,
   teamWithMembers,
   typeOptionsFor,
 } from './editorText';
+import { SettingField } from './TalkFields';
 import { useSegmentEditor } from './editorStore';
 import type { SegmentEditorKind, SegmentEditorRequest } from './editorStore';
 import { PlannedResultField } from './PlannedResultField';
@@ -270,6 +273,8 @@ function EditorBody({
   };
   const where = (side: number): string => (kind === 'match' ? sideLabel(side) : 'the speakers');
 
+  const pickerGroup =
+    kind === 'angle' && picker !== null ? sideGroupOf(catalog, angleType, picker.side) : null;
   const typeOptions = typeOptionsFor(catalog, kind, typeKey);
   const allowsTitles = kind === 'match' && matchType?.allowsTitles !== false;
 
@@ -308,9 +313,21 @@ function EditorBody({
             key,
             sideLimitsOf(kind, nextMatch, nextAngle),
             nextMatch?.allowsTitles !== false,
+            nextAngle?.settings,
           );
         }}
       />
+      {draft.kind === 'angle' && angleType !== undefined && (
+        <SettingField
+          settings={angleType.settings}
+          value={draft.angle.setting ?? angleType.settings[0] ?? 'ring'}
+          disabled={disabled}
+          onChange={(setting) => {
+            controls.setSetting(setting);
+            announce(`${ANGLE_SETTING_LABELS[setting]} chosen`);
+          }}
+        />
+      )}
       <SideBuilder
         draft={draft}
         sideCount={sideCount}
@@ -338,6 +355,31 @@ function EditorBody({
           controls.removeSide(side, limits);
           announce(`${kind === 'match' ? sideLabel(side) : 'The second side'} removed`);
         }}
+        {...(kind === 'angle'
+          ? {
+              talk: {
+                // One past the sides shown too, so "Add Host" can name the side it adds.
+                groups: Array.from({ length: Math.max(sideCount, limits.max) }, (_unused, side) =>
+                  sideGroupOf(catalog, angleType, side),
+                ),
+                sidesAreGroups: sidesAreGroups(catalog, angleType),
+                onSetPart: (personId, talkRole, forPersonId) => {
+                  controls.setTalkPart(personId, {
+                    talkRole,
+                    ...(forPersonId === null ? {} : { forPersonId }),
+                  });
+                },
+                onAddManager: (side, managerId, clientId) => {
+                  controls.addPerson(side, managerId, null, {
+                    talkRole: 'manager',
+                    forPersonId: clientId,
+                  });
+                  const managerName = roster.people.get(managerId)?.ringName ?? 'Their manager';
+                  announce(`Added ${managerName} as manager`);
+                },
+              },
+            }
+          : {})}
       />
       {allowsTitles && (
         <TitlesField
@@ -397,8 +439,12 @@ function EditorBody({
         segmentId={segmentId}
         roster={roster.people}
         {...(picker === null ? {} : { status: pickerStatus(picker) })}
+        {...(pickerGroup === null || pickerGroup.roles.length === 0
+          ? {}
+          : { fit: { label: `Suits ${pickerGroup.label}`, roles: pickerGroup.roles } })}
         onPickPerson={(side, personId, name) => {
-          controls.addPerson(side, personId);
+          const talkRole = roster.people.get(personId)?.talkRole ?? 'wrestler';
+          controls.addPerson(side, personId, null, kind === 'angle' ? { talkRole } : undefined);
           announce(`Added ${name} to ${where(side)}`);
           if (pickerFull(side, 1)) setPicker(null);
         }}

@@ -8,7 +8,8 @@
  * 2. **Crowd**: MTCH1's `crowdScore` with delivered as the performance, judged against what the
  *    crowd expected (D-02).
  * 3. **Blended**: delivered × (1 − `crowdBlend`) + crowd × `crowdBlend`, plus the rating policy's
- *    bonus (D-01; 0 under the full rules).
+ *    bonus (D-01; 0 under the full rules). Backstage or pre-taped (MTCH5-08), the crowd keeps
+ *    only `match.angle.setting.<setting>.crowdShare` of its blend and delivered takes the rest.
  * 4. **Writing band**: the promotion's writing team sets a floor and a ceiling.
  * 5. MTCH1's soft compression, then rounded to a whole score.
  *
@@ -30,6 +31,8 @@ import { formatNumber } from '../../../world/people/labels';
 import { crowdScore } from '../../formulas/crowdScore';
 import { signedNumber } from '../../formulas/shared';
 import { softCompression } from '../../formulas/softCompression';
+import type { AngleSetting } from '../../../../model/entities/angle-setting';
+import { settingCrowdShareKey, settingLabel, settingNote } from '../settings';
 
 export const ANGLE_SCORE_DOC_REF = 'angle-rating.md#angle-score';
 
@@ -78,6 +81,8 @@ export interface AngleScoreInputs {
   policyBonus?: Traced<number>;
   /** The policy line's text. */
   policyLabel?: string;
+  /** MTCH5-08: where the angle happens. Left out: in the ring. */
+  setting?: AngleSetting;
 }
 
 /**
@@ -324,8 +329,24 @@ export function angleScoreParts(inputs: AngleScoreInputs, deps: AngleScoreDeps):
   );
 
   const crowdPart = startCalc("Crowd's share", pruned(crowd), { unit: 'points' });
-  const blend = crowdPart.tunable(tunables, 'match.angle.crowdBlend', 'Crowd blend');
-  crowdPart.multiply('Crowd blend', blend);
+  const setting = inputs.setting ?? 'ring';
+  let blend = crowdPart.tunable(tunables, 'match.angle.crowdBlend', 'Crowd blend');
+  if (setting === 'ring') {
+    crowdPart.multiply('Crowd blend', blend);
+  } else {
+    // One step with the blend already scaled, so the score's reasons read the crowd's true share.
+    const share = crowdPart.tunable(
+      tunables,
+      settingCrowdShareKey(setting),
+      `${settingLabel(setting)}: the crowd's share`,
+    );
+    blend *= share;
+    crowdPart.multiply(
+      `Crowd blend × ${formatNumber(share)} (${settingLabel(setting).toLowerCase()})`,
+      blend,
+      settingNote(setting) ?? undefined,
+    );
+  }
   const deliveredShare = 1 - blend;
   const deliveredPart = startCalc(`${BEATS_DELIVERED_LABEL}' share`, pruned(delivered), {
     unit: 'points',

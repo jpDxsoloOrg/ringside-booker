@@ -527,6 +527,36 @@ describe('fillCard', () => {
     ]);
   });
 
+  it('sends talking segments backstage by its own roll, moving no other pick (MTCH5-08)', () => {
+    const built = fillWorld({ roster: 10 });
+    const settingsOf = (fill: CardFill): (string | undefined)[] =>
+      fill.segments.flatMap((segment) =>
+        segment.draft.kind === 'angle' ? [segment.draft.angle.setting] : [],
+      );
+    const never = plan(built, {
+      tunables: createEngineTunables({ 'aip.card.backstageChance': 0 }),
+      talkSlots: 2,
+    });
+    const always = plan(built, {
+      tunables: createEngineTunables({ 'aip.card.backstageChance': 1 }),
+      talkSlots: 2,
+    });
+    const angleTypes = (fill: CardFill) =>
+      fill.segments.map((segment) =>
+        segment.draft.kind === 'angle' ? segment.draft.angle.angleTypeKey : segment.key,
+      );
+    // The setting roll is on a detached stream: the same people and types either way.
+    expect(angleTypes(always.fill)).toEqual(angleTypes(never.fill));
+    expect(settingsOf(never.fill).every((setting) => setting !== 'backstage')).toBe(true);
+    const typeKeys = always.fill.segments.flatMap((segment) =>
+      segment.draft.kind === 'angle' ? [segment.draft.angle.angleTypeKey] : [],
+    );
+    expect(typeKeys.length).toBeGreaterThan(0);
+    expect(settingsOf(always.fill)).toEqual(
+      typeKeys.map((key) => (key === 'angle.video-package' ? 'video' : 'backstage')),
+    );
+  });
+
   it('gives the same plan for the same seed', () => {
     const first = plan(busy, { seed: 'same', titles: true, matchSlots: 5 }).fill;
     const second = plan(busy, { seed: 'same', titles: true, matchSlots: 5 }).fill;

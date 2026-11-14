@@ -670,6 +670,13 @@ template beat its angle type does not allow is a `beat-not-allowed` error. The
 fields, the shipped entries and the rules are in
 [angle-rating.md](angle-rating.md).
 
+MTCH5-08 adds three optional fields: a beat group's `roles` (the talk roles
+that suit it: `wrestler`, `manager`, `interviewer`, `authority`), a beat's and
+an angle type's `settings` (where it may happen: `ring`, `backstage`, `video`;
+left out = everywhere) and a template's `setting` (left out = the ring). A
+template whose angle type or beats can't happen in its setting is a
+`setting-not-allowed` error. See [angle-rating.md](angle-rating.md#settings).
+
 `validate:world`'s `segment-keys` rule checks the shipped catalogs: at least
 one visible singles-like match type (`sides.min` 2, `sideSize.min` 1), unique
 names within each catalog, `beat.` default keys, that every stored
@@ -1036,3 +1043,4 @@ field path inside the record).
 | `beat-not-allowed`        | error    | references  | An angle template uses a beat its angle type doesn't allow (MTCH5).                             |
 | `missing-start-date`      | error    | load        | No start date was given and no world pack was loaded.                                           |
 | `entity-schema`           | error    | materialise | A record doesn't make a valid entity, or the finished world fails `checkWorld`.                 |
+| `setting-not-allowed`     | error    | references  | An angle template happens where its angle type or one of its beats can't (MTCH5-08).            |

@@ -1,6 +1,8 @@
+import { ANGLE_SETTING_LABELS } from '@ringside/engine';
 import type {
   BookingIssue,
   BookingResultView,
+  BookingSegmentView,
   BookingSideView,
   BookingSlotView,
   SlotRole,
@@ -52,6 +54,13 @@ export function bookingSideText(side: Pick<BookingSideView, 'name' | 'teamId' | 
   return members === null ? side.name : `${side.name} (${members})`;
 }
 
+/** "Interview", or "Interview · Backstage" for a talking segment away from the ring (MTCH5-08). */
+export function typeChipLabel(segment: Pick<BookingSegmentView, 'typeName' | 'setting'>): string {
+  return segment.setting === 'ring'
+    ? segment.typeName
+    : `${segment.typeName} · ${ANGLE_SETTING_LABELS[segment.setting]}`;
+}
+
 /** What a slot looks like on the card: role, number, chips, sides and the planned result. */
 export function toCardSlotProps(slot: BookingSlotView): CardSlotViewProps {
   const base = {
@@ -63,7 +72,7 @@ export function toCardSlotProps(slot: BookingSlotView): CardSlotViewProps {
   if (segment === null) return { ...base, chips: [], sides: [] };
 
   const chips: CardSlotChip[] = [
-    { id: 'type', kind: 'match-type', label: segment.typeName },
+    { id: 'type', kind: 'match-type', label: typeChipLabel(segment) },
     ...segment.titles.map((title): CardSlotChip => ({
       id: `title-${title.titleId}`,
       kind: 'title',

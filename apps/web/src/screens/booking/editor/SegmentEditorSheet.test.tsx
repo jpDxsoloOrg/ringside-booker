@@ -40,6 +40,10 @@ const BATTLE_ROYAL = 'Battle Royal · 6–30 sides · 1 each';
 const NAMES = ['Kai Moreno', 'Rex Hale', 'Tia Cruz', 'Rhea Cortez', 'Sam Reed', 'Jo Park'];
 const TIA = 2;
 const RHEA = 3;
+/** MTCH5-08: the talkers `editorWorld({ talkers: true })` adds after the six wrestlers. */
+const TALKER_NAMES = ['Lena Park', 'Victor Crane'];
+const LENA = 6;
+const VICTOR = 7;
 
 interface EditorWorld {
   readonly transport: InProcessTransport;
@@ -52,7 +56,9 @@ interface EditorWorld {
  * The player's promotion with six wrestlers, a team, a held title and a weekly Thursday show (six
  * slots and a pre-show), a day in so the show is stored.
  */
-async function editorWorld(): Promise<EditorWorld> {
+async function editorWorld(options: { readonly talkers?: boolean } = {}): Promise<EditorWorld> {
+  // MTCH5-08: with `talkers`, an interviewer (Lena Park) and Kai's manager (Victor Crane) join.
+  const names = options.talkers === true ? [...NAMES, ...TALKER_NAMES] : NAMES;
   const { world, ids } = worldBuilder({
     worldName: 'Test Editor World',
     startDate: parseGameDate('2026-01-05'),
@@ -69,20 +75,28 @@ async function editorWorld(): Promise<EditorWorld> {
       (promotion) =>
         promotion
           .withBrand({ name: 'Test Brand A' })
-          .withRoster(NAMES.length, {
+          .withRoster(names.length, {
             person: (index) =>
-              index === TIA
-                ? {
-                    injury: {
-                      kindKey: parseContentKey('injury.test'),
-                      bodyPart: 'legs',
-                      since: BOOKING_WORLD_START,
-                      expectedReturn: parseGameDate('2026-06-01'),
-                      canWorkAngles: true,
-                    },
-                  }
-                : {},
-            employment: (index) => ({ ringName: NAMES[index] ?? 'Someone' }),
+              index === LENA && options.talkers === true
+                ? { roles: ['presenter'], style: 'nonWrestler' }
+                : index === VICTOR && options.talkers === true
+                  ? { roles: ['manager'], style: 'nonWrestler' }
+                  : index === TIA
+                    ? {
+                        injury: {
+                          kindKey: parseContentKey('injury.test'),
+                          bodyPart: 'legs',
+                          since: BOOKING_WORLD_START,
+                          expectedReturn: parseGameDate('2026-06-01'),
+                          canWorkAngles: true,
+                        },
+                      }
+                    : {},
+            employment: (index) => ({
+              ringName: names[index] ?? 'Someone',
+              ...(options.talkers === true && index === LENA ? { role: 'presenter' as const } : {}),
+              ...(options.talkers === true && index === VICTOR ? { role: 'manager' as const } : {}),
+            }),
           })
           .withTitle({ name: 'Test Heavyweight Title', prestige: 80 }, { holder: RHEA })
           .withWeeklyShow(
@@ -101,6 +115,18 @@ async function editorWorld(): Promise<EditorWorld> {
     .build();
   const team = ids.teams[0];
   if (team === undefined) throw new Error('The editor world has no team.');
+  if (options.talkers === true) {
+    const kai = ids.people[0];
+    const victor = ids.people[VICTOR];
+    const contract = world.tables.employments
+      .values()
+      .find((employment) => employment.personId === kai);
+    if (contract === undefined || victor === undefined) throw new Error('No contract for Kai.');
+    const edited = world.transact('Kai has a manager', (tx) => {
+      tx.update('employments', contract.id, { managerPersonId: victor });
+    });
+    if (!edited.ok) throw edited.error;
+  }
 
   const transport = createInProcessTransport(fakeEngineFactory(), { progressIntervalMs: 0 });
   const install = transport.host.installEngine(initialEngineState(world));
@@ -110,7 +136,7 @@ async function editorWorld(): Promise<EditorWorld> {
   if (!result.ok) throw new Error('booking.shows was refused.');
   const show = result.data.rows[0];
   if (show === undefined) throw new Error('The editor world has no show.');
-  return { transport, roster: ids.people.slice(0, NAMES.length), team, show };
+  return { transport, roster: ids.people.slice(0, names.length), team, show };
 }
 
 function person(built: EditorWorld, index: number): PersonId {
@@ -272,6 +298,92 @@ describe('SegmentEditorSheet', { timeout: TEST_TIMEOUT_MS }, () => {
     const row = await screen.findByRole('article', { name: 'Slot 2: Midcard' });
     await within(row).findByText('Kai Moreno');
     expect(document.body.textContent).not.toMatch(RUNNING_TIME_WORDS);
+  });
+
+  it('books a backstage interview with an interviewer, a wrestler and his manager', async () => {
+    const built = await editorWorld({ talkers: true });
+    const spy = vi.spyOn(built.transport.host, 'command');
+    const user = renderBooking(built);
+    const editor = await openNew(
+      user,
+      'Slot 2: Midcard',
+      'Add talking segment',
+      'Slot 2 · Midcard',
+    );
+
+    await choose(user, 'Talking segment type', 'Interview · 1–3 speakers');
+    await user.click(within(editor).getByRole('radio', { name: 'Backstage' }));
+    expect(within(editor).getByRole('heading', { name: 'Guest' })).toBeInTheDocument();
+    expect(within(editor).getByText('Wrestler or manager')).toBeInTheDocument();
+
+    await pick(user, editor, 'Add speaker', 0, /Kai Moreno/);
+    await user.click(within(await findPicker()).getByRole('button', { name: 'Done' }));
+    await user.click(
+      await within(editor).findByRole('button', { name: 'Add their manager, Victor Crane' }),
+    );
+    await within(editor).findByRole('link', { name: 'Victor Crane' });
+
+    await user.click(within(editor).getByRole('button', { name: 'Add Host' }));
+    expect(within(editor).getByRole('heading', { name: 'Host' })).toBeInTheDocument();
+    await user.click(within(editor).getAllByRole('button', { name: 'Add speaker' })[1] ?? editor);
+    const picker = await findPicker();
+    expect(within(picker).getByRole('button', { name: 'Suits Host' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    const lena = await within(picker).findByRole(
+      'option',
+      { name: /Lena Park/ },
+      { timeout: LOAD_MS },
+    );
+    expect(within(picker).queryByRole('option', { name: /Rex Hale/ })).toBeNull();
+    await user.click(lena);
+    await within(editor).findByRole('link', { name: 'Lena Park' });
+    await user.click(within(editor).getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Slot 2 · Midcard' })).toBeNull();
+    });
+    const draft = sentDraft(spy, 'booking.addSegment');
+    expect(draft?.kind === 'angle' ? draft.angle.setting : null).toBe('backstage');
+    expect(
+      draft?.participants.map((entry) => [entry.side, entry.talkRole, entry.forPersonId ?? null]),
+    ).toEqual([
+      [0, 'wrestler', null],
+      [0, 'manager', person(built, 0)],
+      [1, 'interviewer', null],
+    ]);
+    const row = await screen.findByRole('article', { name: 'Slot 2: Midcard' });
+    expect(
+      await within(row).findByText(
+        'Backstage: Lena Park interviews Kai Moreno (with Victor Crane)',
+      ),
+    ).toBeInTheDocument();
+    expect(within(row).getByText('Interview · Backstage')).toBeInTheDocument();
+  });
+
+  it('says plainly when a part does not suit its group, and still saves', async () => {
+    const built = await editorWorld({ talkers: true });
+    const user = renderBooking(built);
+    const editor = await openNew(
+      user,
+      'Slot 2: Midcard',
+      'Add talking segment',
+      'Slot 2 · Midcard',
+    );
+    await choose(user, 'Talking segment type', 'Interview · 1–3 speakers');
+    await pick(user, editor, 'Add speaker', 0, /Kai Moreno/);
+    await user.click(within(await findPicker()).getByRole('button', { name: 'Done' }));
+    await user.click(within(editor).getByRole('button', { name: 'Add Host' }));
+    await user.click(within(editor).getAllByRole('button', { name: 'Add speaker' })[1] ?? editor);
+    const picker = await findPicker();
+    await user.click(within(picker).getByRole('button', { name: 'Suits Host' }));
+    await user.click(
+      await within(picker).findByRole('option', { name: /Rex Hale/ }, { timeout: LOAD_MS }),
+    );
+    await user.click(within(picker).getByRole('button', { name: 'Done' }));
+    expect(await within(editor).findByText('Host is for an interviewer')).toBeInTheDocument();
+    expect(within(editor).getByRole('button', { name: 'Save' })).toBeEnabled();
   });
 
   it('never lets an injured worker into a match, but lets them talk when the engine says so', async () => {

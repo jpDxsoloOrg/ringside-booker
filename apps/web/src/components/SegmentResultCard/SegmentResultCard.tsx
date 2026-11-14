@@ -21,6 +21,7 @@ import {
   segmentResultAccent,
   slotHeadingLabel,
   titleBannerText,
+  typeChipText,
   winningSideOf,
 } from './segmentResultText';
 import styles from './SegmentResultCard.module.css';
@@ -316,7 +317,7 @@ export function SegmentResultCard({
             {segment.durationLabel}
           </li>
           <li className={classNames(styles['chip'], styles['chip-type'])} data-kind="type">
-            {segment.typeName}
+            {typeChipText(segment)}
           </li>
           {segment.titles.map((title) => (
             <li

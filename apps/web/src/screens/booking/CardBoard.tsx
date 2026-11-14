@@ -102,6 +102,9 @@ function SlotRow({ slot, section, props }: SlotRowProps) {
         headingLevel={4}
         roleAside={<RoleAside slot={slot} />}
         {...(slotIssues === undefined ? {} : { issues: slotIssues })}
+        {...(slot.segment?.talkLine == null
+          ? {}
+          : { result: <p className={styles['talkLine']}>{slot.segment.talkLine}</p> })}
         {...(canReorder && slot.segment !== null
           ? { dragHandle: <DragGrip label={`Move ${place}`} /> }
           : {})}

@@ -78,6 +78,8 @@ import {
   refineAngleTypeBeats,
   type AngleTemplateDef,
   type BeatDef,
+  angleSettingListSchema,
+  CatalogAngleSettingSchema,
 } from '../../../model/catalogs';
 import { zContentKey } from '../../../model/primitives';
 import { zName } from '../../../model/entities/entity-refinements';
@@ -190,6 +192,8 @@ export const angleTypeRecord = defineRecordKind(
      * and including `defaultBeatKey`. Left out = every beat.
      */
     beatKeys: beatKeyListSchema.optional(),
+    /** MTCH5-08: where an angle of this type may happen (`ring`, `backstage`, `video`). Left out = every setting. */
+    settings: angleSettingListSchema.optional(),
     hidden: z.boolean().optional(),
     description: descriptionSchema.optional(),
   }),
@@ -249,6 +253,8 @@ export const beatRecord = defineRecordKind(
     repetitionGroup: beatRepetitionGroupSchema,
     /** How much the beat counts in the angle's mean, 0.1-3. */
     weight: beatWeightSchema,
+    /** MTCH5-08: where the beat can happen. Left out = every setting. */
+    settings: angleSettingListSchema.optional(),
   }),
 );
 
@@ -273,6 +279,8 @@ export const angleTemplateRecord = defineRecordKind(
       .min(1)
       .max(ANGLE_TEMPLATE_BEATS_MAX)
       .superRefine(refineAngleTemplateBeats),
+    /** MTCH5-08: where the template's angle happens. Left out = in the ring. */
+    setting: CatalogAngleSettingSchema.optional(),
     description: descriptionSchema.optional(),
   }),
 );
@@ -318,6 +326,7 @@ export function toAngleTypeDef(record: AngleTypeRecord): AngleTypeDef {
     speakers: { ...record.speakers },
     speakerWeights: { ...record.speakerWeights },
     ...(record.beatKeys === undefined ? {} : { beatKeys: [...record.beatKeys] }),
+    ...(record.settings === undefined ? {} : { settings: [...record.settings] }),
     hidden: record.hidden ?? false,
     ...(record.description === undefined ? {} : { description: record.description }),
   };
@@ -373,10 +382,15 @@ export function toBeatDef(record: BeatRecord): BeatDef {
     key: beatContentKey(record.key),
     name: record.name,
     description: record.description,
-    groups: record.groups.map((group) => ({ ...group, stats: [...group.stats] })),
+    groups: record.groups.map(({ roles, ...group }) => ({
+      ...group,
+      stats: [...group.stats],
+      ...(roles === undefined ? {} : { roles: [...roles] }),
+    })),
     physical: record.physical,
     repetitionGroup: record.repetitionGroup,
     weight: record.weight,
+    ...(record.settings === undefined ? {} : { settings: [...record.settings] }),
   };
 }
 
@@ -393,6 +407,7 @@ export function toAngleTemplateDef(record: AngleTemplateRecord): AngleTemplateDe
       groupTwo: beat.groupTwo,
       optional: beat.optional,
     })),
+    ...(record.setting === undefined ? {} : { setting: record.setting }),
     ...(record.description === undefined ? {} : { description: record.description }),
   };
 }
