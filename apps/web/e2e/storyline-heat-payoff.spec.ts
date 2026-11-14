@@ -110,6 +110,12 @@ async function bookLinkedMatch(page: Page, candidates: readonly Starter[]): Prom
       await expect(editor).toBeHidden();
       continue;
     }
+    // A segment links once it is saved: save it, then open it again.
+    await editor.getByRole('button', { name: 'Save' }).click();
+    await expect(editor).toBeHidden();
+    await slot.getByRole('button', { name: /^Actions for / }).click();
+    await page.getByRole('menuitem', { name: 'Edit' }).click();
+    await expect(editor).toBeVisible();
     const section = editor.getByRole('region', { name: 'Storyline' });
     const suggestion = section
       .getByRole('list', { name: 'Suggested storylines' })
