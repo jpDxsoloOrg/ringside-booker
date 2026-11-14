@@ -238,12 +238,8 @@ describe('StorylineEditorSection', { timeout: TEST_TIMEOUT_MS }, () => {
     const editor = screen.getByRole('dialog', { name: /^Slot 2 · / });
     await user.click(within(editor).getByRole('button', { name: 'Save' }));
     await waitFor(() => {
-      expect(commandSpy).toHaveBeenCalledWith(
-        'booking.updateSegment',
-        expect.objectContaining({
-          draft: expect.objectContaining({ storylineIds: [built.ashfall] }),
-        }),
-      );
+      const saved = commandSpy.mock.calls.find((call) => call[0] === 'booking.updateSegment');
+      expect(saved?.[1]).toMatchObject({ draft: { storylineIds: [built.ashfall] } });
     });
   });
 
@@ -258,7 +254,7 @@ describe('StorylineEditorSection', { timeout: TEST_TIMEOUT_MS }, () => {
             ok: false,
             reasons: [{ code: 'storylines.tooManyLinks', message: 'Test refusal: too many links' }],
           },
-        } as Awaited<ReturnType<typeof original>>;
+        };
       }
       return original(name, args);
     });
