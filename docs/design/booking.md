@@ -484,6 +484,13 @@ slot is named by number ("Slot 3", "Pre-show slot 1").
 | `workingTwice`                                            | `booking.cardWide` | a competitor in a second or later match, within `booking.maxMatchesPerPersonPerShow`     | "Kai Moreno is also in the Opener: working twice tires them more and raises their injury risk" |
 | `checkFailed`                                             | the failing check  | a registered check threw                                                                 | "A booking check (<id>) failed; the show can still run"                                        |
 
+**Show time (EVT4-08).** `match.showTime` (order 225) gives `showTime.over`,
+"Over the show's time by 2: shorten a match or drop a segment.", when the card's
+segments take more of the show's time than it has
+([match-rating.md](match-rating.md#show-time)). It is an error once the booker
+set any segment longer than usual, and a warning otherwise, so a card at its
+usual times is never blocked.
+
 The first three are given once per person, on the first segment they are in.
 `workingTwice` is given on each later match, naming the earlier ones ("is also
 in the Opener and Slot 2: working three times …").

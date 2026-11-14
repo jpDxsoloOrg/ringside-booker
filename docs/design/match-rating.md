@@ -21,7 +21,9 @@ says you never set minutes. A show has a number of segment slots, and a
 segment's position decides its **role**. The role implies a **duration class**
 (short, standard or long) and a **weight** (how much it counts toward the show
 score). The main event is always the long, heaviest slot. A match type can move
-the duration class one step up or down.
+the duration class one step up or down. Since EVT4-08 the booker may also set a
+segment's time (Short, Standard or Long) within the show's time budget; see
+[Show time](#show-time).
 
 ## Slots
 
@@ -29,11 +31,11 @@ Three pure functions in `systems/match/slots.ts`, each returning a traced value
 so a "Why?" panel can show the rule that decided it. All three are exported
 from `@ringside/engine`.
 
-| Question                     | Function                                     | Returns                 |
-| ---------------------------- | -------------------------------------------- | ----------------------- |
-| Which role does a slot have? | `slotRoleOf({ slot, slots, preShow }, deps)` | `Traced<SlotRole>`      |
-| How long does it run?        | `durationClassOf({ role, matchType }, deps)` | `Traced<DurationClass>` |
-| How much does it count?      | `slotWeightOf({ role }, deps)`               | `Traced<number>`        |
+| Question                     | Function                                              | Returns                 |
+| ---------------------------- | ----------------------------------------------------- | ----------------------- |
+| Which role does a slot have? | `slotRoleOf({ slot, slots, preShow }, deps)`          | `Traced<SlotRole>`      |
+| How long does it run?        | `durationClassOf({ role, matchType, booked? }, deps)` | `Traced<DurationClass>` |
+| How much does it count?      | `slotWeightOf({ role }, deps)`                        | `Traced<number>`        |
 
 `deps` is `{ tunables }`. Slots are 1-based and counted separately on the
 pre-show and the main card.
@@ -61,11 +63,82 @@ The role gives the base class: `match.slot.durationClass.<role>` for the
 pre-show, opener, midcard and semi-main. The main event has no tunable: it is
 always long ("D-10: the main event is always the long slot").
 
+EVT4-08: when the booker set the segment's time (`segment.bookedLength`, passed
+as `booked`), it replaces the role's class before the shift, with the line
+"Booked Long (Midcard is usually Standard)". The main event ignores it ("Booked
+Short, but the main event stays long").
+
 The segment's match type then moves the class by its `durationShift` (-1, 0 or
 1), never past short or long. In the main event a downward shift is ignored
 ("Main event stays long"). A talking segment has no match type and is never
 shifted. Trace lines read like "Midcard → Standard" and "Battle Royal pushes it
 up a step → Long".
+
+### Show time
+
+EVT4-08, `systems/match/showTime.ts`. Still no minutes: each class takes a
+number of the show's time units (`match.time.units.<class>`: Short 1, Standard
+2, Long 3). A show has room for every slot of its format at its role's usual
+class (no match type), plus extra room by importance
+(`match.time.room.<importance>`): house 0, minor 1, regular 1, major 3,
+flagship 6. Open slots leave their time free.
+
+- `showTimeBudget({ importance, roles }, deps)`: "Time the card usually takes
+  15", then "Regular show: room for +1".
+- `cardTimeUsed(slots, deps)`: one line per filled slot, "Slot 2: Long +3".
+- `showTimeOf(read, instance, tunables)`: both, how far over the card is, and
+  whether the booker set any segment longer than usual (`lengthened`).
+- `segmentDurationOf(read, segment, format, tunables)`: a stored segment's role,
+  class, its usual class and the steps the booked time moves it.
+
+The booking check `match.showTime` (order 225, "The card fits the show's time")
+reports "Over the show's time by 2: shorten a match or drop a segment." It is an
+error once the booker lengthened a segment, and only a warning on a card where
+every segment keeps its usual time (match types alone pushed it over), so a card
+booked as before still runs as before. The booking screen shows "Time used: 14
+of 16" as a bar with a Why? for each number; the segment editor has a Time choice
+(the slot's usual marked) and the Match lab a Time select.
+
+What a longer match does:
+
+- **Star limit**: the class's `match.stars.cap.*` (a long match can reach 5).
+- **Expectation**: `match.expectation.lengthStep` (4) per step the booked time
+  moves the class, "Booked long: crowd expects +4"; a shorter match lowers it.
+  A longer match must deliver more to land, so it is a gamble.
+- **Stamina**: the class's stamina need, and a tired worker is short
+  `fatigue × match.workRate.lengthenedFatigueShare` (0.25) stamina per step
+  booked longer ("Ana Vale is tired for a match booked longer").
+- **Physical toll** (MTCH4) and **beat limits** (MTCH5) follow the class.
+- **Slot weight**: never changes. Length moves the match's own expectation and
+  star limit, not how much its slot counts toward the show score.
+
+Nothing changes for a segment without a booked time: no trace line is added and
+every number is as before.
+
+Rival bookers (`aip.lengthenMatches`, a booked-card step at order 5) spend the
+spare time of a major or flagship show setting matches to Long, the semi-main
+first and then down the card; never the main event, the pre-show or a weekly
+show.
+
+Balance check on the default world (Altura's top two pairs, 500 previews each,
+flagship show): a semi-main booked long rates exactly like the same match as the
+main event (expectation 87.4, 4.3 stars on average, against 4.2 at its usual
+time); weaker pairs lose stars when booked long. A flagship card (10 slots and a
+pre-show) has room for six more steps, so several matches can have the main
+event's 5-star ceiling; a regular 6-slot show has room for one.
+
+| Key                                     | Kind    | Default | Range          | Unit   |
+| --------------------------------------- | ------- | ------- | -------------- | ------ |
+| `match.time.units.short`                | integer | 1       | 0–10           | count  |
+| `match.time.units.standard`             | integer | 2       | 0–10           | count  |
+| `match.time.units.long`                 | integer | 3       | 0–10           | count  |
+| `match.time.room.house`                 | integer | 0       | 0–30           | count  |
+| `match.time.room.minor`                 | integer | 1       | 0–30           | count  |
+| `match.time.room.regular`               | integer | 1       | 0–30           | count  |
+| `match.time.room.major`                 | integer | 3       | 0–30           | count  |
+| `match.time.room.flagship`              | integer | 6       | 0–30           | count  |
+| `match.expectation.lengthStep`          | number  | 4       | −30–30         | points |
+| `match.workRate.lengthenedFatigueShare` | number  | 0.25    | 0–2, step 0.05 | ratio  |
 
 ### Slot weight
 
@@ -368,7 +441,9 @@ expected = base + starPower × starWeight + momentum × momentumWeight
          + slot.<role> + importance.<importance> + (televised ? televised : 0)
 ```
 
-kept between 0 and 100. Each term is exactly one line: "Base expectation +25",
+plus, for a segment the booker set longer or shorter than usual (EVT4-08),
+`lengthStep × steps` ("Booked long: crowd expects +4"), kept between 0 and 100.
+Each term is exactly one line: "Base expectation +25",
 "Star power 92.8 × 0.5", "Momentum +0 × 0.1", "Card position: Main event +8",
 "Event size: Regular +0" and "On TV +2" (or "Not on TV +0"). Star power is one
 flat line here; its own story is shown where it is delivered.

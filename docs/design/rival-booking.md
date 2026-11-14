@@ -599,7 +599,10 @@ validated, every step added with
 with its own buffered events and traces. A step that throws is logged and
 skipped, with nothing it did left behind, and the card still books. Duplicate
 ids throw when registering. AIP5 sets the winners here, MTCH8 the crew and
-MTCH7 the stipulations, without editing the booker.
+MTCH7 the stipulations, without editing the booker. EVT4-08's `aip.lengthenMatches`
+(order 5, before the winners) sets matches on a major or flagship show to Long
+while the show has spare time, the semi-main first and then down the card
+([match-rating.md](match-rating.md#show-time)).
 
 **Validation.** EVT2's `validateCard` checks the card. A match with no planned
 winner (`noPlannedResult`) is fine: AIP5 sets winners, or show night's
