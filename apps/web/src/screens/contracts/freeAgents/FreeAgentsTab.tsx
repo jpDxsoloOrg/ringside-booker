@@ -213,7 +213,10 @@ export function FreeAgentsTab({ promotionId, openNegotiation }: FreeAgentsTabPro
         id: 'situation',
         header: 'Situation',
         cell: (row) => (
-          <Badge tone={row.situation === 'freeAgent' ? 'data' : 'neutral'}>
+          <Badge
+            tone={row.situation === 'freeAgent' ? 'data' : 'neutral'}
+            className={styles['wrapBadge']}
+          >
             {situationText(row)}
           </Badge>
         ),
