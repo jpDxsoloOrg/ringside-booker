@@ -11,7 +11,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { createEngine } from '../../../src/core/api';
 import { defineSystem } from '../../../src/core/api/system';
 import { parseContentKey } from '../../../src/core/content-key';
-import { addDays } from '../../../src/core/date';
+import { addDays, addYearMonths, yearMonthOf } from '../../../src/core/date';
 import type { PromotionId } from '../../../src/core/ids';
 import { definePhase } from '../../../src/core/pipeline/phase';
 import { promotionStatusKey } from '../../../src/model/entities/employment';
@@ -227,12 +227,12 @@ async function playYear(shows: 'decent' | 'poor'): Promise<YearResult> {
   return { world, lowestCash };
 }
 
-/** Altura's year-one money in `categories`, from the monthly totals (rolled up or not). */
+/** Altura's money in `categories` over the 12 months from the start, rolled up or not. */
 function yearTotal(world: GameWorldView, categories: readonly LedgerCategory[]): number {
   let total = 0;
-  for (let month = 1; month <= 12; month += 1) {
-    const yearMonth = `2027-${String(month).padStart(2, '0')}` as const;
-    const breakdown = monthBreakdownOf(world, altura, yearMonth);
+  const first = yearMonthOf(read.meta.currentDate);
+  for (let month = 0; month < 12; month += 1) {
+    const breakdown = monthBreakdownOf(world, altura, addYearMonths(first, month));
     for (const category of categories) {
       total += breakdown.byCategory[category] ?? 0;
     }
