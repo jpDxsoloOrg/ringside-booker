@@ -29,13 +29,16 @@ async function findTable(name: string): Promise<HTMLElement> {
   return screen.findByRole('grid', { name }, { timeout: LOAD_MS });
 }
 
-async function openReleaseConfirm(rendered: RenderedContracts): Promise<{
+async function openReleaseConfirm(
+  rendered: RenderedContracts,
+  pick: (row: ContractRow) => boolean = (row) => row.role === 'wrestler',
+): Promise<{
   confirm: HTMLElement;
   target: ContractRow;
 }> {
   const table = await findTable('Active contracts');
   const rows = await activeRows(rendered);
-  const target = rows.find((row) => row.role === 'wrestler') ?? rows[0];
+  const target = rows.find(pick) ?? rows[0];
   if (target === undefined) throw new Error('The tiny world has contracts');
   await rendered.user.click(
     await within(table).findByRole('row', { name: new RegExp(target.ringName, 'u') }),
@@ -147,6 +150,19 @@ describe('ContractsScreen', () => {
     expect(
       await screen.findByRole('link', { name: 'See it in the ledger' }, { timeout: LOAD_MS }),
     ).toHaveAttribute('href', routes.game.finances({ tab: 'ledger' }));
+  });
+
+  it('names the title and the grace period before releasing a champion (with CRTV1)', async () => {
+    const rendered = renderContracts();
+    const { confirm, target } = await openReleaseConfirm(rendered, (row) => row.titles.length > 0);
+    const [title] = target.titles;
+    if (title === undefined) throw new Error('The tiny world has a champion under contract');
+    const warnings = within(confirm).getByRole('list', { name: 'Before you release' });
+    expect(
+      within(warnings).getByText(
+        `${target.ringName} holds the ${title.name}. It will be vacated after 7 days unless they re-sign.`,
+      ),
+    ).toBeInTheDocument();
   });
 
   it('keeps the confirm open when the severance changed', async () => {
