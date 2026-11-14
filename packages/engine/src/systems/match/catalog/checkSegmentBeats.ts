@@ -62,11 +62,14 @@ export interface BeatCatalogIssue {
   readonly message: string;
 }
 
-function hasBeat(catalogs: Catalogs, key: string): boolean {
+function hasBeat(catalogs: DeepReadonly<Catalogs>, key: string): boolean {
   return catalogs.beats !== undefined && Object.hasOwn(catalogs.beats, key);
 }
 
-function checkAngleType(catalogs: Catalogs, angleType: AngleTypeDef): BeatCatalogIssue[] {
+function checkAngleType(
+  catalogs: DeepReadonly<Catalogs>,
+  angleType: DeepReadonly<AngleTypeDef>,
+): BeatCatalogIssue[] {
   const issues: BeatCatalogIssue[] = [];
   const { key, defaultBeatKey, beatKeys } = angleType;
   if (!hasBeat(catalogs, defaultBeatKey)) {
@@ -98,7 +101,7 @@ function checkAngleType(catalogs: Catalogs, angleType: AngleTypeDef): BeatCatalo
 }
 
 /** Every problem between the angle types and the beat catalog. Empty without a beat catalog. */
-export function checkBeatCatalog(catalogs: Catalogs): BeatCatalogIssue[] {
+export function checkBeatCatalog(catalogs: DeepReadonly<Catalogs>): BeatCatalogIssue[] {
   if (catalogs.beats === undefined) {
     return [];
   }
