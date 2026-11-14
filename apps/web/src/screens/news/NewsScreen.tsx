@@ -277,8 +277,11 @@ function Feed({ today, filters, onFiltersChange, storyLinkOf }: FeedProps) {
  *
  * - arriving from the day button's "Open news" (`?story=<id>&alert=1`): runs `news.ackAlerts`,
  *   and replaces the URL without `alert`, keeping the story open;
- * - opening News any other way while an alert waits (`news.alertRules` gives `pending`): the
- *   player is reading the news, so that clears it too.
+ * - opening News any other way while an alert waits (`news.alertRules` gives `pending` when the
+ *   screen opens): the player is reading the news, so that clears it too.
+ *
+ * An alert that arrives while the screen stays open (a skip run from here) is not cleared behind
+ * the player's back: the day button says "Open news", and pressing it opens that story.
  *
  * Each story is acknowledged once (a ref, so StrictMode's double effect and the `pending` answer
  * that arrives before the command lands do not run it twice). A seat with no promotion is not a
@@ -293,8 +296,10 @@ function useAcknowledgeAlert(
   const rules = useEngineQuery('news.alertRules', NO_ARGS, { enabled: canAck });
   const { run: ack } = useEngineCommand('news.ackAlerts');
   const acknowledged = useRef(new Set<string>());
+  const checkedOnOpen = useRef(false);
   const fromAlert = searchParams.get(ALERT_PARAM) === '1';
-  const pending = canAck ? (rules.data?.pending ?? null) : null;
+  const loaded = rules.data !== undefined;
+  const pending = rules.data?.pending ?? null;
 
   useEffect(() => {
     if (fromAlert) {
@@ -307,13 +312,20 @@ function useAcknowledgeAlert(
         { replace: true },
       );
     }
+    if (!canAck) return;
     // The alert's story is the gate's subject, so both ways in share one key per story.
-    const key = fromAlert ? (openStoryId ?? 'alert') : pending;
-    if (key === null || acknowledged.current.has(key) || !canAck) return;
+    let key: string | null = null;
+    if (fromAlert) {
+      key = openStoryId ?? 'alert';
+    } else if (loaded && !checkedOnOpen.current) {
+      key = pending;
+    }
+    if (loaded) checkedOnOpen.current = true;
+    if (key === null || acknowledged.current.has(key)) return;
     acknowledged.current.add(key);
     if (pending !== null) acknowledged.current.add(pending);
     void ack({});
-  }, [ack, canAck, fromAlert, openStoryId, pending, setSearchParams]);
+  }, [ack, canAck, fromAlert, loaded, openStoryId, pending, setSearchParams]);
 }
 
 /** The news screen with a world: the front page, the feed and the open story. */

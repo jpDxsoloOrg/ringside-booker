@@ -15,7 +15,12 @@
 import { expect, test } from './fixtures';
 import type { Locator, Page, TestInfo } from '@playwright/test';
 import { expectNoSeriousA11yViolations } from './helpers/a11y';
-import { autoFillCard, cancelTonightsShow, pickWinnersAndRunShow } from './helpers/booking';
+import {
+  autoFillCard,
+  cancelTonightsShow,
+  clearNewsStop,
+  pickWinnersAndRunShow,
+} from './helpers/booking';
 import { enterGameFromSampleSave, startDefaultWorldGame } from './helpers/game';
 import { expectNoHorizontalScroll } from './helpers/layout';
 import { isPhone } from './helpers/viewport';
@@ -218,7 +223,8 @@ async function skipToDateThroughShows(
   for (let stops = 0; stops < 12; stops += 1) {
     await skipToDate(page, date, phone);
     if ((await summary.textContent())?.includes(`to ${reached}`) === true) return ran;
-    // Stopped short: for a show night or an injury.
+    // Stopped short: for a news alert (DAY1-05), a show night or an injury.
+    if (await clearNewsStop(page)) continue;
     await expect(show.or(roster)).toBeVisible({ timeout: 15_000 });
     if (await roster.isVisible()) {
       await roster.click();

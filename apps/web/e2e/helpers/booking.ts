@@ -61,6 +61,30 @@ export async function waitForAdvanceToEnd(
   await waitForDayBarSettled(page);
 }
 
+/** The day bar's "Open news" button: a news alert the player turned on stopped the day (DAY1-05). */
+export function openNewsButton(page: Page) {
+  return page.getByTestId('day-control').getByRole('button', { name: 'Open news' });
+}
+
+/**
+ * Clears a news alert stop the way a player does: "Open news" opens the story on the News screen,
+ * which clears the alert, then the story is closed. Returns false when no news stop waits.
+ */
+export async function clearNewsStop(page: Page): Promise<boolean> {
+  await waitForDayBarSettled(page);
+  const openNews = openNewsButton(page);
+  if (!(await openNews.isVisible())) return false;
+  await openNews.click();
+  await expect(page).toHaveURL(/\/game\/news\?story=/);
+  const story = page.getByRole('dialog');
+  await expect(story).toBeVisible();
+  await expect(openNews).toBeHidden(ADVANCE_TIMEOUT);
+  await story.getByRole('button', { name: 'Close' }).click();
+  await expect(story).toBeHidden();
+  await waitForDayBarSettled(page);
+  return true;
+}
+
 /**
  * Skips `days` days once through the Skip days sheet: the top bar's button on desktop, the status
  * sheet's on a phone. Waits for the advance to finish and returns how many days it moved, which
@@ -127,11 +151,12 @@ export async function skipDaysCancellingShows(
   phone: boolean,
 ): Promise<void> {
   let left = days;
-  // Every stop costs one cancelled show, so a week cannot need more rounds than it has days.
+  // Every stop costs one cancelled show or one news story read, and each moves at least a day
+  // after it, so a skip cannot need more rounds than it has days.
   for (let round = 0; left > 0 && round <= days; round += 1) {
     const moved = await skipDaysOnce(page, left, phone);
     left -= moved;
-    if (left > 0) await cancelTonightsShow(page);
+    if (left > 0 && !(await clearNewsStop(page))) await cancelTonightsShow(page);
   }
   expect(left, 'every day of the skip ran').toBe(0);
 }
