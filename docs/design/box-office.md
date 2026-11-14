@@ -38,7 +38,9 @@ expected = draw
          × (1 + marketing.perLevel × marketing level)
          × importance.<show size>
          × recent form
+         × hot streak
          × big-show fatigue
+         × show heat
          × hype
          rounded to whole people, never below 0
 ```
@@ -47,12 +49,14 @@ expected = draw
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | "Popularity in Texas: 20"  | The promotion's `regionalPop` in the show's region, 0 when none is stored, read with the [same-day rule](#same-day-rule) |
 | "Popularity curve"         | `boxOffice.draw.curve` (3.0): a convex curve, so a company twice as popular draws far more than twice the crowd          |
-| "Crowd at full popularity" | `boxOffice.draw.atFullPopularity` (30,000)                                                                               |
-| "Walk-up crowd"            | `boxOffice.draw.walkUp` (80): people who turn up to any show, however unknown the company                                |
+| "Crowd at full popularity" | `boxOffice.draw.atFullPopularity` (25,500; 30,000 before EVT6-11)                                                        |
+| "Walk-up crowd"            | `boxOffice.draw.walkUp` (150; 80 before EVT6-11): people who turn up to any show, however unknown the company            |
 | "Marketing level 8"        | `× (1 + 0.04 × level)` with the promotion's `production.marketing` (0–10), so level 10 adds 40%                          |
 | "Regular show"             | `boxOffice.importance.*`: house 0.35, minor 0.7, regular 1.0, major 1.5, flagship 2.2                                    |
-| "Recent form"              | [Recent form](#recent-form), 0.85–1.15                                                                                   |
+| "Recent form"              | [Recent form](#recent-form), 0.9–1.1                                                                                     |
+| "Hot streak"               | [Hot streak](#hot-streak), 1–1.125                                                                                       |
 | "Big-show fatigue"         | [Big-show fatigue](#big-show-fatigue), 0.25–1                                                                            |
+| "Show heat"                | [Show heat](#show-heat), 1–1.3                                                                                           |
 | "Hype"                     | [Hype](#hype), 1 until ECO3 tracks it                                                                                    |
 
 Every number is a tunable, and 0 means 0: a show size multiplier at 0 empties
@@ -65,8 +69,10 @@ inputs from the world and returns:
 - `low` and `high`: `expected × (1 ∓ boxOffice.crowd.spread)`, rounded (±10%).
   The real crowd lands in this range (EVT6-04), so it is also the range the
   booking panel shows. The caller caps both at the venue's capacity.
-- `inputs`: what the forecast was built from, including the recent shows and
-  the other big shows it counted.
+- `inputs`: what the forecast was built from, including the recent shows, the
+  scores the hot streak walked (`streakScores`), the other big shows it
+  counted and the storylines linked on the card with their heat
+  (`cardStorylines`).
 
 `at: { regionId }` forecasts the same show in another region, for "what if this
 venue" in EVT6-03. It is exported from the engine next to `recentFormOf`.
@@ -102,13 +108,83 @@ fewer than minShows (3) shows → 1, "Not enough recent shows (2 of 3)"
 otherwise                     → 1 + maxSwing × clamp((average − par) / fullSwingPoints, −1, 1)
 ```
 
-With the defaults (par 50, full swing 25 points, largest swing 0.15) an average
-of 75 or more adds 15%, an average of 25 or less takes 15%, and an average of
-60 adds 6%.
+With the defaults (par 50, full swing 25 points, largest swing 0.10) an average
+of 75 or more adds 10%, an average of 25 or less takes 10%, and an average of
+60 adds 4%. The largest swing was 0.15 until EVT6-11 added the
+[hot streak](#hot-streak), which rewards the same good shows a second way.
 
 **Par, not popularity.** The show score is already judged against what the
 crowd expected (D-02), so a fixed par of 50 is the fair yardstick. Comparing
 against popularity would punish a popular company twice.
+
+## Hot streak
+
+EVT6-11. A run of good shows sells more tickets than the same shows spread
+out. `computeHotStreak` (`formulas/hotStreak.ts`) walks the scores of the
+shows recent form counts (`countedRecentShows`: the same window, house-show
+rule and "never the show itself"), oldest first:
+
+```text
+score ≥ goodScore (60)   → bonus = min(cap, bonus + perShow)   the streak goes on
+score <  goodScore       → bonus = max(0, bonus − fadePerShow)  the streak breaks and fades
+hot streak               = 1 + bonus
+```
+
+With the defaults each good show in a row adds 2.5%, five in a row reach the
+cap of 12.5%, and a poor show breaks the streak: the bonus then loses 5% a
+show (12.5% → 7.5% → 2.5% → 0) instead of vanishing at once. A new streak
+builds on whatever is left of the last one.
+
+The Why? says where the streak stands: "3 good shows in a row (60 or
+better)" × "Crowd added per good show", plus "Left from an earlier streak"
+when a new run built on a faded one, capped at "Largest streak bonus"; or
+"Streak broken, fading" with the bonus when it broke less "2 shows below 60
+since" × "Fades per show"; or the note "No hot streak: a show scoring 60 or
+better starts one".
+
+**Recent form and the streak both stay.** Recent form is the level of the
+last 120 days: the average, which can also take people away. The streak only
+rewards good shows in a row and has no downside beyond fading. A promotion
+averaging 62 with a dip every third show gets recent form but little streak;
+one that never dips gets both. To keep them from counting the same good shows
+twice at full strength, recent form's largest swing went from 0.15 to 0.10
+when the streak was added.
+
+## Show heat
+
+EVT6-11. A card that links hot storylines (CRTV4 heat) sells more tickets,
+and a storyline's finale sells more again. `storylineHeatsOnCard`
+(`showHeat.ts`) lists the storylines linked by any segment on the card, each
+once, with:
+
+- **The heat walking into the show.** CRTV4 moves a storyline's heat as soon
+  as a linked segment is rated, and the player's show is settled right after
+  it runs, so by settlement the current heat already includes tonight. Once a
+  segment of this show has counted, the storyline's first progress row for
+  the show holds `heatBefore`; until then the current heat is that heat. The
+  booking forecast on show day and the settlement read the same number.
+- **Finale:** the storyline's `finaleSegmentId` is a segment on this card.
+- A storyline counts while it is active, or when it ended on or after the
+  show's date (a finale that ended it tonight still drew the crowd).
+
+`computeShowHeat` (`formulas/showHeat.ts`):
+
+```text
+storyline bonus = maxBonus (0.15) × clamp((heat − from (40)) / (100 − from), 0, 1)
+                  × finaleFactor (1.5) when its finale is on the card
+show heat       = 1 + min(cap (0.3), hottest bonus + otherShare (0.25) × each other bonus)
+```
+
+So a storyline at heat 40 or less adds nothing, heat 70 adds 7.5%, heat 100
+adds 15%, and the same heat-70 story's finale adds 11.25%. A second hot
+storyline adds a quarter of its own bonus. The Why? has a line per storyline
+("The Ashfall Feud: heat 78, finale tonight", linking the storyline) and the
+note "No storylines linked on the card" when there are none.
+
+Rivals link their own storylines (AIP6), so their crowds follow their hot
+cards too. The forecast never stores anything: the booking panel reads the
+card as it stands, so linking a hot storyline or flagging a finale moves the
+forecast at once.
 
 ## Big-show fatigue
 
@@ -138,16 +214,89 @@ without touching the formula (see [Integrations](#integrations)).
 ## Calibration
 
 `test/systems/boxOffice/calibration.test.ts` forecasts the first scheduled
-date of five shows on a new default-world game (no recent form yet, so that
-line is 1). If a band fails, tune the defaults, not the bands.
+date of five shows on a new default-world game (no recent form or streak yet,
+so those lines are 1). If a band fails, tune the defaults, not the bands.
+Before EVT6-11 lowered the base crowd the forecasts were 16,812, 34,123,
+9,983, 186 and 233.
 
 | Show             | Promotion, region popularity, marketing   | Size     | Forecast | Band          |
 | ---------------- | ----------------------------------------- | -------- | -------- | ------------- |
-| Altura Mainstage | Altura, 75, marketing 8                   | Regular  | 16,812   | 10,000–18,000 |
-| Altitude         | Altura, 73, marketing 8 (1 free big show) | Flagship | 34,123   | 25,000–55,000 |
-| Tessen Iron Hour | Tessen, 65, marketing 5                   | Regular  | 9,983    | 6,000–14,000  |
-| Wattle Saturday  | Wattle, 18, marketing 1                   | Minor    | 186      | 100–400       |
-| Hardpan Friday   | Hardpan, 20, marketing 1                  | Minor    | 233      | 100–500       |
+| Altura Mainstage | Altura, 75, marketing 8                   | Regular  | 14,398   | 10,000–18,000 |
+| Altitude         | Altura, 73, marketing 8 (1 free big show) | Flagship | 29,243   | 25,000–55,000 |
+| Tessen Iron Hour | Tessen, 65, marketing 5                   | Regular  | 8,584    | 6,000–14,000  |
+| Wattle Saturday  | Wattle, 18, marketing 1                   | Minor    | 217      | 100–400       |
+| Hardpan Friday   | Hardpan, 20, marketing 1                  | Minor    | 258      | 100–500       |
+
+### Year-one calibration
+
+EVT6-11 lowered the base crowd so that average shows sell fewer tickets and
+only hot streaks and hot cards fill buildings. Owner targets, on the default
+world as Altura: decent shows roughly break even over a year, good shows
+profit but by less than before, poor shows lose money, small promotions still
+struggle and no rival goes broke from the change.
+
+| Value                             | Before | After  |
+| --------------------------------- | ------ | ------ |
+| `boxOffice.draw.atFullPopularity` | 30,000 | 25,500 |
+| `boxOffice.draw.walkUp`           | 80     | 150    |
+| `boxOffice.recentForm.maxSwing`   | 0.15   | 0.10   |
+
+The walk-up crowd went up so the smallest promotions (popularity around 20)
+keep about the crowd they had: the cut to the crowd at full popularity bites
+the big ones, through the convex curve, far harder than the small ones.
+
+**Altura's change in cash over year one** (365 days from 4 January 2027,
+default world, the player's cards as in the broadcast calibration: poor =
+the least popular wrestlers in singles, decent = random singles, good =
+Auto-fill; rivals book their own cards). Measured on main before EVT6-11 and
+on its branch, before ECO4-09 and ECO8-10 change wages and TV:
+
+| Altura, year one | Poor shows | Decent shows | Good shows |
+| ---------------- | ---------- | ------------ | ---------- |
+| Before EVT6-11   | −32.1M     | +5.9M        | +44.8M     |
+| **After**        | **−33.8M** | **−1.0M**    | **+44.2M** |
+
+Ticket sales over the year: poor 15.5M → 14.1M, decent 48.0M → 41.9M, good
+81.7M → 81.1M. Good shows lose little: the base cut takes about 12% of their
+tickets and the hot streak (they score 60 or better most weeks) and higher
+popularity give most of it back, which is the point. Most of the gap between
+decent and good is popularity: good shows raise it, and the convex curve
+turns a few points into many more people. Narrowing the gap further needs a
+flatter `boxOffice.draw.curve`, which would also hand the small promotions
+more people, so it was left alone.
+
+**Every promotion's change in cash over the year**, in whole dollars (decent
+runs as Altura; Hardpan's own row when Hardpan is played):
+
+| Promotion (start cash)  | Before, decent | After, decent | Before, good (Altura) | After, good (Altura) |
+| ----------------------- | -------------- | ------------- | --------------------- | -------------------- |
+| Altura (40,000,000)     | 5,897,995      | −998,674      | 44,845,580            | 44,202,806           |
+| Tessen (8,000,000)      | −5,354,336     | −5,354,336    | −5,110,508            | −5,000,699           |
+| Cielo Alto (5,000,000)  | 11,277,561     | 10,855,090    | 11,102,122            | 10,669,136           |
+| Longleaf (1,200,000)    | 2,040,224      | 1,944,359     | 2,043,168             | 1,975,038            |
+| Ashlar (900,000)        | −139,619       | −139,619      | −142,200              | −139,169             |
+| Boreal (1,500,000)      | 1,698,593      | 1,486,768     | 1,666,126             | 1,530,271            |
+| Eisenwerk (400,000)     | 655,835        | 423,017       | 665,988               | 438,966              |
+| Blast Furnace (650,000) | −497,424       | −497,924      | −491,514              | −493,000             |
+| Golden Poppy (750,000)  | −733,789       | −733,789      | −729,980              | −727,825             |
+| Hibari (120,000)        | −111,891       | −111,223      | −111,397              | −111,371             |
+| Hardpan (85,000)        | −83,769        | −82,597       | −103,705              | −103,064             |
+| Wattle (40,000)         | −44,908        | −41,294       | −44,727               | −39,954              |
+| Hardpan as the player   | −105,710       | −96,635       | −108,758              | −99,295              |
+
+No rival ends the year lower by more than its share of the base cut, and none
+that ended above zero before ends below it: Tessen, Ashlar, Golden Poppy and
+Hibari sell out the venues they use, so a smaller forecast does not change
+their crowd; Wattle and Hibari are a little better off for the higher walk-up
+crowd. Tessen still loses about 5.4M a year, as before and for other reasons
+(see [broadcast.md](broadcast.md#tv-pay-calibration)); this ticket does not
+fix that. Hardpan as the player still ends the year below zero, now by about
+11,600 rather than 20,700: its wages, not its gate, are the problem (ECO4-09).
+
+**Held by tests.** `calibration.test.ts` with `RB_SLOW_TESTS=1` (about a
+minute) plays the year three times as Altura: decent shows within 5% of the
+starting cash, good shows above zero and below +45.7M, poor shows below
+zero.
 
 ## Venues
 
@@ -504,9 +653,9 @@ forecasts it in that venue's region.
 
 | Show at venue                          | Crowd (capacity) | Ticket | Ticket sales | Rent     | Merch   | Net       |
 | -------------------------------------- | ---------------- | ------ | ------------ | -------- | ------- | --------- |
-| Altura Mainstage at Harrowmere Arena   | 16,733 (17,500)  | $42.37 | $708,977     | $76,813  | $86,776 | $718,941  |
-| Altura Mainstage at Kestlewood Stadium | 14,775 (68,000)  | $42.37 | $626,017     | $833,250 | $74,677 | −$132,556 |
-| Wattle Saturday at The Gumleaf Room    | 192 (400)        | $11.78 | $2,262       | $1,790   | $957    | $1,429    |
+| Altura Mainstage at Harrowmere Arena   | 14,330 (17,500)  | $42.37 | $607,162     | $76,813  | $74,315 | $604,664  |
+| Altura Mainstage at Kestlewood Stadium | 12,662 (68,000)  | $42.37 | $536,489     | $833,250 | $63,997 | −$232,764 |
+| Wattle Saturday at The Gumleaf Room    | 224 (400)        | $11.78 | $2,639       | $1,790   | $1,116  | $1,965    |
 
 Altura's reach is 54 and Wattle's 5. The bands the test checks: more than
 $400,000 at Harrowmere, below $0 at Kestlewood, and between $0 and $5,000 at
@@ -670,8 +819,9 @@ too; money never shows there.
 
 **The attendance Why?, in order, with every partner present:** Popularity in
 the region (EVT5), the popularity curve, crowd at full popularity, walk-up
-crowd, marketing, show size, recent form, big-show fatigue, taping crowd
-(EVT9, only on a taping night), hype (ECO3; 1 with "Hype is not tracked yet"
+crowd, marketing, show size, recent form, hot streak (EVT6-11), big-show
+fatigue, show heat (EVT6-11), taping crowd (EVT9, only on a taping night),
+hype (ECO3; 1 with "Hype is not tracked yet"
 until then). Each multiplier is applied once: hype is never folded into
 popularity, and taping fatigue (tonight's tapings) is separate from big-show
 fatigue (big shows in the last four weeks). Today the line order is the same
