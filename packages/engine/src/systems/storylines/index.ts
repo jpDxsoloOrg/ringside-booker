@@ -23,6 +23,8 @@ import './setup';
 // hook (CRTV4-01).
 import './card/bookingCheck';
 import './card/finaleHook';
+// Registers the `storylines.heat` segment result applier (CRTV4-02).
+import './card/heatApplier';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
 import { storylinesCardCommands } from './card/commands';
 import { storylinesCardQueries } from './card/queries';

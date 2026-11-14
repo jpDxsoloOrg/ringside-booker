@@ -11,18 +11,24 @@
  * Every kind is stored under the storyline's id. Design: docs/design/storylines.md.
  */
 
-import type { StorylineId } from '../../core/ids';
+import type { SegmentId, StorylineId } from '../../core/ids';
 import type { TraceRef } from '../../core/trace/store';
 
 export const STORYLINE_HEAT_TRACE_KIND = 'storylines.heat';
 export const STORYLINE_STARTER_TRACE_KIND = 'storylines.starter';
 export const STORYLINE_PAYOFF_TRACE_KIND = 'storylines.payoff';
+/**
+ * One linked segment's heat step (CRTV4-02), id `<storylineId>/<segmentId>`. Only the player's
+ * storylines keep these: a rival's heat is private, so its steps are never shown.
+ */
+export const STORYLINE_HEAT_STEP_TRACE_KIND = 'storylines.heatStep';
 
 /** Every trace kind the storylines features store. */
 export const STORYLINE_TRACE_KINDS = [
   STORYLINE_HEAT_TRACE_KIND,
   STORYLINE_STARTER_TRACE_KIND,
   STORYLINE_PAYOFF_TRACE_KIND,
+  STORYLINE_HEAT_STEP_TRACE_KIND,
 ] as const;
 
 /** Where a storyline's current heat trace is stored. */
@@ -38,4 +44,12 @@ export function storylineStarterTraceRef(storylineId: StorylineId): TraceRef {
 /** Where a storyline's payoff trace is stored (written by CRTV4). */
 export function storylinePayoffTraceRef(storylineId: StorylineId): TraceRef {
   return { kind: STORYLINE_PAYOFF_TRACE_KIND, id: storylineId };
+}
+
+/** Where one linked segment's heat step for a storyline is stored (CRTV4-02). */
+export function storylineHeatStepTraceRef(
+  storylineId: StorylineId,
+  segmentId: SegmentId,
+): TraceRef {
+  return { kind: STORYLINE_HEAT_STEP_TRACE_KIND, id: `${storylineId}/${segmentId}` };
 }

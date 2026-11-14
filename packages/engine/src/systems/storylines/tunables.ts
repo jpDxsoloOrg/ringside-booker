@@ -163,7 +163,8 @@ export const storylinesTunables = defineTunables({
     step: 0.05,
     unit: 'ratio',
     category: CATEGORY,
-    description: 'Multiplier for a linked pre-show segment. 0 means pre-show segments never move heat',
+    description:
+      'Multiplier for a linked pre-show segment. 0 means pre-show segments never move heat',
     docRef: 'storylines.md#heat-after-segment',
   },
   'storylines.heat.maxStep': {
@@ -174,7 +175,8 @@ export const storylinesTunables = defineTunables({
     step: 1,
     unit: 'points',
     category: CATEGORY,
-    description: 'The most heat one linked segment can add or take away. 0 means shows never move heat',
+    description:
+      'The most heat one linked segment can add or take away. 0 means shows never move heat',
     docRef: 'storylines.md#heat-after-segment',
   },
 });

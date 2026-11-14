@@ -3559,3 +3559,8 @@ export {
   heatAfterSegment,
   type HeatAfterSegmentInputs,
 } from './systems/storylines/index';
+export {
+  EMPTY_STORYLINE_PROGRESS_TOTALS,
+  StorylineProgressTotalsSchema,
+  type StorylineProgressTotals,
+} from './model/entities/storyline';
