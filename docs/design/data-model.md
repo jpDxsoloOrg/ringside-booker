@@ -63,7 +63,7 @@ ones. A row's `id` field always equals the key it is stored under.
 | `team`            | `tem`  | `season`          | `sea`  |
 | `aiProfile`       | `aip`  | `aiDecision`      | `aid`  |
 | `injury`          | `inj`  | `contractConcern` | `ccn`  |
-| `negotiation`     | `neg`  |                   |        |
+| `negotiation`     | `neg`  | `airing`          | `air`  |
 
 The source of truth is `ENTITY_KINDS` in `packages/engine/src/core/ids.ts`.
 
@@ -1156,6 +1156,19 @@ worth belongs to the economy. Invariants: the show belongs to the deal's
 promotion (`deal.eventDefinitionNotOwned`), and an active deal is on an active
 network (`deal.networkNotActive`).
 
+Lifecycle fields (ECO8-01, see [broadcast.md](broadcast.md)):
+
+| Field            | Type         | Notes                                                                           |
+| ---------------- | ------------ | ------------------------------------------------------------------------------- |
+| `endedOn`        | date or null | the day the deal ended; set exactly when the status is `expired` or `cancelled` |
+| `endedReason`    | enum or null | `DEAL_END_REASONS`; set exactly when `endedOn` is                               |
+| `renegotiatedOn` | date or null | the last day the terms were renegotiated                                        |
+| `warnedOn`       | date or null | the last day the promotion was warned the deal is at risk                       |
+
+`DEAL_END_REASONS`: `expired`, `lowViewers`, `missedAirings`, `byPromotion`,
+`networkClosed`. Packs do not carry these fields: a materialised deal starts
+with all four null, and a save from before them loads them as null.
+
 ### Mail and news: templated text
 
 Mail is a promotion's inbox: a category, a sender (a person, another
@@ -1506,3 +1519,35 @@ signing points at an `offered` employment of the same pair) and
 `renewalEmploymentIsLive` (an open renewal points at a `signed` or `active`
 employment of the same pair). Saves list the table with a default of `[]`, so
 a save from before the table loads with it empty.
+
+### Airings (`airings`, `air_`)
+
+One row per show a broadcast deal aired, or was due to air and missed
+(ECO8-01, see [broadcast.md](broadcast.md#airings-table)). It is the viewers
+history later features read: show popularity, the dashboard and the network's
+renewal talks.
+
+| Field               | Type                     | Notes                                                                   |
+| ------------------- | ------------------------ | ----------------------------------------------------------------------- |
+| `id`                | `AiringId`               |                                                                         |
+| `dealId`            | `DealId`                 | the deal that aired it                                                  |
+| `networkId`         | `NetworkId`              | the deal's network                                                      |
+| `promotionId`       | `PromotionId`            | the deal's promotion                                                    |
+| `eventInstanceId`   | `EventInstanceId` / null | the dated show; null when it aired from a definition date (no calendar) |
+| `eventDefinitionId` | `EventDefinitionId`/null | the show's definition; null for a one-off                               |
+| `showName`          | string, 1..80            | the show's name when it aired, so history survives a renamed show       |
+| `airDate`           | date                     |                                                                         |
+| `status`            | enum                     | `aired` or `missed`                                                     |
+| `missReason`        | enum or null             | `showCancelled` or `notRun`; set exactly when `missed`                  |
+| `quality`           | object or null           | `{ score: 0..100, source: 'show' \| 'neutral' }`; null when missed      |
+| `viewers`           | integer ≥ 0              | 0 when missed                                                           |
+| `expectedViewers`   | integer ≥ 0              | the network's benchmark                                                 |
+| `income`            | cents ≥ 0                | gross paid by the network; 0 when missed                                |
+| `sharesPaid`        | cents ≥ 0                | the part of `income` paid on to others; 0 when missed                   |
+| `cost`              | cents ≥ 0                | airtime charged to the promotion; 0 when missed                         |
+| `traceRef`          | `TraceRef` or null       | the airing's Why? trace                                                 |
+
+Refs: `dealId`, `networkId`, `promotionId`, `eventInstanceId` (nullable) and
+`eventDefinitionId` (nullable). Indexes: `byDeal`, `byPromotion`,
+`byEventInstance` and `byAirDate`. Saves list the table with a default of `[]`,
+so a save from before the table loads with it empty.

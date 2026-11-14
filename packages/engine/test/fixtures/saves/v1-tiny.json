@@ -9,7 +9,7 @@
     "label": "Test save",
     "promotionName": "Test Promotion A",
     "promotionShortName": "TPA",
-    "schemaFingerprint": "1dcde9019a53b74457b663ffb3415997",
+    "schemaFingerprint": "8257571cb69d4e98ee9c6f10613674a5",
     "startDate": "2026-01-05",
     "worldName": "Test Tiny World"
   },
@@ -1772,6 +1772,30 @@
             "taste": null
           }
         ],
+        "airings": [
+          {
+            "airDate": "2026-04-09",
+            "cost": 0,
+            "dealId": "dea_0000000001",
+            "eventDefinitionId": "evd_0000000001",
+            "eventInstanceId": "evi_0000000001",
+            "expectedViewers": 140000,
+            "id": "air_0000000001",
+            "income": 175000,
+            "missReason": null,
+            "networkId": "net_0000000001",
+            "promotionId": "pro_0000000001",
+            "quality": {
+              "score": 62,
+              "source": "show"
+            },
+            "sharesPaid": 0,
+            "showName": "Test Weekly",
+            "status": "aired",
+            "traceRef": null,
+            "viewers": 150000
+          }
+        ],
         "brands": [
           {
             "active": true,
@@ -1829,6 +1853,8 @@
         ],
         "deals": [
           {
+            "endedOn": null,
+            "endedReason": null,
             "endsOn": "2027-01-05",
             "eventDefinitionId": "evd_0000000001",
             "id": "dea_0000000001",
@@ -1836,6 +1862,7 @@
             "networkId": "net_0000000001",
             "offeredOn": "2026-01-05",
             "promotionId": "pro_0000000001",
+            "renegotiatedOn": null,
             "startsOn": "2026-01-05",
             "status": "active",
             "terms": {
@@ -1844,6 +1871,7 @@
               "perThousandViewers": 500
             },
             "timeslot": "primeTime",
+            "warnedOn": null,
             "weekday": 3
           }
         ],

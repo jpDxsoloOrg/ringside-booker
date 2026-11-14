@@ -3,7 +3,7 @@
 // Design: docs/design/match-aftermath.md#integrations
 import { describe, expect, it } from 'vitest';
 import type { DeepPartial } from '../../../support/builders/build-row';
-import { TEST_PLAYER_ID } from '../../../support/builders/build-row';
+import { TEST_PLAYER_ID, TEST_START_DATE } from '../../../support/builders/build-row';
 import { anEventDefinition, anEventInstance } from '../../../support/builders/creative';
 import { aDeal, aNetwork } from '../../../support/builders/media';
 import { testId } from '../../../support/ids';
@@ -223,7 +223,9 @@ describe('TV reach for worker popularity', () => {
           createEngineTunables(),
         ),
       ).toEqual([]);
-      const ended = tvWorld({ deal: { status: 'expired' } });
+      const ended = tvWorld({
+        deal: { status: 'expired', endedOn: TEST_START_DATE, endedReason: 'expired' },
+      });
       expect(
         tvReachRegions(ended.world, labCtx(ended.promotionId, true), createEngineTunables()),
       ).toEqual([]);

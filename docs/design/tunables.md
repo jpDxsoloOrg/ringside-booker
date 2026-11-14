@@ -1335,3 +1335,13 @@ tunable.
 | `news.expiry.importance0Days`    | integer | 14      | 0–3650 | days   | Days from posting until a filler story drops off the feed (0 = never shown after its day) |
 | `news.expiry.importance1Days`    | integer | 60      | 0–3650 | days   | Days from posting until an importance 1 story drops off the feed                          |
 | `news.expiry.importance2Days`    | integer | 180     | 0–3650 | days   | Days from posting until an importance 2 story drops off the feed                          |
+
+## Broadcast tunables
+
+ECO8-01, see [broadcast.md](broadcast.md). Which networks are listed for a
+promotion. ECO8-02..05 add the audience, benchmark, valuation, settlement and
+deal health numbers under the same `Broadcast` category.
+
+| Key                                      | Kind    | Default | Range | Unit   | Meaning                                                                                                                                                                        |
+| ---------------------------------------- | ------- | ------- | ----- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `broadcast.networks.minPopularityToList` | integer | 1       | 0–100 | points | Popularity a promotion needs in a region before the networks covering it are listed ([networks](broadcast.md#which-networks-a-promotion-can-deal-with)); 0 lists every network |

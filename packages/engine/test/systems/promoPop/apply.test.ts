@@ -23,6 +23,7 @@ import {
 } from '../../../src/systems/promoPop';
 import { geographyOf } from '../../../src/systems/world/geography';
 import type { DeepPartial } from '../../support/builders/build-row';
+import { TEST_START_DATE } from '../../support/builders/build-row';
 import { anEventDefinition } from '../../support/builders/creative';
 import { aDeal, aNetwork } from '../../support/builders/media';
 import { testId } from '../../support/ids';
@@ -177,8 +178,20 @@ describe('dealsInForce and reachInputsFor', () => {
   type DealCase = [string, DealTarget, DeepPartial<Deal>, boolean, number];
   const cases: DealCase[] = [
     ['an active deal for the show', 'show', {}, true, 1],
-    ['an expired deal', 'show', { status: 'expired' }, true, 0],
-    ['a cancelled deal', 'show', { status: 'cancelled' }, true, 0],
+    [
+      'an expired deal',
+      'show',
+      { status: 'expired', endedOn: TEST_START_DATE, endedReason: 'expired' },
+      true,
+      0,
+    ],
+    [
+      'a cancelled deal',
+      'show',
+      { status: 'cancelled', endedOn: TEST_START_DATE, endedReason: 'byPromotion' },
+      true,
+      0,
+    ],
     ['a deal that has not started', 'show', { startsOn: day('2026-02-01') }, true, 0],
     [
       'a deal that ended on the show day',
