@@ -104,7 +104,7 @@ export function Ticker({
       data-motion={crawling ? 'crawl' : 'static'}
     >
       <span className={styles['badge']}>{label}</span>
-      <div className={styles['viewport']}>
+      <div className={styles['viewport']} data-part="viewport">
         <div
           className={classNames(
             styles['track'],

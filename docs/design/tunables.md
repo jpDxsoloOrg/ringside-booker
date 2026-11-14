@@ -1022,38 +1022,46 @@ cents. EVT4's show-quality ceiling keys share the `production.` prefix
 `production.bonusSlotThreshold`, `production.bonusSlotMinImportance`) and are
 listed with EVT4's work.
 
-| Key                                               | Kind    | Default     | Range            | Unit        | Meaning                                                                  |
-| ------------------------------------------------- | ------- | ----------- | ---------------- | ----------- | ------------------------------------------------------------------------ |
-| `production.costCurve`                            | number  | 3           | 1–5              | ratio       | How steeply production costs rise with level; 1 is a straight line       |
-| `production.showCost.stage`                       | integer | 12,000,000  | 0–10,000,000,000 | money       | What stage at level 10 costs for one regular show                        |
-| `production.showCost.camera`                      | integer | 15,000,000  | 0–10,000,000,000 | money       | Same, camera                                                             |
-| `production.showCost.editing`                     | integer | 10,000,000  | 0–10,000,000,000 | money       | Same, editing                                                            |
-| `production.showCost.pyro`                        | integer | 6,000,000   | 0–10,000,000,000 | money       | Same, pyro                                                               |
-| `production.monthlyCost.music`                    | integer | 50,000,000  | 0–10,000,000,000 | money/month | What music at level 10 costs each month                                  |
-| `production.monthlyCost.writing`                  | integer | 25,000,000  | 0–10,000,000,000 | money/month | Same, writing                                                            |
-| `production.monthlyCost.marketing`                | integer | 120,000,000 | 0–10,000,000,000 | money/month | Same, marketing                                                          |
-| `production.monthlyCost.backOffice`               | integer | 100,000,000 | 0–10,000,000,000 | money/month | Same, back office                                                        |
-| `production.upgradeFee.stage`                     | integer | 60,000,000  | 0–10,000,000,000 | money       | One-time fee for raising stage all the way from level 0 to 10            |
-| `production.upgradeFee.camera`                    | integer | 50,000,000  | 0–10,000,000,000 | money       | Same, camera                                                             |
-| `production.upgradeFee.editing`                   | integer | 40,000,000  | 0–10,000,000,000 | money       | Same, editing                                                            |
-| `production.upgradeFee.pyro`                      | integer | 25,000,000  | 0–10,000,000,000 | money       | Same, pyro                                                               |
-| `production.upgradeFee.music`                     | integer | 30,000,000  | 0–10,000,000,000 | money       | Same, music                                                              |
-| `production.upgradeFee.writing`                   | integer | 20,000,000  | 0–10,000,000,000 | money       | Same, writing                                                            |
-| `production.upgradeFee.marketing`                 | integer | 15,000,000  | 0–10,000,000,000 | money       | Same, marketing                                                          |
-| `production.upgradeFee.backOffice`                | integer | 15,000,000  | 0–10,000,000,000 | money       | Same, back office                                                        |
-| `production.showCostMultiplier.house`             | number  | 0.25        | 0–10             | multiplier  | Stage, camera, editing and pyro costs are multiplied by this, house show |
-| `production.showCostMultiplier.minor`             | number  | 0.5         | 0–10             | multiplier  | Same, minor show                                                         |
-| `production.showCostMultiplier.regular`           | number  | 1           | 0–10             | multiplier  | Same, regular show                                                       |
-| `production.showCostMultiplier.major`             | number  | 1.5         | 0–10             | multiplier  | Same, major show                                                         |
-| `production.showCostMultiplier.flagship`          | number  | 2.5         | 0–10             | multiplier  | Same, flagship show                                                      |
-| `production.popularityCeiling.base`               | number  | 20          | 0–100            | points      | Popularity ceiling with no marketing and no back office                  |
-| `production.popularityCeiling.perMarketingLevel`  | number  | 5           | 0–20             | points      | Popularity ceiling added by each level of marketing                      |
-| `production.popularityCeiling.perBackOfficeLevel` | number  | 5           | 0–20             | points      | Popularity ceiling added by each level of back office                    |
-| `production.popularityDrag.fractionPerDay`        | number  | 0.02        | 0–1              | ratio       | Share of the popularity above the ceiling lost each day                  |
-| `production.popularityDrag.minPerDay`             | number  | 0.05        | 0–10             | points/day  | Least popularity lost each day while above the ceiling (0 = no floor)    |
-| `production.tvDealMinCamera`                      | integer | 1           | 0–10             | points      | Lowest camera level allowed while the promotion has a TV deal            |
-| `production.feeNeedsCash`                         | boolean | true        |                  | flag        | An upgrade fee must be covered by cash in hand                           |
-| `production.forecastDays`                         | integer | 28          | 1–90             | days        | How many days ahead the production screen adds up the coming shows       |
+| Key                                               | Kind    | Default     | Range            | Unit        | Meaning                                                                                                  |
+| ------------------------------------------------- | ------- | ----------- | ---------------- | ----------- | -------------------------------------------------------------------------------------------------------- |
+| `production.costCurve`                            | number  | 3           | 1–5              | ratio       | How steeply production costs rise with level; 1 is a straight line                                       |
+| `production.showCost.stage`                       | integer | 12,000,000  | 0–10,000,000,000 | money       | What stage at level 10 costs for one regular show                                                        |
+| `production.showCost.camera`                      | integer | 15,000,000  | 0–10,000,000,000 | money       | Same, camera                                                                                             |
+| `production.showCost.editing`                     | integer | 10,000,000  | 0–10,000,000,000 | money       | Same, editing                                                                                            |
+| `production.showCost.pyro`                        | integer | 6,000,000   | 0–10,000,000,000 | money       | Same, pyro                                                                                               |
+| `production.monthlyCost.music`                    | integer | 50,000,000  | 0–10,000,000,000 | money/month | What music at level 10 costs each month                                                                  |
+| `production.monthlyCost.writing`                  | integer | 25,000,000  | 0–10,000,000,000 | money/month | Same, writing                                                                                            |
+| `production.monthlyCost.marketing`                | integer | 120,000,000 | 0–10,000,000,000 | money/month | Same, marketing                                                                                          |
+| `production.monthlyCost.backOffice`               | integer | 100,000,000 | 0–10,000,000,000 | money/month | Same, back office                                                                                        |
+| `production.upgradeFee.stage`                     | integer | 60,000,000  | 0–10,000,000,000 | money       | One-time fee for raising stage all the way from level 0 to 10                                            |
+| `production.upgradeFee.camera`                    | integer | 50,000,000  | 0–10,000,000,000 | money       | Same, camera                                                                                             |
+| `production.upgradeFee.editing`                   | integer | 40,000,000  | 0–10,000,000,000 | money       | Same, editing                                                                                            |
+| `production.upgradeFee.pyro`                      | integer | 25,000,000  | 0–10,000,000,000 | money       | Same, pyro                                                                                               |
+| `production.upgradeFee.music`                     | integer | 30,000,000  | 0–10,000,000,000 | money       | Same, music                                                                                              |
+| `production.upgradeFee.writing`                   | integer | 20,000,000  | 0–10,000,000,000 | money       | Same, writing                                                                                            |
+| `production.upgradeFee.marketing`                 | integer | 15,000,000  | 0–10,000,000,000 | money       | Same, marketing                                                                                          |
+| `production.upgradeFee.backOffice`                | integer | 15,000,000  | 0–10,000,000,000 | money       | Same, back office                                                                                        |
+| `production.showCostMultiplier.house`             | number  | 0.25        | 0–10             | multiplier  | Stage, camera, editing and pyro costs are multiplied by this, house show                                 |
+| `production.showCostMultiplier.minor`             | number  | 0.5         | 0–10             | multiplier  | Same, minor show                                                                                         |
+| `production.showCostMultiplier.regular`           | number  | 1           | 0–10             | multiplier  | Same, regular show                                                                                       |
+| `production.showCostMultiplier.major`             | number  | 1.5         | 0–10             | multiplier  | Same, major show                                                                                         |
+| `production.showCostMultiplier.flagship`          | number  | 2.5         | 0–10             | multiplier  | Same, flagship show                                                                                      |
+| `production.popularityCeiling.base`               | number  | 20          | 0–100            | points      | Popularity ceiling with no marketing and no back office                                                  |
+| `production.popularityCeiling.perMarketingLevel`  | number  | 5           | 0–20             | points      | Popularity ceiling added by each level of marketing                                                      |
+| `production.popularityCeiling.perBackOfficeLevel` | number  | 5           | 0–20             | points      | Popularity ceiling added by each level of back office                                                    |
+| `production.popularityDrag.fractionPerDay`        | number  | 0.02        | 0–1              | ratio       | Share of the popularity above the ceiling lost each day                                                  |
+| `production.popularityDrag.minPerDay`             | number  | 0.05        | 0–10             | points/day  | Least popularity lost each day while above the ceiling (0 = no floor)                                    |
+| `production.tvDealMinCamera`                      | integer | 1           | 0–10             | points      | Lowest camera level allowed while the promotion has a TV deal                                            |
+| `production.feeNeedsCash`                         | boolean | true        |                  | flag        | An upgrade fee must be covered by cash in hand                                                           |
+| `production.forecastDays`                         | integer | 28          | 1–90             | days        | How many days ahead the production screen adds up the coming shows                                       |
+| `production.rivalBudget.lowerBelowMonths`         | number  | 12          | 0–60             | months      | Temporary rival rule (until AIP8): cut production when cash covers fewer months of its costs (0 = never) |
+| `production.rivalBudget.deepCutBelowMonths`       | number  | 6           | 0–60             | months      | Temporary rival rule: below this, also cut levels that lower a ceiling in use (0 = never)                |
+| `production.rivalBudget.raiseAboveMonths`         | number  | 24          | 0–120            | months      | Temporary rival rule: raise one held-back level a month above this many months of costs (0 = never)      |
+| `production.rivalBudget.headroom`                 | number  | 5           | 0–100            | points      | Temporary rival rule: room kept between the best recent show or region and its ceiling                   |
+| `production.rivalBudget.lookbackDays`             | integer | 28          | 1–365            | days        | Temporary rival rule: how far back the best show is looked for                                           |
+| `production.runway.lookbackDays`                  | integer | 28          | 7–28             | days        | Recent days of ticket sales and other show money the cash runway averages                                |
+| `production.runway.minDaysPlayed`                 | integer | 7           | 1–28             | days        | Days of play before the cash runway counts show money                                                    |
+| `production.runway.warnBelowMonths`               | number  | 6           | 0–36             | months      | The cash runway warns "Running out of cash" below this many months (0 = never)                           |
 
 ## Contracts tunables
 

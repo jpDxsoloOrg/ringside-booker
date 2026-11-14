@@ -98,7 +98,11 @@ promotion for the month ahead, at that morning's levels
 ([production.md](production.md#monthly-overhead)). Its daily
 `production.popularityDrag` (`growth`, order 90) pulls popularity above a
 promotion's popularity ceiling down towards it through the popularity door
-([production.md](production.md#popularity-drag)).
+([production.md](production.md#popularity-drag)). Just before the overhead,
+the temporary `production.rivalBudget` (`money`, order 33, monthly on the 1st)
+lets each computer-run promotion lower (or raise) its levels to fit its cash
+until AIP8's rival desk takes over
+([production.md](production.md#rival-production-budget)).
 
 Both post through `postMoney`, visit promotions in id order, post nothing for
 a zero amount and draw no random numbers (only the ledger rows' ids).
@@ -235,10 +239,11 @@ id, the event's `seq` and the error). It also goes into the failure log as
 
 The reactions to show night so far:
 
-| Reaction                  | Event            | What it does                                                                                                                          |
-| ------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `promoPop.applyAfterShow` | `show.completed` | Applies the show's popularity change ([promotion-popularity.md](promotion-popularity.md)).                                            |
-| `finance.postShowCosts`   | `show.completed` | Posts the show's appearance fees, travel and catering, player and rival alike, once per show ([finances.md](finances.md#show-costs)). |
+| Reaction                  | Event            | What it does                                                                                                                                                   |
+| ------------------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `promoPop.applyAfterShow` | `show.completed` | Applies the show's popularity change ([promotion-popularity.md](promotion-popularity.md)).                                                                     |
+| `finance.postShowCosts`   | `show.completed` | Posts the show's appearance fees, travel and catering, player and rival alike, once per show ([finances.md](finances.md#show-costs)).                          |
+| `production.showCosts`    | `show.completed` | Posts the show's stage, camera, editing and pyro as one Production row, player and rival alike, once per show ([production.md](production.md#per-show-costs)). |
 
 ### Reports
 
@@ -483,15 +488,20 @@ that work **only where the result is identical**: the same world, the same
 stored traces, the same RNG and the same save, byte for byte. Code:
 `packages/engine/src/core/fastPaths.ts`.
 
-| Fast path                       | Where                                                                | What it skips                                                                                                                                                                      |
-| ------------------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Aftermath without region detail | `applySegmentAftermath` (show night's MTCH3 applier)                 | The per-region preview and the country and continent roll-ups of each competitor's change. The applier stores none of them; the popularity door works the regions out as it writes |
-| Summary-only record check       | `TraceStaging.record` with `summaryOnly`                             | Validating every node of a tree that is kept only as a summary: the tree is fitted into the size limits as before, then only its root and direct steps are checked                 |
-| One-walk record check           | `TraceStaging.record`                                                | `assertJsonValue` plus the load schema's zod parse: `copyValidTraceContent` builds the same copy in one walk, or returns null and the full check runs (and throws) as before       |
-| Headline and reach roll-ups     | `headlinePopularityOf` (office), `reachOf` (finance)                 | Rolling up every country and continent to read the home country, the home continent and the world (`popularityRollupPart`)                                                         |
-| Card values without traces      | `buildCardPool` (rival booker)                                       | The card value trace of every worker for every show: `cardValueNumber` does the same steps in the same order. A Why? that shows a card value builds it with `cardValue`            |
-| Rival wear by body part         | `computePhysicalToll` (MTCH4's applier) on a rival show              | Each body part's wear trace: the same `load × weight` as plain numbers; the show stores only summaries                                                                             |
-| Rival-rules injury chance       | `computePhysicalToll` on a rival show under `ai.skipInMatchInjuries` | The injury chance formula: the policy makes it 0, given with its rival-rules line; the roll is still drawn                                                                         |
+| Fast path                           | Where                                                                | What it skips                                                                                                                                                                             |
+| ----------------------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Aftermath without region detail     | `applySegmentAftermath` (show night's MTCH3 applier)                 | The per-region preview and the country and continent roll-ups of each competitor's change. The applier stores none of them; the popularity door works the regions out as it writes        |
+| Summary-only record check           | `TraceStaging.record` with `summaryOnly`                             | Validating every node of a tree that is kept only as a summary: the tree is fitted into the size limits as before, then only its root and direct steps are checked                        |
+| One-walk record check               | `TraceStaging.record`                                                | `assertJsonValue` plus the load schema's zod parse: `copyValidTraceContent` builds the same copy in one walk, or returns null and the full check runs (and throws) as before              |
+| Headline and reach roll-ups         | `headlinePopularityOf` (office), `reachOf` (finance)                 | Rolling up every country and continent to read the home country, the home continent and the world (`popularityRollupPart`)                                                                |
+| Card values without traces          | `buildCardPool` (rival booker)                                       | The card value trace of every worker for every show: `cardValueNumber` does the same steps in the same order. A Why? that shows a card value builds it with `cardValue`                   |
+| Rival wear by body part             | `computePhysicalToll` (MTCH4's applier) on a rival show              | Each body part's wear trace: the same `load × weight` as plain numbers; the show stores only summaries                                                                                    |
+| Rival-rules injury chance           | `computePhysicalToll` on a rival show under `ai.skipInMatchInjuries` | The injury chance formula: the policy makes it 0, given with its rival-rules line; the roll is still drawn                                                                                |
+| Headline at its own level (POL4-10) | `headlinePopularityOf` (office)                                      | Every traced roll-up level but the one the headline scope picks: the others are read from the untraced roller (the same sums in the same order); the worldwide note needs only its number |
+| One map while it is unchanged       | `geographyOf`, `createPopularityRoller`                              | Building the map and its population shares again when every continent, country and region row is the same object as last time (rows are never changed in place)                           |
+| Sorted index buckets                | `MutableTable.lookup`                                                | Sorting a bucket's keys on every lookup: they are kept until a row joins or leaves the bucket, and an update that keeps a row's index keys re-files nothing                               |
+| Weekly healing as numbers           | `recoverConditions` (health)                                         | The traced cap and recovery of every body part (the phase stores no trace): the cap once per age, the week's healing once per kind of person and care, `conditionRecoveryValue` per part  |
+| Rival ring learning as numbers      | `collectRingLearning` on a rival show                                | The learning traces of each competitor and attribute (a rival show stores none): `ringLearningValue` does the same steps in the same order                                                |
 
 **Proof.** `setFastPaths(false)` turns them all off, so the engine takes the
 full path everywhere. `test/core/fastPaths.test.ts` runs a month of the roster
@@ -501,7 +511,11 @@ tables that carry world effects (popularity, momentum, injuries and fatigue on
 decisions), the trace store, the RNG and the world hash; with
 `RB_SLOW_TESTS=1` it does the same for 120 days of the default world.
 `fastCopy.test.ts` holds the one-walk check to the schema, and the
-`cardValue` sweep holds `cardValueNumber` to the traced value to the bit. A
+`cardValue` sweep holds `cardValueNumber` to the traced value to the bit; the
+`conditionRecovery` and `ringLearning` sweeps do the same for their number
+twins, `headlineFastPath.test.ts` compares every promotion's headline Why?
+under every scope, and `table.test.ts` checks sorted lookups through a run of
+inserts, moves and deletes. A
 new fast path must read `fastPathsEnabled()` and keep both tests passing; if
 it cannot keep the world identical it does not belong here.
 
@@ -522,6 +536,26 @@ roll-up each time); rival planning and booking 2.0 s; garbage collection
 4.6 s. On the roster fixture planning was most of the run, about 12 ms a
 show, two thirds of it card value traces. Save sizes did not change (1.15 MB
 and 1.46 MB on disk).
+
+**POL4-10** (Sprints 9 and 10 had made a year slower again). Same machine, back
+to back and alternating, under load from other runs; medians of three, wall /
+CPU, 365 days of the default world with `withMyShowsRun`:
+
+| Setup                | Before POL4-10  | After POL4-10   |
+| -------------------- | --------------- | --------------- |
+| No rival cards added | 13.8 s / 20.2 s | 10.6 s / 15.8 s |
+| Every show carded    | 17.7 s / 25.3 s | 13.2 s / 19.0 s |
+
+The world hash and the save were the same before and after (1.23 MB and
+1.63 MB gzipped). Where the time went before (CPU profile): the office's
+`popularity.changed` subscription re-recording the headline Why? 1.3 s, almost
+all of it the traced world roll-up the Why? never shows; sorting index buckets
+on every `lookup` 0.5 s; health 0.55 s (the weekly condition healing 0.27 s,
+all traces nobody stores); the physical toll 0.5 s (ring learning traces on
+rival shows 0.11 s); building the map again on each `geographyOf` 0.4 s. Two
+changes outside the switch, because they do the same work in a different
+order: the trace node budget is a class instead of an object literal with
+closures, and `priorMatchesOf` lists opponents only for the matches it returns.
 
 ## Calendar
 

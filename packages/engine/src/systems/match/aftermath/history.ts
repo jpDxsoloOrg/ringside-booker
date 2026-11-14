@@ -109,7 +109,10 @@ function isBeforePosition(place: CardPlace, before: MatchPosition): boolean {
 }
 
 /** Newest first: later date, then later on the card; anything left is ordered by id. */
-function newestFirst(left: PriorMatch & CardPlace, right: PriorMatch & CardPlace): number {
+function newestFirst(
+  left: Pick<PriorMatch, 'segmentId'> & CardPlace,
+  right: Pick<PriorMatch, 'segmentId'> & CardPlace,
+): number {
   const byDate = compareDates(right.date, left.date);
   if (byDate !== 0) {
     return byDate;
@@ -144,7 +147,9 @@ export function priorMatchesOf(
     return [];
   }
   const { participants, segments, eventInstances } = read.tables;
-  const found: (PriorMatch & CardPlace)[] = [];
+  // Opponents are looked up only for the matches kept (POL4-10): a long career has hundreds of
+  // matches, and the sort does not read them.
+  const found: (Omit<PriorMatch, 'opponentIds'> & CardPlace)[] = [];
   for (const entry of participants.lookup('byPerson', personId)) {
     if (entry.role !== 'competitor' || entry.segmentId === before.segmentId) {
       continue;
@@ -164,29 +169,27 @@ export function priorMatchesOf(
     if (!isBeforePosition(place, before)) {
       continue;
     }
-    const opponentIds = participants
-      .lookup('bySegment', segment.id)
-      .filter((other) => other.role === 'competitor' && other.side !== entry.side)
-      .map((other) => other.personId)
-      .sort(compareIds);
     found.push({
       ...place,
       segmentId: segment.id,
       result: resultOf(segment, entry.side),
       sideOf: entry.side,
-      opponentIds,
     });
   }
   return found
     .sort(newestFirst)
     .slice(0, limit)
-    .map(({ segmentId, eventInstanceId, date, result, sideOf, opponentIds }) => ({
+    .map(({ segmentId, eventInstanceId, date, result, sideOf }) => ({
       segmentId,
       eventInstanceId,
       date,
       result,
       sideOf,
-      opponentIds,
+      opponentIds: participants
+        .lookup('bySegment', segmentId)
+        .filter((other) => other.role === 'competitor' && other.side !== sideOf)
+        .map((other) => other.personId)
+        .sort(compareIds),
     }));
 }
 

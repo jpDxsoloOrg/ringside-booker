@@ -100,6 +100,20 @@ describe('ConfirmDialog', () => {
     expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus();
   });
 
+  it('holds the confirm back with confirmDisabled and focuses Cancel instead', async () => {
+    const user = userEvent.setup({ delay: null });
+    const onConfirm = vi.fn();
+    render(<ConfirmHarness confirmDisabled onConfirm={onConfirm} />);
+    await openDialog(user);
+    const confirm = screen.getByRole('button', { name: 'Release' });
+    expect(confirm).toBeDisabled();
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus();
+    });
+    await user.click(confirm);
+    expect(onConfirm).not.toHaveBeenCalled();
+  });
+
   it('traps focus between its two buttons', async () => {
     const user = userEvent.setup();
     render(<ConfirmHarness />);

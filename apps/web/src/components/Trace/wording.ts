@@ -142,7 +142,8 @@ function arithmeticSentence(node: ArithmeticNode): string {
     case 'divide':
       return `÷${factor(node.operand, node.operandUnit)} ${node.label}`;
     case 'power':
-      return `raised to the power ${factor(node.operand)} (${node.label})`;
+      // "0.4 raised to the power 3 = 0.064 (Cost curve)": the numbers read as a sum would.
+      return `${factor(node.before)} raised to the power ${factor(node.operand)} = ${factor(node.after)} (${node.label})`;
   }
 }
 

@@ -29,6 +29,11 @@ export interface ConfirmDialogProps {
   readonly cancelLabel?: string;
   /** `default` by default. */
   readonly tone?: ConfirmDialogTone;
+  /**
+   * Holds the confirm button back, for example while the action's preview loads or the engine
+   * would refuse it. The body should say why. False by default.
+   */
+  readonly confirmDisabled?: boolean;
 }
 
 /** Shown when a rejected `onConfirm` gives no message of its own. */
@@ -64,8 +69,11 @@ export function ConfirmDialog({
   confirmLabel,
   cancelLabel = 'Cancel',
   tone = 'default',
+  confirmDisabled = false,
 }: ConfirmDialogProps) {
-  const initialFocus: InitialFocusTarget = tone === 'danger' ? 'cancel' : 'confirm';
+  // A held-back confirm cannot take focus, so Cancel does, as it does for a danger action.
+  const initialFocus: InitialFocusTarget =
+    tone === 'danger' || confirmDisabled ? 'cancel' : 'confirm';
   const focusHandlers = useOverlayFocus(open, (content) => actionButton(content, initialFocus));
   // Read by the Escape handler: while the action runs the dialog cannot be dismissed.
   const isPendingRef = useRef(false);
@@ -104,6 +112,7 @@ export function ConfirmDialog({
             confirmLabel={confirmLabel}
             cancelLabel={cancelLabel}
             tone={tone}
+            confirmDisabled={confirmDisabled}
             initialFocus={initialFocus}
             onPendingChange={(isPending) => {
               isPendingRef.current = isPending;
@@ -123,6 +132,7 @@ interface ConfirmBodyProps {
   readonly confirmLabel: string;
   readonly cancelLabel: string;
   readonly tone: ConfirmDialogTone;
+  readonly confirmDisabled: boolean;
   readonly initialFocus: InitialFocusTarget;
   readonly onPendingChange: (isPending: boolean) => void;
 }
@@ -136,6 +146,7 @@ function ConfirmBody({
   confirmLabel,
   cancelLabel,
   tone,
+  confirmDisabled,
   initialFocus,
   onPendingChange,
 }: ConfirmBodyProps) {
@@ -154,7 +165,7 @@ function ConfirmBody({
   };
 
   const handleConfirm = async () => {
-    if (isPending) return;
+    if (isPending || confirmDisabled) return;
     updatePending(true);
     setErrorMessage(null);
     try {
@@ -188,6 +199,7 @@ function ConfirmBody({
           data-confirm-action="confirm"
           variant={tone === 'danger' ? 'danger' : 'primary'}
           loading={isPending}
+          disabled={confirmDisabled}
           onClick={() => {
             void handleConfirm();
           }}

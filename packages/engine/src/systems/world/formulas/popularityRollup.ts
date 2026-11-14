@@ -194,6 +194,37 @@ export function popularityRollupPart(
   };
 }
 
+/** Which one level {@link popularityRollupLevel} rolls up. */
+export type PopularityRollupLevelSpec =
+  | { readonly level: 'world' }
+  | { readonly level: 'country'; readonly countryId: CountryId }
+  | { readonly level: 'continent'; readonly continentId: ContinentId };
+
+/**
+ * One level of {@link popularityRollup}, value and trace for value and trace, without working out
+ * any other level (POL4-10: a headline Why? nests only the level its scope picks).
+ */
+export function popularityRollupLevel(
+  regionalPop: RegionalPopularity,
+  geography: Geography,
+  spec: PopularityRollupLevelSpec,
+  options: PopularityRollupOptions = {},
+): Traced<number> {
+  const regions = regionValues(regionalPop, geography);
+  const aggregateOptions = {
+    valueLabel: options.valueLabel ?? DEFAULT_VALUE_LABEL,
+    unit: 'points',
+  } as const;
+  switch (spec.level) {
+    case 'world':
+      return geography.aggregateWorld(regions, aggregateOptions);
+    case 'country':
+      return geography.aggregateCountry(spec.countryId, regions, aggregateOptions);
+    case 'continent':
+      return geography.aggregateContinent(spec.continentId, regions, aggregateOptions);
+  }
+}
+
 /** One member of a group and its share of the group's population. */
 interface Share<Id> {
   readonly id: Id;
@@ -234,6 +265,23 @@ function highest<Id extends string>(values: Readonly<Record<Id, number>>, ids: r
  * are the same as {@link popularityRollup}'s; use that one when the screen shows a "Why?".
  */
 export function createPopularityRoller(geography: Geography): PopularityRoller {
+  if (!fastPathsEnabled()) {
+    return buildPopularityRoller(geography);
+  }
+  // Fast path (POL4-10): one roller per map. With geographyOf handing back the same map while it
+  // is unchanged, the population shares are worked out once instead of on every call.
+  let roller = rollers.get(geography);
+  if (roller === undefined) {
+    roller = buildPopularityRoller(geography);
+    rollers.set(geography, roller);
+  }
+  return roller;
+}
+
+/** The rollers made so far, by the map they roll over. */
+const rollers = new WeakMap<Geography, PopularityRoller>();
+
+function buildPopularityRoller(geography: Geography): PopularityRoller {
   const countryPopulation = new Map<CountryId, number>();
   const regionShares = new Map<CountryId, Share<RegionId>[]>();
   for (const country of geography.countries) {
