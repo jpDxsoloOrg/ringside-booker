@@ -205,7 +205,7 @@ function Lab({ options, catalog, regionId, today }: LabProps) {
           onValueChange={changeMode}
         />
       </div>
-      <div className={styles['lab']}>
+      <div className={styles['lab']} data-mode={mode}>
         <div className={styles['setupColumn']}>
           <LabSetupPanel
             options={options}
