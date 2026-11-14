@@ -1,0 +1,312 @@
+[
+  {
+    "key": "promo",
+    "name": "Promo",
+    "description": "One side takes the microphone and talks to the crowd, a rival or the camera.",
+    "groups": [
+      {
+        "label": "Speaker",
+        "stats": ["mic", "charisma"],
+        "weight": 1,
+        "minPeople": 1,
+        "maxPeople": 4,
+        "optional": false,
+        "managerCanStandIn": true
+      }
+    ],
+    "physical": false,
+    "repetitionGroup": "talk",
+    "weight": 1.0
+  },
+  {
+    "key": "interview",
+    "name": "Interview",
+    "description": "Someone answers questions from an interviewer, backstage or at ringside.",
+    "groups": [
+      {
+        "label": "Guest",
+        "stats": ["mic", "charisma"],
+        "weight": 3,
+        "minPeople": 1,
+        "maxPeople": 3,
+        "optional": false,
+        "managerCanStandIn": true
+      },
+      {
+        "label": "Host",
+        "stats": ["broadcasting", "mic", "presence"],
+        "weight": 1,
+        "minPeople": 1,
+        "maxPeople": 1,
+        "optional": true,
+        "managerCanStandIn": false
+      }
+    ],
+    "physical": false,
+    "repetitionGroup": "talk",
+    "weight": 0.9
+  },
+  {
+    "key": "war-of-words",
+    "name": "War of Words",
+    "description": "Two sides trade insults on the microphone, each trying to have the last word.",
+    "groups": [
+      {
+        "label": "Side A",
+        "stats": ["mic", "charisma"],
+        "weight": 1,
+        "minPeople": 1,
+        "maxPeople": 4,
+        "optional": false,
+        "managerCanStandIn": true
+      },
+      {
+        "label": "Side B",
+        "stats": ["mic", "charisma"],
+        "weight": 1,
+        "minPeople": 1,
+        "maxPeople": 4,
+        "optional": false,
+        "managerCanStandIn": true
+      }
+    ],
+    "physical": false,
+    "repetitionGroup": "talk",
+    "weight": 1.1
+  },
+  {
+    "key": "attack",
+    "name": "Attack",
+    "description": "One side jumps the other without warning. The attackers look dangerous and the targets earn sympathy.",
+    "groups": [
+      {
+        "label": "Attackers",
+        "stats": ["presence", "athleticism", "popularity"],
+        "weight": 1,
+        "minPeople": 1,
+        "maxPeople": 4,
+        "optional": false,
+        "managerCanStandIn": false
+      },
+      {
+        "label": "Targets",
+        "stats": ["charisma", "presence", "popularity"],
+        "weight": 1,
+        "minPeople": 1,
+        "maxPeople": 4,
+        "optional": false,
+        "managerCanStandIn": false
+      }
+    ],
+    "physical": true,
+    "repetitionGroup": "violence",
+    "weight": 1.0
+  },
+  {
+    "key": "brawl",
+    "name": "Brawl",
+    "description": "Everyone involved throws punches until the ring, the floor or the backstage area is a mess.",
+    "groups": [
+      {
+        "label": "Brawlers",
+        "stats": ["presence", "athleticism", "ringwork", "popularity"],
+        "weight": 1,
+        "minPeople": 2,
+        "maxPeople": 6,
+        "optional": false,
+        "managerCanStandIn": false
+      }
+    ],
+    "physical": true,
+    "repetitionGroup": "violence",
+    "weight": 1.0
+  },
+  {
+    "key": "staredown",
+    "name": "Staredown",
+    "description": "Rivals stand face to face and say nothing. The crowd fills the silence.",
+    "groups": [
+      {
+        "label": "Side A",
+        "stats": ["presence", "popularity"],
+        "weight": 1,
+        "minPeople": 1,
+        "maxPeople": 4,
+        "optional": false,
+        "managerCanStandIn": false
+      },
+      {
+        "label": "Side B",
+        "stats": ["presence", "popularity"],
+        "weight": 1,
+        "minPeople": 1,
+        "maxPeople": 4,
+        "optional": false,
+        "managerCanStandIn": false
+      }
+    ],
+    "physical": false,
+    "repetitionGroup": "faceoff",
+    "weight": 0.8
+  },
+  {
+    "key": "contract-signing",
+    "name": "Contract Signing",
+    "description": "The match is made official at a table, with a pen and a lot of tension.",
+    "groups": [
+      {
+        "label": "Signers",
+        "stats": ["presence", "mic", "popularity"],
+        "weight": 1,
+        "minPeople": 1,
+        "maxPeople": 4,
+        "optional": false,
+        "managerCanStandIn": true
+      },
+      {
+        "label": "Witnesses",
+        "stats": ["presence", "mic", "broadcasting"],
+        "weight": 0.5,
+        "minPeople": 1,
+        "maxPeople": 3,
+        "optional": true,
+        "managerCanStandIn": false
+      }
+    ],
+    "physical": false,
+    "repetitionGroup": "ceremony",
+    "weight": 0.9
+  },
+  {
+    "key": "video-package",
+    "name": "Video Package",
+    "description": "A pre-recorded piece about the people featured: where they came from and what they want.",
+    "groups": [
+      {
+        "label": "Featured",
+        "stats": ["charisma", "presence", "popularity"],
+        "weight": 1,
+        "minPeople": 1,
+        "maxPeople": 6,
+        "optional": false,
+        "managerCanStandIn": false
+      }
+    ],
+    "physical": false,
+    "repetitionGroup": "video",
+    "weight": 0.7
+  },
+  {
+    "key": "celebration",
+    "name": "Celebration",
+    "description": "A win, a title or a milestone is celebrated in front of the crowd.",
+    "groups": [
+      {
+        "label": "Celebrants",
+        "stats": ["popularity", "charisma"],
+        "weight": 1,
+        "minPeople": 1,
+        "maxPeople": 6,
+        "optional": false,
+        "managerCanStandIn": false
+      }
+    ],
+    "physical": false,
+    "repetitionGroup": "ceremony",
+    "weight": 0.8
+  },
+  {
+    "key": "entrance",
+    "name": "Entrance",
+    "description": "A full entrance with music, lights and a walk to the ring that the crowd can savour.",
+    "groups": [
+      {
+        "label": "Performers",
+        "stats": ["presence", "charisma", "popularity"],
+        "weight": 1,
+        "minPeople": 1,
+        "maxPeople": 4,
+        "optional": false,
+        "managerCanStandIn": false
+      }
+    ],
+    "physical": false,
+    "repetitionGroup": "spectacle",
+    "weight": 0.7
+  },
+  {
+    "key": "pull-apart",
+    "name": "Pull-Apart",
+    "description": "Officials and staff rush in to separate people who will not stop fighting.",
+    "groups": [
+      {
+        "label": "Combatants",
+        "stats": ["presence", "athleticism", "popularity"],
+        "weight": 1,
+        "minPeople": 2,
+        "maxPeople": 6,
+        "optional": false,
+        "managerCanStandIn": false
+      }
+    ],
+    "physical": true,
+    "repetitionGroup": "violence",
+    "weight": 0.8
+  },
+  {
+    "key": "backstage-skit",
+    "name": "Backstage Skit",
+    "description": "A short scene backstage: a plot, a joke or a warning, filmed for the show.",
+    "groups": [
+      {
+        "label": "Cast",
+        "stats": ["charisma", "mic"],
+        "weight": 1,
+        "minPeople": 1,
+        "maxPeople": 4,
+        "optional": false,
+        "managerCanStandIn": true
+      },
+      {
+        "label": "Foil",
+        "stats": ["charisma", "mic"],
+        "weight": 1,
+        "minPeople": 1,
+        "maxPeople": 3,
+        "optional": true,
+        "managerCanStandIn": false
+      }
+    ],
+    "physical": false,
+    "repetitionGroup": "skit",
+    "weight": 0.9
+  },
+  {
+    "key": "announcement",
+    "name": "Announcement",
+    "description": "Someone with authority makes news: a match, a title shot or a change to the show.",
+    "groups": [
+      {
+        "label": "Announcer",
+        "stats": ["mic", "presence", "broadcasting"],
+        "weight": 1,
+        "minPeople": 1,
+        "maxPeople": 2,
+        "optional": false,
+        "managerCanStandIn": true
+      },
+      {
+        "label": "Subjects",
+        "stats": ["popularity"],
+        "weight": 0.5,
+        "minPeople": 1,
+        "maxPeople": 6,
+        "optional": true,
+        "managerCanStandIn": false
+      }
+    ],
+    "physical": false,
+    "repetitionGroup": "announcement",
+    "weight": 0.8
+  }
+]

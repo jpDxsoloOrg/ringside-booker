@@ -38,11 +38,20 @@ const CATALOG_FILES = {
   angleType: 'catalogs/angle-types.json',
   method: 'catalogs/methods.json',
   finish: 'catalogs/finishes.json',
+  beat: 'catalogs/beats.json',
+  angleTemplate: 'catalogs/angle-templates.json',
 } as const;
 
 type CatalogKind = keyof typeof CATALOG_FILES;
 
-const CATALOG_KINDS: readonly CatalogKind[] = ['matchType', 'angleType', 'method', 'finish'];
+const CATALOG_KINDS: readonly CatalogKind[] = [
+  'matchType',
+  'angleType',
+  'method',
+  'finish',
+  'beat',
+  'angleTemplate',
+];
 
 /** The mini world with the shipped catalogs added to its base pack, each file edited by `edit`. */
 async function miniWorldWithCatalogs(

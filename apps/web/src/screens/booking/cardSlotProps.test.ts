@@ -197,6 +197,8 @@ describe('defaultWinMethodKey', () => {
   it("falls back to the catalog's first title-changing method", () => {
     const catalog = {
       matchTypes: [],
+      beats: [],
+      angleTemplates: [],
       angleTypes: [],
       available: true,
       methods: [

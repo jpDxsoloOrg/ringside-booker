@@ -24,6 +24,7 @@ export const RULE_IDS = [
   'segment-keys',
   'segment-finishes',
   'injury-catalog',
+  'angle-beats',
 ] as const;
 
 export type RuleId = (typeof RULE_IDS)[number];

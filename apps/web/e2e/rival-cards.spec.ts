@@ -28,6 +28,7 @@ import type { Locator, Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { expectNoSeriousA11yViolations } from './helpers/a11y';
 import { autoFillCard, pickWinnersAndRunShow, skipDaysOnce } from './helpers/booking';
+import { clearOtherStops } from './helpers/contracts';
 import { startDefaultWorldGame } from './helpers/game';
 import { expectNoHorizontalScroll } from './helpers/layout';
 import { openPromotionTab } from './helpers/promotions';
@@ -159,7 +160,13 @@ test.describe('rival cards and Auto-fill on a new game', () => {
     });
 
     await test.step('a 7-day skip stops on 9 Jan for the player’s show', async () => {
-      expect(await skipDaysOnce(page, 7, phone)).toBe(DAYS_TO_SHOW);
+      // A worker hurt on the way stops the skip early: that stop is cleared and the skip goes on.
+      let moved = 0;
+      for (let round = 0; moved < 7 && round <= DAYS_TO_SHOW; round += 1) {
+        moved += await skipDaysOnce(page, 7 - moved, phone);
+        if (await clearOtherStops(page)) break;
+      }
+      expect(moved).toBe(DAYS_TO_SHOW);
       const summary = page.getByRole('region', { name: 'Last advance' });
       await expect(summary).toContainText(`Your show '${MY_SHOW}'`);
       await expect(summary).toContainText('has no card yet');
@@ -243,6 +250,8 @@ test.describe('rival cards and Auto-fill on a new game', () => {
     await test.step('winners picked, the show runs, and the day moves on', async () => {
       await pickWinnersAndRunShow(page, phone);
       await expect(page.getByRole('heading', { level: 1 })).toContainText(MY_SHOW);
+      // A worker hurt in the show stops the day until the player has seen it.
+      await clearOtherStops(page);
       expect(await skipDaysOnce(page, 1, phone)).toBe(1);
       await expectNoHorizontalScroll(page);
     });

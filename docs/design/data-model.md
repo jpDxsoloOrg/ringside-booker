@@ -716,6 +716,10 @@ There is **no current-champion field**. The champion is the open reign:
 `titleReigns.lookupOne('openByTitle', titleId)`. Storing it on the title as
 well would give two answers that can disagree.
 
+How the titles system reads and writes these tables (holders, eligibility, the
+only reign writers, starting prestige and days held) is in
+[titles.md](titles.md).
+
 ### Title reigns (`titleReigns`, `trn_`)
 
 | Field               | Type                                                                  | Notes                                          |
@@ -924,7 +928,8 @@ Shared fields:
 
 `kind: 'angle'` adds `angle`: `{ angleTypeKey; beats }`, an ordered list of 1–8
 beats, each `{ beatKey; personIds }` and nothing else. Angles have no minutes
-either.
+either. Beat groups are derived from participant sides
+([angle-rating.md](angle-rating.md#beat-groups-and-sides)).
 
 The content keys (`matchTypeKey`, `stipulationKeys`, `finishKey`,
 `methodKey`, `angleTypeKey`, `beatKey`) point at data-pack catalogs owned by
@@ -980,21 +985,27 @@ unique `bySegmentPerson` (a person appears once per segment).
 
 ### Storylines (`storylines`, `sty_`)
 
-| Field         | Type                                                  | Notes                                    |
-| ------------- | ----------------------------------------------------- | ---------------------------------------- |
-| `id`          | `StorylineId`                                         |                                          |
-| `promotionId` | `PromotionId`                                         |                                          |
-| `brandId`     | `BrandId \| null`                                     |                                          |
-| `name`        | string, 1–80                                          |                                          |
-| `status`      | `'active' \| 'ended'`                                 |                                          |
-| `startedOn`   | `GameDate`                                            |                                          |
-| `endedOn`     | `GameDate \| null`                                    | set exactly when ended; not before start |
-| `heat`        | 0–100                                                 | feeds the crowd and the D-09 shield      |
-| `members`     | `{ personId; side: 'face' \| 'heel' \| 'neutral' }[]` | 1–12, one entry per person               |
-| `summary`     | string, ≤ 500                                         |                                          |
+| Field             | Type                                                  | Notes                                                                                                                                                           |
+| ----------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`              | `StorylineId`                                         |                                                                                                                                                                 |
+| `promotionId`     | `PromotionId`                                         |                                                                                                                                                                 |
+| `brandId`         | `BrandId \| null`                                     |                                                                                                                                                                 |
+| `name`            | string, 1–80                                          |                                                                                                                                                                 |
+| `status`          | `'active' \| 'ended'`                                 |                                                                                                                                                                 |
+| `startedOn`       | `GameDate`                                            |                                                                                                                                                                 |
+| `endedOn`         | `GameDate \| null`                                    | set exactly when ended; not before start                                                                                                                        |
+| `heat`            | 0–100                                                 | feeds the crowd and the D-09 shield                                                                                                                             |
+| `members`         | `{ personId; side: 'face' \| 'heel' \| 'neutral' }[]` | 1–12, one entry per person                                                                                                                                      |
+| `summary`         | string, ≤ 500                                         |                                                                                                                                                                 |
+| `lastProgressOn`  | `GameDate \| null`                                    | last day a linked segment moved the story on; null = never (cooling counts from `startedOn`); not before `startedOn`; written by CRTV4; default null (CRTV3-01) |
+| `finaleSegmentId` | `SegmentId \| null`                                   | the linked segment booked as the story's final match; written by CRTV4; default null (CRTV3-01)                                                                 |
 
-Refs: `promotionId`, `brandId`, `members[].personId`. Indexes: `byPromotion`,
-`byMember` (multi-key).
+Refs: `promotionId`, `brandId`, `members[].personId`, `finaleSegmentId`
+(nullable). Indexes: `byPromotion`, `byMember` (multi-key). Invariant
+`finaleIsLinked`: the finale segment's `storylineIds` contains the storyline.
+The history roll-up keeps a finale segment whatever its age. Storylines are
+ended, never deleted, because segments reference them. See
+[storylines.md](storylines.md).
 
 ### Seasons (`seasons`, `sea_`)
 

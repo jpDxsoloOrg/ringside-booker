@@ -28,6 +28,11 @@ export interface EngineQueryState<K extends QueryName> {
   readonly revision: number | null;
   /** True while the shown result is older than the world or belongs to the previous arguments. */
   readonly isStale: boolean;
+  /**
+   * True while the shown result belongs to the previous arguments (kept by `keepPreviousData`), so
+   * a screen can keep laying it out the way those arguments asked for until the new result lands.
+   */
+  readonly isPreviousData: boolean;
 }
 
 /**
@@ -87,9 +92,17 @@ export function useEngineQuery<K extends QueryName>(
   const entryIsCurrent = entry !== undefined && (!enabled || entry.revision >= worldRevision);
   const shown = keepPreviousData ? (entry ?? lastShown) : entryIsCurrent ? entry : undefined;
   if (shown === undefined) {
-    return { status: 'loading', data: undefined, error: null, revision: null, isStale: false };
+    return {
+      status: 'loading',
+      data: undefined,
+      error: null,
+      revision: null,
+      isStale: false,
+      isPreviousData: false,
+    };
   }
-  const isStale = shown !== entry || shown.revision < worldRevision;
+  const isPreviousData = shown !== entry;
+  const isStale = isPreviousData || shown.revision < worldRevision;
   if (shown.outcome.ok) {
     return {
       status: 'success',
@@ -97,6 +110,7 @@ export function useEngineQuery<K extends QueryName>(
       error: null,
       revision: shown.revision,
       isStale,
+      isPreviousData,
     };
   }
   return {
@@ -105,5 +119,6 @@ export function useEngineQuery<K extends QueryName>(
     error: shown.outcome.error,
     revision: shown.revision,
     isStale,
+    isPreviousData,
   };
 }

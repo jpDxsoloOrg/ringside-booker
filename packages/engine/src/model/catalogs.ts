@@ -23,6 +23,7 @@ import { MAX_SIDE } from './entities/participant';
 import { hasDuplicates, zName } from './entities/entity-refinements';
 import { zContentKey } from './primitives';
 import type { WorldView } from './world';
+import { BEAT_STATS } from '../systems/match/angles/beatStats';
 
 // ---------------------------------------------------------------------------------------------
 // Limits shared with the pack record schemas
@@ -261,6 +262,167 @@ const injuryKeySchema = zContentKey.refine((key) => key.startsWith(`${INJURY_KEY
 });
 
 // ---------------------------------------------------------------------------------------------
+// Beats and angle templates (MTCH5): the steps an angle is built from, and ready-made orders of
+// them. Beats have no length (D-10). Design: docs/design/angle-rating.md.
+
+/** The content-key namespace of beats (`beat.promo`) and angle templates (`template.solo-promo`). */
+export const BEAT_KEY_PREFIX = 'beat';
+export const ANGLE_TEMPLATE_KEY_PREFIX = 'template';
+/** Longest beat name, beat description and group label. */
+export const BEAT_NAME_MAX_LENGTH = 40;
+export const BEAT_DESCRIPTION_MAX_LENGTH = 200;
+export const BEAT_GROUP_LABEL_MAX_LENGTH = 24;
+/** A beat has one or two groups of people. */
+export const BEAT_GROUPS_MIN = 1;
+export const BEAT_GROUPS_MAX = 2;
+/** Each group is scored on 1-4 stats. */
+export const BEAT_GROUP_STATS_MAX = 4;
+/** Range of a group's weight inside its beat. */
+export const BEAT_GROUP_WEIGHT_MIN = 0.1;
+export const BEAT_GROUP_WEIGHT_MAX = 5;
+/** Fewest and most people in one group. */
+export const BEAT_GROUP_PEOPLE_MIN = 1;
+export const BEAT_GROUP_PEOPLE_MAX = 6;
+/** Range of a beat's weight in the angle's mean. */
+export const BEAT_WEIGHT_MIN = 0.1;
+export const BEAT_WEIGHT_MAX = 3;
+/** Longest angle template name. */
+export const ANGLE_TEMPLATE_NAME_MAX_LENGTH = 40;
+/**
+ * Most beats an angle template may have: the stored angle's limit (`MAX_ANGLE_BEATS` in
+ * `entities/segment.ts`, not imported here to keep the model free of import cycles).
+ */
+export const ANGLE_TEMPLATE_BEATS_MAX = 8;
+
+/** Beats in the same repetition group feel alike; MTCH5-03 tires a crowd of repeats. */
+export const BEAT_REPETITION_GROUPS = [
+  'talk',
+  'violence',
+  'faceoff',
+  'ceremony',
+  'video',
+  'spectacle',
+  'skit',
+  'announcement',
+] as const;
+export type BeatRepetitionGroup = (typeof BEAT_REPETITION_GROUPS)[number];
+
+/** What an angle template is for; rival bookers (AIP4) pick by purpose. */
+export const ANGLE_TEMPLATE_PURPOSES = [
+  'promo',
+  'startFeud',
+  'buildFeud',
+  'titleChallenge',
+  'celebrate',
+  'introduce',
+  'announce',
+] as const;
+export type AngleTemplatePurpose = (typeof ANGLE_TEMPLATE_PURPOSES)[number];
+
+/**
+ * Who fills a template beat's group: side `a`, side `b`, both sides together (`ab`) or the host
+ * (an interviewer or announcer who belongs to neither side).
+ */
+export const CAST_TOKENS = ['a', 'b', 'ab', 'host'] as const;
+export type CastToken = (typeof CAST_TOKENS)[number];
+
+export const BeatStatSchema = z.enum(BEAT_STATS);
+export const beatRepetitionGroupSchema = z.enum(BEAT_REPETITION_GROUPS);
+export const angleTemplatePurposeSchema = z.enum(ANGLE_TEMPLATE_PURPOSES);
+export const castTokenSchema = z.enum(CAST_TOKENS);
+export const beatNameSchema = zName(BEAT_NAME_MAX_LENGTH);
+export const beatDescriptionSchema = z.string().min(1).max(BEAT_DESCRIPTION_MAX_LENGTH);
+export const beatWeightSchema = z.number().min(BEAT_WEIGHT_MIN).max(BEAT_WEIGHT_MAX);
+export const angleTemplateNameSchema = zName(ANGLE_TEMPLATE_NAME_MAX_LENGTH);
+
+const groupPeopleSchema = z.number().int().min(BEAT_GROUP_PEOPLE_MIN).max(BEAT_GROUP_PEOPLE_MAX);
+
+/** One group of a beat: who it is, what they are scored on and how much they count. */
+export const BeatGroupSchema = z
+  .strictObject({
+    /** Player text, such as "Speaker" or "Side A". */
+    label: zName(BEAT_GROUP_LABEL_MAX_LENGTH),
+    stats: z
+      .array(BeatStatSchema)
+      .min(1)
+      .max(BEAT_GROUP_STATS_MAX)
+      .refine((stats) => !hasDuplicates(stats), { message: 'Each stat may appear only once' }),
+    weight: z.number().min(BEAT_GROUP_WEIGHT_MIN).max(BEAT_GROUP_WEIGHT_MAX),
+    minPeople: groupPeopleSchema,
+    maxPeople: groupPeopleSchema,
+    /** The group may be left empty. Only the second group may be optional. */
+    optional: z.boolean(),
+    /** A manager may speak for this group (on mic and charisma only). */
+    managerCanStandIn: z.boolean(),
+  })
+  .refine((group) => group.maxPeople >= group.minPeople, {
+    message: 'must be at least minPeople',
+    path: ['maxPeople'],
+  });
+
+export const beatGroupsSchema = z
+  .array(BeatGroupSchema)
+  .min(BEAT_GROUPS_MIN)
+  .max(BEAT_GROUPS_MAX)
+  .refine((groups) => groups[0]?.optional !== true, {
+    message: 'the first group cannot be optional',
+    path: [0, 'optional'],
+  });
+
+/** One beat of an angle template, cast by token. */
+export interface AngleTemplateBeatShape {
+  readonly groupTwo: CastToken | null;
+  readonly optional: boolean;
+}
+
+/** Adds an issue when every beat of a template is optional. */
+export function refineAngleTemplateBeats(
+  beats: readonly AngleTemplateBeatShape[],
+  context: z.RefinementCtx,
+): void {
+  if (beats.length > 0 && beats.every((beat) => beat.optional)) {
+    context.addIssue({
+      code: 'custom',
+      message: 'at least one beat must not be optional',
+      path: [],
+    });
+  }
+}
+
+/** A beat content key: `beat.<name>`. */
+const beatKeySchema = zContentKey.refine((key) => key.startsWith(`${BEAT_KEY_PREFIX}.`), {
+  message: `must be a beat content key starting with "${BEAT_KEY_PREFIX}."`,
+});
+
+/** An angle template content key: `template.<name>`. */
+const angleTemplateKeySchema = zContentKey.refine(
+  (key) => key.startsWith(`${ANGLE_TEMPLATE_KEY_PREFIX}.`),
+  {
+    message: `must be an angle template content key starting with "${ANGLE_TEMPLATE_KEY_PREFIX}."`,
+  },
+);
+
+/** The beats an angle type allows: beat content keys, each once. */
+export const beatKeyListSchema = z
+  .array(beatKeySchema)
+  .min(1)
+  .refine((keys) => !hasDuplicates(keys), { message: 'Each beat may appear only once' });
+
+/** Adds an issue when an angle type lists its beats and leaves out its default beat. */
+export function refineAngleTypeBeats(
+  angleType: { readonly defaultBeatKey: string; readonly beatKeys?: readonly string[] | undefined },
+  context: z.RefinementCtx,
+): void {
+  if (angleType.beatKeys !== undefined && !angleType.beatKeys.includes(angleType.defaultBeatKey)) {
+    context.addIssue({
+      code: 'custom',
+      message: `must include the default beat ${angleType.defaultBeatKey}`,
+      path: ['beatKeys'],
+    });
+  }
+}
+
+// ---------------------------------------------------------------------------------------------
 // Runtime shapes
 
 /** A match type with every default filled in. */
@@ -282,18 +444,22 @@ export const MatchTypeDefSchema = z.strictObject({
 });
 
 /** An angle type with every default filled in. */
-export const AngleTypeDefSchema = z.strictObject({
-  key: zContentKey,
-  name: zName(CATALOG_NAME_MAX_LENGTH),
-  shortName: zName(CATALOG_SHORT_NAME_MAX_LENGTH).optional(),
-  order: orderSchema,
-  /** The beat a new angle of this type starts with. MTCH5 owns the beat catalog. */
-  defaultBeatKey: zContentKey,
-  speakers: intRangeSchema(ANGLE_TYPE_SPEAKERS_MIN, ANGLE_TYPE_SPEAKERS_MAX, 'speakers'),
-  speakerWeights: speakerWeightsSchema,
-  hidden: z.boolean(),
-  description: descriptionSchema.optional(),
-});
+export const AngleTypeDefSchema = z
+  .strictObject({
+    key: zContentKey,
+    name: zName(CATALOG_NAME_MAX_LENGTH),
+    shortName: zName(CATALOG_SHORT_NAME_MAX_LENGTH).optional(),
+    order: orderSchema,
+    /** The beat a new angle of this type starts with. MTCH5 owns the beat catalog. */
+    defaultBeatKey: zContentKey,
+    speakers: intRangeSchema(ANGLE_TYPE_SPEAKERS_MIN, ANGLE_TYPE_SPEAKERS_MAX, 'speakers'),
+    speakerWeights: speakerWeightsSchema,
+    /** MTCH5: the beats an angle of this type may use. Absent = every beat. */
+    beatKeys: beatKeyListSchema.optional(),
+    hidden: z.boolean(),
+    description: descriptionSchema.optional(),
+  })
+  .superRefine(refineAngleTypeBeats);
 
 /** A win method with every default filled in. */
 export const MethodDefSchema = z.strictObject({
@@ -361,12 +527,51 @@ export const InjuryKindSchema = z
   })
   .superRefine(refineInjuryKind);
 
+/** A beat: one step of an angle, its one or two groups and what they are scored on (MTCH5). */
+export const BeatDefSchema = z.strictObject({
+  key: beatKeySchema,
+  name: beatNameSchema,
+  description: beatDescriptionSchema,
+  groups: beatGroupsSchema,
+  /** A physical beat (contact, a fight) wears people like a match does (MTCH5-03). */
+  physical: z.boolean(),
+  repetitionGroup: beatRepetitionGroupSchema,
+  /** How much the beat counts in the angle's mean, 0.1-3. */
+  weight: beatWeightSchema,
+});
+
+/** One beat of an angle template: the beat and which cast fills each group. */
+export const AngleTemplateBeatSchema = z.strictObject({
+  beatKey: beatKeySchema,
+  groupOne: castTokenSchema,
+  /** Null when the beat has one group, or its optional second group is left empty. */
+  groupTwo: castTokenSchema.nullable(),
+  /** Dropped first when the slot cannot fit every beat. */
+  optional: z.boolean(),
+});
+
+/** A ready-made angle: its type, purpose and beats in order (MTCH5). */
+export const AngleTemplateDefSchema = z.strictObject({
+  key: angleTemplateKeySchema,
+  name: angleTemplateNameSchema,
+  angleTypeKey: zContentKey,
+  purpose: angleTemplatePurposeSchema,
+  beats: z
+    .array(AngleTemplateBeatSchema)
+    .min(1)
+    .max(ANGLE_TEMPLATE_BEATS_MAX)
+    .superRefine(refineAngleTemplateBeats),
+  description: descriptionSchema.optional(),
+});
+
 /** One catalog: its entries keyed by content key. */
 export const MatchTypeCatalogSchema = z.record(zContentKey, MatchTypeDefSchema);
 export const AngleTypeCatalogSchema = z.record(zContentKey, AngleTypeDefSchema);
 export const MethodCatalogSchema = z.record(zContentKey, MethodDefSchema);
 export const FinishCatalogSchema = z.record(zContentKey, FinishDefSchema);
 export const InjuryCatalogSchema = z.record(zContentKey, InjuryKindSchema);
+export const BeatCatalogSchema = z.record(zContentKey, BeatDefSchema);
+export const AngleTemplateCatalogSchema = z.record(zContentKey, AngleTemplateDefSchema);
 
 /**
  * The catalogs snapshotted into a world at new game, keyed by content key. Every catalog is
@@ -381,6 +586,10 @@ export const CatalogsSchema = z
     finishes: FinishCatalogSchema,
     /** WRK6-01. A save started before injuries existed has none. */
     injuries: InjuryCatalogSchema,
+    /** MTCH5. A save started before beats existed has none (`hasBeatCatalog`). */
+    beats: BeatCatalogSchema,
+    /** MTCH5. Ready-made angles; absent with `beats` on older saves. */
+    angleTemplates: AngleTemplateCatalogSchema,
   })
   .partial();
 
@@ -390,6 +599,10 @@ export type MethodDef = z.infer<typeof MethodDefSchema>;
 export type FinishEntry = z.infer<typeof FinishEntrySchema>;
 export type FinishDef = FinishEntry;
 export type InjuryKind = z.infer<typeof InjuryKindSchema>;
+export type BeatGroupDef = z.infer<typeof BeatGroupSchema>;
+export type BeatDef = z.infer<typeof BeatDefSchema>;
+export type AngleTemplateBeat = z.infer<typeof AngleTemplateBeatSchema>;
+export type AngleTemplateDef = z.infer<typeof AngleTemplateDefSchema>;
 export type Catalogs = z.infer<typeof CatalogsSchema>;
 export type CatalogName = keyof Catalogs;
 
@@ -447,12 +660,16 @@ type AngleTypeCatalog = z.output<typeof AngleTypeCatalogSchema>;
 type MethodCatalog = z.output<typeof MethodCatalogSchema>;
 type FinishCatalog = z.output<typeof FinishCatalogSchema>;
 type InjuryCatalog = z.output<typeof InjuryCatalogSchema>;
+type BeatCatalog = z.output<typeof BeatCatalogSchema>;
+type AngleTemplateCatalog = z.output<typeof AngleTemplateCatalogSchema>;
 
 const matchTypeCopies = new WeakMap<object, MatchTypeCatalog>();
 const angleTypeCopies = new WeakMap<object, AngleTypeCatalog>();
 const methodCopies = new WeakMap<object, MethodCatalog>();
 const finishCopies = new WeakMap<object, FinishCatalog>();
 const injuryCopies = new WeakMap<object, InjuryCatalog>();
+const beatCopies = new WeakMap<object, BeatCatalog>();
+const angleTemplateCopies = new WeakMap<object, AngleTemplateCatalog>();
 
 function matchTypeCatalog(read: CatalogReader): MatchTypeCatalog | undefined {
   return frozenCatalog(matchTypeCopies, MatchTypeCatalogSchema, read.meta.catalogs.matchTypes);
@@ -472,6 +689,18 @@ function finishCatalog(read: CatalogReader): FinishCatalog | undefined {
 
 function injuryCatalog(read: CatalogReader): InjuryCatalog | undefined {
   return frozenCatalog(injuryCopies, InjuryCatalogSchema, read.meta.catalogs.injuries);
+}
+
+function beatCatalog(read: CatalogReader): BeatCatalog | undefined {
+  return frozenCatalog(beatCopies, BeatCatalogSchema, read.meta.catalogs.beats);
+}
+
+function angleTemplateCatalog(read: CatalogReader): AngleTemplateCatalog | undefined {
+  return frozenCatalog(
+    angleTemplateCopies,
+    AngleTemplateCatalogSchema,
+    read.meta.catalogs.angleTemplates,
+  );
 }
 
 function compareText(left: string, right: string): number {
@@ -596,4 +825,51 @@ export function injuryKindOf(
 /** True when the world holds a catalog of that name (even an empty one). */
 export function hasCatalog(read: CatalogReader, name: CatalogName): boolean {
   return read.meta.catalogs[name] !== undefined;
+}
+
+/**
+ * True when the world holds the beat catalog (MTCH5). A game started before beats existed has
+ * none: angles there keep MTCH1's simple speaker score (MTCH5-03) and the lab says so (MTCH5-05).
+ */
+export function hasBeatCatalog(read: CatalogReader): boolean {
+  return read.meta.catalogs.beats !== undefined;
+}
+
+/** Every beat, by key. Empty without a catalog. */
+export function beatsOf(read: CatalogReader): readonly BeatDef[] {
+  const catalog = beatCatalog(read);
+  if (catalog === undefined) {
+    return [];
+  }
+  return Object.values(catalog).sort((left, right) => compareText(left.key, right.key));
+}
+
+/** One beat by content key (`beat.promo`), or undefined. */
+export function beatOf(read: CatalogReader, key: ContentKey | string): BeatDef | undefined {
+  return entryOf(beatCatalog(read), key);
+}
+
+/** Every angle template, by key. Empty without a catalog. */
+export function angleTemplatesOf(read: CatalogReader): readonly AngleTemplateDef[] {
+  const catalog = angleTemplateCatalog(read);
+  if (catalog === undefined) {
+    return [];
+  }
+  return Object.values(catalog).sort((left, right) => compareText(left.key, right.key));
+}
+
+/** One angle template by content key (`template.solo-promo`), or undefined. */
+export function angleTemplateOf(
+  read: CatalogReader,
+  key: ContentKey | string,
+): AngleTemplateDef | undefined {
+  return entryOf(angleTemplateCatalog(read), key);
+}
+
+/** True when an angle of `angleType` may use the beat `beatKey`; no `beatKeys` list allows all. */
+export function isBeatAllowed(
+  angleType: { readonly beatKeys?: readonly string[] | undefined },
+  beatKey: ContentKey | string,
+): boolean {
+  return angleType.beatKeys === undefined || angleType.beatKeys.includes(beatKey);
 }

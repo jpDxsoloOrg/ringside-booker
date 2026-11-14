@@ -26,6 +26,7 @@ import type { Locator, Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { expectNoSeriousA11yViolations } from './helpers/a11y';
 import { autoFillCard, pickWinnersAndRunShow, skipDaysOnce } from './helpers/booking';
+import { clearOtherStops } from './helpers/contracts';
 import { startDefaultWorldGame } from './helpers/game';
 import { expectNoHorizontalScroll } from './helpers/layout';
 import { openPromotionTab } from './helpers/promotions';
@@ -140,8 +141,13 @@ test.describe('rival winners and title changes on a new game', () => {
       let left = SKIP_DAYS;
       let stops = 0;
       for (let round = 0; left > 0 && round <= SKIP_DAYS; round += 1) {
+        // A show can leave a stop behind (a worker hurt in it), which turns Skip days off.
+        await clearOtherStops(page);
         left -= await skipDaysOnce(page, left, phone);
         if (left === 0) break;
+        // An injury or a contract notice can stop the skip too: those are cleared and the skip
+        // carries on, so only Longleaf's show nights are booked here.
+        if (!(await clearOtherStops(page))) continue;
         stops += 1;
         const summary = page.getByRole('region', { name: 'Last advance' });
         await expect(summary).toContainText(`Your show '${MY_SHOW}'`);

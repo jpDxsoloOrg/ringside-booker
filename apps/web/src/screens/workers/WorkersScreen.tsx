@@ -136,6 +136,14 @@ export function WorkersScreen() {
   };
   // The "Injured" quick filter is the availability filter set to injured (`?availability=injured`).
   const injuredOnly = filters.availability === 'injured';
+  // The injury columns follow the rows on screen, not the URL: while the injured list loads, the
+  // previous (full) list stays up with its own columns. Re-laying every row of the full list out
+  // with the injury columns only to drop them a moment later held the toggle's pressed state back
+  // by a second or more, and past five seconds on WebKit under load (WRK6-09).
+  const [rowsAreInjuredOnly, setRowsAreInjuredOnly] = useState(injuredOnly);
+  if (!query.isPreviousData && rowsAreInjuredOnly !== injuredOnly) {
+    setRowsAreInjuredOnly(injuredOnly);
+  }
   const toggleInjured = (): void => {
     changeFilters({ ...filters, availability: injuredOnly ? null : 'injured' });
   };
@@ -226,7 +234,7 @@ export function WorkersScreen() {
           <DataTable
             className={styles['table']}
             rows={rows}
-            columns={injuredOnly ? INJURED_WORKER_COLUMNS : WORKER_COLUMNS}
+            columns={rowsAreInjuredOnly ? INJURED_WORKER_COLUMNS : WORKER_COLUMNS}
             getRowId={rowId}
             compareTies={compareWorkerTies}
             getRowLabel={rowLabel}

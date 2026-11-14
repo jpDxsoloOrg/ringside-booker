@@ -86,7 +86,7 @@ export interface RivalStorylineContext {
   readonly ageDays: number;
   /**
    * True when the storyline names this segment as its finale, false when it names another, null
-   * when it names none (or the save has no finale field yet).
+   * when it names none.
    */
   readonly finaleFlag: boolean | null;
   /** Sides holding a member on the face side of the story. */
@@ -246,23 +246,13 @@ function sidesOf(
     }));
 }
 
-/**
- * The storyline's finale segment, read without assuming the field exists: CRTV3 adds
- * `finaleSegmentId`; before it, every storyline answers null.
- */
-function finaleSegmentOf(storyline: StorylineRow): string | null {
-  const fields: Readonly<Record<string, unknown>> = storyline;
-  const value = fields['finaleSegmentId'];
-  return typeof value === 'string' ? value : null;
-}
-
 function storylineContextOf(
   storyline: StorylineRow,
   segmentId: SegmentId,
   sides: readonly SideDraft[],
   date: GameDate,
 ): RivalStorylineContext {
-  const finale = finaleSegmentOf(storyline);
+  const finale = storyline.finaleSegmentId;
   const sidesOn = (storySide: 'face' | 'heel'): number[] =>
     sides
       .filter((side) =>

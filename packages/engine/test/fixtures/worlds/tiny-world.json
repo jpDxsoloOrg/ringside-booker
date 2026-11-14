@@ -38,6 +38,12 @@
             "charisma": 0.3,
             "presence": 0.6
           },
+          "beatKeys": [
+            "beat.attack",
+            "beat.brawl",
+            "beat.pull-apart",
+            "beat.staredown"
+          ],
           "hidden": false,
           "description": "An ambush in the ring, backstage or in the car park. Few words, lots of impact."
         },
@@ -55,6 +61,13 @@
             "charisma": 0.3,
             "presence": 0.3
           },
+          "beatKeys": [
+            "beat.staredown",
+            "beat.war-of-words",
+            "beat.attack",
+            "beat.brawl",
+            "beat.pull-apart"
+          ],
           "hidden": false,
           "description": "Rivals come face to face. Words are traded and it may not stay peaceful."
         },
@@ -73,6 +86,14 @@
             "charisma": 0.3,
             "presence": 0.2
           },
+          "beatKeys": [
+            "beat.contract-signing",
+            "beat.staredown",
+            "beat.brawl",
+            "beat.pull-apart",
+            "beat.announcement",
+            "beat.celebration"
+          ],
           "hidden": false,
           "description": "A table, a contract and two people who do not like each other. It rarely ends with just a signature."
         },
@@ -90,6 +111,11 @@
             "charisma": 0.35,
             "presence": 0.15
           },
+          "beatKeys": [
+            "beat.interview",
+            "beat.promo",
+            "beat.announcement"
+          ],
           "hidden": false,
           "description": "A backstage or ringside interviewer asks the questions and the talent answers."
         },
@@ -107,6 +133,14 @@
             "charisma": 0.3,
             "presence": 0.1
           },
+          "beatKeys": [
+            "beat.promo",
+            "beat.war-of-words",
+            "beat.announcement",
+            "beat.backstage-skit",
+            "beat.entrance",
+            "beat.celebration"
+          ],
           "hidden": false,
           "description": "Someone takes the microphone and talks to the crowd, an opponent or the camera."
         },
@@ -125,6 +159,9 @@
             "charisma": 0.4,
             "presence": 0.3
           },
+          "beatKeys": [
+            "beat.video-package"
+          ],
           "hidden": false,
           "description": "A pre-recorded piece that builds a rivalry or introduces someone new."
         }
@@ -637,6 +674,558 @@
           "autoWeight": 1,
           "requiresTwoSides": false,
           "matchTypes": {}
+        }
+      },
+      "beats": {
+        "beat.announcement": {
+          "key": "beat.announcement",
+          "name": "Announcement",
+          "description": "Someone with authority makes news: a match, a title shot or a change to the show.",
+          "groups": [
+            {
+              "label": "Announcer",
+              "stats": [
+                "mic",
+                "presence",
+                "broadcasting"
+              ],
+              "weight": 1,
+              "minPeople": 1,
+              "maxPeople": 2,
+              "optional": false,
+              "managerCanStandIn": true
+            },
+            {
+              "label": "Subjects",
+              "stats": [
+                "popularity"
+              ],
+              "weight": 0.5,
+              "minPeople": 1,
+              "maxPeople": 6,
+              "optional": true,
+              "managerCanStandIn": false
+            }
+          ],
+          "physical": false,
+          "repetitionGroup": "announcement",
+          "weight": 0.8
+        },
+        "beat.attack": {
+          "key": "beat.attack",
+          "name": "Attack",
+          "description": "One side jumps the other without warning. The attackers look dangerous and the targets earn sympathy.",
+          "groups": [
+            {
+              "label": "Attackers",
+              "stats": [
+                "presence",
+                "athleticism",
+                "popularity"
+              ],
+              "weight": 1,
+              "minPeople": 1,
+              "maxPeople": 4,
+              "optional": false,
+              "managerCanStandIn": false
+            },
+            {
+              "label": "Targets",
+              "stats": [
+                "charisma",
+                "presence",
+                "popularity"
+              ],
+              "weight": 1,
+              "minPeople": 1,
+              "maxPeople": 4,
+              "optional": false,
+              "managerCanStandIn": false
+            }
+          ],
+          "physical": true,
+          "repetitionGroup": "violence",
+          "weight": 1
+        },
+        "beat.backstage-skit": {
+          "key": "beat.backstage-skit",
+          "name": "Backstage Skit",
+          "description": "A short scene backstage: a plot, a joke or a warning, filmed for the show.",
+          "groups": [
+            {
+              "label": "Cast",
+              "stats": [
+                "charisma",
+                "mic"
+              ],
+              "weight": 1,
+              "minPeople": 1,
+              "maxPeople": 4,
+              "optional": false,
+              "managerCanStandIn": true
+            },
+            {
+              "label": "Foil",
+              "stats": [
+                "charisma",
+                "mic"
+              ],
+              "weight": 1,
+              "minPeople": 1,
+              "maxPeople": 3,
+              "optional": true,
+              "managerCanStandIn": false
+            }
+          ],
+          "physical": false,
+          "repetitionGroup": "skit",
+          "weight": 0.9
+        },
+        "beat.brawl": {
+          "key": "beat.brawl",
+          "name": "Brawl",
+          "description": "Everyone involved throws punches until the ring, the floor or the backstage area is a mess.",
+          "groups": [
+            {
+              "label": "Brawlers",
+              "stats": [
+                "presence",
+                "athleticism",
+                "ringwork",
+                "popularity"
+              ],
+              "weight": 1,
+              "minPeople": 2,
+              "maxPeople": 6,
+              "optional": false,
+              "managerCanStandIn": false
+            }
+          ],
+          "physical": true,
+          "repetitionGroup": "violence",
+          "weight": 1
+        },
+        "beat.celebration": {
+          "key": "beat.celebration",
+          "name": "Celebration",
+          "description": "A win, a title or a milestone is celebrated in front of the crowd.",
+          "groups": [
+            {
+              "label": "Celebrants",
+              "stats": [
+                "popularity",
+                "charisma"
+              ],
+              "weight": 1,
+              "minPeople": 1,
+              "maxPeople": 6,
+              "optional": false,
+              "managerCanStandIn": false
+            }
+          ],
+          "physical": false,
+          "repetitionGroup": "ceremony",
+          "weight": 0.8
+        },
+        "beat.contract-signing": {
+          "key": "beat.contract-signing",
+          "name": "Contract Signing",
+          "description": "The match is made official at a table, with a pen and a lot of tension.",
+          "groups": [
+            {
+              "label": "Signers",
+              "stats": [
+                "presence",
+                "mic",
+                "popularity"
+              ],
+              "weight": 1,
+              "minPeople": 1,
+              "maxPeople": 4,
+              "optional": false,
+              "managerCanStandIn": true
+            },
+            {
+              "label": "Witnesses",
+              "stats": [
+                "presence",
+                "mic",
+                "broadcasting"
+              ],
+              "weight": 0.5,
+              "minPeople": 1,
+              "maxPeople": 3,
+              "optional": true,
+              "managerCanStandIn": false
+            }
+          ],
+          "physical": false,
+          "repetitionGroup": "ceremony",
+          "weight": 0.9
+        },
+        "beat.entrance": {
+          "key": "beat.entrance",
+          "name": "Entrance",
+          "description": "A full entrance with music, lights and a walk to the ring that the crowd can savour.",
+          "groups": [
+            {
+              "label": "Performers",
+              "stats": [
+                "presence",
+                "charisma",
+                "popularity"
+              ],
+              "weight": 1,
+              "minPeople": 1,
+              "maxPeople": 4,
+              "optional": false,
+              "managerCanStandIn": false
+            }
+          ],
+          "physical": false,
+          "repetitionGroup": "spectacle",
+          "weight": 0.7
+        },
+        "beat.interview": {
+          "key": "beat.interview",
+          "name": "Interview",
+          "description": "Someone answers questions from an interviewer, backstage or at ringside.",
+          "groups": [
+            {
+              "label": "Guest",
+              "stats": [
+                "mic",
+                "charisma"
+              ],
+              "weight": 3,
+              "minPeople": 1,
+              "maxPeople": 3,
+              "optional": false,
+              "managerCanStandIn": true
+            },
+            {
+              "label": "Host",
+              "stats": [
+                "broadcasting",
+                "mic",
+                "presence"
+              ],
+              "weight": 1,
+              "minPeople": 1,
+              "maxPeople": 1,
+              "optional": true,
+              "managerCanStandIn": false
+            }
+          ],
+          "physical": false,
+          "repetitionGroup": "talk",
+          "weight": 0.9
+        },
+        "beat.promo": {
+          "key": "beat.promo",
+          "name": "Promo",
+          "description": "One side takes the microphone and talks to the crowd, a rival or the camera.",
+          "groups": [
+            {
+              "label": "Speaker",
+              "stats": [
+                "mic",
+                "charisma"
+              ],
+              "weight": 1,
+              "minPeople": 1,
+              "maxPeople": 4,
+              "optional": false,
+              "managerCanStandIn": true
+            }
+          ],
+          "physical": false,
+          "repetitionGroup": "talk",
+          "weight": 1
+        },
+        "beat.pull-apart": {
+          "key": "beat.pull-apart",
+          "name": "Pull-Apart",
+          "description": "Officials and staff rush in to separate people who will not stop fighting.",
+          "groups": [
+            {
+              "label": "Combatants",
+              "stats": [
+                "presence",
+                "athleticism",
+                "popularity"
+              ],
+              "weight": 1,
+              "minPeople": 2,
+              "maxPeople": 6,
+              "optional": false,
+              "managerCanStandIn": false
+            }
+          ],
+          "physical": true,
+          "repetitionGroup": "violence",
+          "weight": 0.8
+        },
+        "beat.staredown": {
+          "key": "beat.staredown",
+          "name": "Staredown",
+          "description": "Rivals stand face to face and say nothing. The crowd fills the silence.",
+          "groups": [
+            {
+              "label": "Side A",
+              "stats": [
+                "presence",
+                "popularity"
+              ],
+              "weight": 1,
+              "minPeople": 1,
+              "maxPeople": 4,
+              "optional": false,
+              "managerCanStandIn": false
+            },
+            {
+              "label": "Side B",
+              "stats": [
+                "presence",
+                "popularity"
+              ],
+              "weight": 1,
+              "minPeople": 1,
+              "maxPeople": 4,
+              "optional": false,
+              "managerCanStandIn": false
+            }
+          ],
+          "physical": false,
+          "repetitionGroup": "faceoff",
+          "weight": 0.8
+        },
+        "beat.video-package": {
+          "key": "beat.video-package",
+          "name": "Video Package",
+          "description": "A pre-recorded piece about the people featured: where they came from and what they want.",
+          "groups": [
+            {
+              "label": "Featured",
+              "stats": [
+                "charisma",
+                "presence",
+                "popularity"
+              ],
+              "weight": 1,
+              "minPeople": 1,
+              "maxPeople": 6,
+              "optional": false,
+              "managerCanStandIn": false
+            }
+          ],
+          "physical": false,
+          "repetitionGroup": "video",
+          "weight": 0.7
+        },
+        "beat.war-of-words": {
+          "key": "beat.war-of-words",
+          "name": "War of Words",
+          "description": "Two sides trade insults on the microphone, each trying to have the last word.",
+          "groups": [
+            {
+              "label": "Side A",
+              "stats": [
+                "mic",
+                "charisma"
+              ],
+              "weight": 1,
+              "minPeople": 1,
+              "maxPeople": 4,
+              "optional": false,
+              "managerCanStandIn": true
+            },
+            {
+              "label": "Side B",
+              "stats": [
+                "mic",
+                "charisma"
+              ],
+              "weight": 1,
+              "minPeople": 1,
+              "maxPeople": 4,
+              "optional": false,
+              "managerCanStandIn": true
+            }
+          ],
+          "physical": false,
+          "repetitionGroup": "talk",
+          "weight": 1.1
+        }
+      },
+      "angleTemplates": {
+        "template.ambush": {
+          "key": "template.ambush",
+          "name": "Ambush",
+          "angleTypeKey": "angle.attack",
+          "purpose": "buildFeud",
+          "beats": [
+            {
+              "beatKey": "beat.attack",
+              "groupOne": "a",
+              "groupTwo": "b",
+              "optional": false
+            },
+            {
+              "beatKey": "beat.pull-apart",
+              "groupOne": "ab",
+              "groupTwo": null,
+              "optional": true
+            }
+          ],
+          "description": "One side jumps the other until someone pulls them apart."
+        },
+        "template.backstage-plot": {
+          "key": "template.backstage-plot",
+          "name": "Backstage Plot",
+          "angleTypeKey": "angle.promo",
+          "purpose": "buildFeud",
+          "beats": [
+            {
+              "beatKey": "beat.backstage-skit",
+              "groupOne": "a",
+              "groupTwo": "b",
+              "optional": false
+            },
+            {
+              "beatKey": "beat.war-of-words",
+              "groupOne": "a",
+              "groupTwo": "b",
+              "optional": true
+            }
+          ],
+          "description": "A scene backstage that sets up trouble, and words to follow."
+        },
+        "template.feud-opener": {
+          "key": "template.feud-opener",
+          "name": "Feud Opener",
+          "angleTypeKey": "angle.confrontation",
+          "purpose": "startFeud",
+          "beats": [
+            {
+              "beatKey": "beat.staredown",
+              "groupOne": "a",
+              "groupTwo": "b",
+              "optional": true
+            },
+            {
+              "beatKey": "beat.war-of-words",
+              "groupOne": "a",
+              "groupTwo": "b",
+              "optional": false
+            },
+            {
+              "beatKey": "beat.brawl",
+              "groupOne": "ab",
+              "groupTwo": null,
+              "optional": false
+            }
+          ],
+          "description": "Two rivals meet, trade words and come to blows."
+        },
+        "template.hype-video": {
+          "key": "template.hype-video",
+          "name": "Hype Video",
+          "angleTypeKey": "angle.video-package",
+          "purpose": "introduce",
+          "beats": [
+            {
+              "beatKey": "beat.video-package",
+              "groupOne": "a",
+              "groupTwo": null,
+              "optional": false
+            }
+          ],
+          "description": "A video that builds someone up before they arrive."
+        },
+        "template.sit-down-interview": {
+          "key": "template.sit-down-interview",
+          "name": "Sit-Down Interview",
+          "angleTypeKey": "angle.interview",
+          "purpose": "introduce",
+          "beats": [
+            {
+              "beatKey": "beat.interview",
+              "groupOne": "a",
+              "groupTwo": "host",
+              "optional": false
+            },
+            {
+              "beatKey": "beat.promo",
+              "groupOne": "a",
+              "groupTwo": null,
+              "optional": true
+            }
+          ],
+          "description": "An interviewer asks the questions, then the guest speaks their mind."
+        },
+        "template.solo-promo": {
+          "key": "template.solo-promo",
+          "name": "Solo Promo",
+          "angleTypeKey": "angle.promo",
+          "purpose": "promo",
+          "beats": [
+            {
+              "beatKey": "beat.promo",
+              "groupOne": "a",
+              "groupTwo": null,
+              "optional": false
+            }
+          ],
+          "description": "One person talks to the crowd."
+        },
+        "template.title-contract": {
+          "key": "template.title-contract",
+          "name": "Title Contract",
+          "angleTypeKey": "angle.contract-signing",
+          "purpose": "titleChallenge",
+          "beats": [
+            {
+              "beatKey": "beat.announcement",
+              "groupOne": "host",
+              "groupTwo": "ab",
+              "optional": true
+            },
+            {
+              "beatKey": "beat.contract-signing",
+              "groupOne": "a",
+              "groupTwo": "b",
+              "optional": false
+            },
+            {
+              "beatKey": "beat.staredown",
+              "groupOne": "a",
+              "groupTwo": "b",
+              "optional": true
+            }
+          ],
+          "description": "The title match is announced, signed and sealed with a stare."
+        },
+        "template.victory-lap": {
+          "key": "template.victory-lap",
+          "name": "Victory Lap",
+          "angleTypeKey": "angle.promo",
+          "purpose": "celebrate",
+          "beats": [
+            {
+              "beatKey": "beat.entrance",
+              "groupOne": "a",
+              "groupTwo": null,
+              "optional": true
+            },
+            {
+              "beatKey": "beat.celebration",
+              "groupOne": "a",
+              "groupTwo": null,
+              "optional": false
+            }
+          ],
+          "description": "A winner comes out to soak up the cheers and say a few words."
         }
       }
     },
@@ -3446,7 +4035,7 @@
               ]
             },
             {
-              "beatKey": "beat.attack",
+              "beatKey": "beat.war-of-words",
               "personIds": [
                 "per_0000000002",
                 "per_0000000001"
@@ -3563,7 +4152,9 @@
             "side": "heel"
           }
         ],
-        "summary": "A former champion wants the title back."
+        "summary": "A former champion wants the title back.",
+        "lastProgressOn": null,
+        "finaleSegmentId": null
       }
     ],
     "teams": [

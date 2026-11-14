@@ -8,20 +8,65 @@ function lastAdvance(page: Page) {
   return page.getByRole('region', { name: 'Last advance' });
 }
 
-/** "Advanced 5 days to …" → 5; "Stayed on …" → 0. */
-function daysAdvancedFrom(headline: string): number {
-  const match = /Advanced ([\d,]+) days? to/i.exec(headline);
-  return match === null ? 0 : Number((match[1] ?? '0').replace(/,/g, ''));
+/** The game's date (ISO), from the top bar. */
+export async function gameDate(page: Page): Promise<string> {
+  const time = page.getByRole('banner').locator('time[datetime]').first();
+  return (await time.getAttribute('datetime')) ?? '';
+}
+
+/** Whole days from one ISO date to a later one. */
+function daysBetween(from: string, to: string): number {
+  const DAY_MS = 86_400_000;
+  return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / DAY_MS);
+}
+
+/**
+ * How long an advance may take. Even a one-day skip runs every rival's show night and an autosave,
+ * and with several browsers sharing a busy machine that has gone past the default five seconds.
+ */
+const ADVANCE_TIMEOUT = { timeout: 20_000 } as const;
+
+/**
+ * Waits for the advance just started to finish: the date moved or the summary changed (an
+ * advance that stopped before its first day only says so in the summary), then the day control
+ * is idle again, with its button off busy and the day's stops read.
+ */
+export async function waitForAdvanceToEnd(
+  page: Page,
+  startDate: string,
+  summaryBefore: string | null,
+): Promise<void> {
+  const summary = lastAdvance(page);
+  await expect
+    .poll(async () => {
+      if ((await gameDate(page)) !== startDate) return true;
+      const now = (await summary.count()) > 0 ? await summary.textContent() : null;
+      return now !== summaryBefore;
+    }, ADVANCE_TIMEOUT)
+    .toBe(true);
+  await expect(page.getByTestId('advance-overlay')).toBeHidden(ADVANCE_TIMEOUT);
+  const control = page.getByTestId('day-control');
+  await expect(control.locator('button[data-state]')).not.toHaveAttribute(
+    'data-state',
+    'busy',
+    ADVANCE_TIMEOUT,
+  );
+  await expect(control).not.toHaveAttribute('aria-busy', 'true', ADVANCE_TIMEOUT);
 }
 
 /**
  * Skips `days` days once through the Skip days sheet: the top bar's button on desktop, the status
- * sheet's on a phone. Waits for the summary of this advance and returns how many days it moved,
- * which is fewer when the show-day gate stopped it.
+ * sheet's on a phone. Waits for the advance to finish and returns how many days it moved, which
+ * is fewer when a stop (the show-day gate, a contract notice) ended it early.
+ *
+ * It reads the days from the top bar's date, not from the summary banner: a one-day skip with
+ * nothing to report leaves no banner (it is only announced), and a banner left over from the
+ * advance before would read as this one's.
  */
 export async function skipDaysOnce(page: Page, days: number, phone: boolean): Promise<number> {
   const summary = lastAdvance(page);
   const before = (await summary.count()) > 0 ? await summary.textContent() : null;
+  const startDate = await gameDate(page);
 
   if (phone) {
     await page.getByRole('banner').getByTestId('status-date').click();
@@ -36,10 +81,8 @@ export async function skipDaysOnce(page: Page, days: number, phone: boolean): Pr
   await sheet.getByLabel('Days to skip').fill(String(days));
   await sheet.getByRole('button', { name: 'Start' }).click();
 
-  await expect(summary).toBeVisible();
-  await expect.poll(() => summary.textContent()).not.toBe(before);
-  await expect(page.getByTestId('advance-overlay')).toBeHidden();
-  return daysAdvancedFrom((await summary.textContent()) ?? '');
+  await waitForAdvanceToEnd(page, startDate, before);
+  return daysBetween(startDate, await gameDate(page));
 }
 
 /**

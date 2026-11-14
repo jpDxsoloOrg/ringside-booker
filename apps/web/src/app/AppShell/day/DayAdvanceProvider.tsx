@@ -8,12 +8,14 @@ import {
   useState,
 } from 'react';
 import type { ReactNode } from 'react';
-import type { AdvanceResult, GameDate, Reason } from '@ringside/engine';
+import { addDays, MAX_COMPLETED_SINCE } from '@ringside/engine';
+import type { AdvanceResult, EventInstanceId, GameDate, Reason } from '@ringside/engine';
 import { shouldAutosave } from '@/storage';
 import type { StorageErrorCode } from '@/storage';
 import type { AdvanceProgress, AdvanceRequest } from '@/worker/engineHost';
 import { useAnnounce } from '../../a11y/LiveAnnouncer';
 import { useEngineClient } from '../../engine/EngineProvider';
+import type { EngineClient } from '../../engine/engineClient';
 import { useAdvanceDays } from '../../engine/useAdvanceDays';
 import { useSessionStore } from '../../session/sessionStore';
 import { describeAdvance, describeRefusal } from './advanceSummaryText';
@@ -41,6 +43,13 @@ export type AdvanceReport =
       readonly result: AdvanceResult;
       /** The most days the advance was asked to run. */
       readonly daysRequested: number;
+      /**
+       * Your shows that had already run on the advance's first day before it started: the player
+       * ran them from the show screen (EVT2-09), so the advance did not. The banner leaves them out
+       * of its "See results" links and never opens them again. Empty or left out when there were
+       * none.
+       */
+      readonly completedBefore?: readonly EventInstanceId[];
     }
   | { readonly kind: 'refused'; readonly reasons: readonly Reason[] };
 
@@ -71,6 +80,28 @@ const IDLE_AUTOSAVE: AutosaveState = { kind: 'idle' };
 interface AutosaveMark {
   readonly slotId: string;
   readonly gameDate: GameDate;
+}
+
+/**
+ * Your shows already completed today, before an advance starts. A show you run yourself completes
+ * on its own day with the clock still on that day, so the next advance's range starts on it; this
+ * list lets the banner tell those apart from the shows the advance ran. Empty when it can't tell.
+ */
+async function showsCompletedToday(client: EngineClient): Promise<readonly EventInstanceId[]> {
+  try {
+    const clock = await client.query('clock.get', {});
+    if (!clock.result.ok) return [];
+    const today = clock.result.data.date;
+    const done = await client.query('shows.completedSince', {
+      from: today,
+      to: addDays(today, 1),
+      scope: 'mine',
+      limit: MAX_COMPLETED_SINCE,
+    });
+    return done.result.ok ? done.result.data.map((show) => show.eventInstanceId) : [];
+  } catch {
+    return [];
+  }
 }
 
 function errorMessage(error: unknown): string {
@@ -164,9 +195,10 @@ export function DayAdvanceProvider({ children }: DayAdvanceProviderProps) {
       setStopping(false);
       let nextReport: AdvanceReport;
       try {
+        const completedBefore = await showsCompletedToday(client);
         const outcome = await startAdvance(request);
         nextReport = outcome.ok
-          ? { kind: 'advanced', result: outcome, daysRequested: request.maxDays }
+          ? { kind: 'advanced', result: outcome, daysRequested: request.maxDays, completedBefore }
           : { kind: 'refused', reasons: outcome.reasons };
       } catch (error: unknown) {
         nextReport = {
@@ -187,7 +219,7 @@ export function DayAdvanceProvider({ children }: DayAdvanceProviderProps) {
         await runAutosave(nextReport.result.endDate);
       }
     },
-    [announce, runAutosave, startAdvance],
+    [announce, client, runAutosave, startAdvance],
   );
 
   const cancel = useCallback(() => {

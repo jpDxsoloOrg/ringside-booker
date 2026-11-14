@@ -17,7 +17,9 @@ import type { ContentPackRef } from '../../model/world-meta';
 import { isPackRef, parseRef, type PackRef } from './keys';
 import type { MergedContent } from './merge';
 import type {
+  AngleTemplateRecord,
   AngleTypeRecord,
+  BeatRecord,
   FinishRecord,
   MatchTypeRecord,
   MethodRecord,
@@ -54,6 +56,8 @@ export interface ContentLibrary {
   readonly angleTypes: Readonly<Record<string, AngleTypeRecord>>;
   readonly methods: Readonly<Record<string, MethodRecord>>;
   readonly finishes: Readonly<Record<string, FinishRecord>>;
+  readonly beats: Readonly<Record<string, BeatRecord>>;
+  readonly angleTemplates: Readonly<Record<string, AngleTemplateRecord>>;
   /** The injury catalog by pack key, for tools that list it (WRK6-01). */
   readonly injuryKinds: Readonly<Record<string, InjuryKindRecord>>;
 }
@@ -119,6 +123,8 @@ export function buildContentLibrary(content: MergedContent): ContentLibrary {
     angleTypes: byKey(records.angleType),
     methods: byKey(records.method),
     finishes: byKey(records.finish),
+    beats: byKey(records.beat),
+    angleTemplates: byKey(records.angleTemplate),
     injuryKinds: byKey(records.injuryKind),
   });
 }
