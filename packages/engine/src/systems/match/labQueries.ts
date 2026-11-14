@@ -6,7 +6,8 @@
  *   they can work today.
  *
  * Neither leaks anything hidden: a picker row has no development, vices, morale or contract
- * terms, for any viewer. Availability is WRK1's `availabilityOf`, the same rule the workers screens
+ * terms, for any viewer. It does carry the public talking attributes and the contract's manager
+ * (MTCH5-05), which every worker profile shows too. Availability is WRK1's `availabilityOf`, the same rule the workers screens
  * use. Design: docs/design/match-rating.md#previews.
  */
 
@@ -19,7 +20,13 @@ import type { PersonId, PromotionId, RegionId } from '../../core/ids';
 import { matchTypesOf } from '../../model/catalogs';
 import { EVENT_IMPORTANCES, type EventImportance } from '../../model/entities/event-definition';
 import { promotionStatusKey, type Employment } from '../../model/entities/employment';
-import type { Person, PersonRole, RingStyle, TraitKey } from '../../model/entities/person';
+import {
+  PersonRoleSchema,
+  type Person,
+  type PersonRole,
+  type RingStyle,
+  type TraitKey,
+} from '../../model/entities/person';
 import type { PromotionStyle } from '../../model/entities/promotion-style';
 import { zId } from '../../model/primitives';
 import { compareIds } from '../../model/table';
@@ -116,6 +123,11 @@ export interface LabWorkersArgs {
   promotionId?: PromotionId | undefined;
   /** Only people with this trait (MTCH4-05: find teachers, fast learners, durable or injury-prone workers). */
   trait?: LabWorkerTraitFilter | undefined;
+  /**
+   * Only people with this role (MTCH5-05: the Angle lab's manager picker lists managers, and its
+   * people picker can look for presenters or announcers).
+   */
+  role?: PersonRole | undefined;
 }
 
 /** The traits the picker can filter by: the ones the physical toll and ring learning read. */
@@ -141,6 +153,17 @@ export interface LabWorkerRow {
   popularity: number;
   /** The safety attribute (MTCH4-05), so the lab can find careless workers. */
   safety: number;
+  /** The talking attributes (MTCH5-05), so the Angle lab can find the best talker. 0 to 100. */
+  mic: number;
+  charisma: number;
+  presence: number;
+  /**
+   * The manager on their contract with the lab's promotion (MTCH5-05: the Angle lab's manager
+   * stand-in), or null without one or without a contract there.
+   */
+  managerId: PersonId | null;
+  /** That manager's ring name with the promotion, else their default ring name. */
+  managerName: string | null;
   /** Every trait, as a public profile shows them (MTCH4-05). */
   traits: TraitKey[];
   available: boolean;
@@ -258,6 +281,7 @@ const labWorkersArgs = z.strictObject({
   limit: z.number().int().min(1).max(LAB_WORKERS_MAX_LIMIT).optional(),
   promotionId: zId('promotion').optional(),
   trait: z.enum(LAB_WORKER_TRAIT_FILTERS).optional(),
+  role: PersonRoleSchema.optional(),
 });
 
 /** Still in the business: not retired, dead or gone. Someone on hiatus is listed, unavailable. */
@@ -325,8 +349,20 @@ export const labWorkersQuery: QueryDefinition<'match.labWorkers'> = defineQuery(
         return shortName;
       };
 
+      const candidates = candidatesOf(read, args.scope, promotionId);
+      const contractsById = new Map(
+        candidates.flatMap(({ person, contract }) =>
+          contract === null ? [] : [[person.id, contract] as const],
+        ),
+      );
+      const managerNameOf = (managerId: PersonId): string | null => {
+        const manager = read.tables.people.get(managerId);
+        if (manager === undefined) return null;
+        return contractsById.get(managerId)?.ringName ?? manager.defaultRingName;
+      };
+
       const rows: LabWorkerRow[] = [];
-      for (const { person, contract } of candidatesOf(read, args.scope, promotionId)) {
+      for (const { person, contract } of candidates) {
         const name = contract?.ringName ?? person.defaultRingName;
         if (
           search !== '' &&
@@ -338,6 +374,10 @@ export const labWorkersQuery: QueryDefinition<'match.labWorkers'> = defineQuery(
         if (args.trait !== undefined && !person.traits.includes(args.trait)) {
           continue;
         }
+        if (args.role !== undefined && !person.roles.includes(args.role)) {
+          continue;
+        }
+        const managerId = contract?.managerPersonId ?? null;
         const primary = primaryEmploymentOf(read, person.id, ctx.date);
         const availability = availabilityOf(person, contract ?? primary, ctx.date);
         const available = availability.status === 'available';
@@ -349,6 +389,11 @@ export const labWorkersQuery: QueryDefinition<'match.labWorkers'> = defineQuery(
           roles: [...person.roles],
           popularity: person.regionalPop[args.regionId] ?? 0,
           safety: person.attributes.safety,
+          mic: person.attributes.mic,
+          charisma: person.attributes.charisma,
+          presence: person.attributes.presence,
+          managerId,
+          managerName: managerId === null ? null : managerNameOf(managerId),
           traits: [...person.traits],
           available,
           unavailableReason: available ? null : availabilityText(availability, ctx.date),

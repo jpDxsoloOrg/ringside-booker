@@ -348,7 +348,12 @@ describe('match.catalog beats and templates', () => {
     expect(catalog.angleTemplates).toHaveLength(8);
     for (const angleType of catalog.angleTypes) {
       expect(angleType.beatKeys.length, angleType.key).toBeGreaterThan(0);
+      // MTCH5-05: the beat a new angle starts with, always one the type allows.
+      expect(angleType.beatKeys, angleType.key).toContain(angleType.defaultBeatKey);
     }
+    expect(catalog.angleTypes.find((entry) => entry.key === 'angle.promo')?.defaultBeatKey).toBe(
+      'beat.promo',
+    );
     const feud = catalog.angleTemplates.find((entry) => entry.key === 'template.feud-opener');
     expect(feud?.requiredBeatCount).toBe(2);
     expect(feud?.beats.map((beat) => beat.optional)).toEqual([true, false, false]);
@@ -376,5 +381,6 @@ describe('match.catalog beats and templates', () => {
     expect(catalog.beats).toEqual([]);
     expect(catalog.angleTemplates).toEqual([]);
     expect(catalog.angleTypes.every((angleType) => angleType.beatKeys.length === 0)).toBe(true);
+    expect(catalog.angleTypes.every((angleType) => angleType.defaultBeatKey === null)).toBe(true);
   });
 });
