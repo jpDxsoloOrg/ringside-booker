@@ -460,3 +460,28 @@ All three kinds are stored under the storyline's id.
   storyline's become summaries once it ended more than
   `history.keepDetailDays` ago ([Heat decay](#heat-decay)).
 - `storylines.payoff`: reserved for CRTV4's payoff.
+
+## Wired with
+
+CRTV3-05 checked every partner against the Sprint 11 base (main plus the
+CRTV1, CRTV3, CRTV4-01 and MTCH5 work) and wired only the ones there.
+
+| Partner | On main? | Wiring                                                                                                                                                                                                                                                                        |
+| ------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| WRK1    | Yes      | Member names on the desk cards (`StorylineSides`) and the storyline page's member rows are `WorkerLink`s to `routes.game.worker(personId)`. Each starting-heat popularity line carries a person ref, so the heat Why? links the member through the app's entity-link renderer |
+| CRTV4   | Partly   | Only CRTV4-01 (links, finale) is there. Heat after segments, the timeline's heat before → after and the `paid` payoff are wired from CRTV4's pack (CRTV4-02 onwards)                                                                                                          |
+| WRK8    | No       | Wired from its pack: story shield through `storylineContextFor`, the Reaction preview's Storyline choice, the shield line and the meter's hot threshold                                                                                                                       |
+| MTCH8   | No       | Wired from its pack: `match.stakesOptions` rows from `activeStorylinesOf` and CRTV3's row builder                                                                                                                                                                             |
+| CRTV7   | No       | Wired from its pack: `turnImpact`'s storyline-heat line from `storylinesOfPerson` / `storylineContextFor`                                                                                                                                                                     |
+| AIP3    | No       | Wired from its pack: the "never storyline members" exclusion through `storylinesOfPerson(read, personId, { status: 'active' })`                                                                                                                                               |
+| AIP6    | No       | Wired from its pack: rival storylines start and end through `startStoryline` / `endStoryline`                                                                                                                                                                                 |
+| ECO3    | No       | Wired from its pack: a storyline-heat hype source over `activeStorylinesOf` (the crowd forecast's hype line is still the constant 1)                                                                                                                                          |
+
+The member picker in the New storyline and Add member sheets keeps plain
+names: each option row is one button (a link cannot sit inside a button), and
+following a link from a chosen name would close the sheet and lose the
+storyline being written. The names on the storyline page link instead.
+
+ECO4-03's `hotStorylineFor` (contracts) and AIP4's `storylinesForShow` still
+read the `storylines` table themselves; they are not CRTV3 partners and
+keep working. WRK8 and AIP6 may move them onto the readers when they wire.
