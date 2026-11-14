@@ -1096,7 +1096,7 @@ renewal, a D-01 stopgap until the rival labour market (ECO6). ECO4-02 added
 | `contracts.expiringSoon.days`             | integer | 30          | 0–365    | days        | Raise a notice when one of your contracts ends within this many days (0 = no notices)                               |
 | `contracts.expiringSoon.minPush`          | enum    | `midCard`   | push     | choice      | Notices only for workers at or above this push                                                                      |
 | `contracts.expiringSoon.stopSkip`         | boolean | true        |          | flag        | A new expiry notice stops a skip until you mark it as seen                                                          |
-| `contracts.autoRenewPlayer`               | boolean | true        |          | flag        | Temporary: your contracts renew on the same terms when they run out, until you can renew them yourself (until ECO5) |
+| `contracts.autoRenewPlayer`               | boolean | false       |          | flag        | Temporary: your contracts renew on the same terms when they run out, until you can renew them yourself (until ECO5) |
 | `contracts.autoRenewPlayerDays`           | integer | 365         | 1–3650   | days        | Temporary: how long each automatic renewal of your contracts adds                                                   |
 | `contracts.quit.threshold`                | integer | −40         | −100–100 | points      | At or below this morale the unhappy clock runs                                                                      |
 | `contracts.quit.days`                     | integer | 14          | 0–365    | days        | Days in a row at or below the threshold before asking to leave; 0 = at once                                         |
@@ -1109,41 +1109,6 @@ renewal, a D-01 stopgap until the rival labour market (ECO6). ECO4-02 added
 | `contracts.walkout.extraPerPoint`         | number  | 0.001       | 0–0.1    | probability | Extra daily walk-out chance per morale point below the threshold                                                    |
 | `contracts.walkout.maxPerDay`             | number  | 0.1         | 0–1      | probability | Highest daily walk-out chance                                                                                       |
 | `contracts.walkout.recoverMargin`         | integer | 10          | 0–100    | points      | Morale this far above the threshold ends the walk-out risk                                                          |
-
-| Key                                       | Kind    | Default     | Range    | Unit        | Meaning                                                                                                                 |
-| ----------------------------------------- | ------- | ----------- | -------- | ----------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `ai.contracts.simpleRenewals`             | boolean | true        |          | flag        | Rival promotions renew contracts by a simple rule until the rival labour market exists; off under a level playing field |
-| `contracts.ai.keepPushAtOrAbove`          | enum    | `upperCard` | push     | choice      | A rival always renews workers pushed at this card position or higher                                                    |
-| `contracts.ai.keepChampions`              | boolean | true        |          | flag        | A rival always renews a worker who holds one of its titles                                                              |
-| `contracts.ai.renewChance`                | number  | 0.6         | 0–1      | probability | Chance a rival renews any other worker whose contract runs out                                                          |
-| `contracts.ai.renewMinDays`               | integer | 365         | 1–3650   | days        | Shortest new contract a rival renewal gives                                                                             |
-| `contracts.ai.renewMaxDays`               | integer | 1095        | 1–3650   | days        | Longest new contract a rival renewal gives (if below the shortest, the two swap)                                        |
-| `contracts.severance.fullMonths`          | integer | 3           | 0–60     | months      | Months still owed that are paid in full                                                                                 |
-| `contracts.severance.tailRate`            | number  | 0.35        | 0–1      | ratio       | Share paid for each owed month beyond the full months                                                                   |
-| `contracts.severance.capMonths`           | integer | 18          | 0–120    | months      | Owed months beyond this are not paid at all                                                                             |
-| `contracts.severance.openEndedMonths`     | integer | 6           | 0–60     | months      | Months treated as owed on an open-ended deal                                                                            |
-| `contracts.severance.appearancesPerMonth` | integer | 4           | 0–31     | count       | Monthly value of a per-appearance deal, in appearances                                                                  |
-| `contracts.severance.ironCladMultiplier`  | number  | 2           | 0–10     | multiplier  | Severance on an iron-clad contract is multiplied by this                                                                |
-| `contracts.severance.mutualMorale`        | integer | −50         | −100–100 | points      | At or below this morale the worker is glad to go                                                                        |
-| `contracts.severance.mutualDiscount`      | number  | 0.5         | 0–1      | ratio       | Share of the severance a worker who is glad to go gives up                                                              |
-| `contracts.severance.unstartedFactor`     | number  | 0.5         | 0–1      | ratio       | Share due when calling off a deal that hasn't started                                                                   |
-| `contracts.expiring.windowDays`           | integer | 60          | 1–365    | days        | Contracts ending within this many days are listed as expiring                                                           |
-| `contracts.expiringSoon.days`             | integer | 30          | 0–365    | days        | Raise a notice when one of your contracts ends within this many days (0 = no notices)                                   |
-| `contracts.expiringSoon.minPush`          | enum    | `midCard`   | push     | choice      | Notices only for workers at or above this push                                                                          |
-| `contracts.expiringSoon.stopSkip`         | boolean | true        |          | flag        | A new expiry notice stops a skip until you mark it as seen                                                              |
-| `contracts.autoRenewPlayer`               | boolean | false       |          | flag        | Temporary: your contracts renew on the same terms when they run out, until you can renew them yourself (until ECO5)     |
-| `contracts.autoRenewPlayerDays`           | integer | 365         | 1–3650   | days        | Temporary: how long each automatic renewal of your contracts adds                                                       |
-| `contracts.quit.threshold`                | integer | −40         | −100–100 | points      | At or below this morale the unhappy clock runs                                                                          |
-| `contracts.quit.days`                     | integer | 14          | 0–365    | days        | Days in a row at or below the threshold before asking to leave; 0 = at once                                             |
-| `contracts.quit.severanceShare`           | number  | 0.5         | 0–1      | ratio       | Share of normal severance paid when you grant a request                                                                 |
-| `contracts.quit.storyShieldHeat`          | integer | 70          | 0–100    | points      | Storyline heat at which the clock and walk-out rolls pause (D-09)                                                       |
-| `contracts.releaseRequest.answerDays`     | integer | 7           | 1–60     | days        | Days you have to answer a release request before it counts as refused                                                   |
-| `contracts.releaseRequest.stopSkip`       | boolean | false       |          | flag        | A new release request stops a skip until you answer it (off until ECO4-04's Contracts screen)                           |
-| `contracts.refuse.moralePenalty`          | integer | 10          | 0–100    | points      | Morale a worker loses when their release request is refused                                                             |
-| `contracts.walkout.chancePerDay`          | number  | 0.02        | 0–1      | probability | Daily chance a refused worker walks out                                                                                 |
-| `contracts.walkout.extraPerPoint`         | number  | 0.001       | 0–0.1    | probability | Extra daily walk-out chance per morale point below the threshold                                                        |
-| `contracts.walkout.maxPerDay`             | number  | 0.1         | 0–1      | probability | Highest daily walk-out chance                                                                                           |
-| `contracts.walkout.recoverMargin`         | integer | 10          | 0–100    | points      | Morale this far above the threshold ends the walk-out risk                                                              |
 
 ### Negotiation tunables
 

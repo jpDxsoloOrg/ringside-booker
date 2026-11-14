@@ -271,8 +271,9 @@ describe('ContractsScreen', () => {
         { name: 'contracts.acknowledgeExpiries', args: { employmentIds: 'all' } },
       ]);
     });
-    expect(screen.getByText(/^Renewals arrive with contract negotiation\./u)).toHaveTextContent(
-      'Renews automatically for a year until contract talks arrive.',
+    // The automatic renewal stopgap is off by default since ECO5-05.
+    expect(screen.getByText(/^Renewals arrive with contract negotiation\./u)).not.toHaveTextContent(
+      'Renews automatically',
     );
   });
 
