@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { RefObject } from 'react';
 import type {
   AngleTypeOption,
   BeatOption as EngineBeatOption,
@@ -63,6 +64,19 @@ export interface AngleLabState {
   readonly transportError: string | null;
   /** Rates the angle on a fresh seed. */
   readonly run: () => void;
+  /** The result's heading: focus moves there when a Run lands. */
+  readonly resultHeadingRef: RefObject<HTMLSpanElement>;
+}
+
+/** "Angle score 62, delivered 58, 1 warning": what a landed Run announces, once. */
+export function angleRunAnnouncement(result: PreviewAngleResult): string {
+  const parts = [
+    `Angle score ${String(result.score.value)}`,
+    `delivered ${String(Math.round(result.delivered.value))}`,
+  ];
+  const warnings = result.warnings.length;
+  if (warnings > 0) parts.push(`${String(warnings)} ${warnings === 1 ? 'warning' : 'warnings'}`);
+  return parts.join(', ');
 }
 
 /**
@@ -101,11 +115,16 @@ export function useAngleLab(catalog: MatchCatalog): AngleLabState {
     setShown(landed);
   }
   const shownResult = shown?.result;
+  const resultHeadingRef = useRef<HTMLSpanElement>(null);
+  /** Set by Run, so focus moves to the result only after a press, never on a revisit. */
+  const focusOnLand = useRef(false);
   useEffect(() => {
     if (shownResult === undefined) return;
-    announce(
-      `Angle score ${String(shownResult.score.value)}, delivered ${String(Math.round(shownResult.delivered.value))}`,
-    );
+    announce(angleRunAnnouncement(shownResult));
+    if (focusOnLand.current) {
+      focusOnLand.current = false;
+      resultHeadingRef.current?.focus();
+    }
   }, [announce, shownResult]);
 
   const computed = limitFromTunables(slot.data?.durationClass, tunables.data);
@@ -143,7 +162,9 @@ export function useAngleLab(catalog: MatchCatalog): AngleLabState {
       beatOptions,
       freshSeed(1),
     );
-    if (args !== null) runAngle(args);
+    if (args === null) return;
+    focusOnLand.current = true;
+    runAngle(args);
   }, [beatOptions, runAngle]);
 
   return {
@@ -159,5 +180,6 @@ export function useAngleLab(catalog: MatchCatalog): AngleLabState {
     refusals,
     transportError,
     run,
+    resultHeadingRef,
   };
 }

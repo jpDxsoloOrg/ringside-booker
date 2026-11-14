@@ -77,6 +77,13 @@ export const routesUnderTest: readonly RouteUnderTest[] = [
     needsWorld: true,
   },
   { path: '/game/workers/per_0000000001?tab=health', name: 'health tab', needsWorld: true },
+  // The Match lab in Angle mode (MTCH5-05/07): the same nav item with a query string.
+  {
+    path: '/game/match-lab?mode=angle',
+    name: 'match lab angle mode',
+    heading: 'Match lab',
+    needsWorld: true,
+  },
   // A storyline's page, under Storylines (CRTV3-04): a detail page, so outside gameRoutes. With no
   // world behind the sweep it shows its no-game state.
   {

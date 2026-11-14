@@ -293,7 +293,14 @@ export function AngleResult({ lab }: AngleResultProps) {
 
   return (
     <>
-      <Panel title="Result" variant="broadcast">
+      <Panel
+        title={
+          <span ref={lab.resultHeadingRef} tabIndex={-1}>
+            Result
+          </span>
+        }
+        variant="broadcast"
+      >
         {body}
       </Panel>
       {lab.transportError === null && rows.length > 0 && (

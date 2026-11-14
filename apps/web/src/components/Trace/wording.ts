@@ -21,6 +21,7 @@ import type {
   TraceNode,
   TunableNode,
 } from '@ringside/engine';
+import { BEAT_STAT_LABELS, BEST_STAT_LABEL, isBeatStat } from '@ringside/engine';
 import {
   formatTraceChange,
   formatTraceDelta,
@@ -289,7 +290,26 @@ function optionText(node: DecisionNode, option: string | boolean): string {
     const named = node.considered.find((entry) => entry.option === option)?.reason;
     if (named !== undefined) return named;
   }
+  if (typeof option === 'string' && node.label === BEST_STAT_LABEL) {
+    const stat = beatStatOptionText(option);
+    if (stat !== null) return stat;
+  }
   return choiceText(option);
+}
+
+/** A beat stat option of an angle's "Best stat" decision: `ringwork` or `mic:manager`. */
+const BEAT_STAT_OPTION_PATTERN = /^([a-z]+)(:manager)?$/;
+
+/**
+ * "Ring work" or "Mic via manager": an option of the angle rater's "Best stat" decision (MTCH5-02)
+ * in the stat's own label, so the panel never shows the code it was weighed under.
+ */
+function beatStatOptionText(option: string): string | null {
+  const match = BEAT_STAT_OPTION_PATTERN.exec(option);
+  const stat = match?.[1];
+  if (stat === undefined || !isBeatStat(stat)) return null;
+  const label = BEAT_STAT_LABELS[stat];
+  return match?.[2] === undefined ? label : `${label} via manager`;
 }
 
 /** A trace's own value as the headline shows it: a decision's choice in words, a number in its unit. */
