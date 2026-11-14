@@ -14,7 +14,7 @@ import { addDays, type GameDate } from '../../../src/core/date';
 import { cents } from '../../../src/core/money';
 import type { PromotionId } from '../../../src/core/ids';
 import type { GameWorld } from '../../../src/model/tables';
-import { isRevealedTo, setCompanySizeSource } from '../../../src/systems/aip';
+import { AI_SHORTCUT_KEYS, isRevealedTo, setCompanySizeSource } from '../../../src/systems/aip';
 import { defaultSystems } from '../../../src/systems';
 import { anAiDecision } from '../../support/builders/promotions';
 import { TEST_PLAYER_ID, TEST_START_DATE } from '../../support/builders/build-row';
@@ -208,7 +208,7 @@ describe('promotions.profile', () => {
     expect(profile.hidden).toEqual(['cash']);
     expect(profile.hasProfile).toBe(false);
     expect(profile.rules.inForce).toBe(true);
-    expect(profile.rules.shortcuts).toHaveLength(6);
+    expect(profile.rules.shortcuts).toHaveLength(AI_SHORTCUT_KEYS.length);
     expect(profile.rules.shortcuts.every((shortcut) => shortcut.on)).toBe(true);
     expect(
       profile.titles.map((title) => [title.name, title.holderNames.length, title.wonOn]),

@@ -67,6 +67,17 @@ export const aiShortcutTunables = defineTunables({
     description: 'Rival workers make no requests of their bosses',
     docRef: SHORTCUTS_DOC,
   },
+  // Defined here since ECO4-05 (it was a Contracts tunable in ECO4-01): every shortcut key lives in
+  // this list so `aiShortcut` is the only reader. The rule itself: contracts.md#simple-renewals.
+  'ai.contracts.simpleRenewals': {
+    kind: 'boolean',
+    default: true,
+    unit: 'flag',
+    category: RIVAL_RULES_CATEGORY,
+    description:
+      'Rival promotions renew contracts by a simple rule until the rival labour market exists',
+    docRef: SHORTCUTS_DOC,
+  },
 });
 
 /** Every shortcut key, in the order the rules panel lists them. */
@@ -77,6 +88,7 @@ export const AI_SHORTCUT_KEYS = [
   'ai.simpleBookingInputs',
   'ai.skipMediaRequests',
   'ai.skipWorkerRequests',
+  'ai.contracts.simpleRenewals',
 ] as const satisfies readonly (keyof typeof aiShortcutTunables)[];
 
 /** One shortcut's tunable key. */
@@ -136,5 +148,10 @@ export const AI_SHORTCUTS: Readonly<Record<AiShortcutKey, AiShortcutInfo>> = Obj
     label: 'No worker requests',
     offText: 'Rival workers make requests of their bosses, as yours do',
     consumer: 'Worker requests (SOC5)',
+  },
+  'ai.contracts.simpleRenewals': {
+    label: 'Simple contract renewals',
+    offText: 'Rival contracts end when they run out unless contract talks renew them, as yours do',
+    consumer: 'Contracts (ECO4)',
   },
 });

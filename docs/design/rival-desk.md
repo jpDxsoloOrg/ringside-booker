@@ -113,14 +113,15 @@ D-01: computer-run promotions take shortcuts the player does not get, so the
 world sim stays cheap. Each shortcut is its own `ai.*` tunable (category
 `Rival rules`, in `systems/aip/shortcuts.ts`) that defaults on.
 
-| Key                      | Default | What it does when it applies                                                                   | Acted on by          |
-| ------------------------ | ------- | ---------------------------------------------------------------------------------------------- | -------------------- |
-| `ai.skipInMatchInjuries` | on      | Rivals' matches cause no in-match injuries; their injuries come from daily world events        | MTCH4, WRK6          |
-| `ai.skipResultMorale`    | on      | Rival workers' morale does not move with match results; small off-screen morale events instead | WRK8                 |
-| `ai.scoreBonus`          | 3       | Points added to every rival segment score (0 to 20)                                            | MTCH1 (RatingPolicy) |
-| `ai.simpleBookingInputs` | on      | Rival bookings skip production notes and match plans                                           | MTCH1                |
-| `ai.skipMediaRequests`   | on      | Rivals receive no media requests                                                               | SOC1                 |
-| `ai.skipWorkerRequests`  | on      | Rival workers make no requests of their bosses                                                 | SOC5                 |
+| Key                           | Default | What it does when it applies                                                                                                                  | Acted on by          |
+| ----------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
+| `ai.skipInMatchInjuries`      | on      | Rivals' matches cause no in-match injuries; their injuries come from daily world events                                                       | MTCH4, WRK6          |
+| `ai.skipResultMorale`         | on      | Rival workers' morale does not move with match results; small off-screen morale events instead                                                | WRK8                 |
+| `ai.scoreBonus`               | 3       | Points added to every rival segment score (0 to 20)                                                                                           | MTCH1 (RatingPolicy) |
+| `ai.simpleBookingInputs`      | on      | Rival bookings skip production notes and match plans                                                                                          | MTCH1                |
+| `ai.skipMediaRequests`        | on      | Rivals receive no media requests                                                                                                              | SOC1                 |
+| `ai.skipWorkerRequests`       | on      | Rival workers make no requests of their bosses                                                                                                | SOC5                 |
+| `ai.contracts.simpleRenewals` | on      | Rival contracts that run out are renewed by a simple rule ([contracts.md](contracts.md#simple-renewals)) until the rival labour market (ECO6) | ECO4 (ECO4-05)       |
 
 **The two rules.** `aiShortcut(read, tunables, promotionId, key, brandId?)`
 (`aiShortcut.ts`) is the only code that combines a unit's controller, the

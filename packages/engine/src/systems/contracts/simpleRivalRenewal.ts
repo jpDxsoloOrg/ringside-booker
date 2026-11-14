@@ -5,15 +5,18 @@
  * exists, so computer-run promotions renew by a simple, traced rule (`aiRenewalDecision`). It
  * answers null, so the next policy is asked (and with none, the contract expires), for:
  *
- * - promotions the player runs: their contracts are never renewed automatically;
- * - any promotion when `ai.contracts.simpleRenewals` is off;
- * - any promotion under the "Level playing field" setting (ECO4-05 moves this read to AIP1's
- *   `aiShortcut`).
+ * - closed promotions and open-ended contracts;
+ * - whenever the Rival rules shortcut `ai.contracts.simpleRenewals` does not apply, as AIP1's
+ *   `aiShortcut` decides (ECO4-05): promotions the player runs (their contracts are never renewed
+ *   by this rule), the "Level playing field" setting, or the shortcut turned off.
+ *
+ * The shortcut's Why? is the first line of the renewal's Why?.
  *
  * Design: docs/design/contracts.md#simple-renewals.
  */
 
 import { addDays, isAfter } from '../../core/date';
+import { aiShortcut, registerAiShortcutConsumer } from '../aip/aiShortcut';
 import { aiRenewalDecision } from './formulas/aiRenewalDecision';
 import { registerRenewalPolicy, type RenewalPolicy } from './renewals';
 import { AI_RENEWAL_STREAM } from './streams';
@@ -21,23 +24,29 @@ import { titlesHeldBy } from './titles';
 
 export const SIMPLE_RIVAL_RENEWAL_POLICY_ID = 'contracts.simpleRivalRenewal';
 
+/** The Rival rules shortcut this policy acts on. */
+export const SIMPLE_RENEWALS_SHORTCUT_KEY = 'ai.contracts.simpleRenewals';
+
 export const simpleRivalRenewalPolicy: RenewalPolicy = {
   id: SIMPLE_RIVAL_RENEWAL_POLICY_ID,
   order: 100,
   decide: (read, employment, date, deps) => {
     const promotion = read.tables.promotions.get(employment.promotionId);
-    if (
-      promotion?.controller.kind !== 'computer' ||
-      promotion.status === 'closed' ||
-      employment.endsOn === null ||
-      !deps.tunables.get('ai.contracts.simpleRenewals') ||
-      read.meta.settings.levelPlayingField
-    ) {
+    if (promotion === undefined || promotion.status === 'closed' || employment.endsOn === null) {
+      return null;
+    }
+    const shortcut = aiShortcut(
+      read,
+      deps.tunables,
+      employment.promotionId,
+      SIMPLE_RENEWALS_SHORTCUT_KEY,
+    );
+    if (!shortcut.value) {
       return null;
     }
     const titlesHeld = titlesHeldBy(read, employment.personId, employment.promotionId).length;
     const { decision, days } = aiRenewalDecision(
-      { push: employment.push, titlesHeld },
+      { push: employment.push, titlesHeld, shortcut },
       { tunables: deps.tunables, stream: deps.rng(AI_RENEWAL_STREAM) },
     );
     if (decision.value === 'letGo' || days === null) {
@@ -52,3 +61,8 @@ export const simpleRivalRenewalPolicy: RenewalPolicy = {
 };
 
 registerRenewalPolicy(simpleRivalRenewalPolicy);
+registerAiShortcutConsumer({
+  key: SIMPLE_RENEWALS_SHORTCUT_KEY,
+  featureId: 'ECO4',
+  label: 'Contract renewals',
+});

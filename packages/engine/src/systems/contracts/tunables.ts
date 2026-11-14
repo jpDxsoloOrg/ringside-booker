@@ -1,6 +1,8 @@
 /**
  * The contracts system's balance numbers: the simple rival renewal rule that keeps rival rosters
- * stocked until the rival labour market (ECO6) exists (ECO4-01); severance, the "expiring soon"
+ * stocked until the rival labour market (ECO6) exists (ECO4-01; its on/off switch,
+ * `ai.contracts.simpleRenewals`, is a Rival rules shortcut in `systems/aip/shortcuts.ts` since
+ * ECO4-05); severance, the "expiring soon"
  * notices and the player's temporary automatic renewal (ECO4-02); unhappy workers, release
  * requests and walk-outs (ECO4-03). All in the `Contracts` category,
  * documented in docs/design/contracts.md.
@@ -32,15 +34,6 @@ function contractDays(defaultValue: number, description: string) {
 }
 
 export const contractsTunables = defineTunables({
-  'ai.contracts.simpleRenewals': {
-    kind: 'boolean',
-    default: true,
-    unit: 'flag',
-    category: CONTRACTS_TUNABLE_CATEGORY,
-    description:
-      'Rival promotions renew contracts by a simple rule until the rival labour market exists; off under a level playing field',
-    docRef: RENEWALS_DOC,
-  },
   'contracts.ai.keepPushAtOrAbove': {
     kind: 'enum',
     default: 'upperCard',

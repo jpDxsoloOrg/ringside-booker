@@ -54,7 +54,7 @@ function brand(built: BuiltWorld, index: number): BrandId {
 const DEFAULTS: EngineTunables = createEngineTunables();
 
 describe('aiShortcut', () => {
-  it('lists the six keys in order, the five flags first-class and the score bonus in points', () => {
+  it('lists the seven keys in order, the six flags first-class and the score bonus in points', () => {
     expect(AI_SHORTCUT_KEYS).toEqual([
       'ai.skipInMatchInjuries',
       'ai.skipResultMorale',
@@ -62,6 +62,7 @@ describe('aiShortcut', () => {
       'ai.simpleBookingInputs',
       'ai.skipMediaRequests',
       'ai.skipWorkerRequests',
+      'ai.contracts.simpleRenewals',
     ]);
     for (const key of AI_SHORTCUT_KEYS) {
       const def = DEFAULTS.def(key);
@@ -185,7 +186,7 @@ describe('aiShortcut', () => {
     expectTraceReplays(zero);
   });
 
-  it('aiShortcutsFor returns all six, the same as asking one by one', () => {
+  it('aiShortcutsFor returns all seven, the same as asking one by one', () => {
     const built = rulesWorld();
     const proB = promotion(built, 'B');
     const all = aiShortcutsFor(built.world, DEFAULTS, proB);

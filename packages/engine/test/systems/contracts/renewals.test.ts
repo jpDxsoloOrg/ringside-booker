@@ -15,6 +15,7 @@ import {
   renewalPolicies,
   renewalTraceRef,
   SIMPLE_RIVAL_RENEWAL_POLICY_ID,
+  simpleRivalRenewalPolicy,
   titlesHeldBy,
 } from '../../../src/systems/contracts';
 import { createEngineTunables } from '../../../src/systems/tunables';
@@ -207,6 +208,29 @@ describe('the simple rival renewal', () => {
         expect(statusOf(built, employmentId)).toBe('expired');
       }
     }
+  });
+
+  it("asks AIP1's aiShortcut and opens its Why? with the shortcut (ECO4-05)", () => {
+    const built = renewalWorld();
+    const tunables = createEngineTunables();
+    const decide = (employmentId: EmploymentId) =>
+      simpleRivalRenewalPolicy.decide(
+        built.world,
+        built.world.tables.employments.require(employmentId),
+        built.endsOn,
+        { tunables, rng: (name) => new RngRegistry('renewal-seed').stream(name) },
+      );
+    const answer = decide(built.champion);
+    if (!answer?.renew) {
+      expect.fail('the champion should be renewed');
+    }
+    expect(answer.trace.children?.[0]).toMatchObject({
+      kind: 'decision',
+      label: 'Rival shortcut: Simple contract renewals',
+      value: true,
+    });
+    // The player's contract is not this rule's to decide: the shortcut never applies to them.
+    expect(decide(built.mine)).toBeNull();
   });
 
   it('renews only the keepers at a 0 chance, and everyone at 1', () => {

@@ -242,9 +242,12 @@ every roster in the world shrinks, so computer-run promotions renew by a
 simple, traced rule: the built-in policy `contracts.simpleRivalRenewal`
 (`aiRenewalDecision`, "Rival renewal"):
 
-- it answers null (so the contract expires) for a promotion the player runs,
-  for a closed promotion, when `ai.contracts.simpleRenewals` is off, and under
-  the "Level playing field" setting. With a level playing field and no ECO6,
+- it answers null (so the contract expires) for a closed promotion, an
+  open-ended contract, and whenever AIP1's `aiShortcut` says the Rival rules
+  shortcut `ai.contracts.simpleRenewals` does not apply: a promotion the player
+  runs, the "Level playing field" setting, or the shortcut turned off (since
+  ECO4-05; the shortcut's Why? is the renewal Why?'s first line, and the key
+  shows on the "Rival rules" chip). With a level playing field and no ECO6,
   rival contracts just run out;
 - rule "Holds a title" (when `contracts.ai.keepChampions` is on, from
   `titlesHeldBy`) or "Push at or above `contracts.ai.keepPushAtOrAbove`":
@@ -257,8 +260,9 @@ above the maximum is read as the swapped range). On a save loaded long after
 the old end date, the length counts from today. Keepers draw once (the
 length); anyone else draws the renewal roll and, when renewed, the length.
 
-ECO4-05 moves the level-playing-field read to AIP1's `aiShortcut` and swaps
-`titlesHeldBy` for CRTV1's once both are on main.
+ECO4-05 moved the level-playing-field read to AIP1's `aiShortcut`. It swaps
+`titlesHeldBy` for CRTV1's once CRTV1 is on main (not yet: CRTV1 wires it
+from its own pack).
 
 Over three years of the default world the rule keeps every rival at 50 % to
 73 % of its starting active roster. The player's own run out completely with
