@@ -11,12 +11,21 @@
  */
 
 import { compareIds } from '../../../model/table';
-import { startCalc, traced, type EntityRef, type Traced } from '../../../core/trace';
+import {
+  startCalc,
+  traced,
+  type EntityRef,
+  type Traced,
+  type TraceNode,
+} from '../../../core/trace';
 import { NEWS_KIND_LABELS, type NewsImportance, type NewsKind } from '../../../model/entities/news';
 import type { EngineTunables, NumberTunableKey } from '../../tunables';
 import { formatNumber } from '../../world/people/labels';
 
 export const BUZZ_SCORE_DOC_REF = 'docs/design/news.md#buzz';
+
+/** Where the worldwide popularity a subject brings is explained. */
+const POPULARITY_ROLLUP_DOC_REF = 'geography.md#popularity-roll-up';
 
 /** The lowest and highest buzz a story can have. */
 export const BUZZ_MIN = 0;
@@ -83,6 +92,24 @@ function importanceTerm(importance: NewsImportance, tunables: EngineTunables): T
   return calc.done();
 }
 
+/**
+ * The popularity roll-up's world value as one input line: its label, value and doc link, without
+ * the continents, countries and regions underneath. The full breakdown is the subject's own
+ * popularity Why? (one click away through `ref`); nesting it here made every stored buzz trace
+ * about 49 KB in the default world (DAY1-03).
+ */
+function popularitySource(subject: BuzzSubject): TraceNode {
+  const root = subject.popularity.trace;
+  return {
+    kind: 'input',
+    label: root.label,
+    value: subject.popularity.value,
+    unit: 'points',
+    docRef: root.docRef ?? POPULARITY_ROLLUP_DOC_REF,
+    ref: { kind: subject.ref.kind, id: subject.ref.id },
+  };
+}
+
 /** The subject's popularity as the starting value, linked to the subject for the Why? panel. */
 function popularityInput(subject: BuzzSubject): Traced<number> {
   return traced(subject.popularity.value, {
@@ -91,7 +118,7 @@ function popularityInput(subject: BuzzSubject): Traced<number> {
     value: subject.popularity.value,
     unit: 'points',
     ref: { kind: subject.ref.kind, id: subject.ref.id },
-    children: [subject.popularity.trace],
+    children: [popularitySource(subject)],
   });
 }
 

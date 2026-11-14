@@ -3895,3 +3895,34 @@ export type {
   RegionAudienceInput,
   RegionAudienceInputs,
 } from './systems/broadcast/index';
+// DAY1-03: news queries (feed, front page, one story), the front-page rule and skip alerts.
+export {
+  BUILT_IN_NEWS_ALERT_RULES,
+  NEWS_ACTION_HINT,
+  NEWS_ALERT_GATE_ID,
+  NEWS_ALERT_STOP_SKIP_DEFAULT,
+  NEWS_FEED_DEFAULT_LIMIT,
+  NEWS_FEED_MAX_LIMIT,
+  NEWS_ITEM_NOT_FOUND,
+  NEWS_TICKER_DEFAULT_COUNT,
+  NEWS_TICKER_MAX_COUNT,
+  NO_LONGER_IN_RECORDS,
+  defineNewsAlertRule,
+  isFrontPage,
+  newsAlertReason,
+  newsAlertRules,
+  registerNewsAlertRule,
+} from './systems/news';
+export type {
+  NewsAlertRule,
+  NewsAlertRuleContext,
+  NewsAlertRulesView,
+  NewsAlertRuleView,
+  NewsFeed,
+  NewsFeedArgs,
+  NewsItemResult,
+  NewsItemView,
+  NewsNames,
+  NewsTop,
+  NewsTopArgs,
+} from './systems/news';

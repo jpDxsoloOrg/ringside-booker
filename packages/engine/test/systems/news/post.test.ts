@@ -14,6 +14,7 @@ import {
   registerNewsTopic,
   type PostNewsInput,
 } from '../../../src/systems/news';
+import { engineTraceStoreLimits } from '../../../src/systems/traceKindLimits';
 import { createEngineTunables } from '../../../src/systems/tunables';
 import { testId, worldBuilder } from '../../support';
 import { expectSerialisable, expectTraceReplays } from '../../support/trace';
@@ -183,5 +184,37 @@ describe('postNews', () => {
     expect(findTraceNodes(stored.trace, 'note').map((node) => node.label)).toEqual([
       'A person in this story no longer exists',
     ]);
+  });
+});
+
+describe('news.buzz trace limits', () => {
+  it('keeps full buzz traces for news.buzz.fullTraces stories, within the usual byte budget', () => {
+    const tunables = createEngineTunables();
+    expect(engineTraceStoreLimits(tunables).perKind?.[NEWS_BUZZ_TRACE_KIND]).toEqual({
+      retentionPerKind: tunables.get('news.buzz.fullTraces'),
+      bytesPerKind: tunables.get('sim.traceBytesPerKind'),
+    });
+  });
+
+  it("stores only the world value of a subject's popularity, not the whole roll-up", () => {
+    const { runtime, star, promotion } = postWorld();
+    const { id } = post(runtime, {
+      ...SIGNING,
+      refs: { personIds: [star], promotionIds: [promotion] },
+    });
+    const news = row(runtime, id);
+    const stored = runtime.traces.get({ kind: NEWS_BUZZ_TRACE_KIND, id: news.id });
+    if (stored === undefined || !isFullTrace(stored)) throw new Error('no buzz trace');
+    const inputs = findTraceNodes(stored.trace, 'input').filter((node) =>
+      node.label.startsWith('Popularity of '),
+    );
+    expect(inputs).toHaveLength(2);
+    for (const input of inputs) {
+      expect(input.children).toHaveLength(1);
+      expect(input.children?.[0]).toMatchObject({ kind: 'input', value: input.value });
+      expect(input.children?.[0]?.children).toBeUndefined();
+    }
+    // The default world's roll-up made each trace about 49 KB; one subject-level line is small.
+    expect(JSON.stringify(stored.trace).length).toBeLessThan(8_000);
   });
 });
