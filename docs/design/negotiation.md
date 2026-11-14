@@ -365,8 +365,8 @@ Example: the $24,000 offer above, first round, a roll of 0.08: they meet you
 The counter stays open for `contracts.counter.expiryDays` (7). Paying exactly
 what they countered (or more money on the same terms) is accepted. The
 `contracts.counter.stopSkip` gate (ECO5-05, [Counter-offer stop](#counter-offer-stop)) is
-off by default until the Negotiation Sheet (ECO5-06) can answer a counter
-from the day bar.
+on by default since the Negotiation Sheet (ECO5-06) answers a counter from the
+day bar.
 
 ## Rounds
 
@@ -588,12 +588,16 @@ new offer"); `endEmployment` does it (`endedTalks.ts`).
 
 The gate `contracts.counterWaiting` stops a skip while a counter-offer waits
 for a player: "Counter-offer from <ring name> is waiting for your answer"
-(subject the person, hint `contracts`). Gates cannot read tunables, so the
+(subject the negotiation, hint `contracts`). Gates cannot read tunables, so the
 reaction copies `contracts.counter.stopSkip` onto the row
-(`counterStopsSkip`, only for promotions a human runs). **The stop is off by
-default** until the Negotiation Sheet (ECO5-06) can answer a counter from the
-day bar; while it is off, an unanswered counter lapses after 7 days. Computer
-promotions never stop a skip.
+(`counterStopsSkip`, only for promotions a human runs). **The stop is on by
+default** (ECO5-06): the day bar's Contracts button opens
+`/game/contracts?tab=offers&negotiation=<id>`, the Negotiation Sheet for those
+talks, where **Accept counter**, **Send revised offer** or **End talks** clears
+it in one more tap. With the stop off, an unanswered counter lapses after 7
+days. Computer promotions never stop a skip. Engine tests that skip past a
+counter answer it (`contracts.respondToCounter`) or pass
+`{ 'contracts.counter.stopSkip': false }`.
 
 ### Who sees a review
 
@@ -614,6 +618,26 @@ review inline (`reviewTrace`).
 `{ negotiationId, ringName, outcomeMessage }` read from the negotiations
 themselves (closed talks by `closedOn`, counter-offers by the day the worker
 made them), for ECO5-06's summary.
+
+## Negotiation Sheet
+
+The web half (ECO5-06) lives on Business › Contracts: a **Free agents** tab
+(`contracts.freeAgents`, each ask with a Why? loaded from
+`contracts.askingTerms` on demand), an **Offers** tab (`contracts.offers`, open
+or closed, with the redacted review as the outcome's Why?) and the
+**Negotiation Sheet** (`contracts.negotiation`, `contracts.askingTerms`,
+`contracts.offerPreview`). The sheet shows the worker's ask beside the offer
+form, a reaction meter whose four bands come from the preview's `thresholds`
+(`contracts.react.walkAwayRatio`, `.counterRatio`, `.acceptRatio`) with the
+reaction's Why?, patience left, other bidders by name only (never their
+terms), and the counter history. The meter's label is always the engine's
+preview: the browser never works it out. `contracts.askingTerms` also returns
+`brandOptions`, the promotion's running brands for the offer's Brand choice.
+
+Renewals start from **Renew** on an expiring (or active) contract, or **Renew
+contract** on your worker's profile; outside `contracts.renewal.windowDays`
+the button is disabled with "Talks open 180 days before the contract ends", and
+an unhappy worker's with "Won't renew while unhappy here".
 
 ## Renewals
 

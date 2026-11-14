@@ -62,6 +62,8 @@ function scriptedWorld(seed: string): Script {
   for (const [key, value] of Object.entries({
     'contracts.expiringSoon.stopSkip': false,
     'contracts.releaseRequest.stopSkip': false,
+    // Scripted B lets counter-offers lapse, which needs the counter stop off (ECO5-06 turned it on).
+    'contracts.counter.stopSkip': false,
   })) {
     const set = engine.command('tunables.setOverride', { key, value }, PLAYER);
     if (!set.ok) {

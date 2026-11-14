@@ -3099,3 +3099,12 @@ export {
   type OfferUpdates,
   type SignedDeal,
 } from './systems/negotiation/index';
+
+// The Negotiation Sheet's extra answers (ECO5-06): the brands an offer may name
+// (`contracts.askingTerms` `brandOptions`) and the meter's band boundaries
+// (`contracts.offerPreview` `thresholds`). See docs/design/negotiation.md#negotiation-sheet.
+export {
+  brandOptionsOf,
+  type BrandOption,
+  type OfferThresholds,
+} from './systems/negotiation/index';
