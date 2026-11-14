@@ -144,8 +144,8 @@ function castOf(participants: readonly ParticipantDraft[]): TemplateCast {
   const host = participants.find((participant) => participant.talkRole === 'interviewer');
   const talkers = participants.filter((participant) => participant !== host);
   return {
-    a: talkers.filter((participant) => participant.side === 0).map((p) => p.personId),
-    b: talkers.filter((participant) => participant.side !== 0).map((p) => p.personId),
+    a: talkers.filter((participant) => participant.side === 0).map((person) => person.personId),
+    b: talkers.filter((participant) => participant.side !== 0).map((person) => person.personId),
     host: host?.personId ?? null,
   };
 }

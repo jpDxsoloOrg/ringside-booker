@@ -144,10 +144,13 @@ async function openBeats(built: BeatsWorld) {
 }
 
 /** Beat `n`'s row (1-based), found by its heading. */
-function beatRow(section: HTMLElement, n: number): HTMLElement {
-  const heading = within(section).getByRole('heading', { level: 4, name: `Beat ${String(n)}` });
+function beatRow(section: HTMLElement, beatNumber: number): HTMLElement {
+  const heading = within(section).getByRole('heading', {
+    level: 4,
+    name: `Beat ${String(beatNumber)}`,
+  });
   const row = heading.closest('li');
-  if (row === null) throw new Error(`Beat ${String(n)} has no row.`);
+  if (row === null) throw new Error(`Beat ${String(beatNumber)} has no row.`);
   return row;
 }
 

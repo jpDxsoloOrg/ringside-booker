@@ -36,7 +36,7 @@ export function applyAftermathOnShowNight(ctx: PhaseContext, result: SegmentResu
     applyAngleAftermath(ctx, result.segmentId, result.roleKey);
     return;
   }
-  if (result.kind !== 'match' || result.outcome === null || result.outcome.kind === 'noContest') {
+  if (result.outcome === null || result.outcome.kind === 'noContest') {
     return;
   }
   applySegmentAftermath(ctx, result.segmentId);

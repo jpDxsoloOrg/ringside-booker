@@ -12,7 +12,12 @@ import type {
   PersonId,
   PreviewAngleArgs,
 } from '@ringside/engine';
-import { assignAngleSides, sidesConflictMessage, toStoredBeat } from '@ringside/engine';
+import {
+  assignAngleSides,
+  parseContentKey,
+  sidesConflictMessage,
+  toStoredBeat,
+} from '@ringside/engine';
 import type { BeatDraft, PersonChip } from '@/components/BeatEditor';
 
 /** A stored beat: its key and its people, group one first. */
@@ -82,8 +87,12 @@ export function beatRowsOf(
   const speakers = draft.participants
     .filter((person) => person.role === 'speaker')
     .sort((left, right) => left.side - right.side);
-  const groupOne = speakers.filter((person) => person.side === 0).map((p) => chipOf(p.personId));
-  const others = speakers.filter((person) => person.side !== 0).map((p) => chipOf(p.personId));
+  const groupOne = speakers
+    .filter((person) => person.side === 0)
+    .map((person) => chipOf(person.personId));
+  const others = speakers
+    .filter((person) => person.side !== 0)
+    .map((person) => chipOf(person.personId));
   if (!hasTwoGroups(beats, defaultKey)) {
     return [
       { id: 'beat-1', beatKey: defaultKey, groupOne: [...groupOne, ...others], groupTwo: [] },
@@ -98,7 +107,7 @@ export function beatRowsOf(
 /** The editor's rows as the engine takes them for a preview. */
 export function previewBeatsOf(rows: readonly BeatDraft[]): PreviewAngleArgs['beats'] {
   return rows.map((row) => ({
-    beatKey: row.beatKey as ContentKey,
+    beatKey: parseContentKey(row.beatKey),
     groupOne: row.groupOne.map((person) => person.id),
     groupTwo: row.groupTwo.map((person) => person.id),
   }));
