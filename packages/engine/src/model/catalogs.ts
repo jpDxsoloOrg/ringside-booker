@@ -20,6 +20,7 @@ import { z } from 'zod';
 import { isContentKey, type ContentKey } from '../core/content-key';
 import { BodyPartSchema, RingStyleSchema } from './entities/person';
 import { MAX_SIDE } from './entities/participant';
+import { ANGLE_SETTINGS, TALK_ROLES } from './entities/angle-setting';
 import { hasDuplicates, zName } from './entities/entity-refinements';
 import { zContentKey } from './primitives';
 import type { WorldView } from './world';
@@ -327,6 +328,18 @@ export const CAST_TOKENS = ['a', 'b', 'ab', 'host'] as const;
 export type CastToken = (typeof CAST_TOKENS)[number];
 
 export const BeatStatSchema = z.enum(BEAT_STATS);
+export const TalkRoleSchema = z.enum(TALK_ROLES);
+export const CatalogAngleSettingSchema = z.enum(ANGLE_SETTINGS);
+/** MTCH5-08: talk roles, each once. */
+export const talkRoleListSchema = z
+  .array(TalkRoleSchema)
+  .min(1)
+  .refine((roles) => !hasDuplicates(roles), { message: 'Each role may appear only once' });
+/** MTCH5-08: where a beat or an angle type may happen, each setting once. */
+export const angleSettingListSchema = z
+  .array(CatalogAngleSettingSchema)
+  .min(1)
+  .refine((settings) => !hasDuplicates(settings), { message: 'Each setting may appear only once' });
 export const beatRepetitionGroupSchema = z.enum(BEAT_REPETITION_GROUPS);
 export const angleTemplatePurposeSchema = z.enum(ANGLE_TEMPLATE_PURPOSES);
 export const castTokenSchema = z.enum(CAST_TOKENS);
@@ -354,6 +367,11 @@ export const BeatGroupSchema = z
     optional: z.boolean(),
     /** A manager may speak for this group (on mic and charisma only). */
     managerCanStandIn: z.boolean(),
+    /**
+     * MTCH5-08: the talk roles that suit this group (Host: an interviewer). Someone else in it is a
+     * booking warning, never a block. Absent = anyone suits it.
+     */
+    roles: talkRoleListSchema.optional(),
   })
   .refine((group) => group.maxPeople >= group.minPeople, {
     message: 'must be at least minPeople',
@@ -456,6 +474,8 @@ export const AngleTypeDefSchema = z
     speakerWeights: speakerWeightsSchema,
     /** MTCH5: the beats an angle of this type may use. Absent = every beat. */
     beatKeys: beatKeyListSchema.optional(),
+    /** MTCH5-08: where an angle of this type may happen. Absent = every setting. */
+    settings: angleSettingListSchema.optional(),
     hidden: z.boolean(),
     description: descriptionSchema.optional(),
   })
@@ -538,6 +558,8 @@ export const BeatDefSchema = z.strictObject({
   repetitionGroup: beatRepetitionGroupSchema,
   /** How much the beat counts in the angle's mean, 0.1-3. */
   weight: beatWeightSchema,
+  /** MTCH5-08: where the beat can happen. Absent = every setting. */
+  settings: angleSettingListSchema.optional(),
 });
 
 /** One beat of an angle template: the beat and which cast fills each group. */
@@ -561,6 +583,8 @@ export const AngleTemplateDefSchema = z.strictObject({
     .min(1)
     .max(ANGLE_TEMPLATE_BEATS_MAX)
     .superRefine(refineAngleTemplateBeats),
+  /** MTCH5-08: where the template's angle happens. Absent = in the ring. */
+  setting: CatalogAngleSettingSchema.optional(),
   description: descriptionSchema.optional(),
 });
 

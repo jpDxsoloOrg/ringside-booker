@@ -2,8 +2,11 @@
  * The segment editor's words and catalog readings: limits as short text, side names and the
  * number of sides a type allows. Pure, so the sheet and its tests read them the same way.
  */
+import { rolesPhrase, TALK_ROLE_LABELS } from '@ringside/engine';
 import type {
+  AngleSetting,
   AngleTypeOption,
+  BeatGroupOption,
   BookingCard,
   BookingSlotView,
   CountRange,
@@ -12,6 +15,7 @@ import type {
   MethodOption,
   SegmentDraft,
   SegmentId,
+  TalkRole,
 } from '@ringside/engine';
 import type { SegmentEditorRequest } from './editorStore';
 import type { SideLimits } from './useSegmentDraft';
@@ -130,4 +134,57 @@ export function teamWithMembers(teamName: string, memberNames: readonly string[]
 export function namesText(names: readonly string[]): string {
   if (names.length <= 1) return names[0] ?? '';
   return `${names.slice(0, -1).join(', ')} and ${names.at(-1) ?? ''}`;
+}
+
+// ---------------------------------------------------------------------------------------------
+// MTCH5-08: who plays which part, and where
+
+/**
+ * The beat group a side of a talking segment fills: the type's default beat splits its people by
+ * side, the first side into its first group and every other side into its second. A one-group beat
+ * puts every side in its one group. Null without a beat catalog.
+ */
+export function sideGroupOf(
+  catalog: Pick<MatchCatalog, 'beats'>,
+  angleType: Pick<AngleTypeOption, 'defaultBeatKey'> | undefined,
+  side: number,
+): BeatGroupOption | null {
+  if (angleType === undefined) return null;
+  const beat = catalog.beats.find((option) => option.key === angleType.defaultBeatKey);
+  if (beat === undefined) return null;
+  return (side === 0 ? beat.groups[0] : (beat.groups[1] ?? beat.groups[0])) ?? null;
+}
+
+/** True when the default beat has two groups, so each side has a name of its own. */
+export function sidesAreGroups(
+  catalog: Pick<MatchCatalog, 'beats'>,
+  angleType: Pick<AngleTypeOption, 'defaultBeatKey'> | undefined,
+): boolean {
+  if (angleType === undefined) return false;
+  const beat = catalog.beats.find((option) => option.key === angleType.defaultBeatKey);
+  return (beat?.groups.length ?? 0) > 1;
+}
+
+/** What each setting means for the score, in the setting choice. */
+export const SETTING_HINTS: Readonly<Record<AngleSetting, string>> = {
+  ring: 'Live in front of the crowd.',
+  backstage:
+    'The crowd watches on screen: scored mostly on mic and acting, and usually a short segment.',
+  video: 'Played on the screen: scored mostly on mic and acting.',
+};
+
+/** "Manager for Kai Moreno", "Interviewer", "Manager". */
+export function partLabel(talkRole: TalkRole, clientName: string | null): string {
+  return talkRole === 'manager' && clientName !== null
+    ? `Manager for ${clientName}`
+    : TALK_ROLE_LABELS[talkRole];
+}
+
+/** "Host is for an interviewer", or null when the part suits the group (or it takes anyone). */
+export function partMismatch(
+  group: Pick<BeatGroupOption, 'label' | 'roles'> | null,
+  talkRole: TalkRole,
+): string | null {
+  if (group === null || group.roles.length === 0 || group.roles.includes(talkRole)) return null;
+  return `${group.label} is for ${rolesPhrase(group.roles)}`;
 }

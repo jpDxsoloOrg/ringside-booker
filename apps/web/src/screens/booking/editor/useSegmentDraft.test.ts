@@ -14,6 +14,8 @@ import {
   setLabel,
   setResult,
   setTitles,
+  setSetting,
+  setTalkPart,
   setType,
   unsaveableReason,
 } from './useSegmentDraft';
@@ -96,8 +98,9 @@ describe('the segment draft', () => {
   it('adds speakers to a talking segment and drops its beats so the default is written', () => {
     const draft = promoWithBeats([person(9)]);
     const state = addPerson(initialDraftState(draft, { min: 1, max: 1 }), 0, person(1));
+    // MTCH5-08: a speaker added without a part plays a wrestler.
     expect(state.draft.participants).toEqual([
-      { personId: person(1), side: 0, role: 'speaker', teamId: null },
+      { personId: person(1), side: 0, role: 'speaker', teamId: null, talkRole: 'wrestler' },
     ]);
     expect(state.draft.kind === 'angle' && state.draft.angle.beats).toBeUndefined();
   });
@@ -228,5 +231,67 @@ describe('the segment draft', () => {
       'Add at least one speaker to save this talking segment.',
     );
     expect(unsaveableReason(addPerson(promo, 0, person(1)).draft)).toBeNull();
+  });
+});
+
+describe('talk parts and settings (MTCH5-08)', () => {
+  const INTERVIEW = parseContentKey('angle.interview');
+  const VIDEO = parseContentKey('angle.video-package');
+
+  function interview(): SegmentDraftState {
+    const start = initialDraftState(emptyDraft('angle', INTERVIEW), { min: 1, max: 2 });
+    let state = addPerson(start, 0, person(1), null, { talkRole: 'wrestler' });
+    state = addPerson(state, 0, person(2), null, { talkRole: 'manager', forPersonId: person(1) });
+    state = addSide(state, { min: 1, max: 2 });
+    return addPerson(state, 1, person(3), null, { talkRole: 'interviewer' });
+  }
+
+  it('adds each person with their part, a manager with their client', () => {
+    expect(
+      interview().draft.participants.map((entry) => [
+        entry.personId,
+        entry.talkRole,
+        entry.forPersonId ?? null,
+      ]),
+    ).toEqual([
+      [person(1), 'wrestler', null],
+      [person(2), 'manager', person(1)],
+      [person(3), 'interviewer', null],
+    ]);
+  });
+
+  it('changes a part, dropping the client when someone stops managing', () => {
+    let state = setTalkPart(interview(), person(2), { talkRole: 'authority' });
+    const changed = state.draft.participants.find((entry) => entry.personId === person(2));
+    expect(changed?.talkRole).toBe('authority');
+    expect(changed !== undefined && 'forPersonId' in changed).toBe(false);
+    state = setTalkPart(state, person(2), { talkRole: 'manager', forPersonId: person(2) });
+    // Nobody manages themselves.
+    expect(
+      state.draft.participants.find((entry) => entry.personId === person(2))?.forPersonId,
+    ).toBeUndefined();
+  });
+
+  it('leaves a manager with nobody when their client is taken off', () => {
+    const state = removePerson(interview(), person(1));
+    const manager = state.draft.participants.find((entry) => entry.personId === person(2));
+    expect(manager?.talkRole).toBe('manager');
+    expect(manager !== undefined && 'forPersonId' in manager).toBe(false);
+  });
+
+  it('keeps the setting through edits, and a type change that allows it', () => {
+    let state = setSetting(interview(), 'backstage');
+    state = addPerson(state, 1, person(4));
+    expect(state.draft.kind === 'angle' && state.draft.angle.setting).toBe('backstage');
+    state = setType(state, CONFRONTATION, { min: 1, max: 2 }, true, ['ring', 'backstage']);
+    expect(state.draft.kind === 'angle' && state.draft.angle.setting).toBe('backstage');
+    state = setType(state, VIDEO, { min: 1, max: 1 }, true, ['video']);
+    expect(state.draft.kind === 'angle' && state.draft.angle.setting).toBe('video');
+  });
+
+  it('has no setting or parts on a match', () => {
+    const state = singles();
+    expect(setSetting(state, 'backstage')).toBe(state);
+    expect(setTalkPart(state, person(1), { talkRole: 'interviewer' })).toBe(state);
   });
 });

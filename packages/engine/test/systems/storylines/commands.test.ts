@@ -31,7 +31,7 @@ const PLAYER_VIEWER = { kind: 'controller', controller: PLAYER } as const;
 /**
  * Promotion A is the player's: brands Test Main (active) and Test Old (closed), six wrestlers
  * (`people[0..5]`, person 5 released), the active `Test Feud` (0 face, 1 heel) linked by four
- * matches, and the ended `Test Done` (2 face). Promotion B is the computer's: brand Test Rival
+ * matches (counted: `progressTotals.segments` 4), and the ended `Test Done` (2 face). Promotion B is the computer's: brand Test Rival
  * Brand, two wrestlers (`people[6..7]`) and the active `Test Rival Feud` (6 face).
  */
 function commandWorld(): BuiltWorld {
@@ -74,6 +74,10 @@ function commandWorld(): BuiltWorld {
       for (const segmentId of ids.segments) {
         tx.update('segments', segmentId, { storylineIds: [ids.storylines[0]!] });
       }
+      // The four matches counted for it (CRTV4-02's all-time totals; the payoff reads these).
+      tx.update('storylines', ids.storylines[0]!, {
+        progressTotals: { segments: 4, matches: 4, angles: 0, heatGained: 0, heatLost: 0 },
+      });
     })
     .build();
 }
@@ -600,7 +604,7 @@ describe('storylines.addMember, removeMember and setSide', () => {
 });
 
 describe('storylines.end and storylines.endPreview', () => {
-  it('ends with 4 linked segments: no payoff yet, members, heat and links kept', () => {
+  it('ends with 4 counted segments: pays off, members, heat and links kept', () => {
     const world = setup();
     const before = storyline(world.engine, world.feud);
     const preview = okQuery(
@@ -609,16 +613,31 @@ describe('storylines.end and storylines.endPreview', () => {
     expect(preview).toEqual({
       linkedSegments: 4,
       minSegments: 4,
-      payoff: 'notAvailable',
-      message: 'No payoff yet: payoffs arrive with storyline booking.',
+      payoff: 'pays',
+      message:
+        "Ending now pays off: its members gain popularity and momentum if the story is hot, and lose some if it's cold.",
     });
 
     const result = ok(world.engine, 'storylines.end', { storylineId: world.feud });
-    expect(result.data).toEqual({ linkedSegments: 4, minSegments: 4, payoff: 'notAvailable' });
-    expect(storyline(world.engine, world.feud)).toEqual({
+    expect(result.data).toEqual({ linkedSegments: 4, minSegments: 4, payoff: 'pays' });
+    // The payoff (CRTV4-03) is written but moves nothing: this test promotion has no region with
+    // enough fans for it to reach, so both members are skipped.
+    const after = storyline(world.engine, world.feud);
+    expect(after).toEqual({
       ...before,
       status: 'ended',
       endedOn: TEST_START_DATE,
+      payoff: {
+        paid: true,
+        on: TEST_START_DATE,
+        countedSegments: 4,
+        heat: 50,
+        members: [
+          { personId: world.person(0), popularityDelta: 0, momentumDelta: 0, skipped: true },
+          { personId: world.person(1), popularityDelta: 0, momentumDelta: 0, skipped: true },
+        ],
+        traceId: `storylines.payoff:${world.feud}`,
+      },
     });
     expect(payloads(world.engine)).toEqual([
       {
@@ -627,11 +646,19 @@ describe('storylines.end and storylines.endPreview', () => {
         promotionId: world.built.ids.promotions.A,
         linkedSegments: 4,
       },
+      {
+        type: 'storyline.paidOff',
+        storylineId: world.feud,
+        promotionId: world.built.ids.promotions.A,
+        paid: true,
+        memberCount: 0,
+        quality: 0,
+      },
     ]);
     const detail = okQuery(
       world.engine.query('storylines.detail', { storylineId: world.feud }, PLAYER_VIEWER),
     );
-    expect(detail.ending?.payoff).toBe('notAvailable');
+    expect(detail.ending?.payoff).toBe('paid');
   });
 
   it('ends a storyline with no linked segments: too few to pay off', () => {

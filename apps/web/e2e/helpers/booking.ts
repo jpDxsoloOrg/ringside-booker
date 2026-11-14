@@ -27,9 +27,22 @@ function daysBetween(from: string, to: string): number {
 const ADVANCE_TIMEOUT = { timeout: 20_000 } as const;
 
 /**
+ * Waits until the day bar says what today holds: its answers are current and the engine has no
+ * advance, command or query on its way (`data-settled`, from `useShellStatus`). Before that the bar
+ * can still read Next day for a day that stops, or show a stop a screen is already clearing.
+ */
+export async function waitForDayBarSettled(page: Page): Promise<void> {
+  await expect(page.getByTestId('day-control')).toHaveAttribute(
+    'data-settled',
+    'true',
+    ADVANCE_TIMEOUT,
+  );
+}
+
+/**
  * Waits for the advance just started to finish: the date moved or the summary changed (an
- * advance that stopped before its first day only says so in the summary), then the day control
- * is idle again, with its button off busy and the day's stops read.
+ * advance that stopped before its first day only says so in the summary), then the day bar has
+ * settled on the day's stops.
  */
 export async function waitForAdvanceToEnd(
   page: Page,
@@ -45,13 +58,7 @@ export async function waitForAdvanceToEnd(
     }, ADVANCE_TIMEOUT)
     .toBe(true);
   await expect(page.getByTestId('advance-overlay')).toBeHidden(ADVANCE_TIMEOUT);
-  const control = page.getByTestId('day-control');
-  await expect(control.locator('button[data-state]')).not.toHaveAttribute(
-    'data-state',
-    'busy',
-    ADVANCE_TIMEOUT,
-  );
-  await expect(control).not.toHaveAttribute('aria-busy', 'true', ADVANCE_TIMEOUT);
+  await waitForDayBarSettled(page);
 }
 
 /**

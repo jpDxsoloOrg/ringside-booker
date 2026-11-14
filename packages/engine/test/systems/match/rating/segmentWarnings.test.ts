@@ -292,6 +292,10 @@ describe('segmentWarnings', () => {
         'angle.injuredInPhysicalBeat',
         'angle.cannotWorkAngles',
         'angle.unavailable',
+        'angle.settingNotAllowed',
+        'angle.beatSettingNotAllowed',
+        'angle.wrongRole',
+        'angle.clientNotInSegment',
       ].sort(),
     );
   });

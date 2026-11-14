@@ -10,6 +10,7 @@
 import { useCallback, useMemo, useReducer } from 'react';
 import type {
   AngleDraft,
+  AngleSetting,
   ContentKey,
   MatchDraft,
   MatchOutcome,
@@ -17,6 +18,7 @@ import type {
   PlannedResult,
   PersonId,
   SegmentDraft,
+  TalkRole,
   TeamId,
   TitleId,
 } from '@ringside/engine';
@@ -94,6 +96,14 @@ export function initialDraftState(draft: SegmentDraft, limits: SideLimits): Segm
   return { draft, sideCount: Math.max(limits.min, usedSides(draft), 1) };
 }
 
+/** An angle's details without its beats, keeping its setting (MTCH5-08). */
+function angleWithoutBeats(angle: AngleDraft['angle'], angleTypeKey = angle.angleTypeKey) {
+  return {
+    angleTypeKey,
+    ...(angle.setting === undefined ? {} : { setting: angle.setting }),
+  };
+}
+
 /**
  * The draft with new participants. An angle's beats are dropped so the engine writes its type's
  * default beat for the speakers now on it (until MTCH5's beats section owns them).
@@ -106,7 +116,7 @@ function withParticipants(
   return {
     ...draft,
     participants: [...participants],
-    angle: { angleTypeKey: draft.angle.angleTypeKey },
+    angle: angleWithoutBeats(draft.angle),
   };
 }
 
@@ -125,6 +135,7 @@ export function setType(
   typeKey: ContentKey,
   limits: SideLimits,
   allowsTitles = true,
+  settings?: readonly AngleSetting[],
 ): SegmentDraftState {
   const sideCount = clamp(state.sideCount, limits);
   const kept = state.draft.participants.filter((person) => person.side < sideCount);
@@ -145,31 +156,98 @@ export function setType(
   if (draft.angle.angleTypeKey === typeKey && kept.length === draft.participants.length) {
     return { draft, sideCount };
   }
-  // A new talking segment type gets its own default beat.
-  return {
-    draft: { ...draft, participants: kept, angle: { angleTypeKey: typeKey } },
-    sideCount,
-  };
+  // A new talking segment type gets its own default beat, and keeps the setting when it allows
+  // it; otherwise it starts where the new type starts (MTCH5-08).
+  const angle = angleWithoutBeats(draft.angle, typeKey);
+  const setting = angle.setting ?? 'ring';
+  const next =
+    settings === undefined || settings.includes(setting)
+      ? angle
+      : { angleTypeKey: typeKey, setting: settings[0] ?? 'ring' };
+  return { draft: { ...draft, participants: kept, angle: next }, sideCount };
 }
 
-/** Puts someone on a side. Someone already in the segment stays where they are. */
+/** A participant with no client. */
+function withoutClient(person: ParticipantDraft): ParticipantDraft {
+  const copy = { ...person };
+  delete copy.forPersonId;
+  return copy;
+}
+
+/** MTCH5-08: where a talking segment happens. Only an angle has a setting. */
+export function setSetting(state: SegmentDraftState, setting: AngleSetting): SegmentDraftState {
+  const { draft } = state;
+  if (draft.kind !== 'angle' || draft.angle.setting === setting) return state;
+  return { ...state, draft: { ...draft, angle: { ...draft.angle, setting } } };
+}
+
+/** The part someone plays in a talking segment. */
+export interface TalkPartChoice {
+  readonly talkRole: TalkRole;
+  /** The client a manager is with. */
+  readonly forPersonId?: PersonId;
+}
+
+/**
+ * MTCH5-08: the part someone plays in a talking segment, and the client a manager is with. Only
+ * a speaker has one; anyone else is left as they are.
+ */
+export function setTalkPart(
+  state: SegmentDraftState,
+  personId: PersonId,
+  part: TalkPartChoice,
+): SegmentDraftState {
+  const { draft } = state;
+  if (draft.kind !== 'angle') return state;
+  const index = draft.participants.findIndex((person) => person.personId === personId);
+  const current = draft.participants[index];
+  if (current?.role !== 'speaker') return state;
+  const forPersonId =
+    part.talkRole === 'manager' && part.forPersonId !== personId ? part.forPersonId : undefined;
+  if (current.talkRole === part.talkRole && current.forPersonId === forPersonId) return state;
+  const next: ParticipantDraft = {
+    ...withoutClient(current),
+    talkRole: part.talkRole,
+    ...(forPersonId === undefined ? {} : { forPersonId }),
+  };
+  const participants = draft.participants.map((person, at) => (at === index ? next : person));
+  return { ...state, draft: { ...draft, participants } };
+}
+
+/**
+ * Puts someone on a side. Someone already in the segment stays where they are. In a talking
+ * segment they play `part` (MTCH5-08; a wrestler when left out).
+ */
 export function addPerson(
   state: SegmentDraftState,
   side: number,
   personId: PersonId,
   teamId: TeamId | null = null,
+  part?: TalkPartChoice,
 ): SegmentDraftState {
   const { draft } = state;
   if (side < 0 || side >= state.sideCount) return state;
   if (draft.participants.some((person) => person.personId === personId)) return state;
-  const added: ParticipantDraft = { personId, side, role: roleFor(draft), teamId };
+  const talk =
+    draft.kind === 'angle'
+      ? {
+          talkRole: part?.talkRole ?? 'wrestler',
+          ...(part?.talkRole === 'manager' && part.forPersonId !== undefined
+            ? { forPersonId: part.forPersonId }
+            : {}),
+        }
+      : {};
+  const added: ParticipantDraft = { personId, side, role: roleFor(draft), teamId, ...talk };
   return { ...state, draft: withParticipants(draft, [...draft.participants, added]) };
 }
 
 /** Takes someone out of the segment. */
 export function removePerson(state: SegmentDraftState, personId: PersonId): SegmentDraftState {
   const { draft } = state;
-  const kept = draft.participants.filter((person) => person.personId !== personId);
+  const kept = draft.participants
+    .filter((person) => person.personId !== personId)
+    // A manager whose client leaves is no longer with anyone.
+    .map((person) => (person.forPersonId === personId ? withoutClient(person) : person));
   if (kept.length === draft.participants.length) return state;
   return { ...state, draft: withParticipants(draft, kept) };
 }
@@ -327,8 +405,20 @@ export interface SegmentDraftControls {
   readonly state: SegmentDraftState;
   /** True when the draft differs from the one the sheet opened on. */
   readonly dirty: boolean;
-  readonly setType: (typeKey: ContentKey, limits: SideLimits, allowsTitles?: boolean) => void;
-  readonly addPerson: (side: number, personId: PersonId, teamId?: TeamId | null) => void;
+  readonly setType: (
+    typeKey: ContentKey,
+    limits: SideLimits,
+    allowsTitles?: boolean,
+    settings?: readonly AngleSetting[],
+  ) => void;
+  readonly addPerson: (
+    side: number,
+    personId: PersonId,
+    teamId?: TeamId | null,
+    part?: TalkPartChoice,
+  ) => void;
+  readonly setSetting: (setting: AngleSetting) => void;
+  readonly setTalkPart: (personId: PersonId, part: TalkPartChoice) => void;
   readonly removePerson: (personId: PersonId) => void;
   readonly addSide: (limits: SideLimits) => void;
   readonly removeSide: (side: number, limits: SideLimits) => void;
@@ -360,11 +450,17 @@ export function useSegmentDraft(placeholder: SegmentDraftState): SegmentDraftCon
     () => ({
       state,
       dirty,
-      setType: (typeKey, limits, allowsTitles) => {
-        apply((current) => setType(current, typeKey, limits, allowsTitles));
+      setType: (typeKey, limits, allowsTitles, settings) => {
+        apply((current) => setType(current, typeKey, limits, allowsTitles, settings));
       },
-      addPerson: (side, personId, teamId) => {
-        apply((current) => addPerson(current, side, personId, teamId ?? null));
+      addPerson: (side, personId, teamId, part) => {
+        apply((current) => addPerson(current, side, personId, teamId ?? null, part));
+      },
+      setSetting: (setting) => {
+        apply((current) => setSetting(current, setting));
+      },
+      setTalkPart: (personId, part) => {
+        apply((current) => setTalkPart(current, personId, part));
       },
       removePerson: (personId) => {
         apply((current) => removePerson(current, personId));

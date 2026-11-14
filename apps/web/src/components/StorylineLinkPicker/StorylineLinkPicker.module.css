@@ -1,0 +1,182 @@
+/*
+ * The Storyline section's body (CRTV4-04): suggestion chips, the linked rows (name, heat meter,
+ * Finale switch and Unlink on one line on desktop) and the Link another picker. Below
+ * --bp-mobile the chips wrap, each linked row stacks name / meter / controls and every control is
+ * a finger tall. No fixed widths: long storyline names wrap.
+ */
+.picker {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.group {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.groupTitle {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.reason {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-inline-start: 3px solid var(--color-border-strong);
+  background: var(--color-surface-sunken);
+  color: var(--color-text);
+}
+
+.note {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  overflow-wrap: anywhere;
+}
+
+/* ---- Suggested chips ------------------------------------------------------------------------ */
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  max-inline-size: 100%;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-action-bright);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  text-align: start;
+  cursor: pointer;
+}
+
+.chip:hover:not(:disabled),
+.chip:focus-visible {
+  background: var(--color-surface-hover);
+}
+
+.chip:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.chip:disabled {
+  border-color: var(--color-border);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+.chipName {
+  font-weight: var(--font-weight-bold);
+  overflow-wrap: anywhere;
+}
+
+.chipFact {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.chipFact[data-hot] {
+  color: var(--color-action-bright);
+}
+
+/* ---- Linked rows ---------------------------------------------------------------------------- */
+
+.linked {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.linkedRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(7rem, 10rem) auto;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  min-inline-size: 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-inline-start: 3px solid var(--color-action-bright);
+  background: var(--color-surface);
+}
+
+.linkedName {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  min-inline-size: 0;
+}
+
+.name {
+  font-weight: var(--font-weight-bold);
+  overflow-wrap: anywhere;
+}
+
+.meter {
+  min-inline-size: 0;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.finale,
+.unlink {
+  flex: none;
+}
+
+.another {
+  min-inline-size: 0;
+}
+
+@media (pointer: coarse) {
+  .chip {
+    min-block-size: var(--tap-target-min);
+  }
+}
+
+@media (--bp-mobile) {
+  .chip {
+    min-block-size: var(--tap-target-min);
+  }
+
+  .linkedRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .controls {
+    justify-content: space-between;
+  }
+
+  .unlink {
+    min-inline-size: var(--tap-target-min);
+    min-block-size: var(--tap-target-min);
+  }
+}

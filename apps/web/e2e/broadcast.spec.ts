@@ -144,18 +144,28 @@ test.describe('broadcast kit', () => {
 
   test('with reduced motion the ticker is a static list and the live dot holds still', async ({
     page,
-  }) => {
+  }, testInfo) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
 
     const tickerEntry = await gotoEntry(page, 'ticker', 'Ticker');
     const ticker = tickerEntry.getByRole('region', { name: 'News ticker' });
     await expect(ticker).toHaveAttribute('data-motion', 'static');
     await expect(ticker.locator('[data-part="loop-copy"]')).toHaveCount(0);
-    await expect(ticker.getByRole('button')).toHaveCount(0);
+    await expect(ticker.getByRole('button', { name: 'Pause ticker' })).toHaveCount(0);
     expect(await computed(ticker.locator('[data-part="track"]'), 'animation-name')).toBe('none');
-    // Every headline is on screen: the static list wraps instead of clipping.
-    for (const item of await ticker.getByRole('listitem').all()) {
-      await expect(item).toBeInViewport();
+    if (isPhone(testInfo)) {
+      // A phone shows one headline at a time with buttons to step through them (UI-34).
+      await expect(ticker.getByRole('button')).toHaveCount(2);
+      await expect(ticker.getByRole('listitem')).toHaveCount(1);
+      await expect(ticker.getByRole('listitem')).toBeInViewport();
+      await ticker.getByRole('button', { name: 'Next headline' }).click();
+      await expect(ticker.getByRole('listitem')).toBeInViewport();
+    } else {
+      // Every headline is on screen: the static list wraps instead of clipping.
+      await expect(ticker.getByRole('button')).toHaveCount(0);
+      for (const item of await ticker.getByRole('listitem').all()) {
+        await expect(item).toBeInViewport();
+      }
     }
 
     const bugEntry = await gotoEntry(page, 'live-bug-button', 'LiveBugButton');

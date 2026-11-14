@@ -132,7 +132,8 @@
  * The strip is only as tall as the button, and on phones its slot clips, so the button's focus
  * ring is drawn inside it rather than off it.
  */
-.ticker .pauseButton:focus-visible {
+.ticker .pauseButton:focus-visible,
+.stepControls button:focus-visible {
   outline-offset: -2px;
 }
 
@@ -252,6 +253,55 @@
 
 .static .item + .item::before {
   margin-inline-end: var(--space-4);
+}
+
+/*
+ * Stepping: reduced motion on a phone. One headline shows at a time and wraps to fit; the others
+ * sit in the same grid cell, hidden, so the strip is as tall as the longest headline and does not
+ * jump as the player steps through them (UI-34). The step buttons follow the badge; when the
+ * headline window would be too narrow to read beside them (a large UI scale), it drops to a row of
+ * its own across the whole strip.
+ */
+.stepping {
+  flex-wrap: wrap;
+  row-gap: 0;
+  padding-inline-end: var(--space-2);
+}
+
+.stepControls {
+  display: flex;
+  flex: none;
+  align-items: center;
+}
+
+.stepping .viewport {
+  flex: 1 1 10rem;
+  padding-inline-start: var(--space-2);
+}
+
+.stepping .list {
+  display: grid;
+}
+
+/* The headline flows as one wrapped paragraph, its tag at the start of the first line. */
+.stepping .item {
+  display: block;
+  grid-area: 1 / 1;
+  min-inline-size: 0;
+  overflow-wrap: break-word;
+}
+
+.stepping .tag {
+  display: inline-block;
+  margin-inline-end: var(--space-2);
+}
+
+.stepping .item[data-current='false'] {
+  visibility: hidden;
+}
+
+.stepping .item + .item::before {
+  content: none;
 }
 
 /* Script switches to the static list; this covers the first paint and the in-game setting. */

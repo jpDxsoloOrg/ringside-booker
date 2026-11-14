@@ -12,6 +12,7 @@
 import { z } from 'zod';
 import { defineTable } from '../table-def';
 import { zId, zPositiveInt } from '../primitives';
+import { TALK_ROLES, type TalkRole } from './angle-setting';
 
 /**
  * Sides are numbered from 0 up to `MAX_SIDE` (up to 30 sides). A singles match uses sides 0 and 1;
@@ -26,6 +27,10 @@ export const MAX_SIDE = 29;
  * - `interferer`: gets involved in a match they are not in;
  * - `speaker`: talks in an angle;
  * - `subject`: an angle is about them without them speaking.
+ *
+ * A speaker may also say what part they play (`talkRole`, MTCH5-08): a wrestler, a manager for a
+ * client (`forPersonId`), an interviewer or an authority figure. A speaker without one is a
+ * wrestler, so saves from before MTCH5-08 read the same.
  */
 export const PARTICIPANT_ROLES = [
   'competitor',
@@ -48,9 +53,26 @@ export const ParticipantSchema = z.strictObject({
   entranceOrder: zPositiveInt.nullable(),
   /** Order of elimination (1 first out) for multi-person matches; null when not eliminated. */
   eliminationOrder: zPositiveInt.nullable(),
+  /** MTCH5-08: the part a speaker plays in a talking segment. Absent = `wrestler`. */
+  talkRole: z.enum(TALK_ROLES).optional(),
+  /** MTCH5-08: the client a manager speaks for or stands with. Only with `talkRole: 'manager'`. */
+  forPersonId: zId('person').optional(),
 });
 
 export type Participant = z.infer<typeof ParticipantSchema>;
+
+/**
+ * The part a person plays in a talking segment as stored: their `talkRole`, or null for a speaker
+ * who names none (saves from before MTCH5-08: readers then use the part they were hired for, a
+ * wrestler by default) and for a role that does not talk (competitors, ringside, interferers and
+ * subjects).
+ */
+export function storedTalkRoleOf(participant: {
+  readonly role: ParticipantRole;
+  readonly talkRole?: TalkRole | undefined;
+}): TalkRole | null {
+  return participant.role === 'speaker' ? (participant.talkRole ?? null) : null;
+}
 
 export const participantsTable = defineTable({
   kind: 'participant',
@@ -60,6 +82,7 @@ export const participantsTable = defineTable({
     { path: 'segmentId', target: 'segment', nullable: false },
     { path: 'personId', target: 'person', nullable: false },
     { path: 'teamId', target: 'team', nullable: true },
+    { path: 'forPersonId', target: 'person', nullable: false },
   ],
   indexes: [
     { name: 'bySegment', key: (participant) => participant.segmentId },

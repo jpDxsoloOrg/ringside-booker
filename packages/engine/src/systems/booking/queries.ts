@@ -13,6 +13,8 @@
  * Design notes: docs/design/booking.md#queries.
  */
 
+import type { TalkRole } from '../../model/entities/angle-setting';
+import { talkRoleForEmployment } from '../match/angles/settings';
 import { z } from 'zod';
 import { defineQuery, type QueryContext, type QueryDefinition } from '../../core/api/query';
 import { refuseQuery } from '../../core/api/result';
@@ -106,6 +108,10 @@ export interface AvailableWorkerRow {
   roles: PersonRole[];
   /** The role they were hired in. */
   employmentRole: EmploymentRole;
+  /** MTCH5-08: the part they play in a talking segment by default (a presenter interviews). */
+  talkRole: TalkRole;
+  /** MTCH5-08: their contract's manager, for "Add their manager"; null for none. */
+  managerPersonId: PersonId | null;
   push: Push;
   alignment: Alignment;
   brandId: BrandId | null;
@@ -172,7 +178,8 @@ const OPEN_STATUSES = ['scheduled', 'booked'] as const;
 /** The employment roles each kind of segment picks from. */
 const PICK_ROLES: Readonly<Record<WorkerPickKind, readonly EmploymentRole[]>> = {
   match: ['wrestler'],
-  angle: ['wrestler', 'manager', 'presenter'],
+  // MTCH5-08: announcers too, to host an interview or read an announcement.
+  angle: ['wrestler', 'manager', 'presenter', 'announcer'],
 };
 
 /**
@@ -331,6 +338,8 @@ export const availableWorkersQuery: QueryDefinition<'booking.availableWorkers'> 
           gender: person.gender,
           roles: [...person.roles],
           employmentRole: employment.role,
+          talkRole: talkRoleForEmployment(employment.role),
+          managerPersonId: employment.managerPersonId,
           push: employment.push,
           alignment: employment.alignment,
           brandId: employment.brandId,

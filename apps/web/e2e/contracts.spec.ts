@@ -36,7 +36,7 @@
 import type { Locator, Page, TestInfo } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { expectNoSeriousA11yViolations } from './helpers/a11y';
-import { skipDaysOnce } from './helpers/booking';
+import { skipDaysOnce, waitForDayBarSettled } from './helpers/booking';
 import {
   addIsoDays,
   clearDayStop,
@@ -327,12 +327,12 @@ test.describe('contracts', () => {
       for (let stops = 0; ; stops += 1) {
         expect(stops, 'the skip keeps stopping').toBeLessThan(MAX_STOPS);
         expect(left, 'the skip stopped for an expiring contract').toBeGreaterThan(0);
+        await waitForDayBarSettled(page);
         await expect(dayButton(page, /./).first()).toBeVisible({ timeout: 15_000 });
         if (await contracts.isVisible()) break;
         if (await clearDayStop(page)) continue;
+        // The day bar has settled when this returns, so the next pass reads today's stop.
         left -= await skipDaysOnce(page, left, phone);
-        // A skip that stopped short stopped for something: wait for the day bar to say what.
-        if (left > 0) await expect(dayButton(page, 'Next day')).toBeHidden();
       }
       await expect(contracts).toHaveAccessibleDescription(/^Contract expiring soon: .+/);
       await shot(page, 'contracts-stop', testInfo);

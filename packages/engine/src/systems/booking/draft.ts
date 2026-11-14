@@ -13,7 +13,7 @@ import { z } from 'zod';
 import type { SegmentId } from '../../core/ids';
 import { EntityNotFoundError } from '../../core/errors';
 import { compareIds } from '../../model/table';
-import { MAX_SIDE, PARTICIPANT_ROLES } from '../../model/entities/participant';
+import { MAX_SIDE, PARTICIPANT_ROLES, ParticipantSchema } from '../../model/entities/participant';
 import {
   AngleDetailsSchema,
   MatchDetailsSchema,
@@ -40,6 +40,10 @@ export const ParticipantDraftSchema = z.strictObject({
   side: z.number().int().min(0).max(MAX_SIDE),
   role: z.enum(PARTICIPANT_ROLES),
   teamId: zId('team').nullable(),
+  /** MTCH5-08: the part a speaker plays. Left out = a wrestler. */
+  talkRole: ParticipantSchema.shape.talkRole,
+  /** MTCH5-08: the client a manager speaks for. */
+  forPersonId: ParticipantSchema.shape.forPersonId,
 });
 
 const draftBaseShape = {
@@ -64,10 +68,14 @@ export const MatchDraftSchema = z.strictObject({
   outcome: MatchOutcomeSchema.nullable(),
 });
 
-/** An angle's details; without `beats` the writer gives it its type's default beat. */
+/**
+ * An angle's details; without `beats` the writer gives it its type's default beat. Without a
+ * `setting` (MTCH5-08) it happens in the ring, or where its type allows when that is not the ring.
+ */
 export const AngleDetailsDraftSchema = z.strictObject({
   angleTypeKey: AngleDetailsSchema.shape.angleTypeKey,
   beats: AngleDetailsSchema.shape.beats.optional(),
+  setting: AngleDetailsSchema.shape.setting,
 });
 
 export const AngleDraftSchema = z.strictObject({
@@ -139,6 +147,8 @@ export function draftFromSegment(read: GameWorldView, segmentId: SegmentId): Seg
       side: participant.side,
       role: participant.role,
       teamId: participant.teamId,
+      ...(participant.talkRole === undefined ? {} : { talkRole: participant.talkRole }),
+      ...(participant.forPersonId === undefined ? {} : { forPersonId: participant.forPersonId }),
     }))
     .sort((left, right) => left.side - right.side || compareIds(left.personId, right.personId));
   const base = {
@@ -168,6 +178,7 @@ export function draftFromSegment(read: GameWorldView, segmentId: SegmentId): Seg
         beatKey: beat.beatKey,
         personIds: [...beat.personIds],
       })),
+      ...(segment.angle.setting === undefined ? {} : { setting: segment.angle.setting }),
     },
   };
 }

@@ -900,13 +900,15 @@ continentName }` sorted by continent, country and name; `importances` are
   reads "Rival shortcuts" after Run). The worker picker's "Your roster" stays
   the viewer's own.
 - **`match.labWorkers`** `{ scope: 'mine' | 'everyone', regionId, search?,
-limit?, promotionId?, trait? }` → `{ rows, total }`. `mine` is the promotion's
+limit?, promotionId?, trait?, role? }` → `{ rows, total }`. `mine` is the promotion's
   active roster (index `byPromotionStatus`); `everyone` is everyone still in
   the business (not retired, dead or gone; someone on hiatus is listed as
   unavailable). Every role is listed, so managers and presenters can be picked
   for an angle; `style: 'nonWrestler'` flags them. A row is `{ personId, name,
-promotionShortName, style, roles, popularity, safety, traits, available,
-unavailableReason }`:
+promotionShortName, style, roles, popularity, safety, mic, charisma, presence,
+managerId, managerName, traits, available, unavailableReason }` (the talking
+  stats, the contract manager and the `role` filter are MTCH5-05's, for the
+  Angle lab's people and manager pickers):
   the ring name with the lab's promotion (else the default ring name), the main
   employer's short name, popularity in `regionId`, and WRK1's `availabilityOf`
   on today's date, its reason written with the day back ("On personal leave

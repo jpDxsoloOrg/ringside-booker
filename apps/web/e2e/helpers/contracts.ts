@@ -1,6 +1,6 @@
 import { expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
-import { cancelTonightsShow, gameDate, waitForAdvanceToEnd } from './booking';
+import { cancelTonightsShow, gameDate, waitForAdvanceToEnd, waitForDayBarSettled } from './booking';
 
 /** The day bar's button with this name. */
 export function dayButton(page: Page, name: string | RegExp): Locator {
@@ -63,6 +63,23 @@ export function addIsoDays(date: string, days: number): string {
 /** The day bar's buttons when the day stops (or doesn't). */
 const DAY_BUTTONS = /^(Next day|(Tonight: )?Go to the show|Contracts|Roster)$/;
 
+/** The screens the own-injury stop opens (`injuryGateDestination`); each marks injuries seen. */
+const INJURY_VIEW =
+  /\/game\/(roster\?(.*&)?tab=injuries|workers\/[^/?]+\?(.*&)?tab=health|workers\?(.*&)?availability=injured)/;
+
+/**
+ * Clears the own-injury stop (the day bar's Roster button) the way a player does: the button opens
+ * the Injuries tab, which marks the injury seen. When an injury screen is open already, it marks the
+ * injury seen by itself once the day stops, so the button is not pressed: it may turn into Next day
+ * under the tap.
+ */
+export async function clearInjuryStop(page: Page): Promise<void> {
+  const roster = dayButton(page, 'Roster');
+  if (!INJURY_VIEW.test(page.url())) await roster.click();
+  await expect(roster).toBeHidden({ timeout: 15_000 });
+  await waitForDayBarSettled(page);
+}
+
 export interface StopHandlers {
   /** Called on the first expiring-contract stop instead of clearing it; true clears the rest. */
   readonly onContractsStop?: () => Promise<void>;
@@ -74,6 +91,7 @@ export interface StopHandlers {
  * notices are marked seen. Returns false when nothing stops the day.
  */
 export async function clearDayStop(page: Page, handlers: StopHandlers = {}): Promise<boolean> {
+  await waitForDayBarSettled(page);
   await expect(dayButton(page, DAY_BUTTONS)).toBeVisible({ timeout: 15_000 });
   const contracts = dayButton(page, 'Contracts');
   const roster = dayButton(page, 'Roster');
@@ -84,8 +102,7 @@ export async function clearDayStop(page: Page, handlers: StopHandlers = {}): Pro
     return true;
   }
   if (await roster.isVisible()) {
-    await roster.click();
-    await expect(roster).toBeHidden({ timeout: 15_000 });
+    await clearInjuryStop(page);
     return true;
   }
   if (await show.isVisible()) {
@@ -106,7 +123,7 @@ const SHOW_STOP = /Go to the show$/;
  * in it), and it turns Skip days off until it is cleared.
  */
 export async function clearOtherStops(page: Page): Promise<boolean> {
-  await expect(page.getByTestId('day-control')).not.toHaveAttribute('aria-busy', 'true');
+  await waitForDayBarSettled(page);
   // Each pass clears one stop; a day has only a few kinds.
   for (let pass = 0; pass < 5; pass += 1) {
     if (await dayButton(page, SHOW_STOP).isVisible()) return true;
@@ -139,9 +156,9 @@ export async function skipToDateThroughStops(
     await sheet.getByLabel('Stop on', { exact: true }).fill(date);
     await sheet.getByRole('button', { name: 'Start' }).click();
     await expect(sheet).toBeHidden();
+    // The day bar has settled: a skip that stopped short shows its stop, or Next day when an open
+    // injury screen has already cleared it, and the next pass deals with either.
     await waitForAdvanceToEnd(page, startDate, before);
-    // A skip that stopped short stopped for something: wait for the day bar to say what.
-    if ((await gameDate(page)) < date) await expect(dayButton(page, 'Next day')).toBeHidden();
   }
   expect(await gameDate(page)).toBe(date);
 }

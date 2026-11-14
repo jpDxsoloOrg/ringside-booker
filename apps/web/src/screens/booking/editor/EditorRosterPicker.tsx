@@ -8,6 +8,7 @@ import type {
   PersonId,
   SegmentDraft,
   SegmentId,
+  TalkRole,
   TeamId,
 } from '@ringside/engine';
 import { useEngineQuery } from '@/app/engine/useEngineQuery';
@@ -169,6 +170,11 @@ export interface EditorRosterPickerProps {
   readonly roster: ReadonlyMap<PersonId, AvailableWorkerRow>;
   /** "Side 1: 1 of 2", above the list. */
   readonly status?: string;
+  /**
+   * MTCH5-08: the parts that suit the group being filled ("Interviewers only"), as a filter chip
+   * that is on when the picker opens. Left out, or with no roles, there is no such chip.
+   */
+  readonly fit?: { readonly label: string; readonly roles: readonly TalkRole[] };
   readonly onPickPerson: (side: number, personId: PersonId, name: string) => void;
   readonly onPickTeam: (
     side: number,
@@ -189,6 +195,7 @@ export function EditorRosterPicker({
   segmentId,
   roster,
   status,
+  fit,
   onPickPerson,
   onPickTeam,
   onClose,
@@ -218,6 +225,18 @@ export function EditorRosterPicker({
     [query.data, roster, draft, segmentId],
   );
 
+  const fitFilter = useMemo(() => {
+    if (fit === undefined || fit.roles.length === 0) return undefined;
+    const partOf = new Map((query.data?.people ?? []).map((row) => [row.personId, row.talkRole]));
+    return {
+      label: fit.label,
+      fits: (person: RosterPickerPerson) => {
+        const part = partOf.get(person.personId);
+        return part !== undefined && fit.roles.includes(part);
+      },
+    };
+  }, [fit, query.data]);
+
   const side = shown.side;
   return (
     <RosterPicker
@@ -241,6 +260,7 @@ export function EditorRosterPicker({
         if (row !== undefined) onPickTeam(side, team.teamId, row.memberIds, team.name);
       }}
       {...(status === undefined ? {} : { status })}
+      {...(fitFilter === undefined ? {} : { fitFilter })}
     />
   );
 }

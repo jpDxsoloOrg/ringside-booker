@@ -509,3 +509,121 @@ null for none), `earlierBeatKeysOnCard?` (at most 64) and `previewSeed`.
 - Rolls come from `detachedStream(meta.seed, 'match.angle',
 String(previewSeed))`: the same arguments and seed give the same answer, and
   the world, its RNG, traces and event log never move.
+
+<a id="talk-roles"></a>
+
+## Talk roles (MTCH5-08)
+
+A talking segment tells interviewers, managers and wrestlers apart. Each
+speaker may store the part they play (`participant.talkRole`):
+
+| Part          | Who                                                             |
+| ------------- | --------------------------------------------------------------- |
+| `wrestler`    | Talks for themselves.                                           |
+| `manager`     | Speaks for or stands with a client (`participant.forPersonId`). |
+| `interviewer` | Hosts an interview or reads an announcement.                    |
+| `authority`   | An on-screen general manager or owner figure.                   |
+
+`subject` stays a participant role of its own (someone an angle is about who
+does not speak). A speaker with no stored part plays the one they were hired
+for: a presenter or announcer interviews, a manager manages, anyone else is a
+wrestler (`talkRoleForEmployment`). Saves from before MTCH5-08 therefore read
+their speakers as wrestlers unless they were hired as something else.
+
+**Groups say which parts suit them.** A beat group may list `roles`
+(`talkRoleListSchema`); none listed means anyone suits it. The base pack:
+interview Guest (wrestler, manager) and Host (interviewer); announcement
+Announcer (interviewer, authority) and Subjects (wrestler, manager); and the
+six backstage beats below. `match.catalog` returns `roles` on every group
+(empty = anyone).
+
+**A wrong part is a warning, never an error, and never a penalty.**
+`talkWarnings` (`angles/talkWarnings.ts`) reads the angle's beats split into
+groups:
+
+| Code                          | Message                                                         |
+| ----------------------------- | --------------------------------------------------------------- |
+| `angle.wrongRole`             | "Kai Moreno is a wrestler: Host is for an interviewer"          |
+| `angle.settingNotAllowed`     | "A Video Package can't happen in the ring"                      |
+| `angle.beatSettingNotAllowed` | "Car Park Ambush can't happen in the ring"                      |
+| `angle.clientNotInSegment`    | "Victor Crane is here for Lena Park, who isn't in this segment" |
+
+Each person gets at most one `wrongRole` line. The codes are appended to
+`SEGMENT_WARNING_CODES` (the lab's warnings; the lab may pass `parts` on
+`SegmentAngleInput`, otherwise the hired part is used) and the booking
+checklist reads them through the `booking.talk` check (order 260). Nothing in
+the rater reads the part: a manager in the Guest group is rated on their own
+stats like anyone else, and the contract manager still stands in on mic and
+charisma as before.
+
+**Who did what, in one line.** `talkLine(setting, people)`
+(`angles/talkLine.ts`) gives "Backstage: Lena Park interviews Kai Moreno (with
+Victor Crane)": interviewers interview everyone else (with no interviewer an
+authority figure "meets" them), a manager whose client is in the segment is
+"with" them, and a setting other than the ring starts the line. A ring segment
+of wrestlers only has no line. `booking.card` (`BookingSegmentView.talkLine`,
+`BookingPersonView.talkRole`) and the results page
+(`SegmentResultView.talkLine`) carry it; live show night reads the results
+view.
+
+<a id="settings"></a>
+
+## Settings (MTCH5-08)
+
+A talking segment happens `ring` (the default), `backstage` or `video`
+(pre-taped), stored as `angle.setting` (absent = ring, so older saves and
+ring angles are unchanged). The writer stores a setting only when it is not
+the ring; a draft that names none starts where its type starts
+(`defaultSettingOf`: the ring when allowed, else the type's first setting, so
+a video package is pre-taped).
+
+- **Angle types** list the settings they allow (`settings`, absent = all):
+  promo and interview: ring, backstage, video; confrontation, attack and
+  contract signing: ring, backstage; video package: video.
+- **Beats** may list theirs too. The backstage beats (original names) are
+  `locker-room-interview` (Guest / Interviewer), `backstage-confrontation`
+  (Side A / Side B, backstage only), `parking-lot-attack` "Car Park Ambush"
+  (Attackers / Targets, physical), `medical-update` (Reporter / Patient),
+  `office-meeting` (Authority / Visitors, backstage only) and `arrival`
+  (Arrivals). The backstage skit is now backstage or video only, the video
+  package video only, the entrance ring or video, the celebration ring or
+  backstage.
+- **Templates** carry a `setting` (absent = ring): `backstage-interview`,
+  `parking-lot-ambush` and `office-summons` are backstage; `backstage-plot` is
+  now backstage and `hype-video` video. The pack loader refuses a template
+  whose type or beats can't happen in its setting (`setting-not-allowed`).
+
+**Rating by setting.** Away from the live crowd the beats count for more:
+
+- the crowd's share of the angle score is `crowdBlend ×
+match.angle.setting.<setting>.crowdShare` (0.35 × 0.4 = 0.14 backstage,
+  0.35 × 0.3 = 0.105 pre-taped) and delivered takes the rest, one multiply
+  step in the trace ("Crowd blend × 0.4 (backstage)") so the score's reasons
+  stay right;
+- there is no crowd roll, so nothing swings a backstage segment on the night
+  ("Hot crowd" can only come from what the crowd share earns);
+- the score's Why? opens with "Backstage: the crowd watches on screen" (or
+  "Pre-taped: …");
+- the duration class moves by `match.angle.setting.<setting>.durationShift`
+  (backstage −1: a standard slot becomes short, so 2 beats; pre-taped 0). The
+  card, the results page, `rateSegment`, `match.previewAngle` (`setting?`
+  argument) and the rater all read it through `angleDurationClass` /
+  `settingDurationShifter`, and the duration class's trace says "Backstage
+  pulls it down a step → Short".
+
+| Key                                           | Default | Range | Meaning                                                            |
+| --------------------------------------------- | ------- | ----- | ------------------------------------------------------------------ |
+| `match.angle.setting.backstage.crowdShare`    | 0.4     | 0–1   | Share of the usual crowd blend the crowd keeps backstage           |
+| `match.angle.setting.video.crowdShare`        | 0.3     | 0–1   | Share of the usual crowd blend the crowd keeps for a pre-taped one |
+| `match.angle.setting.backstage.durationShift` | −1      | −1–1  | Steps a backstage segment moves its slot's duration class          |
+| `match.angle.setting.video.durationShift`     | 0       | −1–1  | Steps a pre-taped segment moves its slot's duration class          |
+
+**Card rules.** A backstage segment still takes a card slot like any other
+segment: whether it should stop counting toward the card's slot limit is an
+open question for the owner (not built). Rival bookers send a talking segment
+backstage with `aip.card.backstageChance` (0.25) when its type can go there,
+rolled on its own detached stream (`aip.card.setting`, keyed by show and
+segment) so no other pick moves, and put managers and presenters on as
+themselves. With `aip.card.order.backstageBreaksTalk` (true) a backstage or
+pre-taped segment does not count for "no two talking segments in a row" (see
+[rival-booking.md](rival-booking.md#ordering)).

@@ -16,6 +16,7 @@ const WORKER_VALUE_DOC = 'angle-rating.md#beat-worker-value';
 const BEAT_SCORE_DOC = 'angle-rating.md#beat-score';
 const BEAT_LIMIT_DOC = 'angle-rating.md#beat-limits';
 const ANGLE_SCORE_DOC = 'angle-rating.md#angle-score';
+const SETTING_DOC = 'angle-rating.md#settings';
 
 function share(defaultValue: number, max: number, docRef: string, description: string) {
   return {
@@ -41,6 +42,20 @@ function noise(defaultValue: number, max: number, docRef: string, description: s
     category: ANGLES_TUNABLE_CATEGORY,
     description,
     docRef,
+  } as const;
+}
+
+/** How many duration-class steps a setting moves a talking segment, -1..1 (MTCH5-08). */
+function durationShift(defaultValue: number, description: string) {
+  return {
+    kind: 'integer',
+    default: defaultValue,
+    min: -1,
+    max: 1,
+    unit: 'count',
+    category: ANGLES_TUNABLE_CATEGORY,
+    description,
+    docRef: SETTING_DOC,
   } as const;
 }
 
@@ -183,5 +198,26 @@ export const angleTunables = defineTunables({
     10,
     0.5,
     'How much each level of the writing team raises the highest angle score',
+  ),
+  // MTCH5-08: backstage and pre-taped segments. See docs/design/angle-rating.md#settings.
+  'match.angle.setting.backstage.crowdShare': share(
+    0.4,
+    1,
+    SETTING_DOC,
+    'Backstage: share of the usual crowd blend the crowd keeps; the rest goes to how the beats were delivered',
+  ),
+  'match.angle.setting.video.crowdShare': share(
+    0.3,
+    1,
+    SETTING_DOC,
+    'Pre-taped: share of the usual crowd blend the crowd keeps; the rest goes to how the beats were delivered',
+  ),
+  'match.angle.setting.backstage.durationShift': durationShift(
+    -1,
+    "Steps a backstage segment moves its slot's duration class (-1: one step shorter)",
+  ),
+  'match.angle.setting.video.durationShift': durationShift(
+    0,
+    "Steps a pre-taped segment moves its slot's duration class (-1: one step shorter)",
   ),
 });

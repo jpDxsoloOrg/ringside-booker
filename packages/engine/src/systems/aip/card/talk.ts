@@ -14,6 +14,8 @@
  * - With a storyline: every free member who can talk, best talkers first, face side first.
  * - The angle type is a plain roll among the non-hidden types whose speaker range holds the
  *   speakers; a storyline's speakers are then cut to the type's most.
+ * - MTCH5-08: managers and presenters speak as themselves (`talkRole`), and the segment goes
+ *   backstage with `aip.card.backstageChance` when its type can (its own detached stream).
  *
  * Design: docs/design/rival-booking.md#talking-segments.
  */
@@ -26,6 +28,18 @@ import type { StorylineSide } from '../../../model/entities/storyline';
 import type { GameWorldView } from '../../../model/tables';
 import type { EngineTunables } from '../../tunables';
 import { emptyCrew, type ParticipantDraft } from '../../booking/draft';
+import { detachedStream } from '../../../core/rng/registry';
+import {
+  DEFAULT_ANGLE_SETTING,
+  type AngleSetting,
+  type TalkRole,
+} from '../../../model/entities/angle-setting';
+import {
+  allowsSetting,
+  defaultSettingOf,
+  talkRoleForEmployment,
+} from '../../match/angles/settings';
+import { SETTING_STREAM } from './streams';
 import type { CardBookings } from './fallback';
 import { BookerNotes } from './notes';
 import { TALKING_DOC_REF } from './tunables';
@@ -210,6 +224,41 @@ function storylineSpeakers(
   return speakers;
 }
 
+/** The part a speaker plays: a wrestler unless their career is managing or presenting. */
+function candidateTalkRole(candidate: CardCandidate): TalkRole {
+  if (candidate.roles.some((role) => role === 'wrestler' || role === 'occasionalWrestler')) {
+    return 'wrestler';
+  }
+  const [first] = candidate.roles;
+  return first === undefined ? 'wrestler' : talkRoleForEmployment(first);
+}
+
+/**
+ * MTCH5-08: where the segment happens. A type that can't happen in the ring takes its first
+ * setting; one that can go backstage does so with `aip.card.backstageChance`, rolled on its own
+ * stream so no other pick moves.
+ */
+function rollSetting(
+  pool: CardPool,
+  key: string,
+  angleType: AngleTypeDef,
+  deps: TalkSegmentDeps,
+  notes: BookerNotes,
+): AngleSetting {
+  const start = defaultSettingOf(angleType);
+  if (start !== DEFAULT_ANGLE_SETTING || !allowsSetting(angleType, 'backstage')) {
+    return start;
+  }
+  const chance = deps.tunables.get('aip.card.backstageChance');
+  if (chance <= 0) {
+    return start;
+  }
+  const rng = detachedStream(deps.read.meta.seed, SETTING_STREAM, `${pool.instanceId}/${key}`);
+  const backstage = rollChance(rng, chance, 'Backstage');
+  notes.roll(backstage.roll);
+  return backstage.value ? 'backstage' : start;
+}
+
 /** "Haruto Ise and Daichi Kuroe". */
 export function speakersLabel(names: readonly string[]): string {
   if (names.length <= 1) {
@@ -263,12 +312,17 @@ export function buildTalkSegment(
     }
   }
 
-  const participants: ParticipantDraft[] = speakers.map(({ candidate, side }) => ({
-    personId: candidate.personId,
-    side,
-    role: 'speaker',
-    teamId: null,
-  }));
+  const participants: ParticipantDraft[] = speakers.map(({ candidate, side }) => {
+    const talkRole = candidateTalkRole(candidate);
+    return {
+      personId: candidate.personId,
+      side,
+      role: 'speaker',
+      teamId: null,
+      ...(talkRole === 'wrestler' ? {} : { talkRole }),
+    };
+  });
+  const setting = rollSetting(pool, args.key, angleType, deps, notes);
   const label = speakersLabel(speakers.map(({ candidate }) => candidate.ringName));
   const because =
     fitting.length === 1
@@ -283,7 +337,10 @@ export function buildTalkSegment(
       storylineIds: args.storylineId === undefined ? [] : [args.storylineId],
       crew: emptyCrew(),
       participants,
-      angle: { angleTypeKey: angleType.key },
+      angle: {
+        angleTypeKey: angleType.key,
+        ...(setting === DEFAULT_ANGLE_SETTING ? {} : { setting }),
+      },
     },
     source: args.storylineId === undefined ? 'talk' : 'storyline',
     trace: notes.decide(label, angleType.name, because, TALKING_DOC_REF),

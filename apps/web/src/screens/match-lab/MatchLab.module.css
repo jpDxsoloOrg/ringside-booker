@@ -722,3 +722,17 @@
     min-block-size: var(--tap-target-min);
   }
 }
+
+/* ---- Mode (MTCH5-05) -------------------------------------------------------------------- */
+
+/* Match | Angle, above the setup: the rest of the lab follows the mode. */
+.modeBar {
+  margin-block-end: var(--space-4);
+}
+
+/* Angle mode gives the beats more of the width than the sides get; the result keeps the rest. */
+@container lab (width >= 64rem) {
+  .lab[data-mode='angle'] {
+    grid-template-columns: minmax(15rem, 17rem) minmax(0, 1fr) minmax(0, 1.15fr);
+  }
+}

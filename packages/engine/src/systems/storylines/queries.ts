@@ -123,8 +123,9 @@ export interface StorylineTimelineEntry {
 }
 
 /**
- * Why an ended storyline did or did not pay off: `paid` (a payoff trace exists), `tooFew` (fewer
- * linked segments than `storylines.payoff.minSegments`) or `notAvailable` (no payoff yet: CRTV4).
+ * Why an ended storyline did or did not pay off: `paid` (its payoff record says it paid, CRTV4-03),
+ * `tooFew` (fewer counted segments than `storylines.payoff.minSegments`) or `notAvailable` (it
+ * ended before payoffs existed, so there is no record).
  */
 export const STORYLINE_PAYOFFS = ['tooFew', 'notAvailable', 'paid'] as const;
 export type StorylinePayoff = (typeof STORYLINE_PAYOFFS)[number];
@@ -135,7 +136,7 @@ export interface StorylineEndingView {
   linkedSegments: number;
   minSegments: number;
   payoff: StorylinePayoff;
-  /** The payoff trace when `payoff` is `paid`, else null. */
+  /** The payoff trace when `payoff` is `paid` and the trace is kept, else null. */
   payoffTraceRef: TraceRef | null;
 }
 
@@ -417,13 +418,23 @@ function endingOf(
   }
   const minSegments = ctx.tunables.get('storylines.payoff.minSegments');
   const payoffRef = storylinePayoffTraceRef(storyline.id);
-  const paid = ctx.traces.has(payoffRef);
+  const record = storyline.payoff;
+  if (record === null) {
+    // Ended before the payoff (CRTV4-03) existed: only the threshold can be told.
+    return {
+      endedOn: storyline.endedOn,
+      linkedSegments,
+      minSegments,
+      payoff: linkedSegments < minSegments ? 'tooFew' : 'notAvailable',
+      payoffTraceRef: null,
+    };
+  }
   return {
     endedOn: storyline.endedOn,
-    linkedSegments,
+    linkedSegments: record.countedSegments,
     minSegments,
-    payoff: paid ? 'paid' : linkedSegments < minSegments ? 'tooFew' : 'notAvailable',
-    payoffTraceRef: paid ? payoffRef : null,
+    payoff: record.paid ? 'paid' : 'tooFew',
+    payoffTraceRef: record.paid && ctx.traces.has(payoffRef) ? payoffRef : null,
   };
 }
 

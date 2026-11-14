@@ -1,6 +1,7 @@
 import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
+import { BP_MOBILE_QUERY } from '@/styles/breakpoints';
 import { REDUCED_MOTION_QUERY } from '@/styles/useReducedMotion';
 import { setMatchMedia } from '@/test/matchMedia';
 import { Ticker, tickerLengthClass } from './Ticker';
@@ -88,6 +89,46 @@ describe('Ticker', () => {
     });
     expect(ticker).toHaveAttribute('data-motion', 'crawl');
     expect(ticker.querySelector('[data-part="loop-copy"]')).toHaveAttribute('inert');
+  });
+
+  it('keeps the wrapped list with no step buttons under reduced motion on desktop', () => {
+    setMatchMedia((query) => query === REDUCED_MOTION_QUERY);
+    const ticker = renderTicker();
+
+    expect(ticker).not.toHaveAttribute('data-stepping');
+    expect(within(ticker).queryByRole('button', { name: 'Next headline' })).toBeNull();
+  });
+
+  it('steps through one headline at a time under reduced motion on a phone', async () => {
+    setMatchMedia((query) => query === REDUCED_MOTION_QUERY || query === BP_MOBILE_QUERY);
+    const user = userEvent.setup({ delay: null });
+    const ticker = renderTicker();
+    const current = () => ticker.querySelector('li[data-current="true"]');
+
+    expect(ticker).toHaveAttribute('data-stepping', 'on');
+    expect(ticker).toHaveClass('stepping');
+    expect(ticker.querySelectorAll('li[data-current="true"]')).toHaveLength(1);
+    expect(current()).toHaveTextContent('Harbor Arena sells out for Thursday');
+    // A step the player asks for is read out.
+    expect(within(ticker).getByRole('list')).toHaveAttribute('aria-live', 'polite');
+
+    const next = within(ticker).getByRole('button', { name: 'Next headline' });
+    const previous = within(ticker).getByRole('button', { name: 'Previous headline' });
+    await user.click(next);
+    expect(current()).toHaveTextContent('Rival show draws its best number of the year');
+    await user.click(next);
+    await user.click(next);
+    expect(current()).toHaveTextContent('Harbor Arena sells out for Thursday');
+    await user.click(previous);
+    expect(current()).toHaveTextContent('Tag champions to defend on the road');
+  });
+
+  it('has nothing to step through with a single headline', () => {
+    setMatchMedia((query) => query === REDUCED_MOTION_QUERY || query === BP_MOBILE_QUERY);
+    const ticker = renderTicker({ items: HEADLINES.slice(0, 1) });
+
+    expect(ticker).not.toHaveAttribute('data-stepping');
+    expect(within(ticker).queryByRole('button')).toBeNull();
   });
 
   it('does not crawl an empty list', () => {

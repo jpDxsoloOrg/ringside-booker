@@ -54,7 +54,7 @@ function ShortDate({ date }: { readonly date: GameDate }) {
  * because no world is loaded, it draws `fallback` instead.
  */
 export function TopBarStatus({ compact, fallback = null }: TopBarStatusProps) {
-  const { status, gates, loading, refreshing } = useShellStatus();
+  const { status, gates, loading, settled } = useShellStatus();
   const advance = useDayAdvance();
   const [skipOpen, setSkipOpen] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
@@ -107,7 +107,7 @@ export function TopBarStatus({ compact, fallback = null }: TopBarStatusProps) {
             )}
             <VisuallyHidden>, show status</VisuallyHidden>
           </button>
-          <DayControl gates={gates} compact onOpenSkip={openSkip} refreshing={refreshing} />
+          <DayControl gates={gates} compact onOpenSkip={openSkip} settled={settled} />
           <Sheet
             open={statusOpen}
             onClose={() => {
@@ -143,7 +143,7 @@ export function TopBarStatus({ compact, fallback = null }: TopBarStatusProps) {
             dateTrailing={autosave}
             onOpenFanBase={openFanBaseFromBar}
           />
-          <DayControl gates={gates} onOpenSkip={openSkip} refreshing={refreshing} />
+          <DayControl gates={gates} onOpenSkip={openSkip} settled={settled} />
         </>
       )}
       <FanBaseSheet

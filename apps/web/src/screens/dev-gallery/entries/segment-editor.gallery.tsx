@@ -13,6 +13,7 @@ import { createTraceFixtureTransport } from '../fixtures/traceEngine';
 import {
   GALLERY_CATALOG,
   GALLERY_EDITOR_CARD,
+  GALLERY_INTERVIEW,
   GALLERY_PROMO,
   GALLERY_SINGLES,
   GALLERY_TAG,
@@ -70,6 +71,13 @@ function SegmentEditorDemo() {
             Talking segment
           </Button>
           <Button
+            onClick={() => {
+              openExisting(GALLERY_INTERVIEW.segmentId);
+            }}
+          >
+            Backstage interview
+          </Button>
+          <Button
             variant="ghost"
             onClick={() => {
               openNew({ eventInstanceId, preShow: false, slot: 0, kind: 'match' });
@@ -98,6 +106,6 @@ export const galleryEntry: GalleryEntry = {
   title: 'Segment editor',
   group: 'Overlays',
   notes:
-    'The booking screen’s segment editor (EVT2-06) on a static card: kind (new only), type with its limits and Long/Short chip, sides with the roster picker, titles (another brand, missing champion), the planned result and method, the billing line, then MTCH2’s Finish section (EVT2-07). "Random winners show" swaps the result for "Decided on the night (Random winners)". A full-height sheet on a phone.',
+    'The booking screen’s segment editor (EVT2-06) on a static card: kind (new only), type with its limits and Long/Short chip, sides with the roster picker, titles (another brand, missing champion), the planned result and method, the billing line, then MTCH2’s Finish section (EVT2-07). "Backstage interview" (MTCH5-08) shows Where, Guest and Host with each speaker’s part, Manager for Kai Moreno, and the Suits Host picker filter. "Random winners show" swaps the result for "Decided on the night (Random winners)". A full-height sheet on a phone.',
   render: () => <SegmentEditorDemo />,
 };

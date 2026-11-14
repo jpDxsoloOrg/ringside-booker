@@ -3592,3 +3592,84 @@ export {
   type StorylineTimeline,
   type StorylineTimelineRow,
 } from './systems/storylines/index';
+
+// CRTV4-03: the storyline payoff when a storyline ends. See docs/design/storylines.md#payoff.
+export {
+  ALREADY_BIGGER_TEXT,
+  LEFT_PROMOTION_PAYOFF_TEXT,
+  memberIsPaid,
+  memberPayoff,
+  NO_FAN_BASE_PAYOFF_TEXT,
+  noPayoffText,
+  PAY_OFF_ON_END_SUBSCRIPTION_ID,
+  PAYOFF_DOC_REF,
+  PAYOFF_OUTCOMES,
+  payOffOnEndSubscription,
+  payoffEligible,
+  payoffQuality,
+  payoffRegionWeights,
+  payOffStoryline,
+  planPayoff,
+  STORYLINE_PAYOFF_REASON_KEY,
+  STORYLINE_PAYOFF_REASONS,
+  storylinePayoffReason,
+  storylinesPayoffQuery,
+  type MemberPayoff,
+  type MemberPayoffInputs,
+  type PayoffEligibleInputs,
+  type PayoffOutcome,
+  type PayoffPlan,
+  type PayoffPlanMember,
+  type PayoffQualityInputs,
+  type StorylinePayoffView,
+} from './systems/storylines/index';
+// MTCH5-08: talk roles (wrestler, manager for a client, interviewer, authority figure) and
+// settings (ring, backstage, pre-taped) for talking segments. See
+// docs/design/angle-rating.md#talk-roles and #settings.
+export {
+  ANGLE_SETTING_LABELS,
+  ANGLE_SETTINGS,
+  DEFAULT_ANGLE_SETTING,
+  DEFAULT_TALK_ROLE,
+  isOffCrowdSetting,
+  TALK_ROLE_LABELS,
+  TALK_ROLES,
+} from './model/entities/angle-setting';
+export type { AngleSetting, TalkRole } from './model/entities/angle-setting';
+export { storedTalkRoleOf } from './model/entities/participant';
+export { AngleSettingSchema, settingOf } from './model/entities/segment';
+export {
+  allowsSetting,
+  defaultSettingOf,
+  groupAllowsRole,
+  rolesPhrase,
+  rolesText,
+  settingCrowdShareKey,
+  settingDurationShifter,
+  settingDurationShiftKey,
+  settingLabel,
+  settingNote,
+  settingsOfAngleType,
+  talkRoleForEmployment,
+} from './systems/match/angles/settings';
+export {
+  beatSettingMessage,
+  clientMissingMessage,
+  settingNotAllowedMessage,
+  settingPhrase,
+  TALK_WARNING_CODES,
+  talkWarnings,
+  wrongRoleMessage,
+} from './systems/match/angles/talkWarnings';
+export type {
+  TalkCheckBeat,
+  TalkCheckInput,
+  TalkPart,
+  TalkWarning,
+  TalkWarningCode,
+} from './systems/match/angles/talkWarnings';
+export { talkLine, talkLineOf, talkRoleWithFallback } from './systems/match/angles/talkLine';
+export type { TalkLinePerson } from './systems/match/angles/talkLine';
+export { angleDurationClass } from './systems/match/angles/rateAngle';
+export { TALK_CHECK_ID, TALK_CHECK_LABEL, talkCheck } from './systems/booking/validate/checks/talk';
+export { SETTING_STREAM } from './systems/aip/card/streams';

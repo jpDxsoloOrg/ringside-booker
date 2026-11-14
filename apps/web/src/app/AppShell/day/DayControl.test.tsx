@@ -162,9 +162,9 @@ describe('DayControl: Next day', () => {
     // A plain single day is announced, not bannered, and shows no overlay.
     expect(screen.queryByRole('region', { name: 'Last advance' })).toBeNull();
     expect(screen.getByTestId('advance-overlay')).not.toHaveAttribute('open');
-    // The bar is busy only while it still shows the day before; it settles on the new answers.
+    // The bar is unsettled only while it still shows the day before; it settles on the new answers.
     await waitFor(() => {
-      expect(screen.getByTestId('day-control')).not.toHaveAttribute('aria-busy');
+      expect(screen.getByTestId('day-control')).toHaveAttribute('data-settled', 'true');
     });
   });
 

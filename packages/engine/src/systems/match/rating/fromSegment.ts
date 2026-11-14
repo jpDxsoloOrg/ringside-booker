@@ -20,6 +20,7 @@ import type { AngleSegment, Segment } from '../../../model/entities/segment';
 import type { GameWorldView } from '../../../model/tables';
 import type { DeepReadonly } from '../../../model/world';
 import { beatGroupsOf } from '../angles/beatGroups';
+import type { TalkPart } from '../angles/talkWarnings';
 import type { MatchResolution } from '../finishes/resolution';
 import type { SegmentAngleInput, SegmentRatingInput, SegmentRatingSide } from './types';
 
@@ -100,7 +101,22 @@ function angleInputOf(
     .flatMap((other) =>
       other.kind === 'angle' ? other.angle.beats.map((beat) => beat.beatKey) : [],
     );
-  return { beats, earlierBeatKeysOnCard };
+  const parts: Record<PersonId, TalkPart> = {};
+  // Only the parts the booker named; anyone else plays the part they were hired for.
+  for (const participant of participants) {
+    if (participant.role === 'speaker' && participant.talkRole !== undefined) {
+      parts[participant.personId] = {
+        talkRole: participant.talkRole,
+        ...(participant.forPersonId === undefined ? {} : { forPersonId: participant.forPersonId }),
+      };
+    }
+  }
+  return {
+    beats,
+    earlierBeatKeysOnCard,
+    parts,
+    ...(segment.angle.setting === undefined ? {} : { setting: segment.angle.setting }),
+  };
 }
 
 /**

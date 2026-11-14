@@ -43,6 +43,12 @@ import {
   type MatchTypeDef,
 } from '../../model/catalogs';
 import type { BeatStat } from './angles/beatStats';
+import { defaultSettingOf, settingsOfAngleType } from './angles/settings';
+import {
+  DEFAULT_ANGLE_SETTING,
+  type AngleSetting,
+  type TalkRole,
+} from '../../model/entities/angle-setting';
 import type { DurationShift } from '../../model/catalogs';
 import { zContentKey } from '../../model/primitives';
 import { MAX_SIDE } from '../../model/entities/participant';
@@ -110,6 +116,13 @@ export interface AngleTypeOption {
   speakers: CountRange;
   /** MTCH5: the beats an angle of this type may use, by key. Empty without a beat catalog. */
   beatKeys: ContentKey[];
+  /** MTCH5-08: where an angle of this type may happen; the first is where a new one starts. */
+  settings: AngleSetting[];
+  /**
+   * MTCH5-05: the beat a new angle of this type starts with, or null on a save without a beat
+   * catalog. Always one of `beatKeys` when set. MTCH5-08's booking editor starts a new angle on it.
+   */
+  defaultBeatKey: ContentKey | null;
   hidden: boolean;
 }
 
@@ -122,6 +135,8 @@ export interface BeatGroupOption {
   maxPeople: number;
   optional: boolean;
   managerCanStandIn: boolean;
+  /** MTCH5-08: the talk roles that suit the group; empty = anyone. */
+  roles: TalkRole[];
 }
 
 /** A beat as the lab offers it (MTCH5). Beats have no length. */
@@ -133,6 +148,8 @@ export interface BeatOption {
   physical: boolean;
   repetitionGroup: BeatRepetitionGroup;
   weight: number;
+  /** MTCH5-08: where the beat can happen. */
+  settings: AngleSetting[];
 }
 
 /** One beat of an angle template (MTCH5). */
@@ -152,6 +169,8 @@ export interface AngleTemplateOption {
   beats: AngleTemplateBeatOption[];
   /** How many beats are left once every optional beat is dropped. */
   requiredBeatCount: number;
+  /** MTCH5-08: where the template's angle happens. */
+  setting: AngleSetting;
   description: string | null;
 }
 
@@ -275,6 +294,11 @@ declare module '../../core/api/maps' {
   }
 }
 
+/** `settings` with `first` moved to the front. */
+function startingFirst(settings: readonly AngleSetting[], first: AngleSetting): AngleSetting[] {
+  return [first, ...settings.filter((setting) => setting !== first)];
+}
+
 function range(value: { readonly min: number; readonly max: number }): CountRange {
   return { min: value.min, max: value.max };
 }
@@ -299,10 +323,20 @@ function beatOption(def: BeatDef): BeatOption {
     key: def.key,
     name: def.name,
     description: def.description,
-    groups: def.groups.map((group) => ({ ...group, stats: [...group.stats] })),
+    groups: def.groups.map((group) => ({
+      label: group.label,
+      stats: [...group.stats],
+      weight: group.weight,
+      minPeople: group.minPeople,
+      maxPeople: group.maxPeople,
+      optional: group.optional,
+      managerCanStandIn: group.managerCanStandIn,
+      roles: [...(group.roles ?? [])],
+    })),
     physical: def.physical,
     repetitionGroup: def.repetitionGroup,
     weight: def.weight,
+    settings: settingsOfAngleType(def),
   };
 }
 
@@ -314,6 +348,7 @@ function angleTemplateOption(def: AngleTemplateDef): AngleTemplateOption {
     purpose: def.purpose,
     beats: def.beats.map((beat) => ({ ...beat })),
     requiredBeatCount: def.beats.filter((beat) => !beat.optional).length,
+    setting: def.setting ?? DEFAULT_ANGLE_SETTING,
     description: def.description ?? null,
   };
 }
@@ -342,6 +377,10 @@ export const catalogQuery: QueryDefinition<'match.catalog'> = defineQuery('match
         order: def.order,
         speakers: range(def.speakers),
         beatKeys: beats.filter((beat) => isBeatAllowed(def, beat.key)).map((beat) => beat.key),
+        settings: startingFirst(settingsOfAngleType(def), defaultSettingOf(def)),
+        defaultBeatKey: beats.some((beat) => beat.key === def.defaultBeatKey)
+          ? def.defaultBeatKey
+          : null,
         hidden: def.hidden,
       })),
       methods: methodsOf(ctx.read, options).map((def) => ({

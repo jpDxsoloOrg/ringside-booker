@@ -11,7 +11,6 @@ import { SLOT_ROLE_LABELS, SLOT_ROLES } from '@ringside/engine';
 import { useEngineQuery } from '@/app/engine/useEngineQuery';
 import { Badge } from '@/components/Badge';
 import { Panel } from '@/components/Panel';
-import { RadioGroup } from '@/components/RadioGroup';
 import type { RadioOption } from '@/components/RadioGroup';
 import { Select } from '@/components/Select';
 import type { SelectOption } from '@/components/Select';
@@ -19,6 +18,7 @@ import { Switch } from '@/components/Switch';
 import { WhyButton } from '@/components/Trace';
 import { useIsMobile } from '@/styles/useMediaQuery';
 import { useLabStore } from './labStore';
+import type { LabState } from './labStore';
 import { weightText } from './labText';
 import styles from './MatchLab.module.css';
 import { LabResultGroup } from './result/LabResultGroup';
@@ -26,9 +26,13 @@ import { LabResultGroup } from './result/LabResultGroup';
 /** The rules the lab rates by when no Run has said otherwise. */
 export const DEFAULT_RULES_LABEL = 'Full rules';
 
-const KIND_OPTIONS: readonly RadioOption<SegmentKind>[] = [
+/**
+ * The lab's two modes (MTCH5-05): a match, or an angle built from beats. Angle mode replaced
+ * MTCH1's simple "Talking segment".
+ */
+export const MODE_OPTIONS: readonly RadioOption<SegmentKind>[] = [
   { value: 'match', label: 'Match' },
-  { value: 'angle', label: 'Talking segment' },
+  { value: 'angle', label: 'Angle' },
 ];
 
 const SLOT_ROLE_OPTIONS: readonly SelectOption[] = SLOT_ROLES.map((role) => ({
@@ -105,15 +109,26 @@ export interface LabSetupPanelProps {
   readonly rulesLabel: string | null;
 }
 
+/** "Main event · Regular show · Bayshore · Televised": the setup in one line, for a phone. */
+export function setupSummary(setup: LabState['setup'], options: LabOptions): string {
+  const importance = options.importances.find((option) => option.key === setup.importance);
+  const region = options.regions.find((option) => option.id === setup.regionId);
+  return [
+    SLOT_ROLE_LABELS[setup.slotRole],
+    importance?.label ?? setup.importance,
+    region?.name ?? 'No region',
+    setup.televised ? 'Televised' : 'Not televised',
+  ].join(' · ');
+}
+
 /**
- * The left column: what the segment is (a match or a talking segment, and its type), where it sits
- * on the card, and the show it is on. The duration and weight chips follow the slot role at once;
- * nothing is rated until Run. For a match, the Winner and finish group that Simulate plays out
- * comes last.
+ * The left column: the match type, where the segment sits on the card, and the show it is on. The
+ * duration and weight chips follow the slot role at once; nothing is rated until Run. For a match,
+ * the Winner and finish group that Simulate plays out comes last. In Angle mode (MTCH5-05) the
+ * angle type lives with the beats instead, and on a phone the panel folds into a one-line summary.
  */
 export function LabSetupPanel({ options, catalog, rulesLabel }: LabSetupPanelProps) {
   const setup = useLabStore((state) => state.setup);
-  const setKind = useLabStore((state) => state.setKind);
   const setType = useLabStore((state) => state.setType);
   const setSlotRole = useLabStore((state) => state.setSlotRole);
   const setImportance = useLabStore((state) => state.setImportance);
@@ -143,15 +158,6 @@ export function LabSetupPanel({ options, catalog, rulesLabel }: LabSetupPanelPro
     group: region.countryName,
   }));
 
-  const changeKind = (kind: SegmentKind): void => {
-    if (kind === setup.kind) return;
-    const typeKey =
-      kind === 'match'
-        ? (options.defaults.typeKey ?? catalog.matchTypes[0]?.key ?? null)
-        : (catalog.angleTypes[0]?.key ?? null);
-    setKind(kind, typeKey, startingSides(catalog, kind, typeKey));
-  };
-
   const changeType = (value: string): void => {
     const option =
       setup.kind === 'match'
@@ -161,23 +167,30 @@ export function LabSetupPanel({ options, catalog, rulesLabel }: LabSetupPanelPro
     setType(option.key, startingSides(catalog, setup.kind, option.key));
   };
 
+  const isAngle = setup.kind === 'angle';
+  // On a phone, Angle mode folds the setup into a summary row (the beats need the room).
+  const folded = isMobile && isAngle;
+
   return (
-    <Panel title="Setup" className={styles['setupPanel']}>
+    <Panel
+      // A new key when it starts folding, so it opens folded; the setup itself is in the store.
+      key={folded ? 'folded' : 'open'}
+      title="Setup"
+      {...(folded ? { subtitle: setupSummary(setup, options) } : {})}
+      collapsible={folded}
+      defaultCollapsed={folded}
+      className={styles['setupPanel']}
+    >
       <div className={styles['setupFields']}>
-        <RadioGroup
-          legend="Segment"
-          layout="row"
-          options={KIND_OPTIONS}
-          value={setup.kind}
-          onValueChange={changeKind}
-        />
-        <Select
-          label={setup.kind === 'match' ? 'Match type' : 'Talking segment type'}
-          options={typeOptions}
-          value={setup.typeKey ?? ''}
-          placeholder="Pick a type"
-          onValueChange={changeType}
-        />
+        {!isAngle && (
+          <Select
+            label="Match type"
+            options={typeOptions}
+            value={setup.typeKey ?? ''}
+            placeholder="Pick a type"
+            onValueChange={changeType}
+          />
+        )}
         <div className={styles['slotField']}>
           <Select
             label="Slot role"
@@ -238,7 +251,7 @@ export function LabSetupPanel({ options, catalog, rulesLabel }: LabSetupPanelPro
           <Badge tone="neutral">{rulesLabel ?? DEFAULT_RULES_LABEL}</Badge>
         </p>
         {/* On a phone the Winner and finish group sits under the sides instead (MatchLabView). */}
-        {!isMobile && <LabResultGroup />}
+        {!isMobile && !isAngle && <LabResultGroup />}
       </div>
     </Panel>
   );
