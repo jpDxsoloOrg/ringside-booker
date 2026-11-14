@@ -68,6 +68,26 @@ describe('heatDecay', () => {
     );
   });
 
+  it('shows the grace period and the floor it passed as taken checks, each with its setting', () => {
+    const result = cool(40, 13);
+    const grace = expectTraceContains(result, {
+      kind: 'branch',
+      label: 'Past the grace period of 7 days',
+    });
+    expect(grace).toMatchObject({ taken: true });
+    expect(findTraceNodes(grace, 'tunable').map((node) => node.key)).toEqual([
+      'storylines.heat.decayGraceDays',
+    ]);
+    const floor = expectTraceContains(result, {
+      kind: 'branch',
+      label: 'Above the cooling floor of 10',
+    });
+    expect(floor).toMatchObject({ taken: true });
+    expect(findTraceNodes(floor, 'tunable').map((node) => node.key)).toEqual([
+      'storylines.heat.decayFloor',
+    ]);
+  });
+
   it('lands on the floor and no lower', () => {
     const result = cool(10.5, 20);
     expect(result.value).toBe(10);
