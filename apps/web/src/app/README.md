@@ -282,6 +282,10 @@ and the score histogram and summaries. Changing the setup, the sides or the plan
 "Out of date: run again". Auto reads "Auto (Random winners)" when `match.resultMode` says Random
 winners decides the player's results. The result components live in `screens/match-lab/result/`.
 
+`/game/match-lab?mode=angle` opens the lab in **Angle mode** (MTCH5-05, `screens/match-lab/angle/`):
+an angle built from beats in the `BeatEditor`, rated by `match.previewAngle`, with the beat limit of
+the slot role, a manager menu on each speaker, the per-beat table and the angle's Aftermath.
+
 `screens/match-lab/defaultWorldLab.test.ts` is the lab's hand-test script against a new
 default-world game as Altura: the defaults, every Why? a Run offers read in the panel's own words
 (settings named by key, choices as words, no broken numbers, nothing about running time), one
