@@ -306,18 +306,15 @@ test.describe('contracts', () => {
       payrollBefore = await projectedPayroll(page);
     });
 
-    await test.step('Rules: contracts stop renewing by themselves', async () => {
+    await test.step('Rules: contracts do not renew by themselves', async () => {
       await openContracts(page, phone);
       await page.getByRole('button', { name: 'Rules' }).click();
       const rules = page.getByRole('dialog', { name: 'Contract rules' });
       await expect(rules.getByRole('group', { name: 'Worker patience' })).toBeVisible();
-      // The stopgap until contract talks: ECO5-05 retires it, and this switch with it.
+      // The old stopgap: off by default since ECO5-05 (renew through contract talks instead).
       const renew = rules.getByRole('switch', { name: 'Renew my contracts automatically' });
       if ((await renew.count()) > 0) {
-        // The switch follows the saved rule, so it flips once the engine has answered.
-        await expect(renew).toBeChecked();
-        await renew.click();
-        await expect(renew).not.toBeChecked({ timeout: 15_000 });
+        await expect(renew).not.toBeChecked();
       }
       await expectNoHorizontalScroll(page);
       await page.keyboard.press('Escape');
