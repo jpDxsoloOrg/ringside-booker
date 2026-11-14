@@ -21,13 +21,7 @@ import { viewerPromotionIds } from '../../core/api/controller';
 import { defineQuery, type QueryContext } from '../../core/api/query';
 import { INVALID_ARGS, refuseQuery } from '../../core/api/result';
 import { ageInYears, compareDates, type GameDate } from '../../core/date';
-import type {
-  BrandId,
-  EmploymentId,
-  NegotiationId,
-  PersonId,
-  PromotionId,
-} from '../../core/ids';
+import type { BrandId, EmploymentId, NegotiationId, PersonId, PromotionId } from '../../core/ids';
 import type { GameWorldView } from '../../model/tables';
 import {
   ContractKindSchema,
