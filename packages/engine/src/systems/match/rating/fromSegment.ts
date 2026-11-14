@@ -148,6 +148,7 @@ export function ratingInputFromSegment(
     typeKey: isMatch ? segment.match.matchTypeKey : segment.angle.angleTypeKey,
     sides: sidesOf(participants, isMatch ? 'competitor' : 'speaker'),
     slot: { slot: segment.slot + 1, slots: show.format.slots, preShow: segment.preShow },
+    ...(segment.bookedLength === undefined ? {} : { bookedLength: segment.bookedLength }),
     event: {
       importance: show.importance,
       regionId: show.regionId,

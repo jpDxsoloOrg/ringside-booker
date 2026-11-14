@@ -476,7 +476,10 @@ function slotViewOf(
     segment?.kind === 'angle'
       ? settingDurationShifter(settingOf(segment), deps.tunables)
       : matchType;
-  const duration = durationClassOf({ role: role.value, matchType: shifter }, slotDeps);
+  const duration = durationClassOf(
+    { role: role.value, matchType: shifter, booked: segment?.bookedLength ?? null },
+    slotDeps,
+  );
   const weight = slotWeightOf({ role: role.value }, slotDeps);
   return {
     slot,

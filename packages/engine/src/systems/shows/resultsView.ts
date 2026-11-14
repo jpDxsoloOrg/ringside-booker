@@ -493,6 +493,7 @@ function segmentViewOf(
     {
       role,
       matchType: isMatch ? matchType : settingDurationShifter(settingOf(segment), deps.tunables),
+      booked: segment.bookedLength ?? null,
     },
     slotDeps,
   ).value;

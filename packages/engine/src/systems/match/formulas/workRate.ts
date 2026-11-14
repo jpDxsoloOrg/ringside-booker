@@ -30,6 +30,11 @@ export interface WorkRateWorker {
   /** The worker's in-ring performance (`workerPerformance` on the in-ring axis). */
   performance: Traced<number>;
   stamina: number;
+  /**
+   * EVT4-08: stamina a tired worker is short of in a match the booker set longer than usual
+   * (`fatigue × match.workRate.lengthenedFatigueShare` per step). Left out or 0: no line.
+   */
+  tiredness?: number;
 }
 
 export interface WorkRateSide {
@@ -134,7 +139,7 @@ export interface StaminaCheck {
  * reads it for the per-worker lines; `workRate` subtracts the same penalty.
  */
 export function staminaCheckOf(
-  worker: Pick<WorkRateWorker, 'name' | 'stamina'>,
+  worker: Pick<WorkRateWorker, 'name' | 'stamina' | 'tiredness'>,
   inputs: Pick<WorkRateInputs, 'durationClass' | 'workerCount'>,
   tunables: EngineTunables,
 ): StaminaCheck {
@@ -155,7 +160,12 @@ export function staminaCheckOf(
       `Shared by ${String(inputs.workerCount)}: (2 ÷ ${String(sharers)}) ^ ${formatNumber(exponent)}`,
       (SINGLES_WORKERS / sharers) ** exponent,
     )
-    .subtract(`${worker.name}'s stamina`, worker.stamina)
+    .subtract(`${worker.name}'s stamina`, worker.stamina);
+  const tiredness = worker.tiredness ?? 0;
+  if (tiredness > 0) {
+    penalty.add(`${worker.name} is tired for a match booked longer`, tiredness);
+  }
+  penalty
     .max('No shortfall below 0', 0)
     .multiply(
       'Penalty per point short',
@@ -164,7 +174,7 @@ export function staminaCheckOf(
   const cost = penalty.done();
   const need =
     tunables.get(STAMINA_NEED_KEYS[inputs.durationClass]) * (SINGLES_WORKERS / sharers) ** exponent;
-  return { need, have: worker.stamina, penalty: cost };
+  return { need, have: worker.stamina - tiredness, penalty: cost };
 }
 
 /**

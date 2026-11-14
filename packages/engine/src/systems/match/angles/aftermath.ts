@@ -261,7 +261,12 @@ export function storedAngleAftermathInput(
     instance.eventDefinitionId === null
       ? undefined
       : read.tables.eventDefinitions.get(instance.eventDefinitionId);
-  const durationClass = angleDurationClass(roleKey, settingOf(segment), tunables);
+  const durationClass = angleDurationClass(
+    roleKey,
+    settingOf(segment),
+    tunables,
+    segment.bookedLength ?? null,
+  );
   const max = beatLimitOf(durationClass, tunables).value;
   return {
     segmentId: segment.id,

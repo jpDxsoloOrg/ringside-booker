@@ -34,6 +34,7 @@ import type { RatingStage } from '../rating/types';
 import {
   DURATION_CLASS_LABELS,
   SLOT_ROLE_LABELS,
+  bookedSteps,
   durationClassOf,
   type DurationClass,
   type SlotRole,
@@ -122,6 +123,8 @@ export interface RateAngleInput {
    * on the beats more than the crowd, have no crowd roll and may shift the duration class.
    */
   readonly setting?: AngleSetting;
+  /** EVT4-08: the time the booker set in place of the role's usual class. Left out: the usual. */
+  readonly bookedLength?: DurationClass | null;
 }
 
 /**
@@ -363,16 +366,18 @@ function repetitionCounts(
 }
 
 /**
- * A talking segment's duration class: its slot role's, moved by its setting (MTCH5-08: backstage is
- * usually one step shorter, `match.angle.setting.<setting>.durationShift`).
+ * A talking segment's duration class: its slot role's (or the time the booker set, EVT4-08), moved
+ * by its setting (MTCH5-08: backstage is usually one step shorter,
+ * `match.angle.setting.<setting>.durationShift`).
  */
 export function angleDurationClass(
   role: SlotRole,
   setting: AngleSetting,
   tunables: EngineTunables,
+  booked: DurationClass | null = null,
 ): DurationClass {
   return durationClassOf(
-    { role, matchType: settingDurationShifter(setting, tunables) },
+    { role, matchType: settingDurationShifter(setting, tunables), booked },
     { tunables },
   ).value;
 }
@@ -389,7 +394,8 @@ export function rateAngle(input: RateAngleInput, deps: RateAngleDeps): AngleRati
   const { tunables } = deps;
   const stage = deps.stage ?? defaultStage(tunables);
   const setting = input.setting ?? 'ring';
-  const durationClass = angleDurationClass(input.role, setting, tunables);
+  const booked = input.bookedLength ?? null;
+  const durationClass = angleDurationClass(input.role, setting, tunables, booked);
   const limit = beatLimitOf(durationClass, tunables);
   const max = limit.value;
   const notes = [...(input.notes ?? [])];
@@ -465,6 +471,14 @@ export function rateAngle(input: RateAngleInput, deps: RateAngleDeps): AngleRati
         roleLabel: SLOT_ROLE_LABELS[input.role],
         importance: input.importance,
         televised: input.televised,
+        booked: {
+          steps: bookedSteps(
+            { role: input.role, matchType: settingDurationShifter(setting, tunables), booked },
+            durationClass,
+            tunables,
+          ).steps,
+          durationClass,
+        },
       },
       { tunables },
     ),

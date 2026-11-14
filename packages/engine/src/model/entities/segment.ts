@@ -6,7 +6,9 @@
  * sits in a numbered slot of one card section (the main card or the pre-show). Per design decision
  * D-10 that slot is all the card stores: the slot role (opener, midcard, semi-main, main event) and
  * the duration class (short, standard, long) are derived by MTCH from the slot position, the
- * section and the match type. No segment field holds minutes, a length or a role.
+ * section and the match type. No segment field holds minutes or a role. EVT4-08: the booker may set
+ * a segment's time (`bookedLength`: Short, Standard or Long) in place of its role's usual class,
+ * within the show's time budget; absent means the role's usual class.
  *
  * Design notes: docs/design/data-model.md, "Titles, events, storylines and seasons".
  */
@@ -24,6 +26,11 @@ import { titlesTable } from './title';
 
 export const SEGMENT_KINDS = ['match', 'angle'] as const;
 export type SegmentKind = (typeof SEGMENT_KINDS)[number];
+
+/** EVT4-08: the times a booker can set for a segment, shortest first (no minutes, D-10). */
+export const BOOKED_LENGTHS = ['short', 'standard', 'long'] as const;
+export const BookedLengthSchema = z.enum(BOOKED_LENGTHS);
+export type BookedLength = z.infer<typeof BookedLengthSchema>;
 
 /** Most announcers on one segment's commentary team. */
 export const MAX_ANNOUNCERS = 4;
@@ -80,6 +87,12 @@ const segmentBaseShape = {
   crew: SegmentCrewSchema,
   /** Set only once the show is completed. */
   rating: SegmentRatingSchema.nullable(),
+  /**
+   * EVT4-08: the time the booker set (Short, Standard or Long), replacing the slot role's usual
+   * duration class before the match type or setting shifts it. Absent = the role's usual class
+   * (every save from before EVT4-08, and every slot the booker left alone).
+   */
+  bookedLength: BookedLengthSchema.optional(),
 };
 
 /**

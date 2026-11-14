@@ -49,6 +49,11 @@ export interface SegmentRatingInput {
   readonly typeKey: ContentKey;
   readonly sides: readonly SegmentRatingSide[];
   readonly slot: SegmentRatingSlot;
+  /**
+   * EVT4-08: the time the booker set (Short, Standard or Long) in place of the role's usual class.
+   * Left out or null: the role's usual class.
+   */
+  readonly bookedLength?: DurationClass | null;
   readonly event: SegmentRatingEvent;
   /** The promotion running the show: momentum is read from contracts with it. */
   readonly promotionId: PromotionId;
@@ -162,6 +167,8 @@ export interface WorkerLine {
 export interface SlotDerivation {
   readonly role: SlotRole;
   readonly durationClass: DurationClass;
+  /** EVT4-08: steps the booked time moves the class from the role's usual one (0 when unset). */
+  readonly bookedSteps: number;
   readonly weight: number;
   readonly roleTrace: Traced<SlotRole>;
   readonly durationTrace: Traced<DurationClass>;
