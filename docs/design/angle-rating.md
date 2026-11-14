@@ -618,9 +618,8 @@ match.angle.setting.<setting>.crowdShare` (0.35 × 0.4 = 0.14 backstage,
 | `match.angle.setting.backstage.durationShift` | −1      | −1–1  | Steps a backstage segment moves its slot's duration class          |
 | `match.angle.setting.video.durationShift`     | 0       | −1–1  | Steps a pre-taped segment moves its slot's duration class          |
 
-**Card rules.** A backstage segment still takes a card slot like any other
-segment: whether it should stop counting toward the card's slot limit is an
-open question for the owner (not built). Rival bookers send a talking segment
+**Card rules.** A backstage or pre-taped segment takes a card slot like any
+other segment (owner decision, Sprint 11, MTCH5-10). Rival bookers send a talking segment
 backstage with `aip.card.backstageChance` (0.25) when its type can go there,
 rolled on its own detached stream (`aip.card.setting`, keyed by show and
 segment) so no other pick moves, and put managers and presenters on as
