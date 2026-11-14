@@ -314,6 +314,7 @@ test.describe('contract negotiation', () => {
       await expect(sheet).toBeHidden();
 
       // The next day they counter, and the day bar stops on it.
+      const submittedOn = await gameDate(page);
       await nextDay(page);
       await expect(dayButton(page, 'Contracts')).toBeVisible({ timeout: 20_000 });
       await navigateInApp(page, '/game/contracts?tab=offers');
@@ -326,7 +327,8 @@ test.describe('contract negotiation', () => {
       expect(wage, 'and no more than their ask').toBeLessThanOrEqual(asked * 100);
       agreedBonus = centsOf(/(\$[\d,]+) to sign/.exec(terms)?.[1] ?? '$0');
       expect(agreedBonus, 'the counter asks for a signing bonus').toBeGreaterThan(0);
-      const answerBy = dateText(addIsoDays(await gameDate(page), COUNTER_EXPIRY_DAYS));
+      // A week from the day they weighed your offer (the day it was sent, run by Next day).
+      const answerBy = dateText(addIsoDays(submittedOn, COUNTER_EXPIRY_DAYS));
       await expect(row).toContainText(`Answer by ${answerBy}`);
       await expectNoHorizontalScroll(page);
       await expectNoSeriousA11yViolations(page);
@@ -391,8 +393,8 @@ test.describe('contract negotiation', () => {
       await advanceUntil(page, `${name} walked away`, () =>
         closedTalksShow(page, name, /Walked away/),
       );
-      // They react the day after the offer; the cooldown runs from then.
-      const until = dateText(addIsoDays(submittedOn, 1 + COOLDOWN_DAYS));
+      // The cooldown runs from the day they weighed your offer (the day it was sent).
+      const until = dateText(addIsoDays(submittedOn, COOLDOWN_DAYS));
       await expect(rows(page).filter({ hasText: name }).first()).toContainText(
         `Walked away: try again after ${until}`,
       );
@@ -420,9 +422,15 @@ test.describe('contract negotiation', () => {
         .replace(/^Renew /, '')
         .trim();
       expect(renewed).not.toBe('');
-      await expect(sheet.getByText(/^Now: \$[\d,]+ (a month|an appearance)/)).toBeVisible();
+      const now = sheet.getByText(/^Now: \$[\d,]+(\/mo| per show).* until /);
+      await expect(now).toBeVisible();
+      const nowText = (await now.textContent()) ?? '';
       await sheet.getByRole('button', { name: 'Use their ask' }).click();
       await expectReaction(sheet, /^Likely to accept/);
+      if (nowText.includes('/mo') && (await wageField(sheet).isVisible())) {
+        // "Won't take less than their current deal with you."
+        expect(await dollarsIn(wageField(sheet))).toBeGreaterThanOrEqual(centsOf(nowText) / 100);
+      }
       await expectNoHorizontalScroll(page);
       if (phone) await expectPhoneSheet(page, sheet);
       await shot(page, 'renewal-sheet', testInfo);
