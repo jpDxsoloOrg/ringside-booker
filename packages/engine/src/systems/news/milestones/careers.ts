@@ -9,12 +9,7 @@ import type { GameWorldView } from '../../../model/tables';
 import type { EngineTunables } from '../../tunables';
 import { registerNewsTopic } from '../topics';
 import { anniversariesIn } from './dates';
-import {
-  registerMilestoneSource,
-  type MilestoneCandidate,
-  type MilestoneSource,
-  type MilestoneWindow,
-} from './registry';
+import { type MilestoneCandidate, type MilestoneSource, type MilestoneWindow } from './registry';
 
 export const CAREER_ANNIVERSARY_TOPIC = 'career-anniversary';
 
@@ -70,5 +65,3 @@ function collectCareers(
 }
 
 export const careersSource: MilestoneSource = { id: 'careers', collect: collectCareers };
-
-registerMilestoneSource(careersSource);

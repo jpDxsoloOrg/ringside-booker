@@ -1,8 +1,27 @@
 /**
- * The weekly milestone stories (DAY1-02): the source registry and the five built-in sources,
- * registered in this order: reigns, reign records, careers, promotions, seasons.
+ * The weekly milestone stories (DAY1-02): the source registry and the five built-in sources.
+ *
+ * The built-ins are registered here, in one fixed order (reigns, reign records, careers,
+ * promotions, seasons), so the order never depends on which module happened to load first.
  * Design: docs/design/news.md#milestones.
  */
+
+import { careersSource } from './careers';
+import { promotionsSource } from './promotions';
+import { registerMilestoneSource } from './registry';
+import { reignRecordsSource } from './reignRecords';
+import { reignsSource } from './reigns';
+import { seasonsSource } from './seasons';
+
+for (const source of [
+  reignsSource,
+  reignRecordsSource,
+  careersSource,
+  promotionsSource,
+  seasonsSource,
+]) {
+  registerMilestoneSource(source);
+}
 
 export {
   milestoneSources,

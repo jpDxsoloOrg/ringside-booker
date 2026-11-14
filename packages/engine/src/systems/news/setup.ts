@@ -12,11 +12,7 @@ import { ACTIVE_SEASON_KEY } from '../../model/entities/season';
 import type { GameTables } from '../../model/tables';
 import type { Tx } from '../../model/tx';
 import { registerSetupStep, type SetupContext } from '../newgame/steps';
-import {
-  SEASON_START_TOPIC,
-  seasonStartBodyParams,
-  seasonStartDedupeKey,
-} from './milestones/seasons';
+import { SEASON_START_TOPIC, seasonStartBodyParams, seasonStartDedupeKey } from './milestones';
 import { postNews } from './post';
 
 export const NEWS_OPENING_STORY_STEP = { id: 'news.openingStory', order: 950 } as const;

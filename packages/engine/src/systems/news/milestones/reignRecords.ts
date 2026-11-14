@@ -10,12 +10,7 @@ import type { DeepReadonly } from '../../../model/world';
 import type { EngineTunables } from '../../tunables';
 import { registerNewsTopic } from '../topics';
 import { dayMarkIn } from './dates';
-import {
-  registerMilestoneSource,
-  type MilestoneCandidate,
-  type MilestoneSource,
-  type MilestoneWindow,
-} from './registry';
+import { type MilestoneCandidate, type MilestoneSource, type MilestoneWindow } from './registry';
 import { holderIdsParam, openReigns } from './reigns';
 
 export const REIGN_RECORD_TOPIC = 'reign-record';
@@ -90,5 +85,3 @@ export const reignRecordsSource: MilestoneSource = {
   id: 'reignRecords',
   collect: collectReignRecords,
 };
-
-registerMilestoneSource(reignRecordsSource);

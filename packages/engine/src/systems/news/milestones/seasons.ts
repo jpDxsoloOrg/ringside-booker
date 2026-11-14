@@ -10,12 +10,7 @@ import type { DeepReadonly } from '../../../model/world';
 import type { NewsParams } from '../post';
 import { registerNewsTopic } from '../topics';
 import { inWindow } from './dates';
-import {
-  registerMilestoneSource,
-  type MilestoneCandidate,
-  type MilestoneSource,
-  type MilestoneWindow,
-} from './registry';
+import { type MilestoneCandidate, type MilestoneSource, type MilestoneWindow } from './registry';
 
 export const SEASON_START_TOPIC = 'season-start';
 
@@ -62,5 +57,3 @@ function collectSeasons(read: GameWorldView, window: MilestoneWindow): Milestone
 }
 
 export const seasonsSource: MilestoneSource = { id: 'seasons', collect: collectSeasons };
-
-registerMilestoneSource(seasonsSource);

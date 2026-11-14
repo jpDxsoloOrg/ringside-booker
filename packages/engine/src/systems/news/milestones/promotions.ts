@@ -7,12 +7,7 @@ import type { GameWorldView } from '../../../model/tables';
 import type { EngineTunables } from '../../tunables';
 import { registerNewsTopic } from '../topics';
 import { anniversariesIn } from './dates';
-import {
-  registerMilestoneSource,
-  type MilestoneCandidate,
-  type MilestoneSource,
-  type MilestoneWindow,
-} from './registry';
+import { type MilestoneCandidate, type MilestoneSource, type MilestoneWindow } from './registry';
 
 export const PROMOTION_ANNIVERSARY_TOPIC = 'promotion-anniversary';
 
@@ -49,5 +44,3 @@ function collectPromotions(
 }
 
 export const promotionsSource: MilestoneSource = { id: 'promotions', collect: collectPromotions };
-
-registerMilestoneSource(promotionsSource);

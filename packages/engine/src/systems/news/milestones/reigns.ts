@@ -11,12 +11,7 @@ import type { DeepReadonly } from '../../../model/world';
 import type { EngineTunables } from '../../tunables';
 import { registerNewsTopic } from '../topics';
 import { anniversariesIn, dayMarkIn } from './dates';
-import {
-  registerMilestoneSource,
-  type MilestoneCandidate,
-  type MilestoneSource,
-  type MilestoneWindow,
-} from './registry';
+import { type MilestoneCandidate, type MilestoneSource, type MilestoneWindow } from './registry';
 
 /** The day counts of a reign that make a story. Story beats, not balance. */
 export const REIGN_MILESTONE_DAYS = [100, 200, 300] as const;
@@ -105,5 +100,3 @@ function collectReigns(
 }
 
 export const reignsSource: MilestoneSource = { id: 'reigns', collect: collectReigns };
-
-registerMilestoneSource(reignsSource);
