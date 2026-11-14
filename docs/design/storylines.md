@@ -600,6 +600,56 @@ The numbers, the record and the trace are the storyline's own promotion's
 (and the omniscient viewer's). The popularity itself is public through each
 worker's profile, like any other popularity change.
 
+### On screen
+
+CRTV4-05 draws the heat and the payoff in three places.
+
+- **Show results** (`/game/event-history/:eventInstanceId`): a "Storylines"
+  section (results section `storylines`, order 22) on the player's show when a
+  segment was linked. Per linked segment, in running order under its slot
+  label: a `HeatChangeChip` per storyline it counted for ("Ashfall Rivalry
+  54 → 62 ▲ +8", Why? on the new heat, "Finale" on the finale), a muted line
+  per link that didn't count with its reason, and "Lost inside '<storyline>'"
+  with the person's portrait for each `protectedLosers` entry. The section
+  takes a `renderShieldChip(loser)` slot where CRTV4-06 mounts
+  `StoryShieldChip` with WRK8's numbers. A rival's show has no section.
+- **The storyline page** (`/game/storylines/:storylineId`): the timeline is
+  one row per linked segment, newest first: date, show (a link to its
+  results), slot, who was in it, stars, and the heat chip from
+  `storylines.timeline` with the step's Why?. Linked segments that haven't
+  counted read "Booked: counts once the show has run" or "Didn't count".
+  Once an active storyline's finale has been played a "Finale played on
+  <date>: end the storyline to pay it off" panel offers the End button.
+- **Ending**: End opens a sheet (from the side on desktop, the bottom on a
+  phone) with `PayoffPreview` from the `preview`: the payoff strength with
+  its Why?, a line when the finale was played, then each member's popularity
+  and momentum change, each with a Why? on its inline trace, or why they get
+  nothing. With too few counted segments it says "No payoff (needs N linked
+  segments, has M)" and End still ends it. A segment still booked on a show
+  to come is named: "Segments still booked for <show> will no longer count".
+  Once ended, the Ending panel shows the record: each member's deltas with the
+  payoff's Why?, or "No payoff (needs N linked segments, had M)", or, for a
+  storyline that ended in an old save before payoffs, a line saying so.
+
+## Sandbox heat
+
+<a id="sandbox-heat"></a>
+
+A test aid for Sandbox games (`meta.settings.sandbox`, the new-game
+"Sandbox" switch): `storylines.setHeat { storylineId, heat }` puts one of your
+own active storylines at a chosen heat (0 to 100), so the warm and hot steps
+of the story shield and the payoff can be tried without weeks of shows.
+
+- Outside a Sandbox game it refuses with `sandboxOnly` ("Only in Sandbox
+  games"). It also refuses a rival's storyline (`storylines.notYours`) and an
+  ended one (`storylines.ended`), like the other storyline commands.
+- It records the `storylines.heat` trace with one line, "Set by hand in a
+  Sandbox game". It is not progress: `lastProgressOn`, `progress` and
+  `progressTotals` are untouched, so cooling carries on from the last real
+  progress.
+- `sim.status` says `sandbox: true | false`; the storyline page shows a
+  "Sandbox" panel with a "New heat" field and "Set heat" only when it is true.
+
 ## Context
 
 `storylineContextFor(read, storylineId, date)` is the shared engine-side
@@ -679,7 +729,8 @@ All three kinds are stored under the storyline's id.
 
 - `storylines.heat` (`storylineHeatTraceRef`): one current heat trace per
   storyline: the starting heat, then the latest cooling step, then CRTV4's
-  progress. Rows show it as `heatTraceRef` when kept.
+  progress (or a Sandbox game's [Set heat](#sandbox-heat)). Rows show it as
+  `heatTraceRef` when kept.
 - `storylines.starter`: why a starter storyline was picked (CRTV3-02),
   served as `startedBecauseTraceRef`.
 - A rival's heat and starter traces are kept as summaries only; an ended
@@ -701,7 +752,7 @@ CRTV1, CRTV3, CRTV4-01 and MTCH5 work) and wired only the ones there.
 | Partner | On main? | Wiring                                                                                                                                                                                                                                                                        |
 | ------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | WRK1    | Yes      | Member names on the desk cards (`StorylineSides`) and the storyline page's member rows are `WorkerLink`s to `routes.game.worker(personId)`. Each starting-heat popularity line carries a person ref, so the heat Why? links the member through the app's entity-link renderer |
-| CRTV4   | Partly   | Only CRTV4-01 (links, finale) is there. Heat after segments, the timeline's heat before → after and the `paid` payoff are wired from CRTV4's pack (CRTV4-02 onwards)                                                                                                          |
+| CRTV4   | Yes      | CRTV4-01 links and the finale; CRTV4-05 draws CRTV4-02's heat after segments (results section, timeline heat before → after) and CRTV4-03's payoff (end preview, `paid` / `noPayoff` record), see [On screen](#on-screen)                                                     |
 | WRK8    | No       | Wired from its pack: story shield through `storylineContextFor`, the Reaction preview's Storyline choice, the shield line and the meter's hot threshold                                                                                                                       |
 | MTCH8   | No       | Wired from its pack: `match.stakesOptions` rows from `activeStorylinesOf` and CRTV3's row builder                                                                                                                                                                             |
 | CRTV7   | No       | Wired from its pack: `turnImpact`'s storyline-heat line from `storylinesOfPerson` / `storylineContextFor`                                                                                                                                                                     |
