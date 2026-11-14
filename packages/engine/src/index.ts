@@ -2915,6 +2915,8 @@ export {
   askingTermsQuery,
   askingTermsWith,
   askingWage,
+  companySizePay,
+  companySizePayLabel,
   CURRENT_DEAL_FLOOR_LABEL,
   CURRENT_FEE_FLOOR_LABEL,
   EXCLUSIVE_ELSEWHERE_REASON_CODE,

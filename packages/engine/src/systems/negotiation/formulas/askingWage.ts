@@ -5,6 +5,8 @@
  *
  * 1. × reach factor `contracts.ask.reachFloor + (1 − reachFloor) × reach ÷ 100`: a promotion
  *    nobody has heard of gets a smaller ask (smaller stage, smaller pay day);
+ * 1b. × company size pay (ECO4-09, `companySizePay`): a small company pays indie wages, from
+ *    `contracts.ask.sizeFloor` at reach 0 up to the full rate at `contracts.ask.sizeFullReach`;
  * 2. × public image `1 − contracts.ask.prestigeDiscount × prestige ÷ 100` (the discount ×
  *    `contracts.ask.legacyPrestigeMultiplier` for a worker who cares about their legacy), never
  *    below 0;
@@ -33,6 +35,7 @@ import type { Traced } from '../../../core/trace/types';
 import type { EmploymentRole } from '../../../model/entities/employment';
 import type { Motivation, TraitKey } from '../../../model/entities/person';
 import type { EngineTunables } from '../../tunables';
+import { companySizePay } from './companySizePay';
 import {
   ASKING_TERMS_DOC_REF,
   oneMinus,
@@ -214,6 +217,8 @@ export function askingWage(
     docRef: ASKING_TERMS_DOC_REF,
   });
   calc.multiply(`Your reach ${wholeText(inputs.reach)}`, reachFactor(inputs.reach, tunables));
+  const sizePay = companySizePay(inputs.reach, { tunables });
+  calc.multiply(sizePay.trace.label, sizePay);
   calc.multiply('Your public image', prestigeFactor(inputs.prestige, inputs.motivation, tunables));
   const premium = egoPremium(inputs, tunables);
   calc.multiply(

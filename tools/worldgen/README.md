@@ -38,7 +38,7 @@ overwrite.
 | `src/card.ts`                 | Card value, push, alignment, brand and popularity fitting           |
 | `src/teams.ts`                | Tag teams and trios                                                 |
 | `src/reigns.ts`               | Current champions and title histories                               |
-| `src/contracts.ts`            | One running contract per employed person                            |
+| `src/contracts.ts`            | One running contract per employed person, at company size pay       |
 | `src/output.ts`               | Pack records, the schema check and byte-stable JSON                 |
 | `src/build.ts`                | Runs the steps in order and checks the target totals                |
 | `src/build-default-roster.ts` | The command: overwrite guard, build, write, validate, report        |

@@ -33,6 +33,7 @@ are stored as summaries only.
 | Phase       | `phases.ts`                                                  | `contracts.lifecycle` (daily, `contracts` group, order 10) and the `contracts.beforeShow` hook           |
 | Concerns    | `model/entities/contract-concern.ts`                         | the `contractConcerns` table                                                                             |
 | Severance   | `formulas/severance.ts`                                      | `severance`: what ending a contract costs (ECO4-02)                                                      |
+| Size pay    | `negotiation/formulas/companySizePay.ts`                     | `companySizePay`: small companies pay indie wages (ECO4-09)                                              |
 | Severance   | `severanceFor.ts`                                            | `severanceFor`: the one place that gathers a contract's inputs for it                                    |
 | Release     | `release.ts`                                                 | `releaseEmployment`: every release (the command, ECO9 budget cuts, SOC6 conduct releases)                |
 | Rules       | `rules.ts`                                                   | `releaseRefusals`: what the preview and the command refuse                                               |
@@ -517,6 +518,75 @@ The renewal side of the rival rules reads AIP1's `aiShortcut` (see
 [Simple renewals](#simple-renewals)). Rival rosters still shrink: over three
 years each rival keeps 50 % to 73 % of its starting roster, since nothing
 hires for rivals until ECO6.
+
+## Company size pay
+
+ECO4-09, owner feedback: small companies paid their workers big-company
+money. Hardpan's ten per-appearance contracts came to **$6,600 a show** with
+everyone booked, against a gate of about $4,700 and production and venue of
+about $2,800, so every show lost money however it was booked and Hardpan as
+the player ended year one about $90,000 down from an $85,000 start.
+
+**Wages scale with the size of the company paying them.** `companySizePay`
+(`systems/negotiation/formulas/companySizePay.ts`) is a factor that grows
+smoothly with the promotion's [reach](finances.md#reach-and-size):
+
+```
+factor = sizeFloor + (1 − sizeFloor) × min(1, reach ÷ sizeFullReach)
+```
+
+so a company nobody has heard of pays `contracts.ask.sizeFloor` (0.32) of
+the usual rate and one with a reach of `contracts.ask.sizeFullReach` (30) or
+more pays the full rate. It reads reach, not the size label, so pay never
+jumps when a company crosses a size threshold; the label only names the line.
+A `sizeFullReach` of 0 turns it off (every company pays full rates).
+
+It is applied in two places:
+
+- **Asks.** Every [asking wage](negotiation.md#asking-terms), and so every
+  asking fee, is multiplied by it right after the reach factor, as its own
+  line in the Why?: "Company size: Local (reach 4)". Market value itself is
+  not scaled: it is what a worker is worth before any promotion is named.
+- **The default world's contracts.** The world builder
+  (`tools/worldgen/src/contracts.ts`) pays each contract the spec's tier rate
+  × the factor at its promotion's reach on the start date, fees rounded to
+  $10 and wages to $100, as asks are quoted
+  ([default-world.md](default-world.md#contracts)).
+
+| Promotion     | Reach | Factor | Shipped pay before | After             |
+| ------------- | ----: | -----: | -----------------: | ----------------- |
+| Altura        |  54.0 |   1.00 |   $924,000 a month | unchanged         |
+| Cielo Alto    |  34.9 |   1.00 |   $189,800 a month | unchanged         |
+| Tessen        |  32.1 |   1.00 |   $189,800 a month | unchanged         |
+| Eisenwerk     |  17.4 |   0.71 |    $23,700 a month | $17,200 a month   |
+| Boreal        |  16.2 |   0.69 |    $24,200 a month | $16,100 a month   |
+| Ashlar        |  12.9 |   0.61 |    $23,700 a month | $14,400 a month   |
+| Longleaf      |  12.4 |   0.60 |    $23,700 a month | $14,200 a month   |
+| Blast Furnace |  12.0 |   0.59 |    $23,700 a month | $14,200 a month   |
+| Golden Poppy  |   9.0 |   0.52 |    $23,700 a month | $12,500 a month   |
+| Wattle        |   5.1 |   0.44 |      $6,600 a show | $2,900 a show     |
+| Hardpan       |   3.6 |   0.40 |      $6,600 a show | **$2,640 a show** |
+| Hibari        |   3.5 |   0.40 |      $6,600 a show | $2,640 a show     |
+
+(Per-appearance totals are every contract booked once.) Hardpan's fees are
+now main event $600, upper card $400, mid card $280, lower card $180,
+enhancement $120, referee and announcer $100.
+
+**Signing still fits the economy.** A free agent asks a small company less
+(the median free agent asks Hardpan $180 an appearance), but a star still asks
+more than a small company can comfortably pay: Altura's main eventers ask
+Hardpan $2,520-3,000 an appearance (about $6,900 before), as much as Hardpan's
+whole roster.
+
+Asks keep the current-deal floor, so a renewal never pays less than today; a
+worker whose ask is above their shipped fee (most asks sit about 8% above it)
+costs a little more when renewed. Year-one money, before and after, is in
+[finances.md](finances.md#indie-wages-calibration).
+
+| Key                           | Kind    | Default | Range | Unit   | Meaning                                                                        |
+| ----------------------------- | ------- | ------- | ----- | ------ | ------------------------------------------------------------------------------ |
+| `contracts.ask.sizeFloor`     | number  | 0.32    | 0–1   | ratio  | Share of their usual pay a worker asks from the smallest company (reach 0)     |
+| `contracts.ask.sizeFullReach` | integer | 30      | 0–100 | points | Reach from which a company pays full rates (0 = every company pays full rates) |
 
 ## Concerns
 

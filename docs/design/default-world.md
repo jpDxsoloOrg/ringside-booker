@@ -391,7 +391,12 @@ contract after that reign ended.
 
 **The terms are placeholders.** ECO owns wages, asking prices and contract
 value, and its "auto-set contract pricing" new-game step may overwrite these.
-They only need the right order of magnitude:
+They only need the right order of magnitude. Each contract pays its tier's
+rate below × the promotion's [company size pay](contracts.md#company-size-pay)
+factor at its reach on the start date (ECO4-09: small companies pay indie
+wages), fees rounded to $10 and wages to $100. Altura, Tessen and Cielo Alto
+pay the full rates; Hardpan and Hibari about 40% (Hardpan's main eventer
+$600 an appearance), Wattle 44%, the regional companies 52-71%:
 
 | Tier     | Kind            | Exclusive | Main event |  Upper |    Mid | Lower | Enhancement | Staff |
 | -------- | --------------- | --------- | ---------: | -----: | -----: | ----: | ----------: | ----: |
@@ -400,8 +405,8 @@ They only need the right order of magnitude:
 | Regional | `written`       | yes       |      4,000 |  2,500 |  1,500 |   900 |         500 |   800 |
 | Local    | `perAppearance` | no        |      1,500 |  1,000 |    700 |   450 |         300 |   250 |
 
-Written deals pay that much a month and cover travel; local deals pay that much
-per appearance, with no monthly wage. No revenue shares, bonuses, caps or other
+Written deals pay the scaled amount a month and cover travel; local deals pay
+it per appearance, with no monthly wage. No revenue shares, bonuses, caps or other
 perks yet.
 
 ### Teams
