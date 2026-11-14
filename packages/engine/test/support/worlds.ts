@@ -7,7 +7,7 @@
  * - `rosterWorld(n)`: one promotion with `n` wrestlers, for performance and save-size tests.
  */
 
-import { addDays, addYears, parseGameDate, type GameDate } from '../../src/core/date';
+import { addDays, addYears, ageInYears, parseGameDate, type GameDate } from '../../src/core/date';
 import { parseContentKey } from '../../src/core/content-key';
 import type { SegmentId } from '../../src/core/ids';
 import { cents } from '../../src/core/money';
@@ -376,28 +376,61 @@ function addTinyHistory(context: BuildContext): void {
       sequence,
     ),
   );
+  // The two stories follow real topics (DAY1-02), so the web catalog can render them.
+  const seasonOne = required(tx.view.tables.seasons.lookupOne('byNumber', '1'), 'season 1');
   context.insert(
     'news',
     aNews(
       {
         date: TINY_WORLD_START,
-        kind: 'business',
-        refs: { promotionIds: [promotionA, promotionB] },
+        kind: 'season',
+        headline: {
+          key: parseContentKey('news.season-start.headline'),
+          params: { seasonNumber: 1 },
+        },
+        body: {
+          key: parseContentKey('news.season-start.body'),
+          params: {
+            seasonNumber: 1,
+            startDate: seasonOne.startDate,
+            endDate: seasonOne.endDate,
+            worldName: tx.view.meta.worldName,
+          },
+        },
+        importance: 3,
+        expiresOn: null,
+        buzz: 66,
+        dedupeKey: 'season-start:1',
       },
       sequence,
     ),
   );
+  const veteran = tx.view.tables.people.require(person(0));
+  const debut = required(veteran.debutDate ?? undefined, 'person 0 debut');
+  const careerYears = ageInYears(debut, TINY_WORLD_SHOW_DATE);
   context.insert(
     'news',
     aNews(
       {
         date: TINY_WORLD_SHOW_DATE,
-        kind: 'result',
+        kind: 'milestone',
+        headline: {
+          key: parseContentKey('news.career-anniversary.headline'),
+          params: { personId: person(0), years: careerYears },
+        },
+        body: {
+          key: parseContentKey('news.career-anniversary.body'),
+          params: {
+            personId: person(0),
+            years: careerYears,
+            onDate: addYears(debut, careerYears),
+          },
+        },
         importance: 2,
-        refs: { personIds: [person(0), person(1)], eventInstanceId: show.id },
+        refs: { personIds: [person(0)], promotionIds: [promotionA] },
         expiresOn: addDays(TINY_WORLD_SHOW_DATE, 30),
         buzz: 47,
-        dedupeKey: `result:${show.id}`,
+        dedupeKey: `career:${person(0)}:${String(careerYears)}`,
       },
       sequence,
     ),

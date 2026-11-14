@@ -2946,54 +2946,66 @@
         "news": [
           {
             "body": {
-              "key": "news.test-body",
-              "params": {}
+              "key": "news.season-start.body",
+              "params": {
+                "endDate": "2026-04-05",
+                "seasonNumber": 1,
+                "startDate": "2026-01-05",
+                "worldName": "Test Tiny World"
+              }
             },
-            "buzz": 0,
+            "buzz": 66,
             "date": "2026-01-05",
-            "dedupeKey": null,
+            "dedupeKey": "season-start:1",
             "expiresOn": null,
             "headline": {
-              "key": "news.test-headline",
-              "params": {}
+              "key": "news.season-start.headline",
+              "params": {
+                "seasonNumber": 1
+              }
             },
             "id": "nws_0000000001",
-            "importance": 1,
-            "kind": "business",
+            "importance": 3,
+            "kind": "season",
             "refs": {
               "employmentId": null,
               "eventInstanceId": null,
               "personIds": [],
-              "promotionIds": [
-                "pro_0000000001",
-                "pro_0000000002"
-              ]
+              "promotionIds": []
             }
           },
           {
             "body": {
-              "key": "news.test-body",
-              "params": {}
+              "key": "news.career-anniversary.body",
+              "params": {
+                "onDate": "2026-01-05",
+                "personId": "per_0000000001",
+                "years": 10
+              }
             },
             "buzz": 47,
             "date": "2026-04-09",
-            "dedupeKey": "result:evi_0000000001",
+            "dedupeKey": "career:per_0000000001:10",
             "expiresOn": "2026-05-09",
             "headline": {
-              "key": "news.test-headline",
-              "params": {}
+              "key": "news.career-anniversary.headline",
+              "params": {
+                "personId": "per_0000000001",
+                "years": 10
+              }
             },
             "id": "nws_0000000002",
             "importance": 2,
-            "kind": "result",
+            "kind": "milestone",
             "refs": {
               "employmentId": null,
-              "eventInstanceId": "evi_0000000001",
+              "eventInstanceId": null,
               "personIds": [
-                "per_0000000001",
-                "per_0000000002"
+                "per_0000000001"
               ],
-              "promotionIds": []
+              "promotionIds": [
+                "pro_0000000001"
+              ]
             }
           }
         ],
