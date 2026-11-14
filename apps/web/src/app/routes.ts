@@ -1,4 +1,4 @@
-import type { EventInstanceId, PersonId, PromotionId } from '@ringside/engine';
+import type { EventInstanceId, PersonId, PromotionId, StorylineId } from '@ringside/engine';
 
 /**
  * Every URL in the app, built here and nowhere else. Screens, links and tests call these builders
@@ -132,6 +132,9 @@ export const routes = {
     /** One worker's profile. */
     worker: (personId: PersonId): string =>
       `${gameScreenPath('workers')}/${encodeURIComponent(personId)}`,
+    /** One storyline's page, under Creative > Storylines. */
+    storyline: (storylineId: StorylineId): string =>
+      `${gameScreenPath('storylines')}/${encodeURIComponent(storylineId)}`,
     /**
      * One show's results page, under Event history. `reveal` plays the segments in one at a time,
      * the way the Next Day summary opens it: `/game/event-history/evi_…?reveal=1`.
@@ -173,6 +176,8 @@ export const routePatterns = {
   showResults: `${gameScreenPath('eventHistory')}/:eventInstanceId`,
   /** One promotion's profile; `routes.game.promotion(promotionId)` builds the URL. */
   promotion: `${gameScreenPath('promotions')}/:promotionId`,
+  /** One storyline's page; `routes.game.storyline(storylineId)` builds the URL. */
+  storyline: `${gameScreenPath('storylines')}/:storylineId`,
 } as const;
 
 /** The name of the worker profile route's parameter. */
@@ -186,3 +191,6 @@ export const PROMOTION_ROUTE_PARAM = 'promotionId';
 
 /** The names of the promotion profile's search parameters. */
 export const PROMOTION_PARAMS = { tab: 'tab' } as const;
+
+/** The name of the storyline page route's parameter. */
+export const STORYLINE_ROUTE_PARAM = 'storylineId';
