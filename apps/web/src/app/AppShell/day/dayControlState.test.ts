@@ -8,6 +8,8 @@ import {
   gateDestination,
   GENERIC_GATE_LABEL,
   leadingGate,
+  NEWS_HINT,
+  OPEN_NEWS_LABEL,
   ROSTER_HINT,
   setRosterInjuriesTabAvailable,
 } from './dayControlState';
@@ -270,6 +272,56 @@ describe('the contract stops (contracts hint)', () => {
     expect(leadingGate([requestGate, injuryGate])).toBe(injuryGate);
     expect(leadingGate([{ gateId: 'x', reason: 'Other', actionHint: 'other' }, expiringGate])).toBe(
       expiringGate,
+    );
+  });
+});
+
+describe('the news alert stop (news hint)', () => {
+  const newsGate: GateHit = {
+    gateId: 'news.alert',
+    reason: 'News: Milestone – Calder Voss',
+    subject: { kind: 'news', id: 'nws_0000000004' },
+    actionHint: NEWS_HINT,
+  };
+  const expiringGate: GateHit = {
+    gateId: 'contracts.expiringSoon',
+    reason: 'Contract expiring soon: Big Joe',
+    actionHint: CONTRACTS_HINT,
+  };
+
+  it('reads Open news and opens the story, flagged as opened from the alert', () => {
+    expect(NEWS_HINT).toBe('news');
+    expect(deriveDayControl([newsGate], idle)).toEqual({
+      primary: {
+        kind: 'gate',
+        label: OPEN_NEWS_LABEL,
+        phoneLabel: null,
+        reason: 'News: Milestone – Calder Voss',
+        to: `${routes.game.news()}?story=nws_0000000004&alert=1`,
+      },
+      skipEnabled: false,
+    });
+    expect(OPEN_NEWS_LABEL).toBe('Open news');
+  });
+
+  it('opens the News screen when the gate names no story', () => {
+    const withoutSubject: GateHit = {
+      gateId: newsGate.gateId,
+      reason: newsGate.reason,
+      actionHint: NEWS_HINT,
+    };
+    expect(gateDestination(withoutSubject)).toEqual({
+      label: 'Open news',
+      to: routes.game.news(),
+    });
+  });
+
+  it('comes after decisions, a show night and every other known stop', () => {
+    expect(leadingGate([newsGate, contractDecision])).toBe(contractDecision);
+    expect(leadingGate([newsGate, showGate])).toBe(showGate);
+    expect(leadingGate([newsGate, expiringGate])).toBe(expiringGate);
+    expect(leadingGate([newsGate, { gateId: 'x', reason: 'Other', actionHint: 'other' }])).toBe(
+      newsGate,
     );
   });
 });

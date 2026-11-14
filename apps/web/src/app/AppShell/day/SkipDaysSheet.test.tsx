@@ -175,7 +175,7 @@ describe('SkipDaysSheet chips', () => {
       label: 'Until next show',
       order: 5,
       useResolve: () => ({
-        request: { maxDays: 4, stopAtDate: '2031-02-04' },
+        request: { maxDays: 4, stopAtDate: parseGameDate('2031-02-04') },
         detail: 'Tue 4 Feb',
       }),
     });
@@ -202,7 +202,7 @@ describe('SkipDaysSheet chips', () => {
       label: 'Until next show',
       order: 5,
       useResolve: () => ({
-        request: { maxDays: 4, stopAtDate: '2031-02-03' },
+        request: { maxDays: 4, stopAtDate: parseGameDate('2031-02-03') },
         detail: 'Mon 3 Feb',
       }),
     });

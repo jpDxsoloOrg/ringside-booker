@@ -40,7 +40,9 @@ const SETTINGS: NewsAlertSettings = { rules: RULES, stopSkip: true };
 
 function renderView({
   canEdit = true,
-  onSave = vi.fn<(change: NewsAlertChange) => Promise<readonly string[] | null>>(async () => null),
+  onSave = vi.fn<(change: NewsAlertChange) => Promise<readonly string[] | null>>(() =>
+    Promise.resolve(null),
+  ),
 }: {
   readonly canEdit?: boolean;
   readonly onSave?: (change: NewsAlertChange) => Promise<readonly string[] | null>;
@@ -113,7 +115,7 @@ describe('NewsAlertSheetView', () => {
 
   it("shows a refusal's message and stays open", async () => {
     const { user, onClose } = renderView({
-      onSave: async () => ['There is no news alert called "nope"'],
+      onSave: () => Promise.resolve(['There is no news alert called "nope"']),
     });
     await user.click(within(sheet()).getByRole('switch', { name: 'My roster' }));
     await user.click(within(sheet()).getByRole('button', { name: 'Save' }));

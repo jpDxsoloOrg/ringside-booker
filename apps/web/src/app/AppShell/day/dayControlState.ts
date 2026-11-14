@@ -2,6 +2,7 @@ import {
   CONTRACTS_ACTION_HINT,
   COUNTER_WAITING_GATE_ID,
   isId,
+  NEWS_ACTION_HINT,
   RELEASE_REQUESTED_GATE_ID,
 } from '@ringside/engine';
 import type { GateHit } from '@ringside/engine';
@@ -141,7 +142,7 @@ export function contractsGateDestination(hit: GateHit): string {
  * of the player's alert rules. The button opens the story on the News screen with `alert=1`, and
  * the screen acknowledges the alert (`news.ackAlerts`), which clears the stop (DAY1-05).
  */
-export const NEWS_HINT = 'news';
+export const NEWS_HINT: string = NEWS_ACTION_HINT;
 
 /** The label of the news alert button. */
 export const OPEN_NEWS_LABEL = 'Open news';
