@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { routes } from '@/app/routes';
 import type {
   StorylineId,
   StorylineLinkedRow,
@@ -180,8 +181,8 @@ export function StorylineLinkPicker({
         title={NO_STORYLINES_TITLE}
         body={
           <>
-            Start one on the <Link to="/game/storylines">Storylines</Link> desk, then link its
-            segments here.
+            Start one on the <Link to={routes.game.storylines()}>Storylines</Link> desk, then link
+            its segments here.
           </>
         }
         className={className}
