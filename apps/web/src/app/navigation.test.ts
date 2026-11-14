@@ -118,6 +118,12 @@ describe('findNavLocation', () => {
     expect(findNavLocation(navigationSections, resultsPath)?.item.id).toBe('event-history');
   });
 
+  it('gives a title page to Titles', () => {
+    const titlePath = routes.game.title(parseId('title', 'tit_0000000001'));
+
+    expect(findNavLocation(navigationSections, titlePath)?.item.id).toBe('titles');
+  });
+
   it('returns null for a path no item owns', () => {
     expect(findNavLocation(navigationSections, '/game/nowhere')).toBeNull();
   });

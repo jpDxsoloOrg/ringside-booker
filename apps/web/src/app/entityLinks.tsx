@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import type { Location } from 'react-router-dom';
 import { isId } from '@ringside/engine';
-import type { PersonId, PromotionId } from '@ringside/engine';
+import type { PersonId, PromotionId, TitleId } from '@ringside/engine';
 import { plainEntityLabel } from '@/components/Trace/rows/rowTypes';
 import type { EntityLinkRenderer } from '@/components/Trace/rows/rowTypes';
 import { useTracePanelStore } from '@/components/Trace/tracePanelStore';
@@ -143,9 +143,60 @@ export function PromotionProfileLink({
   );
 }
 
+/** Navigation state a link to a title's page carries, so its back link returns to the list. */
+export interface TitleLinkState {
+  /** The Titles list URL the player came from, tab and filter included. */
+  readonly titlesListUrl: string;
+}
+
+/** The Titles list URL kept in a location's state, or null when there is none worth trusting. */
+export function titlesListUrlFrom(state: unknown): string | null {
+  if (typeof state !== 'object' || state === null || !('titlesListUrl' in state)) return null;
+  const { titlesListUrl } = state;
+  if (typeof titlesListUrl !== 'string') return null;
+  const listPath = routes.game.titles();
+  const isList = titlesListUrl === listPath || titlesListUrl.startsWith(`${listPath}?`);
+  return isList ? titlesListUrl : null;
+}
+
 /**
- * Entity names in the game: a person's name links to their profile and a promotion's to its
- * profile; everything else stays plain text until its own screen exists.
+ * The state for a link to a title's page from `location`: the list's own URL (with its tab and
+ * filter) when the link is on the Titles list, else whatever list URL the page carried.
+ */
+export function titleLinkState(location: Location): TitleLinkState | undefined {
+  if (location.pathname === routes.game.titles()) {
+    return { titlesListUrl: `${location.pathname}${location.search}` };
+  }
+  const carried = titlesListUrlFrom(location.state);
+  return carried === null ? undefined : { titlesListUrl: carried };
+}
+
+export interface TitlePageLinkProps {
+  readonly titleId: TitleId;
+  readonly className?: string | undefined;
+  readonly children: ReactNode;
+}
+
+/** A link to one title's page (CRTV1-04). Like `PersonProfileLink`, it closes an open "Why?" panel. */
+export function TitlePageLink({ titleId, className, children }: TitlePageLinkProps) {
+  const location = useLocation();
+  return (
+    <Link
+      to={routes.game.title(titleId)}
+      state={titleLinkState(location)}
+      className={className}
+      onClick={() => {
+        useTracePanelStore.setState({ openPanelId: null });
+      }}
+    >
+      {children}
+    </Link>
+  );
+}
+
+/**
+ * Entity names in the game: a person's name links to their profile, a promotion's to its profile
+ * and a title's to its page; everything else stays plain text until its own screen exists.
  */
 export const gameEntityLink: EntityLinkRenderer = (ref, label) => {
   if (ref.kind === 'person' && isId('person', ref.id)) {
@@ -153,6 +204,9 @@ export const gameEntityLink: EntityLinkRenderer = (ref, label) => {
   }
   if (ref.kind === 'promotion' && isId('promotion', ref.id)) {
     return <PromotionProfileLink promotionId={ref.id}>{label}</PromotionProfileLink>;
+  }
+  if (ref.kind === 'title' && isId('title', ref.id)) {
+    return <TitlePageLink titleId={ref.id}>{label}</TitlePageLink>;
   }
   return label;
 };

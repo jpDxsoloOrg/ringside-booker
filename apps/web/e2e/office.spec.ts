@@ -100,4 +100,23 @@ test.describe('office kit', () => {
     }
     await expectNoHorizontalScroll(page);
   });
+
+  // CRTV1-04: the Titles screen's stacked variant is one card per row on a phone, no tab stop.
+  test('stacked champion cards are one column on a phone', async ({ page }, testInfo) => {
+    const entry = await gotoEntry(page, 'champion-card', 'ChampionCard');
+    const list = entry.getByRole('region', { name: 'Stacked title cards' });
+    const cards = list.getByRole('article');
+    await expect(cards).toHaveCount(2);
+    const [first, second] = await Promise.all([0, 1].map((index) => boxOf(cards.nth(index))));
+    if (first === undefined || second === undefined) return;
+    await expect(list).not.toHaveAttribute('tabindex');
+    if (isPhone(testInfo)) {
+      await expect(list).toHaveAttribute('data-layout', 'stack');
+      expect(Math.abs(second.x - first.x)).toBeLessThanOrEqual(SAME_ROW_TOLERANCE_PX);
+      expect(second.y).toBeGreaterThanOrEqual(first.y + first.height);
+    } else {
+      await expect(list).toHaveAttribute('data-layout', 'grid');
+    }
+    await expectNoHorizontalScroll(page);
+  });
 });

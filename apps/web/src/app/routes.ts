@@ -1,4 +1,4 @@
-import type { EventInstanceId, PersonId, PromotionId } from '@ringside/engine';
+import type { EventInstanceId, PersonId, PromotionId, TitleId } from '@ringside/engine';
 
 /**
  * Every URL in the app, built here and nowhere else. Screens, links and tests call these builders
@@ -108,6 +108,9 @@ export const routes = {
     },
     booking: (): string => gameScreenPath('booking'),
     titles: (): string => gameScreenPath('titles'),
+    /** One title's page: header, champion, lineage and records (CRTV1-04). */
+    title: (titleId: TitleId): string =>
+      `${gameScreenPath('titles')}/${encodeURIComponent(titleId)}`,
     storylines: (): string => gameScreenPath('storylines'),
     teams: (): string => gameScreenPath('teams'),
     tournaments: (): string => gameScreenPath('tournaments'),
@@ -173,6 +176,8 @@ export const routePatterns = {
   showResults: `${gameScreenPath('eventHistory')}/:eventInstanceId`,
   /** One promotion's profile; `routes.game.promotion(promotionId)` builds the URL. */
   promotion: `${gameScreenPath('promotions')}/:promotionId`,
+  /** One title's page; `routes.game.title(titleId)` builds the URL. */
+  title: `${gameScreenPath('titles')}/:titleId`,
 } as const;
 
 /** The name of the worker profile route's parameter. */
@@ -186,3 +191,6 @@ export const PROMOTION_ROUTE_PARAM = 'promotionId';
 
 /** The names of the promotion profile's search parameters. */
 export const PROMOTION_PARAMS = { tab: 'tab' } as const;
+
+/** The name of the title page route's parameter. */
+export const TITLE_ROUTE_PARAM = 'titleId';

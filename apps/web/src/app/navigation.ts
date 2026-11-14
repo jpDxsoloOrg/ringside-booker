@@ -9,6 +9,7 @@ import { MatchLabScreen } from '@/screens/match-lab/MatchLabScreen';
 import { OfficeScreen } from '@/screens/office/OfficeScreen';
 import { ProductionScreen } from '@/screens/production/ProductionScreen';
 import { RosterScreen } from '@/screens/roster/RosterScreen';
+import { TitlesScreen } from '@/screens/titles/TitlesScreen';
 import { PromotionsScreen } from '@/screens/promotions/PromotionsScreen';
 import { WorkersScreen } from '@/screens/workers/WorkersScreen';
 import { routes } from './routes';
@@ -189,7 +190,8 @@ export const navigationSections: readonly NavSection[] = [
         label: 'Titles',
         icon: 'titles',
         to: routes.game.titles(),
-        status: 'placeholder',
+        status: 'live',
+        screen: TitlesScreen,
       },
       {
         id: 'storylines',
