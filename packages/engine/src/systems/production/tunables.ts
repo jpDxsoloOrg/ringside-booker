@@ -192,7 +192,7 @@ export const productionTunables = defineTunables({
   // TEMPORARY (ECO7-05): the rival production budget, until AIP8's rival production desk.
   'production.rivalBudget.lowerBelowMonths': {
     kind: 'number',
-    default: 6,
+    default: 12,
     min: 0,
     max: 60,
     step: 0.5,
@@ -200,6 +200,18 @@ export const productionTunables = defineTunables({
     category: PRODUCTION_TUNABLE_CATEGORY,
     description:
       'Temporary rival rule: a computer promotion lowers production when its cash covers fewer months of production costs than this (0 = never)',
+    docRef: RIVAL_BUDGET_DOC,
+  },
+  'production.rivalBudget.deepCutBelowMonths': {
+    kind: 'number',
+    default: 6,
+    min: 0,
+    max: 60,
+    step: 0.5,
+    unit: 'months',
+    category: PRODUCTION_TUNABLE_CATEGORY,
+    description:
+      'Temporary rival rule: below this many months of production costs in cash, a computer promotion also cuts levels that lower a ceiling it is using (0 = never)',
     docRef: RIVAL_BUDGET_DOC,
   },
   'production.rivalBudget.raiseAboveMonths': {

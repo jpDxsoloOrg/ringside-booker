@@ -9,7 +9,8 @@
  *
  * - **Too little cash** (less than `production.rivalBudget.lowerBelowMonths` months of it): it
  *   lowers levels one step at a time, cheapest harm first, until the cash covers that many months
- *   or nothing more can be lowered. Music and writing have no effect yet, so they go first; a
+ *   or nothing more can be lowered. Only harmless cuts are made until the cash covers less than
+ *   `production.rivalBudget.deepCutBelowMonths` months. Music and writing have no effect yet, so they go first; a
  *   show-quality area (stage, camera, editing, pyro) hurts only where the show-quality ceiling
  *   would drop below the best show it ran lately plus `production.rivalBudget.headroom`; marketing
  *   and back office hurt only where the popularity ceiling would drop below its best region plus
@@ -193,6 +194,7 @@ function bestCut(
   levels: Production,
   needs: BudgetNeeds,
   cost: MonthlyCost,
+  allowHarm: boolean,
 ): BudgetStep | null {
   let best: BudgetStep | null = null;
   for (const area of PRODUCTION_AREAS) {
@@ -209,6 +211,9 @@ function bestCut(
     const harm =
       shortfall(area, after, needs, promotionName, ctx.tunables) -
       shortfall(area, levels, needs, promotionName, ctx.tunables);
+    if (harm > 0 && !allowHarm) {
+      continue;
+    }
     const step = { area, to, money, harm };
     if (best === null || cutIsBetter(step, best)) {
       best = step;
@@ -284,6 +289,7 @@ export const rivalBudgetPhase: PhaseDefinition = definePhase({
   cadence: { kind: 'monthly', day: 1 },
   run: (ctx) => {
     const lowerBelow = ctx.tunables.get('production.rivalBudget.lowerBelowMonths');
+    const deepCutBelow = ctx.tunables.get('production.rivalBudget.deepCutBelowMonths');
     const raiseAbove = ctx.tunables.get('production.rivalBudget.raiseAboveMonths');
     if (lowerBelow === 0 && raiseAbove === 0) {
       return;
@@ -300,7 +306,9 @@ export const rivalBudgetPhase: PhaseDefinition = definePhase({
       const cash = promotion.cash;
       let changed = false;
       while (lowerBelow > 0 && cash < lowerBelow * cost.total(levels)) {
-        const cut = bestCut(ctx, promotion.id, promotion.name, levels, needs, cost);
+        // A cut that lowers a ceiling the promotion is using waits until the money is short.
+        const allowHarm = cash < deepCutBelow * cost.total(levels);
+        const cut = bestCut(ctx, promotion.id, promotion.name, levels, needs, cost, allowHarm);
         if (cut === null) {
           break;
         }
