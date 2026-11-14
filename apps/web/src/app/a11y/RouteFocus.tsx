@@ -100,13 +100,50 @@ export function RouteFocus() {
       sameScreenUpdate,
     );
     previousRef.current = { key: location.key, path: pagePath, pathname: location.pathname };
-    if (!isNewPage) return;
+    if (!isNewPage) return undefined;
     if (navigationType !== NavigationType.Replace) playerHasNavigatedRef.current = true;
-    if (!playerHasNavigatedRef.current) return;
-    routeFocusTarget()?.focus({ preventScroll: true });
+    if (!playerHasNavigatedRef.current) return undefined;
+    const target = routeFocusTarget();
+    target?.focus({ preventScroll: true });
+    if (target === null || target.hasAttribute(ROUTE_HEADING_ATTRIBUTE)) return undefined;
+    return focusHeadingWhenItArrives(target);
   }, [location.key, location.pathname, pagePath, navigationType, sameScreenUpdate]);
 
   return null;
+}
+
+/** How long after a navigation a late page heading still takes focus. */
+const LATE_HEADING_MS = 10_000;
+
+/**
+ * A screen that loads as its own chunk (behind `Suspense`) has no heading when the navigation
+ * lands, so focus went to the main area. When the heading arrives, focus moves on to it, as long
+ * as the player has not moved focus somewhere else in the meantime. Returns the cleanup.
+ */
+function focusHeadingWhenItArrives(fallback: HTMLElement): () => void {
+  const stillWaiting = (): boolean =>
+    document.activeElement === fallback ||
+    document.activeElement === document.body ||
+    document.activeElement === null;
+  const observer = new MutationObserver(() => {
+    if (!stillWaiting()) {
+      stop();
+      return;
+    }
+    const heading = fallback.querySelector<HTMLElement>(`[${ROUTE_HEADING_ATTRIBUTE}]`);
+    if (heading === null) return;
+    stop();
+    heading.focus({ preventScroll: true });
+  });
+  const timer = window.setTimeout(() => {
+    stop();
+  }, LATE_HEADING_MS);
+  function stop(): void {
+    observer.disconnect();
+    window.clearTimeout(timer);
+  }
+  observer.observe(fallback, { childList: true, subtree: true });
+  return stop;
 }
 
 /** The history entry on screen, and its path without the hash. */
