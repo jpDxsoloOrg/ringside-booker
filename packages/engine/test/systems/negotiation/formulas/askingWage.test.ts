@@ -47,9 +47,20 @@ function hundreds(cents: number): number {
   return Math.round(cents / 10_000) * 10_000;
 }
 
-/** The ask before rounding with the default reach and image factors, × `extra`. */
+/** The company size pay factor at the defaults (ECO4-09): 0.32 at reach 0, full from reach 30. */
+function sizeFactor(reach: number): number {
+  return 0.32 + 0.68 * Math.min(1, reach / 30);
+}
+
+/** The ask before rounding with the default reach, size and image factors, × `extra`. */
 function expected(extra = 1, reach = 82, prestige = 60, value = VALUE): number {
-  return hundreds(value * (0.25 + 0.75 * (reach / 100)) * (1 - 0.15 * (prestige / 100)) * extra);
+  return hundreds(
+    value *
+      (0.25 + 0.75 * (reach / 100)) *
+      sizeFactor(reach) *
+      (1 - 0.15 * (prestige / 100)) *
+      extra,
+  );
 }
 
 describe('askingWage', () => {
@@ -73,10 +84,32 @@ describe('askingWage', () => {
     expect(result.value).toBe(9_950_000);
   });
 
-  it('asks the reach floor at reach 0 and the full value at reach 100 and image 0', () => {
-    expect(ask({ reach: 0, prestige: 0 }).value).toBe(hundreds(VALUE * 0.25));
+  it('asks the reach floor × the indie floor at reach 0 and the full value at reach 100 and image 0', () => {
+    expect(ask({ reach: 0, prestige: 0 }).value).toBe(hundreds(VALUE * 0.25 * 0.32));
     expect(ask({ reach: 100, prestige: 0 }).value).toBe(VALUE);
     expect(ask({ reach: 100, prestige: 100 }).value).toBe(hundreds(VALUE * 0.85));
+  });
+
+  it('asks a small company for indie wages, as a named Company size line (ECO4-09)', () => {
+    const small = ask({ reach: 3.6, prestige: 28 });
+    expect(small.value).toBe(expected(1, 3.6, 28));
+    const line = expectTraceContains(small, {
+      kind: 'multiply',
+      label: 'Company size: Local (reach 4)',
+    });
+    expect(line.operand).toBeCloseTo(sizeFactor(3.6), 10);
+    // A big company pays the full rate: the line is there, at × 1.
+    const big = ask({ reach: 54 });
+    expect(big.value).toBe(expected(1, 54));
+    const full = expectTraceContains(big, {
+      kind: 'multiply',
+      label: 'Company size: Continental (reach 54)',
+    });
+    expect(full.operand).toBe(1);
+    // With no reach for full rates, every company pays them.
+    expect(ask({ reach: 3.6, prestige: 28 }, { 'contracts.ask.sizeFullReach': 0 }).value).toBe(
+      hundreds(VALUE * (0.25 + 0.75 * 0.036) * (1 - 0.15 * 0.28)),
+    );
   });
 
   it('is 0 for a market value of 0', () => {
@@ -181,7 +214,8 @@ describe('askingWage', () => {
     for (let point = 0; point < 100; point += 1) {
       const reachStep = ask({ reach: point + 1 }).value - ask({ reach: point }).value;
       expect(reachStep).toBeGreaterThanOrEqual(0);
-      expect(reachStep).toBeLessThanOrEqual(VALUE * 0.0075 + 10_000);
+      // The reach factor's 0.0075 a point, plus the size factor's 0.68 ÷ 30 a point below reach 30.
+      expect(reachStep).toBeLessThanOrEqual(VALUE * 0.019 + 10_000);
       const imageStep = ask({ prestige: point }).value - ask({ prestige: point + 1 }).value;
       expect(imageStep).toBeGreaterThanOrEqual(0);
       expect(imageStep).toBeLessThanOrEqual(VALUE * 0.0015 + 10_000);
