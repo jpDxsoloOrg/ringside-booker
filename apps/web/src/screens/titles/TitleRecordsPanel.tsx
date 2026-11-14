@@ -33,10 +33,7 @@ const UNIT_WORDS: Readonly<Record<(typeof RECORD_ROWS)[number]['unit'], [string,
 };
 
 /** "142 days", "1 defence", "3 reigns", "41 years old". */
-export function recordValueText(
-  value: number,
-  unit: (typeof RECORD_ROWS)[number]['unit'],
-): string {
+export function recordValueText(value: number, unit: (typeof RECORD_ROWS)[number]['unit']): string {
   const [one, many] = UNIT_WORDS[unit];
   return `${formatNumber(value)} ${value === 1 ? one : many}`;
 }
@@ -122,7 +119,9 @@ export function TitleRecordsPanel({ records, stats, reigns }: TitleRecordsPanelP
                 <dt className={styles['factLabel']}>{label}</dt>
                 <dd className={styles['recordValue']}>
                   <RecordHolders record={record} names={names} />
-                  <span className={styles['recordNumber']}>{recordValueText(record.value, unit)}</span>
+                  <span className={styles['recordNumber']}>
+                    {recordValueText(record.value, unit)}
+                  </span>
                 </dd>
               </div>
             );
