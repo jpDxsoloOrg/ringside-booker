@@ -64,64 +64,80 @@ export interface BeatWorkerValueInputs {
 /** A decision option: a stat, or a stat the manager talks for. */
 type CandidateOption = BeatStat | `${BeatStat}:manager`;
 
-const FACTOR_REASON = 'Worked out under Best stat';
-
 const VALUE_MIN = 0;
 const VALUE_MAX = 100;
 
-const fullValue = (): Traced<number> =>
-  constantOf('Full value', 1, 'A factor of 1 leaves a stat as it is');
-const scaleOf = (what: 'Morale' | 'Momentum'): Traced<number> =>
-  constantOf(`${what} scale`, 100, `${what} runs from -100 to 100`);
-const zeroLine = (): Traced<number> =>
-  constantOf('Zero', 0, 'Only the part on the far side of 0 counts');
+const SCALE_REASONS = {
+  Morale: 'Morale runs from -100 to 100',
+  Momentum: 'Momentum runs from -100 to 100',
+} as const;
+const FULL_VALUE_REASON = 'A factor of 1 leaves a stat as it is';
+const NEUTRAL_REASON = 'Not your worker: treated as neutral';
 
 function percent(value: number): string {
   return `${formatNumber(value * 100)}%`;
 }
 
-/** 1 - moralePenaltyMax x max(0, -morale) / 100, as "Low morale" added to a full factor. */
-function moraleFactor(label: string, morale: number, tunables: EngineTunables): Traced<number> {
-  const penalty = startCalc('Low morale', inputOf('Morale', morale));
-  penalty
-    .min('Only morale below 0 counts', zeroLine())
-    .divide('Morale scale', scaleOf('Morale'))
+/**
+ * 1 - moralePenaltyMax × max(0, -morale) / 100. Morale 0 or above gives a plain factor of 1, so a
+ * happy worker's trace stays one line long.
+ */
+function moraleFactor(
+  label: string,
+  morale: number,
+  neutral: boolean,
+  tunables: EngineTunables,
+): Traced<number> {
+  if (neutral) {
+    return constantOf(label, 1, NEUTRAL_REASON);
+  }
+  if (morale >= 0) {
+    return constantOf(label, 1, 'Morale is 0 or above, so it takes nothing off');
+  }
+  const calc = startCalc(label, inputOf('Morale', morale), { unit: 'multiplier' });
+  return calc
+    .divide('Morale scale', constantOf('Morale scale', 100, SCALE_REASONS.Morale))
     .multiply(
       'Most low morale can take off',
-      penalty.tunable(tunables, 'match.angle.moralePenaltyMax'),
-    );
-  return startCalc(label, fullValue(), { unit: 'multiplier' })
-    .add('Low morale', penalty.done())
+      calc.tunable(tunables, 'match.angle.moralePenaltyMax'),
+    )
+    .add('Full value', constantOf('Full value', 1, FULL_VALUE_REASON))
     .done();
 }
 
 /**
- * 1 + momentumBonusMax x max(0, momentum) / 100 - momentumPenaltyMax x max(0, -momentum) / 100.
- * Null momentum counts as 0 with a note.
+ * 1 + momentumBonusMax × max(0, momentum) / 100 - momentumPenaltyMax × max(0, -momentum) / 100.
+ * Only one side can apply, so the factor reads the side that does; null and 0 give a plain 1.
  */
-function momentumFactor(momentum: number | null, tunables: EngineTunables): Traced<number> {
-  const value = momentum ?? 0;
-  const bonus = startCalc('Good momentum', inputOf('Momentum', value));
-  bonus
-    .max('Only momentum above 0 counts', zeroLine())
-    .divide('Momentum scale', scaleOf('Momentum'))
-    .multiply(
-      'Most good momentum can add',
-      bonus.tunable(tunables, 'match.angle.momentumBonusMax'),
-    );
-  const penalty = startCalc('Poor momentum', inputOf('Momentum', value));
-  penalty
-    .min('Only momentum below 0 counts', zeroLine())
-    .divide('Momentum scale', scaleOf('Momentum'))
-    .multiply(
-      'Most poor momentum can take off',
-      penalty.tunable(tunables, 'match.angle.momentumPenaltyMax'),
-    );
-  const calc = startCalc('Momentum factor', fullValue(), { unit: 'multiplier' });
-  if (momentum === null) {
-    calc.note(NO_MOMENTUM_NOTE);
+function momentumFactor(
+  momentum: number | null,
+  neutral: boolean,
+  tunables: EngineTunables,
+): Traced<number> {
+  const label = 'Momentum factor';
+  if (neutral) {
+    return constantOf(label, 1, NEUTRAL_REASON);
   }
-  return calc.add('Good momentum', bonus.done()).add('Poor momentum', penalty.done()).done();
+  if (momentum === null) {
+    return constantOf(label, 1, NO_MOMENTUM_NOTE);
+  }
+  if (momentum === 0) {
+    return constantOf(label, 1, 'Momentum is 0, so it adds and takes nothing');
+  }
+  const calc = startCalc(label, inputOf('Momentum', momentum), { unit: 'multiplier' });
+  calc.divide('Momentum scale', constantOf('Momentum scale', 100, SCALE_REASONS.Momentum));
+  if (momentum > 0) {
+    calc.multiply(
+      'Most good momentum can add',
+      calc.tunable(tunables, 'match.angle.momentumBonusMax'),
+    );
+  } else {
+    calc.multiply(
+      'Most poor momentum can take off',
+      calc.tunable(tunables, 'match.angle.momentumPenaltyMax'),
+    );
+  }
+  return calc.add('Full value', constantOf('Full value', 1, FULL_VALUE_REASON)).done();
 }
 
 function managerOption(stat: BeatStat): CandidateOption {
@@ -144,31 +160,21 @@ export function beatWorkerValue(
   }
   const { tunables } = deps;
   const neutral = !inputs.isViewersWorker;
-  const morale = neutral ? 0 : inputs.morale;
-  const momentum = neutral ? 0 : inputs.momentum;
 
   const decision = startDecision<CandidateOption>(BEST_STAT_LABEL, {
     docRef: BEAT_WORKER_VALUE_DOC_REF,
   });
-  const ownMorale = moraleFactor('Morale factor', morale, tunables);
-  const ownMomentum = momentumFactor(momentum, tunables);
-  decision.include('Morale factor', ownMorale).include('Momentum factor', ownMomentum);
+  const ownMorale = moraleFactor('Morale factor', inputs.morale, neutral, tunables);
+  const ownMomentum = momentumFactor(inputs.momentum, neutral, tunables);
 
   const manager = inputs.managerCanStandIn ? inputs.manager : null;
-  const standsIn = manager !== null && inputs.stats.some((stat) => isTalkingStat(stat));
   const managerMorale =
-    manager !== null && standsIn
-      ? moraleFactor(`Morale factor: ${manager.name}`, neutral ? 0 : manager.morale, tunables)
+    manager !== null && inputs.stats.some((stat) => isTalkingStat(stat))
+      ? moraleFactor(`Morale of ${manager.name}`, manager.morale, neutral, tunables)
       : null;
-  if (managerMorale !== null) {
-    decision.include(managerMorale.trace.label, managerMorale);
-  }
-  const managerShare = standsIn
-    ? decision.tunable(tunables, 'match.angle.managerShare', "Manager's share")
-    : 0;
-  const popularityShare = inputs.stats.includes('popularity')
-    ? decision.tunable(tunables, 'match.angle.popularityStatShare', 'Popularity counts for')
-    : 1;
+  // Read for the candidates; the winner's chain below records the read it uses.
+  const managerShare = tunables.get('match.angle.managerShare');
+  const popularityShare = tunables.get('match.angle.popularityStatShare');
 
   const candidates: BeatStatCandidate[] = [];
   /** Every option considered, for the summary line. */
@@ -216,23 +222,41 @@ export function beatWorkerValue(
   const summary = `${BEST_STAT_LABEL}: ${pickedLabel} ${formatNumber(picked.value)}${
     others.length === 0 ? '' : ` (${others.join(', ')})`
   }`;
+  // The factors the winner's own chain does not use still explain the pick, so the decision
+  // keeps them; the ones it uses sit under its steps.
+  const viaManager = picked.viaManager && manager !== null && managerMorale !== null;
+  if (viaManager) {
+    decision.include('Morale factor', ownMorale).include('Momentum factor', ownMomentum);
+  } else if (managerMorale !== null) {
+    decision.include(managerMorale.trace.label, managerMorale);
+  }
   const chosen = decision.choose(pickedOption, summary);
 
   // Replays the winner's arithmetic from its raw value, in the same order as the candidate above.
-  const viaManager = picked.viaManager && manager !== null && managerMorale !== null;
   const rawWinner = viaManager
     ? (manager.values[picked.stat] ?? 0)
     : (inputs.values[picked.stat] ?? 0);
   const calc = startCalc(
     inputs.personName,
-    mapTraced(chosen, summary, () => rawWinner),
+    mapTraced(
+      chosen,
+      viaManager
+        ? `${BEAT_STAT_LABELS[picked.stat]} of ${manager.name}`
+        : BEAT_STAT_LABELS[picked.stat],
+      () => rawWinner,
+    ),
     { unit: 'points', docRef: BEAT_WORKER_VALUE_DOC_REF },
   );
+  if (neutral) {
+    calc.note(NOT_YOUR_WORKER_NOTE);
+  } else if (inputs.momentum === null) {
+    calc.note(NO_MOMENTUM_NOTE);
+  }
   if (viaManager) {
     calc
       .note(`Manager ${manager.name} stands in on ${BEAT_STAT_LABELS[picked.stat]}`)
       .multiply("Manager's share", calc.tunable(tunables, 'match.angle.managerShare'))
-      .multiply(`Morale of ${manager.name}`, managerMorale.value, FACTOR_REASON);
+      .multiply(managerMorale.trace.label, managerMorale);
   } else {
     if (picked.stat === 'popularity') {
       calc.multiply(
@@ -240,12 +264,7 @@ export function beatWorkerValue(
         calc.tunable(tunables, 'match.angle.popularityStatShare'),
       );
     }
-    calc
-      .multiply('Morale', ownMorale.value, FACTOR_REASON)
-      .multiply('Momentum', ownMomentum.value, FACTOR_REASON);
-  }
-  if (neutral) {
-    calc.note(NOT_YOUR_WORKER_NOTE);
+    calc.multiply('Morale', ownMorale).multiply('Momentum', ownMomentum);
   }
 
   const spread = calc.tunable(tunables, 'match.angle.statNoise', 'Most the night can move it');
