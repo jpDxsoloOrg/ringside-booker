@@ -19,6 +19,7 @@ import type { EngineClient } from '../../engine/engineClient';
 import { useAdvanceDays } from '../../engine/useAdvanceDays';
 import { useSessionStore } from '../../session/sessionStore';
 import { describeAdvance, describeRefusal } from './advanceSummaryText';
+import { useSaveAfterCommands } from './useSaveAfterCommands';
 
 /** How long "Saved" stays beside the date after an autosave. */
 export const SAVED_VISIBLE_MS = 4000;
@@ -70,6 +71,11 @@ export interface DayAdvanceValue {
   readonly report: AdvanceReport | null;
   readonly dismissReport: () => void;
   readonly autosave: AutosaveState;
+  /**
+   * True from a change the player made (a command the engine accepted) until the save after it
+   * has been written (SAVE-01).
+   */
+  readonly unsavedChanges: boolean;
 }
 
 const DayAdvanceContext = createContext<DayAdvanceValue | null>(null);
@@ -124,6 +130,9 @@ export interface DayAdvanceProviderProps {
  * The policy needs the game date of the slot's last autosave. The slot record does not keep it, so
  * this remembers the dates it wrote itself; the first advance after a load counts as "no autosave
  * yet" and writes one, which also gives every session a fresh restore point.
+ *
+ * Changes the player makes between advances (booking a card, signing a contract) are saved too,
+ * shortly after each one (`useSaveAfterCommands`, SAVE-01), so a refresh or a closed tab keeps them.
  */
 export function DayAdvanceProvider({ children }: DayAdvanceProviderProps) {
   const client = useEngineClient();
@@ -136,6 +145,7 @@ export function DayAdvanceProvider({ children }: DayAdvanceProviderProps) {
   const lastAutosave = useRef<AutosaveMark | null>(null);
   const savedTimer = useRef<number | undefined>(undefined);
   const mounted = useRef(false);
+  const unsavedChanges = useSaveAfterCommands(client, setAutosave);
 
   useEffect(() => {
     mounted.current = true;
@@ -242,8 +252,20 @@ export function DayAdvanceProvider({ children }: DayAdvanceProviderProps) {
       report,
       dismissReport,
       autosave,
+      unsavedChanges,
     }),
-    [running, progress, daysRequested, stopping, start, cancel, report, dismissReport, autosave],
+    [
+      running,
+      progress,
+      daysRequested,
+      stopping,
+      start,
+      cancel,
+      report,
+      dismissReport,
+      autosave,
+      unsavedChanges,
+    ],
   );
 
   return <DayAdvanceContext.Provider value={value}>{children}</DayAdvanceContext.Provider>;
