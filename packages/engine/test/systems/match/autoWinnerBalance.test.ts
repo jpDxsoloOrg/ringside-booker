@@ -174,20 +174,22 @@ describe('auto-winner balance on the default world', () => {
   const { mainVsMid, midVsMid } = pairsOf(world);
   // The fast run plays every pair a few times; the slow run plays each one 200 times.
   const runs = SLOW_TESTS ? 200 : 20;
+  // The slow run plays thousands of seeded matches per test: give a loaded machine room.
+  const playTimeout = { timeout: SLOW_TESTS ? 120_000 : 30_000 };
 
   it('has main eventers and midcarders to pair', () => {
     expect(mainVsMid.length).toBeGreaterThan(50);
     expect(midVsMid.length).toBeGreaterThan(50);
   });
 
-  it('a main eventer beats a midcarder about 70-80% of the time, with upsets', () => {
+  it('a main eventer beats a midcarder about 70-80% of the time, with upsets', playTimeout, () => {
     const tally = playOut(world, mainVsMid, runs, tunables);
     expect(share(tally)).toBeGreaterThanOrEqual(0.7);
     expect(share(tally)).toBeLessThanOrEqual(0.8);
     expect(tally.upsets).toBeGreaterThan(0);
   });
 
-  it('the higher-scored of two midcarders wins about 55-60% of the time', () => {
+  it('the higher-scored of two midcarders wins about 55-60% of the time', playTimeout, () => {
     const tally = playOut(world, midVsMid, runs, tunables);
     expect(share(tally)).toBeGreaterThanOrEqual(0.55);
     expect(share(tally)).toBeLessThanOrEqual(0.6);
@@ -198,8 +200,8 @@ describe('auto-winner balance on the default world', () => {
     expect(playOut(world, sample, 10, tunables)).toEqual(playOut(world, sample, 10, tunables));
   });
 
-  // Thousands of seeded matches: give a loaded machine room (slow suite only).
-  it.runIf(SLOW_TESTS)('prints the recorded numbers', { timeout: 120_000 }, () => {
+  // Both sweeps again, for the numbers (slow suite only).
+  it.runIf(SLOW_TESTS)('prints the recorded numbers', { timeout: 240_000 }, () => {
     const main = playOut(world, mainVsMid, runs, tunables);
     const mid = playOut(world, midVsMid, runs, tunables);
     console.info(
