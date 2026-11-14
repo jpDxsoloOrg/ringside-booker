@@ -1749,6 +1749,30 @@
         "lastTurnOn": null
       }
     ],
+    "airings": [
+      {
+        "id": "air_0000000001",
+        "dealId": "dea_0000000001",
+        "networkId": "net_0000000001",
+        "promotionId": "pro_0000000001",
+        "eventInstanceId": "evi_0000000001",
+        "eventDefinitionId": "evd_0000000001",
+        "showName": "Test Weekly",
+        "airDate": "2026-04-09",
+        "status": "aired",
+        "missReason": null,
+        "quality": {
+          "score": 62,
+          "source": "show"
+        },
+        "viewers": 150000,
+        "expectedViewers": 140000,
+        "income": 175000,
+        "sharesPaid": 0,
+        "cost": 0,
+        "traceRef": null
+      }
+    ],
     "brands": [
       {
         "id": "brd_0000000001",
@@ -1821,7 +1845,11 @@
           "feePerShow": 100000,
           "perThousandViewers": 500,
           "costPerShow": 0
-        }
+        },
+        "endedOn": null,
+        "endedReason": null,
+        "renegotiatedOn": null,
+        "warnedOn": null
       }
     ],
     "employments": [
@@ -2943,7 +2971,9 @@
           "employmentId": null
         },
         "importance": 1,
-        "expiresOn": null
+        "expiresOn": null,
+        "buzz": 0,
+        "dedupeKey": null
       },
       {
         "id": "nws_0000000002",
@@ -2967,7 +2997,9 @@
           "employmentId": null
         },
         "importance": 2,
-        "expiresOn": "2026-05-09"
+        "expiresOn": "2026-05-09",
+        "buzz": 47,
+        "dedupeKey": "result:evi_0000000001"
       }
     ],
     "participants": [

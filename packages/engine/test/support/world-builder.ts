@@ -32,11 +32,13 @@ import {
 } from '../../src/core/date';
 import type { PromotionId } from '../../src/core/ids';
 import type { Brand } from '../../src/model/entities/brand';
+import type { DealTerms, DealTimeslot } from '../../src/model/entities/deal';
 import type { Employment } from '../../src/model/entities/employment';
 import type { EventDefinition } from '../../src/model/entities/event-definition';
 import type { EventInstance } from '../../src/model/entities/event-instance';
 import type { MatchOutcome } from '../../src/model/entities/segment';
 import type { Person } from '../../src/model/entities/person';
+import type { Network, NetworkCoverage, NetworkKind } from '../../src/model/entities/network';
 import type { Promotion } from '../../src/model/entities/promotion';
 import type { InjuryRecord } from '../../src/model/entities/injury';
 import type { PromotionSnapshot } from '../../src/model/entities/promotion-snapshot';
@@ -68,6 +70,7 @@ import {
   aStoryline,
 } from './builders/creative';
 import { aContinent, aCountry, aRegion } from './builders/geography';
+import { aDeal, aNetwork } from './builders/media';
 import { anInjury } from './builders/injury';
 import { aPerson, DEFAULT_PERSON_AGE } from './builders/people';
 import { TEST_CATALOGS } from './catalogs';
@@ -195,6 +198,7 @@ function emptyIdLists(): IdLists {
     injuries: [],
     contractConcerns: [],
     negotiations: [],
+    airings: [],
   };
 }
 
@@ -282,6 +286,21 @@ export interface WeeklyShow {
   readonly weekdays?: readonly Weekday[];
 }
 
+/**
+ * A broadcast deal for `PromotionBuilder.withDeal` (ECO8-01). Active from `startsOn` (the world's
+ * start date) to `endsOn` (a year later).
+ */
+export interface DealPlan {
+  /** The network: an index into `ids.networks`, or its name. Add networks before the promotion. */
+  readonly network: number | string;
+  /** The name of one of this promotion's shows, or left out for every televised show. */
+  readonly show?: string;
+  readonly timeslot?: DealTimeslot;
+  readonly terms?: Partial<DealTerms>;
+  readonly startsOn?: GameDate;
+  readonly endsOn?: GameDate;
+}
+
 /** Collects what to add to one promotion. Applied in a fixed order; see `addPromotion`. */
 export class PromotionBuilder {
   readonly brands: DeepPartial<Brand>[] = [];
@@ -296,6 +315,7 @@ export class PromotionBuilder {
     readonly fields: DeepPartial<Storyline>;
     readonly cast: StorylineCast;
   }[] = [];
+  readonly deals: DealPlan[] = [];
 
   /** Adds a brand. The first brand is the flagship and gets the roster and the shows. */
   withBrand(overrides: DeepPartial<Brand> = {}): this {
@@ -329,12 +349,33 @@ export class PromotionBuilder {
     this.storylines.push({ fields, cast });
     return this;
   }
+
+  /** Adds an active broadcast deal (ECO8-01) with a network added before this promotion. */
+  withDeal(deal: DealPlan): this {
+    this.deals.push(deal);
+    return this;
+  }
+}
+
+function resolveNetwork(context: BuildState, network: number | string): Network['id'] {
+  const id =
+    typeof network === 'number'
+      ? context.ids.networks[network]
+      : context.ids.networks.find(
+          (candidate) => context.tx.view.tables.networks.get(candidate)?.name === network,
+        );
+  if (id === undefined) {
+    throw new Error(
+      `WorldBuilder: withDeal names network ${String(network)}; add it with withNetwork first`,
+    );
+  }
+  return id;
 }
 
 /**
  * Adds a promotion and what its builder collected, in this order: the promotion, its brands, its
  * roster (people, then their employments with the first brand), its titles and reigns, its shows,
- * its storylines.
+ * its storylines, its deals.
  * People are based in the promotion's home region, which defaults to the world's first region.
  */
 function addPromotion(
@@ -429,8 +470,9 @@ function addPromotion(
     );
   }
 
+  const showIdsByName = new Map<string, EventDefinition['id']>();
   for (const { show, overrides: showOverrides } of plan.shows) {
-    context.insert(
+    const definition = context.insert(
       'eventDefinitions',
       anEventDefinition(
         {
@@ -444,6 +486,7 @@ function addPromotion(
         sequence,
       ),
     );
+    showIdsByName.set(definition.name, definition.id);
   }
 
   for (const { fields, cast } of plan.storylines) {
@@ -460,6 +503,30 @@ function addPromotion(
       'storylines',
       aStoryline(
         { promotionId: promotion.id, startedOn: startDate, heat: 50, ...fields, members },
+        sequence,
+      ),
+    );
+  }
+
+  for (const deal of plan.deals) {
+    const eventDefinitionId = deal.show === undefined ? null : showIdsByName.get(deal.show);
+    if (eventDefinitionId === undefined) {
+      throw new Error(`WorldBuilder: withDeal names show ${String(deal.show)}, not one of ours`);
+    }
+    const startsOn = deal.startsOn ?? startDate;
+    context.insert(
+      'deals',
+      aDeal(
+        {
+          networkId: resolveNetwork(context, deal.network),
+          promotionId: promotion.id,
+          eventDefinitionId,
+          offeredOn: startsOn,
+          startsOn,
+          endsOn: deal.endsOn ?? addYears(startsOn, 1),
+          ...(deal.timeslot === undefined ? {} : { timeslot: deal.timeslot }),
+          ...(deal.terms === undefined ? {} : { terms: deal.terms }),
+        },
         sequence,
       ),
     );
@@ -572,6 +639,16 @@ function requireIndexed<T>(list: readonly T[], index: number, what: string): T {
   return value;
 }
 
+/** A network for `withNetwork` (ECO8-01). Covers every region of the world when left out. */
+export interface NetworkPlan {
+  readonly name?: string;
+  readonly kind?: NetworkKind;
+  readonly reachTier?: number;
+  readonly coverage?: Partial<NetworkCoverage>;
+  /** Anything else on the row (`status`, `closedOn`, `ownerPromotionId`, ...). */
+  readonly overrides?: DeepPartial<Network>;
+}
+
 export class WorldBuilder {
   private readonly steps: BuildStep[] = [];
   private seasonCount = 1;
@@ -583,6 +660,36 @@ export class WorldBuilder {
   /** Adds a preset geography. Call it before adding promotions. */
   withGeography(preset: GeographyPreset): this {
     this.steps.push(GEOGRAPHY_PRESETS[preset]);
+    return this;
+  }
+
+  /**
+   * Adds a network (ECO8-01), launched long before the start date. Its id is the next
+   * `ids.networks` entry; deals name it by that index or by its name.
+   */
+  withNetwork(plan: NetworkPlan = {}): this {
+    this.steps.push((context) => {
+      const coverage: NetworkCoverage = {
+        continentIds: [],
+        countryIds: [],
+        regionIds: plan.coverage === undefined ? [...context.ids.regions] : [],
+        ...plan.coverage,
+      };
+      context.insert(
+        'networks',
+        aNetwork(
+          {
+            ...(plan.name === undefined ? {} : { name: plan.name }),
+            ...(plan.kind === undefined ? {} : { kind: plan.kind }),
+            ...(plan.reachTier === undefined ? {} : { reachTier: plan.reachTier }),
+            launchedOn: addYears(context.meta.startDate, -10),
+            ...plan.overrides,
+            coverage,
+          },
+          context.sequence,
+        ),
+      );
+    });
     return this;
   }
 

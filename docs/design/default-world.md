@@ -149,7 +149,8 @@ seen and tested. Nobody else can book them; see
 
 ## Networks
 
-Sixteen broadcasters, all active, all with a null `logoRef`:
+Twenty-four broadcasters, all active, all with a null `logoRef`. The sixteen
+national and worldwide ones:
 
 | Market    | Free-to-air TV (reach)      | Pay TV (reach)         | Streaming (reach)                 |
 | --------- | --------------------------- | ---------------------- | --------------------------------- |
@@ -162,23 +163,38 @@ Sixteen broadcasters, all active, all with a null `logoRef`:
 Two pay-per-view providers: Turnstile Pay-Per-View (US and Canada) and
 Gatehouse Global PPV (every continent but Africa).
 
+Eight local and regional TV channels (ECO8-01) give small promotions somebody
+their size to deal with. None has a deal on day one.
+
+| Key                       | Name                    | Reach | Regions covered                         |
+| ------------------------- | ----------------------- | ----: | --------------------------------------- |
+| `us-texas-local`          | Bluebonnet Cable 7      |     0 | `us-texas`                              |
+| `us-southwest-regional`   | Caliche Country Sports  |     1 | `us-texas`, `us-southwest`, `us-plains` |
+| `us-great-lakes-regional` | Driftwood Lakes Sports  |     1 | `us-great-lakes`, `us-midwest`          |
+| `us-california-regional`  | Sagebluff Cable         |     1 | `us-california`, `us-pacific-northwest` |
+| `ca-ontario-regional`     | Birchreach Television   |     1 | `ca-ontario`, `ca-quebec`               |
+| `jp-kansai-local`         | Kawasemi Channel 12     |     0 | `jp-kansai`                             |
+| `de-west-local`           | Ruhrblick TV            |     0 | `de-west`                               |
+| `au-victoria-local`       | Wattlebird Community TV |     0 | `au-victoria-tasmania`                  |
+
 ## Deals
 
 Seven deals run on day one. Each started before the start date and has 6-30
 months left, so renewals come up at different times.
 
-| Promotion  | Network                 | Show                                             | Slot                       | Months left |
-| ---------- | ----------------------- | ------------------------------------------------ | -------------------------- | ----------- |
-| Altura     | National Signal Network | Altura Mainstage                                 | Monday prime time, live    | 30          |
-| Altura     | Kestrel Sports          | Altura Overclock                                 | Wednesday prime time, live | 15          |
-| Altura     | Turnstile Pay-Per-View  | Every televised show (`eventDefinitionKey` null) | Prime time, live           | 9           |
-| Tessen     | Kazamidori Television   | Tessen Iron Hour                                 | Saturday late night, taped | 21          |
-| Cielo Alto | Televisora Altiplano    | Viernes de Cielo                                 | Friday evening, taped      | 6           |
-| Longleaf   | Tallgrass Stream        | Longleaf Saturday Night                          | Saturday evening, taped    | 11          |
-| Ashlar     | Larkspur Stream         | Ashlar Thursday                                  | Thursday evening, taped    | 12          |
+| Promotion  | Network                 | Show                                                      | Slot                       | Months left |
+| ---------- | ----------------------- | --------------------------------------------------------- | -------------------------- | ----------- |
+| Altura     | National Signal Network | Altura Mainstage                                          | Monday prime time, live    | 30          |
+| Altura     | Kestrel Sports          | Altura Overclock                                          | Wednesday prime time, live | 15          |
+| Altura     | Turnstile Pay-Per-View  | Every major and flagship show (`eventDefinitionKey` null) | Prime time, live           | 9           |
+| Tessen     | Kazamidori Television   | Tessen Iron Hour                                          | Saturday late night, taped | 21          |
+| Cielo Alto | Televisora Altiplano    | Viernes de Cielo                                          | Friday evening, taped      | 6           |
+| Longleaf   | Tallgrass Stream        | Longleaf Saturday Night                                   | Saturday evening, taped    | 11          |
+| Ashlar     | Larkspur Stream         | Ashlar Thursday                                           | Thursday evening, taped    | 12          |
 
-The pay-per-view deal names no show. Which cards actually go out on
-pay-per-view (the major and flagship ones) is for EVT and ECO to decide.
+The pay-per-view deal names no show. A promotion-wide pay-per-view deal airs
+only the promotion's major and flagship shows, never the weekly TV
+([broadcast.md](broadcast.md#which-deal-airs-which-show)).
 
 **Every money value in `deals.json` is a placeholder, to be rebalanced by ECO.**
 The fees, per-thousand-viewer rates and costs only need the right order of

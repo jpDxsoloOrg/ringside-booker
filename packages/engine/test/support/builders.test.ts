@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { z } from 'zod';
 import { weekday } from '../../src/core/date';
+import { cents } from '../../src/core/money';
+import { AiringSchema } from '../../src/model/entities/airing';
 import { BrandSchema } from '../../src/model/entities/brand';
 import { DealSchema } from '../../src/model/entities/deal';
 import { EmploymentSchema } from '../../src/model/entities/employment';
@@ -31,6 +33,7 @@ import {
   aContinent,
   aCountry,
   aDeal,
+  anAiring,
   aLedgerEntry,
   aMail,
   aMatch,
@@ -85,6 +88,7 @@ const builderCases: readonly (readonly [string, () => unknown, z.ZodType])[] = [
   ['aVenue', () => aVenue(), VenueSchema],
   ['aNetwork', () => aNetwork(), NetworkSchema],
   ['aDeal', () => aDeal(), DealSchema],
+  ['anAiring', () => anAiring(), AiringSchema],
   ['aMail', () => aMail(), MailSchema],
   ['aNews', () => aNews(), NewsSchema],
   ['aLedgerEntry', () => aLedgerEntry(), LedgerEntrySchema],
@@ -246,6 +250,48 @@ describe('WorldBuilder', () => {
     expect(old?.heat).toBe(80);
   });
 
+  it('adds networks and deals in one line each (ECO8-01)', () => {
+    const { world, ids } = worldBuilder()
+      .withGeography('mini')
+      .withNetwork({ name: 'Test Local TV', kind: 'tv', reachTier: 0 })
+      .withNetwork({ name: 'Test PPV', kind: 'ppv', reachTier: 3 })
+      .withPromotion({}, (promotion) =>
+        promotion
+          .withWeeklyShow({ name: 'Test Weekly' })
+          .withDeal({ network: 'Test Local TV', show: 'Test Weekly', timeslot: 'evening' })
+          .withDeal({ network: 1, terms: { perThousandViewers: cents(2_000) } }),
+      )
+      .build();
+    expectValidWorld(world);
+    const [local, ppv] = ids.networks.map((id) => world.tables.networks.require(id));
+    expect(local).toMatchObject({ name: 'Test Local TV', kind: 'tv', reachTier: 0 });
+    expect(local?.coverage.regionIds).toEqual(ids.regions);
+    expect(ppv?.kind).toBe('ppv');
+    const [weekly, payPerView] = ids.deals.map((id) => world.tables.deals.require(id));
+    expect(weekly).toMatchObject({
+      networkId: local?.id,
+      promotionId: ids.promotions.A,
+      eventDefinitionId: ids.eventDefinitions[0],
+      timeslot: 'evening',
+      status: 'active',
+      startsOn: world.meta.startDate,
+      endedOn: null,
+    });
+    expect(payPerView).toMatchObject({ networkId: ppv?.id, eventDefinitionId: null });
+    expect(payPerView?.terms.perThousandViewers).toBe(cents(2_000));
+  });
+
+  it('refuses a deal with a network or show it does not know', () => {
+    const build = (deal: { network: number | string; show?: string }) => () =>
+      worldBuilder()
+        .withGeography('mini')
+        .withNetwork()
+        .withPromotion({}, (promotion) => promotion.withWeeklyShow().withDeal(deal))
+        .build();
+    expect(build({ network: 'Nobody TV' })).toThrow(/network Nobody TV/);
+    expect(build({ network: 0, show: 'No Such Show' })).toThrow(/show No Such Show/);
+  });
+
   it('refuses a storyline member outside the roster', () => {
     expect(() =>
       worldBuilder()
@@ -348,6 +394,7 @@ describe('canned worlds', () => {
       injuries: 1,
       contractConcerns: 1,
       negotiations: 1,
+      airings: 1,
     });
     expect(world.tables.promotions.require(ids.promotions.A!).controller).toEqual({
       kind: 'human',

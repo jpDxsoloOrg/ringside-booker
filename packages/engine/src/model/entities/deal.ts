@@ -19,6 +19,23 @@ export const DEAL_STATUSES = ['offered', 'active', 'expired', 'cancelled', 'decl
 export const DealStatusSchema = z.enum(DEAL_STATUSES);
 export type DealStatus = z.infer<typeof DealStatusSchema>;
 
+/** The statuses of a deal that has ended: `endedOn` and `endedReason` are set exactly for these. */
+export const ENDED_DEAL_STATUSES: readonly DealStatus[] = ['expired', 'cancelled'];
+
+/**
+ * Why a deal ended (ECO8-01): it ran to its end date, the network dropped it for low viewers or
+ * too many missed airings, the promotion walked away, or the network closed.
+ */
+export const DEAL_END_REASONS = [
+  'expired',
+  'lowViewers',
+  'missedAirings',
+  'byPromotion',
+  'networkClosed',
+] as const;
+export const DealEndReasonSchema = z.enum(DEAL_END_REASONS);
+export type DealEndReason = z.infer<typeof DealEndReasonSchema>;
+
 export const DEAL_TIMESLOTS = ['daytime', 'evening', 'primeTime', 'lateNight'] as const;
 export const DealTimeslotSchema = z.enum(DEAL_TIMESLOTS);
 export type DealTimeslot = z.infer<typeof DealTimeslotSchema>;
@@ -52,8 +69,32 @@ export const DealSchema = z
     /** Aired live rather than taped. */
     live: z.boolean(),
     terms: DealTermsSchema,
+    // ECO8-01's lifecycle fields default to null for saves made before them.
+    /** The day the deal ended, set exactly when `status` is `expired` or `cancelled`. */
+    endedOn: zGameDate.nullable().default(null),
+    /** Why the deal ended, set exactly when `endedOn` is. */
+    endedReason: DealEndReasonSchema.nullable().default(null),
+    /** The last day the deal's terms were renegotiated, or null. */
+    renegotiatedOn: zGameDate.nullable().default(null),
+    /** The last day the promotion was warned the deal is at risk, so warnings are not repeated. */
+    warnedOn: zGameDate.nullable().default(null),
   })
   .superRefine((deal, context) => {
+    const ended = ENDED_DEAL_STATUSES.includes(deal.status);
+    if (ended !== (deal.endedOn !== null)) {
+      context.addIssue({
+        code: 'custom',
+        message: 'endedOn is set exactly when the deal is expired or cancelled',
+        path: ['endedOn'],
+      });
+    }
+    if (ended !== (deal.endedReason !== null)) {
+      context.addIssue({
+        code: 'custom',
+        message: 'endedReason is set exactly when the deal is expired or cancelled',
+        path: ['endedReason'],
+      });
+    }
     if (compareDates(deal.endsOn, deal.startsOn) <= 0) {
       context.addIssue({
         code: 'custom',

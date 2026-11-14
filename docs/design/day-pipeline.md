@@ -416,7 +416,7 @@ registered ones:
 
 | Gate                         | System      | Hits when                                                                                                                                                                                                                                          | Reason                                                                  | Hint        |
 | ---------------------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ----------- |
-| `shows.tonight`              | shows       | The player has an open show today (EVT2-09)                                                                                                                                                                                                        | "Tonight: Friday Fury", or "Your show 'Friday Fury' has no card yet"    | `showNight` |
+| `shows.tonight`              | shows       | The player has an open show today (EVT2-09); while it is under way the reason is "Finish tonight's show first: Friday Fury" (EVT10-01)                                                                                                             | "Tonight: Friday Fury", or "Your show 'Friday Fury' has no card yet"    | `showNight` |
 | `health.ownWorkerInjured`    | health      | An injury to one of the player's workers waits to be noticed (WRK6-04)                                                                                                                                                                             | "Big Joe was injured (Sprained ankle, out until Mar 14, 2031)"          | `roster`    |
 | `contracts.expiringSoon`     | contracts   | One of the player's contracts ends soon and its notice is unseen (ECO4-02, [contracts.md](contracts.md#expiring-soon))                                                                                                                             | "Contract expiring soon: Big Joe (ends Mar 14, 2031)" (+ " and 2 more") | `contracts` |
 | `contracts.releaseRequested` | contracts   | One of the player's workers has an open release request that stops the skip (ECO4-03, [contracts.md](contracts.md#unhappy-workers))                                                                                                                | "Big Joe wants to leave" (+ " and 2 others")                            | `contracts` |
@@ -973,3 +973,22 @@ The promotion popularity system's events ([promotion-popularity.md](promotion-po
 | Event                    | Payload                                                                                                        | Published when                                  |
 | ------------------------ | -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
 | `showPopularity.changed` | `eventInstanceId`, `promotionId`, `worldBefore`, `worldAfter`, `regionsGained`, `regionsLost`, `regionsCapped` | A completed show's popularity change is applied |
+
+The news system's events ([news.md](news.md#posting), DAY1-01):
+
+| Event         | Payload                                | Published when                                                            |
+| ------------- | -------------------------------------- | ------------------------------------------------------------------------- |
+| `news.posted` | `newsId`, `kind`, `importance`, `buzz` | `postNews` writes a story (a dedupe hit posts nothing and publishes none) |
+
+The broadcast system's events ([broadcast.md](broadcast.md), declared by
+ECO8-01 and published by ECO8-04 and ECO8-05; ECO10's rival deal-making
+publishes the same `broadcast.dealSigned`):
+
+| Event                        | Payload                                                                                             | Published when                                        |
+| ---------------------------- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `broadcast.aired`            | `airingId`, `dealId`, `promotionId`, `networkId`, `eventInstanceId` (or null), `airDate`, `viewers` | a deal aired a show and its `airings` row is written  |
+| `broadcast.missed`           | `airingId`, `dealId`, `promotionId`, `eventInstanceId` (or null), `airDate`, `reason`               | a show a deal was due to air was cancelled or not run |
+| `broadcast.dealSigned`       | `dealId`, `promotionId`, `networkId`                                                                | a promotion and a network signed a deal               |
+| `broadcast.dealRenegotiated` | `dealId`, `promotionId`                                                                             | a deal's terms were renegotiated                      |
+| `broadcast.dealEnded`        | `dealId`, `promotionId`, `networkId`, `reason` (`DEAL_END_REASONS`)                                 | a deal expired or was cancelled                       |
+| `broadcast.dealWarned`       | `dealId`, `promotionId`, `risk` (`DEAL_RISKS`)                                                      | the network warned the promotion a deal is at risk    |
