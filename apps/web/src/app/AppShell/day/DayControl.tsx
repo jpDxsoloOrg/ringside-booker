@@ -10,6 +10,9 @@ import type { DayPrimaryAction } from './dayControlState';
 import { useDayAdvance } from './DayAdvanceProvider';
 import styles from './DayControl.module.css';
 import { DAY_SHORTCUT, useDayShortcut } from './useDayShortcut';
+// Features' own Skip days choices, registered where the game opens the sheet (it always has an
+// engine here). The sheet's built-in choices register from the sheet itself.
+import '@/screens/calendar/skipTarget';
 
 /** The main button's words for each state. */
 export function primaryLabel(primary: DayPrimaryAction): string {
