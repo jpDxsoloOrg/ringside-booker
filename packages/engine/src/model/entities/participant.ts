@@ -82,7 +82,7 @@ export const participantsTable = defineTable({
     { path: 'segmentId', target: 'segment', nullable: false },
     { path: 'personId', target: 'person', nullable: false },
     { path: 'teamId', target: 'team', nullable: true },
-    { path: 'forPersonId', target: 'person', nullable: true },
+    { path: 'forPersonId', target: 'person', nullable: false },
   ],
   indexes: [
     { name: 'bySegment', key: (participant) => participant.segmentId },
