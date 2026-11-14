@@ -59,6 +59,8 @@ test('a talking segment gets a second beat in Booking and keeps it after Save', 
   const option = roster.getByRole('option').first();
   await expect(option).toBeVisible();
   await option.click();
+  // The speaker picker stays open for more picks.
+  if (await roster.isVisible()) await page.keyboard.press('Escape');
   await expect(roster).toBeHidden();
 
   // The Beats section starts from the type's default beat with the speaker in it.
