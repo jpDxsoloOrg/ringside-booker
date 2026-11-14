@@ -271,7 +271,7 @@ test.describe('contracts', () => {
       await shot(page, 'contracts-release', testInfo);
       const panel = await openWhy(page, why, `${released}'s severance`, phone);
       await expandAll(panel);
-      await expect(panel.getByText('contracts.severance.fullMonths')).toBeVisible();
+      await expect(panel.getByText('contracts.severance.fullMonths').first()).toBeVisible();
       await expectNoHorizontalScroll(page);
       await shot(page, 'contracts-release-why', testInfo);
       await closeWhy(page, panel);
@@ -308,12 +308,14 @@ test.describe('contracts', () => {
       await openContracts(page, phone);
       await page.getByRole('button', { name: 'Rules' }).click();
       const rules = page.getByRole('dialog', { name: 'Contract rules' });
-      await expect(rules.getByRole('radiogroup', { name: 'Worker patience' })).toBeVisible();
+      await expect(rules.getByRole('group', { name: 'Worker patience' })).toBeVisible();
       // The stopgap until contract talks: ECO5-05 retires it, and this switch with it.
       const renew = rules.getByRole('switch', { name: 'Renew my contracts automatically' });
       if ((await renew.count()) > 0) {
-        await renew.setChecked(false);
-        await expect(renew).not.toBeChecked();
+        // The switch follows the saved rule, so it flips once the engine has answered.
+        await expect(renew).toBeChecked();
+        await renew.click();
+        await expect(renew).not.toBeChecked({ timeout: 15_000 });
       }
       await expectNoHorizontalScroll(page);
       await page.keyboard.press('Escape');
@@ -392,7 +394,7 @@ test.describe('contracts', () => {
       const name = await rowName(row, phone);
       if (phone) {
         const sheet = await openSheet(page, row, name, phone);
-        await sheet.getByRole('link', { name, exact: true }).first().click();
+        await sheet.getByRole('link', { name: `Open ${name}'s profile` }).click();
       } else {
         await row.getByRole('link', { name, exact: true }).click();
       }
@@ -533,7 +535,7 @@ test.describe('contracts', () => {
       const panel = await openWhy(page, grantWhy, `Severance if you let ${granted} go`, phone);
       await expect(panel).toContainText('Agreed share');
       await expandAll(panel);
-      await expect(panel.getByText('contracts.quit.severanceShare')).toBeVisible();
+      await expect(panel.getByText('contracts.quit.severanceShare').first()).toBeVisible();
       await closeWhy(page, panel);
       await request.getByRole('button', { name: 'Grant', exact: true }).click();
       const confirm = page.getByRole('alertdialog');
@@ -562,7 +564,11 @@ test.describe('contracts', () => {
     await expect(row).toBeVisible({ timeout: 15_000 });
     const name = await rowName(row, phone);
     if (phone) {
-      await (await openSheet(page, row, name, phone)).getByRole('link', { name }).first().click();
+      await (
+        await openSheet(page, row, name, phone)
+      )
+        .getByRole('link', { name: `Open ${name}'s profile` })
+        .click();
     } else {
       await row.getByRole('link', { name, exact: true }).click();
     }
