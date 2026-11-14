@@ -13,6 +13,7 @@ import {
   AUDIENCE_TRACE_COUNTRY_LINES,
   BROADCAST_VIEWERS_STREAM,
   formatViewers,
+  shortViewers,
   NEUTRAL_QUALITY_NOTE,
   NO_HYPE_NOTE,
   PPV_TIMESLOT_NOTE,
@@ -328,5 +329,19 @@ describe('audience', () => {
 
   it('is plain JSON', () => {
     expectSerialisable(run({ live: true, quality: { score: 80, source: 'show' } }));
+  });
+});
+
+describe('shortViewers', () => {
+  it.each([
+    [0, '0'],
+    [950, '950'],
+    [4_250, '4.2K'],
+    [38_900, '38K'],
+    [2_412_345, '2.4M'],
+    [3_000_000, '3M'],
+    [999_999, '999K'],
+  ])('writes %d as %s, rounded down', (value, text) => {
+    expect(shortViewers(value)).toBe(text);
   });
 });

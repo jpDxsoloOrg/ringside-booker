@@ -7,6 +7,7 @@
 
 import type { EventImportance } from '../../../model/entities/event-definition';
 import type { NetworkId } from '../../../core/ids';
+import { shortViewers } from '../../broadcast/formulas/audience';
 import { EVENT_IMPORTANCE_LABELS } from '../../match/formulas/crowdExpectation';
 
 /** How a region came to see a show: in person, as a neighbour, or on television. */
@@ -20,9 +21,20 @@ export type ReachRoute =
       readonly source: 'tv';
       readonly networkId: NetworkId;
       readonly networkName: string;
+      /** What the airing drew (ECO8-07), once it has aired; null or left out before then. */
+      readonly audience?: ReachAudience | null;
     };
 
-/** "Show region", "Neighbour of Texas" or "TV: National Signal Network". */
+/** What a show's airing on a network drew: viewers, or buys on pay-per-view. */
+export interface ReachAudience {
+  readonly count: number;
+  readonly noun: 'viewers' | 'buys';
+}
+
+/**
+ * "Show region", "Neighbour of Texas", "TV: National Signal Network", or once the show has aired
+ * there "TV: National Signal Network, 2.4M viewers".
+ */
 export function reachLabel(route: ReachRoute): string {
   switch (route.source) {
     case 'show':
@@ -30,7 +42,9 @@ export function reachLabel(route: ReachRoute): string {
     case 'neighbour':
       return `Neighbour of ${route.showRegionName}`;
     case 'tv':
-      return `TV: ${route.networkName}`;
+      return route.audience === undefined || route.audience === null
+        ? `TV: ${route.networkName}`
+        : `TV: ${route.networkName}, ${shortViewers(route.audience.count)} ${route.audience.noun}`;
   }
 }
 

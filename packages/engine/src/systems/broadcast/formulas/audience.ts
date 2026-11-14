@@ -153,6 +153,22 @@ export function formatViewers(value: number): string {
   return String(Math.floor(value)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
+/**
+ * Viewers in a few characters, rounded down so it never claims more than watched: "2.4M", "38K",
+ * "4.2K", "950". For short lines such as "TV: National Signal Network, 2.4M viewers".
+ */
+export function shortViewers(value: number): string {
+  const whole = Math.max(0, Math.floor(value));
+  const tenths = (scaled: number): string => {
+    const rounded = Math.floor(scaled * 10) / 10;
+    return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+  };
+  if (whole >= 1_000_000) return `${tenths(whole / 1_000_000)}M`;
+  if (whole >= 10_000) return `${String(Math.floor(whole / 1_000))}K`;
+  if (whole >= 1_000) return `${tenths(whole / 1_000)}K`;
+  return String(whole);
+}
+
 /** A traced value with its trace cut to `maxNodes`, the value untouched. */
 function fitted(value: Traced<number>, maxNodes: number): Traced<number> {
   return { value: value.value, trace: fitTraceNode(value.trace, STEP_CHILD_DEPTH, maxNodes).node };

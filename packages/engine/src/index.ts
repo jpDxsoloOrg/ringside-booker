@@ -3880,6 +3880,7 @@ export {
   benchmarkInputsFor,
   broadcastHypeFor,
   formatViewers,
+  shortViewers,
   networkBenchmark,
   projectedAudience,
   regionAudience,

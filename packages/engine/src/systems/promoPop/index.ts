@@ -17,7 +17,13 @@ import { applyShowPopularity } from './apply';
 import './officeSections';
 import { promoPopQueries } from './queries';
 
-export { importanceLabel, reachLabel, type ReachRoute, type ReachSource } from './formulas/labels';
+export {
+  importanceLabel,
+  reachLabel,
+  type ReachAudience,
+  type ReachRoute,
+  type ReachSource,
+} from './formulas/labels';
 export {
   REGION_EXPECTATION_DOC_REF,
   regionExpectation,

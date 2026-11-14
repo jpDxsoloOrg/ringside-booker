@@ -64,6 +64,7 @@ export {
   AUDIENCE_TRACE_HYPE_NODES,
   audience,
   formatViewers,
+  shortViewers,
   NEUTRAL_QUALITY_NOTE,
   NO_HYPE_NOTE,
   PPV_TIMESLOT_NOTE,
