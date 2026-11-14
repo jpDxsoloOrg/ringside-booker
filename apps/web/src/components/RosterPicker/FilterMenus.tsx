@@ -1,10 +1,17 @@
 import { forwardRef, useId } from 'react';
 import type { ButtonHTMLAttributes } from 'react';
-import type { Push } from '@ringside/engine';
+import type { PickerStoryline, Push, StorylineId } from '@ringside/engine';
 import { Icon } from '../Icon';
 import { Popover } from '../Popover';
-import { GENDER_CHOICES, genderChipLabel, PUSH_CHOICES, pushChipLabel } from './rosterFilters';
-import type { GenderChoice } from './rosterFilters';
+import {
+  GENDER_CHOICES,
+  genderChipLabel,
+  orderStorylines,
+  PUSH_CHOICES,
+  pushChipLabel,
+  storylineChipLabel,
+} from './rosterFilters';
+import type { GenderChoice, StorylineChoice } from './rosterFilters';
 import styles from './RosterPicker.module.css';
 
 interface MenuChipProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -111,6 +118,83 @@ export function PushFilterMenu({ value, onChange }: PushFilterMenuProps) {
         >
           Show every push
         </button>
+      </fieldset>
+    </Popover>
+  );
+}
+
+export interface StorylineFilterMenuProps {
+  readonly value: StorylineChoice;
+  readonly onChange: (value: StorylineChoice) => void;
+  /** The promotion's current storylines, hottest first. */
+  readonly options: readonly PickerStoryline[];
+  /** Storylines the segment already links: offered first and marked. */
+  readonly linkedIds: readonly StorylineId[];
+}
+
+/**
+ * "Storylines" (EVT2-13): everyone, anyone in a current storyline, or one storyline's members.
+ * Storylines the segment already links come first.
+ */
+export function StorylineFilterMenu({
+  value,
+  onChange,
+  options,
+  linkedIds,
+}: StorylineFilterMenuProps) {
+  const name = useId();
+  const ordered = orderStorylines(options, linkedIds);
+  const choices: readonly {
+    readonly key: string;
+    readonly choice: StorylineChoice;
+    readonly label: string;
+    readonly linked: boolean;
+  }[] = [
+    { key: 'all', choice: { kind: 'all' }, label: 'Everyone', linked: false },
+    ...(options.length === 0
+      ? []
+      : [
+          { key: 'any', choice: { kind: 'any' } as const, label: 'Any storyline', linked: false },
+        ]),
+    ...ordered.map((option) => ({
+      key: option.storylineId,
+      choice: { kind: 'one', storylineId: option.storylineId } as const,
+      label: option.name,
+      linked: linkedIds.includes(option.storylineId),
+    })),
+  ];
+  const isChosen = (choice: StorylineChoice): boolean =>
+    choice.kind === value.kind &&
+    (choice.kind !== 'one' || (value.kind === 'one' && value.storylineId === choice.storylineId));
+  return (
+    <Popover
+      title="Show by storyline"
+      trigger={
+        <MenuChip narrowed={value.kind !== 'all'}>{storylineChipLabel(value, options)}</MenuChip>
+      }
+    >
+      <fieldset className={styles['menuList']}>
+        <legend className={styles['menuLegend']}>Storylines</legend>
+        {choices.map((item) => (
+          <label key={item.key} className={styles['menuItem']}>
+            <input
+              type="radio"
+              name={name}
+              className={styles['menuInput']}
+              checked={isChosen(item.choice)}
+              onChange={() => {
+                onChange(item.choice);
+              }}
+            />
+            <span className={styles['menuLabel']}>
+              {item.label}
+              {item.linked && <span className={styles['menuHint']}>In this segment</span>}
+            </span>
+          </label>
+        ))}
+        {options.length === 0 && (
+          <p className={styles['menuEmpty']}>No current storylines. Start one on Storylines.</p>
+        )}
       </fieldset>
     </Popover>
   );

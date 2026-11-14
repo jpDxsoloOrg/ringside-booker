@@ -82,6 +82,7 @@ describe('EditorRosterPicker rows', () => {
       kind: 'tag',
       memberIds: [member.personId, free.personId],
       bookable: true,
+      titles: [],
     };
     expect(pickerTeam(team, roster, DRAFT, EDITED).bookedElsewhere).toBe(true);
     expect(pickerTeam(team, roster, DRAFT, OTHER).bookedElsewhere).toBe(false);
@@ -108,6 +109,7 @@ describe('EditorRosterPicker rows', () => {
       kind: 'tag',
       memberIds: [woman.personId, man.personId],
       bookable: true,
+      titles: [],
     };
     const row = pickerTeam(team, roster, DRAFT);
     expect(row.memberGenders).toEqual(['female', 'male']);

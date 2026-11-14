@@ -5,7 +5,10 @@ import type {
   AvailabilityStatus,
   Gender,
   PersonId,
+  PickerStoryline,
+  PickerStorylineMembership,
   Push,
+  StorylineId,
   TeamId,
 } from '@ringside/engine';
 import { AlignmentChip } from '../AlignmentChip';
@@ -19,17 +22,21 @@ import type { IconName } from '../Icon';
 import { ImageSlot } from '../ImageSlot';
 import { VisuallyHidden } from '../layout';
 import { Sheet } from '../Sheet';
-import { GenderFilterMenu, PushFilterMenu } from './FilterMenus';
+import { StorylineSideChip } from '../StorylineSideChip';
+import { GenderFilterMenu, PushFilterMenu, StorylineFilterMenu } from './FilterMenus';
 import {
   allPushes,
+  effectiveStorylineChoice,
+  EVERY_STORYLINE,
   genderLabel,
+  matchesStoryline,
   personMatchesGender,
   personMatchesPush,
   teamGenderLabel,
   teamMatchesGender,
   teamMatchesPush,
 } from './rosterFilters';
-import type { GenderChoice } from './rosterFilters';
+import type { GenderChoice, StorylineChoice } from './rosterFilters';
 import styles from './RosterPicker.module.css';
 
 /** How long the search box waits after the last key before it searches. */
@@ -89,6 +96,10 @@ export interface RosterPickerPerson {
   readonly typeLabel?: string;
   /** Numbers after the type, in order: "Pop 54 · Stamina 72". */
   readonly stats?: readonly RosterPickerStat[];
+  /** EVT2-13: the titles they hold, by name: a belt beside their name. Left out or empty, none. */
+  readonly titles?: readonly string[];
+  /** EVT2-13: the current storylines they are in, with their side: a tag each, and the filter. */
+  readonly storylines?: readonly PickerStorylineMembership[];
 }
 
 /** A team the picker lists; picking it adds every member. */
@@ -108,6 +119,10 @@ export interface RosterPickerTeam {
   readonly otherBrand: boolean;
   /** True when any member is already booked in another segment of this card. */
   readonly bookedElsewhere?: boolean;
+  /** EVT2-13: the titles the team holds, by name: a belt beside its name. */
+  readonly titles?: readonly string[];
+  /** EVT2-13: the current storylines any member is in, for the Storylines filter. */
+  readonly storylineIds?: readonly StorylineId[];
 }
 
 export type RosterPickerMode = 'people' | 'teams';
@@ -156,6 +171,15 @@ export interface RosterPickerProps {
     readonly label: string;
     readonly fits: (person: RosterPickerPerson) => boolean;
   };
+  /**
+   * EVT2-13: offer the Storylines filter, a menu of the promotion's current storylines (hottest
+   * first) that narrows the list to one storyline's members, or to anyone in one. Storylines in
+   * `linkedIds` (the segment already links them) come first. Off when left out.
+   */
+  readonly storylineFilter?: {
+    readonly options: readonly PickerStoryline[];
+    readonly linkedIds?: readonly StorylineId[];
+  };
 }
 
 /** Every push, so a picker without the Push filter narrows nothing. */
@@ -167,6 +191,52 @@ function isBookable(row: { readonly selectable: boolean; readonly bookable?: boo
 
 function isBookedElsewhere(row: { readonly bookedElsewhere?: boolean }): boolean {
   return row.bookedElsewhere ?? false;
+}
+
+const NO_STORYLINES: readonly StorylineId[] = [];
+
+function personStorylineIds(person: RosterPickerPerson): readonly StorylineId[] {
+  return person.storylines?.map((membership) => membership.storylineId) ?? NO_STORYLINES;
+}
+
+function rowStorylineIds(row: RosterPickerPerson | RosterPickerTeam): readonly StorylineId[] {
+  return 'personId' in row ? personStorylineIds(row) : (row.storylineIds ?? NO_STORYLINES);
+}
+
+/**
+ * EVT2-13: the belt beside a champion's name. Its name ("Champion: Test World Title") is what a
+ * screen reader says; hovering shows it too, and the row spells the titles out underneath, so a
+ * touch or keyboard player never needs the tooltip.
+ */
+function ChampionMark({ titles }: { readonly titles: readonly string[] }) {
+  const label = `Champion: ${titles.join(', ')}`;
+  return (
+    <span className={styles['champion']} title={label}>
+      <Icon name="titles" size="sm" label={label} />
+    </span>
+  );
+}
+
+/** The row's name, with the champion's belt beside it when they hold a title. */
+function rowName(name: string, titles: readonly string[] | undefined) {
+  const held = titles ?? [];
+  return (
+    <span className={styles['rowNameLine']}>
+      <span className={styles['rowName']}>{name}</span>
+      {held.length > 0 && <ChampionMark titles={held} />}
+    </span>
+  );
+}
+
+/** The titles in words under the name, so the belt never relies on a tooltip. */
+function titlesNote(titles: readonly string[] | undefined) {
+  if (titles === undefined || titles.length === 0) return null;
+  // The belt already gives screen readers the same words.
+  return (
+    <span className={styles['titlesNote']} aria-hidden="true">
+      {titles.join(' · ')}
+    </span>
+  );
 }
 
 const AVAILABILITY_ICONS: Readonly<Record<AvailabilityStatus, IconName>> = {
@@ -273,9 +343,10 @@ function personContent(person: RosterPickerPerson) {
         decorative
       />
       <span className={styles['rowText']}>
-        <span className={styles['rowName']}>{person.name}</span>
+        {rowName(person.name, person.titles)}
         {statsLine(person)}
         <span className={styles['rowChips']}>
+          {titlesNote(person.titles)}
           {person.pushLabel !== null && <span className={styles['push']}>{person.pushLabel}</span>}
           {person.alignment !== null && <AlignmentChip alignment={person.alignment} size="sm" />}
           <AvailabilityBadge
@@ -285,6 +356,14 @@ function personContent(person: RosterPickerPerson) {
           {person.notes.map((note) => (
             <span key={note} className={styles['note']}>
               {note}
+            </span>
+          ))}
+          {person.storylines?.map((membership) => (
+            <span key={membership.storylineId} className={styles['storylineTag']}>
+              <Icon name="storylines" size="sm" decorative />
+              <VisuallyHidden>Storyline: </VisuallyHidden>
+              {membership.name}
+              <StorylineSideChip side={membership.side} />
             </span>
           ))}
         </span>
@@ -301,9 +380,10 @@ function teamContent(team: RosterPickerTeam) {
         <Icon name="users" decorative />
       </span>
       <span className={styles['rowText']}>
-        <span className={styles['rowName']}>{team.name}</span>
+        {rowName(team.name, team.titles)}
         {genders !== null && <span className={styles['rowStats']}>{genders}</span>}
         <span className={styles['rowChips']}>
+          {titlesNote(team.titles)}
           <span className={styles['push']}>{team.memberNames.join(' & ')}</span>
           {team.otherBrand && <span className={styles['note']}>Other brand</span>}
         </span>
@@ -342,6 +422,7 @@ export function RosterPicker({
   statsNote,
   genderAndPushFilters = false,
   fitFilter,
+  storylineFilter,
 }: RosterPickerProps) {
   const [text, setText] = useState('');
   const [bookableOnly, setBookableOnly] = useState(true);
@@ -353,6 +434,8 @@ export function RosterPicker({
   // Gender and Push keep their choice between openings, for as long as the picker is mounted.
   const [gender, setGender] = useState<GenderChoice>('all');
   const [pushes, setPushes] = useState<ReadonlySet<Push>>(allPushes);
+  // The storyline choice keeps between openings too.
+  const [storyline, setStoryline] = useState<StorylineChoice>(EVERY_STORYLINE);
   const [active, setActive] = useState(0);
   const searchId = useId();
   const listId = useId();
@@ -391,6 +474,10 @@ export function RosterPicker({
   const sortKey = sorted && sortStat !== undefined ? sortStat.key : null;
   const genderChoice: GenderChoice = genderAndPushFilters ? gender : 'all';
   const pushChoice: ReadonlySet<Push> = genderAndPushFilters ? pushes : ALL_PUSHES;
+  const storylineChoice: StorylineChoice =
+    storylineFilter === undefined
+      ? EVERY_STORYLINE
+      : effectiveStorylineChoice(storyline, storylineFilter.options);
   const rows = useMemo<readonly PickerRow[]>(() => {
     if (showingTeams) {
       return teams
@@ -399,6 +486,7 @@ export function RosterPicker({
         .filter((team) => !hidingBooked || !isBookedElsewhere(team))
         .filter((team) => teamMatchesGender(team.memberGenders, genderChoice))
         .filter((team) => teamMatchesPush(team.memberPushes, pushChoice))
+        .filter((team) => matchesStoryline(rowStorylineIds(team), storylineChoice))
         .map((team) => ({
           key: team.teamId,
           selectable: team.selectable,
@@ -417,7 +505,8 @@ export function RosterPicker({
       .filter((person) => !thisBrand || !person.otherBrand)
       .filter((person) => !hidingBooked || !isBookedElsewhere(person))
       .filter((person) => personMatchesGender(person.gender, genderChoice))
-      .filter((person) => personMatchesPush(person.push, pushChoice));
+      .filter((person) => personMatchesPush(person.push, pushChoice))
+      .filter((person) => matchesStoryline(personStorylineIds(person), storylineChoice));
     // A stable sort, so equal stats keep the screen's order.
     const ordered =
       sortKey === null
@@ -445,6 +534,7 @@ export function RosterPicker({
     pushChoice,
     showingTeams,
     sortKey,
+    storylineChoice,
     teams,
     thisBrand,
   ]);
@@ -502,7 +592,35 @@ export function RosterPicker({
       (!bookableOnly || isBookable(row)) &&
       (!hidingBooked || !isBookedElsewhere(row)),
   ).length;
-  const hiddenByChoice = passingOthers - rows.length;
+  // Rows that pass every other filter, Gender and Push included, but not Storylines.
+  const fitsNow = fitOnly && !showingTeams ? fitFilter?.fits : undefined;
+  const passesAllButStoryline = (row: RosterPickerPerson | RosterPickerTeam): boolean => {
+    if (thisBrand && row.otherBrand) return false;
+    if (bookableOnly && !isBookable(row)) return false;
+    if (hidingBooked && isBookedElsewhere(row)) return false;
+    if ('personId' in row) {
+      return (
+        (fitsNow === undefined || fitsNow(row)) &&
+        personMatchesGender(row.gender, genderChoice) &&
+        personMatchesPush(row.push, pushChoice)
+      );
+    }
+    return (
+      teamMatchesGender(row.memberGenders, genderChoice) &&
+      teamMatchesPush(row.memberPushes, pushChoice)
+    );
+  };
+  const listedRows: readonly (RosterPickerPerson | RosterPickerTeam)[] = showingTeams
+    ? teams
+    : people;
+  const hiddenByStoryline =
+    storylineChoice.kind === 'all'
+      ? 0
+      : listedRows.filter(
+          (row) =>
+            passesAllButStoryline(row) && !matchesStoryline(rowStorylineIds(row), storylineChoice),
+        ).length;
+  const hiddenByChoice = passingOthers - rows.length - hiddenByStoryline;
 
   return (
     <Sheet
@@ -617,6 +735,17 @@ export function RosterPicker({
               />
             </>
           )}
+          {storylineFilter !== undefined && (
+            <StorylineFilterMenu
+              value={storylineChoice}
+              options={storylineFilter.options}
+              linkedIds={storylineFilter.linkedIds ?? NO_STORYLINES}
+              onChange={(value) => {
+                setStoryline(value);
+                setActive(0);
+              }}
+            />
+          )}
           {teams !== undefined && (
             <FilterChip
               pressed={showingTeams}
@@ -646,7 +775,11 @@ export function RosterPicker({
             icon="user-search"
             title={trimmed === '' ? `No ${listLabel.toLowerCase()} to list` : 'Nobody by that name'}
             body={
-              hiddenByChoice > 0
+              hiddenByStoryline > 0
+                ? storylineChoice.kind === 'any'
+                  ? 'Nobody else here is in a current storyline. Choose Everyone in Storylines to see more.'
+                  : 'Nobody else here is in that storyline. Choose Everyone in Storylines to see more.'
+                : hiddenByChoice > 0
                 ? 'Change the Gender or Push filter to see more.'
                 : hidden > 0
                   ? 'Turn off Bookable only to see everyone, with why they can’t be booked.'
@@ -704,6 +837,11 @@ export function RosterPicker({
         {hiddenByChoice > 0 && rows.length > 0 && (
           <p className={styles['status']}>
             {`${String(hiddenByChoice)} more ${hiddenByChoice === 1 ? 'is' : 'are'} hidden by the Gender or Push filter.`}
+          </p>
+        )}
+        {hiddenByStoryline > 0 && rows.length > 0 && (
+          <p className={styles['status']}>
+            {`${String(hiddenByStoryline)} more ${hiddenByStoryline === 1 ? 'is' : 'are'} hidden by the Storylines filter.`}
           </p>
         )}
         {hiddenBooked > 0 && rows.length > 0 && (

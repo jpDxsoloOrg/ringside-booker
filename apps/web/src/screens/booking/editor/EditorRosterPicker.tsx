@@ -111,6 +111,8 @@ export function pickerPerson(
     notes,
     typeLabel: workerTypeLabel(row),
     stats: workerStats(row, context.regionName),
+    titles: row.titles.map((title) => title.name),
+    storylines: row.storylines,
   };
 }
 
@@ -155,6 +157,13 @@ export function pickerTeam(
     bookedElsewhere: members.some(
       (member) => member?.onCard.some((place) => place.segmentId !== segmentId) === true,
     ),
+    titles: team.titles.map((title) => title.name),
+    // In a storyline when any member is.
+    storylineIds: [
+      ...new Set(
+        known.flatMap((member) => member.storylines.map((membership) => membership.storylineId)),
+      ),
+    ],
   };
 }
 
@@ -237,6 +246,15 @@ export function EditorRosterPicker({
     };
   }, [fit, query.data]);
 
+  // EVT2-13: the Storylines filter, the segment's own linked storylines first.
+  const storylineOptions = query.data?.storylines;
+  const linkedIds = draft.storylineIds;
+  const storylineFilter = useMemo(
+    () =>
+      storylineOptions === undefined ? undefined : { options: storylineOptions, linkedIds },
+    [storylineOptions, linkedIds],
+  );
+
   const side = shown.side;
   return (
     <RosterPicker
@@ -261,6 +279,7 @@ export function EditorRosterPicker({
       }}
       {...(status === undefined ? {} : { status })}
       {...(fitFilter === undefined ? {} : { fitFilter })}
+      {...(storylineFilter === undefined ? {} : { storylineFilter })}
     />
   );
 }
