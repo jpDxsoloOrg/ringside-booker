@@ -880,7 +880,13 @@ export {
   MessageRefsSchema,
 } from './model/entities/mail';
 export type { News, NewsImportance, NewsKind } from './model/entities/news';
-export { NEWS_KINDS, NewsKindSchema, NewsSchema } from './model/entities/news';
+export {
+  NEWS_DEDUPE_KEY_MAX,
+  NEWS_KIND_LABELS,
+  NEWS_KINDS,
+  NewsKindSchema,
+  NewsSchema,
+} from './model/entities/news';
 export type { LedgerCategory, LedgerEntry, LedgerRefs } from './model/entities/ledger-entry';
 export {
   hasLedgerSign,

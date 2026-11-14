@@ -185,6 +185,8 @@ export const testDailySystem: SystemBundle = defineSystem({
           refs: news.refs,
           importance: news.importance,
           expiresOn: news.expiresOn,
+          buzz: news.buzz,
+          dedupeKey: news.dedupeKey,
         });
         ctx.publish('test.dayTicked', { date: ctx.date });
       },

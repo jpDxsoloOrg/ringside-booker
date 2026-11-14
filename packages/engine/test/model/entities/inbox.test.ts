@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { MailSchema, type MailDecision } from '../../../src/model/entities/mail';
-import { NewsSchema } from '../../../src/model/entities/news';
+import { NEWS_KIND_LABELS, NEWS_KINDS, NewsSchema } from '../../../src/model/entities/news';
 import { checkWorld } from '../../../src/model/integrity';
 import {
   date,
@@ -130,5 +130,48 @@ describe('news', () => {
     expect(world.tables.news.lookup('byDate', '2026-03-16').map((news) => news.id)).toEqual([
       testId('news', 2),
     ]);
+  });
+
+  it('parses the five kinds DAY1-01 added, after the original nine', () => {
+    expect(NEWS_KINDS).toHaveLength(14);
+    expect(NEWS_KINDS.slice(0, 9)).toEqual([
+      'result',
+      'titleChange',
+      'signing',
+      'release',
+      'injury',
+      'retirement',
+      'rumour',
+      'business',
+      'milestone',
+    ]);
+    for (const kind of ['backstage', 'personal', 'season', 'award', 'rivalry'] as const) {
+      expect(NewsSchema.safeParse(makeNews(1, { kind })).success).toBe(true);
+      expect(NEWS_KIND_LABELS[kind]).not.toBe('');
+    }
+    expect(NewsSchema.safeParse({ ...makeNews(1), kind: 'gossip' }).success).toBe(false);
+  });
+
+  it('keeps buzz within 0..100 and the dedupe key between 1 and 160 characters', () => {
+    expect(NewsSchema.safeParse(makeNews(1, { buzz: 100, dedupeKey: 'a' })).success).toBe(true);
+    expect(NewsSchema.safeParse(makeNews(1, { buzz: -1 })).success).toBe(false);
+    expect(NewsSchema.safeParse(makeNews(1, { buzz: 100.5 })).success).toBe(false);
+    expect(NewsSchema.safeParse(makeNews(1, { dedupeKey: '' })).success).toBe(false);
+    expect(NewsSchema.safeParse(makeNews(1, { dedupeKey: 'k'.repeat(161) })).success).toBe(false);
+  });
+
+  it('indexes stories by dedupe key and expiry, leaving nulls out', () => {
+    const world = inboxWorld();
+    world.tables.news._put(
+      makeNews(1, { dedupeKey: 'title-change:1', expiresOn: date('2026-03-29') }),
+    );
+    world.tables.news._put(makeNews(2));
+    expect(world.tables.news.lookup('byDedupeKey', 'title-change:1').map((n) => n.id)).toEqual([
+      testId('news', 1),
+    ]);
+    expect(world.tables.news.lookup('byExpiresOn', '2026-03-29').map((n) => n.id)).toEqual([
+      testId('news', 1),
+    ]);
+    expect(world.tables.news.lookup('byExpiresOn', 'null')).toEqual([]);
   });
 });
