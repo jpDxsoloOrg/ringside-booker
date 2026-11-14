@@ -18,12 +18,11 @@ import { expectNoSeriousA11yViolations } from './helpers/a11y';
 import {
   autoFillCard,
   cancelTonightsShow,
+  clearNewsStop,
   dayBarButtons,
   openBookingForTonight,
   pickWinnersAndRunShow,
   SHOW_STOP,
-  clearNewsStop,
-  pickWinnersAndRunShow,
 } from './helpers/booking';
 import { enterGameFromSampleSave, startDefaultWorldGame } from './helpers/game';
 import { expectNoHorizontalScroll } from './helpers/layout';

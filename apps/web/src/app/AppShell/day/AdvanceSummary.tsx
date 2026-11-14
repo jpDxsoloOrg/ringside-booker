@@ -319,11 +319,10 @@ export function AdvanceSummaryBanner({
         <p className={styles['summaryHeadline']}>{text.headline}</p>
         {!newsStop && reasonLine}
         {results.length > 0 && <ResultsLinks results={results} />}
+        {newsStop && reasonLine}
         {tonight !== null && (
           <TonightLine hit={tonight} said={text.reason === tonight.reason} route={tonightRoute} />
         )}
-        {newsStop && reasonLine}
-        {tonight !== null && <TonightLine hit={tonight} said={text.reason === tonight.reason} />}
         {contractChanges !== null && <ContractLines changes={contractChanges} />}
         {offerUpdates !== null && <OfferLines updates={offerUpdates} />}
         {report.kind === 'advanced' && text.failures !== null && (

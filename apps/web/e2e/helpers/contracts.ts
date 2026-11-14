@@ -2,11 +2,10 @@ import { expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import {
   cancelTonightsShow,
+  clearNewsStop,
   dayBarButtons,
   gameDate,
   SHOW_STOP,
-  clearNewsStop,
-  gameDate,
   waitForAdvanceToEnd,
   waitForDayBarSettled,
 } from './booking';
@@ -70,8 +69,7 @@ export function addIsoDays(date: string, days: number): string {
 }
 
 /** The day bar's buttons when the day stops (or doesn't). */
-const DAY_BUTTONS = dayBarButtons('Contracts', 'Roster');
-const DAY_BUTTONS = /^(Next day|(Tonight: )?Go to the show|Contracts|Roster|Open news)$/;
+const DAY_BUTTONS = dayBarButtons('Contracts', 'Roster', 'Open news');
 
 /** The screens the own-injury stop opens (`injuryGateDestination`); each marks injuries seen. */
 const INJURY_VIEW =
