@@ -244,6 +244,17 @@ tab, throws for a taken id, and the open roster re-renders when the list changes
 append to `rosterRowActions` in `screens/roster/rosterColumns.tsx`. The roster's Office panel,
 "Top of your roster" (side, order 30), lives in `screens/roster/officePanel.tsx`.
 
+## The news
+
+Office > News is live (DAY1-04..07). `/game/news` (`screens/news/`) shows the front page (up to
+three hero cards from `news.top`), the feed of every story on file (`news.feed`, filters in the URL)
+and one story in a sheet (`?story=<newsId>`); the shell's news crawl comes from the same stories.
+Every Buzz number has a Why?. A news alert the player turned on stops a long skip with the `news`
+gate hint: the day button reads "Open news" and opens the story with `&alert=1`, which clears the
+alert (see [Moving time](#moving-time)). Features add Skip days choices through the skip-target
+registry described there. `screens/news/README.md` lists the files; the design, with which values
+are stored and which are worked out, is `docs/design/news.md` under "Screen".
+
 ## The calendar
 
 Your promotion > Calendar is live. `/game/calendar` (`screens/calendar/`) is a nav item, not a
