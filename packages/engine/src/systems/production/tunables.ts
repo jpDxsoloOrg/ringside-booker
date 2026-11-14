@@ -21,6 +21,7 @@ const CEILING_DOC = 'production.md#popularity-ceiling';
 const DRAG_DOC = 'production.md#popularity-drag';
 const TV_DOC = 'production.md#tv-camera-minimum';
 const COMING_SHOWS_DOC = 'production.md#coming-shows';
+const RIVAL_BUDGET_DOC = 'production.md#rival-production-budget';
 
 /** The most any production price may be: $100,000,000. */
 const PRICE_MAX = 10_000_000_000;
@@ -187,5 +188,53 @@ export const productionTunables = defineTunables({
     category: PRODUCTION_TUNABLE_CATEGORY,
     description: 'How many days ahead the production screen adds up the coming shows',
     docRef: COMING_SHOWS_DOC,
+  },
+  // TEMPORARY (ECO7-05): the rival production budget, until AIP8's rival production desk.
+  'production.rivalBudget.lowerBelowMonths': {
+    kind: 'number',
+    default: 6,
+    min: 0,
+    max: 60,
+    step: 0.5,
+    unit: 'months',
+    category: PRODUCTION_TUNABLE_CATEGORY,
+    description:
+      'Temporary rival rule: a computer promotion lowers production when its cash covers fewer months of production costs than this (0 = never)',
+    docRef: RIVAL_BUDGET_DOC,
+  },
+  'production.rivalBudget.raiseAboveMonths': {
+    kind: 'number',
+    default: 24,
+    min: 0,
+    max: 120,
+    step: 1,
+    unit: 'months',
+    category: PRODUCTION_TUNABLE_CATEGORY,
+    description:
+      'Temporary rival rule: a computer promotion raises one held-back level a month when its cash covers this many months of production costs after the change (0 = never)',
+    docRef: RIVAL_BUDGET_DOC,
+  },
+  'production.rivalBudget.headroom': {
+    kind: 'number',
+    default: 5,
+    min: 0,
+    max: 100,
+    step: 1,
+    unit: 'points',
+    category: PRODUCTION_TUNABLE_CATEGORY,
+    description:
+      'Temporary rival rule: room a computer promotion keeps between its best recent show or region and its ceilings',
+    docRef: RIVAL_BUDGET_DOC,
+  },
+  'production.rivalBudget.lookbackDays': {
+    kind: 'integer',
+    default: 28,
+    min: 1,
+    max: 365,
+    unit: 'days',
+    category: PRODUCTION_TUNABLE_CATEGORY,
+    description:
+      "Temporary rival rule: how far back a computer promotion's best show is looked for",
+    docRef: RIVAL_BUDGET_DOC,
   },
 });

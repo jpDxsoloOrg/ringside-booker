@@ -7,7 +7,8 @@
  * write door (`door.ts`), the `production.setLevel` command, the `production.overview` and
  * `production.changePreview` queries and the effect seam (`effects.ts`). ECO7-03 adds the day
  * phases (`phases.ts`): the monthly overhead on the 1st and the daily popularity drag above the
- * ceiling. The per-show postings arrive in ECO7-05. Production never rolls, so there is no RNG
+ * ceiling. ECO7-05 adds the per-show postings (`showCosts.ts`, a `show.completed` reaction) and the
+ * temporary rival production budget (`rivalBudget.ts`) that AIP8 replaces. Production never rolls, so there is no RNG
  * stream. EVT4 owns the show-quality ceiling (system `cardFlow`). See docs/design/production.md.
  */
 
@@ -17,6 +18,8 @@ import './builtinEffects';
 import { setProductionLevelCommand } from './commands';
 import { productionPhases } from './phases';
 import { productionChangePreviewQuery, productionOverviewQuery } from './queries';
+import { rivalBudgetPhase } from './rivalBudget';
+import { showProductionCostsSubscription } from './showCosts';
 
 export {
   AREA_COST_KIND,
@@ -125,9 +128,18 @@ export {
   productionPhases,
 } from './phases';
 
+export { RIVAL_BUDGET_PHASE_ID, rivalBudgetPhase } from './rivalBudget';
+export {
+  postShowProductionCost,
+  SHOW_PRODUCTION_COSTS_SUBSCRIPTION_ID,
+  showProductionCostsSubscription,
+  showProductionMemo,
+} from './showCosts';
+
 export const productionSystem: SystemBundle = defineSystem({
   id: 'production',
-  phases: productionPhases,
+  phases: [...productionPhases, rivalBudgetPhase],
+  subscriptions: [showProductionCostsSubscription],
   queries: [productionOverviewQuery, productionChangePreviewQuery],
   commands: [setProductionLevelCommand],
 });
