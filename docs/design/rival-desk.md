@@ -613,3 +613,17 @@ aired: on that day the plan is still hidden, the next day it shows. Hidden
 rows are counted in `hiddenCount` ("2 plans hidden until they air") and
 never described. AIP4's `aip.showCards` and AIP5's `aip.segmentDecision`
 call the same function.
+
+## News
+
+DAY1-06. A rival decision becomes a news story only on its `revealOn` date,
+through the daily `aip.newsFromDecisions` phase (`periodic`, order 38: after
+the day's shows and contract steps, before `aip.pruneDecisionLog` at 42),
+which reads the decisions revealed today from `byRevealOn`. Only decisions with
+importance 1 or more whose kind registered a story writer
+(`registerDecisionNews({ decisionKind, story })`, `systems/aip/news.ts`) are
+posted, with dedupe key `aip-decision:<decisionId>`. Nothing reacts to
+`aip.decisionRecorded`, so a plan never reaches the news before it airs. Card,
+winner and title plans have no writer: the show's `show-result` story and the
+`title-change` story already tell them. ECO4's refused releases have one
+(`release-refused`, a rumour). See [news.md](news.md#integration).
