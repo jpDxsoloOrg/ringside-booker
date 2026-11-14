@@ -140,10 +140,12 @@ describe('useEngineQuery', () => {
     rerender({ limit: 2 });
     expect(result.current.status).toBe('success');
     expect(result.current.isStale).toBe(true);
+    expect(result.current.isPreviousData).toBe(true);
     expect(result.current.data).toBe(firstData);
     await waitFor(() => {
       expect(result.current.isStale).toBe(false);
     });
+    expect(result.current.isPreviousData).toBe(false);
   });
 });
 
@@ -182,7 +184,13 @@ describe('useEngineCommand', () => {
     expect(querySpyCalls(querySpy, 'counter.get')).toBe(2);
     // Between the command and the refetch, the old value stayed on screen as stale.
     expect(seen).toContainEqual(
-      expect.objectContaining({ status: 'success', data: { value: 0 }, isStale: true }),
+      expect.objectContaining({
+        status: 'success',
+        data: { value: 0 },
+        isStale: true,
+        // Same arguments, an older world: stale, but not the previous arguments' data.
+        isPreviousData: false,
+      }),
     );
   });
 
