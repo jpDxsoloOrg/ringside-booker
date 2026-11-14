@@ -61,7 +61,7 @@ function bestStat(result: Traced<number>): DecisionNode {
 const REX = { name: 'Rex Halden', values: { mic: 82, charisma: 40 }, morale: 0 };
 
 describe('angle tunables', () => {
-  it('declares the MTCH5-02, MTCH5-03 and MTCH5-08 keys with their defaults and ranges', () => {
+  it('declares the MTCH5-02, MTCH5-03, MTCH5-06 and MTCH5-08 keys with their defaults and ranges', () => {
     expect(
       Object.fromEntries(
         Object.entries(angleTunables).map(([key, def]) => [key, [def.default, def.min, def.max]]),
@@ -88,11 +88,15 @@ describe('angle tunables', () => {
       'match.angle.setting.video.crowdShare': [0.3, 0, 1],
       'match.angle.setting.backstage.durationShift': [-1, -1, 1],
       'match.angle.setting.video.durationShift': [0, -1, 1],
+      'match.angle.momentumPivot': [50, 0, 100],
+      'match.angle.momentumPerPoint': [0.12, 0, 1],
+      'match.angle.popularityPivot': [60, 0, 100],
+      'match.angle.popularityPerPoint': [0.05, 0, 1],
     });
     const categories = Object.entries(ALL_TUNABLES)
       .filter(([key]) => key in angleTunables)
       .map(([, def]) => def.category);
-    expect(categories).toEqual(Array.from({ length: 21 }, () => 'Angles'));
+    expect(categories).toEqual(Array.from({ length: 25 }, () => 'Angles'));
   });
 });
 

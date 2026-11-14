@@ -15,6 +15,7 @@ import { fakeEngineFactory, fakeEngineState } from '@/test/fakeEngine';
 import { useLabStore } from '../labStore';
 import { AFTERMATH_EMPTY_BODY, AFTERMATH_STALE_TEXT } from './aftermathText';
 import { useAftermathViewStore } from './aftermathViewStore';
+import { ANGLE_AFTERMATH_EMPTY_BODY } from '../angle/AngleAftermath';
 import { AFTERMATH_PANEL_TITLE } from './register';
 
 /** The lazily loaded lab and the engine's first answers can take a moment under load. */
@@ -107,14 +108,15 @@ describe('the Match lab Aftermath panel', () => {
     expect(within(panel).getByRole('radio', { name: 'Country' })).toBeChecked();
   });
 
-  it('is not shown for a talking segment', async () => {
+  it("is not shown for a talking segment, which shows Angle mode's own (MTCH5-06)", async () => {
     renderLab();
     await findPanel();
     act(() => {
       useLabStore.getState().setKind('angle', null, 2);
     });
     await waitFor(() => {
-      expect(screen.queryByRole('region', { name: AFTERMATH_PANEL_TITLE })).toBeNull();
+      expect(screen.queryByText(AFTERMATH_EMPTY_BODY)).toBeNull();
     });
+    expect(await screen.findByText(ANGLE_AFTERMATH_EMPTY_BODY)).toBeInTheDocument();
   });
 });

@@ -627,3 +627,32 @@ segment) so no other pick moves, and put managers and presenters on as
 themselves. With `aip.card.order.backstageBreaksTalk` (true) a backstage or
 pre-taped segment does not count for "no two talking segments in a row" (see
 [rival-booking.md](rival-booking.md#ordering)).
+
+<a id="angle-aftermath"></a>
+
+## Angle aftermath (MTCH5-06)
+
+A talking segment moves the people in it, a little. After a show runs an angle, everyone in a
+beat that ran (beats past the slot's limit don't count) gets:
+
+```
+share       = beats they were in ÷ beats that ran
+momentum   += (angle score − match.angle.momentumPivot) × match.angle.momentumPerPoint × share
+popularity += max(0, angle score − match.angle.popularityPivot) × match.angle.popularityPerPoint × share
+```
+
+- A good angle builds momentum and a flat one costs a little; popularity only ever goes up.
+- Someone named on the segment but in no beat that ran gets nothing.
+- The popularity change is the show region's; it spreads to neighbours and reached regions with
+  MTCH3's region weights (`segmentRegionWeights`), exactly as a match's does.
+- Both changes go through WRK1's doors (reason key `match.angle`), so the doors' taper, limits,
+  traces and change events apply. Momentum lives on the contract with the show's promotion:
+  someone with no contract there has none to change.
+- **Morale is never touched (D-09).** Angles have no losers, and WRK8 owns the story shield.
+- Show night: MTCH3's `match.aftermath` result applier (`aftermath/showNight.ts`) sends angles to
+  `applyAngleAftermath` (`angles/aftermath.ts`). No `aftermaths` rows are stored for angles (those
+  rows are match results that Recent form reads); the door traces are the record.
+- The Match lab's Angle mode shows the same numbers in an Aftermath panel: `match.previewAngle`
+  with `aftermath: true` returns `aftermath` (`computeAngleAftermath`).
+
+The per-point numbers are deliberately small: matches stay the main way popularity moves.

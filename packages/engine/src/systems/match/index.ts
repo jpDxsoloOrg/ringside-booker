@@ -27,6 +27,8 @@ import './rating/builtins';
 import './settings';
 // Registers the `match.finish` booking check at module load (EVT2-07).
 import './finishes/bookingCheck';
+// MTCH5-06: beat limits and angle warnings on the card.
+import './angles/bookingChecks';
 // Registers MTCH2's match outcome resolver with show night at module load (EVT3-07).
 import './finishes/showNight';
 // Registers the aftermath applier with show night and the TV reach provider at module load

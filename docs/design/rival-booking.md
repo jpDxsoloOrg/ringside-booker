@@ -384,6 +384,28 @@ will replace its single default beat through this function.
 - The kind of angle is a plain roll among the non-hidden angle types whose
   speaker range holds the speakers.
 
+### Beats from templates (MTCH5-06)
+
+Once the running order has put a talking segment in its slot, the booker builds its beats from one
+of MTCH5's [angle templates](angle-rating.md#angle-templates) instead of the angle type's one default
+beat (`aip/card/templates.ts`, called from `planCard`):
+
+1. **Purpose.** A storyline segment opens a feud (`startFeud`) in the story's first 14 days and
+   builds it (`buildFeud`) after; otherwise a title match on the card makes it a
+   `titleChallenge`; otherwise a speaker who won a title in the last 7 days `celebrate`s;
+   otherwise it is a `promo`. When nothing of that purpose can be cast, a `promo` is tried; when
+   nothing fits at all the default beat stays.
+2. **Fit and cast.** The templates of that purpose whose angle type holds the speakers, trimmed to
+   the slot's beat limit for the setting they would happen in (`fitTemplate`), cast with side one
+   as `a`, every other side as `b` and a presenter speaking as the interviewer as `host`
+   (`castTemplate`). A template that would leave a required second group empty is skipped.
+3. **Pick.** `rollPick` in key order on a detached stream per show and segment
+   (`aip.card.template`, `<instanceId>/<segmentKey>`), so no other pick on the card moves.
+4. The draft takes the template's angle type, setting and beats (`toStoredBeat`, sides from
+   `assignAngleSides`) and is written by EVT2's card writer as before. The slot's Why? includes the
+   decision, for example "Template: Feud Opener (fits short slot: 2 of 3 beats)", and the segment's
+   notes keep the same line.
+
 ## Storylines
 
 `storylinesForShow` and `planStorylineSegment` (`card/storylineSegments.ts`)

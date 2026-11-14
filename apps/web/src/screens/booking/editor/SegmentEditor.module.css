@@ -342,3 +342,23 @@
   color: var(--color-text-muted);
   font-size: var(--font-size-xs);
 }
+
+/* MTCH5-06: the Beats section. */
+.beats {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.beatPreview {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.beatPreviewLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+}

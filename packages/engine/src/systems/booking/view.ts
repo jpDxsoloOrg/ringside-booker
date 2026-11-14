@@ -20,6 +20,7 @@ import type {
   EventInstanceId,
   PersonId,
   PromotionId,
+  RegionId,
   SegmentId,
   StorylineId,
   TeamId,
@@ -258,6 +259,10 @@ export interface BookingShowView {
   /** 0 on the show's day; negative once it has passed. */
   daysUntil: number;
   format: { slots: number; preShowSlots: number };
+  /** MTCH5-06: where the show is held, for previews of its segments (the Beats section's Why?). */
+  regionId: RegionId;
+  /** MTCH5-06: true when the show is on TV (its event definition says so). */
+  televised: boolean;
 }
 
 /** `booking.card`: one show's card as the booking screen reads it. */
@@ -567,6 +572,11 @@ export function buildCardView(
       isToday: instance.date === today,
       daysUntil: diffDays(today, instance.date),
       format: { slots: instance.format.slots, preShowSlots: instance.format.preShowSlots },
+      regionId: instance.regionId,
+      televised:
+        instance.eventDefinitionId === null
+          ? false
+          : (read.tables.eventDefinitions.get(instance.eventDefinitionId)?.televised ?? false),
     },
     canEdit,
     editBlock,

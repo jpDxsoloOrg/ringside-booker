@@ -43,8 +43,9 @@ import {
   type MatchTypeDef,
 } from '../../model/catalogs';
 import type { BeatStat } from './angles/beatStats';
-import { defaultSettingOf, settingsOfAngleType } from './angles/settings';
+import { defaultSettingOf, settingDurationShifter, settingsOfAngleType } from './angles/settings';
 import {
+  ANGLE_SETTINGS,
   DEFAULT_ANGLE_SETTING,
   type AngleSetting,
   type TalkRole,
@@ -231,6 +232,11 @@ export interface SlotInfoArgs {
   kind: SegmentKind;
   /** The match type, for a match (required there); ignored for a talking segment. */
   typeKey?: ContentKey | undefined;
+  /**
+   * MTCH5-06: where a talking segment happens; backstage moves its class (MTCH5-08's
+   * `match.angle.setting.<setting>.durationShift`). Left out: in the ring. Ignored for a match.
+   */
+  setting?: AngleSetting | undefined;
 }
 
 /** `match.slotInfo`: what one slot role gives a segment, with the rules that decided it. */
@@ -482,6 +488,7 @@ const slotInfoArgs = z.strictObject({
   slotRole: z.enum(SLOT_ROLES),
   kind: z.enum(['match', 'angle']),
   typeKey: zContentKey.optional(),
+  setting: z.enum(ANGLE_SETTINGS).optional(),
 });
 
 /**
@@ -510,7 +517,11 @@ export const slotInfoQuery: QueryDefinition<'match.slotInfo'> = defineQuery('mat
       }
     }
     const deps = { tunables: ctx.tunables };
-    const duration = durationClassOf({ role: args.slotRole, matchType }, deps);
+    const shifter =
+      args.kind === 'angle' && args.setting !== undefined
+        ? settingDurationShifter(args.setting, ctx.tunables)
+        : matchType;
+    const duration = durationClassOf({ role: args.slotRole, matchType: shifter }, deps);
     const weight = slotWeightOf({ role: args.slotRole }, deps);
     return {
       role: args.slotRole,

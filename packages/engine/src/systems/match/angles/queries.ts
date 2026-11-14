@@ -46,6 +46,8 @@ import { assignAngleSides } from './beatGroups';
 import { beatLimitMessage, beatLimitOf } from './beatLimit';
 import { angleDurationClass, type BeatResult } from './rateAngle';
 import { anglePreviewStream } from './streams';
+import { computeAngleAftermath, type AngleAftermath } from './aftermath';
+import { geographyOf } from '../../world/geography';
 
 /** The most people one group of a previewed beat may hold (the catalog allows at most 6). */
 export const PREVIEW_ANGLE_GROUP_MAX = 6;
@@ -99,6 +101,11 @@ export interface PreviewAngleArgs {
   previewSeed: number;
   /** MTCH5-08: where the angle happens. Left out: in the ring. */
   setting?: AngleSetting | undefined;
+  /**
+   * MTCH5-06: also work out what the angle would do to everyone's momentum and popularity (the
+   * lab's Aftermath). Left out: no `aftermath` in the result.
+   */
+  aftermath?: boolean | undefined;
 }
 
 const groupSchema = z.array(zId('person')).max(PREVIEW_ANGLE_GROUP_MAX);
@@ -127,6 +134,7 @@ export const PreviewAngleArgsSchema = z
     earlierBeatKeysOnCard: z.array(zContentKey).max(PREVIEW_EARLIER_BEATS_MAX).optional(),
     previewSeed: z.number().int().min(0).max(PREVIEW_SEED_MAX),
     setting: AngleSettingSchema.optional(),
+    aftermath: z.boolean().optional(),
   })
   .refine((args) => (args.slotRole === undefined) !== (args.slot === undefined), {
     message: 'give either slotRole or slot',
@@ -152,6 +160,8 @@ export interface PreviewAngleResult {
   readonly beatLimit: { readonly max: number; readonly message: string };
   readonly warnings: readonly SegmentWarning[];
   readonly policy: RatingPolicySummary;
+  /** MTCH5-06: present only when the args asked for `aftermath`. */
+  readonly aftermath?: AngleAftermath;
 }
 
 declare module '../../../core/api/maps' {
@@ -386,6 +396,30 @@ export const previewAngleQuery: QueryDefinition<'match.previewAngle'> = defineQu
         beatLimit: { max: angle.beatLimit.max, message: angle.beatLimit.message },
         warnings: rated.data.warnings,
         policy: rated.data.policy,
+        ...(args.aftermath === true
+          ? {
+              aftermath: computeAngleAftermath(
+                read,
+                {
+                  segmentId: null,
+                  eventInstanceId: null,
+                  promotionId,
+                  date: ctx.date,
+                  regionId: args.regionId,
+                  televised: args.televised,
+                  importance: args.importance,
+                  beats: angle.beats
+                    .filter((beat) => beat.counted)
+                    .map((beat) =>
+                      beat.groups.flatMap((group) => group.people.map((person) => person.personId)),
+                    ),
+                  score: rated.data.score.value,
+                },
+                ctx.tunables,
+                geographyOf(read),
+              ),
+            }
+          : {}),
       };
     },
   },

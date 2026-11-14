@@ -377,16 +377,16 @@ function rollupRows(
 }
 
 /** The per-region and roll-up part of a competitor's popularity change. */
-type PopularityDetail = Pick<AftermathPopularity, 'regions' | 'countries' | 'continents'>;
+export type PopularityDetail = Pick<AftermathPopularity, 'regions' | 'countries' | 'continents'>;
 
-const NO_REGION_DETAIL: PopularityDetail = Object.freeze({
+export const NO_REGION_DETAIL: PopularityDetail = Object.freeze({
   regions: [],
   countries: [],
   continents: [],
 });
 
 /** Each region's line of the door's preview, and the country and continent roll-ups around it. */
-function popularityDetail(
+export function popularityDetail(
   geography: Geography,
   lines: readonly RegionWeightLine[],
   preview: PopularityPreview,
