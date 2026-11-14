@@ -52,24 +52,24 @@ function termsOf(
 describe('dealTerms on TV', () => {
   it('pays the flat part of the rate for the valued viewers and the rest per thousand', () => {
     // 2,000 viewers against 1,000 expected: ratio 2, every viewer valued, no shortfall.
-    // Fee = 2 × 40,000 × (1 − 0.1) = 72,000 cents; per thousand = 40,000 × 0.1 = 4,000 cents.
+    // Fee = 2 × 5,000 × (1 − 0.1) = 9,000 cents; per thousand = 5,000 × 0.1 = 500 cents.
     const terms = termsOf();
     expect(terms.ratio.value).toBe(2);
-    expect(terms.feePerShow.value).toBe(72_000);
-    expect(terms.perThousandViewers.value).toBe(4_000);
+    expect(terms.feePerShow.value).toBe(9_000);
+    expect(terms.perThousandViewers.value).toBe(500);
   });
 
   it('pays the live bonus on both parts of the rate', () => {
     const terms = termsOf({ live: true });
-    expect(terms.feePerShow.value).toBe(79_200);
-    expect(terms.perThousandViewers.value).toBe(4_400);
+    expect(terms.feePerShow.value).toBe(9_900);
+    expect(terms.perThousandViewers.value).toBe(550);
     expectTraceContains(terms.feePerShow, { kind: 'multiply', label: 'Live show' });
   });
 
   it('caps the valued viewers at valuedViewersCap × the benchmark', () => {
     // 20,000 projected against 1,000 expected: only 5 × 1,000 are valued.
     const capped = termsOf({ projected: viewers('Projected', 20_000) });
-    expect(capped.feePerShow.value).toBe(5 * 40_000 * 0.9);
+    expect(capped.feePerShow.value).toBe(5 * 5_000 * 0.9);
     const node = expectTraceContains(capped.feePerShow, {
       kind: 'min',
       label: 'No more than the most it pays for',
@@ -77,16 +77,16 @@ describe('dealTerms on TV', () => {
     expect(node.applied).toBe(true);
     const lowerCap = createEngineTunables({ 'broadcast.value.valuedViewersCap': 1.5 });
     expect(termsOf({ projected: viewers('Projected', 20_000) }, lowerCap).feePerShow.value).toBe(
-      1.5 * 40_000 * 0.9,
+      1.5 * 5_000 * 0.9,
     );
   });
 
   it('scales the fee by the shortfall when the audience is under the benchmark', () => {
-    // 500 against 1,000: 500 valued × 40 per viewer × 0.9 × shortfall 0.5 = 9,000 cents.
+    // 500 against 1,000: 500 valued × 5 per viewer × 0.9 × shortfall 0.5 = 1,125 cents.
     const short = termsOf({ projected: viewers('Projected', 500) });
     expect(short.ratio.value).toBe(0.5);
-    expect(short.feePerShow.value).toBe(9_000);
-    expect(short.perThousandViewers.value).toBe(4_000);
+    expect(short.feePerShow.value).toBe(1_125);
+    expect(short.perThousandViewers.value).toBe(500);
   });
 
   it('gives a ratio of 0 with a note, and no fee, when the network expects nobody', () => {
@@ -99,14 +99,14 @@ describe('dealTerms on TV', () => {
   it('rounds the fee down to the cent', () => {
     const odd = termsOf({ projected: viewers('Projected', 1_234), benchmark: viewers('E', 1_000) });
     expect(Number.isInteger(odd.feePerShow.value)).toBe(true);
-    expect(odd.feePerShow.value).toBe(Math.floor(1.234 * 40_000 * 0.9));
+    expect(odd.feePerShow.value).toBe(Math.floor(1.234 * 5_000 * 0.9));
   });
 });
 
 describe('dealTerms on streaming and pay-per-view', () => {
   it('pays streaming all as the flat fee, with no per-thousand part', () => {
     const terms = termsOf({ kind: 'streaming' });
-    expect(terms.feePerShow.value).toBe(2 * 25_000);
+    expect(terms.feePerShow.value).toBe(2 * 3_125);
     expect(terms.perThousandViewers.value).toBe(0);
     expect(terms.perThousandViewers.trace.children?.[0]?.label).toBe(
       STREAMING_NO_PER_THOUSAND_NOTE,
@@ -128,11 +128,13 @@ describe('dealTerms on streaming and pay-per-view', () => {
 describe('dealTerms airtime', () => {
   const cases: readonly (readonly [NetworkKind, number, number, number])[] = [
     // kind, people covered, tier, airtime in cents
-    ['tv', 31_300_000, 0, 469_500],
+    // 31.3 × 1,875 × 1 = 58,687.5 → 58,687 → 58,600 (odd cents dropped).
+    ['tv', 31_300_000, 0, 58_600],
+    // Pay-per-view keeps its own, higher rate (ECO8-09): 31.3 × 15,000 × 4.
     ['ppv', 31_300_000, 3, 1_878_000],
-    // 3,333,333 people, tier 2, streaming: 3.333333 × 15,000 × 3 × 0.1 = 14,999.99 → 14,900.
-    ['streaming', 3_333_333, 2, 14_900],
-    ['tv', 1_234_567, 1, 37_000],
+    // 3,333,333 people, tier 2, streaming: 3.333333 × 1,875 × 3 × 0.1 = 1,874.99 → 1,800.
+    ['streaming', 3_333_333, 2, 1_800],
+    ['tv', 1_234_567, 1, 4_600],
   ];
 
   it.each(cases)('charges %s airtime by people covered and tier', (kind, people, tier, cost) => {
@@ -159,16 +161,20 @@ describe('dealTerms with each rate at 0 (0 means 0)', () => {
     expect(termsOf({ kind: 'ppv' }, tunables).perThousandViewers.value).toBe(0);
   });
 
-  it('charges no airtime when the airtime rate or the streaming factor is 0', () => {
+  it('charges no airtime when its rate or the streaming factor is 0, each kind on its own rate', () => {
     const noAirtime = createEngineTunables({ 'broadcast.value.airtimePerMillion': 0 });
     expect(termsOf({}, noAirtime).costPerShow.value).toBe(0);
+    expect(termsOf({ kind: 'ppv' }, noAirtime).costPerShow.value).toBeGreaterThan(0);
+    const noPpvAirtime = createEngineTunables({ 'broadcast.value.ppvAirtimePerMillion': 0 });
+    expect(termsOf({ kind: 'ppv' }, noPpvAirtime).costPerShow.value).toBe(0);
+    expect(termsOf({}, noPpvAirtime).costPerShow.value).toBeGreaterThan(0);
     const freeStreaming = createEngineTunables({ 'broadcast.value.streamingAirtimeFactor': 0 });
     expect(termsOf({ kind: 'streaming' }, freeStreaming).costPerShow.value).toBe(0);
   });
 
   it('pays everything flat when the bonus share is 0, and no flat fee when the cap is 0', () => {
     const allFlat = termsOf({}, createEngineTunables({ 'broadcast.value.tvBonusShare': 0 }));
-    expect(allFlat.feePerShow.value).toBe(80_000);
+    expect(allFlat.feePerShow.value).toBe(10_000);
     expect(allFlat.perThousandViewers.value).toBe(0);
     const noCap = termsOf({}, createEngineTunables({ 'broadcast.value.valuedViewersCap': 0 }));
     expect(noCap.feePerShow.value).toBe(0);
