@@ -251,6 +251,19 @@ describe('the contract stops (contracts hint)', () => {
     );
   });
 
+  it('opens the talks of a waiting counter-offer on the Offers tab (ECO5-06)', () => {
+    const counterGate: GateHit = {
+      gateId: 'contracts.counterWaiting',
+      reason: 'Counter-offer from Big Joe is waiting for your answer',
+      subject: { kind: 'negotiation', id: 'neg_0000000003' },
+      actionHint: CONTRACTS_HINT,
+    };
+    expect(gateDestination(counterGate)).toEqual({
+      label: 'Contracts',
+      to: `${routes.game.contracts()}?tab=offers&negotiation=neg_0000000003`,
+    });
+  });
+
   it('waits behind decisions, a show night and a new injury', () => {
     expect(leadingGate([expiringGate, showGate])).toBe(showGate);
     expect(leadingGate([requestGate, contractDecision])).toBe(contractDecision);

@@ -166,6 +166,9 @@ export {
   type AskingTermsView,
   type FreeAgentRow,
   type FreeAgentsSituationFilter,
+  brandOptionsOf,
+  type BrandOption,
+  type OfferThresholds,
 } from './queries';
 
 export {

@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import type { ReactNode } from 'react';
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { isId } from '@ringside/engine';
@@ -15,6 +16,7 @@ import { Icon } from '@/components/Icon';
 import { VisuallyHidden } from '@/components/layout';
 import { Tab, TabList, TabPanel, Tabs } from '@/components/Tabs';
 import { BUILTIN_PROFILE_TABS } from './builtinTabs';
+import { orderProfileActions, useProfileActions } from './profileActions';
 import { DEFAULT_PROFILE_TAB_ID, useProfileTabs, visibleProfileTabs } from './profileTabs';
 import type { ProfileTabContext } from './profileTabs';
 import styles from './WorkerProfile.module.css';
@@ -146,6 +148,19 @@ function ProfileTabs({ context }: ProfileTabsProps) {
   );
 }
 
+/** The actions other features add under the header (ECO5-06's Offer contract), in order. */
+function ProfileActionsRow({ context }: { readonly context: ProfileTabContext }) {
+  const actions = orderProfileActions(useProfileActions());
+  if (actions.length === 0) return null;
+  return (
+    <div className={styles['actions']}>
+      {actions.map((action) => (
+        <Fragment key={action.id}>{action.render(context)}</Fragment>
+      ))}
+    </div>
+  );
+}
+
 function LoadedWorkerProfile({ personId }: { readonly personId: PersonId }): ReactNode {
   const query = useEngineQuery('workers.profile', { personId });
   const viewerPromotionId = useSessionStore((state) => state.seat?.promotionId ?? null);
@@ -162,6 +177,7 @@ function LoadedWorkerProfile({ personId }: { readonly personId: PersonId }): Rea
     <div className={styles['screen']}>
       <BackToWorkers />
       <WorkerProfileHeader header={profile.header} />
+      <ProfileActionsRow context={{ profile, personId, viewerPromotionId }} />
       <ProfileTabs context={{ profile, personId, viewerPromotionId }} />
     </div>
   );

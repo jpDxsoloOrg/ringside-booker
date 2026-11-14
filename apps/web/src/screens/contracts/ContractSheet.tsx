@@ -78,17 +78,23 @@ function ShownContractSheet({
             Got it
           </Button>
         )}
-        {visibleActions.map((action) => (
-          <Button
-            key={action.id}
-            variant="secondary"
-            onClick={() => {
-              if (row !== null) void action.run(row);
-            }}
-          >
-            {action.label}
-          </Button>
-        ))}
+        {visibleActions.map((action) => {
+          if (action.render !== undefined && row !== null) {
+            const Action = action.render;
+            return <Action key={action.id} row={row} placement="sheet" />;
+          }
+          return (
+            <Button
+              key={action.id}
+              variant="secondary"
+              onClick={() => {
+                if (row !== null) void action.run?.(row);
+              }}
+            >
+              {action.label}
+            </Button>
+          );
+        })}
         {!openRequest && (
           <Button
             variant="danger"

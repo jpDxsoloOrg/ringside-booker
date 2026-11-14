@@ -245,6 +245,8 @@ test.describe('contracts', () => {
       const cashBefore = await topBarCash(page, phone);
       const sheet = await openSheet(page, row, released, phone);
       await expect(sheet.getByRole('region', { name: 'Terms' })).toBeVisible();
+      // Renew (ECO5-06) sits in the footer; outside the renewal window it says when talks open.
+      await expect(sheet.getByRole('button', { name: 'Renew', exact: true })).toBeVisible();
       await expect(sheet).toBeInViewport({ ratio: 0.5 });
       const release = sheet.getByRole('button', { name: 'Release', exact: true });
       if (phone) {

@@ -22,6 +22,26 @@ import {
   RIVAL_WAGE,
 } from './negotiation-world';
 
+describe('contracts.askingTerms brand options (ECO5-06)', () => {
+  it("lists the promotion's running brands, flagship first", () => {
+    const setup = negotiationWorld();
+    const engine = negotiationEngine(setup.world);
+    const view = ask(
+      engine.query(
+        'contracts.askingTerms',
+        { promotionId: setup.human, personId: setup.veteran },
+        PLAYER_VIEW,
+      ),
+    );
+    const expected = setup.world.tables.brands
+      .lookup('byPromotion', setup.human)
+      .filter((brand) => brand.active)
+      .sort((left, right) => left.priority - right.priority)
+      .map((brand) => ({ brandId: brand.id, name: brand.name }));
+    expect(view.brandOptions).toEqual(expected);
+  });
+});
+
 describe('contracts.freeAgents', () => {
   it('lists free agents and the workers whose deals elsewhere leave them open to offers', () => {
     const setup = negotiationWorld();

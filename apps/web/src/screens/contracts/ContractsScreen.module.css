@@ -346,3 +346,33 @@
     flex: 1 1 auto;
   }
 }
+
+/* Registered actions on an Expiring row (ECO5-06's Renew): wrap rather than widen the row. */
+.rowActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  min-inline-size: 0;
+}
+
+/* A disabled action with its reason written beside it (Free agents' cooldown, ECO5-06). */
+.disabledAction {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  min-inline-size: 0;
+}
+
+.reason {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+/* A long badge ("Per appearance at Hardpan Pro Wrestling") wraps instead of widening a phone card. */
+.wrapBadge {
+  max-inline-size: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

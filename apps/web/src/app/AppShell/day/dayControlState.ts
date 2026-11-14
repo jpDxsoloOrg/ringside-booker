@@ -1,4 +1,9 @@
-import { CONTRACTS_ACTION_HINT, isId, RELEASE_REQUESTED_GATE_ID } from '@ringside/engine';
+import {
+  CONTRACTS_ACTION_HINT,
+  COUNTER_WAITING_GATE_ID,
+  isId,
+  RELEASE_REQUESTED_GATE_ID,
+} from '@ringside/engine';
 import type { GateHit } from '@ringside/engine';
 import { routes } from '../../routes';
 
@@ -111,9 +116,17 @@ export const CONTRACTS_LABEL = 'Contracts';
  * Where a contract stop's button goes. A release request opens that worker's contract on the
  * Active tab, filtered to the workers who want to leave, where Grant or Refuse answers it. An
  * expiring contract opens the Expiring tab, whose Mark all seen clears every waiting notice at once
- * (one notice per tap would mean one stop per contract on a long skip).
+ * (one notice per tap would mean one stop per contract on a long skip). A waiting counter-offer
+ * (ECO5-06) opens those talks on the Offers tab, where Accept counter, Send revised offer or End
+ * talks answers it.
  */
 export function contractsGateDestination(hit: GateHit): string {
+  if (hit.gateId === COUNTER_WAITING_GATE_ID) {
+    const negotiationId = hit.subject?.kind === 'negotiation' ? hit.subject.id : null;
+    const params = new URLSearchParams({ tab: 'offers' });
+    if (isId('negotiation', negotiationId)) params.set('negotiation', negotiationId);
+    return `${routes.game.contracts()}?${params.toString()}`;
+  }
   const employmentId = hit.subject?.kind === 'employment' ? hit.subject.id : null;
   if (hit.gateId === RELEASE_REQUESTED_GATE_ID) {
     const params = new URLSearchParams({ tab: 'active', wantsToLeave: '1' });

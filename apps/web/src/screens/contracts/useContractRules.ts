@@ -17,6 +17,9 @@ export type TunableRow = QueryData<'tunables.list'>[number];
 
 export const CONTRACTS_CATEGORY = 'Contracts';
 const RECOVER_MARGIN_KEY = 'contracts.walkout.recoverMargin';
+export const RENEWAL_WINDOW_KEY = 'contracts.renewal.windowDays';
+export const MAX_LENGTH_KEY = 'contracts.offer.maxLengthMonths';
+export const COUNTER_STOP_KEY = 'contracts.counter.stopSkip';
 
 /** The contract rules the screen reads, with the engine's defaults until the answer arrives. */
 export interface ContractRules {
@@ -34,6 +37,12 @@ export interface ContractRules {
   readonly settlesAbove: number;
   readonly autoRenew: boolean;
   readonly autoRenewDays: number;
+  /** `contracts.renewal.windowDays`: renewal talks open this many days before the end (ECO5). */
+  readonly renewalWindowDays: number;
+  /** `contracts.offer.maxLengthMonths`: the longest contract an offer may run. */
+  readonly maxLengthMonths: number;
+  /** `contracts.counter.stopSkip`: a counter-offer stops skips until answered. */
+  readonly counterStop: boolean;
 }
 
 const NO_ROWS: readonly TunableRow[] = [];
@@ -68,8 +77,11 @@ export function contractRulesOf(rows: readonly TunableRow[], loaded: boolean): C
     quitThresholdOverridden: overridden(rows, QUIT_THRESHOLD_KEY),
     quitDaysOverridden: overridden(rows, QUIT_DAYS_KEY),
     settlesAbove: quitThreshold + numberOf(rows, RECOVER_MARGIN_KEY, 10),
-    autoRenew: booleanOf(rows, AUTO_RENEW_KEY, true),
+    autoRenew: booleanOf(rows, AUTO_RENEW_KEY, false),
     autoRenewDays: numberOf(rows, AUTO_RENEW_DAYS_KEY, 365),
+    renewalWindowDays: numberOf(rows, RENEWAL_WINDOW_KEY, 180),
+    maxLengthMonths: numberOf(rows, MAX_LENGTH_KEY, 60),
+    counterStop: booleanOf(rows, COUNTER_STOP_KEY, true),
   };
 }
 

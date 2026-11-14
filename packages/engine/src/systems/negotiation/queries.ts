@@ -21,7 +21,8 @@ import { viewerPromotionIds } from '../../core/api/controller';
 import { defineQuery, type QueryContext } from '../../core/api/query';
 import { INVALID_ARGS, refuseQuery } from '../../core/api/result';
 import { ageInYears, compareDates, type GameDate } from '../../core/date';
-import type { EmploymentId, NegotiationId, PersonId, PromotionId } from '../../core/ids';
+import type { BrandId, EmploymentId, NegotiationId, PersonId, PromotionId } from '../../core/ids';
+import type { GameWorldView } from '../../model/tables';
 import {
   ContractKindSchema,
   EmploymentRoleSchema,
@@ -62,9 +63,17 @@ export const NOT_YOUR_PROMOTION_MESSAGE = 'Choose one of your own promotions';
 export const NOT_YOUR_CONTRACT_MESSAGE = 'That is not one of your contracts with this worker';
 export const UNKNOWN_PERSON_MESSAGE = 'That worker no longer exists';
 
+/** A brand an offer may name (ECO5-06: the sheet's Brand choice). */
+export interface BrandOption {
+  readonly brandId: BrandId;
+  readonly name: string;
+}
+
 /** `contracts.askingTerms`: the ask and who may be approached. */
 export interface AskingTermsView extends AskingTerms {
   readonly eligibility: NegotiationEligibility;
+  /** The promotion's running brands, flagship first; an offer may also be shared across them. */
+  readonly brandOptions: BrandOption[];
 }
 
 /** One row of `contracts.freeAgents`. Money in whole cents. */
@@ -139,6 +148,18 @@ export interface OfferPreview {
   readonly askValueTrace: TraceNode;
   /** Plain lines the sheet shows under the meter. */
   readonly notes: string[];
+  /**
+   * Where the bands meet, as shares of the ask's value (ECO5-06's meter): below `walkAway` they
+   * walk away, below `counter` they reject, below `accept` they counter (patience allowing).
+   */
+  readonly thresholds: OfferThresholds;
+}
+
+/** The reaction bands' boundaries, from `contracts.react.*`. */
+export interface OfferThresholds {
+  readonly walkAway: number;
+  readonly counter: number;
+  readonly accept: number;
 }
 
 declare module '../../core/api/maps' {
@@ -182,6 +203,15 @@ function ownPromotionOrRefuse(ctx: QueryContext, promotionId: PromotionId): void
   }
 }
 
+/** The promotion's running brands, by priority then id. */
+export function brandOptionsOf(read: GameWorldView, promotionId: PromotionId): BrandOption[] {
+  return read.tables.brands
+    .lookup('byPromotion', promotionId)
+    .filter((brand) => brand.active)
+    .sort((left, right) => left.priority - right.priority || compareIds(left.id, right.id))
+    .map((brand) => ({ brandId: brand.id, name: brand.name }));
+}
+
 export const askingTermsQuery = defineQuery('contracts.askingTerms', {
   args: z.strictObject({
     promotionId: zId('promotion'),
@@ -213,7 +243,11 @@ export const askingTermsQuery = defineQuery('contracts.askingTerms', {
       args.promotionId,
       ctx.date,
     );
-    return { ...askingTermsWith(context, args, eligibility), eligibility };
+    return {
+      ...askingTermsWith(context, args, eligibility),
+      eligibility,
+      brandOptions: brandOptionsOf(ctx.read, args.promotionId),
+    };
   },
 });
 
@@ -349,6 +383,11 @@ export const offerPreviewQuery = defineQuery('contracts.offerPreview', {
       valueTrace: evaluation.offerValue.trace,
       askValueTrace: evaluation.askValue.trace,
       notes: previewNotes(args.offer, evaluation),
+      thresholds: {
+        walkAway: ctx.tunables.get('contracts.react.walkAwayRatio'),
+        counter: ctx.tunables.get('contracts.react.counterRatio'),
+        accept: ctx.tunables.get('contracts.react.acceptRatio'),
+      },
     };
   },
 });

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import type {
@@ -21,6 +21,7 @@ import { Select } from '@/components/Select';
 import type { SelectOption } from '@/components/Select';
 import { Switch } from '@/components/Switch';
 import { Tab, TabList, TabPanel, Tabs } from '@/components/Tabs';
+import { useSessionStore } from '@/app/session/sessionStore';
 import { useIsMobile } from '@/styles/useMediaQuery';
 import { EMPLOYMENT_ROLE_LABELS } from '@/screens/promotions/profile/tabs/RosterTab';
 import { contractColumns, initialContractSort } from './contractColumns';
@@ -30,15 +31,21 @@ import { ContractSheet } from './ContractSheet';
 import { autoRenewText } from './ContractDetailView';
 import {
   CONTRACT_TAB_LABELS,
-  CONTRACT_TABS,
+  DEFAULT_CONTRACTS_TAB,
   employmentFromSearch,
   isContractsTab,
+  negotiationTargetFromSearch,
   searchWithEmployment,
-  searchWithTab,
+  searchWithNegotiation,
+  searchWithTabId,
   searchWithWantsToLeave,
-  tabFromSearch,
+  tabIdFromSearch,
   wantsToLeaveFromSearch,
 } from './contractsParams';
+import type { NegotiationTarget } from './contractsParams';
+import './builtinTabs';
+import { orderContractsTabs, useContractsTabs } from './contractsTabs';
+import type { ContractsTabContext } from './contractsTabs';
 import { useContractRowActions } from './rowActions';
 import { useContractRules } from './useContractRules';
 import styles from './ContractsScreen.module.css';
@@ -53,6 +60,17 @@ export const NO_GAME_TEXT = 'Start or load a game to see your contracts.';
 
 /** The muted note on Expiring until a feature registers a Renew action (ECO5). */
 export const RENEWALS_LATER_TEXT = 'Renewals arrive with contract negotiation.';
+
+/** The Expiring tab's pointer once Renew is registered (ECO5-06): contracts no longer renew alone. */
+export function renewPointerText(windowDays: number): string {
+  return `Contracts end on their date unless you renew them. Press Renew to open talks: they open ${formatNumber(windowDays)} days before a contract ends.`;
+}
+
+// The sheet pulls in the offer form, the meter and the counter history: it loads when first opened.
+const NegotiationSheet = lazy(async () => {
+  const { NegotiationSheet: Sheet } = await import('./negotiation/NegotiationSheet');
+  return { default: Sheet };
+});
 
 /** Each tab's empty state. */
 export const EMPTY_TAB_TEXT: Readonly<Record<ContractsTab, string>> = {
@@ -119,7 +137,17 @@ export function ContractsScreen() {
   const rules = useContractRules();
   const rowActions = useContractRowActions();
 
-  const tab = tabFromSearch(searchParams);
+  const registeredTabs = useContractsTabs();
+  const tabs = useMemo(() => orderContractsTabs(registeredTabs), [registeredTabs]);
+  const requestedTab = tabIdFromSearch(searchParams);
+  const tabId = tabs.find((entry) => entry.id === requestedTab)?.id ?? DEFAULT_CONTRACTS_TAB;
+  // The contract lists' own state; the other tabs keep the Active list's counts line current.
+  const tab: ContractsTab = isContractsTab(tabId) ? tabId : DEFAULT_CONTRACTS_TAB;
+  const promotionId = useSessionStore((state) => state.seat?.promotionId ?? null);
+  const negotiationTarget = negotiationTargetFromSearch(searchParams);
+  // The sheet stays mounted once used, so it can slide away and hand focus back when it closes.
+  const [negotiationUsed, setNegotiationUsed] = useState(false);
+  if (negotiationTarget !== null && !negotiationUsed) setNegotiationUsed(true);
   const openEmployment = employmentFromSearch(searchParams);
   const wantsToLeave = wantsToLeaveFromSearch(searchParams) && tab !== 'ended';
   const [role, setRole] = useState<string>(ALL_ROLES);
@@ -155,11 +183,21 @@ export function ContractsScreen() {
 
   const changeTab = useCallback(
     (next: string): void => {
-      if (!isContractsTab(next)) return;
-      setSearchParams((current) => searchWithTab(current, next), { replace: true });
+      setSearchParams((current) => searchWithTabId(current, next), { replace: true });
     },
     [setSearchParams],
   );
+  const openNegotiation = useCallback(
+    (target: NegotiationTarget): void => {
+      setSearchParams((current) =>
+        searchWithNegotiation(searchWithEmployment(current, null), target),
+      );
+    },
+    [setSearchParams],
+  );
+  const closeNegotiation = useCallback((): void => {
+    setSearchParams((current) => searchWithNegotiation(current, null), { replace: true });
+  }, [setSearchParams]);
   const openRow = useCallback(
     (row: ContractRow): void => {
       setOutcome(null);
@@ -184,6 +222,7 @@ export function ContractsScreen() {
     isMobile,
     onOpen: openRow,
     onAcknowledge: acknowledgeRow,
+    rowActions,
   };
 
   const released = (ringName: string, result: ReleaseResult): void => {
@@ -241,56 +280,63 @@ export function ContractsScreen() {
           </Button>
         </div>
       )}
-      {!rowActions.some((action) => action.id === 'renew') && (
-        <p className={styles['muted']}>
-          {RENEWALS_LATER_TEXT}
-          {rules.autoRenew && ` ${autoRenewText(rules.autoRenewDays)}`}
-        </p>
-      )}
+      <p className={styles['muted']}>
+        {rowActions.some((action) => action.id === 'renew')
+          ? renewPointerText(rules.renewalWindowDays)
+          : RENEWALS_LATER_TEXT}
+        {rules.autoRenew && ` ${autoRenewText(rules.autoRenewDays)}`}
+      </p>
     </>
   );
+
+  const contractList = (value: ContractsTab): ReactNode => (
+    <div className={styles['panel']}>
+      {value === 'expiring' && expiringIntro}
+      {filters}
+      <DataTable
+        className={styles['table']}
+        rows={shownRows}
+        columns={contractColumns(value, columnContext)}
+        getRowId={rowId}
+        getRowLabel={rowLabel}
+        caption={`${CONTRACT_TAB_LABELS[value]} contracts`}
+        initialSort={initialContractSort(value)}
+        filterable
+        filterLabel="Find a contract"
+        density="compact"
+        loading={listQuery.status === 'loading'}
+        {...(isMobile ? {} : { onActivate: openRow })}
+        emptyState={
+          <EmptyState
+            icon="contracts"
+            title={wantsToLeave ? 'Nobody wants to leave' : EMPTY_TAB_TEXT[value]}
+          />
+        }
+      />
+    </div>
+  );
+  const tabContext: ContractsTabContext = { promotionId, openNegotiation, contractList };
 
   let body: ReactNode;
   if (failed) {
     body = <EmptyState size="page" icon="contracts" title={NO_GAME_TEXT} />;
   } else {
     body = (
-      <Tabs value={tab} onChange={changeTab}>
+      <Tabs value={tabId} onChange={changeTab}>
         <TabList label="Contract lists">
-          {CONTRACT_TABS.map((value) => (
-            <Tab key={value} value={value}>
-              {CONTRACT_TAB_LABELS[value]}
-            </Tab>
-          ))}
+          {tabs.map((entry) => {
+            const Badge = entry.badge;
+            return (
+              <Tab key={entry.id} value={entry.id}>
+                {entry.label}
+                {Badge !== undefined && <Badge />}
+              </Tab>
+            );
+          })}
         </TabList>
-        {CONTRACT_TABS.map((value) => (
-          <TabPanel key={value} value={value}>
-            {value === tab && (
-              <div className={styles['panel']}>
-                {value === 'expiring' && expiringIntro}
-                {filters}
-                <DataTable
-                  className={styles['table']}
-                  rows={shownRows}
-                  columns={contractColumns(value, columnContext)}
-                  getRowId={rowId}
-                  getRowLabel={rowLabel}
-                  caption={`${CONTRACT_TAB_LABELS[value]} contracts`}
-                  initialSort={initialContractSort(value)}
-                  filterable
-                  filterLabel="Find a contract"
-                  density="compact"
-                  loading={listQuery.status === 'loading'}
-                  {...(isMobile ? {} : { onActivate: openRow })}
-                  emptyState={
-                    <EmptyState
-                      icon="contracts"
-                      title={wantsToLeave ? 'Nobody wants to leave' : EMPTY_TAB_TEXT[value]}
-                    />
-                  }
-                />
-              </div>
-            )}
+        {tabs.map((entry) => (
+          <TabPanel key={entry.id} value={entry.id}>
+            {entry.id === tabId && entry.render(tabContext)}
           </TabPanel>
         ))}
       </Tabs>
@@ -344,6 +390,15 @@ export function ContractsScreen() {
         onReleased={released}
         onAnswered={answered}
       />
+      {negotiationUsed && (
+        <Suspense fallback={null}>
+          <NegotiationSheet
+            target={negotiationTarget}
+            onClose={closeNegotiation}
+            onOpen={openNegotiation}
+          />
+        </Suspense>
+      )}
       <ContractRulesSheet
         open={rulesOpen}
         onClose={() => {

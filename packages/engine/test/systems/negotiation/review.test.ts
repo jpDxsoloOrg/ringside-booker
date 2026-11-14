@@ -230,7 +230,8 @@ describe('reactions', () => {
     expect(row.status).toBe('countered');
     expect(row.counterExpiresOn).toBe(addDays(start, 7));
     expect(row.patience).toBe(row.startPatience - 1);
-    expect(row.counterStopsSkip).toBe(false);
+    // A player's counter stops skips by default (ECO5-06).
+    expect(row.counterStopsSkip).toBe(true);
     const wage = row.lastCounter?.terms.monthlyWage ?? 0;
     expect(wage).toBeGreaterThan(offer.terms.monthlyWage);
     expect(wage).toBeLessThanOrEqual(ask.monthlyWage.value);
@@ -348,7 +349,10 @@ describe('reactions', () => {
   });
 
   it('lets an unanswered counter-offer lapse after seven days', async () => {
-    const { engine, events, setup } = reviewEngine(negotiationWorld());
+    // With the counter stop on, the skip would stop on day one until the counter is answered.
+    const { engine, events, setup } = reviewEngine(negotiationWorld(), {
+      'contracts.counter.stopSkip': false,
+    });
     const ask = askOf(engine, setup.human, setup.veteran);
     const id = makeOffer(engine, setup.human, setup.veteran, offerAt(ask, 0.6));
     const start = today(engine);
@@ -597,7 +601,7 @@ describe('the counter-offer stop', () => {
             {
               gateId: COUNTER_WAITING_GATE_ID,
               reason: `Counter-offer from ${employmentOf(engine, negotiationOf(engine, id).employmentId).ringName} is waiting for your answer`,
-              subject: { kind: 'person', id: setup.veteran },
+              subject: { kind: 'negotiation', id },
               actionHint: 'contracts',
             },
           ],
@@ -614,6 +618,33 @@ describe('the counter-offer stop', () => {
       } else {
         expect(result.daysAdvanced).toBe(5);
       }
+    }
+  });
+
+  it('is on by default, and every answer to the counter clears it (ECO5-06)', async () => {
+    for (const response of ['accept', 'revise', 'end'] as const) {
+      const { engine, setup } = reviewEngine(negotiationWorld());
+      const ask = askOf(engine, setup.human, setup.veteran);
+      const id = makeOffer(engine, setup.human, setup.veteran, offerAt(ask, 0.6));
+      const stopped = await engine.advanceDays({ maxDays: 30 });
+      expect(stopped.daysAdvanced).toBe(1);
+      expect(stopped.stoppedBy.kind).toBe('gate');
+      const counter = negotiationOf(engine, id).lastCounter;
+      if (counter === null) throw new Error('expected a counter-offer');
+      done(
+        engine.command(
+          'contracts.respondToCounter',
+          response === 'revise'
+            ? { negotiationId: id, response, offer: offerAt(ask, 0.8) }
+            : { negotiationId: id, response },
+          PLAYER,
+        ),
+      );
+      const pending = done(engine.query('sim.pendingGates', {}, PLAYER_VIEW));
+      expect(pending.hits.filter((hit) => hit.gateId === COUNTER_WAITING_GATE_ID)).toEqual([]);
+      // A revision may draw another counter the next day; it stops there again, never hangs.
+      const after = await engine.advanceDays({ maxDays: 3 });
+      expect(after.daysAdvanced).toBeGreaterThanOrEqual(1);
     }
   });
 

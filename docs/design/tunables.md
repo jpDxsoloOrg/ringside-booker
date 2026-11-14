@@ -1127,7 +1127,7 @@ whole cents (shown here in dollars); 0 means 0.
 | `contracts.review.delayDays`               | integer | 2        | 0–30           | days        | Days a worker takes to decide once an offer is good enough (0 = the same day)                 |
 | `contracts.walkAway.cooldownDays`          | integer | 30       | 0–365          | days        | Days a worker who walked away refuses to talk to that promotion again (0 = no wait)           |
 | `contracts.counter.expiryDays`             | integer | 7        | 1–60           | days        | Days a worker's counter-offer stays open before it lapses                                     |
-| `contracts.counter.stopSkip`               | boolean | false    |                | flag        | Skips stop when a worker's counter-offer is waiting for you (off until ECO5-06's sheet)       |
+| `contracts.counter.stopSkip`               | boolean | true     |                | flag        | Skips stop when a worker's counter-offer is waiting for you (answer it on the sheet)          |
 | `contracts.offer.maxLengthMonths`          | integer | 60       | 1–120          | months      | Longest contract an offer may run                                                             |
 | `contracts.offer.approachWindowDays`       | integer | 30       | 0–365          | days        | How close to the end of an exclusive deal elsewhere a worker will talk to you                 |
 | `contracts.renewal.windowDays`             | integer | 180      | 0–730          | days        | How early before a contract ends a renewal can be offered                                     |

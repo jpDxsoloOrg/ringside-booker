@@ -502,8 +502,9 @@ const paceTunables = defineTunables({
   ),
   'contracts.counter.stopSkip': {
     kind: 'boolean',
-    // Off until the Negotiation Sheet (ECO5-06) can answer a counter-offer from the day bar.
-    default: false,
+    // On since ECO5-06: the day bar's Contracts button opens the talks, where Accept counter,
+    // Send revised offer or End talks clears the stop.
+    default: true,
     unit: 'flag',
     category: CONTRACTS_TUNABLE_CATEGORY,
     description: "Skips stop when a worker's counter-offer is waiting for you",

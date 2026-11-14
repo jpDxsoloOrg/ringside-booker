@@ -4,10 +4,11 @@
  *
  * Gates cannot read tunables, so the reaction step copies `contracts.counter.stopSkip` onto the row
  * when it makes the counter (`counterStopsSkip`, only for promotions a human runs) and the gate
- * reads that. The tunable is OFF by default until the Negotiation Sheet (ECO5-06) can answer a
- * counter from the day bar; while it is off, an unanswered counter simply lapses after
- * `contracts.counter.expiryDays`. Computer promotions never stop a skip (their counters are
- * answered in the phase). The hint is ECO4's `contracts`, routed to the Contracts screen.
+ * reads that. The tunable is ON by default since the Negotiation Sheet (ECO5-06): the subject is
+ * the negotiation, so the day bar's Contracts button opens those talks, where Accept counter,
+ * Send revised offer or End talks clears the stop. With it off, an unanswered counter simply
+ * lapses after `contracts.counter.expiryDays`. Computer promotions never stop a skip (their
+ * counters are answered in the phase). The hint is ECO4's `contracts`.
  *
  * Design: docs/design/negotiation.md#counter.
  */
@@ -60,7 +61,7 @@ export const counterWaitingGate: GateSpec = {
     return {
       gateId: COUNTER_WAITING_GATE_ID,
       reason: `Counter-offer from ${ringNameOf(view, first)} is waiting for your answer`,
-      subject: { kind: 'person', id: first.personId },
+      subject: { kind: 'negotiation', id: first.id },
       actionHint: CONTRACTS_ACTION_HINT,
     };
   },
