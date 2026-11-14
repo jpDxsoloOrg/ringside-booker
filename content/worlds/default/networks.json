@@ -1,5 +1,53 @@
 [
   {
+    "key": "au-victoria-local",
+    "name": "Wattlebird Community TV",
+    "kind": "tv",
+    "reachTier": 0,
+    "coverage": {
+      "continentKeys": [],
+      "countryKeys": [],
+      "regionKeys": ["au-victoria-tasmania"]
+    },
+    "ownerPromotionKey": null,
+    "status": "active",
+    "launchedOn": "2002-07-01",
+    "closedOn": null,
+    "logoRef": null
+  },
+  {
+    "key": "ca-ontario-regional",
+    "name": "Birchreach Television",
+    "kind": "tv",
+    "reachTier": 1,
+    "coverage": {
+      "continentKeys": [],
+      "countryKeys": [],
+      "regionKeys": ["ca-ontario", "ca-quebec"]
+    },
+    "ownerPromotionKey": null,
+    "status": "active",
+    "launchedOn": "1983-09-05",
+    "closedOn": null,
+    "logoRef": null
+  },
+  {
+    "key": "de-west-local",
+    "name": "Ruhrblick TV",
+    "kind": "tv",
+    "reachTier": 0,
+    "coverage": {
+      "continentKeys": [],
+      "countryKeys": [],
+      "regionKeys": ["de-west"]
+    },
+    "ownerPromotionKey": null,
+    "status": "active",
+    "launchedOn": "1993-01-04",
+    "closedOn": null,
+    "logoRef": null
+  },
+  {
     "key": "gb-streaming",
     "name": "Larkspur Stream",
     "kind": "streaming",
@@ -44,6 +92,22 @@
     "ownerPromotionKey": null,
     "status": "active",
     "launchedOn": "1997-01-13",
+    "closedOn": null,
+    "logoRef": null
+  },
+  {
+    "key": "jp-kansai-local",
+    "name": "Kawasemi Channel 12",
+    "kind": "tv",
+    "reachTier": 0,
+    "coverage": {
+      "continentKeys": [],
+      "countryKeys": [],
+      "regionKeys": ["jp-kansai"]
+    },
+    "ownerPromotionKey": null,
+    "status": "active",
+    "launchedOn": "1979-04-02",
     "closedOn": null,
     "logoRef": null
   },
@@ -160,6 +224,54 @@
     "logoRef": null
   },
   {
+    "key": "us-california-regional",
+    "name": "Sagebluff Cable",
+    "kind": "tv",
+    "reachTier": 1,
+    "coverage": {
+      "continentKeys": [],
+      "countryKeys": [],
+      "regionKeys": ["us-california", "us-pacific-northwest"]
+    },
+    "ownerPromotionKey": null,
+    "status": "active",
+    "launchedOn": "1991-10-07",
+    "closedOn": null,
+    "logoRef": null
+  },
+  {
+    "key": "us-great-lakes-regional",
+    "name": "Driftwood Lakes Sports",
+    "kind": "tv",
+    "reachTier": 1,
+    "coverage": {
+      "continentKeys": [],
+      "countryKeys": [],
+      "regionKeys": ["us-great-lakes", "us-midwest"]
+    },
+    "ownerPromotionKey": null,
+    "status": "active",
+    "launchedOn": "1994-04-04",
+    "closedOn": null,
+    "logoRef": null
+  },
+  {
+    "key": "us-southwest-regional",
+    "name": "Caliche Country Sports",
+    "kind": "tv",
+    "reachTier": 1,
+    "coverage": {
+      "continentKeys": [],
+      "countryKeys": [],
+      "regionKeys": ["us-texas", "us-southwest", "us-plains"]
+    },
+    "ownerPromotionKey": null,
+    "status": "active",
+    "launchedOn": "1996-08-05",
+    "closedOn": null,
+    "logoRef": null
+  },
+  {
     "key": "us-streaming",
     "name": "Tallgrass Stream",
     "kind": "streaming",
@@ -172,6 +284,22 @@
     "ownerPromotionKey": null,
     "status": "active",
     "launchedOn": "2017-03-06",
+    "closedOn": null,
+    "logoRef": null
+  },
+  {
+    "key": "us-texas-local",
+    "name": "Bluebonnet Cable 7",
+    "kind": "tv",
+    "reachTier": 0,
+    "coverage": {
+      "continentKeys": [],
+      "countryKeys": [],
+      "regionKeys": ["us-texas"]
+    },
+    "ownerPromotionKey": null,
+    "status": "active",
+    "launchedOn": "1988-03-07",
     "closedOn": null,
     "logoRef": null
   },
