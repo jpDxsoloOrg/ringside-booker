@@ -135,7 +135,11 @@ export function ownStorylineReasons(
 }
 
 /** True when the person has an active contract with the promotion. */
-export function worksFor(read: GameWorldView, personId: PersonId, promotionId: PromotionId): boolean {
+export function worksFor(
+  read: GameWorldView,
+  personId: PersonId,
+  promotionId: PromotionId,
+): boolean {
   return read.tables.employments
     .lookup('byPromotionStatus', promotionStatusKey(promotionId, 'active'))
     .some((employment) => employment.personId === personId);

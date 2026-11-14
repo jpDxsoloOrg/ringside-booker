@@ -118,7 +118,10 @@ export function endOutcomeMessage(outcome: StorylineEndOutcome): string {
 }
 
 /** What {@link endStoryline} needs from a step: a phase or a command context both fit. */
-export type StorylineEndContext = Pick<PhaseContext, 'date' | 'tx' | 'read' | 'tunables' | 'publish'>;
+export type StorylineEndContext = Pick<
+  PhaseContext,
+  'date' | 'tx' | 'read' | 'tunables' | 'publish'
+>;
 
 /**
  * Ends an active storyline today: `status: 'ended'`, `endedOn: ctx.date`, and publishes
