@@ -43,6 +43,20 @@
   list-style: none;
 }
 
+/*
+ * Touch screens: every name is a 44px-tall target of its own (a show's main event can name six
+ * people and a promotion, side by side), so neighbouring tap boxes never overlap.
+ */
+@media (pointer: coarse) {
+  .who > li > a {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: var(--tap-target-min);
+    margin-block: 0;
+    padding-block: 0;
+  }
+}
+
 .facts {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));

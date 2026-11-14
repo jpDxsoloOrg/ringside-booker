@@ -83,8 +83,20 @@ describe('the Office "Top stories" panel (DAY1-06, with DAY2)', () => {
     expect(within(panel).getByRole('link', { name: OPEN_NEWS_TEXT })).toBeInTheDocument();
   });
 
-  it('keeps at most three stories', () => {
-    const hero = [1, 2, 3, 4].map((serial) => ({ id: `news_${String(serial)}` }));
-    expect(topStoriesOf({ hero }).map((item) => item.id)).toEqual(['news_1', 'news_2', 'news_3']);
+  it('keeps at most three hero stories, or the best recent ones in a quiet week', () => {
+    const story = (serial: number) => ({ id: `news_${String(serial)}` });
+    const hero = [1, 2, 3, 4].map(story);
+    const ticker = [5, 6, 7, 8].map(story);
+    expect(topStoriesOf({ hero, ticker }).map((item) => item.id)).toEqual([
+      'news_1',
+      'news_2',
+      'news_3',
+    ]);
+    expect(topStoriesOf({ hero: [], ticker }).map((item) => item.id)).toEqual([
+      'news_5',
+      'news_6',
+      'news_7',
+    ]);
+    expect(topStoriesOf({ hero: [], ticker: [] })).toEqual([]);
   });
 });

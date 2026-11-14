@@ -672,14 +672,14 @@ and links to their results (see [Show results](#show-results)).
   (`SKIP_LENGTH_STORAGE_KEY`): the chip's id, or the typed number (old builds stored only numbers,
   which still load as a typed length). Typing a length clears the chip. Registered:
 
-  | Order | Id           | Label                       | Request                                         | Where                       |
-  | ----- | ------------ | --------------------------- | ----------------------------------------------- | --------------------------- |
-  | 5     | (free)       | "Until next show" (EVT1)    |                                                 | EVT1's folder               |
-  | 10    | `days.7`     | 7 days                      | `{ maxDays: 7 }`, detail "to Fri 7 Feb 2031"    | `day/builtinSkipTargets.ts` |
-  | 20    | `days.30`    | 30 days                     | `{ maxDays: 30 }`                               | `day/builtinSkipTargets.ts` |
-  | 30    | `days.90`    | 90 days                     | `{ maxDays: 90 }`                               | `day/builtinSkipTargets.ts` |
-  | 40    | `month.next` | Until the 1st of next month | `{ maxDays: days to the 1st, stopAtDate: 1st }` | `day/builtinSkipTargets.ts` |
-  | 50    | (free)       | "Until season end" (DAY3)   |                                                 | DAY3's folder               |
+  | Order | Id                  | Label                           | Request                                                                                                                                                     | Where                                                               |
+  | ----- | ------------------- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+  | 5     | `calendar.nextShow` | Until next show (EVT1, DAY1-06) | `{ maxDays: daysUntil, stopAtDate: show date }` from `calendar.nextShow { scope: 'mine' }`, detail "Thu 16 Apr · 5 days"; hidden with no show or on its day | `screens/calendar/skipTarget.ts` (imported by `day/DayControl.tsx`) |
+  | 10    | `days.7`            | 7 days                          | `{ maxDays: 7 }`, detail "to Fri 7 Feb 2031"                                                                                                                | `day/builtinSkipTargets.ts`                                         |
+  | 20    | `days.30`           | 30 days                         | `{ maxDays: 30 }`                                                                                                                                           | `day/builtinSkipTargets.ts`                                         |
+  | 30    | `days.90`           | 90 days                         | `{ maxDays: 90 }`                                                                                                                                           | `day/builtinSkipTargets.ts`                                         |
+  | 40    | `month.next`        | Until the 1st of next month     | `{ maxDays: days to the 1st, stopAtDate: 1st }`                                                                                                             | `day/builtinSkipTargets.ts`                                         |
+  | 50    | (free)              | "Until season end" (DAY3)       |                                                                                                                                                             | DAY3's folder                                                       |
 
 - **News stops** (DAY1-05): the `news` hint ("Open news", ranked after every other hint) opens
   the story with `?story=<newsId>&alert=1`; the News screen runs `news.ackAlerts` once and drops

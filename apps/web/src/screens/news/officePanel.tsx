@@ -1,11 +1,11 @@
 /**
  * The Office's "Top stories" panel (DAY1-06, DAY2's panel registry, the 90+ news-and-social band):
- * the front page's hero stories from `news.top`, each with its kind, its headline as a link to the
+ * the front page's hero stories from `news.top` (the ticker's best stories in a quiet week), each with its kind, its headline as a link to the
  * story on the News screen, and its buzz with a Why?, then an "Open news" link. With no stories it
  * says "No news yet"; it never shows sample text. Main column, order 90.
  */
 import { Link } from 'react-router-dom';
-import type { NewsItemView, NewsNames } from '@ringside/engine';
+import type { NewsItemView, NewsNames, TraceNode } from '@ringside/engine';
 import { useEngineQuery } from '@/app/engine/useEngineQuery';
 import { routes } from '@/app/routes';
 import { EmptyState } from '@/components/EmptyState';
@@ -42,18 +42,27 @@ export function storyUrl(newsId: string): string {
   return `${routes.game.news()}?${searchWithStory(new URLSearchParams(), newsId).toString()}`;
 }
 
-/** The hero stories to list, at most {@link TOP_STORIES_COUNT}. */
-export function topStoriesOf<T>(top: { readonly hero: readonly T[] }): readonly T[] {
-  return top.hero.slice(0, TOP_STORIES_COUNT);
+/**
+ * The stories to list, at most {@link TOP_STORIES_COUNT}: the front page's hero stories, or, in a
+ * week with nothing big enough for the front page, the best-ranked recent stories (the ticker's).
+ * Empty only when there is no news at all.
+ */
+export function topStoriesOf<T>(top: {
+  readonly hero: readonly T[];
+  readonly ticker: readonly T[];
+}): readonly T[] {
+  return (top.hero.length > 0 ? top.hero : top.ticker).slice(0, TOP_STORIES_COUNT);
 }
 
 export interface TopStoriesPanelProps {
   readonly stories: readonly NewsItemView[];
   readonly names: NewsNames;
+  /** The buzz breakdown when the caller already has it (the gallery); else each `buzzTraceRef`. */
+  readonly buzzTrace?: TraceNode | undefined;
 }
 
 /** The stories and the News link, drawn from data the caller already has. */
-export function TopStoriesPanel({ stories, names }: TopStoriesPanelProps) {
+export function TopStoriesPanel({ stories, names, buzzTrace }: TopStoriesPanelProps) {
   return (
     <Panel title={TOP_STORIES_TITLE}>
       <div className={styles['body']}>
@@ -76,7 +85,9 @@ export function TopStoriesPanel({ stories, names }: TopStoriesPanelProps) {
                   <Explained
                     value={shownBuzz(item.buzz)}
                     label="Buzz"
-                    traceRef={item.buzzTraceRef}
+                    {...(buzzTrace === undefined
+                      ? { traceRef: item.buzzTraceRef }
+                      : { trace: buzzTrace })}
                   />
                 </span>
               </li>
