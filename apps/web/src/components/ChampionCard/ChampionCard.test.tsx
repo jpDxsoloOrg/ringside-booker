@@ -116,6 +116,22 @@ describe('ChampionCard', () => {
     expect(screen.getByRole('button', { name: 'Why? Prestige' })).toBeInTheDocument();
   });
 
+  it('lets the screen draw the title and champion names, as links say', () => {
+    render(
+      <ChampionCard
+        title={CROWN}
+        reign={REIGN}
+        prestige={82}
+        renderTitleName={(name) => <a href="/title">{name}</a>}
+        renderChampionName={(name) => <a href="/champion">{name}</a>}
+      />,
+    );
+    expect(screen.getByRole('heading', { level: 3 })).toContainElement(
+      screen.getByRole('link', { name: CROWN.name }),
+    );
+    expect(screen.getByRole('link', { name: 'Marlo Quint' })).toHaveAttribute('href', '/champion');
+  });
+
   it('writes no inline styles', () => {
     const { container } = render(<ChampionCard title={CROWN} reign={REIGN} prestige={82} />);
     expect(container.querySelector('[style]')).toBeNull();
@@ -157,5 +173,18 @@ describe('ChampionCardList', () => {
     const region = screen.getByRole('region', { name: 'Champions' });
     expect(region).toHaveAttribute('data-layout', 'swipe');
     expect(region).toHaveAttribute('tabindex', '0');
+  });
+
+  it('stacks one card per row on a phone when asked, with no extra tab stop', () => {
+    setMatchMedia((query) => query === BP_MOBILE_QUERY);
+    render(
+      <ChampionCardList label="Champions" phoneLayout="stack">
+        <ChampionCard key="crown" title={CROWN} reign={REIGN} prestige={82} />
+      </ChampionCardList>,
+    );
+    const region = screen.getByRole('region', { name: 'Champions' });
+    expect(region).toHaveAttribute('data-layout', 'stack');
+    expect(region).not.toHaveAttribute('tabindex');
+    expect(region).toHaveClass('stack');
   });
 });

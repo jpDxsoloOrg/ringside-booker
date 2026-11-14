@@ -62,6 +62,13 @@ export interface ChampionCardProps {
   readonly footer?: ReactNode;
   /** Slot for a Why? chip, such as one that explains the prestige. */
   readonly why?: ReactNode;
+  /**
+   * Draws the title name, so a screen can make it a link (the Titles screen links it to the
+   * title's page) without the card knowing about the router. Plain text by default.
+   */
+  readonly renderTitleName?: (name: string) => ReactNode;
+  /** Draws the champion's name, so a screen can link it to their profile. Plain text by default. */
+  readonly renderChampionName?: (name: string) => ReactNode;
   readonly className?: string | undefined;
 }
 
@@ -95,6 +102,8 @@ export function ChampionCard({
   headingLevel = 3,
   footer,
   why,
+  renderTitleName,
+  renderChampionName,
   className,
 }: ChampionCardProps) {
   const headingId = useId();
@@ -114,7 +123,7 @@ export function ChampionCard({
         </span>
         <div className={styles['titleBlock']}>
           <Heading id={headingId} className={styles['titleName']}>
-            {title.name}
+            {renderTitleName === undefined ? title.name : renderTitleName(title.name)}
           </Heading>
           <span className={styles['prestige']}>
             <PrestigeStars prestige={prestige} />
@@ -132,7 +141,11 @@ export function ChampionCard({
             <ImageSlot subject={reign.champion} size="sm" decorative />
             <div className={styles['holderText']}>
               <span className={styles['holderLabel']}>Champion</span>
-              <span className={styles['holderName']}>{reign.champion.name}</span>
+              <span className={styles['holderName']}>
+                {renderChampionName === undefined
+                  ? reign.champion.name
+                  : renderChampionName(reign.champion.name)}
+              </span>
             </div>
           </>
         )}
@@ -156,32 +169,53 @@ export function ChampionCard({
   );
 }
 
+/** How a `ChampionCardList` lays its cards out below `--bp-mobile`. */
+export type ChampionCardPhoneLayout = 'swipe' | 'stack';
+
 export interface ChampionCardListProps {
   /** Names the list for screen readers, such as "Champions". */
   readonly label: string;
+  /**
+   * On a phone: `swipe` (the default), one horizontal row that scrolls inside itself, for a short
+   * strip such as the Office's; `stack`, one card per row down the page, for a screen that is all
+   * cards such as Titles.
+   */
+  readonly phoneLayout?: ChampionCardPhoneLayout;
   /** The `ChampionCard`s. */
   readonly children: ReactNode;
   readonly className?: string | undefined;
 }
 
 /**
- * Lays champion cards out: a wrapping grid on desktop and a horizontal swipe row below
- * `--bp-mobile`, with each card snapping into place. On a phone the row is a keyboard-focusable
- * region, so it can be scrolled with the arrow keys as well as by swiping.
+ * Lays champion cards out: a wrapping grid on desktop and, below `--bp-mobile`, a horizontal
+ * swipe row with each card snapping into place (or one column with `phoneLayout="stack"`). The
+ * swipe row is a keyboard-focusable region, so it can be scrolled with the arrow keys as well as by
+ * swiping.
  */
-export function ChampionCardList({ label, children, className }: ChampionCardListProps) {
+export function ChampionCardList({
+  label,
+  phoneLayout = 'swipe',
+  children,
+  className,
+}: ChampionCardListProps) {
   const isMobile = useIsMobile();
   const cards = Children.toArray(children);
+  const swipes = isMobile && phoneLayout === 'swipe';
+  const layout = isMobile ? phoneLayout : 'grid';
   return (
     <div
       role="region"
       aria-label={label}
       // A scrolling region with no focusable content must take focus itself, or the keyboard
-      // cannot scroll it (WCAG 2.1.1). Only the phone layout scrolls, so only it is a tab stop.
+      // cannot scroll it (WCAG 2.1.1). Only the swipe row scrolls, so only it is a tab stop.
       // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
-      tabIndex={isMobile ? 0 : undefined}
-      className={classNames(styles['list'], className)}
-      data-layout={isMobile ? 'swipe' : 'grid'}
+      tabIndex={swipes ? 0 : undefined}
+      className={classNames(
+        styles['list'],
+        phoneLayout === 'swipe' ? styles['swipe'] : styles['stack'],
+        className,
+      )}
+      data-layout={layout}
     >
       <ul className={styles['listItems']}>
         {cards.map((card, index) => (

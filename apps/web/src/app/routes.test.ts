@@ -8,6 +8,7 @@ import {
   routes,
   SHOW_RESULTS_PARAMS,
   SHOW_RESULTS_ROUTE_PARAM,
+  TITLE_ROUTE_PARAM,
 } from './routes';
 
 describe('routes.game.calendarAt', () => {
@@ -65,6 +66,17 @@ describe('routes.game.showResults', () => {
   it('matches the pattern the router registers', () => {
     expect(matchPath(routePatterns.showResults, routes.game.showResults(show))?.params).toEqual({
       [SHOW_RESULTS_ROUTE_PARAM]: show,
+    });
+  });
+});
+
+describe('routes.game.title', () => {
+  const title = parseId('title', 'tit_0000000001');
+
+  it('sits under Titles and matches the pattern the router registers', () => {
+    expect(routes.game.title(title)).toBe(`/game/titles/${title}`);
+    expect(matchPath(routePatterns.title, routes.game.title(title))?.params).toEqual({
+      [TITLE_ROUTE_PARAM]: title,
     });
   });
 });
