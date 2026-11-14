@@ -16,6 +16,8 @@ export type BeatHeadingLevel = 2 | 3 | 4 | 5 | 6;
 export type BeatGroupNumber = 1 | 2;
 export type MoveDirection = 'up' | 'down';
 
+const HEADING_TAGS = { 2: 'h2', 3: 'h3', 4: 'h4', 5: 'h5', 6: 'h6' } as const;
+
 /** A beat's score and how it was worked out, from `match.previewAngle`. */
 export interface BeatScore {
   readonly value: number;
@@ -165,7 +167,7 @@ export function BeatRow({
   onMove,
   onRemove,
 }: BeatRowProps) {
-  const Heading = `h${String(headingLevel)}` as `h${BeatHeadingLevel}`;
+  const Heading = HEADING_TAGS[headingLevel];
   const name = beatNameOf(option);
   const position = `Beat ${String(index + 1)}`;
   const selectOptions: SelectOption[] = beatOptions.map((beatOption) => ({

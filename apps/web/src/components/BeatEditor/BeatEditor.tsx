@@ -186,7 +186,9 @@ export function BeatEditor({
     if (beat === undefined) return;
     const key = group === 1 ? 'groupOne' : 'groupTwo';
     setAnnouncement(`${person.name} removed.`);
-    onChange(replaceBeat(index, { ...beat, [key]: beat[key].filter((member) => member.id !== person.id) }));
+    onChange(
+      replaceBeat(index, { ...beat, [key]: beat[key].filter((member) => member.id !== person.id) }),
+    );
   };
 
   const pickerIndex = picking === null ? -1 : beats.findIndex((beat) => beat.id === picking.beatId);
@@ -210,7 +212,10 @@ export function BeatEditor({
             const key = picking.group === 1 ? 'groupOne' : 'groupTwo';
             const people = pickerBeat[key];
             setPicking(null);
-            if (people.some((member) => member.id === person.id) || people.length >= pickerGroup.maxPeople) {
+            if (
+              people.some((member) => member.id === person.id) ||
+              people.length >= pickerGroup.maxPeople
+            ) {
               return;
             }
             setAnnouncement(`${person.name} added to ${pickerGroup.label}.`);
