@@ -20,7 +20,14 @@
 import type { z } from 'zod';
 import type { GameDate } from '../../core/date';
 import type { ContentPackRef } from '../../model/world-meta';
-import { angleTypeRecord, finishRecord, matchTypeRecord, methodRecord } from './records/catalogs';
+import {
+  angleTemplateRecord,
+  angleTypeRecord,
+  beatRecord,
+  finishRecord,
+  matchTypeRecord,
+  methodRecord,
+} from './records/catalogs';
 import { continentRecord, countryRecord, regionRecord } from './records/geography';
 import { injuryKindRecord } from './records/health';
 import {
@@ -107,6 +114,8 @@ const FULL_PARSERS: {
   angleType: (value) => angleTypeRecord.full.safeParse(value),
   method: (value) => methodRecord.full.safeParse(value),
   finish: (value) => finishRecord.full.safeParse(value),
+  beat: (value) => beatRecord.full.safeParse(value),
+  angleTemplate: (value) => angleTemplateRecord.full.safeParse(value),
 };
 
 /** Parses one element of a record file: a full record, a patch or a removal. */
@@ -139,6 +148,8 @@ const ENTRY_PARSERS: Readonly<Record<RecordKind, (value: unknown) => ParseOutcom
   angleType: (value) => angleTypeRecord.entry.safeParse(value),
   method: (value) => methodRecord.entry.safeParse(value),
   finish: (value) => finishRecord.entry.safeParse(value),
+  beat: (value) => beatRecord.entry.safeParse(value),
+  angleTemplate: (value) => angleTemplateRecord.entry.safeParse(value),
 };
 
 type Fields = Readonly<Record<string, unknown>>;
@@ -472,6 +483,8 @@ export function mergeRecords(packs: readonly RawPack[]): Result<MergedContent> {
     angleType: finishKind('angleType', working('angleType'), issues),
     method: finishKind('method', working('method'), issues),
     finish: finishKind('finish', working('finish'), issues),
+    beat: finishKind('beat', working('beat'), issues),
+    angleTemplate: finishKind('angleTemplate', working('angleTemplate'), issues),
   };
 
   if (hasErrors(issues)) {

@@ -24,6 +24,8 @@
     "matchType": "catalogs/match-types.json",
     "angleType": "catalogs/angle-types.json",
     "method": "catalogs/methods.json",
-    "finish": "catalogs/finishes.json"
+    "finish": "catalogs/finishes.json",
+    "beat": "catalogs/beats.json",
+    "angleTemplate": "catalogs/angle-templates.json"
   }
 }

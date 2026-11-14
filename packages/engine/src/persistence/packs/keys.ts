@@ -132,6 +132,9 @@ export const RECORD_KINDS = [
   'method',
   // Finishes (MTCH2): refer to methods and match types, never become entities.
   'finish',
+  // Beats and angle templates (MTCH5): templates refer to angle types and beats.
+  'beat',
+  'angleTemplate',
 ] as const;
 
 export const RecordKindSchema = z.enum(RECORD_KINDS);

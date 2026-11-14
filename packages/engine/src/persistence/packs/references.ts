@@ -5,8 +5,9 @@
  * Which fields are references, and what they point at, is declared next to each record schema
  * (`regionReferences`, `employmentReferences`, ...) and collected in `RECORD_REFERENCES`, so a new
  * reference field cannot be added to a schema without the table in the same file being in view.
- * `traitKey`, `gimmickKey` and `defaultBeatKey` are not pack references (they name engine traits and
- * catalog entries) and are not in any table.
+ * `traitKey`, `gimmickKey`, `defaultBeatKey` and `beatKeys` are not pack references (they name
+ * engine traits and catalog entries) and are not in any table. An angle type's beat content keys
+ * are checked by `checkBeatKeys` below instead, with the angle templates that use them (MTCH5).
  *
  * A qualified reference (`example-world:harbour-coast`) must also name a pack that defined or
  * overrode that record. Region adjacency is checked both ways: a neighbour that does not list the
@@ -18,8 +19,11 @@
 import { isPackRef, parseRef, RECORD_KINDS, type RecordKind, type RecordReference } from './keys';
 import { packError, packWarning, type PackIssue } from './issues';
 import type { MergedRecord, MergedRecords } from './merge';
+import { BEAT_CONTENT_PREFIX } from './records/catalogs';
 import {
+  angleTemplateReferences,
   angleTypeReferences,
+  beatReferences,
   finishReferences,
   matchTypeReferences,
   methodReferences,
@@ -85,6 +89,8 @@ export const RECORD_REFERENCES = {
   angleType: angleTypeReferences,
   method: methodReferences,
   finish: finishReferences,
+  beat: beatReferences,
+  angleTemplate: angleTemplateReferences,
 } as const satisfies Record<RecordKind, readonly RecordReference[]>;
 
 /** One reference value found in a record, with where it is. */
@@ -243,6 +249,103 @@ function checkNeighbours(records: MergedRecords, issues: PackIssue[]): void {
   }
 }
 
+/** The beat pack key a beat content key names (`beat.brawl` → `brawl`), or null. */
+function beatPackKey(contentKey: string): string | null {
+  const prefix = `${BEAT_CONTENT_PREFIX}.`;
+  return contentKey.startsWith(prefix) ? contentKey.slice(prefix.length) : null;
+}
+
+/** An angle type's `beatKeys`, as a set of beat pack keys, or null when it allows every beat. */
+function allowedBeats(beatKeys: readonly string[] | undefined): ReadonlySet<string> | null {
+  if (beatKeys === undefined) {
+    return null;
+  }
+  return new Set(beatKeys.flatMap((key) => beatPackKey(key) ?? []));
+}
+
+/**
+ * MTCH5. An angle type's `beatKeys` must name loaded beats, and so must its `defaultBeatKey` once
+ * any pack defines beats (packs from before beats existed may leave the beat catalog out). Every
+ * beat of an angle template must be allowed by its angle type, and its `groupTwo` must be null
+ * exactly when the beat has one group, or name a cast when the beat's second group is required.
+ */
+function checkBeatKeys(records: MergedRecords, issues: PackIssue[]): void {
+  for (const [key, merged] of records.angleType) {
+    const { defaultBeatKey, beatKeys } = merged.record;
+    const listed: [string, readonly (string | number)[]][] = (beatKeys ?? []).map(
+      (beatKey, index) => [beatKey, ['beatKeys', index]],
+    );
+    if (records.beat.size > 0) {
+      listed.unshift([defaultBeatKey, ['defaultBeatKey']]);
+    }
+    for (const [beatKey, path] of listed) {
+      const packKey = beatPackKey(beatKey);
+      if (packKey !== null && records.beat.has(packKey)) {
+        continue;
+      }
+      issues.push(
+        packError({
+          code: 'unknown-reference',
+          packId: merged.sourcePackId,
+          file: merged.file,
+          kind: 'angleType',
+          recordKey: key,
+          path: ['angleType', key, ...path],
+          message: `${String(path[0])} names beat ${beatKey}, but no loaded pack defines it`,
+        }),
+      );
+    }
+  }
+
+  for (const [key, merged] of records.angleTemplate) {
+    const angleType = records.angleType.get(parseRef(merged.record.angleTypeKey).key);
+    const allowed = allowedBeats(angleType?.record.beatKeys);
+    merged.record.beats.forEach((templateBeat, index) => {
+      const beatKey = parseRef(templateBeat.beatKey).key;
+      const beat = records.beat.get(beatKey);
+      if (angleType === undefined || beat === undefined) {
+        // An unknown angle type or beat is already an unknown-reference error.
+        return;
+      }
+      const at = {
+        packId: merged.sourcePackId,
+        file: merged.file,
+        kind: 'angleTemplate' as const,
+        recordKey: key,
+      };
+      if (allowed !== null && !allowed.has(beatKey)) {
+        issues.push(
+          packError({
+            ...at,
+            code: 'beat-not-allowed',
+            path: ['angleTemplate', key, 'beats', index, 'beatKey'],
+            message: `beat ${beatKey} is not one of the beats angle type ${angleType.record.key} allows`,
+          }),
+        );
+      }
+      const second = beat.record.groups[1];
+      const problem =
+        second === undefined
+          ? templateBeat.groupTwo === null
+            ? null
+            : `beat ${beatKey} has one group, so groupTwo must be null`
+          : !second.optional && templateBeat.groupTwo === null
+            ? `beat ${beatKey} needs someone in its second group (${second.label})`
+            : null;
+      if (problem !== null) {
+        issues.push(
+          packError({
+            ...at,
+            code: 'schema',
+            path: ['angleTemplate', key, 'beats', index, 'groupTwo'],
+            message: problem,
+          }),
+        );
+      }
+    });
+  }
+}
+
 /**
  * Checks every reference in the merged records. Returns `unknown-reference` and
  * `wrong-kind-reference` errors and `one-sided-neighbour` warnings, record by record in kind and
@@ -267,5 +370,6 @@ export function checkReferences(records: MergedRecords): PackIssue[] {
     }
   }
   checkNeighbours(records, issues);
+  checkBeatKeys(records, issues);
   return issues;
 }

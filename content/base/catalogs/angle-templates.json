@@ -1,0 +1,170 @@
+[
+  {
+    "key": "solo-promo",
+    "name": "Solo Promo",
+    "angleTypeKey": "promo",
+    "purpose": "promo",
+    "beats": [
+      {
+        "beatKey": "promo",
+        "groupOne": "a",
+        "groupTwo": null,
+        "optional": false
+      }
+    ],
+    "description": "One person talks to the crowd."
+  },
+  {
+    "key": "sit-down-interview",
+    "name": "Sit-Down Interview",
+    "angleTypeKey": "interview",
+    "purpose": "introduce",
+    "beats": [
+      {
+        "beatKey": "interview",
+        "groupOne": "a",
+        "groupTwo": "host",
+        "optional": false
+      },
+      {
+        "beatKey": "promo",
+        "groupOne": "a",
+        "groupTwo": null,
+        "optional": true
+      }
+    ],
+    "description": "An interviewer asks the questions, then the guest speaks their mind."
+  },
+  {
+    "key": "feud-opener",
+    "name": "Feud Opener",
+    "angleTypeKey": "confrontation",
+    "purpose": "startFeud",
+    "beats": [
+      {
+        "beatKey": "staredown",
+        "groupOne": "a",
+        "groupTwo": "b",
+        "optional": true
+      },
+      {
+        "beatKey": "war-of-words",
+        "groupOne": "a",
+        "groupTwo": "b",
+        "optional": false
+      },
+      {
+        "beatKey": "brawl",
+        "groupOne": "ab",
+        "groupTwo": null,
+        "optional": false
+      }
+    ],
+    "description": "Two rivals meet, trade words and come to blows."
+  },
+  {
+    "key": "ambush",
+    "name": "Ambush",
+    "angleTypeKey": "attack",
+    "purpose": "buildFeud",
+    "beats": [
+      {
+        "beatKey": "attack",
+        "groupOne": "a",
+        "groupTwo": "b",
+        "optional": false
+      },
+      {
+        "beatKey": "pull-apart",
+        "groupOne": "ab",
+        "groupTwo": null,
+        "optional": true
+      }
+    ],
+    "description": "One side jumps the other until someone pulls them apart."
+  },
+  {
+    "key": "title-contract",
+    "name": "Title Contract",
+    "angleTypeKey": "contract-signing",
+    "purpose": "titleChallenge",
+    "beats": [
+      {
+        "beatKey": "announcement",
+        "groupOne": "host",
+        "groupTwo": "ab",
+        "optional": true
+      },
+      {
+        "beatKey": "contract-signing",
+        "groupOne": "a",
+        "groupTwo": "b",
+        "optional": false
+      },
+      {
+        "beatKey": "staredown",
+        "groupOne": "a",
+        "groupTwo": "b",
+        "optional": true
+      }
+    ],
+    "description": "The title match is announced, signed and sealed with a stare."
+  },
+  {
+    "key": "victory-lap",
+    "name": "Victory Lap",
+    "angleTypeKey": "promo",
+    "purpose": "celebrate",
+    "beats": [
+      {
+        "beatKey": "entrance",
+        "groupOne": "a",
+        "groupTwo": null,
+        "optional": true
+      },
+      {
+        "beatKey": "celebration",
+        "groupOne": "a",
+        "groupTwo": null,
+        "optional": false
+      }
+    ],
+    "description": "A winner comes out to soak up the cheers and say a few words."
+  },
+  {
+    "key": "hype-video",
+    "name": "Hype Video",
+    "angleTypeKey": "video-package",
+    "purpose": "introduce",
+    "beats": [
+      {
+        "beatKey": "video-package",
+        "groupOne": "a",
+        "groupTwo": null,
+        "optional": false
+      }
+    ],
+    "description": "A video that builds someone up before they arrive."
+  },
+  {
+    "key": "backstage-plot",
+    "name": "Backstage Plot",
+    "angleTypeKey": "promo",
+    "purpose": "buildFeud",
+    "beats": [
+      {
+        "beatKey": "backstage-skit",
+        "groupOne": "a",
+        "groupTwo": "b",
+        "optional": false
+      },
+      {
+        "beatKey": "war-of-words",
+        "groupOne": "a",
+        "groupTwo": "b",
+        "optional": true
+      }
+    ],
+    "description": "A scene backstage that sets up trouble, and words to follow."
+  }
+]

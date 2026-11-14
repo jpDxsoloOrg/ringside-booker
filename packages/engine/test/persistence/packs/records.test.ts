@@ -345,6 +345,32 @@ const VALID_RECORDS: Readonly<Record<RecordKind, Fixture>> = {
     autoWeight: 60,
     requiresTwoSides: false,
   },
+  beat: {
+    key: 'promo',
+    name: 'Promo',
+    description: 'Someone talks.',
+    groups: [
+      {
+        label: 'Speaker',
+        stats: ['mic', 'charisma'],
+        weight: 1,
+        minPeople: 1,
+        maxPeople: 4,
+        optional: false,
+        managerCanStandIn: true,
+      },
+    ],
+    physical: false,
+    repetitionGroup: 'talk',
+    weight: 1,
+  },
+  angleTemplate: {
+    key: 'solo-promo',
+    name: 'Solo Promo',
+    angleTypeKey: 'promo',
+    purpose: 'promo',
+    beats: [{ beatKey: 'promo', groupOne: 'a', groupTwo: null, optional: false }],
+  },
   injuryKind: {
     key: 'sprained-ankle',
     label: 'Sprained ankle',

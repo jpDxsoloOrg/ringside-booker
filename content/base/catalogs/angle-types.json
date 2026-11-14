@@ -6,6 +6,14 @@
     "defaultBeatKey": "beat.promo",
     "speakers": { "min": 1, "max": 4 },
     "speakerWeights": { "mic": 0.6, "charisma": 0.3, "presence": 0.1 },
+    "beatKeys": [
+      "beat.promo",
+      "beat.war-of-words",
+      "beat.announcement",
+      "beat.backstage-skit",
+      "beat.entrance",
+      "beat.celebration"
+    ],
     "description": "Someone takes the microphone and talks to the crowd, an opponent or the camera."
   },
   {
@@ -15,6 +23,7 @@
     "defaultBeatKey": "beat.interview",
     "speakers": { "min": 1, "max": 3 },
     "speakerWeights": { "mic": 0.5, "charisma": 0.35, "presence": 0.15 },
+    "beatKeys": ["beat.interview", "beat.promo", "beat.announcement"],
     "description": "A backstage or ringside interviewer asks the questions and the talent answers."
   },
   {
@@ -24,6 +33,13 @@
     "defaultBeatKey": "beat.staredown",
     "speakers": { "min": 2, "max": 8 },
     "speakerWeights": { "mic": 0.4, "charisma": 0.3, "presence": 0.3 },
+    "beatKeys": [
+      "beat.staredown",
+      "beat.war-of-words",
+      "beat.attack",
+      "beat.brawl",
+      "beat.pull-apart"
+    ],
     "description": "Rivals come face to face. Words are traded and it may not stay peaceful."
   },
   {
@@ -33,6 +49,7 @@
     "defaultBeatKey": "beat.attack",
     "speakers": { "min": 1, "max": 6 },
     "speakerWeights": { "mic": 0.1, "charisma": 0.3, "presence": 0.6 },
+    "beatKeys": ["beat.attack", "beat.brawl", "beat.pull-apart", "beat.staredown"],
     "description": "An ambush in the ring, backstage or in the car park. Few words, lots of impact."
   },
   {
@@ -43,6 +60,14 @@
     "defaultBeatKey": "beat.contract-signing",
     "speakers": { "min": 2, "max": 4 },
     "speakerWeights": { "mic": 0.5, "charisma": 0.3, "presence": 0.2 },
+    "beatKeys": [
+      "beat.contract-signing",
+      "beat.staredown",
+      "beat.brawl",
+      "beat.pull-apart",
+      "beat.announcement",
+      "beat.celebration"
+    ],
     "description": "A table, a contract and two people who do not like each other. It rarely ends with just a signature."
   },
   {
@@ -53,6 +78,7 @@
     "defaultBeatKey": "beat.video-package",
     "speakers": { "min": 1, "max": 6 },
     "speakerWeights": { "mic": 0.3, "charisma": 0.4, "presence": 0.3 },
+    "beatKeys": ["beat.video-package"],
     "description": "A pre-recorded piece that builds a rivalry or introduces someone new."
   }
 ]

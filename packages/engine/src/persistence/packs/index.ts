@@ -18,10 +18,14 @@ import {
   matchTypeRecord,
   methodRecord,
   finishRecord,
+  beatRecord,
+  angleTemplateRecord,
   type AngleTypeRecord,
   type MatchTypeRecord,
   type MethodRecord,
   type FinishRecord,
+  type BeatRecord,
+  type AngleTemplateRecord,
 } from './records/catalogs';
 import { injuryKindRecord, type InjuryKindRecord } from './records/health';
 import {
@@ -137,6 +141,8 @@ export const recordKinds = {
   angleType: angleTypeRecord,
   method: methodRecord,
   finish: finishRecord,
+  beat: beatRecord,
+  angleTemplate: angleTemplateRecord,
 } as const satisfies Record<RecordKind, { entry: z.ZodType }>;
 
 type RecordKindBuilders = typeof recordKinds;
@@ -171,6 +177,8 @@ export const recordSchemas = {
   angleType: angleTypeRecord.entry,
   method: methodRecord.entry,
   finish: finishRecord.entry,
+  beat: beatRecord.entry,
+  angleTemplate: angleTemplateRecord.entry,
 } as const satisfies Record<RecordKind, z.ZodType>;
 
 /** A complete record of each kind, as written in a pack. */
@@ -203,6 +211,8 @@ export interface PackRecords {
   angleType: AngleTypeRecord;
   method: MethodRecord;
   finish: FinishRecord;
+  beat: BeatRecord;
+  angleTemplate: AngleTemplateRecord;
 }
 
 /** One element of a pack file of the given kind: a full record, a patch or a removal. */
