@@ -43,6 +43,7 @@ export function ProductionEffectLines({ effects }: ProductionEffectLinesProps) {
                 label={line.label}
                 value={line.value}
                 source={{ trace: line.trace }}
+                className={styles['effectWhy'] ?? ''}
                 {...(unit === undefined ? {} : { unit })}
               />
             )}

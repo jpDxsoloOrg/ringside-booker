@@ -139,7 +139,6 @@
 
 .areaName {
   flex: 0 0 8rem;
-  grid-area: name;
   font-family: var(--font-family-display);
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-bold);
@@ -149,7 +148,6 @@
 
 .level {
   flex: 0 1 19rem;
-  grid-area: level;
   display: grid;
   gap: var(--space-1);
   min-inline-size: 0;
@@ -163,7 +161,6 @@
 
 .cost {
   flex: 0 1 14rem;
-  grid-area: cost;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -180,7 +177,6 @@
 
 .what {
   flex: 1 1 16rem;
-  grid-area: what;
   min-inline-size: 0;
 }
 
@@ -192,12 +188,21 @@
   list-style: none;
 }
 
+/* The Why? flows on after the words, so a wrapped line keeps it beside its last word. */
 .effect {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0 var(--space-1);
   font-size: var(--font-size-sm);
+}
+
+.effectWhy {
+  margin-inline-start: var(--space-1);
+  vertical-align: middle;
+}
+
+/* On a phone the Why? keeps its 44px target but takes only a line's height. */
+@media (--bp-mobile) {
+  .effectWhy {
+    margin-block: calc(-1 * var(--tap-pad-block));
+  }
 }
 
 .noEffect {
@@ -299,19 +304,26 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
+  /*
+   * Each area is a card: the name and the level share the first line when they fit (at a large UI
+   * scale the level wraps under the name), then the cost, then the effect lines.
+   */
   .row {
-    display: grid;
-    grid-template-columns: minmax(0, auto) minmax(0, 1fr);
-    grid-template-areas:
-      'name level'
-      'cost cost'
-      'what what';
-    align-items: start;
+    gap: var(--space-2) var(--space-3);
     padding: var(--space-3);
   }
 
   .areaName {
-    padding-block-start: var(--space-2);
+    flex: 0 0 auto;
+  }
+
+  .level {
+    flex: 1 1 14rem;
+  }
+
+  .cost,
+  .what {
+    flex: 1 1 100%;
   }
 
   /* Each area is its own card. */
