@@ -171,7 +171,7 @@ export function dealColumns(context: DealColumnContext): readonly ColumnDef<Deal
     {
       id: 'ends',
       header: 'Ends',
-      cell: (row) => <span className={styles['nowrap']}>{endsText(row, today)}</span>,
+      cell: (row) => <span className={styles['ends']}>{endsText(row, today)}</span>,
       sortValue: (row) => row.endsOn,
       card: 'meta',
     },

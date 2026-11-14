@@ -237,3 +237,9 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+/* "Oct 4, 2027 · in 269 days": may wrap at the dot on a narrow desktop window. */
+.ends {
+  display: inline-block;
+  min-inline-size: 8rem;
+}

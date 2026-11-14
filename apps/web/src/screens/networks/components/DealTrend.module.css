@@ -26,6 +26,8 @@
 }
 
 .none {
+  display: inline-block;
+  min-inline-size: 6rem;
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
 }

@@ -138,7 +138,9 @@ export function RenegotiateView({
                 <tr key={line.label}>
                   <th scope="row">{line.label}</th>
                   <td className="tabular">
-                    {line.perBuy ? perBuyText(line.current) : money(cents(line.current))}
+                    {line.perBuy
+                      ? perBuyText(line.current)
+                      : money(cents(line.current), { showCents: line.current < 100_000 })}
                   </td>
                   <td>
                     <span className={styles['compareNew']}>
