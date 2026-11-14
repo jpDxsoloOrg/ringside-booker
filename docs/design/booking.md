@@ -643,6 +643,16 @@ up, registered when the partner's system module loads),
 `registerSegmentEditorSection` and `registerBookingPanel` (web, one import line
 each in `screens/booking/sections/index.ts`).
 
+**Segment hooks** (CRTV4-01, `hooks.ts`). A partner that keeps rows pointing at
+segments registers `registerSegmentHook({ id, beforeRemove?, afterWrite? })`.
+The card writer runs `beforeRemove` before a segment and its participants are
+deleted (`removeSegment`, `clearCard`) and `afterWrite` after `writeSegment`
+creates or replaces one, inside the same transaction and in id order, for the
+player's commands and the rival booker alike. A throwing hook rolls the write
+back. `clearSegmentHooksForTests` empties the registry for a test. First user:
+the storylines system's `storylines.clearFinaleOnRemove` (see
+[storylines.md](storylines.md#linking)).
+
 | Partner                | Status                          | How it is wired                                                                                                                                                                                                                                                                                                                                                                                                                |
 | ---------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | MTCH2 (finishes)       | wired (EVT2-07)                 | The editor's **Finish** section (`sections/BookingFinishSection.tsx`, `match.finish`, order 10) and the `match.finish` booking check (`systems/match/finishes/bookingCheck.ts`, order 200). Random winners: the commands refuse a planned result or finish with `randomWinners`, `noPlannedResult` is skipped, `booking.card` carries `randomWinners`, and the editor says "Decided on the night (Random winners)". See below. |
