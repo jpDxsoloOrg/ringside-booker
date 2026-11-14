@@ -139,6 +139,8 @@ describe('reactions in a world', () => {
 
     const likely = preview(setup.world, { ...args, offer: atAsk });
     expect(likely).toMatchObject({ reaction: 'accept', band: 'likely', label: 'Likely to accept' });
+    // The meter's band boundaries (ECO5-06) are the reaction tunables.
+    expect(likely.thresholds).toEqual({ walkAway: 0.45, counter: 0.55, accept: 0.95 });
     expect(likely.ratio).toBe(1);
     expect(likely.offerValue).toBe(likely.askValue);
     expect(likely.notes).toContain(LIKELY_NOTE);
