@@ -9,6 +9,8 @@
  * Design: docs/design/match-rating.md#pipeline-and-seams.
  */
 
+import type { AngleSetting } from '../../../model/entities/angle-setting';
+import { settingDurationShifter } from '../angles/settings';
 import type { Reason, QueryResult } from '../../../core/api/result';
 import { RegistryError } from '../../../core/errors';
 import type { RngStream } from '../../../core/rng/registry';
@@ -189,9 +191,13 @@ function slotDerivation(
   roleTrace: Traced<SlotRole>,
   matchType: MatchTypeDef | undefined,
   tunables: EngineTunables,
+  setting: AngleSetting | undefined,
 ): SlotDerivation {
   const role = roleTrace.value;
-  const durationTrace = durationClassOf({ role, matchType: matchType ?? null }, { tunables });
+  // MTCH5-08: a backstage or pre-taped talking segment shifts by its setting instead.
+  const shifter =
+    matchType ?? (setting === undefined ? null : settingDurationShifter(setting, tunables));
+  const durationTrace = durationClassOf({ role, matchType: shifter }, { tunables });
   const weightTrace = slotWeightOf({ role }, { tunables });
   return {
     role,
@@ -233,7 +239,12 @@ export function rateSegment(
       kind: input.kind,
     });
   }
-  const slot = slotDerivation(roleTrace, resolved.matchType, tunables);
+  const slot = slotDerivation(
+    roleTrace,
+    resolved.matchType,
+    tunables,
+    input.kind === 'angle' ? input.angle?.setting : undefined,
+  );
   const ctx: RatingContext = {
     mode: options.mode ?? 'preview',
     seed: options.seed ?? '',

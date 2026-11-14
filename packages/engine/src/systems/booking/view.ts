@@ -31,7 +31,8 @@ import type { EventImportance } from '../../model/entities/event-definition';
 import { promotionStatusKey, type Employment } from '../../model/entities/employment';
 import type { EventInstance, EventInstanceStatus } from '../../model/entities/event-instance';
 import type { ParticipantRole } from '../../model/entities/participant';
-import type { Segment, SegmentKind } from '../../model/entities/segment';
+import { settingOf, type Segment, type SegmentKind } from '../../model/entities/segment';
+import { settingDurationShifter } from '../match/angles/settings';
 import type { ImageRef } from '../../model/primitives';
 import { compareIds } from '../../model/table';
 import type { GameWorldView } from '../../model/tables';
@@ -448,7 +449,12 @@ function slotViewOf(
   const role = slotRoleOf({ slot: slot + 1, slots: instance.format.slots, preShow }, slotDeps);
   const matchType =
     segment?.kind === 'match' ? (matchTypeOf(read, segment.match.matchTypeKey) ?? null) : null;
-  const duration = durationClassOf({ role: role.value, matchType }, slotDeps);
+  // MTCH5-08: a backstage or pre-taped talking segment moves the class by its setting.
+  const shifter =
+    segment?.kind === 'angle'
+      ? settingDurationShifter(settingOf(segment), deps.tunables)
+      : matchType;
+  const duration = durationClassOf({ role: role.value, matchType: shifter }, slotDeps);
   const weight = slotWeightOf({ role: role.value }, slotDeps);
   return {
     slot,

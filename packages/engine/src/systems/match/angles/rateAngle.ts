@@ -38,7 +38,9 @@ import {
   type DurationClass,
   type SlotRole,
 } from '../slots';
+import type { AngleSetting } from '../../../model/entities/angle-setting';
 import { beatLimitOf, beatLimitMessage, overLimitNote } from './beatLimit';
+import { settingDurationShifter, settingNote } from './settings';
 import { BEAT_STAT_LABELS, isBeatStat, type BeatStat } from './beatStats';
 import { angleScoreParts, type AngleScoreBeat } from './formulas/angleScore';
 import { beatScore } from './formulas/beatScore';
@@ -115,6 +117,11 @@ export interface RateAngleInput {
   readonly policyLabel: string;
   /** Lines for the top of the score's trace, such as a skipped unknown beat. */
   readonly notes?: readonly string[];
+  /**
+   * MTCH5-08: where the angle happens. Left out: in the ring. Backstage and pre-taped angles lean
+   * on the beats more than the crowd, have no crowd roll and may shift the duration class.
+   */
+  readonly setting?: AngleSetting;
 }
 
 /**
@@ -356,6 +363,21 @@ function repetitionCounts(
 }
 
 /**
+ * A talking segment's duration class: its slot role's, moved by its setting (MTCH5-08: backstage is
+ * usually one step shorter, `match.angle.setting.<setting>.durationShift`).
+ */
+export function angleDurationClass(
+  role: SlotRole,
+  setting: AngleSetting,
+  tunables: EngineTunables,
+): DurationClass {
+  return durationClassOf(
+    { role, matchType: settingDurationShifter(setting, tunables) },
+    { tunables },
+  ).value;
+}
+
+/**
  * Rates an angle: the beats that fit the slot, then the angle score, the expectation, the crowd
  * and the stars. Never throws for an angle past its limit: the extra beats are listed but not
  * rated, with the note "Only the first 2 beats count in a short slot".
@@ -366,10 +388,15 @@ function repetitionCounts(
 export function rateAngle(input: RateAngleInput, deps: RateAngleDeps): AngleRating {
   const { tunables } = deps;
   const stage = deps.stage ?? defaultStage(tunables);
-  const durationClass = durationClassOf({ role: input.role, matchType: null }, { tunables }).value;
+  const setting = input.setting ?? 'ring';
+  const durationClass = angleDurationClass(input.role, setting, tunables);
   const limit = beatLimitOf(durationClass, tunables);
   const max = limit.value;
   const notes = [...(input.notes ?? [])];
+  const whereNote = settingNote(setting);
+  if (whereNote !== null) {
+    notes.unshift(whereNote);
+  }
   if (input.beats.length > max) {
     notes.push(overLimitNote(durationClass, max));
   }
@@ -453,10 +480,12 @@ export function rateAngle(input: RateAngleInput, deps: RateAngleDeps): AngleRati
       typeName: input.typeName,
       policyBonus: input.policyBonus,
       policyLabel: input.policyLabel,
+      setting,
     },
     {
       tunables,
-      ...(deps.crowdRng === undefined ? {} : { rng: deps.crowdRng }),
+      // Away from the live crowd there is no crowd roll: nothing swings it on the night.
+      ...(deps.crowdRng === undefined || setting !== 'ring' ? {} : { rng: deps.crowdRng }),
       stage: (name, value) => stage(name, value),
     },
   );

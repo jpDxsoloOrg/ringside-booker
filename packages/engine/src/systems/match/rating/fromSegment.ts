@@ -100,7 +100,11 @@ function angleInputOf(
     .flatMap((other) =>
       other.kind === 'angle' ? other.angle.beats.map((beat) => beat.beatKey) : [],
     );
-  return { beats, earlierBeatKeysOnCard };
+  return {
+    beats,
+    earlierBeatKeysOnCard,
+    ...(segment.angle.setting === undefined ? {} : { setting: segment.angle.setting }),
+  };
 }
 
 /**

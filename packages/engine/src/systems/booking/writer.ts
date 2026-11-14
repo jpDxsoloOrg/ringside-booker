@@ -32,7 +32,12 @@ import {
   type MatchSegment,
   type Segment,
 } from '../../model/entities/segment';
+import {
+  DEFAULT_ANGLE_SETTING,
+  type AngleSetting,
+} from '../../model/entities/angle-setting';
 import { compareIds } from '../../model/table';
+import { defaultSettingOf } from '../match/angles/settings';
 import type { GameTables, GameWorldView } from '../../model/tables';
 import type { Tx } from '../../model/tx';
 import type { DeepReadonly } from '../../model/world';
@@ -429,6 +434,22 @@ function beatsOf(
   return [{ beatKey: angleType.defaultBeatKey, personIds: speakers }];
 }
 
+/**
+ * Where the angle happens (MTCH5-08): the draft's setting, or where its type starts when it names
+ * none (the ring, or a pre-taped video for a type that only allows that). Stored only when it is
+ * not the ring, so ring angles stay as saves from before MTCH5-08 had them.
+ */
+function settingFor(
+  read: GameWorldView,
+  draft: DeepReadonly<Extract<SegmentDraft, { kind: 'angle' }>>,
+): AngleSetting {
+  if (draft.angle.setting !== undefined) {
+    return draft.angle.setting;
+  }
+  const angleType = angleTypeOf(read, draft.angle.angleTypeKey);
+  return angleType === undefined ? DEFAULT_ANGLE_SETTING : defaultSettingOf(angleType);
+}
+
 /** A stored segment without its id. */
 type SegmentFields = Omit<MatchSegment, 'id'> | Omit<AngleSegment, 'id'>;
 
@@ -462,10 +483,25 @@ function segmentFields(
       outcome: draft.outcome === null ? null : { ...draft.outcome },
     };
   }
+  const setting = settingFor(read, draft);
   return {
     ...base,
     kind: 'angle',
-    angle: { angleTypeKey: draft.angle.angleTypeKey, beats: beatsOf(read, draft) },
+    angle: {
+      angleTypeKey: draft.angle.angleTypeKey,
+      beats: beatsOf(read, draft),
+      ...(setting === DEFAULT_ANGLE_SETTING ? {} : { setting }),
+    },
+  };
+}
+
+/** A participant's MTCH5-08 talk fields, left out when the draft has none. */
+function talkFieldsOf(
+  participant: DeepReadonly<ParticipantDraft>,
+): Pick<ParticipantDraft, 'talkRole' | 'forPersonId'> {
+  return {
+    ...(participant.talkRole === undefined ? {} : { talkRole: participant.talkRole }),
+    ...(participant.forPersonId === undefined ? {} : { forPersonId: participant.forPersonId }),
   };
 }
 
@@ -490,8 +526,25 @@ function syncParticipants(
       continue;
     }
     kept.add(row.personId);
-    if (next.side !== row.side || next.role !== row.role || next.teamId !== row.teamId) {
-      tx.update('participants', row.id, { side: next.side, role: next.role, teamId: next.teamId });
+    if (
+      next.side !== row.side ||
+      next.role !== row.role ||
+      next.teamId !== row.teamId ||
+      next.talkRole !== row.talkRole ||
+      next.forPersonId !== row.forPersonId
+    ) {
+      tx.update('participants', row.id, (previous) => {
+        const rest = { ...previous };
+        delete rest.talkRole;
+        delete rest.forPersonId;
+        return {
+          ...rest,
+          side: next.side,
+          role: next.role,
+          teamId: next.teamId,
+          ...talkFieldsOf(next),
+        };
+      });
     }
   }
   const added = wanted
@@ -506,6 +559,7 @@ function syncParticipants(
       teamId: participant.teamId,
       entranceOrder: null,
       eliminationOrder: null,
+      ...talkFieldsOf(participant),
     });
   }
 }

@@ -42,7 +42,8 @@ import type {
 } from '../../model/entities/event-instance';
 import { detailKeptNote } from '../history/note';
 import type { Participant, ParticipantRole } from '../../model/entities/participant';
-import type { Segment, SegmentKind } from '../../model/entities/segment';
+import { settingOf, type Segment, type SegmentKind } from '../../model/entities/segment';
+import { settingDurationShifter } from '../match/angles/settings';
 import type { TitleReign } from '../../model/entities/title-reign';
 import type { ImageRef } from '../../model/primitives';
 import { compareIds } from '../../model/table';
@@ -482,7 +483,10 @@ function segmentViewOf(
   const typeName = isMatch
     ? (matchType?.name ?? typeKey)
     : (angleTypeOf(read, typeKey)?.name ?? typeKey);
-  const durationClass = durationClassOf({ role, matchType }, slotDeps).value;
+  const durationClass = durationClassOf(
+    { role, matchType: isMatch ? matchType : settingDurationShifter(settingOf(segment), deps.tunables) },
+    slotDeps,
+  ).value;
   const run = instance.status === 'completed';
   return {
     segmentId: segment.id,

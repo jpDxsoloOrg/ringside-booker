@@ -9,6 +9,7 @@
  * Design: docs/design/match-rating.md#pipeline-and-seams.
  */
 
+import type { AngleSetting } from '../../../model/entities/angle-setting';
 import type { ContentKey } from '../../../core/content-key';
 import type { GameDate } from '../../../core/date';
 import type { PersonId, PromotionId, RegionId } from '../../../core/ids';
@@ -83,6 +84,8 @@ export interface SegmentAngleInput {
    * means everyone (a show being run). Left out: everyone in a live rating, nobody in a preview.
    */
   readonly viewerPromotionIds?: readonly PromotionId[] | null;
+  /** MTCH5-08: where the angle happens. Left out: in the ring. */
+  readonly setting?: AngleSetting;
 }
 
 /** A booking problem, for the lab and EVT2's booking validation. `message` is player text. */

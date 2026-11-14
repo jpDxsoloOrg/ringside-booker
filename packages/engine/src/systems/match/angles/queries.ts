@@ -24,7 +24,12 @@ import type { Traced } from '../../../core/trace';
 import { angleTypeOf, beatOf, hasBeatCatalog, isBeatAllowed } from '../../../model/catalogs';
 import { zEventImportance, type EventImportance } from '../../../model/entities/event-definition';
 import { MAX_SIDE } from '../../../model/entities/participant';
-import { MAX_ANGLE_BEATS, MIN_ANGLE_BEATS } from '../../../model/entities/segment';
+import {
+  AngleSettingSchema,
+  MAX_ANGLE_BEATS,
+  MIN_ANGLE_BEATS,
+} from '../../../model/entities/segment';
+import type { AngleSetting } from '../../../model/entities/angle-setting';
 import { zContentKey, zId } from '../../../model/primitives';
 import { PREVIEW_SEED_MAX, labPromotionOf, requireRegion } from '../previewArgs';
 import { rateSegment } from '../rating/rateSegment';
@@ -38,14 +43,13 @@ import type {
 } from '../rating/types';
 import {
   SLOT_ROLES,
-  durationClassOf,
   slotRoleOf,
   type DurationClass,
   type SlotRole,
 } from '../slots';
 import { assignAngleSides } from './beatGroups';
 import { beatLimitMessage, beatLimitOf } from './beatLimit';
-import type { BeatResult } from './rateAngle';
+import { angleDurationClass, type BeatResult } from './rateAngle';
 import { anglePreviewStream } from './streams';
 
 /** The most people one group of a previewed beat may hold (the catalog allows at most 6). */
@@ -98,6 +102,8 @@ export interface PreviewAngleArgs {
   earlierBeatKeysOnCard?: ContentKey[] | undefined;
   /** Whole number, 0 to 2^31 − 1: the same seed always gives the same night. */
   previewSeed: number;
+  /** MTCH5-08: where the angle happens. Left out: in the ring. */
+  setting?: AngleSetting | undefined;
 }
 
 const groupSchema = z.array(zId('person')).max(PREVIEW_ANGLE_GROUP_MAX);
@@ -125,6 +131,7 @@ export const PreviewAngleArgsSchema = z
     managerOverrides: z.record(zId('person'), zId('person').nullable()).optional(),
     earlierBeatKeysOnCard: z.array(zContentKey).max(PREVIEW_EARLIER_BEATS_MAX).optional(),
     previewSeed: z.number().int().min(0).max(PREVIEW_SEED_MAX),
+    setting: AngleSettingSchema.optional(),
   })
   .refine((args) => (args.slotRole === undefined) !== (args.slot === undefined), {
     message: 'give either slotRole or slot',
@@ -194,7 +201,7 @@ function beatReasons(ctx: QueryContext, args: PreviewAngleArgs, role: SlotRole):
       },
     ];
   }
-  const durationClass = durationClassOf({ role, matchType: null }, { tunables }).value;
+  const durationClass = angleDurationClass(role, args.setting ?? 'ring', tunables);
   const limit = beatLimitOf(durationClass, tunables).value;
   if (args.beats.length > limit) {
     reasons.push({
@@ -351,6 +358,7 @@ export const previewAngleQuery: QueryDefinition<'match.previewAngle'> = defineQu
           earlierBeatKeysOnCard: [...(args.earlierBeatKeysOnCard ?? [])],
           managerOverrides: { ...(args.managerOverrides ?? {}) },
           viewerPromotionIds: viewerPromotionIds(read, ctx.viewer),
+          ...(args.setting === undefined ? {} : { setting: args.setting }),
         },
       };
       const rated = rateSegment(input, {
