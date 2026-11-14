@@ -75,12 +75,14 @@ The health system's `housekeeping` phases ([health.md](health.md)):
 | `health.recovery`          | 10    | daily           | Injuries due back today end (`injury.healed`); then fatigue fades for everyone above 0 (stamina, age and traits count; less after a talking-only show day yesterday). |
 | `health.conditionRecovery` | 12    | weekly, Mondays | Damaged body parts heal a little, up to the cap for the worker's age; no rolls, no traces.                                                                            |
 
-The `contracts` group's phase (ECO4-01, see
-[contracts.md](contracts.md#lifecycle)):
+The `contracts` group's phases (ECO4-01 and ECO4-03, see
+[contracts.md](contracts.md#lifecycle) and
+[contracts.md](contracts.md#unhappy-workers)):
 
-| Phase                 | Order | Cadence | What it does                                                                                                                                                                   |
-| --------------------- | ----- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `contracts.lifecycle` | 10    | daily   | Due contracts ask the renewal policies and otherwise expire; signed deals whose start date has come become active; then the `afterLifecycle` hooks (ECO4-02's expiry notices). |
+| Phase                      | Order | Cadence | What it does                                                                                                                                                                                                                  |
+| -------------------------- | ----- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `contracts.lifecycle`      | 10    | daily   | Due contracts ask the renewal policies and otherwise expire; signed deals whose start date has come become active; then the `afterLifecycle` hooks (ECO4-02's expiry notices).                                                |
+| `contracts.unhappyWorkers` | 30    | daily   | Refused requests roll for a walk-out (or settle down); unanswered requests past their date are refused; the unhappy clock counts (paused in a hot storyline, D-09) and raises release requests; rivals answer theirs at once. |
 
 The `money` group's phases so far (ECO1-03, see
 [finances.md](finances.md#payroll)):
@@ -394,11 +396,12 @@ registered ones:
 
 **The systems' gates.** Registered by the system bundles:
 
-| Gate                      | System    | Hits when                                                                                                              | Reason                                                                  | Hint        |
-| ------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ----------- |
-| `shows.tonight`           | shows     | The player has an open show today (EVT2-09)                                                                            | "Tonight: Friday Fury", or "Your show 'Friday Fury' has no card yet"    | `showNight` |
-| `health.ownWorkerInjured` | health    | An injury to one of the player's workers waits to be noticed (WRK6-04)                                                 | "Big Joe was injured (Sprained ankle, out until Mar 14, 2031)"          | `roster`    |
-| `contracts.expiringSoon`  | contracts | One of the player's contracts ends soon and its notice is unseen (ECO4-02, [contracts.md](contracts.md#expiring-soon)) | "Contract expiring soon: Big Joe (ends Mar 14, 2031)" (+ " and 2 more") | `contracts` |
+| Gate                         | System    | Hits when                                                                                                                                                         | Reason                                                                  | Hint        |
+| ---------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ----------- |
+| `shows.tonight`              | shows     | The player has an open show today (EVT2-09)                                                                                                                       | "Tonight: Friday Fury", or "Your show 'Friday Fury' has no card yet"    | `showNight` |
+| `health.ownWorkerInjured`    | health    | An injury to one of the player's workers waits to be noticed (WRK6-04)                                                                                            | "Big Joe was injured (Sprained ankle, out until Mar 14, 2031)"          | `roster`    |
+| `contracts.expiringSoon`     | contracts | One of the player's contracts ends soon and its notice is unseen (ECO4-02, [contracts.md](contracts.md#expiring-soon))                                            | "Contract expiring soon: Big Joe (ends Mar 14, 2031)" (+ " and 2 more") | `contracts` |
+| `contracts.releaseRequested` | contracts | One of the player's workers has an open release request that stops the skip (ECO4-03, off by default until ECO4-04, [contracts.md](contracts.md#unhappy-workers)) | "Big Joe wants to leave" (+ " and 2 others")                            | `contracts` |
 
 The hints a gate can carry are the web shell's route keys: `showNight` (the
 show screen), `inbox`, `booking`, `roster` (the roster; WRK6-06 lands it on
@@ -874,13 +877,15 @@ The finance system's events ([finances.md](finances.md#postmoney)):
 The contracts system's events ([contracts.md](contracts.md#end-employment)),
 money in cents:
 
-| Event               | Payload                                                                         | Published when                                                   |
-| ------------------- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| `contract.started`  | `employmentId`, `personId`, `promotionId`                                       | A signed contract reaches its start date                         |
-| `contract.expired`  | `employmentId`, `personId`, `promotionId`, `reasonKey`                          | An active contract runs out (`contracts.endDate`)                |
-| `contract.released` | `employmentId`, `personId`, `promotionId`, `severance`, `source`, `mutual`      | A promotion releases a worker, or withdraws a signed future deal |
-| `contract.quit`     | `employmentId`, `personId`, `promotionId`, `how`, `severance`                   | A worker leaves: granted release, walk-out or exclusive deal     |
-| `contract.renewed`  | `employmentId`, `personId`, `promotionId`, `previousEndsOn`, `endsOn`, `source` | A renewal policy moves a contract's end date later               |
+| Event                       | Payload                                                                         | Published when                                                                                   |
+| --------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `contract.started`          | `employmentId`, `personId`, `promotionId`                                       | A signed contract reaches its start date                                                         |
+| `contract.expired`          | `employmentId`, `personId`, `promotionId`, `reasonKey`                          | An active contract runs out (`contracts.endDate`)                                                |
+| `contract.released`         | `employmentId`, `personId`, `promotionId`, `severance`, `source`, `mutual`      | A promotion releases a worker, or withdraws a signed future deal                                 |
+| `contract.quit`             | `employmentId`, `personId`, `promotionId`, `how`, `severance`                   | A worker leaves: granted release, walk-out or exclusive deal                                     |
+| `contract.renewed`          | `employmentId`, `personId`, `promotionId`, `previousEndsOn`, `endsOn`, `source` | A renewal policy moves a contract's end date later                                               |
+| `contract.releaseRequested` | `employmentId`, `personId`, `promotionId`                                       | One of the player's unhappy workers asks to be released (ECO4-03)                                |
+| `contract.releaseRefused`   | `employmentId`, `personId`, `promotionId`, `source`                             | A release request is refused: by the player, a rival's rule (`ai`) or left unanswered (`system`) |
 
 The rival desk's events ([rival-desk.md](rival-desk.md#jobs)):
 

@@ -10,37 +10,43 @@ contract ended).
 ECO4-01 built the lifecycle, the `endEmployment` door, the contract events,
 the `contractConcerns` table and the simple rival renewal. ECO4-02 added
 severance, releases, the contract queries, the "expiring soon" stop and a
-temporary automatic renewal of the player's contracts. ECO4-03 (unhappy
-workers and walk-outs), ECO4-04 (the live Contracts screen) and ECO4-05 fill
-in their sections below.
+temporary automatic renewal of the player's contracts. ECO4-03 added unhappy
+workers, release requests, refusals and walk-outs. ECO4-04 (the live
+Contracts screen) and ECO4-05 fill in their sections below.
 
 Rival contracts are private: no query for the player shows a rival's terms,
 morale or concern rows, and the traces of rival renewals and rival severance
 are stored as summaries only.
 
-| Piece       | Where                                | What it does                                                                                   |
-| ----------- | ------------------------------------ | ---------------------------------------------------------------------------------------------- |
-| Tunables    | `tunables.ts`                        | The simple rival renewal's numbers, category `Contracts`                                       |
-| Streams     | `streams.ts`                         | `contracts.ai-renewal`: the rival renewal rolls                                                |
-| Events      | `events.ts`                          | `contract.started`, `.expired`, `.released`, `.quit`, `.renewed`                               |
-| Door        | `endEmployment.ts`                   | `endEmployment`: the one way a contract ends                                                   |
-| Lifecycle   | `lifecycle.ts`                       | the day's work, and the `afterLifecycle` hooks                                                 |
-| Renewals    | `renewals.ts`                        | the renewal policy registry                                                                    |
-| Rival rule  | `simpleRivalRenewal.ts`              | the built-in `contracts.simpleRivalRenewal` policy                                             |
-| Formula     | `formulas/aiRenewalDecision.ts`      | `aiRenewalDecision`: renew or let go, and for how long                                         |
-| Titles      | `titles.ts`                          | `titlesHeldBy`: the titles a person holds today                                                |
-| Trace kinds | `traceKinds.ts`                      | `contracts.severance` and `contracts.aiRenewal`                                                |
-| Phase       | `phases.ts`                          | `contracts.lifecycle` (daily, `contracts` group, order 10) and the `contracts.beforeShow` hook |
-| Concerns    | `model/entities/contract-concern.ts` | the `contractConcerns` table                                                                   |
-| Severance   | `formulas/severance.ts`              | `severance`: what ending a contract costs (ECO4-02)                                            |
-| Severance   | `severanceFor.ts`                    | `severanceFor`: the one place that gathers a contract's inputs for it                          |
-| Release     | `release.ts`                         | `releaseEmployment`: every release (the command, ECO9 budget cuts, SOC6 conduct releases)      |
-| Rules       | `rules.ts`                           | `releaseRefusals`: what the preview and the command refuse                                     |
-| Commands    | `commands.ts`                        | `contracts.release`, `contracts.acknowledgeExpiries`                                           |
-| Queries     | `queries.ts`                         | `contracts.releasePreview`, `.list`, `.detail`, `.counts`, `.changesSince`                     |
-| Notices     | `notices.ts`                         | the `contracts.expiryNotices` after-lifecycle hook                                             |
-| Gate        | `gates.ts`                           | `contracts.expiringSoon`                                                                       |
-| Stopgap     | `playerAutoRenewal.ts`               | `contracts.playerAutoRenewal`: the player's contracts renew by themselves until ECO5           |
+| Piece       | Where                                                        | What it does                                                                                             |
+| ----------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| Tunables    | `tunables.ts`                                                | The simple rival renewal's numbers, category `Contracts`                                                 |
+| Streams     | `streams.ts`                                                 | `contracts.ai-renewal` (rival renewals) and `contracts.walkout` (walk-out rolls)                         |
+| Events      | `events.ts`                                                  | `contract.started`, `.expired`, `.released`, `.quit`, `.renewed`, `.releaseRequested`, `.releaseRefused` |
+| Door        | `endEmployment.ts`                                           | `endEmployment`: the one way a contract ends                                                             |
+| Lifecycle   | `lifecycle.ts`                                               | the day's work, and the `afterLifecycle` hooks                                                           |
+| Renewals    | `renewals.ts`                                                | the renewal policy registry                                                                              |
+| Rival rule  | `simpleRivalRenewal.ts`                                      | the built-in `contracts.simpleRivalRenewal` policy                                                       |
+| Formula     | `formulas/aiRenewalDecision.ts`                              | `aiRenewalDecision`: renew or let go, and for how long                                                   |
+| Titles      | `titles.ts`                                                  | `titlesHeldBy`: the titles a person holds today                                                          |
+| Trace kinds | `traceKinds.ts`                                              | `contracts.severance`, `contracts.aiRenewal`, `.unhappy`, `.walkout`, `.aiRelease`                       |
+| Phase       | `phases.ts`                                                  | `contracts.lifecycle` (daily, `contracts` group, order 10) and the `contracts.beforeShow` hook           |
+| Concerns    | `model/entities/contract-concern.ts`                         | the `contractConcerns` table                                                                             |
+| Severance   | `formulas/severance.ts`                                      | `severance`: what ending a contract costs (ECO4-02)                                                      |
+| Severance   | `severanceFor.ts`                                            | `severanceFor`: the one place that gathers a contract's inputs for it                                    |
+| Release     | `release.ts`                                                 | `releaseEmployment`: every release (the command, ECO9 budget cuts, SOC6 conduct releases)                |
+| Rules       | `rules.ts`                                                   | `releaseRefusals`: what the preview and the command refuse                                               |
+| Commands    | `commands.ts`                                                | `contracts.release`, `contracts.acknowledgeExpiries`                                                     |
+| Queries     | `queries.ts`                                                 | `contracts.releasePreview`, `.list`, `.detail`, `.counts`, `.changesSince`                               |
+| Notices     | `notices.ts`                                                 | the `contracts.expiryNotices` after-lifecycle hook                                                       |
+| Gate        | `gates.ts`                                                   | `contracts.expiringSoon`                                                                                 |
+| Stopgap     | `playerAutoRenewal.ts`                                       | `contracts.playerAutoRenewal`: the player's contracts renew by themselves until ECO5                     |
+| Unhappy     | `unhappy.ts`, `phases.ts`                                    | `contracts.unhappyWorkers` (daily, order 30): clocks, requests, walk-outs (ECO4-03)                      |
+| Requests    | `requests.ts`                                                | `raiseRequest`, `grantRequest`, `refuseRequest`, `walkoutChanceFor`                                      |
+| Story pause | `storyPause.ts`                                              | `hotStorylineFor`: the hot storyline that pauses a worker's clock and rolls (D-09)                       |
+| Formulas    | `formulas/walkoutChance.ts`, `formulas/aiReleaseDecision.ts` | the daily walk-out chance; how a rival answers a request                                                 |
+| Answer      | `commands.ts`, `queries.ts`                                  | `contracts.answerReleaseRequest`, `contracts.answerPreview`                                              |
+| Gate        | `gates.ts`                                                   | `contracts.releaseRequested`: "Worker wants to leave"                                                    |
 
 ## Lifecycle
 
@@ -363,15 +369,108 @@ the player can renew.
 
 ## Unhappy workers
 
-ECO4-03.
+Morale has to lead somewhere (ECO4-03). The daily phase
+`contracts.unhappyWorkers` (`contracts` group, order 30: after the lifecycle,
+before titles are vacated) looks at every active contract in id order.
+Owners never ask to leave (their contract is skipped); bookers and every
+other worker do. Closed promotions are skipped.
+
+**The unhappy clock.** A worker whose morale is at or below
+`contracts.quit.threshold` (−40) adds a day to their clock on the concern
+row (`unhappy: { since, days }`). Morale above the threshold clears the clock,
+unless a request is already waiting. Only days in a row count.
+
+**The story pause (D-09).** A worker who is a member of an active storyline
+of the same promotion with heat at or above `contracts.quit.storyShieldHeat`
+(70) is getting TV time and a story that goes somewhere, so their clock
+pauses (it keeps its count, it does not go up) and they are never rolled for
+a walk-out. Losing inside a hot angle therefore never ends in a request or a
+walk-out. WRK8 owns the morale side of the shield; ECO4-05 makes this read
+WRK8's `morale.storyShield.hotHeat` and drops the duplicate tunable.
+
+The clock's Why? is stored for the player's workers at `contracts.unhappy` /
+the employment (replaced daily): "Morale −45 at or below −40", "Not in a hot
+storyline" or "In a hot storyline (Title Chase, heat 82): clock paused
+(D-09)", and "Day 9 of 14". Rival clocks store no trace.
+
+**The request.** On the day the clock reaches `contracts.quit.days` (14; 0
+means the first unhappy day) and the worker has no request yet:
+
+- one of the player's workers asks to be released: an open request
+  `{ raisedOn, answerBy: raisedOn + contracts.releaseRequest.answerDays,
+status: 'open', stopsSkip }` and `contract.releaseRequested`. `stopsSkip`
+  copies `contracts.releaseRequest.stopSkip`, so the gate
+  `contracts.releaseRequested` ("Big Joe wants to leave", + " and 2 others",
+  hint `contracts`) needs no tunable. **The stop is off by default until
+  ECO4-04's Contracts screen can answer a request**; ECO4-04 turns it on.
+- a rival answers at once by its [keep rule](#rival-rules).
+
+**Answering.** `contracts.answerPreview { employmentId }` shows both outcomes:
+`grantSeverance` (with its Why?), `cashBefore`, `refuseMoraleDelta`,
+`walkoutChanceAfterRefusal` (with its Why?) and `ironClad`.
+`contracts.answerReleaseRequest { employmentId, answer }` (refusals
+`unknownContract`, `notYourWorker`, `isOwner`, `noOpenRequest`, shared with the
+preview):
+
+- **Grant**: the contract ends as a quit (`how: 'granted'`) through
+  `endEmployment`, paying `contracts.quit.severanceShare` (0.5) of the normal
+  [severance](#severance) ("Agreed share", in place of the glad-to-go
+  discount) through `postMoney`. Result `{ severance, cashAfter,
+ledgerTraceRef }`.
+- **Refuse**: the worker loses `contracts.refuse.moralePenalty` (10) morale
+  through WRK1's morale door (reason `contracts.refusedRelease`, "Release
+  request refused"), the request is marked `refused`, and
+  `contract.releaseRefused` is published. From the next day they may walk out.
+  Result `{ walkoutChance }`.
+
+A request left open past its `answerBy` date is refused by the system the
+same way, with the label "Release request ignored" (source `system`). With the
+stop on, the gate stops every skip first, so this only happens when the stop
+is off (or, with ECO4-05, when decision mail expires).
+
+Rows and details of the player's own contracts carry `unhappy: { days, of,
+paused, traceRef }`, `request: { status, raisedOn, answerBy }` and `walkout: {
+chance, traceRef }`; rival rows never do. `contracts.list { tab, wantsToLeave:
+true }` keeps only open requests (the gate's route).
+`contracts.counts.wantsToLeave` counts open requests, and
+`contracts.changesSince` lists `requests` (also from the event log, so a
+granted request still shows) and `quit` with `how`.
 
 ## Walk-outs
 
-ECO4-03.
+Each day, before the clock, every refused request is looked at in id order:
+
+- morale above `contracts.quit.threshold` + `contracts.walkout.recoverMargin`
+  (10) means the worker settled down: request and clock are cleared, with a
+  log line and no event;
+- otherwise the daily chance is `walkoutChance`: 0 for an iron-clad contract
+  ("Iron-clad contract: never walks out") or a worker in a hot storyline
+  ("won't walk out (D-09)"); else `contracts.walkout.chancePerDay` (0.02) plus
+  `contracts.walkout.extraPerPoint` (0.001) for every morale point below the
+  threshold, capped at `contracts.walkout.maxPerDay` (0.1).
+- A chance above 0 is rolled on the `contracts.walkout` stream. A hit ends
+  the contract as a quit (`how: 'walkedOut'`, source `system`) with nothing
+  paid; `contract.quit` carries `how: 'walkedOut'`. A chance of 0 draws no roll.
+
+The chance and roll are stored for the player's workers at
+`contracts.walkout` / the employment. A request refused today is first rolled
+tomorrow.
 
 ## Rival rules
 
-ECO4-05.
+A rival answers its workers' release requests at once with the same keep rule
+as its [simple renewals](#simple-renewals) (`formulas/aiReleaseDecision.ts`,
+"Rival answers a release request"): a worker who holds one of its titles
+(when `contracts.ai.keepChampions` is on) or is pushed at
+`contracts.ai.keepPushAtOrAbove` (upper card) or higher is kept, so the
+request is refused ("Holds a title (World Title)", "Push main event at or
+above upper card"); anyone else is let go ("Lets unhappy workers go") with
+the reduced severance paid from the rival's cash. The decision is stored once
+at `contracts.aiRelease` / the employment. Refused rival workers face the same
+walk-out rolls, so rival rosters move too. Rival clocks, requests and morale
+are never shown to the player.
+
+ECO4-05 adds the rest of the rival rules.
 
 ## Concerns
 

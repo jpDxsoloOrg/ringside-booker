@@ -1061,7 +1061,9 @@ ECO4-01, see [contracts.md](contracts.md#simple-renewals). The simple rival
 renewal, a D-01 stopgap until the rival labour market (ECO6). ECO4-02 added
 [severance](contracts.md#severance), the
 [expiring-soon](contracts.md#expiring-soon) notices and the player's temporary
-[automatic renewal](contracts.md#player-renewals) (until ECO5).
+[automatic renewal](contracts.md#player-renewals) (until ECO5). ECO4-03 added
+[unhappy workers](contracts.md#unhappy-workers) and
+[walk-outs](contracts.md#walk-outs).
 
 | Key                                       | Kind    | Default     | Range    | Unit        | Meaning                                                                                                                 |
 | ----------------------------------------- | ------- | ----------- | -------- | ----------- | ----------------------------------------------------------------------------------------------------------------------- |
@@ -1086,3 +1088,14 @@ renewal, a D-01 stopgap until the rival labour market (ECO6). ECO4-02 added
 | `contracts.expiringSoon.stopSkip`         | boolean | true        |          | flag        | A new expiry notice stops a skip until you mark it as seen                                                              |
 | `contracts.autoRenewPlayer`               | boolean | true        |          | flag        | Temporary: your contracts renew on the same terms when they run out, until you can renew them yourself (until ECO5)     |
 | `contracts.autoRenewPlayerDays`           | integer | 365         | 1–3650   | days        | Temporary: how long each automatic renewal of your contracts adds                                                       |
+| `contracts.quit.threshold`                | integer | −40         | −100–100 | points      | At or below this morale the unhappy clock runs                                                                          |
+| `contracts.quit.days`                     | integer | 14          | 0–365    | days        | Days in a row at or below the threshold before asking to leave; 0 = at once                                             |
+| `contracts.quit.severanceShare`           | number  | 0.5         | 0–1      | ratio       | Share of normal severance paid when you grant a request                                                                 |
+| `contracts.quit.storyShieldHeat`          | integer | 70          | 0–100    | points      | Storyline heat at which the clock and walk-out rolls pause (D-09)                                                       |
+| `contracts.releaseRequest.answerDays`     | integer | 7           | 1–60     | days        | Days you have to answer a release request before it counts as refused                                                   |
+| `contracts.releaseRequest.stopSkip`       | boolean | false       |          | flag        | A new release request stops a skip until you answer it (off until ECO4-04's Contracts screen)                           |
+| `contracts.refuse.moralePenalty`          | integer | 10          | 0–100    | points      | Morale a worker loses when their release request is refused                                                             |
+| `contracts.walkout.chancePerDay`          | number  | 0.02        | 0–1      | probability | Daily chance a refused worker walks out                                                                                 |
+| `contracts.walkout.extraPerPoint`         | number  | 0.001       | 0–0.1    | probability | Extra daily walk-out chance per morale point below the threshold                                                        |
+| `contracts.walkout.maxPerDay`             | number  | 0.1         | 0–1      | probability | Highest daily walk-out chance                                                                                           |
+| `contracts.walkout.recoverMargin`         | integer | 10          | 0–100    | points      | Morale this far above the threshold ends the walk-out risk                                                              |
