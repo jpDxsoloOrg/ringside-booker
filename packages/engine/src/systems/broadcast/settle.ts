@@ -274,7 +274,10 @@ function payRatingsBonus(ctx: StepContext, inputs: BonusInputs): Traced<number> 
     unit: 'money',
     docRef: BONUS_DOC_REF,
   })
-    .multiply(`Viewers are ${String(Math.round(health.ratio.value * 100))}% of what ${network.name} expects`, share)
+    .multiply(
+      `Viewers are ${String(Math.round(health.ratio.value * 100))}% of what ${network.name} expects`,
+      share,
+    )
     .round('floor', 'Rounded down to whole cents')
     .done();
   if (bonus.value <= 0) {

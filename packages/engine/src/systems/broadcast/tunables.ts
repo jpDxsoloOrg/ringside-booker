@@ -559,7 +559,7 @@ export const broadcastTunables = defineTunables({
   'broadcast.bonus.atLine': bonusRatio(
     0.1,
     1,
-    "Ratings bonus at the bonus line, as a share of the fee (of the per-buy money on pay-per-view); 0 means it starts from nothing",
+    'Ratings bonus at the bonus line, as a share of the fee (of the per-buy money on pay-per-view); 0 means it starts from nothing',
   ),
   'broadcast.bonus.max': bonusRatio(
     0.25,
