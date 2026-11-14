@@ -1059,6 +1059,9 @@ listed with EVT4's work.
 | `production.rivalBudget.raiseAboveMonths`         | number  | 24          | 0–120            | months      | Temporary rival rule: raise one held-back level a month above this many months of costs (0 = never)      |
 | `production.rivalBudget.headroom`                 | number  | 5           | 0–100            | points      | Temporary rival rule: room kept between the best recent show or region and its ceiling                   |
 | `production.rivalBudget.lookbackDays`             | integer | 28          | 1–365            | days        | Temporary rival rule: how far back the best show is looked for                                           |
+| `production.runway.lookbackDays`                  | integer | 28          | 7–28             | days        | Recent days of ticket sales and other show money the cash runway averages                                |
+| `production.runway.minDaysPlayed`                 | integer | 7           | 1–28             | days        | Days of play before the cash runway counts show money                                                    |
+| `production.runway.warnBelowMonths`               | number  | 6           | 0–36             | months      | The cash runway warns "Running out of cash" below this many months (0 = never)                           |
 
 ## Contracts tunables
 

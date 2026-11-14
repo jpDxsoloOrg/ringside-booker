@@ -22,6 +22,7 @@ const DRAG_DOC = 'production.md#popularity-drag';
 const TV_DOC = 'production.md#tv-camera-minimum';
 const COMING_SHOWS_DOC = 'production.md#coming-shows';
 const RIVAL_BUDGET_DOC = 'production.md#rival-production-budget';
+const RUNWAY_DOC = 'production.md#cash-runway';
 
 /** The most any production price may be: $100,000,000. */
 const PRICE_MAX = 10_000_000_000;
@@ -248,5 +249,39 @@ export const productionTunables = defineTunables({
     description:
       "Temporary rival rule: how far back a computer promotion's best show is looked for",
     docRef: RIVAL_BUDGET_DOC,
+  },
+  // ECO7-06: the cash runway warning on Finances and Production.
+  'production.runway.lookbackDays': {
+    kind: 'integer',
+    default: 28,
+    min: 7,
+    max: 28,
+    unit: 'days',
+    category: PRODUCTION_TUNABLE_CATEGORY,
+    description:
+      'How many recent days of ticket sales and other show money the cash runway averages (at most the 28 days kept in full)',
+    docRef: RUNWAY_DOC,
+  },
+  'production.runway.minDaysPlayed': {
+    kind: 'integer',
+    default: 7,
+    min: 1,
+    max: 28,
+    unit: 'days',
+    category: PRODUCTION_TUNABLE_CATEGORY,
+    description: 'Days of play before the cash runway counts ticket sales and other show money',
+    docRef: RUNWAY_DOC,
+  },
+  'production.runway.warnBelowMonths': {
+    kind: 'number',
+    default: 6,
+    min: 0,
+    max: 36,
+    step: 0.5,
+    unit: 'months',
+    category: PRODUCTION_TUNABLE_CATEGORY,
+    description:
+      'The cash runway warns that money is running out when the cash lasts fewer months than this (0 = never)',
+    docRef: RUNWAY_DOC,
   },
 });

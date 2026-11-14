@@ -389,6 +389,65 @@ with − / + that open a change dialog drawn from `production.changePreview`, an
 a "Monthly overhead" card on the Finances Overview. Other features add header
 cards with `registerProductionHeaderItem` (ECO7's sit at 20, 30 and 40).
 
+## Cash runway
+
+Production is meant to be a real cost: at its starting levels the biggest
+promotion spends far more than it earns, and a year at those levels takes it
+from about $40M into debt. That is a challenge, not a bug (owner decision,
+ECO7-06), so the game makes sure the player sees it coming. The
+`production.cashRunway { promotionId }` query (`runway.ts`, own books only,
+the same `notYourBooks` rule as Finances) and the `cashRunway` formula
+(`formulas/cashRunway.ts`) work out the money a month at this rate and how
+many months the cash lasts.
+
+The month has two halves:
+
+- **Fixed spend, priced ahead** with the formulas that post it, at today's
+  levels: wages (the payroll a month), medical, the production, marketing and
+  back office overhead, and the per-show production of the shows in the next
+  `production.forecastDays`, turned into a month (÷ days ahead × 365 ÷ 12).
+- **Everything else, from the ledger**: ticket sales, merchandise, TV money,
+  venue rent, travel, catering and the rest, over the last
+  `production.runway.lookbackDays` days played before today (never more than
+  `history.keepDetailDays`, so every row is still there), turned into a month
+  the same way. The categories priced ahead are skipped here (they are
+  charged once a month, so a few weeks of rows would count them zero or one
+  times), and so are one-off payments (signing bonuses, severance, buyouts,
+  and upgrade fees, which are `production` rows).
+
+Before `production.runway.minDaysPlayed` days of play the second half is left
+out and the status is `tooEarly`: the screens show the fixed spend and say
+when the forecast starts. Then:
+
+| Status        | When                                                        |
+| ------------- | ----------------------------------------------------------- |
+| `outOfCash`   | cash ≤ 0 (checked first)                                    |
+| `tooEarly`    | fewer than `minDaysPlayed` days played                      |
+| `makingMoney` | the month at this rate is ≥ 0                               |
+| `runningOut`  | months left = cash ÷ money lost a month < `warnBelowMonths` |
+| `losingMoney` | otherwise                                                   |
+
+The answer carries the cash, the status, the month's net (signed cents) and
+months left with their traces, the fixed spend a month line by line,
+`warnBelowMonths` and `daysUntilForecast`. `production.changePreview` adds a
+`cashRunway` row ("Months of cash left", before → after) when both sides are
+losing money, so the change dialog shows what a level does to the runway.
+
+On screen (`apps/web/src/screens/production/cashRunway.tsx`): a **Cash
+runway** card in the Production header (order 50) and on the Finances
+Overview (KPI order 15, after Cash), with the sentence "At this rate you run
+out of cash in about 8 months.", the month's net with its Why?, and the fixed
+spend; and a warning strip at the top of both screens ("Losing money",
+"Running out of cash", "Out of cash") while money goes out faster than it
+comes in. There is no inbox yet; when SOC1 adds one, a mail when the status
+turns `runningOut` belongs there.
+
+| Key                                 | Kind    | Default | Range | Unit   | Meaning                                                           |
+| ----------------------------------- | ------- | ------- | ----- | ------ | ----------------------------------------------------------------- |
+| `production.runway.lookbackDays`    | integer | 28      | 7–28  | days   | Recent days of show money the runway averages                     |
+| `production.runway.minDaysPlayed`   | integer | 7       | 1–28  | days   | Days of play before show money counts                             |
+| `production.runway.warnBelowMonths` | number  | 6       | 0–36  | months | Fewer months of cash than this: "Running out of cash" (0 = never) |
+
 ## Effects
 
 `registerProductionEffect({ id, order, areas, ownOnly?, describe })` lets other

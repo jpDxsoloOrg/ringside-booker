@@ -2789,3 +2789,19 @@ export {
   SHOW_CEILING_EFFECT_LABEL,
   showCeilingText,
 } from './systems/cardFlow/index';
+// The cash runway (ECO7-06): money a month at this rate and how long the cash lasts, for the
+// "Cash runway" cards on Finances and Production. See docs/design/production.md#cash-runway.
+export {
+  CASH_RUNWAY_DOC_REF,
+  cashRunway,
+  cashRunwayInputsOf,
+  cashRunwayOf,
+  cashRunwayQuery,
+  recentOtherMoney,
+  RUNWAY_SKIPPED_CATEGORIES,
+  type CashRunway,
+  type CashRunwayInputs,
+  type CashRunwayStatus,
+  type CashRunwayView,
+  type RecentMoney,
+} from './systems/production/index';

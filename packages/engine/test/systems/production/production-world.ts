@@ -21,7 +21,15 @@ import type { Promotion } from '../../../src/model/entities/promotion';
 import type { GameWorld } from '../../../src/model/tables';
 import { financeSystem } from '../../../src/systems/finance';
 import { productionSystem } from '../../../src/systems/production';
-import { aDeal, aNetwork, anEventDefinition, TEST_PLAYER_ID, worldBuilder } from '../../support';
+import {
+  aDeal,
+  aLedgerEntry,
+  aNetwork,
+  anEventDefinition,
+  TEST_PLAYER_ID,
+  worldBuilder,
+} from '../../support';
+import type { LedgerCategory } from '../../../src/model/entities/ledger-entry';
 import { ALTURA, HARDPAN } from './support';
 
 export const PLAYER: Controller = { kind: 'human', playerId: TEST_PLAYER_ID };
@@ -38,6 +46,8 @@ export interface ProductionWorldOptions {
   /** Give A its weekly Friday minor show (default true). */
   readonly weeklyShow?: boolean;
   readonly human?: DeepPartial<Promotion>;
+  /** Ledger rows to give A (ECO7-06's cash runway reads them). */
+  readonly ledger?: readonly { date: string; category: LedgerCategory; amount: number }[];
 }
 
 export interface ProductionWorld {
@@ -91,6 +101,20 @@ export function productionWorld(options: ProductionWorldOptions = {}): Productio
               importance: 'minor',
               recurrence: { kind: 'weekly', weekdays: [4] },
               activeFrom: START,
+            },
+            context.sequence,
+          ),
+        );
+      }
+      for (const row of options.ledger ?? []) {
+        context.insert(
+          'ledgerEntries',
+          aLedgerEntry(
+            {
+              promotionId: human,
+              date: parseGameDate(row.date),
+              category: row.category,
+              amount: cents(row.amount),
             },
             context.sequence,
           ),
