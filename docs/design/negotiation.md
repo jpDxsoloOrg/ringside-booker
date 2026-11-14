@@ -25,6 +25,9 @@ bundle has its own id so ECO4's files are not edited.
 | Trace kinds | `traceKinds.ts`                 | `contracts.ask`, `.reaction`, `.counter`, `.review`, `.signingBonus`                       |
 | Registries  | `registries.ts`, `builtins.ts`  | offer kinds, enforced terms, ask and patience modifiers                                    |
 | Formula     | `formulas/reachGate.ts`         | `reachShortfall`: why a promotion's reach is too low for written or exclusive contracts    |
+| Formulas    | `formulas/marketValue.ts` …     | market value, asking wage, fee and starting patience (ECO5-02)                             |
+| Composer    | `asking.ts`, `eligibility.ts`   | `askingTermsFor` and `negotiationEligibility` (ECO5-02)                                    |
+| Queries     | `queries.ts`                    | `contracts.askingTerms`, `contracts.freeAgents` (ECO5-02)                                  |
 
 ## Why negotiations live beside employments
 
@@ -99,18 +102,156 @@ pruned.
 
 ## Market value
 
-What a worker is worth on the open market. Filled by ECO5-02.
+What a worker is worth on the open market, in cents a month, before any
+promotion is named (`formulas/marketValue.ts`, `marketValue`). It is a smooth
+formula, not a table of bands: one more point of popularity or skill never
+makes the wage jump.
+
+1. **Popularity index** `Pi = (1 − b) × peak + b × world`, where `peak` is the
+   worker's popularity in their **best country** and `world` their world-wide
+   popularity (WRK1's [roll-up](geography.md#popularity-roll-up)), and `b` is
+   `contracts.value.breadthWeight` (0.3). The best country, not the best
+   continent: a continent is a population-weighted mean, so Tessen's main
+   eventers, 56 in Japan, read 8 across Asia and would be worth less than
+   Altura's lower card.
+2. **Popularity part**: `contracts.value.popScale` ($300,000) ×
+   (Pi ÷ 100) ^ `contracts.value.popExponent` (2).
+3. **Skill part**: `contracts.value.skillScale` ($15,000) × (rating ÷ 100) ^
+   `contracts.value.skillExponent` (2), the rating being the worker's
+   [role rating](workers.md#role-ratings) in the role they would be hired for.
+4. **Star merchandise**: monthly merchandise sales ×
+   `contracts.value.merchShare` (0.25). Merchandise is not tracked yet (ECO2),
+   so the Why? shows "Star merchandise: not tracked yet" as a check that did
+   not apply.
+5. Plus **Base** `contracts.value.floor` ($1,000), then × the **role factor**
+   `contracts.value.roleFactor.<role>`: wrestler 1, booker 0.8, manager and
+   presenter 0.6, announcer and producer 0.5, referee 0.35. Rounded to cents.
+
+Every `^` is a `power` step whose exponent is the tunable, so the Why? shows
+the curve. Worked example: a wrestler with peak 72, world 31 and rating 68
+has `Pi = 59.7`, a popularity part of $106,922.70, a skill part of $6,936 and
+the $1,000 base: **$114,858.70** a month.
 
 ## Asking terms
 
-What the worker asks for, built from the market value and the registered ask
-modifiers; recorded at `contracts.ask` / `<negotiationId>:<round>` when an
-offer is submitted. Filled by ECO5-02.
+What the worker asks one promotion for (`asking.ts`, `askingTermsFor`), each
+number with its Why?. The Negotiation Sheet shows it through
+`contracts.askingTerms`; ECO5-03 records it at `contracts.ask` /
+`<negotiationId>:<round>` when an offer is submitted.
+
+**Monthly wage** (`formulas/askingWage.ts`), from the market value, in order:
+
+| Step                        | Factor or limit                                                                                                                                                                                                                                                                                                                                  |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Your reach 82               | × `contracts.ask.reachFloor` (0.25) + (1 − 0.25) × reach ÷ 100: a promotion nobody has heard of gets a quarter                                                                                                                                                                                                                                   |
+| Your public image           | × 1 − `contracts.ask.prestigeDiscount` (0.15) × prestige ÷ 100; the discount × `contracts.ask.legacyPrestigeMultiplier` (2) for a worker who cares about their legacy; never below 0                                                                                                                                                             |
+| Ego premium                 | × (1 + premium): egotist `contracts.ask.egotistPremium` 0.10, in it for the money `contracts.ask.moneyPremium` 0.10, star presence (charisma or presence ≥ `contracts.ask.starPresence` 80) `contracts.ask.starPremium` 0.10, selfless − `contracts.ask.selflessDiscount` 0.05; at most `contracts.ask.premiumCap` 0.30 (0 removes the premiums) |
+| Exclusive contract          | × (1 + `contracts.ask.exclusivePremium` 0.10)                                                                                                                                                                                                                                                                                                    |
+| Under contract elsewhere    | × (1 + `contracts.ask.underContractPremium` 0.10): a rival's wage is private, so this stands in for it                                                                                                                                                                                                                                           |
+| Renewals                    | see [Renewals](#renewals)                                                                                                                                                                                                                                                                                                                        |
+| Modifiers                   | × each registered ask modifier, then the offer kind's `askMultiplier`                                                                                                                                                                                                                                                                            |
+| Most a wrestler asks for    | at most `contracts.ask.cap.<role>`: wrestler $400,000, booker $80,000, manager, presenter and announcer $60,000, producer $40,000, referee $20,000                                                                                                                                                                                               |
+| Asks are quoted in hundreds | rounded to the nearest $100                                                                                                                                                                                                                                                                                                                      |
+| Current deal                | at least their current monthly wage **with this promotion** ("Won't take less than their current deal with you"), after the rounding so it holds to the cent. Never a rival's: that would leak a private term through the Why?                                                                                                                   |
+
+Worked example: the $114,858.70 wrestler above, at a promotion with reach 82
+and public image 60, no ego, asks $114,858.70 × 0.865 × 0.91 = **$90,400** a
+month; **$99,500** for an exclusive contract.
+
+**Fee per appearance** (`formulas/askingFee.ts`): the monthly ask ×
+`contracts.ask.perAppearanceShare` (0.3), at least `contracts.ask.minFee`
+($50), at most `contracts.ask.maxFee` ($20,000), rounded to $10, and at least
+the fee of their current per-appearance deal with you.
+
+The rest of the ask:
+
+| Field                   | Rule                                                                                                                                                                                                                                  |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `signingBonus`          | the monthly ask × `contracts.ask.signingBonusMonths` (1) for a written deal; 0 per appearance                                                                                                                                         |
+| `perks`                 | only perks the game honours ([enforced terms](#enforced-terms)): travel covered when the worker lives in another country than your home region's; no house shows from `contracts.ask.noHouseShowsAge` (45) once that perk is enforced |
+| `appearanceCap`         | `contracts.ask.veteranAppearanceCap` (24 a year) from age `contracts.ask.veteranAge` (45) with popularity `contracts.ask.veteranPeakPop` (80) or more; else none                                                                      |
+| `preferredLengthMonths` | `contracts.ask.lengthMonths` (24); a journeyman `contracts.ask.lengthMonths.journeyman` (12); a loyal worker `contracts.ask.lengthMonths.loyal` (36)                                                                                  |
+| `expectedPush`          | WRK1's [expected push](workers.md#expected-push) at this promotion                                                                                                                                                                    |
+| `allowedKinds`          | every registered [offer kind](#offer-kinds), allowed or with its reasons; `bestKind` is the first allowed one                                                                                                                         |
+| `exclusiveAllowed`      | `contracts.kind.exclusiveMinReach`, with the reasons when not                                                                                                                                                                         |
+| `startPatience`         | see [Patience](#patience)                                                                                                                                                                                                             |
+| `refusal`               | see [Renewals](#renewals)                                                                                                                                                                                                             |
+
+Left out of a request, the kind is the current deal's on a renewal, else the
+best kind; exclusive is the current deal's on a renewal, else yes for a
+written deal when exclusives are allowed.
 
 ## Patience
 
-How many rounds that do not please the worker they will sit through (0 to 10),
-with the registered patience modifiers. Filled by ECO5-03.
+How many offers that do not please them a worker sits through
+(`formulas/startPatience.ts`): `contracts.patience.base` (3), − 1 for an
+egotist (`contracts.patience.egotist`), + 1 for a professional
+(`contracts.patience.professional`), − 1 on a renewal below the unhappy line
+(`contracts.patience.unhappyPenalty`), plus each registered patience modifier;
+kept within 0 and `contracts.patience.max` (5) and rounded down. 0 means no
+counter-offers at all. ECO5-03 spends it.
+
+## Eligibility
+
+Who a promotion may talk to and from when (`eligibility.ts`,
+`negotiationEligibility`, shared with ECO5-04's offer command). The first rule
+that matches decides:
+
+| Situation                | When                                                                                                                                                           | Earliest start        |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
+| `unavailable`            | retired, deceased, out of the business, or not debuted yet                                                                                                     | today                 |
+| `yours`                  | a signed or active contract with this promotion (a renewal, not a signing)                                                                                     | today                 |
+| `underContract`          | a signed exclusive deal elsewhere that has not started, or an active one with more than `contracts.offer.approachWindowDays` (30) left or no end date. Blocked | the day after it ends |
+| `endingSoonElsewhere`    | an exclusive deal elsewhere ends within the approach window                                                                                                    | the day after it ends |
+| `perAppearanceElsewhere` | only non-exclusive deals elsewhere                                                                                                                             | today                 |
+| `freeAgent`              | no live contract                                                                                                                                               | today                 |
+
+Only public facts of another promotion's deal are read: that it exists,
+whether it is exclusive and when it ends.
+
+## Free agents
+
+`contracts.freeAgents { promotionId, role?, gender?, situation?, search? }`
+lists the workers the promotion may approach: free agents, per-appearance
+workers elsewhere and exclusive workers inside the approach window
+(`situation: 'freeAgent'` keeps only the first). Each row has the public
+facts (ring name, roles, age, style, best-country popularity, rating and
+grade, the other promotion's name and end date), the ask as plain numbers
+(`askMonthly` when written deals are allowed, `askPerAppearance`), `bestKind`,
+the walk-away `cooldownUntil`, your `openNegotiationId` and the names of other
+promotions talking to them now (never their terms). Sorted by market value,
+highest first. The Why? of one row comes from `contracts.askingTerms`, which
+gives the same numbers (tested). Offer kinds whose answer is the same for
+every worker (`samePerWorker`) are asked once per list: about 15 ms for the
+default world's 74 rows.
+
+Both queries answer only for the viewer's own promotions (`invalidArgs`
+otherwise, the omniscient viewer included). Rival wages, morale and hidden
+development never appear.
+
+## Calibration
+
+`test/systems/negotiation/calibration.test.ts` (slow suite) checks the asks
+against the default world's placeholder wages
+([default-world.md#contracts](default-world.md#contracts)): the median ask of
+Altura's main eventers is within half to double their wage, every Altura
+wrestler asks less than the wrestler cap, Hardpan may only offer per-appearance
+deals and Altura written and exclusive ones. Medians at the start of the
+default world, wage → ask for the same kind of deal, before the current-deal
+floor:
+
+| Altura      |    Wage |     Ask | Ratio |
+| ----------- | ------: | ------: | ----: |
+| Main event  | $60,000 | $47,800 |  0.80 |
+| Upper card  | $30,000 | $30,000 |  1.00 |
+| Mid card    | $15,000 | $16,800 |  1.12 |
+| Lower card  |  $8,000 |  $8,900 |  1.11 |
+| Enhancement |  $4,000 |  $3,600 |  0.90 |
+
+National promotions ask 1.4 to 2.3 times their placeholders, regional ones
+about twice (their placeholder wages are small), local per-appearance fees 0.5
+to 1.1 times. When the owner finds asks too high or too low, change the
+tunables, not the formulas.
 
 ## Contract value
 
@@ -143,6 +284,24 @@ A renewal can be offered from `contracts.renewal.windowDays` (180) before a
 contract ends. ECO5-05 replaces ECO4's temporary automatic renewal of the
 player's contracts (`contracts.autoRenewPlayer`). Filled by ECO5-05.
 
+What a renewal asks (ECO5-02):
+
+- **Unhappy here**: morale below `contracts.renewal.unhappyMorale` (−20) ×
+  (1 + `contracts.renewal.unhappyPremiumPerPoint` (0.01) × points below the
+  line): "Morale −45: unhappy here" asks 25% more. It also costs a point of
+  patience.
+- **Loyal to you**: a loyal worker asks × (1 −
+  `contracts.ask.loyalRenewalDiscount` (0.10)).
+- **Refusal**: at or below `contracts.renewal.refuseMorale` (−60) the worker
+  will not renew at all: `refusal = { code: 'contracts.refusesRenewal',
+message: "Won't renew while unhappy here" }`, with the decision
+  ("Willing to renew") naming the tunable in `renewalDecision`.
+- **Already written**: a written deal renewed at a promotion that may still
+  offer written deals may only be renewed as written ("Already on a written
+  deal with you").
+- The ask never drops below the current deal (see the asking wage's last
+  step). WRK8 moves morale; until then every default-world contract is at 0.
+
 ## Offer kinds
 
 `registerOfferKind` lists the contract kinds a promotion may offer:
@@ -152,6 +311,8 @@ player's contracts (`contracts.autoRenewPlayer`). Filled by ECO5-05.
   promotion may not offer it today, shown to the player as they are;
 - optional `askMultiplier` (scales the asking terms), `extraSchema` (checks the
   offer's `extra`) and `onSigned` (runs inside the signing step).
+- optional `samePerWorker: true` when `available` never depends on the person,
+  so a list asks it once per promotion (both built-ins set it).
 
 Built in:
 
