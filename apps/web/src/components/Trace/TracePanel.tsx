@@ -19,7 +19,7 @@ import {
   summaryToText,
   traceToText,
 } from './traceToText';
-import type { TraceQueryName, TraceSource } from './traceSource';
+import type { TraceQuery, TraceQueryName, TraceSource } from './traceSource';
 import { TraceTree } from './TraceTree';
 
 export interface TracePanelProps {
@@ -223,6 +223,57 @@ export interface TraceQueryPanelProps<Name extends TraceQueryName> extends Omit<
   readonly args: QueryArgs<Name>;
 }
 
+interface SelectedTraceQueryPanelProps extends Omit<TracePanelProps, 'source'> {
+  readonly query: TraceQuery;
+}
+
+/**
+ * A panel whose trace sits somewhere in an engine query's answer (`TraceQuery`, ECO5-06): the
+ * query runs the first time the panel opens and `select` picks the trace out.
+ */
+function SelectedTraceQueryPanel({
+  title,
+  query,
+  open,
+  onClose,
+  renderEntityLink,
+}: SelectedTraceQueryPanelProps) {
+  const answer = useEngineQuery(query.name, query.args, { enabled: open });
+  const trace =
+    answer.status === 'success' && answer.data !== undefined ? query.select(answer.data) : null;
+
+  let body: ReactNode;
+  if (answer.status === 'loading') {
+    body = <TraceLoading />;
+  } else if (answer.status === 'error') {
+    body = (
+      <p className={styles['error']} role="alert">
+        The breakdown could not be loaded. {errorText(answer.error)}
+      </p>
+    );
+  } else if (trace === null) {
+    body = <p className={styles['noBreakdown']}>{NO_BREAKDOWN_TEXT}</p>;
+  } else {
+    body = (
+      <TraceTree root={trace} {...(renderEntityLink === undefined ? {} : { renderEntityLink })} />
+    );
+  }
+
+  return (
+    <Sheet
+      open={open}
+      onClose={onClose}
+      title={title}
+      side="right"
+      size="md"
+      className={PANEL_CLASS}
+      footer={trace === null ? undefined : <CopyTextButton getText={() => traceToText(trace)} />}
+    >
+      {body}
+    </Sheet>
+  );
+}
+
 /**
  * A panel whose trace is built by an engine query the first time it opens. Nothing is asked of
  * the engine while it is closed, so a list can put one beside every row.
@@ -280,6 +331,17 @@ export function TraceQueryPanel<Name extends TraceQueryName>({
  * result whose trace was summarised says so plainly.
  */
 export function TracePanel({ title, source, open, onClose, renderEntityLink }: TracePanelProps) {
+  if ('traceQuery' in source) {
+    return (
+      <SelectedTraceQueryPanel
+        title={title}
+        query={source.traceQuery}
+        open={open}
+        onClose={onClose}
+        {...(renderEntityLink === undefined ? {} : { renderEntityLink })}
+      />
+    );
+  }
   if ('traceRef' in source) {
     return (
       <TraceRefPanel

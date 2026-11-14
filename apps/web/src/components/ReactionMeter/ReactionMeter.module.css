@@ -1,0 +1,119 @@
+/*
+ * The reaction meter (ECO5-06): the label in words with the share of the ask and a Why?, then a
+ * bar of four zones with a marker, and the zones' names under it. The label never shrinks away:
+ * at 360px the share wraps under it. Zone colours run from rose (walk away) to emerald (likely);
+ * the label carries the meaning, so colour is never alone.
+ */
+
+.meter {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  transition: opacity var(--motion-fast) ease-out;
+}
+
+.meter[data-pending='true'] {
+  opacity: 0.7;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  min-inline-size: 0;
+}
+
+.label {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+}
+
+.meter[data-band='likely'] .label {
+  color: var(--color-positive);
+}
+
+.meter[data-band='counter'] .label {
+  color: var(--color-warning);
+}
+
+.meter[data-band='reject'] .label,
+.meter[data-band='walkAway'] .label,
+.meter[data-band='refuse'] .label {
+  color: var(--color-negative);
+}
+
+.share {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.track {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.bar {
+  display: block;
+  inline-size: 100%;
+  block-size: 0.75rem;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+
+.zone {
+  opacity: 0.45;
+}
+
+.current {
+  opacity: 1;
+}
+
+.zone-walkAway {
+  fill: var(--color-negative);
+}
+
+.zone-reject {
+  fill: var(--color-action);
+}
+
+.zone-counter {
+  fill: var(--color-warning);
+}
+
+.zone-likely {
+  fill: var(--color-positive);
+}
+
+.marker {
+  fill: var(--color-text);
+  transition: x var(--motion-base) ease-out;
+}
+
+.zones {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.zoneLabel {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.zoneLabel:last-child {
+  text-align: end;
+}
+
+.currentLabel {
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+}
