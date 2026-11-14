@@ -1,7 +1,10 @@
+import { Link } from 'react-router-dom';
 import type { NewsItemView, NewsNames, TraceNode } from '@ringside/engine';
-import { useEntityLinkRenderer } from '@/app/entityLinks';
+import { routes } from '@/app/routes';
+import { useNewsEntityLink } from './newsEntityLink';
 import { EmptyState } from '@/components/EmptyState';
 import { formatGameDate } from '@/components/format';
+import { Icon } from '@/components/Icon';
 import { Sheet } from '@/components/Sheet';
 import { SlashDivider } from '@/components/SlashDivider';
 import { Explained } from '@/components/Trace';
@@ -25,6 +28,9 @@ export interface NewsStorySheetProps {
   readonly buzzTrace?: TraceNode | undefined;
 }
 
+/** The link to the show's results, for a story about a show (`refs.eventInstanceId`). */
+export const SEE_RESULTS_TEXT = 'See results';
+
 /** "Leaves the archive on <date>", or "Kept in the archive" for a story that never expires. */
 export function archiveText(item: Pick<NewsItemView, 'expiresOn'>): string {
   return item.expiresOn === null
@@ -39,7 +45,7 @@ interface StoryBodyProps {
 }
 
 function StoryBody({ item, names, buzzTrace }: StoryBodyProps) {
-  const renderEntityLink = useEntityLinkRenderer();
+  const renderEntityLink = useNewsEntityLink();
   const entities = newsEntitiesOf(item, names);
   return (
     <div className={styles['story']}>
@@ -81,6 +87,12 @@ function StoryBody({ item, names, buzzTrace }: StoryBodyProps) {
           </dd>
         </div>
       </dl>
+      {item.refs.eventInstanceId !== null && (
+        <Link className={styles['results']} to={routes.game.showResults(item.refs.eventInstanceId)}>
+          {SEE_RESULTS_TEXT}
+          <Icon name="chevron-right" size="sm" decorative />
+        </Link>
+      )}
       <p className={styles['archive']}>{archiveText(item)}</p>
     </div>
   );
