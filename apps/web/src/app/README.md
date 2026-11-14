@@ -431,9 +431,10 @@ The tab, the open contract and the "Wants to leave" filter live in the URL (`?ta
 severance today, dates, titles, morale and the unhappy clock, Release (`ReleaseDialog`, the
 preview's severance and cash after, with `expectedSeverance` on confirm) and, for a request to
 leave, Grant / Refuse (`ReleaseRequestPanel`). The **Rules** sheet sets Worker patience and the
-expiring-soon stop through `tunables.setOverride` / `tunables.clearOverride` (saved with the game).
-While `contracts.autoRenewPlayer` is on the screen says so ("Renews automatically for a year until
-contract talks arrive"). The worker profile gains a **Contract** tab (order 60,
+expiring-soon stop through `tunables.setOverride` / `tunables.clearOverride` (saved with the game),
+and, while the stopgap exists, "Renew my contracts automatically" (`contracts.autoRenewPlayer`; the
+switch hides itself once ECO5-05 removes the tunable). While it is on the screen says so ("Renews
+automatically for a year until contract talks arrive"). The worker profile gains a **Contract** tab (order 60,
 `screens/contracts/profile/registerContractTab.tsx`): your worker's terms and actions, or a rival's
 promotion, kind and dates with "Terms private". The Contracts nav item badges workers who want to
 leave (`useNavBadges`, `contracts.counts`), and the Next Day summary lists contract changes

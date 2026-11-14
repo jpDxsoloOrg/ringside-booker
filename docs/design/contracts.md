@@ -368,6 +368,11 @@ contracts expire as before.
 ECO5-05 removes this policy or defaults `contracts.autoRenewPlayer` to off once
 the player can renew.
 
+Contracts > **Rules** has a switch for it, "Renew my contracts automatically"
+(ECO4-06), shown only while the tunable exists, so the owner can watch a
+contract really run out (the Expired path) before ECO5 ships. It goes away with
+the tunable.
+
 | Key                             | Kind    | Default | Range  | Unit | Meaning                                                             |
 | ------------------------------- | ------- | ------- | ------ | ---- | ------------------------------------------------------------------- |
 | `contracts.autoRenewPlayer`     | boolean | true    |        | flag | Temporary: your contracts renew on the same terms when they run out |
@@ -461,7 +466,10 @@ Each day, before the clock, every refused request is looked at in id order:
 
 The chance and roll are stored for the player's workers at
 `contracts.walkout` / the employment. A request refused today is first rolled
-tomorrow.
+tomorrow; the refusal itself stores today's chance there (ECO4-06), so the
+Contracts sheet's walk-out chance has its Why? straight away. The Why? reads
+"Morale −60: 20 points below −40" and names `contracts.quit.threshold` beside
+the walk-out tunables.
 
 ## Rival rules
 
