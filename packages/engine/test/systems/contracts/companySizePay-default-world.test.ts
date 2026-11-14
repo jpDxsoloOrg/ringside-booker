@@ -5,23 +5,26 @@
 // everyone booked (it was $6,600) while Altura, Tessen and Cielo Alto keep their payroll; a star
 // still asks a small company for more than it can comfortably pay.
 //
-// The year-long runs (RB_SLOW_TESTS=1, about a minute) play Hardpan: run frugally (Auto-fill cards,
-// its own modest production) it ends the year a little up while its reach grows; overspending on
-// production still loses money; no promotion goes into debt.
+// The year-long runs (RB_SLOW_TESTS=1, about 40 seconds) play Hardpan, keeping its roster: run
+// frugally (Auto-fill cards, its own modest production) it ends the year a little up while its
+// reach grows; overspending on production still loses money; no promotion goes into debt.
 // Design: docs/design/contracts.md#company-size-pay
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { beforeAll, describe, expect, it } from 'vitest';
+import { z } from 'zod';
 import { createEngine } from '../../../src/core/api';
 import { defineSystem } from '../../../src/core/api/system';
-import type { PromotionId } from '../../../src/core/ids';
+import { addDays, addYearMonths, isAfter, yearMonthOf } from '../../../src/core/date';
+import { parseId, type PromotionId } from '../../../src/core/ids';
 import { definePhase } from '../../../src/core/pipeline/phase';
-import type { Push } from '../../../src/model/entities/employment';
+import { promotionStatusKey } from '../../../src/model/entities/employment';
 import { TABLES, type GameWorldView } from '../../../src/model/tables';
 import { documentToWorld } from '../../../src/persistence/world-document';
 import { defaultSystems } from '../../../src/systems';
 import { AUTOFILL_STREAM, planCard } from '../../../src/systems/aip/card';
 import { cardSegments, writeSegment } from '../../../src/systems/booking';
+import { monthBreakdownOf } from '../../../src/systems/finance/months';
 import { reachOf } from '../../../src/systems/finance/reach';
 import { askingTermsFor, companySizePay } from '../../../src/systems/negotiation';
 import { myShowsOn } from '../../../src/systems/shows/tonight';
@@ -38,24 +41,30 @@ const YEAR_DAYS = 365;
 /** $1 in cents. */
 const DOLLAR = 100;
 
-interface SpecTerms {
-  readonly kind: 'written' | 'perAppearance';
-  readonly pay: Readonly<Record<Push, number>>;
-}
-
-interface RosterSpec {
-  readonly promotions: Readonly<Record<string, { readonly tier: string }>>;
-  readonly contracts: { readonly terms: Readonly<Record<string, SpecTerms>> };
-}
-
-const SPEC = JSON.parse(
-  readFileSync(
-    fileURLToPath(
-      new URL('../../../../../content/worlds/default/roster.spec.json', import.meta.url),
+/** The parts of the roster spec this test reads: each promotion's tier and each tier's rates. */
+const RosterSpecSchema = z.object({
+  promotions: z.record(z.string(), z.object({ tier: z.string() })),
+  contracts: z.object({
+    terms: z.record(
+      z.string(),
+      z.object({
+        kind: z.enum(['written', 'perAppearance']),
+        pay: z.record(z.string(), z.number()),
+      }),
     ),
-    'utf8',
+  }),
+});
+
+const SPEC = RosterSpecSchema.parse(
+  JSON.parse(
+    readFileSync(
+      fileURLToPath(
+        new URL('../../../../../content/worlds/default/roster.spec.json', import.meta.url),
+      ),
+      'utf8',
+    ),
   ),
-) as RosterSpec;
+);
 
 let read: GameWorldView;
 let promotionKeys: ReadonlyMap<PromotionId, string>;
@@ -87,7 +96,7 @@ beforeAll(() => {
   read = documentToWorld({ state: { world: state.world } }, TABLES);
   promotionKeys = new Map(
     Object.entries(read.meta.contentKeys['promotion'] ?? {}).map(([key, id]) => [
-      id as PromotionId,
+      parseId('promotion', id),
       key,
     ]),
   );
@@ -105,7 +114,9 @@ describe('shipped contracts', () => {
         tunables: TUNABLES,
       }).value;
       const step = terms.kind === 'written' ? 100 : 10;
-      const expected = Math.round((terms.pay[employment.push] * factor) / step) * step * DOLLAR;
+      const rate = terms.pay[employment.push];
+      if (rate === undefined) throw new Error(`No ${employment.push} rate for ${tier ?? '?'}`);
+      const expected = Math.round((rate * factor) / step) * step * DOLLAR;
       const pay =
         terms.kind === 'written' ? employment.terms.monthlyWage : employment.terms.perAppearanceFee;
       expect(pay, `${employment.ringName} (${key ?? '?'})`).toBe(expected);
@@ -215,6 +226,39 @@ const overspendSystem = defineSystem({
   ],
 });
 
+/**
+ * The stand-in player keeps their roster: each contract that reaches its end date is renewed on
+ * the same terms for a year, before the lifecycle would let it expire (renewal talks are the
+ * player's job since ECO5-05, and a roster that empties by autumn would measure nothing).
+ */
+const keepRosterSystem = defineSystem({
+  id: 'testKeepRoster',
+  phases: [
+    definePhase({
+      id: 'testKeepRoster.renew',
+      group: 'contracts',
+      order: 1,
+      cadence: { kind: 'daily' },
+      run: (ctx) => {
+        for (const promotion of ctx.read.tables.promotions.values()) {
+          if (promotion.controller.kind !== 'human') continue;
+          const active = ctx.read.tables.employments.lookup(
+            'byPromotionStatus',
+            promotionStatusKey(promotion.id, 'active'),
+          );
+          for (const employment of active) {
+            if (employment.endsOn === null || isAfter(employment.endsOn, ctx.date)) continue;
+            ctx.tx.update('employments', employment.id, (previous) => ({
+              ...previous,
+              endsOn: addDays(ctx.date, YEAR_DAYS),
+            }));
+          }
+        }
+      },
+    }),
+  ],
+});
+
 interface YearResult {
   readonly world: GameWorldView;
   readonly lowestCash: ReadonlyMap<PromotionId, number>;
@@ -240,8 +284,8 @@ async function playHardpanYear(overspend: boolean): Promise<YearResult> {
     ],
   });
   const extra = overspend
-    ? [overspendSystem, autofillSystem, cardEveryShowSystem]
-    : [autofillSystem, cardEveryShowSystem];
+    ? [overspendSystem, autofillSystem, cardEveryShowSystem, keepRosterSystem]
+    : [autofillSystem, cardEveryShowSystem, keepRosterSystem];
   const engine = createEngine({
     state: startDefaultGame({ player: { mode: 'existing', promotionKey: HARDPAN_KEY } }),
     systems: withMyShowsRun([...defaultSystems, ...extra, watcher]),
@@ -262,9 +306,23 @@ describe.runIf(SLOW_TESTS)('a year as Hardpan (slow)', () => {
       const hardpan = promotionId(HARDPAN_KEY);
       const start = read.tables.promotions.require(hardpan).cash;
       const end = world.tables.promotions.require(hardpan).cash;
-      // A little money: up, by less than half the starting cash (+8% when calibrated).
+      // A little money: up, by less than half the starting cash (+14% when calibrated).
       expect(end).toBeGreaterThan(start);
       expect(end - start).toBeLessThan(0.5 * start);
+      // Its roster cost $2,000-3,000 a show ($2,424 when calibrated; $6,033 before).
+      let fees = 0;
+      const first = yearMonthOf(read.meta.currentDate);
+      for (let month = 0; month < 12; month += 1) {
+        fees -=
+          monthBreakdownOf(world, hardpan, addYearMonths(first, month)).byCategory.appearanceFees ??
+          0;
+      }
+      const shows = world.tables.eventInstances
+        .values()
+        .filter((show) => show.promotionId === hardpan && show.status === 'completed').length;
+      expect(shows).toBeGreaterThan(40);
+      expect(fees / shows).toBeGreaterThanOrEqual(2_000 * DOLLAR);
+      expect(fees / shows).toBeLessThanOrEqual(3_000 * DOLLAR);
       expect(reachOf(world, hardpan, TUNABLES).reach.value).toBeGreaterThan(
         reachOf(read, hardpan, TUNABLES).reach.value,
       );
