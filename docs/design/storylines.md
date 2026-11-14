@@ -72,19 +72,126 @@ changes morale.
 
 ## Starting heat
 
-CRTV3-02. How much heat a new storyline starts with. The starting heat is the
-first step of its `storylines.heat` trace.
+CRTV3-02. Every storyline starts through `startStoryline`
+(`systems/storylines/lifecycle.ts`): the new-game starters below, CRTV3-03's
+`storylines.create` and later AIP6's rival storylines, so starting heat is the
+same whoever starts one. It creates the storyline (active, started today, no
+progress, no finale), stores the heat's Why? as the storyline's
+`storylines.heat` trace and publishes `storyline.started`.
+
+The formula (`formulas/startingHeat.ts`), in plain words:
+
+1. Start from the base starting heat (`storylines.heat.startBase`, 25). This
+   is the first line of every starting-heat Why?.
+2. Add star power: the average home popularity of the (up to) two best-known
+   members, times `storylines.heat.startStarWeight` (0.25). Home popularity is
+   the member's popularity in the promotion's home region (0 when they have
+   none there). Only the best two count, so a big storyline is not hotter for
+   having more people in it. With no members the star line is 0 ("No members
+   yet"); with the weight at 0 there is no star line at all.
+3. No higher than `storylines.heat.startMax` (60), kept within 0–100 and
+   rounded to a whole number.
+
+Two members at 60 and 40 at home: 25 + 0.25 × 50 = 37.5, so 38.
+
+| Tunable                           | Default | Meaning                                                                      |
+| --------------------------------- | ------- | ---------------------------------------------------------------------------- |
+| `storylines.heat.startBase`       | 25      | Heat every new storyline starts from                                         |
+| `storylines.heat.startStarWeight` | 0.25    | Share of the best two members' average home popularity added. 0 turns it off |
+| `storylines.heat.startMax`        | 60      | Highest starting heat                                                        |
 
 ## Heat decay
 
-CRTV3-02. How a storyline cools when no linked segment moves it on, counted
-from `lastProgressOn` (or `startedOn` when there is none). Each cooling step
-replaces the storyline's `storylines.heat` trace.
+CRTV3-02. Heat never rises on its own: only CRTV4's linked segments raise it
+(and set `lastProgressOn`, which restarts the grace period). When nothing
+happens, it cools.
+
+The daily phase `storylines.heatCooling` (`growth`, order 35, no random
+numbers) looks at every active storyline in id order. Days since progress are
+counted from `lastProgressOn`, or from `startedOn` when there is none. The
+formula (`formulas/heatDecay.ts`), in plain words:
+
+1. Start from yesterday's heat and note the days since progress and what they
+   count from ("Started 2027-01-04", "Last linked segment 2027-02-10").
+2. Inside the grace period (days since progress at most
+   `storylines.heat.decayGraceDays`, 7): no change.
+3. Already at or below the floor (`storylines.heat.decayFloor`, 10): no
+   change. Cooling never raises heat, so a storyline that starts below the
+   floor stays where it is.
+4. Otherwise take off `storylines.heat.decayPerDay` (1), no lower than the
+   floor, kept within 0–100, with a note of how many days it has been cooling.
+
+So with the defaults a storyline started on day 0 keeps its heat through day
+7 and loses 1 a day from day 8: heat 40 is 33 on day 14, and 10 from day 37
+on. `decayPerDay` 0 stops cooling.
+
+| Tunable                          | Default | Meaning                                                           |
+| -------------------------------- | ------- | ----------------------------------------------------------------- |
+| `storylines.heat.decayGraceDays` | 7       | Days without progress before heat starts cooling                  |
+| `storylines.heat.decayPerDay`    | 1       | Heat lost each day after the grace period. 0 means it never cools |
+| `storylines.heat.decayFloor`     | 10      | Cooling never takes heat below this                               |
+
+`growth` (700) runs after `shows` (500) and `settlement` (600), so a storyline
+a segment moves on today never cools on the same day.
+
+A storyline whose heat does not change gets no new trace, so its Why? stays
+the latest change: the starting heat or the last cooling step. The phase skips
+storylines inside the grace period or on the floor before building a trace,
+so a quiet day costs one pass over the storylines. Every storyline in the
+world cools every day, so a rival's heat Why? is kept as a summary only (the
+player's stay in full). The weekly `storylines.pruneDetail` (`periodic`, order
+46, Mondays) turns the heat and starter Why?s of storylines that ended more
+than `history.keepDetailDays` ago into summaries; an active storyline keeps
+its Why?, because it explains today's heat.
+
+`storylines.detail` gives an active storyline of the viewer's own promotion a
+`cooling` block: `graceDays`, `daysSinceProgress`, `perDay`, `floor`,
+`coolingNow` (the next day simulated lowers heat) and `startsInDays` (days
+until the first day that cools if nothing happens; null when already cooling,
+on the floor or with cooling off), so the screen can say "Cools from day 8
+without progress" or "Cooling 1 per day". It is null for ended and rival
+storylines.
 
 ## Starters
 
-CRTV3-02. The storylines a new game starts with, and why each was picked
-(`storylines.starter` trace).
+CRTV3-02. New-game setup step `storylines.seedStarters` (order 880, see
+[new-game.md](new-game.md#setup-steps)) gives every active promotion, in id
+order, up to `storylines.starterPerPromotion` (2) starter storylines, so the
+Storylines desk has something to show on a fresh game. 0 creates none (the
+step logs "Starter storylines turned off").
+
+- **Pool.** Active wrestlers under an active contract with the promotion,
+  face or heel (tweeners sit out), who are active and not injured. They are
+  ranked by push (main event first), then popularity in the promotion's home
+  region, then id.
+- **Gender.** Each starter is a face and a heel of the same gender: the group
+  with the most face and heel pairs left, ties to the group holding the
+  best-ranked worker. Picked again for each starter, so a promotion with both
+  men's and women's pairs usually gets one of each.
+- **Picks.** The face is rolled among the top 3 unused faces, then the heel
+  among the top 3 unused heels (stream `storylines.starters`, two draws per
+  starter). Nobody is in two starters. When no pair is left the step stops
+  early with a log line.
+- **The storyline.** Named "<face> vs. <heel>" (ring names), summary "A
+  rivalry already simmering when the season began.", the brand both
+  employments share (else none), started through `startStoryline` with source
+  `setup`.
+- **Why it started.** A "Starter storyline" decision trace lists each gender's
+  pool size and pairs, the gender rule, the top 3 on each side and both rolls.
+  It is stored as `storylines.starter` under the storyline's id (a summary
+  only for a rival's) and served by `storylines.detail` as
+  `startedBecauseTraceRef` (null for any storyline that was not a starter).
+
+On the default world every one of the twelve promotions gets two starters,
+with starting heat around 26 to 43, well below the Hot line (70), the story
+shield (`contracts.quit.storyShieldHeat`, 70) and so on: starters do not
+shield anyone's morale at the start. Rivals book them on their cards
+(`aip.card.storylineMinHeat` is 0).
+
+Dated note (CRTV3-02, Sprint 11): starters exist only in games started after
+this step was added. Older saves keep the storylines they have; nothing adds
+starters to a game already under way, and rivals start no new storylines
+later (that is AIP6).
 
 ## Commands
 
@@ -181,5 +288,9 @@ All three kinds are stored under the storyline's id.
 - `storylines.heat` (`storylineHeatTraceRef`): one current heat trace per
   storyline: the starting heat, then the latest cooling step, then CRTV4's
   progress. Rows show it as `heatTraceRef` when kept.
-- `storylines.starter`: why a starter storyline was picked (CRTV3-02).
+- `storylines.starter`: why a starter storyline was picked (CRTV3-02),
+  served as `startedBecauseTraceRef`.
+- A rival's heat and starter traces are kept as summaries only; an ended
+  storyline's become summaries once it ended more than
+  `history.keepDetailDays` ago ([Heat decay](#heat-decay)).
 - `storylines.payoff`: reserved for CRTV4's payoff.
