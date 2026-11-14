@@ -166,10 +166,10 @@ describe('news', () => {
       makeNews(1, { dedupeKey: 'title-change:1', expiresOn: date('2026-03-29') }),
     );
     world.tables.news._put(makeNews(2));
-    expect(world.tables.news.lookup('byDedupeKey', 'title-change:1').map((n) => n.id)).toEqual([
-      testId('news', 1),
-    ]);
-    expect(world.tables.news.lookup('byExpiresOn', '2026-03-29').map((n) => n.id)).toEqual([
+    expect(
+      world.tables.news.lookup('byDedupeKey', 'title-change:1').map((story) => story.id),
+    ).toEqual([testId('news', 1)]);
+    expect(world.tables.news.lookup('byExpiresOn', '2026-03-29').map((story) => story.id)).toEqual([
       testId('news', 1),
     ]);
     expect(world.tables.news.lookup('byExpiresOn', 'null')).toEqual([]);
