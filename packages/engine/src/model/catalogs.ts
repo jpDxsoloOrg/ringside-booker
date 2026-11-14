@@ -261,7 +261,6 @@ const injuryKeySchema = zContentKey.refine((key) => key.startsWith(`${INJURY_KEY
   message: `must be an injury content key starting with "${INJURY_KEY_PREFIX}."`,
 });
 
-
 // ---------------------------------------------------------------------------------------------
 // Beats and angle templates (MTCH5): the steps an angle is built from, and ready-made orders of
 // them. Beats have no length (D-10). Design: docs/design/angle-rating.md.
@@ -398,7 +397,9 @@ const beatKeySchema = zContentKey.refine((key) => key.startsWith(`${BEAT_KEY_PRE
 /** An angle template content key: `template.<name>`. */
 const angleTemplateKeySchema = zContentKey.refine(
   (key) => key.startsWith(`${ANGLE_TEMPLATE_KEY_PREFIX}.`),
-  { message: `must be an angle template content key starting with "${ANGLE_TEMPLATE_KEY_PREFIX}."` },
+  {
+    message: `must be an angle template content key starting with "${ANGLE_TEMPLATE_KEY_PREFIX}."`,
+  },
 );
 
 /** The beats an angle type allows: beat content keys, each once. */
@@ -445,18 +446,18 @@ export const MatchTypeDefSchema = z.strictObject({
 /** An angle type with every default filled in. */
 export const AngleTypeDefSchema = z
   .strictObject({
-  key: zContentKey,
-  name: zName(CATALOG_NAME_MAX_LENGTH),
-  shortName: zName(CATALOG_SHORT_NAME_MAX_LENGTH).optional(),
-  order: orderSchema,
-  /** The beat a new angle of this type starts with. MTCH5 owns the beat catalog. */
-  defaultBeatKey: zContentKey,
-  speakers: intRangeSchema(ANGLE_TYPE_SPEAKERS_MIN, ANGLE_TYPE_SPEAKERS_MAX, 'speakers'),
-  speakerWeights: speakerWeightsSchema,
-  /** MTCH5: the beats an angle of this type may use. Absent = every beat. */
-  beatKeys: beatKeyListSchema.optional(),
-  hidden: z.boolean(),
-  description: descriptionSchema.optional(),
+    key: zContentKey,
+    name: zName(CATALOG_NAME_MAX_LENGTH),
+    shortName: zName(CATALOG_SHORT_NAME_MAX_LENGTH).optional(),
+    order: orderSchema,
+    /** The beat a new angle of this type starts with. MTCH5 owns the beat catalog. */
+    defaultBeatKey: zContentKey,
+    speakers: intRangeSchema(ANGLE_TYPE_SPEAKERS_MIN, ANGLE_TYPE_SPEAKERS_MAX, 'speakers'),
+    speakerWeights: speakerWeightsSchema,
+    /** MTCH5: the beats an angle of this type may use. Absent = every beat. */
+    beatKeys: beatKeyListSchema.optional(),
+    hidden: z.boolean(),
+    description: descriptionSchema.optional(),
   })
   .superRefine(refineAngleTypeBeats);
 

@@ -64,8 +64,7 @@ export interface SideConflict {
 }
 
 export type AngleSides =
-  | { readonly sides: Readonly<Record<PersonId, number>> }
-  | { readonly conflict: SideConflict };
+  { readonly sides: Readonly<Record<PersonId, number>> } | { readonly conflict: SideConflict };
 
 /** Union-find over person IDs. */
 class SideUnion {
@@ -128,9 +127,7 @@ export function assignAngleSides(
 
   for (const [beatIndex, beat] of beats.entries()) {
     for (const personA of beat.groupOne) {
-      const opposed = beat.groupTwo.find(
-        (personB) => union.root(personA) === union.root(personB),
-      );
+      const opposed = beat.groupTwo.find((personB) => union.root(personA) === union.root(personB));
       if (opposed !== undefined) {
         return { conflict: { personA, personB: opposed, beatIndex } };
       }

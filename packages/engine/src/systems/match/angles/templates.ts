@@ -69,10 +69,7 @@ export interface TemplateFit extends FittedTemplate {
 }
 
 /** The world's templates that fit in `maxBeats` (and match `purpose`), by key. */
-export function angleTemplatesFor(
-  read: CatalogReader,
-  filter: AngleTemplateFilter,
-): TemplateFit[] {
+export function angleTemplatesFor(read: CatalogReader, filter: AngleTemplateFilter): TemplateFit[] {
   return angleTemplatesOf(read).flatMap((template) => {
     if (filter.purpose !== undefined && template.purpose !== filter.purpose) {
       return [];

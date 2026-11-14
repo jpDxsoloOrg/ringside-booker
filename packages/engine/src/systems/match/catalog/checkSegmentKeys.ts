@@ -9,10 +9,9 @@
  * Each problem is an error naming the segment and the field path; nothing throws. A catalog the
  * world does not hold is not checked (a world built without packs has none, and still loads).
  *
- * `match.finishKey` is checked by `checkSegmentFinishes` (MTCH2), next to this file. Not checked
- * yet, because their catalogs do not exist: `angle.beats[].beatKey` (MTCH5 adds the beat catalog)
- * and `match.stipulationKeys` (MTCH7 adds stipulations). Each of those features adds its check
- * here.
+ * `match.finishKey` is checked by `checkSegmentFinishes` (MTCH2) and `angle.beats` by
+ * `checkSegmentBeats` (MTCH5), next to this file. Not checked yet, because its catalog does not
+ * exist: `match.stipulationKeys` (MTCH7 adds stipulations), which adds its check here.
  *
  * validate:world runs this as part of its `segment-keys` rule.
  */
@@ -95,7 +94,7 @@ function checkSegment(read: CatalogReader, segment: DeepReadonly<Segment>): Inte
       ),
     );
   }
-  // angle.beats[].beatKey: MTCH5 (beats).
+  // angle.beats: checkSegmentBeats (MTCH5).
   return issues;
 }
 
