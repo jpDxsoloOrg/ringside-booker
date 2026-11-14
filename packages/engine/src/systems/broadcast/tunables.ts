@@ -16,6 +16,7 @@ const BENCHMARK_DOC_REF = `${BROADCAST_DOC}#benchmark`;
 const VALUATION_DOC_REF = `${BROADCAST_DOC}#valuation`;
 const SETTLEMENT_DOC_REF = `${BROADCAST_DOC}#settlement`;
 const HEALTH_DOC_REF = `${BROADCAST_DOC}#deal-health`;
+const BONUS_DOC_REF = `${BROADCAST_DOC}#ratings-bonus`;
 
 /**
  * The most airings deal health may look back over: `broadcast.airing.keepPerDeal`'s default, so the
@@ -48,6 +49,20 @@ function healthRatio(defaultValue: number, description: string) {
     category: BROADCAST_TUNABLE_CATEGORY,
     description,
     docRef: HEALTH_DOC_REF,
+  } as const;
+}
+
+/** A share of the network's pay or of what it expects, for the ratings bonus (ECO8-10). */
+function bonusRatio(defaultValue: number, max: number, description: string) {
+  return {
+    kind: 'number',
+    default: defaultValue,
+    min: 0,
+    max,
+    unit: 'ratio',
+    category: BROADCAST_TUNABLE_CATEGORY,
+    description,
+    docRef: BONUS_DOC_REF,
   } as const;
 }
 
@@ -536,4 +551,29 @@ export const broadcastTunables = defineTunables({
       'Computer promotions renew a deal on its end date when the network would still sign it (switched off once rivals make their own deals)',
     docRef: HEALTH_DOC_REF,
   },
+  'broadcast.bonus.above': bonusRatio(
+    1.15,
+    5,
+    'Share of what the network expects that recent viewers must reach for each airing to pay a ratings bonus, and for the deal to be Exceeding; 0 means always',
+  ),
+  'broadcast.bonus.atLine': bonusRatio(
+    0.1,
+    1,
+    "Ratings bonus at the bonus line, as a share of the fee (of the per-buy money on pay-per-view); 0 means it starts from nothing",
+  ),
+  'broadcast.bonus.max': bonusRatio(
+    0.25,
+    1,
+    'Most a ratings bonus can be, as a share of the fee (of the per-buy money on pay-per-view); 0 means no ratings bonus',
+  ),
+  'broadcast.bonus.fullAt': bonusRatio(
+    1.4,
+    5,
+    'Share of what the network expects at which the ratings bonus reaches its cap; at or below the bonus line, the cap is paid from the line',
+  ),
+  'broadcast.bonus.renewalUplift': bonusRatio(
+    0.1,
+    1,
+    'Extra fee (per-buy rate on pay-per-view) a network offers when renewing a deal that is beating its expectations; 0 means none',
+  ),
 });
