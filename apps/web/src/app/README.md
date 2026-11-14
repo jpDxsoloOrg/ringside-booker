@@ -432,6 +432,50 @@ A feature registers its section from its own folder and adds one import line to
 | 25    | `evt5.popularity` | Popularity            | `screens/promotion-popularity/register.ts` |
 | 30    | `mtch3.aftermath` | Popularity & momentum | `screens/match-aftermath/register.ts`      |
 
+## Show night
+
+`/game/show-night/:eventInstanceId` (`routes.game.showNight(id)`, `screens/show-night/`, its own
+chunk, under no navigation item) runs one of your shows live, a segment at a time (EVT10-02):
+the running order, the latest segment's report, a "Show so far" score bug and Run next segment /
+Sim the rest of the show / Leave and finish later. Ways in: the day button's **Go live** (or
+**Back to the show**), the Last advance banner, Booking's Go live and the calendar sheet's Go live
+(`screens/show-night/calendarAction.tsx`, registered by the router). `useShowNightRoute` decides
+between Go live and the Auto setting's Go to the show. See `docs/design/show-night.md#the-show-night-screen`.
+
+### Adding a segment report section
+
+After each segment the screen shows a report: the segment's `SegmentResultCard`, then the sections
+features register, without editing the screen:
+
+```ts
+import { registerSegmentReportSection } from '@/screens/show-night';
+
+registerSegmentReportSection({
+  id: 'mtch3.aftermath', // feature-prefixed, unique
+  label: 'Popularity & momentum',
+  order: 30,
+  // Called during render with the segment just run and the show's `shows.results` answer.
+  // Return an element (queries go inside its component), or null to leave it out for this segment.
+  render: ({ eventInstanceId, segment, view }) =>
+    segment.kind === 'match' ? <AftermathSegmentReport segmentId={segment.segmentId} /> : null,
+});
+```
+
+`registerSegmentReportSection` (`screens/show-night/segmentReportSections.ts`) returns a function
+that removes the section and throws for a taken id; `listSegmentReportSections()` gives them in
+order, then by id. Each is drawn under its `label` as an `h4` region. A feature that is not on
+main adds nothing: there are no placeholders. Register from the feature's folder and add one import
+line to `ShowNightScreen.tsx`. The result card's banners come from the results page's
+`registerResultsCardBanner` registry, so MTCH4's "Injured" banner shows here too. Gallery:
+`/dev/gallery#segment-report`.
+
+| Order | Id                | Label                 | Registered in                                      |
+| ----- | ----------------- | --------------------- | -------------------------------------------------- |
+| 30    | `mtch3.aftermath` | Popularity & momentum | `screens/match-aftermath/registerSegmentReport.ts` |
+| 40    | `mtch4.physical`  | Physical toll         | `screens/match-physical/registerSegmentReport.ts`  |
+
+Morale (WRK8) adds its section once it exists.
+
 ## Venue and crowd
 
 EVT6-06 puts the box office's venue and forecast queries on two screens, without editing either:
