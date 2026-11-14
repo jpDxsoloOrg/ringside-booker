@@ -3125,6 +3125,21 @@ export {
   type SignedDeal,
 } from './systems/negotiation/index';
 
+// The "Offer answered" stop (ECO5-10): a skip stops when a worker answered a player's offer, until
+// the talks are opened (`contracts.markOffersSeen`); an accepted counter-offer signs at once.
+// See docs/design/negotiation.md#offer-answered-stop.
+export {
+  AGREED_COUNTER_REASON,
+  answeredOffers,
+  closeTalksLostTo,
+  MARK_OFFERS_SEEN_MAX,
+  markOffersSeenCommand,
+  OFFER_ANSWERED_ACTION_HINT,
+  OFFER_ANSWERED_GATE_ID,
+  offerAnsweredGate,
+  offerAnsweredReason,
+} from './systems/negotiation/index';
+
 // The Negotiation Sheet's extra answers (ECO5-06): the brands an offer may name
 // (`contracts.askingTerms` `brandOptions`) and the meter's band boundaries
 // (`contracts.offerPreview` `thresholds`). See docs/design/negotiation.md#negotiation-sheet.

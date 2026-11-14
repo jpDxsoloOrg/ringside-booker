@@ -225,6 +225,7 @@ export function aNegotiation(
     reactionTraceId: null,
     reviewTraceId: null,
     counterStopsSkip: false,
+    answerStopsSkip: false,
   };
   return buildRow(NegotiationSchema, 'aNegotiation', defaults, overrides);
 }

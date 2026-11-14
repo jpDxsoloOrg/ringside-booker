@@ -25,6 +25,7 @@ import { defineSystem, type SystemBundle } from '../../core/api/system';
 import { negotiationCommands } from './commands';
 import { offersQueries } from './offersQueries';
 import { negotiationQueries } from './queries';
+import { markOffersSeenCommand, offerAnsweredGate } from './answered';
 import { counterWaitingGate } from './gates';
 import { negotiationPhases } from './phases';
 
@@ -199,6 +200,7 @@ export {
   type OfferInput,
 } from './validate';
 export {
+  AGREED_COUNTER_REASON,
   answerCounter,
   answerCounterReasons,
   cappedHistory,
@@ -249,6 +251,7 @@ export {
 export { CONTRACT_ENDED_OUTCOME, closeTalksOnEndedContract } from './endedTalks';
 export {
   closeTalks,
+  closeTalksLostTo,
   LAPSED_OUTCOME,
   LOST_TO_OTHER_OFFER_OUTCOME,
   PROMOTION_CLOSED_OUTCOME,
@@ -276,6 +279,15 @@ export {
 } from './phases';
 export { COUNTER_WAITING_GATE_ID, counterWaitingGate, waitingCounters } from './gates';
 export {
+  answeredOffers,
+  MARK_OFFERS_SEEN_MAX,
+  markOffersSeenCommand,
+  OFFER_ANSWERED_ACTION_HINT,
+  OFFER_ANSWERED_GATE_ID,
+  offerAnsweredGate,
+  offerAnsweredReason,
+} from './answered';
+export {
   ANOTHER_OFFER_NOTE,
   guardNegotiationTrace,
   negotiationOfTraceId,
@@ -291,8 +303,8 @@ export {
 export const negotiationSystem: SystemBundle = defineSystem({
   id: 'negotiation',
   phases: negotiationPhases,
-  gates: [counterWaitingGate],
+  gates: [counterWaitingGate, offerAnsweredGate],
   subscriptions: [],
   queries: [...negotiationQueries, ...offersQueries],
-  commands: [...negotiationCommands],
+  commands: [...negotiationCommands, markOffersSeenCommand],
 });

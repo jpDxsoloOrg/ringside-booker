@@ -13,6 +13,7 @@ import { CONTRACTS_TUNABLE_CATEGORY } from '../contracts/tunables';
 export const NEGOTIATION_DOC = 'negotiation.md';
 const REVIEW_DOC = `${NEGOTIATION_DOC}#review`;
 const COUNTER_DOC = `${NEGOTIATION_DOC}#counter`;
+const ANSWER_DOC = `${NEGOTIATION_DOC}#offer-answered-stop`;
 const STATUSES_DOC = `${NEGOTIATION_DOC}#statuses`;
 const OFFER_DOC = `${NEGOTIATION_DOC}#the-offer`;
 const RENEWALS_DOC = `${NEGOTIATION_DOC}#renewals`;
@@ -509,6 +510,16 @@ const paceTunables = defineTunables({
     category: CONTRACTS_TUNABLE_CATEGORY,
     description: "Skips stop when a worker's counter-offer is waiting for you",
     docRef: COUNTER_DOC,
+  },
+  'contracts.answer.stopSkip': {
+    kind: 'boolean',
+    // ECO5-10: the day bar's "Offer answered" button opens the talks on Contracts › Offers, which
+    // marks the answer as seen and clears the stop.
+    default: true,
+    unit: 'flag',
+    category: CONTRACTS_TUNABLE_CATEGORY,
+    description: 'Skips stop when a worker signs, turns down or walks away from your offer',
+    docRef: ANSWER_DOC,
   },
   'contracts.offer.maxLengthMonths': {
     kind: 'integer',

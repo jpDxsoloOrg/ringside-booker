@@ -4,6 +4,9 @@
  * moves a signing's `offered` employment off `offered` in the same step (the
  * `negotiations.signingEmploymentIsOffered` invariant) and publishes `negotiation.closed`.
  *
+ * A close the day ran for a player's promotion is marked `answerStopsSkip` (ECO5-10), so a skip
+ * stops with "Offer answered" until the player opens those talks.
+ *
  * Design: docs/design/negotiation.md#review.
  */
 
@@ -12,7 +15,11 @@ import { InvalidArgumentError } from '../../core/errors';
 import type { PromotionId } from '../../core/ids';
 import type { PhaseContext } from '../../core/pipeline/context';
 import { canTransition } from '../../model/entities/employment';
-import type { Negotiation, NegotiationStatus } from '../../model/entities/negotiation';
+import {
+  isOpenNegotiationStatus,
+  type Negotiation,
+  type NegotiationStatus,
+} from '../../model/entities/negotiation';
 import type { DeepReadonly } from '../../model/world';
 
 /** Outcome codes the worker's side closes talks with. */
@@ -30,6 +37,32 @@ export interface CloseTalks {
   readonly cooldownUntil?: GameDate | null;
   /** The review trace id, when the review closed them. */
   readonly reviewTraceId?: string | null;
+  /**
+   * True when the player saw the close happen (they accepted the counter-offer themselves), so it
+   * does not stop a skip as "Offer answered". Left out: a close the day ran.
+   */
+  readonly seenByPlayer?: boolean;
+}
+
+/**
+ * Whether these talks' close stops a skip as "Offer answered" (ECO5-10): a promotion a human runs,
+ * a worker's answer they did not watch happen (not a lapse), and `contracts.answer.stopSkip` on.
+ */
+function answerStopsSkip(
+  ctx: PhaseContext,
+  negotiation: DeepReadonly<Negotiation>,
+  close: CloseTalks,
+): boolean {
+  // A lapse is the player's own silence (the counter-offer stop already waited for them).
+  if (close.seenByPlayer === true || close.status === 'lapsed') {
+    return false;
+  }
+  const promotion = ctx.read.tables.promotions.get(negotiation.promotionId);
+  return (
+    promotion?.controller.kind === 'human' &&
+    promotion.status !== 'closed' &&
+    ctx.tunables.get('contracts.answer.stopSkip')
+  );
 }
 
 /**
@@ -57,6 +90,7 @@ export function closeTalks(
     lastCounter: null,
     counterExpiresOn: null,
     counterStopsSkip: false,
+    answerStopsSkip: answerStopsSkip(ctx, negotiation, close),
     reviewOn: null,
     outcome: { code: close.outcomeCode, otherPromotionId: close.otherPromotionId ?? null },
     cooldownUntil: close.cooldownUntil ?? negotiation.cooldownUntil,
@@ -69,4 +103,28 @@ export function closeTalks(
     status: close.status,
     outcomeCode: close.outcomeCode,
   });
+}
+
+/**
+ * After `winner` signed, every other open negotiation for the same worker closes as `declined`
+ * with outcome `lostToOtherOffer`, naming the winner but never the amount. `reviewTraceIdOf` gives
+ * the review trace id of talks that were compared with the winner.
+ */
+export function closeTalksLostTo(
+  ctx: PhaseContext,
+  winner: DeepReadonly<Negotiation>,
+  reviewTraceIdOf: (negotiation: DeepReadonly<Negotiation>) => string | null = () => null,
+): void {
+  for (const negotiation of ctx.read.tables.negotiations.lookup('byPerson', winner.personId)) {
+    if (negotiation.id === winner.id || !isOpenNegotiationStatus(negotiation.status)) {
+      continue;
+    }
+    const reviewTraceId = reviewTraceIdOf(negotiation);
+    closeTalks(ctx, negotiation, {
+      status: 'declined',
+      outcomeCode: LOST_TO_OTHER_OFFER_OUTCOME,
+      otherPromotionId: winner.promotionId,
+      ...(reviewTraceId === null ? {} : { reviewTraceId }),
+    });
+  }
 }

@@ -96,6 +96,39 @@
   max-inline-size: 14rem;
 }
 
+.answeredOffers {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-weight: var(--font-weight-semibold);
+}
+
+.newAnswers {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.newAnswersHeading {
+  margin: 0;
+  font-size: var(--font-size-md);
+}
+
+.newAnswersList {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.newAnswersList .nameButton {
+  padding-block: var(--tap-pad-block);
+  text-decoration: underline;
+}
+
 .nameButton {
   padding: 0;
   border: 0;

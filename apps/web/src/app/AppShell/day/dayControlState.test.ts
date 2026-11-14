@@ -9,6 +9,8 @@ import {
   GENERIC_GATE_LABEL,
   leadingGate,
   NEWS_HINT,
+  OFFER_ANSWERED_HINT,
+  OFFER_ANSWERED_LABEL,
   OPEN_NEWS_LABEL,
   ROSTER_HINT,
   setRosterInjuriesTabAvailable,
@@ -323,5 +325,57 @@ describe('the news alert stop (news hint)', () => {
     expect(leadingGate([newsGate, { gateId: 'x', reason: 'Other', actionHint: 'other' }])).toBe(
       newsGate,
     );
+  });
+});
+
+describe('the Offer answered stop (ECO5-10)', () => {
+  const answeredGate: GateHit = {
+    gateId: 'contracts.offerAnswered',
+    reason: 'Rhea Cortez signed with you',
+    subject: { kind: 'negotiation', id: 'neg_0000000007' },
+    actionHint: OFFER_ANSWERED_HINT,
+  };
+  const counterGate: GateHit = {
+    gateId: 'contracts.counterWaiting',
+    reason: 'Counter-offer from Kai Moreno is waiting for your answer',
+    subject: { kind: 'negotiation', id: 'neg_0000000008' },
+    actionHint: CONTRACTS_HINT,
+  };
+  const newsGate: GateHit = {
+    gateId: 'news.alert',
+    reason: 'News: Milestone – Calder Voss',
+    subject: { kind: 'news', id: 'nws_0000000004' },
+    actionHint: NEWS_HINT,
+  };
+
+  it('reads Offer answered, says who and opens those talks on Contracts › Offers', () => {
+    expect(deriveDayControl([answeredGate], idle)).toEqual({
+      primary: {
+        kind: 'gate',
+        label: OFFER_ANSWERED_LABEL,
+        phoneLabel: null,
+        reason: 'Rhea Cortez signed with you',
+        to: `${routes.game.contracts()}?tab=offers&negotiation=neg_0000000007`,
+      },
+      skipEnabled: false,
+    });
+    expect(OFFER_ANSWERED_LABEL).toBe('Offer answered');
+  });
+
+  it('opens the Offers tab when the gate names no talks', () => {
+    expect(
+      gateDestination({
+        gateId: answeredGate.gateId,
+        reason: answeredGate.reason,
+        actionHint: OFFER_ANSWERED_HINT,
+      }),
+    ).toEqual({ label: 'Offer answered', to: `${routes.game.contracts()}?tab=offers` });
+  });
+
+  it('comes after decisions, a show night and a waiting counter-offer, before the news', () => {
+    expect(leadingGate([answeredGate, contractDecision])).toBe(contractDecision);
+    expect(leadingGate([answeredGate, showGate])).toBe(showGate);
+    expect(leadingGate([answeredGate, counterGate])).toBe(counterGate);
+    expect(leadingGate([newsGate, answeredGate])).toBe(answeredGate);
   });
 });

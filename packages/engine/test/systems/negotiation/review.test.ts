@@ -18,6 +18,7 @@ import { documentToWorld } from '../../../src/persistence/world-document';
 import { contractsSystem } from '../../../src/systems/contracts';
 import { financeSystem } from '../../../src/systems/finance';
 import {
+  AGREED_COUNTER_REASON,
   ANOTHER_OFFER_NOTE,
   askTermsOf,
   COOLDOWN_CODE,
@@ -46,6 +47,7 @@ const SYSTEMS = [simSystem, financeSystem, workersSystem, contractsSystem, negot
 const QUIET = {
   'contracts.expiringSoon.stopSkip': false,
   'contracts.releaseRequest.stopSkip': false,
+  'contracts.answer.stopSkip': false,
 } as const;
 
 interface ReviewEngine {
@@ -242,8 +244,8 @@ describe('reactions', () => {
     expect(eventsOf(events, 'negotiation.countered')).toHaveLength(1);
   });
 
-  it('signs their counter-offer once accepted, on the review day', async () => {
-    const { engine, setup } = reviewEngine(negotiationWorld());
+  it('signs their counter-offer the moment it is accepted (ECO5-10)', async () => {
+    const { engine, events, setup } = reviewEngine(negotiationWorld());
     const ask = askOf(engine, setup.human, setup.veteran);
     const id = makeOffer(engine, setup.human, setup.veteran, offerAt(ask, 0.6));
     await advance(engine, 1);
@@ -255,19 +257,15 @@ describe('reactions', () => {
         PLAYER,
       ),
     );
-    expect(negotiationOf(engine, id).status).toBe('awaitingReview');
-    // Accepted on the day after the offer: they decide two days later.
-    await advance(engine, 2);
-    expect(negotiationOf(engine, id).status).toBe('awaitingReview');
-    await advance(engine, 1);
     const row = negotiationOf(engine, id);
     expect(row.status).toBe('signed');
+    expect(row.closedOn).toBe(today(engine));
     expect(employmentOf(engine, row.employmentId).terms.monthlyWage).toBe(
       counter?.terms.monthlyWage,
     );
-    // The review shows the agreed offer as their own counter-offer.
+    expect(eventsOf(events, 'contract.signed')).toHaveLength(1);
     const why = done(engine.query('trace.get', { ref: reviewTraceRef(id) }, PLAYER_VIEW));
-    expect(JSON.stringify(why)).toContain('Matches their counter-offer');
+    expect(JSON.stringify(why)).toContain(AGREED_COUNTER_REASON);
   });
 
   it('answers a rejected offer with their full ask', async () => {
@@ -391,7 +389,8 @@ describe('reactions', () => {
     const id = makeOffer(engine, setup.rival, setup.veteran, offer, COMPUTER);
     await advance(engine, 1);
     const row = negotiationOf(engine, id);
-    expect(row.status).toBe('awaitingReview');
+    // Every promotion's accepted counter signs at once, the computer's too (D-07).
+    expect(row.status).toBe('signed');
     expect(row.round).toBe(2);
     expect(row.history.map((entry) => entry.by)).toEqual(['promotion', 'worker', 'promotion']);
   });
