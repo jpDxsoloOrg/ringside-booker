@@ -60,7 +60,9 @@ describe('OfferSchema', () => {
     expect(OfferSchema.safeParse(offer).success).toBe(true);
     expect(OfferSchema.safeParse({ ...offer, bonus: 1 }).success).toBe(false);
     expect(OfferSchema.safeParse({ ...offer, lengthMonths: 121 }).success).toBe(false);
-    const extra = Object.fromEntries(Array.from({ length: 9 }, (_, index) => [`k${String(index)}`, index]));
+    const extra = Object.fromEntries(
+      Array.from({ length: 9 }, (_, index) => [`k${String(index)}`, index]),
+    );
     expect(OfferSchema.safeParse({ ...offer, extra }).success).toBe(false);
     expect(OfferSchema.safeParse({ ...offer, brand: { kind: 'auto' } }).success).toBe(false);
   });
