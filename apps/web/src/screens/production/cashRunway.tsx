@@ -2,7 +2,7 @@
  * The cash runway (ECO7-06): how much money the promotion makes or loses a month at this rate,
  * what its fixed spend is, and how many months its cash lasts. Drawn from `production.cashRunway`
  * as a "Cash runway" card on Production (header item, order 50, registered here) and on the
- * Finances Overview (KPI order 15, right after Cash, registered in `financeKpi.tsx`), and as a
+ * Finances Overview (KPI order 12, right after Cash, registered in `financeKpi.tsx`), and as a
  * warning banner at the top of both screens while money is going out faster than it comes in.
  * Every number has a Why?.
  */
@@ -24,8 +24,8 @@ import styles from './cashRunway.module.css';
 
 /** The card's id in the Finances KPI registry. */
 export const CASH_RUNWAY_KPI_ID = 'eco7.cashRunway';
-/** Right after Cash (10), before This month (20): how long that cash lasts. */
-export const CASH_RUNWAY_KPI_ORDER = 15;
+/** Right after Cash (10), before Hype (15, ECO3): how long that cash lasts. */
+export const CASH_RUNWAY_KPI_ORDER = 12;
 /** Last in the Production header, after show production (40). */
 export const CASH_RUNWAY_HEADER_ORDER = 50;
 

@@ -62,6 +62,7 @@ registering module from `FinancesView.tsx` (one line) so it loads with the scree
 | Tab  | 35    | Deals (ECO8)            |
 | Tab  | 40    | Policies                |
 | KPI  | 10    | Cash                    |
+| KPI  | 12    | Cash runway (ECO7)      |
 | KPI  | 15    | Hype (ECO3)             |
 | KPI  | 20    | This month so far       |
 | KPI  | 25    | Public image (ECO2)     |

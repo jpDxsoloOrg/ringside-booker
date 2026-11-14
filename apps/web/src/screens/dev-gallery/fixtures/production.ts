@@ -1,5 +1,7 @@
-import { inputOf, startCalc } from '@ringside/engine';
+import { inputOf, parseId, startCalc } from '@ringside/engine';
 import type {
+  CashRunwayStatus,
+  CashRunwayView,
   ProductionArea,
   ProductionChangePreview,
   ProductionEffectLine,
@@ -307,5 +309,69 @@ export function galleryPreviewFor(
     reasons,
     canApply: reasons.length === 0,
     rows,
+  };
+}
+
+/* -------------------------------------------------------------- cash runway (ECO7-06) */
+
+/** A promotion id for the gallery's cash runway answers. */
+const GALLERY_RUNWAY_PROMOTION = parseId('promotion', 'pro_0000000001');
+
+/** What the fixed spend comes to a month, in cents: wages, medical, overhead, show production. */
+const RUNWAY_SPEND = {
+  wages: 92_400_000,
+  medical: 8_250_000,
+  overhead: 121_465_000,
+  showProduction: 209_763_110,
+} as const;
+const RUNWAY_FIXED =
+  RUNWAY_SPEND.wages + RUNWAY_SPEND.medical + RUNWAY_SPEND.overhead + RUNWAY_SPEND.showProduction;
+
+function monthlyNetOf(showMoney: number | null): Traced<number> {
+  return startCalc(
+    'Altura money a month at this rate',
+    inputOf('Ticket sales and other show money a month', showMoney ?? 0),
+    { unit: 'money/month' },
+  )
+    .subtract('Wages', RUNWAY_SPEND.wages)
+    .subtract('Medical', RUNWAY_SPEND.medical)
+    .subtract('Production, marketing and back office overhead', RUNWAY_SPEND.overhead)
+    .subtract('Show production', RUNWAY_SPEND.showProduction)
+    .done();
+}
+
+function monthsLeftOf(cash: number, net: number): Traced<number> {
+  return startCalc('Months of cash left', inputOf('Cash now', cash), { unit: 'months' })
+    .divide('Money lost a month', -net)
+    .done();
+}
+
+/**
+ * `production.cashRunway` as it might answer, by status: Altura's fixed spend with different
+ * show money and cash. Invented figures.
+ */
+export function galleryCashRunway(status: CashRunwayStatus): CashRunwayView {
+  const cashNow =
+    status === 'runningOut' ? 1_900_000_000 : status === 'outOfCash' ? -120_000_000 : 3_500_000_000;
+  const showMoney =
+    status === 'tooEarly'
+      ? null
+      : status === 'makingMoney'
+        ? RUNWAY_FIXED + 120_000_000
+        : 1_500_000;
+  const net = monthlyNetOf(showMoney);
+  const losing = status === 'losingMoney' || status === 'runningOut';
+  const months = losing ? monthsLeftOf(cashNow, net.value) : null;
+  return {
+    promotionId: GALLERY_RUNWAY_PROMOTION,
+    cash: cashNow,
+    status,
+    monthlyNet: Math.round(net.value),
+    monthlyNetTrace: net.trace,
+    monthsLeft: months?.value ?? null,
+    monthsLeftTrace: months?.trace ?? null,
+    spend: RUNWAY_SPEND,
+    warnBelowMonths: 6,
+    daysUntilForecast: status === 'tooEarly' ? 7 : 0,
   };
 }

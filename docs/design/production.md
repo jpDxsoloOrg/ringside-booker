@@ -436,7 +436,7 @@ losing money, so the change dialog shows what a level does to the runway.
 
 On screen (`apps/web/src/screens/production/cashRunway.tsx`): a **Cash
 runway** card in the Production header (order 50) and on the Finances
-Overview (KPI order 15, after Cash), with the sentence "At this rate you run
+Overview (KPI order 12, after Cash), with the sentence "At this rate you run
 out of cash in about 8 months.", the month's net with its Why?, and the fixed
 spend; and a warning strip at the top of both screens ("Losing money",
 "Running out of cash", "Out of cash") while money goes out faster than it

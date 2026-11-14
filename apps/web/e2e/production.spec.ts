@@ -119,9 +119,11 @@ async function shot(page: Page, name: string, testInfo: TestInfo): Promise<void>
 /** Money in full ("$28,000"), so the exact amounts of the owner's script can be read. */
 async function useFullMoney(page: Page): Promise<void> {
   await page.goto('/settings');
-  const money = page.getByRole('radiogroup', { name: 'Money' });
-  await money.getByRole('radio', { name: /^Full/ }).check();
-  await expect(money.getByRole('radio', { name: /^Full/ })).toBeChecked();
+  const full = page
+    .getByRole('group', { name: 'Money' })
+    .getByRole('radio', { name: 'Full', exact: true });
+  await full.check();
+  await expect(full).toBeChecked();
 }
 
 /** "$85,000" or "−$1,250" → cents. */
