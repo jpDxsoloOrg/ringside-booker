@@ -302,7 +302,8 @@ describe('ContractsScreen', () => {
     ]);
   });
 
-  it('switches the automatic renewal stopgap off from the Rules sheet', async () => {
+  // Off by default since ECO5-05 (renewals go through contract talks); the switch turns it on.
+  it('switches the automatic renewal stopgap on from the Rules sheet', async () => {
     const rendered = renderContracts();
     await findTable('Active contracts');
     await rendered.user.click(screen.getByRole('button', { name: 'Rules' }));
@@ -311,15 +312,15 @@ describe('ContractsScreen', () => {
       name: 'Renew my contracts automatically',
     });
     await waitFor(() => {
-      expect(renew).toBeChecked();
+      expect(renew).not.toBeChecked();
     });
     expect(within(sheet).getByText(/Off: a contract ends on its end date/u)).toBeInTheDocument();
     await rendered.user.click(renew);
     await waitFor(() => {
-      expect(renew).not.toBeChecked();
+      expect(renew).toBeChecked();
     });
     expect(rendered.issued).toEqual([
-      { name: 'tunables.setOverride', args: { key: 'contracts.autoRenewPlayer', value: false } },
+      { name: 'tunables.setOverride', args: { key: 'contracts.autoRenewPlayer', value: true } },
     ]);
   });
 });
