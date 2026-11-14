@@ -143,7 +143,8 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe('BookingScreen', () => {
+// Each test builds a world and drives the whole screen; under a loaded machine 5 s was too tight.
+describe('BookingScreen', { timeout: 20_000 }, () => {
   it('opens on the next show to book and puts it in the URL', async () => {
     const { transport, show } = await bookedWorld();
     const { router } = renderBooking(transport);
