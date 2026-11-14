@@ -9,11 +9,15 @@ import { join } from 'node:path';
 import type { ContentKey } from '../../src/core/content-key';
 import type { Catalogs } from '../../src/model/catalogs';
 import {
+  angleTemplateRecord,
   angleTypeRecord,
+  beatRecord,
   finishRecord,
   matchTypeRecord,
   methodRecord,
+  toAngleTemplateDef,
   toAngleTypeDef,
+  toBeatDef,
   toFinishDef,
   toMatchTypeDef,
   toMethodDef,
@@ -63,6 +67,12 @@ function readTestCatalogs(): Catalogs {
     ),
     methods: catalogFrom('methods.json', (value) => methodRecord.full.parse(value), toMethodDef),
     finishes: catalogFrom('finishes.json', (value) => finishRecord.full.parse(value), toFinishDef),
+    beats: catalogFrom('beats.json', (value) => beatRecord.full.parse(value), toBeatDef),
+    angleTemplates: catalogFrom(
+      'angle-templates.json',
+      (value) => angleTemplateRecord.full.parse(value),
+      toAngleTemplateDef,
+    ),
   };
 }
 

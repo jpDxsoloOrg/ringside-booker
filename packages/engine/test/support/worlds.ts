@@ -277,7 +277,7 @@ function addTinyHistory(context: BuildContext): void {
         angle: {
           beats: [
             { beatKey: parseContentKey('beat.promo'), personIds: [person(0)] },
-            { beatKey: parseContentKey('beat.attack'), personIds: [person(1), person(0)] },
+            { beatKey: parseContentKey('beat.war-of-words'), personIds: [person(1), person(0)] },
           ],
         },
       },
