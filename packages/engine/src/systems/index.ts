@@ -27,6 +27,7 @@ import { cardFlowSystem } from './cardFlow';
 import { productionSystem } from './production';
 import { contractsSystem } from './contracts';
 import { negotiationSystem } from './negotiation';
+import { storylinesSystem } from './storylines';
 
 export { calendarSystem, healthSystem, matchSystem, workersSystem };
 export { bookingSystem };
@@ -42,6 +43,7 @@ export { cardFlowSystem };
 export { productionSystem };
 export { contractsSystem };
 export { negotiationSystem };
+export { storylinesSystem };
 
 export const defaultSystems: readonly SystemBundle[] = Object.freeze([
   simSystem,
@@ -62,4 +64,5 @@ export const defaultSystems: readonly SystemBundle[] = Object.freeze([
   productionSystem,
   contractsSystem,
   negotiationSystem,
+  storylinesSystem,
 ]);

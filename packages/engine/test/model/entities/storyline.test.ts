@@ -66,7 +66,9 @@ describe('StorylineSchema', () => {
   });
 
   it('defaults lastProgressOn and finaleSegmentId to null when a row leaves them out', () => {
-    const { lastProgressOn: _progress, finaleSegmentId: _finale, ...older } = makeStoryline(1);
+    const older: Record<string, unknown> = { ...makeStoryline(1) };
+    delete older['lastProgressOn'];
+    delete older['finaleSegmentId'];
     const parsed = StorylineSchema.parse(older);
     expect(parsed.lastProgressOn).toBeNull();
     expect(parsed.finaleSegmentId).toBeNull();

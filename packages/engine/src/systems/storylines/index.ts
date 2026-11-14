@@ -1,0 +1,81 @@
+/**
+ * Storylines (CRTV3): the feuds and angles that tie segments together across shows.
+ *
+ * CRTV3-01 lays the ground: the read queries the Storylines desk and other screens use
+ * (`storylines.list`, `storylines.detail`, `storylines.forPerson`, `storylines.memberOptions`),
+ * the engine-side reader other systems share (`storylineContextFor`, `storylinesOfPerson`,
+ * `activeStorylinesOf`), the read-side tunables, the trace kinds and the domain events. CRTV3-02
+ * adds heat cooling and starter storylines, CRTV3-03 the player's commands, CRTV4 heat after
+ * segments and the payoff.
+ *
+ * Design: docs/design/storylines.md.
+ */
+
+// The event and stream declarations are types only. Importing them here brings them into every
+// program that imports this system, including programs that only see the emitted .d.ts files.
+import './events';
+import './streams';
+import { defineSystem, type SystemBundle } from '../../core/api/system';
+import { storylinesQueries } from './queries';
+
+export {
+  activeStorylinesOf,
+  daysSinceProgress,
+  linkedSegmentIdsOf,
+  storylineContextFor,
+  storylinesOfPerson,
+  type StorylineContext,
+} from './context';
+export { STORYLINE_START_SOURCES, type StorylineStartSource } from './events';
+export { HOT_STORYLINE_DOC_REF, isHotHeat } from './formulas/hot';
+export {
+  STORYLINES_NO_PROMOTION_MESSAGE,
+  STORYLINES_NOT_YOURS_MESSAGE,
+  STORYLINES_PERSON_NOT_FOUND_MESSAGE,
+  STORYLINES_PROMOTION_NOT_FOUND_MESSAGE,
+  STORYLINE_LIST_STATUSES,
+  STORYLINE_NOT_FOUND_MESSAGE,
+  STORYLINE_PAYOFFS,
+  STORYLINE_REASONS,
+  storylinesDetailQuery,
+  storylinesForPersonQuery,
+  storylinesListQuery,
+  storylinesMemberOptionsQuery,
+  storylinesQueries,
+  type StorylineDetail,
+  type StorylineEndingView,
+  type StorylineListStatus,
+  type StorylineListView,
+  type StorylineMemberOption,
+  type StorylineMemberOptionsView,
+  type StorylinePayoff,
+  type StorylinesForPersonView,
+  type StorylineTimelineEntry,
+} from './queries';
+export {
+  activeEmploymentAt as storylineEmploymentAt,
+  buildStorylineRow,
+  compareStorylineRows,
+  editsStorylinesOf,
+  seesStorylinesOf,
+  type StorylineMemberView,
+  type StorylineRow,
+  type StorylineRowOptions,
+} from './rows';
+export {
+  STORYLINE_HEAT_TRACE_KIND,
+  STORYLINE_PAYOFF_TRACE_KIND,
+  STORYLINE_STARTER_TRACE_KIND,
+  STORYLINE_TRACE_KINDS,
+  storylineHeatTraceRef,
+  storylinePayoffTraceRef,
+  storylineStarterTraceRef,
+} from './traceKinds';
+export { storylinesTunables } from './tunables';
+
+export const storylinesSystem: SystemBundle = defineSystem({
+  id: 'storylines',
+  phases: [],
+  queries: storylinesQueries,
+  commands: [],
+});
