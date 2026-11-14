@@ -17,6 +17,7 @@ const BEAT_SCORE_DOC = 'angle-rating.md#beat-score';
 const BEAT_LIMIT_DOC = 'angle-rating.md#beat-limits';
 const ANGLE_SCORE_DOC = 'angle-rating.md#angle-score';
 const SETTING_DOC = 'angle-rating.md#settings';
+const AFTERMATH_DOC = 'angle-rating.md#angle-aftermath';
 
 function share(defaultValue: number, max: number, docRef: string, description: string) {
   return {
@@ -104,6 +105,21 @@ function writingPoints(defaultValue: number, max: number, step: number, descript
     category: ANGLES_TUNABLE_CATEGORY,
     description,
     docRef: ANGLE_SCORE_DOC,
+  } as const;
+}
+
+/** An angle aftermath number (MTCH5-06), in points. */
+function aftermathPoints(defaultValue: number, max: number, step: number, description: string) {
+  return {
+    kind: 'number',
+    default: defaultValue,
+    min: 0,
+    max,
+    step,
+    unit: 'points',
+    category: ANGLES_TUNABLE_CATEGORY,
+    description,
+    docRef: AFTERMATH_DOC,
   } as const;
 }
 
@@ -219,5 +235,30 @@ export const angleTunables = defineTunables({
   'match.angle.setting.video.durationShift': durationShift(
     0,
     "Steps a pre-taped segment moves its slot's duration class (-1: one step shorter)",
+  ),
+  // MTCH5-06: an angle's aftermath. See docs/design/angle-rating.md#angle-aftermath.
+  'match.angle.momentumPivot': aftermathPoints(
+    50,
+    100,
+    1,
+    'Angle score where momentum stays put: better angles raise it, worse ones lower it',
+  ),
+  'match.angle.momentumPerPoint': aftermathPoints(
+    0.12,
+    1,
+    0.01,
+    "Momentum per point of angle score above or below the pivot, for someone in every beat",
+  ),
+  'match.angle.popularityPivot': aftermathPoints(
+    60,
+    100,
+    1,
+    'Angle score above which the people in it gain popularity; an angle never costs popularity',
+  ),
+  'match.angle.popularityPerPoint': aftermathPoints(
+    0.05,
+    1,
+    0.01,
+    'Popularity in the show region per point of angle score above the pivot, for someone in every beat',
   ),
 });
