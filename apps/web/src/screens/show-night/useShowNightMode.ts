@@ -37,8 +37,8 @@ export function useShowNightRoute(
     data !== undefined
       ? data.stage === 'live'
       : (reason?.startsWith(FINISH_TONIGHT_FIRST) ?? false);
-  // An unknown show (or no answer at all) keeps the plain way in: the show's card in Booking.
-  if (query.status === 'error') return { goesLive: underWay, underWay };
+  // No show named, or one the engine doesn't know: the plain way in, the show's card in Booking.
+  if (eventInstanceId === null || query.status === 'error') return { goesLive: underWay, underWay };
   if (data === undefined) return { goesLive: true, underWay };
   return { goesLive: data.mode === 'live' || underWay, underWay };
 }

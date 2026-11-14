@@ -10,7 +10,14 @@ import { userEvent } from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { diffDays, initialEngineState, parseContentKey } from '@ringside/engine';
-import type { CommandArgs, CommandName, EngineState, GameDate, PersonId } from '@ringside/engine';
+import type {
+  CommandArgs,
+  CommandName,
+  EngineState,
+  GameDate,
+  PersonId,
+  ShowNightMode,
+} from '@ringside/engine';
 import { aPerson, TEST_PLAYER_ID, worldBuilder } from '@ringside/engine/testing';
 import { formatGameDate } from '@/components/format';
 import { BP_MOBILE_QUERY } from '@/styles/breakpoints';
@@ -494,7 +501,7 @@ async function command<K extends CommandName>(
  * with planned winners, with the real show-day gate. There is no lock (EVT2-09): the next Next Day
  * stops on the show, and the player runs it from the show screen.
  */
-async function renderShowEve() {
+async function renderShowEve({ mode = 'live' }: { readonly mode?: ShowNightMode } = {}) {
   const transport = createInProcessTransport(fakeEngineFactory({ showDayGate: true }), {
     progressIntervalMs: 0,
   });
@@ -536,6 +543,7 @@ async function renderShowEve() {
       },
     });
   }
+  if (mode === 'auto') await command(transport, 'shows.setShowNight', { mode });
   const clock = await transport.host.query('clock.get', {});
   if (!clock.result.ok) throw new Error('clock.get was refused.');
   const daysToEve = diffDays(clock.result.data.date, show.date) - 1;
@@ -555,7 +563,7 @@ async function renderShowEve() {
 
 describe('DayControl: a show night', () => {
   it(
-    'stops Next Day on your show with Tonight; Go to the show, Run the show, then the results',
+    'stops Next Day on your show with Tonight; Go live opens show night, Sim the rest, then the results (EVT10-02)',
     { timeout: 20_000 },
     async () => {
       const { show, router, user } = await renderShowEve();
@@ -567,6 +575,54 @@ describe('DayControl: a show night', () => {
       const banner = await summary();
       expect(banner).toHaveTextContent(`Tonight: ${show.name}`);
       expect(within(banner).queryByRole('link', { name: /^See results/ })).toBeNull();
+      expect(await within(banner).findByRole('link', { name: 'Go live' })).toHaveAttribute(
+        'href',
+        routes.game.showNight(show.eventInstanceId),
+      );
+      const goLive = await waitFor(() => dayButton('Go live'));
+      expect(goLive).toHaveAccessibleDescription(`Tonight: ${show.name}`);
+
+      await user.click(goLive);
+      await waitFor(
+        () => {
+          expect(router.state.location.pathname).toBe(routes.game.showNight(show.eventInstanceId));
+        },
+        { timeout: 5_000 },
+      );
+
+      const sim = await screen.findByRole(
+        'button',
+        { name: 'Sim the rest of the show' },
+        { timeout: 5_000 },
+      );
+      await waitFor(() => {
+        expect(sim).toBeEnabled();
+      });
+      await user.click(sim);
+      await user.click(
+        await screen.findByRole('button', { name: 'See the results' }, { timeout: 5_000 }),
+      );
+      await waitFor(
+        () => {
+          expect(router.state.location.pathname).toBe(
+            routes.game.showResults(show.eventInstanceId),
+          );
+        },
+        { timeout: 5_000 },
+      );
+      // The show has run, so Next Day moves on again.
+      await waitFor(() => dayButton('Next day'));
+    },
+  );
+
+  it(
+    'under Auto, Go to the show opens Booking, where Run the show runs it all, then the results',
+    { timeout: 20_000 },
+    async () => {
+      const { show, router, user } = await renderShowEve({ mode: 'auto' });
+
+      await user.click(await waitFor(() => dayButton()));
+      await expectDateChip(show.date);
       const goToShow = await waitFor(() => dayButton('Go to the show'));
       expect(goToShow).toHaveAccessibleDescription(`Tonight: ${show.name}`);
 
@@ -589,7 +645,6 @@ describe('DayControl: a show night', () => {
         { timeout: 5_000 },
       );
       expect(router.state.location.search).toBe('?reveal=1');
-      // The show has run, so Next Day moves on again.
       await waitFor(() => dayButton('Next day'));
     },
   );
@@ -598,7 +653,7 @@ describe('DayControl: a show night', () => {
     'skipping on after running your show neither links nor reopens its results (EVT2-12)',
     { timeout: 20_000 },
     async () => {
-      const { show, router, user } = await renderShowEve();
+      const { show, router, user } = await renderShowEve({ mode: 'auto' });
       await user.click(await waitFor(() => dayButton()));
       await user.click(await waitFor(() => dayButton('Go to the show')));
       const run = await screen.findByRole('button', { name: 'Run the show' }, { timeout: 5_000 });
