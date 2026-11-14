@@ -15,6 +15,17 @@ function daysAdvancedFrom(headline: string): number {
 }
 
 /**
+ * Waits until the day bar and the date beside it are current: after a day passes they keep the
+ * last answer on screen, marked `aria-busy`, until the new one arrives. Read before that, the bar
+ * can still say Next day when the day has already stopped for something.
+ */
+export async function expectDayBarSettled(page: Page): Promise<void> {
+  await expect(page.locator('[data-testid="day-control"][aria-busy="true"]')).toHaveCount(0, {
+    timeout: 15_000,
+  });
+}
+
+/**
  * Skips `days` days once through the Skip days sheet: the top bar's button on desktop, the status
  * sheet's on a phone. Waits for the summary of this advance and returns how many days it moved,
  * which is fewer when the show-day gate stopped it.
@@ -39,6 +50,7 @@ export async function skipDaysOnce(page: Page, days: number, phone: boolean): Pr
   await expect(summary).toBeVisible();
   await expect.poll(() => summary.textContent()).not.toBe(before);
   await expect(page.getByTestId('advance-overlay')).toBeHidden();
+  await expectDayBarSettled(page);
   return daysAdvancedFrom((await summary.textContent()) ?? '');
 }
 

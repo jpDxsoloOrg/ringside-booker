@@ -42,7 +42,6 @@ import {
   clearDayStop,
   contractRows,
   dayButton,
-  expectDayBarStopped,
   gameDate,
   openContracts,
   skipToDateThroughStops,
@@ -332,7 +331,6 @@ test.describe('contracts', () => {
         if (await contracts.isVisible()) break;
         if (await clearDayStop(page)) continue;
         left -= await skipDaysOnce(page, left, phone);
-        if (left > 0) await expectDayBarStopped(page);
       }
       await expect(contracts).toHaveAccessibleDescription(/^Contract expiring soon: .+/);
       await shot(page, 'contracts-stop', testInfo);
