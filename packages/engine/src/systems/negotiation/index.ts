@@ -199,6 +199,7 @@ export {
   type OfferInput,
 } from './validate';
 export {
+  AGREED_COUNTER_REASON,
   answerCounter,
   answerCounterReasons,
   cappedHistory,
@@ -249,6 +250,7 @@ export {
 export { CONTRACT_ENDED_OUTCOME, closeTalksOnEndedContract } from './endedTalks';
 export {
   closeTalks,
+  closeTalksLostTo,
   LAPSED_OUTCOME,
   LOST_TO_OTHER_OFFER_OUTCOME,
   PROMOTION_CLOSED_OUTCOME,

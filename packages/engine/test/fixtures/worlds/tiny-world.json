@@ -2925,7 +2925,8 @@
         "cooldownUntil": null,
         "reactionTraceId": "neg_0000000001:1",
         "reviewTraceId": null,
-        "counterStopsSkip": false
+        "counterStopsSkip": false,
+        "answerStopsSkip": false
       }
     ],
     "networks": [

@@ -12,8 +12,10 @@ import type { Negotiation, NegotiationRound } from '../../../src/model/entities/
 import { contractsSystem } from '../../../src/systems/contracts';
 import { financeSystem } from '../../../src/systems/finance';
 import {
+  AGREED_COUNTER_REASON,
   askTraceRef,
   cappedHistory,
+  reviewTraceRef,
   negotiationSystem,
   validateOffer,
   type Offer,
@@ -524,24 +526,79 @@ describe('contracts.respondToCounter and contracts.withdrawOffer', () => {
     ).toEqual(['contracts.notCountered']);
   });
 
-  it('accepting their counter sends it for review and mirrors it on the offered employment', () => {
+  it('accepting their counter signs it at once, on their terms (ECO5-10)', () => {
     const { setup, engine, negotiationId, counter } = countered();
     const answered = done(
       engine.command('contracts.respondToCounter', { negotiationId, response: 'accept' }, PLAYER),
     );
-    expect(answered.status).toBe('awaitingReview');
-    expect(answered.preview?.reaction).toBe('accept');
+    expect(answered).toEqual({ negotiationId, status: 'signed', preview: null });
     const row = negotiationOf(engine, negotiationId);
     expect(row).toMatchObject({
-      status: 'awaitingReview',
-      reviewOn: addDays(setup.today, 2),
+      status: 'signed',
+      closedOn: setup.today,
+      reviewOn: null,
       patience: 4,
       lastCounter: null,
       counterExpiresOn: null,
       round: 2,
+      outcome: { code: 'signed', otherPromotionId: null },
+      // The player made the deal themselves: no "Offer answered" stop.
+      answerStopsSkip: false,
     });
     expect(row.offer).toEqual(counter);
-    expect(employmentOf(engine, row.employmentId).terms.monthlyWage).toBe(1_500_000);
+    expect(row.history.at(-1)).toMatchObject({ round: 2, by: 'promotion', reaction: 'accept' });
+    const employment = employmentOf(engine, row.employmentId);
+    expect(['signed', 'active']).toContain(employment.status);
+    expect(employment.terms.monthlyWage).toBe(1_500_000);
+    // The decision reads as theirs to see, not a review that never happened.
+    const decision = engine.query('trace.get', { ref: reviewTraceRef(negotiationId) }, PLAYER_VIEW);
+    expect(JSON.stringify(decision)).toContain(AGREED_COUNTER_REASON);
+  });
+
+  it('an accepted counter beats a rival still waiting for their review', () => {
+    const setup = negotiationWorld();
+    const engine = negotiationEngine(setup.world);
+    const rival = done(
+      engine.command(
+        'contracts.makeOffer',
+        { promotionId: setup.rival, personId: setup.veteran, offer: offer() },
+        COMPUTER,
+      ),
+    );
+    const made = done(makeOffer(engine, setup, setup.veteran));
+    const counter = offer({ terms: { monthlyWage: cents(1_500_000) } });
+    const withRival = withCounter(engine, made.negotiationId, counter, 4, setup.today);
+    done(
+      withRival.command(
+        'contracts.respondToCounter',
+        { negotiationId: made.negotiationId, response: 'accept' },
+        PLAYER,
+      ),
+    );
+    expect(negotiationOf(withRival, rival.negotiationId)).toMatchObject({
+      status: 'declined',
+      outcome: { code: 'lostToOtherOffer', otherPromotionId: setup.human },
+    });
+  });
+
+  it('says at once why an accepted counter can no longer be signed', () => {
+    const { setup, engine, negotiationId } = countered();
+    // The worker retired since they countered.
+    const state = engine.exportState();
+    const people = state.world.tables.people;
+    const index = people.findIndex((row) => row.id === setup.veteran);
+    const person = people[index];
+    if (person === undefined) throw new Error('missing veteran');
+    people[index] = { ...person, status: 'retired' };
+    const changed = createEngine({ state, systems: SYSTEMS });
+    const result = changed.command(
+      'contracts.respondToCounter',
+      { negotiationId, response: 'accept' },
+      PLAYER,
+    );
+    expect(result.ok).toBe(false);
+    expect(refusal(result).message.length).toBeGreaterThan(0);
+    expect(negotiationOf(changed, negotiationId).status).toBe('countered');
   });
 
   it('revising costs no extra patience (a round costs one point), adds a round and matches the preview', () => {
@@ -606,8 +663,8 @@ describe('contracts.respondToCounter and contracts.withdrawOffer', () => {
         PLAYER,
       ),
     );
-    expect(answered.status).toBe('awaitingReview');
-    expect(negotiationOf(engine, negotiationId).patience).toBe(4);
+    expect(answered.status).toBe('signed');
+    expect(negotiationOf(engine, negotiationId)).toMatchObject({ status: 'signed', patience: 4 });
   });
 
   it('revising needs an offer', () => {

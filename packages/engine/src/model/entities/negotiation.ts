@@ -142,6 +142,13 @@ export const NegotiationSchema = z
      * copied when the worker made the counter (gates cannot read tunables). Only while `countered`.
      */
     counterStopsSkip: z.boolean().default(false),
+    /**
+     * True while the worker's answer to a player's promotion (signed, turned down, walked away,
+     * stopped waiting) has not been opened yet and stops day skips ("Offer answered", ECO5-10):
+     * `contracts.answer.stopSkip` copied when the talks closed. Only once the talks are closed;
+     * opening the talks (`contracts.markOffersSeen`) clears it.
+     */
+    answerStopsSkip: z.boolean().default(false),
   })
   .superRefine((row, context) => {
     const issue = (path: string, message: string): void => {
@@ -173,6 +180,9 @@ export const NegotiationSchema = z
     }
     if (!countered && row.counterStopsSkip) {
       issue('counterStopsSkip', `counterStopsSkip must be false while the status is ${row.status}`);
+    }
+    if (open && row.answerStopsSkip) {
+      issue('answerStopsSkip', `answerStopsSkip must be false while the status is ${row.status}`);
     }
     if (row.status === 'awaitingReview' && row.reviewOn === null) {
       issue('reviewOn', 'A negotiation awaiting review needs reviewOn');

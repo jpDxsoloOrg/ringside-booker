@@ -7,8 +7,9 @@
  * - `submitOffer` opens talks: for a signing it creates the `offered` employment the talks point
  *   at; for a renewal the talks point at the live contract. It records the worker's asking terms
  *   (`contracts.ask`, round 1) and publishes `negotiation.opened`.
- * - `answerCounter` answers a counter-offer: accept it (the worker then reviews it), send a revised
- *   offer (a new round; the worker's counter already used its point of patience) or end the talks.
+ * - `answerCounter` answers a counter-offer: accept it (the worker signs at once, ECO5-10), send a
+ *   revised offer (a new round; the worker's counter already used its point of patience) or end
+ *   the talks.
  * - `withdrawNegotiation` takes an open offer back.
  *
  * Nothing here makes the worker react: that happens when the day runs (ECO5-05). Every function
@@ -19,7 +20,6 @@
 
 import { controlsPromotion, type Controller } from '../../core/api/controller';
 import type { Reason } from '../../core/api/result';
-import { addDays } from '../../core/date';
 import { InvalidArgumentError } from '../../core/errors';
 import type { EmploymentId, NegotiationId, PromotionId } from '../../core/ids';
 import type { PhaseContext } from '../../core/pipeline/context';
@@ -36,7 +36,9 @@ import type { DeepReadonly } from '../../model/world';
 import { meetsCounter, type OfferEvaluation } from './evaluate';
 import { ASKING_TERMS_DOC_REF } from './formulas/shared';
 import type { Offer } from './offer';
-import { askTraceRef } from './traceKinds';
+import { closeTalksLostTo } from './close';
+import { signNegotiation } from './sign';
+import { askTraceRef, reviewTraceRef } from './traceKinds';
 import { createOfferedEmployment, mirrorOffer } from './offeredEmployment';
 import {
   checkOffer,
@@ -44,6 +46,10 @@ import {
   NOT_YOUR_PROMOTION_TEXT,
   type OfferInput,
 } from './validate';
+
+/** The line of an agreed counter-offer's signing decision (ECO5-10). */
+export const AGREED_COUNTER_REASON = 'You agreed to their counter-offer, so they signed at once';
+const AGREED_COUNTER_DOC_REF = 'negotiation.md#rounds';
 
 /** Outcome codes the promotion's own actions close talks with. */
 export const WITHDRAWN_OUTCOME = 'withdrawn';
@@ -183,6 +189,7 @@ export function submitOffer(
     reactionTraceId: null,
     reviewTraceId: null,
     counterStopsSkip: false,
+    answerStopsSkip: false,
   });
   recordAsk(ctx, negotiation.id, 1, evaluation, promotionId);
   ctx.publish('negotiation.opened', {
@@ -259,9 +266,12 @@ export function withdrawNegotiation(
 }
 
 /**
- * Answers a counter-offer. `accept` takes their counter (they decide on the review day); `revise`
- * sends a new offer (a new round; no extra patience, the counter already used a point); `end` closes the talks with no cooldown.
- * A revision that pays their counter (or more money on the same terms) counts as accepting it.
+ * Answers a counter-offer. `accept` takes their counter, and the worker signs it at once (ECO5-10:
+ * they asked for exactly these terms, so there is nothing to think over); `revise` sends a new
+ * offer (a new round; no extra patience, the counter already used a point); `end` closes the talks
+ * with no cooldown. A revision that pays their counter (or more money on the same terms) counts as
+ * accepting it, and signs too. Anything that would stop the signing (they became unavailable, the
+ * terms no longer fit) is refused up front by `answerCounterReasons`, with the reason.
  */
 export function answerCounter(
   ctx: PhaseContext,
@@ -295,27 +305,57 @@ export function answerCounter(
   const round = negotiation.round + 1;
   const history = cappedHistory([
     ...historyCopy(negotiation),
-    { round, date: ctx.date, by: 'promotion', offer, reaction: null },
+    { round, date: ctx.date, by: 'promotion', offer, reaction: accepting ? 'accept' : null },
   ]);
-  const status: NegotiationStatus = accepting ? 'awaitingReview' : 'submitted';
   ctx.tx.update('negotiations', negotiation.id, {
-    status,
+    // An agreed counter is signed below in this same step; `awaitingReview` only for that moment.
+    status: accepting ? 'awaitingReview' : 'submitted',
     round,
     patience: check.evaluation.patience,
     offer,
     lastCounter: null,
     counterExpiresOn: null,
     counterStopsSkip: false,
-    reviewOn: accepting ? addDays(ctx.date, ctx.tunables.get('contracts.review.delayDays')) : null,
+    reviewOn: accepting ? ctx.date : null,
     submittedOn: ctx.date,
     history,
   });
   mirrorOffer(ctx, negotiation, offer);
   recordAsk(ctx, negotiation.id, round, check.evaluation, negotiation.promotionId);
-  ctx.log(
-    `${accepting ? 'Counter-offer accepted' : 'Revised offer sent'}: ${ctx.read.tables.people.require(negotiation.personId).defaultRingName}`,
+  const ringName = ctx.read.tables.people.require(negotiation.personId).defaultRingName;
+  if (accepting) {
+    signAgreedCounter(ctx, ctx.read.tables.negotiations.require(negotiation.id));
+    ctx.log(`Counter-offer accepted: ${ringName} signed`);
+    return { negotiationId: negotiation.id, status: 'signed', evaluation: null };
+  }
+  ctx.log(`Revised offer sent: ${ringName}`);
+  return { negotiationId: negotiation.id, status: 'submitted', evaluation: check.evaluation };
+}
+
+/**
+ * The worker signs a counter-offer the promotion agreed to (ECO5-10): their own terms, so there is
+ * nothing left to think over. The decision is stored where a review's would be, the deal is signed
+ * through `signNegotiation` (as seen by the promotion: no "Offer answered" stop), and every other
+ * open negotiation for the worker loses to it, as after a review.
+ */
+function signAgreedCounter(ctx: PhaseContext, negotiation: DeepReadonly<Negotiation>): void {
+  const promotion = ctx.read.tables.promotions.get(negotiation.promotionId);
+  const decision = startDecision<NegotiationId>('Which offer they sign', {
+    docRef: AGREED_COUNTER_DOC_REF,
+  });
+  decision.rule(AGREED_COUNTER_REASON, true);
+  const ref = reviewTraceRef(negotiation.id);
+  const deal = signNegotiation(ctx, negotiation, ref, { seenByPlayer: true });
+  for (const note of deal.notes) {
+    decision.note(note);
+  }
+  ctx.recordTrace(
+    ref,
+    ctx.date,
+    decision.choose(negotiation.id, `Signs with ${promotion?.name ?? 'your promotion'}`),
+    { summaryOnly: promotion?.controller.kind !== 'human' },
   );
-  return { negotiationId: negotiation.id, status, evaluation: check.evaluation };
+  closeTalksLostTo(ctx, negotiation);
 }
 
 function ownTalksReasons(

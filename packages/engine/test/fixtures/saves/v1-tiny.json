@@ -9,7 +9,7 @@
     "label": "Test save",
     "promotionName": "Test Promotion A",
     "promotionShortName": "TPA",
-    "schemaFingerprint": "8257571cb69d4e98ee9c6f10613674a5",
+    "schemaFingerprint": "2abcc137ea0d12635036c22c4da69a70",
     "startDate": "2026-01-05",
     "worldName": "Test Tiny World"
   },
@@ -2800,6 +2800,7 @@
         ],
         "negotiations": [
           {
+            "answerStopsSkip": false,
             "closedOn": null,
             "cooldownUntil": null,
             "counterExpiresOn": "2026-04-15",

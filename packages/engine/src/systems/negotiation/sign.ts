@@ -213,13 +213,16 @@ function signRenewal(ctx: PhaseContext, negotiation: DeepReadonly<Negotiation>):
 }
 
 /**
- * Signs the winning offer of a review: the contract, the signing bonus, the closed negotiation and
- * `contract.signed`. `decisionTraceRef` is where the review's decision is stored.
+ * Signs the winning offer of a review, or a counter-offer the promotion accepted (ECO5-10): the
+ * contract, the signing bonus, the closed negotiation and `contract.signed`. `decisionTraceRef` is
+ * where the decision is stored; `seenByPlayer` keeps a signing the player made themselves from
+ * stopping a skip as "Offer answered".
  */
 export function signNegotiation(
   ctx: PhaseContext,
   negotiation: DeepReadonly<Negotiation>,
   decisionTraceRef: TraceRef,
+  options: { readonly seenByPlayer?: boolean } = {},
 ): SignedDeal {
   const renewal = negotiation.kind === 'renewal';
   const deal = renewal ? signRenewal(ctx, negotiation) : signNew(ctx, negotiation);
@@ -229,6 +232,7 @@ export function signNegotiation(
     status: 'signed',
     outcomeCode: SIGNED_OUTCOME,
     reviewTraceId: decisionTraceRef.id,
+    ...(options.seenByPlayer === undefined ? {} : { seenByPlayer: options.seenByPlayer }),
   });
   ctx.publish('contract.signed', {
     employmentId: employment.id,
