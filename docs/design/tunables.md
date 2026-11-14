@@ -1212,7 +1212,8 @@ whole cents (shown here in dollars); 0 means 0.
 
 CRTV1-01, see [titles.md](titles.md#starting-prestige). Where a newly created
 title's prestige starts: a base per tier, moved by the promotion's own
-prestige. CRTV1-03 adds `titles.orphanGraceDays` with its phase.
+prestige. CRTV1-03 adds `titles.orphanGraceDays` with its phase
+([titles.md](titles.md#orphaned-champions)).
 
 | Key                                    | Kind    | Default | Range | Unit   | Meaning                                                                                             |
 | -------------------------------------- | ------- | ------- | ----- | ------ | --------------------------------------------------------------------------------------------------- |
@@ -1233,3 +1234,5 @@ threshold CRTV4 reads too.
 | `storylines.heat.hotFrom`       | number  | 70      | 0–100 | points | Heat at which a storyline shows as Hot on the meter (display only)                                |
 | `storylines.activeSoftLimit`    | integer | 6       | 0–30  | count  | Active storylines per promotion before creating another shows a warning. 0 never warns            |
 | `storylines.payoff.minSegments` | integer | 4       | 0–30  | count  | Linked segments a storyline needs before ending it can pay off. 0 means any storyline can pay off |
+
+| `titles.orphanGraceDays` | integer | 7 | 0–365 | days | Days a champion may lack a contract with the promotion (or its parent) before the title is vacated |

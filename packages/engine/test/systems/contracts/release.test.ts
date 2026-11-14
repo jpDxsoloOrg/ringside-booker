@@ -186,7 +186,7 @@ describe('contracts.releasePreview', () => {
       'gladToGo',
     ]);
     expect(shown.warnings[0]?.message).toBe(
-      `Holds the ${TITLE_NAME}. Titles don't change hands on their own yet, so they keep it.`,
+      `Holds the ${TITLE_NAME}. If they leave, the title is vacated after 7 days.`,
     );
   });
 

@@ -1,4 +1,4 @@
-// The titles system's tunables and registration (CRTV1-01). Design: docs/design/titles.md
+// The titles system's tunables and registration (CRTV1-01, CRTV1-03). Design: docs/design/titles.md
 import { describe, expect, it } from 'vitest';
 import { createEngine, initialEngineState, type Viewer } from '../../../src/core/api';
 import { defaultSystems } from '../../../src/systems';
@@ -14,6 +14,7 @@ const EXPECTED_DEFAULTS: Readonly<Record<string, number>> = {
   'titles.startPrestige.specialty': 20,
   'titles.startPrestige.promotionAnchor': 50,
   'titles.startPrestige.promotionWeight': 0.3,
+  'titles.orphanGraceDays': 7,
 };
 
 describe('titles system', () => {
@@ -22,7 +23,7 @@ describe('titles system', () => {
     expect(ids.indexOf('titles')).toBe(ids.indexOf('workers') + 1);
   });
 
-  it('declares exactly the starting-prestige keys, all in ALL_TUNABLES', () => {
+  it('declares exactly the starting-prestige and orphan keys, all in ALL_TUNABLES', () => {
     expect(Object.keys(titlesTunables).sort()).toEqual(Object.keys(EXPECTED_DEFAULTS).sort());
     const defaults = Object.fromEntries(
       Object.entries(ALL_TUNABLES)
@@ -43,6 +44,12 @@ describe('titles system', () => {
     }
     expect(list.data.map((row) => row.key).sort()).toEqual(Object.keys(EXPECTED_DEFAULTS).sort());
     expect(list.data.every((row) => row.description.length > 0)).toBe(true);
-    expect(list.data.every((row) => row.docRef === 'titles.md#starting-prestige')).toBe(true);
+    expect(
+      list.data.every((row) =>
+        row.key === 'titles.orphanGraceDays'
+          ? row.docRef === 'titles.md#orphaned-champions'
+          : row.docRef === 'titles.md#starting-prestige',
+      ),
+    ).toBe(true);
   });
 });
