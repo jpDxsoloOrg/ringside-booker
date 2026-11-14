@@ -47,8 +47,8 @@ function retentionWorld(): RetentionWorld {
     .withPromotion(
       { name: 'Test Promotion A', controller: { kind: 'human', playerId: 'player-1' } },
       (promotion) => {
-        promotion.withDeal({ network: 0, startsOn: '2025-01-01' });
-        promotion.withDeal({ network: 1, startsOn: '2025-01-01' });
+        promotion.withDeal({ network: 0, startsOn: parseGameDate('2025-01-01') });
+        promotion.withDeal({ network: 1, startsOn: parseGameDate('2025-01-01') });
       },
     )
     .build();

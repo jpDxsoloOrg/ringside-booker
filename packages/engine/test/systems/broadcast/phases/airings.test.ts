@@ -12,7 +12,7 @@ import { defineSystem, type SystemBundle } from '../../../../src/core/api/system
 import { addDays, type GameDate } from '../../../../src/core/date';
 import type { DealId, EventInstanceId, PromotionId } from '../../../../src/core/ids';
 import type { DomainEventMap } from '../../../../src/core/events/types';
-import { negate } from '../../../../src/core/money';
+import { cents, negate } from '../../../../src/core/money';
 import { definePhase } from '../../../../src/core/pipeline/phase';
 import { isFullTrace } from '../../../../src/core/trace';
 import type { Airing } from '../../../../src/model/entities/airing';
@@ -50,7 +50,11 @@ const TUNABLES = createEngineTunables();
 
 const AS_PLAYER: Viewer = { kind: 'controller', controller: PLAYER_ONE };
 
-const TERMS: DealTerms = { feePerShow: 100_000, perThousandViewers: 5_000, costPerShow: 30_000 };
+const TERMS: DealTerms = {
+  feePerShow: cents(100_000),
+  perThousandViewers: cents(5_000),
+  costPerShow: cents(30_000),
+};
 
 function mustWrite(world: GameWorld, label: string, body: Parameters<GameWorld['transact']>[1]) {
   const result = world.transact(label, body);
@@ -261,7 +265,7 @@ describe('broadcast.airings on show night', () => {
     const income = ledgerFor(engine, unrun).filter((row) => row.amount > 0);
     expect(income).toHaveLength(2);
     for (const row of income) {
-      expect(row.memo.endsWith(AIRED_WITHOUT_RESULT_MEMO.trim())).toBe(true);
+      expect(row.memo?.endsWith(AIRED_WITHOUT_RESULT_MEMO.trim())).toBe(true);
     }
     const rows = engine.query('broadcast.airings', { promotionId: built.promotionA }, AS_PLAYER);
     if (!rows.ok) throw new Error('broadcast.airings refused');

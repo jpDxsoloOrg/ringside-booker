@@ -4,6 +4,7 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { createEngine, type Engine, type Viewer } from '../../../../src/core/api';
 import { addDays, parseGameDate } from '../../../../src/core/date';
+import type { PromotionId } from '../../../../src/core/ids';
 import {
   countTraceNodes,
   isFullTrace,
@@ -38,7 +39,7 @@ beforeAll(async () => {
   tables = engine.exportState().world.tables;
 }, 60_000);
 
-function promotionNamed(prefix: string): string {
+function promotionNamed(prefix: string): PromotionId {
   const found = tables.promotions.find((row) => row.name.startsWith(prefix));
   if (found === undefined) throw new Error(`No promotion named ${prefix}`);
   return found.id;
