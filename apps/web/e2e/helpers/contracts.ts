@@ -1,6 +1,13 @@
 import { expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
-import { cancelTonightsShow, gameDate, waitForAdvanceToEnd, waitForDayBarSettled } from './booking';
+import {
+  cancelTonightsShow,
+  dayBarButtons,
+  gameDate,
+  SHOW_STOP,
+  waitForAdvanceToEnd,
+  waitForDayBarSettled,
+} from './booking';
 
 /** The day bar's button with this name. */
 export function dayButton(page: Page, name: string | RegExp): Locator {
@@ -61,7 +68,7 @@ export function addIsoDays(date: string, days: number): string {
 }
 
 /** The day bar's buttons when the day stops (or doesn't). */
-const DAY_BUTTONS = /^(Next day|(Tonight: )?Go to the show|Contracts|Roster)$/;
+const DAY_BUTTONS = dayBarButtons('Contracts', 'Roster');
 
 /** The screens the own-injury stop opens (`injuryGateDestination`); each marks injuries seen. */
 const INJURY_VIEW =
@@ -95,7 +102,7 @@ export async function clearDayStop(page: Page, handlers: StopHandlers = {}): Pro
   await expect(dayButton(page, DAY_BUTTONS)).toBeVisible({ timeout: 15_000 });
   const contracts = dayButton(page, 'Contracts');
   const roster = dayButton(page, 'Roster');
-  const show = dayButton(page, /Go to the show$/);
+  const show = dayButton(page, SHOW_STOP);
   if (await contracts.isVisible()) {
     if (handlers.onContractsStop === undefined) await clearExpiringContracts(page);
     else await handlers.onContractsStop();
@@ -112,9 +119,6 @@ export async function clearDayStop(page: Page, handlers: StopHandlers = {}): Pro
   }
   return false;
 }
-
-/** The day bar's button when the day stops on your show night. */
-const SHOW_STOP = /Go to the show$/;
 
 /**
  * Clears the day's stops other than your show night (an injury, expiring contracts) the way a
