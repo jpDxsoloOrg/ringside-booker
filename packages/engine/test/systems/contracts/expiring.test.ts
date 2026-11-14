@@ -38,10 +38,16 @@ function today(engine: Engine) {
   return engine.exportState().world.meta.currentDate;
 }
 
+/**
+ * The release world's glad-to-go worker sits at low morale and asks to leave after a couple of
+ * weeks; these long skips are about the expiry stop, so that other stop stays off.
+ */
+const NO_REQUEST_STOP = { 'contracts.releaseRequest.stopSkip': false } as const;
+
 describe('contracts.expiringSoon', () => {
   it('stops the skip the day after the notice day, naming the worker, until it is seen', async () => {
     const built = releaseWorld();
-    const engine = contractsEngine(built.world);
+    const engine = contractsEngine(built.world, NO_REQUEST_STOP);
     // 40 days left, a 30-day window: the notice is raised on day 10, so day 11 does not run.
     const first = await engine.advanceDays({ maxDays: 60 });
     expect(first.daysAdvanced).toBe(11);
@@ -107,7 +113,7 @@ describe('contracts.expiringSoon', () => {
       { 'contracts.expiringSoon.stopSkip': false },
     ]) {
       const built = releaseWorld();
-      const engine = contractsEngine(built.world, overrides);
+      const engine = contractsEngine(built.world, { ...NO_REQUEST_STOP, ...overrides });
       const result = await engine.advanceDays({ maxDays: 45 });
       expect(result.stoppedBy).toEqual({ kind: 'completed' });
     }
