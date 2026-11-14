@@ -146,7 +146,11 @@ describe('contracts.counts and contracts.changesSince', () => {
 
   it('list starts, releases and automatic renewals in the range, own promotion only', async () => {
     const built = releaseWorld();
-    const engine = contractsEngine(built.world, { 'contracts.expiringSoon.stopSkip': false });
+    // The automatic renewal is off by default since ECO5-05; it is the simplest renewal to list.
+    const engine = contractsEngine(built.world, {
+      'contracts.expiringSoon.stopSkip': false,
+      'contracts.autoRenewPlayer': true,
+    });
     const shown = ask(
       engine.query('contracts.releasePreview', { employmentId: built.plain }, PLAYER_VIEW),
     );

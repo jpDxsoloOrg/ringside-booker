@@ -2,10 +2,10 @@
  * Who may see a negotiation trace (ECO5-05). Talks are private to the promotion having them, and
  * a review decision compares every bidder's offer, so:
  *
- * - every negotiation trace kind (`contracts.ask`, `.reaction`, `.counter`, `.review`,
- *   `.signingBonus`) is returned by `trace.get` only to a viewer who runs the negotiation's
- *   promotion (or the omniscient viewer);
- * - a review decision is redacted for that viewer: other promotions' score nodes become "Another
+ * - a review decision (`contracts.review`) is returned by `trace.get` only to a viewer who runs the
+ *   negotiation's promotion (or the omniscient viewer); the other kinds keep the usual rule (a
+ *   computer promotion's traces are stored as summaries only);
+ * - and it is redacted for that viewer: other promotions' score nodes become "Another
  *   offer was compared" and their entries leave the list of options weighed. Names stay (the
  *   outcome names the winner anyway); their values and amounts never leave the engine.
  *
@@ -91,9 +91,6 @@ export function guardNegotiationTrace(
   if (negotiation === undefined || !viewerIds.includes(negotiation.promotionId)) {
     return null;
   }
-  if (entry.ref.kind !== NEGOTIATION_TRACE_KINDS.review) {
-    return entry;
-  }
   if (!isFullTrace(entry)) {
     return { ...entry, topContributors: [] };
   }
@@ -101,6 +98,4 @@ export function guardNegotiationTrace(
   return { ...entry, trace, value: trace.value };
 }
 
-for (const kind of Object.values(NEGOTIATION_TRACE_KINDS)) {
-  registerTraceReadGuard(kind, guardNegotiationTrace);
-}
+registerTraceReadGuard(NEGOTIATION_TRACE_KINDS.review, guardNegotiationTrace);

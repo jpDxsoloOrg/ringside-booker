@@ -9,7 +9,7 @@
     "label": "Test save",
     "promotionName": "Test Promotion A",
     "promotionShortName": "TPA",
-    "schemaFingerprint": "7b6bf0cb921a348673f78c8d38ac2c43",
+    "schemaFingerprint": "6e89bee183266bb139578ede2ac350be",
     "startDate": "2026-01-05",
     "worldName": "Test Tiny World"
   },
@@ -431,7 +431,10 @@
                 "max": 2,
                 "min": 2
               },
-              "styleAffinity": ["technician", "grappler"],
+              "styleAffinity": [
+                "technician",
+                "grappler"
+              ],
               "workRateFactor": 1
             },
             "match.four-way": {
@@ -515,7 +518,10 @@
                 "max": 2,
                 "min": 2
               },
-              "styleAffinity": ["highFlyer", "striker"],
+              "styleAffinity": [
+                "highFlyer",
+                "striker"
+              ],
               "workRateFactor": 1
             },
             "match.tag-team": {
@@ -727,9 +733,13 @@
             "kind": "rosterReview",
             "promotionId": "pro_0000000002",
             "refs": {
-              "employmentIds": ["emp_0000000009"],
+              "employmentIds": [
+                "emp_0000000009"
+              ],
               "eventInstanceId": null,
-              "personIds": ["per_0000000009"],
+              "personIds": [
+                "per_0000000009"
+              ],
               "promotionIds": [],
               "titleIds": []
             },
@@ -750,9 +760,13 @@
             "kind": "card",
             "promotionId": "pro_0000000002",
             "refs": {
-              "employmentIds": ["emp_0000000009"],
+              "employmentIds": [
+                "emp_0000000009"
+              ],
               "eventInstanceId": null,
-              "personIds": ["per_0000000009"],
+              "personIds": [
+                "per_0000000009"
+              ],
               "promotionIds": [],
               "titleIds": []
             },
@@ -1567,7 +1581,9 @@
             "promotionId": "pro_0000000001",
             "recurrence": {
               "kind": "weekly",
-              "weekdays": [3]
+              "weekdays": [
+                3
+              ]
             },
             "televised": true
           }
@@ -1758,7 +1774,9 @@
             "refs": {
               "employmentId": null,
               "eventInstanceId": null,
-              "personIds": ["per_0000000008"],
+              "personIds": [
+                "per_0000000008"
+              ],
               "promotionIds": []
             },
             "subject": {
@@ -1774,6 +1792,7 @@
             "closedOn": null,
             "cooldownUntil": null,
             "counterExpiresOn": "2026-04-15",
+            "counterStopsSkip": false,
             "employmentId": "emp_000000000h",
             "history": [
               {
@@ -1926,7 +1945,9 @@
             "closedOn": null,
             "coverage": {
               "continentIds": [],
-              "countryIds": ["cty_0000000001"],
+              "countryIds": [
+                "cty_0000000001"
+              ],
               "regionIds": []
             },
             "id": "net_0000000001",
@@ -1958,7 +1979,10 @@
               "employmentId": null,
               "eventInstanceId": null,
               "personIds": [],
-              "promotionIds": ["pro_0000000001", "pro_0000000002"]
+              "promotionIds": [
+                "pro_0000000001",
+                "pro_0000000002"
+              ]
             }
           },
           {
@@ -1978,7 +2002,10 @@
             "refs": {
               "employmentId": null,
               "eventInstanceId": "evi_0000000001",
-              "personIds": ["per_0000000001", "per_0000000002"],
+              "personIds": [
+                "per_0000000001",
+                "per_0000000002"
+              ],
               "promotionIds": []
             }
           }
@@ -2115,7 +2142,9 @@
             "motivation": "money",
             "regionalPop": {},
             "restrictions": [],
-            "roles": ["wrestler"],
+            "roles": [
+              "wrestler"
+            ],
             "status": "active",
             "style": "allRounder",
             "tags": [],
@@ -2175,7 +2204,9 @@
             "motivation": "money",
             "regionalPop": {},
             "restrictions": [],
-            "roles": ["wrestler"],
+            "roles": [
+              "wrestler"
+            ],
             "status": "active",
             "style": "allRounder",
             "tags": [],
@@ -2235,7 +2266,9 @@
             "motivation": "money",
             "regionalPop": {},
             "restrictions": [],
-            "roles": ["wrestler"],
+            "roles": [
+              "wrestler"
+            ],
             "status": "active",
             "style": "allRounder",
             "tags": [],
@@ -2295,7 +2328,9 @@
             "motivation": "money",
             "regionalPop": {},
             "restrictions": [],
-            "roles": ["wrestler"],
+            "roles": [
+              "wrestler"
+            ],
             "status": "active",
             "style": "allRounder",
             "tags": [],
@@ -2355,7 +2390,9 @@
             "motivation": "money",
             "regionalPop": {},
             "restrictions": [],
-            "roles": ["wrestler"],
+            "roles": [
+              "wrestler"
+            ],
             "status": "active",
             "style": "allRounder",
             "tags": [],
@@ -2415,7 +2452,9 @@
             "motivation": "money",
             "regionalPop": {},
             "restrictions": [],
-            "roles": ["wrestler"],
+            "roles": [
+              "wrestler"
+            ],
             "status": "active",
             "style": "allRounder",
             "tags": [],
@@ -2475,7 +2514,9 @@
             "motivation": "money",
             "regionalPop": {},
             "restrictions": [],
-            "roles": ["wrestler"],
+            "roles": [
+              "wrestler"
+            ],
             "status": "active",
             "style": "allRounder",
             "tags": [],
@@ -2535,7 +2576,9 @@
             "motivation": "money",
             "regionalPop": {},
             "restrictions": [],
-            "roles": ["wrestler"],
+            "roles": [
+              "wrestler"
+            ],
             "status": "active",
             "style": "allRounder",
             "tags": [],
@@ -2595,7 +2638,9 @@
             "motivation": "money",
             "regionalPop": {},
             "restrictions": [],
-            "roles": ["wrestler"],
+            "roles": [
+              "wrestler"
+            ],
             "status": "active",
             "style": "allRounder",
             "tags": [],
@@ -2655,7 +2700,9 @@
             "motivation": "money",
             "regionalPop": {},
             "restrictions": [],
-            "roles": ["wrestler"],
+            "roles": [
+              "wrestler"
+            ],
             "status": "active",
             "style": "allRounder",
             "tags": [],
@@ -2715,7 +2762,9 @@
             "motivation": "money",
             "regionalPop": {},
             "restrictions": [],
-            "roles": ["wrestler"],
+            "roles": [
+              "wrestler"
+            ],
             "status": "active",
             "style": "allRounder",
             "tags": [],
@@ -2775,7 +2824,9 @@
             "motivation": "money",
             "regionalPop": {},
             "restrictions": [],
-            "roles": ["wrestler"],
+            "roles": [
+              "wrestler"
+            ],
             "status": "active",
             "style": "allRounder",
             "tags": [],
@@ -2835,7 +2886,9 @@
             "motivation": "money",
             "regionalPop": {},
             "restrictions": [],
-            "roles": ["wrestler"],
+            "roles": [
+              "wrestler"
+            ],
             "status": "active",
             "style": "allRounder",
             "tags": [],
@@ -2895,7 +2948,9 @@
             "motivation": "money",
             "regionalPop": {},
             "restrictions": [],
-            "roles": ["wrestler"],
+            "roles": [
+              "wrestler"
+            ],
             "status": "active",
             "style": "allRounder",
             "tags": [],
@@ -2955,7 +3010,9 @@
             "motivation": "money",
             "regionalPop": {},
             "restrictions": [],
-            "roles": ["wrestler"],
+            "roles": [
+              "wrestler"
+            ],
             "status": "active",
             "style": "allRounder",
             "tags": [],
@@ -3015,7 +3072,9 @@
             "motivation": "money",
             "regionalPop": {},
             "restrictions": [],
-            "roles": ["wrestler"],
+            "roles": [
+              "wrestler"
+            ],
             "status": "active",
             "style": "allRounder",
             "tags": [],
@@ -3075,7 +3134,9 @@
             "motivation": "money",
             "regionalPop": {},
             "restrictions": [],
-            "roles": ["wrestler"],
+            "roles": [
+              "wrestler"
+            ],
             "status": "active",
             "style": "allRounder",
             "tags": [],
@@ -3256,7 +3317,9 @@
             "countryId": "cty_0000000001",
             "id": "reg_0000000001",
             "name": "Test Region North 1",
-            "neighbourRegionIds": ["reg_0000000002"],
+            "neighbourRegionIds": [
+              "reg_0000000002"
+            ],
             "population": 1800000,
             "preferredStyle": null,
             "wrestlingInterest": 60
@@ -3265,7 +3328,10 @@
             "countryId": "cty_0000000001",
             "id": "reg_0000000002",
             "name": "Test Region North 2",
-            "neighbourRegionIds": ["reg_0000000001", "reg_0000000003"],
+            "neighbourRegionIds": [
+              "reg_0000000001",
+              "reg_0000000003"
+            ],
             "population": 1200000,
             "preferredStyle": null,
             "wrestlingInterest": 50
@@ -3274,7 +3340,10 @@
             "countryId": "cty_0000000002",
             "id": "reg_0000000003",
             "name": "Test Region South 1",
-            "neighbourRegionIds": ["reg_0000000002", "reg_0000000004"],
+            "neighbourRegionIds": [
+              "reg_0000000002",
+              "reg_0000000004"
+            ],
             "population": 1100000,
             "preferredStyle": null,
             "wrestlingInterest": 55
@@ -3283,7 +3352,9 @@
             "countryId": "cty_0000000002",
             "id": "reg_0000000004",
             "name": "Test Region South 2",
-            "neighbourRegionIds": ["reg_0000000003"],
+            "neighbourRegionIds": [
+              "reg_0000000003"
+            ],
             "population": 900000,
             "preferredStyle": null,
             "wrestlingInterest": 40
@@ -3292,7 +3363,9 @@
         "relationships": [
           {
             "affinity": -40,
-            "bonds": ["rivals"],
+            "bonds": [
+              "rivals"
+            ],
             "id": "rel_0000000001",
             "lastChangedOn": "2026-01-05",
             "mentorId": null,
@@ -3302,7 +3375,9 @@
           },
           {
             "affinity": 60,
-            "bonds": ["friends"],
+            "bonds": [
+              "friends"
+            ],
             "id": "rel_0000000002",
             "lastChangedOn": "2026-01-05",
             "mentorId": null,
@@ -3367,11 +3442,16 @@
               "beats": [
                 {
                   "beatKey": "beat.promo",
-                  "personIds": ["per_0000000001"]
+                  "personIds": [
+                    "per_0000000001"
+                  ]
                 },
                 {
                   "beatKey": "beat.attack",
-                  "personIds": ["per_0000000002", "per_0000000001"]
+                  "personIds": [
+                    "per_0000000002",
+                    "per_0000000001"
+                  ]
                 }
               ]
             },
@@ -3394,7 +3474,9 @@
               "workRate": null
             },
             "slot": 1,
-            "storylineIds": ["sty_0000000001"]
+            "storylineIds": [
+              "sty_0000000001"
+            ]
           },
           {
             "crew": {
@@ -3410,7 +3492,9 @@
               "finishKey": "finish.clean",
               "matchTypeKey": "match.singles",
               "stipulationKeys": [],
-              "titleIds": ["tit_0000000001"]
+              "titleIds": [
+                "tit_0000000001"
+              ]
             },
             "outcome": {
               "kind": "win",
@@ -3427,7 +3511,9 @@
               "workRate": 70
             },
             "slot": 2,
-            "storylineIds": ["sty_0000000001"]
+            "storylineIds": [
+              "sty_0000000001"
+            ]
           },
           {
             "crew": {
@@ -3470,7 +3556,11 @@
             "id": "stb_0000000001",
             "imageRef": null,
             "leaderId": "per_0000000001",
-            "memberIds": ["per_0000000001", "per_0000000007", "per_0000000008"],
+            "memberIds": [
+              "per_0000000001",
+              "per_0000000007",
+              "per_0000000008"
+            ],
             "name": "Test Stable A",
             "promotionId": "pro_0000000001",
             "status": "active"
@@ -3505,7 +3595,10 @@
             "formedOn": "2025-06-19",
             "id": "tem_0000000001",
             "kind": "tag",
-            "memberIds": ["per_0000000003", "per_0000000004"],
+            "memberIds": [
+              "per_0000000003",
+              "per_0000000004"
+            ],
             "name": "Test Tag Team A",
             "splitOn": null,
             "status": "active"
@@ -3516,8 +3609,12 @@
             "defences": 1,
             "endReason": null,
             "endedInSegmentId": null,
-            "holderIds": ["per_0000000001"],
-            "holderNamesAtTime": ["Test Person 001"],
+            "holderIds": [
+              "per_0000000001"
+            ],
+            "holderNamesAtTime": [
+              "Test Person 001"
+            ],
             "id": "trn_0000000001",
             "lostOn": null,
             "teamId": null,
@@ -3529,8 +3626,14 @@
             "defences": 0,
             "endReason": null,
             "endedInSegmentId": null,
-            "holderIds": ["per_0000000003", "per_0000000004"],
-            "holderNamesAtTime": ["Test Person 003", "Test Person 004"],
+            "holderIds": [
+              "per_0000000003",
+              "per_0000000004"
+            ],
+            "holderNamesAtTime": [
+              "Test Person 003",
+              "Test Person 004"
+            ],
             "id": "trn_0000000002",
             "lostOn": null,
             "teamId": "tem_0000000001",
@@ -3542,8 +3645,12 @@
             "defences": 3,
             "endReason": "lost",
             "endedInSegmentId": null,
-            "holderIds": ["per_0000000002"],
-            "holderNamesAtTime": ["Test Person 002"],
+            "holderIds": [
+              "per_0000000002"
+            ],
+            "holderNamesAtTime": [
+              "Test Person 002"
+            ],
             "id": "trn_0000000003",
             "lostOn": "2026-01-05",
             "teamId": null,
@@ -3555,8 +3662,14 @@
             "defences": 0,
             "endReason": "vacated",
             "endedInSegmentId": null,
-            "holderIds": ["per_0000000005", "per_0000000006"],
-            "holderNamesAtTime": ["Test Person 005", "Test Person 006"],
+            "holderIds": [
+              "per_0000000005",
+              "per_0000000006"
+            ],
+            "holderNamesAtTime": [
+              "Test Person 005",
+              "Test Person 006"
+            ],
             "id": "trn_0000000004",
             "lostOn": "2026-01-05",
             "teamId": null,

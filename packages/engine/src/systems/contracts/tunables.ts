@@ -209,7 +209,8 @@ export const contractsTunables = defineTunables({
   },
   'contracts.autoRenewPlayer': {
     kind: 'boolean',
-    default: true,
+    // Off since ECO5-05: the player renews through contract talks (`contracts.offerRenewal`).
+    default: false,
     unit: 'flag',
     category: CONTRACTS_TUNABLE_CATEGORY,
     description:
