@@ -124,15 +124,54 @@ const TEAM_ID = parseId('team', 'tem_0000000101');
 const TAG_TITLE_ID = parseId('title', 'tit_0000000101');
 const WORLD_TITLE_ID = parseId('title', 'tit_0000000102');
 
-/** The roster as `booking.availableWorkers` lists it for a match. */
+/** MTCH5-08: the interviewer and manager a talking segment's picker also lists. */
+export const GALLERY_INTERVIEWER_ID = personId(WORKERS.length);
+export const GALLERY_MANAGER_ID = personId(WORKERS.length + 1);
+
+function talkerRow(
+  personIdValue: PersonId,
+  name: string,
+  employmentRole: 'presenter' | 'manager',
+): AvailableWorkerRow {
+  return {
+    personId: personIdValue,
+    ringName: name,
+    imageRef: 'placeholder:person',
+    gender: employmentRole === 'presenter' ? 'female' : 'male',
+    roles: [employmentRole],
+    employmentRole,
+    talkRole: employmentRole === 'presenter' ? 'interviewer' : 'manager',
+    managerPersonId: null,
+    push: 'midCard',
+    alignment: 'face',
+    brandId: null,
+    brandName: null,
+    otherBrand: false,
+    availability: { ...AVAILABLE, until: null, canWorkAngles: true },
+    bookable: true,
+    onCard: [],
+    appearancesThisYear: 4,
+    appearanceCap: null,
+    style: 'nonWrestler',
+    popularity: 30,
+    stamina: 20,
+  };
+}
+
+/**
+ * The roster as `booking.availableWorkers` lists it: the wrestlers for a match; for a talking
+ * segment also an interviewer (Lena Park) and Kai Moreno's manager (Victor Crane).
+ */
 export function galleryWorkerRows(kind: 'match' | 'angle'): AvailableWorkerRow[] {
-  return WORKERS.map((worker, index) => ({
+  const wrestlers = WORKERS.map((worker, index): AvailableWorkerRow => ({
     personId: personId(index),
     ringName: worker.name,
     imageRef: 'placeholder:person',
     gender: GENDERS_BY_INDEX[index] ?? 'male',
     roles: ['wrestler'],
     employmentRole: 'wrestler',
+    talkRole: 'wrestler',
+    managerPersonId: kind === 'angle' && index === 0 ? GALLERY_MANAGER_ID : null,
     push:
       index === 2 ? 'mainEvent' : index < 2 ? 'upperCard' : index === 8 ? 'lowerCard' : 'midCard',
     alignment: index % 2 === 0 ? 'face' : 'heel',
@@ -157,6 +196,13 @@ export function galleryWorkerRows(kind: 'match' | 'angle'): AvailableWorkerRow[]
     popularity: WORKER_STATS[index]?.popularity ?? 0,
     stamina: WORKER_STATS[index]?.stamina ?? 50,
   }));
+  return kind === 'match'
+    ? wrestlers
+    : [
+        ...wrestlers,
+        talkerRow(GALLERY_INTERVIEWER_ID, 'Lena Park', 'presenter'),
+        talkerRow(GALLERY_MANAGER_ID, 'Victor Crane', 'manager'),
+      ];
 }
 
 const TEAM: AvailableTeamRow = {

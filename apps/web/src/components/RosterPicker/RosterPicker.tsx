@@ -147,6 +147,15 @@ export interface RosterPickerProps {
    * anyone is still up to the player. Off by default.
    */
   readonly genderAndPushFilters?: boolean;
+  /**
+   * A chip that keeps only the people who fit what is being filled (on when the picker opens),
+   * such as `{ label: 'Interviewers only', fits }` for an interview's host. It only narrows the
+   * list: turning it off shows everyone, and picking anyone is still up to the player.
+   */
+  readonly fitFilter?: {
+    readonly label: string;
+    readonly fits: (person: RosterPickerPerson) => boolean;
+  };
 }
 
 /** Every push, so a picker without the Push filter narrows nothing. */
@@ -332,12 +341,14 @@ export function RosterPicker({
   sortStat,
   statsNote,
   genderAndPushFilters = false,
+  fitFilter,
 }: RosterPickerProps) {
   const [text, setText] = useState('');
   const [bookableOnly, setBookableOnly] = useState(true);
   const [thisBrand, setThisBrand] = useState(false);
   const [hideBooked, setHideBooked] = useState(bookedFilter);
   const [sorted, setSorted] = useState(false);
+  const [fitOnly, setFitOnly] = useState(true);
   const [mode, setMode] = useState<RosterPickerMode>(initialMode);
   // Gender and Push keep their choice between openings, for as long as the picker is mounted.
   const [gender, setGender] = useState<GenderChoice>('all');
@@ -355,6 +366,7 @@ export function RosterPicker({
       setText('');
       setHideBooked(bookedFilter);
       setSorted(false);
+      setFitOnly(true);
       setMode(initialMode);
       setActive(0);
     }
@@ -398,7 +410,9 @@ export function RosterPicker({
           content: teamContent(team),
         }));
     }
+    const fits = fitOnly ? fitFilter?.fits : undefined;
     const listed = people
+      .filter((person) => fits === undefined || fits(person))
       .filter((person) => !bookableOnly || isBookable(person))
       .filter((person) => !thisBrand || !person.otherBrand)
       .filter((person) => !hidingBooked || !isBookedElsewhere(person))
@@ -421,6 +435,8 @@ export function RosterPicker({
     }));
   }, [
     bookableOnly,
+    fitFilter,
+    fitOnly,
     genderChoice,
     hidingBooked,
     onPickPerson,
@@ -531,6 +547,17 @@ export function RosterPicker({
           </div>
         </div>
         <div className={styles['filters']} role="group" aria-label="Filters">
+          {fitFilter !== undefined && !showingTeams && (
+            <FilterChip
+              pressed={fitOnly}
+              onToggle={() => {
+                setFitOnly(!fitOnly);
+                setActive(0);
+              }}
+            >
+              {fitFilter.label}
+            </FilterChip>
+          )}
           <FilterChip
             pressed={bookableOnly}
             onToggle={() => {
