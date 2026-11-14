@@ -32,6 +32,7 @@ import { endEmployment, type EndEmploymentResult } from './endEmployment';
 import { walkoutChance } from './formulas/walkoutChance';
 import { severanceFor } from './severanceFor';
 import { hotStorylineFor } from './storyPause';
+import { walkoutTraceRef } from './traceKinds';
 
 export const UNHAPPY_DOC_REF = 'contracts.md#unhappy-workers';
 
@@ -191,6 +192,16 @@ export function refuseRequest(
   writeConcern(ctx, employment, {
     request: { ...request, status: 'refused', answeredOn, stopsSkip: false },
   });
+  if (source !== 'ai') {
+    // The player's worker: the walk-out chance the screen shows from now on gets its Why? today;
+    // the daily roll replaces it from tomorrow. Rival requests stay private.
+    const after = ctx.read.tables.employments.require(employmentId);
+    ctx.recordTrace(
+      walkoutTraceRef(employmentId),
+      ctx.date,
+      walkoutChanceFor(ctx.read, after, ctx.tunables),
+    );
+  }
   ctx.publish('contract.releaseRefused', {
     employmentId,
     personId: employment.personId,
@@ -209,7 +220,6 @@ export function walkoutChanceFor(
   return walkoutChance(
     {
       morale,
-      threshold: tunables.get('contracts.quit.threshold'),
       ironClad: employment.terms.perks.ironClad,
       hotStoryline: hotStorylineFor(read, employment.personId, employment.promotionId, tunables),
     },

@@ -300,6 +300,11 @@ describe('answering a request', () => {
     );
     expect(row?.request?.status).toBe('refused');
     expect(row?.walkout?.chance).toBeCloseTo(0.04);
+    // The chance has its Why? straight away, before the first daily roll replaces it.
+    expect(row?.walkout?.traceRef).toEqual(walkoutTraceRef(built.worker));
+    const first = storedTrace(run, walkoutTraceRef(built.worker));
+    expect(JSON.stringify(first)).toContain('contracts.quit.threshold');
+    expect(JSON.stringify(first)).not.toContain('"stream":"contracts.walkout"');
     await run.advance(1);
     const roll = storedTrace(run, walkoutTraceRef(built.worker));
     expect(JSON.stringify(roll)).toContain('"stream":"contracts.walkout"');
