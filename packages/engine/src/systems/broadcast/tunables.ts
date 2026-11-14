@@ -55,7 +55,7 @@ export const broadcastTunables = defineTunables({
     docRef: `${BROADCAST_DOC}#which-networks-a-promotion-can-deal-with`,
   },
   'broadcast.audience.baseShare': audienceRatio(
-    0.01,
+    0.012,
     1,
     'Share of the people who care about wrestling that a fully popular promotion draws on a top network',
   ),
@@ -71,17 +71,17 @@ export const broadcastTunables = defineTunables({
     docRef: AUDIENCE_DOC_REF,
   },
   'broadcast.audience.tier0': audienceRatio(
-    0.12,
+    0.3,
     1,
     'Share of the audience a tier-0 (local) network reaches',
   ),
   'broadcast.audience.tier1': audienceRatio(
-    0.25,
+    0.4,
     1,
     'Share of the audience a tier-1 (regional) network reaches',
   ),
   'broadcast.audience.tier2': audienceRatio(
-    0.5,
+    0.55,
     1,
     'Share of the audience a tier-2 network reaches',
   ),
@@ -200,8 +200,8 @@ export const broadcastTunables = defineTunables({
     docRef: AUDIENCE_DOC_REF,
   },
   'broadcast.benchmark.popularity.tier0': benchmarkPopularity(0, 10),
-  'broadcast.benchmark.popularity.tier1': benchmarkPopularity(1, 22),
-  'broadcast.benchmark.popularity.tier2': benchmarkPopularity(2, 35),
+  'broadcast.benchmark.popularity.tier1': benchmarkPopularity(1, 15),
+  'broadcast.benchmark.popularity.tier2': benchmarkPopularity(2, 16),
   'broadcast.benchmark.popularity.tier3': benchmarkPopularity(3, 48),
   'broadcast.benchmark.popularity.tier4': benchmarkPopularity(4, 58),
   'broadcast.benchmark.marketingLevel': {
