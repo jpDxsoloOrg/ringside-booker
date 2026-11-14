@@ -9,7 +9,7 @@
  * commands, the automatic picks (a daily phase and a before-a-show-runs hook) and the forecast
  * and venue queries. EVT6-05 settles every completed show (`settle.ts`): the crowd, the money
  * through `postMoney`, `show.settled`, and the `boxOffice.showCrowd` and `boxOffice.showMoney`
- * queries. Design:
+ * queries. EVT6-11 adds the hot streak and show heat lines to the forecast. Design:
  * docs/design/box-office.md.
  */
 
@@ -45,7 +45,28 @@ export {
 } from './formulas/recentFormMultiplier';
 export { forecastAttendance, type AttendanceForecast, type ForecastPlace } from './forecast';
 export { hypeLineFor, type HypeLine } from './hype';
-export { recentFormOf, type RecentForm, type RecentFormQuery } from './recentForm';
+export {
+  countedRecentShows,
+  recentFormOf,
+  type RecentForm,
+  type RecentFormQuery,
+} from './recentForm';
+export {
+  HOT_STREAK_DOC_REF,
+  computeHotStreak,
+  hotStreakState,
+  streakRunText,
+  type HotStreakInputs,
+  type HotStreakState,
+} from './formulas/hotStreak';
+export {
+  SHOW_HEAT_DOC_REF,
+  computeShowHeat,
+  storylineHeatLabel,
+  type CardStorylineHeat,
+  type ShowHeatInputs,
+} from './formulas/showHeat';
+export { storylineHeatsOnCard } from './showHeat';
 export { BOX_OFFICE_CROWD_STREAM, BOX_OFFICE_MERCH_STREAM } from './streams';
 export { BOX_OFFICE_TRACE_KINDS } from './traceKinds';
 export { boxOfficeTunables } from './tunables';

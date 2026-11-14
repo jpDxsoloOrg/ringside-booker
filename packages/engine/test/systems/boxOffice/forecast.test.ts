@@ -139,7 +139,7 @@ function build(
 }
 
 function expectedFor(popularity: number, multiplier: number): number {
-  return Math.round((80 + 30_000 * (popularity / 100) ** 3) * 1.2 * multiplier);
+  return Math.round((150 + 25_500 * (popularity / 100) ** 3) * 1.2 * multiplier);
 }
 
 describe('forecastAttendance', () => {
@@ -195,7 +195,9 @@ describe('forecastAttendance', () => {
     const forecast = forecastAttendance(world, DEFAULTS, show);
     expect(forecast.inputs.recentShows.showCount).toBe(3);
     expect(forecast.inputs.recentShows.eventInstanceIds).not.toContain(show.id);
-    expect(forecast.expected.value).toBe(expectedFor(60, 1.15));
+    // Recent form +10%, and three good shows in a row: a hot streak of 3 × 2.5%.
+    expect(forecast.inputs.streakScores).toEqual([75, 75, 75]);
+    expect(forecast.expected.value).toBe(expectedFor(60, 1.1 * 1.075));
   });
 
   it('applies big-show fatigue to a major show after two other big shows', () => {
@@ -222,7 +224,9 @@ describe('forecastAttendance', () => {
       'Marketing level 5',
       'Regular show',
       'Recent form',
+      'Hot streak',
       'Big-show fatigue',
+      'Show heat',
       'Hype',
       'Rounded to whole people',
       'Never below 0',

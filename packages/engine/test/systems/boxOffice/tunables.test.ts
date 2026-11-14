@@ -1,4 +1,4 @@
-// The box office tunables (EVT6-01, EVT6-04). Design: docs/design/box-office.md#forecast
+// The box office tunables (EVT6-01, EVT6-04, EVT6-11). Design: docs/design/box-office.md#forecast
 import { describe, expect, it } from 'vitest';
 import { createEngine, initialEngineState, type Viewer } from '../../../src/core/api';
 import { boxOfficeSystem, boxOfficeTunables } from '../../../src/systems/boxOffice';
@@ -9,9 +9,9 @@ import { worldBuilder } from '../../support';
 const OMNISCIENT: Viewer = { kind: 'omniscient' };
 
 const EXPECTED_DEFAULTS: Readonly<Record<string, number | boolean>> = {
-  'boxOffice.draw.atFullPopularity': 30000,
+  'boxOffice.draw.atFullPopularity': 25500,
   'boxOffice.draw.curve': 3,
-  'boxOffice.draw.walkUp': 80,
+  'boxOffice.draw.walkUp': 150,
   'boxOffice.marketing.perLevel': 0.04,
   'boxOffice.importance.house': 0.35,
   'boxOffice.importance.minor': 0.7,
@@ -22,12 +22,22 @@ const EXPECTED_DEFAULTS: Readonly<Record<string, number | boolean>> = {
   'boxOffice.recentForm.minShows': 3,
   'boxOffice.recentForm.par': 50,
   'boxOffice.recentForm.fullSwingPoints': 25,
-  'boxOffice.recentForm.maxSwing': 0.15,
+  'boxOffice.recentForm.maxSwing': 0.1,
   'boxOffice.recentForm.countHouseShows': false,
   'boxOffice.fatigue.windowDays': 28,
   'boxOffice.fatigue.freeShows': 1,
   'boxOffice.fatigue.perExtraShow': 0.2,
   'boxOffice.fatigue.floor': 0.25,
+  // Hot streak and show heat (EVT6-11).
+  'boxOffice.streak.goodScore': 60,
+  'boxOffice.streak.perShow': 0.025,
+  'boxOffice.streak.cap': 0.125,
+  'boxOffice.streak.fadePerShow': 0.05,
+  'boxOffice.heat.from': 40,
+  'boxOffice.heat.maxBonus': 0.15,
+  'boxOffice.heat.finaleFactor': 1.5,
+  'boxOffice.heat.otherShare': 0.25,
+  'boxOffice.heat.cap': 0.3,
   'boxOffice.crowd.spread': 0.1,
   // Show-day money (EVT6-04).
   'boxOffice.ticket.base': 1000,
@@ -90,7 +100,7 @@ describe('box office tunables', () => {
     expect(list.data.map((row) => row.key).sort()).toEqual(Object.keys(EXPECTED_DEFAULTS).sort());
     for (const row of list.data) {
       expect(row.docRef).toMatch(
-        /^box-office\.md#(forecast|recent-form|big-show-fatigue|ticket-price|venue-rent|live-merch|worker-shares|venues|generic-venues|pick)$/,
+        /^box-office\.md#(forecast|recent-form|hot-streak|show-heat|big-show-fatigue|ticket-price|venue-rent|live-merch|worker-shares|venues|generic-venues|pick)$/,
       );
     }
   });

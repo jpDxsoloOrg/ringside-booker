@@ -40,7 +40,7 @@ describe('computeRecentFormMultiplier', () => {
 
   it('swings at exactly the minimum shows', () => {
     const result = form({ averageScore: 75, showCount: 3 });
-    expect(result.value).toBeCloseTo(1.15, 12);
+    expect(result.value).toBeCloseTo(1.1, 12);
     expect(findTraceNodes(result.trace, 'branch')[0]?.value).toBe(false);
   });
 
@@ -49,10 +49,10 @@ describe('computeRecentFormMultiplier', () => {
   });
 
   it('reaches the full swing at par ± fullSwingPoints and no further', () => {
-    expect(form({ averageScore: 75, showCount: 5 }).value).toBeCloseTo(1.15, 12);
-    expect(form({ averageScore: 100, showCount: 5 }).value).toBeCloseTo(1.15, 12);
-    expect(form({ averageScore: 25, showCount: 5 }).value).toBeCloseTo(0.85, 12);
-    expect(form({ averageScore: 0, showCount: 5 }).value).toBeCloseTo(0.85, 12);
+    expect(form({ averageScore: 75, showCount: 5 }).value).toBeCloseTo(1.1, 12);
+    expect(form({ averageScore: 100, showCount: 5 }).value).toBeCloseTo(1.1, 12);
+    expect(form({ averageScore: 25, showCount: 5 }).value).toBeCloseTo(0.9, 12);
+    expect(form({ averageScore: 0, showCount: 5 }).value).toBeCloseTo(0.9, 12);
   });
 
   it('records the clamp only when it bites', () => {
@@ -63,8 +63,8 @@ describe('computeRecentFormMultiplier', () => {
   });
 
   it('scales linearly inside the swing', () => {
-    expect(form({ averageScore: 60, showCount: 5 }).value).toBeCloseTo(1.06, 12);
-    expect(form({ averageScore: 40, showCount: 5 }).value).toBeCloseTo(0.94, 12);
+    expect(form({ averageScore: 60, showCount: 5 }).value).toBeCloseTo(1.04, 12);
+    expect(form({ averageScore: 40, showCount: 5 }).value).toBeCloseTo(0.96, 12);
   });
 
   it('is always 1 with maxSwing 0', () => {
@@ -79,7 +79,7 @@ describe('computeRecentFormMultiplier', () => {
 
   it('counts a single show when minShows is 0', () => {
     const any = createEngineTunables({ 'boxOffice.recentForm.minShows': 0 });
-    expect(form({ averageScore: 75, showCount: 1 }, any).value).toBeCloseTo(1.15, 12);
+    expect(form({ averageScore: 75, showCount: 1 }, any).value).toBeCloseTo(1.1, 12);
     expect(form({ averageScore: null, showCount: 0 }, any).value).toBe(1);
   });
 
@@ -88,6 +88,6 @@ describe('computeRecentFormMultiplier', () => {
       'boxOffice.recentForm.par': 0,
       'boxOffice.recentForm.fullSwingPoints': 100,
     });
-    expect(form({ averageScore: 50, showCount: 3 }, tunables).value).toBeCloseTo(1.075, 12);
+    expect(form({ averageScore: 50, showCount: 3 }, tunables).value).toBeCloseTo(1.05, 12);
   });
 });
