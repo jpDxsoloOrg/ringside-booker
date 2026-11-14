@@ -2782,3 +2782,10 @@ export {
   type UnhappyView,
   type WalkoutView,
 } from './systems/contracts/index';
+// The show-quality ceiling as a production effect line (ECO7-04), on the stage, camera, editing
+// and pyro rows of the Production screen and in its change dialog.
+export {
+  SHOW_CEILING_EFFECT_ID,
+  SHOW_CEILING_EFFECT_LABEL,
+  showCeilingText,
+} from './systems/cardFlow/index';

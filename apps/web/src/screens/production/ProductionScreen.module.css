@@ -1,0 +1,353 @@
+/*
+ * Business > Production, in the office register (docs/design/visual-identity.md): KPI cards over
+ * two groups of area rows. Desktop is the primary layout: each area is one row of four columns
+ * (name, level, cost, what it does). Below --bp-mobile the header cards stack one per row, each
+ * area becomes a card (name and level, then the cost, then the effect lines), and the change
+ * dialog's before → after rows put the label over the values, so nothing scrolls sideways.
+ */
+.screen {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.intro {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.heading {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-tight);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.lead,
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.body {
+  display: grid;
+  gap: var(--space-5);
+  min-inline-size: 0;
+  transition: opacity var(--motion-base) var(--easing-standard);
+}
+
+/* An answer older than the world stays on screen, dimmed, until the new one arrives. */
+.stale {
+  opacity: 0.6;
+}
+
+/* ---- Header -------------------------------------------------------------------------------- */
+
+.header {
+  min-inline-size: 0;
+}
+
+.footerLine,
+.footerStack {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+}
+
+.footerStack {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.split {
+  display: grid;
+  gap: 2px;
+}
+
+.splitLine {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.lastCharged {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* ---- Area rows ----------------------------------------------------------------------------- */
+
+.groups {
+  display: grid;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+
+.group {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.groupHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+}
+
+.groupHeading {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.rows {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  list-style: none;
+}
+
+.row {
+  /*
+   * Name, level, cost and what it does on one line; a narrower desktop window wraps the effect
+   * lines under the rest instead of squeezing them (no third layout, no extra breakpoint).
+   */
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  min-inline-size: 0;
+  padding: var(--space-3) var(--space-4);
+}
+
+.row + .row {
+  border-block-start: 1px solid var(--color-border);
+}
+
+.areaName {
+  flex: 0 0 8rem;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.level {
+  flex: 0 1 19rem;
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.floorNote {
+  margin: 0;
+  color: var(--color-warning);
+  font-size: var(--font-size-sm);
+}
+
+.cost {
+  flex: 0 1 14rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--space-2);
+  margin: 0;
+  min-inline-size: 0;
+}
+
+.costBasis {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  overflow-wrap: anywhere;
+}
+
+.what {
+  flex: 1 1 16rem;
+  min-inline-size: 0;
+}
+
+.effects {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The Why? flows on after the words, so a wrapped line keeps it beside its last word. */
+.effect {
+  font-size: var(--font-size-sm);
+}
+
+.effectWhy {
+  margin-inline-start: var(--space-1);
+  vertical-align: middle;
+}
+
+/* On a phone the Why? keeps its 44px target but takes only a line's height. */
+@media (--bp-mobile) {
+  .effectWhy {
+    margin-block: calc(-1 * var(--tap-pad-block));
+  }
+}
+
+.noEffect {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.noEffectLabel {
+  font-weight: var(--font-weight-semibold);
+}
+
+/* ---- Change dialog ------------------------------------------------------------------------- */
+
+.dialogBody {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+  color: var(--color-text);
+}
+
+.dialogStepper {
+  min-inline-size: 0;
+}
+
+.fee {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+  font-weight: var(--font-weight-semibold);
+}
+
+.previewRows {
+  display: grid;
+  margin: 0;
+  border-block: 1px solid var(--color-border);
+}
+
+.previewRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  padding-block: var(--space-2);
+}
+
+.previewRow + .previewRow {
+  border-block-start: 1px solid var(--color-border);
+}
+
+.previewLabel {
+  min-inline-size: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  overflow-wrap: anywhere;
+}
+
+.previewValues {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0 var(--space-2);
+  margin: 0;
+}
+
+.refusals {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-inline-start: 3px solid var(--color-warning);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-sunken);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+}
+
+.refusals ul {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ---- Phone --------------------------------------------------------------------------------- */
+
+@media (--bp-mobile) {
+  .heading {
+    font-size: var(--font-size-2xl);
+  }
+
+  /* One header card per row, so the overhead split reads in full. */
+  .screen .header {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /*
+   * Each area is a card: the name and the level share the first line when they fit (at a large UI
+   * scale the level wraps under the name), then the cost, then the effect lines.
+   */
+  .row {
+    gap: var(--space-2) var(--space-3);
+    padding: var(--space-3);
+  }
+
+  .areaName {
+    flex: 0 0 auto;
+  }
+
+  .level {
+    flex: 1 1 14rem;
+  }
+
+  .cost,
+  .what {
+    flex: 1 1 100%;
+  }
+
+  /* Each area is its own card. */
+  .rows {
+    gap: var(--space-2);
+    border: 0;
+    background: transparent;
+  }
+
+  .row {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    background: var(--color-surface);
+  }
+
+  .row + .row {
+    border-block-start: 1px solid var(--color-border);
+  }
+
+  .previewRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .previewValues {
+    justify-content: flex-start;
+  }
+}

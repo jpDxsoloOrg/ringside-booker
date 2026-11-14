@@ -1,0 +1,48 @@
+/*
+ * − ticks + and "Level 4 of 10" on one line. The ticks take the room left; on a narrow card the
+ * value text drops under them.
+ */
+.stepper {
+  display: grid;
+  grid-template-columns: auto minmax(5rem, 1fr) auto auto;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.meter {
+  min-inline-size: 0;
+}
+
+.step[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.value {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+}
+
+.stepper[data-disabled] .meter {
+  opacity: 0.55;
+}
+
+/* Below the phone breakpoint the buttons are 44px squares and the value reads under the ticks. */
+@media (--bp-mobile) {
+  .stepper {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    row-gap: var(--space-1);
+  }
+
+  .step {
+    min-block-size: var(--tap-target-min);
+    min-inline-size: var(--tap-target-min);
+  }
+
+  .value {
+    grid-column: 1 / -1;
+    justify-self: center;
+  }
+}
