@@ -297,15 +297,14 @@ describe('MatchLabScreen', { timeout: TEST_TIMEOUT_MS }, () => {
     expect(useLabStore.getState().runs).toBe(50);
   });
 
-  it('rates a talking segment with no winner', async () => {
-    const { transport, user } = renderLab();
+  it('builds talking segments in Angle mode, from beats (MTCH5-05)', async () => {
+    const { user } = renderLab();
     await findSlotRole();
-    await user.click(screen.getByRole('radio', { name: 'Talking segment' }));
-    await fillSides(transport, 1);
-    await runOnce(user);
-    expect(Object.keys(scoreBugValues())).toEqual(['Score', 'Stars', 'Talk', 'Crowd']);
+    expect(screen.queryByRole('radio', { name: 'Talking segment' })).toBeNull();
+    await user.click(screen.getByRole('radio', { name: 'Angle' }));
+    expect(await screen.findByRole('list', { name: 'Beats' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Add worker to / })).toBeNull();
     expect(screen.queryByRole('button', { name: /^Why is Winner / })).toBeNull();
-    expect(useLabStore.getState().lastRun?.simulation).toBeNull();
   });
 
   it('marks the result out of date when the setup changes, until the next Run', async () => {
