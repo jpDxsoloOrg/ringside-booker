@@ -34,6 +34,12 @@ interface RenderOptions {
   readonly refuseList?: boolean;
   /** The world to load: the fake engine's tiny world by default. */
   readonly state?: EngineState;
+  /** Holds back every `workers.list` answer for the injured list until this settles. */
+  readonly holdInjuredList?: Promise<void>;
+}
+
+function asksInjured(args: unknown): boolean {
+  return JSON.stringify(args).includes('"injured"');
 }
 
 function renderWorkers(path: string = routes.game.workers(), options: RenderOptions = {}) {
@@ -46,6 +52,9 @@ function renderWorkers(path: string = routes.game.workers(), options: RenderOpti
   const runQuery = host.query.bind(host);
   host.query = async (name, args) => {
     asked.push({ name, args });
+    if (options.holdInjuredList !== undefined && name === 'workers.list' && asksInjured(args)) {
+      await options.holdInjuredList;
+    }
     const answer = await runQuery(name, args);
     if (options.refuseList === true && name === 'workers.list') {
       return {
@@ -480,5 +489,37 @@ describe('the Injured quick filter (WRK6-06)', () => {
     await waitFor(() => {
       expect(within(table).queryByRole('columnheader', { name: /Back on/ })).toBeNull();
     });
+  });
+
+  it('shows the toggle pressed at once and adds the injury columns with the injured list (WRK6-09)', async () => {
+    const { people, state } = healthFakeState();
+    let release = (): void => undefined;
+    const holdInjuredList = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const { user } = renderWorkers(routes.game.workers(), { state, holdInjuredList });
+    const everyone = (await findRows()).length;
+    const table = await findTable();
+
+    await user.click(screen.getByRole('button', { name: 'Injured' }));
+    // Pressed while the engine is still working on the injured list; the full list stays up with
+    // its own columns rather than being laid out again with the injury ones.
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Injured' })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      );
+    });
+    expect(within(table).queryByRole('columnheader', { name: /Back on/ })).toBeNull();
+    expect(table.querySelectorAll('tbody tr[data-row-id]').length).toBe(everyone);
+
+    release();
+    await waitFor(() => {
+      expect(within(table).getByRole('columnheader', { name: /Back on/ })).toBeInTheDocument();
+    });
+    const rows = await findRows();
+    expect(rows.map((row) => row.dataset['rowId']).sort()).toEqual(
+      [people.injured, people.rivalInjured].sort(),
+    );
   });
 });
