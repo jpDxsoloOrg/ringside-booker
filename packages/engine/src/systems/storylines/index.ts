@@ -23,8 +23,11 @@ import './setup';
 // hook (CRTV4-01).
 import './card/bookingCheck';
 import './card/finaleHook';
+// Registers the `storylines.heat` segment result applier (CRTV4-02).
+import './card/heatApplier';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
 import { storylinesCardCommands } from './card/commands';
+import { storylinesProgressQueries } from './card/progressQueries';
 import { storylinesCardQueries } from './card/queries';
 import { storylinesCommands } from './commands';
 import { storylinesEndPreviewQuery } from './endPreview';
@@ -53,6 +56,11 @@ export {
 } from './commands';
 export { storylinesEndPreviewQuery, type StorylineEndPreview } from './endPreview';
 export { STORYLINE_START_SOURCES, type StorylineStartSource } from './events';
+export {
+  HEAT_AFTER_SEGMENT_DOC_REF,
+  heatAfterSegment,
+  type HeatAfterSegmentInputs,
+} from './formulas/heatAfterSegment';
 export { HEAT_DECAY_DOC_REF, heatDecay, type HeatDecayInputs } from './formulas/heatDecay';
 export { HOT_STORYLINE_DOC_REF, isHotHeat } from './formulas/hot';
 export {
@@ -184,9 +192,45 @@ export {
   type StorylineSuggestionRow,
 } from './card/queries';
 
+// Heat after a linked segment (CRTV4-02). See docs/design/storylines.md#heat-after-segment.
+export {
+  applyStorylineHeat,
+  heatSegmentLabel,
+  STORYLINE_HEAT_APPLIER_ID,
+  STORYLINE_HEAT_APPLIER_ORDER,
+  storylineHeatApplier,
+} from './card/heatApplier';
+export { heatBeforeSegment } from './card/heatBefore';
+export {
+  addToProgressTotals,
+  appendProgress,
+  progressOnShow,
+  trimStorylineProgress,
+} from './card/progressLog';
+export {
+  NOT_COUNTED_ENDED,
+  NOT_COUNTED_NO_MEMBER,
+  STORYLINE_PROGRESS_REASONS,
+  storylinesProgressQueries,
+  storylinesShowProgressQuery,
+  storylinesTimelineQuery,
+  type StorylineNotCountedRow,
+  type StorylineShowProgress,
+  type StorylineShowProgressRow,
+  type StorylineShowProgressSegment,
+  type StorylineTimeline,
+  type StorylineTimelineRow,
+} from './card/progressQueries';
+export { STORYLINE_HEAT_STEP_TRACE_KIND, storylineHeatStepTraceRef } from './traceKinds';
+
 export const storylinesSystem: SystemBundle = defineSystem({
   id: 'storylines',
   phases: storylinesPhases,
-  queries: [...storylinesQueries, storylinesEndPreviewQuery, ...storylinesCardQueries],
+  queries: [
+    ...storylinesQueries,
+    storylinesEndPreviewQuery,
+    ...storylinesCardQueries,
+    ...storylinesProgressQueries,
+  ],
   commands: [...storylinesCommands, ...storylinesCardCommands],
 });

@@ -131,4 +131,52 @@ export const storylinesTunables = defineTunables({
     description: 'The most storylines one segment can be linked to and count for',
     docRef: 'storylines.md#linking',
   },
+  'storylines.heat.pull': {
+    kind: 'number',
+    default: 0.4,
+    min: 0,
+    max: 1,
+    step: 0.05,
+    unit: 'ratio',
+    category: CATEGORY,
+    description:
+      "Share of the gap between a storyline's heat and a linked segment's score that one segment closes. 0 means shows never move heat",
+    docRef: 'storylines.md#heat-after-segment',
+  },
+  'storylines.heat.repeatFactor': {
+    kind: 'number',
+    default: 0.5,
+    min: 0,
+    max: 1,
+    step: 0.05,
+    unit: 'ratio',
+    category: CATEGORY,
+    description:
+      'Multiplier for each further linked segment of the same storyline on one show. 0 means only the first counts',
+    docRef: 'storylines.md#heat-after-segment',
+  },
+  'storylines.heat.preShowFactor': {
+    kind: 'number',
+    default: 0.5,
+    min: 0,
+    max: 1,
+    step: 0.05,
+    unit: 'ratio',
+    category: CATEGORY,
+    description:
+      'Multiplier for a linked pre-show segment. 0 means pre-show segments never move heat',
+    docRef: 'storylines.md#heat-after-segment',
+  },
+  'storylines.heat.maxStep': {
+    kind: 'number',
+    default: 15,
+    min: 0,
+    max: 100,
+    step: 1,
+    unit: 'points',
+    category: CATEGORY,
+    description:
+      'The most heat one linked segment can add or take away. 0 means shows never move heat',
+    docRef: 'storylines.md#heat-after-segment',
+  },
 });

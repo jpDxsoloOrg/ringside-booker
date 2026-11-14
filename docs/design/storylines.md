@@ -40,13 +40,20 @@ CRTV4-01 adds two more, both empty by default so older saves load:
 
 - `progress`: the linked segments that moved the story on, oldest first, each
   with its show, date, heat before and after and the heat trace (at most 200;
-  the oldest is dropped on write). CRTV4-02 writes it; the roll-up keeps every
-  segment it names.
+  the oldest is dropped on write). CRTV4-02 writes it and the weekly history
+  roll-up drops rows older than `history.keepDetailDays`, so it only holds the
+  detail window ([Heat after a linked segment](#heat-after-segment)).
 - `payoff`: what happened when the story ended (paid or not, the counted
   segments, the heat, each member's popularity and momentum change). Null
   while the storyline is active. CRTV4-03 writes it.
 
-CRTV4 writes both fields. CRTV3 only stores and reads them; nothing else may
+CRTV4-02 adds `progressTotals`: all-time counts of the segments that counted
+(`segments`, of which `matches` and `angles`) and the heat they added
+(`heatGained`) and took away (`heatLost`). Each counted segment adds to them
+when it is written, so they keep counting after the progress log has dropped
+its row. All zero by default.
+
+CRTV4 writes these fields. CRTV3 only stores and reads them; nothing else may
 set them. Both default to null, so saves from before CRTV3-01 load unchanged.
 
 Segments point at storylines through `segments.storylineIds` (index
@@ -365,6 +372,105 @@ inside the card writer, so the rival booker's changes are covered too.
 **Tunable.** `storylines.link.maxPerSegment` (2, 1 to 12): the most storylines
 one segment can be linked to and count for.
 
+## Heat after a linked segment
+
+<a id="heat-after-segment"></a>
+
+CRTV4-02. After a segment is rated on show night, each storyline it counts for
+moves its heat **toward the segment's score**: a great segment heats the story
+up, a poor one cools it. A second linked segment of the same storyline on the
+same show counts for less, so heat is built over several shows, not by filling
+one card with the same feud.
+
+**When a segment counts.** Only when it is linked to the storyline and at
+least one member of the storyline is in it, in any role
+([`membersInSegment`](#linking)). A linked segment with nobody from the story
+in it, a storyline that ended before the show and a storyline that no longer
+exists change nothing: the step writes no row and only logs why (the show's
+`storylines.showProgress` says so to the player). Rival promotions follow
+exactly the same rule (D-01).
+
+**The formula** (`heatAfterSegment`, `formulas/heatAfterSegment.ts`; no rolls):
+
+- `gap = segment score − heat before` (the segment's `rating.score`, 0 to 100);
+- `pull = storylines.heat.pull × storylines.heat.repeatFactor^(k − 1) ×
+(pre-show ? storylines.heat.preShowFactor : 1)`, where `k` is 1 for the
+  storyline's first counted segment on this show, 2 for its second, and so on;
+- `step = gap × pull`, kept within ±`storylines.heat.maxStep` ("Most heat one
+  segment can move");
+- `heat after = heat before + step`, kept within 0 to 100.
+
+| Tunable                         | Default | Range | What                                                  |
+| ------------------------------- | ------- | ----- | ----------------------------------------------------- |
+| `storylines.heat.pull`          | 0.4     | 0–1   | Share of the gap one segment closes. 0: never moves   |
+| `storylines.heat.repeatFactor`  | 0.5     | 0–1   | Multiplier per further segment on one show            |
+| `storylines.heat.preShowFactor` | 0.5     | 0–1   | Multiplier for a pre-show segment                     |
+| `storylines.heat.maxStep`       | 15      | 0–100 | Most heat one segment can add or take. 0: never moves |
+
+Worked numbers with the defaults (the formula tests):
+
+| Heat before | Score | Segment                         | Heat after         |
+| ----------- | ----- | ------------------------------- | ------------------ |
+| 50          | 80    | first tonight                   | 62                 |
+| 62          | 80    | the same story's second tonight | 65.6               |
+| 50          | 30    | first tonight                   | 42                 |
+| 20          | 90    | first tonight                   | 35 (capped at +15) |
+| 50          | 80    | pre-show                        | 56                 |
+| 0           | 0     | first tonight                   | 0                  |
+| 99          | 100   | first tonight                   | 99.4               |
+
+`pull` 0 or `maxStep` 0 leave heat where it is; `repeatFactor` 0 makes a second
+segment that night change nothing and 1 counts it in full.
+
+**What it writes.** The step is a segment result applier,
+`storylines.heat` at order 60 (after the title outcome at 10, MTCH3's aftermath
+at 30, MTCH4's physical toll at 40 and MTCH6's chemistry at 50; see
+[show-night.md](show-night.md#segment-result-appliers)), so it runs on every
+show that runs a card, the player's and every rival's. For each storyline the
+segment links, in id order, it sets `heat`, sets `lastProgressOn` to the show's
+date (CRTV3's [cooling grace](#heat-decay) restarts from it), appends a
+`progress` row (`heatBefore`, `heatAfter`, `traceId`), adds to
+`progressTotals`, and publishes `storyline.progressed`.
+
+**Traces.** The player's storylines keep the step's Why? under
+`storylines.heatStep` with the id `<storylineId>/<segmentId>` (the row's
+`traceId`), and the same trace as the storyline's current `storylines.heat`,
+so the heat meter's Why? shows the latest change. The trace starts at "Heat
+before '<segment>'", shows the gap to the segment's score, the pull, any
+"Second linked segment for this story tonight" or "Pre-show segment"
+reduction, and the "Most heat one segment can move" cap. A rival's heat is
+private, so its storylines keep only a summary of the current heat and no step
+trace (`traceId` null), which keeps rival show nights lean. Older step traces
+drop to summaries under `sim.traceRetentionPerKind` and when the roll-up drops
+their row; the screens show a summary's headline.
+
+**History.** Owner rule (POL4-08): the progress log keeps only about the last
+28 days (`history.keepDetailDays`). The weekly `history.rollUp` drops older
+rows before it prunes old cards, so their segments go with the rest of the
+card (a finale stays); `progressTotals` keeps the all-time counts the payoff
+(CRTV4-03) and the screens need. A screen reading past the window says
+"Details are kept for the last 4 weeks." A year of the default world with
+linked weekly segments ends with heats spread between the floor and the high
+70s, not pinned at 100.
+
+**Heat before, for the story shield.** `heatBeforeSegment(read, storylineId,
+segmentId)` (`card/heatBefore.ts`) is the heat the story had walking into the
+segment: the progress row's `heatBefore` once the segment has counted, else the
+storyline's current heat (null for an unknown storyline). WRK8's story shield
+judges a loss by it (wired in CRTV4-06), not by the heat after the loss's own
+segment moved it. Likewise MTCH8's crowd bonus reads heat before the segment
+is rated, while this step runs after it: a later segment of the same story on
+the same show sees the heat the earlier one left.
+
+**Queries** (own promotion only; a rival's heat stays private):
+
+| Query                     | Args                  | Returns                                                                                                                                                                                                                                                                                                                                                                |
+| ------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `storylines.showProgress` | `{ eventInstanceId }` | `{ kind: 'ok', segments, pastDetailWindow }`: per linked segment in running order, `rows` (`storylineId`, `name`, `heatBefore`, `heatAfter`, `traceRef`, `finale`), `notCounted` (`storylineId`, `name`, `reason`; only once run) and `protectedLosers` (losers who are members of a counted storyline). `unavailable` with `notYourShow` or `storylines.showNotFound` |
+| `storylines.timeline`     | `{ storylineId }`     | `{ kind: 'ok', rows, totals, keptDays }`: progress rows newest first with show name, date, `slot`, `preShow`, the show's `format`, `kind`, segment label, heat before and after, `traceRef` and `finale`; `totals` is `progressTotals`. `unavailable` with `storylines.notFound` or `storylines.notYours`                                                              |
+
+`traceRef` is null when the trace is gone (`ctx.traces.has`).
+
 ## Payoff threshold
 
 CRTV4 pays a storyline off when it ends. A storyline needs at least
@@ -441,11 +547,12 @@ Payloads hold ids and primitives only
 ([day-pipeline.md](day-pipeline.md#payload-rules)). CRTV3-02 and CRTV3-03
 publish them.
 
-| Event                      | Payload                                                             |
-| -------------------------- | ------------------------------------------------------------------- |
-| `storyline.started`        | `{ storylineId, promotionId, source: 'player' \| 'setup' \| 'ai' }` |
-| `storyline.ended`          | `{ storylineId, promotionId, linkedSegments }`                      |
-| `storyline.membersChanged` | `{ storylineId, promotionId, added, removed, sideChanged }`         |
+| Event                      | Payload                                                                                                                                               |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `storyline.started`        | `{ storylineId, promotionId, source: 'player' \| 'setup' \| 'ai' }`                                                                                   |
+| `storyline.ended`          | `{ storylineId, promotionId, linkedSegments }`                                                                                                        |
+| `storyline.membersChanged` | `{ storylineId, promotionId, added, removed, sideChanged }`                                                                                           |
+| `storyline.progressed`     | `{ storylineId, promotionId, segmentId, eventInstanceId, heatBefore, heatAfter }`: once per counted storyline per segment, every promotion (CRTV4-02) |
 
 ## Traces
 
@@ -460,3 +567,6 @@ All three kinds are stored under the storyline's id.
   storyline's become summaries once it ended more than
   `history.keepDetailDays` ago ([Heat decay](#heat-decay)).
 - `storylines.payoff`: reserved for CRTV4's payoff.
+- `storylines.heatStep` (`storylineHeatStepTraceRef`, CRTV4-02): one linked
+  segment's heat step, id `<storylineId>/<segmentId>`, the player's storylines
+  only ([Heat after a linked segment](#heat-after-segment)).

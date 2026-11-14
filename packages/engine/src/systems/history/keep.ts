@@ -14,7 +14,8 @@
  * - a segment someone was injured in (WRK6-03): injury rows are part of a worker's record and keep
  *   their `segmentId`;
  * - a storyline's finale segment (`finaleSegmentId`, CRTV3-01) and the segments in its progress
- *   log (`progress[].segmentId`, CRTV4): the storyline keeps pointing at them.
+ *   log (`progress[].segmentId`, CRTV4): the storyline keeps pointing at them. The roll-up trims
+ *   progress rows past the detail window first (CRTV4-02), so only the window's segments stay.
  *
  * The set only depends on the world, so a roll-up is deterministic.
  */

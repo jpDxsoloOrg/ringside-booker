@@ -3552,3 +3552,41 @@ export {
   withNotesAtTop,
   writingBandLabel,
 } from './systems/match/index';
+
+// CRTV4-02: heat after a linked segment. See docs/design/storylines.md#heat-after-segment.
+export {
+  HEAT_AFTER_SEGMENT_DOC_REF,
+  heatAfterSegment,
+  type HeatAfterSegmentInputs,
+} from './systems/storylines/index';
+export {
+  EMPTY_STORYLINE_PROGRESS_TOTALS,
+  StorylineProgressTotalsSchema,
+  type StorylineProgressTotals,
+} from './model/entities/storyline';
+export {
+  addToProgressTotals,
+  appendProgress,
+  applyStorylineHeat,
+  heatBeforeSegment,
+  heatSegmentLabel,
+  NOT_COUNTED_ENDED,
+  NOT_COUNTED_NO_MEMBER,
+  progressOnShow,
+  STORYLINE_HEAT_APPLIER_ID,
+  STORYLINE_HEAT_APPLIER_ORDER,
+  STORYLINE_HEAT_STEP_TRACE_KIND,
+  STORYLINE_PROGRESS_REASONS,
+  storylineHeatApplier,
+  storylineHeatStepTraceRef,
+  storylinesProgressQueries,
+  storylinesShowProgressQuery,
+  storylinesTimelineQuery,
+  trimStorylineProgress,
+  type StorylineNotCountedRow,
+  type StorylineShowProgress,
+  type StorylineShowProgressRow,
+  type StorylineShowProgressSegment,
+  type StorylineTimeline,
+  type StorylineTimelineRow,
+} from './systems/storylines/index';

@@ -21,6 +21,11 @@
  *    by `match.pruneAftermaths`) keep only the show region's popularity change, which Recent form
  *    reads; the spread to other regions goes.
  *
+ * 6. **Storyline progress** (CRTV4-02, run between steps 1 and 2). Each storyline's progress rows
+ *    dated before the window go (their heat-step Why?s become summaries); the storyline's all-time
+ *    `progressTotals` already count them. It runs before the cards, so their segments can go too
+ *    (finales stay).
+ *
  * Nothing current changes: popularity, momentum, money, records, contracts and reigns are read,
  * never written. Every pass runs in ID order, so a roll-up is deterministic.
  *
@@ -43,6 +48,7 @@ import { boxOfficeRowsOf } from '../boxOffice/settlementQueries';
 import { cardSegments } from '../booking/card';
 import { showChangeOf } from '../promoPop/helpers';
 import { mainEventSummaryOf } from '../shows/resultsView';
+import { trimStorylineProgress } from '../storylines/card/progressLog';
 import { segmentsToKeep } from './keep';
 import { detailKeptFrom } from './note';
 
@@ -57,6 +63,8 @@ export interface RollUpCounts {
   participants: number;
   showChanges: number;
   ledgerRows: number;
+  /** Storyline progress rows dropped past the window (CRTV4-02); their totals stay. */
+  storylineProgress: number;
   /** Aftermath rows slimmed to the show's region. */
   aftermaths: number;
 }
@@ -257,11 +265,13 @@ function slimAftermaths(ctx: PhaseContext, from: GameDate): number {
 export function rollUpHistory(ctx: PhaseContext): RollUpCounts {
   const from = detailKeptFrom(ctx.date, ctx.tunables.get('history.keepDetailDays'));
   const shows = summariseShows(ctx, from);
+  // Before the cards: the storylines' progress rows past the window stop naming their segments.
+  const storylineProgress = trimStorylineProgress(ctx, from);
   const cards = pruneCards(ctx, from);
   const showChanges = pruneShowChanges(ctx, from);
   const ledgerRows = rollUpLedger(ctx, from);
   const aftermaths = slimAftermaths(ctx, from);
-  return { shows, ...cards, showChanges, ledgerRows, aftermaths };
+  return { shows, ...cards, showChanges, ledgerRows, aftermaths, storylineProgress };
 }
 
 export const historyRollUpPhase: PhaseDefinition = definePhase({
@@ -272,11 +282,16 @@ export const historyRollUpPhase: PhaseDefinition = definePhase({
   run: (ctx) => {
     const counts = rollUpHistory(ctx);
     if (
-      counts.shows + counts.segments + counts.showChanges + counts.ledgerRows + counts.aftermaths >
+      counts.shows +
+        counts.segments +
+        counts.showChanges +
+        counts.ledgerRows +
+        counts.aftermaths +
+        counts.storylineProgress >
       0
     ) {
       ctx.log(
-        `history: summarised ${String(counts.shows)} show(s); removed ${String(counts.segments)} segment(s), ${String(counts.participants)} participant(s), ${String(counts.showChanges)} popularity record(s); rolled ${String(counts.ledgerRows)} ledger row(s) into monthly totals; slimmed ${String(counts.aftermaths)} aftermath(s)`,
+        `history: summarised ${String(counts.shows)} show(s); removed ${String(counts.segments)} segment(s), ${String(counts.participants)} participant(s), ${String(counts.showChanges)} popularity record(s); rolled ${String(counts.ledgerRows)} ledger row(s) into monthly totals; slimmed ${String(counts.aftermaths)} aftermath(s); trimmed ${String(counts.storylineProgress)} storyline progress row(s)`,
       );
     }
   },

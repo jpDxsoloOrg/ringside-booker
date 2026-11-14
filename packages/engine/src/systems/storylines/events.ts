@@ -4,7 +4,13 @@
  * storylines and CRTV3-03 publishes all three from the player's commands.
  */
 
-import type { PersonId, PromotionId, StorylineId } from '../../core/ids';
+import type {
+  EventInstanceId,
+  PersonId,
+  PromotionId,
+  SegmentId,
+  StorylineId,
+} from '../../core/ids';
 
 /** Who started a storyline: the player, new-game setup (starter storylines) or a rival. */
 export const STORYLINE_START_SOURCES = ['player', 'setup', 'ai'] as const;
@@ -31,6 +37,18 @@ declare module '../../core/events/types' {
       added: PersonId[];
       removed: PersonId[];
       sideChanged: PersonId[];
+    };
+    /**
+     * A linked segment moved a storyline's heat (CRTV4-02): once per counted storyline per
+     * segment, on every promotion's shows.
+     */
+    'storyline.progressed': {
+      storylineId: StorylineId;
+      promotionId: PromotionId;
+      segmentId: SegmentId;
+      eventInstanceId: EventInstanceId;
+      heatBefore: number;
+      heatAfter: number;
     };
   }
 }

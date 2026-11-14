@@ -49,6 +49,32 @@ export const StorylineProgressSchema = z.strictObject({
   traceId: z.string().nullable(),
 });
 
+/**
+ * All-time totals of the linked segments that moved the story on (CRTV4-02). The `progress` log
+ * only keeps the detail window (`history.keepDetailDays`); these keep counting past it, so the
+ * payoff and the screens still have the story's whole run.
+ */
+export const StorylineProgressTotalsSchema = z.strictObject({
+  /** Linked segments that counted, all time. */
+  segments: z.number().int().min(0),
+  /** Of those, matches. */
+  matches: z.number().int().min(0),
+  /** Of those, angles (talking segments). */
+  angles: z.number().int().min(0),
+  /** Heat the counted segments added, summed. */
+  heatGained: z.number().min(0),
+  /** Heat the counted segments took away, summed (a positive number). */
+  heatLost: z.number().min(0),
+});
+
+export const EMPTY_STORYLINE_PROGRESS_TOTALS = {
+  segments: 0,
+  matches: 0,
+  angles: 0,
+  heatGained: 0,
+  heatLost: 0,
+} as const;
+
 /** How one member came out of the payoff. `skipped`: no longer around to be paid off. */
 export const StorylinePayoffMemberSchema = z.strictObject({
   personId: zId('person'),
@@ -106,6 +132,11 @@ export const StorylineSchema = z
      * (CRTV4-01 schema, CRTV4-02 writes). The default keeps older saves loading.
      */
     progress: z.array(StorylineProgressSchema).max(MAX_STORYLINE_PROGRESS).default([]),
+    /**
+     * All-time totals of the counted segments, including those the progress log has dropped
+     * (CRTV4-02). The default keeps older saves loading.
+     */
+    progressTotals: StorylineProgressTotalsSchema.default({ ...EMPTY_STORYLINE_PROGRESS_TOTALS }),
     /** The ending's payoff record; null while the story is active (CRTV4-03 writes it). */
     payoff: StorylinePayoffSchema.nullable().default(null),
   })
@@ -130,6 +161,15 @@ export const StorylineSchema = z
   })
   .refine(
     (storyline) =>
+      storyline.progressTotals.matches + storyline.progressTotals.angles ===
+      storyline.progressTotals.segments,
+    {
+      message: 'progressTotals.matches and angles add up to segments',
+      path: ['progressTotals'],
+    },
+  )
+  .refine(
+    (storyline) =>
       storyline.progress.every((entry, index) => {
         const previous = storyline.progress[index - 1];
         return previous === undefined || compareDates(previous.date, entry.date) <= 0;
@@ -140,6 +180,7 @@ export const StorylineSchema = z
 export type StorylineMember = z.infer<typeof StorylineMemberSchema>;
 export type Storyline = z.infer<typeof StorylineSchema>;
 export type StorylineProgress = z.infer<typeof StorylineProgressSchema>;
+export type StorylineProgressTotals = z.infer<typeof StorylineProgressTotalsSchema>;
 export type StorylinePayoffMember = z.infer<typeof StorylinePayoffMemberSchema>;
 /** Named `…Record` because `StorylinePayoff` is the detail screen's payoff state (CRTV3-01). */
 export type StorylinePayoffRecord = z.infer<typeof StorylinePayoffSchema>;
