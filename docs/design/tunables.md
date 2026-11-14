@@ -1302,3 +1302,13 @@ rolls. MTCH5-03 added the beat limits per slot and the angle score's keys
 | `match.angle.momentumPerPoint`                | number  | 0.12    | 0–1   | points     | Momentum per point of angle score above or below the pivot, for someone in every beat            |
 | `match.angle.popularityPivot`                 | number  | 60      | 0–100 | points     | Angle score above which the people in it gain popularity; never a loss                           |
 | `match.angle.popularityPerPoint`              | number  | 0.05    | 0–1   | points     | Popularity in the show region per point above the pivot, for someone in every beat               |
+
+## Broadcast tunables
+
+ECO8-01, see [broadcast.md](broadcast.md). Which networks are listed for a
+promotion. ECO8-02..05 add the audience, benchmark, valuation, settlement and
+deal health numbers under the same `Broadcast` category.
+
+| Key                                      | Kind    | Default | Range | Unit   | Meaning                                                                                                                                                                        |
+| ---------------------------------------- | ------- | ------- | ----- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `broadcast.networks.minPopularityToList` | integer | 1       | 0–100 | points | Popularity a promotion needs in a region before the networks covering it are listed ([networks](broadcast.md#which-networks-a-promotion-can-deal-with)); 0 lists every network |
