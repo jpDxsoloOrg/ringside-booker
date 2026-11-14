@@ -2,7 +2,8 @@
  * The match system's queries.
  *
  * - `match.catalog`: the match types, angle types and win methods booking and the Match lab can
- *   offer, from the world's catalog snapshot.
+ *   offer, from the world's catalog snapshot, plus the beats each angle type allows and the angle
+ *   templates (MTCH5), so the web never hard-codes them.
  * - `match.slotRoles`: the role, duration class and weight of every slot of a show format, with
  *   the traces inline (a query cannot store traces).
  * - `match.slotInfo` (MTCH1-07): the duration class and weight one slot role gives a segment of a
@@ -27,12 +28,21 @@ import { INVALID_ARGS, refuseQuery, type Reason } from '../../core/api/result';
 import type { ContentKey } from '../../core/content-key';
 import type { TraceNode } from '../../core/trace';
 import {
+  angleTemplatesOf,
   angleTypesOf,
+  beatsOf,
+  isBeatAllowed,
   matchTypeOf,
   matchTypesOf,
   methodsOf,
+  type AngleTemplateDef,
+  type AngleTemplatePurpose,
+  type BeatDef,
+  type BeatRepetitionGroup,
+  type CastToken,
   type MatchTypeDef,
 } from '../../model/catalogs';
+import type { BeatStat } from './angles/beatStats';
 import type { DurationShift } from '../../model/catalogs';
 import { zContentKey } from '../../model/primitives';
 import { MAX_SIDE } from '../../model/entities/participant';
@@ -98,7 +108,51 @@ export interface AngleTypeOption {
   order: number;
   /** How many people may speak. */
   speakers: CountRange;
+  /** MTCH5: the beats an angle of this type may use, by key. Empty without a beat catalog. */
+  beatKeys: ContentKey[];
   hidden: boolean;
+}
+
+/** One group of a beat as the lab offers it (MTCH5). */
+export interface BeatGroupOption {
+  label: string;
+  stats: BeatStat[];
+  weight: number;
+  minPeople: number;
+  maxPeople: number;
+  optional: boolean;
+  managerCanStandIn: boolean;
+}
+
+/** A beat as the lab offers it (MTCH5). Beats have no length. */
+export interface BeatOption {
+  key: ContentKey;
+  name: string;
+  description: string;
+  groups: BeatGroupOption[];
+  physical: boolean;
+  repetitionGroup: BeatRepetitionGroup;
+  weight: number;
+}
+
+/** One beat of an angle template (MTCH5). */
+export interface AngleTemplateBeatOption {
+  beatKey: ContentKey;
+  groupOne: CastToken;
+  groupTwo: CastToken | null;
+  optional: boolean;
+}
+
+/** An angle template as the lab offers it (MTCH5). */
+export interface AngleTemplateOption {
+  key: ContentKey;
+  name: string;
+  angleTypeKey: ContentKey;
+  purpose: AngleTemplatePurpose;
+  beats: AngleTemplateBeatOption[];
+  /** How many beats are left once every optional beat is dropped. */
+  requiredBeatCount: number;
+  description: string | null;
 }
 
 /** A win method as booking and the lab offer it. */
@@ -116,6 +170,10 @@ export interface MatchCatalog {
   matchTypes: MatchTypeOption[];
   angleTypes: AngleTypeOption[];
   methods: MethodOption[];
+  /** MTCH5: every beat, by key. Empty on a save started before beats existed. */
+  beats: BeatOption[];
+  /** MTCH5: every angle template, by key. Empty on a save started before beats existed. */
+  angleTemplates: AngleTemplateOption[];
   /** False when the world has no match types (a save from before catalogs); every list is empty. */
   available: boolean;
 }
@@ -236,13 +294,45 @@ function matchTypeOption(def: MatchTypeDef): MatchTypeOption {
   };
 }
 
+function beatOption(def: BeatDef): BeatOption {
+  return {
+    key: def.key,
+    name: def.name,
+    description: def.description,
+    groups: def.groups.map((group) => ({ ...group, stats: [...group.stats] })),
+    physical: def.physical,
+    repetitionGroup: def.repetitionGroup,
+    weight: def.weight,
+  };
+}
+
+function angleTemplateOption(def: AngleTemplateDef): AngleTemplateOption {
+  return {
+    key: def.key,
+    name: def.name,
+    angleTypeKey: def.angleTypeKey,
+    purpose: def.purpose,
+    beats: def.beats.map((beat) => ({ ...beat })),
+    requiredBeatCount: def.beats.filter((beat) => !beat.optional).length,
+    description: def.description ?? null,
+  };
+}
+
 export const catalogQuery: QueryDefinition<'match.catalog'> = defineQuery('match.catalog', {
   args: z.strictObject({ includeHidden: z.boolean().optional() }),
   run: (ctx, args) => {
     const options = { includeHidden: args.includeHidden ?? false };
     if (matchTypesOf(ctx.read, { includeHidden: true }).length === 0) {
-      return { matchTypes: [], angleTypes: [], methods: [], available: false };
+      return {
+        matchTypes: [],
+        angleTypes: [],
+        methods: [],
+        beats: [],
+        angleTemplates: [],
+        available: false,
+      };
     }
+    const beats = beatsOf(ctx.read);
     return {
       matchTypes: matchTypesOf(ctx.read, options).map(matchTypeOption),
       angleTypes: angleTypesOf(ctx.read, options).map((def) => ({
@@ -251,6 +341,7 @@ export const catalogQuery: QueryDefinition<'match.catalog'> = defineQuery('match
         shortName: def.shortName ?? def.name,
         order: def.order,
         speakers: range(def.speakers),
+        beatKeys: beats.filter((beat) => isBeatAllowed(def, beat.key)).map((beat) => beat.key),
         hidden: def.hidden,
       })),
       methods: methodsOf(ctx.read, options).map((def) => ({
@@ -260,6 +351,8 @@ export const catalogQuery: QueryDefinition<'match.catalog'> = defineQuery('match
         changesTitles: def.changesTitles,
         hidden: def.hidden,
       })),
+      beats: beats.map(beatOption),
+      angleTemplates: angleTemplatesOf(ctx.read).map(angleTemplateOption),
       available: true,
     };
   },

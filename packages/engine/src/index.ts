@@ -3200,3 +3200,63 @@ export {
   type StorylineStartSource,
   type StorylineTimelineEntry,
 } from './systems/storylines/index';
+// Beats and angle templates (MTCH5-01): the beat catalog and angle templates snapshotted into
+// `meta.catalogs`, their readers, the beat stats, beat groups derived from participant sides,
+// template fitting and casting, the beat checks validate:world runs and the `match.catalog`
+// additions. See docs/design/angle-rating.md.
+export type {
+  AngleTemplateBeat,
+  AngleTemplateDef,
+  AngleTemplatePurpose,
+  BeatDef,
+  BeatGroupDef,
+  BeatRepetitionGroup,
+  CastToken,
+} from './model/catalogs';
+export {
+  ANGLE_TEMPLATE_PURPOSES,
+  AngleTemplateDefSchema,
+  angleTemplateOf,
+  angleTemplatesOf,
+  BEAT_REPETITION_GROUPS,
+  BeatDefSchema,
+  beatOf,
+  beatsOf,
+  CAST_TOKENS,
+  hasBeatCatalog,
+  isBeatAllowed,
+} from './model/catalogs';
+export type {
+  AngleSides,
+  AngleTemplateBeatOption,
+  AngleTemplateFilter,
+  AngleTemplateOption,
+  BeatCatalogIssue,
+  BeatGroupOption,
+  BeatOption,
+  BeatStat,
+  FittedTemplate,
+  GroupedBeat,
+  SideConflict,
+  SidedBeat,
+  SideOf,
+  TalkingStat,
+  TemplateCast,
+  TemplateFit,
+} from './systems/match/index';
+export {
+  angleTemplatesFor,
+  assignAngleSides,
+  BEAT_ISSUE_CODES,
+  BEAT_STAT_LABELS,
+  BEAT_STATS,
+  beatGroupsOf,
+  castTemplate,
+  checkBeatCatalog,
+  checkSegmentBeats,
+  fitTemplate,
+  isBeatStat,
+  isTalkingStat,
+  TALKING_STATS,
+  toStoredBeat,
+} from './systems/match/index';

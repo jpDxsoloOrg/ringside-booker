@@ -47,6 +47,8 @@ export const PACK_ISSUE_CODES = [
   'wrong-kind-reference',
   /** A region lists a neighbour that does not list it back. The loader adds the missing side. */
   'one-sided-neighbour',
+  /** An angle template uses a beat its angle type does not allow (MTCH5). */
+  'beat-not-allowed',
   /** No start date was given and no loaded world pack sets one. */
   'missing-start-date',
   /** A loaded record does not make a valid entity, or the finished world fails `checkWorld`. */

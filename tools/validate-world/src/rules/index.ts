@@ -16,6 +16,7 @@ import { injuryCatalog } from './injuryCatalog';
 import type { ContentRule } from './helpers';
 import { promotionStaffing } from './promotionStaffing';
 import { reignChronology } from './reignChronology';
+import { angleBeats } from './angleBeats';
 import { segmentFinishes } from './segmentFinishes';
 import { segmentKeys } from './segmentKeys';
 import { uniqueNames } from './uniqueNames';
@@ -41,6 +42,7 @@ export function contentRules(setup: RuleSetup): readonly ContentRule[] {
     createBlocklistRule(setup.blocklist),
     segmentKeys,
     segmentFinishes,
+    angleBeats,
     injuryCatalog,
   ];
 }

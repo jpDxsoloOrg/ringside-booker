@@ -252,6 +252,49 @@ export {
   type FinishFilterContext,
 } from './finishes/allowed';
 export { SEGMENT_FINISH_ISSUE_CODES, checkSegmentFinishes } from './catalog/checkSegmentFinishes';
+
+// Beats and angle templates (MTCH5-01): beat stats, the beat checks, beat groups derived from
+// participant sides, and template fitting and casting. Design: docs/design/angle-rating.md.
+export {
+  BEAT_STAT_LABELS,
+  BEAT_STATS,
+  isBeatStat,
+  isTalkingStat,
+  TALKING_STATS,
+  type BeatStat,
+  type TalkingStat,
+} from './angles/beatStats';
+export {
+  BEAT_ISSUE_CODES,
+  checkBeatCatalog,
+  checkSegmentBeats,
+  type BeatCatalogIssue,
+} from './catalog/checkSegmentBeats';
+export {
+  assignAngleSides,
+  beatGroupsOf,
+  toStoredBeat,
+  type AngleSides,
+  type SideConflict,
+  type SidedBeat,
+  type SideOf,
+} from './angles/beatGroups';
+export {
+  angleTemplatesFor,
+  castTemplate,
+  fitTemplate,
+  type AngleTemplateFilter,
+  type FittedTemplate,
+  type GroupedBeat,
+  type TemplateCast,
+  type TemplateFit,
+} from './angles/templates';
+export type {
+  AngleTemplateBeatOption,
+  AngleTemplateOption,
+  BeatGroupOption,
+  BeatOption,
+} from './queries';
 export {
   FINISHES_REASON_CODES,
   type FinishMethodOption,

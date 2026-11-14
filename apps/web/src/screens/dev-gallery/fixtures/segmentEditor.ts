@@ -323,6 +323,7 @@ export const GALLERY_CATALOG: MatchCatalog = {
       shortName: 'Promo',
       order: 10,
       speakers: { min: 1, max: 4 },
+      beatKeys: [parseContentKey('beat.promo')],
       hidden: false,
     },
     {
@@ -331,6 +332,7 @@ export const GALLERY_CATALOG: MatchCatalog = {
       shortName: 'Confrontation',
       order: 30,
       speakers: { min: 2, max: 8 },
+      beatKeys: [parseContentKey('beat.staredown')],
       hidden: false,
     },
   ],
@@ -364,6 +366,8 @@ export const GALLERY_CATALOG: MatchCatalog = {
       hidden: false,
     },
   ],
+  beats: [],
+  angleTemplates: [],
 };
 
 const CLASS_LABELS: Readonly<Record<DurationClass, string>> = {

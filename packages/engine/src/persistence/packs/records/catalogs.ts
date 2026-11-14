@@ -15,10 +15,18 @@
  *   other kinds: `methods[].methodKey` names a method and `matchTypes.only` / `except` name match
  *   types, as pack references the loader checks.
  *
+ * - A **beat** (MTCH5) is one step of an angle: its one or two groups of people, the stats each
+ *   group is scored on, whether it is physical and how much it counts. Beats have no length.
+ * - An **angle template** (MTCH5) is a ready-made angle: an angle type, a purpose and its beats in
+ *   order, each cast by token (`a`, `b`, `ab`, `host`). `angleTypeKey` and `beats[].beatKey` are
+ *   pack references the loader checks; an angle type's `beatKeys` are content keys like its
+ *   `defaultBeatKey` (`checkBeatKeys` in `references.ts` makes them resolve).
+ *
  * These records never become entities. The loader snapshots the merged records into
  * `WorldMeta.catalogs` at new game, keyed by content key: pack key `singles` becomes
  * `match.singles`, `promo` becomes `angle.promo`, `pinfall` becomes `method.pinfall` and `clean`
- * becomes `finish.clean`.
+ * becomes `finish.clean`, `war-of-words` becomes `beat.war-of-words` and `feud-opener` becomes
+ * `template.feud-opener`.
  *
  * Format doc: docs/design/data-packs.md, "Match and segment catalogs".
  */
@@ -55,6 +63,21 @@ import {
   finishSummarySchema,
   refineFinish,
   type FinishDef,
+  ANGLE_TEMPLATE_KEY_PREFIX,
+  angleTemplateNameSchema,
+  beatDescriptionSchema,
+  beatGroupsSchema,
+  beatKeyListSchema,
+  beatNameSchema,
+  beatRepetitionGroupSchema,
+  beatWeightSchema,
+  angleTemplatePurposeSchema,
+  ANGLE_TEMPLATE_BEATS_MAX,
+  castTokenSchema,
+  refineAngleTemplateBeats,
+  refineAngleTypeBeats,
+  type AngleTemplateDef,
+  type BeatDef,
 } from '../../../model/catalogs';
 import { zContentKey } from '../../../model/primitives';
 import { zName } from '../../../model/entities/entity-refinements';
@@ -78,6 +101,8 @@ export const METHOD_CONTENT_PREFIX = 'method';
 export const FINISH_CONTENT_PREFIX = 'finish';
 /** The namespace an angle type's default beat must be in (MTCH5's beat catalog). */
 export const BEAT_CONTENT_PREFIX = 'beat';
+/** The namespace of angle templates (MTCH5). A namespace allows no hyphen, so not `angle-template`. */
+export const ANGLE_TEMPLATE_CONTENT_PREFIX = ANGLE_TEMPLATE_KEY_PREFIX;
 
 /** The content key a match type is stored under: `singles` → `match.singles`. */
 export function matchTypeContentKey(packKey: PackKey | string): ContentKey {
@@ -97,6 +122,16 @@ export function methodContentKey(packKey: PackKey | string): ContentKey {
 /** The content key a finish is stored under: `clean` → `finish.clean`. */
 export function finishContentKey(packKey: PackKey | string): ContentKey {
   return parseContentKey(`${FINISH_CONTENT_PREFIX}.${packKey}`);
+}
+
+/** The content key a beat is stored under: `war-of-words` → `beat.war-of-words`. */
+export function beatContentKey(packKey: PackKey | string): ContentKey {
+  return parseContentKey(`${BEAT_CONTENT_PREFIX}.${packKey}`);
+}
+
+/** The content key an angle template is stored under: `feud-opener` → `template.feud-opener`. */
+export function angleTemplateContentKey(packKey: PackKey | string): ContentKey {
+  return parseContentKey(`${ANGLE_TEMPLATE_CONTENT_PREFIX}.${packKey}`);
 }
 
 const nameSchema = zName(CATALOG_NAME_MAX_LENGTH);
@@ -150,9 +185,15 @@ export const angleTypeRecord = defineRecordKind(
     speakers: intRangeSchema(ANGLE_TYPE_SPEAKERS_MIN, ANGLE_TYPE_SPEAKERS_MAX, 'speakers'),
     /** The stat mix of the simple speaker score, each 0-1 and not all 0. */
     speakerWeights: speakerWeightsSchema,
+    /**
+     * MTCH5: the beats an angle of this type may use, as content keys (`beat.brawl`), each once
+     * and including `defaultBeatKey`. Left out = every beat.
+     */
+    beatKeys: beatKeyListSchema.optional(),
     hidden: z.boolean().optional(),
     description: descriptionSchema.optional(),
   }),
+  refineAngleTypeBeats,
 );
 
 export const methodRecord = defineRecordKind(
@@ -197,10 +238,51 @@ export const finishRecord = defineRecordKind(
   refineFinish,
 );
 
+export const beatRecord = defineRecordKind(
+  z.strictObject({
+    key: keySchema,
+    name: beatNameSchema,
+    description: beatDescriptionSchema,
+    /** One or two groups; only the second may be optional. */
+    groups: beatGroupsSchema,
+    physical: z.boolean(),
+    repetitionGroup: beatRepetitionGroupSchema,
+    /** How much the beat counts in the angle's mean, 0.1-3. */
+    weight: beatWeightSchema,
+  }),
+);
+
+export const angleTemplateRecord = defineRecordKind(
+  z.strictObject({
+    key: keySchema,
+    name: angleTemplateNameSchema,
+    /** The angle type, by pack key (`confrontation`). */
+    angleTypeKey: refSchema,
+    purpose: angleTemplatePurposeSchema,
+    /** 1-8 beats in order; at least one is not optional. */
+    beats: z
+      .array(
+        z.strictObject({
+          /** The beat, by pack key (`war-of-words`). */
+          beatKey: refSchema,
+          groupOne: castTokenSchema,
+          groupTwo: castTokenSchema.nullable(),
+          optional: z.boolean(),
+        }),
+      )
+      .min(1)
+      .max(ANGLE_TEMPLATE_BEATS_MAX)
+      .superRefine(refineAngleTemplateBeats),
+    description: descriptionSchema.optional(),
+  }),
+);
+
 export type MatchTypeRecord = z.output<typeof matchTypeRecord.full>;
 export type AngleTypeRecord = z.output<typeof angleTypeRecord.full>;
 export type MethodRecord = z.output<typeof methodRecord.full>;
 export type FinishRecord = z.output<typeof finishRecord.full>;
+export type BeatRecord = z.output<typeof beatRecord.full>;
+export type AngleTemplateRecord = z.output<typeof angleTemplateRecord.full>;
 
 // ---------------------------------------------------------------------------------------------
 // Records to runtime entries, defaults filled in
@@ -235,6 +317,7 @@ export function toAngleTypeDef(record: AngleTypeRecord): AngleTypeDef {
     defaultBeatKey: record.defaultBeatKey,
     speakers: { ...record.speakers },
     speakerWeights: { ...record.speakerWeights },
+    ...(record.beatKeys === undefined ? {} : { beatKeys: [...record.beatKeys] }),
     hidden: record.hidden ?? false,
     ...(record.description === undefined ? {} : { description: record.description }),
   };
@@ -284,6 +367,36 @@ export function toFinishDef(record: FinishRecord): FinishDef {
   };
 }
 
+/** A beat record as its runtime catalog entry. */
+export function toBeatDef(record: BeatRecord): BeatDef {
+  return {
+    key: beatContentKey(record.key),
+    name: record.name,
+    description: record.description,
+    groups: record.groups.map((group) => ({ ...group, stats: [...group.stats] })),
+    physical: record.physical,
+    repetitionGroup: record.repetitionGroup,
+    weight: record.weight,
+  };
+}
+
+/** An angle template record as its runtime catalog entry, its references turned into content keys. */
+export function toAngleTemplateDef(record: AngleTemplateRecord): AngleTemplateDef {
+  return {
+    key: angleTemplateContentKey(record.key),
+    name: record.name,
+    angleTypeKey: angleTypeContentKey(keyOf(record.angleTypeKey)),
+    purpose: record.purpose,
+    beats: record.beats.map((beat) => ({
+      beatKey: beatContentKey(keyOf(beat.beatKey)),
+      groupOne: beat.groupOne,
+      groupTwo: beat.groupTwo,
+      optional: beat.optional,
+    })),
+    ...(record.description === undefined ? {} : { description: record.description }),
+  };
+}
+
 function compareText(left: string, right: string): number {
   if (left === right) {
     return 0;
@@ -312,27 +425,35 @@ function catalogOf<PackRecord, Def extends { readonly key: ContentKey }>(
 
 /**
  * The runtime catalogs for `WorldMeta.catalogs`, from merged pack records: every match type,
- * angle type, method and finish keyed by content key, in key order. A kind no pack defines is left out, so
+ * angle type, method, finish, beat and angle template keyed by content key, in key order. A kind no pack defines is left out, so
  * nothing checks segment keys against a catalog that does not exist.
  */
 export function catalogsFromRecords(
-  records: Pick<MergedRecords, 'matchType' | 'angleType' | 'method' | 'finish'>,
+  records: Pick<
+    MergedRecords,
+    'matchType' | 'angleType' | 'method' | 'finish' | 'beat' | 'angleTemplate'
+  >,
 ): Catalogs {
   const angleTypes = catalogOf(records.angleType, toAngleTypeDef);
   const matchTypes = catalogOf(records.matchType, toMatchTypeDef);
   const methods = catalogOf(records.method, toMethodDef);
   const finishes = catalogOf(records.finish, toFinishDef);
+  const beats = catalogOf(records.beat, toBeatDef);
+  const angleTemplates = catalogOf(records.angleTemplate, toAngleTemplateDef);
   return {
     ...(angleTypes === undefined ? {} : { angleTypes }),
     ...(matchTypes === undefined ? {} : { matchTypes }),
     ...(methods === undefined ? {} : { methods }),
     ...(finishes === undefined ? {} : { finishes }),
+    ...(beats === undefined ? {} : { beats }),
+    ...(angleTemplates === undefined ? {} : { angleTemplates }),
   };
 }
 
 // ---------------------------------------------------------------------------------------------
-// Reference fields. `defaultBeatKey` is a content key, not a pack reference. A finish names
-// methods and match types by pack key.
+// Reference fields. `defaultBeatKey` and `beatKeys` are content keys, not pack references
+// (`checkBeatKeys` in references.ts resolves them). A finish names methods and match types by pack
+// key; an angle template names its angle type and beats by pack key.
 
 export const matchTypeReferences = [] as const satisfies readonly RecordReference[];
 
@@ -344,4 +465,11 @@ export const finishReferences = [
   { path: ['methods', EACH_ELEMENT, 'methodKey'], target: 'method' },
   { path: ['matchTypes', 'only', EACH_ELEMENT], target: 'matchType' },
   { path: ['matchTypes', 'except', EACH_ELEMENT], target: 'matchType' },
+] as const satisfies readonly RecordReference[];
+
+export const beatReferences = [] as const satisfies readonly RecordReference[];
+
+export const angleTemplateReferences = [
+  { path: ['angleTypeKey'], target: 'angleType' },
+  { path: ['beats', EACH_ELEMENT, 'beatKey'], target: 'beat' },
 ] as const satisfies readonly RecordReference[];

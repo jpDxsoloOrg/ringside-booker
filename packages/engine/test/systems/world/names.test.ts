@@ -178,6 +178,8 @@ function aLibrary(
     angleTypes: {},
     methods: {},
     finishes: {},
+    beats: {},
+    angleTemplates: {},
     injuryKinds: {},
   };
 }

@@ -599,6 +599,7 @@ defines is left out of `meta.catalogs`, and a world built without packs has
 | `defaultBeatKey` | content key                   | The beat a new angle of this type starts with. A content key in the `beat.` namespace, not a pack reference: the beat catalog comes with MTCH5, which also checks it resolves |
 | `speakers`       | `{ min, max }`                | Integers 1-12; `max` at least `min`                                                                                                                                           |
 | `speakerWeights` | `{ mic, charisma, presence }` | Each 0-1, not all 0: the stat mix of the simple speaker score until MTCH5's beats replace it                                                                                  |
+| `beatKeys?`      | content keys                  | MTCH5: the `beat.` keys an angle of this type may use, each once, including `defaultBeatKey`. Default: every beat                                                             |
 | `hidden?`        | boolean                       | Default: false                                                                                                                                                                |
 | `description?`   | string                        | Up to 300 characters                                                                                                                                                          |
 
@@ -659,12 +660,23 @@ kinds: `methods[].methodKey` names a method and `matchTypes.only` /
 The fields, the shipped entries and the rules are in
 [match-finishes.md](match-finishes.md#catalog).
 
+**`beat`** and **`angleTemplate`** (MTCH5): the steps an angle is built
+from, in `content/base/catalogs/beats.json` and stored as `beat.<key>`, and
+ready-made angles in `content/base/catalogs/angle-templates.json`, stored as
+`template.<key>`. An angle type may list `beatKeys`, the beat content keys it
+allows (with its `defaultBeatKey`; left out = every beat). A template names
+its angle type and beats by pack key, as references the loader checks; a
+template beat its angle type does not allow is a `beat-not-allowed` error. The
+fields, the shipped entries and the rules are in
+[angle-rating.md](angle-rating.md).
+
 `validate:world`'s `segment-keys` rule checks the shipped catalogs: at least
 one visible singles-like match type (`sides.min` 2, `sideSize.min` 1), unique
 names within each catalog, `beat.` default keys, that every stored
 segment's match type, win method and angle type resolves, and that the finish
 catalog passes `checkFinishCatalog`. Its `segment-finishes` rule checks every
-stored match's planned finish.
+stored match's planned finish, and its `angle-beats` rule checks the angle
+types' beat lists and every stored angle beat.
 
 ### Health
 
@@ -1021,5 +1033,6 @@ field path inside the record).
 | `unknown-reference`       | error    | references  | A reference names a key no loaded record of that kind has (or a pack that didn't define it).    |
 | `wrong-kind-reference`    | error    | references  | A reference names a key that exists only as another kind, such as a country in `homeRegionKey`. |
 | `one-sided-neighbour`     | warning  | references  | A region's neighbour doesn't list it back. Both sides are stored.                               |
+| `beat-not-allowed`        | error    | references  | An angle template uses a beat its angle type doesn't allow (MTCH5).                             |
 | `missing-start-date`      | error    | load        | No start date was given and no world pack was loaded.                                           |
 | `entity-schema`           | error    | materialise | A record doesn't make a valid entity, or the finished world fails `checkWorld`.                 |

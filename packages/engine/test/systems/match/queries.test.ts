@@ -88,7 +88,14 @@ describe('match.catalog', () => {
     const result = engineWith(null).query('match.catalog', {}, PLAYER);
     expect(result).toEqual({
       ok: true,
-      data: { matchTypes: [], angleTypes: [], methods: [], available: false },
+      data: {
+        matchTypes: [],
+        angleTypes: [],
+        methods: [],
+        beats: [],
+        angleTemplates: [],
+        available: false,
+      },
     });
   });
 
