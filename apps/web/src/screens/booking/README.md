@@ -30,6 +30,7 @@ column with a sticky bar at the bottom. The engine side is in
 | `editor/TitlesField.tsx`        | Titles on the line, with the missing-champion note                              |
 | `editor/PlannedResultField.tsx` | Winner, draw or no contest, and the method                                      |
 | `editor/useRoster.ts`           | The show's roster by person and team, for names and availability                |
+| `registries/cardSlotChips.tsx`  | `registerCardSlotChips`: chips features add to slots (CRTV4's storyline chips)  |
 
 ## Data
 
