@@ -3926,3 +3926,37 @@ export type {
   NewsTop,
   NewsTopArgs,
 } from './systems/news';
+
+// Broadcast valuation (ECO8-03): what a network would pay for a show and whether it would sign,
+// and the networks, valuation and public deals queries. See docs/design/broadcast.md#valuation.
+export {
+  ALL_MAJOR_SHOWS,
+  ALL_TELEVISED_SHOWS,
+  BEST_OFFER_MAX_VALUATIONS,
+  coverageLabel,
+  DEAL_REFUSAL_CODES,
+  dealIsLive,
+  dealShowName,
+  dealTerms,
+  dealValuation,
+  dealVerdict,
+  valuationContext,
+} from './systems/broadcast/index';
+export type {
+  BroadcastValuationArgs,
+  DealCheckInputs,
+  DealRefusal,
+  DealRefusalCode,
+  DealTermsInputs,
+  DealTermsResult,
+  DealValuation,
+  DealValuationRequest,
+  DealValuationTerms,
+  DealVerdict,
+  DealVerdictValue,
+  NetworkBestOffer,
+  NetworkCarriedDeal,
+  NetworkRow,
+  PublicDealRow,
+  ValuationContext,
+} from './systems/broadcast/index';

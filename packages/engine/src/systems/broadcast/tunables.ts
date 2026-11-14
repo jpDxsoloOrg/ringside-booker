@@ -13,6 +13,7 @@ export const BROADCAST_TUNABLE_CATEGORY = 'Broadcast';
 export const BROADCAST_DOC = 'broadcast.md';
 const AUDIENCE_DOC_REF = `${BROADCAST_DOC}#audience`;
 const BENCHMARK_DOC_REF = `${BROADCAST_DOC}#benchmark`;
+const VALUATION_DOC_REF = `${BROADCAST_DOC}#valuation`;
 
 /** A factor of the audience formula: a plain ratio where 0 means nobody watches. */
 function audienceRatio(defaultValue: number, max: number, description: string) {
@@ -39,6 +40,48 @@ function benchmarkPopularity(tier: number, defaultValue: number) {
     category: BROADCAST_TUNABLE_CATEGORY,
     description: `Popularity of the typical promotion a tier-${String(tier)} network expects, in every region it covers; 0 means the network expects nobody`,
     docRef: BENCHMARK_DOC_REF,
+  } as const;
+}
+
+/** A valuation rate or cost in cents (ECO8-03); 0 means 0. */
+function valuationMoney(defaultValue: number, max: number, description: string) {
+  return {
+    kind: 'integer',
+    default: defaultValue,
+    min: 0,
+    max,
+    unit: 'money',
+    category: BROADCAST_TUNABLE_CATEGORY,
+    description: `${description}, in cents; 0 means 0`,
+    docRef: VALUATION_DOC_REF,
+  } as const;
+}
+
+/** The smallest audience a network of one kind will put on air (ECO8-03). */
+function minimumAudience(kindLabel: string, defaultValue: number) {
+  return {
+    kind: 'integer',
+    default: defaultValue,
+    min: 0,
+    max: 1_000_000,
+    unit: 'count',
+    category: BROADCAST_TUNABLE_CATEGORY,
+    description: `Fewest projected viewers (buyers on pay-per-view) ${kindLabel} will take; 0 means no floor`,
+    docRef: VALUATION_DOC_REF,
+  } as const;
+}
+
+/** A deal length in months (ECO8-03). */
+function dealMonths(defaultValue: number, description: string) {
+  return {
+    kind: 'integer',
+    default: defaultValue,
+    min: 1,
+    max: 120,
+    unit: 'months',
+    category: BROADCAST_TUNABLE_CATEGORY,
+    description,
+    docRef: VALUATION_DOC_REF,
   } as const;
 }
 
@@ -214,4 +257,105 @@ export const broadcastTunables = defineTunables({
     description: 'Marketing level of the typical promotion a network expects',
     docRef: BENCHMARK_DOC_REF,
   },
+  // ECO8-03: what a network pays and what it accepts.
+  'broadcast.value.tvPerThousand': valuationMoney(
+    40_000,
+    100_000_000,
+    'What a TV channel pays for each thousand viewers it values',
+  ),
+  'broadcast.value.streamingPerThousand': valuationMoney(
+    25_000,
+    100_000_000,
+    'What a streaming service pays for each thousand viewers it values',
+  ),
+  'broadcast.value.ppvPerThousandBuys': valuationMoney(
+    180_000,
+    100_000_000,
+    'What a pay-per-view provider pays for each thousand buys',
+  ),
+  'broadcast.value.tvBonusShare': {
+    kind: 'number',
+    default: 0.1,
+    min: 0,
+    max: 1,
+    unit: 'ratio',
+    category: BROADCAST_TUNABLE_CATEGORY,
+    description:
+      'Part of the TV rate paid per thousand actual viewers instead of as a flat fee; 0 means all of it is the flat fee',
+    docRef: VALUATION_DOC_REF,
+  },
+  'broadcast.value.liveFeeBonus': {
+    kind: 'number',
+    default: 1.1,
+    min: 1,
+    max: 3,
+    unit: 'multiplier',
+    category: BROADCAST_TUNABLE_CATEGORY,
+    description: 'What a network pays more for a live show than a taped one; 1 means no more',
+    docRef: VALUATION_DOC_REF,
+  },
+  'broadcast.value.valuedViewersCap': {
+    kind: 'number',
+    default: 5,
+    min: 0,
+    max: 10,
+    unit: 'ratio',
+    category: BROADCAST_TUNABLE_CATEGORY,
+    description:
+      'Most viewers a network pays the flat fee for, as a share of what it expects; 0 means it pays no flat fee',
+    docRef: VALUATION_DOC_REF,
+  },
+  'broadcast.value.airtimePerMillion': valuationMoney(
+    15_000,
+    100_000_000,
+    'Airtime charged for each million people a network covers, for each reach tier step',
+  ),
+  'broadcast.value.streamingAirtimeFactor': {
+    kind: 'number',
+    default: 0.1,
+    min: 0,
+    max: 1,
+    unit: 'ratio',
+    category: BROADCAST_TUNABLE_CATEGORY,
+    description: 'Share of the airtime cost a streaming service charges; 0 means it charges none',
+    docRef: VALUATION_DOC_REF,
+  },
+  'broadcast.deal.minBenchmarkRatio': {
+    kind: 'number',
+    default: 0.85,
+    min: 0,
+    max: 5,
+    unit: 'ratio',
+    category: BROADCAST_TUNABLE_CATEGORY,
+    description:
+      'Share of what a network expects that a promotion must draw before it will sign; 0 means any audience will do',
+    docRef: VALUATION_DOC_REF,
+  },
+  'broadcast.deal.minViewers.tv': minimumAudience('a TV channel', 1_000),
+  'broadcast.deal.minViewers.ppv': minimumAudience('a pay-per-view provider', 300),
+  'broadcast.deal.minViewers.streaming': minimumAudience('a streaming service', 300),
+  'broadcast.deal.cameraPerTier': {
+    kind: 'integer',
+    default: 1,
+    min: 0,
+    max: 10,
+    unit: 'count',
+    category: BROADCAST_TUNABLE_CATEGORY,
+    description:
+      'Camera level a network needs for each step of its reach tier; 0 means any camera will do',
+    docRef: VALUATION_DOC_REF,
+  },
+  'broadcast.deal.primeTimeMinReach': {
+    kind: 'number',
+    default: 25,
+    min: 0,
+    max: 100,
+    unit: 'points',
+    category: BROADCAST_TUNABLE_CATEGORY,
+    description: 'Reach a promotion needs before a network gives it prime time; 0 means anyone',
+    docRef: VALUATION_DOC_REF,
+  },
+  'broadcast.deal.minMonths': dealMonths(6, 'Shortest deal a network will sign'),
+  'broadcast.deal.maxMonths': dealMonths(48, 'Longest deal a network will sign'),
+  'broadcast.deal.defaultMonths': dealMonths(24, 'Deal length offered when the player picks none'),
 });
