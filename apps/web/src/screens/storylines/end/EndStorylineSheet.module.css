@@ -1,0 +1,27 @@
+/* The end storyline sheet: a short lead line, the payoff preview, and Cancel / End below. */
+.body {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.lead,
+.muted,
+.problem {
+  margin: 0;
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.problem {
+  color: var(--color-negative);
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}

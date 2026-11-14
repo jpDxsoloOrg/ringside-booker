@@ -15,8 +15,7 @@ export const NO_GAME_TITLE = 'No game loaded';
 export const NO_GAME_TEXT = 'Start or load a game to see your storylines.';
 
 /** The storyline page's empty timeline. */
-export const EMPTY_TIMELINE_TEXT =
-  'Segments you link to this storyline in booking will appear here.';
+export const EMPTY_TIMELINE_TEXT = "No linked segments yet: link this story's segments in Booking";
 
 /** True when the query failed because no game is loaded. */
 export function isNoWorldError(error: EngineQueryError | null): boolean {
@@ -53,13 +52,17 @@ export function coolingText(cooling: StorylineCoolingView): string {
   return `At its floor of ${formatNumber(cooling.floor)}: it cools no further.`;
 }
 
-/** How a storyline ended: "No payoff (needs 4 linked segments)", "No payoff yet" or "Payoff". */
+/**
+ * How a storyline ended, in a few words: "No payoff (needs 4 linked segments)", "Payoff", or, for
+ * one that ended in an old save before payoffs existed, "Ended before payoffs". The page's Ending
+ * panel draws the full record from `storylines.payoff` (CRTV4-05).
+ */
 export function endingTitle(ending: StorylineEndingView): string {
   switch (ending.payoff) {
     case 'tooFew':
       return `No payoff (needs ${formatNumber(ending.minSegments)} linked ${ending.minSegments === 1 ? 'segment' : 'segments'})`;
     case 'notAvailable':
-      return 'No payoff yet';
+      return 'Ended before payoffs';
     case 'paid':
       return 'Payoff';
   }

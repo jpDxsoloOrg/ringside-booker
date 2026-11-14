@@ -21,6 +21,7 @@ import { OPEN_FAN_BASE_LABEL, StatusChip, StatusChips } from './StatusChips';
 
 const STATUS: SimStatus = {
   date: parseGameDate('2031-03-14'),
+  sandbox: false,
   season: { number: 3, endDate: parseGameDate('2031-06-30') },
   promotion: {
     promotionId: parseId('promotion', 'pro_00000000ab'),

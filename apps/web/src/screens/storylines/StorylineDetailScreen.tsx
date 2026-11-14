@@ -1,14 +1,13 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
-import { isId, MAX_STORYLINE_MEMBERS, traceRefFromKey } from '@ringside/engine';
+import { isId, MAX_STORYLINE_MEMBERS } from '@ringside/engine';
 import type {
   Reason,
   StorylineDetail,
   StorylineId,
   StorylineMemberView,
   StorylineSide,
-  StorylineTimelineEntry,
 } from '@ringside/engine';
 import { RouteHeading } from '@/app/a11y/RouteHeading';
 import { useDocumentTitle } from '@/app/a11y/useDocumentTitle';
@@ -27,19 +26,21 @@ import { ImageSlot } from '@/components/ImageSlot';
 import { Panel } from '@/components/Panel';
 import { SegmentedMeter } from '@/components/SegmentedMeter';
 import { Sheet } from '@/components/Sheet';
-import { StarRating } from '@/components/StarRating';
 import { HOT_LABEL, LEFT_PROMOTION_TEXT } from '@/components/StorylineCard';
 import { STORYLINE_SIDE_LABELS, StorylineSideChip } from '@/components/StorylineSideChip';
 import { Explained, WhyButton } from '@/components/Trace';
 import { WorkerLink } from '@/components/WorkerLink';
+import { EndingPanel } from './end/EndingPanel';
+import { EndStorylineSheet } from './end/EndStorylineSheet';
+import { FinaleHint } from './FinaleHint';
 import { MemberPicker } from './MemberPicker';
 import type { ChosenMember } from './MemberPicker';
 import { StorylineEditorSheet } from './StorylineEditorSheet';
+import { SetHeatControl } from './SetHeatControl';
 import { storylineWarningsFrom } from './storylineWarnings';
+import { HeatTimeline } from './timeline/HeatTimeline';
 import {
   coolingText,
-  EMPTY_TIMELINE_TEXT,
-  endingTitle,
   isNoWorldError,
   NO_GAME_TEXT,
   NO_GAME_TITLE,
@@ -105,43 +106,6 @@ function datesText(storyline: StorylineDetail): string {
     : `${started} · Ended ${formatGameDate(storyline.endedOn)}`;
 }
 
-/** "Pre-show" or "Segment 3" (slots count from 0 in the engine). */
-export function timelineSlotText(entry: StorylineTimelineEntry): string {
-  return entry.preShow ? 'Pre-show' : `Segment ${String(entry.slot + 1)}`;
-}
-
-function TimelineItem({ entry }: { readonly entry: StorylineTimelineEntry }) {
-  const ratingRef = entry.ratingTraceId === null ? null : traceRefFromKey(entry.ratingTraceId);
-  return (
-    <li className={styles['timelineItem']}>
-      <p className={styles['timelineMeta']}>
-        {formatGameDate(entry.date)} · {entry.eventName} · {timelineSlotText(entry)}
-      </p>
-      <p className={styles['timelineLabel']}>
-        {entry.label}
-        {entry.isFinale && (
-          <Badge tone="prestige" variant="solid">
-            Finale
-          </Badge>
-        )}
-      </p>
-      {entry.stars !== null && (
-        <p className={styles['timelineStars']}>
-          <StarRating value={entry.stars} size="sm" />
-          {ratingRef !== null && (
-            <WhyButton
-              label="Stars"
-              value={entry.stars}
-              source={{ traceRef: ratingRef }}
-              buttonLabel={`Why ${entry.label} got ${String(entry.stars)} stars`}
-            />
-          )}
-        </p>
-      )}
-    </li>
-  );
-}
-
 function HeatPanel({
   storyline,
   hotFrom,
@@ -184,32 +148,6 @@ function HeatPanel({
             />
           </p>
         )}
-      </div>
-    </Panel>
-  );
-}
-
-function EndingPanel({ storyline }: { readonly storyline: StorylineDetail }) {
-  const { ending } = storyline;
-  if (ending === null) return null;
-  return (
-    <Panel title="Ending">
-      <div className={styles['endingBody']}>
-        <p className={styles['endingTitle']}>
-          {endingTitle(ending)}
-          {ending.payoff === 'paid' && ending.payoffTraceRef !== null && (
-            <WhyButton
-              label="Payoff"
-              value={ending.linkedSegments}
-              source={{ traceRef: ending.payoffTraceRef }}
-              buttonLabel="Why this payoff?"
-            />
-          )}
-        </p>
-        <p className={styles['muted']}>
-          Ended {formatGameDate(ending.endedOn)} with {String(ending.linkedSegments)} linked{' '}
-          {ending.linkedSegments === 1 ? 'segment' : 'segments'}.
-        </p>
       </div>
     </Panel>
   );
@@ -463,46 +401,6 @@ function MembersPanel({ storyline }: { readonly storyline: StorylineDetail }) {
   );
 }
 
-function EndStorylineDialog({
-  storyline,
-  open,
-  onClose,
-}: {
-  readonly storyline: StorylineDetail;
-  readonly open: boolean;
-  readonly onClose: () => void;
-}) {
-  const end = useEngineCommand('storylines.end');
-  const preview = useEngineQuery(
-    'storylines.endPreview',
-    { storylineId: storyline.id },
-    { enabled: open, keepPreviousData: false },
-  );
-  let body: string;
-  if (preview.status === 'loading') {
-    body = 'Working out what ending it now would pay…';
-  } else if (preview.data === undefined) {
-    body = queryErrorText(preview.error);
-  } else {
-    body = preview.data.message;
-  }
-  return (
-    <ConfirmDialog
-      open={open}
-      onClose={onClose}
-      onConfirm={async () => {
-        const result = await end.run({ storylineId: storyline.id });
-        if (!result.ok) throw new Error(reasonsText(result.reasons));
-      }}
-      title={`End ${storyline.name}?`}
-      body={body}
-      confirmLabel="End storyline"
-      tone="danger"
-      confirmDisabled={preview.data === undefined}
-    />
-  );
-}
-
 function WarningsNotice({ warnings }: { readonly warnings: readonly string[] }) {
   const [dismissed, setDismissed] = useState(false);
   if (warnings.length === 0 || dismissed) return null;
@@ -536,6 +434,8 @@ function LoadedStoryline({ storylineId }: { readonly storylineId: StorylineId })
     query.data === undefined ? {} : { promotionId: query.data.promotionId, status: 'active' },
     { enabled: query.data !== undefined },
   );
+  // The next day to play (booked segments vs ones that ran) and whether this is a Sandbox game.
+  const status = useEngineQuery('sim.status', {});
   const [editing, setEditing] = useState(false);
   const [ending, setEnding] = useState(false);
   useDocumentTitle(query.data?.name ?? null);
@@ -559,6 +459,10 @@ function LoadedStoryline({ storylineId }: { readonly storylineId: StorylineId })
   const storyline = query.data;
   const own = storyline.heat !== null;
   const hotFrom = list.data?.hotFrom ?? 70;
+  const today = status.data?.date ?? null;
+  const openEnd = (): void => {
+    setEnding(true);
+  };
   return (
     <div className={styles['screen']}>
       <BackToStorylines />
@@ -584,12 +488,7 @@ function LoadedStoryline({ storylineId }: { readonly storylineId: StorylineId })
             >
               Edit
             </Button>
-            <Button
-              variant="danger"
-              onClick={() => {
-                setEnding(true);
-              }}
-            >
+            <Button variant="danger" onClick={openEnd}>
               End storyline
             </Button>
           </div>
@@ -597,6 +496,7 @@ function LoadedStoryline({ storylineId }: { readonly storylineId: StorylineId })
       </header>
       <div className={styles['layout']}>
         <div className={styles['main']}>
+          <FinaleHint storyline={storyline} onEnd={openEnd} />
           <EndingPanel storyline={storyline} />
           <MembersPanel storyline={storyline} />
           {own && (
@@ -608,21 +508,18 @@ function LoadedStoryline({ storylineId }: { readonly storylineId: StorylineId })
           )}
           {own && (
             <Panel title="Timeline">
-              {storyline.timeline.length === 0 ? (
-                <p className={styles['muted']}>{EMPTY_TIMELINE_TEXT}</p>
-              ) : (
-                <ol className={styles['timeline']}>
-                  {storyline.timeline.map((entry) => (
-                    <TimelineItem key={entry.segmentId} entry={entry} />
-                  ))}
-                </ol>
-              )}
+              <HeatTimeline storyline={storyline} today={today} />
             </Panel>
           )}
         </div>
         <div className={styles['aside']}>
           {own ? (
-            <HeatPanel storyline={storyline} hotFrom={hotFrom} />
+            <>
+              <HeatPanel storyline={storyline} hotFrom={hotFrom} />
+              {storyline.editable && status.data?.sandbox === true && (
+                <SetHeatControl storyline={storyline} />
+              )}
+            </>
           ) : (
             <Panel title="Heat">
               <p className={styles['muted']}>
@@ -642,8 +539,9 @@ function LoadedStoryline({ storylineId }: { readonly storylineId: StorylineId })
               setEditing(false);
             }}
           />
-          <EndStorylineDialog
+          <EndStorylineSheet
             storyline={storyline}
+            today={today}
             open={ending}
             onClose={() => {
               setEnding(false);

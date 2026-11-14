@@ -167,6 +167,7 @@ export function fanBaseStatus(withHeadline: boolean): SimStatus {
   }).region;
   return {
     date: FAN_BASE_TODAY,
+    sandbox: false,
     season: { number: 2, endDate: parseGameDate('2027-06-30') },
     promotion: {
       promotionId: view.promotionId,

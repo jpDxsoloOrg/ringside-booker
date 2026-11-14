@@ -3673,3 +3673,13 @@ export type { TalkLinePerson } from './systems/match/angles/talkLine';
 export { angleDurationClass } from './systems/match/angles/rateAngle';
 export { TALK_CHECK_ID, TALK_CHECK_LABEL, talkCheck } from './systems/booking/validate/checks/talk';
 export { SETTING_STREAM } from './systems/aip/card/streams';
+
+// CRTV4-05: the Sandbox game's "Set heat" test aid. See docs/design/storylines.md#sandbox-heat.
+export {
+  isSandboxGame,
+  SANDBOX_ONLY_MESSAGE,
+  SET_BY_HAND_TEXT,
+  setHeatCommand,
+  STORYLINE_SANDBOX_REASONS,
+  type StorylineSetHeatArgs,
+} from './systems/storylines/index';

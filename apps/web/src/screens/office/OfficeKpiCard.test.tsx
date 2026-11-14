@@ -33,6 +33,7 @@ describe('OfficeKpiCard popularity', () => {
         onOpenFanBase={() => undefined}
         status={{
           date: parseGameDate('2031-01-26'),
+          sandbox: false,
           season: null,
           promotion: {
             promotionId: parseId('promotion', 'pro_00000000ab'),

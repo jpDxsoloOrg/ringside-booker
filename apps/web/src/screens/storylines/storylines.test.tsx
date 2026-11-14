@@ -256,14 +256,16 @@ describe('StorylineDetailScreen', () => {
     const { user } = rendered;
     await openPage(rendered, TINY_STORYLINE);
     await user.click(screen.getByRole('button', { name: 'End storyline' }));
-    const dialog = await screen.findByRole('alertdialog');
+    const sheet = await screen.findByRole('dialog', { name: `End ${TINY_STORYLINE}?` });
     expect(
-      await within(dialog).findByText(/needs 4 linked segments/, undefined, { timeout: LOAD_MS }),
+      await within(sheet).findByText(/No payoff \(needs 4 linked segments, has 0\)/, undefined, {
+        timeout: LOAD_MS,
+      }),
     ).toBeInTheDocument();
-    await user.click(within(dialog).getByRole('button', { name: 'End storyline' }));
+    await user.click(within(sheet).getByRole('button', { name: 'End storyline' }));
 
     expect(
-      await screen.findByText('No payoff (needs 4 linked segments)', undefined, {
+      await screen.findByText('No payoff (needs 4 linked segments, had 0)', undefined, {
         timeout: LOAD_MS,
       }),
     ).toBeInTheDocument();
