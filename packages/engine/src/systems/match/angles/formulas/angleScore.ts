@@ -348,7 +348,7 @@ export function angleScoreParts(inputs: AngleScoreInputs, deps: AngleScoreDeps):
     );
   }
   const deliveredShare = 1 - blend;
-  const deliveredPart = startCalc(`${BEATS_DELIVERED_LABEL}' share`, pruned(delivered), {
+  const deliveredPart = startCalc(`${BEATS_DELIVERED_LABEL}'s share`, pruned(delivered), {
     unit: 'points',
   }).multiply('What the crowd leaves', deliveredShare);
 

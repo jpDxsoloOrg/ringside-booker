@@ -76,7 +76,8 @@ describe('history.rollUp', () => {
     'changes no current number: a run without it ends the same',
     { timeout: 60_000 },
     async () => {
-      const rolled = (await run(defaultSystems)).exportState().world.tables;
+      const rolledState = (await run(defaultSystems)).exportState();
+      const rolled = rolledState.world.tables;
       const kept = (
         await run(defaultSystems.filter((system) => system.id !== historySystem.id))
       ).exportState().world.tables;
@@ -104,7 +105,17 @@ describe('history.rollUp', () => {
       expect(JSON.stringify(rolled.aftermaths).length).toBeLessThan(
         JSON.stringify(kept.aftermaths).length,
       );
-      expect(rolled.storylines).toEqual(kept.storylines);
+      // Progress rows before the window are trimmed (CRTV4-02); `progressTotals` keep the counts.
+      const windowFrom = detailKeptFrom(
+        lastMonday(addDays(rolledState.world.meta.currentDate, -1)),
+        KEEP,
+      );
+      const recentProgress = (rows: SerializedTables['storylines']) =>
+        rows.map((row) => ({
+          ...row,
+          progress: row.progress.filter((entry) => compareDates(entry.date, windowFrom) >= 0),
+        }));
+      expect(recentProgress(rolled.storylines)).toEqual(recentProgress(kept.storylines));
       const withoutHistory = (rows: SerializedTables['eventInstances']) =>
         rows.map((row) =>
           row.result === null ? row : { ...row, result: { ...row.result, history: undefined } },

@@ -185,6 +185,10 @@ describe('the Match lab in Angle mode', { timeout: TEST_TIMEOUT_MS }, () => {
     const bug = await run(user);
     const score = useLabStore.getState().angleRun;
     expect(score?.args.beats).toHaveLength(3);
+    // Focus follows the press to the result, so a keyboard or screen reader user lands on it.
+    await waitFor(() => {
+      expect(document.activeElement).toBe(screen.getByText('Result', { selector: 'span' }));
+    });
     expect(within(bug).getByRole('button', { name: /^Why is Angle score \d+\?$/ })).toBeVisible();
     for (const label of ['Stars', 'Delivered', 'Crowd']) {
       expect(

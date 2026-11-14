@@ -17,6 +17,8 @@ import type {
   LabOptions,
   LabWorkerRow,
   MatchCatalog,
+  PreviewAngleArgs,
+  PreviewAngleResult,
   PreviewArgs,
   PreviewBatchResult,
   PreviewResult,
@@ -385,6 +387,169 @@ describe.runIf(SLOW_TESTS)('the first tuning pass with Runs at 100', () => {
     },
     AUDIT_TIMEOUT_MS,
   );
+});
+
+/** A beat for `match.previewAngle`: its pack key and the people in each group. */
+function beat(
+  key: string,
+  groupOne: readonly LabWorkerRow[],
+  groupTwo: readonly LabWorkerRow[] = [],
+): PreviewAngleArgs['beats'][number] {
+  const option = catalog.beats.find((entry) => entry.key === `beat.${key}`);
+  if (option === undefined) throw new Error(`No beat ${key}.`);
+  return {
+    beatKey: option.key,
+    groupOne: groupOne.map((row) => row.personId),
+    groupTwo: groupTwo.map((row) => row.personId),
+  };
+}
+
+/** An angle in the lab's default show, as Angle mode sends it (with the aftermath). */
+function angleArgs(
+  typeName: string,
+  beats: PreviewAngleArgs['beats'],
+  overrides: Partial<PreviewAngleArgs> = {},
+): PreviewAngleArgs {
+  return {
+    importance: options.defaults.importance,
+    regionId,
+    televised: options.defaults.televised,
+    slotRole: options.defaults.slotRole,
+    angleTypeKey: angleKey(typeName),
+    beats,
+    previewSeed: 1,
+    aftermath: true,
+    ...overrides,
+  };
+}
+
+function previewAngle(previewArgs: PreviewAngleArgs): PreviewAngleResult {
+  return ask(engine.query('match.previewAngle', previewArgs, VIEWER), 'match.previewAngle');
+}
+
+/** Every Why? an angle Run offers, by the name its button carries. */
+function anglePanelsOf(result: PreviewAngleResult): ReadonlyMap<string, TraceNode> {
+  const panels = new Map<string, TraceNode>([
+    ['Score', result.score.trace],
+    ['Stars', result.stars.trace],
+    ['Delivered', result.delivered.trace],
+    ['Crowd', result.crowd.trace],
+    ['Expected', result.expected.trace],
+  ]);
+  for (const entry of result.beats) {
+    if (entry.score !== null) panels.set(`${entry.name} score`, entry.score.trace);
+    for (const group of entry.groups) {
+      for (const line of group.people)
+        panels.set(`${line.name} in ${entry.name}`, line.value.trace);
+    }
+  }
+  for (const worker of result.aftermath?.workers ?? []) {
+    if ('trace' in worker.momentum) panels.set(`${worker.name}'s momentum`, worker.momentum.trace);
+  }
+  return panels;
+}
+
+/** Reads every panel of an angle Run in the player's words and fails on the first bad line. */
+function expectReadableAnglePanels(result: PreviewAngleResult): void {
+  for (const [name, trace] of anglePanelsOf(result)) {
+    for (const line of traceToText(trace).split('\n')) {
+      expect(line, `${name}: ${line}`).not.toMatch(BROKEN_TEXT);
+      expect(line, `${name}: ${line}`).not.toMatch(RAW_CODE);
+      expect(line, `${name}: ${line}`).not.toMatch(MINUTES);
+      expect(line, `${name}: ${line}`).not.toMatch(RUNNING_TIME_WORDS);
+      // The Best stat decision's options read as stats ("Mic via manager"), never as codes.
+      expect(line, `${name}: ${line}`).not.toMatch(/\w:manager\b|\bRingwork\b|' share/);
+    }
+  }
+}
+
+/**
+ * The Why? audit of Angle mode (MTCH5-07): every number one angle Run shows reads in plain words,
+ * with the stat choice, the manager stand-in, the closing beat, repetition and the writing band in
+ * the words MTCH5-02/03 gave them.
+ */
+describe('Angle mode’s Why? panels on a new default-world game', () => {
+  const byMic = [...roster].sort((left, right) => right.mic - left.mic);
+  const bestTalker = byMic[0];
+  const worstTalker = byMic[byMic.length - 1];
+  const managers = ask(
+    engine.query('match.labWorkers', { scope: 'everyone', regionId, role: 'manager' }, VIEWER),
+    'match.labWorkers',
+  ).rows.sort((left, right) => right.mic - left.mic);
+  const manager = managers[0];
+
+  it('explains a promo by the speaker’s best stat, and a manager standing in at 85%', () => {
+    if (bestTalker === undefined || worstTalker === undefined || manager === undefined) {
+      throw new Error('The default world has no talkers or managers.');
+    }
+    const best = previewAngle(angleArgs('Promo', [beat('promo', [bestTalker])]));
+    expectReadableAnglePanels(best);
+    const speaker = best.beats[0]?.groups[0]?.people[0];
+    const bestWhy = traceToText(speaker?.value.trace ?? best.score.trace);
+    expect(bestWhy).toMatch(/Best stat: (Mic|Charisma) \d+/);
+    expect(bestWhy).toContain('Charisma');
+
+    const worst = previewAngle(angleArgs('Promo', [beat('promo', [worstTalker])]));
+    expect(worst.score.value).toBeLessThan(best.score.value);
+
+    const helped = previewAngle(
+      angleArgs('Promo', [beat('promo', [worstTalker])], {
+        managerOverrides: { [worstTalker.personId]: manager.personId },
+      }),
+    );
+    expectReadableAnglePanels(helped);
+    const helpedWhy = traceToText(
+      helped.beats[0]?.groups[0]?.people[0]?.value.trace ?? helped.score.trace,
+    );
+    expect(helpedWhy).toContain(`Manager ${manager.name} stands in on Mic`);
+    expect(helpedWhy).toContain('85%');
+  });
+
+  it('weighs three beats in the main event, the last as the closing beat, inside the writing band', () => {
+    const [first, second] = [person(0), person(1)];
+    const result = previewAngle(
+      angleArgs(
+        'Confrontation',
+        [
+          beat('staredown', [first], [second]),
+          beat('war-of-words', [first], [second]),
+          beat('brawl', [first, second]),
+        ],
+        { slotRole: 'mainEvent' },
+      ),
+    );
+    expect(result.durationClass).toBe('long');
+    expect(result.beatLimit.message).toBe('Long slot: up to 6 beats');
+    expect(result.beats.map((entry) => entry.counted)).toEqual([true, true, true]);
+    expectReadableAnglePanels(result);
+    const delivered = traceToText(result.delivered.trace);
+    for (const label of ['Staredown (beat 1)', 'War of Words (beat 2)', 'Brawl (beat 3)']) {
+      expect(delivered).toContain(label);
+    }
+    expect(delivered).toContain('Closing beat');
+    expect(delivered).toContain('match.angle.closingBeatWeight');
+    const score = traceToText(result.score.trace);
+    expect(score).toMatch(/Writing team \(level \d+\): floor [\d.]+, ceiling [\d.]+/);
+    // Momentum moves in the aftermath; morale never does.
+    expect(result.aftermath?.workers.length).toBe(2);
+    for (const text of [...anglePanelsOf(result).values()].map((trace) => traceToText(trace))) {
+      expect(text).not.toMatch(/morale (change|gain|loss)/i);
+    }
+  });
+
+  it('marks a second beat of a kind as a repeat, and every slot role reads cleanly', () => {
+    const talker = person(0);
+    const twice = previewAngle(
+      angleArgs('Promo', [beat('promo', [talker]), beat('promo', [talker])]),
+    );
+    expect(traceToText(twice.delivered.trace)).toMatch(/Second talk beat in this angle ×0\.85/);
+    expectReadableAnglePanels(twice);
+    for (const slotRole of SLOT_ROLES) {
+      const result = previewAngle(angleArgs('Promo', [beat('promo', [talker])], { slotRole }));
+      expect(result.beatLimit.message).toMatch(/^(Short|Standard|Long) slot: up to \d beats?$/);
+      expectReadableAnglePanels(result);
+    }
+  });
 });
 
 describe('a save from before match types', () => {
