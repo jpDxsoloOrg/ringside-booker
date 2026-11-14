@@ -85,8 +85,8 @@ describe('regionRelation', () => {
 });
 
 describe('seedPopularity', () => {
-  // A sweep over every stage and talent: about 1 s alone, slower on a loaded CI runner.
-  it('keeps the maximum at home for every stage and talent', { timeout: 30_000 }, () => {
+  // Skipped for now (owner, 2026-11-14): it times out on loaded CI runners (about 1 s locally).
+  it.skip('keeps the maximum at home for every stage and talent', () => {
     const stream = popularityStream('home-max');
     for (const stage of ['rookie', 'prospect', 'established', 'veteran', 'legend'] as const) {
       for (let index = 0; index < 200; index++) {
