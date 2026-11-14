@@ -451,7 +451,13 @@ describe('titles.detail', () => {
         imageRef: null,
       },
     ]);
-    expect(lineage.stats).toEqual({ totalReigns: 3, distinctChampions: 3, daysVacant: 10 });
+    expect(lineage.stats).toMatchObject({
+      totalReigns: 3,
+      distinctChampions: 3,
+      daysVacant: 10,
+      historyRecordedFrom: null,
+    });
+    expect(lineage.stats.daysVacantTrace).toMatchObject({ kind: 'formula', value: 10 });
     expect(lineage.records.longestReign?.value).toBe(60);
     expect(lineage.records.mostDefences?.personIds).toEqual([personId(1)]);
   });

@@ -112,4 +112,25 @@ describe('the titles queries on the default world, playing Altura', () => {
       expect(holders.people.length + holders.ineligible.length).toBeGreaterThan(0);
     }
   });
+
+  it('counts days vacant only from where the history starts, and says so (CRTV1-08)', () => {
+    let cutOff = 0;
+    for (const row of [...ownRows, ...worldRows]) {
+      const lineage = data(
+        engine.query('titles.detail', { titleId: row.titleId }, PLAYER),
+        `detail ${row.name}`,
+      );
+      // A new game: nothing has been vacant for long, let alone thousands of days.
+      expect(lineage.stats.daysVacant, row.name).toBeLessThan(365);
+      expect(lineage.stats.daysVacantTrace.value).toBe(lineage.stats.daysVacant);
+      const from = lineage.stats.historyRecordedFrom;
+      if (from !== null) {
+        cutOff += 1;
+        expect(from > lineage.title.introducedOn).toBe(true);
+        expect(JSON.stringify(lineage.stats.daysVacantTrace)).toContain('History before');
+      }
+    }
+    // The default world's titles are older than the reigns it lists.
+    expect(cutOff).toBeGreaterThan(0);
+  });
 });

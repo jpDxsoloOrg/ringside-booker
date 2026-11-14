@@ -13,7 +13,9 @@ import { compareDates, diffDays, isAfter, isBefore, type GameDate } from '../../
 import type { PersonId, TitleReignId } from '../../core/ids';
 import { compareIds } from '../../model/table';
 import { ageOn } from '../workers/helpers/age';
-import { reignDays } from './formulas/reignDays';
+import { startCalc } from '../../core/trace/calc';
+import type { Traced } from '../../core/trace/types';
+import { reignDateText, reignDays } from './formulas/reignDays';
 
 /** What the records need to know about one reign. */
 export interface TitleRecordReign {
@@ -186,34 +188,118 @@ export function titleRecords(
 }
 
 /**
- * Days from `introducedOn` up to (not including) `until` that no reign covers. Each reign covers
- * `wonOn` up to its `lostOn` (or `until` while current), the same way `reignDays` counts. Reigns
- * that started before `introducedOn` (old world data) count only from `introducedOn`.
+ * Where the days-vacant count starts. The default world's titles were introduced long before the
+ * reigns it lists, so counting from `introducedOn` would call decades of unrecorded history
+ * "vacant". The count starts at the earlier of the first recorded reign and the game's start (the
+ * game records every day from then on), but never before the title was introduced.
  */
-export function daysVacant(
-  reigns: readonly Pick<TitleRecordReign, 'wonOn' | 'lostOn'>[],
+export function vacancyCountStart(
+  reigns: readonly Pick<TitleRecordReign, 'wonOn'>[],
   introducedOn: GameDate,
+  gameStart: GameDate,
+): GameDate {
+  let recordedFrom = gameStart;
+  for (const reign of reigns) {
+    if (isBefore(reign.wonOn, recordedFrom)) {
+      recordedFrom = reign.wonOn;
+    }
+  }
+  return isAfter(recordedFrom, introducedOn) ? recordedFrom : introducedOn;
+}
+
+/** The covered and total days behind `daysVacant`. */
+function vacancySpans(
+  reigns: readonly Pick<TitleRecordReign, 'wonOn' | 'lostOn'>[],
+  from: GameDate,
   until: GameDate,
-): number {
-  if (!isAfter(until, introducedOn)) {
-    return 0;
+): { total: number; covered: number } {
+  if (!isAfter(until, from)) {
+    return { total: 0, covered: 0 };
   }
   const spans = reigns
     .map((reign) => ({
-      from: isBefore(reign.wonOn, introducedOn) ? introducedOn : reign.wonOn,
+      from: isBefore(reign.wonOn, from) ? from : reign.wonOn,
       to: reign.lostOn === null || isAfter(reign.lostOn, until) ? until : reign.lostOn,
     }))
     .filter((span) => isBefore(span.from, span.to))
     .sort((left, right) => compareDates(left.from, right.from));
 
   let covered = 0;
-  let reach: GameDate = introducedOn;
+  let reach: GameDate = from;
   for (const span of spans) {
-    const from = isAfter(span.from, reach) ? span.from : reach;
-    if (isAfter(span.to, from)) {
-      covered += diffDays(from, span.to);
+    const start = isAfter(span.from, reach) ? span.from : reach;
+    if (isAfter(span.to, start)) {
+      covered += diffDays(start, span.to);
       reach = span.to;
     }
   }
-  return diffDays(introducedOn, until) - covered;
+  return { total: diffDays(from, until), covered };
+}
+
+/**
+ * Days from `from` up to (not including) `until` that no reign covers. Each reign covers `wonOn`
+ * up to its `lostOn` (or `until` while current), the same way `reignDays` counts. Reigns that
+ * started before `from` count only from `from`. Pass `vacancyCountStart(...)` as `from` so
+ * unrecorded history before the first known reign is not counted.
+ */
+export function daysVacant(
+  reigns: readonly Pick<TitleRecordReign, 'wonOn' | 'lostOn'>[],
+  from: GameDate,
+  until: GameDate,
+): number {
+  const { total, covered } = vacancySpans(reigns, from, until);
+  return total - covered;
+}
+
+export const DAYS_VACANT_DOC_REF = 'docs/design/titles.md#records';
+
+export interface DaysVacantInputs {
+  readonly reigns: readonly Pick<TitleRecordReign, 'wonOn' | 'lostOn'>[];
+  readonly introducedOn: GameDate;
+  readonly gameStart: GameDate;
+  /** Today, or the day the title was retired. */
+  readonly until: GameDate;
+  /** True when `until` is the retirement day. */
+  readonly retired: boolean;
+}
+
+/** The plain-words note on where the count starts: "History before 4 Jan 1999 not recorded". */
+export function historyNotRecordedText(from: GameDate): string {
+  return `History before ${reignDateText(from)} not recorded`;
+}
+
+/**
+ * `daysVacant` with its Why?: days since the count starts, less the days a reign covers. Says
+ * where the count starts and, when that is after the title was introduced, that older history was
+ * not recorded.
+ */
+export function explainDaysVacant(inputs: DaysVacantInputs): {
+  value: Traced<number>;
+  countedFrom: GameDate;
+  historyRecordedFrom: GameDate | null;
+} {
+  const countedFrom = vacancyCountStart(inputs.reigns, inputs.introducedOn, inputs.gameStart);
+  const { total, covered } = vacancySpans(inputs.reigns, countedFrom, inputs.until);
+  const cutOff = isAfter(countedFrom, inputs.introducedOn);
+  const endText = inputs.retired ? `its retirement on ${reignDateText(inputs.until)}` : 'today';
+  let calc = startCalc('Days vacant', total, {
+    unit: 'days',
+    docRef: DAYS_VACANT_DOC_REF,
+    startLabel: `Days from ${reignDateText(countedFrom)} to ${endText}`,
+  }).subtract('Days with a champion', covered);
+  if (cutOff) {
+    const startsAtReign = inputs.reigns.some(
+      (reign) => compareDates(reign.wonOn, countedFrom) === 0,
+    );
+    calc = calc.note(
+      `${historyNotRecordedText(countedFrom)}: the count starts at ${
+        startsAtReign ? 'the first known reign' : 'the start of the game'
+      }, not when the title was introduced (${reignDateText(inputs.introducedOn)})`,
+    );
+  }
+  return {
+    value: calc.done(),
+    countedFrom,
+    historyRecordedFrom: cutOff ? countedFrom : null,
+  };
 }

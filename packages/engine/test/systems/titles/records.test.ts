@@ -4,7 +4,9 @@ import { addDays, addYears, type GameDate } from '../../../src/core/date';
 import type { PersonId } from '../../../src/core/ids';
 import {
   daysVacant,
+  explainDaysVacant,
   titleRecords,
+  vacancyCountStart,
   type TitleRecordPerson,
   type TitleRecordReign,
 } from '../../../src/systems/titles';
@@ -175,5 +177,90 @@ describe('daysVacant', () => {
       { wonOn: day(10), lostOn: day(30) },
     ];
     expect(daysVacant(reigns, day(0), day(40))).toBe(10);
+  });
+});
+
+// CRTV1-08: the default world's titles are decades older than the reigns it lists.
+describe('where the days-vacant count starts', () => {
+  const longAgo = day(-13_000);
+
+  it('starts at the first recorded reign when that is before the game began', () => {
+    const reigns = [
+      { wonOn: day(-300), lostOn: day(-100) },
+      { wonOn: day(-90), lostOn: null },
+    ];
+    expect(vacancyCountStart(reigns, longAgo, START)).toBe(day(-300));
+    // Only the 10 days between the two reigns, not 13,000 days of unrecorded history.
+    expect(daysVacant(reigns, vacancyCountStart(reigns, longAgo, START), day(30))).toBe(10);
+  });
+
+  it("starts at the game's start for an old title with no recorded reign", () => {
+    expect(vacancyCountStart([], longAgo, START)).toBe(START);
+  });
+
+  it('counts days a title is vacated in play', () => {
+    const reigns = [
+      { wonOn: day(-50), lostOn: day(10) },
+      { wonOn: day(35), lostOn: null },
+    ];
+    const from = vacancyCountStart(reigns, longAgo, START);
+    expect(daysVacant(reigns, from, day(60))).toBe(25);
+  });
+
+  it('counts from the game start when the first reign came later in play', () => {
+    expect(vacancyCountStart([{ wonOn: day(20), lostOn: null }], longAgo, START)).toBe(START);
+  });
+
+  it('never starts before the title was introduced', () => {
+    expect(vacancyCountStart([], day(15), START)).toBe(day(15));
+    expect(vacancyCountStart([{ wonOn: day(-40), lostOn: null }], day(-10), START)).toBe(day(-10));
+  });
+});
+
+describe('explainDaysVacant', () => {
+  it('says where the count starts when older history was not recorded', () => {
+    const result = explainDaysVacant({
+      reigns: [
+        { wonOn: day(-300), lostOn: day(-100) },
+        { wonOn: day(-90), lostOn: null },
+      ],
+      introducedOn: day(-13_000),
+      gameStart: START,
+      until: day(30),
+      retired: false,
+    });
+    expect(result.value.value).toBe(10);
+    expect(result.value.trace).toMatchObject({ kind: 'formula', value: 10, unit: 'days' });
+    expect(result.historyRecordedFrom).toBe(day(-300));
+    const text = JSON.stringify(result.value.trace);
+    expect(text).toContain('History before');
+    expect(text).toContain('the first known reign');
+  });
+
+  it('names the game start for an old title never held', () => {
+    const result = explainDaysVacant({
+      reigns: [],
+      introducedOn: day(-13_000),
+      gameStart: START,
+      until: day(30),
+      retired: false,
+    });
+    expect(result.value.value).toBe(30);
+    expect(JSON.stringify(result.value.trace)).toContain('the start of the game');
+  });
+
+  it('adds no cut-off note when the history starts at the introduction', () => {
+    const result = explainDaysVacant({
+      reigns: [{ wonOn: day(10), lostOn: day(50) }],
+      introducedOn: START,
+      gameStart: START,
+      until: day(60),
+      retired: true,
+    });
+    expect(result.value.value).toBe(20);
+    expect(result.historyRecordedFrom).toBeNull();
+    const text = JSON.stringify(result.value.trace);
+    expect(text).not.toContain('History before');
+    expect(text).toContain('its retirement');
   });
 });
