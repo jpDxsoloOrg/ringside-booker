@@ -66,7 +66,8 @@ export const UPGRADE_FEE_KEYS: Readonly<Record<ProductionArea, NumberTunableKey>
 
 /**
  * The cost curve at `level`: (level ÷ 10) ^ `production.costCurve`. Titled
- * "Curve at 4: 0.064" and traced as "Camera level 4 of 10", "Top level", "Cost curve 0.4 ^ 3".
+ * "Curve at 4: 0.064" and traced as "Camera level 4 of 10", "Top level", "Cost curve" (the Why?
+ * reads it as "0.4 raised to the power 3 = 0.064").
  */
 export function costCurveAt(
   area: ProductionArea,
@@ -85,9 +86,6 @@ export function costCurveAt(
     'Top level',
     constantOf('Top level', PRODUCTION_LEVEL_MAX, 'production levels run 0 to 10'),
   );
-  const share = calc.current;
   const curve = calc.tunable(deps.tunables, 'production.costCurve');
-  return calc
-    .power(`Cost curve ${shortNumberText(share)} ^ ${shortNumberText(curve)}`, curve)
-    .done();
+  return calc.power('Cost curve', curve).done();
 }

@@ -213,13 +213,9 @@ function previewRow(
 function comingShows(cameraLevel: number): Traced<number> {
   const perShow = perShowCost('Camera', cameraLevel).value;
   const others = 3_200_000;
-  return startCalc(
-    'Production on the shows in the next 28 days',
-    inputOf('Camera on 4 shows', perShow * 4),
-    {
-      unit: 'money',
-    },
-  )
+  return startCalc('Show production, next 4 weeks', inputOf('Camera on 4 shows', perShow * 4), {
+    unit: 'money',
+  })
     .add('Stage, editing and pyro on 4 shows', others)
     .done();
 }
@@ -257,7 +253,7 @@ export function galleryPreviewFor(
           ),
           previewRow(
             'upcomingShows',
-            'Production on the shows in the next 28 days',
+            'Show production, next 4 weeks',
             comingShows(from),
             comingShows(to),
             'money',

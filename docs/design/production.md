@@ -64,7 +64,8 @@ One smooth power curve over the full 0..10 scale, with a price per area:
   [per-show costs](#per-show-costs)). A monthly area ignores importance and its
   Why? says so ("Monthly cost: show importance does not apply").
 
-The Why? reads: "Camera level 4 of 10", "Cost curve 0.4 ^ 3", "Camera at level
+The Why? reads: "Camera level 4 of 10", "0.4 raised to the power 3 = 0.064
+(Cost curve)", "Camera at level
 10: $150,000 per regular show", "Minor show × 0.5", for $4,800.
 
 `productionMonthlyCost` adds the four monthly areas, one line each ("Marketing

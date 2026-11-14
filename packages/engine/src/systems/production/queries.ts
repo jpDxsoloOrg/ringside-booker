@@ -309,6 +309,15 @@ function row(
   return { id, label, before: before.value, after: after.value, unit, trace: after.trace };
 }
 
+/** "4 weeks" for 28 days, "1 week", "10 days" when it is not whole weeks: as the header says it. */
+export function forecastWindowText(days: number): string {
+  if (days > 0 && days % 7 === 0) {
+    const weeks = days / 7;
+    return weeks === 1 ? 'week' : `${String(weeks)} weeks`;
+  }
+  return days === 1 ? 'day' : `${String(days)} days`;
+}
+
 function isProductionLevel(level: number): boolean {
   return level >= PRODUCTION_LEVEL_MIN && level <= PRODUCTION_LEVEL_MAX;
 }
@@ -362,7 +371,7 @@ export const productionChangePreviewQuery: QueryDefinition<'production.changePre
           ),
           row(
             'upcomingShows',
-            `Production on the shows in the next ${String(outlook.days)} days`,
+            `Show production, next ${forecastWindowText(outlook.days)}`,
             upcomingShowCost(
               { promotionName: promotion.name, shows: outlook.shows, levels: before },
               { tunables },
