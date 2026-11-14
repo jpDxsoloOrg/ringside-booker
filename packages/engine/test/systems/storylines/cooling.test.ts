@@ -10,7 +10,7 @@ import type { TunableOverrides } from '../../../src/core/tunables/overrides';
 import type { Storyline } from '../../../src/model/entities/storyline';
 import type { DeepPartial } from '../../../src/model/world';
 import { storylineHeatTraceRef, storylinesSystem } from '../../../src/systems/storylines';
-import { TEST_PLAYER_ID, TEST_START_DATE, worldBuilder } from '../../support';
+import { rosterWorld, TEST_PLAYER_ID, TEST_START_DATE, worldBuilder } from '../../support';
 import { ok, PLAYER_VIEWER } from './storyline-world';
 
 const HUMAN = { kind: 'human', playerId: TEST_PLAYER_ID } as const;
@@ -171,5 +171,20 @@ describe('storylines.detail cooling', () => {
       ok(floor.engine.query('storylines.detail', { storylineId: floor.storylineId }, PLAYER_VIEWER))
         .cooling,
     ).toMatchObject({ coolingNow: false, startsInDays: null });
+  });
+});
+
+describe('rosterWorld storylines (the headless runner)', () => {
+  it('has two storylines that cool over a month', async () => {
+    const built = rosterWorld(8);
+    expect(built.world.tables.storylines.values().map((row) => row.heat)).toEqual([40, 75]);
+    const engine = createEngine({
+      state: initialEngineState(built.world),
+      systems: [simSystem, storylinesSystem],
+    });
+    await engine.advanceDays({ maxDays: 30 });
+    const heats = engine.exportState().world.tables.storylines.map((row) => row.heat);
+    // Days 8..29 cool: 22 points each.
+    expect(heats).toEqual([18, 53]);
   });
 });
