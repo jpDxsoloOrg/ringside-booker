@@ -15,7 +15,7 @@ import { reignDays } from './formulas/reignDays';
 import { ringNameForTitle } from './helpers/employment';
 import { reignLabel } from './helpers/holders';
 import {
-  daysVacant,
+  explainDaysVacant,
   titleRecords,
   type TitleRecordPerson,
   type TitleRecordReign,
@@ -68,8 +68,18 @@ export interface TitleStats {
   totalReigns: number;
   /** Different people who have held it. */
   distinctChampions: number;
-  /** Days since it was introduced (to its retirement, if retired) with no champion. */
+  /**
+   * Days with no champion, up to today (or its retirement). Counted from the first recorded reign
+   * or the game's start, whichever is earlier, but not before it was introduced (CRTV1-08).
+   */
   daysVacant: number;
+  /** How `daysVacant` was counted, for its Why?. */
+  daysVacantTrace: TraceNode;
+  /**
+   * The day the count starts when it is later than `introducedOn`: older history was not recorded
+   * ("History before 4 Jan 1999 not recorded"). Null when the count starts at the introduction.
+   */
+  historyRecordedFrom: GameDate | null;
 }
 
 export interface TitleDetail {
@@ -144,8 +154,15 @@ export function titleDetailOf(ctx: TitleRowContext, titleId: TitleId): TitleDeta
     }
   }
 
-  const vacantUntil =
-    title.retiredOn !== null && isBefore(title.retiredOn, today) ? title.retiredOn : today;
+  const retiredBeforeToday = title.retiredOn !== null && isBefore(title.retiredOn, today);
+  const vacantUntil = retiredBeforeToday && title.retiredOn !== null ? title.retiredOn : today;
+  const vacant = explainDaysVacant({
+    reigns: recordReigns,
+    introducedOn: title.introducedOn,
+    gameStart: read.meta.startDate,
+    until: vacantUntil,
+    retired: retiredBeforeToday,
+  });
   const newestFirst = [...rows].sort(
     (left, right) =>
       compareDates(right.wonOn, left.wonOn) || compareIds(right.reignId, left.reignId),
@@ -161,7 +178,9 @@ export function titleDetailOf(ctx: TitleRowContext, titleId: TitleId): TitleDeta
     stats: {
       totalReigns: rows.length,
       distinctChampions: new Set(recordReigns.flatMap((reign) => reign.holderIds)).size,
-      daysVacant: daysVacant(recordReigns, title.introducedOn, vacantUntil),
+      daysVacant: vacant.value.value,
+      daysVacantTrace: vacant.value.trace,
+      historyRecordedFrom: vacant.historyRecordedFrom,
     },
   };
 }

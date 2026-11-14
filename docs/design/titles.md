@@ -249,8 +249,10 @@ Args `{ titleId }`. Result `{ title, reigns, records, stats }`:
   when CRTV1-03 stored why it was vacated), and the raw `wonInSegmentId` /
   `endedInSegmentId` for the results pages to link.
 - `records`: see [records](#records).
-- `stats`: `totalReigns`, `distinctChampions` (different people) and
-  `daysVacant`.
+- `stats`: `totalReigns`, `distinctChampions` (different people),
+  `daysVacant` with `daysVacantTrace` (its Why?), and `historyRecordedFrom`
+  (the day the vacancy count starts when that is after `introducedOn`, else
+  null).
 
 Lineage is history the player keeps forever: the weekly history roll-up does
 not prune reigns.
@@ -313,10 +315,18 @@ that is the reign's own `wonOn` and id; for a person record, the person's first
 reign of the title, then their person id; for the age records the reign, then
 the person id (two holders of one tag reign of the same age).
 
-**Days vacant** (`daysVacant`): days from `introducedOn` up to today (or to
-`retiredOn` for a retired title) that no reign covers, counting each reign the
-way [days held](#days-held) does. Parts of reigns before `introducedOn` and
-overlaps are counted once.
+**Days vacant** (`daysVacant`, explained by `explainDaysVacant`): days from
+where the count starts up to today (or to `retiredOn` for a retired title) that
+no reign covers, counting each reign the way [days held](#days-held) does.
+Parts of reigns before the start and overlaps are counted once.
+
+The count starts (`vacancyCountStart`, CRTV1-08) at the earlier of the first
+recorded reign and the game's `startDate`, but never before `introducedOn`.
+World files list only a title's recent reigns, so counting from `introducedOn`
+would call decades of unrecorded history "vacant". Days a title spends vacant
+in play are always counted. When the count starts after `introducedOn`, the
+Why? notes "History before <date> not recorded" and the Records panel says the
+same in visible text.
 
 ## Commands
 

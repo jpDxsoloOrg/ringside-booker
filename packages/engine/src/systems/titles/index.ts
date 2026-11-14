@@ -96,7 +96,10 @@ export {
 } from './lineage';
 export {
   daysVacant,
+  explainDaysVacant,
+  historyNotRecordedText,
   titleRecords,
+  vacancyCountStart,
   type TitleRecord,
   type TitleRecordPerson,
   type TitleRecordReign,

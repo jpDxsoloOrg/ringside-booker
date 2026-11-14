@@ -2,7 +2,7 @@ import { cleanup, render, screen, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { parseId } from '@ringside/engine';
+import { parseGameDate, parseId } from '@ringside/engine';
 import type { EngineState } from '@ringside/engine';
 import { EngineProvider } from '@/app/engine/EngineProvider';
 import { createInProcessTransport } from '@/app/engine/transport';
@@ -178,6 +178,32 @@ describe('TitleDetailScreen', () => {
     expect(within(champion).getByText(/^Vacant since/)).toBeInTheDocument();
     expect(screen.getByText('Tag team')).toBeInTheDocument();
     expect(screen.getAllByText('Vacated').length).toBeGreaterThan(0);
+  });
+
+  it('counts days vacant from the first recorded reign and says history before it is missing', async () => {
+    const state = fakeEngineState();
+    const longAgo: EngineState = {
+      ...state,
+      world: {
+        ...state.world,
+        tables: {
+          ...state.world.tables,
+          titles: state.world.tables.titles.map((title) =>
+            title.name === HEAVYWEIGHT
+              ? { ...title, introducedOn: parseGameDate('1965-03-01') }
+              : title,
+          ),
+        },
+      },
+    };
+    renderAt(routes.game.title(titleIdOf(HEAVYWEIGHT)), longAgo);
+    const records = await screen.findByRole('region', { name: 'Records' }, { timeout: LOAD_MS });
+    expect(within(records).getByText(/^History before/)).toHaveTextContent(
+      /not recorded\. Days vacant count from then\.$/,
+    );
+    expect(
+      within(records).getByRole('button', { name: /^Why is Days vacant \d+\?$/ }),
+    ).toBeInTheDocument();
   });
 
   it('shows a friendly empty state for a title that does not exist', async () => {
