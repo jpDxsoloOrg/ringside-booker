@@ -1212,7 +1212,8 @@ whole cents (shown here in dollars); 0 means 0.
 
 CRTV1-01, see [titles.md](titles.md#starting-prestige). Where a newly created
 title's prestige starts: a base per tier, moved by the promotion's own
-prestige. CRTV1-03 adds `titles.orphanGraceDays` with its phase.
+prestige. CRTV1-03 adds `titles.orphanGraceDays` with its phase
+([titles.md](titles.md#orphaned-champions)).
 
 | Key                                    | Kind    | Default | Range | Unit   | Meaning                                                                                             |
 | -------------------------------------- | ------- | ------- | ----- | ------ | --------------------------------------------------------------------------------------------------- |
@@ -1221,3 +1222,4 @@ prestige. CRTV1-03 adds `titles.orphanGraceDays` with its phase.
 | `titles.startPrestige.specialty`       | integer | 20      | 0–100 | points | Starting prestige of a new Specialty title                                                          |
 | `titles.startPrestige.promotionAnchor` | integer | 50      | 0–100 | points | Promotion prestige at which a new title gets no adjustment                                          |
 | `titles.startPrestige.promotionWeight` | number  | 0.3     | 0–1   | ratio  | Share of the promotion's prestige above or below the anchor a new title starts with; 0 turns it off |
+| `titles.orphanGraceDays`               | integer | 7       | 0–365 | days   | Days a champion may lack a contract with the promotion (or its parent) before the title is vacated  |
