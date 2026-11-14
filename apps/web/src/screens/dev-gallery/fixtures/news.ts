@@ -2,7 +2,13 @@
  * Hand-written news for the gallery, shaped as `news.top`, `news.feed` and `news.item` return it
  * (`NewsItemView` and `NewsNames`). No engine runs; the people, promotions and titles are made up.
  */
-import { NEWS_KIND_LABELS, parseContentKey, parseGameDate, parseId } from '@ringside/engine';
+import {
+  BUILT_IN_NEWS_ALERT_RULES,
+  NEWS_KIND_LABELS,
+  parseContentKey,
+  parseGameDate,
+  parseId,
+} from '@ringside/engine';
 import type {
   NewsImportance,
   NewsItemView,
@@ -10,6 +16,7 @@ import type {
   NewsNames,
   TraceNode,
 } from '@ringside/engine';
+import type { NewsAlertSettings } from '@/screens/news/NewsAlertSheet';
 import '@/text/catalogs/news.en';
 
 const VERA = parseId('person', 'per_0000000801');
@@ -141,4 +148,28 @@ export const GALLERY_BUZZ_TRACE: TraceNode = {
       after: 88,
     },
   ],
+};
+
+/**
+ * Alert settings as `news.alertRules` answers for a player who turned on "My roster" and left
+ * the rest at their defaults, plus a rule a later feature would register.
+ */
+export const GALLERY_ALERT_SETTINGS: NewsAlertSettings = {
+  rules: [
+    ...BUILT_IN_NEWS_ALERT_RULES.map((rule) => ({
+      id: rule.id,
+      label: rule.label,
+      description: rule.description,
+      enabled: rule.id === 'myRoster' ? true : rule.defaultOn,
+      defaultOn: rule.defaultOn,
+    })),
+    {
+      id: 'shortlist',
+      label: 'Shortlisted workers',
+      description: 'Any story about a worker on your scouting shortlist, wherever they work.',
+      enabled: false,
+      defaultOn: false,
+    },
+  ],
+  stopSkip: true,
 };
