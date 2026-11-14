@@ -53,6 +53,7 @@ import {
 } from './helpers/game';
 import { expectFormFieldsAtLeast16px, expectNoHorizontalScroll } from './helpers/layout';
 import { centsOf, topBarCash, useFullMoney } from './helpers/money';
+import { closeWithEscape } from './helpers/overlays';
 import { navigateInApp } from './helpers/shell';
 import { isPhone } from './helpers/viewport';
 
@@ -105,8 +106,7 @@ async function openWhy(page: Page, button: Locator, title: string, phone: boolea
 }
 
 async function closeWhy(page: Page, panel: Locator): Promise<void> {
-  await page.keyboard.press('Escape');
-  await expect(panel).toBeHidden();
+  await closeWithEscape(page, panel);
 }
 
 /** Every visible button in `scope` is at least 44px tall. */
@@ -419,7 +419,7 @@ test.describe('contracts', () => {
       await page.getByRole('combobox', { name: 'Employer' }).click();
       await page.getByRole('option', { name: RIVAL, exact: true }).click();
       await expect(page).toHaveURL(/employer=pro_/);
-      if (phone) await page.keyboard.press('Escape');
+      if (phone) await closeWithEscape(page, page.getByRole('dialog', { name: 'Filters' }));
       const rows = page.getByRole('main').locator('tbody tr, li[data-row-id]');
       await expect(rows.first()).toContainText(RIVAL, { timeout: 15_000 });
       await rows.first().getByRole('link').first().click();
@@ -505,8 +505,7 @@ test.describe('contracts', () => {
       await expect(panel.getByText(/^contracts\.walkout\./).first()).toBeVisible();
       await shot(page, 'contracts-walkout-why', testInfo);
       await closeWhy(page, panel);
-      await page.keyboard.press('Escape');
-      await expect(sheet).toBeHidden();
+      await closeWithEscape(page, sheet);
     });
 
     await test.step('Grant: they quit with the agreed share of the severance', async () => {
