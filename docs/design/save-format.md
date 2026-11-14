@@ -141,6 +141,15 @@ the tables. What is left is mostly the full traces each kind keeps (about 7.6
 MB carded) and the stored aftermaths (each worker's newest 10, about 1.2 MB).
 The year test also checks a carded year stays under 1.6 MB on disk.
 
+ECO8-04 (TV deals settle every airing, for every promotion) measured 2026-11,
+365 days of the default world: no rival cards 12.18 MB / 1.39 MB on disk,
+every show carded 16.04 MB / 1.78 MB (from about 15.5 / 1.71 MB). At year end
+there are 166 airing rows (76 KB: the player's year, and each rival deal's
+newest 12) and two trace kinds of about 0.5 MB each, both held by the per-kind
+byte cap: `broadcast.airing` (about 21 full traces of 23 KB) and
+`broadcast.rivalAiring` (about 83 of 6 KB). See
+[broadcast.md](broadcast.md#retention).
+
 "On disk" is the gzipped bytes in IndexedDB and in an `.rbsave` file. "Save"
 is building the document and encoding it; "load" is the whole staged
 `loadSave`. Before POL4-08, with every show carded the rest was mostly tables

@@ -1,5 +1,6 @@
 /**
- * Who worked a show's card, for the workers' shares of its gate and merch (EVT6-05).
+ * Who worked a show's card, for the workers' shares of its gate and merch (EVT6-05) and of the
+ * money its airings earn (ECO8-04).
  *
  * Every distinct person in any segment of the card, the pre-show included, except people who are
  * only talked about (`subject`): they are not working. Each one's active contract with the show's
@@ -23,6 +24,8 @@ export interface CardWorker {
   readonly gateBp: number;
   /** Their share of the merch, in basis points. */
   readonly merchBp: number;
+  /** Their share of TV, pay-per-view and streaming money, in basis points (ECO8-04). */
+  readonly broadcastBp: number;
 }
 
 /** The card's workers under contract with the show's promotion, in person id order. */
@@ -49,6 +52,7 @@ export function cardWorkersOf(
         name: contract.ringName,
         gateBp: contract.terms.shares.gateBp,
         merchBp: contract.terms.shares.merchBp,
+        broadcastBp: contract.terms.shares.broadcastBp,
       });
     }
   }

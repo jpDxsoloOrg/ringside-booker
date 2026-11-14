@@ -26,6 +26,10 @@
  *    `progressTotals` already count them. It runs before the cards, so their segments can go too
  *    (finales stay).
  *
+ * 7. **Airings** (ECO8-04, last). Computer-run promotions' airing rows before the window are
+ *    deleted, except each deal's newest (`broadcast/retention.ts`); the money is in the monthly
+ *    totals and each show's viewers on its result.
+ *
  * Nothing current changes: popularity, momentum, money, records, contracts and reigns are read,
  * never written. Every pass runs in ID order, so a roll-up is deterministic.
  *
@@ -45,6 +49,7 @@ import {
 } from '../../model/entities/ledger-entry';
 import type { DeepReadonly } from '../../model/world';
 import { boxOfficeRowsOf } from '../boxOffice/settlementQueries';
+import { rollUpAirings } from '../broadcast/retention';
 import { cardSegments } from '../booking/card';
 import { showChangeOf } from '../promoPop/helpers';
 import { mainEventSummaryOf } from '../shows/resultsView';
@@ -67,6 +72,8 @@ export interface RollUpCounts {
   storylineProgress: number;
   /** Aftermath rows slimmed to the show's region. */
   aftermaths: number;
+  /** Rival airings past the window deleted (ECO8-04); each deal's newest stay. */
+  airings: number;
 }
 
 function isBefore(date: GameDate, from: GameDate): boolean {
@@ -261,7 +268,7 @@ function slimAftermaths(ctx: PhaseContext, from: GameDate): number {
   return count;
 }
 
-/** Runs the five steps for `today`; returns what each did. */
+/** Runs the steps for `today`; returns what each did. */
 export function rollUpHistory(ctx: PhaseContext): RollUpCounts {
   const from = detailKeptFrom(ctx.date, ctx.tunables.get('history.keepDetailDays'));
   const shows = summariseShows(ctx, from);
@@ -271,7 +278,8 @@ export function rollUpHistory(ctx: PhaseContext): RollUpCounts {
   const showChanges = pruneShowChanges(ctx, from);
   const ledgerRows = rollUpLedger(ctx, from);
   const aftermaths = slimAftermaths(ctx, from);
-  return { shows, ...cards, showChanges, ledgerRows, aftermaths, storylineProgress };
+  const airings = rollUpAirings(ctx, from);
+  return { shows, ...cards, showChanges, ledgerRows, aftermaths, storylineProgress, airings };
 }
 
 export const historyRollUpPhase: PhaseDefinition = definePhase({
@@ -287,11 +295,12 @@ export const historyRollUpPhase: PhaseDefinition = definePhase({
         counts.showChanges +
         counts.ledgerRows +
         counts.aftermaths +
-        counts.storylineProgress >
+        counts.storylineProgress +
+        counts.airings >
       0
     ) {
       ctx.log(
-        `history: summarised ${String(counts.shows)} show(s); removed ${String(counts.segments)} segment(s), ${String(counts.participants)} participant(s), ${String(counts.showChanges)} popularity record(s); rolled ${String(counts.ledgerRows)} ledger row(s) into monthly totals; slimmed ${String(counts.aftermaths)} aftermath(s); trimmed ${String(counts.storylineProgress)} storyline progress row(s)`,
+        `history: summarised ${String(counts.shows)} show(s); removed ${String(counts.segments)} segment(s), ${String(counts.participants)} participant(s), ${String(counts.showChanges)} popularity record(s); rolled ${String(counts.ledgerRows)} ledger row(s) into monthly totals; slimmed ${String(counts.aftermaths)} aftermath(s); trimmed ${String(counts.storylineProgress)} storyline progress row(s); removed ${String(counts.airings)} rival airing(s)`,
       );
     }
   },

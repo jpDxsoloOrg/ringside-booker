@@ -3960,3 +3960,24 @@ export type {
   PublicDealRow,
   ValuationContext,
 } from './systems/broadcast/index';
+// ECO8-04: airing settlement, retention and the airing queries.
+export {
+  AIRED_WITHOUT_RESULT_MEMO,
+  AIRED_WITHOUT_RESULT_NOTE,
+  AIRING_LOSS_NOTE,
+  airingOutcomeOf,
+  BROADCAST_INCOME_CATEGORIES,
+  INCOME_SUMMARY_MAX_DAYS,
+  MISSED_AIRING_NOTES,
+  NO_BROADCAST_SHARES_NOTE,
+  NO_CARD_SHARES_NOTE,
+  PRUNE_AIRINGS_PHASE_ID,
+  SETTLE_AIRINGS_PHASE_ID,
+  SETTLE_ON_SHOW_NIGHT_SUBSCRIPTION_ID,
+} from './systems/broadcast/index';
+export type {
+  AiringOutcome,
+  AiringRow,
+  BroadcastIncomeSummary,
+  ShowAiringView,
+} from './systems/broadcast/index';

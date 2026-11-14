@@ -15,7 +15,11 @@ import { formatNumber } from '../../world/people/labels';
 
 export const WORKER_SHARE_DOC_REF = 'box-office.md#worker-shares';
 
-export type WorkerShareSource = 'Gate' | 'Merch';
+/**
+ * What the shares are a part of: the gate and the merch (EVT6), or a broadcast's income (ECO8-04,
+ * capped by `broadcast.shares.maxTotal`; design: docs/design/broadcast.md#settlement).
+ */
+export type WorkerShareSource = 'Gate' | 'Merch' | 'TV rights' | 'Pay-per-view' | 'Streaming';
 
 export interface WorkerShareInputs {
   /** The gross takings the shares are a part of, in cents. */
@@ -28,11 +32,25 @@ export interface WorkerShareInputs {
 const SOURCE_WORDS: Readonly<Record<WorkerShareSource, string>> = {
   Gate: 'the gate',
   Merch: 'the merch',
+  'TV rights': 'TV rights',
+  'Pay-per-view': 'pay-per-view money',
+  Streaming: 'streaming money',
+};
+
+const TAKINGS_LABELS: Readonly<Record<WorkerShareSource, string>> = {
+  Gate: 'Gate takings',
+  Merch: 'Merch takings',
+  'TV rights': 'TV rights for the airing',
+  'Pay-per-view': 'Pay-per-view money for the airing',
+  Streaming: 'Streaming money for the airing',
 };
 
 const CAP_KEYS = {
   Gate: 'boxOffice.gate.workerShareCap',
   Merch: 'boxOffice.merch.workerShareCap',
+  'TV rights': 'broadcast.shares.maxTotal',
+  'Pay-per-view': 'broadcast.shares.maxTotal',
+  Streaming: 'broadcast.shares.maxTotal',
 } as const satisfies Readonly<Record<WorkerShareSource, NumberTunableKey>>;
 
 /** The total owed to workers in whole cents, from 0 up to the cap. Deterministic: no rolls. */
@@ -60,7 +78,7 @@ export function computeWorkerShare(
   }
   const cap = startCalc(
     'Share cap',
-    inputOf(`${inputs.label} takings`, inputs.gross, undefined, 'money'),
+    inputOf(TAKINGS_LABELS[inputs.label], inputs.gross, undefined, 'money'),
     { unit: 'money' },
   );
   cap.multiply(
