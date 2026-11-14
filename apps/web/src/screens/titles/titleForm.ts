@@ -101,7 +101,9 @@ export function weightText(kg: number | null): string {
 }
 
 /** The form filled in from a title's row, for editing. */
-export function titleFormFromRow(row: TitleCardRow): TitleFormValues {
+export function titleFormFromRow(
+  row: Pick<TitleCardRow, 'name' | 'brandId' | 'holderCount' | 'division' | 'color'>,
+): TitleFormValues {
   return {
     name: row.name,
     brand: row.brandId ?? PROMOTION_WIDE_VALUE,
@@ -230,7 +232,7 @@ export function createArgsFromForm(
  * Weights the player left as shown keep their exact stored value rather than the rounded one.
  */
 export function editArgsFromForm(
-  row: TitleCardRow,
+  row: Pick<TitleCardRow, 'titleId' | 'division' | 'holderCount'>,
   values: TitleFormValues,
 ):
   | { readonly ok: true; readonly args: TitleEditArgs }

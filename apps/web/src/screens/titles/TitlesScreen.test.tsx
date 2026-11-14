@@ -73,7 +73,7 @@ beforeEach(() => {
 });
 
 describe('TitlesScreen', () => {
-  it('shows our titles as champion cards with links, and no actions', async () => {
+  it('shows our titles as champion cards with links and their actions', async () => {
     renderAt(routes.game.titles());
     const card = await findCard(HEAVYWEIGHT);
     expect(screen.getByRole('heading', { level: 1, name: 'Titles' })).toBeInTheDocument();
@@ -89,11 +89,15 @@ describe('TitlesScreen', () => {
     expect(await findCard(TAG)).toBeInTheDocument();
     expect(screen.getByRole('radio', { name: 'Active (2)' })).toBeChecked();
     expect(screen.getByRole('radio', { name: 'Retired (0)' })).toBeInTheDocument();
-    // Read-only until CRTV1-05: the only buttons are the Why? chips.
+    // Besides the Why? chips: New title, and a menu on each of our cards (CRTV1-05).
     const main = screen.getByRole('main');
     for (const button of within(main).queryAllByRole('button')) {
-      expect(button).toHaveAccessibleName(/^Why\? /);
+      expect(button).toHaveAccessibleName(/^(Why\? |Actions for the |New title$)/);
     }
+    expect(
+      within(card).getByRole('button', { name: `Actions for the ${HEAVYWEIGHT}` }),
+    ).toBeInTheDocument();
+    expect(within(main).getByRole('button', { name: 'New title' })).toBeInTheDocument();
   });
 
   it('keeps the tab and the filter in the URL', async () => {
