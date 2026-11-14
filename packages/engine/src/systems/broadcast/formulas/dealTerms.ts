@@ -222,8 +222,7 @@ function costPerShow(inputs: DealTermsInputs, tunables: EngineTunables): Traced<
       calc.tunable(tunables, 'broadcast.value.airtimePerMillion'),
     );
   }
-  calc
-    .multiply(`Reach tier ${String(inputs.reachTier)}: tier + 1 steps`, inputs.reachTier + 1);
+  calc.multiply(`Reach tier ${String(inputs.reachTier)}: tier + 1 steps`, inputs.reachTier + 1);
   if (inputs.kind === 'streaming') {
     calc.multiply(
       'Streaming services charge less airtime',
