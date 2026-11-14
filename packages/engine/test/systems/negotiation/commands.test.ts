@@ -18,6 +18,7 @@ import {
   validateOffer,
   type Offer,
 } from '../../../src/systems/negotiation';
+import { isFullTrace } from '../../../src/core/trace/store';
 import { createEngineTunables } from '../../../src/systems/tunables';
 import { workersSystem } from '../../../src/systems/workers';
 import { initialEngineState } from '../../../src/core/api';
@@ -266,7 +267,8 @@ describe('contracts.makeOffer', () => {
     const trace = ask(
       engine.query('trace.get', { ref: askTraceRef(made.negotiationId, 1) }, PLAYER_VIEW),
     );
-    expect(trace?.summaryOnly).toBe(true);
+    expect(trace).not.toBeNull();
+    expect(trace !== null && isFullTrace(trace)).toBe(false);
   });
 
   it('refuses workers who will not talk: retired, or under an exclusive deal elsewhere', () => {
