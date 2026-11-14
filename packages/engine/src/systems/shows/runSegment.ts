@@ -14,6 +14,7 @@ import type { PersonId } from '../../core/ids';
 import { refKey, traced, type TraceNode, type Traced } from '../../core/trace';
 import { compareIds } from '../../model/table';
 import type { MatchOutcome, SegmentRating } from '../../model/entities/segment';
+import { ANGLE_STREAM } from '../match/angles/streams';
 import { MATCH_RATING_STREAM } from '../match/streams';
 import { ratingInputFromSegment } from '../match/rating/fromSegment';
 import { rateSegment } from '../match/rating/rateSegment';
@@ -169,7 +170,8 @@ export function runSegment(
     tunables: ctx.tunables,
     mode: 'live',
     seed: segment.id,
-    rng: ctx.rng(MATCH_RATING_STREAM),
+    // A talking segment rolls its beats and crowd on `match.angle` (MTCH5-03).
+    rng: ctx.rng(segment.kind === 'angle' ? ANGLE_STREAM : MATCH_RATING_STREAM),
   });
   if (!rated.ok) {
     const reasons = rated.reasons.map((reason) => reason.message).join(' ');

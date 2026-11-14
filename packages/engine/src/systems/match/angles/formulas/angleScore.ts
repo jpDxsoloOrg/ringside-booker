@@ -17,7 +17,14 @@
 
 import { InvalidArgumentError } from '../../../../core/errors';
 import type { RngStream } from '../../../../core/rng/registry';
-import { constantOf, startCalc, traced, type Calc, type Traced } from '../../../../core/trace';
+import {
+  constantOf,
+  startCalc,
+  traced,
+  type Calc,
+  type Traced,
+  type TraceNode,
+} from '../../../../core/trace';
 import type { EngineTunables } from '../../../tunables';
 import { formatNumber } from '../../../world/people/labels';
 import { crowdScore } from '../../formulas/crowdScore';
@@ -130,6 +137,40 @@ export function repeatOnCardLine(group: string, earlier: number, factor: number)
 /** "Writing team (level 7): floor 21, ceiling 92.5". */
 export function writingBandLabel(level: number, floor: number, ceiling: number): string {
   return `Writing team (level ${String(level)}): floor ${formatNumber(floor)}, ceiling ${formatNumber(ceiling)}`;
+}
+
+/** How many levels of delivered's and the crowd's own traces the score shows under them. */
+const NESTED_LEVELS = 2;
+
+/**
+ * `node` with everything more than `levels` below it cut away: a formula there becomes a flat
+ * input with its value, any other node loses its children. Delivered and the crowd have their own
+ * sections in the Why? panel; the score shows their lines (each beat's weight, closing and
+ * repetition lines; delivered against expected) without repeating their whole stories, so its
+ * trace stays inside the depth limit.
+ */
+export function pruneTrace(node: TraceNode, levels: number): TraceNode {
+  const children = node.children;
+  if (children === undefined || children.length === 0) {
+    return node;
+  }
+  if (levels <= 0) {
+    if (node.kind === 'formula') {
+      return {
+        kind: 'input',
+        label: node.label,
+        value: node.value,
+        ...(node.unit === undefined ? {} : { unit: node.unit }),
+        ...(node.docRef === undefined ? {} : { docRef: node.docRef }),
+      };
+    }
+    return { ...node, children: [] };
+  }
+  return { ...node, children: children.map((child) => pruneTrace(child, levels - 1)) };
+}
+
+function pruned(value: Traced<number>): Traced<number> {
+  return traced(value.value, pruneTrace(value.trace, NESTED_LEVELS));
 }
 
 /** One beat's weighted share: score × repetition × weight (× the closing weight). */
@@ -282,11 +323,11 @@ export function angleScoreParts(inputs: AngleScoreInputs, deps: AngleScoreDeps):
     ),
   );
 
-  const crowdPart = startCalc("Crowd's share", crowd, { unit: 'points' });
+  const crowdPart = startCalc("Crowd's share", pruned(crowd), { unit: 'points' });
   const blend = crowdPart.tunable(tunables, 'match.angle.crowdBlend', 'Crowd blend');
   crowdPart.multiply('Crowd blend', blend);
   const deliveredShare = 1 - blend;
-  const deliveredPart = startCalc(`${BEATS_DELIVERED_LABEL}' share`, delivered, {
+  const deliveredPart = startCalc(`${BEATS_DELIVERED_LABEL}' share`, pruned(delivered), {
     unit: 'points',
   }).multiply('What the crowd leaves', deliveredShare);
 

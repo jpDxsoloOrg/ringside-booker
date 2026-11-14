@@ -138,6 +138,15 @@ function continueFormula(
   });
 }
 
+export interface RunStageOptions {
+  /**
+   * False skips the soft compression the work rate, talk and crowd stages end with: the beat
+   * rater's delivered (MTCH5-03) is a mean of 0-100 beats and its angle score compresses once, at
+   * the end. Defaults to true.
+   */
+  readonly compress?: boolean;
+}
+
 /**
  * Runs one stage on `base`: every modifier whose `applies` is true, in order (a `detail` modifier
  * is skipped with a note when the policy asks for simple inputs), then the stage's finish.
@@ -148,6 +157,7 @@ export function runStage(
   base: Traced<number>,
   ctx: RatingContext,
   subject?: RatingSubject,
+  options: RunStageOptions = {},
 ): Traced<number> {
   const label = stageLabel(stage, base);
   const calc = startCalc(label, base, {
@@ -158,7 +168,8 @@ export function runStage(
     finishInCalc(calc, stage, ctx);
   }
   const staged = continueFormula(base, calc.done(), label);
-  if (stage === 'workRate' || stage === 'talk' || stage === 'crowd') {
+  const compress = options.compress ?? true;
+  if (compress && (stage === 'workRate' || stage === 'talk' || stage === 'crowd')) {
     return softCompression({ value: staged, label }, { tunables: ctx.tunables });
   }
   return staged;
