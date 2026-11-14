@@ -66,6 +66,7 @@ function personAt(index: number) {
     ringName: name,
     imageRef: 'placeholder:person',
     role: 'competitor' as const,
+    talkRole: null,
     availability: {
       status: 'available' as const,
       label: 'Available',
@@ -115,6 +116,8 @@ export function galleryMatch(
     storylineIds: [],
     finishKey: null,
     stipulationKeys: [],
+    setting: 'ring',
+    talkLine: null,
     draft: {
       kind: 'angle',
       label: null,

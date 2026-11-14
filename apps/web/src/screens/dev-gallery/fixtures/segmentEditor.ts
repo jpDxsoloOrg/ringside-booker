@@ -324,6 +324,8 @@ export const GALLERY_CATALOG: MatchCatalog = {
       order: 10,
       speakers: { min: 1, max: 4 },
       beatKeys: [parseContentKey('beat.promo')],
+      defaultBeatKey: parseContentKey('beat.promo'),
+      settings: ['ring', 'backstage', 'video'],
       hidden: false,
     },
     {
@@ -333,6 +335,8 @@ export const GALLERY_CATALOG: MatchCatalog = {
       order: 30,
       speakers: { min: 2, max: 8 },
       beatKeys: [parseContentKey('beat.staredown')],
+      defaultBeatKey: parseContentKey('beat.staredown'),
+      settings: ['ring', 'backstage'],
       hidden: false,
     },
   ],
@@ -421,6 +425,7 @@ function viewPerson(index: number, role: 'competitor' | 'speaker'): BookingPerso
     ringName: worker?.name ?? 'Someone',
     imageRef: 'placeholder:person',
     role,
+    talkRole: role === 'speaker' ? 'wrestler' : null,
     availability: {
       status: worker?.status ?? 'available',
       label: worker?.label ?? 'Available',
@@ -497,6 +502,8 @@ function segment(
     finishKey: null,
     stipulationKeys: [],
     draft,
+    setting: draft.kind === 'angle' ? (draft.angle.setting ?? 'ring') : 'ring',
+    talkLine: null,
   };
 }
 

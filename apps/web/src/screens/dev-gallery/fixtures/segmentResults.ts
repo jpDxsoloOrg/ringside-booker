@@ -99,11 +99,16 @@ function reasonsFor(score: number, workRate: number | null): SegmentReasonView[]
   return [performance, crowd].filter((reason) => reason.effect !== 0);
 }
 
-const BASE: Pick<SegmentResultView, 'preShow' | 'label' | 'titles' | 'storylines'> = {
+const BASE: Pick<
+  SegmentResultView,
+  'preShow' | 'label' | 'titles' | 'storylines' | 'setting' | 'talkLine'
+> = {
   preShow: false,
   label: null,
   titles: [],
   storylines: [],
+  setting: 'ring',
+  talkLine: null,
 };
 
 /** Opener: a clean singles win by pinfall. */

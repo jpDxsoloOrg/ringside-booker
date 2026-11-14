@@ -20,6 +20,7 @@ function person(serial: number, ringName: string) {
     ringName,
     imageRef: 'placeholder:person',
     role: 'competitor' as const,
+    talkRole: null,
     availability: {
       status: 'available' as const,
       label: 'Available',
@@ -59,6 +60,8 @@ function segment(result: BookingResultView | null, sides = 2): BookingSegmentVie
     storylineIds: [],
     finishKey: null,
     stipulationKeys: [],
+    setting: 'ring',
+    talkLine: null,
     draft: {
       kind: 'angle',
       label: null,
