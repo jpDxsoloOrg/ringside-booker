@@ -583,7 +583,7 @@ when its rivals make their own deals.
 
 On the default world Cielo Alto's shipped deal ends on 5 Jul 2027 and renews
 at today's valuation (fee, per-thousand rate and airtime all from the formula,
-so the airtime goes up a lot; the deal stays signed). The half-year soak test
+not its shipped terms; the deal stays signed). The half-year soak test
 (`dealHealth-default-world.test.ts`, slow suite) pins that no shipped deal is
 cancelled for low viewers or missed airings.
 
