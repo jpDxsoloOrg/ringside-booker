@@ -120,6 +120,12 @@ export interface AngleTypeOption {
   defaultBeatKey: ContentKey;
   /** MTCH5-08: where an angle of this type may happen; the first is where a new one starts. */
   settings: AngleSetting[];
+  /**
+   * MTCH5-05: the beat a new angle of this type starts with, or null on a save without a beat
+   * catalog. Always one of `beatKeys` when set. Optional so hand-made catalogs (gallery fixtures)
+   * may leave it out; `match.catalog` always sets it.
+   */
+  defaultBeatKey?: ContentKey | null | undefined;
   hidden: boolean;
 }
 
@@ -376,6 +382,9 @@ export const catalogQuery: QueryDefinition<'match.catalog'> = defineQuery('match
         beatKeys: beats.filter((beat) => isBeatAllowed(def, beat.key)).map((beat) => beat.key),
         defaultBeatKey: def.defaultBeatKey,
         settings: startingFirst(settingsOfAngleType(def), defaultSettingOf(def)),
+        defaultBeatKey: beats.some((beat) => beat.key === def.defaultBeatKey)
+          ? def.defaultBeatKey
+          : null,
         hidden: def.hidden,
       })),
       methods: methodsOf(ctx.read, options).map((def) => ({

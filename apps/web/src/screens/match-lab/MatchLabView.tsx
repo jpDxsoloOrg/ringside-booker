@@ -1,16 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import type { GameDate, LabOptions, MatchCatalog, RegionId } from '@ringside/engine';
+import { useSearchParams } from 'react-router-dom';
+import type { GameDate, LabOptions, MatchCatalog, RegionId, SegmentKind } from '@ringside/engine';
 import { useEngineQuery } from '@/app/engine/useEngineQuery';
 import { EmptyState } from '@/components/EmptyState';
 import { Panel } from '@/components/Panel';
+import { RadioGroup } from '@/components/RadioGroup';
 import { useIsMobile } from '@/styles/useMediaQuery';
 import { LabBatchResult } from './LabBatchResult';
 import { labPanelsFor, useLabPanels } from './labPanelRegistry';
 import type { LabPanelContext, LabPanelPlacement } from './labPanelRegistry';
 import { LabResult } from './LabResult';
 import { LabRunBar } from './LabRunBar';
-import { LabSetupPanel, startingSides } from './LabSetupPanel';
+import { LabSetupPanel, MODE_OPTIONS, startingSides } from './LabSetupPanel';
 import { isOutOfDate, useLabStore } from './labStore';
 import { runsText } from './labText';
 import { LabWarnings } from './LabWarnings';
@@ -21,6 +23,8 @@ import { SidesBuilder } from './SidesBuilder';
 import { useLabRunner } from './useLabRunner';
 import { WorkerLinesTable } from './WorkerLinesTable';
 import { WorkerPickerSheet } from './WorkerPickerSheet';
+import { AngleMode } from './angle/AngleMode';
+import { freshAngleDraft, visibleAngleTypes } from './angle/angleDraft';
 // The Aftermath panel (MTCH3-04), registered with the lab's chunk.
 import './aftermath/register';
 // The Physical panel (MTCH4-05), registered with the lab's chunk.
@@ -59,6 +63,75 @@ interface LabProps {
   readonly today: GameDate | null;
 }
 
+/** The URL's `?mode=` value for Angle mode; Match mode leaves it out. */
+export const ANGLE_MODE_PARAM = 'angle';
+
+/**
+ * The lab's mode (MTCH5-05) kept in the store and the URL: `?mode=angle` opens Angle mode, so
+ * links and tests can go straight there. Coming back to the lab without it keeps the mode the
+ * session was in. Angle mode starts its draft from the first angle type the first time it opens.
+ */
+function useLabMode(options: LabOptions, catalog: MatchCatalog) {
+  const kind = useLabStore((state) => state.setup.kind);
+  const [params, setParams] = useSearchParams();
+  const urlMode: SegmentKind = params.get('mode') === ANGLE_MODE_PARAM ? 'angle' : 'match';
+
+  const applyMode = useCallback(
+    (mode: SegmentKind) => {
+      const store = useLabStore.getState();
+      if (mode === store.setup.kind) return;
+      if (mode === 'angle') {
+        let draft = store.angle;
+        if (draft.angleTypeKey === null) {
+          draft = freshAngleDraft(catalog, visibleAngleTypes(catalog)[0]?.key ?? null);
+          store.setAngle(draft);
+        }
+        store.setKind('angle', draft.angleTypeKey, 1);
+        return;
+      }
+      const typeKey = options.defaults.typeKey ?? catalog.matchTypes[0]?.key ?? null;
+      store.setKind('match', typeKey, startingSides(catalog, 'match', typeKey));
+    },
+    [catalog, options.defaults.typeKey],
+  );
+
+  const writeUrl = useCallback(
+    (mode: SegmentKind) => {
+      setParams(
+        (current) => {
+          const next = new URLSearchParams(current);
+          if (mode === 'angle') next.set('mode', ANGLE_MODE_PARAM);
+          else next.delete('mode');
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setParams],
+  );
+
+  // First visit: a link's ?mode wins; without one, the session's mode is written to the URL.
+  // Later, the URL (Back, a link) drives the store.
+  const synced = useRef(false);
+  useEffect(() => {
+    if (!synced.current) {
+      synced.current = true;
+      if (params.has('mode') || kind === 'match') applyMode(urlMode);
+      else writeUrl(kind);
+      return;
+    }
+    applyMode(urlMode);
+    // Only a change of the URL's mode drives the store here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlMode]);
+
+  const changeMode = (mode: SegmentKind): void => {
+    applyMode(mode);
+    writeUrl(mode);
+  };
+  return { mode: kind, changeMode };
+}
+
 /** The lab itself, once its options, catalog and defaults are in. */
 function Lab({ options, catalog, regionId, today }: LabProps) {
   const setup = useLabStore((state) => state.setup);
@@ -69,6 +142,8 @@ function Lab({ options, catalog, regionId, today }: LabProps) {
   const runner = useLabRunner(today);
   const isMobile = useIsMobile();
   const [pickerSide, setPickerSide] = useState<number | null>(null);
+  const { mode, changeMode } = useLabMode(options, catalog);
+  const isAngle = mode === 'angle';
 
   const outOfDate = isOutOfDate({ setup, sides, result: plan, crew }, lastRun);
   const result = lastRun?.rating ?? null;
@@ -121,43 +196,63 @@ function Lab({ options, catalog, regionId, today }: LabProps) {
 
   return (
     <div className={styles['labFrame']}>
-      <div className={styles['lab']}>
+      <div className={styles['modeBar']}>
+        <RadioGroup
+          legend="Segment"
+          layout="row"
+          options={MODE_OPTIONS}
+          value={mode}
+          onValueChange={changeMode}
+        />
+      </div>
+      <div className={styles['lab']} data-mode={mode}>
         <div className={styles['setupColumn']}>
           <LabSetupPanel
             options={options}
             catalog={catalog}
-            rulesLabel={result?.policy.label ?? null}
+            rulesLabel={isAngle ? null : (result?.policy.label ?? null)}
           />
-          <ExtraPanels placement="setup" context={context} />
+          {!isAngle && <ExtraPanels placement="setup" context={context} />}
         </div>
-        <div className={styles['sidesColumn']}>
-          <SidesBuilder
+        {isAngle ? (
+          <AngleMode
             catalog={catalog}
-            regionId={regionId}
-            onAddWorker={(side) => {
-              setPickerSide(side);
-            }}
+            regionId={setup.regionId ?? regionId}
+            promotionId={options.promotion?.id ?? setup.promotionId}
+            runner={runner}
           />
-          {isMobile && setup.kind === 'match' && (
-            <Panel title={RESULT_GROUP_TITLE} className={styles['setupPanel']}>
-              <LabResultGroup bare />
-            </Panel>
-          )}
-        </div>
-        <LabRunBar runner={runner} />
-        <div className={styles['resultColumn']}>
-          <Panel title="Result" variant="broadcast" className={styles['resultPanel']}>
-            {resultBody}
-            {result !== null && <LabWarnings warnings={result.warnings} />}
-            {lastRun?.batch != null && <LabBatchResult batch={lastRun.batch} />}
-          </Panel>
-          {result !== null && result.workers.length > 0 && (
-            <Panel title="Each worker" padding="none" className={styles['linesPanel']}>
-              <WorkerLinesTable kind={result.kind} lines={result.workers} />
-            </Panel>
-          )}
-          <ExtraPanels placement="result" context={context} />
-        </div>
+        ) : (
+          <>
+            <div className={styles['sidesColumn']}>
+              <SidesBuilder
+                catalog={catalog}
+                regionId={regionId}
+                onAddWorker={(side) => {
+                  setPickerSide(side);
+                }}
+              />
+              {isMobile && setup.kind === 'match' && (
+                <Panel title={RESULT_GROUP_TITLE} className={styles['setupPanel']}>
+                  <LabResultGroup bare />
+                </Panel>
+              )}
+            </div>
+            <LabRunBar runner={runner} />
+            <div className={styles['resultColumn']}>
+              <Panel title="Result" variant="broadcast" className={styles['resultPanel']}>
+                {resultBody}
+                {result !== null && <LabWarnings warnings={result.warnings} />}
+                {lastRun?.batch != null && <LabBatchResult batch={lastRun.batch} />}
+              </Panel>
+              {result !== null && result.workers.length > 0 && (
+                <Panel title="Each worker" padding="none" className={styles['linesPanel']}>
+                  <WorkerLinesTable kind={result.kind} lines={result.workers} />
+                </Panel>
+              )}
+              <ExtraPanels placement="result" context={context} />
+            </div>
+          </>
+        )}
         <WorkerPickerSheet
           side={pickerSide}
           regionId={setup.regionId ?? regionId}

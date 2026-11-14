@@ -238,6 +238,39 @@
   color: var(--color-text);
 }
 
+/*
+ * A narrow column on a wide screen (the Match lab's Angle mode, MTCH5-05): the row stacks like a
+ * phone card but keeps its grip. Before the phone rules, so a phone still gets its own layout.
+ */
+.editor {
+  container: beateditor / inline-size;
+}
+
+@container beateditor (width < 34rem) {
+  .row {
+    grid-template-areas:
+      'grip heading score'
+      'grip pick pick'
+      'grip groups groups'
+      'grip actions actions';
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .heading {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .select {
+    max-inline-size: none;
+  }
+
+  .group {
+    flex-basis: 100%;
+  }
+}
+
 @media (--bp-mobile) {
   .row {
     grid-template-areas:

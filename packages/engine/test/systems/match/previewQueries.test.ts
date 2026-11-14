@@ -27,6 +27,7 @@ import { worldBuilder } from '../../support';
 import { expectSerialisable } from '../../support/trace';
 import { measureAgainstReference } from '../../support/cpu-budget';
 import { SLOW_TESTS } from '../../support/slow';
+import { updateContract } from './angles/angle-world';
 import { updatePerson } from './rating/fixtures';
 
 const PLAYER: Viewer = {
@@ -522,9 +523,14 @@ describe('match.labWorkers', () => {
     for (const row of result.data.rows) {
       expect(Object.keys(row).sort()).toEqual([
         'available',
+        'charisma',
+        'managerId',
+        'managerName',
+        'mic',
         'name',
         'personId',
         'popularity',
+        'presence',
         'promotionShortName',
         'roles',
         'safety',
@@ -596,6 +602,38 @@ describe('match.labWorkers', () => {
       PLAYER,
     );
     expect(found.ok && found.data.rows.map((row) => row.name)).toContain(name);
+  });
+
+  it('gives the talking stats and the contract manager, and filters by role (MTCH5-05)', () => {
+    const lab = labWorld((world, roster) => {
+      updatePerson(world, at(roster, 4), (person) => ({
+        ...person,
+        roles: [...person.roles, 'manager'],
+        attributes: { ...person.attributes, mic: 91, charisma: 72, presence: 64 },
+      }));
+      updateContract(world, at(roster, 1), { managerPersonId: at(roster, 4) });
+    });
+    const result = lab.engine.query(
+      'match.labWorkers',
+      { scope: 'mine', regionId: at(lab.regions, 0) },
+      PLAYER,
+    );
+    if (!result.ok) {
+      throw new Error(JSON.stringify(result.reasons));
+    }
+    const manager = result.data.rows.find((row) => row.personId === at(lab.roster, 4));
+    expect(manager).toMatchObject({ mic: 91, charisma: 72, presence: 64, managerId: null });
+    const managed = result.data.rows.find((row) => row.personId === at(lab.roster, 1));
+    expect(managed).toMatchObject({ managerId: at(lab.roster, 4), managerName: manager?.name });
+
+    const managers = lab.engine.query(
+      'match.labWorkers',
+      { scope: 'everyone', regionId: at(lab.regions, 0), role: 'manager' },
+      PLAYER,
+    );
+    expect(managers.ok && managers.data.rows.map((row) => row.personId)).toEqual([
+      at(lab.roster, 4),
+    ]);
   });
 
   it('needs a promotion for mine from a viewer who runs none', () => {

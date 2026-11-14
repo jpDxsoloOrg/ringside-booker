@@ -1,0 +1,160 @@
+/*
+ * The Match lab's Angle mode (MTCH5-05): the builder (type, template, beats), the result (score
+ * bug, expectation line, per-beat table) and the manager menu on each chip.
+ */
+
+.anglePanel {
+  min-inline-size: 0;
+}
+
+.fields {
+  display: grid;
+  gap: var(--space-3);
+  margin-block-start: var(--space-3);
+}
+
+@container lab (width >= 40rem) {
+  .fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+
+.field {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.hint {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.editor {
+  display: grid;
+  gap: var(--space-2);
+  margin-block-start: var(--space-4);
+  min-inline-size: 0;
+}
+
+.refusals {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.refusal {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-1);
+  color: var(--color-negative);
+  font-size: var(--font-size-sm);
+}
+
+.manager {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.managerBadge {
+  max-inline-size: 12rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---- Result ----------------------------------------------------------------------------- */
+
+.result {
+  container: angleresult / inline-size;
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+@container angleresult (width < 34rem) {
+  .scoreBug > dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@supports not (container-type: inline-size) {
+  @media (--bp-mobile) {
+    .scoreBug > dl {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+}
+
+.outOfDate {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.resultLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  font-size: var(--font-size-sm);
+}
+
+.resultPart {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.people {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.person {
+  overflow-wrap: anywhere;
+}
+
+.weight {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.warnings {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.warningList {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.warning {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-1);
+  font-size: var(--font-size-sm);
+}
+
+.warning[data-severity='error'] {
+  color: var(--color-negative);
+}
+
+.warningSeverity {
+  font-weight: var(--font-weight-semibold);
+}
