@@ -29,8 +29,14 @@
 import type { Locator, Page, TestInfo } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { expectNoSeriousA11yViolations } from './helpers/a11y';
-import { cancelTonightsShow } from './helpers/booking';
-import { addIsoDays, contractRows, dayButton, gameDate } from './helpers/contracts';
+import { cancelTonightsShow, waitForDayBarSettled } from './helpers/booking';
+import {
+  addIsoDays,
+  clearInjuryStop,
+  contractRows,
+  dayButton,
+  gameDate,
+} from './helpers/contracts';
 import { startDefaultWorldGame } from './helpers/game';
 import { expectFormFieldsAtLeast16px, expectNoHorizontalScroll } from './helpers/layout';
 import { centsOf, useFullMoney } from './helpers/money';
@@ -107,8 +113,7 @@ async function nextDay(page: Page): Promise<void> {
       continue;
     }
     if (name.includes('Roster')) {
-      await button.click();
-      await expect(dayButton(page, 'Roster')).toBeHidden({ timeout: 15_000 });
+      await clearInjuryStop(page);
       continue;
     }
     if (name.includes('Contracts')) return;
@@ -117,9 +122,11 @@ async function nextDay(page: Page): Promise<void> {
     await button.click();
     await expect(page.getByTestId('advance-overlay')).toBeHidden({ timeout: 20_000 });
     await expect(status).not.toHaveText(before ?? '', { timeout: 20_000 });
-    // The stops are read again once the day has moved; let the day bar catch up before the next
-    // press, so a button that turned into Contracts is not pressed as Next day.
-    await page.waitForTimeout(500);
+    // The stops are read again once the day has moved: wait for the day bar to settle on them, so
+    // a button that turned into Contracts is not pressed as Next day. An injury that day outranks
+    // the contract stop on the button, so it is cleared to show what the caller waits for.
+    await waitForDayBarSettled(page);
+    if (await dayButton(page, 'Roster').isVisible()) await clearInjuryStop(page);
     return;
   }
 }
