@@ -184,7 +184,7 @@ reasons plus that step's report, never a world.
 | 895   | `aip.createProfiles`           | AIP   | always                     | Gives every computer-run promotion or brand its rival desk profile, so the human promotion gets none ([rival-desk.md](rival-desk.md#profiles)).             |
 | 900+  | pricing, production, networks  | ECO   | ECO's own settings         | Expected here, after the equal start reset, so the reset never throws their work away.                                                                      |
 | 905   | `finance.openingBalance`       | ECO   | always                     | Records the cash Why? ("Opening balance") of every human-run promotion, so the top bar explains its cash from day one ([finances.md](finances.md#queries)). |
-| 950   | `news.openingStory`            | DAY   | always                     | Posts the "Season one begins" front-page story for the active season, dated the start date ([news.md](news.md#opening-story)).                            |
+| 950   | `news.openingStory`            | DAY   | always                     | Posts the "Season one begins" front-page story for the active season, dated the start date ([news.md](news.md#opening-story)).                              |
 | 990   | `office.baselineSnapshot`      | DAY   | always                     | A `baseline` history row dated the start date for every active promotion, so week one has a comparison ([office.md](office.md#history)).                    |
 
 After the last step, `createNewGame` publishes `world.created`

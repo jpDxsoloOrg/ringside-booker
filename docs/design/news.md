@@ -2,8 +2,10 @@
 
 The news wire is the public feed of the wrestling world: results, title changes,
 signings, releases, rumours and the rest. This page is the contract every system
-uses to post a story. DAY1-01 builds the posting core; later DAY1 tickets add the
-stories themselves, the feed queries and the screen.
+uses to post a story. DAY1-01 builds the posting core; DAY1-02 adds the
+[opening story](#opening-story), the weekly [milestones](#milestones) and the
+[expiry clean-up](#expiry); later DAY1 tickets add the other stories, the feed
+queries and the screen.
 
 Code: `packages/engine/src/systems/news/` and the `news` table
 (`packages/engine/src/model/entities/news.ts`, see
@@ -149,12 +151,106 @@ replaces the tunable for importance 0 to 2; `null` keeps the story.
 The three expiry tunables are integers, 0–3650, unit `days`, category News,
 docRef `news.md#expiry`.
 
+**The clean-up.** The daily phase `news.expire` (`housekeeping`, order 24,
+DAY1-02) deletes every story whose `expiresOn` is on or before the day. It walks
+the `byExpiresOn` index keys (`ReadonlyTable.indexKeys`, sorted) from the oldest
+up to the day and stops at the first later key, so it never scans the table;
+the stories are deleted in id order and the step logs "Expired N stories".
+Overdue stories go the same way: a 0-day story posted after the phase ran is
+gone the next day (or the same day, when it runs again), and an old save is
+caught up on its first day. Stories with `expiresOn: null` (every front-page
+story) are not in the index and are never touched.
+
 **Retention.** News is history, so it follows the owner's history rule
 (`history.keepDetailDays`, about 4 weeks of full detail): the feed itself only
-lists stories that have not expired, and the `byExpiresOn` index lets DAY1-02
-delete expired rows in its expiry clean-up. Front-page stories are
+lists stories that have not expired, and `news.expire` deletes the rest, so a
+10-year skip does not fill the save with old filler. Front-page stories are
 the summaries that stay. Their buzz traces fall back to summaries on their own
 through the trace store's per-kind limit.
+
+## Opening story
+
+Every new game starts with one front-page story, "Season one begins", dated the
+start day. The new-game setup step `news.openingStory` (order 950, after every
+other band in the setup-step list and before the office baseline at 990) reads
+the active season (`seasons` `activeSeason`, created by `materialise`) and
+posts:
+
+```ts
+postNews(ctx, {
+  kind: 'season',
+  topic: 'season-start',
+  importance: 3,
+  params: { seasonNumber: 1 },
+  bodyParams: { seasonNumber: 1, startDate, endDate, worldName },
+  dedupeKey: 'season-start:1',
+});
+```
+
+The catalog says this story comes "on world.created". It is a setup step and
+not a reaction to `world.created` because `createNewGame` builds its own event
+bus with no system subscriptions (`setupRuntime` in
+`systems/newgame/createNewGame.ts`), so a reaction would never run there. Its
+`news.posted` lands in the new game's event log between the opening schedule's
+`calendar.horizonExtended` and `world.created`. The dedupe key is the one the
+weekly [seasons source](#milestones) and DAY3's own season story use, so a
+season is never announced twice.
+
+## Milestones
+
+Until shows and contracts produce news, the foundation data already holds
+stories: title reigns with their won dates, debut dates and founding dates.
+The weekly phase `news.milestones` (`periodic`, order 12, Mondays, DAY1-02)
+turns them into milestone stories.
+
+**Window.** From `max(date − 6 days, meta.startDate)` to the Monday itself,
+both ends included. Nothing before the game's start is ever reported, so a
+milestone that fell before day one (a record passed last year) never appears.
+
+**Sources.** A source (`registerMilestoneSource({ id, collect })` in
+`systems/news/milestones/registry.ts`) lists the milestones that fell on a day
+inside the window as candidates
+(`{ onDate, topic, kind, importance, params, bodyParams, refs, dedupeKey }`).
+Later features (DAY5 records, CRTV2 prestige bands) add a source without
+editing the phase. The built-in sources, in registration order:
+
+| Source         | Topic                   | Kind        | When                                                                                                                                                                     | Importance                                                                                                              | Params                                                        | Dedupe key                                    |
+| -------------- | ----------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- | --------------------------------------------- |
+| `reigns`       | `reign-milestone`       | `milestone` | An open reign of an active title reaches 100, 200 or 300 days held (`REIGN_MILESTONE_DAYS`, story beats, not balance), or a whole year since `wonOn`                     | 1 for a day mark, 2 for a year; +1 (up to 3) when the title's prestige is at least `news.milestones.majorTitlePrestige` | `titleId`, `holderIds`, `days` or `years`                     | `reign-milestone:<reignId>:<days or years>`   |
+| `reignRecords` | `reign-record`          | `milestone` | An open reign passes the longest finished reign of its title (days held = longest + 1), when the title has at least `news.milestones.recordMinReigns` finished reigns    | 3                                                                                                                       | `titleId`, `holderIds`, `previousHolderIds`, `days`           | `reign-record:<reignId>`                      |
+| `careers`      | `career-anniversary`    | `milestone` | An `active` or `semiRetired` person's debut anniversary, when the years are a multiple of `news.milestones.careerYearStep` and at least `news.milestones.careerMinYears` | 1, or 2 from 25 years (`CAREER_MAJOR_YEARS`)                                                                            | `personId`, `years`                                           | `career:<personId>:<years>`                   |
+| `promotions`   | `promotion-anniversary` | `business`  | An active promotion's founding anniversary: the first, then every `news.milestones.promotionYearStep` years                                                              | 2, or 3 from 25 years (`PROMOTION_MAJOR_YEARS`)                                                                         | `promotionId`, `years`                                        | `promotion-anniversary:<promotionId>:<years>` |
+| `seasons`      | `season-start`          | `season`    | A season with number 2 or more starts (season one is the [opening story](#opening-story))                                                                                | 3                                                                                                                       | `seasonNumber`; body also `startDate`, `endDate`, `worldName` | `season-start:<number>`                       |
+
+Whole-year anniversaries use `addYears`, so a reign won or a debut made on 29
+February has its anniversary on 28 February in common years. Holders are
+person ids joined by commas in one string parameter (templated parameters are
+strings or numbers); the screen turns them into "A and B" with links at display
+time. Ring names never go in parameters: they change.
+
+Refs: reign stories name the holders (a record also the previous holders) and
+the title's promotion; a career story the person and the promotions they have
+an active contract with; a promotion story the promotion.
+
+**Sort and cap.** Candidates from every source are sorted by importance (highest
+first), then `onDate`, then `dedupeKey`, and the first
+`news.milestones.maxPerWeek` are posted (0 posts none). The step logs how many
+it posted, how many were already on file and how many it dropped over the cap.
+
+**Dating.** Each story is dated the Monday. Its body gets the headline
+parameters plus `onDate`, the real day ("on Thursday 14 January"), so nothing
+is lost by posting once a week. Every milestone topic declares `onDate`.
+
+**Only once.** Every candidate has a dedupe key, and the cap is applied before
+the dedupe check, so running the same Monday again posts nothing new. A record
+is posted once per reign. Windows of successive Mondays do not overlap.
+
+No random numbers are drawn and every table is read in id order, so the
+milestones are a pure function of the world. Why weekly and not daily: one
+Monday batch keeps the feed readable and the cost tiny.
+
+Milestones are ours: the private notes (05 §9.1, §9.3) have no anniversary
+stories. They exist so the news wire can be tried before shows run.
 
 ## Content keys
 
