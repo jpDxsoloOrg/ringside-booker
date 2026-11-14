@@ -4,7 +4,7 @@
  * a wage jump.
  *
  * 1. Popularity index `Pi = (1 − b) × peak + b × world`, `b` = `contracts.value.breadthWeight`:
- *    the best continent counts most, world-wide breadth the rest.
+ *    the best country counts most, world-wide breadth the rest.
  * 2. Popularity part: `contracts.value.popScale × (Pi ÷ 100) ^ contracts.value.popExponent`.
  * 3. Skill part: `contracts.value.skillScale × (rating ÷ 100) ^ contracts.value.skillExponent`,
  *    the rating being the worker's role rating in the role they would be hired for.
@@ -22,7 +22,7 @@ import type { EngineTunables, NumberTunableKey } from '../../tunables';
 import { MARKET_VALUE_DOC_REF, OUT_OF_100, ROLE_WORDS, wholeText } from './shared';
 
 export interface MarketValueInputs {
-  /** Popularity in the worker's best continent, 0-100. */
+  /** Popularity in the worker's best country, 0-100. */
   readonly peakPop: number;
   /** World-wide popularity, 0-100. */
   readonly worldPop: number;
@@ -46,7 +46,7 @@ export const ROLE_FACTOR_KEYS = {
 } as const satisfies Readonly<Record<EmploymentRole, NumberTunableKey>>;
 
 function popularityIndex(inputs: MarketValueInputs, tunables: EngineTunables): Traced<number> {
-  const bestWeight = startCalc('Weight of the best continent', 1, {
+  const bestWeight = startCalc('Weight of the best country', 1, {
     unit: 'ratio',
     docRef: MARKET_VALUE_DOC_REF,
     startLabel: 'All of it',
@@ -64,9 +64,9 @@ function popularityIndex(inputs: MarketValueInputs, tunables: EngineTunables): T
   return startCalc('Popularity index', inputs.peakPop, {
     unit: 'points',
     docRef: MARKET_VALUE_DOC_REF,
-    startLabel: `Best continent ${wholeText(inputs.peakPop)}`,
+    startLabel: `Best country ${wholeText(inputs.peakPop)}`,
   })
-    .multiply('Weight of the best continent', bestWeight.done())
+    .multiply('Weight of the best country', bestWeight.done())
     .add('World-wide part', world.done())
     .done();
 }

@@ -159,21 +159,21 @@ const askTunables = defineTunables({
     0.3,
     1,
     'ratio',
-    'How much world-wide popularity counts against the best continent in market value',
+    'How much world-wide popularity counts against the best country in market value',
     MARKET_VALUE_DOC,
   ),
   'contracts.value.popScale': monthlyMoney(
-    150_000 * DOLLAR,
+    300_000 * DOLLAR,
     10_000_000 * DOLLAR,
     'Monthly value of a worker with 100 popularity everywhere (before the curve)',
     MARKET_VALUE_DOC,
   ),
   'contracts.value.popExponent': exponent(
-    3,
+    2,
     'How steeply market value rises with popularity (1 = a straight line)',
   ),
   'contracts.value.skillScale': monthlyMoney(
-    20_000 * DOLLAR,
+    15_000 * DOLLAR,
     10_000_000 * DOLLAR,
     'Monthly value of a worker rated 100 in their role (before the curve)',
     MARKET_VALUE_DOC,
@@ -190,7 +190,7 @@ const askTunables = defineTunables({
     MARKET_VALUE_DOC,
   ),
   'contracts.value.floor': monthlyMoney(
-    1_500 * DOLLAR,
+    1_000 * DOLLAR,
     1_000_000 * DOLLAR,
     'Base monthly value every worker has',
     MARKET_VALUE_DOC,
@@ -246,7 +246,7 @@ const askTunables = defineTunables({
   ),
 
   'contracts.ask.reachFloor': factor(
-    0.4,
+    0.25,
     1,
     'ratio',
     'Share of their value a worker asks from a promotion nobody has heard of (reach 0)',
@@ -429,7 +429,7 @@ const askTunables = defineTunables({
     max: 100,
     unit: 'points',
     category: CONTRACTS_TUNABLE_CATEGORY,
-    description: 'Popularity (best continent) from which a veteran asks for a cap on appearances',
+    description: 'Popularity (best country) from which a veteran asks for a cap on appearances',
     docRef: ASKING_TERMS_DOC,
   },
   'contracts.ask.veteranAppearanceCap': {
