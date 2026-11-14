@@ -200,19 +200,19 @@ function idsOf(items: readonly { id: NewsId }[]): NewsId[] {
 
 describe('news.feed', () => {
   it('lists every story still shown, newest first, then by buzz, and leaves out expired ones', () => {
-    const { engine, stories: s } = feedWorld();
+    const { engine, stories: story } = feedWorld();
     const data = feed(engine);
-    expect(idsOf(data.items)).toEqual([s.s1, s.s7, s.s2, s.s6, s.s3, s.s5]);
+    expect(idsOf(data.items)).toEqual([story.s1, story.s7, story.s2, story.s6, story.s3, story.s5]);
     expect(data.total).toBe(6);
     // s4 expired today but news.expire has not run: it is still in the table, not on the feed.
-    expect(engine.exportState().world.tables.news.some((row) => row.id === s.s4)).toBe(true);
+    expect(engine.exportState().world.tables.news.some((row) => row.id === story.s4)).toBe(true);
   });
 
   it('builds the item view with the kind label, front-page flag and no trace for a direct row', () => {
-    const { engine, stories: s } = feedWorld();
+    const { engine, stories: story } = feedWorld();
     const [first] = feed(engine).items;
     expect(first).toMatchObject({
-      id: s.s1,
+      id: story.s1,
       date: TODAY,
       kind: 'titleChange',
       kindLabel: 'Title change',
@@ -225,39 +225,46 @@ describe('news.feed', () => {
   });
 
   it('filters by kind, person, promotion and importance', () => {
-    const { engine, stories: s, people } = feedWorld();
-    expect(idsOf(feed(engine, { kinds: ['signing', 'injury'] }).items)).toEqual([s.s2, s.s6]);
-    expect(idsOf(feed(engine, { personId: people[2] }).items)).toEqual([s.s2]);
+    const { engine, stories: story, people } = feedWorld();
+    expect(idsOf(feed(engine, { kinds: ['signing', 'injury'] }).items)).toEqual([
+      story.s2,
+      story.s6,
+    ]);
+    expect(idsOf(feed(engine, { personId: people[2] }).items)).toEqual([story.s2]);
     const rival = engine
       .exportState()
       .world.tables.promotions.find((promotion) => promotion.name === 'Rival Wrestling');
-    expect(idsOf(feed(engine, { promotionId: rival?.id }).items)).toEqual([s.s2]);
-    expect(idsOf(feed(engine, { minImportance: 2 }).items)).toEqual([s.s1, s.s3]);
+    expect(idsOf(feed(engine, { promotionId: rival?.id }).items)).toEqual([story.s2]);
+    expect(idsOf(feed(engine, { minImportance: 2 }).items)).toEqual([story.s1, story.s3]);
   });
 
   it('keeps only front-page stories: importance 3 or buzz from news.frontPage.minBuzz', () => {
-    const { engine, stories: s } = feedWorld();
-    expect(idsOf(feed(engine, { frontPageOnly: true }).items)).toEqual([s.s1, s.s3, s.s5]);
+    const { engine, stories: story } = feedWorld();
+    expect(idsOf(feed(engine, { frontPageOnly: true }).items)).toEqual([
+      story.s1,
+      story.s3,
+      story.s5,
+    ]);
   });
 
   it("keeps the viewer's stories with mine: their promotion, directly or through a show", () => {
-    const { engine, stories: s } = feedWorld();
-    expect(idsOf(feed(engine, { mine: true }, ME).items)).toEqual([s.s1, s.s5]);
+    const { engine, stories: story } = feedWorld();
+    expect(idsOf(feed(engine, { mine: true }, ME).items)).toEqual([story.s1, story.s5]);
     // The omniscient viewer runs no promotion.
     expect(feed(engine, { mine: true }).items).toEqual([]);
   });
 
   it('walks a date range, both ends included', () => {
-    const { engine, stories: s } = feedWorld();
+    const { engine, stories: story } = feedWorld();
     const data = feed(engine, { from: day('2026-01-15'), to: day('2026-01-19') });
-    expect(idsOf(data.items)).toEqual([s.s2, s.s6, s.s3]);
+    expect(idsOf(data.items)).toEqual([story.s2, story.s6, story.s3]);
     expect(data.total).toBe(3);
   });
 
   it('pages with limit and offset, and total counts every match', () => {
-    const { engine, stories: s } = feedWorld();
+    const { engine, stories: story } = feedWorld();
     const data = feed(engine, { limit: 2, offset: 1 });
-    expect(idsOf(data.items)).toEqual([s.s7, s.s2]);
+    expect(idsOf(data.items)).toEqual([story.s7, story.s2]);
     expect(data.total).toBe(6);
   });
 
@@ -352,20 +359,20 @@ describe('news.feed', () => {
 
 describe('news.item', () => {
   it('returns one story with its names', () => {
-    const { engine, stories: s, people } = feedWorld();
-    const result = engine.query('news.item', { newsId: s.s1 }, OMNISCIENT);
+    const { engine, stories: story, people } = feedWorld();
+    const result = engine.query('news.item', { newsId: story.s1 }, OMNISCIENT);
     expect(result.ok).toBe(true);
     if (result.ok) {
       assertSerialisable(result.data, 'news.item');
-      expect(result.data.item.id).toBe(s.s1);
+      expect(result.data.item.id).toBe(story.s1);
       const [p0] = people;
       expect(p0 === undefined ? undefined : result.data.names[p0]?.kind).toBe('person');
     }
   });
 
   it('refuses a story that is gone or expired with notFound', () => {
-    const { engine, stories: s } = feedWorld();
-    for (const newsId of [testId('news', 9999), s.s4]) {
+    const { engine, stories: story } = feedWorld();
+    for (const newsId of [testId('news', 9999), story.s4]) {
       expect(engine.query('news.item', { newsId }, OMNISCIENT)).toEqual({
         ok: false,
         reasons: [{ code: 'notFound', message: NEWS_ITEM_NOT_FOUND }],
@@ -376,15 +383,15 @@ describe('news.item', () => {
 
 describe('news.top', () => {
   it('ranks the window by buzz minus the age penalty; hero keeps the front-page ones', () => {
-    const { engine, stories: s } = feedWorld();
+    const { engine, stories: story } = feedWorld();
     // Ranks on 01-20 (4 points a day): s1 70, s6 50 − 8 = 42, s2 40 − 4 = 36, s7 20, s3 30 − 20 = 10.
     // s5 (buzz 90) is older than the 7-day window.
     const data = top(engine);
-    expect(idsOf(data.ticker)).toEqual([s.s1, s.s6, s.s2, s.s7, s.s3]);
-    expect(idsOf(data.hero)).toEqual([s.s1, s.s3]);
+    expect(idsOf(data.ticker)).toEqual([story.s1, story.s6, story.s2, story.s7, story.s3]);
+    expect(idsOf(data.hero)).toEqual([story.s1, story.s3]);
     expect(top(engine, { heroCount: 1, tickerCount: 2 })).toMatchObject({
-      hero: [{ id: s.s1 }],
-      ticker: [{ id: s.s1 }, { id: s.s6 }],
+      hero: [{ id: story.s1 }],
+      ticker: [{ id: story.s1 }, { id: story.s6 }],
     });
     expect(Object.keys(data.names).length).toBeGreaterThan(0);
   });

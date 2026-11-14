@@ -296,18 +296,14 @@ export function withAlertSettings(
   if (patch.stopSkip !== undefined) {
     extra[alertStopSkipKey(playerId)] = patch.stopSkip;
   }
-  if (patch.pending !== undefined) {
-    const key = alertPendingKey(playerId);
-    if (patch.pending === null) {
-      delete extra[key];
-    } else {
-      extra[key] = patch.pending;
-    }
+  const cleared = patch.pending === null ? alertPendingKey(playerId) : null;
+  if (patch.pending !== undefined && patch.pending !== null) {
+    extra[alertPendingKey(playerId)] = patch.pending;
   }
   const sorted: Record<string, boolean | number | string> = {};
   for (const key of Object.keys(extra).sort()) {
     const value = extra[key];
-    if (value !== undefined) {
+    if (value !== undefined && key !== cleared) {
       sorted[key] = value;
     }
   }
@@ -428,7 +424,7 @@ export const matchAlertsSubscription = defineSubscription({
 export const newsAlertGate: GateSpec = {
   id: NEWS_ALERT_GATE_ID,
   label: 'News alert',
-  check: (view, _date): GateHit | null => {
+  check: (view): GateHit | null => {
     for (const player of view.meta.players) {
       if (!stopSkipOf(view.meta, player.playerId)) {
         continue;
