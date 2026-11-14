@@ -26,16 +26,38 @@ import {
   keepDetailPeriodText,
 } from '../../../src/systems/history';
 import { withMyShowsRun } from '../../support';
+import { aDeal, aNetwork } from '../../support/builders/media';
 import { cardEveryShowSystem } from '../../support/card-every-show';
 import { rosterWorld } from '../../support/worlds';
 
 const DAYS = 70;
 const KEEP = 28;
 
+/** Each deal's newest airings kept past the window: low, so ten weeks of airings get rolled up. */
+const KEEP_PER_DEAL = 2;
+
 async function run(systems: readonly SystemBundle[]): Promise<Engine> {
   const { world } = rosterWorld(60);
+  // A TV deal for the (computer-run) promotion, so its weekly show airs (ECO8-04).
+  const added = world.transact('a TV deal', (tx) => {
+    const regionIds = [...tx.view.tables.regions.ids()];
+    const networkId = tx.insert(
+      'networks',
+      aNetwork({
+        id: tx.mintId('networks'),
+        coverage: { continentIds: [], countryIds: [], regionIds },
+      }),
+    ).id;
+    for (const promotionId of tx.view.tables.promotions.ids()) {
+      tx.insert('deals', aDeal({ id: tx.mintId('deals'), networkId, promotionId }));
+    }
+  });
+  if (!added.ok) throw added.error;
   const engine = createEngine({
-    state: initialEngineState(world),
+    state: {
+      ...initialEngineState(world),
+      tunableOverrides: { 'broadcast.airing.keepPerDeal': KEEP_PER_DEAL },
+    },
     systems: withMyShowsRun([...systems, cardEveryShowSystem]),
   });
   const advanced = await engine.advanceDays({ maxDays: DAYS });
@@ -123,6 +145,20 @@ describe('history.rollUp', () => {
       expect(withoutHistory(rolled.eventInstances)).toEqual(withoutHistory(kept.eventInstances));
       // Money by month and category adds up the same, from rows or from rolled-up totals.
       expect(moneyByMonth(rolled)).toEqual(moneyByMonth(kept));
+      // Airings (ECO8-04): the window's rows and each deal's newest are kept as they were; older
+      // rival rows go, their viewers kept on each show's result (compared above).
+      expect(kept.airings.length).toBeGreaterThan(rolled.airings.length);
+      const keptById = new Map(kept.airings.map((row) => [row.id, row]));
+      for (const row of rolled.airings) {
+        expect(keptById.get(row.id)).toEqual(row);
+      }
+      const inWindow = (rows: SerializedTables['airings']) =>
+        rows.filter((row) => compareDates(row.airDate, windowFrom) >= 0);
+      expect(inWindow(rolled.airings)).toEqual(inWindow(kept.airings));
+      for (const row of kept.airings.filter((airing) => airing.status === 'aired')) {
+        const show = rolled.eventInstances.find((instance) => instance.id === row.eventInstanceId);
+        expect(show?.result?.viewers, row.id).toBe(row.viewers);
+      }
       // And the save really is smaller.
       expect(rolled.segments.length).toBeLessThan(kept.segments.length);
       expect(rolled.participants.length).toBeLessThan(kept.participants.length);
@@ -151,6 +187,14 @@ describe('history.rollUp', () => {
     }
     for (const promotion of tables.promotions) {
       expect(promotion.ledgerMonths.length, promotion.id).toBeGreaterThan(0);
+    }
+    // Rival airings past the window: only each deal's newest stay (ECO8-04).
+    expect(tables.airings.length).toBeGreaterThan(0);
+    for (const deal of tables.deals) {
+      const old = tables.airings.filter(
+        (row) => row.dealId === deal.id && compareDates(row.airDate, from) < 0,
+      );
+      expect(old.length, deal.id).toBeLessThanOrEqual(KEEP_PER_DEAL);
     }
 
     // The results page of an old show: a summary and a plain note, no card, never "off-screen".
