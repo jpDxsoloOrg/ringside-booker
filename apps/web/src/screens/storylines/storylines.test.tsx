@@ -16,6 +16,13 @@ import { fakeEngineFactory, fakeEngineState } from '@/test/fakeEngine';
 import { StorylineDetailScreen, STORYLINE_NOT_FOUND_TITLE } from './StorylineDetailScreen';
 import { StorylinesScreen } from './StorylinesScreen';
 
+/** The `index`-th element, or a failed test. */
+function nth(elements: readonly HTMLElement[], index: number): HTMLElement {
+  const element = elements[index];
+  if (element === undefined) throw new Error(`No element at ${String(index)}`);
+  return element;
+}
+
 /** The engine's first answers can take a moment under load. */
 const LOAD_MS = 10_000;
 
@@ -121,7 +128,7 @@ describe('StorylinesScreen', () => {
     const rendered = renderStorylines();
     const { user } = rendered;
     await findCard(TINY_STORYLINE);
-    await user.click(screen.getAllByRole('button', { name: 'New storyline' })[0] as HTMLElement);
+    await user.click(nth(screen.getAllByRole('button', { name: 'New storyline' }), 0));
     const sheet = await screen.findByRole('dialog', { name: 'New storyline' });
     await user.type(within(sheet).getByRole('textbox', { name: 'Name' }), 'Test New Feud');
     const addButtons = await within(sheet).findAllByRole(
@@ -129,8 +136,8 @@ describe('StorylinesScreen', () => {
       { name: /^Add / },
       { timeout: LOAD_MS },
     );
-    await user.click(addButtons[2] as HTMLElement);
-    await user.click(addButtons[3] as HTMLElement);
+    await user.click(nth(addButtons, 2));
+    await user.click(nth(addButtons, 3));
     expect(within(sheet).getByText('2 of 12')).toBeInTheDocument();
     await user.click(within(sheet).getByRole('button', { name: 'Start storyline' }));
 
@@ -144,7 +151,7 @@ describe('StorylinesScreen', () => {
   it('shows a taken name under the name field, in the engine’s words', async () => {
     const { user } = renderStorylines();
     await findCard(TINY_STORYLINE);
-    await user.click(screen.getAllByRole('button', { name: 'New storyline' })[0] as HTMLElement);
+    await user.click(nth(screen.getAllByRole('button', { name: 'New storyline' }), 0));
     const sheet = await screen.findByRole('dialog', { name: 'New storyline' });
     const name = within(sheet).getByRole('textbox', { name: 'Name' });
     await user.type(name, TINY_STORYLINE);
@@ -153,7 +160,7 @@ describe('StorylinesScreen', () => {
       { name: /^Add / },
       { timeout: LOAD_MS },
     );
-    await user.click(addButtons[4] as HTMLElement);
+    await user.click(nth(addButtons, 4));
     await user.click(within(sheet).getByRole('button', { name: 'Start storyline' }));
 
     await waitFor(() => {
