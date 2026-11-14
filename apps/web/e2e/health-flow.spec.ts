@@ -22,6 +22,7 @@ import { expect, test } from './fixtures';
 import { expectNoSeriousA11yViolations } from './helpers/a11y';
 import {
   cancelTonightsShow,
+  clearNewsStop,
   dayBarButtons,
   SHOW_STOP,
   skipDaysOnce,
@@ -41,8 +42,8 @@ const FLOW_TIMEOUT_MS = 420_000;
 /** Skip days asked for at first, as in the owner's script. */
 const FIRST_SKIP_DAYS = 30;
 
-/** Show nights the seed can meet in a skip before it stops for the injury. */
-const MAX_STOPS = 10;
+/** Stops (show nights, contract notices, news alerts) the seed can meet before the injury stop. */
+const MAX_STOPS = 25;
 
 const SHOTS_DIR = process.env['E2E_SHOTS'];
 
@@ -80,7 +81,7 @@ async function skipDays(
   for (let stops = 0; ; stops += 1) {
     expect(stops, 'the skip keeps stopping').toBeLessThan(MAX_STOPS);
     await waitForDayBarSettled(page);
-    await expect(dayButton(page, dayBarButtons('Roster', 'Contracts'))).toBeVisible({
+    await expect(dayButton(page, dayBarButtons('Roster', 'Contracts', 'Open news'))).toBeVisible({
       timeout: 15_000,
     });
     if (await roster.isVisible()) {
@@ -91,6 +92,8 @@ async function skipDays(
     } else if (await show.isVisible()) {
       await cancelTonightsShow(page);
       await expect(show).toBeHidden();
+    } else if (await clearNewsStop(page)) {
+      // A news alert stopped the day (on by default, DAY1-05): reading it clears it.
     } else if (left === 0) {
       return false;
     } else {

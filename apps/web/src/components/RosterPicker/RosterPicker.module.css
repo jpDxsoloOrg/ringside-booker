@@ -45,6 +45,17 @@
   font-size: var(--font-size-sm);
 }
 
+/*
+ * On a phone the picker is a bottom sheet that would shrink as a search narrows the list, dropping
+ * the search box and the filter chips down the screen just as the player reaches for them. It
+ * keeps its full height instead.
+ */
+@media (--bp-mobile) {
+  .sheet {
+    min-block-size: 85dvh;
+  }
+}
+
 .filters {
   display: flex;
   flex-wrap: wrap;

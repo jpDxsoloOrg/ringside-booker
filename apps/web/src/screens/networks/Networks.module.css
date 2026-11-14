@@ -81,10 +81,20 @@
   text-decoration: underline;
 }
 
+/*
+ * On touch the button's tap area grows to 44px through a layer above and below the name, not
+ * through padding: the name can wrap over a few lines, and a padded box would push its focus ring
+ * past the table's scroll area on the last row, where it is cut off.
+ */
 @media (pointer: coarse) {
   .rowButton {
-    padding-block: var(--tap-pad-block);
-    margin-block: calc(-1 * var(--tap-pad-block));
+    position: relative;
+  }
+
+  .rowButton::after {
+    content: '';
+    position: absolute;
+    inset: calc(-1 * var(--tap-pad-block)) 0;
   }
 }
 

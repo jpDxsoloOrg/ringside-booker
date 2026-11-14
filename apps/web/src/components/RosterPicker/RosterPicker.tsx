@@ -511,6 +511,7 @@ export function RosterPicker({
       title={title}
       side="right"
       size="md"
+      className={styles['sheet'] ?? ''}
       footer={
         <Button variant="primary" onClick={onClose}>
           Done
