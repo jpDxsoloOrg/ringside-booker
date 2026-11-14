@@ -125,6 +125,8 @@ export async function skipToDateThroughStops(
     await expect(summary).toBeVisible();
     await expect.poll(() => summary.textContent()).not.toBe(before);
     await expect(page.getByTestId('advance-overlay')).toBeHidden();
+    // A skip that stopped short stopped for something: wait for the day bar to say what.
+    if ((await gameDate(page)) < date) await expect(dayButton(page, 'Next day')).toBeHidden();
   }
   expect(await gameDate(page)).toBe(date);
 }
