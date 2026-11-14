@@ -287,12 +287,15 @@ ends, for `storylines.end` and for AIP6's rival storylines. It sets
 `status: 'ended'` and `endedOn` to today, keeps members, heat and links, and
 publishes `storyline.ended { storylineId, promotionId, linkedSegments }`. It
 returns `{ linkedSegments, minSegments, payoff }`, `payoff` being `tooFew` below
-`storylines.payoff.minSegments` linked segments, else `notAvailable` until CRTV4
-pays storylines off (it subscribes to `storyline.ended`).
+`storylines.payoff.minSegments` counted segments, else `pays`. `linkedSegments`
+here is the all-time count, `progressTotals.segments` (CRTV4-03), not the
+segments the history roll-up still keeps. The [payoff](#payoff) itself reacts to
+`storyline.ended`.
 
 `storylines.endPreview { storylineId }` gives the confirm dialog the same
 outcome with a sentence: "Ending now pays nothing: needs 4 linked segments, has
-0." or "No payoff yet: payoffs arrive with storyline booking." It is for the
+0." or "Ending now pays off: its members gain popularity and momentum if the
+story is hot, and lose some if it's cold." It is for the
 viewer's own active storylines only (`storylines.notYours`, `storylines.ended`
 otherwise; the omniscient viewer runs nothing).
 
@@ -473,14 +476,129 @@ the same show sees the heat the earlier one left.
 
 ## Payoff threshold
 
-CRTV4 pays a storyline off when it ends. A storyline needs at least
-`storylines.payoff.minSegments` (4) linked segments for that; 0 means any
-storyline can. Until CRTV4 is on main, `storylines.detail` only says why an
-ended storyline had no payoff:
+CRTV4-03 pays a storyline off when it ends ([Payoff](#payoff)). A storyline
+needs at least `storylines.payoff.minSegments` (4) counted segments for that
+(`progressTotals.segments`, all time); 0 means any storyline can.
+`storylines.detail`'s `ending.payoff` reads the payoff record:
 
-- `paid`: a `storylines.payoff` trace exists for it;
-- `tooFew`: fewer linked segments than the threshold;
-- `notAvailable`: enough segments, but there is no payoff yet.
+- `paid`: the record says it paid (`payoffTraceRef` is its Why? while kept);
+- `tooFew`: the record says it had too few counted segments;
+- `notAvailable`: it ended before payoffs existed, so there is no record.
+
+## Payoff
+
+<a id="payoff"></a>
+
+A storyline built over several shows is worth something when it ends; one that
+ends cold costs its people. CRTV4-03, code in `formulas/payoffQuality.ts`,
+`formulas/memberPayoff.ts`, `card/planPayoff.ts`, `card/payoff.ts` and
+`card/payoffQuery.ts`.
+
+### The formula
+
+- **Eligibility** (`payoffEligible`, a decision `pay` / `noPayoff`): at least
+  `storylines.payoff.minSegments` counted segments. Fewer pays nothing and says
+  "No payoff (needs 4 linked segments, has 3)". The count is
+  `progressTotals.segments`, never the kept linked segments: history detail is
+  rolled up after 28 days, the totals are not.
+- **Quality** (`payoffQuality`): `q = clamp((heat − neutralHeat) ÷ heatSpan,
+−1, 1)`, with the heat the storyline ends at.
+- **Finale:** when the storyline's finale match (`finaleSegmentId`) was played,
+  a positive `q` is multiplied by `finaleFactor` ("Paid off with a finale"). A
+  negative `q` is never made worse by a finale.
+- **Popularity per member** (`memberPayoff`): `popularityMax × q`. A gain is
+  also multiplied by the member's room to grow, `headroom = clamp((heat +
+headroomMargin − marketPop) ÷ headroomSpan, 0, 1)`, where `marketPop` is the
+  member's footprint popularity among the promotion's fans (WRK1's
+  `footprintPopularityAt`, the number expected push uses). A star already
+  bigger than the story gains little or nothing ("Already bigger than this
+  story"). A loss is never reduced by headroom.
+- **Momentum per member:** `momentumMax × q`.
+- **Where the popularity lands:** the promotion's regions with popularity of at
+  least `minRegionPop`, each weighted by that popularity ÷ 100, in region-id
+  order. A promotion with none skips everyone: "The promotion has no fan base
+  big enough to notice".
+- Members without an active employment at the promotion are skipped: "Left the
+  promotion: no payoff".
+
+No rolls and no rounding: WRK1's doors taper, clamp and round what they store.
+
+| Tunable                            | Default | What it does                                 |
+| ---------------------------------- | ------- | -------------------------------------------- |
+| `storylines.payoff.minSegments`    | 4       | Counted segments needed (CRTV3-01's key)     |
+| `storylines.payoff.neutralHeat`    | 50      | Heat that pays nothing either way            |
+| `storylines.payoff.heatSpan`       | 40      | Heat from neutral to a full payoff           |
+| `storylines.payoff.popularityMax`  | 4       | Popularity at full payoff                    |
+| `storylines.payoff.momentumMax`    | 10      | Momentum at full payoff                      |
+| `storylines.payoff.finaleFactor`   | 1.25    | Multiplier on a gain with a played finale    |
+| `storylines.payoff.headroomMargin` | 10      | Popularity above the heat that gains in full |
+| `storylines.payoff.headroomSpan`   | 20      | Popularity over which the gain shrinks to 0  |
+| `storylines.payoff.minRegionPop`   | 20      | Promotion popularity a region needs to count |
+
+### Worked numbers
+
+From `test/systems/storylines/formulas/payoff.test.ts`, with the defaults:
+
+| Case                                     | Quality | Popularity | Momentum |
+| ---------------------------------------- | ------- | ---------- | -------- |
+| Heat 80, no finale                       | 0.75    | 3 × room   | 7.5      |
+| Heat 80, finale, member at market pop 50 | 0.9375  | 3.75       | 9.375    |
+| Heat 80, finale, member at market pop 85 | 0.9375  | 0.9375     | 9.375    |
+| Heat 80, finale, member at market pop 95 | 0.9375  | 0          | 9.375    |
+| Heat 30, any member, finale or not       | −0.5    | −2         | −5       |
+| Heat 50                                  | 0       | 0          | 0        |
+| Heat 90 / 10 (100 / 0 clamp there)       | ±1      | ±4 × room  | ±10      |
+| 3 counted segments (min 4)               | 0       | 0          | 0        |
+
+### Decisions
+
+- **Negative payoffs really lower popularity.** A cold storyline costs its
+  members popularity and momentum, with no floor that turns a small loss into
+  a gain (notes 03 §9.5 had one; ours fixes that on purpose).
+- **The payoff goes through WRK1's doors.** Each paid member gets one
+  `applyPopularityChange` (subject the person, the plan's region weights, the
+  traced delta) and one `applyMomentumChange`, source `player` for a human
+  promotion and `ai` otherwise, reason `storyline.payoff` "Storyline payoff:
+  '<name>'". A zero delta goes through and the door records nothing.
+- **Morale is not part of the payoff**, and a loss inside a hot storyline never
+  costs morale here (D-09). The happiness a hot storyline brings is WRK8's
+  appearance bonus. Hype from a hot storyline is ECO's (it can subscribe to
+  `storyline.paidOff`).
+- **One rule for everyone** (D-01): the payoff is the
+  `storylines.payOffOnEnd` subscription to `storyline.ended`, so the player's
+  `storylines.end` and a rival ending its storylines (AIP6) pay the same way.
+
+### One planner
+
+`planPayoff(read, tunables, storylineId)` works the whole payoff out without
+writing: `eligible`, the `outcome` decision, `quality`, `regionWeights` and
+each member's `name`, `employmentId`, `marketPopularity`, traced `popularity`
+and `momentum` and `skippedReason`. The preview query and the subscription
+both call it, so the preview and the real payoff never disagree.
+
+When the storyline ends the subscription applies the plan, then stores the
+record `storyline.payoff` (`paid`, `on`, `countedSegments`, `heat`, each
+member's `popularityDelta`, `momentumDelta` (the change asked of the doors;
+0 when not paid) and `skipped`, and `traceId`), records the trace and
+publishes `storyline.paidOff`, also when it paid nothing, so news can say the
+story fizzled out. A storyline is paid off once: an ended storyline with a
+record is left alone.
+
+### Who sees what
+
+`storylines.payoff { storylineId }` returns:
+
+- `{ kind: 'preview', plan }` while the storyline is active: what ending it
+  today would pay, members with names and the traced lines inline;
+- `{ kind: 'paid' | 'noPayoff', record, traceRef }` once it ended (`traceRef`
+  null when the trace is gone);
+- `{ kind: 'unavailable', reason }`: `storylines.notFound`,
+  `storylines.notYourStoryline` (a rival's storyline) or
+  `storylines.noPayoffRecord` (ended before payoffs).
+
+The numbers, the record and the trace are the storyline's own promotion's
+(and the omniscient viewer's). The popularity itself is public through each
+worker's profile, like any other popularity change.
 
 ## Context
 
@@ -553,6 +671,7 @@ publish them.
 | `storyline.ended`          | `{ storylineId, promotionId, linkedSegments }`                                                                                                        |
 | `storyline.membersChanged` | `{ storylineId, promotionId, added, removed, sideChanged }`                                                                                           |
 | `storyline.progressed`     | `{ storylineId, promotionId, segmentId, eventInstanceId, heatBefore, heatAfter }`: once per counted storyline per segment, every promotion (CRTV4-02) |
+| `storyline.paidOff`        | `{ storylineId, promotionId, paid, memberCount, quality }`: once per ended storyline, also when `paid` is false (CRTV4-03)                            |
 
 ## Traces
 
@@ -566,7 +685,10 @@ All three kinds are stored under the storyline's id.
 - A rival's heat and starter traces are kept as summaries only; an ended
   storyline's become summaries once it ended more than
   `history.keepDetailDays` ago ([Heat decay](#heat-decay)).
-- `storylines.payoff`: reserved for CRTV4's payoff.
+- `storylines.payoff` (`storylinePayoffTraceRef`, CRTV4-03): the payoff, a
+  decision with the eligibility, the quality and one child per member. A
+  rival's is a summary only; it is demoted with the heat and starter traces
+  once the storyline ended more than `history.keepDetailDays` ago.
 - `storylines.heatStep` (`storylineHeatStepTraceRef`, CRTV4-02): one linked
   segment's heat step, id `<storylineId>/<segmentId>`, the player's storylines
   only ([Heat after a linked segment](#heat-after-segment)).
