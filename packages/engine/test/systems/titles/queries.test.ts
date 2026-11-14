@@ -68,7 +68,7 @@ const ROSTER: readonly {
 ];
 
 /** Promotion A's titles, in insertion order. */
-const T = {
+const TITLE = {
   alphaWorld: 0,
   alphaMid: 1,
   beta: 2,
@@ -157,9 +157,9 @@ function queriesWorld(): BuiltWorld {
         const employment = at(ids.employments, index);
         tx.update('employments', employment, { brandId: entry.brand === 0 ? alpha : beta });
       });
-      tx.update('titles', at(ids.titles, T.alphaWorld), { brandId: alpha });
-      tx.update('titles', at(ids.titles, T.alphaMid), { brandId: alpha });
-      tx.update('titles', at(ids.titles, T.beta), { brandId: beta });
+      tx.update('titles', at(ids.titles, TITLE.alphaWorld), { brandId: alpha });
+      tx.update('titles', at(ids.titles, TITLE.alphaMid), { brandId: alpha });
+      tx.update('titles', at(ids.titles, TITLE.beta), { brandId: beta });
 
       const team = (name: string, members: [number, number], status: 'active' | 'split') =>
         context.insert(
@@ -194,40 +194,40 @@ function queriesWorld(): BuiltWorld {
       };
       // Alpha World: person 1 day 0-20 (lost, 2 defences), person 4 day 20-30 (vacated), then
       // the builder's current reign for person 0 from day 40.
-      reign(T.alphaWorld, {
+      reign(TITLE.alphaWorld, {
         holderIds: [at(people, 1)],
         wonOn: day(0),
         lostOn: day(20),
         endReason: 'lost',
         defences: 2,
       });
-      reign(T.alphaWorld, {
+      reign(TITLE.alphaWorld, {
         holderIds: [at(people, 4)],
         wonOn: day(20),
         lostOn: day(30),
         endReason: 'vacated',
       });
       // Alpha Midcard (introduced day 10): champion retired, stripped, unified; vacant since 45.
-      reign(T.alphaMid, {
+      reign(TITLE.alphaMid, {
         holderIds: [at(people, 4)],
         wonOn: day(10),
         lostOn: day(25),
         endReason: 'retired',
       });
-      reign(T.alphaMid, {
+      reign(TITLE.alphaMid, {
         holderIds: [at(people, 1)],
         wonOn: day(25),
         lostOn: day(35),
         endReason: 'stripped',
       });
-      reign(T.alphaMid, {
+      reign(TITLE.alphaMid, {
         holderIds: [at(people, 0)],
         wonOn: day(35),
         lostOn: day(45),
         endReason: 'unified',
       });
       // Old Title: retired with its champion on day 50.
-      reign(T.old, {
+      reign(TITLE.old, {
         holderIds: [at(people, 1)],
         wonOn: day(10),
         lostOn: day(50),
@@ -391,19 +391,19 @@ describe('titles.list', () => {
 
 describe('the prestige Why?', () => {
   it('says a title from the world file got its prestige there', () => {
-    const row = detail(engine, titleId(T.alphaWorld)).title;
+    const row = detail(engine, titleId(TITLE.alphaWorld)).title;
     expect(row.prestigeTraceRef).toBeNull();
     expect(row.prestigeTrace).toEqual({
       kind: 'input',
       label: PRESTIGE_WORLD_FILE_LABEL,
       value: 90,
       unit: 'points',
-      ref: { kind: 'title', id: titleId(T.alphaWorld) },
+      ref: { kind: 'title', id: titleId(TITLE.alphaWorld) },
     });
   });
 
   it('says the breakdown is gone for a later title with nothing stored', () => {
-    const row = detail(engine, titleId(T.alphaMid)).title;
+    const row = detail(engine, titleId(TITLE.alphaMid)).title;
     expect(row.prestigeTraceRef).toBeNull();
     expect(row.prestigeTrace).toMatchObject({ kind: 'formula', value: 60 });
     expect(JSON.stringify(row.prestigeTrace)).toContain(PRESTIGE_TODAY_LABEL);
@@ -411,8 +411,8 @@ describe('the prestige Why?', () => {
   });
 
   it('points at the stored trace once one is recorded', () => {
-    const ref = titlePrestigeTraceRef(titleId(T.alphaWorld));
-    const row = detail(engineOn(built, [ref]), titleId(T.alphaWorld)).title;
+    const ref = titlePrestigeTraceRef(titleId(TITLE.alphaWorld));
+    const row = detail(engineOn(built, [ref]), titleId(TITLE.alphaWorld)).title;
     expect(row.prestigeTraceRef).toEqual(ref);
     expect(row.prestigeTrace).toBeNull();
   });
@@ -426,7 +426,7 @@ describe('the prestige Why?', () => {
 
 describe('titles.detail', () => {
   it('lists the lineage newest first, numbered in the order the reigns were won', () => {
-    const lineage = detail(engine, titleId(T.alphaWorld));
+    const lineage = detail(engine, titleId(TITLE.alphaWorld));
     expect(
       lineage.reigns.map((reign) => [
         reign.number,
@@ -457,23 +457,23 @@ describe('titles.detail', () => {
   });
 
   it('labels every way a reign ends', () => {
-    expect(detail(engine, titleId(T.alphaMid)).reigns.map((reign) => reign.endReasonLabel)).toEqual(
-      ['Unified', 'Stripped', 'Champion retired'],
-    );
-    expect(detail(engine, titleId(T.old)).reigns.map((reign) => reign.endReasonLabel)).toEqual([
+    expect(
+      detail(engine, titleId(TITLE.alphaMid)).reigns.map((reign) => reign.endReasonLabel),
+    ).toEqual(['Unified', 'Stripped', 'Champion retired']);
+    expect(detail(engine, titleId(TITLE.old)).reigns.map((reign) => reign.endReasonLabel)).toEqual([
       'Title retired',
     ]);
     // Introduced on day 10, held to day 45, vacant since.
-    expect(detail(engine, titleId(T.alphaMid)).stats.daysVacant).toBe(55);
+    expect(detail(engine, titleId(TITLE.alphaMid)).stats.daysVacant).toBe(55);
     // Retired on day 50 after one reign from day 10: counted only to the retirement.
-    expect(detail(engine, titleId(T.old)).stats.daysVacant).toBe(10);
+    expect(detail(engine, titleId(TITLE.old)).stats.daysVacant).toBe(10);
   });
 
   it('links a vacated reign to its stored Why?', () => {
-    const vacated = at(detail(engine, titleId(T.alphaWorld)).reigns, 1);
+    const vacated = at(detail(engine, titleId(TITLE.alphaWorld)).reigns, 1);
     expect(vacated.endTraceRef).toBeNull();
     const ref: TraceRef = { kind: 'titles.vacancy', id: vacated.reignId };
-    const withTrace = detail(engineOn(built, [ref]), titleId(T.alphaWorld));
+    const withTrace = detail(engineOn(built, [ref]), titleId(TITLE.alphaWorld));
     expect(at(withTrace.reigns, 1).endTraceRef).toEqual(ref);
   });
 
@@ -489,7 +489,7 @@ describe('titles.detail', () => {
 
 describe('titles.eligibleHolders', () => {
   it('lists only the women on the roster for a women’s title', () => {
-    const holders = eligible(engine, titleId(T.women));
+    const holders = eligible(engine, titleId(TITLE.women));
     expect(holders.people.map((person) => person.personId)).toEqual([personId(2), personId(3)]);
     expect(holders.ineligible).toEqual([]);
     expect(holders.teams).toEqual([]);
@@ -506,7 +506,7 @@ describe('titles.eligibleHolders', () => {
   });
 
   it('gives the others back with their reasons when asked', () => {
-    const holders = eligible(engine, titleId(T.women), true);
+    const holders = eligible(engine, titleId(TITLE.women), true);
     expect(holders.ineligible.map((entry) => entry.personId)).toEqual([0, 1, 4, 5].map(personId));
     for (const entry of holders.ineligible) {
       expect(entry.reasons.map((reason) => reason.code)).toEqual(['divisionGender']);
@@ -514,7 +514,7 @@ describe('titles.eligibleHolders', () => {
   });
 
   it('leaves out the too-heavy for a cruiserweight title, push order first', () => {
-    const holders = eligible(engine, titleId(T.cruiser), true);
+    const holders = eligible(engine, titleId(TITLE.cruiser), true);
     expect(holders.people.map((person) => person.personId)).toEqual([2, 4, 3, 5].map(personId));
     expect(
       holders.ineligible.map((entry) => [
@@ -528,7 +528,7 @@ describe('titles.eligibleHolders', () => {
   });
 
   it('puts the title’s own brand first and flags the rest as a hint only', () => {
-    const holders = eligible(engine, titleId(T.beta));
+    const holders = eligible(engine, titleId(TITLE.beta));
     expect(holders.people.map((person) => [person.personId, person.sameBrand])).toEqual([
       [personId(4), true],
       [personId(3), true],
@@ -542,11 +542,11 @@ describe('titles.eligibleHolders', () => {
 
   it('never lists a rival’s worker, who could not be awarded it', () => {
     const rivalWorker = at(built.ids.people, 6);
-    const holders = eligible(engine, titleId(T.alphaWorld), true);
+    const holders = eligible(engine, titleId(TITLE.alphaWorld), true);
     const listed = [...holders.people, ...holders.ineligible].map((entry) => entry.personId);
     expect(listed).toHaveLength(6);
     expect(listed).not.toContain(rivalWorker);
-    const title = built.world.tables.titles.require(titleId(T.alphaWorld));
+    const title = built.world.tables.titles.require(titleId(TITLE.alphaWorld));
     const reasons = isEligibleHolder(
       built.world,
       title,
@@ -557,7 +557,7 @@ describe('titles.eligibleHolders', () => {
   });
 
   it('lists active teams of the right kind first for a tag title', () => {
-    const holders = eligible(engine, titleId(T.tag));
+    const holders = eligible(engine, titleId(TITLE.tag));
     expect(holders.holderCount).toBe(2);
     expect(holders.teams.map((team) => team.name)).toEqual(['Team Four Five', 'Team Two Three']);
     expect(at(holders.teams, 0).members.map((member) => member.personId)).toEqual([
