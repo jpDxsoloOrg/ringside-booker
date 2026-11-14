@@ -322,6 +322,14 @@ one row per registered effect for the area (skipped when either side has no
 number). A level out of range gives no rows. Traces are returned inline and
 never recorded.
 
+The web screen is Business > Production (`apps/web/src/screens/production/`,
+ECO7-04): the header cards (popularity ceiling, monthly overhead with "Last
+charged" from the `production.monthlyOverhead` trace, show production for the
+coming shows), one row per area in two groups ("On every show", "Every month")
+with − / + that open a change dialog drawn from `production.changePreview`, and
+a "Monthly overhead" card on the Finances Overview. Other features add header
+cards with `registerProductionHeaderItem` (ECO7's sit at 20, 30 and 40).
+
 ## Effects
 
 `registerProductionEffect({ id, order, areas, ownOnly?, describe })` lets other
