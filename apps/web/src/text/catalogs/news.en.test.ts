@@ -5,8 +5,11 @@ import { textFor } from '../catalog';
 import type { TextParams, TextTemplate } from '../catalog';
 import { NEWS_TEXT_CATALOG } from './news.en';
 
-/** No story mentions a length of time on the clock (D-10). */
-const CLOCK_WORDS = /\bminutes?\b|\bmins?\b|\bhours?\b/i;
+/**
+ * No story mentions a length of time on the clock or a match's length (D-10). The News e2e runs
+ * the same check over the rendered page (`e2e/news.spec.ts`).
+ */
+const CLOCK_WORDS = /\bminutes?\b|\bmins?\b|\bhours?\b|\blength\b/i;
 const PLACEHOLDER = /\{([A-Za-z0-9_]+)(?::[A-Za-z]+)?\}/g;
 
 /**

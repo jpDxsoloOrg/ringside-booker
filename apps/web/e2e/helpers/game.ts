@@ -2,6 +2,7 @@ import { fileURLToPath } from 'node:url';
 import { expect } from '@playwright/test';
 import type { Locator, Page, TestInfo } from '@playwright/test';
 import { expectNoSeriousA11yViolations } from './a11y';
+import { gameDate, waitForAdvanceToEnd } from './booking';
 import { expectNoHorizontalScroll } from './layout';
 import { isPhone } from './viewport';
 
@@ -387,4 +388,85 @@ export async function openPromotions(page: Page, phone: boolean): Promise<void> 
   }
   await expect(page).toHaveURL(/\/game\/promotions(\?.*)?$/);
   await expect(page.getByRole('heading', { level: 1, name: 'Promotions' })).toBeVisible();
+}
+
+/* ---------------------------------------------------------------- news and skipping (DAY1-07) */
+
+/**
+ * Opens Office > News from the shell the way a player does: the sidebar link on desktop, the More
+ * sheet on a phone (or the bottom bar's slot when News has one). Waits for the News heading.
+ */
+export async function openNews(page: Page, testInfo: TestInfo): Promise<void> {
+  if (isPhone(testInfo)) {
+    const primary = page.getByRole('navigation', { name: 'Primary' });
+    const slot = primary.getByRole('link', { name: 'News', exact: true });
+    if (await slot.isVisible()) {
+      await slot.click();
+    } else {
+      await primary.getByRole('button', { name: 'More' }).click();
+      await page
+        .getByRole('dialog', { name: 'Menu' })
+        .getByRole('link', { name: 'News', exact: true })
+        .click();
+    }
+  } else {
+    await page
+      .getByRole('navigation', { name: 'Main' })
+      .getByRole('link', { name: 'News', exact: true })
+      .click();
+  }
+  await expect(page).toHaveURL(/\/game\/news(\?.*)?$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'News' })).toBeVisible();
+}
+
+/** What {@link skipDays} picks in the Skip days sheet: a chip by its name, or a typed length. */
+export interface SkipDaysChoice {
+  /** A quick choice's name: "7 days", "30 days", "Until next show", "Until the 1st of next month". */
+  readonly chip?: string;
+  /** Days typed into "Days to skip". */
+  readonly days?: number;
+}
+
+/** Whole days from one ISO date to a later one. */
+function isoDaysBetween(from: string, to: string): number {
+  const DAY_MS = 86_400_000;
+  return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / DAY_MS);
+}
+
+/**
+ * Skips through the Skip days sheet (the top bar's button on desktop, the status sheet's on a
+ * phone): picks `what.chip` or types `what.days` (a bare number means `{ days }`), presses Start
+ * and waits for the advance to finish and the day bar to settle. Returns how many days the date
+ * moved, fewer when a stop (a show night, a news alert, a contract notice) ended the skip early.
+ * The stop itself is left for the caller.
+ */
+export async function skipDays(page: Page, what: number | SkipDaysChoice): Promise<number> {
+  const choice: SkipDaysChoice = typeof what === 'number' ? { days: what } : what;
+  const phone = (page.viewportSize()?.width ?? PHONE_MAX_WIDTH) < PHONE_MAX_WIDTH;
+  const summary = page.getByRole('region', { name: 'Last advance' });
+  const before = (await summary.count()) > 0 ? await summary.textContent() : null;
+  const startDate = await gameDate(page);
+
+  if (phone) {
+    await page.getByRole('banner').getByTestId('status-date').click();
+    await page
+      .getByRole('dialog', { name: 'Status' })
+      .getByRole('button', { name: 'Skip days' })
+      .click();
+  } else {
+    await page.getByRole('banner').getByRole('button', { name: 'Skip days' }).click();
+  }
+  const sheet = page.getByRole('dialog', { name: 'Skip days' });
+  await expect(sheet).toBeVisible();
+  if (choice.chip !== undefined) {
+    const chip = sheet.getByRole('button', { name: choice.chip, exact: true });
+    await chip.click();
+    await expect(chip).toHaveAttribute('aria-pressed', 'true');
+  } else if (choice.days !== undefined) {
+    await sheet.getByLabel('Days to skip').fill(String(choice.days));
+  }
+  await sheet.getByRole('button', { name: 'Start' }).click();
+  await expect(sheet).toBeHidden();
+  await waitForAdvanceToEnd(page, startDate, before);
+  return isoDaysBetween(startDate, await gameDate(page));
 }
