@@ -441,20 +441,47 @@ leave (`useNavBadges`, `contracts.counts`), and the Next Day summary lists contr
 
 ### Adding a contract action
 
-ECO5's Renew (and later actions) go in the contract sheet's footer without editing the screen:
+Renew (ECO5-06) and later actions go in the contract sheet's footer without editing the screen;
+`onExpiringRows: true` also draws them on each Expiring row, and `render` draws an action that reads
+the engine or the URL itself (one of `run` and `render` is required):
 
 ```tsx
 registerContractRowAction({
   id: 'renew',
   label: 'Renew',
-  visible: (row) => row.status === 'active' && row.endsOn !== null,
-  run: (row) => openRenewDialog(row.employmentId),
+  visible: (row) => isRenewable(row, promotionId),
+  render: RenewAction, // ({ row, placement: 'sheet' | 'row' }) => ReactNode
+  onExpiringRows: true,
 });
 ```
 
 `registerContractRowAction` (`screens/contracts/rowActions.ts`) returns a function that removes the
-action and throws for a taken id. Once an action with id `renew` is registered the Expiring tab
-drops its "Renewals arrive with contract negotiation" note.
+action and throws for a taken id. Once `renew` is registered the Expiring tab says "Contracts end on
+their date unless you renew them. Press Renew to open talks…" instead of the old note.
+
+### Contracts tabs and contract talks (ECO5-06)
+
+The tab strip is a registry: `registerContractsTab({ id, label, order, render, badge? })`
+(`screens/contracts/contractsTabs.ts`, same rules as `registerProfileTab`: a taken id throws, it
+returns an unregister function). Active 10, Expiring 20 and Ended 30 are ECO4's lists
+(`builtinTabs.tsx`, drawn through `context.contractList(tab)`); Free agents 40 and Offers 50 (badge:
+counter-offers waiting) come from `screens/contracts/negotiation/registerNegotiation.tsx`, imported by
+the router. ECO6's Market uses 60. `render(context)` gets `{ promotionId, openNegotiation(target),
+contractList(tab) }`.
+
+The Negotiation Sheet opens from the URL on any tab: `?negotiation=neg_…` (your talks),
+`?person=per_…` (a new offer) or `?renew=emp_…` (a renewal); the usual pairs are
+`?tab=offers&negotiation=neg_…` and `?tab=free-agents&person=per_…` (`contractsSearch(tab, target)`
+builds one). The day bar's counter-offer stop (`contracts.counterWaiting`, on by default) goes to
+`?tab=offers&negotiation=<id>`, where Accept counter, Send revised offer or End talks clears it.
+
+The worker profile has an action row under its header: `registerProfileAction({ id, order, render })`
+(`screens/workers/profile/profileActions.ts`, same registry rules). Contracts registers `contract`
+(order 10): Offer contract, Open talks, Renew contract, or a disabled button with the reason.
+
+The Next Day summary adds up to three lines about your talks from `contracts.offerUpdatesSince`
+("Rhea Vance countered", "Signed Kade Moreno", "Joss Hale walked away") and a link to Offers; a
+one-day Next Day with talks news gets the banner (`BannerExtras.offerUpdates`).
 
 ## The Office
 
