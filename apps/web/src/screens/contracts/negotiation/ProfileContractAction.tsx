@@ -1,11 +1,10 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { createContext, lazy, Suspense, useCallback, useContext, useState } from 'react';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import type { EmploymentId, OfferRow, PersonId, PromotionId } from '@ringside/engine';
 import { useEngineQuery } from '@/app/engine/useEngineQuery';
-import { routes } from '@/app/routes';
 import { Button } from '@/components/Button';
 import type { ProfileTabContext } from '@/screens/workers/profile/profileTabs';
-import { contractsSearch } from '../contractsParams';
+import { negotiationTargetFromSearch, searchWithNegotiation } from '../contractsParams';
 import type { NegotiationTarget } from '../contractsParams';
 import { useContractRules } from '../useContractRules';
 import { offerStatusText } from './negotiationText';
@@ -16,21 +15,51 @@ import styles from '../ContractsScreen.module.css';
 /** The situations in which a new offer may be made (the engine's `OPEN_TO_OFFERS`). */
 const OPEN_TO_OFFERS = new Set(['freeAgent', 'perAppearanceElsewhere', 'endingSoonElsewhere']);
 
+// The sheet pulls in the offer form, the meter and the counter history: it loads when first opened.
+const NegotiationSheet = lazy(async () => {
+  const { NegotiationSheet: Sheet } = await import('./NegotiationSheet');
+  return { default: Sheet };
+});
+
+/** Opens the Negotiation Sheet over the profile. */
+const OpenTalksContext = createContext<(target: NegotiationTarget) => void>(() => undefined);
+
+/**
+ * The profile's talks (ECO5-09): the Negotiation Sheet opens over the profile from the same
+ * `?negotiation=` / `?person=` / `?renew=` parameters the Contracts screen reads, so a reload keeps
+ * it open. Every change replaces the entry and keeps the location's state, so the profile's Back
+ * link still returns to the Workers list with its filters and sort.
+ */
+function useProfileTalks(): {
+  readonly target: NegotiationTarget | null;
+  readonly open: (target: NegotiationTarget | null) => void;
+} {
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const state = location.state as unknown;
+  const open = useCallback(
+    (next: NegotiationTarget | null): void => {
+      setSearchParams((current) => searchWithNegotiation(current, next), { replace: true, state });
+    },
+    [setSearchParams, state],
+  );
+  return { target: negotiationTargetFromSearch(searchParams), open };
+}
+
 function ActionButton({
   label,
-  tab,
   target,
 }: {
   readonly label: string;
-  readonly tab: string;
   readonly target: NegotiationTarget;
 }) {
-  const navigate = useNavigate();
+  const openTalks = useContext(OpenTalksContext);
   return (
     <Button
       variant="primary"
+      aria-haspopup="dialog"
       onClick={() => {
-        navigate(`${routes.game.contracts()}${contractsSearch(tab, target)}`);
+        openTalks(target);
       }}
     >
       {label}
@@ -62,9 +91,14 @@ function useOpenTalks(promotionId: PromotionId, personId: PersonId): Negotiation
  * you are talking, **Offer contract** for a free agent or a worker whose deal elsewhere leaves
  * them open to offers, and a disabled **Offer contract** with the reason for a rival's worker you
  * may not approach yet. Hidden for anyone retired or out of the business, and without a promotion.
+ * Each opens the Negotiation Sheet over the profile (ECO5-09), not on the Contracts screen.
  */
 export function ProfileContractAction({ context }: { readonly context: ProfileTabContext }) {
   const { viewerPromotionId, personId, profile } = context;
+  const talks = useProfileTalks();
+  // The sheet stays mounted once used, so it can slide away and hand focus back when it closes.
+  const [sheetUsed, setSheetUsed] = useState(false);
+  if (talks.target !== null && !sheetUsed) setSheetUsed(true);
   if (viewerPromotionId === null) return null;
   const own = profile.career.contracts.find(
     (contract) =>
@@ -72,7 +106,18 @@ export function ProfileContractAction({ context }: { readonly context: ProfileTa
       (contract.status === 'active' || contract.status === 'signed'),
   );
   return (
-    <>
+    <OpenTalksContext.Provider value={talks.open}>
+      {sheetUsed && (
+        <Suspense fallback={null}>
+          <NegotiationSheet
+            target={talks.target}
+            onClose={() => {
+              talks.open(null);
+            }}
+            onOpen={talks.open}
+          />
+        </Suspense>
+      )}
       <AnsweredOffers promotionId={viewerPromotionId} personId={personId} />
       {own === undefined ? (
         <OfferAction promotionId={viewerPromotionId} personId={personId} />
@@ -84,7 +129,7 @@ export function ProfileContractAction({ context }: { readonly context: ProfileTa
           endsOn={own.endsOn}
         />
       )}
-    </>
+    </OpenTalksContext.Provider>
   );
 }
 
@@ -134,7 +179,7 @@ function RenewProfileAction({
   const talks = useOpenTalks(promotionId, personId);
   const detail = useEngineQuery('contracts.detail', { employmentId });
   if (endsOn === null) return null;
-  if (talks !== null) return <ActionButton label="Open talks" tab="offers" target={talks} />;
+  if (talks !== null) return <ActionButton label="Open talks" target={talks} />;
   const daysLeft = detail.data?.daysLeft ?? null;
   if (daysLeft === null || daysLeft > rules.renewalWindowDays) {
     return (
@@ -142,11 +187,7 @@ function RenewProfileAction({
     );
   }
   return (
-    <ActionButton
-      label="Renew contract"
-      tab="expiring"
-      target={{ kind: 'renewal', employmentId }}
-    />
+<ActionButton label="Renew contract" target={{ kind: 'renewal', employmentId }} />
   );
 }
 
@@ -159,7 +200,7 @@ function OfferAction({
 }) {
   const talks = useOpenTalks(promotionId, personId);
   const ask = useEngineQuery('contracts.askingTerms', { promotionId, personId });
-  if (talks !== null) return <ActionButton label="Open talks" tab="offers" target={talks} />;
+  if (talks !== null) return <ActionButton label="Open talks" target={talks} />;
   const eligibility = ask.data?.eligibility;
   if (eligibility === undefined || eligibility.situation === 'unavailable') return null;
   if (!OPEN_TO_OFFERS.has(eligibility.situation)) {
@@ -167,6 +208,6 @@ function OfferAction({
     return reason === undefined ? null : <DisabledAction label="Offer contract" reason={reason} />;
   }
   return (
-    <ActionButton label="Offer contract" tab="free-agents" target={{ kind: 'signing', personId }} />
+    <ActionButton label="Offer contract" target={{ kind: 'signing', personId }} />
   );
 }

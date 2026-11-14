@@ -4,6 +4,7 @@ export { DataTableColumnError, MAX_CARD_STATS } from './cardColumns';
 export { SKELETON_ROW_COUNT } from './skeleton';
 export { WINDOWING_ROW_THRESHOLD } from './rowWindow';
 export { UnsortableColumnError, nextSortState, sortRows } from './sortRows';
+export { rowsMatchingText } from './tableModel';
 export type {
   CardRole,
   ColumnAlign,

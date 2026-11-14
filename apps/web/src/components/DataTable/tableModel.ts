@@ -231,3 +231,24 @@ export function isRangeSelectionEvent(event: unknown): boolean {
   const { nativeEvent } = event;
   return nativeEvent instanceof MouseEvent && nativeEvent.shiftKey;
 }
+
+/**
+ * The rows the filter box keeps for `text`, as the table filters them: a row stays when any
+ * searched column contains the text, ignoring case and accents. For a screen that says how many
+ * rows are left ("12 of 44").
+ */
+export function rowsMatchingText<Row>(
+  rows: readonly Row[],
+  columns: readonly ColumnDef<Row>[],
+  text: string,
+): readonly Row[] {
+  const query = normaliseFilterText(text);
+  if (query === '') return rows;
+  const searched = columns.filter(isFilterable);
+  return rows.filter((row) =>
+    searched.some((column) => {
+      const value = filterTextFor(column, row);
+      return value !== null && normaliseFilterText(value).includes(query);
+    }),
+  );
+}

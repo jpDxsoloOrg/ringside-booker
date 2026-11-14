@@ -1,5 +1,6 @@
 import { isId } from '@ringside/engine';
 import type { ContractsTab, EmploymentId, NegotiationId, PersonId } from '@ringside/engine';
+import { searchWithoutListParams } from './contractsListParams';
 
 /**
  * The Contracts screen's state in the URL, so a reload, Back and the day bar's Contracts button
@@ -78,9 +79,12 @@ export function tabIdFromSearch(search: URLSearchParams): string | null {
   return search.get(TAB_PARAM);
 }
 
-/** `search` with any registered tab set. Changing tab closes the open contract and talks. */
+/**
+ * `search` with any registered tab set. Changing tab closes the open contract and talks, and drops
+ * the list's sort, search and filters (each tab has its own, ECO5-09).
+ */
 export function searchWithTabId(search: URLSearchParams, tab: string): URLSearchParams {
-  const next = searchWithNegotiation(search, null);
+  const next = searchWithoutListParams(searchWithNegotiation(search, null));
   next.set(TAB_PARAM, tab);
   next.delete(EMPLOYMENT_PARAM);
   return next;
