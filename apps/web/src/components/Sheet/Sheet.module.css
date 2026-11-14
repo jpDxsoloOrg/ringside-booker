@@ -124,6 +124,12 @@
   scroll-padding-block: var(--space-2);
 }
 
+/* A body that overflows takes focus for keyboard scrolling: its ring sits inside its edge, where
+   the sheet cannot clip it. */
+.body:focus-visible {
+  outline-offset: -2px;
+}
+
 .footer {
   flex: none;
   display: flex;
