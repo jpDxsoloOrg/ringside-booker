@@ -2,11 +2,17 @@
  * The news crawl: a label badge, the moving headlines and a pause button on one strip. The track
  * holds the list twice and slides left by half its width, so the loop has no seam.
  */
+/*
+ * The strip never draws wider than the box it is given, whatever the UI scale: everything past
+ * its edges is clipped here, so the crawl can never make the page scroll sideways (UI-33).
+ */
 .ticker {
   display: flex;
   align-items: center;
   gap: var(--space-3);
   min-inline-size: 0;
+  max-inline-size: 100%;
+  overflow: hidden;
   min-block-size: 2.25rem;
   padding-inline-end: var(--space-2);
   border-block-start: 2px solid var(--color-action-bright);
@@ -31,11 +37,21 @@
   }
 }
 
+/*
+ * The badge keeps its natural width while it is short next to the strip. At a large UI scale on a
+ * narrow phone it would take half the strip, so it stops at a share of it and its words wrap,
+ * leaving the headlines a window to crawl through. Desktop labels never reach the cap.
+ */
 .badge {
-  flex: none;
+  flex: 0 1 auto;
   align-self: stretch;
   display: inline-flex;
   align-items: center;
+  min-inline-size: 0;
+  max-inline-size: 35%;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  line-height: var(--line-height-tight);
   padding-inline: var(--space-4) var(--space-3);
   background: var(--color-action);
   color: var(--color-action-contrast);
@@ -44,10 +60,16 @@
   clip-path: polygon(0 0, 100% 0, calc(100% - var(--space-2)) 100%, 0 100%);
 }
 
+/*
+ * The window the headlines crawl through. `contain: paint` clips the moving track even where the
+ * browser draws the animation on its own layer, which WebKit does not always clip by overflow.
+ */
 .viewport {
-  flex: 1 1 auto;
+  /* Grows into what the badge and the button leave, so the long track never squeezes the badge. */
+  flex: 1 1 0;
   min-inline-size: 0;
   overflow: hidden;
+  contain: paint;
 }
 
 .track {
