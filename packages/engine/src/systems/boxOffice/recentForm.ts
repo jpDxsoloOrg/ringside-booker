@@ -10,7 +10,9 @@
 import { addDays, compareDates, type GameDate } from '../../core/date';
 import type { EventInstanceId, PromotionId } from '../../core/ids';
 import { compareIds } from '../../model/table';
+import type { EventInstance } from '../../model/entities/event-instance';
 import type { GameWorldView } from '../../model/tables';
+import type { DeepReadonly } from '../../model/world';
 import type { EngineTunables } from '../tunables';
 
 export interface RecentFormQuery {
@@ -30,12 +32,18 @@ export interface RecentForm {
   readonly eventInstanceIds: EventInstanceId[];
 }
 
-/** The promotion's recent form before `beforeDate`. */
-export function recentFormOf(read: GameWorldView, query: RecentFormQuery): RecentForm {
+/**
+ * The shows recent form counts before `beforeDate`, oldest first (ties by id). The hot streak
+ * (EVT6-11) walks the same shows in this order.
+ */
+export function countedRecentShows(
+  read: GameWorldView,
+  query: RecentFormQuery,
+): DeepReadonly<EventInstance>[] {
   const { tunables } = query;
   const windowStart = addDays(query.beforeDate, -tunables.get('boxOffice.recentForm.windowDays'));
   const countHouseShows = tunables.get('boxOffice.recentForm.countHouseShows');
-  const counted = read.tables.eventInstances
+  return read.tables.eventInstances
     .lookup('byPromotion', query.promotionId)
     .filter(
       (instance) =>
@@ -47,14 +55,24 @@ export function recentFormOf(read: GameWorldView, query: RecentFormQuery): Recen
         compareDates(instance.date, query.beforeDate) < 0,
     )
     .slice()
-    .sort((left, right) => compareIds(left.id, right.id));
+    .sort((left, right) => compareDates(left.date, right.date) || compareIds(left.id, right.id));
+}
+
+/** Recent form from the shows `countedRecentShows` returned. */
+export function recentFormFrom(counted: readonly DeepReadonly<EventInstance>[]): RecentForm {
+  const sorted = [...counted].sort((left, right) => compareIds(left.id, right.id));
   let total = 0;
-  for (const instance of counted) {
+  for (const instance of sorted) {
     total += instance.result?.score ?? 0;
   }
   return {
-    averageScore: counted.length === 0 ? null : total / counted.length,
-    showCount: counted.length,
-    eventInstanceIds: counted.map((instance) => instance.id),
+    averageScore: sorted.length === 0 ? null : total / sorted.length,
+    showCount: sorted.length,
+    eventInstanceIds: sorted.map((instance) => instance.id),
   };
+}
+
+/** The promotion's recent form before `beforeDate`. */
+export function recentFormOf(read: GameWorldView, query: RecentFormQuery): RecentForm {
+  return recentFormFrom(countedRecentShows(read, query));
 }

@@ -21,9 +21,12 @@ import {
   computeExpectedAttendance,
   type ExpectedAttendanceInputs,
 } from './formulas/expectedAttendance';
+import { computeHotStreak } from './formulas/hotStreak';
 import { computeRecentFormMultiplier } from './formulas/recentFormMultiplier';
+import { computeShowHeat, type CardStorylineHeat } from './formulas/showHeat';
 import { hypeLineFor } from './hype';
-import { recentFormOf, type RecentForm } from './recentForm';
+import { countedRecentShows, recentFormFrom, type RecentForm } from './recentForm';
+import { storylineHeatsOnCard } from './showHeat';
 
 /** Where to forecast the show, when not in its own region ("what if this venue elsewhere"). */
 export interface ForecastPlace {
@@ -41,7 +44,11 @@ export interface AttendanceForecast {
   readonly inputs: ExpectedAttendanceInputs & {
     readonly regionId: RegionId;
     readonly recentShows: RecentForm;
+    /** The recent shows' scores, oldest first, that the hot streak walked. */
+    readonly streakScores: readonly number[];
     readonly bigShows: BigShowsBefore;
+    /** The storylines linked on the card, with their heat walking into the show. */
+    readonly cardStorylines: readonly CardStorylineHeat[];
   };
 }
 
@@ -57,12 +64,15 @@ export function forecastAttendance(
   const region = read.tables.regions.get(regionId);
   const popularity =
     popularityBeforeShow(read, instance.id, regionId) ?? promotion?.regionalPop[regionId] ?? 0;
-  const recentShows = recentFormOf(read, {
+  const counted = countedRecentShows(read, {
     promotionId: instance.promotionId,
     beforeDate: instance.date,
     excludeEventInstanceId: instance.id,
     tunables,
   });
+  const recentShows = recentFormFrom(counted);
+  const streakScores = counted.map((show) => show.result?.score ?? 0);
+  const cardStorylines = storylineHeatsOnCard(read, instance);
   const bigShows = bigShowsBefore(read, {
     promotionId: instance.promotionId,
     date: instance.date,
@@ -79,10 +89,12 @@ export function forecastAttendance(
       { averageScore: recentShows.averageScore, showCount: recentShows.showCount },
       { tunables },
     ),
+    hotStreak: computeHotStreak({ scores: streakScores }, { tunables }),
     bigShowFatigue: computeBigShowFatigue(
       { importance: instance.importance, bigShowsBefore: bigShows.count },
       { tunables },
     ),
+    showHeat: computeShowHeat({ storylines: cardStorylines }, { tunables }),
     hype: hypeLineFor(read, instance, tunables),
   };
   const expected = computeExpectedAttendance(inputs, { tunables });
@@ -91,6 +103,6 @@ export function forecastAttendance(
     expected,
     low: Math.round(expected.value * (1 - spread)),
     high: Math.round(expected.value * (1 + spread)),
-    inputs: { ...inputs, regionId, recentShows, bigShows },
+    inputs: { ...inputs, regionId, recentShows, streakScores, bigShows, cardStorylines },
   };
 }
