@@ -67,7 +67,10 @@ function BeatGroupView({
       {people.length > 0 && (
         <ul className={styles['chips']}>
           {people.map((person) => (
-            <li key={person.id} className={styles['chip']}>
+            <li
+              key={person.id}
+              className={classNames(styles['chip'], disabled && styles['chipStatic'])}
+            >
               <span className={styles['chipName']}>{person.name}</span>
               {personExtras?.(person, beatIndex)}
               {!disabled && (

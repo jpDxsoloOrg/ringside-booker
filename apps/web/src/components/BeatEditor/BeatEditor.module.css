@@ -114,13 +114,18 @@
 
 /* Desktop with a mouse: Move up / Move down show when the row is hovered or has focus. */
 @media (hover: hover) and (pointer: fine) {
-  .move {
+  /* Specific enough to beat the Button's own dimmed `:disabled` opacity. */
+  .row .actions .move,
+  .row .actions .move:disabled {
     opacity: 0;
   }
 
-  .row:hover .move,
-  .row:focus-within .move {
+  .row:is(:hover, :focus-within) .actions .move {
     opacity: 1;
+  }
+
+  .row:is(:hover, :focus-within) .actions .move:disabled {
+    opacity: 0.55;
   }
 }
 
@@ -171,6 +176,11 @@
   border-radius: var(--radius-pill);
   background: var(--color-surface-raised);
   min-inline-size: 0;
+}
+
+/* Read only: no remove button, so the chip needs its own end padding. */
+.chipStatic {
+  padding: var(--space-1) var(--space-2);
 }
 
 .chipName {
