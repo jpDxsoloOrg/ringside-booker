@@ -85,7 +85,11 @@ export function TopBarStatus({ compact, fallback = null }: TopBarStatusProps) {
   const daysRequested = advance.progress?.daysRequested ?? advance.daysRequested ?? 0;
 
   return (
-    <div className={styles['topBarStatus']} data-testid="top-bar-status">
+    <div
+      className={styles['topBarStatus']}
+      data-testid="top-bar-status"
+      data-unsaved-changes={advance.unsavedChanges ? 'true' : 'false'}
+    >
       {compact ? (
         <>
           <button

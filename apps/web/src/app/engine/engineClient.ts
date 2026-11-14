@@ -59,6 +59,7 @@ export class EngineClient {
   #stopListening: (() => void) | null = null;
   /** Rejects when the engine dies, so calls still waiting on it settle. */
   #fatalSignal: Promise<never> | null = null;
+  readonly #commandListeners = new Set<() => void>();
 
   constructor(createTransport: () => EngineTransport) {
     this.#createTransport = createTransport;
@@ -149,6 +150,7 @@ export class EngineClient {
     try {
       const response = await this.#call((host) => host.command(name, args));
       this.status.getState().setRevision(response.revision);
+      if (response.result.ok) this.#notifyCommandApplied();
       return response;
     } finally {
       this.status.getState().endCall('command');
@@ -213,6 +215,35 @@ export class EngineClient {
   /** Writes the running game as its slot's autosave. */
   async autosave(slotId: string, options: AutosaveOptions): Promise<SaveSlotResult> {
     return this.#busyCall((host) => host.autosave(slotId, options));
+  }
+
+  /**
+   * Writes the running game as its slot's autosave in the background: unlike {@link autosave} it
+   * does not mark the engine busy, so the day buttons stay ready while it runs (SAVE-01).
+   */
+  async autosaveInBackground(slotId: string): Promise<SaveSlotResult> {
+    return this.#call((host) => host.autosave(slotId, { monthlyBackup: false }));
+  }
+
+  /**
+   * Calls `listener` after every command the engine accepted, which is when the game changed.
+   * Returns the unsubscribe.
+   */
+  onCommandApplied(listener: () => void): () => void {
+    this.#commandListeners.add(listener);
+    return () => {
+      this.#commandListeners.delete(listener);
+    };
+  }
+
+  #notifyCommandApplied(): void {
+    for (const listener of [...this.#commandListeners]) {
+      try {
+        listener();
+      } catch (error: unknown) {
+        this.status.getState().setLastError(errorMessage(error));
+      }
+    }
   }
 
   /** Reads a save's header in the engine without loading it, for importing a file. */
