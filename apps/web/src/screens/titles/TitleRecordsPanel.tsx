@@ -1,8 +1,9 @@
 import { Fragment } from 'react';
 import type { PersonId, ReignRow, TitleRecord, TitleRecords, TitleStats } from '@ringside/engine';
 import { EmptyState } from '@/components/EmptyState';
-import { formatNumber } from '@/components/format';
+import { formatGameDate, formatNumber } from '@/components/format';
 import { Panel } from '@/components/Panel';
+import { Explained } from '@/components/Trace';
 import { WorkerLink } from '@/components/WorkerLink';
 import styles from './Titles.module.css';
 
@@ -87,7 +88,8 @@ export interface TitleRecordsPanelProps {
 }
 
 /**
- * A title's records: total reigns, different champions and days vacant, then the longest and
+ * A title's records: total reigns, different champions and days vacant (with its Why?, and
+ * "History before <date> not recorded" when the lineage starts after the title was introduced), then the longest and
  * shortest reign, most defences in a reign, most reigns, most combined days and the oldest and
  * youngest champion, each name linking to the worker's profile. "No records yet" until a reign has
  * ended.
@@ -113,9 +115,20 @@ export function TitleRecordsPanel({
         </div>
         <div className={styles['fact']}>
           <dt className={styles['factLabel']}>Days vacant</dt>
-          <dd className="tabular">{formatNumber(stats.daysVacant)}</dd>
+          <dd>
+            <Explained value={stats.daysVacant} label="Days vacant" trace={stats.daysVacantTrace} />
+          </dd>
         </div>
       </dl>
+      {stats.historyRecordedFrom !== null && (
+        <p className={styles['muted']}>
+          {'History before '}
+          <time dateTime={stats.historyRecordedFrom}>
+            {formatGameDate(stats.historyRecordedFrom)}
+          </time>
+          {' not recorded. Days vacant count from then.'}
+        </p>
+      )}
       {anyFinished ? (
         <dl className={styles['records']}>
           {RECORD_ROWS.map(({ key, label, unit }) => {

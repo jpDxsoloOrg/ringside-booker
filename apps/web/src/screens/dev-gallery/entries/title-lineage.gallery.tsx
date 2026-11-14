@@ -1,4 +1,4 @@
-import { parseGameDate, parseId, reignDays } from '@ringside/engine';
+import { explainDaysVacant, parseGameDate, parseId, reignDays } from '@ringside/engine';
 import type {
   GameDate,
   PersonId,
@@ -130,7 +130,30 @@ const RECORDS: TitleRecords = {
   youngestChampion: { value: 26, label: 'Kai Mercer', personIds: [KAI], reignIds: [] },
 };
 
-const STATS: TitleStats = { totalReigns: 4, distinctChampions: 4, daysVacant: 12 };
+/** Introduced decades before the first reign the sample lists, so the count starts there. */
+const VACANT = explainDaysVacant({
+  reigns: REIGNS,
+  introducedOn: parseGameDate('1999-01-04'),
+  gameStart: parseGameDate('2027-01-01'),
+  until: TODAY,
+  retired: false,
+});
+
+const STATS: TitleStats = {
+  totalReigns: 4,
+  distinctChampions: 4,
+  daysVacant: VACANT.value.value,
+  daysVacantTrace: VACANT.value.trace,
+  historyRecordedFrom: VACANT.historyRecordedFrom,
+};
+
+const NEW_TITLE_VACANT = explainDaysVacant({
+  reigns: REIGNS.slice(0, 1),
+  introducedOn: REIGNS[0]?.wonOn ?? TODAY,
+  gameStart: REIGNS[0]?.wonOn ?? TODAY,
+  until: TODAY,
+  retired: false,
+});
 
 const NO_RECORDS: TitleRecords = {
   longestReign: null,
@@ -160,6 +183,10 @@ function TitleLineageDemo() {
       </section>
       <section className={styles['example']}>
         <h3 className={styles['subheading']}>Records, in a side column</h3>
+        <p className={styles['caption']}>
+          The title is older than its first listed reign, so days vacant count from that reign and
+          the panel says history before it was not recorded.
+        </p>
         <div className={office['sideColumn']}>
           <TitleRecordsPanel records={RECORDS} stats={STATS} reigns={REIGNS} headingLevel={3} />
         </div>
@@ -169,7 +196,13 @@ function TitleLineageDemo() {
         <div className={office['sideColumn']}>
           <TitleRecordsPanel
             records={NO_RECORDS}
-            stats={{ totalReigns: 1, distinctChampions: 1, daysVacant: 0 }}
+            stats={{
+              totalReigns: 1,
+              distinctChampions: 1,
+              daysVacant: NEW_TITLE_VACANT.value.value,
+              daysVacantTrace: NEW_TITLE_VACANT.value.trace,
+              historyRecordedFrom: NEW_TITLE_VACANT.historyRecordedFrom,
+            }}
             reigns={current === undefined ? [] : [current]}
             headingLevel={3}
           />
@@ -184,6 +217,6 @@ export const galleryEntry: GalleryEntry = {
   title: 'Title lineage and records',
   group: 'Office',
   notes:
-    'The title page’s lineage (a table on desktop, a card per reign on a phone; the order is fixed, newest first) and its records panel, with sample reigns. "No records yet" until a reign has ended.',
+    'The title page’s lineage (a table on desktop, a card per reign on a phone; the order is fixed, newest first) and its records panel, with sample reigns. Days vacant count from the first recorded reign, with a Why? and a "History before ... not recorded" line. "No records yet" until a reign has ended.',
   render: () => <TitleLineageDemo />,
 };

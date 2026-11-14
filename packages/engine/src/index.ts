@@ -3266,6 +3266,7 @@ export {
 export {
   buildTitleCardRow,
   daysVacant,
+  explainDaysVacant,
   divisionLabel,
   eligibleHoldersOf,
   endReasonLabel,

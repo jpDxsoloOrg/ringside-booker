@@ -41,7 +41,13 @@ const DETAIL: TitleDetail = {
     oldestChampion: null,
     youngestChampion: null,
   },
-  stats: { totalReigns: 0, distinctChampions: 0, daysVacant: 0 },
+  stats: {
+    totalReigns: 0,
+    distinctChampions: 0,
+    daysVacant: 0,
+    daysVacantTrace: { kind: 'input', label: 'Days vacant', value: 0 },
+    historyRecordedFrom: null,
+  },
 };
 
 function section(

@@ -208,12 +208,12 @@ describe('where the days-vacant count starts', () => {
   });
 
   it('counts from the game start when the first reign came later in play', () => {
-    expect(vacancyCountStart([{ wonOn: day(20), lostOn: null }], longAgo, START)).toBe(START);
+    expect(vacancyCountStart([{ wonOn: day(20) }], longAgo, START)).toBe(START);
   });
 
   it('never starts before the title was introduced', () => {
     expect(vacancyCountStart([], day(15), START)).toBe(day(15));
-    expect(vacancyCountStart([{ wonOn: day(-40), lostOn: null }], day(-10), START)).toBe(day(-10));
+    expect(vacancyCountStart([{ wonOn: day(-40) }], day(-10), START)).toBe(day(-10));
   });
 });
 
