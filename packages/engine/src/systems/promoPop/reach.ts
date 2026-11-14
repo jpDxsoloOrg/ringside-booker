@@ -2,10 +2,14 @@
  * Reach inputs from the world: which TV deals carry a show, and the plain inputs `showReach` takes
  * for it (EVT5-02).
  *
- * A deal carries a show when it is the promotion's, is active, has started by the day the show airs
- * and has not yet ended, its network is still on air, and it is either bound to the show's own
- * definition or is promotion-wide and the show's definition is televised. A one-off show with no
- * definition is carried only by deals bound to it, and deals are bound to definitions, so none.
+ * Which deals carry a show is ECO8's answer (`dealsAiringShow`, ECO8-07), so reach and the TV
+ * money always agree: the promotion's deals in force on the show's air date that cover it (bound
+ * to its definition, or promotion-wide for a televised show the network kind airs: a pay-per-view
+ * deal only major and flagship shows, and a promotion-wide deal steps aside for a deal bound to
+ * the show on the same kind of network). Once a deal's airing of the show is settled, that row
+ * decides: a missed airing reaches nobody, and an aired one names its viewers in the reach line
+ * ("TV: National Signal Network, 2.4M viewers").
+ *
  * A taped show (EVT9) takes place on `date` and airs on `airDate`: the show region is where it was
  * taped, and the deals are the ones in force on the air date.
  *
@@ -13,58 +17,53 @@
  * Design: docs/design/promotion-popularity.md#show-reach.
  */
 
-import { compareDates } from '../../core/date';
 import type { NetworkId } from '../../core/ids';
+import type { Airing } from '../../model/entities/airing';
 import type { Deal } from '../../model/entities/deal';
 import type { EventInstance } from '../../model/entities/event-instance';
 import { coveredRegionIds, type Network } from '../../model/entities/network';
 import { compareIds } from '../../model/table';
 import type { GameWorldView } from '../../model/tables';
 import type { DeepReadonly } from '../../model/world';
+import { dealsAiringShow } from '../broadcast/coverage';
 import type { Geography } from '../world/geography';
+import type { ReachAudience } from './formulas/labels';
 import type { ReachDealInput, ReachRegionInput, ShowReachInputs } from './formulas/showReach';
 
-/** The show fields reach reads. */
-export type ReachShow = Pick<
-  DeepReadonly<EventInstance>,
-  'promotionId' | 'eventDefinitionId' | 'regionId' | 'airDate'
->;
+/** The show reach reads: a dated show. */
+export type ReachShow = EventInstance;
 
-/** True when `deal` is in force on `airDate`: active, started, and not yet ended. */
-function inForceOn(deal: DeepReadonly<Deal>, airDate: ReachShow['airDate']): boolean {
-  return (
-    deal.status === 'active' &&
-    compareDates(deal.startsOn, airDate) <= 0 &&
-    compareDates(airDate, deal.endsOn) < 0
-  );
-}
-
-/** True when `deal` carries the show: bound to its definition, or promotion-wide and televised. */
-function carriesShow(read: GameWorldView, deal: DeepReadonly<Deal>, show: ReachShow): boolean {
-  if (show.eventDefinitionId === null) {
-    return false;
+/** The show's settled airings on its air date, by deal. */
+function airingsByDeal(read: GameWorldView, show: ReachShow): Map<Deal['id'], Airing> {
+  const byDeal = new Map<Deal['id'], Airing>();
+  for (const airing of read.tables.airings.lookup('byEventInstance', show.id)) {
+    if (airing.airDate === show.airDate) {
+      byDeal.set(airing.dealId, airing);
+    }
   }
-  if (deal.eventDefinitionId !== null) {
-    return deal.eventDefinitionId === show.eventDefinitionId;
-  }
-  return read.tables.eventDefinitions.get(show.eventDefinitionId)?.televised === true;
+  return byDeal;
 }
 
 /**
- * The TV deals in force that carry `show`, in deal id order: the promotion's active deals running
- * on the air date, on a network still on air, for the show's definition or (promotion-wide) for a
- * televised definition.
+ * The deals that carry `show` to an audience, in deal id order: ECO8's deals airing it on its air
+ * date, less any whose airing of it was missed.
  */
 export function dealsInForce(read: GameWorldView, show: ReachShow): DeepReadonly<Deal>[] {
-  return read.tables.deals
-    .lookup('byPromotion', show.promotionId)
-    .filter(
-      (deal) =>
-        inForceOn(deal, show.airDate) &&
-        read.tables.networks.get(deal.networkId)?.status === 'active' &&
-        carriesShow(read, deal, show),
-    )
+  const settled = airingsByDeal(read, show);
+  return dealsAiringShow(read, show)
+    .filter((deal) => settled.get(deal.id)?.status !== 'missed')
     .sort((left, right) => compareIds(left.id, right.id));
+}
+
+/** What an aired airing drew, or null while it has not aired. */
+function audienceOf(
+  airing: Airing | undefined,
+  network: DeepReadonly<Network>,
+): ReachAudience | null {
+  if (airing?.status !== 'aired') {
+    return null;
+  }
+  return { count: airing.viewers, noun: network.kind === 'ppv' ? 'buys' : 'viewers' };
 }
 
 /** A network's reach tier as the reach formula types it (the schema keeps it within 0..4). */
@@ -94,6 +93,7 @@ export function reachInputsFor(
     .filter((regionId) => read.tables.regions.has(regionId))
     .map((regionId) => regionInput(geography, regionId));
   const deals: ReachDealInput[] = [];
+  const settled = airingsByDeal(read, show);
   for (const deal of dealsInForce(read, show)) {
     const network = read.tables.networks.get(deal.networkId);
     if (network === undefined) {
@@ -106,6 +106,7 @@ export function reachInputsFor(
       networkName: network.name,
       reachTier: reachTierOf(network),
       regions: coveredRegionIds(network, read).map((regionId) => regionInput(geography, regionId)),
+      audience: audienceOf(settled.get(deal.id), network),
     });
   }
   return { showRegion: { id: showRegion.id, name: showRegion.name }, neighbours, deals };

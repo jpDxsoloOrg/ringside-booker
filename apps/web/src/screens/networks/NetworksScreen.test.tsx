@@ -10,6 +10,7 @@ import {
   LOAD_MS,
   NETWORKS_WORLD_START,
   renderNetworks,
+  runShowTonight,
 } from '@/test/networksScreen';
 import { DealHealthBadge } from './components/DealHealthBadge';
 import { networksPath } from './networksParams';
@@ -70,8 +71,11 @@ describe('NetworksScreen', () => {
   it('lists your deals with slot, fee, viewers with their Why? and health', async () => {
     const { user } = await renderNetworks(routes.game.networks(), {
       prepare: async (transport) => {
-        // Test Weekly airs (without a show result: the test engine never runs it) on Thu 16 Apr.
-        await advance(transport, 7);
+        // The player runs Test Weekly on Thu 16 Apr, and it airs (ECO8-07: an unrun show is a
+        // missed airing).
+        await advance(transport, 6);
+        await runShowTonight(transport, 'Test Weekly');
+        await advance(transport, 1);
       },
     });
     const row = await findDealRow('Test Network North · Test Weekly');

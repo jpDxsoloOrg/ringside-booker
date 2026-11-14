@@ -1,8 +1,9 @@
 /**
  * Business > Networks in a real game (ECO8-06).
  *
- * - The sample save: Your deals with the one deal, its sheet (terms, health, airing history), and
- *   Available networks with what each network carries.
+ * - The sample save: Your deals with the one deal, its sheet (terms, health, airing history),
+ *   Available networks with what each network carries, and the calendar show sheet's "On TV"
+ *   section (ECO8-07).
  * - A new Hardpan game (the owner's script): Bluebonnet Cable 7 would sign Hardpan Friday but the
  *   deal loses money every airing, and the Propose sheet says so before signing; signing switches
  *   to Your deals, and the Finances Overview gains its TV income card.
@@ -15,6 +16,7 @@ import type { Page } from '@playwright/test';
 import { expectNoSeriousA11yViolations } from './helpers/a11y';
 import { enterGameFromSampleSave, startDefaultWorldGame } from './helpers/game';
 import { expectNoHorizontalScroll } from './helpers/layout';
+import { navigateInApp } from './helpers/shell';
 import { useFullMoney } from './helpers/money';
 import { isPhone } from './helpers/viewport';
 
@@ -95,6 +97,23 @@ test.describe('Business > Networks', () => {
     await expectNoHorizontalScroll(page);
     await expectNoSeriousA11yViolations(page);
     await expectNoClockWords(page);
+
+    // ECO8-07: the calendar show sheet says what the last Test Weekly drew on TV and paid (the
+    // tiny world stores no Test Weekly still to come; the other states are in OnTvSection.test).
+    await navigateInApp(page, '/game/calendar');
+    await expect(page.getByRole('heading', { level: 1, name: 'Calendar' })).toBeVisible();
+    await page
+      .locator('button[data-own="true"][title="Test Weekly"][data-status="completed"]')
+      .first()
+      .click();
+    const showSheet = page.getByRole('dialog', { name: 'Test Weekly', exact: true });
+    await expect(showSheet.getByRole('heading', { name: 'On TV' })).toBeVisible();
+    await expect(
+      showSheet.getByText(/^Test Network North: [\d.]+[KM]? viewers · \$/),
+    ).toBeVisible();
+    await expectBottomSheetOnPhone(page, showSheet, phone);
+    await expectNoHorizontalScroll(page);
+    await expectNoSeriousA11yViolations(page);
   });
 
   test('a Hardpan deal with Bluebonnet loses money per airing, and says so before signing', async ({

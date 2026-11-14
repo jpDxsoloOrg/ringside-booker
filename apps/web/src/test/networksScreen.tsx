@@ -124,12 +124,12 @@ export async function advance(transport: InProcessTransport, days: number): Prom
   await transport.host.advanceDays({ maxDays: days }, () => undefined);
 }
 
-/** Cancels the player's stored show called `name` on `date` through `calendar.cancelShow`. */
-export async function cancelShowOn(
+/** The id of the player's stored show called `name` on `date`. */
+async function storedShowId(
   transport: InProcessTransport,
   name: string,
   date: GameDate,
-): Promise<void> {
+): Promise<EventInstanceId> {
   const range = await transport.host.query('calendar.range', {
     from: date,
     to: date,
@@ -139,8 +139,45 @@ export async function cancelShowOn(
   const show = range.result.data.shows.find((entry) => entry.name === name);
   const id: EventInstanceId | null = show?.eventInstanceId ?? null;
   if (id === null) throw new Error(`No stored ${name} on ${date}`);
-  const cancelled = await transport.host.command('calendar.cancelShow', { eventInstanceId: id });
+  return id;
+}
+
+/** Cancels the player's stored show called `name` on `date` through `calendar.cancelShow`. */
+export async function cancelShowOn(
+  transport: InProcessTransport,
+  name: string,
+  date: GameDate,
+): Promise<void> {
+  const eventInstanceId = await storedShowId(transport, name, date);
+  const cancelled = await transport.host.command('calendar.cancelShow', { eventInstanceId });
   if (!cancelled.result.ok) throw new Error(cancelled.result.reasons[0]?.message ?? 'Refused');
+}
+
+/**
+ * Fills the card of the player's show called `name` (Auto-fill, every result Auto) and runs it tonight
+ * (`shows.runTonight`), as Run the show does; the world must be on its day. A show left unrun is a missed airing (ECO8-07).
+ */
+export async function runShowTonight(transport: InProcessTransport, name: string): Promise<void> {
+  const today = await transport.host.query('sim.status', {});
+  if (!today.result.ok) throw new Error('The engine did not answer');
+  const eventInstanceId = await storedShowId(transport, name, today.result.data.date);
+  const filled = await transport.host.command('aip.autoFillCard', { eventInstanceId });
+  if (!filled.result.ok) throw new Error(filled.result.reasons[0]?.message ?? 'Refused');
+  // Every match decided on the night (Auto), as the winner menu's Auto does.
+  const card = await transport.host.query('booking.card', { eventInstanceId });
+  if (!card.result.ok) throw new Error('The card did not answer');
+  for (const section of card.result.data.sections) {
+    for (const slot of section.slots) {
+      if (slot.segment?.kind !== 'match') continue;
+      const planned = await transport.host.command('booking.setResult', {
+        segmentId: slot.segment.segmentId,
+        result: 'auto',
+      });
+      if (!planned.result.ok) throw new Error(planned.result.reasons[0]?.message ?? 'Refused');
+    }
+  }
+  const ran = await transport.host.command('shows.runTonight', { eventInstanceId });
+  if (!ran.result.ok) throw new Error(ran.result.reasons[0]?.message ?? 'Refused');
 }
 
 export interface RenderNetworksOptions {

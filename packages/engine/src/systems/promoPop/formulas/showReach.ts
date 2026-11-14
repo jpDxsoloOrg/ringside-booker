@@ -15,7 +15,7 @@ import type { DealId, NetworkId, RegionId } from '../../../core/ids';
 import { constantOf, startCalc, type Traced } from '../../../core/trace';
 import type { EngineTunables, NumberTunableKey } from '../../tunables';
 import { formatNumber } from '../../world/people/labels';
-import { reachLabel, type ReachRoute, type ReachSource } from './labels';
+import { reachLabel, type ReachAudience, type ReachRoute, type ReachSource } from './labels';
 
 export const SHOW_REACH_DOC_REF = 'promotion-popularity.md#show-reach';
 
@@ -32,6 +32,8 @@ export interface ReachDealInput {
   readonly networkName: string;
   readonly reachTier: 0 | 1 | 2 | 3 | 4;
   readonly regions: readonly ReachRegionInput[];
+  /** What the show's airing on the deal drew, once it has aired (ECO8-07); null before. */
+  readonly audience?: ReachAudience | null;
 }
 
 export interface ShowReachInputs {
@@ -178,7 +180,12 @@ export function showReach(
   for (const deal of inputs.deals) {
     for (const region of deal.regions) {
       routesOf(region).push({
-        route: { source: 'tv', networkId: deal.networkId, networkName: deal.networkName },
+        route: {
+          source: 'tv',
+          networkId: deal.networkId,
+          networkName: deal.networkName,
+          audience: deal.audience ?? null,
+        },
         key: TV_REACH_KEYS[deal.reachTier],
         tunableLabel: `TV reach, tier ${String(deal.reachTier)}`,
         detail: (weight) => `, reach tier ${String(deal.reachTier)} × ${formatNumber(weight)}`,

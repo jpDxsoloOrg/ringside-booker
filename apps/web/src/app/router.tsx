@@ -24,6 +24,8 @@ import '@/screens/show-results/calendarHooks';
 import '@/screens/show-night/calendarAction';
 // The calendar show sheet's Crowd section (EVT6-06).
 import '@/screens/box-office/ShowCrowdSection';
+// The calendar show sheet's On TV section (ECO8-07).
+import '@/screens/networks/calendar/register';
 // The worker profile's Form tab (MTCH3-04); its panel loads with the tab.
 import '@/screens/workers/profile/tabs/recentFormTab';
 // The worker profile's Health tab (WRK6-05); its panel loads with the tab.

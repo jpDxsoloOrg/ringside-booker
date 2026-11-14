@@ -23,6 +23,7 @@ import '@/screens/match-aftermath/register';
 import '@/screens/match-physical/register';
 import '@/screens/finances/registerShowMoney';
 import '@/screens/box-office/register';
+import '@/screens/networks/results/register';
 import '@/screens/promotions/profile/shows/registerBookersCalls';
 import '@/screens/storylines/results/register';
 

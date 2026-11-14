@@ -80,10 +80,19 @@ export interface ShowAiringView {
   airing: {
     status: AiringStatus;
     viewers: number;
+    /** What the networks expected of the airings that aired (of every airing when none aired). */
+    expectedViewers: number;
+    /** Why nothing aired, when nothing did; null once one aired. */
+    missReason: AiringMissReason | null;
     /** Gross paid, in cents; null unless the viewer runs the promotion. */
     income: number | null;
     note: string | null;
   } | null;
+  /**
+   * One row per deal's airing (ECO8-07), in id order, as `broadcast.airings` lists them: money and
+   * the Why? ref only for the promotion's own controller.
+   */
+  airings: AiringRow[];
   /** True while the show is still to air on at least one deal. */
   upcoming: boolean;
 }
@@ -260,14 +269,22 @@ export const showAiringQuery: QueryDefinition<'broadcast.showAiring'> = defineQu
       if (first !== undefined) {
         const aired = rows.filter((row) => row.status === 'aired');
         const shown = aired[0] ?? first;
+        const counted = aired.length > 0 ? aired : rows;
         airing = {
           status: aired.length > 0 ? 'aired' : 'missed',
           viewers: aired.reduce((sum, row) => sum + row.viewers, 0),
+          expectedViewers: counted.reduce((sum, row) => sum + row.expectedViewers, 0),
+          missReason: aired.length > 0 ? null : first.missReason,
           income: money ? aired.reduce((sum, row) => sum + row.income, 0) : null,
           note: airingNote(shown, false),
         };
       }
-      return { deals, airing, upcoming: toAir.length > 0 };
+      return {
+        deals,
+        airing,
+        airings: rows.map((row) => airingRowOf(read, row, money)),
+        upcoming: toAir.length > 0,
+      };
     },
   },
 );

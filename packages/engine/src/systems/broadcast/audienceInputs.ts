@@ -50,10 +50,11 @@ export interface BenchmarkRequest {
 }
 
 /**
- * The hype multiplier for a show, or null while hype isn't tracked. The one seam ECO8-07 points at
- * ECO3's `hypeMultiplierFor`; until then the audience says "Hype isn't tracked yet".
+ * The hype multiplier for a show, or null while hype isn't tracked. The one seam ECO3's integration
+ * ticket points at `hypeMultiplierFor` (ECO3 was not on main when ECO8-07 wired the partners);
+ * until then the audience says "Hype isn't tracked yet".
  */
-/* eslint-disable @typescript-eslint/no-unused-vars -- the seam keeps ECO3's signature for ECO8-07 */
+/* eslint-disable @typescript-eslint/no-unused-vars -- the seam keeps ECO3's signature for ECO3 */
 export function broadcastHypeFor(
   _read: GameWorldView,
   _tunables: EngineTunables,
