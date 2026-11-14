@@ -289,6 +289,30 @@ export {
   type TemplateCast,
   type TemplateFit,
 } from './angles/templates';
+// Beat score formulas (MTCH5-02): the `match.angle` stream, the Angles tunables, the best-stat
+// pick and the beat worker value and beat score formulas. Design: docs/design/angle-rating.md.
+export { ANGLE_STREAM, anglePreviewStream } from './angles/streams';
+export { angleTunables, ANGLES_TUNABLE_CATEGORY } from './angles/tunables';
+export { pickBeatStat, type BeatStatCandidate, type PickedBeatStat } from './angles/pickBeatStat';
+export {
+  BEAT_WORKER_VALUE_DOC_REF,
+  BEST_STAT_LABEL,
+  beatWorkerValue,
+  NO_NOISE_BRANCH,
+  NOT_YOUR_WORKER_NOTE,
+  STAT_NOISE_LABEL,
+  type BeatManagerInputs,
+  type BeatWorkerValueInputs,
+} from './angles/formulas/beatWorkerValue';
+export {
+  BEAT_NOISE_LABEL,
+  BEAT_SCORE_DOC_REF,
+  beatScore,
+  emptyRequiredGroupNote,
+  skippedGroupNote,
+  type BeatScoreGroup,
+  type BeatScoreInputs,
+} from './angles/formulas/beatScore';
 export type {
   AngleTemplateBeatOption,
   AngleTemplateOption,

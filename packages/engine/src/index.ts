@@ -3260,6 +3260,7 @@ export {
   TALKING_STATS,
   toStoredBeat,
 } from './systems/match/index';
+<<<<<<< HEAD
 
 // Title queries (CRTV1-02): `titles.list` (cards grouped by brand or promotion), `titles.detail`
 // (lineage, records, totals) and `titles.eligibleHolders`. See docs/design/titles.md#queries.
@@ -3381,3 +3382,32 @@ export {
   type StartStorylineSpec,
   type StorylineCoolingView,
 } from './systems/storylines/index';
+=======
+// MTCH5-02: beat score formulas.
+export type {
+  BeatManagerInputs,
+  BeatScoreGroup,
+  BeatScoreInputs,
+  BeatStatCandidate,
+  BeatWorkerValueInputs,
+  PickedBeatStat,
+} from './systems/match/index';
+export {
+  ANGLE_STREAM,
+  anglePreviewStream,
+  ANGLES_TUNABLE_CATEGORY,
+  angleTunables,
+  BEAT_NOISE_LABEL,
+  BEAT_SCORE_DOC_REF,
+  BEAT_WORKER_VALUE_DOC_REF,
+  beatScore,
+  beatWorkerValue,
+  BEST_STAT_LABEL,
+  emptyRequiredGroupNote,
+  NO_NOISE_BRANCH,
+  NOT_YOUR_WORKER_NOTE,
+  pickBeatStat,
+  skippedGroupNote,
+  STAT_NOISE_LABEL,
+} from './systems/match/index';
+>>>>>>> origin/feat/mtch5-02

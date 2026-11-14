@@ -1230,6 +1230,7 @@ line on the heat meter, the soft limit on active storylines and the payoff
 threshold CRTV4 reads too. CRTV3-02 adds starting heat, heat cooling and the
 starter storylines at new game.
 
+<<<<<<< HEAD
 | Key                               | Kind    | Default | Range | Unit       | Meaning                                                                                                     |
 | --------------------------------- | ------- | ------- | ----- | ---------- | ----------------------------------------------------------------------------------------------------------- |
 | `storylines.heat.hotFrom`         | number  | 70      | 0–100 | points     | Heat at which a storyline shows as Hot on the meter (display only)                                          |
@@ -1244,3 +1245,27 @@ starter storylines at new game.
 | `storylines.heat.decayPerDay`     | number  | 1       | 0–20  | points/day | Heat lost each day after the grace period. 0 means heat never cools                                         |
 | `storylines.heat.decayFloor`      | number  | 10      | 0–100 | points     | Cooling never takes heat below this                                                                         |
 | `storylines.starterPerPromotion`  | integer | 2       | 0–6   | count      | Starter storylines each promotion gets at new game. 0 creates none                                          |
+=======
+| Key                             | Kind    | Default | Range | Unit   | Meaning                                                                                           |
+| ------------------------------- | ------- | ------- | ----- | ------ | ------------------------------------------------------------------------------------------------- |
+| `storylines.heat.hotFrom`       | number  | 70      | 0–100 | points | Heat at which a storyline shows as Hot on the meter (display only)                                |
+| `storylines.activeSoftLimit`    | integer | 6       | 0–30  | count  | Active storylines per promotion before creating another shows a warning. 0 never warns            |
+| `storylines.payoff.minSegments` | integer | 4       | 0–30  | count  | Linked segments a storyline needs before ending it can pay off. 0 means any storyline can pay off |
+
+## Angle tunables
+
+MTCH5-02, see [angle-rating.md](angle-rating.md#beat-worker-value). The beat
+formulas: how much a manager's talking and popularity count, how far morale
+and momentum move a stat before the best one is picked, and the two noise
+rolls. MTCH5-03 appends the angle score's keys.
+
+| Key                               | Kind    | Default | Range | Unit   | Meaning                                                                                         |
+| --------------------------------- | ------- | ------- | ----- | ------ | ----------------------------------------------------------------------------------------------- |
+| `match.angle.managerShare`        | number  | 0.85    | 0–1   | ratio  | Share of a manager's mic or charisma that counts when they talk for their worker; 0 never helps |
+| `match.angle.popularityStatShare` | number  | 0.9     | 0–1   | ratio  | Share of popularity in the show region that counts when a beat scores popularity                |
+| `match.angle.moralePenaltyMax`    | number  | 0.15    | 0–0.5 | ratio  | Share of every stat lost at the lowest morale (none at morale 0 or above)                       |
+| `match.angle.momentumPenaltyMax`  | number  | 0.1     | 0–0.5 | ratio  | Share of every stat lost at the lowest momentum (none at momentum 0 or above)                   |
+| `match.angle.momentumBonusMax`    | number  | 0.05    | 0–0.5 | ratio  | Share added to every stat at the highest momentum (none at momentum 0 or below)                 |
+| `match.angle.statNoise`           | integer | 3       | 0–10  | points | Most a person's beat value can move either way on the night; 0 turns the roll off               |
+| `match.angle.beatNoise`           | integer | 5       | 0–15  | points | Most a beat's score can move either way on the night; 0 turns the roll off                      |
+>>>>>>> origin/feat/mtch5-02

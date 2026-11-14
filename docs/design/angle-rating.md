@@ -194,3 +194,106 @@ short.
 `match.catalog` returns the beats, the templates (with their `optional` flags
 and a derived `requiredBeatCount`) and each angle type's `beatKeys`, so the web
 never hard-codes the lists.
+
+## Beat worker value
+
+MTCH5-02. What one person brings to one group of a beat, 0 to 100:
+`beatWorkerValue` in
+`packages/engine/src/systems/match/angles/formulas/beatWorkerValue.ts`. The
+trace is titled with the person's name.
+
+For every stat in the group's mix, in the beat's order:
+
+```text
+moraleFactor   = 1 − moralePenaltyMax × max(0, −morale) / 100
+momentumFactor = 1 + momentumBonusMax × max(0, momentum) / 100
+                   − momentumPenaltyMax × max(0, −momentum) / 100
+own            = value × (popularityStatShare if the stat is popularity)
+                       × moraleFactor × momentumFactor
+managerValue   = manager's value × managerShare × manager's moraleFactor
+```
+
+- 100 is the scale constant: morale and momentum run from −100 to 100. At
+  morale 0 or above, and at momentum 0, the factor is exactly 1 and the trace
+  shows a single line for it. Momentum is null before a worker's first
+  appearance; it counts as 0 with the note "No momentum yet".
+- `popularity` is popularity in the show's region (D-03), counted at
+  `match.angle.popularityStatShare` (0.9): being well known helps, but less than
+  actually being good at the beat's work.
+- A manager stands in only when the group allows it (`managerCanStandIn`), only
+  on the talking stats (mic and charisma) and only when the person has a
+  manager. Their candidate is a separate option next to the person's own.
+
+Then the **best stat** is picked: the highest value among every own and
+manager candidate (`pickBeatStat` in `angles/pickBeatStat.ts`, shared with the
+lab's query). A tie goes to the stat listed earlier in the beat, then to the
+person's own value over the manager's. The trace's "Best stat" decision lists
+every candidate with its arithmetic, for example "Best stat: Mic 78 (Charisma
+64, Presence 51)" or "Manager Rex Halden stands in on Mic: 82 × 85% = 69.7".
+
+Finally a roll of `−statNoise..statNoise` whole points ("Performance on the
+night", stream `match.angle`) is added and the value is kept between 0 and 100.
+At `statNoise` 0 no roll is drawn and the trace says "No noise (tunable at 0)".
+
+**Why morale and momentum act before the pick.** If the best stat were picked
+first and morale applied after, morale would only shrink a number and never
+change which stat (or who) carries the beat. Applying it first means a
+demoralised talker can lose the mic to their manager, and a worker on a hot
+streak can carry a beat on presence instead of a weaker mic. That is the
+behaviour the beat system is meant to show.
+
+**Why the manager's share is below 100%.** A manager talking for a worker is a
+crutch: the crowd still wants to hear from the wrestler. At 85% a manager
+helps a poor talker a lot (a 82-mic manager is worth 69.7, far above a 40-mic
+wrestler) but never makes a good talker worse off, and a decent talker still
+does their own talking. At 0 a manager never wins; at 1 a manager is as good
+as speaking for yourself.
+
+**Rival workers.** When the person is not the viewer's worker, the caller
+passes morale 0 and momentum 0 and the formula treats both (and the manager's
+morale) as neutral whatever it is given, with the note "Not your worker:
+morale and momentum treated as neutral". A preview never shows a rival's
+morale or momentum (D-07).
+
+The physical flag of a beat does not change the score; MTCH5-03 uses it for
+warnings and MTCH4 for fatigue.
+
+## Beat score
+
+MTCH5-02. How well one beat went, 0 to 100: `beatScore` in
+`packages/engine/src/systems/match/angles/formulas/beatScore.ts`, titled
+"Beat: <name>".
+
+```text
+groupScore = mean of the group's beat worker values
+raw        = Σ(group weight × groupScore) / Σ(weights of the groups that counted)
+score      = clamp(raw + roll(−beatNoise..beatNoise), 0, 100)
+```
+
+- Each person's worker value sits in the trace under their name.
+- An empty optional group (an interview with no host) is left out, with the
+  note "Host: nobody, not counted"; its weight does not count either, so the
+  beat is not dragged down.
+- An empty required group gives the beat 0 with a note and draws no roll.
+  MTCH5-03's validation refuses such a beat before it is rated.
+- The roll is "How the beat landed" on `match.angle`; at `beatNoise` 0 none is
+  drawn ("No noise (tunable at 0)").
+- The score is not rounded: the angle score (MTCH5-03) rounds once at the end.
+
+The weights come from the beat catalog (an interview's speaker counts 3, the
+host 1), not from tunables.
+
+### Angle tunables
+
+Category `Angles`, in `systems/match/angles/tunables.ts`, listed in
+[tunables.md](tunables.md#angle-tunables). MTCH5-03 appends the angle score's
+keys.
+
+### Random stream
+
+`match.angle` (`angles/streams.ts`). A real show draws it with
+`ctx.rng('match.angle')`; a Match lab preview uses
+`anglePreviewStream(read.meta.seed, previewSeed)`, a detached stream keyed by
+the preview seed, so a preview never moves a world stream. The same inputs and
+preview seed always give the same value and trace; another seed moves only the
+noise lines.
