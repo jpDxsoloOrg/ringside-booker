@@ -14,6 +14,7 @@ export const BROADCAST_DOC = 'broadcast.md';
 const AUDIENCE_DOC_REF = `${BROADCAST_DOC}#audience`;
 const BENCHMARK_DOC_REF = `${BROADCAST_DOC}#benchmark`;
 const VALUATION_DOC_REF = `${BROADCAST_DOC}#valuation`;
+const SETTLEMENT_DOC_REF = `${BROADCAST_DOC}#settlement`;
 
 /** A factor of the audience formula: a plain ratio where 0 means nobody watches. */
 function audienceRatio(defaultValue: number, max: number, description: string) {
@@ -358,4 +359,38 @@ export const broadcastTunables = defineTunables({
   'broadcast.deal.minMonths': dealMonths(6, 'Shortest deal a network will sign'),
   'broadcast.deal.maxMonths': dealMonths(48, 'Longest deal a network will sign'),
   'broadcast.deal.defaultMonths': dealMonths(24, 'Deal length offered when the player picks none'),
+  // ECO8-04: settling airings.
+  'broadcast.shares.maxTotal': {
+    kind: 'number',
+    default: 0.5,
+    min: 0,
+    max: 1,
+    unit: 'ratio',
+    category: BROADCAST_TUNABLE_CATEGORY,
+    description:
+      "Most of an airing's income that workers' broadcast shares can take in total; 0 means workers get no share",
+    docRef: SETTLEMENT_DOC_REF,
+  },
+  'broadcast.airing.historyDays': {
+    kind: 'integer',
+    default: 400,
+    min: 30,
+    max: 3650,
+    unit: 'days',
+    category: BROADCAST_TUNABLE_CATEGORY,
+    description:
+      "How long the player's airings are kept; older ones are deleted (the money stays in the ledger)",
+    docRef: SETTLEMENT_DOC_REF,
+  },
+  'broadcast.airing.keepPerDeal': {
+    kind: 'integer',
+    default: 12,
+    min: 1,
+    max: 100,
+    unit: 'count',
+    category: BROADCAST_TUNABLE_CATEGORY,
+    description:
+      "Newest airings of each deal kept whatever their age, so deal health always has its window; must be at least deal health's window",
+    docRef: SETTLEMENT_DOC_REF,
+  },
 });
