@@ -916,6 +916,17 @@ money in cents:
 | `contract.releaseRequested` | `employmentId`, `personId`, `promotionId`                                       | One of the player's unhappy workers asks to be released (ECO4-03)                                |
 | `contract.releaseRefused`   | `employmentId`, `personId`, `promotionId`, `source`                             | A release request is refused: by the player, a rival's rule (`ai`) or left unanswered (`system`) |
 
+The negotiation system's events ([negotiation.md](negotiation.md#statuses),
+ECO5-01; published from ECO5-03 on):
+
+| Event                    | Payload                                                                          | Published when                                                                                   |
+| ------------------------ | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `negotiation.opened`     | `negotiationId`, `personId`, `promotionId`, `kind`                               | A promotion opens a signing or renewal negotiation with a worker                                 |
+| `negotiation.countered`  | `negotiationId`, `personId`, `promotionId`, `round`                              | The worker answers an offer with a counter-offer                                                 |
+| `negotiation.walkedAway` | `negotiationId`, `personId`, `promotionId`, `cooldownUntil`                      | The worker runs out of patience and walks away until `cooldownUntil`                             |
+| `negotiation.closed`     | `negotiationId`, `personId`, `promotionId`, `status`, `outcomeCode`              | A negotiation closes: signed, declined, walked away, withdrawn or lapsed                         |
+| `contract.signed`        | `employmentId`, `personId`, `promotionId`, `brandId`, `renewal`, `negotiationId` | A worker signs: a new contract (`renewal: false`) or a renewal of the live one (`renewal: true`) |
+
 The rival desk's events ([rival-desk.md](rival-desk.md#jobs)):
 
 | Event                  | Payload                                                                        | Published when                                               |

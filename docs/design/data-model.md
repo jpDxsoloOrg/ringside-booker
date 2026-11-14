@@ -63,6 +63,7 @@ ones. A row's `id` field always equals the key it is stored under.
 | `team`            | `tem`  | `season`          | `sea`  |
 | `aiProfile`       | `aip`  | `aiDecision`      | `aid`  |
 | `injury`          | `inj`  | `contractConcern` | `ccn`  |
+| `negotiation`     | `neg`  |                   |        |
 
 The source of truth is `ENTITY_KINDS` in `packages/engine/src/core/ids.ts`.
 
@@ -1420,3 +1421,50 @@ unique `byEmployment`, `byPromotion`, `unseenExpiry` (key `unseen` while
 `expiryNotice.seenOn` is null) and `openRequest` (key `open` while the request
 is open and `stopsSkip`). Saves list the table with a default of `[]`, so a
 save from before the table loads with it empty.
+
+### Negotiations (`negotiations`, `neg_`)
+
+One row per conversation between a worker and a promotion about a contract:
+a new signing or a renewal (ECO5-01, see [negotiation.md](negotiation.md)).
+The employment keeps its lifecycle (`offered → signed → active`); the back and
+forth lives here, so nothing between an offer and a deal can pay a wage.
+Terms and rival offers are private: player queries only read rows of the
+player's own promotions.
+
+| Field              | Type              | Notes                                                                          |
+| ------------------ | ----------------- | ------------------------------------------------------------------------------ |
+| `id`               | `NegotiationId`   |                                                                                |
+| `kind`             | enum              | `signing` or `renewal`                                                         |
+| `personId`         | `PersonId`        | the worker                                                                     |
+| `promotionId`      | `PromotionId`     | the promotion making the offer                                                 |
+| `employmentId`     | `EmploymentId`    | the `offered` employment of a signing, or the live contract a renewal changes  |
+| `status`           | enum              | `NEGOTIATION_STATUSES`; open: `submitted`, `countered`, `awaitingReview`       |
+| `round`            | integer ≥ 1       | the current round                                                              |
+| `startPatience`    | integer 0..10     | the worker's patience when the conversation opened                             |
+| `patience`         | integer 0..10     | patience left, never above `startPatience`                                     |
+| `offer`            | `Offer`           | the promotion's current offer ([the offer](negotiation.md#the-offer))          |
+| `lastCounter`      | `Offer` or null   | the worker's counter-offer; set exactly while `countered`                      |
+| `history`          | array, at most 12 | `{ round, date, by: 'promotion' \| 'worker', offer, reaction }`                |
+| `openedOn`         | date              |                                                                                |
+| `submittedOn`      | date              | when the current offer was made; not before `openedOn`                         |
+| `counterExpiresOn` | date or null      | the last day to answer the counter-offer; set exactly while `countered`        |
+| `reviewOn`         | date or null      | the day the worker decides; set while `awaitingReview`                         |
+| `closedOn`         | date or null      | set exactly when the status is closed                                          |
+| `outcome`          | object or null    | `{ code, otherPromotionId }`: why it closed, and where the worker went instead |
+| `cooldownUntil`    | date or null      | after a walk-away, no new talks with this promotion before this day            |
+| `reactionTraceId`  | string or null    | `<negotiationId>:<round>` of the latest reaction trace                         |
+| `reviewTraceId`    | string or null    | `<negotiationId>:review`                                                       |
+
+`NEGOTIATION_STATUSES`: `submitted`, `countered`, `awaitingReview`, `signed`,
+`declined`, `walkedAway`, `withdrawn`, `lapsed`. `REACTIONS`: `accept`,
+`counter`, `reject`, `walkAway`, `refuse`.
+
+Refs: `personId`, `promotionId`, `employmentId` and `outcome.otherPromotionId`
+(nullable). Indexes: `byPerson`, `byPromotion`, `byEmployment`, `byStatus` and
+`byPersonPromotion` (key `<personId>|<promotionId>`, not unique: closed rows
+stay for their cooldowns). Invariants: `oneOpenPerPersonPromotion` (at most one
+open row per worker and promotion), `signingEmploymentIsOffered` (an open
+signing points at an `offered` employment of the same pair) and
+`renewalEmploymentIsLive` (an open renewal points at a `signed` or `active`
+employment of the same pair). Saves list the table with a default of `[]`, so
+a save from before the table loads with it empty.

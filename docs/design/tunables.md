@@ -1099,3 +1099,23 @@ renewal, a D-01 stopgap until the rival labour market (ECO6). ECO4-02 added
 | `contracts.walkout.extraPerPoint`         | number  | 0.001       | 0–0.1    | probability | Extra daily walk-out chance per morale point below the threshold                                                        |
 | `contracts.walkout.maxPerDay`             | number  | 0.1         | 0–1      | probability | Highest daily walk-out chance                                                                                           |
 | `contracts.walkout.recoverMargin`         | integer | 10          | 0–100    | points      | Morale this far above the threshold ends the walk-out risk                                                              |
+
+### Negotiation tunables
+
+ECO5-01, see [negotiation.md](negotiation.md). The pace of a negotiation, how
+long and how early an offer may run, and the reach a promotion needs for
+written and exclusive contracts (read against ECO1's
+[reach](finances.md#reach-and-size)).
+
+| Key                                  | Kind    | Default | Range  | Unit   | Meaning                                                                             |
+| ------------------------------------ | ------- | ------- | ------ | ------ | ----------------------------------------------------------------------------------- |
+| `contracts.review.delayDays`         | integer | 2       | 0–30   | days   | Days a worker takes to decide once an offer is good enough (0 = the same day)       |
+| `contracts.walkAway.cooldownDays`    | integer | 30      | 0–365  | days   | Days a worker who walked away refuses to talk to that promotion again (0 = no wait) |
+| `contracts.counter.expiryDays`       | integer | 7       | 1–60   | days   | Days a worker's counter-offer stays open before it lapses                           |
+| `contracts.counter.stopSkip`         | boolean | true    |        | flag   | Skips stop when a worker's counter-offer is waiting for you                         |
+| `contracts.offer.maxLengthMonths`    | integer | 60      | 1–120  | months | Longest contract an offer may run                                                   |
+| `contracts.offer.approachWindowDays` | integer | 30      | 0–365  | days   | How close to the end of an exclusive deal elsewhere a worker will talk to you       |
+| `contracts.renewal.windowDays`       | integer | 180     | 0–730  | days   | How early before a contract ends a renewal can be offered                           |
+| `contracts.kind.writtenMinReach`     | integer | 35      | 0–100  | points | Reach a promotion needs to offer written contracts (0 = anyone)                     |
+| `contracts.kind.exclusiveMinReach`   | integer | 35      | 0–100  | points | Reach a promotion needs to offer exclusive contracts (0 = anyone)                   |
+| `contracts.history.closedKeepDays`   | integer | 365     | 0–3650 | days   | Days a closed negotiation is kept, past its cooldown, before it is cleared away     |
