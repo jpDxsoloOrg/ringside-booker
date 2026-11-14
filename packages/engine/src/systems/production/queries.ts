@@ -40,6 +40,7 @@ import { areaCost } from './formulas/areaCost';
 import { popularityCeiling } from './formulas/popularityCeiling';
 import { productionMonthlyCost } from './formulas/productionMonthlyCost';
 import { upcomingShowCost } from './formulas/productionShowCost';
+import { cashRunwayOf } from './runway';
 import { upcomingShows, type ProductionUpcomingShow } from './upcoming';
 
 /** One area on the production screen. */
@@ -83,7 +84,7 @@ export interface ProductionOverview {
 
 /** The fixed rows of the change dialog; effect rows use their effect's id. */
 export type ProductionPreviewRowId =
-  'areaCost' | 'monthlyOverhead' | 'upcomingShows' | 'popularityCeiling';
+  'areaCost' | 'monthlyOverhead' | 'upcomingShows' | 'popularityCeiling' | 'cashRunway';
 
 /** One number in the change dialog, before and after the change. */
 export interface ProductionPreviewRow {
@@ -308,6 +309,15 @@ function row(
   return { id, label, before: before.value, after: after.value, unit, trace: after.trace };
 }
 
+/** "4 weeks" for 28 days, "1 week", "10 days" when it is not whole weeks: as the header says it. */
+export function forecastWindowText(days: number): string {
+  if (days > 0 && days % 7 === 0) {
+    const weeks = days / 7;
+    return weeks === 1 ? 'week' : `${String(weeks)} weeks`;
+  }
+  return days === 1 ? 'day' : `${String(days)} days`;
+}
+
 function isProductionLevel(level: number): boolean {
   return level >= PRODUCTION_LEVEL_MIN && level <= PRODUCTION_LEVEL_MAX;
 }
@@ -361,7 +371,7 @@ export const productionChangePreviewQuery: QueryDefinition<'production.changePre
           ),
           row(
             'upcomingShows',
-            `Production on the shows in the next ${String(outlook.days)} days`,
+            `Show production, next ${forecastWindowText(outlook.days)}`,
             upcomingShowCost(
               { promotionName: promotion.name, shows: outlook.shows, levels: before },
               { tunables },
@@ -403,6 +413,13 @@ export const productionChangePreviewQuery: QueryDefinition<'production.changePre
             'points',
           ),
         );
+      }
+
+      // How long the cash lasts, when it runs out at this rate both before and after (ECO7-06).
+      const runwayBefore = cashRunwayOf(read, promotion, date, tunables, before).monthsLeft;
+      const runwayAfter = cashRunwayOf(read, promotion, date, tunables, after).monthsLeft;
+      if (runwayBefore !== null && runwayAfter !== null) {
+        rows.push(row('cashRunway', 'Months of cash left', runwayBefore, runwayAfter, 'months'));
       }
 
       // Other features' lines. The built-in popularity-ceiling effect is the fixed row above.

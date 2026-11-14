@@ -10,8 +10,8 @@ Code: `packages/engine/src/systems/production/` (system id `production`).
 ECO7-01 ships the area tables, the tunables and the pure traced formulas.
 ECO7-02 adds changing a level (the upgrade fee is the first production money
 posted), the screen and dialog queries and the effect seam. ECO7-03 posts the
-monthly overhead, ECO7-05 posts the per-show costs, and ECO7-04 puts it on
-screen. Production never rolls, so
+monthly overhead, ECO7-05 posts the per-show costs (and a temporary rival
+budget until AIP8), and ECO7-04 puts it on screen. Production never rolls, so
 the system has no RNG stream.
 
 All money is in whole cents. Every tunable is 0-means-0: a price of 0 makes
@@ -64,7 +64,8 @@ One smooth power curve over the full 0..10 scale, with a price per area:
   [per-show costs](#per-show-costs)). A monthly area ignores importance and its
   Why? says so ("Monthly cost: show importance does not apply").
 
-The Why? reads: "Camera level 4 of 10", "Cost curve 0.4 ^ 3", "Camera at level
+The Why? reads: "Camera level 4 of 10", "0.4 raised to the power 3 = 0.064
+(Cost curve)", "Camera at level
 10: $150,000 per regular show", "Minor show × 0.5", for $4,800.
 
 `productionMonthlyCost` adds the four monthly areas, one line each ("Marketing
@@ -225,6 +226,65 @@ Mainstage; Hardpan spends $4,700 a month plus $710 per Friday against $85,000.
 If payroll leaves local promotions bleeding, tune `production.monthlyCost.*`
 down; the curve keeps low levels cheap.
 
+### Posting per-show costs
+
+ECO7-05: the reaction `production.showCosts` on `show.completed` charges every
+completed show, the player's and every rival's (on screen or off it, D-01), at
+the promotion's levels when the show completes: one ledger row, category
+Production, memo "Show production: Hardpan Friday", `refs.eventInstanceId` set
+to the show, with the show's cost as its Why? (one line per area, then "Cost").
+A rival's row keeps only a summary, like every rival ledger row (POL4-06). A
+show whose four areas are all at 0 posts nothing, a cancelled show never
+completes so it costs nothing, and a show already charged is skipped, so a show
+the player runs before the day is never charged twice. The results page's
+Show money section and the Finances ledger pick the row up from the ledger;
+there is no second Production line.
+
+## Rival production budget
+
+**Temporary (ECO7-05), until AIP8's rival production desk.** Without it,
+computer-run promotions keep the levels the world started them with, and the
+monthly overhead plus per-show costs push the small ones into debt within a
+year. Phase `production.rivalBudget` (`money`, order 33, monthly on the 1st,
+before the overhead) looks at each active computer-run promotion's cash against
+a month of its production costs (the overhead plus the per-show cost of its
+shows in the next `production.forecastDays`):
+
+- **Short of cash** (less than `lowerBelowMonths` months): it lowers one level
+  at a time until the cash covers that many months or nothing more can go.
+  First the cuts that hurt nothing: music and writing (no effect yet), and
+  room a ceiling has to spare (the show-quality ceiling above its best show in
+  the last `lookbackDays` plus `headroom`, the popularity ceiling above its
+  best region plus `headroom`), biggest saving first. Cuts that lower a
+  ceiling it is using wait until the cash covers less than
+  `deepCutBelowMonths` months; then the least harm per dollar saved goes
+  first.
+- **Plenty of cash** (at least `raiseAboveMonths` months of the cost after the
+  change, plus the fee): it raises one level a month, only where a ceiling is
+  holding it back, the most relief per dollar first. Music and writing are
+  never raised.
+
+Every change goes through `changeProductionLevel` with source `'ai'`: rivals
+pay the same upgrade fee (a hidden rival ledger row), and the TV-deal camera
+minimum holds for them too. The player's promotions are never touched. It is
+a decision rule, not a Rival rules shortcut, so the Level playing field
+setting does not turn it off. A months tunable at 0 turns that half off. AIP8
+deletes the phase and these keys when its business review sets levels.
+
+On the default world over 365 days (player's shows run by the test helper),
+no rival ends more than about $10,000 in debt: Golden Poppy ends at +$15,000
+(−$746,000 without the budget), Tessen +$2.8M (−$57,000), Blast Furnace
++$186,000 (−$134,000), Hibari +$9,000 (−$43,000), Hardpan −$8,000 (−$64,000),
+Wattle −$6,000 (−$2,500; it loses popularity once marketing goes).
+
+| Key                                         | Kind    | Default | Range | Unit   | Meaning                                                             |
+| ------------------------------------------- | ------- | ------- | ----- | ------ | ------------------------------------------------------------------- |
+| `production.rivalBudget.lowerBelowMonths`   | number  | 12      | 0–60  | months | Cash below this many months of production costs: cut (0 = never)    |
+| `production.rivalBudget.deepCutBelowMonths` | number  | 6       | 0–60  | months | Below this, also cut levels that lower a ceiling in use (0 = never) |
+| `production.rivalBudget.raiseAboveMonths`   | number  | 24      | 0–120 | months | Cash covering this many months after a raise: raise (0 = never)     |
+| `production.rivalBudget.headroom`           | number  | 5       | 0–100 | points | Room kept between the best recent show or region and its ceiling    |
+| `production.rivalBudget.lookbackDays`       | integer | 28      | 1–365 | days   | How far back the best show is looked for                            |
+
 ## TV camera minimum
 
 While a promotion has an active broadcast deal, its camera level may not go
@@ -322,6 +382,73 @@ one row per registered effect for the area (skipped when either side has no
 number). A level out of range gives no rows. Traces are returned inline and
 never recorded.
 
+The web screen is Business > Production (`apps/web/src/screens/production/`,
+ECO7-04): the header cards (popularity ceiling, monthly overhead with "Last
+charged" from the `production.monthlyOverhead` trace, show production for the
+coming shows), one row per area in two groups ("On every show", "Every month")
+with − / + that open a change dialog drawn from `production.changePreview`, and
+a "Monthly overhead" card on the Finances Overview. Other features add header
+cards with `registerProductionHeaderItem` (ECO7's sit at 20, 30 and 40).
+
+## Cash runway
+
+Production is meant to be a real cost: at its starting levels the biggest
+promotion spends far more than it earns, and a year at those levels takes it
+from about $40M into debt. That is a challenge, not a bug (owner decision,
+ECO7-06), so the game makes sure the player sees it coming. The
+`production.cashRunway { promotionId }` query (`runway.ts`, own books only,
+the same `notYourBooks` rule as Finances) and the `cashRunway` formula
+(`formulas/cashRunway.ts`) work out the money a month at this rate and how
+many months the cash lasts.
+
+The month has two halves:
+
+- **Fixed spend, priced ahead** with the formulas that post it, at today's
+  levels: wages (the payroll a month), medical, the production, marketing and
+  back office overhead, and the per-show production of the shows in the next
+  `production.forecastDays`, turned into a month (÷ days ahead × 365 ÷ 12).
+- **Everything else, from the ledger**: ticket sales, merchandise, TV money,
+  venue rent, travel, catering and the rest, over the last
+  `production.runway.lookbackDays` days played before today (never more than
+  `history.keepDetailDays`, so every row is still there), turned into a month
+  the same way. The categories priced ahead are skipped here (they are
+  charged once a month, so a few weeks of rows would count them zero or one
+  times), and so are one-off payments (signing bonuses, severance, buyouts,
+  and upgrade fees, which are `production` rows).
+
+Before `production.runway.minDaysPlayed` days of play the second half is left
+out and the status is `tooEarly`: the screens show the fixed spend and say
+when the forecast starts. Then:
+
+| Status        | When                                                        |
+| ------------- | ----------------------------------------------------------- |
+| `outOfCash`   | cash ≤ 0 (checked first)                                    |
+| `tooEarly`    | fewer than `minDaysPlayed` days played                      |
+| `makingMoney` | the month at this rate is ≥ 0                               |
+| `runningOut`  | months left = cash ÷ money lost a month < `warnBelowMonths` |
+| `losingMoney` | otherwise                                                   |
+
+The answer carries the cash, the status, the month's net (signed cents) and
+months left with their traces, the fixed spend a month line by line,
+`warnBelowMonths` and `daysUntilForecast`. `production.changePreview` adds a
+`cashRunway` row ("Months of cash left", before → after) when both sides are
+losing money, so the change dialog shows what a level does to the runway.
+
+On screen (`apps/web/src/screens/production/cashRunway.tsx`): a **Cash
+runway** card in the Production header (order 50) and on the Finances
+Overview (KPI order 12, after Cash), with the sentence "At this rate you run
+out of cash in about 8 months.", the month's net with its Why?, and the fixed
+spend; and a warning strip at the top of both screens ("Losing money",
+"Running out of cash", "Out of cash") while money goes out faster than it
+comes in. There is no inbox yet; when SOC1 adds one, a mail when the status
+turns `runningOut` belongs there.
+
+| Key                                 | Kind    | Default | Range | Unit   | Meaning                                                           |
+| ----------------------------------- | ------- | ------- | ----- | ------ | ----------------------------------------------------------------- |
+| `production.runway.lookbackDays`    | integer | 28      | 7–28  | days   | Recent days of show money the runway averages                     |
+| `production.runway.minDaysPlayed`   | integer | 7       | 1–28  | days   | Days of play before show money counts                             |
+| `production.runway.warnBelowMonths` | number  | 6       | 0–36  | months | Fewer months of cash than this: "Running out of cash" (0 = never) |
+
 ## Effects
 
 `registerProductionEffect({ id, order, areas, ownOnly?, describe })` lets other
@@ -333,6 +460,11 @@ lines on each listed area's row (stored levels); the change dialog calls it
 with the current and the proposed levels. Register once, when the registering
 system's `index.ts` is imported; a duplicate id throws. `ownOnly` lines name
 something private and are never shown to a rival.
+
+EVT4's show-quality ceiling, `cardFlow.showCeiling` (stage, camera, editing,
+pyro; order 10; public, like the levels), reads "Shows can score up to 47 (90
+earns an extra main-card slot)" with the ceiling's Why?
+(`card-flow.md#production-ceiling`); the change dialog shows it before → after.
 
 ECO7's own two: `production.popularityCeiling` (marketing, back office;
 "Popularity above 30 slowly falls back"; the dialog shows it as the fixed

@@ -108,6 +108,46 @@ test.describe('settings', () => {
     await expectNoHorizontalScroll(page);
   });
 
+  test('phone: at 150% UI scale the news ticker stays inside its strip', async ({
+    page,
+  }, testInfo) => {
+    test.skip(!isPhone(testInfo), 'The docked ticker over the phone tab bar');
+    await page.goto('/settings');
+    await page.getByRole('slider', { name: 'UI scale' }).fill('1.5');
+    await expect.poll(() => uiScaleOnPage(page)).toBe('1.5');
+    await enterShell(page);
+    const ticker = page.getByRole('region', { name: 'News ticker' });
+    await expect(ticker).toHaveAttribute('data-motion', 'crawl');
+    await expect(page.getByTestId('next-day')).toBeVisible();
+    await expectNoHorizontalScroll(page);
+
+    const fit = await ticker.evaluate((strip) => {
+      const box = (element: Element | null) => {
+        const rect = element?.getBoundingClientRect();
+        return { left: rect?.left ?? -1, right: rect?.right ?? Infinity, width: rect?.width ?? 0 };
+      };
+      const badge = strip.firstElementChild;
+      return {
+        viewportWidth: document.documentElement.clientWidth,
+        strip: box(strip),
+        badge: box(badge),
+        badgeClipped: badge === null || badge.scrollWidth > badge.clientWidth,
+        headlines: box(strip.querySelector('[data-part="viewport"]')),
+        pause: box(strip.querySelector('button')),
+      };
+    });
+    // The strip spans the phone and nothing in it reaches past its edges.
+    expect(fit.strip.left).toBeGreaterThanOrEqual(0);
+    expect(fit.strip.right).toBeLessThanOrEqual(fit.viewportWidth);
+    for (const part of [fit.badge, fit.headlines, fit.pause]) {
+      expect(part.left).toBeGreaterThanOrEqual(fit.strip.left);
+      expect(part.right).toBeLessThanOrEqual(fit.strip.right);
+    }
+    // The badge wraps its words rather than crowding out the headlines or cutting itself off.
+    expect(fit.badgeClipped).toBe(false);
+    expect(fit.headlines.width).toBeGreaterThan(fit.badge.width);
+  });
+
   test('the dark theme and the chosen preferences survive a reload', async ({ page }) => {
     await page.goto('/settings');
     await page.getByRole('radio', { name: 'Reduce motion' }).check();

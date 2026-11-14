@@ -98,7 +98,11 @@ promotion for the month ahead, at that morning's levels
 ([production.md](production.md#monthly-overhead)). Its daily
 `production.popularityDrag` (`growth`, order 90) pulls popularity above a
 promotion's popularity ceiling down towards it through the popularity door
-([production.md](production.md#popularity-drag)).
+([production.md](production.md#popularity-drag)). Just before the overhead,
+the temporary `production.rivalBudget` (`money`, order 33, monthly on the 1st)
+lets each computer-run promotion lower (or raise) its levels to fit its cash
+until AIP8's rival desk takes over
+([production.md](production.md#rival-production-budget)).
 
 Both post through `postMoney`, visit promotions in id order, post nothing for
 a zero amount and draw no random numbers (only the ledger rows' ids).
@@ -235,10 +239,11 @@ id, the event's `seq` and the error). It also goes into the failure log as
 
 The reactions to show night so far:
 
-| Reaction                  | Event            | What it does                                                                                                                          |
-| ------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `promoPop.applyAfterShow` | `show.completed` | Applies the show's popularity change ([promotion-popularity.md](promotion-popularity.md)).                                            |
-| `finance.postShowCosts`   | `show.completed` | Posts the show's appearance fees, travel and catering, player and rival alike, once per show ([finances.md](finances.md#show-costs)). |
+| Reaction                  | Event            | What it does                                                                                                                                                   |
+| ------------------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `promoPop.applyAfterShow` | `show.completed` | Applies the show's popularity change ([promotion-popularity.md](promotion-popularity.md)).                                                                     |
+| `finance.postShowCosts`   | `show.completed` | Posts the show's appearance fees, travel and catering, player and rival alike, once per show ([finances.md](finances.md#show-costs)).                          |
+| `production.showCosts`    | `show.completed` | Posts the show's stage, camera, editing and pyro as one Production row, player and rival alike, once per show ([production.md](production.md#per-show-costs)). |
 
 ### Reports
 
