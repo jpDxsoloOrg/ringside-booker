@@ -159,6 +159,7 @@ function HeatPanel({
             dangerFrom={hotFrom}
             dangerLabel={HOT_LABEL}
             showValue={false}
+            hideLabel
             className={styles['meter']}
           />
           <Explained value={storyline.heat} label="Heat" traceRef={storyline.heatTraceRef} />

@@ -5,6 +5,7 @@ import { AlignmentChip } from '@/components/AlignmentChip';
 import { IconButton } from '@/components/Button';
 import { formatNumber } from '@/components/format';
 import { ImageSlot } from '@/components/ImageSlot';
+import { VisuallyHidden } from '@/components/layout';
 import { RadioGroup } from '@/components/RadioGroup';
 import type { RadioOption } from '@/components/RadioGroup';
 import { STORYLINE_SIDE_LABELS } from '@/components/StorylineSideChip';
@@ -185,8 +186,7 @@ export function MemberPicker({
                   type="button"
                   className={styles['optionRow']}
                   disabled={disabled || picked || already || full}
-                  aria-label={`Add ${option.name}`}
-                  aria-describedby={`${factsId}-${option.personId}`}
+                  aria-describedby={`${factsId}-${option.personId} ${factsId}-${option.personId}-alignment`}
                   onClick={() => {
                     add(option);
                   }}
@@ -202,14 +202,24 @@ export function MemberPicker({
                     decorative
                   />
                   <span className={styles['optionText']}>
-                    <span className={styles['optionName']}>{option.name}</span>
-                    <span id={`${factsId}-${option.personId}`} className={styles['optionFacts']}>
+                    {/* Named "Add <name>"; the facts and the chip describe it. */}
+                    <span className={styles['optionName']}>
+                      <VisuallyHidden>Add </VisuallyHidden>
+                      {option.name}
+                    </span>
+                    <span
+                      id={`${factsId}-${option.personId}`}
+                      className={styles['optionFacts']}
+                      aria-hidden="true"
+                    >
                       {memberOptionFacts(option)}
                       {picked && ' · Picked'}
                       {already && ' · Already in it'}
                     </span>
                   </span>
-                  <AlignmentChip alignment={option.alignment} size="sm" />
+                  <span id={`${factsId}-${option.personId}-alignment`} aria-hidden="true">
+                    <AlignmentChip alignment={option.alignment} size="sm" />
+                  </span>
                 </button>
               </li>
             );
