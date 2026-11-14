@@ -12,6 +12,7 @@ import {
   ratingsBonusShare,
   renewalValuation,
   revalueDeal,
+  type DealHealthAiring,
   type DealHealthInputs,
 } from '../../../src/systems/broadcast';
 import { createEngineTunables } from '../../../src/systems/tunables';
@@ -103,6 +104,13 @@ describe('ratingsBonusShare', () => {
 });
 
 describe('the Exceeding health', () => {
+  const missedAiring: DealHealthAiring = {
+    airDate: addDays(TODAY, 7),
+    status: 'missed',
+    viewers: 0,
+    expectedViewers: 10_000,
+  };
+
   function inputs(viewerRatio: number, missed = false): DealHealthInputs {
     const aired = Array.from({ length: 6 }, (_, index) => ({
       airDate: addDays(TODAY, -7 * index),
@@ -114,11 +122,7 @@ describe('the Exceeding health', () => {
       networkName: 'Local TV',
       reachTier: 0,
       daysSinceStart: 365,
-      recent: missed
-        ? [{ airDate: addDays(TODAY, 7), status: 'missed', viewers: 0, expectedViewers: 10_000 }]
-            .concat(aired)
-            .slice(0, 8)
-        : aired,
+      recent: missed ? [missedAiring, ...aired].slice(0, 8) : aired,
       upcomingMissed: [],
     };
   }

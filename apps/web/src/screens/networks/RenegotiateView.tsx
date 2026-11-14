@@ -6,6 +6,8 @@ import { formatGameDate, formatSignedMoney } from '@/components/format';
 import type { MoneyFormatter } from '@/components/format';
 import { Select } from '@/components/Select';
 import { Explained, WhyButton, whyButtonLabel } from '@/components/Trace';
+import { Badge } from '@/components/Badge';
+import { DealTargetsList } from './components/DealTargetsList';
 import { VerdictBadge } from './components/VerdictBadge';
 import {
   DEAL_LENGTH_MONTHS,
@@ -39,12 +41,21 @@ interface TermLine {
   readonly next: DealValuation['terms']['feePerShow'];
   readonly goodWhen: 'up' | 'down';
   readonly perBuy: boolean;
+  /** The deal term this line shows, to place a renewal uplift's chip (ECO8-10). */
+  readonly term: keyof DealValuation['terms'];
+}
+
+/** "+10% for beating expectations": the chip on a renewed term that earned the uplift. */
+export function upliftChipText(share: number): string {
+  return `+${String(Math.round(share * 100))}% for beating expectations`;
 }
 
 /**
  * Renewing a deal: pick a length, and see the network's terms today next to the current ones
  * (fee, per thousand or per buy, airtime), the new end date, what each airing would leave you
- * with, and whether the network would sign, all with their Why?. Reads `broadcast.valuation` for
+ * with, the targets the renewed deal will be judged by, and whether the network would sign, all
+ * with their Why?. A deal beating the network's expectations renews with an uplift (ECO8-10): a
+ * chip on the term it raised and the reason in words. Reads `broadcast.valuation` for
  * the deal's own network, show, timeslot and live, with `dealId`.
  */
 export function RenegotiateView({
@@ -84,6 +95,7 @@ export function RenegotiateView({
                   next: valuation.terms.feePerShow,
                   goodWhen: 'up' as const,
                   perBuy: false,
+                  term: 'feePerShow' as const,
                 },
               ]),
           {
@@ -92,6 +104,7 @@ export function RenegotiateView({
             next: valuation.terms.perThousandViewers,
             goodWhen: 'up',
             perBuy: deal.kind === 'ppv',
+            term: 'perThousandViewers',
           },
           {
             label: 'Airtime cost per show',
@@ -99,6 +112,7 @@ export function RenegotiateView({
             next: valuation.terms.costPerShow,
             goodWhen: 'down',
             perBuy: false,
+            term: 'costPerShow',
           },
         ];
 
@@ -171,12 +185,20 @@ export function RenegotiateView({
                         display={signed(line.next.value - line.current)}
                         goodWhen={line.goodWhen}
                       />
+                      {valuation.renewalUplift?.term === line.term && (
+                        <Badge tone="prestige">
+                          {upliftChipText(valuation.renewalUplift.share)}
+                        </Badge>
+                      )}
                     </span>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          {valuation.renewalUplift !== null && (
+            <p className={styles['upliftNote']}>{valuation.renewalUplift.reason}.</p>
+          )}
           <dl className={styles['terms']}>
             <div>
               <dt>New end date</dt>
@@ -198,6 +220,12 @@ export function RenegotiateView({
               </dd>
             </div>
           </dl>
+          <h3 className={styles['subHeading']}>What {deal.networkName} will expect</h3>
+          <DealTargetsList
+            targets={valuation.targets}
+            kind={deal.kind}
+            networkName={deal.networkName}
+          />
           {valuation.incomePerAiring.value < 0 && (
             <p className={styles['lossNote']}>{LOSES_MONEY_TEXT}</p>
           )}

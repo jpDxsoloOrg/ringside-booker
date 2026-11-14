@@ -6,6 +6,7 @@ import type { MoneyFormatter } from '@/components/format';
 import { ImageSlot } from '@/components/ImageSlot';
 import { Explained } from '@/components/Trace';
 import { DealHealthBadge } from './components/DealHealthBadge';
+import { DealTargetsList } from './components/DealTargetsList';
 import { DealTrend } from './components/DealTrend';
 import { END_REASON_TEXT, formatSlot, perBuyText } from './networkText';
 import styles from './Networks.module.css';
@@ -56,8 +57,8 @@ export function DealStanding({ row }: { readonly row: DealRow }) {
 /**
  * The Your deals table, declared once for the desktop table and the phone cards: logo (media),
  * network and show (title, a button that opens the deal sheet), slot (subtitle), fee, last and
- * expected viewers (stats, each with its Why?), the trend (desktop only), health and end date
- * (meta).
+ * expected viewers (stats, each with its Why?), the trend (desktop only), health, the targets in
+ * viewers (ECO8-10) and end date (meta).
  */
 export function dealColumns(context: DealColumnContext): readonly ColumnDef<DealRow>[] {
   const { money, today, onOpen } = context;
@@ -166,6 +167,23 @@ export function dealColumns(context: DealColumnContext): readonly ColumnDef<Deal
       id: 'health',
       header: 'Health',
       cell: (row) => <DealStanding row={row} />,
+      card: 'meta',
+    },
+    {
+      id: 'targets',
+      header: 'Targets',
+      cell: (row) =>
+        row.targets === null ? (
+          <span className={styles['muted']}>—</span>
+        ) : (
+          <DealTargetsList
+            targets={row.targets}
+            kind={row.kind}
+            networkName={row.networkName}
+            variant="compact"
+          />
+        ),
+      width: 'md',
       card: 'meta',
     },
     {

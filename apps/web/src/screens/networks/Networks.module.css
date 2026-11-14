@@ -126,6 +126,22 @@
   text-transform: uppercase;
 }
 
+/* A heading inside a sheet section: the deal's targets (ECO8-10), what the network will expect. */
+.subHeading {
+  margin: var(--space-2) 0 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* A renewal that beats the network's expectations says what it earned, in the prestige colour. */
+.upliftNote {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  margin: 0;
+}
+
 .terms {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 11rem), 1fr));
