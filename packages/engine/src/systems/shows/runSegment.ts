@@ -10,7 +10,9 @@
  */
 
 import type { PhaseContext } from '../../core/pipeline/context';
-import type { PersonId } from '../../core/ids';
+import type { PersonId, SegmentId } from '../../core/ids';
+import { detachedStream, type RngStream } from '../../core/rng/registry';
+import type { StreamName } from '../../core/rng/streams';
 import { refKey, traced, type TraceNode, type Traced } from '../../core/trace';
 import { compareIds } from '../../model/table';
 import type { MatchOutcome, SegmentRating } from '../../model/entities/segment';
@@ -148,13 +150,46 @@ function storedRating(rated: SegmentRatingResult, traceId: string): SegmentRatin
   };
 }
 
+/** The key a segment's own streams are derived under (with the stream name and the game seed). */
+export function segmentStreamKey(segmentId: SegmentId): string {
+  return `showNight/${segmentId}`;
+}
+
+/**
+ * The step context a segment runs in: the same context, except that every random stream it asks
+ * for is the segment's own, derived from the game seed, the stream's name and the segment's id
+ * (EVT10-01). A segment then rolls the same numbers whether it runs alone from the show screen,
+ * with the rest of its show, or after anything else the player did in between, and it never moves
+ * a world stream. Repeat asks for one name return the same stream, so draws continue.
+ *
+ * Design: docs/design/show-night.md#live-show-night and docs/design/determinism.md.
+ */
+export function withSegmentStreams(ctx: PhaseContext, segmentId: SegmentId): PhaseContext {
+  const streams = new Map<StreamName, RngStream>();
+  const seed = ctx.read.meta.seed;
+  const key = segmentStreamKey(segmentId);
+  return {
+    ...ctx,
+    rng: (name) => {
+      const existing = streams.get(name);
+      if (existing !== undefined) {
+        return existing;
+      }
+      const created = detachedStream(seed, name, key);
+      streams.set(name, created);
+      return created;
+    },
+  };
+}
+
 /**
  * Runs one segment and returns its score, or null when it could not be rated (it then counts as
  * an empty slot). A segment that already has a rating is left as it is and its stored score
- * returned.
+ * returned. Everything random in it (the finish, the rating, the appliers) rolls on the segment's
+ * own streams ({@link withSegmentStreams}).
  */
 export function runSegment(
-  ctx: PhaseContext,
+  stepCtx: PhaseContext,
   show: ShowContext,
   entry: ShowSegment,
 ): number | null {
@@ -163,6 +198,7 @@ export function runSegment(
   if (isSegmentRun(segment)) {
     return segment.rating?.score ?? null;
   }
+  const ctx = withSegmentStreams(stepCtx, segment.id);
 
   const resolution = resolveMatch(ctx, show, entry);
   const rated = rateSegment(ratingInputFromSegment(ctx.read, segment.id), {

@@ -119,6 +119,16 @@ export const GenericVenueSchema = z.strictObject({
   capacity: z.number().int().min(1).max(VENUE_CAPACITY_MAX),
 });
 
+/**
+ * A show the player is running live, one segment at a time (EVT10-01): the segments run so far, in
+ * running order. A segment that could not be rated is listed too, so the show always moves on.
+ * Present only while the show is part-way through; the show's completion removes it. Absent on
+ * every computer show and on every show of a save made before EVT10-01.
+ */
+export const LiveShowRunSchema = z.strictObject({
+  ranSegmentIds: z.array(zId('segment')).max(200),
+});
+
 export const EventInstanceSchema = z
   .strictObject({
     id: zId('eventInstance'),
@@ -147,6 +157,8 @@ export const EventInstanceSchema = z
     result: EventResultSchema.nullable(),
     /** Set exactly when the show is cancelled. */
     cancellation: EventCancellationSchema.nullable(),
+    /** Set only while the player is part-way through running the show live (EVT10-01). */
+    liveRun: LiveShowRunSchema.optional(),
   })
   .refine((instance) => compareDates(instance.airDate, instance.date) >= 0, {
     message: 'airDate must not be before date',
@@ -163,13 +175,21 @@ export const EventInstanceSchema = z
   .refine((instance) => isPresentIff(instance.cancellation, instance.status === 'cancelled'), {
     message: 'cancellation is set exactly when status is cancelled',
     path: ['cancellation'],
-  });
+  })
+  .refine(
+    (instance) =>
+      instance.liveRun === undefined ||
+      instance.status === 'scheduled' ||
+      instance.status === 'booked',
+    { message: 'only a show that has not finished can be part-way through', path: ['liveRun'] },
+  );
 
 export type EventResult = z.infer<typeof EventResultSchema>;
 export type ShowHistory = z.infer<typeof ShowHistorySchema>;
 export type ShowHistoryMainEvent = z.infer<typeof ShowHistoryMainEventSchema>;
 export type GenericVenue = z.infer<typeof GenericVenueSchema>;
 export type EventCancellation = z.infer<typeof EventCancellationSchema>;
+export type LiveShowRun = z.infer<typeof LiveShowRunSchema>;
 export type EventInstance = z.infer<typeof EventInstanceSchema>;
 
 /**
