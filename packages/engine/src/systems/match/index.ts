@@ -276,6 +276,7 @@ export {
   toStoredBeat,
   type AngleSides,
   type SideConflict,
+  type SidedBeat,
   type SideOf,
 } from './angles/beatGroups';
 export {

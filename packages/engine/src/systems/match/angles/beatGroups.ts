@@ -9,8 +9,9 @@
  *   and everyone else in group two.
  *
  * `toStoredBeat` writes group one first, so the two round-trip as long as each person keeps one
- * side for the whole angle. `assignAngleSides` gives every person that side, or names the pair
- * that makes it impossible (the lab warns about it, MTCH5-03).
+ * side for the whole angle, group one of a two-group beat is on one side and group two is not on
+ * it. `assignAngleSides` gives every person such a side, or names the pair that makes it
+ * impossible (the lab warns about it, MTCH5-03).
  *
  * Design: docs/design/angle-rating.md, "Beat groups and sides".
  */
@@ -95,32 +96,64 @@ class SideUnion {
   }
 }
 
+/** One beat's people for `assignAngleSides`. */
+export interface SidedBeat {
+  readonly groupOne: readonly PersonId[];
+  readonly groupTwo: readonly PersonId[];
+  /**
+   * The catalog beat has two groups. Left out, a beat counts as two-group when `groupTwo` has
+   * someone in it; pass it for a two-group beat whose optional second group is left empty.
+   */
+  readonly twoGroups?: boolean;
+}
+
+function isTwoGroup(beat: SidedBeat): boolean {
+  return beat.twoGroups ?? beat.groupTwo.length > 0;
+}
+
+/** True when joining the sides rooted at `left` and `right` would put a beat's groups together. */
+function joinConflicts(
+  union: SideUnion,
+  beats: readonly SidedBeat[],
+  left: PersonId,
+  right: PersonId,
+): boolean {
+  const inSide = (root: PersonId) => (personId: PersonId) => union.root(personId) === root;
+  return beats.some(
+    (beat) =>
+      isTwoGroup(beat) &&
+      ((beat.groupOne.some(inSide(left)) && beat.groupTwo.some(inSide(right))) ||
+        (beat.groupOne.some(inSide(right)) && beat.groupTwo.some(inSide(left)))),
+  );
+}
+
 /**
- * One participant side per person for the whole angle. People who share a group in any beat
- * share a side; sides are numbered 0, 1, 2... in order of first appearance. Returns the first
- * conflict instead when two people who must share a side face each other in some beat.
+ * One participant side per person for the whole angle, so that `beatGroupsOf` gives every beat
+ * back the groups it was built with:
+ *
+ * - in a two-group beat, everyone in group one must share a side, and nobody in group two may be
+ *   on it;
+ * - a one-group beat puts no constraint on sides (both sides may brawl together).
+ *
+ * People in one group two share a side too when that breaks no beat (side B of a war of words),
+ * but not when it would (the subjects of an announcement who then face each other). Sides are
+ * numbered 0, 1, 2... in order of first appearance. Returns the first conflict instead when two
+ * people who must share a side face each other in some beat.
  */
-export function assignAngleSides(
-  beats: readonly {
-    readonly groupOne: readonly PersonId[];
-    readonly groupTwo: readonly PersonId[];
-  }[],
-): AngleSides {
+export function assignAngleSides(beats: readonly SidedBeat[]): AngleSides {
   const union = new SideUnion();
   const order: PersonId[] = [];
   for (const beat of beats) {
-    for (const group of [beat.groupOne, beat.groupTwo]) {
-      for (const personId of group) {
-        if (!order.includes(personId)) {
-          order.push(personId);
-        }
-        union.add(personId);
+    for (const personId of [...beat.groupOne, ...beat.groupTwo]) {
+      if (!order.includes(personId)) {
+        order.push(personId);
       }
-      const [first, ...rest] = group;
-      if (first !== undefined) {
-        for (const personId of rest) {
-          union.join(first, personId);
-        }
+      union.add(personId);
+    }
+    const [first, ...rest] = beat.groupOne;
+    if (first !== undefined && isTwoGroup(beat)) {
+      for (const personId of rest) {
+        union.join(first, personId);
       }
     }
   }
@@ -130,6 +163,20 @@ export function assignAngleSides(
       const opposed = beat.groupTwo.find((personB) => union.root(personA) === union.root(personB));
       if (opposed !== undefined) {
         return { conflict: { personA, personB: opposed, beatIndex } };
+      }
+    }
+  }
+
+  for (const beat of beats) {
+    const [first, ...rest] = beat.groupTwo;
+    if (first === undefined || !isTwoGroup(beat)) {
+      continue;
+    }
+    for (const personId of rest) {
+      const left = union.root(first);
+      const right = union.root(personId);
+      if (left !== right && !joinConflicts(union, beats, left, right)) {
+        union.join(first, personId);
       }
     }
   }

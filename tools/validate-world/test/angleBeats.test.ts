@@ -155,7 +155,7 @@ describe('angle-beats', () => {
   it("reports an angle type beat list naming a beat that doesn't exist", async () => {
     const { world } = tinyWorld();
     const catalogs: Catalogs = structuredClone(world.meta.catalogs);
-    const promo = catalogs.angleTypes?.['angle.promo'];
+    const promo = catalogs.angleTypes?.[parseContentKey('angle.promo')];
     if (promo === undefined) {
       throw new Error('no promo angle type');
     }
@@ -173,8 +173,8 @@ describe('angle-beats', () => {
     const { world } = tinyWorld();
     const catalogs: Catalogs = structuredClone(world.meta.catalogs);
     const { angleTypes } = catalogs;
-    const promo = angleTypes?.['angle.promo'];
-    const video = angleTypes?.['angle.video-package'];
+    const promo = angleTypes?.[parseContentKey('angle.promo')];
+    const video = angleTypes?.[parseContentKey('angle.video-package')];
     if (promo === undefined || video === undefined) {
       throw new Error('missing angle types');
     }

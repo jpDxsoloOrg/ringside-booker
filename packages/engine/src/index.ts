@@ -3147,6 +3147,7 @@ export type {
   FittedTemplate,
   GroupedBeat,
   SideConflict,
+  SidedBeat,
   SideOf,
   TalkingStat,
   TemplateCast,
