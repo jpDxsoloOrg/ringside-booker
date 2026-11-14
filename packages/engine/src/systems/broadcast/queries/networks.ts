@@ -18,13 +18,13 @@ import { refuseQuery } from '../../../core/api/result';
 import { compareDates, type GameDate, type Weekday } from '../../../core/date';
 import type { DealId, EventDefinitionId, NetworkId, PromotionId } from '../../../core/ids';
 import { DealTimeslotSchema, type DealTimeslot } from '../../../model/entities/deal';
-import { EVENT_IMPORTANCES, type EventDefinition } from '../../../model/entities/event-definition';
+import type { EventDefinition, EventImportance } from '../../../model/entities/event-definition';
 import type { Network, NetworkKind } from '../../../model/entities/network';
 import { compareIds } from '../../../model/table';
 import { zId, type ImageRef } from '../../../model/primitives';
 import type { GameWorldView } from '../../../model/tables';
-import { reachOf } from '../../finance/reach';
-import type { EngineTunables } from '../../tunables';
+import type { EngineTunables, NumberTunableKey } from '../../tunables';
+import type { AudienceImportance } from '../formulas/audience';
 import { BROADCAST_ELIGIBLE_IMPORTANCE, networksCovering } from '../coverage';
 import type { DealRefusal, DealVerdictValue } from '../formulas/dealVerdict';
 import {
@@ -32,7 +32,9 @@ import {
   dealIsLive,
   dealShowName,
   dealValuation,
+  valuationContext,
   type DealValuation,
+  type ValuationContext,
 } from '../valuation';
 
 export const NOT_YOUR_PROMOTION = 'notYourPromotion';
@@ -160,38 +162,63 @@ export function coverageLabel(read: GameWorldView, network: Network): string {
   return `${shown} +${String(names.length - COVERAGE_LABEL_NAMES)}`;
 }
 
-function importanceRank(definition: EventDefinition): number {
-  return EVENT_IMPORTANCES.indexOf(definition.importance);
+const IMPORTANCE_FACTOR_KEYS = {
+  minor: 'broadcast.audience.importance.minor',
+  regular: 'broadcast.audience.importance.regular',
+  major: 'broadcast.audience.importance.major',
+  flagship: 'broadcast.audience.importance.flagship',
+} as const satisfies Readonly<Record<AudienceImportance, NumberTunableKey>>;
+
+/** How many viewers a show of this importance draws against a regular one (the audience factor). */
+function drawOf(importance: EventImportance, tunables: EngineTunables): number {
+  return importance === 'house' ? 0 : tunables.get(IMPORTANCE_FACTOR_KEYS[importance]);
+}
+
+interface OfferCandidate {
+  readonly eventDefinitionId: EventDefinitionId | null;
+  readonly draw: number;
+  readonly rank: number;
 }
 
 /**
- * The shows `bestOffer` values on a network: a promotion-wide deal first on pay-per-view, then the
- * promotion's current shows the network kind carries and that are not on it yet, most important
- * first, at most {@link BEST_OFFER_MAX_VALUATIONS}.
+ * The shows `bestOffer` values on a network: the promotion's current shows the network kind
+ * carries and that are not on it yet (plus a promotion-wide deal on pay-per-view, valued as a major
+ * show), biggest draw first, at most {@link BEST_OFFER_MAX_VALUATIONS}.
  */
 function offerCandidates(
   read: GameWorldView,
+  tunables: EngineTunables,
   promotionId: PromotionId,
   network: Network,
   onNetwork: ReadonlySet<EventDefinitionId | null>,
 ): (EventDefinitionId | null)[] {
   const today = read.meta.currentDate;
   const eligible = BROADCAST_ELIGIBLE_IMPORTANCE[network.kind];
-  const shows = read.tables.eventDefinitions
+  const candidates: OfferCandidate[] = read.tables.eventDefinitions
     .lookup('byPromotion', promotionId)
     .filter(
-      (definition) =>
+      (definition: EventDefinition) =>
         eligible.includes(definition.importance) &&
         !onNetwork.has(definition.id) &&
         (definition.activeUntil === null || compareDates(today, definition.activeUntil) <= 0),
     )
+    .map((definition) => ({
+      eventDefinitionId: definition.id,
+      draw: drawOf(definition.importance, tunables),
+      rank: 1,
+    }));
+  if (network.kind === 'ppv' && !onNetwork.has(null)) {
+    candidates.push({ eventDefinitionId: null, draw: drawOf('major', tunables), rank: 0 });
+  }
+  return candidates
     .sort(
       (left, right) =>
-        importanceRank(right) - importanceRank(left) || compareIds(left.id, right.id),
+        right.draw - left.draw ||
+        left.rank - right.rank ||
+        compareIds(left.eventDefinitionId ?? '', right.eventDefinitionId ?? ''),
     )
-    .map((definition): EventDefinitionId | null => definition.id);
-  const candidates = network.kind === 'ppv' && !onNetwork.has(null) ? [null, ...shows] : shows;
-  return candidates.slice(0, BEST_OFFER_MAX_VALUATIONS);
+    .slice(0, BEST_OFFER_MAX_VALUATIONS)
+    .map((candidate) => candidate.eventDefinitionId);
 }
 
 /** Better first: an accepted offer beats a refused one; then income, then fewer refusals. */
@@ -215,22 +242,32 @@ function bestOffer(
   network: Network,
   primeTimeOpen: boolean,
   onNetwork: ReadonlySet<EventDefinitionId | null>,
+  context: ValuationContext,
 ): NetworkBestOffer | null {
   // The network's best slot the promotion may have: prime time once its reach allows it.
   const timeslot: DealTimeslot = network.kind === 'ppv' || primeTimeOpen ? 'primeTime' : 'evening';
   const months = tunables.get('broadcast.deal.defaultMonths');
   let best: { id: EventDefinitionId | null; valuation: DealValuation } | null = null;
-  for (const eventDefinitionId of offerCandidates(read, promotionId, network, onNetwork)) {
-    const valuation = dealValuation(read, tunables, {
-      promotionId,
-      networkId: network.id,
-      eventDefinitionId,
-      timeslot,
-      live: false,
-      months,
-    });
+  for (const eventDefinitionId of offerCandidates(
+    read,
+    tunables,
+    promotionId,
+    network,
+    onNetwork,
+  )) {
+    const valuation = dealValuation(
+      read,
+      tunables,
+      { promotionId, networkId: network.id, eventDefinitionId, timeslot, live: false, months },
+      context,
+    );
     if (best === null || compareOffers(valuation, best.valuation) < 0) {
       best = { id: eventDefinitionId, valuation };
+    }
+    // Shows come biggest draw first, and the ratio, prime time and camera checks do not depend on
+    // the show: the first one the network signs pays the most, so nothing after it can beat it.
+    if (valuation.verdict === 'accept') {
+      break;
     }
   }
   if (best === null) {
@@ -253,7 +290,8 @@ function networkRows(
   promotionId: PromotionId,
 ): NetworkRow[] {
   const today = read.meta.currentDate;
-  const reach = reachOf(read, promotionId, tunables).reach.value;
+  const context = valuationContext(read, tunables, promotionId);
+  const reach = context.reach?.value ?? 0;
   const primeTimeOpen = reach >= tunables.get('broadcast.deal.primeTimeMinReach');
   return networksCovering(read, promotionId, tunables)
     .sort(
@@ -284,7 +322,15 @@ function networkRows(
           timeslot: deal.timeslot,
         })),
         yourDeals: own.map((deal) => deal.id),
-        bestOffer: bestOffer(read, tunables, promotionId, network, primeTimeOpen, onNetwork),
+        bestOffer: bestOffer(
+          read,
+          tunables,
+          promotionId,
+          network,
+          primeTimeOpen,
+          onNetwork,
+          context,
+        ),
       };
     });
 }

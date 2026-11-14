@@ -155,10 +155,14 @@ export function definitionWeekday(definition: EventDefinition | null): Weekday |
   }
 }
 
-/** People living in the regions a network covers. */
-export function coveredPopulation(read: GameWorldView, network: Network): number {
+/** People living in the regions a network covers (its covered regions, when already known). */
+export function coveredPopulation(
+  read: GameWorldView,
+  network: Network,
+  regionIds: readonly RegionId[] = coveredRegionIds(network, read),
+): number {
   let people = 0;
-  for (const regionId of coveredRegionIds(network, read)) {
+  for (const regionId of regionIds) {
     people += read.tables.regions.get(regionId)?.population ?? 0;
   }
   return people;
@@ -166,6 +170,42 @@ export function coveredPopulation(read: GameWorldView, network: Network): number
 
 function coversAny(read: GameWorldView, network: Network, regions: ReadonlySet<RegionId>): boolean {
   return coveredRegionIds(network, read).some((regionId) => regions.has(regionId));
+}
+
+/** A projected audience and the network's benchmark for one slot. */
+interface SlotAudience {
+  readonly projected: Traced<number>;
+  readonly benchmark: Traced<number>;
+}
+
+/**
+ * Facts about the promotion a caller valuing many deals in one read has already worked out
+ * (`broadcast.networks`), so each valuation does not redo them. Every field is optional; a
+ * valuation without a context works them out itself and gives the same result.
+ */
+export interface ValuationContext {
+  /** The promotion's ECO1 reach. */
+  readonly reach?: Traced<number>;
+  /** The promotion's market regions (`promotionMarketRegionIds`). */
+  readonly marketRegionIds?: ReadonlySet<RegionId>;
+  /**
+   * Audiences worked out earlier in the same read, by network, slot, live and importance. The
+   * valuation adds to it. Only share it within one read of one world.
+   */
+  readonly audiences?: Map<string, SlotAudience>;
+}
+
+/** A fresh context for valuing many deals of one promotion in one read. */
+export function valuationContext(
+  read: GameWorldView,
+  tunables: EngineTunables,
+  promotionId: PromotionId,
+): ValuationContext {
+  return {
+    reach: reachOf(read, promotionId, tunables).reach,
+    marketRegionIds: new Set(promotionMarketRegionIds(read, promotionId, tunables)),
+    audiences: new Map(),
+  };
 }
 
 /** True when the network is for every promotion, or the promotion's own service. */
@@ -191,6 +231,7 @@ function conflicts(
   read: GameWorldView,
   request: DealValuationRequest,
   network: Network,
+  regions: ReadonlySet<RegionId>,
   weekday: Weekday | null,
 ): ConflictFacts {
   const today = read.meta.currentDate;
@@ -202,7 +243,6 @@ function conflicts(
   const alreadyOnNetwork = sameShow.some((deal) => deal.networkId === network.id);
 
   let overlapNetworkName: string | null = null;
-  const regions = new Set(coveredRegionIds(network, read));
   for (const deal of sameShow) {
     const other = read.tables.networks.get(deal.networkId);
     if (
@@ -266,6 +306,54 @@ function incomePerAiring(
   return calc.done();
 }
 
+/** The projected audience and the benchmark, from the cache when this slot was worked out. */
+function slotAudience(
+  read: GameWorldView,
+  tunables: EngineTunables,
+  slot: {
+    readonly request: DealValuationRequest;
+    readonly network: Network;
+    readonly importance: EventImportance;
+    readonly showName: string;
+  },
+  cache: Map<string, SlotAudience> | undefined,
+): SlotAudience {
+  const { request, network, importance, showName } = slot;
+  if (importance === 'house') {
+    return {
+      projected: zeroAudience(`Viewers ${showName} would draw on ${network.name}`),
+      benchmark: zeroAudience(`What ${network.name} expects`),
+    };
+  }
+  const key = [
+    request.promotionId,
+    network.id,
+    request.timeslot,
+    String(request.live),
+    importance,
+  ].join('|');
+  const cached = cache?.get(key);
+  if (cached !== undefined) {
+    return cached;
+  }
+  const audience: SlotAudience = {
+    projected: projectedAudience(read, tunables, {
+      promotionId: request.promotionId,
+      networkId: network.id,
+      timeslot: request.timeslot,
+      live: request.live,
+      importance,
+    }),
+    benchmark: benchmarkFor(read, tunables, {
+      networkId: network.id,
+      timeslot: request.timeslot,
+      importance,
+    }),
+  };
+  cache?.set(key, audience);
+  return audience;
+}
+
 /**
  * What the network would pay for the show and whether it would sign. Deterministic: the same
  * world and request always give the same verdict, terms and traces.
@@ -276,6 +364,7 @@ export function dealValuation(
   read: GameWorldView,
   tunables: EngineTunables,
   request: DealValuationRequest,
+  context: ValuationContext = {},
 ): DealValuation {
   const today = read.meta.currentDate;
   const promotion = read.tables.promotions.require(request.promotionId);
@@ -288,24 +377,13 @@ export function dealValuation(
   const showName = definition?.name ?? promotionWideShowName(network);
   const weekday = definitionWeekday(definition);
 
-  const projectedViewers =
-    importance === 'house'
-      ? zeroAudience(`Viewers ${showName} would draw on ${network.name}`)
-      : projectedAudience(read, tunables, {
-          promotionId: promotion.id,
-          networkId: network.id,
-          timeslot: request.timeslot,
-          live: request.live,
-          importance,
-        });
-  const benchmark =
-    importance === 'house'
-      ? zeroAudience(`What ${network.name} expects`)
-      : benchmarkFor(read, tunables, {
-          networkId: network.id,
-          timeslot: request.timeslot,
-          importance,
-        });
+  const { projected: projectedViewers, benchmark } = slotAudience(
+    read,
+    tunables,
+    { request, network, importance, showName },
+    context.audiences,
+  );
+  const coveredIds = coveredRegionIds(network, read);
 
   const { ratio, ...terms } = dealTerms(
     {
@@ -313,14 +391,15 @@ export function dealValuation(
       live: request.live,
       projected: projectedViewers,
       benchmark,
-      coveredPopulation: coveredPopulation(read, network),
+      coveredPopulation: coveredPopulation(read, network, coveredIds),
       reachTier: network.reachTier,
       networkName: network.name,
     },
     { tunables },
   );
 
-  const market = new Set(promotionMarketRegionIds(read, promotion.id, tunables));
+  const market =
+    context.marketRegionIds ?? new Set(promotionMarketRegionIds(read, promotion.id, tunables));
   const primeTimeAsked = network.kind !== 'ppv' && request.timeslot === 'primeTime';
   const verdict = dealVerdict(
     {
@@ -331,9 +410,10 @@ export function dealValuation(
       importance,
       timeslot: request.timeslot,
       networkOnAir: networkOnAir(network, today),
-      inMarket: openTo(network, promotion.id) && coversAny(read, network, market),
-      ...conflicts(read, request, network, weekday),
-      reach: primeTimeAsked ? reachOf(read, promotion.id, tunables).reach : null,
+      inMarket:
+        openTo(network, promotion.id) && coveredIds.some((regionId) => market.has(regionId)),
+      ...conflicts(read, request, network, new Set(coveredIds), weekday),
+      reach: primeTimeAsked ? (context.reach ?? reachOf(read, promotion.id, tunables).reach) : null,
       camera: promotion.production.camera,
       projected: projectedViewers.value,
       ratio,

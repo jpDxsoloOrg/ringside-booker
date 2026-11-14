@@ -117,9 +117,11 @@ export {
   HOUSE_SHOW_NOTE,
   promotionWideImportance,
   promotionWideShowName,
+  valuationContext,
   type DealValuation,
   type DealValuationRequest,
   type DealValuationTerms,
+  type ValuationContext,
 } from './valuation';
 export {
   BEST_OFFER_MAX_VALUATIONS,
