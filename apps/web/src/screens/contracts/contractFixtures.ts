@@ -7,6 +7,7 @@ import { parseGameDate, parseId } from '@ringside/engine';
 import type {
   AnswerPreview,
   ContractRow,
+  FreeAgentRow,
   OwnContractDetail,
   PrivateContractDetail,
   TraceNode,
@@ -52,6 +53,47 @@ export function aContractRow(overrides: Partial<ContractRow> = {}): ContractRow 
     unhappy: null,
     request: null,
     walkout: null,
+    ...overrides,
+  };
+}
+
+export const FIXTURE_COUNTRY = parseId('country', 'cty_0000000901');
+export const FIXTURE_CONTINENT = parseId('continent', 'ctn_0000000901');
+
+/**
+ * "Rhea Cortez", a free agent wrestler asking $41,300 a month, known among your fans and expecting
+ * a mid-card spot (ECO5-09's sort and filter facts included).
+ */
+export function aFreeAgentRow(overrides: Partial<FreeAgentRow> = {}): FreeAgentRow {
+  return {
+    personId: parseId('person', 'per_0000000902'),
+    ringName: 'Rhea Cortez',
+    imageRef: null,
+    roles: ['wrestler'],
+    age: 29,
+    gender: 'female',
+    style: 'technician',
+    peakPop: 48,
+    rating: 61,
+    grade: 'B',
+    situation: 'freeAgent',
+    otherPromotionName: null,
+    endsOn: null,
+    askMonthly: 4_130_000,
+    askPerAppearance: 120_000,
+    bestKind: 'written',
+    cooldownUntil: null,
+    openNegotiationId: null,
+    competingBidders: [],
+    marketValue: 3_900_000,
+    popularityHere: 35,
+    pushExpectation: 'midCard',
+    basedIn: {
+      countryId: FIXTURE_COUNTRY,
+      countryName: 'Mexico',
+      continentId: FIXTURE_CONTINENT,
+      continentName: 'North America',
+    },
     ...overrides,
   };
 }
