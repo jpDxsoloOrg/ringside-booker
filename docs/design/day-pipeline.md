@@ -114,14 +114,14 @@ a zero amount and draw no random numbers (only the ledger rows' ids).
 
 The `periodic` group's weekly phases so far, all on Mondays:
 
-| Phase                      | Order | What it does                                                                                                                                              |
-| -------------------------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `match.momentumDrift`      | 30    | Momentum drifts for workers who did not wrestle that week ([match-aftermath.md](match-aftermath.md#momentum-drift)).                                      |
-| `office.weeklySnapshot`    | 34    | One promotion history row per active or dormant promotion, then old weeks thinned to one row per month ([office.md](office.md#history)).                  |
-| `match.pruneAftermaths`    | 40    | Each worker keeps only their newest stored aftermaths ([match-aftermath.md](match-aftermath.md#stored-aftermaths)).                                       |
-| `history.rollUp`           | 41    | History older than `history.keepDetailDays` becomes summaries and monthly totals ([save-format.md](save-format.md#history-retention)).                    |
-| `health.pruneInjuryDetail` | 44    | The traces of injuries older than `history.keepDetailDays` become summaries; the rows stay ([health.md](health.md#returns)).                              |
-| `storylines.pruneDetail`   | 46    | The heat and starter traces of storylines that ended more than `history.keepDetailDays` ago become summaries ([storylines.md](storylines.md#heat-decay)). |
+| Phase                      | Order | What it does                                                                                                                                |
+| -------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `match.momentumDrift`      | 30    | Momentum drifts for workers who did not wrestle that week ([match-aftermath.md](match-aftermath.md#momentum-drift)).                        |
+| `office.weeklySnapshot`    | 34    | One promotion history row per active or dormant promotion, then old weeks thinned to one row per month ([office.md](office.md#history)).    |
+| `match.pruneAftermaths`    | 40    | Each worker keeps only their newest stored aftermaths ([match-aftermath.md](match-aftermath.md#stored-aftermaths)).                         |
+| `history.rollUp`           | 41    | History older than `history.keepDetailDays` becomes summaries and monthly totals ([save-format.md](save-format.md#history-retention)).      |
+| `health.pruneInjuryDetail` | 44    | The traces of injuries older than `history.keepDetailDays` become summaries; the rows stay ([health.md](health.md#returns)).                |
+| `storylines.pruneDetail`   | 46    | Heat and starter traces of storylines ended over `history.keepDetailDays` ago become summaries ([storylines.md](storylines.md#heat-decay)). |
 
 The `growth` group's storyline phase:
 
