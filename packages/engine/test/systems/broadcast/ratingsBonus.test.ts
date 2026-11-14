@@ -80,16 +80,16 @@ describe('ratingsBonusShare', () => {
     expect(share(1.14)).toBeNull();
   });
 
-  it('pays 10% of the fee at the line, climbing to the 25% cap at 140%', () => {
-    expect(share(1.15)).toBeCloseTo(0.1, 10);
-    expect(share(1.275)).toBeCloseTo(0.175, 10);
-    expect(share(1.4)).toBeCloseTo(0.25, 10);
-    expect(share(3)).toBeCloseTo(0.25, 10);
+  it('pays 7% of the fee at the line, climbing to the 18% cap at 140%', () => {
+    expect(share(1.15)).toBeCloseTo(0.07, 10);
+    expect(share(1.275)).toBeCloseTo(0.125, 10);
+    expect(share(1.4)).toBeCloseTo(0.18, 10);
+    expect(share(3)).toBeCloseTo(0.18, 10);
   });
 
   it('is off when the cap is 0, and pays the cap from the line when the cap is reached there', () => {
     expect(share(2, { 'broadcast.bonus.max': 0 })).toBeNull();
-    expect(share(1.15, { 'broadcast.bonus.fullAt': 1 })).toBeCloseTo(0.25, 10);
+    expect(share(1.15, { 'broadcast.bonus.fullAt': 1 })).toBeCloseTo(0.18, 10);
   });
 
   it('has a Why? that replays', () => {
@@ -167,9 +167,9 @@ describe('the ratings bonus on an airing', () => {
     const bonusRows = world.tables.ledgerEntries.filter(
       (entry) => entry.memo === ratingsBonusMemo('Local TV'),
     );
-    // The cap (25%) of the 1,000.00 fee.
+    // The cap (18%) of the 1,000.00 fee.
     expect(bonusRows.map((entry) => [entry.promotionId, entry.amount, entry.category])).toEqual([
-      [built.you, 25_000, 'broadcast'],
+      [built.you, 18_000, 'broadcast'],
     ]);
     expect(bonusRows[0]?.traceRef).not.toBeNull();
     expect(bonusRows[0]?.refs.dealId).toBe(built.yourDeal);
