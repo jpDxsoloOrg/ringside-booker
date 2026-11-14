@@ -100,7 +100,13 @@ export class QueryCache {
 
   async #load(key: string, loader: CacheLoader, generation: number): Promise<CacheEntry> {
     const entry = await loader();
-    if (generation === this.#generation) this.set(key, entry);
+    if (generation === this.#generation) {
+      // The answer is in, so this request is no longer on its way: a listener of `set` that finds
+      // the answer already stale (the world moved on while it loaded) must start a new request,
+      // not share this finished one and keep the stale answer.
+      this.#inFlight.delete(key);
+      this.set(key, entry);
+    }
     return entry;
   }
 

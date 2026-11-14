@@ -123,11 +123,29 @@ describe('QueryCache', () => {
     await vi.waitFor(() => {
       expect(cache.isFetching('a')).toBe(false);
     });
-    // Fetch started, entry stored, fetch finished.
-    expect(listener).toHaveBeenCalledTimes(3);
+    // Fetch started, then the entry stored with the fetch finished.
+    expect(listener).toHaveBeenCalledTimes(2);
 
     unsubscribe();
     cache.set('a', entry(2));
-    expect(listener).toHaveBeenCalledTimes(3);
+    expect(listener).toHaveBeenCalledTimes(2);
+  });
+
+  it('starts a new request when a listener of the stored answer fetches again', async () => {
+    const cache = new QueryCache();
+    const stale = deferredLoader(entry(1));
+    const fresh = vi.fn(() => Promise.resolve(entry(2)));
+    let refetch: Promise<CacheEntry> | null = null;
+    cache.subscribe('a', () => {
+      // A mounted query that finds the answer older than the world asks again at once.
+      if (cache.peek('a')?.revision === 1 && refetch === null) refetch = cache.fetch('a', fresh);
+    });
+    const first = cache.fetch('a', stale.loader);
+    stale.release();
+    await first;
+
+    expect(fresh).toHaveBeenCalledTimes(1);
+    await expect(refetch).resolves.toEqual(entry(2));
+    expect(cache.peek('a')).toEqual(entry(2));
   });
 });
