@@ -470,16 +470,19 @@ slot is named by number ("Slot 3", "Pre-show slot 1").
 
 ### Warning codes
 
-| Code              | Check              | Rule                                                                                     | Message                                                                                        |
-| ----------------- | ------------------ | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `appearanceCap`   | `booking.warnings` | `terms.appearanceCap` is set and `appearancesThisYear + 1` is above it                   | "Kai Moreno has used 24 of 24 contracted appearances this year"                                |
-| `noHouseShows`    | `booking.warnings` | the contract's `noHouseShows` perk is set and the show's importance is `house`           | "Kai Moreno's contract rules out house shows"                                                  |
-| `otherBrand`      | `booking.warnings` | the contract's brand is set and is not the show's                                        | "Kai Moreno works for Altura Overclock"                                                        |
-| `titleOtherBrand` | `booking.warnings` | the title's brand is set and is not the show's                                           | "The Crown Title belongs to Altura Overclock"                                                  |
-| `titleDivision`   | `booking.warnings` | WRK1's `isEligibleForTitle` gender or weight reasons, for each competitor not holding it | "Kai Moreno: The Women's Title is a women's title"                                             |
-| `injuredTalking`  | `booking.warnings` | an injured worker who can still work angles, booked to talk                              | "Tia Cruz is injured: can talk but not wrestle"                                                |
-| `workingTwice`    | `booking.cardWide` | a competitor in a second or later match, within `booking.maxMatchesPerPersonPerShow`     | "Kai Moreno is also in the Opener: working twice tires them more and raises their injury risk" |
-| `checkFailed`     | the failing check  | a registered check threw                                                                 | "A booking check (<id>) failed; the show can still run"                                        |
+| Code                                                      | Check              | Rule                                                                                     | Message                                                                                        |
+| --------------------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `appearanceCap`                                           | `booking.warnings` | `terms.appearanceCap` is set and `appearancesThisYear + 1` is above it                   | "Kai Moreno has used 24 of 24 contracted appearances this year"                                |
+| `noHouseShows`                                            | `booking.warnings` | the contract's `noHouseShows` perk is set and the show's importance is `house`           | "Kai Moreno's contract rules out house shows"                                                  |
+| `otherBrand`                                              | `booking.warnings` | the contract's brand is set and is not the show's                                        | "Kai Moreno works for Altura Overclock"                                                        |
+| `titleOtherBrand`                                         | `booking.warnings` | the title's brand is set and is not the show's                                           | "The Crown Title belongs to Altura Overclock"                                                  |
+| `titleDivision`                                           | `booking.warnings` | WRK1's `isEligibleForTitle` gender or weight reasons, for each competitor not holding it | "Kai Moreno: The Women's Title is a women's title"                                             |
+| `injuredTalking`                                          | `booking.warnings` | an injured worker who can still work angles, booked to talk                              | "Tia Cruz is injured: can talk but not wrestle"                                                |
+| `angle.wrongRole`                                         | `booking.talk`     | MTCH5-08: a speaker's part does not suit their beat group (Host: interviewer)            | "Leo Hart is a wrestler: Host is for an interviewer"                                           |
+| `angle.settingNotAllowed` / `angle.beatSettingNotAllowed` | `booking.talk`     | MTCH5-08: the type or a beat can't happen in the chosen setting                          | "A Video Package can't happen in the ring"                                                     |
+| `angle.clientNotInSegment`                                | `booking.talk`     | MTCH5-08: a manager is booked for a client who is not in the segment                     | "Victor Crane is here for Lena Park, who isn't in this segment"                                |
+| `workingTwice`                                            | `booking.cardWide` | a competitor in a second or later match, within `booking.maxMatchesPerPersonPerShow`     | "Kai Moreno is also in the Opener: working twice tires them more and raises their injury risk" |
+| `checkFailed`                                             | the failing check  | a registered check threw                                                                 | "A booking check (<id>) failed; the show can still run"                                        |
 
 The first three are given once per person, on the first segment they are in.
 `workingTwice` is given on each later match, naming the earlier ones ("is also
@@ -634,6 +637,25 @@ shows no morale warning (D-09). Other features add parts of the editor (finish, 
 stipulations, crew, storylines) with `registerSegmentEditorSection`; a section patches its part of
 the same draft and is saved with it, the one write path. Until MTCH5's beats section exists,
 changing a talking segment's speakers drops its beats so the writer gives the type's default beat.
+
+<a id="talk-roles"></a>
+
+**Who's who and where (MTCH5-08).** A talking segment's editor adds a **Where** choice (In the
+ring / Backstage / Pre-taped, from the type's `settings`, each with a line on what it means for
+the score) and names each side by the default beat's group with the parts that suit it ("Guest:
+Wrestler or manager", "Host: Interviewer"; "Add Host" adds the second side). Every speaker has a
+**Part** choice (Wrestler, Manager, Interviewer, Authority figure; a manager also picks "Manager
+for …" among the others), starting from the role they were hired in
+(`AvailableWorkerRow.talkRole`). A part that doesn't suit its group says so beside it in plain
+words ("Host is for an interviewer"); it never blocks Save. A speaker whose contract names a
+manager (`AvailableWorkerRow.managerPersonId`) offers "Add their manager, Victor Crane", which adds
+the manager on the same side as their manager. The picker for a group opens with a **Suits
+Host** chip on (the RosterPicker's `fitFilter`), listing only the parts that suit it; turning it
+off shows everyone. `booking.availableWorkers` for an angle now lists announcers too. The draft
+carries `participants[].talkRole` / `forPersonId` and `angle.setting`; the card row's type chip
+reads "Interview · Backstage" with the talk line under the names ("Backstage: Lena Park
+interviews Kai Moreno (with Victor Crane)"), as does the results page. The engine side is in
+[angle-rating.md](angle-rating.md#talk-roles).
 
 ## Integration
 
