@@ -518,6 +518,18 @@ features add tabs and KPI cards with `registerFinanceTab` and `registerFinanceKp
 `screens/finances/README.md` has the slots. The top bar's cash chip has a Why? from
 `sim.status.promotion.cashTraceRef`, the same breakdown the Overview's Cash card opens.
 
+## Networks
+
+Business > Networks is live (ECO8). `/game/networks` (`screens/networks/NetworksScreen.tsx`)
+shows the seat's TV, pay-per-view and streaming deals on tabs from a registry
+(`registerNetworksTab`): Your deals (10) and Available networks (20); ECO10 takes 30. The tab,
+the open deal sheet and the Propose sheet live in the URL (`?tab=`, `?deal=dea_…`,
+`?propose=net_…`, built with `networksPath`). Every derived number (viewers, what the network
+expects, the best offer, the proposal and renewal terms, income per airing, health, the exit fee)
+has a Why?. ECO8 also adds the Finances "TV income (30 days)" card, the calendar sheet's "On TV"
+section and the results page's "On TV" section. `screens/networks/README.md` has the tabs
+registry and the slots; design: `docs/design/broadcast.md#screen`.
+
 ## Contracts
 
 Business > Contracts (`/game/contracts`, `screens/contracts/ContractsScreen.tsx`, ECO4-04) lists
