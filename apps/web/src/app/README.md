@@ -120,8 +120,8 @@ once by the router like the results page's calendar hooks; their panels load wit
 game a person named in any "Why?" breakdown links to their profile, and following the link closes
 the panel. Outside the shell (the component gallery, the title and new-game screens) there is no
 provider and names stay plain text. Promotions link to their profiles too (`PromotionProfileLink`,
-AIP1-06). Other entity kinds stay plain until their screens exist; they get their links by
-extending `gameEntityLink`.
+AIP1-06), and titles to their pages (`TitlePageLink`, CRTV1-04). Other entity kinds stay plain
+until their screens exist; they get their links by extending `gameEntityLink`.
 
 ## Promotions
 
@@ -164,6 +164,57 @@ profile's rules: it returns an unregister function, throws for a taken id, and o
 re-render. Orders: the built-ins own 10 (Overview), 20 (Roster) and 90 (Decision log); the rival
 desk's later screens use **30 to 80** (Front office 30, Shows 40, the rest of AIP between); every
 other feature (ECO, BRW, ...) uses **100 and up**. Write the slot you take in your feature's docs.
+
+## Titles
+
+Creative > Titles (`/game/titles`, `screens/titles/TitlesScreen.tsx`, CRTV1-04) reads
+`titles.list`: **Our titles** in one panel per brand (in brand order, then "Promotion-wide") and
+**Around the world** in one panel per other promotion, each a `ChampionCardList` (stacked on a
+phone) of `TitleCard`s (`titleCard.tsx`: belt in its prestige's metal from `beltTierOf`, the
+prestige Why?, a prestige bar, "Retired <date>"). The tab and the Active / Retired filter live in
+the URL (`?tab=world`, `?status=retired`).
+
+A title's page lives at `/game/titles/:titleId` (`routePatterns.title`, built with
+`routes.game.title(titleId)`), loaded as its own chunk: `TitleDetailScreen.tsx` reads
+`titles.detail` and shows the header (division, kind, introduced, prestige with Why?), the
+champion or "Vacant since", the lineage (`TitleLineageTable`, newest first, fixed order, days held
+and how each reign ended with their Why?) and the records (`TitleRecordsPanel`). A bad id shows
+"Title not found". Lineage is kept forever, so there is no detail-window note here. Title names in
+Why? panels and on the worker profile's Career tab link to the page.
+
+### Adding a title page section
+
+```ts
+registerTitleDetailSection({
+  id: 'prestige-history',
+  order: 10,
+  column: 'main', // 'main': after the lineage; 'side': under the records
+  render: ({ titleId, detail }) => <PrestigeHistory titleId={titleId} />,
+  visible: (detail) => detail.title.status === 'active', // optional
+});
+```
+
+`registerTitleDetailSection` (`screens/titles/titleDetailSections.ts`) returns an unregister
+function and throws for a taken id; sections draw in `order` within their column (ties in
+registration order) and open pages re-render. CRTV2 adds its prestige history and #1 contender
+this way. Each section brings its own `Panel` with an `h2`.
+
+### Title actions
+
+CRTV1-05 puts the booker's hands on their own titles. `useTitleActions()`
+(`screens/titles/useTitleActions.ts`) owns the open sheet or confirm, the six commands
+(`titles.create`, `.edit`, `.award`, `.vacate`, `.retire`, `.reactivate`), their refusals and what
+is announced when they work; `<TitleActionOverlays actions={...} />` draws what it opens. The list
+puts a "New title" button on Our titles and a menu on each own card (`TitleCardMenu`); the title
+page puts `TitleActionBar` under its header (Award plus a "More" menu on a phone).
+`titleRowActions(row)` decides what a row offers: nothing unless `row.editable`, Reactivate alone
+for a retired title, else Edit, Award, Vacate (when held) and Retire. Rival titles get nothing.
+
+The pattern later command screens copy: nothing changes on screen before the engine says yes (the
+query refetch shows the result), a refusal comes back as reasons shown word for word, under the
+field `reason.field` names (`titleForm.ts`'s `formErrorsFromReasons`) or in a `role="alert"` at
+the top, and an action that ends a reign always confirms first and says how it ends. Gallery:
+`title-form-sheet` and `award-title-sheet` (Overlays), fed by `dev-gallery/fixtures/titleActions.ts`.
 
 ## The roster
 
@@ -522,7 +573,10 @@ Registered so far: **World clock** (side, 10) and **World overview** (main, 20, 
 promotion only), both in `screens/office/panels/`; then, from their features' folders (DAY2-06),
 **Next show** (`calendar.nextShow`, main, 50, `screens/calendar/officePanel.tsx`), **Last show**
 (`shows.lastShow`, main, 55, `screens/show-results/officePanel.tsx`) and **Fans after your last
-show** (`promoPop.lastShow`, main, 60, `screens/promotion-popularity/officePanel.tsx`). The full
+show** (`promoPop.lastShow`, main, 60, `screens/promotion-popularity/officePanel.tsx`), and
+**Champions** (`titles.champions`, side, 35, `screens/titles/officePanel.tsx`, CRTV1-06: the
+own active titles from `titles.list` as `TitleCard`s in a `ChampionCardList`, swipe row on a
+phone, then "All titles"). The full
 list with owners is in docs/design/office.md#panels. The Cash card's footer links to Finances. A panel that wants the Fan base sheet calls the context's
 `openFanBase(promotionId)` (the world overview does, once per row) instead of drawing a sheet.
 

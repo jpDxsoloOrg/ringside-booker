@@ -12,6 +12,7 @@ import type {
   WorkerProfileReign,
   WorkerProfileTeam,
 } from '@ringside/engine';
+import { TitlePageLink } from '@/app/entityLinks';
 import { AlignmentChip } from '@/components/AlignmentChip';
 import { Badge } from '@/components/Badge';
 import { DataTable } from '@/components/DataTable';
@@ -168,7 +169,8 @@ const REIGN_COLUMNS: readonly ColumnDef<WorkerProfileReign>[] = [
     id: 'title',
     header: 'Title',
     card: 'title',
-    cell: (reign) => reign.titleName,
+    cell: (reign) => <TitlePageLink titleId={reign.titleId}>{reign.titleName}</TitlePageLink>,
+    sortValue: (reign) => reign.titleName,
     filterValue: (reign) => reign.titleName,
   },
   {

@@ -251,6 +251,9 @@ export function aStoryline(
     summary: '',
     lastProgressOn: null,
     finaleSegmentId: null,
+    progress: [],
+    progressTotals: { segments: 0, matches: 0, angles: 0, heatGained: 0, heatLost: 0 },
+    payoff: null,
   };
   return buildRow(StorylineSchema, 'aStoryline', defaults, overrides);
 }

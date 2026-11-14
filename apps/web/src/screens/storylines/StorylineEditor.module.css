@@ -1,0 +1,186 @@
+/*
+ * The storyline editor sheet and its member picker (CRTV3-04), in the office register. Fields
+ * fill the sheet's column; the picker's rows are a finger tall on touch screens and phones, and
+ * every row wraps rather than scroll sideways at 360px.
+ */
+.form {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.field {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.label {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.textarea {
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 6rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  resize: vertical;
+}
+
+.textarea[aria-invalid='true'] {
+  border-color: var(--color-negative);
+}
+
+.hint {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: var(--font-feature-tabular);
+}
+
+.footer {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.footerButtons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.generalError {
+  margin: 0;
+  color: var(--color-negative);
+  font-size: var(--font-size-sm);
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.picker {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.chosen {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+}
+
+.chosenHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.pickerHeading {
+  margin: 0;
+  font-size: var(--font-size-md);
+}
+
+.counter {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: var(--font-feature-tabular);
+}
+
+.chosenList {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chosenRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  min-inline-size: 0;
+}
+
+.chosenName {
+  grid-column: 1;
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.chosenRow > button {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.sideChoice {
+  grid-column: 1 / -1;
+  min-inline-size: 0;
+}
+
+.optionList {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.optionRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  inline-size: 100%;
+  min-block-size: var(--tap-target-min);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  text-align: start;
+  cursor: pointer;
+}
+
+.optionRow:hover:not(:disabled) {
+  background: var(--color-surface-hover);
+}
+
+.optionRow:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.optionText {
+  display: grid;
+  min-inline-size: 0;
+}
+
+.optionName {
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.optionFacts {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}

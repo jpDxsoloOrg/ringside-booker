@@ -91,7 +91,10 @@ same reason.
 The lifecycle never writes appearance counts (EVT3's) and does not touch
 bookings on future cards: EVT2's availability check reads the contract's
 status. Titles, teams and storylines react to the contract events in their own
-features (CRTV1, CRTV3, CRTV5).
+features (CRTV1, CRTV3, CRTV5). A champion whose contract ends (expiry,
+release, walk-out) keeps the title until CRTV1's daily
+[`titles.vacateOrphaned`](titles.md#orphaned-champions) vacates it after
+`titles.orphanGraceDays`; contracts has no vacate path of its own (CRTV1-06).
 
 ### Renewal policies
 
@@ -216,9 +219,11 @@ becomes `withdrawn`. It does not check who may release whom.
 
 - **`contracts.releasePreview { employmentId }`** → `{ kind: 'ok', mode:
 'release' | 'withdraw', severance (with its Why?), cashBefore, cashAfter,
-warnings }` or `{ kind: 'refused', reasons }`. Warnings: `holdsTitle` ("Holds
-  the <title>. Titles don't change hands on their own yet, so they keep it."
-  until CRTV1; ECO4-05 switches the wording), `ironClad`, `intoDebt` ("This
+warnings }` or `{ kind: 'refused', reasons }`. Warnings: `holdsTitle`, one per
+  title from `titlesHeldBy` ("Rook Halvorsen holds the Altura World
+  Championship. It will be vacated after 7 days unless they re-sign.", the days
+  from `titles.orphanGraceDays`, "It will be vacated the same day." at 0; see
+  [titles.md](titles.md#orphaned-champions); CRTV1-03, CRTV1-06), `ironClad`, `intoDebt` ("This
   puts you $3,197.53 in debt."), `bookedSoon` ("Booked on <show>, <date>." for
   the soonest scheduled or booked show from today, plus "and N more shows")
   and `gladToGo`.
@@ -260,9 +265,9 @@ above the maximum is read as the swapped range). On a save loaded long after
 the old end date, the length counts from today. Keepers draw once (the
 length); anyone else draws the renewal roll and, when renewed, the length.
 
-ECO4-05 moved the level-playing-field read to AIP1's `aiShortcut`. It swaps
-`titlesHeldBy` for CRTV1's once CRTV1 is on main (not yet: CRTV1 wires it
-from its own pack).
+ECO4-05 moved the level-playing-field read to AIP1's `aiShortcut`. Its
+"Holds a title" rule reads CRTV1's `titlesHeldBy` (`contracts/titles.ts`
+re-exports the titles system's helper since CRTV1-01).
 
 Over three years of the default world the rule keeps every rival at 50 % to
 73 % of its starting active roster. The player's own run out completely with

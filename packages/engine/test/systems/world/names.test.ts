@@ -35,7 +35,8 @@ import { testId } from '../../support/ids';
 import { SLOW_TESTS } from '../../support/slow';
 import { expectSerialisable } from '../../support/trace';
 
-// The share tests draw thousands of names; under coverage on a busy CI runner they can pass 5 s.
+// The share tests draw thousands of names. Each takes well under a second once its tunables are
+// built once (freshGenerators), so this only gives a loaded machine or a coverage run room.
 const SAMPLING_TEST_MS = 15_000;
 
 type NameCultureRecord = packs.NameCultureRecord;
@@ -112,6 +113,7 @@ function scriptedStream(draws: readonly number[]): RngStream {
 
 const TEST_COUNTRY = testId('country', 1);
 const OTHER_COUNTRY = testId('country', 2);
+const COUNTRY_KEYS = { [TEST_COUNTRY]: 'land', [OTHER_COUNTRY]: 'sea' };
 
 function names(prefix: string, count: number): WeightedName[] {
   return Array.from({ length: count }, (_, index) => [`${prefix}${String(index + 1)}`, 1]);
@@ -191,8 +193,22 @@ function generatorFor(
 ): NameGenerator {
   return new NameGenerator(library, registry, {
     tunables: createEngineTunables(overrides),
-    countryKeys: { [TEST_COUNTRY]: 'land', [OTHER_COUNTRY]: 'sea' },
+    countryKeys: COUNTRY_KEYS,
   });
+}
+
+/**
+ * Makes generators that each start with an empty registry, for the share sweeps: a fresh registry
+ * per name keeps retries from skewing which list or culture a name came from. The tunables are
+ * built once per sweep, because building them for every name was most of a sweep's time.
+ */
+function freshGenerators(
+  library: ContentLibrary,
+  overrides: Parameters<typeof createEngineTunables>[0] = {},
+): () => NameGenerator {
+  const tunables = createEngineTunables(overrides);
+  return () =>
+    new NameGenerator(library, new NameRegistry(), { tunables, countryKeys: COUNTRY_KEYS });
 }
 
 function labelsOf(trace: TraceNode): string[] {
@@ -409,13 +425,12 @@ describe('legal names from the base pack', () => {
 
 describe('gender handling', () => {
   function listShares(gender: Gender, overrides: Parameters<typeof createEngineTunables>[0] = {}) {
-    // A fresh registry per name, so no retries skew which list a name came from.
-    const library = aLibrary([aCulture()]);
+    const freshGenerator = freshGenerators(aLibrary([aCulture()]), overrides);
     const stream = personStream(`gender-${gender}`);
     const shares = { Male: 0, Female: 0, Neutral: 0 };
     const total = 20_000;
     for (let index = 0; index < total; index++) {
-      const name = generatorFor(library, new NameRegistry(), overrides).personName(stream, {
+      const name = freshGenerator().personName(stream, {
         countryId: TEST_COUNTRY,
         gender,
       }).value;
@@ -434,14 +449,13 @@ describe('gender handling', () => {
   // The share sweeps (20,000 names each) run in the slow run only (support/slow.ts).
   it.runIf(SLOW_TESTS)(
     'names non-binary people from the neutral list 50% ±1% of the time, else male or female evenly',
-    // A large sample of generated names: give a loaded machine room.
-    { timeout: 120_000 },
     () => {
       const shares = listShares('nonBinary');
       expect(Math.abs(shares.neutral - 0.5)).toBeLessThanOrEqual(0.01);
       expect(Math.abs(shares.male - 0.25)).toBeLessThanOrEqual(0.01);
       expect(Math.abs(shares.female - 0.25)).toBeLessThanOrEqual(0.01);
     },
+    SAMPLING_TEST_MS,
   );
 
   it.runIf(SLOW_TESTS)(
@@ -507,11 +521,12 @@ describe('cultures and surnames', () => {
           { cultureKey: 'second', weight: 1 },
         ],
       });
+      const freshGenerator = freshGenerators(twoCultures);
       const stream = personStream('mixed-two');
       let mismatched = 0;
       const total = 4000;
       for (let index = 0; index < total; index++) {
-        const result = generatorFor(twoCultures, new NameRegistry()).personName(stream, {
+        const result = freshGenerator().personName(stream, {
           countryId: TEST_COUNTRY,
           gender: 'male',
         });
@@ -561,11 +576,12 @@ describe('cultures and surnames', () => {
       // A fresh registry per name, so retries on taken names cannot favour the longer names.
       const hispanicOnly = aLibrary([hispanic], { land: [{ cultureKey: 'hispanic', weight: 1 }] });
       const surnames = new Set(hispanic.surnames.map(([surname]) => surname));
+      const freshGenerator = freshGenerators(hispanicOnly);
       const stream = personStream('hispanic-double');
       const total = 10_000;
       let doubled = 0;
       for (let index = 0; index < total; index++) {
-        const { familyName } = generatorFor(hispanicOnly).personName(stream, {
+        const { familyName } = freshGenerator().personName(stream, {
           countryId: TEST_COUNTRY,
           gender: index % 2 === 0 ? 'male' : 'female',
         }).value;

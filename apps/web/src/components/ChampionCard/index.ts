@@ -10,6 +10,7 @@ export {
 export type {
   ChampionCardHeadingLevel,
   ChampionCardListProps,
+  ChampionCardPhoneLayout,
   ChampionCardProps,
   ChampionCardReign,
   ChampionCardTitle,

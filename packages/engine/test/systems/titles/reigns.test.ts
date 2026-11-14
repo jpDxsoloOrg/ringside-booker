@@ -1,7 +1,10 @@
 // The only reign writers (CRTV1-01). Design: docs/design/titles.md#writing-reigns
+import { readdirSync, readFileSync } from 'node:fs';
+import { join, relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { InvariantError } from '../../../src/core/errors';
-import { closeReign, currentReign, openReign } from '../../../src/systems/titles';
+import { addDefence, closeReign, currentReign, openReign } from '../../../src/systems/titles';
 import { integrityCodes, LATER, START, titleIdAt, titlesWorld, writeOn } from './titles-world';
 
 function people(built: ReturnType<typeof titlesWorld>) {
@@ -118,5 +121,54 @@ describe('openReign and closeReign', () => {
         closeReign(ctx, { reignId: old.id, endReason: 'vacated', endedInSegmentId: null }),
       ),
     ).toThrow(InvariantError);
+  });
+});
+
+describe('addDefence', () => {
+  it('counts one more defence on the current reign', () => {
+    const built = titlesWorld();
+    const old = currentReign(built.world, titleIdAt(built, 1));
+    if (old === null) {
+      throw new Error('expected a champion');
+    }
+    const updated = writeOn(built.world, LATER, (ctx) => addDefence(ctx, old.id));
+    expect(updated.defences).toBe(old.defences + 1);
+    expect(updated.lostOn).toBeNull();
+  });
+
+  it('refuses a reign that has already ended', () => {
+    const built = titlesWorld();
+    const old = currentReign(built.world, titleIdAt(built, 1));
+    if (old === null) {
+      throw new Error('expected a champion');
+    }
+    writeOn(built.world, LATER, (ctx) =>
+      closeReign(ctx, { reignId: old.id, endReason: 'vacated', endedInSegmentId: null }),
+    );
+    expect(() => writeOn(built.world, LATER, (ctx) => addDefence(ctx, old.id))).toThrow(
+      InvariantError,
+    );
+  });
+});
+
+const ENGINE_SRC = fileURLToPath(new URL('../../../src/', import.meta.url));
+
+function sourceFiles(dir: string): string[] {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      return sourceFiles(path);
+    }
+    return entry.name.endsWith('.ts') ? [path] : [];
+  });
+}
+
+describe('one writer for reigns (CRTV1-06)', () => {
+  it('only systems/titles/reigns.ts creates or changes titleReigns rows', () => {
+    const writes = /\.(create|update|delete|upsert)\(\s*['"]titleReigns['"]/;
+    const writers = sourceFiles(ENGINE_SRC)
+      .filter((path) => writes.test(readFileSync(path, 'utf8')))
+      .map((path) => relative(ENGINE_SRC, path).split('\\').join('/'));
+    expect(writers).toEqual(['systems/titles/reigns.ts']);
   });
 });

@@ -1,0 +1,41 @@
+/*
+ * A storyline side chip (CRTV3-04): the AlignmentChip's soft pill with the face and heel colours,
+ * and --color-side-neutral for the neutral side. The word is always on it, and each colour is
+ * checked as text on the surfaces in tokens.test.ts.
+ */
+.sideChip {
+  display: inline-flex;
+  align-items: center;
+  max-inline-size: 100%;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  font-family: var(--font-family-display);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-snug);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.size-md {
+  padding: 0.0625rem var(--space-2);
+  font-size: var(--font-size-sm);
+}
+
+.size-sm {
+  padding: 0 var(--space-1);
+  font-size: var(--font-size-xs);
+}
+
+.side-face {
+  color: var(--color-face);
+}
+
+.side-heel {
+  color: var(--color-heel);
+}
+
+.side-neutral {
+  color: var(--color-side-neutral);
+}

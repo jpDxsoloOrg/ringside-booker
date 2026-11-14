@@ -1,0 +1,281 @@
+/*
+ * One storyline's page (CRTV3-04), in the office register like the promotion profile: back link,
+ * a header card (name, status, brand, dates, Edit and End), then the people, summary and timeline
+ * beside the heat. Desktop first: two columns; below --bp-mobile one column with the heat first,
+ * every tap target a finger tall, and nothing wider than the screen.
+ */
+.screen {
+  display: grid;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  justify-self: start;
+  min-block-size: var(--tap-target-min);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+}
+
+.backLink:hover,
+.backLink:focus-visible {
+  color: var(--color-data);
+  text-decoration: underline;
+}
+
+.heading {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-tight);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.header {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.dates {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: var(--font-feature-tabular);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding-block-start: var(--space-2);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+
+.main,
+.aside {
+  display: grid;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.heatBody,
+.endingBody {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.heatRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--space-2) var(--space-3);
+  min-inline-size: 0;
+}
+
+.meter {
+  flex: 1 1 10rem;
+  min-inline-size: 0;
+}
+
+.whyLine,
+.endingTitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.endingTitle {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+}
+
+.groups {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.group {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.groupHeading {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.memberList {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.member {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  min-inline-size: 0;
+}
+
+.memberName {
+  min-inline-size: 0;
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.memberChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.memberMenu {
+  justify-self: end;
+}
+
+.problem {
+  margin: 0;
+  color: var(--color-negative);
+  font-size: var(--font-size-sm);
+}
+
+.summary {
+  margin: 0;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.timeline {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.timelineItem {
+  display: grid;
+  gap: var(--space-1);
+  padding-inline-start: var(--space-3);
+  border-inline-start: 2px solid var(--color-border-strong);
+}
+
+.timelineMeta {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.timelineLabel,
+.timelineStars {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.timelineLabel {
+  font-weight: var(--font-weight-semibold);
+}
+
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-prestige);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.noticeText {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.noticeText p {
+  margin: 0;
+}
+
+.sheetFooter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+@media (--bp-mobile) {
+  .header {
+    padding: var(--space-4);
+  }
+
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* The heat first on a phone: it is the number the player came for. */
+  .aside {
+    order: -1;
+  }
+
+  .member {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .memberChips {
+    grid-column: 2;
+  }
+
+  .memberMenu {
+    grid-column: 3;
+    grid-row: 1;
+  }
+}

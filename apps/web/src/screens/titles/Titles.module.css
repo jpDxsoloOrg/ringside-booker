@@ -1,0 +1,332 @@
+/*
+ * Creative > Titles and a title's page, office register. The list is one panel per group with a
+ * wrapping grid of champion cards (one column on a phone: ChampionCardList's stack layout). The
+ * title page is a header card, then two columns while there is room (champion, lineage and main
+ * sections; records and side sections), one column below --bp-mobile, where the lineage turns
+ * into cards (DataTable does that). Nothing here makes the page scroll sideways.
+ */
+.screen {
+  display: grid;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+
+.heading {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-tight);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  justify-self: start;
+  min-block-size: var(--tap-target-min);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+}
+
+.backLink:hover,
+.backLink:focus-visible {
+  color: var(--color-data);
+  text-decoration: underline;
+}
+
+.muted {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* ---------------------------------------------------------------- list */
+
+.statusFilter {
+  margin-block-start: var(--space-4);
+}
+
+.tabPanel {
+  padding-block-start: var(--space-4);
+}
+
+.groups {
+  display: grid;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+
+.groupHeading {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.cardFooter {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+}
+
+.cardBar {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+/* The prestige bar, and the actions menu at its end on the player's own titles. */
+.cardFooterRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  justify-self: stretch;
+}
+
+/* Quiet blocks in the shape of what is loading. */
+.skeleton {
+  display: block;
+  border-radius: var(--radius-card);
+  background: var(--color-surface-raised);
+}
+
+.skeletonGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+  gap: var(--space-3);
+}
+
+.skeletonCard {
+  block-size: 12rem;
+}
+
+.skeletonHeader {
+  block-size: 10rem;
+}
+
+/* ---------------------------------------------------------------- title page */
+
+.detailHeader {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-4) var(--space-5);
+  min-inline-size: 0;
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+/* The belt on a raised tile with a gold hairline, as on the champion cards. */
+.belt {
+  display: inline-grid;
+  place-items: center;
+  padding: var(--space-1);
+  border: 1px solid var(--color-prestige);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-raised);
+  line-height: 0;
+}
+
+.identity {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.belongs {
+  margin: 0;
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.headerFacts,
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--space-3) var(--space-5);
+  margin: 0;
+}
+
+.headerFacts {
+  grid-column: 1 / -1;
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--color-border);
+}
+
+.fact {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.fact dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.prestigeFact {
+  grid-column: span 2;
+}
+
+.factLabel {
+  color: var(--color-text-muted);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* A value and its Why? on one line; the bar takes the room that is left. */
+.explained {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.explained > [role='meter'] {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.detailColumns {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+
+.column {
+  display: grid;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+
+.vacant {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.championBody {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.holders {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.holderItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  color: var(--color-prestige);
+  font-weight: var(--font-weight-semibold);
+}
+
+.teamName {
+  margin: 0;
+  font-weight: var(--font-weight-semibold);
+}
+
+/* The lineage's champions: the team's name over each holder, a renamed holder's name today after. */
+.champions {
+  display: inline-grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.holder {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--space-2);
+  min-inline-size: 0;
+}
+
+/* "Won" and "Lost" before the dates on a phone card; the table's headers say it on desktop. */
+.cardOnly {
+  display: none;
+}
+
+.lineage li[data-row-id] .cardOnly {
+  display: inline;
+}
+
+.records {
+  display: grid;
+  gap: var(--space-3);
+  margin: var(--space-4) 0 0;
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--color-border);
+}
+
+.record {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.recordValue {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0 var(--space-3);
+  margin: 0;
+  min-inline-size: 0;
+}
+
+.recordNumber {
+  font-family: var(--font-family-display);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: var(--font-feature-tabular);
+}
+
+@media (--bp-mobile) {
+  .heading {
+    font-size: var(--font-size-2xl);
+  }
+
+  .detailHeader {
+    grid-template-columns: minmax(0, 1fr);
+    padding: var(--space-4);
+  }
+
+  .belt {
+    justify-self: start;
+  }
+
+  .headerFacts,
+  .facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .detailColumns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

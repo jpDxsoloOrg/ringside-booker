@@ -8,6 +8,8 @@ import {
   EntityLinkContext,
   gameEntityLink,
   promotionLinkState,
+  titleLinkState,
+  titlesListUrlFrom,
   useEntityLinkRenderer,
   workerLinkState,
 } from './entityLinks';
@@ -90,7 +92,46 @@ describe('gameEntityLink', () => {
 
   it('keeps a promotion ref that is not a promotion id, and other kinds, as plain text', () => {
     expect(gameEntityLink({ kind: 'promotion', id: 'nowhere' }, 'Nowhere')).toBe('Nowhere');
-    expect(gameEntityLink({ kind: 'title', id: 'tit_0000000001' }, 'A title')).toBe('A title');
+    expect(gameEntityLink({ kind: 'title', id: 'nothing' }, 'A title')).toBe('A title');
+    expect(gameEntityLink({ kind: 'brand', id: 'brn_0000000001' }, 'A brand')).toBe('A brand');
+  });
+
+  it('links a title to its page (CRTV1-04)', () => {
+    render(
+      <MemoryRouter future={memoryRouterFlags}>
+        {gameEntityLink({ kind: 'title', id: 'tit_0000000001' }, 'Test Heavyweight Title')}
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole('link', { name: 'Test Heavyweight Title' })).toHaveAttribute(
+      'href',
+      `${routes.game.titles()}/tit_0000000001`,
+    );
+  });
+});
+
+describe('titleLinkState', () => {
+  const location = (pathname: string, search: string, state: unknown) => ({
+    pathname,
+    search,
+    state,
+    hash: '',
+    key: 'test',
+  });
+
+  it('is the list URL with its tab and filter on the Titles list', () => {
+    expect(titleLinkState(location(routes.game.titles(), '?tab=world', null))).toEqual({
+      titlesListUrl: `${routes.game.titles()}?tab=world`,
+    });
+  });
+
+  it('carries the list URL on, and ignores anything that is not the list', () => {
+    const carried = { titlesListUrl: `${routes.game.titles()}?status=retired` };
+    expect(titleLinkState(location(`${routes.game.titles()}/tit_0000000001`, '', carried))).toEqual(
+      carried,
+    );
+    expect(titlesListUrlFrom({ titlesListUrl: '/game/office' })).toBeNull();
+    expect(titlesListUrlFrom(null)).toBeNull();
   });
 });
 

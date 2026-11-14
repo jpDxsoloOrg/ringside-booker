@@ -192,6 +192,8 @@
   --color-face: var(--palette-cyan-400);
   --color-heel: var(--palette-flame-500);
   --color-tweener: var(--palette-violet-400);
+  /* A storyline's neutral side (CRTV3-04): between the face cyan and the heel red, in quiet grey. */
+  --color-side-neutral: var(--palette-navy-300);
 
   /*
    * Older semantic names, mapped onto the roles above so existing components keep working until

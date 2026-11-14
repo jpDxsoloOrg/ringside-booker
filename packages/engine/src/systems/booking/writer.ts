@@ -38,6 +38,7 @@ import type { Tx } from '../../model/tx';
 import type { DeepReadonly } from '../../model/world';
 import { cardSegments } from './card';
 import type { ParticipantDraft, SegmentDraft } from './draft';
+import { runAfterWriteHooks, runBeforeRemoveHooks } from './hooks';
 
 /**
  * Where a moving segment waits while it trades places with another, far past any real slot, so the
@@ -557,19 +558,21 @@ export function writeSegment(tx: Tx<GameTables>, args: WriteSegmentArgs): Segmen
       inner.update('segments', id, () => row);
     }
     syncParticipants(inner, id, args.draft.participants);
+    runAfterWriteHooks(inner, id);
     return id;
   });
 }
 
 /**
- * Takes a segment off its card: its participants first, then the segment. Its slot becomes open;
- * nothing else moves.
+ * Takes a segment off its card: the segment hooks first (`hooks.ts`), then its participants, then
+ * the segment. Its slot becomes open; nothing else moves.
  *
  * @throws EntityNotFoundError for an unknown segment.
  */
 export function removeSegment(tx: Tx<GameTables>, segmentId: SegmentId): void {
   atomically(tx, 'booking.removeSegment', (inner) => {
     inner.view.tables.segments.require(segmentId);
+    runBeforeRemoveHooks(inner, segmentId);
     for (const participant of inner.view.tables.participants.lookup('bySegment', segmentId)) {
       inner.delete('participants', participant.id);
     }

@@ -83,14 +83,14 @@ describe('AppShell on desktop', () => {
 
   it('renders the placeholder screen with the item label as the heading and page title', async () => {
     loadWorld({ employed: true });
-    renderApp(routes.game.storylines());
+    renderApp(routes.game.tournaments());
 
     expect(
-      await screen.findByRole('heading', { level: 1, name: 'Storylines' }),
+      await screen.findByRole('heading', { level: 1, name: 'Tournaments' }),
     ).toBeInTheDocument();
     expect(screen.getByText("This screen isn't built yet")).toBeInTheDocument();
     await waitFor(() => {
-      expect(document.title).toBe('Storylines · Ringside Booker');
+      expect(document.title).toBe('Tournaments · Ringside Booker');
     });
   });
 

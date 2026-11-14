@@ -153,10 +153,16 @@ describe('ChampionCard styles', () => {
   });
 
   it('becomes a horizontal swipe row that snaps on a phone', () => {
-    expect(declaration(css, '.list', 'overflow-x', MOBILE)).toBe('auto');
-    expect(declaration(css, '.list', 'scroll-snap-type', MOBILE)).toBe('x mandatory');
-    expect(declaration(css, '.listItems', 'display', MOBILE)).toBe('flex');
-    expect(declaration(css, '.listItem', 'scroll-snap-align', MOBILE)).toBe('start');
+    expect(declaration(css, '.swipe', 'overflow-x', MOBILE)).toBe('auto');
+    expect(declaration(css, '.swipe', 'scroll-snap-type', MOBILE)).toBe('x mandatory');
+    expect(declaration(css, '.swipe .listItems', 'display', MOBILE)).toBe('flex');
+    expect(declaration(css, '.swipe .listItem', 'scroll-snap-align', MOBILE)).toBe('start');
+  });
+
+  it('stacks one card per row on a phone in the stack layout (CRTV1-04)', () => {
+    expect(declaration(css, '.stack .listItems', 'grid-template-columns', MOBILE)).toBe(
+      'minmax(0, 1fr)',
+    );
   });
 });
 

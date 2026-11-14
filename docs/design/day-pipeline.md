@@ -88,6 +88,7 @@ guarantee, not a requirement):
 | `contracts.reviewOffers`   | 5     | daily   | Workers react to submitted offers (accept, counter, reject, walk away, refuse); computer promotions answer counter-offers; unanswered counters lapse; workers whose review day has come sign the best agreed offer (exclusivity cuts, renewals through the doors, signing bonus); old closed talks are pruned. No morale. |
 | `contracts.lifecycle`      | 10    | daily   | Due contracts ask the renewal policies and otherwise expire; signed deals whose start date has come become active; then the `afterLifecycle` hooks (ECO4-02's expiry notices).                                                                                                                                            |
 | `contracts.unhappyWorkers` | 30    | daily   | Refused requests roll for a walk-out (or settle down); unanswered requests past their date are refused; the unhappy clock counts (paused in a hot storyline, D-09) and raises release requests; rivals answer theirs at once.                                                                                             |
+| `titles.vacateOrphaned`    | 90    | daily   | The titles system's orphaned-champion rule (CRTV1-03, [titles.md](titles.md#orphaned-champions)): a title whose champion has had no contract with its promotion (or the parent) for `titles.orphanGraceDays` days is vacated, for every promotion alike.                                                                  |
 
 The `money` group's phases so far (ECO1-03, see
 [finances.md](finances.md#payroll)):
@@ -121,6 +122,13 @@ The `periodic` group's weekly phases so far, all on Mondays:
 | `match.pruneAftermaths`    | 40    | Each worker keeps only their newest stored aftermaths ([match-aftermath.md](match-aftermath.md#stored-aftermaths)).                      |
 | `history.rollUp`           | 41    | History older than `history.keepDetailDays` becomes summaries and monthly totals ([save-format.md](save-format.md#history-retention)).   |
 | `health.pruneInjuryDetail` | 44    | The traces of injuries older than `history.keepDetailDays` become summaries; the rows stay ([health.md](health.md#returns)).             |
+| `storylines.pruneDetail`   | 46    | Traces of storylines ended over `history.keepDetailDays` ago become summaries ([storylines.md](storylines.md#heat-decay)).               |
+
+The `growth` group's storyline phase:
+
+| Phase                    | Order | Cadence | What it does                                                                                                                                                |
+| ------------------------ | ----- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `storylines.heatCooling` | 35    | daily   | Every active storyline past its grace period without progress loses a little heat, down to the floor; no rolls ([storylines.md](storylines.md#heat-decay)). |
 
 The rival desk's phases ([rival-desk.md](rival-desk.md#jobs)), both daily:
 `aip.runTurns` (`aiTurns`, order 50) runs every due rival job for every
@@ -906,6 +914,17 @@ The shows system's events ([show-night.md](show-night.md#events)):
 | `show.completed`    | `eventInstanceId`, `promotionId`, `brandId`, `date`, `importance`, `score`, `rawScore`, `offscreen`, `segmentCount`                                                                    | A show is run, on screen or off it        |
 | `title.changed`     | `titleId`, `promotionId`, `fromReignId`, `toReignId`, `segmentId`, `eventInstanceId`, `newHolderIds`, `previousHolderIds`                                                              | A title changes hands in a segment        |
 | `title.defended`    | `titleId`, `promotionId`, `reignId`, `segmentId`, `eventInstanceId`, `defences`                                                                                                        | A champion keeps their title in a segment |
+
+The titles system's events ([titles.md](titles.md#commands), CRTV1-03;
+`source` is `player`, `ai` or `system`):
+
+| Event               | Payload                                                                                 | Published when                                                       |
+| ------------------- | --------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `title.created`     | `titleId`, `promotionId`, `brandId`, `source`                                           | `titles.create` makes a title                                        |
+| `title.awarded`     | `titleId`, `promotionId`, `reignId`, `holderIds`, `teamId`, `previousReignId`, `source` | `titles.award` makes someone champion outside a match                |
+| `title.vacated`     | `titleId`, `promotionId`, `reignId`, `holderIds`, `reasonKey`, `source`                 | `vacateTitle`: the booker (`booker`) or the orphan rule (`orphaned`) |
+| `title.retired`     | `titleId`, `promotionId`, `endedReignId`, `source`                                      | `retireTitle`: a title stops being defended                          |
+| `title.reactivated` | `titleId`, `promotionId`, `source`                                                      | `reactivateTitle`: a retired title comes back, vacant                |
 
 The finance system's events ([finances.md](finances.md#postmoney)):
 

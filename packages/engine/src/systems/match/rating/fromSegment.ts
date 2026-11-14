@@ -5,18 +5,23 @@
  * match, speakers for an angle, grouped by side, each side ordered by entrance order then id) and
  * its show (importance, region, date, promotion, the slot position and whether it is televised).
  * A completed match with an `outcome` and a `finishKey` also gets its `resolution` (MTCH2-02), so
- * its finish effects apply; any other segment gets `resolution: null`.
+ * its finish effects apply; any other segment gets `resolution: null`. A talking segment also gets
+ * its beats, split into groups by side, and the beat keys earlier on the card (MTCH5-03).
  *
  * Design: docs/design/match-rating.md#the-stored-segment-adapter.
  */
 
 import { EntityNotFoundError } from '../../../core/errors';
 import type { PersonId, SegmentId } from '../../../core/ids';
+import type { ContentKey } from '../../../core/content-key';
+import { beatOf } from '../../../model/catalogs';
 import type { Participant, ParticipantRole } from '../../../model/entities/participant';
-import type { Segment } from '../../../model/entities/segment';
+import type { AngleSegment, Segment } from '../../../model/entities/segment';
 import type { GameWorldView } from '../../../model/tables';
+import type { DeepReadonly } from '../../../model/world';
+import { beatGroupsOf } from '../angles/beatGroups';
 import type { MatchResolution } from '../finishes/resolution';
-import type { SegmentRatingInput, SegmentRatingSide } from './types';
+import type { SegmentAngleInput, SegmentRatingInput, SegmentRatingSide } from './types';
 
 /** Entrance order first (unordered entrants last), then id. */
 function compareParticipants(left: Participant, right: Participant): number {
@@ -61,6 +66,43 @@ function resolutionOf(segment: Segment): MatchResolution | null {
   };
 }
 
+/** Pre-show before the main card, then lower slot first. */
+function compareCardOrder(left: DeepReadonly<Segment>, right: DeepReadonly<Segment>): number {
+  if (left.preShow !== right.preShow) {
+    return left.preShow ? -1 : 1;
+  }
+  return left.slot - right.slot;
+}
+
+/**
+ * A talking segment's beats with their groups (MTCH5-03): a two-group beat splits its people by
+ * the speakers' sides, and the beat keys of the talking segments earlier on the same card.
+ */
+function angleInputOf(
+  read: GameWorldView,
+  segment: DeepReadonly<AngleSegment>,
+  participants: readonly Participant[],
+): SegmentAngleInput {
+  const sideByPerson = new Map(
+    participants
+      .filter((participant) => participant.role === 'speaker')
+      .map((participant) => [participant.personId, participant.side]),
+  );
+  const beats = segment.angle.beats.map((beat) =>
+    beatGroupsOf(beat, beatOf(read, beat.beatKey) ?? { groups: [] }, (personId) =>
+      sideByPerson.get(personId),
+    ),
+  );
+  const earlierBeatKeysOnCard: ContentKey[] = read.tables.segments
+    .lookup('byEventInstance', segment.eventInstanceId)
+    .filter((other) => other.id !== segment.id && compareCardOrder(other, segment) < 0)
+    .sort(compareCardOrder)
+    .flatMap((other) =>
+      other.kind === 'angle' ? other.angle.beats.map((beat) => beat.beatKey) : [],
+    );
+  return { beats, earlierBeatKeysOnCard };
+}
+
 /**
  * The rating input for a stored segment. The slot is its position on the card: the stored 0-based
  * slot plus 1, out of the show format's main-card slots.
@@ -98,5 +140,6 @@ export function ratingInputFromSegment(
     },
     promotionId: show.promotionId,
     resolution: resolutionOf(segment),
+    ...(segment.kind === 'angle' ? { angle: angleInputOf(read, segment, participants) } : {}),
   };
 }

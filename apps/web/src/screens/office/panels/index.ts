@@ -10,3 +10,4 @@ import '../../calendar/officePanel';
 import '../../show-results/officePanel';
 import '../../promotion-popularity/officePanel';
 import '../../roster/officePanel';
+import '../../titles/officePanel';

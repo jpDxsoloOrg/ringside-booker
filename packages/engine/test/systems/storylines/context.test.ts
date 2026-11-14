@@ -89,7 +89,7 @@ describe('storylinesOfPerson and activeStorylinesOf', () => {
   });
 });
 
-describe('finaleIsLinked', () => {
+describe('finaleIsLinkedMatch', () => {
   it('holds in the test world and fails for a finale that does not link the storyline', () => {
     const { world, ids } = storylineWorld();
     const storylineIssues = (): string[] =>
@@ -101,6 +101,6 @@ describe('finaleIsLinked', () => {
       tx.update('segments', ids.segments[0]!, { storylineIds: [] });
     });
     if (!result.ok) throw result.error;
-    expect(storylineIssues()).toEqual(['storylines.finaleIsLinked']);
+    expect(storylineIssues()).toEqual(['storylines.finaleIsLinkedMatch']);
   });
 });

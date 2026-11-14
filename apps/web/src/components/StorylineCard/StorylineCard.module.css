@@ -1,0 +1,190 @@
+/*
+ * A storyline card (CRTV3-04), in the broadcast register: name and brand, faces // heels with the
+ * neutrals below, the heat meter with its number and Why?, then the footer facts. Desktop first;
+ * below --bp-mobile the faces stack above the heels and the name link is a finger tall. Long names
+ * wrap (the link carries the whole name as its title).
+ */
+.card {
+  display: grid;
+  align-content: start;
+  gap: var(--space-3);
+  min-inline-size: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-inline-start: 3px solid var(--color-heel);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.card[data-status='ended'] {
+  border-inline-start-color: var(--color-border-strong);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  min-inline-size: 0;
+}
+
+.name {
+  flex: 1 1 12rem;
+  min-inline-size: 0;
+  margin: 0;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-tight);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.nameLink {
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.nameLink:hover,
+.nameLink:focus-visible {
+  color: var(--color-data);
+  text-decoration: underline;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+/* Faces // heels: three columns on desktop, faces on the left and heels on the right. */
+.sides {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.matchup {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-2) var(--space-3);
+  min-inline-size: 0;
+}
+
+.matchupSlash {
+  align-self: center;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+.sideList {
+  display: grid;
+  align-content: start;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.heels .member {
+  justify-content: flex-end;
+}
+
+.heels .emptySide {
+  text-align: end;
+}
+
+.neutrals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  padding-block-start: var(--space-2);
+  border-block-start: 1px dashed var(--color-border);
+}
+
+.member {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  min-inline-size: 0;
+}
+
+.memberName {
+  min-inline-size: 0;
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.memberWarning {
+  white-space: nowrap;
+}
+
+.emptySide {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.heat {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--space-2) var(--space-3);
+  min-inline-size: 0;
+}
+
+.meter {
+  flex: 1 1 10rem;
+  min-inline-size: 0;
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.footer {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: var(--font-feature-tabular);
+}
+
+@media (--bp-mobile) {
+  /* Faces above heels, the slash between them, and the heels back on the left. */
+  .matchup {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .matchupSlash {
+    justify-self: start;
+  }
+
+  .heels .member {
+    justify-content: flex-start;
+  }
+
+  .heels .emptySide {
+    text-align: start;
+  }
+
+  .nameLink {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: var(--tap-target-min);
+  }
+}
+
+@media (pointer: coarse) {
+  .nameLink {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: var(--tap-target-min);
+  }
+}

@@ -77,4 +77,12 @@ export const routesUnderTest: readonly RouteUnderTest[] = [
     needsWorld: true,
   },
   { path: '/game/workers/per_0000000001?tab=health', name: 'health tab', needsWorld: true },
+  // A storyline's page, under Storylines (CRTV3-04): a detail page, so outside gameRoutes. With no
+  // world behind the sweep it shows its no-game state.
+  {
+    path: '/game/storylines/sty_0000000001',
+    name: 'storyline page',
+    heading: 'Storyline',
+    needsWorld: true,
+  },
 ];

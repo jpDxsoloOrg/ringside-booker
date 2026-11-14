@@ -172,7 +172,11 @@ describe('WorkerProfileScreen', () => {
     expect(router.state.location.search).toBe('?tab=career');
     expect(screen.getByRole('heading', { level: 2, name: 'Contracts' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: 'Title reigns' })).toBeInTheDocument();
-    expect(screen.getByText('Test Heavyweight Title')).toBeInTheDocument();
+    // CRTV1-04: the reign's title name links to the title's page.
+    expect(screen.getByRole('link', { name: 'Test Heavyweight Title' })).toHaveAttribute(
+      'href',
+      expect.stringMatching(/^\/game\/titles\/tit_/),
+    );
     expect(screen.getByText('No teams yet')).toBeInTheDocument();
 
     await user.click(screen.getByRole('tab', { name: 'Overview' }));

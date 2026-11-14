@@ -1,0 +1,83 @@
+/*
+ * Creative > Storylines (CRTV3-04): the heading with the counts and New storyline, an optional
+ * soft-limit notice, then the tabs over a grid of storyline cards. Desktop first: the grid fills
+ * the width with auto-fill columns; below --bp-mobile it is one column and the tab strip scrolls
+ * inside itself (Tabs), so the page never scrolls sideways.
+ */
+.screen {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-4);
+  min-inline-size: 0;
+}
+
+.heading {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-tight);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.count {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: var(--font-feature-tabular);
+}
+
+.newButton {
+  margin-inline-start: auto;
+}
+
+.notice {
+  min-inline-size: 0;
+}
+
+.noticeText {
+  margin: 0;
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.tabLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+  gap: var(--space-4);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gridItem {
+  display: grid;
+  min-inline-size: 0;
+}
+
+@media (--bp-mobile) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .newButton {
+    margin-inline-start: 0;
+  }
+}

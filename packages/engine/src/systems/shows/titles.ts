@@ -8,7 +8,7 @@
  */
 
 import type { PhaseContext } from '../../core/pipeline/context';
-import type { PersonId, TeamId, TitleId } from '../../core/ids';
+import type { TeamId, TitleId } from '../../core/ids';
 import { startDecision, type Traced } from '../../core/trace';
 import { methodOf } from '../../model/catalogs';
 import type { MatchOutcome } from '../../model/entities/segment';
@@ -17,6 +17,8 @@ import type { TitleReign } from '../../model/entities/title-reign';
 import { compareIds } from '../../model/table';
 import type { GameWorldView } from '../../model/tables';
 import type { DeepReadonly } from '../../model/world';
+import { currentReign } from '../titles/helpers/holders';
+import { addDefence, closeReign, openReign } from '../titles/reigns';
 import type { EngineTunables } from '../tunables';
 import type { SegmentResult, SegmentResultApplier } from './registries';
 import { titleOutcomeTraceRef } from './traces';
@@ -135,18 +137,6 @@ export function countsAsDefence(
   );
 }
 
-/** The ring name a holder used with the title's promotion when they won, else their default. */
-function ringNameAt(
-  read: GameWorldView,
-  personId: PersonId,
-  promotionId: Title['promotionId'],
-): string {
-  const employment = read.tables.employments
-    .lookup('byPerson', personId)
-    .find((row) => row.status === 'active' && row.promotionId === promotionId);
-  return employment?.ringName ?? read.tables.people.get(personId)?.defaultRingName ?? personId;
-}
-
 /** The winners' shared team, for a title held by more than one person; else null. */
 function winningTeam(
   read: GameWorldView,
@@ -210,7 +200,7 @@ function settleTitle(
   outcome: MatchOutcome,
   title: DeepReadonly<Title>,
 ): void {
-  const reign = ctx.read.tables.titleReigns.lookupOne('openByTitle', title.id) ?? null;
+  const reign = currentReign(ctx.read, title.id);
   const holdersWon =
     reign !== null && outcome.kind === 'win' && holderSides(result, reign).has(outcome.winningSide);
   const methodKey = result.methodKey ?? (outcome.kind === 'win' ? outcome.methodKey : null);
@@ -236,28 +226,16 @@ function settleTitle(
   ctx.recordTrace(titleOutcomeTraceRef(result.segmentId, title.id), ctx.date, decision);
 
   if (decision.value === 'changed') {
-    // Close the old reign first: the openByTitle unique index allows one open reign per title.
+    // Close the old reign first: a title has at most one open reign (CRTV1's reign writers).
     if (reign !== null) {
-      ctx.tx.update('titleReigns', reign.id, {
-        lostOn: ctx.date,
-        endReason: 'lost',
-        endedInSegmentId: result.segmentId,
-      });
+      closeReign(ctx, { reignId: reign.id, endReason: 'lost', endedInSegmentId: result.segmentId });
     }
     const holderIds = [...result.winnerIds].sort(compareIds);
-    const created = ctx.tx.create('titleReigns', {
+    const created = openReign(ctx, {
       titleId: title.id,
       holderIds,
       teamId: winningTeam(ctx.read, result, title.holderCount),
-      wonOn: ctx.date,
-      lostOn: null,
       wonInSegmentId: result.segmentId,
-      endedInSegmentId: null,
-      endReason: null,
-      defences: 0,
-      holderNamesAtTime: holderIds.map((personId) =>
-        ringNameAt(ctx.read, personId, title.promotionId),
-      ),
     });
     ctx.publish('title.changed', {
       titleId: title.id,
@@ -273,8 +251,7 @@ function settleTitle(
   }
 
   if (reign !== null && countsAsDefence(outcome, decision.value, ctx.tunables)) {
-    const defences = reign.defences + 1;
-    ctx.tx.update('titleReigns', reign.id, { defences });
+    const { defences } = addDefence(ctx, reign.id);
     ctx.publish('title.defended', {
       titleId: title.id,
       promotionId: title.promotionId,

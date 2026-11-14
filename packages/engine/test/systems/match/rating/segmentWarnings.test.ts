@@ -170,9 +170,10 @@ describe('segmentWarnings', () => {
     const promoInput: SegmentRatingInput = { ...fixture.base, kind: 'angle', typeKey: PROMO };
     expect(warningsFor(fixture, promoInput)).toEqual([]);
     updatePerson(world, person(1), (row) => ({ ...row, injury: injuryFor(false) }));
+    // A talking segment rated by beats (MTCH5-03) uses the angle code.
     expect(warningsFor(fixture, promoInput)).toEqual([
       {
-        code: 'injured',
+        code: 'angle.cannotWorkAngles',
         severity: 'error',
         personId: person(1),
         side: 1,
@@ -218,7 +219,9 @@ describe('segmentWarnings', () => {
       segmentWarnings(input, world, TEST_CATALOGS, date);
     const before = parseGameDate('2026-03-11');
     expect(onDate(fixture.base, before)).toEqual([leave]);
-    expect(onDate({ ...fixture.base, kind: 'angle', typeKey: PROMO }, before)).toEqual([leave]);
+    expect(onDate({ ...fixture.base, kind: 'angle', typeKey: PROMO }, before)).toEqual([
+      { ...leave, code: 'angle.unavailable' },
+    ]);
     // Back on the 12th.
     expect(onDate(fixture.base, parseGameDate('2026-03-12'))).toEqual([]);
 
@@ -280,6 +283,15 @@ describe('segmentWarnings', () => {
         'sideSize',
         'speakerCount',
         'unequalSides',
+        'angle.tooManyBeats',
+        'angle.beatNotAllowed',
+        'angle.unknownBeat',
+        'angle.emptyGroup',
+        'angle.groupTooBig',
+        'angle.sidesConflict',
+        'angle.injuredInPhysicalBeat',
+        'angle.cannotWorkAngles',
+        'angle.unavailable',
       ].sort(),
     );
   });

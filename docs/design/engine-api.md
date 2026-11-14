@@ -302,6 +302,12 @@ Commands other systems add:
 | `contracts.offerRenewal`     | `{ employmentId, offer }`               | Opens renewal talks on one of the issuer's contracts inside its renewal window ([negotiation.md](negotiation.md#commands))                                                      |
 | `contracts.respondToCounter` | `{ negotiationId, response, offer? }`   | Accepts a counter-offer, sends a revised offer or ends the talks ([negotiation.md](negotiation.md#rounds))                                                                      |
 | `contracts.withdrawOffer`    | `{ negotiationId }`                     | Takes an open offer back ([negotiation.md](negotiation.md#commands))                                                                                                            |
+| `storylines.create`          | `{ promotionId, name, members, … }`     | Starts one of the issuer's storylines with starting heat; returns `{ storylineId, warnings }` ([storylines.md](storylines.md#commands))                                         |
+| `storylines.edit`            | `{ storylineId, name?, summary?, … }`   | Renames, rewrites the summary or moves the brand; no event ([storylines.md](storylines.md#commands))                                                                            |
+| `storylines.addMember`       | `{ storylineId, personId, side }`       | Adds someone under contract and publishes `storyline.membersChanged` ([storylines.md](storylines.md#commands))                                                                  |
+| `storylines.removeMember`    | `{ storylineId, personId }`             | Takes someone out (never the last) and publishes `storyline.membersChanged` ([storylines.md](storylines.md#commands))                                                           |
+| `storylines.setSide`         | `{ storylineId, personId, side }`       | Changes a member's side in the story, never their alignment ([storylines.md](storylines.md#commands))                                                                           |
+| `storylines.end`             | `{ storylineId }`                       | Ends the storyline and says why it paid nothing; publishes `storyline.ended` ([storylines.md](storylines.md#commands))                                                          |
 
 Queries other systems add:
 
@@ -338,6 +344,8 @@ Queries other systems add:
 | `storylines.detail`           | `{ storylineId }`                                                                                | One storyline's row with its summary, timeline of linked segments and ending; a rival's without timeline or ending ([storylines.md](storylines.md#viewer-rules))                                                                    |
 | `storylines.forPerson`        | `{ personId, includeEnded? }`                                                                    | The storylines a person is in across every promotion, each row scoped on its own ([storylines.md](storylines.md#viewer-rules))                                                                                                      |
 | `storylines.memberOptions`    | `{ promotionId? }`                                                                               | Everyone with an active contract at one of the viewer's promotions, wrestlers first, with their active storyline count; refused `storylines.notYours` otherwise ([storylines.md](storylines.md#commands))                           |
+| `storylines.endPreview`       | `{ storylineId }`                                                                                | What ending one of the viewer's active storylines would pay: `{ linkedSegments, minSegments, payoff, message }` ([storylines.md](storylines.md#commands))                                                                           |
+| `match.previewAngle`          | The lab setup, `angleTypeKey`, `beats` (1–8 with groups), `previewSeed` and optional extras      | An angle rated from its beats: score, stars, delivered, expected, crowd, each beat, inline traces ([angle-rating.md](angle-rating.md#previewing-an-angle))                                                                          |
 
 The calendar queries share one row, `CalendarShow`. `scope` is `mine` or
 `world`; a window may cover at most 366 days and is refused with

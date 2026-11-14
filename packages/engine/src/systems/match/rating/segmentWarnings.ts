@@ -8,14 +8,18 @@
 
 import type { GameDate } from '../../../core/date';
 import type { PersonId, PromotionId } from '../../../core/ids';
-import type { Catalogs } from '../../../model/catalogs';
+import { hasBeatCatalog, type Catalogs } from '../../../model/catalogs';
 import { promotionStatusKey, type Employment } from '../../../model/entities/employment';
 import type { Person } from '../../../model/entities/person';
 import type { GameWorldView } from '../../../model/tables';
 import type { DeepReadonly } from '../../../model/world';
+import type { EngineTunables } from '../../tunables';
 import { availabilityOf, type AvailabilityStatus } from '../../workers/helpers/availability';
+import { defaultBeatsOf } from '../angles/angleRater';
+import { angleBeatWarnings } from '../angles/angleWarnings';
 import { availabilityText } from '../availabilityText';
-import type { SegmentRatingInput, SegmentWarning } from './types';
+import type { DurationClass } from '../slots';
+import type { SegmentRatingInput, SegmentWarning, SegmentWarningCode } from './types';
 
 const NUMBER_WORDS = [
   'No',
@@ -81,6 +85,21 @@ const UNAVAILABLE_CODE: Readonly<
   timeOff: 'unavailable',
   notDebuted: 'unavailable',
 };
+
+/**
+ * The code for someone who cannot work the segment. A talking segment rated by beats (MTCH5-03)
+ * uses the `angle.*` codes: `angle.cannotWorkAngles` for an injury that rules out talking
+ * segments, `angle.unavailable` for anything else.
+ */
+function unavailableCode(
+  status: Exclude<AvailabilityStatus, 'available'>,
+  angleByBeats: boolean,
+): SegmentWarningCode {
+  if (!angleByBeats) {
+    return UNAVAILABLE_CODE[status];
+  }
+  return status === 'injured' ? 'angle.cannotWorkAngles' : 'angle.unavailable';
+}
 
 /** Each person's active contract with the promotion: ring name, and any leave it carries. */
 interface Contracts {
@@ -209,6 +228,7 @@ function personWarnings(
   read: GameWorldView,
   date: GameDate,
   { nameOf, contractOf }: Contracts,
+  byBeats: boolean,
 ): SegmentWarning[] {
   const warnings: SegmentWarning[] = [];
   const seen = new Set<PersonId>();
@@ -230,7 +250,7 @@ function personWarnings(
         (input.kind === 'match' || !availability.canWorkAngles)
       ) {
         warnings.push({
-          code: UNAVAILABLE_CODE[availability.status],
+          code: unavailableCode(availability.status, input.kind === 'angle' && byBeats),
           severity: 'error',
           message: `${name}: ${availabilityText(availability, date)}`,
           ...at,
@@ -249,6 +269,44 @@ function personWarnings(
   return warnings;
 }
 
+/** What the beat warnings of a talking segment need (MTCH5-03): the slot's limit comes from them. */
+export interface SegmentBeatWarningOptions {
+  readonly tunables: EngineTunables;
+  readonly durationClass: DurationClass;
+}
+
+/** The `angle.*` beat warnings: the input's beats, or the angle type's default beat. */
+function beatWarnings(
+  input: SegmentRatingInput,
+  read: GameWorldView,
+  catalogs: DeepReadonly<Catalogs>,
+  date: GameDate,
+  { nameOf, contractOf }: Contracts,
+  options: SegmentBeatWarningOptions,
+): SegmentWarning[] {
+  const angleType = Object.hasOwn(catalogs.angleTypes ?? {}, input.typeKey)
+    ? catalogs.angleTypes?.[input.typeKey]
+    : undefined;
+  if (angleType === undefined) {
+    return [];
+  }
+  const beats = input.angle?.beats ?? defaultBeatsOf(angleType, input.sides, read);
+  return angleBeatWarnings(input, beats, {
+    read,
+    date,
+    tunables: options.tunables,
+    durationClass: options.durationClass,
+    nameOf: (personId) => {
+      const person = read.tables.people.get(personId);
+      return person === undefined ? personId : nameOf(person);
+    },
+    availabilityOf: (personId) => {
+      const person = read.tables.people.get(personId);
+      return person === undefined ? null : availabilityOf(person, contractOf(personId), date);
+    },
+  });
+}
+
 const SEVERITY_RANK: Readonly<Record<SegmentWarning['severity'], number>> = {
   error: 0,
   warning: 1,
@@ -264,12 +322,17 @@ export function segmentWarnings(
   read: GameWorldView,
   catalogs: DeepReadonly<Catalogs>,
   date: GameDate,
+  beatOptions?: SegmentBeatWarningOptions,
 ): SegmentWarning[] {
   const contracts = contractsFor(read, input.promotionId);
+  const byBeats = input.kind === 'angle' && hasBeatCatalog(read);
   const found = [
     ...countWarnings(input, catalogs),
     ...duplicateWarnings(input, read, contracts),
-    ...personWarnings(input, read, date, contracts),
+    ...personWarnings(input, read, date, contracts, byBeats),
+    ...(byBeats && beatOptions !== undefined
+      ? beatWarnings(input, read, catalogs, date, contracts, beatOptions)
+      : []),
   ];
   return found
     .map((warning, index) => ({ warning, index }))

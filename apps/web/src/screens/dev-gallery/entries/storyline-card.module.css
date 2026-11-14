@@ -1,0 +1,7 @@
+/* The storyline card entry: the same auto-fill grid the Storylines desk uses. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+  gap: var(--space-4);
+  min-inline-size: 0;
+}

@@ -15,6 +15,7 @@
  */
 
 import { defineSystem, type SystemBundle } from '../../core/api/system';
+import { angleQueries } from './angles/queries';
 import { matchQueries } from './queries';
 import { aftermathQueries } from './aftermath/queries';
 import { recentFormQueries } from './aftermath/recentFormQuery';
@@ -289,6 +290,108 @@ export {
   type TemplateCast,
   type TemplateFit,
 } from './angles/templates';
+// Beat score formulas (MTCH5-02): the `match.angle` stream, the Angles tunables, the best-stat
+// pick and the beat worker value and beat score formulas. Design: docs/design/angle-rating.md.
+export { ANGLE_STREAM, anglePreviewStream } from './angles/streams';
+export { angleTunables, ANGLES_TUNABLE_CATEGORY } from './angles/tunables';
+export { pickBeatStat, type BeatStatCandidate, type PickedBeatStat } from './angles/pickBeatStat';
+export {
+  BEAT_WORKER_VALUE_DOC_REF,
+  BEST_STAT_LABEL,
+  beatWorkerValue,
+  NO_NOISE_BRANCH,
+  NOT_YOUR_WORKER_NOTE,
+  STAT_NOISE_LABEL,
+  type BeatManagerInputs,
+  type BeatWorkerValueInputs,
+} from './angles/formulas/beatWorkerValue';
+export {
+  BEAT_NOISE_LABEL,
+  BEAT_SCORE_DOC_REF,
+  beatScore,
+  emptyRequiredGroupNote,
+  skippedGroupNote,
+  type BeatScoreGroup,
+  type BeatScoreInputs,
+} from './angles/formulas/beatScore';
+// The angle score, beat limits, the beat rater and `match.previewAngle` (MTCH5-03). Design:
+// docs/design/angle-rating.md#angle-score, #beat-limits, #the-beat-rater.
+export {
+  BEAT_LIMIT_DOC_REF,
+  BEAT_LIMIT_KEYS,
+  beatLimitMessage,
+  beatLimitOf,
+  overLimitNote,
+} from './angles/beatLimit';
+export {
+  ANGLE_SCORE_DOC_REF,
+  ANGLE_SCORE_LABEL,
+  angleScore,
+  angleScoreParts,
+  BEATS_DELIVERED_LABEL,
+  beatsDelivered,
+  CEILING_RAISED_NOTE,
+  CLOSING_BEAT_LABEL,
+  pruneTrace,
+  repeatInAngleLine,
+  repeatOnCardLine,
+  writingBandLabel,
+  type AngleScoreBeat,
+  type AngleScoreDeps,
+  type AngleScoreInputs,
+  type AngleScoreParts,
+  type AngleStageHook,
+} from './angles/formulas/angleScore';
+export {
+  rateAngle,
+  withNotesAtTop,
+  type AngleBeatGroupInput,
+  type AngleBeatInput,
+  type AngleManagerInput,
+  type AnglePersonInput,
+  type AngleRating,
+  type AngleRatingDetail,
+  type AngleStageRunner,
+  type BeatGroupResult,
+  type BeatLimit,
+  type BeatPersonResult,
+  type BeatResult,
+  type RateAngleDeps,
+  type RateAngleInput,
+} from './angles/rateAngle';
+export {
+  angleInputFromContext,
+  beatAngleRater,
+  defaultBeatsOf,
+  IN_NO_BEAT_NOTE,
+  NO_BEAT_CATALOG_NOTE,
+  NO_RATED_BEATS_NOTE,
+  unknownBeatNote,
+} from './angles/angleRater';
+export {
+  angleBeatWarnings,
+  emptyGroupMessage,
+  groupTooBigMessage,
+  sidesConflictMessage,
+  type AngleWarningContext,
+} from './angles/angleWarnings';
+export {
+  angleQueries,
+  NO_BEAT_CATALOG_MESSAGE,
+  PREVIEW_ANGLE_GROUP_MAX,
+  PREVIEW_ANGLE_REASON_CODES,
+  PREVIEW_EARLIER_BEATS_MAX,
+  PreviewAngleArgsSchema,
+  previewAngleQuery,
+  type PreviewAngleArgs,
+  type PreviewAngleBeat,
+  type PreviewAngleBeatArgs,
+  type PreviewAngleResult,
+  type PreviewAngleSlotPosition,
+} from './angles/queries';
+export type { SegmentAngleBeat, SegmentAngleInput } from './rating/types';
+export type { RunStageOptions } from './rating/runStage';
+export type { SegmentBeatWarningOptions } from './rating/segmentWarnings';
 export type {
   AngleTemplateBeatOption,
   AngleTemplateOption,
@@ -564,7 +667,14 @@ export const matchSystem: SystemBundle = defineSystem({
   // MTCH3-03: the weekly prune of stored aftermaths. MTCH3-07: the weekly momentum drift.
   // MTCH4-04: the daily prune of the player's physical toll traces past the history window.
   phases: [momentumDriftPhase, pruneAftermathsPhase, prunePhysicalDetailPhase],
-  queries: [...matchQueries, ...aftermathQueries, ...recentFormQueries, ...physicalQueries],
+  // MTCH5-03: `match.previewAngle`.
+  queries: [
+    ...matchQueries,
+    ...aftermathQueries,
+    ...recentFormQueries,
+    ...physicalQueries,
+    ...angleQueries,
+  ],
 });
 
 // Momentum from a match result and a worker's earlier matches (MTCH3-02). Design:

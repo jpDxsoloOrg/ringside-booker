@@ -15,6 +15,7 @@ import type { TitleId } from '../../../../core/ids';
 import { matchTypeOf } from '../../../../model/catalogs';
 import type { Segment } from '../../../../model/entities/segment';
 import type { DeepReadonly } from '../../../../model/world';
+import { currentHolders } from '../../../titles/helpers/holders';
 import type { BookingCheck, BookingCheckInput, BookingIssueDraft } from '../types';
 import { at, competitorSides, nameOf, placeOf, plural, theTitle } from './shared';
 
@@ -67,8 +68,7 @@ function titleIssues(input: BookingCheckInput): BookingIssueDraft[] {
           ...onTitle,
         });
       }
-      const reign = read.tables.titleReigns.lookupOne('openByTitle', titleId);
-      for (const holderId of reign?.holderIds ?? []) {
+      for (const holderId of currentHolders(read, titleId)) {
         if (!competitors.has(holderId)) {
           issues.push({
             code: 'championMissing',

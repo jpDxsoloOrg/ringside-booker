@@ -174,6 +174,12 @@ Monday, everything dated before it is rolled up:
    and rows plus monthly totals still sum to the change in cash;
 5. stored aftermaths keep only the show region's change.
 
+Between passes 1 and 2 (CRTV4-02), each storyline's progress rows dated
+before the window are dropped (their heat-step Why?s become summaries). The
+storyline's all-time `progressTotals` already count them, so the payoff and
+the screens keep the story's whole run while its old linked segments go with
+the rest of their card ([storylines.md](storylines.md#heat-after-segment)).
+
 **Matches kept past the window** (`segmentsToKeep`, `systems/history/keep.ts`),
 so nothing that reads them changes:
 
@@ -184,7 +190,9 @@ so nothing that reads them changes:
 - each title's newest matches the rival booker reads for its last defence and
   recent challengers (`recentTitleMatchIds`, `aip.titles.recentChallengers`);
 - every match someone was injured in (WRK6-03): injury rows keep their
-  `segmentId`.
+  `segmentId`;
+- a storyline's finale, and the segments its progress rows still name (only
+  the window's, since the rows past it are dropped first).
 
 They stay until nothing reads them; the results page of their show still shows
 only its summary.
