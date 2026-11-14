@@ -116,23 +116,6 @@ describe('ChampionCard', () => {
     expect(screen.getByRole('button', { name: 'Why? Prestige' })).toBeInTheDocument();
   });
 
-  it('puts actions after the Why? chip, and none unless given', () => {
-    const { rerender } = render(
-      <ChampionCard
-        title={CROWN}
-        reign={REIGN}
-        prestige={82}
-        why={<button type="button">Why? Prestige</button>}
-        actions={<button type="button">Actions</button>}
-      />,
-    );
-    const [why, actions] = screen.getAllByRole('button');
-    expect(why).toHaveAccessibleName('Why? Prestige');
-    expect(actions).toHaveAccessibleName('Actions');
-    rerender(<ChampionCard title={CROWN} reign={REIGN} prestige={82} />);
-    expect(screen.queryByRole('button')).toBeNull();
-  });
-
   it('lets the screen draw the title and champion names, as links say', () => {
     render(
       <ChampionCard

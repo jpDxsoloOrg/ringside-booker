@@ -53,7 +53,7 @@ export interface TitleCardProps {
   readonly row: TitleCardRow;
   /** The title name's heading level. 3 by default, under a group's panel heading. */
   readonly headingLevel?: ChampionCardHeadingLevel;
-  /** The card's actions menu (CRTV1-05), on the player's own titles only. */
+  /** The card's actions menu (CRTV1-05), on the player's own titles only: at the footer's end. */
   readonly actions?: ReactNode;
 }
 
@@ -73,7 +73,6 @@ export function TitleCard({ row, headingLevel = 3, actions }: TitleCardProps) {
       reign={titleCardReign(row)}
       prestige={row.prestige}
       headingLevel={headingLevel}
-      {...(actions === undefined || actions === null ? {} : { actions })}
       renderTitleName={(name) => <TitlePageLink titleId={row.titleId}>{name}</TitlePageLink>}
       {...(soloHolder === null
         ? {}
@@ -97,14 +96,18 @@ export function TitleCard({ row, headingLevel = 3, actions }: TitleCardProps) {
           })}
       footer={
         <div className={styles['cardFooter']}>
-          {/* The number is in the card's header already ("Prestige 92"), so the bar stands alone. */}
-          <StatBar
-            label="Prestige"
-            hideLabel
-            showValue={false}
-            value={row.prestige}
-            className={styles['cardBar']}
-          />
+          <div className={styles['cardFooterRow']}>
+            {/* The number is in the card's header already ("Prestige 92"), so the bar stands alone. */}
+            <StatBar
+              label="Prestige"
+              hideLabel
+              showValue={false}
+              value={row.prestige}
+              className={styles['cardBar']}
+            />
+            {/* Kept out of the header, where its tap area would crowd the title link on a phone. */}
+            {actions}
+          </div>
           {row.status === 'retired' && row.retiredOn !== null && (
             <Badge tone="neutral">{`Retired ${formatGameDate(row.retiredOn)}`}</Badge>
           )}

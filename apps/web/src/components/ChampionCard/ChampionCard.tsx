@@ -63,11 +63,6 @@ export interface ChampionCardProps {
   /** Slot for a Why? chip, such as one that explains the prestige. */
   readonly why?: ReactNode;
   /**
-   * Slot after the Why? chip for the card's actions, such as the Titles screen's menu on the
-   * player's own titles. Left out, the card has no controls of its own.
-   */
-  readonly actions?: ReactNode;
-  /**
    * Draws the title name, so a screen can make it a link (the Titles screen links it to the
    * title's page) without the card knowing about the router. Plain text by default.
    */
@@ -107,7 +102,6 @@ export function ChampionCard({
   headingLevel = 3,
   footer,
   why,
-  actions,
   renderTitleName,
   renderChampionName,
   className,
@@ -136,12 +130,7 @@ export function ChampionCard({
             <span className={styles['prestigeText']}>Prestige {prestigeText}</span>
           </span>
         </div>
-        {(why !== undefined || actions !== undefined) && (
-          <span className={styles['why']}>
-            {why}
-            {actions}
-          </span>
-        )}
+        {why !== undefined && <span className={styles['why']}>{why}</span>}
       </div>
 
       <div className={styles['holder']}>
