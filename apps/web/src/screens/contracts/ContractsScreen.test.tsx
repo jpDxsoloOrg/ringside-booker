@@ -7,8 +7,8 @@ import { useSessionStore } from '@/app/session/sessionStore';
 import { useTracePanelStore } from '@/components/Trace';
 import { LOAD_MS, renderContracts } from '@/test/contractsScreen';
 import type { RenderedContracts } from '@/test/contractsScreen';
-import { endDateText } from './contractColumns';
-import { CONTRACT_KIND_LABELS } from './contractLabels';
+import { formatGameDate } from '@/components/format';
+import { CONTRACT_KIND_LABELS, NO_END_DATE } from './contractLabels';
 import { aContractRow, anAnswerPreview, anOwnDetail, FIXTURE_EMPLOYMENT } from './contractFixtures';
 import { SEVERANCE_CHANGED_TEXT } from './ReleaseDialog';
 
@@ -78,7 +78,9 @@ describe('ContractsScreen', () => {
       { timeout: LOAD_MS },
     );
     expect(within(row).getByText(CONTRACT_KIND_LABELS[first.kind])).toBeInTheDocument();
-    expect(within(row).getByText(endDateText(first))).toBeInTheDocument();
+    expect(
+      within(row).getByText(first.endsOn === null ? NO_END_DATE : formatGameDate(first.endsOn)),
+    ).toBeInTheDocument();
     expect(within(row).getByText(/\/mo|per show/u)).toBeInTheDocument();
     expect(
       screen.getByText(new RegExp(`^${String(rows.length)} contracts · .* a month · `, 'u')),

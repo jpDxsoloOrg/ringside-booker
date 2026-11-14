@@ -59,12 +59,19 @@ export function wageText(
   return parts.length === 0 ? money(0) : parts.join(' + ');
 }
 
-/** "4 Mar 2027 · 59 days", or "No end date". */
-export function endDateText(row: Pick<ContractRow, 'endsOn' | 'daysLeft'>): string {
-  if (row.endsOn === null) return NO_END_DATE;
-  const date = formatGameDate(row.endsOn);
-  if (row.daysLeft === null) return date;
-  return `${date} · ${formatNumber(row.daysLeft)} ${row.daysLeft === 1 ? 'day' : 'days'}`;
+/** The date, and the days left under it (beside it on a phone card). */
+function EndsCell({ row }: { readonly row: ContractRow }) {
+  if (row.endsOn === null) return <span className={styles['none']}>{NO_END_DATE}</span>;
+  return (
+    <span className={styles['ends']}>
+      <span className="tabular">{formatGameDate(row.endsOn)}</span>
+      {row.daysLeft !== null && (
+        <span className={styles['endsIn']}>
+          {`${formatNumber(row.daysLeft)} ${row.daysLeft === 1 ? 'day' : 'days'}`}
+        </span>
+      )}
+    </span>
+  );
 }
 
 /** "Mid card wrestler", "Referee". */
@@ -178,7 +185,7 @@ export function contractColumns(
     {
       id: 'role',
       header: 'Role',
-      cell: (row) => roleText(row),
+      cell: (row) => <span className={styles['nowrap']}>{roleText(row)}</span>,
       sortValue: (row) => pushRank(row.push),
       filterValue: (row) => roleText(row),
       card: 'subtitle',
@@ -232,6 +239,7 @@ export function contractColumns(
                 <Button
                   size="sm"
                   variant="secondary"
+                  className={styles['nowrap']}
                   onClick={() => {
                     context.onAcknowledge(row);
                   }}
@@ -251,7 +259,9 @@ export function contractColumns(
     {
       id: 'wage',
       header: 'Wage',
-      cell: (row) => <span className="tabular">{wageText(row, money)}</span>,
+      cell: (row) => (
+        <span className={`tabular ${styles['nowrap'] ?? ''}`}>{wageText(row, money)}</span>
+      ),
       sortValue: (row) => row.monthlyWage + row.perAppearanceFee * 4,
       filterValue: () => null,
       numeric: true,
@@ -260,7 +270,7 @@ export function contractColumns(
     {
       id: 'endsOn',
       header: 'Ends',
-      cell: (row) => <span className="tabular">{endDateText(row)}</span>,
+      cell: (row) => <EndsCell row={row} />,
       sortValue: (row) => row.daysLeft,
       filterValue: () => null,
       card: 'stat',

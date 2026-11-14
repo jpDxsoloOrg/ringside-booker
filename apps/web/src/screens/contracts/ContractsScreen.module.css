@@ -128,6 +128,21 @@
   color: var(--color-text-muted);
 }
 
+.nowrap {
+  white-space: nowrap;
+}
+
+.ends {
+  display: inline-grid;
+  gap: 0;
+  white-space: nowrap;
+}
+
+.endsIn {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
 /* ---------------------------------------------------------------- the sheet */
 
 .detail {
@@ -313,6 +328,17 @@
   .terms > div {
     grid-template-columns: minmax(0, 1fr);
     gap: 0;
+  }
+
+  /* On a card the date and the days left share one line. */
+  .ends {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0 var(--space-1);
+  }
+
+  .nowrap {
+    white-space: normal;
   }
 
   .sheetFooter > * {
