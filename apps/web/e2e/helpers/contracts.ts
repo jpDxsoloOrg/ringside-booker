@@ -1,6 +1,6 @@
 import { expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
-import { cancelTonightsShow } from './booking';
+import { cancelTonightsShow, gameDate, waitForAdvanceToEnd } from './booking';
 
 /** The day bar's button with this name. */
 export function dayButton(page: Page, name: string | RegExp): Locator {
@@ -51,10 +51,7 @@ export function contractRows(page: Page): Locator {
 }
 
 /** The game's date (ISO), from the top bar. */
-export async function gameDate(page: Page): Promise<string> {
-  const time = page.getByRole('banner').locator('time[datetime]').first();
-  return (await time.getAttribute('datetime')) ?? '';
-}
+export { gameDate };
 
 /** The ISO date `days` days after `date`. */
 export function addIsoDays(date: string, days: number): string {
@@ -99,6 +96,25 @@ export async function clearDayStop(page: Page, handlers: StopHandlers = {}): Pro
   return false;
 }
 
+/** The day bar's button when the day stops on your show night. */
+const SHOW_STOP = /Go to the show$/;
+
+/**
+ * Clears the day's stops other than your show night (an injury, expiring contracts) the way a
+ * player does, once the day bar has read them, and leaves the show night for the caller to book.
+ * Returns true when your show night is waiting. A show can leave such a stop behind (a worker hurt
+ * in it), and it turns Skip days off until it is cleared.
+ */
+export async function clearOtherStops(page: Page): Promise<boolean> {
+  await expect(page.getByTestId('day-control')).not.toHaveAttribute('aria-busy', 'true');
+  // Each pass clears one stop; a day has only a few kinds.
+  for (let pass = 0; pass < 5; pass += 1) {
+    if (await dayButton(page, SHOW_STOP).isVisible()) return true;
+    if (!(await clearDayStop(page))) return false;
+  }
+  return dayButton(page, SHOW_STOP).isVisible();
+}
+
 /**
  * Skips to the start of `date` (Skip days with "Stop on a date"), clearing each stop on the way
  * with {@link clearDayStop}. Leaves the day's own stop, if it has one, for the caller.
@@ -115,6 +131,7 @@ export async function skipToDateThroughStops(
     if (await clearDayStop(page, handlers)) continue;
     const summary = page.getByRole('region', { name: 'Last advance' });
     const before = (await summary.count()) > 0 ? await summary.textContent() : null;
+    const startDate = await gameDate(page);
     await openSkipDays(page, phone);
     const sheet = page.getByRole('dialog', { name: 'Skip days' });
     await sheet.getByLabel('Days to skip').fill('120');
@@ -122,9 +139,7 @@ export async function skipToDateThroughStops(
     await sheet.getByLabel('Stop on', { exact: true }).fill(date);
     await sheet.getByRole('button', { name: 'Start' }).click();
     await expect(sheet).toBeHidden();
-    await expect(summary).toBeVisible();
-    await expect.poll(() => summary.textContent()).not.toBe(before);
-    await expect(page.getByTestId('advance-overlay')).toBeHidden();
+    await waitForAdvanceToEnd(page, startDate, before);
     // A skip that stopped short stopped for something: wait for the day bar to say what.
     if ((await gameDate(page)) < date) await expect(dayButton(page, 'Next day')).toBeHidden();
   }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { MAX_COMPLETED_SINCE, parseId } from '@ringside/engine';
 import type {
@@ -103,7 +103,13 @@ function AdvancedReportBanner({ report, onDismiss }: ReportBannerProps<AdvancedR
     },
     { keepPreviousData: false },
   );
-  useOpenResultsAfterShow(report, completed.data);
+  // A show you ran yourself before the advance started is not one it ran (EVT2-12).
+  const ranHere = useMemo(() => {
+    if (completed.data === undefined) return undefined;
+    const before = new Set(report.completedBefore ?? []);
+    return completed.data.filter((show) => !before.has(show.eventInstanceId));
+  }, [completed.data, report.completedBefore]);
+  useOpenResultsAfterShow(report, ranHere);
   // A Next Day that lands on your show day says so, even though the day itself ran in full.
   const gates = useEngineQuery('sim.pendingGates', {});
   const tonight = gates.data?.hits.find((hit) => hit.actionHint === SHOW_NIGHT_HINT) ?? null;
@@ -124,7 +130,7 @@ function AdvancedReportBanner({ report, onDismiss }: ReportBannerProps<AdvancedR
     },
     { enabled: promotionId !== null, keepPreviousData: false },
   );
-  const results = completed.data ?? [];
+  const results = ranHere ?? [];
   const contractChanges = contracts.status === 'success' ? contracts.data : undefined;
   const offerUpdates =
     promotionId !== null && offers.status === 'success' ? offers.data : undefined;
