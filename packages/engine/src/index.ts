@@ -2939,6 +2939,7 @@ export {
   type AskingTermsView,
   type AskingWageInputs,
   type AskingWageRenewal,
+  type FreeAgentPlace,
   type FreeAgentRow,
   type FreeAgentsSituationFilter,
   type MarketValueInputs,

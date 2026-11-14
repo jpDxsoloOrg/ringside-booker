@@ -165,6 +165,7 @@ export {
   NOT_YOUR_CONTRACT_MESSAGE,
   NOT_YOUR_PROMOTION_MESSAGE,
   type AskingTermsView,
+  type FreeAgentPlace,
   type FreeAgentRow,
   type FreeAgentsSituationFilter,
   brandOptionsOf,
