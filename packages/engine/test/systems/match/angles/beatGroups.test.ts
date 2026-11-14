@@ -15,10 +15,10 @@ import { TEST_CATALOGS } from '../../../support/catalogs';
 import { testId } from '../../../support/ids';
 
 const READER = worldBuilder().withCatalogs(TEST_CATALOGS).build().world;
-const A = testId('person', 1);
-const B = testId('person', 2);
-const C = testId('person', 3);
-const D = testId('person', 4);
+const ANN = testId('person', 1);
+const BEA = testId('person', 2);
+const CAL = testId('person', 3);
+const DEV = testId('person', 4);
 
 function catalogBeat(key: string): BeatDef {
   const beat = beatOf(READER, key);
@@ -36,31 +36,31 @@ describe('beatGroupsOf', () => {
   it('puts everyone in group one for a one-group beat, whatever their sides', () => {
     const brawl = parseContentKey('beat.brawl');
     const groups = beatGroupsOf(
-      { beatKey: brawl, personIds: [A, B] },
+      { beatKey: brawl, personIds: [ANN, BEA] },
       catalogBeat('beat.brawl'),
-      sidesOf({ [A]: 0, [B]: 1 }),
+      sidesOf({ [ANN]: 0, [BEA]: 1 }),
     );
-    expect(groups).toEqual({ beatKey: brawl, groupOne: [A, B], groupTwo: [] });
+    expect(groups).toEqual({ beatKey: brawl, groupOne: [ANN, BEA], groupTwo: [] });
   });
 
   it("splits a two-group beat by the first person's side", () => {
     const staredown = parseContentKey('beat.staredown');
     const groups = beatGroupsOf(
-      { beatKey: staredown, personIds: [B, A, D, C] },
+      { beatKey: staredown, personIds: [BEA, ANN, DEV, CAL] },
       catalogBeat('beat.staredown'),
-      sidesOf({ [A]: 0, [C]: 0, [B]: 1, [D]: 1 }),
+      sidesOf({ [ANN]: 0, [CAL]: 0, [BEA]: 1, [DEV]: 1 }),
     );
-    expect(groups).toEqual({ beatKey: staredown, groupOne: [B, D], groupTwo: [A, C] });
+    expect(groups).toEqual({ beatKey: staredown, groupOne: [BEA, DEV], groupTwo: [ANN, CAL] });
   });
 
   it('round-trips grouped people through the stored beat', () => {
     const grouped = {
       beatKey: parseContentKey('beat.war-of-words'),
-      groupOne: [A, C],
-      groupTwo: [B],
+      groupOne: [ANN, CAL],
+      groupTwo: [BEA],
     };
     const stored = toStoredBeat(grouped);
-    expect(stored).toEqual({ beatKey: grouped.beatKey, personIds: [A, C, B] });
+    expect(stored).toEqual({ beatKey: grouped.beatKey, personIds: [ANN, CAL, BEA] });
     expect(Object.keys(stored).sort()).toEqual(['beatKey', 'personIds']);
     const sides = assignAngleSides([grouped]);
     if (!('sides' in sides)) {
@@ -75,11 +75,11 @@ describe('beatGroupsOf', () => {
 describe('assignAngleSides', () => {
   it('gives consistent sides for a staredown a/b then a brawl ab', () => {
     const beats = [
-      { beatKey: parseContentKey('beat.staredown'), groupOne: [A, C], groupTwo: [B, D] },
-      { beatKey: parseContentKey('beat.brawl'), groupOne: [A, C, B, D], groupTwo: [] },
+      { beatKey: parseContentKey('beat.staredown'), groupOne: [ANN, CAL], groupTwo: [BEA, DEV] },
+      { beatKey: parseContentKey('beat.brawl'), groupOne: [ANN, CAL, BEA, DEV], groupTwo: [] },
     ];
     const result = assignAngleSides(beats);
-    expect(result).toEqual({ sides: { [A]: 0, [C]: 0, [B]: 1, [D]: 1 } });
+    expect(result).toEqual({ sides: { [ANN]: 0, [CAL]: 0, [BEA]: 1, [DEV]: 1 } });
     if (!('sides' in result)) {
       return;
     }
@@ -92,26 +92,26 @@ describe('assignAngleSides', () => {
 
   it('reports a conflict when two people share a group in one beat and face each other in the next', () => {
     const result = assignAngleSides([
-      { groupOne: [A, B], groupTwo: [C] },
-      { groupOne: [A], groupTwo: [B] },
+      { groupOne: [ANN, BEA], groupTwo: [CAL] },
+      { groupOne: [ANN], groupTwo: [BEA] },
     ]);
-    expect(result).toEqual({ conflict: { personA: A, personB: B, beatIndex: 1 } });
+    expect(result).toEqual({ conflict: { personA: ANN, personB: BEA, beatIndex: 1 } });
   });
 
   it('keeps announcement subjects apart when they face each other later', () => {
     const result = assignAngleSides([
-      { groupOne: [C], groupTwo: [A, B] },
-      { groupOne: [A], groupTwo: [B] },
+      { groupOne: [CAL], groupTwo: [ANN, BEA] },
+      { groupOne: [ANN], groupTwo: [BEA] },
     ]);
-    expect(result).toEqual({ sides: { [C]: 0, [A]: 1, [B]: 2 } });
+    expect(result).toEqual({ sides: { [CAL]: 0, [ANN]: 1, [BEA]: 2 } });
   });
 
   it('ties an empty-second-group beat together only when told it has two groups', () => {
-    expect(assignAngleSides([{ groupOne: [A, B], groupTwo: [] }])).toEqual({
-      sides: { [A]: 0, [B]: 1 },
+    expect(assignAngleSides([{ groupOne: [ANN, BEA], groupTwo: [] }])).toEqual({
+      sides: { [ANN]: 0, [BEA]: 1 },
     });
-    expect(assignAngleSides([{ groupOne: [A, B], groupTwo: [], twoGroups: true }])).toEqual({
-      sides: { [A]: 0, [B]: 0 },
+    expect(assignAngleSides([{ groupOne: [ANN, BEA], groupTwo: [], twoGroups: true }])).toEqual({
+      sides: { [ANN]: 0, [BEA]: 0 },
     });
   });
 });

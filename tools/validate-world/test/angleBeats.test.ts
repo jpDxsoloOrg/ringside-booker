@@ -107,8 +107,8 @@ describe('angle-beats', () => {
 
   it('reports an unknown beat', async () => {
     const { world } = tinyWorld();
-    const [a] = speakers(world);
-    const id = setBeats(world, [beat('beat.monologue', [a])]);
+    const [first] = speakers(world);
+    const id = setBeats(world, [beat('beat.monologue', [first])]);
     const issues = await check(world);
     expect(issues.map((issue) => [issue.code, issue.path])).toEqual([
       ['angle-beats', ['segments', id, 'angle', 'beats', '0', 'beatKey']],
@@ -118,37 +118,37 @@ describe('angle-beats', () => {
 
   it("reports a beat the angle type doesn't allow", () => {
     const { world } = tinyWorld();
-    const [a, b] = speakers(world);
-    setBeats(world, [beat('beat.brawl', [a, b])]);
+    const [first, second] = speakers(world);
+    setBeats(world, [beat('beat.brawl', [first, second])]);
     expect(codes(world)).toEqual([BEAT_ISSUE_CODES.beatNotAllowed]);
   });
 
   it('reports someone in a beat who is not a participant', () => {
     const { world } = tinyWorld();
-    const [a] = speakers(world);
+    const [first] = speakers(world);
     const [outsider] = outsiders(world, 1);
     if (outsider === undefined) {
       throw new Error('no outsider');
     }
-    setBeats(world, [beat('beat.promo', [a, outsider])]);
+    setBeats(world, [beat('beat.promo', [first, outsider])]);
     expect(codes(world)).toEqual([BEAT_ISSUE_CODES.beatPersonNotParticipant]);
   });
 
   it('reports an empty required second group', () => {
     const { world } = tinyWorld();
-    const [a] = speakers(world);
-    setBeats(world, [beat('beat.war-of-words', [a])]);
+    const [first] = speakers(world);
+    setBeats(world, [beat('beat.war-of-words', [first])]);
     expect(codes(world)).toEqual([BEAT_ISSUE_CODES.beatGroupEmpty]);
   });
 
   it('reports a group with too many people, and lets an optional group stay empty', () => {
     const { world } = tinyWorld();
-    const [a] = speakers(world);
+    const [first] = speakers(world);
     const extra = outsiders(world, 2);
     addSpeakers(world, extra, 0);
-    setBeats(world, [beat('beat.announcement', [a, ...extra])]);
+    setBeats(world, [beat('beat.announcement', [first, ...extra])]);
     expect(codes(world)).toEqual([BEAT_ISSUE_CODES.beatGroupSize]);
-    setBeats(world, [beat('beat.announcement', [a])]);
+    setBeats(world, [beat('beat.announcement', [first])]);
     expect(codes(world)).toEqual([]);
   });
 

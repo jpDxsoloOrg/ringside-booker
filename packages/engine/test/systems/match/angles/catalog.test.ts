@@ -367,7 +367,11 @@ describe('match.catalog beats and templates', () => {
   });
 
   it('gives empty beat lists on a save from before beats', () => {
-    const { beats: _beats, angleTemplates: _templates, ...older } = TEST_CATALOGS;
+    const older = Object.fromEntries(
+      Object.entries(TEST_CATALOGS).filter(
+        ([name]) => name !== 'beats' && name !== 'angleTemplates',
+      ),
+    );
     const catalog = catalogOf(older);
     expect(catalog.beats).toEqual([]);
     expect(catalog.angleTemplates).toEqual([]);
