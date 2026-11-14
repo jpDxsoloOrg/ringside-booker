@@ -19,6 +19,7 @@ import type { NewsId } from '../../core/ids';
 import type { StepContext } from '../../core/pipeline/context';
 import type { MessageRefs } from '../../model/entities/mail';
 import type { NewsImportance, NewsKind } from '../../model/entities/news';
+import { registerTraceKindLimits } from '../traceKindLimits';
 import { geographyOf } from '../world/geography';
 import { buzzScore } from './formulas/buzzScore';
 import { buzzSubjectsOf } from './subjects';
@@ -26,6 +27,22 @@ import { newsTopic } from './topics';
 
 /** The trace kind every story's buzz is stored under, keyed by the story's ID. */
 export const NEWS_BUZZ_TRACE_KIND = 'news.buzz';
+
+/**
+ * Buzz traces are kept in full for the newest `news.buzz.fullTraces` stories (enough for every
+ * story on the feed), within the usual `sim.traceBytesPerKind`; older ones keep the summary.
+ * Without a count of its own the kind filled the whole byte budget (DAY1-03).
+ */
+export const NEWS_BUZZ_TRACE_LIMITS_ID = 'news.buzz';
+
+registerTraceKindLimits({
+  id: NEWS_BUZZ_TRACE_LIMITS_ID,
+  kinds: [NEWS_BUZZ_TRACE_KIND],
+  limits: (tunables) => ({
+    retentionPerKind: tunables.get('news.buzz.fullTraces'),
+    bytesPerKind: tunables.get('sim.traceBytesPerKind'),
+  }),
+});
 
 /**
  * A design rule, not a tunable: importance 3 is the front page, and front-page stories are kept

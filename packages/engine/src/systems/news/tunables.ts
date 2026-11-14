@@ -229,6 +229,17 @@ export const newsTunables = defineTunables({
     description: 'Most people and promotions in a story whose popularity counts towards its buzz',
     docRef: BUZZ_DOC,
   },
+  'news.buzz.fullTraces': {
+    kind: 'integer',
+    default: 60,
+    min: 0,
+    max: 1000,
+    unit: 'count',
+    category: CATEGORY,
+    description:
+      'Newest stories whose buzz Why? is kept in full; older ones keep a summary (0 = summaries only)',
+    docRef: BUZZ_DOC,
+  },
   'news.expiry.importance0Days': {
     kind: 'integer',
     default: 14,

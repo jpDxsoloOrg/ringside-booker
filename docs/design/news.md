@@ -86,7 +86,9 @@ popPoints(p) = popularityMax × p / (p + popularitySoftCap)
 Buzz is fixed when the story is posted, so it says how big the story was when
 it broke. A worker who becomes a star later does not raise the buzz of old
 stories. The trace store keeps full traces for the newest
-`sim.traceRetentionPerKind` stories; older ones keep the summary.
+`news.buzz.fullTraces` stories (60, enough for every story on the feed; its own
+limit since DAY1-03, within `sim.traceBytesPerKind`); older ones keep the
+summary.
 
 The Why? trace reads: "Story buzz" starting from "Nothing yet", then "Base for a
 &lt;kind&gt; story", "Importance &lt;n&gt; × points per level", one "Popularity of
@@ -115,27 +117,28 @@ worldwide popularity 70 and their new promotion at 40, with the defaults:
 
 Category News, docRef `news.md#buzz`. Every number is 0-means-0.
 
-| Key                              | Kind    | Default | Range | Unit   | Meaning                                                                                    |
-| -------------------------------- | ------- | ------- | ----- | ------ | ------------------------------------------------------------------------------------------ |
-| `news.buzz.kindBase.result`      | number  | 20      | 0–100 | points | Buzz every result story starts with                                                        |
-| `news.buzz.kindBase.titleChange` | number  | 35      | 0–100 | points | Title change                                                                               |
-| `news.buzz.kindBase.signing`     | number  | 20      | 0–100 | points | Signing                                                                                    |
-| `news.buzz.kindBase.release`     | number  | 15      | 0–100 | points | Release                                                                                    |
-| `news.buzz.kindBase.injury`      | number  | 15      | 0–100 | points | Injury                                                                                     |
-| `news.buzz.kindBase.retirement`  | number  | 30      | 0–100 | points | Retirement                                                                                 |
-| `news.buzz.kindBase.rumour`      | number  | 5       | 0–100 | points | Rumour                                                                                     |
-| `news.buzz.kindBase.business`    | number  | 15      | 0–100 | points | Business                                                                                   |
-| `news.buzz.kindBase.milestone`   | number  | 10      | 0–100 | points | Milestone                                                                                  |
-| `news.buzz.kindBase.backstage`   | number  | 10      | 0–100 | points | Backstage                                                                                  |
-| `news.buzz.kindBase.personal`    | number  | 10      | 0–100 | points | Personal                                                                                   |
-| `news.buzz.kindBase.season`      | number  | 30      | 0–100 | points | Season                                                                                     |
-| `news.buzz.kindBase.award`       | number  | 30      | 0–100 | points | Award                                                                                      |
-| `news.buzz.kindBase.rivalry`     | number  | 20      | 0–100 | points | Rivalry                                                                                    |
-| `news.buzz.importancePoints`     | number  | 12      | 0–40  | points | Buzz per level of importance                                                               |
-| `news.buzz.popularityMax`        | number  | 40      | 0–100 | points | Most buzz one subject's popularity can add                                                 |
-| `news.buzz.popularitySoftCap`    | number  | 30      | 0–100 | points | Popularity at which a subject adds half of `popularityMax` (0: any popularity adds it all) |
-| `news.buzz.extraSubjectShare`    | number  | 0.25    | 0–1   | ratio  | Share each subject after the best known adds                                               |
-| `news.buzz.maxSubjects`          | integer | 3       | 1–10  | count  | Most subjects whose popularity counts                                                      |
+| Key                              | Kind    | Default | Range  | Unit   | Meaning                                                                                    |
+| -------------------------------- | ------- | ------- | ------ | ------ | ------------------------------------------------------------------------------------------ |
+| `news.buzz.kindBase.result`      | number  | 20      | 0–100  | points | Buzz every result story starts with                                                        |
+| `news.buzz.kindBase.titleChange` | number  | 35      | 0–100  | points | Title change                                                                               |
+| `news.buzz.kindBase.signing`     | number  | 20      | 0–100  | points | Signing                                                                                    |
+| `news.buzz.kindBase.release`     | number  | 15      | 0–100  | points | Release                                                                                    |
+| `news.buzz.kindBase.injury`      | number  | 15      | 0–100  | points | Injury                                                                                     |
+| `news.buzz.kindBase.retirement`  | number  | 30      | 0–100  | points | Retirement                                                                                 |
+| `news.buzz.kindBase.rumour`      | number  | 5       | 0–100  | points | Rumour                                                                                     |
+| `news.buzz.kindBase.business`    | number  | 15      | 0–100  | points | Business                                                                                   |
+| `news.buzz.kindBase.milestone`   | number  | 10      | 0–100  | points | Milestone                                                                                  |
+| `news.buzz.kindBase.backstage`   | number  | 10      | 0–100  | points | Backstage                                                                                  |
+| `news.buzz.kindBase.personal`    | number  | 10      | 0–100  | points | Personal                                                                                   |
+| `news.buzz.kindBase.season`      | number  | 30      | 0–100  | points | Season                                                                                     |
+| `news.buzz.kindBase.award`       | number  | 30      | 0–100  | points | Award                                                                                      |
+| `news.buzz.kindBase.rivalry`     | number  | 20      | 0–100  | points | Rivalry                                                                                    |
+| `news.buzz.importancePoints`     | number  | 12      | 0–40   | points | Buzz per level of importance                                                               |
+| `news.buzz.popularityMax`        | number  | 40      | 0–100  | points | Most buzz one subject's popularity can add                                                 |
+| `news.buzz.popularitySoftCap`    | number  | 30      | 0–100  | points | Popularity at which a subject adds half of `popularityMax` (0: any popularity adds it all) |
+| `news.buzz.extraSubjectShare`    | number  | 0.25    | 0–1    | ratio  | Share each subject after the best known adds                                               |
+| `news.buzz.maxSubjects`          | integer | 3       | 1–10   | count  | Most subjects whose popularity counts                                                      |
+| `news.buzz.fullTraces`           | integer | 60      | 0–1000 | count  | Newest stories whose buzz Why? is kept in full (0 = summaries only)                        |
 
 ## Expiry
 
