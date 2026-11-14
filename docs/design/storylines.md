@@ -813,3 +813,27 @@ entries carry `heatBefore`, `heatAfter` and `heatTraceRef` (the
 `storylines.heatStep` Why? while kept) from the storyline's progress rows, all
 null for a segment that hasn't counted. The page's timeline draws "Heat 42 → 51"
 from them while `storylines.timeline` loads.
+
+## Owner test
+
+CRTV4-07 ties CRTV4 together for the owner's test on the deployed site. The
+owner script lives on the ticket; `apps/web/e2e/storylines-on-the-card.spec.ts`
+plays it in a new default-world Sandbox game as Altura on desktop, phone and
+phone-webkit: a finale linked from its suggestion, four matches pairing the two
+starters' people (so each storyline has four counted segments in one show), a
+talking segment linked to a story nobody in it belongs to ("Won't count" in the
+editor and the checklist, "Not counted: nobody in this segment is in '<name>'"
+on the results), the heat chip's Why? naming the segment, the timeline and the
+finale hint, then Set heat 85 and 20 for a paid and a cold payoff. The shared
+steps are in `apps/web/e2e/helpers/storylines.ts`. Every storyline Why? (heat
+step, hand-set heat, payoffs) is walked through the panel's wording in
+`apps/web/src/components/Trace/storylineWhy.test.ts`; the payoff's strength is
+titled "Payoff strength" in both the preview and its Why?.
+
+Long storyline names end in an ellipsis on the suggestion chip, the linked row,
+the heat change chip and the card's "Story: <name>" chip; the full name stays
+the accessible name and the hover title.
+
+A save from before CRTV4 still loads (its storylines have no links, progress or
+payoff record, and every storyline query answers), but the owner starts a new
+game after the deploy so the starters have linked history to show.

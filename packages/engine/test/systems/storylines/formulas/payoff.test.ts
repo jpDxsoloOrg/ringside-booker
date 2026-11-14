@@ -69,7 +69,7 @@ describe('payoffQuality', () => {
     expect(result.value).toBeCloseTo(0.75, 10);
     expect(result.trace).toMatchObject({
       kind: 'formula',
-      label: 'Payoff quality',
+      label: 'Payoff strength',
       docRef: 'docs/design/storylines.md#payoff',
     });
     expect(tunableKeys(result)).toContain('storylines.payoff.neutralHeat');
