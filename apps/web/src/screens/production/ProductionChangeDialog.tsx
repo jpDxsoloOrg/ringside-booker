@@ -179,6 +179,10 @@ export function ProductionChangeDialogView({
             onRequestChange={onLevelChange}
             className={styles['dialogStepper']}
           />
+          {/* The held-back − says why only in its tooltip; touch and keyboard users read it here. */}
+          {minReason !== undefined && minLevel > 0 && to <= minLevel && (
+            <p className={styles['muted']}>{minReason}</p>
+          )}
           {to <= from ? (
             <p className={styles['fee']}>{LOWERING_IS_FREE_TEXT}</p>
           ) : (
