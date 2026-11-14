@@ -3787,3 +3787,29 @@ export {
   RIVAL_AIRING_TRACE_KIND,
 } from './systems/broadcast/index';
 export type { AiringKind, BroadcastShow, DealRisk, DueAiring } from './systems/broadcast/index';
+
+// Broadcast audience (ECO8-02): one audience formula for valuation, the network benchmark and
+// airings, and the audience helper other features call. See docs/design/broadcast.md#audience.
+export {
+  AUDIENCE_TRACE_COUNTRY_LINES,
+  audience,
+  audienceInputsFor,
+  benchmarkFor,
+  benchmarkInputsFor,
+  broadcastHypeFor,
+  formatViewers,
+  networkBenchmark,
+  projectedAudience,
+  regionAudience,
+} from './systems/broadcast/index';
+export type {
+  AudienceImportance,
+  AudienceInputs,
+  AudienceQuality,
+  AudienceRequest,
+  BenchmarkRegionInput,
+  BenchmarkRequest,
+  NetworkBenchmarkInputs,
+  RegionAudienceInput,
+  RegionAudienceInputs,
+} from './systems/broadcast/index';
