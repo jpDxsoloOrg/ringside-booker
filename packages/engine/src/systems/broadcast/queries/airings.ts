@@ -333,7 +333,10 @@ export const incomeSummaryQuery: QueryDefinition<'broadcast.incomeSummary'> = de
         calc.add(dealLabel(read, dealId), amount);
       }
       const keepDays = ctx.tunables.get('history.keepDetailDays');
-      const reachesPastWindow = compareDates(from, detailKeptFrom(today, keepDays)) < 0;
+      // Nothing is rolled up yet while the game is younger than the window: no note until then.
+      const keptFrom = detailKeptFrom(today, keepDays);
+      const reachesPastWindow =
+        compareDates(from, keptFrom) < 0 && compareDates(keptFrom, read.meta.startDate) > 0;
       const note = reachesPastWindow
         ? `${detailKeptNote(ctx.tunables)} Older money is counted in the monthly totals.`
         : null;

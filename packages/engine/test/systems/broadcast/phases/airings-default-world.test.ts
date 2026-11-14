@@ -108,6 +108,8 @@ describe('a week of airings on the default world', () => {
         .reduce((sum, row) => sum + row.amount, 0),
     );
     expect(summary.data.lastAiring?.showName).toBe('Altura Overclock');
+    // A week into the game nothing has been rolled up, so the card has no "details kept" note.
+    expect(summary.data.note).toBeNull();
   });
 
   it("airs the rivals' weekly shows that have deals, and nothing for Hardpan", () => {
