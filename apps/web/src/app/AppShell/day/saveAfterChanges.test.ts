@@ -28,7 +28,7 @@ describe('SaveAfterChanges', () => {
   });
 
   it('saves once, a short while after the last change of a burst', async () => {
-    const save = vi.fn(async () => undefined);
+    const save = vi.fn(() => Promise.resolve());
     const saver = new SaveAfterChanges({ save, canSave: () => true, delayMs: DELAY_MS });
 
     saver.noteChange();
@@ -66,7 +66,7 @@ describe('SaveAfterChanges', () => {
 
   it('waits while the engine is busy, then saves', async () => {
     let busy = true;
-    const save = vi.fn(async () => undefined);
+    const save = vi.fn(() => Promise.resolve());
     const saver = new SaveAfterChanges({ save, canSave: () => !busy, delayMs: DELAY_MS });
 
     saver.noteChange();
@@ -100,7 +100,7 @@ describe('SaveAfterChanges', () => {
   });
 
   it('saves straight away on flush, and does nothing when all is saved', async () => {
-    const save = vi.fn(async () => undefined);
+    const save = vi.fn(() => Promise.resolve());
     const saver = new SaveAfterChanges({ save, canSave: () => true, delayMs: DELAY_MS });
 
     await saver.flush();
@@ -114,7 +114,7 @@ describe('SaveAfterChanges', () => {
   });
 
   it('drops waiting changes on cancel and stops for good on dispose', async () => {
-    const save = vi.fn(async () => undefined);
+    const save = vi.fn(() => Promise.resolve());
     const saver = new SaveAfterChanges({ save, canSave: () => true, delayMs: DELAY_MS });
 
     saver.noteChange();
@@ -130,9 +130,7 @@ describe('SaveAfterChanges', () => {
   });
 
   it('counts a save that throws as done', async () => {
-    const save = vi.fn(async () => {
-      throw new Error('disk full');
-    });
+    const save = vi.fn(() => Promise.reject(new Error('disk full')));
     const saver = new SaveAfterChanges({ save, canSave: () => true, delayMs: DELAY_MS });
 
     saver.noteChange();

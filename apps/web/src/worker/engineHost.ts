@@ -471,10 +471,15 @@ export function createEngineHost(
     label: string | storage.StorageResult<string>,
     write: (encoded: EncodedSave) => Promise<storage.StorageResult<SlotRecord>>,
   ): Promise<SaveSlotResult> {
-    const queued = saveQueue.then(
-      () => writeSaveNow(label, write),
-      () => writeSaveNow(label, write),
-    );
+    const previous = saveQueue;
+    const queued = (async (): Promise<SaveSlotResult> => {
+      try {
+        await previous;
+      } catch {
+        // The save before failed on its own; this one still runs.
+      }
+      return writeSaveNow(label, write);
+    })();
     saveQueue = queued;
     return queued;
   }
