@@ -299,6 +299,10 @@ export interface DealPlan {
   readonly terms?: Partial<DealTerms>;
   readonly startsOn?: GameDate;
   readonly endsOn?: GameDate;
+  /** The weekday it airs (0 = Monday); not tied to one when left out (ECO8-03). */
+  readonly weekday?: Weekday;
+  /** Aired live; live when left out (ECO8-03). */
+  readonly live?: boolean;
 }
 
 /** Collects what to add to one promotion. Applied in a fixed order; see `addPromotion`. */
@@ -526,6 +530,8 @@ function addPromotion(
           endsOn: deal.endsOn ?? addYears(startsOn, 1),
           ...(deal.timeslot === undefined ? {} : { timeslot: deal.timeslot }),
           ...(deal.terms === undefined ? {} : { terms: deal.terms }),
+          ...(deal.weekday === undefined ? {} : { weekday: deal.weekday }),
+          ...(deal.live === undefined ? {} : { live: deal.live }),
         },
         sequence,
       ),
