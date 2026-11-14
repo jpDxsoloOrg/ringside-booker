@@ -71,6 +71,8 @@ export interface TitleWorldOptions {
   readonly bravoEmployment?: (rosterIndex: number) => DeepPartial<Employment>;
   /** Holders of the tag title (Altura roster indexes), if it should be held. */
   readonly tagHolders?: readonly [number, number];
+  /** An Altura roster index to leave holding the retired Legends Title (an old save's leftover). */
+  readonly legendsHolder?: number;
 }
 
 function at<T>(list: readonly T[], index: number, what: string): T {
@@ -103,11 +105,14 @@ export function titleWorld(options: TitleWorldOptions = {}): TitleWorld {
           { name: 'Altura Tag Team Championship', holderCount: 2 },
           options.tagHolders === undefined ? {} : { holder: [...options.tagHolders] },
         )
-        .withTitle({
-          name: 'Altura Legends Title',
-          status: 'retired',
-          retiredOn: addDays(TEST_START_DATE, 10),
-        }),
+        .withTitle(
+          {
+            name: 'Altura Legends Title',
+            status: 'retired',
+            retiredOn: addDays(TEST_START_DATE, 10),
+          },
+          options.legendsHolder === undefined ? {} : { holder: options.legendsHolder },
+        ),
     )
     .withPromotion({ name: 'Bravo Wrestling' }, (promotion) =>
       promotion

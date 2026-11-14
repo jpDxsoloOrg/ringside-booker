@@ -144,6 +144,13 @@ describe('titles.create', () => {
     ).toEqual(['notAllowed']);
   });
 
+  it('refuses a promotion that does not exist', () => {
+    const { engine } = setup();
+    expect(
+      refused(engine, 'titles.create', { ...NEW_TITLE, promotionId: testId('promotion', 999) }),
+    ).toEqual([expect.objectContaining({ code: 'promotionNotFound', field: 'promotionId' })]);
+  });
+
   it('refuses a brand of another promotion and a closed brand', () => {
     const { world, engine } = setup();
     expect(
