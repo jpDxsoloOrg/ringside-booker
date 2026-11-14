@@ -127,6 +127,9 @@ async function whyText(page: Page, button: Locator): Promise<string> {
   await expect(panel).toBeVisible();
   const expand = panel.getByRole('button', { name: 'Expand all' });
   if ((await expand.count()) > 0) await expand.click();
+  // The checks that changed nothing (a writing band the score was already inside) too.
+  const checks = panel.getByRole('button', { name: /^Show checks that didn.t apply/ });
+  if ((await checks.count()) > 0) await checks.click();
   const text = (await panel.textContent()) ?? '';
   await page.keyboard.press('Escape');
   await expect(panel).toBeHidden();
@@ -190,13 +193,14 @@ async function shoot(page: Page, target: Locator, name: string, project: string)
 async function pinLabSeed(page: Page, seed: number): Promise<void> {
   await page.evaluate((pinned) => {
     const original = crypto.getRandomValues.bind(crypto);
-    crypto.getRandomValues = <T extends ArrayBufferView | null>(array: T): T => {
+    const pinnedValues: typeof crypto.getRandomValues = (array) => {
       if (array instanceof Uint32Array && array.length === 1) {
         array[0] = pinned;
         return array;
       }
       return original(array);
     };
+    crypto.getRandomValues = pinnedValues;
   }, seed);
 }
 
@@ -331,9 +335,12 @@ test.describe('Angle mode in the Match lab', () => {
     if (phone) {
       await angle.getByRole('button', { name: 'Move War of Words up' }).click();
     } else {
-      await angle.getByRole('button', { name: 'Move beat 2, War of Words' }).focus();
+      await angle.getByRole('button', { name: 'Move beat 2, War of Words', exact: true }).focus();
+      // The drag announces each step; waiting for it keeps the keys in step with the list.
       await page.keyboard.press('Space');
+      await expect(page.getByText(/War of Words is over position 2 of 3\.$/)).toBeAttached();
       await page.keyboard.press('ArrowUp');
+      await expect(page.getByText(/War of Words is over position 1 of 3\.$/)).toBeAttached();
       await page.keyboard.press('Space');
     }
     await expect(angle.getByRole('combobox', { name: 'Beat 1: which beat' })).toHaveText(
