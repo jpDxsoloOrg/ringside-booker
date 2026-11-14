@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import type {
   AskingTerms,
   EmploymentRole,
@@ -72,6 +73,15 @@ export interface NegotiationSheetViewProps {
   } | null;
   /** How closed talks ended, with the (redacted) review as its Why?. */
   readonly outcome: { readonly text: string; readonly trace: TraceNode | null } | null;
+  /**
+   * Once the worker signed (ECO5-10): the contract in words and a link to their profile, under the
+   * "<Name> has signed" confirmation in `notice`. Null otherwise.
+   */
+  readonly signed?: {
+    readonly ringName: string;
+    readonly contract: string;
+    readonly profileHref: string;
+  } | null;
   /** A plain line after a command worked: "Offer sent. They'll answer after the next day." */
   readonly notice: string | null;
   /** Refusal reasons tied to no field. */
@@ -109,6 +119,7 @@ export function NegotiationSheetView(props: NegotiationSheetViewProps) {
     bidders,
     history,
     outcome,
+    signed = null,
     notice,
     errors,
     pending,
@@ -237,6 +248,15 @@ export function NegotiationSheetView(props: NegotiationSheetViewProps) {
               />
             )}
           </p>
+        )}
+
+        {signed !== null && (
+          <div className={styles['signed']}>
+            <p>{`Contract: ${signed.contract}`}</p>
+            <p>
+              <Link to={signed.profileHref}>{`Open ${signed.ringName}'s profile`}</Link>
+            </p>
+          </div>
         )}
 
         <div className={styles['columns']}>

@@ -15,6 +15,7 @@ import type {
 import { useEngineCommand } from '@/app/engine/useEngineCommand';
 import { useEngineQuery } from '@/app/engine/useEngineQuery';
 import type { EngineQueryError } from '@/app/engine/queryCache';
+import { routes } from '@/app/routes';
 import { useSessionStore } from '@/app/session/sessionStore';
 import { formatGameDate } from '@/components/format';
 import { Sheet } from '@/components/Sheet';
@@ -27,10 +28,12 @@ import {
   offerSentText,
   offerStatusText,
   offerSummaryText,
+  signedText,
   situationWords,
 } from './negotiationText';
 import { NegotiationSheetView } from './NegotiationSheetView';
 import type { NegotiationHeaderInfo, NegotiationPhase } from './NegotiationSheetView';
+import { useMarkOffersSeen } from './useMarkOffersSeen';
 import { useNegotiationDraft } from './useNegotiationDraft';
 import styles from './Negotiation.module.css';
 
@@ -436,6 +439,8 @@ function phaseOf(view: NegotiationView): NegotiationPhase {
 
 function LoadedTalks({ view, ...common }: SheetCommon & { readonly view: NegotiationView }) {
   const phase = phaseOf(view);
+  // Opening the talks is reading the worker's answer: it clears the "Offer answered" stop.
+  useMarkOffersSeen(view.answerUnseen ? [view.negotiationId] : []);
   const profile = useEngineQuery('workers.profile', { personId: view.personId });
   const header = headerInfo(
     view.personId,
@@ -473,6 +478,8 @@ function ReadOnlyTalks({
   const rules = useContractRules();
   const withdraw = useEngineCommand('contracts.withdrawOffer');
   const closed = phase === 'closed';
+  const signed = view.status === 'signed';
+  const contract = offerSummaryText(view.offer, money);
   return (
     <NegotiationSheetView
       open={open}
@@ -483,15 +490,21 @@ function ReadOnlyTalks({
       statusText={closed ? null : offerStatusText(view)}
       draft={null}
       ask={view.ask}
-      offerOnTable={offerSummaryText(view.offer, money)}
+      offerOnTable={signed ? null : contract}
       roles={[]}
       maxLengthMonths={rules.maxLengthMonths}
       patience={closed ? null : { left: view.patienceLeft, start: view.startPatience }}
       bidders={closed ? [] : view.competingBidders}
       history={historyOf(view)}
       outcome={closed ? { text: offerStatusText(view), trace: view.reviewTrace } : null}
+      signed={
+        signed
+          ? { contract, profileHref: routes.game.worker(view.personId), ringName: header.ringName }
+          : null
+      }
       notice={
         feedback.notice ??
+        (signed ? signedText(header.ringName, view.kind === 'renewal') : null) ??
         (view.status === 'awaitingReview' && view.reviewOn !== null
           ? offerSentText(view.reviewOn)
           : null)
@@ -623,9 +636,10 @@ function CounterForm({
       setFeedback({ notice: null, errors: refusalErrors(result, draft.showRefusal) });
       return;
     }
-    // An accepted counter shows "They'll decide on <date>" from the talks themselves.
-    if (result.data.status === 'awaitingReview') {
-      setFeedback(NO_FEEDBACK);
+    // An accepted counter (or a revision that pays it) signs at once (ECO5-10): say so, and the
+    // talks, now closed, show the contract and a link to the profile.
+    if (result.data.status === 'signed') {
+      setFeedback({ notice: signedText(header.ringName, view.kind === 'renewal'), errors: [] });
       return;
     }
     setFeedback({

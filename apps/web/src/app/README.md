@@ -244,6 +244,17 @@ tab, throws for a taken id, and the open roster re-renders when the list changes
 append to `rosterRowActions` in `screens/roster/rosterColumns.tsx`. The roster's Office panel,
 "Top of your roster" (side, order 30), lives in `screens/roster/officePanel.tsx`.
 
+## The news
+
+Office > News is live (DAY1-04..07). `/game/news` (`screens/news/`) shows the front page (up to
+three hero cards from `news.top`), the feed of every story on file (`news.feed`, filters in the URL)
+and one story in a sheet (`?story=<newsId>`); the shell's news crawl comes from the same stories.
+Every Buzz number has a Why?. A news alert the player turned on stops a long skip with the `news`
+gate hint: the day button reads "Open news" and opens the story with `&alert=1`, which clears the
+alert (see [Moving time](#moving-time)). Features add Skip days choices through the skip-target
+registry described there. `screens/news/README.md` lists the files; the design, with which values
+are stored and which are worked out, is `docs/design/news.md` under "Screen".
+
 ## The calendar
 
 Your promotion > Calendar is live. `/game/calendar` (`screens/calendar/`) is a nav item, not a
@@ -518,6 +529,18 @@ features add tabs and KPI cards with `registerFinanceTab` and `registerFinanceKp
 `screens/finances/README.md` has the slots. The top bar's cash chip has a Why? from
 `sim.status.promotion.cashTraceRef`, the same breakdown the Overview's Cash card opens.
 
+## Networks
+
+Business > Networks is live (ECO8). `/game/networks` (`screens/networks/NetworksScreen.tsx`)
+shows the seat's TV, pay-per-view and streaming deals on tabs from a registry
+(`registerNetworksTab`): Your deals (10) and Available networks (20); ECO10 takes 30. The tab,
+the open deal sheet and the Propose sheet live in the URL (`?tab=`, `?deal=dea_…`,
+`?propose=net_…`, built with `networksPath`). Every derived number (viewers, what the network
+expects, the best offer, the proposal and renewal terms, income per airing, health, the exit fee)
+has a Why?. ECO8 also adds the Finances "TV income (30 days)" card, the calendar sheet's "On TV"
+section and the results page's "On TV" section. `screens/networks/README.md` has the tabs
+registry and the slots; design: `docs/design/broadcast.md#screen`.
+
 ## Contracts
 
 Business > Contracts (`/game/contracts`, `screens/contracts/ContractsScreen.tsx`, ECO4-04) lists
@@ -574,14 +597,24 @@ The Negotiation Sheet opens from the URL on any tab: `?negotiation=neg_…` (you
 `?tab=offers&negotiation=neg_…` and `?tab=free-agents&person=per_…` (`contractsSearch(tab, target)`
 builds one). The day bar's counter-offer stop (`contracts.counterWaiting`, on by default) goes to
 `?tab=offers&negotiation=<id>`, where Accept counter, Send revised offer or End talks clears it.
+Accept counter signs at once (ECO5-10): the sheet says "<Name> has signed. They look forward to
+working with you." with the contract and a link to the profile.
+
+The "Offer answered" stop (`contracts.offerAnswered`, ECO5-10: a worker signed, turned down or
+walked away from your offer while the days ran) goes to the same URL. Opening those talks marks
+the answer as seen (`useMarkOffersSeen` → `contracts.markOffersSeen`), and so does the worker's
+profile, which shows "Your offer: Signed" until it closes. The Offers tab lists unopened answers
+under "New answers" whichever talks it shows, and flags their rows "New answer".
 
 The worker profile has an action row under its header: `registerProfileAction({ id, order, render })`
 (`screens/workers/profile/profileActions.ts`, same registry rules). Contracts registers `contract`
 (order 10): Offer contract, Open talks, Renew contract, or a disabled button with the reason.
 
-The Next Day summary adds up to three lines about your talks from `contracts.offerUpdatesSince`
-("Rhea Vance countered", "Signed Kade Moreno", "Joss Hale walked away") and a link to Offers; a
-one-day Next Day with talks news gets the banner (`BannerExtras.offerUpdates`).
+The Next Day summary adds up to three lines about your talks from `contracts.offerUpdatesSince`,
+in the engine's words (each update's `line`, the same as the "Offer answered" stop; signings
+first): "Kade Moreno signed with you", "Joss Hale walked away from your offer", "Rhea Vance
+countered your offer", never an amount; and a link to Offers. A one-day Next Day with talks news
+gets the banner (`BannerExtras.offerUpdates`).
 
 ## The Office
 
@@ -698,8 +731,9 @@ and links to their results (see [Show results](#show-results)).
   `day/dayControlState.ts` turns the gates into a button by their route hint: `inbox` ("2 decisions
   waiting", which outranks everything), `booking` ("Go to show"), `roster` (an injury), `contracts`
   ("Contracts": an expiring contract opens the Expiring tab, a worker who wants to leave opens
-  their contract on the Active tab filtered with `wantsToLeave=1`), and anything else "Needs
-  attention" with the gate's reason. Shift+N presses it outside text fields and dialogs.
+  their contract on the Active tab filtered with `wantsToLeave=1`), `offerAnswered` ("Offer
+  answered", ECO5-10: opens the answered talks on Contracts › Offers; after `contracts`, before
+  `news`), and anything else "Needs attention" with the gate's reason. Shift+N presses it outside text fields and dialogs.
 - **Skip days** (`day/SkipDaysSheet.tsx`) takes a quick choice or a typed length (1 to 3,650
   days) and an optional stop date, both checked against the engine's rules, with the calendar
   maths from `@ringside/engine`. Its "Always stops" list ends with "News alerts you've turned on"

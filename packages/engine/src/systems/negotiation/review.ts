@@ -26,10 +26,10 @@ import { rollPick } from '../../core/rng/rolls';
 import { startDecision, type Decision } from '../../core/trace/decision';
 import { inputOf } from '../../core/trace/helpers';
 import type { TraceNode, Traced } from '../../core/trace/types';
-import { isOpenNegotiationStatus, type Negotiation } from '../../model/entities/negotiation';
+import type { Negotiation } from '../../model/entities/negotiation';
 import { compareIds } from '../../model/table';
 import type { DeepReadonly } from '../../model/world';
-import { closeTalks, LOST_TO_OTHER_OFFER_OUTCOME, PROMOTION_CLOSED_OUTCOME } from './close';
+import { closeTalks, closeTalksLostTo, PROMOTION_CLOSED_OUTCOME } from './close';
 import { CONTRACT_ENDED_OUTCOME } from './endedTalks';
 import { evaluateOffer, meetsCounter } from './evaluate';
 import { MATCHES_COUNTER_REASON, offerRatio } from './formulas/offerReaction';
@@ -203,18 +203,11 @@ function reviewPerson(ctx: PhaseContext, personId: PersonId): void {
     });
   }
   // Every other open negotiation for the worker loses, naming the winner.
-  for (const negotiation of ctx.read.tables.negotiations.lookup('byPerson', personId)) {
-    if (negotiation.id === winner.negotiation.id || !isOpenNegotiationStatus(negotiation.status)) {
-      continue;
-    }
-    const compared = candidates.some((candidate) => candidate.negotiation.id === negotiation.id);
-    closeTalks(ctx, negotiation, {
-      status: 'declined',
-      outcomeCode: LOST_TO_OTHER_OFFER_OUTCOME,
-      otherPromotionId: winner.negotiation.promotionId,
-      ...(compared ? { reviewTraceId: reviewTraceId(negotiation.id) } : {}),
-    });
-  }
+  closeTalksLostTo(ctx, winner.negotiation, (negotiation) =>
+    candidates.some((candidate) => candidate.negotiation.id === negotiation.id)
+      ? reviewTraceId(negotiation.id)
+      : null,
+  );
 }
 
 /** Reviews every worker whose earliest review day has come, in person id order. */

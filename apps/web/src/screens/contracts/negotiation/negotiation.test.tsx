@@ -60,6 +60,37 @@ describe('Contracts › Free agents and the Negotiation Sheet', () => {
     expect(within(sheet).getByText(/^Countered: answer by /u)).toBeInTheDocument();
   }, 30_000);
 
+  it('accepting their counter says at once that they signed, never that they will decide later', async () => {
+    const countered = [...tinyWorld().world.tables.negotiations.values()].find(
+      (negotiation) => negotiation.status === 'countered',
+    );
+    if (countered === undefined) throw new Error('The tiny world lost its counter.');
+    // The tiny world's promotion has no reach for the counter's written deal, so the engine's
+    // answer (an accepted counter signs at once, ECO5-10) is canned here; the engine test covers
+    // the signing itself.
+    const rendered = renderContracts(`${CONTRACTS}?tab=offers&negotiation=${countered.id}`, {
+      cannedCommands: {
+        'contracts.respondToCounter': () => ({
+          ok: true,
+          data: { negotiationId: countered.id, status: 'signed', preview: null },
+        }),
+      },
+    });
+    await rendered.user.click(
+      await screen.findByRole('button', { name: 'Accept counter' }, { timeout: LOAD_MS }),
+    );
+    const sheet = screen.getByRole('dialog');
+    const status = within(sheet).getByRole('status');
+    expect(
+      await within(status).findByText(
+        /^.+ has signed\. They look forward to working with you\.$/u,
+        undefined,
+        { timeout: LOAD_MS },
+      ),
+    ).toBeInTheDocument();
+    expect(within(sheet).queryByText(/decide on/u)).toBeNull();
+  }, 30_000);
+
   it('"Use their ask" reads Likely to accept, and a much lower wage changes the label', async () => {
     const rendered = renderContracts(`${CONTRACTS}?tab=free-agents&person=${freeAgent()}`);
     // The sheet shows a loading line first, then the form in its place.

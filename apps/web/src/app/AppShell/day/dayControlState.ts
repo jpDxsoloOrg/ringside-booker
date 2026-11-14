@@ -3,6 +3,7 @@ import {
   COUNTER_WAITING_GATE_ID,
   isId,
   NEWS_ACTION_HINT,
+  OFFER_ANSWERED_ACTION_HINT,
   RELEASE_REQUESTED_GATE_ID,
 } from '@ringside/engine';
 import type { GateHit } from '@ringside/engine';
@@ -164,6 +165,26 @@ export function contractsGateDestination(hit: GateHit): string {
 }
 
 /**
+ * The route hint for the "Offer answered" stop (the engine's `OFFER_ANSWERED_ACTION_HINT`,
+ * ECO5-10): a worker signed, turned down or walked away from one of your offers while the days
+ * ran. The button opens those talks on Contracts › Offers; the Negotiation Sheet marks the answer
+ * as seen when it opens (`contracts.markOffersSeen`), which clears the stop. Several answers stop
+ * one at a time.
+ */
+export const OFFER_ANSWERED_HINT: string = OFFER_ANSWERED_ACTION_HINT;
+
+/** The label of the "Offer answered" button. */
+export const OFFER_ANSWERED_LABEL = 'Offer answered';
+
+/** Where the "Offer answered" button goes: the answered talks, open on Contracts › Offers. */
+export function offerAnsweredGateDestination(hit: GateHit): string {
+  const negotiationId = hit.subject?.kind === 'negotiation' ? hit.subject.id : null;
+  const params = new URLSearchParams({ tab: 'offers' });
+  if (isId('negotiation', negotiationId)) params.set('negotiation', negotiationId);
+  return `${routes.game.contracts()}?${params.toString()}`;
+}
+
+/**
  * The route hint for a news alert (the engine's `NEWS_ACTION_HINT`, DAY1-03): a story matched one
  * of the player's alert rules. The button opens the story on the News screen with `alert=1`, and
  * the screen acknowledges the alert (`news.ackAlerts`), which clears the stop (DAY1-05).
@@ -210,6 +231,10 @@ const GATE_ROUTES: Readonly<Record<string, GateRoute>> = {
     label: () => CONTRACTS_LABEL,
     to: contractsGateDestination,
   },
+  [OFFER_ANSWERED_HINT]: {
+    label: () => OFFER_ANSWERED_LABEL,
+    to: offerAnsweredGateDestination,
+  },
   [NEWS_HINT]: {
     label: () => OPEN_NEWS_LABEL,
     to: newsGateDestination,
@@ -220,15 +245,17 @@ const GATE_ROUTES: Readonly<Record<string, GateRoute>> = {
  * Hints in the order they win when several gates hit at once. Unanswered decisions come before a
  * show: booking with a contract or discipline call still open means acting on stale information.
  * A new injury comes after both: the show screen shows who is hurt anyway. Contract stops come
- * next: they wait days, not hours. A news alert comes last of all: a show or a decision needs the
- * player more than a story does. Hints not listed here keep the engine's registration order,
- * after these.
+ * next: they wait days, not hours, and a counter-offer lapses if nobody answers it. An answered
+ * offer follows them: it is news about your roster that needs no answer, but more yours than a
+ * story. A news alert comes last of all: a show or a decision needs the player more than a story
+ * does. Hints not listed here keep the engine's registration order, after these.
  */
 const HINT_PRIORITY: readonly string[] = [
   INBOX_HINT,
   SHOW_NIGHT_HINT,
   ROSTER_HINT,
   CONTRACTS_HINT,
+  OFFER_ANSWERED_HINT,
   NEWS_HINT,
 ];
 

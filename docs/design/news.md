@@ -526,3 +526,35 @@ page on buzz.
 ECO10, DAY3, DAY4, DAY5, DAY6, DAY7, DAY9, SOC2, SOC7, BRW3, MOD1 and MOD7
 were not on main; each posts its own stories from its integration ticket with
 the defaults DAY1-06 lists for it.
+
+## Screen
+
+Office > News (`/game/news`, `apps/web/src/screens/news/`, DAY1-04..07). On
+desktop the front page's hero cards sit in a row above the feed table; on a
+phone the cards stack, the feed is cards and the filters open in a sheet from
+the bottom. The news crawl rides the bottom of the main column (above the tab
+bar on a phone). Screenshots for this section are still to be taken: they
+need a browser run, which the owner paused at the end of Sprint 12.
+
+**Values and their Why? (DAY1-07 audit).** Every number the screen works out
+has a Why?; everything else is a stored fact.
+
+| Where                                      | Value                                     | Stored or derived                                                                                                                                           |
+| ------------------------------------------ | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Hero card, feed, sheet                     | Date, kind tag, headline, body            | Stored (`news` row; text from the catalog)                                                                                                                  |
+| Feed, story sheet                          | Importance ("Front page" …)               | Stored (0..3, words from `NEWS_IMPORTANCE_LABELS`)                                                                                                          |
+| Story sheet                                | Leaves the archive / Kept                 | Stored (`expiresOn`; importance 3 never expires)                                                                                                            |
+| Story sheet, feed                          | Who it is about                           | Stored refs, names resolved at display time                                                                                                                 |
+| Hero card, feed, sheet, Office Top stories | Buzz                                      | Derived: `Explained` with the `news.buzz` trace (Why?). Once the full trace is gone (60 kept) its summary still opens; with neither, the number shows alone |
+| Front page, ticker                         | Which stories lead                        | Derived by the [front page](#front-page) ranking rule (buzz − age × penalty); no number is shown                                                            |
+| Feed header                                | "N stories"                               | A count of the rows the filters leave                                                                                                                       |
+| Ticker label                               | "Breaking" / "News"                       | Derived: "Breaking" when the lead story is front page                                                                                                       |
+| Alert sheet                                | Rule switches, Stop long skips            | Stored player settings (`settings.extra`)                                                                                                                   |
+| Skip days sheet                            | Chip details ("Mon 1 Feb 2027 · 28 days") | Calendar maths on today's date                                                                                                                              |
+
+No news text mentions minutes, hours or a match's length (D-10): the catalog
+test (`news.en.test.ts`) and the News e2e check it.
+
+**Back and the filters.** Filter changes replace the history entry, as on
+every list screen (Workers, Contracts), so Back leaves News; opening a story
+pushes `?story=`, so Back closes the story and keeps the filters.

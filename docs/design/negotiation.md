@@ -392,10 +392,22 @@ starts the next round. The worker answers each offer when the day runs
   the revise command's preview and the reaction when the day runs all agree.
   Paying their counter-offer (or more money on the same terms) counts as
   accepting it.
-- **Accepting their counter-offer** makes it the offer and sets
-  `awaitingReview`: they decide on `reviewOn` = today +
-  `contracts.review.delayDays` (2), so a rival's later bid can still win
-  (ECO6). The sheet says "They'll decide on <date>".
+- **Accepting their counter-offer signs at once** (ECO5-10). They asked for
+  exactly these terms, so there is nothing left to think over: `answerCounter`
+  makes it the offer (the promotion's history entry gets `accept`) and signs it
+  in the same step through `signNegotiation`, for every controller (D-07). The
+  decision is stored at `contracts.review` / `<negotiationId>:review` ("You
+  agreed to their counter-offer, so they signed at once") and every other open
+  negotiation for the worker closes as `lostToOtherOffer`, as after a review.
+  The command returns `{ status: 'signed', preview: null }` and the sheet says
+  "<Name> has signed. They look forward to working with you." with the
+  contract. Anything that would stop the signing (they became unavailable,
+  went elsewhere, the terms no longer fit) is refused by the command's
+  validation with the reason, so the player hears why at once. A revision that
+  pays their counter (or more money on the same terms) is the same as
+  accepting it and signs too. (Before ECO5-10 an accepted counter waited
+  `contracts.review.delayDays` for a review, and the sheet said "They'll decide
+  on <date>" although the player had agreed to the worker's own terms.)
 - **Ending the talks** closes them as `withdrawn` (outcome `talksEnded`) with
   no cooldown: you can make a fresh offer straight away. Withdrawing is the
   same with outcome `withdrawn`.
@@ -508,7 +520,7 @@ today runs. In order, each list in id order:
    wins; otherwise the built-in rule accepts a counter whose pay (wage, or fee)
    is at most the worker's ask × `contracts.ai.acceptCounterUpTo` (1, so every
    counter) and ends the talks otherwise. It goes through `answerCounter` like
-   the player's answer, and is stored as a summary at `contracts.counter` /
+   the player's answer (an accepted counter signs at once), and is stored as a summary at `contracts.counter` /
    `<negotiationId>:<round>:answer`. The rule is a fallback, not an AI
    shortcut (D-01): every computer promotion uses it.
 3. **Lapses.** A counter-offer still unanswered after `counterExpiresOn`
@@ -598,6 +610,38 @@ it in one more tap. With the stop off, an unanswered counter lapses after 7
 days. Computer promotions never stop a skip. Engine tests that skip past a
 counter answer it (`contracts.respondToCounter`) or pass
 `{ 'contracts.counter.stopSkip': false }`.
+
+### Offer answered stop
+
+The gate `contracts.offerAnswered` (ECO5-10) stops a skip when a worker
+answered one of a player's offers while the days ran, so a signing or a refusal
+never goes unnoticed (there is no mail for it yet). `closeTalks` marks talks of
+a promotion a human runs `answerStopsSkip` when the day closes them from the
+worker's side: **signed**, **turned down** (a refusal, "signed with another
+promotion instead") or **walked away**, with `contracts.answer.stopSkip` on (the
+default; gates cannot read tunables). A counter-offer has its own stop (above);
+a counter the player let lapse, talks they withdrew or ended, and a counter
+they accepted (signed in front of them) never stop.
+
+- **Reason**, one plain line and never an amount: "Rhea Cortez signed with
+  you", "Rhea Cortez signed your new contract" (a renewal), "Kai Moreno walked
+  away from your offer", "Kai Moreno turned down your offer: won't take that
+  role", "Kai Moreno signed with Crown Pro instead". Subject: the negotiation;
+  hint `offerAnswered`. Several answers stop one at a time, the earliest
+  first.
+- **Clearing it.** `contracts.markOffersSeen { negotiationIds }` →
+  `{ cleared }` clears the flag on the issuer's own talks. Ids that are gone
+  (pruned) or not the issuer's are passed over, never refused, so a screen can
+  always clear what it shows. The day bar's **Offer answered** button opens
+  `/game/contracts?tab=offers&negotiation=<id>`; the Negotiation Sheet marks
+  the talks seen when it opens, and so does the worker's profile.
+  `contracts.offers` rows carry `answerUnseen`. Pruning removes the row and the
+  stop with it.
+- **News.** Answers stay private. A signing is public: ECO4's `contract.started`
+  story (DAY1-06) names who and where for a notable worker, never the money.
+  Refusals and walk-aways are never news.
+- Engine tests that skip past answers open them (`contracts.markOffersSeen`) or
+  pass `{ 'contracts.answer.stopSkip': false }`.
 
 ### Who sees a review
 

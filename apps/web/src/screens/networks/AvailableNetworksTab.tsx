@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { cents } from '@ringside/engine';
-import type { NetworkCarriedDeal, NetworkRow } from '@ringside/engine';
+import type { NetworkCarriedDeal, NetworkRow, PromotionId } from '@ringside/engine';
 import { useEngineQuery } from '@/app/engine/useEngineQuery';
 import { Button } from '@/components/Button';
 import { DataTable } from '@/components/DataTable';
@@ -9,9 +9,11 @@ import { EmptyState } from '@/components/EmptyState';
 import { formatNumber, useMoneyFormatter } from '@/components/format';
 import type { MoneyFormatter } from '@/components/format';
 import { ImageSlot } from '@/components/ImageSlot';
+import { traceQuery, WhyButton } from '@/components/Trace';
 import { VerdictBadge } from './components/VerdictBadge';
 import { NETWORK_KIND_LABELS, tierText } from './networkText';
 import type { NetworksTabContext } from './registry';
+import { useDefaultDealMonths } from './useDefaultDealMonths';
 import styles from './Networks.module.css';
 
 const NO_ROWS: readonly NetworkRow[] = [];
@@ -38,6 +40,64 @@ export function bestOfferText(row: NetworkRow, money: MoneyFormatter): string {
   return [pay ?? 'Paid per buy', loss].filter((part) => part !== null).join(', ');
 }
 
+/**
+ * The best offer's Why?: the row holds only the numbers, so the breakdown is the same
+ * `broadcast.valuation` the Propose sheet asks, run when the panel opens. It explains the income
+ * per airing when the offer loses money, the fee per show otherwise (pay-per-view shows no number).
+ */
+function BestOfferWhy({
+  row,
+  promotionId,
+  months,
+  money,
+}: {
+  readonly row: NetworkRow;
+  readonly promotionId: PromotionId;
+  readonly months: number;
+  readonly money: MoneyFormatter;
+}) {
+  const offer = row.bestOffer;
+  if (offer === null) return null;
+  const loses = offer.incomePerAiring < 0;
+  if (!loses && row.kind === 'ppv') return null;
+  const args = {
+    promotionId,
+    networkId: row.networkId,
+    eventDefinitionId: offer.eventDefinitionId,
+    timeslot: offer.timeslot,
+    live: false,
+    months,
+  };
+  return loses ? (
+    <WhyButton
+      label={`What an airing on ${row.name} would lose`}
+      value={-offer.incomePerAiring}
+      unit="money"
+      buttonLabel={`Why does an airing on ${row.name} lose ${money(cents(-offer.incomePerAiring))}?`}
+      source={{
+        traceQuery: traceQuery(
+          'broadcast.valuation',
+          args,
+          (valuation) => valuation.incomePerAiring.trace,
+        ),
+      }}
+    />
+  ) : (
+    <WhyButton
+      label={`${row.name}'s fee per show`}
+      value={offer.feePerShow}
+      unit="money"
+      source={{
+        traceQuery: traceQuery(
+          'broadcast.valuation',
+          args,
+          (valuation) => valuation.terms.feePerShow.trace,
+        ),
+      }}
+    />
+  );
+}
+
 function rowId(row: NetworkRow): string {
   return row.networkId;
 }
@@ -49,6 +109,8 @@ function rowLabel(row: NetworkRow): string {
 function availableColumns(
   money: MoneyFormatter,
   openPropose: NetworksTabContext['openPropose'],
+  promotionId: PromotionId,
+  months: number,
 ): readonly ColumnDef<NetworkRow>[] {
   return [
     {
@@ -108,7 +170,10 @@ function availableColumns(
       header: 'Best offer',
       cell: (row) => (
         <span className={styles['offer']}>
-          <span>{bestOfferText(row, money)}</span>
+          <span>
+            {bestOfferText(row, money)}{' '}
+            <BestOfferWhy row={row} promotionId={promotionId} months={months} money={money} />
+          </span>
           {row.bestOffer !== null && (
             <VerdictBadge
               verdict={row.bestOffer.verdict}
@@ -157,7 +222,11 @@ export function AvailableNetworksTab({ promotionId, openPropose }: NetworksTabCo
     { keepPreviousData: true },
   );
   const money = useMoneyFormatter();
-  const columns = useMemo(() => availableColumns(money, openPropose), [money, openPropose]);
+  const months = useDefaultDealMonths();
+  const columns = useMemo(
+    () => availableColumns(money, openPropose, promotionId, months),
+    [money, openPropose, promotionId, months],
+  );
 
   if (networks.status === 'error') {
     return (

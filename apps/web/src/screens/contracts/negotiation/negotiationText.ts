@@ -172,19 +172,28 @@ export function offerSentText(reviewOn: GameDate | null): string {
     : `Offer accepted. They'll decide on ${formatGameDate(reviewOn)}.`;
 }
 
-/** The Next Day summary's negotiation lines: "Rhea Vance countered", "Signed Kade Moreno", ... */
-export function offerUpdateLines(updates: OfferUpdates): string[] {
-  return [
-    ...updates.countered.map((update) => `${update.ringName} countered`),
-    ...updates.signed.map((update) => `Signed ${update.ringName}`),
-    ...updates.walkedAway.map((update) => `${update.ringName} walked away`),
-    ...updates.declined.map((update) => `${update.ringName}: ${lowerFirst(update.outcomeMessage)}`),
-    ...updates.lapsed.map((update) => `${update.ringName} stopped waiting for your answer`),
-  ];
+/**
+ * The confirmation once a worker signs (ECO5-10): "Rhea Cortez has signed. They look forward to
+ * working with you." A renewal: "has signed the new contract".
+ */
+export function signedText(ringName: string, renewal = false): string {
+  return `${ringName} has signed${renewal ? ' the new contract' : ''}. They look forward to working with you.`;
 }
 
-function lowerFirst(text: string): string {
-  return text.length === 0 ? text : `${text.charAt(0).toLowerCase()}${text.slice(1)}`;
+/**
+ * The Next Day summary's negotiation lines, in the engine's own words (ECO5-10), the same as the
+ * "Offer answered" stop: "Rhea Cortez countered your offer", "Kade Moreno signed with you",
+ * "Kai Moreno turned down your offer: won't take that role". Signings first, then the answers that
+ * end talks, then counter-offers waiting for you. Never an amount.
+ */
+export function offerUpdateLines(updates: OfferUpdates): string[] {
+  return [
+    ...updates.signed,
+    ...updates.declined,
+    ...updates.walkedAway,
+    ...updates.countered,
+    ...updates.lapsed,
+  ].map((update) => update.line);
 }
 
 /** True when the advance brought negotiation news worth the banner on a one-day Next Day. */
