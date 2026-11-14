@@ -17,7 +17,7 @@ import { defineQuery, type QueryDefinition } from '../../../core/api/query';
 import { refuseQuery } from '../../../core/api/result';
 import { compareDates, type GameDate, type Weekday } from '../../../core/date';
 import type { DealId, EventDefinitionId, NetworkId, PromotionId } from '../../../core/ids';
-import { DealTimeslotSchema, type DealTimeslot } from '../../../model/entities/deal';
+import { DealTimeslotSchema, type Deal, type DealTimeslot } from '../../../model/entities/deal';
 import type { EventDefinition, EventImportance } from '../../../model/entities/event-definition';
 import type { Network, NetworkKind } from '../../../model/entities/network';
 import { compareIds } from '../../../model/table';
@@ -129,7 +129,11 @@ declare module '../../../core/api/maps' {
 }
 
 /** Refuses unless the viewer runs the promotion (or sees everything). */
-function requireOwnPromotion(read: GameWorldView, viewer: Viewer, promotionId: PromotionId): void {
+export function requireOwnPromotion(
+  read: GameWorldView,
+  viewer: Viewer,
+  promotionId: PromotionId,
+): void {
   if (read.tables.promotions.get(promotionId) === undefined) {
     refuseQuery({
       code: UNKNOWN_PROMOTION,
@@ -412,6 +416,22 @@ export const valuationQuery: QueryDefinition<'broadcast.valuation'> = defineQuer
   },
 );
 
+/** A deal as the public sees it: no money, no viewers. */
+export function publicDealRow(read: GameWorldView, deal: Deal, network: Network): PublicDealRow {
+  // Listed field by field so a money field added to deals can never leak through here.
+  return {
+    dealId: deal.id,
+    networkName: network.name,
+    kind: network.kind,
+    showName: dealShowName(read, deal, network),
+    weekday: deal.weekday,
+    timeslot: deal.timeslot,
+    live: deal.live,
+    startsOn: deal.startsOn,
+    endsOn: deal.endsOn,
+  };
+}
+
 export const publicDealsQuery: QueryDefinition<'broadcast.publicDeals'> = defineQuery(
   'broadcast.publicDeals',
   {
@@ -432,18 +452,7 @@ export const publicDealsQuery: QueryDefinition<'broadcast.publicDeals'> = define
         if (network === undefined || !dealIsLive(deal, today)) {
           continue;
         }
-        // Listed field by field so a money field added to deals can never leak through here.
-        rows.push({
-          dealId: deal.id,
-          networkName: network.name,
-          kind: network.kind,
-          showName: dealShowName(read, deal, network),
-          weekday: deal.weekday,
-          timeslot: deal.timeslot,
-          live: deal.live,
-          startsOn: deal.startsOn,
-          endsOn: deal.endsOn,
-        });
+        rows.push(publicDealRow(read, deal, network));
       }
       return rows;
     },

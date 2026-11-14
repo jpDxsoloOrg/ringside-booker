@@ -461,7 +461,7 @@ export const broadcastTunables = defineTunables({
     6,
     1,
     HEALTH_MAX_WINDOW,
-    "Recent airings whose viewers deal health adds up against what the network expects; at most the airings kept per deal",
+    'Recent airings whose viewers deal health adds up against what the network expects; at most the airings kept per deal',
   ),
   'broadcast.health.minAirings': healthCount(
     3,
@@ -493,7 +493,7 @@ export const broadcastTunables = defineTunables({
     8,
     1,
     HEALTH_MAX_WINDOW,
-    "Recent scheduled airings deal health looks at for missed ones; at most the airings kept per deal",
+    'Recent scheduled airings deal health looks at for missed ones; at most the airings kept per deal',
   ),
   'broadcast.health.missedToCancel': healthCount(
     3,
