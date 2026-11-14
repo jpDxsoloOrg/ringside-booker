@@ -166,11 +166,10 @@ test('storylines on the card: link, heat on the results, timeline and both payof
   await bookSharedMatch(page, [h2, c2], [hot, cold]);
   await bookSharedMatch(page, [h1, c2], [hot, cold]);
   await bookUncountedTalk(page, hot, [h1, h2, c1, c2]);
-  await expect(
-    page.getByText(
-      new RegExp(`linked to '${escapeRegExp(hot.name)}' but none of its members is in it`),
-    ),
-  ).toBeVisible();
+  const warning = new RegExp(
+    `linked to '${escapeRegExp(hot.name)}' but none of its members is in it`,
+  );
+  await expect(page.getByText(warning).first()).toBeVisible();
 
   await fillTheRest(page);
   await expectNoHorizontalScroll(page);

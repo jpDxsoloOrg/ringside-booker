@@ -67,6 +67,11 @@ export async function addWrestler(
   const picker = page.getByRole('dialog', { name: /^Add to Side \d+$/ });
   await picker.getByRole('combobox', { name: 'Search by name' }).fill(name);
   const option = picker.getByRole('option', { name: new RegExp(`^${escapeRegExp(name)}`) });
+  // Someone already on this card is hidden while Hide booked is on (a wrestler may work twice).
+  const hideBooked = picker.getByRole('button', { name: 'Hide booked', pressed: true });
+  if ((await option.count()) === 0 && (await hideBooked.count()) > 0) {
+    await hideBooked.click();
+  }
   try {
     await expect(option.first()).toBeVisible({ timeout: 5_000 });
   } catch {
@@ -213,8 +218,10 @@ export async function openBooking(page: Page): Promise<void> {
   await expect(page.locator('h1')).toHaveCount(1);
 }
 
-/** Auto-fills the card's empty slots and closes the reasons sheet. */
+/** Auto-fills the card's empty slots, if it has any, and closes the reasons sheet. */
 export async function fillTheRest(page: Page): Promise<void> {
+  const empty = page.getByRole('main').getByRole('button', { name: 'Add match' });
+  if ((await empty.count()) === 0) return;
   const fill = await autoFillCard(page);
   await fill.getByRole('button', { name: 'Done' }).click();
   await expect(fill).toBeHidden();
