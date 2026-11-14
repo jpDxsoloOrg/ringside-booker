@@ -496,6 +496,27 @@ describe('the player running the show segment by segment (EVT10)', () => {
     if (!view.ok) throw new Error('broadcast.showAiring refused');
     expect(view.data.airing?.status).toBe('aired');
     expect(view.data.deals).toHaveLength(3);
+    // One row per deal, with the money and the Why? for the promotion's own player.
+    expect(view.data.airings.map((row) => row.dealId).sort()).toEqual(
+      settled.map((row) => row.dealId).sort(),
+    );
+    expect(view.data.airings.every((row) => row.income !== null && row.traceRef !== null)).toBe(
+      true,
+    );
+    expect(view.data.airing?.expectedViewers).toBe(
+      settled.reduce((sum, row) => sum + row.expectedViewers, 0),
+    );
+    // Anyone else sees the viewers, never the money.
+    const asRival = engine.query(
+      'broadcast.showAiring',
+      { eventInstanceId: human },
+      { kind: 'controller', controller: { kind: 'human', playerId: 'player-2' } },
+    );
+    if (!asRival.ok) throw new Error('broadcast.showAiring refused');
+    expect(asRival.data.airing?.income).toBeNull();
+    expect(asRival.data.airings.every((row) => row.income === null && row.traceRef === null)).toBe(
+      true,
+    );
 
     await advance(engine);
     expect(airingsOf(engine, human)).toEqual(settled);
