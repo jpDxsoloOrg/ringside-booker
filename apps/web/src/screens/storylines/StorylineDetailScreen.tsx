@@ -31,6 +31,7 @@ import { StarRating } from '@/components/StarRating';
 import { HOT_LABEL, LEFT_PROMOTION_TEXT } from '@/components/StorylineCard';
 import { STORYLINE_SIDE_LABELS, StorylineSideChip } from '@/components/StorylineSideChip';
 import { Explained, WhyButton } from '@/components/Trace';
+import { WorkerLink } from '@/components/WorkerLink';
 import { MemberPicker } from './MemberPicker';
 import type { ChosenMember } from './MemberPicker';
 import { StorylineEditorSheet } from './StorylineEditorSheet';
@@ -261,10 +262,7 @@ function MemberRow({ member, editable, busy, onSetSide, onRemove }: MemberRowPro
         size="sm"
         decorative
       />
-      {/* Plain text until the worker profile route is on main (CRTV3-05 links it). */}
-      <span className={styles['memberName']} title={member.name}>
-        {member.name}
-      </span>
+      <WorkerLink personId={member.personId} name={member.name} className={styles['memberName']} />
       <span className={styles['memberChips']}>
         <StorylineSideChip side={member.side} />
         {!member.stillEmployed && <Badge tone="negative">{LEFT_PROMOTION_TEXT}</Badge>}

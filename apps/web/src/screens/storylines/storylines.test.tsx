@@ -173,6 +173,29 @@ describe('StorylinesScreen', () => {
 });
 
 describe('StorylineDetailScreen', () => {
+  it("links each member's name on the page to their profile (CRTV3-05)", async () => {
+    const rendered = renderStorylines();
+    await openPage(rendered, TINY_STORYLINE);
+    const id = await storylineIdNamed(rendered.transport, TINY_STORYLINE);
+    const { result } = await rendered.transport.host.query('storylines.detail', {
+      storylineId: id,
+    });
+    if (!result.ok) throw new Error('storylines.detail refused');
+    const sides = [
+      ['Faces', result.data.faces],
+      ['Heels', result.data.heels],
+    ] as const;
+    for (const [region, members] of sides) {
+      for (const member of members) {
+        expect(
+          within(screen.getByRole('region', { name: region })).getByRole('link', {
+            name: member.name,
+          }),
+        ).toHaveAttribute('href', routes.game.worker(member.personId));
+      }
+    }
+  });
+
   it('moves a member to Heels when their side changes', async () => {
     const rendered = renderStorylines();
     const { user } = rendered;
