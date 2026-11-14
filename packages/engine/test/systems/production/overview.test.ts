@@ -13,6 +13,7 @@ import {
   TV_CAMERA_MINIMUM_EFFECT_ID,
   upcomingShows,
 } from '../../../src/systems/production';
+import { SHOW_CEILING_EFFECT_ID } from '../../../src/systems/cardFlow';
 import { worldBuilder } from '../../support';
 import { OTHER_PLAYER, PLAYER, productionEngine, productionWorld, START } from './production-world';
 import { ALTURA, HARDPAN } from './support';
@@ -95,7 +96,9 @@ describe('production.overview', () => {
     expect(data.tvDeal).toEqual({ networkName: 'Channel 9', endsOn: addDays(START, 28) });
     const camera = data.rows.find((row) => row.area === 'camera');
     expect(camera?.minLevel).toBe(1);
+    // EVT4's show-quality ceiling (order 10) comes first, then the TV minimum (order 20).
     expect(camera?.effects).toEqual([
+      expect.objectContaining({ id: SHOW_CEILING_EFFECT_ID, value: 47 }),
       expect.objectContaining({
         id: TV_CAMERA_MINIMUM_EFFECT_ID,
         text: 'TV deal with Channel 9: camera stays at 1 or higher',
@@ -124,7 +127,7 @@ describe('production.overview', () => {
     const seen = overview(engine, built.human, OTHER_VIEW);
     const camera = seen.rows.find((row) => row.area === 'camera');
     expect(camera?.minLevel).toBe(0);
-    expect(camera?.effects).toEqual([]);
+    expect(camera?.effects.map((line) => line.id)).toEqual([SHOW_CEILING_EFFECT_ID]);
     expect(seen.tvDeal).toBeNull();
 
     // The all-seeing view sees everything.

@@ -14,6 +14,7 @@
 import { defineSystem, type SystemBundle } from '../../core/api/system';
 import { refreshBonusSlotsPhase } from './bonusSlots';
 import './ceiling';
+import './productionEffect';
 import { cardFlowQueries } from './queries';
 
 export {
@@ -60,6 +61,12 @@ export {
   type ProductionCeilingView,
 } from './queries';
 export { BONUS_SLOT_TRACE_KIND, bonusSlotTraceRef } from './traces';
+export {
+  SHOW_CEILING_EFFECT_ID,
+  SHOW_CEILING_EFFECT_LABEL,
+  showCeilingText,
+  unregisterShowCeilingEffect,
+} from './productionEffect';
 export { cardFlowTunables } from './tunables';
 
 export const cardFlowSystem: SystemBundle = defineSystem({

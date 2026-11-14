@@ -334,6 +334,11 @@ with the current and the proposed levels. Register once, when the registering
 system's `index.ts` is imported; a duplicate id throws. `ownOnly` lines name
 something private and are never shown to a rival.
 
+EVT4's show-quality ceiling, `cardFlow.showCeiling` (stage, camera, editing,
+pyro; order 10; public, like the levels), reads "Shows can score up to 47 (90
+earns an extra main-card slot)" with the ceiling's Why?
+(`card-flow.md#production-ceiling`); the change dialog shows it before → after.
+
 ECO7's own two: `production.popularityCeiling` (marketing, back office;
 "Popularity above 30 slowly falls back"; the dialog shows it as the fixed
 `popularityCeiling` row) and `production.tvCameraMinimum` (camera, `ownOnly`,

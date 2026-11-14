@@ -58,6 +58,12 @@ The `production.ceiling` query answers `{ ceiling, ceilingTrace, bonusSlot:
 with them). Production levels are public, so any viewer may ask about any
 promotion; the traces come back inline and nothing is recorded.
 
+The Production screen shows the ceiling through ECO7's effect seam: the effect
+`cardFlow.showCeiling` (`systems/cardFlow/productionEffect.ts`, ECO7-04) adds
+"Shows can score up to 47 (90 earns an extra main-card slot)" with this trace
+to the stage, camera, editing and pyro rows, and a before → after row to the
+change dialog. See `production.md#effects`.
+
 ## Bonus slot
 
 D-10: bigger production budgets unlock an extra segment slot.
