@@ -478,7 +478,9 @@ Wattle at −4,908, as before.
 
 **Hardpan as the player** (no deal): ends the year at −19,842 with Auto-fill
 and −20,940 with random cards, exactly as before. Its one offer, Bluebonnet
-Cable 7, still loses about 388 an airing.
+Cable 7, still loses about 388 an airing. (Those year-one figures predate ECO4-09's
+indie wages and let the roster's contracts run out; see
+[finances.md](finances.md#indie-wages-calibration) for the current ones.)
 
 **Held by tests.** `test/systems/broadcast/calibration-default-world.test.ts`:
 in the default run, a year of Altura's shipped deals projected at a neutral
