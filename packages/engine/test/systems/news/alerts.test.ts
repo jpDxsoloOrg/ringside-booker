@@ -22,6 +22,7 @@ import { encodeSave } from '../../../src/persistence/codec';
 import { loadSave } from '../../../src/persistence/load';
 import { createSaveDocument } from '../../../src/persistence/world-document';
 import {
+  aboutOwnShow,
   alertPendingKey,
   alertRuleKey,
   alertStopSkipKey,
@@ -527,5 +528,35 @@ describe('newsAlertReason', () => {
       `News: Injury – ${name(p0)}, ${name(p1)} and 2 more`,
     );
     expect(reason({}, 'season')).toBe('News: a front-page season story');
+  });
+});
+
+describe('aboutOwnShow', () => {
+  it("is true only for a story about a show the player's promotion ran", () => {
+    const { world, ids } = worldBuilder()
+      .withGeography('mini')
+      .withPromotion({ name: 'My Wrestling', controller: HUMAN })
+      .withPromotion({ name: 'Rival Wrestling' })
+      .withEventInstance({}, 'A')
+      .withEventInstance({}, 'B')
+      .build();
+    const mine = ids.promotions.A;
+    const [myShow, rivalShow] = ids.eventInstances;
+    if (mine === undefined || myShow === undefined || rivalShow === undefined) {
+      throw new Error('the world is missing rows');
+    }
+    const about = (eventInstanceId: typeof myShow | null) =>
+      aNews({
+        refs: {
+          personIds: [],
+          promotionIds: [],
+          eventInstanceId,
+          employmentId: null,
+        },
+      });
+    expect(aboutOwnShow(world, about(myShow), [mine])).toBe(true);
+    expect(aboutOwnShow(world, about(rivalShow), [mine])).toBe(false);
+    expect(aboutOwnShow(world, about(null), [mine])).toBe(false);
+    expect(aboutOwnShow(world, about(myShow), [])).toBe(false);
   });
 });

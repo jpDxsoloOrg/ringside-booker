@@ -375,6 +375,8 @@ by order. A later feature adds a rule without editing DAY1 files (WRK3's
 | `myChampions`  | My champions               | off     | Someone in `refs.personIds` holds an open reign of a title of one of the player's promotions (`titleReigns` `byHolder`) |
 | `titleChanges` | Title changes anywhere     | off     | Kind `titleChange`                                                                                                      |
 
+**Your own shows never alert you.** A story whose `refs.eventInstanceId` is a show one of the player's promotions ran (its result, or a title change on it) never becomes their pending alert (`aboutOwnShow`): the player just watched that show, so stopping the next skip for it would only repeat the results page.
+
 **Per-player storage.** Rules are per player (D-07), stored in
 `WorldMeta.settings.extra` by player id, so two humans in one world each keep
 their own:
