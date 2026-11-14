@@ -610,7 +610,9 @@ registerShowScoreModifier({
 `systems/shows/registries.ts`. Features that react to a segment's result
 inside the shows phase, in the same transaction, register an applier: EVT3-04
 settles titles through one, MTCH3 (popularity, order 30) and MTCH4 (the
-physical toll, order 40) add theirs, and MTCH6 (chemistry, 50) later.
+physical toll, order 40) add theirs, MTCH6 (chemistry, 50) later, and CRTV4-02
+moves storyline heat at order 60 (`storylines.heat`,
+[storylines.md](storylines.md#heat-after-segment)).
 
 ```ts
 registerSegmentResultApplier({
