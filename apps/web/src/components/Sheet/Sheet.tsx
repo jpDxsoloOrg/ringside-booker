@@ -39,6 +39,12 @@ export interface SheetProps {
   readonly phoneHeight?: SheetPhoneHeight;
   /** Accessible name of the Close button. `Close` by default. */
   readonly closeLabel?: string;
+  /**
+   * `sheet` (the default) stacks on `--z-sheet`, under confirm dialogs. `explain` stacks on
+   * `--z-explain`, above them: a Why? panel can be opened from inside a confirm dialog (the release
+   * dialog's severance) and has to come out on top of it.
+   */
+  readonly layer?: 'sheet' | 'explain';
   readonly className?: string;
   readonly children: ReactNode;
 }
@@ -70,6 +76,7 @@ export function Sheet({
   responsiveSide = true,
   phoneHeight = 'auto',
   closeLabel = 'Close',
+  layer = 'sheet',
   className,
   children,
 }: SheetProps) {
@@ -88,7 +95,10 @@ export function Sheet({
       }}
     >
       <Dialog.Portal>
-        <Dialog.Overlay className={styles['overlay']} data-sheet-overlay="" />
+        <Dialog.Overlay
+          className={classNames(styles['overlay'], layer === 'explain' && styles['layer-explain'])}
+          data-sheet-overlay=""
+        />
         <Dialog.Content
           aria-describedby={undefined}
           className={classNames(
@@ -96,6 +106,7 @@ export function Sheet({
             styles[`side-${resolvedSide}`],
             styles[`size-${size}`],
             fullOnPhone && styles['phone-full'],
+            layer === 'explain' && styles['layer-explain'],
             className,
           )}
           data-side={resolvedSide}

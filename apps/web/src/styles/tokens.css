@@ -128,6 +128,8 @@
   --z-sheet: 400;
   --z-toast: 500;
   --z-overlay: 600;
+  /* Why? panels: above a confirm dialog they can be opened from, under popovers. */
+  --z-explain: 650;
   --z-popover: 700;
 
   /* Motion. global.css sets the durations to 0ms when reduced motion is on. */
