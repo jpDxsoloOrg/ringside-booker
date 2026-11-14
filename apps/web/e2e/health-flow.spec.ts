@@ -20,8 +20,8 @@
 import type { Locator, Page, TestInfo } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { expectNoSeriousA11yViolations } from './helpers/a11y';
-import { cancelTonightsShow, skipDaysOnce } from './helpers/booking';
-import { clearExpiringContracts } from './helpers/contracts';
+import { cancelTonightsShow, skipDaysOnce, waitForDayBarSettled } from './helpers/booking';
+import { clearExpiringContracts, clearInjuryStop } from './helpers/contracts';
 import { HEALTH_E2E_SEED, startDefaultWorldGame } from './helpers/game';
 import { expectNoHorizontalScroll } from './helpers/layout';
 import { navigateInApp } from './helpers/shell';
@@ -73,6 +73,7 @@ async function skipDays(
   let left = days;
   for (let stops = 0; ; stops += 1) {
     expect(stops, 'the skip keeps stopping').toBeLessThan(MAX_STOPS);
+    await waitForDayBarSettled(page);
     await expect(
       dayButton(page, /^(Next day|(Tonight: )?Go to the show|Roster|Contracts)$/),
     ).toBeVisible({
@@ -80,8 +81,7 @@ async function skipDays(
     });
     if (await roster.isVisible()) {
       if (untilInjury) return true;
-      await roster.click();
-      await expect(dayButton(page, 'Next day')).toBeVisible({ timeout: 15_000 });
+      await clearInjuryStop(page);
     } else if (await contracts.isVisible()) {
       await clearExpiringContracts(page);
     } else if (await show.isVisible()) {
@@ -91,9 +91,8 @@ async function skipDays(
       return false;
     } else {
       const moved = await skipDaysOnce(page, left, phone);
+      // The day bar has settled when this returns, so the next pass reads today's stop.
       left -= moved;
-      // A skip that stopped short stopped for something: wait for the day button to say what.
-      if (left > 0) await expect(dayButton(page, 'Next day')).toBeHidden();
     }
   }
 }

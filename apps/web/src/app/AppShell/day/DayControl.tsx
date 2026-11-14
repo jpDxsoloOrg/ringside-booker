@@ -71,11 +71,7 @@ export function DayControl({
   useDayShortcut(runPrimary, primary.kind !== 'busy');
 
   return (
-    <div
-      className={styles['dayControl']}
-      data-testid="day-control"
-      data-settled={settled && !busy}
-    >
+    <div className={styles['dayControl']} data-testid="day-control" data-settled={settled && !busy}>
       <LiveBugButton
         className={styles['primary']}
         shrinkable={compact}
