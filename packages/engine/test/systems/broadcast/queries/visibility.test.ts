@@ -23,6 +23,7 @@ import {
   UNKNOWN_SHOW,
   type BroadcastValuationArgs,
 } from '../../../../src/systems/broadcast';
+import { cents } from '../../../../src/core/money';
 import { TEST_PLAYER_ID } from '../../../support/builders/build-row';
 import { testId } from '../../../support/ids';
 import { SYSTEMS_WITHOUT_SHOW_DAY_GATE } from '../../../support/systems';
@@ -90,9 +91,9 @@ function visibilityWorld(): VisibilityWorld {
             timeslot: 'evening',
             weekday: 0,
             terms: {
-              feePerShow: RIVAL_FEE,
-              perThousandViewers: RIVAL_PER_THOUSAND,
-              costPerShow: RIVAL_COST,
+              feePerShow: cents(RIVAL_FEE),
+              perThousandViewers: cents(RIVAL_PER_THOUSAND),
+              costPerShow: cents(RIVAL_COST),
             },
           })
           .withDeal({ network: 1 }),
