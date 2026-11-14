@@ -21,6 +21,7 @@ import {
   RELEASE_REQUESTED_GATE_ID,
 } from '../../src/systems/contracts/gates';
 import { OWN_WORKER_INJURED_GATE_ID } from '../../src/systems/health/gate';
+import { COUNTER_WAITING_GATE_ID } from '../../src/systems/negotiation/gates';
 import { runShowNow } from '../../src/systems/shows/runShow';
 import { myShowsOn, SHOWS_TONIGHT_GATE_ID } from '../../src/systems/shows/tonight';
 
@@ -67,14 +68,16 @@ export const runMyShowsSystem: SystemBundle = runMyShowsSystemFor();
 
 /**
  * The gates a stand-in player always gets past: show night, their own workers' injuries and the
- * two contract stops (ECO4-04 turned them on; an unanswered release request is refused by the
- * system after its answer-by date, as with the stop off).
+ * contract stops (ECO4-04 turned them on; an unanswered release request is refused by the
+ * system after its answer-by date, as with the stop off; an unanswered counter-offer lapses after
+ * `contracts.counter.expiryDays`, ECO5-06).
  */
 const PLAYER_GATE_IDS: readonly string[] = [
   SHOWS_TONIGHT_GATE_ID,
   OWN_WORKER_INJURED_GATE_ID,
   EXPIRING_SOON_GATE_ID,
   RELEASE_REQUESTED_GATE_ID,
+  COUNTER_WAITING_GATE_ID,
 ];
 
 /**
