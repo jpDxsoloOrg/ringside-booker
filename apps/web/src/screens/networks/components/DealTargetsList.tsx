@@ -8,9 +8,22 @@ function percent(share: number): string {
   return `${String(Math.round(share * 100))}%`;
 }
 
-/** "2.1M", or "21K buys" on pay-per-view (TV and streaming count viewers). */
-function amount(count: number, kind: NetworkKind): string {
-  return kind === 'ppv' ? `${shortViewers(count)} buys` : shortViewers(count);
+/** The step `shortViewers` shows a count in: 0.1M, 1K, 0.1K or 1. */
+function shortStep(count: number): number {
+  if (count >= 1_000_000) return 100_000;
+  if (count >= 10_000) return 1_000;
+  if (count >= 1_000) return 100;
+  return 1;
+}
+
+/**
+ * "2.2M", or "113K buys" on pay-per-view (TV and streaming count viewers). A target is rounded
+ * up to the shown step, so reaching the number on screen is always enough.
+ */
+function amount(count: number, kind: NetworkKind, up = true): string {
+  const step = shortStep(count);
+  const shown = shortViewers(up ? Math.ceil(count / step) * step : count);
+  return kind === 'ppv' ? `${shown} buys` : shown;
 }
 
 /** One target as the deal screens say it. */
@@ -34,7 +47,7 @@ export function dealTargetLines(targets: DealTargets, kind: NetworkKind): DealTa
   return [
     {
       id: 'safe',
-      text: `Stay above ${amount(safe.viewers.value, kind)} (${percent(safe.share)} of ${amount(targets.expected, kind)} expected) to stay safe`,
+      text: `Stay above ${amount(safe.viewers.value, kind)} (${percent(safe.share)} of ${amount(targets.expected, kind, false)} expected) to stay safe`,
       short: `Safe above ${amount(safe.viewers.value, kind)}`,
       label: 'The line to stay safe',
       viewers: safe.viewers,
