@@ -1870,6 +1870,25 @@ export {
   SHOWS_TONIGHT_GATE_ID,
   unregisterBeforeShowRuns,
 } from './systems/shows/index';
+// Live show night (EVT10-01): run the player's show one segment at a time (`shows.runNextSegment`,
+// `shows.runRestOfShow`, `shows.finishShow`), the Show night setting (`shows.setShowNight`) and the
+// show screen's `shows.liveState`. See docs/design/show-night.md#live-show-night.
+export type {
+  LiveScoreView,
+  LiveShowReasonCode,
+  LiveShowStage,
+  LiveShowStateView,
+  ShowNightMode,
+} from './systems/shows/index';
+export {
+  FINISH_TONIGHT_FIRST,
+  LIVE_SHOW_REASON_CODES,
+  SCORE_SO_FAR_LABEL,
+  SHOW_NIGHT_MODES,
+  SHOW_NIGHT_SETTING,
+} from './systems/shows/index';
+export type { LiveShowRun } from './model/entities/event-instance';
+export { LiveShowRunSchema } from './model/entities/event-instance';
 
 // Headline popularity (DAY2-02): the one roll-up level the Office and the top bar lead with, its
 // stored Why? (`office.popularity`), the trace sections seam other features add lines through and

@@ -13,12 +13,15 @@
 // program that imports this system, including programs that only see the emitted .d.ts files.
 import './events';
 import './streams';
+import './settings';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
 import { showsPhases } from './phases';
 import { showsQueries } from './queries';
 import { registerSegmentResultApplier } from './registries';
 import { titleOutcomeApplier } from './titles';
 import { runTonightCommand, showsTonightGate } from './tonight';
+import { liveShowCommands } from './liveCommands';
+import { liveStateQuery } from './liveState';
 
 export { SHOWS_OFFSCREEN_STREAM } from './streams';
 export {
@@ -193,10 +196,41 @@ export {
 export { compareShows, isOpenShow } from './phases';
 export { runShowNow } from './runShow';
 
+// Live show night (EVT10-01): one segment at a time, the Show night setting and the live view.
+export {
+  isShowLive,
+  ranSegmentIdsOf,
+  runNextLiveSegment,
+  runRestOfShowNow,
+  segmentsLeft,
+  segmentsLeftOn,
+  type LiveStep,
+} from './live';
+export {
+  LIVE_SHOW_REASON_CODES,
+  finishShowCommand,
+  liveShowCommands,
+  runNextSegmentCommand,
+  runRestOfShowCommand,
+  setShowNightCommand,
+  type LiveShowReasonCode,
+} from './liveCommands';
+export {
+  SCORE_SO_FAR_LABEL,
+  liveStateQuery,
+  scoreSoFar,
+  type LiveScoreView,
+  type LiveShowStage,
+  type LiveShowStateView,
+} from './liveState';
+export { SHOW_NIGHT_MODES, SHOW_NIGHT_SETTING, type ShowNightMode } from './settings';
+export { FINISH_TONIGHT_FIRST, runShowRefusals } from './tonight';
+export { segmentStreamKey, withSegmentStreams } from './runSegment';
+
 export const showsSystem: SystemBundle = defineSystem({
   id: 'shows',
   phases: showsPhases,
-  queries: showsQueries,
-  commands: [runTonightCommand],
+  queries: [...showsQueries, liveStateQuery],
+  commands: [runTonightCommand, ...liveShowCommands],
   gates: [showsTonightGate],
 });

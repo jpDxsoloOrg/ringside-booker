@@ -17,7 +17,8 @@
  */
 
 import { z } from 'zod';
-import { defineCommand } from '../../core/api/command';
+import { defineCommand, type CommandValidateEnv } from '../../core/api/command';
+import type { Controller } from '../../core/api/controller';
 import type { Reason } from '../../core/api/result';
 import { isBefore, type GameDate } from '../../core/date';
 import type { EventInstanceId } from '../../core/ids';
@@ -32,7 +33,7 @@ import type { BookingIssue } from '../booking/validate/types';
 import { validateCard } from '../booking/validate/validateCard';
 import { controlsShow, showControllerOf } from '../calendar/control';
 import { compareShows, isOpenShow } from './phases';
-import { runShowNow } from './runShow';
+import { runRestOfShowNow } from './live';
 
 declare module '../../core/api/maps' {
   interface CommandMap {
@@ -48,6 +49,9 @@ export const SHOWS_TONIGHT_GATE_ID = 'shows.tonight';
 
 /** The web shell's route key for the show screen ("Go to the show"). */
 export const SHOW_NIGHT_ACTION_HINT = 'showNight';
+
+/** The stop's reason while one of the player's shows is part-way through (EVT10-01). */
+export const FINISH_TONIGHT_FIRST = "Finish tonight's show first";
 
 /** The most `cardNotRunnable` reasons a refused run lists; the checklist has the rest. */
 export const MAX_RUN_REASONS = 10;
@@ -76,6 +80,16 @@ export function myShowsOn(view: GameWorldView, date: GameDate): Show[] {
     .sort(compareShows);
 }
 
+/** The stop's words: a show part-way through comes first, then a show with no card. */
+function gateReason(view: GameWorldView, show: Show): string {
+  if (show.liveRun !== undefined) {
+    return `${FINISH_TONIGHT_FIRST}: ${show.name}`;
+  }
+  return hasCard(view, show.id)
+    ? `Tonight: ${show.name}`
+    : `Your show '${show.name}' has no card yet`;
+}
+
 /**
  * Stops the skip before a day with an open show a human runs. With several on one day the first in
  * running order leads; once it has run the gate names the next. Cancelled and completed shows never
@@ -91,9 +105,7 @@ export const showsTonightGate: GateSpec = {
     }
     return {
       gateId: SHOWS_TONIGHT_GATE_ID,
-      reason: hasCard(view, show.id)
-        ? `Tonight: ${show.name}`
-        : `Your show '${show.name}' has no card yet`,
+      reason: gateReason(view, show),
       subject: { kind: 'eventInstance', id: show.id },
       actionHint: SHOW_NIGHT_ACTION_HINT,
     };
@@ -133,40 +145,58 @@ function showRefusal(read: GameWorldView, show: Show): Reason | null {
 }
 
 /**
- * Runs the issuer's show tonight, all at once, through the same code the shows phase uses. Refused
- * unless the issuer runs the show, it is dated today, it is still open and its card has no booking
- * error. Returns the show's id, for the results page.
+ * Why the issuer cannot run (any part of) this show now, or no reasons. Shared by
+ * `shows.runTonight` and the live commands (EVT10-01): the show must exist, be the issuer's, be
+ * dated today and still be open; and, until its first segment has run, its card must have no
+ * booking error. Once a show is under way its card is not checked again: a segment may have hurt
+ * someone booked later, and the show must still be able to finish.
+ */
+export function runShowRefusals(
+  read: GameWorldView,
+  eventInstanceId: EventInstanceId,
+  issuedBy: Controller,
+  env: CommandValidateEnv,
+): Reason[] {
+  const show = read.tables.eventInstances.get(eventInstanceId);
+  if (show === undefined) {
+    return [{ code: 'showNotFound', message: 'That show no longer exists' }];
+  }
+  if (!controlsShow(read, show, issuedBy)) {
+    return [
+      {
+        code: 'notYourShow',
+        message: `Only the person running ${runnerName(read, show)} can run this show`,
+        subject: { kind: 'eventInstance', id: show.id },
+      },
+    ];
+  }
+  const refused = showRefusal(read, show);
+  if (refused !== null) {
+    return [refused];
+  }
+  if (show.liveRun !== undefined) {
+    return [];
+  }
+  const validation = validateCard(read, show.id, {
+    tunables: env.tunables,
+    today: read.meta.currentDate,
+  });
+  return validation.errors.slice(0, MAX_RUN_REASONS).map((issue) => notRunnable(show, issue));
+}
+
+/**
+ * Runs the issuer's show tonight, all at once, through the same code the shows phase uses (or, for a
+ * show already under way, its remaining segments). Refused as {@link runShowRefusals} says. Returns the show's id, for the results page.
  */
 export const runTonightCommand = defineCommand('shows.runTonight', {
   args: z.strictObject({ eventInstanceId: zId('eventInstance') }),
-  validate: (read, args, issuedBy, env) => {
-    const show = read.tables.eventInstances.get(args.eventInstanceId);
-    if (show === undefined) {
-      return [{ code: 'showNotFound', message: 'That show no longer exists' }];
-    }
-    if (!controlsShow(read, show, issuedBy)) {
-      return [
-        {
-          code: 'notYourShow',
-          message: `Only the person running ${runnerName(read, show)} can run this show`,
-          subject: { kind: 'eventInstance', id: show.id },
-        },
-      ];
-    }
-    const refused = showRefusal(read, show);
-    if (refused !== null) {
-      return [refused];
-    }
-    const validation = validateCard(read, show.id, {
-      tunables: env.tunables,
-      today: read.meta.currentDate,
-    });
-    return validation.errors.slice(0, MAX_RUN_REASONS).map((issue) => notRunnable(show, issue));
-  },
+  validate: (read, args, issuedBy, env) =>
+    runShowRefusals(read, args.eventInstanceId, issuedBy, env),
   apply: (ctx, args) => {
     const show = ctx.read.tables.eventInstances.require(args.eventInstanceId);
-    // Run the show comes before the day's phases (the gate stopped the day before it started).
-    runShowNow(ctx, show, true, { beforeTheDay: true });
+    // Run the show comes before the day's phases (the gate stopped the day before it started). A
+    // show already under way (EVT10-01) runs its remaining segments instead.
+    runRestOfShowNow(ctx, show.id);
     ctx.log(`Ran ${show.name} (${show.id}) from the show screen`);
     return { eventInstanceId: show.id };
   },

@@ -496,7 +496,10 @@ function segmentViewOf(
     },
     slotDeps,
   ).value;
-  const run = instance.status === 'completed';
+  // A live show's segments count as run one at a time, as the player runs them (EVT10-01).
+  const run =
+    instance.status === 'completed' ||
+    (instance.liveRun?.ranSegmentIds.includes(segment.id) ?? false);
   return {
     segmentId: segment.id,
     slot: segment.slot,
