@@ -342,7 +342,7 @@ export const storylinesMemberOptionsQuery: QueryDefinition<'storylines.memberOpt
   });
 
 /** "Ise vs Kuroe" for a match, "Ise & Kuroe" for a talking segment, else the kind in words. */
-function segmentLabel(
+export function segmentLabel(
   ctx: QueryContext,
   segment: DeepReadonly<Segment>,
   promotionId: PromotionId,
