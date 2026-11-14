@@ -3,6 +3,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 import type { StorylineRow } from '@ringside/engine';
 import { routerFutureFlags, routerProviderFutureFlags } from '@/app/router';
+import { routes } from '@/app/routes';
 import {
   GALLERY_HOT_FROM,
   galleryColdStoryline,
@@ -46,6 +47,21 @@ describe('StorylineCard', () => {
     expect(meter).toHaveAttribute('aria-valuetext', '84, Hot');
     expect(within(card).getByText('Hot')).toBeInTheDocument();
     expect(within(card).getByText('84')).toBeInTheDocument();
+  });
+
+  it("links every member's name to their profile (CRTV3-05)", () => {
+    renderCard(galleryHotStoryline);
+    const card = screen.getByRole('article', { name: galleryHotStoryline.name });
+    for (const member of [
+      ...galleryHotStoryline.faces,
+      ...galleryHotStoryline.heels,
+      ...galleryHotStoryline.neutrals,
+    ]) {
+      expect(within(card).getByRole('link', { name: member.name })).toHaveAttribute(
+        'href',
+        routes.game.worker(member.personId),
+      );
+    }
   });
 
   it('draws no meter for a rival storyline and says its heat is not public', () => {

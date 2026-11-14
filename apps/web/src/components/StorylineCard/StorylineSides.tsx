@@ -4,6 +4,7 @@ import { classNames } from '../classNames';
 import { ImageSlot } from '../ImageSlot';
 import { SlashDivider } from '../SlashDivider';
 import { StorylineSideChip } from '../StorylineSideChip';
+import { WorkerLink } from '../WorkerLink';
 import styles from './StorylineCard.module.css';
 
 /** The warning chip on a member who no longer works for the storyline's promotion. */
@@ -43,10 +44,11 @@ function SideList({ label, members, className }: SideListProps) {
               size="xs"
               decorative
             />
-            {/* Plain text until the worker profile route is on main (CRTV3-05 links it). */}
-            <span className={styles['memberName']} title={member.name}>
-              {member.name}
-            </span>
+            <WorkerLink
+              personId={member.personId}
+              name={member.name}
+              className={styles['memberName']}
+            />
             <StorylineSideChip side={member.side} />
             {!member.stillEmployed && (
               <Badge tone="negative" className={styles['memberWarning']}>
@@ -64,6 +66,7 @@ function SideList({ label, members, className }: SideListProps) {
  * A storyline's people by side: faces, a slash, heels, and any neutrals in a row below. Faces sit
  * left of the slash and heels right of it on desktop; below --bp-mobile the faces stack above the
  * heels (CSS only). Every member shows their side in words, and one who left the promotion says so.
+ * Each name links to the worker's profile (CRTV3-05).
  */
 export function StorylineSides({ faces, heels, neutrals, className }: StorylineSidesProps) {
   return (

@@ -8,9 +8,10 @@
  */
 
 import { startCalc } from '../../../core/trace/calc';
-import { constantOf, traced } from '../../../core/trace/helpers';
+import { constantOf, inputOf, traced } from '../../../core/trace/helpers';
 import { tunableNode } from '../../../core/trace/tunable-node';
 import type { Traced } from '../../../core/trace/types';
+import type { PersonId } from '../../../core/ids';
 import type { EngineTunables } from '../../tunables';
 
 export const STARTING_HEAT_DOC_REF = 'docs/design/storylines.md#starting-heat';
@@ -22,6 +23,11 @@ export const STAR_POWER_MEMBERS = 2;
 export interface StartingHeatMember {
   /** Their ring name, for the trace. */
   readonly name: string;
+  /**
+   * Who they are, so their popularity line in the Why? links to their profile (CRTV3-05). Left
+   * out, the line is plain text.
+   */
+  readonly personId?: PersonId;
   /**
    * Their popularity in the promotion's home region, 0–100: the caller's
    * `person.regionalPop[promotion.homeRegionId] ?? 0` (sparse records leave out 0).
@@ -43,6 +49,20 @@ function bestKnown(members: readonly StartingHeatMember[]): StartingHeatMember[]
     .slice(0, STAR_POWER_MEMBERS);
 }
 
+function popularityLabel(member: StartingHeatMember): string {
+  return `${member.name}'s home popularity`;
+}
+
+/** One member's home popularity as an input, linked to the person when the caller named them. */
+function popularityLine(member: StartingHeatMember): Traced<number> {
+  return inputOf(
+    popularityLabel(member),
+    member.homePopularity,
+    member.personId === undefined ? undefined : { kind: 'person', id: member.personId },
+    'points',
+  );
+}
+
 /** `startStarWeight × average home popularity of the best two`, or 0 with no members. */
 function starPower(
   members: readonly StartingHeatMember[],
@@ -54,12 +74,11 @@ function starPower(
   }
   const label = `Star power: ${best.map((member) => member.name).join(' and ')}`;
   const [first, ...rest] = best;
-  const calc = startCalc(label, first?.homePopularity ?? 0, {
+  const calc = startCalc(label, first === undefined ? 0 : popularityLine(first), {
     unit: 'points',
-    startLabel: `${first?.name ?? ''}'s home popularity`,
   });
   for (const member of rest) {
-    calc.add(`${member.name}'s home popularity`, member.homePopularity);
+    calc.add(popularityLabel(member), popularityLine(member));
   }
   calc
     .divide('Average of the best-known members', best.length)
