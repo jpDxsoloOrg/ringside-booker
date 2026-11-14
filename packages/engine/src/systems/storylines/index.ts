@@ -5,8 +5,9 @@
  * (`storylines.list`, `storylines.detail`, `storylines.forPerson`, `storylines.memberOptions`),
  * the engine-side reader other systems share (`storylineContextFor`, `storylinesOfPerson`,
  * `activeStorylinesOf`), the read-side tunables, the trace kinds and the domain events. CRTV3-02
- * adds heat cooling and starter storylines, CRTV3-03 the player's commands, CRTV4 heat after
- * segments and the payoff.
+ * adds starting heat (`startStoryline`), the daily `storylines.heatCooling` phase, the weekly
+ * `storylines.pruneDetail` and the `storylines.seedStarters` new-game step. CRTV3-03 adds the
+ * player's commands, CRTV4 heat after segments and the payoff.
  *
  * Design: docs/design/storylines.md.
  */
@@ -15,7 +16,10 @@
 // program that imports this system, including programs that only see the emitted .d.ts files.
 import './events';
 import './streams';
+// Registers the `storylines.seedStarters` new-game step (CRTV3-02).
+import './setup';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
+import { storylinesPhases } from './phases';
 import { storylinesQueries } from './queries';
 
 export {
@@ -27,7 +31,42 @@ export {
   type StorylineContext,
 } from './context';
 export { STORYLINE_START_SOURCES, type StorylineStartSource } from './events';
+export { HEAT_DECAY_DOC_REF, heatDecay, type HeatDecayInputs } from './formulas/heatDecay';
 export { HOT_STORYLINE_DOC_REF, isHotHeat } from './formulas/hot';
+export {
+  STARTING_HEAT_DOC_REF,
+  STAR_POWER_MEMBERS,
+  startingHeat,
+  type StartingHeatInputs,
+  type StartingHeatMember,
+} from './formulas/startingHeat';
+export {
+  keepsFullStorylineTraces,
+  startingHeatMembers,
+  startStoryline,
+  type StartStorylineSpec,
+} from './lifecycle';
+export {
+  coolStorylines,
+  HEAT_COOLING_PHASE_ID,
+  HEAT_COOLING_PHASE_ORDER,
+  heatCoolingPhase,
+  PRUNE_STORYLINE_DETAIL_PHASE_ID,
+  PRUNE_STORYLINE_DETAIL_PHASE_ORDER,
+  pruneStorylineDetail,
+  pruneStorylineDetailPhase,
+  storylinesPhases,
+} from './phases';
+export {
+  STARTER_DOC_REF,
+  STARTER_PICK_FROM,
+  STARTER_SUMMARY,
+  STORYLINES_SEED_STARTERS_STEP,
+  seedStarterStorylines,
+  starterCandidates,
+  type StarterCandidate,
+} from './setup';
+export { STARTERS_STREAM } from './streams';
 export {
   STORYLINES_NO_PROMOTION_MESSAGE,
   STORYLINES_NOT_YOURS_MESSAGE,
@@ -43,6 +82,7 @@ export {
   storylinesMemberOptionsQuery,
   storylinesQueries,
   type StorylineDetail,
+  type StorylineCoolingView,
   type StorylineEndingView,
   type StorylineListStatus,
   type StorylineListView,
@@ -75,7 +115,7 @@ export { storylinesTunables } from './tunables';
 
 export const storylinesSystem: SystemBundle = defineSystem({
   id: 'storylines',
-  phases: [],
+  phases: storylinesPhases,
   queries: storylinesQueries,
   commands: [],
 });

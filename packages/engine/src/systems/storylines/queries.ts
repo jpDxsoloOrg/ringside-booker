@@ -43,7 +43,8 @@ import {
   seesStorylinesOf,
   type StorylineRow,
 } from './rows';
-import { storylinePayoffTraceRef } from './traceKinds';
+import { daysSinceProgress } from './context';
+import { storylinePayoffTraceRef, storylineStarterTraceRef } from './traceKinds';
 
 /** The reason codes these queries refuse with. */
 export const STORYLINE_REASONS = {
@@ -138,6 +139,28 @@ export interface StorylineEndingView {
   payoffTraceRef: TraceRef | null;
 }
 
+/**
+ * How an active storyline's heat cools (CRTV3-02), so the screen can say "Cools from day 8 without
+ * progress" or "Cooling 1 per day". Docs: docs/design/storylines.md#heat-decay.
+ */
+export interface StorylineCoolingView {
+  /** `storylines.heat.decayGraceDays`. */
+  graceDays: number;
+  daysSinceProgress: number;
+  /** `storylines.heat.decayPerDay`; 0 means heat never cools. */
+  perDay: number;
+  /** `storylines.heat.decayFloor`. */
+  floor: number;
+  /** True when the next simulated day lowers heat. */
+  coolingNow: boolean;
+  /**
+   * Days from today until the first day that cools, if nothing moves the story on (a storyline
+   * started today: grace + 1). Null when it is already cooling, the heat is at or below the floor,
+   * or cooling is turned off.
+   */
+  startsInDays: number | null;
+}
+
 /** `storylines.detail`: one storyline with its summary, timeline and ending. */
 export type StorylineDetail = StorylineRow & {
   /** The booker's summary; empty for a rival storyline. */
@@ -146,6 +169,13 @@ export type StorylineDetail = StorylineRow & {
   timeline: StorylineTimelineEntry[];
   /** Null while active, and for a rival storyline. */
   ending: StorylineEndingView | null;
+  /** Null for an ended storyline and a rival's. */
+  cooling: StorylineCoolingView | null;
+  /**
+   * Why a starter storyline was picked at new game; null for any other storyline and for a
+   * rival's.
+   */
+  startedBecauseTraceRef: TraceRef | null;
 };
 
 declare module '../../core/api/maps' {
@@ -397,6 +427,30 @@ function endingOf(
   };
 }
 
+function coolingOf(
+  ctx: QueryContext,
+  storyline: DeepReadonly<Storyline>,
+): StorylineCoolingView | null {
+  if (storyline.status !== 'active') {
+    return null;
+  }
+  const graceDays = ctx.tunables.get('storylines.heat.decayGraceDays');
+  const perDay = ctx.tunables.get('storylines.heat.decayPerDay');
+  const floor = ctx.tunables.get('storylines.heat.decayFloor');
+  const days = daysSinceProgress(storyline, ctx.date);
+  const canCool = perDay > 0 && storyline.heat > floor;
+  // The query's date is the next day to be simulated: its cooling step sees `days`.
+  const coolingNow = canCool && days > graceDays;
+  return {
+    graceDays,
+    daysSinceProgress: days,
+    perDay,
+    floor,
+    coolingNow,
+    startsInDays: canCool && !coolingNow ? graceDays + 1 - days : null,
+  };
+}
+
 export const storylinesDetailQuery: QueryDefinition<'storylines.detail'> = defineQuery(
   'storylines.detail',
   {
@@ -413,13 +467,23 @@ export const storylinesDetailQuery: QueryDefinition<'storylines.detail'> = defin
       const row = rowFor(ctx, storyline);
       if (row.linkedSegmentCount === null) {
         // A rival's storyline: the public row only, without the booker's own summary.
-        return { ...row, summary: '', timeline: [], ending: null };
+        return {
+          ...row,
+          summary: '',
+          timeline: [],
+          ending: null,
+          cooling: null,
+          startedBecauseTraceRef: null,
+        };
       }
+      const starterRef = storylineStarterTraceRef(storyline.id);
       return {
         ...row,
         summary: storyline.summary,
         timeline: timelineOf(ctx, storyline),
         ending: endingOf(ctx, storyline, row.linkedSegmentCount),
+        cooling: coolingOf(ctx, storyline),
+        startedBecauseTraceRef: ctx.traces.has(starterRef) ? starterRef : null,
       };
     },
   },

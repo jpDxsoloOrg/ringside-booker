@@ -3159,3 +3159,38 @@ export {
   type StorylineStartSource,
   type StorylineTimelineEntry,
 } from './systems/storylines/index';
+
+// Storyline heat (CRTV3-02): starting heat, the daily cooling phase, the weekly detail prune and
+// the starter storylines new-game step. See docs/design/storylines.md#starting-heat.
+export {
+  coolStorylines,
+  HEAT_COOLING_PHASE_ID,
+  HEAT_COOLING_PHASE_ORDER,
+  HEAT_DECAY_DOC_REF,
+  heatCoolingPhase,
+  heatDecay,
+  keepsFullStorylineTraces,
+  PRUNE_STORYLINE_DETAIL_PHASE_ID,
+  PRUNE_STORYLINE_DETAIL_PHASE_ORDER,
+  pruneStorylineDetail,
+  pruneStorylineDetailPhase,
+  seedStarterStorylines,
+  STAR_POWER_MEMBERS,
+  STARTER_DOC_REF,
+  STARTER_PICK_FROM,
+  STARTER_SUMMARY,
+  starterCandidates,
+  STARTERS_STREAM,
+  STARTING_HEAT_DOC_REF,
+  startingHeat,
+  startingHeatMembers,
+  startStoryline,
+  STORYLINES_SEED_STARTERS_STEP,
+  storylinesPhases,
+  type HeatDecayInputs,
+  type StarterCandidate,
+  type StartingHeatInputs,
+  type StartingHeatMember,
+  type StartStorylineSpec,
+  type StorylineCoolingView,
+} from './systems/storylines/index';
