@@ -150,7 +150,9 @@ export function definitionWeekday(definition: EventDefinition | null): Weekday |
       return recurrence.weekdays[0] ?? null;
     case 'everyNWeeks':
       return recurrence.weekday;
-    default:
+    case 'monthly':
+    case 'annual':
+    case 'dates':
       return null;
   }
 }

@@ -391,8 +391,7 @@ export const valuationQuery: QueryDefinition<'broadcast.valuation'> = defineQuer
         }
       }
       if (args.dealId !== undefined) {
-        const deal = read.tables.deals.get(args.dealId);
-        if (deal === undefined || deal.promotionId !== args.promotionId) {
+        if (read.tables.deals.get(args.dealId)?.promotionId !== args.promotionId) {
           return refuseQuery({
             code: UNKNOWN_DEAL,
             message: 'There is no such deal of yours',
