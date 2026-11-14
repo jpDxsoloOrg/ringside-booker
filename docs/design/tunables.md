@@ -1256,14 +1256,26 @@ starter storylines at new game.
 MTCH5-02, see [angle-rating.md](angle-rating.md#beat-worker-value). The beat
 formulas: how much a manager's talking and popularity count, how far morale
 and momentum move a stat before the best one is picked, and the two noise
-rolls. MTCH5-03 appends the angle score's keys.
+rolls. MTCH5-03 added the beat limits per slot and the angle score's keys
+(closing beat, repetition, crowd blend and the writing band, see
+[angle-rating.md](angle-rating.md#angle-score)).
 
-| Key                               | Kind    | Default | Range | Unit   | Meaning                                                                                         |
-| --------------------------------- | ------- | ------- | ----- | ------ | ----------------------------------------------------------------------------------------------- |
-| `match.angle.managerShare`        | number  | 0.85    | 0–1   | ratio  | Share of a manager's mic or charisma that counts when they talk for their worker; 0 never helps |
-| `match.angle.popularityStatShare` | number  | 0.9     | 0–1   | ratio  | Share of popularity in the show region that counts when a beat scores popularity                |
-| `match.angle.moralePenaltyMax`    | number  | 0.15    | 0–0.5 | ratio  | Share of every stat lost at the lowest morale (none at morale 0 or above)                       |
-| `match.angle.momentumPenaltyMax`  | number  | 0.1     | 0–0.5 | ratio  | Share of every stat lost at the lowest momentum (none at momentum 0 or above)                   |
-| `match.angle.momentumBonusMax`    | number  | 0.05    | 0–0.5 | ratio  | Share added to every stat at the highest momentum (none at momentum 0 or below)                 |
-| `match.angle.statNoise`           | integer | 3       | 0–10  | points | Most a person's beat value can move either way on the night; 0 turns the roll off               |
-| `match.angle.beatNoise`           | integer | 5       | 0–15  | points | Most a beat's score can move either way on the night; 0 turns the roll off                      |
+| Key                                  | Kind    | Default | Range | Unit       | Meaning                                                                                         |
+| ------------------------------------ | ------- | ------- | ----- | ---------- | ----------------------------------------------------------------------------------------------- |
+| `match.angle.managerShare`           | number  | 0.85    | 0–1   | ratio      | Share of a manager's mic or charisma that counts when they talk for their worker; 0 never helps |
+| `match.angle.popularityStatShare`    | number  | 0.9     | 0–1   | ratio      | Share of popularity in the show region that counts when a beat scores popularity                |
+| `match.angle.moralePenaltyMax`       | number  | 0.15    | 0–0.5 | ratio      | Share of every stat lost at the lowest morale (none at morale 0 or above)                       |
+| `match.angle.momentumPenaltyMax`     | number  | 0.1     | 0–0.5 | ratio      | Share of every stat lost at the lowest momentum (none at momentum 0 or above)                   |
+| `match.angle.momentumBonusMax`       | number  | 0.05    | 0–0.5 | ratio      | Share added to every stat at the highest momentum (none at momentum 0 or below)                 |
+| `match.angle.statNoise`              | integer | 3       | 0–10  | points     | Most a person's beat value can move either way on the night; 0 turns the roll off               |
+| `match.angle.beatNoise`              | integer | 5       | 0–15  | points     | Most a beat's score can move either way on the night; 0 turns the roll off                      |
+| `match.angle.maxBeats.short`         | integer | 2       | 1–8   | count      | Most beats an angle may have in a short slot (see [beat limits](angle-rating.md#beat-limits))   |
+| `match.angle.maxBeats.standard`      | integer | 4       | 1–8   | count      | Most beats an angle may have in a standard slot                                                 |
+| `match.angle.maxBeats.long`          | integer | 6       | 1–8   | count      | Most beats an angle may have in a long slot                                                     |
+| `match.angle.closingBeatWeight`      | number  | 1.25    | 1–3   | multiplier | How much more the angle's last beat counts than its catalog weight; 1 treats it like any other  |
+| `match.angle.repeatFactor`           | number  | 0.85    | 0–1   | multiplier | Share of its score a beat keeps per earlier beat of the same kind in the angle; 1 turns it off  |
+| `match.angle.cardRepeatFactor`       | number  | 0.93    | 0–1   | multiplier | Share of its score a beat keeps per beat of the same kind earlier on the card; 1 turns it off   |
+| `match.angle.crowdBlend`             | number  | 0.35    | 0–1   | ratio      | Share of the angle score that comes from the crowd's reaction; 0 rates the beats alone          |
+| `match.angle.writingFloorPerLevel`   | number  | 3       | 0–10  | points     | Lowest angle score per level of the writing team                                                |
+| `match.angle.writingCeilingAtZero`   | number  | 75      | 0–100 | points     | Highest angle score with no writing team at all                                                 |
+| `match.angle.writingCeilingPerLevel` | number  | 2.5     | 0–10  | points     | How much each level of the writing team raises the highest angle score                          |
