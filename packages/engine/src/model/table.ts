@@ -13,6 +13,7 @@
 
 import { isId, type EntityKind } from '../core/ids';
 import { EntityNotFoundError, UniqueIndexError, UnknownIndexError } from '../core/errors';
+import { fastPathsEnabled } from '../core/fastPaths';
 import type { EntityRow, IndexSpec, TableDef, TableName } from './table-def';
 
 export interface ReadonlyTable<E extends EntityRow = EntityRow> {
@@ -70,6 +71,11 @@ interface IndexState<E extends EntityRow> {
   readonly spec: IndexSpec<E>;
   /** Index key → storage keys of the rows filed under it. */
   readonly buckets: Map<string, Set<E['id']>>;
+  /**
+   * Index key → the same storage keys sorted, built on the first `lookup` and dropped whenever a
+   * row joins or leaves the bucket (POL4-10). An update that keeps a row's index keys keeps it.
+   */
+  readonly sorted: Map<string, readonly E['id'][]>;
 }
 
 function indexKeysOf<E>(spec: IndexSpec<E>, row: E): readonly string[] {
@@ -103,7 +109,7 @@ export class MutableTable<E extends EntityRow> implements ReadonlyTable<E> {
     this.name = def.name;
     this.kind = def.kind;
     for (const spec of def.indexes) {
-      this.indexes.set(spec.name, { spec, buckets: new Map() });
+      this.indexes.set(spec.name, { spec, buckets: new Map(), sorted: new Map() });
     }
   }
 
@@ -141,11 +147,21 @@ export class MutableTable<E extends EntityRow> implements ReadonlyTable<E> {
   }
 
   lookup(indexName: string, key: string): readonly E[] {
-    const bucket = this.indexState(indexName).buckets.get(key);
+    const state = this.indexState(indexName);
+    const bucket = state.buckets.get(key);
     if (bucket === undefined) {
       return [];
     }
-    return [...bucket].sort(compareIds).map((id) => this.require(id));
+    if (!fastPathsEnabled()) {
+      return [...bucket].sort(compareIds).map((id) => this.require(id));
+    }
+    // Fast path (POL4-10): the sorted keys are kept until the bucket's members change.
+    let ids = state.sorted.get(key);
+    if (ids === undefined) {
+      ids = [...bucket].sort(compareIds);
+      state.sorted.set(key, ids);
+    }
+    return ids.map((id) => this.require(id));
   }
 
   lookupOne(indexName: string, key: string): E | undefined {
@@ -183,17 +199,27 @@ export class MutableTable<E extends EntityRow> implements ReadonlyTable<E> {
       }
       newKeysByIndex.set(indexName, newKeys);
     }
-    if (previous !== undefined) {
-      this.unfile(key, previous);
-    }
     for (const [indexName, state] of this.indexes) {
-      for (const indexKey of newKeysByIndex.get(indexName) ?? []) {
+      const newKeys = newKeysByIndex.get(indexName) ?? [];
+      // Only the index keys that changed are re-filed, so an update that keeps them keeps each
+      // bucket (and its sorted keys) as it was.
+      if (previous !== undefined) {
+        for (const oldKey of indexKeysOf(state.spec, previous)) {
+          if (!newKeys.includes(oldKey)) {
+            this.unfileKey(state, oldKey, key);
+          }
+        }
+      }
+      for (const indexKey of newKeys) {
         let bucket = state.buckets.get(indexKey);
         if (bucket === undefined) {
           bucket = new Set();
           state.buckets.set(indexKey, bucket);
         }
-        bucket.add(key);
+        if (!bucket.has(key)) {
+          bucket.add(key);
+          state.sorted.delete(indexKey);
+        }
       }
     }
     this.rows.set(key, row);
@@ -227,12 +253,19 @@ export class MutableTable<E extends EntityRow> implements ReadonlyTable<E> {
   private unfile(key: E['id'], row: E): void {
     for (const state of this.indexes.values()) {
       for (const indexKey of indexKeysOf(state.spec, row)) {
-        const bucket = state.buckets.get(indexKey);
-        bucket?.delete(key);
-        if (bucket?.size === 0) {
-          state.buckets.delete(indexKey);
-        }
+        this.unfileKey(state, indexKey, key);
       }
+    }
+  }
+
+  /** Takes `key` out of one bucket, dropping the bucket's sorted keys (and an emptied bucket). */
+  private unfileKey(state: IndexState<E>, indexKey: string, key: E['id']): void {
+    const bucket = state.buckets.get(indexKey);
+    if (bucket?.delete(key) === true) {
+      state.sorted.delete(indexKey);
+    }
+    if (bucket?.size === 0) {
+      state.buckets.delete(indexKey);
     }
   }
 }
