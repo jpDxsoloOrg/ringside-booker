@@ -56,7 +56,7 @@ const WORKER_SHARE_CAP = {
 export const boxOfficeTunables = defineTunables({
   'boxOffice.draw.atFullPopularity': {
     kind: 'integer',
-    default: 30000,
+    default: 25500,
     min: 0,
     max: 200000,
     unit: 'count',
@@ -77,7 +77,7 @@ export const boxOfficeTunables = defineTunables({
   },
   'boxOffice.draw.walkUp': {
     kind: 'integer',
-    default: 80,
+    default: 150,
     min: 0,
     max: 5000,
     unit: 'count',
@@ -163,7 +163,7 @@ export const boxOfficeTunables = defineTunables({
   },
   'boxOffice.recentForm.maxSwing': {
     kind: 'number',
-    default: 0.15,
+    default: 0.1,
     min: 0,
     max: 0.5,
     unit: 'ratio',
@@ -232,7 +232,7 @@ export const boxOfficeTunables = defineTunables({
   },
   'boxOffice.streak.perShow': {
     kind: 'number',
-    default: 0.03,
+    default: 0.025,
     min: 0,
     max: 0.5,
     step: 0.01,
@@ -243,7 +243,7 @@ export const boxOfficeTunables = defineTunables({
   },
   'boxOffice.streak.cap': {
     kind: 'number',
-    default: 0.15,
+    default: 0.125,
     min: 0,
     max: 1,
     step: 0.01,
