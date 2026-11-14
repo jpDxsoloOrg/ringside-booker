@@ -47,6 +47,44 @@ export {
   RIVAL_AIRING_TRACE_KIND,
 } from './traces';
 export { BROADCAST_DOC, BROADCAST_TUNABLE_CATEGORY, broadcastTunables } from './tunables';
+export {
+  AUDIENCE_DOC_REF,
+  AUDIENCE_TRACE_COUNTRY_LINES,
+  AUDIENCE_TRACE_COVERAGE_NODES,
+  AUDIENCE_TRACE_HYPE_NODES,
+  audience,
+  formatViewers,
+  NEUTRAL_QUALITY_NOTE,
+  NO_HYPE_NOTE,
+  PPV_TIMESLOT_NOTE,
+  SWING_LABEL,
+  TAPED_NOTE,
+  type AudienceImportance,
+  type AudienceInputs,
+  type AudienceQuality,
+  type RegionAudienceInput,
+} from './formulas/audience';
+export {
+  NOBODY_KNOWS_YOU_NOTE,
+  regionAudience,
+  type RegionAudienceInputs,
+} from './formulas/regionAudience';
+export {
+  BENCHMARK_DOC_REF,
+  benchmarkLabel,
+  networkBenchmark,
+  type BenchmarkRegionInput,
+  type NetworkBenchmarkInputs,
+} from './formulas/networkBenchmark';
+export {
+  audienceInputsFor,
+  benchmarkFor,
+  benchmarkInputsFor,
+  broadcastHypeFor,
+  projectedAudience,
+  type AudienceRequest,
+  type BenchmarkRequest,
+} from './audienceInputs';
 
 export const broadcastSystem: SystemBundle = defineSystem({
   id: 'broadcast',

@@ -8,8 +8,8 @@ network paid and what the airtime cost.
 
 ECO8-01 lays the ground: the `airings` table, the deal lifecycle fields, the
 one rule for which deal airs which show, and the empty `broadcast` system
-bundle with its tunables, RNG streams, events and trace kinds. The player sees
-nothing yet. Later tickets fill in the sections below marked "ECO8-0n".
+bundle with its tunables, RNG streams, events and trace kinds. ECO8-02 adds
+the audience formula and the network benchmark. The player sees nothing yet. Later tickets fill in the sections below marked "ECO8-0n".
 
 Code: `packages/engine/src/systems/broadcast/`, the tables in
 `packages/engine/src/model/entities/airing.ts` and `deal.ts`.
@@ -127,11 +127,135 @@ answers ECO7's camera rule.
 
 ## Audience
 
-ECO8-02: the audience formula, one formula for deals, airings and rivals.
+ECO8-02. How many people watch a show on a network (on pay-per-view, how many
+buy it). It is **one formula** for everything that needs viewers: what a
+network will pay (valuation, ECO8-03), what an airing drew (ECO8-04), whether
+a deal is in trouble (ECO8-05), and later TV reach for show popularity (EVT5),
+streaming sign-ups (ECO10) and the brand war's viewers race (BRW5). The player
+and the rivals use the same formula.
+
+Code: `systems/broadcast/formulas/regionAudience.ts`, `audience.ts`; the world
+reads in `systems/broadcast/audienceInputs.ts`.
+
+### Region audience
+
+The audience is built region by region over the network's coverage
+(`coveredRegionIds`), so a promotion popular in one state draws there and
+almost nowhere else (D-03):
+
+- **people who care** = the region's population × its wrestling interest ÷ 100
+- **draw** = (the promotion's popularity there ÷ 100) ^ `popularityPower`
+- **region audience** = people who care × draw × `baseShare`
+
+The popularity curve is smooth: a little more popularity always brings a few
+more viewers, with no thresholds. A region where the promotion has no
+popularity gives 0 ("Nobody there knows you yet"). The region audience is not
+rounded; the total is rounded once at the end.
+
+### The whole audience
+
+audience = Σ region audiences × reach tier factor × kind factor × timeslot
+factor × (1 + marketing level × `marketingPerLevel`) × live bonus (only when
+live) × importance factor × hype multiplier × quality factor, rounded down to
+whole viewers.
+
+- **Reach tier** (`tier0`..`tier4`): how much of the audience a local,
+  regional or national network reaches.
+- **Kind** (`kind.tv`, `kind.ppv`, `kind.streaming`): pay-per-view counts
+  buyers, not viewers, so its factor is small.
+- **Timeslot** (`timeslot.*`): pay-per-view is not tied to a timeslot and
+  always uses the prime-time factor (the Why? says so).
+- **Marketing**: the promotion's stored marketing level (0..10,
+  `promotion.production.marketing`), which ECO7 changes; nothing else to wire.
+- **Live**: a live show multiplies by `liveBonus`; a taped one has a note
+  instead.
+- **Importance** (`importance.minor`..`flagship`): a house show never airs, so
+  the formula refuses one (`InvalidArgumentError`).
+- **Hype** (D-02, its own line): the seam `broadcastHypeFor` returns null
+  until ECO8-07 points it at ECO3's `hypeMultiplierFor`; null multiplies by 1
+  with the note "Hype isn't tracked yet".
+- **Quality**: 1 + (show score − `neutralQuality`) × `qualityPerPoint`, never
+  below 0. The show score is EVT3's slot-weighted score, so there are no
+  minutes or durations anywhere (D-10). Without a show result the factor is 1
+  with "No show result yet: neutral quality"; ECO8-07 passes the real score.
+- **Night-to-night swing** (airings only): one seeded roll on
+  `broadcast.viewers`, `rollFloat(1 − s, 1 + s)` with
+  `s = broadcast.airing.viewerSwing`. Valuation and the benchmark never roll.
+
+Every factor is a named tunable, and setting a factor to 0 gives 0 viewers
+(marketing's and quality's per-step numbers at 0 mean they change nothing).
+
+### Audience Why?
+
+The first line, "Who could watch", lists the countries, biggest audience first
+("United States: 2,007,054"), with each country's regions nested beneath. When
+more than `AUDIENCE_TRACE_COUNTRY_LINES` (12) countries contribute, the
+smallest share one "Other countries (N)" line; regions with no popularity add
+no lines and share one note ("No popularity in N regions"). When the regions'
+full working would not fit (`AUDIENCE_TRACE_COVERAGE_NODES`, 300 nodes), each
+region keeps its number and a "steps not shown" note, so a world-wide network
+stays under `TRACE_MAX_NODES` (400) and `TRACE_MAX_DEPTH` (12) and every
+multiplier after it keeps its own line. On the default world the largest
+audience trace (a world-wide pay-per-view) is about 240 nodes.
+
+### Audience helper
+
+Other features call these, exported from `@ringside/engine`:
+
+- `projectedAudience(read, tunables, { promotionId, networkId, timeslot, live, importance })`:
+  today's audience with neutral quality, the current hype and no swing.
+- `benchmarkFor(read, tunables, { networkId, timeslot, importance })`: the
+  network benchmark below.
+- `audienceInputsFor` and `benchmarkInputsFor` build the formulas' inputs, for
+  callers that pass a show quality or turn the swing on (airings). Nothing is
+  cached between calls.
 
 ## Benchmark
 
-ECO8-02: what the network expects a show to draw.
+ECO8-02. What a network expects a show to draw: the **same audience formula**
+run for an imaginary typical promotion for the network's reach tier. Every
+covered region gets the reference popularity
+`broadcast.benchmark.popularity.tier<N>`, marketing level
+`broadcast.benchmark.marketingLevel`, taped, no hype, neutral quality and no
+swing. Code: `systems/broadcast/formulas/networkBenchmark.ts`, which calls
+`audience`; its Why? starts "What <network> expects from a typical promotion
+for a tier-N network" with the audience's own Why? beneath it.
+
+Valuation compares a promotion's projected audience to the benchmark, and deal
+health compares an airing's real viewers to it. Because both sides come from
+one formula, every factor (tier, kind, timeslot, importance, coverage) cancels
+out of the comparison: what is left is how popular the promotion is where the
+network reaches, against what the network is used to. A higher tier never
+expects fewer viewers on the same coverage.
+
+### Calibration
+
+`test/systems/broadcast/audience-default-world.test.ts` holds these on the
+shipped default world with the default tunables:
+
+| Show and network                                                  | Target                             | With the defaults                            |
+| ----------------------------------------------------------------- | ---------------------------------- | -------------------------------------------- |
+| Altura Mainstage on National Signal Network, prime time, live     | 1.5M–4M viewers, ≥ 1.1 × benchmark | 2,781,776 viewers, 1.54 ×                    |
+| Altura Overclock on Kestrel Sports, prime time, live              | ≥ 1.0 × benchmark                  | about 10.7 ×                                 |
+| Altura Showcase on Turnstile Pay-Per-View (major)                 | 50k–400k buys                      | about 152,000 buys                           |
+| Every shipped deal (Tessen Iron Hour on Kazamidori Television, …) | ≥ 0.9 × benchmark, neutral quality | lowest: Longleaf on Tallgrass Stream, 1.05 × |
+| Hardpan Friday (minor) on Bluebonnet Cable 7, evening, taped      | 2k–20k viewers, ≥ 1.5 × benchmark  | 3,962 viewers, 2.45 ×                        |
+| Hardpan Friday on National Signal Network, evening, taped         | < 0.1 × benchmark                  | 0.017 ×                                      |
+
+To meet them the ticket's starting values moved: `baseShare` 0.01 → 0.012, the
+tier 0–2 factors 0.12/0.25/0.5 → 0.3/0.4/0.55 (so a local channel still draws a
+few thousand for a small promotion), and the tier 1–2 reference popularity
+22/35 → 15/16 (Longleaf's and Ashlar's streaming deals sat under 0.9 ×). The
+shipped deals and content were not changed.
+
+**Worked example** (Hardpan Friday on Bluebonnet Cable 7): Texas has
+31,300,000 people and wrestling interest 90, so 28,170,000 care. Hardpan's
+popularity there is 20: (20 ÷ 100) ^ 1.5 ≈ 0.0894. 28,170,000 × 0.0894 ×
+0.012 ≈ 30,235 for a top network. × 0.3 (tier 0) × 1 (TV) × 0.7 (evening) ×
+1.04 (marketing level 1) × 0.6 (minor show) ≈ 3,962 viewers, taped, no hype,
+neutral quality. The benchmark runs the same steps at popularity 10 and
+marketing level 5: about 1,616 viewers, so Hardpan draws 2.45 × what the
+channel expects.
 
 ## Valuation
 
