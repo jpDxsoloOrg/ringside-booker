@@ -49,7 +49,7 @@ function anglePhrase(name: string): string {
 
 /** "on side B" for a group called "Side B", else "as Targets". */
 function groupPhrase(label: string): string {
-  return /^side\b/i.test(label) ? `on ${label.toLowerCase()}` : `as ${label}`;
+  return /^side\b/i.test(label) ? `on ${label.replace(/^side/i, 'side')}` : `as ${label}`;
 }
 
 function peopleWord(count: number): string {
