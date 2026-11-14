@@ -793,11 +793,15 @@ function patternedPerson(rosterIndex: number, startDate: GameDate): DeepPartial<
   };
 }
 
+/** Roster members the two `rosterWorld` storylines name: a world this small gets none. */
+const ROSTER_STORYLINE_MEMBERS = 4;
+
 /**
  * One computer-run promotion in the mini geography with `rosterSize` wrestlers under contract,
  * each with different attributes from a fixed arithmetic pattern (no randomness), and a weekly
  * Monday show, so a headless run schedules and runs a show every week. It carries the shipped
- * base catalogs and `TEST_INJURY_CATALOG`, so the headless runner exercises injuries. For
+ * base catalogs and `TEST_INJURY_CATALOG`, so the headless runner exercises injuries, and (with
+ * four or more wrestlers) two storylines, heat 40 and 75, so it exercises heat cooling. For
  * performance and save-size tests and the headless runner.
  */
 export function rosterWorld(rosterSize: number, meta: TestMetaOverrides = {}): BuiltWorld {
@@ -805,7 +809,7 @@ export function rosterWorld(rosterSize: number, meta: TestMetaOverrides = {}): B
     .withGeography('mini')
     .withCatalogs()
     .withInjuryCatalog()
-    .withPromotion({ name: 'Test Promotion A' }, (promotion) =>
+    .withPromotion({ name: 'Test Promotion A' }, (promotion) => {
       promotion
         .withRoster(rosterSize, {
           person: (rosterIndex) => patternedPerson(rosterIndex, TEST_START_DATE),
@@ -814,7 +818,30 @@ export function rosterWorld(rosterSize: number, meta: TestMetaOverrides = {}): B
             alignment: rosterIndex % 2 === 0 ? 'face' : 'heel',
           }),
         })
-        .withWeeklyShow({ name: 'Test Weekly', weekdays: [0] }),
-    )
+        .withWeeklyShow({ name: 'Test Weekly', weekdays: [0] });
+      if (rosterSize >= ROSTER_STORYLINE_MEMBERS) {
+        // Two storylines so a headless run exercises heat cooling (CRTV3-02): one warm, one hot.
+        promotion
+          .withStoryline(
+            { name: 'Test Warm Feud', heat: 40 },
+            {
+              members: [
+                [0, 'face'],
+                [1, 'heel'],
+              ],
+            },
+          )
+          .withStoryline(
+            { name: 'Test Hot Feud', heat: 75 },
+            {
+              members: [
+                [2, 'face'],
+                [3, 'heel'],
+              ],
+            },
+          );
+      }
+      return promotion;
+    })
     .build();
 }

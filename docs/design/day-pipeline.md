@@ -122,6 +122,13 @@ The `periodic` group's weekly phases so far, all on Mondays:
 | `match.pruneAftermaths`    | 40    | Each worker keeps only their newest stored aftermaths ([match-aftermath.md](match-aftermath.md#stored-aftermaths)).                      |
 | `history.rollUp`           | 41    | History older than `history.keepDetailDays` becomes summaries and monthly totals ([save-format.md](save-format.md#history-retention)).   |
 | `health.pruneInjuryDetail` | 44    | The traces of injuries older than `history.keepDetailDays` become summaries; the rows stay ([health.md](health.md#returns)).             |
+| `storylines.pruneDetail`   | 46    | Traces of storylines ended over `history.keepDetailDays` ago become summaries ([storylines.md](storylines.md#heat-decay)).               |
+
+The `growth` group's storyline phase:
+
+| Phase                    | Order | Cadence | What it does                                                                                                                                                |
+| ------------------------ | ----- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `storylines.heatCooling` | 35    | daily   | Every active storyline past its grace period without progress loses a little heat, down to the floor; no rolls ([storylines.md](storylines.md#heat-decay)). |
 
 The rival desk's phases ([rival-desk.md](rival-desk.md#jobs)), both daily:
 `aip.runTurns` (`aiTurns`, order 50) runs every due rival job for every

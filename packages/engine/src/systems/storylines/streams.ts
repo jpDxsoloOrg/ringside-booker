@@ -1,14 +1,13 @@
 /**
- * The storylines system's random streams. None yet: CRTV3-01 only reads. CRTV3-02 declares the
- * stream that picks starter storylines here, the way `systems/health/streams.ts` declares its own:
- *
- * ```ts
- * declare module '../../core/rng/streams' {
- *   interface StreamNames {
- *     'storylines.starters': true;
- *   }
- * }
- * ```
+ * The storylines system's random streams. `storylines.starters` picks the face and the heel of
+ * each starter storyline at new game (CRTV3-02): two picks per starter.
  */
 
-export {};
+declare module '../../core/rng/streams' {
+  interface StreamNames {
+    'storylines.starters': true;
+  }
+}
+
+/** The stream the starter storyline picks draw from. */
+export const STARTERS_STREAM = 'storylines.starters';
