@@ -27,6 +27,11 @@ export const MINE_PARAM = 'mine';
 export const PERIOD_PARAM = 'period';
 export const FRONT_PAGE_PARAM = 'front';
 export const STORY_PARAM = 'story';
+/**
+ * `?alert=1`: the day button's "Open news" sent the player here for their news alert. The screen
+ * acknowledges the alert and drops the param (DAY1-05).
+ */
+export const ALERT_PARAM = 'alert';
 
 export interface NewsFilters {
   /** The kinds shown; empty for every kind. In `NEWS_KINDS` order. */

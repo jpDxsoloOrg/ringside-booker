@@ -38,8 +38,18 @@ interface Asked {
  * the front page, the career story's buzz breakdown in the trace store, and optionally a third
  * story whose topic has no words in the catalog.
  */
-function newsState({ unknownTopic = false }: { readonly unknownTopic?: boolean } = {}) {
+function newsState({
+  unknownTopic = false,
+  pending = null,
+}: { readonly unknownTopic?: boolean; readonly pending?: string | null } = {}) {
   const state: EngineState = fakeEngineState();
+  if (pending !== null) {
+    const playerId = state.world.meta.players[0]?.playerId ?? 'player-1';
+    state.world.meta.settings.extra = {
+      ...state.world.meta.settings.extra,
+      [`news.alerts.${playerId}.pending`]: pending,
+    };
+  }
   const tables = state.world.tables as Record<string, Record<string, unknown>[]>;
   const news = tables['news'] ?? [];
   const yesterday = '2026-04-09';
@@ -87,11 +97,17 @@ function renderNews(path: string = routes.game.news(), state: EngineState | null
     useSessionStore.getState().setLoaded({ saveSlotId: null, seat: install.seat });
   }
   const asked: Asked[] = [];
+  const commands: string[] = [];
   const { host } = transport;
   const runQuery = host.query.bind(host);
   host.query = async (name, args) => {
     asked.push({ name, args });
     return runQuery(name, args);
+  };
+  const runCommand = host.command.bind(host);
+  host.command = async (name, args) => {
+    commands.push(name);
+    return runCommand(name, args);
   };
   const router = createMemoryRouter(buildAppRoutes({ includeDevRoutes: false }), {
     initialEntries: [path],
@@ -104,7 +120,11 @@ function renderNews(path: string = routes.game.news(), state: EngineState | null
   );
   const feedArgs = (): unknown[] =>
     asked.filter((query) => query.name === 'news.feed').map((query) => query.args);
-  return { router, user: userEvent.setup({ delay: null }), feedArgs };
+  const pendingAlert = async (): Promise<unknown> => {
+    const { result } = await runQuery('news.alertRules', {});
+    return result.ok ? result.data.pending : undefined;
+  };
+  return { router, user: userEvent.setup({ delay: null }), feedArgs, commands, pendingAlert };
 }
 
 async function findFeed(): Promise<HTMLElement> {
@@ -256,6 +276,63 @@ describe('NewsScreen', () => {
       await screen.findByRole('heading', { name: 'No game loaded' }, { timeout: LOAD_MS }),
     ).toBeInTheDocument();
     expect(screen.queryByRole('region', { name: 'News ticker' })).toBeNull();
+  });
+});
+
+describe('NewsScreen news alerts', () => {
+  it('opens the story from the day button, clears the alert once and drops alert=1', async () => {
+    const { router, commands, pendingAlert } = renderNews(
+      `${routes.game.news()}?story=${CAREER_STORY}&alert=1`,
+      newsState({ pending: CAREER_STORY }),
+    );
+
+    expect(
+      await screen.findByRole('dialog', { name: CAREER_HEADLINE }, { timeout: LOAD_MS }),
+    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(router.state.location.search).toBe(`?story=${CAREER_STORY}`);
+    });
+    await waitFor(async () => {
+      expect(await pendingAlert()).toBeNull();
+    });
+    // Every query refetches after the command; none of that acks again.
+    await waitFor(() => {
+      expect(screen.getByRole('dialog', { name: CAREER_HEADLINE })).toBeInTheDocument();
+    });
+    expect(commands.filter((name) => name === 'news.ackAlerts')).toEqual(['news.ackAlerts']);
+    expect(router.state.historyAction).toBe('REPLACE');
+  });
+
+  it('clears a waiting alert when News is opened from the nav', async () => {
+    const { commands, pendingAlert } = renderNews(
+      routes.game.news(),
+      newsState({ pending: SEASON_STORY }),
+    );
+    await findFeed();
+    await waitFor(async () => {
+      expect(await pendingAlert()).toBeNull();
+    });
+    expect(commands.filter((name) => name === 'news.ackAlerts')).toEqual(['news.ackAlerts']);
+  });
+
+  it('sends nothing when no alert waits', async () => {
+    const { commands } = renderNews();
+    await findFeed();
+    expect(commands).toEqual([]);
+  });
+
+  it('opens the alert settings from the Alerts button', async () => {
+    const { user } = renderNews();
+    const alerts = await screen.findByRole('button', { name: 'Alerts' }, { timeout: LOAD_MS });
+    await user.click(alerts);
+    const sheet = await screen.findByRole('dialog', { name: 'News alerts' });
+    expect(
+      await within(sheet).findByRole(
+        'switch',
+        { name: 'Front-page stories' },
+        { timeout: LOAD_MS },
+      ),
+    ).toBeChecked();
   });
 });
 

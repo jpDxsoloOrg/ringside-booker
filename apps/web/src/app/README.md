@@ -700,8 +700,35 @@ and links to their results (see [Show results](#show-results)).
   ("Contracts": an expiring contract opens the Expiring tab, a worker who wants to leave opens
   their contract on the Active tab filtered with `wantsToLeave=1`), and anything else "Needs
   attention" with the gate's reason. Shift+N presses it outside text fields and dialogs.
-- **Skip days** (`day/SkipDaysSheet.tsx`) takes a length (1 to 3,650 days) and an optional stop
-  date, both checked against the engine's rules, with the calendar maths from `@ringside/engine`.
+- **Skip days** (`day/SkipDaysSheet.tsx`) takes a quick choice or a typed length (1 to 3,650
+  days) and an optional stop date, both checked against the engine's rules, with the calendar
+  maths from `@ringside/engine`. Its "Always stops" list ends with "News alerts you've turned on"
+  and an "Alert settings" link that opens the News alerts sheet on top (DAY1-05).
+- **Skip targets** (`day/skipTargets.ts`, DAY1-05) are the sheet's quick choices. A feature adds
+  one from its own folder with `registerSkipTarget({ id, label, order, useResolve })` and never
+  edits the sheet; `skipTargets()` lists them by `order`, then id, and a duplicate id throws.
+  `useResolve(today)` is a hook (it may call `useEngineQuery`) returning `{ request, detail }`
+  (`request` is the `AdvanceRequest` to start, `detail` the line under the label, such as
+  "Mon 1 Feb 2027 · 28 days") or null to hide the chip. The sheet calls every registered target's
+  hook on every render in registration order, and remounts its form when a target is added, so the
+  hook order never changes. The chip's accessible name is its label alone; the detail is its
+  description (`aria-describedby`). The last choice is remembered per browser
+  (`SKIP_LENGTH_STORAGE_KEY`): the chip's id, or the typed number (old builds stored only numbers,
+  which still load as a typed length). Typing a length clears the chip. Registered:
+
+  | Order | Id           | Label                       | Request                                         | Where                       |
+  | ----- | ------------ | --------------------------- | ----------------------------------------------- | --------------------------- |
+  | 5     | (free)       | "Until next show" (EVT1)    |                                                 | EVT1's folder               |
+  | 10    | `days.7`     | 7 days                      | `{ maxDays: 7 }`, detail "to Fri 7 Feb 2031"    | `day/builtinSkipTargets.ts` |
+  | 20    | `days.30`    | 30 days                     | `{ maxDays: 30 }`                               | `day/builtinSkipTargets.ts` |
+  | 30    | `days.90`    | 90 days                     | `{ maxDays: 90 }`                               | `day/builtinSkipTargets.ts` |
+  | 40    | `month.next` | Until the 1st of next month | `{ maxDays: days to the 1st, stopAtDate: 1st }` | `day/builtinSkipTargets.ts` |
+  | 50    | (free)       | "Until season end" (DAY3)   |                                                 | DAY3's folder               |
+
+- **News stops** (DAY1-05): the `news` hint ("Open news", ranked after every other hint) opens
+  the story with `?story=<newsId>&alert=1`; the News screen runs `news.ackAlerts` once and drops
+  `alert` from the URL, and opening News any other way while an alert waits clears it too, so
+  Next day comes back as soon as `sim.pendingGates` refetches.
 - **One controller** (`day/DayAdvanceProvider.tsx`) runs every advance: the overlay reads its
   progress, `AdvanceSummary` shows the result under the top bar and the live region announces it.
   After each advance that moved a day it asks `shouldAutosave` and, when told to, calls the host's

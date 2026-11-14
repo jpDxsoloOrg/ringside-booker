@@ -114,6 +114,32 @@ export async function enterGameFromContractsSave(page: Page): Promise<void> {
   await expect(page.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeVisible();
 }
 
+/**
+ * The news e2e save: the sample world with three of the player's wrestlers reaching ten years in
+ * the ring in each of the next three weeks and no more shows, built by
+ * `fixtures/build-news-save.ts` (which `npm run e2e` runs first).
+ */
+export const NEWS_SAVE_PATH = fileURLToPath(
+  new URL('../fixtures/sample-news.rbsave', import.meta.url),
+);
+
+/** The slot label the imported news save gets. */
+export const NEWS_SLOT_LABEL = 'News save (imported)';
+
+/** Imports the news save from the title screen, loads it and waits for the office. */
+export async function enterGameFromNewsSave(page: Page): Promise<void> {
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1, name: 'Ringside Booker' })).toBeVisible();
+  await page.getByTestId('import-save-input').setInputFiles(NEWS_SAVE_PATH);
+  await expect(page.getByRole('heading', { level: 1, name: 'Saved games' })).toBeVisible();
+  await page
+    .getByRole('article', { name: NEWS_SLOT_LABEL, exact: true })
+    .getByRole('button', { name: `Load ${NEWS_SLOT_LABEL}` })
+    .click();
+  await expect(page).toHaveURL(/\/game\/office$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeVisible();
+}
+
 /* ---------------------------------------------------------------- the new-game wizard */
 
 /** A new-game wizard step's heading. */

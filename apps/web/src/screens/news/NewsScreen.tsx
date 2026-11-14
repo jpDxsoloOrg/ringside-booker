@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { To } from 'react-router-dom';
 import { isId, NEWS_FEED_MAX_LIMIT, NEWS_ITEM_NOT_FOUND } from '@ringside/engine';
@@ -6,6 +6,7 @@ import type { GameDate, NewsId, NewsItemView, NewsNames } from '@ringside/engine
 import { RouteHeading } from '@/app/a11y/RouteHeading';
 import { useDocumentTitle } from '@/app/a11y/useDocumentTitle';
 import type { EngineQueryError } from '@/app/engine/queryCache';
+import { useEngineCommand } from '@/app/engine/useEngineCommand';
 import { useEngineQuery } from '@/app/engine/useEngineQuery';
 import { useEntityLinkRenderer } from '@/app/entityLinks';
 import { useHasPromotion } from '@/app/session/sessionStore';
@@ -17,10 +18,12 @@ import { formatGameDate, formatNumber } from '@/components/format';
 import { Sheet } from '@/components/Sheet';
 import { useIsMobile } from '@/styles/useMediaQuery';
 import { templatedTextToString } from '@/text/renderTemplatedText';
+import { NewsAlertSheet } from './NewsAlertSheet';
 import { newsColumns } from './newsColumns';
 import { NewsFilterBar } from './NewsFilterBar';
 import { NewsHeroCard } from './NewsHeroCard';
 import {
+  ALERT_PARAM,
   activeNewsFilterCount,
   newsFeedArgs,
   newsFiltersFromSearch,
@@ -40,6 +43,7 @@ const NO_NAMES: NewsNames = {};
 /** The engine host's code for "no game loaded". */
 const NO_WORLD_CODE = 'noWorld';
 const NEWS_TOP_ARGS = {} as const;
+const NO_ARGS = {} as const;
 
 function errorText(error: EngineQueryError | null): string {
   if (error === null) return 'Something went wrong.';
@@ -267,6 +271,63 @@ function Feed({ today, filters, onFiltersChange, storyLinkOf }: FeedProps) {
   );
 }
 
+/**
+ * Clears the seat's news alert, so the day button comes back to Next day (`sim.pendingGates`
+ * refetches once the command moves the world on):
+ *
+ * - arriving from the day button's "Open news" (`?story=<id>&alert=1`): runs `news.ackAlerts`,
+ *   and replaces the URL without `alert`, keeping the story open;
+ * - opening News any other way while an alert waits (`news.alertRules` gives `pending` when the
+ *   screen opens): the player is reading the news, so that clears it too.
+ *
+ * An alert that arrives while the screen stays open (a skip run from here) is not cleared behind
+ * the player's back: the day button says "Open news", and pressing it opens that story.
+ *
+ * Each story is acknowledged once (a ref, so StrictMode's double effect and the `pending` answer
+ * that arrives before the command lands do not run it twice). A seat with no promotion is not a
+ * player the engine keeps alerts for, so nothing is sent.
+ */
+function useAcknowledgeAlert(
+  searchParams: URLSearchParams,
+  setSearchParams: ReturnType<typeof useSearchParams>[1],
+  openStoryId: NewsId | null,
+): void {
+  const canAck = useHasPromotion();
+  const rules = useEngineQuery('news.alertRules', NO_ARGS, { enabled: canAck });
+  const { run: ack } = useEngineCommand('news.ackAlerts');
+  const acknowledged = useRef(new Set<string>());
+  const checkedOnOpen = useRef(false);
+  const fromAlert = searchParams.get(ALERT_PARAM) === '1';
+  const loaded = rules.data !== undefined;
+  const pending = rules.data?.pending ?? null;
+
+  useEffect(() => {
+    if (fromAlert) {
+      setSearchParams(
+        (current) => {
+          const next = new URLSearchParams(current);
+          next.delete(ALERT_PARAM);
+          return next;
+        },
+        { replace: true },
+      );
+    }
+    if (!canAck) return;
+    // The alert's story is the gate's subject, so both ways in share one key per story.
+    let key: string | null = null;
+    if (fromAlert) {
+      key = openStoryId ?? 'alert';
+    } else if (loaded && !checkedOnOpen.current) {
+      key = pending;
+    }
+    if (loaded) checkedOnOpen.current = true;
+    if (key === null || acknowledged.current.has(key)) return;
+    acknowledged.current.add(key);
+    if (pending !== null) acknowledged.current.add(pending);
+    void ack({});
+  }, [ack, canAck, fromAlert, loaded, openStoryId, pending, setSearchParams]);
+}
+
 /** The news screen with a world: the front page, the feed and the open story. */
 function LoadedNews({ today }: { readonly today: GameDate }) {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -276,6 +337,7 @@ function LoadedNews({ today }: { readonly today: GameDate }) {
   // The sheet stays mounted on the last story after it closes, so it can hand focus back.
   const [sheetStoryId, setSheetStoryId] = useState<NewsId | null>(openStoryId);
   if (openStoryId !== null && openStoryId !== sheetStoryId) setSheetStoryId(openStoryId);
+  useAcknowledgeAlert(searchParams, setSearchParams, openStoryId);
 
   // A filter change replaces the entry, so Back leaves the screen rather than undoing each click.
   const changeFilters = useCallback(
@@ -324,6 +386,7 @@ function LoadedNews({ today }: { readonly today: GameDate }) {
  */
 export function NewsScreen() {
   const clock = useEngineQuery('clock.get', {});
+  const [alertsOpen, setAlertsOpen] = useState(false);
   useDocumentTitle(TITLE);
   const today = clock.data?.date;
 
@@ -367,8 +430,27 @@ export function NewsScreen() {
             <span className="tabular">{formatGameDate(today, 'long')}</span>
           </p>
         )}
-        {/* The Alerts button opens DAY1-05's alert settings sheet; it is hidden until that lands. */}
+        {today !== undefined && (
+          <div className={styles['introActions']}>
+            <Button
+              variant="secondary"
+              iconStart="settings"
+              aria-haspopup="dialog"
+              onClick={() => {
+                setAlertsOpen(true);
+              }}
+            >
+              Alerts
+            </Button>
+          </div>
+        )}
       </div>
+      <NewsAlertSheet
+        open={alertsOpen}
+        onClose={() => {
+          setAlertsOpen(false);
+        }}
+      />
       {content}
     </div>
   );

@@ -26,6 +26,7 @@ import {
   MAX_RESULTS_LINKS,
   moreResultsText,
   seeResultsText,
+  stoppedForNews,
 } from './advanceSummaryText';
 import {
   contractChangeLines,
@@ -302,6 +303,10 @@ export function AdvanceSummaryBanner({
   const text =
     report.kind === 'advanced' ? describeAdvance(report.result) : describeRefusal(report.reasons);
   const tone = report.kind === 'refused' ? 'warning' : 'info';
+  // A news stop matters less than the shows the skip ran, so its reason comes after their links.
+  const newsStop = report.kind === 'advanced' && stoppedForNews(report.result.stoppedBy);
+  const reasonLine =
+    text.reason === null ? null : <p className={styles['summaryReason']}>{text.reason}</p>;
 
   return (
     <section
@@ -312,11 +317,13 @@ export function AdvanceSummaryBanner({
     >
       <div className={styles['summaryBody']}>
         <p className={styles['summaryHeadline']}>{text.headline}</p>
-        {text.reason !== null && <p className={styles['summaryReason']}>{text.reason}</p>}
+        {!newsStop && reasonLine}
         {results.length > 0 && <ResultsLinks results={results} />}
         {tonight !== null && (
           <TonightLine hit={tonight} said={text.reason === tonight.reason} route={tonightRoute} />
         )}
+        {newsStop && reasonLine}
+        {tonight !== null && <TonightLine hit={tonight} said={text.reason === tonight.reason} />}
         {contractChanges !== null && <ContractLines changes={contractChanges} />}
         {offerUpdates !== null && <OfferLines updates={offerUpdates} />}
         {report.kind === 'advanced' && text.failures !== null && (
