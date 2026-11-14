@@ -47,13 +47,13 @@ when the deal is `expired` or `cancelled`; reasons `expired`, `lowViewers`,
 not carry them; older saves load them as null.
 
 **Retention (open for ECO8-04).** An airing row is already a summary (no
-per-segment detail), but every aired show of every promotion writes one: a
-few hundred a year on the default world, more as rivals sign deals. ECO8-04, which writes the rows, must fit the
-owner's history rule: keep `history.keepDetailDays` of rows in full, and
-roll older rows up (at least computer-controlled promotions' rows) in the
-weekly `history.rollUp`, keeping what deal health and the deal screens read
-(the last `broadcast.health.window` airings of each live deal). It reports
-the 365-day save size.
+per-segment detail), but every aired show of every promotion writes one: a few
+hundred a year on the default world, more as rivals sign deals. ECO8-04, which
+writes the rows, must fit the owner's history rule: keep
+`history.keepDetailDays` of rows in full, and roll older rows up (at least
+computer-controlled promotions' rows) in the weekly `history.rollUp`, keeping
+what deal health and the deal screens read (the last `broadcast.health.window`
+airings of each live deal). It reports the 365-day save size.
 
 ## Which deal airs which show
 
