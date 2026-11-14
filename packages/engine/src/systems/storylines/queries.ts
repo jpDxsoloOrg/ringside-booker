@@ -31,7 +31,8 @@ import {
 import type { EventInstance } from '../../model/entities/event-instance';
 import type { Gender } from '../../model/entities/person';
 import type { Segment, SegmentKind } from '../../model/entities/segment';
-import type { Storyline } from '../../model/entities/storyline';
+import type { Storyline, StorylineProgress } from '../../model/entities/storyline';
+import { traceRefFromKey } from '../shows/traces';
 import { zId } from '../../model/primitives';
 import { compareIds } from '../../model/table';
 import type { DeepReadonly } from '../../model/world';
@@ -120,6 +121,15 @@ export interface StorylineTimelineEntry {
   ratingTraceId: string | null;
   /** True for the segment booked as the story's finale. */
   isFinale: boolean;
+  /**
+   * The story's heat walking into the segment (CRTV4-02's progress row), or null when the segment
+   * hasn't counted (still booked, nobody from the story in it) or its row is past the detail window.
+   */
+  heatBefore: number | null;
+  /** The heat once the segment had run; null exactly when `heatBefore` is. */
+  heatAfter: number | null;
+  /** The heat step's Why? (`storylines.heatStep`) while it is kept, else null. */
+  heatTraceRef: TraceRef | null;
 }
 
 /**
@@ -375,11 +385,28 @@ export function segmentLabel(
   return [...sides.values()].map((names) => names.join(' & ')).join(' vs ');
 }
 
+/** A timeline entry's heat step from its progress row (CRTV4-02), or nulls when it has none. */
+function heatOf(
+  ctx: QueryContext,
+  step: DeepReadonly<StorylineProgress> | undefined,
+): Pick<StorylineTimelineEntry, 'heatBefore' | 'heatAfter' | 'heatTraceRef'> {
+  if (step === undefined) {
+    return { heatBefore: null, heatAfter: null, heatTraceRef: null };
+  }
+  const ref = step.traceId === null ? null : traceRefFromKey(step.traceId);
+  return {
+    heatBefore: step.heatBefore,
+    heatAfter: step.heatAfter,
+    heatTraceRef: ref !== null && ctx.traces.has(ref) ? ref : null,
+  };
+}
+
 function timelineOf(
   ctx: QueryContext,
   storyline: DeepReadonly<Storyline>,
 ): StorylineTimelineEntry[] {
   const entries: StorylineTimelineEntry[] = [];
+  const steps = new Map(storyline.progress.map((row) => [row.segmentId, row]));
   for (const segment of ctx.read.tables.segments.lookup('byStoryline', storyline.id)) {
     const instance: DeepReadonly<EventInstance> | undefined = ctx.read.tables.eventInstances.get(
       segment.eventInstanceId,
@@ -397,6 +424,7 @@ function timelineOf(
       stars: segment.rating?.stars ?? null,
       ratingTraceId: segment.rating?.traceId ?? null,
       isFinale: storyline.finaleSegmentId === segment.id,
+      ...heatOf(ctx, steps.get(segment.id)),
     });
   }
   return entries.sort(

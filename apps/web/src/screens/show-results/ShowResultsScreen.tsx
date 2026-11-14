@@ -24,6 +24,7 @@ import '@/screens/match-physical/register';
 import '@/screens/finances/registerShowMoney';
 import '@/screens/box-office/register';
 import '@/screens/promotions/profile/shows/registerBookersCalls';
+import '@/screens/storylines/results/register';
 
 const SCREEN_TITLE = 'Show results';
 const NOT_FOUND_TITLE = 'Show not found';

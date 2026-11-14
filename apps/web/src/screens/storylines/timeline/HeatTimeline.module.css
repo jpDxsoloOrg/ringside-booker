@@ -1,0 +1,92 @@
+/*
+ * The storyline page's timeline: a table-like list on desktop (date, show and slot, the segment
+ * and its stars, the heat change), stacked date / show / segment / chip on a phone.
+ */
+.timeline {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  container-type: inline-size;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr) minmax(0, 1.5fr) minmax(0, 1.5fr);
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  min-inline-size: 0;
+  padding-block: var(--space-3);
+  border-block-start: 1px solid var(--color-border);
+}
+
+.row:first-child {
+  border-block-start: 0;
+  padding-block-start: 0;
+}
+
+.date,
+.slot,
+.muted {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.muted {
+  margin: 0;
+}
+
+.show {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.segment {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  min-inline-size: 0;
+}
+
+.label {
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.stars {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.heat {
+  min-inline-size: 0;
+}
+
+/* A narrow main column (a small desktop window): date and show, then the segment and heat. */
+@container (max-width: 40rem) {
+  .row {
+    grid-template-columns: 6rem minmax(0, 1fr);
+  }
+
+  .segment,
+  .heat {
+    grid-column: 2;
+  }
+}
+
+@media (--bp-mobile) {
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .segment,
+  .heat {
+    grid-column: auto;
+  }
+}

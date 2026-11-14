@@ -95,7 +95,7 @@ describe('the segment draft', () => {
     ]);
   });
 
-  it('adds speakers to a talking segment and drops its beats so the default is written', () => {
+  it('adds speakers to a talking segment; beats with nobody booked go, so the default is written', () => {
     const draft = promoWithBeats([person(9)]);
     const state = addPerson(initialDraftState(draft, { min: 1, max: 1 }), 0, person(1));
     // MTCH5-08: a speaker added without a part plays a wrestler.
@@ -103,6 +103,43 @@ describe('the segment draft', () => {
       { personId: person(1), side: 0, role: 'speaker', teamId: null, talkRole: 'wrestler' },
     ]);
     expect(state.draft.kind === 'angle' && state.draft.angle.beats).toBeUndefined();
+  });
+
+  it("keeps a talking segment's beats when speakers change (MTCH5-06)", () => {
+    let state = addPerson(initialDraftState(promoWithBeats([]), { min: 1, max: 2 }), 0, person(1));
+    state = patchDraft(state, 'match.beats', {
+      angle: {
+        beats: [
+          { beatKey: PROMO, personIds: [person(1)] },
+          { beatKey: PROMO, personIds: [person(1)] },
+        ],
+      },
+    });
+    // A newcomer joins the first beat; the second keeps its people.
+    state = addPerson(state, 0, person(2));
+    expect(state.draft.kind === 'angle' && state.draft.angle.beats).toEqual([
+      { beatKey: PROMO, personIds: [person(1), person(2)] },
+      { beatKey: PROMO, personIds: [person(1)] },
+    ]);
+    // Someone who leaves is taken out of every beat; a beat with nobody left goes.
+    state = removePerson(state, person(1));
+    expect(state.draft.kind === 'angle' && state.draft.angle.beats).toEqual([
+      { beatKey: PROMO, personIds: [person(2)] },
+    ]);
+    state = removePerson(state, person(2));
+    expect(state.draft.kind === 'angle' && state.draft.angle.beats).toBeUndefined();
+  });
+
+  it('moves speakers to the sides a section works out, and nobody else', () => {
+    let state = initialDraftState(promoWithBeats([]), { min: 1, max: 2 });
+    state = addPerson(state, 0, person(1));
+    state = addPerson(state, 0, person(2));
+    state = patchDraft(state, 'match.beats', { sides: { [person(2)]: 1, [person(9)]: 1 } });
+    expect(state.draft.participants.map((entry) => [entry.personId, entry.side])).toEqual([
+      [person(1), 0],
+      [person(2), 1],
+    ]);
+    expect(state.sideCount).toBe(2);
   });
 
   it('ignores a side the draft does not show', () => {

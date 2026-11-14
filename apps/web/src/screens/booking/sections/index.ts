@@ -5,6 +5,7 @@
  * is in place before the screen draws.
  *
  * Wired: MTCH2's Finish section (EVT2-07), EVT6's venue and crowd, AIP4's auto-fill.
+ * MTCH5-06: the Beats section for talking segments.
  *
  * Expected: EVT4's forecast, CRTV8's tournament matches.
  */
@@ -13,3 +14,4 @@ import './BookingFinishSection';
 import '../venue/register';
 import '../panels/register';
 import './registerStorylineSections';
+import './registerBeatsSection';

@@ -3673,3 +3673,62 @@ export type { TalkLinePerson } from './systems/match/angles/talkLine';
 export { angleDurationClass } from './systems/match/angles/rateAngle';
 export { TALK_CHECK_ID, TALK_CHECK_LABEL, talkCheck } from './systems/booking/validate/checks/talk';
 export { SETTING_STREAM } from './systems/aip/card/streams';
+
+// CRTV4-05: the Sandbox game's "Set heat" test aid. See docs/design/storylines.md#sandbox-heat.
+export {
+  isSandboxGame,
+  SANDBOX_ONLY_MESSAGE,
+  SET_BY_HAND_TEXT,
+  setHeatCommand,
+  STORYLINE_SANDBOX_REASONS,
+  type StorylineSetHeatArgs,
+} from './systems/storylines/index';
+// MTCH5-06: an angle's aftermath (momentum and popularity by share of the beats).
+export {
+  ANGLE_AFTERMATH_REASON_KEY,
+  applyAngleAftermath,
+  beatsInByPerson,
+  computeAngleAftermath,
+  storedAngleAftermathInput,
+} from './systems/match/angles/aftermath';
+export type {
+  AngleAftermath,
+  AngleAftermathInput,
+  AngleAftermathOptions,
+  AngleAftermathWorker,
+  AppliedAngleAftermath,
+} from './systems/match/angles/aftermath';
+export {
+  ANGLE_AFTERMATH_DOC_REF,
+  angleShare,
+  angleShareLabel,
+} from './systems/match/angles/formulas/angleShare';
+export type { AngleShareInputs } from './systems/match/angles/formulas/angleShare';
+export {
+  ANGLE_MOMENTUM_GAIN_LABEL,
+  IN_NO_BEAT_TEXT,
+  angleMomentumGain,
+} from './systems/match/angles/formulas/angleMomentumGain';
+export type {
+  AngleGainDeps,
+  AngleGainInputs,
+} from './systems/match/angles/formulas/angleMomentumGain';
+export {
+  ANGLE_POPULARITY_GAIN_LABEL,
+  NEVER_A_LOSS_LABEL,
+  anglePopularityGain,
+} from './systems/match/angles/formulas/anglePopularityGain';
+// MTCH5-06: beat limits and angle warnings on the card (booking checks).
+export {
+  ANGLE_BEAT_LIMIT_CHECK_ID,
+  ANGLE_BEAT_LIMIT_CHECK_LABEL,
+  ANGLE_BEAT_LIMIT_CHECK_ORDER,
+  ANGLE_BEAT_LIMIT_CODE,
+  ANGLE_CHECK_SEVERITIES,
+  ANGLE_WARNINGS_CHECK_ID,
+  ANGLE_WARNINGS_CHECK_LABEL,
+  ANGLE_WARNINGS_CHECK_ORDER,
+  angleBeatLimitCheck,
+  angleBeatLimitText,
+  angleWarningsCheck,
+} from './systems/match/angles/bookingChecks';

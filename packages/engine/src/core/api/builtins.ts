@@ -127,6 +127,8 @@ export interface SimStatus {
    * controller, or a human who runs no promotion.
    */
   promotion: PromotionStatus | null;
+  /** True in a Sandbox game, where the player may edit the world freely (`settings.sandbox`). */
+  sandbox: boolean;
 }
 
 /** `sim.pendingGates`: why Next Day would stop today, if it would. */
@@ -238,6 +240,7 @@ const simStatus = defineQuery('sim.status', {
       popularityRef === null ? undefined : storedHeadline(ctx.traces.get(popularityRef));
     return {
       date: ctx.date,
+      sandbox: ctx.read.meta.settings.sandbox,
       season: season === undefined ? null : { number: season.number, endDate: season.endDate },
       promotion:
         promotion === undefined

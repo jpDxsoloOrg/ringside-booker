@@ -207,6 +207,35 @@ describe('the Match lab in Angle mode', { timeout: TEST_TIMEOUT_MS }, () => {
     expect(screen.getAllByRole('button', { name: /^Why is Promo score \d+\?$/ })).toHaveLength(4);
   });
 
+  it('shows the Aftermath of the angle: everyone in it, with a Why? and no morale (MTCH5-06)', async () => {
+    const { transport, user } = renderLab();
+    await findAngleType();
+    expect(
+      await screen.findByRole('heading', { name: 'Nothing run yet' }, { timeout: LOAD_MS }),
+    ).toBeInTheDocument();
+    await choose(user, 'Slot role', 'Main event');
+    const rows = await buildThreeBeats(transport);
+    await run(user);
+    expect(useLabStore.getState().angleRun?.args.aftermath).toBe(true);
+
+    const table = await screen.findByRole(
+      'grid',
+      { name: 'What the angle would do to everyone in it' },
+      { timeout: LOAD_MS },
+    );
+    const bodyRows = within(table).getAllByRole('row').slice(1);
+    expect(bodyRows).toHaveLength(2);
+    const first = bodyRows[0] ?? table;
+    expect(within(first).getByText(rowAt(rows, 0).name)).toBeInTheDocument();
+    expect(within(first).getByText('In 2 of 3 beats')).toBeInTheDocument();
+    expect(
+      within(first).getByRole('button', {
+        name: new RegExp(`^Why is ${rowAt(rows, 0).name}'s popularity change`),
+      }),
+    ).toBeVisible();
+    expect(screen.queryByText(/morale/i)).toBeNull();
+  });
+
   it('sends a manager chosen in the menu with the Run', async () => {
     const { world } = tinyWorld();
     const managerId = world.tables.people

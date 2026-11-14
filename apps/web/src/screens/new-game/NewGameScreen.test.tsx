@@ -119,6 +119,14 @@ const PREVIEW: WorldPreview = {
       group: 'world',
     },
     {
+      key: 'sandbox',
+      kind: 'boolean',
+      default: false,
+      label: 'Sandbox',
+      description: 'You may edit the world freely while you play.',
+      group: 'world',
+    },
+    {
       key: 'generationLevel',
       kind: 'enum',
       options: ['off', 'low', 'medium', 'high'],
@@ -307,8 +315,10 @@ describe('NewGameScreen', () => {
     const testSwitch = screen.getByRole('switch', { name: 'Test rivalry rule' });
     expect(testSwitch).toHaveAccessibleDescription(TEST_SETTING.description);
     expect(testSwitch).not.toBeChecked();
-    // Aging, sandbox and new content are registered but hidden until a system reads them (WLD-13).
+    // Aging and new content are registered but hidden until a system reads them (WLD-13).
     expect(screen.queryByRole('switch', { name: 'Aging' })).not.toBeInTheDocument();
+    // Sandbox shows: the storyline page's Set heat reads it (CRTV4-05).
+    expect(screen.getByRole('switch', { name: 'Sandbox' })).not.toBeChecked();
     expect(screen.queryByRole('group', { name: 'New content' })).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 3, name: 'Difficulty' })).toBeInTheDocument();
   });

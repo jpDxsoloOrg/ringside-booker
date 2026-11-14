@@ -5,6 +5,7 @@ import { Panel } from '@/components/Panel';
 import { LabRunBar } from '../LabRunBar';
 import styles from '../MatchLab.module.css';
 import type { LabRunner } from '../useLabRunner';
+import { AngleAftermathPanel } from './AngleAftermath';
 import { AngleLab } from './AngleLab';
 import { AngleResult } from './AngleResult';
 import { useAngleLab } from './useAngleLab';
@@ -41,7 +42,11 @@ export function AngleMode({ catalog, regionId, promotionId, runner }: AngleModeP
         runner={runner}
         angle={{ blocker: lab.blocker, pending: lab.pending, onRun: lab.run }}
       />
-      <div className={styles['resultColumn']}>{lab.hasBeats && <AngleResult lab={lab} />}</div>
+      <div className={styles['resultColumn']}>
+        {lab.hasBeats && <AngleResult lab={lab} />}
+        {/* MTCH5-06: what the angle would do to everyone in it. */}
+        {lab.hasBeats && <AngleAftermathPanel lab={lab} />}
+      </div>
     </>
   );
 }

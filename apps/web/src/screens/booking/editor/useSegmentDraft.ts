@@ -48,6 +48,11 @@ export interface SegmentDraftPatch {
   readonly match?: Partial<MatchDraft['match']>;
   readonly outcome?: MatchOutcome | null;
   readonly angle?: Partial<AngleDraft['angle']>;
+  /**
+   * MTCH5-06: the side each speaker stands on, as the Beats section works them out from its beat
+   * groups (`assignAngleSides`). Only people already in the segment move; only for an angle.
+   */
+  readonly sides?: Readonly<Record<PersonId, number>>;
 }
 
 /** Most characters on a billing line, as the engine stores it. */
@@ -105,18 +110,47 @@ function angleWithoutBeats(angle: AngleDraft['angle'], angleTypeKey = angle.angl
 }
 
 /**
- * The draft with new participants. An angle's beats are dropped so the engine writes its type's
- * default beat for the speakers now on it (until MTCH5's beats section owns them).
+ * An angle's stored beats after its speakers changed (MTCH5-06: the Beats section owns them): people
+ * who left are taken out of every beat, a beat with nobody left goes, and anyone new joins the
+ * first beat (as the type's default beat would have them). Undefined when no beat is left, so the
+ * engine writes the default beat for the speakers now on it.
+ */
+function beatsAfter(
+  beats: NonNullable<AngleDraft['angle']['beats']>,
+  before: readonly ParticipantDraft[],
+  after: readonly ParticipantDraft[],
+): AngleDraft['angle']['beats'] {
+  const staying = new Set(after.map((person) => person.personId));
+  const joining = after
+    .filter((person) => !before.some((other) => other.personId === person.personId))
+    .map((person) => person.personId);
+  const kept = beats
+    .map((beat) => ({ ...beat, personIds: beat.personIds.filter((id) => staying.has(id)) }))
+    .filter((beat) => beat.personIds.length > 0);
+  const [first, ...rest] = kept;
+  if (first === undefined) return undefined;
+  const added = joining.filter((id) => !first.personIds.includes(id));
+  return [{ ...first, personIds: [...first.personIds, ...added] }, ...rest];
+}
+
+/**
+ * The draft with new participants. An angle keeps its beats, with people who left taken out and
+ * newcomers in the first beat ({@link beatsAfter}); with no beat left the engine writes its type's
+ * default beat for the speakers now on it.
  */
 function withParticipants(
   draft: SegmentDraft,
   participants: readonly ParticipantDraft[],
 ): SegmentDraft {
   if (draft.kind === 'match') return { ...draft, participants: [...participants] };
+  const beats =
+    draft.angle.beats === undefined
+      ? undefined
+      : beatsAfter(draft.angle.beats, draft.participants, participants);
   return {
     ...draft,
     participants: [...participants],
-    angle: angleWithoutBeats(draft.angle),
+    angle: beats === undefined ? angleWithoutBeats(draft.angle) : { ...draft.angle, beats },
   };
 }
 
@@ -341,11 +375,23 @@ export function patchDraft(
       },
     };
   }
+  const { sides } = partial;
+  const participants =
+    sides === undefined
+      ? draft.participants
+      : draft.participants.map((person) => {
+          const side = sides[person.personId];
+          return side === undefined || side === person.side ? person : { ...person, side };
+        });
   return {
-    ...state,
+    sideCount: Math.max(
+      state.sideCount,
+      participants.reduce((most, person) => Math.max(most, person.side + 1), 0),
+    ),
     draft: {
       ...draft,
       ...base,
+      participants,
       ...(partial.angle === undefined ? {} : { angle: { ...draft.angle, ...partial.angle } }),
     },
   };

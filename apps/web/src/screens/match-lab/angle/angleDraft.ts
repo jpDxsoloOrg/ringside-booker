@@ -215,6 +215,8 @@ export function angleArgsOf(
     beats,
     ...(Object.keys(managerOverrides).length === 0 ? {} : { managerOverrides }),
     previewSeed,
+    // MTCH5-06: the lab's Aftermath panel shows what the angle would do to everyone in it.
+    aftermath: true,
   };
 }
 

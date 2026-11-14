@@ -157,6 +157,26 @@ describe('match.slotInfo', () => {
     expect(talk.data.durationLabel).toBe('Standard');
   });
 
+  it('moves a backstage talking segment one class shorter (MTCH5-06)', () => {
+    const engine = engineWith(TEST_CATALOGS);
+    const ask = (setting: 'ring' | 'backstage' | 'video') => {
+      const result = engine.query(
+        'match.slotInfo',
+        { slotRole: 'midcard', kind: 'angle', setting },
+        PLAYER,
+      );
+      if (!result.ok) {
+        throw new Error('match.slotInfo was refused');
+      }
+      return result.data.durationClass;
+    };
+    expect([ask('ring'), ask('backstage'), ask('video')]).toEqual([
+      'standard',
+      'short',
+      'standard',
+    ]);
+  });
+
   it('refuses a match with no or an unknown match type', () => {
     const engine = engineWith(TEST_CATALOGS);
     const missing = engine.query('match.slotInfo', { slotRole: 'opener', kind: 'match' }, PLAYER);
