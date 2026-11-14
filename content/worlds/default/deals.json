@@ -10,8 +10,8 @@
     "weekday": 0,
     "live": true,
     "terms": {
-      "feePerShow": 1200000,
-      "perThousandViewers": 150,
+      "feePerShow": 137700,
+      "perThousandViewers": 5,
       "costPerShow": 0
     }
   },
@@ -26,8 +26,8 @@
     "weekday": 2,
     "live": true,
     "terms": {
-      "feePerShow": 450000,
-      "perThousandViewers": 90,
+      "feePerShow": 35500,
+      "perThousandViewers": 5,
       "costPerShow": 0
     }
   },
@@ -58,9 +58,9 @@
     "weekday": 5,
     "live": false,
     "terms": {
-      "feePerShow": 90000,
-      "perThousandViewers": 30,
-      "costPerShow": 5000
+      "feePerShow": 5900,
+      "perThousandViewers": 5,
+      "costPerShow": 625
     }
   },
   {
@@ -74,9 +74,9 @@
     "weekday": 4,
     "live": false,
     "terms": {
-      "feePerShow": 60000,
-      "perThousandViewers": 25,
-      "costPerShow": 4000
+      "feePerShow": 22800,
+      "perThousandViewers": 5,
+      "costPerShow": 500
     }
   },
   {
@@ -90,9 +90,9 @@
     "weekday": 3,
     "live": false,
     "terms": {
-      "feePerShow": 3000,
-      "perThousandViewers": 15,
-      "costPerShow": 400
+      "feePerShow": 140,
+      "perThousandViewers": 0,
+      "costPerShow": 50
     }
   },
   {
@@ -106,9 +106,9 @@
     "weekday": 5,
     "live": false,
     "terms": {
-      "feePerShow": 4000,
-      "perThousandViewers": 20,
-      "costPerShow": 500
+      "feePerShow": 825,
+      "perThousandViewers": 0,
+      "costPerShow": 60
     }
   }
 ]

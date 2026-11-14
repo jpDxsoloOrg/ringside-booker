@@ -259,13 +259,15 @@ export const broadcastTunables = defineTunables({
     docRef: BENCHMARK_DOC_REF,
   },
   // ECO8-03: what a network pays and what it accepts.
+  // ECO8-09: TV and streaming rates and airtime are an eighth of ECO8-03's, so TV covers about a
+  // big promotion's monthly overhead rather than all of its costs; pay-per-view is unchanged.
   'broadcast.value.tvPerThousand': valuationMoney(
-    40_000,
+    5_000,
     100_000_000,
     'What a TV channel pays for each thousand viewers it values',
   ),
   'broadcast.value.streamingPerThousand': valuationMoney(
-    25_000,
+    3_125,
     100_000_000,
     'What a streaming service pays for each thousand viewers it values',
   ),
@@ -307,9 +309,14 @@ export const broadcastTunables = defineTunables({
     docRef: VALUATION_DOC_REF,
   },
   'broadcast.value.airtimePerMillion': valuationMoney(
+    1_875,
+    100_000_000,
+    'Airtime a TV channel or streaming service charges for each million people it covers, for each reach tier step',
+  ),
+  'broadcast.value.ppvAirtimePerMillion': valuationMoney(
     15_000,
     100_000_000,
-    'Airtime charged for each million people a network covers, for each reach tier step',
+    'Airtime a pay-per-view provider charges for each million people it covers, for each reach tier step',
   ),
   'broadcast.value.streamingAirtimeFactor': {
     kind: 'number',

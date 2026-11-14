@@ -11,8 +11,9 @@
  *   per thousand viewers = rate × tvBonusShare.
  * - **Streaming:** the same with streamingPerThousand, all of it as the fee: no per-thousand part.
  * - **Pay-per-view:** no fee; per thousand buys = ppvPerThousandBuys × shortfall factor.
- * - **Airtime** = covered people ÷ 1,000,000 × airtimePerMillion × (reach tier + 1), × the
- *   streaming factor for streaming, rounded down to a whole amount (no odd cents).
+ * - **Airtime** = covered people ÷ 1,000,000 × airtimePerMillion (ppvAirtimePerMillion on
+ *   pay-per-view) × (reach tier + 1), × the streaming factor for streaming, rounded down to a whole
+ *   amount (no odd cents).
  *
  * Every amount is rounded down to whole cents. There is no randomness: the same inputs always give
  * the same terms, so the preview the player sees is what a proposal signs.
@@ -209,13 +210,19 @@ function costPerShow(inputs: DealTermsInputs, tunables: EngineTunables): Traced<
     'count',
   );
   const calc = startCalc('Airtime per show', covered, { unit: 'money', docRef: VALUATION_DOC_REF });
-  calc
-    .divide('Counted in millions', PER_MILLION)
-    .multiply(
+  calc.divide('Counted in millions', PER_MILLION);
+  if (inputs.kind === 'ppv') {
+    calc.multiply(
+      'Pay-per-view airtime per million people, per reach tier step',
+      calc.tunable(tunables, 'broadcast.value.ppvAirtimePerMillion'),
+    );
+  } else {
+    calc.multiply(
       'Airtime per million people, per reach tier step',
       calc.tunable(tunables, 'broadcast.value.airtimePerMillion'),
-    )
-    .multiply(`Reach tier ${String(inputs.reachTier)}: tier + 1 steps`, inputs.reachTier + 1);
+    );
+  }
+  calc.multiply(`Reach tier ${String(inputs.reachTier)}: tier + 1 steps`, inputs.reachTier + 1);
   if (inputs.kind === 'streaming') {
     calc.multiply(
       'Streaming services charge less airtime',
