@@ -148,6 +148,85 @@ test.describe('settings', () => {
     expect(fit.headlines.width).toBeGreaterThan(fit.badge.width);
   });
 
+  for (const scale of ['1', '1.5'] as const) {
+    test(`phone: with reduced motion at ${String(Number(scale) * 100)}% every ticker headline is shown whole`, async ({
+      page,
+    }, testInfo) => {
+      test.skip(!isPhone(testInfo), 'The docked ticker over the phone tab bar');
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      await page.goto('/settings');
+      await page.getByRole('slider', { name: 'UI scale' }).fill(scale);
+      await expect.poll(() => uiScaleOnPage(page)).toBe(scale);
+      await enterShell(page);
+      await expect(page.getByTestId('next-day')).toBeVisible();
+
+      // One headline at a time, wrapped to fit, with buttons to step through the rest (UI-34).
+      const ticker = page.getByRole('region', { name: 'News ticker' });
+      await expect(ticker).toHaveAttribute('data-motion', 'static');
+      await expect(ticker).toHaveAttribute('data-stepping', 'on');
+      // The hidden headlines keep their room in the strip, so count the list items, not the roles.
+      const headlineCount = await ticker.locator('li').count();
+      expect(headlineCount).toBeGreaterThan(1);
+      const next = ticker.getByRole('button', { name: 'Next headline' });
+      await expect(ticker.getByRole('button', { name: 'Previous headline' })).toBeVisible();
+      await expectNoHorizontalScroll(page);
+
+      const seen = new Set<string>();
+      for (let step = 0; step < headlineCount; step += 1) {
+        const fit = await page.getByTestId('ticker-slot').evaluate((slot) => {
+          const box = (element: Element | null) => {
+            const rect = element?.getBoundingClientRect();
+            return {
+              top: rect?.top ?? Infinity,
+              bottom: rect?.bottom ?? -Infinity,
+              left: rect?.left ?? Infinity,
+              right: rect?.right ?? -Infinity,
+            };
+          };
+          const current = slot.querySelector('li[data-current="true"]');
+          const clipped = (element: Element | null) =>
+            element === null ||
+            element.scrollHeight > element.clientHeight + 1 ||
+            element.scrollWidth > element.clientWidth + 1;
+          const main = document.querySelector('main');
+          return {
+            text: current?.textContent ?? '',
+            viewportWidth: document.documentElement.clientWidth,
+            slot: box(slot),
+            window: box(slot.querySelector('[data-part="viewport"]')),
+            item: box(current),
+            // Nothing overflows the headline, its clipping window or the strip.
+            headlineClipped:
+              clipped(current) ||
+              clipped(slot.querySelector('[data-part="viewport"]')) ||
+              clipped(slot),
+            tabBarTop: box(document.querySelector('nav[aria-label="Primary"]')).top,
+            mainPaddingBottom: main === null ? 0 : parseFloat(getComputedStyle(main).paddingBottom),
+            slotHeight: slot.getBoundingClientRect().height,
+          };
+        });
+        const where = `headline ${String(step + 1)}: ${fit.text}`;
+        expect(fit.text, where).not.toBe('');
+        expect(fit.headlineClipped, where).toBe(false);
+        // The headline sits wholly inside its window, the window inside the strip, the strip on screen.
+        expect(fit.item.top, where).toBeGreaterThanOrEqual(fit.window.top - 1);
+        expect(fit.item.bottom, where).toBeLessThanOrEqual(fit.window.bottom + 1);
+        expect(fit.item.left, where).toBeGreaterThanOrEqual(fit.window.left - 1);
+        expect(fit.item.right, where).toBeLessThanOrEqual(fit.window.right + 1);
+        expect(fit.window.top, where).toBeGreaterThanOrEqual(fit.slot.top - 1);
+        expect(fit.window.bottom, where).toBeLessThanOrEqual(fit.slot.bottom + 1);
+        expect(fit.slot.left).toBeGreaterThanOrEqual(0);
+        expect(fit.slot.right).toBeLessThanOrEqual(fit.viewportWidth);
+        // The strip still rides on the tab bar, and the content is padded to clear all of it.
+        expect(Math.abs(fit.slot.bottom - fit.tabBarTop)).toBeLessThanOrEqual(1);
+        expect(fit.mainPaddingBottom).toBeGreaterThanOrEqual(fit.slotHeight);
+        seen.add(fit.text);
+        await next.click();
+      }
+      expect(seen.size, 'every headline was reached').toBe(headlineCount);
+    });
+  }
+
   test('the dark theme and the chosen preferences survive a reload', async ({ page }) => {
     await page.goto('/settings');
     await page.getByRole('radio', { name: 'Reduce motion' }).check();

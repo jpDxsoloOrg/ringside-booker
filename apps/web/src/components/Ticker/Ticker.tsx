@@ -129,15 +129,24 @@ export function Ticker({
     >
       <span className={styles['badge']}>{label}</span>
       {stepping && (
-        <IconButton
-          icon="chevron-left"
-          label="Previous headline"
-          size="sm"
-          className={styles['stepButton']}
-          onClick={() => {
-            stepBy(-1);
-          }}
-        />
+        <div className={styles['stepControls']}>
+          <IconButton
+            icon="chevron-left"
+            label="Previous headline"
+            size="sm"
+            onClick={() => {
+              stepBy(-1);
+            }}
+          />
+          <IconButton
+            icon="chevron-right"
+            label="Next headline"
+            size="sm"
+            onClick={() => {
+              stepBy(1);
+            }}
+          />
+        </div>
       )}
       <div className={styles['viewport']} data-part="viewport">
         <div
@@ -163,17 +172,6 @@ export function Ticker({
           )}
         </div>
       </div>
-      {stepping && (
-        <IconButton
-          icon="chevron-right"
-          label="Next headline"
-          size="sm"
-          className={styles['stepButton']}
-          onClick={() => {
-            stepBy(1);
-          }}
-        />
-      )}
       {crawling && (
         <IconButton
           icon={paused ? 'play' : 'pause'}
