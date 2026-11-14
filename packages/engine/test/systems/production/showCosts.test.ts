@@ -210,5 +210,18 @@ describe('the production.showCosts reaction', () => {
       expect(rows, id).toHaveLength(1);
       expect(rows[0]?.amount, id).toBeLessThan(0);
     }
+    // The results page's Show money section lists the show's ledger rows: the production row is
+    // among them, once, with no second line added anywhere else.
+    const human = built.human;
+    if (human === null) throw new Error('expected the player show');
+    const promotionId = world.tables.eventInstances.find((show) => show.id === human)?.promotionId;
+    if (promotionId === undefined) throw new Error('no promotion');
+    const ledger = engine.query(
+      'finance.ledger',
+      { promotionId, eventInstanceId: human },
+      { kind: 'omniscient' },
+    );
+    if (!ledger.ok) throw new Error('finance.ledger refused');
+    expect(ledger.data.rows.filter((row) => row.category === 'production')).toHaveLength(1);
   });
 });
