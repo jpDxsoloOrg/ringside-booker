@@ -23,6 +23,7 @@ import { createJobContext } from './jobs/context';
 import { pruneDecisionLog, pruneDecisionLogOn } from './jobs/pruneDecisionLog';
 import { aiJobs, jobRunsFor } from './jobs/registry';
 import { pruneCardDetailPhase } from './card/pruneCardDetail';
+import { newsFromDecisionsPhase } from './news';
 import { isDue, unitShowsOn } from './jobs/spread';
 import { computerUnits, type AiUnit } from './units';
 
@@ -133,6 +134,8 @@ export const pruneDecisionLogPhase: PhaseDefinition = definePhase({
 
 export const aipPhases: readonly PhaseDefinition[] = [
   runTurnsPhase,
+  // DAY1-06: revealed rival decisions on the news wire.
+  newsFromDecisionsPhase,
   pruneDecisionLogPhase,
   pruneCardDetailPhase,
 ];

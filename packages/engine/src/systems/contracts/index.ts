@@ -23,10 +23,24 @@ import './notices';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
 import { contractsCommands } from './commands';
 import { expiringSoonGate, releaseRequestedGate } from './gates';
+import { contractsNewsSubscriptions } from './news';
 import { contractsPhases } from './phases';
 import { contractsQueries } from './queries';
 
 export type { ContractQuitHow } from './events';
+export {
+  CONTRACT_NEWS_SUBSCRIPTION_IDS,
+  DEPARTURE_TOPIC,
+  NOTABLE_WORLD_POPULARITY,
+  RELEASE_REFUSED_TOPIC,
+  RELEASE_TOPIC,
+  SIGNING_TOPIC,
+  STAR_WORLD_POPULARITY,
+  WALKED_OUT_TOPIC,
+  contractNewsDedupeKey,
+  contractNewsImportance,
+  contractsNewsSubscriptions,
+} from './news';
 export { AI_RENEWAL_STREAM } from './streams';
 export { CONTRACT_TRACE_KINDS, renewalTraceRef, severanceTraceRef } from './traceKinds';
 export { CONTRACTS_TUNABLE_CATEGORY, contractsTunables } from './tunables';
@@ -210,6 +224,8 @@ export const contractsSystem: SystemBundle = defineSystem({
   gates: [expiringSoonGate, releaseRequestedGate],
   queries: contractsQueries,
   commands: contractsCommands,
+  // DAY1-06: notable signings and departures on the news wire.
+  subscriptions: contractsNewsSubscriptions,
 });
 export {
   RELEASE_DECISION_CHIP,

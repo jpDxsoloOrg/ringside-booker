@@ -18,6 +18,7 @@ import { showsPhases } from './phases';
 import { showsQueries } from './queries';
 import { registerSegmentResultApplier } from './registries';
 import { titleOutcomeApplier } from './titles';
+import { showsNewsSubscriptions } from './news';
 import { runTonightCommand, showsTonightGate } from './tonight';
 
 export { SHOWS_OFFSCREEN_STREAM } from './streams';
@@ -192,6 +193,20 @@ export {
 } from './beforeRun';
 export { compareShows, isOpenShow } from './phases';
 export { runShowNow } from './runShow';
+export {
+  SHOW_RESULT_IMPORTANCE,
+  SHOW_RESULT_MAX_PEOPLE,
+  SHOW_RESULT_NEWS_SUBSCRIPTION_ID,
+  SHOW_RESULT_TOPIC,
+  TITLE_CHANGE_NEWS_SUBSCRIPTION_ID,
+  TITLE_CHANGE_TOPIC,
+  mainEventPeople,
+  showResultDedupeKey,
+  showResultNewsSubscription,
+  showsNewsSubscriptions,
+  titleChangeDedupeKey,
+  titleChangeNewsSubscription,
+} from './news';
 
 export const showsSystem: SystemBundle = defineSystem({
   id: 'shows',
@@ -199,4 +214,6 @@ export const showsSystem: SystemBundle = defineSystem({
   queries: showsQueries,
   commands: [runTonightCommand],
   gates: [showsTonightGate],
+  // DAY1-06: results and title changes on the news wire.
+  subscriptions: showsNewsSubscriptions,
 });

@@ -30,6 +30,16 @@ import { defineSystem, type SystemBundle } from '../../core/api/system';
 import { aipPhases } from './phases';
 
 export { AIP_CREATE_PROFILES_STEP } from './setup';
+export {
+  AIP_NEWS_FROM_DECISIONS_PHASE_ID,
+  AIP_NEWS_FROM_DECISIONS_PHASE_ORDER,
+  decisionNewsDedupeKey,
+  decisionNewsKinds,
+  newsFromDecisionsPhase,
+  registerDecisionNews,
+  type DecisionNewsSpec,
+  type DecisionStory,
+} from './news';
 export { ensureProfile, profileOf } from './profiles';
 export { computerUnits, unitControllerOf, unitCovers, type AiUnit } from './units';
 export { TASTE_AXES, TASTE_AXIS_LABELS, TasteSchema, type Taste, type TasteAxis } from './taste';
