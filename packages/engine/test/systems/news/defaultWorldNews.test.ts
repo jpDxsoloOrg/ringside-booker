@@ -39,9 +39,9 @@ function reignStory(name: string, days: number) {
   return stories.find(
     (story) =>
       story.headline.key === 'news.reign-milestone.headline' &&
-      story.headline.params.titleId === title.id &&
-      story.headline.params.days === days &&
-      story.body.params.onDate === onDate,
+      story.headline.params['titleId'] === title.id &&
+      story.headline.params['days'] === days &&
+      story.body.params['onDate'] === onDate,
   );
 }
 
@@ -73,7 +73,7 @@ describe('the default world news, first month', () => {
     expect(new Set(keys).size).toBe(keys.length);
     for (const story of stories) {
       expect(compareDates(story.date, startDate)).toBeGreaterThanOrEqual(0);
-      const onDate = story.body.params.onDate;
+      const onDate = story.body.params['onDate'];
       if (typeof onDate === 'string') {
         expect(onDate >= startDate, `${String(story.dedupeKey)} on ${onDate}`).toBe(true);
       }
