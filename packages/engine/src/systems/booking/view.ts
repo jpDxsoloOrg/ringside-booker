@@ -33,6 +33,8 @@ import type { EventInstance, EventInstanceStatus } from '../../model/entities/ev
 import type { ParticipantRole } from '../../model/entities/participant';
 import { settingOf, type Segment, type SegmentKind } from '../../model/entities/segment';
 import { settingDurationShifter } from '../match/angles/settings';
+import { talkLineOf, talkRoleWithFallback } from '../match/angles/talkLine';
+import type { AngleSetting, TalkRole } from '../../model/entities/angle-setting';
 import type { ImageRef } from '../../model/primitives';
 import { compareIds } from '../../model/table';
 import type { GameWorldView } from '../../model/tables';
@@ -145,6 +147,8 @@ export interface BookingPersonView {
   ringName: string;
   imageRef: ImageRef;
   role: ParticipantRole;
+  /** MTCH5-08: the part a speaker plays (their stored part, else the one they were hired for); null for anyone else. */
+  talkRole: TalkRole | null;
   /** Availability on the show's date. */
   availability: AvailabilityView;
   otherBrand: boolean;
@@ -194,6 +198,13 @@ export interface BookingSegmentView {
   stipulationKeys: string[];
   /** The editor's starting point for this segment. */
   draft: SegmentDraft;
+  /** MTCH5-08: where it happens; always `ring` for a match. */
+  setting: AngleSetting;
+  /**
+   * MTCH5-08: who did what and where, "Backstage: Lena Park interviews Kai Moreno (with Victor
+   * Crane)"; null for a match and for a ring segment of wrestlers only.
+   */
+  talkLine: string | null;
 }
 
 export interface BookingSlotView {
@@ -370,6 +381,10 @@ function sidesOf(
       ringName: people.ringName(participant.personId),
       imageRef: person?.imageRef ?? null,
       role: participant.role,
+      talkRole:
+        participant.role === 'speaker'
+          ? talkRoleWithFallback(participant, people.roster.get(participant.personId))
+          : null,
       availability: availabilityView(people.availability(participant.personId), instance.date),
       otherBrand: isOtherBrand(
         people.roster.get(participant.personId)?.brandId ?? null,
@@ -432,6 +447,8 @@ function segmentViewOf(
     finishKey: isMatch ? segment.match.finishKey : null,
     stipulationKeys: isMatch ? [...segment.match.stipulationKeys] : [],
     draft: draftFromSegment(read, segment.id),
+    setting: settingOf(segment),
+    talkLine: talkLineOf(read, segment, people),
   };
 }
 
