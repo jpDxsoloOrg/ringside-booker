@@ -29,6 +29,7 @@ import { payOffOnEndSubscription } from './card/payoff';
 import { storylinesPayoffQuery } from './card/payoffQuery';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
 import { storylinesCardCommands } from './card/commands';
+import { setHeatCommand } from './card/sandbox';
 import { storylinesProgressQueries } from './card/progressQueries';
 import { storylinesCardQueries } from './card/queries';
 import { storylinesCommands } from './commands';
@@ -264,6 +265,16 @@ export {
   type PayoffPlanMember,
 } from './card/planPayoff';
 
+// The Sandbox game's "Set heat" test aid (CRTV4-05). See docs/design/storylines.md#sandbox-heat.
+export {
+  isSandboxGame,
+  SANDBOX_ONLY_MESSAGE,
+  SET_BY_HAND_TEXT,
+  setHeatCommand,
+  STORYLINE_SANDBOX_REASONS,
+  type StorylineSetHeatArgs,
+} from './card/sandbox';
+
 export const storylinesSystem: SystemBundle = defineSystem({
   id: 'storylines',
   phases: storylinesPhases,
@@ -275,5 +286,5 @@ export const storylinesSystem: SystemBundle = defineSystem({
     storylinesPayoffQuery,
   ],
   subscriptions: [payOffOnEndSubscription],
-  commands: [...storylinesCommands, ...storylinesCardCommands],
+  commands: [...storylinesCommands, ...storylinesCardCommands, setHeatCommand],
 });

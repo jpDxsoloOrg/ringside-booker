@@ -3623,3 +3623,13 @@ export {
   type PayoffQualityInputs,
   type StorylinePayoffView,
 } from './systems/storylines/index';
+
+// CRTV4-05: the Sandbox game's "Set heat" test aid. See docs/design/storylines.md#sandbox-heat.
+export {
+  isSandboxGame,
+  SANDBOX_ONLY_MESSAGE,
+  SET_BY_HAND_TEXT,
+  setHeatCommand,
+  STORYLINE_SANDBOX_REASONS,
+  type StorylineSetHeatArgs,
+} from './systems/storylines/index';
