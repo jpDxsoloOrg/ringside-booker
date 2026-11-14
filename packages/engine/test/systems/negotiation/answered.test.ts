@@ -4,6 +4,7 @@ import { createEngine, initialEngineState, type Engine } from '../../../src/core
 import { simSystem } from '../../../src/core/api/builtins';
 import type { Controller } from '../../../src/core/api/controller';
 import { addDays, type GameDate } from '../../../src/core/date';
+import { isId } from '../../../src/core/ids';
 import type { NegotiationId, PersonId, PromotionId } from '../../../src/core/ids';
 import { cents } from '../../../src/core/money';
 import type { Negotiation } from '../../../src/model/entities/negotiation';
@@ -276,7 +277,7 @@ describe('the Offer answered stop', () => {
       for (let hits = pendingGates(engine); hits.length > 0; hits = pendingGates(engine)) {
         const [hit] = hits;
         const negotiationId = hit?.subject?.kind === 'negotiation' ? hit.subject.id : null;
-        if (hit === undefined || negotiationId === null) {
+        if (hit === undefined || !isId('negotiation', negotiationId)) {
           throw new Error(`unexpected stop: ${JSON.stringify(hits)}`);
         }
         if (hit.gateId === OFFER_ANSWERED_GATE_ID) {
@@ -286,7 +287,7 @@ describe('the Offer answered stop', () => {
             done(
               engine.command(
                 'contracts.markOffersSeen',
-                { negotiationIds: [negotiationId as NegotiationId] },
+                { negotiationIds: [negotiationId] },
                 PLAYER,
               ),
             ),
@@ -296,7 +297,7 @@ describe('the Offer answered stop', () => {
           done(
             engine.command(
               'contracts.respondToCounter',
-              { negotiationId: negotiationId as NegotiationId, response: 'end' },
+              { negotiationId, response: 'end' },
               PLAYER,
             ),
           );
