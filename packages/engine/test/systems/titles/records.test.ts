@@ -130,11 +130,7 @@ describe('titleRecords', () => {
   });
 
   it('breaks a tie between reigns won on the same day by the lowest id', () => {
-    const sameDay = titleRecords(
-      [reign(7, [ANA], 0, 10), reign(6, [BEA], 0, 10)],
-      PEOPLE,
-      TODAY,
-    );
+    const sameDay = titleRecords([reign(7, [ANA], 0, 10), reign(6, [BEA], 0, 10)], PEOPLE, TODAY);
     expect(sameDay.longestReign?.reignIds).toEqual([testId('titleReign', 6)]);
   });
 
