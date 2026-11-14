@@ -223,8 +223,7 @@ describe('the beat rater', () => {
   it('falls back to the simple rater on a save without a beat catalog, with a note', () => {
     const setup = angleWorld(withAngles([FEUD]));
     const dropped = setup.world.transact('drop beats', (tx) => {
-      const { beats: _beats, ...catalogs } = setup.world.meta.catalogs;
-      tx.setMeta({ catalogs });
+      tx.setMeta({ catalogs: { ...setup.world.meta.catalogs, beats: undefined } });
     });
     if (!dropped.ok) {
       throw dropped.error;

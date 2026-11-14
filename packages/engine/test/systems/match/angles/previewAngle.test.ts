@@ -169,7 +169,7 @@ describe('match.previewAngle', () => {
         beats: [
           beatArgs(BRAWL, [first]),
           beatArgs(WAR_OF_WORDS, [first]),
-          beatArgs(PROMO.replace('promo', 'mystery') as typeof PROMO, [first]),
+          beatArgs(parseContentKey('beat.mystery'), [first]),
         ],
       }),
       PLAYER,
@@ -246,8 +246,7 @@ describe('match.previewAngle', () => {
   it('refuses a save without a beat catalog', () => {
     const setup = angleWorld();
     const result = setup.world.transact('drop beats', (tx) => {
-      const { beats: _beats, ...catalogs } = setup.world.meta.catalogs;
-      tx.setMeta({ catalogs });
+      tx.setMeta({ catalogs: { ...setup.world.meta.catalogs, beats: undefined } });
     });
     if (!result.ok) {
       throw result.error;
