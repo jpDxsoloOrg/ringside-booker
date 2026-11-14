@@ -139,6 +139,11 @@ formula (`formulas/heatDecay.ts`), in plain words:
 4. Otherwise take off `storylines.heat.decayPerDay` (1), no lower than the
    floor, kept within 0–100, with a note of how many days it has been cooling.
 
+Each check is recorded as the branch that was taken ("Past the grace period
+of 7 days", "Above the cooling floor of 10", each holding its setting), so a
+cooling Why? shows why the storyline cools without opening "Show checks that
+didn't apply" (CRTV3-06's Why? review).
+
 So with the defaults a storyline started on day 0 keeps its heat through day
 7 and loses 1 a day from day 8: heat 40 is 33 on day 14, and 10 from day 37
 on. `decayPerDay` 0 stops cooling.
