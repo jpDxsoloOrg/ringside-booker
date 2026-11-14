@@ -14,9 +14,12 @@
  * - Around the world: 22 cards in 11 groups, and a rival title's page with no actions.
  *
  * On a phone the cards stack in one column, the lineage is cards, every sheet and Why? panel opens
- * from the bottom (confirms stay the app's centred dialog) and nothing scrolls sideways, also at 150% UI scale. Every Why? opened here is checked for
- * "undefined" / "NaN", sheets and Why? panels hand focus back to their button, and every step
- * passes the accessibility scan.
+ * from the bottom (confirms stay the app's centred dialog) and nothing scrolls sideways, also at
+ * 150% UI scale. Every Why? opened here is checked for "undefined" / "NaN", Why? panels and the
+ * edit sheet hand focus back to their button, and every step passes the accessibility scan.
+ *
+ * It replaces the CRTV1-04 and CRTV1-05 specs (titles.spec.ts, titles-actions.spec.ts), which
+ * each started their own default-world game for a subset of these steps.
  */
 import type { Locator, Page } from '@playwright/test';
 import { expect, test } from './fixtures';
@@ -146,7 +149,10 @@ async function checkWhy(
   await button.click();
   const panel = page.getByRole('dialog', { name: panelName });
   await expect(panel).toBeVisible();
-  if (isPhoneLayout(page)) await expect(panel).toHaveAttribute('data-side', 'bottom');
+  if (isPhoneLayout(page)) {
+    await expect(panel).toHaveAttribute('data-side', 'bottom');
+    await expectNoHorizontalScroll(page);
+  }
   for (const text of expected) {
     await expect(panel.getByText(text).first()).toBeVisible();
   }
