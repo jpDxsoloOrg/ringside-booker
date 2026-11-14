@@ -6,7 +6,7 @@
  */
 
 import type { PhaseContext } from '../../core/pipeline/context';
-import type { SegmentId } from '../../core/ids';
+import type { EventInstanceId, SegmentId } from '../../core/ids';
 import { refKey, startCalc, type Traced } from '../../core/trace';
 import type { JsonValue } from '../../core/json';
 import type { EventInstance } from '../../model/entities/event-instance';
@@ -28,15 +28,19 @@ import {
 import { SHOWS_OFFSCREEN_STREAM } from './streams';
 import { showScoreTraceRef } from './traces';
 
+/** What the score inputs read besides the show. */
+interface ScoreInputDeps {
+  readonly tunables: PhaseContext['tunables'];
+}
+
 /** One slot's entry for the show score: filled with its score, or empty. */
 function slotInput(
-  ctx: PhaseContext,
+  deps: ScoreInputDeps,
   show: ShowContext,
   position: { slot: number; preShow: boolean },
   entry: ShowSegment | undefined,
   score: number | null,
 ): ShowSlotInput {
-  const deps = { tunables: ctx.tunables };
   const role = slotRoleOf(slotRoleInput(position, show.format), deps);
   const filled = entry !== undefined && score !== null;
   const segment = filled ? entry.segment : null;
@@ -55,12 +59,19 @@ function slotInput(
   };
 }
 
+/** Each segment's stored score: its rating's, or null when it has none (not run, or not rated). */
+export function storedScores(show: ShowContext): Map<SegmentId, number | null> {
+  return new Map(
+    show.segments.map((entry) => [entry.segment.id, entry.segment.rating?.score ?? null]),
+  );
+}
+
 /**
  * The show score's inputs: one entry per main-card slot (filled or not) and one per pre-show slot
  * whose segment has a score. A segment that could not be rated counts as an empty slot.
  */
-function scoreInputs(
-  ctx: PhaseContext,
+export function scoreInputs(
+  deps: ScoreInputDeps,
   show: ShowContext,
   scores: ReadonlyMap<SegmentId, number | null>,
 ): ShowScoreInputs {
@@ -68,7 +79,7 @@ function scoreInputs(
   for (const entry of show.segments) {
     const score = scores.get(entry.segment.id) ?? null;
     if (entry.segment.preShow && score !== null) {
-      slots.push(slotInput(ctx, show, entry.segment, entry, score));
+      slots.push(slotInput(deps, show, entry.segment, entry, score));
     }
   }
   for (let slot = 0; slot < show.format.slots; slot += 1) {
@@ -76,7 +87,7 @@ function scoreInputs(
       (candidate) => !candidate.segment.preShow && candidate.segment.slot === slot,
     );
     const score = entry === undefined ? null : (scores.get(entry.segment.id) ?? null);
-    slots.push(slotInput(ctx, show, { slot, preShow: false }, entry, score));
+    slots.push(slotInput(deps, show, { slot, preShow: false }, entry, score));
   }
   return {
     showName: show.instance.name,
@@ -87,19 +98,20 @@ function scoreInputs(
   };
 }
 
-/** Runs every segment of the show's card in running order, scores the show and completes it. */
-export function runShowCard(ctx: PhaseContext, instance: DeepReadonly<EventInstance>): void {
-  const show = showContextOf(ctx.read, instance);
-  const scores = new Map<SegmentId, number | null>();
-  for (const entry of show.segments) {
-    scores.set(entry.segment.id, runSegment(ctx, show, entry));
-  }
+/**
+ * Completes a show whose segments have all run: counts the appearances, scores the show from its
+ * segments' stored ratings (a segment with none counts as an empty slot), stores the score and its
+ * trace, ends any live run (EVT10-01) and announces `show.completed`. The one ending both ways of
+ * running a card share: all at once ({@link runShowCard}) and one segment at a time (`live.ts`).
+ */
+export function completeShowCard(ctx: PhaseContext, instanceId: EventInstanceId): void {
+  const current = ctx.read.tables.eventInstances.require(instanceId);
+  const show = showContextOf(ctx.read, current);
   countAppearances(ctx, show);
 
-  const inputs = scoreInputs(ctx, show, scores);
+  const inputs = scoreInputs(ctx, show, storedScores(show));
   const modifiers = listShowScoreModifiers();
   const extras: Record<string, JsonValue> = {};
-  const current = ctx.read.tables.eventInstances.require(instance.id);
   for (const modifier of modifiers) {
     if (modifier.gather !== undefined) {
       extras[modifier.id] = modifier.gather(ctx.read, current);
@@ -111,31 +123,45 @@ export function runShowCard(ctx: PhaseContext, instance: DeepReadonly<EventInsta
   );
   const ceiling = showScoreCeilingOf(modifiers, extras, { tunables: ctx.tunables });
 
-  const ref = showScoreTraceRef(instance.id);
+  const ref = showScoreTraceRef(current.id);
   ctx.recordTrace(ref, ctx.date, score);
-  ctx.tx.update('eventInstances', instance.id, {
-    status: 'completed',
-    result: {
-      score: score.value,
-      rawScore,
-      traceId: refKey(ref),
-      attendance: null,
-      gate: null,
-      viewers: null,
-      ceiling,
-    },
+  ctx.tx.update('eventInstances', current.id, (previous) => {
+    const next: EventInstance = {
+      ...previous,
+      status: 'completed',
+      result: {
+        score: score.value,
+        rawScore,
+        traceId: refKey(ref),
+        attendance: null,
+        gate: null,
+        viewers: null,
+        ceiling,
+      },
+    };
+    delete next.liveRun;
+    return next;
   });
   ctx.publish('show.completed', {
-    eventInstanceId: instance.id,
-    promotionId: instance.promotionId,
-    brandId: instance.brandId,
-    date: instance.date,
-    importance: instance.importance,
+    eventInstanceId: current.id,
+    promotionId: current.promotionId,
+    brandId: current.brandId,
+    date: current.date,
+    importance: current.importance,
     score: score.value,
     rawScore,
     offscreen: false,
     segmentCount: show.segments.length,
   });
+}
+
+/** Runs every segment of the show's card in running order, scores the show and completes it. */
+export function runShowCard(ctx: PhaseContext, instance: DeepReadonly<EventInstance>): void {
+  const show = showContextOf(ctx.read, instance);
+  for (const entry of show.segments) {
+    runSegment(ctx, show, entry);
+  }
+  completeShowCard(ctx, instance.id);
 }
 
 /**
