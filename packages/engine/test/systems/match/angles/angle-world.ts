@@ -14,6 +14,7 @@ import { defaultSystems } from '../../../../src/systems';
 import type { PreviewAngleArgs, PreviewAngleResult } from '../../../../src/systems/match';
 import { TEST_PLAYER_ID } from '../../../support/builders/build-row';
 import { worldBuilder } from '../../../support';
+import type { WorldBuilder, WorldIds } from '../../../support/world-builder';
 
 export const PLAYER: Viewer = {
   kind: 'controller',
@@ -37,6 +38,7 @@ export const MANAGER_MIC = 90;
 
 export interface AngleWorld {
   readonly world: GameWorld;
+  readonly ids: WorldIds;
   readonly engine: Engine;
   readonly promotion: PromotionId;
   readonly rival: PromotionId;
@@ -84,8 +86,10 @@ export function updateContract(
 }
 
 /** The world described at the top of the file, with an engine over it. */
-export function angleWorld(): AngleWorld {
-  const { world, ids } = worldBuilder()
+export function angleWorld(
+  extend: (builder: WorldBuilder) => WorldBuilder = (builder) => builder,
+): AngleWorld {
+  const built = worldBuilder()
     .withGeography('mini')
     .withCatalogs()
     .withPromotion(
@@ -110,11 +114,12 @@ export function angleWorld(): AngleWorld {
     .withPromotion(
       { name: 'Test Promotion B', controller: { kind: 'computer' }, production: { writing: 5 } },
       (promotion) => promotion.withRoster(2),
-    )
-    .build();
+    );
+  const { world, ids } = extend(built).build();
   let engine: Engine | null = null;
   return {
     world,
+    ids,
     // Built on first use from the world as it is then, so a test edits the world first.
     get engine(): Engine {
       engine ??= createEngine({ state: initialEngineState(world), systems: defaultSystems });
