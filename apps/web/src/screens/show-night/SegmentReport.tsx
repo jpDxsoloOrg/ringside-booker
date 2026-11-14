@@ -55,6 +55,7 @@ export function SegmentReportView({
     <div
       className={classNames(styles['report'], animated && styles['fadeIn'])}
       data-segment-id={segment.segmentId}
+      data-animated={animated ? 'true' : 'false'}
     >
       <SegmentResultCard
         segment={segment}
