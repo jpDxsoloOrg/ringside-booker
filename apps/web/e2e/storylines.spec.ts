@@ -104,10 +104,11 @@ test('storyline members link to their worker profiles', async ({ page }) => {
 
   // The heat Why? names each member as a link to their profile.
   await page
-    .getByRole('button', { name: /^Why\? Heat/ })
+    .getByRole('button', { name: /^Why is Heat / })
     .first()
     .click();
-  const why = page.getByRole('dialog').last();
+  const why = page.getByRole('dialog', { name: 'Heat' });
+  await why.getByRole('button', { name: 'Expand all' }).click();
   const popularity = why.getByRole('link', { name: `${face}'s home popularity` });
   await expect(popularity).toBeVisible();
   await expect(popularity).toHaveAttribute('href', /\/game\/workers\//);
