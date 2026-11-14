@@ -164,7 +164,26 @@ export function NegotiationSheetView(props: NegotiationSheetViewProps) {
       size="lg"
       phoneHeight="full"
       className={styles['sheet'] ?? ''}
-      {...(footer === null ? {} : { footer: <div className={styles['footer']}>{footer}</div> })}
+      {...(footer === null
+        ? {}
+        : {
+            footer: (
+              <div className={styles['footer']}>
+                {preview !== undefined && (
+                  // The meter scrolls away on a phone while you edit the form: its label stays
+                  // here, beside the buttons. Screen readers hear the meter's own live label.
+                  <p
+                    className={styles['footerReaction']}
+                    data-band={preview.band}
+                    aria-hidden="true"
+                  >
+                    {preview.label}
+                  </p>
+                )}
+                {footer}
+              </div>
+            ),
+          })}
     >
       <div className={styles['body']}>
         <header className={styles['header']}>
@@ -221,21 +240,7 @@ export function NegotiationSheetView(props: NegotiationSheetViewProps) {
         )}
 
         <div className={styles['columns']}>
-          {shownAsk !== null && <AskPanel ask={shownAsk} />}
-          <div className={styles['offerColumn']}>
-            {draft !== null && (
-              <OfferForm
-                key={draft.version}
-                draft={draft}
-                money={money}
-                roles={roles}
-                maxLengthMonths={maxLengthMonths}
-                disabled={pending}
-              />
-            )}
-            {draft === null && offerOnTable !== null && (
-              <p className={styles['onTable']}>{`Your offer: ${offerOnTable}`}</p>
-            )}
+          <div className={styles['askColumn']}>
             {draft !== null && preview !== undefined && (
               <div className={styles['meterBlock']}>
                 <ReactionMeter
@@ -264,6 +269,22 @@ export function NegotiationSheetView(props: NegotiationSheetViewProps) {
               <p className={styles['patience']}>{patienceText(patience.left, patience.start)}</p>
             )}
             {also !== null && <p className={styles['bidders']}>{also}</p>}
+            {shownAsk !== null && <AskPanel ask={shownAsk} />}
+          </div>
+          <div className={styles['offerColumn']}>
+            {draft !== null && (
+              <OfferForm
+                key={draft.version}
+                draft={draft}
+                money={money}
+                roles={roles}
+                maxLengthMonths={maxLengthMonths}
+                disabled={pending}
+              />
+            )}
+            {draft === null && offerOnTable !== null && (
+              <p className={styles['onTable']}>{`Your offer: ${offerOnTable}`}</p>
+            )}
           </div>
         </div>
 

@@ -81,6 +81,12 @@
     grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
     align-items: start;
   }
+
+  /* The meter and their ask stay in view while the form scrolls beside them. */
+  .askColumn {
+    position: sticky;
+    inset-block-start: 0;
+  }
 }
 
 .sectionHeading {
@@ -89,6 +95,7 @@
 }
 
 .askPanel,
+.askColumn,
 .offerForm,
 .offerColumn,
 .historySection {
@@ -244,11 +251,36 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
+  align-items: center;
   gap: var(--space-2);
+}
+
+.footerReaction {
+  display: none;
+  font-weight: var(--font-weight-bold);
+}
+
+.footerReaction[data-band='likely'] {
+  color: var(--color-positive);
+}
+
+.footerReaction[data-band='counter'] {
+  color: var(--color-warning);
+}
+
+.footerReaction[data-band='reject'],
+.footerReaction[data-band='walkAway'],
+.footerReaction[data-band='refuse'] {
+  color: var(--color-negative);
 }
 
 @media (--bp-mobile) {
   .footer > * {
     flex: 1 1 auto;
+  }
+
+  .footerReaction {
+    display: block;
+    flex-basis: 100%;
   }
 }
