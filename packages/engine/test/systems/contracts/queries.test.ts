@@ -78,7 +78,11 @@ describe('contracts.list', () => {
 
   it('lists ended contracts newest first, with how they ended', async () => {
     const built = releaseWorld();
-    const engine = contractsEngine(built.world, { 'contracts.autoRenewPlayer': false });
+    // The glad-to-go worker asks to leave on the way; only the expiry stop is cleared here.
+    const engine = contractsEngine(built.world, {
+      'contracts.autoRenewPlayer': false,
+      'contracts.releaseRequest.stopSkip': false,
+    });
     await engine.advanceDays({ maxDays: 36, stopAtDate: addDays(built.today, 36) });
     // Acknowledge whatever stopped the skip and go on past the second end date.
     engine.command('contracts.acknowledgeExpiries', { employmentIds: 'all' }, PLAYER);
@@ -146,7 +150,12 @@ describe('contracts.counts and contracts.changesSince', () => {
 
   it('list starts, releases and automatic renewals in the range, own promotion only', async () => {
     const built = releaseWorld();
-    const engine = contractsEngine(built.world, { 'contracts.expiringSoon.stopSkip': false });
+    // The automatic renewal is off by default since ECO5-05; it is the simplest renewal to list.
+    const engine = contractsEngine(built.world, {
+      'contracts.expiringSoon.stopSkip': false,
+      'contracts.releaseRequest.stopSkip': false,
+      'contracts.autoRenewPlayer': true,
+    });
     const shown = ask(
       engine.query('contracts.releasePreview', { employmentId: built.plain }, PLAYER_VIEW),
     );

@@ -1,10 +1,20 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MAX_COMPLETED_SINCE } from '@ringside/engine';
-import type { AdvanceResult, GateHit, ShowSummaryView } from '@ringside/engine';
+import { MAX_COMPLETED_SINCE, parseId } from '@ringside/engine';
+import type {
+  AdvanceResult,
+  ContractChanges,
+  GateHit,
+  OfferUpdates,
+  ShowSummaryView,
+} from '@ringside/engine';
 import { useEngineQuery } from '@/app/engine/useEngineQuery';
 import { routes } from '@/app/routes';
-import { useHasPromotion } from '@/app/session/sessionStore';
+import { useHasPromotion, useSessionStore } from '@/app/session/sessionStore';
+import {
+  offerUpdateLines,
+  offerUpdatesNeedBanner,
+} from '@/screens/contracts/negotiation/negotiationText';
 import { Button, IconButton } from '@/components/Button';
 import { formatGameDate } from '@/components/format';
 import { Icon } from '@/components/Icon';
@@ -17,6 +27,12 @@ import {
   moreResultsText,
   seeResultsText,
 } from './advanceSummaryText';
+import {
+  contractChangeLines,
+  contractChangesLink,
+  contractChangesNeedBanner,
+  MAX_CONTRACT_LINES,
+} from './contractChangesText';
 import type { AdvanceReport } from './DayAdvanceProvider';
 import { gateDestination, SHOW_NIGHT_HINT } from './dayControlState';
 import { useOptionalDayAdvance } from './DayAdvanceProvider';
@@ -29,6 +45,10 @@ export interface BannerExtras {
   readonly hasResults?: boolean;
   /** True when the advance stopped on the day of one of your shows ("Tonight: <Show>"). */
   readonly showNight?: boolean;
+  /** True when one of your contracts ended or a worker asked to leave (ECO4-04). */
+  readonly contractChanges?: boolean;
+  /** True when your contract talks moved: a counter, a signing, a walk-out (ECO5-06). */
+  readonly offerUpdates?: boolean;
 }
 
 /**
@@ -38,13 +58,20 @@ export interface BannerExtras {
  */
 export function reportNeedsBanner(
   report: AdvanceReport,
-  { hasResults = false, showNight = false }: BannerExtras = {},
+  {
+    hasResults = false,
+    showNight = false,
+    contractChanges = false,
+    offerUpdates = false,
+  }: BannerExtras = {},
 ): boolean {
   if (report.kind === 'refused') return true;
   const { result, daysRequested } = report;
   return (
     hasResults ||
     showNight ||
+    contractChanges ||
+    offerUpdates ||
     daysRequested > 1 ||
     result.stoppedBy.kind !== 'completed' ||
     result.failures.length > 0
@@ -52,6 +79,12 @@ export function reportNeedsBanner(
 }
 
 type AdvancedReport = Extract<AdvanceReport, { kind: 'advanced' }>;
+
+/** Stands in for the seat's promotion in a disabled query (the banner only asks with one). */
+const NO_PROMOTION = parseId('promotion', 'pro_0000000000');
+
+/** Where the talks lines link: Contracts › Offers. */
+const OFFERS_LINK = `${routes.game.contracts()}?tab=offers`;
 
 interface ReportBannerProps<Report extends AdvanceReport = AdvanceReport> {
   readonly report: Report;
@@ -74,8 +107,35 @@ function AdvancedReportBanner({ report, onDismiss }: ReportBannerProps<AdvancedR
   // A Next Day that lands on your show day says so, even though the day itself ran in full.
   const gates = useEngineQuery('sim.pendingGates', {});
   const tonight = gates.data?.hits.find((hit) => hit.actionHint === SHOW_NIGHT_HINT) ?? null;
+  // Contracts that ended and workers who asked to leave during the advance (ECO4-04).
+  const contracts = useEngineQuery(
+    'contracts.changesSince',
+    { from: report.result.startDate, to: report.result.endDate },
+    { keepPreviousData: false },
+  );
+  // Your contract talks during the advance (ECO5-06): counters, signings, walk-outs.
+  const promotionId = useSessionStore((state) => state.seat?.promotionId ?? null);
+  const offers = useEngineQuery(
+    'contracts.offerUpdatesSince',
+    {
+      promotionId: promotionId ?? NO_PROMOTION,
+      from: report.result.startDate,
+      to: report.result.endDate,
+    },
+    { enabled: promotionId !== null, keepPreviousData: false },
+  );
   const results = completed.data ?? [];
-  if (!reportNeedsBanner(report, { hasResults: results.length > 0, showNight: tonight !== null })) {
+  const contractChanges = contracts.status === 'success' ? contracts.data : undefined;
+  const offerUpdates =
+    promotionId !== null && offers.status === 'success' ? offers.data : undefined;
+  if (
+    !reportNeedsBanner(report, {
+      hasResults: results.length > 0,
+      showNight: tonight !== null,
+      contractChanges: contractChangesNeedBanner(contractChanges),
+      offerUpdates: offerUpdatesNeedBanner(offerUpdates),
+    })
+  ) {
     return null;
   }
   return (
@@ -84,6 +144,8 @@ function AdvancedReportBanner({ report, onDismiss }: ReportBannerProps<AdvancedR
       onDismiss={onDismiss}
       results={results}
       tonight={tonight}
+      {...(contractChanges === undefined ? {} : { contractChanges })}
+      {...(offerUpdates === undefined ? {} : { offerUpdates })}
     />
   );
 }
@@ -102,6 +164,50 @@ function TonightLine({ hit, said }: { readonly hit: GateHit; readonly said: bool
         </p>
       )}
     </>
+  );
+}
+
+/** Up to three contract changes, then "and N more" linking to the Contracts screen. */
+function ContractLines({ changes }: { readonly changes: ContractChanges }) {
+  const lines = contractChangeLines(changes);
+  if (lines.length === 0) return null;
+  const more = lines.length - MAX_CONTRACT_LINES;
+  return (
+    <ul className={styles['resultsLinks']} aria-label="Contracts">
+      {lines.slice(0, MAX_CONTRACT_LINES).map((line, index) => (
+        <li key={`${String(index)}-${line}`} className={styles['summaryReason']}>
+          {line}
+        </li>
+      ))}
+      {more > 0 && (
+        <li>
+          <Link to={contractChangesLink(changes)} className={styles['resultsLink']}>
+            {`and ${String(more)} more`}
+          </Link>
+        </li>
+      )}
+    </ul>
+  );
+}
+
+/** Up to three lines about your talks, then "and N more", linking to Contracts › Offers. */
+function OfferLines({ updates }: { readonly updates: OfferUpdates }) {
+  const lines = offerUpdateLines(updates);
+  if (lines.length === 0) return null;
+  const more = lines.length - MAX_CONTRACT_LINES;
+  return (
+    <ul className={styles['resultsLinks']} aria-label="Contract talks">
+      {lines.slice(0, MAX_CONTRACT_LINES).map((line, index) => (
+        <li key={`${String(index)}-${line}`} className={styles['summaryReason']}>
+          {line}
+        </li>
+      ))}
+      <li>
+        <Link to={OFFERS_LINK} className={styles['resultsLink']}>
+          {more > 0 ? `and ${String(more)} more` : 'See your offers'}
+        </Link>
+      </li>
+    </ul>
   );
 }
 
@@ -151,6 +257,10 @@ export interface AdvanceSummaryBannerProps {
   readonly results?: readonly ShowSummaryView[];
   /** The show day the advance stopped on, if any: "Tonight: <Show>" and Go to the show. */
   readonly tonight?: GateHit | null;
+  /** Your contract changes during the advance (ECO4-04): up to three lines and "and N more". */
+  readonly contractChanges?: ContractChanges | null;
+  /** Your contract talks during the advance (ECO5-06): up to three lines and "and N more". */
+  readonly offerUpdates?: OfferUpdates | null;
 }
 
 /**
@@ -163,6 +273,8 @@ export function AdvanceSummaryBanner({
   label = 'Last advance',
   results = [],
   tonight = null,
+  contractChanges = null,
+  offerUpdates = null,
 }: AdvanceSummaryBannerProps) {
   const [failuresOpen, setFailuresOpen] = useState(false);
   const text =
@@ -181,6 +293,8 @@ export function AdvanceSummaryBanner({
         {text.reason !== null && <p className={styles['summaryReason']}>{text.reason}</p>}
         {results.length > 0 && <ResultsLinks results={results} />}
         {tonight !== null && <TonightLine hit={tonight} said={text.reason === tonight.reason} />}
+        {contractChanges !== null && <ContractLines changes={contractChanges} />}
+        {offerUpdates !== null && <OfferLines updates={offerUpdates} />}
         {report.kind === 'advanced' && text.failures !== null && (
           <>
             <button

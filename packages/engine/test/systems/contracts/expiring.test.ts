@@ -38,10 +38,16 @@ function today(engine: Engine) {
   return engine.exportState().world.meta.currentDate;
 }
 
+/**
+ * The release world's glad-to-go worker sits at low morale and asks to leave after a couple of
+ * weeks; these long skips are about the expiry stop, so that other stop stays off.
+ */
+const NO_REQUEST_STOP = { 'contracts.releaseRequest.stopSkip': false } as const;
+
 describe('contracts.expiringSoon', () => {
   it('stops the skip the day after the notice day, naming the worker, until it is seen', async () => {
     const built = releaseWorld();
-    const engine = contractsEngine(built.world);
+    const engine = contractsEngine(built.world, NO_REQUEST_STOP);
     // 40 days left, a 30-day window: the notice is raised on day 10, so day 11 does not run.
     const first = await engine.advanceDays({ maxDays: 60 });
     expect(first.daysAdvanced).toBe(11);
@@ -66,15 +72,17 @@ describe('contracts.expiringSoon', () => {
       raisedOn: addDays(built.today, 10),
       seenOn: addDays(built.today, 11),
     });
-    // It stays seen; on its end date the automatic renewal moves the end date out of the window,
-    // which clears the notice, so nothing stops the next hundred days.
+    // It stays seen, so nothing stops the next hundred days. Nobody renews it (the automatic
+    // renewal is off since ECO5-05: the player renews through talks), so it runs out on its end
+    // date and the concern row keeps only how it ended.
     const next = await engine.advanceDays({ maxDays: 100 });
     expect(next.stoppedBy).toEqual({ kind: 'completed' });
-    expect(
-      engine
-        .exportState()
-        .world.tables.contractConcerns.find((row) => row.employmentId === built.expiring),
-    ).toBeUndefined();
+    const ended = engine
+      .exportState()
+      .world.tables.contractConcerns.find((row) => row.employmentId === built.expiring);
+    expect(ended?.expiryNotice).toBeNull();
+    expect(ended?.ending?.how).toBe('expired');
+    expect(employmentOf(engine, built.expiring).status).toBe('expired');
   });
 
   it('names the soonest and counts the rest; never stops for push below the minimum', async () => {
@@ -107,7 +115,7 @@ describe('contracts.expiringSoon', () => {
       { 'contracts.expiringSoon.stopSkip': false },
     ]) {
       const built = releaseWorld();
-      const engine = contractsEngine(built.world, overrides);
+      const engine = contractsEngine(built.world, { ...NO_REQUEST_STOP, ...overrides });
       const result = await engine.advanceDays({ maxDays: 45 });
       expect(result.stoppedBy).toEqual({ kind: 'completed' });
     }

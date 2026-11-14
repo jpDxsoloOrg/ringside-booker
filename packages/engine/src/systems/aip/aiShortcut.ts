@@ -153,7 +153,7 @@ export function aiShortcutOn(
 /** Every shortcut for one promotion or brand, keyed by tunable. */
 export type AiShortcutSet = { readonly [K in AiShortcutKey]: Traced<AiShortcutValue<K>> };
 
-/** All six shortcuts for one promotion or brand, for the rules panel. */
+/** Every shortcut for one promotion or brand, for the rules panel. */
 export function aiShortcutsFor(
   read: GameWorldView,
   tunables: EngineTunables,
@@ -168,6 +168,7 @@ export function aiShortcutsFor(
     'ai.simpleBookingInputs': flagShortcut(tunables, rules, 'ai.simpleBookingInputs'),
     'ai.skipMediaRequests': flagShortcut(tunables, rules, 'ai.skipMediaRequests'),
     'ai.skipWorkerRequests': flagShortcut(tunables, rules, 'ai.skipWorkerRequests'),
+    'ai.contracts.simpleRenewals': flagShortcut(tunables, rules, 'ai.contracts.simpleRenewals'),
   };
 }
 

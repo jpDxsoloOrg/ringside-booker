@@ -105,20 +105,21 @@ describe('PromotionsScreen', () => {
     expect(await screen.findByRole('dialog', { name: /^Popularity in / })).toBeInTheDocument();
   });
 
-  it('lists all six shortcuts behind the Rival rules chip', async () => {
+  it('lists all seven shortcuts behind the Rival rules chip', async () => {
     const { user } = renderPromotions();
 
     const chip = await screen.findByRole(
       'button',
-      { name: /^Rival rules: 6 on$/ },
+      { name: /^Rival rules: 7 on$/ },
       { timeout: LOAD_MS },
     );
     await user.click(chip);
 
     const dialog = await screen.findByRole('dialog', { name: 'Rival rules' });
-    expect(within(dialog).getAllByRole('listitem')).toHaveLength(6);
+    expect(within(dialog).getAllByRole('listitem')).toHaveLength(7);
     expect(within(dialog).getByText('+3')).toBeInTheDocument();
     expect(within(dialog).getByText('ai.skipWorkerRequests')).toBeInTheDocument();
+    expect(within(dialog).getByText('ai.contracts.simpleRenewals')).toBeInTheDocument();
     expect(within(dialog).getByText(RIVAL_RULES_FOOTER)).toBeInTheDocument();
   });
 
@@ -134,7 +135,7 @@ describe('PromotionsScreen', () => {
     await user.click(chip);
 
     const sheet = await screen.findByRole('dialog', { name: 'Rival rules' });
-    expect(within(sheet).getAllByText('Off')).toHaveLength(6);
+    expect(within(sheet).getAllByText('Off')).toHaveLength(7);
   });
 
   it('keeps the sort in the URL and carries it to the profile’s back link', async () => {

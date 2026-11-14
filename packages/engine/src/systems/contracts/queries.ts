@@ -282,6 +282,26 @@ const ENDED_TAB_STATUSES: readonly EmploymentStatus[] = [
   'withdrawn',
 ];
 
+/**
+ * An offer that never became a contract (ECO5-04): still `offered`, `declined`, or `withdrawn`
+ * before it was signed. Contract lists and changes leave these out (they are talks, shown by
+ * `contracts.offers`), and a rival's offer is not shown to anyone else at all.
+ */
+export function isUnsignedOffer(
+  read: GameWorldView,
+  employment: DeepReadonly<Employment>,
+): boolean {
+  if (employment.status === 'offered' || employment.status === 'declined') {
+    return true;
+  }
+  if (employment.status !== 'withdrawn') {
+    return false;
+  }
+  return read.tables.negotiations
+    .lookup('byEmployment', employment.id)
+    .some((negotiation) => negotiation.kind === 'signing' && negotiation.status !== 'signed');
+}
+
 function ownPromotions(read: GameWorldView, viewer: Viewer): PromotionId[] {
   return viewerPromotionIds(read, viewer);
 }
@@ -568,7 +588,11 @@ function listRows(ctx: QueryContext, tab: ContractsTab): ContractRow[] {
     }
     case 'ended':
       return employments
-        .filter((employment) => ENDED_TAB_STATUSES.includes(employment.status))
+        .filter(
+          (employment) =>
+            ENDED_TAB_STATUSES.includes(employment.status) &&
+            !isUnsignedOffer(ctx.read, employment),
+        )
         .map((employment) => rowOf(ctx, employment))
         .sort(
           (left, right) =>
@@ -614,6 +638,9 @@ export const detailQuery = defineQuery('contracts.detail', {
       ctx.viewer.kind === 'omniscient' ||
       ownPromotions(ctx.read, ctx.viewer).includes(employment.promotionId);
     if (!sees) {
+      if (isUnsignedOffer(ctx.read, employment)) {
+        return null;
+      }
       return { ...base, termsPrivate: true };
     }
     const { terms } = employment;
@@ -709,7 +736,7 @@ export const changesSinceQuery = defineQuery('contracts.changesSince', {
       ) {
         changes.started.push(changeOf(employment, employment.startsOn));
       }
-      if (!inRange(employment.endedOn, from, to)) {
+      if (!inRange(employment.endedOn, from, to) || isUnsignedOffer(ctx.read, employment)) {
         continue;
       }
       const how = concernOf(ctx.read, employment.id)?.ending?.how;

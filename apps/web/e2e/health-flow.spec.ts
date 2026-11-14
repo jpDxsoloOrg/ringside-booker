@@ -21,6 +21,7 @@ import type { Locator, Page, TestInfo } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { expectNoSeriousA11yViolations } from './helpers/a11y';
 import { cancelTonightsShow, skipDaysOnce } from './helpers/booking';
+import { clearExpiringContracts } from './helpers/contracts';
 import { HEALTH_E2E_SEED, startDefaultWorldGame } from './helpers/game';
 import { expectNoHorizontalScroll } from './helpers/layout';
 import { navigateInApp } from './helpers/shell';
@@ -65,18 +66,24 @@ async function skipDays(
   untilInjury: boolean,
 ): Promise<boolean> {
   const roster = dayButton(page, 'Roster');
+  // A contract about to end stops a long skip too (ECO4-04): it is cleared and the skip goes on.
+  const contracts = dayButton(page, 'Contracts');
   // "Go to the show" on desktop; the phone bar reads "Tonight" and names it "Tonight: Go to the show".
   const show = dayButton(page, /Go to the show$/);
   let left = days;
   for (let stops = 0; ; stops += 1) {
     expect(stops, 'the skip keeps stopping').toBeLessThan(MAX_STOPS);
-    await expect(dayButton(page, /^(Next day|(Tonight: )?Go to the show|Roster)$/)).toBeVisible({
+    await expect(
+      dayButton(page, /^(Next day|(Tonight: )?Go to the show|Roster|Contracts)$/),
+    ).toBeVisible({
       timeout: 15_000,
     });
     if (await roster.isVisible()) {
       if (untilInjury) return true;
       await roster.click();
       await expect(dayButton(page, 'Next day')).toBeVisible({ timeout: 15_000 });
+    } else if (await contracts.isVisible()) {
+      await clearExpiringContracts(page);
     } else if (await show.isVisible()) {
       await cancelTonightsShow(page);
       await expect(show).toBeHidden();

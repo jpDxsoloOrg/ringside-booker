@@ -1,6 +1,7 @@
 import type { AipDecisionLog, AipDecisionLogEntry, TraceNode } from '@ringside/engine';
 import { renderTemplatedText } from '@/text/renderTemplatedText';
 import '@/text/catalogs/aip';
+import '@/text/catalogs/contracts';
 import { Badge } from '../Badge';
 import { Button } from '../Button';
 import { classNames } from '../classNames';

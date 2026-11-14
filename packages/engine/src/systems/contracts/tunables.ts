@@ -1,6 +1,8 @@
 /**
  * The contracts system's balance numbers: the simple rival renewal rule that keeps rival rosters
- * stocked until the rival labour market (ECO6) exists (ECO4-01); severance, the "expiring soon"
+ * stocked until the rival labour market (ECO6) exists (ECO4-01; its on/off switch,
+ * `ai.contracts.simpleRenewals`, is a Rival rules shortcut in `systems/aip/shortcuts.ts` since
+ * ECO4-05); severance, the "expiring soon"
  * notices and the player's temporary automatic renewal (ECO4-02); unhappy workers, release
  * requests and walk-outs (ECO4-03). All in the `Contracts` category,
  * documented in docs/design/contracts.md.
@@ -32,15 +34,6 @@ function contractDays(defaultValue: number, description: string) {
 }
 
 export const contractsTunables = defineTunables({
-  'ai.contracts.simpleRenewals': {
-    kind: 'boolean',
-    default: true,
-    unit: 'flag',
-    category: CONTRACTS_TUNABLE_CATEGORY,
-    description:
-      'Rival promotions renew contracts by a simple rule until the rival labour market exists; off under a level playing field',
-    docRef: RENEWALS_DOC,
-  },
   'contracts.ai.keepPushAtOrAbove': {
     kind: 'enum',
     default: 'upperCard',
@@ -200,8 +193,8 @@ export const contractsTunables = defineTunables({
   },
   'contracts.expiringSoon.stopSkip': {
     kind: 'boolean',
-    // Off until the Contracts screen can clear the stop (ECO4-04 turns it on).
-    default: false,
+    // The Contracts screen's Expiring tab clears it (Got it / Mark all seen, ECO4-04).
+    default: true,
     unit: 'flag',
     category: CONTRACTS_TUNABLE_CATEGORY,
     description: 'A new expiry notice stops a skip until you mark it as seen',
@@ -209,7 +202,8 @@ export const contractsTunables = defineTunables({
   },
   'contracts.autoRenewPlayer': {
     kind: 'boolean',
-    default: true,
+    // Off since ECO5-05: the player renews through contract talks (`contracts.offerRenewal`).
+    default: false,
     unit: 'flag',
     category: CONTRACTS_TUNABLE_CATEGORY,
     description:
@@ -281,8 +275,8 @@ export const contractsTunables = defineTunables({
   },
   'contracts.releaseRequest.stopSkip': {
     kind: 'boolean',
-    // Off until the Contracts screen can answer a request (ECO4-04 turns it on).
-    default: false,
+    // The Contracts screen answers it (Grant / Refuse, ECO4-04).
+    default: true,
     unit: 'flag',
     category: CONTRACTS_TUNABLE_CATEGORY,
     description: 'A new release request stops a skip until you answer it',

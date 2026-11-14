@@ -28,6 +28,10 @@ import '@/screens/workers/health/registerHealthTab';
 import '@/screens/roster/injuries/registerInjuriesTab';
 // The promotion profile's Shows tab (AIP4-07); its panel loads with the tab.
 import '@/screens/promotions/profile/tabs/registerShowsTab';
+// The worker profile's Contract tab (ECO4-04); its panel loads with the tab.
+import '@/screens/contracts/profile/registerContractTab';
+// Contracts' Free agents and Offers tabs and Renew (ECO5-06); their panels load with the tab.
+import '@/screens/contracts/negotiation/registerNegotiation';
 // The Fan base sheet's "This month" figure (DAY2-06, for EVT5).
 import '@/screens/promotion-popularity/fanBaseColumn';
 

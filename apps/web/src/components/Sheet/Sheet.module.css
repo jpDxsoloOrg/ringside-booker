@@ -26,6 +26,12 @@
   box-shadow: var(--shadow-3);
 }
 
+/* A Why? panel, which can open from inside a confirm dialog, comes out on top of it. */
+.overlay.layer-explain,
+.sheet.layer-explain {
+  z-index: var(--z-explain);
+}
+
 /* Content gets focus when nothing inside can take it; the sheet itself shows no ring. */
 .sheet:focus {
   outline: none;

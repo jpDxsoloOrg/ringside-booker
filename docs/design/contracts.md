@@ -242,9 +242,12 @@ every roster in the world shrinks, so computer-run promotions renew by a
 simple, traced rule: the built-in policy `contracts.simpleRivalRenewal`
 (`aiRenewalDecision`, "Rival renewal"):
 
-- it answers null (so the contract expires) for a promotion the player runs,
-  for a closed promotion, when `ai.contracts.simpleRenewals` is off, and under
-  the "Level playing field" setting. With a level playing field and no ECO6,
+- it answers null (so the contract expires) for a closed promotion, an
+  open-ended contract, and whenever AIP1's `aiShortcut` says the Rival rules
+  shortcut `ai.contracts.simpleRenewals` does not apply: a promotion the player
+  runs, the "Level playing field" setting, or the shortcut turned off (since
+  ECO4-05; the shortcut's Why? is the renewal Why?'s first line, and the key
+  shows on the "Rival rules" chip). With a level playing field and no ECO6,
   rival contracts just run out;
 - rule "Holds a title" (when `contracts.ai.keepChampions` is on, from
   `titlesHeldBy`) or "Push at or above `contracts.ai.keepPushAtOrAbove`":
@@ -257,13 +260,15 @@ above the maximum is read as the swapped range). On a save loaded long after
 the old end date, the length counts from today. Keepers draw once (the
 length); anyone else draws the renewal roll and, when renewed, the length.
 
-ECO4-05 moves the level-playing-field read to AIP1's `aiShortcut` and swaps
-`titlesHeldBy` for CRTV1's once both are on main.
+ECO4-05 moved the level-playing-field read to AIP1's `aiShortcut`. It swaps
+`titlesHeldBy` for CRTV1's once CRTV1 is on main (not yet: CRTV1 wires it
+from its own pack).
 
 Over three years of the default world the rule keeps every rival at 50 % to
 73 % of its starting active roster. The player's own run out completely with
-`contracts.autoRenewPlayer` off; with it on (the default) the player keeps
-every contract (see [Player renewals](#player-renewals)).
+`contracts.autoRenewPlayer` off (the default since ECO5-05: the player renews
+through contract talks); with it on the player keeps every contract (see
+[Player renewals](#player-renewals)).
 
 ## Expiring soon
 
@@ -289,7 +294,9 @@ today, seenOn: null }` on its concern row, unless it already has one. A
 - **Seeing it.** `contracts.acknowledgeExpiries { employmentIds | 'all' }` sets
   `seenOn` on the viewer's unseen notices; another promotion's contract is
   refused (`notYourWorker`). Releasing the worker (`endEmployment` clears the
-  notice) or a renewal past the window also clears it.
+  notice) or a renewal past the window also clears it. The day bar's
+  **Contracts** button opens the Contracts screen's Expiring tab (ECO4-04),
+  where **Got it** (one row) and **Mark all seen** run it.
 
 **Why the phase decides.** A gate's `check(view, date)` cannot read tunables,
 and it runs before every day of a skip, so it must stay a cheap indexed read.
@@ -326,6 +333,13 @@ Career tab):
 - `contracts.releasePreview` refuses a rival's contract with only
   `notYourWorker`, so a refusal tells nothing private.
 - Rival renewal and severance traces are stored as summaries only.
+- Offers that never became contracts (ECO5-04: an `offered` employment, a
+  `declined` one, or one `withdrawn` before it was signed; `isUnsignedOffer`)
+  are talks, not contracts: `contracts.list`'s Ended tab and
+  `contracts.changesSince` leave them out (the talks are on
+  `contracts.offers`), and `contracts.detail` answers `null` for another
+  promotion's offer, so not even its kind or dates leak
+  ([negotiation.md](negotiation.md#commands)).
 
 `contracts.list { tab }` rows: `{ employmentId, personId, promotionId,
 ringName, role, push, brandId, status, kind, monthlyWage, perAppearanceFee,
@@ -346,9 +360,12 @@ log, because a renewal only moves an end date.
 
 ## Player renewals
 
-**Temporary, until ECO5.** Contracts run out, and the player cannot renew one
-until ECO5's renewal talks, so a three-year game would empty the player's
-roster. While `contracts.autoRenewPlayer` is on (the default), the built-in
+**Retired by ECO5-05: off by default.** The player now renews through
+contract talks (`contracts.offerRenewal`, signed on the review day, see
+[negotiation.md#renewals](negotiation.md#renewals)); a contract nobody renews
+runs out on its end date and shows on Contracts › Ended. Before ECO5 the player
+could not renew, so this stopgap kept the roster. While
+`contracts.autoRenewPlayer` is on (now only by override), the built-in
 renewal policy `contracts.playerAutoRenewal` (`playerAutoRenewal.ts`, order 50) renews a contract of a promotion the player runs on its end date, on the
 same terms, for `contracts.autoRenewPlayerDays` more days (a renewal only
 moves `endsOn`, so the last term's length is not known). It goes through the
@@ -359,12 +376,17 @@ yourself"), `contract.renewed` with source `player`, and a line in
 closed promotions, open-ended contracts and when the tunable is off, so those
 contracts expire as before.
 
-ECO5-05 removes this policy or defaults `contracts.autoRenewPlayer` to off once
-the player can renew.
+ECO5-05 defaulted `contracts.autoRenewPlayer` to off; the policy stays for
+saves and tests that turn it on, and can be removed later.
+
+Contracts > **Rules** has a switch for it, "Renew my contracts automatically"
+(ECO4-06), shown only while the tunable exists, so the owner can watch a
+contract really run out (the Expired path) before ECO5 ships. It goes away with
+the tunable.
 
 | Key                             | Kind    | Default | Range  | Unit | Meaning                                                             |
 | ------------------------------- | ------- | ------- | ------ | ---- | ------------------------------------------------------------------- |
-| `contracts.autoRenewPlayer`     | boolean | true    |        | flag | Temporary: your contracts renew on the same terms when they run out |
+| `contracts.autoRenewPlayer`     | boolean | false   |        | flag | Temporary: your contracts renew on the same terms when they run out |
 | `contracts.autoRenewPlayerDays` | integer | 365     | 1–3650 | days | Temporary: how long each automatic renewal adds                     |
 
 ## Unhappy workers
@@ -401,8 +423,9 @@ means the first unhappy day) and the worker has no request yet:
 status: 'open', stopsSkip }` and `contract.releaseRequested`. `stopsSkip`
   copies `contracts.releaseRequest.stopSkip`, so the gate
   `contracts.releaseRequested` ("Big Joe wants to leave", + " and 2 others",
-  hint `contracts`) needs no tunable. **The stop is off by default until
-  ECO4-04's Contracts screen can answer a request**; ECO4-04 turns it on.
+  hint `contracts`) needs no tunable. The stop is on by default: the day
+  bar's **Contracts** button opens the request on the Contracts screen
+  (ECO4-04), where Grant or Refuse clears it.
 - a rival answers at once by its [keep rule](#rival-rules).
 
 **Answering.** `contracts.answerPreview { employmentId }` shows both outcomes:
@@ -454,7 +477,10 @@ Each day, before the clock, every refused request is looked at in id order:
 
 The chance and roll are stored for the player's workers at
 `contracts.walkout` / the employment. A request refused today is first rolled
-tomorrow.
+tomorrow; the refusal itself stores today's chance there (ECO4-06), so the
+Contracts sheet's walk-out chance has its Why? straight away. The Why? reads
+"Morale −60: 20 points below −40" and names `contracts.quit.threshold` beside
+the walk-out tunables.
 
 ## Rival rules
 
@@ -470,7 +496,22 @@ at `contracts.aiRelease` / the employment. Refused rival workers face the same
 walk-out rolls, so rival rosters move too. Rival clocks, requests and morale
 are never shown to the player.
 
-ECO4-05 adds the rest of the rival rules.
+**Decision log (ECO4-05).** Each answer is also one rival decision, kind
+`release` (chip "Releases"), written through AIP1's `writeAiDecision` (its
+non-job API) from `systems/contracts/decisionLog.ts`: "Let <name> go at their
+request (<reason>)" (importance 0) or "Refused to let <name> go (<reason>)"
+(importance 1), refs the person, the contract and any titles held, and its
+Why? is the stored `contracts.aiRelease` trace. Rival requests stay private:
+a grant is revealed the next day like any rival decision (the worker leaves
+anyway), a refusal only when the contract ends (a year on for an open-ended
+one). The rival and the all-seeing viewer see both at once. Keys
+`contracts.decision.release-granted` / `-refused` are in the web's
+`contracts` text catalog and the engine's `releaseDecisionText`.
+
+The renewal side of the rival rules reads AIP1's `aiShortcut` (see
+[Simple renewals](#simple-renewals)). Rival rosters still shrink: over three
+years each rival keeps 50 % to 73 % of its starting roster, since nothing
+hires for rivals until ECO6.
 
 ## Concerns
 

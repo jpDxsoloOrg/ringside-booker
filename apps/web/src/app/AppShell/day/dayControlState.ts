@@ -1,4 +1,9 @@
-import { isId } from '@ringside/engine';
+import {
+  CONTRACTS_ACTION_HINT,
+  COUNTER_WAITING_GATE_ID,
+  isId,
+  RELEASE_REQUESTED_GATE_ID,
+} from '@ringside/engine';
 import type { GateHit } from '@ringside/engine';
 import { routes } from '../../routes';
 
@@ -96,6 +101,41 @@ export function injuryGateDestination(hit: GateHit): string {
   return `${routes.game.workers()}?availability=injured`;
 }
 
+/**
+ * The route hint for the contract stops (the engine's `CONTRACTS_ACTION_HINT`, ECO4-04): a contract
+ * of yours is about to end (`contracts.expiringSoon`), or a worker wants to leave
+ * (`contracts.releaseRequested`). The button goes to the Contracts screen, where one more tap
+ * clears the stop.
+ */
+export const CONTRACTS_HINT: string = CONTRACTS_ACTION_HINT;
+
+/** The label of the contract stops' button. */
+export const CONTRACTS_LABEL = 'Contracts';
+
+/**
+ * Where a contract stop's button goes. A release request opens that worker's contract on the
+ * Active tab, filtered to the workers who want to leave, where Grant or Refuse answers it. An
+ * expiring contract opens the Expiring tab, whose Mark all seen clears every waiting notice at once
+ * (one notice per tap would mean one stop per contract on a long skip). A waiting counter-offer
+ * (ECO5-06) opens those talks on the Offers tab, where Accept counter, Send revised offer or End
+ * talks answers it.
+ */
+export function contractsGateDestination(hit: GateHit): string {
+  if (hit.gateId === COUNTER_WAITING_GATE_ID) {
+    const negotiationId = hit.subject?.kind === 'negotiation' ? hit.subject.id : null;
+    const params = new URLSearchParams({ tab: 'offers' });
+    if (isId('negotiation', negotiationId)) params.set('negotiation', negotiationId);
+    return `${routes.game.contracts()}?${params.toString()}`;
+  }
+  const employmentId = hit.subject?.kind === 'employment' ? hit.subject.id : null;
+  if (hit.gateId === RELEASE_REQUESTED_GATE_ID) {
+    const params = new URLSearchParams({ tab: 'active', wantsToLeave: '1' });
+    if (isId('employment', employmentId)) params.set('employment', employmentId);
+    return `${routes.game.contracts()}?${params.toString()}`;
+  }
+  return `${routes.game.contracts()}?tab=expiring`;
+}
+
 /** The label of a gate whose hint no screen handles yet. */
 export const GENERIC_GATE_LABEL = 'Needs attention';
 
@@ -122,15 +162,20 @@ const GATE_ROUTES: Readonly<Record<string, GateRoute>> = {
     label: () => ROSTER_LABEL,
     to: injuryGateDestination,
   },
+  [CONTRACTS_HINT]: {
+    label: () => CONTRACTS_LABEL,
+    to: contractsGateDestination,
+  },
 };
 
 /**
  * Hints in the order they win when several gates hit at once. Unanswered decisions come before a
  * show: booking with a contract or discipline call still open means acting on stale information.
- * A new injury comes after both: the show screen shows who is hurt anyway. Hints not listed here
- * keep the engine's registration order, after these.
+ * A new injury comes after both: the show screen shows who is hurt anyway. Contract stops come
+ * last: they wait days, not hours. Hints not listed here keep the engine's registration order,
+ * after these.
  */
-const HINT_PRIORITY: readonly string[] = [INBOX_HINT, SHOW_NIGHT_HINT, ROSTER_HINT];
+const HINT_PRIORITY: readonly string[] = [INBOX_HINT, SHOW_NIGHT_HINT, ROSTER_HINT, CONTRACTS_HINT];
 
 function hintRank(hit: GateHit): number {
   const rank = hit.actionHint === undefined ? -1 : HINT_PRIORITY.indexOf(hit.actionHint);

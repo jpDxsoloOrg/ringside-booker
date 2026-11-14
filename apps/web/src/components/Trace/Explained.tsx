@@ -5,6 +5,7 @@ import type { TraceDisplayUnit } from './formatTraceValue';
 import type { EntityLinkRenderer } from './rows/rowTypes';
 import styles from './Trace.module.css';
 import { traceSourceOf } from './traceSource';
+import type { TraceQuery } from './traceSource';
 import { WhyButton } from './WhyButton';
 
 export interface ExplainedProps {
@@ -18,6 +19,11 @@ export interface ExplainedProps {
   readonly trace?: TraceNode | null;
   /** Where to fetch the breakdown from, when the screen only has a reference. */
   readonly traceRef?: TraceRef | null;
+  /**
+   * A query that builds the breakdown when the panel opens, when the screen has neither (a list
+   * row's ask, say): `traceQuery('contracts.askingTerms', args, (ask) => ask.monthlyWage.trace)`.
+   */
+  readonly traceQuery?: TraceQuery | null;
   /** Draws the names of entities that inputs point at. The `EntityLinkContext`'s by default. */
   readonly renderEntityLink?: EntityLinkRenderer;
   readonly className?: string;
@@ -34,10 +40,11 @@ export function Explained({
   unit,
   trace,
   traceRef,
+  traceQuery,
   renderEntityLink,
   className,
 }: ExplainedProps) {
-  const source = traceSourceOf(trace, traceRef);
+  const source = traceSourceOf(trace, traceRef, traceQuery);
   return (
     <span className={classNames(styles['explained'], className)}>
       <span className={classNames(styles['explainedValue'], 'tabular')}>

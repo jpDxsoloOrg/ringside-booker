@@ -1,0 +1,378 @@
+/*
+ * Business > Contracts, in the office register (docs/design/visual-identity.md), laid out like the
+ * Roster: the heading with the counts line and Rules, the tabs, filters and one table. Desktop is
+ * the primary layout. Below --bp-mobile the table becomes cards (DataTable does that), the tab
+ * strip scrolls inside itself (Tabs does that) and the filters stack, so nothing here makes the
+ * page scroll sideways.
+ */
+.screen {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-4);
+  min-inline-size: 0;
+}
+
+.heading {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-tight);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.count {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: var(--font-feature-tabular);
+}
+
+.rulesButton {
+  margin-inline-start: auto;
+}
+
+.outcome:empty {
+  display: none;
+}
+
+.outcome p {
+  margin: 0;
+}
+
+.panel {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--space-3) var(--space-5);
+  min-inline-size: 0;
+}
+
+.filters > :first-child {
+  inline-size: min(100%, 14rem);
+}
+
+.banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-warning);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+}
+
+.banner p {
+  margin: 0;
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* ---------------------------------------------------------------- cells */
+
+.name {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-inline-size: 8rem;
+  max-inline-size: 14rem;
+}
+
+.nameButton {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: var(--font-weight-semibold);
+  text-align: start;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.kind {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+}
+
+.badges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0;
+  min-inline-size: 0;
+}
+
+.none {
+  color: var(--color-text-muted);
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.ends {
+  display: inline-grid;
+  gap: 0;
+  white-space: nowrap;
+}
+
+.endsIn {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+/* ---------------------------------------------------------------- the sheet */
+
+.detail {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.section {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.terms {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.terms > div {
+  display: grid;
+  grid-template-columns: minmax(7rem, 2fr) minmax(0, 3fr);
+  gap: var(--space-3);
+  align-items: baseline;
+}
+
+.terms dt {
+  color: var(--color-text-muted);
+}
+
+.terms dd {
+  margin: 0;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.terms dd[data-tone='warning'] {
+  color: var(--color-warning);
+  font-weight: var(--font-weight-semibold);
+}
+
+.private {
+  margin: 0;
+  font-weight: var(--font-weight-semibold);
+}
+
+.profileLink {
+  margin: 0;
+}
+
+.sheetFooter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.request {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+}
+
+.request p {
+  margin: 0;
+}
+
+.requestHeadline {
+  font-weight: var(--font-weight-semibold);
+}
+
+.requestLine {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+}
+
+.outcomes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--space-3);
+}
+
+.outcome {
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.outcome p {
+  margin: 0;
+}
+
+.outcomeTitle {
+  margin: 0;
+  font-size: var(--font-size-md);
+}
+
+.error {
+  margin: 0;
+  color: var(--color-negative);
+}
+
+.releaseBody {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.releaseBody p {
+  margin: 0;
+}
+
+.warnings {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding-inline-start: var(--space-5);
+  color: var(--color-warning);
+}
+
+/* ---------------------------------------------------------------- the rules sheet */
+
+.rules {
+  display: grid;
+  gap: var(--space-5);
+}
+
+@media (--bp-mobile) {
+  .heading {
+    font-size: var(--font-size-2xl);
+  }
+
+  .filters > *,
+  .filters > :first-child {
+    inline-size: 100%;
+  }
+
+  .rulesButton {
+    margin-inline-start: 0;
+  }
+
+  /*
+   * The whole card opens the contract: the name's button stretches over its card. The card's other
+   * controls (Why?, Got it) sit above that layer, each at least 44px tall.
+   */
+  .table li[data-row-id] {
+    position: relative;
+  }
+
+  .name {
+    min-inline-size: 0;
+    max-inline-size: none;
+  }
+
+  .nameButton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .table li[data-row-id] button:not(.nameButton) {
+    position: relative;
+    z-index: 1;
+    min-block-size: var(--tap-target-min);
+  }
+
+  .terms > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  /* On a card the date and the days left share one line. */
+  .ends {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0 var(--space-1);
+  }
+
+  .nowrap {
+    white-space: normal;
+  }
+
+  .sheetFooter > * {
+    flex: 1 1 auto;
+  }
+}
+
+/* Registered actions on an Expiring row (ECO5-06's Renew): wrap rather than widen the row. */
+.rowActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  min-inline-size: 0;
+}
+
+/* A disabled action with its reason written beside it (Free agents' cooldown, ECO5-06). */
+.disabledAction {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  min-inline-size: 0;
+}
+
+.reason {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+/* A long badge ("Per appearance at Hardpan Pro Wrestling") wraps instead of widening a phone card. */
+.wrapBadge {
+  max-inline-size: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

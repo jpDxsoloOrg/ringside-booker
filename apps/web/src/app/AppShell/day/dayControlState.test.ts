@@ -3,6 +3,7 @@ import { parseId } from '@ringside/engine';
 import type { GateHit } from '@ringside/engine';
 import { routes } from '../../routes';
 import {
+  CONTRACTS_HINT,
   deriveDayControl,
   gateDestination,
   GENERIC_GATE_LABEL,
@@ -196,6 +197,79 @@ describe('the own-injury stop (roster hint)', () => {
     expect(leadingGate([injuryGate, contractDecision])).toBe(contractDecision);
     expect(leadingGate([injuryGate, { gateId: 'x', reason: 'Other', actionHint: 'other' }])).toBe(
       injuryGate,
+    );
+  });
+});
+
+describe('the contract stops (contracts hint)', () => {
+  const expiringGate: GateHit = {
+    gateId: 'contracts.expiringSoon',
+    reason: 'Contract expiring soon: Big Joe (ends Mar 14, 2031) and 1 more',
+    subject: { kind: 'employment', id: 'emp_0000000007' },
+    actionHint: CONTRACTS_HINT,
+  };
+  const requestGate: GateHit = {
+    gateId: 'contracts.releaseRequested',
+    reason: 'Big Joe wants to leave',
+    subject: { kind: 'employment', id: 'emp_0000000007' },
+    actionHint: CONTRACTS_HINT,
+  };
+  const injuryGate: GateHit = {
+    gateId: 'health.ownWorkerInjured',
+    reason: 'Big Joe was injured',
+    actionHint: ROSTER_HINT,
+  };
+
+  it('reads Contracts and opens the Expiring tab, where Mark all seen clears every notice', () => {
+    expect(deriveDayControl([expiringGate], idle)).toEqual({
+      primary: {
+        kind: 'gate',
+        label: 'Contracts',
+        phoneLabel: null,
+        reason: expiringGate.reason,
+        to: `${routes.game.contracts()}?tab=expiring`,
+      },
+      skipEnabled: false,
+    });
+  });
+
+  it('opens the worker who wants to leave on the Active tab, filtered to requests', () => {
+    expect(gateDestination(requestGate)).toEqual({
+      label: 'Contracts',
+      to: `${routes.game.contracts()}?tab=active&wantsToLeave=1&employment=emp_0000000007`,
+    });
+  });
+
+  it('still filters to requests when the gate names no contract', () => {
+    const withoutSubject: GateHit = {
+      gateId: requestGate.gateId,
+      reason: requestGate.reason,
+      actionHint: CONTRACTS_HINT,
+    };
+    expect(gateDestination(withoutSubject)?.to).toBe(
+      `${routes.game.contracts()}?tab=active&wantsToLeave=1`,
+    );
+  });
+
+  it('opens the talks of a waiting counter-offer on the Offers tab (ECO5-06)', () => {
+    const counterGate: GateHit = {
+      gateId: 'contracts.counterWaiting',
+      reason: 'Counter-offer from Big Joe is waiting for your answer',
+      subject: { kind: 'negotiation', id: 'neg_0000000003' },
+      actionHint: CONTRACTS_HINT,
+    };
+    expect(gateDestination(counterGate)).toEqual({
+      label: 'Contracts',
+      to: `${routes.game.contracts()}?tab=offers&negotiation=neg_0000000003`,
+    });
+  });
+
+  it('waits behind decisions, a show night and a new injury', () => {
+    expect(leadingGate([expiringGate, showGate])).toBe(showGate);
+    expect(leadingGate([requestGate, contractDecision])).toBe(contractDecision);
+    expect(leadingGate([requestGate, injuryGate])).toBe(injuryGate);
+    expect(leadingGate([{ gateId: 'x', reason: 'Other', actionHint: 'other' }, expiringGate])).toBe(
+      expiringGate,
     );
   });
 });

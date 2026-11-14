@@ -11,8 +11,8 @@ export { NO_BREAKDOWN_TEXT, TracePanel, TraceQueryPanel, TraceSummaryView } from
 export type { TracePanelProps, TraceQueryPanelProps } from './TracePanel';
 export { useTracePanelStore } from './tracePanelStore';
 export type { TracePanelState } from './tracePanelStore';
-export { traceSourceOf } from './traceSource';
-export type { TraceQueryName, TraceSource } from './traceSource';
+export { traceQuery, traceSourceOf } from './traceSource';
+export type { TraceQuery, TraceQueryName, TraceSource } from './traceSource';
 export {
   SUMMARISED_NOTICE,
   SUMMARY_ONLY_NOTICE,

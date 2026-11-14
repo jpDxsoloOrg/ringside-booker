@@ -113,14 +113,15 @@ D-01: computer-run promotions take shortcuts the player does not get, so the
 world sim stays cheap. Each shortcut is its own `ai.*` tunable (category
 `Rival rules`, in `systems/aip/shortcuts.ts`) that defaults on.
 
-| Key                      | Default | What it does when it applies                                                                   | Acted on by          |
-| ------------------------ | ------- | ---------------------------------------------------------------------------------------------- | -------------------- |
-| `ai.skipInMatchInjuries` | on      | Rivals' matches cause no in-match injuries; their injuries come from daily world events        | MTCH4, WRK6          |
-| `ai.skipResultMorale`    | on      | Rival workers' morale does not move with match results; small off-screen morale events instead | WRK8                 |
-| `ai.scoreBonus`          | 3       | Points added to every rival segment score (0 to 20)                                            | MTCH1 (RatingPolicy) |
-| `ai.simpleBookingInputs` | on      | Rival bookings skip production notes and match plans                                           | MTCH1                |
-| `ai.skipMediaRequests`   | on      | Rivals receive no media requests                                                               | SOC1                 |
-| `ai.skipWorkerRequests`  | on      | Rival workers make no requests of their bosses                                                 | SOC5                 |
+| Key                           | Default | What it does when it applies                                                                                                                  | Acted on by          |
+| ----------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
+| `ai.skipInMatchInjuries`      | on      | Rivals' matches cause no in-match injuries; their injuries come from daily world events                                                       | MTCH4, WRK6          |
+| `ai.skipResultMorale`         | on      | Rival workers' morale does not move with match results; small off-screen morale events instead                                                | WRK8                 |
+| `ai.scoreBonus`               | 3       | Points added to every rival segment score (0 to 20)                                                                                           | MTCH1 (RatingPolicy) |
+| `ai.simpleBookingInputs`      | on      | Rival bookings skip production notes and match plans                                                                                          | MTCH1                |
+| `ai.skipMediaRequests`        | on      | Rivals receive no media requests                                                                                                              | SOC1                 |
+| `ai.skipWorkerRequests`       | on      | Rival workers make no requests of their bosses                                                                                                | SOC5                 |
+| `ai.contracts.simpleRenewals` | on      | Rival contracts that run out are renewed by a simple rule ([contracts.md](contracts.md#simple-renewals)) until the rival labour market (ECO6) | ECO4 (ECO4-05)       |
 
 **The two rules.** `aiShortcut(read, tunables, promotionId, key, brandId?)`
 (`aiShortcut.ts`) is the only code that combines a unit's controller, the
@@ -287,12 +288,13 @@ kind and `decisionKindOf(kind)` looks one up. The rival desk registers
 features register theirs (`push`, `title`, `businessReview`, ...) from their
 own modules.
 
-| Kind           | Chip          | Registered by                                      |
-| -------------- | ------------- | -------------------------------------------------- |
-| `rosterReview` | Roster review | `decisionKinds.ts` (AIP1-05)                       |
-| `card`         | Card          | `card/bookShowJob.ts` (AIP4-05)                    |
-| `winner`       | Winners       | `results/decisionKinds.ts` (AIP5-01, used by AIP5) |
-| `title`        | Titles        | `results/decisionKinds.ts` (AIP5-01, used by AIP5) |
+| Kind           | Chip          | Registered by                                                                                                                     |
+| -------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `rosterReview` | Roster review | `decisionKinds.ts` (AIP1-05)                                                                                                      |
+| `card`         | Card          | `card/bookShowJob.ts` (AIP4-05)                                                                                                   |
+| `winner`       | Winners       | `results/decisionKinds.ts` (AIP5-01, used by AIP5)                                                                                |
+| `title`        | Titles        | `results/decisionKinds.ts` (AIP5-01, used by AIP5)                                                                                |
+| `release`      | Releases      | `systems/contracts/decisionLog.ts` (ECO4-05): a rival's answer to a release request, see [contracts.md](contracts.md#rival-rules) |
 
 **Pruning.** `aip.pruneDecisionLog` (group `periodic`, order 42, daily)
 deletes expired rows in ID order with the `pruneOnly` delete

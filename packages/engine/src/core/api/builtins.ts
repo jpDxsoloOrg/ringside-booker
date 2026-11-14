@@ -38,6 +38,7 @@ import { defineCommand } from './command';
 import type { CommandLogEntry } from './commandLog';
 import { viewerPromotionIds, type Controller } from './controller';
 import { defineQuery, type TraceReader } from './query';
+import { guardTraceRead } from './traceGuards';
 import type { Reason } from './result';
 import { defineSystem } from './system';
 
@@ -307,7 +308,8 @@ const traceGet = defineQuery('trace.get', {
       id: z.string().min(1),
     }),
   }),
-  run: (ctx, args) => ctx.traces.get(args.ref) ?? null,
+  // Guarded kinds (ECO5-05's review decisions) show each viewer only what is theirs.
+  run: (ctx, args) => guardTraceRead(ctx, ctx.traces.get(args.ref)),
 });
 
 const tunablesList = defineQuery('tunables.list', {

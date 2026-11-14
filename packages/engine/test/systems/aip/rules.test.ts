@@ -43,7 +43,7 @@ describe('aip.rules', () => {
     }
   });
 
-  it('lists the six shortcuts, all in force by default', () => {
+  it('lists the seven shortcuts, all in force by default', () => {
     const view = rules(rulesEngine());
     expect(view.levelPlayingField).toBe(false);
     expect(view.appliesTo).toBe('computer');
@@ -54,6 +54,7 @@ describe('aip.rules', () => {
       ['ai.simpleBookingInputs', 'flag', true, true],
       ['ai.skipMediaRequests', 'flag', true, true],
       ['ai.skipWorkerRequests', 'flag', true, true],
+      ['ai.contracts.simpleRenewals', 'flag', true, true],
     ]);
     expect(shortcut(view, 'ai.skipInMatchInjuries')).toMatchObject({
       label: 'No in-match injuries',
@@ -64,13 +65,14 @@ describe('aip.rules', () => {
     });
   });
 
-  it('shows the six keys under Rival rules in tunables.list', () => {
+  it('shows the seven keys under Rival rules in tunables.list', () => {
     const list = rulesEngine().query('tunables.list', { category: 'Rival rules' }, PLAYER);
     if (!list.ok) {
       expect.fail(JSON.stringify(list.reasons));
     }
     // The list is sorted by key.
     expect(list.data.map((row) => [row.key, row.default])).toEqual([
+      ['ai.contracts.simpleRenewals', true],
       ['ai.scoreBonus', 3],
       ['ai.simpleBookingInputs', true],
       ['ai.skipInMatchInjuries', true],
@@ -122,6 +124,10 @@ describe('aip.rules', () => {
     expect([...shortcut(rules(engine), 'ai.skipInMatchInjuries').consumers].sort()).toEqual([
       'Match injuries',
       'Off-screen injuries',
+    ]);
+    // ECO4's simple rival renewal reads its own shortcut (ECO4-05).
+    expect(shortcut(rules(engine), 'ai.contracts.simpleRenewals').consumers).toEqual([
+      'Contract renewals',
     ]);
     cleanups.push(
       registerAiShortcutConsumer({ key: 'ai.scoreBonus', featureId: 'TEST1', label: 'Ratings' }),

@@ -26,8 +26,12 @@ import { anAftermath } from './builders/aftermath';
 import { aMail, aNews } from './builders/inbox';
 import { aVenue } from './builders/geography';
 import { testId } from './ids';
+import { aPerson } from './builders/people';
 import {
   aContractConcern,
+  aNegotiation,
+  anEmployment,
+  anOffer,
   anAiDecision,
   anAiProfile,
   aRelationship,
@@ -604,6 +608,8 @@ const TINY_WORLD_SNAPSHOTS: readonly DeepPartial<PromotionSnapshot>[] = [
  * - 1 past injury (WRK6-03): people[4] hurt their arm off screen on the start date and back ten
  *   days later, so nobody is injured today;
  * - 1 contract concern (ECO4-01): a seen expiry notice on promotion A's people[5] contract;
+ * - 1 free agent (ECO5-01), the last person, who has an `offered` employment with promotion A and
+ *   a round-1 signing negotiation with it, `countered`: the worker asks for more than the offer;
  * - the shipped base catalogs on its metadata (`TEST_CATALOGS`), so every segment key resolves.
  */
 export function tinyWorld(): BuiltWorld {
@@ -660,7 +666,68 @@ export function tinyWorld(): BuiltWorld {
       returnedOn: addDays(TINY_WORLD_START, 10),
     })
     .with('contract concern', addTinyContractConcern)
+    .with('negotiation', addTinyNegotiation)
     .build();
+}
+
+/**
+ * A free agent promotion A offered a contract two days ago, and their counter-offer (a higher wage
+ * and a signing bonus) waiting for an answer, so the negotiations table is not empty.
+ */
+function addTinyNegotiation(context: BuildContext): void {
+  const { sequence } = context;
+  const promotionId = required(context.ids.promotions.A, 'promotion A');
+  const person = context.insert('people', aPerson({}, sequence));
+  const offeredOn = addDays(TINY_WORLD_TODAY, -2);
+  const startsOn = addDays(TINY_WORLD_TODAY, 7);
+  const offer = anOffer({ startsOn, lengthMonths: 12 });
+  const counter = anOffer({
+    startsOn,
+    lengthMonths: 12,
+    terms: { monthlyWage: cents(650_000), signingBonus: cents(200_000) },
+  });
+  const employment = context.insert(
+    'employments',
+    anEmployment(
+      {
+        personId: person.id,
+        promotionId,
+        status: 'offered',
+        offeredOn,
+        startsOn,
+        endsOn: addDays(startsOn, 365),
+        ringName: `${person.givenName} ${person.familyName}`,
+      },
+      sequence,
+    ),
+  );
+  const id = sequence.id('negotiation');
+  context.insert(
+    'negotiations',
+    aNegotiation(
+      {
+        id,
+        personId: person.id,
+        promotionId,
+        employmentId: employment.id,
+        status: 'countered',
+        round: 1,
+        startPatience: 6,
+        patience: 4,
+        offer,
+        lastCounter: counter,
+        history: [
+          { round: 1, date: offeredOn, by: 'promotion', offer, reaction: 'counter' },
+          { round: 1, date: offeredOn, by: 'worker', offer: counter, reaction: null },
+        ],
+        openedOn: offeredOn,
+        submittedOn: offeredOn,
+        counterExpiresOn: addDays(offeredOn, 7),
+        reactionTraceId: `${id}:1`,
+      },
+      sequence,
+    ),
+  );
 }
 
 /** A seen expiry notice on promotion A's people[5] contract, so the table is not empty. */

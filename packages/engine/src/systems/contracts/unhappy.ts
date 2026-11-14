@@ -32,6 +32,13 @@ import type { ContractConcern } from '../../model/entities/contract-concern';
 import type { Employment } from '../../model/entities/employment';
 import type { Promotion } from '../../model/entities/promotion';
 import type { DeepReadonly } from '../../model/world';
+import { writeAiDecision } from '../aip/decisions';
+import { unitOf } from '../aip/units';
+import {
+  RELEASE_DECISION_KIND,
+  releaseDecisionEntry,
+  releaseDecisionRevealOn,
+} from './decisionLog';
 import { endEmployment } from './endEmployment';
 import { aiReleaseDecision } from './formulas/aiReleaseDecision';
 import { WALKOUTS_DOC_REF } from './formulas/walkoutChance';
@@ -124,13 +131,30 @@ function walkoutStep(
   }
 }
 
-/** A rival answers its worker's new request at once. */
+/**
+ * A rival answers its worker's new request at once, and logs the answer in its Decision log
+ * (AIP1's `writeAiDecision`, ECO4-05).
+ */
 function rivalAnswers(ctx: PhaseContext, employment: DeepReadonly<Employment>): void {
-  const titles = titlesHeldBy(ctx.read, employment.personId, employment.promotionId).map(
-    (id) => ctx.read.tables.titles.get(id)?.name ?? 'a title',
-  );
+  const titleIds = titlesHeldBy(ctx.read, employment.personId, employment.promotionId);
+  const titles = titleIds.map((id) => ctx.read.tables.titles.get(id)?.name ?? 'a title');
   const decision = aiReleaseDecision({ push: employment.push, titles }, { tunables: ctx.tunables });
-  ctx.recordTrace(aiReleaseTraceRef(employment.id), ctx.date, decision);
+  const traceRef = aiReleaseTraceRef(employment.id);
+  ctx.recordTrace(traceRef, ctx.date, decision);
+  const entry = releaseDecisionEntry({
+    answer: decision.value,
+    ringName: employment.ringName,
+    reason: decision.trace.kind === 'decision' ? decision.trace.reason : '',
+    personId: employment.personId,
+    employmentId: employment.id,
+    titleIds,
+  });
+  writeAiDecision(ctx.tx, ctx, unitOf(ctx.read, employment.promotionId), {
+    kind: RELEASE_DECISION_KIND,
+    ...entry,
+    traceRef,
+    revealOn: releaseDecisionRevealOn(decision.value, employment.endsOn, ctx.date),
+  });
   if (decision.value === 'grant') {
     grantRequest(ctx, employment.id, 'ai');
     return;

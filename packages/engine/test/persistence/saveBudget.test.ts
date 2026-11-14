@@ -7,6 +7,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
+import { SLOW_TESTS } from '../support/slow';
 import {
   createEngine,
   engineLoadOptions,
@@ -29,7 +30,7 @@ const DAYS = 91;
 const MAX_GZIP_BYTES = 1_000_000;
 
 describe('save size budget on the roster world', () => {
-  it(
+  it.runIf(SLOW_TESTS)(
     `keeps ${String(DAYS)} carded days within the trace budgets and under 1 MB on disk`,
     { timeout: 120_000 },
     async () => {

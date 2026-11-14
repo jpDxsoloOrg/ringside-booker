@@ -11,7 +11,7 @@ import { Stack } from '@/components/layout';
 import type { GalleryEntry } from '../galleryEntry';
 import styles from './entries.module.css';
 
-const SAMPLE_BADGES: NavBadgeCounts = { unreadMail: 3, pendingDecisions: 1 };
+const SAMPLE_BADGES: NavBadgeCounts = { unreadMail: 3, pendingDecisions: 1, wantsToLeave: 1 };
 
 function SectionList({ section }: { readonly section: NavSection }) {
   return (

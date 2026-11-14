@@ -29,6 +29,11 @@ export interface AiRenewalInputs {
   readonly push: Push;
   /** How many of this promotion's titles the worker holds today (`titlesHeldBy`). */
   readonly titlesHeld: number;
+  /**
+   * The Rival rules shortcut that let this rule run (`aiShortcut`, ECO4-05), shown as the Why?'s
+   * first line. Left out (tests of the formula alone): no line.
+   */
+  readonly shortcut?: Traced<boolean>;
 }
 
 export interface AiRenewalResult {
@@ -80,6 +85,9 @@ export function aiRenewalDecision(
   const decision = startDecision<AiRenewalChoice>('Rival renewal', {
     docRef: SIMPLE_RENEWALS_DOC_REF,
   });
+  if (inputs.shortcut !== undefined) {
+    decision.include(inputs.shortcut.trace.label, inputs.shortcut);
+  }
   const keepChampions = decision.tunable(tunables, 'contracts.ai.keepChampions');
   const champion = keepChampions && inputs.titlesHeld > 0;
   decision.rule(AI_RENEWAL_RULES.holdsTitle, champion);

@@ -40,3 +40,4 @@ Game and technical design for Ringside Booker. Each game system gets its own doc
 | [rival-booking.md](rival-booking.md)               | The card planner: who a rival show may use (the card pool), the card shape and the rival booking tunables                     |
 | [production.md](production.md)                     | Production: the eight areas, running costs per show and per month, upgrade fees, the popularity ceiling and its daily drag    |
 | [contracts.md](contracts.md)                       | Contracts over time: the daily lifecycle, the `endEmployment` door, severance, renewal policies and the simple rival renewal  |
+| [negotiation.md](negotiation.md)                   | Negotiation: offers, counter-offers and review; the `negotiations` table, offer kinds and enforced terms                      |

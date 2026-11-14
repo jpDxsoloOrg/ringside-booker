@@ -138,6 +138,7 @@ describe('WorkerProfileScreen', () => {
       'Career',
       'Health',
       'Form',
+      'Contract',
     ]);
     expect(screen.getByRole('tab', { name: 'Overview' })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByText('Would expect:')).toBeInTheDocument();
@@ -285,6 +286,7 @@ describe('WorkerProfileScreen: tabs from other features', () => {
       'Career',
       'Health',
       'Form',
+      'Contract',
     ]);
 
     await user.click(screen.getByRole('tab', { name: 'Scouting' }));
@@ -301,6 +303,7 @@ describe('WorkerProfileScreen: tabs from other features', () => {
       'Career',
       'Health',
       'Form',
+      'Contract',
     ]);
     // The URL still names the tab that went away, so the profile shows Overview.
     expect(screen.getByRole('tab', { name: 'Overview' })).toHaveAttribute('aria-selected', 'true');
@@ -323,6 +326,7 @@ describe('WorkerProfileScreen: tabs from other features', () => {
       'Health',
       'Development',
       'Form',
+      'Contract',
     ]);
   });
 
@@ -345,6 +349,7 @@ describe('WorkerProfileScreen: tabs from other features', () => {
       'Career',
       'Health',
       'Form',
+      'Contract',
     ]);
     expect(screen.queryByText('Secret content')).toBeNull();
     expect(screen.getByRole('tab', { name: 'Overview' })).toHaveAttribute('aria-selected', 'true');

@@ -31,6 +31,7 @@ import { ROSTER_REVIEW_SUMMARY_KEY, rosterReviewSummaryText } from '../jobs/rost
 import { isRevealedTo } from '../reveal';
 import { resultsSummaryText } from '../results/texts';
 import { brandOrRefuse, promotionOrRefuse } from './shared';
+import { releaseDecisionText } from '../../contracts/decisionLog';
 import { keepDetailPeriodText } from '../../history/note';
 
 /** Entries one page holds when not told. */
@@ -108,7 +109,9 @@ export function decisionSummaryText(summary: TemplatedText): string {
     case SHOW_CANCELLED_SUMMARY_KEY:
       return showCancelledText(summary);
     default:
-      return resultsSummaryText(summary) ?? needSummaryText(summary);
+      return (
+        resultsSummaryText(summary) ?? releaseDecisionText(summary) ?? needSummaryText(summary)
+      );
   }
 }
 

@@ -23,7 +23,7 @@
  */
 
 import { startCalc } from '../../../core/trace/calc';
-import { constantOf } from '../../../core/trace/helpers';
+import { constantOf, inputOf } from '../../../core/trace/helpers';
 import type { Traced } from '../../../core/trace/types';
 import type { ContractKind } from '../../../model/entities/employment';
 import type { EngineTunables } from '../../tunables';
@@ -110,10 +110,16 @@ function monthsOwed(inputs: SeveranceInputs, tunables: EngineTunables): Traced<n
       )
       .done();
   }
-  return startCalc('Months owed', Math.max(0, inputs.daysOwed), {
+  // The days are their own input, so the Why? reads "99 days", not the calculation's months.
+  const days = inputOf(
+    'Days left on the contract',
+    Math.max(0, inputs.daysOwed),
+    undefined,
+    'days',
+  );
+  return startCalc('Months owed', days, {
     unit: 'months',
     docRef: SEVERANCE_FORMULA_DOC_REF,
-    startLabel: 'Days left on the contract',
   })
     .divide(
       'Days in a month',

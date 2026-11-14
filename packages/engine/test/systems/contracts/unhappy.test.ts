@@ -98,7 +98,10 @@ describe('release requests', () => {
 
   it('asks at once with quit.days 0, and stopsSkip false with the stop off', async () => {
     const built = unhappyWorld();
-    const run = unhappyEngine(built.world, { 'contracts.quit.days': 0 });
+    const run = unhappyEngine(built.world, {
+      'contracts.quit.days': 0,
+      'contracts.releaseRequest.stopSkip': false,
+    });
     run.setMorale(built.worker, -41);
     await run.advance(1);
     expect(concernOf(run.engine, built.worker)?.request).toMatchObject({
@@ -108,12 +111,10 @@ describe('release requests', () => {
     });
   });
 
-  it('stops a skip on an open request, and not after it is answered', async () => {
+  it('stops a skip on an open request by default, and not after it is answered', async () => {
     const built = unhappyWorld();
-    const run = unhappyEngine(built.world, {
-      ...QUICK,
-      'contracts.releaseRequest.stopSkip': true,
-    });
+    // No override: the stop is on by default since the Contracts screen answers it (ECO4-04).
+    const run = unhappyEngine(built.world, QUICK);
     run.setMorale(built.worker, -50);
     const result = await run.engine.advanceDays({ maxDays: 30 });
     expect(result.daysAdvanced).toBe(3);
@@ -136,6 +137,7 @@ describe('release requests', () => {
     const built = unhappyWorld();
     const run = unhappyEngine(built.world, {
       ...QUICK,
+      'contracts.releaseRequest.stopSkip': false,
       'contracts.releaseRequest.answerDays': 2,
       'contracts.walkout.chancePerDay': 0,
       'contracts.walkout.extraPerPoint': 0,
@@ -298,6 +300,11 @@ describe('answering a request', () => {
     );
     expect(row?.request?.status).toBe('refused');
     expect(row?.walkout?.chance).toBeCloseTo(0.04);
+    // The chance has its Why? straight away, before the first daily roll replaces it.
+    expect(row?.walkout?.traceRef).toEqual(walkoutTraceRef(built.worker));
+    const first = storedTrace(run, walkoutTraceRef(built.worker));
+    expect(JSON.stringify(first)).toContain('contracts.quit.threshold');
+    expect(JSON.stringify(first)).not.toContain('"stream":"contracts.walkout"');
     await run.advance(1);
     const roll = storedTrace(run, walkoutTraceRef(built.worker));
     expect(JSON.stringify(roll)).toContain('"stream":"contracts.walkout"');

@@ -88,6 +88,32 @@ export async function enterGameFromInjurySave(page: Page): Promise<void> {
   await expect(page.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeVisible();
 }
 
+/**
+ * The contracts e2e save: a default-world game as Altura on the day two of its lower-card
+ * wrestlers ask to leave (Restless patience), built by `fixtures/build-contracts-save.ts` (which
+ * `npm run e2e` runs first).
+ */
+export const CONTRACTS_SAVE_PATH = fileURLToPath(
+  new URL('../fixtures/sample-contracts.rbsave', import.meta.url),
+);
+
+/** The slot label the imported contracts save gets. */
+export const CONTRACTS_SLOT_LABEL = 'Contracts save (imported)';
+
+/** Imports the contracts save from the title screen, loads it and waits for the office. */
+export async function enterGameFromContractsSave(page: Page): Promise<void> {
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1, name: 'Ringside Booker' })).toBeVisible();
+  await page.getByTestId('import-save-input').setInputFiles(CONTRACTS_SAVE_PATH);
+  await expect(page.getByRole('heading', { level: 1, name: 'Saved games' })).toBeVisible();
+  await page
+    .getByRole('article', { name: CONTRACTS_SLOT_LABEL, exact: true })
+    .getByRole('button', { name: `Load ${CONTRACTS_SLOT_LABEL}` })
+    .click();
+  await expect(page).toHaveURL(/\/game\/office$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeVisible();
+}
+
 /* ---------------------------------------------------------------- the new-game wizard */
 
 /** A new-game wizard step's heading. */
