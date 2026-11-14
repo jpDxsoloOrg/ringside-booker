@@ -419,6 +419,43 @@ features add tabs and KPI cards with `registerFinanceTab` and `registerFinanceKp
 `screens/finances/README.md` has the slots. The top bar's cash chip has a Why? from
 `sim.status.promotion.cashTraceRef`, the same breakdown the Overview's Cash card opens.
 
+## Contracts
+
+Business > Contracts (`/game/contracts`, `screens/contracts/ContractsScreen.tsx`, ECO4-04) lists
+the seat's contracts on three tabs from `contracts.list`: Active (kind, wage, end date, perks,
+titles, status chips), Expiring (soonest first; a banner with Mark all seen and a Got it per new
+notice, both `contracts.acknowledgeExpiries`) and Ended (when, how, severance paid with its Why?).
+The tab, the open contract and the "Wants to leave" filter live in the URL (`?tab=expiring`,
+`?employment=emp_…`, `?wantsToLeave=1`), which is where the day bar's **Contracts** button lands
+(`CONTRACTS_HINT` in `day/dayControlState.ts`). A row opens `ContractSheet`: every term, the
+severance today, dates, titles, morale and the unhappy clock, Release (`ReleaseDialog`, the
+preview's severance and cash after, with `expectedSeverance` on confirm) and, for a request to
+leave, Grant / Refuse (`ReleaseRequestPanel`). The **Rules** sheet sets Worker patience and the
+expiring-soon stop through `tunables.setOverride` / `tunables.clearOverride` (saved with the game).
+While `contracts.autoRenewPlayer` is on the screen says so ("Renews automatically for a year until
+contract talks arrive"). The worker profile gains a **Contract** tab (order 60,
+`screens/contracts/profile/registerContractTab.tsx`): your worker's terms and actions, or a rival's
+promotion, kind and dates with "Terms private". The Contracts nav item badges workers who want to
+leave (`useNavBadges`, `contracts.counts`), and the Next Day summary lists contract changes
+(`day/contractChangesText.ts`).
+
+### Adding a contract action
+
+ECO5's Renew (and later actions) go in the contract sheet's footer without editing the screen:
+
+```tsx
+registerContractRowAction({
+  id: 'renew',
+  label: 'Renew',
+  visible: (row) => row.status === 'active' && row.endsOn !== null,
+  run: (row) => openRenewDialog(row.employmentId),
+});
+```
+
+`registerContractRowAction` (`screens/contracts/rowActions.ts`) returns a function that removes the
+action and throws for a taken id. Once an action with id `renew` is registered the Expiring tab
+drops its "Renewals arrive with contract negotiation" note.
+
 ## The Office
 
 `/game/office` (`screens/office/`) shows the seat's key numbers from `office.dashboard`, then
@@ -529,7 +566,9 @@ and links to their results (see [Show results](#show-results)).
 
 - **The day button** (`day/DayControl.tsx`) reads "Next day" until a gate waits. Then
   `day/dayControlState.ts` turns the gates into a button by their route hint: `inbox` ("2 decisions
-  waiting", which outranks everything), `booking` ("Go to show"), and anything else "Needs
+  waiting", which outranks everything), `booking` ("Go to show"), `roster` (an injury), `contracts`
+  ("Contracts": an expiring contract opens the Expiring tab, a worker who wants to leave opens
+  their contract on the Active tab filtered with `wantsToLeave=1`), and anything else "Needs
   attention" with the gate's reason. Shift+N presses it outside text fields and dialogs.
 - **Skip days** (`day/SkipDaysSheet.tsx`) takes a length (1 to 3,650 days) and an optional stop
   date, both checked against the engine's rules, with the calendar maths from `@ringside/engine`.
