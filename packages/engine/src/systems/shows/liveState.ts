@@ -21,7 +21,8 @@ import { showScore } from './formulas/showScore';
 import { showStars } from './formulas/showStars';
 import { isShowLive, ranSegmentIdsOf, segmentsLeft } from './live';
 import { SHOW_NOT_FOUND_MESSAGE } from './queries';
-import { isViewerShow, showResultsView, type SegmentResultView } from './resultsView';
+import { showResultsView, type SegmentResultView } from './resultsView';
+import { canReadCard } from '../booking/control';
 import { scoreInputs, storedScores } from './runShow';
 import type { ShowNightMode } from './settings';
 import type { EngineTunables } from '../tunables';
@@ -103,10 +104,7 @@ export const liveStateQuery: QueryDefinition<'shows.liveState'> = defineQuery('s
   args: z.strictObject({ eventInstanceId: zId('eventInstance') }),
   run: (ctx, args) => {
     const instance = ctx.read.tables.eventInstances.get(args.eventInstanceId);
-    if (
-      instance === undefined ||
-      (ctx.viewer.kind !== 'omniscient' && !isViewerShow(ctx.read, instance, ctx.viewer))
-    ) {
+    if (instance === undefined || !canReadCard(ctx.read, ctx.viewer, instance)) {
       return refuseQuery({ code: 'notFound', message: SHOW_NOT_FOUND_MESSAGE });
     }
     const finished = instance.status === 'completed';

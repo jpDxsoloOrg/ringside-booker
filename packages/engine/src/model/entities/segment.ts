@@ -322,7 +322,8 @@ function checkMatchSides(view: WorldView): IntegrityIssue[] {
 
 /**
  * Rules (6) and (7): titles on the line belong to the show's promotion, and a rating exists only
- * once the show is completed. A match `outcome` on a show that has not run is the booker's planned
+ * once the show is completed, or once the segment has run on a show under way (EVT10-01's
+ * `liveRun`). A match `outcome` on a show that has not run is the booker's planned
  * result, so it is allowed whatever the status.
  */
 function checkAgainstInstance(view: WorldView): IntegrityIssue[] {
@@ -334,7 +335,11 @@ function checkAgainstInstance(view: WorldView): IntegrityIssue[] {
     if (instance === undefined) {
       continue;
     }
-    if (segment.rating !== null && instance.status !== 'completed') {
+    if (
+      segment.rating !== null &&
+      instance.status !== 'completed' &&
+      !(instance.liveRun?.ranSegmentIds.includes(segment.id) ?? false)
+    ) {
       issues.push({
         code: 'segments.resultBeforeCompletion',
         table: TABLE,
