@@ -1,0 +1,31 @@
+/* A deal's viewers (cyan) against the network's expectation (a dashed muted line), one scale. */
+.trend {
+  display: block;
+  inline-size: 6rem;
+  block-size: 1.75rem;
+  overflow: visible;
+}
+
+.viewers,
+.expected {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.viewers {
+  stroke: var(--color-data);
+  stroke-width: 2;
+}
+
+.expected {
+  stroke: var(--color-text-muted);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.none {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}

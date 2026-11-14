@@ -6,6 +6,7 @@ import { CalendarScreen } from '@/screens/calendar/CalendarScreen';
 import { ContractsScreen } from '@/screens/contracts/ContractsScreen';
 import { FinancesScreen } from '@/screens/finances/FinancesScreen';
 import { MatchLabScreen } from '@/screens/match-lab/MatchLabScreen';
+import { NetworksScreen } from '@/screens/networks/NetworksScreen';
 import { NewsScreen } from '@/screens/news';
 import { OfficeScreen } from '@/screens/office/OfficeScreen';
 import { ProductionScreen } from '@/screens/production/ProductionScreen';
@@ -254,7 +255,8 @@ export const navigationSections: readonly NavSection[] = [
         label: 'Networks',
         icon: 'tv',
         to: routes.game.networks(),
-        status: 'placeholder',
+        status: 'live',
+        screen: NetworksScreen,
       },
       {
         id: 'production',
