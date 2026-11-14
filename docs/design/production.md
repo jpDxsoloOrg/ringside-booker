@@ -221,8 +221,9 @@ Worked numbers at the defaults:
 | `production.showCostMultiplier.flagship` | number | 2.5     | 0–10  | multiplier | Same, flagship show                                |
 
 Balance is a first guess. Altura spends about $1.2M a month on overhead plus
-about $200,000 per regular show, against $40M cash and TV fees of over $1M per
-Mainstage; Hardpan spends $4,700 a month plus $710 per Friday against $85,000.
+about $200,000 per regular show, against $40M cash and TV and pay-per-view
+money of about $1.1M a month since ECO8-09
+([broadcast.md](broadcast.md#tv-pay-calibration)); Hardpan spends $4,700 a month plus $710 per Friday against $85,000.
 If payroll leaves local promotions bleeding, tune `production.monthlyCost.*`
 down; the curve keeps low levels cheap.
 

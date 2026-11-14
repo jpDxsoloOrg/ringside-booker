@@ -304,8 +304,8 @@ null`) is valued as `major` on pay-per-view ("All major shows") and, on TV
 | Pay-per-view | none: "Pay-per-view pays per buy, not a flat fee"                                                        | `ppvPerThousandBuys` × shortfall, per thousand buys           |
 
 **Airtime** (cost per show) = people covered ÷ 1,000,000 ×
-`airtimePerMillion` × (reach tier + 1), × `streamingAirtimeFactor` on
-streaming, rounded down to a whole amount (the odd cents are dropped, a line
+`airtimePerMillion` (`ppvAirtimePerMillion` on pay-per-view) × (reach tier +
+1), × `streamingAirtimeFactor` on streaming, rounded down to a whole amount (the odd cents are dropped, a line
 of its own in the Why?). Every other amount is rounded down to the cent.
 
 **Income per airing** = fee + per thousand × projected ÷ 1,000 − airtime. It
@@ -355,29 +355,32 @@ shipped deals, valued in their own slot (each leaving itself out), to
 of the shipped terms. With the ticket's starting cap of 1.5 Overclock valued at
 0.19 × its shipped fee: Kestrel Sports is a tier-2 network whose benchmark
 (ECO8-02's tier-2 reference popularity, 16) is small next to Altura's draw, so
-`valuedViewersCap` is **5**. Every other rate is the ticket's.
+`valuedViewersCap` is **5**. ECO8-09 then cut the TV and streaming rates and
+airtime to an eighth and set the shipped deals to the offers
+([TV pay calibration](#tv-pay-calibration)); the table has today's numbers.
 
-| Deal (default world, 4 Jan 2027)                       | Projected / expected           | Offered                                    | Shipped                  | Airtime | Income per airing |
-| ------------------------------------------------------ | ------------------------------ | ------------------------------------------ | ------------------------ | ------- | ----------------- |
-| Altura Mainstage, National Signal Network, prime, live | 2,781,776 / 1,800,807 (1.54 ×) | fee 1,101,583.29 (0.92 ×), 44.00 per 1,000 | 1,200,000, 150 per 1,000 | 255,075 | 968,906.43        |
-| Altura Overclock, Kestrel Sports, prime, live          | 1,529,977 / 143,505 (10.7 ×)   | fee 284,139.90 (0.63 ×), 44.00 per 1,000   | 450,000, 90 per 1,000    | 153,045 | 198,413.88        |
-| All major shows, Turnstile Pay-Per-View                | 152,280 / 78,455 buys (1.94 ×) | 1,800 per 1,000 buys (1.0 ×)               | 1,800 per 1,000 buys     | 228,960 | 45,144.00         |
+| Deal (default world, 4 Jan 2027)                       | Projected / expected           | Offered                                | Shipped              | Airtime | Income per airing |
+| ------------------------------------------------------ | ------------------------------ | -------------------------------------- | -------------------- | ------- | ----------------- |
+| Altura Mainstage, National Signal Network, prime, live | 2,781,776 / 1,800,807 (1.54 ×) | fee 137,697.91 (1.0 ×), 5.50 per 1,000 | 137,700, 5 per 1,000 | 31,884  | 121,113.67        |
+| Altura Overclock, Kestrel Sports, prime, live          | 1,529,977 / 143,505 (10.7 ×)   | fee 35,517.48 (1.0 ×), 5.50 per 1,000  | 35,500, 5 per 1,000  | 19,130  | 24,802.35         |
+| All major shows, Turnstile Pay-Per-View                | 152,280 / 78,455 buys (1.94 ×) | 1,800 per 1,000 buys (1.0 ×)           | 1,800 per 1,000 buys | 228,960 | 45,144.00         |
 
 **Altura Mainstage** worked through: valued viewers = min(2,781,776,
-1,800,807 × 5) = 2,781,776. Fee = 2,781.776 × 400.00 × 1.1 (live) × 0.9 (the
-flat part) × 1 (no shortfall) = 1,101,583.29. Per thousand = 400.00 × 1.1 ×
-0.1 = 44.00. Airtime = about 340.1 million people × 150.00 × 5 (tier 4 + 1) =
-255,075. Income per airing = 1,101,583.29 + 44.00 × 2,781.776 − 255,075 =
-968,906.43. Altura's reach is 54 (prime time needs 25) and its camera 8 (the
-network needs 4): `accept`.
+1,800,807 × 5) = 2,781,776. Fee = 2,781.776 × 50.00 × 1.1 (live) × 0.9 (the
+flat part) × 1 (no shortfall) = 137,697.91. Per thousand = 50.00 × 1.1 × 0.1
+= 5.50. Airtime = about 340.1 million people × 18.75 × 5 (tier 4 + 1) =
+31,884. Income per airing = 137,697.91 + 5.50 × 2,781.776 − 31,884 =
+121,113.67. Altura's reach is 54 (prime time needs 25) and its camera 8 (the
+network needs 4): `accept`. The shipped deal charges no airtime, so a new
+Mainstage deal pays Altura about 30,000 a show less than the one it has.
 
 **Hardpan Friday on Bluebonnet Cable 7**, evening, taped, 12 months: 3,962
-viewers against 1,616 expected (2.45 ×). Fee = 3.962 × 400.00 × 0.9 =
-1,426.32; per thousand 40.00 (158.48 on 3,962 viewers); airtime = 31.3
-million × 150.00 × 1 (tier 0) = 4,695. Income per airing = −3,110.20: the
-channel would sign (`accept`, `becomesTelevised: true`, weekday Friday, ends
-4 Jan 2028), but every airing costs Hardpan more in airtime than it earns, and
-the Why? says so.
+viewers against 1,616 expected (2.45 ×). Fee = 3.962 × 50.00 × 0.9 = 178.29;
+per thousand 5.00 (19.81 on 3,962 viewers); airtime = 31.3 million × 18.75 ×
+1 (tier 0) = 586 (586.87, odd cents dropped). Income per airing = −387.90:
+the channel would sign (`accept`, `becomesTelevised: true`, weekday Friday,
+ends 4 Jan 2028), but every airing costs Hardpan more in airtime than it
+earns, and the Why? says so.
 
 **Hardpan Friday on National Signal Network**, prime time: refused for
 `timeslotNotAllowed` ("Prime time needs a reach of 25.0; yours is 3.6"),
@@ -388,6 +391,99 @@ Country Sports** (the Southwest tier-1 channel), evening: refused for
 `audienceTooSmall` at about 80%: Hardpan's fans are in Texas, and the channel
 also covers the Southwest and the Plains, so a regional deal can still be too
 big.
+
+### TV pay calibration
+
+ECO8-09, the owner's decision after ECO8-04 made deals pay every show: **scale
+TV pay down so money stays a challenge.** The target: TV covers part of a big
+promotion's costs, roughly its monthly overhead, not all of it; Altura loses
+money over a year with poor shows and roughly breaks even to a modest profit
+with decent ones; small promotions without deals still struggle; no rival
+goes broke from the change. New pay-per-view deals keep their airtime (owner
+decision: renegotiating pay-per-view is a real trade-off), and production
+costs are not lowered (owner rule).
+
+**What changed:**
+
+| Value                                       | Before                          | After                             | Why                                                                                             |
+| ------------------------------------------- | ------------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `broadcast.value.tvPerThousand`             | 40,000 (400.00)                 | 5,000 (50.00)                     | An eighth: Altura's TV then pays about its 1.21M monthly production overhead                    |
+| `broadcast.value.streamingPerThousand`      | 25,000 (250.00)                 | 3,125 (31.25)                     | The same eighth, so streaming keeps its place against TV                                        |
+| `broadcast.value.airtimePerMillion`         | 15,000 (150.00), every kind     | 1,875 (18.75), TV and streaming   | The same eighth, so every offer keeps the sign of its income (Hardpan's local deal still loses) |
+| `broadcast.value.ppvAirtimePerMillion`      | (new)                           | 15,000 (150.00), pay-per-view     | Keeps new pay-per-view airtime at 228,960 a show on Turnstile                                   |
+| Mainstage on National Signal Network        | 1,200,000 + 150 per 1,000, none | 137,700 + 5 per 1,000, no airtime | The offer, rounded to whole dollars                                                             |
+| Overclock on Kestrel Sports                 | 450,000 + 90 per 1,000, none    | 35,500 + 5 per 1,000, no airtime  | The offer (it was 1.6 × the offer)                                                              |
+| Tessen Iron Hour on Kazamidori Television   | 90,000 + 30 per 1,000, 5,000    | 5,900 + 5 per 1,000, 625          | The offer; the deal's own airtime an eighth                                                     |
+| Viernes de Cielo on Televisora Altiplano    | 60,000 + 25 per 1,000, 4,000    | 22,800 + 5 per 1,000, 500         | The offer (it was a third of it); airtime an eighth                                             |
+| Longleaf Saturday Night on Tallgrass Stream | 4,000 + 20 per 1,000, 500       | 825, 60                           | The offer (streaming pays a flat fee only); airtime an eighth                                   |
+| Ashlar Thursday on Larkspur Stream          | 3,000 + 15 per 1,000, 400       | 140, 50                           | The offer; airtime an eighth                                                                    |
+| Altura's pay-per-view on Turnstile          | 1,800 per 1,000 buys, 25,000    | unchanged                         | Owner decision                                                                                  |
+
+The shipped deals keep their own airtime (none on Altura's TV deals) rather
+than the offer's: they are deals signed years ago, and the offer's airtime
+would make Tessen's, Longleaf's and Ashlar's lose money every week. A deal
+renegotiated today pays the offer, airtime and all.
+
+**Year one, every promotion's cash on 3 January 2028** (365 days from 4 January
+2027, default world, Altura played; rivals book their own cards). Decent
+shows: every player card filled with random singles (average show score 51.5);
+good: Auto-fill (62.8); poor: the least popular wrestlers in singles (37.5).
+In whole dollars:
+
+| Promotion (start cash)  | Without TV, decent | Before, decent | **After, decent** | Before, good | **After, good** | Before, poor | **After, poor** |
+| ----------------------- | ------------------ | -------------- | ----------------- | ------------ | --------------- | ------------ | --------------- |
+| Altura (40,000,000)     | 32,929,732         | 146,522,820    | **45,765,911**    | 194,209,255  | **85,707,511**  | 96,886,974   | **6,364,524**   |
+| Tessen (8,000,000)      | 2,427,308          | 6,368,836      | **2,645,867**     | 6,882,388    | **3,083,455**   | 6,235,663    | 2,666,278       |
+| Cielo Alto (5,000,000)  | 15,279,419         | 16,672,466     | **15,828,349**    | 16,378,673   | **15,441,600**  | 16,248,116   | 15,312,282      |
+| Longleaf (1,200,000)    | 3,197,439          | 3,411,717      | **3,234,159**     | 3,438,539    | **3,244,899**   | 3,433,230    | 3,239,973       |
+| Ashlar (900,000)        | 755,701            | 897,298        | **760,381**       | 900,449      | **763,498**     | 895,513      | 758,589         |
+| Boreal (1,500,000)      | 3,198,593          | 3,198,593      | 3,198,593         | 3,173,234    | 3,173,234       | 3,202,188    | 3,202,188       |
+| Eisenwerk (400,000)     | 1,055,835          | 1,055,835      | 1,055,835         | 1,056,519    | 1,056,519       | 1,067,665    | 1,067,665       |
+| Blast Furnace (650,000) | 152,576            | 152,576        | 152,576           | 157,800      | 157,800         | 160,508      | 160,508         |
+| Golden Poppy (750,000)  | 16,211             | 16,211         | 16,211            | 19,321       | 19,321          | 16,226       | 16,226          |
+| Hibari (120,000)        | 8,109              | 8,109          | 8,109             | 7,321        | 7,321           | 8,677        | 8,677           |
+| Hardpan (85,000)        | 1,231              | 1,231          | 1,231             | 4,346        | 4,346           | 557          | 557             |
+| Wattle (40,000)         | −4,908             | −4,908         | −4,908            | −2,927       | −2,927          | −2,618       | −2,618          |
+
+Altura's year in money: TV rights 9.92M and pay-per-view 3.09M with decent
+shows (before: 109.3M and 3.09M), 13.0M in all, or 1.08M a month against a
+monthly production overhead of 1.21M (0.89 ×). With poor shows TV pays 11.3M
+(fewer viewers, fewer buys); with good ones 14.2M. Its whole year:
+
+| Altura, year one  | Poor shows | Decent shows | Good shows |
+| ----------------- | ---------- | ------------ | ---------- |
+| Without TV        | −44.8M     | −7.1M        | +31.6M     |
+| Before ECO8-09    | +56.9M     | +106.5M      | +154.2M    |
+| **After ECO8-09** | **−33.6M** | **+5.8M**    | **+45.7M** |
+
+So TV now covers about the overhead: poor shows still lose a lot (Altura is
+down to 6.4M after a year), decent ones make a modest profit (+14% on its
+starting cash) and good ones a healthy one. Good shows were already very
+profitable without TV (tickets 82.4M against 47.9M on decent cards): that is
+the box office, not TV.
+
+**Rivals.** None goes into debt: every promotion with a deal ends the year
+above where it would without TV, and its lowest cash in the year stays
+positive. Tessen is the one to watch: it loses about 5.4M a year with or
+without TV (it ends at 2.65M from 8M), so at that pace it runs out of cash in
+year two; TV is not the cause (it now adds about 0.22M a year), and the rival
+production budget ([production.md](production.md#rival-production-budget))
+cuts its levels when cash runs short. Promotions without deals are unchanged
+by the change: Hardpan ends a year as the player at −20,940 (decent) and
+Wattle at −4,908, as before.
+
+**Hardpan as the player** (no deal): ends the year at −19,842 with Auto-fill
+and −20,940 with random cards, exactly as before. Its one offer, Bluebonnet
+Cable 7, still loses about 388 an airing.
+
+**Held by tests.** `test/systems/broadcast/calibration-default-world.test.ts`:
+in the default run, a year of Altura's shipped deals projected at a neutral
+show must pay 0.6–1.3 × its monthly production overhead (0.93 today; about 8
+before), and every shipped TV and streaming fee must sit within 5% of its
+offer. With `RB_SLOW_TESTS=1` (about 30 seconds) it plays the year twice:
+decent shows keep TV within the same band (0.89) and Altura between −5% and
++25% of its starting cash, with no promotion that has a deal going below zero;
+poor shows end the year below the starting cash.
 
 ## Settlement
 
