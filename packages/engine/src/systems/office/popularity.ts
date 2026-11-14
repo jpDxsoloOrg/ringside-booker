@@ -12,15 +12,19 @@
 
 import type { GameDate } from '../../core/date';
 import { EntityNotFoundError } from '../../core/errors';
-import type { PromotionId } from '../../core/ids';
+import { fastPathsEnabled } from '../../core/fastPaths';
+import type { ContinentId, CountryId, PromotionId } from '../../core/ids';
 import type { StepContext } from '../../core/pipeline/context';
-import type { Traced } from '../../core/trace';
+import { inputOf, type Traced } from '../../core/trace';
 import type { GameWorldView } from '../../model/tables';
 import type { EngineTunables } from '../tunables';
 import {
   createPopularityRoller,
+  popularityRollupLevel,
   popularityRollupPart,
   type PopularityRoller,
+  type PopularityRollupPart,
+  type RegionalPopularity,
 } from '../world/formulas/popularityRollup';
 import { geographyOf, type Geography } from '../world/geography';
 import { headlinePopularity, POPULARITY_MAX, POPULARITY_MIN } from './formulas/headlinePopularity';
@@ -65,21 +69,73 @@ export function headlinePopularityOf(
   const region = geography.region(promotion.homeRegionId);
   const country = geography.countryOf(region.id);
   const continent = geography.continentOf(region.id);
-  const rollup = popularityRollupPart(promotion.regionalPop, geography, {
-    countryId: country.id,
-    continentId: continent.id,
-  });
+  const levels = fastPathsEnabled()
+    ? headlineLevelsFast(promotion.regionalPop, geography, country.id, continent.id, tunables)
+    : popularityRollupPart(promotion.regionalPop, geography, {
+        countryId: country.id,
+        continentId: continent.id,
+      });
   return headlinePopularity(
     {
       promotionName: promotion.name,
-      homeRegion: { id: region.id, name: region.name, value: rollup.regions.get(region.id) ?? 0 },
-      homeCountry: { id: country.id, name: country.name, rollup: rollup.country },
-      homeContinent: { id: continent.id, name: continent.name, rollup: rollup.continent },
-      world: rollup.world,
+      homeRegion: {
+        id: region.id,
+        name: region.name,
+        value: promotion.regionalPop[region.id] ?? 0,
+      },
+      homeCountry: { id: country.id, name: country.name, rollup: levels.country },
+      homeContinent: { id: continent.id, name: continent.name, rollup: levels.continent },
+      world: levels.world,
       sectionLines: popularityTraceSectionLines(read, promotionId, date),
     },
     { tunables },
   );
+}
+
+/** The world, home country and home continent levels a headline reads. */
+type HeadlineLevels = Pick<PopularityRollupPart, 'world' | 'country' | 'continent'>;
+
+/**
+ * Fast path (POL4-10): the headline's Why? nests only the trace of the level the headline scope
+ * picks; the other levels give just their value (the worldwide note) or nothing at all. So only
+ * that level is rolled up with its trace, and the others are read from the untraced roller, whose
+ * sums run in the same order as the traced means and so give the same numbers to the bit. An
+ * untraced level carries a one-line input as its trace, which the headline never reads.
+ */
+function headlineLevelsFast(
+  regionalPop: RegionalPopularity,
+  geography: Geography,
+  countryId: CountryId,
+  continentId: ContinentId,
+  tunables: EngineTunables,
+): HeadlineLevels {
+  const scope = tunables.get('office.popularity.headlineScope');
+  const rolled = createPopularityRoller(geography).rollValues(regionalPop);
+  const valueOnly = (label: string, value: number): Traced<number> =>
+    inputOf(label, value, undefined, 'points');
+  const traced =
+    scope === 'homeRegion'
+      ? null
+      : popularityRollupLevel(
+          regionalPop,
+          geography,
+          scope === 'world'
+            ? { level: 'world' }
+            : scope === 'homeCountry'
+              ? { level: 'country', countryId }
+              : { level: 'continent', continentId },
+        );
+  return {
+    world: scope === 'world' && traced !== null ? traced : valueOnly('Worldwide', rolled.world),
+    country:
+      scope === 'homeCountry' && traced !== null
+        ? traced
+        : valueOnly('Home country', rolled.countries[countryId] ?? 0),
+    continent:
+      scope === 'homeContinent' && traced !== null
+        ? traced
+        : valueOnly('Home continent', rolled.continents[continentId] ?? 0),
+  };
 }
 
 /**

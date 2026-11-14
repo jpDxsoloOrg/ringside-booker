@@ -11,6 +11,7 @@
 
 import type { ContinentId, CountryId, RegionId } from '../../core/ids';
 import { InvalidArgumentError } from '../../core/errors';
+import { fastPathsEnabled } from '../../core/fastPaths';
 import { weightedPick, type RngStream } from '../../core/rng';
 import { inputOf, startCalc, type Calc, type Traced, type TraceUnit } from '../../core/trace';
 import {
@@ -326,13 +327,50 @@ export function createGeography(source: GeographySource): Geography {
   };
 }
 
-/** The map of a world: its continents, countries and regions tables. */
+/** The last map {@link geographyOf} built, with the rows it was built from. */
+let lastGeography: (GeographySource & { readonly geography: Geography }) | null = null;
+
+/** True when both lists hold the very same row objects in the same order. */
+function sameRows<Row>(left: readonly Row[], right: readonly Row[]): boolean {
+  if (left.length !== right.length) {
+    return false;
+  }
+  for (let index = 0; index < left.length; index += 1) {
+    if (left[index] !== right[index]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * The map of a world: its continents, countries and regions tables.
+ *
+ * Fast path (POL4-10): the map almost never changes, and rows are never changed in place (an
+ * update makes a new row), so when every row is the same object as last time the map built then
+ * is handed back instead of being built again. Docs: docs/design/day-pipeline.md#fast-paths.
+ */
 export function geographyOf(view: WorldView): Geography {
-  return createGeography({
+  const source: GeographySource = {
     continents: tableOf(view, continentsTable).values(),
     countries: tableOf(view, countriesTable).values(),
     regions: tableOf(view, regionsTable).values(),
-  });
+  };
+  if (!fastPathsEnabled()) {
+    return createGeography(source);
+  }
+  const last = lastGeography;
+  if (
+    last !== null &&
+    sameRows(last.regions, source.regions) &&
+    sameRows(last.countries, source.countries) &&
+    sameRows(last.continents, source.continents)
+  ) {
+    return last.geography;
+  }
+  const geography = createGeography(source);
+  lastGeography = { ...source, geography };
+  return geography;
 }
 
 /**
