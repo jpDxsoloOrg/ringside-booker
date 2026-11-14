@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { PersonId, TeamId, TitleId } from '../../../src/core/ids';
 import type { GameWorld } from '../../../src/model/tables';
 import { isEligibleHolder } from '../../../src/systems/titles';
-import { aTeam, worldBuilder, type BuiltWorld } from '../../support';
+import { aTeam, testId, worldBuilder, type BuiltWorld } from '../../support';
 import { START } from './titles-world';
 
 /**
@@ -72,12 +72,10 @@ describe('isEligibleHolder', () => {
   const built = eligibilityWorld();
   const { world, ids } = built;
   const person = (index: number): PersonId => at(ids.people, index);
-  const [singles, retired, cruiser, tag] = [0, 1, 2, 3].map((index) => at(ids.titles, index)) as [
-    TitleId,
-    TitleId,
-    TitleId,
-    TitleId,
-  ];
+  const singles = at(ids.titles, 0);
+  const retired = at(ids.titles, 1);
+  const cruiser = at(ids.titles, 2);
+  const tag = at(ids.titles, 3);
 
   it('accepts a wrestler on the roster for a singles title, even its current champion', () => {
     expect(codesFor(world, singles, [person(3)])).toEqual([]);
@@ -154,7 +152,7 @@ describe('isEligibleHolder', () => {
       'notAWrestler',
       'teamMismatch',
     ]);
-    expect(codesFor(world, tag, [person(0), person(3)], 'tem_missing' as TeamId)).toEqual([
+    expect(codesFor(world, tag, [person(0), person(3)], testId('team', 999))).toEqual([
       'teamMismatch',
     ]);
   });
