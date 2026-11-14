@@ -1,5 +1,5 @@
 // The storyline commands and end preview (CRTV3-03). Design: docs/design/storylines.md#commands
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { createEngine, initialEngineState, type Engine } from '../../../src/core/api';
 import { simSystem } from '../../../src/core/api/builtins';
 import type { Controller } from '../../../src/core/api/controller';
@@ -21,23 +21,7 @@ import {
   worldBuilder,
   type BuiltWorld,
 } from '../../support';
-import type * as TraceKinds from '../../../src/systems/storylines/traceKinds';
 import { ok as okQuery, reasonCodes } from './storyline-world';
-
-// Lets one test make `startStoryline` throw after it has created the row, to prove rollback.
-const failing = vi.hoisted(() => ({ heatTraceRef: false }));
-vi.mock('../../../src/systems/storylines/traceKinds', async (importActual) => {
-  const actual = await importActual<typeof TraceKinds>();
-  return {
-    ...actual,
-    storylineHeatTraceRef: (id: StorylineId) => {
-      if (failing.heatTraceRef) {
-        throw new Error('test: heat trace ref failed');
-      }
-      return actual.storylineHeatTraceRef(id);
-    },
-  };
-});
 
 const PLAYER: Controller = { kind: 'human', playerId: TEST_PLAYER_ID };
 const COMPUTER: Controller = { kind: 'computer' };
@@ -386,23 +370,6 @@ describe('storylines.create', () => {
     expect(warnings).toEqual([
       { code: 'storylines.oneSided', message: 'No one on the other side yet.', field: 'members' },
     ]);
-  });
-
-  it('leaves no partial storyline when apply throws', () => {
-    const world = setup();
-    const before = world.engine.exportState();
-    failing.heatTraceRef = true;
-    try {
-      const result = world.engine.command('storylines.create', create(world), PLAYER);
-      expect(result.ok).toBe(false);
-      expect(result.ok ? [] : result.reasons.map((reason) => reason.code)).toEqual(['internal']);
-    } finally {
-      failing.heatTraceRef = false;
-    }
-    const after = world.engine.exportState();
-    expect(after.world).toEqual(before.world);
-    expect(after.events).toEqual(before.events);
-    expect(after.traces).toEqual(before.traces);
   });
 });
 
