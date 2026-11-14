@@ -65,7 +65,10 @@ export interface OfferEvaluation {
   /** The offer's value as a share of the ask's (1 = exactly the ask). */
   readonly ratio: number;
   readonly reaction: Traced<Reaction>;
-  /** Patience before this offer. */
+  /**
+   * Patience before the worker reacts to this offer: the negotiation's (less the point a revision
+   * uses, `roundPatience`), or the worker's starting patience before talks open.
+   */
   readonly patience: number;
   /**
    * Patience after this reaction: a counter uses up one, a rejection
@@ -208,6 +211,22 @@ function patienceAfter(reaction: Reaction, patience: number, tunables: EngineTun
   }
 }
 
+/**
+ * The patience an offer in these talks is weighed with. A new offer sent in reply to a
+ * counter-offer (a revision) uses one point of patience first (ECO5-04, negotiation.md#rounds), so
+ * the preview of a revision already counts it and the review sees the same number the revise
+ * command wrote. Paying their counter-offer (or more money on the same terms) uses none.
+ */
+export function roundPatience(
+  negotiation: DeepReadonly<Negotiation>,
+  meetsTheirCounter: boolean,
+): number {
+  if (negotiation.status === 'countered' && !meetsTheirCounter) {
+    return Math.max(0, negotiation.patience - 1);
+  }
+  return negotiation.patience;
+}
+
 /** Weighs `offer` against what the worker asks, and how they react to it. */
 export function evaluateOffer(
   read: GameWorldView,
@@ -252,8 +271,12 @@ export function evaluateOffer(
   const refusal = refusalOf(read, tunables, request, ask);
   const person = read.tables.people.require(request.personId);
   const mismatch = roleMismatch(person, offer.role, { tunables });
-  const patience = negotiation?.patience ?? ask.startPatience.value;
   const lastCounter = negotiation?.status === 'countered' ? negotiation.lastCounter : null;
+  const matchesLastCounter = lastCounter !== null && meetsCounter(offer, lastCounter);
+  const patience =
+    negotiation === null
+      ? ask.startPatience.value
+      : roundPatience(negotiation, matchesLastCounter);
   const reaction = offerReaction(
     {
       offerValue,
@@ -261,7 +284,7 @@ export function evaluateOffer(
       patience,
       refusal,
       roleMismatch: mismatch,
-      matchesLastCounter: lastCounter !== null && meetsCounter(offer, lastCounter),
+      matchesLastCounter,
     },
     { tunables },
   );
