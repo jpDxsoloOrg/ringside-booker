@@ -6,6 +6,7 @@
  */
 
 import { startCalc } from '../../../core/trace/calc';
+import { withoutNegativeZero } from '../../../core/trace/helpers';
 import type { Traced } from '../../../core/trace/types';
 import type { TraitKey } from '../../../model/entities/person';
 import type { EngineTunables } from '../../tunables';
@@ -46,7 +47,10 @@ export function medicalCareLabel(level: MedicalLevel, source: string | null): st
 }
 
 /** `recoveryPerCheck × trait × medical`. */
-function weeklyGain(inputs: ConditionRecoveryInputs, tunables: EngineTunables): Traced<number> {
+function weeklyGain(
+  inputs: Pick<ConditionRecoveryInputs, 'traits' | 'medicalLevel' | 'medicalSource'>,
+  tunables: EngineTunables,
+): Traced<number> {
   const calc = startCalc(
     'Healing this week',
     tunableStart(tunables, 'health.condition.recoveryPerCheck', 'Weekly healing'),
@@ -95,4 +99,34 @@ export function computeConditionRecovery(
     .add('Healing this week', weeklyGain(inputs, deps.tunables))
     .min('Healing cap for their age', inputs.cap)
     .done();
+}
+
+/**
+ * Fast path (POL4-10): this week's healing for a part, the `weeklyGain` step of
+ * {@link computeConditionRecovery} as a number. It does not depend on the part, so a caller that
+ * stores no trace works it out once per kind of person and care instead of once per body part.
+ */
+export function conditionWeeklyGainValue(
+  inputs: Pick<ConditionRecoveryInputs, 'traits' | 'medicalLevel' | 'medicalSource'>,
+  deps: { tunables: EngineTunables },
+): number {
+  return weeklyGain(inputs, deps.tunables).value;
+}
+
+/**
+ * Fast path (POL4-10): {@link computeConditionRecovery}'s value with no trace, given this week's
+ * healing from {@link conditionWeeklyGainValue}. The same steps in the same order: an injured part
+ * or one at or above the cap stays put; any other part gains the healing and stops at the cap.
+ * `conditionRecovery.test.ts` holds it to the traced value.
+ */
+export function conditionRecoveryValue(
+  inputs: { readonly current: number; readonly cap: number; readonly partInjured: boolean },
+  weeklyGainValue: number,
+): number {
+  const current = withoutNegativeZero(inputs.current);
+  if (inputs.partInjured || inputs.current >= inputs.cap) {
+    return current;
+  }
+  const healed = withoutNegativeZero(current + withoutNegativeZero(weeklyGainValue));
+  return withoutNegativeZero(Math.min(healed, withoutNegativeZero(inputs.cap)));
 }
