@@ -4,7 +4,8 @@ import { userEvent } from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { parseContentKey } from '@ringside/engine';
 import type { BookingSlotView, BookingTimeView, DurationClass } from '@ringside/engine';
-import { TimeField, usualTimeText } from './editor/TimeField';
+import { RUNNING_TIME_WORDS } from '@/test/runningTimeWords';
+import { TimeField, TIME_HINTS, usualTimeText } from './editor/TimeField';
 import { emptyDraft, initialDraftState, setBookedLength } from './editor/useSegmentDraft';
 import { TimeUsedBar, timeNoteText, timeUsedText } from './TimeUsedBar';
 
@@ -56,6 +57,15 @@ describe('the Time used bar', () => {
       screen.getByText("Over the show's time by 2: shorten a match or drop a segment."),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Why is Time used 17?' })).toBeInTheDocument();
+  });
+
+  it('never words the time as a running time (D-10)', () => {
+    render(<TimeUsedBar time={time(14, 16)} />);
+    expect(document.body.textContent).not.toMatch(RUNNING_TIME_WORDS);
+    for (const hint of Object.values(TIME_HINTS)) {
+      expect(hint).not.toMatch(RUNNING_TIME_WORDS);
+    }
+    expect(timeNoteText(time(17, 15))).not.toMatch(RUNNING_TIME_WORDS);
   });
 });
 

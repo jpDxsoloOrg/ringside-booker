@@ -80,7 +80,10 @@ describe('durationClassOf with a booked time', () => {
   });
 
   it('keeps the main event long whatever is booked', () => {
-    const result = durationClassOf({ role: 'mainEvent', matchType: SINGLES, booked: 'short' }, DEPS);
+    const result = durationClassOf(
+      { role: 'mainEvent', matchType: SINGLES, booked: 'short' },
+      DEPS,
+    );
     expect(result.value).toBe('long');
     expect(labels(result.trace)).toContain('Booked Short, but the main event stays long');
   });
@@ -232,9 +235,7 @@ describe('rating a match booked longer', () => {
     expect(long.slot.bookedSteps).toBe(1);
     expect(long.expectation.value - usual.expectation.value).toBe(4);
     expect(labels(long.expectation.trace)).toContain('Booked long: crowd expects +4');
-    expect(labels(usual.expectation.trace).some((label) => label.startsWith('Booked'))).toBe(
-      false,
-    );
+    expect(labels(usual.expectation.trace).some((label) => label.startsWith('Booked'))).toBe(false);
     expect(long.slot.weight).toBe(usual.slot.weight);
     expect(long.slot.weight).toBe(slotWeightOf({ role: 'opener' }, DEPS).value);
   });
@@ -262,8 +263,14 @@ describe('the formulas behind a longer match', () => {
       televised: true,
     };
     const plain = crowdExpectation(inputs, DEPS);
-    const zero = crowdExpectation({ ...inputs, booked: { steps: 0, durationClass: 'standard' } }, DEPS);
-    const twoUp = crowdExpectation({ ...inputs, booked: { steps: 2, durationClass: 'long' } }, DEPS);
+    const zero = crowdExpectation(
+      { ...inputs, booked: { steps: 0, durationClass: 'standard' } },
+      DEPS,
+    );
+    const twoUp = crowdExpectation(
+      { ...inputs, booked: { steps: 2, durationClass: 'long' } },
+      DEPS,
+    );
     expect(zero).toStrictEqual(plain);
     expect(twoUp.value - plain.value).toBe(8);
   });

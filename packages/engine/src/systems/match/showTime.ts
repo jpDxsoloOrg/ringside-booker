@@ -148,7 +148,7 @@ export function showTimeBudget(
     const durationClass = durationClassOf({ role, matchType: null }, { tunables }).value;
     usual.add(
       `${SLOT_ROLE_LABELS[role]}: ${DURATION_CLASS_LABELS[durationClass]}`,
-      usual.tunable(tunables, UNIT_KEYS[durationClass], `${DURATION_CLASS_LABELS[durationClass]}`),
+      usual.tunable(tunables, UNIT_KEYS[durationClass], DURATION_CLASS_LABELS[durationClass]),
     );
   }
   calc.add('Time the card usually takes', usual.done());

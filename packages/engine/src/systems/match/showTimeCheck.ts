@@ -11,11 +11,7 @@
  */
 
 import { registerBookingCheck } from '../booking/validate/registry';
-import type {
-  BookingCheck,
-  BookingCheckInput,
-  BookingIssueDraft,
-} from '../booking/validate/types';
+import type { BookingCheck, BookingCheckInput, BookingIssueDraft } from '../booking/validate/types';
 import { overTimeMessage, showTimeOf } from './showTime';
 
 export const SHOW_TIME_CHECK_ID = 'match.showTime';
