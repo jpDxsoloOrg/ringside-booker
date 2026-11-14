@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { NOT_COUNTED_ENDED, NOT_COUNTED_NO_MEMBER } from '@ringside/engine';
 import type {
   EventInstanceId,
   PersonId,
@@ -38,6 +39,18 @@ export const PAST_WINDOW_TEXT = 'Details are kept for the last 4 weeks.';
 /** "Lost inside 'Ashfall Rivalry'". */
 export function lostInsideText(storylineName: string): string {
   return `Lost inside '${storylineName}'`;
+}
+
+/**
+ * "Not counted: nobody in this segment is in 'Ashfall Rivalry'": a link that moved nothing, with
+ * the storyline named so the line reads on its own.
+ */
+export function notCountedText(storylineName: string, reason: string): string {
+  if (reason === NOT_COUNTED_NO_MEMBER) {
+    return `Not counted: nobody in this segment is in '${storylineName}'`;
+  }
+  if (reason === NOT_COUNTED_ENDED) return `Not counted: '${storylineName}' had already ended`;
+  return `Not counted in '${storylineName}': ${reason}`;
 }
 
 /** True when the section has anything to draw: the viewer's own show with a linked segment. */
@@ -99,7 +112,7 @@ function SegmentRow({
       )}
       {segment.notCounted.map((link) => (
         <p key={link.storylineId} className={styles['muted']}>
-          {link.name} didn&rsquo;t count: {link.reason}
+          {notCountedText(link.name, link.reason)}
         </p>
       ))}
       {segment.protectedLosers.length > 0 && (

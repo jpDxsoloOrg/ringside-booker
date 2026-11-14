@@ -77,7 +77,7 @@ export function payoffQuality(
   const { tunables } = deps;
   const minSegments = tunables.get('storylines.payoff.minSegments');
   if (inputs.countedSegments < minSegments) {
-    const none = startCalc('Payoff quality', 0, {
+    const none = startCalc('Payoff strength', 0, {
       unit: 'ratio',
       docRef: PAYOFF_DOC_REF,
       startLabel: 'No payoff',
@@ -87,7 +87,7 @@ export function payoffQuality(
     return none.done();
   }
 
-  const calc = startCalc('Payoff quality', inputs.heat, {
+  const calc = startCalc('Payoff strength', inputs.heat, {
     unit: 'ratio',
     docRef: PAYOFF_DOC_REF,
     startLabel: 'Heat when it ended',
