@@ -272,8 +272,9 @@ function marketingFactor(level: number, tunables: EngineTunables): Traced<number
 }
 
 function qualityFactor(score: number, tunables: EngineTunables): Traced<number> {
+  // EVT3's show score is the slot-weighted mean of the segment scores (show-night.md#show-score).
   const calc = startCalc(
-    `Show score ${formatNumber(score)}`,
+    `Show score ${formatNumber(score)} (slot-weighted)`,
     inputOf('Show score', score, undefined, 'points'),
     { unit: 'multiplier' },
   );

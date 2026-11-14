@@ -21,7 +21,6 @@ import type { LedgerEntry } from '../../../../src/model/entities/ledger-entry';
 import type { NetworkKind } from '../../../../src/model/entities/network';
 import type { GameWorld } from '../../../../src/model/tables';
 import {
-  AIRED_WITHOUT_RESULT_MEMO,
   AIRING_TRACE_KIND,
   airingOutcomeOf,
   airingsDueOn,
@@ -246,32 +245,52 @@ describe('broadcast.airings on show night', () => {
     expect(airedEvents(engine).filter((event) => event.eventInstanceId === human)).toHaveLength(3);
   });
 
-  it('airs a show left unrun with neutral quality and says so in the memo', async () => {
+  it('records a show left unrun as a missed airing that pays nothing and counts against the deal', async () => {
     const built = dealWorld();
     const unrun = need(built.unrun, 'unrun show');
     const engine = engineFor(built.world);
     await advance(engine);
-    // A regular show: the TV and streaming deals air it, pay-per-view does not.
+    // A regular show: the TV and streaming deals were due to air it, pay-per-view was not.
     const airings = airingsOf(engine, unrun);
     expect(airings.map((row) => row.dealId).sort()).toEqual(
       [built.deals.tv, built.deals.streaming].sort(),
     );
     for (const airing of airings) {
-      expect(airing.quality).toEqual({
-        score: TUNABLES.get('broadcast.audience.neutralQuality'),
-        source: 'neutral',
+      expect(airing).toMatchObject({
+        status: 'missed',
+        missReason: 'notRun',
+        quality: null,
+        viewers: 0,
+        income: 0,
+        sharesPaid: 0,
+        cost: 0,
       });
+      expect(airing.expectedViewers).toBeGreaterThan(0);
     }
-    const income = ledgerFor(engine, unrun).filter((row) => row.amount > 0);
-    expect(income).toHaveLength(2);
-    for (const row of income) {
-      expect(row.memo?.endsWith(AIRED_WITHOUT_RESULT_MEMO.trim())).toBe(true);
-    }
+    expect(ledgerFor(engine, unrun)).toEqual([]);
+    expect(
+      missedEvents(engine)
+        .filter((event) => event.eventInstanceId === unrun)
+        .map((event) => event.reason),
+    ).toEqual(['notRun', 'notRun']);
     const rows = engine.query('broadcast.airings', { promotionId: built.promotionA }, AS_PLAYER);
     if (!rows.ok) throw new Error('broadcast.airings refused');
     expect(rows.data.filter((row) => row.eventInstanceId === unrun).map((row) => row.note)).toEqual(
-      ['Aired without a show result', 'Aired without a show result'],
+      ["The show didn't run: nothing aired", "The show didn't run: nothing aired"],
     );
+    // Deal health counts it like a cancelled show: the TV deal is at least Watch.
+    const deals = engine.query(
+      'broadcast.deals',
+      { promotionId: built.promotionA, include: 'active' },
+      AS_PLAYER,
+    );
+    if (!deals.ok) throw new Error('broadcast.deals refused');
+    const tv = need(
+      deals.data.find((row) => row.dealId === built.deals.tv),
+      'TV deal row',
+    );
+    expect(tv.risk).not.toBe('safe');
+    expect(tv.riskReasons.join(' ')).toContain('missed airing');
   });
 
   it('records a cancelled show as a missed airing that pays nothing', async () => {
@@ -295,7 +314,11 @@ describe('broadcast.airings on show night', () => {
       expect(trace.ok && trace.data !== null && isFullTrace(trace.data)).toBe(true);
     }
     expect(ledgerFor(engine, cancelled)).toEqual([]);
-    expect(missedEvents(engine).map((event) => [event.eventInstanceId, event.reason])).toEqual([
+    expect(
+      missedEvents(engine)
+        .filter((event) => event.eventInstanceId === cancelled)
+        .map((event) => [event.eventInstanceId, event.reason]),
+    ).toEqual([
       [cancelled, 'showCancelled'],
       [cancelled, 'showCancelled'],
     ]);
@@ -414,6 +437,12 @@ describe('broadcast.airings on show night', () => {
     expect(labels).toContain('Per 1,000 viewers');
     expect(labels).toContain('Viewers on Test Channel');
     expect(labels).toContain('Test Channel expected');
+    // The quality line is EVT3's real show score (ECO8-07).
+    const score = need(
+      tablesOf(engine).eventInstances.find((row) => row.id === human)?.result?.score,
+      'score',
+    );
+    expect(labels).toContain(`Show score ${String(score)} (slot-weighted)`);
     // Each ledger row's Why? replays to its amount too.
     for (const row of ledgerFor(engine, human)) {
       const rowTrace = engine.query('trace.get', { ref: need(row.traceRef, 'ref') }, AS_PLAYER);
