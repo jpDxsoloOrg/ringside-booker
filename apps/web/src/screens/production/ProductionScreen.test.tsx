@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -290,8 +290,15 @@ describe('ProductionScreen', () => {
 
 describe('ProductionOverviewView for a rival', () => {
   it('shows levels and effect lines with no buttons and no costs', async () => {
-    const rendered = renderProduction();
-    const own = await rendered.askOverview();
+    const transport = createInProcessTransport(fakeEngineFactory(), { progressIntervalMs: 0 });
+    const install = transport.host.installEngine(fakeEngineState());
+    if (install.seat.promotionId === null) throw new Error('The tiny world seats the player');
+    const answer = await transport.host.query('production.overview', {
+      promotionId: install.seat.promotionId,
+    });
+    if (!answer.result.ok) throw new Error('production.overview refused');
+    const own = answer.result.data;
+    // What a rival's viewer gets: the engine leaves the costs, totals and TV deal out.
     const rival: ProductionOverview = {
       ...own,
       mine: false,
@@ -301,7 +308,6 @@ describe('ProductionOverviewView for a rival', () => {
       tvDeal: null,
       rows: own.rows.map((row) => ({ ...row, cost: null, costTrace: null, costBasis: null })),
     };
-    document.body.innerHTML = '';
     render(<ProductionOverviewView overview={rival} />);
     expect(screen.getAllByRole('listitem', { name: /./u }).length).toBeGreaterThanOrEqual(8);
     expect(screen.queryByRole('button', { name: /^(Raise|Lower) /u })).toBeNull();
@@ -351,8 +357,18 @@ describe('the production header registry', () => {
       .getAllByRole('group')
       .map((card) => card.textContent);
     expect(cards[0]).toMatch(/^Show quality ceiling/u);
-    resetProductionHeaderRegistryForTests();
+    expect(
+      await within(header).findByText(
+        /^Last charged |^Charged on the 1st/u,
+        {},
+        { timeout: LOAD_MS },
+      ),
+    ).toBeInTheDocument();
+    act(() => {
+      resetProductionHeaderRegistryForTests();
+    });
     expect(listProductionHeaderItems()).toHaveLength(3);
+    expect(within(header).queryByText('Show quality ceiling')).toBeNull();
   });
 });
 
