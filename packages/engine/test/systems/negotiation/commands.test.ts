@@ -544,7 +544,7 @@ describe('contracts.respondToCounter and contracts.withdrawOffer', () => {
     expect(employmentOf(engine, row.employmentId).terms.monthlyWage).toBe(1_500_000);
   });
 
-  it('revising uses a point of patience, adds a round and matches the preview', () => {
+  it('revising costs no extra patience (a round costs one point), adds a round and matches the preview', () => {
     const { setup, engine, negotiationId } = countered(4);
     const revised = offer({
       terms: { monthlyWage: cents(1_100_000) },
@@ -566,7 +566,7 @@ describe('contracts.respondToCounter and contracts.withdrawOffer', () => {
       ),
     );
     const row = negotiationOf(engine, negotiationId);
-    expect(row).toMatchObject({ status: 'submitted', round: 2, patience: 3, lastCounter: null });
+    expect(row).toMatchObject({ status: 'submitted', round: 2, patience: 4, lastCounter: null });
     expect(row.history.map((entry) => [entry.round, entry.by])).toEqual([
       [1, 'promotion'],
       [1, 'worker'],

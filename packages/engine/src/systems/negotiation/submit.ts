@@ -8,7 +8,7 @@
  *   at; for a renewal the talks point at the live contract. It records the worker's asking terms
  *   (`contracts.ask`, round 1) and publishes `negotiation.opened`.
  * - `answerCounter` answers a counter-offer: accept it (the worker then reviews it), send a revised
- *   offer (a new round that uses a point of patience) or end the talks.
+ *   offer (a new round; the worker's counter already used its point of patience) or end the talks.
  * - `withdrawNegotiation` takes an open offer back.
  *
  * Nothing here makes the worker react: that happens when the day runs (ECO5-05). Every function
@@ -258,7 +258,7 @@ export function withdrawNegotiation(
 
 /**
  * Answers a counter-offer. `accept` takes their counter (they decide on the review day); `revise`
- * sends a new offer (a new round, one point of patience); `end` closes the talks with no cooldown.
+ * sends a new offer (a new round; no extra patience, the counter already used a point); `end` closes the talks with no cooldown.
  * A revision that pays their counter (or more money on the same terms) counts as accepting it.
  */
 export function answerCounter(

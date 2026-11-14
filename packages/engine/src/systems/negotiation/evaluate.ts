@@ -66,8 +66,8 @@ export interface OfferEvaluation {
   readonly ratio: number;
   readonly reaction: Traced<Reaction>;
   /**
-   * Patience before the worker reacts to this offer: the negotiation's (less the point a revision
-   * uses, `roundPatience`), or the worker's starting patience before talks open.
+   * Patience before the worker reacts to this offer: the negotiation's (`roundPatience`), or the
+   * worker's starting patience before talks open.
    */
   readonly patience: number;
   /**
@@ -212,18 +212,18 @@ function patienceAfter(reaction: Reaction, patience: number, tunables: EngineTun
 }
 
 /**
- * The patience an offer in these talks is weighed with. A new offer sent in reply to a
- * counter-offer (a revision) uses one point of patience first (ECO5-04, negotiation.md#rounds), so
- * the preview of a revision already counts it and the review sees the same number the revise
- * command wrote. Paying their counter-offer (or more money on the same terms) uses none.
+ * The patience an offer in these talks is weighed with: the negotiation's own. A round costs one
+ * point of patience in all (owner decision, ECO5-05): the worker's counter-offer uses it when they
+ * make it (`patienceAfter`), so sending a revision in reply costs nothing more, and paying their
+ * counter-offer costs nothing at all. The preview, the revise command and the review all weigh the
+ * offer with this same number. Kept as a function (and `meetsTheirCounter` as an argument) so a
+ * later rule can charge for a revision again in one place. Design: negotiation.md#rounds.
  */
 export function roundPatience(
   negotiation: DeepReadonly<Negotiation>,
   meetsTheirCounter: boolean,
 ): number {
-  if (negotiation.status === 'countered' && !meetsTheirCounter) {
-    return Math.max(0, negotiation.patience - 1);
-  }
+  void meetsTheirCounter;
   return negotiation.patience;
 }
 

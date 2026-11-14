@@ -382,14 +382,16 @@ starts the next round. The worker answers each offer when the day runs
   talks to see where they stand"). After a counter-offer the promotion answers
   with `contracts.respondToCounter`; it can always take an open offer back
   with `contracts.withdrawOffer`.
-- **A revision uses a point of patience.** Sending a new offer in reply to a
-  counter-offer costs one point of patience before the worker reacts to it
-  (and the reaction then costs what [Reaction](#reaction) says). So a worker
-  starting with 3 patience hears about two revisions before they lose
-  interest. `evaluateOffer` counts that point for a countered negotiation
-  (`roundPatience`), so the preview of a revision shows exactly what the review
-  will weigh. Paying their counter-offer (or more money on the same terms)
-  uses no patience and counts as accepting it.
+- **A round costs one point of patience.** The worker's counter-offer uses
+  the point when they make it ([Reaction](#reaction): a counter costs 1, a
+  rejection `contracts.patience.rejectCost`); sending a revision in reply costs
+  nothing more (owner decision, ECO5-05: counter reaction or revision, not
+  both). So a worker starting with 3 patience counters three times before the
+  next low offer makes them walk away. `evaluateOffer` weighs every offer with
+  the negotiation's patience (`roundPatience`), so the preview of a revision,
+  the revise command's preview and the reaction when the day runs all agree.
+  Paying their counter-offer (or more money on the same terms) counts as
+  accepting it.
 - **Accepting their counter-offer** makes it the offer and sets
   `awaitingReview`: they decide on `reviewOn` = today +
   `contracts.review.delayDays` (2), so a rival's later bid can still win
