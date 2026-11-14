@@ -147,8 +147,10 @@ test.describe('contracts', () => {
         expect(stops, 'the skip keeps stopping').toBeLessThan(MAX_STOPS);
         const contracts = dayButton(page, 'Contracts');
         const show = dayButton(page, /Go to the show$/);
+        // A random new world can hurt one of Altura's workers on the way: that stop is cleared too.
+        const roster = dayButton(page, 'Roster');
         await expect(
-          dayButton(page, /^(Next day|(Tonight: )?Go to the show|Contracts)$/),
+          dayButton(page, /^(Next day|(Tonight: )?Go to the show|Contracts|Roster)$/),
         ).toBeVisible({
           timeout: 15_000,
         });
@@ -168,6 +170,9 @@ test.describe('contracts', () => {
           await expect(dayButton(page, 'Next day')).toBeVisible({ timeout: 15_000 });
           cleared = true;
           break;
+        } else if (await roster.isVisible()) {
+          await roster.click();
+          await expect(roster).toBeHidden({ timeout: 15_000 });
         } else if (await show.isVisible()) {
           await cancelTonightsShow(page);
           await expect(show).toBeHidden();
@@ -178,5 +183,16 @@ test.describe('contracts', () => {
       }
       expect(cleared, 'the skip stopped for an expiring contract').toBe(true);
     });
+
+    if (phone) {
+      await test.step('No sideways scroll at 360px either', async () => {
+        await page.setViewportSize({ width: 360, height: 780 });
+        await expectNoHorizontalScroll(page);
+        await page.getByRole('tab', { name: 'Active' }).click();
+        await expect(contractRows(page).first()).toBeVisible();
+        await expectNoHorizontalScroll(page);
+        await shot(page, 'contracts-active-360', testInfo);
+      });
+    }
   });
 });

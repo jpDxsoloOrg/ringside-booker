@@ -292,7 +292,8 @@
     font-size: var(--font-size-2xl);
   }
 
-  .filters > * {
+  .filters > *,
+  .filters > :first-child {
     inline-size: 100%;
   }
 
