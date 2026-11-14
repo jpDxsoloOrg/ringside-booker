@@ -150,6 +150,12 @@ async function advance(engine: Engine, days: number): Promise<number> {
   return (await engine.advanceDays({ maxDays: days })).daysAdvanced;
 }
 
+/** A field of an event's payload, without trusting its type. */
+function fieldOf(event: AnyDomainEvent, key: string): unknown {
+  const entry = Object.entries(event.payload).find(([name]) => name === key);
+  return entry?.[1];
+}
+
 function eventsOf(events: readonly AnyDomainEvent[], type: string): AnyDomainEvent[] {
   return events.filter((event) => event.type === type);
 }
@@ -293,7 +299,7 @@ describe('reactions', () => {
     expect(employmentOf(engine, row.employmentId).status).toBe('declined');
     expect(
       eventsOf(events, 'negotiation.walkedAway').filter(
-        (event) => (event.payload as { negotiationId: string }).negotiationId === id,
+        (event) => fieldOf(event, 'negotiationId') === id,
       ),
     ).toHaveLength(1);
 
@@ -369,9 +375,8 @@ describe('reactions', () => {
     ]);
     expect(
       eventsOf(events, 'negotiation.closed')
-        .map((event) => event.payload as { negotiationId: string; outcomeCode: string })
-        .filter((payload) => payload.negotiationId === id)
-        .map((payload) => payload.outcomeCode),
+        .filter((event) => fieldOf(event, 'negotiationId') === id)
+        .map((event) => fieldOf(event, 'outcomeCode')),
     ).toEqual(['lapsed']);
   });
 
@@ -536,7 +541,7 @@ describe('reviews', () => {
     expect(eventsOf(events, 'contract.renewed')).toHaveLength(1);
   });
 
-  it('closes renewal talks when the contract ends first', async () => {
+  it('closes renewal talks when the contract ends first', () => {
     const setup = negotiationWorld();
     const { engine } = reviewEngine(setup, { 'contracts.renewal.windowDays': 365 });
     const before = employmentOf(engine, setup.mine);
