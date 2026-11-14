@@ -5,7 +5,7 @@ import { DeltaChip } from '@/components/DeltaChip';
 import { formatGameDate, formatSignedMoney } from '@/components/format';
 import type { MoneyFormatter } from '@/components/format';
 import { Select } from '@/components/Select';
-import { Explained } from '@/components/Trace';
+import { Explained, WhyButton, whyButtonLabel } from '@/components/Trace';
 import { VerdictBadge } from './components/VerdictBadge';
 import {
   DEAL_LENGTH_MONTHS,
@@ -145,7 +145,19 @@ export function RenegotiateView({
                   <td>
                     <span className={styles['compareNew']}>
                       {line.perBuy ? (
-                        <span className="tabular">{perBuyText(line.next.value)}</span>
+                        <>
+                          <span className="tabular">{perBuyText(line.next.value)}</span>
+                          <WhyButton
+                            label={`Renewed ${line.label.toLowerCase()}`}
+                            value={line.next.value}
+                            unit="money"
+                            buttonLabel={whyButtonLabel(
+                              `Renewed ${line.label.toLowerCase()}`,
+                              perBuyText(line.next.value),
+                            )}
+                            source={{ trace: line.next.trace }}
+                          />
+                        </>
                       ) : (
                         <Explained
                           value={line.next.value}

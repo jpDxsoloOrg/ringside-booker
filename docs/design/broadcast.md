@@ -815,6 +815,53 @@ ECO8-05 adds the deals queries (`systems/broadcast/queries/deals.ts`):
 - **`broadcast.cancelPreview { dealId }`**: own active deals only; the exit
   fee in cents and its Why?.
 
+## Screen
+
+Business > Networks (`apps/web/src/screens/networks/`, see its README for the
+tabs registry). Desktop first: tables with a deal sheet on the right; on a
+phone the rows are cards (logo, show, slot, viewers against expected, badge)
+and every sheet, the Propose and Renegotiate sheets and the Why? panel come up
+from the bottom.
+
+- **Your deals**: network and show, slot, fee per show (or rate per buy for
+  pay-per-view), last viewers and what the network expects (each with a Why?),
+  the trend, a health badge (Safe, Watch, At risk, Cancelling, or "Missed
+  airing" when that is the worst reason, with the reasons in words) and the end
+  date. The deal sheet has the terms, the health reasons, coming missed
+  airings, the airing history (viewers, expected and net, each with the
+  airing's Why?), Renegotiate (current against renewed terms, new end date,
+  income per airing) and Cancel deal (the exit fee with its Why?).
+- **Available networks**: only networks that reach the promotion's fans, what
+  each already carries (rival shows by name, never their money) and the best
+  offer with its verdict and a Why? run on demand. Propose picks the show,
+  length, timeslot and live, and shows projected viewers, the network's
+  benchmark, fee, rate, airtime, income per airing and the verdict with every
+  refusal reason.
+- A deal that loses money every airing says so before signing and on renewal;
+  pay-per-view proposals state their airtime per show (owner decisions).
+
+### Why? audit (ECO8-08)
+
+| Number                                                                                   | Where                        | Kind                                      | Why?                                                |
+| ---------------------------------------------------------------------------------------- | ---------------------------- | ----------------------------------------- | --------------------------------------------------- |
+| Fee per show, per 1,000 viewers / per buy, airtime cost, start and end dates, slot, live | Your deals, deal sheet Terms | Stored fact (deal terms)                  | none needed                                         |
+| Last viewers                                                                             | Your deals                   | Derived                                   | airing trace                                        |
+| Network expects                                                                          | Your deals                   | Derived                                   | benchmark trace                                     |
+| Health badge                                                                             | Your deals, deal sheet       | Derived                                   | stored health verdict                               |
+| Airing viewers, expected, net                                                            | Deal sheet history           | Derived                                   | airing trace (expected added in ECO8-08)            |
+| Renewed fee, per 1,000, airtime, income per airing                                       | Renegotiate                  | Derived                                   | valuation traces (renewed per buy added in ECO8-08) |
+| New end date                                                                             | Renegotiate                  | Stored rule (end + months)                | none needed                                         |
+| Exit fee                                                                                 | Cancel confirm               | Derived                                   | exit-fee trace                                      |
+| Best offer fee / loss per airing                                                         | Available networks           | Derived                                   | `broadcast.valuation` on demand (added in ECO8-08)  |
+| Reaches (people)                                                                         | Available networks           | World fact (sum of the network's regions) | none needed                                         |
+| Projected viewers, network expects, fee, rate, airtime, income per airing, verdict       | Propose sheet                | Derived                                   | valuation traces                                    |
+| TV income (30 days)                                                                      | Finances card                | Derived                                   | income summary trace                                |
+| Last airing viewers / expected                                                           | Finances card footer         | Derived                                   | same airing on Networks (card Why? holds the total) |
+| Viewers and money per network                                                            | Calendar and results "On TV" | Derived                                   | airing trace                                        |
+
+Screenshots (desktop and phone) are still to be added under
+`docs/design/screenshots/` once the end-of-sprint e2e run has the screens.
+
 ## Seams
 
 - **Events** (declared in `events.ts`, listed in

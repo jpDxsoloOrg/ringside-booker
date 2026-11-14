@@ -361,6 +361,34 @@ describe('broadcast.airings on show night', () => {
     ).toBe(false);
   });
 
+  it('notes that older TV money is in the monthly totals only once the game is older than the detail window', async () => {
+    const fresh = dealWorld();
+    const young = engineFor(fresh.world);
+    await advance(young);
+    const youngSummary = young.query(
+      'broadcast.incomeSummary',
+      { promotionId: fresh.promotionA },
+      AS_PLAYER,
+    );
+    if (!youngSummary.ok) throw new Error('broadcast.incomeSummary refused');
+    expect(youngSummary.data.note).toBeNull();
+
+    const aged = dealWorld();
+    const older: GameWorld = {
+      ...aged.world,
+      meta: { ...aged.world.meta, startDate: addDays(aged.world.meta.currentDate, -60) },
+    };
+    const old = engineFor(older);
+    await advance(old);
+    const oldSummary = old.query(
+      'broadcast.incomeSummary',
+      { promotionId: aged.promotionA },
+      AS_PLAYER,
+    );
+    if (!oldSummary.ok) throw new Error('broadcast.incomeSummary refused');
+    expect(oldSummary.data.note).toMatch(/^Details are kept for the last .+ Older money/);
+  });
+
   it('never pays twice when the phase runs again on the same day', async () => {
     const built = dealWorld();
     const again = defineSystem({

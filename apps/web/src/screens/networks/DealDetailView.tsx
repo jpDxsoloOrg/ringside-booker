@@ -2,7 +2,7 @@ import { cents } from '@ringside/engine';
 import type { AiringRow, DealDetail, GameDate } from '@ringside/engine';
 import { DataTable } from '@/components/DataTable';
 import type { ColumnDef } from '@/components/DataTable';
-import { formatGameDate, formatNumber } from '@/components/format';
+import { formatGameDate } from '@/components/format';
 import type { MoneyFormatter } from '@/components/format';
 import { Explained } from '@/components/Trace';
 import { DealHealthBadge } from './components/DealHealthBadge';
@@ -77,7 +77,15 @@ function airingColumns(): readonly ColumnDef<AiringRow>[] {
     {
       id: 'expected',
       header: 'Expected',
-      cell: (row) => <span className="tabular">{formatNumber(row.expectedViewers)}</span>,
+      // What the network expected is part of the airing's own Why? (its benchmark line).
+      cell: (row) => (
+        <Explained
+          value={row.expectedViewers}
+          unit="count"
+          label={`Expected on ${formatGameDate(row.airDate)}`}
+          traceRef={row.traceRef}
+        />
+      ),
       numeric: true,
       card: 'stat',
     },

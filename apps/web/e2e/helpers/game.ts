@@ -469,4 +469,36 @@ export async function skipDays(page: Page, what: number | SkipDaysChoice): Promi
   await expect(sheet).toBeHidden();
   await waitForAdvanceToEnd(page, startDate, before);
   return isoDaysBetween(startDate, await gameDate(page));
+/**
+ * Opens Business > Networks from the shell (ECO8): the sidebar link on desktop, the More sheet on
+ * a phone. With `tab` (a tab id such as `eco.available`), switches to that tab. Waits for the
+ * Networks heading and the tab.
+ */
+export async function openNetworks(page: Page, testInfo: TestInfo, tab?: string): Promise<void> {
+  if (isPhone(testInfo)) {
+    await page
+      .getByRole('navigation', { name: 'Primary' })
+      .getByRole('button', { name: 'More' })
+      .click();
+    await page
+      .getByRole('dialog', { name: 'Menu' })
+      .getByRole('link', { name: 'Networks', exact: true })
+      .click();
+  } else {
+    await page
+      .getByRole('navigation', { name: 'Main' })
+      .getByRole('link', { name: 'Networks', exact: true })
+      .click();
+  }
+  await expect(page).toHaveURL(/\/game\/networks(\?.*)?$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Networks' })).toBeVisible();
+  if (tab === undefined) return;
+  const tabLabels: Readonly<Record<string, string>> = {
+    'eco.yourDeals': 'Your deals',
+    'eco.available': 'Available networks',
+  };
+  const label = tabLabels[tab];
+  if (label === undefined) throw new Error(`openNetworks: no label known for the tab "${tab}"`);
+  await page.getByRole('tab', { name: label }).click();
+  await expect(page.getByRole('tab', { name: label })).toHaveAttribute('aria-selected', 'true');
 }
