@@ -594,6 +594,39 @@ describe('DayControl: a show night', () => {
     },
   );
 
+  it(
+    'skipping on after running your show neither links nor reopens its results (EVT2-12)',
+    { timeout: 20_000 },
+    async () => {
+      const { show, router, user } = await renderShowEve();
+      await user.click(await waitFor(() => dayButton()));
+      await user.click(await waitFor(() => dayButton('Go to the show')));
+      const run = await screen.findByRole('button', { name: 'Run the show' }, { timeout: 5_000 });
+      await waitFor(() => {
+        expect(run).toBeEnabled();
+      });
+      await user.click(run);
+      await waitFor(
+        () => {
+          expect(router.state.location.pathname).toBe(
+            routes.game.showResults(show.eventInstanceId),
+          );
+        },
+        { timeout: 5_000 },
+      );
+      await waitFor(() => dayButton('Next day'));
+      await router.navigate(routes.game.calendar());
+
+      // The skip starts on show day, where the show already ran: the skip didn't run it.
+      await skip(user, '30 days');
+      const banner = await summary();
+      // The skip stops on next week's show, and the banner has asked for its links by then.
+      await within(banner).findByRole('link', { name: 'Go to the show' });
+      expect(within(banner).queryByRole('link', { name: /^See results/ })).toBeNull();
+      expect(router.state.location.pathname).toBe(routes.game.calendar());
+    },
+  );
+
   it('leaves a plain Next Day with no show of yours unbannered', async () => {
     const { user } = renderGame();
     await expectDateChip(FAKE_START_DATE);
