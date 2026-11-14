@@ -42,8 +42,7 @@ export function reignDateText(date: GameDate): string {
   return `${String(dayOfMonth(date))} ${MONTH_SHORT_NAMES[month(date) - 1] ?? ''} ${String(year(date))}`;
 }
 
-/** `max(0, diffDays(wonOn, lostOn ?? today))`. */
-/** Days held reads no tunables, so it takes no deps. */
+/** `max(0, diffDays(wonOn, lostOn ?? today))`. Reads no tunables, so it takes no deps. */
 export function reignDays(inputs: ReignDaysInputs): Traced<number> {
   const end = inputs.lostOn ?? inputs.today;
   const endText = inputs.lostOn === null ? 'today' : reignDateText(inputs.lostOn);

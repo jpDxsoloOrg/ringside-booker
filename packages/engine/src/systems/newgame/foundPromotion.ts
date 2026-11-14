@@ -16,6 +16,7 @@ import type { PhaseContext } from '../../core/pipeline/context';
 import type { PromotionStyle } from '../../model/entities/promotion-style';
 import { geographyOf } from '../world/geography';
 import type { EngineTunables } from '../tunables';
+import { founderTitlePrestige, titlePrestigeTraceRef } from '../titles/traces';
 import type { FoundingSize } from './input';
 
 /** What the founder chose. */
@@ -107,19 +108,22 @@ export function foundPromotion(ctx: PhaseContext, spec: FoundPromotionSpec): Pro
   ctx.log(`Founded ${spec.name} (${spec.shortName}) as ${promotion.id}, size ${spec.size}`);
 
   if (spec.starterKit) {
+    const titlePrestige = founderTitlePrestige(tunables);
     const title = tx.create('titles', {
       promotionId: promotion.id,
       brandId: null,
       name: `${spec.shortName} Championship`,
       holderCount: 1,
       division: { gender: 'open', minWeightKg: null, maxWeightKg: null },
-      prestige: tunables.get('newgame.found.titlePrestige'),
+      prestige: titlePrestige.value,
       status: 'active',
       introducedOn: date,
       retiredOn: null,
       imageRef: null,
       color: spec.color,
     });
+    // The belt's prestige gets a Why? like any other title's (CRTV1-01).
+    ctx.recordTrace(titlePrestigeTraceRef(title.id), date, titlePrestige);
     const show = tx.create('eventDefinitions', {
       promotionId: promotion.id,
       brandId: null,
