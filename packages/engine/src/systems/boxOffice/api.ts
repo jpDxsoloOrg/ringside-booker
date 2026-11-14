@@ -35,6 +35,23 @@ export type VenueSummary = ShowVenue & {
   readonly choice: VenueChoice;
 };
 
+/** Which crowd line a `ForecastCrowdLine` is (EVT6-11). */
+export type ForecastCrowdLineKey = 'hotStreak' | 'showHeat';
+
+/**
+ * One crowd line the booking panel spells out in words (EVT6-11), so the player sees what the hot
+ * streak and the card's storylines do without opening the Why?.
+ */
+export interface ForecastCrowdLine {
+  key: ForecastCrowdLineKey;
+  /** "Hot streak", "Show heat". */
+  label: string;
+  /** "3 good shows in a row: +7.5% crowd", "No storylines linked on the card". */
+  text: string;
+  /** The line's multiplier on the crowd, 1 when it adds nothing. */
+  multiplier: number;
+}
+
 /** `boxOffice.forecast`: the crowd forecast of one show at one venue. */
 export interface ShowForecast {
   eventInstanceId: EventInstanceId;
@@ -60,6 +77,8 @@ export interface ShowForecast {
   fitLabel: string;
   /** How the expected crowd was worked out, inline (queries cannot store traces). */
   trace: TraceNode;
+  /** The hot streak and show heat lines in words, in that order (EVT6-11). */
+  crowdLines: ForecastCrowdLine[];
   /** Why the game would pick `suggested`, or null when the show already has a venue. */
   pickTrace: TraceNode | null;
 }

@@ -5,6 +5,7 @@
  */
 import { parseId } from '@ringside/engine';
 import type {
+  ForecastCrowdLine,
   ShowForecast,
   ShowVenueOptions,
   TraceNode,
@@ -117,7 +118,39 @@ interface ForecastNumbers {
   readonly fit: VenueFit;
 }
 
-function forecastAt(venue: VenueSummary, numbers: ForecastNumbers, chosen: boolean): ShowForecast {
+/** A show with no streak and nothing linked on its card (EVT6-11). */
+export const QUIET_CROWD_LINES: ForecastCrowdLine[] = [
+  {
+    key: 'hotStreak',
+    label: 'Hot streak',
+    text: 'No hot streak: a show scoring 60 or better starts one',
+    multiplier: 1,
+  },
+  { key: 'showHeat', label: 'Show heat', text: 'No storylines linked on the card', multiplier: 1 },
+];
+
+/** A show on a run of good shows with a hot storyline's finale on the card (EVT6-11). */
+export const HOT_CROWD_LINES: ForecastCrowdLine[] = [
+  {
+    key: 'hotStreak',
+    label: 'Hot streak',
+    text: '4 good shows in a row: +10% crowd',
+    multiplier: 1.1,
+  },
+  {
+    key: 'showHeat',
+    label: 'Show heat',
+    text: 'The Ashfall Feud: heat 78, finale tonight and 1 more storyline: +15.5% crowd',
+    multiplier: 1.155,
+  },
+];
+
+function forecastAt(
+  venue: VenueSummary,
+  numbers: ForecastNumbers,
+  chosen: boolean,
+  crowdLines: ForecastCrowdLine[] = QUIET_CROWD_LINES,
+): ShowForecast {
   const capped = (value: number) => Math.min(value, venue.capacity);
   return {
     eventInstanceId: GALLERY_VENUE_SHOW,
@@ -133,15 +166,17 @@ function forecastAt(venue: VenueSummary, numbers: ForecastNumbers, chosen: boole
     fit: numbers.fit,
     fitLabel: FIT_LABELS[numbers.fit],
     trace: crowdTrace(numbers.demand),
+    crowdLines,
     pickTrace: chosen ? null : venuePickTrace,
   };
 }
 
-/** Harbor Arena with a crowd that suits it. */
+/** Harbor Arena with a crowd that suits it, on a hot streak with a hot card. */
 export const goodFitForecast = forecastAt(
   HARBOR,
   { demand: 13_900, low: 11_800, high: 15_600, fit: 'goodFit' },
   true,
+  HOT_CROWD_LINES,
 );
 
 /** Bayside Theatre with more people wanting in than it holds: the range is capped. */

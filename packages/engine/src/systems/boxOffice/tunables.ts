@@ -12,6 +12,8 @@ const BOX_OFFICE_CATEGORY = 'Box office';
 const FORECAST_DOC = 'box-office.md#forecast';
 const RECENT_FORM_DOC = 'box-office.md#recent-form';
 const FATIGUE_DOC = 'box-office.md#big-show-fatigue';
+const STREAK_DOC = 'box-office.md#hot-streak';
+const HEAT_DOC = 'box-office.md#show-heat';
 const TICKET_DOC = 'box-office.md#ticket-price';
 const RENT_DOC = 'box-office.md#venue-rent';
 const MERCH_DOC = 'box-office.md#live-merch';
@@ -54,7 +56,7 @@ const WORKER_SHARE_CAP = {
 export const boxOfficeTunables = defineTunables({
   'boxOffice.draw.atFullPopularity': {
     kind: 'integer',
-    default: 30000,
+    default: 25500,
     min: 0,
     max: 200000,
     unit: 'count',
@@ -75,7 +77,7 @@ export const boxOfficeTunables = defineTunables({
   },
   'boxOffice.draw.walkUp': {
     kind: 'integer',
-    default: 80,
+    default: 150,
     min: 0,
     max: 5000,
     unit: 'count',
@@ -161,7 +163,7 @@ export const boxOfficeTunables = defineTunables({
   },
   'boxOffice.recentForm.maxSwing': {
     kind: 'number',
-    default: 0.15,
+    default: 0.1,
     min: 0,
     max: 0.5,
     unit: 'ratio',
@@ -216,6 +218,104 @@ export const boxOfficeTunables = defineTunables({
     category: BOX_OFFICE_CATEGORY,
     description: 'The least of the crowd fatigue can leave',
     docRef: FATIGUE_DOC,
+  },
+  'boxOffice.streak.goodScore': {
+    kind: 'number',
+    default: 60,
+    min: 0,
+    max: 100,
+    unit: 'points',
+    category: BOX_OFFICE_CATEGORY,
+    description:
+      'A show scoring this or better keeps a hot streak going; below it breaks the streak',
+    docRef: STREAK_DOC,
+  },
+  'boxOffice.streak.perShow': {
+    kind: 'number',
+    default: 0.025,
+    min: 0,
+    max: 0.5,
+    step: 0.01,
+    unit: 'ratio',
+    category: BOX_OFFICE_CATEGORY,
+    description: 'Crowd added for each good show in a row (0 = hot streaks off)',
+    docRef: STREAK_DOC,
+  },
+  'boxOffice.streak.cap': {
+    kind: 'number',
+    default: 0.125,
+    min: 0,
+    max: 1,
+    step: 0.01,
+    unit: 'ratio',
+    category: BOX_OFFICE_CATEGORY,
+    description: 'Most a hot streak can add to the crowd',
+    docRef: STREAK_DOC,
+  },
+  'boxOffice.streak.fadePerShow': {
+    kind: 'number',
+    default: 0.05,
+    min: 0,
+    max: 1,
+    step: 0.01,
+    unit: 'ratio',
+    category: BOX_OFFICE_CATEGORY,
+    description: 'Streak bonus lost for each show below the good score after the streak breaks',
+    docRef: STREAK_DOC,
+  },
+  'boxOffice.heat.from': {
+    kind: 'number',
+    default: 40,
+    min: 0,
+    max: 99,
+    unit: 'points',
+    category: BOX_OFFICE_CATEGORY,
+    description: 'Storyline heat at which a linked storyline starts to sell tickets',
+    docRef: HEAT_DOC,
+  },
+  'boxOffice.heat.maxBonus': {
+    kind: 'number',
+    default: 0.15,
+    min: 0,
+    max: 1,
+    step: 0.01,
+    unit: 'ratio',
+    category: BOX_OFFICE_CATEGORY,
+    description: 'Crowd a linked storyline at heat 100 adds (0 = show heat off)',
+    docRef: HEAT_DOC,
+  },
+  'boxOffice.heat.finaleFactor': {
+    kind: 'number',
+    default: 1.5,
+    min: 0,
+    max: 5,
+    step: 0.05,
+    unit: 'multiplier',
+    category: BOX_OFFICE_CATEGORY,
+    description: "A storyline's heat bonus × this when its finale is on the card",
+    docRef: HEAT_DOC,
+  },
+  'boxOffice.heat.otherShare': {
+    kind: 'number',
+    default: 0.25,
+    min: 0,
+    max: 1,
+    step: 0.05,
+    unit: 'ratio',
+    category: BOX_OFFICE_CATEGORY,
+    description: 'Share of its bonus each linked storyline after the hottest adds',
+    docRef: HEAT_DOC,
+  },
+  'boxOffice.heat.cap': {
+    kind: 'number',
+    default: 0.3,
+    min: 0,
+    max: 2,
+    step: 0.01,
+    unit: 'ratio',
+    category: BOX_OFFICE_CATEGORY,
+    description: 'Most show heat can add to the crowd',
+    docRef: HEAT_DOC,
   },
   'boxOffice.crowd.spread': {
     kind: 'number',

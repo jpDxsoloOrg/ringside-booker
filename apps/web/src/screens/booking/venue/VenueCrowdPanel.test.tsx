@@ -47,6 +47,25 @@ describe('the Venue and crowd panel', () => {
     expect(screen.queryByRole('button', { name: 'Pick for me' })).toBeNull();
   });
 
+  it('spells out the hot streak and show heat lines in words, not only in the Why?', () => {
+    render(<VenueCrowdView forecast={goodFitForecast} canChange />);
+    expect(screen.getAllByRole('definition')).toHaveLength(2);
+    expect(screen.getByText('Hot streak')).toBeInTheDocument();
+    expect(screen.getByText('4 good shows in a row: +10% crowd')).toBeVisible();
+    expect(screen.getByText('Show heat')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'The Ashfall Feud: heat 78, finale tonight and 1 more storyline: +15.5% crowd',
+      ),
+    ).toBeVisible();
+  });
+
+  it('says how to start a streak and that nothing is linked on a quiet card', () => {
+    render(<VenueCrowdView forecast={sellOutForecast} canChange />);
+    expect(screen.getByText('No hot streak: a show scoring 60 or better starts one')).toBeVisible();
+    expect(screen.getByText('No storylines linked on the card')).toBeVisible();
+  });
+
   it('says when the venue caps the range', () => {
     render(<VenueCrowdView forecast={sellOutForecast} canChange />);
     expect(screen.getByText('2,400')).toBeInTheDocument();

@@ -715,28 +715,37 @@ The crowd forecast (EVT6-01) and the show-day money (EVT6-04), in
 [box-office.md](box-office.md#forecast). Every one is 0-means-0, and money is
 in whole cents.
 
-| Key                                    | Kind    | Default | Range     | Unit       | Meaning                                                                                             |
-| -------------------------------------- | ------- | ------- | --------- | ---------- | --------------------------------------------------------------------------------------------------- |
-| `boxOffice.draw.atFullPopularity`      | integer | 30,000  | 0–200,000 | count      | Crowd a show draws at popularity 100, before the other lines                                        |
-| `boxOffice.draw.curve`                 | number  | 3       | 1–6       | ratio      | How sharply crowds grow with popularity; higher means small companies draw less                     |
-| `boxOffice.draw.walkUp`                | integer | 80      | 0–5,000   | count      | People who turn up to any show, however unknown the company                                         |
-| `boxOffice.marketing.perLevel`         | number  | 0.04    | 0–0.5     | ratio      | Crowd added per marketing level (×(1 + level × this))                                               |
-| `boxOffice.importance.house`           | number  | 0.35    | 0–5       | multiplier | Crowd × this for a house show                                                                       |
-| `boxOffice.importance.minor`           | number  | 0.7     | 0–5       | multiplier | Same, minor show                                                                                    |
-| `boxOffice.importance.regular`         | number  | 1       | 0–5       | multiplier | Same, regular show                                                                                  |
-| `boxOffice.importance.major`           | number  | 1.5     | 0–5       | multiplier | Same, major show                                                                                    |
-| `boxOffice.importance.flagship`        | number  | 2.2     | 0–5       | multiplier | Same, flagship show                                                                                 |
-| `boxOffice.recentForm.windowDays`      | integer | 120     | 0–730     | days       | How far back recent form looks for completed shows ([recent form](box-office.md#recent-form))       |
-| `boxOffice.recentForm.minShows`        | integer | 3       | 0–20      | count      | Recent shows needed before recent form moves the crowd                                              |
-| `boxOffice.recentForm.par`             | number  | 50      | 0–100     | points     | A show score that neither helps nor hurts the draw                                                  |
-| `boxOffice.recentForm.fullSwingPoints` | number  | 25      | 1–100     | points     | Average score above or below par that gives the full swing                                          |
-| `boxOffice.recentForm.maxSwing`        | number  | 0.15    | 0–0.5     | ratio      | Most recent form can add to or take from the crowd (0 = recent form off)                            |
-| `boxOffice.recentForm.countHouseShows` | boolean | false   |           | flag       | Count house shows in recent form                                                                    |
-| `boxOffice.fatigue.windowDays`         | integer | 28      | 0–365     | days       | How far back big-show fatigue looks for other big shows ([fatigue](box-office.md#big-show-fatigue)) |
-| `boxOffice.fatigue.freeShows`          | integer | 1       | 0–10      | count      | Other big shows in the window that cost nothing                                                     |
-| `boxOffice.fatigue.perExtraShow`       | number  | 0.2     | 0–1       | ratio      | Crowd lost for each other big show beyond the free ones (0 = no fatigue)                            |
-| `boxOffice.fatigue.floor`              | number  | 0.25    | 0–1       | multiplier | The least of the crowd fatigue can leave                                                            |
-| `boxOffice.crowd.spread`               | number  | 0.1     | 0–0.5     | ratio      | How far the real crowd can land from the forecast, either way; also the width of the forecast range |
+| Key                                    | Kind    | Default | Range     | Unit       | Meaning                                                                                                                     |
+| -------------------------------------- | ------- | ------- | --------- | ---------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `boxOffice.draw.atFullPopularity`      | integer | 25,500  | 0–200,000 | count      | Crowd a show draws at popularity 100, before the other lines                                                                |
+| `boxOffice.draw.curve`                 | number  | 3       | 1–6       | ratio      | How sharply crowds grow with popularity; higher means small companies draw less                                             |
+| `boxOffice.draw.walkUp`                | integer | 150     | 0–5,000   | count      | People who turn up to any show, however unknown the company                                                                 |
+| `boxOffice.marketing.perLevel`         | number  | 0.04    | 0–0.5     | ratio      | Crowd added per marketing level (×(1 + level × this))                                                                       |
+| `boxOffice.importance.house`           | number  | 0.35    | 0–5       | multiplier | Crowd × this for a house show                                                                                               |
+| `boxOffice.importance.minor`           | number  | 0.7     | 0–5       | multiplier | Same, minor show                                                                                                            |
+| `boxOffice.importance.regular`         | number  | 1       | 0–5       | multiplier | Same, regular show                                                                                                          |
+| `boxOffice.importance.major`           | number  | 1.5     | 0–5       | multiplier | Same, major show                                                                                                            |
+| `boxOffice.importance.flagship`        | number  | 2.2     | 0–5       | multiplier | Same, flagship show                                                                                                         |
+| `boxOffice.recentForm.windowDays`      | integer | 120     | 0–730     | days       | How far back recent form looks for completed shows ([recent form](box-office.md#recent-form))                               |
+| `boxOffice.recentForm.minShows`        | integer | 3       | 0–20      | count      | Recent shows needed before recent form moves the crowd                                                                      |
+| `boxOffice.recentForm.par`             | number  | 50      | 0–100     | points     | A show score that neither helps nor hurts the draw                                                                          |
+| `boxOffice.recentForm.fullSwingPoints` | number  | 25      | 1–100     | points     | Average score above or below par that gives the full swing                                                                  |
+| `boxOffice.recentForm.maxSwing`        | number  | 0.1     | 0–0.5     | ratio      | Most recent form can add to or take from the crowd (0 = recent form off)                                                    |
+| `boxOffice.recentForm.countHouseShows` | boolean | false   |           | flag       | Count house shows in recent form                                                                                            |
+| `boxOffice.fatigue.windowDays`         | integer | 28      | 0–365     | days       | How far back big-show fatigue looks for other big shows ([fatigue](box-office.md#big-show-fatigue))                         |
+| `boxOffice.fatigue.freeShows`          | integer | 1       | 0–10      | count      | Other big shows in the window that cost nothing                                                                             |
+| `boxOffice.fatigue.perExtraShow`       | number  | 0.2     | 0–1       | ratio      | Crowd lost for each other big show beyond the free ones (0 = no fatigue)                                                    |
+| `boxOffice.fatigue.floor`              | number  | 0.25    | 0–1       | multiplier | The least of the crowd fatigue can leave                                                                                    |
+| `boxOffice.streak.goodScore`           | number  | 60      | 0–100     | points     | A show scoring this or better keeps a hot streak going; below it breaks the streak ([hot streak](box-office.md#hot-streak)) |
+| `boxOffice.streak.perShow`             | number  | 0.025   | 0–0.5     | ratio      | Crowd added for each good show in a row (0 = hot streaks off)                                                               |
+| `boxOffice.streak.cap`                 | number  | 0.125   | 0–1       | ratio      | Most a hot streak can add to the crowd                                                                                      |
+| `boxOffice.streak.fadePerShow`         | number  | 0.05    | 0–1       | ratio      | Streak bonus lost for each show below the good score after the streak breaks                                                |
+| `boxOffice.heat.from`                  | number  | 40      | 0–99      | points     | Storyline heat at which a linked storyline starts to sell tickets ([show heat](box-office.md#show-heat))                    |
+| `boxOffice.heat.maxBonus`              | number  | 0.15    | 0–1       | ratio      | Crowd a linked storyline at heat 100 adds (0 = show heat off)                                                               |
+| `boxOffice.heat.finaleFactor`          | number  | 1.5     | 0–5       | multiplier | A storyline's heat bonus × this when its finale is on the card                                                              |
+| `boxOffice.heat.otherShare`            | number  | 0.25    | 0–1       | ratio      | Share of its bonus each linked storyline after the hottest adds                                                             |
+| `boxOffice.heat.cap`                   | number  | 0.3     | 0–2       | ratio      | Most show heat can add to the crowd                                                                                         |
+| `boxOffice.crowd.spread`               | number  | 0.1     | 0–0.5     | ratio      | How far the real crowd can land from the forecast, either way; also the width of the forecast range                         |
 
 ## Office tunables
 
@@ -812,90 +821,108 @@ playing field.
 | `ai.skipWorkerRequests`       | boolean | true    |                 | flag   | Rival workers make no requests of their bosses                                                                                                                                        |
 | `ai.contracts.simpleRenewals` | boolean | true    |                 | flag   | Rival promotions renew contracts by a simple rule until the rival labour market exists (ECO4-05 moved it here from Contracts; the rule: [contracts.md](contracts.md#simple-renewals)) |
 
-| Key                                    | Kind    | Default | Range        | Unit       | Meaning                                                                                             |
-| -------------------------------------- | ------- | ------- | ------------ | ---------- | --------------------------------------------------------------------------------------------------- |
-| `boxOffice.draw.atFullPopularity`      | integer | 30,000  | 0–200,000    | count      | Crowd a show draws at popularity 100, before the other lines                                        |
-| `boxOffice.draw.curve`                 | number  | 3       | 1–6          | ratio      | How sharply crowds grow with popularity; higher means small companies draw less                     |
-| `boxOffice.draw.walkUp`                | integer | 80      | 0–5,000      | count      | People who turn up to any show, however unknown the company                                         |
-| `boxOffice.marketing.perLevel`         | number  | 0.04    | 0–0.5        | ratio      | Crowd added per marketing level (×(1 + level × this))                                               |
-| `boxOffice.importance.house`           | number  | 0.35    | 0–5          | multiplier | Crowd × this for a house show                                                                       |
-| `boxOffice.importance.minor`           | number  | 0.7     | 0–5          | multiplier | Same, minor show                                                                                    |
-| `boxOffice.importance.regular`         | number  | 1       | 0–5          | multiplier | Same, regular show                                                                                  |
-| `boxOffice.importance.major`           | number  | 1.5     | 0–5          | multiplier | Same, major show                                                                                    |
-| `boxOffice.importance.flagship`        | number  | 2.2     | 0–5          | multiplier | Same, flagship show                                                                                 |
-| `boxOffice.recentForm.windowDays`      | integer | 120     | 0–730        | days       | How far back recent form looks for completed shows ([recent form](box-office.md#recent-form))       |
-| `boxOffice.recentForm.minShows`        | integer | 3       | 0–20         | count      | Recent shows needed before recent form moves the crowd                                              |
-| `boxOffice.recentForm.par`             | number  | 50      | 0–100        | points     | A show score that neither helps nor hurts the draw                                                  |
-| `boxOffice.recentForm.fullSwingPoints` | number  | 25      | 1–100        | points     | Average score above or below par that gives the full swing                                          |
-| `boxOffice.recentForm.maxSwing`        | number  | 0.15    | 0–0.5        | ratio      | Most recent form can add to or take from the crowd (0 = recent form off)                            |
-| `boxOffice.recentForm.countHouseShows` | boolean | false   |              | flag       | Count house shows in recent form                                                                    |
-| `boxOffice.fatigue.windowDays`         | integer | 28      | 0–365        | days       | How far back big-show fatigue looks for other big shows ([fatigue](box-office.md#big-show-fatigue)) |
-| `boxOffice.fatigue.freeShows`          | integer | 1       | 0–10         | count      | Other big shows in the window that cost nothing                                                     |
-| `boxOffice.fatigue.perExtraShow`       | number  | 0.2     | 0–1          | ratio      | Crowd lost for each other big show beyond the free ones (0 = no fatigue)                            |
-| `boxOffice.fatigue.floor`              | number  | 0.25    | 0–1          | multiplier | The least of the crowd fatigue can leave                                                            |
-| `boxOffice.crowd.spread`               | number  | 0.1     | 0–0.5        | ratio      | How far the real crowd can land from the forecast, either way; also the width of the forecast range |
-| `boxOffice.ticket.base`                | integer | 1,000   | 0–100,000    | money      | Ticket price every show starts from, $10 ([ticket price](box-office.md#ticket-price))               |
-| `boxOffice.ticket.perReachPoint`       | integer | 60      | 0–10,000     | money      | Ticket price added per point of the company's reach                                                 |
-| `boxOffice.ticket.importance.house`    | number  | 0.8     | 0–5          | multiplier | Ticket price × this for a house show                                                                |
-| `boxOffice.ticket.importance.minor`    | number  | 0.9     | 0–5          | multiplier | Same, minor show                                                                                    |
-| `boxOffice.ticket.importance.regular`  | number  | 1       | 0–5          | multiplier | Same, regular show                                                                                  |
-| `boxOffice.ticket.importance.major`    | number  | 1.5     | 0–5          | multiplier | Same, major show                                                                                    |
-| `boxOffice.ticket.importance.flagship` | number  | 2       | 0–5          | multiplier | Same, flagship show                                                                                 |
-| `boxOffice.rent.base`                  | integer | 25,000  | 0–10,000,000 | money      | Rent every venue charges for a show, $250 ([venue rent](box-office.md#venue-rent))                  |
-| `boxOffice.rent.perSeat`               | integer | 350     | 0–100,000    | money      | Rent per seat of capacity, sold or not                                                              |
-| `boxOffice.rent.kind.hall`             | number  | 1       | 0–5          | multiplier | Seat rent × this in a hall                                                                          |
-| `boxOffice.rent.kind.theatre`          | number  | 1.1     | 0–5          | multiplier | Same, theatre                                                                                       |
-| `boxOffice.rent.kind.arena`            | number  | 1.25    | 0–5          | multiplier | Same, arena                                                                                         |
-| `boxOffice.rent.kind.stadium`          | number  | 3.5     | 0–5          | multiplier | Same, stadium                                                                                       |
-| `boxOffice.rent.kind.studio`           | number  | 0.6     | 0–5          | multiplier | Same, studio                                                                                        |
-| `boxOffice.rent.kind.outdoor`          | number  | 1.2     | 0–5          | multiplier | Same, outdoor venue                                                                                 |
-| `boxOffice.rent.ownVenueFactor`        | number  | 0.25    | 0–1          | ratio      | Share of the rent paid in a venue that belongs to the company                                       |
-| `boxOffice.merch.perHead`              | integer | 500     | 0–100,000    | money      | Merch each fan buys at an average show, $5 ([live merch](box-office.md#live-merch))                 |
-| `boxOffice.merch.qualityLow`           | number  | 0.8     | 0–3          | multiplier | Merch × this after a show scoring 0                                                                 |
-| `boxOffice.merch.qualityHigh`          | number  | 1.2     | 0–3          | multiplier | Merch × this after a show scoring 100                                                               |
-| `boxOffice.merch.spread`               | number  | 0.05    | 0–0.5        | ratio      | How far merch sales can swing on the night, either way                                              |
-| `boxOffice.gate.workerShareCap`        | number  | 0.5     | 0–1          | ratio      | Most of the ticket money worker shares can take ([worker shares](box-office.md#worker-shares))      |
-| `boxOffice.merch.workerShareCap`       | number  | 0.5     | 0–1          | ratio      | Most of the merch money worker shares can take                                                      |
+| Key                                    | Kind    | Default | Range        | Unit       | Meaning                                                                                                                     |
+| -------------------------------------- | ------- | ------- | ------------ | ---------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `boxOffice.draw.atFullPopularity`      | integer | 25,500  | 0–200,000    | count      | Crowd a show draws at popularity 100, before the other lines                                                                |
+| `boxOffice.draw.curve`                 | number  | 3       | 1–6          | ratio      | How sharply crowds grow with popularity; higher means small companies draw less                                             |
+| `boxOffice.draw.walkUp`                | integer | 150     | 0–5,000      | count      | People who turn up to any show, however unknown the company                                                                 |
+| `boxOffice.marketing.perLevel`         | number  | 0.04    | 0–0.5        | ratio      | Crowd added per marketing level (×(1 + level × this))                                                                       |
+| `boxOffice.importance.house`           | number  | 0.35    | 0–5          | multiplier | Crowd × this for a house show                                                                                               |
+| `boxOffice.importance.minor`           | number  | 0.7     | 0–5          | multiplier | Same, minor show                                                                                                            |
+| `boxOffice.importance.regular`         | number  | 1       | 0–5          | multiplier | Same, regular show                                                                                                          |
+| `boxOffice.importance.major`           | number  | 1.5     | 0–5          | multiplier | Same, major show                                                                                                            |
+| `boxOffice.importance.flagship`        | number  | 2.2     | 0–5          | multiplier | Same, flagship show                                                                                                         |
+| `boxOffice.recentForm.windowDays`      | integer | 120     | 0–730        | days       | How far back recent form looks for completed shows ([recent form](box-office.md#recent-form))                               |
+| `boxOffice.recentForm.minShows`        | integer | 3       | 0–20         | count      | Recent shows needed before recent form moves the crowd                                                                      |
+| `boxOffice.recentForm.par`             | number  | 50      | 0–100        | points     | A show score that neither helps nor hurts the draw                                                                          |
+| `boxOffice.recentForm.fullSwingPoints` | number  | 25      | 1–100        | points     | Average score above or below par that gives the full swing                                                                  |
+| `boxOffice.recentForm.maxSwing`        | number  | 0.1     | 0–0.5        | ratio      | Most recent form can add to or take from the crowd (0 = recent form off)                                                    |
+| `boxOffice.recentForm.countHouseShows` | boolean | false   |              | flag       | Count house shows in recent form                                                                                            |
+| `boxOffice.fatigue.windowDays`         | integer | 28      | 0–365        | days       | How far back big-show fatigue looks for other big shows ([fatigue](box-office.md#big-show-fatigue))                         |
+| `boxOffice.fatigue.freeShows`          | integer | 1       | 0–10         | count      | Other big shows in the window that cost nothing                                                                             |
+| `boxOffice.fatigue.perExtraShow`       | number  | 0.2     | 0–1          | ratio      | Crowd lost for each other big show beyond the free ones (0 = no fatigue)                                                    |
+| `boxOffice.fatigue.floor`              | number  | 0.25    | 0–1          | multiplier | The least of the crowd fatigue can leave                                                                                    |
+| `boxOffice.streak.goodScore`           | number  | 60      | 0–100        | points     | A show scoring this or better keeps a hot streak going; below it breaks the streak ([hot streak](box-office.md#hot-streak)) |
+| `boxOffice.streak.perShow`             | number  | 0.025   | 0–0.5        | ratio      | Crowd added for each good show in a row (0 = hot streaks off)                                                               |
+| `boxOffice.streak.cap`                 | number  | 0.125   | 0–1          | ratio      | Most a hot streak can add to the crowd                                                                                      |
+| `boxOffice.streak.fadePerShow`         | number  | 0.05    | 0–1          | ratio      | Streak bonus lost for each show below the good score after the streak breaks                                                |
+| `boxOffice.heat.from`                  | number  | 40      | 0–99         | points     | Storyline heat at which a linked storyline starts to sell tickets ([show heat](box-office.md#show-heat))                    |
+| `boxOffice.heat.maxBonus`              | number  | 0.15    | 0–1          | ratio      | Crowd a linked storyline at heat 100 adds (0 = show heat off)                                                               |
+| `boxOffice.heat.finaleFactor`          | number  | 1.5     | 0–5          | multiplier | A storyline's heat bonus × this when its finale is on the card                                                              |
+| `boxOffice.heat.otherShare`            | number  | 0.25    | 0–1          | ratio      | Share of its bonus each linked storyline after the hottest adds                                                             |
+| `boxOffice.heat.cap`                   | number  | 0.3     | 0–2          | ratio      | Most show heat can add to the crowd                                                                                         |
+| `boxOffice.crowd.spread`               | number  | 0.1     | 0–0.5        | ratio      | How far the real crowd can land from the forecast, either way; also the width of the forecast range                         |
+| `boxOffice.ticket.base`                | integer | 1,000   | 0–100,000    | money      | Ticket price every show starts from, $10 ([ticket price](box-office.md#ticket-price))                                       |
+| `boxOffice.ticket.perReachPoint`       | integer | 60      | 0–10,000     | money      | Ticket price added per point of the company's reach                                                                         |
+| `boxOffice.ticket.importance.house`    | number  | 0.8     | 0–5          | multiplier | Ticket price × this for a house show                                                                                        |
+| `boxOffice.ticket.importance.minor`    | number  | 0.9     | 0–5          | multiplier | Same, minor show                                                                                                            |
+| `boxOffice.ticket.importance.regular`  | number  | 1       | 0–5          | multiplier | Same, regular show                                                                                                          |
+| `boxOffice.ticket.importance.major`    | number  | 1.5     | 0–5          | multiplier | Same, major show                                                                                                            |
+| `boxOffice.ticket.importance.flagship` | number  | 2       | 0–5          | multiplier | Same, flagship show                                                                                                         |
+| `boxOffice.rent.base`                  | integer | 25,000  | 0–10,000,000 | money      | Rent every venue charges for a show, $250 ([venue rent](box-office.md#venue-rent))                                          |
+| `boxOffice.rent.perSeat`               | integer | 350     | 0–100,000    | money      | Rent per seat of capacity, sold or not                                                                                      |
+| `boxOffice.rent.kind.hall`             | number  | 1       | 0–5          | multiplier | Seat rent × this in a hall                                                                                                  |
+| `boxOffice.rent.kind.theatre`          | number  | 1.1     | 0–5          | multiplier | Same, theatre                                                                                                               |
+| `boxOffice.rent.kind.arena`            | number  | 1.25    | 0–5          | multiplier | Same, arena                                                                                                                 |
+| `boxOffice.rent.kind.stadium`          | number  | 3.5     | 0–5          | multiplier | Same, stadium                                                                                                               |
+| `boxOffice.rent.kind.studio`           | number  | 0.6     | 0–5          | multiplier | Same, studio                                                                                                                |
+| `boxOffice.rent.kind.outdoor`          | number  | 1.2     | 0–5          | multiplier | Same, outdoor venue                                                                                                         |
+| `boxOffice.rent.ownVenueFactor`        | number  | 0.25    | 0–1          | ratio      | Share of the rent paid in a venue that belongs to the company                                                               |
+| `boxOffice.merch.perHead`              | integer | 500     | 0–100,000    | money      | Merch each fan buys at an average show, $5 ([live merch](box-office.md#live-merch))                                         |
+| `boxOffice.merch.qualityLow`           | number  | 0.8     | 0–3          | multiplier | Merch × this after a show scoring 0                                                                                         |
+| `boxOffice.merch.qualityHigh`          | number  | 1.2     | 0–3          | multiplier | Merch × this after a show scoring 100                                                                                       |
+| `boxOffice.merch.spread`               | number  | 0.05    | 0–0.5        | ratio      | How far merch sales can swing on the night, either way                                                                      |
+| `boxOffice.gate.workerShareCap`        | number  | 0.5     | 0–1          | ratio      | Most of the ticket money worker shares can take ([worker shares](box-office.md#worker-shares))                              |
+| `boxOffice.merch.workerShareCap`       | number  | 0.5     | 0–1          | ratio      | Most of the merch money worker shares can take                                                                              |
 
 The crowd forecast (EVT6-01), in `systems/boxOffice/tunables.ts`, category
 `Box office`. See [box-office.md](box-office.md#forecast). Every one is
 0-means-0. The venue numbers (EVT6-02) are in
 `systems/boxOffice/venueTunables.ts`, spread into the same set.
 
-| Key                                     | Kind    | Default | Range     | Unit       | Meaning                                                                                                        |
-| --------------------------------------- | ------- | ------- | --------- | ---------- | -------------------------------------------------------------------------------------------------------------- |
-| `boxOffice.draw.atFullPopularity`       | integer | 30,000  | 0–200,000 | count      | Crowd a show draws at popularity 100, before the other lines                                                   |
-| `boxOffice.draw.curve`                  | number  | 3       | 1–6       | ratio      | How sharply crowds grow with popularity; higher means small companies draw less                                |
-| `boxOffice.draw.walkUp`                 | integer | 80      | 0–5,000   | count      | People who turn up to any show, however unknown the company                                                    |
-| `boxOffice.marketing.perLevel`          | number  | 0.04    | 0–0.5     | ratio      | Crowd added per marketing level (×(1 + level × this))                                                          |
-| `boxOffice.importance.house`            | number  | 0.35    | 0–5       | multiplier | Crowd × this for a house show                                                                                  |
-| `boxOffice.importance.minor`            | number  | 0.7     | 0–5       | multiplier | Same, minor show                                                                                               |
-| `boxOffice.importance.regular`          | number  | 1       | 0–5       | multiplier | Same, regular show                                                                                             |
-| `boxOffice.importance.major`            | number  | 1.5     | 0–5       | multiplier | Same, major show                                                                                               |
-| `boxOffice.importance.flagship`         | number  | 2.2     | 0–5       | multiplier | Same, flagship show                                                                                            |
-| `boxOffice.recentForm.windowDays`       | integer | 120     | 0–730     | days       | How far back recent form looks for completed shows ([recent form](box-office.md#recent-form))                  |
-| `boxOffice.recentForm.minShows`         | integer | 3       | 0–20      | count      | Recent shows needed before recent form moves the crowd                                                         |
-| `boxOffice.recentForm.par`              | number  | 50      | 0–100     | points     | A show score that neither helps nor hurts the draw                                                             |
-| `boxOffice.recentForm.fullSwingPoints`  | number  | 25      | 1–100     | points     | Average score above or below par that gives the full swing                                                     |
-| `boxOffice.recentForm.maxSwing`         | number  | 0.15    | 0–0.5     | ratio      | Most recent form can add to or take from the crowd (0 = recent form off)                                       |
-| `boxOffice.recentForm.countHouseShows`  | boolean | false   |           | flag       | Count house shows in recent form                                                                               |
-| `boxOffice.fatigue.windowDays`          | integer | 28      | 0–365     | days       | How far back big-show fatigue looks for other big shows ([fatigue](box-office.md#big-show-fatigue))            |
-| `boxOffice.fatigue.freeShows`           | integer | 1       | 0–10      | count      | Other big shows in the window that cost nothing                                                                |
-| `boxOffice.fatigue.perExtraShow`        | number  | 0.2     | 0–1       | ratio      | Crowd lost for each other big show beyond the free ones (0 = no fatigue)                                       |
-| `boxOffice.fatigue.floor`               | number  | 0.25    | 0–1       | multiplier | The least of the crowd fatigue can leave                                                                       |
-| `boxOffice.crowd.spread`                | number  | 0.1     | 0–0.5     | ratio      | How far the real crowd can land from the forecast, either way; also the width of the forecast range            |
-| `boxOffice.generic.room.capacity`       | integer | 150     | 1–200,000 | count      | People a local room holds ([generic venues](box-office.md#generic-venues))                                     |
-| `boxOffice.generic.smallHall.capacity`  | integer | 500     | 1–200,000 | count      | People a local small hall holds                                                                                |
-| `boxOffice.generic.hall.capacity`       | integer | 1,200   | 1–200,000 | count      | People a local hall holds                                                                                      |
-| `boxOffice.generic.largeHall.capacity`  | integer | 3,000   | 1–200,000 | count      | People a local large hall holds                                                                                |
-| `boxOffice.generic.smallArena.capacity` | integer | 6,000   | 1–200,000 | count      | People a local small arena holds                                                                               |
-| `boxOffice.generic.arena.capacity`      | integer | 12,000  | 1–200,000 | count      | People a local arena holds                                                                                     |
-| `boxOffice.generic.largeArena.capacity` | integer | 20,000  | 1–200,000 | count      | People a local large arena holds                                                                               |
-| `boxOffice.generic.stadium.capacity`    | integer | 45,000  | 1–200,000 | count      | People a local stadium holds                                                                                   |
-| `boxOffice.fit.sellOutAt`               | number  | 1       | 0.5–1.5   | ratio      | Expected crowd, as a share of capacity, at which a venue is a likely sell-out ([venues](box-office.md#venues)) |
-| `boxOffice.fit.emptyAt`                 | number  | 3       | 1–10      | multiplier | Capacity, as a multiple of the expected crowd, at which a venue will look empty                                |
-| `boxOffice.pick.headroom`               | number  | 1.1     | 1–3       | multiplier | Room left for a good night when sizing a venue ([pick](box-office.md#pick))                                    |
-| `boxOffice.rivalVenueLeadDays`          | integer | 14      | 0–90      | days       | How far ahead rival shows are given a venue ([automatic picks](box-office.md#automatic-picks))                 |
+| Key                                     | Kind    | Default | Range     | Unit       | Meaning                                                                                                                     |
+| --------------------------------------- | ------- | ------- | --------- | ---------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `boxOffice.draw.atFullPopularity`       | integer | 25,500  | 0–200,000 | count      | Crowd a show draws at popularity 100, before the other lines                                                                |
+| `boxOffice.draw.curve`                  | number  | 3       | 1–6       | ratio      | How sharply crowds grow with popularity; higher means small companies draw less                                             |
+| `boxOffice.draw.walkUp`                 | integer | 150     | 0–5,000   | count      | People who turn up to any show, however unknown the company                                                                 |
+| `boxOffice.marketing.perLevel`          | number  | 0.04    | 0–0.5     | ratio      | Crowd added per marketing level (×(1 + level × this))                                                                       |
+| `boxOffice.importance.house`            | number  | 0.35    | 0–5       | multiplier | Crowd × this for a house show                                                                                               |
+| `boxOffice.importance.minor`            | number  | 0.7     | 0–5       | multiplier | Same, minor show                                                                                                            |
+| `boxOffice.importance.regular`          | number  | 1       | 0–5       | multiplier | Same, regular show                                                                                                          |
+| `boxOffice.importance.major`            | number  | 1.5     | 0–5       | multiplier | Same, major show                                                                                                            |
+| `boxOffice.importance.flagship`         | number  | 2.2     | 0–5       | multiplier | Same, flagship show                                                                                                         |
+| `boxOffice.recentForm.windowDays`       | integer | 120     | 0–730     | days       | How far back recent form looks for completed shows ([recent form](box-office.md#recent-form))                               |
+| `boxOffice.recentForm.minShows`         | integer | 3       | 0–20      | count      | Recent shows needed before recent form moves the crowd                                                                      |
+| `boxOffice.recentForm.par`              | number  | 50      | 0–100     | points     | A show score that neither helps nor hurts the draw                                                                          |
+| `boxOffice.recentForm.fullSwingPoints`  | number  | 25      | 1–100     | points     | Average score above or below par that gives the full swing                                                                  |
+| `boxOffice.recentForm.maxSwing`         | number  | 0.1     | 0–0.5     | ratio      | Most recent form can add to or take from the crowd (0 = recent form off)                                                    |
+| `boxOffice.recentForm.countHouseShows`  | boolean | false   |           | flag       | Count house shows in recent form                                                                                            |
+| `boxOffice.fatigue.windowDays`          | integer | 28      | 0–365     | days       | How far back big-show fatigue looks for other big shows ([fatigue](box-office.md#big-show-fatigue))                         |
+| `boxOffice.fatigue.freeShows`           | integer | 1       | 0–10      | count      | Other big shows in the window that cost nothing                                                                             |
+| `boxOffice.fatigue.perExtraShow`        | number  | 0.2     | 0–1       | ratio      | Crowd lost for each other big show beyond the free ones (0 = no fatigue)                                                    |
+| `boxOffice.fatigue.floor`               | number  | 0.25    | 0–1       | multiplier | The least of the crowd fatigue can leave                                                                                    |
+| `boxOffice.streak.goodScore`            | number  | 60      | 0–100     | points     | A show scoring this or better keeps a hot streak going; below it breaks the streak ([hot streak](box-office.md#hot-streak)) |
+| `boxOffice.streak.perShow`              | number  | 0.025   | 0–0.5     | ratio      | Crowd added for each good show in a row (0 = hot streaks off)                                                               |
+| `boxOffice.streak.cap`                  | number  | 0.125   | 0–1       | ratio      | Most a hot streak can add to the crowd                                                                                      |
+| `boxOffice.streak.fadePerShow`          | number  | 0.05    | 0–1       | ratio      | Streak bonus lost for each show below the good score after the streak breaks                                                |
+| `boxOffice.heat.from`                   | number  | 40      | 0–99      | points     | Storyline heat at which a linked storyline starts to sell tickets ([show heat](box-office.md#show-heat))                    |
+| `boxOffice.heat.maxBonus`               | number  | 0.15    | 0–1       | ratio      | Crowd a linked storyline at heat 100 adds (0 = show heat off)                                                               |
+| `boxOffice.heat.finaleFactor`           | number  | 1.5     | 0–5       | multiplier | A storyline's heat bonus × this when its finale is on the card                                                              |
+| `boxOffice.heat.otherShare`             | number  | 0.25    | 0–1       | ratio      | Share of its bonus each linked storyline after the hottest adds                                                             |
+| `boxOffice.heat.cap`                    | number  | 0.3     | 0–2       | ratio      | Most show heat can add to the crowd                                                                                         |
+| `boxOffice.crowd.spread`                | number  | 0.1     | 0–0.5     | ratio      | How far the real crowd can land from the forecast, either way; also the width of the forecast range                         |
+| `boxOffice.generic.room.capacity`       | integer | 150     | 1–200,000 | count      | People a local room holds ([generic venues](box-office.md#generic-venues))                                                  |
+| `boxOffice.generic.smallHall.capacity`  | integer | 500     | 1–200,000 | count      | People a local small hall holds                                                                                             |
+| `boxOffice.generic.hall.capacity`       | integer | 1,200   | 1–200,000 | count      | People a local hall holds                                                                                                   |
+| `boxOffice.generic.largeHall.capacity`  | integer | 3,000   | 1–200,000 | count      | People a local large hall holds                                                                                             |
+| `boxOffice.generic.smallArena.capacity` | integer | 6,000   | 1–200,000 | count      | People a local small arena holds                                                                                            |
+| `boxOffice.generic.arena.capacity`      | integer | 12,000  | 1–200,000 | count      | People a local arena holds                                                                                                  |
+| `boxOffice.generic.largeArena.capacity` | integer | 20,000  | 1–200,000 | count      | People a local large arena holds                                                                                            |
+| `boxOffice.generic.stadium.capacity`    | integer | 45,000  | 1–200,000 | count      | People a local stadium holds                                                                                                |
+| `boxOffice.fit.sellOutAt`               | number  | 1       | 0.5–1.5   | ratio      | Expected crowd, as a share of capacity, at which a venue is a likely sell-out ([venues](box-office.md#venues))              |
+| `boxOffice.fit.emptyAt`                 | number  | 3       | 1–10      | multiplier | Capacity, as a multiple of the expected crowd, at which a venue will look empty                                             |
+| `boxOffice.pick.headroom`               | number  | 1.1     | 1–3       | multiplier | Room left for a good night when sizing a venue ([pick](box-office.md#pick))                                                 |
+| `boxOffice.rivalVenueLeadDays`          | integer | 14      | 0–90      | days       | How far ahead rival shows are given a venue ([automatic picks](box-office.md#automatic-picks))                              |
 
 | Key                               | Kind    | Default       | Range                                                 | Unit   | Meaning                                                                                                                       |
 | --------------------------------- | ------- | ------------- | ----------------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------- |
