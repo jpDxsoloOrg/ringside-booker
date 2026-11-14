@@ -410,7 +410,9 @@ export const matchAlertsSubscription = defineSubscription({
       if (rule === null) {
         continue;
       }
-      ctx.tx.setMeta({ settings: withAlertSettings(ctx.read.meta, playerId, { pending: news.id }) });
+      ctx.tx.setMeta({
+        settings: withAlertSettings(ctx.read.meta, playerId, { pending: news.id }),
+      });
       ctx.publish('news.alertRaised', { playerId, newsId: news.id, ruleId: rule.id });
     }
   },

@@ -60,13 +60,11 @@ export const setAlertRulesCommand = defineCommand('news.setAlertRules', {
     }
     return Object.keys(args.rules)
       .filter((ruleId) => newsAlertRule(ruleId) === undefined)
-      .map(
-        (ruleId): Reason => ({
-          code: INVALID_ARGS,
-          message: `There is no news alert called "${ruleId}"`,
-          field: `rules.${ruleId}`,
-        }),
-      );
+      .map((ruleId): Reason => ({
+        code: INVALID_ARGS,
+        message: `There is no news alert called "${ruleId}"`,
+        field: `rules.${ruleId}`,
+      }));
   },
   apply: (ctx, args, issuedBy) => {
     const playerId = issuingPlayerId(ctx.read, issuedBy);

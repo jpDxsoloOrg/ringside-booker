@@ -21,13 +21,7 @@ import type { GameWorldView } from '../../model/tables';
 import type { DeepReadonly } from '../../model/world';
 import { alertSettingsOf, newsAlertRules } from './alerts';
 import { issuingPlayerId } from './commands';
-import {
-  compareFeed,
-  isFrontPage,
-  isShownOn,
-  rankedWindow,
-  storiesBetween,
-} from './frontPage';
+import { compareFeed, isFrontPage, isShownOn, rankedWindow, storiesBetween } from './frontPage';
 import { collectNames, toNewsItemView, type NewsItemView, type NewsNames } from './views';
 
 type Story = DeepReadonly<News>;
@@ -222,8 +216,7 @@ export const newsAlertRulesQuery = defineQuery('news.alertRules', {
   args: z.strictObject({}),
   run: (ctx) => {
     const { viewer, read } = ctx;
-    const playerId =
-      viewer.kind === 'controller' ? issuingPlayerId(read, viewer.controller) : null;
+    const playerId = viewer.kind === 'controller' ? issuingPlayerId(read, viewer.controller) : null;
     // The omniscient viewer and computer seats get the defaults, with nothing pending.
     const settings =
       playerId === null

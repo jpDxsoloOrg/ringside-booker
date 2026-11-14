@@ -1349,3 +1349,14 @@ importance are documented constants, not tunables.
 | `news.milestones.careerYearStep`     | integer | 5       | 1–50  | years  | Career anniversaries make a story every this many years in the business                       |
 | `news.milestones.careerMinYears`     | integer | 10      | 0–60  | years  | Fewest years in the business for a career anniversary story (0 = from the first step)         |
 | `news.milestones.promotionYearStep`  | integer | 5       | 1–50  | years  | Promotion anniversaries make a story on the first one and then every this many years          |
+
+DAY1-03, see [news.md](news.md#front-page). Category News. Which stories are
+front page and how the hero stories and the ticker are ranked. The rank is an
+ordering, not a number the player sees.
+
+| Key                               | Kind    | Default | Range | Unit   | Meaning                                                                          |
+| --------------------------------- | ------- | ------- | ----- | ------ | -------------------------------------------------------------------------------- |
+| `news.frontPage.minBuzz`          | number  | 65      | 0–100 | points | Buzz from which a story is front page, whatever its importance (0 = every story) |
+| `news.frontPage.agePenaltyPerDay` | number  | 4       | 0–50  | points | Buzz a story loses per day of age in the ranking (0 = age does not matter)       |
+| `news.frontPage.windowDays`       | integer | 7       | 1–90  | days   | Days of stories, today included, that compete for the front page and ticker      |
+| `news.frontPage.heroCount`        | integer | 3       | 1–5   | count  | Front-page stories shown large at the top of the News screen                     |

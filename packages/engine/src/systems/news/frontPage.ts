@@ -38,9 +38,7 @@ export function isShownOn(news: Story, date: GameDate): boolean {
 /** Newest first, then the higher buzz, then by id: the feed's order. */
 export function compareFeed(left: Story, right: Story): number {
   return (
-    compareDates(right.date, left.date) ||
-    right.buzz - left.buzz ||
-    compareIds(left.id, right.id)
+    compareDates(right.date, left.date) || right.buzz - left.buzz || compareIds(left.id, right.id)
   );
 }
 

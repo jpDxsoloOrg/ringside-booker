@@ -4,8 +4,9 @@ The news wire is the public feed of the wrestling world: results, title changes,
 signings, releases, rumours and the rest. This page is the contract every system
 uses to post a story. DAY1-01 builds the posting core; DAY1-02 adds the
 [opening story](#opening-story), the weekly [milestones](#milestones) and the
-[expiry clean-up](#expiry); later DAY1 tickets add the other stories, the feed
-queries and the screen.
+[expiry clean-up](#expiry); DAY1-03 adds the [queries](#queries), the
+[front page](#front-page) and [skip alerts](#alerts); later DAY1 tickets add
+the other stories and the screen.
 
 Code: `packages/engine/src/systems/news/` and the `news` table
 (`packages/engine/src/model/entities/news.ts`, see
@@ -289,3 +290,140 @@ its references:
 
 Say what the wrestling world could see: who won, who signed where, who got
 hurt on screen. When in doubt, leave it out.
+
+## Queries
+
+DAY1-03 (`systems/news/queries.ts`, `views.ts`). Every story is public, so the
+three reads return the same stories to every viewer; only `mine` and
+`news.alertRules` read who is asking. Every result is plain JSON.
+
+A story comes back as a `NewsItemView`:
+
+| Field                                                   | Meaning                                                                                                      |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `id`, `date`, `kind`, `importance`, `buzz`, `expiresOn` | As stored.                                                                                                   |
+| `kindLabel`                                             | `NEWS_KIND_LABELS[kind]` ("Title change").                                                                   |
+| `headline`, `body`                                      | The templated text (content key and params).                                                                 |
+| `refs`                                                  | Who and what the story is about.                                                                             |
+| `buzzTraceRef`                                          | `{ kind: 'news.buzz', id }` while the trace store holds the story's buzz trace (full or summary), else null. |
+| `frontPage`                                             | The [front-page rule](#front-page).                                                                          |
+
+With the stories comes `names` (`NewsNames`): every id found in `refs` and in
+the headline and body params (a param value, or each part of a comma-joined
+value such as `holderIds`, that `kindOfId` recognises) mapped to
+`{ kind, name }`. People get `displayNameOf` on the current date; promotions,
+titles and shows their `name`; contracts their ring name; seasons "Season
+&lt;n&gt;". An id whose row is gone is named "(no longer in the records)". Other
+kinds of id are left out. So the screen renders a story without a query per
+name.
+
+| Query             | Args                                                                                                                                                                       | Returns                                                                                                                                                                                                                 |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `news.feed`       | `from?`, `to?` (dates, both included), `kinds?`, `promotionId?`, `personId?`, `minImportance?` (0..3), `frontPageOnly?`, `mine?`, `limit` (1..500, default 200), `offset?` | `{ items, names, total }`: newest first, then the higher buzz, then id. `total` counts every match before paging. `mine` keeps stories naming one of `viewerPromotionIds(read, viewer)` directly or through their show. |
+| `news.top`        | `heroCount?` (1..5, default `news.frontPage.heroCount`), `tickerCount?` (1..20, default 12)                                                                                | `{ hero, ticker, names }`: see [front page](#front-page).                                                                                                                                                               |
+| `news.item`       | `newsId`                                                                                                                                                                   | `{ item, names }`, or `notFound` "This story is no longer in the news archive".                                                                                                                                         |
+| `news.alertRules` | none                                                                                                                                                                       | The viewer's [alert](#alerts) rules `{ id, label, description, enabled, defaultOn }[]`, `stopSkip` and `pending`. The omniscient viewer and computer seats get the defaults with `pending: null`.                       |
+
+The feed walks the `byDate` index keys from the newest down (never the whole
+table) and stops below `from`. A story whose `expiresOn` is on or before the
+current date is left out of every query even before `news.expire` deletes it.
+
+## Front page
+
+A story is **front page** when its importance is 3 or its buzz is at least
+`news.frontPage.minBuzz` (65).
+
+The hero stories and the ticker rank the stories of the last
+`news.frontPage.windowDays` days (7, today included) that are still shown:
+
+```
+rankScore = buzz − ageDays × news.frontPage.agePenaltyPerDay
+```
+
+with `ageDays` the days since the story was posted. Ties go to the newer
+story, then the lower id. `hero` is the best-ranked front-page stories (up to
+`heroCount`); `ticker` is the best-ranked stories of the window (up to
+`tickerCount`). When the window holds fewer than 3 stories, the ticker is
+topped up with the latest stories still shown, newest first, so it is empty
+only when the world has no news.
+
+The rank is an ordering, not a number the player sees, so it has no Why?. The
+buzz behind it has one. The tunables are in
+[tunables.md](tunables.md#news-tunables).
+
+## Alerts
+
+Skip alerts let a player say which stories matter enough to stop a long skip
+(DAY1-03, `systems/news/alerts.ts`, `commands.ts`).
+
+**Rules.** A registry: `registerNewsAlertRule(defineNewsAlertRule({ id, label,
+description, order, defaultOn, matches(news, ctx) }))`, with
+`ctx = { read, promotionIds, date, tunables }`; `newsAlertRules()` lists them
+by order. A later feature adds a rule without editing DAY1 files (WRK3's
+"Shortlisted workers").
+
+| Rule           | Label                      | Default | Matches                                                                                                                 |
+| -------------- | -------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `frontPage`    | Front-page stories         | on      | The [front-page rule](#front-page)                                                                                      |
+| `myPromotion`  | Stories about my promotion | off     | `refs.promotionIds` names one of the player's promotions                                                                |
+| `myRoster`     | My roster                  | off     | Someone in `refs.personIds` has an `active` employment with one of the player's promotions (`employments` `byPerson`)   |
+| `myChampions`  | My champions               | off     | Someone in `refs.personIds` holds an open reign of a title of one of the player's promotions (`titleReigns` `byHolder`) |
+| `titleChanges` | Title changes anywhere     | off     | Kind `titleChange`                                                                                                      |
+
+**Per-player storage.** Rules are per player (D-07), stored in
+`WorldMeta.settings.extra` by player id, so two humans in one world each keep
+their own:
+
+| Key                                    | Value     | Missing means                                  |
+| -------------------------------------- | --------- | ---------------------------------------------- |
+| `news.alerts.<playerId>.rule.<ruleId>` | boolean   | The rule's `defaultOn`                         |
+| `news.alerts.<playerId>.stopSkip`      | boolean   | `NEWS_ALERT_STOP_SKIP_DEFAULT` (false for now) |
+| `news.alerts.<playerId>.pending`       | a news id | No pending alert                               |
+
+These keys are runtime state, not new-game options, so they are not
+registered settings and `getSetting` is not used for them: read them with
+`alertSettingsOf(meta, playerId)` and write them with
+`tx.setMeta({ settings: withAlertSettings(meta, playerId, patch) })`, which
+keeps the `extra` keys sorted as `worldSettingsFrom` does. Every key sits under
+the `news.alerts.` prefix, so a later move to a table of its own is one
+migration.
+
+**The reaction.** `news.matchAlerts` (subscribed to `news.posted`) goes through
+`meta.players` in order. A player whose pending alert is empty, or points at a
+story that is gone, gets this story as pending when one of their enabled rules
+matches it (with the promotions they control, `viewerPromotionIds`), and
+`news.alertRaised { playerId, newsId, ruleId }` is published (the first
+matching rule by order). Only the first story waits: the player sees the later
+ones on the News screen. Stories posted by new-game setup steps (the opening
+story) never raise alerts, because new game runs with no subscriptions; a
+story about the player's own command (a signing) can, which is harmless.
+
+**The gate.** `news.alert` ("News alert") checks before each day, one lookup
+per player: the first player in `meta.players` whose `stopSkip` is on and whose
+pending story still exists stops the skip with `{ reason, subject: { kind:
+'news', id }, actionHint: 'news' }`. `stopSkip` is a world setting and not a
+tunable because a gate's `check(view, date)` gets no tunables. The reason is
+`newsAlertReason(read, news)`: "News: &lt;kind label&gt; – &lt;up to two
+names&gt;" with " and N more" past two (people who still exist first, then
+promotions), or "News: a front-page &lt;kind&gt; story" when it names no one.
+No ids or keys.
+
+**Off by default for now.** A stop the player cannot clear would block Next
+Day, and nothing on screen opens a news alert yet. So
+`NEWS_ALERT_STOP_SKIP_DEFAULT` is false: pending alerts are recorded for the
+News screen but never stop a skip unless the player turns `stopSkip` on with
+`news.setAlertRules`. DAY1-05 (opening a story acknowledges it) turns the
+default on.
+
+TODO(MP): the gate has no viewer, so it reports the first player with a
+pending alert. Right for one local player; multiplayer can narrow it to the
+seat that is advancing.
+
+**Commands.**
+
+- `news.setAlertRules { rules: Record<ruleId, boolean>, stopSkip? }`: the
+  issuer must be a human listed in `meta.players` (else `notAPlayer` "Only a
+  player can set news alerts"); an unknown rule id is refused with
+  `invalidArgs` naming it. Writes only the keys given.
+- `news.ackAlerts {}`: clears the issuing player's pending alert. Idempotent:
+  `ok` with `{ cleared: boolean }`.
