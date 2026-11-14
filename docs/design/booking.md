@@ -344,7 +344,7 @@ stipulationKeys, draft }`:
 ### `booking.availableWorkers`
 
 `{ eventInstanceId, kind: 'match' | 'angle', search?: string (≤ 60) }` →
-`{ region, people, teams }`, where `region` is the show's region
+`{ region, people, teams, storylines }`, where `region` is the show's region
 (`{ regionId, name }`).
 
 `people` holds every active contract of the show's promotion (read through the
@@ -370,6 +370,23 @@ Fatigue and body condition belong to WRK6, which is not built yet, so no row
 carries them and nothing stands in for them. When WRK6 lands it adds a
 `fatigue` field here and one more stat on the picker row (see the segment
 editor below).
+
+EVT2-13 adds what the picker needs for its champion belts and Storylines
+filter, read from the show's promotion only:
+
+- each person's `titles` (`{ titleId, name }`): that promotion's titles they
+  hold today (open reigns, CRTV1's holders), and `storylines`
+  (`{ storylineId, name, side }`): its active storylines they are in;
+- each team's `titles`: reigns won as that team, or held by exactly its
+  members;
+- a top-level `storylines` list (`{ storylineId, name }`): the promotion's
+  active storylines, hottest first then by name, whatever the search.
+
+The picker shows a belt beside a champion's name (named "Champion: <titles>"
+for screen readers and on hover, with the titles in words under the name) and
+a Storylines menu (Everyone, Any storyline, then each storyline, the segment's
+linked ones first) that only narrows the list, like the other filters. A team
+passes a storyline when any member is in it.
 
 `bookable` follows WRK1 on the show's date: for a match the person must be
 `available`; for an angle they must be able to work talking segments, so an
