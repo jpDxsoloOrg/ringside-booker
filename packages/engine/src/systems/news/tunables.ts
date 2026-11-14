@@ -310,7 +310,8 @@ export const newsTunables = defineTunables({
     max: 60,
     unit: 'years',
     category: CATEGORY,
-    description: 'Fewest years in the business for a career anniversary story (0 = from the first step)',
+    description:
+      'Fewest years in the business for a career anniversary story (0 = from the first step)',
     docRef: MILESTONES_DOC,
   },
   'news.milestones.promotionYearStep': {

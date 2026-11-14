@@ -94,13 +94,21 @@ describe('news.expire', () => {
 
   it('removes a 0-day story the day it is posted, and keeps a front-page story', () => {
     const { runtime } = expireWorld();
-    let zeroDay: NewsId | null = null;
-    let frontPage: NewsId | null = null;
-    runStep(runtime, 'test.post', { kind: 'phase', id: 'test' }, (ctx) => {
-      zeroDay = postNews(ctx, { kind: 'rumour', topic: TOPIC, importance: 0, expiresInDays: 0 });
-      frontPage = postNews(ctx, { kind: 'season', topic: TOPIC, importance: 3 });
-    }, { date: TODAY });
-    if (zeroDay === null || frontPage === null) throw new Error('nothing posted');
+    const posted: NewsId[] = [];
+    runStep(
+      runtime,
+      'test.post',
+      { kind: 'phase', id: 'test' },
+      (ctx) => {
+        posted.push(
+          postNews(ctx, { kind: 'rumour', topic: TOPIC, importance: 0, expiresInDays: 0 }),
+          postNews(ctx, { kind: 'season', topic: TOPIC, importance: 3 }),
+        );
+      },
+      { date: TODAY },
+    );
+    const [zeroDay, frontPage] = posted;
+    if (zeroDay === undefined || frontPage === undefined) throw new Error('nothing posted');
     expect(runtime.world.tables.news.require(zeroDay).expiresOn).toBe(TODAY);
     runExpire(runtime);
     expect(runtime.world.tables.news.has(zeroDay)).toBe(false);

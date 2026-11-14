@@ -15,11 +15,7 @@ export {
 export { REIGN_MILESTONE_DAYS, REIGN_MILESTONE_TOPIC, reignsSource } from './reigns';
 export { REIGN_RECORD_TOPIC, reignRecordsSource } from './reignRecords';
 export { CAREER_ANNIVERSARY_TOPIC, CAREER_MAJOR_YEARS, careersSource } from './careers';
-export {
-  PROMOTION_ANNIVERSARY_TOPIC,
-  PROMOTION_MAJOR_YEARS,
-  promotionsSource,
-} from './promotions';
+export { PROMOTION_ANNIVERSARY_TOPIC, PROMOTION_MAJOR_YEARS, promotionsSource } from './promotions';
 export {
   SEASON_START_TOPIC,
   seasonStartBodyParams,
