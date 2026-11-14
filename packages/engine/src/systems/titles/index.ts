@@ -11,6 +11,8 @@
 // imports this system, including programs that only see the emitted .d.ts files.
 import './events';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
+import { titlesCommands } from './commands';
+import { titlesPhases } from './phases';
 
 export { TITLE_TIER_LABELS, TITLE_TIERS, TitleTierSchema, type TitleTier } from './tiers';
 export { TITLES_TUNABLE_CATEGORY, titlesTunables } from './tunables';
@@ -50,4 +52,51 @@ export {
   type ReignWriteContext,
 } from './reigns';
 
-export const titlesSystem: SystemBundle = defineSystem({ id: 'titles' });
+// CRTV1-03: commands, doors and the orphaned-champion phase.
+export {
+  awardTitleCommand,
+  createTitleCommand,
+  editTitleCommand,
+  reactivateTitleCommand,
+  retireTitleCommand,
+  titlesCommands,
+  vacateTitleCommand,
+  type TitleAwardArgs,
+  type TitleCreateArgs,
+  type TitleEditArgs,
+} from './commands';
+export {
+  BOOKER_VACANCY_REASON_KEY,
+  bookerVacancyExplanation,
+  ORPHANED_VACANCY_REASON_KEY,
+  reactivateTitle,
+  retireTitle,
+  titleSourceOf,
+  vacateTitle,
+  type TitleDoorContext,
+  type TitleStatusInput,
+  type VacateTitleInput,
+} from './doors';
+export {
+  holderStandings,
+  isOrphaned,
+  ORPHANED_CHAMPIONS_DOC_REF,
+  orphanVacancyExplanation,
+  runVacateOrphaned,
+  titlesPhases,
+  VACATE_ORPHANED_PHASE_ID,
+  vacateOrphanedPhase,
+  type HolderStanding,
+} from './phases';
+export { TITLE_VACANCY_TRACE_KIND, titleVacancyTraceRef } from './traces';
+export {
+  TITLE_COMMAND_REASON_CODES,
+  TITLE_NAME_MAX_LENGTH,
+  type TitleCommandReasonCode,
+} from './validate';
+
+export const titlesSystem: SystemBundle = defineSystem({
+  id: 'titles',
+  phases: titlesPhases,
+  commands: titlesCommands,
+});

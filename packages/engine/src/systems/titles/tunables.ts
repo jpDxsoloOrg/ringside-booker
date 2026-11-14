@@ -1,7 +1,7 @@
 /**
- * The titles system's balance numbers: where a new title's prestige starts. All in the `Titles`
- * category, documented in docs/design/titles.md. CRTV1-03 adds `titles.orphanGraceDays` with its
- * phase.
+ * The titles system's balance numbers: where a new title's prestige starts, and how long a champion
+ * may be gone before the title is vacated (CRTV1-03). All in the `Titles` category, documented in
+ * docs/design/titles.md.
  */
 
 import { defineTunables } from '../../core/tunables/define';
@@ -9,6 +9,7 @@ import { defineTunables } from '../../core/tunables/define';
 export const TITLES_TUNABLE_CATEGORY = 'Titles';
 
 const START_DOC = 'titles.md#starting-prestige';
+const ORPHAN_DOC = 'titles.md#orphaned-champions';
 
 /** A 0..100 starting prestige for one tier. */
 function tierBase(defaultValue: number, description: string) {
@@ -43,5 +44,16 @@ export const titlesTunables = defineTunables({
     description:
       "Share of the promotion's prestige above or below the anchor a new title starts with; 0 turns it off",
     docRef: START_DOC,
+  },
+  'titles.orphanGraceDays': {
+    kind: 'integer',
+    default: 7,
+    min: 0,
+    max: 365,
+    unit: 'days',
+    category: TITLES_TUNABLE_CATEGORY,
+    description:
+      "Days a champion may be without a contract with the title's promotion (or its parent) before the title is vacated. 0 vacates on the first day.",
+    docRef: ORPHAN_DOC,
   },
 });

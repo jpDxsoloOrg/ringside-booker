@@ -6,7 +6,7 @@
  * Design: docs/design/titles.md#starting-prestige.
  */
 
-import type { TitleId } from '../../core/ids';
+import type { TitleId, TitleReignId } from '../../core/ids';
 import { startCalc } from '../../core/trace/calc';
 import { traced } from '../../core/trace/helpers';
 import { tunableNode } from '../../core/trace/tunable-node';
@@ -20,6 +20,16 @@ export const TITLE_PRESTIGE_TRACE_KIND = 'titles.prestige';
 /** Where a title's prestige Why? is stored. */
 export function titlePrestigeTraceRef(titleId: TitleId): TraceRef {
   return { kind: TITLE_PRESTIGE_TRACE_KIND, id: titleId };
+}
+
+export const TITLE_VACANCY_TRACE_KIND = 'titles.vacancy';
+
+/**
+ * Where the Why? of a reign that ended `vacated` is stored (CRTV1-03): who vacated it, or the
+ * orphaned-champion rule's lines. The lineage (CRTV1-02) shows it on "Vacated".
+ */
+export function titleVacancyTraceRef(reignId: TitleReignId): TraceRef {
+  return { kind: TITLE_VACANCY_TRACE_KIND, id: reignId };
 }
 
 /**
