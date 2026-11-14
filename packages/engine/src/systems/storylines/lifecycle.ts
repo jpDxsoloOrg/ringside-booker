@@ -90,25 +90,26 @@ export function startStoryline(ctx: PhaseContext, spec: StartStorylineSpec): Sto
 }
 
 /**
- * What ending a storyline pays (CRTV3-03): `tooFew` below `storylines.payoff.minSegments` linked
- * segments, else `notAvailable` (no payoff yet). CRTV4 changes the second case when the payoff
- * lands. Docs: docs/design/storylines.md#payoff-threshold.
+ * What ending a storyline pays: `tooFew` below `storylines.payoff.minSegments` counted segments,
+ * else `pays` (CRTV4-03's payoff runs on `storyline.ended`; the `storylines.payoff` query has the
+ * numbers). Docs: docs/design/storylines.md#payoff.
  */
-export type StorylineEndPayoff = 'tooFew' | 'notAvailable';
+export type StorylineEndPayoff = 'tooFew' | 'pays';
 
-/** The outcome of ending a storyline: how many segments link it and what that pays. */
+/** The outcome of ending a storyline: how many segments counted for it and what that pays. */
 export interface StorylineEndOutcome {
+  /** Linked segments that counted for the storyline, all time (`progressTotals.segments`). */
   readonly linkedSegments: number;
   readonly minSegments: number;
   readonly payoff: StorylineEndPayoff;
 }
 
-/** What ending a storyline with `linkedSegments` linked segments would pay today. */
+/** What ending a storyline with `linkedSegments` counted segments would pay today. */
 export function endOutcome(linkedSegments: number, minSegments: number): StorylineEndOutcome {
   return {
     linkedSegments,
     minSegments,
-    payoff: linkedSegments < minSegments ? 'tooFew' : 'notAvailable',
+    payoff: linkedSegments < minSegments ? 'tooFew' : 'pays',
   };
 }
 
@@ -118,7 +119,7 @@ export function endOutcomeMessage(outcome: StorylineEndOutcome): string {
     const needs = outcome.minSegments === 1 ? 'segment' : 'segments';
     return `Ending now pays nothing: needs ${String(outcome.minSegments)} linked ${needs}, has ${String(outcome.linkedSegments)}.`;
   }
-  return 'No payoff yet: payoffs arrive with storyline booking.';
+  return "Ending now pays off: its members gain popularity and momentum if the story is hot, and lose some if it's cold.";
 }
 
 /** What {@link endStoryline} needs from a step: a phase or a command context both fit. */
@@ -150,10 +151,14 @@ export function endStoryline(
   }
   const linkedSegments = linkedSegmentIdsOf(ctx.read, storylineId).length;
   ctx.tx.update('storylines', storylineId, { status: 'ended', endedOn: ctx.date });
+  // The payoff (CRTV4-03, `storylines.payOffOnEnd`) reacts to this event.
   ctx.publish('storyline.ended', {
     storylineId,
     promotionId: storyline.promotionId,
     linkedSegments,
   });
-  return endOutcome(linkedSegments, ctx.tunables.get('storylines.payoff.minSegments'));
+  return endOutcome(
+    storyline.progressTotals.segments,
+    ctx.tunables.get('storylines.payoff.minSegments'),
+  );
 }

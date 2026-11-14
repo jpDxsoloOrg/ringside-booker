@@ -19,7 +19,11 @@ import type { DeepReadonly } from '../../model/world';
 import { isPastDetailWindow } from '../history/note';
 import { heatDecay } from './formulas/heatDecay';
 import { keepsFullStorylineTraces } from './lifecycle';
-import { storylineHeatTraceRef, storylineStarterTraceRef } from './traceKinds';
+import {
+  storylineHeatTraceRef,
+  storylinePayoffTraceRef,
+  storylineStarterTraceRef,
+} from './traceKinds';
 
 export const HEAT_COOLING_PHASE_ID = 'storylines.heatCooling';
 /** After WRK5's `momentum.decay` (30) in the `growth` group. */
@@ -86,7 +90,7 @@ export function coolStorylines(ctx: PhaseContext): number {
 }
 
 /**
- * Demotes the heat and starter Why?s of storylines that ended before the detail window to
+ * Demotes the heat, starter and payoff (CRTV4-03) Why?s of storylines that ended before the detail window to
  * summaries. Active storylines keep theirs: it explains today's heat. Returns how many
  * storylines it looked at.
  */
@@ -102,6 +106,7 @@ export function pruneStorylineDetail(ctx: PhaseContext): number {
     }
     ctx.demoteTrace(storylineHeatTraceRef(storyline.id));
     ctx.demoteTrace(storylineStarterTraceRef(storyline.id));
+    ctx.demoteTrace(storylinePayoffTraceRef(storyline.id));
     count += 1;
   }
   return count;
