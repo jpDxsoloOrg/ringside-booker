@@ -1,0 +1,185 @@
+/*
+ * The title actions (CRTV1-05): the create and edit sheet, the award sheet, the title page's
+ * action bar and the list's "New title" button. Fields stay in one column; buttons and rows are a
+ * finger tall on touch screens.
+ */
+
+/* ---------------------------------------------------------------- form sheet */
+
+.form {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.refusal {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  color: var(--color-negative);
+  font-size: var(--font-size-sm);
+}
+
+.refusal > p {
+  margin: 0;
+}
+
+/* The two weight boxes side by side on desktop, stacked on a phone. */
+.weights {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+@media (--bp-mobile) {
+  .weights {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.swatch {
+  display: block;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+}
+
+/* ---------------------------------------------------------------- award sheet */
+
+.award {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.awardSection {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.sectionHeading {
+  margin: 0;
+  padding: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.pickList {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* One person or team: the whole row is the label, so a tap anywhere picks it. */
+.pick {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  min-block-size: 2.75rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+  cursor: pointer;
+}
+
+.pick:has(input:checked) {
+  border-color: var(--color-accent);
+}
+
+.pick[data-disabled] {
+  cursor: default;
+  opacity: 0.75;
+}
+
+.pickInput {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  margin: 0;
+  accent-color: var(--color-accent);
+}
+
+.pickText {
+  display: grid;
+  gap: 0.125rem;
+  min-inline-size: 0;
+}
+
+.pickName {
+  overflow-wrap: anywhere;
+  font-weight: var(--font-weight-semibold);
+}
+
+.pickMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.pickHint {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-style: italic;
+}
+
+.pickReason {
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+}
+
+.pickEnd {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-1);
+}
+
+/* On a phone the chips drop under the name so the name keeps the row's width. */
+@media (--bp-mobile) {
+  .pick {
+    grid-template-columns: auto auto minmax(0, 1fr);
+  }
+
+  .pickEnd {
+    grid-column: 3;
+    justify-content: flex-start;
+  }
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.loading {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+/* ---------------------------------------------------------------- page and list */
+
+.actionBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+}

@@ -3,9 +3,11 @@ import type { ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { TitleGroup, TitleListResult } from '@ringside/engine';
 import { RouteHeading } from '@/app/a11y/RouteHeading';
+import { useSessionStore } from '@/app/session/sessionStore';
 import { useDocumentTitle } from '@/app/a11y/useDocumentTitle';
 import type { EngineQueryError } from '@/app/engine/queryCache';
 import { useEngineQuery } from '@/app/engine/useEngineQuery';
+import { Button } from '@/components/Button';
 import { ChampionCardList } from '@/components/ChampionCard';
 import { classNames } from '@/components/classNames';
 import { EmptyState } from '@/components/EmptyState';
@@ -17,6 +19,9 @@ import { Panel } from '@/components/Panel';
 import { RadioGroup } from '@/components/RadioGroup';
 import type { RadioOption } from '@/components/RadioGroup';
 import { Tab, TabList, TabPanel, Tabs } from '@/components/Tabs';
+import { TitleActionOverlays } from './TitleActionOverlays';
+import actionStyles from './TitleActions.module.css';
+import { TitleCardMenu } from './TitleActionMenus';
 import { TitleCard } from './titleCard';
 import styles from './Titles.module.css';
 import {
@@ -26,6 +31,8 @@ import {
   titlesViewFromSearch,
 } from './titlesListParams';
 import type { TitlesStatus, TitlesTab, TitlesView } from './titlesListParams';
+import { titleRowActions, useTitleActions } from './useTitleActions';
+import type { TitleActionsState } from './useTitleActions';
 
 const TITLE = 'Titles';
 
@@ -63,7 +70,13 @@ function groupLogo(group: TitleGroup): ImageSubject {
   return { kind: 'promotion', id: group.promotionId, name: group.promotionName, ...logo };
 }
 
-function TitleGroupPanel({ group }: { readonly group: TitleGroup }) {
+function TitleGroupPanel({
+  group,
+  actions,
+}: {
+  readonly group: TitleGroup;
+  readonly actions: TitleActionsState;
+}) {
   const name = groupName(group);
   return (
     <Panel
@@ -78,7 +91,13 @@ function TitleGroupPanel({ group }: { readonly group: TitleGroup }) {
     >
       <ChampionCardList label={`${name} titles`} phoneLayout="stack">
         {group.titles.map((row) => (
-          <TitleCard key={row.titleId} row={row} />
+          <TitleCard
+            key={row.titleId}
+            row={row}
+            {...(titleRowActions(row).length === 0
+              ? {}
+              : { actions: <TitleCardMenu row={row} actions={actions} /> })}
+          />
         ))}
       </ChampionCardList>
     </Panel>
@@ -101,9 +120,10 @@ function TitlesLoading() {
 interface TitleGroupsProps {
   readonly view: TitlesView;
   readonly result: TitleListResult;
+  readonly actions: TitleActionsState;
 }
 
-function TitleGroups({ view, result }: TitleGroupsProps) {
+function TitleGroups({ view, result, actions }: TitleGroupsProps) {
   if (result.groups.length === 0) {
     if (view.status === 'retired') {
       return (
@@ -129,7 +149,7 @@ function TitleGroups({ view, result }: TitleGroupsProps) {
   return (
     <div className={styles['groups']}>
       {result.groups.map((group) => (
-        <TitleGroupPanel key={group.key} group={group} />
+        <TitleGroupPanel key={group.key} group={group} actions={actions} />
       ))}
     </div>
   );
@@ -139,8 +159,9 @@ function TitleGroups({ view, result }: TitleGroupsProps) {
  * Creative > Titles: our titles grouped by brand (then the promotion-wide ones) and, on the second
  * tab, every other promotion's titles grouped by promotion, each as a champion card with its
  * prestige Why?. The tab and the Active / Retired filter live in the URL (`?tab=world`,
- * `?status=retired`), so Back from a title's page returns to the same view. Read-only: creating,
- * awarding and the rest arrive with CRTV1-05.
+ * `?status=retired`), so Back from a title's page returns to the same view. On Our titles a "New
+ * title" button opens the create sheet, and each of the player's own cards has a menu (Edit, Award,
+ * Vacate, Retire or Reactivate, Open); other promotions' cards have none.
  */
 export function TitlesScreen() {
   useDocumentTitle(TITLE);
@@ -148,6 +169,8 @@ export function TitlesScreen() {
   const view = useMemo(() => titlesViewFromSearch(searchParams), [searchParams]);
   const args = useMemo(() => ({ scope: view.tab, status: view.status }), [view]);
   const query = useEngineQuery('titles.list', args, { keepPreviousData: false });
+  const actions = useTitleActions();
+  const seatPromotionId = useSessionStore((state) => state.seat?.promotionId ?? null);
 
   // Replace, so Back leaves the screen instead of stepping through every tab and filter change.
   const changeView = useCallback(
@@ -181,7 +204,7 @@ export function TitlesScreen() {
       );
     }
     if (query.data === undefined) return <TitlesLoading />;
-    return <TitleGroups view={view} result={query.data} />;
+    return <TitleGroups view={view} result={query.data} actions={actions} />;
   };
 
   // One tree for every state, so the heading focused on arrival stays mounted as the query settles.
@@ -193,14 +216,21 @@ export function TitlesScreen() {
           <Tab value="own">{TAB_LABELS.own}</Tab>
           <Tab value="world">{TAB_LABELS.world}</Tab>
         </TabList>
-        <RadioGroup
-          className={classNames(styles['statusFilter'])}
-          legend="Show"
-          layout="row"
-          options={statusOptions}
-          value={view.status}
-          onValueChange={selectStatus}
-        />
+        <div className={actionStyles['toolbar']}>
+          <RadioGroup
+            className={classNames(styles['statusFilter'])}
+            legend="Show"
+            layout="row"
+            options={statusOptions}
+            value={view.status}
+            onValueChange={selectStatus}
+          />
+          {view.tab === 'own' && seatPromotionId !== null && (
+            <Button variant="primary" iconStart="add" onClick={actions.openCreate}>
+              New title
+            </Button>
+          )}
+        </div>
         <TabPanel value="own" className={classNames(styles['tabPanel'])}>
           {body()}
         </TabPanel>
@@ -208,6 +238,7 @@ export function TitlesScreen() {
           {body()}
         </TabPanel>
       </Tabs>
+      <TitleActionOverlays actions={actions} />
     </div>
   );
 }

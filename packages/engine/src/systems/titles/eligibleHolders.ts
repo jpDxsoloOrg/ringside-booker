@@ -34,6 +34,8 @@ export interface EligiblePerson {
   weightClass: WeightClass;
   push: Push;
   brandId: BrandId | null;
+  /** The brand they work on, for the award sheet's "Works on <brand>" hint; null when shared. */
+  brandName: string | null;
   /** False when they work for another brand than the title's: a hint, not a refusal. */
   sameBrand: boolean;
   availability: Availability;
@@ -138,6 +140,10 @@ export function eligibleHoldersOf(
       weightClass: weightClass({ weightKg: person.weightKg }, { tunables: ctx.tunables }).value,
       push: employment.push,
       brandId: employment.brandId,
+      brandName:
+        employment.brandId === null
+          ? null
+          : (read.tables.brands.get(employment.brandId)?.name ?? null),
       sameBrand: title.brandId === null || employment.brandId === title.brandId,
       availability: availabilityOf(person, employment, today),
       isCurrentHolder: holderIds.has(personId),
