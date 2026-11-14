@@ -13,7 +13,7 @@ export interface DefaultWorld {
   readonly world: GameWorld;
   readonly tunables: EngineTunables;
   /** Promotion id by content key, for example `pro-flagship`. */
-  promotion(key: string): PromotionId;
+  readonly promotion: (key: string) => PromotionId;
 }
 
 export function defaultWorld(seed = 'negotiation-calibration'): DefaultWorld {
@@ -23,12 +23,12 @@ export function defaultWorld(seed = 'negotiation-calibration'): DefaultWorld {
   return {
     world,
     tunables: loadEngineTunables({}).reader,
-    promotion(key) {
-      const id = keys[key];
-      if (id === undefined) {
+    promotion: (key) => {
+      const row = world.tables.promotions.values().find((promotion) => promotion.id === keys[key]);
+      if (row === undefined) {
         throw new Error(`default world: no promotion ${key}`);
       }
-      return id as PromotionId;
+      return row.id;
     },
   };
 }

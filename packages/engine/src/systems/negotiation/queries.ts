@@ -142,8 +142,7 @@ export const askingTermsQuery = defineQuery('contracts.askingTerms', {
     if (args.renewalOf !== undefined) {
       const contract = ctx.read.tables.employments.get(args.renewalOf);
       const renewable =
-        contract !== undefined &&
-        contract.promotionId === args.promotionId &&
+        contract?.promotionId === args.promotionId &&
         contract.personId === args.personId &&
         (contract.status === 'signed' || contract.status === 'active');
       if (!renewable) {
