@@ -11,6 +11,7 @@
 
 .segments {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-4);
   margin: 0;
   padding: 0;
@@ -19,6 +20,7 @@
 
 .segment {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-2);
   min-inline-size: 0;
   padding-block-start: var(--space-3);
@@ -47,6 +49,12 @@
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+/* A chip may be no wider than the column, so a long storyline name ends in an ellipsis. */
+.chips > li {
+  min-inline-size: 0;
+  max-inline-size: 100%;
 }
 
 .loser {

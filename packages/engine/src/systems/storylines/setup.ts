@@ -129,6 +129,11 @@ function describeTop(candidates: readonly StarterCandidate[]): string {
   return candidates.map((candidate, index) => `${String(index + 1)}. ${candidate.name}`).join(', ');
 }
 
+/** "1 wrestler", "14 wrestlers": a count in plain words for the starter's Why?. */
+function counted(count: number, one: string, many: string): string {
+  return `${String(count)} ${count === 1 ? one : many}`;
+}
+
 function pairCount(unused: readonly StarterCandidate[], gender: Gender): number {
   const group = unused.filter((candidate) => candidate.gender === gender);
   const faces = group.filter((candidate) => candidate.side === 'face').length;
@@ -177,7 +182,7 @@ function seedPromotion(
       const pool = unused.filter((candidate) => candidate.gender === each);
       if (pool.length === 0) continue;
       decision.note(
-        `${GENDER_LABELS[each]} pool: ${String(pool.length)} wrestler(s), ${String(pairCount(unused, each))} face and heel pair(s)`,
+        `${GENDER_LABELS[each]} pool: ${counted(pool.length, 'wrestler', 'wrestlers')}, ${counted(pairCount(unused, each), 'face and heel pair', 'face and heel pairs')}`,
       );
     }
     decision.rule(`${GENDER_LABELS[gender]} pool has the most face and heel pairs`, true);

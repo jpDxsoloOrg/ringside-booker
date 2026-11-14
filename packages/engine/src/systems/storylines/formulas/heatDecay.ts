@@ -49,17 +49,19 @@ export function heatDecay(
     'storylines.heat.decayGraceDays',
     'Days without progress before heat cools',
   );
-  const inGrace = inputs.daysSinceProgress <= graceDays;
-  calc.branch(`Inside the grace period of ${days(graceDays)}`, inGrace);
-  if (inGrace) {
+  // Each check is recorded as the branch that was taken, so the Why? shows it (with its setting)
+  // without "Show checks that didn't apply": the grace period and the floor are why it cools.
+  if (inputs.daysSinceProgress <= graceDays) {
+    calc.branch(`Inside the grace period of ${days(graceDays)}`, true);
     return calc.done();
   }
+  calc.branch(`Past the grace period of ${days(graceDays)}`, true);
   const floor = calc.tunable(tunables, 'storylines.heat.decayFloor', 'Cooling floor');
-  const atFloor = inputs.heatBefore <= floor;
-  calc.branch('Already at or below the cooling floor', atFloor);
-  if (atFloor) {
+  if (inputs.heatBefore <= floor) {
+    calc.branch('Already at or below the cooling floor', true);
     return calc.done();
   }
+  calc.branch(`Above the cooling floor of ${String(floor)}`, true);
   return calc
     .subtract(
       'Daily cooling',

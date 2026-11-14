@@ -120,7 +120,7 @@ export function payOffStoryline(ctx: StepContext, storylineId: StorylineId): voi
 
   const trace = startDecision<'pay' | 'noPayoff'>(reason.label, { docRef: PAYOFF_DOC_REF });
   trace.include('Does it pay off?', plan.outcome);
-  trace.include('Payoff quality', plan.quality);
+  trace.include('Payoff strength', plan.quality);
   for (const member of plan.members) {
     trace.include(member.name, memberNode(plan, member));
   }

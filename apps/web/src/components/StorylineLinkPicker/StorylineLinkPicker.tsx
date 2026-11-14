@@ -106,7 +106,9 @@ function LinkedRow({
   return (
     <li className={styles['linkedRow']}>
       <div className={styles['linkedName']}>
-        <span className={styles['name']}>{row.name}</span>
+        <span className={styles['name']} title={row.name}>
+          {row.name}
+        </span>
         {row.isFinale && <Badge tone="action">Finale</Badge>}
         {warning !== null && <Badge tone="prestige">{warning}</Badge>}
         {row.finaleElsewhere !== null && (
@@ -216,7 +218,9 @@ export function StorylineLinkPicker({
                 >
                   {/* Named by its visible text, with "Link" and commas for screen readers. */}
                   <VisuallyHidden>Link </VisuallyHidden>
-                  <span className={styles['chipName']}>{suggestion.name}</span>
+                  <span className={styles['chipName']} title={suggestion.name}>
+                    {suggestion.name}
+                  </span>
                   <VisuallyHidden>, </VisuallyHidden>
                   <span className={styles['chipFact']}>
                     {hereText(suggestion.membersHere.length)}

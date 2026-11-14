@@ -351,6 +351,34 @@ describe('titles.award', () => {
     expect(engineIntegrityCodes(engine)).toEqual([]);
   });
 
+  it('numbers award, award again and vacate on one day in the order they happened', () => {
+    const { world, engine } = setup();
+    const [, , , , fourth, fifth] = world.people;
+    if (fourth === undefined || fifth === undefined) {
+      expect.fail('setup');
+    }
+    ok(engine, 'titles.award', { titleId: world.vacant, holderIds: [fourth], teamId: null });
+    ok(engine, 'titles.award', { titleId: world.vacant, holderIds: [fifth], teamId: null });
+    ok(engine, 'titles.vacate', { titleId: world.vacant });
+    const detail = engine.query(
+      'titles.detail',
+      { titleId: world.vacant },
+      {
+        kind: 'controller',
+        controller: PLAYER,
+      },
+    );
+    if (!detail.ok) {
+      expect.fail(JSON.stringify(detail.reasons));
+    }
+    expect(
+      detail.data.reigns.map((row) => [row.number, row.holders[0]?.personId, row.endReasonLabel]),
+    ).toEqual([
+      [2, fifth, 'Vacated'],
+      [1, fourth, 'Stripped'],
+    ]);
+  });
+
   it('awards a tag title to a team', () => {
     const { world, engine } = setup();
     const [, , third, fourth] = world.people;

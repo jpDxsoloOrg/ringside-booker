@@ -258,9 +258,10 @@ export function CardSlot({
                 key={chip.id}
                 className={classNames(styles['chip'], styles[`chip-${chip.kind}`])}
                 data-kind={chip.kind}
+                title={chip.kind === 'storyline' ? chip.label : undefined}
               >
                 {chip.kind === 'title' && <Icon name="titles" decorative />}
-                {chip.label}
+                <span className={styles['chipLabel']}>{chip.label}</span>
               </li>
             ))}
           </ul>

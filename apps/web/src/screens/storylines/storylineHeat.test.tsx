@@ -478,7 +478,9 @@ describe('the results page Storylines section (CRTV4-05)', () => {
       `Slot ${String(second.slotNumber)}: ${second.roleLabel}`,
       `Slot ${String(third.slotNumber)}: ${third.roleLabel}`,
     ]);
-    expect(screen.getByText(/Test Other Story didn.t count: Nobody in this segment/)).toBeVisible();
+    expect(
+      screen.getByText("Not counted: nobody in this segment is in 'Test Other Story'"),
+    ).toBeVisible();
     expect(screen.getByText(lostInsideText('Test Rivalry'))).toBeVisible();
     expect(screen.getByRole('link', { name: loser.name })).toBeInTheDocument();
     expect(screen.getByText('+8')).toBeInTheDocument();

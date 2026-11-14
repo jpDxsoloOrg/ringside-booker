@@ -65,7 +65,7 @@ function quality(value: number, heat: number): PayoffPlan['quality'] {
     value,
     trace: {
       kind: 'formula',
-      label: 'Payoff quality',
+      label: 'Payoff strength',
       value,
       unit: 'ratio',
       children: [{ kind: 'input', label: 'Heat when it ended', value: heat, unit: 'points' }],
