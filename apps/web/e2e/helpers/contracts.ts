@@ -1,6 +1,6 @@
 import { expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
-import { cancelTonightsShow } from './booking';
+import { cancelTonightsShow, expectDayBarSettled } from './booking';
 
 /** The day bar's button with this name. */
 export function dayButton(page: Page, name: string | RegExp): Locator {
@@ -77,6 +77,7 @@ export interface StopHandlers {
  * notices are marked seen. Returns false when nothing stops the day.
  */
 export async function clearDayStop(page: Page, handlers: StopHandlers = {}): Promise<boolean> {
+  await expectDayBarSettled(page);
   await expect(dayButton(page, DAY_BUTTONS)).toBeVisible({ timeout: 15_000 });
   const contracts = dayButton(page, 'Contracts');
   const roster = dayButton(page, 'Roster');
@@ -110,6 +111,7 @@ export async function skipToDateThroughStops(
   handlers: StopHandlers = {},
   maxStops = 60,
 ): Promise<void> {
+  await expectDayBarSettled(page);
   for (let stops = 0; (await gameDate(page)) < date; stops += 1) {
     expect(stops, 'the skip keeps stopping').toBeLessThan(maxStops);
     if (await clearDayStop(page, handlers)) continue;
@@ -125,8 +127,9 @@ export async function skipToDateThroughStops(
     await expect(summary).toBeVisible();
     await expect.poll(() => summary.textContent()).not.toBe(before);
     await expect(page.getByTestId('advance-overlay')).toBeHidden();
-    // A skip that stopped short stopped for something: wait for the day bar to say what.
-    if ((await gameDate(page)) < date) await expect(dayButton(page, 'Next day')).toBeHidden();
+    // A skip that stopped short stopped for something: the next round reads what, once the day
+    // bar has caught up (an injury stop met with the Injuries tab open is already seen).
+    await expectDayBarSettled(page);
   }
   expect(await gameDate(page)).toBe(date);
 }

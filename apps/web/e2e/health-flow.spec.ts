@@ -92,8 +92,6 @@ async function skipDays(
     } else {
       const moved = await skipDaysOnce(page, left, phone);
       left -= moved;
-      // A skip that stopped short stopped for something: wait for the day button to say what.
-      if (left > 0) await expect(dayButton(page, 'Next day')).toBeHidden();
     }
   }
 }

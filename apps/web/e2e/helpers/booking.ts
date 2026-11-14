@@ -1,5 +1,6 @@
 import { expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
+import { closeWithEscape } from './overlays';
 import { navigateInApp } from './shell';
 
 /** The summary banner a finished advance leaves under the top bar. */
@@ -11,6 +12,17 @@ function lastAdvance(page: Page) {
 function daysAdvancedFrom(headline: string): number {
   const match = /Advanced ([\d,]+) days? to/i.exec(headline);
   return match === null ? 0 : Number((match[1] ?? '0').replace(/,/g, ''));
+}
+
+/**
+ * Waits until the day bar and the date beside it are current: after a day passes they keep the
+ * last answer on screen, marked `aria-busy`, until the new one arrives. Read before that, the bar
+ * can still say Next day when the day has already stopped for something.
+ */
+export async function expectDayBarSettled(page: Page): Promise<void> {
+  await expect(page.locator('[data-testid="day-control"][aria-busy="true"]')).toHaveCount(0, {
+    timeout: 15_000,
+  });
 }
 
 /**
@@ -38,6 +50,7 @@ export async function skipDaysOnce(page: Page, days: number, phone: boolean): Pr
   await expect(summary).toBeVisible();
   await expect.poll(() => summary.textContent()).not.toBe(before);
   await expect(page.getByTestId('advance-overlay')).toBeHidden();
+  await expectDayBarSettled(page);
   return daysAdvancedFrom((await summary.textContent()) ?? '');
 }
 
@@ -58,9 +71,11 @@ export async function cancelTonightsShow(page: Page): Promise<void> {
   await sheet.getByRole('button', { name: 'Cancel show' }).click();
   const confirm = page.getByRole('alertdialog').or(page.getByRole('dialog', { name: /^Cancel / }));
   await confirm.getByRole('button', { name: 'Cancel show' }).click();
+  // The confirm hides the sheet under it from role locators, so wait for it to go first: until
+  // then the sheet's own Cancel show button reads as gone whether or not the show was cancelled.
+  await expect(confirm).toBeHidden();
   await expect(sheet.getByRole('button', { name: 'Cancel show' })).toBeHidden();
-  await page.keyboard.press('Escape');
-  await expect(sheet).toBeHidden();
+  await closeWithEscape(page, sheet);
 }
 
 /**
