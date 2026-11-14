@@ -153,8 +153,18 @@ export function cappedHistory(history: readonly NegotiationRound[]): Negotiation
   return kept;
 }
 
+/** A plain copy of a stored offer, safe to write into another row. */
+export function copyOffer(offer: DeepReadonly<Offer>): Offer {
+  return {
+    ...offer,
+    terms: { ...offer.terms, shares: { ...offer.terms.shares }, perks: { ...offer.terms.perks } },
+    brand: { ...offer.brand },
+    extra: { ...offer.extra },
+  };
+}
+
 function historyCopy(negotiation: DeepReadonly<Negotiation>): NegotiationRound[] {
-  return negotiation.history.map((entry) => structuredClone(entry) as NegotiationRound);
+  return negotiation.history.map((entry) => ({ ...entry, offer: copyOffer(entry.offer) }));
 }
 
 /**
@@ -340,7 +350,7 @@ export function answerCounter(
     closeByPromotion(ctx, negotiation, TALKS_ENDED_OUTCOME);
     return { negotiationId: negotiation.id, status: 'withdrawn', evaluation: null };
   }
-  const counter = structuredClone(negotiation.lastCounter) as Offer;
+  const counter = copyOffer(negotiation.lastCounter);
   const offer = args.response === 'accept' || args.offer === undefined ? counter : args.offer;
   const accepting = args.response === 'accept' || meetsCounter(offer, counter);
   const input: OfferInput = {
@@ -460,7 +470,7 @@ export function answerCounterReasons(
   }
   const offer =
     args.response === 'accept' || args.offer === undefined
-      ? (structuredClone(negotiation.lastCounter) as Offer)
+      ? copyOffer(negotiation.lastCounter)
       : args.offer;
   return checkOffer(
     read,

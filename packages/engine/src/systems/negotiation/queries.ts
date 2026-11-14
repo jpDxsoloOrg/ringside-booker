@@ -46,6 +46,7 @@ import { primaryEmploymentOf } from '../workers/helpers/employment';
 import { ratingRoleOfPersonRole } from '../workers/helpers/roles';
 import type { TraceNode } from '../../core/trace/types';
 import { askBasisWith, askedPay, askingContext, askingTermsWith, type AskingTerms } from './asking';
+import { competingBidders } from './bidders';
 import { evaluateOffer, type OfferEvaluation } from './evaluate';
 import { notEnforcedLine } from './formulas/contractValue';
 import { OfferSchema, type Offer } from './offer';
@@ -410,7 +411,6 @@ export const freeAgentsQuery = defineQuery('contracts.freeAgents', {
         )
         .sort((left, right) => Number(right.terms.exclusive) - Number(left.terms.exclusive));
       const [other] = elsewhere;
-      const negotiations = read.tables.negotiations.lookup('byPerson', person.id);
       const mine = read.tables.negotiations.lookup(
         'byPersonPromotion',
         personPromotionKey(person.id, args.promotionId),
@@ -426,14 +426,6 @@ export const freeAgentsQuery = defineQuery('contracts.freeAgents', {
           cooldownUntil = until;
         }
       }
-      const bidders = negotiations
-        .filter(
-          (negotiation) =>
-            negotiation.promotionId !== args.promotionId &&
-            isOpenNegotiationStatus(negotiation.status),
-        )
-        .map((negotiation) => read.tables.promotions.get(negotiation.promotionId)?.name ?? '')
-        .filter((name) => name !== '');
       const rating = overallOf(person, basis.role, { tunables }).value;
       rows.push({
         value: basis.marketValue.value,
@@ -465,7 +457,7 @@ export const freeAgentsQuery = defineQuery('contracts.freeAgents', {
           cooldownUntil,
           openNegotiationId:
             mine.find((negotiation) => isOpenNegotiationStatus(negotiation.status))?.id ?? null,
-          competingBidders: [...new Set(bidders)].sort(),
+          competingBidders: competingBidders(read, person.id, args.promotionId),
         },
       });
     }

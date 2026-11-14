@@ -20,6 +20,8 @@ import './streams';
 // Registers the built-in offer kinds and enforced terms.
 import './builtins';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
+import { negotiationCommands } from './commands';
+import { offersQueries } from './offersQueries';
 import { negotiationQueries } from './queries';
 
 export {
@@ -139,6 +141,7 @@ export {
   enforcedTermsNow,
   evaluateOffer,
   meetsCounter,
+  roundPatience,
   type EvaluateOfferRequest,
   type OfferEvaluation,
 } from './evaluate';
@@ -161,11 +164,85 @@ export {
   type FreeAgentsSituationFilter,
 } from './queries';
 
+export {
+  ALREADY_NEGOTIATING_CODE,
+  ALREADY_NEGOTIATING_TEXT,
+  ALREADY_YOURS_TEXT,
+  BAD_BRAND_CODE,
+  BAD_KIND_EXTRA_CODE,
+  BAD_ROLE_CODE,
+  BAD_TERMS_CODE,
+  checkOffer,
+  COOLDOWN_CODE,
+  EXCLUSIVE_NOT_ALLOWED_CODE,
+  KIND_NOT_ALLOWED_CODE,
+  NOT_RENEWABLE_CODE,
+  NOT_YOUR_PROMOTION_CODE,
+  NOT_YOUR_PROMOTION_TEXT,
+  openNegotiationFor,
+  RENEWAL_NOT_OPEN_CODE,
+  renewalReasons,
+  REFUSES_ROLE_CODE,
+  UNAVAILABLE_CODE,
+  UNKNOWN_CONTRACT_CODE,
+  UNKNOWN_WORKER_CODE,
+  validateOffer,
+  type OfferCheck,
+  type OfferCheckOptions,
+  type OfferInput,
+} from './validate';
+export {
+  answerCounter,
+  answerCounterReasons,
+  cappedHistory,
+  copyOffer,
+  NOT_COUNTERED_CODE,
+  NOT_OPEN_CODE,
+  OFFER_REQUIRED_CODE,
+  submitOffer,
+  TALKS_ENDED_OUTCOME,
+  UNKNOWN_NEGOTIATION_CODE,
+  WITHDRAWN_OUTCOME,
+  withdrawNegotiation,
+  withdrawReasons,
+  type AnswerCounterArgs,
+  type AnswerCounterResult,
+  type CounterResponse,
+  type SubmitOfferInput,
+  type SubmitOfferResult,
+} from './submit';
+export { competingBidders } from './bidders';
+export {
+  makeOfferCommand,
+  negotiationCommands,
+  offerRenewalCommand,
+  previewBandOf,
+  respondToCounterCommand,
+  withdrawOfferCommand,
+  type CounterAnsweredResult,
+  type OfferMadeResult,
+  type OfferPreviewBand,
+} from './commands';
+export {
+  negotiationQuery,
+  NOT_YOUR_TALKS_MESSAGE,
+  offerLine,
+  offersQueries,
+  offersQuery,
+  OUTCOME_MESSAGES,
+  type NegotiationHistoryView,
+  type NegotiationOutcomeView,
+  type NegotiationView,
+  type OfferRow,
+  type OffersStatusFilter,
+  type OfferSummary,
+} from './offersQueries';
+
 export const negotiationSystem: SystemBundle = defineSystem({
   id: 'negotiation',
   phases: [],
   gates: [],
   subscriptions: [],
-  queries: negotiationQueries,
-  commands: [],
+  queries: [...negotiationQueries, ...offersQueries],
+  commands: [...negotiationCommands],
 });

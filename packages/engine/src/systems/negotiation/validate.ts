@@ -13,7 +13,7 @@
 import { controlsPromotion, type Controller } from '../../core/api/controller';
 import type { Reason } from '../../core/api/result';
 import { addDays, compareDates, diffDays, type GameDate } from '../../core/date';
-import type { EmploymentId, NegotiationId, PersonId, PromotionId } from '../../core/ids';
+import type { EmploymentId, PersonId, PromotionId } from '../../core/ids';
 import type { Employment } from '../../model/entities/employment';
 import {
   isOpenNegotiationStatus,
@@ -79,7 +79,7 @@ export interface OfferCheck {
 function reason(
   code: string,
   message: string,
-  extra: { field?: string; subject?: Reason['subject'] } = {},
+  extra: Pick<Reason, 'field' | 'subject'> = {},
 ): Reason {
   return { code, message, ...extra };
 }
