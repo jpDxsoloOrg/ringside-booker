@@ -733,9 +733,11 @@ capped at `max`
 | Ratio  | Share of the fee (defaults) |
 | ------ | --------------------------- |
 | 114%   | none                        |
-| 115%   | 10%                         |
-| 127.5% | 17.5%                       |
-| 140%+  | 25% (the cap)               |
+| 115%   | 7%                          |
+| 127.5% | 12.5%                       |
+| 140%+  | 18% (the cap)               |
+
+The defaults were trimmed from 10% / 25% in ECO8-11 (owner, Sprint 12.5) so that, with indie wages and the ticket-sales rework, Altura with good shows ends year one below the old +$45.7M.
 
 The bonus is the share × the deal's fee per show, or × tonight's per-buy money
 on pay-per-view (which has no fee), rounded down to whole cents. It is posted

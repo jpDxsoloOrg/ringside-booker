@@ -557,12 +557,12 @@ export const broadcastTunables = defineTunables({
     'Share of what the network expects that recent viewers must reach for each airing to pay a ratings bonus, and for the deal to be Exceeding; 0 means always',
   ),
   'broadcast.bonus.atLine': bonusRatio(
-    0.1,
+    0.07,
     1,
     'Ratings bonus at the bonus line, as a share of the fee (of the per-buy money on pay-per-view); 0 means it starts from nothing',
   ),
   'broadcast.bonus.max': bonusRatio(
-    0.25,
+    0.18,
     1,
     'Most a ratings bonus can be, as a share of the fee (of the per-buy money on pay-per-view); 0 means no ratings bonus',
   ),
