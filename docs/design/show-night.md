@@ -64,8 +64,8 @@ Then each segment, in running order (`runSegment.ts`):
    finish) before rating, because the stored-segment adapter reads the row and
    finish effects must see the real result.
 3. The segment is rated with MTCH1's `rateSegment(ratingInputFromSegment(...))`
-   in `live` mode, seeded by the segment id and drawing on the world's
-   `match.rating` stream. The promotion's rating policy comes through
+   in `live` mode, seeded by the segment id and drawing on the segment's own
+   `match.rating` stream (see [Segment streams](#segment-streams)). The promotion's rating policy comes through
    `ratingPolicyFor` inside `rateSegment`, so rival edges reach ratings only
    through that door (D-01). A rating the pipeline refuses is logged and the
    segment counts as an empty slot; it never throws.
@@ -170,9 +170,10 @@ earlier in the day changed the world it reads (`runTonight.test.ts` checks the
 whole world, random state, traces and events against the old phase path).
 The day's own phases then see the show completed, as before.
 
-**Running it segment by segment** is EVT10 (live show night): it adds a
-"Run next segment" command beside this one on the same screen, and this
-command stays "Run the whole show".
+**Running it segment by segment** is [Live show night](#live-show-night)
+(EVT10-01): "Run next segment" and "Sim the rest" sit beside this command on
+the same screen, and this command stays "Run the whole show". On a show
+already under way it runs the segments left instead.
 
 ### Before a show runs
 
@@ -193,6 +194,91 @@ yet. The health system uses it to run the day's morning (rest and healing)
 before the player's show, so the player's workers rest from it the next
 morning as a rival's do (WRK6-07,
 [health.md](health.md#the-players-show-nights)).
+
+## Live show night
+
+`systems/shows/live.ts`, `liveCommands.ts`, `liveState.ts` and `settings.ts`
+(EVT10-01). The player can run their show one match or segment at a time, see
+how each went, stop half way, save, load and carry on, or sim the rest at once.
+Whichever way it runs, the show gives exactly the same results.
+
+**The setting.** **Show night** (`showNight`, new-game option, group World):
+`live` (default) or `auto`. Stored in `settings.extra`; an older save reads
+`live`. `shows.setShowNight { mode }` changes it mid-game (any player listed
+in `meta.players`; `notAllowed` otherwise). The game stops on the player's
+show days either way (`shows.tonight`, above): the setting only tells the show
+screen whether **Run the show** steps through the card (Live) or runs it all at
+once (Auto). Auto behaves exactly as before EVT10.
+
+**The commands.** Each is refused as `shows.runTonight` is (`runShowRefusals`
+in `tonight.ts`: `showNotFound`, `notYourShow`, `showCompleted`,
+`showCancelled`, `notTonight`, then `cardNotRunnable` **only before the first
+segment**). Once a show is under way its card is not checked again: a segment
+may hurt someone booked later, and the show must still be able to finish.
+
+| Command                                    | Does                                                                                                                                                         | Returns                                    | Extra refusal                                                                 |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------ | ----------------------------------------------------------------------------- |
+| `shows.runNextSegment { eventInstanceId }` | Runs the next segment in running order (pre-show first) through `runSegment`; the first one runs the before-run hooks first; the last one completes the show | `{ eventInstanceId, segmentId, finished }` | `noSegmentLeft`: "Every segment has run. Finish the show to see how it went." |
+| `shows.runRestOfShow { eventInstanceId }`  | Runs every segment left and completes the show; on a show not started it is exactly `runShowNow` (Run the show)                                              | `{ eventInstanceId, segmentIds }`          | none                                                                          |
+| `shows.finishShow { eventInstanceId }`     | Completes a show with nothing left to run (only reachable when every segment already had a rating)                                                           | `{ eventInstanceId }`                      | `segmentsLeft`: "3 segments still to run before the show can finish"          |
+| `shows.runTonight { eventInstanceId }`     | As above; on a show under way it runs the segments left                                                                                                      | `{ eventInstanceId }`                      | none                                                                          |
+
+**In-progress state.** A show part-way through keeps its status (`scheduled`)
+and gets `liveRun: { ranSegmentIds }` on its row: the segments run so far, in
+running order. Progress is that list, not the ratings, so a segment that could
+not be rated is still listed and the show always moves on. Completing the
+show (`completeShowCard`) removes `liveRun`. Its run segments carry their
+ratings while the show is still open; the save integrity rule
+`segments.resultBeforeCompletion` allows a rating on a segment listed in its
+show's `liveRun`. While a show is under way:
+
+- the gate `shows.tonight` reads "Finish tonight's show first: <Show>", so Next
+  Day and every skip stop on it until it is finished;
+- the card can't change: `editBlockOf` refuses every booking edit with
+  `showLive` ("This show is under way: its card can't change until it
+  finishes");
+- the shows phase never runs it (it never runs a show a human runs).
+
+Rival and off-screen shows never get a `liveRun` and never stop the day.
+
+**Same result either way.** Running all at once (`runShowCard`) and one
+segment at a time do the same work in the same order: the before-run hooks,
+then each segment through `runSegment`, then `completeShowCard`, which reads
+every segment's stored rating, counts appearances, scores the show and
+publishes `show.completed`. `liveShow.test.ts` runs one card four ways (Auto's
+Run the show; live one at a time; two live then the rest; two live, a save and
+a load, then the rest) and checks the world, random state, traces and events
+are identical, and that random draws between segments change nothing.
+
+### Segment streams
+
+Every segment runs in a step context whose `rng(name)` hands out the
+segment's own streams (`withSegmentStreams` in `runSegment.ts`):
+`detachedStream(seed, name, "showNight/<segmentId>")`. The resolver's finish
+and winner rolls, the rating, the angle beats and every result applier draw on
+them. A segment therefore rolls the same numbers whether it runs alone from
+the show screen, with the rest of its show, or after anything else the player
+did in between, and it never moves a world stream. This applies to every
+show, the rivals' included. It moved every show's random sequence once when
+EVT10-01 landed (sim hashes and per-show results changed then; the golden save
+fixture did not, as it has no shows run).
+
+### The live view
+
+`shows.liveState { eventInstanceId }` → `LiveShowStateView`, for the show's
+runner (and tools; anyone else gets `notFound`):
+
+- `stage`: `notStarted`, `live` or `finished`; `mode`: the Show night setting;
+- `segmentsRun`: the segments run so far as `shows.results` lines (result,
+  rating, reasons). `shows.results` itself also shows a live show's run
+  segments with their results;
+- `next`: the next segment's line (billing, sides, type; no result yet), or
+  null; `segmentsLeft`: how many are left, the next included;
+- `scoreSoFar`: `{ score, stars, trace }`, the show score over the slots run
+  so far (weighted by slot like the show score; a run segment that could not
+  be rated counts as an empty slot), with no card flow or production ceiling,
+  which only apply at the end. Its trace is labelled "Show score so far". Null
+  before the first segment and once the show is finished.
 
 ## Show score
 
