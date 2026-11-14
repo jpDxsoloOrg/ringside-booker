@@ -73,7 +73,11 @@ export function dealTargets(
       startLabel: `What ${networkName} expects`,
     });
     const share = calc.tunable(tunables, key);
-    calc.multiply(`${percentText(share)} of it`, share).round('ceil', `Whole ${noun}`);
+    // In percent, then per 100: whole-number steps, so 55% of 2,800,000 is exactly 1,540,000.
+    calc
+      .multiply(`${percentText(share)} of it`, Math.round(share * 10_000) / 100)
+      .divide('Per 100', 100)
+      .round('ceil', `Whole ${noun}`);
     return { viewers: calc.done(), share };
   };
   return {
