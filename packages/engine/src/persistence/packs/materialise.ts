@@ -561,6 +561,10 @@ function toDeal(
       perThousandViewers: fromWhole(record.terms.perThousandViewers),
       costPerShow: fromWhole(record.terms.costPerShow),
     },
+    endedOn: null,
+    endedReason: null,
+    renegotiatedOn: null,
+    warnedOn: null,
   };
 }
 

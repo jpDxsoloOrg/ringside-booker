@@ -9,6 +9,7 @@
 import { aftermathsTable } from './entities/aftermath';
 import { aiDecisionsTable } from './entities/ai-decision';
 import { aiProfilesTable } from './entities/ai-profile';
+import { airingsTable } from './entities/airing';
 import { brandsTable } from './entities/brand';
 import { dealsTable } from './entities/deal';
 import { employmentsTable } from './entities/employment';
@@ -83,6 +84,8 @@ export const TABLES = {
   contractConcerns: contractConcernsTable,
   // ECO5-01: contract negotiations, one row per worker and promotion conversation.
   negotiations: negotiationsTable,
+  // ECO8-01: one row per show a broadcast deal aired or missed.
+  airings: airingsTable,
 } as const satisfies TableRegistry;
 
 export type GameTables = typeof TABLES;

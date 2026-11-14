@@ -19,7 +19,7 @@ import {
 } from '../../src/model/entities/person';
 import type { ParticipantRole } from '../../src/model/entities/participant';
 import type { PromotionSnapshot } from '../../src/model/entities/promotion-snapshot';
-import { aDeal, aNetwork } from './builders/media';
+import { aDeal, anAiring, aNetwork } from './builders/media';
 import { aLedgerEntry } from './builders/ledger';
 import { aPopularityShowChange } from './builders/popularity';
 import { anAftermath } from './builders/aftermath';
@@ -251,6 +251,26 @@ function addTinyHistory(context: BuildContext): void {
           gate: cents(8_400_000),
           viewers: 150_000,
         },
+      },
+      sequence,
+    ),
+  );
+  // The deal aired it (ECO8-01).
+  context.insert(
+    'airings',
+    anAiring(
+      {
+        dealId: deal.id,
+        networkId: network.id,
+        promotionId: promotionA,
+        eventInstanceId: show.id,
+        eventDefinitionId: weeklyShow,
+        showName: show.name,
+        airDate: show.airDate,
+        quality: { score: 62, source: 'show' },
+        viewers: 150_000,
+        expectedViewers: 140_000,
+        income: cents(175_000),
       },
       sequence,
     ),
@@ -593,7 +613,7 @@ const TINY_WORLD_SNAPSHOTS: readonly DeepPartial<PromotionSnapshot>[] = [
  * - promotion A, run by `player-1`, with 1 brand, 8 wrestlers, a singles title and a tag title
  *   (each with an earlier, closed reign and a current one; the tag champions are 1 tag team), a
  *   stable, a weekly Thursday show (6 slots and a 1-slot pre-show), a storyline, and a TV deal
- *   with 1 network for that show;
+ *   with 1 network for that show, which aired last Thursday's show (1 airing, ECO8-01);
  * - promotion B, computer-run, with 8 wrestlers;
  * - last Thursday's completed show with 4 segments: main-card slots 0-2 are a match, a two-beat
  *   angle and the title match (both matches with outcomes and ratings; the title match's planned

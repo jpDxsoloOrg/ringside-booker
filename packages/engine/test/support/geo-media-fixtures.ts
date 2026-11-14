@@ -164,6 +164,10 @@ export function makeDeal(serial: number, overrides: Partial<Deal> = {}): Deal {
     weekday: 1,
     live: true,
     terms: { feePerShow: cents(500_000), perThousandViewers: cents(150), costPerShow: cents(0) },
+    endedOn: null,
+    endedReason: null,
+    renegotiatedOn: null,
+    warnedOn: null,
     ...overrides,
   };
 }
