@@ -37,6 +37,20 @@ export interface RunSummary {
   promotionHistory: PromotionHistorySummary;
   /** The shows the box office settled by the end of the run (EVT6-05). */
   boxOffice: BoxOfficeSummary;
+  /** How the news table grew over the run (DAY1-02), so a growth problem shows up in CI. */
+  news: NewsSummary;
+}
+
+/** The news table over the run: stories posted and expired, and its size at both ends. */
+export interface NewsSummary {
+  /** Stories on file before the run. */
+  rowsAtStart: number;
+  /** Stories posted during the run (`news.posted` events). */
+  posted: number;
+  /** Stories deleted during the run: on file at the start or posted, and gone at the end. */
+  expired: number;
+  /** Stories on file after the run. */
+  rowsAtEnd: number;
 }
 
 /** What the box office settled over the run: every completed show should be settled. */
@@ -254,6 +268,16 @@ export function formatSummaryText(summary: RunSummary, style: TextStyle): string
       ['Shows settled', String(boxOffice.settledShows)],
       ['Shows not settled', String(boxOffice.unsettledShows)],
       ['Total attendance', boxOffice.totalAttendance.toLocaleString('en-GB')],
+    ]),
+  );
+  const news = summary.news;
+  lines.push(
+    '',
+    heading('News'),
+    ...alignedRows([
+      ['Stories posted', String(news.posted)],
+      ['Stories expired', String(news.expired)],
+      ['Stories on file', `${String(news.rowsAtEnd)} (${String(news.rowsAtStart)} at the start)`],
     ]),
   );
   if (summary.loadIssues.length > 0) {

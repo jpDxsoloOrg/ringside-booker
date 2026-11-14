@@ -34,6 +34,7 @@ import {
   FIRST_FAILURES_LIMIT,
   sortedCounts,
   type BoxOfficeSummary,
+  type NewsSummary,
   type PromotionHistorySummary,
   type RunSummary,
 } from './summary';
@@ -303,6 +304,7 @@ export async function runSimulation(
       loadIssues: engine.loadIssues.map((issue) => issue.message),
       promotionHistory: promotionHistorySummary(finalState),
       boxOffice: boxOfficeSummary(finalState),
+      news: newsSummary(start, finalState, eventCounts.get('news.posted') ?? 0),
     },
     failures,
     advanceCalls,
@@ -469,6 +471,16 @@ export function boxOfficeSummary(state: EngineState): BoxOfficeSummary {
     }
   }
   return { settledShows, unsettledShows, totalAttendance };
+}
+
+/**
+ * The news table over a run (DAY1-02): what was posted, what expired and the size at both ends.
+ * Only `news.expire` deletes stories, so everything on file or posted and gone at the end expired.
+ */
+export function newsSummary(start: EngineState, end: EngineState, posted: number): NewsSummary {
+  const rowsAtStart = start.world.tables.news.length;
+  const rowsAtEnd = end.world.tables.news.length;
+  return { rowsAtStart, posted, expired: rowsAtStart + posted - rowsAtEnd, rowsAtEnd };
 }
 
 /** The size of the promotion history at the end of a run, for the summary. */
