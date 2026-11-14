@@ -43,10 +43,7 @@ export interface DecisionNewsSpec {
   /** The registered decision kind, such as `release`. */
   readonly decisionKind: string;
   /** The story for a revealed decision of the kind, or null for none. Read only. */
-  readonly story: (
-    decision: DeepReadonly<AiDecision>,
-    read: GameWorldView,
-  ) => DecisionStory | null;
+  readonly story: (decision: DeepReadonly<AiDecision>, read: GameWorldView) => DecisionStory | null;
 }
 
 const writers = new Map<string, DecisionNewsSpec>();
