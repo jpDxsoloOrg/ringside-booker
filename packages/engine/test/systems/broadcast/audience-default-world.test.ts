@@ -143,6 +143,9 @@ describe('audience calibration on the default world', () => {
     expect(local.ratio).toBeGreaterThanOrEqual(1.5);
     expect(local.viewers.value).toBeGreaterThanOrEqual(2_000);
     expect(local.viewers.value).toBeLessThanOrEqual(20_000);
+    // The worked example in broadcast.md#calibration.
+    expect(local.viewers.value).toBe(3962);
+    expect(local.benchmark.value).toBe(1616);
   });
 
   it('leaves Hardpan Friday far under what National Signal Network expects', () => {
