@@ -124,7 +124,8 @@
   background: var(--color-prestige);
 }
 
-.pauseButton {
+.pauseButton,
+.stepButton {
   flex: none;
 }
 
@@ -132,7 +133,8 @@
  * The strip is only as tall as the button, and on phones its slot clips, so the button's focus
  * ring is drawn inside it rather than off it.
  */
-.ticker .pauseButton:focus-visible {
+.ticker .pauseButton:focus-visible,
+.ticker .stepButton:focus-visible {
   outline-offset: -2px;
 }
 
@@ -252,6 +254,34 @@
 
 .static .item + .item::before {
   margin-inline-end: var(--space-4);
+}
+
+/*
+ * Stepping: reduced motion on a phone. One headline shows at a time and wraps to fit; the others
+ * sit in the same grid cell, hidden, so the strip is as tall as the longest headline and does not
+ * jump as the player steps through them (UI-34).
+ */
+.stepping .list {
+  display: grid;
+}
+
+.stepping .item {
+  grid-area: 1 / 1;
+  align-items: flex-start;
+  min-inline-size: 0;
+}
+
+.stepping .item[data-current='false'] {
+  visibility: hidden;
+}
+
+.stepping .item + .item::before {
+  content: none;
+}
+
+.stepping .headline {
+  min-inline-size: 0;
+  overflow-wrap: break-word;
 }
 
 /* Script switches to the static list; this covers the first paint and the in-game setting. */
