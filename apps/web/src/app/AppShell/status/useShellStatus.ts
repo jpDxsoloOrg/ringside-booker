@@ -1,4 +1,5 @@
 import type { GateHit, SimStatus } from '@ringside/engine';
+import { useEngineStatus } from '../../engine/EngineProvider';
 import { useEngineQuery } from '../../engine/useEngineQuery';
 
 /** What the top bar reads: the game's status and the gates waiting today. */
@@ -20,6 +21,12 @@ export interface ShellStatus {
    * skip or a command) and the new one is still on its way.
    */
   readonly refreshing: boolean;
+  /**
+   * True once both answers are current and the engine has nothing on its way: no advance, command
+   * or query. A command still running (a screen marking an injury seen) moves the world without
+   * the answers looking stale until it returns, so `refreshing` alone is not enough to trust them.
+   */
+  readonly settled: boolean;
 }
 
 const NO_GATES: readonly GateHit[] = [];
@@ -32,10 +39,14 @@ const NO_GATES: readonly GateHit[] = [];
 export function useShellStatus(): ShellStatus {
   const statusQuery = useEngineQuery('sim.status', {});
   const gatesQuery = useEngineQuery('sim.pendingGates', {});
+  const engineIdle = useEngineStatus((state) => state.busy === 'idle');
+  const loading = statusQuery.status === 'loading' || gatesQuery.status === 'loading';
+  const refreshing = statusQuery.isStale || gatesQuery.isStale;
   return {
     status: statusQuery.data,
     gates: gatesQuery.data?.hits ?? NO_GATES,
-    loading: statusQuery.status === 'loading' || gatesQuery.status === 'loading',
-    refreshing: statusQuery.isStale || gatesQuery.isStale,
+    loading,
+    refreshing,
+    settled: engineIdle && !loading && !refreshing,
   };
 }

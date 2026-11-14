@@ -13,6 +13,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { ACKNOWLEDGE_MAX_INJURIES } from '@ringside/engine';
 import type { HealthReport, InjuredRow, InjuryId, PersonId, PromotionId } from '@ringside/engine';
 import type { EngineQueryError } from '@/app/engine/queryCache';
+import { useEngineStatus } from '@/app/engine/EngineProvider';
 import { useEngineCommand } from '@/app/engine/useEngineCommand';
 import { useEngineQuery } from '@/app/engine/useEngineQuery';
 import { workerLinkState } from '@/app/entityLinks';
@@ -229,8 +230,11 @@ export function injuriesToAcknowledge(report: HealthReport): InjuryId[] {
 function useAcknowledgeOnView(report: HealthReport | undefined): void {
   const { run } = useEngineCommand('health.acknowledgeInjuries');
   const sent = useRef(new Set<InjuryId>());
+  // Not while days move: the screen sits under the advance overlay, so the player has not seen an
+  // injury that happens then, and marking it seen mid-skip would let the skip run on past it.
+  const advancing = useEngineStatus((state) => state.advancing);
   useEffect(() => {
-    if (report === undefined) return;
+    if (report === undefined || advancing) return;
     const toSend = injuriesToAcknowledge(report).filter((id) => !sent.current.has(id));
     if (toSend.length === 0) return;
     for (const id of toSend) sent.current.add(id);
@@ -244,7 +248,7 @@ function useAcknowledgeOnView(report: HealthReport | undefined): void {
       }
     };
     void acknowledge();
-  }, [report, run]);
+  }, [advancing, report, run]);
 }
 
 function errorText(error: EngineQueryError | null): string {

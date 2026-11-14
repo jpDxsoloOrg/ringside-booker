@@ -1,11 +1,12 @@
 // The roster's Injuries tab (WRK6-06).
 import type { ReactNode } from 'react';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { injuryTraceRef, parseContentKey, parseGameDate, parseId } from '@ringside/engine';
 import type { InjuredRow } from '@ringside/engine';
-import { EngineProvider } from '@/app/engine/EngineProvider';
+import { EngineProvider, useEngineClient } from '@/app/engine/EngineProvider';
+import type { EngineClient } from '@/app/engine/engineClient';
 import { createInProcessTransport } from '@/app/engine/transport';
 import type { InProcessTransport } from '@/app/engine/transport';
 import { routerFutureFlags } from '@/app/router';
@@ -109,6 +110,47 @@ describe('the Injuries tab', () => {
     const calls = spy.mock.calls.filter(([name]) => name === ACKNOWLEDGE);
     expect(calls).toHaveLength(1);
     expect(calls[0]?.[1]).toEqual({ injuryIds: [expect.any(String), expect.any(String)] });
+  });
+
+  it('waits for days to stop moving before it marks an injury seen', async () => {
+    const transport = transportFor();
+    const commandSpy = vi.spyOn(transport.host, 'command');
+    const runAdvance = transport.host.advanceDays.bind(transport.host);
+    let release: () => void = () => undefined;
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    vi.spyOn(transport.host, 'advanceDays').mockImplementation(async (request, onProgress) => {
+      await held;
+      return runAdvance(request, onProgress);
+    });
+    const client: { current: EngineClient | null } = { current: null };
+    function GrabClient() {
+      client.current = useEngineClient();
+      return null;
+    }
+    renderWith(
+      transport,
+      <>
+        <GrabClient />
+        <InjuriesTab />
+      </>,
+    );
+    let advance: Promise<unknown> = Promise.resolve();
+    act(() => {
+      advance = client.current?.advanceDays({ maxDays: 1 }, () => undefined) ?? advance;
+    });
+    // The list shows under the advance overlay, but nothing is marked seen while days move.
+    await findList();
+    expect(commandSpy.mock.calls.filter(([name]) => name === ACKNOWLEDGE)).toHaveLength(0);
+
+    await act(async () => {
+      release();
+      await advance;
+    });
+    await waitFor(() => {
+      expect(commandSpy.mock.calls.filter(([name]) => name === ACKNOWLEDGE)).toHaveLength(1);
+    });
   });
 
   it('says nobody is injured', async () => {
