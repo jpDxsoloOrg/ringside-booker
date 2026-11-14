@@ -574,14 +574,24 @@ The Negotiation Sheet opens from the URL on any tab: `?negotiation=neg_…` (you
 `?tab=offers&negotiation=neg_…` and `?tab=free-agents&person=per_…` (`contractsSearch(tab, target)`
 builds one). The day bar's counter-offer stop (`contracts.counterWaiting`, on by default) goes to
 `?tab=offers&negotiation=<id>`, where Accept counter, Send revised offer or End talks clears it.
+Accept counter signs at once (ECO5-10): the sheet says "<Name> has signed. They look forward to
+working with you." with the contract and a link to the profile.
+
+The "Offer answered" stop (`contracts.offerAnswered`, ECO5-10: a worker signed, turned down or
+walked away from your offer while the days ran) goes to the same URL. Opening those talks marks
+the answer as seen (`useMarkOffersSeen` → `contracts.markOffersSeen`), and so does the worker's
+profile, which shows "Your offer: Signed" until it closes. The Offers tab lists unopened answers
+under "New answers" whichever talks it shows, and flags their rows "New answer".
 
 The worker profile has an action row under its header: `registerProfileAction({ id, order, render })`
 (`screens/workers/profile/profileActions.ts`, same registry rules). Contracts registers `contract`
 (order 10): Offer contract, Open talks, Renew contract, or a disabled button with the reason.
 
-The Next Day summary adds up to three lines about your talks from `contracts.offerUpdatesSince`
-("Rhea Vance countered", "Signed Kade Moreno", "Joss Hale walked away") and a link to Offers; a
-one-day Next Day with talks news gets the banner (`BannerExtras.offerUpdates`).
+The Next Day summary adds up to three lines about your talks from `contracts.offerUpdatesSince`,
+in the engine's words (each update's `line`, the same as the "Offer answered" stop; signings
+first): "Kade Moreno signed with you", "Joss Hale walked away from your offer", "Rhea Vance
+countered your offer", never an amount; and a link to Offers. A one-day Next Day with talks news
+gets the banner (`BannerExtras.offerUpdates`).
 
 ## The Office
 
@@ -698,8 +708,9 @@ and links to their results (see [Show results](#show-results)).
   `day/dayControlState.ts` turns the gates into a button by their route hint: `inbox` ("2 decisions
   waiting", which outranks everything), `booking` ("Go to show"), `roster` (an injury), `contracts`
   ("Contracts": an expiring contract opens the Expiring tab, a worker who wants to leave opens
-  their contract on the Active tab filtered with `wantsToLeave=1`), and anything else "Needs
-  attention" with the gate's reason. Shift+N presses it outside text fields and dialogs.
+  their contract on the Active tab filtered with `wantsToLeave=1`), `offerAnswered` ("Offer
+  answered", ECO5-10: opens the answered talks on Contracts › Offers; after `contracts`, before
+  `news`), and anything else "Needs attention" with the gate's reason. Shift+N presses it outside text fields and dialogs.
 - **Skip days** (`day/SkipDaysSheet.tsx`) takes a quick choice or a typed length (1 to 3,650
   days) and an optional stop date, both checked against the engine's rules, with the calendar
   maths from `@ringside/engine`. Its "Always stops" list ends with "News alerts you've turned on"

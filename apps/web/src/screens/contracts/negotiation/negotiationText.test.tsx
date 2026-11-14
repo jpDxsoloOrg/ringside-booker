@@ -5,18 +5,47 @@ import { parseGameDate, parseId } from '@ringside/engine';
 import type { OfferUpdates } from '@ringside/engine';
 import { AdvanceSummaryBanner, reportNeedsBanner } from '@/app/AppShell/day/AdvanceSummary';
 import type { AdvanceReport } from '@/app/AppShell/day/DayAdvanceProvider';
-import { offerUpdateLines, offerUpdatesNeedBanner, talksStateText } from './negotiationText';
+import {
+  offerUpdateLines,
+  offerUpdatesNeedBanner,
+  signedText,
+  talksStateText,
+} from './negotiationText';
 
 const ID = parseId('negotiation', 'neg_0000000001');
 
 const UPDATES: OfferUpdates = {
   countered: [
-    { negotiationId: ID, ringName: 'Rhea Vance', outcomeMessage: 'Made a counter-offer' },
+    {
+      negotiationId: ID,
+      ringName: 'Rhea Vance',
+      outcomeMessage: 'Made a counter-offer',
+      line: 'Rhea Vance countered your offer',
+    },
   ],
-  signed: [{ negotiationId: ID, ringName: 'Kade Moreno', outcomeMessage: 'Signed' }],
-  walkedAway: [{ negotiationId: ID, ringName: 'Joss Hale', outcomeMessage: 'Walked away' }],
+  signed: [
+    {
+      negotiationId: ID,
+      ringName: 'Kade Moreno',
+      outcomeMessage: 'Signed',
+      line: 'Kade Moreno signed with you',
+    },
+  ],
+  walkedAway: [
+    {
+      negotiationId: ID,
+      ringName: 'Joss Hale',
+      outcomeMessage: 'Walked away',
+      line: 'Joss Hale walked away from your offer',
+    },
+  ],
   declined: [
-    { negotiationId: ID, ringName: 'Ivo Lark', outcomeMessage: 'Signed with Crown Pro instead' },
+    {
+      negotiationId: ID,
+      ringName: 'Ivo Lark',
+      outcomeMessage: 'Signed with Crown Pro instead',
+      line: 'Ivo Lark signed with Crown Pro instead',
+    },
   ],
   lapsed: [],
 };
@@ -41,11 +70,12 @@ function oneDay(): AdvanceReport {
 
 describe('the Next Day summary lines about contract talks', () => {
   it('names each change in plain words, and any news earns the banner', () => {
+    // Signings first, then the answers that end talks, then counter-offers.
     expect(offerUpdateLines(UPDATES)).toEqual([
-      'Rhea Vance countered',
-      'Signed Kade Moreno',
-      'Joss Hale walked away',
-      'Ivo Lark: signed with Crown Pro instead',
+      'Kade Moreno signed with you',
+      'Ivo Lark signed with Crown Pro instead',
+      'Joss Hale walked away from your offer',
+      'Rhea Vance countered your offer',
     ]);
     expect(offerUpdatesNeedBanner(UPDATES)).toBe(true);
     expect(offerUpdatesNeedBanner(NONE)).toBe(false);
@@ -71,8 +101,8 @@ describe('the Next Day summary lines about contract talks', () => {
     );
     render(<RouterProvider router={router} />);
     const list = screen.getByRole('list', { name: 'Contract talks' });
-    expect(within(list).getByText('Rhea Vance countered')).toBeInTheDocument();
-    expect(within(list).queryByText('Ivo Lark: signed with Crown Pro instead')).toBeNull();
+    expect(within(list).getByText('Kade Moreno signed with you')).toBeInTheDocument();
+    expect(within(list).queryByText('Rhea Vance countered your offer')).toBeNull();
     expect(within(list).getByRole('link', { name: 'and 1 more' })).toHaveAttribute(
       'href',
       '/game/contracts?tab=offers',
@@ -90,5 +120,14 @@ describe('the Next Day summary lines about contract talks', () => {
     expect(
       talksStateText({ openNegotiationId: ID, cooldownUntil: null, competingBidders: [] }),
     ).toBe('Talking');
+  });
+
+  it('confirms a signing in plain words', () => {
+    expect(signedText('Rhea Cortez')).toBe(
+      'Rhea Cortez has signed. They look forward to working with you.',
+    );
+    expect(signedText('Rhea Cortez', true)).toBe(
+      'Rhea Cortez has signed the new contract. They look forward to working with you.',
+    );
   });
 });
