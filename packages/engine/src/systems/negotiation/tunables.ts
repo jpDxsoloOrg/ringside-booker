@@ -20,6 +20,8 @@ const OFFER_KINDS_DOC = `${NEGOTIATION_DOC}#offer-kinds`;
 const MARKET_VALUE_DOC = `${NEGOTIATION_DOC}#market-value`;
 const ASKING_TERMS_DOC = `${NEGOTIATION_DOC}#asking-terms`;
 const PATIENCE_DOC = `${NEGOTIATION_DOC}#patience`;
+const CONTRACT_VALUE_DOC = `${NEGOTIATION_DOC}#contract-value`;
+const REACTION_DOC = `${NEGOTIATION_DOC}#reaction`;
 
 function days(defaultValue: number, min: number, max: number, description: string, docRef: string) {
   return {
@@ -545,4 +547,166 @@ const paceTunables = defineTunables({
   ),
 });
 
-export const negotiationTunables = mergeTunables(paceTunables, askTunables);
+/**
+ * Contract value, the worker's reaction and counter-offers (ECO5-03). Every range starts at 0 and
+ * 0 means 0: a 0 perk premium makes that perk worth nothing, a 0 `concession` makes a counter-offer
+ * repeat the ask, and `counterRatio` equal to `acceptRatio` removes the counter band.
+ */
+const reactionTunables = defineTunables({
+  'contracts.value.appearancesPerMonth': {
+    kind: 'number',
+    default: 4,
+    min: 0,
+    max: 31,
+    step: 0.5,
+    unit: 'count',
+    category: CONTRACTS_TUNABLE_CATEGORY,
+    description: 'Appearances a month a per-appearance fee is counted for in contract value',
+    docRef: CONTRACT_VALUE_DOC,
+  },
+  'contracts.value.perk.ironClad': factor(
+    0.2,
+    2,
+    'ratio',
+    'What an iron-clad contract adds to contract value (only once the game honours it)',
+    CONTRACT_VALUE_DOC,
+  ),
+  'contracts.value.perk.travelCovered': factor(
+    0.03,
+    2,
+    'ratio',
+    'What covered travel adds to contract value (only once the game honours it)',
+    CONTRACT_VALUE_DOC,
+  ),
+  'contracts.value.perk.noHouseShows': factor(
+    0.05,
+    2,
+    'ratio',
+    'What a no-house-shows clause adds to contract value (only once the game honours it)',
+    CONTRACT_VALUE_DOC,
+  ),
+  'contracts.value.perk.creativeControl': factor(
+    0.1,
+    2,
+    'ratio',
+    'What creative control adds to contract value (only once the game honours it)',
+    CONTRACT_VALUE_DOC,
+  ),
+  'contracts.value.sharePerPercent': {
+    kind: 'number',
+    default: 0.02,
+    min: 0,
+    max: 1,
+    step: 0.001,
+    unit: 'ratio',
+    category: CONTRACTS_TUNABLE_CATEGORY,
+    description: 'What each percent of a revenue share the game pays adds to contract value',
+    docRef: CONTRACT_VALUE_DOC,
+  },
+  'contracts.value.pushBelowPerStep': factor(
+    0.1,
+    1,
+    'ratio',
+    'Contract value lost for each step below the card position a worker expects',
+    CONTRACT_VALUE_DOC,
+  ),
+  'contracts.value.pushAbovePerStep': factor(
+    0.03,
+    1,
+    'ratio',
+    'Contract value gained for each step above the card position a worker expects',
+    CONTRACT_VALUE_DOC,
+  ),
+  'contracts.value.lengthFitMin': factor(
+    0.85,
+    1,
+    'multiplier',
+    'Least a contract of the wrong length counts for (1 = length never matters)',
+    CONTRACT_VALUE_DOC,
+  ),
+  'contracts.value.lengthMismatchPerMonth': {
+    kind: 'number',
+    default: 0.005,
+    min: 0,
+    max: 0.1,
+    step: 0.001,
+    unit: 'ratio',
+    category: CONTRACTS_TUNABLE_CATEGORY,
+    description: 'Contract value lost for each month away from the length a worker prefers',
+    docRef: CONTRACT_VALUE_DOC,
+  },
+  'contracts.react.acceptRatio': factor(
+    0.95,
+    2,
+    'ratio',
+    'Share of their ask an offer must be worth for the worker to accept it',
+    REACTION_DOC,
+  ),
+  'contracts.react.counterRatio': factor(
+    0.55,
+    2,
+    'ratio',
+    'Share of their ask an offer must be worth for the worker to counter it (else they reject)',
+    REACTION_DOC,
+  ),
+  'contracts.react.walkAwayRatio': factor(
+    0.45,
+    2,
+    'ratio',
+    'Below this share of their ask the worker walks away instead of rejecting',
+    REACTION_DOC,
+  ),
+  'contracts.react.refuseCrewRoleRating': {
+    kind: 'integer',
+    default: 50,
+    min: 0,
+    max: 100,
+    unit: 'points',
+    category: CONTRACTS_TUNABLE_CATEGORY,
+    description: 'Wrestler rating from which a wrestler refuses a job outside the ring',
+    docRef: REACTION_DOC,
+  },
+  'contracts.patience.rejectCost': {
+    kind: 'integer',
+    default: 1,
+    min: 0,
+    max: 10,
+    unit: 'count',
+    category: CONTRACTS_TUNABLE_CATEGORY,
+    description: 'Patience a rejected offer costs; with no more than this left they walk away',
+    docRef: REACTION_DOC,
+  },
+  'contracts.counter.concession': factor(
+    0.3,
+    1,
+    'ratio',
+    'Share of the gap to their ask a worker gives up in a first counter-offer',
+    COUNTER_DOC,
+  ),
+  'contracts.counter.concessionSpread': factor(
+    0.15,
+    1,
+    'ratio',
+    'Most a counter-offer may give up on top of the usual share, rolled each time',
+    COUNTER_DOC,
+  ),
+  'contracts.counter.roundDecay': factor(
+    0.25,
+    1,
+    'ratio',
+    'How much less a worker gives up with each later round (1 = only the first round)',
+    COUNTER_DOC,
+  ),
+  'contracts.counter.lengthTolerance': {
+    kind: 'integer',
+    default: 12,
+    min: 0,
+    max: 120,
+    unit: 'months',
+    category: CONTRACTS_TUNABLE_CATEGORY,
+    description: 'Months off their preferred length a counter-offer lets stand',
+    docRef: COUNTER_DOC,
+  },
+});
+
+export const negotiationTunables = mergeTunables(paceTunables, askTunables, reactionTunables);

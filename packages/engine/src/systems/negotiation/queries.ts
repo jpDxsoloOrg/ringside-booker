@@ -36,6 +36,7 @@ import {
   type PersonRole,
   type RingStyle,
 } from '../../model/entities/person';
+import type { Reaction } from '../../model/entities/negotiation';
 import type { ImageRef } from '../../model/primitives';
 import { zId } from '../../model/primitives';
 import { compareIds } from '../../model/table';
@@ -43,7 +44,12 @@ import { gradeOf, type Grade } from '../workers/formulas/grade';
 import { overallOf } from '../workers/formulas/roleRating';
 import { primaryEmploymentOf } from '../workers/helpers/employment';
 import { ratingRoleOfPersonRole } from '../workers/helpers/roles';
+import type { TraceNode } from '../../core/trace/types';
 import { askBasisWith, askedPay, askingContext, askingTermsWith, type AskingTerms } from './asking';
+import { evaluateOffer, type OfferEvaluation } from './evaluate';
+import { notEnforcedLine } from './formulas/contractValue';
+import { OfferSchema, type Offer } from './offer';
+import { ENFORCEABLE_TERMS, isTermEnforced } from './registries';
 import {
   negotiationEligibility,
   OPEN_TO_OFFERS,
@@ -95,6 +101,45 @@ export interface FreeAgentRow {
 
 export type FreeAgentsSituationFilter = 'freeAgent' | 'all';
 
+/** The meter's band on the Negotiation Sheet. */
+export type OfferBand = 'likely' | 'counter' | 'reject' | 'walkAway' | 'refuse';
+
+export const OFFER_BANDS: Readonly<Record<Reaction, { band: OfferBand; label: string }>> = {
+  accept: { band: 'likely', label: 'Likely to accept' },
+  counter: { band: 'counter', label: 'Will counter' },
+  reject: { band: 'reject', label: 'Will reject' },
+  walkAway: { band: 'walkAway', label: 'Will walk away' },
+  refuse: { band: 'refuse', label: "Won't sign" },
+};
+
+export const PART_OF_THE_WAY_NOTE = 'They will meet you part of the way';
+export const LIKELY_NOTE = 'They think it over for a short while before signing';
+export const REJECT_NOTE = 'A rejection uses up some of their patience';
+export const WALK_AWAY_NOTE = "Talks would end, and they won't talk to you again for a while";
+export const UNKNOWN_NEGOTIATION_MESSAGE = 'Those are not your open talks with this worker';
+
+/** `contracts.offerPreview`: how the worker would react to an offer, without rolling anything. */
+export interface OfferPreview {
+  /** Contract value of the offer, cents a month. */
+  readonly offerValue: number;
+  /** Contract value of their ask, cents a month. */
+  readonly askValue: number;
+  /** The offer's value as a share of the ask's. */
+  readonly ratio: number;
+  readonly reaction: Reaction;
+  readonly band: OfferBand;
+  readonly label: string;
+  /** Patience after this reaction. */
+  readonly patienceLeft: number;
+  /** The patience the worker started (or would start) these talks with. */
+  readonly startPatience: number;
+  readonly reactionTrace: TraceNode;
+  readonly valueTrace: TraceNode;
+  readonly askValueTrace: TraceNode;
+  /** Plain lines the sheet shows under the meter. */
+  readonly notes: string[];
+}
+
 declare module '../../core/api/maps' {
   interface QueryMap {
     'contracts.askingTerms': {
@@ -106,6 +151,16 @@ declare module '../../core/api/maps' {
         renewalOf?: EmploymentId | undefined;
       };
       result: AskingTermsView;
+    };
+    'contracts.offerPreview': {
+      args: {
+        promotionId: PromotionId;
+        personId: PersonId;
+        offer: Offer;
+        negotiationId?: NegotiationId | undefined;
+        renewalOf?: EmploymentId | undefined;
+      };
+      result: OfferPreview;
     };
     'contracts.freeAgents': {
       args: {
@@ -158,6 +213,143 @@ export const askingTermsQuery = defineQuery('contracts.askingTerms', {
       ctx.date,
     );
     return { ...askingTermsWith(context, args, eligibility), eligibility };
+  },
+});
+
+const PERK_WORDS = {
+  'perk.ironClad': 'Iron-clad',
+  'perk.travelCovered': 'Travel covered',
+  'perk.noHouseShows': 'No house shows',
+  'perk.creativeControl': 'Creative control',
+  'share.gateBp': 'Share of the gate',
+  'share.merchBp': 'Share of merch',
+  'share.broadcastBp': 'Share of TV money',
+} as const;
+
+function termIsSet(offer: Offer, term: (typeof ENFORCEABLE_TERMS)[number]): boolean {
+  switch (term) {
+    case 'perk.ironClad':
+      return offer.terms.perks.ironClad;
+    case 'perk.travelCovered':
+      return offer.terms.perks.travelCovered;
+    case 'perk.noHouseShows':
+      return offer.terms.perks.noHouseShows;
+    case 'perk.creativeControl':
+      return offer.terms.perks.creativeControl;
+    case 'share.gateBp':
+      return offer.terms.shares.gateBp > 0;
+    case 'share.merchBp':
+      return offer.terms.shares.merchBp > 0;
+    case 'share.broadcastBp':
+      return offer.terms.shares.broadcastBp > 0;
+  }
+}
+
+function previewNotes(offer: Offer, evaluation: OfferEvaluation): string[] {
+  const notes: string[] = [];
+  const { ask } = evaluation;
+  if (evaluation.refusal !== null) {
+    notes.push(evaluation.refusal.message);
+  }
+  if (evaluation.roleMismatch !== null) {
+    notes.push(evaluation.roleMismatch);
+  }
+  const kind = ask.allowedKinds.find((entry) => entry.kind === offer.terms.kind);
+  for (const reason of kind?.reasons ?? []) {
+    notes.push(reason.message);
+  }
+  if (offer.terms.exclusive) {
+    for (const reason of ask.exclusiveReasons) {
+      notes.push(reason.message);
+    }
+  }
+  for (const term of ENFORCEABLE_TERMS) {
+    if (termIsSet(offer, term) && !isTermEnforced(term)) {
+      notes.push(notEnforcedLine(PERK_WORDS[term]));
+    }
+  }
+  switch (evaluation.reaction.value) {
+    case 'accept':
+      notes.push(LIKELY_NOTE);
+      break;
+    case 'counter':
+      notes.push(PART_OF_THE_WAY_NOTE);
+      break;
+    case 'reject':
+      notes.push(REJECT_NOTE);
+      break;
+    case 'walkAway':
+      notes.push(WALK_AWAY_NOTE);
+      break;
+    case 'refuse':
+      break;
+  }
+  return notes;
+}
+
+export const offerPreviewQuery = defineQuery('contracts.offerPreview', {
+  args: z.strictObject({
+    promotionId: zId('promotion'),
+    personId: zId('person'),
+    offer: OfferSchema,
+    negotiationId: zId('negotiation').optional(),
+    renewalOf: zId('employment').optional(),
+  }),
+  run: (ctx, args): OfferPreview => {
+    ownPromotionOrRefuse(ctx, args.promotionId);
+    if (ctx.read.tables.people.get(args.personId) === undefined) {
+      refuseQuery({ code: INVALID_ARGS, message: UNKNOWN_PERSON_MESSAGE, field: 'personId' });
+    }
+    const negotiation =
+      args.negotiationId === undefined
+        ? null
+        : (ctx.read.tables.negotiations.get(args.negotiationId) ?? null);
+    if (
+      args.negotiationId !== undefined &&
+      (negotiation === null ||
+        negotiation.personId !== args.personId ||
+        negotiation.promotionId !== args.promotionId ||
+        !isOpenNegotiationStatus(negotiation.status))
+    ) {
+      refuseQuery({
+        code: INVALID_ARGS,
+        message: UNKNOWN_NEGOTIATION_MESSAGE,
+        field: 'negotiationId',
+      });
+    }
+    if (args.renewalOf !== undefined) {
+      const contract = ctx.read.tables.employments.get(args.renewalOf);
+      const renewable =
+        contract?.promotionId === args.promotionId &&
+        contract.personId === args.personId &&
+        (contract.status === 'signed' || contract.status === 'active');
+      if (!renewable) {
+        refuseQuery({ code: INVALID_ARGS, message: NOT_YOUR_CONTRACT_MESSAGE, field: 'renewalOf' });
+      }
+    }
+    const evaluation = evaluateOffer(ctx.read, ctx.tunables, {
+      promotionId: args.promotionId,
+      personId: args.personId,
+      offer: args.offer,
+      negotiation,
+      date: ctx.date,
+      renewalOf: args.renewalOf,
+    });
+    const { band, label } = OFFER_BANDS[evaluation.reaction.value];
+    return {
+      offerValue: evaluation.offerValue.value,
+      askValue: evaluation.askValue.value,
+      ratio: evaluation.ratio,
+      reaction: evaluation.reaction.value,
+      band,
+      label,
+      patienceLeft: evaluation.patienceLeft,
+      startPatience: negotiation?.startPatience ?? evaluation.ask.startPatience.value,
+      reactionTrace: evaluation.reaction.trace,
+      valueTrace: evaluation.offerValue.trace,
+      askValueTrace: evaluation.askValue.trace,
+      notes: previewNotes(args.offer, evaluation),
+    };
   },
 });
 
@@ -287,4 +479,4 @@ export const freeAgentsQuery = defineQuery('contracts.freeAgents', {
   },
 });
 
-export const negotiationQueries = [askingTermsQuery, freeAgentsQuery];
+export const negotiationQueries = [askingTermsQuery, freeAgentsQuery, offerPreviewQuery];

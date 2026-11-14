@@ -16,6 +16,14 @@ export const MARKET_VALUE_DOC_REF = 'negotiation.md#market-value';
 export const ASKING_TERMS_DOC_REF = 'negotiation.md#asking-terms';
 export const PATIENCE_DOC_REF = 'negotiation.md#patience';
 export const RENEWALS_DOC_REF = 'negotiation.md#renewals';
+export const CONTRACT_VALUE_DOC_REF = 'negotiation.md#contract-value';
+export const REACTION_DOC_REF = 'negotiation.md#reaction';
+export const COUNTER_DOC_REF = 'negotiation.md#counter';
+
+/** "62%": a share as a whole percent. */
+export function percentText(share: number): string {
+  return `${String(Math.round(share * 100))}%`;
+}
 
 /** The roles as the Why? names them: "Role: referee", "Skill as a referee". */
 export const ROLE_WORDS: Readonly<Record<EmploymentRole, string>> = {
