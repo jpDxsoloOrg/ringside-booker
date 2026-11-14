@@ -6,6 +6,10 @@
 // year-long runs (RB_SLOW_TESTS=1, about a minute) check the same band against real settlement,
 // that Altura loses money over the year with poor shows and makes a modest profit with decent
 // ones, and that no promotion with a deal goes into debt.
+//
+// ECO8-10 adds the ratings bonus: the projection includes the bonus each deal would earn at a
+// neutral show, and the year-long runs check that the bonus stays capped and TV, bonus and all,
+// stays within the same band (owner rule: money stays a challenge).
 // Design: docs/design/broadcast.md#tv-pay-calibration
 import { beforeAll, describe, expect, it } from 'vitest';
 import { createEngine } from '../../../src/core/api';
@@ -15,17 +19,20 @@ import { addDays, addYearMonths, yearMonthOf } from '../../../src/core/date';
 import type { PromotionId } from '../../../src/core/ids';
 import { definePhase } from '../../../src/core/pipeline/phase';
 import { promotionStatusKey } from '../../../src/model/entities/employment';
-import type { LedgerCategory } from '../../../src/model/entities/ledger-entry';
+import { ledgerMonthKey, type LedgerCategory } from '../../../src/model/entities/ledger-entry';
 import { TABLES, type GameWorldView } from '../../../src/model/tables';
 import { documentToWorld } from '../../../src/persistence/world-document';
 import { defaultSystems } from '../../../src/systems';
 import { cardSegments, MatchDraftSchema, writeSegment } from '../../../src/systems/booking';
 import {
+  benchmarkFor,
   dealCoversShow,
   dealInForce,
   dealValuation,
   projectedAudience,
+  ratingsBonusShare,
 } from '../../../src/systems/broadcast';
+import { constantOf } from '../../../src/core/trace';
 import { occurrencesBetween } from '../../../src/systems/calendar';
 import { monthBreakdownOf } from '../../../src/systems/finance/months';
 import { productionMonthlyCost } from '../../../src/systems/production';
@@ -74,14 +81,19 @@ beforeAll(() => {
 
 /**
  * What a promotion's deals pay over the year from the start date, net of airtime, at the
- * audience its shows are projected to draw (neutral quality, no night-to-night swing). Read from
- * the shows' recurrences, so it does not depend on how far ahead the calendar is filled.
+ * audience its shows are projected to draw (neutral quality, no night-to-night swing), with the
+ * ratings bonus (ECO8-10) each airing would earn at that audience. Read from the shows'
+ * recurrences, so it does not depend on how far ahead the calendar is filled.
  */
-function projectedYearIncome(promotionId: PromotionId): number {
+function projectedYear(promotionId: PromotionId): {
+  readonly income: number;
+  readonly bonus: number;
+} {
   const from = read.meta.currentDate;
   const to = addDays(from, YEAR_DAYS - 1);
   const deals = read.tables.deals.lookup('byPromotion', promotionId);
   let total = 0;
+  let bonus = 0;
   for (const definition of read.tables.eventDefinitions.lookup('byPromotion', promotionId)) {
     if (definition.importance === 'house') continue;
     for (const airDate of occurrencesBetween(definition, from, to)) {
@@ -99,18 +111,43 @@ function projectedYearIncome(promotionId: PromotionId): number {
           importance: definition.importance,
         }).value;
         const { feePerShow, perThousandViewers, costPerShow } = deal.terms;
-        total += feePerShow + (perThousandViewers * viewers) / 1_000 - costPerShow;
+        const perThousand = (perThousandViewers * viewers) / 1_000;
+        total += feePerShow + perThousand - costPerShow;
+        const expected = benchmarkFor(read, TUNABLES, {
+          networkId: network.id,
+          timeslot: deal.timeslot,
+          importance: definition.importance,
+        }).value;
+        const share =
+          expected <= 0
+            ? null
+            : ratingsBonusShare(
+                constantOf('Viewers against expected', viewers / expected, 'Projected'),
+                { networkName: network.name },
+                { tunables: TUNABLES },
+              );
+        bonus += (share?.value ?? 0) * (network.kind === 'ppv' ? perThousand : feePerShow);
       }
     }
   }
-  return total;
+  return { income: total + bonus, bonus };
 }
 
 describe("Altura's TV pay", () => {
   it('pays about its monthly overhead over a projected year, not all of its costs', () => {
-    const share = projectedYearIncome(altura) / 12 / monthlyOverhead(read, altura);
+    const share = projectedYear(altura).income / 12 / monthlyOverhead(read, altura);
     expect(share).toBeGreaterThanOrEqual(OVERHEAD_SHARE.min);
     expect(share).toBeLessThanOrEqual(OVERHEAD_SHARE.max);
+  });
+});
+
+describe("Altura's ratings bonus (ECO8-10)", () => {
+  it('is paid, but stays a small capped part of its TV money', () => {
+    const { income, bonus } = projectedYear(altura);
+    expect(bonus).toBeGreaterThan(0);
+    // At most the cap on every airing, so well under a fifth of the year's TV money.
+    expect(bonus / income).toBeLessThanOrEqual(TUNABLES.get('broadcast.bonus.max'));
+    expect(bonus / income).toBeLessThan(0.2);
   });
 });
 
@@ -194,11 +231,14 @@ interface YearResult {
   readonly world: GameWorldView;
   /** Each promotion's lowest cash at the end of any day, in cents. */
   readonly lowestCash: ReadonlyMap<PromotionId, number>;
+  /** Each promotion's ratings bonuses over the year (ECO8-10), in cents. */
+  readonly bonuses: ReadonlyMap<PromotionId, number>;
 }
 
 /** A year as Altura; decent shows are `cardEveryShowSystem`'s random singles cards. */
 async function playYear(shows: 'decent' | 'poor'): Promise<YearResult> {
   const lowestCash = new Map<PromotionId, number>();
+  const bonuses = new Map<PromotionId, number>();
   const watcher = defineSystem({
     id: 'testCashWatch',
     phases: [
@@ -211,6 +251,12 @@ async function playYear(shows: 'decent' | 'poor'): Promise<YearResult> {
           for (const promotion of ctx.read.tables.promotions.values()) {
             const lowest = lowestCash.get(promotion.id) ?? promotion.cash;
             lowestCash.set(promotion.id, Math.min(lowest, promotion.cash));
+            const month = ledgerMonthKey(promotion.id, ctx.date.slice(0, 7));
+            for (const entry of ctx.read.tables.ledgerEntries.lookup('byPromotionMonth', month)) {
+              if (entry.date === ctx.date && entry.memo?.startsWith('Ratings bonus: ') === true) {
+                bonuses.set(promotion.id, (bonuses.get(promotion.id) ?? 0) + entry.amount);
+              }
+            }
           }
         },
       }),
@@ -224,7 +270,7 @@ async function playYear(shows: 'decent' | 'poor'): Promise<YearResult> {
   const advanced = await engine.advanceDays({ maxDays: YEAR_DAYS });
   expect(advanced.failures).toEqual([]);
   const world = documentToWorld({ state: { world: engine.exportState().world } }, TABLES);
-  return { world, lowestCash };
+  return { world, lowestCash, bonuses };
 }
 
 /** Altura's money in `categories` over the 12 months from the start, rolled up or not. */
@@ -246,7 +292,7 @@ describe.runIf(SLOW_TESTS)('a year as Altura (slow)', () => {
   it(
     'TV pays about the overhead, decent shows make a modest profit and no dealing promotion goes into debt',
     async () => {
-      const { world, lowestCash } = await playYear('decent');
+      const { world, lowestCash, bonuses } = await playYear('decent');
       const share = yearTotal(world, TV_CATEGORIES) / 12 / monthlyOverhead(read, altura);
       expect(share).toBeGreaterThanOrEqual(OVERHEAD_SHARE.min);
       expect(share).toBeLessThanOrEqual(OVERHEAD_SHARE.max);
@@ -261,6 +307,11 @@ describe.runIf(SLOW_TESTS)('a year as Altura (slow)', () => {
         const promotion = world.tables.promotions.require(deal.promotionId);
         expect(lowestCash.get(promotion.id) ?? 0, promotion.name).toBeGreaterThanOrEqual(0);
       }
+
+      // ECO8-10: the ratings bonus is paid with decent shows, and stays a small part of TV money.
+      const bonus = bonuses.get(altura) ?? 0;
+      expect(bonus).toBeGreaterThan(0);
+      expect(bonus / yearTotal(world, TV_CATEGORIES)).toBeLessThan(0.2);
     },
     TIMEOUT_MS,
   );

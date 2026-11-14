@@ -4035,3 +4035,15 @@ export {
   dealSignedDedupeKey,
 } from './systems/broadcast/index';
 export type { ReachAudience } from './systems/promoPop/index';
+// ECO8-10: deal targets in viewers, the ratings bonus, the Exceeding health and the renewal uplift.
+export {
+  audienceNoun,
+  BONUS_DOC_REF,
+  bonusBaseLabel,
+  dealTargets,
+  EXCEEDING_REASON,
+  ratingsBonusMemo,
+  ratingsBonusShare,
+  renewalValuation,
+} from './systems/broadcast/index';
+export type { DealTarget, DealTargets, RenewalUplift } from './systems/broadcast/index';

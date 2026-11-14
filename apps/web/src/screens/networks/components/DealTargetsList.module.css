@@ -1,0 +1,38 @@
+/*
+ * A deal's targets in viewers (ECO8-10): stay safe, may cancel, ratings bonus. Each line wraps
+ * with its Why? beside it; the compact form sits in a table cell or a phone card.
+ */
+.full,
+.compact {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.list {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+  font-variant-numeric: var(--font-feature-tabular);
+}
+
+.compact .line {
+  font-size: var(--font-size-sm);
+}
+
+.note {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}

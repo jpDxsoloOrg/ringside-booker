@@ -12,9 +12,11 @@ import type { DealEndReason } from '../../model/entities/deal';
 
 /**
  * How a deal is doing, as deal health (ECO8-05) judges it and `broadcast.dealWarned` reports it:
- * from Safe to Cancelling. ECO8-05's `dealHealth` formula returns one of these.
+ * best first, from Exceeding (ECO8-10: beating the network's expectations) through Safe to
+ * Cancelling. ECO8-05's `dealHealth` formula returns one of these. The codes are stable; Exceeding
+ * was added in front so the order still reads from best to worst.
  */
-export const DEAL_RISKS = ['safe', 'watch', 'atRisk', 'cancelling'] as const;
+export const DEAL_RISKS = ['exceeding', 'safe', 'watch', 'atRisk', 'cancelling'] as const;
 export type DealRisk = (typeof DEAL_RISKS)[number];
 
 declare module '../../core/events/types' {

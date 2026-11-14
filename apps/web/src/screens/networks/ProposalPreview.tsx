@@ -5,6 +5,7 @@ import { formatNumber, useMoneyFormatter } from '@/components/format';
 import { KpiCard, KpiCardGrid } from '@/components/KpiCard';
 import { routes } from '@/app/routes';
 import { WhyButton } from '@/components/Trace';
+import { DealTargetsList } from './components/DealTargetsList';
 import { VerdictBadge } from './components/VerdictBadge';
 import {
   LOSES_MONEY_TEXT,
@@ -24,7 +25,8 @@ export interface ProposalPreviewProps {
 /**
  * What a network would do with a proposal, before signing: projected viewers against what it
  * expects, the fee, the per-thousand (or per-buy) rate, the airtime you pay, and what each airing
- * leaves you with, every number with its Why?; then the verdict with its Why? and every reason it
+ * leaves you with, every number with its Why?; the targets the deal will be judged by, in viewers
+ * (ECO8-10); then the verdict with its Why? and every reason it
  * would refuse. A deal that loses money on each airing says so in words, and a pay-per-view deal
  * says what its airtime costs: both are the player's call, not hidden.
  */
@@ -115,6 +117,12 @@ export function ProposalPreview({ valuation, kind, networkName }: ProposalPrevie
           }
         />
       </KpiCardGrid>
+      <section aria-labelledby="proposal-targets-heading" className={styles['section']}>
+        <h3 id="proposal-targets-heading" className={styles['subHeading']}>
+          What {networkName} will expect
+        </h3>
+        <DealTargetsList targets={valuation.targets} kind={kind} networkName={networkName} />
+      </section>
       {income < 0 && <p className={styles['lossNote']}>{LOSES_MONEY_TEXT}</p>}
       {kind === 'ppv' && (
         <p className={styles['tradeOff']}>

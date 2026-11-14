@@ -18,7 +18,7 @@ export interface DealHealthBadgeProps {
 }
 
 /**
- * The risk on a deal: Safe, Watch, At risk, Cancelling, or "Missed airing" when that is the worst
+ * The risk on a deal: Exceeding, Safe, Watch, At risk, Cancelling, or "Missed airing" when that is the worst
  * reason. The reasons show in a tooltip and are read out with the badge; the deal sheet lists
  * them as text too, since a tooltip never reaches a touch screen. A Why? opens the stored verdict.
  */

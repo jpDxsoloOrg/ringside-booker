@@ -226,6 +226,20 @@ export {
   type DealView,
 } from './queries/deals';
 export { HEALTH_MAX_WINDOW } from './tunables';
+// ECO8-10: deal targets in viewers, the ratings bonus and the renewal uplift.
+export {
+  audienceNoun,
+  BONUS_DOC_REF,
+  bonusBaseLabel,
+  dealTargets,
+  ratingsBonusMemo,
+  ratingsBonusShare,
+  type DealTarget,
+  type DealTargets,
+} from './formulas/ratingsBonus';
+export { EXCEEDING_REASON } from './formulas/dealHealth';
+export { renewalValuation } from './health';
+export { incomePerAiring, type RenewalUplift } from './valuation';
 export {
   DEAL_SIGNED_NEWS_SUBSCRIPTION_ID,
   DEAL_SIGNED_TOPIC,

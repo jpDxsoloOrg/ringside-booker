@@ -13,7 +13,8 @@
  *   airings over what the network expected for them: below `cancelBelow` is Cancelling (the
  *   network may cancel at each airing, a seeded roll the phase makes), below `warnBelow` At risk.
  * - **Any missed airing**, past or coming, is at least Watch.
- * - Otherwise Safe.
+ * - Otherwise Safe, or Exceeding (ECO8-10) when the viewers are judged and reach the ratings bonus
+ *   line (`broadcast.bonus.above`): "Beating the network's expectations".
  *
  * No randomness here: the phase rolls the network's patience.
  *
@@ -27,6 +28,9 @@ import type { EngineTunables } from '../../tunables';
 import { DEAL_RISKS, type DealRisk } from '../events';
 
 export const HEALTH_DOC_REF = 'broadcast.md#deal-health';
+
+/** The start of an Exceeding deal's reason (ECO8-10). */
+export const EXCEEDING_REASON = "Beating the network's expectations";
 
 /** One recent scheduled airing of the deal, as deal health reads it. */
 export interface DealHealthAiring {
@@ -244,6 +248,19 @@ export function dealHealth(
     decision.rule(finding.text, false);
   }
   const [worst] = ordered;
+  if (worst === undefined && ratio !== null) {
+    const bonusAbove = decision.tunable(tunables, 'broadcast.bonus.above');
+    if (ratio.value >= bonusAbove) {
+      const because = `${EXCEEDING_REASON}: viewers are ${percent(ratio.value)} of what ${networkName} expects`;
+      return {
+        ...decision.choose('exceeding', because),
+        cause: null,
+        reasons: [because],
+        ratio,
+        cancelChance,
+      };
+    }
+  }
   if (worst === undefined) {
     const because =
       ratio === null

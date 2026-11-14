@@ -77,6 +77,7 @@ export const END_REASON_TEXT: Readonly<Record<DealEndReason, string>> = {
 };
 
 export const RISK_LABELS: Readonly<Record<DealRisk, string>> = {
+  exceeding: 'Exceeding',
   safe: 'Safe',
   watch: 'Watch',
   atRisk: 'At risk',
@@ -85,6 +86,8 @@ export const RISK_LABELS: Readonly<Record<DealRisk, string>> = {
 
 /** The colour role of each risk (docs/design/visual-identity.md). */
 export const RISK_TONES: Readonly<Record<DealRisk, RoleTone>> = {
+  // Beating the network's expectations (ECO8-10): gold, like a top pick.
+  exceeding: 'prestige',
   safe: 'positive',
   watch: 'neutral',
   atRisk: 'action',

@@ -287,7 +287,8 @@ describe('broadcast.cancelDeal', () => {
 describe('the deals queries', () => {
   it('lists your deals with their health; ended ones only with include all', () => {
     const built = dealWorld();
-    addAirings(built, built.yourDeal, airedAt(1.2, 3));
+    // 110%: Safe (115% or more would be Exceeding, ECO8-10).
+    addAirings(built, built.yourDeal, airedAt(1.1, 3));
     const engine = engineFor(built.world);
     const active = engine.query(
       'broadcast.deals',
@@ -304,7 +305,7 @@ describe('the deals queries', () => {
       status: 'active',
       risk: 'safe',
       daysLeft: 300,
-      lastAiring: { airDate: TODAY, viewers: 12_000, expectedViewers: 10_000 },
+      lastAiring: { airDate: TODAY, viewers: 11_000, expectedViewers: 10_000 },
     });
     expect(row?.recent.map((airing) => airing.airDate)).toEqual([
       addDays(TODAY, -14),

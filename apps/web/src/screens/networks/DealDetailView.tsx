@@ -6,6 +6,7 @@ import { formatGameDate } from '@/components/format';
 import type { MoneyFormatter } from '@/components/format';
 import { Explained } from '@/components/Trace';
 import { DealHealthBadge } from './components/DealHealthBadge';
+import { DealTargetsList } from './components/DealTargetsList';
 import { endsText, feeText } from './dealColumns';
 import {
   airingStatusText,
@@ -211,6 +212,16 @@ export function DealDetailView({ deal, money, today }: DealDetailViewProps) {
                   <li key={date}>{upcomingMissedText(date)}</li>
                 ))}
               </ul>
+            )}
+            {deal.targets !== null && (
+              <>
+                <h4 className={styles['subHeading']}>Targets</h4>
+                <DealTargetsList
+                  targets={deal.targets}
+                  kind={deal.kind}
+                  networkName={deal.networkName}
+                />
+              </>
             )}
           </>
         )}
