@@ -126,7 +126,12 @@ async function expectTapTargets(scope: Locator): Promise<void> {
 
 /** The name on a contract row: a link on desktop (the row opens the sheet), a button on a phone. */
 async function rowName(row: Locator, phone: boolean): Promise<string> {
-  return ((await row.getByRole(phone ? 'button' : 'link').first().textContent()) ?? '').trim();
+  return (
+    (await row
+      .getByRole(phone ? 'button' : 'link')
+      .first()
+      .textContent()) ?? ''
+  ).trim();
 }
 
 /** The contract sheet named `name`. */
@@ -163,11 +168,16 @@ async function projectedPayroll(page: Page): Promise<number> {
   return centsOf((await card.textContent()) ?? '');
 }
 
-/** The days left a contract row shows ("Feb 28, 2027 55 days"). */
+/** The days left a contract row shows beside its end date ("59 days"). */
 async function daysLeftOf(row: Locator): Promise<number> {
-  const left = /(\d+) days?/.exec((await row.textContent()) ?? '');
-  expect(left, 'the row says how many days are left').not.toBeNull();
-  return Number(left?.[1] ?? '0');
+  const left = row.getByText(/^\d+ days?$/).first();
+  await expect(left).toBeVisible();
+  return Number(/^(\d+)/.exec((await left.textContent()) ?? '')?.[1] ?? 'NaN');
+}
+
+/** Opens every step of an open Why?, so the tunables under nested numbers show too. */
+async function expandAll(panel: Locator): Promise<void> {
+  await panel.getByRole('button', { name: 'Expand all' }).click();
 }
 
 test.describe('contracts', () => {
@@ -260,6 +270,7 @@ test.describe('contracts', () => {
       if (phone) await expectTapTargets(confirm);
       await shot(page, 'contracts-release', testInfo);
       const panel = await openWhy(page, why, `${released}'s severance`, phone);
+      await expandAll(panel);
       await expect(panel.getByText('contracts.severance.fullMonths')).toBeVisible();
       await expectNoHorizontalScroll(page);
       await shot(page, 'contracts-release-why', testInfo);
@@ -450,14 +461,18 @@ test.describe('contracts', () => {
     await test.step('Refuse: morale drops, a daily walk-out chance with a Why?', async () => {
       await contracts.click();
       await expect(page).toHaveURL(/tab=active&wantsToLeave=1&employment=emp_/);
-      const sheet = page.getByRole('dialog').filter({ has: page.getByRole('region', { name: 'Release request' }) });
+      const sheet = page
+        .getByRole('dialog')
+        .filter({ has: page.getByRole('region', { name: 'Release request' }) });
       await expect(sheet).toBeVisible();
       refused = ((await sheet.getAttribute('aria-label')) ?? '').trim();
       if (refused === '') refused = (await sheet.getByRole('heading').first().textContent()) ?? '';
       refused = refused.trim();
       const request = sheet.getByRole('region', { name: 'Release request' });
       await expect(request).toContainText(`${refused} wants to leave`);
-      await expect(request.getByRole('heading', { name: 'Grant' })).toBeVisible({ timeout: 15_000 });
+      await expect(request.getByRole('heading', { name: 'Grant' })).toBeVisible({
+        timeout: 15_000,
+      });
       await expect(request.getByRole('heading', { name: 'Refuse' })).toBeVisible();
       const morale = sheet.getByRole('region', { name: 'Morale' });
       const moraleBefore = Number(
@@ -483,6 +498,7 @@ test.describe('contracts', () => {
         name: new RegExp(`^Why is ${refused}'s daily walk-out chance`),
       });
       const panel = await openWhy(page, why, `${refused}'s daily walk-out chance`, phone);
+      await expandAll(panel);
       await expect(panel.getByText(/^contracts\.walkout\./).first()).toBeVisible();
       await shot(page, 'contracts-walkout-why', testInfo);
       await closeWhy(page, panel);
@@ -493,7 +509,9 @@ test.describe('contracts', () => {
     await test.step('Grant: they quit with the agreed share of the severance', async () => {
       await expect(contracts).toHaveAccessibleDescription(/^.+ wants to leave$/);
       await contracts.click();
-      const sheet = page.getByRole('dialog').filter({ has: page.getByRole('region', { name: 'Release request' }) });
+      const sheet = page
+        .getByRole('dialog')
+        .filter({ has: page.getByRole('region', { name: 'Release request' }) });
       await expect(sheet).toBeVisible();
       const request = sheet.getByRole('region', { name: 'Release request' });
       await expect(request).not.toContainText(refused);
@@ -514,6 +532,7 @@ test.describe('contracts', () => {
       expect(amount).toBeLessThanOrEqual(releaseToday);
       const panel = await openWhy(page, grantWhy, `Severance if you let ${granted} go`, phone);
       await expect(panel).toContainText('Agreed share');
+      await expandAll(panel);
       await expect(panel.getByText('contracts.quit.severanceShare')).toBeVisible();
       await closeWhy(page, panel);
       await request.getByRole('button', { name: 'Grant', exact: true }).click();

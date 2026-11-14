@@ -80,7 +80,11 @@ function engineOver(state: EngineState): Engine {
 }
 
 /** The same state with the player's promotion and its brands run by `controller`. */
-function controlledBy(state: EngineState, promotionId: string, controller: Controller): EngineState {
+function controlledBy(
+  state: EngineState,
+  promotionId: string,
+  controller: Controller,
+): EngineState {
   const { promotions, brands } = state.world.tables;
   return {
     ...state,
@@ -88,8 +92,12 @@ function controlledBy(state: EngineState, promotionId: string, controller: Contr
       ...state.world,
       tables: {
         ...state.world.tables,
-        promotions: promotions.map((row) => (row.id === promotionId ? { ...row, controller } : row)),
-        brands: brands.map((row) => (row.promotionId === promotionId ? { ...row, controller } : row)),
+        promotions: promotions.map((row) =>
+          row.id === promotionId ? { ...row, controller } : row,
+        ),
+        brands: brands.map((row) =>
+          row.promotionId === promotionId ? { ...row, controller } : row,
+        ),
       },
     },
   };
@@ -156,7 +164,7 @@ async function buildContractsSave(): Promise<void> {
     throw new Error(`New game was refused: ${JSON.stringify(created.reasons)}`);
   }
   const promotion = created.state.world.tables.promotions.find(
-    (row) => row.controller?.kind === 'human' && row.controller.playerId === PLAYER_ID,
+    (row) => row.controller.kind === 'human' && row.controller.playerId === PLAYER_ID,
   );
   if (promotion === undefined) throw new Error('The player runs no promotion');
 
@@ -192,7 +200,9 @@ async function buildContractsSave(): Promise<void> {
       if (stoppedByRequests(engine)) {
         const counts = engine.query('contracts.counts', {}, PLAYER_VIEW);
         if (!counts.ok || counts.data.wantsToLeave !== UNHAPPY_WORKERS) {
-          throw new Error(`Expected ${String(UNHAPPY_WORKERS)} requests: ${JSON.stringify(counts)}`);
+          throw new Error(
+            `Expected ${String(UNHAPPY_WORKERS)} requests: ${JSON.stringify(counts)}`,
+          );
         }
         const doc = createSaveDocument(engineSaveState(state), {
           headerPromotionId: promotion.id,
