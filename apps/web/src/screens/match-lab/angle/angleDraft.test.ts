@@ -25,11 +25,13 @@ const PROMO: BeatOption = {
       maxPeople: 4,
       optional: false,
       managerCanStandIn: true,
+      roles: [],
     },
   ],
   physical: false,
   repetitionGroup: 'talk',
   weight: 1,
+  settings: ['ring'],
 };
 
 const STAREDOWN: BeatOption = {
@@ -58,6 +60,7 @@ const FEUD: AngleTemplateOption = {
     { beatKey: parseContentKey('beat.brawl'), groupOne: 'ab', groupTwo: null, optional: false },
   ],
   requiredBeatCount: 2,
+  setting: 'ring',
   description: null,
 };
 
