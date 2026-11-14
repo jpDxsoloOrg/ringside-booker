@@ -4154,7 +4154,9 @@
         ],
         "summary": "A former champion wants the title back.",
         "lastProgressOn": null,
-        "finaleSegmentId": null
+        "finaleSegmentId": null,
+        "progress": [],
+        "payoff": null
       }
     ],
     "teams": [

@@ -999,11 +999,23 @@ unique `bySegmentPerson` (a person appears once per segment).
 | `summary`         | string, ≤ 500                                         |                                                                                                                                                                 |
 | `lastProgressOn`  | `GameDate \| null`                                    | last day a linked segment moved the story on; null = never (cooling counts from `startedOn`); not before `startedOn`; written by CRTV4; default null (CRTV3-01) |
 | `finaleSegmentId` | `SegmentId \| null`                                   | the linked segment booked as the story's final match; written by CRTV4; default null (CRTV3-01)                                                                 |
+| `progress`        | `StorylineProgress[]`                                 | linked segments that moved the story on, oldest first, ≤ 200 (`MAX_STORYLINE_PROGRESS`, oldest dropped on write); dates non-decreasing; default [] (CRTV4-01)   |
+| `payoff`          | `StorylinePayoff \| null`                             | the ending's payoff record; null while active; default null (CRTV4-01)                                                                                          |
+
+`StorylineProgress` = `{ segmentId, eventInstanceId, date, heatBefore: 0–100,
+heatAfter: 0–100, traceId: string | null }`. `StorylinePayoff` (type
+`StorylinePayoffRecord`) = `{ paid, on: GameDate, countedSegments: int ≥ 0,
+heat: 0–100, members: { personId, popularityDelta, momentumDelta, skipped }[]
+(0–12), traceId: string | null }`.
 
 Refs: `promotionId`, `brandId`, `members[].personId`, `finaleSegmentId`
-(nullable). Indexes: `byPromotion`, `byMember` (multi-key). Invariant
-`finaleIsLinked`: the finale segment's `storylineIds` contains the storyline.
-The history roll-up keeps a finale segment whatever its age. Storylines are
+(nullable), `progress[].segmentId`, `progress[].eventInstanceId`,
+`payoff.members[].personId`. Indexes: `byPromotion`, `byMember` (multi-key).
+Invariant `finaleIsLinkedMatch` (CRTV4-01): when `finaleSegmentId` is set, that
+segment exists, is a match and lists the storyline in its `storylineIds`;
+booking clears the finale before the segment is removed or stops being a match.
+The history roll-up keeps a finale segment, and every segment in a progress
+log, whatever its age. Storylines are
 ended, never deleted, because segments reference them. See
 [storylines.md](storylines.md).
 

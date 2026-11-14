@@ -1,6 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { StorylineSchema } from '../../../src/model/entities/storyline';
+import {
+  MAX_STORYLINE_PROGRESS,
+  StorylineSchema,
+  type StorylinePayoffRecord,
+  type StorylineProgress,
+} from '../../../src/model/entities/storyline';
 import { checkWorld } from '../../../src/model/integrity';
 import { TABLES } from '../../../src/model/tables';
 import { loadSave } from '../../../src/persistence/load';
@@ -9,6 +14,8 @@ import {
   check,
   date,
   emptyShowWorld,
+  idOf,
+  makeAngle,
   makeInstance,
   makeMatch,
   segmentId,
@@ -97,6 +104,86 @@ describe('StorylineSchema', () => {
   });
 });
 
+describe('storyline progress and payoff (CRTV4-01)', () => {
+  const entry = (day: string, serial = 1): StorylineProgress => ({
+    segmentId: segmentId(serial),
+    eventInstanceId: idOf('eventInstance', 'evi', 1),
+    date: date(day),
+    heatBefore: 40,
+    heatAfter: 45,
+    traceId: null,
+  });
+  const payoff = (): StorylinePayoffRecord => ({
+    paid: true,
+    on: date('2026-03-01'),
+    countedSegments: 4,
+    heat: 72,
+    members: [{ personId: personId(1), popularityDelta: 2, momentumDelta: 1, skipped: false }],
+    traceId: null,
+  });
+
+  it('accepts progress in date order and refuses it going backwards', () => {
+    expect(
+      StorylineSchema.safeParse(
+        makeStoryline(1, {
+          progress: [entry('2026-01-05'), entry('2026-01-05'), entry('2026-02-01')],
+        }),
+      ).success,
+    ).toBe(true);
+    expect(
+      StorylineSchema.safeParse(
+        makeStoryline(1, { progress: [entry('2026-02-01'), entry('2026-01-05')] }),
+      ).success,
+    ).toBe(false);
+  });
+
+  it(`keeps at most ${String(MAX_STORYLINE_PROGRESS)} progress entries`, () => {
+    const many = (count: number): unknown =>
+      makeStoryline(1, { progress: Array.from({ length: count }, () => entry('2026-01-05')) });
+    expect(StorylineSchema.safeParse(many(MAX_STORYLINE_PROGRESS)).success).toBe(true);
+    expect(StorylineSchema.safeParse(many(MAX_STORYLINE_PROGRESS + 1)).success).toBe(false);
+  });
+
+  it('allows a payoff record only once the storyline has ended', () => {
+    expect(StorylineSchema.safeParse(makeStoryline(1, { payoff: payoff() })).success).toBe(false);
+    expect(
+      StorylineSchema.safeParse(
+        makeStoryline(1, { status: 'ended', endedOn: date('2026-03-01'), payoff: payoff() }),
+      ).success,
+    ).toBe(true);
+  });
+
+  it('fills both fields in for a row written before them', () => {
+    const older: Record<string, unknown> = { ...makeStoryline(1) };
+    delete older['progress'];
+    delete older['payoff'];
+    const parsed = StorylineSchema.parse(older);
+    expect(parsed.progress).toEqual([]);
+    expect(parsed.payoff).toBeNull();
+  });
+
+  it('reports dangling progress segments, shows and payoff members', () => {
+    const world = emptyShowWorld();
+    world.tables.storylines._put(
+      makeStoryline(1, {
+        status: 'ended',
+        endedOn: date('2026-03-01'),
+        progress: [entry('2026-01-05', 9)],
+        payoff: { ...payoff(), members: [{ ...payoff().members[0]!, personId: personId(99) }] },
+      }),
+    );
+    expect(
+      check(world)
+        .issues.map((issue) => `${issue.code} ${issue.path ?? ''}`)
+        .sort(),
+    ).toEqual([
+      'ref.dangling payoff.members[0].personId',
+      'ref.dangling progress[0].eventInstanceId',
+      'ref.dangling progress[0].segmentId',
+    ]);
+  });
+});
+
 describe('storylines table', () => {
   it('finds storylines by promotion and member, and segments by storyline', () => {
     const world = emptyShowWorld();
@@ -137,24 +224,45 @@ describe('storyline finale (CRTV3-01)', () => {
     expect(check(world).issues).toEqual([]);
   });
 
-  it('flags a finale segment that does not link the storyline (finaleIsLinked)', () => {
+  it('flags a finale segment that does not link the storyline (finaleIsLinkedMatch)', () => {
     const world = worldWithShow();
     putSinglesMatch(world, 1, { storylineIds: [] });
     world.tables.storylines._put(makeStoryline(1, { finaleSegmentId: segmentId(1) }));
     expect(check(world).issues).toEqual([
       expect.objectContaining({
-        code: 'storylines.finaleIsLinked',
+        code: 'storylines.finaleIsLinkedMatch',
         table: 'storylines',
         path: 'finaleSegmentId',
       }),
     ]);
   });
 
-  it('reports a finale segment that does not exist as a dangling ref', () => {
+  it('reports a finale segment that does not exist as a dangling ref and a broken finale', () => {
     const world = emptyShowWorld();
     world.tables.storylines._put(makeStoryline(1, { finaleSegmentId: segmentId(9) }));
+    expect(check(world).issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'ref.dangling', path: 'finaleSegmentId' }),
+        expect.objectContaining({
+          code: 'storylines.finaleIsLinkedMatch',
+          message: expect.stringContaining('does not exist') as unknown,
+        }),
+      ]),
+    );
+    expect(check(world).issues).toHaveLength(2);
+  });
+
+  it('flags a finale that links the storyline but is not a match (CRTV4-01)', () => {
+    const world = worldWithShow();
+    world.tables.segments._put(makeAngle(1, { storylineIds: [storylineId(1)] }));
+    world.tables.storylines._put(makeStoryline(1, { finaleSegmentId: segmentId(1) }));
     expect(check(world).issues).toEqual([
-      expect.objectContaining({ code: 'ref.dangling', path: 'finaleSegmentId' }),
+      expect.objectContaining({
+        code: 'storylines.finaleIsLinkedMatch',
+        table: 'storylines',
+        path: 'finaleSegmentId',
+        message: expect.stringContaining('is not a match') as unknown,
+      }),
     ]);
   });
 
@@ -173,6 +281,8 @@ describe('storyline finale (CRTV3-01)', () => {
     for (const storyline of storylines) {
       expect(storyline.lastProgressOn).toBeNull();
       expect(storyline.finaleSegmentId).toBeNull();
+      expect(storyline.progress).toEqual([]);
+      expect(storyline.payoff).toBeNull();
     }
     expect(checkWorld(world, TABLES, { validateRows: true }).issues).toEqual([]);
   });

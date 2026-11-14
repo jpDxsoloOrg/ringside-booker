@@ -57,7 +57,11 @@ describe('the match.finish booking check', () => {
   it('is registered at order 200, after the built-in checks', () => {
     const check = registeredBookingChecks().find((entry) => entry.id === FINISH_BOOKING_CHECK_ID);
     expect(check).toMatchObject({ order: 200, label: 'Finishes fit their matches' });
-    expect(registeredBookingChecks().at(-1)?.id).toBe(FINISH_BOOKING_CHECK_ID);
+    expect(
+      registeredBookingChecks()
+        .filter((entry) => entry.order <= 200)
+        .at(-1)?.id,
+    ).toBe(FINISH_BOOKING_CHECK_ID);
   });
 
   it('says nothing about a card whose matches are left to Auto', () => {

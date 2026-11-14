@@ -32,8 +32,19 @@ a summary, and since CRTV3-01:
   means never, so cooling counts from `startedOn`. It is never before
   `startedOn`.
 - `finaleSegmentId`: the linked segment booked as the story's final match, or
-  null. The finale must link the storyline (`finaleIsLinked`), and the weekly
+  null. The finale must be a match that links the storyline
+  (`finaleIsLinkedMatch`, see [Linking](#linking)), and the weekly
   history roll-up never deletes it.
+
+CRTV4-01 adds two more, both empty by default so older saves load:
+
+- `progress`: the linked segments that moved the story on, oldest first, each
+  with its show, date, heat before and after and the heat trace (at most 200;
+  the oldest is dropped on write). CRTV4-02 writes it; the roll-up keeps every
+  segment it names.
+- `payoff`: what happened when the story ended (paid or not, the counted
+  segments, the heat, each member's popularity and momentum change). Null
+  while the storyline is active. CRTV4-03 writes it.
 
 CRTV4 writes both fields. CRTV3 only stores and reads them; nothing else may
 set them. Both default to null, so saves from before CRTV3-01 load unchanged.
@@ -283,6 +294,76 @@ otherwise; the omniscient viewer runs nothing).
 There is deliberately no delete command. Segments keep `storylineIds` pointing
 at their storylines, and a show's history should still say which story a match
 belonged to. Ended storylines stay, read-only.
+
+## Linking
+
+CRTV4-01. A segment on one of your cards counts for a storyline only when it is
+**linked** to it: `segments.storylineIds`. Links are always explicit, for the
+player and the computer alike (the rival booker writes `storylineIds` itself
+through the card writer), so the story shield is never applied by accident.
+
+**Suggestions, never automatic links.** `storylines.linkOptions { segmentId }`
+lists, for a segment on a show the viewer runs (anyone else gets
+`{ kind: 'unavailable', reason }` with `notYourShow`):
+
+- `linked`: the storylines it is linked to, with who from each is in it
+  (`membersHere`), whether it is still active, whether this segment is its
+  finale, and where the finale is when it is elsewhere (show name and slot);
+- `suggestions`: active storylines of the show's promotion, and of the show's
+  brand when the storyline has a brand, with at least one member in the
+  segment and not linked yet. Most members present first, then the hottest,
+  then id;
+- `others`: the remaining active storylines it could be linked to;
+- `canSetFinale` (a match on a card that can still change), `maxLinks` and
+  `locked` (the show has run, was cancelled or its day has passed).
+
+**Counts only when a member is in it.** A member is in a segment when they are
+a participant in any role: competitor, ringside, interferer, speaker or
+subject (`membersInSegment`). Linking a segment nobody from the story is in is
+allowed, because the card can still change, but booking warns and the heat
+step (CRTV4-02) skips it.
+
+**Commands.** Both check the show with the calendar's `controlsShow` against
+the controller that issued them, so the computer can't change your card. A
+card that can no longer change refuses with booking's `showCompleted`,
+`showCancelled` or `showPast`. There is no lock (EVT2-09).
+
+- `storylines.linkSegment { segmentId, storylineIds }` replaces the whole list
+  (0 to `storylines.link.maxPerSegment`). Refusals: `notYourShow`,
+  `storylines.segmentNotFound`, `storylines.notFound`,
+  `storylines.otherPromotion` (a rival's storyline),
+  `storylines.storylineEnded` (only for a newly added one: keeping a link to a
+  story that has ended since is allowed, it just won't count),
+  `storylines.brandMismatch` (the storyline's brand is not the show's) and
+  `storylines.tooManyLinks` ("A segment can count for at most 2 storylines").
+  Removing a storyline whose finale is this segment clears the finale in the
+  same change.
+- `storylines.setFinale { storylineId, segmentId | null }` marks one linked
+  match as the storyline's finale: the segment must be a match
+  (`storylines.notAMatch`), already linked to the storyline
+  (`storylines.notLinked`), on a card you can still change. Moving the finale
+  from another unplayed match is allowed (the screen confirms first); once the
+  finale has been played it can't be moved or cleared
+  (`storylines.finaleAlreadyPlayed`). `null` clears it.
+
+**Finale rules.** A storyline has at most one finale, always a linked match
+(invariant `finaleIsLinkedMatch`). Booking keeps it so: the
+`storylines.clearFinaleOnRemove` segment hook (booking's `registerSegmentHook`)
+clears the finale when its segment is removed or the card cleared, when it
+becomes a talking segment, or when a rewrite drops the link. The hook runs
+inside the card writer, so the rival booker's changes are covered too.
+
+**Warnings.** The `storylines.links` booking check (order 250, checklist line
+"Storyline links count") only warns; it never stops a show from running:
+
+| Code                              | Message                                                                    |
+| --------------------------------- | -------------------------------------------------------------------------- |
+| `storylines.noMemberInSegment`    | "Slot 3 is linked to 'X' but none of its members is in it: it won't count" |
+| `storylines.linkedStorylineEnded` | "'X' has ended: this link won't count"                                     |
+| `storylines.finaleNotAMatch`      | "'X' finale is in Slot 3, but it is no longer a match" (defensive)         |
+
+**Tunable.** `storylines.link.maxPerSegment` (2, 1 to 12): the most storylines
+one segment can be linked to and count for.
 
 ## Payoff threshold
 

@@ -19,7 +19,13 @@ import './events';
 import './streams';
 // Registers the `storylines.seedStarters` new-game step (CRTV3-02).
 import './setup';
+// Registers the `storylines.links` booking check and the `storylines.clearFinaleOnRemove` segment
+// hook (CRTV4-01).
+import './card/bookingCheck';
+import './card/finaleHook';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
+import { storylinesCardCommands } from './card/commands';
+import { storylinesCardQueries } from './card/queries';
 import { storylinesCommands } from './commands';
 import { storylinesEndPreviewQuery } from './endPreview';
 import { storylinesPhases } from './phases';
@@ -146,9 +152,41 @@ export {
   type OwnStorylineCheck,
 } from './validation';
 
+// Linking segments to storylines (CRTV4-01). See docs/design/storylines.md#linking.
+export {
+  STORYLINE_LINK_WARNINGS,
+  STORYLINE_LINKS_CHECK_ID,
+  storylineLinksBookingCheck,
+} from './card/bookingCheck';
+export {
+  linkSegmentCommand,
+  setFinaleCommand,
+  storylinesCardCommands,
+  type StorylineLinkSegmentArgs,
+  type StorylineSetFinaleArgs,
+} from './card/commands';
+export { CLEAR_FINALE_HOOK_ID, clearFinaleHook } from './card/finaleHook';
+export {
+  linkableStorylines,
+  segmentWasPlayed,
+  storylineFitsShow,
+  storylinesWithFinale,
+  STORYLINE_LINK_REASONS,
+} from './card/links';
+export { membersInSegment } from './card/membersInSegment';
+export {
+  storylinesCardQueries,
+  storylinesLinkOptionsQuery,
+  type StorylineFinaleElsewhere,
+  type StorylineLinkedRow,
+  type StorylineLinkOptions,
+  type StorylineOtherRow,
+  type StorylineSuggestionRow,
+} from './card/queries';
+
 export const storylinesSystem: SystemBundle = defineSystem({
   id: 'storylines',
   phases: storylinesPhases,
-  queries: [...storylinesQueries, storylinesEndPreviewQuery],
-  commands: storylinesCommands,
+  queries: [...storylinesQueries, storylinesEndPreviewQuery, ...storylinesCardQueries],
+  commands: [...storylinesCommands, ...storylinesCardCommands],
 });

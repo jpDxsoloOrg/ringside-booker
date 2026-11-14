@@ -9,7 +9,7 @@
     "label": "Test save",
     "promotionName": "Test Promotion A",
     "promotionShortName": "TPA",
-    "schemaFingerprint": "f6be727e0e563076d201f2516a340295",
+    "schemaFingerprint": "956d5e5c5c017370b3c2f5977c4e205f",
     "startDate": "2026-01-05",
     "worldName": "Test Tiny World"
   },
@@ -4174,6 +4174,8 @@
               }
             ],
             "name": "Test Storyline A",
+            "payoff": null,
+            "progress": [],
             "promotionId": "pro_0000000001",
             "startedOn": "2026-01-12",
             "status": "active",

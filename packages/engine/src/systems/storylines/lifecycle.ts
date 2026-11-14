@@ -73,6 +73,8 @@ export function startStoryline(ctx: PhaseContext, spec: StartStorylineSpec): Sto
     summary: spec.summary,
     lastProgressOn: null,
     finaleSegmentId: null,
+    progress: [],
+    payoff: null,
   });
   ctx.recordTrace(storylineHeatTraceRef(storyline.id), ctx.date, heat, {
     summaryOnly: !keepsFullStorylineTraces(ctx.read, spec.promotionId),

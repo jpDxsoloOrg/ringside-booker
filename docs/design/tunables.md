@@ -1244,6 +1244,7 @@ starter storylines at new game.
 | `storylines.heat.decayPerDay`     | number  | 1       | 0–20  | points/day | Heat lost each day after the grace period. 0 means heat never cools                                         |
 | `storylines.heat.decayFloor`      | number  | 10      | 0–100 | points     | Cooling never takes heat below this                                                                         |
 | `storylines.starterPerPromotion`  | integer | 2       | 0–6   | count      | Starter storylines each promotion gets at new game. 0 creates none                                          |
+| `storylines.link.maxPerSegment`   | integer | 2       | 1–12  | count      | The most storylines one segment can be linked to and count for                                              |
 
 | Key                             | Kind    | Default | Range | Unit   | Meaning                                                                                           |
 | ------------------------------- | ------- | ------- | ----- | ------ | ------------------------------------------------------------------------------------------------- |

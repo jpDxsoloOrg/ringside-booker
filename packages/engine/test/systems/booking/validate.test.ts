@@ -591,6 +591,8 @@ describe('the check registry', () => {
       { id: 'booking.warnings', order: 190 },
       // MTCH2's finish check (EVT2-07), registered when the match system loads.
       { id: 'match.finish', order: 200 },
+      // CRTV4-01's storyline links check, registered when the storylines system loads.
+      { id: 'storylines.links', order: 250 },
     ]);
   });
 
@@ -687,6 +689,7 @@ describe('the check registry', () => {
       'match.finish',
       'test.alpha',
       'test.zeta',
+      'storylines.links',
     ]);
   });
 });
