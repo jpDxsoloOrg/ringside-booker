@@ -123,6 +123,13 @@ describe('storylines.seedStarters on the default world', () => {
         key: 'storylines.heat.startBase',
         label: 'Base starting heat',
       });
+      // CRTV3-05: each member's popularity line names them, so the Why? links to their profile.
+      const linked = findTraceNodes(heat.trace, 'input').flatMap((node) =>
+        node.ref?.kind === 'person' ? [node.ref.id] : [],
+      );
+      expect(linked.length).toBeGreaterThan(0);
+      const memberIds: readonly string[] = storyline.members.map((member) => member.personId);
+      for (const id of linked) expect(memberIds).toContain(id);
       expect(starter.trace).toMatchObject({ kind: 'decision', label: 'Starter storyline' });
       const rolls = findTraceNodes(starter.trace, 'roll').map((node) => node.roll.stream);
       expect(rolls).toEqual(['storylines.starters', 'storylines.starters']);

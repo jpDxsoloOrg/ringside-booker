@@ -47,6 +47,7 @@ export function startingHeatMembers(
     const person = read.tables.people.require(member.personId);
     return {
       name: activeEmploymentAt(read, person.id, promotionId)?.ringName ?? person.defaultRingName,
+      personId: person.id,
       homePopularity: person.regionalPop[promotion.homeRegionId] ?? 0,
     };
   });
