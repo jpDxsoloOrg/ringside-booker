@@ -308,6 +308,26 @@ export const BEAT_REPETITION_GROUPS = [
 ] as const;
 export type BeatRepetitionGroup = (typeof BEAT_REPETITION_GROUPS)[number];
 
+/**
+ * Each repetition group in the player's words, as it reads mid-sentence in the Why? panel
+ * ("Second face-off beat in this angle"). MTCH5-09: the codes never reach the screen.
+ */
+export const BEAT_REPETITION_GROUP_LABELS: Readonly<Record<BeatRepetitionGroup, string>> = {
+  talk: 'talk',
+  violence: 'violent',
+  faceoff: 'face-off',
+  ceremony: 'ceremony',
+  video: 'video',
+  spectacle: 'spectacle',
+  skit: 'skit',
+  announcement: 'announcement',
+};
+
+/** A repetition group's readable name; a group this build does not know reads as itself. */
+export function beatRepetitionGroupLabel(group: string): string {
+  return (BEAT_REPETITION_GROUP_LABELS as Readonly<Record<string, string>>)[group] ?? group;
+}
+
 /** What an angle template is for; rival bookers (AIP4) pick by purpose. */
 export const ANGLE_TEMPLATE_PURPOSES = [
   'promo',
