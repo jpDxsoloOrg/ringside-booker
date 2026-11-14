@@ -58,6 +58,15 @@ export interface PostMoneyInput {
 const FUNCTION_NAME = 'postMoney';
 
 /**
+ * The parts of a step `postMoney` uses. A phase, a reaction or a command's step has them all, and
+ * so does a door's context (`DoorContext`), so a door such as `endEmployment` can pay severance.
+ */
+export type PostMoneyContext = Pick<
+  StepContext,
+  'date' | 'tx' | 'read' | 'recordTrace' | 'publish'
+>;
+
+/**
  * Appends a ledger row and moves the promotion's cash by `amount`, in the step's transaction.
  * Returns the new row. Works from phases, subscriptions and commands alike.
  *
@@ -65,7 +74,7 @@ const FUNCTION_NAME = 'postMoney';
  * allow, a closed promotion, a date after the step's date, an empty or too long memo, or a trace
  * whose value is not the amount; `EntityNotFoundError` for an unknown promotion.
  */
-export function postMoney(ctx: StepContext, input: PostMoneyInput): LedgerEntry {
+export function postMoney(ctx: PostMoneyContext, input: PostMoneyInput): LedgerEntry {
   const { promotionId, category, amount } = input;
 
   // (1) The amount: a whole, non-zero number of cents with the category's sign.

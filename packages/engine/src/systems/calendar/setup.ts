@@ -22,7 +22,10 @@ function scheduleOpening(tx: Tx<GameTables>, ctx: SetupContext): void {
   const horizonDays = ctx.session.tunables.get('calendar.scheduleHorizonDays');
   const from = ctx.startDate;
   const through = addDaysWithinCalendar(from, horizonDays);
-  const summary = scheduleAll(tx, ctx.read, from, through);
+  const summary = scheduleAll(tx, ctx.read, from, through, {
+    tunables: ctx.session.tunables,
+    recordTrace: { record: ctx.recordTrace, date: ctx.date },
+  });
   ctx.publish('calendar.horizonExtended', { from, through, created: summary.created });
   ctx.log(
     `Scheduled ${String(summary.created)} shows for ${String(summary.createdByPromotion.size)} promotions`,

@@ -26,7 +26,14 @@ import { anAftermath } from './builders/aftermath';
 import { aMail, aNews } from './builders/inbox';
 import { aVenue } from './builders/geography';
 import { testId } from './ids';
-import { anAiDecision, anAiProfile, aRelationship, aStable, aTeam } from './builders/promotions';
+import {
+  aContractConcern,
+  anAiDecision,
+  anAiProfile,
+  aRelationship,
+  aStable,
+  aTeam,
+} from './builders/promotions';
 import {
   aMatch,
   anAngle,
@@ -596,6 +603,7 @@ const TINY_WORLD_SNAPSHOTS: readonly DeepPartial<PromotionSnapshot>[] = [
  *   next Thursday;
  * - 1 past injury (WRK6-03): people[4] hurt their arm off screen on the start date and back ten
  *   days later, so nobody is injured today;
+ * - 1 contract concern (ECO4-01): a seen expiry notice on promotion A's people[5] contract;
  * - the shipped base catalogs on its metadata (`TEST_CATALOGS`), so every segment key resolves.
  */
 export function tinyWorld(): BuiltWorld {
@@ -651,7 +659,30 @@ export function tinyWorld(): BuiltWorld {
       expectedReturn: addDays(TINY_WORLD_START, 10),
       returnedOn: addDays(TINY_WORLD_START, 10),
     })
+    .with('contract concern', addTinyContractConcern)
     .build();
+}
+
+/** A seen expiry notice on promotion A's people[5] contract, so the table is not empty. */
+function addTinyContractConcern(context: BuildContext): void {
+  const employmentId = context.ids.employments[5];
+  if (employmentId === undefined) {
+    throw new Error('tinyWorld: the contract concern needs promotion A to have 6 workers');
+  }
+  const employment = context.tx.view.tables.employments.require(employmentId);
+  context.insert(
+    'contractConcerns',
+    aContractConcern(
+      {
+        employmentId,
+        personId: employment.personId,
+        promotionId: employment.promotionId,
+        expiryNotice: { raisedOn: TINY_WORLD_TODAY, seenOn: TINY_WORLD_TODAY },
+        ending: null,
+      },
+      context.sequence,
+    ),
+  );
 }
 
 // ---------------------------------------------------------------------------------------------

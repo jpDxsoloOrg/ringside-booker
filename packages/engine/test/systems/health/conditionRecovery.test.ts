@@ -9,6 +9,10 @@ import {
   INJURED_PART_BRANCH,
   type ConditionRecoveryInputs,
 } from '../../../src/systems/health';
+import {
+  conditionRecoveryValue,
+  conditionWeeklyGainValue,
+} from '../../../src/systems/health/formulas/conditionRecovery';
 import { createEngineTunables } from '../../../src/systems/tunables';
 import { expectSerialisable, expectTraceContains, expectTraceReplays } from '../../support/trace';
 
@@ -27,12 +31,19 @@ const BASE: ConditionRecoveryInputs = {
 };
 
 function heal(inputs: Partial<ConditionRecoveryInputs> = {}, overrides: TunableOverrides = {}) {
-  const result = computeConditionRecovery(
-    { ...BASE, ...inputs },
-    { tunables: createEngineTunables(overrides) },
-  );
+  const given = { ...BASE, ...inputs };
+  const tunables = createEngineTunables(overrides);
+  const result = computeConditionRecovery(given, { tunables });
   expectTraceReplays(result);
   expectSerialisable(result);
+  // The fast path (POL4-10) gives the same number to the bit.
+  const gain = conditionWeeklyGainValue(given, { tunables });
+  expect(
+    conditionRecoveryValue(
+      { current: given.current, cap: given.cap.value, partInjured: given.partInjured },
+      gain,
+    ),
+  ).toBe(result.value);
   return result;
 }
 
@@ -115,5 +126,41 @@ describe('computeConditionRecovery', () => {
       heal({ medicalLevel: 3 }, { 'health.condition.recoveryPerCheck': 10 }).value,
     ).toBeCloseTo(93, 10);
     expect(heal({ current: 95 }, { 'health.condition.recoveryPerCheck': 10 }).value).toBe(100);
+  });
+});
+
+describe('conditionRecoveryValue (POL4-10 fast path)', () => {
+  it('matches the traced value over a sweep of parts, ages, traits and care', () => {
+    const tunables = createEngineTunables();
+    const traitSets = [[], ['durable'], ['injuryProne'], ['durable', 'injuryProne']] as const;
+    for (const age of [18, 30, 36, 41, 47, 55, 70]) {
+      const cap = computeConditionCap({ age, agingEnabled: true }, { tunables });
+      for (const traits of traitSets) {
+        for (const medicalLevel of [0, 1, 2, 3] as const) {
+          const gain = conditionWeeklyGainValue(
+            { traits, medicalLevel, medicalSource: 'Apex Wrestling' },
+            { tunables },
+          );
+          for (const current of [0, 12.34, 49.99, 63.5, 79.875, 85.01, 99.9, 100]) {
+            for (const partInjured of [false, true]) {
+              const traced = computeConditionRecovery(
+                {
+                  current,
+                  cap,
+                  partInjured,
+                  traits,
+                  medicalLevel,
+                  medicalSource: 'Apex Wrestling',
+                },
+                { tunables },
+              );
+              expect(conditionRecoveryValue({ current, cap: cap.value, partInjured }, gain)).toBe(
+                traced.value,
+              );
+            }
+          }
+        }
+      }
+    }
   });
 });

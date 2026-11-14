@@ -569,6 +569,22 @@ morale, momentum or popularity, so nothing here tunes them.
 | `shows.stars.zeroAt`                  | number  | 35      | 0–80   | points     | Show score that earns zero stars                                        |
 | `shows.stars.pointsPerStar`           | number  | 12      | 0–30   | points     | Show score points per star (0 = any score above zero-stars earns 5)     |
 
+## Production tunables
+
+EVT4-02's production ceiling and bonus slot, in `systems/cardFlow/tunables.ts`,
+category `Production`. See [card-flow.md](card-flow.md). ECO7 owns the
+production levels and their costs, not these formulas.
+
+| Key                                 | Kind   | Default | Range | Unit   | What it does                                                               |
+| ----------------------------------- | ------ | ------- | ----- | ------ | -------------------------------------------------------------------------- |
+| `production.ceilingBase`            | number | 40      | 0–100 | points | Ceiling with every area at level 0                                         |
+| `production.ceilingWeight.stage`    | number | 1.5     | 0–10  | points | Ceiling points each stage level adds                                       |
+| `production.ceilingWeight.camera`   | number | 2       | 0–10  | points | Ceiling points each camera level adds                                      |
+| `production.ceilingWeight.editing`  | number | 1.5     | 0–10  | points | Ceiling points each editing level adds                                     |
+| `production.ceilingWeight.pyro`     | number | 1       | 0–10  | points | Ceiling points each pyro level adds                                        |
+| `production.bonusSlotThreshold`     | number | 90      | 0–100 | points | Ceiling a promotion needs for its shows to get one extra main slot         |
+| `production.bonusSlotMinImportance` | enum   | regular |       | choice | The smallest show (house, minor, regular, major, flagship) that can get it |
+
 ## Booking tunables
 
 The thresholds a card is held to before it can be locked (EVT2-04), in
@@ -996,3 +1012,90 @@ card Why? demotion.
 | `aip.titles.valid.floor` | number | 12 | 0–100 | points | Least market popularity a valid challenger needs, however low the prestige |
 | `aip.titles.strong.gap` | number | 35 | 0–100 | points | How far below the title's prestige a strong challenger's market popularity may be |
 | `aip.titles.strong.floor` | number | 25 | 0–100 | points | Least market popularity a strong challenger needs, however low the prestige |
+
+## Production tunables
+
+ECO7-01, in `systems/production/tunables.ts`, category `Production`. See
+[production.md](production.md). Every one is 0-means-0, and money is in whole
+cents. EVT4's show-quality ceiling keys share the `production.` prefix
+(`production.ceilingBase`, `production.ceilingWeight.*`,
+`production.bonusSlotThreshold`, `production.bonusSlotMinImportance`) and are
+listed with EVT4's work.
+
+| Key                                               | Kind    | Default     | Range            | Unit        | Meaning                                                                  |
+| ------------------------------------------------- | ------- | ----------- | ---------------- | ----------- | ------------------------------------------------------------------------ |
+| `production.costCurve`                            | number  | 3           | 1–5              | ratio       | How steeply production costs rise with level; 1 is a straight line       |
+| `production.showCost.stage`                       | integer | 12,000,000  | 0–10,000,000,000 | money       | What stage at level 10 costs for one regular show                        |
+| `production.showCost.camera`                      | integer | 15,000,000  | 0–10,000,000,000 | money       | Same, camera                                                             |
+| `production.showCost.editing`                     | integer | 10,000,000  | 0–10,000,000,000 | money       | Same, editing                                                            |
+| `production.showCost.pyro`                        | integer | 6,000,000   | 0–10,000,000,000 | money       | Same, pyro                                                               |
+| `production.monthlyCost.music`                    | integer | 50,000,000  | 0–10,000,000,000 | money/month | What music at level 10 costs each month                                  |
+| `production.monthlyCost.writing`                  | integer | 25,000,000  | 0–10,000,000,000 | money/month | Same, writing                                                            |
+| `production.monthlyCost.marketing`                | integer | 120,000,000 | 0–10,000,000,000 | money/month | Same, marketing                                                          |
+| `production.monthlyCost.backOffice`               | integer | 100,000,000 | 0–10,000,000,000 | money/month | Same, back office                                                        |
+| `production.upgradeFee.stage`                     | integer | 60,000,000  | 0–10,000,000,000 | money       | One-time fee for raising stage all the way from level 0 to 10            |
+| `production.upgradeFee.camera`                    | integer | 50,000,000  | 0–10,000,000,000 | money       | Same, camera                                                             |
+| `production.upgradeFee.editing`                   | integer | 40,000,000  | 0–10,000,000,000 | money       | Same, editing                                                            |
+| `production.upgradeFee.pyro`                      | integer | 25,000,000  | 0–10,000,000,000 | money       | Same, pyro                                                               |
+| `production.upgradeFee.music`                     | integer | 30,000,000  | 0–10,000,000,000 | money       | Same, music                                                              |
+| `production.upgradeFee.writing`                   | integer | 20,000,000  | 0–10,000,000,000 | money       | Same, writing                                                            |
+| `production.upgradeFee.marketing`                 | integer | 15,000,000  | 0–10,000,000,000 | money       | Same, marketing                                                          |
+| `production.upgradeFee.backOffice`                | integer | 15,000,000  | 0–10,000,000,000 | money       | Same, back office                                                        |
+| `production.showCostMultiplier.house`             | number  | 0.25        | 0–10             | multiplier  | Stage, camera, editing and pyro costs are multiplied by this, house show |
+| `production.showCostMultiplier.minor`             | number  | 0.5         | 0–10             | multiplier  | Same, minor show                                                         |
+| `production.showCostMultiplier.regular`           | number  | 1           | 0–10             | multiplier  | Same, regular show                                                       |
+| `production.showCostMultiplier.major`             | number  | 1.5         | 0–10             | multiplier  | Same, major show                                                         |
+| `production.showCostMultiplier.flagship`          | number  | 2.5         | 0–10             | multiplier  | Same, flagship show                                                      |
+| `production.popularityCeiling.base`               | number  | 20          | 0–100            | points      | Popularity ceiling with no marketing and no back office                  |
+| `production.popularityCeiling.perMarketingLevel`  | number  | 5           | 0–20             | points      | Popularity ceiling added by each level of marketing                      |
+| `production.popularityCeiling.perBackOfficeLevel` | number  | 5           | 0–20             | points      | Popularity ceiling added by each level of back office                    |
+| `production.popularityDrag.fractionPerDay`        | number  | 0.02        | 0–1              | ratio       | Share of the popularity above the ceiling lost each day                  |
+| `production.popularityDrag.minPerDay`             | number  | 0.05        | 0–10             | points/day  | Least popularity lost each day while above the ceiling (0 = no floor)    |
+| `production.tvDealMinCamera`                      | integer | 1           | 0–10             | points      | Lowest camera level allowed while the promotion has a TV deal            |
+| `production.feeNeedsCash`                         | boolean | true        |                  | flag        | An upgrade fee must be covered by cash in hand                           |
+| `production.forecastDays`                         | integer | 28          | 1–90             | days        | How many days ahead the production screen adds up the coming shows       |
+
+## Contracts tunables
+
+ECO4-01, see [contracts.md](contracts.md#simple-renewals). The simple rival
+renewal, a D-01 stopgap until the rival labour market (ECO6). ECO4-02 added
+[severance](contracts.md#severance), the
+[expiring-soon](contracts.md#expiring-soon) notices and the player's temporary
+[automatic renewal](contracts.md#player-renewals) (until ECO5). ECO4-03 added
+[unhappy workers](contracts.md#unhappy-workers) and
+[walk-outs](contracts.md#walk-outs).
+
+| Key                                       | Kind    | Default     | Range    | Unit        | Meaning                                                                                                                 |
+| ----------------------------------------- | ------- | ----------- | -------- | ----------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `ai.contracts.simpleRenewals`             | boolean | true        |          | flag        | Rival promotions renew contracts by a simple rule until the rival labour market exists; off under a level playing field |
+| `contracts.ai.keepPushAtOrAbove`          | enum    | `upperCard` | push     | choice      | A rival always renews workers pushed at this card position or higher                                                    |
+| `contracts.ai.keepChampions`              | boolean | true        |          | flag        | A rival always renews a worker who holds one of its titles                                                              |
+| `contracts.ai.renewChance`                | number  | 0.6         | 0–1      | probability | Chance a rival renews any other worker whose contract runs out                                                          |
+| `contracts.ai.renewMinDays`               | integer | 365         | 1–3650   | days        | Shortest new contract a rival renewal gives                                                                             |
+| `contracts.ai.renewMaxDays`               | integer | 1095        | 1–3650   | days        | Longest new contract a rival renewal gives (if below the shortest, the two swap)                                        |
+| `contracts.severance.fullMonths`          | integer | 3           | 0–60     | months      | Months still owed that are paid in full                                                                                 |
+| `contracts.severance.tailRate`            | number  | 0.35        | 0–1      | ratio       | Share paid for each owed month beyond the full months                                                                   |
+| `contracts.severance.capMonths`           | integer | 18          | 0–120    | months      | Owed months beyond this are not paid at all                                                                             |
+| `contracts.severance.openEndedMonths`     | integer | 6           | 0–60     | months      | Months treated as owed on an open-ended deal                                                                            |
+| `contracts.severance.appearancesPerMonth` | integer | 4           | 0–31     | count       | Monthly value of a per-appearance deal, in appearances                                                                  |
+| `contracts.severance.ironCladMultiplier`  | number  | 2           | 0–10     | multiplier  | Severance on an iron-clad contract is multiplied by this                                                                |
+| `contracts.severance.mutualMorale`        | integer | −50         | −100–100 | points      | At or below this morale the worker is glad to go                                                                        |
+| `contracts.severance.mutualDiscount`      | number  | 0.5         | 0–1      | ratio       | Share of the severance a worker who is glad to go gives up                                                              |
+| `contracts.severance.unstartedFactor`     | number  | 0.5         | 0–1      | ratio       | Share due when calling off a deal that hasn't started                                                                   |
+| `contracts.expiring.windowDays`           | integer | 60          | 1–365    | days        | Contracts ending within this many days are listed as expiring                                                           |
+| `contracts.expiringSoon.days`             | integer | 30          | 0–365    | days        | Raise a notice when one of your contracts ends within this many days (0 = no notices)                                   |
+| `contracts.expiringSoon.minPush`          | enum    | `midCard`   | push     | choice      | Notices only for workers at or above this push                                                                          |
+| `contracts.expiringSoon.stopSkip`         | boolean | true        |          | flag        | A new expiry notice stops a skip until you mark it as seen                                                              |
+| `contracts.autoRenewPlayer`               | boolean | true        |          | flag        | Temporary: your contracts renew on the same terms when they run out, until you can renew them yourself (until ECO5)     |
+| `contracts.autoRenewPlayerDays`           | integer | 365         | 1–3650   | days        | Temporary: how long each automatic renewal of your contracts adds                                                       |
+| `contracts.quit.threshold`                | integer | −40         | −100–100 | points      | At or below this morale the unhappy clock runs                                                                          |
+| `contracts.quit.days`                     | integer | 14          | 0–365    | days        | Days in a row at or below the threshold before asking to leave; 0 = at once                                             |
+| `contracts.quit.severanceShare`           | number  | 0.5         | 0–1      | ratio       | Share of normal severance paid when you grant a request                                                                 |
+| `contracts.quit.storyShieldHeat`          | integer | 70          | 0–100    | points      | Storyline heat at which the clock and walk-out rolls pause (D-09)                                                       |
+| `contracts.releaseRequest.answerDays`     | integer | 7           | 1–60     | days        | Days you have to answer a release request before it counts as refused                                                   |
+| `contracts.releaseRequest.stopSkip`       | boolean | false       |          | flag        | A new release request stops a skip until you answer it (off until ECO4-04's Contracts screen)                           |
+| `contracts.refuse.moralePenalty`          | integer | 10          | 0–100    | points      | Morale a worker loses when their release request is refused                                                             |
+| `contracts.walkout.chancePerDay`          | number  | 0.02        | 0–1      | probability | Daily chance a refused worker walks out                                                                                 |
+| `contracts.walkout.extraPerPoint`         | number  | 0.001       | 0–0.1    | probability | Extra daily walk-out chance per morale point below the threshold                                                        |
+| `contracts.walkout.maxPerDay`             | number  | 0.1         | 0–1      | probability | Highest daily walk-out chance                                                                                           |
+| `contracts.walkout.recoverMargin`         | integer | 10          | 0–100    | points      | Morale this far above the threshold ends the walk-out risk                                                              |

@@ -191,6 +191,7 @@ function emptyIdLists(): IdLists {
     aiProfiles: [],
     aiDecisions: [],
     injuries: [],
+    contractConcerns: [],
   };
 }
 

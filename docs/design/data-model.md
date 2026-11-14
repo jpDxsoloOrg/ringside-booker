@@ -47,21 +47,22 @@ underscore and a 10 character body in lowercase Crockford base32, for example
 `per_3k9x0d7m2q`. IDs come from the seeded RNG, so a replay mints the same
 ones. A row's `id` field always equals the key it is stored under.
 
-| Kind              | Prefix | Kind           | Prefix |
-| ----------------- | ------ | -------------- | ------ |
-| `person`          | `per`  | `stable`       | `stb`  |
-| `employment`      | `emp`  | `network`      | `net`  |
-| `promotion`       | `pro`  | `deal`         | `dea`  |
-| `brand`           | `brd`  | `venue`        | `ven`  |
-| `title`           | `tit`  | `continent`    | `ctn`  |
-| `titleReign`      | `trn`  | `country`      | `cty`  |
-| `eventDefinition` | `evd`  | `region`       | `reg`  |
-| `eventInstance`   | `evi`  | `relationship` | `rel`  |
-| `segment`         | `seg`  | `mail`         | `mai`  |
-| `participant`     | `ptc`  | `news`         | `nws`  |
-| `storyline`       | `sty`  | `ledgerEntry`  | `led`  |
-| `team`            | `tem`  | `season`       | `sea`  |
-| `aiProfile`       | `aip`  | `aiDecision`   | `aid`  |
+| Kind              | Prefix | Kind              | Prefix |
+| ----------------- | ------ | ----------------- | ------ |
+| `person`          | `per`  | `stable`          | `stb`  |
+| `employment`      | `emp`  | `network`         | `net`  |
+| `promotion`       | `pro`  | `deal`            | `dea`  |
+| `brand`           | `brd`  | `venue`           | `ven`  |
+| `title`           | `tit`  | `continent`       | `ctn`  |
+| `titleReign`      | `trn`  | `country`         | `cty`  |
+| `eventDefinition` | `evd`  | `region`          | `reg`  |
+| `eventInstance`   | `evi`  | `relationship`    | `rel`  |
+| `segment`         | `seg`  | `mail`            | `mai`  |
+| `participant`     | `ptc`  | `news`            | `nws`  |
+| `storyline`       | `sty`  | `ledgerEntry`     | `led`  |
+| `team`            | `tem`  | `season`          | `sea`  |
+| `aiProfile`       | `aip`  | `aiDecision`      | `aid`  |
+| `injury`          | `inj`  | `contractConcern` | `ccn`  |
 
 The source of truth is `ENTITY_KINDS` in `packages/engine/src/core/ids.ts`.
 
@@ -861,6 +862,12 @@ same number as crowd reaction (D-02):
 | `ticketPrice` | `Cents`, absent       | EVT6-05: one ticket's price; absent until the box office settles the show |
 | `merch`       | `Cents`, absent       | EVT6-05: live merch sales before workers' shares; absent until settled    |
 | `history`     | `ShowHistory`, absent | POL4-08: the summary kept once the card is rolled up (below)              |
+| `ceiling`     | 0–100 or null         | EVT4-02: the production ceiling the score was held to; null in old saves  |
+
+Whenever `ceiling` is set, `score ≤ rawScore` and `score ≤ ceiling`: the card
+earned `rawScore`, the promotion's production let it keep at most `ceiling`
+(see [card-flow.md](card-flow.md#production-ceiling)). `ceiling` defaults to
+null, so saves made before EVT4-02 still load.
 
 `ShowHistory` (POL4-08) is what a completed show keeps once it is older than
 `history.keepDetailDays` and its card detail is rolled up: `segments` (how
@@ -1382,3 +1389,34 @@ Invariant `injuries.openInjuryMatchesPerson`: every open row has a matching
 `person.injury` (same `kindKey`, `bodyPart` and `expectedReturn`). The converse
 is not checked, so a save from before the table, where a person may have an
 injury and no row, still loads. Saves list the table with a default of `[]`.
+
+## Contracts
+
+### Contract concerns (`contractConcerns`, `ccn_`)
+
+The per-contract state the contract features keep beside an employment, one
+row per employment at most (ECO4-01, see
+[contracts.md](contracts.md#concerns)). A row whose parts are all null is
+deleted, never stored (the schema refuses one). Rival rows are private: no
+query for the player reads them.
+
+| Field          | Type                | Notes                                                                                                             |
+| -------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `id`           | `ContractConcernId` |                                                                                                                   |
+| `employmentId` | `EmploymentId`      | unique                                                                                                            |
+| `personId`     | `PersonId`          | the employment's person                                                                                           |
+| `promotionId`  | `PromotionId`       | the employment's promotion                                                                                        |
+| `expiryNotice` | object or null      | `{ raisedOn, seenOn }`; `seenOn` null while unseen (ECO4-02)                                                      |
+| `unhappy`      | object or null      | `{ since, days }`: the unhappy clock (ECO4-03)                                                                    |
+| `request`      | object or null      | `{ raisedOn, answerBy, status: 'open' \| 'refused', answeredOn, mailId, stopsSkip }`: a release request (ECO4-03) |
+| `ending`       | object or null      | `{ how, severance, traceRef }`, written by `endEmployment`; `how` is one of `CONTRACT_ENDINGS`                    |
+
+`CONTRACT_ENDINGS`: `expired`, `released`, `withdrawn`, `granted`,
+`walkedOut`, `exclusiveDeal`. `severance` is non-negative cents; `traceRef`
+names the severance trace, or is null when nothing was paid.
+
+Refs: `employmentId`, `personId`, `promotionId` and `request.mailId`. Indexes:
+unique `byEmployment`, `byPromotion`, `unseenExpiry` (key `unseen` while
+`expiryNotice.seenOn` is null) and `openRequest` (key `open` while the request
+is open and `stopsSkip`). Saves list the table with a default of `[]`, so a
+save from before the table loads with it empty.

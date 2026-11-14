@@ -202,7 +202,15 @@ describe('finance.monthly', () => {
     });
     expect(january?.byCategory.tickets).toBe(200_000);
     expect(february?.byCategory.medical).toBe(-30_000);
-    expect(monthly.categories).toEqual(['tickets', 'wages', 'production', 'medical']);
+    // The production overhead on 1 February (ECO7-03) adds Marketing and Back office rows.
+    expect(monthly.categories).toEqual([
+      'tickets',
+      'wages',
+      'production',
+      'marketing',
+      'backOffice',
+      'medical',
+    ]);
     expect(monthly.startMonth).toBe('2026-01');
     const cash = data(engine.query('finance.overview', { promotionId: human }, HUMAN_VIEWER)).cash;
     expect(february?.closingCash).toBe(cash);

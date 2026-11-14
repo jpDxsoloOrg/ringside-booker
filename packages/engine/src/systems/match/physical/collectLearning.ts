@@ -6,16 +6,21 @@
  */
 
 import type { PersonId } from '../../../core/ids';
-import type { Traced } from '../../../core/trace';
+import { fastPathsEnabled } from '../../../core/fastPaths';
+import { untraced, type Traced } from '../../../core/trace';
 import { promotionStatusKey } from '../../../model/entities/employment';
 import type { Person } from '../../../model/entities/person';
 import type { GameWorldView } from '../../../model/tables';
+import { ATTRIBUTE_LABELS } from '../../world/people/labels';
 import type { EngineTunables } from '../../tunables';
 import {
   computeRingLearning,
   computeRingLearningTotal,
+  ringLearningTotalValue,
+  ringLearningValue,
   type LearningPeer,
   type LearningProducer,
+  type RingLearningInputs,
 } from '../formulas/ringLearning';
 import { loadCarriersBySide, type PhysicalSegmentSpec } from './inputs';
 import type { InMatchLearningAttribute } from './learning';
@@ -57,8 +62,17 @@ function producerInput({ person, name }: Named, alsoCompeting: boolean): Learnin
 export function collectRingLearning(
   read: GameWorldView,
   spec: PhysicalSegmentSpec,
-  deps: { tunables: EngineTunables; cardPersonIds?: Iterable<PersonId> },
+  deps: {
+    tunables: EngineTunables;
+    cardPersonIds?: Iterable<PersonId>;
+    /**
+     * Fast path (POL4-10): the caller stores no learning Why? (a rival show), so each figure is
+     * worked out as a plain number and carries a one-line trace. The numbers are the same.
+     */
+    untraced?: boolean;
+  },
 ): WorkerRingLearning[] {
+  const fast = deps.untraced === true && fastPathsEnabled();
   const competitors = loadCarriersBySide(spec).flat();
   if (competitors.length === 0) {
     return [];
@@ -95,20 +109,23 @@ export function collectRingLearning(
         value: other.person.attributes[attribute],
         teacher: other.person.traits.includes('teacher'),
       }));
-      return computeRingLearning(
-        {
-          name,
-          attribute,
-          durationClass: spec.durationClass,
-          value: person.attributes[attribute],
-          traits: person.traits,
-          others: peers,
-          producer: producerId === personId ? null : producer,
-          mentor: mentor === null ? null : { name: mentor.name },
-          room: learningRoom(person, attribute, deps.tunables),
-        },
-        { tunables: deps.tunables },
-      );
+      const inputs: RingLearningInputs = {
+        name,
+        attribute,
+        durationClass: spec.durationClass,
+        value: person.attributes[attribute],
+        traits: person.traits,
+        others: peers,
+        producer: producerId === personId ? null : producer,
+        mentor: mentor === null ? null : { name: mentor.name },
+        room: learningRoom(person, attribute, deps.tunables),
+      };
+      return fast
+        ? untraced(
+            ringLearningValue(inputs, { tunables: deps.tunables }),
+            `${ATTRIBUTE_LABELS[attribute]} learned by ${name}`,
+          )
+        : computeRingLearning(inputs, { tunables: deps.tunables });
     };
     const perAttribute: Record<InMatchLearningAttribute, Traced<number>> = {
       ringwork: learningFor('ringwork'),
@@ -116,6 +133,17 @@ export function collectRingLearning(
       safety: learningFor('safety'),
       stamina: learningFor('stamina'),
     };
-    return { personId, name, perAttribute, total: computeRingLearningTotal(perAttribute) };
+    const total = fast
+      ? untraced(
+          ringLearningTotalValue({
+            ringwork: perAttribute.ringwork.value,
+            psychology: perAttribute.psychology.value,
+            safety: perAttribute.safety.value,
+            stamina: perAttribute.stamina.value,
+          }),
+          'Learning in this match',
+        )
+      : computeRingLearningTotal(perAttribute);
+    return { personId, name, perAttribute, total };
   });
 }

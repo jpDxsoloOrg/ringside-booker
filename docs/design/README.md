@@ -30,6 +30,7 @@ Game and technical design for Ringside Booker. Each game system gets its own doc
 | [booking.md](booking.md)                           | Booking a show's card: open slots, planned results, who may edit a show and the card writer                                   |
 | [show-night.md](show-night.md)                     | Show night: running a show, segment and show scores, off-screen shows, title outcomes and the events it announces             |
 | [promotion-popularity.md](promotion-popularity.md) | Promotion popularity after shows: show reach, what each region's fans expected and how one show moves popularity              |
+| [card-flow.md](card-flow.md)                       | Card flow: the production ceiling every show's score is held to and the bonus main-card slot big productions earn             |
 | ----------------------------------------------     | ----------------------------------------------------------------------------------------------------------------------------- |
 | [finances.md](finances.md)                         | The economy: `postMoney` (the only way cash moves), ledger categories, payroll, show costs, policies and the finance queries  |
 | [box-office.md](box-office.md)                     | Box office: the crowd forecast, recent form and big-show fatigue; later venues, the crowd roll and the gate                   |
@@ -37,3 +38,5 @@ Game and technical design for Ringside Booker. Each game system gets its own doc
 | [roster.md](roster.md)                             | The roster: the `roster.rows` query, its row fields, the push gap and verdict, and who may read which roster                  |
 | [rival-desk.md](rival-desk.md)                     | The rival desk: which promotions and brands the computer runs, their profiles and the decision log                            |
 | [rival-booking.md](rival-booking.md)               | The card planner: who a rival show may use (the card pool), the card shape and the rival booking tunables                     |
+| [production.md](production.md)                     | Production: the eight areas, running costs per show and per month, upgrade fees, the popularity ceiling and its daily drag    |
+| [contracts.md](contracts.md)                       | Contracts over time: the daily lifecycle, the `endEmployment` door, severance, renewal policies and the simple rival renewal  |

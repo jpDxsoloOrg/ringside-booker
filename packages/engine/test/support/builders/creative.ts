@@ -66,6 +66,7 @@ export const DEFAULT_EVENT_RESULT: EventResult = {
   attendance: null,
   gate: null,
   viewers: null,
+  ceiling: null,
 };
 
 export function aTitle(

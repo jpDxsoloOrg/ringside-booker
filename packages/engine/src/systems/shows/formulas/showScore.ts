@@ -5,7 +5,8 @@
  * event moves the score most and the pre-show (at the default factor 0) not at all. Each empty
  * main-card slot costs a flat penalty. Then the `adjust` modifiers (card flow) run and the result
  * is kept within 0..100 and rounded: that is the raw score. Then the `cap` modifiers (the
- * production ceiling) run, and the result is kept and rounded again: that is the score.
+ * production ceiling) run, and the result is kept within 0..100 again, not rounded (a 43.5 ceiling
+ * is stored as 43.5): that is the score.
  *
  * Design: docs/design/show-night.md#show-score.
  */
@@ -17,7 +18,11 @@ import { startCalc, type Calc, type Traced } from '../../../core/trace';
 import type { EventImportance } from '../../../model/entities/event-definition';
 import type { EngineTunables } from '../../tunables';
 import { formatNumber } from '../../world/people/labels';
-import { sortShowScoreModifiers, type ShowScoreModifier } from '../showScoreModifiers';
+import {
+  scoreBeforeCapLabel,
+  sortShowScoreModifiers,
+  type ShowScoreModifier,
+} from '../showScoreModifiers';
 
 export const SHOW_SCORE_DOC_REF = 'docs/design/show-night.md#show-score';
 
@@ -136,7 +141,7 @@ function applyStage(
  * The show's score: `Σ score_i × w_i / Σ w_i` over the filled slots (pre-show weights times
  * `shows.score.preShowFactor`), less `shows.emptySlotPenalty` per empty main-card slot, then the
  * `adjust` modifiers, kept within 0..100 and rounded (the raw score), then the `cap` modifiers,
- * kept and rounded again (the score).
+ * kept within 0..100 again but not rounded (the score).
  *
  * @throws RangeError when a filled slot has no score.
  */
@@ -196,9 +201,13 @@ export function showScore(inputs: ShowScoreInputs, deps: ShowScoreDeps): ShowSco
   const rawScore = calc.current;
 
   if (deps.modifiers.some((modifier) => modifier.stage === 'cap')) {
-    calc.note(`Score before any cap: ${formatNumber(rawScore)}`);
+    calc.note(scoreBeforeCapLabel(rawScore));
     applyStage(calc, 'cap', inputs, deps);
-    calc.clamp(SHOW_SCORE_MIN, SHOW_SCORE_MAX).round('round');
+    // Not rounded again (EVT4-02): rounding a 43.5 ceiling up would store a score above it. Kept
+    // within 0..100 only when a cap left it outside, so the Why? ends with the cap's own lines.
+    if (calc.current < SHOW_SCORE_MIN || calc.current > SHOW_SCORE_MAX) {
+      calc.clamp(SHOW_SCORE_MIN, SHOW_SCORE_MAX);
+    }
   }
   return { score: calc.done(), rawScore };
 }

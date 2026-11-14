@@ -77,8 +77,9 @@ export interface PhysicalTollDeps {
   readonly alreadyInjured?: ReadonlyMap<PersonId, AlreadyInjured>;
   /**
    * The caller keeps only summaries of the toll (a rival show, POL4-06), so the fast paths may
-   * leave out traces nobody reads: the wear of each body part, and the injury chance when the
-   * promotion's rules skip in-match injuries. Values and draws are the same either way.
+   * leave out traces nobody reads: the wear of each body part, ring learning (POL4-10), and the
+   * injury chance when the promotion's rules skip in-match injuries. Values and draws are the
+   * same either way.
    */
   readonly summaryOnly?: boolean;
 }
@@ -278,8 +279,8 @@ export function computePhysicalToll(
   // (5) Ring learning per worker and attribute.
   const learningDeps =
     deps.cardPersonIds === undefined
-      ? { tunables }
-      : { tunables, cardPersonIds: deps.cardPersonIds };
+      ? { tunables, untraced: fast }
+      : { tunables, cardPersonIds: deps.cardPersonIds, untraced: fast };
   const learning = new Map(
     collectRingLearning(read, spec, learningDeps).map((entry) => [entry.personId, entry]),
   );

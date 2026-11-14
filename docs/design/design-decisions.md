@@ -250,6 +250,10 @@ they actually care about.
   more easily, but they still feel the loss.
 - The morale Why? trace shows it plainly, for example "Loss to X: −8 → −1
   (hot storyline 'Y', heat 82, shield 90%)".
+- **Contracts (added 2026-11-13, owner-approved):** a worker in a hot storyline
+  of their own promotion (heat at or above `contracts.quit.storyShieldHeat`, 70) never asks to be released or walks out because of it. Their unhappy
+  clock and walk-out rolls pause while the story is hot (ECO4-03,
+  [contracts.md](contracts.md)).
 
 ## D-10: Cards are built from segment slots, not minutes (2026-11-07)
 

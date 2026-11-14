@@ -19,15 +19,22 @@ import { ageInYears, type GameDate } from '../../core/date';
 import type { PersonId } from '../../core/ids';
 import type { PhaseContext } from '../../core/pipeline/context';
 import type { RngStream } from '../../core/rng/registry';
+import { fastPathsEnabled } from '../../core/fastPaths';
 import type { TraceRef } from '../../core/trace/store';
-import { BODY_PARTS, type BodyCondition } from '../../model/entities/person';
+import type { Traced } from '../../core/trace/types';
+import { BODY_PARTS, type BodyCondition, type TraitKey } from '../../model/entities/person';
 import type { GameWorldView } from '../../model/tables';
+import type { EngineTunables } from '../tunables';
 import { registerBeforeShowRuns, type BeforeShowRunsHook } from '../shows/beforeRun';
 import { restFollowsShowsOn, talkedWithoutWrestling } from './appearances';
 import { computeConditionCap } from './formulas/conditionCap';
-import { computeConditionRecovery } from './formulas/conditionRecovery';
+import {
+  computeConditionRecovery,
+  conditionRecoveryValue,
+  conditionWeeklyGainValue,
+} from './formulas/conditionRecovery';
 import { computeFatigueRecovery, FATIGUE_MIN } from './formulas/fatigueRecovery';
-import { medicalLevelOf } from './medical';
+import { medicalLevelOf, type MedicalLevel } from './medical';
 import { worksForAHuman } from './notice';
 import { healInjuries } from './returns';
 import { RECOVERY_STREAM } from './streams';
@@ -108,17 +115,29 @@ const NOT_HEALING = new Set(['retired', 'deceased']);
  * cap for their age heals a little (`computeConditionRecovery`); a person whose parts are all at or
  * above the cap is skipped without reading anything else. Draws no random numbers, stores no traces
  * (the health profile works the Why? out again) and publishes nothing.
+ *
+ * Fast path (POL4-10): since nothing is stored, the cap is worked out once per age and the healing
+ * once per kind of person and care, and each part's result is the plain number
+ * (`conditionRecoveryValue`), the same as the traced value.
  */
 export function recoverConditions(ctx: PhaseContext): void {
   const { agingEnabled } = ctx.read.meta.settings;
   const { people, promotions } = ctx.read.tables;
+  const fast = fastPathsEnabled();
+  const capByAge = new Map<number, Traced<number>>();
+  const gainByKind = new Map<string, number>();
   for (const person of people.values()) {
     if (NOT_HEALING.has(person.status)) {
       continue;
     }
     const age = ageInYears(person.birthDate, ctx.date);
-    const cap = computeConditionCap({ age, agingEnabled }, { tunables: ctx.tunables });
-    if (BODY_PARTS.every((part) => person.condition[part] >= cap.value)) {
+    let cap = fast ? capByAge.get(age) : undefined;
+    if (cap === undefined) {
+      cap = computeConditionCap({ age, agingEnabled }, { tunables: ctx.tunables });
+      capByAge.set(age, cap);
+    }
+    const capValue = cap.value;
+    if (BODY_PARTS.every((part) => person.condition[part] >= capValue)) {
       continue;
     }
     const care = medicalLevelOf(ctx.read, person.id, ctx.date, ctx.tunables);
@@ -126,20 +145,31 @@ export function recoverConditions(ctx: PhaseContext): void {
       care.promotionId === null ? null : (promotions.get(care.promotionId)?.name ?? null);
     const healed: BodyCondition = { ...person.condition };
     let changed = false;
+    let gain: number | undefined;
     for (const part of BODY_PARTS) {
-      const recovered = computeConditionRecovery(
-        {
-          current: person.condition[part],
-          cap,
-          partInjured: person.injury?.bodyPart === part,
-          traits: person.traits,
-          medicalLevel: care.level,
-          medicalSource: source,
-        },
-        { tunables: ctx.tunables },
-      );
-      if (recovered.value !== person.condition[part]) {
-        healed[part] = recovered.value;
+      const partInjured = person.injury?.bodyPart === part;
+      let recovered: number;
+      if (fast) {
+        gain ??= weeklyGainFor(gainByKind, person.traits, care.level, source, ctx.tunables);
+        recovered = conditionRecoveryValue(
+          { current: person.condition[part], cap: capValue, partInjured },
+          gain,
+        );
+      } else {
+        recovered = computeConditionRecovery(
+          {
+            current: person.condition[part],
+            cap,
+            partInjured,
+            traits: person.traits,
+            medicalLevel: care.level,
+            medicalSource: source,
+          },
+          { tunables: ctx.tunables },
+        ).value;
+      }
+      if (recovered !== person.condition[part]) {
+        healed[part] = recovered;
         changed = true;
       }
     }
@@ -147,6 +177,31 @@ export function recoverConditions(ctx: PhaseContext): void {
       ctx.tx.update('people', person.id, { condition: healed });
     }
   }
+}
+
+/**
+ * This week's healing for one kind of person and care, worked out once a run: it reads only the
+ * durable and injury-prone traits and the medical level (the care's name is a label).
+ */
+function weeklyGainFor(
+  cache: Map<string, number>,
+  traits: readonly TraitKey[],
+  medicalLevel: MedicalLevel,
+  medicalSource: string | null,
+  tunables: EngineTunables,
+): number {
+  const traitKind = traits.includes('durable')
+    ? 'durable'
+    : traits.includes('injuryProne')
+      ? 'injuryProne'
+      : 'plain';
+  const key = `${traitKind}:${String(medicalLevel)}`;
+  let gain = cache.get(key);
+  if (gain === undefined) {
+    gain = conditionWeeklyGainValue({ traits, medicalLevel, medicalSource }, { tunables });
+    cache.set(key, gain);
+  }
+  return gain;
 }
 
 /**

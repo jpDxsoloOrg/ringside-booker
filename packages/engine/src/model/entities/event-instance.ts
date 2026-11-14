@@ -102,6 +102,12 @@ export const EventResultSchema = z.strictObject({
    * is kept.
    */
   history: ShowHistorySchema.optional(),
+  /**
+   * The production ceiling the score was held to (EVT4-02): the lowest limit of the `cap`-stage
+   * modifiers when the show ran. `score` is never above it; `rawScore` keeps what the card earned.
+   * Null for a show run before EVT4-02 (old saves) or with no cap registered.
+   */
+  ceiling: zStat.nullable().default(null),
 });
 
 /**

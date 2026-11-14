@@ -13,6 +13,7 @@
  */
 
 import { startCalc, traced, type Calc, type Traced } from '../../../core/trace';
+import { withoutNegativeZero } from '../../../core/trace/helpers';
 import { tunableNode } from '../../../core/trace/tunable-node';
 import { ATTRIBUTE_KEYS, type AttributeKey, type TraitKey } from '../../../model/entities/person';
 import { ATTRIBUTE_LABELS } from '../../world/people/labels';
@@ -207,6 +208,66 @@ export function computeRingLearning(
     .done();
 }
 
+/**
+ * Fast path (POL4-10): {@link computeRingLearning}'s value with no trace, for a caller that stores
+ * none (a rival show keeps no learning Why?). The same steps in the same order, so the same number
+ * to the bit; `ringLearning.test.ts` holds the two together.
+ */
+export function ringLearningValue(
+  inputs: RingLearningInputs,
+  deps: { tunables: EngineTunables },
+): number {
+  const { tunables } = deps;
+  const times = (value: number, factor: number): number =>
+    withoutNegativeZero(value * withoutNegativeZero(factor));
+  let value = withoutNegativeZero(tunables.get('match.learning.base'));
+  value = times(value, tunables.get(DURATION_KEYS[inputs.durationClass]));
+  if (inputs.taught ?? isTaughtAttribute(inputs.attribute)) {
+    if (betterWorker(inputs, tunables.get('match.learning.teachGap')) !== null) {
+      value = times(value, tunables.get('match.learning.taughtFactor'));
+    }
+    const teachers =
+      inputs.others.filter((peer) => peer.teacher).length +
+      (inputs.producer?.teacher === true ? 1 : 0);
+    if (teachers > 0) {
+      const bonus = times(tunables.get('match.learning.teacherBonus'), teachers);
+      const factor = withoutNegativeZero(
+        Math.min(
+          withoutNegativeZero(1 + bonus),
+          withoutNegativeZero(tunables.get('match.learning.maxTeacherFactor')),
+        ),
+      );
+      value = times(value, factor);
+    }
+  }
+  const producer = inputs.producer;
+  if (
+    producer !== null &&
+    PRODUCED_ATTRIBUTES.includes(inputs.attribute) &&
+    producer.producing >= tunables.get('match.learning.producerMinSkill')
+  ) {
+    value = times(value, tunables.get('match.learning.producerFactor'));
+  }
+  if (inputs.traits.includes('fastLearner')) {
+    value = times(value, tunables.get('match.learning.fastLearnerFactor'));
+  }
+  if (inputs.traits.includes('slowLearner')) {
+    value = times(value, tunables.get('match.learning.slowLearnerFactor'));
+  }
+  if (inputs.mentor !== null) {
+    value = times(
+      value,
+      withoutNegativeZero(1 + withoutNegativeZero(tunables.get('match.learning.mentorBonus'))),
+    );
+  }
+  if (inputs.room !== 'open') {
+    value = times(value, tunables.get(ROOM_KEYS[inputs.room]));
+  }
+  return withoutNegativeZero(
+    Math.min(Math.max(value, 0), tunables.get('match.learning.maxPerSegment')),
+  );
+}
+
 /** Thousandths: the finest step a learning gain is read to. */
 const LEARNING_GAIN_SCALE = 1000;
 
@@ -222,6 +283,20 @@ export function learningGainText(value: number): string {
   }
   const rounded = Math.round(value * LEARNING_GAIN_SCALE) / LEARNING_GAIN_SCALE;
   return rounded === 0 ? 'less than +0.001' : `+${String(rounded)}`;
+}
+
+/** {@link computeRingLearningTotal}'s value with no trace (POL4-10): the same sum, in order. */
+export function ringLearningTotalValue(
+  perAttribute: Readonly<Partial<Record<AttributeKey, number>>>,
+): number {
+  let total = 0;
+  for (const attribute of ATTRIBUTE_KEYS) {
+    const learning = perAttribute[attribute];
+    if (learning !== undefined) {
+      total = withoutNegativeZero(total + withoutNegativeZero(learning));
+    }
+  }
+  return total;
 }
 
 /**

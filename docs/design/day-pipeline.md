@@ -75,6 +75,15 @@ The health system's `housekeeping` phases ([health.md](health.md)):
 | `health.recovery`          | 10    | daily           | Injuries due back today end (`injury.healed`); then fatigue fades for everyone above 0 (stamina, age and traits count; less after a talking-only show day yesterday). |
 | `health.conditionRecovery` | 12    | weekly, Mondays | Damaged body parts heal a little, up to the cap for the worker's age; no rolls, no traces.                                                                            |
 
+The `contracts` group's phases (ECO4-01 and ECO4-03, see
+[contracts.md](contracts.md#lifecycle) and
+[contracts.md](contracts.md#unhappy-workers)):
+
+| Phase                      | Order | Cadence | What it does                                                                                                                                                                                                                  |
+| -------------------------- | ----- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `contracts.lifecycle`      | 10    | daily   | Due contracts ask the renewal policies and otherwise expire; signed deals whose start date has come become active; then the `afterLifecycle` hooks (ECO4-02's expiry notices).                                                |
+| `contracts.unhappyWorkers` | 30    | daily   | Refused requests roll for a walk-out (or settle down); unanswered requests past their date are refused; the unhappy clock counts (paused in a hot storyline, D-09) and raises release requests; rivals answer theirs at once. |
+
 The `money` group's phases so far (ECO1-03, see
 [finances.md](finances.md#payroll)):
 
@@ -82,6 +91,14 @@ The `money` group's phases so far (ECO1-03, see
 | ------------------------ | ----- | ------------------- | ------------------------------------------------------------------------------------------------ |
 | `finance.payroll`        | 10    | daily               | One Wages row per open promotion with anyone to pay: monthly payroll × 12 ÷ 365.25, to the cent. |
 | `finance.monthlyMedical` | 20    | monthly, on the 1st | One Medical row per open promotion: people under contract × the cost of its medical policy.      |
+
+The production system adds `production.monthlyOverhead` (`money`, order 35,
+monthly on the 1st): one Production, Marketing and Back office row per active
+promotion for the month ahead, at that morning's levels
+([production.md](production.md#monthly-overhead)). Its daily
+`production.popularityDrag` (`growth`, order 90) pulls popularity above a
+promotion's popularity ceiling down towards it through the popularity door
+([production.md](production.md#popularity-drag)).
 
 Both post through `postMoney`, visit promotions in id order, post nothing for
 a zero amount and draw no random numbers (only the ledger rows' ids).
@@ -379,14 +396,17 @@ registered ones:
 
 **The systems' gates.** Registered by the system bundles:
 
-| Gate                      | System | Hits when                                                              | Reason                                                               | Hint        |
-| ------------------------- | ------ | ---------------------------------------------------------------------- | -------------------------------------------------------------------- | ----------- |
-| `shows.tonight`           | shows  | The player has an open show today (EVT2-09)                            | "Tonight: Friday Fury", or "Your show 'Friday Fury' has no card yet" | `showNight` |
-| `health.ownWorkerInjured` | health | An injury to one of the player's workers waits to be noticed (WRK6-04) | "Big Joe was injured (Sprained ankle, out until Mar 14, 2031)"       | `roster`    |
+| Gate                         | System    | Hits when                                                                                                                                                         | Reason                                                                  | Hint        |
+| ---------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ----------- |
+| `shows.tonight`              | shows     | The player has an open show today (EVT2-09)                                                                                                                       | "Tonight: Friday Fury", or "Your show 'Friday Fury' has no card yet"    | `showNight` |
+| `health.ownWorkerInjured`    | health    | An injury to one of the player's workers waits to be noticed (WRK6-04)                                                                                            | "Big Joe was injured (Sprained ankle, out until Mar 14, 2031)"          | `roster`    |
+| `contracts.expiringSoon`     | contracts | One of the player's contracts ends soon and its notice is unseen (ECO4-02, [contracts.md](contracts.md#expiring-soon))                                            | "Contract expiring soon: Big Joe (ends Mar 14, 2031)" (+ " and 2 more") | `contracts` |
+| `contracts.releaseRequested` | contracts | One of the player's workers has an open release request that stops the skip (ECO4-03, off by default until ECO4-04, [contracts.md](contracts.md#unhappy-workers)) | "Big Joe wants to leave" (+ " and 2 others")                            | `contracts` |
 
 The hints a gate can carry are the web shell's route keys: `showNight` (the
-show screen), `inbox`, `booking` and `roster` (the roster; WRK6-06 lands it on
-the Injuries tab or the worker's profile). A hint the shell does not know yet
+show screen), `inbox`, `booking`, `roster` (the roster; WRK6-06 lands it on
+the Injuries tab or the worker's profile) and `contracts` (the Contracts
+screen, ECO4-04). A hint the shell does not know yet
 still gets a button with the gate's own reason.
 
 The failure count is per advance and per step. Two different phases failing on
@@ -463,15 +483,20 @@ that work **only where the result is identical**: the same world, the same
 stored traces, the same RNG and the same save, byte for byte. Code:
 `packages/engine/src/core/fastPaths.ts`.
 
-| Fast path                       | Where                                                                | What it skips                                                                                                                                                                      |
-| ------------------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Aftermath without region detail | `applySegmentAftermath` (show night's MTCH3 applier)                 | The per-region preview and the country and continent roll-ups of each competitor's change. The applier stores none of them; the popularity door works the regions out as it writes |
-| Summary-only record check       | `TraceStaging.record` with `summaryOnly`                             | Validating every node of a tree that is kept only as a summary: the tree is fitted into the size limits as before, then only its root and direct steps are checked                 |
-| One-walk record check           | `TraceStaging.record`                                                | `assertJsonValue` plus the load schema's zod parse: `copyValidTraceContent` builds the same copy in one walk, or returns null and the full check runs (and throws) as before       |
-| Headline and reach roll-ups     | `headlinePopularityOf` (office), `reachOf` (finance)                 | Rolling up every country and continent to read the home country, the home continent and the world (`popularityRollupPart`)                                                         |
-| Card values without traces      | `buildCardPool` (rival booker)                                       | The card value trace of every worker for every show: `cardValueNumber` does the same steps in the same order. A Why? that shows a card value builds it with `cardValue`            |
-| Rival wear by body part         | `computePhysicalToll` (MTCH4's applier) on a rival show              | Each body part's wear trace: the same `load × weight` as plain numbers; the show stores only summaries                                                                             |
-| Rival-rules injury chance       | `computePhysicalToll` on a rival show under `ai.skipInMatchInjuries` | The injury chance formula: the policy makes it 0, given with its rival-rules line; the roll is still drawn                                                                         |
+| Fast path                           | Where                                                                | What it skips                                                                                                                                                                             |
+| ----------------------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Aftermath without region detail     | `applySegmentAftermath` (show night's MTCH3 applier)                 | The per-region preview and the country and continent roll-ups of each competitor's change. The applier stores none of them; the popularity door works the regions out as it writes        |
+| Summary-only record check           | `TraceStaging.record` with `summaryOnly`                             | Validating every node of a tree that is kept only as a summary: the tree is fitted into the size limits as before, then only its root and direct steps are checked                        |
+| One-walk record check               | `TraceStaging.record`                                                | `assertJsonValue` plus the load schema's zod parse: `copyValidTraceContent` builds the same copy in one walk, or returns null and the full check runs (and throws) as before              |
+| Headline and reach roll-ups         | `headlinePopularityOf` (office), `reachOf` (finance)                 | Rolling up every country and continent to read the home country, the home continent and the world (`popularityRollupPart`)                                                                |
+| Card values without traces          | `buildCardPool` (rival booker)                                       | The card value trace of every worker for every show: `cardValueNumber` does the same steps in the same order. A Why? that shows a card value builds it with `cardValue`                   |
+| Rival wear by body part             | `computePhysicalToll` (MTCH4's applier) on a rival show              | Each body part's wear trace: the same `load × weight` as plain numbers; the show stores only summaries                                                                                    |
+| Rival-rules injury chance           | `computePhysicalToll` on a rival show under `ai.skipInMatchInjuries` | The injury chance formula: the policy makes it 0, given with its rival-rules line; the roll is still drawn                                                                                |
+| Headline at its own level (POL4-10) | `headlinePopularityOf` (office)                                      | Every traced roll-up level but the one the headline scope picks: the others are read from the untraced roller (the same sums in the same order); the worldwide note needs only its number |
+| One map while it is unchanged       | `geographyOf`, `createPopularityRoller`                              | Building the map and its population shares again when every continent, country and region row is the same object as last time (rows are never changed in place)                           |
+| Sorted index buckets                | `MutableTable.lookup`                                                | Sorting a bucket's keys on every lookup: they are kept until a row joins or leaves the bucket, and an update that keeps a row's index keys re-files nothing                               |
+| Weekly healing as numbers           | `recoverConditions` (health)                                         | The traced cap and recovery of every body part (the phase stores no trace): the cap once per age, the week's healing once per kind of person and care, `conditionRecoveryValue` per part  |
+| Rival ring learning as numbers      | `collectRingLearning` on a rival show                                | The learning traces of each competitor and attribute (a rival show stores none): `ringLearningValue` does the same steps in the same order                                                |
 
 **Proof.** `setFastPaths(false)` turns them all off, so the engine takes the
 full path everywhere. `test/core/fastPaths.test.ts` runs a month of the roster
@@ -481,7 +506,11 @@ tables that carry world effects (popularity, momentum, injuries and fatigue on
 decisions), the trace store, the RNG and the world hash; with
 `RB_SLOW_TESTS=1` it does the same for 120 days of the default world.
 `fastCopy.test.ts` holds the one-walk check to the schema, and the
-`cardValue` sweep holds `cardValueNumber` to the traced value to the bit. A
+`cardValue` sweep holds `cardValueNumber` to the traced value to the bit; the
+`conditionRecovery` and `ringLearning` sweeps do the same for their number
+twins, `headlineFastPath.test.ts` compares every promotion's headline Why?
+under every scope, and `table.test.ts` checks sorted lookups through a run of
+inserts, moves and deletes. A
 new fast path must read `fastPathsEnabled()` and keep both tests passing; if
 it cannot keep the world identical it does not belong here.
 
@@ -502,6 +531,26 @@ roll-up each time); rival planning and booking 2.0 s; garbage collection
 4.6 s. On the roster fixture planning was most of the run, about 12 ms a
 show, two thirds of it card value traces. Save sizes did not change (1.15 MB
 and 1.46 MB on disk).
+
+**POL4-10** (Sprints 9 and 10 had made a year slower again). Same machine, back
+to back and alternating, under load from other runs; medians of three, wall /
+CPU, 365 days of the default world with `withMyShowsRun`:
+
+| Setup                | Before POL4-10  | After POL4-10   |
+| -------------------- | --------------- | --------------- |
+| No rival cards added | 13.8 s / 20.2 s | 10.6 s / 15.8 s |
+| Every show carded    | 17.7 s / 25.3 s | 13.2 s / 19.0 s |
+
+The world hash and the save were the same before and after (1.23 MB and
+1.63 MB gzipped). Where the time went before (CPU profile): the office's
+`popularity.changed` subscription re-recording the headline Why? 1.3 s, almost
+all of it the traced world roll-up the Why? never shows; sorting index buckets
+on every `lookup` 0.5 s; health 0.55 s (the weekly condition healing 0.27 s,
+all traces nobody stores); the physical toll 0.5 s (ring learning traces on
+rival shows 0.11 s); building the map again on each `geographyOf` 0.4 s. Two
+changes outside the switch, because they do the same work in a different
+order: the trace node budget is a class instead of an object literal with
+closures, and `priorMatchesOf` lists opponents only for the matches it returns.
 
 ## Calendar
 
@@ -853,6 +902,19 @@ The finance system's events ([finances.md](finances.md#postmoney)):
 | ----------------------- | ------------------------------------------------------------ | --------------------------------------------------------- |
 | `finance.moneyPosted`   | `promotionId`, `ledgerEntryId`, `category`, `amount`, `date` | `postMoney` writes a row for a human-controlled promotion |
 | `finance.policyChanged` | `promotionId`, `area`, `from`, `to`                          | A promotion changes a spending policy (ECO1-04)           |
+
+The contracts system's events ([contracts.md](contracts.md#end-employment)),
+money in cents:
+
+| Event                       | Payload                                                                         | Published when                                                                                   |
+| --------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `contract.started`          | `employmentId`, `personId`, `promotionId`                                       | A signed contract reaches its start date                                                         |
+| `contract.expired`          | `employmentId`, `personId`, `promotionId`, `reasonKey`                          | An active contract runs out (`contracts.endDate`)                                                |
+| `contract.released`         | `employmentId`, `personId`, `promotionId`, `severance`, `source`, `mutual`      | A promotion releases a worker, or withdraws a signed future deal                                 |
+| `contract.quit`             | `employmentId`, `personId`, `promotionId`, `how`, `severance`                   | A worker leaves: granted release, walk-out or exclusive deal                                     |
+| `contract.renewed`          | `employmentId`, `personId`, `promotionId`, `previousEndsOn`, `endsOn`, `source` | A renewal policy moves a contract's end date later                                               |
+| `contract.releaseRequested` | `employmentId`, `personId`, `promotionId`                                       | One of the player's unhappy workers asks to be released (ECO4-03)                                |
+| `contract.releaseRefused`   | `employmentId`, `personId`, `promotionId`, `source`                             | A release request is refused: by the player, a rival's rule (`ai`) or left unanswered (`system`) |
 
 The rival desk's events ([rival-desk.md](rival-desk.md#jobs)):
 

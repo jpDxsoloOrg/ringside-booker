@@ -46,9 +46,12 @@ const DAYS = Number(process.env['RB_SAVE_DAYS'] ?? '365');
 const MAX_GZIP_BYTES = 10 * 1_000_000;
 /**
  * With history older than `history.keepDetailDays` rolled up (POL4-08), a carded year must stay
- * well under the 1.94 MB it took before: the tables no longer grow with every show ever run.
+ * well under what it took before rolling up: the tables no longer grow with every show ever run.
+ * Raised from 1.6 to 2 MB in Sprint 10, when injuries, the physical toll, contracts and production
+ * (Sprints 9-10) brought a carded year to about 1.62 MB; the owner's limit is 10 MB on disk, and
+ * this guard is here to catch unbounded growth, not to cap new features.
  */
-const MAX_ROLLED_UP_GZIP_BYTES = 1.6 * 1_000_000;
+const MAX_ROLLED_UP_GZIP_BYTES = 2 * 1_000_000;
 /**
  * Saving and loading each take under a second on a desktop (about 20 runs of the CPU reference
  * workload); this allows double. A ratio, not milliseconds: the engine's test threads share one

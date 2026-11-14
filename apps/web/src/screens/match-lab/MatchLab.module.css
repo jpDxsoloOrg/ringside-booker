@@ -325,6 +325,19 @@
   .runsSlider {
     min-block-size: var(--tap-target-min);
   }
+
+  /*
+   * A control the page scrolls to (on focus, or found on the page) stops clear of the sticky top
+   * bar and of the Run bar, never under either; the Run bar's room comes from useStickyBarRoom.
+   * The Run bar's own controls are left out: they are always in view, and room for the bar around
+   * itself would scroll the page whenever Run or the Runs slider took focus.
+   */
+  .setupColumn *,
+  .sidesColumn *,
+  .resultColumn * {
+    scroll-margin-block: calc(var(--topbar-height) + var(--safe-top) + var(--space-2))
+      calc(var(--lab-run-bar-room, 0px) + var(--space-2));
+  }
 }
 
 /* ---- Result ----------------------------------------------------------------------------- */

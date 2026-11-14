@@ -31,7 +31,10 @@ export const extendHorizonPhase: PhaseDefinition = definePhase({
       return;
     }
     const through = addDaysWithinCalendar(from, horizonDays);
-    const summary = scheduleAll(ctx.tx, ctx.read, from, through);
+    const summary = scheduleAll(ctx.tx, ctx.read, from, through, {
+      tunables: ctx.tunables,
+      recordTrace: { record: ctx.recordTrace, date: ctx.date },
+    });
     for (const instanceId of summary.instanceIds) {
       const instance = ctx.read.tables.eventInstances.get(instanceId);
       if (instance !== undefined) {

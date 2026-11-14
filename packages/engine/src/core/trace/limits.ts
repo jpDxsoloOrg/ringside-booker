@@ -176,30 +176,42 @@ export interface TraceBudget {
 
 /** Creates the node budget for one builder. */
 export function createTraceBudget(): TraceBudget {
-  let usedNodes = 1;
-  let hiddenNodes = 0;
-  return {
-    get usedNodes(): number {
-      return usedNodes;
-    },
-    get hiddenNodes(): number {
-      return hiddenNodes;
-    },
-    place(node: TraceNode): TraceNode | null {
-      const room = TRACE_MAX_NODES - usedNodes - 1;
-      if (hiddenNodes > 0 || room < 1) {
-        hiddenNodes += countTraceNodes(node);
-        return null;
-      }
-      const fitted = fitTraceNode(node, STEP_DEPTH, room);
-      usedNodes += fitted.size;
-      // A step squeezed into the last slot keeps its own fields but loses its children; they are
-      // counted in the root's note, and the steps after it are cut so the note stays last.
-      hiddenNodes += fitted.hidden;
-      return fitted.node;
-    },
-    finish(steps: readonly TraceNode[], noteValue: number | null): TraceNode[] {
-      return hiddenNodes > 0 ? [...steps, truncationNote(hiddenNodes, noteValue)] : [...steps];
-    },
-  };
+  return new NodeBudget();
+}
+
+/**
+ * The budget as a class rather than an object literal with getters and closures: every traced
+ * calculation makes one, so this is on the hot path of every formula (POL4-10).
+ */
+class NodeBudget implements TraceBudget {
+  #usedNodes = 1;
+  #hiddenNodes = 0;
+
+  get usedNodes(): number {
+    return this.#usedNodes;
+  }
+
+  get hiddenNodes(): number {
+    return this.#hiddenNodes;
+  }
+
+  place(node: TraceNode): TraceNode | null {
+    const room = TRACE_MAX_NODES - this.#usedNodes - 1;
+    if (this.#hiddenNodes > 0 || room < 1) {
+      this.#hiddenNodes += countTraceNodes(node);
+      return null;
+    }
+    const fitted = fitTraceNode(node, STEP_DEPTH, room);
+    this.#usedNodes += fitted.size;
+    // A step squeezed into the last slot keeps its own fields but loses its children; they are
+    // counted in the root's note, and the steps after it are cut so the note stays last.
+    this.#hiddenNodes += fitted.hidden;
+    return fitted.node;
+  }
+
+  finish(steps: readonly TraceNode[], noteValue: number | null): TraceNode[] {
+    return this.#hiddenNodes > 0
+      ? [...steps, truncationNote(this.#hiddenNodes, noteValue)]
+      : [...steps];
+  }
 }
