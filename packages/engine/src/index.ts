@@ -3113,6 +3113,7 @@ export {
 // title's promotion, the only reign writers, starting prestige and days held. `titlesHeldBy` is
 // exported with the contracts block above (it is the same function). See docs/design/titles.md.
 export {
+  addDefence,
   closeReign,
   currentHolders,
   currentReign,

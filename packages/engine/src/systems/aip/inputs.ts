@@ -35,6 +35,7 @@ import {
   type NeedsInputs,
   type NeedsWrestler,
 } from './formulas/needs';
+import { currentReign } from '../titles/helpers/holders';
 import { tasteOf } from './taste';
 import { unitCovers, type AiUnit } from './units';
 
@@ -145,7 +146,7 @@ export function openReignOf(
   read: GameWorldView,
   titleId: Title['id'],
 ): DeepReadonly<TitleReign> | null {
-  return read.tables.titleReigns.lookup('openByTitle', titleId)[0] ?? null;
+  return currentReign(read, titleId);
 }
 
 /** The person's started, active contract with `promotionId`, or null (lowest ID when several). */

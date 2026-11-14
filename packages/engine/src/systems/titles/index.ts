@@ -46,6 +46,7 @@ export {
 } from './helpers/employment';
 export { founderTitlePrestige, TITLE_PRESTIGE_TRACE_KIND, titlePrestigeTraceRef } from './traces';
 export {
+  addDefence,
   closeReign,
   openReign,
   type CloseReignInput,
