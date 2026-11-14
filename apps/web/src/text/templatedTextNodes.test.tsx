@@ -102,9 +102,7 @@ describe('templatedTextToString', () => {
 });
 
 describe('renderTemplatedText with names', () => {
-  const linked: EntityLinkRenderer = (ref, label) => (
-    <a href={`#${ref.kind}-${ref.id}`}>{label}</a>
-  );
+  const linked: EntityLinkRenderer = (ref, label) => <a href={`#${ref.kind}-${ref.id}`}>{label}</a>;
 
   it('draws names through a custom renderEntityLink, but not unknown ids', () => {
     withCatalog();

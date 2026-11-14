@@ -1,0 +1,108 @@
+/*
+ * A front-page story in the broadcast kit: a chamfered panel with the kind's accent stripe, the
+ * picture beside the story on desktop. The large card leads the front page; small ones sit beside
+ * or under it. Below --bp-mobile the picture shrinks and stays beside the words.
+ */
+.card {
+  min-inline-size: 0;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.layout:not(:has(.picture)) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.picture {
+  display: flex;
+}
+
+.story {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.headline {
+  margin: 0;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-tight);
+  overflow-wrap: anywhere;
+}
+
+.large .headline {
+  font-size: var(--font-size-3xl);
+}
+
+.headlineLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+.headlineLink:hover {
+  text-decoration: underline;
+}
+
+.excerpt {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow-wrap: anywhere;
+}
+
+.buzz {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.buzzLabel {
+  color: var(--color-text-muted);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Touch screens: the headline's tap box reaches 44px without taking room (UI-30). */
+@media (pointer: coarse) {
+  .headlineLink {
+    display: inline-block;
+    padding-block: var(--tap-pad-block);
+    margin-block: calc(-1 * var(--tap-pad-block));
+  }
+}
+
+@media (--bp-mobile) {
+  .large .headline {
+    font-size: var(--font-size-2xl);
+  }
+
+  .layout {
+    gap: var(--space-3);
+  }
+}

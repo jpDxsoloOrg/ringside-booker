@@ -8,11 +8,11 @@ change.
 
 ## Files
 
-| File                       | What it holds                                                                                          |
-| -------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `catalog.ts`               | The registry: `registerTextCatalog(namespace, entries)`, `textFor(key)`, the `TemplatedText` types     |
-| `renderTemplatedText.tsx`  | `renderTemplatedText(text)` (string), `renderTemplatedText(text, { names, renderEntityLink })` (React) and `templatedTextToString(text, { names })` |
-| `catalogs/<namespace>.ts`  | One feature's English. Importing the module registers it                                               |
+| File                      | What it holds                                                                                                                                       |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `catalog.ts`              | The registry: `registerTextCatalog(namespace, entries)`, `textFor(key)`, the `TemplatedText` types                                                  |
+| `renderTemplatedText.tsx` | `renderTemplatedText(text)` (string), `renderTemplatedText(text, { names, renderEntityLink })` (React) and `templatedTextToString(text, { names })` |
+| `catalogs/<namespace>.ts` | One feature's English. Importing the module registers it                                                                                            |
 
 ## Registering a catalog
 
@@ -30,12 +30,12 @@ template, so it can return `'{years:count} years'` and let the renderer fill it.
 
 `{param}` or `{param:format}`.
 
-| Format    | Writes                                                        |
-| --------- | ------------------------------------------------------------- |
+| Format    | Writes                                                          |
+| --------- | --------------------------------------------------------------- |
 | `date`    | a game date, long: "Monday, January 5, 2026" (`formatGameDate`) |
-| `count`   | a grouped number: "12,500" (`formatNumber`)                   |
-| `ordinal` | "1st", "2nd", "11th", "21st"                                  |
-| `money`   | integer cents as dollars: "$12,000" (`formatMoney`)           |
+| `count`   | a grouped number: "12,500" (`formatNumber`)                     |
+| `ordinal` | "1st", "2nd", "11th", "21st"                                    |
+| `money`   | integer cents as dollars: "$12,000" (`formatMoney`)             |
 
 With no format, a param whose value is an entity id, or ids joined by commas, renders as the
 names from `names` joined "A, B and C", each drawn through `renderEntityLink` (pass

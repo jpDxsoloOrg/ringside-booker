@@ -1,0 +1,209 @@
+/*
+ * Office > News, in the broadcast register for the front page and the office register for the
+ * feed (docs/design/visual-identity.md). Desktop first: the lead story spans two thirds with the
+ * other two stacked beside it, the filters in a panel above the table. Below --bp-mobile the hero
+ * cards stack (the first full width), the table is cards and the filters open in a bottom sheet,
+ * so nothing here makes the page scroll sideways.
+ */
+.screen {
+  display: grid;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+
+.intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-4);
+  min-inline-size: 0;
+}
+
+.heading {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-tight);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.today,
+.notice,
+.count {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.sectionTitle {
+  margin: 0;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ---------------------------------------------------------------- front page */
+
+.frontPage {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.heroes {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  grid-auto-rows: auto;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.heroes > :first-child {
+  grid-row: span 2;
+}
+
+.heroes[data-count='1'] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.heroes[data-count='1'] > :first-child,
+.heroes[data-count='2'] > :first-child {
+  grid-row: auto;
+}
+
+/* ---------------------------------------------------------------- feed */
+
+.feed {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.feedHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-4);
+}
+
+.filterPanel {
+  min-inline-size: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.filters {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.kinds {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.fieldLabel {
+  padding: 0;
+  margin-block-end: var(--space-2);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.otherFilters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--space-3) var(--space-5);
+  min-inline-size: 0;
+}
+
+.filters-sheet .otherFilters {
+  display: grid;
+  align-items: stretch;
+}
+
+.filterButton {
+  display: flex;
+}
+
+.filterButton > button {
+  min-block-size: var(--tap-target-min);
+}
+
+.sheetFooter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.table {
+  min-inline-size: 0;
+}
+
+.headlineLink {
+  color: inherit;
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.who {
+  overflow-wrap: anywhere;
+}
+
+.none {
+  color: var(--color-text-muted);
+}
+
+.more {
+  display: flex;
+  justify-content: center;
+}
+
+/* Touch screens: chips and links reach 44px (UI-30). */
+@media (pointer: coarse) {
+  .chips > button {
+    min-block-size: var(--tap-target-min);
+  }
+
+  .headlineLink {
+    display: inline-block;
+    padding-block: var(--tap-pad-block);
+    margin-block: calc(-1 * var(--tap-pad-block));
+  }
+}
+
+@media (--bp-mobile) {
+  .heading {
+    font-size: var(--font-size-2xl);
+  }
+
+  .heroes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .heroes > :first-child {
+    grid-row: auto;
+  }
+
+  .chips > button {
+    min-block-size: var(--tap-target-min);
+  }
+}

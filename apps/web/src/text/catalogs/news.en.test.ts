@@ -20,9 +20,9 @@ function variantsOf(template: TextTemplate, declared: readonly string[]): string
     Object.fromEntries(declared.map((name) => [name, value]));
   const paramSets: TextParams[] = [full(1), full(2), full('per_0000000001,per_0000000002')];
   for (const name of declared) {
-    const without = full(2);
-    delete without[name];
-    paramSets.push(without);
+    paramSets.push(
+      Object.fromEntries(declared.filter((each) => each !== name).map((each) => [each, 2])),
+    );
   }
   return paramSets.map((params) => template(params));
 }
@@ -64,7 +64,7 @@ describe('the news text catalog', () => {
   );
 
   it('holds no key for a topic nobody registers', () => {
-    const known = new Set(topics.flatMap((topic) => [topic.headlineKey, topic.bodyKey]));
+    const known = new Set<string>(topics.flatMap((topic) => [topic.headlineKey, topic.bodyKey]));
     for (const key of Object.keys(NEWS_TEXT_CATALOG)) {
       expect(known.has(key), key).toBe(true);
     }

@@ -48,7 +48,8 @@ export const NEWS_TEXT_CATALOG: TextCatalog = {
   'news.reign-record.body':
     'On {onDate:date}, {holderIds} passed {days:count} days with the {titleId}, going beyond the reign of {previousHolderIds} to set a new record for the title.',
 
-  'news.career-anniversary.headline': (params) => `{personId} marks ${yearsText(params)} in the ring`,
+  'news.career-anniversary.headline': (params) =>
+    `{personId} marks ${yearsText(params)} in the ring`,
   'news.career-anniversary.body': (params) =>
     `{personId} reached ${yearsText(params)} as a professional on {onDate:date}. Few careers in the business last that long.`,
 
