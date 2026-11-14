@@ -973,3 +973,16 @@ The promotion popularity system's events ([promotion-popularity.md](promotion-po
 | Event                    | Payload                                                                                                        | Published when                                  |
 | ------------------------ | -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
 | `showPopularity.changed` | `eventInstanceId`, `promotionId`, `worldBefore`, `worldAfter`, `regionsGained`, `regionsLost`, `regionsCapped` | A completed show's popularity change is applied |
+
+The broadcast system's events ([broadcast.md](broadcast.md), declared by
+ECO8-01 and published by ECO8-04 and ECO8-05; ECO10's rival deal-making
+publishes the same `broadcast.dealSigned`):
+
+| Event                        | Payload                                                                                             | Published when                                        |
+| ---------------------------- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `broadcast.aired`            | `airingId`, `dealId`, `promotionId`, `networkId`, `eventInstanceId` (or null), `airDate`, `viewers` | a deal aired a show and its `airings` row is written  |
+| `broadcast.missed`           | `airingId`, `dealId`, `promotionId`, `eventInstanceId` (or null), `airDate`, `reason`               | a show a deal was due to air was cancelled or not run |
+| `broadcast.dealSigned`       | `dealId`, `promotionId`, `networkId`                                                                | a promotion and a network signed a deal               |
+| `broadcast.dealRenegotiated` | `dealId`, `promotionId`                                                                             | a deal's terms were renegotiated                      |
+| `broadcast.dealEnded`        | `dealId`, `promotionId`, `networkId`, `reason` (`DEAL_END_REASONS`)                                 | a deal expired or was cancelled                       |
+| `broadcast.dealWarned`       | `dealId`, `promotionId`, `risk` (`DEAL_RISKS`)                                                      | the network warned the promotion a deal is at risk    |
