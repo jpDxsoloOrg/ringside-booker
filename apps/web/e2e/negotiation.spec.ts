@@ -454,6 +454,8 @@ test.describe('contract negotiation', () => {
         for (const tab of ['free-agents', 'offers']) {
           await navigateInApp(page, `/game/contracts?tab=${tab}`);
           await expect(page.getByRole('heading', { level: 1, name: 'Contracts' })).toBeVisible();
+          // Every talk is closed by now: show those, so the list has rows to measure.
+          if (tab === 'offers') await page.getByRole('switch', { name: 'Closed talks' }).check();
           await expect(rows(page).first()).toBeVisible({ timeout: 20_000 });
           await expectNoHorizontalScroll(page);
         }
