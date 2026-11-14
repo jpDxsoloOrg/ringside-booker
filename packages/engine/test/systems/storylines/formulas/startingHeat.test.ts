@@ -1,6 +1,6 @@
 // Starting heat (CRTV3-02). Design: docs/design/storylines.md#starting-heat
 import { describe, expect, it } from 'vitest';
-import type { PersonId } from '../../../../src/core/ids';
+import { ENTITY_KINDS, parseId } from '../../../../src/core/ids';
 import { findTraceNodes } from '../../../../src/core/trace/helpers';
 import type { Traced } from '../../../../src/core/trace/types';
 import type { TunableOverrides } from '../../../../src/core/tunables/overrides';
@@ -100,19 +100,21 @@ describe('startingHeat', () => {
   });
 
   it('links each popularity line to its person when the caller names them (CRTV3-05)', () => {
-    const ise = { ...ISE, personId: 'per_ise' as PersonId };
-    const kuroe = { ...KUROE, personId: 'per_kuroe' as PersonId };
+    const iseId = parseId('person', `${ENTITY_KINDS.person}_0000000001`);
+    const kuroeId = parseId('person', `${ENTITY_KINDS.person}_0000000002`);
+    const ise = { ...ISE, personId: iseId };
+    const kuroe = { ...KUROE, personId: kuroeId };
     const inputs = findTraceNodes(heat([ise, kuroe]).trace, 'input');
     expect(inputs.filter((node) => node.ref !== undefined)).toEqual([
       expect.objectContaining({
         label: "Ise's home popularity",
         value: 60,
-        ref: { kind: 'person', id: 'per_ise' },
+        ref: { kind: 'person', id: iseId },
       }),
       expect.objectContaining({
         label: "Kuroe's home popularity",
         value: 40,
-        ref: { kind: 'person', id: 'per_kuroe' },
+        ref: { kind: 'person', id: kuroeId },
       }),
     ]);
     expect(heat([ise, kuroe]).value).toBe(heat([ISE, KUROE]).value);
