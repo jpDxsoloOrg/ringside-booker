@@ -1,6 +1,6 @@
 import { expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
-import { cancelTonightsShow } from './booking';
+import { cancelTonightsShow, gameDate, waitForAdvanceToEnd } from './booking';
 
 /** The day bar's button with this name. */
 export function dayButton(page: Page, name: string | RegExp): Locator {
@@ -51,10 +51,7 @@ export function contractRows(page: Page): Locator {
 }
 
 /** The game's date (ISO), from the top bar. */
-export async function gameDate(page: Page): Promise<string> {
-  const time = page.getByRole('banner').locator('time[datetime]').first();
-  return (await time.getAttribute('datetime')) ?? '';
-}
+export { gameDate };
 
 /** The ISO date `days` days after `date`. */
 export function addIsoDays(date: string, days: number): string {
@@ -115,6 +112,7 @@ export async function skipToDateThroughStops(
     if (await clearDayStop(page, handlers)) continue;
     const summary = page.getByRole('region', { name: 'Last advance' });
     const before = (await summary.count()) > 0 ? await summary.textContent() : null;
+    const startDate = await gameDate(page);
     await openSkipDays(page, phone);
     const sheet = page.getByRole('dialog', { name: 'Skip days' });
     await sheet.getByLabel('Days to skip').fill('120');
@@ -122,9 +120,7 @@ export async function skipToDateThroughStops(
     await sheet.getByLabel('Stop on', { exact: true }).fill(date);
     await sheet.getByRole('button', { name: 'Start' }).click();
     await expect(sheet).toBeHidden();
-    await expect(summary).toBeVisible();
-    await expect.poll(() => summary.textContent()).not.toBe(before);
-    await expect(page.getByTestId('advance-overlay')).toBeHidden();
+    await waitForAdvanceToEnd(page, startDate, before);
     // A skip that stopped short stopped for something: wait for the day bar to say what.
     if ((await gameDate(page)) < date) await expect(dayButton(page, 'Next day')).toBeHidden();
   }
