@@ -209,7 +209,7 @@ function checksFor(inputs: DealCheckInputs, tunables: EngineTunables): Check[] {
       code: 'cameraTooLow',
       passed: inputs.camera >= cameraNeeded,
       passText: `${networkName} needs camera level ${String(cameraNeeded)}; yours is ${String(inputs.camera)}`,
-      message: `${networkName} needs camera level ${String(cameraNeeded)}; yours is ${String(inputs.camera)}${inputs.cameraCanBeRaised ? '. Raise your camera level (Production)' : ''}`,
+      message: `${networkName} needs camera level ${String(cameraNeeded)}; yours is ${String(inputs.camera)}${inputs.cameraCanBeRaised ? '. Raise your camera level in Production' : ''}`,
     },
     {
       code: 'belowFloor',

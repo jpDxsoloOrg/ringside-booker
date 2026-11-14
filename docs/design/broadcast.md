@@ -325,27 +325,28 @@ returned in `refusals`, so the player sees everything to fix at once. The Why?
 also nests the promotion's reach (when prime time was asked for) and the
 ratio's own working.
 
-| Code                 | Refuses when                                                                                                 | Text                                                                               |
-| -------------------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
-| `networkClosed`      | the network is closed or has closed by today                                                                 | "<network> is off the air"                                                         |
-| `outsideMarket`      | it covers no region of the promotion's market, or is another promotion's own service                         | "<network> doesn't cover anywhere your fans are"                                   |
-| `houseShow`          | the show is a house show                                                                                     | "House shows aren't televised"                                                     |
-| `notPpvShow`         | pay-per-view, and the show is not major or flagship                                                          | "Pay-per-view only carries major and flagship events"                              |
-| `alreadyOnNetwork`   | the same show (or the same promotion-wide deal) has a live deal on this network                              | "<show> already airs on <network>"                                                 |
-| `coverageOverlap`    | the same show airs on another network of the same kind whose coverage overlaps                               | "<show> already airs on <other network> in the same regions"                       |
-| `slotTaken`          | TV or streaming: another show airs on this network on the same weekday and timeslot (rival names are public) | "<network> already airs <rival show> in that slot"                                 |
-| `timeslotNotAllowed` | prime time on TV or streaming, and ECO1 reach < `primeTimeMinReach`                                          | "Prime time needs a reach of 25.0; yours is 3.6"                                   |
-| `cameraTooLow`       | camera level < reach tier × `cameraPerTier`                                                                  | "<network> needs camera level 4; yours is 2. Raise your camera level (Production)" |
-| `belowFloor`         | projected < `minViewers.<kind>`                                                                              | "Fewer than 1,000 viewers is too small for TV" (buys for pay-per-view)             |
-| `audienceTooSmall`   | ratio < `minBenchmarkRatio` (exactly at it accepts)                                                          | "Your audience would be about 2% of what <network> needs (85%)"                    |
-| `badLength`          | months outside `minMonths`..`maxMonths`                                                                      | "A deal runs 6 to 48 months; 60 months is outside that"                            |
+| Code                 | Refuses when                                                                                                 | Text                                                                                |
+| -------------------- | ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| `networkClosed`      | the network is closed or has closed by today                                                                 | "<network> is off the air"                                                          |
+| `outsideMarket`      | it covers no region of the promotion's market, or is another promotion's own service                         | "<network> doesn't cover anywhere your fans are"                                    |
+| `houseShow`          | the show is a house show                                                                                     | "House shows aren't televised"                                                      |
+| `notPpvShow`         | pay-per-view, and the show is not major or flagship                                                          | "Pay-per-view only carries major and flagship events"                               |
+| `alreadyOnNetwork`   | the same show (or the same promotion-wide deal) has a live deal on this network                              | "<show> already airs on <network>"                                                  |
+| `coverageOverlap`    | the same show airs on another network of the same kind whose coverage overlaps                               | "<show> already airs on <other network> in the same regions"                        |
+| `slotTaken`          | TV or streaming: another show airs on this network on the same weekday and timeslot (rival names are public) | "<network> already airs <rival show> in that slot"                                  |
+| `timeslotNotAllowed` | prime time on TV or streaming, and ECO1 reach < `primeTimeMinReach`                                          | "Prime time needs a reach of 25.0; yours is 3.6"                                    |
+| `cameraTooLow`       | camera level < reach tier × `cameraPerTier`                                                                  | "<network> needs camera level 4; yours is 2. Raise your camera level in Production" |
+| `belowFloor`         | projected < `minViewers.<kind>`                                                                              | "Fewer than 1,000 viewers is too small for TV" (buys for pay-per-view)              |
+| `audienceTooSmall`   | ratio < `minBenchmarkRatio` (exactly at it accepts)                                                          | "Your audience would be about 2% of what <network> needs (85%)"                     |
+| `badLength`          | months outside `minMonths`..`maxMonths`                                                                      | "A deal runs 6 to 48 months; 60 months is outside that"                             |
 
 A **live** deal is one that is `active` and not yet past its `endsOn` (it may
 not have started). `slotTaken` makes a TV channel or streaming service carry
 one show per weekday and timeslot; pay-per-view carries every promotion. If
 that proves too strict it is one rule to drop. The camera hint "Raise your
-camera level (Production)" is there because ECO7's Production screen can raise
-it.
+camera level in Production" is there because ECO7's Production screen can
+raise it; the Propose sheet links the refusal to `/game/production`
+(ECO8-07).
 
 ### Calibration and worked examples
 
@@ -385,7 +386,7 @@ earns, and the Why? says so.
 **Hardpan Friday on National Signal Network**, prime time: refused for
 `timeslotNotAllowed` ("Prime time needs a reach of 25.0; yours is 3.6"),
 `cameraTooLow` ("National Signal Network needs camera level 4; yours is 2.
-Raise your camera level (Production)") and `audienceTooSmall` ("Your audience
+Raise your camera level in Production") and `audienceTooSmall` ("Your audience
 would be about 2% of what National Signal Network needs (85%)"). On **Caliche
 Country Sports** (the Southwest tier-1 channel), evening: refused for
 `audienceTooSmall` at about 80%: Hardpan's fans are in Texas, and the channel

@@ -107,7 +107,7 @@ describe('dealVerdict', () => {
     ]);
     expect(verdict.refusals.map((refusal) => refusal.message)).toEqual([
       "House shows aren't televised",
-      'Test TV needs camera level 2; yours is 1. Raise your camera level (Production)',
+      'Test TV needs camera level 2; yours is 1. Raise your camera level in Production',
       'Fewer than 1,000 viewers is too small for TV',
       'Your audience would be about 1% of what Test TV needs (85%)',
       'A deal runs 6 to 48 months; 3 months is outside that',

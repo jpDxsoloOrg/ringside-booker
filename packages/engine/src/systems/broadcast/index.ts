@@ -36,6 +36,7 @@ export {
   dealCoversShow,
   dealInForce,
   dealsAiringShow,
+  firstDealInForce,
   hasActiveBroadcastDeal,
   incomeCategoryFor,
   networkOnAir,

@@ -3833,6 +3833,7 @@ export {
   dealHealthTraceRef,
   dealInForce,
   dealsAiringShow,
+  firstDealInForce,
   hasActiveBroadcastDeal,
   incomeCategoryFor,
   isHumanControlled,
