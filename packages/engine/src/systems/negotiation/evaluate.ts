@@ -216,14 +216,10 @@ function patienceAfter(reaction: Reaction, patience: number, tunables: EngineTun
  * point of patience in all (owner decision, ECO5-05): the worker's counter-offer uses it when they
  * make it (`patienceAfter`), so sending a revision in reply costs nothing more, and paying their
  * counter-offer costs nothing at all. The preview, the revise command and the review all weigh the
- * offer with this same number. Kept as a function (and `meetsTheirCounter` as an argument) so a
- * later rule can charge for a revision again in one place. Design: negotiation.md#rounds.
+ * offer with this same number. Kept as a function so a later rule can charge for a revision again
+ * in one place. Design: negotiation.md#rounds.
  */
-export function roundPatience(
-  negotiation: DeepReadonly<Negotiation>,
-  meetsTheirCounter: boolean,
-): number {
-  void meetsTheirCounter;
+export function roundPatience(negotiation: DeepReadonly<Negotiation>): number {
   return negotiation.patience;
 }
 
@@ -273,8 +269,7 @@ export function evaluateOffer(
   const mismatch = roleMismatch(person, offer.role, { tunables });
   const lastCounter = negotiation?.status === 'countered' ? negotiation.lastCounter : null;
   const matchesLastCounter = lastCounter !== null && meetsCounter(offer, lastCounter);
-  const patience =
-    negotiation === null ? ask.startPatience.value : roundPatience(negotiation, matchesLastCounter);
+  const patience = negotiation === null ? ask.startPatience.value : roundPatience(negotiation);
   const reaction = offerReaction(
     {
       offerValue,

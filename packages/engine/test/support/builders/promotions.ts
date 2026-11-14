@@ -224,6 +224,7 @@ export function aNegotiation(
     cooldownUntil: null,
     reactionTraceId: null,
     reviewTraceId: null,
+    counterStopsSkip: false,
   };
   return buildRow(NegotiationSchema, 'aNegotiation', defaults, overrides);
 }

@@ -502,7 +502,8 @@ const paceTunables = defineTunables({
   ),
   'contracts.counter.stopSkip': {
     kind: 'boolean',
-    default: true,
+    // Off until the Negotiation Sheet (ECO5-06) can answer a counter-offer from the day bar.
+    default: false,
     unit: 'flag',
     category: CONTRACTS_TUNABLE_CATEGORY,
     description: "Skips stop when a worker's counter-offer is waiting for you",
@@ -709,4 +710,32 @@ const reactionTunables = defineTunables({
   },
 });
 
-export const negotiationTunables = mergeTunables(paceTunables, askTunables, reactionTunables);
+/** The review phase (ECO5-05): ties between offers and the computer's answer to a counter. */
+const reviewTunables = defineTunables({
+  'contracts.review.tieEpsilon': {
+    kind: 'number',
+    default: 0.01,
+    min: 0,
+    max: 0.5,
+    step: 0.01,
+    unit: 'ratio',
+    category: CONTRACTS_TUNABLE_CATEGORY,
+    description:
+      'How close two offers must score (share of each ask) to count as a tie, broken by a roll',
+    docRef: REVIEW_DOC,
+  },
+  'contracts.ai.acceptCounterUpTo': factor(
+    1,
+    3,
+    'multiplier',
+    "A computer promotion accepts a counter-offer whose pay is at most this times the worker's ask",
+    REVIEW_DOC,
+  ),
+});
+
+export const negotiationTunables = mergeTunables(
+  paceTunables,
+  askTunables,
+  reactionTunables,
+  reviewTunables,
+);

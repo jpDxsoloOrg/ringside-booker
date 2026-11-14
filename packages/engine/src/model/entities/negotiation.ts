@@ -137,6 +137,11 @@ export const NegotiationSchema = z
     reactionTraceId: z.string().min(1).nullable(),
     /** The trace id of the review decision, `<negotiationId>:review`. */
     reviewTraceId: z.string().min(1).nullable(),
+    /**
+     * True while a counter-offer to a player's promotion stops day skips: `contracts.counter.stopSkip`
+     * copied when the worker made the counter (gates cannot read tunables). Only while `countered`.
+     */
+    counterStopsSkip: z.boolean().default(false),
   })
   .superRefine((row, context) => {
     const issue = (path: string, message: string): void => {
@@ -165,6 +170,9 @@ export const NegotiationSchema = z
           ? 'A countered negotiation needs counterExpiresOn'
           : `counterExpiresOn must be null while the status is ${row.status}`,
       );
+    }
+    if (!countered && row.counterStopsSkip) {
+      issue('counterStopsSkip', `counterStopsSkip must be false while the status is ${row.status}`);
     }
     if (row.status === 'awaitingReview' && row.reviewOn === null) {
       issue('reviewOn', 'A negotiation awaiting review needs reviewOn');

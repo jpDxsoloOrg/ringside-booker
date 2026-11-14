@@ -182,6 +182,7 @@ export function submitOffer(
     cooldownUntil: null,
     reactionTraceId: null,
     reviewTraceId: null,
+    counterStopsSkip: false,
   });
   recordAsk(ctx, negotiation.id, 1, evaluation, promotionId);
   ctx.publish('negotiation.opened', {
@@ -227,6 +228,7 @@ function closeByPromotion(
     lastCounter: null,
     counterExpiresOn: null,
     reviewOn: null,
+    counterStopsSkip: false,
     outcome: { code: outcomeCode, otherPromotionId: null },
   });
   ctx.publish('negotiation.closed', {
@@ -303,6 +305,7 @@ export function answerCounter(
     offer,
     lastCounter: null,
     counterExpiresOn: null,
+    counterStopsSkip: false,
     reviewOn: accepting ? addDays(ctx.date, ctx.tunables.get('contracts.review.delayDays')) : null,
     submittedOn: ctx.date,
     history,

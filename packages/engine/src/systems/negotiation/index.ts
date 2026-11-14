@@ -19,10 +19,14 @@ import './events';
 import './streams';
 // Registers the built-in offer kinds and enforced terms.
 import './builtins';
+// Guards who may read negotiation traces through `trace.get` (ECO5-05).
+import './redact';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
 import { negotiationCommands } from './commands';
 import { offersQueries } from './offersQueries';
 import { negotiationQueries } from './queries';
+import { counterWaitingGate } from './gates';
+import { negotiationPhases } from './phases';
 
 export {
   OFFER_EXTRA_MAX_KEYS,
@@ -238,10 +242,53 @@ export {
   type OfferSummary,
 } from './offersQueries';
 
+// ECO5-05: the review phase, signing, the counter-offer stop and the redaction of reviews.
+export { CONTRACT_ENDED_OUTCOME, closeTalksOnEndedContract } from './endedTalks';
+export {
+  closeTalks,
+  LAPSED_OUTCOME,
+  LOST_TO_OTHER_OFFER_OUTCOME,
+  PROMOTION_CLOSED_OUTCOME,
+  SIGNED_OUTCOME,
+  WALKED_AWAY_OUTCOME,
+  type CloseTalks,
+} from './close';
+export { FULL_ASK_COUNTER_REASON, fullAskCounter, reactToOffer } from './reactions';
+export {
+  answerComputerCounter,
+  counterResponders,
+  defaultCounterAnswer,
+  registerCounterResponder,
+  type CounterAnswer,
+  type CounterResponder,
+} from './counterResponders';
+export { RENEWAL_REASON_KEY, signNegotiation, SIGNING_DOC_REF, type SignedDeal } from './sign';
+export { REVIEW_DOC_REF, reviewDueOffers, SCORE_LABEL_SUFFIX } from './review';
+export { pruneClosedTalks } from './prune';
+export {
+  negotiationPhases,
+  REVIEW_OFFERS_PHASE_ID,
+  reviewOffersPhase,
+  runReviewOffers,
+} from './phases';
+export { COUNTER_WAITING_GATE_ID, counterWaitingGate, waitingCounters } from './gates';
+export {
+  ANOTHER_OFFER_NOTE,
+  guardNegotiationTrace,
+  negotiationOfTraceId,
+  redactReviewTrace,
+} from './redact';
+export {
+  COUNTERED_UPDATE_MESSAGE,
+  offerUpdatesSinceQuery,
+  type OfferUpdate,
+  type OfferUpdates,
+} from './offersQueries';
+
 export const negotiationSystem: SystemBundle = defineSystem({
   id: 'negotiation',
-  phases: [],
-  gates: [],
+  phases: negotiationPhases,
+  gates: [counterWaitingGate],
   subscriptions: [],
   queries: [...negotiationQueries, ...offersQueries],
   commands: [...negotiationCommands],

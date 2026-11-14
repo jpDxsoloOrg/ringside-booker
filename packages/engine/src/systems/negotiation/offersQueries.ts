@@ -19,7 +19,8 @@ import { defineQuery, type QueryContext } from '../../core/api/query';
 import { INVALID_ARGS, refuseQuery } from '../../core/api/result';
 import { compareDates, type GameDate } from '../../core/date';
 import type { NegotiationId, PersonId, PromotionId } from '../../core/ids';
-import type { TraceRef } from '../../core/trace/store';
+import { isFullTrace, type TraceRef } from '../../core/trace/store';
+import type { TraceNode } from '../../core/trace/types';
 import type { ContractKind } from '../../model/entities/employment';
 import {
   isOpenNegotiationStatus,
@@ -30,7 +31,7 @@ import {
   type Reaction,
 } from '../../model/entities/negotiation';
 import type { ImageRef } from '../../model/primitives';
-import { zId } from '../../model/primitives';
+import { zGameDate, zId } from '../../model/primitives';
 import { compareIds } from '../../model/table';
 import type { DeepReadonly } from '../../model/world';
 import { moneyText } from '../production';
@@ -40,6 +41,13 @@ import type { Offer } from './offer';
 import { NOT_YOUR_PROMOTION_MESSAGE } from './queries';
 import { copyOffer, TALKS_ENDED_OUTCOME, WITHDRAWN_OUTCOME } from './submit';
 import { NEGOTIATION_TRACE_KINDS } from './traceKinds';
+import { LAPSED_OUTCOME, LOST_TO_OTHER_OFFER_OUTCOME, PROMOTION_CLOSED_OUTCOME } from './close';
+import { REFUSES_RENEWAL_CODE } from './asking';
+import { EXCLUSIVE_ELSEWHERE_REASON_CODE, UNAVAILABLE_REASON_CODE } from './eligibility';
+import { CONTRACT_ENDED_OUTCOME } from './endedTalks';
+import { COOLING_OFF_CODE } from './evaluate';
+import { redactReviewTrace } from './redact';
+import { REFUSES_ROLE_CODE } from './validate';
 
 export const NOT_YOUR_TALKS_MESSAGE = 'Those are not your talks';
 
@@ -83,6 +91,11 @@ export interface OfferRow {
   readonly competingBidders: string[];
   readonly reactionTraceRef: TraceRef | null;
   readonly reviewTraceRef: TraceRef | null;
+  /**
+   * The review decision as you may see it (ECO5-05): other promotions' scores replaced by
+   * "Another offer was compared"; null before the review or once only a summary is kept.
+   */
+  readonly reviewTrace: TraceNode | null;
 }
 
 /** One round of the talks, with a line the sheet can show as it is. */
@@ -119,6 +132,10 @@ declare module '../../core/api/maps' {
       args: { negotiationId: NegotiationId };
       result: NegotiationView;
     };
+    'contracts.offerUpdatesSince': {
+      args: { promotionId: PromotionId; from: GameDate; to: GameDate };
+      result: OfferUpdates;
+    };
   }
 }
 
@@ -130,7 +147,16 @@ export const OUTCOME_MESSAGES: Readonly<Record<string, string>> = {
   signedElsewhere: 'Signed elsewhere',
   walkedAway: 'Walked away from the talks',
   declined: 'Turned the offer down',
-  lapsed: 'Their counter-offer lapsed',
+  // ECO5-05: how the worker's side closes talks.
+  [LAPSED_OUTCOME]: 'They stopped waiting for your answer',
+  [LOST_TO_OTHER_OFFER_OUTCOME]: 'Signed with another promotion instead',
+  [CONTRACT_ENDED_OUTCOME]: 'Their contract ran out first: make a new offer',
+  [PROMOTION_CLOSED_OUTCOME]: 'The promotion closed',
+  [REFUSES_RENEWAL_CODE]: "Won't renew while unhappy here",
+  [UNAVAILABLE_REASON_CODE]: "Can't sign a contract now",
+  [EXCLUSIVE_ELSEWHERE_REASON_CODE]: 'Tied to an exclusive contract elsewhere',
+  [COOLING_OFF_CODE]: 'Still cooling off after walking away from you',
+  [REFUSES_ROLE_CODE]: "Won't take that role",
 };
 
 const REACTION_LABELS: Readonly<Record<Reaction, string>> = {
@@ -201,8 +227,9 @@ function outcomeOf(
   return {
     code: outcome.code,
     message:
-      outcome.code === 'signedElsewhere' && otherPromotionName !== null
-        ? `Signed with ${otherPromotionName}`
+      (outcome.code === 'signedElsewhere' || outcome.code === LOST_TO_OTHER_OFFER_OUTCOME) &&
+      otherPromotionName !== null
+        ? `Signed with ${otherPromotionName}${outcome.code === LOST_TO_OTHER_OFFER_OUTCOME ? ' instead' : ''}`
         : base,
     otherPromotionName,
   };
@@ -235,7 +262,26 @@ function rowOf(ctx: QueryContext, negotiation: DeepReadonly<Negotiation>): Offer
       negotiation.reactionTraceId,
     ),
     reviewTraceRef: traceRefOf(ctx, NEGOTIATION_TRACE_KINDS.review, negotiation.reviewTraceId),
+    reviewTrace: reviewTraceOf(ctx, negotiation),
   };
+}
+
+/** The review decision, redacted for the viewer, inline (ECO5-05). */
+function reviewTraceOf(
+  ctx: QueryContext,
+  negotiation: DeepReadonly<Negotiation>,
+): TraceNode | null {
+  if (negotiation.reviewTraceId === null) {
+    return null;
+  }
+  const entry = ctx.traces.get({
+    kind: NEGOTIATION_TRACE_KINDS.review,
+    id: negotiation.reviewTraceId,
+  });
+  if (entry === undefined || !isFullTrace(entry)) {
+    return null;
+  }
+  return redactReviewTrace(entry.trace, viewerPromotionIds(ctx.read, ctx.viewer));
 }
 
 function matchesFilter(status: NegotiationStatus, filter: OffersStatusFilter): boolean {
@@ -319,4 +365,96 @@ export const negotiationQuery = defineQuery('contracts.negotiation', {
   },
 });
 
-export const offersQueries = [offersQuery, negotiationQuery];
+/** One line of the Next Day summary about your talks (ECO5-05). */
+export interface OfferUpdate {
+  readonly negotiationId: NegotiationId;
+  readonly ringName: string;
+  /** "Made a counter-offer", "Signed", "Signed with Crown Pro instead", ... */
+  readonly outcomeMessage: string;
+}
+
+/** `contracts.offerUpdatesSince`: what happened to your talks between two days, inclusive. */
+export interface OfferUpdates {
+  readonly countered: OfferUpdate[];
+  readonly signed: OfferUpdate[];
+  readonly walkedAway: OfferUpdate[];
+  readonly declined: OfferUpdate[];
+  readonly lapsed: OfferUpdate[];
+}
+
+export const COUNTERED_UPDATE_MESSAGE = 'Made a counter-offer';
+
+function within(date: GameDate | null, from: GameDate, to: GameDate): boolean {
+  return date !== null && compareDates(date, from) >= 0 && compareDates(date, to) <= 0;
+}
+
+/**
+ * The Next Day summary's lines about the promotion's talks, read from the negotiations themselves
+ * (closed talks by `closedOn`, counter-offers by the day the worker made them), in id order.
+ */
+export const offerUpdatesSinceQuery = defineQuery('contracts.offerUpdatesSince', {
+  args: z.strictObject({ promotionId: zId('promotion'), from: zGameDate, to: zGameDate }),
+  run: (ctx, args): OfferUpdates => {
+    if (!viewerPromotionIds(ctx.read, ctx.viewer).includes(args.promotionId)) {
+      refuseQuery({
+        code: INVALID_ARGS,
+        message: NOT_YOUR_PROMOTION_MESSAGE,
+        field: 'promotionId',
+      });
+    }
+    const updates: OfferUpdates = {
+      countered: [],
+      signed: [],
+      walkedAway: [],
+      declined: [],
+      lapsed: [],
+    };
+    const rows = [...ctx.read.tables.negotiations.lookup('byPromotion', args.promotionId)].sort(
+      (left, right) => compareIds(left.id, right.id),
+    );
+    for (const negotiation of rows) {
+      const ringName =
+        ctx.read.tables.employments.get(negotiation.employmentId)?.ringName ??
+        ctx.read.tables.people.get(negotiation.personId)?.defaultRingName ??
+        'A worker';
+      const line = (outcomeMessage: string): OfferUpdate => ({
+        negotiationId: negotiation.id,
+        ringName,
+        outcomeMessage,
+      });
+      if (
+        negotiation.history.some(
+          (entry) => entry.by === 'worker' && within(entry.date, args.from, args.to),
+        )
+      ) {
+        updates.countered.push(line(COUNTERED_UPDATE_MESSAGE));
+      }
+      if (!within(negotiation.closedOn, args.from, args.to)) {
+        continue;
+      }
+      const message = outcomeOf(ctx, negotiation)?.message ?? 'Talks closed';
+      switch (negotiation.status) {
+        case 'signed':
+          updates.signed.push(line(message));
+          break;
+        case 'walkedAway':
+          updates.walkedAway.push(line(message));
+          break;
+        case 'declined':
+          updates.declined.push(line(message));
+          break;
+        case 'lapsed':
+          updates.lapsed.push(line(message));
+          break;
+        case 'withdrawn':
+        case 'submitted':
+        case 'countered':
+        case 'awaitingReview':
+          break;
+      }
+    }
+    return updates;
+  },
+});
+
+export const offersQueries = [offersQuery, negotiationQuery, offerUpdatesSinceQuery];
