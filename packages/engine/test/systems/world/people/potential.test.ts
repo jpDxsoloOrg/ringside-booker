@@ -166,7 +166,8 @@ describe('seedPotential', () => {
     expect(roomAt(36)).toBe(0);
   });
 
-  it('moves the potential number smoothly with age, day by day', () => {
+  // Day-by-day sweep: under 1 s alone, slower on a loaded CI runner.
+  it('moves the potential number smoothly with age, day by day', { timeout: 30_000 }, () => {
     const noBloomers = { 'worldgen.potential.lateBloomerChance': 0 };
     const stream = streamFor('smooth');
     let previous: number | undefined;
