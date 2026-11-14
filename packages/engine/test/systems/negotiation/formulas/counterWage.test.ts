@@ -13,7 +13,7 @@ import {
   type AskingTerms,
 } from '../../../../src/systems/negotiation';
 import { createEngineTunables } from '../../../../src/systems/tunables';
-import { anOffer } from '../../../support';
+import { anOffer, testId } from '../../../support';
 import {
   expectRollRecorded,
   expectSerialisable,
@@ -123,8 +123,8 @@ describe('counterWage', () => {
 function anAsk(overrides: Partial<AskingTerms> = {}): AskingTerms {
   const money = (label: string, value: number) => inputOf(label, value);
   return {
-    personId: 'per_1',
-    promotionId: 'pro_1',
+    personId: testId('person', 1),
+    promotionId: testId('promotion', 1),
     role: 'wrestler',
     kind: 'written',
     exclusive: true,
@@ -145,7 +145,7 @@ function anAsk(overrides: Partial<AskingTerms> = {}): AskingTerms {
     refusal: null,
     renewalDecision: null,
     ...overrides,
-  } as AskingTerms;
+  };
 }
 
 describe('counterTermsFor', () => {

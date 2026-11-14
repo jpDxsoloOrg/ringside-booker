@@ -300,17 +300,16 @@ export const offerPreviewQuery = defineQuery('contracts.offerPreview', {
     if (ctx.read.tables.people.get(args.personId) === undefined) {
       refuseQuery({ code: INVALID_ARGS, message: UNKNOWN_PERSON_MESSAGE, field: 'personId' });
     }
-    const negotiation =
+    const found =
       args.negotiationId === undefined
-        ? null
-        : (ctx.read.tables.negotiations.get(args.negotiationId) ?? null);
-    if (
-      args.negotiationId !== undefined &&
-      (negotiation === null ||
-        negotiation.personId !== args.personId ||
-        negotiation.promotionId !== args.promotionId ||
-        !isOpenNegotiationStatus(negotiation.status))
-    ) {
+        ? undefined
+        : ctx.read.tables.negotiations.get(args.negotiationId);
+    const yours =
+      found?.personId === args.personId &&
+      found.promotionId === args.promotionId &&
+      isOpenNegotiationStatus(found.status);
+    const negotiation = yours ? found : null;
+    if (args.negotiationId !== undefined && negotiation === null) {
       refuseQuery({
         code: INVALID_ARGS,
         message: UNKNOWN_NEGOTIATION_MESSAGE,
