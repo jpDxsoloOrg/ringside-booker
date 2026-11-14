@@ -255,6 +255,24 @@ const askTunables = defineTunables({
     'Share of their value a worker asks from a promotion nobody has heard of (reach 0)',
     ASKING_TERMS_DOC,
   ),
+  'contracts.ask.sizeFloor': factor(
+    0.32,
+    1,
+    'ratio',
+    'Share of their usual pay a worker asks from the smallest company (reach 0): indie wages',
+    ASKING_TERMS_DOC,
+  ),
+  'contracts.ask.sizeFullReach': {
+    kind: 'integer',
+    default: 30,
+    min: 0,
+    max: 100,
+    unit: 'points',
+    category: CONTRACTS_TUNABLE_CATEGORY,
+    description:
+      'Reach from which a company pays full rates; smaller companies pay less (0 = every company pays full rates)',
+    docRef: ASKING_TERMS_DOC,
+  },
   'contracts.ask.prestigeDiscount': factor(
     0.15,
     1,

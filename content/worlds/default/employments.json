@@ -12,7 +12,7 @@
       "kind": "perAppearance",
       "exclusive": false,
       "monthlyWage": 0,
-      "perAppearanceFee": 300,
+      "perAppearanceFee": 130,
       "signingBonus": 0,
       "shares": {
         "gateBp": 0,
@@ -43,7 +43,7 @@
       "kind": "perAppearance",
       "exclusive": false,
       "monthlyWage": 0,
-      "perAppearanceFee": 700,
+      "perAppearanceFee": 310,
       "signingBonus": 0,
       "shares": {
         "gateBp": 0,
@@ -74,7 +74,7 @@
       "kind": "perAppearance",
       "exclusive": false,
       "monthlyWage": 0,
-      "perAppearanceFee": 700,
+      "perAppearanceFee": 310,
       "signingBonus": 0,
       "shares": {
         "gateBp": 0,
@@ -105,7 +105,7 @@
       "kind": "perAppearance",
       "exclusive": false,
       "monthlyWage": 0,
-      "perAppearanceFee": 450,
+      "perAppearanceFee": 200,
       "signingBonus": 0,
       "shares": {
         "gateBp": 0,
@@ -136,7 +136,7 @@
       "kind": "perAppearance",
       "exclusive": false,
       "monthlyWage": 0,
-      "perAppearanceFee": 1000,
+      "perAppearanceFee": 440,
       "signingBonus": 0,
       "shares": {
         "gateBp": 0,
@@ -167,7 +167,7 @@
       "kind": "perAppearance",
       "exclusive": false,
       "monthlyWage": 0,
-      "perAppearanceFee": 1000,
+      "perAppearanceFee": 440,
       "signingBonus": 0,
       "shares": {
         "gateBp": 0,
@@ -198,7 +198,7 @@
       "kind": "perAppearance",
       "exclusive": false,
       "monthlyWage": 0,
-      "perAppearanceFee": 450,
+      "perAppearanceFee": 200,
       "signingBonus": 0,
       "shares": {
         "gateBp": 0,
@@ -229,7 +229,7 @@
       "kind": "perAppearance",
       "exclusive": false,
       "monthlyWage": 0,
-      "perAppearanceFee": 250,
+      "perAppearanceFee": 110,
       "signingBonus": 0,
       "shares": {
         "gateBp": 0,
@@ -260,7 +260,7 @@
       "kind": "perAppearance",
       "exclusive": false,
       "monthlyWage": 0,
-      "perAppearanceFee": 250,
+      "perAppearanceFee": 110,
       "signingBonus": 0,
       "shares": {
         "gateBp": 0,
@@ -290,7 +290,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 2500,
+      "monthlyWage": 1700,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -321,7 +321,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 500,
+      "monthlyWage": 300,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -352,7 +352,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 2500,
+      "monthlyWage": 1700,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -383,7 +383,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 900,
+      "monthlyWage": 600,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -414,7 +414,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 1500,
+      "monthlyWage": 1000,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -445,7 +445,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 900,
+      "monthlyWage": 600,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -476,7 +476,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 500,
+      "monthlyWage": 300,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -507,7 +507,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 1500,
+      "monthlyWage": 1000,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -538,7 +538,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 1500,
+      "monthlyWage": 1000,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -569,7 +569,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 2500,
+      "monthlyWage": 1700,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -600,7 +600,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 1500,
+      "monthlyWage": 1000,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -631,7 +631,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 1500,
+      "monthlyWage": 1000,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -662,7 +662,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 800,
+      "monthlyWage": 500,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -693,7 +693,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 800,
+      "monthlyWage": 500,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -724,7 +724,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 800,
+      "monthlyWage": 500,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -755,7 +755,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 2500,
+      "monthlyWage": 1800,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -786,7 +786,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 1500,
+      "monthlyWage": 1100,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -817,7 +817,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 900,
+      "monthlyWage": 600,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -848,7 +848,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 1500,
+      "monthlyWage": 1100,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -879,7 +879,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 1500,
+      "monthlyWage": 1100,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -910,7 +910,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 900,
+      "monthlyWage": 600,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -941,7 +941,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 1500,
+      "monthlyWage": 1100,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -972,7 +972,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 500,
+      "monthlyWage": 400,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -1003,7 +1003,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 2500,
+      "monthlyWage": 1800,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -1034,7 +1034,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 1500,
+      "monthlyWage": 1100,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -1065,7 +1065,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 2500,
+      "monthlyWage": 1800,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -1096,7 +1096,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 800,
+      "monthlyWage": 600,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -1127,7 +1127,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 800,
+      "monthlyWage": 600,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -1158,7 +1158,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 800,
+      "monthlyWage": 600,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -2678,7 +2678,7 @@
       "kind": "perAppearance",
       "exclusive": false,
       "monthlyWage": 0,
-      "perAppearanceFee": 450,
+      "perAppearanceFee": 180,
       "signingBonus": 0,
       "shares": {
         "gateBp": 0,
@@ -2709,7 +2709,7 @@
       "kind": "perAppearance",
       "exclusive": false,
       "monthlyWage": 0,
-      "perAppearanceFee": 450,
+      "perAppearanceFee": 180,
       "signingBonus": 0,
       "shares": {
         "gateBp": 0,
@@ -2740,7 +2740,7 @@
       "kind": "perAppearance",
       "exclusive": false,
       "monthlyWage": 0,
-      "perAppearanceFee": 1000,
+      "perAppearanceFee": 400,
       "signingBonus": 0,
       "shares": {
         "gateBp": 0,
@@ -2771,7 +2771,7 @@
       "kind": "perAppearance",
       "exclusive": false,
       "monthlyWage": 0,
-      "perAppearanceFee": 1000,
+      "perAppearanceFee": 400,
       "signingBonus": 0,
       "shares": {
         "gateBp": 0,
@@ -2802,7 +2802,7 @@
       "kind": "perAppearance",
       "exclusive": false,
       "monthlyWage": 0,
-      "perAppearanceFee": 300,
+      "perAppearanceFee": 120,
       "signingBonus": 0,
       "shares": {
         "gateBp": 0,
@@ -2833,7 +2833,7 @@
       "kind": "perAppearance",
       "exclusive": false,
       "monthlyWage": 0,
-      "perAppearanceFee": 700,
+      "perAppearanceFee": 280,
       "signingBonus": 0,
       "shares": {
         "gateBp": 0,
@@ -2864,7 +2864,7 @@
       "kind": "perAppearance",
       "exclusive": false,
       "monthlyWage": 0,
-      "perAppearanceFee": 700,
+      "perAppearanceFee": 280,
       "signingBonus": 0,
       "shares": {
         "gateBp": 0,
@@ -2895,7 +2895,7 @@
       "kind": "perAppearance",
       "exclusive": false,
       "monthlyWage": 0,
-      "perAppearanceFee": 250,
+      "perAppearanceFee": 100,
       "signingBonus": 0,
       "shares": {
         "gateBp": 0,
@@ -2926,7 +2926,7 @@
       "kind": "perAppearance",
       "exclusive": false,
       "monthlyWage": 0,
-      "perAppearanceFee": 250,
+      "perAppearanceFee": 100,
       "signingBonus": 0,
       "shares": {
         "gateBp": 0,
@@ -4816,7 +4816,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 900,
+      "monthlyWage": 600,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -4847,7 +4847,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 2500,
+      "monthlyWage": 1500,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -4878,7 +4878,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 2500,
+      "monthlyWage": 1500,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -4909,7 +4909,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 900,
+      "monthlyWage": 600,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -4940,7 +4940,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 1500,
+      "monthlyWage": 900,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -4971,7 +4971,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 1500,
+      "monthlyWage": 900,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -5002,7 +5002,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 1500,
+      "monthlyWage": 900,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -5033,7 +5033,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 1500,
+      "monthlyWage": 900,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -5064,7 +5064,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 1500,
+      "monthlyWage": 900,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -5095,7 +5095,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 500,
+      "monthlyWage": 300,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -5126,7 +5126,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 800,
+      "monthlyWage": 500,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -5157,7 +5157,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 800,
+      "monthlyWage": 500,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -5188,7 +5188,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 800,
+      "monthlyWage": 500,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -5219,7 +5219,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 1500,
+      "monthlyWage": 900,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -5250,7 +5250,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 900,
+      "monthlyWage": 500,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -5281,7 +5281,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 1500,
+      "monthlyWage": 900,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -5312,7 +5312,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 500,
+      "monthlyWage": 300,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -5343,7 +5343,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 2500,
+      "monthlyWage": 1500,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -5374,7 +5374,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 1500,
+      "monthlyWage": 900,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -5405,7 +5405,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 1500,
+      "monthlyWage": 900,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -5436,7 +5436,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 900,
+      "monthlyWage": 500,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -5467,7 +5467,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 1500,
+      "monthlyWage": 900,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -5498,7 +5498,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 2500,
+      "monthlyWage": 1500,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -5529,7 +5529,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 2500,
+      "monthlyWage": 1500,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -5560,7 +5560,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 800,
+      "monthlyWage": 500,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -5591,7 +5591,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 800,
+      "monthlyWage": 500,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -5622,7 +5622,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 800,
+      "monthlyWage": 500,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -5653,7 +5653,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 2500,
+      "monthlyWage": 1500,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -5684,7 +5684,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 1500,
+      "monthlyWage": 900,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -5715,7 +5715,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 900,
+      "monthlyWage": 500,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -5746,7 +5746,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 1500,
+      "monthlyWage": 900,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -5777,7 +5777,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 900,
+      "monthlyWage": 500,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -5808,7 +5808,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 1500,
+      "monthlyWage": 900,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -5839,7 +5839,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 1500,
+      "monthlyWage": 900,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -5870,7 +5870,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 500,
+      "monthlyWage": 300,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -5901,7 +5901,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 2500,
+      "monthlyWage": 1500,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -5932,7 +5932,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 1500,
+      "monthlyWage": 900,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -5963,7 +5963,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 2500,
+      "monthlyWage": 1500,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -5994,7 +5994,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 800,
+      "monthlyWage": 500,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -6025,7 +6025,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 800,
+      "monthlyWage": 500,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -6056,7 +6056,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 800,
+      "monthlyWage": 500,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -6088,7 +6088,7 @@
       "kind": "perAppearance",
       "exclusive": false,
       "monthlyWage": 0,
-      "perAppearanceFee": 450,
+      "perAppearanceFee": 180,
       "signingBonus": 0,
       "shares": {
         "gateBp": 0,
@@ -6119,7 +6119,7 @@
       "kind": "perAppearance",
       "exclusive": false,
       "monthlyWage": 0,
-      "perAppearanceFee": 700,
+      "perAppearanceFee": 280,
       "signingBonus": 0,
       "shares": {
         "gateBp": 0,
@@ -6150,7 +6150,7 @@
       "kind": "perAppearance",
       "exclusive": false,
       "monthlyWage": 0,
-      "perAppearanceFee": 1000,
+      "perAppearanceFee": 400,
       "signingBonus": 0,
       "shares": {
         "gateBp": 0,
@@ -6181,7 +6181,7 @@
       "kind": "perAppearance",
       "exclusive": false,
       "monthlyWage": 0,
-      "perAppearanceFee": 1000,
+      "perAppearanceFee": 400,
       "signingBonus": 0,
       "shares": {
         "gateBp": 0,
@@ -6212,7 +6212,7 @@
       "kind": "perAppearance",
       "exclusive": false,
       "monthlyWage": 0,
-      "perAppearanceFee": 450,
+      "perAppearanceFee": 180,
       "signingBonus": 0,
       "shares": {
         "gateBp": 0,
@@ -6243,7 +6243,7 @@
       "kind": "perAppearance",
       "exclusive": false,
       "monthlyWage": 0,
-      "perAppearanceFee": 300,
+      "perAppearanceFee": 120,
       "signingBonus": 0,
       "shares": {
         "gateBp": 0,
@@ -6274,7 +6274,7 @@
       "kind": "perAppearance",
       "exclusive": false,
       "monthlyWage": 0,
-      "perAppearanceFee": 700,
+      "perAppearanceFee": 280,
       "signingBonus": 0,
       "shares": {
         "gateBp": 0,
@@ -6305,7 +6305,7 @@
       "kind": "perAppearance",
       "exclusive": false,
       "monthlyWage": 0,
-      "perAppearanceFee": 250,
+      "perAppearanceFee": 100,
       "signingBonus": 0,
       "shares": {
         "gateBp": 0,
@@ -6336,7 +6336,7 @@
       "kind": "perAppearance",
       "exclusive": false,
       "monthlyWage": 0,
-      "perAppearanceFee": 250,
+      "perAppearanceFee": 100,
       "signingBonus": 0,
       "shares": {
         "gateBp": 0,
@@ -6366,7 +6366,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 1500,
+      "monthlyWage": 800,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -6397,7 +6397,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 1500,
+      "monthlyWage": 800,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -6428,7 +6428,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 500,
+      "monthlyWage": 300,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -6459,7 +6459,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 1500,
+      "monthlyWage": 800,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -6490,7 +6490,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 2500,
+      "monthlyWage": 1300,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -6521,7 +6521,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 1500,
+      "monthlyWage": 800,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -6552,7 +6552,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 900,
+      "monthlyWage": 500,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -6583,7 +6583,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 2500,
+      "monthlyWage": 1300,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -6614,7 +6614,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 900,
+      "monthlyWage": 500,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -6645,7 +6645,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 2500,
+      "monthlyWage": 1300,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -6676,7 +6676,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 1500,
+      "monthlyWage": 800,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -6707,7 +6707,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 800,
+      "monthlyWage": 400,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -6738,7 +6738,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 800,
+      "monthlyWage": 400,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -6769,7 +6769,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 800,
+      "monthlyWage": 400,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -6800,7 +6800,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 4000,
+      "monthlyWage": 2400,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -6831,7 +6831,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 4000,
+      "monthlyWage": 2400,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -6925,7 +6925,7 @@
       "kind": "perAppearance",
       "exclusive": false,
       "monthlyWage": 0,
-      "perAppearanceFee": 1500,
+      "perAppearanceFee": 650,
       "signingBonus": 0,
       "shares": {
         "gateBp": 0,
@@ -6955,7 +6955,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 4000,
+      "monthlyWage": 2400,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -7017,7 +7017,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 4000,
+      "monthlyWage": 2700,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -7110,7 +7110,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 2500,
+      "monthlyWage": 1500,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -7203,7 +7203,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 4000,
+      "monthlyWage": 2900,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -7235,7 +7235,7 @@
       "kind": "perAppearance",
       "exclusive": false,
       "monthlyWage": 0,
-      "perAppearanceFee": 1500,
+      "perAppearanceFee": 600,
       "signingBonus": 0,
       "shares": {
         "gateBp": 0,
@@ -7265,7 +7265,7 @@
     "terms": {
       "kind": "written",
       "exclusive": true,
-      "monthlyWage": 4000,
+      "monthlyWage": 2100,
       "perAppearanceFee": 0,
       "signingBonus": 0,
       "shares": {
@@ -7483,7 +7483,7 @@
       "kind": "perAppearance",
       "exclusive": false,
       "monthlyWage": 0,
-      "perAppearanceFee": 1500,
+      "perAppearanceFee": 600,
       "signingBonus": 0,
       "shares": {
         "gateBp": 0,

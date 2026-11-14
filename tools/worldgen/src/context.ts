@@ -4,11 +4,14 @@
  */
 
 import {
+  companySizePay,
+  createEngineTunables,
   geographyOf,
   loadWorldFromPacks,
   packs,
   parseId,
   PersonGenerator,
+  reachOf,
   RngRegistry,
   type ContentLibrary,
   type ContinentId,
@@ -16,6 +19,7 @@ import {
   type GameDate,
   type Geography,
   type PersonId,
+  type PromotionId,
   type RegionId,
   type RngStream,
   type StreamName,
@@ -114,6 +118,18 @@ export function createBuildContext(inputs: BuildInputs): BuildContext {
     ]),
   );
 
+  const promotionIds = new Map<string, PromotionId>(
+    Object.entries(contentKeys['promotion'] ?? {}).map(([key, id]) => [
+      key,
+      parseId('promotion', id),
+    ]),
+  );
+  const tunables = createEngineTunables();
+  const payFactorOf = (key: string): number =>
+    companySizePay(reachOf(world, lookup(promotionIds, key, 'promotion'), tunables).reach.value, {
+      tunables,
+    }).value;
+
   const promotions = new Map<string, RosterPromotion>();
   for (const [key, mergedPromotion] of [...merged.value.records.promotion.entries()].sort(
     ([left], [right]) => compareText(left, right),
@@ -132,6 +148,7 @@ export function createBuildContext(inputs: BuildInputs): BuildContext {
       tier: promotionSpec.tier,
       homeRegionKey: packs.parseRef(record.homeRegionKey).key,
       regionalPop,
+      payFactor: payFactorOf(key),
     });
   }
   for (const key of Object.keys(spec.promotions)) {

@@ -1,7 +1,7 @@
 /**
- * Contracts: one running employment per employed person, with staggered expiry dates and
- * placeholder terms from the spec's tier × push table. ECO owns real wages; these amounts only
- * need the right order of magnitude.
+ * Contracts: one running employment per employed person, with staggered expiry dates and terms
+ * from the spec's tier × push table × the promotion's company size pay factor (ECO4-09: a small
+ * company pays indie wages). Fees are rounded to $10 and wages to $100, as asks are quoted.
  */
 
 import {
@@ -15,6 +15,10 @@ import {
 } from '@ringside/engine';
 import { RosterBuildError, type BuildContext } from './context';
 import type { ContractTermsOut, EmploymentOut, RosterMember } from './model';
+
+/** $10 and $100 (pack money is whole dollars): the steps fees and wages are quoted in. */
+const FEE_STEP = 10;
+const WAGE_STEP = 100;
 
 /** Youngest age at which a staff member's contract may have started. */
 const MIN_STAFF_AGE = 18;
@@ -33,8 +37,9 @@ function termsFor(
     throw new RosterBuildError(`Unknown promotion ${promotionKey}`);
   }
   const tierTerms = context.spec.contracts.terms[promotion.tier];
-  const pay = tierTerms.pay[member.push];
   const written = tierTerms.kind === 'written';
+  const step = written ? WAGE_STEP : FEE_STEP;
+  const pay = Math.round((tierTerms.pay[member.push] * promotion.payFactor) / step) * step;
   return {
     kind: tierTerms.kind,
     exclusive: written,
