@@ -204,11 +204,14 @@ function sharesOf(
   return { shares, note: null };
 }
 
-/** The per-thousand money: viewers ÷ 1,000 × the deal's rate, rounded down to whole cents. */
+/**
+ * The per-thousand money: the deal's rate × viewers ÷ 1,000, rounded down to whole cents. Multiplied
+ * first, so the whole-number product is exact before the one division.
+ */
 function perThousandIncome(viewers: Traced<number>, rate: number, noun: string): Traced<number> {
   return startCalc(`Paid for ${noun}`, viewers, { unit: 'money', docRef: SETTLEMENT_DOC_REF })
-    .divide('In thousands', 1_000)
     .multiply(`Paid per 1,000 ${noun}`, rate)
+    .divide('Per 1,000', 1_000)
     .round('floor', 'Rounded down to whole cents')
     .done();
 }
