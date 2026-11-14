@@ -21,7 +21,7 @@ test.describe('World > Promotions', () => {
     await expect(page.getByRole('link', { name: RIVAL })).toBeVisible();
     await expect(page.getByText('You', { exact: true })).toBeVisible();
     await expect(page.getByText('Computer', { exact: true })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Rival rules: 6 on' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Rival rules: 7 on' })).toBeVisible();
     await expectNoHorizontalScroll(page);
     await expectNoSeriousA11yViolations(page);
 

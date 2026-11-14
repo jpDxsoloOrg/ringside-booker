@@ -32,6 +32,7 @@ const SHORTCUTS = [
   'Simpler booking',
   'No media requests',
   'No worker requests',
+  'Simple contract renewals',
 ];
 
 /** A money figure in any currency the formatter might use. */
@@ -169,8 +170,8 @@ test.describe('Promotions and the rival desk in a new game', () => {
       await closeWhy(page, panel);
     });
 
-    await test.step('the Rival rules chip lists six shortcuts, all on', async () => {
-      const rules = await openRivalRules(page, phone, 'Rival rules: 6 on');
+    await test.step('the Rival rules chip lists seven shortcuts, all on', async () => {
+      const rules = await openRivalRules(page, phone, 'Rival rules: 7 on');
       await expectShortcutStates(rules, (label) => (label === 'Score bonus' ? '+3' : 'On'));
       await expect(rules).toContainText('apply only to promotions run by the computer');
       if (phone) await expectNoHorizontalScroll(page);
