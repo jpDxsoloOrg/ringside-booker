@@ -3,7 +3,8 @@
  * combined days per person, and the oldest and youngest champions. Pure: it reads only what it is
  * given, so the lineage screen and tests compute the same numbers.
  *
- * Ties go to the earliest `wonOn`, then the lowest ID (a reign's ID for reign records, a person's
+ * Ties go to the reign that came first (`compareReignsChronologically`: earliest `wonOn`, then
+ * same-day reigns in the order they happened), then the lowest ID (a reign's ID for reign records, a person's
  * ID for person records, whose `wonOn` is their first reign of the title).
  *
  * Design: docs/design/titles.md#records.
@@ -16,6 +17,8 @@ import { ageOn } from '../workers/helpers/age';
 import { startCalc } from '../../core/trace/calc';
 import type { Traced } from '../../core/trace/types';
 import { reignDateText, reignDays } from './formulas/reignDays';
+import { compareReignsChronologically } from './helpers/reignOrder';
+import type { ReignEndReason } from '../../model/entities/title-reign';
 
 /** What the records need to know about one reign. */
 export interface TitleRecordReign {
@@ -26,6 +29,8 @@ export interface TitleRecordReign {
   readonly wonOn: GameDate;
   /** Null while the reign is current. */
   readonly lostOn: GameDate | null;
+  /** How it ended, for the order of reigns that started on the same day (null while current). */
+  readonly endReason?: ReignEndReason | null;
   readonly defences: number;
 }
 
@@ -61,9 +66,7 @@ export interface TitleRecords {
   youngestChampion: TitleRecord | null;
 }
 
-function compareReigns(left: TitleRecordReign, right: TitleRecordReign): number {
-  return compareDates(left.wonOn, right.wonOn) || compareIds(left.id, right.id);
-}
+const compareReigns = compareReignsChronologically;
 
 function daysOf(reign: TitleRecordReign, today: GameDate): number {
   return reignDays({ wonOn: reign.wonOn, lostOn: reign.lostOn, today }).value;

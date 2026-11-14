@@ -13,23 +13,24 @@ the daily [orphaned-champion rule](#orphaned-champions), and
 CRTV2 moves prestige over time. Show-night title changes are EVT3's
 ([show-night.md](show-night.md#title-outcomes)).
 
-| Piece        | Where                    | What it does                                                                                                         |
-| ------------ | ------------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| Tiers        | `tiers.ts`               | `TITLE_TIERS`, `TITLE_TIER_LABELS`: World, Secondary, Specialty ([not stored](#tiers))                               |
-| Tunables     | `tunables.ts`            | `titles.startPrestige.*`, category `Titles`                                                                          |
-| Formulas     | `formulas/`              | `startingPrestige`, `reignDays`                                                                                      |
-| Holders      | `helpers/holders.ts`     | `currentReign`, `currentHolders`, `titlesHeldBy`, `reignLabel`                                                       |
-| Eligibility  | `helpers/eligibility.ts` | `isEligibleHolder`: the one holder check                                                                             |
-| Employment   | `helpers/employment.ts`  | `employedForTitle`, `lastEmployedForTitleOn`, `ringNameForTitle`                                                     |
-| Reign writes | `reigns.ts`              | `openReign`, `closeReign`, `addDefence`: the only code that writes reigns                                            |
-| Traces       | `traces.ts`              | `titles.prestige` (per title): the Why? behind a belt's prestige                                                     |
-| Events       | `events.ts`              | `title.created`, `title.awarded`, `title.vacated`, `title.retired`, `title.reactivated` (published from CRTV1-03 on) |
-| Queries      | `queries.ts`             | `titles.list`, `titles.detail`, `titles.eligibleHolders` ([queries](#queries))                                       |
-| Rows         | `rows.ts`                | `TitleCardRow`, `prestigeExplanation`, `divisionLabel`, `endReasonLabel`                                             |
-| Records      | `records.ts`             | `titleRecords`, `daysVacant` ([records](#records))                                                                   |
-| Commands     | `commands.ts`            | `titles.create`, `edit`, `award`, `vacate`, `retire`, `reactivate` ([commands](#commands)); checks in `validate.ts`  |
-| Doors        | `doors.ts`               | `vacateTitle`, `retireTitle`, `reactivateTitle`: every vacancy and retirement outside a match                        |
-| Phase        | `phases.ts`              | `titles.vacateOrphaned`: the daily [orphaned-champion rule](#orphaned-champions)                                     |
+| Piece        | Where                    | What it does                                                                                                             |
+| ------------ | ------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| Tiers        | `tiers.ts`               | `TITLE_TIERS`, `TITLE_TIER_LABELS`: World, Secondary, Specialty ([not stored](#tiers))                                   |
+| Tunables     | `tunables.ts`            | `titles.startPrestige.*`, category `Titles`                                                                              |
+| Formulas     | `formulas/`              | `startingPrestige`, `reignDays`                                                                                          |
+| Holders      | `helpers/holders.ts`     | `currentReign`, `currentHolders`, `titlesHeldBy`, `reignLabel`                                                           |
+| Reign order  | `helpers/reignOrder.ts`  | `compareReignsChronologically`: the order reigns happened in, same-day reigns included ([lineage order](#lineage-order)) |
+| Eligibility  | `helpers/eligibility.ts` | `isEligibleHolder`: the one holder check                                                                                 |
+| Employment   | `helpers/employment.ts`  | `employedForTitle`, `lastEmployedForTitleOn`, `ringNameForTitle`                                                         |
+| Reign writes | `reigns.ts`              | `openReign`, `closeReign`, `addDefence`: the only code that writes reigns                                                |
+| Traces       | `traces.ts`              | `titles.prestige` (per title): the Why? behind a belt's prestige                                                         |
+| Events       | `events.ts`              | `title.created`, `title.awarded`, `title.vacated`, `title.retired`, `title.reactivated` (published from CRTV1-03 on)     |
+| Queries      | `queries.ts`             | `titles.list`, `titles.detail`, `titles.eligibleHolders` ([queries](#queries))                                           |
+| Rows         | `rows.ts`                | `TitleCardRow`, `prestigeExplanation`, `divisionLabel`, `endReasonLabel`                                                 |
+| Records      | `records.ts`             | `titleRecords`, `daysVacant` ([records](#records))                                                                       |
+| Commands     | `commands.ts`            | `titles.create`, `edit`, `award`, `vacate`, `retire`, `reactivate` ([commands](#commands)); checks in `validate.ts`      |
+| Doors        | `doors.ts`               | `vacateTitle`, `retireTitle`, `reactivateTitle`: every vacancy and retirement outside a match                            |
+| Phase        | `phases.ts`              | `titles.vacateOrphaned`: the daily [orphaned-champion rule](#orphaned-champions)                                         |
 
 ## Starting prestige
 
@@ -244,9 +245,9 @@ reorders (CRTV6) show up with no change here.
 Args `{ titleId }`. Result `{ title, reigns, records, stats }`:
 
 - `title`: the card.
-- `reigns`: the full lineage, newest first (`wonOn` descending, then id
-  descending; the open reign always first). Each `ReignRow` has `reignId`,
-  `number` (1 = the first reign, counted in the order they were won), the
+- `reigns`: the full lineage, newest first (the [lineage order](#lineage-order)
+  reversed; the open reign always first). Each `ReignRow` has `reignId`,
+  `number` (1 = the first reign, counted in the order they happened), the
   holders (`nameAtTime` from `holderNamesAtTime`, `currentRingName`,
   `imageRef`), `teamId`, `label`, `wonOn`, `lostOn`, `daysHeld` and
   `daysHeldTrace` (the inline `reignDays` trace), `defences`, `endReason` and
@@ -261,6 +262,26 @@ Args `{ titleId }`. Result `{ title, reigns, records, stats }`:
 
 Lineage is history the player keeps forever: the weekly history roll-up does
 not prune reigns.
+
+#### Lineage order
+
+A reign stores dates, not times, and reign IDs are random, so reigns that
+started on the same day need a rule (`compareReignsChronologically`,
+`helpers/reignOrder.ts`; the lineage's numbers and the [records](#records)'
+ties both use it). Reigns never overlap, so:
+
+1. Earlier `wonOn` first.
+2. Same `wonOn`: earlier `lostOn` first, the current reign last (only the
+   day's last reign can outlast the day).
+3. Both ended that day: a hand-over (`lost`, `stripped`, `unified`) before a
+   reign that left the title empty (`vacated`, `retired`), because a hand-over
+   starts the next reign at once. Award, award again, vacate on one day reads
+   1 Stripped, 2 Vacated.
+4. Only then the ID, so the order is stable.
+
+Two hand-overs and a vacancy all on one day can still come out of order; the
+row has nothing else to tell them apart, and a sequence number would be a
+schema change.
 
 | `endReason`  | `endReasonLabel`                                                                  |
 | ------------ | --------------------------------------------------------------------------------- |
@@ -315,8 +336,9 @@ A reign record's `label` is the reign's label; a person record's is the
 person's ring name today. People the lineage knows nothing about are skipped
 for the age records.
 
-**Ties** go to the earliest `wonOn`, then the lowest id. For a reign record
-that is the reign's own `wonOn` and id; for a person record, the person's first
+**Ties** go to the reign that came first in the [lineage order](#lineage-order)
+(earliest `wonOn`, same-day reigns in the order they happened, then the lowest
+id). For a reign record that is the reign itself; for a person record, the person's first
 reign of the title, then their person id; for the age records the reign, then
 the person id (two holders of one tag reign of the same age).
 
@@ -462,6 +484,15 @@ passed), the `titles.orphanGraceDays` line, and "A champion has been gone
 longer than the grace period". The lineage shows it as the Why? on "Vacated".
 Nothing else changes: CRTV2 moves prestige on `title.vacated`, and a morale
 reaction would be WRK8's.
+
+Until ECO4's releases and expiries or DAY6's retirements end a champion's
+contract in play, nobody sees this rule fire. The default-world scenario test
+`test/systems/titles/orphanScenario.test.ts` (CRTV1-07, in `npm test`) plays
+it: the Altura World Champion's contract ends, they keep the belt for the
+grace days, and then the title page shows "Vacant since <that day>", the
+lineage's last reign ends "Vacated", and its Why? reads "<name> has had no
+contract with <promotion> since <date> (7 days)" above the "Days a champion
+may be gone" line.
 
 | Key                      | Default | Range | Unit | Meaning                                                                                    |
 | ------------------------ | ------- | ----- | ---- | ------------------------------------------------------------------------------------------ |

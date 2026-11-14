@@ -20,6 +20,7 @@ import { diffDays, type GameDate } from '../../core/date';
 import { definePhase, type PhaseDefinition } from '../../core/pipeline/phase';
 import type { PhaseContext } from '../../core/pipeline/context';
 import { startDecision } from '../../core/trace/decision';
+import { inputOf } from '../../core/trace/helpers';
 import type { Traced } from '../../core/trace/types';
 import type { PersonId } from '../../core/ids';
 import type { Title } from '../../model/entities/title';
@@ -97,10 +98,21 @@ export function orphanVacancyExplanation(
   const where = promotionText(ctx.read, title);
   const grace = ctx.tunables.get('titles.orphanGraceDays');
   for (const standing of standings) {
+    // The champion as a linked line first, so the Why? panel's name opens their profile.
+    const personRef = { kind: 'person', id: standing.personId } as const;
     if (standing.since === null || standing.daysGone === null) {
+      decision.include(standing.ringName, inputOf(standing.ringName, 'Under contract', personRef));
       decision.rule(`${standing.ringName} works for ${where}`, true);
       continue;
     }
+    decision.include(
+      standing.ringName,
+      inputOf(
+        standing.ringName,
+        standing.daysGone === 0 ? 'Left today' : `No contract for ${daysText(standing.daysGone)}`,
+        personRef,
+      ),
+    );
     decision.rule(
       `${standing.ringName} has had no contract with ${where} since ${reignDateText(standing.since)} (${daysText(standing.daysGone)})`,
       standing.daysGone < grace,

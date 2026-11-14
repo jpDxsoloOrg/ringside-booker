@@ -5,15 +5,15 @@
  * Design: docs/design/titles.md#queries and #records.
  */
 
-import { compareDates, isBefore, type GameDate } from '../../core/date';
+import { isBefore, type GameDate } from '../../core/date';
 import type { PersonId, SegmentId, TeamId, TitleId, TitleReignId } from '../../core/ids';
 import type { TraceRef } from '../../core/trace/store';
 import type { TraceNode } from '../../core/trace/types';
-import type { ReignEndReason, TitleReign } from '../../model/entities/title-reign';
-import { compareIds } from '../../model/table';
+import type { ReignEndReason } from '../../model/entities/title-reign';
 import { reignDays } from './formulas/reignDays';
 import { ringNameForTitle } from './helpers/employment';
 import { reignLabel } from './helpers/holders';
+import { compareReignsChronologically } from './helpers/reignOrder';
 import {
   explainDaysVacant,
   titleRecords,
@@ -84,14 +84,10 @@ export interface TitleStats {
 
 export interface TitleDetail {
   title: TitleCardRow;
-  /** Newest first: the current reign, then by `wonOn` descending, then ID descending. */
+  /** Newest first: the current reign, then the rest in `compareReignsChronologically` order, reversed. */
   reigns: ReignRow[];
   records: TitleRecords;
   stats: TitleStats;
-}
-
-function compareChronological(left: TitleReign, right: TitleReign): number {
-  return compareDates(left.wonOn, right.wonOn) || compareIds(left.id, right.id);
 }
 
 /** `titles.detail`, or null when the title does not exist. */
@@ -103,7 +99,7 @@ export function titleDetailOf(ctx: TitleRowContext, titleId: TitleId): TitleDeta
   }
   const today = read.meta.currentDate;
   const chronological = [...read.tables.titleReigns.lookup('byTitle', titleId)].sort(
-    compareChronological,
+    compareReignsChronologically,
   );
 
   const rows: ReignRow[] = chronological.map((reign, index) => {
@@ -139,6 +135,7 @@ export function titleDetailOf(ctx: TitleRowContext, titleId: TitleId): TitleDeta
     label: row.label,
     wonOn: row.wonOn,
     lostOn: row.lostOn,
+    endReason: row.endReason,
     defences: row.defences,
   }));
   const peopleById = new Map<PersonId, TitleRecordPerson>();
@@ -163,10 +160,7 @@ export function titleDetailOf(ctx: TitleRowContext, titleId: TitleId): TitleDeta
     until: vacantUntil,
     retired: retiredBeforeToday,
   });
-  const newestFirst = [...rows].sort(
-    (left, right) =>
-      compareDates(right.wonOn, left.wonOn) || compareIds(right.reignId, left.reignId),
-  );
+  const newestFirst = [...rows].reverse();
   // The open reign is the newest by construction (reigns never overlap), but keep it first even if
   // old data says otherwise.
   newestFirst.sort((left, right) => Number(right.lostOn === null) - Number(left.lostOn === null));

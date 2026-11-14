@@ -111,6 +111,13 @@ describe('titles.vacateOrphaned', () => {
       key: 'titles.orphanGraceDays',
       value: 7,
     });
+    // The champion's name is a line of its own that links to their profile.
+    expect(trace.trace.children?.find((node) => node.kind === 'input')).toEqual({
+      kind: 'input',
+      label: reign.holderNamesAtTime[0],
+      value: 'No contract for 7 days',
+      ref: { kind: 'person', id: reign.holderIds[0] },
+    });
   });
 
   it('vacates on the day the contract ends with grace 0', async () => {
