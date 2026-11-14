@@ -1,10 +1,18 @@
+import { Link } from 'react-router-dom';
 import { cents } from '@ringside/engine';
 import type { DealValuation, NetworkKind } from '@ringside/engine';
 import { formatNumber, useMoneyFormatter } from '@/components/format';
 import { KpiCard, KpiCardGrid } from '@/components/KpiCard';
+import { routes } from '@/app/routes';
 import { WhyButton } from '@/components/Trace';
 import { VerdictBadge } from './components/VerdictBadge';
-import { LOSES_MONEY_TEXT, perBuyText, perThousandLabel, PPV_AIRTIME_TEXT } from './networkText';
+import {
+  LOSES_MONEY_TEXT,
+  OPEN_PRODUCTION_TEXT,
+  perBuyText,
+  perThousandLabel,
+  PPV_AIRTIME_TEXT,
+} from './networkText';
 import styles from './Networks.module.css';
 
 export interface ProposalPreviewProps {
@@ -129,7 +137,18 @@ export function ProposalPreview({ valuation, kind, networkName }: ProposalPrevie
       {valuation.refusals.length > 0 && (
         <ul className={styles['reasons']} aria-label={`Why ${networkName} would refuse`}>
           {valuation.refusals.map((refusal) => (
-            <li key={refusal.code}>{refusal.message}</li>
+            <li key={refusal.code}>
+              {refusal.message}
+              {/* The camera is raised on the Production screen (ECO7): one step away. */}
+              {refusal.code === 'cameraTooLow' && (
+                <>
+                  {' '}
+                  <Link to={routes.game.production()} className={styles['reasonLink']}>
+                    {OPEN_PRODUCTION_TEXT}
+                  </Link>
+                </>
+              )}
+            </li>
           ))}
         </ul>
       )}
