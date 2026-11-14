@@ -1298,3 +1298,7 @@ rolls. MTCH5-03 added the beat limits per slot and the angle score's keys
 | `match.angle.setting.video.crowdShare`        | number  | 0.3     | 0–1   | ratio      | Pre-taped: share of the usual crowd blend the crowd keeps                                        |
 | `match.angle.setting.backstage.durationShift` | integer | −1      | −1–1  | count      | Steps a backstage segment moves its slot's duration class                                        |
 | `match.angle.setting.video.durationShift`     | integer | 0       | −1–1  | count      | Steps a pre-taped segment moves its slot's duration class                                        |
+| `match.angle.momentumPivot`                   | number  | 50      | 0–100 | points     | Angle score where momentum stays put ([angle aftermath](angle-rating.md#angle-aftermath))        |
+| `match.angle.momentumPerPoint`                | number  | 0.12    | 0–1   | points     | Momentum per point of angle score above or below the pivot, for someone in every beat            |
+| `match.angle.popularityPivot`                 | number  | 60      | 0–100 | points     | Angle score above which the people in it gain popularity; never a loss                           |
+| `match.angle.popularityPerPoint`              | number  | 0.05    | 0–1   | points     | Popularity in the show region per point above the pivot, for someone in every beat               |
