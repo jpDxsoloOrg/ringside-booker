@@ -483,7 +483,9 @@ public policy, so a rival's worker shows the same tab. The one viewer-dependent
 field is `pendingNotice`: true only while the injury waits to be noticed and
 one of the viewer's promotions employs the worker. The Health tab runs
 `health.acknowledgeInjuries` for each pending injury it shows, which clears the
-[own-injury gate](#own-injury-gate).
+[own-injury gate](#own-injury-gate). It waits while days move: the advance
+overlay covers the screen then, and marking an injury seen mid-skip would let
+the skip run on past it, so the skip always stops for a new injury.
 
 The tab (`apps/web/src/screens/workers/health/`) is registered at order 50, after
 the built-in Career tab, and opens with `?tab=health`.
@@ -565,7 +567,8 @@ body part, severity, since, back on, days left with a Why? for the time out,
 and whether they can work angles. On opening it runs
 `health.acknowledgeInjuries` once for every id in `waitingForViewer` and every
 row still `pendingNotice`, so the [own-injury gate](#own-injury-gate) is cleared
-even when the injury that waits is not on the list.
+even when the injury that waits is not on the list. Like the Health tab, it does
+not send it while days move, only once the advance ends.
 
 **The day control's button.** The gate's `roster` hint reads "Roster" and goes
 to the Injuries tab (`apps/web/src/app/AppShell/day/dayControlState.ts`). The
