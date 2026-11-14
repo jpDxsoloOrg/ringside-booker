@@ -99,7 +99,9 @@ describe('talk roles and settings on the card', () => {
     expect(segment.setting).toBe('backstage');
     expect(segment.talkLine).toBe('Backstage: Leo Hart interviews Kai Moreno (with Sam Reed)');
     expect(slot.durationClass).toBe('short');
-    const leo = segment.sides.flatMap((side) => side.people).find((p) => p.ringName === 'Leo Hart');
+    const leo = segment.sides
+      .flatMap((side) => side.people)
+      .find((person) => person.ringName === 'Leo Hart');
     expect(leo?.talkRole).toBe('interviewer');
   });
 
