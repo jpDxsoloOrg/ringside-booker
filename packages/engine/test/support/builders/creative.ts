@@ -249,6 +249,8 @@ export function aStoryline(
     heat: 50,
     members: [{ personId: testId('person'), side: 'face' }],
     summary: '',
+    lastProgressOn: null,
+    finaleSegmentId: null,
   };
   return buildRow(StorylineSchema, 'aStoryline', defaults, overrides);
 }

@@ -1221,3 +1221,15 @@ prestige. CRTV1-03 adds `titles.orphanGraceDays` with its phase.
 | `titles.startPrestige.specialty`       | integer | 20      | 0–100 | points | Starting prestige of a new Specialty title                                                          |
 | `titles.startPrestige.promotionAnchor` | integer | 50      | 0–100 | points | Promotion prestige at which a new title gets no adjustment                                          |
 | `titles.startPrestige.promotionWeight` | number  | 0.3     | 0–1   | ratio  | Share of the promotion's prestige above or below the anchor a new title starts with; 0 turns it off |
+
+## Storyline tunables
+
+CRTV3-01, see [storylines.md](storylines.md). Read-side numbers only: the Hot
+line on the heat meter, the soft limit on active storylines and the payoff
+threshold CRTV4 reads too.
+
+| Key                             | Kind    | Default | Range | Unit   | Meaning                                                                                           |
+| ------------------------------- | ------- | ------- | ----- | ------ | ------------------------------------------------------------------------------------------------- |
+| `storylines.heat.hotFrom`       | number  | 70      | 0–100 | points | Heat at which a storyline shows as Hot on the meter (display only)                                |
+| `storylines.activeSoftLimit`    | integer | 6       | 0–30  | count  | Active storylines per promotion before creating another shows a warning. 0 never warns            |
+| `storylines.payoff.minSegments` | integer | 4       | 0–30  | count  | Linked segments a storyline needs before ending it can pay off. 0 means any storyline can pay off |
