@@ -143,10 +143,10 @@ describe('ContractsScreen', () => {
         { timeout: LOAD_MS },
       ),
     ).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'See it in the ledger' })).toHaveAttribute(
-      'href',
-      routes.game.finances({ tab: 'ledger' }),
-    );
+    // The sheet closes after the release; the page behind it is readable again once it has gone.
+    expect(
+      await screen.findByRole('link', { name: 'See it in the ledger' }, { timeout: LOAD_MS }),
+    ).toHaveAttribute('href', routes.game.finances({ tab: 'ledger' }));
   });
 
   it('keeps the confirm open when the severance changed', async () => {
