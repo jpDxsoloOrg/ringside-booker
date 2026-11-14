@@ -3563,7 +3563,9 @@
             "side": "heel"
           }
         ],
-        "summary": "A former champion wants the title back."
+        "summary": "A former champion wants the title back.",
+        "lastProgressOn": null,
+        "finaleSegmentId": null
       }
     ],
     "teams": [

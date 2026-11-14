@@ -9,7 +9,7 @@
     "label": "Test save",
     "promotionName": "Test Promotion A",
     "promotionShortName": "TPA",
-    "schemaFingerprint": "6e89bee183266bb139578ede2ac350be",
+    "schemaFingerprint": "121aeebe23109d84c7ba49455b1b04d3",
     "startDate": "2026-01-05",
     "worldName": "Test Tiny World"
   },
@@ -3570,8 +3570,10 @@
           {
             "brandId": "brd_0000000001",
             "endedOn": null,
+            "finaleSegmentId": null,
             "heat": 60,
             "id": "sty_0000000001",
+            "lastProgressOn": null,
             "members": [
               {
                 "personId": "per_0000000001",
