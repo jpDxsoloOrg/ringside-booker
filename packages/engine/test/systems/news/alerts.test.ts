@@ -13,6 +13,7 @@ import {
 } from '../../../src/core/api';
 import { simSystem } from '../../../src/core/api/builtins';
 import type { Controller, Viewer } from '../../../src/core/api/controller';
+import { addDays } from '../../../src/core/date';
 import type { NewsId, PersonId, PromotionId } from '../../../src/core/ids';
 import { definePhase } from '../../../src/core/pipeline/phase';
 import type { News } from '../../../src/model/entities/news';
@@ -28,6 +29,7 @@ import {
   displayNameOf,
   NEWS_ACTION_HINT,
   NEWS_ALERT_GATE_ID,
+  NEWS_ALERT_STOP_SKIP_DEFAULT,
   newsAlertReason,
   newsAlertRules,
   newsSystem,
@@ -253,7 +255,7 @@ describe('news alert rules', () => {
 });
 
 describe('news.alertRules and news.setAlertRules', () => {
-  it('gives the defaults: front page on, no stop, nothing pending', () => {
+  it('gives the defaults: front page on, stops a skip, nothing pending', () => {
     const { engine } = alertEngine(initialEngineState(alertWorld().world));
     const view = rulesView(engine);
     expect(view.rules.map((rule) => [rule.id, rule.enabled])).toEqual([
@@ -264,7 +266,7 @@ describe('news.alertRules and news.setAlertRules', () => {
       ['titleChanges', false],
     ]);
     expect(view.rules[0]).toMatchObject({ label: 'Front-page stories', defaultOn: true });
-    expect(view).toMatchObject({ stopSkip: false, pending: null });
+    expect(view).toMatchObject({ stopSkip: true, pending: null });
     expect(rulesView(engine, OMNISCIENT)).toEqual(view);
     expect(rulesView(engine, { kind: 'controller', controller: COMPUTER })).toEqual(view);
   });
@@ -345,14 +347,93 @@ describe('news.matchAlerts and the news.alert gate', () => {
     ]);
   });
 
-  it('keeps the pending alert but never stops a skip while stopSkip is off (the default)', async () => {
+  it('keeps the pending alert but never stops a skip while stopSkip is off', async () => {
     const built = alertWorld();
     const { engine, queue } = alertEngine(initialEngineState(built.world));
-    setRules(engine, { myRoster: true });
+    setRules(engine, { myRoster: true }, false);
     queue.push(story([built.people[1]]));
     const result = await engine.advanceDays({ maxDays: 3 });
     expect(result.stoppedBy).toEqual({ kind: 'completed' });
     expect(result.daysAdvanced).toBe(3);
+    expect(rulesView(engine).pending).not.toBeNull();
+  });
+
+  it('stops a skip by default, for a player who never set stopSkip', async () => {
+    expect(NEWS_ALERT_STOP_SKIP_DEFAULT).toBe(true);
+    const built = alertWorld();
+    const { engine, queue } = alertEngine(initialEngineState(built.world));
+    setRules(engine, { myRoster: true });
+    expect(extraOf(engine)[alertStopSkipKey(TEST_PLAYER_ID)]).toBeUndefined();
+    queue.push(story([built.people[1]]));
+    const result = await engine.advanceDays({ maxDays: 3 });
+    expect(result.daysAdvanced).toBe(1);
+    expect(result.stoppedBy).toMatchObject({
+      kind: 'gate',
+      hits: [{ gateId: NEWS_ALERT_GATE_ID }],
+    });
+  });
+
+  it('always finishes a skip when every stop is cleared, even with a story every day', async () => {
+    const built = alertWorld();
+    const { engine, queue } = alertEngine(initialEngineState(built.world));
+    setRules(engine, { myRoster: true, titleChanges: true });
+    const skipDays = 30;
+    const start = engine.exportState().world.meta.currentDate;
+    // A matching story is queued before every day the skip could run, so every day stops it.
+    const queueStory = () => {
+      queue.push(story([built.people[1]]), story([built.people[0]], 'titleChange'));
+    };
+    let daysLeft = skipDays;
+    let stops = 0;
+    while (daysLeft > 0) {
+      queueStory();
+      const result = await engine.advanceDays({ maxDays: daysLeft });
+      // Each run after a cleared stop moves at least one day, so the loop cannot spin.
+      expect(result.daysAdvanced).toBeGreaterThanOrEqual(1);
+      daysLeft -= result.daysAdvanced;
+      if (result.stoppedBy.kind === 'gate') {
+        expect(result.stoppedBy.hits.map((hit) => hit.gateId)).toEqual([NEWS_ALERT_GATE_ID]);
+        stops += 1;
+        expect(engine.command('news.ackAlerts', {}, HUMAN)).toMatchObject({
+          ok: true,
+          data: { cleared: true },
+        });
+        expect(engine.query('sim.pendingGates', {}, ME)).toMatchObject({
+          ok: true,
+          data: { hits: [] },
+        });
+      } else {
+        expect(result.stoppedBy).toEqual({ kind: 'completed' });
+      }
+    }
+    // The last day's story waits for the next skip: a skip ends on its last day without a check.
+    expect(stops).toBe(skipDays - 1);
+    expect(engine.exportState().world.meta.currentDate).toBe(addDays(start, skipDays));
+  });
+
+  it('never stops for a listed player who runs no promotion, who could not clear it', async () => {
+    const built = alertWorld();
+    const state = initialEngineState(built.world);
+    // The player stays in meta.players, but the computer now runs what was their promotion.
+    const withoutPromotion: EngineState = {
+      ...state,
+      world: {
+        ...state.world,
+        tables: {
+          ...state.world.tables,
+          promotions: state.world.tables.promotions.map((promotion) =>
+            promotion.id === built.mine ? { ...promotion, controller: COMPUTER } : promotion,
+          ),
+        },
+      },
+    };
+    expect(withoutPromotion.world.meta.players.map((player) => player.playerId)).toEqual([
+      TEST_PLAYER_ID,
+    ]);
+    const { engine, queue } = alertEngine(withoutPromotion);
+    queue.push({ ...story([built.people[1]]), importance: 3 });
+    const result = await engine.advanceDays({ maxDays: 3 });
+    expect(result).toMatchObject({ stoppedBy: { kind: 'completed' }, daysAdvanced: 3 });
     expect(rulesView(engine).pending).not.toBeNull();
   });
 
@@ -390,7 +471,7 @@ describe('news.matchAlerts and the news.alert gate', () => {
   it('does not stop for a pending story that was deleted, and a new story takes its place', async () => {
     const built = alertWorld();
     const { engine, queue, posted } = alertEngine(initialEngineState(built.world));
-    setRules(engine, { myRoster: true });
+    setRules(engine, { myRoster: true }, false);
     // Expires the day after it is posted: news.expire deletes it then.
     queue.push({ ...story([built.people[1]]), expiresInDays: 0 });
     await engine.advanceDays({ maxDays: 2 });

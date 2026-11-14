@@ -377,11 +377,11 @@ by order. A later feature adds a rule without editing DAY1 files (WRK3's
 `WorldMeta.settings.extra` by player id, so two humans in one world each keep
 their own:
 
-| Key                                    | Value     | Missing means                                  |
-| -------------------------------------- | --------- | ---------------------------------------------- |
-| `news.alerts.<playerId>.rule.<ruleId>` | boolean   | The rule's `defaultOn`                         |
-| `news.alerts.<playerId>.stopSkip`      | boolean   | `NEWS_ALERT_STOP_SKIP_DEFAULT` (false for now) |
-| `news.alerts.<playerId>.pending`       | a news id | No pending alert                               |
+| Key                                    | Value     | Missing means                         |
+| -------------------------------------- | --------- | ------------------------------------- |
+| `news.alerts.<playerId>.rule.<ruleId>` | boolean   | The rule's `defaultOn`                |
+| `news.alerts.<playerId>.stopSkip`      | boolean   | `NEWS_ALERT_STOP_SKIP_DEFAULT` (true) |
+| `news.alerts.<playerId>.pending`       | a news id | No pending alert                      |
 
 These keys are runtime state, not new-game options, so they are not
 registered settings and `getSetting` is not used for them: read them with
@@ -411,12 +411,21 @@ names&gt;" with " and N more" past two (people who still exist first, then
 promotions), or "News: a front-page &lt;kind&gt; story" when it names no one.
 No ids or keys.
 
-**Off by default for now.** A stop the player cannot clear would block Next
-Day, and nothing on screen opens a news alert yet. So
-`NEWS_ALERT_STOP_SKIP_DEFAULT` is false: pending alerts are recorded for the
-News screen but never stop a skip unless the player turns `stopSkip` on with
-`news.setAlertRules`. DAY1-05 (opening a story acknowledges it) turns the
-default on.
+**On by default.** `NEWS_ALERT_STOP_SKIP_DEFAULT` is true (DAY1-05): the
+day button turns into "Open news", which opens the story on the News screen,
+and opening it runs `news.ackAlerts`, so the stop is always cleared from where
+it sends the player. Opening News from the nav with an alert waiting clears it
+too. A player can turn stops off with the last switch of the News alerts sheet
+(`stopSkip: false`); pending alerts are then still recorded for the News
+screen. A skip whose every stop is cleared always finishes: each run after a
+cleared stop moves at least one day (`alerts.test.ts`, "always finishes a skip
+…", and `e2e/news-alerts.spec.ts`).
+
+**No stop without a seat that can clear it.** The gate passes over a listed
+player who runs no promotion (`promotionsOfPlayer` is empty, for example after
+their promotion closed): the web then plays as an observer seat, which is not
+a listed player, so `news.ackAlerts` would refuse it and the day could never
+move.
 
 TODO(MP): the gate has no viewer, so it reports the first player with a
 pending alert. Right for one local player; multiplayer can narrow it to the
