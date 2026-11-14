@@ -46,14 +46,15 @@ export interface CloseTalks {
 
 /**
  * Whether these talks' close stops a skip as "Offer answered" (ECO5-10): a promotion a human runs,
- * a close they did not watch happen, and `contracts.answer.stopSkip` on.
+ * a worker's answer they did not watch happen (not a lapse), and `contracts.answer.stopSkip` on.
  */
 function answerStopsSkip(
   ctx: PhaseContext,
   negotiation: DeepReadonly<Negotiation>,
   close: CloseTalks,
 ): boolean {
-  if (close.seenByPlayer === true) {
+  // A lapse is the player's own silence (the counter-offer stop already waited for them).
+  if (close.seenByPlayer === true || close.status === 'lapsed') {
     return false;
   }
   const promotion = ctx.read.tables.promotions.get(negotiation.promotionId);

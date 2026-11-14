@@ -96,6 +96,11 @@ export interface OfferRow {
    * "Another offer was compared"; null before the review or once only a summary is kept.
    */
   readonly reviewTrace: TraceNode | null;
+  /**
+   * True while the worker's answer has not been opened yet and stops skips as "Offer answered"
+   * (ECO5-10); opening the talks clears it with `contracts.markOffersSeen`.
+   */
+  readonly answerUnseen: boolean;
 }
 
 /** One round of the talks, with a line the sheet can show as it is. */
@@ -263,6 +268,7 @@ function rowOf(ctx: QueryContext, negotiation: DeepReadonly<Negotiation>): Offer
     ),
     reviewTraceRef: traceRefOf(ctx, NEGOTIATION_TRACE_KINDS.review, negotiation.reviewTraceId),
     reviewTrace: reviewTraceOf(ctx, negotiation),
+    answerUnseen: negotiation.answerStopsSkip,
   };
 }
 
