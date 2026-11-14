@@ -1,5 +1,10 @@
-import type { EventInstanceId, PersonId, PromotionId, TitleId } from '@ringside/engine';
-import type { EventInstanceId, PersonId, PromotionId, StorylineId } from '@ringside/engine';
+import type {
+  EventInstanceId,
+  PersonId,
+  PromotionId,
+  StorylineId,
+  TitleId,
+} from '@ringside/engine';
 
 /**
  * Every URL in the app, built here and nowhere else. Screens, links and tests call these builders
