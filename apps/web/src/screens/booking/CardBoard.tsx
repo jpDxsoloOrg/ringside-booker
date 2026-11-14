@@ -9,6 +9,7 @@ import { Explained, WhyButton } from '@/components/Trace';
 import styles from './Booking.module.css';
 import { slotKey, toCardSlotProps } from './cardSlotProps';
 import type { SegmentEditorKind } from './editor/editorStore';
+import { WithCardSlotChips } from './registries/cardSlotChips';
 
 /** The id of a slot's row, for scrolling to it and focusing it from the checklist. */
 export function slotRowId(preShow: boolean, slot: number, prefix = 'booking-slot'): string {
@@ -97,29 +98,34 @@ function SlotRow({ slot, section, props }: SlotRowProps) {
       tabIndex={-1}
       className={styles['slotRow']}
     >
-      <CardSlot
-        {...view}
-        headingLevel={4}
-        roleAside={<RoleAside slot={slot} />}
-        {...(slotIssues === undefined ? {} : { issues: slotIssues })}
-        {...(canReorder && slot.segment !== null
-          ? { dragHandle: <DragGrip label={`Move ${place}`} /> }
-          : {})}
-        {...(actions === undefined || actions === null ? {} : { actions })}
-        {...(onAdd === undefined
-          ? emptyHint === undefined
-            ? {}
-            : { emptyHint }
-          : {
-              onAddMatch: () => {
-                onAdd(slot, 'match');
-              },
-              onAddPromo: () => {
-                onAdd(slot, 'angle');
-              },
-              addPromoLabel: 'Add talking segment',
-            })}
-      />
+      <WithCardSlotChips slot={slot}>
+        {(extraChips) => (
+          <CardSlot
+            {...view}
+            chips={extraChips.length === 0 ? view.chips : [...view.chips, ...extraChips]}
+            headingLevel={4}
+            roleAside={<RoleAside slot={slot} />}
+            {...(slotIssues === undefined ? {} : { issues: slotIssues })}
+            {...(canReorder && slot.segment !== null
+              ? { dragHandle: <DragGrip label={`Move ${place}`} /> }
+              : {})}
+            {...(actions === undefined || actions === null ? {} : { actions })}
+            {...(onAdd === undefined
+              ? emptyHint === undefined
+                ? {}
+                : { emptyHint }
+              : {
+                  onAddMatch: () => {
+                    onAdd(slot, 'match');
+                  },
+                  onAddPromo: () => {
+                    onAdd(slot, 'angle');
+                  },
+                  addPromoLabel: 'Add talking segment',
+                })}
+          />
+        )}
+      </WithCardSlotChips>
     </div>
   );
 }
