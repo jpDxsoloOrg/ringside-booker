@@ -138,6 +138,14 @@ export const gameDetailRoutes: RouteObject[] = [
       return { Component: PromotionProfileScreen };
     },
   },
+  {
+    path: routePatterns.title,
+    // Its own chunk: the lineage, the records and the sections other features add (CRTV1-04).
+    lazy: async () => {
+      const { TitleDetailScreen } = await import('@/screens/titles/TitleDetailScreen');
+      return { Component: TitleDetailScreen };
+    },
+  },
 ];
 
 const gameRoute: RouteObject = {
