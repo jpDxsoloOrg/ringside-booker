@@ -8,7 +8,7 @@ import { findTraceNodes } from '../../../src/core/trace/helpers';
 import { isFullTrace, type StoredTraceEntry } from '../../../src/core/trace/store';
 import type { TunableOverrides } from '../../../src/core/tunables/overrides';
 import type { Storyline } from '../../../src/model/entities/storyline';
-import type { DeepPartial } from '../../../src/model/world';
+import type { DeepPartial } from '../../support/builders/build-row';
 import { storylineHeatTraceRef, storylinesSystem } from '../../../src/systems/storylines';
 import { rosterWorld, TEST_PLAYER_ID, TEST_START_DATE, worldBuilder } from '../../support';
 import { ok, PLAYER_VIEWER } from './storyline-world';

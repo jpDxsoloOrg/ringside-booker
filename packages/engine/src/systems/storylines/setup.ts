@@ -87,7 +87,7 @@ export function starterCandidates(
       continue;
     }
     const person = read.tables.people.get(employment.personId);
-    if (person === undefined || person.status !== 'active' || person.injury !== null) {
+    if (person?.status !== 'active' || person.injury !== null) {
       continue;
     }
     candidates.push({
