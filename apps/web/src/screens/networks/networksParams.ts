@@ -4,7 +4,7 @@ import { routes } from '@/app/routes';
 
 /**
  * The Networks screen's state in the URL, so links, a reload and Back land in the same place:
- * `?tab=<registered tab id>`, `?deal=deal_…` (the open deal sheet) and `?propose=net_…` (the
+ * `?tab=<registered tab id>`, `?deal=dea_…` (the open deal sheet) and `?propose=net_…` (the
  * Propose sheet on a network).
  */
 
