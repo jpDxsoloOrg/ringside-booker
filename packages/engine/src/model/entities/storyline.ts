@@ -159,10 +159,6 @@ export const StorylineSchema = z
     message: 'payoff is null while the storyline is active',
     path: ['payoff'],
   })
-  .refine((storyline) => storyline.progressTotals.segments >= storyline.progress.length, {
-    message: 'progressTotals.segments counts at least every entry in the progress log',
-    path: ['progressTotals', 'segments'],
-  })
   .refine(
     (storyline) =>
       storyline.progressTotals.matches + storyline.progressTotals.angles ===

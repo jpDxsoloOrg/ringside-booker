@@ -1009,7 +1009,7 @@ heatAfter: 0–100, traceId: string | null }`. `StorylinePayoff` (type
 heat: 0–100, members: { personId, popularityDelta, momentumDelta, skipped }[]
 (0–12), traceId: string | null }`. `StorylineProgressTotals` = `{ segments,
 matches, angles: int ≥ 0, heatGained, heatLost: ≥ 0 }` (CRTV4-02;
-`matches + angles = segments`, and `segments` is at least the log's length).
+`matches + angles = segments`).
 
 Refs: `promotionId`, `brandId`, `members[].personId`, `finaleSegmentId`
 (nullable), `progress[].segmentId`, `progress[].eventInstanceId`,

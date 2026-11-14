@@ -246,6 +246,7 @@ describe('the aftermath applier on show night', () => {
       ['shows.titleOutcome', 10],
       [AFTERMATH_APPLIER_ID, 30],
       [PHYSICAL_TOLL_APPLIER_ID, 40],
+      ['storylines.heat', 60],
     ]);
   });
 
