@@ -14,6 +14,7 @@ import type {
   PersonId,
 } from '@ringside/engine';
 import type { EngineQueryError } from '@/app/engine/queryCache';
+import { useEngineStatus } from '@/app/engine/EngineProvider';
 import { useEngineCommand } from '@/app/engine/useEngineCommand';
 import { useEngineQuery } from '@/app/engine/useEngineQuery';
 import { Badge } from '@/components/Badge';
@@ -167,8 +168,11 @@ const HISTORY_COLUMNS: readonly ColumnDef<InjuryView>[] = [
 function useAcknowledgeOnView(profile: HealthProfile | undefined): void {
   const { run } = useEngineCommand('health.acknowledgeInjuries');
   const sent = useRef(new Set<InjuryId>());
+  // Not while days move: the screen sits under the advance overlay, so the player has not seen an
+  // injury that happens then, and marking it seen mid-skip would let the skip run on past it.
+  const advancing = useEngineStatus((state) => state.advancing);
   useEffect(() => {
-    if (profile === undefined) return;
+    if (profile === undefined || advancing) return;
     const toSend = pendingInjuryIds(profile).filter((id) => !sent.current.has(id));
     if (toSend.length === 0) return;
     for (const id of toSend) sent.current.add(id);
@@ -180,7 +184,7 @@ function useAcknowledgeOnView(profile: HealthProfile | undefined): void {
       }
     };
     void acknowledge();
-  }, [profile, run]);
+  }, [advancing, profile, run]);
 }
 
 /** The ids of the injuries in the profile still waiting to be seen by the viewer. */
