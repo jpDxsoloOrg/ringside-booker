@@ -1187,10 +1187,10 @@ whole cents (shown here in dollars); 0 means 0.
 | `contracts.patience.unhappyPenalty`        | integer | 1        | 0–10           | count       | Patience an unhappy worker lacks when renewing                                                |
 | `contracts.patience.max`                   | integer | 5        | 0–10           | count       | Most patience any worker starts with                                                          |
 | `contracts.value.appearancesPerMonth`      | number  | 4        | 0–31           | count       | Appearances a month a per-appearance fee is counted for in contract value                     |
-| `contracts.value.perk.ironClad`            | number  | 0.2      | 0–2            | ratio       | What an iron-clad contract adds to contract value (only once the game honours it)             |
-| `contracts.value.perk.travelCovered`       | number  | 0.03     | 0–2            | ratio       | What covered travel adds to contract value (only once the game honours it)                    |
-| `contracts.value.perk.noHouseShows`        | number  | 0.05     | 0–2            | ratio       | What a no-house-shows clause adds to contract value (only once the game honours it)           |
-| `contracts.value.perk.creativeControl`     | number  | 0.1      | 0–2            | ratio       | What creative control adds to contract value (only once the game honours it)                  |
+| `contracts.value.perk.ironClad`            | number  | 0.2      | 0–2            | ratio       | What an iron-clad contract adds to contract value (counted only while the game honours it)    |
+| `contracts.value.perk.travelCovered`       | number  | 0.03     | 0–2            | ratio       | What covered travel adds to contract value (counted only while the game honours it)           |
+| `contracts.value.perk.noHouseShows`        | number  | 0.05     | 0–2            | ratio       | What a no-house-shows clause adds to contract value (counted only while the game honours it)  |
+| `contracts.value.perk.creativeControl`     | number  | 0.1      | 0–2            | ratio       | What creative control adds to contract value (counted only while the game honours it)         |
 | `contracts.value.sharePerPercent`          | number  | 0.02     | 0–1            | ratio       | What each percent of a revenue share the game pays adds to contract value                     |
 | `contracts.value.pushBelowPerStep`         | number  | 0.1      | 0–1            | ratio       | Contract value lost for each step below the card position a worker expects                    |
 | `contracts.value.pushAbovePerStep`         | number  | 0.03     | 0–1            | ratio       | Contract value gained for each step above the card position a worker expects                  |

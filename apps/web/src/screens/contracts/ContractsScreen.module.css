@@ -374,5 +374,6 @@
 .wrapBadge {
   max-inline-size: 100%;
   white-space: normal;
-  overflow-wrap: anywhere;
+  /* Between words; inside one only when a word alone is wider than the column. */
+  overflow-wrap: break-word;
 }

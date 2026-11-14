@@ -222,6 +222,7 @@ export function FreeAgentsTab({ promotionId, openNegotiation }: FreeAgentsTabPro
         ),
         sortValue: (row) => row.situation,
         filterValue: (row) => situationText(row),
+        width: 'md',
         card: 'subtitle',
       },
       {

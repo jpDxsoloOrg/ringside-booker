@@ -11,7 +11,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { registerContractsTab } from '../contractsTabs';
 import type { ContractsTabContext } from '../contractsTabs';
 import { registerContractRowAction } from '../rowActions';
-import { CounteredOffersBadge } from '../offers/OffersTab';
+import { CounteredOffersBadge } from '../offers/CounteredOffersBadge';
 import { registerProfileAction } from '@/screens/workers/profile/profileActions';
 import { ProfileContractAction } from './ProfileContractAction';
 import { isRenewable, RenewAction } from './RenewAction';

@@ -113,7 +113,7 @@ export function counterTermsFor(
       continue;
     }
     const missing = !terms.perks[flag];
-    decision.rule(`Wants ${perk.label}: ${perk.reason}`, missing);
+    decision.rule(`Wants ${lowerFirst(perk.label)}: ${perk.reason}`, missing);
     terms.perks[flag] = true;
   }
 
@@ -144,4 +144,9 @@ export function counterTermsFor(
     offer: { ...offer, terms, push, lengthMonths, extra: { ...offer.extra } },
     trace: traced.trace,
   };
+}
+
+/** "Travel covered" → "travel covered", for the middle of a sentence. */
+function lowerFirst(text: string): string {
+  return text.length === 0 ? text : `${text.charAt(0).toLowerCase()}${text.slice(1)}`;
 }
