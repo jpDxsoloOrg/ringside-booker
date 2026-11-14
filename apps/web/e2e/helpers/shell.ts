@@ -59,7 +59,7 @@ export async function skipToDate(page: Page, date: string, phone: boolean): Prom
   // Long enough to reach the date; the stop date ends the skip first.
   await sheet.getByLabel('Days to skip').fill('90');
   await sheet.getByRole('radio', { name: 'Stop on a date' }).check();
-  await sheet.getByLabel('Stop on').fill(date);
+  await sheet.getByLabel('Stop on', { exact: true }).fill(date);
   await sheet.getByRole('button', { name: 'Start' }).click();
   await expect(sheet).toBeHidden();
   await expect(summary).toBeVisible();

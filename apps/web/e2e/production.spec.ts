@@ -204,32 +204,39 @@ async function skipToDateThroughShows(
   runFirstShow: boolean,
 ): Promise<boolean> {
   let ran = false;
+  // "Tuesday, February 2, 2027", as the advance summary words the day it reached.
+  const reached = new Date(`${date}T00:00:00Z`).toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+  const summary = page.getByRole('region', { name: 'Last advance' });
+  const show = dayButton(page, /Go to the show$/);
+  const roster = dayButton(page, 'Roster');
   for (let stops = 0; stops < 12; stops += 1) {
     await skipToDate(page, date, phone);
-    const show = dayButton(page, /Go to the show$/);
-    await expect(dayButton(page, /^(Next day|(Tonight: )?Go to the show|Roster)$/)).toBeVisible({
-      timeout: 15_000,
-    });
-    if (await show.isVisible()) {
-      if (runFirstShow && !ran) {
-        await show.click();
-        await expect(page).toHaveURL(/\/game\/booking/);
-        const sheet = await autoFillCard(page);
-        await sheet.getByRole('button', { name: 'Done' }).click();
-        await expect(sheet).toBeHidden();
-        await pickWinnersAndRunShow(page, phone);
-        ran = true;
-      } else {
-        await cancelTonightsShow(page);
-      }
-      continue;
-    }
-    const roster = dayButton(page, 'Roster');
+    if ((await summary.textContent())?.includes(`to ${reached}`) === true) return ran;
+    // Stopped short: for a show night or an injury.
+    await expect(show.or(roster)).toBeVisible({ timeout: 15_000 });
     if (await roster.isVisible()) {
       await roster.click();
+      await expect(roster).toBeHidden();
       continue;
     }
-    return ran;
+    if (runFirstShow && !ran) {
+      await show.click();
+      await expect(page).toHaveURL(/\/game\/booking/);
+      const sheet = await autoFillCard(page);
+      await sheet.getByRole('button', { name: 'Done' }).click();
+      await expect(sheet).toBeHidden();
+      await pickWinnersAndRunShow(page, phone);
+      ran = true;
+    } else {
+      await cancelTonightsShow(page);
+    }
+    await expect(show).toBeHidden();
   }
   throw new Error(`The skip to ${date} kept stopping`);
 }
@@ -353,7 +360,9 @@ test.describe('Production in a new Hardpan game', () => {
       const why = warning.getByRole('button', { name: /^Why is Months of cash left/ });
       const panel = await openWhy(page, why, /Months of cash left/);
       await expect(panel).toContainText('Cash now');
+      await panel.getByRole('button', { name: 'Expand all' }).click();
       await expect(panel).toContainText('Wages');
+      await expect(panel).toContainText('Show production a month');
       await expectBottomSheet(page, panel, phone);
       await closeWhy(page, panel, why);
       await expect(page.getByRole('main')).not.toContainText(NO_MINUTES);
@@ -398,13 +407,16 @@ test.describe('Production in a new Altura game', () => {
     });
 
     await test.step('marketing and back office to 0: the ceiling falls from 95 to 20', async () => {
+      // Marketing alone: 20 + back office 7 × 5 = 55.
       const marketing = await requestLevel(page, 'Marketing', 0);
-      const ceilingRow = marketing.locator('[data-row="popularityCeiling"]');
-      await expect(ceilingRow).toContainText('95');
-      await expect(ceilingRow).toContainText('20');
+      const marketingCeiling = marketing.locator('[data-row="popularityCeiling"]');
+      await expect(marketingCeiling).toContainText(/95\s*→\s*55/);
       await expectNoSeriousA11yViolations(page);
       await confirmChange(page);
-      await requestLevel(page, 'Back office', 0);
+      const backOffice = await requestLevel(page, 'Back office', 0);
+      await expect(backOffice.locator('[data-row="popularityCeiling"]')).toContainText(
+        /55\s*→\s*20/,
+      );
       await confirmChange(page);
       await expect(headerCard(page, 'Popularity ceiling')).toContainText('20');
     });
