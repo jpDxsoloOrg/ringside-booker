@@ -236,6 +236,14 @@ const SHORTCUTS: readonly AiShortcutRuleView[] = [
     description: 'Rival workers make no requests of their bosses.',
     consumer: 'Worker requests',
   }),
+  rule({
+    key: 'ai.contracts.simpleRenewals',
+    label: 'Simple contract renewals',
+    description:
+      'Rival promotions renew contracts by a simple rule until the rival labour market exists.',
+    consumer: 'Contracts',
+    consumers: ['Contract renewals'],
+  }),
 ];
 
 /** The default rules, with media requests turned off for this game. */
