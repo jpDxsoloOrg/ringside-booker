@@ -1,4 +1,4 @@
-import type { NewsItemView, NewsNames } from '@ringside/engine';
+import type { NewsItemView, NewsNames, TraceNode } from '@ringside/engine';
 import { useEntityLinkRenderer } from '@/app/entityLinks';
 import { EmptyState } from '@/components/EmptyState';
 import { formatGameDate } from '@/components/format';
@@ -21,6 +21,8 @@ export interface NewsStorySheetProps {
   readonly open: boolean;
   readonly onClose: () => void;
   readonly story: NewsStoryState;
+  /** The buzz breakdown when the caller already has it (the gallery); else `buzzTraceRef`. */
+  readonly buzzTrace?: TraceNode | undefined;
 }
 
 /** "Leaves the archive on <date>", or "Kept in the archive" for a story that never expires. */
@@ -30,7 +32,13 @@ export function archiveText(item: Pick<NewsItemView, 'expiresOn'>): string {
     : `Leaves the archive on ${formatGameDate(item.expiresOn, 'long')}`;
 }
 
-function StoryBody({ item, names }: { readonly item: NewsItemView; readonly names: NewsNames }) {
+interface StoryBodyProps {
+  readonly item: NewsItemView;
+  readonly names: NewsNames;
+  readonly buzzTrace: TraceNode | undefined;
+}
+
+function StoryBody({ item, names, buzzTrace }: StoryBodyProps) {
   const renderEntityLink = useEntityLinkRenderer();
   const entities = newsEntitiesOf(item, names);
   return (
@@ -63,7 +71,13 @@ function StoryBody({ item, names }: { readonly item: NewsItemView; readonly name
         <div className={styles['fact']}>
           <dt>Buzz</dt>
           <dd>
-            <Explained value={item.buzz} label="Buzz" traceRef={item.buzzTraceRef} />
+            <Explained
+              value={item.buzz}
+              label="Buzz"
+              {...(buzzTrace === undefined
+                ? { traceRef: item.buzzTraceRef }
+                : { trace: buzzTrace })}
+            />
           </dd>
         </div>
       </dl>
@@ -78,7 +92,7 @@ function StoryBody({ item, names }: { readonly item: NewsItemView; readonly name
  * story with its names linked, who it is about, its importance, its buzz with a Why?, and how long
  * the archive keeps it. A story that has gone says so.
  */
-export function NewsStorySheet({ open, onClose, story }: NewsStorySheetProps) {
+export function NewsStorySheet({ open, onClose, story, buzzTrace }: NewsStorySheetProps) {
   let title = 'Story';
   if (story.status === 'found') {
     title = templatedTextToString(story.item.headline, { names: story.names });
@@ -95,7 +109,9 @@ export function NewsStorySheet({ open, onClose, story }: NewsStorySheetProps) {
       {story.status === 'notFound' && (
         <EmptyState icon="newspaper" title="This story can't be shown" body={story.reason} />
       )}
-      {story.status === 'found' && <StoryBody item={story.item} names={story.names} />}
+      {story.status === 'found' && (
+        <StoryBody item={story.item} names={story.names} buzzTrace={buzzTrace} />
+      )}
     </Sheet>
   );
 }

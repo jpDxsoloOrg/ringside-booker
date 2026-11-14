@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import type { To } from 'react-router-dom';
-import type { NewsItemView, NewsNames } from '@ringside/engine';
+import type { NewsItemView, NewsNames, TraceNode } from '@ringside/engine';
 import { useEntityLinkRenderer } from '@/app/entityLinks';
 import { ChamferPanel } from '@/components/ChamferPanel';
 import { classNames } from '@/components/classNames';
@@ -24,6 +24,8 @@ export interface NewsHeroCardProps {
   readonly storyLink: To;
   /** The lead story is `large`; the others `small`. */
   readonly size?: NewsHeroCardSize;
+  /** The buzz breakdown when the caller already has it (the gallery); else `buzzTraceRef`. */
+  readonly buzzTrace?: TraceNode | undefined;
 }
 
 /**
@@ -31,7 +33,13 @@ export interface NewsHeroCardProps {
  * date, the headline as the link to the story, two lines of the body, a picture of the first person
  * (or promotion) it is about, and its buzz with a Why?.
  */
-export function NewsHeroCard({ item, names, storyLink, size = 'small' }: NewsHeroCardProps) {
+export function NewsHeroCard({
+  item,
+  names,
+  storyLink,
+  size = 'small',
+  buzzTrace,
+}: NewsHeroCardProps) {
   const renderEntityLink = useEntityLinkRenderer();
   const subject = newsSubjectOf(item, names);
   const headline = templatedTextToString(item.headline, { names });
@@ -64,7 +72,13 @@ export function NewsHeroCard({ item, names, storyLink, size = 'small' }: NewsHer
           </p>
           <p className={styles['buzz']}>
             <span className={styles['buzzLabel']}>Buzz</span>
-            <Explained value={item.buzz} label="Buzz" traceRef={item.buzzTraceRef} />
+            <Explained
+              value={item.buzz}
+              label="Buzz"
+              {...(buzzTrace === undefined
+                ? { traceRef: item.buzzTraceRef }
+                : { trace: buzzTrace })}
+            />
           </p>
         </div>
       </div>
