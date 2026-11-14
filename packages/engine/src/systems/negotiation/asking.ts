@@ -141,6 +141,8 @@ export interface AskingContext {
   readonly roller: PopularityRoller;
   /** The country of the promotion's home region. */
   readonly homeCountryId: string | null;
+  /** Why this promotion may not offer exclusive deals, else empty. */
+  readonly exclusiveReasons: Reason[];
 }
 
 /** Reads the promotion's side of every ask once. */
@@ -161,6 +163,7 @@ export function askingContext(
     geography,
     roller: createPopularityRoller(geography),
     homeCountryId: countryIdOf(geography, promotion.homeRegionId),
+    exclusiveReasons: exclusiveContractShortfall(read, promotionId, tunables),
   };
 }
 
@@ -381,32 +384,36 @@ function nonNull<T>(value: T | null): value is T {
   return value !== null;
 }
 
-/**
- * The full ask with a shared context and the worker's eligibility already known (the list query
- * works these out once).
- */
-export function askingTermsWith(
+/** What every ask for one worker starts from: who they are, what they are worth, what you may offer. */
+export interface AskBasis {
+  readonly person: Person;
+  readonly role: EmploymentRole;
+  readonly peak: number;
+  readonly world: number;
+  readonly age: number;
+  /** Their signed or active deal with this promotion, or null. */
+  readonly deal: Row | null;
+  /** The contract being renewed, or null. */
+  readonly renewing: Row | null;
+  readonly underContractElsewhere: boolean;
+  readonly marketValue: Traced<number>;
+  readonly allowedKinds: AllowedKind[];
+  readonly bestKind: ContractKind | null;
+}
+
+/** The parts of an ask that do not depend on the contract kind. */
+export function askBasisWith(
   context: AskingContext,
-  request: Omit<AskingTermsRequest, 'promotionId' | 'date'>,
+  person: Person,
+  renewalOf: EmploymentId | undefined,
   eligibility: NegotiationEligibility,
-): AskingTerms {
-  const { read, tunables, promotion, date } = context;
-  const person = read.tables.people.require(request.personId);
+): AskBasis {
+  const { read, tunables, date } = context;
   const deal = liveDealWith(context, person.id);
-  const renewing =
-    request.renewalOf === undefined ? null : read.tables.employments.require(request.renewalOf);
+  const renewing = renewalOf === undefined ? null : read.tables.employments.require(renewalOf);
   const role = roleFor(context, person, renewing ?? deal);
   const { peak, world } = popularityOf(context, person);
-  const age = ageInYears(person.birthDate, date);
-
   const allowedKinds = allowedKindsFor(context, person.id, renewing);
-  const bestKind = allowedKinds.find((entry) => entry.allowed)?.kind ?? null;
-  const kind = request.kind ?? renewing?.terms.kind ?? bestKind ?? 'perAppearance';
-  const exclusiveReasons = exclusiveContractShortfall(read, promotion.id, tunables);
-  const exclusiveAllowed = exclusiveReasons.length === 0;
-  const exclusive =
-    request.exclusive ?? renewing?.terms.exclusive ?? (kind === 'written' && exclusiveAllowed);
-
   const value = marketValue(
     {
       peakPop: peak,
@@ -417,7 +424,30 @@ export function askingTermsWith(
     },
     { tunables },
   );
+  return {
+    person,
+    role,
+    peak,
+    world,
+    age: ageInYears(person.birthDate, date),
+    deal,
+    renewing,
+    underContractElsewhere: eligibility.otherPromotionIds.length > 0,
+    marketValue: value,
+    allowedKinds,
+    bestKind: allowedKinds.find((entry) => entry.allowed)?.kind ?? null,
+  };
+}
 
+/** The monthly wage and the per-appearance fee asked for one contract kind. */
+export function askedPay(
+  context: AskingContext,
+  basis: AskBasis,
+  kind: ContractKind,
+  exclusive: boolean,
+): { monthlyWage: Traced<number>; perAppearanceFee: Traced<number> } {
+  const { read, tunables, promotion, date } = context;
+  const { person, deal, renewing } = basis;
   const modifiers = listAskModifiers()
     .map((modifier) => modifier.compute(read, person.id, promotion.id, date, tunables))
     .filter(nonNull);
@@ -425,24 +455,22 @@ export function askingTermsWith(
   if (kindMultiplier !== undefined) {
     modifiers.push(kindMultiplier);
   }
-
-  const renewal =
-    renewing === null
-      ? null
-      : { morale: renewing.morale, loyalToYou: person.traits.includes('loyal') };
   const monthlyWage = askingWage(
     {
-      marketValue: value,
+      marketValue: basis.marketValue,
       reach: context.reach,
       prestige: promotion.prestige,
       motivation: person.motivation,
       traits: person.traits,
       charisma: person.attributes.charisma,
       presence: person.attributes.presence,
-      role,
+      role: basis.role,
       exclusive,
-      underContractElsewhere: eligibility.otherPromotionIds.length > 0,
-      renewal,
+      underContractElsewhere: basis.underContractElsewhere,
+      renewal:
+        renewing === null
+          ? null
+          : { morale: renewing.morale, loyalToYou: person.traits.includes('loyal') },
       modifiers,
       currentDealFloor:
         deal !== null && deal.terms.kind !== 'perAppearance' ? deal.terms.monthlyWage : null,
@@ -457,7 +485,38 @@ export function askingTermsWith(
     },
     { tunables },
   );
+  return { monthlyWage, perAppearanceFee };
+}
 
+/** The kind and exclusivity an ask is for when the request leaves them out. */
+export function askedKind(
+  context: AskingContext,
+  basis: AskBasis,
+  request: { readonly kind?: ContractKind | undefined; readonly exclusive?: boolean | undefined },
+): { kind: ContractKind; exclusive: boolean } {
+  const kind = request.kind ?? basis.renewing?.terms.kind ?? basis.bestKind ?? 'perAppearance';
+  const exclusive =
+    request.exclusive ??
+    basis.renewing?.terms.exclusive ??
+    (kind === 'written' && context.exclusiveReasons.length === 0);
+  return { kind, exclusive };
+}
+
+/**
+ * The full ask with a shared context and the worker's eligibility already known (the queries work
+ * these out once).
+ */
+export function askingTermsWith(
+  context: AskingContext,
+  request: Omit<AskingTermsRequest, 'promotionId' | 'date'>,
+  eligibility: NegotiationEligibility,
+): AskingTerms {
+  const { read, tunables, promotion, date } = context;
+  const person = read.tables.people.require(request.personId);
+  const basis = askBasisWith(context, person, request.renewalOf, eligibility);
+  const { renewing } = basis;
+  const { kind, exclusive } = askedKind(context, basis, request);
+  const { monthlyWage, perAppearanceFee } = askedPay(context, basis, kind, exclusive);
   const patienceModifiers = listPatienceModifiers()
     .map((modifier) => modifier.compute(read, person.id, promotion.id, date, tunables))
     .filter(nonNull);
@@ -466,22 +525,22 @@ export function askingTermsWith(
   return {
     personId: person.id,
     promotionId: promotion.id,
-    role,
+    role: basis.role,
     kind,
     exclusive,
     renewalOf: renewing?.id ?? null,
-    marketValue: value,
+    marketValue: basis.marketValue,
     monthlyWage,
     perAppearanceFee,
     signingBonus: signingBonus(monthlyWage, kind, tunables),
-    perks: perksFor(context, person, age),
-    appearanceCap: appearanceCapFor(context, age, peak),
+    perks: perksFor(context, person, basis.age),
+    appearanceCap: appearanceCapFor(context, basis.age, basis.peak),
     preferredLengthMonths: preferredLength(person, tunables),
     expectedPush: expectedPushAt(read, person.id, promotion.id, tunables),
-    allowedKinds,
-    bestKind,
-    exclusiveAllowed,
-    exclusiveReasons,
+    allowedKinds: basis.allowedKinds,
+    bestKind: basis.bestKind,
+    exclusiveAllowed: context.exclusiveReasons.length === 0,
+    exclusiveReasons: context.exclusiveReasons,
     startPatience: startPatience(
       {
         traits: person.traits,

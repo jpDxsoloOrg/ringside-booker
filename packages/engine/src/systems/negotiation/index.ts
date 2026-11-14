@@ -20,6 +20,7 @@ import './streams';
 // Registers the built-in offer kinds and enforced terms.
 import './builtins';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
+import { negotiationQueries } from './queries';
 
 export {
   OFFER_EXTRA_MAX_KEYS,
@@ -75,11 +76,59 @@ export {
   writtenContractShortfall,
 } from './formulas/reachGate';
 
+export {
+  ALREADY_WRITTEN_CODE,
+  ALREADY_WRITTEN_MESSAGE,
+  askBasisWith,
+  askedKind,
+  askedPay,
+  askingContext,
+  askingTermsFor,
+  askingTermsWith,
+  popularityOf,
+  REFUSES_RENEWAL_CODE,
+  REFUSES_RENEWAL_MESSAGE,
+  type AllowedKind,
+  type AskBasis,
+  type AskedPerk,
+  type AskingContext,
+  type AskingTerms,
+  type AskingTermsRequest,
+} from './asking';
+export {
+  EXCLUSIVE_ELSEWHERE_REASON_CODE,
+  NEGOTIATION_SITUATIONS,
+  negotiationEligibility,
+  OPEN_TO_OFFERS,
+  UNAVAILABLE_REASON_CODE,
+  type NegotiationEligibility,
+  type NegotiationSituation,
+} from './eligibility';
+export { MERCH_NOT_TRACKED, marketValue, type MarketValueInputs } from './formulas/marketValue';
+export {
+  askingWage,
+  CURRENT_DEAL_FLOOR_LABEL,
+  HUNDREDS_REASON,
+  type AskingWageInputs,
+  type AskingWageRenewal,
+} from './formulas/askingWage';
+export { askingFee, CURRENT_FEE_FLOOR_LABEL, type AskingFeeInputs } from './formulas/askingFee';
+export { startPatience, type StartPatienceInputs } from './formulas/startPatience';
+export {
+  askingTermsQuery,
+  freeAgentsQuery,
+  NOT_YOUR_CONTRACT_MESSAGE,
+  NOT_YOUR_PROMOTION_MESSAGE,
+  type AskingTermsView,
+  type FreeAgentRow,
+  type FreeAgentsSituationFilter,
+} from './queries';
+
 export const negotiationSystem: SystemBundle = defineSystem({
   id: 'negotiation',
   phases: [],
   gates: [],
   subscriptions: [],
-  queries: [],
+  queries: negotiationQueries,
   commands: [],
 });
