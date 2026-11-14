@@ -19,6 +19,7 @@ import {
   pushRank,
 } from './contractLabels';
 import styles from './ContractsScreen.module.css';
+import type { ContractRowAction } from './rowActions';
 import type { ContractMoney } from './useContractMoney';
 
 /** What the columns need besides the row. */
@@ -37,6 +38,37 @@ export interface ContractColumnContext {
   readonly onOpen: (row: ContractRow) => void;
   /** Marks one expiry notice as seen (the Expiring tab's Got it). */
   readonly onAcknowledge: (row: ContractRow) => void;
+  /** Actions other features show on each Expiring row too (ECO5-06's Renew). */
+  readonly rowActions?: readonly ContractRowAction[];
+}
+
+/** The registered actions drawn on one Expiring row. */
+function rowActionsCell(row: ContractRow, actions: readonly ContractRowAction[]) {
+  const shown = actions.filter((action) => action.visible(row));
+  if (shown.length === 0) return <span className={styles['none']}>{NO_VALUE}</span>;
+  return (
+    <span className={styles['rowActions']}>
+      {shown.map((action) => {
+        if (action.render !== undefined) {
+          const Action = action.render;
+          return <Action key={action.id} row={row} placement="row" />;
+        }
+        return (
+          <Button
+            key={action.id}
+            size="sm"
+            variant="secondary"
+            className={styles['nowrap']}
+            onClick={() => {
+              void action.run?.(row);
+            }}
+          >
+            {action.label}
+          </Button>
+        );
+      })}
+    </span>
+  );
 }
 
 function portraitOf(row: ContractRow): ImageSubject {
@@ -252,6 +284,21 @@ export function contractColumns(
             filterValue: () => null,
             card: 'meta',
           },
+          ...((context.rowActions ?? []).some((action) => action.onExpiringRows === true)
+            ? [
+                {
+                  id: 'actions',
+                  header: 'Talks',
+                  cell: (row: ContractRow) =>
+                    rowActionsCell(
+                      row,
+                      (context.rowActions ?? []).filter((action) => action.onExpiringRows === true),
+                    ),
+                  filterValue: () => null,
+                  card: 'meta' as const,
+                },
+              ]
+            : []),
         ]
       : [];
   return [

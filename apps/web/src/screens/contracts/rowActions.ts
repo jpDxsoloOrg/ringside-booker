@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react';
+import type { ComponentType } from 'react';
 import type { ContractRow } from '@ringside/engine';
 
 /**
@@ -13,8 +14,28 @@ export interface ContractRowAction {
   readonly label: string;
   /** Whether the action applies to this contract. */
   readonly visible: (row: ContractRow) => boolean;
-  /** Does it. The sheet stays open; the screen refetches when the world changes. */
-  readonly run: (row: ContractRow) => void | Promise<void>;
+  /**
+   * Does it. The sheet stays open; the screen refetches when the world changes. Leave it out when
+   * `render` draws the action itself.
+   */
+  readonly run?: (row: ContractRow) => void | Promise<void>;
+  /**
+   * Draws the action in place of a plain button, for one that reads the engine or the URL itself
+   * (ECO5-06's Renew: disabled with its reason outside the renewal window). One of `run` and
+   * `render` is required.
+   */
+  readonly render?: ComponentType<ContractRowActionProps>;
+  /**
+   * Also show it on each row of the Expiring tab, not only in the contract's sheet (Renew does).
+   */
+  readonly onExpiringRows?: boolean;
+}
+
+/** What a drawn action gets. */
+export interface ContractRowActionProps {
+  readonly row: ContractRow;
+  /** Where it sits: the sheet's footer, or a row of the Expiring list (smaller there). */
+  readonly placement: 'sheet' | 'row';
 }
 
 let registered: readonly ContractRowAction[] = [];
@@ -26,6 +47,9 @@ function notify(): void {
 
 /** Adds an action to every contract it is visible for. Returns a function that removes it. */
 export function registerContractRowAction(action: ContractRowAction): () => void {
+  if (action.run === undefined && action.render === undefined) {
+    throw new Error(`The contract action "${action.id}" needs a run or a render.`);
+  }
   if (registered.some((other) => other.id === action.id)) {
     throw new Error(`A contract action with id "${action.id}" is already registered.`);
   }
