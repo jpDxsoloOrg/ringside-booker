@@ -5,7 +5,8 @@
  * ECO8-01 lays the ground the rest of ECO8 builds on, with nothing visible yet: the `airings`
  * table and the deal lifecycle fields (`model/entities/airing.ts`, `deal.ts`), the one rule for
  * which deal airs which show (`coverage.ts`), the tunables, RNG streams, events and trace kinds.
- * The bundle's phases, queries and commands are filled in by ECO8-03..05.
+ * The bundle's phases, queries and commands are filled in by ECO8-03..05; ECO8-04 settles airings
+ * (`settle.ts`, `phases.ts`) and keeps their history lean (`retention.ts`).
  *
  * Layout follows the reference system (`systems/health/`). Design: docs/design/broadcast.md.
  */
@@ -16,6 +17,9 @@ import './events';
 import './streams';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
 import { broadcastQueries } from './queries/networks';
+import { airingQueries } from './queries/airings';
+import { settleAiringsPhase, settleOnShowNightSubscription } from './phases';
+import { pruneAiringsPhase } from './retention';
 
 export {
   AIRING_KIND_LABELS,
@@ -140,10 +144,45 @@ export {
   type PublicDealRow,
 } from './queries/networks';
 
+export {
+  AIRED_WITHOUT_RESULT_MEMO,
+  AIRED_WITHOUT_RESULT_NOTE,
+  AIRING_LOSS_NOTE,
+  airingOutcomeOf,
+  alreadySettled,
+  MISSED_AIRING_NOTES,
+  NO_BROADCAST_SHARES_NOTE,
+  NO_CARD_SHARES_NOTE,
+  SETTLEMENT_DOC_REF,
+  settleAiring,
+  type AiringOutcome,
+} from './settle';
+export {
+  SETTLE_AIRINGS_PHASE_ID,
+  SETTLE_ON_SHOW_NIGHT_SUBSCRIPTION_ID,
+  settleAiringsPhase,
+  settleOnShowNightSubscription,
+} from './phases';
+export {
+  newestAiringsPerDeal,
+  PRUNE_AIRINGS_PHASE_ID,
+  pruneAiringsPhase,
+  rollUpAirings,
+} from './retention';
+export {
+  airingQueries,
+  BROADCAST_INCOME_CATEGORIES,
+  INCOME_SUMMARY_MAX_DAYS,
+  UNKNOWN_SHOW_AIRING,
+  type AiringRow,
+  type BroadcastIncomeSummary,
+  type ShowAiringView,
+} from './queries/airings';
+
 export const broadcastSystem: SystemBundle = defineSystem({
   id: 'broadcast',
-  phases: [],
-  subscriptions: [],
-  queries: [...broadcastQueries],
+  phases: [settleAiringsPhase, pruneAiringsPhase],
+  subscriptions: [settleOnShowNightSubscription],
+  queries: [...broadcastQueries, ...airingQueries],
   commands: [],
 });
