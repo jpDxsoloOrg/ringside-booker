@@ -160,7 +160,13 @@ test.describe('rival cards and Auto-fill on a new game', () => {
     });
 
     await test.step('a 7-day skip stops on 9 Jan for the player’s show', async () => {
-      expect(await skipDaysOnce(page, 7, phone)).toBe(DAYS_TO_SHOW);
+      // A worker hurt on the way stops the skip early: that stop is cleared and the skip goes on.
+      let moved = 0;
+      for (let round = 0; moved < 7 && round <= DAYS_TO_SHOW; round += 1) {
+        moved += await skipDaysOnce(page, 7 - moved, phone);
+        if (await clearOtherStops(page)) break;
+      }
+      expect(moved).toBe(DAYS_TO_SHOW);
       const summary = page.getByRole('region', { name: 'Last advance' });
       await expect(summary).toContainText(`Your show '${MY_SHOW}'`);
       await expect(summary).toContainText('has no card yet');
