@@ -9,10 +9,10 @@
   display: grid;
   gap: var(--space-2);
   min-inline-size: 0;
-  transition: opacity var(--motion-fast) ease-out;
 }
 
-.meter[data-pending='true'] {
+/* Only the bar fades while a new preview loads: faded text would fail the contrast minimum. */
+.meter[data-pending='true'] .bar {
   opacity: 0.7;
 }
 
@@ -62,6 +62,7 @@
   block-size: 0.75rem;
   border-radius: var(--radius-pill);
   overflow: hidden;
+  transition: opacity var(--motion-fast) ease-out;
 }
 
 .zone {
