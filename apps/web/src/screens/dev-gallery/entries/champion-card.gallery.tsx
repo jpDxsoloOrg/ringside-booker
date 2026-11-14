@@ -29,7 +29,7 @@ function ChampionCardDemo() {
       <section className={styles['example']}>
         <h3 className={styles['subheading']}>Stacked on a phone, as on the Titles screen</h3>
         <div className={office['stage']}>
-          <ChampionCardList label="Stacked champions" phoneLayout="stack">
+          <ChampionCardList label="Stacked title cards" phoneLayout="stack">
             {galleryChampionships.slice(0, 2).map((championship) => (
               <ChampionCard
                 key={championship.title.id}

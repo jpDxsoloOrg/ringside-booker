@@ -93,7 +93,14 @@ export function TitleCard({ row, headingLevel = 3 }: TitleCardProps) {
           })}
       footer={
         <div className={styles['cardFooter']}>
-          <StatBar label="Prestige" value={row.prestige} className={styles['cardBar']} />
+          {/* The number is in the card's header already ("Prestige 92"), so the bar stands alone. */}
+          <StatBar
+            label="Prestige"
+            hideLabel
+            showValue={false}
+            value={row.prestige}
+            className={styles['cardBar']}
+          />
           {row.status === 'retired' && row.retiredOn !== null && (
             <Badge tone="neutral">{`Retired ${formatGameDate(row.retiredOn)}`}</Badge>
           )}
