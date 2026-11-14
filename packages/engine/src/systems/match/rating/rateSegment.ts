@@ -255,7 +255,10 @@ export function rateSegment(
     ok: true,
     data: {
       ...result,
-      warnings: segmentWarnings(input, read, read.meta.catalogs, input.event.date),
+      warnings: segmentWarnings(input, read, read.meta.catalogs, input.event.date, {
+        tunables,
+        durationClass: slot.durationClass,
+      }),
     },
   };
 }
