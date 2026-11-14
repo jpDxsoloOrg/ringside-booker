@@ -36,8 +36,10 @@ function scoredPromotion(node: TraceNode): string | null {
 
 /**
  * The review decision as a viewer running `viewerPromotionIds` may see it: other promotions'
- * score nodes replaced by a note, and their options left out of the options weighed. Score nodes
- * and options pair up in order (the decision records each option's score as it weighs it).
+ * score nodes replaced by a note, their options left out of the options weighed, and a winning
+ * offer of theirs named by its promotion instead of its id. Score nodes and options pair up in
+ * order (the decision records each option's score as it weighs it, with the promotion's name as
+ * the option's reason).
  */
 export function redactReviewTrace(
   node: TraceNode,
@@ -65,7 +67,13 @@ export function redactReviewTrace(
     const considered: ConsideredOption[] = current.considered.filter(
       (_option, index) => hidden[index] !== true,
     );
-    return { ...current, considered, children: nextChildren };
+    // Another promotion won: name it (the option's reason) instead of its private talks' id.
+    const chosenIndex = current.considered.findIndex((option) => option.option === current.chosen);
+    const chosen =
+      chosenIndex >= 0 && hidden[chosenIndex] === true
+        ? (current.considered[chosenIndex]?.reason ?? ANOTHER_OFFER_NOTE)
+        : current.chosen;
+    return { ...current, considered, chosen, value: chosen, children: nextChildren };
   };
   return redact(node);
 }
