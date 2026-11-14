@@ -3981,3 +3981,29 @@ export type {
   BroadcastIncomeSummary,
   ShowAiringView,
 } from './systems/broadcast/index';
+// ECO8-05: deal health, the deal commands and the deals queries.
+export {
+  DEAL_HEALTH_PHASE_ID,
+  DEAL_NOT_ACTIVE,
+  dealHealth,
+  EXIT_FEE_DOC_REF,
+  exitFee,
+  HEALTH_DOC_REF,
+  HEALTH_MAX_WINDOW,
+  healthDayText,
+  NETWORK_PATIENCE_LABEL,
+} from './systems/broadcast/index';
+export type {
+  CancelPreview,
+  DealDetail,
+  DealHealth,
+  DealHealthAiring,
+  DealHealthCause,
+  DealHealthInputs,
+  DealRecentAiring,
+  DealRow,
+  DealView,
+  ExitFeeInputs,
+  ProposeDealArgs,
+  RenegotiateArgs,
+} from './systems/broadcast/index';

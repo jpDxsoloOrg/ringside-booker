@@ -139,6 +139,11 @@ complete, by the `broadcast.settleOnShowNight` reaction to `show.completed`;
 the phase skips what already has a row. `broadcast.pruneAirings` (`periodic`,
 order 47, monthly on the 1st) deletes the player's airings older than
 `broadcast.airing.historyDays`; rivals' older airings go in `history.rollUp`.
+`broadcast.dealHealth` (`settlement`, order 45, daily, ECO8-05) judges every
+deal that aired or missed an airing today, ends deals the network pulls or
+that reach their end date (rivals' renew when the network would still sign),
+and warns the player about deals at risk or ending soon
+([broadcast.md](broadcast.md#deal-health)).
 
 The `growth` group's storyline phase:
 

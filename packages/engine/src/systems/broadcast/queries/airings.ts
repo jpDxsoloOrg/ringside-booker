@@ -156,7 +156,8 @@ function airingNote(airing: Airing, money: boolean): string | null {
   return null;
 }
 
-function rowOf(read: GameWorldView, airing: Airing, money: boolean): AiringRow {
+/** One airing as a list shows it; money only when `money` (the viewer runs the promotion). */
+export function airingRowOf(read: GameWorldView, airing: Airing, money: boolean): AiringRow {
   return {
     airingId: airing.id,
     airDate: airing.airDate,
@@ -180,7 +181,7 @@ function rowOf(read: GameWorldView, airing: Airing, money: boolean): AiringRow {
 }
 
 /** Newest first: by air date, then id. */
-function newestFirst(left: Airing, right: Airing): number {
+export function newestFirst(left: Airing, right: Airing): number {
   return compareDates(right.airDate, left.airDate) || (left.id < right.id ? 1 : -1);
 }
 
@@ -210,7 +211,7 @@ export const airingsQuery: QueryDefinition<'broadcast.airings'> = defineQuery('b
     return [...rows]
       .sort(newestFirst)
       .slice(0, args.limit ?? 50)
-      .map((airing) => rowOf(read, airing, money));
+      .map((airing) => airingRowOf(read, airing, money));
   },
 });
 

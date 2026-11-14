@@ -598,12 +598,127 @@ see the ECO8-04 row in [save-format.md](save-format.md#size-budget).
 
 ## Deal health
 
-ECO8-05: the risk of each deal, warnings, network cancellations, expiry and
-renewal.
+ECO8-05 (`formulas/dealHealth.ts`, `health.ts`). After every airing a network
+looks at how the deal is doing and gives it a **risk**: Safe, Watch, At risk
+or Cancelling (`DEAL_RISKS`), with the reasons the player reads and a Why?
+(`startDecision`, stored at `dealHealthTraceRef(dealId)`, one trace per deal,
+replaced each time).
+
+### The formula
+
+`dealHealth({ networkName, reachTier, daysSinceStart, recent, upcomingMissed })`
+reads the deal's newest airings (newest first) and the cancelled shows it is
+still due to air. No randomness: the roll happens in the phase. Rules, worst
+first; the worst decides the risk and every one that applies is listed:
+
+| Rule                                                                   | Risk       | Reason the player reads                                                        |
+| ---------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------ |
+| missed ≥ `missedToCancel` in the last `missedWindow` scheduled airings | Cancelling | "3 missed airings: Local TV is pulling the deal"                               |
+| missed = `missedToCancel` − 1                                          | At risk    | "One more missed airing and Local TV cancels"                                  |
+| missed + cancelled shows still to come ≥ `missedToCancel`              | At risk    | "Cancelled shows coming up would make 3 missed airings: Local TV cancels at 3" |
+| ratio < `cancelBelow`                                                  | Cancelling | "Viewers are 48% of what Local TV expects; each airing it may cancel (30%)"    |
+| ratio < `warnBelow`                                                    | At risk    | "Viewers are 62% of what Local TV expects; below 55% it may cancel"            |
+| any missed airing, past or coming                                      | Watch      | "Missed airing: Mon 18 Jan", "Missed airing coming: Mon 25 Jan"                |
+| none of these                                                          | Safe       | "Viewers are 105% of what Local TV expects"                                    |
+
+- **ratio** = Σ viewers ÷ Σ expected viewers over the last `window` airings
+  that aired (the Why? keeps it as a calculation).
+- **Grace:** fewer than `graceDays` since `startsOn`, or fewer than
+  `minAirings` aired, and viewers are not judged (the Why? says so). Missed
+  airings count from the first.
+- `missedToCancel` 0 turns the missed-airing rules off (0 means 0).
+- `window` and `missedWindow` are at most 12 (`HEALTH_MAX_WINDOW`), the
+  default of `broadcast.airing.keepPerDeal`, so retention always keeps them.
+
+### Cancellation
+
+- **Missed airings** cancel with no roll: the player caused them and the rule
+  is easy to explain. The deal ends `cancelled` / `missedAirings`.
+- **Low viewers:** each airing day the deal is Cancelling for viewers, the
+  network rolls its patience on the `broadcast.health` stream:
+  chance = min(1, `cancelChance` + reach tier × `cancelChancePerTier`) (20% on
+  a tier-0 network, 30% on tier 2). A hit ends the deal `cancelled` /
+  `lowViewers`. The stored Why? is then "Does Local TV cancel?" with the
+  health verdict and the roll inside. The roll happens only on airing days, so
+  a long skip with no shows never cancels a deal for low viewers.
+
+### Phase `broadcast.dealHealth`
+
+Daily, `settlement` 45 (after `broadcast.airings` at 40):
+
+1. Every deal with an airing row dated today (`airings.byAirDate`), aired or
+   missed, gets a fresh verdict; cancellations as above.
+2. Every `active` deal: a network that is off the air ends it `cancelled` /
+   `networkClosed`; on or after `endsOn` it expires (below).
+3. **Warnings:** for a human-controlled promotion's deal that is At risk or
+   Cancelling today, or ends within `broadcast.deal.expiryWarningDays`, and
+   whose `warnedOn` is null or at least `warnEveryDays` old: set `warnedOn`
+   and publish `broadcast.dealWarned { dealId, promotionId, risk }`. The
+   warning never stops the day (no gate); the Networks screen (ECO8-06) shows
+   the risk badge and ECO8-07 turns the event into mail when the inbox is on
+   main.
+
+Ending a deal always sets `status`, `endedOn` and `endedReason` and publishes
+`broadcast.dealEnded` (`endDeal`).
+
+### Expiry and rival renewal
+
+On `endsOn` a human promotion's deal becomes `expired` / `expired`; the
+player is warned `expiryWarningDays` ahead and can renew with
+`broadcast.renegotiate` before then.
+
+A computer promotion's deal, while `broadcast.rivals.autoRenew` is on, is
+valued again (`dealValuation` with `excludeDealId`) for the same network,
+show, timeslot and live, for `broadcast.deal.defaultMonths`. If the network
+would sign and the deal's health today is not Cancelling, it is renegotiated
+in place (new terms at today's valuation, `endsOn` = today + months,
+`renegotiatedOn`, `broadcast.dealRenegotiated`); otherwise it expires. The
+same valuation the player gets, applied automatically, so rivals do not lose
+all TV before ECO10's deal-making exists. **ECO10 switches `autoRenew` off**
+when its rivals make their own deals.
+
+On the default world Cielo Alto's shipped deal ends on 5 Jul 2027 and renews
+at today's valuation (fee, per-thousand rate and airtime all from the formula,
+not its shipped terms; the deal stays signed). The half-year soak test
+(`dealHealth-default-world.test.ts`, slow suite) pins that no shipped deal is
+cancelled for low viewers or missed airings.
 
 ## Commands
 
-ECO8-05: propose, renegotiate and cancel.
+ECO8-05 (`commands/`). Every command runs the one controller rule
+(`controlsPromotion`): a person acts only for their own promotion, the
+computer only for computer-run ones (`notYourPromotion` otherwise). The
+network's refusals come back as reasons with the `DealRefusalCode` as `code`,
+its message, and the network as `subject`; nothing changes.
+
+- **`broadcast.proposeDeal { promotionId, networkId, eventDefinitionId | null,
+timeslot, live, months }`** → `{ dealId }`. Refuses `unknownPromotion`,
+  `notYourPromotion`, `unknownNetwork` (no such network, or another
+  promotion's own service), `unknownShow`, `notYourShow`, then every refusal
+  of `dealValuation` (`networkClosed` … `badLength`). Applies the same
+  valuation again in the transaction (identical by construction; a mismatch is
+  an engine bug and rolls back), creates the deal (`active`, `offeredOn` =
+  `startsOn` = today, `endsOn` = today + months, the valuation's weekday and
+  terms in cents), makes the show televised when `becomesTelevised`, records
+  the network's "Would it sign?" verdict at `dealHealthTraceRef` as the
+  opening note, and publishes `broadcast.dealSigned`. What it signs is exactly
+  what `broadcast.valuation` previewed, including a pay-per-view deal's high
+  airtime at today's rates.
+- **`broadcast.renegotiate { dealId, months }`** → `{ endsOn }`. Own `active`
+  deal only (`unknownDeal`, `notYourPromotion`, `dealNotActive`); the
+  valuation for the same network, show, timeslot and live with
+  `excludeDealId`, refusals as above. Writes the new terms and weekday,
+  `endsOn` = max(`endsOn`, today) + months, `renegotiatedOn` = today,
+  `warnedOn` = null, and publishes `broadcast.dealRenegotiated`. Terms can go
+  down as well as up.
+- **`broadcast.cancelDeal { dealId }`** → `{ exitFee }`. Own `active` deal
+  only. The exit fee (`formulas/exitFee.ts`) is `exitFeeShows` × (fee per
+  show + per-thousand rate × the last aired airing's viewers ÷ 1,000), using
+  the projected viewers when nothing has aired yet, rounded down to the cent.
+  Posted with `postMoney` as `otherCost`, memo "Early exit: <network>", ref
+  the deal (nothing posted when it is 0). The deal ends `cancelled` /
+  `byPromotion` (`broadcast.dealEnded`). `broadcast.cancelPreview` shows the
+  same fee and Why? for the confirm dialog.
 
 ## Queries and visibility
 
@@ -670,7 +785,27 @@ Why? ref are `null` for a promotion the viewer does not run:
   are kept for the last 4 weeks. Older money is counted in the monthly
   totals.").
 
-ECO8-05 adds the deals queries.
+ECO8-05 adds the deals queries (`systems/broadcast/queries/deals.ts`):
+
+- **`broadcast.deals { promotionId, include: 'active' | 'all' }`**: own
+  promotions only (`notYourPromotion`). One row per deal: `dealId`,
+  `networkId`, `networkName`, `kind`, `logoRef`, `showName` ("All major
+  shows" for a promotion-wide pay-per-view deal), `eventDefinitionId`,
+  `weekday`, `timeslot`, `live`, `terms` (cents), `startsOn`, `endsOn`,
+  `daysLeft`, `status`, `endedReason`, `lastAiring` (`airDate`, `viewers`,
+  `expectedViewers`, `traceRef`) or null, `expectedViewers` (today's
+  benchmark as an inline `Traced`, null for a house show or an ended deal),
+  `recent` (the last `window` airings, oldest first, for a Sparkline), `risk`
+  and `riskReasons` (worked out from the stored airings, so they are current
+  between airings; null and empty once the deal has ended), `healthTraceRef`
+  (the stored verdict or signing note, or null) and `upcomingMissed`.
+- **`broadcast.deal { dealId }`**: for the deal's own promotion,
+  `{ visibility: 'own', deal }` with the same row plus its full airing
+  history (`airings`, newest first, at most 200, as `broadcast.airings` rows).
+  For anyone else, `{ visibility: 'public', deal }` with only the
+  `broadcast.publicDeals` fields.
+- **`broadcast.cancelPreview { dealId }`**: own active deals only; the exit
+  fee in cents and its Why?.
 
 ## Seams
 

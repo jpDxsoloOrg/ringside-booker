@@ -20,6 +20,11 @@ import { broadcastQueries } from './queries/networks';
 import { airingQueries } from './queries/airings';
 import { settleAiringsPhase, settleOnShowNightSubscription } from './phases';
 import { pruneAiringsPhase } from './retention';
+import { dealHealthPhase } from './health';
+import { dealQueries } from './queries/deals';
+import { proposeDealCommand } from './commands/proposeDeal';
+import { renegotiateCommand } from './commands/renegotiate';
+import { cancelDealCommand } from './commands/cancelDeal';
 
 export {
   AIRING_KIND_LABELS,
@@ -141,6 +146,7 @@ export {
   type NetworkBestOffer,
   type NetworkCarriedDeal,
   type NetworkRow,
+  publicDealRow,
   type PublicDealRow,
 } from './queries/networks';
 
@@ -171,6 +177,7 @@ export {
 } from './retention';
 export {
   airingQueries,
+  airingRowOf,
   BROADCAST_INCOME_CATEGORIES,
   INCOME_SUMMARY_MAX_DAYS,
   UNKNOWN_SHOW_AIRING,
@@ -179,10 +186,48 @@ export {
   type ShowAiringView,
 } from './queries/airings';
 
+export {
+  DEAL_HEALTH_PHASE_ID,
+  NETWORK_PATIENCE_LABEL,
+  airingsNewestFirst,
+  applyRenegotiation,
+  dealHealthOf,
+  dealHealthPhase,
+  endDeal,
+  revalueDeal,
+  upcomingMissedAirings,
+} from './health';
+export {
+  dealHealth,
+  HEALTH_DOC_REF,
+  healthDayText,
+  type DealHealth,
+  type DealHealthAiring,
+  type DealHealthCause,
+  type DealHealthInputs,
+} from './formulas/dealHealth';
+export { EXIT_FEE_DOC_REF, exitFee, type ExitFeeInputs } from './formulas/exitFee';
+export { proposeDealCommand, type ProposeDealArgs } from './commands/proposeDeal';
+export { renegotiateCommand, type RenegotiateArgs } from './commands/renegotiate';
+export { cancelDealCommand, exitFeeFor, exitFeeMemo } from './commands/cancelDeal';
+export { DEAL_NOT_ACTIVE, NOT_YOUR_PROMOTION_DEAL_MESSAGE } from './commands/shared';
+export {
+  cancelPreviewQuery,
+  dealQueries,
+  dealQuery,
+  dealsQuery,
+  type CancelPreview,
+  type DealDetail,
+  type DealRecentAiring,
+  type DealRow,
+  type DealView,
+} from './queries/deals';
+export { HEALTH_MAX_WINDOW } from './tunables';
+
 export const broadcastSystem: SystemBundle = defineSystem({
   id: 'broadcast',
-  phases: [settleAiringsPhase, pruneAiringsPhase],
+  phases: [settleAiringsPhase, dealHealthPhase, pruneAiringsPhase],
   subscriptions: [settleOnShowNightSubscription],
-  queries: [...broadcastQueries, ...airingQueries],
-  commands: [],
+  queries: [...broadcastQueries, ...airingQueries, ...dealQueries],
+  commands: [proposeDealCommand, renegotiateCommand, cancelDealCommand],
 });
