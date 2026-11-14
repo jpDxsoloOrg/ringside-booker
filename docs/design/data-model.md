@@ -924,7 +924,8 @@ Shared fields:
 
 `kind: 'angle'` adds `angle`: `{ angleTypeKey; beats }`, an ordered list of 1–8
 beats, each `{ beatKey; personIds }` and nothing else. Angles have no minutes
-either.
+either. Beat groups are derived from participant sides
+([angle-rating.md](angle-rating.md#beat-groups-and-sides)).
 
 The content keys (`matchTypeKey`, `stipulationKeys`, `finishKey`,
 `methodKey`, `angleTypeKey`, `beatKey`) point at data-pack catalogs owned by
