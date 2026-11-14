@@ -50,5 +50,18 @@ declare module '../../core/events/types' {
       heatBefore: number;
       heatAfter: number;
     };
+    /**
+     * An ended storyline's payoff was settled (CRTV4-03): once per ended storyline, also when it
+     * paid nothing (`paid: false`, too few counted segments), so news can say it fizzled out.
+     * `memberCount` is how many members were paid; `quality` is the payoff's -1..1 quality (times
+     * the finale bonus on a gain), 0 when `paid` is false.
+     */
+    'storyline.paidOff': {
+      storylineId: StorylineId;
+      promotionId: PromotionId;
+      paid: boolean;
+      memberCount: number;
+      quality: number;
+    };
   }
 }

@@ -10,7 +10,6 @@ import { defineQuery, type QueryDefinition } from '../../core/api/query';
 import { refuseQuery } from '../../core/api/result';
 import type { StorylineId } from '../../core/ids';
 import { zId } from '../../model/primitives';
-import { linkedSegmentIdsOf } from './context';
 import { endOutcome, endOutcomeMessage, type StorylineEndPayoff } from './lifecycle';
 import { editsStorylinesOf } from './rows';
 import { STORYLINE_COMMAND_REASONS } from './validation';
@@ -20,7 +19,7 @@ export interface StorylineEndPreview {
   linkedSegments: number;
   minSegments: number;
   payoff: StorylineEndPayoff;
-  /** "Ending now pays nothing: needs 4 linked segments, has 0." */
+  /** "Ending now pays nothing: needs 4 linked segments, has 0." or "Ending now pays off: …" */
   message: string;
 }
 
@@ -64,7 +63,7 @@ export const storylinesEndPreviewQuery: QueryDefinition<'storylines.endPreview'>
         });
       }
       const outcome = endOutcome(
-        linkedSegmentIdsOf(ctx.read, storyline.id).length,
+        storyline.progressTotals.segments,
         ctx.tunables.get('storylines.payoff.minSegments'),
       );
       return { ...outcome, message: endOutcomeMessage(outcome) };

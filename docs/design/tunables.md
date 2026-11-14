@@ -1230,25 +1230,33 @@ line on the heat meter, the soft limit on active storylines and the payoff
 threshold CRTV4 reads too. CRTV3-02 adds starting heat, heat cooling and the
 starter storylines at new game.
 
-| Key                               | Kind    | Default | Range | Unit       | Meaning                                                                                                                         |
-| --------------------------------- | ------- | ------- | ----- | ---------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `storylines.heat.hotFrom`         | number  | 70      | 0–100 | points     | Heat at which a storyline shows as Hot on the meter (display only)                                                              |
-| `storylines.activeSoftLimit`      | integer | 6       | 0–30  | count      | Active storylines per promotion before creating another shows a warning. 0 never warns                                          |
-| `storylines.payoff.minSegments`   | integer | 4       | 0–30  | count      | Linked segments a storyline needs before ending it can pay off. 0 means any storyline can pay off                               |
-| `titles.orphanGraceDays`          | integer | 7       | 0–365 | days       | Days a champion may lack a contract with the promotion (or its parent) before the title is vacated                              |
-| --------------------------------- | ------- | ------- | ----- | ---------- | -----------------------------------------------------------------------------------------------------------                     |
-| `storylines.heat.startBase`       | number  | 25      | 0–100 | points     | Heat every new storyline starts from                                                                                            |
-| `storylines.heat.startStarWeight` | number  | 0.25    | 0–1   | ratio      | Share of the two best-known members' average home popularity added to starting heat. 0 turns star power off                     |
-| `storylines.heat.startMax`        | number  | 60      | 0–100 | points     | Highest starting heat                                                                                                           |
-| `storylines.heat.decayGraceDays`  | integer | 7       | 0–90  | days       | Days without progress before heat starts cooling                                                                                |
-| `storylines.heat.decayPerDay`     | number  | 1       | 0–20  | points/day | Heat lost each day after the grace period. 0 means heat never cools                                                             |
-| `storylines.heat.decayFloor`      | number  | 10      | 0–100 | points     | Cooling never takes heat below this                                                                                             |
-| `storylines.starterPerPromotion`  | integer | 2       | 0–6   | count      | Starter storylines each promotion gets at new game. 0 creates none                                                              |
-| `storylines.link.maxPerSegment`   | integer | 2       | 1–12  | count      | The most storylines one segment can be linked to and count for                                                                  |
-| `storylines.heat.pull`            | number  | 0.4     | 0–1   | ratio      | Share of the gap between a storyline's heat and a linked segment's score that one segment closes. 0 means shows never move heat |
-| `storylines.heat.repeatFactor`    | number  | 0.5     | 0–1   | ratio      | Multiplier for each further linked segment of the same storyline on one show. 0 means only the first counts                     |
-| `storylines.heat.preShowFactor`   | number  | 0.5     | 0–1   | ratio      | Multiplier for a linked pre-show segment. 0 means pre-show segments never move heat                                             |
-| `storylines.heat.maxStep`         | number  | 15      | 0–100 | points     | The most heat one linked segment can add or take away. 0 means shows never move heat                                            |
+| Key                                | Kind    | Default | Range | Unit       | Meaning                                                                                                                         |
+| ---------------------------------- | ------- | ------- | ----- | ---------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `storylines.heat.hotFrom`          | number  | 70      | 0–100 | points     | Heat at which a storyline shows as Hot on the meter (display only)                                                              |
+| `storylines.activeSoftLimit`       | integer | 6       | 0–30  | count      | Active storylines per promotion before creating another shows a warning. 0 never warns                                          |
+| `storylines.payoff.minSegments`    | integer | 4       | 0–30  | count      | Linked segments a storyline needs before ending it can pay off. 0 means any storyline can pay off                               |
+| `titles.orphanGraceDays`           | integer | 7       | 0–365 | days       | Days a champion may lack a contract with the promotion (or its parent) before the title is vacated                              |
+| ---------------------------------  | ------- | ------- | ----- | ---------- | -----------------------------------------------------------------------------------------------------------                     |
+| `storylines.heat.startBase`        | number  | 25      | 0–100 | points     | Heat every new storyline starts from                                                                                            |
+| `storylines.heat.startStarWeight`  | number  | 0.25    | 0–1   | ratio      | Share of the two best-known members' average home popularity added to starting heat. 0 turns star power off                     |
+| `storylines.heat.startMax`         | number  | 60      | 0–100 | points     | Highest starting heat                                                                                                           |
+| `storylines.heat.decayGraceDays`   | integer | 7       | 0–90  | days       | Days without progress before heat starts cooling                                                                                |
+| `storylines.heat.decayPerDay`      | number  | 1       | 0–20  | points/day | Heat lost each day after the grace period. 0 means heat never cools                                                             |
+| `storylines.heat.decayFloor`       | number  | 10      | 0–100 | points     | Cooling never takes heat below this                                                                                             |
+| `storylines.starterPerPromotion`   | integer | 2       | 0–6   | count      | Starter storylines each promotion gets at new game. 0 creates none                                                              |
+| `storylines.link.maxPerSegment`    | integer | 2       | 1–12  | count      | The most storylines one segment can be linked to and count for                                                                  |
+| `storylines.heat.pull`             | number  | 0.4     | 0–1   | ratio      | Share of the gap between a storyline's heat and a linked segment's score that one segment closes. 0 means shows never move heat |
+| `storylines.heat.repeatFactor`     | number  | 0.5     | 0–1   | ratio      | Multiplier for each further linked segment of the same storyline on one show. 0 means only the first counts                     |
+| `storylines.heat.preShowFactor`    | number  | 0.5     | 0–1   | ratio      | Multiplier for a linked pre-show segment. 0 means pre-show segments never move heat                                             |
+| `storylines.heat.maxStep`          | number  | 15      | 0–100 | points     | The most heat one linked segment can add or take away. 0 means shows never move heat                                            |
+| `storylines.payoff.neutralHeat`    | number  | 50      | 0–100 | points     | Heat at which ending a storyline pays nothing either way: hotter pays its members, colder costs them                            |
+| `storylines.payoff.heatSpan`       | number  | 40      | 1–100 | points     | Heat above or below the neutral heat at which the payoff reaches its full size                                                  |
+| `storylines.payoff.popularityMax`  | number  | 4       | 0–20  | points     | Popularity a member gains (or loses) from a payoff at full size. 0 means payoffs never change popularity                        |
+| `storylines.payoff.momentumMax`    | number  | 10      | 0–50  | points     | Momentum a member gains (or loses) from a payoff at full size. 0 means payoffs never change momentum                            |
+| `storylines.payoff.finaleFactor`   | number  | 1.25    | 1–3   | multiplier | Multiplier for a payoff gain when the storyline's finale match was played. 1 means no finale bonus                              |
+| `storylines.payoff.headroomMargin` | number  | 10      | 0–50  | points     | How far a member's popularity can sit above the storyline's heat and still gain the full payoff                                 |
+| `storylines.payoff.headroomSpan`   | number  | 20      | 1–100 | points     | Popularity over which a member's payoff gain shrinks to nothing as they outgrow the story                                       |
+| `storylines.payoff.minRegionPop`   | number  | 20      | 0–100 | points     | The promotion's popularity a region needs for a payoff to reach it                                                              |
 
 | Key                             | Kind    | Default | Range | Unit   | Meaning                                                                                           |
 | ------------------------------- | ------- | ------- | ----- | ------ | ------------------------------------------------------------------------------------------------- |

@@ -25,6 +25,8 @@ import './card/bookingCheck';
 import './card/finaleHook';
 // Registers the `storylines.heat` segment result applier (CRTV4-02).
 import './card/heatApplier';
+import { payOffOnEndSubscription } from './card/payoff';
+import { storylinesPayoffQuery } from './card/payoffQuery';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
 import { storylinesCardCommands } from './card/commands';
 import { storylinesProgressQueries } from './card/progressQueries';
@@ -223,6 +225,45 @@ export {
 } from './card/progressQueries';
 export { STORYLINE_HEAT_STEP_TRACE_KIND, storylineHeatStepTraceRef } from './traceKinds';
 
+// The payoff when a storyline ends (CRTV4-03). See docs/design/storylines.md#payoff.
+export {
+  ALREADY_BIGGER_TEXT,
+  memberPayoff,
+  type MemberPayoff,
+  type MemberPayoffInputs,
+} from './formulas/memberPayoff';
+export {
+  noPayoffText,
+  PAYOFF_DOC_REF,
+  PAYOFF_OUTCOMES,
+  payoffEligible,
+  payoffQuality,
+  type PayoffEligibleInputs,
+  type PayoffOutcome,
+  type PayoffQualityInputs,
+} from './formulas/payoffQuality';
+export {
+  memberIsPaid,
+  PAY_OFF_ON_END_SUBSCRIPTION_ID,
+  payOffOnEndSubscription,
+  payOffStoryline,
+  STORYLINE_PAYOFF_REASON_KEY,
+  storylinePayoffReason,
+} from './card/payoff';
+export {
+  STORYLINE_PAYOFF_REASONS,
+  storylinesPayoffQuery,
+  type StorylinePayoffView,
+} from './card/payoffQuery';
+export {
+  LEFT_PROMOTION_PAYOFF_TEXT,
+  NO_FAN_BASE_PAYOFF_TEXT,
+  payoffRegionWeights,
+  planPayoff,
+  type PayoffPlan,
+  type PayoffPlanMember,
+} from './card/planPayoff';
+
 export const storylinesSystem: SystemBundle = defineSystem({
   id: 'storylines',
   phases: storylinesPhases,
@@ -231,6 +272,8 @@ export const storylinesSystem: SystemBundle = defineSystem({
     storylinesEndPreviewQuery,
     ...storylinesCardQueries,
     ...storylinesProgressQueries,
+    storylinesPayoffQuery,
   ],
+  subscriptions: [payOffOnEndSubscription],
   commands: [...storylinesCommands, ...storylinesCardCommands],
 });
