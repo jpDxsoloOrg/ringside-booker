@@ -1207,3 +1207,15 @@ whole cents (shown here in dollars); 0 means 0.
 | `contracts.counter.lengthTolerance`        | integer | 12       | 0–120          | months      | Months off their preferred length a counter-offer lets stand                                  |
 | `contracts.review.tieEpsilon`              | number  | 0.01     | 0–0.5          | ratio       | How close two offers must score (share of each ask) to count as a tie, broken by a roll       |
 | `contracts.ai.acceptCounterUpTo`           | number  | 1        | 0–3            | multiplier  | A computer promotion accepts a counter-offer whose pay is at most this times the worker's ask |
+
+## Storyline tunables
+
+CRTV3-01, see [storylines.md](storylines.md). Read-side numbers only: the Hot
+line on the heat meter, the soft limit on active storylines and the payoff
+threshold CRTV4 reads too.
+
+| Key                             | Kind    | Default | Range | Unit   | Meaning                                                                                           |
+| ------------------------------- | ------- | ------- | ----- | ------ | ------------------------------------------------------------------------------------------------- |
+| `storylines.heat.hotFrom`       | number  | 70      | 0–100 | points | Heat at which a storyline shows as Hot on the meter (display only)                                |
+| `storylines.activeSoftLimit`    | integer | 6       | 0–30  | count  | Active storylines per promotion before creating another shows a warning. 0 never warns            |
+| `storylines.payoff.minSegments` | integer | 4       | 0–30  | count  | Linked segments a storyline needs before ending it can pay off. 0 means any storyline can pay off |
