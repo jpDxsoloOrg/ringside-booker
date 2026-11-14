@@ -10,6 +10,7 @@ import type { DayPrimaryAction } from './dayControlState';
 import { useDayAdvance } from './DayAdvanceProvider';
 import styles from './DayControl.module.css';
 import { DAY_SHORTCUT, useDayShortcut } from './useDayShortcut';
+import { useShowNightGate } from './useShowNightGate';
 
 /** The main button's words for each state. */
 export function primaryLabel(primary: DayPrimaryAction): string {
@@ -48,7 +49,8 @@ export function DayControl({
   const [gatesOpen, setGatesOpen] = useState(false);
   const reasonId = useId();
   const busy = advance.running || advance.autosave.kind === 'saving';
-  const { primary, skipEnabled } = deriveDayControl(gates, { advancing: busy });
+  const showNight = useShowNightGate(gates);
+  const { primary, skipEnabled } = deriveDayControl(gates, { advancing: busy, showNight });
   const label = primaryLabel(primary);
   // The phone top bar has room for about ten capitals beside the date, so a long gate label
   // shows a short one there. The accessible name starts with the words on screen (so voice

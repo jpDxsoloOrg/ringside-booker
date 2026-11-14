@@ -35,6 +35,7 @@ import {
 } from './contractChangesText';
 import type { AdvanceReport } from './DayAdvanceProvider';
 import { gateDestination, SHOW_NIGHT_HINT } from './dayControlState';
+import { useShowNightGate } from './useShowNightGate';
 import { useOptionalDayAdvance } from './DayAdvanceProvider';
 import styles from './DayControl.module.css';
 import { useOpenResultsAfterShow } from './useOpenResultsAfterShow';
@@ -156,9 +157,10 @@ function AdvancedReportBanner({ report, onDismiss }: ReportBannerProps<AdvancedR
   );
 }
 
-/** "Tonight: <Show>" and Go to the show, for the show day the advance stopped on. */
+/** "Tonight: <Show>" and Go live (or Go to the show under Auto), for the show day the advance stopped on. */
 function TonightLine({ hit, said }: { readonly hit: GateHit; readonly said: boolean }) {
-  const destination = gateDestination(hit);
+  const showNight = useShowNightGate([hit], hit);
+  const destination = gateDestination(hit, [hit], showNight);
   return (
     <>
       {!said && <p className={styles['summaryReason']}>{hit.reason}</p>}

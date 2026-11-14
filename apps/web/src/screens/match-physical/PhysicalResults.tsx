@@ -126,6 +126,22 @@ function WorkerRow({ worker }: { readonly worker: PhysicalWorkerRow }) {
   );
 }
 
+/**
+ * One match's competitors and what it cost them, with no heading of its own: the show night
+ * screen's report after each segment (EVT10-02) puts it under its own. Nothing for a match that
+ * was not rated or a talking segment.
+ */
+export function PhysicalWorkerList({ data }: { readonly data: PhysicalForSegmentResult }) {
+  if (!data.applied || data.workers.length === 0) return null;
+  return (
+    <ul className={styles['workers']}>
+      {data.workers.map((worker) => (
+        <WorkerRow key={worker.personId} worker={worker} />
+      ))}
+    </ul>
+  );
+}
+
 export interface PhysicalMatchProps {
   readonly segment: SegmentResultView;
   /** `match.physicalForSegment` for it. */

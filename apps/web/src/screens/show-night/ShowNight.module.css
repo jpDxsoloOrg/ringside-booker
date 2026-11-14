@@ -1,0 +1,316 @@
+/*
+ * Show night (EVT10-02). Desktop: the lower third and the score bug on top, then the running
+ * order down the left and the latest report in the middle, with the controls kept in reach at the
+ * bottom. Phone: one column, the running order folded into a strip above the report.
+ */
+.screen {
+  --controls-room: calc(var(--tap-target-min) * 2 + var(--space-8));
+
+  display: grid;
+  gap: var(--space-5);
+  min-inline-size: 0;
+  max-inline-size: 80rem;
+}
+
+.pageHeading {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.header {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.scoreBug {
+  min-inline-size: 0;
+}
+
+.pending {
+  color: var(--color-text-subtle);
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: minmax(15rem, 20rem) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+
+.progressPanel {
+  position: sticky;
+  inset-block-start: var(--space-3);
+  min-inline-size: 0;
+}
+
+.middle {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+  scroll-margin-block-end: var(--controls-room);
+}
+
+/* The running order: one row per segment, its state in words. */
+.progressList {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.progressItem {
+  min-inline-size: 0;
+  border-inline-start: 3px solid var(--color-border);
+}
+
+.progressItem[data-progress='done'] {
+  border-inline-start-color: var(--color-data);
+}
+
+.progressItem[data-progress='next'] {
+  border-inline-start-color: var(--color-action-bright);
+  background: var(--color-surface-hover);
+}
+
+.progressItem[data-progress='toCome'] {
+  color: var(--color-text-muted);
+}
+
+.progressButton,
+.progressBody {
+  display: grid;
+  gap: var(--space-1);
+  inline-size: 100%;
+  min-inline-size: 0;
+  padding: var(--space-2) var(--space-3);
+  text-align: start;
+}
+
+.progressButton {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .progressButton:hover {
+    background: var(--color-surface-hover);
+  }
+}
+
+.progressButton:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+.progressCurrent .progressButton {
+  background: var(--color-surface-raised);
+}
+
+.progressHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-2);
+}
+
+.progressTitle {
+  font-weight: var(--font-weight-bold);
+}
+
+.progressState {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.progressState[data-progress='next'] {
+  color: var(--color-action-bright);
+}
+
+.progressLine {
+  overflow-wrap: anywhere;
+  font-size: var(--font-size-sm);
+}
+
+/* The report in the middle. */
+.reportPanel {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.reportHeading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.reportHeadingSub {
+  color: var(--color-text-muted);
+  font-family: var(--font-family-ui);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-regular);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.report {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.reportSection {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.reportSectionHeading {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+}
+
+/* A new report coming in. Instant under reduced motion: the token is 0ms there. */
+.fadeIn {
+  animation: report-in var(--motion-base) var(--easing-standard);
+}
+
+@keyframes report-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-2));
+  }
+}
+
+.lead {
+  color: var(--color-text-muted);
+}
+
+.showOver {
+  min-inline-size: 0;
+}
+
+.finalScore {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-block-end: var(--space-2);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.finalLabel {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-regular);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.refusal {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border-inline-start: 3px solid var(--color-negative);
+  background: var(--color-surface-raised);
+}
+
+/* The controls: kept in reach at the bottom of the screen. */
+.controls {
+  position: sticky;
+  inset-block-end: var(--space-3);
+  z-index: 1;
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-2);
+}
+
+.upNext {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+  font-size: var(--font-size-sm);
+}
+
+.upNextLabel {
+  color: var(--color-action-bright);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.upNextLeft {
+  color: var(--color-text-muted);
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* What the live region says: read out, never drawn. */
+.live {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.skeleton {
+  display: block;
+  block-size: 12rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-hover);
+}
+
+@media (--bp-mobile) {
+  .screen {
+    gap: var(--space-4);
+  }
+
+  .pageHeading {
+    font-size: var(--font-size-xl);
+  }
+
+  .columns {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-4);
+  }
+
+  .progressPanel {
+    position: static;
+  }
+
+  /* Above the bottom navigation and the safe area; the buttons share the width. */
+  .controls {
+    inset-block-end: calc(var(--shell-bottom-chrome, var(--safe-bottom)) + var(--space-2));
+    padding: var(--space-2);
+  }
+
+  .buttons > * {
+    flex: 1 1 9rem;
+  }
+}
