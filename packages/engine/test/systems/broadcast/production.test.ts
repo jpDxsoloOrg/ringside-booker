@@ -19,10 +19,9 @@ const TUNABLES = createEngineTunables();
 /** The deal world plus a tier-2 channel over the whole map, with your camera and marketing at 0. */
 function worldWithBigChannel(): DealWorld & { readonly bigChannel: NetworkId } {
   const built = dealWorld();
-  let bigChannel: NetworkId | null = null;
   const regionIds = [...built.world.tables.regions.ids()];
   const result = built.world.transact('big channel', (tx) => {
-    bigChannel = tx.insert(
+    const id = tx.insert(
       'networks',
       aNetwork({
         id: tx.mintId('networks'),
@@ -35,10 +34,10 @@ function worldWithBigChannel(): DealWorld & { readonly bigChannel: NetworkId } {
     tx.update('promotions', built.you, {
       production: { ...promotion.production, camera: 0, marketing: 0 },
     });
+    return id;
   });
   if (!result.ok) throw result.error;
-  if (bigChannel === null) throw new Error('No big channel');
-  return { ...built, bigChannel };
+  return { ...built, bigChannel: result.value };
 }
 
 function engineFor(built: DealWorld): Engine {
