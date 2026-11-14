@@ -1,5 +1,6 @@
 import type { ReignRow } from '@ringside/engine';
 import { DataTable } from '@/components/DataTable';
+import { EmptyState } from '@/components/EmptyState';
 import type { ColumnDef } from '@/components/DataTable';
 import { formatGameDate, formatNumber } from '@/components/format';
 import { formatReignDays } from '@/components/ChampionCard';
@@ -12,6 +13,9 @@ export const CURRENT_REIGN_TEXT = 'Current';
 
 /** What a reign of 0 days says: it began today. */
 export const WON_TODAY_TEXT = 'Won today';
+
+/** The lineage of a title nobody has held yet. */
+export const NO_REIGNS_TEXT = 'No champions yet';
 
 /** "142 days", or "Won today" for a reign that began today. */
 export function reignDaysText(days: number): string {
@@ -170,6 +174,14 @@ export function TitleLineageTable({ reigns, titleName }: TitleLineageTableProps)
       sortable={false}
       density="compact"
       className={styles['lineage']}
+      emptyState={
+        <EmptyState
+          icon="titles"
+          headingLevel={3}
+          title={NO_REIGNS_TEXT}
+          body="Every reign shows here once someone holds the title."
+        />
+      }
     />
   );
 }

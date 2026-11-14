@@ -330,6 +330,7 @@ test.describe('Creative > Titles, end to end', () => {
       await expect(page.getByRole('heading', { level: 1, name: CROWN })).toBeVisible();
       await expect(page).toHaveURL(/\/game\/titles\/tit_[^/?]+$/);
       await expect(championPanel(page).getByText(/^Vacant since/)).toBeVisible();
+      await expect(lineage(page).getByText('No champions yet')).toBeVisible();
       await checkWhy(
         page,
         page.getByRole('button', { name: 'Why is Prestige 44?' }),
