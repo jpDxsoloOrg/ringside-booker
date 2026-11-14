@@ -87,8 +87,12 @@ function required<T>(value: T | undefined, what: string): T {
 }
 
 /** Popularity `value` in every region of the map. */
-function everywhere(context: BuildContext, value: number): Partial<Record<RegionId, number>> {
-  return Object.fromEntries(context.ids.regions.map((regionId) => [regionId, value]));
+function everywhere(context: BuildContext, value: number): Record<RegionId, number> {
+  const pop: Record<RegionId, number> = {};
+  for (const regionId of context.ids.regions) {
+    pop[regionId] = value;
+  }
+  return pop;
 }
 
 const MY_ROSTER: readonly DeepPartial<Employment>[] = [
@@ -156,12 +160,14 @@ export function negotiationWorld(options: { rivalController?: Controller } = {})
       add('rookie', { birthDate: addYears(TODAY, -17), debutDate: addYears(TODAY, 1) });
       add('signedPerson', {});
       const rival = required(context.ids.promotions.B, 'B');
+      const freeId = required(extra['free'], 'free');
+      const signedId = required(extra['signedPerson'], 'signed person');
       const human = required(context.ids.promotions.A, 'A');
       signed = context.insert(
         'employments',
         anEmployment(
           {
-            personId: extra['signedPerson'],
+            personId: signedId,
             promotionId: rival,
             status: 'signed',
             startsOn: addDays(TODAY, 10),
@@ -176,7 +182,7 @@ export function negotiationWorld(options: { rivalController?: Controller } = {})
         'employments',
         anEmployment(
           {
-            personId: extra['free'],
+            personId: freeId,
             promotionId: rival,
             status: 'offered',
             startsOn: addDays(TODAY, 7),
@@ -190,7 +196,7 @@ export function negotiationWorld(options: { rivalController?: Controller } = {})
         'negotiations',
         aNegotiation(
           {
-            personId: extra['free'],
+            personId: freeId,
             promotionId: rival,
             employmentId: offered,
             offer: anOffer({ terms: { monthlyWage: cents(RIVAL_WAGE) } }),
@@ -203,7 +209,7 @@ export function negotiationWorld(options: { rivalController?: Controller } = {})
         'employments',
         anEmployment(
           {
-            personId: extra['free'],
+            personId: freeId,
             promotionId: human,
             status: 'withdrawn',
             offeredOn: addDays(TODAY, -18),
@@ -218,7 +224,7 @@ export function negotiationWorld(options: { rivalController?: Controller } = {})
         'negotiations',
         aNegotiation(
           {
-            personId: extra['free'],
+            personId: freeId,
             promotionId: human,
             employmentId: withdrawn,
             status: 'walkedAway',
