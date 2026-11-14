@@ -41,3 +41,4 @@ Game and technical design for Ringside Booker. Each game system gets its own doc
 | [production.md](production.md)                     | Production: the eight areas, running costs per show and per month, upgrade fees, the popularity ceiling and its daily drag    |
 | [contracts.md](contracts.md)                       | Contracts over time: the daily lifecycle, the `endEmployment` door, severance, renewal policies and the simple rival renewal  |
 | [negotiation.md](negotiation.md)                   | Negotiation: offers, counter-offers and review; the `negotiations` table, offer kinds and enforced terms                      |
+| [titles.md](titles.md)                             | Titles: who holds a belt (the open reign), the holder check, the only reign writers, starting prestige, days held and tiers   |

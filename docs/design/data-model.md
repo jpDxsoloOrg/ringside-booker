@@ -716,6 +716,10 @@ There is **no current-champion field**. The champion is the open reign:
 `titleReigns.lookupOne('openByTitle', titleId)`. Storing it on the title as
 well would give two answers that can disagree.
 
+How the titles system reads and writes these tables (holders, eligibility, the
+only reign writers, starting prestige and days held) is in
+[titles.md](titles.md).
+
 ### Title reigns (`titleReigns`, `trn_`)
 
 | Field               | Type                                                                  | Notes                                          |

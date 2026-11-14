@@ -1207,3 +1207,17 @@ whole cents (shown here in dollars); 0 means 0.
 | `contracts.counter.lengthTolerance`        | integer | 12       | 0–120          | months      | Months off their preferred length a counter-offer lets stand                                  |
 | `contracts.review.tieEpsilon`              | number  | 0.01     | 0–0.5          | ratio       | How close two offers must score (share of each ask) to count as a tie, broken by a roll       |
 | `contracts.ai.acceptCounterUpTo`           | number  | 1        | 0–3            | multiplier  | A computer promotion accepts a counter-offer whose pay is at most this times the worker's ask |
+
+## Titles tunables
+
+CRTV1-01, see [titles.md](titles.md#starting-prestige). Where a newly created
+title's prestige starts: a base per tier, moved by the promotion's own
+prestige. CRTV1-03 adds `titles.orphanGraceDays` with its phase.
+
+| Key                                    | Kind    | Default | Range | Unit   | Meaning                                                                                             |
+| -------------------------------------- | ------- | ------- | ----- | ------ | --------------------------------------------------------------------------------------------------- |
+| `titles.startPrestige.world`           | integer | 55      | 0–100 | points | Starting prestige of a new World title                                                              |
+| `titles.startPrestige.secondary`       | integer | 35      | 0–100 | points | Starting prestige of a new Secondary title                                                          |
+| `titles.startPrestige.specialty`       | integer | 20      | 0–100 | points | Starting prestige of a new Specialty title                                                          |
+| `titles.startPrestige.promotionAnchor` | integer | 50      | 0–100 | points | Promotion prestige at which a new title gets no adjustment                                          |
+| `titles.startPrestige.promotionWeight` | number  | 0.3     | 0–1   | ratio  | Share of the promotion's prestige above or below the anchor a new title starts with; 0 turns it off |
