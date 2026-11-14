@@ -1,6 +1,6 @@
 import { expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
-import { cancelTonightsShow, expectDayBarSettled } from './booking';
+import { cancelTonightsShow } from './booking';
 
 /** The day bar's button with this name. */
 export function dayButton(page: Page, name: string | RegExp): Locator {
@@ -66,6 +66,20 @@ export function addIsoDays(date: string, days: number): string {
 /** The day bar's buttons when the day stops (or doesn't). */
 const DAY_BUTTONS = /^(Next day|(Tonight: )?Go to the show|Contracts|Roster)$/;
 
+/** The screens the own-injury button opens (`injuryGateDestination`); each marks injuries seen. */
+const INJURY_VIEW =
+  /\/game\/(roster\?(.*&)?tab=injuries|workers\/[^/?]+\?(.*&)?tab=health|workers\?(.*&)?availability=injured)/;
+
+/**
+ * After a skip that stopped short of where it was going: waits for the day bar to say what
+ * stopped it. Not when an injury view is open: a new injury there is seen at once, so its stop is
+ * already cleared and the bar reads Next day again.
+ */
+export async function expectDayBarStopped(page: Page): Promise<void> {
+  if (INJURY_VIEW.test(page.url())) return;
+  await expect(dayButton(page, 'Next day')).toBeHidden();
+}
+
 export interface StopHandlers {
   /** Called on the first expiring-contract stop instead of clearing it; true clears the rest. */
   readonly onContractsStop?: () => Promise<void>;
@@ -77,7 +91,6 @@ export interface StopHandlers {
  * notices are marked seen. Returns false when nothing stops the day.
  */
 export async function clearDayStop(page: Page, handlers: StopHandlers = {}): Promise<boolean> {
-  await expectDayBarSettled(page);
   await expect(dayButton(page, DAY_BUTTONS)).toBeVisible({ timeout: 15_000 });
   const contracts = dayButton(page, 'Contracts');
   const roster = dayButton(page, 'Roster');
@@ -111,7 +124,6 @@ export async function skipToDateThroughStops(
   handlers: StopHandlers = {},
   maxStops = 60,
 ): Promise<void> {
-  await expectDayBarSettled(page);
   for (let stops = 0; (await gameDate(page)) < date; stops += 1) {
     expect(stops, 'the skip keeps stopping').toBeLessThan(maxStops);
     if (await clearDayStop(page, handlers)) continue;
@@ -127,9 +139,7 @@ export async function skipToDateThroughStops(
     await expect(summary).toBeVisible();
     await expect.poll(() => summary.textContent()).not.toBe(before);
     await expect(page.getByTestId('advance-overlay')).toBeHidden();
-    // A skip that stopped short stopped for something: the next round reads what, once the day
-    // bar has caught up (an injury stop met with the Injuries tab open is already seen).
-    await expectDayBarSettled(page);
+    if ((await gameDate(page)) < date) await expectDayBarStopped(page);
   }
   expect(await gameDate(page)).toBe(date);
 }
