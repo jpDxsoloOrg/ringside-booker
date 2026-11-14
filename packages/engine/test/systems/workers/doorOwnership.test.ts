@@ -13,7 +13,17 @@ const DOORS_FILE = 'systems/workers/doors.ts';
  * Code that builds a world rather than changing one: new-game setup, world generation and turning
  * a data pack into rows. These create people, promotions and employments with their first values.
  */
-const CREATION_PATHS = ['systems/newgame/', 'systems/world/', 'persistence/packs/'] as const;
+/**
+ * Plus the `offered` employment of a contract offer (ECO5-04): an offer pays nothing and puts
+ * nobody on a card, so its first values and the offer's later changes are written directly; once
+ * signed, the doors own them again.
+ */
+const CREATION_PATHS = [
+  'systems/newgame/',
+  'systems/world/',
+  'persistence/packs/',
+  'systems/negotiation/offeredEmployment.ts',
+] as const;
 
 const GUARDED_TABLES = ['employments', 'people', 'promotions'] as const;
 const GUARDED_FIELDS = ['push', 'alignment', 'role', 'morale', 'momentum', 'regionalPop'] as const;

@@ -19,12 +19,12 @@
 
 import { controlsPromotion, type Controller } from '../../core/api/controller';
 import type { Reason } from '../../core/api/result';
-import { addDays, addMonths, compareDates, type GameDate } from '../../core/date';
+import { addDays } from '../../core/date';
 import { InvalidArgumentError } from '../../core/errors';
 import type { EmploymentId, NegotiationId, PromotionId } from '../../core/ids';
 import type { PhaseContext } from '../../core/pipeline/context';
 import { startDecision } from '../../core/trace/decision';
-import { canTransition, type Alignment, type Employment } from '../../model/entities/employment';
+import { canTransition } from '../../model/entities/employment';
 import {
   isOpenNegotiationStatus,
   NEGOTIATION_HISTORY_MAX,
@@ -32,13 +32,12 @@ import {
   type NegotiationRound,
   type NegotiationStatus,
 } from '../../model/entities/negotiation';
-import type { Person } from '../../model/entities/person';
 import type { DeepReadonly } from '../../model/world';
-import { negotiationEligibility } from './eligibility';
 import { meetsCounter, type OfferEvaluation } from './evaluate';
 import { ASKING_TERMS_DOC_REF } from './formulas/shared';
 import type { Offer } from './offer';
 import { askTraceRef } from './traceKinds';
+import { createOfferedEmployment, mirrorOffer } from './offeredEmployment';
 import {
   checkOffer,
   NOT_YOUR_PROMOTION_CODE,
@@ -90,34 +89,6 @@ function refuse(functionName: string, reasons: readonly Reason[]): never {
     reasons.map((entry) => entry.code).join(', '),
     'an offer the negotiation rules allow',
   );
-}
-
-function alignmentOf(person: DeepReadonly<Person>): Alignment {
-  if (person.traits.includes('naturalHeel')) {
-    return 'heel';
-  }
-  return 'face';
-}
-
-/** The first day under the offered contract: the offer's start, never before talks may start. */
-function startOf(offer: Offer, earliestStart: GameDate, date: GameDate): GameDate {
-  const wanted = offer.startsOn ?? date;
-  return compareDates(wanted, earliestStart) >= 0 ? wanted : earliestStart;
-}
-
-/** The offer's terms as the `offered` employment holds them. */
-function mirroredFields(
-  offer: Offer,
-  startsOn: GameDate,
-): Pick<Employment, 'terms' | 'startsOn' | 'endsOn' | 'role' | 'push' | 'brandId'> {
-  return {
-    terms: offer.terms,
-    startsOn,
-    endsOn: addMonths(startsOn, offer.lengthMonths),
-    role: offer.role,
-    push: offer.push,
-    brandId: offer.brand.kind === 'brand' ? offer.brand.brandId : null,
-  };
 }
 
 function recordAsk(
@@ -185,32 +156,7 @@ export function submitOffer(
   const { offer, personId, promotionId } = input;
   let employmentId: EmploymentId;
   if (input.renewalOf === undefined) {
-    const person = ctx.read.tables.people.require(personId);
-    const eligibility = negotiationEligibility(
-      ctx.read,
-      ctx.tunables,
-      personId,
-      promotionId,
-      ctx.date,
-    );
-    const employment = ctx.tx.create('employments', {
-      personId,
-      promotionId,
-      managerPersonId: null,
-      status: 'offered',
-      offeredOn: ctx.date,
-      endedOn: null,
-      ringName: person.defaultRingName,
-      gimmickKey: null,
-      alignment: alignmentOf(person),
-      morale: 0,
-      momentum: null,
-      appearancesThisYear: 0,
-      lastAppearanceOn: null,
-      leave: null,
-      ...mirroredFields(offer, startOf(offer, eligibility.earliestStart, ctx.date)),
-    });
-    employmentId = employment.id;
+    employmentId = createOfferedEmployment(ctx, { personId, promotionId, offer }).id;
   } else {
     employmentId = input.renewalOf;
   }
@@ -290,29 +236,6 @@ function closeByPromotion(
     status: 'withdrawn',
     outcomeCode,
   });
-}
-
-/** Mirrors the offer on a signing's `offered` employment, so contract queries see it. */
-function mirrorOffer(
-  ctx: PhaseContext,
-  negotiation: DeepReadonly<Negotiation>,
-  offer: Offer,
-): void {
-  if (negotiation.kind !== 'signing') {
-    return;
-  }
-  const eligibility = negotiationEligibility(
-    ctx.read,
-    ctx.tunables,
-    negotiation.personId,
-    negotiation.promotionId,
-    ctx.date,
-  );
-  ctx.tx.update(
-    'employments',
-    negotiation.employmentId,
-    mirroredFields(offer, startOf(offer, eligibility.earliestStart, ctx.date)),
-  );
 }
 
 /** Takes open talks back: the negotiation and a signing's offered employment become `withdrawn`. */
