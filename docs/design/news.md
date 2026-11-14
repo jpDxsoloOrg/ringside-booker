@@ -89,9 +89,15 @@ stories. The trace store keeps full traces for the newest
 
 The Why? trace reads: "Story buzz" starting from "Nothing yet", then "Base for a
 &lt;kind&gt; story", "Importance &lt;n&gt; × points per level", one "Popularity of
-&lt;name&gt;" step per counted subject (its popularity roll-up as the input,
+&lt;name&gt;" step per counted subject (its worldwide popularity as the input,
 linked to the person or promotion, and "Each further subject counts 0.25" from
 the second on), and "Kept between 0 and 100". Every step names its tunable.
+
+The input carries only the world value and where it comes from (the
+popularity roll-up, [geography.md](geography.md#popularity-roll-up)), not the
+continents, countries and regions under it: the subject's own popularity Why?
+shows that breakdown, one click away through the link. Nesting the full roll-up
+made each stored buzz trace about 49 KB in the default world (DAY1-03).
 
 **Worked example.** A signing (base 20) of importance 1 (12) about a worker at
 worldwide popularity 70 and their new promotion at 40, with the defaults:
