@@ -22,6 +22,8 @@ import './streams';
 import './events';
 // AIP4-05: the show-day booker registers itself as a job on import.
 import './bookShowJob';
+// EVT4-08: rival bookers lengthen big matches on major and flagship shows.
+import './lengthenMatches';
 
 export { AUTOFILL_STREAM, CARD_PLAN_STREAM } from './streams';
 export {

@@ -29,6 +29,8 @@ import './settings';
 import './finishes/bookingCheck';
 // MTCH5-06: beat limits and angle warnings on the card.
 import './angles/bookingChecks';
+// EVT4-08: the card must fit the show's time.
+import './showTimeCheck';
 // Registers MTCH2's match outcome resolver with show night at module load (EVT3-07).
 import './finishes/showNight';
 // Registers the aftermath applier with show night and the TV reach provider at module load

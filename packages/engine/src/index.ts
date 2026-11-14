@@ -4032,3 +4032,24 @@ export {
   dealSignedDedupeKey,
 } from './systems/broadcast/index';
 export type { ReachAudience } from './systems/promoPop/index';
+// EVT4-08: the booker sets each segment's time within the show's time budget.
+export { BOOKED_LENGTHS, BookedLengthSchema } from './model/entities/segment';
+export type { BookedLength } from './model/entities/segment';
+export type { BookingTimeView } from './systems/booking/index';
+export {
+  cardTimeUsed,
+  formatRoles,
+  overTimeMessage,
+  segmentDurationOf,
+  SHOW_TIME_DOC_REF,
+  showTimeBudget,
+  showTimeOf,
+  timeUnitsOf,
+} from './systems/match/showTime';
+export type { SegmentDuration, ShowTime, TimedSlot } from './systems/match/showTime';
+export {
+  OVER_TIME_CODE,
+  SHOW_TIME_CHECK_ID,
+  SHOW_TIME_CHECK_LABEL,
+  showTimeCheck,
+} from './systems/match/showTimeCheck';

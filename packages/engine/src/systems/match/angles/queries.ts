@@ -41,7 +41,13 @@ import type {
   SegmentRatingSlot,
   SegmentWarning,
 } from '../rating/types';
-import { SLOT_ROLES, slotRoleOf, type DurationClass, type SlotRole } from '../slots';
+import {
+  DURATION_CLASSES,
+  SLOT_ROLES,
+  slotRoleOf,
+  type DurationClass,
+  type SlotRole,
+} from '../slots';
 import { assignAngleSides } from './beatGroups';
 import { beatLimitMessage, beatLimitOf } from './beatLimit';
 import { angleDurationClass, type BeatResult } from './rateAngle';
@@ -101,6 +107,8 @@ export interface PreviewAngleArgs {
   previewSeed: number;
   /** MTCH5-08: where the angle happens. Left out: in the ring. */
   setting?: AngleSetting | undefined;
+  /** EVT4-08: the time the booker set; left out = the slot's usual time. */
+  bookedLength?: DurationClass | undefined;
   /**
    * MTCH5-06: also work out what the angle would do to everyone's momentum and popularity (the
    * lab's Aftermath). Left out: no `aftermath` in the result.
@@ -134,6 +142,7 @@ export const PreviewAngleArgsSchema = z
     earlierBeatKeysOnCard: z.array(zContentKey).max(PREVIEW_EARLIER_BEATS_MAX).optional(),
     previewSeed: z.number().int().min(0).max(PREVIEW_SEED_MAX),
     setting: AngleSettingSchema.optional(),
+    bookedLength: z.enum(DURATION_CLASSES).optional(),
     aftermath: z.boolean().optional(),
   })
   .refine((args) => (args.slotRole === undefined) !== (args.slot === undefined), {
@@ -206,7 +215,12 @@ function beatReasons(ctx: QueryContext, args: PreviewAngleArgs, role: SlotRole):
       },
     ];
   }
-  const durationClass = angleDurationClass(role, args.setting ?? 'ring', tunables);
+  const durationClass = angleDurationClass(
+    role,
+    args.setting ?? 'ring',
+    tunables,
+    args.bookedLength ?? null,
+  );
   const limit = beatLimitOf(durationClass, tunables).value;
   if (args.beats.length > limit) {
     reasons.push({
@@ -351,6 +365,7 @@ export const previewAngleQuery: QueryDefinition<'match.previewAngle'> = defineQu
         typeKey: args.angleTypeKey,
         sides: sidesOf(beats, read),
         slot,
+        ...(args.bookedLength === undefined ? {} : { bookedLength: args.bookedLength }),
         event: {
           importance: args.importance,
           regionId: args.regionId,
