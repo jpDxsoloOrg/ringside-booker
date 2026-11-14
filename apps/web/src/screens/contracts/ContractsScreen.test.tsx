@@ -300,4 +300,25 @@ describe('ContractsScreen', () => {
       { name: 'tunables.clearOverride', args: { key: 'contracts.quit.days' } },
     ]);
   });
+
+  it('switches the automatic renewal stopgap off from the Rules sheet', async () => {
+    const rendered = renderContracts();
+    await findTable('Active contracts');
+    await rendered.user.click(screen.getByRole('button', { name: 'Rules' }));
+    const sheet = await screen.findByRole('dialog', { name: 'Contract rules' });
+    const renew = await within(sheet).findByRole('switch', {
+      name: 'Renew my contracts automatically',
+    });
+    await waitFor(() => {
+      expect(renew).toBeChecked();
+    });
+    expect(within(sheet).getByText(/Off: a contract ends on its end date/u)).toBeInTheDocument();
+    await rendered.user.click(renew);
+    await waitFor(() => {
+      expect(renew).not.toBeChecked();
+    });
+    expect(rendered.issued).toEqual([
+      { name: 'tunables.setOverride', args: { key: 'contracts.autoRenewPlayer', value: false } },
+    ]);
+  });
 });
