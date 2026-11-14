@@ -7,7 +7,8 @@
  * `activeStorylinesOf`), the read-side tunables, the trace kinds and the domain events. CRTV3-02
  * adds starting heat (`startStoryline`), the daily `storylines.heatCooling` phase, the weekly
  * `storylines.pruneDetail` and the `storylines.seedStarters` new-game step. CRTV3-03 adds the
- * player's commands, CRTV4 heat after segments and the payoff.
+ * player's commands (create, edit, addMember, removeMember, setSide, end), `endStoryline` and
+ * `storylines.endPreview`; CRTV4 heat after segments and the payoff.
  *
  * Design: docs/design/storylines.md.
  */
@@ -19,6 +20,8 @@ import './streams';
 // Registers the `storylines.seedStarters` new-game step (CRTV3-02).
 import './setup';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
+import { storylinesCommands } from './commands';
+import { storylinesEndPreviewQuery } from './endPreview';
 import { storylinesPhases } from './phases';
 import { storylinesQueries } from './queries';
 
@@ -30,6 +33,19 @@ export {
   storylinesOfPerson,
   type StorylineContext,
 } from './context';
+export {
+  addStorylineMemberCommand,
+  createStorylineCommand,
+  editStorylineCommand,
+  endStorylineCommand,
+  removeStorylineMemberCommand,
+  setStorylineSideCommand,
+  storylinesCommands,
+  type StorylineCreateArgs,
+  type StorylineEditArgs,
+  type StorylineMemberArgs,
+} from './commands';
+export { storylinesEndPreviewQuery, type StorylineEndPreview } from './endPreview';
 export { STORYLINE_START_SOURCES, type StorylineStartSource } from './events';
 export { HEAT_DECAY_DOC_REF, heatDecay, type HeatDecayInputs } from './formulas/heatDecay';
 export { HOT_STORYLINE_DOC_REF, isHotHeat } from './formulas/hot';
@@ -41,10 +57,16 @@ export {
   type StartingHeatMember,
 } from './formulas/startingHeat';
 export {
+  endOutcome,
+  endOutcomeMessage,
+  endStoryline,
   keepsFullStorylineTraces,
   startingHeatMembers,
   startStoryline,
   type StartStorylineSpec,
+  type StorylineEndContext,
+  type StorylineEndOutcome,
+  type StorylineEndPayoff,
 } from './lifecycle';
 export {
   coolStorylines,
@@ -112,10 +134,21 @@ export {
   storylineStarterTraceRef,
 } from './traceKinds';
 export { storylinesTunables } from './tunables';
+export {
+  brandReasons as storylineBrandReasons,
+  checkOwnStoryline,
+  memberReasons as storylineMemberReasons,
+  nameReasons as storylineNameReasons,
+  ownStorylineReasons,
+  STORYLINE_COMMAND_REASONS,
+  STORYLINE_NAME_MAX_LENGTH,
+  STORYLINE_WARNINGS,
+  type OwnStorylineCheck,
+} from './validation';
 
 export const storylinesSystem: SystemBundle = defineSystem({
   id: 'storylines',
   phases: storylinesPhases,
-  queries: storylinesQueries,
-  commands: [],
+  queries: [...storylinesQueries, storylinesEndPreviewQuery],
+  commands: storylinesCommands,
 });
