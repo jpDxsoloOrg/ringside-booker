@@ -31,7 +31,7 @@ import { compareIds } from '../../model/table';
 import type { GameWorldView } from '../../model/tables';
 import type { DeepReadonly } from '../../model/world';
 import { LOST_TO_OTHER_OFFER_OUTCOME } from './close';
-import { OUTCOME_MESSAGES } from './offersQueries';
+import { OUTCOME_MESSAGES } from './outcomeMessages';
 
 export const OFFER_ANSWERED_GATE_ID = 'contracts.offerAnswered';
 /** The day bar's route hint for the stop: the talks on Contracts › Offers. */

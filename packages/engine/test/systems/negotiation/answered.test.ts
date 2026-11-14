@@ -131,6 +131,15 @@ describe('the Offer answered stop', () => {
     });
     const [hit] = pendingGates(engine);
     expect(hit?.reason).toMatch(/ walked away from your offer$/);
+    // The Next Day summary says the same.
+    const updates = done(
+      engine.query(
+        'contracts.offerUpdatesSince',
+        { promotionId: setup.human, from: setup.today, to: today(engine) },
+        PLAYER_VIEW,
+      ),
+    );
+    expect(updates.walkedAway.map((update) => update.line)).toEqual([hit?.reason]);
     // The Offers list tells the screen there is an answer to mark as seen.
     const rows = done(engine.query('contracts.offers', { promotionId: setup.human }, PLAYER_VIEW));
     expect(rows.find((row) => row.negotiationId === id)?.answerUnseen).toBe(true);

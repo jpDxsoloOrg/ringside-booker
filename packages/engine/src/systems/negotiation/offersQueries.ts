@@ -39,15 +39,14 @@ import { askingTermsFor, type AskingTerms } from './asking';
 import { competingBidders } from './bidders';
 import type { Offer } from './offer';
 import { NOT_YOUR_PROMOTION_MESSAGE } from './queries';
-import { copyOffer, TALKS_ENDED_OUTCOME, WITHDRAWN_OUTCOME } from './submit';
+import { copyOffer } from './submit';
+import { offerAnsweredReason } from './answered';
+import { LOST_TO_OTHER_OFFER_OUTCOME } from './close';
+import { OUTCOME_MESSAGES } from './outcomeMessages';
 import { NEGOTIATION_TRACE_KINDS } from './traceKinds';
-import { LAPSED_OUTCOME, LOST_TO_OTHER_OFFER_OUTCOME, PROMOTION_CLOSED_OUTCOME } from './close';
-import { REFUSES_RENEWAL_CODE } from './asking';
-import { EXCLUSIVE_ELSEWHERE_REASON_CODE, UNAVAILABLE_REASON_CODE } from './eligibility';
-import { CONTRACT_ENDED_OUTCOME } from './endedTalks';
-import { COOLING_OFF_CODE } from './evaluate';
 import { redactReviewTrace } from './redact';
-import { REFUSES_ROLE_CODE } from './validate';
+
+export { OUTCOME_MESSAGES };
 
 export const NOT_YOUR_TALKS_MESSAGE = 'Those are not your talks';
 
@@ -143,26 +142,6 @@ declare module '../../core/api/maps' {
     };
   }
 }
-
-/** Plain words for the outcome codes the negotiation system closes talks with. */
-export const OUTCOME_MESSAGES: Readonly<Record<string, string>> = {
-  [WITHDRAWN_OUTCOME]: 'You withdrew the offer',
-  [TALKS_ENDED_OUTCOME]: 'You ended the talks',
-  signed: 'Signed',
-  signedElsewhere: 'Signed elsewhere',
-  walkedAway: 'Walked away from the talks',
-  declined: 'Turned the offer down',
-  // ECO5-05: how the worker's side closes talks.
-  [LAPSED_OUTCOME]: 'They stopped waiting for your answer',
-  [LOST_TO_OTHER_OFFER_OUTCOME]: 'Signed with another promotion instead',
-  [CONTRACT_ENDED_OUTCOME]: 'Their contract ran out first: make a new offer',
-  [PROMOTION_CLOSED_OUTCOME]: 'The promotion closed',
-  [REFUSES_RENEWAL_CODE]: "Won't renew while unhappy here",
-  [UNAVAILABLE_REASON_CODE]: "Can't sign a contract now",
-  [EXCLUSIVE_ELSEWHERE_REASON_CODE]: 'Tied to an exclusive contract elsewhere',
-  [COOLING_OFF_CODE]: 'Still cooling off after walking away from you',
-  [REFUSES_ROLE_CODE]: "Won't take that role",
-};
 
 const REACTION_LABELS: Readonly<Record<Reaction, string>> = {
   accept: 'Accepted',
@@ -377,6 +356,12 @@ export interface OfferUpdate {
   readonly ringName: string;
   /** "Made a counter-offer", "Signed", "Signed with Crown Pro instead", ... */
   readonly outcomeMessage: string;
+  /**
+   * The whole line in plain words, never an amount (ECO5-10): "Rhea Cortez countered your offer",
+   * "Rhea Cortez signed with you", "Kai Moreno turned down your offer: won't take that role". The
+   * "Offer answered" stop says the same.
+   */
+  readonly line: string;
 }
 
 /** `contracts.offerUpdatesSince`: what happened to your talks between two days, inclusive. */
@@ -423,34 +408,36 @@ export const offerUpdatesSinceQuery = defineQuery('contracts.offerUpdatesSince',
         ctx.read.tables.employments.get(negotiation.employmentId)?.ringName ??
         ctx.read.tables.people.get(negotiation.personId)?.defaultRingName ??
         'A worker';
-      const line = (outcomeMessage: string): OfferUpdate => ({
+      const line = (outcomeMessage: string, text: string): OfferUpdate => ({
         negotiationId: negotiation.id,
         ringName,
         outcomeMessage,
+        line: text,
       });
       if (
         negotiation.history.some(
           (entry) => entry.by === 'worker' && within(entry.date, args.from, args.to),
         )
       ) {
-        updates.countered.push(line(COUNTERED_UPDATE_MESSAGE));
+        updates.countered.push(line(COUNTERED_UPDATE_MESSAGE, `${ringName} countered your offer`));
       }
       if (!within(negotiation.closedOn, args.from, args.to)) {
         continue;
       }
       const message = outcomeOf(ctx, negotiation)?.message ?? 'Talks closed';
+      const text = offerAnsweredReason(ctx.read, negotiation);
       switch (negotiation.status) {
         case 'signed':
-          updates.signed.push(line(message));
+          updates.signed.push(line(message, text));
           break;
         case 'walkedAway':
-          updates.walkedAway.push(line(message));
+          updates.walkedAway.push(line(message, text));
           break;
         case 'declined':
-          updates.declined.push(line(message));
+          updates.declined.push(line(message, text));
           break;
         case 'lapsed':
-          updates.lapsed.push(line(message));
+          updates.lapsed.push(line(message, text));
           break;
         case 'withdrawn':
         case 'submitted':
