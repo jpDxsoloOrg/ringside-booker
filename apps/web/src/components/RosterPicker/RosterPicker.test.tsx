@@ -401,6 +401,200 @@ describe('RosterPicker', () => {
     });
   });
 
+  describe('champions and storylines (EVT2-13)', () => {
+    const CROWN_CHASE = {
+      storylineId: parseId('storyline', 'sty_0000000001'),
+      name: 'The Crown Chase',
+    };
+    const STORM = { storylineId: parseId('storyline', 'sty_0000000002'), name: 'Storm Warning' };
+    const CHAMP = person(11, 'Rhea Cortez', {
+      titles: ['Coastal Crown Championship', 'Coastal Television Championship'],
+      storylines: [{ ...CROWN_CHASE, side: 'face' }],
+    });
+    const RIVAL = person(12, 'Jo Park', { storylines: [{ ...CROWN_CHASE, side: 'heel' }] });
+    const STORMER = person(13, 'Sam Reed', { storylines: [{ ...STORM, side: 'neutral' }] });
+    const LONER = person(14, 'Ivy Lane');
+    const TAG_CHAMPS: RosterPickerTeam = {
+      teamId: parseId('team', 'tem_0000000011'),
+      name: 'The Hale Storm',
+      memberNames: ['Sam Reed', 'Ivy Lane'],
+      selectable: true,
+      reason: null,
+      otherBrand: false,
+      titles: ['Coastal Tag Team Championship'],
+      storylineIds: [STORM.storylineId],
+    };
+    const PLAIN_TEAM: RosterPickerTeam = {
+      teamId: parseId('team', 'tem_0000000012'),
+      name: 'Odd Pair',
+      memberNames: ['Jo Park', 'Ivy Lane'],
+      selectable: true,
+      reason: null,
+      otherBrand: false,
+    };
+
+    function shownNames(): string[] {
+      return within(screen.getByRole('listbox'))
+        .getAllByRole('option')
+        .map((option) => option.querySelector('[class*="rowName"] > span')?.textContent ?? '');
+    }
+
+    function renderStories(overrides: Partial<RosterPickerProps> = {}) {
+      return renderPicker({
+        people: [CHAMP, RIVAL, STORMER, LONER],
+        teams: [TAG_CHAMPS, PLAIN_TEAM],
+        storylineFilter: { options: [CROWN_CHASE, STORM] },
+        ...overrides,
+      });
+    }
+
+    it('puts a belt beside a champion, named for every title they hold, and spells them out', () => {
+      renderStories();
+      const champ = screen.getByRole('option', { name: /Rhea Cortez/ });
+      const belt = within(champ).getByRole('img', {
+        name: 'Champion: Coastal Crown Championship, Coastal Television Championship',
+      });
+      expect(belt.closest('[title]')).toHaveAttribute(
+        'title',
+        'Champion: Coastal Crown Championship, Coastal Television Championship',
+      );
+      // The titles are on the row in words too, for touch and keyboard players.
+      expect(champ).toHaveTextContent(
+        'Coastal Crown Championship · Coastal Television Championship',
+      );
+      expect(
+        within(screen.getByRole('option', { name: /Jo Park/ })).queryByRole('img', {
+          name: /^Champion/,
+        }),
+      ).not.toBeInTheDocument();
+    });
+
+    it('marks a team that holds a tag title', async () => {
+      const user = userEvent.setup({ delay: null });
+      renderStories();
+      await user.click(screen.getByRole('button', { name: 'Teams' }));
+      expect(
+        within(screen.getByRole('option', { name: /The Hale Storm/ })).getByRole('img', {
+          name: 'Champion: Coastal Tag Team Championship',
+        }),
+      ).toBeInTheDocument();
+      expect(
+        within(screen.getByRole('option', { name: /Odd Pair/ })).queryByRole('img'),
+      ).not.toBeInTheDocument();
+    });
+
+    it('tags each storyline member with the storyline and their side', () => {
+      renderStories();
+      const rival = screen.getByRole('option', { name: /Jo Park/ });
+      expect(rival).toHaveTextContent('The Crown Chase');
+      expect(rival).toHaveTextContent('Heel');
+      expect(rival).toHaveAccessibleName(expect.stringContaining('Storyline: The Crown Chase'));
+      expect(screen.getByRole('option', { name: /Ivy Lane/ })).not.toHaveTextContent('Storyline');
+    });
+
+    it('narrows to one storyline (both sides) or to anyone in one, and counts who it hides', async () => {
+      const user = userEvent.setup({ delay: null });
+      renderStories();
+      await user.click(screen.getByRole('button', { name: 'Storylines' }));
+      const menu = await screen.findByRole('dialog', { name: 'Show by storyline' });
+      expect(
+        within(menu)
+          .getAllByRole('radio')
+          .map((radio) => radio.closest('label')?.textContent),
+      ).toEqual(['Everyone', 'Any storyline', 'The Crown Chase', 'Storm Warning']);
+
+      await user.click(within(menu).getByRole('radio', { name: 'The Crown Chase' }));
+      expect(
+        screen.getByRole('button', { name: 'Storyline: The Crown Chase' }),
+      ).toBeInTheDocument();
+      expect(shownNames()).toEqual(['Rhea Cortez', 'Jo Park']);
+      expect(screen.getByText('2 more are hidden by the Storylines filter.')).toBeInTheDocument();
+
+      await user.click(within(menu).getByRole('radio', { name: 'Any storyline' }));
+      expect(screen.getByRole('button', { name: 'Storyline: any' })).toBeInTheDocument();
+      expect(shownNames()).toEqual(['Rhea Cortez', 'Jo Park', 'Sam Reed']);
+
+      // A team is in a storyline when any member is.
+      await user.keyboard('{Escape}');
+      await user.click(screen.getByRole('button', { name: 'Teams' }));
+      expect(shownNames()).toEqual(['The Hale Storm']);
+
+      await user.click(screen.getByRole('button', { name: 'Storyline: any' }));
+      await user.click(
+        within(await screen.findByRole('dialog', { name: 'Show by storyline' })).getByRole(
+          'radio',
+          { name: 'Everyone' },
+        ),
+      );
+      expect(screen.getByRole('button', { name: 'Storylines' })).toBeInTheDocument();
+      expect(shownNames()).toEqual(['The Hale Storm', 'Odd Pair']);
+    });
+
+    it('combines with search and the other filters, and says how to see more', async () => {
+      const user = userEvent.setup({ delay: null });
+      renderStories({
+        people: [CHAMP, { ...RIVAL, selectable: false, reason: 'Injured' }, STORMER, LONER],
+      });
+      await user.click(screen.getByRole('button', { name: 'Storylines' }));
+      await user.click(
+        within(await screen.findByRole('dialog', { name: 'Show by storyline' })).getByRole(
+          'radio',
+          { name: 'Storm Warning' },
+        ),
+      );
+      await user.keyboard('{Escape}');
+      expect(shownNames()).toEqual(['Sam Reed']);
+      // Jo is hidden by Bookable only, not counted again under Storylines.
+      expect(screen.getByText(/1 more is hidden because they can’t be booked/)).toBeInTheDocument();
+      expect(screen.getByText('2 more are hidden by the Storylines filter.')).toBeInTheDocument();
+    });
+
+    it('says how to see more when nobody in the storyline is left', async () => {
+      const user = userEvent.setup({ delay: null });
+      renderStories({ people: [LONER] });
+      await user.click(screen.getByRole('button', { name: 'Storylines' }));
+      await user.click(
+        within(await screen.findByRole('dialog', { name: 'Show by storyline' })).getByRole(
+          'radio',
+          { name: 'Any storyline' },
+        ),
+      );
+      expect(
+        screen.getByText(
+          'Nobody else here is in a current storyline. Choose Everyone in Storylines to see more.',
+        ),
+      ).toBeInTheDocument();
+    });
+
+    it('offers the storylines the segment links first, marked as in this segment', async () => {
+      const user = userEvent.setup({ delay: null });
+      renderStories({
+        storylineFilter: { options: [CROWN_CHASE, STORM], linkedIds: [STORM.storylineId] },
+      });
+      await user.click(screen.getByRole('button', { name: 'Storylines' }));
+      const menu = await screen.findByRole('dialog', { name: 'Show by storyline' });
+      expect(
+        within(menu)
+          .getAllByRole('radio')
+          .map((radio) => radio.closest('label')?.textContent),
+      ).toEqual(['Everyone', 'Any storyline', 'Storm WarningIn this segment', 'The Crown Chase']);
+    });
+
+    it('says there are none when the promotion has no current storylines', async () => {
+      const user = userEvent.setup({ delay: null });
+      renderStories({ storylineFilter: { options: [] } });
+      await user.click(screen.getByRole('button', { name: 'Storylines' }));
+      const menu = await screen.findByRole('dialog', { name: 'Show by storyline' });
+      expect(within(menu).getAllByRole('radio')).toHaveLength(1);
+      expect(within(menu).getByText(/No current storylines/)).toBeInTheDocument();
+    });
+
+    it('has no Storylines filter unless the screen asks for it', () => {
+      renderPicker({ people: [CHAMP] });
+      expect(screen.queryByRole('button', { name: /^Storyline/ })).not.toBeInTheDocument();
+    });
+  });
+
   it('says so when nobody matches', async () => {
     const user = userEvent.setup();
     renderPicker({ people: [TIA] });

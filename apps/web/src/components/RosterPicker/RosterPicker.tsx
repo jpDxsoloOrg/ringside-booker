@@ -780,12 +780,12 @@ export function RosterPicker({
                   ? 'Nobody else here is in a current storyline. Choose Everyone in Storylines to see more.'
                   : 'Nobody else here is in that storyline. Choose Everyone in Storylines to see more.'
                 : hiddenByChoice > 0
-                ? 'Change the Gender or Push filter to see more.'
-                : hidden > 0
-                  ? 'Turn off Bookable only to see everyone, with why they can’t be booked.'
-                  : hiddenBooked > 0
-                    ? 'Everyone left is already on this card. Turn off Hide booked to see them.'
-                    : 'Try another name.'
+                  ? 'Change the Gender or Push filter to see more.'
+                  : hidden > 0
+                    ? 'Turn off Bookable only to see everyone, with why they can’t be booked.'
+                    : hiddenBooked > 0
+                      ? 'Everyone left is already on this card. Turn off Hide booked to see them.'
+                      : 'Try another name.'
             }
           />
         ) : (

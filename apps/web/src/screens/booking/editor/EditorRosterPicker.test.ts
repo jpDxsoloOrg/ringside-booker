@@ -115,4 +115,47 @@ describe('EditorRosterPicker rows', () => {
     expect(row.memberGenders).toEqual(['female', 'male']);
     expect(row.memberPushes).toEqual(['mainEvent', 'lowerCard']);
   });
+  it('carries titles and storylines, and a team is in every storyline any member is (EVT2-13)', () => {
+    const crown = { storylineId: parseId('storyline', 'sty_0000000001'), name: 'The Crown Chase' };
+    const storm = { storylineId: parseId('storyline', 'sty_0000000002'), name: 'Storm Warning' };
+    const champ: AvailableWorkerRow = {
+      ...rowOn([]),
+      titles: [
+        { titleId: parseId('title', 'tit_0000000001'), name: 'Coastal Tag Team Championship' },
+      ],
+      storylines: [{ ...crown, side: 'face' }],
+    };
+    const partner: AvailableWorkerRow = {
+      ...rowOn([]),
+      personId: parseId('person', 'per_0000000999'),
+      titles: [],
+      storylines: [
+        { ...crown, side: 'face' },
+        { ...storm, side: 'heel' },
+      ],
+    };
+    const picked = pickerPerson(champ, CONTEXT);
+    expect(picked.titles).toEqual(['Coastal Tag Team Championship']);
+    expect(picked.storylines).toEqual([{ ...crown, side: 'face' }]);
+    const roster = new Map<PersonId, AvailableWorkerRow>([
+      [champ.personId, champ],
+      [partner.personId, partner],
+    ]);
+    const team = pickerTeam(
+      {
+        teamId: parseId('team', 'tem_0000000001'),
+        name: 'The Hale Storm',
+        kind: 'tag',
+        memberIds: [champ.personId, partner.personId],
+        bookable: true,
+        titles: [
+          { titleId: parseId('title', 'tit_0000000001'), name: 'Coastal Tag Team Championship' },
+        ],
+      },
+      roster,
+      DRAFT,
+    );
+    expect(team.titles).toEqual(['Coastal Tag Team Championship']);
+    expect(team.storylineIds).toEqual([crown.storylineId, storm.storylineId]);
+  });
 });

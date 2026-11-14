@@ -153,9 +153,7 @@ export function StorylineFilterMenu({
     { key: 'all', choice: { kind: 'all' }, label: 'Everyone', linked: false },
     ...(options.length === 0
       ? []
-      : [
-          { key: 'any', choice: { kind: 'any' } as const, label: 'Any storyline', linked: false },
-        ]),
+      : [{ key: 'any', choice: { kind: 'any' } as const, label: 'Any storyline', linked: false }]),
     ...ordered.map((option) => ({
       key: option.storylineId,
       choice: { kind: 'one', storylineId: option.storylineId } as const,

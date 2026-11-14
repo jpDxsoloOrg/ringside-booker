@@ -250,8 +250,7 @@ export function EditorRosterPicker({
   const storylineOptions = query.data?.storylines;
   const linkedIds = draft.storylineIds;
   const storylineFilter = useMemo(
-    () =>
-      storylineOptions === undefined ? undefined : { options: storylineOptions, linkedIds },
+    () => (storylineOptions === undefined ? undefined : { options: storylineOptions, linkedIds }),
     [storylineOptions, linkedIds],
   );
 
