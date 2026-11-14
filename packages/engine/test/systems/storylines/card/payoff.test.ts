@@ -18,7 +18,13 @@ import {
   type StorylinePayoffView,
 } from '../../../../src/systems/storylines';
 import { createEngineTunables } from '../../../../src/systems/tunables';
-import { TEST_PLAYER_ID, TEST_START_DATE, worldBuilder, type BuiltWorld } from '../../../support';
+import {
+  TEST_PLAYER_ID,
+  TEST_START_DATE,
+  testId,
+  worldBuilder,
+  type BuiltWorld,
+} from '../../../support';
 import { expectSerialisable } from '../../../support/trace';
 import { ok, PLAYER_VIEWER } from '../storyline-world';
 
@@ -378,7 +384,7 @@ describe('storylines.payoff', () => {
 
   it('says so for an unknown storyline', () => {
     const world = setup();
-    const view = payoffView(world, 'sty_0000000099' as StorylineId);
+    const view = payoffView(world, testId('storyline', 99));
     expect(view).toMatchObject({ kind: 'unavailable', reason: { code: 'storylines.notFound' } });
   });
 });
