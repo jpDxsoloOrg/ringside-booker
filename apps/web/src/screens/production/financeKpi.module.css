@@ -1,0 +1,18 @@
+/* ECO7's Monthly overhead card on the Finances Overview (financeKpi.tsx). */
+.footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.kpiLink {
+  align-self: flex-start;
+}
+
+/* Touch screens: the link gets a finger-sized hit area without taking more room. */
+@media (pointer: coarse) {
+  .kpiLink {
+    padding-block: var(--tap-pad-block);
+    margin-block: calc(-1 * var(--tap-pad-block));
+  }
+}

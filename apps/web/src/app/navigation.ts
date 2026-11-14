@@ -6,6 +6,7 @@ import { CalendarScreen } from '@/screens/calendar/CalendarScreen';
 import { FinancesScreen } from '@/screens/finances/FinancesScreen';
 import { MatchLabScreen } from '@/screens/match-lab/MatchLabScreen';
 import { OfficeScreen } from '@/screens/office/OfficeScreen';
+import { ProductionScreen } from '@/screens/production/ProductionScreen';
 import { RosterScreen } from '@/screens/roster/RosterScreen';
 import { PromotionsScreen } from '@/screens/promotions/PromotionsScreen';
 import { WorkersScreen } from '@/screens/workers/WorkersScreen';
@@ -251,7 +252,8 @@ export const navigationSections: readonly NavSection[] = [
         label: 'Production',
         icon: 'video',
         to: routes.game.production(),
-        status: 'placeholder',
+        status: 'live',
+        screen: ProductionScreen,
       },
     ],
   },
