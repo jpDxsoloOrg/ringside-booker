@@ -15,6 +15,7 @@
 import './events';
 import './streams';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
+import { broadcastQueries } from './queries/networks';
 
 export {
   AIRING_KIND_LABELS,
@@ -86,10 +87,61 @@ export {
   type BenchmarkRequest,
 } from './audienceInputs';
 
+export {
+  dealTerms,
+  NO_BENCHMARK_NOTE,
+  PPV_NO_FEE_NOTE,
+  STREAMING_NO_PER_THOUSAND_NOTE,
+  VALUATION_DOC_REF,
+  type DealTermsInputs,
+  type DealTermsResult,
+} from './formulas/dealTerms';
+export {
+  DEAL_REFUSAL_CODES,
+  dealVerdict,
+  type DealCheckInputs,
+  type DealRefusal,
+  type DealRefusalCode,
+  type DealVerdict,
+  type DealVerdictValue,
+} from './formulas/dealVerdict';
+export {
+  AIRTIME_LOSS_NOTE,
+  ALL_MAJOR_SHOWS,
+  ALL_TELEVISED_SHOWS,
+  coveredPopulation,
+  dealIsLive,
+  dealShowName,
+  dealValuation,
+  definitionWeekday,
+  HOUSE_SHOW_NOTE,
+  promotionWideImportance,
+  promotionWideShowName,
+  type DealValuation,
+  type DealValuationRequest,
+  type DealValuationTerms,
+} from './valuation';
+export {
+  BEST_OFFER_MAX_VALUATIONS,
+  broadcastQueries,
+  coverageLabel,
+  NOT_YOUR_PROMOTION,
+  NOT_YOUR_SHOW,
+  UNKNOWN_DEAL,
+  UNKNOWN_NETWORK,
+  UNKNOWN_PROMOTION,
+  UNKNOWN_SHOW,
+  type BroadcastValuationArgs,
+  type NetworkBestOffer,
+  type NetworkCarriedDeal,
+  type NetworkRow,
+  type PublicDealRow,
+} from './queries/networks';
+
 export const broadcastSystem: SystemBundle = defineSystem({
   id: 'broadcast',
   phases: [],
   subscriptions: [],
-  queries: [],
+  queries: [...broadcastQueries],
   commands: [],
 });

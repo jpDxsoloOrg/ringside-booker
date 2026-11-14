@@ -296,7 +296,7 @@ export const broadcastTunables = defineTunables({
   },
   'broadcast.value.valuedViewersCap': {
     kind: 'number',
-    default: 1.5,
+    default: 5,
     min: 0,
     max: 10,
     unit: 'ratio',
