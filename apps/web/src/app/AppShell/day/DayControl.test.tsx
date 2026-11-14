@@ -363,7 +363,8 @@ describe('DayControl: autosave', () => {
     expect(autosaveSpy).toHaveBeenLastCalledWith(SLOT_ID, { monthlyBackup: false });
   });
 
-  it(
+  // Skips a whole month: slow suite only (owner: no long-running tests outside the sprint-end run).
+  it.runIf(process.env['RB_SLOW_TESTS'] === '1')(
     'rotates a monthly backup when the month changes',
     async () => {
       const { user, autosaveSpy } = renderGame({ saveSlotId: SLOT_ID });

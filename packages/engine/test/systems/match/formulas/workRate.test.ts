@@ -1,5 +1,6 @@
 // Work rate. Design: docs/design/match-rating.md#work-rate
 import { describe, expect, it } from 'vitest';
+import { SLOW_TESTS } from '../../../support/slow';
 import { floatBetween, intBetween } from '../../../../src/core/rng/odds';
 import { RngRegistry, type RngStream } from '../../../../src/core/rng/registry';
 import { findTraceNodes, type Traced } from '../../../../src/core/trace';
@@ -420,25 +421,28 @@ describe('workRate', () => {
       return { ...inputs, sides };
     }
 
-    it('is never NaN or negative, and swapping two workers on a side changes nothing', () => {
-      let swaps = 0;
-      for (let run = 0; run < 1000; run += 1) {
-        const inputs = randomLineUp();
-        const seed = `run-${String(run)}`;
-        const result = workRate(inputs, { tunables: DEFAULT_TUNABLES, rng: stream(seed) });
-        expect(Number.isNaN(result.value)).toBe(false);
-        expect(result.value).toBeGreaterThanOrEqual(0);
-        if (run % 50 === 0) {
-          expectTraceReplays(result);
+    it.runIf(SLOW_TESTS)(
+      'is never NaN or negative, and swapping two workers on a side changes nothing',
+      () => {
+        let swaps = 0;
+        for (let run = 0; run < 1000; run += 1) {
+          const inputs = randomLineUp();
+          const seed = `run-${String(run)}`;
+          const result = workRate(inputs, { tunables: DEFAULT_TUNABLES, rng: stream(seed) });
+          expect(Number.isNaN(result.value)).toBe(false);
+          expect(result.value).toBeGreaterThanOrEqual(0);
+          if (run % 50 === 0) {
+            expectTraceReplays(result);
+          }
+          const other = swapped(inputs);
+          if (other !== null) {
+            swaps += 1;
+            const again = workRate(other, { tunables: DEFAULT_TUNABLES, rng: stream(seed) });
+            expect(again.value).toBe(result.value);
+          }
         }
-        const other = swapped(inputs);
-        if (other !== null) {
-          swaps += 1;
-          const again = workRate(other, { tunables: DEFAULT_TUNABLES, rng: stream(seed) });
-          expect(again.value).toBe(result.value);
-        }
-      }
-      expect(swaps).toBeGreaterThan(100);
-    });
+        expect(swaps).toBeGreaterThan(100);
+      },
+    );
   });
 });

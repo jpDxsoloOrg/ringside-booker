@@ -70,7 +70,7 @@ describe('the fast paths', () => {
     expect(setFastPaths(true)).toBe(false);
   });
 
-  it(
+  it.runIf(SLOW_TESTS)(
     'leave a month of rival shows exactly as the full path does',
     { timeout: 60_000 },
     async () => {

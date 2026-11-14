@@ -2,6 +2,7 @@
 // totals, and no current number touched.
 // Design: docs/design/save-format.md#history-retention
 import { describe, expect, it } from 'vitest';
+import { SLOW_TESTS } from '../../support/slow';
 import {
   createEngine,
   engineLoadOptions,
@@ -71,49 +72,53 @@ function lastMonday(date: GameDate): GameDate {
 }
 
 describe('history.rollUp', () => {
-  it('changes no current number: a run without it ends the same', { timeout: 60_000 }, async () => {
-    const rolled = (await run(defaultSystems)).exportState().world.tables;
-    const kept = (
-      await run(defaultSystems.filter((system) => system.id !== historySystem.id))
-    ).exportState().world.tables;
+  it.runIf(SLOW_TESTS)(
+    'changes no current number: a run without it ends the same',
+    { timeout: 60_000 },
+    async () => {
+      const rolled = (await run(defaultSystems)).exportState().world.tables;
+      const kept = (
+        await run(defaultSystems.filter((system) => system.id !== historySystem.id))
+      ).exportState().world.tables;
 
-    const withoutRollUp = (rows: SerializedTables['promotions']) =>
-      rows.map((row) => ({ ...row, ledgerMonths: [] }));
-    expect(withoutRollUp(rolled.promotions)).toEqual(withoutRollUp(kept.promotions));
-    expect(rolled.people).toEqual(kept.people);
-    expect(rolled.employments).toEqual(kept.employments);
-    expect(rolled.titles).toEqual(kept.titles);
-    expect(rolled.titleReigns).toEqual(kept.titleReigns);
-    // Aftermaths before the window keep only the show region's change, which Recent form reads.
-    const showRegionOnly = (rows: SerializedTables['aftermaths']) =>
-      rows.map((row) => {
-        const shown = row.popularity.byRegion[row.showRegionId];
-        return {
-          ...row,
-          popularity: {
-            ...row.popularity,
-            byRegion: shown === undefined ? {} : { [row.showRegionId]: shown },
-          },
-        };
-      });
-    expect(showRegionOnly(rolled.aftermaths)).toEqual(showRegionOnly(kept.aftermaths));
-    expect(JSON.stringify(rolled.aftermaths).length).toBeLessThan(
-      JSON.stringify(kept.aftermaths).length,
-    );
-    expect(rolled.storylines).toEqual(kept.storylines);
-    const withoutHistory = (rows: SerializedTables['eventInstances']) =>
-      rows.map((row) =>
-        row.result === null ? row : { ...row, result: { ...row.result, history: undefined } },
+      const withoutRollUp = (rows: SerializedTables['promotions']) =>
+        rows.map((row) => ({ ...row, ledgerMonths: [] }));
+      expect(withoutRollUp(rolled.promotions)).toEqual(withoutRollUp(kept.promotions));
+      expect(rolled.people).toEqual(kept.people);
+      expect(rolled.employments).toEqual(kept.employments);
+      expect(rolled.titles).toEqual(kept.titles);
+      expect(rolled.titleReigns).toEqual(kept.titleReigns);
+      // Aftermaths before the window keep only the show region's change, which Recent form reads.
+      const showRegionOnly = (rows: SerializedTables['aftermaths']) =>
+        rows.map((row) => {
+          const shown = row.popularity.byRegion[row.showRegionId];
+          return {
+            ...row,
+            popularity: {
+              ...row.popularity,
+              byRegion: shown === undefined ? {} : { [row.showRegionId]: shown },
+            },
+          };
+        });
+      expect(showRegionOnly(rolled.aftermaths)).toEqual(showRegionOnly(kept.aftermaths));
+      expect(JSON.stringify(rolled.aftermaths).length).toBeLessThan(
+        JSON.stringify(kept.aftermaths).length,
       );
-    expect(withoutHistory(rolled.eventInstances)).toEqual(withoutHistory(kept.eventInstances));
-    // Money by month and category adds up the same, from rows or from rolled-up totals.
-    expect(moneyByMonth(rolled)).toEqual(moneyByMonth(kept));
-    // And the save really is smaller.
-    expect(rolled.segments.length).toBeLessThan(kept.segments.length);
-    expect(rolled.participants.length).toBeLessThan(kept.participants.length);
-    expect(rolled.ledgerEntries.length).toBeLessThan(kept.ledgerEntries.length);
-    expect(rolled.popularityShowChanges.length).toBeLessThan(kept.popularityShowChanges.length);
-  });
+      expect(rolled.storylines).toEqual(kept.storylines);
+      const withoutHistory = (rows: SerializedTables['eventInstances']) =>
+        rows.map((row) =>
+          row.result === null ? row : { ...row, result: { ...row.result, history: undefined } },
+        );
+      expect(withoutHistory(rolled.eventInstances)).toEqual(withoutHistory(kept.eventInstances));
+      // Money by month and category adds up the same, from rows or from rolled-up totals.
+      expect(moneyByMonth(rolled)).toEqual(moneyByMonth(kept));
+      // And the save really is smaller.
+      expect(rolled.segments.length).toBeLessThan(kept.segments.length);
+      expect(rolled.participants.length).toBeLessThan(kept.participants.length);
+      expect(rolled.ledgerEntries.length).toBeLessThan(kept.ledgerEntries.length);
+      expect(rolled.popularityShowChanges.length).toBeLessThan(kept.popularityShowChanges.length);
+    },
+  );
 
   it('keeps only the window in detail, summarises older shows and still loads', async () => {
     const engine = await run(defaultSystems);
