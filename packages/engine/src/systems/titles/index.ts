@@ -11,6 +11,7 @@
 // imports this system, including programs that only see the emitted .d.ts files.
 import './events';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
+import { TITLES_QUERIES } from './queries';
 
 export { TITLE_TIER_LABELS, TITLE_TIERS, TitleTierSchema, type TitleTier } from './tiers';
 export { TITLES_TUNABLE_CATEGORY, titlesTunables } from './tunables';
@@ -50,4 +51,61 @@ export {
   type ReignWriteContext,
 } from './reigns';
 
-export const titlesSystem: SystemBundle = defineSystem({ id: 'titles' });
+// CRTV1-02: the titles queries.
+export {
+  TITLES_QUERIES,
+  titlesDetailQuery,
+  titlesEligibleHoldersQuery,
+  titlesListQuery,
+} from './queries';
+export {
+  buildTitleCardRow,
+  divisionLabel,
+  endReasonLabel,
+  PRESTIGE_NOT_KEPT_NOTE,
+  PRESTIGE_TODAY_LABEL,
+  PRESTIGE_WORLD_FILE_LABEL,
+  prestigeExplanation,
+  viewerEditsTitlesOf,
+  type TitleCardChampion,
+  type TitleCardHolder,
+  type TitleCardRow,
+  type TitleRowContext,
+} from './rows';
+export {
+  PROMOTION_WIDE_GROUP_NAME,
+  TITLE_LIST_SCOPES,
+  TITLE_LIST_STATUSES,
+  titleListOf,
+  type TitleGroup,
+  type TitleListArgs,
+  type TitleListResult,
+  type TitleListScope,
+  type TitleListStatus,
+} from './list';
+export {
+  TITLE_NOT_FOUND,
+  TITLE_NOT_FOUND_MESSAGE,
+  titleDetailOf,
+  type ReignHolderRow,
+  type ReignRow,
+  type TitleDetail,
+  type TitleStats,
+} from './lineage';
+export {
+  daysVacant,
+  titleRecords,
+  type TitleRecord,
+  type TitleRecordPerson,
+  type TitleRecordReign,
+  type TitleRecords,
+} from './records';
+export {
+  eligibleHoldersOf,
+  type EligibleHolders,
+  type EligiblePerson,
+  type EligibleTeam,
+  type IneligiblePerson,
+} from './eligibleHolders';
+
+export const titlesSystem: SystemBundle = defineSystem({ id: 'titles', queries: TITLES_QUERIES });
