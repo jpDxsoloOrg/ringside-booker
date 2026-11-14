@@ -372,6 +372,23 @@ inside the card writer, so the rival booker's changes are covered too.
 **Tunable.** `storylines.link.maxPerSegment` (2, 1 to 12): the most storylines
 one segment can be linked to and count for.
 
+**In Booking (CRTV4-04).** The segment editor has a **Storyline** section
+(`registerSegmentEditorSection`, id `storylines`, order 50, matches and
+talking segments): suggestion chips ("Ashfall Rivalry · 2 here · heat 54",
+one tap links), the linked rows with their heat meter ("Hot" from
+`storylines.heat.hotFrom`), Unlink and, for a match, a **Finale** switch, and
+a **Link another storyline** picker for `others`. Unlike the editor's other
+sections it does not wait for Save: each change runs `storylines.linkSegment`
+(the whole new list) or `storylines.setFinale` straight away, and the new list
+is patched into the draft so the sheet's Save writes the same links back. A
+new segment has no id until it is saved, so its section says "Save the
+segment first to link a storyline". Moving a finale from another match asks
+first ("Move the finale of 'X' here from <show>, Slot 3?"). Refusals show
+under the section in the engine's words. At the limit the chips and picker
+are off with "A segment can count for at most N storylines"; a show that has
+run shows the links read-only with the reason. On the card, a linked slot
+shows "Story: <name>" and "Finale" chips (booking's `registerCardSlotChips`).
+
 ## Heat after a linked segment
 
 <a id="heat-after-segment"></a>
