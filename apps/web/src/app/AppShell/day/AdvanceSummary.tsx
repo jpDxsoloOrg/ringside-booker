@@ -35,6 +35,8 @@ import {
 } from './contractChangesText';
 import type { AdvanceReport } from './DayAdvanceProvider';
 import { gateDestination, SHOW_NIGHT_HINT } from './dayControlState';
+import type { ShowNightRoute } from '@/screens/show-night/useShowNightMode';
+import { useShowNightGate } from './useShowNightGate';
 import { useOptionalDayAdvance } from './DayAdvanceProvider';
 import styles from './DayControl.module.css';
 import { useOpenResultsAfterShow } from './useOpenResultsAfterShow';
@@ -113,6 +115,8 @@ function AdvancedReportBanner({ report, onDismiss }: ReportBannerProps<AdvancedR
   // A Next Day that lands on your show day says so, even though the day itself ran in full.
   const gates = useEngineQuery('sim.pendingGates', {});
   const tonight = gates.data?.hits.find((hit) => hit.actionHint === SHOW_NIGHT_HINT) ?? null;
+  // Whether that show goes live (EVT10-02): the banner's link then reads Go live.
+  const tonightRoute = useShowNightGate(tonight === null ? [] : [tonight], tonight ?? undefined);
   // Contracts that ended and workers who asked to leave during the advance (ECO4-04).
   const contracts = useEngineQuery(
     'contracts.changesSince',
@@ -150,15 +154,24 @@ function AdvancedReportBanner({ report, onDismiss }: ReportBannerProps<AdvancedR
       onDismiss={onDismiss}
       results={results}
       tonight={tonight}
+      tonightRoute={tonightRoute}
       {...(contractChanges === undefined ? {} : { contractChanges })}
       {...(offerUpdates === undefined ? {} : { offerUpdates })}
     />
   );
 }
 
-/** "Tonight: <Show>" and Go to the show, for the show day the advance stopped on. */
-function TonightLine({ hit, said }: { readonly hit: GateHit; readonly said: boolean }) {
-  const destination = gateDestination(hit);
+/** "Tonight: <Show>" and Go live (or Go to the show under Auto), for the show day the advance stopped on. */
+function TonightLine({
+  hit,
+  said,
+  route,
+}: {
+  readonly hit: GateHit;
+  readonly said: boolean;
+  readonly route: ShowNightRoute | undefined;
+}) {
+  const destination = gateDestination(hit, [hit], route);
   return (
     <>
       {!said && <p className={styles['summaryReason']}>{hit.reason}</p>}
@@ -263,6 +276,8 @@ export interface AdvanceSummaryBannerProps {
   readonly results?: readonly ShowSummaryView[];
   /** The show day the advance stopped on, if any: "Tonight: <Show>" and Go to the show. */
   readonly tonight?: GateHit | null;
+  /** How tonight's show is run (EVT10-02): left out, the link goes to the show in Booking. */
+  readonly tonightRoute?: ShowNightRoute;
   /** Your contract changes during the advance (ECO4-04): up to three lines and "and N more". */
   readonly contractChanges?: ContractChanges | null;
   /** Your contract talks during the advance (ECO5-06): up to three lines and "and N more". */
@@ -279,6 +294,7 @@ export function AdvanceSummaryBanner({
   label = 'Last advance',
   results = [],
   tonight = null,
+  tonightRoute,
   contractChanges = null,
   offerUpdates = null,
 }: AdvanceSummaryBannerProps) {
@@ -298,7 +314,9 @@ export function AdvanceSummaryBanner({
         <p className={styles['summaryHeadline']}>{text.headline}</p>
         {text.reason !== null && <p className={styles['summaryReason']}>{text.reason}</p>}
         {results.length > 0 && <ResultsLinks results={results} />}
-        {tonight !== null && <TonightLine hit={tonight} said={text.reason === tonight.reason} />}
+        {tonight !== null && (
+          <TonightLine hit={tonight} said={text.reason === tonight.reason} route={tonightRoute} />
+        )}
         {contractChanges !== null && <ContractLines changes={contractChanges} />}
         {offerUpdates !== null && <OfferLines updates={offerUpdates} />}
         {report.kind === 'advanced' && text.failures !== null && (

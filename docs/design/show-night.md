@@ -280,6 +280,38 @@ runner (and tools; anyone else gets `notFound`):
   which only apply at the end. Its trace is labelled "Show score so far". Null
   before the first segment and once the show is finished.
 
+### The show night screen
+
+`apps/web/src/screens/show-night/` (EVT10-02), at `/game/show-night/:eventInstanceId`, its own
+chunk. It reads `shows.liveState` and `shows.results` (and, before the first segment,
+`booking.card` and `booking.validate`) and issues `shows.runNextSegment`, `shows.runRestOfShow`
+and, only for the odd state where every segment has run but the show is still open,
+`shows.finishShow`.
+
+- **Ways in.** Under Live the show-day stop's button reads **Go live** (**Back to the show** once
+  the show is part-way through, whatever the setting) and opens the screen; so do the Last advance
+  banner's link, Booking's button (Run the show becomes Go live) and the calendar show sheet's
+  **Go live**. Under Auto they stay **Go to the show** and **Run the show**, which runs it all at
+  once as before. The web reads the setting and stage from `shows.liveState`
+  (`useShowNightRoute`); the engine's gate is unchanged.
+- **Layout.** Desktop: the lower third and a "Show so far" score bug (score so far with its Why?,
+  stars, segments run) on top; the running order down the left, each segment marked Done, Up next
+  or Still to come in words, a done one a button that brings its report back; the latest report in
+  the middle; the controls kept at the bottom with the next segment named. Phone: one column, the
+  running order folded into a strip.
+- **Controls.** Run next segment (Enter runs it from anywhere that does not take Enter itself), Sim
+  the rest of the show, Leave and finish later (to the Office; the day stays stopped on "Finish
+  tonight's show first"). A polite live region reads each result and, at the end, the final score.
+  Before the first segment a card with problems keeps both run buttons off and offers Fix the card.
+- **The report** is the segment's result card, then the sections features add with
+  `registerSegmentReportSection` (see `apps/web/src/app/README.md`).
+- **End of show.** "Show's over" with the final score and its Why?, then See the results. After Sim
+  the rest, with "Reveal results one segment at a time" on, the results play the reveal; otherwise
+  they open in full.
+- **Motion.** A new report fades in only when motion is welcome and the reveal setting is on.
+- **Resume.** Nothing is kept in the page: leaving, Main menu and Continue, or a reload, come back
+  to the same running order from `liveRun`, at the next segment.
+
 ## Show score
 
 `systems/shows/formulas/showScore.ts`. The show score is a **slot-weighted

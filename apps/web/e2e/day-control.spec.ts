@@ -151,8 +151,9 @@ test.describe('day control', () => {
     // The show-day gate stops the skip before the player's show on Thursday the 16th.
     await expect(summary).toContainText(`Advanced 5 days to ${SHOW_DATE_LONG}`);
     await expect(summary).toContainText(SHOW_REASON);
-    await expect(summary.getByRole('link', { name: 'Go to the show' })).toBeVisible();
-    await expect(dayButton(page, 'Go to the show')).toBeVisible();
+    // Live is the default Show night setting (EVT10-02): the stop goes live.
+    await expect(summary.getByRole('link', { name: 'Go live' })).toBeVisible();
+    await expect(dayButton(page, 'Go live')).toBeVisible();
     await expect(dateChip).toContainText(SHOW_DATE_LONG);
     await expectNoSeriousA11yViolations(page);
   });

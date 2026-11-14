@@ -25,7 +25,12 @@
 import type { Locator, Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { expectNoSeriousA11yViolations } from './helpers/a11y';
-import { autoFillCard, pickWinnersAndRunShow, skipDaysOnce } from './helpers/booking';
+import {
+  autoFillCard,
+  openTonightsCardFromSummary,
+  pickWinnersAndRunShow,
+  skipDaysOnce,
+} from './helpers/booking';
 import { clearOtherStops } from './helpers/contracts';
 import { startDefaultWorldGame } from './helpers/game';
 import { expectNoHorizontalScroll } from './helpers/layout';
@@ -151,8 +156,7 @@ test.describe('rival winners and title changes on a new game', () => {
         stops += 1;
         const summary = page.getByRole('region', { name: 'Last advance' });
         await expect(summary).toContainText(`Your show '${MY_SHOW}'`);
-        await summary.getByRole('link', { name: 'Go to the show' }).click();
-        await expect(page).toHaveURL(/\/game\/booking/);
+        await openTonightsCardFromSummary(page);
 
         const sheet = await autoFillCard(page);
         await sheet.getByRole('button', { name: 'Done' }).click();

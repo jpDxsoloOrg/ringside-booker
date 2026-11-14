@@ -11,6 +11,7 @@ import type {
   PersonId,
   SegmentDraft,
   SegmentId,
+  ShowNightMode,
 } from '@ringside/engine';
 import { EngineProvider } from '@/app/engine/EngineProvider';
 import { createInProcessTransport } from '@/app/engine/transport';
@@ -71,7 +72,10 @@ async function command<K extends CommandName>(
  * planned winner, slot 3 with no result yet, the main event open. With `onShowDay`, the clock is
  * then moved to the show's day (the fake engine leaves the show-day gate out).
  */
-async function bookedWorld({ onShowDay = false }: { onShowDay?: boolean } = {}): Promise<Booked> {
+async function bookedWorld({
+  onShowDay = false,
+  mode = 'auto',
+}: { onShowDay?: boolean; mode?: ShowNightMode } = {}): Promise<Booked> {
   const transport = createInProcessTransport(fakeEngineFactory(), { progressIntervalMs: 0 });
   const { state, roster } = bookingFakeState();
   const install = transport.host.installEngine(state);
@@ -99,6 +103,8 @@ async function bookedWorld({ onShowDay = false }: { onShowDay?: boolean } = {}):
   if (!card.result.ok) throw new Error('booking.card was refused.');
   const opener = card.result.data.sections.at(-1)?.slots[0]?.segment?.segmentId;
   if (opener === undefined) throw new Error('The opener was not booked.');
+  // Auto keeps Run the show running the whole show at once; Live goes to show night (EVT10-02).
+  await command(transport, 'shows.setShowNight', { mode });
   if (onShowDay) {
     const clock = await transport.host.query('clock.get', {});
     if (!clock.result.ok) throw new Error('clock.get was refused.');
@@ -301,6 +307,74 @@ describe('BookingScreen', { timeout: 20_000 }, () => {
     );
     expect(router.state.location.search).toBe('?reveal=1');
   });
+
+  it(
+    'under Live, Go live opens show night; part-way through, Back to the show returns there (EVT10-02)',
+    { timeout: 20_000 },
+    async () => {
+      const { transport, roster, show } = await bookedWorld({ onShowDay: true, mode: 'live' });
+      const eventInstanceId = show.eventInstanceId;
+      await command(transport, 'booking.addSegment', {
+        eventInstanceId,
+        preShow: false,
+        slot: 5,
+        draft: singles(roster.slice(4, 6), WIN),
+      });
+      const card = await transport.host.query('booking.card', { eventInstanceId });
+      if (!card.result.ok) throw new Error('booking.card was refused.');
+      const undecided = card.result.data.sections
+        .flatMap((section) => section.slots)
+        .find((slot) => slot.segment !== null && slot.slot === 2)?.segment?.segmentId;
+      if (undecided === undefined) throw new Error('Slot 3 was not booked.');
+      await command(transport, 'booking.setResult', { segmentId: undecided, result: WIN });
+
+      const { user, router } = renderBooking(transport, bookingShowUrl(eventInstanceId));
+      await findSlot('Slot 1: Opener');
+      const goLive = await screen.findByRole('button', { name: 'Go live' }, { timeout: LOAD_MS });
+      await waitFor(() => {
+        expect(goLive).toBeEnabled();
+      });
+      expect(screen.queryByRole('button', { name: 'Run the show' })).toBeNull();
+      const spy = vi.spyOn(transport.host, 'command');
+      await user.click(goLive);
+      await waitFor(
+        () => {
+          expect(router.state.location.pathname).toBe(routes.game.showNight(eventInstanceId));
+        },
+        { timeout: 5_000 },
+      );
+      expect(spy).not.toHaveBeenCalledWith('shows.runTonight', expect.anything());
+      spy.mockRestore();
+
+      // One segment in from show night, the card is locked and Booking points back to the show.
+      const runNext = await screen.findByRole(
+        'button',
+        { name: 'Run next segment' },
+        { timeout: LOAD_MS },
+      );
+      await waitFor(() => {
+        expect(runNext).toBeEnabled();
+      });
+      await user.click(runNext);
+      await screen.findByRole('heading', { name: /^Just now/ }, { timeout: LOAD_MS });
+      await act(async () => {
+        await router.navigate(bookingShowUrl(eventInstanceId));
+      });
+      const back = await screen.findByRole(
+        'button',
+        { name: 'Back to the show' },
+        { timeout: LOAD_MS },
+      );
+      expect(back).toBeEnabled();
+      await user.click(back);
+      await waitFor(
+        () => {
+          expect(router.state.location.pathname).toBe(routes.game.showNight(eventInstanceId));
+        },
+        { timeout: 5_000 },
+      );
+    },
+  );
 
   it('moves a segment down with booking.moveSegment', async () => {
     const { transport, show, opener } = await bookedWorld();
