@@ -3552,3 +3552,10 @@ export {
   withNotesAtTop,
   writingBandLabel,
 } from './systems/match/index';
+
+// CRTV4-02: heat after a linked segment. See docs/design/storylines.md#heat-after-segment.
+export {
+  HEAT_AFTER_SEGMENT_DOC_REF,
+  heatAfterSegment,
+  type HeatAfterSegmentInputs,
+} from './systems/storylines/index';

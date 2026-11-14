@@ -53,6 +53,11 @@ export {
 } from './commands';
 export { storylinesEndPreviewQuery, type StorylineEndPreview } from './endPreview';
 export { STORYLINE_START_SOURCES, type StorylineStartSource } from './events';
+export {
+  HEAT_AFTER_SEGMENT_DOC_REF,
+  heatAfterSegment,
+  type HeatAfterSegmentInputs,
+} from './formulas/heatAfterSegment';
 export { HEAT_DECAY_DOC_REF, heatDecay, type HeatDecayInputs } from './formulas/heatDecay';
 export { HOT_STORYLINE_DOC_REF, isHotHeat } from './formulas/hot';
 export {
