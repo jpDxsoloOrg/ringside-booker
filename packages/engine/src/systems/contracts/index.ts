@@ -201,6 +201,9 @@ export {
   type WalkoutView,
 } from './queries';
 
+// ECO5-05: a signing that starts today starts its contract straight away.
+export { startContract } from './lifecycle';
+
 export const contractsSystem: SystemBundle = defineSystem({
   id: 'contracts',
   phases: contractsPhases,

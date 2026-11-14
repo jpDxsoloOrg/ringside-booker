@@ -17,6 +17,8 @@
 // program that imports this system, including programs that only see the emitted .d.ts files.
 import './events';
 import './streams';
+// Registers the gate and merch shares as terms the game honours (ECO5-03).
+import './enforcedTerms';
 import { defineSystem, type SystemBundle } from '../../core/api/system';
 import { settlementQueries } from './settlementQueries';
 import { settleShowSubscription } from './settleSubscription';

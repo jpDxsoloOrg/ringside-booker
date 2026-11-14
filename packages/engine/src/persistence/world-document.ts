@@ -112,6 +112,7 @@ function serialiseTables(tables: SerialisableWorld['tables']): SerializedTables 
     aiDecisions: [...tables.aiDecisions.values()],
     injuries: [...tables.injuries.values()],
     contractConcerns: [...tables.contractConcerns.values()],
+    negotiations: [...tables.negotiations.values()],
   };
 }
 

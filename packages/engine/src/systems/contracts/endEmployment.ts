@@ -38,6 +38,7 @@ import {
   type EmploymentStatus,
 } from '../../model/entities/employment';
 import { postMoney } from '../finance/post';
+import { closeTalksOnEndedContract } from '../negotiation/endedTalks';
 import type { DoorContext } from '../workers/doors';
 import type { DoorSource } from '../workers/events';
 import type { ContractQuitHow } from './events';
@@ -152,6 +153,8 @@ export function endEmployment(ctx: DoorContext, args: EndEmploymentArgs): EndEmp
 
   // (2) The contract itself.
   tx.update('employments', employment.id, { status: args.to, endedOn: ctx.date });
+  // ECO5-05: open talks about it (a renewal, or the signing of a withdrawn offer) close too.
+  closeTalksOnEndedContract(ctx, employment.id);
 
   // (3) Manager links to the leaver on the promotion's live contracts.
   for (const status of ['signed', 'active'] as const) {

@@ -53,10 +53,10 @@ function activeCount(world: GameWorld, promotionId: PromotionId): number {
 /** Runs `days` days of a fresh player world and returns its first contract. */
 function runDaysWith(
   built: ReturnType<typeof playerWorld>,
-  overrides: Record<string, number>,
+  overrides: Record<string, number | boolean>,
   days: number,
 ) {
-  runDays(contractsRuntime(built.world, overrides, [], false), days);
+  runDays(contractsRuntime(built.world, { ...STOPGAP_ON, ...overrides }, [], false), days);
   const [first] = built.ids.employments;
   if (first === undefined) {
     throw new Error('expected a contract');
@@ -64,7 +64,16 @@ function runDaysWith(
   return built.world.tables.employments.require(first);
 }
 
+/** The stopgap is off by default since ECO5-05 (the player renews through talks); these turn it on. */
+const STOPGAP_ON = { 'contracts.autoRenewPlayer': true } as const;
+
 describe('contracts.playerAutoRenewal', () => {
+  it('is off by default now that the player can renew through talks (ECO5-05)', () => {
+    const built = playerWorld();
+    runDays(contractsRuntime(built.world, {}, [], false), 365);
+    expect(activeCount(built.world, built.human)).toBe(0);
+  });
+
   it('is asked before the rival rule', () => {
     const ids = renewalPolicies().map((policy) => policy.id);
     expect(ids.indexOf(PLAYER_AUTO_RENEWAL_POLICY_ID)).toBeLessThan(
@@ -72,13 +81,13 @@ describe('contracts.playerAutoRenewal', () => {
     );
   });
 
-  it("keeps the player's whole roster through a year, renewing for a year at a time", () => {
+  it("when on, keeps the player's whole roster through a year, renewing for a year at a time", () => {
     const built = playerWorld();
     const [first] = built.ids.employments;
     if (first === undefined) {
       throw new Error('expected a contract');
     }
-    const runtime = contractsRuntime(built.world, {}, [], false);
+    const runtime = contractsRuntime(built.world, STOPGAP_ON, [], false);
     runDays(runtime, 21);
     // The first contract ended on day 20 and was renewed for contracts.autoRenewPlayerDays.
     const events = runtime.bus.recent({ types: ['contract.renewed'] });
@@ -123,7 +132,7 @@ describe('contracts.playerAutoRenewal', () => {
     if (!moved.ok) {
       throw moved.error;
     }
-    runDays(contractsRuntime(built.world, {}, [], false), 1);
+    runDays(contractsRuntime(built.world, STOPGAP_ON, [], false), 1);
     const row = built.world.tables.employments.require(first);
     expect(row.status).toBe('active');
     expect(diffDays(addDays(built.start, 400), row.endsOn ?? built.start)).toBe(365);

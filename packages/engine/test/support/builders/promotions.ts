@@ -11,6 +11,11 @@
  *   offered and started on `TEST_START_DATE`, 5,000 a month, no shares or perks;
  * - contract concern (ECO4-01): for `emp_0000000001` of `per_0000000001` at `pro_0000000001`, with
  *   only an `ending` (expired on its end date, no severance) so the row is not empty;
+ * - offer (ECO5-01): the default employment's terms, starting as soon as possible, 12 months, shared
+ *   across brands, a midcard wrestler, no extra fields;
+ * - negotiation (ECO5-01): a `submitted` round-1 signing by `per_0000000001` with `pro_0000000001`,
+ *   pointing at `emp_0000000001` (insert that employment with `status: 'offered'` for the table's
+ *   invariants to hold), opened and submitted on `TEST_START_DATE`, patience 5 of 5, no history;
  * - team `Test Team 001`: an active tag team of people 1 and 2, experience 50;
  * - stable `Test Stable 001`: an active stable of people 1 to 3 with no leader;
  * - relationship: friends, affinity 0. The pair is put in canonical order for you.
@@ -33,6 +38,7 @@ import {
   type ContractConcern,
 } from '../../../src/model/entities/contract-concern';
 import { EmploymentSchema, type Employment } from '../../../src/model/entities/employment';
+import { NegotiationSchema, type Negotiation } from '../../../src/model/entities/negotiation';
 import { PromotionSchema, type Promotion } from '../../../src/model/entities/promotion';
 import {
   PromotionSnapshotSchema,
@@ -41,6 +47,7 @@ import {
 import { RelationshipSchema, type Relationship } from '../../../src/model/entities/relationship';
 import { StableSchema, type Stable } from '../../../src/model/entities/stable';
 import { TeamSchema, type Team } from '../../../src/model/entities/team';
+import { OfferSchema, type Offer } from '../../../src/systems/negotiation/offer';
 import { TestIds, testId, type TestIdSequence } from '../ids';
 import {
   buildRow,
@@ -167,6 +174,59 @@ export function aContractConcern(
     ending: { how: 'expired', severance: cents(0), traceRef: null },
   };
   return buildRow(ContractConcernSchema, 'aContractConcern', defaults, overrides);
+}
+
+export function anOffer(overrides: DeepPartial<Offer> = {}): Offer {
+  const defaults: Offer = {
+    terms: {
+      kind: 'written',
+      exclusive: true,
+      monthlyWage: DEFAULT_MONTHLY_WAGE,
+      perAppearanceFee: cents(0),
+      signingBonus: cents(0),
+      shares: { gateBp: 0, merchBp: 0, broadcastBp: 0 },
+      appearanceCap: null,
+      perks: { creativeControl: false, noHouseShows: false, ironClad: false, travelCovered: false },
+    },
+    startsOn: null,
+    lengthMonths: 12,
+    brand: { kind: 'shared' },
+    role: 'wrestler',
+    push: 'midCard',
+    extra: {},
+  };
+  return buildRow(OfferSchema, 'anOffer', defaults, overrides);
+}
+
+export function aNegotiation(
+  overrides: DeepPartial<Negotiation> = {},
+  sequence: TestIdSequence = TestIds,
+): Negotiation {
+  const defaults: Negotiation = {
+    id: overrides.id ?? sequence.id('negotiation'),
+    kind: 'signing',
+    personId: testId('person'),
+    promotionId: testId('promotion'),
+    employmentId: testId('employment'),
+    status: 'submitted',
+    round: 1,
+    startPatience: 5,
+    patience: 5,
+    offer: anOffer(),
+    lastCounter: null,
+    history: [],
+    openedOn: TEST_START_DATE,
+    submittedOn: TEST_START_DATE,
+    counterExpiresOn: null,
+    reviewOn: null,
+    closedOn: null,
+    outcome: null,
+    cooldownUntil: null,
+    reactionTraceId: null,
+    reviewTraceId: null,
+    counterStopsSkip: false,
+  };
+  return buildRow(NegotiationSchema, 'aNegotiation', defaults, overrides);
 }
 
 export function aTeam(overrides: DeepPartial<Team> = {}, sequence: TestIdSequence = TestIds): Team {

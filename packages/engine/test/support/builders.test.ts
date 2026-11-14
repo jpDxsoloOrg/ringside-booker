@@ -268,10 +268,10 @@ describe('canned worlds', () => {
   it('tinyWorld has the documented contents', () => {
     const { world, ids } = tinyWorld();
     expect(rowCounts(world)).toEqual({
-      people: 16,
+      people: 17,
       promotions: 2,
       brands: 1,
-      employments: 16,
+      employments: 17,
       teams: 1,
       stables: 1,
       relationships: 2,
@@ -299,6 +299,7 @@ describe('canned worlds', () => {
       aiDecisions: 2,
       injuries: 1,
       contractConcerns: 1,
+      negotiations: 1,
     });
     expect(world.tables.promotions.require(ids.promotions.A!).controller).toEqual({
       kind: 'human',

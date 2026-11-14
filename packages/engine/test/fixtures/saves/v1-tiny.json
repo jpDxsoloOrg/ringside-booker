@@ -9,7 +9,7 @@
     "label": "Test save",
     "promotionName": "Test Promotion A",
     "promotionShortName": "TPA",
-    "schemaFingerprint": "e8e608c31e886d3f85e802c2e12b85a4",
+    "schemaFingerprint": "6e89bee183266bb139578ede2ac350be",
     "startDate": "2026-01-05",
     "worldName": "Test Tiny World"
   },
@@ -1520,6 +1520,47 @@
               },
               "signingBonus": 0
             }
+          },
+          {
+            "alignment": "face",
+            "appearancesThisYear": 0,
+            "brandId": null,
+            "endedOn": null,
+            "endsOn": "2027-04-17",
+            "gimmickKey": null,
+            "id": "emp_000000000h",
+            "lastAppearanceOn": null,
+            "leave": null,
+            "managerPersonId": null,
+            "momentum": null,
+            "morale": 0,
+            "offeredOn": "2026-04-08",
+            "personId": "per_000000000h",
+            "promotionId": "pro_0000000001",
+            "push": "midCard",
+            "ringName": "Test Person 017",
+            "role": "wrestler",
+            "startsOn": "2026-04-17",
+            "status": "offered",
+            "terms": {
+              "appearanceCap": null,
+              "exclusive": true,
+              "kind": "written",
+              "monthlyWage": 500000,
+              "perAppearanceFee": 0,
+              "perks": {
+                "creativeControl": false,
+                "ironClad": false,
+                "noHouseShows": false,
+                "travelCovered": false
+              },
+              "shares": {
+                "broadcastBp": 0,
+                "gateBp": 0,
+                "merchBp": 0
+              },
+              "signingBonus": 0
+            }
           }
         ],
         "eventDefinitions": [
@@ -1744,6 +1785,159 @@
                 "days": 7
               }
             }
+          }
+        ],
+        "negotiations": [
+          {
+            "closedOn": null,
+            "cooldownUntil": null,
+            "counterExpiresOn": "2026-04-15",
+            "counterStopsSkip": false,
+            "employmentId": "emp_000000000h",
+            "history": [
+              {
+                "by": "promotion",
+                "date": "2026-04-08",
+                "offer": {
+                  "brand": {
+                    "kind": "shared"
+                  },
+                  "extra": {},
+                  "lengthMonths": 12,
+                  "push": "midCard",
+                  "role": "wrestler",
+                  "startsOn": "2026-04-17",
+                  "terms": {
+                    "appearanceCap": null,
+                    "exclusive": true,
+                    "kind": "written",
+                    "monthlyWage": 500000,
+                    "perAppearanceFee": 0,
+                    "perks": {
+                      "creativeControl": false,
+                      "ironClad": false,
+                      "noHouseShows": false,
+                      "travelCovered": false
+                    },
+                    "shares": {
+                      "broadcastBp": 0,
+                      "gateBp": 0,
+                      "merchBp": 0
+                    },
+                    "signingBonus": 0
+                  }
+                },
+                "reaction": "counter",
+                "round": 1
+              },
+              {
+                "by": "worker",
+                "date": "2026-04-08",
+                "offer": {
+                  "brand": {
+                    "kind": "shared"
+                  },
+                  "extra": {},
+                  "lengthMonths": 12,
+                  "push": "midCard",
+                  "role": "wrestler",
+                  "startsOn": "2026-04-17",
+                  "terms": {
+                    "appearanceCap": null,
+                    "exclusive": true,
+                    "kind": "written",
+                    "monthlyWage": 650000,
+                    "perAppearanceFee": 0,
+                    "perks": {
+                      "creativeControl": false,
+                      "ironClad": false,
+                      "noHouseShows": false,
+                      "travelCovered": false
+                    },
+                    "shares": {
+                      "broadcastBp": 0,
+                      "gateBp": 0,
+                      "merchBp": 0
+                    },
+                    "signingBonus": 200000
+                  }
+                },
+                "reaction": null,
+                "round": 1
+              }
+            ],
+            "id": "neg_0000000001",
+            "kind": "signing",
+            "lastCounter": {
+              "brand": {
+                "kind": "shared"
+              },
+              "extra": {},
+              "lengthMonths": 12,
+              "push": "midCard",
+              "role": "wrestler",
+              "startsOn": "2026-04-17",
+              "terms": {
+                "appearanceCap": null,
+                "exclusive": true,
+                "kind": "written",
+                "monthlyWage": 650000,
+                "perAppearanceFee": 0,
+                "perks": {
+                  "creativeControl": false,
+                  "ironClad": false,
+                  "noHouseShows": false,
+                  "travelCovered": false
+                },
+                "shares": {
+                  "broadcastBp": 0,
+                  "gateBp": 0,
+                  "merchBp": 0
+                },
+                "signingBonus": 200000
+              }
+            },
+            "offer": {
+              "brand": {
+                "kind": "shared"
+              },
+              "extra": {},
+              "lengthMonths": 12,
+              "push": "midCard",
+              "role": "wrestler",
+              "startsOn": "2026-04-17",
+              "terms": {
+                "appearanceCap": null,
+                "exclusive": true,
+                "kind": "written",
+                "monthlyWage": 500000,
+                "perAppearanceFee": 0,
+                "perks": {
+                  "creativeControl": false,
+                  "ironClad": false,
+                  "noHouseShows": false,
+                  "travelCovered": false
+                },
+                "shares": {
+                  "broadcastBp": 0,
+                  "gateBp": 0,
+                  "merchBp": 0
+                },
+                "signingBonus": 0
+              }
+            },
+            "openedOn": "2026-04-08",
+            "outcome": null,
+            "patience": 4,
+            "personId": "per_000000000h",
+            "promotionId": "pro_0000000001",
+            "reactionTraceId": "neg_0000000001:1",
+            "reviewOn": null,
+            "reviewTraceId": null,
+            "round": 1,
+            "startPatience": 6,
+            "status": "countered",
+            "submittedOn": "2026-04-08"
           }
         ],
         "networks": [
@@ -2872,6 +3066,68 @@
             "givenName": "Test",
             "heightCm": 183,
             "id": "per_000000000g",
+            "imageRef": null,
+            "injury": null,
+            "masked": false,
+            "motivation": "money",
+            "regionalPop": {},
+            "restrictions": [],
+            "roles": [
+              "wrestler"
+            ],
+            "status": "active",
+            "style": "allRounder",
+            "tags": [],
+            "traits": [],
+            "vices": {
+              "alcohol": "none",
+              "substances": "none"
+            },
+            "weightKg": 100
+          },
+          {
+            "attributes": {
+              "athleticism": 50,
+              "booking": 50,
+              "broadcasting": 50,
+              "charisma": 50,
+              "mic": 50,
+              "officiating": 50,
+              "presence": 50,
+              "producing": 50,
+              "psychology": 50,
+              "ringwork": 50,
+              "safety": 50,
+              "stamina": 50
+            },
+            "basedInRegionId": "reg_0000000001",
+            "birthDate": "1998-01-05",
+            "birthRegionId": "reg_0000000001",
+            "build": "athletic",
+            "career": {
+              "canBook": false,
+              "canOwn": false
+            },
+            "condition": {
+              "arms": 100,
+              "back": 100,
+              "head": 100,
+              "legs": 100,
+              "neck": 100,
+              "torso": 100
+            },
+            "debutDate": "2016-01-05",
+            "defaultRingName": "Test Person 017",
+            "development": {
+              "ceilings": {},
+              "potential": 0
+            },
+            "familyName": "Person 017",
+            "fatigue": 0,
+            "gender": "male",
+            "givenName": "Test",
+            "heightCm": 183,
+            "id": "per_000000000h",
             "imageRef": null,
             "injury": null,
             "masked": false,

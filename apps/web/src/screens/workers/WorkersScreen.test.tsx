@@ -19,7 +19,9 @@ import { filtersButtonText, workersCountText } from './WorkersScreen';
 
 /** The engine's first answer and a lazily loaded profile can take a moment under load. */
 const LOAD_MS = 10_000;
-const TINY_WORLD_PEOPLE = 16;
+const TINY_WORLD_PEOPLE = 17;
+/** The tiny world's one free agent (ECO5-01): the worker in its countered negotiation. */
+const TINY_WORLD_FREE_AGENTS = 1;
 const REFUSAL_MESSAGE = 'No world is loaded.';
 
 interface Asked {
@@ -133,7 +135,9 @@ describe('WorkersScreen', () => {
     ).toBeInTheDocument();
     const rows = await findRows();
     expect(rows).toHaveLength(TINY_WORLD_PEOPLE);
-    expect(screen.getByText(workersCountText(TINY_WORLD_PEOPLE, 0))).toBeInTheDocument();
+    expect(
+      screen.getByText(workersCountText(TINY_WORLD_PEOPLE, TINY_WORLD_FREE_AGENTS)),
+    ).toBeInTheDocument();
     expect(screen.queryByText("This screen isn't built yet")).toBeNull();
 
     const sidebar = screen.getByRole('navigation', { name: 'Main' });
@@ -230,10 +234,14 @@ describe('WorkersScreen', () => {
     await waitFor(() => {
       expect(listArgs().at(-1)).toEqual({ filters: { employer: { kind: 'freeAgent' } } });
     });
-    // The tiny world has no free agents.
-    expect(await screen.findByText('Nobody matches these filters')).toBeInTheDocument();
-    expect(screen.getByText('0 shown')).toHaveAttribute('role', 'status');
-    expect(screen.getByText(workersCountText(TINY_WORLD_PEOPLE, 0))).toBeInTheDocument();
+    // The tiny world has one free agent.
+    await waitFor(async () => {
+      expect(await findRows()).toHaveLength(TINY_WORLD_FREE_AGENTS);
+    });
+    expect(screen.getByText('1 shown')).toHaveAttribute('role', 'status');
+    expect(
+      screen.getByText(workersCountText(TINY_WORLD_PEOPLE, TINY_WORLD_FREE_AGENTS)),
+    ).toBeInTheDocument();
   });
 
   it('offers each promotion as an employer and narrows the list to it', async () => {

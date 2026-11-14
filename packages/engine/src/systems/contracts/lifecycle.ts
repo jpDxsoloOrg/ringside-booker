@@ -25,8 +25,10 @@ import { InvalidArgumentError, RegistryError } from '../../core/errors';
 import type { PhaseContext } from '../../core/pipeline/context';
 import { traced } from '../../core/trace/helpers';
 import { PHASE_ID_PATTERN } from '../../core/pipeline/phase';
-import type { Employment } from '../../model/entities/employment';
+import type { EmploymentId } from '../../core/ids';
+import { canTransition, type Employment } from '../../model/entities/employment';
 import type { DeepReadonly } from '../../model/world';
+import type { DoorContext } from '../workers/doors';
 import { endEmployment } from './endEmployment';
 import { renewalPolicies, type RenewalAnswer } from './renewals';
 import { renewalTraceRef } from './traceKinds';
@@ -169,29 +171,51 @@ function startDueContracts(ctx: PhaseContext): void {
     .lookup('byStatus', 'signed')
     .filter((employment) => compareDates(employment.startsOn, ctx.date) <= 0);
   for (const signed of due) {
-    for (const other of ctx.read.tables.employments.lookup('byPerson', signed.personId)) {
-      if (
-        other.id !== signed.id &&
-        other.status === 'active' &&
-        (other.terms.exclusive || signed.terms.exclusive)
-      ) {
-        endEmployment(ctx, {
-          employmentId: other.id,
-          to: 'quit',
-          how: 'exclusiveDeal',
-          reasonKey: EXCLUSIVE_DEAL_REASON_KEY,
-          source: 'system',
-          severance: null,
-        });
-      }
-    }
-    ctx.tx.update('employments', signed.id, { status: 'active' });
-    ctx.publish('contract.started', {
-      employmentId: signed.id,
-      personId: signed.personId,
-      promotionId: signed.promotionId,
-    });
+    startContract(ctx, signed.id);
   }
+}
+
+/**
+ * Starts one signed contract (`signed → active`) and publishes `contract.started`. When the person
+ * has another active contract and either one is exclusive, the other one ends first as a quit
+ * (`exclusiveDeal`), so an exclusive conflict never exists. The lifecycle calls it for every
+ * contract whose start date has come; a signing that starts today calls it straight away
+ * (ECO5-05's `signNegotiation`), so it does not depend on the phase order.
+ *
+ * @throws InvalidArgumentError when the employment is not `signed`.
+ */
+export function startContract(ctx: DoorContext, employmentId: EmploymentId): void {
+  const signed = ctx.read.tables.employments.require(employmentId);
+  if (!canTransition(signed.status, 'active')) {
+    throw new InvalidArgumentError(
+      'startContract',
+      'employmentId',
+      employmentId,
+      `a signed employment (it is ${signed.status})`,
+    );
+  }
+  for (const other of ctx.read.tables.employments.lookup('byPerson', signed.personId)) {
+    if (
+      other.id !== signed.id &&
+      other.status === 'active' &&
+      (other.terms.exclusive || signed.terms.exclusive)
+    ) {
+      endEmployment(ctx, {
+        employmentId: other.id,
+        to: 'quit',
+        how: 'exclusiveDeal',
+        reasonKey: EXCLUSIVE_DEAL_REASON_KEY,
+        source: 'system',
+        severance: null,
+      });
+    }
+  }
+  ctx.tx.update('employments', signed.id, { status: 'active' });
+  ctx.publish('contract.started', {
+    employmentId: signed.id,
+    personId: signed.personId,
+    promotionId: signed.promotionId,
+  });
 }
 
 /** The whole day's lifecycle: ends, then starts, then the hooks. */
