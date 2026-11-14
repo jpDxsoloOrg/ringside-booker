@@ -1,0 +1,265 @@
+/*
+ * The beat editor: an ordered list of beat rows, then "Add beat" and the limit message.
+ * Desktop: one row per beat (grip, "Beat 1", the beat picker, score, actions) with its groups of
+ * people underneath. Phone: each beat is a stacked card with no grip and a footer of Move up,
+ * Move down and Remove.
+ */
+.editor {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-inline-size: 0;
+}
+
+.item {
+  min-inline-size: 0;
+}
+
+.row {
+  display: grid;
+  grid-template-areas:
+    'grip heading pick score actions'
+    'grip . groups groups groups';
+  grid-template-columns: auto 7rem minmax(0, 1fr) auto auto;
+  column-gap: var(--space-3);
+  row-gap: var(--space-2);
+  align-items: start;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  min-inline-size: 0;
+}
+
+/* Past the slot's limit: it will not run. The badge says so in words. */
+.rowOver {
+  border-color: var(--color-negative);
+  border-style: dashed;
+  background: var(--color-surface-sunken);
+}
+
+.gripCell {
+  grid-area: grip;
+  display: grid;
+  align-self: start;
+}
+
+.grip {
+  touch-action: none;
+}
+
+.heading {
+  grid-area: heading;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.position {
+  margin: 0;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.75rem;
+  text-transform: uppercase;
+}
+
+.pick {
+  grid-area: pick;
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.select {
+  max-inline-size: 22rem;
+}
+
+.hint {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  overflow-wrap: anywhere;
+}
+
+.score {
+  grid-area: score;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+}
+
+.scoreLabel {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.actions {
+  grid-area: actions;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* Desktop with a mouse: Move up / Move down show when the row is hovered or has focus. */
+@media (hover: hover) and (pointer: fine) {
+  .move {
+    opacity: 0;
+  }
+
+  .row:hover .move,
+  .row:focus-within .move {
+    opacity: 1;
+  }
+}
+
+.groups {
+  grid-area: groups;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.group {
+  display: grid;
+  align-content: start;
+  gap: var(--space-1);
+  flex: 1 1 14rem;
+  min-inline-size: 0;
+}
+
+.groupLabel {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.optional {
+  font-weight: var(--font-weight-regular);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-inline-size: 0;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  max-inline-size: 100%;
+  padding-inline-start: var(--space-2);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-raised);
+  min-inline-size: 0;
+}
+
+.chipName {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.chipRemove {
+  flex: none;
+}
+
+.groupNote {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.groupActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.addPerson[aria-disabled='true'],
+.addBeat[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.limit,
+.limitOver,
+.notice {
+  margin: 0;
+  font-size: var(--font-size-sm);
+}
+
+.limit {
+  color: var(--color-text-muted);
+}
+
+.limitOver {
+  color: var(--color-negative);
+  font-weight: var(--font-weight-semibold);
+}
+
+.notice {
+  color: var(--color-text);
+}
+
+@media (--bp-mobile) {
+  .row {
+    grid-template-areas:
+      'heading score'
+      'pick pick'
+      'groups groups'
+      'actions actions';
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .heading {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  /* Phones reorder with the Move buttons; there is no grip. */
+  .gripCell {
+    display: none;
+  }
+
+  .select {
+    max-inline-size: none;
+  }
+
+  .actions {
+    justify-content: flex-end;
+    padding-block-start: var(--space-2);
+    border-block-start: 1px solid var(--color-border);
+  }
+
+  .group {
+    flex-basis: 100%;
+  }
+}
