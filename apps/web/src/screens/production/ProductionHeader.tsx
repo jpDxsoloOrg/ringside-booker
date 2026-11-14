@@ -13,6 +13,8 @@ import {
 import { forecastWindowText, showCountText } from './productionText';
 // EVT4's show-quality ceiling card registers itself first, at order 10 (ECO7-05).
 import './ShowQualityCeilingCard';
+// The cash runway card registers itself last, at order 50 (ECO7-06).
+import './cashRunway';
 import styles from './ProductionScreen.module.css';
 
 /** ECO7's three built-in header cards and their places; EVT4's show-quality ceiling sits at 10. */

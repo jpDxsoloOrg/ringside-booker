@@ -1,0 +1,84 @@
+/* ECO7-06's cash runway: the card on Production and the Finances Overview, and the warning strip. */
+.footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.headline {
+  color: var(--color-text);
+}
+
+.spend {
+  display: grid;
+  gap: 2px;
+}
+
+.line {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+}
+
+.net {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.link {
+  align-self: flex-start;
+}
+
+/*
+ * The warning strip: a raised band with a stripe down its start edge, gold (losing money) or rose
+ * (running out, out of cash). The kicker repeats the colour in words; colour never stands alone.
+ */
+.banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  min-inline-size: 0;
+  padding: var(--space-2) var(--space-4);
+  border-inline-start: 4px solid var(--color-prestige);
+  background: var(--color-surface-raised);
+}
+
+.severe {
+  border-inline-start-color: var(--color-negative);
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--color-prestige);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.severe .kicker {
+  color: var(--color-negative);
+}
+
+.bannerText {
+  flex: 1 1 16rem;
+  min-inline-size: 0;
+  margin: 0;
+}
+
+/* Touch screens: the link gets a finger-sized hit area without taking more room. */
+@media (pointer: coarse) {
+  .link {
+    padding-block: var(--tap-pad-block);
+    margin-block: calc(-1 * var(--tap-pad-block));
+  }
+}

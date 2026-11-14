@@ -25,6 +25,7 @@ import {
   fakeEngineState,
 } from '@/test/fakeEngine';
 import { LOAD_MS, renderFinances } from '@/test/financesScreen';
+import { CASH_RUNWAY_HEADER_ORDER } from './cashRunway';
 import { NO_EFFECT_TEXT } from './ProductionAreaRow';
 import { LOWERING_IS_FREE_TEXT } from './ProductionChangeDialog';
 import { PRODUCTION_HEADER_ORDERS } from './ProductionHeader';
@@ -424,12 +425,13 @@ describe('ProductionOverviewView for a rival', () => {
 });
 
 describe('the production header registry', () => {
-  it('holds the show-quality ceiling at 10, ECO7 cards at 20, 30 and 40, and refuses a taken id', () => {
+  it('holds the show-quality ceiling at 10, ECO7 cards at 20, 30, 40 and 50, and refuses a taken id', () => {
     expect(listProductionHeaderItems().map((item) => [item.id, item.order])).toEqual([
       [SHOW_QUALITY_CEILING_HEADER_ID, SHOW_QUALITY_CEILING_HEADER_ORDER],
       ['production.popularityCeiling', PRODUCTION_HEADER_ORDERS.popularityCeiling],
       ['production.monthlyOverhead', PRODUCTION_HEADER_ORDERS.monthlyOverhead],
       ['production.upcomingShows', PRODUCTION_HEADER_ORDERS.upcomingShows],
+      ['production.cashRunway', CASH_RUNWAY_HEADER_ORDER],
     ]);
     expect(() =>
       registerProductionHeaderItem({
@@ -467,7 +469,7 @@ describe('the production header registry', () => {
     act(() => {
       resetProductionHeaderRegistryForTests();
     });
-    expect(listProductionHeaderItems()).toHaveLength(4);
+    expect(listProductionHeaderItems()).toHaveLength(5);
     expect(within(header).queryByText('Test first card')).toBeNull();
   });
 });

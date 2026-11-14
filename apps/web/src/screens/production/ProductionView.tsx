@@ -4,6 +4,7 @@ import { useEngineQuery } from '@/app/engine/useEngineQuery';
 import { classNames } from '@/components/classNames';
 import { EmptyState } from '@/components/EmptyState';
 import { ProductionAreaList, tvFloorText } from './ProductionAreaRow';
+import { CashRunwayBanner } from './cashRunway';
 import { ProductionChangeDialog } from './ProductionChangeDialog';
 import { ProductionHeader } from './ProductionHeader';
 import { queryErrorText } from './productionText';
@@ -77,6 +78,7 @@ export function ProductionView({ promotionId }: ProductionViewProps) {
       className={classNames(styles['body'], overview.isStale && styles['stale'])}
       aria-busy={overview.isStale || undefined}
     >
+      {data.mine && <CashRunwayBanner promotionId={promotionId} />}
       <ProductionOverviewView
         overview={data}
         onRequestChange={(area, level) => {
