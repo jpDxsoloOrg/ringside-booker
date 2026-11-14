@@ -412,8 +412,13 @@ describe('aip.bookShow', () => {
     expect(() => registerBookedCardStep({ id: 'Bad', order: 0, run: () => undefined })).toThrow(
       RegistryError,
     );
-    // AIP5-04's `aip.decideResults` (order 10) is always registered.
-    expect(bookedCardSteps().map((step) => step.id)).toEqual(['test.once', 'aip.decideResults']);
+    // EVT4-08's `aip.lengthenMatches` (order 5) and AIP5-04's `aip.decideResults` (order 10) are
+    // always registered.
+    expect(bookedCardSteps().map((step) => step.id)).toEqual([
+      'test.once',
+      'aip.lengthenMatches',
+      'aip.decideResults',
+    ]);
   });
 
   it('keeps a short plan trace and a short trace per written slot, and a hidden card decision', () => {

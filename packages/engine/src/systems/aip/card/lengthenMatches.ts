@@ -11,7 +11,12 @@
  */
 
 import type { EventImportance } from '../../../model/entities/event-definition';
+import type { SegmentId } from '../../../core/ids';
+import type { EventInstance } from '../../../model/entities/event-instance';
 import type { MatchSegment } from '../../../model/entities/segment';
+import type { GameWorldView } from '../../../model/tables';
+import type { DeepReadonly } from '../../../model/world';
+import type { EngineTunables } from '../../tunables';
 import { durationShifterOf, showTimeOf, timeUnitsOf } from '../../match/showTime';
 import { durationClassOf, slotRoleOf } from '../../match/slots';
 import {
@@ -28,11 +33,15 @@ export const LENGTHEN_MATCHES_STEP_ORDER = 5;
 export const LENGTHEN_ON: ReadonlySet<EventImportance> = new Set(['major', 'flagship']);
 
 /** The match segments a booker may lengthen, the top of the card first. */
-function candidatesOf(ctx: ShowBookingContext, input: BookedCardInput): MatchSegment[] {
-  const { slots } = input.instance.format;
-  const found: MatchSegment[] = [];
-  for (const segmentId of input.segmentIds) {
-    const segment = ctx.read.tables.segments.get(segmentId);
+function candidatesOf(
+  read: GameWorldView,
+  instance: DeepReadonly<EventInstance>,
+  segmentIds: readonly SegmentId[],
+): DeepReadonly<MatchSegment>[] {
+  const { slots } = instance.format;
+  const found: DeepReadonly<MatchSegment>[] = [];
+  for (const segmentId of segmentIds) {
+    const segment = read.tables.segments.get(segmentId);
     if (
       segment?.kind === 'match' &&
       !segment.preShow &&
@@ -45,17 +54,23 @@ function candidatesOf(ctx: ShowBookingContext, input: BookedCardInput): MatchSeg
   return found.sort((left, right) => right.slot - left.slot);
 }
 
-/** Sets the show's big matches to Long while the show has time to spare. */
-export function lengthenMatches(ctx: ShowBookingContext, input: BookedCardInput): void {
-  const { instance } = input;
+/**
+ * The matches a rival booker sets to Long on `instance`: none below a major show; otherwise the
+ * semi-main first, then down the card, each while the show's spare time covers it.
+ */
+export function matchesToLengthen(
+  read: GameWorldView,
+  instance: DeepReadonly<EventInstance>,
+  segmentIds: readonly SegmentId[],
+  tunables: EngineTunables,
+): SegmentId[] {
   if (!LENGTHEN_ON.has(instance.importance)) {
-    return;
+    return [];
   }
-  const { tunables } = ctx;
-  const time = showTimeOf(ctx.read, instance, tunables);
+  const time = showTimeOf(read, instance, tunables);
   let spare = time.budget.value - time.used.value;
-  const lengthened: number[] = [];
-  for (const segment of candidatesOf(ctx, input)) {
+  const chosen: SegmentId[] = [];
+  for (const segment of candidatesOf(read, instance, segmentIds)) {
     if (spare <= 0) {
       break;
     }
@@ -63,20 +78,29 @@ export function lengthenMatches(ctx: ShowBookingContext, input: BookedCardInput)
       { slot: segment.slot + 1, slots: instance.format.slots, preShow: false },
       { tunables },
     ).value;
-    const matchType = durationShifterOf(ctx.read, segment, tunables);
+    const matchType = durationShifterOf(read, segment, tunables);
     const now = durationClassOf({ role, matchType }, { tunables }).value;
     const next = durationClassOf({ role, matchType, booked: 'long' }, { tunables }).value;
     const cost = timeUnitsOf(next, tunables) - timeUnitsOf(now, tunables);
     if (next === now || cost > spare) {
       continue;
     }
-    ctx.tx.update('segments', segment.id, (previous) => ({ ...previous, bookedLength: 'long' }));
     spare -= cost;
-    lengthened.push(segment.slot + 1);
+    chosen.push(segment.id);
   }
-  if (lengthened.length > 0) {
+  return chosen;
+}
+
+/** The booked-card step: sets the chosen matches to Long. */
+export function lengthenMatches(ctx: ShowBookingContext, input: BookedCardInput): void {
+  const { instance } = input;
+  const chosen = matchesToLengthen(ctx.read, instance, input.segmentIds, ctx.tunables);
+  for (const segmentId of chosen) {
+    ctx.tx.update('segments', segmentId, (previous) => ({ ...previous, bookedLength: 'long' }));
+  }
+  if (chosen.length > 0) {
     ctx.log(
-      `${instance.name} (${instance.id}): booked slots ${lengthened.join(', ')} long for a big show`,
+      `${instance.name} (${instance.id}): booked ${String(chosen.length)} matches long for a big show`,
     );
   }
 }
