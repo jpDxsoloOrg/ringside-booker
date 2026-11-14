@@ -9,7 +9,7 @@
     "label": "Test save",
     "promotionName": "Test Promotion A",
     "promotionShortName": "TPA",
-    "schemaFingerprint": "be6b563fe0d05f0164369e37f7c38b9d",
+    "schemaFingerprint": "8dc1553c364f7cb6ff3b307ab410d02b",
     "startDate": "2026-01-05",
     "worldName": "Test Tiny World"
   },
@@ -2949,7 +2949,9 @@
               "key": "news.test-body",
               "params": {}
             },
+            "buzz": 0,
             "date": "2026-01-05",
+            "dedupeKey": null,
             "expiresOn": null,
             "headline": {
               "key": "news.test-headline",
@@ -2973,7 +2975,9 @@
               "key": "news.test-body",
               "params": {}
             },
+            "buzz": 47,
             "date": "2026-04-09",
+            "dedupeKey": "result:evi_0000000001",
             "expiresOn": "2026-05-09",
             "headline": {
               "key": "news.test-headline",

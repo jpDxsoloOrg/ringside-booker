@@ -880,7 +880,13 @@ export {
   MessageRefsSchema,
 } from './model/entities/mail';
 export type { News, NewsImportance, NewsKind } from './model/entities/news';
-export { NEWS_KINDS, NewsKindSchema, NewsSchema } from './model/entities/news';
+export {
+  NEWS_DEDUPE_KEY_MAX,
+  NEWS_KIND_LABELS,
+  NEWS_KINDS,
+  NewsKindSchema,
+  NewsSchema,
+} from './model/entities/news';
 export type { LedgerCategory, LedgerEntry, LedgerRefs } from './model/entities/ledger-entry';
 export {
   hasLedgerSign,
@@ -3734,3 +3740,31 @@ export {
   angleBeatLimitText,
   angleWarningsCheck,
 } from './systems/match/angles/bookingChecks';
+// DAY1-01: the news posting core (postNews, buzz, topics, news.posted).
+export {
+  BUZZ_KIND_BASE_KEYS,
+  BUZZ_MAX,
+  BUZZ_MIN,
+  BUZZ_SCORE_DOC_REF,
+  FRONT_PAGE_KEPT_REASON,
+  NEWS_BUZZ_TRACE_KIND,
+  NEWS_PARAM_PATTERN,
+  buzzScore,
+  buzzSubjectsOf,
+  displayNameOf,
+  newsSystem,
+  newsTopic,
+  newsTopicKeys,
+  newsTopics,
+  postNews,
+  registerNewsTopic,
+} from './systems/news';
+export type {
+  BuzzScoreInputs,
+  BuzzSubject,
+  BuzzSubjects,
+  NewsParams,
+  NewsTopic,
+  NewsTopicSpec,
+  PostNewsInput,
+} from './systems/news';

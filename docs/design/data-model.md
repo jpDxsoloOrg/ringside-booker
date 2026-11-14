@@ -1163,9 +1163,19 @@ promotion, or the game), a subject and body, references to the rows it is
 about, read and archived flags, and an optional **decision** of two to five
 options with unique keys. `chosenKey` is null until the reader picks, and then
 must be one of the option keys. The `byPromotionUnread` index files a mail only
-while it is unread. News is the public feed: a kind (`result`, `titleChange`,
-`signing`, ...), a headline and body, the same references, an importance from 0
-(filler) to 3 (front page) and an optional expiry date.
+while it is unread. News is the public feed: a kind, a headline and body, the
+same references, an importance from 0 (filler) to 3 (front page), an optional
+expiry date (`expiresOn`, the first day the story is gone), a **buzz** score
+(0..100, how much the wrestling world is talking about the story, fixed when it
+was posted; its working is the story's `news.buzz` trace) and an optional
+**dedupe key** (1 to 160 characters, null when the story may be posted again).
+The fourteen kinds are `result`, `titleChange`, `signing`, `release`, `injury`,
+`retirement`, `rumour`, `business`, `milestone`, `backstage`, `personal`,
+`season`, `award` and `rivalry` (append only; `NEWS_KIND_LABELS` names them on
+screen). Indexes: `byDate`, `byDedupeKey` (rows with no key are left out) and
+`byExpiresOn` (rows that never expire are left out). Stories are written only
+through `postNews`; see [news.md](news.md#posting). A save from before buzz and
+dedupe keys loads its stories with buzz 0 and no key.
 
 Subjects, bodies, headlines and option labels are **templated text**: a
 content key plus parameters (`{ key: 'mail.contract.offer', params: { amount:

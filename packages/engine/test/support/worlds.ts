@@ -396,6 +396,8 @@ function addTinyHistory(context: BuildContext): void {
         importance: 2,
         refs: { personIds: [person(0), person(1)], eventInstanceId: show.id },
         expiresOn: addDays(TINY_WORLD_SHOW_DATE, 30),
+        buzz: 47,
+        dedupeKey: `result:${show.id}`,
       },
       sequence,
     ),

@@ -202,6 +202,8 @@ export function makeNews(serial: number, overrides: Partial<News> = {}): News {
     refs: NO_MESSAGE_REFS,
     importance: 2,
     expiresOn: null,
+    buzz: 0,
+    dedupeKey: null,
     ...overrides,
   };
 }

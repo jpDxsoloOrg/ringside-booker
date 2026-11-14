@@ -2943,7 +2943,9 @@
           "employmentId": null
         },
         "importance": 1,
-        "expiresOn": null
+        "expiresOn": null,
+        "buzz": 0,
+        "dedupeKey": null
       },
       {
         "id": "nws_0000000002",
@@ -2967,7 +2969,9 @@
           "employmentId": null
         },
         "importance": 2,
-        "expiresOn": "2026-05-09"
+        "expiresOn": "2026-05-09",
+        "buzz": 47,
+        "dedupeKey": "result:evi_0000000001"
       }
     ],
     "participants": [

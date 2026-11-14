@@ -7,7 +7,8 @@
  *   templated subject and body (`mail.test-subject`, `mail.test-body`), no references and no
  *   decision;
  * - news: a business story of importance 1 on `TEST_START_DATE` that never expires, with templated
- *   headline and body (`news.test-headline`, `news.test-body`) and no references.
+ *   headline and body (`news.test-headline`, `news.test-body`), no references, buzz 0 and no
+ *   dedupe key.
  */
 
 import { parseContentKey } from '../../../src/core/content-key';
@@ -47,6 +48,8 @@ export function aNews(overrides: DeepPartial<News> = {}, sequence: TestIdSequenc
     refs: noRefs(),
     importance: 1,
     expiresOn: null,
+    buzz: 0,
+    dedupeKey: null,
   };
   return buildRow(NewsSchema, 'aNews', defaults, overrides);
 }
