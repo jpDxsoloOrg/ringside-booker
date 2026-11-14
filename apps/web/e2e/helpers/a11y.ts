@@ -68,6 +68,59 @@ async function isGridCellLabelInName(
   });
 }
 
+/**
+ * A target that is big enough but was scrolled under fixed chrome when axe ran. On a phone the top
+ * bar sticks to the top and some screens (the Match lab) keep an action bar at the bottom, so
+ * whatever the page has scrolled under them is partly covered, and axe measures only the uncovered
+ * strip: a 44px Why? button mostly under the top bar reads as 44 by 13px. That is where the page
+ * happens to be scrolled, not the target's size, so the target is scrolled to the middle of the
+ * view (clear of both bars) and axe measures it again there; the scroll is put back afterwards.
+ * A target that is still too small or too crowded in plain view still fails.
+ */
+async function isTargetSizeOnlyCoveredByChrome(
+  page: Page,
+  ruleId: string,
+  node: NodeResult,
+): Promise<boolean> {
+  const [selector, ...rest] = node.target;
+  if (ruleId !== 'target-size' || typeof selector !== 'string' || rest.length > 0) return false;
+  const target = page.locator(selector);
+  if ((await target.count()) !== 1) return false;
+
+  // Scrolls the target into the middle of the view and hands back a function that undoes it.
+  const restoreScroll = await target.evaluateHandle((element) => {
+    const scrollers: { readonly element: Element; readonly top: number; readonly left: number }[] =
+      [];
+    for (let parent = element.parentElement; parent !== null; parent = parent.parentElement) {
+      if (parent.scrollHeight > parent.clientHeight || parent.scrollWidth > parent.clientWidth) {
+        scrollers.push({ element: parent, top: parent.scrollTop, left: parent.scrollLeft });
+      }
+    }
+    const windowX = window.scrollX;
+    const windowY = window.scrollY;
+    element.scrollIntoView({ block: 'center', inline: 'nearest' });
+    return () => {
+      for (const scroller of scrollers) {
+        scroller.element.scrollTop = scroller.top;
+        scroller.element.scrollLeft = scroller.left;
+      }
+      window.scrollTo(windowX, windowY);
+    };
+  });
+  try {
+    const inView = await new AxeBuilder({ page })
+      .withRules(['target-size'])
+      .include(selector)
+      .analyze();
+    return inView.violations.length === 0;
+  } finally {
+    await restoreScroll.evaluate((restore) => {
+      restore();
+    });
+    await restoreScroll.dispose();
+  }
+}
+
 export interface A11yScanOptions {
   /** CSS selectors to scan instead of the whole page, for example one dialog. */
   readonly include?: readonly string[];
@@ -96,6 +149,7 @@ export async function expectNoSeriousA11yViolations(
       for (const node of violation.nodes) {
         if (isExpectedFinding(violation.id, node.html)) continue;
         if (await isGridCellLabelInName(page, violation.id, node)) continue;
+        if (await isTargetSizeOnlyCoveredByChrome(page, violation.id, node)) continue;
         kept.push(node);
       }
       return { ...violation, nodes: kept };
