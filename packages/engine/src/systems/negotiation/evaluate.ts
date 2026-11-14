@@ -274,9 +274,7 @@ export function evaluateOffer(
   const lastCounter = negotiation?.status === 'countered' ? negotiation.lastCounter : null;
   const matchesLastCounter = lastCounter !== null && meetsCounter(offer, lastCounter);
   const patience =
-    negotiation === null
-      ? ask.startPatience.value
-      : roundPatience(negotiation, matchesLastCounter);
+    negotiation === null ? ask.startPatience.value : roundPatience(negotiation, matchesLastCounter);
   const reaction = offerReaction(
     {
       offerValue,

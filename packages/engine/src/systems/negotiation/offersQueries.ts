@@ -229,7 +229,11 @@ function rowOf(ctx: QueryContext, negotiation: DeepReadonly<Negotiation>): Offer
     outcome: outcomeOf(ctx, negotiation),
     cooldownUntil: negotiation.cooldownUntil,
     competingBidders: competingBidders(ctx.read, negotiation.personId, negotiation.promotionId),
-    reactionTraceRef: traceRefOf(ctx, NEGOTIATION_TRACE_KINDS.reaction, negotiation.reactionTraceId),
+    reactionTraceRef: traceRefOf(
+      ctx,
+      NEGOTIATION_TRACE_KINDS.reaction,
+      negotiation.reactionTraceId,
+    ),
     reviewTraceRef: traceRefOf(ctx, NEGOTIATION_TRACE_KINDS.review, negotiation.reviewTraceId),
   };
 }
@@ -242,10 +246,7 @@ function matchesFilter(status: NegotiationStatus, filter: OffersStatusFilter): b
 }
 
 /** Open talks first, then the most recent first. */
-function newestFirst(
-  left: DeepReadonly<Negotiation>,
-  right: DeepReadonly<Negotiation>,
-): number {
+function newestFirst(left: DeepReadonly<Negotiation>, right: DeepReadonly<Negotiation>): number {
   const openOrder =
     Number(isOpenNegotiationStatus(right.status)) - Number(isOpenNegotiationStatus(left.status));
   return (

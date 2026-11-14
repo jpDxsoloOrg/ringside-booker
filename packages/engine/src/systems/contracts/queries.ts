@@ -287,7 +287,10 @@ const ENDED_TAB_STATUSES: readonly EmploymentStatus[] = [
  * before it was signed. Contract lists and changes leave these out (they are talks, shown by
  * `contracts.offers`), and a rival's offer is not shown to anyone else at all.
  */
-export function isUnsignedOffer(read: GameWorldView, employment: DeepReadonly<Employment>): boolean {
+export function isUnsignedOffer(
+  read: GameWorldView,
+  employment: DeepReadonly<Employment>,
+): boolean {
   if (employment.status === 'offered' || employment.status === 'declined') {
     return true;
   }

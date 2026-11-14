@@ -327,7 +327,9 @@ export function withdrawNegotiation(
     refuse('withdrawNegotiation', reasons);
   }
   closeByPromotion(ctx, negotiation, WITHDRAWN_OUTCOME);
-  ctx.log(`Offer to ${ctx.read.tables.people.require(negotiation.personId).defaultRingName} withdrawn`);
+  ctx.log(
+    `Offer to ${ctx.read.tables.people.require(negotiation.personId).defaultRingName} withdrawn`,
+  );
   return { negotiationId };
 }
 
