@@ -4,6 +4,7 @@ import { createEngine, defineSystem, initialEngineState, type Engine } from '../
 import { simSystem } from '../../../src/core/api/builtins';
 import type { Viewer } from '../../../src/core/api/controller';
 import { assertSerialisable } from '../../../src/core/api/serialisable';
+import { parseContentKey } from '../../../src/core/content-key';
 import { parseGameDate, type GameDate } from '../../../src/core/date';
 import type { NewsId, PersonId } from '../../../src/core/ids';
 import { definePhase } from '../../../src/core/pipeline/phase';
@@ -106,7 +107,7 @@ function feedWorld(): FeedWorld {
         importance: 2,
         buzz: 70,
         refs: refs({ personIds: [p0], promotionIds: [A], employmentId }),
-        headline: { key: 'news.test-headline', params: { titleId, winner: p0 } },
+        headline: { key: parseContentKey('news.test-headline'), params: { titleId, winner: p0 } },
       });
       add('s7', { date: TODAY, kind: 'result', importance: 0, buzz: 20 });
       add('s2', {
@@ -122,7 +123,7 @@ function feedWorld(): FeedWorld {
         importance: 1,
         buzz: 50,
         body: {
-          key: 'news.test-body',
+          key: parseContentKey('news.test-body'),
           params: {
             gone: [testId('person', 9001), testId('promotion', 9002), testId('title', 9003)].join(
               ',',
@@ -140,7 +141,7 @@ function feedWorld(): FeedWorld {
         kind: 'season',
         importance: 3,
         buzz: 30,
-        body: { key: 'news.test-body', params: { season: seasonId } },
+        body: { key: parseContentKey('news.test-body'), params: { season: seasonId } },
       });
       add('s4', {
         date: day('2026-01-10'),
