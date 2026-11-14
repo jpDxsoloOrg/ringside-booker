@@ -138,6 +138,14 @@ export const gameDetailRoutes: RouteObject[] = [
       return { Component: PromotionProfileScreen };
     },
   },
+  {
+    path: routePatterns.storyline,
+    // Its own chunk: the storyline page, its member picker, editor sheet and dialogs (CRTV3-04).
+    lazy: async () => {
+      const { StorylineDetailScreen } = await import('@/screens/storylines/StorylineDetailScreen');
+      return { Component: StorylineDetailScreen };
+    },
+  },
 ];
 
 const gameRoute: RouteObject = {
