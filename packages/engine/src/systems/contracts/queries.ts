@@ -40,6 +40,7 @@ import {
   type Push,
   type RevenueShares,
 } from '../../model/entities/employment';
+import type { Gender } from '../../model/entities/person';
 import type { ImageRef } from '../../model/primitives';
 import { zGameDate, zId } from '../../model/primitives';
 import { compareIds } from '../../model/table';
@@ -51,6 +52,8 @@ import { unseenExpiringContracts } from './gates';
 import { releaseSeverance } from './release';
 import { grantSeverance, refusalMoraleDelta, walkoutChanceFor } from './requests';
 import { answerRefusals, releaseRefusals } from './rules';
+import { footprintPopularityValue } from '../workers/formulas/footprintPopularity';
+import { geographyOf } from '../world/geography';
 import { hotStorylineFor } from './storyPause';
 import { unhappyTraceRef, walkoutTraceRef } from './traceKinds';
 import { titlesHeldBy } from './titles';
@@ -87,6 +90,12 @@ export interface ContractRow {
   ringName: string;
   role: EmploymentRole;
   push: Push;
+  /** The worker's gender (ECO5-09's filter), or null once they are gone from the world. */
+  gender: Gender | null;
+  /** Their popularity among this promotion's fans, 0-100 (ECO5-09). */
+  popularity: number;
+  /** Their morale here, -100 to 100 (ECO5-09). */
+  morale: number;
   brandId: BrandId | null;
   status: EmploymentStatus;
   kind: ContractKind;
@@ -404,6 +413,24 @@ function imageOf(read: GameWorldView, personId: PersonId): ImageRef {
   return read.tables.people.get(personId)?.imageRef ?? null;
 }
 
+/** The worker's popularity among the promotion's fans, 0 when either is gone. */
+function popularityAt(ctx: QueryContext, employment: DeepReadonly<Employment>): number {
+  const person = ctx.read.tables.people.get(employment.personId);
+  const promotion = ctx.read.tables.promotions.get(employment.promotionId);
+  if (person === undefined || promotion === undefined) {
+    return 0;
+  }
+  return footprintPopularityValue(
+    {
+      subjectPop: person.regionalPop,
+      promotionPop: promotion.regionalPop,
+      promotionName: promotion.name,
+      regions: geographyOf(ctx.read).regions,
+    },
+    { tunables: ctx.tunables },
+  );
+}
+
 function rowOf(ctx: QueryContext, employment: DeepReadonly<Employment>): ContractRow {
   const concern = concernOf(ctx.read, employment.id);
   const ended = ENDED_TAB_STATUSES.includes(employment.status);
@@ -415,6 +442,9 @@ function rowOf(ctx: QueryContext, employment: DeepReadonly<Employment>): Contrac
     ringName: employment.ringName,
     role: employment.role,
     push: employment.push,
+    gender: ctx.read.tables.people.get(employment.personId)?.gender ?? null,
+    popularity: popularityAt(ctx, employment),
+    morale: employment.morale,
     brandId: employment.brandId,
     status: employment.status,
     kind: employment.terms.kind,

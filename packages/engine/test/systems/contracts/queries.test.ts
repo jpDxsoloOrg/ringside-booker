@@ -207,3 +207,20 @@ describe('contracts.counts and contracts.changesSince', () => {
     expect(Object.values(backwards).flat()).toEqual([]);
   });
 });
+
+describe('contracts.list sort and filter facts (ECO5-09)', () => {
+  it("gives each row the worker's gender, popularity with this promotion's fans and morale", () => {
+    const built = releaseWorld();
+    const engine = contractsEngine(built.world);
+    const active = ask(engine.query('contracts.list', { tab: 'active' }, PLAYER_VIEW));
+    expect(active.length).toBeGreaterThan(0);
+    for (const row of active) {
+      const person = built.world.tables.people.require(row.personId);
+      const employment = built.world.tables.employments.require(row.employmentId);
+      expect(row.gender).toBe(person.gender);
+      expect(row.morale).toBe(employment.morale);
+      expect(row.popularity).toBeGreaterThanOrEqual(0);
+      expect(row.popularity).toBeLessThanOrEqual(100);
+    }
+  });
+});

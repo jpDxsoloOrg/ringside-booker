@@ -335,6 +335,25 @@ describe('WorkersScreen', () => {
     // Two lazy screen loads in one test: give it room when the whole suite runs at once.
   }, 15_000);
 
+  it('finds free agents with the filters both lists have (ECO5-09)', async () => {
+    const { router, user } = renderWorkers(
+      `${routes.game.workers()}?gender=male&availability=injured&ageMin=20&sort=age:asc`,
+    );
+    await findTable();
+    await user.click(screen.getByRole('button', { name: 'Find free agents' }));
+    await waitFor(
+      () => {
+        expect(router.state.location.pathname).toBe(routes.game.contracts());
+      },
+      { timeout: LOAD_MS },
+    );
+    expect(Object.fromEntries(new URLSearchParams(router.state.location.search))).toEqual({
+      tab: 'free-agents',
+      gender: 'male',
+      ageMin: '20',
+    });
+  }, 15_000);
+
   it('opens the profile when a row is clicked away from its controls', async () => {
     const { router, user } = renderWorkers();
     const [first] = await findRows();

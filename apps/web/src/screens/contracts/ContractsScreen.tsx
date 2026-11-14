@@ -1,6 +1,7 @@
 import { lazy, Suspense, useCallback, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { EMPLOYMENT_ROLES, GENDERS, PUSH_LEVELS } from '@ringside/engine';
 import type {
   AnswerReleaseResult,
   ContractRow,
@@ -14,7 +15,7 @@ import { useEngineCommand } from '@/app/engine/useEngineCommand';
 import { useEngineQuery } from '@/app/engine/useEngineQuery';
 import { routes } from '@/app/routes';
 import { Button } from '@/components/Button';
-import { DataTable } from '@/components/DataTable';
+import { DataTable, rowsMatchingText } from '@/components/DataTable';
 import { EmptyState } from '@/components/EmptyState';
 import { formatNumber } from '@/components/format';
 import { Select } from '@/components/Select';
@@ -24,6 +25,27 @@ import { Tab, TabList, TabPanel, Tabs } from '@/components/Tabs';
 import { useSessionStore } from '@/app/session/sessionStore';
 import { useIsMobile } from '@/styles/useMediaQuery';
 import { EMPLOYMENT_ROLE_LABELS } from '@/screens/promotions/profile/tabs/RosterTab';
+import {
+  ANY,
+  chosen,
+  FilterBarFrame,
+  FilterPanel,
+  GENDER_OPTIONS,
+  PUSH_OPTIONS,
+  shownValue,
+} from '@/screens/workers/filterControls';
+import type { FilterLayout } from '@/screens/workers/filterControls';
+import {
+  contractFilterCount,
+  contractFiltersFromSearch,
+  filterContracts,
+  NO_CONTRACT_FILTERS,
+  searchWithContractFilters,
+  searchWithSearchText,
+  shownOfText,
+} from './contractsListParams';
+import type { ContractFilters } from './contractsListParams';
+import { useListUrlState } from './useListUrlState';
 import { contractColumns, initialContractSort } from './contractColumns';
 import type { ContractColumnContext } from './contractColumns';
 import { ContractRulesSheet } from './ContractRulesSheet';
@@ -53,7 +75,6 @@ import { useContractMoney } from './useContractMoney';
 
 const TITLE = 'Contracts';
 const NO_ROWS: readonly ContractRow[] = [];
-const ALL_ROLES = 'all';
 
 /** What the screen says when the engine cannot answer at all (no world loaded). */
 export const NO_GAME_TEXT = 'Start or load a game to see your contracts.';
@@ -150,7 +171,7 @@ export function ContractsScreen() {
   if (negotiationTarget !== null && !negotiationUsed) setNegotiationUsed(true);
   const openEmployment = employmentFromSearch(searchParams);
   const wantsToLeave = wantsToLeaveFromSearch(searchParams) && tab !== 'ended';
-  const [role, setRole] = useState<string>(ALL_ROLES);
+  const contractFilters = useMemo(() => contractFiltersFromSearch(searchParams), [searchParams]);
   const [rulesOpen, setRulesOpen] = useState(false);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
 
@@ -179,17 +200,23 @@ export function ContractsScreen() {
   const counts = countsQuery.status === 'success' ? countsQuery.data : undefined;
   const unseen = counts?.unseenExpiring ?? 0;
 
-  const shownRows = useMemo(
-    () => (role === ALL_ROLES ? rows : rows.filter((row) => row.role === role)),
-    [rows, role],
+  const filteredRows = useMemo(
+    () => filterContracts(rows, contractFilters),
+    [rows, contractFilters],
   );
   const roleOptions = useMemo<readonly SelectOption[]>(() => {
     const present = new Set<EmploymentRole>(activeRows.map((row) => row.role));
     return [
-      { value: ALL_ROLES, label: 'All roles' },
+      { value: ANY, label: 'All roles' },
       ...[...present].sort().map((value) => ({ value, label: EMPLOYMENT_ROLE_LABELS[value] })),
     ];
   }, [activeRows]);
+  const changeContractFilters = useCallback(
+    (next: ContractFilters): void => {
+      setSearchParams((current) => searchWithContractFilters(current, next), { replace: true });
+    },
+    [setSearchParams],
+  );
 
   const changeTab = useCallback(
     (next: string): void => {
@@ -234,6 +261,21 @@ export function ContractsScreen() {
     onAcknowledge: acknowledgeRow,
     rowActions,
   };
+  const columns = contractColumns(tab, columnContext);
+  const list = useListUrlState(columns, initialContractSort(tab));
+  const shownRows = rowsMatchingText(filteredRows, columns, list.searchText);
+  const filterCount = contractFilterCount(contractFilters);
+  const narrowed = filterCount > 0 || wantsToLeave || list.searchText.trim() !== '';
+  const clearAll = (): void => {
+    setSearchParams(
+      (current) =>
+        searchWithSearchText(
+          searchWithWantsToLeave(searchWithContractFilters(current, NO_CONTRACT_FILTERS), false),
+          '',
+        ),
+      { replace: true },
+    );
+  };
 
   const released = (ringName: string, result: ReleaseResult): void => {
     closeSheet();
@@ -257,22 +299,58 @@ export function ContractsScreen() {
   const openRowData = rows.find((row) => row.employmentId === openEmployment) ?? null;
   const failed = listQuery.status === 'error';
 
-  const filters = (
-    <div className={styles['filters']}>
-      <Select label="Role" options={roleOptions} value={role} onValueChange={setRole} />
+  const filterBar = (layout: FilterLayout): ReactNode => (
+    <FilterBarFrame
+      layout={layout}
+      clearDisabled={filterCount === 0 && !wantsToLeave}
+      onClear={() => {
+        setSearchParams(
+          (current) =>
+            searchWithWantsToLeave(searchWithContractFilters(current, NO_CONTRACT_FILTERS), false),
+          { replace: true },
+        );
+      }}
+    >
+      <Select
+        label="Role"
+        options={roleOptions}
+        value={shownValue(roleOptions, contractFilters.role)}
+        onValueChange={(value) => {
+          changeContractFilters({ ...contractFilters, role: chosen(EMPLOYMENT_ROLES, value) });
+        }}
+      />
       {tab !== 'ended' && (
-        <Switch
-          label="Wants to leave"
-          checked={wantsToLeave}
-          onCheckedChange={(checked) => {
-            setSearchParams((current) => searchWithWantsToLeave(current, checked), {
-              replace: true,
-            });
-          }}
-        />
+        <>
+          <Select
+            label="Gender"
+            options={GENDER_OPTIONS}
+            value={contractFilters.gender ?? ANY}
+            onValueChange={(value) => {
+              changeContractFilters({ ...contractFilters, gender: chosen(GENDERS, value) });
+            }}
+          />
+          <Select
+            label="Push"
+            options={PUSH_OPTIONS}
+            value={contractFilters.push ?? ANY}
+            onValueChange={(value) => {
+              changeContractFilters({ ...contractFilters, push: chosen(PUSH_LEVELS, value) });
+            }}
+          />
+          <Switch
+            label="Wants to leave"
+            checked={wantsToLeave}
+            onCheckedChange={(checked) => {
+              setSearchParams((current) => searchWithWantsToLeave(current, checked), {
+                replace: true,
+              });
+            }}
+          />
+        </>
       )}
-    </div>
+    </FilterBarFrame>
   );
+  const shownText = shownOfText(shownRows.length, rows.length, 'contract', 'contracts');
 
   const expiringIntro: ReactNode = (
     <>
@@ -302,25 +380,50 @@ export function ContractsScreen() {
   const contractList = (value: ContractsTab): ReactNode => (
     <div className={styles['panel']}>
       {value === 'expiring' && expiringIntro}
-      {filters}
+      <FilterPanel
+        isMobile={isMobile}
+        activeCount={filterCount + (wantsToLeave ? 1 : 0)}
+        showText={`Show ${shownText}`}
+      >
+        {filterBar}
+      </FilterPanel>
+      <p className={styles['shownCount']} role="status">
+        {narrowed && !listLoading ? shownText : ''}
+      </p>
       <DataTable
         className={styles['table']}
-        rows={shownRows}
-        columns={contractColumns(value, columnContext)}
+        rows={filteredRows}
+        columns={columns}
         getRowId={rowId}
         getRowLabel={rowLabel}
         caption={`${CONTRACT_TAB_LABELS[value]} contracts`}
-        initialSort={initialContractSort(value)}
+        sort={list.sort}
+        onSortChange={list.onSortChange}
         filterable
         filterLabel="Find a contract"
+        filter={list.searchText}
+        onFilterChange={list.onSearchTextChange}
         density="compact"
         loading={listLoading}
         {...(isMobile ? {} : { onActivate: openRow })}
         emptyState={
-          <EmptyState
-            icon="contracts"
-            title={wantsToLeave ? 'Nobody wants to leave' : EMPTY_TAB_TEXT[value]}
-          />
+          filterCount > 0 || list.searchText.trim() !== '' ? (
+            <EmptyState
+              icon="contracts"
+              title="No contracts match these filters"
+              body="Loosen a filter, or clear them all."
+              action={
+                <Button size="sm" onClick={clearAll}>
+                  Clear filters
+                </Button>
+              }
+            />
+          ) : (
+            <EmptyState
+              icon="contracts"
+              title={wantsToLeave ? 'Nobody wants to leave' : EMPTY_TAB_TEXT[value]}
+            />
+          )
         }
       />
     </div>

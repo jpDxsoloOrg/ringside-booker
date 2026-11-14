@@ -16,6 +16,9 @@ import { formatNumber } from '@/components/format';
 import { Sheet } from '@/components/Sheet';
 import { useTracePanelStore } from '@/components/Trace';
 import { useIsMobile } from '@/styles/useMediaQuery';
+import { useSessionStore } from '@/app/session/sessionStore';
+import { freeAgentsSearchFromWorkers } from '@/screens/contracts/contractsListParams';
+import { filtersButtonText } from './filterControls';
 import { compareWorkerTies, INJURED_WORKER_COLUMNS, WORKER_COLUMNS } from './workerColumns';
 import { NO_WORKER_FACETS, WorkersFilterBar } from './WorkersFilterBar';
 import {
@@ -31,6 +34,8 @@ import type { WorkersFilterState } from './workersListParams';
 import styles from './WorkersScreen.module.css';
 
 const TITLE = 'Workers';
+/** Contracts' Free agents tab (registered by the negotiation feature). */
+const FREE_AGENTS_TAB = 'free-agents';
 const NO_ROWS: readonly WorkerRow[] = [];
 
 function rowId(row: WorkerRow): string {
@@ -56,10 +61,7 @@ export function workersCountText(total: number, freeAgents: number): string {
   return `${counted(total, 'person', 'people')} · ${counted(freeAgents, 'free agent', 'free agents')}`;
 }
 
-/** The phone's filter button: "Filters", or "Filters (2)" while some are set. */
-export function filtersButtonText(activeCount: number): string {
-  return activeCount === 0 ? 'Filters' : `Filters (${String(activeCount)})`;
-}
+export { filtersButtonText };
 
 /** What the empty list says: nobody hurt, nobody matching, or an empty world. */
 function emptyCopy(
@@ -144,6 +146,13 @@ export function WorkersScreen() {
   if (!query.isPreviousData && rowsAreInjuredOnly !== injuredOnly) {
     setRowsAreInjuredOnly(injuredOnly);
   }
+  // Contracts › Free agents with the filters both lists have (ECO5-09); only for a promotion's seat.
+  const hasPromotion = useSessionStore((state) => (state.seat?.promotionId ?? null) !== null);
+  const findFreeAgents = (): void => {
+    navigate(
+      `${routes.game.contracts()}${freeAgentsSearchFromWorkers(searchParams, FREE_AGENTS_TAB)}`,
+    );
+  };
   const toggleInjured = (): void => {
     changeFilters({ ...filters, availability: injuredOnly ? null : 'injured' });
   };
@@ -185,6 +194,11 @@ export function WorkersScreen() {
             >
               Injured
             </Button>
+            {hasPromotion && (
+              <Button size="sm" variant="secondary" iconStart="contracts" onClick={findFreeAgents}>
+                Find free agents
+              </Button>
+            )}
           </div>
           {isMobile ? (
             <div className={styles['filterButton']}>

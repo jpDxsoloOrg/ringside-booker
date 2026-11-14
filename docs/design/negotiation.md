@@ -224,7 +224,11 @@ facts (ring name, roles, age, style, best-country popularity, rating and
 grade, the other promotion's name and end date), the ask as plain numbers
 (`askMonthly` when written deals are allowed, `askPerAppearance`), `bestKind`,
 the walk-away `cooldownUntil`, your `openNegotiationId` and the names of other
-promotions talking to them now (never their terms). Sorted by market value,
+promotions talking to them now (never their terms). For sorting and filtering
+(ECO5-09) each row also has its `marketValue`, `popularityHere` (popularity
+among the promotion's fans, the footprint popularity of `workers.expectedPush`),
+`pushExpectation` (the card position they would expect with you) and `basedIn`
+(country and continent of their home region). Sorted by market value,
 highest first. The Why? of one row comes from `contracts.askingTerms`, which
 gives the same numbers (tested). Offer kinds whose answer is the same for
 every worker (`samePerWorker`) are asked once per list: about 15 ms for the
@@ -683,6 +687,26 @@ counter: $26,300 a month, $30,400 to sign, 24 months, exclusive"), with
 "Answer by" a week from the day they weighed your offer; any other row shows
 your offer. Every amount on both tabs and in the sheet follows the money style
 in Settings.
+
+Sorting and filters (ECO5-09): every number column sorts on every Contracts
+tab (Free agents adds Market value with its Why?, Popularity in your regions
+and Push expectation; Offers sorts by Status, On the table and Next; Active,
+Expiring and Ended add Popularity, and the first two Morale, from
+`contracts.list`'s `popularity` and `morale`). Free agents filters with the
+Workers list's controls (`screens/workers/filterControls.tsx`): situation,
+role, gender, push expectation, style, age range, a lowest popularity in your
+regions and where they are based; Active and Expiring filter by role, gender
+and push. Sort (`sort=`), search (`q=`) and filters live in the URL, keeping
+the Workers parameter names where both lists have the filter, are dropped on a
+tab change, and show "N of M" with Clear filters. On a phone the filters open
+in a bottom sheet and sorting is the table's "Sort by". Workers' **Find free
+agents** opens Free agents with the filters both lists have.
+
+The worker profile's **Offer contract**, **Renew contract** and **Open talks**
+open the Negotiation Sheet over the profile (ECO5-09), from the same
+`?person=` / `?renew=` / `?negotiation=` parameters, so a reload keeps it open;
+every change keeps the location state, so the profile's Back to Workers returns
+to the filtered list.
 
 Renewals start from **Renew** on an expiring (or active) contract, or **Renew
 contract** on your worker's profile; outside `contracts.renewal.windowDays`
