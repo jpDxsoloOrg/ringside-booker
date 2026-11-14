@@ -152,7 +152,14 @@ export function NewsAlertSheetView({
         </div>
       }
     >
-      <div className={styles['body']}>
+      {/*
+        Without a seat every switch is off, so nothing in the body takes focus. The body is then
+        a focusable group, so a keyboard can still scroll it on a short phone screen.
+      */}
+      <div
+        className={styles['body']}
+        {...(canEdit ? {} : { role: 'group', 'aria-label': 'Your alerts', tabIndex: 0 })}
+      >
         <p className={styles['note']}>{NEWS_ALERT_NOTE}</p>
         {!canEdit && (
           <p className={styles['notice']} role="note">
