@@ -633,11 +633,38 @@ reaction's Why?, patience left, other bidders by name only (never their
 terms), and the counter history. The meter's label is always the engine's
 preview: the browser never works it out. `contracts.askingTerms` also returns
 `brandOptions`, the promotion's running brands for the offer's Brand choice.
+A countered row on Offers shows **their counter** under "On the table" ("Their
+counter: $26,300 a month, $30,400 to sign, 24 months, exclusive"), with
+"Answer by" a week from the day they weighed your offer; any other row shows
+your offer. Every amount on both tabs and in the sheet follows the money style
+in Settings.
 
 Renewals start from **Renew** on an expiring (or active) contract, or **Renew
 contract** on your worker's profile; outside `contracts.renewal.windowDays`
 the button is disabled with "Talks open 180 days before the contract ends", and
 an unhappy worker's with "Won't renew while unhappy here".
+
+### Why? panels
+
+Each number the feature shows has a Why?, checked on a fresh default-world game
+(ECO5-08, `test/systems/negotiation/whyAudit.test.ts`, slow suite): it names
+its tunables, reads in plain words and replays to the number shown.
+
+| Why?                           | Where                               | Tunables it names                                                                       |
+| ------------------------------ | ----------------------------------- | --------------------------------------------------------------------------------------- |
+| Market value                   | Their ask                           | `contracts.value.*` (popularity, skill, role, floor)                                    |
+| Monthly wage / fee ask         | Free agents' Ask, Their ask         | `contracts.ask.*` (reach floor, public image, ego premiums, caps), `contracts.value.*`  |
+| Signing bonus ask              | Their ask                           | `contracts.ask.signingBonusMonths`                                                      |
+| Patience                       | Their ask                           | `contracts.patience.*`                                                                  |
+| Offer and ask value, reaction  | The meter's Why?                    | `contracts.value.*`, `contracts.react.acceptRatio` / `.counterRatio` / `.walkAwayRatio` |
+| Their counter-offer            | Talks so far                        | `contracts.counter.*`                                                                   |
+| Which offer they sign (review) | Offers › Closed, the outcome's Why? | `contracts.review.tieEpsilon` (a tie is broken by a seeded roll, `review.test.ts`)      |
+| Signing bonus paid             | Finances › Ledger                   | none: the agreed amount, "Agreed signing bonus $X"                                      |
+| Renewal ask                    | Renew sheet                         | `contracts.renewal.unhappyMorale` / `.unhappyPremiumPerPoint` (the Morale line)         |
+| Won't renew                    | Renew button and sheet              | `contracts.renewal.refuseMorale`                                                        |
+
+With every worker at morale 0 (no WRK8 yet) the renewal ask shows the Morale
+check as "Did not apply".
 
 ## Renewals
 
