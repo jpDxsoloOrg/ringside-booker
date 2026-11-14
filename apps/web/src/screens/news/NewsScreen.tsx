@@ -8,7 +8,7 @@ import { useDocumentTitle } from '@/app/a11y/useDocumentTitle';
 import type { EngineQueryError } from '@/app/engine/queryCache';
 import { useEngineCommand } from '@/app/engine/useEngineCommand';
 import { useEngineQuery } from '@/app/engine/useEngineQuery';
-import { useEntityLinkRenderer } from '@/app/entityLinks';
+import { useNewsEntityLink } from './newsEntityLink';
 import { useHasPromotion } from '@/app/session/sessionStore';
 import { CountBadge } from '@/components/Badge';
 import { Button } from '@/components/Button';
@@ -130,7 +130,7 @@ interface FeedProps {
 function Feed({ today, filters, onFiltersChange, storyLinkOf }: FeedProps) {
   const isMobile = useIsMobile();
   const hasPromotion = useHasPromotion();
-  const renderEntityLink = useEntityLinkRenderer();
+  const renderEntityLink = useNewsEntityLink();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [pages, setPages] = useState(1);
   const args = useMemo(() => newsFeedArgs(filters, today, pages), [filters, today, pages]);

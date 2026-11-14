@@ -19,6 +19,7 @@ import { showsPhases } from './phases';
 import { showsQueries } from './queries';
 import { registerSegmentResultApplier } from './registries';
 import { titleOutcomeApplier } from './titles';
+import { showsNewsSubscriptions } from './news';
 import { runTonightCommand, showsTonightGate } from './tonight';
 import { liveShowCommands } from './liveCommands';
 import { liveStateQuery } from './liveState';
@@ -195,6 +196,20 @@ export {
 } from './beforeRun';
 export { compareShows, isOpenShow } from './phases';
 export { runShowNow } from './runShow';
+export {
+  SHOW_RESULT_IMPORTANCE,
+  SHOW_RESULT_MAX_PEOPLE,
+  SHOW_RESULT_NEWS_SUBSCRIPTION_ID,
+  SHOW_RESULT_TOPIC,
+  TITLE_CHANGE_NEWS_SUBSCRIPTION_ID,
+  TITLE_CHANGE_TOPIC,
+  mainEventPeople,
+  showResultDedupeKey,
+  showResultNewsSubscription,
+  showsNewsSubscriptions,
+  titleChangeDedupeKey,
+  titleChangeNewsSubscription,
+} from './news';
 
 // Live show night (EVT10-01): one segment at a time, the Show night setting and the live view.
 export {
@@ -233,4 +248,6 @@ export const showsSystem: SystemBundle = defineSystem({
   queries: [...showsQueries, liveStateQuery],
   commands: [runTonightCommand, ...liveShowCommands],
   gates: [showsTonightGate],
+  // DAY1-06: results and title changes on the news wire.
+  subscriptions: showsNewsSubscriptions,
 });

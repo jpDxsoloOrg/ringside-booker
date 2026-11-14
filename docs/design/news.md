@@ -5,8 +5,10 @@ signings, releases, rumours and the rest. This page is the contract every system
 uses to post a story. DAY1-01 builds the posting core; DAY1-02 adds the
 [opening story](#opening-story), the weekly [milestones](#milestones) and the
 [expiry clean-up](#expiry); DAY1-03 adds the [queries](#queries), the
-[front page](#front-page) and [skip alerts](#alerts); later DAY1 tickets add
-the other stories and the screen.
+[front page](#front-page) and [skip alerts](#alerts); DAY1-04/05 add the
+screen; DAY1-06 wires the [partners on main](#integration) (results, title
+changes, cancelled shows, contract moves, revealed rival decisions, the Office
+panel and the "Until next show" skip).
 
 Code: `packages/engine/src/systems/news/` and the `news` table
 (`packages/engine/src/model/entities/news.ts`, see
@@ -373,6 +375,8 @@ by order. A later feature adds a rule without editing DAY1 files (WRK3's
 | `myChampions`  | My champions               | off     | Someone in `refs.personIds` holds an open reign of a title of one of the player's promotions (`titleReigns` `byHolder`) |
 | `titleChanges` | Title changes anywhere     | off     | Kind `titleChange`                                                                                                      |
 
+**Your own shows never alert you.** A story whose `refs.eventInstanceId` is a show one of the player's promotions ran (its result, or a title change on it) never becomes their pending alert (`aboutOwnShow`): the player just watched that show, so stopping the next skip for it would only repeat the results page.
+
 **Per-player storage.** Rules are per player (D-07), stored in
 `WorldMeta.settings.extra` by player id, so two humans in one world each keep
 their own:
@@ -439,3 +443,81 @@ seat that is advancing.
   `invalidArgs` naming it. Writes only the keys given.
 - `news.ackAlerts {}`: clears the issuing player's pending alert. Idempotent:
   `ok` with `{ cleared: boolean }`.
+
+## Integration
+
+DAY1-06 wires the news wire into the partners that were on main when it
+started: WRK1, EVT3, DAY2, EVT1, AIP1 and ECO4. Every story is posted from the
+partner's own folder (`systems/<partner>/news.ts`, registered in the partner's
+bundle) through `postNews`, with a dedupe key built from the event's ids, and
+its words in `apps/web/src/text/catalogs/news.en.ts` (the coverage test checks
+every topic). Stories carry who and where only: no wages, severance, rival cash,
+hidden potential or vices (D-07), and never a choice the player made in private
+(a release request the player refused is not news). Posting never changes
+morale, popularity or money (D-09).
+
+| Partner     | Event                                                    | Topic             | Kind          | Importance                                                                 | Dedupe key                         |
+| ----------- | -------------------------------------------------------- | ----------------- | ------------- | -------------------------------------------------------------------------- | ---------------------------------- |
+| EVT3        | `show.completed` (every show, player and rival)          | `show-result`     | `result`      | Flagship 3, major 2, regular 1, minor and house 0                          | `show-result:<eventInstanceId>`    |
+| EVT3        | `title.changed`                                          | `title-change`    | `titleChange` | 2; 3 when the title's prestige ≥ `news.milestones.majorTitlePrestige` (80) | `title-change:<toReignId>`         |
+| EVT1        | `show.cancelled` (a computer-run major or flagship show) | `show-cancelled`  | `business`    | 1                                                                          | `show-cancelled:<eventInstanceId>` |
+| ECO4        | `contract.started`                                       | `signing`         | `signing`     | 2 for a main eventer or world popularity ≥ 60, else 1                      | `signing:<employmentId>`           |
+| ECO4        | `contract.released` (an active contract)                 | `release`         | `release`     | as above                                                                   | `release:<employmentId>`           |
+| ECO4        | `contract.expired`, `contract.quit` (`granted`)          | `departure`       | `release`     | as above                                                                   | `departure:<employmentId>`         |
+| ECO4        | `contract.quit` (`walkedOut`)                            | `walked-out`      | `release`     | as above                                                                   | `walked-out:<employmentId>`        |
+| AIP1 + ECO4 | a rival's refused release request, on its `revealOn` day | `release-refused` | `rumour`      | the decision's importance (1)                                              | `aip-decision:<decisionId>`        |
+
+- **Show results.** The story names the promotion and the main event's people
+  (competitors, or the speakers of a talking main event, at most 6); a show
+  scored off-screen has no card and names only its promotion. House and minor
+  shows are importance 0, so they leave the feed after
+  `news.expiry.importance0Days`. The story sheet links "See results" to
+  `routes.game.showResults(eventInstanceId)` whenever `refs.eventInstanceId` is
+  set (results and title changes; a cancelled show keeps its id in the params
+  only, as it has no results).
+- **Cancelled shows.** A show a human runs posts nothing: the player cancelled
+  it and needs no story to say so. The calendar already shows every
+  promotion's cancelled shows, so the story reveals nothing early.
+- **Contracts.** Only notable workers make a story: push `upperCard` or
+  `mainEvent`, or world popularity ≥ 40. A signed deal withdrawn before it
+  started posts nothing (the worker never arrived), and leaving for an
+  exclusive deal elsewhere posts nothing on the old side (the new promotion's
+  signing tells it).
+- **Rival decisions (AIP1).** `aip.newsFromDecisions` (`periodic`, order 38:
+  after the day's shows and contract steps, before `aip.pruneDecisionLog` at 42) reads the decisions revealed today from `byRevealOn`, in id order, and
+  posts those with importance ≥ 1 whose kind has a story writer
+  (`registerDecisionNews({ decisionKind, story })`). Nothing listens to
+  `aip.decisionRecorded`, which fires when a plan is made, so a plan never
+  leaks before its show airs. Kinds opt in because most decisions are already
+  news through the event they lead to: a card plan becomes `show-result` (or
+  `show-cancelled`), a title plan `title-change`, a granted release `release`.
+  Posting them again from the decision would post every rival show twice. ECO4
+  registers refused releases, which no event makes public; they come out when
+  the contract ends (a year on for an open-ended one).
+- **WRK1.** People in story text, the feed's "Who" column, hero cards, the
+  story sheet and the Office panel are drawn through `WorkerLink`
+  (`screens/news/newsEntityLink.tsx`), which links to
+  `routes.game.worker(id)`; outside a game they stay plain text.
+  `displayNameOf` uses WRK1's `primaryEmploymentOf`, and there is one
+  `popularityRollup.ts`.
+- **DAY2.** The Office's "Top stories" panel (`news.topStories`, main column,
+  order 90, `screens/news/officePanel.tsx`) lists the front page's hero stories
+  from `news.top` (kind, headline linking to the story, buzz with its Why?) and
+  "Open news"; with no stories it says "No news yet".
+- **EVT1.** The Skip days sheet's "Until next show" (`calendar.nextShow`, order
+  5, `screens/calendar/skipTarget.ts`) skips to the day of the player's next
+  show (`calendar.nextShow { scope: 'mine' }`) and stops there; hidden with no
+  show or on the show's day. Its line reads "Thu 16 Apr · 5 days".
+
+**Volume** (365 days of the default world, the player's shows run, every news
+stop cleared): about 690 stories, of which 585 show results (234 at importance
+0), 35 title changes and the rest milestones and contract moves; about 145 on
+file at the end, as expiry clears the filler. Default alert rules (front page
+only) stop a skip about 20 times a year, 4 of them in the first 90 days, up
+from 10 and 2 before: title changes of well-known champions reach the front
+page on buzz.
+
+**Wires from its own pack.** WRK3, WRK9, CRTV2, CRTV8, ECO6, ECO8, ECO9,
+ECO10, DAY3, DAY4, DAY5, DAY6, DAY7, DAY9, SOC2, SOC7, BRW3, MOD1 and MOD7
+were not on main; each posts its own stories from its integration ticket with
+the defaults DAY1-06 lists for it.

@@ -19,6 +19,8 @@ const WEEK_LATER_LONG = 'Saturday, April 18, 2026';
 /** The sample world's next weekly show, which the player has not booked. */
 const SHOW_DATE_LONG = 'Thursday, April 16, 2026';
 const SHOW_REASON = "Your show 'Test Weekly' has no card yet";
+/** The Skip days sheet's "Until next show" line, the day after the sample date. */
+const NEXT_SHOW_DETAIL = 'Thu 16 Apr · 5 days';
 const SAMPLE_DATE_SHORT = 'Apr 10, 2026';
 
 /** UI scales the phone bar is checked at: the default, a step up and the largest. */
@@ -143,6 +145,10 @@ test.describe('day control', () => {
     await page.getByRole('button', { name: 'Skip days' }).click();
     const sheet = page.getByRole('dialog', { name: 'Skip days' });
     await expect(sheet).toHaveAttribute('data-side', 'right');
+    // EVT1's quick choice (DAY1-06): the player's next show, five days on.
+    await expect(
+      sheet.getByRole('button', { name: 'Until next show' }),
+    ).toHaveAccessibleDescription(NEXT_SHOW_DETAIL);
     await sheet.getByRole('button', { name: '7 days' }).click();
     await expect(sheet).toContainText(`Until ${WEEK_LATER_LONG}`);
     await sheet.getByRole('button', { name: 'Start' }).click();
@@ -156,6 +162,28 @@ test.describe('day control', () => {
     await expect(dayButton(page, 'Go live')).toBeVisible();
     await expect(dateChip).toContainText(SHOW_DATE_LONG);
     await expectNoSeriousA11yViolations(page);
+  });
+
+  test('phone: Skip days offers Until next show, the next day', async ({ page }, testInfo) => {
+    test.skip(!isPhone(testInfo), 'The phone status sheet');
+    await enterGameFromSampleSave(page);
+    // The sample save's shows are stored once a day has run.
+    await dayButton(page, 'Next day').click();
+    await expect(page.getByTestId('status-date')).toContainText('Apr 11, 2026');
+    await page.getByTestId('status-date').click();
+    await page
+      .getByRole('dialog', { name: 'Status' })
+      .getByRole('button', { name: 'Skip days' })
+      .click();
+    const skipSheet = page.getByRole('dialog', { name: 'Skip days' });
+    // EVT1's quick choice (DAY1-06), first among the chips.
+    const chip = skipSheet.getByRole('button', { name: 'Until next show' });
+    await expect(chip).toHaveAccessibleDescription(NEXT_SHOW_DETAIL);
+    await expectNoHorizontalScroll(page);
+    await chip.click();
+    await skipSheet.getByRole('button', { name: 'Start' }).click();
+    const summary = page.getByRole('region', { name: 'Last advance' });
+    await expect(summary).toContainText(`Advanced 5 days to ${SHOW_DATE_LONG}`);
   });
 
   test('phone: one-line bar, status sheet, bottom skip sheet and an overlay that fits', async ({

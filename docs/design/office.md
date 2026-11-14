@@ -456,12 +456,14 @@ component draws nothing leaves no gap.
 | 50    | main   | `calendar.nextShow`  | Next show                 | EVT1  | `screens/calendar/officePanel.tsx`             | `calendar.nextShow { scope: 'mine' }` as a lower third: "In 6 days", date, importance, brand, "6 main slots + 1 pre-show", the venue or "Venue not chosen yet", EVT6's expected crowd with its Why? and fit, "Open calendar" and the Booking link ("Book this show", "Edit card" or "Go to the show"). "No shows on the calendar" with a calendar link when there is none       |
 | 55    | main   | `shows.lastShow`     | Last show                 | EVT3  | `screens/show-results/officePanel.tsx`         | `shows.lastCompleted { scope: 'mine' }`: name, date, score with its Why? and stars, the main event and its winner, title changes, EVT6's crowd with its Why? (`boxOffice.showCrowd`), the box office net with its Why? (`boxOffice.showMoney`, own shows) and "Full results". "No shows yet" before the first                                                                   |
 | 60    | main   | `promoPop.lastShow`  | Fans after your last show | EVT5  | `screens/promotion-popularity/officePanel.tsx` | `PopularityChangeList` for the last show (three regions on a phone before "Show all") and a link to its results. Draws nothing before the first show or when the show changed no one's popularity, since the Last show panel already says so                                                                                                                                    |
+| 90    | main   | `news.topStories`    | Top stories               | DAY1  | `screens/news/officePanel.tsx`                 | `news.top`'s hero stories (at most three): kind tag, headline linking to the story on the News screen, buzz with its Why?, then "Open news". "No news yet" before the first story; never sample text (DAY1-06)                                                                                                                                                                  |
 
 The Cash card's "Finances" link (ECO1) is a KPI footer, not a panel; the card
 and the top bar's cash chip open the same stored `finance.cash` Why?.
 
 DAY2-06 wired the partners on main when it started: EVT1, EVT3, EVT5, ECO1 and
-EVT6's crowd lines; WRK2-06 added the roster panel; CRTV1-06 added Champions. Panels owed by partners not yet in the game, each wired
+EVT6's crowd lines; WRK2-06 added the roster panel; CRTV1-06 added Champions; DAY1-06 added
+Top stories. Panels owed by partners not yet in the game, each wired
 from its own pack in this place:
 
 | Order | Column | Id             | Panel                        | Owner |
@@ -473,7 +475,6 @@ from its own pack in this place:
 | 70    | side   | chosen by ECO2 | Public image                 | ECO2  |
 | 72    | side   | chosen by ECO3 | Hype                         | ECO3  |
 | 80    | main   | chosen by DAY4 | War report                   | DAY4  |
-| 90    | main   | chosen by DAY1 | Top stories                  | DAY1  |
 | 92    | main   | chosen by SOC7 | Buzz                         | SOC7  |
 
 ## History fields

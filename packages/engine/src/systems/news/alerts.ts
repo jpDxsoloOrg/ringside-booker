@@ -134,6 +134,22 @@ export function newsAlertRule(id: string): NewsAlertRule | undefined {
 // --------------------------------------------------------------------------------------------
 // Built-in rules
 
+/**
+ * True when the story is about a show one of `promotionIds` ran (its result or a title change on
+ * it). The player watched that show, so it never raises their alert (a stop right after their own
+ * show would only repeat what the results page just showed).
+ */
+export function aboutOwnShow(
+  read: GameWorldView,
+  news: Story,
+  promotionIds: readonly PromotionId[],
+): boolean {
+  const eventInstanceId = news.refs.eventInstanceId ?? null;
+  if (eventInstanceId === null) return false;
+  const show = read.tables.eventInstances.get(eventInstanceId);
+  return show !== undefined && promotionIds.includes(show.promotionId);
+}
+
 function touchesPromotion(news: Story, promotionIds: readonly PromotionId[]): boolean {
   return news.refs.promotionIds.some((id) => promotionIds.includes(id));
 }
@@ -381,7 +397,7 @@ export function firstMatchingRule(
 /**
  * `news.matchAlerts`: when a story is posted, every player (in `meta.players` order) with no
  * pending alert, or one whose story is gone, gets this story as their pending alert if any of
- * their enabled rules matches it. Only the first story waits: the player sees the later ones on
+ * their enabled rules matches it, unless it is about a show they ran (`aboutOwnShow`). Only the first story waits: the player sees the later ones on
  * the News screen. Publishes `news.alertRaised`.
  */
 export const matchAlertsSubscription = defineSubscription({
@@ -398,9 +414,13 @@ export const matchAlertsSubscription = defineSubscription({
       if (pending !== null && ctx.read.tables.news.has(pending)) {
         continue;
       }
+      const promotionIds = promotionsOfPlayer(ctx.read, playerId);
+      if (aboutOwnShow(ctx.read, news, promotionIds)) {
+        continue;
+      }
       const rule = firstMatchingRule(ctx.read.meta, playerId, news, {
         read: ctx.read,
-        promotionIds: promotionsOfPlayer(ctx.read, playerId),
+        promotionIds,
         date: ctx.date,
         tunables: ctx.tunables,
       });

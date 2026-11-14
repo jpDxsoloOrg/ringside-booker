@@ -1,0 +1,65 @@
+/*
+ * The Office's "Top stories" panel (DAY1-06), in the main column: one row per story (kind tag,
+ * headline link, buzz), then the link to the News screen. Rows wrap rather than set a width, so
+ * the panel never scrolls sideways at 360px.
+ */
+.body {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.list {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.story {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  min-inline-size: 0;
+  padding-block: var(--space-2);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.story:last-child {
+  border-block-end: 0;
+}
+
+/* The headline takes the rest of the row and wraps; at least a tap target tall. */
+.headline {
+  flex: 1 1 16rem;
+  min-inline-size: 0;
+  min-block-size: var(--tap-target-min);
+  display: inline-flex;
+  align-items: center;
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.buzz {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-inline-start: auto;
+}
+
+.buzzLabel {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* At least a tap target tall. */
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  justify-self: start;
+  min-block-size: var(--tap-target-min);
+  font-weight: var(--font-weight-semibold);
+}

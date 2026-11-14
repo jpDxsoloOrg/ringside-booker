@@ -11,3 +11,4 @@ import '../../show-results/officePanel';
 import '../../promotion-popularity/officePanel';
 import '../../roster/officePanel';
 import '../../titles/officePanel';
+import '../../news/officePanel';

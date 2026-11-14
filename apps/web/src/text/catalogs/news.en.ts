@@ -23,6 +23,12 @@ function verb(params: TextParams, name: string, one: string, many: string): stri
   return countOf(params, name) > 1 ? many : one;
 }
 
+/** True when the param is there and, for an id list, names somebody. */
+function has(params: TextParams, name: string): boolean {
+  const value = params[name];
+  return typeof value === 'string' ? value !== '' : value !== undefined;
+}
+
 /** "{years:count} year" or "{years:count} years". */
 function yearsText(params: TextParams): string {
   return Number(params['years']) === 1 ? '{years:count} year' : '{years:count} years';
@@ -56,6 +62,46 @@ export const NEWS_TEXT_CATALOG: TextCatalog = {
   'news.promotion-anniversary.headline': '{promotionId} turns {years:count}',
   'news.promotion-anniversary.body': (params) =>
     `{promotionId} celebrated ${yearsText(params)} in business on {onDate:date}, still running shows and still looking for its next big star.`,
+
+  // Show night (EVT3, wired by DAY1-06).
+  'news.show-result.headline': '{eventInstanceId} scores {score:count} out of 100',
+  'news.show-result.body': (params) =>
+    has(params, 'mainEventIds')
+      ? '{promotionId} ran {eventInstanceId}, headlined by {mainEventIds}. The show scored {score:count} out of 100.'
+      : '{promotionId} ran {eventInstanceId}. The show scored {score:count} out of 100.',
+
+  'news.title-change.headline': (params) =>
+    has(params, 'previousHolderIds')
+      ? `{newHolderIds} ${verb(params, 'newHolderIds', 'wins', 'win')} the {titleId}`
+      : `{newHolderIds} ${verb(params, 'newHolderIds', 'is', 'are')} crowned {titleId} champion`,
+  'news.title-change.body': (params) =>
+    has(params, 'previousHolderIds')
+      ? `{newHolderIds} took the {titleId} from {previousHolderIds} at {eventInstanceId}. A new reign begins.`
+      : `{newHolderIds} won the vacant {titleId} at {eventInstanceId} and ${verb(params, 'newHolderIds', 'becomes', 'become')} the new champion.`,
+
+  // The calendar (EVT1, wired by DAY1-06).
+  'news.show-cancelled.headline': '{promotionId} calls off {eventInstanceId}',
+  'news.show-cancelled.body':
+    '{promotionId} will not run {eventInstanceId} after all. Fans holding tickets will have to wait for the next big show.',
+
+  // Contracts (ECO4, wired by DAY1-06). Who and where only: never wages or severance.
+  'news.signing.headline': '{promotionId} signs {personId}',
+  'news.signing.body':
+    '{personId} is now under contract with {promotionId}. Expect to see them on its shows soon.',
+  'news.release.headline': '{promotionId} releases {personId}',
+  'news.release.body':
+    '{promotionId} has let {personId} go. They are free to talk to any promotion that wants them.',
+  'news.departure.headline': '{personId} leaves {promotionId}',
+  'news.departure.body':
+    '{personId} is no longer with {promotionId}. Where they turn up next is anyone’s guess.',
+  'news.walked-out.headline': '{personId} walks out on {promotionId}',
+  'news.walked-out.body':
+    '{personId} has walked out on {promotionId} and is now a free agent. It is not a parting on good terms.',
+
+  // Rival decisions (AIP1, wired by DAY1-06), told on the day they come out.
+  'news.release-refused.headline': '{personId} was refused a release by {promotionId}',
+  'news.release-refused.body':
+    'Word is out that {personId} asked {promotionId} to be let go and the promotion said no.',
 };
 
 registerTextCatalog('news', NEWS_TEXT_CATALOG);

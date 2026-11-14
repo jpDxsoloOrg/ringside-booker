@@ -6,7 +6,10 @@ import type { AdvanceRequest } from '@/worker/engineHost';
 import { Button } from '@/components/Button';
 import { Cluster, Stack } from '@/components/layout';
 import { formatGameDate } from '@/components/format';
+import { EngineProvider } from '@/app/engine/EngineProvider';
+import type { EngineTransport } from '@/app/engine/transport';
 import type { GalleryEntry } from '../galleryEntry';
+import { createTraceFixtureTransport } from '../fixtures/traceEngine';
 
 const TODAY = parseGameDate('2031-01-31');
 const TOUR_END = addDays(TODAY, 23);
@@ -74,5 +77,15 @@ export const galleryEntry: GalleryEntry = {
     'The quick choices come from the skip-target registry: 7, 30 and 90 days, until the 1st of ' +
     'next month, and here a long custom target to show the chips wrapping. Each chip names its ' +
     'end under the label. Alert settings needs a game, so it opens only in play.',
-  render: () => <SkipDaysSheetDemo />,
+  // Features' targets may read the engine (EVT1's "Until next show"); the gallery has no game, so
+  // they get a stand-in that answers nothing and their chips stay hidden.
+  render: () => (
+    <EngineProvider createTransport={createNoGameTransport}>
+      <SkipDaysSheetDemo />
+    </EngineProvider>
+  ),
 };
+
+function createNoGameTransport(): EngineTransport {
+  return createTraceFixtureTransport([]);
+}
