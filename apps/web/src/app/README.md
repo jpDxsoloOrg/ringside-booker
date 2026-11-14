@@ -172,7 +172,7 @@ Creative > Titles (`/game/titles`, `screens/titles/TitlesScreen.tsx`, CRTV1-04) 
 **Around the world** in one panel per other promotion, each a `ChampionCardList` (stacked on a
 phone) of `TitleCard`s (`titleCard.tsx`: belt in its prestige's metal from `beltTierOf`, the
 prestige Why?, a prestige bar, "Retired <date>"). The tab and the Active / Retired filter live in
-the URL (`?tab=world`, `?status=retired`). It is read-only; the actions arrive with CRTV1-05.
+the URL (`?tab=world`, `?status=retired`).
 
 A title's page lives at `/game/titles/:titleId` (`routePatterns.title`, built with
 `routes.game.title(titleId)`), loaded as its own chunk: `TitleDetailScreen.tsx` reads
@@ -198,6 +198,23 @@ registerTitleDetailSection({
 function and throws for a taken id; sections draw in `order` within their column (ties in
 registration order) and open pages re-render. CRTV2 adds its prestige history and #1 contender
 this way. Each section brings its own `Panel` with an `h2`.
+
+### Title actions
+
+CRTV1-05 puts the booker's hands on their own titles. `useTitleActions()`
+(`screens/titles/useTitleActions.ts`) owns the open sheet or confirm, the six commands
+(`titles.create`, `.edit`, `.award`, `.vacate`, `.retire`, `.reactivate`), their refusals and what
+is announced when they work; `<TitleActionOverlays actions={...} />` draws what it opens. The list
+puts a "New title" button on Our titles and a menu on each own card (`TitleCardMenu`); the title
+page puts `TitleActionBar` under its header (Award plus a "More" menu on a phone).
+`titleRowActions(row)` decides what a row offers: nothing unless `row.editable`, Reactivate alone
+for a retired title, else Edit, Award, Vacate (when held) and Retire. Rival titles get nothing.
+
+The pattern later command screens copy: nothing changes on screen before the engine says yes (the
+query refetch shows the result), a refusal comes back as reasons shown word for word, under the
+field `reason.field` names (`titleForm.ts`'s `formErrorsFromReasons`) or in a `role="alert"` at
+the top, and an action that ends a reign always confirms first and says how it ends. Gallery:
+`title-form-sheet` and `award-title-sheet` (Overlays), fed by `dev-gallery/fixtures/titleActions.ts`.
 
 ## The roster
 
