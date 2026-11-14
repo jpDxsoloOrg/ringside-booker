@@ -21,11 +21,14 @@ import { StatBar } from '@/components/StatBar';
 import { Explained, traceSourceOf, WhyButton } from '@/components/Trace';
 import { WorkerLink } from '@/components/WorkerLink';
 import { beltTierOf } from './beltTier';
+import { TitleActionBar } from './TitleActionMenus';
+import { TitleActionOverlays } from './TitleActionOverlays';
 import { reignDaysText, TitleLineageTable } from './TitleLineageTable';
 import { TitleRecordsPanel } from './TitleRecordsPanel';
 import { useTitleDetailSections, visibleTitleDetailSections } from './titleDetailSections';
 import type { TitleDetailSectionColumn, TitleDetailSectionContext } from './titleDetailSections';
 import styles from './Titles.module.css';
+import { useTitleActions } from './useTitleActions';
 
 const NOT_FOUND_TITLE = 'Title not found';
 const LOADING_TITLE = 'Loading title';
@@ -257,6 +260,7 @@ function RegisteredSections({
 
 function LoadedTitleDetail({ titleId }: { readonly titleId: TitleId }): ReactNode {
   const query = useEngineQuery('titles.detail', { titleId });
+  const actions = useTitleActions();
   useDocumentTitle(query.data?.title.name ?? null);
 
   if (query.status === 'loading') return <TitleDetailLoading />;
@@ -270,6 +274,7 @@ function LoadedTitleDetail({ titleId }: { readonly titleId: TitleId }): ReactNod
     <div className={styles['screen']}>
       <BackToTitles />
       <TitleHeader detail={detail} />
+      <TitleActionBar row={detail.title} actions={actions} />
       <div className={styles['detailColumns']}>
         <div className={styles['column']}>
           <ChampionPanel detail={detail} />
@@ -283,6 +288,7 @@ function LoadedTitleDetail({ titleId }: { readonly titleId: TitleId }): ReactNod
           <RegisteredSections column="side" context={context} />
         </div>
       </div>
+      <TitleActionOverlays actions={actions} />
     </div>
   );
 }
@@ -292,7 +298,8 @@ function LoadedTitleDetail({ titleId }: { readonly titleId: TitleId }): ReactNod
  * division, kind, introduced date, Active or Retired, prestige with its Why?), the champion or
  * "Vacant since", the full lineage newest first and the records, then whatever sections other
  * features registered with `registerTitleDetailSection`. A title the engine does not know, or an
- * address that is not a title's, shows "Title not found" with a way back. Read-only for now.
+ * address that is not a title's, shows "Title not found" with a way back. For a title the player
+ * runs, an action bar under the header edits, awards, vacates, retires or reactivates it.
  */
 export function TitleDetailScreen() {
   const params = useParams();
