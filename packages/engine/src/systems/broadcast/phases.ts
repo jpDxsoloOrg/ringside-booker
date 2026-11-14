@@ -48,8 +48,8 @@ export const settleAiringsPhase: PhaseDefinition = definePhase({
 });
 
 /** On show night: settles today's airings of a show a person runs, as soon as it completes. */
-export const settleOnShowNightSubscription: SubscriptionSpec<'show.completed'> =
-  defineSubscription({
+export const settleOnShowNightSubscription: SubscriptionSpec<'show.completed'> = defineSubscription(
+  {
     id: SETTLE_ON_SHOW_NIGHT_SUBSCRIPTION_ID,
     type: 'show.completed',
     handler: (event, ctx) => {
@@ -69,4 +69,5 @@ export const settleOnShowNightSubscription: SubscriptionSpec<'show.completed'> =
       );
       settleAll(ctx, due);
     },
-  });
+  },
+);

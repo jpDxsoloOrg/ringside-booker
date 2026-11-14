@@ -184,38 +184,35 @@ function newestFirst(left: Airing, right: Airing): number {
   return compareDates(right.airDate, left.airDate) || (left.id < right.id ? 1 : -1);
 }
 
-export const airingsQuery: QueryDefinition<'broadcast.airings'> = defineQuery(
-  'broadcast.airings',
-  {
-    args: z.strictObject({
-      promotionId: zId('promotion'),
-      dealId: zId('deal').optional(),
-      from: zGameDate.optional(),
-      to: zGameDate.optional(),
-      limit: z.number().int().min(1).max(AIRINGS_MAX_LIMIT).optional(),
-    }),
-    run: (ctx, args) => {
-      const { read } = ctx;
-      requirePromotion(read, args.promotionId);
-      const money = seesMoney(read, ctx.viewer, args.promotionId);
-      const rows = (
-        args.dealId === undefined
-          ? read.tables.airings.lookup('byPromotion', args.promotionId)
-          : read.tables.airings
-              .lookup('byDeal', args.dealId)
-              .filter((airing) => airing.promotionId === args.promotionId)
-      ).filter(
-        (airing) =>
-          (args.from === undefined || compareDates(airing.airDate, args.from) >= 0) &&
-          (args.to === undefined || compareDates(airing.airDate, args.to) <= 0),
-      );
-      return [...rows]
-        .sort(newestFirst)
-        .slice(0, args.limit ?? 50)
-        .map((airing) => rowOf(read, airing, money));
-    },
+export const airingsQuery: QueryDefinition<'broadcast.airings'> = defineQuery('broadcast.airings', {
+  args: z.strictObject({
+    promotionId: zId('promotion'),
+    dealId: zId('deal').optional(),
+    from: zGameDate.optional(),
+    to: zGameDate.optional(),
+    limit: z.number().int().min(1).max(AIRINGS_MAX_LIMIT).optional(),
+  }),
+  run: (ctx, args) => {
+    const { read } = ctx;
+    requirePromotion(read, args.promotionId);
+    const money = seesMoney(read, ctx.viewer, args.promotionId);
+    const rows = (
+      args.dealId === undefined
+        ? read.tables.airings.lookup('byPromotion', args.promotionId)
+        : read.tables.airings
+            .lookup('byDeal', args.dealId)
+            .filter((airing) => airing.promotionId === args.promotionId)
+    ).filter(
+      (airing) =>
+        (args.from === undefined || compareDates(airing.airDate, args.from) >= 0) &&
+        (args.to === undefined || compareDates(airing.airDate, args.to) <= 0),
+    );
+    return [...rows]
+      .sort(newestFirst)
+      .slice(0, args.limit ?? 50)
+      .map((airing) => rowOf(read, airing, money));
   },
-);
+});
 
 export const showAiringQuery: QueryDefinition<'broadcast.showAiring'> = defineQuery(
   'broadcast.showAiring',

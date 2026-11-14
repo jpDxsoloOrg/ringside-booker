@@ -205,11 +205,7 @@ function sharesOf(
 }
 
 /** The per-thousand money: viewers ÷ 1,000 × the deal's rate, rounded down to whole cents. */
-function perThousandIncome(
-  viewers: Traced<number>,
-  rate: number,
-  noun: string,
-): Traced<number> {
+function perThousandIncome(viewers: Traced<number>, rate: number, noun: string): Traced<number> {
   return startCalc(`Paid for ${noun}`, viewers, { unit: 'money', docRef: SETTLEMENT_DOC_REF })
     .divide('In thousands', 1_000)
     .multiply(`Paid per 1,000 ${noun}`, rate)
@@ -438,4 +434,3 @@ export function settleAiring(ctx: StepContext, due: DueAiring): Airing | null {
   });
   return airing;
 }
-

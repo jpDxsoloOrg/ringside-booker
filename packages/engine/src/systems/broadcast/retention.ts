@@ -34,8 +34,7 @@ export function newestAiringsPerDeal(read: GameWorldView, perDeal: number): Set<
   const keep = new Set<AiringId>();
   for (const dealId of read.tables.deals.ids()) {
     const rows = [...read.tables.airings.lookup('byDeal', dealId)].sort(
-      (left, right) =>
-        compareDates(right.airDate, left.airDate) || (left.id < right.id ? 1 : -1),
+      (left, right) => compareDates(right.airDate, left.airDate) || (left.id < right.id ? 1 : -1),
     );
     for (const row of rows.slice(0, perDeal)) {
       keep.add(row.id);
