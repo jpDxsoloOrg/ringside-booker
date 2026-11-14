@@ -172,12 +172,15 @@ whole viewers.
 - **Importance** (`importance.minor`..`flagship`): a house show never airs, so
   the formula refuses one (`InvalidArgumentError`).
 - **Hype** (D-02, its own line): the seam `broadcastHypeFor` returns null
-  until ECO8-07 points it at ECO3's `hypeMultiplierFor`; null multiplies by 1
-  with the note "Hype isn't tracked yet".
+  until ECO3's integration ticket points it at `hypeMultiplierFor` (ECO3 was
+  not on main for ECO8-07); null multiplies by 1 with the note "Hype isn't
+  tracked yet".
 - **Quality**: 1 + (show score − `neutralQuality`) × `qualityPerPoint`, never
   below 0. The show score is EVT3's slot-weighted score, so there are no
-  minutes or durations anywhere (D-10). Without a show result the factor is 1
-  with "No show result yet: neutral quality"; ECO8-07 passes the real score.
+  minutes or durations anywhere (D-10). An airing passes the show's real score
+  (the line reads "Show score 72 (slot-weighted)"); valuations and previews,
+  which have no show yet, keep the factor at 1 with "No show result yet:
+  neutral quality".
 - **Night-to-night swing** (airings only): one seeded roll on
   `broadcast.viewers`, `rollFloat(1 − s, 1 + s)` with
   `s = broadcast.airing.viewerSwing`. Valuation and the benchmark never roll.
@@ -517,11 +520,15 @@ memo, the airing row and the calendar line agree):
 | -------------------------------------------- | ----------------------------------------------------- |
 | Completed                                    | Aired, with the show's score as its quality           |
 | Cancelled                                    | Missed (`showCancelled`): no money, viewers 0         |
-| Scheduled or booked (never run)              | Aired, neutral quality, "Aired without a show result" |
+| Scheduled or booked (never run)              | Missed (`notRun`): no money, viewers 0 (ECO8-07)      |
 | A definition date (a world with no calendar) | Aired, neutral quality, "Aired without a show result" |
 
-ECO8-07 turns "scheduled or booked on its air date" into a missed `notRun`
-airing.
+EVT3 runs every show dated today in the `shows` group (the player runs theirs
+before the day's phases), so a show still open when its airings settle was not
+run: nothing aired, and the missed airing counts toward deal health like a
+cancelled one. A skipped show of the player's now costs the deal an airing; the
+show-day stop (EVT2-09) means that never happens silently. A completed show
+with no result (only a hand-built world) counts as not run too.
 
 **Aired.** The viewers are the [audience](#audience) with the show's quality
 and the night-to-night swing (`broadcast.viewers`); the expected viewers are
@@ -819,4 +826,22 @@ ECO8-05 adds the deals queries (`systems/broadcast/queries/deals.ts`):
   `broadcast.health` (the network's verdict on a struggling deal).
 - **Deal risks:** `DEAL_RISKS` (`safe`, `watch`, `atRisk`, `cancelling`) is
   the risk `broadcast.dealWarned` carries and deal health returns.
-- ECO8-07 wires these into the partner features already on main.
+
+### Partners (ECO8-07)
+
+ECO8-07 wired ECO8 into the partner features on main when it started; each
+partner keeps what it owns (EVT1 the schedule and cancellations, EVT3 results
+and scores, ECO7 production levels, EVT5 popularity, EVT6 the share formula),
+and ECO8 owns deals, airings, viewers and broadcast money.
+
+| Partner | On main | With ECO8                                                                                                                                                                                                                                                                                                                                                                          | Fallback that no longer applies                                     |
+| ------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| EVT1    | yes     | Cancelling a future televised show lists it in `upcomingMissed` at once and misses its airing (no money) on its air date. The calendar show sheet's "On TV" section (`eco.airing`, 30): "Airs on National Signal Network (TV deal)", "National Signal Network: 2.4M viewers · $1.6M" with Why? (money only for own shows), "Missed airing: show cancelled", rivals "On <network>". | Definition-date airings (only a world without the calendar)         |
+| EVT3    | yes     | Airings use the show score ("Show score 72 (slot-weighted)"); an unrun show is a missed `notRun` airing; `result.viewers` fills the ScoreBug's Viewers; the results page's "On TV" section (`eco.broadcast`, 40, own shows): "On National Signal Network: 2.4M viewers (expected 1.9M) · TV rights $1.6M" with Why?.                                                               | "No show result yet", "Aired without a show result" for dated shows |
+| ECO7    | yes     | The audience reads the live marketing level; the camera refusal ends "Raise your camera level in Production" and the Propose sheet links it to `/game/production`; ECO7's camera floor (`activeBroadcastDeal`) is ECO8's `firstDealInForce`, so it lets go the day a deal ends or its network closes.                                                                              | ECO7's own deal-dates check                                         |
+| EVT5    | yes     | `dealsInForce` is ECO8's `dealsAiringShow` (a promotion-wide pay-per-view deal reaches only major and flagship shows); a missed airing reaches nobody; an aired one names its viewers in the reach line: "TV: National Signal Network, 2.4M viewers".                                                                                                                              | EVT5's own deal-carries-show rule                                   |
+| EVT6    | yes     | Shares are the box office's `computeWorkerShare` with the labels "TV rights", "Pay-per-view", "Streaming" and the cap `broadcast.shares.maxTotal` (already so since ECO8-04).                                                                                                                                                                                                      | none                                                                |
+| DAY1    | yes     | `broadcast.dealSigned` posts a `business` story (topic `deal-signed`, importance 2 in prime time, 1 otherwise): promotion, network and show, never money.                                                                                                                                                                                                                          | none                                                                |
+| ECO3    | no      | Owed by ECO3's integration ticket: point `broadcastHypeFor` at `hypeMultiplierFor`.                                                                                                                                                                                                                                                                                                | "Hype isn't tracked yet" stays                                      |
+| SOC1    | no      | Owed by SOC1's integration ticket: deal warnings and endings as mail.                                                                                                                                                                                                                                                                                                              | The risk badge stays the only notice                                |
+| EVT9    | no      | Owed by EVT9's pack: `test/systems/taping/airsOnAirDate.test.ts`. Airings already select shows by `airDate` (`airingsDueOn`), and a taped show pays on its air date (`airings.test.ts`).                                                                                                                                                                                           | none                                                                |
