@@ -53,6 +53,11 @@
   list-style: none;
 }
 
+.chips > li {
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+
 .chip {
   display: inline-flex;
   flex-wrap: wrap;

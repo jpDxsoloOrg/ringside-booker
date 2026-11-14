@@ -169,7 +169,17 @@ test('storylines on the card: link, heat on the results, timeline and both payof
   const warning = new RegExp(
     `linked to '${escapeRegExp(hot.name)}' but none of its members is in it`,
   );
-  await expect(page.getByText(warning).first()).toBeVisible();
+  if (phone) {
+    // The phone keeps the checklist in a sheet behind the sticky bar's problem count.
+    await page.getByRole('button', { name: /^(\d+ problems?|No problems)$/ }).click();
+    const checklist = page.getByRole('dialog', { name: /^(\d+ problems?|No problems)$/ });
+    await expect(checklist.getByText(warning).first()).toBeVisible();
+    await expectFits(page);
+    await page.keyboard.press('Escape');
+    await expect(checklist).toBeHidden();
+  } else {
+    await expect(page.getByText(warning).first()).toBeVisible();
+  }
 
   await fillTheRest(page);
   await expectNoHorizontalScroll(page);

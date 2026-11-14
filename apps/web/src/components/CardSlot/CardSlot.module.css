@@ -117,6 +117,7 @@
 }
 
 .chip-storyline {
+  min-inline-size: 0;
   border-color: var(--color-action-bright);
   color: var(--color-action-bright);
 }
