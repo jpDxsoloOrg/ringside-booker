@@ -1424,6 +1424,9 @@ export type {
   BookingSlotView,
   BookingTitleOption,
   BookingTitleView,
+  PickerStoryline,
+  PickerStorylineMembership,
+  PickerTitle,
   WorkerPickKind,
 } from './systems/booking/index';
 export {

@@ -90,6 +90,9 @@ export {
   type AvailableWorkersView,
   type BookingShowRow,
   type BookingShowsView,
+  type PickerStoryline,
+  type PickerStorylineMembership,
+  type PickerTitle,
   type WorkerPickKind,
 } from './queries';
 export {
