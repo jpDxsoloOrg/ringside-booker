@@ -4,6 +4,7 @@
 // the first tuning pass's checks from docs/design/match-rating.md, and an old save without catalogs.
 import { describe, expect, it } from 'vitest';
 import {
+  BEAT_REPETITION_GROUP_LABELS,
   createEngine,
   defaultSystems,
   documentToWorld,
@@ -44,6 +45,16 @@ const AUDIT_TIMEOUT_MS = 60_000;
 const BROKEN_TEXT = /undefined|NaN|Infinity|\[object /;
 /** A camelCase code, such as `mainEvent`, outside a dotted setting key or stream name. */
 const RAW_CODE = /(?<![.\w])[a-z]+[A-Z]\w*(?![.\w])/;
+/**
+ * A beat repetition group's code where its readable name differs ("faceoff" for "face-off",
+ * MTCH5-09), as a whole word before "beat".
+ */
+const RAW_GROUP = new RegExp(
+  `\\b(${Object.entries(BEAT_REPETITION_GROUP_LABELS)
+    .filter(([code, label]) => code !== label)
+    .map(([code]) => code)
+    .join('|')}) beats?\\b`,
+);
 /** The words the ticket bans on the lab: no running time (D-10). */
 const MINUTES = /\bminutes?\b|\bmins?\b/i;
 
@@ -459,6 +470,8 @@ function expectReadableAnglePanels(result: PreviewAngleResult): void {
       expect(line, `${name}: ${line}`).not.toMatch(RUNNING_TIME_WORDS);
       // The Best stat decision's options read as stats ("Mic via manager"), never as codes.
       expect(line, `${name}: ${line}`).not.toMatch(/\w:manager\b|\bRingwork\b|' share/);
+      // Repetition lines name the kind of beat in words, never by its group code.
+      expect(line, `${name}: ${line}`).not.toMatch(RAW_GROUP);
     }
   }
 }
@@ -544,6 +557,17 @@ describe('Angle mode’s Why? panels on a new default-world game', () => {
     );
     expect(traceToText(twice.delivered.trace)).toMatch(/Second talk beat in this angle ×0\.85/);
     expectReadableAnglePanels(twice);
+    const [first, second] = [person(0), person(1)];
+    const staredowns = previewAngle(
+      angleArgs('Confrontation', [
+        beat('staredown', [first], [second]),
+        beat('staredown', [first], [second]),
+      ]),
+    );
+    expect(traceToText(staredowns.delivered.trace)).toMatch(
+      /Second face-off beat in this angle ×0\.85/,
+    );
+    expectReadableAnglePanels(staredowns);
     for (const slotRole of SLOT_ROLES) {
       const result = previewAngle(angleArgs('Promo', [beat('promo', [talker])], { slotRole }));
       expect(result.beatLimit.message).toMatch(/^(Short|Standard|Long) slot: up to \d beats?$/);
