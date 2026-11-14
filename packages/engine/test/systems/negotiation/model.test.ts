@@ -323,20 +323,24 @@ describe('offer kinds', () => {
 });
 
 describe('enforced terms', () => {
-  it('lists the built-ins and refuses a term twice', () => {
+  it('lists the built-ins and the box office shares, and refuses a term twice', () => {
     expect(listEnforcedTerms().map((spec) => spec.term)).toEqual([
       'perk.ironClad',
       'perk.travelCovered',
+      'share.gateBp',
+      'share.merchBp',
     ]);
     expect(isTermEnforced('perk.travelCovered')).toBe(true);
-    expect(isTermEnforced('share.gateBp')).toBe(false);
+    expect(isTermEnforced('share.gateBp')).toBe(true);
+    expect(isTermEnforced('share.broadcastBp')).toBe(false);
+    expect(isTermEnforced('perk.creativeControl')).toBe(false);
     expect(() =>
       registerEnforcedTerm({ term: 'perk.ironClad', label: 'Again', enforcedBy: 'Nothing' }),
     ).toThrow(RegistryError);
     const restore = clearEnforcedTermsForTests();
     expect(listEnforcedTerms()).toEqual([]);
     restore();
-    expect(listEnforcedTerms()).toHaveLength(2);
+    expect(listEnforcedTerms()).toHaveLength(4);
   });
 });
 
