@@ -538,6 +538,10 @@ describe('titles.eligibleHolders', () => {
       [personId(1), false],
     ]);
     expect(holders.people.find((person) => person.isCurrentHolder)?.personId).toBe(personId(5));
+    // The hint names the brand they do work on.
+    const elsewhere = holders.people.find((person) => !person.sameBrand);
+    expect(elsewhere?.brandName).not.toBeNull();
+    expect(elsewhere?.brandName).not.toBe(holders.people[0]?.brandName);
   });
 
   it('never lists a rival’s worker, who could not be awarded it', () => {
