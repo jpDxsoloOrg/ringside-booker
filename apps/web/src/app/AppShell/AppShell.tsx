@@ -31,6 +31,7 @@ import { TopBar } from './TopBar';
 import type { TopBarLayout } from './TopBar';
 import { TopBarStatus } from './TopBarStatus';
 import { countBehindMore, useNavBadges } from './useNavBadges';
+import { useTickerRoom } from './useTickerRoom';
 
 export interface AppShellProps {
   /** The navigation to show. The app's own config by default; tests pass their own. */
@@ -116,6 +117,8 @@ export function AppShell({
     ) : (
       ticker
     );
+  const [tickerSlot, setTickerSlot] = useState<HTMLDivElement | null>(null);
+  useTickerRoom(tickerSlot, isMobile && tickerContent !== null);
   const renderShell = (promotion: ShellPromotion | null, sample: boolean) => {
     const crest =
       isMobile && promotion !== null ? (
@@ -161,7 +164,7 @@ export function AppShell({
           </div>
         </main>
         {tickerContent !== null && (
-          <div className={styles['tickerSlot']} data-testid="ticker-slot">
+          <div ref={setTickerSlot} className={styles['tickerSlot']} data-testid="ticker-slot">
             {tickerContent}
           </div>
         )}

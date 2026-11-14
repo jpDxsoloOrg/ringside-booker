@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
+import { useIsMobile } from '@/styles/useMediaQuery';
 import { useReducedMotion } from '@/styles/useReducedMotion';
 import { IconButton } from '../Button';
 import { classNames } from '../classNames';
@@ -51,9 +52,20 @@ export function tickerLengthClass(itemCount: number): string {
   return `items-${String(bucket)}`;
 }
 
-function TickerItems({ items }: { readonly items: readonly TickerItem[] }) {
-  return items.map((item) => (
-    <li key={item.id} className={styles['item']}>
+function TickerItems({
+  items,
+  currentIndex,
+}: {
+  readonly items: readonly TickerItem[];
+  /** While stepping, the one headline on show; the others keep their room but are hidden. */
+  readonly currentIndex?: number;
+}) {
+  return items.map((item, index) => (
+    <li
+      key={item.id}
+      className={styles['item']}
+      {...(currentIndex === undefined ? {} : { 'data-current': String(index === currentIndex) })}
+    >
       {item.tag !== undefined && (
         <span className={classNames(styles['tag'], styles[`tag-${item.tagTone ?? 'data'}`])}>
           {item.tag}
@@ -67,7 +79,9 @@ function TickerItems({ items }: { readonly items: readonly TickerItem[] }) {
 /**
  * The news crawl. Headlines move right to left behind a label badge, pause while the pointer is
  * over them or a headline has focus, and can be paused with the button at the end. With reduced motion
- * the crawl becomes a static list that wraps and the pause button goes away.
+ * the crawl becomes a static list that wraps and the pause button goes away. On a phone the strip has
+ * no room for a wrapped list, so with reduced motion it shows one headline at a time, wrapped to
+ * fit, with buttons to step to the previous and next one (UI-34).
  *
  * The crawl loops by drawing the list twice. The second copy is hidden from screen readers and
  * made inert, so each headline is read and reached once.
@@ -82,9 +96,17 @@ export function Ticker({
   className,
 }: TickerProps) {
   const reducedMotion = useReducedMotion();
+  const isMobile = useIsMobile();
   const [paused, setPaused] = useState(false);
+  const [step, setStep] = useState(0);
   const loopCopyRef = useRef<HTMLUListElement>(null);
   const crawling = !reducedMotion && items.length > 0;
+  const stepping = !crawling && isMobile && items.length > 1;
+  const currentIndex = items.length === 0 ? 0 : step % items.length;
+  const stepBy = (delta: number) => {
+    const count = Math.max(items.length, 1);
+    setStep((previous) => ((previous % count) + delta + count) % count);
+  };
 
   useEffect(() => {
     const loopCopy = loopCopyRef.current;
@@ -97,13 +119,35 @@ export function Ticker({
       className={classNames(
         styles['ticker'],
         crawling ? styles['crawling'] : styles['static'],
+        stepping && styles['stepping'],
         paused && styles['paused'],
         docked && styles['docked'],
         className,
       )}
       data-motion={crawling ? 'crawl' : 'static'}
+      data-stepping={stepping ? 'on' : undefined}
     >
       <span className={styles['badge']}>{label}</span>
+      {stepping && (
+        <div className={styles['stepControls']}>
+          <IconButton
+            icon="chevron-left"
+            label="Previous headline"
+            size="sm"
+            onClick={() => {
+              stepBy(-1);
+            }}
+          />
+          <IconButton
+            icon="chevron-right"
+            label="Next headline"
+            size="sm"
+            onClick={() => {
+              stepBy(1);
+            }}
+          />
+        </div>
+      )}
       <div className={styles['viewport']} data-part="viewport">
         <div
           className={classNames(
@@ -113,8 +157,8 @@ export function Ticker({
           )}
           data-part="track"
         >
-          <ul className={styles['list']} aria-live={announce}>
-            <TickerItems items={items} />
+          <ul className={styles['list']} aria-live={stepping ? 'polite' : announce}>
+            <TickerItems items={items} {...(stepping ? { currentIndex } : {})} />
           </ul>
           {crawling && (
             <ul

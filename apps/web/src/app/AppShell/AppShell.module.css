@@ -458,9 +458,14 @@
     --shell-bottom-chrome: calc(var(--bottom-nav-height) + var(--safe-bottom));
   }
 
+  /*
+   * --shell-ticker-room is the strip's measured height (useTickerRoom), which grows past the usual
+   * one line when a reduced-motion headline wraps (UI-34).
+   */
   .shell[data-ticker='on'] {
     --shell-bottom-chrome: calc(
-      var(--bottom-nav-height) + var(--safe-bottom) + var(--shell-ticker-height)
+      var(--bottom-nav-height) + var(--safe-bottom) +
+        var(--shell-ticker-room, var(--shell-ticker-height))
     );
   }
 
@@ -504,9 +509,7 @@
   }
 
   .shell[data-ticker='on'] .main {
-    padding-block-end: calc(
-      var(--bottom-nav-height) + var(--safe-bottom) + var(--shell-ticker-height)
-    );
+    padding-block-end: var(--shell-bottom-chrome);
   }
 
   /* The ticker rides just above the tab bar. */
@@ -514,14 +517,15 @@
     position: fixed;
     inset: auto 0 calc(var(--bottom-nav-height) + var(--safe-bottom));
     z-index: var(--z-nav);
-    block-size: var(--shell-ticker-height);
+    min-block-size: var(--shell-ticker-height);
     padding-inline: var(--safe-left) var(--safe-right);
     overflow: hidden;
     background: var(--color-surface);
   }
 
+  /* At least one line high; a wrapped reduced-motion headline makes it taller, never clipped. */
   .tickerSlot > * {
-    block-size: 100%;
+    min-block-size: var(--shell-ticker-height);
   }
 
   .content {
