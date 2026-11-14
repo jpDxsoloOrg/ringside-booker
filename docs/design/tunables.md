@@ -1344,68 +1344,6 @@ promotion. ECO8-02 adds the audience formula's factors and the benchmark's
 typical promotion; ECO8-03..05 add the valuation, settlement and deal health
 numbers under the same `Broadcast` category.
 
-| Key                                      | Kind    | Default | Range | Unit   | Meaning                                                                                                                                                                        |
-| ---------------------------------------- | ------- | ------- | ----- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `broadcast.networks.minPopularityToList` | integer | 1       | 0–100 | points | Popularity a promotion needs in a region before the networks covering it are listed ([networks](broadcast.md#which-networks-a-promotion-can-deal-with)); 0 lists every network |
-
-DAY1-02, see [news.md](news.md#milestones). Category News. The weekly
-milestone stories: how many go out each Monday and which anniversaries count.
-The reign day marks (100, 200 and 300 days) and the 25-year steps up in
-importance are documented constants, not tunables.
-
-| Key                                  | Kind    | Default | Range | Unit   | Meaning                                                                                       |
-| ------------------------------------ | ------- | ------- | ----- | ------ | --------------------------------------------------------------------------------------------- |
-| `news.milestones.maxPerWeek`         | integer | 8       | 0–50  | count  | Most milestone stories posted each Monday (0 = no milestone stories)                          |
-| `news.milestones.majorTitlePrestige` | number  | 80      | 0–100 | points | Title prestige from which a reign milestone is one level more important (0 = every title)     |
-| `news.milestones.recordMinReigns`    | integer | 3       | 0–50  | count  | Finished reigns a title needs before passing its longest one makes a story (0 = any finished) |
-| `news.milestones.careerYearStep`     | integer | 5       | 1–50  | years  | Career anniversaries make a story every this many years in the business                       |
-| `news.milestones.careerMinYears`     | integer | 10      | 0–60  | years  | Fewest years in the business for a career anniversary story (0 = from the first step)         |
-| `news.milestones.promotionYearStep`  | integer | 5       | 1–50  | years  | Promotion anniversaries make a story on the first one and then every this many years          |
-
-| Key                                      | Kind    | Default | Range  | Unit       | Meaning                                                                                                                                                                        |
-| ---------------------------------------- | ------- | ------- | ------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `broadcast.networks.minPopularityToList` | integer | 1       | 0–100  | points     | Popularity a promotion needs in a region before the networks covering it are listed ([networks](broadcast.md#which-networks-a-promotion-can-deal-with)); 0 lists every network |
-| `broadcast.audience.baseShare`           | number  | 0.012   | 0–1    | ratio      | Share of the people who care about wrestling a fully popular promotion draws on a top network ([audience](broadcast.md#audience)); 0 means 0                                   |
-| `broadcast.audience.popularityPower`     | number  | 1.5     | 0.5–4  | ratio      | How sharply popularity turns into viewers: popularity out of 100 raised to this power; 1 is a straight line                                                                    |
-| `broadcast.audience.tier0`               | number  | 0.3     | 0–1    | ratio      | Share of the audience a tier-0 (local) network reaches; 0 means 0                                                                                                              |
-| `broadcast.audience.tier1`               | number  | 0.4     | 0–1    | ratio      | Share a tier-1 (regional) network reaches; 0 means 0                                                                                                                           |
-| `broadcast.audience.tier2`               | number  | 0.55    | 0–1    | ratio      | Share a tier-2 network reaches; 0 means 0                                                                                                                                      |
-| `broadcast.audience.tier3`               | number  | 0.75    | 0–1    | ratio      | Share a tier-3 network reaches; 0 means 0                                                                                                                                      |
-| `broadcast.audience.tier4`               | number  | 1       | 0–1    | ratio      | Share a tier-4 (top) network reaches; 0 means 0                                                                                                                                |
-| `broadcast.audience.kind.tv`             | number  | 1       | 0–1    | ratio      | Share of the audience a TV channel turns into viewers; 0 means 0                                                                                                               |
-| `broadcast.audience.kind.ppv`            | number  | 0.05    | 0–1    | ratio      | Share that buys a pay-per-view (buyers, not viewers); 0 means 0                                                                                                                |
-| `broadcast.audience.kind.streaming`      | number  | 0.25    | 0–1    | ratio      | Share a streaming service turns into viewers; 0 means 0                                                                                                                        |
-| `broadcast.audience.timeslot.daytime`    | number  | 0.35    | 0–1    | ratio      | Share watching in the daytime; 0 means 0                                                                                                                                       |
-| `broadcast.audience.timeslot.evening`    | number  | 0.7     | 0–1    | ratio      | Share watching in the evening; 0 means 0                                                                                                                                       |
-| `broadcast.audience.timeslot.primeTime`  | number  | 1       | 0–1    | ratio      | Share watching in prime time (pay-per-view always uses it); 0 means 0                                                                                                          |
-| `broadcast.audience.timeslot.lateNight`  | number  | 0.25    | 0–1    | ratio      | Share watching late at night; 0 means 0                                                                                                                                        |
-| `broadcast.audience.importance.minor`    | number  | 0.6     | 0–3    | ratio      | Viewers a minor show draws against a regular one; 0 means 0                                                                                                                    |
-| `broadcast.audience.importance.regular`  | number  | 1       | 0–3    | ratio      | Viewers a regular show draws; 0 means 0                                                                                                                                        |
-| `broadcast.audience.importance.major`    | number  | 1.4     | 0–3    | ratio      | Viewers a major show draws against a regular one; 0 means 0                                                                                                                    |
-| `broadcast.audience.importance.flagship` | number  | 1.8     | 0–3    | ratio      | Viewers a flagship show draws against a regular one; 0 means 0                                                                                                                 |
-| `broadcast.audience.marketingPerLevel`   | number  | 0.04    | 0–0.2  | ratio      | Viewers added by each marketing level, as a share of the audience; 0 means marketing adds nobody                                                                               |
-| `broadcast.audience.liveBonus`           | number  | 1.05    | 1–2    | multiplier | Viewers a live show draws against a taped one; 1 means live draws no more                                                                                                      |
-| `broadcast.audience.neutralQuality`      | number  | 50      | 0–100  | points     | Show score that neither adds nor loses viewers                                                                                                                                 |
-| `broadcast.audience.qualityPerPoint`     | number  | 0.006   | 0–0.05 | ratio      | Viewers gained or lost per show score point from the neutral score; 0 means quality changes nothing                                                                            |
-| `broadcast.airing.viewerSwing`           | number  | 0.05    | 0–0.5  | ratio      | How far an airing's viewers swing either way from night to night; 0 means no swing                                                                                             |
-| `broadcast.benchmark.popularity.tier0`   | number  | 10      | 0–100  | points     | Popularity of the typical promotion a tier-0 network expects, in every region ([benchmark](broadcast.md#benchmark)); 0 means it expects nobody                                 |
-| `broadcast.benchmark.popularity.tier1`   | number  | 15      | 0–100  | points     | The same for a tier-1 network                                                                                                                                                  |
-| `broadcast.benchmark.popularity.tier2`   | number  | 16      | 0–100  | points     | The same for a tier-2 network                                                                                                                                                  |
-| `broadcast.benchmark.popularity.tier3`   | number  | 48      | 0–100  | points     | The same for a tier-3 network                                                                                                                                                  |
-| `broadcast.benchmark.popularity.tier4`   | number  | 58      | 0–100  | points     | The same for a tier-4 network                                                                                                                                                  |
-| `broadcast.benchmark.marketingLevel`     | integer | 5       | 0–10   | count      | Marketing level of the typical promotion a network expects                                                                                                                     |
-
-DAY1-03, see [news.md](news.md#front-page). Category News. Which stories are
-front page and how the hero stories and the ticker are ranked. The rank is an
-ordering, not a number the player sees.
-
-| Key                               | Kind    | Default | Range | Unit   | Meaning                                                                          |
-| --------------------------------- | ------- | ------- | ----- | ------ | -------------------------------------------------------------------------------- |
-| `news.frontPage.minBuzz`          | number  | 65      | 0–100 | points | Buzz from which a story is front page, whatever its importance (0 = every story) |
-| `news.frontPage.agePenaltyPerDay` | number  | 4       | 0–50  | points | Buzz a story loses per day of age in the ranking (0 = age does not matter)       |
-| `news.frontPage.windowDays`       | integer | 7       | 1–90  | days   | Days of stories, today included, that compete for the front page and ticker      |
-| `news.frontPage.heroCount`        | integer | 3       | 1–5   | count  | Front-page stories shown large at the top of the News screen                     |
-
 | Key                                      | Kind    | Default | Range       | Unit       | Meaning                                                                                                                                                                        |
 | ---------------------------------------- | ------- | ------- | ----------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `broadcast.networks.minPopularityToList` | integer | 1       | 0–100       | points     | Popularity a promotion needs in a region before the networks covering it are listed ([networks](broadcast.md#which-networks-a-promotion-can-deal-with)); 0 lists every network |
