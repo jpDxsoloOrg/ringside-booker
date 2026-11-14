@@ -29,7 +29,7 @@ import type {
   SlotRolesArgs,
 } from '@ringside/engine';
 import type { RosterPickerPerson, RosterPickerTeam } from '@/components/RosterPicker';
-import { galleryCard } from './booking';
+import { galleryCard, GALLERY_TIME } from './booking';
 
 const SHOW_DATE = parseGameDate('2027-02-04');
 const NO_CREW = { refereeId: null, producerId: null, announcerIds: [] };
@@ -734,4 +734,5 @@ export const GALLERY_EDITOR_CARD: BookingCard = {
     null,
   ]),
   titleOptions: TITLE_OPTIONS,
+  time: GALLERY_TIME,
 };

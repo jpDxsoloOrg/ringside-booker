@@ -4,6 +4,7 @@
  */
 import { parseContentKey, parseId } from '@ringside/engine';
 import type {
+  BookingTimeView,
   BookingIssue,
   BookingResultView,
   BookingSectionView,
@@ -156,6 +157,10 @@ function slotView(
     roleLabel: ROLE_LABELS[role],
     durationClass: role === 'mainEvent' ? 'long' : role === 'opener' ? 'short' : 'standard',
     durationLabel,
+    usualLength: role === 'mainEvent' ? 'long' : role === 'opener' ? 'short' : 'standard',
+    bookedLength: null,
+    lengthLocked: role === 'mainEvent',
+    timeUnits: segment === null ? 0 : role === 'mainEvent' ? 3 : role === 'opener' ? 1 : 2,
     weight: 1,
     roleTrace: roleTrace(role, slot + 1),
     durationTrace: sizeTrace(durationLabel),
@@ -163,6 +168,16 @@ function slotView(
     segment,
   };
 }
+
+/** EVT4-08: a six-slot regular show with a pre-show, every slot at its usual time. */
+export const GALLERY_TIME: BookingTimeView = {
+  used: 12,
+  budget: 15,
+  over: 0,
+  lengthened: false,
+  usedTrace: { kind: 'input', label: 'Time used', value: 12 },
+  budgetTrace: { kind: 'input', label: 'Show time', value: 15 },
+};
 
 /** A six-slot main card with a pre-show; `filled[n]` goes in main-card slot n (0-based). */
 export function galleryCard(

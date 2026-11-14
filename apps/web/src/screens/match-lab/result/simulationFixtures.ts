@@ -54,6 +54,7 @@ function preview(): SimulateResult['preview'] {
     slot: {
       role: 'mainEvent',
       durationClass: 'long',
+      bookedSteps: 0,
       weight: 1.5,
       roleTrace: {
         value: 'mainEvent',
