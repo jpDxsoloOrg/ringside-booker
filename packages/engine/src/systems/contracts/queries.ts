@@ -487,10 +487,16 @@ function releaseWarnings(
   cashAfter: number,
 ): ReleaseWarning[] {
   const warnings: ReleaseWarning[] = [];
+  // CRTV1-03's orphaned-champion rule vacates the title once they have been gone this long.
+  const grace = ctx.tunables.get('titles.orphanGraceDays');
+  const vacated =
+    grace === 0
+      ? 'the title is vacated the same day'
+      : `the title is vacated after ${grace === 1 ? '1 day' : `${String(grace)} days`}`;
   for (const title of heldTitles(ctx.read, employment)) {
     warnings.push({
       code: 'holdsTitle',
-      message: `Holds the ${title.name}. Titles don't change hands on their own yet, so they keep it.`,
+      message: `Holds the ${title.name}. If they leave, ${vacated}.`,
       subject: { kind: 'title', id: title.id },
     });
   }

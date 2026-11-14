@@ -217,8 +217,9 @@ becomes `withdrawn`. It does not check who may release whom.
 - **`contracts.releasePreview { employmentId }`** → `{ kind: 'ok', mode:
 'release' | 'withdraw', severance (with its Why?), cashBefore, cashAfter,
 warnings }` or `{ kind: 'refused', reasons }`. Warnings: `holdsTitle` ("Holds
-  the <title>. Titles don't change hands on their own yet, so they keep it."
-  until CRTV1; ECO4-05 switches the wording), `ironClad`, `intoDebt` ("This
+  the <title>. If they leave, the title is vacated after 7 days.", from
+  `titles.orphanGraceDays`, see
+  [titles.md](titles.md#orphaned-champions); CRTV1-03), `ironClad`, `intoDebt` ("This
   puts you $3,197.53 in debt."), `bookedSoon` ("Booked on <show>, <date>." for
   the soonest scheduled or booked show from today, plus "and N more shows")
   and `gladToGo`.
