@@ -21,6 +21,7 @@ import type { BrandId, PersonId } from '../../../../core/ids';
 import type { TitleEligibilityCode } from '../../../workers/helpers/eligibility';
 import { isEligibleForTitle } from '../../../workers/helpers/eligibility';
 import { availabilityOf } from '../../../workers/helpers/availability';
+import { currentHolders } from '../../../titles/helpers/holders';
 import { isOtherBrand } from '../../view';
 import type { BookingCheck, BookingCheckInput, BookingIssueDraft } from '../types';
 import {
@@ -130,9 +131,7 @@ function titleWarnings(input: BookingCheckInput): BookingIssueDraft[] {
           ...onTitle,
         });
       }
-      const holders = new Set(
-        read.tables.titleReigns.lookupOne('openByTitle', titleId)?.holderIds ?? [],
-      );
+      const holders = new Set(currentHolders(read, titleId));
       for (const personId of competitors) {
         const person = read.tables.people.get(personId);
         if (person === undefined || holders.has(personId)) {

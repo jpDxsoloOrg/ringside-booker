@@ -187,7 +187,12 @@ describe('OfficeScreen', () => {
     // Partner panels (DAY2-06) sit after these, from order 50 on.
     expect(panelIdsIn('main').slice(0, 2)).toEqual(['test.earlier', 'test.later']);
     expect(panelIdsIn('main')).not.toContain('test.nothing');
-    expect(panelIdsIn('side')).toEqual(['test.side', 'day2.worldClock', 'roster.top']);
+    expect(panelIdsIn('side')).toEqual([
+      'test.side',
+      'day2.worldClock',
+      'roster.top',
+      'titles.champions',
+    ]);
 
     act(() => {
       removeSide();
@@ -195,7 +200,7 @@ describe('OfficeScreen', () => {
     await waitFor(() => {
       expect(screen.queryByText('Side panel')).toBeNull();
     });
-    expect(panelIdsIn('side')).toEqual(['day2.worldClock', 'roster.top']);
+    expect(panelIdsIn('side')).toEqual(['day2.worldClock', 'roster.top', 'titles.champions']);
   });
 
   it('shows a broken panel as one that could not load, and keeps the key numbers', async () => {

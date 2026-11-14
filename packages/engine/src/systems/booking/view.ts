@@ -54,6 +54,7 @@ import {
   type Availability,
   type AvailabilityStatus,
 } from '../workers/helpers/availability';
+import { currentHolders } from '../titles/helpers/holders';
 import { cardSegments } from './card';
 import { editBlockOf } from './control';
 import { draftFromSegment, type SegmentDraft } from './draft';
@@ -309,8 +310,7 @@ export function showPeople(read: GameWorldView, instance: DeepReadonly<EventInst
 }
 
 function holderIdsOf(read: GameWorldView, titleId: TitleId): PersonId[] {
-  const reign = read.tables.titleReigns.lookupOne('openByTitle', titleId);
-  return reign === undefined ? [] : [...reign.holderIds];
+  return currentHolders(read, titleId);
 }
 
 function durationShiftNoteOf(matchType: DeepReadonly<MatchTypeDef> | null): string | null {

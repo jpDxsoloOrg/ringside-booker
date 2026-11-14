@@ -4,7 +4,8 @@ import { describe, expect, it } from 'vitest';
 import { addDays } from '../../../src/core/date';
 import type { EmploymentId } from '../../../src/core/ids';
 import { runStep } from '../../../src/core/pipeline/runStep';
-import type { Engine } from '../../../src/core/api';
+import { createEngine, initialEngineState, type Engine } from '../../../src/core/api';
+import { simSystem } from '../../../src/core/api/builtins';
 import type { Controller } from '../../../src/model/controller';
 import {
   RELEASE_REASON_KEY,
@@ -12,12 +13,17 @@ import {
   severanceTraceRef,
   type ReleasePreview,
 } from '../../../src/systems/contracts';
+import { financeSystem } from '../../../src/systems/finance';
+import { contractsSystem } from '../../../src/systems/contracts';
 import { plainDate } from '../../../src/systems/health';
+import { ORPHANED_VACANCY_REASON_KEY, titlesSystem } from '../../../src/systems/titles';
+import { workersSystem } from '../../../src/systems/workers';
 import { expectTraceReplays } from '../../support/trace';
 import { contractsRuntime } from './contract-world';
 import {
   ask,
   cashOf,
+  OMNISCIENT,
   COMPUTER,
   contractsEngine,
   employmentOf,
@@ -180,13 +186,14 @@ describe('contracts.releasePreview', () => {
     const built = releaseWorld();
     const engine = contractsEngine(built.world);
     const shown = okPreview(engine, built.champion);
+    const championName = employmentOf(engine, built.champion).ringName;
     expect(shown.warnings.map((warning) => warning.code)).toEqual([
       'holdsTitle',
       'ironClad',
       'gladToGo',
     ]);
     expect(shown.warnings[0]?.message).toBe(
-      `Holds the ${TITLE_NAME}. If they leave, the title is vacated after 7 days.`,
+      `${championName} holds the ${TITLE_NAME}. It will be vacated after 7 days unless they re-sign.`,
     );
   });
 
@@ -256,5 +263,61 @@ describe('releaseEmployment', () => {
       expect(result.ledgerTraceRef).not.toBeNull();
     });
     expect(built.world.tables.promotions.require(built.human).cash).toBe(START_CASH - 4_319_753);
+  });
+});
+
+// CRTV1-06: releasing a champion leaves the title to CRTV1's orphaned-champion rule, which vacates
+// it once the grace period is over. There is no second vacate path in contracts.
+describe('releasing a champion (with CRTV1)', () => {
+  it('vacates the title after titles.orphanGraceDays with reasonKey orphaned', async () => {
+    const built = releaseWorld();
+    const engine = createEngine({
+      state: {
+        ...initialEngineState(built.world),
+        tunableOverrides: {
+          'contracts.expiringSoon.stopSkip': false,
+          'contracts.releaseRequest.stopSkip': false,
+        },
+      },
+      systems: [simSystem, financeSystem, contractsSystem, workersSystem, titlesSystem],
+    });
+    const personId = employmentOf(engine, built.champion).personId;
+    const title = engine.exportState().world.tables.titles.find((row) => row.name === TITLE_NAME);
+    if (title === undefined) {
+      throw new Error('no title');
+    }
+    const shown = okPreview(engine, built.champion);
+    expect(release(engine, built.champion, shown.severance.value).ok).toBe(true);
+
+    const openReign = () =>
+      engine
+        .exportState()
+        .world.tables.titleReigns.find((row) => row.titleId === title.id && row.lostOn === null);
+    const vacatedEvents = () => {
+      const events = engine.query('sim.recentEvents', { limit: 500 }, OMNISCIENT);
+      if (!events.ok) {
+        throw new Error(JSON.stringify(events.reasons));
+      }
+      return events.data.filter((event) => event.type === 'title.vacated');
+    };
+    for (let day = 0; day < 7; day += 1) {
+      await engine.advanceDays({ maxDays: 1 });
+      expect(vacatedEvents()).toEqual([]);
+      expect(openReign()?.holderIds).toEqual([personId]);
+    }
+    // A day's phases run for the day being left (the first pass ran the release day itself), so
+    // this pass runs the seventh day after the release.
+    await engine.advanceDays({ maxDays: 1 });
+    expect(vacatedEvents()).toMatchObject([
+      {
+        payload: {
+          titleId: title.id,
+          holderIds: [personId],
+          reasonKey: ORPHANED_VACANCY_REASON_KEY,
+          source: 'system',
+        },
+      },
+    ]);
+    expect(openReign()).toBeUndefined();
   });
 });

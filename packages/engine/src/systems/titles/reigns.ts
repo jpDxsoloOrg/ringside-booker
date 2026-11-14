@@ -1,6 +1,6 @@
 /**
  * Writing reigns: `openReign` and `closeReign` are the only code that creates or ends a title
- * reign. Show night's title changes (EVT3, `lost`), retirements (DAY6, `retired`), contracts,
+ * reign, and `addDefence` the only code that counts a defence. Show night's title changes (EVT3, `lost`), retirements (DAY6, `retired`), contracts,
  * closures and call-ups (ECO features), and CRTV1's own award, vacate and retire commands call
  * these instead of writing `titleReigns` their own way. Both throw on misuse; the table's
  * invariants (`openByTitle` unique, `reignsDoNotOverlap`, `holderCountMatchesTitle`) stay the last
@@ -99,4 +99,23 @@ export function closeReign(ctx: ReignWriteContext, input: CloseReignInput): Titl
     endReason: input.endReason,
     endedInSegmentId: input.endedInSegmentId,
   });
+}
+
+/**
+ * Counts one more successful defence on a current reign (show night's title outcomes).
+ *
+ * @throws InvariantError when the reign does not exist or has already ended.
+ */
+export function addDefence(ctx: ReignWriteContext, reignId: TitleReignId): TitleReign {
+  const reign = ctx.read.tables.titleReigns.get(reignId);
+  if (reign === undefined) {
+    throw new InvariantError(`addDefence: reign ${reignId} does not exist`, { reignId });
+  }
+  if (reign.lostOn !== null) {
+    throw new InvariantError(
+      `addDefence: reign ${reign.id} of ${reign.titleId} already ended on ${reign.lostOn}`,
+      { reignId: reign.id, titleId: reign.titleId },
+    );
+  }
+  return ctx.tx.update('titleReigns', reign.id, { defences: reign.defences + 1 });
 }

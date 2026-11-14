@@ -447,34 +447,34 @@ Office itself, 30–49 roster and people, 50–69 shows, 70–89 business, 90 an
 news and social. On a phone both columns become one, in order. A panel whose
 component draws nothing leaves no gap.
 
-| Order | Column | Id                   | Panel                     | Owner | Code                                           | What it shows                                                                                                                                                                                                                                                                                                                                                             |
-| ----- | ------ | -------------------- | ------------------------- | ----- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 10    | side   | `day2.worldClock`    | World clock               | DAY2  | `screens/office/panels/worldClockPanel.tsx`    | Today's date, the day of the game, the season and the next weekly report                                                                                                                                                                                                                                                                                                  |
-| 20    | main   | `day2.worldOverview` | Promotions                | DAY2  | `screens/office/panels/worldOverviewPanel.tsx` | Every promotion's public facts, only for a seat that runs none                                                                                                                                                                                                                                                                                                            |
-| 30    | side   | `roster.top`         | Top of your roster        | WRK2  | `screens/roster/officePanel.tsx`               | `roster.summary.topByPopularity`: the five wrestlers most popular with the promotion's fans, each with portrait, a link to their profile, push, popularity with its Why? (`roster.explain`) and momentum ("–" before their first appearance), then "View roster". "No wrestlers under contract yet." when there are none                                                  |
-| 50    | main   | `calendar.nextShow`  | Next show                 | EVT1  | `screens/calendar/officePanel.tsx`             | `calendar.nextShow { scope: 'mine' }` as a lower third: "In 6 days", date, importance, brand, "6 main slots + 1 pre-show", the venue or "Venue not chosen yet", EVT6's expected crowd with its Why? and fit, "Open calendar" and the Booking link ("Book this show", "Edit card" or "Go to the show"). "No shows on the calendar" with a calendar link when there is none |
-| 55    | main   | `shows.lastShow`     | Last show                 | EVT3  | `screens/show-results/officePanel.tsx`         | `shows.lastCompleted { scope: 'mine' }`: name, date, score with its Why? and stars, the main event and its winner, title changes, EVT6's crowd with its Why? (`boxOffice.showCrowd`), the box office net with its Why? (`boxOffice.showMoney`, own shows) and "Full results". "No shows yet" before the first                                                             |
-| 60    | main   | `promoPop.lastShow`  | Fans after your last show | EVT5  | `screens/promotion-popularity/officePanel.tsx` | `PopularityChangeList` for the last show (three regions on a phone before "Show all") and a link to its results. Draws nothing before the first show or when the show changed no one's popularity, since the Last show panel already says so                                                                                                                              |
+| Order | Column | Id                   | Panel                     | Owner | Code                                           | What it shows                                                                                                                                                                                                                                                                                                                                                                   |
+| ----- | ------ | -------------------- | ------------------------- | ----- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 10    | side   | `day2.worldClock`    | World clock               | DAY2  | `screens/office/panels/worldClockPanel.tsx`    | Today's date, the day of the game, the season and the next weekly report                                                                                                                                                                                                                                                                                                        |
+| 20    | main   | `day2.worldOverview` | Promotions                | DAY2  | `screens/office/panels/worldOverviewPanel.tsx` | Every promotion's public facts, only for a seat that runs none                                                                                                                                                                                                                                                                                                                  |
+| 30    | side   | `roster.top`         | Top of your roster        | WRK2  | `screens/roster/officePanel.tsx`               | `roster.summary.topByPopularity`: the five wrestlers most popular with the promotion's fans, each with portrait, a link to their profile, push, popularity with its Why? (`roster.explain`) and momentum ("–" before their first appearance), then "View roster". "No wrestlers under contract yet." when there are none                                                        |
+| 35    | side   | `titles.champions`   | Champions                 | CRTV1 | `screens/titles/officePanel.tsx`               | `titles.list { scope: 'own', status: 'active' }` across every brand (brand order, then promotion-wide), one title card each: belt, name linking to the title page, the champion (linking to their profile) or "Vacant", days held, defences, prestige with its Why?; a swipe row on a phone, then "All titles" (Creative > Titles). "No active titles yet." when there are none |
+| 50    | main   | `calendar.nextShow`  | Next show                 | EVT1  | `screens/calendar/officePanel.tsx`             | `calendar.nextShow { scope: 'mine' }` as a lower third: "In 6 days", date, importance, brand, "6 main slots + 1 pre-show", the venue or "Venue not chosen yet", EVT6's expected crowd with its Why? and fit, "Open calendar" and the Booking link ("Book this show", "Edit card" or "Go to the show"). "No shows on the calendar" with a calendar link when there is none       |
+| 55    | main   | `shows.lastShow`     | Last show                 | EVT3  | `screens/show-results/officePanel.tsx`         | `shows.lastCompleted { scope: 'mine' }`: name, date, score with its Why? and stars, the main event and its winner, title changes, EVT6's crowd with its Why? (`boxOffice.showCrowd`), the box office net with its Why? (`boxOffice.showMoney`, own shows) and "Full results". "No shows yet" before the first                                                                   |
+| 60    | main   | `promoPop.lastShow`  | Fans after your last show | EVT5  | `screens/promotion-popularity/officePanel.tsx` | `PopularityChangeList` for the last show (three regions on a phone before "Show all") and a link to its results. Draws nothing before the first show or when the show changed no one's popularity, since the Last show panel already says so                                                                                                                                    |
 
 The Cash card's "Finances" link (ECO1) is a KPI footer, not a panel; the card
 and the top bar's cash chip open the same stored `finance.cash` Why?.
 
 DAY2-06 wired the partners on main when it started: EVT1, EVT3, EVT5, ECO1 and
-EVT6's crowd lines; WRK2-06 added the roster panel. Panels owed by partners not yet in the game, each wired
+EVT6's crowd lines; WRK2-06 added the roster panel; CRTV1-06 added Champions. Panels owed by partners not yet in the game, each wired
 from its own pack in this place:
 
-| Order | Column | Id                 | Panel                        | Owner |
-| ----- | ------ | ------------------ | ---------------------------- | ----- |
-| 5     | main   | chosen by POL5     | Getting started checklist    | POL5  |
-| 15    | main   | chosen by DAY8     | Owner goals and job security | DAY8  |
-| 31    | side   | chosen by SOC1     | Decisions waiting            | SOC1  |
-| 35    | side   | `titles.champions` | Champions                    | CRTV1 |
-| 40    | side   | chosen by DAY6     | Retiring soon                | DAY6  |
-| 70    | side   | chosen by ECO2     | Public image                 | ECO2  |
-| 72    | side   | chosen by ECO3     | Hype                         | ECO3  |
-| 80    | main   | chosen by DAY4     | War report                   | DAY4  |
-| 90    | main   | chosen by DAY1     | Top stories                  | DAY1  |
-| 92    | main   | chosen by SOC7     | Buzz                         | SOC7  |
+| Order | Column | Id             | Panel                        | Owner |
+| ----- | ------ | -------------- | ---------------------------- | ----- |
+| 5     | main   | chosen by POL5 | Getting started checklist    | POL5  |
+| 15    | main   | chosen by DAY8 | Owner goals and job security | DAY8  |
+| 31    | side   | chosen by SOC1 | Decisions waiting            | SOC1  |
+| 40    | side   | chosen by DAY6 | Retiring soon                | DAY6  |
+| 70    | side   | chosen by ECO2 | Public image                 | ECO2  |
+| 72    | side   | chosen by ECO3 | Hype                         | ECO3  |
+| 80    | main   | chosen by DAY4 | War report                   | DAY4  |
+| 90    | main   | chosen by DAY1 | Top stories                  | DAY1  |
+| 92    | main   | chosen by SOC7 | Buzz                         | SOC7  |
 
 ## History fields
 

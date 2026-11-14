@@ -21,7 +21,7 @@ CRTV2 moves prestige over time. Show-night title changes are EVT3's
 | Holders      | `helpers/holders.ts`     | `currentReign`, `currentHolders`, `titlesHeldBy`, `reignLabel`                                                       |
 | Eligibility  | `helpers/eligibility.ts` | `isEligibleHolder`: the one holder check                                                                             |
 | Employment   | `helpers/employment.ts`  | `employedForTitle`, `lastEmployedForTitleOn`, `ringNameForTitle`                                                     |
-| Reign writes | `reigns.ts`              | `openReign`, `closeReign`: the only code that writes reigns                                                          |
+| Reign writes | `reigns.ts`              | `openReign`, `closeReign`, `addDefence`: the only code that writes reigns                                            |
 | Traces       | `traces.ts`              | `titles.prestige` (per title): the Why? behind a belt's prestige                                                     |
 | Events       | `events.ts`              | `title.created`, `title.awarded`, `title.vacated`, `title.retired`, `title.reactivated` (published from CRTV1-03 on) |
 | Queries      | `queries.ts`             | `titles.list`, `titles.detail`, `titles.eligibleHolders` ([queries](#queries))                                       |
@@ -158,8 +158,13 @@ then open the new one.
 champion retired.
 
 EVT3's show-night title change (`systems/shows/titles.ts`) landed before this
-system and still writes its reigns itself; CRTV1-06 points it at these two
-functions.
+system; since CRTV1-06 it closes the old reign (`lost`) and opens the new one
+with these two functions and counts a defence with `addDefence(ctx, reignId)`,
+the third writer in `reigns.ts`. A source-scan test in
+`test/systems/titles/reigns.test.ts` fails if any other file creates, updates
+or deletes `titleReigns` rows. Code that only reads the champion goes through
+`currentReign` / `currentHolders` (booking checks, the finish check, the
+booking view and AI inputs since CRTV1-06).
 
 ## Tiers
 
@@ -403,6 +408,26 @@ ECO11 call-ups), `retireTitle(ctx, { titleId, source })` and
 `reactivateTitle(...)`. They throw on misuse (vacating a vacant title,
 retiring a retired one) and do not check who may: callers do.
 
+## Who calls what
+
+Partner features reach titles only through the helpers, doors and queries
+above. Wired by CRTV1-06 (partners on main when it started: DAY2, ECO4, and
+EVT3 for the reign writers):
+
+| Partner | Calls                                                            | Where                                                                                               |
+| ------- | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| EVT3    | `currentReign`, `closeReign` (`lost`), `openReign`, `addDefence` | `systems/shows/titles.ts`, show night's title outcomes                                              |
+| EVT2    | `currentHolders`                                                 | booking checks (`championMissing`, the other-brand warning), the finish check, the booking view     |
+| AIP     | `currentReign`                                                   | `systems/aip/inputs.ts` (`openReignOf`), rival booking and results                                  |
+| ECO4    | `titlesHeldBy`; vacancies left to `titles.vacateOrphaned`        | the release preview's `holdsTitle` warning, rival renewals and release answers, the contract list   |
+| DAY2    | `titles.list { scope: 'own', status: 'active' }`                 | the Office's Champions panel (`titles.champions`, side, order 35, `screens/titles/officePanel.tsx`) |
+
+Not on main when CRTV1-06 started, so each wires titles from its own pack:
+CRTV6 (brand page Titles tab, `assignTitleBrand`), ECO9 (`retireTitle` when a
+promotion closes), ECO11 (`vacateTitle` with `reasonKey: 'calledUp'` on a
+call-up or send-down) and DAY6 (`closeReign` with `retired` when a champion
+retires).
+
 ## Orphaned champions
 
 `titles.vacateOrphaned` (`phases.ts`, group `contracts`, order 90, daily) keeps
@@ -442,5 +467,7 @@ reaction would be WRK8's.
 | ------------------------ | ------- | ----- | ---- | ------------------------------------------------------------------------------------------ |
 | `titles.orphanGraceDays` | 7       | 0–365 | days | Days a champion may be without a contract with the title's promotion (or its parent) first |
 
-The release preview's `holdsTitle` warning says so: "Holds the <title>. If
-they leave, the title is vacated after 7 days."
+The release preview's `holdsTitle` warning says so: "Rook Halvorsen holds the
+Altura World Championship. It will be vacated after 7 days unless they
+re-sign." Releasing, expiry and walk-outs never vacate a title themselves; this
+phase is the only path (CRTV1-06).

@@ -37,6 +37,7 @@ import type {
   BookingIssueDraft,
 } from '../../booking/validate/types';
 import { finishEffectLabel } from '../formulas/finishEffect';
+import { currentHolders } from '../../titles/helpers/holders';
 import { allowedFinishes } from './allowed';
 import { randomWinnersActive } from './randomWinners';
 import { titleCanChange } from './titleRule';
@@ -112,8 +113,7 @@ function titleIssue(
     competitorSides(input, segment).find((side) => side.side === outcome.winningSide)?.personIds,
   );
   const challenged = segment.match.titleIds.find((titleId) => {
-    const reign = input.read.tables.titleReigns.lookupOne('openByTitle', titleId);
-    return !(reign?.holderIds ?? []).some((holderId) => winners.has(holderId));
+    return !currentHolders(input.read, titleId).some((holderId) => winners.has(holderId));
   });
   if (challenged === undefined) {
     return null;
