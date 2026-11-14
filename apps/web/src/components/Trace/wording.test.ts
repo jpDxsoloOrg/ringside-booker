@@ -130,3 +130,32 @@ describe('tunable rows', () => {
     );
   });
 });
+
+describe("an angle beat's Best stat decision (MTCH5-07)", () => {
+  const bestStat: TraceNode = {
+    kind: 'decision',
+    label: 'Best stat',
+    value: 'mic:manager',
+    chosen: 'mic:manager',
+    reason: 'Best stat: Mic via manager Rex Halden 65.45 (Ring work 18)',
+    considered: [
+      { option: 'mic:manager', score: 65.45, reason: 'Manager Rex Halden stands in on Mic' },
+      { option: 'ringwork', score: 18, reason: 'Ring work 18 × morale 1 × momentum 1 = 18' },
+    ],
+  };
+
+  it('names each option by the stat it is, never by its code', () => {
+    expect(traceValueText(bestStat)).toBe('Mic via manager');
+    const words = describeTraceNode(bestStat);
+    expect(words.text).toBe('Best stat: Mic via manager');
+    expect(words.items).toEqual([
+      'Chosen: Mic via manager, score 65.45 · Manager Rex Halden stands in on Mic',
+      'Also considered: Ring work, score 18 · Ring work 18 × morale 1 × momentum 1 = 18',
+    ]);
+  });
+
+  it('leaves the same codes alone in any other decision', () => {
+    const other: TraceNode = { ...bestStat, label: 'Something else', chosen: 'ringwork' };
+    expect(traceValueText(other)).toBe('Ringwork');
+  });
+});
