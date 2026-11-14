@@ -13,11 +13,7 @@ import { z } from 'zod';
 import type { SegmentId } from '../../core/ids';
 import { EntityNotFoundError } from '../../core/errors';
 import { compareIds } from '../../model/table';
-import {
-  MAX_SIDE,
-  PARTICIPANT_ROLES,
-  ParticipantSchema,
-} from '../../model/entities/participant';
+import { MAX_SIDE, PARTICIPANT_ROLES, ParticipantSchema } from '../../model/entities/participant';
 import {
   AngleDetailsSchema,
   MatchDetailsSchema,

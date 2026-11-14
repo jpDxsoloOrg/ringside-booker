@@ -104,14 +104,13 @@ export function settingLabel(setting: AngleSetting): string {
 }
 
 /** The tunable holding a setting's crowd share. */
-export type SettingCrowdShareKey = `match.angle.setting.${Exclude<AngleSetting, 'ring'>}.crowdShare`;
+export type SettingCrowdShareKey =
+  `match.angle.setting.${Exclude<AngleSetting, 'ring'>}.crowdShare`;
 /** The tunable holding a setting's duration shift. */
 export type SettingDurationShiftKey =
   `match.angle.setting.${Exclude<AngleSetting, 'ring'>}.durationShift`;
 
-export function settingCrowdShareKey(
-  setting: Exclude<AngleSetting, 'ring'>,
-): SettingCrowdShareKey {
+export function settingCrowdShareKey(setting: Exclude<AngleSetting, 'ring'>): SettingCrowdShareKey {
   return `match.angle.setting.${setting}.crowdShare`;
 }
 

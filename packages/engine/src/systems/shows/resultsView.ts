@@ -490,7 +490,10 @@ function segmentViewOf(
     ? (matchType?.name ?? typeKey)
     : (angleTypeOf(read, typeKey)?.name ?? typeKey);
   const durationClass = durationClassOf(
-    { role, matchType: isMatch ? matchType : settingDurationShifter(settingOf(segment), deps.tunables) },
+    {
+      role,
+      matchType: isMatch ? matchType : settingDurationShifter(settingOf(segment), deps.tunables),
+    },
     slotDeps,
   ).value;
   const run = instance.status === 'completed';

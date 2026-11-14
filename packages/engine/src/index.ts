@@ -3601,9 +3601,5 @@ export type {
 export { talkLine, talkLineOf, talkRoleWithFallback } from './systems/match/angles/talkLine';
 export type { TalkLinePerson } from './systems/match/angles/talkLine';
 export { angleDurationClass } from './systems/match/angles/rateAngle';
-export {
-  TALK_CHECK_ID,
-  TALK_CHECK_LABEL,
-  talkCheck,
-} from './systems/booking/validate/checks/talk';
+export { TALK_CHECK_ID, TALK_CHECK_LABEL, talkCheck } from './systems/booking/validate/checks/talk';
 export { SETTING_STREAM } from './systems/aip/card/streams';

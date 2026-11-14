@@ -32,10 +32,7 @@ import {
   type MatchSegment,
   type Segment,
 } from '../../model/entities/segment';
-import {
-  DEFAULT_ANGLE_SETTING,
-  type AngleSetting,
-} from '../../model/entities/angle-setting';
+import { DEFAULT_ANGLE_SETTING, type AngleSetting } from '../../model/entities/angle-setting';
 import { compareIds } from '../../model/table';
 import { defaultSettingOf } from '../match/angles/settings';
 import type { GameTables, GameWorldView } from '../../model/tables';

@@ -52,8 +52,7 @@ export function talkLine(setting: AngleSetting, people: readonly TalkLinePerson[
   const withs = people.filter(withClient);
   const leads = interviewers.length > 0 ? interviewers : authorities;
   const others = people.filter((person) => !leads.includes(person) && !withs.includes(person));
-  const names = (list: readonly TalkLinePerson[]): string =>
-    and(list.map((person) => person.name));
+  const names = (list: readonly TalkLinePerson[]): string => and(list.map((person) => person.name));
 
   if (setting === 'ring' && leads.length === 0 && withs.length === 0) {
     return null;
@@ -80,7 +79,9 @@ export function talkRoleWithFallback(
   participant: Pick<DeepReadonly<Participant>, 'talkRole'>,
   hired: Pick<DeepReadonly<Employment>, 'role'> | undefined,
 ): TalkRole {
-  return participant.talkRole ?? (hired === undefined ? 'wrestler' : talkRoleForEmployment(hired.role));
+  return (
+    participant.talkRole ?? (hired === undefined ? 'wrestler' : talkRoleForEmployment(hired.role))
+  );
 }
 
 /**

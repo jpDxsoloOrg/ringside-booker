@@ -41,12 +41,7 @@ import type {
   SegmentRatingSlot,
   SegmentWarning,
 } from '../rating/types';
-import {
-  SLOT_ROLES,
-  slotRoleOf,
-  type DurationClass,
-  type SlotRole,
-} from '../slots';
+import { SLOT_ROLES, slotRoleOf, type DurationClass, type SlotRole } from '../slots';
 import { assignAngleSides } from './beatGroups';
 import { beatLimitMessage, beatLimitOf } from './beatLimit';
 import { angleDurationClass, type BeatResult } from './rateAngle';

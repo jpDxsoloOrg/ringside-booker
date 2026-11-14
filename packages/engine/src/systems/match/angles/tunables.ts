@@ -214,10 +214,10 @@ export const angleTunables = defineTunables({
   ),
   'match.angle.setting.backstage.durationShift': durationShift(
     -1,
-    'Steps a backstage segment moves its slot\'s duration class (-1: one step shorter)',
+    "Steps a backstage segment moves its slot's duration class (-1: one step shorter)",
   ),
   'match.angle.setting.video.durationShift': durationShift(
     0,
-    'Steps a pre-taped segment moves its slot\'s duration class (-1: one step shorter)',
+    "Steps a pre-taped segment moves its slot's duration class (-1: one step shorter)",
   ),
 });
