@@ -1,5 +1,5 @@
 import { memo, useMemo, useRef } from 'react';
-import type { AriaAttributes, KeyboardEvent, MouseEvent } from 'react';
+import type { AriaAttributes, FocusEvent, KeyboardEvent, MouseEvent } from 'react';
 import { classNames } from '../classNames';
 import { Icon } from '../Icon';
 import { VisuallyHidden } from '../layout';
@@ -157,6 +157,41 @@ function WindowSpacer({ heightPx, columnCount }: WindowSpacerProps) {
   );
 }
 
+/** Room kept around a control scrolled into view: its focus ring and a little air. */
+const REVEAL_ROOM_PX = 8;
+
+/**
+ * Scrolls a header button or a control in a cell fully into the scroller when it takes focus.
+ * Browsers leave a control that is already partly in view where it is, so Tabbing back along a
+ * table wider than its scroller can land on a link half under the edge, its focus ring cut off.
+ * The table itself (focused for the arrow keys) is as big as the scrolled content and is skipped.
+ */
+function revealFocusedControl(event: FocusEvent<HTMLDivElement>): void {
+  const scroller = event.currentTarget;
+  const control = event.target;
+  if (!(control instanceof HTMLElement) || control.tagName === 'TABLE') return;
+  const area = scroller.getBoundingClientRect();
+  const box = control.getBoundingClientRect();
+
+  const left = area.left + scroller.clientLeft;
+  const right = left + scroller.clientWidth;
+  if (box.left - REVEAL_ROOM_PX < left) {
+    scroller.scrollLeft -= left - (box.left - REVEAL_ROOM_PX);
+  } else if (box.right + REVEAL_ROOM_PX > right) {
+    scroller.scrollLeft += box.right + REVEAL_ROOM_PX - right;
+  }
+
+  // Rows scroll under the sticky header, so a control in the body is kept below it.
+  const header = control.closest('thead') === null ? scroller.querySelector('thead') : null;
+  const top = area.top + scroller.clientTop + (header?.getBoundingClientRect().height ?? 0);
+  const bottom = area.top + scroller.clientTop + scroller.clientHeight;
+  if (box.top - REVEAL_ROOM_PX < top) {
+    scroller.scrollTop -= top - (box.top - REVEAL_ROOM_PX);
+  } else if (box.bottom + REVEAL_ROOM_PX > bottom) {
+    scroller.scrollTop += box.bottom + REVEAL_ROOM_PX - bottom;
+  }
+}
+
 /** The row a key press should select, or undefined when the key is not a navigation key. */
 function targetIndexForKey(
   key: string,
@@ -301,7 +336,7 @@ export function DataTableTable<Row>({
   }
 
   return (
-    <div ref={scrollerRef} className={styles['scroller']}>
+    <div ref={scrollerRef} className={styles['scroller']} onFocus={revealFocusedControl}>
       <table
         role="grid"
         tabIndex={0}
