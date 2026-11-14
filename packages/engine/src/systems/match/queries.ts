@@ -239,7 +239,7 @@ export interface SlotInfoArgs {
    */
   setting?: AngleSetting | undefined;
   /** EVT4-08: the time the booker set; left out = the role's usual time. */
-  bookedLength?: DurationClass | undefined;
+  bookedTime?: DurationClass | undefined;
 }
 
 /** `match.slotInfo`: what one slot role gives a segment, with the rules that decided it. */
@@ -493,7 +493,7 @@ const slotInfoArgs = z.strictObject({
   typeKey: zContentKey.optional(),
   setting: z.enum(ANGLE_SETTINGS).optional(),
   /** EVT4-08: the time the booker set; left out = the role's usual time. */
-  bookedLength: z.enum(DURATION_CLASSES).optional(),
+  bookedTime: z.enum(DURATION_CLASSES).optional(),
 });
 
 /**
@@ -527,7 +527,7 @@ export const slotInfoQuery: QueryDefinition<'match.slotInfo'> = defineQuery('mat
         ? settingDurationShifter(args.setting, ctx.tunables)
         : matchType;
     const duration = durationClassOf(
-      { role: args.slotRole, matchType: shifter, booked: args.bookedLength ?? null },
+      { role: args.slotRole, matchType: shifter, booked: args.bookedTime ?? null },
       deps,
     );
     const weight = slotWeightOf({ role: args.slotRole }, deps);

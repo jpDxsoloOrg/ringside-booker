@@ -35,7 +35,7 @@ export interface PreviewArgs {
   sides: PersonId[][];
   slotRole: SlotRole;
   /** EVT4-08: the time the booker set; left out = the role's usual time. */
-  bookedLength?: DurationClass | undefined;
+  bookedTime?: DurationClass | undefined;
   importance: EventImportance;
   regionId: RegionId;
   televised: boolean;
@@ -63,7 +63,7 @@ const previewArgsShape = {
     .min(1)
     .max(MAX_SIDE + 1),
   slotRole: z.enum(SLOT_ROLES),
-  bookedLength: z.enum(DURATION_CLASSES).optional(),
+  bookedTime: z.enum(DURATION_CLASSES).optional(),
   importance: zEventImportance,
   regionId: zId('region'),
   televised: z.boolean(),
@@ -144,7 +144,7 @@ export function previewInputOf(
     typeKey: args.typeKey,
     sides: args.sides.map((personIds, side) => ({ side, personIds: [...personIds] })),
     slot: { role: args.slotRole },
-    ...(args.bookedLength === undefined ? {} : { bookedLength: args.bookedLength }),
+    ...(args.bookedTime === undefined ? {} : { bookedTime: args.bookedTime }),
     event: {
       importance: args.importance,
       regionId: args.regionId,

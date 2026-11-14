@@ -151,7 +151,7 @@ export function labSegmentSpec(
     importance: draft.importance,
     kind: draft.kind,
     durationClass: durationClassOf(
-      { role: draft.slotRole, matchType, booked: draft.bookedLength ?? null },
+      { role: draft.slotRole, matchType, booked: draft.bookedTime ?? null },
       { tunables },
     ).value,
     sides,

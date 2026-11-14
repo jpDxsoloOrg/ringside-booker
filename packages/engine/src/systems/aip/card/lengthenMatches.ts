@@ -46,7 +46,7 @@ function candidatesOf(
       segment?.kind === 'match' &&
       !segment.preShow &&
       segment.slot < slots - 1 &&
-      segment.bookedLength === undefined
+      segment.bookedTime === undefined
     ) {
       found.push(segment);
     }
@@ -96,7 +96,7 @@ export function lengthenMatches(ctx: ShowBookingContext, input: BookedCardInput)
   const { instance } = input;
   const chosen = matchesToLengthen(ctx.read, instance, input.segmentIds, ctx.tunables);
   for (const segmentId of chosen) {
-    ctx.tx.update('segments', segmentId, (previous) => ({ ...previous, bookedLength: 'long' }));
+    ctx.tx.update('segments', segmentId, (previous) => ({ ...previous, bookedTime: 'long' }));
   }
   if (chosen.length > 0) {
     ctx.log(

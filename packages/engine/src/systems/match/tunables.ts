@@ -401,7 +401,7 @@ export const matchTunables = defineTunables({
     'ratio',
     'Performance lost per point of stamina below the need; 0 turns the check off',
   ),
-  'match.workRate.lengthenedFatigueShare': workRateNumber(
+  'match.workRate.extendedFatigueShare': workRateNumber(
     0.25,
     PER_POINT_RANGE,
     'ratio',
@@ -510,7 +510,7 @@ export const matchTunables = defineTunables({
     'Expectation change at a flagship event',
   ),
   'match.expectation.televised': expectationOffset(2, 'Expectation change when the show is on TV'),
-  'match.expectation.lengthStep': expectationOffset(
+  'match.expectation.timeStep': expectationOffset(
     4,
     'Expectation change per step a booker sets a segment longer than usual (negative per step shorter)',
   ),

@@ -224,11 +224,11 @@ export interface BookingSlotView {
    * EVT4-08: the time a segment in this slot gets when the booker sets none (the role's usual
    * Short, Standard or Long, before a match type shifts it).
    */
-  usualLength: DurationClass;
+  usualTime: DurationClass;
   /** EVT4-08: the time the booker set for the segment here, or null for the usual. */
-  bookedLength: DurationClass | null;
+  bookedTime: DurationClass | null;
   /** EVT4-08: true for the main event, which always stays long. */
-  lengthLocked: boolean;
+  timeLocked: boolean;
   /** EVT4-08: show time the segment here takes (0 for an open slot). */
   timeUnits: number;
   weight: number;
@@ -309,7 +309,7 @@ export interface BookingTimeView {
   /** How far over the budget the card is; 0 when it fits. */
   over: number;
   /** True when the booker set any segment longer than usual (then over the budget blocks). */
-  lengthened: boolean;
+  extended: boolean;
   usedTrace: TraceNode;
   budgetTrace: TraceNode;
 }
@@ -503,11 +503,11 @@ function slotViewOf(
       ? settingDurationShifter(settingOf(segment), deps.tunables)
       : matchType;
   const duration = durationClassOf(
-    { role: role.value, matchType: shifter, booked: segment?.bookedLength ?? null },
+    { role: role.value, matchType: shifter, booked: segment?.bookedTime ?? null },
     slotDeps,
   );
   const weight = slotWeightOf({ role: role.value }, slotDeps);
-  const usualLength = durationClassOf({ role: role.value, matchType: null }, slotDeps).value;
+  const usualTime = durationClassOf({ role: role.value, matchType: null }, slotDeps).value;
   return {
     slot,
     displayNumber: slot + 1,
@@ -516,9 +516,9 @@ function slotViewOf(
     roleLabel: SLOT_ROLE_LABELS[role.value],
     durationClass: duration.value,
     durationLabel: DURATION_CLASS_LABELS[duration.value],
-    usualLength,
-    bookedLength: segment?.bookedLength ?? null,
-    lengthLocked: role.value === 'mainEvent',
+    usualTime,
+    bookedTime: segment?.bookedTime ?? null,
+    timeLocked: role.value === 'mainEvent',
     timeUnits: segment === undefined ? 0 : timeUnitsOf(duration.value, deps.tunables),
     weight: weight.value,
     roleTrace: role.trace,
@@ -635,7 +635,7 @@ function timeViewOf(
     used: time.used.value,
     budget: time.budget.value,
     over: time.over,
-    lengthened: time.lengthened,
+    extended: time.extended,
     usedTrace: time.used.trace,
     budgetTrace: time.budget.trace,
   };

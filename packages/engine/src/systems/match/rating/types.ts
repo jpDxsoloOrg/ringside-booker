@@ -53,7 +53,7 @@ export interface SegmentRatingInput {
    * EVT4-08: the time the booker set (Short, Standard or Long) in place of the role's usual class.
    * Left out or null: the role's usual class.
    */
-  readonly bookedLength?: DurationClass | null;
+  readonly bookedTime?: DurationClass | null;
   readonly event: SegmentRatingEvent;
   /** The promotion running the show: momentum is read from contracts with it. */
   readonly promotionId: PromotionId;

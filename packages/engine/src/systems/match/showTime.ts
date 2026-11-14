@@ -5,9 +5,9 @@
  * (`match.time.units.<class>`: Short 1, Standard 2, Long 3), and a show has room for the time its
  * format takes when every slot keeps its role's usual class, plus extra room by importance
  * (`match.time.room.<importance>`): a weekly show has room for about one more long match, a flagship
- * show for several. The booker spends that room by setting a segment's time (`bookedLength`), and
+ * show for several. The booker spends that room by setting a segment's time (`bookedTime`), and
  * gets it back by shortening another. A card with every slot at its usual time always fits, so the
- * defaults score exactly as before; the booking check only fails a card the booker lengthened.
+ * defaults score exactly as before; the booking check only fails a card the booker extended.
  *
  * Design: docs/design/match-rating.md#show-time.
  */
@@ -98,7 +98,7 @@ export function segmentDurationOf(
   const inputs: DurationClassInputs = {
     role: role.value,
     matchType: durationShifterOf(read, segment, tunables),
-    booked: segment.bookedLength ?? null,
+    booked: segment.bookedTime ?? null,
   };
   const duration = durationClassOf(inputs, deps);
   return { role, duration, ...bookedSteps(inputs, duration.value, tunables) };
@@ -197,7 +197,7 @@ export interface ShowTime {
   /** How far over the budget the card is; 0 when it fits. */
   readonly over: number;
   /** True when the booker set any segment longer than its usual class. */
-  readonly lengthened: boolean;
+  readonly extended: boolean;
 }
 
 function placeOf(segment: DeepReadonly<Segment>): string {
@@ -216,13 +216,13 @@ export function showTimeOf(
     (left, right) => Number(right.preShow) - Number(left.preShow) || left.slot - right.slot,
   );
   const timed: TimedSlot[] = [];
-  let lengthened = false;
+  let extended = false;
   for (const segment of segments) {
     const duration = segmentDurationOf(read, segment, instance.format, tunables);
     if (duration === null) {
       continue;
     }
-    lengthened ||= duration.steps > 0;
+    extended ||= duration.steps > 0;
     timed.push({ place: placeOf(segment), durationClass: duration.duration.value });
   }
   const used = cardTimeUsed(timed, { tunables });
@@ -230,7 +230,7 @@ export function showTimeOf(
     { importance: instance.importance, roles: formatRoles(instance.format, tunables) },
     { tunables },
   );
-  return { used, budget, over: Math.max(0, used.value - budget.value), lengthened };
+  return { used, budget, over: Math.max(0, used.value - budget.value), extended };
 }
 
 /** "Over the show's time by 2: shorten a match or drop a segment." */

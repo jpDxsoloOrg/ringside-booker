@@ -58,7 +58,7 @@ export function TimeUsedBar({ time }: TimeUsedBarProps) {
       </div>
       <p
         className={styles['timeUsedNote']}
-        data-over={over ? (time.lengthened ? 'error' : 'warning') : undefined}
+        data-over={over ? (time.extended ? 'error' : 'warning') : undefined}
       >
         {timeNoteText(time)}
       </p>

@@ -63,7 +63,7 @@ The role gives the base class: `match.slot.durationClass.<role>` for the
 pre-show, opener, midcard and semi-main. The main event has no tunable: it is
 always long ("D-10: the main event is always the long slot").
 
-EVT4-08: when the booker set the segment's time (`segment.bookedLength`, passed
+EVT4-08: when the booker set the segment's time (`segment.bookedTime`, passed
 as `booked`), it replaces the role's class before the shift, with the line
 "Booked Long (Midcard is usually Standard)". The main event ignores it ("Booked
 Short, but the main event stays long").
@@ -87,7 +87,7 @@ flagship 6. Open slots leave their time free.
   15", then "Regular show: room for +1".
 - `cardTimeUsed(slots, deps)`: one line per filled slot, "Slot 2: Long +3".
 - `showTimeOf(read, instance, tunables)`: both, how far over the card is, and
-  whether the booker set any segment longer than usual (`lengthened`).
+  whether the booker set any segment longer than usual (`extended`).
 - `segmentDurationOf(read, segment, format, tunables)`: a stored segment's role,
   class, its usual class and the steps the booked time moves it.
 
@@ -102,11 +102,11 @@ of 16" as a bar with a Why? for each number; the segment editor has a Time choic
 What a longer match does:
 
 - **Star limit**: the class's `match.stars.cap.*` (a long match can reach 5).
-- **Expectation**: `match.expectation.lengthStep` (4) per step the booked time
+- **Expectation**: `match.expectation.timeStep` (4) per step the booked time
   moves the class, "Booked long: crowd expects +4"; a shorter match lowers it.
   A longer match must deliver more to land, so it is a gamble.
 - **Stamina**: the class's stamina need, and a tired worker is short
-  `fatigue × match.workRate.lengthenedFatigueShare` (0.25) stamina per step
+  `fatigue × match.workRate.extendedFatigueShare` (0.25) stamina per step
   booked longer ("Ana Vale is tired for a match booked longer").
 - **Physical toll** (MTCH4) and **beat limits** (MTCH5) follow the class.
 - **Slot weight**: never changes. Length moves the match's own expectation and
@@ -127,18 +127,18 @@ time); weaker pairs lose stars when booked long. A flagship card (10 slots and a
 pre-show) has room for six more steps, so several matches can have the main
 event's 5-star ceiling; a regular 6-slot show has room for one.
 
-| Key                                     | Kind    | Default | Range          | Unit   |
-| --------------------------------------- | ------- | ------- | -------------- | ------ |
-| `match.time.units.short`                | integer | 1       | 0–10           | count  |
-| `match.time.units.standard`             | integer | 2       | 0–10           | count  |
-| `match.time.units.long`                 | integer | 3       | 0–10           | count  |
-| `match.time.room.house`                 | integer | 0       | 0–30           | count  |
-| `match.time.room.minor`                 | integer | 1       | 0–30           | count  |
-| `match.time.room.regular`               | integer | 1       | 0–30           | count  |
-| `match.time.room.major`                 | integer | 3       | 0–30           | count  |
-| `match.time.room.flagship`              | integer | 6       | 0–30           | count  |
-| `match.expectation.lengthStep`          | number  | 4       | −30–30         | points |
-| `match.workRate.lengthenedFatigueShare` | number  | 0.25    | 0–2, step 0.05 | ratio  |
+| Key                                   | Kind    | Default | Range          | Unit   |
+| ------------------------------------- | ------- | ------- | -------------- | ------ |
+| `match.time.units.short`              | integer | 1       | 0–10           | count  |
+| `match.time.units.standard`           | integer | 2       | 0–10           | count  |
+| `match.time.units.long`               | integer | 3       | 0–10           | count  |
+| `match.time.room.house`               | integer | 0       | 0–30           | count  |
+| `match.time.room.minor`               | integer | 1       | 0–30           | count  |
+| `match.time.room.regular`             | integer | 1       | 0–30           | count  |
+| `match.time.room.major`               | integer | 3       | 0–30           | count  |
+| `match.time.room.flagship`            | integer | 6       | 0–30           | count  |
+| `match.expectation.timeStep`          | number  | 4       | −30–30         | points |
+| `match.workRate.extendedFatigueShare` | number  | 0.25    | 0–2, step 0.05 | ratio  |
 
 ### Slot weight
 
@@ -442,7 +442,7 @@ expected = base + starPower × starWeight + momentum × momentumWeight
 ```
 
 plus, for a segment the booker set longer or shorter than usual (EVT4-08),
-`lengthStep × steps` ("Booked long: crowd expects +4"), kept between 0 and 100.
+`timeStep × steps` ("Booked long: crowd expects +4"), kept between 0 and 100.
 Each term is exactly one line: "Base expectation +25",
 "Star power 92.8 × 0.5", "Momentum +0 × 0.1", "Card position: Main event +8",
 "Event size: Regular +0" and "On TV +2" (or "Not on TV +0"). Star power is one

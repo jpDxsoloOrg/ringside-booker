@@ -331,10 +331,10 @@ function EditorBody({
       )}
       <TimeField
         slot={slot}
-        value={draft.bookedLength}
+        value={draft.bookedTime}
         disabled={disabled}
         onChange={(length) => {
-          controls.setBookedLength(length, slot.usualLength);
+          controls.setBookedTime(length, slot.usualTime);
           announce(`Time: ${DURATION_CLASS_LABELS[length]}`);
         }}
       />

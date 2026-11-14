@@ -88,7 +88,7 @@ function durationClassAt(
   const role = roleOf(input, segment);
   return role === null
     ? null
-    : angleDurationClass(role, settingOf(segment), input.tunables, segment.bookedLength ?? null);
+    : angleDurationClass(role, settingOf(segment), input.tunables, segment.bookedTime ?? null);
 }
 
 function lowerFirst(text: string): string {

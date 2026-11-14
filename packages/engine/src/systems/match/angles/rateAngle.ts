@@ -124,7 +124,7 @@ export interface RateAngleInput {
    */
   readonly setting?: AngleSetting;
   /** EVT4-08: the time the booker set in place of the role's usual class. Left out: the usual. */
-  readonly bookedLength?: DurationClass | null;
+  readonly bookedTime?: DurationClass | null;
 }
 
 /**
@@ -394,7 +394,7 @@ export function rateAngle(input: RateAngleInput, deps: RateAngleDeps): AngleRati
   const { tunables } = deps;
   const stage = deps.stage ?? defaultStage(tunables);
   const setting = input.setting ?? 'ring';
-  const booked = input.bookedLength ?? null;
+  const booked = input.bookedTime ?? null;
   const durationClass = angleDurationClass(input.role, setting, tunables, booked);
   const limit = beatLimitOf(durationClass, tunables);
   const max = limit.value;

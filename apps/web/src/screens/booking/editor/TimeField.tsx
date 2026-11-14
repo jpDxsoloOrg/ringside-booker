@@ -16,8 +16,8 @@ export const TIME_HINTS: Readonly<Record<DurationClass, string>> = {
 };
 
 /** "Usual for the Midcard: Standard." */
-export function usualTimeText(slot: Pick<BookingSlotView, 'roleLabel' | 'usualLength'>): string {
-  return `Usual for the ${slot.roleLabel}: ${DURATION_CLASS_LABELS[slot.usualLength]}.`;
+export function usualTimeText(slot: Pick<BookingSlotView, 'roleLabel' | 'usualTime'>): string {
+  return `Usual for the ${slot.roleLabel}: ${DURATION_CLASS_LABELS[slot.usualTime]}.`;
 }
 
 function isDurationClass(value: string): value is DurationClass {
@@ -33,7 +33,7 @@ export interface TimeFieldProps {
 }
 
 export function TimeField({ slot, value, disabled, onChange }: TimeFieldProps) {
-  if (slot.lengthLocked) {
+  if (slot.timeLocked) {
     return <p className={styles['hint']}>Time: Long. The main event always runs long.</p>;
   }
   return (
@@ -44,12 +44,12 @@ export function TimeField({ slot, value, disabled, onChange }: TimeFieldProps) {
         options={DURATION_CLASSES.map((durationClass) => ({
           value: durationClass,
           label:
-            durationClass === slot.usualLength
+            durationClass === slot.usualTime
               ? `${DURATION_CLASS_LABELS[durationClass]} (usual)`
               : DURATION_CLASS_LABELS[durationClass],
           description: TIME_HINTS[durationClass],
         }))}
-        value={value ?? slot.usualLength}
+        value={value ?? slot.usualTime}
         disabled={disabled}
         onValueChange={(next) => {
           if (isDurationClass(next)) onChange(next);

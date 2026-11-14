@@ -4051,8 +4051,8 @@ export {
 } from './systems/broadcast/index';
 export type { DealTarget, DealTargets, RenewalUplift } from './systems/broadcast/index';
 // EVT4-08: the booker sets each segment's time within the show's time budget.
-export { BOOKED_LENGTHS, BookedLengthSchema } from './model/entities/segment';
-export type { BookedLength } from './model/entities/segment';
+export { BOOKED_TIMES, BookedTimeSchema } from './model/entities/segment';
+export type { BookedTime } from './model/entities/segment';
 export type { BookingTimeView } from './systems/booking/index';
 export {
   cardTimeUsed,

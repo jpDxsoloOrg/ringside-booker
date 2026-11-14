@@ -1,5 +1,7 @@
 import { MemoryRouter } from 'react-router-dom';
+import type { ReactElement } from 'react';
 import { act, render, screen, within } from '@testing-library/react';
+import type { RenderResult } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { EngineProvider } from '@/app/engine/EngineProvider';
 import { useTracePanelStore } from '@/components/Trace';
@@ -24,6 +26,11 @@ afterEach(() => {
 
 const money = (amount: number): string => `$${(amount / 100).toLocaleString('en-US')}`;
 const noop = (): void => undefined;
+
+/** The sheet links to the worker's profile, so it renders inside a router, as in the app. */
+function renderInRouter(ui: ReactElement): RenderResult {
+  return render(ui, { wrapper: MemoryRouter });
+}
 
 function props(overrides: Partial<NegotiationSheetViewProps> = {}): NegotiationSheetViewProps {
   return {
@@ -61,7 +68,7 @@ function props(overrides: Partial<NegotiationSheetViewProps> = {}): NegotiationS
 
 describe('NegotiationSheetView', () => {
   it('shows the ask beside the offer, the meter with its Why?, patience and bidders by name', () => {
-    render(<NegotiationSheetView {...props()} />);
+    renderInRouter(<NegotiationSheetView {...props()} />);
     const sheet = screen.getByRole('dialog', { name: 'Rhea Vance' });
     expect(within(sheet).getByRole('meter', { name: 'Their likely reaction' })).toHaveAttribute(
       'aria-valuetext',
@@ -91,7 +98,7 @@ describe('NegotiationSheetView', () => {
         },
       ],
     });
-    render(<NegotiationSheetView {...props({ draft: aStaticDraft({ ask }) })} />);
+    renderInRouter(<NegotiationSheetView {...props({ draft: aStaticDraft({ ask }) })} />);
     expect(screen.getByRole('radio', { name: /Per-appearance deal/u })).toHaveAccessibleDescription(
       'Not for a worker under contract with you',
     );
@@ -106,7 +113,7 @@ describe('NegotiationSheetView', () => {
   });
 
   it("puts a refusal's field reason under that field", () => {
-    render(
+    renderInRouter(
       <NegotiationSheetView
         {...props({
           draft: aStaticDraft({ fieldErrors: { 'offer.terms.monthlyWage': 'Too low to be real' } }),
@@ -119,7 +126,7 @@ describe('NegotiationSheetView', () => {
   });
 
   it('answers a counter with Accept, Revise or End, under the talks so far', () => {
-    render(
+    renderInRouter(
       <EngineProvider createTransport={() => createTraceFixtureTransport([], 0)}>
         <NegotiationSheetView
           {...props({
@@ -145,7 +152,7 @@ describe('NegotiationSheetView', () => {
   });
 
   it('offers Withdraw while they think it over, and nothing once talks are closed', () => {
-    const { rerender } = render(
+    const { rerender } = renderInRouter(
       <NegotiationSheetView
         {...props({
           phase: 'awaitingReview',

@@ -48,7 +48,7 @@ function setLength(
   length: 'short' | 'standard' | 'long',
 ): void {
   change(built, (tx) => {
-    tx.update('segments', segmentId, (previous) => ({ ...previous, bookedLength: length }));
+    tx.update('segments', segmentId, (previous) => ({ ...previous, bookedTime: length }));
   });
 }
 
@@ -107,22 +107,22 @@ describe('the show time budget', () => {
     // The opener (2), the promo in slot 3 (2) and the main event (3).
     expect(time.used.value).toBe(7);
     expect(time.over).toBe(0);
-    expect(time.lengthened).toBe(false);
+    expect(time.extended).toBe(false);
     expect(labels(time.budget.trace)).toContain('Regular show: room for +1');
     expect(labels(time.used.trace)).toContain('Slot 6: Long +3');
   });
 
-  it('counts a booked time, and only a longer one as lengthened', () => {
+  it('counts a booked time, and only a longer one as extended', () => {
     const built = validateWorld();
     const card = bookRunnable(built);
     setLength(built, card.opener, 'short');
     const instance = built.world.tables.eventInstances.require(built.show);
-    expect(showTimeOf(built.world, instance, TUNABLES)).toMatchObject({ lengthened: false });
+    expect(showTimeOf(built.world, instance, TUNABLES)).toMatchObject({ extended: false });
     expect(showTimeOf(built.world, instance, TUNABLES).used.value).toBe(6);
     setLength(built, card.opener, 'long');
     const time = showTimeOf(built.world, instance, TUNABLES);
     expect(time.used.value).toBe(8);
-    expect(time.lengthened).toBe(true);
+    expect(time.extended).toBe(true);
     const duration = segmentDurationOf(
       built.world,
       built.world.tables.segments.require(card.opener),
@@ -163,7 +163,7 @@ describe('match.showTime', () => {
     expect(showTimeIssues(built)).toEqual([]);
   });
 
-  it('blocks a card the booker lengthened past the show time, until another is shortened', () => {
+  it('blocks a card the booker extended past the show time, until another is shortened', () => {
     const built = validateWorld();
     const [opener, second, third, fourth] = fullCard(built);
     if (
@@ -203,7 +203,7 @@ describe('the booked time on the card', () => {
     const built = validateWorld();
     const card = bookRunnable(built);
     setLength(built, card.opener, 'long');
-    expect(draftFromSegment(built.world, card.opener).bookedLength).toBe('long');
+    expect(draftFromSegment(built.world, card.opener).bookedTime).toBe('long');
     const instance = built.world.tables.eventInstances.require(built.show);
     const view = buildCardView(built.world, instance, instance.date, {
       viewer: OMNISCIENT_VIEWER,
@@ -213,13 +213,13 @@ describe('the booked time on the card', () => {
     const opener = main?.slots[0];
     expect(opener).toMatchObject({
       durationClass: 'long',
-      usualLength: 'standard',
-      bookedLength: 'long',
-      lengthLocked: false,
+      usualTime: 'standard',
+      bookedTime: 'long',
+      timeLocked: false,
       timeUnits: 3,
     });
-    expect(main?.slots[5]?.lengthLocked).toBe(true);
-    expect(view.time).toMatchObject({ used: 8, budget: 15, over: 0, lengthened: true });
+    expect(main?.slots[5]?.timeLocked).toBe(true);
+    expect(view.time).toMatchObject({ used: 8, budget: 15, over: 0, extended: true });
   });
 });
 

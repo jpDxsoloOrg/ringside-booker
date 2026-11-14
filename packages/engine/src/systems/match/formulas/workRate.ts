@@ -32,7 +32,7 @@ export interface WorkRateWorker {
   stamina: number;
   /**
    * EVT4-08: stamina a tired worker is short of in a match the booker set longer than usual
-   * (`fatigue × match.workRate.lengthenedFatigueShare` per step). Left out or 0: no line.
+   * (`fatigue × match.workRate.extendedFatigueShare` per step). Left out or 0: no line.
    */
   tiredness?: number;
 }

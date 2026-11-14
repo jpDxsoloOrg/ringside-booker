@@ -79,11 +79,11 @@ interface SlotChipsProps {
   readonly slotRole: SlotRole;
   readonly kind: SegmentKind;
   readonly typeKey: ContentKey | null;
-  readonly bookedLength: DurationClass | null;
+  readonly bookedTime: DurationClass | null;
 }
 
 /** The duration class and weight the slot role gives, each with its Why?, before any Run. */
-function SlotChips({ slotRole, kind, typeKey, bookedLength }: SlotChipsProps) {
+function SlotChips({ slotRole, kind, typeKey, bookedTime }: SlotChipsProps) {
   const ready = kind === 'angle' || typeKey !== null;
   const info = useEngineQuery(
     'match.slotInfo',
@@ -91,7 +91,7 @@ function SlotChips({ slotRole, kind, typeKey, bookedLength }: SlotChipsProps) {
       slotRole,
       kind,
       ...(typeKey === null ? {} : { typeKey }),
-      ...(bookedLength === null ? {} : { bookedLength }),
+      ...(bookedTime === null ? {} : { bookedTime }),
     },
     { enabled: ready },
   );
@@ -157,7 +157,7 @@ export function LabSetupPanel({ options, catalog, rulesLabel }: LabSetupPanelPro
   const setup = useLabStore((state) => state.setup);
   const setType = useLabStore((state) => state.setType);
   const setSlotRole = useLabStore((state) => state.setSlotRole);
-  const setBookedLength = useLabStore((state) => state.setBookedLength);
+  const setBookedTime = useLabStore((state) => state.setBookedTime);
   const setImportance = useLabStore((state) => state.setImportance);
   const setRegion = useLabStore((state) => state.setRegion);
   const setTelevised = useLabStore((state) => state.setTelevised);
@@ -231,9 +231,9 @@ export function LabSetupPanel({ options, catalog, rulesLabel }: LabSetupPanelPro
             <Select
               label="Time"
               options={TIME_OPTIONS}
-              value={setup.bookedLength ?? USUAL_TIME}
+              value={setup.bookedTime ?? USUAL_TIME}
               onValueChange={(value) => {
-                setBookedLength(timeChoiceOf(value));
+                setBookedTime(timeChoiceOf(value));
               }}
             />
           )}
@@ -241,7 +241,7 @@ export function LabSetupPanel({ options, catalog, rulesLabel }: LabSetupPanelPro
             slotRole={setup.slotRole}
             kind={setup.kind}
             typeKey={setup.typeKey}
-            bookedLength={isAngle ? null : (setup.bookedLength ?? null)}
+            bookedTime={isAngle ? null : (setup.bookedTime ?? null)}
           />
         </div>
         <Select

@@ -44,7 +44,7 @@ export interface LabSetup {
   readonly typeKey: ContentKey | null;
   readonly slotRole: SlotRole;
   /** EVT4-08: the time set for the match; left out or null for the slot's usual time. */
-  readonly bookedLength?: DurationClass | null;
+  readonly bookedTime?: DurationClass | null;
   readonly importance: EventImportance;
   /** Null on a world with no regions. */
   readonly regionId: RegionId | null;
@@ -172,7 +172,7 @@ export interface LabState {
   readonly setKind: (kind: SegmentKind, typeKey: ContentKey | null, sideCount: number) => void;
   readonly setType: (typeKey: ContentKey, sideCount: number) => void;
   readonly setSlotRole: (slotRole: SlotRole) => void;
-  readonly setBookedLength: (bookedLength: DurationClass | null) => void;
+  readonly setBookedTime: (bookedTime: DurationClass | null) => void;
   readonly setImportance: (importance: EventImportance) => void;
   readonly setRegion: (regionId: RegionId) => void;
   readonly setTelevised: (televised: boolean) => void;
@@ -268,8 +268,8 @@ export function previewArgsOf(
     typeKey: setup.typeKey,
     sides: sides.map((side) => [...side]),
     slotRole: setup.slotRole,
-    ...(setup.kind === 'match' && (setup.bookedLength ?? null) !== null
-      ? { bookedLength: setup.bookedLength ?? undefined }
+    ...(setup.kind === 'match' && (setup.bookedTime ?? null) !== null
+      ? { bookedTime: setup.bookedTime ?? undefined }
       : {}),
     importance: setup.importance,
     regionId: setup.regionId,
@@ -338,7 +338,7 @@ export function sameSegment(left: PreviewArgs, right: PreviewArgs): boolean {
     left.kind === right.kind &&
     left.typeKey === right.typeKey &&
     left.slotRole === right.slotRole &&
-    left.bookedLength === right.bookedLength &&
+    left.bookedTime === right.bookedTime &&
     left.importance === right.importance &&
     left.regionId === right.regionId &&
     left.televised === right.televised &&
@@ -422,8 +422,8 @@ export const useLabStore = create<LabState>()((set, get) => ({
   setSlotRole: (slotRole) => {
     set((state) => ({ setup: { ...state.setup, slotRole } }));
   },
-  setBookedLength: (bookedLength) => {
-    set((state) => ({ setup: { ...state.setup, bookedLength } }));
+  setBookedTime: (bookedTime) => {
+    set((state) => ({ setup: { ...state.setup, bookedTime } }));
   },
   setImportance: (importance) => {
     set((state) => ({ setup: { ...state.setup, importance } }));

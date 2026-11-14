@@ -268,7 +268,7 @@ export function segmentSpecFromWorld(
     importance: instance.importance,
     kind: 'match',
     durationClass: durationClassOf(
-      { role, matchType, booked: segment.bookedLength ?? null },
+      { role, matchType, booked: segment.bookedTime ?? null },
       slotDeps,
     ).value,
     sides,

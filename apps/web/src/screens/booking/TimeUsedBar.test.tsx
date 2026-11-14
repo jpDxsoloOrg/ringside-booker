@@ -6,17 +6,17 @@ import { parseContentKey } from '@ringside/engine';
 import type { BookingSlotView, BookingTimeView, DurationClass } from '@ringside/engine';
 import { RUNNING_TIME_WORDS } from '@/test/runningTimeWords';
 import { TimeField, TIME_HINTS, usualTimeText } from './editor/TimeField';
-import { emptyDraft, initialDraftState, setBookedLength } from './editor/useSegmentDraft';
+import { emptyDraft, initialDraftState, setBookedTime } from './editor/useSegmentDraft';
 import { TimeUsedBar, timeNoteText, timeUsedText } from './TimeUsedBar';
 
 const TRACE = { kind: 'input', label: 'Time', value: 0 } as const;
 
-function time(used: number, budget: number, lengthened = false): BookingTimeView {
+function time(used: number, budget: number, extended = false): BookingTimeView {
   return {
     used,
     budget,
     over: Math.max(0, used - budget),
-    lengthened,
+    extended,
     usedTrace: TRACE,
     budgetTrace: TRACE,
   };
@@ -31,9 +31,9 @@ function slot(role: BookingSlotView['role'], roleLabel: string): BookingSlotView
     roleLabel,
     durationClass: 'standard',
     durationLabel: 'Standard',
-    usualLength: role === 'mainEvent' ? 'long' : 'standard',
-    bookedLength: null,
-    lengthLocked: role === 'mainEvent',
+    usualTime: role === 'mainEvent' ? 'long' : 'standard',
+    bookedTime: null,
+    timeLocked: role === 'mainEvent',
     timeUnits: 2,
     weight: 1,
     roleTrace: TRACE,
@@ -109,13 +109,13 @@ describe('the booked time in the draft', () => {
   });
 
   it('stores a time other than the usual one', () => {
-    expect(setBookedLength(start, 'long', 'standard').draft.bookedLength).toBe('long');
+    expect(setBookedTime(start, 'long', 'standard').draft.bookedTime).toBe('long');
   });
 
   it('stores nothing for the usual time, so the segment follows its slot', () => {
-    const long = setBookedLength(start, 'long', 'standard');
-    const back = setBookedLength(long, 'standard', 'standard');
-    expect('bookedLength' in back.draft).toBe(false);
-    expect(setBookedLength(start, 'standard', 'standard')).toBe(start);
+    const long = setBookedTime(start, 'long', 'standard');
+    const back = setBookedTime(long, 'standard', 'standard');
+    expect('bookedTime' in back.draft).toBe(false);
+    expect(setBookedTime(start, 'standard', 'standard')).toBe(start);
   });
 });

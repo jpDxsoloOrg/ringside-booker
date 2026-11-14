@@ -142,7 +142,7 @@ export function crowdExpectation(
   if (booked !== undefined && booked.steps !== 0) {
     const perStep = calc.tunable(
       tunables,
-      'match.expectation.lengthStep',
+      'match.expectation.timeStep',
       'Expectation per step of booked time',
     );
     const change = perStep * booked.steps;

@@ -265,7 +265,7 @@ export function storedAngleAftermathInput(
     roleKey,
     settingOf(segment),
     tunables,
-    segment.bookedLength ?? null,
+    segment.bookedTime ?? null,
   );
   const max = beatLimitOf(durationClass, tunables).value;
   return {

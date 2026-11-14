@@ -240,7 +240,7 @@ function prepareSimulation(ctx: QueryContext, args: SimulateArgs): PreparedSimul
     {
       role: args.slotRole,
       matchType: matchTypeOf(read, args.typeKey) ?? null,
-      booked: args.bookedLength ?? null,
+      booked: args.bookedTime ?? null,
     },
     { tunables: ctx.tunables },
   ).value;

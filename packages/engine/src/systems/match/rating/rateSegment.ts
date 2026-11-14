@@ -250,7 +250,7 @@ export function rateSegment(
     resolved.matchType,
     tunables,
     input.kind === 'angle' ? input.angle?.setting : undefined,
-    input.bookedLength ?? null,
+    input.bookedTime ?? null,
   );
   const ctx: RatingContext = {
     mode: options.mode ?? 'preview',

@@ -302,7 +302,7 @@ export function angleInputFromContext(
     policyLabel: ctx.policy.lines[0] ?? ctx.policy.label,
     notes: resolved.notes,
     ...(input.angle?.setting === undefined ? {} : { setting: input.angle.setting }),
-    bookedLength: input.bookedLength ?? null,
+    bookedTime: input.bookedTime ?? null,
   };
 }
 

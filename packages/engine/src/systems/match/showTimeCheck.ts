@@ -29,7 +29,7 @@ function showTimeIssues(input: BookingCheckInput): BookingIssueDraft[] {
   return [
     {
       code: OVER_TIME_CODE,
-      severity: time.lengthened ? 'error' : 'warning',
+      severity: time.extended ? 'error' : 'warning',
       message: overTimeMessage(time.over),
     },
   ];
