@@ -40,6 +40,7 @@ import type { Person } from '../../src/model/entities/person';
 import type { Promotion } from '../../src/model/entities/promotion';
 import type { InjuryRecord } from '../../src/model/entities/injury';
 import type { PromotionSnapshot } from '../../src/model/entities/promotion-snapshot';
+import type { Storyline, StorylineSide } from '../../src/model/entities/storyline';
 import type { Title } from '../../src/model/entities/title';
 import type { RowOf } from '../../src/model/table-def';
 import { TABLES, type GameTables, type GameWorld } from '../../src/model/tables';
@@ -64,6 +65,7 @@ import {
   aSeason,
   aTitle,
   aTitleReign,
+  aStoryline,
 } from './builders/creative';
 import { aContinent, aCountry, aRegion } from './builders/geography';
 import { anInjury } from './builders/injury';
@@ -269,6 +271,11 @@ export interface TitleHolding {
   readonly wonOn?: GameDate;
 }
 
+export interface StorylineCast {
+  /** `[rosterIndex, side]` pairs, in stored order. Roster indexes count across `withRoster` calls. */
+  readonly members: readonly (readonly [number, StorylineSide])[];
+}
+
 export interface WeeklyShow {
   readonly name?: string;
   /** 0 = Monday .. 6 = Sunday. Mondays when left out. */
@@ -284,6 +291,10 @@ export class PromotionBuilder {
   readonly shows: {
     readonly show: WeeklyShow;
     readonly overrides: DeepPartial<EventDefinition>;
+  }[] = [];
+  readonly storylines: {
+    readonly fields: DeepPartial<Storyline>;
+    readonly cast: StorylineCast;
   }[] = [];
 
   /** Adds a brand. The first brand is the flagship and gets the roster and the shows. */
@@ -309,11 +320,21 @@ export class PromotionBuilder {
     this.shows.push({ show, overrides });
     return this;
   }
+
+  /**
+   * Adds a storyline of this promotion (CRTV3-01) with roster members on the given sides. It starts
+   * on the world's start date with heat 50 and is active unless `fields` say otherwise.
+   */
+  withStoryline(fields: DeepPartial<Storyline>, cast: StorylineCast): this {
+    this.storylines.push({ fields, cast });
+    return this;
+  }
 }
 
 /**
  * Adds a promotion and what its builder collected, in this order: the promotion, its brands, its
- * roster (people, then their employments with the first brand), its titles and reigns, its shows.
+ * roster (people, then their employments with the first brand), its titles and reigns, its shows,
+ * its storylines.
  * People are based in the promotion's home region, which defaults to the world's first region.
  */
 function addPromotion(
@@ -420,6 +441,25 @@ function addPromotion(
           ...(show.name === undefined ? {} : { name: show.name }),
           ...showOverrides,
         },
+        sequence,
+      ),
+    );
+  }
+
+  for (const { fields, cast } of plan.storylines) {
+    const members = cast.members.map(([rosterIndex, side]) => {
+      const member = roster[rosterIndex];
+      if (member === undefined) {
+        throw new Error(
+          `WorldBuilder: storyline names roster index ${String(rosterIndex)}, but the roster has ${String(roster.length)} people`,
+        );
+      }
+      return { personId: member.personId, side };
+    });
+    context.insert(
+      'storylines',
+      aStoryline(
+        { promotionId: promotion.id, startedOn: startDate, heat: 50, ...fields, members },
         sequence,
       ),
     );

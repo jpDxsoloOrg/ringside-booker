@@ -209,6 +209,54 @@ describe('WorldBuilder', () => {
     expect(weekday(world.meta.startDate)).toBe(0);
   });
 
+  it('adds storylines with roster members on their sides (CRTV3-01)', () => {
+    const { world, ids } = worldBuilder()
+      .withGeography('mini')
+      .withPromotion({}, (promotion) =>
+        promotion
+          .withRoster(3)
+          .withStoryline(
+            { name: 'Test Feud' },
+            {
+              members: [
+                [2, 'heel'],
+                [0, 'face'],
+              ],
+            },
+          )
+          .withStoryline({ name: 'Test Old Feud', heat: 80 }, { members: [[1, 'neutral']] }),
+      )
+      .build();
+    expectValidWorld(world);
+    const [feud, old] = ids.storylines.map((id) => world.tables.storylines.require(id));
+    expect(feud).toMatchObject({
+      promotionId: ids.promotions.A,
+      name: 'Test Feud',
+      status: 'active',
+      startedOn: world.meta.startDate,
+      endedOn: null,
+      heat: 50,
+      lastProgressOn: null,
+      finaleSegmentId: null,
+      members: [
+        { personId: ids.people[2], side: 'heel' },
+        { personId: ids.people[0], side: 'face' },
+      ],
+    });
+    expect(old?.heat).toBe(80);
+  });
+
+  it('refuses a storyline member outside the roster', () => {
+    expect(() =>
+      worldBuilder()
+        .withGeography('mini')
+        .withPromotion({}, (promotion) =>
+          promotion.withRoster(1).withStoryline({}, { members: [[4, 'face']] }),
+        )
+        .build(),
+    ).toThrow(/roster index 4/);
+  });
+
   it('creates an active season 1 from the start date unless told not to', () => {
     const { world } = worldBuilder({ startDate: '2026-03-02' }).build();
     expect(world.tables.seasons.values()).toEqual([
