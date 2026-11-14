@@ -1,0 +1,75 @@
+/*
+ * The results page's Storylines section: one block per linked segment with its heat chips, the
+ * links that didn't count and the members who lost inside a storyline. Chips sit in a row on
+ * desktop and wrap into a single column on a phone.
+ */
+.section {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.segments {
+  display: grid;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.segment {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--color-border);
+}
+
+.segment:first-child {
+  padding-block-start: 0;
+  border-block-start: 0;
+}
+
+.slot {
+  margin: 0;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.chips,
+.losers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.loser {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  min-inline-size: 0;
+}
+
+.lostInside {
+  color: var(--color-text-muted);
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+@media (--bp-mobile) {
+  .chips,
+  .losers {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

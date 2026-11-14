@@ -1,0 +1,29 @@
+/*
+ * Heat change chip: a storyline's name, its heat before and after one segment, the change and an
+ * optional Finale badge. It wraps onto more lines in a narrow column rather than overflowing.
+ */
+.chip {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+
+.name {
+  font-weight: var(--font-weight-bold);
+  overflow-wrap: anywhere;
+}
+
+.numbers {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  white-space: nowrap;
+}
+
+.noChange {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}

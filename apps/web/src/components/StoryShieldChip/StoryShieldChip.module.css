@@ -1,0 +1,13 @@
+/* Story shield chip: the shield badge, an optional "in the finale" note and its Why?. */
+.chip {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  max-inline-size: 100%;
+}
+
+.finale {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}

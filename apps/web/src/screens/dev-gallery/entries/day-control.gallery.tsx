@@ -18,6 +18,7 @@ const TODAY = parseGameDate('2031-03-14');
 
 const STATUS: SimStatus = {
   date: TODAY,
+  sandbox: false,
   season: { number: 2, endDate: parseGameDate('2031-06-30') },
   promotion: {
     promotionId: parseId('promotion', 'pro_00000000ab'),
