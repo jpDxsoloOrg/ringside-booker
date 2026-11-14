@@ -164,7 +164,17 @@ export function ContractsScreen() {
   const countsQuery = useEngineQuery('contracts.counts', {}, { keepPreviousData: true });
   const acknowledge = useEngineCommand('contracts.acknowledgeExpiries');
 
-  const rows = (listQuery.status === 'success' ? listQuery.data : undefined) ?? NO_ROWS;
+  // The list the rows on screen were fetched for. Kept data carries a list across a day passing,
+  // but rows kept from another tab or the Wants to leave filter are not this list: after a switch
+  // the table shows its loading rows until this list's own rows arrive.
+  const listKey = `${tab}:${wantsToLeave ? 'leaving' : 'all'}`;
+  const [rowsKey, setRowsKey] = useState<string | null>(null);
+  if (listQuery.status !== 'loading' && !listQuery.isStale && rowsKey !== listKey) {
+    setRowsKey(listKey);
+  }
+  const listLoading = listQuery.status === 'loading' || rowsKey !== listKey;
+  const rows =
+    (listQuery.status === 'success' && !listLoading ? listQuery.data : undefined) ?? NO_ROWS;
   const activeRows = (activeQuery.status === 'success' ? activeQuery.data : undefined) ?? NO_ROWS;
   const counts = countsQuery.status === 'success' ? countsQuery.data : undefined;
   const unseen = counts?.unseenExpiring ?? 0;
@@ -304,7 +314,7 @@ export function ContractsScreen() {
         filterable
         filterLabel="Find a contract"
         density="compact"
-        loading={listQuery.status === 'loading'}
+        loading={listLoading}
         {...(isMobile ? {} : { onActivate: openRow })}
         emptyState={
           <EmptyState

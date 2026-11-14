@@ -338,25 +338,28 @@ describe('legal names from the base pack', () => {
     expect(counts.size).toBeGreaterThan(200);
   });
 
-  it('can name 2,000 unique people from every country without running out', () => {
-    const { world, library } = loadBase('every-country');
-    const countries = [...world.tables.countries.values()];
-    expect(countries.length).toBeGreaterThanOrEqual(40);
-    const genders: Gender[] = ['male', 'female', 'male', 'female', 'nonBinary'];
-    for (const country of countries) {
-      const generator = NameGenerator.forWorld(world, library);
-      const stream = personStream(`country-${country.id}`);
-      const seen = new Set<string>();
-      for (let index = 0; index < 2000; index++) {
-        const name = generator.personName(stream, {
-          countryId: country.id,
-          gender: genders[index % genders.length] ?? 'male',
-        }).value;
-        seen.add(normaliseName(name.display));
+  it.runIf(SLOW_TESTS)(
+    'can name 2,000 unique people from every country without running out',
+    () => {
+      const { world, library } = loadBase('every-country');
+      const countries = [...world.tables.countries.values()];
+      expect(countries.length).toBeGreaterThanOrEqual(40);
+      const genders: Gender[] = ['male', 'female', 'male', 'female', 'nonBinary'];
+      for (const country of countries) {
+        const generator = NameGenerator.forWorld(world, library);
+        const stream = personStream(`country-${country.id}`);
+        const seen = new Set<string>();
+        for (let index = 0; index < 2000; index++) {
+          const name = generator.personName(stream, {
+            countryId: country.id,
+            gender: genders[index % genders.length] ?? 'male',
+          }).value;
+          seen.add(normaliseName(name.display));
+        }
+        expect(seen.size, `country ${country.name}`).toBe(2000);
       }
-      expect(seen.size, `country ${country.name}`).toBe(2000);
-    }
-  });
+    },
+  );
 
   it('traces the culture with its weight and the mix total, the list used and every roll', () => {
     const { world, library } = loadBase('trace');
@@ -484,38 +487,41 @@ describe('gender handling', () => {
 });
 
 describe('cultures and surnames', () => {
-  it('takes the surname from a second pick of the mix at the mixed heritage chance', () => {
-    const first = aCulture({ key: 'first', surnames: names('FirstSurname', 400) });
-    const second = aCulture({ key: 'second', surnames: names('SecondSurname', 400) });
-    const library = aLibrary([first, second], { land: [{ cultureKey: 'first', weight: 1 }] });
-    // With only one culture in the mix, a second pick still lands on it.
-    const sameCulture = generatorFor(library, new NameRegistry(), {
-      'worldgen.names.mixedHeritageChance': 1,
-    }).personName(personStream('mixed-one'), { countryId: TEST_COUNTRY, gender: 'male' });
-    expect(sameCulture.value.familyName).toMatch(/^FirstSurname\d+$/);
+  it.runIf(SLOW_TESTS)(
+    'takes the surname from a second pick of the mix at the mixed heritage chance',
+    () => {
+      const first = aCulture({ key: 'first', surnames: names('FirstSurname', 400) });
+      const second = aCulture({ key: 'second', surnames: names('SecondSurname', 400) });
+      const library = aLibrary([first, second], { land: [{ cultureKey: 'first', weight: 1 }] });
+      // With only one culture in the mix, a second pick still lands on it.
+      const sameCulture = generatorFor(library, new NameRegistry(), {
+        'worldgen.names.mixedHeritageChance': 1,
+      }).personName(personStream('mixed-one'), { countryId: TEST_COUNTRY, gender: 'male' });
+      expect(sameCulture.value.familyName).toMatch(/^FirstSurname\d+$/);
 
-    const twoCultures = aLibrary([first, second], {
-      land: [
-        { cultureKey: 'first', weight: 1 },
-        { cultureKey: 'second', weight: 1 },
-      ],
-    });
-    const stream = personStream('mixed-two');
-    let mismatched = 0;
-    const total = 4000;
-    for (let index = 0; index < total; index++) {
-      const result = generatorFor(twoCultures, new NameRegistry()).personName(stream, {
-        countryId: TEST_COUNTRY,
-        gender: 'male',
+      const twoCultures = aLibrary([first, second], {
+        land: [
+          { cultureKey: 'first', weight: 1 },
+          { cultureKey: 'second', weight: 1 },
+        ],
       });
-      const notes = labelsOf(result.trace);
-      if (notes.some((label) => label.startsWith('Mixed heritage'))) {
-        mismatched += 1;
+      const stream = personStream('mixed-two');
+      let mismatched = 0;
+      const total = 4000;
+      for (let index = 0; index < total; index++) {
+        const result = generatorFor(twoCultures, new NameRegistry()).personName(stream, {
+          countryId: TEST_COUNTRY,
+          gender: 'male',
+        });
+        const notes = labelsOf(result.trace);
+        if (notes.some((label) => label.startsWith('Mixed heritage'))) {
+          mismatched += 1;
+        }
       }
-    }
-    // The default chance is 0.08.
-    expect(Math.abs(mismatched / total - 0.08)).toBeLessThan(0.015);
-  });
+      // The default chance is 0.08.
+      expect(Math.abs(mismatched / total - 0.08)).toBeLessThan(0.015);
+    },
+  );
 
   it('gives double-surname cultures two surnames at the chance set in the record', () => {
     const always = aCulture({ surnameStyle: 'double', doubleSurnameChance: 1 });

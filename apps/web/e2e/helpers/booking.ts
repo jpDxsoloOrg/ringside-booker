@@ -1,5 +1,6 @@
 import { expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
+import { closeWithEscape } from './overlays';
 import { navigateInApp } from './shell';
 
 /** The summary banner a finished advance leaves under the top bar. */
@@ -58,9 +59,11 @@ export async function cancelTonightsShow(page: Page): Promise<void> {
   await sheet.getByRole('button', { name: 'Cancel show' }).click();
   const confirm = page.getByRole('alertdialog').or(page.getByRole('dialog', { name: /^Cancel / }));
   await confirm.getByRole('button', { name: 'Cancel show' }).click();
+  // The confirm hides the sheet under it from role locators, so wait for it to go first: until
+  // then the sheet's own Cancel show button reads as gone whether or not the show was cancelled.
+  await expect(confirm).toBeHidden();
   await expect(sheet.getByRole('button', { name: 'Cancel show' })).toBeHidden();
-  await page.keyboard.press('Escape');
-  await expect(sheet).toBeHidden();
+  await closeWithEscape(page, sheet);
 }
 
 /**

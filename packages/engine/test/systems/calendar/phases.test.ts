@@ -1,5 +1,6 @@
 // The daily horizon phase. Design: docs/design/calendar.md#horizon
 import { describe, expect, it } from 'vitest';
+import { SLOW_TESTS } from '../../support/slow';
 import {
   createEngine,
   initialEngineState,
@@ -56,23 +57,26 @@ describe('calendar.extendHorizon', () => {
     expect(phase).toMatchObject({ group: 'housekeeping', order: 20, cadence: { kind: 'daily' } });
   });
 
-  it('keeps today through today + 90 days stored, once each, over 30 days', async () => {
-    const engine = engineOver(startDefaultGame());
-    for (let dayNumber = 1; dayNumber <= 30; dayNumber += 1) {
-      const state = await advance(engine, 1);
-      const today = state.world.meta.currentDate;
-      const horizonEnd = addDays(today, HORIZON_DAYS);
-      expect(
-        storedShowKeys(state, (instance) => compareDates(instance.airDate, today) >= 0),
-        `day ${String(dayNumber)}`,
-      ).toEqual(expectedShowKeys(state, today, HORIZON_DAYS));
-      expect(
-        state.world.tables.eventInstances.every(
-          (instance) => compareDates(instance.date, horizonEnd) <= 0,
-        ),
-      ).toBe(true);
-    }
-  });
+  it.runIf(SLOW_TESTS)(
+    'keeps today through today + 90 days stored, once each, over 30 days',
+    async () => {
+      const engine = engineOver(startDefaultGame());
+      for (let dayNumber = 1; dayNumber <= 30; dayNumber += 1) {
+        const state = await advance(engine, 1);
+        const today = state.world.meta.currentDate;
+        const horizonEnd = addDays(today, HORIZON_DAYS);
+        expect(
+          storedShowKeys(state, (instance) => compareDates(instance.airDate, today) >= 0),
+          `day ${String(dayNumber)}`,
+        ).toEqual(expectedShowKeys(state, today, HORIZON_DAYS));
+        expect(
+          state.world.tables.eventInstances.every(
+            (instance) => compareDates(instance.date, horizonEnd) <= 0,
+          ),
+        ).toBe(true);
+      }
+    },
+  );
 
   it('publishes show.scheduled for each show the day adds, and only those', async () => {
     const before = startDefaultGame();

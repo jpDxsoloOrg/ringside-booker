@@ -162,6 +162,10 @@ describe('DayControl: Next day', () => {
     // A plain single day is announced, not bannered, and shows no overlay.
     expect(screen.queryByRole('region', { name: 'Last advance' })).toBeNull();
     expect(screen.getByTestId('advance-overlay')).not.toHaveAttribute('open');
+    // The bar is busy only while it still shows the day before; it settles on the new answers.
+    await waitFor(() => {
+      expect(screen.getByTestId('day-control')).not.toHaveAttribute('aria-busy');
+    });
   });
 
   it('runs from Shift+N, and documents the shortcut on the button', async () => {
@@ -359,7 +363,8 @@ describe('DayControl: autosave', () => {
     expect(autosaveSpy).toHaveBeenLastCalledWith(SLOT_ID, { monthlyBackup: false });
   });
 
-  it(
+  // Skips a whole month: slow suite only (owner: no long-running tests outside the sprint-end run).
+  it.runIf(process.env['RB_SLOW_TESTS'] === '1')(
     'rotates a monthly backup when the month changes',
     async () => {
       const { user, autosaveSpy } = renderGame({ saveSlotId: SLOT_ID });

@@ -23,6 +23,11 @@ export interface DayControlProps {
   readonly compact?: boolean;
   /** Opens the Skip days sheet. */
   readonly onOpenSkip: () => void;
+  /**
+   * The gates shown are from before the world last moved and new ones are on their way: the
+   * control is marked busy (`aria-busy`) until they arrive. False by default.
+   */
+  readonly refreshing?: boolean;
 }
 
 /**
@@ -31,7 +36,12 @@ export interface DayControlProps {
  * day would not move anyway. Shift+N presses it from anywhere outside a text field or dialog.
  * Beside it, Skip days opens the multi-day sheet; it is off while a gate waits or days move.
  */
-export function DayControl({ gates, compact = false, onOpenSkip }: DayControlProps) {
+export function DayControl({
+  gates,
+  compact = false,
+  onOpenSkip,
+  refreshing = false,
+}: DayControlProps) {
   const advance = useDayAdvance();
   const navigate = useNavigate();
   const [gatesOpen, setGatesOpen] = useState(false);
@@ -60,7 +70,11 @@ export function DayControl({ gates, compact = false, onOpenSkip }: DayControlPro
   useDayShortcut(runPrimary, primary.kind !== 'busy');
 
   return (
-    <div className={styles['dayControl']} data-testid="day-control">
+    <div
+      className={styles['dayControl']}
+      data-testid="day-control"
+      aria-busy={refreshing || undefined}
+    >
       <LiveBugButton
         className={styles['primary']}
         shrinkable={compact}

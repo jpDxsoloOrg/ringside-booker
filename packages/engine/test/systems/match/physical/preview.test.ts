@@ -3,6 +3,7 @@
 // touching the world or its RNG, with the lab's fatigue what-if labelled in the traces.
 // Design: docs/design/physical-toll.md#match-lab, match-rating.md#preview-extensions.
 import { afterEach, describe, expect, it } from 'vitest';
+import { SLOW_TESTS } from '../../../support/slow';
 import {
   createEngine,
   initialEngineState,
@@ -144,25 +145,28 @@ describe('the physical preview extension', () => {
     expect(rolls.size).toBeGreaterThan(1);
   });
 
-  it('never moves the world, its RNG, traces or event log (simulate and a 500-run batch)', () => {
-    const lab = labWorld();
-    const before = JSON.stringify(lab.engine.exportState());
-    const daysBefore = lab.engine.exportState().world.meta.daysSimulated;
-    physicalOf(lab, singles(lab));
-    const batch = lab.engine.query('match.simulateBatch', { ...singles(lab), runs: 500 }, PLAYER);
-    expect(batch.ok).toBe(true);
-    const preview = lab.engine.query(
-      'match.previewBatch',
-      { ...previewOnly(singles(lab)), runs: 500 },
-      PLAYER,
-    );
-    expect(preview.ok).toBe(true);
-    const after = lab.engine.exportState();
-    expect(after.rng.streams).not.toHaveProperty('match.wear');
-    expect(after.rng.streams).not.toHaveProperty('match.injury');
-    expect(after.world.meta.daysSimulated).toBe(daysBefore);
-    expect(JSON.stringify(after)).toBe(before);
-  });
+  it.runIf(SLOW_TESTS)(
+    'never moves the world, its RNG, traces or event log (simulate and a 500-run batch)',
+    () => {
+      const lab = labWorld();
+      const before = JSON.stringify(lab.engine.exportState());
+      const daysBefore = lab.engine.exportState().world.meta.daysSimulated;
+      physicalOf(lab, singles(lab));
+      const batch = lab.engine.query('match.simulateBatch', { ...singles(lab), runs: 500 }, PLAYER);
+      expect(batch.ok).toBe(true);
+      const preview = lab.engine.query(
+        'match.previewBatch',
+        { ...previewOnly(singles(lab)), runs: 500 },
+        PLAYER,
+      );
+      expect(preview.ok).toBe(true);
+      const after = lab.engine.exportState();
+      expect(after.rng.streams).not.toHaveProperty('match.wear');
+      expect(after.rng.streams).not.toHaveProperty('match.injury');
+      expect(after.world.meta.daysSimulated).toBe(daysBefore);
+      expect(JSON.stringify(after)).toBe(before);
+    },
+  );
 
   it('labels the fatigue what-if in the injury chance and leaves the world alone', () => {
     const lab = labWorld();

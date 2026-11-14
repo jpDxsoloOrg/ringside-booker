@@ -126,7 +126,7 @@ describe('the Promotions queries on the default world', () => {
     },
   );
 
-  it('records one weekly roster review per rival over a 7-day skip', async () => {
+  it.runIf(SLOW_TESTS)('records one weekly roster review per rival over a 7-day skip', async () => {
     const skipped = newLongleafGame();
     const advanced = await skipped.advanceDays({ maxDays: 7 });
     expect(advanced.failures).toEqual([]);

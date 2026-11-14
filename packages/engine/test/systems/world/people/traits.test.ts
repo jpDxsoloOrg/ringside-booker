@@ -115,30 +115,33 @@ describe('seedTraits', () => {
     );
   }
 
-  it('never gives both sides of an exclusive pair, even when every trait is certain', () => {
-    const certain: ContentLibrary = {
-      ...BASE_LIBRARY,
-      traitIncidence: Object.fromEntries(
-        Object.entries(BASE_LIBRARY.traitIncidence).map(([key, record]) => [
-          key,
-          { ...record, baseChance: 1, roleMultipliers: {} },
-        ]),
-      ),
-    };
-    const person = personAged(40);
-    for (const library of [BASE_LIBRARY, certain]) {
-      const { results } = rollTraits(person, 2_000, {
-        library,
-        tunables: { 'worldgen.traits.maxPerPerson': 8 },
-      });
-      for (const traits of results) {
-        for (const [first, second] of EXCLUSIVE_TRAIT_PAIRS) {
-          expect(traits.includes(first) && traits.includes(second)).toBe(false);
+  it.runIf(SLOW_TESTS)(
+    'never gives both sides of an exclusive pair, even when every trait is certain',
+    () => {
+      const certain: ContentLibrary = {
+        ...BASE_LIBRARY,
+        traitIncidence: Object.fromEntries(
+          Object.entries(BASE_LIBRARY.traitIncidence).map(([key, record]) => [
+            key,
+            { ...record, baseChance: 1, roleMultipliers: {} },
+          ]),
+        ),
+      };
+      const person = personAged(40);
+      for (const library of [BASE_LIBRARY, certain]) {
+        const { results } = rollTraits(person, 2_000, {
+          library,
+          tunables: { 'worldgen.traits.maxPerPerson': 8 },
+        });
+        for (const traits of results) {
+          for (const [first, second] of EXCLUSIVE_TRAIT_PAIRS) {
+            expect(traits.includes(first) && traits.includes(second)).toBe(false);
+          }
+          expect(TraitsSchema.safeParse(traits).success).toBe(true);
         }
-        expect(TraitsSchema.safeParse(traits).success).toBe(true);
       }
-    }
-  });
+    },
+  );
 
   it('picks between a pair by their chances', () => {
     const pairLibrary = (fast: number, slow: number): ContentLibrary => ({

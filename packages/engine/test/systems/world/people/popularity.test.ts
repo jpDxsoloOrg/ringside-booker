@@ -1,6 +1,7 @@
 // Starting regional popularity: home first, fading through country, borders, continent and world.
 // Design: docs/design/world-generation.md#popularity
 import { describe, expect, it } from 'vitest';
+import { SLOW_TESTS } from '../../../support/slow';
 import {
   createEngineTunables,
   findTraceNodes,
@@ -85,7 +86,8 @@ describe('regionRelation', () => {
 });
 
 describe('seedPopularity', () => {
-  it('keeps the maximum at home for every stage and talent', () => {
+  // Slow suite only (owner, 2026-11-14: no long-running tests outside the end-of-sprint run).
+  it.runIf(SLOW_TESTS)('keeps the maximum at home for every stage and talent', () => {
     const stream = popularityStream('home-max');
     for (const stage of ['rookie', 'prospect', 'established', 'veteran', 'legend'] as const) {
       for (let index = 0; index < 200; index++) {
@@ -224,7 +226,7 @@ describe('seedPopularity', () => {
 });
 
 describe('a generated roster', () => {
-  it('is mostly known in one or two countries', () => {
+  it.runIf(SLOW_TESTS)('is mostly known in one or two countries', () => {
     const registry = new RngRegistry('roster-spread');
     const generator = PersonGenerator.forWorld(loadBaseWorld().world, BASE_LIBRARY);
     const count = 500;

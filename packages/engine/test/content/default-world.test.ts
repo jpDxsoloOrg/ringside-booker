@@ -3,6 +3,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { SLOW_TESTS } from '../support/slow';
 import { EXIT_OK, runValidateWorld } from '@ringside/validate-world/run';
 import { BODY_PARTS } from '../../src/model/entities/person';
 import {
@@ -67,20 +68,23 @@ describe('the default world with its people', () => {
     expect(loadedWorld().world.tables.people.values().length).toBeGreaterThanOrEqual(240);
   });
 
-  it('passes every validate:world rule under --strict, with no rule skipped', async () => {
-    let output = '';
-    const code = await runValidateWorld(['content/worlds/default', '--strict'], {
-      repoRoot: REPO_ROOT,
-      stdout: (text) => {
-        output += text;
-      },
-      stderr: (text) => {
-        output += text;
-      },
-    });
-    expect(output).toMatch(/OK: 0 errors, 0 warnings\n$/);
-    expect(code).toBe(EXIT_OK);
-  });
+  it.runIf(SLOW_TESTS)(
+    'passes every validate:world rule under --strict, with no rule skipped',
+    async () => {
+      let output = '';
+      const code = await runValidateWorld(['content/worlds/default', '--strict'], {
+        repoRoot: REPO_ROOT,
+        stdout: (text) => {
+          output += text;
+        },
+        stderr: (text) => {
+          output += text;
+        },
+      });
+      expect(output).toMatch(/OK: 0 errors, 0 warnings\n$/);
+      expect(code).toBe(EXIT_OK);
+    },
+  );
 
   it('snapshots every base catalog entry into meta.catalogs, keyed by content key', () => {
     const { catalogs } = loadedWorld().world.meta;

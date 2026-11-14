@@ -1,6 +1,7 @@
 // Starting potential: the headroom curve, ceilings, the potential number, late bloomers, re-rolls.
 // Design: docs/design/world-generation.md#potential
 import { describe, expect, it } from 'vitest';
+import { SLOW_TESTS } from '../../../support/slow';
 import {
   addDays,
   ceilingKeysFor,
@@ -166,7 +167,8 @@ describe('seedPotential', () => {
     expect(roomAt(36)).toBe(0);
   });
 
-  it('moves the potential number smoothly with age, day by day', () => {
+  // Slow suite only (owner, 2026-11-14: no long-running tests outside the end-of-sprint run).
+  it.runIf(SLOW_TESTS)('moves the potential number smoothly with age, day by day', () => {
     const noBloomers = { 'worldgen.potential.lateBloomerChance': 0 };
     const stream = streamFor('smooth');
     let previous: number | undefined;
@@ -203,18 +205,21 @@ describe('seedPotential', () => {
     expect(isLateBloomer(at34)).toBe(false);
   });
 
-  it('has no late bloomers when the chance is 0, and every 25-33-year-old is one at 1', () => {
-    const stream = streamFor('bloomers');
-    for (let index = 0; index < 1_000; index++) {
-      const age = 20 + (index % 20);
-      const person = personAged(age);
-      expect(
-        isLateBloomer(seed(person, 0, { 'worldgen.potential.lateBloomerChance': 0 }, stream)),
-      ).toBe(false);
-      const certain = seed(person, 0, { 'worldgen.potential.lateBloomerChance': 1 }, stream);
-      expect(isLateBloomer(certain)).toBe(age >= 25 && age <= 33);
-    }
-  });
+  it.runIf(SLOW_TESTS)(
+    'has no late bloomers when the chance is 0, and every 25-33-year-old is one at 1',
+    () => {
+      const stream = streamFor('bloomers');
+      for (let index = 0; index < 1_000; index++) {
+        const age = 20 + (index % 20);
+        const person = personAged(age);
+        expect(
+          isLateBloomer(seed(person, 0, { 'worldgen.potential.lateBloomerChance': 0 }, stream)),
+        ).toBe(false);
+        const certain = seed(person, 0, { 'worldgen.potential.lateBloomerChance': 1 }, stream);
+        expect(isLateBloomer(certain)).toBe(age >= 25 && age <= 33);
+      }
+    },
+  );
 
   it('counts a late bloomer as younger, so they get more room', () => {
     const person = personAged(29);

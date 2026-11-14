@@ -1,6 +1,7 @@
 // Show night on the shipped default world: every rival show runs, nothing is left open, and the
 // month stays inside the CI budget. Design: docs/design/show-night.md#phase
 import { describe, expect, it } from 'vitest';
+import { SLOW_TESTS } from '../../support/slow';
 import { createEngine } from '../../../src/core/api';
 import { compareDates } from '../../../src/core/date';
 import { SYSTEMS_WITHOUT_SHOW_DAY_GATE } from '../../support';
@@ -19,7 +20,7 @@ function now(): number {
 describe('shows.runShows on the default world', () => {
   // The test timeout sits above the budget: at vitest's default 5 s the budget could never fail,
   // and a busy machine timed the month out instead.
-  it(
+  it.runIf(SLOW_TESTS)(
     'runs a month of shows with no failures and leaves no past show open',
     { timeout: BUDGET_MS + 5_000 },
     async () => {
