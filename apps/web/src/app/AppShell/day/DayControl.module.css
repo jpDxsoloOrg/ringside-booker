@@ -190,25 +190,43 @@
 }
 
 .quickChips {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-2);
   margin-block-end: var(--space-2);
 }
 
 .quickChip {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  min-inline-size: 6.5rem;
+  max-inline-size: 100%;
   min-block-size: 2.25rem;
-  padding: var(--space-1) var(--space-2);
+  padding: var(--space-1) var(--space-3);
   border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-control);
   background: var(--color-surface-sunken);
   color: var(--color-text);
+  text-align: center;
+  cursor: pointer;
+}
+
+.quickChipLabel {
   font-family: var(--font-family-display);
   font-size: var(--font-size-md);
   font-weight: var(--font-weight-semibold);
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.quickChipDetail {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
   font-variant-numeric: tabular-nums;
 }
 
@@ -219,6 +237,9 @@
 .quickChip[aria-pressed='true'] {
   border-color: var(--color-data);
   background: var(--color-surface-raised);
+}
+
+.quickChip[aria-pressed='true'] .quickChipLabel {
   color: var(--color-data);
 }
 
@@ -257,6 +278,31 @@
   font-size: var(--font-size-sm);
 }
 
+.stopRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.linkButton {
+  min-block-size: 2.25rem;
+  padding: 0 var(--space-1);
+  border: 0;
+  background: none;
+  color: var(--color-data);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+.linkButton:hover {
+  color: var(--color-text);
+}
+
 .checkbox {
   inline-size: 1rem;
   block-size: 1rem;
@@ -275,6 +321,7 @@
 @media (pointer: coarse) {
   .quickChip,
   .checkRow,
+  .linkButton,
   .textInput {
     min-block-size: var(--tap-target-min);
   }

@@ -1,5 +1,6 @@
 import type { AdvanceResult, Reason, ShowSummaryView } from '@ringside/engine';
 import { formatGameDate, formatNumber } from '@/components/format';
+import { leadingGate, NEWS_HINT } from './dayControlState';
 
 /** The words the summary banner and the announcement share. */
 export interface AdvanceSummaryText {
@@ -23,16 +24,24 @@ function sentence(text: string): string {
   return /[.!?…]$/.test(text) ? text : `${text}.`;
 }
 
-/** Why an advance stopped, in the player's words. */
+/**
+ * Why an advance stopped, in the player's words: for a gate, the reason of the one that decides
+ * the day button (`leadingGate`), so the banner and the button agree.
+ */
 export function stopReason(stoppedBy: AdvanceResult['stoppedBy']): string | null {
   switch (stoppedBy.kind) {
     case 'gate':
-      return stoppedBy.hits[0]?.reason ?? 'Something needs your attention';
+      return leadingGate(stoppedBy.hits)?.reason ?? 'Something needs your attention';
     case 'cancelled':
       return 'Stopped by you';
     case 'completed':
       return null;
   }
+}
+
+/** True when the advance stopped for a news alert (its reason sits under the results links). */
+export function stoppedForNews(stoppedBy: AdvanceResult['stoppedBy']): boolean {
+  return stoppedBy.kind === 'gate' && leadingGate(stoppedBy.hits)?.actionHint === NEWS_HINT;
 }
 
 /** "3 background steps failed". */

@@ -136,6 +136,23 @@ export function contractsGateDestination(hit: GateHit): string {
   return `${routes.game.contracts()}?tab=expiring`;
 }
 
+/**
+ * The route hint for a news alert (the engine's `NEWS_ACTION_HINT`, DAY1-03): a story matched one
+ * of the player's alert rules. The button opens the story on the News screen with `alert=1`, and
+ * the screen acknowledges the alert (`news.ackAlerts`), which clears the stop (DAY1-05).
+ */
+export const NEWS_HINT = 'news';
+
+/** The label of the news alert button. */
+export const OPEN_NEWS_LABEL = 'Open news';
+
+/** Where a news alert's button goes: the story, flagged as opened from the alert. */
+export function newsGateDestination(hit: GateHit): string {
+  return hit.subject?.kind === 'news'
+    ? `${routes.game.news()}?story=${encodeURIComponent(hit.subject.id)}&alert=1`
+    : routes.game.news();
+}
+
 /** The label of a gate whose hint no screen handles yet. */
 export const GENERIC_GATE_LABEL = 'Needs attention';
 
@@ -166,16 +183,27 @@ const GATE_ROUTES: Readonly<Record<string, GateRoute>> = {
     label: () => CONTRACTS_LABEL,
     to: contractsGateDestination,
   },
+  [NEWS_HINT]: {
+    label: () => OPEN_NEWS_LABEL,
+    to: newsGateDestination,
+  },
 };
 
 /**
  * Hints in the order they win when several gates hit at once. Unanswered decisions come before a
  * show: booking with a contract or discipline call still open means acting on stale information.
  * A new injury comes after both: the show screen shows who is hurt anyway. Contract stops come
- * last: they wait days, not hours. Hints not listed here keep the engine's registration order,
+ * next: they wait days, not hours. A news alert comes last of all: a show or a decision needs the
+ * player more than a story does. Hints not listed here keep the engine's registration order,
  * after these.
  */
-const HINT_PRIORITY: readonly string[] = [INBOX_HINT, SHOW_NIGHT_HINT, ROSTER_HINT, CONTRACTS_HINT];
+const HINT_PRIORITY: readonly string[] = [
+  INBOX_HINT,
+  SHOW_NIGHT_HINT,
+  ROSTER_HINT,
+  CONTRACTS_HINT,
+  NEWS_HINT,
+];
 
 function hintRank(hit: GateHit): number {
   const rank = hit.actionHint === undefined ? -1 : HINT_PRIORITY.indexOf(hit.actionHint);

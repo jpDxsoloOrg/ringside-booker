@@ -19,6 +19,10 @@
   min-inline-size: 0;
 }
 
+.introActions {
+  margin-inline-start: auto;
+}
+
 .heading {
   font-family: var(--font-family-display);
   font-size: var(--font-size-3xl);
