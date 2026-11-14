@@ -1,6 +1,7 @@
 /**
  * The news system's balance numbers: how much buzz a story starts with and how long it stays on
- * the feed (DAY1-01), and how many milestone stories the weekly job posts (DAY1-02).
+ * the feed (DAY1-01), how many milestone stories the weekly job posts (DAY1-02), and which stories
+ * make the front page and in what order (DAY1-03).
  *
  * Every number here is 0-means-0: a kind base of 0 gives that kind no starting buzz, 0 importance
  * points make importance count for nothing, a popularity maximum of 0 makes the people in a story
@@ -14,6 +15,7 @@ const CATEGORY = 'News';
 const BUZZ_DOC = 'news.md#buzz';
 const EXPIRY_DOC = 'news.md#expiry';
 const MILESTONES_DOC = 'news.md#milestones';
+const FRONT_PAGE_DOC = 'news.md#front-page';
 
 export const newsTunables = defineTunables({
   'news.buzz.kindBase.result': {
@@ -324,5 +326,49 @@ export const newsTunables = defineTunables({
     description:
       'Promotion anniversaries make a story on the first one and then every this many years',
     docRef: MILESTONES_DOC,
+  },
+  'news.frontPage.minBuzz': {
+    kind: 'number',
+    default: 65,
+    min: 0,
+    max: 100,
+    step: 1,
+    unit: 'points',
+    category: CATEGORY,
+    description:
+      'Buzz from which a story is front page, whatever its importance (0 = every story is front page)',
+    docRef: FRONT_PAGE_DOC,
+  },
+  'news.frontPage.agePenaltyPerDay': {
+    kind: 'number',
+    default: 4,
+    min: 0,
+    max: 50,
+    step: 0.5,
+    unit: 'points',
+    category: CATEGORY,
+    description:
+      'Buzz a story loses per day of age when the front page and ticker are ranked (0 = age does not matter)',
+    docRef: FRONT_PAGE_DOC,
+  },
+  'news.frontPage.windowDays': {
+    kind: 'integer',
+    default: 7,
+    min: 1,
+    max: 90,
+    unit: 'days',
+    category: CATEGORY,
+    description: 'Days of stories, today included, that compete for the front page and ticker',
+    docRef: FRONT_PAGE_DOC,
+  },
+  'news.frontPage.heroCount': {
+    kind: 'integer',
+    default: 3,
+    min: 1,
+    max: 5,
+    unit: 'count',
+    category: CATEGORY,
+    description: 'Front-page stories shown large at the top of the News screen',
+    docRef: FRONT_PAGE_DOC,
   },
 });

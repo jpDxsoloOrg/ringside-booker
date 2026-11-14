@@ -18,6 +18,15 @@ declare module '../../core/events/types' {
       importance: NewsImportance;
       buzz: number;
     };
+    /**
+     * A new story matched one of a player's enabled alert rules and is now their pending alert
+     * (`news.matchAlerts`, DAY1-03). `ruleId` is the first matching rule by order.
+     */
+    'news.alertRaised': {
+      playerId: string;
+      newsId: NewsId;
+      ruleId: string;
+    };
   }
 }
 
