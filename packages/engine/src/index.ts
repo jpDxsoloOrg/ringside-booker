@@ -3708,3 +3708,17 @@ export {
   NEVER_A_LOSS_LABEL,
   anglePopularityGain,
 } from './systems/match/angles/formulas/anglePopularityGain';
+// MTCH5-06: beat limits and angle warnings on the card (booking checks).
+export {
+  ANGLE_BEAT_LIMIT_CHECK_ID,
+  ANGLE_BEAT_LIMIT_CHECK_LABEL,
+  ANGLE_BEAT_LIMIT_CHECK_ORDER,
+  ANGLE_BEAT_LIMIT_CODE,
+  ANGLE_CHECK_SEVERITIES,
+  ANGLE_WARNINGS_CHECK_ID,
+  ANGLE_WARNINGS_CHECK_LABEL,
+  ANGLE_WARNINGS_CHECK_ORDER,
+  angleBeatLimitCheck,
+  angleBeatLimitText,
+  angleWarningsCheck,
+} from './systems/match/angles/bookingChecks';

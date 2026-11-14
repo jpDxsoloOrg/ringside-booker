@@ -591,6 +591,9 @@ describe('the check registry', () => {
       { id: 'booking.warnings', order: 190 },
       // MTCH2's finish check (EVT2-07), registered when the match system loads.
       { id: 'match.finish', order: 200 },
+      // MTCH5-06's beat limit and angle warnings, registered when the match system loads.
+      { id: 'match.angleBeatLimit', order: 230 },
+      { id: 'match.angleWarnings', order: 240 },
       // CRTV4-01's storyline links check, registered when the storylines system loads.
       { id: 'storylines.links', order: 250 },
       // MTCH5-08's talk roles and settings check.
@@ -691,6 +694,8 @@ describe('the check registry', () => {
       'match.finish',
       'test.alpha',
       'test.zeta',
+      'match.angleBeatLimit',
+      'match.angleWarnings',
       'storylines.links',
       'booking.talk',
     ]);
