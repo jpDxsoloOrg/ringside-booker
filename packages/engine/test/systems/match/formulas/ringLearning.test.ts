@@ -9,6 +9,10 @@ import {
   learningGainText,
   type RingLearningInputs,
 } from '../../../../src/systems/match';
+import {
+  ringLearningTotalValue,
+  ringLearningValue,
+} from '../../../../src/systems/match/formulas/ringLearning';
 import { createEngineTunables } from '../../../../src/systems/tunables';
 import { expectSerialisable, expectTraceReplays } from '../../../support/trace';
 
@@ -29,10 +33,11 @@ function inputs(overrides: Partial<RingLearningInputs> = {}): RingLearningInputs
 }
 
 function learn(overrides: Partial<RingLearningInputs> = {}, tunables: TunableOverrides = {}) {
-  const result = computeRingLearning(inputs(overrides), {
-    tunables: createEngineTunables(tunables),
-  });
+  const engineTunables = createEngineTunables(tunables);
+  const result = computeRingLearning(inputs(overrides), { tunables: engineTunables });
   expectTraceReplays(result);
+  // The fast path (POL4-10) gives the same number to the bit.
+  expect(ringLearningValue(inputs(overrides), { tunables: engineTunables })).toBe(result.value);
   return result;
 }
 
@@ -234,5 +239,79 @@ describe('learningGainText', () => {
     expect(learningGainText(0.0042)).toBe('+0.004');
     expect(learningGainText(0.12345)).toBe('+0.123');
     expect(learningGainText(0.0004)).toBe('less than +0.001');
+  });
+});
+
+describe('ringLearningValue (POL4-10 fast path)', () => {
+  it('matches the traced value over a sweep of matches, peers, crews and gates', () => {
+    const tunables = createEngineTunables();
+    const peerSets = [
+      [],
+      [{ name: 'Rex Dalton', value: 50, teacher: false }],
+      [{ name: 'Rex Dalton', value: 71, teacher: false }, VETERAN],
+      [VETERAN, { ...VETERAN, name: 'Tess Crane' }, { ...VETERAN, name: 'Moe Hart' }],
+    ];
+    const producers = [
+      null,
+      { name: 'Pat Booker', producing: 90, teacher: false },
+      { name: 'Pat Booker', producing: 20, teacher: true },
+    ];
+    const traitSets = [
+      [],
+      ['fastLearner'],
+      ['slowLearner'],
+      ['fastLearner', 'slowLearner'],
+    ] as const;
+    for (const attribute of ['ringwork', 'psychology', 'safety', 'stamina'] as const) {
+      for (const durationClass of ['short', 'standard', 'long'] as const) {
+        for (const others of peerSets) {
+          for (const producer of producers) {
+            for (const traits of traitSets) {
+              for (const room of ['open', 'slowing', 'closed'] as const) {
+                for (const mentor of [null, { name: 'Old Man Grady' }]) {
+                  const given = inputs({
+                    attribute,
+                    durationClass,
+                    value: 47.25,
+                    others,
+                    producer,
+                    traits,
+                    room,
+                    mentor,
+                  });
+                  expect(ringLearningValue(given, { tunables })).toBe(
+                    computeRingLearning(given, { tunables }).value,
+                  );
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  });
+
+  it('adds up the attributes as the traced total does', () => {
+    const tunables = createEngineTunables();
+    const perAttribute = {
+      ringwork: computeRingLearning(inputs({ attribute: 'ringwork', others: [VETERAN] }), {
+        tunables,
+      }),
+      psychology: computeRingLearning(inputs({ attribute: 'psychology', durationClass: 'long' }), {
+        tunables,
+      }),
+      safety: computeRingLearning(inputs({ attribute: 'safety', room: 'slowing' }), { tunables }),
+      stamina: computeRingLearning(inputs({ attribute: 'stamina', traits: ['fastLearner'] }), {
+        tunables,
+      }),
+    };
+    expect(
+      ringLearningTotalValue({
+        ringwork: perAttribute.ringwork.value,
+        psychology: perAttribute.psychology.value,
+        safety: perAttribute.safety.value,
+        stamina: perAttribute.stamina.value,
+      }),
+    ).toBe(computeRingLearningTotal(perAttribute).value);
   });
 });

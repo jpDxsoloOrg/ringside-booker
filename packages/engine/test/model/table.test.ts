@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { EntityNotFoundError, UniqueIndexError, UnknownIndexError } from '../../src/core/errors';
+import { setFastPaths } from '../../src/core/fastPaths';
 import { parseId } from '../../src/core/ids';
 import { MutableTable } from '../../src/model/table';
 import { makeWidget, ownerId, widgetId, widgetsTable, type Widget } from '../support/toy-registry';
@@ -105,6 +106,41 @@ describe('plain indexes', () => {
     table._put(makeWidget(1, ownerId(2)));
     expect(table.lookup('byOwner', ownerId(1))).toEqual([]);
     expect(idsOf(table.lookup('byOwner', ownerId(2)))).toEqual([widgetId(1)]);
+  });
+
+  it('keeps sorted lookups right while rows come, change, move and go (POL4-10 cache)', () => {
+    const table = newWidgets();
+    const owners = [ownerId(1), ownerId(2), ownerId(3)];
+    const snapshot = (): string[][] =>
+      owners.map((owner) => table.lookup('byOwner', owner).map((row) => `${row.id}:${row.serial}`));
+    const fullPath = (): string[][] => {
+      const was = setFastPaths(false);
+      try {
+        return snapshot();
+      } finally {
+        setFastPaths(was);
+      }
+    };
+    let state = 7;
+    const next = (bound: number): number => {
+      state = (state * 1103515245 + 12345) % 2147483648;
+      return state % bound;
+    };
+    for (let step = 0; step < 400; step += 1) {
+      const serial = 1 + next(12);
+      const owner = owners[next(owners.length)] ?? ownerId(1);
+      if (next(5) === 0 && table.has(widgetId(serial))) {
+        table._delete(widgetId(serial));
+      } else {
+        // Same owner or a new one, and a new serial text so a stale row would show.
+        table._put(makeWidget(serial, owner, { serial: `W-${String(serial)}-${String(step)}` }));
+      }
+      // Reading every few steps warms the cache in between writes.
+      if (next(3) === 0) {
+        expect(snapshot()).toEqual(fullPath());
+      }
+    }
+    expect(snapshot()).toEqual(fullPath());
   });
 
   it('files a row under each key of a multi-key index, once per distinct key', () => {
