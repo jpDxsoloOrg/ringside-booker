@@ -391,8 +391,114 @@ big.
 
 ## Settlement
 
-ECO8-04: the daily `broadcast.airings` phase writes an airing row per due
-airing and posts the money through `postMoney`.
+ECO8-04 (`systems/broadcast/settle.ts`, `phases.ts`). This is where TV pays.
+Every show a deal airs today (`airingsDueOn`) is **settled once**, for every
+promotion under the same rules: the player's, and every rival's.
+
+**When.** Two ways in, one function (`settleAiring`):
+
+- **`broadcast.airings`** (daily, `settlement` order 40) settles every due
+  airing that has no row yet. It runs after the box office
+  (`boxOffice.settleShows`, settlement 10), so a show's crowd is settled
+  first, and before `calendar.closePastShows` (settlement 90), so a show still
+  scheduled on its air date is seen as it stands before the calendar closes
+  it. Rival shows run in the `shows` group earlier the same day.
+- **`broadcast.settleOnShowNight`** (a reaction to `show.completed`): the
+  player runs a show before that day's phases (Run the show, or segment by
+  segment on the live show screen, EVT10), so its airings are settled the
+  moment the last segment completes and its results page shows its viewers at
+  once. A taped show completes on its taping day and is left for the phase on
+  its **air date**: the money lands on the day it airs.
+
+Both skip a due airing that already has a row for the same deal and show on
+that date, so a re-run or the phase after the reaction never pays twice.
+
+**What the show's state means** (`airingOutcomeOf`, one rule so the ledger
+memo, the airing row and the calendar line agree):
+
+| Show on its air date                         | Airing                                                |
+| -------------------------------------------- | ----------------------------------------------------- |
+| Completed                                    | Aired, with the show's score as its quality           |
+| Cancelled                                    | Missed (`showCancelled`): no money, viewers 0         |
+| Scheduled or booked (never run)              | Aired, neutral quality, "Aired without a show result" |
+| A definition date (a world with no calendar) | Aired, neutral quality, "Aired without a show result" |
+
+ECO8-07 turns "scheduled or booked on its air date" into a missed `notRun`
+airing.
+
+**Aired.** The viewers are the [audience](#audience) with the show's quality
+and the night-to-night swing (`broadcast.viewers`); the expected viewers are
+the [benchmark](#benchmark). The money is worked out on the deal's **stored
+terms** (what the deal would be worth today only matters when it is signed or
+renegotiated), in cents:
+
+- gross = fee per show + per-1,000 rate × viewers ÷ 1,000 (rounded down);
+- workers' shares (below) come off the gross;
+- the income row is gross − shares, under the network kind's category: **TV
+  rights** (`broadcast`), **Pay-per-view** (`ppv`) or **Streaming**
+  (`streaming`); memo "Broadcast: Altura Mainstage on National Signal
+  Network", plus " (aired without a show result)" on the neutral path;
+- the airtime row is the deal's cost per show under **Production**; memo
+  "Airtime: National Signal Network".
+
+Both go through `postMoney` with `refs: { eventInstanceId, dealId }`; a line
+that comes to 0 is not posted. The reference game nets the two into one
+posting; we post two labelled rows so the Finances ledger shows both, and each
+row's Why? explains its own amount (the income row's Why? holds the viewers
+working). Rivals' rows keep only a summary, as for all their money (POL4-06).
+
+**Losing money is allowed.** A deal whose airtime costs more than it pays
+loses money every airing (the owner's rule: money stays a real challenge).
+Nothing caps it; the airing's Why? ends with "This deal costs more in airtime
+than the network pays for a show", and `broadcast.airings` rows carry the same
+note and a negative `net`.
+
+**Workers' shares.** Each worker on the card (anyone in a segment except a
+person only talked about, `cardWorkersOf`) whose contract with the promotion
+has `terms.shares.broadcastBp` gets that many basis points of the gross: one
+line each ("Rook 2% of TV rights"), capped in total at
+`broadcast.shares.maxTotal` (0.5) of the gross, rounded down. It is the box
+office's `computeWorkerShare` with the labels "TV rights", "Pay-per-view" and
+"Streaming". A definition-date airing has no card ("No card on file: nobody to
+pay a share"); a card where nobody has a share says so.
+
+**The airing row** stores the gross as `income`, the shares as `sharesPaid`
+and the airtime as `cost`, with the quality and its source. Its Why?
+(`broadcast.airing` for the player, `broadcast.rivalAiring` for rivals) is
+income less airtime, with "National Signal Network expected 1,800,807
+viewers; 1,870,729 watched" and the benchmark beside it. The audience inside
+it is kept to 8 levels for the player (about 160 nodes, 23 KB on the default
+world) and 3 for rivals (about 45 nodes, 6 KB).
+
+**Viewers on the show.** When the show completed (EVT3), each airing adds its
+viewers to `result.viewers` (several deals on one show add up). Settlement
+never creates a result.
+
+**Missed.** A row with `status: 'missed'`, the reason, zeros, no quality and
+the expected viewers; a one-line Why? ("Show cancelled: nothing aired"); no
+money; `broadcast.missed` is published. Deal health (ECO8-05) counts them.
+
+### Retention
+
+`systems/broadcast/retention.ts`. An airing row is already a summary, but
+every promotion writes one per televised show, so it follows the owner's
+history rule:
+
+- **Rivals:** step 7 of the weekly `history.rollUp` deletes computer-run
+  promotions' airings dated before the `history.keepDetailDays` window. What
+  they said lives on as totals: the money in the ledger's monthly totals, the
+  viewers on each completed show's `result.viewers`.
+- **The player:** `broadcast.pruneAirings` (`periodic` order 47, monthly on
+  the 1st) deletes airings older than `broadcast.airing.historyDays` (400), so
+  the deal screens list over a year of the player's own airings.
+- Either way, each deal's newest `broadcast.airing.keepPerDeal` (12) airings
+  stay whatever their age, so deal health (`broadcast.health.window`,
+  `missedWindow`) and rivals' deal making always read a full window.
+
+**Ledger rows, not airings, are the permanent money record.**
+
+Save size (365 days, default world, `yearSaveBudget` with every show carded):
+see the ECO8-04 row in [save-format.md](save-format.md#size-budget).
 
 ## Deal health
 
@@ -446,7 +552,29 @@ timeslot, live, months, dealId? }`**: own promotions only. The
   `startsOn`, `endsOn`. No fees, no viewers expected; the rows are listed
   field by field so a money field added to deals can never leak through.
 
-ECO8-04 and ECO8-05 add the airings and deals queries.
+ECO8-04 adds three airing queries (`systems/broadcast/queries/airings.ts`).
+Viewers are public for any promotion (ratings are news); money, `net` and the
+Why? ref are `null` for a promotion the viewer does not run:
+
+- **`broadcast.airings { promotionId, dealId?, from?, to?, limit? }`** (limit
+  1–200, default 50): newest first, each row `airingId`, `airDate`,
+  `showName`, `eventInstanceId`, `dealId`, `networkName`, `status`,
+  `missReason`, `qualitySource`, `viewers`, `expectedViewers`, `income`,
+  `sharesPaid`, `cost`, `net`, `traceRef` and a plain `note` ("Show
+  cancelled: nothing aired", "Aired without a show result", or the airtime
+  loss note).
+- **`broadcast.showAiring { eventInstanceId }`**: for the calendar sheet and
+  the results page: the deals that air (or aired) the show, the airing added
+  up over its deals (`status`, `viewers`, `income`, `note`) or null, and
+  `upcoming` while a deal is still to air it.
+- **`broadcast.incomeSummary { promotionId, days? }`** (own only, days 1–365,
+  default 30): the period's broadcast, pay-per-view, streaming and airtime
+  ledger rows added up by deal, as `total` and an inline `trace`, and the
+  latest airing. A period reaching past the detail window says so ("Details
+  are kept for the last 4 weeks. Older money is counted in the monthly
+  totals.").
+
+ECO8-05 adds the deals queries.
 
 ## Seams
 

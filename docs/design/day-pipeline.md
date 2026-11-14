@@ -124,6 +124,16 @@ The `periodic` group's weekly phases so far, all on Mondays:
 | `health.pruneInjuryDetail` | 44    | The traces of injuries older than `history.keepDetailDays` become summaries; the rows stay ([health.md](health.md#returns)).             |
 | `storylines.pruneDetail`   | 46    | Traces of storylines ended over `history.keepDetailDays` ago become summaries ([storylines.md](storylines.md#heat-decay)).               |
 
+The broadcast system ([broadcast.md](broadcast.md#settlement)) adds
+`broadcast.airings` (`settlement`, order 40, daily): every airing due today is
+settled, for every promotion, after `boxOffice.settleShows` (10) and before
+`calendar.closePastShows` (90), so a show still scheduled on its air date is
+seen before the calendar closes it. The player's own shows are settled as they
+complete, by the `broadcast.settleOnShowNight` reaction to `show.completed`;
+the phase skips what already has a row. `broadcast.pruneAirings` (`periodic`,
+order 47, monthly on the 1st) deletes the player's airings older than
+`broadcast.airing.historyDays`; rivals' older airings go in `history.rollUp`.
+
 The `growth` group's storyline phase:
 
 | Phase                    | Order | Cadence | What it does                                                                                                                                                |
