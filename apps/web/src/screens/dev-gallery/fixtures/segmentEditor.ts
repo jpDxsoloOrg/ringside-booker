@@ -374,6 +374,18 @@ export const GALLERY_CATALOG: MatchCatalog = {
       settings: ['ring', 'backstage', 'video'],
       hidden: false,
     },
+    // MTCH5-08: an interview, so the editor shows Guest and Host with their parts.
+    {
+      key: parseContentKey('angle.interview'),
+      name: 'Interview',
+      shortName: 'Interview',
+      order: 20,
+      speakers: { min: 1, max: 3 },
+      beatKeys: [parseContentKey('beat.interview')],
+      defaultBeatKey: parseContentKey('beat.interview'),
+      settings: ['ring', 'backstage', 'video'],
+      hidden: false,
+    },
     {
       key: parseContentKey('angle.confrontation'),
       name: 'Confrontation',
@@ -416,7 +428,39 @@ export const GALLERY_CATALOG: MatchCatalog = {
       hidden: false,
     },
   ],
-  beats: [],
+  beats: [
+    {
+      key: parseContentKey('beat.interview'),
+      name: 'Interview',
+      description: 'Someone answers questions from an interviewer, backstage or at ringside.',
+      groups: [
+        {
+          label: 'Guest',
+          stats: ['mic', 'charisma'],
+          weight: 3,
+          minPeople: 1,
+          maxPeople: 3,
+          optional: false,
+          managerCanStandIn: true,
+          roles: ['wrestler', 'manager'],
+        },
+        {
+          label: 'Host',
+          stats: ['broadcasting', 'mic', 'presence'],
+          weight: 1,
+          minPeople: 1,
+          maxPeople: 1,
+          optional: true,
+          managerCanStandIn: false,
+          roles: ['interviewer'],
+        },
+      ],
+      physical: false,
+      repetitionGroup: 'talk',
+      weight: 0.9,
+      settings: ['ring', 'backstage', 'video'],
+    },
+  ],
   angleTemplates: [],
 };
 
@@ -572,6 +616,65 @@ export const GALLERY_PROMO = segment(4, 'Promo', PROMO_DRAFT, [
   { side: 0, name: 'Tia Cruz', teamId: null, people: [viewPerson(4, 'speaker')] },
 ]);
 
+/** MTCH5-08: Kai Moreno with his manager Victor Crane, interviewed backstage by Lena Park. */
+const INTERVIEW_DRAFT: SegmentDraft = {
+  kind: 'angle',
+  ...base(),
+  participants: [
+    { personId: personId(0), side: 0, role: 'speaker', teamId: null, talkRole: 'wrestler' },
+    {
+      personId: GALLERY_MANAGER_ID,
+      side: 0,
+      role: 'speaker',
+      teamId: null,
+      talkRole: 'manager',
+      forPersonId: personId(0),
+    },
+    {
+      personId: GALLERY_INTERVIEWER_ID,
+      side: 1,
+      role: 'speaker',
+      teamId: null,
+      talkRole: 'interviewer',
+    },
+  ],
+  angle: { angleTypeKey: parseContentKey('angle.interview'), setting: 'backstage' },
+};
+
+function talkerView(
+  id: PersonId,
+  ringName: string,
+  talkRole: 'manager' | 'interviewer',
+): BookingPersonView {
+  return {
+    personId: id,
+    ringName,
+    imageRef: 'placeholder:person',
+    role: 'speaker',
+    talkRole,
+    availability: { ...AVAILABLE, until: null, canWorkAngles: true },
+    otherBrand: false,
+  };
+}
+
+export const GALLERY_INTERVIEW: BookingSegmentView = {
+  ...segment(5, 'Interview', INTERVIEW_DRAFT, [
+    {
+      side: 0,
+      name: 'Kai Moreno & Victor Crane',
+      teamId: null,
+      people: [viewPerson(0, 'speaker'), talkerView(GALLERY_MANAGER_ID, 'Victor Crane', 'manager')],
+    },
+    {
+      side: 1,
+      name: 'Lena Park',
+      teamId: null,
+      people: [talkerView(GALLERY_INTERVIEWER_ID, 'Lena Park', 'interviewer')],
+    },
+  ]),
+  talkLine: 'Backstage: Lena Park interviews Kai Moreno (with Victor Crane)',
+};
+
 const TITLE_OPTIONS: BookingTitleOption[] = [
   {
     titleId: WORLD_TITLE_ID,
@@ -597,7 +700,10 @@ const TITLE_OPTIONS: BookingTitleOption[] = [
   },
 ];
 
-/** The gallery's card: the singles opener-to-be in slot 2, the tag match in 3, the promo in 4. */
+/**
+ * The gallery's card: the singles opener-to-be in slot 2, the tag match in 3, the promo in 4 and
+ * the backstage interview in 5 (MTCH5-08).
+ */
 export const GALLERY_EDITOR_CARD: BookingCard = {
   show: {
     eventInstanceId: parseId('eventInstance', 'evi_0000000101'),
@@ -617,6 +723,13 @@ export const GALLERY_EDITOR_CARD: BookingCard = {
   editBlock: null,
   runsTonight: false,
   randomWinners: false,
-  sections: galleryCard([null, GALLERY_SINGLES, GALLERY_TAG, GALLERY_PROMO, null, null]),
+  sections: galleryCard([
+    null,
+    GALLERY_SINGLES,
+    GALLERY_TAG,
+    GALLERY_PROMO,
+    GALLERY_INTERVIEW,
+    null,
+  ]),
   titleOptions: TITLE_OPTIONS,
 };

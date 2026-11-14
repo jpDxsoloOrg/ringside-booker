@@ -44,6 +44,7 @@ const SEGMENT_IDS = {
   noContest: parseId('segment', 'seg_0000000305'),
   promo: parseId('segment', 'seg_0000000306'),
   longNames: parseId('segment', 'seg_0000000307'),
+  backstage: parseId('segment', 'seg_0000000308'),
 } as const;
 
 const TITLE_IDS = {
@@ -275,6 +276,37 @@ export function promoSegment(): SegmentResultView {
     outcome: null,
     rating: rating(62, 2.5, SEGMENT_IDS.promo, null),
     storylines: [{ id: parseId('storyline', 'sty_0000000302'), name: 'Crown chase' }],
+  };
+}
+
+/**
+ * MTCH5-08: a backstage interview: an interviewer, a wrestler and his manager, with the talk line
+ * the results page reads ("Backstage: Lena Park interviews Kai Moreno (with Victor Crane)").
+ */
+export function backstageInterview(): SegmentResultView {
+  return {
+    ...BASE,
+    segmentId: SEGMENT_IDS.backstage,
+    slot: 3,
+    slotNumber: 4,
+    roleKey: 'midcard',
+    roleLabel: 'Midcard',
+    durationClass: 'short',
+    durationLabel: 'Short',
+    kind: 'angle',
+    typeKey: 'angle.interview',
+    typeName: 'Interview',
+    sides: [
+      side(0, [
+        { ...competitor('Kai Moreno'), role: 'speaker' },
+        { ...competitor('Victor Crane'), role: 'speaker' },
+      ]),
+      side(1, [{ ...competitor('Lena Park'), role: 'speaker' }]),
+    ],
+    outcome: null,
+    rating: rating(58, 2.25, SEGMENT_IDS.backstage, null),
+    setting: 'backstage',
+    talkLine: 'Backstage: Lena Park interviews Kai Moreno (with Victor Crane)',
   };
 }
 

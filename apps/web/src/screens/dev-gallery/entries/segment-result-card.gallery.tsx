@@ -10,6 +10,7 @@ import {
   longNamesResult,
   noContestResult,
   promoSegment,
+  backstageInterview,
   segmentResultTraces,
   singlesWin,
   tagNewChampions,
@@ -55,6 +56,7 @@ function SegmentResultCardDemo() {
         <Example title="Draw" segment={drawResult()} />
         <Example title="No contest (no trace kept, so no Why?)" segment={noContestResult()} />
         <Example title="Talking segment on the pre-show" segment={promoSegment()} />
+        <Example title="Backstage interview with roles (MTCH5-08)" segment={backstageInterview()} />
         <Example title="Not revealed yet" segment={tripleThreatRetained()} revealed={false} />
         <Example title="Very long ring names" segment={longNamesResult()} />
         <Example title="Phone width (390px)" segment={tagNewChampions()} narrow />

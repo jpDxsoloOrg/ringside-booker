@@ -358,7 +358,8 @@ function EditorBody({
         {...(kind === 'angle'
           ? {
               talk: {
-                groups: Array.from({ length: sideCount }, (_unused, side) =>
+                // One past the sides shown too, so "Add Host" can name the side it adds.
+                groups: Array.from({ length: Math.max(sideCount, limits.max) }, (_unused, side) =>
                   sideGroupOf(catalog, angleType, side),
                 ),
                 sidesAreGroups: sidesAreGroups(catalog, angleType),

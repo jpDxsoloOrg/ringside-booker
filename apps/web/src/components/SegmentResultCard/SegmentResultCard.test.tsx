@@ -9,6 +9,7 @@ import {
   longNamesResult,
   noContestResult,
   promoSegment,
+  backstageInterview,
   singlesWin,
   tagNewChampions,
   tripleThreatRetained,
@@ -18,6 +19,7 @@ import {
   listText,
   reasonsLine,
   resultLine,
+  typeChipText,
   resultWhyValue,
   segmentResultAccent,
 } from './segmentResultText';
@@ -234,6 +236,16 @@ describe('segment result text', () => {
 
   it('has no result line for a match that has not run', () => {
     expect(resultLine({ ...singlesWin(), outcome: null })).toBeNull();
+  });
+
+  it('says who did what and where in a talking segment (MTCH5-08)', () => {
+    const segment = backstageInterview();
+    expect(resultLine(segment)).toBe(
+      'Backstage: Lena Park interviews Kai Moreno (with Victor Crane)',
+    );
+    expect(typeChipText(segment)).toBe('Interview · Backstage');
+    expect(resultLine(promoSegment())).toBe('Promo');
+    expect(typeChipText(promoSegment())).toBe('Promo');
   });
 });
 
