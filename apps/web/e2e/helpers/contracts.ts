@@ -96,6 +96,25 @@ export async function clearDayStop(page: Page, handlers: StopHandlers = {}): Pro
   return false;
 }
 
+/** The day bar's button when the day stops on your show night. */
+const SHOW_STOP = /Go to the show$/;
+
+/**
+ * Clears the day's stops other than your show night (an injury, expiring contracts) the way a
+ * player does, once the day bar has read them, and leaves the show night for the caller to book.
+ * Returns true when your show night is waiting. A show can leave such a stop behind (a worker hurt
+ * in it), and it turns Skip days off until it is cleared.
+ */
+export async function clearOtherStops(page: Page): Promise<boolean> {
+  await expect(page.getByTestId('day-control')).not.toHaveAttribute('aria-busy', 'true');
+  // Each pass clears one stop; a day has only a few kinds.
+  for (let pass = 0; pass < 5; pass += 1) {
+    if (await dayButton(page, SHOW_STOP).isVisible()) return true;
+    if (!(await clearDayStop(page))) return false;
+  }
+  return dayButton(page, SHOW_STOP).isVisible();
+}
+
 /**
  * Skips to the start of `date` (Skip days with "Stop on a date"), clearing each stop on the way
  * with {@link clearDayStop}. Leaves the day's own stop, if it has one, for the caller.

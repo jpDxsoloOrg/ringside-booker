@@ -28,6 +28,7 @@ import type { Locator, Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { expectNoSeriousA11yViolations } from './helpers/a11y';
 import { autoFillCard, pickWinnersAndRunShow, skipDaysOnce } from './helpers/booking';
+import { clearOtherStops } from './helpers/contracts';
 import { startDefaultWorldGame } from './helpers/game';
 import { expectNoHorizontalScroll } from './helpers/layout';
 import { openPromotionTab } from './helpers/promotions';
@@ -243,6 +244,8 @@ test.describe('rival cards and Auto-fill on a new game', () => {
     await test.step('winners picked, the show runs, and the day moves on', async () => {
       await pickWinnersAndRunShow(page, phone);
       await expect(page.getByRole('heading', { level: 1 })).toContainText(MY_SHOW);
+      // A worker hurt in the show stops the day until the player has seen it.
+      await clearOtherStops(page);
       expect(await skipDaysOnce(page, 1, phone)).toBe(1);
       await expectNoHorizontalScroll(page);
     });

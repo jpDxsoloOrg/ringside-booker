@@ -26,7 +26,7 @@ import type { Locator, Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { expectNoSeriousA11yViolations } from './helpers/a11y';
 import { autoFillCard, pickWinnersAndRunShow, skipDaysOnce } from './helpers/booking';
-import { clearDayStop, dayButton } from './helpers/contracts';
+import { clearOtherStops } from './helpers/contracts';
 import { startDefaultWorldGame } from './helpers/game';
 import { expectNoHorizontalScroll } from './helpers/layout';
 import { openPromotionTab } from './helpers/promotions';
@@ -43,8 +43,6 @@ const SKIP_DAYS = 14;
 const EXPECTED_STOPS = 2;
 /** A show's disclosure button: any button in its header that is not a Why?. */
 const SHOW_TOGGLE = /^(?!Why)/;
-/** The day bar's button when the day stops on your show night. */
-const SHOW_STOP = /Go to the show$/;
 const NO_TIMES = /minute/i;
 /** The base catalog's ways to win, as a result line names them. */
 const METHOD_NAMES = /Pinfall|Submission|Knockout|Referee Stoppage|Count-Out|Disqualification/;
@@ -143,14 +141,13 @@ test.describe('rival winners and title changes on a new game', () => {
       let left = SKIP_DAYS;
       let stops = 0;
       for (let round = 0; left > 0 && round <= SKIP_DAYS; round += 1) {
+        // A show can leave a stop behind (a worker hurt in it), which turns Skip days off.
+        await clearOtherStops(page);
         left -= await skipDaysOnce(page, left, phone);
         if (left === 0) break;
-        // An injury or a contract notice can stop the skip too: clear those the way a player does
-        // and carry on, so only Longleaf's show nights are booked here.
-        if (!(await dayButton(page, SHOW_STOP).isVisible())) {
-          expect(await clearDayStop(page), 'the skip stopped for a reason').toBe(true);
-          if (!(await dayButton(page, SHOW_STOP).isVisible())) continue;
-        }
+        // An injury or a contract notice can stop the skip too: those are cleared and the skip
+        // carries on, so only Longleaf's show nights are booked here.
+        if (!(await clearOtherStops(page))) continue;
         stops += 1;
         const summary = page.getByRole('region', { name: 'Last advance' });
         await expect(summary).toContainText(`Your show '${MY_SHOW}'`);
