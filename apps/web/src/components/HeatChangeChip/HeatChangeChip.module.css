@@ -11,9 +11,14 @@
   max-inline-size: 100%;
 }
 
+/* A long name ends in an ellipsis; the full name stays in the text and the hover title. */
 .name {
+  overflow: hidden;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-weight: var(--font-weight-bold);
-  overflow-wrap: anywhere;
 }
 
 .numbers {

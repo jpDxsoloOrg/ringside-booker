@@ -2,7 +2,8 @@
  * The Storyline section's body (CRTV4-04): suggestion chips, the linked rows (name, heat meter,
  * Finale switch and Unlink on one line on desktop) and the Link another picker. Below
  * --bp-mobile the chips wrap, each linked row stacks name / meter / controls and every control is
- * a finger tall. No fixed widths: long storyline names wrap.
+ * a finger tall. No fixed widths: a long storyline name ends in an ellipsis (its full name stays
+ * the accessible name and the hover title).
  */
 .picker {
   display: grid;
@@ -85,9 +86,14 @@
   cursor: not-allowed;
 }
 
+/* A long name ends in an ellipsis; the full name stays the chip's accessible name and title. */
 .chipName {
+  overflow: hidden;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-weight: var(--font-weight-bold);
-  overflow-wrap: anywhere;
 }
 
 .chipFact {
@@ -130,8 +136,12 @@
 }
 
 .name {
+  overflow: hidden;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-weight: var(--font-weight-bold);
-  overflow-wrap: anywhere;
 }
 
 .meter {

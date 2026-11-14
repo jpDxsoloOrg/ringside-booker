@@ -46,7 +46,9 @@ export function HeatChangeChip({
   const change = shownAfter - shownBefore;
   return (
     <span className={classNames(styles['chip'], className)} data-direction={Math.sign(change)}>
-      <span className={styles['name']}>{storylineName}</span>
+      <span className={styles['name']} title={storylineName}>
+        {storylineName}
+      </span>
       <span className={styles['numbers']}>
         <span className="tabular">{formatNumber(shownBefore)}</span>
         <span aria-hidden="true">→</span>
