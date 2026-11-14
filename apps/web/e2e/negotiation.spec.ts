@@ -376,7 +376,9 @@ test.describe('contract negotiation', () => {
       await expectReaction(sheet, /^Will (walk away|reject)/);
       // With the signing bonus still at their ask, 40% of the wage can land just above the
       // walk-away line (0.45 of the ask's value): drop the bonus too.
-      if (!/^Will walk away/.test((await meter(sheet).getAttribute('aria-valuetext')) ?? '')) {
+      if (
+        !((await meter(sheet).getAttribute('aria-valuetext')) ?? '').startsWith('Will walk away')
+      ) {
         await sheet.getByRole('textbox', { name: 'Signing bonus' }).fill('0');
       }
       await expectReaction(sheet, /^Will walk away/);
