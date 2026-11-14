@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ProductionArea, ProductionOverview, PromotionId } from '@ringside/engine';
 import { useEngineQuery } from '@/app/engine/useEngineQuery';
 import { classNames } from '@/components/classNames';
 import { EmptyState } from '@/components/EmptyState';
 import { ProductionAreaList, tvFloorText } from './ProductionAreaRow';
+import { CashRunwayBanner } from './cashRunway';
 import { ProductionChangeDialog } from './ProductionChangeDialog';
 import { ProductionHeader } from './ProductionHeader';
 import { queryErrorText } from './productionText';
@@ -54,6 +55,23 @@ export interface ProductionViewProps {
 export function ProductionView({ promotionId }: ProductionViewProps) {
   const overview = useEngineQuery('production.overview', { promotionId });
   const [change, setChange] = useState<ChangeRequest | null>(null);
+  const bodyRef = useRef<HTMLDivElement | null>(null);
+  /** The row button that opened the dialog ("Raise Camera"), to take focus back when it closes. */
+  const openerLabel = useRef<string | null>(null);
+
+  // The dialog unmounts as it closes, so it cannot hand focus back itself: put it on the − or +
+  // that opened it (found by its label, as Safari does not focus a pressed button).
+  useEffect(() => {
+    if (change !== null || openerLabel.current === null) return;
+    const label = openerLabel.current;
+    openerLabel.current = null;
+    const active = document.activeElement;
+    if (active !== null && active !== document.body) return;
+    const opener = bodyRef.current?.querySelector<HTMLElement>(
+      `button[aria-label="${CSS.escape(label)}"]`,
+    );
+    opener?.focus();
+  }, [change]);
 
   if (overview.data === undefined) {
     return overview.status === 'error' ? (
@@ -74,12 +92,18 @@ export function ProductionView({ promotionId }: ProductionViewProps) {
   const row = change === null ? undefined : data.rows.find((entry) => entry.area === change.area);
   return (
     <div
+      ref={bodyRef}
       className={classNames(styles['body'], overview.isStale && styles['stale'])}
       aria-busy={overview.isStale || undefined}
     >
+      {data.mine && <CashRunwayBanner promotionId={promotionId} />}
       <ProductionOverviewView
         overview={data}
         onRequestChange={(area, level) => {
+          const row = data.rows.find((entry) => entry.area === area);
+          if (row !== undefined) {
+            openerLabel.current = `${level > row.level ? 'Raise' : 'Lower'} ${row.label}`;
+          }
           setChange({ area, level });
         }}
       />

@@ -45,7 +45,9 @@ describe('areaCost', () => {
     expect(result.trace.label).toBe('Camera at level 4');
     expect(result.trace.unit).toBe('money');
     expectTraceContains(result, { kind: 'input', label: 'Camera level 4 of 10' });
-    expectTraceContains(result, { kind: 'power', label: 'Cost curve 0.4 ^ 3' });
+    const power = expectTraceContains(result, { kind: 'power', label: 'Cost curve' });
+    expect(power.before).toBeCloseTo(0.4, 9);
+    expect(power.operand).toBe(3);
     expectTraceContains(result, {
       kind: 'multiply',
       label: 'Camera at level 10: $150,000 per regular show',

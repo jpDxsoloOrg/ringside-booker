@@ -68,7 +68,7 @@ describe('traceToText', () => {
 });
 
 describe('traceToText power steps', () => {
-  it('words a power step as "raised to the power" with its label', () => {
+  it('words a power step as "0.25 raised to the power 1.5 = 0.125" with its label', () => {
     const trace: TraceNode = {
       kind: 'formula',
       label: 'Diminishing returns',
@@ -89,7 +89,7 @@ describe('traceToText power steps', () => {
     expect(traceToText(trace).split('\n')).toEqual([
       'Diminishing returns: 0.125',
       '  Share of fans still to win: 0.25',
-      '  raised to the power 1.5 (Popularity curve) · 0.25 → 0.125',
+      '  0.25 raised to the power 1.5 = 0.125 (Popularity curve) · 0.25 → 0.125',
     ]);
   });
 });

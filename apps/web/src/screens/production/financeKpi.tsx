@@ -13,6 +13,7 @@ import { KpiCard } from '@/components/KpiCard';
 import { WhyButton } from '@/components/Trace';
 import { registerFinanceKpi } from '@/screens/finances/financeRegistry';
 import { forecastWindowText } from './productionText';
+import { CASH_RUNWAY_KPI_ID, CASH_RUNWAY_KPI_ORDER, CashRunwayCard } from './cashRunway';
 import styles from './financeKpi.module.css';
 
 /** The card's id in the Finances KPI registry. */
@@ -70,4 +71,11 @@ registerFinanceKpi({
   id: MONTHLY_OVERHEAD_KPI_ID,
   order: MONTHLY_OVERHEAD_KPI_ORDER,
   render: ({ promotionId }) => <MonthlyOverheadKpi promotionId={promotionId} />,
+});
+
+// ECO7-06: how long the cash lasts at this rate, right after Cash.
+registerFinanceKpi({
+  id: CASH_RUNWAY_KPI_ID,
+  order: CASH_RUNWAY_KPI_ORDER,
+  render: ({ promotionId }) => <CashRunwayCard promotionId={promotionId} link="production" />,
 });

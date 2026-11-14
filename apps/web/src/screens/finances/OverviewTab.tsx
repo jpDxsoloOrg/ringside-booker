@@ -5,6 +5,7 @@ import { useEngineQuery } from '@/app/engine/useEngineQuery';
 import { routes } from '@/app/routes';
 import { KpiCardGrid } from '@/components/KpiCard';
 import { Panel } from '@/components/Panel';
+import { CashRunwayBanner } from '@/screens/production/cashRunway';
 import { CASH_TREND_MONTHS } from './kpis';
 import { FINANCE_TAB_IDS, formatYearMonth } from './financeParams';
 import { useFinanceKpis } from './financeRegistry';
@@ -79,6 +80,7 @@ export function OverviewTab({ promotionId }: OverviewTabProps) {
 
   return (
     <div className={styles['tabBody']}>
+      <CashRunwayBanner promotionId={promotionId} />
       <KpiCardGrid label="Key numbers" className={styles['kpis']}>
         {kpis.map((kpi) => {
           const card = kpi.render({ promotionId, overview: data });

@@ -36,3 +36,33 @@ export async function navigateInApp(page: Page, path: string): Promise<void> {
   const escaped = path.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   await expect(page).toHaveURL(new RegExp(`${escaped}${path.includes('?') ? '' : '(\\?.*)?'}$`));
 }
+
+/**
+ * Skips days through the Skip days sheet's "Stop on a date" (the top bar's button on desktop, the
+ * status sheet's on a phone) so the game stops at the start of `date` (`YYYY-MM-DD`): the day
+ * before it has run, `date` itself has not. A skip still stops early for the player's shows and
+ * decisions; the caller deals with that stop and calls this again. Waits for the advance to end.
+ */
+export async function skipToDate(page: Page, date: string, phone: boolean): Promise<void> {
+  const summary = page.getByRole('region', { name: 'Last advance' });
+  const before = (await summary.count()) > 0 ? await summary.textContent() : null;
+  if (phone) {
+    await page.getByRole('banner').getByTestId('status-date').click();
+    await page
+      .getByRole('dialog', { name: 'Status' })
+      .getByRole('button', { name: 'Skip days' })
+      .click();
+  } else {
+    await page.getByRole('banner').getByRole('button', { name: 'Skip days' }).click();
+  }
+  const sheet = page.getByRole('dialog', { name: 'Skip days' });
+  // Long enough to reach the date; the stop date ends the skip first.
+  await sheet.getByLabel('Days to skip').fill('90');
+  await sheet.getByRole('radio', { name: 'Stop on a date' }).check();
+  await sheet.getByLabel('Stop on', { exact: true }).fill(date);
+  await sheet.getByRole('button', { name: 'Start' }).click();
+  await expect(sheet).toBeHidden();
+  await expect(summary).toBeVisible();
+  await expect.poll(() => summary.textContent()).not.toBe(before);
+  await expect(page.getByTestId('advance-overlay')).toBeHidden();
+}

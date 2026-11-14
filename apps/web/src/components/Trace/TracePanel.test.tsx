@@ -177,7 +177,7 @@ const EVERY_KIND_ROWS: Readonly<Record<TraceNodeKind, string>> = {
   subtract: '−4 Tired legs',
   multiply: '×1.15 Hot crowd',
   divide: '÷2 Split between partners',
-  power: 'raised to the power 1 (Steady curve)',
+  power: 'raised to the power 1 = ',
   max: 'Raised 29.9 → 112 (minimum)',
   clamp: 'Capped 112 → 100 (maximum)',
   min: 'Capped 100 → 45 (maximum)',
