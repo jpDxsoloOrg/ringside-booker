@@ -11,23 +11,6 @@ import { enterGameFromSampleSave } from './helpers/game';
 import { expectNoHorizontalScroll } from './helpers/layout';
 import { isPhone } from './helpers/viewport';
 
-/**
- * The widest right edge of anything on the Production screen or in an open dialog, in CSS pixels,
- * against the viewport. The shell around it (top bar, ticker) has its own checks.
- */
-async function overflowOf(page: Page): Promise<{ readonly right: number; readonly width: number }> {
-  return page.evaluate(() => {
-    const roots = Array.from(document.querySelectorAll('main, [role="alertdialog"]'));
-    let right = 0;
-    for (const root of roots) {
-      for (const element of [root, ...Array.from(root.querySelectorAll('*'))]) {
-        right = Math.max(right, element.getBoundingClientRect().right);
-      }
-    }
-    return { right: Math.round(right), width: document.documentElement.clientWidth };
-  });
-}
-
 async function openProduction(page: Page, phone: boolean): Promise<void> {
   if (phone) {
     await page
@@ -102,8 +85,7 @@ test.describe('Business > Production', () => {
       .toBe('1.5');
     await enterGameFromSampleSave(page);
     await openProduction(page, true);
-    const screenFit = await overflowOf(page);
-    expect(screenFit.right).toBeLessThanOrEqual(screenFit.width);
+    await expectNoHorizontalScroll(page);
 
     await page
       .getByRole('listitem', { name: 'Marketing' })
@@ -111,7 +93,6 @@ test.describe('Business > Production', () => {
       .click();
     const dialog = page.getByRole('alertdialog');
     await expect(dialog.getByText('Lowering is free')).toBeVisible();
-    const dialogFit = await overflowOf(page);
-    expect(dialogFit.right).toBeLessThanOrEqual(dialogFit.width);
+    await expectNoHorizontalScroll(page);
   });
 });
