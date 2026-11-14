@@ -16,7 +16,7 @@
  */
 
 import type { GameDate } from '../../core/date';
-import { cents } from '../../core/money';
+import { cents, negate } from '../../core/money';
 import type { StepContext } from '../../core/pipeline/context';
 import { constantOf, inputOf, startCalc, type Traced, type TraceNode } from '../../core/trace';
 import { compactTrace } from '../../core/trace/compact';
@@ -224,7 +224,7 @@ function withFact(traced: Traced<number>, index: number, fact: TraceNode): Trace
     trace: {
       ...traced.trace,
       children: [...children.slice(0, index + 1), fact, ...children.slice(index + 1)],
-    } as TraceNode,
+    },
   };
 }
 
@@ -362,7 +362,7 @@ export function settleAiring(ctx: StepContext, due: DueAiring): Airing | null {
     postMoney(ctx, {
       promotionId: promotion.id,
       category: AIRTIME_COST_CATEGORY,
-      amount: cents(-cost),
+      amount: negate(cost),
       memo: clip(`Airtime: ${network.name}`, 120),
       refs,
       ...(human ? { trace: costTrace } : {}),

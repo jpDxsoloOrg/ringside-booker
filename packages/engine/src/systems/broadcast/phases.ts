@@ -54,11 +54,7 @@ export const settleOnShowNightSubscription: SubscriptionSpec<'show.completed'> =
     type: 'show.completed',
     handler: (event, ctx) => {
       const show = ctx.read.tables.eventInstances.get(event.payload.eventInstanceId);
-      if (
-        show === undefined ||
-        show.airDate !== ctx.date ||
-        showControllerOf(ctx.read, show).kind !== 'human'
-      ) {
+      if (show?.airDate !== ctx.date || showControllerOf(ctx.read, show).kind !== 'human') {
         return;
       }
       const due = airingsDueOn(ctx.read, ctx.date).filter(

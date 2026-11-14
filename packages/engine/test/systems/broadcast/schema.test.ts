@@ -180,7 +180,7 @@ describe('the broadcast bundle', () => {
   it('is registered once, settling and pruning airings (ECO8-04)', () => {
     expect(defaultSystems.filter((system) => system.id === 'broadcast')).toEqual([broadcastSystem]);
     expect(new Set(defaultSystems.map((system) => system.id)).size).toBe(defaultSystems.length);
-    expect(broadcastSystem.phases?.map((phase) => phase.id)).toEqual([
+    expect(broadcastSystem.phases.map((phase) => phase.id)).toEqual([
       'broadcast.airings',
       'broadcast.pruneAirings',
     ]);

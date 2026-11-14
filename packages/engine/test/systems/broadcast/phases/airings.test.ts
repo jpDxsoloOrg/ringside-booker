@@ -11,6 +11,8 @@ import { simSystem } from '../../../../src/core/api/builtins';
 import { defineSystem, type SystemBundle } from '../../../../src/core/api/system';
 import { addDays, type GameDate } from '../../../../src/core/date';
 import type { DealId, EventInstanceId, PromotionId } from '../../../../src/core/ids';
+import type { DomainEventMap } from '../../../../src/core/events/types';
+import { negate } from '../../../../src/core/money';
 import { definePhase } from '../../../../src/core/pipeline/phase';
 import { isFullTrace } from '../../../../src/core/trace';
 import type { Airing } from '../../../../src/model/entities/airing';
@@ -62,8 +64,8 @@ function promotionId(world: GameWorld, name: string): PromotionId {
 }
 
 interface DealWorld extends ShowNightWorld {
-  readonly a: PromotionId;
-  readonly b: PromotionId;
+  readonly promotionA: PromotionId;
+  readonly promotionB: PromotionId;
   readonly deals: Readonly<Record<'tv' | 'ppv' | 'streaming' | 'rival', DealId>>;
 }
 
@@ -75,8 +77,8 @@ interface DealWorld extends ShowNightWorld {
 function dealWorld(options: { readonly tapedDays?: number } = {}): DealWorld {
   const built = showNightWorld();
   const { world } = built;
-  const a = promotionId(world, 'Test Promotion A');
-  const b = promotionId(world, 'Test Promotion B');
+  const promotionA = promotionId(world, 'Test Promotion A');
+  const promotionB = promotionId(world, 'Test Promotion B');
   const regionIds = [...world.tables.regions.ids()];
   const deals: Partial<Record<keyof DealWorld['deals'], DealId>> = {};
   mustWrite(world, 'networks and deals', (tx) => {
@@ -105,10 +107,10 @@ function dealWorld(options: { readonly tapedDays?: number } = {}): DealWorld {
         }),
       ).id;
     const tv = network('Test Channel', 'tv');
-    deals.tv = deal(tv, a);
-    deals.ppv = deal(network('Test Pay-Per-View', 'ppv'), a);
-    deals.streaming = deal(network('Test Stream', 'streaming'), a);
-    deals.rival = deal(tv, b);
+    deals.tv = deal(tv, promotionA);
+    deals.ppv = deal(network('Test Pay-Per-View', 'ppv'), promotionA);
+    deals.streaming = deal(network('Test Stream', 'streaming'), promotionA);
+    deals.rival = deal(tv, promotionB);
     if (built.human !== null) {
       const human = built.human;
       tx.update('eventInstances', human, {
@@ -121,7 +123,7 @@ function dealWorld(options: { readonly tapedDays?: number } = {}): DealWorld {
   if (tv === undefined || ppv === undefined || streaming === undefined || rival === undefined) {
     throw new Error('The deal world is missing a deal');
   }
-  return { ...built, a, b, deals: { tv, ppv, streaming, rival } };
+  return { ...built, promotionA, promotionB, deals: { tv, ppv, streaming, rival } };
 }
 
 const SYSTEMS: SystemBundle[] = [
@@ -159,10 +161,22 @@ function ledgerFor(engine: Engine, eventInstanceId: EventInstanceId): LedgerEntr
   );
 }
 
-function eventsOf<T extends 'broadcast.aired' | 'broadcast.missed'>(engine: Engine, type: T) {
+function recentEvents(engine: Engine, type: 'broadcast.aired' | 'broadcast.missed') {
   const result = engine.query('sim.recentEvents', { limit: 10_000, types: [type] }, OMNISCIENT);
   if (!result.ok) throw new Error(JSON.stringify(result.reasons));
-  return result.data.filter((event) => event.type === type);
+  return result.data;
+}
+
+function airedEvents(engine: Engine): DomainEventMap['broadcast.aired'][] {
+  return recentEvents(engine, 'broadcast.aired').flatMap((event) =>
+    event.type === 'broadcast.aired' ? [event.payload] : [],
+  );
+}
+
+function missedEvents(engine: Engine): DomainEventMap['broadcast.missed'][] {
+  return recentEvents(engine, 'broadcast.missed').flatMap((event) =>
+    event.type === 'broadcast.missed' ? [event.payload] : [],
+  );
 }
 
 function cashOf(engine: Engine, id: PromotionId): number {
@@ -181,7 +195,7 @@ describe('broadcast.airings on show night', () => {
     const built = dealWorld();
     const human = need(built.human, 'human show');
     const engine = engineFor(built.world);
-    const cashBefore = cashOf(engine, built.a);
+    const cashBefore = cashOf(engine, built.promotionA);
     await advance(engine);
 
     const show = need(
@@ -211,7 +225,7 @@ describe('broadcast.airings on show night', () => {
       expect(rows.map((row) => [row.category, row.amount]).sort()).toEqual(
         [
           [category, airing.income - airing.sharesPaid],
-          ['production', -airing.cost],
+          ['production', negate(airing.cost)],
         ].sort(),
       );
       expect(airing.traceRef?.kind).toBe(AIRING_TRACE_KIND);
@@ -220,16 +234,12 @@ describe('broadcast.airings on show night', () => {
     expect(show.result?.viewers).toBe(airings.reduce((sum, row) => sum + row.viewers, 0));
     // ECO1's seam: the cash moved by exactly the day's ledger rows.
     const today = tablesOf(engine).ledgerEntries.filter(
-      (row) => row.promotionId === built.a && row.date === TODAY,
+      (row) => row.promotionId === built.promotionA && row.date === TODAY,
     );
-    expect(cashOf(engine, built.a) - cashBefore).toBe(
+    expect(cashOf(engine, built.promotionA) - cashBefore).toBe(
       today.reduce((sum, row) => sum + row.amount, 0),
     );
-    expect(
-      eventsOf(engine, 'broadcast.aired').filter(
-        (event) => event.payload.eventInstanceId === human,
-      ),
-    ).toHaveLength(3);
+    expect(airedEvents(engine).filter((event) => event.eventInstanceId === human)).toHaveLength(3);
   });
 
   it('airs a show left unrun with neutral quality and says so in the memo', async () => {
@@ -253,7 +263,7 @@ describe('broadcast.airings on show night', () => {
     for (const row of income) {
       expect(row.memo.endsWith(AIRED_WITHOUT_RESULT_MEMO.trim())).toBe(true);
     }
-    const rows = engine.query('broadcast.airings', { promotionId: built.a }, AS_PLAYER);
+    const rows = engine.query('broadcast.airings', { promotionId: built.promotionA }, AS_PLAYER);
     if (!rows.ok) throw new Error('broadcast.airings refused');
     expect(rows.data.filter((row) => row.eventInstanceId === unrun).map((row) => row.note)).toEqual(
       ['Aired without a show result', 'Aired without a show result'],
@@ -281,12 +291,7 @@ describe('broadcast.airings on show night', () => {
       expect(trace.ok && trace.data !== null && isFullTrace(trace.data)).toBe(true);
     }
     expect(ledgerFor(engine, cancelled)).toEqual([]);
-    expect(
-      eventsOf(engine, 'broadcast.missed').map((event) => [
-        event.payload.eventInstanceId,
-        event.payload.reason,
-      ]),
-    ).toEqual([
+    expect(missedEvents(engine).map((event) => [event.eventInstanceId, event.reason])).toEqual([
       [cancelled, 'showCancelled'],
       [cancelled, 'showCancelled'],
     ]);
@@ -296,7 +301,7 @@ describe('broadcast.airings on show night', () => {
     const built = dealWorld();
     const engine = engineFor(built.world);
     await advance(engine);
-    const rival = tablesOf(engine).airings.filter((row) => row.promotionId === built.b);
+    const rival = tablesOf(engine).airings.filter((row) => row.promotionId === built.promotionB);
     expect(rival.map((row) => row.eventInstanceId).sort()).toEqual(
       [...built.rivalBare, built.rivalCard].sort(),
     );
@@ -306,7 +311,7 @@ describe('broadcast.airings on show night', () => {
       expect(airing.traceRef?.kind).toBe(RIVAL_AIRING_TRACE_KIND);
     }
     const ledger = tablesOf(engine).ledgerEntries.filter(
-      (row) => row.promotionId === built.b && row.refs.dealId === built.deals.rival,
+      (row) => row.promotionId === built.promotionB && row.refs.dealId === built.deals.rival,
     );
     expect(ledger.map((row) => row.category).sort()).toEqual([
       'broadcast',
@@ -315,14 +320,18 @@ describe('broadcast.airings on show night', () => {
       'production',
     ]);
     // Viewers are public, money is not.
-    const asPlayer = engine.query('broadcast.airings', { promotionId: built.b }, AS_PLAYER);
+    const asPlayer = engine.query(
+      'broadcast.airings',
+      { promotionId: built.promotionB },
+      AS_PLAYER,
+    );
     if (!asPlayer.ok) throw new Error('broadcast.airings refused');
     expect(asPlayer.data).toHaveLength(2);
     expect(asPlayer.data.every((row) => row.income === null && row.cost === null)).toBe(true);
     expect(asPlayer.data.every((row) => row.traceRef === null && row.net === null)).toBe(true);
-    expect(engine.query('broadcast.incomeSummary', { promotionId: built.b }, AS_PLAYER).ok).toBe(
-      false,
-    );
+    expect(
+      engine.query('broadcast.incomeSummary', { promotionId: built.promotionB }, AS_PLAYER).ok,
+    ).toBe(false);
   });
 
   it('never pays twice when the phase runs again on the same day', async () => {
@@ -361,7 +370,7 @@ describe('broadcast.airings on show night', () => {
         const personId = need(built.roster[index], 'worker');
         const contract = tx.view.tables.employments
           .lookup('byPerson', personId)
-          .find((row) => row.promotionId === built.a);
+          .find((row) => row.promotionId === built.promotionA);
         if (contract === undefined) throw new Error('No contract');
         tx.update('employments', contract.id, {
           terms: { ...contract.terms, shares: { ...contract.terms.shares, broadcastBp: bp } },
