@@ -93,7 +93,7 @@ employment schemas.
 | `countered`      | yes  | the worker made a counter-offer; it lapses after `contracts.counter.expiryDays` |
 | `awaitingReview` | yes  | the offer is good enough; the worker decides on `reviewOn`                      |
 | `signed`         | no   | the worker signed                                                               |
-| `declined`       | no   | the worker said no (or signed elsewhere: `outcome.otherPromotionId`)            |
+| `declined`       | no   | the worker said no, signed elsewhere (`lostToOtherOffer`) or the contract ended |
 | `walkedAway`     | no   | the worker ran out of patience; no new talks before `cooldownUntil`             |
 | `withdrawn`      | no   | the promotion took the offer back                                               |
 | `lapsed`         | no   | a counter-offer went unanswered past its expiry                                 |
@@ -364,9 +364,9 @@ Example: the $24,000 offer above, first round, a roll of 0.08: they meet you
 
 The counter stays open for `contracts.counter.expiryDays` (7). Paying exactly
 what they countered (or more money on the same terms) is accepted. The
-`contracts.counter.stopSkip` gate (a skip stopping while a counter waits for
-the player) is not built yet: whoever adds it must default it off until the
-Negotiation Sheet (ECO5-06) can answer a counter from the day bar.
+`contracts.counter.stopSkip` gate (ECO5-05, [Counter-offer stop](#counter-offer-stop)) is
+off by default until the Negotiation Sheet (ECO5-06) can answer a counter
+from the day bar.
 
 ## Rounds
 
@@ -478,17 +478,152 @@ ever names another human's promotion.
 
 ## Review
 
-Once an offer is good enough the worker takes `contracts.review.delayDays` (2)
-to decide, so rival offers can arrive; ties break on `contracts.review`. The
-decision is recorded at `contracts.review` / `<negotiationId>:review`, the
-signing bonus at `contracts.signingBonus` / `<negotiationId>:review`. Filled by
-ECO5-05.
+The phase `contracts.reviewOffers` (ECO5-05; group `contracts`, order 5, daily,
+before ECO4's `contracts.lifecycle` at 10) is where workers answer. Pressing
+Next Day is part of every negotiation: an offer made today is answered when
+today runs. In order, each list in id order:
+
+1. **Reactions.** Every `submitted` offer with `submittedOn` on or before today
+   is weighed by `evaluateOffer` against the ask as it stands now:
+   - `accept`: `awaitingReview`, `reviewOn` = today +
+     `contracts.review.delayDays` (2), so a rival's offer can still win;
+   - `counter`: the worker's counter-offer (`counterTermsFor`, one roll on
+     `contracts.counter`), `counterExpiresOn` = today +
+     `contracts.counter.expiryDays` (7), a `negotiation.countered` event;
+   - `reject`: `contracts.patience.rejectCost` patience and a counter-offer at
+     their full ask ("Not even close: here's what it takes", nothing rolled);
+   - `walkAway`: closed as `walkedAway`, no new talks with this promotion before
+     `cooldownUntil` = today + `contracts.walkAway.cooldownDays` (30); a
+     signing's offered employment becomes `declined`;
+     `negotiation.walkedAway`;
+   - `refuse`: closed as `declined`, the refusal's code as the outcome.
+
+   The reaction is stored at `contracts.reaction` / `<negotiationId>:<round>`
+   (a summary for computer promotions), the counter at `contracts.counter` with
+   the same id, and the promotion's history entry gets the reaction.
+
+2. **Computer counters.** A counter-offer to a computer promotion is answered
+   in the same phase so talks never stall: the first responder registered
+   with `registerCounterResponder({ id, order?, respond })` (ECO6) that answers
+   wins; otherwise the built-in rule accepts a counter whose pay (wage, or fee)
+   is at most the worker's ask × `contracts.ai.acceptCounterUpTo` (1, so every
+   counter) and ends the talks otherwise. It goes through `answerCounter` like
+   the player's answer, and is stored as a summary at `contracts.counter` /
+   `<negotiationId>:<round>:answer`. The rule is a fallback, not an AI
+   shortcut (D-01): every computer promotion uses it.
+3. **Lapses.** A counter-offer still unanswered after `counterExpiresOn`
+   closes as `lapsed` ("They stopped waiting for your answer"), with no
+   cooldown; a signing's offer becomes `withdrawn`.
+4. **Reviews.** For each worker whose earliest `reviewOn` has come, every offer
+   they agreed to (`awaitingReview`, any promotion, any controller) is
+   compared:
+   - **An agreed offer stays agreed.** The ratio test is not run again
+     (accepting their counter-offer clears `lastCounter`, so a second test
+     could turn a yes into a counter). An offer drops out only when the worker
+     can no longer sign it at all: the renewed contract ended
+     (`contractEnded`), the promotion closed (`promotionClosed`), or a refusal
+     now applies (unavailable, tied up elsewhere, won't renew while unhappy,
+     won't take the role; the refusal's code is the outcome).
+   - Each offer is scored by its value ÷ the value of what the worker asks of
+     _that_ promotion (the ask differs by reach and prestige), so a smaller
+     promotion can win with a lower wage when its offer is closer to what the
+     worker asks of it. The Why? reads "Altura: 1.02 of their ask · Crown Pro:
+     0.97 of their ask", with "Matches their counter-offer" under an offer
+     that was their own counter.
+   - The highest score signs (`startDecision('Which offer they sign')`).
+     Scores within `contracts.review.tieEpsilon` (0.01) of the best are a tie,
+     broken by a `rollPick` on `contracts.review` recorded in the decision.
+   - The decision is stored at `contracts.review` / `<negotiationId>:review`
+     for **every** offer in the comparison (full for the player's promotions).
+     Every other open negotiation for that worker closes as `declined` with
+     outcome `lostToOtherOffer` and `otherPromotionId` = the winner ("Signed
+     with Crown Pro instead"); their offered employments become `declined`.
+5. **Pruning.** Closed talks that closed more than
+   `contracts.history.closedKeepDays` (365) ago and whose cooldown has passed
+   are deleted. The talks of a signing that never signed are kept without
+   their rounds instead: they are what marks their `withdrawn` or `declined`
+   employment as only an offer (`isUnsignedOffer`), and that employment may be
+   named elsewhere (news, mail, decision logs).
+
+ECO5 never changes morale: walking away, a rejected offer or a lost bidding
+war move no one's morale, so the D-09 story shield stays the only place
+loss-related morale is decided (WRK8).
+
+### Signing
+
+`signNegotiation(ctx, negotiation, decisionTraceRef)` (`sign.ts`), the one
+place a worker signs:
+
+- **A new contract.** The `offered` employment (which carries the offer's
+  terms, role, push and brand since ECO5-04) becomes `signed`, starting on the
+  latest of the offer's start, the earliest day the worker is free and today,
+  and ending `lengthMonths` later. A deal starting today starts at once through
+  ECO4's `startContract` (`contract.started`). The offer kind's `onSigned` hook
+  runs (ECO11/ECO12).
+- **Exclusivity.** An exclusive deal ends the worker's non-exclusive deals with
+  other promotions the day it starts (`endsOn` = its `startsOn`, the first day
+  not under the old deal), or withdraws one that would not have started by
+  then; a deal starting today is left to `startContract`'s exclusive handover.
+  The decision notes "Went exclusive with Altura". `employments.exclusiveConflict`
+  can never fire.
+- **A renewal** changes the live contract in place: the new terms, `endsOn` =
+  the old end + `lengthMonths` (today + `lengthMonths` for an open-ended
+  deal), the brand, and push and role through WRK1's `setPush` / `setRole`
+  doors (never direct writes; a role the doors refuse is kept and noted). It
+  also publishes ECO4's `contract.renewed`.
+- **Signing bonus.** When the offer has one, `postMoney` posts it on the signing
+  day in `signingBonuses` (memo "Signing bonus: <ring name>"), even for a deal
+  that starts later; a promotion short of cash still signs (cash may go
+  negative). The agreed amount's Why? is at `contracts.signingBonus` /
+  `<negotiationId>:review`.
+- The negotiation closes as `signed`; `contract.signed { renewal }` and
+  `negotiation.closed` are published.
+
+When a contract ends for any reason (it ran out, was released, the worker quit
+or walked out) every open negotiation pointing at it closes in the same step as
+`declined` with outcome `contractEnded` ("Their contract ran out first: make a
+new offer"); `endEmployment` does it (`endedTalks.ts`).
+
+### Counter-offer stop
+
+The gate `contracts.counterWaiting` stops a skip while a counter-offer waits
+for a player: "Counter-offer from <ring name> is waiting for your answer"
+(subject the person, hint `contracts`). Gates cannot read tunables, so the
+reaction copies `contracts.counter.stopSkip` onto the row
+(`counterStopsSkip`, only for promotions a human runs). **The stop is off by
+default** until the Negotiation Sheet (ECO5-06) can answer a counter from the
+day bar; while it is off, an unanswered counter lapses after 7 days. Computer
+promotions never stop a skip.
+
+### Who sees a review
+
+Talks are private to the promotion having them. `trace.get` returns a
+`contracts.review` trace only to a viewer who runs that negotiation's
+promotion (and to the omniscient viewer), redacted by
+`redactReviewTrace(node, viewerPromotionIds)`: other promotions' score nodes
+become "Another offer was compared", their options leave the list of options
+weighed, and a winning offer of theirs is named by its promotion. Names stay
+(the outcome names the winner anyway); their values and amounts never leave
+the engine. `contracts.offers` and `contracts.negotiation` return the redacted
+review inline (`reviewTrace`).
+
+### Next Day summary
+
+`contracts.offerUpdatesSince { promotionId, from, to }` (both days included)
+→ `{ countered, signed, walkedAway, declined, lapsed }`, each a list of
+`{ negotiationId, ringName, outcomeMessage }` read from the negotiations
+themselves (closed talks by `closedOn`, counter-offers by the day the worker
+made them), for ECO5-06's summary.
 
 ## Renewals
 
 A renewal can be offered from `contracts.renewal.windowDays` (180) before a
-contract ends. ECO5-05 replaces ECO4's temporary automatic renewal of the
-player's contracts (`contracts.autoRenewPlayer`). Filled by ECO5-05.
+contract ends (`contracts.offerRenewal`) and is signed in place on the review
+day ([Signing](#signing)). Since ECO5-05 the player renews this way: ECO4's
+temporary automatic renewal of the player's contracts
+(`contracts.autoRenewPlayer`) is **off by default**. A contract nobody renews
+runs out on its end date (the expiring-soon stop warns 30 days before) and
+shows on Contracts › Ended.
 
 What a renewal asks (ECO5-02):
 

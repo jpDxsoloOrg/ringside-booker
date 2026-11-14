@@ -262,8 +262,9 @@ ECO4-05 moves the level-playing-field read to AIP1's `aiShortcut` and swaps
 
 Over three years of the default world the rule keeps every rival at 50 % to
 73 % of its starting active roster. The player's own run out completely with
-`contracts.autoRenewPlayer` off; with it on (the default) the player keeps
-every contract (see [Player renewals](#player-renewals)).
+`contracts.autoRenewPlayer` off (the default since ECO5-05: the player renews
+through contract talks); with it on the player keeps every contract (see
+[Player renewals](#player-renewals)).
 
 ## Expiring soon
 
@@ -353,9 +354,12 @@ log, because a renewal only moves an end date.
 
 ## Player renewals
 
-**Temporary, until ECO5.** Contracts run out, and the player cannot renew one
-until ECO5's renewal talks, so a three-year game would empty the player's
-roster. While `contracts.autoRenewPlayer` is on (the default), the built-in
+**Retired by ECO5-05: off by default.** The player now renews through
+contract talks (`contracts.offerRenewal`, signed on the review day, see
+[negotiation.md#renewals](negotiation.md#renewals)); a contract nobody renews
+runs out on its end date and shows on Contracts › Ended. Before ECO5 the player
+could not renew, so this stopgap kept the roster. While
+`contracts.autoRenewPlayer` is on (now only by override), the built-in
 renewal policy `contracts.playerAutoRenewal` (`playerAutoRenewal.ts`, order 50) renews a contract of a promotion the player runs on its end date, on the
 same terms, for `contracts.autoRenewPlayerDays` more days (a renewal only
 moves `endsOn`, so the last term's length is not known). It goes through the
@@ -366,12 +370,12 @@ yourself"), `contract.renewed` with source `player`, and a line in
 closed promotions, open-ended contracts and when the tunable is off, so those
 contracts expire as before.
 
-ECO5-05 removes this policy or defaults `contracts.autoRenewPlayer` to off once
-the player can renew.
+ECO5-05 defaulted `contracts.autoRenewPlayer` to off; the policy stays for
+saves and tests that turn it on, and can be removed later.
 
 | Key                             | Kind    | Default | Range  | Unit | Meaning                                                             |
 | ------------------------------- | ------- | ------- | ------ | ---- | ------------------------------------------------------------------- |
-| `contracts.autoRenewPlayer`     | boolean | true    |        | flag | Temporary: your contracts renew on the same terms when they run out |
+| `contracts.autoRenewPlayer`     | boolean | false   |        | flag | Temporary: your contracts renew on the same terms when they run out |
 | `contracts.autoRenewPlayerDays` | integer | 365     | 1–3650 | days | Temporary: how long each automatic renewal adds                     |
 
 ## Unhappy workers

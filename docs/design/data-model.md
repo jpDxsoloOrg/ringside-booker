@@ -1431,29 +1431,30 @@ forth lives here, so nothing between an offer and a deal can pay a wage.
 Terms and rival offers are private: player queries only read rows of the
 player's own promotions.
 
-| Field              | Type              | Notes                                                                          |
-| ------------------ | ----------------- | ------------------------------------------------------------------------------ |
-| `id`               | `NegotiationId`   |                                                                                |
-| `kind`             | enum              | `signing` or `renewal`                                                         |
-| `personId`         | `PersonId`        | the worker                                                                     |
-| `promotionId`      | `PromotionId`     | the promotion making the offer                                                 |
-| `employmentId`     | `EmploymentId`    | the `offered` employment of a signing, or the live contract a renewal changes  |
-| `status`           | enum              | `NEGOTIATION_STATUSES`; open: `submitted`, `countered`, `awaitingReview`       |
-| `round`            | integer ≥ 1       | the current round                                                              |
-| `startPatience`    | integer 0..10     | the worker's patience when the conversation opened                             |
-| `patience`         | integer 0..10     | patience left, never above `startPatience`                                     |
-| `offer`            | `Offer`           | the promotion's current offer ([the offer](negotiation.md#the-offer))          |
-| `lastCounter`      | `Offer` or null   | the worker's counter-offer; set exactly while `countered`                      |
-| `history`          | array, at most 12 | `{ round, date, by: 'promotion' \| 'worker', offer, reaction }`                |
-| `openedOn`         | date              |                                                                                |
-| `submittedOn`      | date              | when the current offer was made; not before `openedOn`                         |
-| `counterExpiresOn` | date or null      | the last day to answer the counter-offer; set exactly while `countered`        |
-| `reviewOn`         | date or null      | the day the worker decides; set while `awaitingReview`                         |
-| `closedOn`         | date or null      | set exactly when the status is closed                                          |
-| `outcome`          | object or null    | `{ code, otherPromotionId }`: why it closed, and where the worker went instead |
-| `cooldownUntil`    | date or null      | after a walk-away, no new talks with this promotion before this day            |
-| `reactionTraceId`  | string or null    | `<negotiationId>:<round>` of the latest reaction trace                         |
-| `reviewTraceId`    | string or null    | `<negotiationId>:review`                                                       |
+| Field              | Type              | Notes                                                                                                                                                     |
+| ------------------ | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`               | `NegotiationId`   |                                                                                                                                                           |
+| `kind`             | enum              | `signing` or `renewal`                                                                                                                                    |
+| `personId`         | `PersonId`        | the worker                                                                                                                                                |
+| `promotionId`      | `PromotionId`     | the promotion making the offer                                                                                                                            |
+| `employmentId`     | `EmploymentId`    | the `offered` employment of a signing, or the live contract a renewal changes                                                                             |
+| `status`           | enum              | `NEGOTIATION_STATUSES`; open: `submitted`, `countered`, `awaitingReview`                                                                                  |
+| `round`            | integer ≥ 1       | the current round                                                                                                                                         |
+| `startPatience`    | integer 0..10     | the worker's patience when the conversation opened                                                                                                        |
+| `patience`         | integer 0..10     | patience left, never above `startPatience`                                                                                                                |
+| `offer`            | `Offer`           | the promotion's current offer ([the offer](negotiation.md#the-offer))                                                                                     |
+| `lastCounter`      | `Offer` or null   | the worker's counter-offer; set exactly while `countered`                                                                                                 |
+| `history`          | array, at most 12 | `{ round, date, by: 'promotion' \| 'worker', offer, reaction }`                                                                                           |
+| `openedOn`         | date              |                                                                                                                                                           |
+| `submittedOn`      | date              | when the current offer was made; not before `openedOn`                                                                                                    |
+| `counterExpiresOn` | date or null      | the last day to answer the counter-offer; set exactly while `countered`                                                                                   |
+| `reviewOn`         | date or null      | the day the worker decides; set while `awaitingReview`                                                                                                    |
+| `closedOn`         | date or null      | set exactly when the status is closed                                                                                                                     |
+| `outcome`          | object or null    | `{ code, otherPromotionId }`: why it closed, and where the worker went instead                                                                            |
+| `cooldownUntil`    | date or null      | after a walk-away, no new talks with this promotion before this day                                                                                       |
+| `reactionTraceId`  | string or null    | `<negotiationId>:<round>` of the latest reaction trace                                                                                                    |
+| `reviewTraceId`    | string or null    | `<negotiationId>:review`                                                                                                                                  |
+| `counterStopsSkip` | boolean           | while `countered`: the counter stops a player's skip (`contracts.counter.stopSkip` copied when it was made; ECO5-05); false otherwise, and in older saves |
 
 `NEGOTIATION_STATUSES`: `submitted`, `countered`, `awaitingReview`, `signed`,
 `declined`, `walkedAway`, `withdrawn`, `lapsed`. `REACTIONS`: `accept`,

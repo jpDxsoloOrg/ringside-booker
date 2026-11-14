@@ -75,14 +75,19 @@ The health system's `housekeeping` phases ([health.md](health.md)):
 | `health.recovery`          | 10    | daily           | Injuries due back today end (`injury.healed`); then fatigue fades for everyone above 0 (stamina, age and traits count; less after a talking-only show day yesterday). |
 | `health.conditionRecovery` | 12    | weekly, Mondays | Damaged body parts heal a little, up to the cap for the worker's age; no rolls, no traces.                                                                            |
 
-The `contracts` group's phases (ECO4-01 and ECO4-03, see
-[contracts.md](contracts.md#lifecycle) and
-[contracts.md](contracts.md#unhappy-workers)):
+The `contracts` group's phases (ECO4-01, ECO4-03 and ECO5-05, see
+[contracts.md](contracts.md#lifecycle),
+[contracts.md](contracts.md#unhappy-workers) and
+[negotiation.md](negotiation.md#review)). `contracts.reviewOffers` runs first so
+a deal signed today that starts today is active before the lifecycle and the
+shows (the signing starts it itself through `startContract`, so the order is a
+guarantee, not a requirement):
 
-| Phase                      | Order | Cadence | What it does                                                                                                                                                                                                                  |
-| -------------------------- | ----- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `contracts.lifecycle`      | 10    | daily   | Due contracts ask the renewal policies and otherwise expire; signed deals whose start date has come become active; then the `afterLifecycle` hooks (ECO4-02's expiry notices).                                                |
-| `contracts.unhappyWorkers` | 30    | daily   | Refused requests roll for a walk-out (or settle down); unanswered requests past their date are refused; the unhappy clock counts (paused in a hot storyline, D-09) and raises release requests; rivals answer theirs at once. |
+| Phase                      | Order | Cadence | What it does                                                                                                                                                                                                                                                                                                              |
+| -------------------------- | ----- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `contracts.reviewOffers`   | 5     | daily   | Workers react to submitted offers (accept, counter, reject, walk away, refuse); computer promotions answer counter-offers; unanswered counters lapse; workers whose review day has come sign the best agreed offer (exclusivity cuts, renewals through the doors, signing bonus); old closed talks are pruned. No morale. |
+| `contracts.lifecycle`      | 10    | daily   | Due contracts ask the renewal policies and otherwise expire; signed deals whose start date has come become active; then the `afterLifecycle` hooks (ECO4-02's expiry notices).                                                                                                                                            |
+| `contracts.unhappyWorkers` | 30    | daily   | Refused requests roll for a walk-out (or settle down); unanswered requests past their date are refused; the unhappy clock counts (paused in a hot storyline, D-09) and raises release requests; rivals answer theirs at once.                                                                                             |
 
 The `money` group's phases so far (ECO1-03, see
 [finances.md](finances.md#payroll)):
@@ -401,12 +406,13 @@ registered ones:
 
 **The systems' gates.** Registered by the system bundles:
 
-| Gate                         | System    | Hits when                                                                                                                                                         | Reason                                                                  | Hint        |
-| ---------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ----------- |
-| `shows.tonight`              | shows     | The player has an open show today (EVT2-09)                                                                                                                       | "Tonight: Friday Fury", or "Your show 'Friday Fury' has no card yet"    | `showNight` |
-| `health.ownWorkerInjured`    | health    | An injury to one of the player's workers waits to be noticed (WRK6-04)                                                                                            | "Big Joe was injured (Sprained ankle, out until Mar 14, 2031)"          | `roster`    |
-| `contracts.expiringSoon`     | contracts | One of the player's contracts ends soon and its notice is unseen (ECO4-02, [contracts.md](contracts.md#expiring-soon))                                            | "Contract expiring soon: Big Joe (ends Mar 14, 2031)" (+ " and 2 more") | `contracts` |
-| `contracts.releaseRequested` | contracts | One of the player's workers has an open release request that stops the skip (ECO4-03, off by default until ECO4-04, [contracts.md](contracts.md#unhappy-workers)) | "Big Joe wants to leave" (+ " and 2 others")                            | `contracts` |
+| Gate                         | System      | Hits when                                                                                                                                                                                                                  | Reason                                                                  | Hint        |
+| ---------------------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ----------- |
+| `shows.tonight`              | shows       | The player has an open show today (EVT2-09)                                                                                                                                                                                | "Tonight: Friday Fury", or "Your show 'Friday Fury' has no card yet"    | `showNight` |
+| `health.ownWorkerInjured`    | health      | An injury to one of the player's workers waits to be noticed (WRK6-04)                                                                                                                                                     | "Big Joe was injured (Sprained ankle, out until Mar 14, 2031)"          | `roster`    |
+| `contracts.expiringSoon`     | contracts   | One of the player's contracts ends soon and its notice is unseen (ECO4-02, [contracts.md](contracts.md#expiring-soon))                                                                                                     | "Contract expiring soon: Big Joe (ends Mar 14, 2031)" (+ " and 2 more") | `contracts` |
+| `contracts.releaseRequested` | contracts   | One of the player's workers has an open release request that stops the skip (ECO4-03, off by default until ECO4-04, [contracts.md](contracts.md#unhappy-workers))                                                          | "Big Joe wants to leave" (+ " and 2 others")                            | `contracts` |
+| `contracts.counterWaiting`   | negotiation | A worker's counter-offer to a player's promotion waits for an answer and `contracts.counter.stopSkip` was on when it was made (ECO5-05, off by default until ECO5-06, [negotiation.md](negotiation.md#counter-offer-stop)) | "Counter-offer from Big Joe is waiting for your answer"                 | `contracts` |
 
 The hints a gate can carry are the web shell's route keys: `showNight` (the
 show screen), `inbox`, `booking`, `roster` (the roster; WRK6-06 lands it on
@@ -922,7 +928,9 @@ money in cents:
 | `contract.releaseRefused`   | `employmentId`, `personId`, `promotionId`, `source`                             | A release request is refused: by the player, a rival's rule (`ai`) or left unanswered (`system`) |
 
 The negotiation system's events ([negotiation.md](negotiation.md#statuses),
-ECO5-01; published from ECO5-03 on):
+ECO5-01; the offer commands publish `negotiation.opened` and
+`negotiation.closed` (ECO5-04), the review phase all of them (ECO5-05); a
+signed renewal also publishes `contract.renewed`):
 
 | Event                    | Payload                                                                          | Published when                                                                                   |
 | ------------------------ | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
